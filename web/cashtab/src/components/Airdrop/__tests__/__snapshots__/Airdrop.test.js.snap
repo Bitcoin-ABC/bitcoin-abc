@@ -36,7 +36,7 @@ Array [
           className="sc-dxgOiQ iPcCXY"
         >
           <div
-            className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
+            className="ant-collapse ant-collapse-icon-position-start sc-jKJlTe bEMpDk"
             role={null}
             style={
               Object {
@@ -48,6 +48,7 @@ Array [
               className="ant-collapse-item"
             >
               <div
+                aria-disabled={false}
                 aria-expanded={false}
                 className="ant-collapse-header"
                 onClick={[Function]}
@@ -55,7 +56,10 @@ Array [
                 role="button"
                 tabIndex={0}
               >
-                <div>
+                <div
+                  className="ant-collapse-expand-icon"
+                  onClick={null}
+                >
                   <span
                     aria-label="right"
                     className="anticon anticon-right ant-collapse-arrow"
@@ -76,11 +80,16 @@ Array [
                     </svg>
                   </span>
                 </div>
-                <div
-                  className="sc-kpOJdX kAzjOl"
+                <span
+                  className="ant-collapse-header-text"
+                  onClick={null}
                 >
-                  XEC Airdrop Calculator
-                </div>
+                  <div
+                    className="sc-kpOJdX kAzjOl"
+                  >
+                    XEC Airdrop Calculator
+                  </div>
+                </span>
               </div>
             </div>
           </div>
@@ -127,7 +136,7 @@ Array [
           className="sc-dxgOiQ iPcCXY"
         >
           <div
-            className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
+            className="ant-collapse ant-collapse-icon-position-start sc-jKJlTe bEMpDk"
             role={null}
             style={
               Object {
@@ -139,6 +148,7 @@ Array [
               className="ant-collapse-item"
             >
               <div
+                aria-disabled={false}
                 aria-expanded={false}
                 className="ant-collapse-header"
                 onClick={[Function]}
@@ -146,7 +156,10 @@ Array [
                 role="button"
                 tabIndex={0}
               >
-                <div>
+                <div
+                  className="ant-collapse-expand-icon"
+                  onClick={null}
+                >
                   <span
                     aria-label="right"
                     className="anticon anticon-right ant-collapse-arrow"
@@ -167,11 +180,16 @@ Array [
                     </svg>
                   </span>
                 </div>
-                <div
-                  className="sc-kpOJdX kAzjOl"
+                <span
+                  className="ant-collapse-header-text"
+                  onClick={null}
                 >
-                  XEC Airdrop Calculator
-                </div>
+                  <div
+                    className="sc-kpOJdX kAzjOl"
+                  >
+                    XEC Airdrop Calculator
+                  </div>
+                </span>
               </div>
             </div>
           </div>
@@ -217,7 +235,7 @@ Array [
           className="sc-dxgOiQ iPcCXY"
         >
           <div
-            className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
+            className="ant-collapse ant-collapse-icon-position-start sc-jKJlTe bEMpDk"
             role={null}
             style={
               Object {
@@ -229,6 +247,7 @@ Array [
               className="ant-collapse-item"
             >
               <div
+                aria-disabled={false}
                 aria-expanded={false}
                 className="ant-collapse-header"
                 onClick={[Function]}
@@ -236,7 +255,10 @@ Array [
                 role="button"
                 tabIndex={0}
               >
-                <div>
+                <div
+                  className="ant-collapse-expand-icon"
+                  onClick={null}
+                >
                   <span
                     aria-label="right"
                     className="anticon anticon-right ant-collapse-arrow"
@@ -257,11 +279,16 @@ Array [
                     </svg>
                   </span>
                 </div>
-                <div
-                  className="sc-kpOJdX kAzjOl"
+                <span
+                  className="ant-collapse-header-text"
+                  onClick={null}
                 >
-                  XEC Airdrop Calculator
-                </div>
+                  <div
+                    className="sc-kpOJdX kAzjOl"
+                  >
+                    XEC Airdrop Calculator
+                  </div>
+                </span>
               </div>
             </div>
           </div>
@@ -308,7 +335,7 @@ Array [
           className="sc-dxgOiQ iPcCXY"
         >
           <div
-            className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
+            className="ant-collapse ant-collapse-icon-position-start sc-jKJlTe bEMpDk"
             role={null}
             style={
               Object {
@@ -320,6 +347,7 @@ Array [
               className="ant-collapse-item"
             >
               <div
+                aria-disabled={false}
                 aria-expanded={false}
                 className="ant-collapse-header"
                 onClick={[Function]}
@@ -327,7 +355,10 @@ Array [
                 role="button"
                 tabIndex={0}
               >
-                <div>
+                <div
+                  className="ant-collapse-expand-icon"
+                  onClick={null}
+                >
                   <span
                     aria-label="right"
                     className="anticon anticon-right ant-collapse-arrow"
@@ -348,11 +379,16 @@ Array [
                     </svg>
                   </span>
                 </div>
-                <div
-                  className="sc-kpOJdX kAzjOl"
+                <span
+                  className="ant-collapse-header-text"
+                  onClick={null}
                 >
-                  XEC Airdrop Calculator
-                </div>
+                  <div
+                    className="sc-kpOJdX kAzjOl"
+                  >
+                    XEC Airdrop Calculator
+                  </div>
+                </span>
               </div>
             </div>
           </div>
@@ -394,7 +430,7 @@ Array [
           className="sc-dxgOiQ iPcCXY"
         >
           <div
-            className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
+            className="ant-collapse ant-collapse-icon-position-start sc-jKJlTe bEMpDk"
             role={null}
             style={
               Object {
@@ -406,6 +442,7 @@ Array [
               className="ant-collapse-item"
             >
               <div
+                aria-disabled={false}
                 aria-expanded={false}
                 className="ant-collapse-header"
                 onClick={[Function]}
@@ -413,7 +450,10 @@ Array [
                 role="button"
                 tabIndex={0}
               >
-                <div>
+                <div
+                  className="ant-collapse-expand-icon"
+                  onClick={null}
+                >
                   <span
                     aria-label="right"
                     className="anticon anticon-right ant-collapse-arrow"
@@ -434,11 +474,16 @@ Array [
                     </svg>
                   </span>
                 </div>
-                <div
-                  className="sc-kpOJdX kAzjOl"
+                <span
+                  className="ant-collapse-header-text"
+                  onClick={null}
                 >
-                  XEC Airdrop Calculator
-                </div>
+                  <div
+                    className="sc-kpOJdX kAzjOl"
+                  >
+                    XEC Airdrop Calculator
+                  </div>
+                </span>
               </div>
             </div>
           </div>

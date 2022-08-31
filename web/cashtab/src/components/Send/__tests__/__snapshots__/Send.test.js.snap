@@ -54,7 +54,7 @@ Array [
               className="sc-kAzzGY gpqAje"
             >
               <div
-                className="ant-row ant-form-item ant-form-item-with-help"
+                className="ant-form-item ant-form-item-with-help"
                 style={
                   Object {
                     "marginBottom": "0px",
@@ -62,106 +62,101 @@ Array [
                 }
               >
                 <div
-                  className="ant-col ant-form-item-control"
+                  className="ant-row ant-form-item-row"
                   style={Object {}}
                 >
                   <div
-                    className="ant-form-item-control-input"
+                    className="ant-col ant-form-item-control"
+                    style={Object {}}
                   >
                     <div
-                      className="ant-form-item-control-input-content"
+                      className="ant-form-item-control-input"
                     >
-                      <span
-                        className="ant-input-group-wrapper"
+                      <div
+                        className="ant-form-item-control-input-content"
                       >
                         <span
-                          className="ant-input-wrapper ant-input-group"
+                          className="ant-input-group-wrapper"
                         >
                           <span
-                            className="ant-input-affix-wrapper"
-                            hidden={null}
-                            onMouseUp={[Function]}
-                            style={null}
+                            className="ant-input-wrapper ant-input-group"
                           >
                             <span
-                              className="ant-input-prefix"
-                            >
-                              <span
-                                aria-label="wallet"
-                                className="anticon anticon-wallet sc-htpNat lgbLiL"
-                                role="img"
-                              >
-                                <svg
-                                  aria-hidden="true"
-                                  data-icon="wallet"
-                                  fill="currentColor"
-                                  focusable="false"
-                                  height="1em"
-                                  viewBox="64 64 896 896"
-                                  width="1em"
-                                >
-                                  <path
-                                    d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
-                                  />
-                                </svg>
-                              </span>
-                            </span>
-                            <input
-                              autoComplete="off"
-                              className="ant-input"
+                              className="ant-input-affix-wrapper"
                               hidden={null}
-                              name="address"
-                              onBlur={[Function]}
-                              onChange={[Function]}
-                              onFocus={[Function]}
-                              onKeyDown={[Function]}
-                              placeholder="XEC Address"
-                              required={true}
+                              onMouseDown={[Function]}
                               style={null}
-                              type="text"
-                              value=""
-                            />
-                          </span>
-                          <span
-                            className="ant-input-group-addon"
-                          >
-                            <span
-                              className="sc-fjdhpX lnKJWB"
-                              onClick={[Function]}
                             >
                               <span
-                                aria-label="qrcode"
-                                className="anticon anticon-qrcode sc-bxivhb dlJbAr"
-                                role="img"
+                                className="ant-input-prefix"
                               >
-                                <svg
-                                  aria-hidden="true"
-                                  data-icon="qrcode"
-                                  fill="currentColor"
-                                  focusable="false"
-                                  height="1em"
-                                  viewBox="64 64 896 896"
-                                  width="1em"
+                                <span
+                                  aria-label="wallet"
+                                  className="anticon anticon-wallet sc-htpNat lgbLiL"
+                                  role="img"
                                 >
-                                  <path
-                                    d="M468 128H160c-17.7 0-32 14.3-32 32v308c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V136c0-4.4-3.6-8-8-8zm-56 284H192V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210H136c-4.4 0-8 3.6-8 8v308c0 17.7 14.3 32 32 32h308c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zm-56 284H192V612h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm590-630H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V160c0-17.7-14.3-32-32-32zm-32 284H612V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210h-48c-4.4 0-8 3.6-8 8v134h-78V556c0-4.4-3.6-8-8-8H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V644h78v102c0 4.4 3.6 8 8 8h190c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zM746 832h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8zm142 0h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8z"
-                                  />
-                                </svg>
+                                  <svg
+                                    aria-hidden="true"
+                                    data-icon="wallet"
+                                    fill="currentColor"
+                                    focusable="false"
+                                    height="1em"
+                                    viewBox="64 64 896 896"
+                                    width="1em"
+                                  >
+                                    <path
+                                      d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
+                                    />
+                                  </svg>
+                                </span>
+                              </span>
+                              <input
+                                autoComplete="off"
+                                className="ant-input"
+                                hidden={null}
+                                name="address"
+                                onBlur={[Function]}
+                                onChange={[Function]}
+                                onFocus={[Function]}
+                                onKeyDown={[Function]}
+                                placeholder="XEC Address"
+                                required={true}
+                                style={null}
+                                type="text"
+                                value=""
+                              />
+                            </span>
+                            <span
+                              className="ant-input-group-addon"
+                            >
+                              <span
+                                className="sc-fjdhpX lnKJWB"
+                                onClick={[Function]}
+                              >
+                                <span
+                                  aria-label="qrcode"
+                                  className="anticon anticon-qrcode sc-bxivhb dlJbAr"
+                                  role="img"
+                                >
+                                  <svg
+                                    aria-hidden="true"
+                                    data-icon="qrcode"
+                                    fill="currentColor"
+                                    focusable="false"
+                                    height="1em"
+                                    viewBox="64 64 896 896"
+                                    width="1em"
+                                  >
+                                    <path
+                                      d="M468 128H160c-17.7 0-32 14.3-32 32v308c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V136c0-4.4-3.6-8-8-8zm-56 284H192V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210H136c-4.4 0-8 3.6-8 8v308c0 17.7 14.3 32 32 32h308c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zm-56 284H192V612h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm590-630H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V160c0-17.7-14.3-32-32-32zm-32 284H612V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210h-48c-4.4 0-8 3.6-8 8v134h-78V556c0-4.4-3.6-8-8-8H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V644h78v102c0 4.4 3.6 8 8 8h190c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zM746 832h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8zm142 0h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8z"
+                                    />
+                                  </svg>
+                                </span>
                               </span>
                             </span>
                           </span>
                         </span>
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    className="ant-form-item-explain ant-form-item-explain-connected"
-                  >
-                    <div
-                      className=""
-                      role="alert"
-                    >
-                      
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -176,174 +171,167 @@ Array [
               className="sc-kAzzGY gpqAje"
             >
               <div
-                className="ant-row ant-form-item ant-form-item-with-help"
-                style={Object {}}
+                className="ant-form-item ant-form-item-with-help"
               >
                 <div
-                  className="ant-col ant-form-item-control"
+                  className="ant-row ant-form-item-row"
                   style={Object {}}
                 >
                   <div
-                    className="ant-form-item-control-input"
+                    className="ant-col ant-form-item-control"
+                    style={Object {}}
                   >
                     <div
-                      className="ant-form-item-control-input-content"
+                      className="ant-form-item-control-input"
                     >
-                      <span
-                        className="ant-input-group ant-input-group-compact"
+                      <div
+                        className="ant-form-item-control-input-content"
                       >
                         <span
-                          className="ant-input-affix-wrapper"
-                          onMouseUp={[Function]}
-                          style={
-                            Object {
-                              "textAlign": "left",
-                              "width": "60%",
-                            }
-                          }
+                          className="ant-input-group ant-input-group-compact"
                         >
                           <span
-                            className="ant-input-prefix"
-                          >
-                            <img
-                              alt=""
-                              height={16}
-                              src="logo_primary.png"
-                              width={16}
-                            />
-                          </span>
-                          <input
-                            className="ant-input"
-                            disabled={false}
-                            dollar={0}
-                            hidden={null}
-                            name="value"
-                            onBlur={[Function]}
-                            onChange={[Function]}
-                            onFocus={[Function]}
-                            onKeyDown={[Function]}
-                            placeholder="Amount"
-                            required={true}
-                            step={0.01}
-                            style={null}
-                            type="number"
-                            value=""
-                          />
-                        </span>
-                        <div
-                          className="ant-select select-after ant-select-single ant-select-show-arrow"
-                          onBlur={[Function]}
-                          onFocus={[Function]}
-                          onKeyDown={[Function]}
-                          onKeyUp={[Function]}
-                          onMouseDown={[Function]}
-                          style={
-                            Object {
-                              "width": "30%",
-                            }
-                          }
-                        >
-                          <div
-                            className="ant-select-selector"
-                            onClick={[Function]}
-                            onMouseDown={[Function]}
-                          >
-                            <span
-                              className="ant-select-selection-search"
-                            >
-                              <input
-                                aria-activedescendant="rc_select_TEST_OR_SSR_list_0"
-                                aria-autocomplete="list"
-                                aria-controls="rc_select_TEST_OR_SSR_list"
-                                aria-haspopup="listbox"
-                                aria-owns="rc_select_TEST_OR_SSR_list"
-                                autoComplete="off"
-                                className="ant-select-selection-search-input"
-                                disabled={false}
-                                id="rc_select_TEST_OR_SSR"
-                                onChange={[Function]}
-                                onCompositionEnd={[Function]}
-                                onCompositionStart={[Function]}
-                                onKeyDown={[Function]}
-                                onMouseDown={[Function]}
-                                onPaste={[Function]}
-                                readOnly={true}
-                                role="combobox"
-                                style={
-                                  Object {
-                                    "opacity": 0,
-                                  }
-                                }
-                                type="search"
-                                unselectable="on"
-                                value=""
-                              />
-                            </span>
-                            <span
-                              className="ant-select-selection-item"
-                              title="XEC"
-                            >
-                              XEC
-                            </span>
-                          </div>
-                          <span
-                            aria-hidden={true}
-                            className="ant-select-arrow"
+                            className="ant-input-affix-wrapper"
                             onMouseDown={[Function]}
                             style={
                               Object {
-                                "WebkitUserSelect": "none",
-                                "userSelect": "none",
+                                "textAlign": "left",
+                                "width": "60%",
                               }
                             }
-                            unselectable="on"
                           >
                             <span
-                              aria-label="down"
-                              className="anticon anticon-down ant-select-suffix"
-                              role="img"
+                              className="ant-input-prefix"
                             >
-                              <svg
-                                aria-hidden="true"
-                                data-icon="down"
-                                fill="currentColor"
-                                focusable="false"
-                                height="1em"
-                                viewBox="64 64 896 896"
-                                width="1em"
-                              >
-                                <path
-                                  d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z"
-                                />
-                              </svg>
+                              <img
+                                alt=""
+                                height={16}
+                                src="logo_primary.png"
+                                width={16}
+                              />
                             </span>
+                            <input
+                              className="ant-input"
+                              dollar={0}
+                              hidden={null}
+                              name="value"
+                              onBlur={[Function]}
+                              onChange={[Function]}
+                              onFocus={[Function]}
+                              onKeyDown={[Function]}
+                              placeholder="Amount"
+                              required={true}
+                              step={0.01}
+                              style={null}
+                              type="number"
+                              value=""
+                            />
                           </span>
-                        </div>
-                        <span
-                          className="sc-kgoBCf geHQWv"
-                          disabled={false}
-                          onClick={[Function]}
-                          style={
-                            Object {
-                              "height": "55px",
-                              "lineHeight": "55px",
-                              "width": "10%",
+                          <div
+                            className="ant-select select-after ant-select-single ant-select-show-arrow"
+                            onBlur={[Function]}
+                            onFocus={[Function]}
+                            onKeyDown={[Function]}
+                            onKeyUp={[Function]}
+                            onMouseDown={[Function]}
+                            style={
+                              Object {
+                                "width": "30%",
+                              }
                             }
-                          }
-                        >
-                          max
+                          >
+                            <div
+                              className="ant-select-selector"
+                              onClick={[Function]}
+                              onMouseDown={[Function]}
+                            >
+                              <span
+                                className="ant-select-selection-search"
+                              >
+                                <input
+                                  aria-activedescendant="rc_select_TEST_OR_SSR_list_0"
+                                  aria-autocomplete="list"
+                                  aria-controls="rc_select_TEST_OR_SSR_list"
+                                  aria-haspopup="listbox"
+                                  aria-owns="rc_select_TEST_OR_SSR_list"
+                                  autoComplete="off"
+                                  className="ant-select-selection-search-input"
+                                  disabled={false}
+                                  id="rc_select_TEST_OR_SSR"
+                                  onChange={[Function]}
+                                  onCompositionEnd={[Function]}
+                                  onCompositionStart={[Function]}
+                                  onKeyDown={[Function]}
+                                  onMouseDown={[Function]}
+                                  onPaste={[Function]}
+                                  readOnly={true}
+                                  role="combobox"
+                                  style={
+                                    Object {
+                                      "opacity": 0,
+                                    }
+                                  }
+                                  type="search"
+                                  unselectable="on"
+                                  value=""
+                                />
+                              </span>
+                              <span
+                                className="ant-select-selection-item"
+                                title="XEC"
+                              >
+                                XEC
+                              </span>
+                            </div>
+                            <span
+                              aria-hidden={true}
+                              className="ant-select-arrow"
+                              onMouseDown={[Function]}
+                              style={
+                                Object {
+                                  "WebkitUserSelect": "none",
+                                  "userSelect": "none",
+                                }
+                              }
+                              unselectable="on"
+                            >
+                              <span
+                                aria-label="down"
+                                className="anticon anticon-down ant-select-suffix"
+                                role="img"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  data-icon="down"
+                                  fill="currentColor"
+                                  focusable="false"
+                                  height="1em"
+                                  viewBox="64 64 896 896"
+                                  width="1em"
+                                >
+                                  <path
+                                    d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z"
+                                  />
+                                </svg>
+                              </span>
+                            </span>
+                          </div>
+                          <span
+                            className="sc-kgoBCf geHQWv"
+                            disabled={false}
+                            onClick={[Function]}
+                            style={
+                              Object {
+                                "height": "55px",
+                                "lineHeight": "55px",
+                                "width": "10%",
+                              }
+                            }
+                          >
+                            max
+                          </span>
                         </span>
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    className="ant-form-item-explain ant-form-item-explain-connected"
-                  >
-                    <div
-                      className=""
-                      role="alert"
-                    >
-                      
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -385,7 +373,7 @@ Array [
             className="sc-dxgOiQ iPcCXY"
           >
             <div
-              className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
+              className="ant-collapse ant-collapse-icon-position-start sc-jKJlTe bEMpDk"
               role={null}
               style={
                 Object {
@@ -397,6 +385,7 @@ Array [
                 className="ant-collapse-item"
               >
                 <div
+                  aria-disabled={false}
                   aria-expanded={false}
                   className="ant-collapse-header"
                   onClick={[Function]}
@@ -404,7 +393,10 @@ Array [
                   role="button"
                   tabIndex={0}
                 >
-                  <div>
+                  <div
+                    className="ant-collapse-expand-icon"
+                    onClick={null}
+                  >
                     <span
                       aria-label="right"
                       className="anticon anticon-right ant-collapse-arrow"
@@ -425,11 +417,16 @@ Array [
                       </svg>
                     </span>
                   </div>
-                  <div
-                    className="sc-kpOJdX kAzjOl"
+                  <span
+                    className="ant-collapse-header-text"
+                    onClick={null}
                   >
-                    Advanced
-                  </div>
+                    <div
+                      className="sc-kpOJdX kAzjOl"
+                    >
+                      Advanced
+                    </div>
+                  </span>
                 </div>
               </div>
             </div>
@@ -441,7 +438,7 @@ Array [
       className="sc-dxgOiQ iPcCXY"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
+        className="ant-collapse ant-collapse-icon-position-start sc-jKJlTe bEMpDk"
         role={null}
         style={
           Object {
@@ -453,6 +450,7 @@ Array [
           className="ant-collapse-item"
         >
           <div
+            aria-disabled={false}
             aria-expanded={false}
             className="ant-collapse-header"
             onClick={[Function]}
@@ -460,7 +458,10 @@ Array [
             role="button"
             tabIndex={0}
           >
-            <div>
+            <div
+              className="ant-collapse-expand-icon"
+              onClick={null}
+            >
               <span
                 aria-label="right"
                 className="anticon anticon-right ant-collapse-arrow"
@@ -481,11 +482,16 @@ Array [
                 </svg>
               </span>
             </div>
-            <div
-              className="sc-kpOJdX kAzjOl"
+            <span
+              className="ant-collapse-header-text"
+              onClick={null}
             >
-              Sign Message
-            </div>
+              <div
+                className="sc-kpOJdX kAzjOl"
+              >
+                Sign Message
+              </div>
+            </span>
           </div>
         </div>
       </div>
@@ -494,7 +500,7 @@ Array [
       className="sc-dxgOiQ iPcCXY"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
+        className="ant-collapse ant-collapse-icon-position-start sc-jKJlTe bEMpDk"
         role={null}
         style={
           Object {
@@ -506,6 +512,7 @@ Array [
           className="ant-collapse-item"
         >
           <div
+            aria-disabled={false}
             aria-expanded={false}
             className="ant-collapse-header"
             onClick={[Function]}
@@ -513,7 +520,10 @@ Array [
             role="button"
             tabIndex={0}
           >
-            <div>
+            <div
+              className="ant-collapse-expand-icon"
+              onClick={null}
+            >
               <span
                 aria-label="right"
                 className="anticon anticon-right ant-collapse-arrow"
@@ -534,11 +544,16 @@ Array [
                 </svg>
               </span>
             </div>
-            <div
-              className="sc-kpOJdX kAzjOl"
+            <span
+              className="ant-collapse-header-text"
+              onClick={null}
             >
-              Verify Message
-            </div>
+              <div
+                className="sc-kpOJdX kAzjOl"
+              >
+                Verify Message
+              </div>
+            </span>
           </div>
         </div>
       </div>
@@ -601,7 +616,7 @@ Array [
               className="sc-kAzzGY gpqAje"
             >
               <div
-                className="ant-row ant-form-item ant-form-item-with-help"
+                className="ant-form-item ant-form-item-with-help"
                 style={
                   Object {
                     "marginBottom": "0px",
@@ -609,106 +624,101 @@ Array [
                 }
               >
                 <div
-                  className="ant-col ant-form-item-control"
+                  className="ant-row ant-form-item-row"
                   style={Object {}}
                 >
                   <div
-                    className="ant-form-item-control-input"
+                    className="ant-col ant-form-item-control"
+                    style={Object {}}
                   >
                     <div
-                      className="ant-form-item-control-input-content"
+                      className="ant-form-item-control-input"
                     >
-                      <span
-                        className="ant-input-group-wrapper"
+                      <div
+                        className="ant-form-item-control-input-content"
                       >
                         <span
-                          className="ant-input-wrapper ant-input-group"
+                          className="ant-input-group-wrapper"
                         >
                           <span
-                            className="ant-input-affix-wrapper"
-                            hidden={null}
-                            onMouseUp={[Function]}
-                            style={null}
+                            className="ant-input-wrapper ant-input-group"
                           >
                             <span
-                              className="ant-input-prefix"
-                            >
-                              <span
-                                aria-label="wallet"
-                                className="anticon anticon-wallet sc-htpNat lgbLiL"
-                                role="img"
-                              >
-                                <svg
-                                  aria-hidden="true"
-                                  data-icon="wallet"
-                                  fill="currentColor"
-                                  focusable="false"
-                                  height="1em"
-                                  viewBox="64 64 896 896"
-                                  width="1em"
-                                >
-                                  <path
-                                    d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
-                                  />
-                                </svg>
-                              </span>
-                            </span>
-                            <input
-                              autoComplete="off"
-                              className="ant-input"
+                              className="ant-input-affix-wrapper"
                               hidden={null}
-                              name="address"
-                              onBlur={[Function]}
-                              onChange={[Function]}
-                              onFocus={[Function]}
-                              onKeyDown={[Function]}
-                              placeholder="XEC Address"
-                              required={true}
+                              onMouseDown={[Function]}
                               style={null}
-                              type="text"
-                              value=""
-                            />
-                          </span>
-                          <span
-                            className="ant-input-group-addon"
-                          >
-                            <span
-                              className="sc-fjdhpX lnKJWB"
-                              onClick={[Function]}
                             >
                               <span
-                                aria-label="qrcode"
-                                className="anticon anticon-qrcode sc-bxivhb dlJbAr"
-                                role="img"
+                                className="ant-input-prefix"
                               >
-                                <svg
-                                  aria-hidden="true"
-                                  data-icon="qrcode"
-                                  fill="currentColor"
-                                  focusable="false"
-                                  height="1em"
-                                  viewBox="64 64 896 896"
-                                  width="1em"
+                                <span
+                                  aria-label="wallet"
+                                  className="anticon anticon-wallet sc-htpNat lgbLiL"
+                                  role="img"
                                 >
-                                  <path
-                                    d="M468 128H160c-17.7 0-32 14.3-32 32v308c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V136c0-4.4-3.6-8-8-8zm-56 284H192V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210H136c-4.4 0-8 3.6-8 8v308c0 17.7 14.3 32 32 32h308c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zm-56 284H192V612h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm590-630H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V160c0-17.7-14.3-32-32-32zm-32 284H612V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210h-48c-4.4 0-8 3.6-8 8v134h-78V556c0-4.4-3.6-8-8-8H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V644h78v102c0 4.4 3.6 8 8 8h190c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zM746 832h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8zm142 0h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8z"
-                                  />
-                                </svg>
+                                  <svg
+                                    aria-hidden="true"
+                                    data-icon="wallet"
+                                    fill="currentColor"
+                                    focusable="false"
+                                    height="1em"
+                                    viewBox="64 64 896 896"
+                                    width="1em"
+                                  >
+                                    <path
+                                      d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
+                                    />
+                                  </svg>
+                                </span>
+                              </span>
+                              <input
+                                autoComplete="off"
+                                className="ant-input"
+                                hidden={null}
+                                name="address"
+                                onBlur={[Function]}
+                                onChange={[Function]}
+                                onFocus={[Function]}
+                                onKeyDown={[Function]}
+                                placeholder="XEC Address"
+                                required={true}
+                                style={null}
+                                type="text"
+                                value=""
+                              />
+                            </span>
+                            <span
+                              className="ant-input-group-addon"
+                            >
+                              <span
+                                className="sc-fjdhpX lnKJWB"
+                                onClick={[Function]}
+                              >
+                                <span
+                                  aria-label="qrcode"
+                                  className="anticon anticon-qrcode sc-bxivhb dlJbAr"
+                                  role="img"
+                                >
+                                  <svg
+                                    aria-hidden="true"
+                                    data-icon="qrcode"
+                                    fill="currentColor"
+                                    focusable="false"
+                                    height="1em"
+                                    viewBox="64 64 896 896"
+                                    width="1em"
+                                  >
+                                    <path
+                                      d="M468 128H160c-17.7 0-32 14.3-32 32v308c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V136c0-4.4-3.6-8-8-8zm-56 284H192V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210H136c-4.4 0-8 3.6-8 8v308c0 17.7 14.3 32 32 32h308c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zm-56 284H192V612h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm590-630H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V160c0-17.7-14.3-32-32-32zm-32 284H612V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210h-48c-4.4 0-8 3.6-8 8v134h-78V556c0-4.4-3.6-8-8-8H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V644h78v102c0 4.4 3.6 8 8 8h190c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zM746 832h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8zm142 0h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8z"
+                                    />
+                                  </svg>
+                                </span>
                               </span>
                             </span>
                           </span>
                         </span>
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    className="ant-form-item-explain ant-form-item-explain-connected"
-                  >
-                    <div
-                      className=""
-                      role="alert"
-                    >
-                      
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -723,174 +733,167 @@ Array [
               className="sc-kAzzGY gpqAje"
             >
               <div
-                className="ant-row ant-form-item ant-form-item-with-help"
-                style={Object {}}
+                className="ant-form-item ant-form-item-with-help"
               >
                 <div
-                  className="ant-col ant-form-item-control"
+                  className="ant-row ant-form-item-row"
                   style={Object {}}
                 >
                   <div
-                    className="ant-form-item-control-input"
+                    className="ant-col ant-form-item-control"
+                    style={Object {}}
                   >
                     <div
-                      className="ant-form-item-control-input-content"
+                      className="ant-form-item-control-input"
                     >
-                      <span
-                        className="ant-input-group ant-input-group-compact"
+                      <div
+                        className="ant-form-item-control-input-content"
                       >
                         <span
-                          className="ant-input-affix-wrapper"
-                          onMouseUp={[Function]}
-                          style={
-                            Object {
-                              "textAlign": "left",
-                              "width": "60%",
-                            }
-                          }
+                          className="ant-input-group ant-input-group-compact"
                         >
                           <span
-                            className="ant-input-prefix"
-                          >
-                            <img
-                              alt=""
-                              height={16}
-                              src="logo_primary.png"
-                              width={16}
-                            />
-                          </span>
-                          <input
-                            className="ant-input"
-                            disabled={false}
-                            dollar={0}
-                            hidden={null}
-                            name="value"
-                            onBlur={[Function]}
-                            onChange={[Function]}
-                            onFocus={[Function]}
-                            onKeyDown={[Function]}
-                            placeholder="Amount"
-                            required={true}
-                            step={0.01}
-                            style={null}
-                            type="number"
-                            value=""
-                          />
-                        </span>
-                        <div
-                          className="ant-select select-after ant-select-single ant-select-show-arrow"
-                          onBlur={[Function]}
-                          onFocus={[Function]}
-                          onKeyDown={[Function]}
-                          onKeyUp={[Function]}
-                          onMouseDown={[Function]}
-                          style={
-                            Object {
-                              "width": "30%",
-                            }
-                          }
-                        >
-                          <div
-                            className="ant-select-selector"
-                            onClick={[Function]}
-                            onMouseDown={[Function]}
-                          >
-                            <span
-                              className="ant-select-selection-search"
-                            >
-                              <input
-                                aria-activedescendant="rc_select_TEST_OR_SSR_list_0"
-                                aria-autocomplete="list"
-                                aria-controls="rc_select_TEST_OR_SSR_list"
-                                aria-haspopup="listbox"
-                                aria-owns="rc_select_TEST_OR_SSR_list"
-                                autoComplete="off"
-                                className="ant-select-selection-search-input"
-                                disabled={false}
-                                id="rc_select_TEST_OR_SSR"
-                                onChange={[Function]}
-                                onCompositionEnd={[Function]}
-                                onCompositionStart={[Function]}
-                                onKeyDown={[Function]}
-                                onMouseDown={[Function]}
-                                onPaste={[Function]}
-                                readOnly={true}
-                                role="combobox"
-                                style={
-                                  Object {
-                                    "opacity": 0,
-                                  }
-                                }
-                                type="search"
-                                unselectable="on"
-                                value=""
-                              />
-                            </span>
-                            <span
-                              className="ant-select-selection-item"
-                              title="XEC"
-                            >
-                              XEC
-                            </span>
-                          </div>
-                          <span
-                            aria-hidden={true}
-                            className="ant-select-arrow"
+                            className="ant-input-affix-wrapper"
                             onMouseDown={[Function]}
                             style={
                               Object {
-                                "WebkitUserSelect": "none",
-                                "userSelect": "none",
+                                "textAlign": "left",
+                                "width": "60%",
                               }
                             }
-                            unselectable="on"
                           >
                             <span
-                              aria-label="down"
-                              className="anticon anticon-down ant-select-suffix"
-                              role="img"
+                              className="ant-input-prefix"
                             >
-                              <svg
-                                aria-hidden="true"
-                                data-icon="down"
-                                fill="currentColor"
-                                focusable="false"
-                                height="1em"
-                                viewBox="64 64 896 896"
-                                width="1em"
-                              >
-                                <path
-                                  d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z"
-                                />
-                              </svg>
+                              <img
+                                alt=""
+                                height={16}
+                                src="logo_primary.png"
+                                width={16}
+                              />
                             </span>
+                            <input
+                              className="ant-input"
+                              dollar={0}
+                              hidden={null}
+                              name="value"
+                              onBlur={[Function]}
+                              onChange={[Function]}
+                              onFocus={[Function]}
+                              onKeyDown={[Function]}
+                              placeholder="Amount"
+                              required={true}
+                              step={0.01}
+                              style={null}
+                              type="number"
+                              value=""
+                            />
                           </span>
-                        </div>
-                        <span
-                          className="sc-kgoBCf geHQWv"
-                          disabled={false}
-                          onClick={[Function]}
-                          style={
-                            Object {
-                              "height": "55px",
-                              "lineHeight": "55px",
-                              "width": "10%",
+                          <div
+                            className="ant-select select-after ant-select-single ant-select-show-arrow"
+                            onBlur={[Function]}
+                            onFocus={[Function]}
+                            onKeyDown={[Function]}
+                            onKeyUp={[Function]}
+                            onMouseDown={[Function]}
+                            style={
+                              Object {
+                                "width": "30%",
+                              }
                             }
-                          }
-                        >
-                          max
+                          >
+                            <div
+                              className="ant-select-selector"
+                              onClick={[Function]}
+                              onMouseDown={[Function]}
+                            >
+                              <span
+                                className="ant-select-selection-search"
+                              >
+                                <input
+                                  aria-activedescendant="rc_select_TEST_OR_SSR_list_0"
+                                  aria-autocomplete="list"
+                                  aria-controls="rc_select_TEST_OR_SSR_list"
+                                  aria-haspopup="listbox"
+                                  aria-owns="rc_select_TEST_OR_SSR_list"
+                                  autoComplete="off"
+                                  className="ant-select-selection-search-input"
+                                  disabled={false}
+                                  id="rc_select_TEST_OR_SSR"
+                                  onChange={[Function]}
+                                  onCompositionEnd={[Function]}
+                                  onCompositionStart={[Function]}
+                                  onKeyDown={[Function]}
+                                  onMouseDown={[Function]}
+                                  onPaste={[Function]}
+                                  readOnly={true}
+                                  role="combobox"
+                                  style={
+                                    Object {
+                                      "opacity": 0,
+                                    }
+                                  }
+                                  type="search"
+                                  unselectable="on"
+                                  value=""
+                                />
+                              </span>
+                              <span
+                                className="ant-select-selection-item"
+                                title="XEC"
+                              >
+                                XEC
+                              </span>
+                            </div>
+                            <span
+                              aria-hidden={true}
+                              className="ant-select-arrow"
+                              onMouseDown={[Function]}
+                              style={
+                                Object {
+                                  "WebkitUserSelect": "none",
+                                  "userSelect": "none",
+                                }
+                              }
+                              unselectable="on"
+                            >
+                              <span
+                                aria-label="down"
+                                className="anticon anticon-down ant-select-suffix"
+                                role="img"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  data-icon="down"
+                                  fill="currentColor"
+                                  focusable="false"
+                                  height="1em"
+                                  viewBox="64 64 896 896"
+                                  width="1em"
+                                >
+                                  <path
+                                    d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z"
+                                  />
+                                </svg>
+                              </span>
+                            </span>
+                          </div>
+                          <span
+                            className="sc-kgoBCf geHQWv"
+                            disabled={false}
+                            onClick={[Function]}
+                            style={
+                              Object {
+                                "height": "55px",
+                                "lineHeight": "55px",
+                                "width": "10%",
+                              }
+                            }
+                          >
+                            max
+                          </span>
                         </span>
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    className="ant-form-item-explain ant-form-item-explain-connected"
-                  >
-                    <div
-                      className=""
-                      role="alert"
-                    >
-                      
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -932,7 +935,7 @@ Array [
             className="sc-dxgOiQ iPcCXY"
           >
             <div
-              className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
+              className="ant-collapse ant-collapse-icon-position-start sc-jKJlTe bEMpDk"
               role={null}
               style={
                 Object {
@@ -944,6 +947,7 @@ Array [
                 className="ant-collapse-item"
               >
                 <div
+                  aria-disabled={false}
                   aria-expanded={false}
                   className="ant-collapse-header"
                   onClick={[Function]}
@@ -951,7 +955,10 @@ Array [
                   role="button"
                   tabIndex={0}
                 >
-                  <div>
+                  <div
+                    className="ant-collapse-expand-icon"
+                    onClick={null}
+                  >
                     <span
                       aria-label="right"
                       className="anticon anticon-right ant-collapse-arrow"
@@ -972,11 +979,16 @@ Array [
                       </svg>
                     </span>
                   </div>
-                  <div
-                    className="sc-kpOJdX kAzjOl"
+                  <span
+                    className="ant-collapse-header-text"
+                    onClick={null}
                   >
-                    Advanced
-                  </div>
+                    <div
+                      className="sc-kpOJdX kAzjOl"
+                    >
+                      Advanced
+                    </div>
+                  </span>
                 </div>
               </div>
             </div>
@@ -988,7 +1000,7 @@ Array [
       className="sc-dxgOiQ iPcCXY"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
+        className="ant-collapse ant-collapse-icon-position-start sc-jKJlTe bEMpDk"
         role={null}
         style={
           Object {
@@ -1000,6 +1012,7 @@ Array [
           className="ant-collapse-item"
         >
           <div
+            aria-disabled={false}
             aria-expanded={false}
             className="ant-collapse-header"
             onClick={[Function]}
@@ -1007,7 +1020,10 @@ Array [
             role="button"
             tabIndex={0}
           >
-            <div>
+            <div
+              className="ant-collapse-expand-icon"
+              onClick={null}
+            >
               <span
                 aria-label="right"
                 className="anticon anticon-right ant-collapse-arrow"
@@ -1028,11 +1044,16 @@ Array [
                 </svg>
               </span>
             </div>
-            <div
-              className="sc-kpOJdX kAzjOl"
+            <span
+              className="ant-collapse-header-text"
+              onClick={null}
             >
-              Sign Message
-            </div>
+              <div
+                className="sc-kpOJdX kAzjOl"
+              >
+                Sign Message
+              </div>
+            </span>
           </div>
         </div>
       </div>
@@ -1041,7 +1062,7 @@ Array [
       className="sc-dxgOiQ iPcCXY"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
+        className="ant-collapse ant-collapse-icon-position-start sc-jKJlTe bEMpDk"
         role={null}
         style={
           Object {
@@ -1053,6 +1074,7 @@ Array [
           className="ant-collapse-item"
         >
           <div
+            aria-disabled={false}
             aria-expanded={false}
             className="ant-collapse-header"
             onClick={[Function]}
@@ -1060,7 +1082,10 @@ Array [
             role="button"
             tabIndex={0}
           >
-            <div>
+            <div
+              className="ant-collapse-expand-icon"
+              onClick={null}
+            >
               <span
                 aria-label="right"
                 className="anticon anticon-right ant-collapse-arrow"
@@ -1081,11 +1106,16 @@ Array [
                 </svg>
               </span>
             </div>
-            <div
-              className="sc-kpOJdX kAzjOl"
+            <span
+              className="ant-collapse-header-text"
+              onClick={null}
             >
-              Verify Message
-            </div>
+              <div
+                className="sc-kpOJdX kAzjOl"
+              >
+                Verify Message
+              </div>
+            </span>
           </div>
         </div>
       </div>
@@ -1147,7 +1177,7 @@ Array [
               className="sc-kAzzGY gpqAje"
             >
               <div
-                className="ant-row ant-form-item ant-form-item-with-help"
+                className="ant-form-item ant-form-item-with-help"
                 style={
                   Object {
                     "marginBottom": "0px",
@@ -1155,106 +1185,101 @@ Array [
                 }
               >
                 <div
-                  className="ant-col ant-form-item-control"
+                  className="ant-row ant-form-item-row"
                   style={Object {}}
                 >
                   <div
-                    className="ant-form-item-control-input"
+                    className="ant-col ant-form-item-control"
+                    style={Object {}}
                   >
                     <div
-                      className="ant-form-item-control-input-content"
+                      className="ant-form-item-control-input"
                     >
-                      <span
-                        className="ant-input-group-wrapper"
+                      <div
+                        className="ant-form-item-control-input-content"
                       >
                         <span
-                          className="ant-input-wrapper ant-input-group"
+                          className="ant-input-group-wrapper"
                         >
                           <span
-                            className="ant-input-affix-wrapper"
-                            hidden={null}
-                            onMouseUp={[Function]}
-                            style={null}
+                            className="ant-input-wrapper ant-input-group"
                           >
                             <span
-                              className="ant-input-prefix"
-                            >
-                              <span
-                                aria-label="wallet"
-                                className="anticon anticon-wallet sc-htpNat lgbLiL"
-                                role="img"
-                              >
-                                <svg
-                                  aria-hidden="true"
-                                  data-icon="wallet"
-                                  fill="currentColor"
-                                  focusable="false"
-                                  height="1em"
-                                  viewBox="64 64 896 896"
-                                  width="1em"
-                                >
-                                  <path
-                                    d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
-                                  />
-                                </svg>
-                              </span>
-                            </span>
-                            <input
-                              autoComplete="off"
-                              className="ant-input"
+                              className="ant-input-affix-wrapper"
                               hidden={null}
-                              name="address"
-                              onBlur={[Function]}
-                              onChange={[Function]}
-                              onFocus={[Function]}
-                              onKeyDown={[Function]}
-                              placeholder="XEC Address"
-                              required={true}
+                              onMouseDown={[Function]}
                               style={null}
-                              type="text"
-                              value=""
-                            />
-                          </span>
-                          <span
-                            className="ant-input-group-addon"
-                          >
-                            <span
-                              className="sc-fjdhpX lnKJWB"
-                              onClick={[Function]}
                             >
                               <span
-                                aria-label="qrcode"
-                                className="anticon anticon-qrcode sc-bxivhb dlJbAr"
-                                role="img"
+                                className="ant-input-prefix"
                               >
-                                <svg
-                                  aria-hidden="true"
-                                  data-icon="qrcode"
-                                  fill="currentColor"
-                                  focusable="false"
-                                  height="1em"
-                                  viewBox="64 64 896 896"
-                                  width="1em"
+                                <span
+                                  aria-label="wallet"
+                                  className="anticon anticon-wallet sc-htpNat lgbLiL"
+                                  role="img"
                                 >
-                                  <path
-                                    d="M468 128H160c-17.7 0-32 14.3-32 32v308c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V136c0-4.4-3.6-8-8-8zm-56 284H192V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210H136c-4.4 0-8 3.6-8 8v308c0 17.7 14.3 32 32 32h308c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zm-56 284H192V612h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm590-630H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V160c0-17.7-14.3-32-32-32zm-32 284H612V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210h-48c-4.4 0-8 3.6-8 8v134h-78V556c0-4.4-3.6-8-8-8H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V644h78v102c0 4.4 3.6 8 8 8h190c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zM746 832h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8zm142 0h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8z"
-                                  />
-                                </svg>
+                                  <svg
+                                    aria-hidden="true"
+                                    data-icon="wallet"
+                                    fill="currentColor"
+                                    focusable="false"
+                                    height="1em"
+                                    viewBox="64 64 896 896"
+                                    width="1em"
+                                  >
+                                    <path
+                                      d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
+                                    />
+                                  </svg>
+                                </span>
+                              </span>
+                              <input
+                                autoComplete="off"
+                                className="ant-input"
+                                hidden={null}
+                                name="address"
+                                onBlur={[Function]}
+                                onChange={[Function]}
+                                onFocus={[Function]}
+                                onKeyDown={[Function]}
+                                placeholder="XEC Address"
+                                required={true}
+                                style={null}
+                                type="text"
+                                value=""
+                              />
+                            </span>
+                            <span
+                              className="ant-input-group-addon"
+                            >
+                              <span
+                                className="sc-fjdhpX lnKJWB"
+                                onClick={[Function]}
+                              >
+                                <span
+                                  aria-label="qrcode"
+                                  className="anticon anticon-qrcode sc-bxivhb dlJbAr"
+                                  role="img"
+                                >
+                                  <svg
+                                    aria-hidden="true"
+                                    data-icon="qrcode"
+                                    fill="currentColor"
+                                    focusable="false"
+                                    height="1em"
+                                    viewBox="64 64 896 896"
+                                    width="1em"
+                                  >
+                                    <path
+                                      d="M468 128H160c-17.7 0-32 14.3-32 32v308c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V136c0-4.4-3.6-8-8-8zm-56 284H192V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210H136c-4.4 0-8 3.6-8 8v308c0 17.7 14.3 32 32 32h308c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zm-56 284H192V612h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm590-630H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V160c0-17.7-14.3-32-32-32zm-32 284H612V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210h-48c-4.4 0-8 3.6-8 8v134h-78V556c0-4.4-3.6-8-8-8H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V644h78v102c0 4.4 3.6 8 8 8h190c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zM746 832h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8zm142 0h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8z"
+                                    />
+                                  </svg>
+                                </span>
                               </span>
                             </span>
                           </span>
                         </span>
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    className="ant-form-item-explain ant-form-item-explain-connected"
-                  >
-                    <div
-                      className=""
-                      role="alert"
-                    >
-                      
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1269,174 +1294,167 @@ Array [
               className="sc-kAzzGY gpqAje"
             >
               <div
-                className="ant-row ant-form-item ant-form-item-with-help"
-                style={Object {}}
+                className="ant-form-item ant-form-item-with-help"
               >
                 <div
-                  className="ant-col ant-form-item-control"
+                  className="ant-row ant-form-item-row"
                   style={Object {}}
                 >
                   <div
-                    className="ant-form-item-control-input"
+                    className="ant-col ant-form-item-control"
+                    style={Object {}}
                   >
                     <div
-                      className="ant-form-item-control-input-content"
+                      className="ant-form-item-control-input"
                     >
-                      <span
-                        className="ant-input-group ant-input-group-compact"
+                      <div
+                        className="ant-form-item-control-input-content"
                       >
                         <span
-                          className="ant-input-affix-wrapper"
-                          onMouseUp={[Function]}
-                          style={
-                            Object {
-                              "textAlign": "left",
-                              "width": "60%",
-                            }
-                          }
+                          className="ant-input-group ant-input-group-compact"
                         >
                           <span
-                            className="ant-input-prefix"
-                          >
-                            <img
-                              alt=""
-                              height={16}
-                              src="logo_primary.png"
-                              width={16}
-                            />
-                          </span>
-                          <input
-                            className="ant-input"
-                            disabled={false}
-                            dollar={0}
-                            hidden={null}
-                            name="value"
-                            onBlur={[Function]}
-                            onChange={[Function]}
-                            onFocus={[Function]}
-                            onKeyDown={[Function]}
-                            placeholder="Amount"
-                            required={true}
-                            step={0.01}
-                            style={null}
-                            type="number"
-                            value=""
-                          />
-                        </span>
-                        <div
-                          className="ant-select select-after ant-select-single ant-select-show-arrow"
-                          onBlur={[Function]}
-                          onFocus={[Function]}
-                          onKeyDown={[Function]}
-                          onKeyUp={[Function]}
-                          onMouseDown={[Function]}
-                          style={
-                            Object {
-                              "width": "30%",
-                            }
-                          }
-                        >
-                          <div
-                            className="ant-select-selector"
-                            onClick={[Function]}
-                            onMouseDown={[Function]}
-                          >
-                            <span
-                              className="ant-select-selection-search"
-                            >
-                              <input
-                                aria-activedescendant="rc_select_TEST_OR_SSR_list_0"
-                                aria-autocomplete="list"
-                                aria-controls="rc_select_TEST_OR_SSR_list"
-                                aria-haspopup="listbox"
-                                aria-owns="rc_select_TEST_OR_SSR_list"
-                                autoComplete="off"
-                                className="ant-select-selection-search-input"
-                                disabled={false}
-                                id="rc_select_TEST_OR_SSR"
-                                onChange={[Function]}
-                                onCompositionEnd={[Function]}
-                                onCompositionStart={[Function]}
-                                onKeyDown={[Function]}
-                                onMouseDown={[Function]}
-                                onPaste={[Function]}
-                                readOnly={true}
-                                role="combobox"
-                                style={
-                                  Object {
-                                    "opacity": 0,
-                                  }
-                                }
-                                type="search"
-                                unselectable="on"
-                                value=""
-                              />
-                            </span>
-                            <span
-                              className="ant-select-selection-item"
-                              title="XEC"
-                            >
-                              XEC
-                            </span>
-                          </div>
-                          <span
-                            aria-hidden={true}
-                            className="ant-select-arrow"
+                            className="ant-input-affix-wrapper"
                             onMouseDown={[Function]}
                             style={
                               Object {
-                                "WebkitUserSelect": "none",
-                                "userSelect": "none",
+                                "textAlign": "left",
+                                "width": "60%",
                               }
                             }
-                            unselectable="on"
                           >
                             <span
-                              aria-label="down"
-                              className="anticon anticon-down ant-select-suffix"
-                              role="img"
+                              className="ant-input-prefix"
                             >
-                              <svg
-                                aria-hidden="true"
-                                data-icon="down"
-                                fill="currentColor"
-                                focusable="false"
-                                height="1em"
-                                viewBox="64 64 896 896"
-                                width="1em"
-                              >
-                                <path
-                                  d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z"
-                                />
-                              </svg>
+                              <img
+                                alt=""
+                                height={16}
+                                src="logo_primary.png"
+                                width={16}
+                              />
                             </span>
+                            <input
+                              className="ant-input"
+                              dollar={0}
+                              hidden={null}
+                              name="value"
+                              onBlur={[Function]}
+                              onChange={[Function]}
+                              onFocus={[Function]}
+                              onKeyDown={[Function]}
+                              placeholder="Amount"
+                              required={true}
+                              step={0.01}
+                              style={null}
+                              type="number"
+                              value=""
+                            />
                           </span>
-                        </div>
-                        <span
-                          className="sc-kgoBCf geHQWv"
-                          disabled={false}
-                          onClick={[Function]}
-                          style={
-                            Object {
-                              "height": "55px",
-                              "lineHeight": "55px",
-                              "width": "10%",
+                          <div
+                            className="ant-select select-after ant-select-single ant-select-show-arrow"
+                            onBlur={[Function]}
+                            onFocus={[Function]}
+                            onKeyDown={[Function]}
+                            onKeyUp={[Function]}
+                            onMouseDown={[Function]}
+                            style={
+                              Object {
+                                "width": "30%",
+                              }
                             }
-                          }
-                        >
-                          max
+                          >
+                            <div
+                              className="ant-select-selector"
+                              onClick={[Function]}
+                              onMouseDown={[Function]}
+                            >
+                              <span
+                                className="ant-select-selection-search"
+                              >
+                                <input
+                                  aria-activedescendant="rc_select_TEST_OR_SSR_list_0"
+                                  aria-autocomplete="list"
+                                  aria-controls="rc_select_TEST_OR_SSR_list"
+                                  aria-haspopup="listbox"
+                                  aria-owns="rc_select_TEST_OR_SSR_list"
+                                  autoComplete="off"
+                                  className="ant-select-selection-search-input"
+                                  disabled={false}
+                                  id="rc_select_TEST_OR_SSR"
+                                  onChange={[Function]}
+                                  onCompositionEnd={[Function]}
+                                  onCompositionStart={[Function]}
+                                  onKeyDown={[Function]}
+                                  onMouseDown={[Function]}
+                                  onPaste={[Function]}
+                                  readOnly={true}
+                                  role="combobox"
+                                  style={
+                                    Object {
+                                      "opacity": 0,
+                                    }
+                                  }
+                                  type="search"
+                                  unselectable="on"
+                                  value=""
+                                />
+                              </span>
+                              <span
+                                className="ant-select-selection-item"
+                                title="XEC"
+                              >
+                                XEC
+                              </span>
+                            </div>
+                            <span
+                              aria-hidden={true}
+                              className="ant-select-arrow"
+                              onMouseDown={[Function]}
+                              style={
+                                Object {
+                                  "WebkitUserSelect": "none",
+                                  "userSelect": "none",
+                                }
+                              }
+                              unselectable="on"
+                            >
+                              <span
+                                aria-label="down"
+                                className="anticon anticon-down ant-select-suffix"
+                                role="img"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  data-icon="down"
+                                  fill="currentColor"
+                                  focusable="false"
+                                  height="1em"
+                                  viewBox="64 64 896 896"
+                                  width="1em"
+                                >
+                                  <path
+                                    d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z"
+                                  />
+                                </svg>
+                              </span>
+                            </span>
+                          </div>
+                          <span
+                            className="sc-kgoBCf geHQWv"
+                            disabled={false}
+                            onClick={[Function]}
+                            style={
+                              Object {
+                                "height": "55px",
+                                "lineHeight": "55px",
+                                "width": "10%",
+                              }
+                            }
+                          >
+                            max
+                          </span>
                         </span>
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    className="ant-form-item-explain ant-form-item-explain-connected"
-                  >
-                    <div
-                      className=""
-                      role="alert"
-                    >
-                      
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1479,7 +1497,7 @@ Array [
             className="sc-dxgOiQ iPcCXY"
           >
             <div
-              className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
+              className="ant-collapse ant-collapse-icon-position-start sc-jKJlTe bEMpDk"
               role={null}
               style={
                 Object {
@@ -1491,6 +1509,7 @@ Array [
                 className="ant-collapse-item"
               >
                 <div
+                  aria-disabled={false}
                   aria-expanded={false}
                   className="ant-collapse-header"
                   onClick={[Function]}
@@ -1498,7 +1517,10 @@ Array [
                   role="button"
                   tabIndex={0}
                 >
-                  <div>
+                  <div
+                    className="ant-collapse-expand-icon"
+                    onClick={null}
+                  >
                     <span
                       aria-label="right"
                       className="anticon anticon-right ant-collapse-arrow"
@@ -1519,11 +1541,16 @@ Array [
                       </svg>
                     </span>
                   </div>
-                  <div
-                    className="sc-kpOJdX kAzjOl"
+                  <span
+                    className="ant-collapse-header-text"
+                    onClick={null}
                   >
-                    Advanced
-                  </div>
+                    <div
+                      className="sc-kpOJdX kAzjOl"
+                    >
+                      Advanced
+                    </div>
+                  </span>
                 </div>
               </div>
             </div>
@@ -1535,7 +1562,7 @@ Array [
       className="sc-dxgOiQ iPcCXY"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
+        className="ant-collapse ant-collapse-icon-position-start sc-jKJlTe bEMpDk"
         role={null}
         style={
           Object {
@@ -1547,6 +1574,7 @@ Array [
           className="ant-collapse-item"
         >
           <div
+            aria-disabled={false}
             aria-expanded={false}
             className="ant-collapse-header"
             onClick={[Function]}
@@ -1554,7 +1582,10 @@ Array [
             role="button"
             tabIndex={0}
           >
-            <div>
+            <div
+              className="ant-collapse-expand-icon"
+              onClick={null}
+            >
               <span
                 aria-label="right"
                 className="anticon anticon-right ant-collapse-arrow"
@@ -1575,11 +1606,16 @@ Array [
                 </svg>
               </span>
             </div>
-            <div
-              className="sc-kpOJdX kAzjOl"
+            <span
+              className="ant-collapse-header-text"
+              onClick={null}
             >
-              Sign Message
-            </div>
+              <div
+                className="sc-kpOJdX kAzjOl"
+              >
+                Sign Message
+              </div>
+            </span>
           </div>
         </div>
       </div>
@@ -1588,7 +1624,7 @@ Array [
       className="sc-dxgOiQ iPcCXY"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
+        className="ant-collapse ant-collapse-icon-position-start sc-jKJlTe bEMpDk"
         role={null}
         style={
           Object {
@@ -1600,6 +1636,7 @@ Array [
           className="ant-collapse-item"
         >
           <div
+            aria-disabled={false}
             aria-expanded={false}
             className="ant-collapse-header"
             onClick={[Function]}
@@ -1607,7 +1644,10 @@ Array [
             role="button"
             tabIndex={0}
           >
-            <div>
+            <div
+              className="ant-collapse-expand-icon"
+              onClick={null}
+            >
               <span
                 aria-label="right"
                 className="anticon anticon-right ant-collapse-arrow"
@@ -1628,11 +1668,16 @@ Array [
                 </svg>
               </span>
             </div>
-            <div
-              className="sc-kpOJdX kAzjOl"
+            <span
+              className="ant-collapse-header-text"
+              onClick={null}
             >
-              Verify Message
-            </div>
+              <div
+                className="sc-kpOJdX kAzjOl"
+              >
+                Verify Message
+              </div>
+            </span>
           </div>
         </div>
       </div>
@@ -1695,7 +1740,7 @@ Array [
               className="sc-kAzzGY gpqAje"
             >
               <div
-                className="ant-row ant-form-item ant-form-item-with-help"
+                className="ant-form-item ant-form-item-with-help"
                 style={
                   Object {
                     "marginBottom": "0px",
@@ -1703,106 +1748,101 @@ Array [
                 }
               >
                 <div
-                  className="ant-col ant-form-item-control"
+                  className="ant-row ant-form-item-row"
                   style={Object {}}
                 >
                   <div
-                    className="ant-form-item-control-input"
+                    className="ant-col ant-form-item-control"
+                    style={Object {}}
                   >
                     <div
-                      className="ant-form-item-control-input-content"
+                      className="ant-form-item-control-input"
                     >
-                      <span
-                        className="ant-input-group-wrapper"
+                      <div
+                        className="ant-form-item-control-input-content"
                       >
                         <span
-                          className="ant-input-wrapper ant-input-group"
+                          className="ant-input-group-wrapper"
                         >
                           <span
-                            className="ant-input-affix-wrapper"
-                            hidden={null}
-                            onMouseUp={[Function]}
-                            style={null}
+                            className="ant-input-wrapper ant-input-group"
                           >
                             <span
-                              className="ant-input-prefix"
-                            >
-                              <span
-                                aria-label="wallet"
-                                className="anticon anticon-wallet sc-htpNat lgbLiL"
-                                role="img"
-                              >
-                                <svg
-                                  aria-hidden="true"
-                                  data-icon="wallet"
-                                  fill="currentColor"
-                                  focusable="false"
-                                  height="1em"
-                                  viewBox="64 64 896 896"
-                                  width="1em"
-                                >
-                                  <path
-                                    d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
-                                  />
-                                </svg>
-                              </span>
-                            </span>
-                            <input
-                              autoComplete="off"
-                              className="ant-input"
+                              className="ant-input-affix-wrapper"
                               hidden={null}
-                              name="address"
-                              onBlur={[Function]}
-                              onChange={[Function]}
-                              onFocus={[Function]}
-                              onKeyDown={[Function]}
-                              placeholder="XEC Address"
-                              required={true}
+                              onMouseDown={[Function]}
                               style={null}
-                              type="text"
-                              value=""
-                            />
-                          </span>
-                          <span
-                            className="ant-input-group-addon"
-                          >
-                            <span
-                              className="sc-fjdhpX lnKJWB"
-                              onClick={[Function]}
                             >
                               <span
-                                aria-label="qrcode"
-                                className="anticon anticon-qrcode sc-bxivhb dlJbAr"
-                                role="img"
+                                className="ant-input-prefix"
                               >
-                                <svg
-                                  aria-hidden="true"
-                                  data-icon="qrcode"
-                                  fill="currentColor"
-                                  focusable="false"
-                                  height="1em"
-                                  viewBox="64 64 896 896"
-                                  width="1em"
+                                <span
+                                  aria-label="wallet"
+                                  className="anticon anticon-wallet sc-htpNat lgbLiL"
+                                  role="img"
                                 >
-                                  <path
-                                    d="M468 128H160c-17.7 0-32 14.3-32 32v308c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V136c0-4.4-3.6-8-8-8zm-56 284H192V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210H136c-4.4 0-8 3.6-8 8v308c0 17.7 14.3 32 32 32h308c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zm-56 284H192V612h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm590-630H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V160c0-17.7-14.3-32-32-32zm-32 284H612V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210h-48c-4.4 0-8 3.6-8 8v134h-78V556c0-4.4-3.6-8-8-8H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V644h78v102c0 4.4 3.6 8 8 8h190c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zM746 832h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8zm142 0h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8z"
-                                  />
-                                </svg>
+                                  <svg
+                                    aria-hidden="true"
+                                    data-icon="wallet"
+                                    fill="currentColor"
+                                    focusable="false"
+                                    height="1em"
+                                    viewBox="64 64 896 896"
+                                    width="1em"
+                                  >
+                                    <path
+                                      d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
+                                    />
+                                  </svg>
+                                </span>
+                              </span>
+                              <input
+                                autoComplete="off"
+                                className="ant-input"
+                                hidden={null}
+                                name="address"
+                                onBlur={[Function]}
+                                onChange={[Function]}
+                                onFocus={[Function]}
+                                onKeyDown={[Function]}
+                                placeholder="XEC Address"
+                                required={true}
+                                style={null}
+                                type="text"
+                                value=""
+                              />
+                            </span>
+                            <span
+                              className="ant-input-group-addon"
+                            >
+                              <span
+                                className="sc-fjdhpX lnKJWB"
+                                onClick={[Function]}
+                              >
+                                <span
+                                  aria-label="qrcode"
+                                  className="anticon anticon-qrcode sc-bxivhb dlJbAr"
+                                  role="img"
+                                >
+                                  <svg
+                                    aria-hidden="true"
+                                    data-icon="qrcode"
+                                    fill="currentColor"
+                                    focusable="false"
+                                    height="1em"
+                                    viewBox="64 64 896 896"
+                                    width="1em"
+                                  >
+                                    <path
+                                      d="M468 128H160c-17.7 0-32 14.3-32 32v308c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V136c0-4.4-3.6-8-8-8zm-56 284H192V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210H136c-4.4 0-8 3.6-8 8v308c0 17.7 14.3 32 32 32h308c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zm-56 284H192V612h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm590-630H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V160c0-17.7-14.3-32-32-32zm-32 284H612V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210h-48c-4.4 0-8 3.6-8 8v134h-78V556c0-4.4-3.6-8-8-8H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V644h78v102c0 4.4 3.6 8 8 8h190c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zM746 832h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8zm142 0h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8z"
+                                    />
+                                  </svg>
+                                </span>
                               </span>
                             </span>
                           </span>
                         </span>
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    className="ant-form-item-explain ant-form-item-explain-connected"
-                  >
-                    <div
-                      className=""
-                      role="alert"
-                    >
-                      
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1817,174 +1857,167 @@ Array [
               className="sc-kAzzGY gpqAje"
             >
               <div
-                className="ant-row ant-form-item ant-form-item-with-help"
-                style={Object {}}
+                className="ant-form-item ant-form-item-with-help"
               >
                 <div
-                  className="ant-col ant-form-item-control"
+                  className="ant-row ant-form-item-row"
                   style={Object {}}
                 >
                   <div
-                    className="ant-form-item-control-input"
+                    className="ant-col ant-form-item-control"
+                    style={Object {}}
                   >
                     <div
-                      className="ant-form-item-control-input-content"
+                      className="ant-form-item-control-input"
                     >
-                      <span
-                        className="ant-input-group ant-input-group-compact"
+                      <div
+                        className="ant-form-item-control-input-content"
                       >
                         <span
-                          className="ant-input-affix-wrapper"
-                          onMouseUp={[Function]}
-                          style={
-                            Object {
-                              "textAlign": "left",
-                              "width": "60%",
-                            }
-                          }
+                          className="ant-input-group ant-input-group-compact"
                         >
                           <span
-                            className="ant-input-prefix"
-                          >
-                            <img
-                              alt=""
-                              height={16}
-                              src="logo_primary.png"
-                              width={16}
-                            />
-                          </span>
-                          <input
-                            className="ant-input"
-                            disabled={false}
-                            dollar={0}
-                            hidden={null}
-                            name="value"
-                            onBlur={[Function]}
-                            onChange={[Function]}
-                            onFocus={[Function]}
-                            onKeyDown={[Function]}
-                            placeholder="Amount"
-                            required={true}
-                            step={0.01}
-                            style={null}
-                            type="number"
-                            value=""
-                          />
-                        </span>
-                        <div
-                          className="ant-select select-after ant-select-single ant-select-show-arrow"
-                          onBlur={[Function]}
-                          onFocus={[Function]}
-                          onKeyDown={[Function]}
-                          onKeyUp={[Function]}
-                          onMouseDown={[Function]}
-                          style={
-                            Object {
-                              "width": "30%",
-                            }
-                          }
-                        >
-                          <div
-                            className="ant-select-selector"
-                            onClick={[Function]}
-                            onMouseDown={[Function]}
-                          >
-                            <span
-                              className="ant-select-selection-search"
-                            >
-                              <input
-                                aria-activedescendant="rc_select_TEST_OR_SSR_list_0"
-                                aria-autocomplete="list"
-                                aria-controls="rc_select_TEST_OR_SSR_list"
-                                aria-haspopup="listbox"
-                                aria-owns="rc_select_TEST_OR_SSR_list"
-                                autoComplete="off"
-                                className="ant-select-selection-search-input"
-                                disabled={false}
-                                id="rc_select_TEST_OR_SSR"
-                                onChange={[Function]}
-                                onCompositionEnd={[Function]}
-                                onCompositionStart={[Function]}
-                                onKeyDown={[Function]}
-                                onMouseDown={[Function]}
-                                onPaste={[Function]}
-                                readOnly={true}
-                                role="combobox"
-                                style={
-                                  Object {
-                                    "opacity": 0,
-                                  }
-                                }
-                                type="search"
-                                unselectable="on"
-                                value=""
-                              />
-                            </span>
-                            <span
-                              className="ant-select-selection-item"
-                              title="XEC"
-                            >
-                              XEC
-                            </span>
-                          </div>
-                          <span
-                            aria-hidden={true}
-                            className="ant-select-arrow"
+                            className="ant-input-affix-wrapper"
                             onMouseDown={[Function]}
                             style={
                               Object {
-                                "WebkitUserSelect": "none",
-                                "userSelect": "none",
+                                "textAlign": "left",
+                                "width": "60%",
                               }
                             }
-                            unselectable="on"
                           >
                             <span
-                              aria-label="down"
-                              className="anticon anticon-down ant-select-suffix"
-                              role="img"
+                              className="ant-input-prefix"
                             >
-                              <svg
-                                aria-hidden="true"
-                                data-icon="down"
-                                fill="currentColor"
-                                focusable="false"
-                                height="1em"
-                                viewBox="64 64 896 896"
-                                width="1em"
-                              >
-                                <path
-                                  d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z"
-                                />
-                              </svg>
+                              <img
+                                alt=""
+                                height={16}
+                                src="logo_primary.png"
+                                width={16}
+                              />
                             </span>
+                            <input
+                              className="ant-input"
+                              dollar={0}
+                              hidden={null}
+                              name="value"
+                              onBlur={[Function]}
+                              onChange={[Function]}
+                              onFocus={[Function]}
+                              onKeyDown={[Function]}
+                              placeholder="Amount"
+                              required={true}
+                              step={0.01}
+                              style={null}
+                              type="number"
+                              value=""
+                            />
                           </span>
-                        </div>
-                        <span
-                          className="sc-kgoBCf geHQWv"
-                          disabled={false}
-                          onClick={[Function]}
-                          style={
-                            Object {
-                              "height": "55px",
-                              "lineHeight": "55px",
-                              "width": "10%",
+                          <div
+                            className="ant-select select-after ant-select-single ant-select-show-arrow"
+                            onBlur={[Function]}
+                            onFocus={[Function]}
+                            onKeyDown={[Function]}
+                            onKeyUp={[Function]}
+                            onMouseDown={[Function]}
+                            style={
+                              Object {
+                                "width": "30%",
+                              }
                             }
-                          }
-                        >
-                          max
+                          >
+                            <div
+                              className="ant-select-selector"
+                              onClick={[Function]}
+                              onMouseDown={[Function]}
+                            >
+                              <span
+                                className="ant-select-selection-search"
+                              >
+                                <input
+                                  aria-activedescendant="rc_select_TEST_OR_SSR_list_0"
+                                  aria-autocomplete="list"
+                                  aria-controls="rc_select_TEST_OR_SSR_list"
+                                  aria-haspopup="listbox"
+                                  aria-owns="rc_select_TEST_OR_SSR_list"
+                                  autoComplete="off"
+                                  className="ant-select-selection-search-input"
+                                  disabled={false}
+                                  id="rc_select_TEST_OR_SSR"
+                                  onChange={[Function]}
+                                  onCompositionEnd={[Function]}
+                                  onCompositionStart={[Function]}
+                                  onKeyDown={[Function]}
+                                  onMouseDown={[Function]}
+                                  onPaste={[Function]}
+                                  readOnly={true}
+                                  role="combobox"
+                                  style={
+                                    Object {
+                                      "opacity": 0,
+                                    }
+                                  }
+                                  type="search"
+                                  unselectable="on"
+                                  value=""
+                                />
+                              </span>
+                              <span
+                                className="ant-select-selection-item"
+                                title="XEC"
+                              >
+                                XEC
+                              </span>
+                            </div>
+                            <span
+                              aria-hidden={true}
+                              className="ant-select-arrow"
+                              onMouseDown={[Function]}
+                              style={
+                                Object {
+                                  "WebkitUserSelect": "none",
+                                  "userSelect": "none",
+                                }
+                              }
+                              unselectable="on"
+                            >
+                              <span
+                                aria-label="down"
+                                className="anticon anticon-down ant-select-suffix"
+                                role="img"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  data-icon="down"
+                                  fill="currentColor"
+                                  focusable="false"
+                                  height="1em"
+                                  viewBox="64 64 896 896"
+                                  width="1em"
+                                >
+                                  <path
+                                    d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z"
+                                  />
+                                </svg>
+                              </span>
+                            </span>
+                          </div>
+                          <span
+                            className="sc-kgoBCf geHQWv"
+                            disabled={false}
+                            onClick={[Function]}
+                            style={
+                              Object {
+                                "height": "55px",
+                                "lineHeight": "55px",
+                                "width": "10%",
+                              }
+                            }
+                          >
+                            max
+                          </span>
                         </span>
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    className="ant-form-item-explain ant-form-item-explain-connected"
-                  >
-                    <div
-                      className=""
-                      role="alert"
-                    >
-                      
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2026,7 +2059,7 @@ Array [
             className="sc-dxgOiQ iPcCXY"
           >
             <div
-              className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
+              className="ant-collapse ant-collapse-icon-position-start sc-jKJlTe bEMpDk"
               role={null}
               style={
                 Object {
@@ -2038,6 +2071,7 @@ Array [
                 className="ant-collapse-item"
               >
                 <div
+                  aria-disabled={false}
                   aria-expanded={false}
                   className="ant-collapse-header"
                   onClick={[Function]}
@@ -2045,7 +2079,10 @@ Array [
                   role="button"
                   tabIndex={0}
                 >
-                  <div>
+                  <div
+                    className="ant-collapse-expand-icon"
+                    onClick={null}
+                  >
                     <span
                       aria-label="right"
                       className="anticon anticon-right ant-collapse-arrow"
@@ -2066,11 +2103,16 @@ Array [
                       </svg>
                     </span>
                   </div>
-                  <div
-                    className="sc-kpOJdX kAzjOl"
+                  <span
+                    className="ant-collapse-header-text"
+                    onClick={null}
                   >
-                    Advanced
-                  </div>
+                    <div
+                      className="sc-kpOJdX kAzjOl"
+                    >
+                      Advanced
+                    </div>
+                  </span>
                 </div>
               </div>
             </div>
@@ -2082,7 +2124,7 @@ Array [
       className="sc-dxgOiQ iPcCXY"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
+        className="ant-collapse ant-collapse-icon-position-start sc-jKJlTe bEMpDk"
         role={null}
         style={
           Object {
@@ -2094,6 +2136,7 @@ Array [
           className="ant-collapse-item"
         >
           <div
+            aria-disabled={false}
             aria-expanded={false}
             className="ant-collapse-header"
             onClick={[Function]}
@@ -2101,7 +2144,10 @@ Array [
             role="button"
             tabIndex={0}
           >
-            <div>
+            <div
+              className="ant-collapse-expand-icon"
+              onClick={null}
+            >
               <span
                 aria-label="right"
                 className="anticon anticon-right ant-collapse-arrow"
@@ -2122,11 +2168,16 @@ Array [
                 </svg>
               </span>
             </div>
-            <div
-              className="sc-kpOJdX kAzjOl"
+            <span
+              className="ant-collapse-header-text"
+              onClick={null}
             >
-              Sign Message
-            </div>
+              <div
+                className="sc-kpOJdX kAzjOl"
+              >
+                Sign Message
+              </div>
+            </span>
           </div>
         </div>
       </div>
@@ -2135,7 +2186,7 @@ Array [
       className="sc-dxgOiQ iPcCXY"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
+        className="ant-collapse ant-collapse-icon-position-start sc-jKJlTe bEMpDk"
         role={null}
         style={
           Object {
@@ -2147,6 +2198,7 @@ Array [
           className="ant-collapse-item"
         >
           <div
+            aria-disabled={false}
             aria-expanded={false}
             className="ant-collapse-header"
             onClick={[Function]}
@@ -2154,7 +2206,10 @@ Array [
             role="button"
             tabIndex={0}
           >
-            <div>
+            <div
+              className="ant-collapse-expand-icon"
+              onClick={null}
+            >
               <span
                 aria-label="right"
                 className="anticon anticon-right ant-collapse-arrow"
@@ -2175,11 +2230,16 @@ Array [
                 </svg>
               </span>
             </div>
-            <div
-              className="sc-kpOJdX kAzjOl"
+            <span
+              className="ant-collapse-header-text"
+              onClick={null}
             >
-              Verify Message
-            </div>
+              <div
+                className="sc-kpOJdX kAzjOl"
+              >
+                Verify Message
+              </div>
+            </span>
           </div>
         </div>
       </div>
@@ -2237,7 +2297,7 @@ Array [
               className="sc-kAzzGY gpqAje"
             >
               <div
-                className="ant-row ant-form-item ant-form-item-with-help"
+                className="ant-form-item ant-form-item-with-help"
                 style={
                   Object {
                     "marginBottom": "0px",
@@ -2245,106 +2305,101 @@ Array [
                 }
               >
                 <div
-                  className="ant-col ant-form-item-control"
+                  className="ant-row ant-form-item-row"
                   style={Object {}}
                 >
                   <div
-                    className="ant-form-item-control-input"
+                    className="ant-col ant-form-item-control"
+                    style={Object {}}
                   >
                     <div
-                      className="ant-form-item-control-input-content"
+                      className="ant-form-item-control-input"
                     >
-                      <span
-                        className="ant-input-group-wrapper"
+                      <div
+                        className="ant-form-item-control-input-content"
                       >
                         <span
-                          className="ant-input-wrapper ant-input-group"
+                          className="ant-input-group-wrapper"
                         >
                           <span
-                            className="ant-input-affix-wrapper"
-                            hidden={null}
-                            onMouseUp={[Function]}
-                            style={null}
+                            className="ant-input-wrapper ant-input-group"
                           >
                             <span
-                              className="ant-input-prefix"
-                            >
-                              <span
-                                aria-label="wallet"
-                                className="anticon anticon-wallet sc-htpNat lgbLiL"
-                                role="img"
-                              >
-                                <svg
-                                  aria-hidden="true"
-                                  data-icon="wallet"
-                                  fill="currentColor"
-                                  focusable="false"
-                                  height="1em"
-                                  viewBox="64 64 896 896"
-                                  width="1em"
-                                >
-                                  <path
-                                    d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
-                                  />
-                                </svg>
-                              </span>
-                            </span>
-                            <input
-                              autoComplete="off"
-                              className="ant-input"
+                              className="ant-input-affix-wrapper"
                               hidden={null}
-                              name="address"
-                              onBlur={[Function]}
-                              onChange={[Function]}
-                              onFocus={[Function]}
-                              onKeyDown={[Function]}
-                              placeholder="XEC Address"
-                              required={true}
+                              onMouseDown={[Function]}
                               style={null}
-                              type="text"
-                              value=""
-                            />
-                          </span>
-                          <span
-                            className="ant-input-group-addon"
-                          >
-                            <span
-                              className="sc-fjdhpX lnKJWB"
-                              onClick={[Function]}
                             >
                               <span
-                                aria-label="qrcode"
-                                className="anticon anticon-qrcode sc-bxivhb dlJbAr"
-                                role="img"
+                                className="ant-input-prefix"
                               >
-                                <svg
-                                  aria-hidden="true"
-                                  data-icon="qrcode"
-                                  fill="currentColor"
-                                  focusable="false"
-                                  height="1em"
-                                  viewBox="64 64 896 896"
-                                  width="1em"
+                                <span
+                                  aria-label="wallet"
+                                  className="anticon anticon-wallet sc-htpNat lgbLiL"
+                                  role="img"
                                 >
-                                  <path
-                                    d="M468 128H160c-17.7 0-32 14.3-32 32v308c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V136c0-4.4-3.6-8-8-8zm-56 284H192V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210H136c-4.4 0-8 3.6-8 8v308c0 17.7 14.3 32 32 32h308c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zm-56 284H192V612h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm590-630H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V160c0-17.7-14.3-32-32-32zm-32 284H612V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210h-48c-4.4 0-8 3.6-8 8v134h-78V556c0-4.4-3.6-8-8-8H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V644h78v102c0 4.4 3.6 8 8 8h190c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zM746 832h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8zm142 0h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8z"
-                                  />
-                                </svg>
+                                  <svg
+                                    aria-hidden="true"
+                                    data-icon="wallet"
+                                    fill="currentColor"
+                                    focusable="false"
+                                    height="1em"
+                                    viewBox="64 64 896 896"
+                                    width="1em"
+                                  >
+                                    <path
+                                      d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
+                                    />
+                                  </svg>
+                                </span>
+                              </span>
+                              <input
+                                autoComplete="off"
+                                className="ant-input"
+                                hidden={null}
+                                name="address"
+                                onBlur={[Function]}
+                                onChange={[Function]}
+                                onFocus={[Function]}
+                                onKeyDown={[Function]}
+                                placeholder="XEC Address"
+                                required={true}
+                                style={null}
+                                type="text"
+                                value=""
+                              />
+                            </span>
+                            <span
+                              className="ant-input-group-addon"
+                            >
+                              <span
+                                className="sc-fjdhpX lnKJWB"
+                                onClick={[Function]}
+                              >
+                                <span
+                                  aria-label="qrcode"
+                                  className="anticon anticon-qrcode sc-bxivhb dlJbAr"
+                                  role="img"
+                                >
+                                  <svg
+                                    aria-hidden="true"
+                                    data-icon="qrcode"
+                                    fill="currentColor"
+                                    focusable="false"
+                                    height="1em"
+                                    viewBox="64 64 896 896"
+                                    width="1em"
+                                  >
+                                    <path
+                                      d="M468 128H160c-17.7 0-32 14.3-32 32v308c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V136c0-4.4-3.6-8-8-8zm-56 284H192V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210H136c-4.4 0-8 3.6-8 8v308c0 17.7 14.3 32 32 32h308c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zm-56 284H192V612h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm590-630H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V160c0-17.7-14.3-32-32-32zm-32 284H612V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210h-48c-4.4 0-8 3.6-8 8v134h-78V556c0-4.4-3.6-8-8-8H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V644h78v102c0 4.4 3.6 8 8 8h190c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zM746 832h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8zm142 0h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8z"
+                                    />
+                                  </svg>
+                                </span>
                               </span>
                             </span>
                           </span>
                         </span>
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    className="ant-form-item-explain ant-form-item-explain-connected"
-                  >
-                    <div
-                      className=""
-                      role="alert"
-                    >
-                      
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2359,174 +2414,167 @@ Array [
               className="sc-kAzzGY gpqAje"
             >
               <div
-                className="ant-row ant-form-item ant-form-item-with-help"
-                style={Object {}}
+                className="ant-form-item ant-form-item-with-help"
               >
                 <div
-                  className="ant-col ant-form-item-control"
+                  className="ant-row ant-form-item-row"
                   style={Object {}}
                 >
                   <div
-                    className="ant-form-item-control-input"
+                    className="ant-col ant-form-item-control"
+                    style={Object {}}
                   >
                     <div
-                      className="ant-form-item-control-input-content"
+                      className="ant-form-item-control-input"
                     >
-                      <span
-                        className="ant-input-group ant-input-group-compact"
+                      <div
+                        className="ant-form-item-control-input-content"
                       >
                         <span
-                          className="ant-input-affix-wrapper"
-                          onMouseUp={[Function]}
-                          style={
-                            Object {
-                              "textAlign": "left",
-                              "width": "60%",
-                            }
-                          }
+                          className="ant-input-group ant-input-group-compact"
                         >
                           <span
-                            className="ant-input-prefix"
-                          >
-                            <img
-                              alt=""
-                              height={16}
-                              src="logo_primary.png"
-                              width={16}
-                            />
-                          </span>
-                          <input
-                            className="ant-input"
-                            disabled={false}
-                            dollar={0}
-                            hidden={null}
-                            name="value"
-                            onBlur={[Function]}
-                            onChange={[Function]}
-                            onFocus={[Function]}
-                            onKeyDown={[Function]}
-                            placeholder="Amount"
-                            required={true}
-                            step={0.01}
-                            style={null}
-                            type="number"
-                            value=""
-                          />
-                        </span>
-                        <div
-                          className="ant-select select-after ant-select-single ant-select-show-arrow"
-                          onBlur={[Function]}
-                          onFocus={[Function]}
-                          onKeyDown={[Function]}
-                          onKeyUp={[Function]}
-                          onMouseDown={[Function]}
-                          style={
-                            Object {
-                              "width": "30%",
-                            }
-                          }
-                        >
-                          <div
-                            className="ant-select-selector"
-                            onClick={[Function]}
-                            onMouseDown={[Function]}
-                          >
-                            <span
-                              className="ant-select-selection-search"
-                            >
-                              <input
-                                aria-activedescendant="rc_select_TEST_OR_SSR_list_0"
-                                aria-autocomplete="list"
-                                aria-controls="rc_select_TEST_OR_SSR_list"
-                                aria-haspopup="listbox"
-                                aria-owns="rc_select_TEST_OR_SSR_list"
-                                autoComplete="off"
-                                className="ant-select-selection-search-input"
-                                disabled={false}
-                                id="rc_select_TEST_OR_SSR"
-                                onChange={[Function]}
-                                onCompositionEnd={[Function]}
-                                onCompositionStart={[Function]}
-                                onKeyDown={[Function]}
-                                onMouseDown={[Function]}
-                                onPaste={[Function]}
-                                readOnly={true}
-                                role="combobox"
-                                style={
-                                  Object {
-                                    "opacity": 0,
-                                  }
-                                }
-                                type="search"
-                                unselectable="on"
-                                value=""
-                              />
-                            </span>
-                            <span
-                              className="ant-select-selection-item"
-                              title="XEC"
-                            >
-                              XEC
-                            </span>
-                          </div>
-                          <span
-                            aria-hidden={true}
-                            className="ant-select-arrow"
+                            className="ant-input-affix-wrapper"
                             onMouseDown={[Function]}
                             style={
                               Object {
-                                "WebkitUserSelect": "none",
-                                "userSelect": "none",
+                                "textAlign": "left",
+                                "width": "60%",
                               }
                             }
-                            unselectable="on"
                           >
                             <span
-                              aria-label="down"
-                              className="anticon anticon-down ant-select-suffix"
-                              role="img"
+                              className="ant-input-prefix"
                             >
-                              <svg
-                                aria-hidden="true"
-                                data-icon="down"
-                                fill="currentColor"
-                                focusable="false"
-                                height="1em"
-                                viewBox="64 64 896 896"
-                                width="1em"
-                              >
-                                <path
-                                  d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z"
-                                />
-                              </svg>
+                              <img
+                                alt=""
+                                height={16}
+                                src="logo_primary.png"
+                                width={16}
+                              />
                             </span>
+                            <input
+                              className="ant-input"
+                              dollar={0}
+                              hidden={null}
+                              name="value"
+                              onBlur={[Function]}
+                              onChange={[Function]}
+                              onFocus={[Function]}
+                              onKeyDown={[Function]}
+                              placeholder="Amount"
+                              required={true}
+                              step={0.01}
+                              style={null}
+                              type="number"
+                              value=""
+                            />
                           </span>
-                        </div>
-                        <span
-                          className="sc-kgoBCf geHQWv"
-                          disabled={false}
-                          onClick={[Function]}
-                          style={
-                            Object {
-                              "height": "55px",
-                              "lineHeight": "55px",
-                              "width": "10%",
+                          <div
+                            className="ant-select select-after ant-select-single ant-select-show-arrow"
+                            onBlur={[Function]}
+                            onFocus={[Function]}
+                            onKeyDown={[Function]}
+                            onKeyUp={[Function]}
+                            onMouseDown={[Function]}
+                            style={
+                              Object {
+                                "width": "30%",
+                              }
                             }
-                          }
-                        >
-                          max
+                          >
+                            <div
+                              className="ant-select-selector"
+                              onClick={[Function]}
+                              onMouseDown={[Function]}
+                            >
+                              <span
+                                className="ant-select-selection-search"
+                              >
+                                <input
+                                  aria-activedescendant="rc_select_TEST_OR_SSR_list_0"
+                                  aria-autocomplete="list"
+                                  aria-controls="rc_select_TEST_OR_SSR_list"
+                                  aria-haspopup="listbox"
+                                  aria-owns="rc_select_TEST_OR_SSR_list"
+                                  autoComplete="off"
+                                  className="ant-select-selection-search-input"
+                                  disabled={false}
+                                  id="rc_select_TEST_OR_SSR"
+                                  onChange={[Function]}
+                                  onCompositionEnd={[Function]}
+                                  onCompositionStart={[Function]}
+                                  onKeyDown={[Function]}
+                                  onMouseDown={[Function]}
+                                  onPaste={[Function]}
+                                  readOnly={true}
+                                  role="combobox"
+                                  style={
+                                    Object {
+                                      "opacity": 0,
+                                    }
+                                  }
+                                  type="search"
+                                  unselectable="on"
+                                  value=""
+                                />
+                              </span>
+                              <span
+                                className="ant-select-selection-item"
+                                title="XEC"
+                              >
+                                XEC
+                              </span>
+                            </div>
+                            <span
+                              aria-hidden={true}
+                              className="ant-select-arrow"
+                              onMouseDown={[Function]}
+                              style={
+                                Object {
+                                  "WebkitUserSelect": "none",
+                                  "userSelect": "none",
+                                }
+                              }
+                              unselectable="on"
+                            >
+                              <span
+                                aria-label="down"
+                                className="anticon anticon-down ant-select-suffix"
+                                role="img"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  data-icon="down"
+                                  fill="currentColor"
+                                  focusable="false"
+                                  height="1em"
+                                  viewBox="64 64 896 896"
+                                  width="1em"
+                                >
+                                  <path
+                                    d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z"
+                                  />
+                                </svg>
+                              </span>
+                            </span>
+                          </div>
+                          <span
+                            className="sc-kgoBCf geHQWv"
+                            disabled={false}
+                            onClick={[Function]}
+                            style={
+                              Object {
+                                "height": "55px",
+                                "lineHeight": "55px",
+                                "width": "10%",
+                              }
+                            }
+                          >
+                            max
+                          </span>
                         </span>
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    className="ant-form-item-explain ant-form-item-explain-connected"
-                  >
-                    <div
-                      className=""
-                      role="alert"
-                    >
-                      
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2568,7 +2616,7 @@ Array [
             className="sc-dxgOiQ iPcCXY"
           >
             <div
-              className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
+              className="ant-collapse ant-collapse-icon-position-start sc-jKJlTe bEMpDk"
               role={null}
               style={
                 Object {
@@ -2580,6 +2628,7 @@ Array [
                 className="ant-collapse-item"
               >
                 <div
+                  aria-disabled={false}
                   aria-expanded={false}
                   className="ant-collapse-header"
                   onClick={[Function]}
@@ -2587,7 +2636,10 @@ Array [
                   role="button"
                   tabIndex={0}
                 >
-                  <div>
+                  <div
+                    className="ant-collapse-expand-icon"
+                    onClick={null}
+                  >
                     <span
                       aria-label="right"
                       className="anticon anticon-right ant-collapse-arrow"
@@ -2608,11 +2660,16 @@ Array [
                       </svg>
                     </span>
                   </div>
-                  <div
-                    className="sc-kpOJdX kAzjOl"
+                  <span
+                    className="ant-collapse-header-text"
+                    onClick={null}
                   >
-                    Advanced
-                  </div>
+                    <div
+                      className="sc-kpOJdX kAzjOl"
+                    >
+                      Advanced
+                    </div>
+                  </span>
                 </div>
               </div>
             </div>
@@ -2624,7 +2681,7 @@ Array [
       className="sc-dxgOiQ iPcCXY"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
+        className="ant-collapse ant-collapse-icon-position-start sc-jKJlTe bEMpDk"
         role={null}
         style={
           Object {
@@ -2636,6 +2693,7 @@ Array [
           className="ant-collapse-item"
         >
           <div
+            aria-disabled={false}
             aria-expanded={false}
             className="ant-collapse-header"
             onClick={[Function]}
@@ -2643,7 +2701,10 @@ Array [
             role="button"
             tabIndex={0}
           >
-            <div>
+            <div
+              className="ant-collapse-expand-icon"
+              onClick={null}
+            >
               <span
                 aria-label="right"
                 className="anticon anticon-right ant-collapse-arrow"
@@ -2664,11 +2725,16 @@ Array [
                 </svg>
               </span>
             </div>
-            <div
-              className="sc-kpOJdX kAzjOl"
+            <span
+              className="ant-collapse-header-text"
+              onClick={null}
             >
-              Sign Message
-            </div>
+              <div
+                className="sc-kpOJdX kAzjOl"
+              >
+                Sign Message
+              </div>
+            </span>
           </div>
         </div>
       </div>
@@ -2677,7 +2743,7 @@ Array [
       className="sc-dxgOiQ iPcCXY"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
+        className="ant-collapse ant-collapse-icon-position-start sc-jKJlTe bEMpDk"
         role={null}
         style={
           Object {
@@ -2689,6 +2755,7 @@ Array [
           className="ant-collapse-item"
         >
           <div
+            aria-disabled={false}
             aria-expanded={false}
             className="ant-collapse-header"
             onClick={[Function]}
@@ -2696,7 +2763,10 @@ Array [
             role="button"
             tabIndex={0}
           >
-            <div>
+            <div
+              className="ant-collapse-expand-icon"
+              onClick={null}
+            >
               <span
                 aria-label="right"
                 className="anticon anticon-right ant-collapse-arrow"
@@ -2717,11 +2787,16 @@ Array [
                 </svg>
               </span>
             </div>
-            <div
-              className="sc-kpOJdX kAzjOl"
+            <span
+              className="ant-collapse-header-text"
+              onClick={null}
             >
-              Verify Message
-            </div>
+              <div
+                className="sc-kpOJdX kAzjOl"
+              >
+                Verify Message
+              </div>
+            </span>
           </div>
         </div>
       </div>

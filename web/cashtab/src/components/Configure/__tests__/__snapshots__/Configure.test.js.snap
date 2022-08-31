@@ -159,7 +159,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
         style={Object {}}
       >
         <div
-          className="ant-collapse ant-collapse-icon-position-left sc-kEYyzF BStYT"
+          className="ant-collapse ant-collapse-icon-position-start sc-kEYyzF BStYT"
           role={null}
           style={
             Object {
@@ -171,6 +171,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
             className="ant-collapse-item"
           >
             <div
+              aria-disabled={false}
               aria-expanded={false}
               className="ant-collapse-header"
               onClick={[Function]}
@@ -178,7 +179,10 @@ exports[`Wallet with BCH balances and tokens 1`] = `
               role="button"
               tabIndex={0}
             >
-              <div>
+              <div
+                className="ant-collapse-expand-icon"
+                onClick={null}
+              >
                 <span
                   aria-label="right"
                   className="anticon anticon-right ant-collapse-arrow"
@@ -199,7 +203,12 @@ exports[`Wallet with BCH balances and tokens 1`] = `
                   </svg>
                 </span>
               </div>
-              Contact List
+              <span
+                className="ant-collapse-header-text"
+                onClick={null}
+              >
+                Contact List
+              </span>
             </div>
           </div>
         </div>
@@ -262,6 +271,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
               aria-owns="rc_select_TEST_OR_SSR_list"
               autoComplete="off"
               className="ant-select-selection-search-input"
+              disabled={false}
               id="rc_select_TEST_OR_SSR"
               onChange={[Function]}
               onCompositionEnd={[Function]}
@@ -713,7 +723,7 @@ exports[`Without wallet defined 1`] = `
         style={Object {}}
       >
         <div
-          className="ant-collapse ant-collapse-icon-position-left sc-kEYyzF BStYT"
+          className="ant-collapse ant-collapse-icon-position-start sc-kEYyzF BStYT"
           role={null}
           style={
             Object {
@@ -725,6 +735,7 @@ exports[`Without wallet defined 1`] = `
             className="ant-collapse-item"
           >
             <div
+              aria-disabled={false}
               aria-expanded={false}
               className="ant-collapse-header"
               onClick={[Function]}
@@ -732,7 +743,10 @@ exports[`Without wallet defined 1`] = `
               role="button"
               tabIndex={0}
             >
-              <div>
+              <div
+                className="ant-collapse-expand-icon"
+                onClick={null}
+              >
                 <span
                   aria-label="right"
                   className="anticon anticon-right ant-collapse-arrow"
@@ -753,7 +767,12 @@ exports[`Without wallet defined 1`] = `
                   </svg>
                 </span>
               </div>
-              Contact List
+              <span
+                className="ant-collapse-header-text"
+                onClick={null}
+              >
+                Contact List
+              </span>
             </div>
           </div>
         </div>
@@ -816,6 +835,7 @@ exports[`Without wallet defined 1`] = `
               aria-owns="rc_select_TEST_OR_SSR_list"
               autoComplete="off"
               className="ant-select-selection-search-input"
+              disabled={false}
               id="rc_select_TEST_OR_SSR"
               onChange={[Function]}
               onCompositionEnd={[Function]}
