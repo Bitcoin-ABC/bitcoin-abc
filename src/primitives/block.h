@@ -107,8 +107,8 @@ struct CBlockLocator {
 
     CBlockLocator() {}
 
-    explicit CBlockLocator(const std::vector<BlockHash> &vHaveIn)
-        : vHave(vHaveIn) {}
+    explicit CBlockLocator(std::vector<BlockHash> &&vHaveIn)
+        : vHave(std::move(vHaveIn)) {}
 
     SERIALIZE_METHODS(CBlockLocator, obj) {
         int nVersion = s.GetVersion();

@@ -75,7 +75,8 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
             std::vector<BlockHash> locatorHash(
                 1, Params().Checkpoints().mapCheckpoints.rbegin()->second);
             MessageWriter::WriteMessage(vSend, NetMsgType::GETHEADERS,
-                                        CBlockLocator(locatorHash), uint256());
+                                        CBlockLocator(std::move(locatorHash)),
+                                        uint256());
             doneAfter = Now<NodeSeconds>() + GetTimeout();
         } else {
             doneAfter = Now<NodeSeconds>() + 1s;

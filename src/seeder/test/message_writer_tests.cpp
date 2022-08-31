@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(write_getheaders_message_test) {
     BlockHash bhash(uint256S(
         "0000000099f5509b5f36b1926bcf82b21d936ebeadee811030dfbbb7fae915d7"));
     std::vector<BlockHash> vlocator(1, bhash);
-    CBlockLocator locatorhash(vlocator);
+    CBlockLocator locatorhash(std::move(vlocator));
     payload << locatorhash << uint256();
     uint256 hash = Hash(payload);
 

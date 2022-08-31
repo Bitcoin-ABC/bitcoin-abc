@@ -39,7 +39,7 @@ std::vector<BlockHash> LocatorEntries(const CBlockIndex *index) {
 }
 
 CBlockLocator GetLocator(const CBlockIndex *index) {
-    return CBlockLocator{std::move(LocatorEntries(index))};
+    return CBlockLocator{LocatorEntries(index)};
 }
 
 CBlockLocator CChain::GetLocator() const {
