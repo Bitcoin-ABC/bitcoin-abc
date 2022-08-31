@@ -9,10 +9,11 @@
 #include <util/threadnames.h>
 
 #include <exception>
+#include <string>
 
-void util::TraceThread(const char *thread_name,
+void util::TraceThread(std::string_view thread_name,
                        std::function<void()> thread_func) {
-    util::ThreadRename(thread_name);
+    util::ThreadRename(std::string{thread_name});
     try {
         LogPrintf("%s thread start\n", thread_name);
         thread_func();
