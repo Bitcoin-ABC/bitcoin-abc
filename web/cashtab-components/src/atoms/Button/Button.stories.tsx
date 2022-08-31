@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-import { storiesOf } from '@storybook/react/dist/client/preview';
+import { storiesOf } from '@storybook/react';
 
 import Button from './Button';
 import Text from '../Text';

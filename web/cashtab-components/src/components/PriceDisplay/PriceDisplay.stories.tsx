@@ -2,7 +2,7 @@ import React from 'react';
 
 import Ticker from '../../atoms/Ticker';
 
-import { storiesOf } from '@storybook/react/dist/client/preview';
+import { storiesOf } from '@storybook/react';
 import { select, number } from '@storybook/addon-knobs';
 
 import PriceDisplay from './PriceDisplay';
