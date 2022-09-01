@@ -265,7 +265,7 @@ bool CheckSequenceLocks(CChainState &active_chainstate, const CTxMemPool &pool,
 static bool IsReplayProtectionEnabled(const Consensus::Params &params,
                                       int64_t nMedianTimePast) {
     return nMedianTimePast >= gArgs.GetArg("-replayprotectionactivationtime",
-                                           params.jeffersonActivationTime);
+                                           params.wellingtonActivationTime);
 }
 
 static bool IsReplayProtectionEnabled(const Consensus::Params &params,

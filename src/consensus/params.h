@@ -86,6 +86,8 @@ struct Params {
     int gluonActivationTime;
     /** Unix time used for MTP activation of 15 Nov 2022 12:00:00 UTC upgrade */
     int jeffersonActivationTime;
+    /** Unix time used for MTP activation of 15 May 2023 12:00:00 UTC upgrade */
+    int wellingtonActivationTime;
 
     /**
      * Don't warn about unknown BIP 9 activations below this height.
