@@ -7,10 +7,11 @@
 #define BITCOIN_ADDRDB_H
 
 #include <fs.h>
-#include <net_types.h> // For banmap_t
+#include <net_types.h>
 #include <serialize.h>
+#include <util/result.h>
 
-#include <optional>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -19,7 +20,6 @@ class AddrMan;
 class CAddress;
 class CDataStream;
 class CChainParams;
-struct bilingual_str;
 
 bool DumpPeerAddresses(const CChainParams &chainParams, const ArgsManager &args,
                        const AddrMan &addr);
@@ -67,10 +67,9 @@ public:
 };
 
 /** Returns an error string on failure */
-std::optional<bilingual_str> LoadAddrman(const CChainParams &chainparams,
-                                         const std::vector<bool> &asmap,
-                                         const ArgsManager &args,
-                                         std::unique_ptr<AddrMan> &addrman);
+util::Result<std::unique_ptr<AddrMan>>
+LoadAddrman(const CChainParams &chainparams, const std::vector<bool> &asmap,
+            const ArgsManager &args);
 
 /**
  * Dump the anchor IP address database (anchors.dat)

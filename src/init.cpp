@@ -2254,10 +2254,11 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         }
 
         uiInterface.InitMessage(_("Loading P2P addresses...").translated);
-        if (const auto error{
-                LoadAddrman(chainparams, asmap, args, node.addrman)}) {
-            return InitError(*error);
+        auto addrman{LoadAddrman(chainparams, asmap, args)};
+        if (!addrman) {
+            return InitError(util::ErrorString(addrman));
         }
+        node.addrman = std::move(*addrman);
     }
 
     assert(!node.banman);
@@ -2554,10 +2555,11 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     // Step 8: load indexers
     if (args.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
-        if (const auto error{WITH_LOCK(
-                cs_main, return CheckLegacyTxindex(
-                             *Assert(chainman.m_blockman.m_block_tree_db)))}) {
-            return InitError(*error);
+        auto result{
+            WITH_LOCK(cs_main, return CheckLegacyTxindex(*Assert(
+                                   chainman.m_blockman.m_block_tree_db)))};
+        if (!result) {
+            return InitError(util::ErrorString(result));
         }
 
         g_txindex =

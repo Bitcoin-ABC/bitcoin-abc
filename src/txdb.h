@@ -11,7 +11,11 @@
 #include <dbwrapper.h>
 #include <flatfile.h>
 #include <fs.h>
+#include <util/result.h>
 
+#include <cstddef>
+#include <cstdint>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -21,11 +25,11 @@
 struct BlockHash;
 class CBlockFileInfo;
 class CBlockIndex;
+class COutPoint;
 
 namespace Consensus {
 struct Params;
 };
-struct bilingual_str;
 
 //! min. -dbcache (MiB)
 static constexpr int64_t MIN_DB_CACHE_MB = 4;
@@ -133,6 +137,7 @@ public:
     bool Upgrade();
 };
 
-std::optional<bilingual_str> CheckLegacyTxindex(CBlockTreeDB &block_tree_db);
+[[nodiscard]] util::Result<void>
+CheckLegacyTxindex(CBlockTreeDB &block_tree_db);
 
 #endif // BITCOIN_TXDB_H

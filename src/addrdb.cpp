@@ -159,15 +159,14 @@ void ReadFromStream(const CChainParams &chainParams, AddrMan &addr,
     DeserializeDB(chainParams, ssPeers, addr, false);
 }
 
-std::optional<bilingual_str> LoadAddrman(const CChainParams &chainparams,
-                                         const std::vector<bool> &asmap,
-                                         const ArgsManager &args,
-                                         std::unique_ptr<AddrMan> &addrman) {
+util::Result<std::unique_ptr<AddrMan>>
+LoadAddrman(const CChainParams &chainparams, const std::vector<bool> &asmap,
+            const ArgsManager &args) {
     auto check_addrman = std::clamp<int32_t>(
         args.GetIntArg("-checkaddrman", DEFAULT_ADDRMAN_CONSISTENCY_CHECKS), 0,
         1000000);
-    addrman = std::make_unique<AddrMan>(
-        asmap, /* consistency_check_ratio= */ check_addrman);
+    auto addrman{std::make_unique<AddrMan>(
+        asmap, /* consistency_check_ratio= */ check_addrman)};
 
     int64_t nStart = GetTimeMillis();
     const auto path_addr{args.GetDataDirNet() / "peers.dat"};
@@ -184,9 +183,9 @@ std::optional<bilingual_str> LoadAddrman(const CChainParams &chainparams,
         DumpPeerAddresses(chainparams, args, *addrman);
     } catch (const InvalidAddrManVersionError &) {
         if (!RenameOver(path_addr, fs::path(path_addr) + ".bak")) {
-            addrman = nullptr;
-            return strprintf(_("Failed to rename invalid peers.dat file. "
-                               "Please move or delete it and try again."));
+            return util::Error{
+                strprintf(_("Failed to rename invalid peers.dat file. "
+                            "Please move or delete it and try again."))};
         }
         // Addrman can be in an inconsistent state after failure, reset it
         addrman = std::make_unique<AddrMan>(
@@ -196,17 +195,19 @@ std::optional<bilingual_str> LoadAddrman(const CChainParams &chainparams,
                   fs::quoted(fs::PathToString(path_addr)));
         DumpPeerAddresses(chainparams, args, *addrman);
     } catch (const std::exception &e) {
-        addrman = nullptr;
-        return strprintf(
+        return util::Error{strprintf(
             _("Invalid or corrupt peers.dat (%s). If you believe this is a "
               "bug, please report it to %s. As a workaround, you can move the "
               "file (%s) out of the way (rename, move, or delete) to have a "
               "new one created on the next start."),
             e.what(), PACKAGE_BUGREPORT,
-            fs::quoted(fs::PathToString(path_addr)));
+            fs::quoted(fs::PathToString(path_addr)))};
     }
 
-    return std::nullopt;
+    // std::move should be unneccessary but is temporarily needed to work
+    // around clang bug
+    // (https://github.com/bitcoin/bitcoin/pull/25977#issuecomment-1564350880)
+    return {std::move(addrman)};
 }
 
 void DumpAnchors(const CChainParams &chainParams,
