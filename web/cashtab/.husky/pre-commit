@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 cd web/cashtab
-npm test -- --watchAll=false
+npm test -- -o --watchAll=false
