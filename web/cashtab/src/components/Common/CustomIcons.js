@@ -113,8 +113,8 @@ export const ThemedDownloadOutlined = styled(Download)`
 export const ThemedEditOutlined = styled(Edit)`
     stroke: ${props => props.theme.eCashBlue};
     fill: ${props => props.theme.eCashBlue};
-    min-width: 20px;
-    min-height: 20px;
+    width: 20px;
+    height: 20px;
     cursor: pointer;
 `;
 
