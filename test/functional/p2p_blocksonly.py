@@ -112,7 +112,7 @@ class P2PBlocksOnly(BitcoinTestFramework):
         self.nodes[0].setmocktime(int(time.time()) + 60)
 
         conn.sync_send_with_ping()
-        assert(int(txid, 16) not in conn.get_invs())
+        assert int(txid, 16) not in conn.get_invs()
 
     def check_p2p_tx_violation(self, index=1):
         self.log.info(

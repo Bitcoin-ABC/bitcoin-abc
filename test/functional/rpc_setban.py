@@ -19,7 +19,7 @@ class SetBanTests(BitcoinTestFramework):
         # granted
         self.connect_nodes(0, 1)
         peerinfo = self.nodes[1].getpeerinfo()[0]
-        assert('noban' not in peerinfo['permissions'])
+        assert 'noban' not in peerinfo['permissions']
 
         # Node 0 get banned by Node 1
         self.nodes[1].setban("127.0.0.1", "add")
@@ -34,7 +34,7 @@ class SetBanTests(BitcoinTestFramework):
         self.restart_node(1, ['-whitelist=127.0.0.1'])
         self.connect_nodes(0, 1)
         peerinfo = self.nodes[1].getpeerinfo()[0]
-        assert('noban' in peerinfo['permissions'])
+        assert 'noban' in peerinfo['permissions']
 
         # If we remove the ban, Node 0 should be able to reconnect even without
         # noban permission
@@ -42,7 +42,7 @@ class SetBanTests(BitcoinTestFramework):
         self.restart_node(1, [])
         self.connect_nodes(0, 1)
         peerinfo = self.nodes[1].getpeerinfo()[0]
-        assert('noban' not in peerinfo['permissions'])
+        assert 'noban' not in peerinfo['permissions']
 
 
 if __name__ == '__main__':

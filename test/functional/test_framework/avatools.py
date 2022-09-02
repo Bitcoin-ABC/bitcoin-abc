@@ -215,7 +215,7 @@ class NoHandshakeAvaP2PInterface(P2PInterface):
         self.avapolls.append(message.poll)
 
     def on_avahello(self, message):
-        assert(self.avahello is None)
+        assert self.avahello is None
         self.avahello = message
 
     def send_avaresponse(self, round, votes, privkey):

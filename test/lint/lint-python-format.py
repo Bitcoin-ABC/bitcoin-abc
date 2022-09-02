@@ -130,7 +130,7 @@ def build_replacement(error):
             if c == "[":
                 opening_count += 1
             if c in close_before:
-                if(c == "]" and opening_count > 0):
+                if c == "]" and opening_count > 0:
                     opening_count -= 1
                     continue
                 return qualifier[:i] + ")" + qualifier[i:]

@@ -255,7 +255,7 @@ class CoinStatsIndexTest(BitcoinTestFramework):
         self.wait_until(lambda: not try_rpc(-32603, "Unable to read UTXO set",
                                             index_node.gettxoutsetinfo, 'muhash'))
         res10 = index_node.gettxoutsetinfo('muhash')
-        assert(res8['txouts'] < res10['txouts'])
+        assert res8['txouts'] < res10['txouts']
 
     def _test_use_index_option(self):
         self.log.info("Test use_index option for nodes running the index")
@@ -296,14 +296,14 @@ class CoinStatsIndexTest(BitcoinTestFramework):
             hash_type='muhash', hash_or_height=112)
         assert_equal(res["bestblock"], block)
         assert_equal(res["muhash"], res2["muhash"])
-        assert(res["muhash"] != res_invalid["muhash"])
+        assert res["muhash"] != res_invalid["muhash"]
 
         # Test that requesting reorged out block by hash is still returning
         # correct results
         res_invalid2 = index_node.gettxoutsetinfo(
             hash_type='muhash', hash_or_height=reorg_block)
         assert_equal(res_invalid2["muhash"], res_invalid["muhash"])
-        assert(res["muhash"] != res_invalid2["muhash"])
+        assert res["muhash"] != res_invalid2["muhash"]
 
         # Add another block, so we don't depend on reconsiderblock remembering
         # which blocks were touched by invalidateblock

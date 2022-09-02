@@ -31,7 +31,7 @@ def process_constants(indir, file_name):
         constants = f.readlines()
 
     # Ensure only the expected number of lines are read from the file
-    assert(len(constants) == 4)
+    assert len(constants) == 4
 
     return [line.rstrip() for line in constants]
 

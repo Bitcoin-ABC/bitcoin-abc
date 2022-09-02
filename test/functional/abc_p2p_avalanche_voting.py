@@ -213,7 +213,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         tip_to_park = node.getbestblockhash()
         hash_to_find = int(tip_to_park, 16)
-        assert(tip_to_park != fork_tip)
+        assert tip_to_park != fork_tip
 
         def has_parked_new_tip():
             can_find_block_in_poll(hash_to_find, AvalancheVoteError.PARKED)

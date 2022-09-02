@@ -50,7 +50,7 @@ def cltv_lock_to_height(node, tx, to_address, amount, height=-1):
     locktime requirements fail, sequence time requirements fail, etc).
     '''
     height_op = OP_1NEGATE
-    if(height > 0):
+    if height > 0:
         tx.vin[0].nSequence = 0
         tx.nLockTime = height
         height_op = CScriptNum(height)

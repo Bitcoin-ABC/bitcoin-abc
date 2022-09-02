@@ -50,8 +50,8 @@ class AddrTest(BitcoinTestFramework):
         # Need to make sure we hit MAX_ADDR_TO_SEND records in the addr
         # response later because only a fraction of all known addresses
         # can be cached and returned.
-        assert(len(self.nodes[0].getnodeaddresses(0)) >
-               int(MAX_ADDR_TO_SEND / (MAX_PCT_ADDR_TO_SEND / 100)))
+        assert len(self.nodes[0].getnodeaddresses(0)) > int(
+            MAX_ADDR_TO_SEND / (MAX_PCT_ADDR_TO_SEND / 100))
 
         responses = []
         self.log.info('Send many addr requests within short time to receive')
@@ -68,7 +68,7 @@ class AddrTest(BitcoinTestFramework):
             responses.append(addr_receiver.get_received_addrs())
         for response in responses[1:]:
             assert_equal(response, responses[0])
-        assert(len(response) == MAX_ADDR_TO_SEND)
+        assert len(response) == MAX_ADDR_TO_SEND
 
         cur_mock_time += 3 * 24 * 60 * 60
         self.nodes[0].setmocktime(cur_mock_time)
@@ -81,8 +81,8 @@ class AddrTest(BitcoinTestFramework):
         self.nodes[0].setmocktime(cur_mock_time)
         last_addr_receiver.wait_until(last_addr_receiver.addr_received)
         # new response is different
-        assert(set(responses[0]) !=
-               set(last_addr_receiver.get_received_addrs()))
+        assert (set(responses[0]) != set(
+            last_addr_receiver.get_received_addrs()))
 
 
 if __name__ == '__main__':

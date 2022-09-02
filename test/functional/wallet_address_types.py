@@ -66,29 +66,29 @@ class AddressTypeTest(BitcoinTestFramework):
         """Run sanity checks on an address."""
         self.log.info(address)
         info = self.nodes[node].getaddressinfo(address)
-        assert(self.nodes[node].validateaddress(address)['isvalid'])
+        assert self.nodes[node].validateaddress(address)['isvalid']
         assert_equal(info.get('solvable'), True)
 
         if not multisig and typ == 'legacy':
             # P2PKH
-            assert(not info['isscript'])
-            assert('pubkey' in info)
+            assert not info['isscript']
+            assert 'pubkey' in info
         elif typ == 'legacy':
             # P2SH-multisig
-            assert(info['isscript'])
+            assert info['isscript']
             assert_equal(info['script'], 'multisig')
-            assert('pubkeys' in info)
+            assert 'pubkeys' in info
         else:
             # Unknown type
-            assert(False)
+            assert False
 
     def test_desc(self, node, address, multisig, typ, utxo):
         """Run sanity checks on a descriptor reported by getaddressinfo."""
         info = self.nodes[node].getaddressinfo(address)
-        assert('desc' in info)
+        assert 'desc' in info
 
         assert_equal(info['desc'], utxo['desc'])
-        assert(self.nodes[node].validateaddress(address)['isvalid'])
+        assert self.nodes[node].validateaddress(address)['isvalid']
 
         # Use a ridiculously roundabout way to find the key origin info through
         # the PSBT logic. However, this does test consistency between the PSBT reported
@@ -106,14 +106,14 @@ class AddressTypeTest(BitcoinTestFramework):
                 deriv['path'][1:] + ']' + deriv['pubkey']
 
         # Verify the descriptor checksum against the Python implementation
-        assert(descsum_check(info['desc']))
+        assert descsum_check(info['desc'])
         # Verify that stripping the checksum and recreating it using Python
         # roundtrips
-        assert(info['desc'] == descsum_create(info['desc'][:-9]))
+        assert info['desc'] == descsum_create(info['desc'][:-9])
         # Verify that stripping the checksum and feeding it to
         # getdescriptorinfo roundtrips
-        assert(info['desc'] == self.nodes[0].getdescriptorinfo(
-            info['desc'][:-9])['descriptor'])
+        assert info['desc'] == self.nodes[0].getdescriptorinfo(
+            info['desc'][:-9])['descriptor']
         assert_equal(
             info['desc'][-8:], self.nodes[0].getdescriptorinfo(info['desc'][:-9])['checksum'])
         # Verify that keeping the checksum and feeding it to getdescriptorinfo
@@ -133,7 +133,7 @@ class AddressTypeTest(BitcoinTestFramework):
                 key_descs[info['pubkeys'][0]], key_descs[info['pubkeys'][1]])))
         else:
             # Unknown type
-            assert(False)
+            assert False
 
     def test_change_output_type(
             self, node_sender, destinations, expected_type):

@@ -41,7 +41,7 @@ def modsqrt(a, p):
 
     For p = 3 mod 4, if a square root exists, it is equal to a**((p+1)/4) mod p.
     """
-    assert(p % 4 == 3)  # Only p = 3 mod 4 is implemented
+    assert p % 4 == 3  # Only p = 3 mod 4 is implemented
     sqrt = pow(a, (p + 1) // 4, p)
     if pow(sqrt, 2, p) == a % p:
         return sqrt
@@ -114,7 +114,7 @@ class EllipticCurve:
         """Add a Jacobian tuple p1 and an affine tuple p2"""
         x1, y1, z1 = p1
         x2, y2, z2 = p2
-        assert(z2 == 1)
+        assert z2 == 1
         if z1 == 0:
             return p2
         z1_2 = (z1**2) % self.p
@@ -231,7 +231,7 @@ class ECPubKey:
         return self.valid
 
     def get_bytes(self):
-        assert(self.valid)
+        assert self.valid
         p = SECP256K1.affine(self.p)
         if p is None:
             return None
@@ -243,7 +243,7 @@ class ECPubKey:
 
     def verify_ecdsa(self, sig, msg, low_s=True):
         """Verify a strictly DER-encoded ECDSA signature against this pubkey."""
-        assert(self.valid)
+        assert self.valid
         if (sig[1] + 2 != len(sig)):
             return False
         if (len(sig) < 4):
@@ -320,7 +320,7 @@ class ECKey:
 
     def set(self, secret, compressed):
         """Construct a private key object with given 32-byte secret and compressed flag."""
-        assert(len(secret) == 32)
+        assert len(secret) == 32
         secret = int.from_bytes(secret, 'big')
         self.valid = (secret > 0 and secret < SECP256K1_ORDER)
         if self.valid:
@@ -339,7 +339,7 @@ class ECKey:
 
     def get_bytes(self):
         """Retrieve the 32-byte representation of this key."""
-        assert(self.valid)
+        assert self.valid
         return self.secret.to_bytes(32, 'big')
 
     @property
@@ -352,7 +352,7 @@ class ECKey:
 
     def get_pubkey(self):
         """Compute an ECPubKey object for this secret key."""
-        assert(self.valid)
+        assert self.valid
         ret = ECPubKey()
         p = SECP256K1.mul([(SECP256K1_G, self.secret)])
         ret.p = p
@@ -362,7 +362,7 @@ class ECKey:
 
     def sign_ecdsa(self, msg, low_s=True):
         """Construct a DER-encoded ECDSA signature with this key."""
-        assert(self.valid)
+        assert self.valid
         z = int.from_bytes(msg, 'big')
         # Note: no RFC6979, but a simple random nonce (some tests rely on
         # distinct transactions for the same operation)

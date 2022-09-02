@@ -92,7 +92,7 @@ def check_format_specifiers(source, translation, errors, numerus):
     source_f = split_format_specifiers(find_format_specifiers(source))
     # assert that no source messages contain both Qt and strprintf format specifiers
     # if this fails, go change the source as this is hacky and confusing!
-    assert(not(source_f[0] and source_f[1]))
+    assert not (source_f[0] and source_f[1])
     try:
         translation_f = split_format_specifiers(
             find_format_specifiers(translation))
@@ -122,7 +122,7 @@ def all_ts_files(suffix=''):
         if suffix:  # remove provided suffix
             filename = filename[0:-len(suffix)]
         filepath = os.path.join(LOCALE_DIR, filename)
-        yield(filename, filepath)
+        yield filename, filepath
 
 
 FIX_RE = re.compile(b'[\x00-\x09\x0b\x0c\x0e-\x1f]')

@@ -238,7 +238,7 @@ class WalletSendTest(BitcoinTestFramework):
             to_wallet=w1,
             amount=1_000_000,
             add_to_wallet=False)
-        assert(res["hex"])
+        assert res["hex"]
 
         self.log.info("Return PSBT...")
         res = self.test_send(
@@ -246,7 +246,7 @@ class WalletSendTest(BitcoinTestFramework):
             to_wallet=w1,
             amount=1_000_000,
             psbt=True)
-        assert(res["psbt"])
+        assert res["psbt"]
 
         self.log.info(
             "Create transaction that spends to address, but don't broadcast...")
