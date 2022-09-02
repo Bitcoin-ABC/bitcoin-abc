@@ -5,7 +5,7 @@
 #ifndef BITCOIN_CHRONIK_CPP_CHRONIK_BRIDGE_H
 #define BITCOIN_CHRONIK_CPP_CHRONIK_BRIDGE_H
 
-#include <chronik-ffi/src/ffi.rs.h>
+#include <chronik-bridge/src/ffi.rs.h>
 #include <rust/cxx.h>
 
 namespace chronik_bridge {

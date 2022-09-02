@@ -183,6 +183,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "chronik-bridge"
+version = "0.1.0"
+dependencies = [
+ "abc-rust-lint",
+ "cxx",
+ "cxx-build",
+]
+
+[[package]]
 name = "chronik-db"
 version = "0.1.0"
 dependencies = [
@@ -199,10 +208,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "chronik-ffi"
+name = "chronik-lib"
 version = "0.1.0"
 dependencies = [
  "abc-rust-lint",
+ "chronik-bridge",
  "cxx",
  "cxx-build",
 ]

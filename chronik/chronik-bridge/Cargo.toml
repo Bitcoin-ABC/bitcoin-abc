@@ -1,15 +1,11 @@
 # Copyright (c) 2022 The Bitcoin developers
 
 [package]
-name = "chronik-ffi"
+name = "chronik-bridge"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.61.0"
 license = "MIT"
-
-[lib]
-# Compile to C-ABI
-crate-type = ["staticlib"]
 
 [dependencies]
 abc-rust-lint = { path = "../abc-rust-lint" }

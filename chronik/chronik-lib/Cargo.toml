@@ -1,0 +1,23 @@
+# Copyright (c) 2022 The Bitcoin developers
+
+[package]
+name = "chronik-lib"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.61.0"
+license = "MIT"
+
+[lib]
+# Compile to C-ABI
+crate-type = ["staticlib"]
+
+[dependencies]
+abc-rust-lint = { path = "../abc-rust-lint" }
+chronik-bridge = { path = "../chronik-bridge" }
+
+# Bridge to C++
+cxx = "1.0"
+
+[build-dependencies]
+# Build scripts for the cxx crate
+cxx-build = "1.0"

@@ -2,9 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-//! Foreign-function interface to bitcoind. Bridges Rust to and from C++.
-
-abc_rust_lint::lint! {
-    pub mod bridge;
-    pub mod ffi;
+fn main() {
+    // Build the C++ sources and headers for bridging Rust and C++.
+    let _build = cxx_build::bridge("src/ffi.rs");
+    println!("cargo:rerun-if-changed=src/ffi.rs");
 }

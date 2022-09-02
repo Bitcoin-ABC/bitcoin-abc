@@ -7,7 +7,7 @@
 #include <node/context.h>
 
 #include <chronik-cpp/chronik.h>
-#include <chronik-cpp/chronik_bridge.h>
+#include <chronik-lib/src/ffi.rs.h>
 
 namespace chronik {
 

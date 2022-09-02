@@ -4,9 +4,7 @@
 
 //! Rust side of the bridge; these structs and functions are exposed to C++.
 
-use crate::ffi;
-
 /// Setup the Chronik bridge. Currently only logs to bitcoind.
 pub fn setup_bridge() {
-    ffi::log_println("Starting Chronik...");
+    chronik_bridge::ffi::log_println("Starting Chronik...");
 }

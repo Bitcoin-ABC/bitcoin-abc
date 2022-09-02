@@ -6,6 +6,7 @@ members = [
     "chronik/abc-rust-error",
     "chronik/abc-rust-lint",
     "chronik/bitcoinsuite-core",
+    "chronik/chronik-bridge",
     "chronik/chronik-db",
-    "chronik/chronik-ffi",
+    "chronik/chronik-lib",
 ]

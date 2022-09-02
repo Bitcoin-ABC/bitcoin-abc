@@ -74,41 +74,58 @@ add_crate_test_targets(abc-rust)
 add_crate_test_targets(bitcoinsuite)
 add_crate_test_targets(chronik)
 
-# Compile Rust, generates chronik-ffi-static
-corrosion_import_crate(MANIFEST_PATH "chronik-ffi/Cargo.toml")
+# Compile Rust, generates chronik-lib-static
+corrosion_import_crate(MANIFEST_PATH "chronik-lib/Cargo.toml")
 
 # cxx crate generates some source files at this location
 set(CXXBRIDGE_GENERATED_FOLDER
     "${CARGO_BUILD_DIR}/${Rust_CARGO_TARGET}/cxxbridge")
-set(CXXBRIDGE_GENERATED_CPP_FILES
-    "${CXXBRIDGE_GENERATED_FOLDER}/chronik-ffi/src/ffi.rs.cc")
+set(CHRONIK_BRIDGE_GENERATED_CPP_FILES
+    "${CXXBRIDGE_GENERATED_FOLDER}/chronik-bridge/src/ffi.rs.cc")
+set(CHRONIK_LIB_GENERATED_CPP_FILES
+    "${CXXBRIDGE_GENERATED_FOLDER}/chronik-lib/src/ffi.rs.cc")
 add_custom_command(
     OUTPUT
-        ${CXXBRIDGE_GENERATED_CPP_FILES}
+        ${CHRONIK_BRIDGE_GENERATED_CPP_FILES}
+        ${CHRONIK_LIB_GENERATED_CPP_FILES}
     COMMAND
         "${CMAKE_COMMAND}"
         -E env
         "echo" "Generating cxx bridge files"
-    DEPENDS chronik-ffi-static
+    DEPENDS chronik-lib-static
 )
 
-# Chronik library
-add_library(chronik
-    chronik-cpp/chronik.cpp
+# Chronik-bridge library
+# Contains all the C++ functions used by Rust, and the code bridging both
+add_library(chronik-bridge
     chronik-cpp/chronik_bridge.cpp
-    ${CXXBRIDGE_GENERATED_CPP_FILES}
+    ${CHRONIK_BRIDGE_GENERATED_CPP_FILES}
 )
-target_include_directories(chronik
+target_include_directories(chronik-bridge
     PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}"
         "${CXXBRIDGE_GENERATED_FOLDER}"
 )
-target_link_libraries(chronik
+target_link_libraries(chronik-bridge
     util
-    chronik-ffi-static
+)
+
+# Chronik library
+# Compiles and links all the Chronik code, and exposes chronik::Start and
+# chronik::Stop to run the indexer from C++.
+add_library(chronik
+    chronik-cpp/chronik.cpp
+    ${CHRONIK_LIB_GENERATED_CPP_FILES}
+)
+target_link_libraries(chronik
+    chronik-bridge
+    chronik-lib-static
 )
 
 # Add chronik to server
 target_link_libraries(server
     chronik
+    # TODO: We need to add the library again, otherwise gcc linking fails.
+    # It's not clear yet why this is the case.
+    chronik-bridge
 )
