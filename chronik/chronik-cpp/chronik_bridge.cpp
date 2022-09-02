@@ -7,6 +7,8 @@
 
 namespace chronik_bridge {
 
-void log_println(rust::Str msg) { LogPrintf("%s\n", std::string(msg)); }
+void log_println(rust::Str msg) {
+    LogPrintf("%s\n", std::string(msg));
+}
 
 } // namespace chronik_bridge

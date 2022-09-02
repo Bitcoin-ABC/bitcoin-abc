@@ -58,7 +58,7 @@ submitting them for review. These linters are run automatically when using
 Coding Style (C++)
 ------------------
 
-- Basic rules specified in [src/.clang-format](/src/.clang-format).
+- Basic rules specified in [.clang-format](/.clang-format).
   - Braces on new lines for namespaces, classes, functions, methods.
   - Braces on the same line for everything else.
   - 4 space indentation (no tabs) for every block except namespaces.

@@ -13,9 +13,11 @@ namespace chronik {
 
 void Start([[maybe_unused]] const Config &config,
            [[maybe_unused]] const NodeContext &node) {
-  chronik_bridge::setup_bridge();
+    chronik_bridge::setup_bridge();
 }
 
-void Stop() { LogPrintf("Stopping Chronik...\n"); }
+void Stop() {
+    LogPrintf("Stopping Chronik...\n");
+}
 
 } // namespace chronik
