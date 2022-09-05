@@ -1362,11 +1362,11 @@ void SetupServerArgs(NodeContext &node) {
             "item goes stale when voting confidence is high (default: %u)",
             AVALANCHE_VOTE_STALE_FACTOR),
         ArgsManager::ALLOW_INT, OptionsCategory::AVALANCHE);
-    argsman.AddArg(
-        "-avacooldown",
-        strprintf("Mandatory cooldown between two avapoll (default: %u)",
-                  AVALANCHE_DEFAULT_COOLDOWN),
-        ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
+    argsman.AddArg("-avacooldown",
+                   strprintf("Mandatory cooldown between two avapoll in "
+                             "milliseconds (default: %u)",
+                             AVALANCHE_DEFAULT_COOLDOWN),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
     argsman.AddArg(
         "-avatimeout",
         strprintf("Avalanche query timeout in milliseconds (default: %u)",
@@ -1404,8 +1404,11 @@ void SetupServerArgs(NodeContext &node) {
                    OptionsCategory::AVALANCHE);
     argsman.AddArg(
         "-maxavalancheoutbound",
-        "Set the maximum number of avalanche outbound peers to connect to. "
-        "Note that the -maxconnections option takes precedence.",
+        strprintf(
+            "Set the maximum number of avalanche outbound peers to connect to. "
+            "Note that the -maxconnections option takes precedence (default: "
+            "%u).",
+            DEFAULT_MAX_AVALANCHE_OUTBOUND_CONNECTIONS),
         ArgsManager::ALLOW_INT, OptionsCategory::AVALANCHE);
 
     // Add the hidden options

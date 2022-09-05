@@ -130,12 +130,10 @@ enum class OptionsCategory {
     GUI,
     COMMANDS,
     REGISTER_COMMANDS,
+    AVALANCHE,
 
     // Always the last option to avoid printing these in the help
     HIDDEN,
-
-    // Avalanche is still experimental, so we keep it hidden for now.
-    AVALANCHE,
 };
 
 struct SectionInfo {
