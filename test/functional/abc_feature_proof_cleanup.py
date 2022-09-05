@@ -32,7 +32,6 @@ class ProofsCleanupTest(BitcoinTestFramework):
             '-enableavalanche=1',
             '-avaproofstakeutxodustthreshold=1000000',
             '-avaproofstakeutxoconfirmations=1',
-            '-enableavalanchepeerdiscovery=1',
             # Get rid of the getdata delay penalty for inbounds
             '-whitelist=noban@127.0.0.1',
         ]] * self.num_nodes

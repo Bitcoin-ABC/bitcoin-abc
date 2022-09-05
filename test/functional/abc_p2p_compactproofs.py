@@ -57,7 +57,6 @@ class CompactProofsTest(BitcoinTestFramework):
             '-avaproofstakeutxodustthreshold=1000000',
             '-avaproofstakeutxoconfirmations=1',
             '-avacooldown=0',
-            '-enableavalanchepeerdiscovery=1',
         ]] * self.num_nodes
 
     def setup_network(self):

@@ -36,7 +36,6 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             f'-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}',
             '-avaproofstakeutxoconfirmations=2',
             '-avacooldown=0',
-            '-enableavalanchepeerdiscovery=1',
             '-avaminquorumstake=250000000',
             '-avaminquorumconnectedstakeratio=0.9',
             '-avaproofstakeutxodustthreshold=1000000',

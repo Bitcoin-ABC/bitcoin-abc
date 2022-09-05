@@ -22,11 +22,6 @@ class ArgsManager;
 static constexpr bool AVALANCHE_DEFAULT_ENABLED = false;
 
 /**
- * Is avalanche peer discovery enabled by default.
- */
-static constexpr bool AVALANCHE_DEFAULT_PEER_DISCOVERY_ENABLED = false;
-
-/**
  * Conflicting proofs cooldown time default value in seconds.
  * Minimal delay between two proofs with at least a common UTXO.
  */

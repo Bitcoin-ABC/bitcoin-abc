@@ -86,7 +86,6 @@ class AvaAddrTest(BitcoinTestFramework):
         self.num_nodes = 1
         self.extra_args = [['-enableavalanche=1',
                             '-avaproofstakeutxodustthreshold=1000000',
-                            '-enableavalanchepeerdiscovery=1',
                             '-enableavalancheproofreplacement=1',
                             '-avaproofstakeutxoconfirmations=1',
                             '-avacooldown=0', '-whitelist=noban@127.0.0.1']]

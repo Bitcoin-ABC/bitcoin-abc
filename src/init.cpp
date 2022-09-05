@@ -1325,10 +1325,6 @@ void SetupServerArgs(NodeContext &node) {
                              "features with dedicated flags (default: %u)",
                              AVALANCHE_DEFAULT_ENABLED),
                    ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
-    argsman.AddArg("-enableavalanchepeerdiscovery",
-                   strprintf("Enable avalanche peer discovery (default: %u)",
-                             AVALANCHE_DEFAULT_PEER_DISCOVERY_ENABLED),
-                   ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
     argsman.AddArg("-avalancheconflictingproofcooldown",
                    strprintf("Mandatory cooldown before a proof conflicting "
                              "with an already registered one can be considered "
@@ -1697,7 +1693,6 @@ void InitParameterInteraction(ArgsManager &args) {
         args.SoftSetBoolArg("-legacyavaproof",
                             fAvalanche ? false
                                        : AVALANCHE_DEFAULT_LEGACY_PROOF);
-        args.SoftSetBoolArg("-enableavalanchepeerdiscovery", fAvalanche);
         args.SoftSetBoolArg("-enableavalancheproofreplacement", fAvalanche);
         args.SoftSetBoolArg("-automaticunparking", !fAvalanche);
         args.SoftSetArg(

@@ -53,8 +53,7 @@ class AvalancheTest(BitcoinTestFramework):
         self.num_nodes = 1
         self.extra_args = [['-enableavalanche=1',
                             '-avaproofstakeutxodustthreshold=1000000',
-                            '-avaproofstakeutxoconfirmations=3',
-                            '-enableavalanchepeerdiscovery=1']]
+                            '-avaproofstakeutxoconfirmations=3']]
         self.supports_cli = False
 
     def run_test(self):

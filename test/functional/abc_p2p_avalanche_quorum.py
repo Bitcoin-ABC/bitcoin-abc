@@ -32,7 +32,6 @@ class AvalancheQuorumTest(BitcoinTestFramework):
         self.extra_args = [[
             '-enableavalanche=1',
             '-avaproofstakeutxodustthreshold=1000000',
-            '-enableavalanchepeerdiscovery=1',
             '-avaproofstakeutxoconfirmations=1',
             '-avacooldown=0',
             '-avatimeout=0',
