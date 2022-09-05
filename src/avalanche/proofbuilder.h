@@ -39,7 +39,7 @@ class ProofBuilder {
 
 public:
     ProofBuilder(uint64_t sequence_, int64_t expirationTime_, CKey masterKey_,
-                 const CScript &payoutScriptPubKey_ = CScript())
+                 const CScript &payoutScriptPubKey_)
         : sequence(sequence_), expirationTime(expirationTime_),
           masterKey(std::move(masterKey_)),
           payoutScriptPubKey(payoutScriptPubKey_) {}

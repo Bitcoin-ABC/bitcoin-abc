@@ -166,7 +166,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         coins.AddCoin(outpoint, Coin(CTxOut(amount, script), height, false),
                       false);
 
-        ProofBuilder pb(0, 0, masterpriv);
+        ProofBuilder pb(0, 0, masterpriv, UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
         BOOST_CHECK(pb.addUTXO(outpoint, amount, height, false, key));
         return pb.build();
     }
@@ -1233,7 +1233,7 @@ BOOST_AUTO_TEST_CASE(proof_record) {
 
     auto buildProof = [&](const COutPoint &outpoint, uint64_t sequence,
                           uint32_t height = 10) {
-        ProofBuilder pb(sequence, 0, key);
+        ProofBuilder pb(sequence, 0, key, UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
         BOOST_CHECK(
             pb.addUTXO(outpoint, PROOF_DUST_THRESHOLD, height, false, key));
         return pb.build();
@@ -1377,7 +1377,7 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
                            height, isCoinbase),
                       false);
     }
-    ProofBuilder pb(1, tipMTP + 1, key);
+    ProofBuilder pb(1, tipMTP + 1, key, UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
     BOOST_CHECK(pb.addUTXO(utxo, amount, height, isCoinbase, key));
     auto proof2 = pb.build();
 

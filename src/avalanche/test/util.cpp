@@ -33,7 +33,8 @@ ProofRef buildRandomProof(CChainState &active_chainstate, uint32_t score,
         coins.AddCoin(o, Coin(CTxOut(v, script), height, is_coinbase), false);
     }
 
-    ProofBuilder pb(0, std::numeric_limits<uint32_t>::max(), masterKey);
+    ProofBuilder pb(0, std::numeric_limits<uint32_t>::max(), masterKey,
+                    UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
     BOOST_CHECK(pb.addUTXO(o, v, height, is_coinbase, std::move(key)));
     return pb.build();
 }

@@ -92,7 +92,8 @@ namespace {
                const CKey &master = CKey::MakeCompressedKey(),
                int64_t sequence = 1, uint32_t height = 100,
                bool is_coinbase = false, int64_t expirationTime = 0) {
-        ProofBuilder pb(sequence, expirationTime, master);
+        ProofBuilder pb(sequence, expirationTime, master,
+                        UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
         for (const auto &outpoint : outpoints) {
             BOOST_CHECK(pb.addUTXO(std::get<0>(outpoint), std::get<1>(outpoint),
                                    height, is_coinbase, key));
@@ -718,7 +719,8 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
 
     // Duplicated input.
     {
-        ProofBuilder pb(0, 0, CKey::MakeCompressedKey());
+        ProofBuilder pb(0, 0, CKey::MakeCompressedKey(),
+                        UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
         COutPoint o(txid1, 3);
         BOOST_CHECK(pb.addUTXO(o, v, height, false, key));
         BOOST_CHECK(

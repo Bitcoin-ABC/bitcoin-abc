@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(proofbuilder) {
     const uint64_t sequence = InsecureRandBits(64);
     const int64_t expiration = InsecureRandBits(64);
 
-    ProofBuilder pb(sequence, expiration, key);
+    ProofBuilder pb(sequence, expiration, key, UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
 
     for (int i = 0; i < 3; i++) {
         key.MakeNewKey(true);
@@ -920,7 +920,8 @@ BOOST_AUTO_TEST_CASE(verify) {
                               const uint32_t h, const bool is_coinbase,
                               const CKey &k, int64_t expirationTime = 0) {
         // Generate a proof that match the UTXO.
-        ProofBuilder pb(0, expirationTime, key);
+        ProofBuilder pb(0, expirationTime, key,
+                        UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
         BOOST_CHECK(pb.addUTXO(o, v, h, is_coinbase, k));
         ProofRef p = pb.build();
 
@@ -998,7 +999,8 @@ BOOST_AUTO_TEST_CASE(verify) {
 
     // No stake
     {
-        ProofRef p = ProofBuilder(0, 0, key).build();
+        ProofRef p =
+            ProofBuilder(0, 0, key, UNSPENDABLE_ECREG_PAYOUT_SCRIPT).build();
 
         ProofValidationState state;
         BOOST_CHECK(!p->verify(PROOF_DUST_THRESHOLD, chainman, state));
@@ -1024,7 +1026,7 @@ BOOST_AUTO_TEST_CASE(verify) {
             };
 
         for (auto it = testCases.begin(); it != testCases.end(); ++it) {
-            ProofBuilder pb(0, 0, key);
+            ProofBuilder pb(0, 0, key, UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
             BOOST_CHECK(
                 pb.addUTXO(pkh_outpoint, std::get<0>(*it), height, false, key));
             ProofRef p = pb.build();
@@ -1038,7 +1040,7 @@ BOOST_AUTO_TEST_CASE(verify) {
 
     // Duplicated input
     {
-        ProofBuilder pb(0, 0, key);
+        ProofBuilder pb(0, 0, key, UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
         BOOST_CHECK(pb.addUTXO(pkh_outpoint, value, height, false, key));
         ProofRef p = TestProofBuilder::buildDuplicatedStakes(pb);
 
@@ -1055,7 +1057,7 @@ BOOST_AUTO_TEST_CASE(verify) {
         coins.AddCoin(other_pkh_outpoint, Coin(other_pkh_output, height, false),
                       false);
 
-        ProofBuilder pb(0, 0, key);
+        ProofBuilder pb(0, 0, key, UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
         BOOST_CHECK(pb.addUTXO(pkh_outpoint, value, height, false, key));
         BOOST_CHECK(pb.addUTXO(other_pkh_outpoint, value, height, false, key));
         ProofRef p = TestProofBuilder::buildWithReversedOrderStakes(pb);
@@ -1128,7 +1130,7 @@ BOOST_AUTO_TEST_CASE(deterministic_proofid) {
     }
 
     auto computeProofId = [&]() {
-        ProofBuilder pb(0, 0, key);
+        ProofBuilder pb(0, 0, key, UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
         for (const COutPoint &outpoint : outpoints) {
             BOOST_CHECK(pb.addUTXO(outpoint, value, height, false, key));
         }
@@ -1144,7 +1146,7 @@ BOOST_AUTO_TEST_CASE(deterministic_proofid) {
 
 BOOST_AUTO_TEST_CASE(get_staked_amount) {
     auto key = CKey::MakeCompressedKey();
-    ProofBuilder pb(10, 11, key);
+    ProofBuilder pb(10, 11, key, UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
 
     {
         ProofRef p = pb.build();

@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE(add_remove_proof_no_conflict) {
     const COutPoint conflictingOutpoint{TxId(GetRandHash()), 0};
 
     auto buildProofWithSequence = [&](uint64_t sequence) {
-        ProofBuilder pb(sequence, 0, key);
+        ProofBuilder pb(sequence, 0, key, UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
         BOOST_CHECK(
             pb.addUTXO(conflictingOutpoint, 10 * COIN, 123456, false, key));
         return pb.build();
@@ -123,7 +123,7 @@ BOOST_AUTO_TEST_CASE(proof_override) {
 
     auto buildProofWithSequenceAndOutpoints =
         [&](uint64_t sequence, const std::vector<COutPoint> &outpoints) {
-            ProofBuilder pb(sequence, 0, key);
+            ProofBuilder pb(sequence, 0, key, UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
             for (const COutPoint &outpoint : outpoints) {
                 BOOST_CHECK(
                     pb.addUTXO(outpoint, 10 * COIN, 123456, false, key));
@@ -198,7 +198,7 @@ BOOST_AUTO_TEST_CASE(conflicting_proofs_set) {
     const COutPoint conflictingOutpoint{TxId(GetRandHash()), 0};
 
     auto buildProofWithSequence = [&](uint64_t sequence) {
-        ProofBuilder pb(sequence, 0, key);
+        ProofBuilder pb(sequence, 0, key, UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
         BOOST_CHECK(
             pb.addUTXO(conflictingOutpoint, 10 * COIN, 123456, false, key));
         return pb.build();
@@ -314,7 +314,7 @@ BOOST_AUTO_TEST_CASE(get_lowest_score_proof) {
     const CKey key = CKey::MakeCompressedKey();
     auto buildProofWithRandomOutpoints = [&](uint32_t score) {
         int numOutpoints = InsecureRand32() % 10 + 1;
-        ProofBuilder pb(0, 0, key);
+        ProofBuilder pb(0, 0, key, UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
         for (int i = 0; i < numOutpoints; i++) {
             Amount amount = 1 * COIN;
             if (i == numOutpoints - 1) {

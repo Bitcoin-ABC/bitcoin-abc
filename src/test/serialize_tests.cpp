@@ -6,6 +6,7 @@
 
 #include <avalanche/proof.h>
 #include <avalanche/proofbuilder.h>
+#include <avalanche/test/util.h>
 #include <hash.h>
 #include <streams.h>
 #include <util/strencodings.h>
@@ -428,7 +429,8 @@ BOOST_AUTO_TEST_CASE(class_methods) {
     const char charstrval[16] = "testing charstr";
     CMutableTransaction txval;
     CTransactionRef tx_ref{MakeTransactionRef(txval)};
-    avalanche::ProofBuilder pb(0, 0, CKey::MakeCompressedKey());
+    avalanche::ProofBuilder pb(0, 0, CKey::MakeCompressedKey(),
+                               avalanche::UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
     avalanche::ProofRef proofval = pb.build();
     CSerializeMethodsTestSingle methodtest1(intval, boolval, stringval,
                                             charstrval, tx_ref, proofval);
