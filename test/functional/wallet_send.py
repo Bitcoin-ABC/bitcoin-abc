@@ -392,7 +392,7 @@ class WalletSendTest(BitcoinTestFramework):
 
         self.log.info("Lock unspents...")
         utxo1 = w0.listunspent()[0]
-        assert_greater_than(utxo1["amount"], 1)
+        assert_greater_than(utxo1["amount"], 1_000_000)
         res = self.test_send(
             from_wallet=w0,
             to_wallet=w1,
