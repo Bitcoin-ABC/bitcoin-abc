@@ -32,6 +32,7 @@ import {
     xecReceivedNotificationWebsocket,
     eTokenReceivedNotification,
 } from 'components/Common/Notifications';
+import { getUtxosChronik } from 'utils/chronik';
 import { ChronikClient } from 'chronik-client';
 // For XEC, eCash chain:
 const chronik = new ChronikClient(currency.chronikUrl);
@@ -218,7 +219,34 @@ const useWallet = () => {
                 wallet.Path1899.publicKey,
             ];
 
+            /*
+               This strange data structure is necessary because chronik requires the hash160
+               of an address to tell you what utxos are at that address
+            */
+            const hash160AndAddressObjArray = [
+                {
+                    address: wallet.Path145.cashAddress,
+                    hash160: wallet.Path145.hash160,
+                },
+                {
+                    address: wallet.Path245.cashAddress,
+                    hash160: wallet.Path245.hash160,
+                },
+                {
+                    address: wallet.Path1899.cashAddress,
+                    hash160: wallet.Path1899.hash160,
+                },
+            ];
+
             const utxos = await getUtxos(BCH, cashAddresses);
+
+            console.log(`bchApiUtxos`, utxos);
+
+            const chronikUtxos = await getUtxosChronik(
+                chronik,
+                hash160AndAddressObjArray,
+            );
+            console.log(`chronikUtxos`, chronikUtxos);
 
             // If an error is returned or utxos from only 1 address are returned
             if (
