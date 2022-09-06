@@ -1115,7 +1115,7 @@ export default function useBCH() {
             );
         }
 
-        // Last output: send the BCH change back to the wallet.
+        // Last output: send the XEC change back to the wallet.
 
         // Send it back from whence it came
         transactionBuilder.addOutput(
