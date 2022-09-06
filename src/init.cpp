@@ -1695,10 +1695,6 @@ void InitParameterInteraction(ArgsManager &args) {
                                        : AVALANCHE_DEFAULT_LEGACY_PROOF);
         args.SoftSetBoolArg("-enableavalancheproofreplacement", fAvalanche);
         args.SoftSetBoolArg("-automaticunparking", !fAvalanche);
-        args.SoftSetArg(
-            "-avaminavaproofsnodecount",
-            fAvalanche ? "8"
-                       : ToString(AVALANCHE_DEFAULT_MIN_AVAPROOFS_NODE_COUNT));
     }
 }
 

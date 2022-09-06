@@ -29,12 +29,14 @@ class AvalancheTest(BitcoinTestFramework):
                 '-avaproofstakeutxoconfirmations=1',
                 '-avacooldown=0',
                 '-avaminquorumstake=0',
+                '-avaminavaproofsnodecount=0',
             ],
             [
                 '-enableavalanche=1',
                 '-avaproofstakeutxoconfirmations=1',
                 '-avacooldown=0',
                 '-avaminquorumstake=0',
+                '-avaminavaproofsnodecount=0',
                 '-noparkdeepreorg',
                 '-maxreorgdepth=-1'
             ],

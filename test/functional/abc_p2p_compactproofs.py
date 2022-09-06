@@ -618,7 +618,7 @@ class CompactProofsTest(BitcoinTestFramework):
         self.restart_node(
             0,
             extra_args=self.extra_args[0] +
-            ['-avaminquorumstake=1000000'])
+            ['-avaminquorumstake=1000000', '-avaminavaproofsnodecount=0'])
 
         assert_equal(node.getavalancheinfo()['ready_to_poll'], False)
 

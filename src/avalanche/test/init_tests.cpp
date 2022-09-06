@@ -31,7 +31,6 @@ BOOST_AUTO_TEST_CASE(avalanche_flag_tests) {
         BOOST_CHECK_EQUAL(
             args.GetBoolArg("-enableavalancheproofreplacement", false), true);
         BOOST_CHECK_EQUAL(args.GetBoolArg("-automaticunparking", true), false);
-        BOOST_CHECK_EQUAL(args.GetArg("-avaminavaproofsnodecount", 42), 8);
     }
 
     {
@@ -46,8 +45,6 @@ BOOST_AUTO_TEST_CASE(avalanche_flag_tests) {
         BOOST_CHECK_EQUAL(
             args.GetBoolArg("-enableavalancheproofreplacement", true), false);
         BOOST_CHECK_EQUAL(args.GetBoolArg("-automaticunparking", false), true);
-        BOOST_CHECK_EQUAL(args.GetArg("-avaminavaproofsnodecount", 42),
-                          AVALANCHE_DEFAULT_MIN_AVAPROOFS_NODE_COUNT);
     }
 
     {
@@ -57,7 +54,6 @@ BOOST_AUTO_TEST_CASE(avalanche_flag_tests) {
         args.ForceSetArg("-legacyavaproof", "1");
         args.ForceSetArg("-enableavalancheproofreplacement", "0");
         args.ForceSetArg("-automaticunparking", "1");
-        args.ForceSetArg("-avaminavaproofsnodecount", "42");
         InitParameterInteraction(args);
 
         BOOST_CHECK_EQUAL(args.GetBoolArg("-enableavalanche", false), true);
@@ -65,7 +61,6 @@ BOOST_AUTO_TEST_CASE(avalanche_flag_tests) {
         BOOST_CHECK_EQUAL(
             args.GetBoolArg("-enableavalancheproofreplacement", true), false);
         BOOST_CHECK_EQUAL(args.GetBoolArg("-automaticunparking", false), true);
-        BOOST_CHECK_EQUAL(args.GetArg("-avaminavaproofsnodecount", 0), 42);
     }
 
     gArgs.ClearForcedArg("-ecash");

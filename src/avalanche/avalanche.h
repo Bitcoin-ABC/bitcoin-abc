@@ -61,11 +61,8 @@ static constexpr double AVALANCHE_DEFAULT_MIN_QUORUM_CONNECTED_STAKE_RATIO =
 /**
  * Default minimum number of nodes that sent us an avaproofs message before we
  * can consider our quorum suitable for polling.
- *
- * FIXME: The default is set to 0 to allow existing tests to pass for now. We
- * need to set a sane default and update tests later.
  */
-static constexpr double AVALANCHE_DEFAULT_MIN_AVAPROOFS_NODE_COUNT = 0;
+static constexpr double AVALANCHE_DEFAULT_MIN_AVAPROOFS_NODE_COUNT = 8;
 
 /**
  * Global avalanche instance.

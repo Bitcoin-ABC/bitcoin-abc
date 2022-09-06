@@ -109,6 +109,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         // Get the processor ready.
         gArgs.ForceSetArg("-avaminquorumstake", "0");
         gArgs.ForceSetArg("-avaminquorumconnectedstakeratio", "0");
+        gArgs.ForceSetArg("avaminavaproofsnodecount", "0");
         bilingual_str error;
         m_processor = Processor::MakeProcessor(
             *m_node.args, *m_node.chain, m_node.connman.get(),
@@ -127,6 +128,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         gArgs.ClearForcedArg("-enableavalancheproofreplacement");
         gArgs.ClearForcedArg("-avaminquorumstake");
         gArgs.ClearForcedArg("-avaminquorumconnectedstakeratio");
+        gArgs.ClearForcedArg("-avaminavaproofsnodecount");
     }
 
     CNode *ConnectNode(ServiceFlags nServices) {
@@ -855,6 +857,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_timeout, P, VoteItemProviders) {
     argsman.ForceSetArg("-avatimeout", ToString(queryTimeDuration.count()));
     argsman.ForceSetArg("-avaminquorumstake", "0");
     argsman.ForceSetArg("-avaminquorumconnectedstakeratio", "0");
+    argsman.ForceSetArg("avaminavaproofsnodecount", "0");
 
     bilingual_str error;
     m_processor =
