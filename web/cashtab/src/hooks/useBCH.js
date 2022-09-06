@@ -1005,7 +1005,7 @@ export default function useBCH() {
     ) => {
         const slpBalancesAndUtxos = wallet.state.slpBalancesAndUtxos;
 
-        // Handle error of user having no BCH
+        // Handle error of user having no XEC
         if (
             !slpBalancesAndUtxos ||
             !slpBalancesAndUtxos.nonSlpUtxos ||
