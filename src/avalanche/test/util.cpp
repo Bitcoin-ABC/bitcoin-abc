@@ -67,9 +67,8 @@ ProofRef TestProofBuilder::buildWithReversedOrderStakes(ProofBuilder &pb) {
     const LimitedProofId limitedProofid =
         TestProofBuilder::getReverseOrderLimitedProofId(pb);
     const CPubKey masterPubKey = pb.masterKey.GetPubKey();
-    const StakeCommitment commitment(
-        limitedProofid.computeProofId(masterPubKey), pb.expirationTime,
-        pb.masterKey.GetPubKey());
+    const StakeCommitment commitment(pb.expirationTime,
+                                     pb.masterKey.GetPubKey());
 
     std::vector<SignedStake> signedStakes;
     signedStakes.reserve(pb.stakes.size());
@@ -109,9 +108,8 @@ ProofRef TestProofBuilder::buildDuplicatedStakes(ProofBuilder &pb) {
     const LimitedProofId limitedProofid =
         TestProofBuilder::getDuplicatedStakeLimitedProofId(pb);
     const CPubKey masterPubKey = pb.masterKey.GetPubKey();
-    const StakeCommitment commitment(
-        limitedProofid.computeProofId(masterPubKey), pb.expirationTime,
-        pb.masterKey.GetPubKey());
+    const StakeCommitment commitment(pb.expirationTime,
+                                     pb.masterKey.GetPubKey());
 
     std::vector<SignedStake> signedStakes;
     signedStakes.reserve(2 * pb.stakes.size());

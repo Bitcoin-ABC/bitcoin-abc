@@ -21,7 +21,7 @@
 
 namespace avalanche {
 
-StakeCommitment::StakeCommitment(const ProofId &proofid, int64_t expirationTime,
+StakeCommitment::StakeCommitment(int64_t expirationTime,
                                  const CPubKey &master) {
     CHashWriter ss(SER_GETHASH, 0);
     ss << expirationTime;

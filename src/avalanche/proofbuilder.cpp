@@ -15,8 +15,7 @@ bool ProofBuilder::addUTXO(COutPoint utxo, Amount amount, uint32_t height,
         return false;
     }
 
-    const StakeCommitment commitment(getProofId(), expirationTime,
-                                     masterKey.GetPubKey());
+    const StakeCommitment commitment(expirationTime, masterKey.GetPubKey());
     auto stake =
         Stake(std::move(utxo), amount, height, is_coinbase, key.GetPubKey());
     const uint256 h = stake.getHash(commitment);
