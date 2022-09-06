@@ -1022,7 +1022,7 @@ export default function useBCH() {
 
         // collate XEC utxos to cover token tx
         let totalXecInputUtxoValue = new BigNumber(0);
-        let inputUtxos = [];
+        let xecInputUtxos = [];
         let txFee = 0;
         let remainder;
         for (let i = 0; i < utxos.length; i++) {
@@ -1035,8 +1035,8 @@ export default function useBCH() {
             // add input with txid and index of vout
             transactionBuilder.addInput(txid, vout);
 
-            inputUtxos.push(utxo);
-            txFee = calcFee(BCH, inputUtxos, 5, 1.1 * currency.defaultFee);
+            xecInputUtxos.push(utxo);
+            txFee = calcFee(BCH, xecInputUtxos, 5, 1.1 * currency.defaultFee);
 
             remainder = totalXecInputUtxoValue
                 .minus(new BigNumber(currency.etokenSats * 2)) // one for token send output, one for token change
@@ -1119,12 +1119,12 @@ export default function useBCH() {
 
         // Send it back from whence it came
         transactionBuilder.addOutput(
-            BCH.Address.toLegacyAddress(inputUtxos[0].address),
+            BCH.Address.toLegacyAddress(xecInputUtxos[0].address),
             remainder.toNumber(),
         );
 
         // append the token input UTXOs to the array of XEC input UTXOs for signing
-        inputUtxos = inputUtxos.concat(tokenUtxosBeingSpent);
+        const inputUtxos = xecInputUtxos.concat(tokenUtxosBeingSpent);
 
         // Sign each UTXO being consumed and refresh transactionBuilder
         transactionBuilder = signUtxosByAddress(
