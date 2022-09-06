@@ -20,22 +20,12 @@ class ProofBuilder {
     CKey masterKey;
     CScript payoutScriptPubKey;
 
-    struct StakeSigner {
-        Stake stake;
-        CKey key;
-
-        StakeSigner(Stake stake_, CKey key_)
-            : stake(std::move(stake_)), key(std::move(key_)) {}
-
-        SignedStake sign(const StakeCommitment &commitment);
-    };
-
-    struct StakeSignerComparator {
-        bool operator()(const StakeSigner &lhs, const StakeSigner &rhs) const {
-            return lhs.stake.getId() < rhs.stake.getId();
+    struct SignedStakeComparator {
+        bool operator()(const SignedStake &lhs, const SignedStake &rhs) const {
+            return lhs.getStake().getId() < rhs.getStake().getId();
         }
     };
-    std::set<StakeSigner, StakeSignerComparator> stakes;
+    std::set<SignedStake, SignedStakeComparator> stakes;
 
 public:
     ProofBuilder(uint64_t sequence_, int64_t expirationTime_, CKey masterKey_,

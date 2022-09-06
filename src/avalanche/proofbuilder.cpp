@@ -9,28 +9,23 @@
 
 namespace avalanche {
 
-SignedStake ProofBuilder::StakeSigner::sign(const StakeCommitment &commitment) {
-    const uint256 h = stake.getHash(commitment);
-
-    SchnorrSig sig;
-    if (!key.SignSchnorr(h, sig)) {
-        sig.fill(0);
-    }
-
-    return SignedStake(std::move(stake), std::move(sig));
-}
-
 bool ProofBuilder::addUTXO(COutPoint utxo, Amount amount, uint32_t height,
                            bool is_coinbase, CKey key) {
     if (!key.IsValid()) {
         return false;
     }
 
-    return stakes
-        .emplace(Stake(std::move(utxo), amount, height, is_coinbase,
-                       key.GetPubKey()),
-                 std::move(key))
-        .second;
+    const StakeCommitment commitment(getProofId(), expirationTime,
+                                     masterKey.GetPubKey());
+    auto stake =
+        Stake(std::move(utxo), amount, height, is_coinbase, key.GetPubKey());
+    const uint256 h = stake.getHash(commitment);
+    SchnorrSig sig;
+    if (!key.SignSchnorr(h, sig)) {
+        sig.fill(0);
+    }
+
+    return stakes.emplace(std::move(stake), std::move(sig)).second;
 }
 
 ProofRef ProofBuilder::build() {
@@ -39,18 +34,12 @@ ProofRef ProofBuilder::build() {
     if (!masterKey.SignSchnorr(limitedProofId, proofSignature)) {
         proofSignature.fill(0);
     }
-
-    const ProofId proofid = getProofId();
-
-    const StakeCommitment commitment(proofid, expirationTime,
-                                     masterKey.GetPubKey());
-
     std::vector<SignedStake> signedStakes;
     signedStakes.reserve(stakes.size());
 
     while (!stakes.empty()) {
         auto handle = stakes.extract(stakes.begin());
-        signedStakes.push_back(handle.value().sign(commitment));
+        signedStakes.push_back(handle.value());
     }
 
     return ProofRef::make(sequence, expirationTime, masterKey.GetPubKey(),
@@ -66,7 +55,7 @@ LimitedProofId ProofBuilder::getLimitedProofId() const {
 
     WriteCompactSize(ss, stakes.size());
     for (const auto &s : stakes) {
-        ss << s.stake;
+        ss << s.getStake();
     }
 
     return LimitedProofId(ss.GetHash());

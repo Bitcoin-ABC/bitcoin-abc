@@ -57,7 +57,7 @@ TestProofBuilder::getReverseOrderLimitedProofId(ProofBuilder &pb) {
 
     WriteCompactSize(ss, pb.stakes.size());
     for (auto it = pb.stakes.rbegin(); it != pb.stakes.rend(); it++) {
-        ss << it->stake;
+        ss << it->getStake();
     }
 
     return LimitedProofId(ss.GetHash());
@@ -78,7 +78,7 @@ ProofRef TestProofBuilder::buildWithReversedOrderStakes(ProofBuilder &pb) {
         // We need a forward iterator, so pb.stakes.rbegin() is not an
         // option.
         auto handle = pb.stakes.extract(std::prev(pb.stakes.end()));
-        signedStakes.push_back(handle.value().sign(commitment));
+        signedStakes.push_back(handle.value());
     }
 
     SchnorrSig proofSignature;
@@ -98,8 +98,8 @@ TestProofBuilder::getDuplicatedStakeLimitedProofId(ProofBuilder &pb) {
 
     WriteCompactSize(ss, 2 * pb.stakes.size());
     for (auto &s : pb.stakes) {
-        ss << s.stake;
-        ss << s.stake;
+        ss << s.getStake();
+        ss << s.getStake();
     }
 
     return LimitedProofId(ss.GetHash());
@@ -118,7 +118,7 @@ ProofRef TestProofBuilder::buildDuplicatedStakes(ProofBuilder &pb) {
 
     while (!pb.stakes.empty()) {
         auto handle = pb.stakes.extract(pb.stakes.begin());
-        SignedStake signedStake = handle.value().sign(commitment);
+        SignedStake signedStake = handle.value();
         signedStakes.push_back(signedStake);
         signedStakes.push_back(signedStake);
     }
