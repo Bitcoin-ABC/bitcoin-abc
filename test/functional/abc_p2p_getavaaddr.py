@@ -88,7 +88,6 @@ class AvaAddrTest(BitcoinTestFramework):
             [
                 '-enableavalanche=1',
                 '-avaproofstakeutxodustthreshold=1000000',
-                '-enableavalancheproofreplacement=1',
                 '-avaproofstakeutxoconfirmations=1',
                 '-avacooldown=0',
                 '-avaminquorumstake=0',

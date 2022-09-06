@@ -928,14 +928,12 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_rescan, NoCoolDownFixture) {
     const COutPoint conflictingOutpoint = createUtxo(active_chainstate, key);
     const COutPoint outpointToSend = createUtxo(active_chainstate, key);
 
-    const Amount amount = PROOF_DUST_THRESHOLD;
-
-    ProofRef proofToInvalidate = buildProofWithOutpoints(
-        key, {conflictingOutpoint, outpointToSend}, amount);
+    ProofRef proofToInvalidate =
+        buildProofWithSequence(key, {conflictingOutpoint, outpointToSend}, 20);
     BOOST_CHECK(pm.registerProof(proofToInvalidate));
 
-    ProofRef conflictingProof = buildProofWithOutpoints(
-        key, {conflictingOutpoint, createUtxo(active_chainstate, key)}, amount);
+    ProofRef conflictingProof =
+        buildProofWithSequence(key, {conflictingOutpoint}, 10);
     ProofRegistrationState state;
     BOOST_CHECK(!pm.registerProof(conflictingProof, state));
     BOOST_CHECK(state.GetResult() == ProofRegistrationResult::CONFLICTING);
@@ -970,8 +968,6 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_selection, NoCoolDownFixture) {
     auto conflictingOutpoint = createUtxo(active_chainstate, key, amount);
 
     auto proof_base = buildProofWithSequence(key, {conflictingOutpoint}, 10);
-
-    gArgs.ForceSetArg("-enableavalancheproofreplacement", "1");
 
     ConflictingProofComparator comparator;
     auto checkPreferred = [&](const ProofRef &candidate,
@@ -1050,8 +1046,6 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_selection, NoCoolDownFixture) {
         checkPreferred(proofSimilar, proof_multiUtxo,
                        proofSimilar->getId() < proof_multiUtxo->getId());
     }
-
-    gArgs.ClearForcedArg("-enableavalancheproofreplacement");
 }
 
 BOOST_AUTO_TEST_CASE(conflicting_immature_proofs) {
@@ -1329,9 +1323,11 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_cooldown) {
     // Elapse the cooldown
     increaseMockTime(conflictingProofCooldown);
 
-    // The proof will now be added to conflicting pool
-    checkRegistrationFailure(proofSeq40, ProofRegistrationResult::CONFLICTING);
-    BOOST_CHECK(pm.isInConflictingPool(proofSeq40->getId()));
+    // The proof will now be accepted to replace proofSeq30, proofSeq30 will
+    // move to the conflicting pool, and proofSeq20 will be evicted.
+    BOOST_CHECK(pm.registerProof(proofSeq40));
+    BOOST_CHECK(pm.isBoundToPeer(proofSeq40->getId()));
+    BOOST_CHECK(pm.isInConflictingPool(proofSeq30->getId()));
     BOOST_CHECK(!pm.exists(proofSeq20->getId()));
 
     gArgs.ClearForcedArg("-avalancheconflictingproofcooldown");
@@ -1754,8 +1750,6 @@ BOOST_FIXTURE_TEST_CASE(proof_radix_tree, NoCoolDownFixture) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
     avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
-    gArgs.ForceSetArg("-enableavalancheproofreplacement", "1");
-
     struct ProofComparatorById {
         bool operator()(const ProofRef &lhs, const ProofRef &rhs) const {
             return lhs->getId() < rhs->getId();
@@ -1865,8 +1859,6 @@ BOOST_FIXTURE_TEST_CASE(proof_radix_tree, NoCoolDownFixture) {
 
     // Check for consistency
     pm.verify();
-
-    gArgs.ClearForcedArg("-enableavalancheproofreplacement");
 }
 
 BOOST_AUTO_TEST_CASE(received_avaproofs) {
@@ -1894,7 +1886,6 @@ BOOST_AUTO_TEST_CASE(received_avaproofs) {
 
 BOOST_FIXTURE_TEST_CASE(cleanup_dangling_proof, NoCoolDownFixture) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    gArgs.ForceSetArg("-enableavalancheproofreplacement", "1");
 
     avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
@@ -2038,8 +2029,6 @@ BOOST_FIXTURE_TEST_CASE(cleanup_dangling_proof, NoCoolDownFixture) {
         BOOST_CHECK(!pm.exists(proofs[i]->getId()));
         BOOST_CHECK(!pm.exists(conflictingProofs[i]->getId()));
     }
-
-    gArgs.ClearForcedArg("-enableavalancheproofreplacement");
 }
 
 BOOST_AUTO_TEST_CASE(register_proof_missing_utxo) {
@@ -2056,7 +2045,6 @@ BOOST_AUTO_TEST_CASE(register_proof_missing_utxo) {
 }
 
 BOOST_AUTO_TEST_CASE(proof_expiry) {
-    gArgs.ForceSetArg("-enableavalancheproofreplacement", "1");
     gArgs.ForceSetArg("-avalancheconflictingproofcooldown", "0");
 
     ChainstateManager &chainman = *Assert(m_node.chainman);
@@ -2098,7 +2086,6 @@ BOOST_AUTO_TEST_CASE(proof_expiry) {
     BOOST_CHECK(pm.isBoundToPeer(conflictingProof->getId()));
 
     gArgs.ClearForcedArg("-avalancheconflictingproofcooldown");
-    gArgs.ClearForcedArg("-enableavalancheproofreplacement");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

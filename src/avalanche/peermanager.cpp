@@ -299,20 +299,15 @@ bool PeerManager::registerProof(const ProofRef &proof,
                         "cooldown-not-elapsed");
                 }
 
-                // If proof replacement is enabled, give the proof a chance to
-                // replace the conflicting ones.
-                if (gArgs.GetBoolArg(
-                        "-enableavalancheproofreplacement",
-                        AVALANCHE_DEFAULT_PROOF_REPLACEMENT_ENABLED)) {
-                    if (validProofPool.addProofIfPreferred(proof)) {
-                        // If we have overridden other proofs due to conflict,
-                        // remove the peers and attempt to move them to the
-                        // conflicting pool.
-                        moveToConflictingPool(conflictingProofs);
+                // Give the proof a chance to replace the conflicting ones.
+                if (validProofPool.addProofIfPreferred(proof)) {
+                    // If we have overridden other proofs due to conflict,
+                    // remove the peers and attempt to move them to the
+                    // conflicting pool.
+                    moveToConflictingPool(conflictingProofs);
 
-                        // Replacement is successful, continue to peer creation
-                        break;
-                    }
+                    // Replacement is successful, continue to peer creation
+                    break;
                 }
 
                 // Not the preferred proof, or replacement is not enabled

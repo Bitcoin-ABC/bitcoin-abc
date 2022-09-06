@@ -35,11 +35,6 @@ static constexpr size_t AVALANCHE_DEFAULT_PEER_REPLACEMENT_COOLDOWN =
     24 * 60 * 60;
 
 /**
- * Is proof replacement enabled by default.
- */
-static constexpr bool AVALANCHE_DEFAULT_PROOF_REPLACEMENT_ENABLED = false;
-
-/**
  * Avalanche default cooldown in milliseconds.
  */
 static constexpr size_t AVALANCHE_DEFAULT_COOLDOWN = 100;

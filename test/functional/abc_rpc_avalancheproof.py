@@ -461,7 +461,6 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         stake_age = node.getblockcount()
         self.restart_node(0, self.extra_args[0] + [
             "-avaproofstakeutxoconfirmations={}".format(stake_age),
-            '-enableavalancheproofreplacement=1',
             '-avalancheconflictingproofcooldown=0'
         ])
 

@@ -117,7 +117,6 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         BOOST_CHECK(m_processor);
 
         gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "1");
-        gArgs.ForceSetArg("-enableavalancheproofreplacement", "1");
     }
 
     ~AvalancheTestingSetup() {
@@ -125,7 +124,6 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         SyncWithValidationInterfaceQueue();
 
         gArgs.ClearForcedArg("-avaproofstakeutxoconfirmations");
-        gArgs.ClearForcedArg("-enableavalancheproofreplacement");
         gArgs.ClearForcedArg("-avaminquorumstake");
         gArgs.ClearForcedArg("-avaminquorumconnectedstakeratio");
         gArgs.ClearForcedArg("-avaminavaproofsnodecount");
@@ -1186,23 +1184,6 @@ BOOST_AUTO_TEST_CASE(add_proof_to_reconcile) {
         for (auto &inv : invs) {
             BOOST_CHECK_NE(inv.hash, proof->getId());
         }
-    }
-
-    {
-        // If proof replacement is not enabled there is no point polling for the
-        // proof.
-        auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
-        m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
-            BOOST_CHECK(pm.registerProof(proof));
-        });
-
-        gArgs.ForceSetArg("-enableavalancheproofreplacement", "0");
-        BOOST_CHECK(!m_processor->addProofToReconcile(proof));
-
-        gArgs.ForceSetArg("-enableavalancheproofreplacement", "1");
-        BOOST_CHECK(m_processor->addProofToReconcile(proof));
-
-        gArgs.ClearForcedArg("-enableavalancheproofreplacement");
     }
 }
 

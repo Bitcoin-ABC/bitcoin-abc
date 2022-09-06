@@ -32,7 +32,6 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         self.conflicting_proof_cooldown = 100
         self.extra_args = [[
             '-enableavalanche=1',
-            '-enableavalancheproofreplacement=1',
             f'-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}',
             '-avaproofstakeutxoconfirmations=2',
             '-avacooldown=0',

@@ -40,7 +40,6 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
             [
                 '-enableavalanche=1',
                 '-avaproofstakeutxodustthreshold=1000000',
-                '-enableavalancheproofreplacement=1',
                 '-avaproofstakeutxoconfirmations=2',
                 f'-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}',
                 f'-avalanchepeerreplacementcooldown={self.peer_replacement_cooldown}',
@@ -201,14 +200,6 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
         self.log.info("We don't poll for proofs if replacement is disabled")
 
-        self.restart_node(
-            0,
-            extra_args=self.extra_args[0] +
-            ['-enableavalancheproofreplacement=0'])
-        peer = get_ava_p2p_interface(node)
-        with node.assert_debug_log(["Not polling the avalanche proof (not-worth-polling)"]):
-            peer.send_avaproof(avalanche_proof_from_hex(proof_seq10))
-
     def update_tests(self, node):
         # Restart the node to get rid of in-flight requests
         self.restart_node(0)
@@ -340,8 +331,9 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         ava_key = ECPubKey()
         ava_key.set(bytes.fromhex(node.getavalanchekey()))
 
-        def create_proof(stakes):
-            proof = node.buildavalancheproof(11, 0, self.privkey_wif, stakes)
+        def create_proof(stakes, sequence=10):
+            proof = node.buildavalancheproof(
+                sequence, 0, self.privkey_wif, stakes)
             proof_id = avalanche_proof_from_hex(proof).proofid
             return proof, proof_id
 
@@ -357,10 +349,10 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         stakes_2 = create_coinbase_stakes(node, [blocks[3]], stakes_key.key)
         proof_2, proof_2_id = create_proof(stakes_2)
 
-        # proof_3 conflicts with proof_0 and proof_1
+        # proof_3 conflicts with proof_0 and proof_1, but has a lower sequence
         stakes_3 = create_coinbase_stakes(
             node, [blocks[0], blocks[1]], stakes_key.key)
-        proof_3, proof_3_id = create_proof(stakes_3)
+        proof_3, proof_3_id = create_proof(stakes_3, sequence=1)
 
         # proof_4 is invalid and should be rejected
         stakes_4 = create_coinbase_stakes(node, [blocks[2]], stakes_key.key)
@@ -495,7 +487,6 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.restart_node(0, extra_args=[
             '-enableavalanche=1',
             '-avaproofstakeutxodustthreshold=1000000',
-            '-enableavalancheproofreplacement=1',
             '-avaproofstakeutxoconfirmations=2',
             '-avalancheconflictingproofcooldown=0',
             '-avacooldown=0',
