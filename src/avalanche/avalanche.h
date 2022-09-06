@@ -54,11 +54,9 @@ static constexpr Amount AVALANCHE_DEFAULT_MIN_QUORUM_STAKE =
 /**
  * Default minimum percentage of stake-weighted peers we must have a node for to
  * constitute a usable quorum.
- *
- * FIXME: The default is set to 0 to allow existing tests to pass for now. We
- * need to set a sane default and update tests later.
  */
-static constexpr double AVALANCHE_DEFAULT_MIN_QUORUM_CONNECTED_STAKE_RATIO = 0;
+static constexpr double AVALANCHE_DEFAULT_MIN_QUORUM_CONNECTED_STAKE_RATIO =
+    0.8;
 
 /**
  * Default minimum number of nodes that sent us an avaproofs message before we

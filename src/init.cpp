@@ -1696,11 +1696,6 @@ void InitParameterInteraction(ArgsManager &args) {
         args.SoftSetBoolArg("-enableavalancheproofreplacement", fAvalanche);
         args.SoftSetBoolArg("-automaticunparking", !fAvalanche);
         args.SoftSetArg(
-            "-avaminquorumconnectedstakeratio",
-            fAvalanche
-                ? "0.8"
-                : ToString(AVALANCHE_DEFAULT_MIN_QUORUM_CONNECTED_STAKE_RATIO));
-        args.SoftSetArg(
             "-avaminavaproofsnodecount",
             fAvalanche ? "8"
                        : ToString(AVALANCHE_DEFAULT_MIN_AVAPROOFS_NODE_COUNT));
