@@ -47,12 +47,9 @@ static constexpr size_t AVALANCHE_DEFAULT_COOLDOWN = 100;
 /**
  * Default minimum cumulative stake of all known peers that constitutes a usable
  * quorum.
- *
- * FIXME: The default is set to 0 to allow existing tests to pass for now. We
- * need to set a sane default and update tests later.
  */
-static constexpr const Amount AVALANCHE_DEFAULT_MIN_QUORUM_STAKE =
-    Amount::zero();
+static constexpr Amount AVALANCHE_DEFAULT_MIN_QUORUM_STAKE =
+    int64_t(1'000'000'000'000) * SATOSHI; // 10B XEC
 
 /**
  * Default minimum percentage of stake-weighted peers we must have a node for to

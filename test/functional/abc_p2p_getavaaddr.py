@@ -84,11 +84,17 @@ class AvaAddrTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = False
         self.num_nodes = 1
-        self.extra_args = [['-enableavalanche=1',
-                            '-avaproofstakeutxodustthreshold=1000000',
-                            '-enableavalancheproofreplacement=1',
-                            '-avaproofstakeutxoconfirmations=1',
-                            '-avacooldown=0', '-whitelist=noban@127.0.0.1']]
+        self.extra_args = [
+            [
+                '-enableavalanche=1',
+                '-avaproofstakeutxodustthreshold=1000000',
+                '-enableavalancheproofreplacement=1',
+                '-avaproofstakeutxoconfirmations=1',
+                '-avacooldown=0',
+                '-avaminquorumstake=0',
+                '-whitelist=noban@127.0.0.1',
+            ]
+        ]
 
     def check_all_peers_received_getavaaddr_once(self, avapeers):
         def received_all_getavaaddr(avapeers):

@@ -1696,11 +1696,6 @@ void InitParameterInteraction(ArgsManager &args) {
         args.SoftSetBoolArg("-enableavalancheproofreplacement", fAvalanche);
         args.SoftSetBoolArg("-automaticunparking", !fAvalanche);
         args.SoftSetArg(
-            "-avaminquorumstake",
-            fAvalanche
-                ? FormatMoney(int64_t(1'000'000'000'000) * SATOSHI) // 10B XEC
-                : FormatMoney(AVALANCHE_DEFAULT_MIN_QUORUM_STAKE));
-        args.SoftSetArg(
             "-avaminquorumconnectedstakeratio",
             fAvalanche
                 ? "0.8"

@@ -23,13 +23,22 @@ class AvalancheTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 2
         self.extra_args = [
-            ['-enableavalanche=1',
-             '-avaproofstakeutxodustthreshold=1000000',
-             '-avaproofstakeutxoconfirmations=1',
-             '-avacooldown=0'],
-            ['-enableavalanche=1',
-             '-avaproofstakeutxoconfirmations=1',
-             '-avacooldown=0', '-noparkdeepreorg', '-maxreorgdepth=-1']]
+            [
+                '-enableavalanche=1',
+                '-avaproofstakeutxodustthreshold=1000000',
+                '-avaproofstakeutxoconfirmations=1',
+                '-avacooldown=0',
+                '-avaminquorumstake=0',
+            ],
+            [
+                '-enableavalanche=1',
+                '-avaproofstakeutxoconfirmations=1',
+                '-avacooldown=0',
+                '-avaminquorumstake=0',
+                '-noparkdeepreorg',
+                '-maxreorgdepth=-1'
+            ],
+        ]
         self.supports_cli = False
         self.rpc_timeout = 120
 

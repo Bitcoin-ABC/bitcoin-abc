@@ -107,6 +107,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         m_node.chain = interfaces::MakeChain(m_node, config.GetChainParams());
 
         // Get the processor ready.
+        gArgs.ForceSetArg("-avaminquorumstake", "0");
         bilingual_str error;
         m_processor = Processor::MakeProcessor(
             *m_node.args, *m_node.chain, m_node.connman.get(),
@@ -123,6 +124,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
 
         gArgs.ClearForcedArg("-avaproofstakeutxoconfirmations");
         gArgs.ClearForcedArg("-enableavalancheproofreplacement");
+        gArgs.ClearForcedArg("-avaminquorumstake");
     }
 
     CNode *ConnectNode(ServiceFlags nServices) {
@@ -849,6 +851,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_timeout, P, VoteItemProviders) {
 
     auto queryTimeDuration = std::chrono::milliseconds(10);
     argsman.ForceSetArg("-avatimeout", ToString(queryTimeDuration.count()));
+    argsman.ForceSetArg("-avaminquorumstake", "0");
 
     bilingual_str error;
     m_processor =

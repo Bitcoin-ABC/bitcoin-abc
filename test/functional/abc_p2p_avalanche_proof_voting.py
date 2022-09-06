@@ -37,11 +37,18 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.conflicting_proof_cooldown = 100
         self.peer_replacement_cooldown = 2000
         self.extra_args = [
-            ['-enableavalanche=1',
-             '-avaproofstakeutxodustthreshold=1000000',
-             '-enableavalancheproofreplacement=1',
-             '-avaproofstakeutxoconfirmations=2',
-                f'-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}', f'-avalanchepeerreplacementcooldown={self.peer_replacement_cooldown}', '-avacooldown=0', '-avastalevotethreshold=140', '-avastalevotefactor=1'],
+            [
+                '-enableavalanche=1',
+                '-avaproofstakeutxodustthreshold=1000000',
+                '-enableavalancheproofreplacement=1',
+                '-avaproofstakeutxoconfirmations=2',
+                f'-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}',
+                f'-avalanchepeerreplacementcooldown={self.peer_replacement_cooldown}',
+                '-avacooldown=0',
+                '-avastalevotethreshold=140',
+                '-avastalevotefactor=1',
+                '-avaminquorumstake=0',
+            ],
         ]
         self.supports_cli = False
 
@@ -316,6 +323,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
                                          '-avaproofstakeutxoconfirmations=2',
                                          '-avacooldown=0',
                                          '-avalancheconflictingproofcooldown=0',
+                                         '-avaminquorumstake=0',
                                          '-whitelist=noban@127.0.0.1', ])
 
         self.get_quorum(node)
@@ -489,6 +497,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
             '-avaproofstakeutxoconfirmations=2',
             '-avalancheconflictingproofcooldown=0',
             '-avacooldown=0',
+            '-avaminquorumstake=0',
         ])
 
         self.quorum = self.get_quorum(node)
