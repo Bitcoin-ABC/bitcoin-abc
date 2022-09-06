@@ -25,6 +25,9 @@ import { ReactComponent as Pdf } from 'assets/file-pdf.svg';
 import { ReactComponent as Plus } from 'assets/plus.svg';
 import { ReactComponent as Download } from 'assets/download.svg';
 import { ReactComponent as Edit } from 'assets/edit.svg';
+import { ReactComponent as Trashcan } from 'assets/trashcan.svg';
+import { ReactComponent as FingerprintSVG } from 'assets/fingerprint-solid.svg';
+
 export const CashLoadingIcon = <LoadingOutlined className="cashLoadingIcon" />;
 
 export const CashReceivedNotificationIcon = () => (
@@ -116,6 +119,18 @@ export const ThemedEditOutlined = styled(Edit)`
     width: 20px;
     height: 20px;
     cursor: pointer;
+`;
+
+export const ThemedTrashcanOutlined = styled(Trashcan)`
+    stroke: ${props => props.theme.eCashBlue};
+    fill: ${props => props.theme.eCashBlue};
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+`;
+
+export const ThemedFingerprintSVG = styled(FingerprintSVG)`
+    fill: ${props => props.theme.buttons.primary.color};
 `;
 
 export const LoadingBlock = styled.div`

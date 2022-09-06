@@ -2,9 +2,11 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Modal, Spin } from 'antd';
 import styled from 'styled-components';
 import { AuthenticationContext } from 'utils/context';
-import { ThemedLockOutlined } from 'components/Common/CustomIcons';
+import {
+    ThemedLockOutlined,
+    ThemedFingerprintSVG,
+} from 'components/Common/CustomIcons';
 import PrimaryButton from 'components/Common/PrimaryButton';
-import { ReactComponent as FingerprintSVG } from 'assets/fingerprint-solid.svg';
 
 const StyledSignIn = styled.div`
     h2 {
@@ -21,10 +23,6 @@ const UnlockButton = styled(PrimaryButton)`
     width: auto;
     margin: 30px auto;
     padding: 20px 30px;
-
-    svg {
-        fill: ${props => props.theme.buttons.primary.color};
-    }
 
     @media (max-width: 768px) {
         font-size: 16px;
@@ -129,7 +127,7 @@ const SignIn = () => {
                     disabled={isLoading ? true : false}
                 >
                     <StyledFingerprintIcon>
-                        <FingerprintSVG />
+                        <ThemedFingerprintSVG />
                     </StyledFingerprintIcon>
                     Unlock
                 </UnlockButton>

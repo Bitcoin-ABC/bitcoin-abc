@@ -3,13 +3,13 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-cvbbAY doMtLK"
+    className="sc-brqgnP ghMCeb"
   >
     <div
-      className="sc-Rmtcm cZLcRh"
+      className="sc-hzDkRC ehAxlA"
     >
       <h4
-        className="sc-bRBYWo cmdkvD"
+        className="sc-jhAzac elEdEj"
       >
         MigrationTestAlpha
       </h4>
@@ -25,7 +25,7 @@ Array [
       </a>
     </div>
     <div
-      className="sc-brqgnP gQXNsF"
+      className="sc-jAaTju eoNejo"
     >
       0
        
@@ -33,17 +33,17 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hSdWYo hTUZUh"
+    className="sc-cvbbAY blOKNt"
   >
     <div
-      className="sc-gipzik jbxDOO"
+      className="sc-Rmtcm dBQjWB"
     >
       <h3>
         Create a Token
       </h3>
     </div>
     <p
-      className="sc-gPEVay lnmMAx"
+      className="sc-jlyJG fmCrzx"
     >
       You need at least
        
@@ -64,13 +64,13 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-cvbbAY doMtLK"
+    className="sc-brqgnP ghMCeb"
   >
     <div
-      className="sc-Rmtcm cZLcRh"
+      className="sc-hzDkRC ehAxlA"
     >
       <h4
-        className="sc-bRBYWo cmdkvD"
+        className="sc-jhAzac elEdEj"
       >
         MigrationTestAlpha
       </h4>
@@ -86,7 +86,7 @@ Array [
       </a>
     </div>
     <div
-      className="sc-brqgnP gQXNsF"
+      className="sc-jAaTju eoNejo"
     >
       0
        
@@ -94,17 +94,17 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hSdWYo hTUZUh"
+    className="sc-cvbbAY blOKNt"
   >
     <div
-      className="sc-gipzik jbxDOO"
+      className="sc-Rmtcm dBQjWB"
     >
       <h3>
         Create a Token
       </h3>
     </div>
     <p
-      className="sc-gPEVay lnmMAx"
+      className="sc-jlyJG fmCrzx"
     >
       You need at least
        
@@ -125,13 +125,13 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-cvbbAY doMtLK"
+    className="sc-brqgnP ghMCeb"
   >
     <div
-      className="sc-Rmtcm cZLcRh"
+      className="sc-hzDkRC ehAxlA"
     >
       <h4
-        className="sc-bRBYWo cmdkvD"
+        className="sc-jhAzac elEdEj"
       >
         MigrationTestAlpha
       </h4>
@@ -147,7 +147,7 @@ Array [
       </a>
     </div>
     <div
-      className="sc-brqgnP gQXNsF"
+      className="sc-jAaTju eoNejo"
     >
       0.06
        
@@ -155,16 +155,16 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hSdWYo hTUZUh"
+    className="sc-cvbbAY blOKNt"
   >
     <div
-      className="sc-gipzik jbxDOO"
+      className="sc-Rmtcm dBQjWB"
     >
       <h3>
         Create a Token
       </h3>
       <div
-        className="sc-chPdSV gGNknR"
+        className="sc-kGXeez goAmFv"
       >
         <form
           className="ant-form ant-form-horizontal ant-form-small"
@@ -177,7 +177,7 @@ Array [
           }
         >
           <label
-            className="sc-eHgmQL bNAogF"
+            className="sc-jWBwVP ovobL"
           >
             Token Name
           </label>
@@ -215,7 +215,7 @@ Array [
             </div>
           </div>
           <label
-            className="sc-eHgmQL bNAogF"
+            className="sc-jWBwVP ovobL"
           >
             Ticker
           </label>
@@ -253,7 +253,7 @@ Array [
             </div>
           </div>
           <label
-            className="sc-eHgmQL bNAogF"
+            className="sc-jWBwVP ovobL"
           >
             Decimals
           </label>
@@ -291,7 +291,7 @@ Array [
             </div>
           </div>
           <label
-            className="sc-eHgmQL bNAogF"
+            className="sc-jWBwVP ovobL"
           >
             Supply
           </label>
@@ -329,7 +329,7 @@ Array [
             </div>
           </div>
           <label
-            className="sc-eHgmQL bNAogF"
+            className="sc-jWBwVP ovobL"
           >
             Document URL
           </label>
@@ -367,7 +367,7 @@ Array [
             </div>
           </div>
           <label
-            className="sc-eHgmQL bNAogF"
+            className="sc-jWBwVP ovobL"
           >
             Add Image
           </label>
@@ -473,7 +473,7 @@ Array [
         </form>
       </div>
       <button
-        className="sc-kEYyzF gpbNiR"
+        className="sc-iAyFgw eGqICl"
         disabled={true}
         onClick={[Function]}
         style={
@@ -514,13 +514,13 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-cvbbAY doMtLK"
+    className="sc-brqgnP ghMCeb"
   >
     <div
-      className="sc-Rmtcm cZLcRh"
+      className="sc-hzDkRC ehAxlA"
     >
       <h4
-        className="sc-bRBYWo cmdkvD"
+        className="sc-jhAzac elEdEj"
       >
         MigrationTestAlpha
       </h4>
@@ -536,7 +536,7 @@ Array [
       </a>
     </div>
     <div
-      className="sc-brqgnP gQXNsF"
+      className="sc-jAaTju eoNejo"
     >
       0
        
@@ -544,17 +544,17 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hSdWYo hTUZUh"
+    className="sc-cvbbAY blOKNt"
   >
     <div
-      className="sc-gipzik jbxDOO"
+      className="sc-Rmtcm dBQjWB"
     >
       <h3>
         Create a Token
       </h3>
     </div>
     <p
-      className="sc-gPEVay lnmMAx"
+      className="sc-jlyJG fmCrzx"
     >
       You need at least
        
@@ -575,10 +575,10 @@ Array [
 exports[`Without wallet defined 1`] = `
 Array [
   <div
-    className="sc-cvbbAY doMtLK"
+    className="sc-brqgnP ghMCeb"
   >
     <div
-      className="sc-Rmtcm cZLcRh"
+      className="sc-hzDkRC ehAxlA"
     >
       <a
         href="/configure"
@@ -592,7 +592,7 @@ Array [
       </a>
     </div>
     <div
-      className="sc-brqgnP gQXNsF"
+      className="sc-jAaTju eoNejo"
     >
       0
        
@@ -600,17 +600,17 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hSdWYo hTUZUh"
+    className="sc-cvbbAY blOKNt"
   >
     <div
-      className="sc-gipzik jbxDOO"
+      className="sc-Rmtcm dBQjWB"
     >
       <h3>
         Create a Token
       </h3>
     </div>
     <p
-      className="sc-gPEVay lnmMAx"
+      className="sc-jlyJG fmCrzx"
     >
       You need at least
        

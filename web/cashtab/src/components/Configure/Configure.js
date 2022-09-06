@@ -47,9 +47,9 @@ import {
     ThemedPlusOutlined,
     ThemedDownloadOutlined,
     ThemedCopySolid,
+    ThemedTrashcanOutlined,
+    ThemedEditOutlined,
 } from 'components/Common/CustomIcons';
-import { ReactComponent as Trashcan } from 'assets/trashcan.svg';
-import { ReactComponent as Edit } from 'assets/edit.svg';
 import { Event } from 'utils/GoogleAnalytics';
 import ApiError from 'components/Common/ApiError';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
@@ -1611,7 +1611,7 @@ const Configure = () => {
                                     </Tooltip>
                                     <h4>Currently active</h4>
                                     <SWButtonCtn>
-                                        <Edit
+                                        <ThemedEditOutlined
                                             onClick={() =>
                                                 showPopulatedRenameWalletModal(
                                                     wallet,
@@ -1651,7 +1651,7 @@ const Configure = () => {
                                                 </div>
                                             </SWBalance>
                                             <SWButtonCtn>
-                                                <Edit
+                                                <ThemedEditOutlined
                                                     onClick={() =>
                                                         showPopulatedRenameWalletModal(
                                                             sw,
@@ -1665,7 +1665,7 @@ const Configure = () => {
                                                         )
                                                     }
                                                 />
-                                                <Trashcan
+                                                <ThemedTrashcanOutlined
                                                     onClick={() =>
                                                         showPopulatedDeleteWalletModal(
                                                             sw,
@@ -1751,7 +1751,7 @@ const Configure = () => {
                                                             >
                                                                 <ThemedCopySolid />
                                                             </CopyToClipboard>
-                                                            <Edit
+                                                            <ThemedEditOutlined
                                                                 onClick={() =>
                                                                     handleRenameContact(
                                                                         element,
@@ -1769,7 +1769,7 @@ const Configure = () => {
                                                             >
                                                                 <ThemedContactSendOutlined />
                                                             </Link>
-                                                            <Trashcan
+                                                            <ThemedTrashcanOutlined
                                                                 onClick={() =>
                                                                     handleDeleteContact(
                                                                         element.address,
