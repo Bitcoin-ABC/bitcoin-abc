@@ -57,7 +57,7 @@ class AvalancheProofTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 2
-        self.extra_args = [['-enableavalanche=1',
+        self.extra_args = [['-avalanche=1',
                             '-avaproofstakeutxodustthreshold={}'.format(
                                 PROOF_DUST_THRESHOLD),
                             '-avaproofstakeutxoconfirmations=1',

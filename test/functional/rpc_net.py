@@ -45,11 +45,11 @@ class NetTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 2
-        self.extra_args = [["-enableavalanche=1",
+        self.extra_args = [["-avalanche=1",
                             "-avaproofstakeutxodustthreshold=1000000",
                             "-avaproofstakeutxoconfirmations=1",
                             "-minrelaytxfee=10"],
-                           ["-enableavalanche=1",
+                           ["-avalanche=1",
                             "-avaproofstakeutxodustthreshold=1000000",
                             "-avaproofstakeutxoconfirmations=1",
                             "-minrelaytxfee=5"]]

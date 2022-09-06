@@ -1316,13 +1316,7 @@ void SetupServerArgs(NodeContext &node) {
 
     // Avalanche options.
     argsman.AddArg("-avalanche",
-                   strprintf("Enable all the avalanche features (default: %u)",
-                             AVALANCHE_DEFAULT_ENABLED),
-                   ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
-    argsman.AddArg("-enableavalanche",
-                   strprintf("Enable the core avalanche features only. You "
-                             "need to manually configure the individual "
-                             "features with dedicated flags (default: %u)",
+                   strprintf("Enable the avalanche feature (default: %u)",
                              AVALANCHE_DEFAULT_ENABLED),
                    ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
     argsman.AddArg("-avalancheconflictingproofcooldown",
@@ -1680,7 +1674,6 @@ void InitParameterInteraction(ArgsManager &args) {
     if (args.IsArgSet("-avalanche")) {
         const bool fAvalanche =
             args.GetBoolArg("-avalanche", AVALANCHE_DEFAULT_ENABLED);
-        args.SoftSetBoolArg("-enableavalanche", fAvalanche);
         args.SoftSetBoolArg("-automaticunparking", !fAvalanche);
     }
 }

@@ -53,7 +53,7 @@ class ProofInventoryTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 5
         self.extra_args = [[
-            '-enableavalanche=1',
+            '-avalanche=1',
             '-avaproofstakeutxodustthreshold=1000000',
             '-avaproofstakeutxoconfirmations=2',
             '-avacooldown=0',
@@ -148,7 +148,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         )
 
         self.restart_node(
-            0, ['-enableavalanche=1', '-avaproofstakeutxodustthreshold=1000000'])
+            0, ['-avalanche=1', '-avaproofstakeutxodustthreshold=1000000'])
 
         peer = node.add_p2p_connection(P2PInterface())
         msg = msg_avaproof()

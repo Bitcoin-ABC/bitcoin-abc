@@ -7,5 +7,5 @@
 #include <util/system.h>
 
 bool isAvalancheEnabled(const ArgsManager &argsman) {
-    return argsman.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED);
+    return argsman.GetBoolArg("-avalanche", AVALANCHE_DEFAULT_ENABLED);
 }

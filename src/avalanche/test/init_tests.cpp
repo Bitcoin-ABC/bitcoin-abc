@@ -26,7 +26,6 @@ BOOST_AUTO_TEST_CASE(avalanche_flag_tests) {
         args.ForceSetArg("-avalanche", "1");
         InitParameterInteraction(args);
 
-        BOOST_CHECK_EQUAL(args.GetBoolArg("-enableavalanche", false), true);
         BOOST_CHECK_EQUAL(args.GetBoolArg("-automaticunparking", true), false);
     }
 
@@ -36,7 +35,6 @@ BOOST_AUTO_TEST_CASE(avalanche_flag_tests) {
         args.ForceSetArg("-avalanche", "0");
         InitParameterInteraction(args);
 
-        BOOST_CHECK_EQUAL(args.GetBoolArg("-enableavalanche", true), false);
         BOOST_CHECK_EQUAL(args.GetBoolArg("-automaticunparking", false), true);
     }
 
@@ -47,7 +45,6 @@ BOOST_AUTO_TEST_CASE(avalanche_flag_tests) {
         args.ForceSetArg("-automaticunparking", "1");
         InitParameterInteraction(args);
 
-        BOOST_CHECK_EQUAL(args.GetBoolArg("-enableavalanche", false), true);
         BOOST_CHECK_EQUAL(args.GetBoolArg("-automaticunparking", false), true);
     }
 
