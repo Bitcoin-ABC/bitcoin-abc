@@ -1116,12 +1116,13 @@ export default function useBCH() {
         }
 
         // Last output: send the XEC change back to the wallet.
-
-        // Send it back from whence it came
-        transactionBuilder.addOutput(
-            BCH.Address.toLegacyAddress(xecInputUtxos[0].address),
-            remainder.toNumber(),
-        );
+        // Note: Only send XEC change if your XEC change is greater than dust
+        if (remainder.gte(currency.dustSats)) {
+            transactionBuilder.addOutput(
+                BCH.Address.toLegacyAddress(xecInputUtxos[0].address),
+                remainder.toNumber(),
+            );
+        }
 
         // append the token input UTXOs to the array of XEC input UTXOs for signing
         const inputUtxos = xecInputUtxos.concat(tokenUtxosBeingSpent);
