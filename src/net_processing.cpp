@@ -1240,7 +1240,7 @@ private:
     /**
      * Height of the highest block announced using BIP 152 high-bandwidth mode.
      */
-    int m_highest_fast_announce{0};
+    int m_highest_fast_announce GUARDED_BY(::cs_main){0};
 
     /** Have we requested this block from a peer */
     bool IsBlockRequested(const BlockHash &hash)
