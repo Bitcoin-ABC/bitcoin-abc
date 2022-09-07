@@ -1117,7 +1117,7 @@ export default function useBCH() {
 
         // Last output: send the XEC change back to the wallet.
         // Note: Only send XEC change if your XEC change is greater than dust
-        if (remainder.gte(currency.dustSats)) {
+        if (remainder.gte(new BigNumber(currency.dustSats))) {
             transactionBuilder.addOutput(
                 BCH.Address.toLegacyAddress(xecInputUtxos[0].address),
                 remainder.toNumber(),
