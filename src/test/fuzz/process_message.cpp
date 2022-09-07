@@ -52,6 +52,9 @@ void fuzz_target(const std::vector<uint8_t> &buffer,
     const Config &config = GetConfig();
     FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
     ConnmanTestMsg &connman = *(ConnmanTestMsg *)g_setup->m_node.connman.get();
+
+    LOCK(NetEventsInterface::g_msgproc_mutex);
+
     const std::string random_message_type{
         fuzzed_data_provider.ConsumeBytesAsString(CMessageHeader::COMMAND_SIZE)
             .c_str()};

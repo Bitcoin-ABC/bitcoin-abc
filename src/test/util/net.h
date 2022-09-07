@@ -37,9 +37,11 @@ struct ConnmanTestMsg : public CConnman {
     void Handshake(CNode &node, bool successfully_connected,
                    ServiceFlags remote_services, ServiceFlags local_services,
                    NetPermissionFlags permission_flags, int32_t version,
-                   bool relay_txs);
+                   bool relay_txs)
+        EXCLUSIVE_LOCKS_REQUIRED(NetEventsInterface::g_msgproc_mutex);
 
-    void ProcessMessagesOnce(CNode &node) {
+    void ProcessMessagesOnce(CNode &node)
+        EXCLUSIVE_LOCKS_REQUIRED(NetEventsInterface::g_msgproc_mutex) {
         for (auto interface : m_msgproc) {
             interface->ProcessMessages(*config, &node, flagInterruptMsgProc);
         }

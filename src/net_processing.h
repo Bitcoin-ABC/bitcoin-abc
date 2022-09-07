@@ -108,7 +108,8 @@ public:
     virtual void ProcessMessage(const Config &config, CNode &pfrom,
                                 const std::string &msg_type, CDataStream &vRecv,
                                 const std::chrono::microseconds time_received,
-                                const std::atomic<bool> &interruptMsgProc) = 0;
+                                const std::atomic<bool> &interruptMsgProc)
+        EXCLUSIVE_LOCKS_REQUIRED(g_msgproc_mutex) = 0;
 
     /**
      * This function is used for testing the stale tip eviction logic, see

@@ -53,10 +53,7 @@ void ConnmanTestMsg::Handshake(CNode &node, bool successfully_connected,
     (void)connman.ReceiveMsgFrom(node, msg_version);
     node.fPauseSend = false;
     connman.ProcessMessagesOnce(node);
-    {
-        LOCK(node.cs_sendProcessing);
-        peerman.SendMessages(::GetConfig(), &node);
-    }
+    peerman.SendMessages(::GetConfig(), &node);
     if (node.fDisconnect) {
         return;
     }
@@ -71,10 +68,7 @@ void ConnmanTestMsg::Handshake(CNode &node, bool successfully_connected,
         (void)connman.ReceiveMsgFrom(node, msg_verack);
         node.fPauseSend = false;
         connman.ProcessMessagesOnce(node);
-        {
-            LOCK(node.cs_sendProcessing);
-            peerman.SendMessages(::GetConfig(), &node);
-        }
+        peerman.SendMessages(::GetConfig(), &node);
         assert(node.fSuccessfullyConnected == true);
     }
 }

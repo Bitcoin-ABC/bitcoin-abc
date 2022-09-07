@@ -470,8 +470,6 @@ public:
     std::list<CNetMessage> vProcessMsg GUARDED_BY(cs_vProcessMsg);
     size_t nProcessQueueSize{0};
 
-    RecursiveMutex cs_sendProcessing;
-
     uint64_t nRecvBytes GUARDED_BY(cs_vRecv){0};
 
     std::atomic<std::chrono::seconds> m_last_send{0s};
@@ -788,6 +786,11 @@ private:
  */
 class NetEventsInterface {
 public:
+    /**
+     * Mutex for anything that is only accessed via the msg processing thread
+     */
+    static Mutex g_msgproc_mutex;
+
     /** Initialize a peer (setup state, queue any initial messages) */
     virtual void InitializeNode(const Config &config, CNode &node,
                                 ServiceFlags our_services) = 0;
@@ -805,7 +808,8 @@ public:
      * @return                      True if there is more work to be done
      */
     virtual bool ProcessMessages(const Config &config, CNode *pnode,
-                                 std::atomic<bool> &interrupt) = 0;
+                                 std::atomic<bool> &interrupt)
+        EXCLUSIVE_LOCKS_REQUIRED(g_msgproc_mutex) = 0;
 
     /**
      * Send queued protocol messages to a given node.
@@ -815,7 +819,7 @@ public:
      * @return                      True if there is more work to be done
      */
     virtual bool SendMessages(const Config &config, CNode *pnode)
-        EXCLUSIVE_LOCKS_REQUIRED(pnode->cs_sendProcessing) = 0;
+        EXCLUSIVE_LOCKS_REQUIRED(g_msgproc_mutex) = 0;
 
 protected:
     /**

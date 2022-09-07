@@ -38,6 +38,8 @@ FUZZ_TARGET_INIT(process_messages, initialize_process_messages) {
     ConnmanTestMsg &connman = *(ConnmanTestMsg *)g_setup->m_node.connman.get();
     std::vector<CNode *> peers;
 
+    LOCK(NetEventsInterface::g_msgproc_mutex);
+
     const auto num_peers_to_add =
         fuzzed_data_provider.ConsumeIntegralInRange(1, 3);
     for (int i = 0; i < num_peers_to_add; ++i) {

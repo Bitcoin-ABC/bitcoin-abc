@@ -2605,7 +2605,11 @@ void CConnman::OpenNetworkConnection(const CAddress &addrConnect,
     }
 }
 
+Mutex NetEventsInterface::g_msgproc_mutex;
+
 void CConnman::ThreadMessageHandler() {
+    LOCK(NetEventsInterface::g_msgproc_mutex);
+
     FastRandomContext rng;
     while (!flagInterruptMsgProc) {
         std::vector<CNode *> nodes_copy;
@@ -2641,11 +2645,8 @@ void CConnman::ThreadMessageHandler() {
             }
 
             // Send messages
-            {
-                LOCK(pnode->cs_sendProcessing);
-                for (auto interface : m_msgproc) {
-                    interface->SendMessages(*config, pnode);
-                }
+            for (auto interface : m_msgproc) {
+                interface->SendMessages(*config, pnode);
             }
 
             if (flagInterruptMsgProc) {
