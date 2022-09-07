@@ -32,7 +32,7 @@ import {
     xecReceivedNotificationWebsocket,
     eTokenReceivedNotification,
 } from 'components/Common/Notifications';
-import { getUtxosChronik } from 'utils/chronik';
+import { getUtxosChronik, organizeUtxosByType } from 'utils/chronik';
 import { ChronikClient } from 'chronik-client';
 // For XEC, eCash chain:
 const chronik = new ChronikClient(currency.chronikUrl);
@@ -247,6 +247,12 @@ const useWallet = () => {
                 hash160AndAddressObjArray,
             );
             console.log(`chronikUtxos`, chronikUtxos);
+
+            const { slpUtxos, nonSlpUtxos } = organizeUtxosByType(chronikUtxos);
+            console.log(`chronikSlpBalancesAndUtxos without token info`, {
+                slpUtxos,
+                nonSlpUtxos,
+            });
 
             // If an error is returned or utxos from only 1 address are returned
             if (

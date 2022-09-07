@@ -1,5 +1,4 @@
 // Chronik methods
-
 /* 
 Note: chronik.script('p2pkh', hash160).utxos(); is not readily mockable in jest
 Hence it is necessary to keep this out of any functions that require unit testing
@@ -70,4 +69,33 @@ export const getUtxosChronik = async (chronik, hash160sMappedToAddresses) => {
     // Combine into one array of all utxos
     const flatUtxos = allUtxos.flat();
     return flatUtxos;
+};
+
+export const organizeUtxosByType = chronikUtxos => {
+    /* 
+    
+    Convert chronik utxos (returned by getUtxosChronik function, above) to match 
+    shape of existing slpBalancesAndUtxos object
+    
+    This means sequestering eToken utxos from non-eToken utxos
+
+    For legacy reasons, the term "SLP" is still sometimes used to describe an eToken
+
+    So, SLP utxos === eToken utxos, it's just a semantics difference here
+    
+    */
+
+    const nonSlpUtxos = [];
+    const slpUtxos = [];
+    for (let i = 0; i < chronikUtxos.length; i += 1) {
+        // Construct nonSlpUtxos and slpUtxos arrays
+        const thisUtxo = chronikUtxos[i];
+        if (typeof thisUtxo.slpToken !== 'undefined') {
+            slpUtxos.push(thisUtxo);
+        } else {
+            nonSlpUtxos.push(thisUtxo);
+        }
+    }
+
+    return { slpUtxos, nonSlpUtxos };
 };
