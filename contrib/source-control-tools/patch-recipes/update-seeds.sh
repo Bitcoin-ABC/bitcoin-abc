@@ -12,9 +12,17 @@ SEEDS_DIR="${TOPLEVEL}"/contrib/seeds
 # Assumes seeder instances are already running on mainnet and testnet
 pushd "${SEEDS_DIR}"
 ./makeseeds.py < "${SEEDS_MAIN}" > nodes_main.txt
+if [ -f extra_nodes_main.txt ]; then
+  echo "# Manually added entries" >> nodes_main.txt
+  cat extra_nodes_main.txt >> nodes_main.txt
+fi
 git add nodes_main.txt
 
 ./makeseeds.py < "${SEEDS_TEST}" > nodes_test.txt
+if [ -f extra_nodes_test.txt ]; then
+  echo "# Manually added entries" >> nodes_test.txt
+  cat extra_nodes_test.txt >> nodes_test.txt
+fi
 git add nodes_test.txt
 
 SEEDS_HEADER="${TOPLEVEL}"/src/chainparamsseeds.h
