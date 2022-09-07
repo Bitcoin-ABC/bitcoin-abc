@@ -1,4 +1,5 @@
 // Chronik methods
+import BigNumber from 'bignumber.js';
 /* 
 Note: chronik.script('p2pkh', hash160).utxos(); is not readily mockable in jest
 Hence it is necessary to keep this out of any functions that require unit testing
@@ -98,4 +99,41 @@ export const organizeUtxosByType = chronikUtxos => {
     }
 
     return { slpUtxos, nonSlpUtxos };
+};
+
+export const getPreliminaryTokensArray = slpUtxos => {
+    // Iterate over the slpUtxos to create the 'tokens' object
+    let tokensById = {};
+
+    slpUtxos.forEach(slpUtxo => {
+        /* 
+        Note that a wallet could have many eToken utxos all belonging to the same eToken
+        For example, a user could have 100 of a certain eToken, but this is composed of
+        four utxos, one for 17, one for 50, one for 30, one for 3        
+        */
+
+        // Start with the existing object for this particular token, if it exists
+        let token = tokensById[slpUtxo.slpMeta.tokenId];
+
+        if (token) {
+            if (slpUtxo.slpToken.amount) {
+                token.balance = token.balance.plus(
+                    new BigNumber(slpUtxo.slpToken.amount),
+                );
+            }
+        } else {
+            // If it does not exist, create it
+            token = {};
+            token.tokenId = slpUtxo.slpMeta.tokenId;
+            if (slpUtxo.slpToken.amount) {
+                token.balance = new BigNumber(slpUtxo.slpToken.amount);
+            } else {
+                token.balance = new BigNumber(0);
+            }
+            tokensById[slpUtxo.slpMeta.tokenId] = token;
+        }
+    });
+
+    const preliminaryTokensArray = Object.values(tokensById);
+    return preliminaryTokensArray;
 };

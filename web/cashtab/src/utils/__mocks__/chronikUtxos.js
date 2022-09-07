@@ -6232,3 +6232,225 @@ export const mockOrganizedUtxosByType = {
         },
     ],
 };
+export const mockPreliminaryTokensArray = [
+    {
+        tokenId:
+            'bf24d955f59351e738ecd905966606a6837e478e1982943d724eab10caad82fd',
+        balance: '1',
+    },
+    {
+        tokenId:
+            'bef614aac85c0c866f4d39e4d12a96851267d38d1bca5bdd6488bbd42e28b6b1',
+        balance: '240000001',
+    },
+    {
+        tokenId:
+            '1f6a65e7a4bde92c0a012de2bcf4007034504a765377cdf08a3ee01d1eaa6901',
+        balance: '1',
+    },
+    {
+        tokenId:
+            'dd84ca78db4d617221b58eabc6667af8fe2f7eadbfcc213d35be9f1b419beb8d',
+        balance: '1',
+    },
+    {
+        tokenId:
+            '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
+        balance: '1',
+    },
+    {
+        tokenId:
+            'df808a41672a0a0ae6475b44f272a107bc9961b90f29dc918d71301f24fe92fb',
+        balance: '99999999',
+    },
+    {
+        tokenId:
+            '22f4ba40312ea3e90e1bfa88d2aa694c271d2e07361907b6eb5568873ffa62bf',
+        balance: '5500000',
+    },
+    {
+        tokenId:
+            'aa7202397a06097e8ff36855aa72c0ee032659747e5bd7cbcd3099fc3a62b6b6',
+        balance: '992',
+    },
+    {
+        tokenId:
+            'da9460ce4b1c92b4f6ef4e4a6bc2d05539f49d02b17681389d9ce22b8dca50f0',
+        balance: '333',
+    },
+    {
+        tokenId:
+            '4db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c875',
+        balance: '999988',
+    },
+    {
+        tokenId:
+            '16b12bbacdbb8c8a799adbfd782bfff9843c1f9b0be148eaae02a1a7f74f95c4',
+        balance: '999900000000000',
+    },
+    {
+        tokenId:
+            'bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba',
+        balance: '108999698951',
+    },
+    {
+        tokenId:
+            '9e9738e9ac3ff202736bf7775f875ebae6f812650df577a947c20c52475e43da',
+        balance: '9100',
+    },
+    {
+        tokenId:
+            'f36e1b3d9a2aaf74f132fef3834e9743b945a667a4204e761b85f2e7b65fd41a',
+        balance: '1000',
+    },
+    {
+        tokenId:
+            '7f8889682d57369ed0e32336f8b7e0ffec625a35cca183f4e81fde4e71a538a1',
+        balance: '2',
+    },
+    {
+        tokenId:
+            '98183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48',
+        balance: '999990106',
+    },
+    {
+        tokenId:
+            '3515f4a9851ad44124e0ddf6149344deb27a97720fc7e5254a9d2c86da7415a9',
+        balance: '100',
+    },
+    {
+        tokenId:
+            '6fb6122742cac8fd1df2d68997fdfa4c077bc22d9ef4a336bfb63d24225f9060',
+        balance: '102',
+    },
+    {
+        tokenId:
+            '2936188a41f22a3e0a47d13296147fb3f9ddd2f939fe6382904d21a610e8e49c',
+        balance: '102',
+    },
+    {
+        tokenId:
+            'e859eeb52e7afca6217fb36784b3b6d3c7386a52f391dd0d00f2ec03a5e8e77b',
+        balance: '10',
+    },
+    {
+        tokenId:
+            'bdb3b4215ca0622e0c4c07655522c376eaa891838a82f0217fa453bb0595a37c',
+        balance: '20000',
+    },
+    {
+        tokenId:
+            '7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d',
+        balance: '5235120760000000',
+    },
+    {
+        tokenId:
+            '7bbf452698a24b138b0357f689587fc6ea58410c34503b1179b91e40e10bba8b',
+        balance: '9999999900',
+    },
+    {
+        tokenId:
+            '6376cae692cf0302ecdd63234c14cbb2b21cec75ab538335f90254cfb3ed44cc',
+        balance: '165',
+    },
+    {
+        tokenId:
+            '666c4318d1f7fef5f2c698262492c519018d4e9130f95d05f6be9f0fb7149e96',
+        balance: '99',
+    },
+    {
+        tokenId:
+            '157e0cdef5d5c51bdea00eac9ab821d809bb9d03cf98da85833614bedb129be6',
+        balance: '82',
+    },
+    {
+        tokenId:
+            'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
+        balance: '123456844',
+    },
+    {
+        tokenId:
+            'ccf5fe5a387559c8ab9efdeb0c0ef1b444e677298cfddf07671245ce3cb3c79f',
+        balance: '47800000000',
+    },
+    {
+        tokenId:
+            '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
+        balance: '996100',
+    },
+    {
+        tokenId:
+            'b8f2a9e767a0be7b80c7e414ef2534586d4da72efddb39a4e70e501ab73375cc',
+        balance: '9000',
+    },
+    {
+        tokenId:
+            '1101bd5d7b6bbc3176fb2b93d08e76ab532b04ff731d71502249e3cb9b6fcb1a',
+        balance: '999888000000000',
+    },
+    {
+        tokenId:
+            '3de671a7107d3803d78f7f4a4e5c794d0903a8d28d16076445c084943c1e2db8',
+        balance: '2200',
+    },
+    {
+        tokenId:
+            '44929ff3b1fc634f982fede112cf12b21199a2ebbcf718412a38de9177d77168',
+        balance: '2',
+    },
+    {
+        tokenId:
+            '639a8dba34788ff3ebd3977d4ac045825394285ee648bb1d159e1c12b787ff25',
+        balance: '9955000000000',
+    },
+    {
+        tokenId:
+            'd376ebcd518067c8e10c0505865cf7336160b47807e6f1a95739ba90ae838840',
+        balance: '100',
+    },
+    {
+        tokenId:
+            'b40d1f6acdb6ee68d7eca0167fe2753c076bc309b2e3b1af8bff70ca34b945b0',
+        balance: '5000',
+    },
+    {
+        tokenId:
+            'b39fdb53e21d67fa5fd3a11122f1452f15884047f2b80e8efe633c3b520b7a39',
+        balance: '6968',
+    },
+    {
+        tokenId:
+            '3adbf501e21c711d20118e003711168eb39f560c01f4c6d6736fa3f3fceaa577',
+        balance: '999999000',
+    },
+    {
+        tokenId:
+            '0916e71779c9de7ee125741d3f5ab01f556356dbc86fd327a24f1e9e22ebc917',
+        balance: '1700',
+    },
+    {
+        tokenId:
+            '6e24e89b6d5284138c69777527760500b99614631bca7f2a5c38f4648dae9524',
+        balance: '999999900',
+    },
+    {
+        tokenId:
+            '8ead21ce4b3b9e7b57607b97b65b5013496dc6e3dfdea162c08ce7265a66ebc8',
+        balance: '100000000',
+    },
+    {
+        tokenId:
+            'e4e1a2fb071fa71ca727e08ed1d8ea52a9531c79d1e5f1ebf483c66b71a8621c',
+        balance: '7900000000',
+    },
+    {
+        tokenId:
+            '45f0ff5cae7e89da6b96c26c8c48a959214c5f0e983e78d0925f8956ca8848c6',
+        balance: '5400000',
+    },
+    {
+        tokenId:
+            '77ec4036ef8546ac46df6d3a5374e961216f92624627eaeef5d2e1a253df9fc6',
+        balance: '117',
+    },
+];

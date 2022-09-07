@@ -1,7 +1,9 @@
-import { organizeUtxosByType } from 'utils/chronik';
+import BigNumber from 'bignumber.js';
+import { organizeUtxosByType, getPreliminaryTokensArray } from 'utils/chronik';
 import {
     mockChronikUtxos,
     mockOrganizedUtxosByType,
+    mockPreliminaryTokensArray,
 } from '../__mocks__/chronikUtxos';
 
 it(`organizeUtxosByType successfully splits a chronikUtxos array into slpUtxos and nonSlpUtxos`, () => {
@@ -32,4 +34,16 @@ it(`organizeUtxosByType successfully splits a chronikUtxos array into slpUtxos a
     expect(utxosWithUnexpectedKeys.length).toBe(0);
     // Length of organized utxos should match original
     expect(slpUtxos.length + nonSlpUtxos.length).toBe(mockChronikUtxos.length);
+});
+
+it(`getPreliminaryTokensArray successfully returns an array of all tokenIds and token balances (not yet adjusted for token decimals)`, () => {
+    // The BigNumber type is lost in copy pasting to mocks. Bring it back, since function returns it.
+    for (let i = 0; i < mockPreliminaryTokensArray.length; i += 1) {
+        mockPreliminaryTokensArray[i].balance = new BigNumber(
+            mockPreliminaryTokensArray[i].balance,
+        );
+    }
+    expect(
+        getPreliminaryTokensArray(mockOrganizedUtxosByType.slpUtxos),
+    ).toStrictEqual(mockPreliminaryTokensArray);
 });
