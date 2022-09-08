@@ -35,7 +35,8 @@ BOOST_AUTO_TEST_CASE(proof_random) {
                             : ProofValidationResult::NONE;
 
         ProofValidationState state;
-        BOOST_CHECK_EQUAL(p->verify(PROOF_DUST_THRESHOLD, state),
+        const bool ret = p->verify(PROOF_DUST_THRESHOLD, state);
+        BOOST_CHECK_EQUAL(ret,
                           state.GetResult() == ProofValidationResult::NONE);
         BOOST_CHECK(state.GetResult() == expected_state);
     }
