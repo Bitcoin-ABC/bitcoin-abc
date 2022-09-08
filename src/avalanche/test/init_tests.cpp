@@ -27,7 +27,6 @@ BOOST_AUTO_TEST_CASE(avalanche_flag_tests) {
         InitParameterInteraction(args);
 
         BOOST_CHECK_EQUAL(args.GetBoolArg("-enableavalanche", false), true);
-        BOOST_CHECK_EQUAL(args.GetBoolArg("-legacyavaproof", true), false);
         BOOST_CHECK_EQUAL(args.GetBoolArg("-automaticunparking", true), false);
     }
 
@@ -38,8 +37,6 @@ BOOST_AUTO_TEST_CASE(avalanche_flag_tests) {
         InitParameterInteraction(args);
 
         BOOST_CHECK_EQUAL(args.GetBoolArg("-enableavalanche", true), false);
-        BOOST_CHECK_EQUAL(args.GetBoolArg("-legacyavaproof", false),
-                          AVALANCHE_DEFAULT_LEGACY_PROOF);
         BOOST_CHECK_EQUAL(args.GetBoolArg("-automaticunparking", false), true);
     }
 
@@ -47,12 +44,10 @@ BOOST_AUTO_TEST_CASE(avalanche_flag_tests) {
         // Check the feature flags can always be overridden
         ArgsManager args;
         args.ForceSetArg("-avalanche", "1");
-        args.ForceSetArg("-legacyavaproof", "1");
         args.ForceSetArg("-automaticunparking", "1");
         InitParameterInteraction(args);
 
         BOOST_CHECK_EQUAL(args.GetBoolArg("-enableavalanche", false), true);
-        BOOST_CHECK_EQUAL(args.GetBoolArg("-legacyavaproof", false), true);
         BOOST_CHECK_EQUAL(args.GetBoolArg("-automaticunparking", false), true);
     }
 

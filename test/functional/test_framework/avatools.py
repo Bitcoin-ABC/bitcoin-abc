@@ -21,7 +21,6 @@ from .messages import (
     CInv,
     CTransaction,
     FromHex,
-    LegacyAvalancheProof,
     TCPAvalancheResponse,
     ToHex,
     calculate_shortid,
@@ -40,12 +39,7 @@ from .wallet_util import bytes_to_wif
 
 
 def avalanche_proof_from_hex(proof_hex: str) -> AvalancheProof:
-    try:
-        return FromHex(AvalancheProof(), proof_hex)
-    except struct.error:
-        # If the proof deserialization failed, fallback to the legacy
-        # format
-        return FromHex(LegacyAvalancheProof(), proof_hex)
+    return FromHex(AvalancheProof(), proof_hex)
 
 
 def create_coinbase_stakes(

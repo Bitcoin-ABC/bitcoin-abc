@@ -242,8 +242,8 @@ static RPCHelpMan buildavalancheproof() {
                     },
                 },
             },
-            {"payoutAddress", RPCArg::Type::STR, RPCArg::Optional::OMITTED,
-             "A payout address (not required for legacy proofs)"},
+            {"payoutAddress", RPCArg::Type::STR, RPCArg::Optional::NO,
+             "A payout address"},
         },
         RPCResult{RPCResult::Type::STR_HEX, "proof",
                   "A string that is a serialized, hex-encoded proof data."},
@@ -262,20 +262,12 @@ static RPCHelpMan buildavalancheproof() {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid master key");
             }
 
-            CTxDestination payoutAddress = CNoDestination();
-            if (!avalanche::Proof::useLegacy(gArgs)) {
-                if (request.params[4].isNull()) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER,
-                                       "A payout address is required if "
-                                       "`-legacyavaproof` is false");
-                }
-                payoutAddress = DecodeDestination(request.params[4].get_str(),
-                                                  config.GetChainParams());
+            CTxDestination payoutAddress = DecodeDestination(
+                request.params[4].get_str(), config.GetChainParams());
 
-                if (!IsValidDestination(payoutAddress)) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER,
-                                       "Invalid payout address");
-                }
+            if (!IsValidDestination(payoutAddress)) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                   "Invalid payout address");
             }
 
             avalanche::ProofBuilder pb(sequence, expiration, masterKey,
@@ -363,12 +355,10 @@ static RPCHelpMan decodeavalancheproof() {
                  "A timestamp indicating when the proof expires"},
                 {RPCResult::Type::STR_HEX, "master", "The master public key"},
                 {RPCResult::Type::STR, "signature",
-                 "The proof signature (base64 encoded). Not available when "
-                 "-legacyavaproof is enabled."},
+                 "The proof signature (base64 encoded)"},
                 {RPCResult::Type::OBJ,
                  "payoutscript",
-                 "The proof payout script. Always empty when -legacyavaproof "
-                 "is enabled.",
+                 "The proof payout script",
                  {
                      {RPCResult::Type::STR, "asm", "Decoded payout script"},
                      {RPCResult::Type::STR_HEX, "hex",
@@ -434,11 +424,7 @@ static RPCHelpMan decodeavalancheproof() {
             result.pushKV("sequence", proof.getSequence());
             result.pushKV("expiration", proof.getExpirationTime());
             result.pushKV("master", HexStr(proof.getMaster()));
-
-            const auto signature = proof.getSignature();
-            if (signature) {
-                result.pushKV("signature", EncodeBase64(*signature));
-            }
+            result.pushKV("signature", EncodeBase64(proof.getSignature()));
 
             const auto payoutScript = proof.getPayoutScript();
             UniValue payoutScriptObj(UniValue::VOBJ);

@@ -16,11 +16,7 @@ from test_framework.avatools import (
     wait_for_proof,
 )
 from test_framework.key import ECKey
-from test_framework.messages import (
-    AvalancheProofVoteResponse,
-    AvalancheVote,
-    LegacyAvalancheProof,
-)
+from test_framework.messages import AvalancheProofVoteResponse, AvalancheVote
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, try_rpc, uint256_hex
 from test_framework.wallet_util import bytes_to_wif
@@ -45,24 +41,12 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         node = self.nodes[0]
 
         privkey, proof = gen_proof(node)
-        is_legacy = isinstance(proof, LegacyAvalancheProof)
 
         # Make the proof mature
         node.generate(1)
 
-        def handle_legacy_format(expected):
-            # Add the payout address to the expected output if the legacy format
-            # is diabled
-            if not is_legacy and "local" in expected.keys():
-                expected["local"]["payout_address"] = ADDRESS_ECREG_UNSPENDABLE
-
-            return expected
-
         def assert_avalancheinfo(expected):
-            assert_equal(
-                node.getavalancheinfo(),
-                handle_legacy_format(expected)
-            )
+            assert_equal(node.getavalancheinfo(), expected)
 
         coinbase_amount = Decimal('25000000.00')
 
@@ -101,6 +85,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "limited_proofid": uint256_hex(proof.limited_proofid),
                 "master": privkey.get_pubkey().get_bytes().hex(),
                 "stake_amount": coinbase_amount,
+                "payout_address": ADDRESS_ECREG_UNSPENDABLE,
             },
             "network": {
                 "proof_count": 0,
@@ -134,6 +119,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "limited_proofid": f"{proof.limited_proofid:0{64}x}",
                 "master": privkey.get_pubkey().get_bytes().hex(),
                 "stake_amount": coinbase_amount,
+                "payout_address": ADDRESS_ECREG_UNSPENDABLE,
             },
             "network": {
                 "proof_count": 0,
@@ -154,7 +140,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         # Mine a block to trigger proof validation
         node.generate(1)
         self.wait_until(
-            lambda: node.getavalancheinfo() == handle_legacy_format({
+            lambda: node.getavalancheinfo() == {
                 "ready_to_poll": False,
                 "local": {
                     "verified": True,
@@ -162,6 +148,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                     "limited_proofid": uint256_hex(proof.limited_proofid),
                     "master": privkey.get_pubkey().get_bytes().hex(),
                     "stake_amount": coinbase_amount,
+                    "payout_address": ADDRESS_ECREG_UNSPENDABLE,
                 },
                 "network": {
                     "proof_count": 1,
@@ -177,7 +164,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                     "connected_node_count": 1,
                     "pending_node_count": 0,
                 }
-            })
+            }
         )
 
         self.log.info("Connect a bunch of peers and nodes")
@@ -224,7 +211,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         n.send_avaproof(immature_proof)
 
         self.wait_until(
-            lambda: node.getavalancheinfo() == handle_legacy_format({
+            lambda: node.getavalancheinfo() == {
                 "ready_to_poll": True,
                 "local": {
                     "verified": True,
@@ -232,6 +219,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                     "limited_proofid": uint256_hex(proof.limited_proofid),
                     "master": privkey.get_pubkey().get_bytes().hex(),
                     "stake_amount": coinbase_amount,
+                    "payout_address": ADDRESS_ECREG_UNSPENDABLE,
                 },
                 "network": {
                     "proof_count": N + 1,
@@ -247,7 +235,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                     "connected_node_count": N + 1,
                     "pending_node_count": 0,
                 }
-            })
+            }
         )
 
         self.log.info("Disconnect some nodes")
@@ -259,7 +247,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             n.wait_for_disconnect()
 
         self.wait_until(
-            lambda: node.getavalancheinfo() == handle_legacy_format({
+            lambda: node.getavalancheinfo() == {
                 "ready_to_poll": True,
                 "local": {
                     "verified": True,
@@ -267,6 +255,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                     "limited_proofid": uint256_hex(proof.limited_proofid),
                     "master": privkey.get_pubkey().get_bytes().hex(),
                     "stake_amount": coinbase_amount,
+                    "payout_address": ADDRESS_ECREG_UNSPENDABLE,
                 },
                 "network": {
                     "proof_count": N + 1,
@@ -282,7 +271,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                     "connected_node_count": N + 1 - D,
                     "pending_node_count": 0,
                 }
-            })
+            }
         )
 
         self.log.info("Add some pending nodes")
@@ -322,6 +311,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "limited_proofid": uint256_hex(proof.limited_proofid),
                 "master": privkey.get_pubkey().get_bytes().hex(),
                 "stake_amount": coinbase_amount,
+                "payout_address": ADDRESS_ECREG_UNSPENDABLE,
             },
             "network": {
                 "proof_count": N + 2,
@@ -391,6 +381,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "limited_proofid": uint256_hex(proof.limited_proofid),
                 "master": privkey.get_pubkey().get_bytes().hex(),
                 "stake_amount": coinbase_amount,
+                "payout_address": ADDRESS_ECREG_UNSPENDABLE,
             },
             "network": {
                 "proof_count": N + 2,

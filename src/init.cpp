@@ -1388,11 +1388,6 @@ void SetupServerArgs(NodeContext &node) {
                    "Avalanche proof to be used by this node (default: none)",
                    ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
     argsman.AddArg(
-        "-legacyavaproof",
-        strprintf("Use the legacy avalanche proof format (default: %u)",
-                  AVALANCHE_DEFAULT_LEGACY_PROOF),
-        ArgsManager::ALLOW_BOOL, OptionsCategory::AVALANCHE);
-    argsman.AddArg(
         "-avaproofstakeutxoconfirmations",
         strprintf(
             "Minimum number of confirmations before a stake utxo is mature"
@@ -1686,9 +1681,6 @@ void InitParameterInteraction(ArgsManager &args) {
         const bool fAvalanche =
             args.GetBoolArg("-avalanche", AVALANCHE_DEFAULT_ENABLED);
         args.SoftSetBoolArg("-enableavalanche", fAvalanche);
-        args.SoftSetBoolArg("-legacyavaproof",
-                            fAvalanche ? false
-                                       : AVALANCHE_DEFAULT_LEGACY_PROOF);
         args.SoftSetBoolArg("-automaticunparking", !fAvalanche);
     }
 }

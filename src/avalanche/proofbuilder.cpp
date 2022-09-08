@@ -62,10 +62,7 @@ LimitedProofId ProofBuilder::getLimitedProofId() const {
     CHashWriter ss(SER_GETHASH, 0);
     ss << sequence;
     ss << expirationTime;
-
-    if (!Proof::useLegacy(gArgs)) {
-        ss << payoutScriptPubKey;
-    }
+    ss << payoutScriptPubKey;
 
     WriteCompactSize(ss, stakes.size());
     for (const auto &s : stakes) {

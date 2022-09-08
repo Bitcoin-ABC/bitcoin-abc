@@ -906,8 +906,11 @@ BOOST_AUTO_TEST_CASE(proof_accessors) {
 
     // No stake, copied from proof_tests.cpp
     const std::string badProofHex(
-        "96527eae083f1f24625f049d9e54bb9a2102a93d98bf42ab90cfc0bf9e7c634ed76a7"
-        "3e95b02cacfd357b64e4fb6c92e92dd00");
+        "96527eae083f1f24625f049d9e54bb9a21023beefdde700a6bc02036335b4df141c8b"
+        "c67bb05a971f5ac2745fd683797dde3002321023beefdde700a6bc02036335b4df141"
+        "c8bc67bb05a971f5ac2745fd683797dde3ac135da984db510334abe41134e3d4ef09a"
+        "d006b1152be8bc413182bf6f947eac1f8580fe265a382195aa2d73935cabf86d90a8f"
+        "666d0a62385ae24732eca51575");
     bilingual_str error;
     auto badProof = RCUPtr<Proof>::make();
     BOOST_CHECK(Proof::FromHex(*badProof, badProofHex, error));

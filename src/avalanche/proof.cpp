@@ -23,15 +23,11 @@ namespace avalanche {
 
 StakeCommitment::StakeCommitment(const ProofId &proofid, int64_t expirationTime,
                                  const CPubKey &master) {
-    if (Proof::useLegacy(gArgs)) {
-        memcpy(m_data, proofid.data(), sizeof(m_data));
-    } else {
-        CHashWriter ss(SER_GETHASH, 0);
-        ss << expirationTime;
-        ss << master;
-        const uint256 &hash = ss.GetHash();
-        memcpy(m_data, hash.data(), sizeof(m_data));
-    }
+    CHashWriter ss(SER_GETHASH, 0);
+    ss << expirationTime;
+    ss << master;
+    const uint256 &hash = ss.GetHash();
+    memcpy(m_data, hash.data(), sizeof(m_data));
 }
 
 void Stake::computeStakeId() {
@@ -49,15 +45,6 @@ uint256 Stake::getHash(const StakeCommitment &commitment) const {
 
 bool SignedStake::verify(const StakeCommitment &commitment) const {
     return stake.getPubkey().VerifySchnorr(stake.getHash(commitment), sig);
-}
-
-bool Proof::useLegacy() {
-    return useLegacy(gArgs);
-}
-
-bool Proof::useLegacy(const ArgsManager &argsman) {
-    return argsman.GetBoolArg("-legacyavaproof",
-                              AVALANCHE_DEFAULT_LEGACY_PROOF);
 }
 
 bool Proof::FromHex(Proof &proof, const std::string &hexProof,
@@ -89,9 +76,7 @@ void Proof::computeProofId() {
     CHashWriter ss(SER_GETHASH, 0);
     ss << sequence;
     ss << expirationTime;
-    if (!useLegacy(gArgs)) {
-        ss << payoutScriptPubKey;
-    }
+    ss << payoutScriptPubKey;
 
     WriteCompactSize(ss, stakes.size());
     for (const SignedStake &s : stakes) {
@@ -134,17 +119,15 @@ bool Proof::verify(const Amount &stakeUtxoDustThreshold,
             strprintf("%u > %u", stakes.size(), AVALANCHE_MAX_PROOF_STAKES));
     }
 
-    if (!useLegacy(gArgs)) {
-        TxoutType scriptType;
-        if (!IsStandard(payoutScriptPubKey, scriptType)) {
-            return state.Invalid(ProofValidationResult::INVALID_PAYOUT_SCRIPT,
-                                 "payout-script-non-standard");
-        }
+    TxoutType scriptType;
+    if (!IsStandard(payoutScriptPubKey, scriptType)) {
+        return state.Invalid(ProofValidationResult::INVALID_PAYOUT_SCRIPT,
+                             "payout-script-non-standard");
+    }
 
-        if (!master.VerifySchnorr(limitedProofId, signature)) {
-            return state.Invalid(ProofValidationResult::INVALID_PROOF_SIGNATURE,
-                                 "invalid-proof-signature");
-        }
+    if (!master.VerifySchnorr(limitedProofId, signature)) {
+        return state.Invalid(ProofValidationResult::INVALID_PROOF_SIGNATURE,
+                             "invalid-proof-signature");
     }
 
     StakeId prevId = uint256::ZERO;

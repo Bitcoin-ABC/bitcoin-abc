@@ -98,21 +98,6 @@ class BuildAvalancheProofTest(BitcoinTestFramework):
         assert node.buildavalancheproof(0, 0, wif_privkey, [good_stake])
 
         self.log.info("Check the payout address")
-        self.restart_node(
-            0,
-            extra_args=self.extra_args[0] +
-            ['-legacyavaproof=0'])
-
-        assert_raises_rpc_error(-8,
-                                "A payout address is required if `-legacyavaproof` is false",
-                                node.buildavalancheproof,
-                                0,
-                                0,
-                                wif_privkey,
-                                [good_stake],
-                                payoutAddress=None,
-                                )
-
         assert_raises_rpc_error(-8,
                                 "Invalid payout address",
                                 node.buildavalancheproof,

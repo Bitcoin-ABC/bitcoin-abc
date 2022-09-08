@@ -28,11 +28,6 @@ struct bilingual_str;
 static constexpr int AVALANCHE_MAX_PROOF_STAKES = 1000;
 
 /**
- * Whether the legacy proof format should be used by default.
- */
-static constexpr bool AVALANCHE_DEFAULT_LEGACY_PROOF = true;
-
-/**
  * Minimum number of confirmations before a stake utxo is mature enough to be
  * included into a proof.
  */
@@ -48,8 +43,6 @@ class ProofValidationState;
 using StakeId = uint256;
 
 struct StakeCommitment : public uint256 {
-    explicit StakeCommitment() : uint256() {}
-    explicit StakeCommitment(const uint256 &b) : uint256(b) {}
     StakeCommitment(const ProofId &proofid, int64_t expirationTime,
                     const CPubKey &master);
 };
@@ -155,15 +148,10 @@ public:
 
     SERIALIZE_METHODS(Proof, obj) {
         READWRITE(obj.sequence, obj.expirationTime, obj.master, obj.stakes);
-        if (!useLegacy()) {
-            READWRITE(obj.payoutScriptPubKey, obj.signature);
-        }
+        READWRITE(obj.payoutScriptPubKey, obj.signature);
         SER_READ(obj, obj.computeProofId());
         SER_READ(obj, obj.computeScore());
     }
-
-    static bool useLegacy();
-    static bool useLegacy(const ArgsManager &argsman);
 
     static bool FromHex(Proof &proof, const std::string &hexProof,
                         bilingual_str &errorOut);
@@ -176,9 +164,7 @@ public:
     const CPubKey &getMaster() const { return master; }
     const std::vector<SignedStake> &getStakes() const { return stakes; }
     const CScript &getPayoutScript() const { return payoutScriptPubKey; }
-    std::optional<const SchnorrSig> getSignature() const {
-        return useLegacy() ? std::nullopt : std::make_optional(signature);
-    }
+    const SchnorrSig &getSignature() const { return signature; }
 
     const ProofId &getId() const { return proofid; }
     const LimitedProofId &getLimitedId() const { return limitedProofId; }

@@ -48,26 +48,28 @@ bool hasDustStake(const ProofRef &proof) {
     return false;
 }
 
-ProofId TestProofBuilder::getReverseOrderProofId(ProofBuilder &pb) {
+LimitedProofId
+TestProofBuilder::getReverseOrderLimitedProofId(ProofBuilder &pb) {
     CHashWriter ss(SER_GETHASH, 0);
     ss << pb.sequence;
     ss << pb.expirationTime;
+    ss << pb.payoutScriptPubKey;
 
     WriteCompactSize(ss, pb.stakes.size());
     for (auto it = pb.stakes.rbegin(); it != pb.stakes.rend(); it++) {
         ss << it->stake;
     }
 
-    CHashWriter ss2(SER_GETHASH, 0);
-    ss2 << ss.GetHash();
-    ss2 << pb.masterKey.GetPubKey();
-
-    return ProofId(ss2.GetHash());
+    return LimitedProofId(ss.GetHash());
 }
 
 ProofRef TestProofBuilder::buildWithReversedOrderStakes(ProofBuilder &pb) {
-    const ProofId proofid = TestProofBuilder::getReverseOrderProofId(pb);
-    const StakeCommitment commitment(proofid);
+    const LimitedProofId limitedProofid =
+        TestProofBuilder::getReverseOrderLimitedProofId(pb);
+    const CPubKey masterPubKey = pb.masterKey.GetPubKey();
+    const StakeCommitment commitment(
+        limitedProofid.computeProofId(masterPubKey), pb.expirationTime,
+        pb.masterKey.GetPubKey());
 
     std::vector<SignedStake> signedStakes;
     signedStakes.reserve(pb.stakes.size());
@@ -79,15 +81,20 @@ ProofRef TestProofBuilder::buildWithReversedOrderStakes(ProofBuilder &pb) {
         signedStakes.push_back(handle.value().sign(commitment));
     }
 
-    return ProofRef::make(pb.sequence, pb.expirationTime,
-                          pb.masterKey.GetPubKey(), std::move(signedStakes),
-                          pb.payoutScriptPubKey, SchnorrSig());
+    SchnorrSig proofSignature;
+    BOOST_CHECK(pb.masterKey.SignSchnorr(limitedProofid, proofSignature));
+
+    return ProofRef::make(pb.sequence, pb.expirationTime, masterPubKey,
+                          std::move(signedStakes), pb.payoutScriptPubKey,
+                          proofSignature);
 }
 
-ProofId TestProofBuilder::getDuplicatedStakeProofId(ProofBuilder &pb) {
+LimitedProofId
+TestProofBuilder::getDuplicatedStakeLimitedProofId(ProofBuilder &pb) {
     CHashWriter ss(SER_GETHASH, 0);
     ss << pb.sequence;
     ss << pb.expirationTime;
+    ss << pb.payoutScriptPubKey;
 
     WriteCompactSize(ss, 2 * pb.stakes.size());
     for (auto &s : pb.stakes) {
@@ -95,16 +102,16 @@ ProofId TestProofBuilder::getDuplicatedStakeProofId(ProofBuilder &pb) {
         ss << s.stake;
     }
 
-    CHashWriter ss2(SER_GETHASH, 0);
-    ss2 << ss.GetHash();
-    ss2 << pb.masterKey.GetPubKey();
-
-    return ProofId(ss2.GetHash());
+    return LimitedProofId(ss.GetHash());
 }
 
 ProofRef TestProofBuilder::buildDuplicatedStakes(ProofBuilder &pb) {
-    const ProofId proofid = TestProofBuilder::getDuplicatedStakeProofId(pb);
-    const StakeCommitment commitment(proofid);
+    const LimitedProofId limitedProofid =
+        TestProofBuilder::getDuplicatedStakeLimitedProofId(pb);
+    const CPubKey masterPubKey = pb.masterKey.GetPubKey();
+    const StakeCommitment commitment(
+        limitedProofid.computeProofId(masterPubKey), pb.expirationTime,
+        pb.masterKey.GetPubKey());
 
     std::vector<SignedStake> signedStakes;
     signedStakes.reserve(2 * pb.stakes.size());
@@ -116,9 +123,12 @@ ProofRef TestProofBuilder::buildDuplicatedStakes(ProofBuilder &pb) {
         signedStakes.push_back(signedStake);
     }
 
-    return ProofRef::make(pb.sequence, pb.expirationTime,
-                          pb.masterKey.GetPubKey(), std::move(signedStakes),
-                          pb.payoutScriptPubKey, SchnorrSig());
+    SchnorrSig proofSignature;
+    BOOST_CHECK(pb.masterKey.SignSchnorr(limitedProofid, proofSignature));
+
+    return ProofRef::make(pb.sequence, pb.expirationTime, masterPubKey,
+                          std::move(signedStakes), pb.payoutScriptPubKey,
+                          proofSignature);
 }
 
 } // namespace avalanche

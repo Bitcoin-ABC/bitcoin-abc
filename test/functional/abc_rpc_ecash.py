@@ -25,13 +25,16 @@ class ECashRPCTest(BitcoinTestFramework):
 
         # Test a RPC command with an Amount output
         decodedproof = self.nodes[0].decodeavalancheproof(
-            "0b000000000000000c0000000000000021030b4c866585dd868a9d62348a9cd00"
-            "8d6a312937048fff31670e7e920cfc7a7440105c5f72f5d6da3085583e75ee793"
-            "40eb4eff208c89988e7ed0efb30b87298fa30000000000f2052a0100000003000"
-            "000210227d85ba011276cf25b51df6a188b75e604b38770a462b2d0e9fb2fc839"
-            "ef5d3f34cd6a4dd35552e706850914934d1e5459f0f055c6f9d664c77f3196371"
-            "68538adf2271dae425c92504296eb0e1ba40c12bb666ba3d476f056ddd0b04c8f"
-            "ca87")
+            "0b000000000000000c0000000000000021030b4c866585dd868a9d62348a9cd008"
+            "d6a312937048fff31670e7e920cfc7a7440105c5f72f5d6da3085583e75ee79340"
+            "eb4eff208c89988e7ed0efb30b87298fa30000000000f2052a0100000003000000"
+            "210227d85ba011276cf25b51df6a188b75e604b38770a462b2d0e9fb2fc839ef5d"
+            "3f5699fa4fbfcbb847fadbab9103b15774cacbafc07b827a63a37989a8b6e2fda7"
+            "c5d9b2d92795d1f5f6ea16f05d0872f26bc135958496383a88fdeb2f2486be6719"
+            "76a914000000000000000000000000000000000000000088acbb0023e3cb6f1fec"
+            "64678afa48490daedab1f822a4dbbeb81909339940d2383a4cc268391be5339d17"
+            "477735025535bceea91c7ba40ec79818dccb164871b16e"
+        )
         expected_sats = 5_000_000_000
         assert_equal(decodedproof["stakes"][0]["amount"],
                      expected_sats / satoshis_per_unit)

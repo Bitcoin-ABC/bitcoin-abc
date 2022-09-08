@@ -21,7 +21,6 @@ from test_framework.messages import (
     AvalancheDelegationLevel,
     AvalancheProof,
     FromHex,
-    LegacyAvalancheProof,
     msg_avaproof,
 )
 from test_framework.p2p import P2PInterface, p2p_lock
@@ -54,7 +53,7 @@ def add_interface_node(test_node) -> str:
     return test_node.getpeerinfo()[-1]['id']
 
 
-class LegacyAvalancheProofTest(BitcoinTestFramework):
+class AvalancheProofTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 2
@@ -62,8 +61,7 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
                             '-avaproofstakeutxodustthreshold={}'.format(
                                 PROOF_DUST_THRESHOLD),
                             '-avaproofstakeutxoconfirmations=1',
-                            '-avacooldown=0',
-                            '-legacyavaproof=1']] * self.num_nodes
+                            '-avacooldown=0']] * self.num_nodes
         self.supports_cli = False
         self.rpc_timeout = 120
 
@@ -100,34 +98,9 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         proof_expiration = 0
         stakes = create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key)
         proof = node.buildavalancheproof(
-            proof_sequence, proof_expiration, wif_privkey, stakes)
+            proof_sequence, proof_expiration, wif_privkey, stakes, ADDRESS_ECREG_UNSPENDABLE)
 
         self.log.info("Test decodeavalancheproof RPC")
-        proofobj = FromHex(LegacyAvalancheProof(), proof)
-        decodedproof = node.decodeavalancheproof(proof)
-        limited_id_hex = uint256_hex(proofobj.limited_proofid)
-        proofid_hex = uint256_hex(proofobj.proofid)
-        assert_equal(decodedproof["sequence"], proof_sequence)
-        assert_equal(decodedproof["expiration"], proof_expiration)
-        assert_equal(decodedproof["master"], proof_master)
-        assert_equal(decodedproof["payoutscript"]["hex"], "")
-        assert "signature" not in decodedproof.keys()
-        assert_equal(decodedproof["proofid"], proofid_hex)
-        assert_equal(decodedproof["limitedid"], limited_id_hex)
-        assert_equal(decodedproof["staked_amount"], Decimal('50000000.00'))
-        assert_equal(decodedproof["score"], 5000)
-        assert_equal(decodedproof["stakes"][0]["txid"], stakes[0]["txid"])
-        assert_equal(decodedproof["stakes"][0]["vout"], stakes[0]["vout"])
-        assert_equal(decodedproof["stakes"][0]["height"], stakes[0]["height"])
-        assert_equal(
-            decodedproof["stakes"][0]["iscoinbase"],
-            stakes[0]["iscoinbase"])
-        assert_equal(
-            decodedproof["stakes"][0]["address"],
-            node_ecash_addr)
-        assert_equal(
-            decodedproof["stakes"][0]["signature"],
-            base64.b64encode(proofobj.stakes[0].sig).decode("ascii"))
 
         # Invalid hex (odd number of hex digits)
         assert_raises_rpc_error(-22, "Proof must be an hexadecimal string",
@@ -136,22 +109,16 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         assert_raises_rpc_error(-22, "Proof has invalid format",
                                 node.decodeavalancheproof, proof[:-2])
 
-        self.log.info(
-            "Testing decodeavalancheproof with legacyavaproof disabled")
-        self.restart_node(0, self.extra_args[0] + ["-legacyavaproof=0"])
-
-        regular_proof = node.buildavalancheproof(
-            proof_sequence, proof_expiration, wif_privkey, stakes, ADDRESS_ECREG_UNSPENDABLE)
-        decoded_regular_proof = node.decodeavalancheproof(regular_proof)
+        decoded_proof = node.decodeavalancheproof(proof)
 
         assert_equal(
-            decoded_regular_proof["sequence"],
-            decodedproof["sequence"])
+            decoded_proof["sequence"],
+            proof_sequence)
         assert_equal(
-            decoded_regular_proof["expiration"],
-            decodedproof["expiration"])
-        assert_equal(decoded_regular_proof["master"], decodedproof["master"])
-        assert_equal(decoded_regular_proof["payoutscript"], {
+            decoded_proof["expiration"],
+            proof_expiration)
+        assert_equal(decoded_proof["master"], proof_master)
+        assert_equal(decoded_proof["payoutscript"], {
             "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG",
             "hex": "76a914000000000000000000000000000000000000000088ac",
             "reqSigs": 1,
@@ -159,40 +126,43 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
             "addresses": [ADDRESS_ECREG_UNSPENDABLE],
         })
 
-        regular_proof_obj = FromHex(AvalancheProof(), regular_proof)
+        proofobj = FromHex(AvalancheProof(), proof)
+        limited_id_hex = uint256_hex(proofobj.limited_proofid)
+        proofid_hex = uint256_hex(proofobj.proofid)
+
         assert_equal(
-            decoded_regular_proof["signature"],
-            base64.b64encode(regular_proof_obj.signature).decode("ascii"))
+            decoded_proof["signature"],
+            base64.b64encode(proofobj.signature).decode("ascii"))
         assert_equal(
-            decoded_regular_proof["proofid"],
-            uint256_hex(regular_proof_obj.proofid))
+            decoded_proof["proofid"],
+            uint256_hex(proofobj.proofid))
         assert_equal(
-            decoded_regular_proof["limitedid"],
-            uint256_hex(regular_proof_obj.limited_proofid))
+            decoded_proof["limitedid"],
+            uint256_hex(proofobj.limited_proofid))
         assert_equal(
-            decoded_regular_proof["staked_amount"],
-            decodedproof["staked_amount"])
+            decoded_proof["staked_amount"],
+            Decimal('50000000.00'))
         assert_equal(
-            decoded_regular_proof["score"],
-            decodedproof["score"])
+            decoded_proof["score"],
+            5000)
         assert_equal(
-            decoded_regular_proof["stakes"][0]["txid"],
-            decodedproof["stakes"][0]["txid"])
+            decoded_proof["stakes"][0]["txid"],
+            stakes[0]["txid"])
         assert_equal(
-            decoded_regular_proof["stakes"][0]["vout"],
-            decodedproof["stakes"][0]["vout"])
+            decoded_proof["stakes"][0]["vout"],
+            stakes[0]["vout"])
         assert_equal(
-            decoded_regular_proof["stakes"][0]["height"],
-            decodedproof["stakes"][0]["height"])
+            decoded_proof["stakes"][0]["height"],
+            stakes[0]["height"])
         assert_equal(
-            decoded_regular_proof["stakes"][0]["iscoinbase"],
-            decodedproof["stakes"][0]["iscoinbase"])
+            decoded_proof["stakes"][0]["iscoinbase"],
+            stakes[0]["iscoinbase"])
         assert_equal(
-            decoded_regular_proof["stakes"][0]["address"],
-            decodedproof["stakes"][0]["address"])
+            decoded_proof["stakes"][0]["address"],
+            node_ecash_addr)
         assert_equal(
-            decoded_regular_proof["stakes"][0]["signature"],
-            base64.b64encode(regular_proof_obj.stakes[0].sig).decode("ascii"))
+            decoded_proof["stakes"][0]["signature"],
+            base64.b64encode(proofobj.stakes[0].sig).decode("ascii"))
 
         # Restart the node with this proof
         self.restart_node(0, self.extra_args[0] + [
@@ -361,47 +331,53 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
             }]
         )
 
-        duplicate_stake = ("0b000000000000000c0000000000000021030b4c866585dd868"
-                           "a9d62348a9cd008d6a312937048fff31670e7e920cfc7a74402"
-                           "05c5f72f5d6da3085583e75ee79340eb4eff208c89988e7ed0e"
-                           "fb30b87298fa30000000000f2052a0100000003000000210227"
-                           "d85ba011276cf25b51df6a188b75e604b38770a462b2d0e9fb2"
-                           "fc839ef5d3f86076def2e8bc3c40671c1a0eb505da5857a950a"
-                           "0cf4625a80018cdd75ac62e61273ff8142f747de67e73f6368c"
-                           "8648942b0ef6c065d72a81ad7438a23c11cca05c5f72f5d6da3"
-                           "085583e75ee79340eb4eff208c89988e7ed0efb30b87298fa30"
-                           "000000000f2052a0100000003000000210227d85ba011276cf2"
-                           "5b51df6a188b75e604b38770a462b2d0e9fb2fc839ef5d3f860"
-                           "76def2e8bc3c40671c1a0eb505da5857a950a0cf4625a80018c"
-                           "dd75ac62e61273ff8142f747de67e73f6368c8648942b0ef6c0"
-                           "65d72a81ad7438a23c11cca")
+        # The hardcoded proofs are extracted from proof_tests.cpp
+        duplicate_stake = (
+            "c964aa6fde575e4ce8404581c7be874e21023beefdde700a6bc02036335b4df141"
+            "c8bc67bb05a971f5ac2745fd683797dde302d1e26c2287948bc6ab2b55945c591b"
+            "8ba3ffa237f5d9164d30a4f10145a61f788e639b1480731e2aead30500bf846287"
+            "2102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce6"
+            "806b8111af77e1076caba7cb76de29abae963b7f6a1879318e8e37ff488d5843b7"
+            "83215fe9561431ac55ecef78ce214869aac0c271d35bee7fdb0858a7ddffe3b0d1"
+            "e26c2287948bc6ab2b55945c591b8ba3ffa237f5d9164d30a4f10145a61f788e63"
+            "9b1480731e2aead30500bf8462872102449fb5237efe8f647d32e8b64f06c22d1d"
+            "40368eaca2a71ffc6a13ecc8bce6802f5c4b2a2ab7fb315d3b9e0318e4e90faa99"
+            "7f28ea6fb31c3487332718079c10131da1acd028a093be651330679bb02bd47105"
+            "3e18a590e373a08c2e60ca15f92321038439233261789dd340bdc1450172d9c671"
+            "b72ee8c0b2736ed2a3a250760897fdac3dfb66133d94674a3a6565d8f84e1a31e2"
+            "f79a4bb399c04adc802abcf8b395f62315d3ad8450ba57e11dfb61b1f5a7325094"
+            "d5ffda1f5830e0990dcc2ebb9be8"
+        )
 
-        bad_sig = ("0b000000000000000c0000000000000021030b4c866585dd868a9d62348"
-                   "a9cd008d6a312937048fff31670e7e920cfc7a7440105c5f72f5d6da3085"
-                   "583e75ee79340eb4eff208c89988e7ed0efb30b87298fa30000000000f20"
-                   "52a0100000003000000210227d85ba011276cf25b51df6a188b75e604b3"
-                   "8770a462b2d0e9fb2fc839ef5d3faf07f001dd38e9b4a43d07d5d449cc0"
-                   "f7d2888d96b82962b3ce516d1083c0e031773487fc3c4f2e38acd1db974"
-                   "1321b91a79b82d1c2cfd47793261e4ba003cf5")
+        bad_sig = (
+            "d97587e6c882615797011ec8f9a7b1c621023beefdde700a6bc02036335b4df141"
+            "c8bc67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cff"
+            "e53967e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a3"
+            "2102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce6"
+            "8099f1e258ab54f960102c8b480e1dd5795422791bb8a7a19e5542fe8b6a76df7f"
+            "a09a3fd4be62db750131f1fbea6f7bb978288f7fe941c39ef625aa80576e19fc43"
+            "410469ab5a892ffa4bb104a3d5760dd893a5502512eea4ba32a6d6672767be4959"
+            "c0f70489b803a47a3abf83f30e8d9da978de4027c70ce7e0d3b0ad62eb08edd8f9"
+            "ac5995555107107e656abd8e2852f311ff0f5c4f606695b63ec44e04303e3378a2"
+            "e21e16bf05727240ebee1334d2f858c6c2e3bdd8d289400b99d7f70b35f9d2fa"
+        )
 
-        wrong_order = ("c964aa6fde575e4ce8404581c7be874e21023beefdde700a6bc0203"
-                       "6335b4df141c8bc67bb05a971f5ac2745fd683797dde30305d427b7"
-                       "06705a5d4b6a368a231d6db62abacf8c29bc32b61e7f65a0a6976aa"
-                       "8b86b687bc0260e821e4f0200b9d3bf6d2102449fb5237efe8f647d"
-                       "32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce68052365271b"
-                       "6c71189f5cd7e3b694b77b579080f0b35bae567b96590ab6aa3019b"
-                       "018ff9f061f52f1426bdb195d4b6d4dff5114cee90e33dabf0c588e"
-                       "badf7774418f54247f6390791706af36fac782302479898b5273f9e"
-                       "51a92cb1fb5af43deeb6c8c269403d30ffcb380300134398c42103e"
-                       "49f9df52de2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0"
-                       "f9e645efa08e97ea0c60e1f0a064fbf08989c084707082727e85dcb"
-                       "9f79bb503f76ee6c8dad42a07ef15c89b3750a5631d604b21fafff0"
-                       "f4de354ade95c2f28160ae549af0d4ce48c4ca9d0714b1fa5192027"
-                       "0f8575e0af610f07b4e602a018ecdbb649b64fff614c0026e9fc8e0"
-                       "030092533d422103aac52f4cfca700e7e9824298e0184755112e32f"
-                       "359c832f5f6ad2ef62a2c024af812d6d7f2ecc6223a774e19bce1fb"
-                       "20d94d6b01ea693638f55c74fdaa5358fa9239d03e4caf3d817e8f7"
-                       "48ccad55a27b9d365db06ad5a0b779ac385f3dc8710")
+        wrong_order = (
+            "00000000000000000000000000000000210253269c2f402b903876823d5dbe55e0"
+            "7587ad1eabedab80a89197e9d3b869049e026e5c784de9870d66427124dd1c657b"
+            "a38f783d3475d4d4e2f9efe5d05b2907fbfc1a6c5100c817a80400000014000000"
+            "210253269c2f402b903876823d5dbe55e07587ad1eabedab80a89197e9d3b86904"
+            "9e235eea7e3be14fab2c54e6333dc1307f990a88fd6106c2d0615d61fde200bc9a"
+            "c0d7681ec9d49ece57c93208543ae8142ea878a5941ae917f01ccd3c8a9f3ec01e"
+            "d1fb02e131c7c37451780836dfa281056ac22dae68031c655b591cbbbf9a9b08cd"
+            "8a6000c817a80400000014000000210253269c2f402b903876823d5dbe55e07587"
+            "ad1eabedab80a89197e9d3b869049e6d4ca3de37afe93f956d50f2455c11541f09"
+            "f0dca8316fb119ab8a605ff7f5b866df91c1b3df17810b943253b38ac6fa1d8bfc"
+            "cc1cc1151ff91e7d7d531c88911976a91400000000000000000000000000000000"
+            "0000000088acc07fe1333c229902879510ef5c5081d793451aa88253a77b69688d"
+            "01206c035b1c6a0db54d60bd840862030e9a2e35b2f82d92c0e0298e2cde435974"
+            "998d95ed"
+        )
 
         expired = node.buildavalancheproof(
             proof_sequence, 1, wif_privkey,
@@ -469,7 +445,7 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
 
         peer = node.add_p2p_connection(P2PInterface())
 
-        proofid = FromHex(LegacyAvalancheProof(), proof).proofid
+        proofid = FromHex(AvalancheProof(), proof).proofid
         node.sendavalancheproof(proof)
         assert proofid in get_proof_ids(node)
 
@@ -664,4 +640,4 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
 
 
 if __name__ == '__main__':
-    LegacyAvalancheProofTest().main()
+    AvalancheProofTest().main()

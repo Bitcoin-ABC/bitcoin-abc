@@ -27,9 +27,9 @@ ProofRef buildRandomProof(CChainState &active_chainstate, uint32_t score,
 bool hasDustStake(const ProofRef &proof);
 
 struct TestProofBuilder {
-    static ProofId getReverseOrderProofId(ProofBuilder &pb);
+    static LimitedProofId getReverseOrderLimitedProofId(ProofBuilder &pb);
     static ProofRef buildWithReversedOrderStakes(ProofBuilder &pb);
-    static ProofId getDuplicatedStakeProofId(ProofBuilder &pb);
+    static LimitedProofId getDuplicatedStakeLimitedProofId(ProofBuilder &pb);
     static ProofRef buildDuplicatedStakes(ProofBuilder &pb);
 };
 
