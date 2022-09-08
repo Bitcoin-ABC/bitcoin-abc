@@ -36,6 +36,7 @@ import {
     getUtxosChronik,
     organizeUtxosByType,
     getPreliminaryTokensArray,
+    finalizeTokensArray,
 } from 'utils/chronik';
 import { ChronikClient } from 'chronik-client';
 // For XEC, eCash chain:
@@ -260,6 +261,13 @@ const useWallet = () => {
 
             const preliminaryTokensArray = getPreliminaryTokensArray(slpUtxos);
             console.log(`preliminaryTokensArray`, preliminaryTokensArray);
+
+            const finalTokenArray = await finalizeTokensArray(
+                chronik,
+                preliminaryTokensArray,
+            );
+
+            console.log(`finalTokenArray`, finalTokenArray);
 
             // If an error is returned or utxos from only 1 address are returned
             if (

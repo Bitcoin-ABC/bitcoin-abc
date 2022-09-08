@@ -137,3 +137,124 @@ export const getPreliminaryTokensArray = slpUtxos => {
     const preliminaryTokensArray = Object.values(tokensById);
     return preliminaryTokensArray;
 };
+
+const returnGetTokenInfoChronikPromise = (chronik, tokenId) => {
+    /*
+    The chronik.tx(txid) API call returns extensive transaction information
+    For the purposes of finalizing token information, we only need the token metadata
+
+    This function returns a promise that extracts only this needed information from
+    the chronik.tx(txid) API call
+
+    In this way, calling Promise.all() on an array of tokenIds that lack metadata
+    will return an array with all required metadata
+    */
+    return new Promise((resolve, reject) => {
+        chronik.tx(tokenId).then(
+            result => {
+                if (typeof result === 'undefined') {
+                    console.log(`result`, result);
+                }
+
+                const thisTokenInfo = result.slpTxData.genesisInfo;
+                thisTokenInfo.tokenId = tokenId;
+                // You only want the genesis info for tokenId
+                resolve(thisTokenInfo);
+            },
+            err => {
+                reject(err);
+            },
+        );
+    });
+};
+
+export const processPreliminaryTokensArray = (
+    preliminaryTokensArray,
+    tokenInfoByTokenId,
+) => {
+    /* Iterate over preliminaryTokensArray to
+
+    1 - Add slp metadata (token ticker, name, other metadata)
+    2 - Calculate the token balance. Token balance in 
+        preliminaryTokensArray does not take into account the
+        decimal places of the token...so it is incorrect.
+
+    */
+    const finalTokenArray = [];
+    for (let i = 0; i < preliminaryTokensArray.length; i += 1) {
+        const thisToken = preliminaryTokensArray[i];
+        const thisTokenId = thisToken.tokenId;
+
+        // Because tokenInfoByTokenId is indexed by tokenId, it's easy to reference
+        const thisTokenInfo = tokenInfoByTokenId[thisTokenId];
+
+        // The decimals are specifically needed to calculate the correct balance
+        const thisTokenDecimals = thisTokenInfo.decimals;
+
+        // Add info object to token
+        thisToken.info = thisTokenInfo;
+
+        // Update balance according to decimals
+        thisToken.balance = thisToken.balance.shiftedBy(-1 * thisTokenDecimals);
+
+        // Now that you have the metadata and the correct balance,
+        // preliminaryTokenInfo is finalTokenInfo
+        finalTokenArray.push(thisToken);
+    }
+    return finalTokenArray;
+};
+
+export const finalizeTokensArray = async (chronik, preliminaryTokensArray) => {
+    // Iterate over preliminaryTokensArray to determine what tokens you need to make API calls for
+
+    // Create an array of promises
+    // Each promise is a chronik API call to obtain token metadata for this token ID
+    const getTokenInfoPromises = [];
+
+    for (let i = 0; i < preliminaryTokensArray.length; i += 1) {
+        const thisTokenId = preliminaryTokensArray[i].tokenId;
+        const thisTokenInfoPromise = returnGetTokenInfoChronikPromise(
+            chronik,
+            thisTokenId,
+        );
+        getTokenInfoPromises.push(thisTokenInfoPromise);
+    }
+
+    // Get all the token info you need
+    let tokenInfoArray = [];
+    try {
+        tokenInfoArray = await Promise.all(getTokenInfoPromises);
+    } catch (err) {
+        console.log(`Error in Promise.all(getTokenInfoPromises)`, err);
+    }
+
+    // Create a reference object that indexes token metadata by token ID
+    // This object can then be used to add token metadata to each token ID
+    const tokenInfoByTokenId = {};
+    for (let i = 0; i < tokenInfoArray.length; i += 1) {
+        /* tokenInfoArray is an array of objects that look like
+        {
+            "tokenTicker": "ST",
+            "tokenName": "ST",
+            "tokenDocumentUrl": "developer.bitcoin.com",
+            "tokenDocumentHash": "",
+            "decimals": 0,
+            "tokenId": "bf24d955f59351e738ecd905966606a6837e478e1982943d724eab10caad82fd"
+        }
+        */
+
+        const thisTokenInfo = tokenInfoArray[i];
+        const thisTokenId = thisTokenInfo.tokenId;
+        // Add this entry to updatedCachedTokenInfo
+        tokenInfoByTokenId[thisTokenId] = thisTokenInfo;
+    }
+
+    // Now use tokenInfoByTokenId object to finalize token info
+    // Split this out into a separate function so you can unit test
+    const finalTokenArray = processPreliminaryTokensArray(
+        preliminaryTokensArray,
+        tokenInfoByTokenId,
+    );
+
+    return finalTokenArray;
+};

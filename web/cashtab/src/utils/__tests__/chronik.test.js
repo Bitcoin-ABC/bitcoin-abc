@@ -1,10 +1,23 @@
-import BigNumber from 'bignumber.js';
-import { organizeUtxosByType, getPreliminaryTokensArray } from 'utils/chronik';
+import {
+    organizeUtxosByType,
+    getPreliminaryTokensArray,
+    updateCachedTokenInfoAndFinalizeTokensArray,
+    finalizeTokensArray,
+} from 'utils/chronik';
 import {
     mockChronikUtxos,
     mockOrganizedUtxosByType,
     mockPreliminaryTokensArray,
+    mockPreliminaryTokensArrayClone,
+    mockPreliminaryTokensArrayCloneClone,
+    mockChronikTxDetailsResponses,
+    mockFinalTokenArray,
+    mockFinalCachedTokenInfo,
+    mockPartialCachedTokenInfo,
+    mockPartialChronikTxDetailsResponses,
 } from '../__mocks__/chronikUtxos';
+import { ChronikClient } from 'chronik-client';
+import { when } from 'jest-when';
 
 it(`organizeUtxosByType successfully splits a chronikUtxos array into slpUtxos and nonSlpUtxos`, () => {
     expect(organizeUtxosByType(mockChronikUtxos)).toStrictEqual(
@@ -37,13 +50,28 @@ it(`organizeUtxosByType successfully splits a chronikUtxos array into slpUtxos a
 });
 
 it(`getPreliminaryTokensArray successfully returns an array of all tokenIds and token balances (not yet adjusted for token decimals)`, () => {
-    // The BigNumber type is lost in copy pasting to mocks. Bring it back, since function returns it.
-    for (let i = 0; i < mockPreliminaryTokensArray.length; i += 1) {
-        mockPreliminaryTokensArray[i].balance = new BigNumber(
-            mockPreliminaryTokensArray[i].balance,
-        );
-    }
     expect(
         getPreliminaryTokensArray(mockOrganizedUtxosByType.slpUtxos),
     ).toStrictEqual(mockPreliminaryTokensArray);
+});
+
+it(`finalizeTokensArray successfully returns finalTokenArray`, async () => {
+    // Initialize chronik
+    const chronik = new ChronikClient(
+        'https://FakeChronikUrlToEnsureMocksOnly.com',
+    );
+    /* 
+        Mock the API response from chronik.tx('tokenId') called 
+        in returnGetTokenInfoChronikPromise -- for each tokenId used
+    */
+    chronik.tx = jest.fn();
+    for (let i = 0; i < mockChronikTxDetailsResponses.length; i += 1) {
+        when(chronik.tx)
+            .calledWith(mockChronikTxDetailsResponses[i].txid)
+            .mockResolvedValue(mockChronikTxDetailsResponses[i]);
+    }
+
+    expect(
+        await finalizeTokensArray(chronik, mockPreliminaryTokensArray),
+    ).toStrictEqual(mockFinalTokenArray);
 });
