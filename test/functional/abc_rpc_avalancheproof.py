@@ -61,6 +61,7 @@ class AvalancheProofTest(BitcoinTestFramework):
                             '-avaproofstakeutxodustthreshold={}'.format(
                                 PROOF_DUST_THRESHOLD),
                             '-avaproofstakeutxoconfirmations=1',
+                            '-avalancheconflictingproofcooldown=0',
                             '-avacooldown=0']] * self.num_nodes
         self.supports_cli = False
         self.rpc_timeout = 120
@@ -429,7 +430,7 @@ class AvalancheProofTest(BitcoinTestFramework):
                 check_rpc_failure(too_many_utxos, "too-many-utxos")
 
         conflicting_utxo = node.buildavalancheproof(
-            proof_sequence + 1, proof_expiration, wif_privkey, stakes)
+            proof_sequence - 1, proof_expiration, wif_privkey, stakes)
         assert_raises_rpc_error(-8, "The proof has conflicting utxo with an existing proof",
                                     node.sendavalancheproof, conflicting_utxo)
 
