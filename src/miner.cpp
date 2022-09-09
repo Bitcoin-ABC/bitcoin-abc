@@ -87,7 +87,7 @@ static BlockAssembler::Options DefaultOptions(const Config &config) {
 
     if (gArgs.IsArgSet("-blockmaxsize")) {
         options.nMaxGeneratedBlockSize =
-            gArgs.GetArg("-blockmaxsize", DEFAULT_MAX_GENERATED_BLOCK_SIZE);
+            gArgs.GetIntArg("-blockmaxsize", DEFAULT_MAX_GENERATED_BLOCK_SIZE);
     }
 
     Amount n = Amount::zero();
@@ -147,7 +147,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     // -regtest only: allow overriding block.nVersion with
     // -blockversion=N to test forking scenarios
     if (chainParams.MineBlocksOnDemand()) {
-        pblock->nVersion = gArgs.GetArg("-blockversion", pblock->nVersion);
+        pblock->nVersion = gArgs.GetIntArg("-blockversion", pblock->nVersion);
     }
 
     pblock->nTime = GetAdjustedTime();

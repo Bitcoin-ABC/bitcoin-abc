@@ -36,7 +36,7 @@ int CDnsSeedOpts::ParseCommandLine(int argc, const char **argv) {
     }
 
     dumpInterval = std::chrono::seconds(
-        argsManager->GetArg("-dumpinterval", DEFAULT_DUMP_INTERVAL_SECONDS));
+        argsManager->GetIntArg("-dumpinterval", DEFAULT_DUMP_INTERVAL_SECONDS));
     if (dumpInterval.count() <= 0) {
         tfm::format(
             std::cerr,
@@ -44,7 +44,7 @@ int CDnsSeedOpts::ParseCommandLine(int argc, const char **argv) {
         return EXIT_FAILURE;
     }
 
-    nThreads = argsManager->GetArg("-threads", DEFAULT_NUM_THREADS);
+    nThreads = argsManager->GetIntArg("-threads", DEFAULT_NUM_THREADS);
     if (nThreads <= 0) {
         tfm::format(
             std::cerr,
@@ -52,14 +52,15 @@ int CDnsSeedOpts::ParseCommandLine(int argc, const char **argv) {
         return EXIT_FAILURE;
     }
 
-    nPort = argsManager->GetArg("-port", DEFAULT_PORT);
+    nPort = argsManager->GetIntArg("-port", DEFAULT_PORT);
     if (nPort < 0 || nPort > 65535) {
         tfm::format(std::cerr, "Error: -port argument expects only positive "
                                "integers in the range 0 - 65535\n");
         return EXIT_FAILURE;
     }
 
-    nDnsThreads = argsManager->GetArg("-dnsthreads", DEFAULT_NUM_DNS_THREADS);
+    nDnsThreads =
+        argsManager->GetIntArg("-dnsthreads", DEFAULT_NUM_DNS_THREADS);
     if (nDnsThreads <= 0) {
         tfm::format(
             std::cerr,

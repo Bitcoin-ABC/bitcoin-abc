@@ -264,8 +264,8 @@ bool CheckSequenceLocks(CChainState &active_chainstate, const CTxMemPool &pool,
 // <timestamp>. Defaults to the pre-defined timestamp when not set.
 static bool IsReplayProtectionEnabled(const Consensus::Params &params,
                                       int64_t nMedianTimePast) {
-    return nMedianTimePast >= gArgs.GetArg("-replayprotectionactivationtime",
-                                           params.wellingtonActivationTime);
+    return nMedianTimePast >= gArgs.GetIntArg("-replayprotectionactivationtime",
+                                              params.wellingtonActivationTime);
 }
 
 static bool IsReplayProtectionEnabled(const Consensus::Params &params,
@@ -333,15 +333,16 @@ public:
           m_viewmempool(&active_chainstate.CoinsTip(), m_pool),
           m_active_chainstate(active_chainstate),
           m_limit_ancestors(
-              gArgs.GetArg("-limitancestorcount", DEFAULT_ANCESTOR_LIMIT)),
-          m_limit_ancestor_size(
-              gArgs.GetArg("-limitancestorsize", DEFAULT_ANCESTOR_SIZE_LIMIT) *
-              1000),
-          m_limit_descendants(
-              gArgs.GetArg("-limitdescendantcount", DEFAULT_DESCENDANT_LIMIT)),
-          m_limit_descendant_size(gArgs.GetArg("-limitdescendantsize",
-                                               DEFAULT_DESCENDANT_SIZE_LIMIT) *
-                                  1000) {}
+              gArgs.GetIntArg("-limitancestorcount", DEFAULT_ANCESTOR_LIMIT)),
+          m_limit_ancestor_size(gArgs.GetIntArg("-limitancestorsize",
+                                                DEFAULT_ANCESTOR_SIZE_LIMIT) *
+                                1000),
+          m_limit_descendants(gArgs.GetIntArg("-limitdescendantcount",
+                                              DEFAULT_DESCENDANT_LIMIT)),
+          m_limit_descendant_size(
+              gArgs.GetIntArg("-limitdescendantsize",
+                              DEFAULT_DESCENDANT_SIZE_LIMIT) *
+              1000) {}
 
     // We put the arguments we're handed into a struct, so we can pass them
     // around easier.
@@ -605,8 +606,9 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
 
     Amount mempoolRejectFee =
         m_pool
-            .GetMinFee(gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
-                       1000000)
+            .GetMinFee(
+                gArgs.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
+                1000000)
             .GetFee(nVirtualSize);
     if (!bypass_limits && mempoolRejectFee > Amount::zero() &&
         nModifiedFees < mempoolRejectFee) {
@@ -682,9 +684,9 @@ bool MemPoolAccept::Finalize(const ATMPArgs &args, Workspace &ws) {
     if (!bypass_limits) {
         m_pool.LimitSize(
             m_active_chainstate.CoinsTip(),
-            gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000,
+            gArgs.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000,
             std::chrono::hours{
-                gArgs.GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY)});
+                gArgs.GetIntArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY)});
         if (!m_pool.exists(txid)) {
             return state.Invalid(TxValidationResult::TX_MEMPOOL_POLICY,
                                  "mempool full");
@@ -2021,7 +2023,7 @@ CoinsCacheSizeState
 CChainState::GetCoinsCacheSizeState(const CTxMemPool *tx_pool) {
     return this->GetCoinsCacheSizeState(
         tx_pool, m_coinstip_cache_size_bytes,
-        gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000);
+        gArgs.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000);
 }
 
 CoinsCacheSizeState
@@ -2437,10 +2439,10 @@ const CBlockIndex *CChainState::FindBlockToFinalize(CBlockIndex *pindexNew) {
     AssertLockHeld(cs_main);
 
     const int32_t maxreorgdepth =
-        gArgs.GetArg("-maxreorgdepth", DEFAULT_MAX_REORG_DEPTH);
+        gArgs.GetIntArg("-maxreorgdepth", DEFAULT_MAX_REORG_DEPTH);
 
     const int64_t finalizationdelay =
-        gArgs.GetArg("-finalizationdelay", DEFAULT_MIN_FINALIZATION_DELAY);
+        gArgs.GetIntArg("-finalizationdelay", DEFAULT_MIN_FINALIZATION_DELAY);
 
     // Find our candidate.
     // If maxreorgdepth is < 0 pindex will be null and auto finalization
@@ -2970,7 +2972,7 @@ bool CChainState::ActivateBestChain(const Config &config,
 
     CBlockIndex *pindexMostWork = nullptr;
     CBlockIndex *pindexNewTip = nullptr;
-    int nStopAtHeight = gArgs.GetArg("-stopatheight", DEFAULT_STOPATHEIGHT);
+    int nStopAtHeight = gArgs.GetIntArg("-stopatheight", DEFAULT_STOPATHEIGHT);
     do {
         // Block until the validation queue drains. This should largely
         // never happen in normal operation, however may happen during
@@ -5717,7 +5719,7 @@ static const uint64_t MEMPOOL_DUMP_VERSION = 1;
 bool LoadMempool(const Config &config, CTxMemPool &pool,
                  CChainState &active_chainstate) {
     int64_t nExpiryTimeout =
-        gArgs.GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60;
+        gArgs.GetIntArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60;
     FILE *filestr = fsbridge::fopen(GetDataDir() / "mempool.dat", "rb");
     CAutoFile file(filestr, SER_DISK, CLIENT_VERSION);
     if (file.IsNull()) {

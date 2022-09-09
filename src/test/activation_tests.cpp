@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(test_previous_activations_by_height) {
 BOOST_AUTO_TEST_CASE(isgluonenabled) {
     const Consensus::Params &params = Params().GetConsensus();
     const auto activation =
-        gArgs.GetArg("-gluonactivationtime", params.gluonActivationTime);
+        gArgs.GetIntArg("-gluonactivationtime", params.gluonActivationTime);
     SetMockTime(activation - 1000000);
 
     BOOST_CHECK(!IsGluonEnabled(params, nullptr));

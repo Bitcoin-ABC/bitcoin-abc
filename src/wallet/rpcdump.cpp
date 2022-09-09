@@ -1995,7 +1995,7 @@ static UniValue ProcessDescriptorImport(CWallet *const pwallet,
                 warnings.push_back(
                     "Range not given, using default keypool range");
                 range_start = 0;
-                range_end = gArgs.GetArg("-keypool", DEFAULT_KEYPOOL_SIZE);
+                range_end = gArgs.GetIntArg("-keypool", DEFAULT_KEYPOOL_SIZE);
             }
             next_index = range_start;
 

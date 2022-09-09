@@ -961,7 +961,7 @@ CFeeRate CTxMemPool::estimateFee() const {
     LOCK(cs);
 
     uint64_t maxMempoolSize =
-        gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
+        gArgs.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
     // minerPolicy uses recent blocks to figure out a reasonable fee.  This
     // may disagree with the rollingMinimumFeerate under certain scenarios
     // where the mempool  increases rapidly, or blocks are being mined which
@@ -1440,8 +1440,8 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(
 
     // Re-limit mempool size, in case we added any transactions
     pool.LimitSize(active_chainstate.CoinsTip(),
-                   gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
+                   gArgs.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
                        1000000,
-                   std::chrono::hours{
-                       gArgs.GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY)});
+                   std::chrono::hours{gArgs.GetIntArg("-mempoolexpiry",
+                                                      DEFAULT_MEMPOOL_EXPIRY)});
 }

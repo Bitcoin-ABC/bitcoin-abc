@@ -95,5 +95,5 @@ bool IsGluonEnabled(const Consensus::Params &params,
     }
 
     return pindexPrev->GetMedianTimePast() >=
-           gArgs.GetArg("-gluonactivationtime", params.gluonActivationTime);
+           gArgs.GetIntArg("-gluonactivationtime", params.gluonActivationTime);
 }

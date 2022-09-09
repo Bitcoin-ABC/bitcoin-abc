@@ -589,7 +589,8 @@ std::string ArgsManager::GetArg(const std::string &strArg,
                              : value.get_str();
 }
 
-int64_t ArgsManager::GetArg(const std::string &strArg, int64_t nDefault) const {
+int64_t ArgsManager::GetIntArg(const std::string &strArg,
+                               int64_t nDefault) const {
     const util::SettingsValue value = GetSetting(strArg);
     return value.isNull()    ? nDefault
            : value.isFalse() ? 0

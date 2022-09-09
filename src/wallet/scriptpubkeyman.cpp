@@ -275,7 +275,7 @@ bool LegacyScriptPubKeyMan::TopUpInactiveHDChain(const CKeyID seed_id,
 
     // Top up key pool
     int64_t target_size =
-        std::max(gArgs.GetArg("-keypool", DEFAULT_KEYPOOL_SIZE), (int64_t)1);
+        std::max(gArgs.GetIntArg("-keypool", DEFAULT_KEYPOOL_SIZE), (int64_t)1);
 
     // "size" of the keypools. Not really the size, actually the difference
     // between index and the chain counter Since chain counter is 1 based and
@@ -1229,7 +1229,7 @@ bool LegacyScriptPubKeyMan::TopUp(unsigned int kpSize) {
             nTargetSize = kpSize;
         } else {
             nTargetSize = std::max<int64_t>(
-                gArgs.GetArg("-keypool", DEFAULT_KEYPOOL_SIZE), 0);
+                gArgs.GetIntArg("-keypool", DEFAULT_KEYPOOL_SIZE), 0);
         }
 
         // count amount of available keys (internal, external)
@@ -1793,8 +1793,8 @@ bool DescriptorScriptPubKeyMan::TopUp(unsigned int size) {
     if (size > 0) {
         target_size = size;
     } else {
-        target_size = std::max(gArgs.GetArg("-keypool", DEFAULT_KEYPOOL_SIZE),
-                               int64_t(1));
+        target_size = std::max(
+            gArgs.GetIntArg("-keypool", DEFAULT_KEYPOOL_SIZE), int64_t(1));
     }
 
     // Calculate the new range_end

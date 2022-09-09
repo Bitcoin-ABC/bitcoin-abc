@@ -270,9 +270,9 @@ bool PeerManager::registerProof(const ProofRef &proof,
 
     auto now = GetTime<std::chrono::seconds>();
     auto nextCooldownTimePoint =
-        now + std::chrono::seconds(
-                  gArgs.GetArg("-avalancheconflictingproofcooldown",
-                               AVALANCHE_DEFAULT_CONFLICTING_PROOF_COOLDOWN));
+        now + std::chrono::seconds(gArgs.GetIntArg(
+                  "-avalancheconflictingproofcooldown",
+                  AVALANCHE_DEFAULT_CONFLICTING_PROOF_COOLDOWN));
 
     ProofPool::ConflictingProofSet conflictingProofs;
     switch (validProofPool.addProofIfNoConflict(proof, conflictingProofs)) {

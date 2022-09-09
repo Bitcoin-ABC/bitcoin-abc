@@ -412,7 +412,7 @@ void BerkeleyBatch::Flush() {
     if (env) {
         env->dbenv->txn_checkpoint(
             nMinutes
-                ? gArgs.GetArg("-dblogsize", DEFAULT_WALLET_DBLOGSIZE) * 1024
+                ? gArgs.GetIntArg("-dblogsize", DEFAULT_WALLET_DBLOGSIZE) * 1024
                 : 0,
             nMinutes, 0);
     }

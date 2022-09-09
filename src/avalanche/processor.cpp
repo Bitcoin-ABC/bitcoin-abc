@@ -269,8 +269,9 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
         }
     }
 
-    const auto queryTimeoutDuration = std::chrono::milliseconds(
-        argsman.GetArg("-avatimeout", AVALANCHE_DEFAULT_QUERY_TIMEOUT.count()));
+    const auto queryTimeoutDuration =
+        std::chrono::milliseconds(argsman.GetIntArg(
+            "-avatimeout", AVALANCHE_DEFAULT_QUERY_TIMEOUT.count()));
 
     // Determine quorum parameters
     Amount minQuorumStake = AVALANCHE_DEFAULT_MIN_QUORUM_STAKE;
@@ -301,8 +302,8 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
     }
 
     int64_t minAvaproofsNodeCount =
-        argsman.GetArg("-avaminavaproofsnodecount",
-                       AVALANCHE_DEFAULT_MIN_AVAPROOFS_NODE_COUNT);
+        argsman.GetIntArg("-avaminavaproofsnodecount",
+                          AVALANCHE_DEFAULT_MIN_AVAPROOFS_NODE_COUNT);
     if (minAvaproofsNodeCount < 0) {
         error = _("The minimum number of node that sent avaproofs message "
                   "should be non-negative");
@@ -310,8 +311,8 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
     }
 
     // Determine voting parameters
-    int64_t staleVoteThreshold = argsman.GetArg("-avastalevotethreshold",
-                                                AVALANCHE_VOTE_STALE_THRESHOLD);
+    int64_t staleVoteThreshold = argsman.GetIntArg(
+        "-avastalevotethreshold", AVALANCHE_VOTE_STALE_THRESHOLD);
     if (staleVoteThreshold < AVALANCHE_VOTE_STALE_MIN_THRESHOLD) {
         error = strprintf(_("The avalanche stale vote threshold must be "
                             "greater than or equal to %d"),
@@ -326,7 +327,7 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
     }
 
     int64_t staleVoteFactor =
-        argsman.GetArg("-avastalevotefactor", AVALANCHE_VOTE_STALE_FACTOR);
+        argsman.GetIntArg("-avastalevotefactor", AVALANCHE_VOTE_STALE_FACTOR);
     if (staleVoteFactor <= 0) {
         error = _("The avalanche stale vote factor must be greater than 0");
         return nullptr;

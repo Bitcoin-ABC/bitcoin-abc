@@ -1852,7 +1852,7 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
     }
 
     // if using block pruning, then disallow txindex and coinstatsindex
-    if (args.GetArg("-prune", 0)) {
+    if (args.GetIntArg("-prune", 0)) {
         if (args.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
             return InitError(_("Prune mode is incompatible with -txindex."));
         }
@@ -1873,7 +1873,7 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
     // Make sure enough file descriptors are available
     int nBind = std::max(nUserBind, size_t(1));
     nUserMaxConnections =
-        args.GetArg("-maxconnections", DEFAULT_MAX_PEER_CONNECTIONS);
+        args.GetIntArg("-maxconnections", DEFAULT_MAX_PEER_CONNECTIONS);
     nMaxConnections = std::max(nUserMaxConnections, 0);
 
     // Trim requested connection counts, to fit into system limitations
@@ -1977,9 +1977,9 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
 
     // mempool limits
     int64_t nMempoolSizeMax =
-        args.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
+        args.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
     int64_t nMempoolSizeMin =
-        args.GetArg("-limitdescendantsize", DEFAULT_DESCENDANT_SIZE_LIMIT) *
+        args.GetIntArg("-limitdescendantsize", DEFAULT_DESCENDANT_SIZE_LIMIT) *
         1000 * 40;
     if (nMempoolSizeMax < 0 || nMempoolSizeMax < nMempoolSizeMin) {
         return InitError(strprintf(_("-maxmempool must be at least %d MB"),
@@ -1988,7 +1988,7 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
 
     // Configure excessive block size.
     const int64_t nProposedExcessiveBlockSize =
-        args.GetArg("-excessiveblocksize", DEFAULT_MAX_BLOCK_SIZE);
+        args.GetIntArg("-excessiveblocksize", DEFAULT_MAX_BLOCK_SIZE);
     if (nProposedExcessiveBlockSize <= 0 ||
         !config.SetMaxBlockSize(nProposedExcessiveBlockSize)) {
         return InitError(
@@ -1997,7 +1997,7 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
 
     // Check blockmaxsize does not exceed maximum accepted block size.
     const int64_t nProposedMaxGeneratedBlockSize =
-        args.GetArg("-blockmaxsize", DEFAULT_MAX_GENERATED_BLOCK_SIZE);
+        args.GetIntArg("-blockmaxsize", DEFAULT_MAX_GENERATED_BLOCK_SIZE);
     if (nProposedMaxGeneratedBlockSize <= 0) {
         return InitError(_("Max generated block size must be greater than 0"));
     }
@@ -2009,7 +2009,7 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
 
     // block pruning; get the amount of disk space (in MiB) to allot for block &
     // undo files
-    int64_t nPruneArg = args.GetArg("-prune", 0);
+    int64_t nPruneArg = args.GetIntArg("-prune", 0);
     if (nPruneArg < 0) {
         return InitError(
             _("Prune cannot be configured with a negative value."));
@@ -2035,13 +2035,13 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
         fPruneMode = true;
     }
 
-    nConnectTimeout = args.GetArg("-timeout", DEFAULT_CONNECT_TIMEOUT);
+    nConnectTimeout = args.GetIntArg("-timeout", DEFAULT_CONNECT_TIMEOUT);
     if (nConnectTimeout <= 0) {
         nConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
     }
 
     peer_connect_timeout =
-        args.GetArg("-peertimeout", DEFAULT_PEER_CONNECT_TIMEOUT);
+        args.GetIntArg("-peertimeout", DEFAULT_PEER_CONNECT_TIMEOUT);
     if (peer_connect_timeout <= 0) {
         return InitError(Untranslated(
             "peertimeout cannot be configured with a negative value."));
@@ -2102,7 +2102,7 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
                 "acceptnonstdtxn is not currently supported for %s chain"),
             chainparams.NetworkIDString()));
     }
-    nBytesPerSigOp = args.GetArg("-bytespersigop", nBytesPerSigOp);
+    nBytesPerSigOp = args.GetIntArg("-bytespersigop", nBytesPerSigOp);
 
     if (!g_wallet_init_interface.ParameterInteraction()) {
         return false;
@@ -2114,13 +2114,13 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
         args.GetBoolArg("-datacarrier", DEFAULT_ACCEPT_DATACARRIER);
 
     // Option to startup with mocktime set (used for regression testing):
-    SetMockTime(args.GetArg("-mocktime", 0)); // SetMockTime(0) is a no-op
+    SetMockTime(args.GetIntArg("-mocktime", 0)); // SetMockTime(0) is a no-op
 
     if (args.GetBoolArg("-peerbloomfilters", DEFAULT_PEERBLOOMFILTERS)) {
         nLocalServices = ServiceFlags(nLocalServices | NODE_BLOOM);
     }
 
-    nMaxTipAge = args.GetArg("-maxtipage", DEFAULT_MAX_TIP_AGE);
+    nMaxTipAge = args.GetIntArg("-maxtipage", DEFAULT_MAX_TIP_AGE);
 
     if (args.IsArgSet("-proxy") && args.GetArg("-proxy", "").empty()) {
         return InitError(_(
@@ -2129,8 +2129,8 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
 
     // Avalanche parameters
     const int64_t stakeUtxoMinConfirmations =
-        args.GetArg("-avaproofstakeutxoconfirmations",
-                    AVALANCHE_DEFAULT_STAKE_UTXO_CONFIRMATIONS);
+        args.GetIntArg("-avaproofstakeutxoconfirmations",
+                       AVALANCHE_DEFAULT_STAKE_UTXO_CONFIRMATIONS);
 
     if (!chainparams.IsTestChain() &&
         stakeUtxoMinConfirmations !=
@@ -2302,7 +2302,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     InitSignatureCache();
     InitScriptExecutionCache();
 
-    int script_threads = args.GetArg("-par", DEFAULT_SCRIPTCHECK_THREADS);
+    int script_threads = args.GetIntArg("-par", DEFAULT_SCRIPTCHECK_THREADS);
     if (script_threads <= 0) {
         // -par=0 means autodetect (number of cores - 1 script threads)
         // -par=-n means "leave n cores free" (number of cores - n - 1 script
@@ -2386,7 +2386,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     assert(!node.banman);
     node.banman = std::make_unique<BanMan>(
         GetDataDir() / "banlist.dat", config.GetChainParams(), &uiInterface,
-        args.GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME));
+        args.GetIntArg("-bantime", DEFAULT_MISBEHAVING_BANTIME));
     assert(!node.connman);
     node.connman = std::make_unique<CConnman>(
         config, GetRand(std::numeric_limits<uint64_t>::max()),
@@ -2396,8 +2396,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     assert(!node.mempool);
     int check_ratio = std::min<int>(
         std::max<int>(
-            args.GetArg("-checkmempool",
-                        chainparams.DefaultConsistencyChecks() ? 1 : 0),
+            args.GetIntArg("-checkmempool",
+                           chainparams.DefaultConsistencyChecks() ? 1 : 0),
             0),
         1000000);
     node.mempool = std::make_unique<CTxMemPool>(check_ratio);
@@ -2587,7 +2587,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     bool fReindexChainState = args.GetBoolArg("-reindex-chainstate", false);
 
     // cache size calculations
-    int64_t nTotalCache = (args.GetArg("-dbcache", DEFAULT_DB_CACHE_MB) << 20);
+    int64_t nTotalCache =
+        (args.GetIntArg("-dbcache", DEFAULT_DB_CACHE_MB) << 20);
     // total cache cannot be less than MIN_DB_CACHE_MB
     nTotalCache = std::max(nTotalCache, MIN_DB_CACHE_MB << 20);
     // total cache cannot be greater than MAX_DB_CACHE_MB
@@ -2617,7 +2618,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // the rest goes to in-memory cache
     int64_t nCoinCacheUsage = nTotalCache;
     int64_t nMempoolSizeMax =
-        args.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
+        args.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
     LogPrintf("Cache configuration:\n");
     LogPrintf("* Using %.1f MiB for block index database\n",
               nBlockTreeDBCache * (1.0 / 1024 / 1024));
@@ -2799,9 +2800,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                     if (!is_coinsview_empty(chainstate)) {
                         uiInterface.InitMessage(
                             _("Verifying blocks...").translated);
-                        if (fHavePruned &&
-                            args.GetArg("-checkblocks", DEFAULT_CHECKBLOCKS) >
-                                MIN_BLOCKS_TO_KEEP) {
+                        if (fHavePruned && args.GetIntArg("-checkblocks",
+                                                          DEFAULT_CHECKBLOCKS) >
+                                               MIN_BLOCKS_TO_KEEP) {
                             LogPrintf(
                                 "Prune: pruned datadir may not have more than "
                                 "%d blocks; only checking available blocks\n",
@@ -2826,9 +2827,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
                         if (!CVerifyDB().VerifyDB(
                                 *chainstate, config, chainstate->CoinsDB(),
-                                args.GetArg("-checklevel", DEFAULT_CHECKLEVEL),
-                                args.GetArg("-checkblocks",
-                                            DEFAULT_CHECKBLOCKS))) {
+                                args.GetIntArg("-checklevel",
+                                               DEFAULT_CHECKLEVEL),
+                                args.GetIntArg("-checkblocks",
+                                               DEFAULT_CHECKBLOCKS))) {
                             strLoadError =
                                 _("Corrupted block database detected");
                             failed_verification = true;
@@ -3043,8 +3045,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     connOptions.nMaxConnections = nMaxConnections;
     connOptions.m_max_avalanche_outbound = std::min<int64_t>(
         g_avalanche && isAvalancheEnabled(args)
-            ? args.GetArg("-maxavalancheoutbound",
-                          DEFAULT_MAX_AVALANCHE_OUTBOUND_CONNECTIONS)
+            ? args.GetIntArg("-maxavalancheoutbound",
+                             DEFAULT_MAX_AVALANCHE_OUTBOUND_CONNECTIONS)
             : 0,
         connOptions.nMaxConnections);
     connOptions.m_max_outbound_full_relay = std::min(
@@ -3063,14 +3065,14 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         connOptions.m_msgproc.push_back(g_avalanche.get());
     }
     connOptions.nSendBufferMaxSize =
-        1000 * args.GetArg("-maxsendbuffer", DEFAULT_MAXSENDBUFFER);
+        1000 * args.GetIntArg("-maxsendbuffer", DEFAULT_MAXSENDBUFFER);
     connOptions.nReceiveFloodSize =
-        1000 * args.GetArg("-maxreceivebuffer", DEFAULT_MAXRECEIVEBUFFER);
+        1000 * args.GetIntArg("-maxreceivebuffer", DEFAULT_MAXRECEIVEBUFFER);
     connOptions.m_added_nodes = args.GetArgs("-addnode");
 
     connOptions.nMaxOutboundLimit =
         1024 * 1024 *
-        args.GetArg("-maxuploadtarget", DEFAULT_MAX_UPLOAD_TARGET);
+        args.GetIntArg("-maxuploadtarget", DEFAULT_MAX_UPLOAD_TARGET);
     connOptions.m_peer_connect_timeout = peer_connect_timeout;
 
     for (const std::string &bind_arg : args.GetArgs("-bind")) {

@@ -181,8 +181,8 @@ bool Proof::verify(const Amount &stakeUtxoDustThreshold,
 
     const int64_t activeHeight = chainman.ActiveHeight();
     const int64_t stakeUtxoMinConfirmations =
-        gArgs.GetArg("-avaproofstakeutxoconfirmations",
-                     AVALANCHE_DEFAULT_STAKE_UTXO_CONFIRMATIONS);
+        gArgs.GetIntArg("-avaproofstakeutxoconfirmations",
+                        AVALANCHE_DEFAULT_STAKE_UTXO_CONFIRMATIONS);
 
     for (const SignedStake &ss : stakes) {
         const Stake &s = ss.getStake();

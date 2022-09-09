@@ -354,11 +354,11 @@ namespace {
         void getPackageLimits(size_t &limit_ancestor_count,
                               size_t &limit_descendant_count) override {
             limit_ancestor_count = size_t(
-                std::max<int64_t>(1, gArgs.GetArg("-limitancestorcount",
-                                                  DEFAULT_ANCESTOR_LIMIT)));
-            limit_descendant_count = size_t(
-                std::max<int64_t>(1, gArgs.GetArg("-limitdescendantcount",
-                                                  DEFAULT_DESCENDANT_LIMIT)));
+                std::max<int64_t>(1, gArgs.GetIntArg("-limitancestorcount",
+                                                     DEFAULT_ANCESTOR_LIMIT)));
+            limit_descendant_count = size_t(std::max<int64_t>(
+                1, gArgs.GetIntArg("-limitdescendantcount",
+                                   DEFAULT_DESCENDANT_LIMIT)));
         }
         bool checkChainLimits(const CTransactionRef &tx) override {
             if (!m_node.mempool) {
@@ -368,16 +368,16 @@ namespace {
             CTxMemPoolEntry entry(tx, Amount(), 0, 0, false, 0, lp);
             CTxMemPool::setEntries ancestors;
             auto limit_ancestor_count =
-                gArgs.GetArg("-limitancestorcount", DEFAULT_ANCESTOR_LIMIT);
+                gArgs.GetIntArg("-limitancestorcount", DEFAULT_ANCESTOR_LIMIT);
             auto limit_ancestor_size =
-                gArgs.GetArg("-limitancestorsize",
-                             DEFAULT_ANCESTOR_SIZE_LIMIT) *
+                gArgs.GetIntArg("-limitancestorsize",
+                                DEFAULT_ANCESTOR_SIZE_LIMIT) *
                 1000;
-            auto limit_descendant_count =
-                gArgs.GetArg("-limitdescendantcount", DEFAULT_DESCENDANT_LIMIT);
+            auto limit_descendant_count = gArgs.GetIntArg(
+                "-limitdescendantcount", DEFAULT_DESCENDANT_LIMIT);
             auto limit_descendant_size =
-                gArgs.GetArg("-limitdescendantsize",
-                             DEFAULT_DESCENDANT_SIZE_LIMIT) *
+                gArgs.GetIntArg("-limitdescendantsize",
+                                DEFAULT_DESCENDANT_SIZE_LIMIT) *
                 1000;
             std::string unused_error_string;
             LOCK(m_node.mempool->cs);

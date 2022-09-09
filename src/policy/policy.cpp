@@ -57,7 +57,7 @@ bool IsStandard(const CScript &scriptPubKey, TxoutType &whichType) {
         }
 
         unsigned nMaxDatacarrierBytes =
-            gArgs.GetArg("-datacarriersize", MAX_OP_RETURN_RELAY);
+            gArgs.GetIntArg("-datacarriersize", MAX_OP_RETURN_RELAY);
         if (scriptPubKey.size() > nMaxDatacarrierBytes) {
             return false;
         }

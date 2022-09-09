@@ -302,7 +302,7 @@ static constexpr double MAX_ADDR_RATE_PER_SECOND{0.1};
 static constexpr size_t MAX_ADDR_PROCESSING_TOKEN_BUCKET{MAX_ADDR_TO_SEND};
 
 inline size_t GetMaxAddrToSend() {
-    return gArgs.GetArg("-maxaddrtosend", MAX_ADDR_TO_SEND);
+    return gArgs.GetIntArg("-maxaddrtosend", MAX_ADDR_TO_SEND);
 }
 
 // Internal stuff
@@ -1906,8 +1906,8 @@ bool PeerManagerImpl::GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
 }
 
 void PeerManagerImpl::AddToCompactExtraTransactions(const CTransactionRef &tx) {
-    size_t max_extra_txn = gArgs.GetArg("-blockreconstructionextratxn",
-                                        DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN);
+    size_t max_extra_txn = gArgs.GetIntArg(
+        "-blockreconstructionextratxn", DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN);
     if (max_extra_txn <= 0) {
         return;
     }
@@ -4407,8 +4407,9 @@ void PeerManagerImpl::ProcessMessage(
                 // DoS prevention: do not allow m_orphanage to grow
                 // unbounded (see CVE-2012-3789)
                 unsigned int nMaxOrphanTx = (unsigned int)std::max(
-                    int64_t(0), gArgs.GetArg("-maxorphantx",
-                                             DEFAULT_MAX_ORPHAN_TRANSACTIONS));
+                    int64_t(0),
+                    gArgs.GetIntArg("-maxorphantx",
+                                    DEFAULT_MAX_ORPHAN_TRANSACTIONS));
                 unsigned int nEvicted = m_orphanage.LimitOrphans(nMaxOrphanTx);
                 if (nEvicted > 0) {
                     LogPrint(BCLog::MEMPOOL,
@@ -4993,7 +4994,7 @@ void PeerManagerImpl::ProcessMessage(
     if (msg_type == NetMsgType::AVAPOLL) {
         auto now = std::chrono::steady_clock::now();
         int64_t cooldown =
-            gArgs.GetArg("-avacooldown", AVALANCHE_DEFAULT_COOLDOWN);
+            gArgs.GetIntArg("-avacooldown", AVALANCHE_DEFAULT_COOLDOWN);
 
         {
             LOCK(cs_main);
@@ -5152,9 +5153,10 @@ void PeerManagerImpl::ProcessMessage(
                     }
                     break;
                 case avalanche::VoteStatus::Finalized:
-                    nextCooldownTimePoint += std::chrono::seconds(gArgs.GetArg(
-                        "-avalanchepeerreplacementcooldown",
-                        AVALANCHE_DEFAULT_PEER_REPLACEMENT_COOLDOWN));
+                    nextCooldownTimePoint +=
+                        std::chrono::seconds(gArgs.GetIntArg(
+                            "-avalanchepeerreplacementcooldown",
+                            AVALANCHE_DEFAULT_PEER_REPLACEMENT_COOLDOWN));
                 case avalanche::VoteStatus::Accepted:
                     if (!g_avalanche->withPeerManager(
                             [&](avalanche::PeerManager &pm) {
@@ -7024,9 +7026,9 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
             !pto->HasPermission(PF_FORCERELAY)) {
             Amount currentFilter =
                 m_mempool
-                    .GetMinFee(
-                        gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
-                        1000000)
+                    .GetMinFee(gArgs.GetIntArg("-maxmempool",
+                                               DEFAULT_MAX_MEMPOOL_SIZE) *
+                               1000000)
                     .GetFeePerK();
             static FeeFilterRounder g_filter_rounder{
                 CFeeRate{DEFAULT_MIN_RELAY_TX_FEE_PER_KB}};
