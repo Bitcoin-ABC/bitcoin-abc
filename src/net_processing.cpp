@@ -5024,9 +5024,6 @@ void PeerManagerImpl::ProcessMessage(
         std::vector<avalanche::Vote> votes;
         votes.reserve(nCount);
 
-        LogPrint(BCLog::AVALANCHE, "received avalanche poll from peer=%d\n",
-                 pfrom.GetId());
-
         for (unsigned int n = 0; n < nCount; n++) {
             CInv inv;
             vRecv >> inv;
