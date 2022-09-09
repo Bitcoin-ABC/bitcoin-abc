@@ -352,8 +352,6 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          ProofId::fromHex("c95e3c6417a799dd3085af689ea12fb3d2e1130870fef9f0bdc6"
                           "d10a27df746a"),
          0, ProofValidationResult::DUST_THRESHOLD},
-
-        // Exclusive tests (not duplicated from legacy)
         {"Properly signed 1 UTXO proof, P2PK payout script",
          "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
          "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
