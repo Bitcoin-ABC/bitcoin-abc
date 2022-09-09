@@ -69,6 +69,7 @@ final class BoostDependenciesLinter extends AbstractGlobalExternalLinter {
       foreach ($removals as $removal) {
         list($advice, $header) = $removal;
         $messages[] = id(new ArcanistLintMessage())
+        ->setPath($path)
         ->setGranularity(ArcanistLinter::GRANULARITY_GLOBAL)
         ->setCode('BOOST_DEPENDENCY')
         ->setSeverity(ArcanistLintSeverity::SEVERITY_ADVICE)
