@@ -415,8 +415,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
             AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_4_id)])
 
         # The next proof should be rejected and marked as a conflicting proof
-        assert_raises_rpc_error(-8,
-                                "The proof has conflicting utxo with an existing proof",
+        assert_raises_rpc_error(-8, "conflicting-utxos",
                                 node.sendavalancheproof, proof_3)
         poll_assert_response([
             AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_0_id),

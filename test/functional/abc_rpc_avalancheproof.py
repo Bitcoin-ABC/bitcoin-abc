@@ -431,7 +431,7 @@ class AvalancheProofTest(BitcoinTestFramework):
 
         conflicting_utxo = node.buildavalancheproof(
             proof_sequence - 1, proof_expiration, wif_privkey, stakes)
-        assert_raises_rpc_error(-8, "The proof has conflicting utxo with an existing proof",
+        assert_raises_rpc_error(-8, "conflicting-utxos",
                                     node.sendavalancheproof, conflicting_utxo)
 
         # Clear the proof pool

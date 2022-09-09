@@ -16,7 +16,11 @@ from test_framework.avatools import (
 )
 from test_framework.key import ECKey
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, uint256_hex
+from test_framework.util import (
+    assert_equal,
+    assert_raises_rpc_error,
+    uint256_hex,
+)
 from test_framework.wallet_util import bytes_to_wif
 
 # Interval between 2 proof cleanups
@@ -117,6 +121,8 @@ class ProofsCleanupTest(BitcoinTestFramework):
         for proof in proofs[1:]:
             with node.assert_debug_log(["dangling-proof"]):
                 sender.send_avaproof(proof)
+            assert_raises_rpc_error(-8, "dangling-proof",
+                                    node.sendavalancheproof, proof.serialize().hex())
 
         assert_equal(get_proof_ids(node), [local_proof.proofid])
 

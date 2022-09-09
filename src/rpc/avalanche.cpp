@@ -54,7 +54,8 @@ static CPubKey ParsePubKey(const UniValue &param) {
     return HexToPubKey(keyHex);
 }
 
-static bool registerProofIfNeeded(avalanche::ProofRef proof) {
+static bool registerProofIfNeeded(avalanche::ProofRef proof,
+                                  avalanche::ProofRegistrationState &state) {
     auto localProof = g_avalanche->getLocalProof();
     if (localProof && localProof->getId() == proof->getId()) {
         return true;
@@ -62,8 +63,13 @@ static bool registerProofIfNeeded(avalanche::ProofRef proof) {
 
     return g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
         return pm.getProof(proof->getId()) ||
-               pm.registerProof(std::move(proof));
+               pm.registerProof(std::move(proof), state);
     });
+}
+
+static bool registerProofIfNeeded(avalanche::ProofRef proof) {
+    avalanche::ProofRegistrationState state;
+    return registerProofIfNeeded(std::move(proof), state);
 }
 
 static void verifyDelegationOrThrow(avalanche::Delegation &dg,
@@ -1009,10 +1015,12 @@ static RPCHelpMan sendavalancheproof() {
             // proof verification has already been done, a failure likely
             // indicates that there already is a proof with conflicting utxos.
             const avalanche::ProofId &proofid = proof->getId();
-            if (!registerProofIfNeeded(proof)) {
-                throw JSONRPCError(
-                    RPC_INVALID_PARAMETER,
-                    "The proof has conflicting utxo with an existing proof");
+            avalanche::ProofRegistrationState state;
+            if (!registerProofIfNeeded(proof, state)) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                   strprintf("%s (%s)\n",
+                                             state.GetRejectReason(),
+                                             state.GetDebugMessage()));
             }
 
             g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
