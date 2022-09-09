@@ -1,7 +1,7 @@
-# Bitcoin ABC 0.25.13 Release Notes
+# Bitcoin ABC 0.26.0 Release Notes
 
-Bitcoin ABC version 0.25.13 is now available from:
+Bitcoin ABC version 0.26.0 is now available from:
 
-  <https://download.bitcoinabc.org/0.25.13/>
+  <https://download.bitcoinabc.org/0.26.0/>
 
-This is a maintenance release with no user-visible change.
+This release includes the following features and fixes:
