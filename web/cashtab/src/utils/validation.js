@@ -200,6 +200,74 @@ export const isValidContactList = contactList => {
     return true;
 };
 
+export const isValidCashtabCache = cashtabCache => {
+    /* 
+        Object must contain all keys listed in currency.defaultCashtabCache
+        The tokenInfoById object must have keys that are valid token IDs, 
+        and at each one an object like:
+        {
+            "tokenTicker": "ST",
+            "tokenName": "ST",
+            "tokenDocumentUrl": "developer.bitcoin.com",
+            "tokenDocumentHash": "",
+            "decimals": 0,
+            "tokenId": "bf24d955f59351e738ecd905966606a6837e478e1982943d724eab10caad82fd"
+        }
+
+        i.e. an object that contains these keys
+        'tokenTicker' is a string
+        'tokenName' is a string
+        'tokenDocumentUrl' is a string
+        'tokenDocumentHash' is a string
+        'decimals' is a number
+        'tokenId' is a valid tokenId
+        */
+
+    // Check that every key in currency.defaultCashtabCache is also in this cashtabCache
+    const cashtabCacheKeys = Object.keys(currency.defaultCashtabCache);
+    for (let i = 0; i < cashtabCacheKeys.length; i += 1) {
+        const thisKey = cashtabCacheKeys[i];
+        if (thisKey in cashtabCache) {
+            continue;
+        }
+        return false;
+    }
+
+    // Check that tokenInfoById is expected type and that tokenIds are valid
+
+    const { tokenInfoById } = cashtabCache;
+
+    const tokenIds = Object.keys(tokenInfoById);
+
+    for (let i = 0; i < tokenIds.length; i += 1) {
+        const thisTokenId = tokenIds[i];
+        if (!isValidTokenId(thisTokenId)) {
+            return false;
+        }
+        const {
+            tokenTicker,
+            tokenName,
+            tokenDocumentUrl,
+            tokenDocumentHash,
+            decimals,
+            tokenId,
+        } = tokenInfoById[thisTokenId];
+
+        if (
+            typeof tokenTicker !== 'string' ||
+            typeof tokenName !== 'string' ||
+            typeof tokenDocumentUrl !== 'string' ||
+            typeof tokenDocumentHash !== 'string' ||
+            typeof decimals !== 'number' ||
+            !isValidTokenId(tokenId)
+        ) {
+            return false;
+        }
+    }
+
+    return true;
+};
+
 export const isValidXecAddress = addr => {
     /* 
     Returns true for a valid XEC address

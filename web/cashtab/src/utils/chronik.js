@@ -209,6 +209,10 @@ export const finalizeTokensArray = async (
     preliminaryTokensArray,
     cachedTokenInfoById = {},
 ) => {
+    console.log(
+        `finalizeTokensArray called with cachedTokenInfoById`,
+        cachedTokenInfoById,
+    );
     // Iterate over preliminaryTokensArray to determine what tokens you need to make API calls for
 
     // Create an array of promises
@@ -235,6 +239,8 @@ export const finalizeTokensArray = async (
     );
     console.log(`getTokenInfoPromises.length`, getTokenInfoPromises.length);
 
+    const newTokensToCache = getTokenInfoPromises.length > 0;
+
     // Get all the token info you need
     let tokenInfoArray = [];
     try {
@@ -245,6 +251,8 @@ export const finalizeTokensArray = async (
 
     // Add the token info you received from those API calls to
     // your token info cache object, cachedTokenInfoByTokenId
+
+    const updatedTokenInfoById = cachedTokenInfoById;
     for (let i = 0; i < tokenInfoArray.length; i += 1) {
         /* tokenInfoArray is an array of objects that look like
         {
@@ -259,16 +267,16 @@ export const finalizeTokensArray = async (
 
         const thisTokenInfo = tokenInfoArray[i];
         const thisTokenId = thisTokenInfo.tokenId;
-        // Add this entry to updatedCachedTokenInfo
-        cachedTokenInfoById[thisTokenId] = thisTokenInfo;
+        // Add this entry to updatedTokenInfoById
+        updatedTokenInfoById[thisTokenId] = thisTokenInfo;
     }
 
     // Now use cachedTokenInfoByTokenId object to finalize token info
     // Split this out into a separate function so you can unit test
     const finalTokenArray = processPreliminaryTokensArray(
         preliminaryTokensArray,
-        cachedTokenInfoById,
+        updatedTokenInfoById,
     );
 
-    return { finalTokenArray, cachedTokenInfoById };
+    return { finalTokenArray, updatedTokenInfoById, newTokensToCache };
 };

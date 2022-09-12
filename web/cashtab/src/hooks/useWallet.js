@@ -20,6 +20,7 @@ import {
 } from 'utils/cashMethods';
 import {
     isValidCashtabSettings,
+    isValidCashtabCache,
     isValidContactList,
     parseInvalidSettingsForMigration,
 } from 'utils/validation';
@@ -50,6 +51,9 @@ const useWallet = () => {
     const [chronikWebsocket, setChronikWebsocket] = useState(null);
     const [contactList, setContactList] = useState([{}]);
     const [cashtabSettings, setCashtabSettings] = useState(false);
+    const [cashtabCache, setCashtabCache] = useState(
+        currency.defaultCashtabCache,
+    );
     const [fiatPrice, setFiatPrice] = useState(null);
     const [apiError, setApiError] = useState(false);
     const [checkFiatInterval, setCheckFiatInterval] = useState(null);
@@ -262,11 +266,27 @@ const useWallet = () => {
             const preliminaryTokensArray = getPreliminaryTokensArray(slpUtxos);
             console.log(`preliminaryTokensArray`, preliminaryTokensArray);
 
-            const { finalTokenArray, cachedTokenInfoByTokenId } =
-                await finalizeTokensArray(chronik, preliminaryTokensArray);
+            const { finalTokenArray, updatedTokenInfoById, newTokensToCache } =
+                await finalizeTokensArray(
+                    chronik,
+                    preliminaryTokensArray,
+                    cashtabCache.tokenInfoById,
+                );
 
             console.log(`finalTokenArray`, finalTokenArray);
-            console.log(`cachedTokenInfoByTokenId`, cachedTokenInfoByTokenId);
+            console.log(`updatedTokenInfoById`, updatedTokenInfoById);
+            console.log(`newTokensToCache`, newTokensToCache);
+            // If you have more token info now, write this to local storage
+
+            if (newTokensToCache) {
+                console.log(`New token info found, adding to cache`);
+                writeTokenInfoByIdToCache(updatedTokenInfoById);
+                // Update the tokenInfoById key in cashtabCache
+                setCashtabCache({
+                    ...cashtabCache,
+                    tokenInfoById: updatedTokenInfoById,
+                });
+            }
 
             // If an error is returned or utxos from only 1 address are returned
             if (
@@ -565,6 +585,18 @@ const useWallet = () => {
         }
 
         return wallet;
+    };
+
+    const writeTokenInfoByIdToCache = async tokenInfoById => {
+        console.log(`writeTokenInfoByIdToCache`);
+        const cashtabCache = currency.defaultCashtabCache;
+        cashtabCache.tokenInfoById = tokenInfoById;
+        try {
+            await localforage.setItem('cashtabCache', cashtabCache);
+            console.log(`cashtabCache successfully updated`);
+        } catch (err) {
+            console.log(`Error in writeCashtabCache()`, err);
+        }
     };
 
     const writeWalletState = async (wallet, newState) => {
@@ -1266,6 +1298,37 @@ const useWallet = () => {
         return [{}];
     };
 
+    const loadCashtabCache = async () => {
+        console.log(`loadCashtabCache`);
+        // get cache object from localforage
+        let localCashtabCache;
+        try {
+            localCashtabCache = await localforage.getItem('cashtabCache');
+            // If there is no keyvalue pair in localforage with key 'cashtabCache'
+            if (localCashtabCache === null) {
+                // Use the default
+                localforage.setItem(
+                    'cashtabCache',
+                    currency.defaultCashtabCache,
+                );
+                setCashtabCache(currency.defaultCashtabCache);
+                return currency.defaultCashtabCache;
+            }
+        } catch (err) {
+            console.log(`Error getting cashtabCache`, err);
+            setCashtabCache(currency.defaultCashtabCache);
+            return currency.defaultCashtabCache;
+        }
+        // If you found an object in localforage at the cashtabCache key, make sure it's valid
+        if (isValidCashtabCache(localCashtabCache)) {
+            setCashtabCache(localCashtabCache);
+            return localCashtabCache;
+        }
+        // if not valid, also set to default
+        setCashtabCache(currency.defaultCashtabCache);
+        return currency.defaultCashtabCache;
+    };
+
     // With different currency selections possible, need unique intervals for price checks
     // Must be able to end them and set new ones with new currencies
     const initializeFiatPriceApi = async selectedFiatCurrency => {
@@ -1509,6 +1572,7 @@ const useWallet = () => {
     useEffect(async () => {
         handleUpdateWallet(setWallet);
         await loadContactList();
+        await loadCashtabCache();
         const initialSettings = await loadCashtabSettings();
         initializeFiatPriceApi(initialSettings.fiatCurrency);
     }, []);

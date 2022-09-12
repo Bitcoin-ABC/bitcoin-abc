@@ -22,6 +22,7 @@ import {
     isValidAirdropExclusionArray,
     isValidContactList,
     parseInvalidSettingsForMigration,
+    isValidCashtabCache,
 } from '../validation';
 import { currency } from 'components/Common/Ticker.js';
 import { fromSatoshisToXec } from 'utils/cashMethods';
@@ -48,6 +49,13 @@ import {
     validXecAirdropExclusionList,
     invalidXecAirdropExclusionList,
 } from '../__mocks__/mockXecAirdropExclusionList';
+import {
+    validCashtabCache,
+    cashtabCacheWithOneBadTokenId,
+    cashtabCacheWithDecimalNotNumber,
+    cashtabCacheWithTokenNameNotString,
+    cashtabCacheWithMissingTokenName,
+} from 'utils/__mocks__/mockCashtabCache';
 
 describe('Validation utils', () => {
     it(`Returns 'false' if ${currency.ticker} send amount is a valid send amount`, () => {
@@ -261,6 +269,30 @@ describe('Validation utils', () => {
     });
     it(`Recognizes a token stats object with missing required keys as invalid`, () => {
         expect(isValidTokenStats(noCovidStatsInvalid)).toBe(false);
+    });
+    it(`Recognizes the default cashtabCache object as valid`, () => {
+        expect(isValidCashtabCache(currency.defaultCashtabCache)).toBe(true);
+    });
+    it(`Recognizes a valid cashtabCache object`, () => {
+        expect(isValidCashtabCache(validCashtabCache)).toBe(true);
+    });
+    it(`Rejects a cashtabCache object if one token id is invalid`, () => {
+        expect(isValidCashtabCache(cashtabCacheWithOneBadTokenId)).toBe(false);
+    });
+    it(`Rejects a cashtabCache object if decimals is not a number`, () => {
+        expect(isValidCashtabCache(cashtabCacheWithDecimalNotNumber)).toBe(
+            false,
+        );
+    });
+    it(`Rejects a cashtabCache object if tokenName is not a string`, () => {
+        expect(isValidCashtabCache(cashtabCacheWithTokenNameNotString)).toBe(
+            false,
+        );
+    });
+    it(`Rejects a cashtabCache object if tokenName is missing`, () => {
+        expect(isValidCashtabCache(cashtabCacheWithMissingTokenName)).toBe(
+            false,
+        );
     });
     it(`Recognizes a valid cashtab settings object`, () => {
         expect(
