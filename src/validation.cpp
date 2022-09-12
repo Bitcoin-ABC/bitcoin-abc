@@ -828,7 +828,7 @@ Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams) {
 
 CoinsViews::CoinsViews(std::string ldb_name, size_t cache_size_bytes,
                        bool in_memory, bool should_wipe)
-    : m_dbview(GetDataDir() / ldb_name, cache_size_bytes, in_memory,
+    : m_dbview(gArgs.GetDataDirNet() / ldb_name, cache_size_bytes, in_memory,
                should_wipe),
       m_catcherview(&m_dbview) {}
 
@@ -2201,7 +2201,7 @@ bool CChainState::FlushStateToDisk(const CChainParams &chainparams,
                 // already an overestimation, as most will delete an existing
                 // entry or overwrite one. Still, use a conservative safety
                 // factor of 2.
-                if (!CheckDiskSpace(GetDataDir(),
+                if (!CheckDiskSpace(gArgs.GetDataDirNet(),
                                     48 * 2 * 2 * CoinsTip().GetCacheSize())) {
                     return AbortNode(state, "Disk space is too low!",
                                      _("Disk space is too low!"));
@@ -5720,7 +5720,8 @@ bool LoadMempool(const Config &config, CTxMemPool &pool,
                  CChainState &active_chainstate) {
     int64_t nExpiryTimeout =
         gArgs.GetIntArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60;
-    FILE *filestr = fsbridge::fopen(GetDataDir() / "mempool.dat", "rb");
+    FILE *filestr =
+        fsbridge::fopen(gArgs.GetDataDirNet() / "mempool.dat", "rb");
     CAutoFile file(filestr, SER_DISK, CLIENT_VERSION);
     if (file.IsNull()) {
         LogPrintf(
@@ -5837,7 +5838,8 @@ bool DumpMempool(const CTxMemPool &pool) {
     int64_t mid = GetTimeMicros();
 
     try {
-        FILE *filestr = fsbridge::fopen(GetDataDir() / "mempool.dat.new", "wb");
+        FILE *filestr =
+            fsbridge::fopen(gArgs.GetDataDirNet() / "mempool.dat.new", "wb");
         if (!filestr) {
             return false;
         }
@@ -5865,8 +5867,8 @@ bool DumpMempool(const CTxMemPool &pool) {
             throw std::runtime_error("FileCommit failed");
         }
         file.fclose();
-        if (!RenameOver(GetDataDir() / "mempool.dat.new",
-                        GetDataDir() / "mempool.dat")) {
+        if (!RenameOver(gArgs.GetDataDirNet() / "mempool.dat.new",
+                        gArgs.GetDataDirNet() / "mempool.dat")) {
             throw std::runtime_error("Rename failed");
         }
         int64_t last = GetTimeMicros();

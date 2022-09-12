@@ -284,7 +284,8 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
                               GetScriptForRawPubKey(coinbaseKey.GetPubKey()))
             .vtx[0]);
 
-    std::string backup_file = fs::PathToString(GetDataDir() / "wallet.backup");
+    std::string backup_file =
+        fs::PathToString(gArgs.GetDataDirNet() / "wallet.backup");
 
     // Import key into wallet and call dumpwallet to create backup file.
     {

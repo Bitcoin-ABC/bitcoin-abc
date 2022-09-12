@@ -45,8 +45,8 @@ public:
      * cancelled the selection
      * dialog.
      *
-     * @note do NOT call global GetDataDir() before calling this function, this
-     * will cause the wrong path to be cached.
+     * @note do NOT call global gArgs.GetDataDirNet() before calling this
+     * function, this will cause the wrong path to be cached.
      */
     static bool showIfNeeded(bool &did_show_intro, bool &prune);
 

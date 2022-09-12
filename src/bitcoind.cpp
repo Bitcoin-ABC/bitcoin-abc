@@ -106,11 +106,10 @@ static bool AppInit(int argc, char *argv[]) {
         // is new, this has a side effect of also creating
         // <datadir>/<net>/wallets/.
         //
-        // TODO: this should be removed once GetDataDir() no longer creates the
-        // wallets/ subdirectory.
-        // See more info at:
+        // TODO: this should be removed once gArgs.GetDataDirNet() no longer
+        // creates the wallets/ subdirectory. See more info at:
         // https://reviews.bitcoinabc.org/D3312
-        GetDataDir(true);
+        gArgs.GetDataDirNet();
 
         // Error out when loose non-argument tokens are encountered on command
         // line

@@ -93,7 +93,7 @@ static CBlock makeLargeDummyBlock(const size_t num_tx) {
  * 10 * MAX_TX_SIZE.
  */
 BOOST_AUTO_TEST_CASE(validation_load_external_block_file) {
-    fs::path tmpfile_name = GetDataDir() / "block.dat";
+    fs::path tmpfile_name = gArgs.GetDataDirNet() / "block.dat";
 
     FILE *fp = fopen(fs::PathToString(tmpfile_name).c_str(), "wb+");
 

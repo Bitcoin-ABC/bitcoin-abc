@@ -2166,7 +2166,7 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
 
 static bool LockDataDirectory(bool probeOnly) {
     // Make sure only a single Bitcoin process is using the data directory.
-    fs::path datadir = GetDataDir();
+    fs::path datadir = gArgs.GetDataDirNet();
     if (!DirIsWritable(datadir)) {
         return InitError(strprintf(
             _("Cannot write to data directory '%s'; check permissions."),
@@ -2260,7 +2260,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
     LogPrintf("Default data directory %s\n",
               fs::PathToString(GetDefaultDataDir()));
-    LogPrintf("Using data directory %s\n", fs::PathToString(GetDataDir()));
+    LogPrintf("Using data directory %s\n",
+              fs::PathToString(gArgs.GetDataDirNet()));
 
     // Only log conf file usage message if conf file actually exists.
     fs::path config_file_path =
@@ -2385,8 +2386,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     assert(!node.banman);
     node.banman = std::make_unique<BanMan>(
-        GetDataDir() / "banlist.dat", config.GetChainParams(), &uiInterface,
-        args.GetIntArg("-bantime", DEFAULT_MISBEHAVING_BANTIME));
+        gArgs.GetDataDirNet() / "banlist.dat", config.GetChainParams(),
+        &uiInterface, args.GetIntArg("-bantime", DEFAULT_MISBEHAVING_BANTIME));
     assert(!node.connman);
     node.connman = std::make_unique<CConnman>(
         config, GetRand(std::numeric_limits<uint64_t>::max()),
@@ -2537,7 +2538,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             asmap_path = fs::PathFromString(DEFAULT_ASMAP_FILENAME);
         }
         if (!asmap_path.is_absolute()) {
-            asmap_path = GetDataDir() / asmap_path;
+            asmap_path = gArgs.GetDataDirNet() / asmap_path;
         }
         if (!fs::exists(asmap_path)) {
             InitError(strprintf(_("Could not find asmap file %s"),
@@ -2935,9 +2936,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
 
     // Step 11: import blocks
-    if (!CheckDiskSpace(GetDataDir())) {
-        InitError(strprintf(_("Error: Disk space is low for %s"),
-                            fs::quoted(fs::PathToString(GetDataDir()))));
+    if (!CheckDiskSpace(gArgs.GetDataDirNet())) {
+        InitError(
+            strprintf(_("Error: Disk space is low for %s"),
+                      fs::quoted(fs::PathToString(gArgs.GetDataDirNet()))));
         return false;
     }
     if (!CheckDiskSpace(gArgs.GetBlocksDirPath())) {

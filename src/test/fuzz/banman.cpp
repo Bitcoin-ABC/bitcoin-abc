@@ -35,7 +35,7 @@ void initialize() {
 
 void test_one_input(const std::vector<uint8_t> &buffer) {
     FuzzedDataProvider fuzzed_data_provider{buffer.data(), buffer.size()};
-    const fs::path banlist_file = GetDataDir() / "fuzzed_banlist.dat";
+    const fs::path banlist_file = gArgs.GetDataDirNet() / "fuzzed_banlist.dat";
     fs::remove(banlist_file);
     const CChainParams &chainparams = GetConfig().GetChainParams();
     {

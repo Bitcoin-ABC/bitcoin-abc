@@ -3180,12 +3180,12 @@ static RPCHelpMan dumptxoutset() {
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             fs::path path = fs::absolute(
-                fs::u8path(request.params[0].get_str()), GetDataDir());
+                fs::u8path(request.params[0].get_str()), gArgs.GetDataDirNet());
             // Write to a temporary path and then move into `path` on completion
             // to avoid confusion due to an interruption.
             fs::path temppath = fs::absolute(
                 fs::u8path(request.params[0].get_str() + ".incomplete"),
-                GetDataDir());
+                gArgs.GetDataDirNet());
 
             if (fs::exists(path)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER,

@@ -79,7 +79,7 @@ void AppTests::appTests() {
     // Create a temp data directory to backup the gui settings to
     fs::create_directories([] {
         BasicTestingSetup test{CBaseChainParams::REGTEST};
-        return GetDataDir() / "blocks";
+        return gArgs.GetDataDirNet() / "blocks";
     }());
 
     qRegisterMetaType<interfaces::BlockAndHeaderTipInfo>(

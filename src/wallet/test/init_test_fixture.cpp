@@ -17,7 +17,7 @@ InitWalletDirTestingSetup::InitWalletDirTestingSetup(
     std::string sep;
     sep += fs::path::preferred_separator;
 
-    m_datadir = GetDataDir();
+    m_datadir = gArgs.GetDataDirNet();
     m_cwd = fs::current_path();
 
     m_walletdir_path_cases["default"] = m_datadir / "wallets";

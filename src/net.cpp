@@ -3061,7 +3061,8 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
     proxyType i2p_sam;
     if (GetProxy(NET_I2P, i2p_sam)) {
         m_i2p_sam_session = std::make_unique<i2p::sam::Session>(
-            GetDataDir() / "i2p_private_key", i2p_sam.proxy, &interruptNet);
+            gArgs.GetDataDirNet() / "i2p_private_key", i2p_sam.proxy,
+            &interruptNet);
     }
 
     for (const auto &strDest : connOptions.vSeedNodes) {
@@ -3088,8 +3089,9 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
 
     if (m_use_addrman_outgoing) {
         // Load addresses from anchors.dat
-        m_anchors = ReadAnchors(config->GetChainParams(),
-                                GetDataDir() / ANCHORS_DATABASE_FILENAME);
+        m_anchors =
+            ReadAnchors(config->GetChainParams(),
+                        gArgs.GetDataDirNet() / ANCHORS_DATABASE_FILENAME);
         if (m_anchors.size() > MAX_BLOCK_RELAY_ONLY_ANCHORS) {
             m_anchors.resize(MAX_BLOCK_RELAY_ONLY_ANCHORS);
         }
@@ -3259,7 +3261,7 @@ void CConnman::StopNodes() {
                 anchors_to_dump.resize(MAX_BLOCK_RELAY_ONLY_ANCHORS);
             }
             DumpAnchors(config->GetChainParams(),
-                        GetDataDir() / ANCHORS_DATABASE_FILENAME,
+                        gArgs.GetDataDirNet() / ANCHORS_DATABASE_FILENAME,
                         anchors_to_dump);
         }
     }
