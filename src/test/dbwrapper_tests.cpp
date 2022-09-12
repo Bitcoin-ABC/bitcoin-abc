@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_CASE(dbwrapper) {
     // Perform tests both obfuscated and non-obfuscated.
     for (const bool obfuscate : {false, true}) {
         fs::path ph =
-            m_args.GetDataDirPath() / (obfuscate ? "dbwrapper_obfuscate_true"
+            m_args.GetDataDirBase() / (obfuscate ? "dbwrapper_obfuscate_true"
                                                  : "dbwrapper_obfuscate_false");
         CDBWrapper dbw(ph, (1 << 20), true, false, obfuscate);
         char key = 'k';
@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(dbwrapper) {
 BOOST_AUTO_TEST_CASE(dbwrapper_basic_data) {
     // Perform tests both obfuscated and non-obfuscated.
     for (bool obfuscate : {false, true}) {
-        fs::path ph = m_args.GetDataDirPath() /
+        fs::path ph = m_args.GetDataDirBase() /
                       (obfuscate ? "dbwrapper_1_obfuscate_true"
                                  : "dbwrapper_1_obfuscate_false");
         CDBWrapper dbw(ph, (1 << 20), false, true, obfuscate);
@@ -133,7 +133,7 @@ BOOST_AUTO_TEST_CASE(dbwrapper_basic_data) {
 BOOST_AUTO_TEST_CASE(dbwrapper_batch) {
     // Perform tests both obfuscated and non-obfuscated.
     for (const bool obfuscate : {false, true}) {
-        fs::path ph = m_args.GetDataDirPath() /
+        fs::path ph = m_args.GetDataDirBase() /
                       (obfuscate ? "dbwrapper_batch_obfuscate_true"
                                  : "dbwrapper_batch_obfuscate_false");
         CDBWrapper dbw(ph, (1 << 20), true, false, obfuscate);
@@ -170,7 +170,7 @@ BOOST_AUTO_TEST_CASE(dbwrapper_batch) {
 BOOST_AUTO_TEST_CASE(dbwrapper_iterator) {
     // Perform tests both obfuscated and non-obfuscated.
     for (const bool obfuscate : {false, true}) {
-        fs::path ph = m_args.GetDataDirPath() /
+        fs::path ph = m_args.GetDataDirBase() /
                       (obfuscate ? "dbwrapper_iterator_obfuscate_true"
                                  : "dbwrapper_iterator_obfuscate_false");
         CDBWrapper dbw(ph, (1 << 20), true, false, obfuscate);
@@ -212,7 +212,7 @@ BOOST_AUTO_TEST_CASE(dbwrapper_iterator) {
 // Test that we do not obfuscation if there is existing data.
 BOOST_AUTO_TEST_CASE(existing_data_no_obfuscate) {
     // We're going to share this fs::path between two wrappers
-    fs::path ph = m_args.GetDataDirPath() / "existing_data_no_obfuscate";
+    fs::path ph = m_args.GetDataDirBase() / "existing_data_no_obfuscate";
     create_directories(ph);
 
     // Set up a non-obfuscated wrapper to write some initial data.
@@ -255,7 +255,7 @@ BOOST_AUTO_TEST_CASE(existing_data_no_obfuscate) {
 // Ensure that we start obfuscating during a reindex.
 BOOST_AUTO_TEST_CASE(existing_data_reindex) {
     // We're going to share this fs::path between two wrappers
-    fs::path ph = m_args.GetDataDirPath() / "existing_data_reindex";
+    fs::path ph = m_args.GetDataDirBase() / "existing_data_reindex";
     create_directories(ph);
 
     // Set up a non-obfuscated wrapper to write some initial data.
@@ -290,7 +290,7 @@ BOOST_AUTO_TEST_CASE(existing_data_reindex) {
 }
 
 BOOST_AUTO_TEST_CASE(iterator_ordering) {
-    fs::path ph = m_args.GetDataDirPath() / "iterator_ordering";
+    fs::path ph = m_args.GetDataDirBase() / "iterator_ordering";
     CDBWrapper dbw(ph, (1 << 20), true, false, false);
     for (int x = 0x00; x < 256; ++x) {
         uint8_t key = x;
@@ -375,7 +375,7 @@ struct StringContentsSerializer {
 BOOST_AUTO_TEST_CASE(iterator_string_ordering) {
     char buf[10];
 
-    fs::path ph = m_args.GetDataDirPath() / "iterator_string_ordering";
+    fs::path ph = m_args.GetDataDirBase() / "iterator_string_ordering";
     CDBWrapper dbw(ph, (1 << 20), true, false, false);
     for (int x = 0x00; x < 10; ++x) {
         for (int y = 0; y < 10; y++) {
@@ -427,7 +427,7 @@ BOOST_AUTO_TEST_CASE(unicodepath) {
     // the ANSI CreateDirectoryA call and the code page isn't UTF8.
     // It will succeed if created with CreateDirectoryW.
     fs::path ph =
-        m_args.GetDataDirPath() / "test_runner_₿_🏃_20191128_104644";
+        m_args.GetDataDirBase() / "test_runner_₿_🏃_20191128_104644";
     CDBWrapper dbw(ph, (1 << 20));
 
     fs::path lockPath = ph / "LOCK";

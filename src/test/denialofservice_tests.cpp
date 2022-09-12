@@ -237,7 +237,7 @@ BOOST_AUTO_TEST_CASE(peer_discouragement) {
     const Config &config = GetConfig();
 
     auto banman = std::make_unique<BanMan>(
-        m_args.GetDataDirPath() / "banlist.dat", config.GetChainParams(),
+        m_args.GetDataDirBase() / "banlist.dat", config.GetChainParams(),
         nullptr, DEFAULT_MISBEHAVING_BANTIME);
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
     auto peerLogic = PeerManager::make(
@@ -301,7 +301,7 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
     const Config &config = GetConfig();
 
     auto banman = std::make_unique<BanMan>(
-        m_args.GetDataDirPath() / "banlist.dat", config.GetChainParams(),
+        m_args.GetDataDirBase() / "banlist.dat", config.GetChainParams(),
         nullptr, DEFAULT_MISBEHAVING_BANTIME);
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
     auto peerLogic = PeerManager::make(
