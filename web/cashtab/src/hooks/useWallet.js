@@ -7,11 +7,6 @@ import {
     loadStoredWallet,
     isValidStoredWallet,
     isLegacyMigrationRequired,
-    whichUtxosWereAdded,
-    whichUtxosWereConsumed,
-    addNewHydratedUtxos,
-    removeConsumedUtxos,
-    areAllUtxosIncludedInIncrementallyHydratedUtxos,
     getHashArrayFromWallet,
     parseChronikTx,
     checkWalletForTokenInfo,
@@ -26,8 +21,6 @@ import {
 } from 'utils/validation';
 import localforage from 'localforage';
 import { currency } from 'components/Common/Ticker';
-import isEmpty from 'lodash.isempty';
-import isEqual from 'lodash.isequal';
 import {
     xecReceivedNotification,
     xecReceivedNotificationWebsocket,
@@ -58,19 +51,11 @@ const useWallet = () => {
     const [apiError, setApiError] = useState(false);
     const [checkFiatInterval, setCheckFiatInterval] = useState(null);
     const [hasUpdated, setHasUpdated] = useState(false);
-    const {
-        getBCH,
-        getUtxos,
-        getHydratedUtxoDetails,
-        getSlpBalancesAndUtxos,
-        getTxHistory,
-        getTxData,
-        addTokenTxData,
-    } = useBCH();
+    const { getBCH, getTxHistory, getTxData, addTokenTxData } = useBCH();
     const [loading, setLoading] = useState(true);
     const [apiIndex, setApiIndex] = useState(0);
     const [BCH, setBCH] = useState(getBCH(apiIndex));
-    const { balances, tokens, utxos } = isValidStoredWallet(wallet)
+    const { balances, tokens } = isValidStoredWallet(wallet)
         ? wallet.state
         : {
               balances: {},
@@ -79,7 +64,6 @@ const useWallet = () => {
           };
     const previousBalances = usePrevious(balances);
     const previousTokens = usePrevious(tokens);
-    const previousUtxos = usePrevious(utxos);
 
     // If you catch API errors, call this function
     const tryNextAPI = () => {
@@ -149,58 +133,6 @@ const useWallet = () => {
         setWallet(wallet);
     };
 
-    const haveUtxosChanged = (wallet, utxos, previousUtxos) => {
-        // Relevant points for this array comparing exercise
-        // https://stackoverflow.com/questions/13757109/triple-equal-signs-return-false-for-arrays-in-javascript-why
-        // https://stackoverflow.com/questions/7837456/how-to-compare-arrays-in-javascript
-
-        // If this is initial state
-        if (utxos === null) {
-            // Then make sure to get slpBalancesAndUtxos
-            return true;
-        }
-        // If this is the first time the wallet received utxos
-        if (typeof utxos === 'undefined') {
-            // Then they have certainly changed
-            return true;
-        }
-        if (typeof previousUtxos === 'undefined') {
-            // Compare to what you have in localStorage on startup
-            // If previousUtxos are undefined, see if you have previousUtxos in wallet state
-            // If you do, and it has everything you need, set wallet state with that instead of calling hydrateUtxos on all utxos
-            if (isValidStoredWallet(wallet)) {
-                // Convert all the token balance figures to big numbers
-                const liveWalletState = loadStoredWallet(wallet.state);
-                wallet.state = liveWalletState;
-
-                return setWallet(wallet);
-            }
-            // If wallet in storage is a legacy wallet or otherwise does not have all state fields,
-            // then assume utxos have changed
-            return true;
-        }
-        // return true for empty array, since this means you definitely do not want to skip the next API call
-        if (utxos && utxos.length === 0) {
-            return true;
-        }
-
-        // If wallet is valid, compare what exists in written wallet state instead of former api call
-        let utxosToCompare = previousUtxos;
-        if (isValidStoredWallet(wallet)) {
-            try {
-                utxosToCompare = wallet.state.utxos;
-            } catch (err) {
-                console.log(`Error setting utxos to wallet.state.utxos`, err);
-                console.log(`Wallet at err`, wallet);
-                // If this happens, assume utxo set has changed
-                return true;
-            }
-        }
-
-        // Compare utxo sets
-        return !isEqual(utxos, utxosToCompare);
-    };
-
     const update = async ({ wallet }) => {
         //console.log(`tick()`);
         //console.time("update");
@@ -247,10 +179,6 @@ const useWallet = () => {
                 },
             ];
 
-            const utxos = await getUtxos(BCH, cashAddresses);
-
-            console.log(`bchApiUtxos`, utxos);
-
             const chronikUtxos = await getUtxosChronik(
                 chronik,
                 hash160AndAddressObjArray,
@@ -288,109 +216,9 @@ const useWallet = () => {
                 });
             }
 
-            // If an error is returned or utxos from only 1 address are returned
-            if (
-                !utxos ||
-                !Array.isArray(utxos) ||
-                isEmpty(utxos) ||
-                utxos.error ||
-                utxos.length < 2
-            ) {
-                // Throw error here to prevent more attempted api calls
-                // as you are likely already at rate limits
-                throw new Error('Error fetching utxos');
-            }
+            // At this point, you have all the information you need to update the wallet utxo state
 
-            // Need to call with wallet as a parameter rather than trusting it is in state, otherwise can sometimes get wallet=false from haveUtxosChanged
-            const utxosHaveChanged = haveUtxosChanged(
-                wallet,
-                utxos,
-                previousUtxos,
-            );
-            // If the utxo set has not changed,
-            if (!utxosHaveChanged) {
-                // remove api error here; otherwise it will remain if recovering from a rate
-                // limit error with an unchanged utxo set
-                setApiError(false);
-                // then wallet.state has not changed and does not need to be updated
-                //console.timeEnd("update");
-                return;
-            }
-
-            let incrementalHydratedUtxosValid;
-            let incrementallyAdjustedHydratedUtxoDetails;
-            try {
-                // Make sure you have all the required inputs to use this approach
-                if (
-                    !wallet ||
-                    !wallet.state ||
-                    !wallet.state.utxos ||
-                    !wallet.state.hydratedUtxoDetails ||
-                    !utxos
-                ) {
-                    throw new Error(
-                        'Wallet does not have required state for incremental approach, hydrating full utxo set',
-                    );
-                }
-                const utxosAdded = whichUtxosWereAdded(
-                    wallet.state.utxos,
-                    utxos,
-                );
-                const utxosConsumed = whichUtxosWereConsumed(
-                    wallet.state.utxos,
-                    utxos,
-                );
-
-                incrementallyAdjustedHydratedUtxoDetails =
-                    wallet.state.hydratedUtxoDetails;
-
-                if (utxosConsumed) {
-                    incrementallyAdjustedHydratedUtxoDetails =
-                        removeConsumedUtxos(
-                            utxosConsumed,
-                            incrementallyAdjustedHydratedUtxoDetails,
-                        );
-                }
-
-                if (utxosAdded) {
-                    const addedHydratedUtxos = await getHydratedUtxoDetails(
-                        BCH,
-                        utxosAdded,
-                    );
-
-                    incrementallyAdjustedHydratedUtxoDetails =
-                        addNewHydratedUtxos(
-                            addedHydratedUtxos,
-                            incrementallyAdjustedHydratedUtxoDetails,
-                        );
-                }
-
-                incrementalHydratedUtxosValid =
-                    areAllUtxosIncludedInIncrementallyHydratedUtxos(
-                        utxos,
-                        incrementallyAdjustedHydratedUtxoDetails,
-                    );
-            } catch (err) {
-                console.log(
-                    `Error in incremental determination of hydratedUtxoDetails`,
-                );
-                console.log(err);
-                incrementalHydratedUtxosValid = false;
-            }
-
-            if (!incrementalHydratedUtxosValid) {
-                console.log(
-                    `Incremental approach invalid, hydrating all utxos`,
-                );
-                incrementallyAdjustedHydratedUtxoDetails =
-                    await getHydratedUtxoDetails(BCH, utxos);
-            }
-
-            const slpBalancesAndUtxos = await getSlpBalancesAndUtxos(
-                BCH,
-                incrementallyAdjustedHydratedUtxoDetails,
-            );
-            console.log(`slpBalancesAndUtxos`, slpBalancesAndUtxos);
+            // Preserve bch-api for tx history for now, as this will take another stacked diff to migrate to chronik
             const txHistory = await getTxHistory(BCH, cashAddresses);
 
             // public keys are used to determined if a tx is incoming outgoing
@@ -403,32 +231,14 @@ const useWallet = () => {
 
             const parsedWithTokens = await addTokenTxData(BCH, parsedTxHistory);
 
-            if (typeof slpBalancesAndUtxos === 'undefined') {
-                console.log(`slpBalancesAndUtxos is undefined`);
-                throw new Error('slpBalancesAndUtxos is undefined');
-            }
-            const { tokens } = slpBalancesAndUtxos;
-
             const newState = {
-                balances: {},
-                tokens: [],
-                slpBalancesAndUtxos: [],
+                balances: getWalletBalanceFromUtxos(nonSlpUtxos),
+                tokens: finalTokenArray,
+                slpBalancesAndUtxos: { slpUtxos, nonSlpUtxos, tokens },
+                parsedTxHistory: parsedWithTokens,
+                utxos: chronikUtxos,
+                hydratedUtxoDetails: [], // Obsolete but necessary to pass isValidStoredWallet
             };
-
-            newState.slpBalancesAndUtxos = slpBalancesAndUtxos;
-
-            newState.balances = getWalletBalanceFromUtxos(
-                slpBalancesAndUtxos.nonSlpUtxos,
-            );
-
-            newState.tokens = tokens;
-
-            newState.parsedTxHistory = parsedWithTokens;
-
-            newState.utxos = utxos;
-
-            newState.hydratedUtxoDetails =
-                incrementallyAdjustedHydratedUtxoDetails;
 
             // Set wallet with new state field
             wallet.state = newState;
