@@ -1401,7 +1401,7 @@ void SetupServerArgs(NodeContext &node) {
                    OptionsCategory::AVALANCHE);
     argsman.AddArg("-avasessionkey", "Avalanche session key (default: random)",
                    ArgsManager::ALLOW_ANY | ArgsManager::SENSITIVE,
-                   OptionsCategory::AVALANCHE);
+                   OptionsCategory::HIDDEN);
     argsman.AddArg(
         "-maxavalancheoutbound",
         strprintf(
