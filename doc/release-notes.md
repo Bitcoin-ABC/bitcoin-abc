@@ -10,3 +10,5 @@ This release includes the following features and fixes:
   persistence.  `-persistmempool` is now treated like other boolean options to
   mean `-persistmempool=1`. Passing `-persistmempool=0`, `-persistmempool=1`
   and `-nopersistmempool` is unaffected.
+- This release supports Avalanche Post-consensus. See `bitcoind -help` for the
+  related options.
