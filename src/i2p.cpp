@@ -319,7 +319,8 @@ namespace sam {
         // https://geti2p.net/spec/common-structures#key-certificates
         // "7" or "EdDSA_SHA512_Ed25519" - "Recent Router Identities and
         // Destinations". Use "7" because i2pd <2.24.0 does not recognize the
-        // textual form.
+        // textual form. If SIGNATURE_TYPE is not specified, then the default
+        // one is DSA_SHA1.
         const Reply &reply = SendRequestAndGetReply(
             sock, "DEST GENERATE SIGNATURE_TYPE=7", false);
 
@@ -376,10 +377,9 @@ namespace sam {
             // The destination (private key) is generated upon session creation
             // and returned in the reply in DESTINATION=.
             const Reply &reply = SendRequestAndGetReply(
-                *sock,
-                strprintf(
-                    "SESSION CREATE STYLE=STREAM ID=%s DESTINATION=TRANSIENT",
-                    session_id));
+                *sock, strprintf("SESSION CREATE STYLE=STREAM ID=%s "
+                                 "DESTINATION=TRANSIENT SIGNATURE_TYPE=7",
+                                 session_id));
 
             m_private_key = DecodeI2PBase64(reply.Get("DESTINATION"));
         } else {
