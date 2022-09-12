@@ -262,12 +262,11 @@ const useWallet = () => {
             const preliminaryTokensArray = getPreliminaryTokensArray(slpUtxos);
             console.log(`preliminaryTokensArray`, preliminaryTokensArray);
 
-            const finalTokenArray = await finalizeTokensArray(
-                chronik,
-                preliminaryTokensArray,
-            );
+            const { finalTokenArray, cachedTokenInfoByTokenId } =
+                await finalizeTokensArray(chronik, preliminaryTokensArray);
 
             console.log(`finalTokenArray`, finalTokenArray);
+            console.log(`cachedTokenInfoByTokenId`, cachedTokenInfoByTokenId);
 
             // If an error is returned or utxos from only 1 address are returned
             if (

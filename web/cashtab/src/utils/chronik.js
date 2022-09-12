@@ -204,7 +204,11 @@ export const processPreliminaryTokensArray = (
     return finalTokenArray;
 };
 
-export const finalizeTokensArray = async (chronik, preliminaryTokensArray) => {
+export const finalizeTokensArray = async (
+    chronik,
+    preliminaryTokensArray,
+    cachedTokenInfoById = {},
+) => {
     // Iterate over preliminaryTokensArray to determine what tokens you need to make API calls for
 
     // Create an array of promises
@@ -213,12 +217,23 @@ export const finalizeTokensArray = async (chronik, preliminaryTokensArray) => {
 
     for (let i = 0; i < preliminaryTokensArray.length; i += 1) {
         const thisTokenId = preliminaryTokensArray[i].tokenId;
+        // See if you already have this info in cachedTokenInfo
+        if (thisTokenId in cachedTokenInfoById) {
+            // If you already have this info in cache, do not create an API request for it
+            continue;
+        }
         const thisTokenInfoPromise = returnGetTokenInfoChronikPromise(
             chronik,
             thisTokenId,
         );
         getTokenInfoPromises.push(thisTokenInfoPromise);
     }
+
+    // For this test plan, to be removed later in stack
+    console.log(
+        `Cashtab asking chronik for token info about ${getTokenInfoPromises.length} tokens`,
+    );
+    console.log(`getTokenInfoPromises.length`, getTokenInfoPromises.length);
 
     // Get all the token info you need
     let tokenInfoArray = [];
@@ -228,9 +243,8 @@ export const finalizeTokensArray = async (chronik, preliminaryTokensArray) => {
         console.log(`Error in Promise.all(getTokenInfoPromises)`, err);
     }
 
-    // Create a reference object that indexes token metadata by token ID
-    // This object can then be used to add token metadata to each token ID
-    const tokenInfoByTokenId = {};
+    // Add the token info you received from those API calls to
+    // your token info cache object, cachedTokenInfoByTokenId
     for (let i = 0; i < tokenInfoArray.length; i += 1) {
         /* tokenInfoArray is an array of objects that look like
         {
@@ -246,15 +260,15 @@ export const finalizeTokensArray = async (chronik, preliminaryTokensArray) => {
         const thisTokenInfo = tokenInfoArray[i];
         const thisTokenId = thisTokenInfo.tokenId;
         // Add this entry to updatedCachedTokenInfo
-        tokenInfoByTokenId[thisTokenId] = thisTokenInfo;
+        cachedTokenInfoById[thisTokenId] = thisTokenInfo;
     }
 
-    // Now use tokenInfoByTokenId object to finalize token info
+    // Now use cachedTokenInfoByTokenId object to finalize token info
     // Split this out into a separate function so you can unit test
     const finalTokenArray = processPreliminaryTokensArray(
         preliminaryTokensArray,
-        tokenInfoByTokenId,
+        cachedTokenInfoById,
     );
 
-    return finalTokenArray;
+    return { finalTokenArray, cachedTokenInfoById };
 };
