@@ -614,8 +614,8 @@ export default function useBCH() {
             for (let i = 0; i < utxos.length; i++) {
                 const utxo = utxos[i];
                 originalAmount = originalAmount.plus(new BigNumber(utxo.value));
-                const vout = utxo.vout;
-                const txid = utxo.txid;
+                const vout = utxo.outpoint.outIdx;
+                const txid = utxo.outpoint.txid;
                 // add input with txid and index of vout
                 transactionBuilder.addInput(txid, vout);
 

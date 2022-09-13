@@ -1,4 +1,3 @@
-// @generated
 export default {
     invalidWallet: {},
     wallet: {
@@ -47,11 +46,13 @@ export default {
                         tx_pos: 0,
                         value: 1000000,
                         txid: 'e0d6d7d46d5fc6aaa4512a7aca9223c6d7ca30b8253dee1b40b8978fe7dc501e',
-                        vout: 0,
                         isValid: false,
                         address:
                             'bitcoincash:qpuvjl7l3crt3apc62gmtf49pfsluu7s9gsex3qnhn',
-                        wif: 'L2gH81AegmBdnvEZuUpnd3robG8NjBaVjPddWrVD4169wS6Mqyxn',
+                        outpoint: {
+                            outIdx: 0,
+                            txid: 'e0d6d7d46d5fc6aaa4512a7aca9223c6d7ca30b8253dee1b40b8978fe7dc501e',
+                        },
                     },
                 ],
             },
