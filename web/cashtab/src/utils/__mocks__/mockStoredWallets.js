@@ -647,11 +647,13 @@ export const validStoredWallet = {
                     tx_pos: 1,
                     value: 1503017804,
                     txid: '8d4c90ecf069e3a1494339724ddbb8bf28e3b38315a009ca5c49237b3ae7687a',
-                    vout: 1,
                     isValid: false,
                     address:
                         'bitcoincash:qz2708636snqhsxu8wnlka78h6fdp77ar5ulhz04hr',
-                    wif: 'Nope',
+                    outpoint: {
+                        outIdx: 1,
+                        txid: '8d4c90ecf069e3a1494339724ddbb8bf28e3b38315a009ca5c49237b3ae7687a',
+                    },
                 },
             ],
             slpUtxos: [
@@ -665,8 +667,6 @@ export const validStoredWallet = {
                     vout: 1,
                     utxoType: 'token',
                     transactionType: 'send',
-                    tokenId:
-                        'bf24d955f59351e738ecd905966606a6837e478e1982943d724eab10caad82fd',
                     tokenTicker: 'ST',
                     tokenName: 'ST',
                     tokenDocumentUrl: 'developer.bitcoin.com',
@@ -677,6 +677,10 @@ export const validStoredWallet = {
                     isValid: true,
                     address:
                         'bitcoincash:qz2708636snqhsxu8wnlka78h6fdp77ar5ulhz04hr',
+                    slpMeta: {
+                        tokenId:
+                            'bf24d955f59351e738ecd905966606a6837e478e1982943d724eab10caad82fd',
+                    },
                 },
                 {
                     height: 680784,
@@ -688,8 +692,10 @@ export const validStoredWallet = {
                     vout: 1,
                     utxoType: 'token',
                     transactionType: 'send',
-                    tokenId:
-                        'bef614aac85c0c866f4d39e4d12a96851267d38d1bca5bdd6488bbd42e28b6b1',
+                    slpMeta: {
+                        tokenId:
+                            'bef614aac85c0c866f4d39e4d12a96851267d38d1bca5bdd6488bbd42e28b6b1',
+                    },
                     tokenTicker: 'CTP',
                     tokenName: 'Cash Tab Points',
                     tokenDocumentUrl: 'https://cashtabapp.com/',
@@ -711,8 +717,10 @@ export const validStoredWallet = {
                     vout: 2,
                     utxoType: 'token',
                     transactionType: 'send',
-                    tokenId:
-                        '7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d',
+                    slpMeta: {
+                        tokenId:
+                            '7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d',
+                    },
                     tokenTicker: 'WDT',
                     tokenName:
                         'Test Token With Exceptionally Long Name For CSS And Style Revisions',
@@ -737,8 +745,10 @@ export const validStoredWallet = {
                     vout: 2,
                     utxoType: 'token',
                     transactionType: 'send',
-                    tokenId:
-                        '1f6a65e7a4bde92c0a012de2bcf4007034504a765377cdf08a3ee01d1eaa6901',
+                    slpMeta: {
+                        tokenId:
+                            '1f6a65e7a4bde92c0a012de2bcf4007034504a765377cdf08a3ee01d1eaa6901',
+                    },
                     tokenTicker: '🍔',
                     tokenName: 'Burger',
                     tokenDocumentUrl:
@@ -761,8 +771,10 @@ export const validStoredWallet = {
                     vout: 2,
                     utxoType: 'token',
                     transactionType: 'send',
-                    tokenId:
-                        '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
+                    slpMeta: {
+                        tokenId:
+                            '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
+                    },
                     tokenTicker: 'NOCOVID',
                     tokenName: 'Covid19 Lifetime Immunity',
                     tokenDocumentUrl:
@@ -785,8 +797,10 @@ export const validStoredWallet = {
                     vout: 2,
                     utxoType: 'token',
                     transactionType: 'send',
-                    tokenId:
-                        'dd84ca78db4d617221b58eabc6667af8fe2f7eadbfcc213d35be9f1b419beb8d',
+                    slpMeta: {
+                        tokenId:
+                            'dd84ca78db4d617221b58eabc6667af8fe2f7eadbfcc213d35be9f1b419beb8d',
+                    },
                     tokenTicker: 'TAP',
                     tokenName: 'Thoughts and Prayers',
                     tokenDocumentUrl: '',
@@ -808,8 +822,10 @@ export const validStoredWallet = {
                     vout: 2,
                     utxoType: 'token',
                     transactionType: 'send',
-                    tokenId:
-                        'df808a41672a0a0ae6475b44f272a107bc9961b90f29dc918d71301f24fe92fb',
+                    slpMeta: {
+                        tokenId:
+                            'df808a41672a0a0ae6475b44f272a107bc9961b90f29dc918d71301f24fe92fb',
+                    },
                     tokenTicker: 'NAKAMOTO',
                     tokenName: 'NAKAMOTO',
                     tokenDocumentUrl: '',
@@ -831,8 +847,10 @@ export const validStoredWallet = {
                     vout: 2,
                     utxoType: 'token',
                     transactionType: 'send',
-                    tokenId:
-                        '7f8889682d57369ed0e32336f8b7e0ffec625a35cca183f4e81fde4e71a538a1',
+                    slpMeta: {
+                        tokenId:
+                            '7f8889682d57369ed0e32336f8b7e0ffec625a35cca183f4e81fde4e71a538a1',
+                    },
                     tokenTicker: 'HONK',
                     tokenName: 'HONK HONK',
                     tokenDocumentUrl: 'THE REAL HONK SLP TOKEN',
@@ -854,8 +872,10 @@ export const validStoredWallet = {
                     vout: 2,
                     utxoType: 'token',
                     transactionType: 'send',
-                    tokenId:
-                        '1101bd5d7b6bbc3176fb2b93d08e76ab532b04ff731d71502249e3cb9b6fcb1a',
+                    slpMeta: {
+                        tokenId:
+                            '1101bd5d7b6bbc3176fb2b93d08e76ab532b04ff731d71502249e3cb9b6fcb1a',
+                    },
                     tokenTicker: 'XBIT',
                     tokenName: 'eBits',
                     tokenDocumentUrl: 'https://boomertakes.com/',

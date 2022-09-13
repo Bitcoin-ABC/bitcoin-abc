@@ -31,6 +31,7 @@ import {
     organizeUtxosByType,
     getPreliminaryTokensArray,
     finalizeTokensArray,
+    finalizeSlpUtxos,
 } from 'utils/chronik';
 import { ChronikClient } from 'chronik-client';
 // For XEC, eCash chain:
@@ -185,13 +186,15 @@ const useWallet = () => {
             );
             console.log(`chronikUtxos`, chronikUtxos);
 
-            const { slpUtxos, nonSlpUtxos } = organizeUtxosByType(chronikUtxos);
+            const { preliminarySlpUtxos, nonSlpUtxos } =
+                organizeUtxosByType(chronikUtxos);
             console.log(`chronikSlpBalancesAndUtxos without token info`, {
-                slpUtxos,
+                preliminarySlpUtxos,
                 nonSlpUtxos,
             });
 
-            const preliminaryTokensArray = getPreliminaryTokensArray(slpUtxos);
+            const preliminaryTokensArray =
+                getPreliminaryTokensArray(preliminarySlpUtxos);
             console.log(`preliminaryTokensArray`, preliminaryTokensArray);
 
             const { finalTokenArray, updatedTokenInfoById, newTokensToCache } =
@@ -216,6 +219,13 @@ const useWallet = () => {
                 });
             }
 
+            const finalizedSlpUtxos = finalizeSlpUtxos(
+                preliminarySlpUtxos,
+                updatedTokenInfoById,
+            );
+
+            console.log(`finalSlpUtxos`, finalizedSlpUtxos);
+
             // At this point, you have all the information you need to update the wallet utxo state
 
             // Preserve bch-api for tx history for now, as this will take another stacked diff to migrate to chronik
@@ -234,7 +244,11 @@ const useWallet = () => {
             const newState = {
                 balances: getWalletBalanceFromUtxos(nonSlpUtxos),
                 tokens: finalTokenArray,
-                slpBalancesAndUtxos: { slpUtxos, nonSlpUtxos, tokens },
+                slpBalancesAndUtxos: {
+                    slpUtxos: finalizedSlpUtxos,
+                    nonSlpUtxos,
+                    tokens,
+                },
                 parsedTxHistory: parsedWithTokens,
                 utxos: chronikUtxos,
                 hydratedUtxoDetails: [], // Obsolete but necessary to pass isValidStoredWallet

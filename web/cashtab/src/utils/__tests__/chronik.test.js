@@ -2,6 +2,7 @@ import {
     organizeUtxosByType,
     getPreliminaryTokensArray,
     finalizeTokensArray,
+    finalizeSlpUtxos,
 } from 'utils/chronik';
 import {
     mockChronikUtxos,
@@ -14,6 +15,9 @@ import {
     mockFinalCachedTokenInfo,
     mockPartialCachedTokenInfo,
     mockPartialChronikTxDetailsResponses,
+    mockPreliminarySlpUtxos,
+    mockFinalizedSlpUtxos,
+    mockTokenInfoById,
 } from '../__mocks__/chronikUtxos';
 import { ChronikClient } from 'chronik-client';
 import { when } from 'jest-when';
@@ -24,7 +28,7 @@ it(`organizeUtxosByType successfully splits a chronikUtxos array into slpUtxos a
     );
 
     const resultingOrganizedUtxosObject = organizeUtxosByType(mockChronikUtxos);
-    const { nonSlpUtxos, slpUtxos } = resultingOrganizedUtxosObject;
+    const { nonSlpUtxos, preliminarySlpUtxos } = resultingOrganizedUtxosObject;
     const utxosWithUnexpectedKeys = [];
     for (let i = 0; i < nonSlpUtxos.length; i += 1) {
         // None of the objects in mockOrganizedUtxosByType.nonSlpUtxos should have the `slpToken` key
@@ -35,9 +39,9 @@ it(`organizeUtxosByType successfully splits a chronikUtxos array into slpUtxos a
             utxosWithUnexpectedKeys.push(nonSlpUtxo);
         }
     }
-    for (let i = 0; i < slpUtxos.length; i += 1) {
+    for (let i = 0; i < preliminarySlpUtxos.length; i += 1) {
         // All of the objects in mockOrganizedUtxosByType.slpUtxos should have the `slpMeta` and `slpToken` keys
-        const slpUtxo = slpUtxos[i];
+        const slpUtxo = preliminarySlpUtxos[i];
         if (!('slpMeta' in slpUtxo) || !('slpToken' in slpUtxo)) {
             console.log(`unexpected slpUtxo!`, slpUtxo);
             utxosWithUnexpectedKeys.push(slpUtxo);
@@ -45,12 +49,14 @@ it(`organizeUtxosByType successfully splits a chronikUtxos array into slpUtxos a
     }
     expect(utxosWithUnexpectedKeys.length).toBe(0);
     // Length of organized utxos should match original
-    expect(slpUtxos.length + nonSlpUtxos.length).toBe(mockChronikUtxos.length);
+    expect(preliminarySlpUtxos.length + nonSlpUtxos.length).toBe(
+        mockChronikUtxos.length,
+    );
 });
 
 it(`getPreliminaryTokensArray successfully returns an array of all tokenIds and token balances (not yet adjusted for token decimals)`, () => {
     expect(
-        getPreliminaryTokensArray(mockOrganizedUtxosByType.slpUtxos),
+        getPreliminaryTokensArray(mockOrganizedUtxosByType.preliminarySlpUtxos),
     ).toStrictEqual(mockPreliminaryTokensArray);
 });
 
@@ -125,4 +131,10 @@ it(`updateCachedTokenInfoAndFinalizeTokensArray successfully returns finalTokenA
         updatedTokenInfoById: mockFinalCachedTokenInfo,
         newTokensToCache: true,
     });
+});
+
+it(`finalizeSlpUtxos successfully adds token quantity adjusted for token decimals to preliminarySlpUtxos`, async () => {
+    expect(
+        await finalizeSlpUtxos(mockPreliminarySlpUtxos, mockTokenInfoById),
+    ).toStrictEqual(mockFinalizedSlpUtxos);
 });

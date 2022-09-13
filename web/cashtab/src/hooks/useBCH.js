@@ -755,8 +755,8 @@ export default function useBCH() {
             totalXecInputUtxoValue = totalXecInputUtxoValue.plus(
                 new BigNumber(utxo.value),
             );
-            const vout = utxo.vout;
-            const txid = utxo.txid;
+            const vout = utxo.outpoint.outIdx;
+            const txid = utxo.outpoint.txid;
             // add input with txid and index of vout
             transactionBuilder.addInput(txid, vout);
 
@@ -913,8 +913,8 @@ export default function useBCH() {
             totalXecInputUtxoValue = totalXecInputUtxoValue.plus(
                 new BigNumber(utxo.value),
             );
-            const vout = utxo.vout;
-            const txid = utxo.txid;
+            const vout = utxo.outpoint.outIdx;
+            const txid = utxo.outpoint.txid;
             // add input with txid and index of vout
             transactionBuilder.addInput(txid, vout);
 
@@ -940,8 +940,8 @@ export default function useBCH() {
         const tokenUtxos = slpBalancesAndUtxos.slpUtxos.filter(utxo => {
             if (
                 utxo && // UTXO is associated with a token.
-                utxo.tokenId === tokenId && // UTXO matches the token ID.
-                utxo.utxoType === 'token' // UTXO is not a minting baton.
+                utxo.slpMeta.tokenId === tokenId && // UTXO matches the token ID.
+                !utxo.slpToken.isMintBaton // UTXO is not a minting baton.
             ) {
                 return true;
             }
@@ -964,8 +964,8 @@ export default function useBCH() {
                 new BigNumber(tokenUtxos[i].tokenQty),
             );
             transactionBuilder.addInput(
-                tokenUtxos[i].tx_hash,
-                tokenUtxos[i].tx_pos,
+                tokenUtxos[i].outpoint.txid,
+                tokenUtxos[i].outpoint.outIdx,
             );
             tokenUtxosBeingBurnt.push(tokenUtxos[i]);
             if (tokenAmountBeingBurnt.lte(finalTokenAmountBurnt)) {
@@ -991,11 +991,13 @@ export default function useBCH() {
             currency.etokenSats,
         );
 
-        // Send XEC change back from whence it came
-        transactionBuilder.addOutput(
-            BCH.Address.toLegacyAddress(inputUtxos[0].address),
-            remainder.toNumber(),
-        );
+        // Send XEC change back from whence it came, if amount is > dust
+        if (remainder.gt(new BigNumber(currency.dustSats))) {
+            transactionBuilder.addOutput(
+                BCH.Address.toLegacyAddress(inputUtxos[0].address),
+                remainder.toNumber(),
+            );
+        }
 
         // append the token input UTXOs to the array of XEC input UTXOs for signing
         inputUtxos = inputUtxos.concat(tokenUtxosBeingBurnt);

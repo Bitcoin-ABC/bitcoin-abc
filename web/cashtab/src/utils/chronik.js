@@ -87,25 +87,25 @@ export const organizeUtxosByType = chronikUtxos => {
     */
 
     const nonSlpUtxos = [];
-    const slpUtxos = [];
+    const preliminarySlpUtxos = [];
     for (let i = 0; i < chronikUtxos.length; i += 1) {
         // Construct nonSlpUtxos and slpUtxos arrays
         const thisUtxo = chronikUtxos[i];
         if (typeof thisUtxo.slpToken !== 'undefined') {
-            slpUtxos.push(thisUtxo);
+            preliminarySlpUtxos.push(thisUtxo);
         } else {
             nonSlpUtxos.push(thisUtxo);
         }
     }
 
-    return { slpUtxos, nonSlpUtxos };
+    return { preliminarySlpUtxos, nonSlpUtxos };
 };
 
-export const getPreliminaryTokensArray = slpUtxos => {
+export const getPreliminaryTokensArray = preliminarySlpUtxos => {
     // Iterate over the slpUtxos to create the 'tokens' object
     let tokensById = {};
 
-    slpUtxos.forEach(slpUtxo => {
+    preliminarySlpUtxos.forEach(preliminarySlpUtxo => {
         /* 
         Note that a wallet could have many eToken utxos all belonging to the same eToken
         For example, a user could have 100 of a certain eToken, but this is composed of
@@ -113,24 +113,26 @@ export const getPreliminaryTokensArray = slpUtxos => {
         */
 
         // Start with the existing object for this particular token, if it exists
-        let token = tokensById[slpUtxo.slpMeta.tokenId];
+        let token = tokensById[preliminarySlpUtxo.slpMeta.tokenId];
 
         if (token) {
-            if (slpUtxo.slpToken.amount) {
+            if (preliminarySlpUtxo.slpToken.amount) {
                 token.balance = token.balance.plus(
-                    new BigNumber(slpUtxo.slpToken.amount),
+                    new BigNumber(preliminarySlpUtxo.slpToken.amount),
                 );
             }
         } else {
             // If it does not exist, create it
             token = {};
-            token.tokenId = slpUtxo.slpMeta.tokenId;
-            if (slpUtxo.slpToken.amount) {
-                token.balance = new BigNumber(slpUtxo.slpToken.amount);
+            token.tokenId = preliminarySlpUtxo.slpMeta.tokenId;
+            if (preliminarySlpUtxo.slpToken.amount) {
+                token.balance = new BigNumber(
+                    preliminarySlpUtxo.slpToken.amount,
+                );
             } else {
                 token.balance = new BigNumber(0);
             }
-            tokensById[slpUtxo.slpMeta.tokenId] = token;
+            tokensById[preliminarySlpUtxo.slpMeta.tokenId] = token;
         }
     });
 
@@ -279,4 +281,26 @@ export const finalizeTokensArray = async (
     );
 
     return { finalTokenArray, updatedTokenInfoById, newTokensToCache };
+};
+
+export const finalizeSlpUtxos = (preliminarySlpUtxos, tokenInfoById) => {
+    // We need tokenQty in each slpUtxo to support transaction creation
+    // Add this info here
+    const finalizedSlpUtxos = [];
+    for (let i = 0; i < preliminarySlpUtxos.length; i += 1) {
+        const thisUtxo = preliminarySlpUtxos[i];
+        const thisTokenId = thisUtxo.slpMeta.tokenId;
+        const { decimals } = tokenInfoById[thisTokenId];
+        // Update balance according to decimals
+        thisUtxo.tokenQty = new BigNumber(thisUtxo.slpToken.amount)
+            .shiftedBy(-1 * decimals)
+            .toString();
+        // SLP utxos also require tokenId and decimals directly in the utxo object
+        // This is bad organization but necessary until bch-js is refactored
+        // https://github.com/Permissionless-Software-Foundation/bch-js/blob/master/src/slp/tokentype1.js#L217
+        thisUtxo.tokenId = thisTokenId;
+        thisUtxo.decimals = decimals;
+        finalizedSlpUtxos.push(thisUtxo);
+    }
+    return finalizedSlpUtxos;
 };

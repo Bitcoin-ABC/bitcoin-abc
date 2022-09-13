@@ -249,7 +249,7 @@ describe('useBCH hook', () => {
         expect(nullValuesSendBch).toBe(null);
     });
 
-    it("throws error attempting to burn an eToken ID that is not within the wallet's utxo", async () => {
+    it("Throws error attempting to burn an eToken ID that is not within the wallet's utxo", async () => {
         const { burnToken } = useBCH();
         const BCH = new BCHJS();
         const wallet = validStoredWallet;
