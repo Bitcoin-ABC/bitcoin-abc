@@ -196,8 +196,8 @@ static bool CreateAndActivateUTXOSnapshot(NodeContext &node,
     UniValue result = CreateUTXOSnapshot(
         node, node.chainman->ActiveChainstate(), auto_outfile);
     BOOST_TEST_MESSAGE("Wrote UTXO snapshot to "
-                       << snapshot_path.make_preferred().string() << ": "
-                       << result.write());
+                       << fs::PathToString(snapshot_path.make_preferred())
+                       << ": " << result.write());
 
     // Read the written snapshot in and then activate it.
     //
