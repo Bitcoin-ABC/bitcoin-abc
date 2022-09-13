@@ -13,8 +13,6 @@ import {
     isValidEtokenAddress,
     isValidXecSendAmount,
     isValidSendToMany,
-    isValidUtxo,
-    isValidBchApiUtxoObject,
     isValidEtokenBurnAmount,
     isValidTokenId,
     isValidXecAirdrop,
@@ -38,13 +36,7 @@ import {
     invalidXecAirdropListMultipleInvalidValues,
     invalidXecAirdropListMultipleValidValues,
 } from '../__mocks__/mockXecAirdropRecipients';
-import {
-    validUtxo,
-    invalidUtxoMissingHeight,
-    invalidUtxoTxidUndefined,
-    hydratedUtxoDetailsAfterRemovingConsumedUtxos,
-    utxosAfterSentTxIncremental,
-} from '../__mocks__/incrementalUtxoMocks';
+
 import {
     validXecAirdropExclusionList,
     invalidXecAirdropExclusionList,
@@ -445,53 +437,6 @@ describe('Validation utils', () => {
     it(`isValidXecSendAmount rejects undefined`, () => {
         const testXecSendAmount = undefined;
         expect(isValidXecSendAmount(testXecSendAmount)).toBe(false);
-    });
-    it(`isValidUtxo returns true for a valid utxo`, () => {
-        expect(isValidUtxo(validUtxo)).toBe(true);
-    });
-    it(`isValidUtxo returns false for missing height`, () => {
-        expect(isValidUtxo(invalidUtxoMissingHeight)).toBe(false);
-    });
-    it(`isValidUtxo returns false for undefined tx_hash`, () => {
-        expect(isValidUtxo(invalidUtxoTxidUndefined)).toBe(false);
-    });
-    it(`isValidUtxo returns false for null`, () => {
-        expect(isValidUtxo(null)).toBe(false);
-    });
-    it(`isValidUtxo returns false for undefined`, () => {
-        expect(isValidUtxo()).toBe(false);
-    });
-    it(`isValidUtxo returns false for empty object`, () => {
-        expect(isValidUtxo({})).toBe(false);
-    });
-    it(`isValidBchApiUtxoObject returns false for object`, () => {
-        expect(isValidBchApiUtxoObject({})).toBe(false);
-    });
-    it(`isValidBchApiUtxoObject returns false for empty array`, () => {
-        expect(isValidBchApiUtxoObject([])).toBe(false);
-    });
-    it(`isValidBchApiUtxoObject returns false for null`, () => {
-        expect(isValidBchApiUtxoObject(null)).toBe(false);
-    });
-    it(`isValidBchApiUtxoObject returns false for undefined`, () => {
-        expect(isValidBchApiUtxoObject(undefined)).toBe(false);
-    });
-    it(`isValidBchApiUtxoObject returns false for hydratedUtxoDetails type object`, () => {
-        expect(
-            isValidBchApiUtxoObject(
-                hydratedUtxoDetailsAfterRemovingConsumedUtxos,
-            ),
-        ).toBe(false);
-    });
-    it(`isValidBchApiUtxoObject returns true for hydratedUtxoDetails.slpUtxos`, () => {
-        expect(
-            isValidBchApiUtxoObject(
-                hydratedUtxoDetailsAfterRemovingConsumedUtxos.slpUtxos,
-            ),
-        ).toBe(true);
-    });
-    it(`isValidBchApiUtxoObject returns true for valid bch-api utxos object`, () => {
-        expect(isValidBchApiUtxoObject(utxosAfterSentTxIncremental)).toBe(true);
     });
     it(`isValidEtokenBurnAmount rejects null`, () => {
         const testEtokenBurnAmount = null;

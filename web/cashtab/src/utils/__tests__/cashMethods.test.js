@@ -1,28 +1,17 @@
 import BigNumber from 'bignumber.js';
 import {
     fromSatoshisToXec,
-    batchArray,
     flattenContactList,
-    flattenBatchedHydratedUtxos,
     loadStoredWallet,
     isValidStoredWallet,
     fromLegacyDecimals,
     convertToEcashPrefix,
-    checkNullUtxosForTokenStatus,
-    confirmNonEtokenUtxos,
     isLegacyMigrationRequired,
     toLegacyCash,
     toLegacyToken,
     toLegacyCashArray,
     convertEtokenToEcashAddr,
     parseOpReturn,
-    isExcludedUtxo,
-    whichUtxosWereAdded,
-    whichUtxosWereConsumed,
-    addNewHydratedUtxos,
-    removeConsumedUtxos,
-    getUtxoCount,
-    areAllUtxosIncludedInIncrementallyHydratedUtxos,
     convertEcashtoEtokenAddr,
     getHashArrayFromWallet,
     parseChronikTx,
@@ -41,10 +30,6 @@ import {
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import {
-    unbatchedArray,
-    arrayBatchedByThree,
-} from '../__mocks__/mockBatchedArrays';
-import {
     validAddressArrayInput,
     validAddressArrayInputMixedPrefixes,
     validAddressArrayOutput,
@@ -54,10 +39,6 @@ import {
 } from '../__mocks__/mockAddressArray';
 
 import {
-    unflattenedHydrateUtxosResponse,
-    flattenedHydrateUtxosResponse,
-} from '../__mocks__/flattenBatchedHydratedUtxosMocks';
-import {
     cachedUtxos,
     utxosLoadedFromCache,
 } from '../__mocks__/mockCachedUtxos';
@@ -65,14 +46,6 @@ import {
     validStoredWallet,
     invalidStoredWallet,
 } from '../__mocks__/mockStoredWallets';
-
-import {
-    mockTxDataResults,
-    mockNonEtokenUtxos,
-    mockTxDataResultsWithEtoken,
-    mockHydratedUtxosWithNullValues,
-    mockHydratedUtxosWithNullValuesSetToFalse,
-} from '../__mocks__/nullUtxoMocks';
 
 import {
     missingPath1899Wallet,
@@ -104,72 +77,6 @@ import {
     mockParsedAirdropMessageArray,
 } from '../__mocks__/mockOpReturnParsedArray';
 
-import {
-    excludedUtxoAlpha,
-    excludedUtxoBeta,
-    includedUtxoAlpha,
-    includedUtxoBeta,
-    previousUtxosObjUtxoArray,
-    previousUtxosTemplate,
-    currentUtxosAfterSingleXecReceiveTxTemplate,
-    utxosAddedBySingleXecReceiveTxTemplate,
-    previousUtxosBeforeSingleXecReceiveTx,
-    currentUtxosAfterSingleXecReceiveTx,
-    utxosAddedBySingleXecReceiveTx,
-    currentUtxosAfterMultiXecReceiveTxTemplate,
-    utxosAddedByMultiXecReceiveTxTemplate,
-    previousUtxosBeforeMultiXecReceiveTx,
-    currentUtxosAfterMultiXecReceiveTx,
-    utxosAddedByMultiXecReceiveTx,
-    currentUtxosAfterEtokenReceiveTxTemplate,
-    utxosAddedByEtokenReceiveTxTemplate,
-    previousUtxosBeforeEtokenReceiveTx,
-    currentUtxosAfterEtokenReceiveTx,
-    utxosAddedByEtokenReceiveTx,
-    previousUtxosBeforeSendAllTxTemplate,
-    currentUtxosAfterSendAllTxTemplate,
-    previousUtxosBeforeSendAllTx,
-    currentUtxosAfterSendAllTx,
-    previousUtxosBeforeSingleXecSendTx,
-    currentUtxosAfterSingleXecSendTx,
-    utxosAddedBySingleXecSendTx,
-    currentUtxosAfterSingleXecSendTxTemplate,
-    utxosAddedBySingleXecSendTxTemplate,
-    currentUtxosAfterEtokenSendTxTemplate,
-    utxosAddedByEtokenSendTxTemplate,
-    previousUtxosBeforeEtokenSendTx,
-    currentUtxosAfterEtokenSendTx,
-    utxosAddedByEtokenSendTx,
-    utxosConsumedByEtokenSendTx,
-    utxosConsumedByEtokenSendTxTemplate,
-    utxosConsumedBySingleXecSendTx,
-    utxosConsumedBySingleXecSendTxTemplate,
-    utxosConsumedBySendAllTx,
-    utxosConsumedBySendAllTxTemplate,
-    hydratedUtxoDetailsBeforeAddingTemplate,
-    hydratedUtxoDetailsAfterAddingSingleUtxoTemplate,
-    newHydratedUtxosSingleTemplate,
-    addedHydratedUtxosOverTwenty,
-    existingHydratedUtxoDetails,
-    existingHydratedUtxoDetailsAfterAdd,
-    hydratedUtxoDetailsBeforeConsumedTemplate,
-    consumedUtxoTemplate,
-    hydratedUtxoDetailsAfterRemovingConsumedUtxoTemplate,
-    consumedUtxos,
-    hydratedUtxoDetailsBeforeRemovingConsumedUtxos,
-    hydratedUtxoDetailsAfterRemovingConsumedUtxos,
-    consumedUtxosMoreThanTwenty,
-    hydratedUtxoDetailsAfterRemovingMoreThanTwentyConsumedUtxos,
-    consumedUtxosMoreThanTwentyInRandomObjects,
-    utxoCountMultiTemplate,
-    utxoCountSingleTemplate,
-    incrementalUtxosTemplate,
-    incrementallyHydratedUtxosTemplate,
-    incrementallyHydratedUtxosTemplateMissing,
-    utxosAfterSentTxIncremental,
-    incrementallyHydratedUtxosAfterProcessing,
-    incrementallyHydratedUtxosAfterProcessingOneMissing,
-} from '../__mocks__/incrementalUtxoMocks';
 import mockLegacyWallets from 'hooks/__mocks__/mockLegacyWallets';
 import BCHJS from '@psf/bch-js';
 import sendBCHMock from '../../hooks/__mocks__/sendBCH';
@@ -1054,19 +961,6 @@ describe('Correctly executes cash utility functions', () => {
             new BigNumber(10000000.12345678),
         );
     });
-    it(`Correctly converts an array of length 10 to an array of 4 arrays, each with max length 3`, () => {
-        expect(batchArray(unbatchedArray, 3)).toStrictEqual(
-            arrayBatchedByThree,
-        );
-    });
-    it(`If array length is less than batch size, return original array as first and only element of new array`, () => {
-        expect(batchArray(unbatchedArray, 20)).toStrictEqual([unbatchedArray]);
-    });
-    it(`Flattens hydrateUtxos from Promise.all() response into array that can be parsed by getSlpBalancesAndUtxos`, () => {
-        expect(
-            flattenBatchedHydratedUtxos(unflattenedHydrateUtxosResponse),
-        ).toStrictEqual(flattenedHydrateUtxosResponse);
-    });
     it(`Accepts a cachedWalletState that has not preserved BigNumber object types, and returns the same wallet state with BigNumber type re-instituted`, () => {
         expect(loadStoredWallet(cachedUtxos)).toStrictEqual(
             utxosLoadedFromCache,
@@ -1121,24 +1015,6 @@ describe('Correctly executes cash utility functions', () => {
         expect(
             toLegacyToken('qz2708636snqhsxu8wnlka78h6fdp77ar5tv2tzg4r'),
         ).toBe('simpleledger:qz2708636snqhsxu8wnlka78h6fdp77ar5syue64fa');
-    });
-    it(`Correctly parses utxo vout tx data to confirm the transactions are not eToken txs`, () => {
-        expect(checkNullUtxosForTokenStatus(mockTxDataResults)).toStrictEqual(
-            mockNonEtokenUtxos,
-        );
-    });
-    it(`Correctly parses utxo vout tx data and screens out an eToken by asm field`, () => {
-        expect(
-            checkNullUtxosForTokenStatus(mockTxDataResultsWithEtoken),
-        ).toStrictEqual([]);
-    });
-    it(`Changes isValid from 'null' to 'false' for confirmed nonEtokenUtxos`, () => {
-        expect(
-            confirmNonEtokenUtxos(
-                mockHydratedUtxosWithNullValues,
-                mockNonEtokenUtxos,
-            ),
-        ).toStrictEqual(mockHydratedUtxosWithNullValuesSetToFalse);
     });
     it(`Recognizes a wallet with missing Path1889 is a Legacy Wallet and requires migration`, () => {
         expect(isLegacyMigrationRequired(missingPath1899Wallet)).toBe(true);
@@ -1335,300 +1211,6 @@ describe('Correctly executes cash utility functions', () => {
         ).toStrictEqual(currency.opReturn.appPrefixesHex.airdrop);
     });
 
-    test('isExcludedUtxo returns true for a utxo with different tx_pos and same txid as an existing utxo in the set', async () => {
-        expect(
-            isExcludedUtxo(excludedUtxoAlpha, previousUtxosObjUtxoArray),
-        ).toBe(true);
-    });
-    test('isExcludedUtxo returns true for a utxo with different value and same txid as an existing utxo in the set', async () => {
-        expect(
-            isExcludedUtxo(excludedUtxoBeta, previousUtxosObjUtxoArray),
-        ).toBe(true);
-    });
-    test('isExcludedUtxo returns false for a utxo with different tx_pos and same txid', async () => {
-        expect(
-            isExcludedUtxo(includedUtxoAlpha, previousUtxosObjUtxoArray),
-        ).toBe(false);
-    });
-    test('isExcludedUtxo returns false for a utxo with different value and same txid', async () => {
-        expect(
-            isExcludedUtxo(includedUtxoBeta, previousUtxosObjUtxoArray),
-        ).toBe(false);
-    });
-    test('whichUtxosWereAdded correctly identifies a single added utxo after a received XEC tx [template]', async () => {
-        expect(
-            whichUtxosWereAdded(
-                previousUtxosTemplate,
-                currentUtxosAfterSingleXecReceiveTxTemplate,
-            ),
-        ).toStrictEqual(utxosAddedBySingleXecReceiveTxTemplate);
-    });
-    test('whichUtxosWereAdded correctly identifies a single added utxo after a received XEC tx', async () => {
-        expect(
-            whichUtxosWereAdded(
-                previousUtxosBeforeSingleXecReceiveTx,
-                currentUtxosAfterSingleXecReceiveTx,
-            ),
-        ).toStrictEqual(utxosAddedBySingleXecReceiveTx);
-    });
-    test('whichUtxosWereAdded correctly identifies multiple added utxos with the same txid [template]', async () => {
-        expect(
-            whichUtxosWereAdded(
-                previousUtxosTemplate,
-                currentUtxosAfterMultiXecReceiveTxTemplate,
-            ),
-        ).toStrictEqual(utxosAddedByMultiXecReceiveTxTemplate);
-    });
-    test('whichUtxosWereAdded correctly identifies multiple added utxos with the same txid', async () => {
-        expect(
-            whichUtxosWereAdded(
-                previousUtxosBeforeMultiXecReceiveTx,
-                currentUtxosAfterMultiXecReceiveTx,
-            ),
-        ).toStrictEqual(utxosAddedByMultiXecReceiveTx);
-    });
-    test('whichUtxosWereAdded correctly identifies an added utxos from received eToken tx [template]', async () => {
-        expect(
-            whichUtxosWereAdded(
-                previousUtxosTemplate,
-                currentUtxosAfterEtokenReceiveTxTemplate,
-            ),
-        ).toStrictEqual(utxosAddedByEtokenReceiveTxTemplate);
-    });
-    test('whichUtxosWereAdded correctly identifies an added utxos from received eToken tx', async () => {
-        expect(
-            whichUtxosWereAdded(
-                previousUtxosBeforeEtokenReceiveTx,
-                currentUtxosAfterEtokenReceiveTx,
-            ),
-        ).toStrictEqual(utxosAddedByEtokenReceiveTx);
-    });
-    test('whichUtxosWereAdded correctly identifies no utxos were added in a send all XEC tx (no change) [template]', async () => {
-        expect(
-            whichUtxosWereAdded(
-                previousUtxosBeforeSendAllTxTemplate,
-                currentUtxosAfterSendAllTxTemplate,
-            ),
-        ).toStrictEqual(false);
-    });
-    test('whichUtxosWereAdded correctly identifies no utxos were added in a send all XEC tx (no change)', async () => {
-        expect(
-            whichUtxosWereAdded(
-                previousUtxosBeforeSendAllTx,
-                currentUtxosAfterSendAllTx,
-            ),
-        ).toStrictEqual(false);
-    });
-    test('whichUtxosWereAdded correctly identifies an added utxo from a single send XEC tx', async () => {
-        expect(
-            whichUtxosWereAdded(
-                previousUtxosBeforeSingleXecSendTx,
-                currentUtxosAfterSingleXecSendTx,
-            ),
-        ).toStrictEqual(utxosAddedBySingleXecSendTx);
-    });
-    test('whichUtxosWereAdded correctly identifies an added utxo from a single send XEC tx [template]', async () => {
-        expect(
-            whichUtxosWereAdded(
-                previousUtxosTemplate,
-                currentUtxosAfterSingleXecSendTxTemplate,
-            ),
-        ).toStrictEqual(utxosAddedBySingleXecSendTxTemplate);
-    });
-    test('whichUtxosWereAdded correctly identifies added change utxos from a send eToken tx [template]', async () => {
-        expect(
-            whichUtxosWereAdded(
-                previousUtxosTemplate,
-                currentUtxosAfterEtokenSendTxTemplate,
-            ),
-        ).toStrictEqual(utxosAddedByEtokenSendTxTemplate);
-    });
-    test('whichUtxosWereAdded correctly identifies added change utxos from a send eToken tx', async () => {
-        expect(
-            whichUtxosWereAdded(
-                previousUtxosBeforeEtokenSendTx,
-                currentUtxosAfterEtokenSendTx,
-            ),
-        ).toStrictEqual(utxosAddedByEtokenSendTx);
-    });
-    test('whichUtxosWereConsumed correctly identifies no utxos consumed after a received XEC tx [template]', async () => {
-        expect(
-            whichUtxosWereConsumed(
-                previousUtxosTemplate,
-                currentUtxosAfterSingleXecReceiveTxTemplate,
-            ),
-        ).toStrictEqual(false);
-    });
-    test('whichUtxosWereConsumed correctly identifies no utxos consumed a received XEC tx', async () => {
-        expect(
-            whichUtxosWereConsumed(
-                previousUtxosBeforeSingleXecReceiveTx,
-                currentUtxosAfterSingleXecReceiveTx,
-            ),
-        ).toStrictEqual(false);
-    });
-    test('whichUtxosWereConsumed correctly identifies no consumed utxos after receiving an XEC multi-send tx [template]', async () => {
-        expect(
-            whichUtxosWereConsumed(
-                previousUtxosTemplate,
-                currentUtxosAfterMultiXecReceiveTxTemplate,
-            ),
-        ).toStrictEqual(false);
-    });
-    test('whichUtxosWereConsumed correctly identifies no consumed utxos after receiving an XEC multi-send tx', async () => {
-        expect(
-            whichUtxosWereConsumed(
-                previousUtxosBeforeMultiXecReceiveTx,
-                currentUtxosAfterMultiXecReceiveTx,
-            ),
-        ).toStrictEqual(false);
-    });
-    test('whichUtxosWereConsumed correctly identifies consumed utxos from a single send XEC tx', async () => {
-        expect(
-            whichUtxosWereConsumed(
-                previousUtxosBeforeSingleXecSendTx,
-                currentUtxosAfterSingleXecSendTx,
-            ),
-        ).toStrictEqual(utxosConsumedBySingleXecSendTx);
-    });
-    test('whichUtxosWereConsumed correctly identifies consumed utxos from a send all XEC tx [template]', async () => {
-        expect(
-            whichUtxosWereConsumed(
-                previousUtxosBeforeSendAllTxTemplate,
-                currentUtxosAfterSendAllTxTemplate,
-            ),
-        ).toStrictEqual(utxosConsumedBySendAllTxTemplate);
-    });
-    test('whichUtxosWereConsumed correctly identifies consumed utxos from a send all XEC tx', async () => {
-        expect(
-            whichUtxosWereConsumed(
-                previousUtxosBeforeSendAllTx,
-                currentUtxosAfterSendAllTx,
-            ),
-        ).toStrictEqual(utxosConsumedBySendAllTx);
-    });
-    test('whichUtxosWereConsumed correctly identifies consumed utxos from a single send XEC tx [template]', async () => {
-        expect(
-            whichUtxosWereConsumed(
-                previousUtxosTemplate,
-                currentUtxosAfterSingleXecSendTxTemplate,
-            ),
-        ).toStrictEqual(utxosConsumedBySingleXecSendTxTemplate);
-    });
-    test('whichUtxosWereConsumed correctly identifies consumed utxos from a send eToken tx [template]', async () => {
-        expect(
-            whichUtxosWereConsumed(
-                previousUtxosTemplate,
-                currentUtxosAfterEtokenSendTxTemplate,
-            ),
-        ).toStrictEqual(utxosConsumedByEtokenSendTxTemplate);
-    });
-    test('whichUtxosWereConsumed correctly identifies consumed utxos from a send eToken tx', async () => {
-        expect(
-            whichUtxosWereConsumed(
-                previousUtxosBeforeEtokenSendTx,
-                currentUtxosAfterEtokenSendTx,
-            ),
-        ).toStrictEqual(utxosConsumedByEtokenSendTx);
-    });
-    test('addNewHydratedUtxos correctly adds new utxos object to existing hydratedUtxoDetails object', async () => {
-        expect(
-            addNewHydratedUtxos(
-                newHydratedUtxosSingleTemplate,
-                hydratedUtxoDetailsBeforeAddingTemplate,
-            ),
-        ).toStrictEqual(hydratedUtxoDetailsAfterAddingSingleUtxoTemplate);
-    });
-    test('addNewHydratedUtxos correctly adds more than 20 new hydrated utxos to existing hydratedUtxoDetails object', async () => {
-        expect(
-            addNewHydratedUtxos(
-                addedHydratedUtxosOverTwenty,
-                existingHydratedUtxoDetails,
-            ),
-        ).toStrictEqual(existingHydratedUtxoDetailsAfterAdd);
-    });
-    test('removeConsumedUtxos correctly removes a single utxo from hydratedUtxoDetails - template', async () => {
-        expect(
-            removeConsumedUtxos(
-                consumedUtxoTemplate,
-                hydratedUtxoDetailsBeforeConsumedTemplate,
-            ),
-        ).toStrictEqual(hydratedUtxoDetailsAfterRemovingConsumedUtxoTemplate);
-    });
-    test('removeConsumedUtxos correctly removes a single utxo from hydratedUtxoDetails', async () => {
-        expect(
-            removeConsumedUtxos(
-                consumedUtxos,
-                hydratedUtxoDetailsBeforeRemovingConsumedUtxos,
-            ),
-        ).toStrictEqual(hydratedUtxoDetailsAfterRemovingConsumedUtxos);
-    });
-    test('removeConsumedUtxos correctly removes more than twenty utxos from hydratedUtxoDetails', async () => {
-        expect(
-            removeConsumedUtxos(
-                consumedUtxosMoreThanTwenty,
-                hydratedUtxoDetailsBeforeRemovingConsumedUtxos,
-            ),
-        ).toStrictEqual(
-            hydratedUtxoDetailsAfterRemovingMoreThanTwentyConsumedUtxos,
-        );
-    });
-    test('removeConsumedUtxos correctly removes more than twenty utxos from multiple utxo objects from hydratedUtxoDetails', async () => {
-        expect(
-            removeConsumedUtxos(
-                consumedUtxosMoreThanTwentyInRandomObjects,
-                hydratedUtxoDetailsBeforeRemovingConsumedUtxos,
-            ),
-        ).toStrictEqual(
-            hydratedUtxoDetailsAfterRemovingMoreThanTwentyConsumedUtxos,
-        );
-    });
-    test('getUtxoCount correctly calculates the total for a utxo object with empty addresses [template]', async () => {
-        expect(getUtxoCount(utxoCountSingleTemplate)).toStrictEqual(1);
-    });
-    test('getUtxoCount correctly calculates the total for multiple utxos [template]', async () => {
-        expect(getUtxoCount(utxoCountMultiTemplate)).toStrictEqual(12);
-    });
-    test('areAllUtxosIncludedInIncrementallyHydratedUtxos correctly identifies all utxos are in incrementally hydrated utxos [template]', async () => {
-        expect(
-            areAllUtxosIncludedInIncrementallyHydratedUtxos(
-                incrementalUtxosTemplate,
-                incrementallyHydratedUtxosTemplate,
-            ),
-        ).toBe(true);
-    });
-    test('areAllUtxosIncludedInIncrementallyHydratedUtxos returns false if a utxo in the utxo set is not in incrementally hydrated utxos [template]', async () => {
-        expect(
-            areAllUtxosIncludedInIncrementallyHydratedUtxos(
-                incrementalUtxosTemplate,
-                incrementallyHydratedUtxosTemplateMissing,
-            ),
-        ).toBe(false);
-    });
-    test('areAllUtxosIncludedInIncrementallyHydratedUtxos correctly identifies all utxos are in incrementally hydrated utxos', async () => {
-        expect(
-            areAllUtxosIncludedInIncrementallyHydratedUtxos(
-                utxosAfterSentTxIncremental,
-                incrementallyHydratedUtxosAfterProcessing,
-            ),
-        ).toBe(true);
-    });
-    test('areAllUtxosIncludedInIncrementallyHydratedUtxos returns false if a utxo in the utxo set is not in incrementally hydrated utxos', async () => {
-        expect(
-            areAllUtxosIncludedInIncrementallyHydratedUtxos(
-                utxosAfterSentTxIncremental,
-                incrementallyHydratedUtxosAfterProcessingOneMissing,
-            ),
-        ).toBe(false);
-    });
-    test('areAllUtxosIncludedInIncrementallyHydratedUtxos returns false if utxo set is invalid', async () => {
-        expect(
-            areAllUtxosIncludedInIncrementallyHydratedUtxos(
-                {},
-                incrementallyHydratedUtxosAfterProcessing,
-            ),
-        ).toBe(false);
-    });
     test('convertEtokenToEcashAddr successfully converts a valid eToken address to eCash', async () => {
         const result = convertEtokenToEcashAddr(
             'etoken:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gcldpffcs',

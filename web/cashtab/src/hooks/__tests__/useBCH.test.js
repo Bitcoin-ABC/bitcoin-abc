@@ -1,19 +1,11 @@
 /* eslint-disable no-native-reassign */
 import useBCH from '../useBCH';
-import mockReturnGetHydratedUtxoDetails from '../__mocks__/mockReturnGetHydratedUtxoDetails';
-import mockReturnGetSlpBalancesAndUtxos from '../__mocks__/mockReturnGetSlpBalancesAndUtxos';
-import mockReturnGetHydratedUtxoDetailsWithZeroBalance from '../__mocks__/mockReturnGetHydratedUtxoDetailsWithZeroBalance';
-import mockReturnGetSlpBalancesAndUtxosNoZeroBalance from '../__mocks__/mockReturnGetSlpBalancesAndUtxosNoZeroBalance';
 import sendBCHMock from '../__mocks__/sendBCH';
 import createTokenMock from '../__mocks__/createToken';
 import mockTxHistory from '../__mocks__/mockTxHistory';
 import mockFlatTxHistory from '../__mocks__/mockFlatTxHistory';
 import mockTxDataWithPassthrough from '../__mocks__/mockTxDataWithPassthrough';
 import mockPublicKeys from '../__mocks__/mockPublicKeys';
-import {
-    flattenedHydrateUtxosResponse,
-    legacyHydrateUtxosResponse,
-} from '../__mocks__/mockHydrateUtxosBatched';
 import {
     tokenSendWdt,
     tokenReceiveGarmonbozia,
@@ -76,48 +68,6 @@ describe('useBCH hook', () => {
         const utxosMock = [{}, {}];
 
         expect(calcFee(BCH, utxosMock, 2, 1.01)).toBe(378);
-    });
-
-    it('gets SLP and BCH balances and utxos from hydrated utxo details', async () => {
-        const { getSlpBalancesAndUtxos } = useBCH();
-        const BCH = new BCHJS();
-        const result = await getSlpBalancesAndUtxos(
-            BCH,
-            mockReturnGetHydratedUtxoDetails,
-        );
-
-        expect(result).toStrictEqual(mockReturnGetSlpBalancesAndUtxos);
-    });
-
-    it(`Ignores SLP utxos with utxo.tokenQty === '0'`, async () => {
-        const { getSlpBalancesAndUtxos } = useBCH();
-        const BCH = new BCHJS();
-
-        const result = await getSlpBalancesAndUtxos(
-            BCH,
-            mockReturnGetHydratedUtxoDetailsWithZeroBalance,
-        );
-
-        expect(result).toStrictEqual(
-            mockReturnGetSlpBalancesAndUtxosNoZeroBalance,
-        );
-    });
-
-    it(`Parses flattened batched hydrateUtxosResponse to yield same result as legacy unbatched hydrateUtxosResponse`, async () => {
-        const { getSlpBalancesAndUtxos } = useBCH();
-        const BCH = new BCHJS();
-
-        const batchedResult = await getSlpBalancesAndUtxos(
-            BCH,
-            flattenedHydrateUtxosResponse,
-        );
-
-        const legacyResult = await getSlpBalancesAndUtxos(
-            BCH,
-            legacyHydrateUtxosResponse,
-        );
-
-        expect(batchedResult).toStrictEqual(legacyResult);
     });
 
     it('sends XEC correctly', async () => {
