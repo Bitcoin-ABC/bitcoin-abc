@@ -33,7 +33,7 @@ export const signUtxosByAddress = (BCH, inputUtxos, wallet, txBuilder) => {
             utxoEcPair,
             undefined,
             txBuilder.hashTypes.SIGHASH_ALL,
-            utxo.value,
+            parseInt(utxo.value),
         );
     }
 
@@ -74,8 +74,8 @@ export const generateTxInput = (
         for (let i = 0; i < utxos.length; i++) {
             const utxo = utxos[i];
             totalInputUtxoValue = totalInputUtxoValue.plus(utxo.value);
-            const vout = utxo.vout;
-            const txid = utxo.txid;
+            const vout = utxo.outpoint.outIdx;
+            const txid = utxo.outpoint.txid;
             // add input with txid and index of vout
             txBuilder.addInput(txid, vout);
 

@@ -90,7 +90,7 @@ import {
     disconnectedWebsocketAlpha,
     unsubscribedWebsocket,
 } from '../__mocks__/chronikWs';
-import mockReturnGetSlpBalancesAndUtxos from '../../hooks/__mocks__/mockReturnGetSlpBalancesAndUtxos';
+import mockNonSlpUtxos from '../../hooks/__mocks__/mockNonSlpUtxos';
 import {
     mockOneToOneSendXecTxBuilderObj,
     mockOneToManySendXecTxBuilderObj,
@@ -514,7 +514,7 @@ it('generateOpReturnScript() correctly throws an error on an invalid airdrop inp
 it(`generateTxInput() returns an input object for a valid one to one XEC tx`, async () => {
     const BCH = new BCHJS();
     const isOneToMany = false;
-    const utxos = mockReturnGetSlpBalancesAndUtxos.nonSlpUtxos;
+    const utxos = mockNonSlpUtxos;
     let txBuilder = new BCH.TransactionBuilder();
     const destinationAddressAndValueArray = null;
     const satoshisToSend = new BigNumber(2184);
@@ -538,7 +538,7 @@ it(`generateTxInput() returns an input object for a valid one to one XEC tx`, as
 it(`generateTxInput() returns an input object for a valid one to many XEC tx`, async () => {
     const BCH = new BCHJS();
     const isOneToMany = true;
-    const utxos = mockReturnGetSlpBalancesAndUtxos.nonSlpUtxos;
+    const utxos = mockNonSlpUtxos;
     let txBuilder = new BCH.TransactionBuilder();
     const destinationAddressAndValueArray = [
         'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r48,3000',
@@ -566,7 +566,7 @@ it(`generateTxInput() returns an input object for a valid one to many XEC tx`, a
 it(`generateTxInput() throws error for a one to many XEC tx with invalid destinationAddressAndValueArray input`, async () => {
     const BCH = new BCHJS();
     const isOneToMany = true;
-    const utxos = mockReturnGetSlpBalancesAndUtxos.nonSlpUtxos;
+    const utxos = mockNonSlpUtxos;
     let txBuilder = new BCH.TransactionBuilder();
     const destinationAddressAndValueArray = null; // invalid since isOneToMany is true
     const satoshisToSend = new BigNumber(900000);
