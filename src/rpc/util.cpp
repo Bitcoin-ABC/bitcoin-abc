@@ -412,9 +412,9 @@ struct Sections {
                     return;
                 }
                 auto left = indent;
-                if (arg.m_type_str.size() != 0 && push_name) {
-                    left +=
-                        "\"" + arg.GetName() + "\": " + arg.m_type_str.at(0);
+                if (arg.m_opts.type_str.size() != 0 && push_name) {
+                    left += "\"" + arg.GetName() +
+                            "\": " + arg.m_opts.type_str.at(0);
                 } else {
                     left += push_name ? arg.ToStringObj(/* oneline */ false)
                                       : arg.ToString(/* oneline */ false);
@@ -631,7 +631,7 @@ std::string RPCHelpMan::ToString() const {
     ret += m_name;
     bool was_optional{false};
     for (const auto &arg : m_args) {
-        if (arg.m_hidden) {
+        if (arg.m_opts.hidden) {
             // Any arg that follows is also hidden
             break;
         }
@@ -662,7 +662,7 @@ std::string RPCHelpMan::ToString() const {
     Sections sections;
     for (size_t i{0}; i < m_args.size(); ++i) {
         const auto &arg = m_args.at(i);
-        if (arg.m_hidden) {
+        if (arg.m_opts.hidden) {
             // Any arg that follows is also hidden
             break;
         }
@@ -730,8 +730,8 @@ bool RPCArg::IsOptional() const {
 std::string RPCArg::ToDescriptionString() const {
     std::string ret;
     ret += "(";
-    if (m_type_str.size() != 0) {
-        ret += m_type_str.at(1);
+    if (m_opts.type_str.size() != 0) {
+        ret += m_opts.type_str.at(1);
     } else {
         switch (m_type) {
             case Type::STR_HEX:
@@ -985,8 +985,8 @@ std::string RPCArg::ToStringObj(const bool oneline) const {
 }
 
 std::string RPCArg::ToString(const bool oneline) const {
-    if (oneline && !m_oneline_description.empty()) {
-        return m_oneline_description;
+    if (oneline && !m_opts.oneline_description.empty()) {
+        return m_opts.oneline_description;
     }
 
     switch (m_type) {

@@ -1701,50 +1701,35 @@ RPCHelpMan importmulti() {
                           "Descriptor to import. If using descriptor, do not "
                           "also provide address/scriptPubKey, scripts, or "
                           "pubkeys"},
-                         {"scriptPubKey",
-                          RPCArg::Type::STR,
+                         {"scriptPubKey", RPCArg::Type::STR,
                           RPCArg::Optional::NO,
                           "Type of scriptPubKey (string for script, json for "
                           "address). Should not be provided if using a "
                           "descriptor",
-                          /* oneline_description */ "",
-                          {"\"<script>\" | { \"address\":\"<address>\" }",
-                           "string / json"}},
-                         {"timestamp",
-                          RPCArg::Type::NUM,
-                          RPCArg::Optional::NO,
+                          RPCArgOptions{
+                              .type_str = {"\"<script>\" | { "
+                                           "\"address\":\"<address>\" }",
+                                           "string / json"}}},
+                         {"timestamp", RPCArg::Type::NUM, RPCArg::Optional::NO,
                           "Creation time of the key expressed in " +
                               UNIX_EPOCH_TIME +
                               ",\n"
-                              "                                            "
-                              "                  or the string \"now\" to "
-                              "substitute the current synced blockchain time. "
-                              "The "
-                              "timestamp of the oldest\n"
-                              "                                            "
-                              "                  key will determine how far "
-                              "back "
-                              "blockchain rescans need to begin for missing "
-                              "wallet "
+                              "or the string \"now\" to substitute the current "
+                              "synced blockchain time. The timestamp of the "
+                              "oldest\n"
+                              "key will determine how far back blockchain "
+                              "rescans need to begin for missing wallet "
                               "transactions.\n"
-                              "                                            "
-                              "                  \"now\" can be specified to "
-                              "bypass scanning, for keys which are known to "
-                              "never "
-                              "have been used, and\n"
-                              "                                            "
-                              "                  0 can be specified to scan "
-                              "the "
-                              "entire blockchain. Blocks up to 2 hours before "
-                              "the "
+                              "\"now\" can be specified to bypass scanning, "
+                              "for keys which are known to never have been "
+                              "used, and\n"
+                              "0 can be specified to scan the entire "
+                              "blockchain. Blocks up to 2 hours before the "
                               "earliest key\n"
-                              "                                            "
-                              "                  creation time of all keys "
-                              "being "
-                              "imported by the importmulti call will be "
-                              "scanned.",
-                          /* oneline_description */ "",
-                          {"timestamp | \"now\"", "integer / string"}},
+                              "creation time of all keys being imported by the "
+                              "importmulti call will be scanned.",
+                          RPCArgOptions{.type_str = {"timestamp | \"now\"",
+                                                     "integer / string"}}},
                          {"redeemscript", RPCArg::Type::STR,
                           RPCArg::Optional::OMITTED,
                           "Allowed only if the scriptPubKey is a P2SH "
@@ -1794,7 +1779,7 @@ RPCHelpMan importmulti() {
                      },
                  },
              },
-             "\"requests\""},
+             RPCArgOptions{.oneline_description = "\"requests\""}},
             {"options",
              RPCArg::Type::OBJ,
              RPCArg::Optional::OMITTED_NAMED_ARG,
@@ -1803,7 +1788,7 @@ RPCHelpMan importmulti() {
                  {"rescan", RPCArg::Type::BOOL, RPCArg::Default{true},
                   "Stating if should rescan the blockchain after all imports"},
              },
-             "\"options\""},
+             RPCArgOptions{.oneline_description = "\"options\""}},
         },
         RPCResult{RPCResult::Type::ARR,
                   "",
@@ -2181,29 +2166,23 @@ RPCHelpMan importdescriptors() {
                           "If a ranged descriptor is set to active, this "
                           "specifies the next index to generate addresses "
                           "from"},
-                         {"timestamp",
-                          RPCArg::Type::NUM,
-                          RPCArg::Optional::NO,
+                         {"timestamp", RPCArg::Type::NUM, RPCArg::Optional::NO,
                           "Time from which to start rescanning the blockchain "
                           "for this descriptor, in " +
                               UNIX_EPOCH_TIME +
                               "\n"
-                              "                                                "
-                              "              Use the string \"now\" to "
-                              "substitute the current synced blockchain time.\n"
-                              "                                                "
-                              "              \"now\" can be specified to "
-                              "bypass scanning, for outputs which are known to "
-                              "never have been used, and\n"
-                              "                                                "
-                              "              0 can be specified to scan the "
-                              "entire blockchain. Blocks up to 2 hours before "
-                              "the earliest timestamp\n"
-                              "                                                "
-                              "              of all descriptors being imported "
-                              "will be scanned.",
-                          /* oneline_description */ "",
-                          {"timestamp | \"now\"", "integer / string"}},
+                              "Use the string \"now\" to substitute the "
+                              "current synced blockchain time.\n"
+                              "\"now\" can be specified to bypass scanning, "
+                              "for outputs which are known to never have been "
+                              "used, and\n"
+                              "0 can be specified to scan the entire "
+                              "blockchain. Blocks up to 2 hours before the "
+                              "earliest timestamp\n"
+                              "of all descriptors being imported will be "
+                              "scanned.",
+                          RPCArgOptions{.type_str = {"timestamp | \"now\"",
+                                                     "integer / string"}}},
                          {"internal", RPCArg::Type::BOOL,
                           RPCArg::Default{false},
                           "Whether matching outputs should be treated as not "
@@ -2214,7 +2193,7 @@ RPCHelpMan importdescriptors() {
                      },
                  },
              },
-             "\"requests\""},
+             RPCArgOptions{.oneline_description = "\"requests\""}},
         },
         RPCResult{RPCResult::Type::ARR,
                   "",

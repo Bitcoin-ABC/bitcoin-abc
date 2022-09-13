@@ -913,13 +913,10 @@ static RPCHelpMan gettxoutsetinfo() {
             {"hash_type", RPCArg::Type::STR, RPCArg::Default{"hash_serialized"},
              "Which UTXO set hash should be calculated. Options: "
              "'hash_serialized' (the legacy algorithm), 'muhash', 'none'."},
-            {"hash_or_height",
-             RPCArg::Type::NUM,
-             RPCArg::Optional::OMITTED,
+            {"hash_or_height", RPCArg::Type::NUM, RPCArg::Optional::OMITTED,
              "The block hash or height of the target height (only available "
              "with coinstatsindex).",
-             "",
-             {"", "string or numeric"}},
+             RPCArgOptions{.type_str = {"", "string or numeric"}}},
             {"use_index", RPCArg::Type::BOOL, RPCArg::Default{true},
              "Use coinstatsindex, if available."},
         },
@@ -1928,12 +1925,9 @@ static RPCHelpMan getblockstats() {
             ".\n"
             "It won't work for some heights with pruning.\n",
         {
-            {"hash_or_height",
-             RPCArg::Type::NUM,
-             RPCArg::Optional::NO,
+            {"hash_or_height", RPCArg::Type::NUM, RPCArg::Optional::NO,
              "The block hash or height of the target block",
-             "",
-             {"", "string or numeric"}},
+             RPCArgOptions{.type_str = {"", "string or numeric"}}},
             {"stats",
              RPCArg::Type::ARR,
              RPCArg::DefaultHint{"all values"},
@@ -1944,7 +1938,7 @@ static RPCHelpMan getblockstats() {
                  {"time", RPCArg::Type::STR, RPCArg::Optional::OMITTED,
                   "Selected statistic"},
              },
-             "stats"},
+             RPCArgOptions{.oneline_description = "stats"}},
         },
         RPCResult{
             RPCResult::Type::OBJ,
@@ -2307,7 +2301,7 @@ static RPCHelpMan scantxoutset() {
                      },
                  },
              },
-             "[scanobjects,...]"},
+             RPCArgOptions{.oneline_description = "[scanobjects,...]"}},
         },
         {
             RPCResult{"When action=='abort'", RPCResult::Type::BOOL, "", ""},

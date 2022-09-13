@@ -662,7 +662,7 @@ static RPCHelpMan getblocktemplate() {
                      },
                  },
              },
-             "\"template_request\""},
+             RPCArgOptions{.oneline_description = "\"template_request\""}},
         },
         {
             RPCResult{"If the proposal was accepted with mode=='proposal'",

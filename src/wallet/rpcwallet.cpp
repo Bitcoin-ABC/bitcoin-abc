@@ -744,7 +744,8 @@ static RPCHelpMan sendmany() {
             HELP_REQUIRING_PASSPHRASE,
         {
             {"dummy", RPCArg::Type::STR, RPCArg::Optional::NO,
-             "Must be set to \"\" for backwards compatibility.", "\"\""},
+             "Must be set to \"\" for backwards compatibility.",
+             RPCArgOptions{.oneline_description = "\"\""}},
             {
                 "amounts",
                 RPCArg::Type::OBJ,
@@ -3021,7 +3022,7 @@ static RPCHelpMan listunspent() {
                   RPCArg::DefaultHint{"unlimited"},
                   "Minimum sum value of all UTXOs in " + ticker + ""},
              },
-             "query_options"},
+             RPCArgOptions{.oneline_description = "query_options"}},
         },
         RPCResult{
             RPCResult::Type::ARR,
@@ -3521,7 +3522,7 @@ static RPCHelpMan fundrawtransaction() {
                      },
                  },
              },
-             "options"},
+             RPCArgOptions{.oneline_description = "options"}},
         },
         RPCResult{RPCResult::Type::OBJ,
                   "",
@@ -4349,7 +4350,7 @@ static RPCHelpMan send() {
                      },
                  },
              },
-             "options"},
+             RPCArgOptions{.oneline_description = "options"}},
         },
         RPCResult{
             RPCResult::Type::OBJ,
@@ -4793,7 +4794,7 @@ static RPCHelpMan walletcreatefundedpsbt() {
                      },
                  },
              },
-             "options"},
+             RPCArgOptions{.oneline_description = "options"}},
             {"bip32derivs", RPCArg::Type::BOOL, RPCArg::Default{true},
              "Includes the BIP 32 derivation paths for public keys if we know "
              "them"},
