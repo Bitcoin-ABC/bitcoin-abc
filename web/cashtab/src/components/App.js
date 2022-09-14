@@ -163,6 +163,93 @@ const Footer = styled.div`
     }
 `;
 
+const NavWrapper = styled.div`
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 1.3rem;
+    margin-bottom: 5px;
+`;
+
+const NavIcon = styled.span`
+    position: relative;
+    background-color: ${props =>
+        props.clicked ? 'transparent' : props.theme.buttons.primary.color};
+    width: 2rem;
+    height: 2px;
+    display: inline-block;
+    transition: transform 300ms, top 300ms, background-color 300ms;
+    &::before,
+    &::after {
+        content: '';
+        background-color: ${props => props.theme.buttons.primary.color};
+        width: 2rem;
+        height: 2px;
+        display: inline-block;
+        position: absolute;
+        left: 0;
+        transition: transform 300ms, top 300ms, background-color 300ms;
+    }
+    &::before {
+        top: ${props => (props.clicked ? '0' : '-0.8rem')};
+        transform: ${props => (props.clicked ? 'rotate(135deg)' : 'rotate(0)')};
+    }
+    &::after {
+        top: ${props => (props.clicked ? '0' : '0.8rem')};
+        transform: ${props =>
+            props.clicked ? 'rotate(-135deg)' : 'rotate(0)'};
+    }
+`;
+
+const NavMenu = styled.div`
+    position: absolute;
+    bottom: 5rem;
+    display: flex;
+    width: 8.31rem;
+    flex-direction: column;
+    border: ${props => (props.open ? '0.1px solid' : '0px solid')};
+    border-color: ${props =>
+        props.open ? props.theme.contrast : 'transparent'};
+    justify-content: center;
+    align-items: center;
+    @media (max-width: 768px) {
+        margin-right: 4rem;
+    }
+    overflow: hidden;
+    transition: ${props =>
+        props.open
+            ? 'max-height 1000ms ease-in-out , border-color 800ms ease-in-out, border-width 800ms ease-in-out'
+            : 'max-height 300ms cubic-bezier(0, 1, 0, 1), border-color 600ms ease-in-out, border-width 800ms ease-in-out'};
+    max-height: ${props => (props.open ? '100rem' : '0')};
+`;
+
+const NavItem = styled.button`
+    display: flex;
+    justify-content: right;
+    align-items: center;
+    width: 100%;
+    white-space: nowrap;
+    height: 3rem;
+    background-color: ${props => props.theme.walletBackground};
+    border: none;
+    color: ${props => props.theme.contrast};
+    cursor: pointer;
+    gap: 1rem;
+    &:hover {
+        color: ${props => props.theme.navActive};
+        svg {
+            fill: ${props => props.theme.navActive};
+        }
+    }
+    svg {
+        fill: ${props => props.theme.contrast};
+        width: 26px;
+        height: auto;
+    }
+`;
+
 export const NavButton = styled.button`
     :focus,
     :active {
@@ -259,6 +346,8 @@ const App = () => {
     const ContextValue = React.useContext(WalletContext);
     const { wallet, loading } = ContextValue;
     const [loadingUtxosAfterSend, setLoadingUtxosAfterSend] = useState(false);
+    const [navMenuClicked, setNavMenuClicked] = useState(false);
+    const handleNavMenuClick = () => setNavMenuClicked(!navMenuClicked);
     // If wallet is unmigrated, do not show page until it has migrated
     // An invalid wallet will be validated/populated after the next API call, ETA 10s
     const validWallet = isValidStoredWallet(wallet);
@@ -375,18 +464,31 @@ const App = () => {
                                 >
                                     <ReceiveIcon />
                                 </NavButton>
-                                <NavButton
-                                    active={selectedKey === 'airdrop'}
-                                    onClick={() => history.push('/airdrop')}
-                                >
-                                    <AirdropIcon />
-                                </NavButton>
-                                <NavButton
-                                    active={selectedKey === 'configure'}
-                                    onClick={() => history.push('/configure')}
-                                >
-                                    <SettingsIcon />
-                                </NavButton>
+
+                                <NavWrapper onClick={handleNavMenuClick}>
+                                    <NavIcon clicked={navMenuClicked} />
+                                    <NavMenu open={navMenuClicked}>
+                                        <NavItem
+                                            active={selectedKey === 'airdrop'}
+                                            onClick={() =>
+                                                history.push('/airdrop')
+                                            }
+                                        >
+                                            {' '}
+                                            Airdrop
+                                            <AirdropIcon />
+                                        </NavItem>
+                                        <NavItem
+                                            active={selectedKey === 'configure'}
+                                            onClick={() =>
+                                                history.push('/configure')
+                                            }
+                                        >
+                                            Settings
+                                            <SettingsIcon />
+                                        </NavItem>
+                                    </NavMenu>
+                                </NavWrapper>
                             </Footer>
                         ) : null}
                     </WalletBody>
