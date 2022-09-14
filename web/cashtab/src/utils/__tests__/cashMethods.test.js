@@ -45,6 +45,7 @@ import {
 import {
     validStoredWallet,
     invalidStoredWallet,
+    invalidpreChronikStoredWallet,
 } from '../__mocks__/mockStoredWallets';
 
 import {
@@ -985,6 +986,9 @@ describe('Correctly executes cash utility functions', () => {
     });
     it(`Recognizes a stored wallet as invalid if it is missing required fields`, () => {
         expect(isValidStoredWallet(invalidStoredWallet)).toBe(false);
+    });
+    it(`Recognizes a stored wallet as invalid if it includes hydratedUtxoDetails in the state field`, () => {
+        expect(isValidStoredWallet(invalidpreChronikStoredWallet)).toBe(false);
     });
     it(`Converts a legacy BCH amount to an XEC amount`, () => {
         expect(fromLegacyDecimals(0.00000546, 2)).toStrictEqual(5.46);

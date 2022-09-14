@@ -26,8 +26,8 @@ export const currency = {
     tokenDbUrl: 'https://tokendb.kingbch.com',
     txHistoryCount: 10,
     xecApiBatchSize: 20,
-    websocketDisconnectedRefreshInterval: 1000, // 1000 = 1s
-    websocketConnectedRefreshInterval: 5000,
+    websocketDisconnectedRefreshInterval: 5000, // 1000 = 1s
+    websocketConnectedRefreshInterval: 10000,
     defaultCashtabCache: {
         tokenInfoById: {},
     },

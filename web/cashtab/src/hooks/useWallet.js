@@ -130,11 +130,15 @@ const useWallet = () => {
             setWallet(wallet);
             return setLoading(false);
         }
+        console.log(`Active wallet is not valid, loading params from API`);
         // Loading will remain true until API calls populate this legacy wallet
         setWallet(wallet);
     };
 
     const update = async ({ wallet }) => {
+        console.log(
+            `update called on ${wallet.name} at interval ${walletRefreshInterval}`,
+        );
         //console.log(`tick()`);
         //console.time("update");
 
@@ -251,7 +255,6 @@ const useWallet = () => {
                 },
                 parsedTxHistory: parsedWithTokens,
                 utxos: chronikUtxos,
-                hydratedUtxoDetails: [], // Obsolete but necessary to pass isValidStoredWallet
             };
 
             // Set wallet with new state field
@@ -510,10 +513,15 @@ const useWallet = () => {
     1 - check savedWallets for the previously active wallet
     2 - If not there, add it
     */
+        console.log(`Activating wallet ${walletToActivate.name}`);
         setHasUpdated(false);
         let currentlyActiveWallet;
         try {
+            //TODO this should just be a param used to call the function
             currentlyActiveWallet = await localforage.getItem('wallet');
+            console.log(
+                `Currently active wallet is ${currentlyActiveWallet.name}`,
+            );
         } catch (err) {
             console.log(
                 `Error in localforage.getItem("wallet") in activateWallet()`,
@@ -538,45 +546,31 @@ const useWallet = () => {
 
         Two cases to handle
 
-        1 - currentlyActiveWallet has Path1899, but its stored keyvalue pair in savedWallets does not
-            > Update savedWallets so that Path1899 is added to currentlyActiveWallet
+        1 - currentlyActiveWallet is valid but its stored keyvalue pair in savedWallets is not
+            > Update savedWallets so this saved wallet is valid
         
-        2 - walletToActivate does not have Path1899
-            > Update walletToActivate with Path1899 before activation
-
-        NOTE: since publicKey property is added later,
-        wallet without public key in Path1899 is also considered legacy and required migration.
+        2 - walletToActivate is not valid (because it's a legacy saved wallet)
+            > Update walletToActivate before activation
+        
         */
 
-        // Need to handle a similar situation with state
-        // If you find the activeWallet in savedWallets but without state, resave active wallet with state
-        // Note you do not have the Case 2 described above here, as wallet state is added in the update() function of useWallet.js
-        // Also note, since state can be expected to change frequently (unlike path deriv), you will likely save it every time you activate a new wallet
         // Check savedWallets for currentlyActiveWallet
         let walletInSavedWallets = false;
         for (let i = 0; i < savedWallets.length; i += 1) {
             if (savedWallets[i].name === currentlyActiveWallet.name) {
                 walletInSavedWallets = true;
-                // Check savedWallets for unmigrated currentlyActiveWallet
-                if (isLegacyMigrationRequired(savedWallets[i])) {
-                    // Case 1, described above
-                    savedWallets[i].Path1899 = currentlyActiveWallet.Path1899;
-                    savedWallets[i].Path145 = currentlyActiveWallet.Path145;
-                    savedWallets[i].Path245 = currentlyActiveWallet.Path245;
-                }
-
-                /*
-                Update wallet state
-                Note, this makes previous `walletUnmigrated` variable redundant
-                savedWallets[i] should always be updated, since wallet state can be expected to change most of the time
-                */
-                savedWallets[i].state = currentlyActiveWallet.state;
+                // Make sure the savedWallet entry matches the currentlyActiveWallet entry
+                savedWallets[i] = currentlyActiveWallet;
+                console.log(
+                    `Updating savedWallet ${savedWallets[i].name} to match state as currentlyActiveWallet ${currentlyActiveWallet.name}`,
+                );
             }
         }
 
         // resave savedWallets
         try {
             // Set walletName as the active wallet
+            console.log(`Saving updated savedWallets`);
             await localforage.setItem('savedWallets', savedWallets);
         } catch (err) {
             console.log(
@@ -603,10 +597,7 @@ const useWallet = () => {
         if (isLegacyMigrationRequired(walletToActivate)) {
             // Case 2, described above
             console.log(
-                `Case 2: Wallet to activate does not have Path1899 or does not have public key in each Path`,
-            );
-            console.log(
-                `Wallet to activate from SavedWallets does not have Path1899 or does not have public key in each Path`,
+                `Case 2: Wallet to activate is not in the most up to date Cashtab format`,
             );
             console.log(`walletToActivate`, walletToActivate);
             walletToActivate = await migrateLegacyWallet(BCH, walletToActivate);
@@ -622,13 +613,12 @@ const useWallet = () => {
                 return false;
             }
         }
-        // Make sure stored wallet is in correct format to be used as live wallet
-        if (isValidStoredWallet(walletToActivate)) {
-            // Convert all the token balance figures to big numbers
-            const liveWalletState = loadStoredWallet(walletToActivate.state);
-            walletToActivate.state = liveWalletState;
-        }
 
+        // Convert all the token balance figures to big numbers
+        // localforage does not preserve BigNumber type; loadStoredWallet restores BigNumber type
+        const liveWalletState = loadStoredWallet(walletToActivate.state);
+        walletToActivate.state = liveWalletState;
+        console.log(`Returning walletToActivate ${walletToActivate.name}`);
         return walletToActivate;
     };
 
@@ -948,6 +938,9 @@ const useWallet = () => {
 
     // Chronik websockets
     const initializeWebsocket = async (wallet, fiatPrice) => {
+        console.log(
+            `Initializing websocket connection for wallet ${wallet.name}`,
+        );
         // Because wallet is set to `false` before it is loaded, do nothing if you find this case
         // Also return and wait for legacy migration if wallet is not migrated
         const hash160Array = getHashArrayFromWallet(wallet);
@@ -1439,18 +1432,21 @@ const useWallet = () => {
         },
         activateWallet: async walletToActivate => {
             setLoading(true);
+            // Make sure that the wallet update interval is not called on the former wallet before this function completes
+            console.log(
+                `Suspending wallet update interval while new wallet is activated`,
+            );
+            setWalletRefreshInterval(
+                currency.websocketDisconnectedRefreshInterval,
+            );
             const newWallet = await activateWallet(walletToActivate);
+            console.log(`activateWallet gives newWallet ${newWallet.name}`);
+            // Changing the wallet here will cause `initializeWebsocket` to fire which will update the websocket interval on a successful connection
             setWallet(newWallet);
-            if (isValidStoredWallet(walletToActivate)) {
-                // If you have all state parameters needed in storage, immediately load the wallet
-                setLoading(false);
-            } else {
-                // If the wallet is missing state parameters in storage, wait for API info
-                // This handles case of unmigrated legacy wallet
-                update({
-                    wallet: newWallet,
-                }).finally(() => setLoading(false));
-            }
+            // Immediately call update on this wallet to populate it in the latest format
+            // Use the instant interval of 10ms that the update function will cancel
+            setWalletRefreshInterval(10);
+            setLoading(false);
         },
         addNewSavedWallet,
         renameSavedWallet,

@@ -35,7 +35,6 @@ export default {
         state: {
             balances: [],
             utxos: [],
-            hydratedUtxoDetails: [],
             tokens: [],
             slpBalancesAndUtxos: {
                 nonSlpUtxos: [
