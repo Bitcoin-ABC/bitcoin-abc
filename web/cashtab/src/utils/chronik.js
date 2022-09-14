@@ -25,8 +25,7 @@ export const getUtxosSingleHashChronik = async (chronik, hash160) => {
         // Return only the array of utxos at this address
         return utxos[0].utxos;
     } catch (err) {
-        console.log(`Error in chronik.utxos(${hash160})`);
-        console.log(err);
+        console.log(`Error in chronik.utxos(${hash160})`, err);
     }
 };
 
@@ -154,10 +153,6 @@ const returnGetTokenInfoChronikPromise = (chronik, tokenId) => {
     return new Promise((resolve, reject) => {
         chronik.tx(tokenId).then(
             result => {
-                if (typeof result === 'undefined') {
-                    console.log(`result`, result);
-                }
-
                 const thisTokenInfo = result.slpTxData.genesisInfo;
                 thisTokenInfo.tokenId = tokenId;
                 // You only want the genesis info for tokenId
@@ -211,10 +206,6 @@ export const finalizeTokensArray = async (
     preliminaryTokensArray,
     cachedTokenInfoById = {},
 ) => {
-    console.log(
-        `finalizeTokensArray called with cachedTokenInfoById`,
-        cachedTokenInfoById,
-    );
     // Iterate over preliminaryTokensArray to determine what tokens you need to make API calls for
 
     // Create an array of promises
@@ -234,12 +225,6 @@ export const finalizeTokensArray = async (
         );
         getTokenInfoPromises.push(thisTokenInfoPromise);
     }
-
-    // For this test plan, to be removed later in stack
-    console.log(
-        `Cashtab asking chronik for token info about ${getTokenInfoPromises.length} tokens`,
-    );
-    console.log(`getTokenInfoPromises.length`, getTokenInfoPromises.length);
 
     const newTokensToCache = getTokenInfoPromises.length > 0;
 

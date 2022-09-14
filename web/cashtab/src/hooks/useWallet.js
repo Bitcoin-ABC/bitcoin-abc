@@ -136,9 +136,6 @@ const useWallet = () => {
     };
 
     const update = async ({ wallet }) => {
-        console.log(
-            `update called on ${wallet.name} at interval ${walletRefreshInterval}`,
-        );
         //console.log(`tick()`);
         //console.time("update");
 
@@ -188,18 +185,12 @@ const useWallet = () => {
                 chronik,
                 hash160AndAddressObjArray,
             );
-            console.log(`chronikUtxos`, chronikUtxos);
 
             const { preliminarySlpUtxos, nonSlpUtxos } =
                 organizeUtxosByType(chronikUtxos);
-            console.log(`chronikSlpBalancesAndUtxos without token info`, {
-                preliminarySlpUtxos,
-                nonSlpUtxos,
-            });
 
             const preliminaryTokensArray =
                 getPreliminaryTokensArray(preliminarySlpUtxos);
-            console.log(`preliminaryTokensArray`, preliminaryTokensArray);
 
             const { finalTokenArray, updatedTokenInfoById, newTokensToCache } =
                 await finalizeTokensArray(
@@ -208,13 +199,8 @@ const useWallet = () => {
                     cashtabCache.tokenInfoById,
                 );
 
-            console.log(`finalTokenArray`, finalTokenArray);
-            console.log(`updatedTokenInfoById`, updatedTokenInfoById);
-            console.log(`newTokensToCache`, newTokensToCache);
             // If you have more token info now, write this to local storage
-
             if (newTokensToCache) {
-                console.log(`New token info found, adding to cache`);
                 writeTokenInfoByIdToCache(updatedTokenInfoById);
                 // Update the tokenInfoById key in cashtabCache
                 setCashtabCache({
@@ -227,10 +213,6 @@ const useWallet = () => {
                 preliminarySlpUtxos,
                 updatedTokenInfoById,
             );
-
-            console.log(`finalSlpUtxos`, finalizedSlpUtxos);
-
-            // At this point, you have all the information you need to update the wallet utxo state
 
             // Preserve bch-api for tx history for now, as this will take another stacked diff to migrate to chronik
             const txHistory = await getTxHistory(BCH, cashAddresses);
