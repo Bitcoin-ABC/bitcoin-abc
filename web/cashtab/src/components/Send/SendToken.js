@@ -27,6 +27,7 @@ import { SidePaddingCtn } from 'components/Common/Atoms';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import { Redirect } from 'react-router-dom';
 import useWindowDimensions from 'hooks/useWindowDimensions';
+import usePrevious from 'hooks/usePrevious';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
 import { Img } from 'react-image';
 import makeBlockie from 'ethereum-blockies-base64';
@@ -98,6 +99,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
     const { tokens } = walletState;
 
     const token = tokens.find(token => token.tokenId === tokenId);
+    const previousToken = usePrevious(token);
 
     const [tokenStats, setTokenStats] = useState(null);
     const [queryStringText, setQueryStringText] = useState(null);
@@ -408,10 +410,22 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
     };
 
     useEffect(() => {
-        // If the balance has changed, unlock the UI
-        // This is redundant, if backend has refreshed in 1.75s timeout below, UI will already be unlocked
-
-        passLoadingStatus(false);
+        /*         
+        If the balance has changed, unlock the UI
+           
+        Note that the 'token' dependency changes every time the wallet state is set
+        This useEffect loop can't use token.balance as the dependency as this is 
+        occasionally undefined, which the screen UI also makes use of
+        */
+        if (
+            token &&
+            token.balance &&
+            previousToken &&
+            previousToken.balance &&
+            token.balance.toString() !== previousToken.balance.toString()
+        ) {
+            passLoadingStatus(false);
+        }
     }, [token]);
 
     return (
