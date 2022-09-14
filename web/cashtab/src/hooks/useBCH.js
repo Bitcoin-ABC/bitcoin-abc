@@ -782,8 +782,8 @@ export default function useBCH() {
         const tokenUtxos = slpBalancesAndUtxos.slpUtxos.filter(utxo => {
             if (
                 utxo && // UTXO is associated with a token.
-                utxo.tokenId === tokenId && // UTXO matches the token ID.
-                utxo.utxoType === 'token' // UTXO is not a minting baton.
+                utxo.slpMeta.tokenId === tokenId && // UTXO matches the token ID.
+                !utxo.slpToken.isMintBaton // UTXO is not a minting baton.
             ) {
                 return true;
             }
@@ -804,8 +804,8 @@ export default function useBCH() {
                 new BigNumber(tokenUtxos[i].tokenQty),
             );
             transactionBuilder.addInput(
-                tokenUtxos[i].tx_hash,
-                tokenUtxos[i].tx_pos,
+                tokenUtxos[i].outpoint.txid,
+                tokenUtxos[i].outpoint.outIdx,
             );
             tokenUtxosBeingSpent.push(tokenUtxos[i]);
             if (tokenAmountBeingSentToAddress.lte(finalTokenAmountSent)) {
