@@ -576,6 +576,8 @@ static bool ExecuteCommand(const Config &config, const CRPCCommand &command,
         } else {
             return command.actor(config, request, result, last_handler);
         }
+    } catch (const UniValue::type_error &e) {
+        throw JSONRPCError(RPC_TYPE_ERROR, e.what());
     } catch (const std::exception &e) {
         throw JSONRPCError(RPC_MISC_ERROR, e.what());
     }

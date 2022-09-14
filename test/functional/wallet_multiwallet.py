@@ -538,7 +538,7 @@ class MultiWalletTest(BitcoinTestFramework):
 
         # Test `unloadwallet` errors
         assert_raises_rpc_error(
-            -1,
+            -3,
             "JSON value of type null is not of expected type string",
             self.nodes[0].unloadwallet,
         )
