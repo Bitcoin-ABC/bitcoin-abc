@@ -6,6 +6,7 @@
 #ifndef BITCOIN_UINT256_H
 #define BITCOIN_UINT256_H
 
+#include <crypto/common.h>
 #include <span.h>
 
 #include <cassert>
@@ -92,13 +93,7 @@ public:
 
     static constexpr unsigned int size() { return WIDTH; }
 
-    uint64_t GetUint64(int pos) const {
-        const uint8_t *ptr = m_data + pos * 8;
-        return uint64_t(ptr[0]) | (uint64_t(ptr[1]) << 8) |
-               (uint64_t(ptr[2]) << 16) | (uint64_t(ptr[3]) << 24) |
-               (uint64_t(ptr[4]) << 32) | (uint64_t(ptr[5]) << 40) |
-               (uint64_t(ptr[6]) << 48) | (uint64_t(ptr[7]) << 56);
-    }
+    uint64_t GetUint64(int pos) const { return ReadLE64(m_data + pos * 8); }
 
     template <typename Stream> void Serialize(Stream &s) const {
         s << Span(m_data);
