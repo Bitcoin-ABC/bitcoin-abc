@@ -125,7 +125,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     // Else set it as blank
     const ContextValue = React.useContext(WalletContext);
     const location = useLocation();
-    const { wallet, fiatPrice, apiError, cashtabSettings } = ContextValue;
+    const { BCH, wallet, fiatPrice, apiError, cashtabSettings } = ContextValue;
     const walletState = getWalletState(wallet);
     const { balances, slpBalancesAndUtxos } = walletState;
     // Modal settings
@@ -214,7 +214,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         setIsModalVisible(false);
     };
 
-    const { getBCH, getRestUrl, sendXec, calcFee, signPkMessage } = useBCH();
+    const { getRestUrl, sendXec, calcFee, signPkMessage } = useBCH();
 
     // If the balance has changed, unlock the UI
     // This is redundant, if backend has refreshed in 1.75s timeout below, UI will already be unlocked
@@ -224,11 +224,13 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
     useEffect(() => {
         // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
-        const BCH = jestBCH ? jestBCH : getBCH();
+        const activeBCH = jestBCH ? jestBCH : BCH;
 
         // set the BCH instance to state, for other functions to reference
-        setBchObj(BCH);
+        setBchObj(activeBCH);
+    }, [BCH]);
 
+    useEffect(() => {
         // Manually parse for txInfo object on page load when Send.js is loaded with a query string
 
         // if this was routed from Wallet screen's Reply to message link then prepopulate the address and value field

@@ -14,7 +14,6 @@ import { Form, Alert, Input, Modal, Spin, Progress } from 'antd';
 const { TextArea } = Input;
 import { Row, Col, Switch } from 'antd';
 import { SmartButton } from 'components/Common/PrimaryButton';
-import useBCH from 'hooks/useBCH';
 import { errorNotification } from 'components/Common/Notifications';
 import { currency } from 'components/Common/Ticker.js';
 import BalanceHeader from 'components/Common/BalanceHeader';
@@ -86,7 +85,7 @@ const StyledModal = styled(Modal)`
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
 const Airdrop = ({ jestBCH, passLoadingStatus }) => {
     const ContextValue = React.useContext(WalletContext);
-    const { wallet, fiatPrice, cashtabSettings } = ContextValue;
+    const { BCH, wallet, fiatPrice, cashtabSettings } = ContextValue;
     const location = useLocation();
     const walletState = getWalletState(wallet);
     const { balances } = walletState;
@@ -98,11 +97,13 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
 
     useEffect(() => {
         // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
-        const BCH = jestBCH ? jestBCH : getBCH();
+        const activeBCH = jestBCH ? jestBCH : BCH;
 
         // set the BCH instance to state, for other functions to reference
-        setBchObj(BCH);
+        setBchObj(activeBCH);
+    }, [BCH]);
 
+    useEffect(() => {
         if (location && location.state && location.state.airdropEtokenId) {
             setFormData({
                 ...formData,
@@ -158,8 +159,6 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
         ignoreMinEtokenBalanceAmountError,
         setIgnoreMinEtokenBalanceAmountError,
     ] = useState(false);
-
-    const { getBCH } = useBCH();
 
     const handleTokenIdInput = e => {
         const { name, value } = e.target;

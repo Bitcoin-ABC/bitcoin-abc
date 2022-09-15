@@ -93,7 +93,7 @@ const AirdropButton = styled.div`
 `;
 
 const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
-    const { wallet, apiError, cashtabSettings } =
+    const { BCH, wallet, apiError, cashtabSettings } =
         React.useContext(WalletContext);
     const walletState = getWalletState(wallet);
     const { tokens } = walletState;
@@ -111,6 +111,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
     const [burnConfirmationValid, setBurnConfirmationValid] = useState(null);
     const [confirmationOfEtokenToBeBurnt, setConfirmationOfEtokenToBeBurnt] =
         useState('');
+    const [bchObj, setBchObj] = useState(false);
 
     // Get device window width
     // If this is less than 769, the page will open with QR scanner open
@@ -129,15 +130,19 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
         address: '',
     });
 
-    const { getBCH, getRestUrl, sendToken, getTokenStats, burnToken } =
-        useBCH();
+    const { getRestUrl, sendToken, getTokenStats, burnToken } = useBCH();
 
-    // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
-    const BCH = jestBCH ? jestBCH : getBCH();
+    useEffect(() => {
+        // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
+        const activeBCH = jestBCH ? jestBCH : BCH;
+
+        // set the BCH instance to state, for other functions to reference
+        setBchObj(activeBCH);
+    }, [BCH]);
 
     // Fetch token stats if you do not have them and API did not return an error
     if (tokenStats === null) {
-        getTokenStats(BCH, tokenId).then(
+        getTokenStats(bchObj, tokenId).then(
             result => {
                 setTokenStats(result);
             },
@@ -183,7 +188,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
         cleanAddress = toLegacyToken(cleanAddress);
 
         try {
-            const link = await sendToken(BCH, wallet, {
+            const link = await sendToken(bchObj, wallet, {
                 tokenId: tokenId,
                 tokenReceiverAddress: cleanAddress,
                 amount: value,
@@ -360,7 +365,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
         passLoadingStatus(true);
 
         try {
-            const link = await burnToken(BCH, wallet, {
+            const link = await burnToken(bchObj, wallet, {
                 tokenId: tokenId,
                 amount: eTokenBurnAmount,
             });
