@@ -802,6 +802,15 @@ private:
      */
     const CBlockIndex *m_finalizedBlockIndex GUARDED_BY(cs_main) = nullptr;
 
+    mutable Mutex cs_avalancheFinalizedBlockIndex;
+
+    /**
+     * The best block via avalanche voting.
+     * This block cannot be reorged in any way except by explicit user action.
+     */
+    const CBlockIndex *m_avalancheFinalizedBlockIndex
+        GUARDED_BY(cs_avalancheFinalizedBlockIndex) = nullptr;
+
 public:
     //! Reference to a BlockManager instance which itself is shared across all
     //! CChainState instances.
@@ -980,6 +989,16 @@ public:
      */
     bool IsBlockFinalized(const CBlockIndex *pindex) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    /**
+     * Mark a block as finalized by avalanche.
+     */
+    bool AvalancheFinalizeBlock(CBlockIndex *pindex);
+
+    /**
+     * Checks if a block is finalized by avalanche voting.
+     */
+    bool IsBlockAvalancheFinalized(const CBlockIndex *pindex) const;
 
     /** Remove invalidity status from a block and its descendants. */
     void ResetBlockFailureFlags(CBlockIndex *pindex)

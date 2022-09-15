@@ -5200,10 +5200,17 @@ void PeerManagerImpl::ProcessMessage(
                             return;
                         }
                     } break;
-                    case avalanche::VoteStatus::Accepted:
-                    case avalanche::VoteStatus::Finalized: {
+                    case avalanche::VoteStatus::Accepted: {
                         LOCK(cs_main);
                         m_chainman.ActiveChainstate().UnparkBlock(pindex);
+                    } break;
+                    case avalanche::VoteStatus::Finalized: {
+                        {
+                            LOCK(cs_main);
+                            m_chainman.ActiveChainstate().UnparkBlock(pindex);
+                        }
+                        m_chainman.ActiveChainstate().AvalancheFinalizeBlock(
+                            pindex);
                     } break;
                     case avalanche::VoteStatus::Stale:
                         // Fall back on Nakamoto consensus in the absence of

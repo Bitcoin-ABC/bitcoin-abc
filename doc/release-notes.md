@@ -6,3 +6,5 @@ Bitcoin ABC version 0.26.1 is now available from:
 
 This release includes the following features and fixes:
  - Improve avalanche node stability under rare network conditions.
+ - The new `isfinalblock` and `isfinaltransaction` RPCs can be used to check if
+   a block or a transaction has been finalized by the avalanche voting.

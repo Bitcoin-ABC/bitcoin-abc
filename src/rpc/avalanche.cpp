@@ -12,6 +12,7 @@
 #include <avalanche/validation.h>
 #include <config.h>
 #include <core_io.h>
+#include <index/txindex.h>
 #include <key_io.h>
 #include <net_processing.h>
 #include <node/context.h>
@@ -985,6 +986,106 @@ static RPCHelpMan getrawavalancheproof() {
     };
 }
 
+static RPCHelpMan isfinalblock() {
+    return RPCHelpMan{
+        "isfinalblock",
+        "Check if a block has been finalized by avalanche votes.\n",
+        {
+            {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The hash of the block."},
+        },
+        RPCResult{RPCResult::Type::BOOL, "success",
+                  "Whether the block has been finalized by avalanche votes."},
+        RPCExamples{HelpExampleRpc("isfinalblock", "<block hash>") +
+                    HelpExampleCli("isfinalblock", "<block hash>")},
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            if (!g_avalanche) {
+                throw JSONRPCError(RPC_INTERNAL_ERROR,
+                                   "Avalanche is not initialized");
+            }
+
+            ChainstateManager &chainman = EnsureAnyChainman(request.context);
+            const BlockHash blockhash(
+                ParseHashV(request.params[0], "blockhash"));
+            const CBlockIndex *pindex;
+
+            {
+                LOCK(cs_main);
+                pindex = chainman.m_blockman.LookupBlockIndex(blockhash);
+
+                if (!pindex) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                       "Block not found");
+                }
+            }
+
+            return chainman.ActiveChainstate().IsBlockAvalancheFinalized(
+                pindex);
+        },
+    };
+}
+
+static RPCHelpMan isfinaltransaction() {
+    return RPCHelpMan{
+        "isfinaltransaction",
+        "Check if a transaction has been finalized by avalanche votes.\n",
+        {
+            {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The id of the transaction."},
+            {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED,
+             "The block in which to look for the transaction"},
+        },
+        RPCResult{
+            RPCResult::Type::BOOL, "success",
+            "Whether the transaction has been finalized by avalanche votes."},
+        RPCExamples{HelpExampleRpc("isfinaltransaction", "<txid> <blockhash>") +
+                    HelpExampleCli("isfinaltransaction", "<txid> <blockhash>")},
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            if (!g_avalanche) {
+                throw JSONRPCError(RPC_INTERNAL_ERROR,
+                                   "Avalanche is not initialized");
+            }
+
+            const NodeContext &node = EnsureAnyNodeContext(request.context);
+            ChainstateManager &chainman = EnsureChainman(node);
+            const TxId txid = TxId(ParseHashV(request.params[0], "txid"));
+            CBlockIndex *pindex = nullptr;
+
+            if (!request.params[1].isNull()) {
+                const BlockHash blockhash(
+                    ParseHashV(request.params[1], "blockhash"));
+
+                LOCK(cs_main);
+                pindex = chainman.m_blockman.LookupBlockIndex(blockhash);
+                if (!pindex) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                       "Block not found");
+                }
+            }
+
+            if (g_txindex && !pindex) {
+                g_txindex->BlockUntilSyncedToCurrentChain();
+            }
+
+            BlockHash hash_block;
+            const CTransactionRef tx = GetTransaction(
+                pindex, node.mempool.get(), txid,
+                config.GetChainParams().GetConsensus(), hash_block);
+
+            if (!pindex) {
+                LOCK(cs_main);
+                pindex = chainman.m_blockman.LookupBlockIndex(hash_block);
+            }
+
+            return tx != nullptr && !node.mempool->exists(txid) &&
+                   chainman.ActiveChainstate().IsBlockAvalancheFinalized(
+                       pindex);
+        },
+    };
+}
+
 static RPCHelpMan sendavalancheproof() {
     return RPCHelpMan{
         "sendavalancheproof",
@@ -1098,6 +1199,8 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
         { "avalanche",         getavalancheinfo,          },
         { "avalanche",         getavalanchepeerinfo,      },
         { "avalanche",         getrawavalancheproof,      },
+        { "avalanche",         isfinalblock,              },
+        { "avalanche",         isfinaltransaction,        },
         { "avalanche",         sendavalancheproof,        },
         { "avalanche",         verifyavalancheproof,      },
         { "avalanche",         verifyavalanchedelegation, },

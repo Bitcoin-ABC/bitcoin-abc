@@ -3489,6 +3489,35 @@ const CBlockIndex *CChainState::GetFinalizedBlock() const {
     return m_finalizedBlockIndex;
 }
 
+bool CChainState::AvalancheFinalizeBlock(CBlockIndex *pindex) {
+    if (!pindex) {
+        return false;
+    }
+
+    if (!m_chain.Contains(pindex)) {
+        LogPrint(BCLog::AVALANCHE,
+                 "The block to mark finalized by avalanche is not on the "
+                 "active chain: %s\n",
+                 pindex->GetBlockHash().ToString());
+        return false;
+    }
+
+    if (IsBlockAvalancheFinalized(pindex)) {
+        return true;
+    }
+
+    LOCK(cs_avalancheFinalizedBlockIndex);
+    m_avalancheFinalizedBlockIndex = pindex;
+    return true;
+}
+
+bool CChainState::IsBlockAvalancheFinalized(const CBlockIndex *pindex) const {
+    LOCK(cs_avalancheFinalizedBlockIndex);
+    return pindex && m_avalancheFinalizedBlockIndex &&
+           m_avalancheFinalizedBlockIndex->GetAncestor(pindex->nHeight) ==
+               pindex;
+}
+
 CBlockIndex *BlockManager::AddToBlockIndex(const CBlockHeader &block) {
     AssertLockHeld(cs_main);
 
