@@ -8,6 +8,7 @@
 #include <arith_uint256.h>
 #include <blockstatus.h>
 #include <flatfile.h>
+#include <kernel/cs_main.h>
 #include <primitives/block.h>
 #include <sync.h>
 #include <tinyformat.h>
@@ -15,8 +16,6 @@
 #include <util/time.h>
 
 struct BlockHash;
-
-extern RecursiveMutex cs_main;
 
 /**
  * The block chain is a tree shaped structure starting with the genesis block at

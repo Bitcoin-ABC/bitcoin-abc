@@ -128,7 +128,7 @@ BOOST_AUTO_TEST_CASE(chainstatemanager_rebalance_caches) {
     // Create a legacy (IBD) chainstate.
     //
     Chainstate &c1 =
-        WITH_LOCK(cs_main, return manager.InitializeChainstate(&mempool));
+        WITH_LOCK(::cs_main, return manager.InitializeChainstate(&mempool));
     chainstates.push_back(&c1);
     c1.InitCoinsDB(
         /* cache_size_bytes */ 1 << 23, /* in_memory */ true,

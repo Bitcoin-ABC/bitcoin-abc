@@ -10,6 +10,7 @@
 #include <consensus/amount.h>
 #include <core_memusage.h>
 #include <indirectmap.h>
+#include <kernel/cs_main.h>
 #include <kernel/mempool_entry.h>
 #include <kernel/mempool_options.h>
 #include <policy/packages.h>
@@ -36,8 +37,6 @@
 class CChain;
 class Chainstate;
 class Config;
-
-extern RecursiveMutex cs_main;
 
 /**
  * Fake height value used in Coins to signify they are only in the memory

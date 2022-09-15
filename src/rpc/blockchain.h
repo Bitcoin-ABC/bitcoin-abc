@@ -22,8 +22,6 @@ namespace node {
 struct NodeContext;
 } // namespace node
 
-extern RecursiveMutex cs_main;
-
 RPCHelpMan getblockchaininfo();
 
 /**

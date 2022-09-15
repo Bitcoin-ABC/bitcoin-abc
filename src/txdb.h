@@ -11,6 +11,7 @@
 #include <dbwrapper.h>
 #include <flatfile.h>
 #include <fs.h>
+#include <kernel/cs_main.h>
 #include <util/result.h>
 
 #include <cstddef>
@@ -50,10 +51,6 @@ static constexpr int64_t MAX_TX_INDEX_CACHE_MB = 1024;
 static constexpr int64_t MAX_FILTER_INDEX_CACHE_MB = 1024;
 //! Max memory allocated to coin DB specific cache (MiB)
 static constexpr int64_t MAX_COINS_DB_CACHE_MB = 8;
-
-// Actually declared in validation.cpp; can't include because of circular
-// dependency.
-extern RecursiveMutex cs_main;
 
 /** CCoinsView backed by the coin database (chainstate/) */
 class CCoinsViewDB final : public CCoinsView {

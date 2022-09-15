@@ -10,11 +10,10 @@
 
 #include <chain.h>
 #include <fs.h>
+#include <kernel/cs_main.h>
 #include <protocol.h> // For CMessageHeader::MessageStartChars
 #include <sync.h>
 #include <txdb.h>
-
-extern RecursiveMutex cs_main;
 
 class ArgsManager;
 class BlockValidationState;

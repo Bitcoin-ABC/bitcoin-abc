@@ -8,11 +8,8 @@
 #include <array>
 #include <cstdint>
 
+#include <kernel/cs_main.h>
 #include <sync.h>
-
-// Actually declared in validation.cpp; can't include because of circular
-// dependency.
-extern RecursiveMutex cs_main;
 
 class CTransaction;
 

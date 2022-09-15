@@ -25,6 +25,7 @@
 #include <flatfile.h>
 #include <fs.h>
 #include <kernel/chainstatemanager_opts.h>
+#include <kernel/cs_main.h>
 #include <node/blockstorage.h>
 #include <policy/packages.h>
 #include <script/script_error.h>
@@ -115,7 +116,6 @@ static const uint64_t MIN_DISK_SPACE_FOR_BLOCK_FILES = 550 * 1024 * 1024;
 /** Current sync state passed to tip changed callbacks. */
 enum class SynchronizationState { INIT_REINDEX, INIT_DOWNLOAD, POST_INIT };
 
-extern RecursiveMutex cs_main;
 extern GlobalMutex g_best_block_mutex;
 extern std::condition_variable g_best_block_cv;
 /** Used to notify getblocktemplate RPC of new tips. */

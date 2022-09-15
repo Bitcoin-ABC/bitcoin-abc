@@ -135,7 +135,7 @@ CheckInputScripts(const CTransaction &tx, TxValidationState &state,
 static void ValidateCheckInputsForAllFlags(
     const CTransaction &tx, uint32_t failing_flags, uint32_t required_flags,
     bool add_to_cache, CCoinsViewCache &active_coins_tip,
-    int expected_sigchecks) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+    int expected_sigchecks) EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
     PrecomputedTransactionData txdata(tx);
 
     MMIXLinearCongruentialGenerator lcg;

@@ -16,6 +16,7 @@
 #include <crypto/siphash.h>
 #include <hash.h>
 #include <i2p.h>
+#include <kernel/cs_main.h>
 #include <logging.h>
 #include <net_permissions.h>
 #include <netaddress.h>
@@ -31,7 +32,6 @@
 #include <uint256.h>
 #include <util/check.h>
 #include <util/time.h>
-#include <validation.h> // For cs_main
 
 #include <atomic>
 #include <condition_variable>
