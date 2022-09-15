@@ -12,7 +12,10 @@ from test_framework.messages import (
     NODE_NETWORK,
     AvalancheVote,
     AvalancheVoteError,
+    msg_avahello,
+    msg_getaddr,
     msg_getavaaddr,
+    msg_verack,
 )
 from test_framework.p2p import P2PInterface, p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
@@ -78,6 +81,15 @@ class AllYesAvaP2PInterface(MutedAvaP2PInterface):
                     AvalancheVoteError.ACCEPTED, inv.hash) for inv in message.poll.invs],
             self.master_privkey if self.delegation is None else self.delegated_privkey)
         super().on_avapoll(message)
+
+
+class AvaHelloInterface(AvaP2PInterface):
+    def __init__(self):
+        super().__init__()
+
+    def on_version(self, message):
+        self.send_message(msg_verack())
+        self.send_message(msg_avahello())
 
 
 class AvaAddrTest(BitcoinTestFramework):
@@ -460,6 +472,32 @@ class AvaAddrTest(BitcoinTestFramework):
 
         assert_equal(count_getavaaddr([inbound]), count_inbound)
 
+    def test_addr_requests_order(self):
+        node = self.nodes[0]
+
+        # Get rid of previously connected nodes
+        node.disconnect_p2ps()
+
+        def check_addr_requests(p):
+            p.wait_until(lambda: p.last_message.get("getavaaddr"))
+            p.wait_until(lambda: p.message_count.get("getavaaddr", 0) == 1)
+            p.wait_until(lambda: p.last_message.get("getaddr"))
+            p.wait_until(lambda: p.message_count.get("getaddr", 0) == 1)
+
+        # Test getaddr is sent first
+        requester1 = node.add_outbound_p2p_connection(
+            AvaHelloInterface(), p2p_idx=0)
+        requester1.send_message(msg_getaddr())
+        requester1.send_message(msg_getavaaddr())
+        check_addr_requests(requester1)
+
+        # Test getavaaddr is sent first
+        requester2 = node.add_outbound_p2p_connection(
+            AvaHelloInterface(), p2p_idx=1)
+        requester2.send_message(msg_getavaaddr())
+        requester2.send_message(msg_getaddr())
+        check_addr_requests(requester2)
+
     def run_test(self):
         self.getavaaddr_interval_test()
 
@@ -472,6 +510,7 @@ class AvaAddrTest(BitcoinTestFramework):
         self.getavaaddr_manual_test()
         self.getavaaddr_noquorum()
         self.test_send_inbound_getavaaddr_until_quorum_is_established()
+        self.test_addr_requests_order()
 
 
 if __name__ == '__main__':

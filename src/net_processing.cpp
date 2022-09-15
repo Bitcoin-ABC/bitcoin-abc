@@ -5447,6 +5447,13 @@ void PeerManagerImpl::ProcessMessage(
         // Only accept a getavaaddr every GETAVAADDR_INTERVAL at most
         pfrom.m_nextGetAvaAddr = now + GETAVAADDR_INTERVAL;
 
+        if (!SetupAddressRelay(pfrom, *peer)) {
+            LogPrint(BCLog::AVALANCHE,
+                     "Ignoring getavaaddr message from %s peer=%d\n",
+                     pfrom.ConnectionTypeAsString(), pfrom.GetId());
+            return;
+        }
+
         auto availabilityScoreComparator = [](const CNode *lhs,
                                               const CNode *rhs) {
             double scoreLhs = lhs->m_avalanche_state->getAvailabilityScore();
