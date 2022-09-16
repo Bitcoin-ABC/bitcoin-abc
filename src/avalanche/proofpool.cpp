@@ -100,6 +100,18 @@ ProofPool::rescan(PeerManager &peerManager) {
     return registeredProofs;
 }
 
+std::unordered_set<ProofId, SaltedProofIdHasher>
+ProofPool::getProofIds() const {
+    std::unordered_set<ProofId, SaltedProofIdHasher> proofIds;
+
+    auto &poolView = pool.get<by_proofid>();
+    for (auto it = poolView.begin(); it != poolView.end(); it++) {
+        proofIds.insert(it->proof->getId());
+    }
+
+    return proofIds;
+}
+
 ProofRef ProofPool::getProof(const ProofId &proofid) const {
     auto &poolView = pool.get<by_proofid>();
     auto it = poolView.find(proofid);

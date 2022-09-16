@@ -112,6 +112,7 @@ public:
     std::unordered_set<ProofRef, SaltedProofHasher>
     rescan(PeerManager &peerManager);
 
+    std::unordered_set<ProofId, SaltedProofIdHasher> getProofIds() const;
     ProofRef getProof(const ProofId &proofid) const;
     ProofRef getProof(const COutPoint &outpoint) const;
     ProofRef getLowestScoreProof() const;
