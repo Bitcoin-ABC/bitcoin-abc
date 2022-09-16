@@ -95,7 +95,7 @@ std::optional<int64_t> BlockAssembler::m_last_block_size{std::nullopt};
 
 std::unique_ptr<CBlockTemplate>
 BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
-    int64_t nTimeStart = GetTimeMicros();
+    const auto time_start{SteadyClock::now()};
 
     blockFitter.resetBlock();
 
@@ -157,7 +157,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
         pblock->vtx.push_back(entry.tx);
     }
 
-    int64_t nTime1 = GetTimeMicros();
+    const auto time_1{SteadyClock::now()};
 
     m_last_block_num_txs = blockFitter.nBlockTx;
     m_last_block_size = blockFitter.nBlockSize;
@@ -230,13 +230,14 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
         throw std::runtime_error(strprintf("%s: TestBlockValidity failed: %s",
                                            __func__, state.ToString()));
     }
-    int64_t nTime2 = GetTimeMicros();
+    const auto time_2{SteadyClock::now()};
 
     LogPrint(
         BCLog::BENCH,
         "CreateNewBlock() addTxs: %.2fms, validity: %.2fms (total %.2fms)\n",
-        0.001 * (nTime1 - nTimeStart), 0.001 * (nTime2 - nTime1),
-        0.001 * (nTime2 - nTimeStart));
+        Ticks<MillisecondsDouble>(time_1 - time_start),
+        Ticks<MillisecondsDouble>(time_2 - time_1),
+        Ticks<MillisecondsDouble>(time_2 - time_start));
 
     return std::move(pblocktemplate);
 }
