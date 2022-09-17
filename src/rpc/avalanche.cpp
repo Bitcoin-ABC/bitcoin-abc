@@ -1005,6 +1005,13 @@ static RPCHelpMan isfinalblock() {
                                    "Avalanche is not initialized");
             }
 
+            // Deprecated since 0.26.2
+            if (!IsDeprecatedRPCEnabled(gArgs, "isfinalblock_noerror") &&
+                !g_avalanche->isQuorumEstablished()) {
+                throw JSONRPCError(RPC_MISC_ERROR,
+                                   "Avalanche is not ready to poll yet.");
+            }
+
             ChainstateManager &chainman = EnsureAnyChainman(request.context);
             const BlockHash blockhash(
                 ParseHashV(request.params[0], "blockhash"));
@@ -1065,8 +1072,9 @@ static RPCHelpMan isfinaltransaction() {
                 }
             }
 
+            bool f_txindex_ready = false;
             if (g_txindex && !pindex) {
-                g_txindex->BlockUntilSyncedToCurrentChain();
+                f_txindex_ready = g_txindex->BlockUntilSyncedToCurrentChain();
             }
 
             BlockHash hash_block;
@@ -1074,11 +1082,47 @@ static RPCHelpMan isfinaltransaction() {
                 pindex, node.mempool.get(), txid,
                 config.GetChainParams().GetConsensus(), hash_block);
 
+            // Deprecated since 0.26.2
+            if (!IsDeprecatedRPCEnabled(gArgs, "isfinaltransaction_noerror")) {
+                if (!g_avalanche->isQuorumEstablished()) {
+                    throw JSONRPCError(RPC_MISC_ERROR,
+                                       "Avalanche is not ready to poll yet.");
+                }
+
+                if (!tx) {
+                    std::string errmsg;
+                    if (pindex) {
+                        if (!pindex->nStatus.hasData()) {
+                            throw JSONRPCError(
+                                RPC_MISC_ERROR,
+                                "Block data not downloaded yet.");
+                        }
+                        errmsg =
+                            "No such transaction found in the provided block.";
+                    } else if (!g_txindex) {
+                        errmsg =
+                            "No such transaction. Use -txindex or provide a "
+                            "block "
+                            "hash to enable blockchain transaction queries.";
+                    } else if (!f_txindex_ready) {
+                        errmsg =
+                            "No such transaction. Blockchain transactions are "
+                            "still in the process of being indexed.";
+                    } else {
+                        errmsg = "No such mempool or blockchain transaction.";
+                    }
+                    throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, errmsg);
+                }
+            }
+
             if (!pindex) {
                 LOCK(cs_main);
                 pindex = chainman.m_blockman.LookupBlockIndex(hash_block);
             }
 
+            // The first 2 checks are redundant as we expect to throw a JSON RPC
+            // error for these cases, but they are almost free so they are kept
+            // as a safety net.
             return tx != nullptr && !node.mempool->exists(txid) &&
                    chainman.ActiveChainstate().IsBlockAvalancheFinalized(
                        pindex);
