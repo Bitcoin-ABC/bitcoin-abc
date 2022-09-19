@@ -168,11 +168,6 @@ static RPCHelpMan getpeerinfo() {
                     {RPCResult::Type::BOOL, "bip152_hb_from",
                      "Whether peer selected us as (compact blocks) "
                      "high-bandwidth peer"},
-                    {RPCResult::Type::BOOL, "addnode",
-                     "Whether connection was due to addnode/-connect or if it "
-                     "was an automatic/inbound connection\n(DEPRECATED, "
-                     "returned only if the config option "
-                     "-deprecatedrpc=getpeerinfo_addnode is passed)"},
                     {RPCResult::Type::STR, "connection_type",
                      "Type of connection: \n" +
                          Join(CONNECTION_TYPE_DOC, ",\n") + "."},
@@ -190,10 +185,6 @@ static RPCHelpMan getpeerinfo() {
                           "The heights of blocks we're currently asking from "
                           "this peer"},
                      }},
-                    {RPCResult::Type::BOOL, "whitelisted", /* optional */ true,
-                     "Whether the peer is whitelisted with default "
-                     "permissions\n (DEPRECATED, returned only if config "
-                     "option  -deprecatedrpc=whitelisted is passed)"},
                     {RPCResult::Type::NUM, "minfeefilter",
                      "The minimum fee rate for transactions this peer accepts"},
                     {RPCResult::Type::OBJ_DYN,
@@ -293,10 +284,6 @@ static RPCHelpMan getpeerinfo() {
                 obj.pushKV("inbound", stats.fInbound);
                 obj.pushKV("bip152_hb_to", stats.m_bip152_highbandwidth_to);
                 obj.pushKV("bip152_hb_from", stats.m_bip152_highbandwidth_from);
-                if (IsDeprecatedRPCEnabled(gArgs, "getpeerinfo_addnode")) {
-                    // addnode is deprecated in v0.24.5 for removal in v0.25.x
-                    obj.pushKV("addnode", stats.m_manual_connection);
-                }
                 if (fStateStats) {
                     obj.pushKV("startingheight", statestats.m_starting_height);
                     obj.pushKV("synced_headers", statestats.nSyncHeight);
@@ -309,10 +296,6 @@ static RPCHelpMan getpeerinfo() {
                     obj.pushKV("addr_processed", statestats.m_addr_processed);
                     obj.pushKV("addr_rate_limited",
                                statestats.m_addr_rate_limited);
-                }
-                if (IsDeprecatedRPCEnabled(gArgs, "whitelisted")) {
-                    // whitelisted is deprecated in v0.24.7 for removal in v0.25
-                    obj.pushKV("whitelisted", stats.m_legacyWhitelisted);
                 }
                 UniValue permissions(UniValue::VARR);
                 for (const auto &permission :
