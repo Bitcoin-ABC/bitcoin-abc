@@ -20,7 +20,6 @@ exports[`Wallet with BCH balances 1`] = `
           "width": "100%",
         }
       }
-      text="ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd"
     >
       <div
         onClick={[Function]}
@@ -144,7 +143,6 @@ exports[`Wallet with BCH balances and tokens 1`] = `
           "width": "100%",
         }
       }
-      text="ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd"
     >
       <div
         onClick={[Function]}
@@ -268,7 +266,6 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
           "width": "100%",
         }
       }
-      text="ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd"
     >
       <div
         onClick={[Function]}
@@ -392,7 +389,6 @@ exports[`Wallet without BCH balance 1`] = `
           "width": "100%",
         }
       }
-      text="ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd"
     >
       <div
         onClick={[Function]}

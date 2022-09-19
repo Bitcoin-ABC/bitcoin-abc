@@ -546,7 +546,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                                                     unloader={
                                                         <img
                                                             alt={`identicon of tokenId ${tokenId} `}
-                                                            heigh="16"
+                                                            height="16"
                                                             width="16"
                                                             style={{
                                                                 borderRadius:
@@ -562,7 +562,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                                             ) : (
                                                 <img
                                                     alt={`identicon of tokenId ${tokenId} `}
-                                                    heigh="16"
+                                                    height="16"
                                                     width="16"
                                                     style={{
                                                         borderRadius: '50%',

@@ -182,7 +182,6 @@ export const QRCode = ({
                     width: '100%',
                     position: 'relative',
                 }}
-                text={address}
                 onCopy={handleOnCopy}
             >
                 <div style={{ position: 'relative' }} onClick={handleOnClick}>
