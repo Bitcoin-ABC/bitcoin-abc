@@ -61,7 +61,7 @@ const config = {
         path: path.resolve(__dirname, 'dist/'),
         publicPath: '',
         filename: 'index.js',
-        library: '',
+        library: 'MyLibrary',
         libraryTarget: 'commonjs',
     },
     optimization: {
