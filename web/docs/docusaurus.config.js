@@ -13,9 +13,6 @@ module.exports = {
             // "light" | "dark"
             defaultMode: 'dark',
         },
-        googleAnalytics: {
-            trackingID: 'UA-183678810-2',
-        },
         image: 'img/cashtab_twitter.png',
         navbar: {
             title: 'Cashtab',
@@ -86,6 +83,9 @@ module.exports = {
                 },
                 theme: {
                     customCss: require.resolve('./src/css/custom.css'),
+                },
+                googleAnalytics: {
+                    trackingID: 'UA-183678810-2',
                 },
             },
         ],
