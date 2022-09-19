@@ -35,7 +35,7 @@
         "eslint-config-react-app": "^7.0.0",
         "eslint-webpack-plugin": "^3.1.1",
         "ethereum-blockies-base64": "^1.0.2",
-        "etoken-list": "^1.0.1",
+        "etoken-list": "^1.0.2",
         "extensionizer": "^1.0.1",
         "file-loader": "^6.2.0",
         "fs-extra": "^10.0.0",
