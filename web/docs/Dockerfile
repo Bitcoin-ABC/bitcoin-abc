@@ -3,7 +3,7 @@
 # 2) nginx stage to serve frontend assets
 
 # Stage 1
-FROM node:15-buster-slim AS builder
+FROM node:16-buster-slim AS builder
 
 # Install some dependencies before building
 RUN apt-get update && \
