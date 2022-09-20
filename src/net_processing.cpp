@@ -441,6 +441,11 @@ struct Peer {
             m_bloom_filter PT_GUARDED_BY(m_bloom_filter_mutex)
                 GUARDED_BY(m_bloom_filter_mutex){nullptr};
 
+        /** A rolling bloom filter of all announced tx CInvs to this peer. */
+        CRollingBloomFilter m_recently_announced_invs GUARDED_BY(
+            NetEventsInterface::g_msgproc_mutex){INVENTORY_MAX_RECENT_RELAY,
+                                                 0.000001};
+
         mutable RecursiveMutex m_tx_inventory_mutex;
         /**
          * A filter of all the txids that the peer has announced to us or we
@@ -491,6 +496,10 @@ struct Peer {
     TxRelay *GetTxRelay() EXCLUSIVE_LOCKS_REQUIRED(!m_tx_relay_mutex) {
         return WITH_LOCK(m_tx_relay_mutex, return m_tx_relay.get());
     };
+    const TxRelay *GetTxRelay() const
+        EXCLUSIVE_LOCKS_REQUIRED(!m_tx_relay_mutex) {
+        return WITH_LOCK(m_tx_relay_mutex, return m_tx_relay.get());
+    };
 
     struct ProofRelay {
         mutable RecursiveMutex m_proof_inventory_mutex;
@@ -499,6 +508,12 @@ struct Peer {
         // Prevent sending proof invs if the peer already knows about them
         CRollingBloomFilter m_proof_inventory_known_filter
             GUARDED_BY(m_proof_inventory_mutex){10000, 0.000001};
+        /**
+         * A rolling bloom filter of all announced Proofs CInvs to this peer.
+         */
+        CRollingBloomFilter m_recently_announced_proofs GUARDED_BY(
+            NetEventsInterface::g_msgproc_mutex){INVENTORY_MAX_RECENT_RELAY,
+                                                 0.000001};
         std::chrono::microseconds m_next_inv_send_time{0};
 
         RadixTree<const avalanche::Proof, avalanche::ProofRadixTreeAdapter>
@@ -638,7 +653,7 @@ struct Peer {
                             : nullptr) {}
 
 private:
-    Mutex m_tx_relay_mutex;
+    mutable Mutex m_tx_relay_mutex;
 
     /**
      * Transaction relay data. Will be a nullptr if we're not relaying
@@ -731,14 +746,6 @@ struct CNodeState {
 
     //! Whether this peer is an inbound connection
     const bool m_is_inbound;
-
-    //! A rolling bloom filter of all announced tx CInvs to this peer.
-    CRollingBloomFilter m_recently_announced_invs =
-        CRollingBloomFilter{INVENTORY_MAX_RECENT_RELAY, 0.000001};
-
-    //! A rolling bloom filter of all announced Proofs CInvs to this peer.
-    CRollingBloomFilter m_recently_announced_proofs =
-        CRollingBloomFilter{INVENTORY_MAX_RECENT_RELAY, 0.000001};
 
     CNodeState(bool is_inbound) : m_is_inbound(is_inbound) {}
 };
@@ -1293,15 +1300,17 @@ private:
      * Determine whether or not a peer can request a transaction, and return it
      * (or nullptr if not found or not allowed).
      */
-    CTransactionRef FindTxForGetData(const CNode &peer, const TxId &txid,
+    CTransactionRef FindTxForGetData(const Peer &peer, const TxId &txid,
                                      const std::chrono::seconds mempool_req,
                                      const std::chrono::seconds now)
-        LOCKS_EXCLUDED(cs_main);
+        LOCKS_EXCLUDED(cs_main)
+            EXCLUSIVE_LOCKS_REQUIRED(NetEventsInterface::g_msgproc_mutex);
 
     void ProcessGetData(const Config &config, CNode &pfrom, Peer &peer,
                         const std::atomic<bool> &interruptMsgProc)
         EXCLUSIVE_LOCKS_REQUIRED(!m_most_recent_block_mutex,
-                                 peer.m_getdata_requests_mutex)
+                                 peer.m_getdata_requests_mutex,
+                                 NetEventsInterface::g_msgproc_mutex)
             LOCKS_EXCLUDED(cs_main);
 
     /** Process a new block. Perform any post-processing housekeeping */
@@ -1482,9 +1491,10 @@ private:
                                 const avalanche::ProofRef &proof)
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, !cs_proofrequest);
 
-    avalanche::ProofRef FindProofForGetData(const CNode &peer,
+    avalanche::ProofRef FindProofForGetData(const Peer &peer,
                                             const avalanche::ProofId &proofid,
-                                            const std::chrono::seconds now);
+                                            const std::chrono::seconds now)
+        EXCLUSIVE_LOCKS_REQUIRED(NetEventsInterface::g_msgproc_mutex);
 
     bool isPreferredDownloadPeer(const CNode &pfrom);
 };
@@ -3150,7 +3160,7 @@ void PeerManagerImpl::ProcessGetBlockData(const Config &config, CNode &pfrom,
 }
 
 CTransactionRef
-PeerManagerImpl::FindTxForGetData(const CNode &peer, const TxId &txid,
+PeerManagerImpl::FindTxForGetData(const Peer &peer, const TxId &txid,
                                   const std::chrono::seconds mempool_req,
                                   const std::chrono::seconds now) {
     auto txinfo = m_mempool.info(txid);
@@ -3168,7 +3178,8 @@ PeerManagerImpl::FindTxForGetData(const CNode &peer, const TxId &txid,
         LOCK(cs_main);
 
         // Otherwise, the transaction must have been announced recently.
-        if (State(peer.GetId())->m_recently_announced_invs.contains(txid)) {
+        if (Assume(peer.GetTxRelay())
+                ->m_recently_announced_invs.contains(txid)) {
             // If it was, it can be relayed from either the mempool...
             if (txinfo.tx) {
                 return std::move(txinfo.tx);
@@ -3187,7 +3198,7 @@ PeerManagerImpl::FindTxForGetData(const CNode &peer, const TxId &txid,
 //! Determine whether or not a peer can request a proof, and return it (or
 //! nullptr if not found or not allowed).
 avalanche::ProofRef
-PeerManagerImpl::FindProofForGetData(const CNode &peer,
+PeerManagerImpl::FindProofForGetData(const Peer &peer,
                                      const avalanche::ProofId &proofid,
                                      const std::chrono::seconds now) {
     avalanche::ProofRef proof;
@@ -3223,8 +3234,7 @@ PeerManagerImpl::FindProofForGetData(const CNode &peer,
     }
 
     // Otherwise, the proofs must have been announced recently.
-    LOCK(cs_main);
-    if (State(peer.GetId())->m_recently_announced_proofs.contains(proofid)) {
+    if (peer.m_proof_relay->m_recently_announced_proofs.contains(proofid)) {
         return proof;
     }
 
@@ -3265,7 +3275,7 @@ void PeerManagerImpl::ProcessGetData(
 
         if (it->IsMsgProof()) {
             const avalanche::ProofId proofid(inv.hash);
-            auto proof = FindProofForGetData(pfrom, proofid, now);
+            auto proof = FindProofForGetData(peer, proofid, now);
             if (proof) {
                 m_connman.PushMessage(
                     &pfrom, msgMaker.Make(NetMsgType::AVAPROOF, *proof));
@@ -3289,8 +3299,7 @@ void PeerManagerImpl::ProcessGetData(
             }
 
             const TxId txid(inv.hash);
-            CTransactionRef tx =
-                FindTxForGetData(pfrom, txid, mempool_req, now);
+            CTransactionRef tx = FindTxForGetData(peer, txid, mempool_req, now);
             if (tx) {
                 int nSendFlags = 0;
                 m_connman.PushMessage(
@@ -3322,9 +3331,7 @@ void PeerManagerImpl::ProcessGetData(
                     if (WITH_LOCK(tx_relay->m_tx_inventory_mutex,
                                   return !tx_relay->m_tx_inventory_known_filter
                                               .contains(parent_txid))) {
-                        LOCK(cs_main);
-                        State(pfrom.GetId())
-                            ->m_recently_announced_invs.insert(parent_txid);
+                        tx_relay->m_recently_announced_invs.insert(parent_txid);
                     }
                 }
             } else {
@@ -4653,10 +4660,8 @@ void PeerManagerImpl::ProcessMessage(
                     // Add our proof id to the list or the recently announced
                     // proof INVs to this peer. This is used for filtering which
                     // INV can be requested for download.
-                    LOCK(cs_main);
-                    State(pfrom.GetId())
-                        ->m_recently_announced_proofs.insert(
-                            localProof->getId());
+                    peer->m_proof_relay->m_recently_announced_proofs.insert(
+                        localProof->getId());
                 }
             }
         }
@@ -7916,8 +7921,8 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                     peer->m_proof_relay->m_proof_inventory_known_filter.insert(
                         proofid);
                     addInvAndMaybeFlush(MSG_AVA_PROOF, proofid);
-                    State(pto->GetId())
-                        ->m_recently_announced_proofs.insert(proofid);
+                    peer->m_proof_relay->m_recently_announced_proofs.insert(
+                        proofid);
                 }
             }
         }
@@ -8025,7 +8030,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                         continue;
                     }
                     // Send
-                    State(pto->GetId())->m_recently_announced_invs.insert(txid);
+                    tx_relay->m_recently_announced_invs.insert(txid);
                     addInvAndMaybeFlush(MSG_TX, txid);
                     nRelayedTransactions++;
                     {
