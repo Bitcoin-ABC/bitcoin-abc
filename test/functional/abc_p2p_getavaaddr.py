@@ -27,7 +27,7 @@ GETAVAADDR_INTERVAL = 2 * 60
 
 # Address are sent every 30s on average, with a Poisson filter. Use a large
 # enough delay so it's very unlikely we don't get the message within this time.
-MAX_ADDR_SEND_DELAY = 5 * 60
+MAX_ADDR_SEND_DELAY = 10 * 60
 
 # The interval between avalanche statistics computation
 AVALANCHE_STATISTICS_INTERVAL = 10 * 60
