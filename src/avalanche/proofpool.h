@@ -18,6 +18,7 @@
 #include <boost/multi_index_container.hpp>
 
 #include <cstdint>
+#include <unordered_set>
 
 namespace avalanche {
 
@@ -47,6 +48,8 @@ struct ProofPoolEntryProofIdKeyExtractor {
 };
 
 namespace bmi = boost::multi_index;
+
+using ProofIdSet = std::unordered_set<ProofId, SaltedProofIdHasher>;
 
 /**
  * Map a proof to each utxo. A proof can be mapped with several utxos.
@@ -112,7 +115,7 @@ public:
     std::unordered_set<ProofRef, SaltedProofHasher>
     rescan(PeerManager &peerManager);
 
-    std::unordered_set<ProofId, SaltedProofIdHasher> getProofIds() const;
+    ProofIdSet getProofIds() const;
     ProofRef getProof(const ProofId &proofid) const;
     ProofRef getProof(const COutPoint &outpoint) const;
     ProofRef getLowestScoreProof() const;

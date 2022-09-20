@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE(get_proof_ids) {
 
     BOOST_CHECK_EQUAL(testPool.getProofIds().size(), 0);
 
-    std::unordered_set<ProofId, SaltedProofIdHasher> proofIds;
+    ProofIdSet proofIds;
     for (size_t i = 0; i < 10; i++) {
         auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
         BOOST_CHECK_EQUAL(testPool.addProofIfNoConflict(proof),

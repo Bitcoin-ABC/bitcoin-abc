@@ -28,7 +28,6 @@
 #include <chrono>
 #include <cstdint>
 #include <memory>
-#include <unordered_set>
 #include <vector>
 
 class ChainstateManager;
@@ -221,7 +220,7 @@ class PeerManager {
     /**
      * Track proof ids to broadcast
      */
-    std::unordered_set<ProofId, SaltedProofIdHasher> m_unbroadcast_proofids;
+    ProofIdSet m_unbroadcast_proofids;
 
     /**
      * Remember the last proofs that have been evicted because they had no node
