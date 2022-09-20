@@ -1098,7 +1098,6 @@ const useWallet = () => {
     };
 
     const loadCashtabCache = async () => {
-        console.log(`loadCashtabCache`);
         // get cache object from localforage
         let localCashtabCache;
         try {
