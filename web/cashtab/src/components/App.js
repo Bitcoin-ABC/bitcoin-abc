@@ -37,6 +37,7 @@ import TabCash from 'assets/tabcash.png';
 import { checkForTokenById } from 'utils/tokenMethods.js';
 // Biometric security import not used in extension/src/components/App.js
 import ProtectableComponentWrapper from './Authentication/ProtectableComponentWrapper';
+import ServiceWorkerWrapper from './Common/ServiceWorkerWrapper';
 
 const GlobalStyle = createGlobalStyle`
     *::placeholder {
@@ -277,6 +278,7 @@ const App = () => {
     return (
         <ThemeProvider theme={theme}>
             <GlobalStyle />
+            <ServiceWorkerWrapper />
             <Spin
                 spinning={
                     loading || loadingUtxosAfterSend || (wallet && !validWallet)
