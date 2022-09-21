@@ -29,7 +29,7 @@ public:
     void SetIV(uint64_t iv);
 
     /** set the 64bit block counter (pos seeks to byte position 64*pos). */
-    void Seek(uint64_t pos);
+    void Seek64(uint64_t pos);
 
     /** outputs the keystream of size <64*blocks> into <c> */
     void Keystream64(uint8_t *c, size_t blocks);
@@ -63,7 +63,7 @@ public:
     void SetIV(uint64_t iv) { m_aligned.SetIV(iv); }
 
     /** set the 64bit block counter (pos seeks to byte position 64*pos). */
-    void Seek(uint64_t pos) { m_aligned.Seek(pos); }
+    void Seek64(uint64_t pos) { m_aligned.Seek64(pos); }
 
     /** outputs the keystream of size <bytes> into <c> */
     void Keystream(uint8_t *c, size_t bytes);
