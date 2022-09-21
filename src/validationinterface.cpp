@@ -276,3 +276,11 @@ void CMainSignals::NewPoWValidBlock(
         callbacks.NewPoWValidBlock(pindex, block);
     });
 }
+
+void CMainSignals::BlockFinalized(const CBlockIndex *pindex) {
+    LOG_EVENT("%s: block hash=%s", __func__,
+              pindex ? pindex->GetBlockHash().ToString() : "null");
+    m_internals->Iterate([&](CValidationInterface &callbacks) {
+        callbacks.BlockFinalized(pindex);
+    });
+}

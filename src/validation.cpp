@@ -3508,6 +3508,9 @@ bool CChainState::AvalancheFinalizeBlock(CBlockIndex *pindex) {
 
     LOCK(cs_avalancheFinalizedBlockIndex);
     m_avalancheFinalizedBlockIndex = pindex;
+
+    GetMainSignals().BlockFinalized(pindex);
+
     return true;
 }
 
