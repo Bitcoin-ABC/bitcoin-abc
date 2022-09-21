@@ -654,11 +654,10 @@ class CompactProofsTest(BitcoinTestFramework):
 
         # From now only the outbound is requested
         count_inbound = count_getavaproofs([inbound])
-        for _ in range(20):
+        while count_getavaproofs([inbound, outbound]) < current_total + 20:
             node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
-            self.wait_until(lambda: count_getavaproofs(
-                [inbound, outbound]) > current_total)
-            current_total = count_getavaproofs([inbound, outbound])
+            inbound.sync_send_with_ping()
+            outbound.sync_send_with_ping()
 
         assert_equal(count_getavaproofs([inbound]), count_inbound)
 
