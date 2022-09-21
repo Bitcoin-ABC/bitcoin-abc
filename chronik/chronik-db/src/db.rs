@@ -76,8 +76,13 @@ impl Db {
         Ok(self.db.get_pinned_cf(cf, key).map_err(RocksDb)?)
     }
 
-    pub(crate) fn iterator_end(&self, cf: &CF) -> rocksdb::DBIterator<'_> {
-        self.db.iterator_cf(cf, IteratorMode::End)
+    pub(crate) fn iterator_end(
+        &self,
+        cf: &CF,
+    ) -> impl Iterator<Item = Result<(Box<[u8]>, Box<[u8]>)>> + '_ {
+        self.db
+            .iterator_cf(cf, IteratorMode::End)
+            .map(|result| Ok(result.map_err(RocksDb)?))
     }
 
     #[cfg(test)]

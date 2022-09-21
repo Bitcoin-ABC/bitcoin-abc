@@ -144,7 +144,10 @@ impl<'a> BlockReader<'a> {
     pub fn height(&self) -> Result<BlockHeight> {
         let mut iter = self.db.iterator_end(self.cf());
         match iter.next() {
-            Some((height_bytes, _)) => Ok(bytes_to_bh(&height_bytes)?),
+            Some(result) => {
+                let (height_bytes, _) = result?;
+                Ok(bytes_to_bh(&height_bytes)?)
+            }
             None => Ok(-1),
         }
     }
@@ -154,7 +157,8 @@ impl<'a> BlockReader<'a> {
     pub fn tip(&self) -> Result<Option<DbBlock>> {
         let mut iter = self.db.iterator_end(self.cf());
         match iter.next() {
-            Some((height_bytes, block_data)) => {
+            Some(result) => {
+                let (height_bytes, block_data) = result?;
                 let height = bytes_to_bh(&height_bytes)?;
                 let block_data = db_deserialize::<SerBlock>(&block_data)?;
                 let prev_block_hash = self.get_prev_hash(height)?;
