@@ -8,7 +8,7 @@ use abc_rust_error::Result;
 use thiserror::Error;
 
 /// Errors for de-/serialization.
-#[derive(Clone, Debug, Error, PartialEq)]
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum SerError {
     /// Serialization failed.
     #[error("Cannot serialize {type_name}: {error}")]

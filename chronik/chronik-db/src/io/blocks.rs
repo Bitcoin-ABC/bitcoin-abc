@@ -57,7 +57,7 @@ struct SerBlock {
 }
 
 /// Errors for [`BlockWriter`] and [`BlockReader`].
-#[derive(Debug, Error, PartialEq)]
+#[derive(Debug, Eq, Error, PartialEq)]
 pub enum BlocksError {
     /// Block height must be 4 bytes.
     #[error("Inconsistent DB: Invalid height bytes: {0:?}")]
