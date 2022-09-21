@@ -8,6 +8,7 @@
 #include <crypto/chacha20.h>
 #include <crypto/common.h>
 
+#include <algorithm>
 #include <cstring>
 
 constexpr static inline uint32_t rotl32(uint32_t v, int c) {
@@ -43,7 +44,7 @@ constexpr static inline uint32_t rotl32(uint32_t v, int c) {
 static const uint8_t sigma[] = "expand 32-byte k";
 static const uint8_t tau[] = "expand 16-byte k";
 
-void ChaCha20::SetKey(const uint8_t *k, size_t keylen) {
+void ChaCha20Aligned::SetKey(const uint8_t *k, size_t keylen) {
     const uint8_t *constants;
 
     input[4] = ReadLE32(k + 0);
@@ -72,34 +73,31 @@ void ChaCha20::SetKey(const uint8_t *k, size_t keylen) {
     input[15] = 0;
 }
 
-ChaCha20::ChaCha20() {
+ChaCha20Aligned::ChaCha20Aligned() {
     memset(input, 0, sizeof(input));
 }
 
-ChaCha20::ChaCha20(const uint8_t *k, size_t keylen) {
+ChaCha20Aligned::ChaCha20Aligned(const uint8_t *k, size_t keylen) {
     SetKey(k, keylen);
 }
 
-void ChaCha20::SetIV(uint64_t iv) {
+void ChaCha20Aligned::SetIV(uint64_t iv) {
     input[14] = iv;
     input[15] = iv >> 32;
 }
 
-void ChaCha20::Seek(uint64_t pos) {
+void ChaCha20Aligned::Seek(uint64_t pos) {
     input[12] = pos;
     input[13] = pos >> 32;
 }
 
-void ChaCha20::Keystream(uint8_t *c, size_t bytes) {
+inline void ChaCha20Aligned::Keystream64(uint8_t *c, size_t blocks) {
     uint32_t x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14,
         x15;
     uint32_t j0, j1, j2, j3, j4, j5, j6, j7, j8, j9, j10, j11, j12, j13, j14,
         j15;
-    uint8_t *ctarget = nullptr;
-    uint8_t tmp[64];
-    unsigned int i;
 
-    if (!bytes) {
+    if (!blocks) {
         return;
     }
 
@@ -121,10 +119,6 @@ void ChaCha20::Keystream(uint8_t *c, size_t bytes) {
     j15 = input[15];
 
     for (;;) {
-        if (bytes < 64) {
-            ctarget = c;
-            c = tmp;
-        }
         x0 = j0;
         x1 = j1;
         x2 = j2;
@@ -187,31 +181,24 @@ void ChaCha20::Keystream(uint8_t *c, size_t bytes) {
         WriteLE32(c + 56, x14);
         WriteLE32(c + 60, x15);
 
-        if (bytes <= 64) {
-            if (bytes < 64) {
-                for (i = 0; i < bytes; ++i) {
-                    ctarget[i] = c[i];
-                }
-            }
+        if (blocks == 1) {
             input[12] = j12;
             input[13] = j13;
             return;
         }
-        bytes -= 64;
+        blocks -= 1;
         c += 64;
     }
 }
 
-void ChaCha20::Crypt(const uint8_t *m, uint8_t *c, size_t bytes) {
+inline void ChaCha20Aligned::Crypt64(const uint8_t *m, uint8_t *c,
+                                     size_t blocks) {
     uint32_t x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14,
         x15;
     uint32_t j0, j1, j2, j3, j4, j5, j6, j7, j8, j9, j10, j11, j12, j13, j14,
         j15;
-    uint8_t *ctarget = nullptr;
-    uint8_t tmp[64];
-    unsigned int i;
 
-    if (!bytes) {
+    if (!blocks) {
         return;
     }
 
@@ -233,16 +220,6 @@ void ChaCha20::Crypt(const uint8_t *m, uint8_t *c, size_t bytes) {
     j15 = input[15];
 
     for (;;) {
-        if (bytes < 64) {
-            // if m has fewer than 64 bytes available, copy m to tmp and
-            // read from tmp instead
-            for (i = 0; i < bytes; ++i) {
-                tmp[i] = m[i];
-            }
-            m = tmp;
-            ctarget = c;
-            c = tmp;
-        }
         x0 = j0;
         x1 = j1;
         x2 = j2;
@@ -322,18 +299,50 @@ void ChaCha20::Crypt(const uint8_t *m, uint8_t *c, size_t bytes) {
         WriteLE32(c + 56, x14);
         WriteLE32(c + 60, x15);
 
-        if (bytes <= 64) {
-            if (bytes < 64) {
-                for (i = 0; i < bytes; ++i) {
-                    ctarget[i] = c[i];
-                }
-            }
+        if (blocks == 1) {
             input[12] = j12;
             input[13] = j13;
             return;
         }
-        bytes -= 64;
+        blocks -= 1;
         c += 64;
         m += 64;
+    }
+}
+
+void ChaCha20::Keystream(uint8_t *c, size_t bytes) {
+    if (!bytes) {
+        return;
+    }
+    if (bytes >= 64) {
+        size_t blocks = bytes / 64;
+        m_aligned.Keystream64(c, blocks);
+        c += blocks * 64;
+        bytes -= blocks * 64;
+    }
+    if (bytes) {
+        uint8_t buffer[64];
+        m_aligned.Keystream64(buffer, 1);
+        memcpy(c, buffer, bytes);
+    }
+}
+
+void ChaCha20::Crypt(const uint8_t *m, uint8_t *c, size_t bytes) {
+    if (!bytes) {
+        return;
+    }
+    if (bytes >= 64) {
+        size_t blocks = bytes / 64;
+        m_aligned.Crypt64(m, c, blocks);
+        c += blocks * 64;
+        m += blocks * 64;
+        bytes -= blocks * 64;
+    }
+    if (bytes) {
+        uint8_t buffer[64];
+        m_aligned.Keystream64(buffer, 1);
+        for (unsigned i = 0; i < bytes; i++) {
+            c[i] = m[i] ^ buffer[i];
+        }
     }
 }
