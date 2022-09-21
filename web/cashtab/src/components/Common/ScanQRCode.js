@@ -5,8 +5,7 @@ import { ThemedQrcodeOutlined } from 'components/Common/CustomIcons';
 import { errorNotification } from './Notifications';
 import styled from 'styled-components';
 import { BrowserQRCodeReader } from '@zxing/library';
-import { currency, parseAddressForParams } from 'components/Common/Ticker.js';
-import { Event } from 'utils/GoogleAnalytics';
+import { parseAddressForParams } from 'components/Common/Ticker.js';
 import { isValidXecAddress, isValidEtokenAddress } from 'utils/validation';
 
 const StyledScanQRCode = styled.span`
@@ -65,15 +64,6 @@ const ScanQRCode = ({
             values = {
                 address: content,
             };
-            // Event("Category", "Action", "Label")
-            // Track number of successful QR code scans
-            // BCH or slp?
-            let eventLabel = currency.ticker;
-            const isToken = content.split(currency.tokenPrefixes).length > 1;
-            if (isToken) {
-                eventLabel = currency.tokenTicker;
-            }
-            Event('ScanQRCode.js', 'Address Scanned', eventLabel);
         }
         return { type, values };
     };
