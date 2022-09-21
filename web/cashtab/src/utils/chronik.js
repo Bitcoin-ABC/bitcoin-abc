@@ -1,5 +1,49 @@
 // Chronik methods
 import BigNumber from 'bignumber.js';
+
+// Return false if do not get a valid response
+export const getTokenStats = async (chronik, tokenId) => {
+    try {
+        // token attributes available via chronik's token() method
+        let tokenResponseObj = await chronik.token(tokenId);
+        const tokenDecimals = tokenResponseObj.slpTxData.genesisInfo.decimals;
+
+        // additional arithmetic to account for token decimals
+        // circulating supply not provided by chronik, calculate via totalMinted - totalBurned
+        tokenResponseObj.circulatingSupply = new BigNumber(
+            tokenResponseObj.tokenStats.totalMinted,
+        )
+            .minus(new BigNumber(tokenResponseObj.tokenStats.totalBurned))
+            .shiftedBy(-1 * tokenDecimals)
+            .toString();
+
+        tokenResponseObj.tokenStats.totalMinted = new BigNumber(
+            tokenResponseObj.tokenStats.totalMinted,
+        )
+            .shiftedBy(-1 * tokenDecimals)
+            .toString();
+
+        tokenResponseObj.initialTokenQuantity = new BigNumber(
+            tokenResponseObj.initialTokenQuantity,
+        )
+            .shiftedBy(-1 * tokenDecimals)
+            .toString();
+
+        tokenResponseObj.tokenStats.totalBurned = new BigNumber(
+            tokenResponseObj.tokenStats.totalBurned,
+        )
+            .shiftedBy(-1 * tokenDecimals)
+            .toString();
+
+        return tokenResponseObj;
+    } catch (err) {
+        console.log(
+            `Error fetching token stats for tokenId ${tokenId}: ` + err,
+        );
+        return false;
+    }
+};
+
 /* 
 Note: chronik.script('p2pkh', hash160).utxos(); is not readily mockable in jest
 Hence it is necessary to keep this out of any functions that require unit testing

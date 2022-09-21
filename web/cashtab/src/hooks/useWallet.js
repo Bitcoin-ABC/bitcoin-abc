@@ -1399,6 +1399,7 @@ const useWallet = () => {
 
     return {
         BCH,
+        chronik,
         wallet,
         fiatPrice,
         loading,

@@ -105,19 +105,6 @@ export const isValidTokenDocumentUrl = tokenDocumentUrl => {
     );
 };
 
-export const isValidTokenStats = tokenStats => {
-    return (
-        typeof tokenStats === 'object' &&
-        'timestampUnix' in tokenStats &&
-        'documentUri' in tokenStats &&
-        'containsBaton' in tokenStats &&
-        'initialTokenQty' in tokenStats &&
-        'totalMinted' in tokenStats &&
-        'totalBurned' in tokenStats &&
-        'circulatingSupply' in tokenStats
-    );
-};
-
 export const isValidCashtabSettings = settings => {
     try {
         let isValidSettingParams = true;

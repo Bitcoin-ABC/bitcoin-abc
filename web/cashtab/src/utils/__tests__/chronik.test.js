@@ -1,8 +1,10 @@
+import BigNumber from 'bignumber.js';
 import {
     organizeUtxosByType,
     getPreliminaryTokensArray,
     finalizeTokensArray,
     finalizeSlpUtxos,
+    getTokenStats,
 } from 'utils/chronik';
 import {
     mockChronikUtxos,
@@ -19,8 +21,32 @@ import {
     mockFinalizedSlpUtxos,
     mockTokenInfoById,
 } from '../__mocks__/chronikUtxos';
+import {
+    mockChronikTokenResponse,
+    mockGetTokenStatsReturn,
+} from '../__mocks__/mockChronikTokenStats';
 import { ChronikClient } from 'chronik-client';
 import { when } from 'jest-when';
+
+it(`getTokenStats successfully returns a token stats object`, async () => {
+    // Initialize chronik
+    const chronik = new ChronikClient(
+        'https://FakeChronikUrlToEnsureMocksOnly.com',
+    );
+    const tokenId =
+        'bb8e9f685a06a2071d82f757ce19201b4c8e5e96fbe186960a3d65aec83eab20';
+    /*
+        Mock the API response from chronik.token('tokenId') called
+        in getTokenStats()
+    */
+    chronik.token = jest.fn();
+    when(chronik.token)
+        .calledWith(tokenId)
+        .mockResolvedValue(mockChronikTokenResponse);
+    expect(await getTokenStats(chronik, tokenId)).toStrictEqual(
+        mockGetTokenStatsReturn,
+    );
+});
 
 it(`organizeUtxosByType successfully splits a chronikUtxos array into slpUtxos and nonSlpUtxos`, () => {
     expect(organizeUtxosByType(mockChronikUtxos)).toStrictEqual(

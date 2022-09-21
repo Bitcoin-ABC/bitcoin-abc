@@ -6,7 +6,6 @@ import {
     isValidTokenDecimals,
     isValidTokenInitialQty,
     isValidTokenDocumentUrl,
-    isValidTokenStats,
     isValidCashtabSettings,
     isValidXecAddress,
     isValidNewWalletNameLength,
@@ -249,18 +248,6 @@ describe('Validation utils', () => {
     });
     it(`Rejects a domain input as numbers ${currency.tokenTicker} token document URL`, () => {
         expect(isValidTokenDocumentUrl(12345)).toBe(false);
-    });
-    it(`Correctly validates token stats for token created before the ${currency.ticker} fork`, () => {
-        expect(isValidTokenStats(stStatsValid)).toBe(true);
-    });
-    it(`Correctly validates token stats for token created after the ${currency.ticker} fork`, () => {
-        expect(isValidTokenStats(noCovidStatsValid)).toBe(true);
-    });
-    it(`Correctly validates token stats for token with no minting baton`, () => {
-        expect(isValidTokenStats(cGenStatsValid)).toBe(true);
-    });
-    it(`Recognizes a token stats object with missing required keys as invalid`, () => {
-        expect(isValidTokenStats(noCovidStatsInvalid)).toBe(false);
     });
     it(`Recognizes the default cashtabCache object as valid`, () => {
         expect(isValidCashtabCache(currency.defaultCashtabCache)).toBe(true);

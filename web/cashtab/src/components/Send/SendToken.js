@@ -46,6 +46,7 @@ import {
     isValidEtokenAddress,
     isValidEtokenBurnAmount,
 } from 'utils/validation';
+import { getTokenStats } from 'utils/chronik';
 import { formatDate } from 'utils/formatting';
 import styled, { css } from 'styled-components';
 import TokenIcon from 'components/Tokens/TokenIcon';
@@ -93,7 +94,7 @@ const AirdropButton = styled.div`
 `;
 
 const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
-    const { BCH, wallet, apiError, cashtabSettings } =
+    const { BCH, wallet, apiError, cashtabSettings, chronik } =
         React.useContext(WalletContext);
     const walletState = getWalletState(wallet);
     const { tokens } = walletState;
@@ -130,7 +131,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
         address: '',
     });
 
-    const { getRestUrl, sendToken, getTokenStats, burnToken } = useBCH();
+    const { getRestUrl, sendToken, burnToken } = useBCH();
 
     useEffect(() => {
         // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
@@ -142,7 +143,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
 
     // Fetch token stats if you do not have them and API did not return an error
     if (tokenStats === null) {
-        getTokenStats(bchObj, tokenId).then(
+        getTokenStats(chronik, tokenId).then(
             result => {
                 setTokenStats(result);
             },
@@ -650,13 +651,19 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                                         {tokenStats && (
                                             <>
                                                 <Descriptions.Item label="Document URI">
-                                                    {tokenStats.documentUri}
+                                                    {
+                                                        tokenStats.slpTxData
+                                                            .genesisInfo
+                                                            .tokenDocumentUrl
+                                                    }
                                                 </Descriptions.Item>
                                                 <Descriptions.Item label="Genesis Date">
-                                                    {tokenStats.timestampUnix !==
-                                                    null
+                                                    {tokenStats.block &&
+                                                    tokenStats.block
+                                                        .timestamp !== null
                                                         ? formatDate(
-                                                              tokenStats.timestampUnix,
+                                                              tokenStats.block
+                                                                  .timestamp,
                                                               navigator.language,
                                                           )
                                                         : 'Just now (Genesis tx confirming)'}
@@ -667,16 +674,40 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                                                         : 'Yes'}
                                                 </Descriptions.Item>
                                                 <Descriptions.Item label="Initial Quantity">
-                                                    {tokenStats.initialTokenQty.toLocaleString()}
+                                                    {new BigNumber(
+                                                        tokenStats.initialTokenQuantity,
+                                                    )
+                                                        .toFormat(
+                                                            token.info.decimals,
+                                                        )
+                                                        .toLocaleString()}
                                                 </Descriptions.Item>
                                                 <Descriptions.Item label="Total Burned">
-                                                    {tokenStats.totalBurned.toLocaleString()}
+                                                    {new BigNumber(
+                                                        tokenStats.tokenStats.totalBurned,
+                                                    )
+                                                        .toFormat(
+                                                            token.info.decimals,
+                                                        )
+                                                        .toLocaleString()}
                                                 </Descriptions.Item>
                                                 <Descriptions.Item label="Total Minted">
-                                                    {tokenStats.totalMinted.toLocaleString()}
+                                                    {new BigNumber(
+                                                        tokenStats.tokenStats.totalMinted,
+                                                    )
+                                                        .toFormat(
+                                                            token.info.decimals,
+                                                        )
+                                                        .toLocaleString()}
                                                 </Descriptions.Item>
                                                 <Descriptions.Item label="Circulating Supply">
-                                                    {tokenStats.circulatingSupply.toLocaleString()}
+                                                    {new BigNumber(
+                                                        tokenStats.circulatingSupply,
+                                                    )
+                                                        .toFormat(
+                                                            token.info.decimals,
+                                                        )
+                                                        .toLocaleString()}
                                                 </Descriptions.Item>
                                                 <Descriptions.Item label="Burn eToken">
                                                     <DestinationAmount
