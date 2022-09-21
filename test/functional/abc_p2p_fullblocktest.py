@@ -220,6 +220,10 @@ class FullBlockTest(BitcoinTestFramework):
         peer.send_blocks_and_test(
             [self.tip], node, success=False, reject_reason='bad-blk-length', timeout=360)
 
+        # Disconnect all the peers now so our node doesn't try to relay the next
+        # large block, which could cause a timeout during the test shutdown.
+        node.disconnect_p2ps()
+
         # Rewind bad block.
         self.tip = self.blocks[17]
 
