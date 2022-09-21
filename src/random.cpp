@@ -665,7 +665,7 @@ uint256 GetRandHash() noexcept {
 
 void FastRandomContext::RandomSeed() {
     uint256 seed = GetRandHash();
-    rng.SetKey(seed.begin(), 32);
+    rng.SetKey32(seed.begin());
     requires_seed = false;
 }
 
@@ -699,7 +699,7 @@ std::vector<uint8_t> FastRandomContext::randbytes(size_t len) {
 
 FastRandomContext::FastRandomContext(const uint256 &seed) noexcept
     : requires_seed(false), bitbuf_size(0) {
-    rng.SetKey(seed.begin(), 32);
+    rng.SetKey32(seed.begin());
 }
 
 bool Random_SanityCheck() {
@@ -764,7 +764,7 @@ FastRandomContext::FastRandomContext(bool fDeterministic) noexcept
         return;
     }
     uint256 seed;
-    rng.SetKey(seed.begin(), 32);
+    rng.SetKey32(seed.begin());
 }
 
 FastRandomContext &

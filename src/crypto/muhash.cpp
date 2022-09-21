@@ -668,8 +668,7 @@ Num3072 MuHash3072::ToNum3072(Span<const uint8_t> in) {
     uint8_t tmp[Num3072::BYTE_SIZE];
 
     uint256 hashed_in{(HashWriter{} << in).GetSHA256()};
-    ChaCha20Aligned(hashed_in.data(), hashed_in.size())
-        .Keystream64(tmp, Num3072::BYTE_SIZE / 64);
+    ChaCha20Aligned(hashed_in.data()).Keystream64(tmp, Num3072::BYTE_SIZE / 64);
     Num3072 out{tmp};
 
     return out;
