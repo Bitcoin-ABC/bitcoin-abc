@@ -760,6 +760,24 @@ BOOST_AUTO_TEST_CASE(hkdf_hmac_sha256_l32_tests) {
         "8da4e775a563c18f715f802a063c5a31b8a11f5c5ee1879ec3454e5f3c738d2d");
 }
 
+BOOST_AUTO_TEST_CASE(chacha20_midblock) {
+    auto key = ParseHex(
+        "0000000000000000000000000000000000000000000000000000000000000000");
+    ChaCha20 c20{key.data(), 32};
+    // get one block of keystream
+    uint8_t block[64];
+    c20.Keystream(block, CHACHA20_ROUND_OUTPUT);
+    uint8_t b1[5], b2[7], b3[52];
+    c20 = ChaCha20{key.data(), 32};
+    c20.Keystream(b1, 5);
+    c20.Keystream(b2, 7);
+    c20.Keystream(b3, 52);
+
+    BOOST_CHECK_EQUAL(0, memcmp(b1, block, 5));
+    BOOST_CHECK_EQUAL(0, memcmp(b2, block + 5, 7));
+    BOOST_CHECK_EQUAL(0, memcmp(b3, block + 12, 52));
+}
+
 BOOST_AUTO_TEST_CASE(poly1305_testvector) {
     // RFC 7539, section 2.5.2.
     TestPoly1305(
