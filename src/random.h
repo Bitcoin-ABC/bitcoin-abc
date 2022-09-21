@@ -158,21 +158,10 @@ private:
     bool requires_seed;
     ChaCha20 rng;
 
-    uint8_t bytebuf[64];
-    int bytebuf_size;
-
     uint64_t bitbuf;
     int bitbuf_size;
 
     void RandomSeed();
-
-    void FillByteBuffer() {
-        if (requires_seed) {
-            RandomSeed();
-        }
-        rng.Keystream(bytebuf, sizeof(bytebuf));
-        bytebuf_size = sizeof(bytebuf);
-    }
 
     void FillBitBuffer() {
         bitbuf = rand64();
@@ -199,12 +188,12 @@ public:
 
     /** Generate a random 64-bit integer. */
     uint64_t rand64() noexcept {
-        if (bytebuf_size < 8) {
-            FillByteBuffer();
+        if (requires_seed) {
+            RandomSeed();
         }
-        uint64_t ret = ReadLE64(bytebuf + 64 - bytebuf_size);
-        bytebuf_size -= 8;
-        return ret;
+        uint8_t buf[8];
+        rng.Keystream(buf, 8);
+        return ReadLE64(buf);
     }
 
     /** Generate a random (bits)-bit integer. */
