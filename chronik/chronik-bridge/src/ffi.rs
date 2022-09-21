@@ -13,6 +13,20 @@ mod ffi_inner {
         include!("chronik-cpp/chronik_bridge.h");
 
         /// Print the message to bitcoind's logs.
-        fn log_println(msg: &str);
+        fn log_print(
+            logging_function: &str,
+            source_file: &str,
+            source_line: u32,
+            msg: &str,
+        );
+
+        /// Print the message to bitcoind's logs under the BCLog::Chronik
+        /// category.
+        fn log_print_chronik(
+            logging_function: &str,
+            source_file: &str,
+            source_line: u32,
+            msg: &str,
+        );
     }
 }

@@ -9,4 +9,5 @@ members = [
     "chronik/chronik-bridge",
     "chronik/chronik-db",
     "chronik/chronik-lib",
+    "chronik/chronik-util",
 ]

@@ -60,6 +60,7 @@ enum LogFlags : uint32_t {
     VALIDATION = (1 << 21),
     AVALANCHE = (1 << 22),
     I2P = (1 << 23),
+    CHRONIK = (1 << 24),
     ALL = ~uint32_t(0),
 };
 

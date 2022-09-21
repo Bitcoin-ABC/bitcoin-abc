@@ -10,7 +10,12 @@
 
 namespace chronik_bridge {
 
-void log_println(rust::Str msg);
+void log_print(const rust::Str logging_function, const rust::Str source_file,
+               const uint32_t source_line, const rust::Str msg);
+
+void log_print_chronik(const rust::Str logging_function,
+                       const rust::Str source_file, const uint32_t source_line,
+                       const rust::Str msg);
 
 } // namespace chronik_bridge
 

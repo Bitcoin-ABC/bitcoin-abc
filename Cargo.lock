@@ -213,8 +213,17 @@ version = "0.1.0"
 dependencies = [
  "abc-rust-lint",
  "chronik-bridge",
+ "chronik-util",
  "cxx",
  "cxx-build",
+]
+
+[[package]]
+name = "chronik-util"
+version = "0.1.0"
+dependencies = [
+ "abc-rust-lint",
+ "chronik-bridge",
 ]
 
 [[package]]

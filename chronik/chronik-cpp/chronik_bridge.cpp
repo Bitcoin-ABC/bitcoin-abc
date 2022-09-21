@@ -7,8 +7,18 @@
 
 namespace chronik_bridge {
 
-void log_println(rust::Str msg) {
-    LogPrintf("%s\n", std::string(msg));
+void log_print(const rust::Str logging_function, const rust::Str source_file,
+               const uint32_t source_line, const rust::Str msg) {
+    LogInstance().LogPrintStr(std::string(msg), std::string(logging_function),
+                              std::string(source_file), source_line);
+}
+
+void log_print_chronik(const rust::Str logging_function,
+                       const rust::Str source_file, const uint32_t source_line,
+                       const rust::Str msg) {
+    if (LogInstance().WillLogCategory(BCLog::CHRONIK)) {
+        log_print(logging_function, source_file, source_line, msg);
+    }
 }
 
 } // namespace chronik_bridge

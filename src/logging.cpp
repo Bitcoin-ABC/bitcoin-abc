@@ -124,6 +124,7 @@ const CLogCategoryDesc LogCategories[] = {
     {BCLog::VALIDATION, "validation"},
     {BCLog::AVALANCHE, "avalanche"},
     {BCLog::I2P, "i2p"},
+    {BCLog::CHRONIK, "chronik"},
     {BCLog::ALL, "1"},
     {BCLog::ALL, "all"},
 };
