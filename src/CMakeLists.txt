@@ -372,7 +372,6 @@ add_library(util
 	randomenv.cpp
 	rcu.cpp
 	rpc/request.cpp
-	blockdb.cpp
 	support/cleanse.cpp
 	support/lockedpool.cpp
 	sync.cpp

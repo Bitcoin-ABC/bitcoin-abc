@@ -82,8 +82,6 @@ static const Amount DEFAULT_UTXO_FEE = Amount::zero();
  * hours.
  */
 static const unsigned int DEFAULT_MEMPOOL_EXPIRY = 336;
-/** The maximum size of a blk?????.dat file (since 0.8) */
-static const unsigned int MAX_BLOCKFILE_SIZE = 0x8000000; // 128 MiB
 /** Maximum number of dedicated script-checking threads allowed */
 static const int MAX_SCRIPTCHECK_THREADS = 15;
 /** -par default (number of script-checking threads, 0 = auto) */
@@ -255,16 +253,6 @@ bool AbortNode(BlockValidationState &state, const std::string &strMessage,
  */
 double GuessVerificationProgress(const ChainTxData &data,
                                  const CBlockIndex *pindex);
-
-/**
- * Calculate the amount of disk space the block & undo files currently use.
- */
-uint64_t CalculateCurrentUsage();
-
-/**
- * Actually unlink the specified files
- */
-void UnlinkPrunedFiles(const std::set<int> &setFilesToPrune);
 
 /** Prune block files up to a given height */
 void PruneBlockFilesManual(CChainState &active_chainstate,
@@ -1354,9 +1342,6 @@ extern VersionBitsCache versionbitscache;
  */
 int32_t ComputeBlockVersion(const CBlockIndex *pindexPrev,
                             const Consensus::Params &params);
-
-/** Get block file info entry for one block file */
-CBlockFileInfo *GetBlockFileInfo(size_t n);
 
 /** Dump the mempool to disk. */
 bool DumpMempool(const CTxMemPool &pool);

@@ -4,9 +4,9 @@
 
 #include <index/txindex.h>
 
-#include <blockdb.h>
 #include <chain.h>
 #include <index/disktxpos.h>
+#include <node/blockstorage.h>
 #include <node/ui_interface.h>
 #include <shutdown.h>
 #include <util/system.h>

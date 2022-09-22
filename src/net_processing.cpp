@@ -13,7 +13,6 @@
 #include <avalanche/proof.h>
 #include <avalanche/validation.h>
 #include <banman.h>
-#include <blockdb.h>
 #include <blockencodings.h>
 #include <blockfilter.h>
 #include <blockvalidity.h>

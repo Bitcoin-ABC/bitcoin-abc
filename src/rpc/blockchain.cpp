@@ -6,7 +6,6 @@
 #include <rpc/blockchain.h>
 
 #include <amount.h>
-#include <blockdb.h>
 #include <blockfilter.h>
 #include <chain.h>
 #include <chainparams.h>

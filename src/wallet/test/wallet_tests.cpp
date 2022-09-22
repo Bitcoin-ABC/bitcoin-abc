@@ -6,6 +6,7 @@
 #include <chainparams.h>
 #include <config.h>
 #include <interfaces/chain.h>
+#include <node/blockstorage.h>
 #include <node/context.h>
 #include <policy/policy.h>
 #include <rpc/server.h>
