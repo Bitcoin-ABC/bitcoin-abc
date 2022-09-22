@@ -42,11 +42,13 @@ class ProofInvStoreP2PInterface(P2PInterface):
     def __init__(self):
         super().__init__()
         self.proof_invs_counter = 0
+        self.last_proofid = None
 
     def on_inv(self, message):
         for i in message.inv:
             if i.type & MSG_TYPE_MASK == MSG_AVA_PROOF:
                 self.proof_invs_counter += 1
+                self.last_proofid = i.hash
 
 
 class ProofInventoryTest(BitcoinTestFramework):
@@ -73,7 +75,7 @@ class ProofInventoryTest(BitcoinTestFramework):
 
         node = self.nodes[0]
 
-        for i in range(10):
+        for _ in range(10):
             node.add_p2p_connection(ProofInvStoreP2PInterface())
 
         _, proof = self.generate_proof(node)
@@ -81,8 +83,7 @@ class ProofInventoryTest(BitcoinTestFramework):
 
         def proof_inv_found(peer):
             with p2p_lock:
-                return peer.last_message.get(
-                    "inv") and peer.last_message["inv"].inv[-1].hash == proof.proofid
+                return peer.last_proofid == proof.proofid
 
         self.wait_until(lambda: all(proof_inv_found(i) for i in node.p2ps))
 
