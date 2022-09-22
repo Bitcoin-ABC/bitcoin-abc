@@ -13,6 +13,7 @@ crate-type = ["staticlib"]
 
 [dependencies]
 abc-rust-lint = { path = "../abc-rust-lint" }
+abc-rust-error = { path = "../abc-rust-error" }
 chronik-bridge = { path = "../chronik-bridge" }
 chronik-util = { path = "../chronik-util" }
 

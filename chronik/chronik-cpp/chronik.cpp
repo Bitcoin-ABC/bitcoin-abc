@@ -7,17 +7,21 @@
 #include <node/context.h>
 
 #include <chronik-cpp/chronik.h>
+#include <chronik-cpp/chronik_validationinterface.h>
 #include <chronik-lib/src/ffi.rs.h>
 
 namespace chronik {
 
 void Start([[maybe_unused]] const Config &config,
            [[maybe_unused]] const NodeContext &node) {
-    chronik_bridge::setup_bridge();
+    rust::Box<chronik_bridge::Chronik> chronik_box =
+        chronik_bridge::setup_bridge();
+    StartChronikValidationInterface(std::move(chronik_box));
 }
 
 void Stop() {
     LogPrintf("Stopping Chronik...\n");
+    StopChronikValidationInterface();
 }
 
 } // namespace chronik

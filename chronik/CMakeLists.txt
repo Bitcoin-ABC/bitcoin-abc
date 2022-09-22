@@ -115,6 +115,7 @@ target_link_libraries(chronik-bridge
 # chronik::Stop to run the indexer from C++.
 add_library(chronik
     chronik-cpp/chronik.cpp
+    chronik-cpp/chronik_validationinterface.cpp
     ${CHRONIK_LIB_GENERATED_CPP_FILES}
 )
 target_link_libraries(chronik

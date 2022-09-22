@@ -211,6 +211,7 @@ dependencies = [
 name = "chronik-lib"
 version = "0.1.0"
 dependencies = [
+ "abc-rust-error",
  "abc-rust-lint",
  "chronik-bridge",
  "chronik-util",
