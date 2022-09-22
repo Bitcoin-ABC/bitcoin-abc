@@ -100,3 +100,14 @@ bool IsGluonEnabled(const Consensus::Params &params,
 
     return IsGluonEnabled(params, pindexPrev->nHeight);
 }
+
+bool IsWellingtonEnabled(const Consensus::Params &params,
+                         const CBlockIndex *pindexPrev) {
+    if (pindexPrev == nullptr) {
+        return false;
+    }
+
+    return pindexPrev->GetMedianTimePast() >=
+           gArgs.GetIntArg("-wellingtonactivationtime",
+                           params.wellingtonActivationTime);
+}

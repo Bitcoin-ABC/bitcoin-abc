@@ -45,8 +45,8 @@ TEST_EXIT_PASSED = 0
 TEST_EXIT_FAILED = 1
 TEST_EXIT_SKIPPED = 77
 
-# Timestamp is Feb. 15th, 2022 at 12:00:00
-TIMESTAMP_IN_THE_PAST = 1644922800
+# Timestamp is Sep. 20th, 2022 at 12:00:00
+TIMESTAMP_IN_THE_PAST = 1663675200
 
 TMPDIR_PREFIX = "bitcoin_func_test_"
 
@@ -184,8 +184,8 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                             help="set a random seed for deterministically reproducing a previous test run")
         parser.add_argument("--descriptors", default=False, action="store_true",
                             help="Run test using a descriptor wallet")
-        parser.add_argument("--with-gluonactivation", dest="gluonactivation", default=False, action="store_true",
-                            help="Activate gluon update on timestamp {}".format(TIMESTAMP_IN_THE_PAST))
+        parser.add_argument("--with-wellingtonactivation", dest="wellingtonactivation", default=False, action="store_true",
+                            help="Activate wellington update on timestamp {}".format(TIMESTAMP_IN_THE_PAST))
         parser.add_argument(
             '--timeout-factor',
             dest="timeout_factor",
@@ -468,10 +468,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                 descriptors=self.options.descriptors,
             ))
 
-            # TODO This needs to be updated to match the next upgrade
-            # if self.options.gluonactivation:
-            #     self.nodes[i].extend_default_args(
-            #         ["-gluonactivationtime={}".format(TIMESTAMP_IN_THE_PAST)])
+            if self.options.wellingtonactivation:
+                self.nodes[i].extend_default_args(
+                    ["-wellingtonactivationtime={}".format(TIMESTAMP_IN_THE_PAST)])
 
     def start_node(self, i, *args, **kwargs):
         """Start a bitcoind"""
@@ -750,10 +749,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                     emulator=self.options.emulator,
                 ))
 
-            # TODO This needs to be updated to match the next upgrade
-            # if self.options.gluonactivation:
-            #     self.nodes[CACHE_NODE_ID].extend_default_args(
-            #         ["-gluonactivationtime={}".format(TIMESTAMP_IN_THE_PAST)])
+            if self.options.wellingtonactivation:
+                self.nodes[CACHE_NODE_ID].extend_default_args(
+                    ["-wellingtonactivationtime={}".format(TIMESTAMP_IN_THE_PAST)])
 
             self.start_node(CACHE_NODE_ID)
             cache_node = self.nodes[CACHE_NODE_ID]
