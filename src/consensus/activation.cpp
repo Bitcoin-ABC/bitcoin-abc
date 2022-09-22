@@ -88,12 +88,15 @@ bool IsAxionEnabled(const Consensus::Params &params,
     return IsAxionEnabled(params, pindexPrev->nHeight);
 }
 
+static bool IsGluonEnabled(const Consensus::Params &params, int32_t nHeight) {
+    return nHeight >= params.gluonHeight;
+}
+
 bool IsGluonEnabled(const Consensus::Params &params,
                     const CBlockIndex *pindexPrev) {
     if (pindexPrev == nullptr) {
         return false;
     }
 
-    return pindexPrev->GetMedianTimePast() >=
-           gArgs.GetIntArg("-gluonactivationtime", params.gluonActivationTime);
+    return IsGluonEnabled(params, pindexPrev->nHeight);
 }

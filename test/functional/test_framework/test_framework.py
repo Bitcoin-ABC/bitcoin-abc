@@ -467,9 +467,11 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                 use_valgrind=self.options.valgrind,
                 descriptors=self.options.descriptors,
             ))
-            if self.options.gluonactivation:
-                self.nodes[i].extend_default_args(
-                    ["-gluonactivationtime={}".format(TIMESTAMP_IN_THE_PAST)])
+
+            # TODO This needs to be updated to match the next upgrade
+            # if self.options.gluonactivation:
+            #     self.nodes[i].extend_default_args(
+            #         ["-gluonactivationtime={}".format(TIMESTAMP_IN_THE_PAST)])
 
     def start_node(self, i, *args, **kwargs):
         """Start a bitcoind"""
@@ -748,9 +750,10 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                     emulator=self.options.emulator,
                 ))
 
-            if self.options.gluonactivation:
-                self.nodes[CACHE_NODE_ID].extend_default_args(
-                    ["-gluonactivationtime={}".format(TIMESTAMP_IN_THE_PAST)])
+            # TODO This needs to be updated to match the next upgrade
+            # if self.options.gluonactivation:
+            #     self.nodes[CACHE_NODE_ID].extend_default_args(
+            #         ["-gluonactivationtime={}".format(TIMESTAMP_IN_THE_PAST)])
 
             self.start_node(CACHE_NODE_ID)
             cache_node = self.nodes[CACHE_NODE_ID]

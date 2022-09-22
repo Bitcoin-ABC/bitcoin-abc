@@ -13,7 +13,8 @@
 
 BOOST_FIXTURE_TEST_SUITE(activation_tests, BasicTestingSetup)
 
-static void SetMTP(std::array<CBlockIndex, 12> &blocks, int64_t mtp) {
+[[maybe_unused]] static void SetMTP(std::array<CBlockIndex, 12> &blocks,
+                                    int64_t mtp) {
     size_t len = blocks.size();
 
     for (size_t i = 0; i < len; ++i) {
@@ -48,30 +49,7 @@ BOOST_AUTO_TEST_CASE(test_previous_activations_by_height) {
     testPastActivation(IsGravitonEnabled, consensus, consensus.gravitonHeight);
     testPastActivation(IsPhononEnabled, consensus, consensus.phononHeight);
     testPastActivation(IsAxionEnabled, consensus, consensus.axionHeight);
-}
-
-BOOST_AUTO_TEST_CASE(isgluonenabled) {
-    const Consensus::Params &params = Params().GetConsensus();
-    const auto activation =
-        gArgs.GetIntArg("-gluonactivationtime", params.gluonActivationTime);
-    SetMockTime(activation - 1000000);
-
-    BOOST_CHECK(!IsGluonEnabled(params, nullptr));
-
-    std::array<CBlockIndex, 12> blocks;
-    for (size_t i = 1; i < blocks.size(); ++i) {
-        blocks[i].pprev = &blocks[i - 1];
-    }
-    BOOST_CHECK(!IsGluonEnabled(params, &blocks.back()));
-
-    SetMTP(blocks, activation - 1);
-    BOOST_CHECK(!IsGluonEnabled(params, &blocks.back()));
-
-    SetMTP(blocks, activation);
-    BOOST_CHECK(IsGluonEnabled(params, &blocks.back()));
-
-    SetMTP(blocks, activation + 1);
-    BOOST_CHECK(IsGluonEnabled(params, &blocks.back()));
+    testPastActivation(IsGluonEnabled, consensus, consensus.gluonHeight);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

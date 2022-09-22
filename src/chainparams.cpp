@@ -143,7 +143,7 @@ public:
         consensus.axionHeight = 661647;
 
         // May 15, 2022 12:00:00 UTC protocol upgrade
-        consensus.gluonActivationTime = 1652616000;
+        consensus.gluonHeight = 739535;
 
         // Nov 15, 2022 12:00:00 UTC protocol upgrade
         consensus.jeffersonActivationTime = 1668513600;
@@ -307,7 +307,7 @@ public:
         consensus.axionHeight = 1421481;
 
         // May 15, 2022 12:00:00 UTC protocol upgrade
-        consensus.gluonActivationTime = 1652616000;
+        consensus.gluonHeight = 1503556;
 
         // Nov 15, 2022 12:00:00 UTC protocol upgrade
         consensus.jeffersonActivationTime = 1668513600;
@@ -448,7 +448,7 @@ public:
         consensus.axionHeight = 0;
 
         // May 15, 2022 12:00:00 UTC protocol upgrade
-        consensus.gluonActivationTime = 1652616000;
+        consensus.gluonHeight = 0;
 
         // Nov 15, 2022 12:00:00 UTC protocol upgrade
         consensus.jeffersonActivationTime = 1668513600;

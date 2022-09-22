@@ -427,8 +427,6 @@ void SetupServerArgs(NodeContext &node) {
         "-rootcertificates=<file>",
         "-splash",
         "-uiplatform",
-        // TODO remove after the May 2022 upgrade
-        "-gluonactivationtime",
     };
 
     // Set all of the args and their help
