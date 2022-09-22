@@ -3643,8 +3643,9 @@ ContextualCheckBlockHeader(const CChainParams &params,
         // Check that the block chain matches the known block chain up to a
         // checkpoint.
         if (!Checkpoints::CheckBlock(checkpoints, nHeight, block.GetHash())) {
-            LogPrintf("ERROR: %s: rejected by checkpoint lock-in at %d\n",
-                      __func__, nHeight);
+            LogPrint(BCLog::VALIDATION,
+                     "ERROR: %s: rejected by checkpoint lock-in at %d\n",
+                     __func__, nHeight);
             return state.Invalid(BlockValidationResult::BLOCK_CHECKPOINT,
                                  "checkpoint mismatch");
         }
@@ -3655,9 +3656,10 @@ ContextualCheckBlockHeader(const CChainParams &params,
 
         CBlockIndex *pcheckpoint = blockman.GetLastCheckpoint(checkpoints);
         if (pcheckpoint && nHeight < pcheckpoint->nHeight) {
-            LogPrintf("ERROR: %s: forked chain older than last checkpoint "
-                      "(height %d)\n",
-                      __func__, nHeight);
+            LogPrint(BCLog::VALIDATION,
+                     "ERROR: %s: forked chain older than last checkpoint "
+                     "(height %d)\n",
+                     __func__, nHeight);
             return state.Invalid(BlockValidationResult::BLOCK_CHECKPOINT,
                                  "bad-fork-prior-to-checkpoint");
         }
