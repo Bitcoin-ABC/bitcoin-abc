@@ -213,6 +213,7 @@ it(`Successfully parses an incoming XEC tx`, () => {
     expect(parseChronikTx(lambdaIncomingXecTx, lambdaHash160s)).toStrictEqual({
         incoming: true,
         xecAmount: '42',
+        originatingHash160: '4e532257c01b310b3b5c1fd947c79a72addf8523',
         isEtokenTx: false,
     });
 });
@@ -220,6 +221,7 @@ it(`Successfully parses an outgoing XEC tx`, () => {
     expect(parseChronikTx(lambdaOutgoingXecTx, lambdaHash160s)).toStrictEqual({
         incoming: false,
         xecAmount: '222',
+        originatingHash160: '76458db0ed96fe9863fc1ccec9fa2cfab884b0f6',
         isEtokenTx: false,
     });
 });
@@ -230,6 +232,7 @@ it(`Successfully parses an incoming eToken tx`, () => {
         incoming: true,
         xecAmount: '5.46',
         isEtokenTx: true,
+        originatingHash160: '4e532257c01b310b3b5c1fd947c79a72addf8523',
         slpMeta: {
             tokenId:
                 '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
@@ -246,6 +249,7 @@ it(`Successfully parses an outgoing eToken tx`, () => {
         incoming: false,
         xecAmount: '5.46',
         isEtokenTx: true,
+        originatingHash160: '76458db0ed96fe9863fc1ccec9fa2cfab884b0f6',
         slpMeta: {
             tokenId:
                 '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',

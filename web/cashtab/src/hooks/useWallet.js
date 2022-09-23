@@ -234,7 +234,7 @@ const useWallet = () => {
                 hash160AndAddressObjArray,
             );
             console.log(
-                `chronikTxHistory as flattened array, sorted by blockheight and time first seen`,
+                `chronikTxHistory as flattened array, sorted by blockheight and time first seen, with parse info`,
                 chronikTxHistory,
             );
 

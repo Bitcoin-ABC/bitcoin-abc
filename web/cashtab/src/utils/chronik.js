@@ -420,6 +420,7 @@ export const parseChronikTx = (tx, walletHash160s) => {
     // Assign defaults
     let incoming = true;
     let xecAmount = new BigNumber(0);
+    let originatingHash160 = '';
     let etokenAmount = new BigNumber(0);
     const isEtokenTx = 'slpTxData' in tx && typeof tx.slpTxData !== 'undefined';
 
@@ -427,6 +428,29 @@ export const parseChronikTx = (tx, walletHash160s) => {
     for (let i = 0; i < inputs.length; i += 1) {
         const thisInput = inputs[i];
         const thisInputSendingHash160 = thisInput.outputScript;
+        /* 
+        
+        Assume the first input is the originating address
+        
+        https://en.bitcoin.it/wiki/Script for reference
+        
+        Assume standard pay-to-pubkey-hash tx        
+        scriptPubKey: OP_DUP OP_HASH160 <pubKeyHash> OP_EQUALVERIFY OP_CHECKSIG
+        76 + a9 + 14 = OP_DUP + OP_HASH160 + 14 Bytes to push
+        88 + ac = OP_EQUALVERIFY + OP_CHECKSIG
+
+        So, the hash160 we want will be in between '76a914' and '88ac'
+        ...most of the time ;)
+        */
+        try {
+            originatingHash160 = thisInputSendingHash160.substring(
+                thisInputSendingHash160.indexOf('76a914') + '76a914'.length,
+                thisInputSendingHash160.lastIndexOf('88ac'),
+            );
+        } catch (err) {
+            // If the transaction is nonstandard, don't worry about a reply address for now
+            originatingHash160 = 'N/A';
+        }
         for (let j = 0; j < walletHash160s.length; j += 1) {
             const thisWalletHash160 = walletHash160s[j];
             if (thisInputSendingHash160.includes(thisWalletHash160)) {
@@ -501,13 +525,14 @@ export const parseChronikTx = (tx, walletHash160s) => {
         return {
             incoming,
             xecAmount,
+            originatingHash160,
             isEtokenTx,
             etokenAmount,
             slpMeta,
         };
     }
     // Otherwise do not include these fields
-    return { incoming, xecAmount, isEtokenTx };
+    return { incoming, xecAmount, originatingHash160, isEtokenTx };
 };
 
 export const getTxHistoryChronik = async (
@@ -540,5 +565,18 @@ export const getTxHistoryChronik = async (
         currency.txHistoryCount,
     );
 
-    return sortedTxHistoryArray;
+    // Get hash160 array
+    const hash160array = [];
+    for (let i = 0; i < hash160AndAddressObjArray.length; i += 1) {
+        hash160array.push(hash160AndAddressObjArray[i].hash160);
+    }
+    // Parse txs
+    const parsedTxs = [];
+    for (let i = 0; i < sortedTxHistoryArray.length; i += 1) {
+        const sortedTx = sortedTxHistoryArray[i];
+        sortedTx.parsed = parseChronikTx(sortedTx, hash160array);
+        parsedTxs.push(sortedTx);
+    }
+
+    return parsedTxs;
 };
