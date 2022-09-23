@@ -15,7 +15,7 @@ namespace chronik {
 void Start([[maybe_unused]] const Config &config,
            [[maybe_unused]] const NodeContext &node) {
     rust::Box<chronik_bridge::Chronik> chronik_box =
-        chronik_bridge::setup_bridge();
+        chronik_bridge::setup_chronik();
     StartChronikValidationInterface(std::move(chronik_box));
 }
 

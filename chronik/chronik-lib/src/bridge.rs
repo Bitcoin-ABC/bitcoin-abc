@@ -8,7 +8,7 @@ use abc_rust_error::Result;
 use chronik_util::{log, log_chronik};
 
 /// Setup the Chronik bridge. Returns a ChronikIndexer object.
-pub fn setup_bridge() -> Result<Box<Chronik>> {
+pub fn setup_chronik() -> Result<Box<Chronik>> {
     log!("Starting Chronik...\n");
     Ok(Box::new(Chronik))
 }
