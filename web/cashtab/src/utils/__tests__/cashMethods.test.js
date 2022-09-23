@@ -14,7 +14,6 @@ import {
     parseOpReturn,
     convertEcashtoEtokenAddr,
     getHashArrayFromWallet,
-    parseChronikTx,
     checkWalletForTokenInfo,
     isActiveWebsocket,
     parseXecSendValue,
@@ -82,11 +81,6 @@ import mockLegacyWallets from 'hooks/__mocks__/mockLegacyWallets';
 import BCHJS from '@psf/bch-js';
 import sendBCHMock from '../../hooks/__mocks__/sendBCH';
 import {
-    lambdaHash160s,
-    lambdaIncomingXecTx,
-    lambdaOutgoingXecTx,
-    lambdaIncomingEtokenTx,
-    lambdaOutgoingEtokenTx,
     activeWebsocketAlpha,
     disconnectedWebsocketAlpha,
     unsubscribedWebsocket,
@@ -1373,56 +1367,7 @@ describe('Correctly executes cash utility functions', () => {
             'ba8257db65f40359989c7b894c5e88ed7b6344f6',
         ]);
     });
-    it(`Successfully parses an incoming XEC tx`, () => {
-        expect(
-            parseChronikTx(lambdaIncomingXecTx, lambdaHash160s),
-        ).toStrictEqual({
-            incoming: true,
-            xecAmount: '42',
-            isEtokenTx: false,
-        });
-    });
-    it(`Successfully parses an outgoing XEC tx`, () => {
-        expect(
-            parseChronikTx(lambdaOutgoingXecTx, lambdaHash160s),
-        ).toStrictEqual({
-            incoming: false,
-            xecAmount: '222',
-            isEtokenTx: false,
-        });
-    });
-    it(`Successfully parses an incoming eToken tx`, () => {
-        expect(
-            parseChronikTx(lambdaIncomingEtokenTx, lambdaHash160s),
-        ).toStrictEqual({
-            incoming: true,
-            xecAmount: '5.46',
-            isEtokenTx: true,
-            slpMeta: {
-                tokenId:
-                    '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
-                tokenType: 'FUNGIBLE',
-                txType: 'SEND',
-            },
-            etokenAmount: '12',
-        });
-    });
-    it(`Successfully parses an outgoing eToken tx`, () => {
-        expect(
-            parseChronikTx(lambdaOutgoingEtokenTx, lambdaHash160s),
-        ).toStrictEqual({
-            incoming: false,
-            xecAmount: '5.46',
-            isEtokenTx: true,
-            slpMeta: {
-                tokenId:
-                    '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
-                tokenType: 'FUNGIBLE',
-                txType: 'SEND',
-            },
-            etokenAmount: '17',
-        });
-    });
+
     it(`Returns decimals, name, and ticker for an eToken stored in wallet object`, () => {
         expect(
             checkWalletForTokenInfo(

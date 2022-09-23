@@ -7,6 +7,7 @@ import {
     getTokenStats,
     flattenChronikTxHistory,
     sortAndTrimChronikTxHistory,
+    parseChronikTx,
 } from 'utils/chronik';
 import {
     mockChronikUtxos,
@@ -35,6 +36,11 @@ import {
     mockSortedFlatTxHistoryWithUnconfirmed,
     mockFlatTxHistoryWithAllUnconfirmed,
     mockSortedFlatTxHistoryWithAllUnconfirmed,
+    lambdaHash160s,
+    lambdaIncomingXecTx,
+    lambdaOutgoingXecTx,
+    lambdaIncomingEtokenTx,
+    lambdaOutgoingEtokenTx,
 } from '../__mocks__/chronikTxHistory';
 import { ChronikClient } from 'chronik-client';
 import { when } from 'jest-when';
@@ -201,4 +207,51 @@ it(`sortAndTrimChronikTxHistory successfully orders the result of flattenChronik
             10,
         ),
     ).toStrictEqual(mockSortedFlatTxHistoryWithAllUnconfirmed);
+});
+
+it(`Successfully parses an incoming XEC tx`, () => {
+    expect(parseChronikTx(lambdaIncomingXecTx, lambdaHash160s)).toStrictEqual({
+        incoming: true,
+        xecAmount: '42',
+        isEtokenTx: false,
+    });
+});
+it(`Successfully parses an outgoing XEC tx`, () => {
+    expect(parseChronikTx(lambdaOutgoingXecTx, lambdaHash160s)).toStrictEqual({
+        incoming: false,
+        xecAmount: '222',
+        isEtokenTx: false,
+    });
+});
+it(`Successfully parses an incoming eToken tx`, () => {
+    expect(
+        parseChronikTx(lambdaIncomingEtokenTx, lambdaHash160s),
+    ).toStrictEqual({
+        incoming: true,
+        xecAmount: '5.46',
+        isEtokenTx: true,
+        slpMeta: {
+            tokenId:
+                '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
+            tokenType: 'FUNGIBLE',
+            txType: 'SEND',
+        },
+        etokenAmount: '12',
+    });
+});
+it(`Successfully parses an outgoing eToken tx`, () => {
+    expect(
+        parseChronikTx(lambdaOutgoingEtokenTx, lambdaHash160s),
+    ).toStrictEqual({
+        incoming: false,
+        xecAmount: '5.46',
+        isEtokenTx: true,
+        slpMeta: {
+            tokenId:
+                '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
+            tokenType: 'FUNGIBLE',
+            txType: 'SEND',
+        },
+        etokenAmount: '17',
+    });
 });

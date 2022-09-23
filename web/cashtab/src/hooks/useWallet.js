@@ -8,7 +8,6 @@ import {
     isValidStoredWallet,
     isLegacyMigrationRequired,
     getHashArrayFromWallet,
-    parseChronikTx,
     checkWalletForTokenInfo,
     isActiveWebsocket,
     getWalletBalanceFromUtxos,
@@ -33,6 +32,7 @@ import {
     finalizeTokensArray,
     finalizeSlpUtxos,
     getTxHistoryChronik,
+    parseChronikTx,
 } from 'utils/chronik';
 import { ChronikClient } from 'chronik-client';
 // For XEC, eCash chain:
