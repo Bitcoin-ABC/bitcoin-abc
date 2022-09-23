@@ -1,5 +1,6 @@
 // Chronik methods
 import BigNumber from 'bignumber.js';
+import { currency } from 'components/Common/Ticker';
 
 // Return false if do not get a valid response
 export const getTokenStats = async (chronik, tokenId) => {
@@ -332,4 +333,55 @@ export const finalizeSlpUtxos = (preliminarySlpUtxos, tokenInfoById) => {
         finalizedSlpUtxos.push(thisUtxo);
     }
     return finalizedSlpUtxos;
+};
+
+export const returnGetTxHistoryChronikPromise = (
+    chronik,
+    hash160AndAddressObj,
+) => {
+    /*
+        Chronik thinks in hash160s, but people and wallets think in addresses
+        Add the address to each utxo
+    */
+    return new Promise((resolve, reject) => {
+        chronik
+            .script('p2pkh', hash160AndAddressObj.hash160)
+            .history(/*page=*/ 0, /*page_size=*/ currency.txHistoryCount)
+            .then(
+                result => {
+                    console.log(
+                        `result for ${hash160AndAddressObj.hash160}, result`,
+                    );
+                    resolve(result);
+                },
+                err => {
+                    reject(err);
+                },
+            );
+    });
+};
+
+export const getTxHistoryChronik = async (
+    chronik,
+    hash160AndAddressObjArray,
+) => {
+    // Create array of promises to get chronik history for each address
+    // Combine them all and sort by blockheight and firstSeen
+    // Add all the info cashtab needs to make them useful
+
+    let txHistoryPromises = [];
+    for (let i = 0; i < hash160AndAddressObjArray.length; i += 1) {
+        const txHistoryPromise = returnGetTxHistoryChronikPromise(
+            chronik,
+            hash160AndAddressObjArray[i],
+        );
+        txHistoryPromises.push(txHistoryPromise);
+    }
+    let txHistoryOfAllAddresses;
+    try {
+        txHistoryOfAllAddresses = await Promise.all(txHistoryPromises);
+    } catch (err) {
+        console.log(`Error in Promise.all(txHistoryPromises)`, err);
+    }
+    return txHistoryOfAllAddresses;
 };

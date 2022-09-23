@@ -32,6 +32,7 @@ import {
     getPreliminaryTokensArray,
     finalizeTokensArray,
     finalizeSlpUtxos,
+    getTxHistoryChronik,
 } from 'utils/chronik';
 import { ChronikClient } from 'chronik-client';
 // For XEC, eCash chain:
@@ -227,6 +228,12 @@ const useWallet = () => {
 
             // Preserve bch-api for tx history for now, as this will take another stacked diff to migrate to chronik
             const txHistory = await getTxHistory(BCH, cashAddresses);
+
+            const chronikTxHistory = await getTxHistoryChronik(
+                chronik,
+                hash160AndAddressObjArray,
+            );
+            console.log(`chronikTxHistory`, chronikTxHistory);
 
             // public keys are used to determined if a tx is incoming outgoing
             const parsedTxHistory = await getTxData(
