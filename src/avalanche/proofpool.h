@@ -75,8 +75,8 @@ class ProofPool {
                 ProofComparatorByScore>>>
         pool;
 
-    bool cacheClean = true;
-    size_t cacheProofCount = 0;
+    mutable bool cacheClean = true;
+    mutable size_t cacheProofCount = 0;
 
 public:
     enum AddProofStatus {
@@ -121,7 +121,7 @@ public:
     ProofRef getLowestScoreProof() const;
 
     size_t size() const { return pool.size(); }
-    size_t countProofs();
+    size_t countProofs() const;
 };
 
 } // namespace avalanche

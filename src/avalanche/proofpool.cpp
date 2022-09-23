@@ -126,7 +126,7 @@ ProofRef ProofPool::getLowestScoreProof() const {
                                                 : poolView.rbegin()->proof;
 }
 
-size_t ProofPool::countProofs() {
+size_t ProofPool::countProofs() const {
     if (cacheClean) {
         return cacheProofCount;
     }
