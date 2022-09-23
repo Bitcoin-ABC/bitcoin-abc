@@ -373,7 +373,6 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
             burnTokenNotification(link);
             clearInputForms();
             setShowConfirmBurnEtoken(false);
-            passLoadingStatus(false);
             setConfirmationOfEtokenToBeBurnt('');
         } catch (e) {
             setShowConfirmBurnEtoken(false);
