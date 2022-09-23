@@ -347,6 +347,47 @@ export const flattenChronikTxHistory = txHistoryOfAllAddresses => {
     return flatTxHistoryArray;
 };
 
+export const sortAndTrimChronikTxHistory = (
+    flatTxHistoryArray,
+    txHistoryCount,
+) => {
+    // Isolate unconfirmed txs
+    // In chronik, unconfirmed txs have an `undefined` block key
+    const unconfirmedTxs = [];
+    const confirmedTxs = [];
+    for (let i = 0; i < flatTxHistoryArray.length; i += 1) {
+        const thisTx = flatTxHistoryArray[i];
+        if (typeof thisTx.block === 'undefined') {
+            unconfirmedTxs.push(thisTx);
+        } else {
+            confirmedTxs.push(thisTx);
+        }
+    }
+    console.log(`confirmed txs`, confirmedTxs);
+    console.log(`unconfirmed txs`, unconfirmedTxs);
+    // Sort confirmed txs by blockheight, and then timeFirstSeen
+    const sortedConfirmedTxHistoryArray = confirmedTxs.sort(
+        (a, b) =>
+            // We want more recent blocks i.e. higher blockheights to have earlier array indices
+            b.block.height - a.block.height ||
+            // For blocks with the same height, we want more recent timeFirstSeen i.e. higher timeFirstSeen to have earlier array indices
+            b.timeFirstSeen - a.timeFirstSeen,
+    );
+    // Sort unconfirmed txs by timeFirstSeen
+    const sortedUnconfirmedTxHistoryArray = unconfirmedTxs.sort(
+        (a, b) => b.timeFirstSeen - a.timeFirstSeen,
+    );
+    // The unconfirmed txs are more recent, so they should be inserted into an array before the confirmed txs
+    const sortedChronikTxHistoryArray = sortedUnconfirmedTxHistoryArray.concat(
+        sortedConfirmedTxHistoryArray,
+    );
+
+    const trimmedAndSortedChronikTxHistoryArray =
+        sortedChronikTxHistoryArray.splice(0, txHistoryCount);
+
+    return trimmedAndSortedChronikTxHistoryArray;
+};
+
 export const returnGetTxHistoryChronikPromise = (
     chronik,
     hash160AndAddressObj,
@@ -398,6 +439,11 @@ export const getTxHistoryChronik = async (
     }
     console.log(`txHistoryOfAllAddresses`, txHistoryOfAllAddresses);
     const flatTxHistoryArray = flattenChronikTxHistory(txHistoryOfAllAddresses);
+    console.log(`flatTxHistoryArray`, flatTxHistoryArray);
+    const sortedTxHistoryArray = sortAndTrimChronikTxHistory(
+        flatTxHistoryArray,
+        currency.txHistoryCount,
+    );
 
-    return flatTxHistoryArray;
+    return sortedTxHistoryArray;
 };

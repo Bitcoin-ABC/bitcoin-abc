@@ -6,6 +6,7 @@ import {
     finalizeSlpUtxos,
     getTokenStats,
     flattenChronikTxHistory,
+    sortAndTrimChronikTxHistory,
 } from 'utils/chronik';
 import {
     mockChronikUtxos,
@@ -29,6 +30,11 @@ import {
 import {
     mockTxHistoryOfAllAddresses,
     mockFlatTxHistoryNoUnconfirmed,
+    mockSortedTxHistoryNoUnconfirmed,
+    mockFlatTxHistoryWithUnconfirmed,
+    mockSortedFlatTxHistoryWithUnconfirmed,
+    mockFlatTxHistoryWithAllUnconfirmed,
+    mockSortedFlatTxHistoryWithAllUnconfirmed,
 } from '../__mocks__/chronikTxHistory';
 import { ChronikClient } from 'chronik-client';
 import { when } from 'jest-when';
@@ -174,4 +180,25 @@ it(`flattenChronikTxHistory successfully combines the result of getTxHistoryChro
     expect(
         await flattenChronikTxHistory(mockTxHistoryOfAllAddresses),
     ).toStrictEqual(mockFlatTxHistoryNoUnconfirmed);
+});
+
+it(`sortAndTrimChronikTxHistory successfully orders the result of flattenChronikTxHistory by blockheight and firstSeenTime if all txs are confirmed, and returns a result of expected length`, async () => {
+    expect(
+        await sortAndTrimChronikTxHistory(mockFlatTxHistoryNoUnconfirmed, 10),
+    ).toStrictEqual(mockSortedTxHistoryNoUnconfirmed);
+});
+
+it(`sortAndTrimChronikTxHistory successfully orders the result of flattenChronikTxHistory by blockheight and firstSeenTime if some txs are confirmed and others unconfirmed, and returns a result of expected length`, async () => {
+    expect(
+        await sortAndTrimChronikTxHistory(mockFlatTxHistoryWithUnconfirmed, 10),
+    ).toStrictEqual(mockSortedFlatTxHistoryWithUnconfirmed);
+});
+
+it(`sortAndTrimChronikTxHistory successfully orders the result of flattenChronikTxHistory by blockheight and firstSeenTime if all txs are unconfirmed, and returns a result of expected length`, async () => {
+    expect(
+        await sortAndTrimChronikTxHistory(
+            mockFlatTxHistoryWithAllUnconfirmed,
+            10,
+        ),
+    ).toStrictEqual(mockSortedFlatTxHistoryWithAllUnconfirmed);
 });
