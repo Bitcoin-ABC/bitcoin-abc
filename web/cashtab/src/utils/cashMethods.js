@@ -334,22 +334,8 @@ export const signAndBuildTx = (BCH, inputUtxos, txBuilder, wallet) => {
         throw new Error('Invalid buildTx parameter');
     }
 
-    // Sign the transactions with the HD node.
-    for (let i = 0; i < inputUtxos.length; i++) {
-        const utxo = inputUtxos[i];
-        const wif = getUtxoWif(utxo, wallet);
-        try {
-            txBuilder.sign(
-                i,
-                BCH.ECPair.fromWIF(wif),
-                undefined,
-                txBuilder.hashTypes.SIGHASH_ALL,
-                utxo.value,
-            );
-        } catch (err) {
-            throw new Error('Error signing input utxos');
-        }
-    }
+    // Sign each XEC UTXO being consumed and refresh transactionBuilder
+    txBuilder = signUtxosByAddress(BCH, inputUtxos, wallet, txBuilder);
 
     let hex;
     try {

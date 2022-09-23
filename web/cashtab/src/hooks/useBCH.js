@@ -3,11 +3,16 @@ import { currency } from 'components/Common/Ticker';
 import SlpWallet from 'minimal-slp-wallet';
 import {
     fromXecToSatoshis,
-    fromSatoshisToXec,
     isValidStoredWallet,
     convertToEncryptStruct,
     getPublicKey,
     parseOpReturn,
+    parseXecSendValue,
+    generateOpReturnScript,
+    generateTxInput,
+    generateTxOutput,
+    signAndBuildTx,
+    getChangeAddressFromInputUtxos,
     signUtxosByAddress,
     getUtxoWif,
 } from 'utils/cashMethods';
@@ -1083,6 +1088,7 @@ export default function useBCH() {
 
     const sendXec = async (
         BCH,
+        chronik,
         wallet,
         utxos,
         feeInSatsPerByte,
@@ -1096,68 +1102,14 @@ export default function useBCH() {
         airdropTokenId,
     ) => {
         try {
-            let value = new BigNumber(0);
+            let txBuilder = new BCH.TransactionBuilder();
 
-            if (isOneToMany) {
-                // this is a one to many XEC transaction
-                if (
-                    !destinationAddressAndValueArray ||
-                    !destinationAddressAndValueArray.length
-                ) {
-                    throw new Error('Invalid destinationAddressAndValueArray');
-                }
-                const arrayLength = destinationAddressAndValueArray.length;
-                for (let i = 0; i < arrayLength; i++) {
-                    // add the total value being sent in this array of recipients
-                    value = BigNumber.sum(
-                        value,
-                        new BigNumber(
-                            destinationAddressAndValueArray[i].split(',')[1],
-                        ),
-                    );
-                }
-
-                // If user is attempting to send an aggregate value that is less than minimum accepted by the backend
-                if (
-                    value.lt(
-                        new BigNumber(
-                            fromSatoshisToXec(currency.dustSats).toString(),
-                        ),
-                    )
-                ) {
-                    // Throw the same error given by the backend attempting to broadcast such a tx
-                    throw new Error('dust');
-                }
-            } else {
-                // this is a one to one XEC transaction then check sendAmount
-                // note: one to many transactions won't be sending a single sendAmount
-
-                if (!sendAmount) {
-                    return null;
-                }
-
-                value = new BigNumber(sendAmount);
-
-                // If user is attempting to send less than minimum accepted by the backend
-                if (
-                    value.lt(
-                        new BigNumber(
-                            fromSatoshisToXec(currency.dustSats).toString(),
-                        ),
-                    )
-                ) {
-                    // Throw the same error given by the backend attempting to broadcast such a tx
-                    throw new Error('dust');
-                }
-            }
-
-            const inputUtxos = [];
-            let transactionBuilder;
-
-            // instance of transaction builder
-            if (process.env.REACT_APP_NETWORK === `mainnet`)
-                transactionBuilder = new BCH.TransactionBuilder();
-            else transactionBuilder = new BCH.TransactionBuilder('testnet');
+            // parse the input value of XECs to send
+            const value = parseXecSendValue(
+                isOneToMany,
+                sendAmount,
+                destinationAddressAndValueArray,
+            );
 
             const satoshisToSend = fromXecToSatoshis(value);
 
@@ -1169,7 +1121,45 @@ export default function useBCH() {
                 throw error;
             }
 
-            let script;
+            let encryptedEj; // serialized encryption data object
+
+            // if the user has opted to encrypt this message
+            if (encryptionFlag) {
+                try {
+                    // get the pub key for the recipient address
+                    let recipientPubKey = await getRecipientPublicKey(
+                        BCH,
+                        destinationAddress,
+                    );
+
+                    // if the API can't find a pub key, it is due to the wallet having no outbound tx
+                    if (recipientPubKey === 'not found') {
+                        throw new Error(
+                            'Cannot send an encrypted message to a wallet with no outgoing transactions',
+                        );
+                    }
+
+                    // encrypt the message
+                    const pubKeyBuf = Buffer.from(recipientPubKey, 'hex');
+                    const bufferedFile = Buffer.from(optionalOpReturnMsg);
+                    const structuredEj = await ecies.encrypt(
+                        pubKeyBuf,
+                        bufferedFile,
+                    );
+
+                    // Serialize the encrypted data object
+                    encryptedEj = Buffer.concat([
+                        structuredEj.epk,
+                        structuredEj.iv,
+                        structuredEj.ct,
+                        structuredEj.mac,
+                    ]);
+                } catch (err) {
+                    console.log(`sendXec() encryption error.`);
+                    throw err;
+                }
+            }
+
             // Start of building the OP_RETURN output.
             // only build the OP_RETURN output if the user supplied it
             if (
@@ -1178,188 +1168,77 @@ export default function useBCH() {
                     optionalOpReturnMsg.trim() !== '') ||
                 airdropFlag
             ) {
-                if (encryptionFlag) {
-                    // if the user has opted to encrypt this message
-                    let encryptedEj;
-                    try {
-                        encryptedEj = await handleEncryptedOpReturn(
-                            BCH,
-                            destinationAddress,
-                            optionalOpReturnMsg,
-                        );
-                    } catch (err) {
-                        console.log(`useBCH.sendXec() encryption error.`);
-                        throw err;
-                    }
-
-                    // build the OP_RETURN script with the encryption prefix
-                    script = [
-                        BCH.Script.opcodes.OP_RETURN, // 6a
-                        Buffer.from(
-                            currency.opReturn.appPrefixesHex.cashtabEncrypted,
-                            'hex',
-                        ), // 65746162
-                        Buffer.from(encryptedEj),
-                    ];
-                } else {
-                    // this is an un-encrypted message
-
-                    if (airdropFlag) {
-                        // un-encrypted airdrop tx
-                        if (optionalOpReturnMsg) {
-                            // airdrop tx with message
-                            script = [
-                                BCH.Script.opcodes.OP_RETURN, // 6a
-                                Buffer.from(
-                                    currency.opReturn.appPrefixesHex.airdrop,
-                                    'hex',
-                                ), // drop
-                                Buffer.from(airdropTokenId, 'hex'),
-                                Buffer.from(
-                                    currency.opReturn.appPrefixesHex.cashtab,
-                                    'hex',
-                                ), // 00746162
-                                Buffer.from(optionalOpReturnMsg),
-                            ];
-                        } else {
-                            // airdrop tx with no message
-                            script = [
-                                BCH.Script.opcodes.OP_RETURN, // 6a
-                                Buffer.from(
-                                    currency.opReturn.appPrefixesHex.airdrop,
-                                    'hex',
-                                ), // drop
-                                Buffer.from(airdropTokenId, 'hex'),
-                                Buffer.from(
-                                    currency.opReturn.appPrefixesHex.cashtab,
-                                    'hex',
-                                ), // 00746162
-                            ];
-                        }
-                    } else {
-                        // non-airdrop un-encrypted message
-                        script = [
-                            BCH.Script.opcodes.OP_RETURN, // 6a
-                            Buffer.from(
-                                currency.opReturn.appPrefixesHex.cashtab,
-                                'hex',
-                            ), // 00746162
-                            Buffer.from(optionalOpReturnMsg),
-                        ];
-                    }
-                }
-                const data = BCH.Script.encode(script);
-                transactionBuilder.addOutput(data, 0);
-            }
-            // End of building the OP_RETURN output.
-
-            let originalAmount = new BigNumber(0);
-            let txFee = 0;
-            // A normal tx will have 2 outputs, destination and change
-            // A one to many tx will have n outputs + 1 change output, where n is the number of recipients
-            const txOutputs = isOneToMany
-                ? destinationAddressAndValueArray.length + 1
-                : 2;
-            for (let i = 0; i < utxos.length; i++) {
-                const utxo = utxos[i];
-                originalAmount = originalAmount.plus(utxo.value);
-                const vout = utxo.outpoint.outIdx;
-                const txid = utxo.outpoint.txid;
-                // add input with txid and index of vout
-                transactionBuilder.addInput(txid, vout);
-
-                inputUtxos.push(utxo);
-                txFee = calcFee(BCH, inputUtxos, txOutputs, feeInSatsPerByte);
-
-                if (originalAmount.minus(satoshisToSend).minus(txFee).gte(0)) {
-                    break;
-                }
-            }
-
-            // Get change address from sending utxos
-            // fall back to what is stored in wallet
-            let REMAINDER_ADDR;
-
-            // Validate address
-            let isValidChangeAddress;
-            try {
-                REMAINDER_ADDR = inputUtxos[0].address;
-                isValidChangeAddress =
-                    BCH.Address.isCashAddress(REMAINDER_ADDR);
-            } catch (err) {
-                isValidChangeAddress = false;
-            }
-            if (!isValidChangeAddress) {
-                REMAINDER_ADDR = wallet.Path1899.cashAddress;
-            }
-
-            // amount to send back to the remainder address.
-            const remainder = originalAmount.minus(satoshisToSend).minus(txFee);
-
-            if (remainder.lt(0)) {
-                const error = new Error(`Insufficient funds`);
-                error.code = SEND_BCH_ERRORS.INSUFFICIENT_FUNDS;
-                throw error;
-            }
-
-            if (isOneToMany) {
-                // for one to many mode, add the multiple outputs from the array
-                let arrayLength = destinationAddressAndValueArray.length;
-                for (let i = 0; i < arrayLength; i++) {
-                    // add each send tx from the array as an output
-                    let outputAddress =
-                        destinationAddressAndValueArray[i].split(',')[0];
-                    let outputValue = new BigNumber(
-                        destinationAddressAndValueArray[i].split(',')[1],
-                    );
-                    transactionBuilder.addOutput(
-                        BCH.Address.toCashAddress(outputAddress),
-                        parseInt(fromXecToSatoshis(outputValue)),
-                    );
-                }
-            } else {
-                // for one to one mode, add output w/ single address and amount to send
-                transactionBuilder.addOutput(
-                    BCH.Address.toCashAddress(destinationAddress),
-                    parseInt(fromXecToSatoshis(value)),
+                const opReturnData = generateOpReturnScript(
+                    BCH,
+                    optionalOpReturnMsg,
+                    encryptionFlag,
+                    airdropFlag,
+                    airdropTokenId,
+                    encryptedEj,
                 );
+                txBuilder.addOutput(opReturnData, 0);
             }
 
-            if (remainder.gte(new BigNumber(currency.dustSats))) {
-                transactionBuilder.addOutput(
-                    REMAINDER_ADDR,
-                    parseInt(remainder),
-                );
-            }
-
-            // Sign each XEC UTXO being consumed and refresh transactionBuilder
-            transactionBuilder = signUtxosByAddress(
+            // generate the tx inputs and add to txBuilder instance
+            // returns the updated txBuilder, txFee, totalInputUtxoValue and inputUtxos
+            let txInputObj = generateTxInput(
                 BCH,
-                inputUtxos,
-                wallet,
-                transactionBuilder,
+                isOneToMany,
+                utxos,
+                txBuilder,
+                destinationAddressAndValueArray,
+                satoshisToSend,
+                feeInSatsPerByte,
             );
 
-            // build tx
-            const tx = transactionBuilder.build();
-            // output rawhex
-            const hex = tx.toHex();
+            const changeAddress = getChangeAddressFromInputUtxos(
+                BCH,
+                txInputObj.inputUtxos,
+                wallet,
+            );
+            txBuilder = txInputObj.txBuilder; // update the local txBuilder with the generated tx inputs
 
-            // Broadcast transaction to the network
-            const txidStr = await BCH.RawTransactions.sendRawTransaction([hex]);
+            // generate the tx outputs and add to txBuilder instance
+            // returns the updated txBuilder
+            const txOutputObj = generateTxOutput(
+                BCH,
+                isOneToMany,
+                value,
+                satoshisToSend,
+                txInputObj.totalInputUtxoValue,
+                destinationAddress,
+                destinationAddressAndValueArray,
+                changeAddress,
+                txInputObj.txFee,
+                txBuilder,
+            );
+            txBuilder = txOutputObj; // update the local txBuilder with the generated tx outputs
 
-            if (txidStr && txidStr[0]) {
-                console.log(`${currency.ticker} txid`, txidStr[0]);
+            // sign the collated inputUtxos and build the raw tx hex
+            // returns the raw tx hex string
+            const rawTxHex = signAndBuildTx(
+                BCH,
+                txInputObj.inputUtxos,
+                txBuilder,
+                wallet,
+            );
+
+            // Broadcast transaction to the network via the chronik client
+            // sample chronik.broadcastTx() response:
+            //    {"txid":"0075130c9ecb342b5162bb1a8a870e69c935ea0c9b2353a967cda404401acf19"}
+            let broadcastResponse;
+            try {
+                broadcastResponse = await chronik.broadcastTx(rawTxHex);
+                if (!broadcastResponse) {
+                    throw new Error('Empty chronik broadcast response');
+                }
+            } catch (err) {
+                console.log('Error broadcasting tx to chronik client');
+                throw err;
             }
-            let link;
-            if (process.env.REACT_APP_NETWORK === `mainnet`) {
-                link = `${currency.blockExplorerUrl}/tx/${txidStr}`;
-            } else {
-                link = `${currency.blockExplorerUrlTestnet}/tx/${txidStr}`;
-            }
-            //console.log(`link`, link);
 
-            return link;
+            // return the explorer link for the broadcasted tx
+            return `${currency.blockExplorerUrl}/tx/${broadcastResponse.txid}`;
         } catch (err) {
             if (err.error === 'insufficient priority (code 66)') {
                 err.code = SEND_BCH_ERRORS.INSUFFICIENT_PRIORITY;

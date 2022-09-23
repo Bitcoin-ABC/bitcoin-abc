@@ -125,7 +125,8 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     // Else set it as blank
     const ContextValue = React.useContext(WalletContext);
     const location = useLocation();
-    const { BCH, wallet, fiatPrice, apiError, cashtabSettings } = ContextValue;
+    const { BCH, wallet, fiatPrice, apiError, cashtabSettings, chronik } =
+        ContextValue;
     const walletState = getWalletState(wallet);
     const { balances, slpBalancesAndUtxos } = walletState;
     // Modal settings
@@ -367,6 +368,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
                 const link = await sendXec(
                     bchObj,
+                    chronik,
                     wallet,
                     slpBalancesAndUtxos.nonSlpUtxos,
                     currency.defaultFee,
@@ -431,6 +433,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             try {
                 const link = await sendXec(
                     bchObj,
+                    chronik,
                     wallet,
                     slpBalancesAndUtxos.nonSlpUtxos,
                     currency.defaultFee,

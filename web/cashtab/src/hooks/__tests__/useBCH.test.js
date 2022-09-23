@@ -32,6 +32,8 @@ import BCHJS from '@psf/bch-js'; // TODO: should be removed when external lib no
 import { currency } from '../../components/Common/Ticker';
 import BigNumber from 'bignumber.js';
 import { fromSatoshisToXec } from 'utils/cashMethods';
+import { ChronikClient } from 'chronik-client'; // for mocking purposes
+import { when } from 'jest-when';
 
 describe('useBCH hook', () => {
     it('gets Rest Api Url on testnet', () => {
@@ -73,6 +75,9 @@ describe('useBCH hook', () => {
     it('sends XEC correctly', async () => {
         const { sendXec } = useBCH();
         const BCH = new BCHJS();
+        const chronik = new ChronikClient(
+            'https://FakeChronikUrlToEnsureMocksOnly.com',
+        );
         const {
             expectedTxId,
             expectedHex,
@@ -82,12 +87,13 @@ describe('useBCH hook', () => {
             sendAmount,
         } = sendBCHMock;
 
-        BCH.RawTransactions.sendRawTransaction = jest
+        chronik.broadcastTx = jest
             .fn()
-            .mockResolvedValue(expectedTxId);
+            .mockResolvedValue({ txid: expectedTxId });
         expect(
             await sendXec(
                 BCH,
+                chronik,
                 wallet,
                 utxos,
                 currency.defaultFee,
@@ -98,14 +104,14 @@ describe('useBCH hook', () => {
                 sendAmount,
             ),
         ).toBe(`${currency.blockExplorerUrl}/tx/${expectedTxId}`);
-        expect(BCH.RawTransactions.sendRawTransaction).toHaveBeenCalledWith(
-            expectedHex,
-        );
     });
 
     it('sends XEC correctly with an encrypted OP_RETURN message', async () => {
         const { sendXec } = useBCH();
         const BCH = new BCHJS();
+        const chronik = new ChronikClient(
+            'https://FakeChronikUrlToEnsureMocksOnly.com',
+        );
         const { expectedTxId, utxos, wallet, destinationAddress, sendAmount } =
             sendBCHMock;
         const expectedPubKeyResponse = {
@@ -118,12 +124,13 @@ describe('useBCH hook', () => {
             .fn()
             .mockResolvedValue(expectedPubKeyResponse);
 
-        BCH.RawTransactions.sendRawTransaction = jest
+        chronik.broadcastTx = jest
             .fn()
-            .mockResolvedValue(expectedTxId);
+            .mockResolvedValue({ txid: expectedTxId });
         expect(
             await sendXec(
                 BCH,
+                chronik,
                 wallet,
                 utxos,
                 currency.defaultFee,
@@ -140,6 +147,9 @@ describe('useBCH hook', () => {
     it('sends one to many XEC correctly', async () => {
         const { sendXec } = useBCH();
         const BCH = new BCHJS();
+        const chronik = new ChronikClient(
+            'https://FakeChronikUrlToEnsureMocksOnly.com',
+        );
         const {
             expectedTxId,
             expectedHex,
@@ -156,12 +166,13 @@ describe('useBCH hook', () => {
             'bitcoincash:qrzuvj0vvnsz5949h4axercl5k420eygavv0awgz05,6',
         ];
 
-        BCH.RawTransactions.sendRawTransaction = jest
+        chronik.broadcastTx = jest
             .fn()
-            .mockResolvedValue(expectedTxId);
+            .mockResolvedValue({ txid: expectedTxId });
         expect(
             await sendXec(
                 BCH,
+                chronik,
                 wallet,
                 utxos,
                 currency.defaultFee,
@@ -175,21 +186,49 @@ describe('useBCH hook', () => {
     it(`Throws error if called trying to send one base unit ${currency.ticker} more than available in utxo set`, async () => {
         const { sendXec } = useBCH();
         const BCH = new BCHJS();
+        const chronik = new ChronikClient(
+            'https://FakeChronikUrlToEnsureMocksOnly.com',
+        );
         const { expectedTxId, utxos, wallet, destinationAddress } = sendBCHMock;
 
         const expectedTxFeeInSats = 229;
 
-        BCH.RawTransactions.sendRawTransaction = jest
-            .fn()
-            .mockResolvedValue(expectedTxId);
-        const oneBaseUnitMoreThanBalance = new BigNumber(utxos[0].value)
+        // tally up the total utxo values
+        let totalInputUtxoValue = new BigNumber(0);
+        for (let i = 0; i < utxos.length; i++) {
+            totalInputUtxoValue = totalInputUtxoValue.plus(
+                new BigNumber(utxos[i].value),
+            );
+        }
+
+        const oneBaseUnitMoreThanBalance = totalInputUtxoValue
             .minus(expectedTxFeeInSats)
             .plus(1)
             .div(10 ** currency.cashDecimals)
             .toString();
 
-        const failedSendBch = sendXec(
+        let errorThrown;
+        try {
+            await sendXec(
+                BCH,
+                chronik,
+                wallet,
+                utxos,
+                currency.defaultFee,
+                '',
+                false,
+                null,
+                destinationAddress,
+                oneBaseUnitMoreThanBalance,
+            );
+        } catch (err) {
+            errorThrown = err;
+        }
+        expect(errorThrown.message).toStrictEqual('Insufficient funds');
+
+        const nullValuesSendBch = sendXec(
             BCH,
+            chronik,
             wallet,
             utxos,
             currency.defaultFee,
@@ -197,32 +236,23 @@ describe('useBCH hook', () => {
             false,
             null,
             destinationAddress,
-            oneBaseUnitMoreThanBalance,
-        );
-        expect(failedSendBch).rejects.toThrow(new Error('Insufficient funds'));
-        const nullValuesSendBch = await sendXec(
-            BCH,
-            wallet,
-            utxos,
-            currency.defaultFee,
-            '',
-            false,
-            null,
-            destinationAddress,
             null,
         );
-        expect(nullValuesSendBch).toBe(null);
+        expect(nullValuesSendBch).rejects.toThrow(
+            new Error('Invalid singleSendValue'),
+        );
     });
 
     it('Throws error on attempt to send one satoshi less than backend dust limit', async () => {
         const { sendXec } = useBCH();
         const BCH = new BCHJS();
+        const chronik = new ChronikClient(
+            'https://FakeChronikUrlToEnsureMocksOnly.com',
+        );
         const { expectedTxId, utxos, wallet, destinationAddress } = sendBCHMock;
-        BCH.RawTransactions.sendRawTransaction = jest
-            .fn()
-            .mockResolvedValue(expectedTxId);
         const failedSendBch = sendXec(
             BCH,
+            chronik,
             wallet,
             utxos,
             currency.defaultFee,
@@ -235,18 +265,6 @@ describe('useBCH hook', () => {
                 .toString(),
         );
         expect(failedSendBch).rejects.toThrow(new Error('dust'));
-        const nullValuesSendBch = await sendXec(
-            BCH,
-            wallet,
-            utxos,
-            currency.defaultFee,
-            '',
-            false,
-            null,
-            destinationAddress,
-            null,
-        );
-        expect(nullValuesSendBch).toBe(null);
     });
 
     it("Throws error attempting to burn an eToken ID that is not within the wallet's utxo", async () => {
@@ -273,14 +291,16 @@ describe('useBCH hook', () => {
     it('receives errors from the network and parses it', async () => {
         const { sendXec } = useBCH();
         const BCH = new BCHJS();
+        const chronik = new ChronikClient(
+            'https://FakeChronikUrlToEnsureMocksOnly.com',
+        );
         const { sendAmount, utxos, wallet, destinationAddress } = sendBCHMock;
-        BCH.RawTransactions.sendRawTransaction = jest
-            .fn()
-            .mockImplementation(async () => {
-                throw new Error('insufficient priority (code 66)');
-            });
+        chronik.broadcastTx = jest.fn().mockImplementation(async () => {
+            throw new Error('insufficient priority (code 66)');
+        });
         const insufficientPriority = sendXec(
             BCH,
+            chronik,
             wallet,
             utxos,
             currency.defaultFee,
@@ -294,13 +314,12 @@ describe('useBCH hook', () => {
             new Error('insufficient priority (code 66)'),
         );
 
-        BCH.RawTransactions.sendRawTransaction = jest
-            .fn()
-            .mockImplementation(async () => {
-                throw new Error('txn-mempool-conflict (code 18)');
-            });
+        chronik.broadcastTx = jest.fn().mockImplementation(async () => {
+            throw new Error('txn-mempool-conflict (code 18)');
+        });
         const txnMempoolConflict = sendXec(
             BCH,
+            chronik,
             wallet,
             utxos,
             currency.defaultFee,
@@ -314,13 +333,12 @@ describe('useBCH hook', () => {
             new Error('txn-mempool-conflict (code 18)'),
         );
 
-        BCH.RawTransactions.sendRawTransaction = jest
-            .fn()
-            .mockImplementation(async () => {
-                throw new Error('Network Error');
-            });
+        chronik.broadcastTx = jest.fn().mockImplementation(async () => {
+            throw new Error('Network Error');
+        });
         const networkError = sendXec(
             BCH,
+            chronik,
             wallet,
             utxos,
             currency.defaultFee,
@@ -332,17 +350,16 @@ describe('useBCH hook', () => {
         );
         await expect(networkError).rejects.toThrow(new Error('Network Error'));
 
-        BCH.RawTransactions.sendRawTransaction = jest
-            .fn()
-            .mockImplementation(async () => {
-                const err = new Error(
-                    'too-long-mempool-chain, too many unconfirmed ancestors [limit: 25] (code 64)',
-                );
-                throw err;
-            });
+        chronik.broadcastTx = jest.fn().mockImplementation(async () => {
+            const err = new Error(
+                'too-long-mempool-chain, too many unconfirmed ancestors [limit: 25] (code 64)',
+            );
+            throw err;
+        });
 
         const tooManyAncestorsMempool = sendXec(
             BCH,
+            chronik,
             wallet,
             utxos,
             currency.defaultFee,
