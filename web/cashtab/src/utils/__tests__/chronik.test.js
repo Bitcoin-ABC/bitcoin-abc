@@ -5,6 +5,7 @@ import {
     finalizeTokensArray,
     finalizeSlpUtxos,
     getTokenStats,
+    flattenChronikTxHistory,
 } from 'utils/chronik';
 import {
     mockChronikUtxos,
@@ -25,6 +26,10 @@ import {
     mockChronikTokenResponse,
     mockGetTokenStatsReturn,
 } from '../__mocks__/mockChronikTokenStats';
+import {
+    mockTxHistoryOfAllAddresses,
+    mockFlatTxHistoryNoUnconfirmed,
+} from '../__mocks__/chronikTxHistory';
 import { ChronikClient } from 'chronik-client';
 import { when } from 'jest-when';
 
@@ -163,4 +168,10 @@ it(`finalizeSlpUtxos successfully adds token quantity adjusted for token decimal
     expect(
         await finalizeSlpUtxos(mockPreliminarySlpUtxos, mockTokenInfoById),
     ).toStrictEqual(mockFinalizedSlpUtxos);
+});
+
+it(`flattenChronikTxHistory successfully combines the result of getTxHistoryChronik into a single array`, async () => {
+    expect(
+        await flattenChronikTxHistory(mockTxHistoryOfAllAddresses),
+    ).toStrictEqual(mockFlatTxHistoryNoUnconfirmed);
 });

@@ -335,6 +335,18 @@ export const finalizeSlpUtxos = (preliminarySlpUtxos, tokenInfoById) => {
     return finalizedSlpUtxos;
 };
 
+export const flattenChronikTxHistory = txHistoryOfAllAddresses => {
+    // Create an array of all txs
+
+    let flatTxHistoryArray = [];
+    for (let i = 0; i < txHistoryOfAllAddresses.length; i += 1) {
+        const txHistoryResponseOfThisAddress = txHistoryOfAllAddresses[i];
+        const txHistoryOfThisAddress = txHistoryResponseOfThisAddress.txs;
+        flatTxHistoryArray = flatTxHistoryArray.concat(txHistoryOfThisAddress);
+    }
+    return flatTxHistoryArray;
+};
+
 export const returnGetTxHistoryChronikPromise = (
     chronik,
     hash160AndAddressObj,
@@ -350,7 +362,8 @@ export const returnGetTxHistoryChronikPromise = (
             .then(
                 result => {
                     console.log(
-                        `result for ${hash160AndAddressObj.hash160}, result`,
+                        `result for ${hash160AndAddressObj.hash160}`,
+                        result,
                     );
                     resolve(result);
                 },
@@ -383,5 +396,8 @@ export const getTxHistoryChronik = async (
     } catch (err) {
         console.log(`Error in Promise.all(txHistoryPromises)`, err);
     }
-    return txHistoryOfAllAddresses;
+    console.log(`txHistoryOfAllAddresses`, txHistoryOfAllAddresses);
+    const flatTxHistoryArray = flattenChronikTxHistory(txHistoryOfAllAddresses);
+
+    return flatTxHistoryArray;
 };

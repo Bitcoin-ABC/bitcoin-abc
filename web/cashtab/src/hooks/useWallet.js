@@ -233,7 +233,10 @@ const useWallet = () => {
                 chronik,
                 hash160AndAddressObjArray,
             );
-            console.log(`chronikTxHistory`, chronikTxHistory);
+            console.log(
+                `chronikTxHistory as flattened array`,
+                chronikTxHistory,
+            );
 
             // public keys are used to determined if a tx is incoming outgoing
             const parsedTxHistory = await getTxData(
