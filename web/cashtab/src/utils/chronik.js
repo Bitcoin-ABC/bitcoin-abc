@@ -1,6 +1,7 @@
 // Chronik methods
 import BigNumber from 'bignumber.js';
 import { currency } from 'components/Common/Ticker';
+import { parseOpReturn } from 'utils/cashMethods';
 
 // Return false if do not get a valid response
 export const getTokenStats = async (chronik, tokenId) => {
@@ -465,6 +466,15 @@ export const parseChronikTx = (tx, walletHash160s) => {
     for (let i = 0; i < outputs.length; i += 1) {
         const thisOutput = outputs[i];
         const thisOutputReceivedAtHash160 = thisOutput.outputScript;
+        // Check for OP_RETURN msg
+        if (
+            thisOutput.value === '0' &&
+            typeof thisOutput.slpToken === 'undefined'
+        ) {
+            let hex = thisOutputReceivedAtHash160;
+            let parsedOpReturnArray = parseOpReturn(hex);
+            console.log(`parsedOpReturnArray`, parsedOpReturnArray);
+        }
         // Find amounts at your wallet's addresses
         for (let j = 0; j < walletHash160s.length; j += 1) {
             const thisWalletHash160 = walletHash160s[j];
