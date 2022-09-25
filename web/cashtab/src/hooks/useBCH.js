@@ -1043,49 +1043,6 @@ export default function useBCH() {
         return recipientPubKey;
     };
 
-    const handleEncryptedOpReturn = async (
-        BCH,
-        destinationAddress,
-        optionalOpReturnMsg,
-    ) => {
-        let recipientPubKey, encryptedEj;
-        try {
-            recipientPubKey = await getRecipientPublicKey(
-                BCH,
-                destinationAddress,
-            );
-        } catch (err) {
-            console.log(`useBCH.handleEncryptedOpReturn() error: ` + err);
-            throw err;
-        }
-
-        if (recipientPubKey === 'not found') {
-            // if the API can't find a pub key, it is due to the wallet having no outbound tx
-            throw new Error(
-                'Cannot send an encrypted message to a wallet with no outgoing transactions',
-            );
-        }
-
-        try {
-            const pubKeyBuf = Buffer.from(recipientPubKey, 'hex');
-            const bufferedFile = Buffer.from(optionalOpReturnMsg);
-            const structuredEj = await ecies.encrypt(pubKeyBuf, bufferedFile);
-
-            // Serialize the encrypted data object
-            encryptedEj = Buffer.concat([
-                structuredEj.epk,
-                structuredEj.iv,
-                structuredEj.ct,
-                structuredEj.mac,
-            ]);
-        } catch (err) {
-            console.log(`useBCH.handleEncryptedOpReturn() error: ` + err);
-            throw err;
-        }
-
-        return encryptedEj;
-    };
-
     const sendXec = async (
         BCH,
         chronik,
@@ -1280,7 +1237,6 @@ export default function useBCH() {
         sendXec,
         sendToken,
         createToken,
-        handleEncryptedOpReturn,
         getRecipientPublicKey,
         burnToken,
     };

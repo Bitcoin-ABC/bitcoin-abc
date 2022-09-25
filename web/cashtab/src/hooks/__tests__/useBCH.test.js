@@ -579,61 +579,6 @@ describe('useBCH hook', () => {
         ).toStrictEqual(mockReceivedOpReturnMessageTx);
     });
 
-    it(`handleEncryptedOpReturn() correctly encrypts a message based on a valid cash address`, async () => {
-        const { handleEncryptedOpReturn } = useBCH();
-        const BCH = new BCHJS();
-        const destinationAddress =
-            'bitcoincash:qqvuj09f80sw9j7qru84ptxf0hyqffc38gstxfs5ru';
-        const message =
-            'This message is encrypted by ecies-lite with default parameters';
-
-        const expectedPubKeyResponse = {
-            success: true,
-            publicKey:
-                '03208c4f52229e021ddec5fc6e07a59fd66388ac52bc2a2c1e0f1afb24b0e275ac',
-        };
-
-        BCH.encryption.getPubKey = jest
-            .fn()
-            .mockResolvedValue(expectedPubKeyResponse);
-
-        const result = await handleEncryptedOpReturn(
-            BCH,
-            destinationAddress,
-            Buffer.from(message),
-        );
-
-        // loop through each ecies encryption parameter from the object returned from the handleEncryptedOpReturn() call
-        for (const k of Object.keys(result)) {
-            switch (result[k].toString()) {
-                case 'epk':
-                    // verify the sender's ephemeral public key buffer
-                    expect(result[k].toString()).toEqual(
-                        'BPxEy0o7QsRok2GSpuLU27g0EqLIhf6LIxHx7P5UTZF9EFuQbqGzr5cCA51qVnvIJ9CZ84iW1DeDdvhg/EfPSas=',
-                    );
-                    break;
-                case 'iv':
-                    // verify the initialization vector for the cipher algorithm
-                    expect(result[k].toString()).toEqual(
-                        '2FcU3fRZUOBt7dqshZjd+g==',
-                    );
-                    break;
-                case 'ct':
-                    // verify the encrypted message buffer
-                    expect(result[k].toString()).toEqual(
-                        'wVxPjv/ZiQ4etHqqTTIEoKvYYf4po05I/kNySrdsN3verxlHI07Rbob/VfF4MDfYHpYmDwlR9ax1shhdSzUG/A==',
-                    );
-                    break;
-                case 'mac':
-                    // verify integrity of the message (checksum)
-                    expect(result[k].toString()).toEqual(
-                        'F9KxuR48O0wxa9tFYq6/Hy3joI2edKxLFSeDVk6JKZE=',
-                    );
-                    break;
-            }
-        }
-    });
-
     it(`getRecipientPublicKey() correctly retrieves the public key of a cash address`, async () => {
         const { getRecipientPublicKey } = useBCH();
         const BCH = new BCHJS();
