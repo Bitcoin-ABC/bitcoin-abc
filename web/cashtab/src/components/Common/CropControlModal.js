@@ -39,7 +39,7 @@ export const CropControlModal = ({
         <CropModal
             width={'90vw'}
             height={600}
-            visible={expand}
+            open={expand}
             centered
             footer={null}
             onCancel={onClose}

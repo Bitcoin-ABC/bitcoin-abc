@@ -437,7 +437,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
         <>
             <Modal
                 title="Confirm Send"
-                visible={isModalVisible}
+                open={isModalVisible}
                 onOk={handleOk}
                 onCancel={handleCancel}
             >
@@ -456,7 +456,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                         title={`Are you sure you want to burn ${eTokenBurnAmount.toString()} x ${
                             token.info.tokenTicker
                         } eTokens?`}
-                        visible={showConfirmBurnEtoken}
+                        open={showConfirmBurnEtoken}
                         onOk={burn}
                         okText={'Confirm'}
                         onCancel={() => setShowConfirmBurnEtoken(false)}

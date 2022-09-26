@@ -513,7 +513,7 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
             </WalletInfoCtn>
             <StyledModal
                 title="Querying the eCash blockchain"
-                visible={isAirdropCalcModalVisible}
+                open={isAirdropCalcModalVisible}
                 okButtonProps={{ style: { display: 'none' } }}
                 onCancel={handleAirdropCalcModalCancel}
             >

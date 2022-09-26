@@ -801,7 +801,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         <>
             <Modal
                 title="Confirm Send"
-                visible={isModalVisible}
+                open={isModalVisible}
                 onOk={handleOk}
                 onCancel={handleCancel}
             >
@@ -1128,7 +1128,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
                 <Modal
                     title={`Please review and confirm your message to be signed using this wallet.`}
-                    visible={showConfirmMsgToSign}
+                    open={showConfirmMsgToSign}
                     onOk={signMessageByPk}
                     onCancel={() => setShowConfirmMsgToSign(false)}
                 >
@@ -1222,7 +1222,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 </CustomCollapseCtn>
                 <Modal
                     title={`Please review and confirm your message, signature and address to be verified.`}
-                    visible={showConfirmMsgToVerify}
+                    open={showConfirmMsgToVerify}
                     onOk={verifyMessageBySig}
                     onCancel={() => setShowConfirmMsgToVerify(false)}
                 >

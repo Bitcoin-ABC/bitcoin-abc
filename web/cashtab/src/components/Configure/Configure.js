@@ -1264,7 +1264,7 @@ const Configure = () => {
                 {savedWalletContactModal && (
                     <Modal
                         title={`Add the following saved wallet to contact list?`}
-                        visible={savedWalletContactModal}
+                        open={savedWalletContactModal}
                         onOk={() => handleAddSavedWalletAsContactOk()}
                         onCancel={() => handleAddSavedWalletAsContactCancel()}
                     >
@@ -1282,7 +1282,7 @@ const Configure = () => {
                 {showManualAddContactModal && (
                     <Modal
                         title={`Add new contact to contact list`}
-                        visible={showManualAddContactModal}
+                        open={showManualAddContactModal}
                         onOk={() => handleManualAddContactModalOk()}
                         onCancel={() => handleManualAddContactModalCancel()}
                     >
@@ -1344,7 +1344,7 @@ const Configure = () => {
                     <>
                         <Modal
                             title="Confirm Delete Contact"
-                            visible={showDeleteContactModal}
+                            open={showDeleteContactModal}
                             onOk={() => handleDeleteContactModalOk()}
                             onCancel={() => handleDeleteContactModalCancel()}
                         >
@@ -1393,7 +1393,7 @@ const Configure = () => {
                 {showRenameContactModal && (
                     <Modal
                         title={`Set contact name for ${contactToBeRenamed.address}`}
-                        visible={showRenameContactModal}
+                        open={showRenameContactModal}
                         onOk={() => handleRenameContactModalOk()}
                         onCancel={() => handleRenameContactCancel()}
                     >
@@ -1430,7 +1430,7 @@ const Configure = () => {
                 {walletToBeRenamed !== null && (
                     <Modal
                         title={`Rename Wallet ${walletToBeRenamed.name}`}
-                        visible={showRenameWalletModal}
+                        open={showRenameWalletModal}
                         onOk={changeWalletName}
                         onCancel={() => cancelRenameWallet()}
                     >
@@ -1465,7 +1465,7 @@ const Configure = () => {
                 {walletToBeDeleted !== null && (
                     <Modal
                         title={`Are you sure you want to delete wallet "${walletToBeDeleted.name}"?`}
-                        visible={showDeleteWalletModal}
+                        open={showDeleteWalletModal}
                         onOk={deleteSelectedWallet}
                         onCancel={() => cancelDeleteWallet()}
                     >
