@@ -914,6 +914,70 @@ static RPCHelpMan getavalanchepeerinfo() {
     };
 }
 
+static RPCHelpMan getavalancheproofs() {
+    return RPCHelpMan{
+        "getavalancheproofs",
+        "Returns an object containing all tracked proofids.\n",
+        {},
+        RPCResult{
+            RPCResult::Type::OBJ,
+            "",
+            "",
+            {
+                {RPCResult::Type::ARR,
+                 "valid",
+                 "",
+                 {
+                     {RPCResult::Type::STR_HEX, "proofid",
+                      "Avalanche proof id"},
+                 }},
+                {RPCResult::Type::ARR,
+                 "conflicting",
+                 "",
+                 {
+                     {RPCResult::Type::STR_HEX, "proofid",
+                      "Avalanche proof id"},
+                 }},
+                {RPCResult::Type::ARR,
+                 "immature",
+                 "",
+                 {
+                     {RPCResult::Type::STR_HEX, "proofid",
+                      "Avalanche proof id"},
+                 }},
+            },
+        },
+        RPCExamples{HelpExampleCli("getavalancheproofs", "") +
+                    HelpExampleRpc("getavalancheproofs", "")},
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            if (!g_avalanche) {
+                throw JSONRPCError(RPC_INTERNAL_ERROR,
+                                   "Avalanche is not initialized");
+            }
+
+            UniValue ret(UniValue::VOBJ);
+            g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+                auto appendProofIds = [&ret](const avalanche::ProofPool &pool,
+                                             const std::string &key) {
+                    UniValue arrOut(UniValue::VARR);
+                    for (const avalanche::ProofId &proofid :
+                         pool.getProofIds()) {
+                        arrOut.push_back(proofid.ToString());
+                    }
+                    ret.pushKV(key, arrOut);
+                };
+
+                appendProofIds(pm.getValidProofPool(), "valid");
+                appendProofIds(pm.getConflictingProofPool(), "conflicting");
+                appendProofIds(pm.getImmatureProofPool(), "immature");
+            });
+
+            return ret;
+        },
+    };
+}
+
 static RPCHelpMan getrawavalancheproof() {
     return RPCHelpMan{
         "getrawavalancheproof",
@@ -1242,6 +1306,7 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
         { "avalanche",         decodeavalanchedelegation, },
         { "avalanche",         getavalancheinfo,          },
         { "avalanche",         getavalanchepeerinfo,      },
+        { "avalanche",         getavalancheproofs,        },
         { "avalanche",         getrawavalancheproof,      },
         { "avalanche",         isfinalblock,              },
         { "avalanche",         isfinaltransaction,        },

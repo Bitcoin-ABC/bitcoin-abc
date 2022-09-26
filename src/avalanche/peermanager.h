@@ -407,6 +407,12 @@ public:
     uint64_t getSlotCount() const { return slotCount; }
     uint64_t getFragmentation() const { return fragmentation; }
 
+    const ProofPool &getValidProofPool() const { return validProofPool; }
+    const ProofPool &getConflictingProofPool() const {
+        return conflictingProofPool;
+    }
+    const ProofPool &getImmatureProofPool() const { return immatureProofPool; }
+
     ProofRef getProof(const ProofId &proofid) const;
     bool isBoundToPeer(const ProofId &proofid) const;
     bool isImmature(const ProofId &proofid) const;
