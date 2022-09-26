@@ -220,15 +220,6 @@ const CreateTokenForm = ({
             }
         });
 
-    const transformTokenIconFile = file => {
-        return new Promise((resolve, reject) => {
-            // Dragger requires this function to work properly with file as an input;
-            // linter requires file param to be used in the function.
-            console.log(file);
-            reject();
-        });
-    };
-
     const beforeTokenIconUpload = file => {
         const approvedFileTypes = ['image/png', 'image/jpg', 'image/jpeg'];
         try {
@@ -628,8 +619,12 @@ const CreateTokenForm = ({
                                 <Form.Item>
                                     <Dragger
                                         multiple={false}
-                                        transformFile={transformTokenIconFile}
                                         beforeUpload={beforeTokenIconUpload}
+                                        customRequest={({ onSuccess }) =>
+                                            setTimeout(() => {
+                                                onSuccess('ok', null);
+                                            }, 0)
+                                        }
                                         onChange={handleChangeTokenIconUpload}
                                         onRemove={() => false}
                                         fileList={tokenIconFileList}
