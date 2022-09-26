@@ -1086,7 +1086,7 @@ const useWallet = () => {
         let localContactList;
         try {
             localContactList = await localforage.getItem('contactList');
-            // If there is no keyvalue pair in localforage with key 'settings'
+            // If there is no keyvalue pair in localforage with key 'contactList'
             if (localContactList === null) {
                 // Use an array containing a single empty object
                 localforage.setItem('contactList', [{}]);
@@ -1098,7 +1098,7 @@ const useWallet = () => {
             setContactList([{}]);
             return [{}];
         }
-        // If you found an object in localforage at the settings key, make sure it's valid
+        // If you found an object in localforage at the contactList key, make sure it's valid
         if (isValidContactList(localContactList)) {
             setContactList(localContactList);
             return localContactList;
