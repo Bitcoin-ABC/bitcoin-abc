@@ -418,11 +418,6 @@ public:
     bool isImmature(const ProofId &proofid) const;
     bool isInConflictingPool(const ProofId &proofid) const;
 
-    size_t getConflictingProofCount() {
-        return conflictingProofPool.countProofs();
-    }
-    size_t getImmatureProofCount() { return immatureProofPool.countProofs(); }
-
     const ProofRadixTree &getShareableProofsSnapshot() const {
         return shareableProofs;
     }

@@ -792,10 +792,12 @@ static RPCHelpMan getavalancheinfo() {
                                proofCount - connectedProofCount);
 
                 network.pushKV("finalized_proof_count", finalizedProofCount);
-                network.pushKV("conflicting_proof_count",
-                               uint64_t(pm.getConflictingProofCount()));
-                network.pushKV("immature_proof_count",
-                               uint64_t(pm.getImmatureProofCount()));
+                network.pushKV(
+                    "conflicting_proof_count",
+                    uint64_t(pm.getConflictingProofPool().countProofs()));
+                network.pushKV(
+                    "immature_proof_count",
+                    uint64_t(pm.getImmatureProofPool().countProofs()));
 
                 network.pushKV("total_stake_amount", totalStakes);
                 network.pushKV("connected_stake_amount", connectedStakes);
