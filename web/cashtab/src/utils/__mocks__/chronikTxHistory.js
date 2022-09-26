@@ -5522,11 +5522,51 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
     },
 ];
 
-export const lambdaHash160s = [
-    '58549b5b93428fac88e36617456cd99a411bd0eb',
-    '438a162355ef683062a7fde9d08dd720397aaee8',
-    '76458db0ed96fe9863fc1ccec9fa2cfab884b0f6',
-];
+export const mockParseTxWallet = {
+    mnemonic: 'string',
+    name: 'string',
+    Path245: {
+        publicKey: 'string',
+        hash160: '58549b5b93428fac88e36617456cd99a411bd0eb',
+        cashAddress: 'string',
+        slpAddress: 'string',
+        fundingWif: 'string',
+        fundingAddress: 'string',
+        legacyAddress: 'string',
+    },
+    Path145: {
+        publicKey: 'string',
+        hash160: '438a162355ef683062a7fde9d08dd720397aaee8',
+        cashAddress: 'string',
+        slpAddress: 'string',
+        fundingWif: 'string',
+        fundingAddress: 'string',
+        legacyAddress: 'string',
+    },
+    Path1899: {
+        publicKey: 'string',
+        hash160: '76458db0ed96fe9863fc1ccec9fa2cfab884b0f6',
+        cashAddress: 'string',
+        slpAddress: 'string',
+        fundingWif: 'string',
+        fundingAddress: 'string',
+        legacyAddress: 'string',
+    },
+    state: {
+        balances: {
+            totalBalanceInSatoshis: '55421422',
+            totalBalance: '554214.22',
+        },
+        tokens: [],
+        slpBalancesAndUtxos: {
+            slpUtxos: [],
+            nonSlpUtxos: [],
+            tokens: [],
+        },
+        parsedTxHistory: [],
+        utxos: [],
+    },
+};
 
 export const lambdaIncomingXecTx = {
     txid: 'ac83faac54059c89c41dea4c3d6704e4f74fb82e4ad2fb948e640f1d19b760de',

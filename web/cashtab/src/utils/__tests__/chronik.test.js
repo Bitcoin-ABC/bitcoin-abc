@@ -36,7 +36,7 @@ import {
     mockSortedFlatTxHistoryWithUnconfirmed,
     mockFlatTxHistoryWithAllUnconfirmed,
     mockSortedFlatTxHistoryWithAllUnconfirmed,
-    lambdaHash160s,
+    mockParseTxWallet,
     lambdaIncomingXecTx,
     lambdaOutgoingXecTx,
     lambdaIncomingEtokenTx,
@@ -210,24 +210,52 @@ it(`sortAndTrimChronikTxHistory successfully orders the result of flattenChronik
 });
 
 it(`Successfully parses an incoming XEC tx`, () => {
-    expect(parseChronikTx(lambdaIncomingXecTx, lambdaHash160s)).toStrictEqual({
+    expect(
+        parseChronikTx(lambdaIncomingXecTx, mockParseTxWallet),
+    ).toStrictEqual({
         incoming: true,
         xecAmount: '42',
         originatingHash160: '4e532257c01b310b3b5c1fd947c79a72addf8523',
         isEtokenTx: false,
+        legacy: {
+            airdropFlag: false,
+            airdropTokenId: '',
+            amountReceived: '42',
+            amountSent: 0,
+            decryptionSuccess: false,
+            isCashtabMessage: false,
+            isEncryptedMessage: false,
+            opReturnMessage: '',
+            outgoingTx: false,
+            tokenTx: false,
+        },
     });
 });
 it(`Successfully parses an outgoing XEC tx`, () => {
-    expect(parseChronikTx(lambdaOutgoingXecTx, lambdaHash160s)).toStrictEqual({
+    expect(
+        parseChronikTx(lambdaOutgoingXecTx, mockParseTxWallet),
+    ).toStrictEqual({
         incoming: false,
         xecAmount: '222',
         originatingHash160: '76458db0ed96fe9863fc1ccec9fa2cfab884b0f6',
         isEtokenTx: false,
+        legacy: {
+            airdropFlag: false,
+            airdropTokenId: '',
+            amountReceived: 0,
+            amountSent: '222',
+            decryptionSuccess: false,
+            isCashtabMessage: false,
+            isEncryptedMessage: false,
+            opReturnMessage: '',
+            outgoingTx: true,
+            tokenTx: false,
+        },
     });
 });
 it(`Successfully parses an incoming eToken tx`, () => {
     expect(
-        parseChronikTx(lambdaIncomingEtokenTx, lambdaHash160s),
+        parseChronikTx(lambdaIncomingEtokenTx, mockParseTxWallet),
     ).toStrictEqual({
         incoming: true,
         xecAmount: '5.46',
@@ -240,11 +268,23 @@ it(`Successfully parses an incoming eToken tx`, () => {
             txType: 'SEND',
         },
         etokenAmount: '12',
+        legacy: {
+            airdropFlag: false,
+            airdropTokenId: '',
+            amountReceived: '5.46',
+            amountSent: 0,
+            decryptionSuccess: false,
+            isCashtabMessage: false,
+            isEncryptedMessage: false,
+            opReturnMessage: '',
+            outgoingTx: false,
+            tokenTx: true,
+        },
     });
 });
 it(`Successfully parses an outgoing eToken tx`, () => {
     expect(
-        parseChronikTx(lambdaOutgoingEtokenTx, lambdaHash160s),
+        parseChronikTx(lambdaOutgoingEtokenTx, mockParseTxWallet),
     ).toStrictEqual({
         incoming: false,
         xecAmount: '5.46',
@@ -257,5 +297,17 @@ it(`Successfully parses an outgoing eToken tx`, () => {
             txType: 'SEND',
         },
         etokenAmount: '17',
+        legacy: {
+            airdropFlag: false,
+            airdropTokenId: '',
+            amountReceived: 0,
+            amountSent: '5.46',
+            decryptionSuccess: false,
+            isCashtabMessage: false,
+            isEncryptedMessage: false,
+            opReturnMessage: '',
+            outgoingTx: true,
+            tokenTx: true,
+        },
     });
 });

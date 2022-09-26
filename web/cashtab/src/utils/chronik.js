@@ -1,7 +1,14 @@
 // Chronik methods
 import BigNumber from 'bignumber.js';
 import { currency } from 'components/Common/Ticker';
-import { parseOpReturn } from 'utils/cashMethods';
+import {
+    parseOpReturn,
+    convertToEncryptStruct,
+    getHashArrayFromWallet,
+    getUtxoWif,
+} from 'utils/cashMethods';
+import ecies from 'ecies-lite';
+import wif from 'wif';
 
 // Return false if do not get a valid response
 export const getTokenStats = async (chronik, tokenId) => {
@@ -416,7 +423,8 @@ export const returnGetTxHistoryChronikPromise = (
     });
 };
 
-export const parseChronikTx = (tx, walletHash160s) => {
+export const parseChronikTx = (tx, wallet) => {
+    const walletHash160s = getHashArrayFromWallet(wallet);
     const { inputs, outputs } = tx;
     // Assign defaults
     let incoming = true;
@@ -424,6 +432,15 @@ export const parseChronikTx = (tx, walletHash160s) => {
     let originatingHash160 = '';
     let etokenAmount = new BigNumber(0);
     const isEtokenTx = 'slpTxData' in tx && typeof tx.slpTxData !== 'undefined';
+
+    // Defining variables used in lines legacy parseTxData function from useBCH.js
+    let substring = '';
+    let airdropFlag = false;
+    let airdropTokenId = '';
+    let opReturnMessage = '';
+    let isCashtabMessage = false;
+    let isEncryptedMessage = false;
+    let decryptionSuccess = false;
 
     // Iterate over inputs to see if this is an incoming tx (incoming === true)
     for (let i = 0; i < inputs.length; i += 1) {
@@ -473,7 +490,121 @@ export const parseChronikTx = (tx, walletHash160s) => {
         ) {
             let hex = thisOutputReceivedAtHash160;
             let parsedOpReturnArray = parseOpReturn(hex);
-            console.log(`parsedOpReturnArray`, parsedOpReturnArray);
+
+            // Exactly copying lines 177-293 of useBCH.js
+            // Differences
+            // 1 - patched ecies not async error
+            // 2 - Removed if loop for tx being token, as this is handled elsewhere here
+            if (!parsedOpReturnArray) {
+                console.log(
+                    'useBCH.parsedTxData() error: parsed array is empty',
+                );
+                break;
+            }
+
+            let message = '';
+            let txType = parsedOpReturnArray[0];
+
+            if (txType === currency.opReturn.appPrefixesHex.airdrop) {
+                // this is to facilitate special Cashtab-specific cases of airdrop txs, both with and without msgs
+                // The UI via Tx.js can check this airdropFlag attribute in the parsedTx object to conditionally render airdrop-specific formatting if it's true
+                airdropFlag = true;
+                // index 0 is drop prefix, 1 is the token Id, 2 is msg prefix, 3 is msg
+                airdropTokenId = parsedOpReturnArray[1];
+                txType = parsedOpReturnArray[2];
+
+                // remove the first two elements of airdrop prefix and token id from array so the array parsing logic below can remain unchanged
+                parsedOpReturnArray.splice(0, 2);
+                // index 0 now becomes msg prefix, 1 becomes the msg
+            }
+
+            if (txType === currency.opReturn.appPrefixesHex.cashtab) {
+                // this is a Cashtab message
+                try {
+                    opReturnMessage = Buffer.from(
+                        parsedOpReturnArray[1],
+                        'hex',
+                    );
+                    isCashtabMessage = true;
+                } catch (err) {
+                    // soft error if an unexpected or invalid cashtab hex is encountered
+                    opReturnMessage = '';
+                    console.log(
+                        'useBCH.parsedTxData() error: invalid cashtab msg hex: ' +
+                            parsedOpReturnArray[1],
+                    );
+                }
+            } else if (
+                txType === currency.opReturn.appPrefixesHex.cashtabEncrypted
+            ) {
+                // this is an encrypted Cashtab message
+                let msgString = parsedOpReturnArray[1];
+                let fundingWif, privateKeyObj, privateKeyBuff;
+                if (
+                    wallet &&
+                    wallet.state &&
+                    wallet.state.slpBalancesAndUtxos &&
+                    wallet.state.slpBalancesAndUtxos.nonSlpUtxos[0]
+                ) {
+                    fundingWif = getUtxoWif(
+                        wallet.state.slpBalancesAndUtxos.nonSlpUtxos[0],
+                        wallet,
+                    );
+                    privateKeyObj = wif.decode(fundingWif);
+                    privateKeyBuff = privateKeyObj.privateKey;
+                    if (!privateKeyBuff) {
+                        throw new Error('Private key extraction error');
+                    }
+                } else {
+                    break;
+                }
+
+                let structData;
+                let decryptedMessage;
+
+                try {
+                    // Convert the hex encoded message to a buffer
+                    const msgBuf = Buffer.from(msgString, 'hex');
+
+                    // Convert the bufer into a structured object.
+                    structData = convertToEncryptStruct(msgBuf);
+
+                    decryptedMessage = ecies.decrypt(
+                        privateKeyBuff,
+                        structData,
+                    );
+                    decryptionSuccess = true;
+                } catch (err) {
+                    console.log(
+                        'useBCH.parsedTxData() decryption error: ' + err,
+                    );
+                    decryptedMessage =
+                        'Only the message recipient can view this';
+                }
+                isCashtabMessage = true;
+                isEncryptedMessage = true;
+                opReturnMessage = decryptedMessage;
+            } else {
+                // this is an externally generated message
+                message = txType; // index 0 is the message content in this instance
+
+                // if there are more than one part to the external message
+                const arrayLength = parsedOpReturnArray.length;
+                for (let i = 1; i < arrayLength; i++) {
+                    message = message + parsedOpReturnArray[i];
+                }
+
+                try {
+                    opReturnMessage = Buffer.from(message, 'hex');
+                } catch (err) {
+                    // soft error if an unexpected or invalid cashtab hex is encountered
+                    opReturnMessage = '';
+                    console.log(
+                        'useBCH.parsedTxData() error: invalid external msg hex: ' +
+                            substring,
+                    );
+                }
+            }
         }
         // Find amounts at your wallet's addresses
         for (let j = 0; j < walletHash160s.length; j += 1) {
@@ -529,6 +660,9 @@ export const parseChronikTx = (tx, walletHash160s) => {
     xecAmount = xecAmount.toString();
     etokenAmount = etokenAmount.toString();
 
+    // Convert opReturnMessage to string
+    opReturnMessage = Buffer.from(opReturnMessage).toString();
+
     // Return eToken specific fields if eToken tx
     if (isEtokenTx) {
         const { slpMeta } = tx.slpTxData;
@@ -539,19 +673,60 @@ export const parseChronikTx = (tx, walletHash160s) => {
             isEtokenTx,
             etokenAmount,
             slpMeta,
+            legacy: {
+                amountSent: incoming ? 0 : xecAmount,
+                amountReceived: incoming ? xecAmount : 0,
+                outgoingTx: !incoming,
+                tokenTx: true,
+                airdropFlag,
+                airdropTokenId,
+                opReturnMessage: '',
+                isCashtabMessage,
+                isEncryptedMessage,
+                decryptionSuccess,
+            },
         };
     }
     // Otherwise do not include these fields
-    return { incoming, xecAmount, originatingHash160, isEtokenTx };
+    return {
+        incoming,
+        xecAmount,
+        originatingHash160,
+        isEtokenTx,
+        legacy: {
+            amountSent: incoming ? 0 : xecAmount,
+            amountReceived: incoming ? xecAmount : 0,
+            outgoingTx: !incoming,
+            tokenTx: false,
+            airdropFlag,
+            airdropTokenId,
+            opReturnMessage,
+            isCashtabMessage,
+            isEncryptedMessage,
+            decryptionSuccess,
+        },
+    };
 };
 
-export const getTxHistoryChronik = async (
-    chronik,
-    hash160AndAddressObjArray,
-) => {
+export const getTxHistoryChronik = async (chronik, wallet) => {
     // Create array of promises to get chronik history for each address
     // Combine them all and sort by blockheight and firstSeen
     // Add all the info cashtab needs to make them useful
+
+    const hash160AndAddressObjArray = [
+        {
+            address: wallet.Path145.cashAddress,
+            hash160: wallet.Path145.hash160,
+        },
+        {
+            address: wallet.Path245.cashAddress,
+            hash160: wallet.Path245.hash160,
+        },
+        {
+            address: wallet.Path1899.cashAddress,
+            hash160: wallet.Path1899.hash160,
+        },
+    ];
 
     let txHistoryPromises = [];
     for (let i = 0; i < hash160AndAddressObjArray.length; i += 1) {
@@ -575,16 +750,11 @@ export const getTxHistoryChronik = async (
         currency.txHistoryCount,
     );
 
-    // Get hash160 array
-    const hash160array = [];
-    for (let i = 0; i < hash160AndAddressObjArray.length; i += 1) {
-        hash160array.push(hash160AndAddressObjArray[i].hash160);
-    }
     // Parse txs
     const parsedTxs = [];
     for (let i = 0; i < sortedTxHistoryArray.length; i += 1) {
         const sortedTx = sortedTxHistoryArray[i];
-        sortedTx.parsed = parseChronikTx(sortedTx, hash160array);
+        sortedTx.parsed = parseChronikTx(sortedTx, wallet);
         parsedTxs.push(sortedTx);
     }
 
