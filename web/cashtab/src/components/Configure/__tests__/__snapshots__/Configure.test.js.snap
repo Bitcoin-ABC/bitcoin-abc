@@ -240,7 +240,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
        Fiat Currency
     </h2>
     <div
-      className="sc-gPEVay izLeJl"
+      className="sc-gPEVay NiGHi"
     >
       <div
         className="ant-select select-after ant-select-single ant-select-show-arrow"
@@ -804,7 +804,7 @@ exports[`Without wallet defined 1`] = `
        Fiat Currency
     </h2>
     <div
-      className="sc-gPEVay izLeJl"
+      className="sc-gPEVay NiGHi"
     >
       <div
         className="ant-select select-after ant-select-single ant-select-show-arrow"

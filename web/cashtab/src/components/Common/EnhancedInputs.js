@@ -73,7 +73,9 @@ export const AntdFormCss = css`
         background-color: ${props => props.theme.forms.selectionBackground};
         border-color: ${props => props.theme.forms.error} !important;
     }
-
+    .ant-form-item-control-input-content {
+        color: ${props => props.theme.forms.text} !important;
+    }
     .ant-input:hover {
         border-color: ${props => props.theme.forms.highlightBox};
     }
