@@ -189,11 +189,6 @@ const SWButtonCtn = styled.div`
         height: 25px;
         margin-right: 10px;
         cursor: pointer;
-
-        :first-child:hover {
-            stroke: ${props => props.theme.eCashBlue};
-            fill: ${props => props.theme.eCashBlue};
-        }
         :hover {
             stroke: ${props => props.theme.settings.delete};
             fill: ${props => props.theme.settings.delete};
@@ -310,10 +305,6 @@ const ContactListCtn = styled.div`
         height: 25px;
         margin-right: 10px;
         cursor: pointer;
-        :first-child:hover {
-            stroke: ${props => props.theme.eCashBlue};
-            fill: ${props => props.theme.eCashBlue};
-        }
         :hover {
             stroke: ${props => props.theme.settings.delete};
             fill: ${props => props.theme.settings.delete};
