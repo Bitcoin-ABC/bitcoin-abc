@@ -9,6 +9,8 @@ DEFAULT_DISTROS=()
 DEFAULT_DISTROS+=("bionic")
 # Focal: Ubuntu 20.04 LTS
 DEFAULT_DISTROS+=("focal")
+# Jammy: Ubuntu 22.04 LTS
+DEFAULT_DISTROS+=("jammy")
 
 DEFAULT_PPA="bitcoin-abc"
 DPUT_CONFIG_FILE=~/".dput.cf"

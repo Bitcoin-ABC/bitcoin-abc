@@ -1,6 +1,11 @@
 #!/usr/bin/make -f
 # -*- mode: makefile; coding: utf-8 -*-
 
+# Ubuntu Jammy enables LTO by default. This is great but this produces a bad
+# bitcoin-qt binary on amd64 (Qt5Core segfaults at startup) for some reason, so
+# we force disable it.
+export DEB_BUILD_MAINT_OPTIONS = optimize=-lto
+
 %:
 	dh $@ --buildsystem=cmake+ninja --builddirectory=_build
 
