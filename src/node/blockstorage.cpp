@@ -38,7 +38,7 @@ int nLastBlockFile = 0;
 bool fCheckForPruning = false;
 
 /** Dirty block index entries. */
-std::set<CBlockIndex *> setDirtyBlockIndex;
+std::set<const CBlockIndex *> setDirtyBlockIndex;
 
 /** Dirty block file entries. */
 std::set<int> setDirtyFileInfo;
