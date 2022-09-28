@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2019 The Bitcoin Core developers
+// Copyright (c) 2009-present The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -11,13 +11,16 @@
 
 #include <compat.h>
 #include <util/check.h>
-
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <util/strencodings.h>
 
 #include <tinyformat.h>
 
 #include <atomic>
+#include <chrono>
 #include <ctime>
+#include <optional>
+#include <string>
+#include <string_view>
 #include <thread>
 
 void UninterruptibleSleep(const std::chrono::microseconds &n) {
@@ -135,20 +138,31 @@ std::string FormatISO8601Date(int64_t nTime) {
                      ts.tm_mday);
 }
 
-int64_t ParseISO8601DateTime(const std::string &str) {
-    static const boost::posix_time::ptime epoch =
-        boost::posix_time::from_time_t(0);
-    static const std::locale loc(
-        std::locale::classic(),
-        new boost::posix_time::time_input_facet("%Y-%m-%dT%H:%M:%SZ"));
-    std::istringstream iss(str);
-    iss.imbue(loc);
-    boost::posix_time::ptime ptime(boost::date_time::not_a_date_time);
-    iss >> ptime;
-    if (ptime.is_not_a_date_time() || epoch > ptime) {
-        return 0;
+std::optional<int64_t> ParseISO8601DateTime(std::string_view str) {
+    constexpr auto FMT_SIZE{std::string_view{"2000-01-01T01:01:01Z"}.size()};
+    if (str.size() != FMT_SIZE || str[4] != '-' || str[7] != '-' ||
+        str[10] != 'T' || str[13] != ':' || str[16] != ':' || str[19] != 'Z') {
+        return {};
     }
-    return (ptime - epoch).total_seconds();
+    const auto year{ToIntegral<uint16_t>(str.substr(0, 4))};
+    const auto month{ToIntegral<uint8_t>(str.substr(5, 2))};
+    const auto day{ToIntegral<uint8_t>(str.substr(8, 2))};
+    const auto hour{ToIntegral<uint8_t>(str.substr(11, 2))};
+    const auto min{ToIntegral<uint8_t>(str.substr(14, 2))};
+    const auto sec{ToIntegral<uint8_t>(str.substr(17, 2))};
+    if (!year || !month || !day || !hour || !min || !sec) {
+        return {};
+    }
+    const std::chrono::year_month_day ymd{std::chrono::year{*year},
+                                          std::chrono::month{*month},
+                                          std::chrono::day{*day}};
+    if (!ymd.ok()) {
+        return {};
+    }
+    const auto time{std::chrono::hours{*hour} + std::chrono::minutes{*min} +
+                    std::chrono::seconds{*sec}};
+    const auto tp{std::chrono::sys_days{ymd} + time};
+    return int64_t{TicksSinceEpoch<std::chrono::seconds>(tp)};
 }
 
 struct timeval MillisToTimeval(int64_t nTimeout) {

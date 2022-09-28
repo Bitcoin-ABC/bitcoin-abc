@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2019 The Bitcoin Core developers
+// Copyright (c) 2009-present The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -10,7 +10,9 @@
 
 #include <chrono>
 #include <cstdint>
+#include <optional>
 #include <string>
+#include <string_view>
 
 using namespace std::chrono_literals;
 
@@ -122,7 +124,7 @@ template <typename T> T GetTime() {
  */
 std::string FormatISO8601DateTime(int64_t nTime);
 std::string FormatISO8601Date(int64_t nTime);
-int64_t ParseISO8601DateTime(const std::string &str);
+std::optional<int64_t> ParseISO8601DateTime(std::string_view str);
 
 /**
  * Convert milliseconds to a struct timeval for e.g. select.

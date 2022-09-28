@@ -1,4 +1,4 @@
-// Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2009-present The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -754,7 +754,8 @@ RPCHelpMan importwallet() {
                     }
                     CKey key = DecodeSecret(vstr[0]);
                     if (key.IsValid()) {
-                        int64_t nTime = ParseISO8601DateTime(vstr[1]);
+                        int64_t nTime{
+                            ParseISO8601DateTime(vstr[1]).value_or(0)};
                         std::string strLabel;
                         bool fLabel = true;
                         for (size_t nStr = 2; nStr < vstr.size(); nStr++) {
@@ -779,7 +780,8 @@ RPCHelpMan importwallet() {
                     } else if (IsHex(vstr[0])) {
                         std::vector<uint8_t> vData(ParseHex(vstr[0]));
                         CScript script = CScript(vData.begin(), vData.end());
-                        int64_t birth_time = ParseISO8601DateTime(vstr[1]);
+                        int64_t birth_time{
+                            ParseISO8601DateTime(vstr[1]).value_or(0)};
                         if (birth_time > 0) {
                             nTimeBegin = std::min(nTimeBegin, birth_time);
                         }

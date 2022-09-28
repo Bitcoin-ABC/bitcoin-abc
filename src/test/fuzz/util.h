@@ -1,4 +1,4 @@
-// Copyright (c) 2009-2019 The Bitcoin Core developers
+// Copyright (c) 2009-present The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -184,10 +184,11 @@ ConsumeMoney(FuzzedDataProvider &fuzzed_data_provider) noexcept {
 
 [[nodiscard]] inline int64_t
 ConsumeTime(FuzzedDataProvider &fuzzed_data_provider) noexcept {
-    static const int64_t time_min =
-        ParseISO8601DateTime("1970-01-01T00:00:00Z");
-    static const int64_t time_max =
-        ParseISO8601DateTime("9999-12-31T23:59:59Z");
+    // Avoid t=0 (1970-01-01T00:00:00Z) since SetMockTime(0) disables mocktime.
+    static const int64_t time_min{
+        ParseISO8601DateTime("2000-01-01T00:00:01Z").value()};
+    static const int64_t time_max{
+        ParseISO8601DateTime("2100-12-31T23:59:59Z").value()};
     return fuzzed_data_provider.ConsumeIntegralInRange<int64_t>(time_min,
                                                                 time_max);
 }
