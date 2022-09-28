@@ -9,3 +9,5 @@ This release includes the following features and fixes:
    mempool has been added to the `getmempoolinfo` RPC.
  - Added a new `getavalancheproofs` RPC to retrieve all avalanche proof IDs
    tracked by the node.
+ - Added a new field `immature_stake_amount` to `getavalancheinfo` to report
+   the total amount of stake that will mature within the next 2016 blocks.

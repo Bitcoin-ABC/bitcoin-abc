@@ -707,6 +707,12 @@ static RPCHelpMan getavalancheinfo() {
                           Currency::get().ticker +
                           " (including this node's local proof if "
                           "applicable)."},
+                     {RPCResult::Type::STR_AMOUNT, "immature_stake_amount",
+                      "The total staked amount over all the immature proofs "
+                      "in " +
+                          Currency::get().ticker +
+                          " (including this node's local proof if "
+                          "applicable)."},
                      {RPCResult::Type::NUM, "node_count",
                       "The number of avalanche nodes we are connected to "
                       "(including this node if a local proof is set)."},
@@ -786,6 +792,12 @@ static RPCHelpMan getavalancheinfo() {
                     connectedNodeCount += peer.node_count + isLocalProof;
                 });
 
+                Amount immatureStakes = Amount::zero();
+                pm.getImmatureProofPool().forEachProof(
+                    [&](const avalanche::ProofRef &proof) {
+                        immatureStakes += proof->getStakedAmount();
+                    });
+
                 network.pushKV("proof_count", proofCount);
                 network.pushKV("connected_proof_count", connectedProofCount);
                 network.pushKV("dangling_proof_count",
@@ -803,6 +815,7 @@ static RPCHelpMan getavalancheinfo() {
                 network.pushKV("connected_stake_amount", connectedStakes);
                 network.pushKV("dangling_stake_amount",
                                totalStakes - connectedStakes);
+                network.pushKV("immature_stake_amount", immatureStakes);
 
                 const uint64_t pendingNodes = pm.getPendingNodeCount();
                 network.pushKV("node_count", connectedNodeCount + pendingNodes);
