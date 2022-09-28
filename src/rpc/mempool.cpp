@@ -170,6 +170,14 @@ static RPCHelpMan testmempoolaccept() {
                                "for example, there are modified fees from "
                                "prioritisetransaction or a package feerate was "
                                "used."},
+                          {RPCResult::Type::ARR,
+                           "effective-includes",
+                           "transactions whose fees and vsizes are included in "
+                           "effective-feerate.",
+                           {
+                               RPCResult{RPCResult::Type::STR_HEX, "",
+                                         "transaction txid in hex"},
+                           }},
                       }},
                      {RPCResult::Type::STR, "reject-reason",
                       "Rejection string (only present when 'allowed' is "
@@ -282,6 +290,13 @@ static RPCHelpMan testmempoolaccept() {
                         fees.pushKV(
                             "effective-feerate",
                             tx_result.m_effective_feerate.value().GetFeePerK());
+                        UniValue effective_includes_res(UniValue::VARR);
+                        for (const auto &txid :
+                             tx_result.m_txids_fee_calculations.value()) {
+                            effective_includes_res.push_back(txid.ToString());
+                        }
+                        fees.pushKV("effective-includes",
+                                    effective_includes_res);
                         result_inner.pushKV("fees", fees);
                     }
                 } else {
@@ -817,6 +832,14 @@ static RPCHelpMan submitpackage() {
                                  "if, for example, there are modified fees "
                                  "from prioritisetransaction or a package "
                                  "feerate was used."},
+                            {RPCResult::Type::ARR,
+                             "effective-includes",
+                             "transactions whose fees and vsizes are included "
+                             "in effective-feerate.",
+                             {
+                                 RPCResult{RPCResult::Type::STR_HEX, "",
+                                           "transaction txid in hex"},
+                             }},
                         }},
                    }}}},
                 {RPCResult::Type::STR_AMOUNT, "package-feerate",
@@ -934,6 +957,13 @@ static RPCHelpMan submitpackage() {
                         fees.pushKV(
                             "effective-feerate",
                             tx_result.m_effective_feerate.value().GetFeePerK());
+                        UniValue effective_includes_res(UniValue::VARR);
+                        for (const auto &txid :
+                             tx_result.m_txids_fee_calculations.value()) {
+                            effective_includes_res.push_back(txid.ToString());
+                        }
+                        fees.pushKV("effective-includes",
+                                    effective_includes_res);
                     }
                     result_inner.pushKV("fees", fees);
                 }

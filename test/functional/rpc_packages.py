@@ -465,6 +465,7 @@ class RPCPackagesTest(BitcoinTestFramework):
                     tx.billable_size(),
                     tx_result["fees"]["effective-feerate"],
                 )
+                assert_equal(tx_result["fees"]["effective-includes"], [txid])
 
         # submitpackage result should be consistent with testmempoolaccept and getmempoolentry
         self.assert_equal_package_results(
@@ -533,6 +534,9 @@ class RPCPackagesTest(BitcoinTestFramework):
             tx_rich.billable_size(),
             rich_parent_result["fees"]["effective-feerate"],
         )
+        assert_equal(
+            rich_parent_result["fees"]["effective-includes"], [tx_rich.get_id()]
+        )
         # The "poor" parent and child's effective feerates are the same,
         # composed of the child's fee divided by their combined vsize.
         assert_fee_amount(
@@ -544,6 +548,14 @@ class RPCPackagesTest(BitcoinTestFramework):
             DEFAULT_FEE,
             tx_poor.billable_size() + tx_child.billable_size(),
             child_result["fees"]["effective-feerate"],
+        )
+        assert_equal(
+            [tx_poor.get_id(), tx_child.get_id()],
+            poor_parent_result["fees"]["effective-includes"],
+        )
+        assert_equal(
+            [tx_poor.get_id(), tx_child.get_id()],
+            child_result["fees"]["effective-includes"],
         )
 
         # Package feerate is calculated for the remaining transactions after deduplication and

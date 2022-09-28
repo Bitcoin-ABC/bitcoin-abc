@@ -54,6 +54,7 @@ class MempoolAcceptanceTest(BitcoinTestFramework):
             # Skip these checks for now
             if "fees" in r:
                 r["fees"].pop("effective-feerate")
+                r["fees"].pop("effective-includes")
         assert_equal(result_expected, result_test)
         # Must not change mempool state
         assert_equal(self.nodes[0].getmempoolinfo()["size"], self.mempool_size)
