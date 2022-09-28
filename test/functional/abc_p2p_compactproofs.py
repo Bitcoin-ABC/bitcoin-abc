@@ -184,11 +184,19 @@ class CompactProofsTest(BitcoinTestFramework):
                         == outbounds_getavaproofs + num_outbound_avapeers)
         outbounds_getavaproofs += num_outbound_avapeers
 
+        self.log.info("Empty avaproofs will not trigger any request")
         for p in outbound_avapeers:
-            with node.assert_debug_log(["received: avaproofs"], ["Ignoring unsollicited avaproofs"]):
-                p.send_message(build_msg_avaproofs([]))
+            p.send_message(build_msg_avaproofs([]))
 
         with p2p_lock:
+            # Only this peer actually sent a proof
+            assert_equal(
+                responding_outbound_avapeer.message_count.get(
+                    "avaproofsreq", 0), 1)
+            assert_equal(sum([p.message_count.get("avaproofsreq", 0)
+                         for p in outbound_avapeers]), 1)
+
+            # Sanity checks
             assert all([p.message_count.get(
                 "getavaproofs", 0) == 0 for p in non_avapeers])
             assert all([p.message_count.get(
