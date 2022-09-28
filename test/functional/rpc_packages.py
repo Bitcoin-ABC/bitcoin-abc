@@ -8,7 +8,7 @@ from decimal import Decimal
 
 from test_framework.address import ADDRESS_ECREG_P2SH_OP_TRUE, SCRIPTSIG_OP_TRUE
 from test_framework.blocktools import COINBASE_MATURITY
-from test_framework.messages import CTransaction, FromHex, ToHex
+from test_framework.messages import XEC, CTransaction, FromHex, ToHex
 from test_framework.p2p import P2PTxInvStore
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
@@ -426,6 +426,7 @@ class RPCPackagesTest(BitcoinTestFramework):
         # Test a package with num_parents parents and 1 child transaction.
         package_hex = []
         package_txns = []
+        presubmitted_txids = set()
         values = []
         scripts = []
         for _ in range(num_parents):
@@ -439,7 +440,8 @@ class RPCPackagesTest(BitcoinTestFramework):
             values.append(value)
             scripts.append(spk)
             if partial_submit and random.choice([True, False]):
-                node.sendrawtransaction(txhex)
+                txid = node.sendrawtransaction(txhex)
+                presubmitted_txids.add(txid)
         child_hex = create_child_with_parents(
             node, self.address, self.privkeys, package_txns, values, scripts
         )
@@ -455,15 +457,14 @@ class RPCPackagesTest(BitcoinTestFramework):
             txid = tx.get_id()
             assert txid in submitpackage_result["tx-results"]
             tx_result = submitpackage_result["tx-results"][txid]
-            assert_equal(
-                tx_result,
-                {
-                    "vsize": tx.billable_size(),
-                    "fees": {
-                        "base": DEFAULT_FEE,
-                    },
-                },
-            )
+            assert_equal(tx_result["vsize"], tx.billable_size())
+            assert_equal(tx_result["fees"]["base"], DEFAULT_FEE)
+            if txid not in presubmitted_txids:
+                assert_fee_amount(
+                    DEFAULT_FEE,
+                    tx.billable_size(),
+                    tx_result["fees"]["effective-feerate"],
+                )
 
         # submitpackage result should be consistent with testmempoolaccept and getmempoolentry
         self.assert_equal_package_results(
@@ -489,8 +490,14 @@ class RPCPackagesTest(BitcoinTestFramework):
         coin_rich = self.coins.pop()
         coin_poor = self.coins.pop()
         tx_rich, hex_rich, value_rich, spk_rich = make_chain(
-            node, self.address, self.privkeys, coin_rich["txid"], coin_rich["amount"]
+            node,
+            self.address,
+            self.privkeys,
+            coin_rich["txid"],
+            coin_rich["amount"],
+            fee=0,
         )
+        node.prioritisetransaction(tx_rich.get_id(), 0, int(DEFAULT_FEE * XEC))
         tx_poor, hex_poor, value_poor, spk_poor = make_chain(
             node,
             self.address,
@@ -516,9 +523,29 @@ class RPCPackagesTest(BitcoinTestFramework):
         rich_parent_result = submitpackage_result["tx-results"][tx_rich.get_id()]
         poor_parent_result = submitpackage_result["tx-results"][tx_poor.get_id()]
         child_result = submitpackage_result["tx-results"][tx_child.get_id()]
-        assert_equal(rich_parent_result["fees"]["base"], DEFAULT_FEE)
+        assert_equal(rich_parent_result["fees"]["base"], 0)
         assert_equal(poor_parent_result["fees"]["base"], 0)
         assert_equal(child_result["fees"]["base"], DEFAULT_FEE)
+        # The "rich" parent does not require CPFP so its effective feerate.
+        print(rich_parent_result)
+        assert_fee_amount(
+            DEFAULT_FEE,
+            tx_rich.billable_size(),
+            rich_parent_result["fees"]["effective-feerate"],
+        )
+        # The "poor" parent and child's effective feerates are the same,
+        # composed of the child's fee divided by their combined vsize.
+        assert_fee_amount(
+            DEFAULT_FEE,
+            tx_poor.billable_size() + tx_child.billable_size(),
+            poor_parent_result["fees"]["effective-feerate"],
+        )
+        assert_fee_amount(
+            DEFAULT_FEE,
+            tx_poor.billable_size() + tx_child.billable_size(),
+            child_result["fees"]["effective-feerate"],
+        )
+
         # Package feerate is calculated for the remaining transactions after deduplication and
         # individual submission. Since this package had a 0-fee parent, package feerate must have
         # been used and returned.

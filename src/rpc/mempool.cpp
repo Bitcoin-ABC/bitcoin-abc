@@ -98,6 +98,7 @@ static RPCHelpMan sendrawtransaction() {
 }
 
 static RPCHelpMan testmempoolaccept() {
+    const auto ticker = Currency::get().ticker;
     return RPCHelpMan{
         "testmempoolaccept",
         "\nReturns result of mempool acceptance tests indicating if raw "
@@ -130,7 +131,7 @@ static RPCHelpMan testmempoolaccept() {
                  FormatMoney(DEFAULT_MAX_RAW_TX_FEE_RATE.GetFeePerK())},
              "Reject transactions whose fee rate is higher than the specified "
              "value, expressed in " +
-                 Currency::get().ticker + "/kB\n"},
+                 ticker + "/kB\n"},
         },
         RPCResult{
             RPCResult::Type::ARR,
@@ -162,7 +163,13 @@ static RPCHelpMan testmempoolaccept() {
                       "Transaction fees (only present if 'allowed' is true)",
                       {
                           {RPCResult::Type::STR_AMOUNT, "base",
-                           "transaction fee in " + Currency::get().ticker},
+                           "transaction fee in " + ticker},
+                          {RPCResult::Type::STR_AMOUNT, "effective-feerate",
+                           "the effective feerate in " + ticker +
+                               " per KvB. May differ from the base feerate if, "
+                               "for example, there are modified fees from "
+                               "prioritisetransaction or a package feerate was "
+                               "used."},
                       }},
                      {RPCResult::Type::STR, "reject-reason",
                       "Rejection string (only present when 'allowed' is "
@@ -272,6 +279,9 @@ static RPCHelpMan testmempoolaccept() {
                         result_inner.pushKV("size", virtual_size);
                         UniValue fees(UniValue::VOBJ);
                         fees.pushKV("base", fee);
+                        fees.pushKV(
+                            "effective-feerate",
+                            tx_result.m_effective_feerate.value().GetFeePerK());
                         result_inner.pushKV("fees", fees);
                     }
                 } else {
@@ -801,6 +811,12 @@ static RPCHelpMan submitpackage() {
                         {
                             {RPCResult::Type::STR_AMOUNT, "base",
                              "transaction fee in " + ticker},
+                            {RPCResult::Type::STR_AMOUNT, "effective-feerate",
+                             "the effective feerate in " + ticker +
+                                 " per KvB. May differ from the base feerate "
+                                 "if, for example, there are modified fees "
+                                 "from prioritisetransaction or a package "
+                                 "feerate was used."},
                         }},
                    }}}},
                 {RPCResult::Type::STR_AMOUNT, "package-feerate",
@@ -899,6 +915,7 @@ static RPCHelpMan submitpackage() {
                 auto it = package_result.m_tx_results.find(tx->GetId());
                 CHECK_NONFATAL(it != package_result.m_tx_results.end());
                 UniValue result_inner{UniValue::VOBJ};
+                const auto &tx_result = it->second;
                 if (it->second.m_result_type ==
                         MempoolAcceptResult::ResultType::VALID ||
                     it->second.m_result_type ==
@@ -907,6 +924,17 @@ static RPCHelpMan submitpackage() {
                                         int64_t{it->second.m_vsize.value()});
                     UniValue fees(UniValue::VOBJ);
                     fees.pushKV("base", it->second.m_base_fees.value());
+                    if (tx_result.m_result_type ==
+                        MempoolAcceptResult::ResultType::VALID) {
+                        // Effective feerate is not provided for MEMPOOL_ENTRY
+                        // (already in mempool) transactions even though
+                        // modified fees is known, because it is unknown whether
+                        // package feerate was used when it was originally
+                        // submitted.
+                        fees.pushKV(
+                            "effective-feerate",
+                            tx_result.m_effective_feerate.value().GetFeePerK());
+                    }
                     result_inner.pushKV("fees", fees);
                 }
                 tx_result_map.pushKV(tx->GetId().GetHex(), result_inner);
