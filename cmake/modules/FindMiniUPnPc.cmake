@@ -25,7 +25,7 @@ include(BrewHelper)
 find_brew_prefix(_MiniUPnPc_BREW_HINT miniupnpc)
 
 find_package(PkgConfig)
-pkg_check_modules(PC_MiniUPnPc QUIET libqrencode)
+pkg_check_modules(PC_MiniUPnPc QUIET miniupnpc)
 
 find_path(MiniUPnPc_INCLUDE_DIR
 	NAMES miniupnpc.h
