@@ -132,15 +132,7 @@ size_t ProofPool::countProofs() const {
     }
 
     size_t count = 0;
-    ProofId lastProofId;
-    auto &poolView = pool.get<by_proofid>();
-    for (auto it = poolView.begin(); it != poolView.end(); it++) {
-        const ProofId &proofId = it->proof->getId();
-        if (lastProofId != proofId) {
-            lastProofId = proofId;
-            count++;
-        }
-    }
+    forEachProof([&](const ProofRef &proof) { count++; });
 
     cacheProofCount = count;
     cacheClean = true;

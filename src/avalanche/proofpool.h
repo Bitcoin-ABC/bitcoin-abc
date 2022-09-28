@@ -115,6 +115,18 @@ public:
     std::unordered_set<ProofRef, SaltedProofHasher>
     rescan(PeerManager &peerManager);
 
+    template <typename Callable> void forEachProof(Callable &&func) const {
+        ProofId lastProofId;
+        auto &poolView = pool.get<by_proofid>();
+        for (auto it = poolView.begin(); it != poolView.end(); it++) {
+            const ProofId &proofId = it->proof->getId();
+            if (lastProofId != proofId) {
+                func(it->proof);
+                lastProofId = proofId;
+            }
+        }
+    }
+
     ProofIdSet getProofIds() const;
     ProofRef getProof(const ProofId &proofid) const;
     ProofRef getProof(const COutPoint &outpoint) const;
