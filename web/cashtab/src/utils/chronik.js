@@ -9,6 +9,7 @@ import {
 } from 'utils/cashMethods';
 import ecies from 'ecies-lite';
 import wif from 'wif';
+import cashaddr from 'ecashaddrjs';
 
 // Return false if do not get a valid response
 export const getTokenStats = async (chronik, tokenId) => {
@@ -423,7 +424,7 @@ export const returnGetTxHistoryChronikPromise = (
     });
 };
 
-export const parseChronikTx = (tx, wallet) => {
+export const parseChronikTx = (BCH, tx, wallet) => {
     const walletHash160s = getHashArrayFromWallet(wallet);
     const { inputs, outputs } = tx;
     // Assign defaults
@@ -441,6 +442,7 @@ export const parseChronikTx = (tx, wallet) => {
     let isCashtabMessage = false;
     let isEncryptedMessage = false;
     let decryptionSuccess = false;
+    let replyAddress = '';
 
     // Iterate over inputs to see if this is an incoming tx (incoming === true)
     for (let i = 0; i < inputs.length; i += 1) {
@@ -465,7 +467,15 @@ export const parseChronikTx = (tx, wallet) => {
                 thisInputSendingHash160.indexOf('76a914') + '76a914'.length,
                 thisInputSendingHash160.lastIndexOf('88ac'),
             );
+
+            let replyAddressBchFormat =
+                BCH.Address.hash160ToCash(originatingHash160);
+
+            const { type, hash } = cashaddr.decode(replyAddressBchFormat);
+            replyAddress = cashaddr.encode('ecash', type, hash);
+            console.log(`replyAddressXecFormat`, replyAddress);
         } catch (err) {
+            console.log(`err from ${originatingHash160}`, err);
             // If the transaction is nonstandard, don't worry about a reply address for now
             originatingHash160 = 'N/A';
         }
@@ -684,6 +694,7 @@ export const parseChronikTx = (tx, wallet) => {
                 isCashtabMessage,
                 isEncryptedMessage,
                 decryptionSuccess,
+                replyAddress,
             },
         };
     }
@@ -704,11 +715,12 @@ export const parseChronikTx = (tx, wallet) => {
             isCashtabMessage,
             isEncryptedMessage,
             decryptionSuccess,
+            replyAddress,
         },
     };
 };
 
-export const getTxHistoryChronik = async (chronik, wallet) => {
+export const getTxHistoryChronik = async (chronik, BCH, wallet) => {
     // Create array of promises to get chronik history for each address
     // Combine them all and sort by blockheight and firstSeen
     // Add all the info cashtab needs to make them useful
@@ -754,7 +766,7 @@ export const getTxHistoryChronik = async (chronik, wallet) => {
     const parsedTxs = [];
     for (let i = 0; i < sortedTxHistoryArray.length; i += 1) {
         const sortedTx = sortedTxHistoryArray[i];
-        sortedTx.parsed = parseChronikTx(sortedTx, wallet);
+        sortedTx.parsed = parseChronikTx(BCH, sortedTx, wallet);
         parsedTxs.push(sortedTx);
     }
 

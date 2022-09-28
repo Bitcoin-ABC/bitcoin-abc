@@ -44,6 +44,7 @@ import {
 } from '../__mocks__/chronikTxHistory';
 import { ChronikClient } from 'chronik-client';
 import { when } from 'jest-when';
+import BCHJS from '@psf/bch-js';
 
 it(`getTokenStats successfully returns a token stats object`, async () => {
     // Initialize chronik
@@ -210,8 +211,17 @@ it(`sortAndTrimChronikTxHistory successfully orders the result of flattenChronik
 });
 
 it(`Successfully parses an incoming XEC tx`, () => {
+    const BCH = new BCHJS({
+        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
+    });
+    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
+    BCH.Address.hash160ToCash = jest
+        .fn()
+        .mockReturnValue(
+            'bitcoincash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvll3cvjwd',
+        );
     expect(
-        parseChronikTx(lambdaIncomingXecTx, mockParseTxWallet),
+        parseChronikTx(BCH, lambdaIncomingXecTx, mockParseTxWallet),
     ).toStrictEqual({
         incoming: true,
         xecAmount: '42',
@@ -227,13 +237,23 @@ it(`Successfully parses an incoming XEC tx`, () => {
             isEncryptedMessage: false,
             opReturnMessage: '',
             outgoingTx: false,
+            replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
             tokenTx: false,
         },
     });
 });
 it(`Successfully parses an outgoing XEC tx`, () => {
+    const BCH = new BCHJS({
+        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
+    });
+    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
+    BCH.Address.hash160ToCash = jest
+        .fn()
+        .mockReturnValue(
+            'bitcoincash:qpmytrdsakt0axrrlswvaj069nat3p9s7ct4lsf8k9',
+        );
     expect(
-        parseChronikTx(lambdaOutgoingXecTx, mockParseTxWallet),
+        parseChronikTx(BCH, lambdaOutgoingXecTx, mockParseTxWallet),
     ).toStrictEqual({
         incoming: false,
         xecAmount: '222',
@@ -249,13 +269,21 @@ it(`Successfully parses an outgoing XEC tx`, () => {
             isEncryptedMessage: false,
             opReturnMessage: '',
             outgoingTx: true,
+            replyAddress: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
             tokenTx: false,
         },
     });
 });
 it(`Successfully parses an incoming eToken tx`, () => {
+    const BCH = new BCHJS();
+    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
+    BCH.Address.hash160ToCash = jest
+        .fn()
+        .mockReturnValue(
+            'bitcoincash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvll3cvjwd',
+        );
     expect(
-        parseChronikTx(lambdaIncomingEtokenTx, mockParseTxWallet),
+        parseChronikTx(BCH, lambdaIncomingEtokenTx, mockParseTxWallet),
     ).toStrictEqual({
         incoming: true,
         xecAmount: '5.46',
@@ -278,13 +306,23 @@ it(`Successfully parses an incoming eToken tx`, () => {
             isEncryptedMessage: false,
             opReturnMessage: '',
             outgoingTx: false,
+            replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
             tokenTx: true,
         },
     });
 });
 it(`Successfully parses an outgoing eToken tx`, () => {
+    const BCH = new BCHJS({
+        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
+    });
+    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
+    BCH.Address.hash160ToCash = jest
+        .fn()
+        .mockReturnValue(
+            'bitcoincash:qpmytrdsakt0axrrlswvaj069nat3p9s7ct4lsf8k9',
+        );
     expect(
-        parseChronikTx(lambdaOutgoingEtokenTx, mockParseTxWallet),
+        parseChronikTx(BCH, lambdaOutgoingEtokenTx, mockParseTxWallet),
     ).toStrictEqual({
         incoming: false,
         xecAmount: '5.46',
@@ -307,6 +345,7 @@ it(`Successfully parses an outgoing eToken tx`, () => {
             isEncryptedMessage: false,
             opReturnMessage: '',
             outgoingTx: true,
+            replyAddress: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
             tokenTx: true,
         },
     });

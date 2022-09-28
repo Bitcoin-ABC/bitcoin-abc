@@ -229,7 +229,11 @@ const useWallet = () => {
             // Preserve bch-api for tx history for now, as this will take another stacked diff to migrate to chronik
             const txHistory = await getTxHistory(BCH, cashAddresses);
 
-            const chronikTxHistory = await getTxHistoryChronik(chronik, wallet);
+            const chronikTxHistory = await getTxHistoryChronik(
+                chronik,
+                BCH,
+                wallet,
+            );
             console.log(
                 `chronikTxHistory as flattened array, sorted by blockheight and time first seen, with parse info, and partial legacy parse info`,
                 chronikTxHistory,
