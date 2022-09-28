@@ -101,6 +101,12 @@ gen_asmap_headers(ASMAP_HEADERS
 	data/asmap.raw
 )
 
+if(BUILD_BITCOIN_CHRONIK)
+	set(BITCOIN_CHRONIK_TESTS
+		../../chronik/test/chronikbridge_tests.cpp
+	)
+endif()
+
 add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 	fixture.cpp
 	jsonutil.cpp
@@ -235,6 +241,9 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 
 		# Wallet tests
 		${BITCOIN_WALLET_TESTS}
+
+		# Chronik tests
+		${BITCOIN_CHRONIK_TESTS}
 )
 
 function(add_boost_test_runners_with_upgrade_activated SUITE EXECUTABLE)

@@ -2,8 +2,18 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <blockindex.h>
+#include <chronik-bridge/src/ffi.rs.h>
 #include <chronik-cpp/chronik_bridge.h>
 #include <logging.h>
+#include <node/context.h>
+#include <validation.h>
+
+std::array<uint8_t, 32> HashToArray(const uint256 &hash) {
+    std::array<uint8_t, 32> array;
+    std::copy_n(hash.begin(), 32, array.begin());
+    return array;
+}
 
 namespace chronik_bridge {
 
@@ -19,6 +29,25 @@ void log_print_chronik(const rust::Str logging_function,
     if (LogInstance().WillLogCategory(BCLog::CHRONIK)) {
         log_print(logging_function, source_file, source_line, msg);
     }
+}
+
+BlockInfo ChronikBridge::get_chain_tip() const {
+    const CBlockIndex *tip =
+        WITH_LOCK(cs_main, return m_node.chainman->ActiveTip());
+    if (tip == nullptr) {
+        return {
+            .hash = {},
+            .height = -1,
+        };
+    }
+    return {
+        .hash = HashToArray(tip->GetBlockHash()),
+        .height = tip->nHeight,
+    };
+}
+
+std::unique_ptr<ChronikBridge> make_bridge(const NodeContext &node) {
+    return std::make_unique<ChronikBridge>(node);
 }
 
 } // namespace chronik_bridge

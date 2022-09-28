@@ -108,6 +108,7 @@ target_include_directories(chronik-bridge
 )
 target_link_libraries(chronik-bridge
     util
+    leveldb
 )
 
 # Chronik library
