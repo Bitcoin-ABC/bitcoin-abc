@@ -842,11 +842,6 @@ static RPCHelpMan submitpackage() {
                              }},
                         }},
                    }}}},
-                {RPCResult::Type::STR_AMOUNT, "package-feerate",
-                 /*optional=*/true,
-                 "package feerate used for feerate checks in " + ticker +
-                     " per KvB. Excludes transactions which were deduplicated "
-                     "or accepted individually."},
             },
         },
         RPCExamples{HelpExampleCli("testmempoolaccept", "[rawtx1, rawtx2]") +
@@ -970,11 +965,6 @@ static RPCHelpMan submitpackage() {
                 tx_result_map.pushKV(tx->GetId().GetHex(), result_inner);
             }
             rpc_result.pushKV("tx-results", tx_result_map);
-            if (package_result.m_package_feerate.has_value()) {
-                rpc_result.pushKV(
-                    "package-feerate",
-                    package_result.m_package_feerate.value().GetFeePerK());
-            }
 
             return rpc_result;
         },

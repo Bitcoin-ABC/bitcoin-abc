@@ -121,10 +121,6 @@ BOOST_FIXTURE_TEST_CASE(package_validation_tests, TestChain100Setup) {
     BOOST_CHECK_MESSAGE(it_child->second.m_state.IsValid(),
                         "Package validation unexpectedly failed: "
                             << it_child->second.m_state.GetRejectReason());
-    BOOST_CHECK(result_parent_child.m_package_feerate.has_value());
-    BOOST_CHECK(result_parent_child.m_package_feerate.value() ==
-                CFeeRate(2 * COIN, GetVirtualTransactionSize(*tx_parent) +
-                                       GetVirtualTransactionSize(*tx_child)));
     BOOST_CHECK_EQUAL(
         it_child->second.m_effective_feerate.value().GetFeeCeiling(
             GetVirtualTransactionSize(*tx_child)),
@@ -151,7 +147,6 @@ BOOST_FIXTURE_TEST_CASE(package_validation_tests, TestChain100Setup) {
         result_single_large.m_tx_results.find(giant_ptx->GetId());
     BOOST_CHECK(it_giant_tx != result_single_large.m_tx_results.end());
     BOOST_CHECK_EQUAL(it_giant_tx->second.m_state.GetRejectReason(), "tx-size");
-    BOOST_CHECK(result_single_large.m_package_feerate == std::nullopt);
 
     // Check that mempool size hasn't changed.
     BOOST_CHECK_EQUAL(m_node.mempool->size(), initialPoolSize);
@@ -291,7 +286,6 @@ BOOST_FIXTURE_TEST_CASE(package_submission_tests, TestChain100Setup) {
         BOOST_CHECK_EQUAL(result_unrelated_submit.m_state.GetRejectReason(),
                           "package-not-child-with-parents");
         BOOST_CHECK_EQUAL(m_node.mempool->size(), expected_pool_size);
-        BOOST_CHECK(result_unrelated_submit.m_package_feerate == std::nullopt);
     }
 
     // Parent and Child (and Grandchild) Package
@@ -343,7 +337,6 @@ BOOST_FIXTURE_TEST_CASE(package_submission_tests, TestChain100Setup) {
         BOOST_CHECK_EQUAL(result_3gen_submit.m_state.GetRejectReason(),
                           "package-not-child-with-parents");
         BOOST_CHECK_EQUAL(m_node.mempool->size(), expected_pool_size);
-        BOOST_CHECK(result_3gen_submit.m_package_feerate == std::nullopt);
     }
 
     // Parent and child package where transactions are invalid for reasons other
@@ -397,8 +390,6 @@ BOOST_FIXTURE_TEST_CASE(package_submission_tests, TestChain100Setup) {
         BOOST_CHECK_EQUAL(result_missing_parent.m_state.GetRejectReason(),
                           "package-not-child-with-unconfirmed-parents");
         BOOST_CHECK_EQUAL(m_node.mempool->size(), expected_pool_size);
-
-        BOOST_CHECK(result_missing_parent.m_package_feerate == std::nullopt);
     }
 
     // Submit package with parent + child.
@@ -438,11 +429,6 @@ BOOST_FIXTURE_TEST_CASE(package_submission_tests, TestChain100Setup) {
         BOOST_CHECK_EQUAL(m_node.mempool->size(), expected_pool_size);
         BOOST_CHECK(m_node.mempool->exists(tx_parent->GetId()));
         BOOST_CHECK(m_node.mempool->exists(tx_child->GetId()));
-
-        // Since both transactions have high feerates, they each passed
-        // validation individually. Package validation was unnecessary, so there
-        // is no package feerate.
-        BOOST_CHECK(submit_parent_child.m_package_feerate == std::nullopt);
     }
 
     // Already-in-mempool transactions should be detected and de-duplicated.
@@ -470,8 +456,6 @@ BOOST_FIXTURE_TEST_CASE(package_submission_tests, TestChain100Setup) {
         BOOST_CHECK_EQUAL(m_node.mempool->size(), expected_pool_size);
         BOOST_CHECK(m_node.mempool->exists(tx_parent->GetId()));
         BOOST_CHECK(m_node.mempool->exists(tx_child->GetId()));
-
-        BOOST_CHECK(submit_deduped.m_package_feerate == std::nullopt);
     }
 }
 
@@ -556,15 +540,9 @@ BOOST_FIXTURE_TEST_CASE(package_mix, TestChain100Setup) {
 
         // package feerate should include parent2 and child. It should not
         // include parent1.
-        BOOST_CHECK(mixed_result.m_package_feerate.has_value());
         const CFeeRate expected_feerate(
             1 * COIN, GetVirtualTransactionSize(*ptx_parent2) +
                           GetVirtualTransactionSize(*ptx_mixed_child));
-        BOOST_CHECK_MESSAGE(
-            mixed_result.m_package_feerate.value() == expected_feerate,
-            strprintf("Expected package feerate %s, got %s",
-                      expected_feerate.ToString(),
-                      mixed_result.m_package_feerate.value().ToString()));
         BOOST_CHECK(it_parent2->second.m_effective_feerate.value() ==
                     expected_feerate);
         BOOST_CHECK(it_child->second.m_effective_feerate.value() ==
@@ -631,14 +609,6 @@ BOOST_FIXTURE_TEST_CASE(package_cpfp_tests, TestChain100Setup) {
         const CFeeRate expected_feerate(
             Amount::zero(), GetVirtualTransactionSize(*tx_parent) +
                                 GetVirtualTransactionSize(*tx_child));
-        BOOST_CHECK(submit_cpfp_deprio.m_package_feerate.has_value());
-        BOOST_CHECK(submit_cpfp_deprio.m_package_feerate.value() ==
-                    CFeeRate{Amount::zero()});
-        BOOST_CHECK_MESSAGE(
-            submit_cpfp_deprio.m_package_feerate.value() == expected_feerate,
-            strprintf("Expected package feerate %s, got %s",
-                      expected_feerate.ToString(),
-                      submit_cpfp_deprio.m_package_feerate.value().ToString()));
     }
 
     // Clear the prioritisation of the parent transaction.
@@ -686,12 +656,6 @@ BOOST_FIXTURE_TEST_CASE(package_cpfp_tests, TestChain100Setup) {
         BOOST_CHECK(it_child->second.m_txids_fee_calculations.value() ==
                     expected_txids);
         BOOST_CHECK(expected_feerate.GetFeePerK() > 1000 * SATOSHI);
-        BOOST_CHECK(submit_cpfp.m_package_feerate.has_value());
-        BOOST_CHECK_MESSAGE(
-            submit_cpfp.m_package_feerate.value() == expected_feerate,
-            strprintf("Expected package feerate %s, got %s",
-                      expected_feerate.ToString(),
-                      submit_cpfp.m_package_feerate.value().ToString()));
     }
 
     // Just because we allow low-fee parents doesn't mean we allow low-feerate
@@ -735,14 +699,6 @@ BOOST_FIXTURE_TEST_CASE(package_cpfp_tests, TestChain100Setup) {
             200 * SATOSHI, GetVirtualTransactionSize(*tx_parent_cheap) +
                                GetVirtualTransactionSize(*tx_child_cheap));
         BOOST_CHECK(expected_feerate.GetFeePerK() < 1000 * SATOSHI);
-        BOOST_CHECK(submit_package_too_low.m_package_feerate.has_value());
-        BOOST_CHECK_MESSAGE(
-            submit_package_too_low.m_package_feerate.value() ==
-                expected_feerate,
-            strprintf(
-                "Expected package feerate %s, got %s",
-                expected_feerate.ToString(),
-                submit_package_too_low.m_package_feerate.value().ToString()));
     }
 
     // Package feerate includes the modified fees of the transactions.
@@ -764,14 +720,6 @@ BOOST_FIXTURE_TEST_CASE(package_cpfp_tests, TestChain100Setup) {
             1 * COIN + 200 * SATOSHI,
             GetVirtualTransactionSize(*tx_parent_cheap) +
                 GetVirtualTransactionSize(*tx_child_cheap));
-        BOOST_CHECK(submit_prioritised_package.m_package_feerate.has_value());
-        BOOST_CHECK_MESSAGE(
-            submit_prioritised_package.m_package_feerate.value() ==
-                expected_feerate,
-            strprintf("Expected package feerate %s, got %s",
-                      expected_feerate.ToString(),
-                      submit_prioritised_package.m_package_feerate.value()
-                          .ToString()));
         auto it_parent = submit_prioritised_package.m_tx_results.find(
             tx_parent_cheap->GetId());
         auto it_child = submit_prioritised_package.m_tx_results.find(
@@ -832,13 +780,7 @@ BOOST_FIXTURE_TEST_CASE(package_cpfp_tests, TestChain100Setup) {
                             "Package validation unexpectedly succeeded");
 
         // The child would have been validated on its own and failed, then
-        // submitted as a "package" of 1. The package feerate is just the
-        // child's feerate, which is 0 sat/vb.
-        BOOST_CHECK(submit_rich_parent.m_package_feerate.has_value());
-        BOOST_CHECK_MESSAGE(
-            submit_rich_parent.m_package_feerate.value() == CFeeRate(),
-            "expected 0, got "
-                << submit_rich_parent.m_package_feerate.value().ToString());
+        // submitted as a "package" of 1.
         BOOST_CHECK_EQUAL(submit_rich_parent.m_state.GetResult(),
                           PackageValidationResult::PCKG_POLICY);
         BOOST_CHECK_EQUAL(submit_rich_parent.m_state.GetRejectReason(),

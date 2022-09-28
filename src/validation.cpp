@@ -1036,7 +1036,7 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
                       placeholder_state)) {
         package_state.Invalid(PackageValidationResult::PCKG_POLICY,
                               "package-fee-too-low");
-        return PackageMempoolAcceptResult(package_state, package_feerate, {});
+        return PackageMempoolAcceptResult(package_state, {});
     }
 
     std::vector<TxId> all_package_txids;
@@ -1070,18 +1070,15 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
     }
 
     if (args.m_test_accept) {
-        return PackageMempoolAcceptResult(package_state, package_feerate,
-                                          std::move(results));
+        return PackageMempoolAcceptResult(package_state, std::move(results));
     }
 
     if (!SubmitPackage(args, workspaces, package_state, results)) {
         // PackageValidationState filled in by SubmitPackage().
-        return PackageMempoolAcceptResult(package_state, package_feerate,
-                                          std::move(results));
+        return PackageMempoolAcceptResult(package_state, std::move(results));
     }
 
-    return PackageMempoolAcceptResult(package_state, package_feerate,
-                                      std::move(results));
+    return PackageMempoolAcceptResult(package_state, std::move(results));
 }
 
 PackageMempoolAcceptResult MemPoolAccept::AcceptPackage(const Package &package,
@@ -1221,7 +1218,6 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptPackage(const Package &package,
 
     // Nothing to do if the entire package has already been submitted.
     if (quit_early || txns_new.empty()) {
-        // No package feerate when no package validation was done.
         return PackageMempoolAcceptResult(package_state_quit_early,
                                           std::move(results));
     }
@@ -1230,9 +1226,6 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptPackage(const Package &package,
     // Include already-in-mempool transaction results in the final result.
     for (const auto &[txid, mempoolaccept_res] : results) {
         submission_result.m_tx_results.emplace(txid, mempoolaccept_res);
-    }
-    if (submission_result.m_state.IsValid()) {
-        assert(submission_result.m_package_feerate.has_value());
     }
     return submission_result;
 }
