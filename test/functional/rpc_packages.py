@@ -111,12 +111,15 @@ class RPCPackagesTest(BitcoinTestFramework):
 
         # This particular test differs from Core, because we do not test the
         # missing inputs separately from the signature verification for a given
-        # transaction. Both are done in validation as part of PreChecks.
+        # transaction. Both are done in validation as part of PreChecks, and the
+        # node returns the result once it reaches the first failure to save
+        # resource. This means that we only have the result details for the
+        # failed transaction below.
         # See https://reviews.bitcoinabc.org/D8203
         testres_bad = node.testmempoolaccept(self.independent_txns_hex + [garbage_tx])
         assert_equal(
             testres_bad,
-            self.independent_txns_testres
+            self.independent_txns_testres_blank
             + [
                 {
                     "txid": tx.get_id(),
@@ -147,7 +150,7 @@ class RPCPackagesTest(BitcoinTestFramework):
         # results in other cases.
         assert_equal(
             testres_bad_sig,
-            self.independent_txns_testres
+            self.independent_txns_testres_blank
             + [
                 {
                     "txid": tx_bad_sig.get_id(),

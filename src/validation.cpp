@@ -461,6 +461,14 @@ private:
          */
         Amount m_modified_fees;
 
+        /**
+         * If we're doing package validation (i.e. m_package_feerates=true), the
+         * "effective" package feerate of this transaction is the total fees
+         * divided by the total size of transactions (which may include its
+         * ancestors and/or descendants).
+         */
+        CFeeRate m_package_feerate{Amount::zero()};
+
         const CTransactionRef &m_ptx;
         TxValidationState m_state;
         /**
@@ -862,9 +870,15 @@ bool MemPoolAccept::SubmitPackage(
     // partial submission, but don't report success unless they all made it into
     // the mempool.
     for (Workspace &ws : workspaces) {
+        const auto effective_feerate =
+            args.m_package_feerates
+                ? ws.m_package_feerate
+                : CFeeRate{ws.m_modified_fees,
+                           static_cast<uint32_t>(ws.m_vsize)};
         if (m_pool.exists(ws.m_ptx->GetId())) {
-            results.emplace(ws.m_ptx->GetId(), MempoolAcceptResult::Success(
-                                                   ws.m_vsize, ws.m_base_fees));
+            results.emplace(ws.m_ptx->GetId(),
+                            MempoolAcceptResult::Success(
+                                ws.m_vsize, ws.m_base_fees, effective_feerate));
             GetMainSignals().TransactionAddedToMempool(
                 ws.m_ptx,
                 std::make_shared<const std::vector<Coin>>(
@@ -926,9 +940,12 @@ MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
         return MempoolAcceptResult::Failure(ws.m_state);
     }
 
+    const CFeeRate effective_feerate{ws.m_modified_fees,
+                                     static_cast<uint32_t>(ws.m_vsize)};
     // Tx was accepted, but not added
     if (args.m_test_accept) {
-        return MempoolAcceptResult::Success(ws.m_vsize, ws.m_base_fees);
+        return MempoolAcceptResult::Success(ws.m_vsize, ws.m_base_fees,
+                                            effective_feerate);
     }
 
     if (!Finalize(args, ws)) {
@@ -940,7 +957,8 @@ MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
         std::make_shared<const std::vector<Coin>>(getSpentCoins(ptx, m_view)),
         m_pool.GetAndIncrementSequence());
 
-    return MempoolAcceptResult::Success(ws.m_vsize, ws.m_base_fees);
+    return MempoolAcceptResult::Success(ws.m_vsize, ws.m_base_fees,
+                                        effective_feerate);
 }
 
 PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
@@ -969,6 +987,7 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
 
     // Do all PreChecks first and fail fast to avoid running expensive script
     // checks when unnecessary.
+    std::vector<TxId> valid_txids;
     for (Workspace &ws : workspaces) {
         if (!PreChecks(args, ws)) {
             package_state.Invalid(PackageValidationResult::PCKG_TX,
@@ -983,13 +1002,7 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
         // Make the coins created by this transaction available for subsequent
         // transactions in the package to spend.
         m_viewmempool.PackageAddTransaction(ws.m_ptx);
-        if (args.m_test_accept) {
-            // When test_accept=true, transactions that pass PreChecks
-            // are valid because there are no further mempool checks (passing
-            // PreChecks implies passing ConsensusScriptChecks).
-            results.emplace(ws.m_ptx->GetId(), MempoolAcceptResult::Success(
-                                                   ws.m_vsize, ws.m_base_fees));
-        }
+        valid_txids.push_back(ws.m_ptx->GetId());
     }
 
     // Transactions must meet two minimum feerates: the mempool minimum fee and
@@ -1013,6 +1026,26 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
         package_state.Invalid(PackageValidationResult::PCKG_POLICY,
                               "package-fee-too-low");
         return PackageMempoolAcceptResult(package_state, package_feerate, {});
+    }
+
+    for (Workspace &ws : workspaces) {
+        ws.m_package_feerate = package_feerate;
+        const TxId &ws_txid = ws.m_ptx->GetId();
+        if (args.m_test_accept &&
+            std::find(valid_txids.begin(), valid_txids.end(), ws_txid) !=
+                valid_txids.end()) {
+            const auto effective_feerate =
+                args.m_package_feerates
+                    ? ws.m_package_feerate
+                    : CFeeRate{ws.m_modified_fees,
+                               static_cast<uint32_t>(ws.m_vsize)};
+            // When test_accept=true, transactions that pass PreChecks
+            // are valid because there are no further mempool checks (passing
+            // PreChecks implies passing ConsensusScriptChecks).
+            results.emplace(ws_txid,
+                            MempoolAcceptResult::Success(
+                                ws.m_vsize, ws.m_base_fees, effective_feerate));
+        }
     }
 
     if (args.m_test_accept) {

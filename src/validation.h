@@ -207,13 +207,24 @@ struct MempoolAcceptResult {
     const std::optional<int64_t> m_vsize;
     /** Raw base fees in satoshis. */
     const std::optional<Amount> m_base_fees;
+    /**
+     * The feerate at which this transaction was considered. This includes any
+     * fee delta added using prioritisetransaction (i.e. modified fees). If this
+     * transaction was submitted as a package, this is the package feerate,
+     * which may also include its descendants and/or ancestors. Only present
+     * when m_result_type = ResultType::VALID.
+     */
+    const std::optional<CFeeRate> m_effective_feerate;
+
     static MempoolAcceptResult Failure(TxValidationState state) {
         return MempoolAcceptResult(state);
     }
 
     /** Constructor for success case */
-    static MempoolAcceptResult Success(int64_t vsize, Amount fees) {
-        return MempoolAcceptResult(ResultType::VALID, vsize, fees);
+    static MempoolAcceptResult Success(int64_t vsize, Amount fees,
+                                       CFeeRate effective_feerate) {
+        return MempoolAcceptResult(ResultType::VALID, vsize, fees,
+                                   effective_feerate);
     }
 
     /**
@@ -221,7 +232,7 @@ struct MempoolAcceptResult {
      * transactions.
      */
     static MempoolAcceptResult MempoolTx(int64_t vsize, Amount fees) {
-        return MempoolAcceptResult(ResultType::MEMPOOL_ENTRY, vsize, fees);
+        return MempoolAcceptResult(vsize, fees);
     }
 
     // Private constructors. Use static methods MempoolAcceptResult::Success,
@@ -237,8 +248,14 @@ private:
 
     /** Generic constructor for success cases */
     explicit MempoolAcceptResult(ResultType result_type, int64_t vsize,
-                                 Amount fees)
-        : m_result_type(result_type), m_vsize{vsize}, m_base_fees(fees) {}
+                                 Amount fees, CFeeRate effective_feerate)
+        : m_result_type(result_type), m_vsize{vsize}, m_base_fees(fees),
+          m_effective_feerate(effective_feerate) {}
+
+    /** Constructor for already-in-mempool case. */
+    explicit MempoolAcceptResult(int64_t vsize, Amount fees)
+        : m_result_type(ResultType::MEMPOOL_ENTRY), m_vsize{vsize},
+          m_base_fees(fees) {}
 };
 
 /**
