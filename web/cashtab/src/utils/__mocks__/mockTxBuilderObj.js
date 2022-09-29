@@ -474,3 +474,408 @@ export const mockOneToManySendXecTxBuilderObj = {
     bip68: {},
     p2shInput: false,
 };
+
+export const mockCreateTokenTxBuilderObj = {
+    transaction: {
+        prevTxMap: {
+            '582dfa42e2778a2e6b7d32fb1bf4cefc0be9d10a36538e9503465df99cd4a60d:0': 0,
+            'f80e305c5c09585c67b4f395b153cd206083fdadb8687aa526611bcd381b5239:0': 1,
+        },
+        network: {
+            hashGenesisBlock:
+                '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f',
+            port: 8333,
+            portRpc: 8332,
+            protocol: {
+                magic: 3652501241,
+            },
+            seedsDns: [
+                'seed.bitcoinabc.org',
+                'seed-abc.bitcoinforks.org',
+                'btccash-seeder.bitcoinunlimited.info',
+                'seed.bitprim.org',
+                'seed.deadalnix.me',
+                'seeder.criptolayer.net',
+            ],
+            versions: {
+                bip32: {
+                    private: 76066276,
+                    public: 76067358,
+                },
+                bip44: 145,
+                private: 128,
+                public: 0,
+                scripthash: 5,
+                messagePrefix: '\u0018BitcoinCash Signed Message:\n',
+            },
+            name: 'BitcoinCash',
+            per1: 100000000,
+            unit: 'BCH',
+            testnet: false,
+            messagePrefix: '\u0018BitcoinCash Signed Message:\n',
+            bip32: {
+                public: 76067358,
+                private: 76066276,
+            },
+            pubKeyHash: 0,
+            scriptHash: 5,
+            wif: 128,
+            dustThreshold: null,
+        },
+        maximumFeeRate: 2500,
+        inputs: [{}, {}],
+        bitcoinCash: true,
+        tx: {
+            version: 2,
+            locktime: 0,
+            ins: [
+                {
+                    hash: {
+                        type: 'Buffer',
+                        data: [
+                            88, 45, 250, 66, 226, 119, 138, 46, 107, 125, 50,
+                            251, 27, 244, 206, 252, 11, 233, 209, 10, 54, 83,
+                            142, 149, 3, 70, 93, 249, 156, 212, 166, 13,
+                        ],
+                    },
+                    index: 0,
+                    script: {
+                        type: 'Buffer',
+                        data: [],
+                    },
+                    sequence: 4294967295,
+                    witness: [],
+                },
+                {
+                    hash: {
+                        type: 'Buffer',
+                        data: [
+                            248, 14, 48, 92, 92, 9, 88, 92, 103, 180, 243, 149,
+                            177, 83, 205, 32, 96, 131, 253, 173, 184, 104, 122,
+                            165, 38, 97, 27, 205, 56, 27, 82, 57,
+                        ],
+                    },
+                    index: 0,
+                    script: {
+                        type: 'Buffer',
+                        data: [],
+                    },
+                    sequence: 4294967295,
+                    witness: [],
+                },
+            ],
+            outs: [],
+        },
+    },
+    DEFAULT_SEQUENCE: 4294967295,
+    hashTypes: {
+        SIGHASH_ALL: 1,
+        SIGHASH_NONE: 2,
+        SIGHASH_SINGLE: 3,
+        SIGHASH_ANYONECANPAY: 128,
+        SIGHASH_BITCOINCASH_BIP143: 64,
+        ADVANCED_TRANSACTION_MARKER: 0,
+        ADVANCED_TRANSACTION_FLAG: 1,
+    },
+    signatureAlgorithms: {
+        ECDSA: 0,
+        SCHNORR: 1,
+    },
+    bip66: {},
+    bip68: {},
+    p2shInput: false,
+};
+
+export const mockSendTokenTxBuilderObj = {
+    transaction: {
+        prevTxMap: {
+            '582dfa42e2778a2e6b7d32fb1bf4cefc0be9d10a36538e9503465df99cd4a60d:0': 0,
+            'f80e305c5c09585c67b4f395b153cd206083fdadb8687aa526611bcd381b5239:0': 1,
+            '0bac59d79522128668f16fef44083918cd6a1ca2cdada6a6cbf01120837456ef:1': 2,
+            '8c42b01804775b2e23676bdfc7ebbb5144b3d8992bcff13c1d1de5a7649d568b:1': 3,
+        },
+        network: {
+            hashGenesisBlock:
+                '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f',
+            port: 8333,
+            portRpc: 8332,
+            protocol: {
+                magic: 3652501241,
+            },
+            seedsDns: [
+                'seed.bitcoinabc.org',
+                'seed-abc.bitcoinforks.org',
+                'btccash-seeder.bitcoinunlimited.info',
+                'seed.bitprim.org',
+                'seed.deadalnix.me',
+                'seeder.criptolayer.net',
+            ],
+            versions: {
+                bip32: {
+                    private: 76066276,
+                    public: 76067358,
+                },
+                bip44: 145,
+                private: 128,
+                public: 0,
+                scripthash: 5,
+                messagePrefix: '\u0018BitcoinCash Signed Message:\n',
+            },
+            name: 'BitcoinCash',
+            per1: 100000000,
+            unit: 'BCH',
+            testnet: false,
+            messagePrefix: '\u0018BitcoinCash Signed Message:\n',
+            bip32: {
+                public: 76067358,
+                private: 76066276,
+            },
+            pubKeyHash: 0,
+            scriptHash: 5,
+            wif: 128,
+            dustThreshold: null,
+        },
+        maximumFeeRate: 2500,
+        inputs: [{}, {}, {}, {}],
+        bitcoinCash: true,
+        tx: {
+            version: 2,
+            locktime: 0,
+            ins: [
+                {
+                    hash: {
+                        type: 'Buffer',
+                        data: [
+                            88, 45, 250, 66, 226, 119, 138, 46, 107, 125, 50,
+                            251, 27, 244, 206, 252, 11, 233, 209, 10, 54, 83,
+                            142, 149, 3, 70, 93, 249, 156, 212, 166, 13,
+                        ],
+                    },
+                    index: 0,
+                    script: {
+                        type: 'Buffer',
+                        data: [],
+                    },
+                    sequence: 4294967295,
+                    witness: [],
+                },
+                {
+                    hash: {
+                        type: 'Buffer',
+                        data: [
+                            248, 14, 48, 92, 92, 9, 88, 92, 103, 180, 243, 149,
+                            177, 83, 205, 32, 96, 131, 253, 173, 184, 104, 122,
+                            165, 38, 97, 27, 205, 56, 27, 82, 57,
+                        ],
+                    },
+                    index: 0,
+                    script: {
+                        type: 'Buffer',
+                        data: [],
+                    },
+                    sequence: 4294967295,
+                    witness: [],
+                },
+                {
+                    hash: {
+                        type: 'Buffer',
+                        data: [
+                            11, 172, 89, 215, 149, 34, 18, 134, 104, 241, 111,
+                            239, 68, 8, 57, 24, 205, 106, 28, 162, 205, 173,
+                            166, 166, 203, 240, 17, 32, 131, 116, 86, 239,
+                        ],
+                    },
+                    index: 1,
+                    script: {
+                        type: 'Buffer',
+                        data: [],
+                    },
+                    sequence: 4294967295,
+                    witness: [],
+                },
+                {
+                    hash: {
+                        type: 'Buffer',
+                        data: [
+                            140, 66, 176, 24, 4, 119, 91, 46, 35, 103, 107, 223,
+                            199, 235, 187, 81, 68, 179, 216, 153, 43, 207, 241,
+                            60, 29, 29, 229, 167, 100, 157, 86, 139,
+                        ],
+                    },
+                    index: 1,
+                    script: {
+                        type: 'Buffer',
+                        data: [],
+                    },
+                    sequence: 4294967295,
+                    witness: [],
+                },
+            ],
+            outs: [],
+        },
+    },
+    DEFAULT_SEQUENCE: 4294967295,
+    hashTypes: {
+        SIGHASH_ALL: 1,
+        SIGHASH_NONE: 2,
+        SIGHASH_SINGLE: 3,
+        SIGHASH_ANYONECANPAY: 128,
+        SIGHASH_BITCOINCASH_BIP143: 64,
+        ADVANCED_TRANSACTION_MARKER: 0,
+        ADVANCED_TRANSACTION_FLAG: 1,
+    },
+    signatureAlgorithms: {
+        ECDSA: 0,
+        SCHNORR: 1,
+    },
+    bip66: {},
+    bip68: {},
+    p2shInput: false,
+};
+
+export const mockBurnTokenTxBuilderObj = {
+    transaction: {
+        prevTxMap: {
+            '582dfa42e2778a2e6b7d32fb1bf4cefc0be9d10a36538e9503465df99cd4a60d:0': 0,
+            'f80e305c5c09585c67b4f395b153cd206083fdadb8687aa526611bcd381b5239:0': 1,
+            '0bac59d79522128668f16fef44083918cd6a1ca2cdada6a6cbf01120837456ef:1': 2,
+            '8c42b01804775b2e23676bdfc7ebbb5144b3d8992bcff13c1d1de5a7649d568b:1': 3,
+        },
+        network: {
+            hashGenesisBlock:
+                '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f',
+            port: 8333,
+            portRpc: 8332,
+            protocol: {
+                magic: 3652501241,
+            },
+            seedsDns: [
+                'seed.bitcoinabc.org',
+                'seed-abc.bitcoinforks.org',
+                'btccash-seeder.bitcoinunlimited.info',
+                'seed.bitprim.org',
+                'seed.deadalnix.me',
+                'seeder.criptolayer.net',
+            ],
+            versions: {
+                bip32: {
+                    private: 76066276,
+                    public: 76067358,
+                },
+                bip44: 145,
+                private: 128,
+                public: 0,
+                scripthash: 5,
+                messagePrefix: '\u0018BitcoinCash Signed Message:\n',
+            },
+            name: 'BitcoinCash',
+            per1: 100000000,
+            unit: 'BCH',
+            testnet: false,
+            messagePrefix: '\u0018BitcoinCash Signed Message:\n',
+            bip32: {
+                public: 76067358,
+                private: 76066276,
+            },
+            pubKeyHash: 0,
+            scriptHash: 5,
+            wif: 128,
+            dustThreshold: null,
+        },
+        maximumFeeRate: 2500,
+        inputs: [{}, {}, {}, {}],
+        bitcoinCash: true,
+        tx: {
+            version: 2,
+            locktime: 0,
+            ins: [
+                {
+                    hash: {
+                        type: 'Buffer',
+                        data: [
+                            88, 45, 250, 66, 226, 119, 138, 46, 107, 125, 50,
+                            251, 27, 244, 206, 252, 11, 233, 209, 10, 54, 83,
+                            142, 149, 3, 70, 93, 249, 156, 212, 166, 13,
+                        ],
+                    },
+                    index: 0,
+                    script: {
+                        type: 'Buffer',
+                        data: [],
+                    },
+                    sequence: 4294967295,
+                    witness: [],
+                },
+                {
+                    hash: {
+                        type: 'Buffer',
+                        data: [
+                            248, 14, 48, 92, 92, 9, 88, 92, 103, 180, 243, 149,
+                            177, 83, 205, 32, 96, 131, 253, 173, 184, 104, 122,
+                            165, 38, 97, 27, 205, 56, 27, 82, 57,
+                        ],
+                    },
+                    index: 0,
+                    script: {
+                        type: 'Buffer',
+                        data: [],
+                    },
+                    sequence: 4294967295,
+                    witness: [],
+                },
+                {
+                    hash: {
+                        type: 'Buffer',
+                        data: [
+                            11, 172, 89, 215, 149, 34, 18, 134, 104, 241, 111,
+                            239, 68, 8, 57, 24, 205, 106, 28, 162, 205, 173,
+                            166, 166, 203, 240, 17, 32, 131, 116, 86, 239,
+                        ],
+                    },
+                    index: 1,
+                    script: {
+                        type: 'Buffer',
+                        data: [],
+                    },
+                    sequence: 4294967295,
+                    witness: [],
+                },
+                {
+                    hash: {
+                        type: 'Buffer',
+                        data: [
+                            140, 66, 176, 24, 4, 119, 91, 46, 35, 103, 107, 223,
+                            199, 235, 187, 81, 68, 179, 216, 153, 43, 207, 241,
+                            60, 29, 29, 229, 167, 100, 157, 86, 139,
+                        ],
+                    },
+                    index: 1,
+                    script: {
+                        type: 'Buffer',
+                        data: [],
+                    },
+                    sequence: 4294967295,
+                    witness: [],
+                },
+            ],
+            outs: [],
+        },
+    },
+    DEFAULT_SEQUENCE: 4294967295,
+    hashTypes: {
+        SIGHASH_ALL: 1,
+        SIGHASH_NONE: 2,
+        SIGHASH_SINGLE: 3,
+        SIGHASH_ANYONECANPAY: 128,
+        SIGHASH_BITCOINCASH_BIP143: 64,
+        ADVANCED_TRANSACTION_MARKER: 0,
+        ADVANCED_TRANSACTION_FLAG: 1,
+    },
+    signatureAlgorithms: {
+        ECDSA: 0,
+        SCHNORR: 1,
+    },
+    bip66: {},
+    bip68: {},
+    p2shInput: false,
+};

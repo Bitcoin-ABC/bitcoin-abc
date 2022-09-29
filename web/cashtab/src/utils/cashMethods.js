@@ -97,6 +97,138 @@ export const generateTxInput = (
     return txInputObj;
 };
 
+export const generateTokenTxInput = (
+    BCH,
+    tokenAction, // GENESIS, SEND or BURN
+    totalXecUtxos,
+    totalTokenUtxos,
+    tokenId,
+    tokenAmount, // optional - only for sending or burning
+    feeInSatsPerByte,
+    txBuilder,
+) => {
+    let totalXecInputUtxoValue = new BigNumber(0);
+    let remainderXecValue = new BigNumber(0);
+    let remainderTokenValue = new BigNumber(0);
+    let totalXecInputUtxos = [];
+    let txFee = 0;
+    const { calcFee } = useBCH();
+    let tokenUtxosBeingSpent = [];
+
+    try {
+        if (
+            !BCH ||
+            !tokenAction ||
+            !totalXecUtxos ||
+            !tokenId ||
+            !feeInSatsPerByte ||
+            !txBuilder
+        ) {
+            throw new Error('Invalid token tx input parameter');
+        }
+
+        // collate XEC UTXOs for this token tx
+        const txOutputs =
+            tokenAction === 'GENESIS'
+                ? 2 // one for genesis OP_RETURN output and one for change
+                : 4; // for SEND/BURN token txs see T2645 on why this is not dynamically generated
+        for (let i = 0; i < totalXecUtxos.length; i++) {
+            const thisXecUtxo = totalXecUtxos[i];
+            totalXecInputUtxoValue = totalXecInputUtxoValue.plus(
+                new BigNumber(thisXecUtxo.value),
+            );
+            const vout = thisXecUtxo.outpoint.outIdx;
+            const txid = thisXecUtxo.outpoint.txid;
+            // add input with txid and index of vout
+            txBuilder.addInput(txid, vout);
+
+            totalXecInputUtxos.push(thisXecUtxo);
+            txFee = calcFee(
+                BCH,
+                totalXecInputUtxos,
+                txOutputs,
+                feeInSatsPerByte,
+            );
+
+            remainderXecValue =
+                tokenAction === 'GENESIS'
+                    ? totalXecInputUtxoValue
+                          .minus(new BigNumber(currency.etokenSats))
+                          .minus(new BigNumber(txFee))
+                    : totalXecInputUtxoValue
+                          .minus(new BigNumber(currency.etokenSats * 2)) // one for token send/burn output, one for token change
+                          .minus(new BigNumber(txFee));
+
+            if (remainderXecValue.gte(0)) {
+                break;
+            }
+        }
+
+        if (remainderXecValue.lt(0)) {
+            throw new Error(`Insufficient funds`);
+        }
+
+        let filteredTokenInputUtxos = [];
+        let finalTokenAmountSpent = new BigNumber(0);
+        let tokenAmountBeingSpent = new BigNumber(tokenAmount);
+
+        if (tokenAction === 'SEND' || tokenAction === 'BURN') {
+            // filter for token UTXOs matching the token being sent/burnt
+            filteredTokenInputUtxos = totalTokenUtxos.filter(utxo => {
+                if (
+                    utxo && // UTXO is associated with a token.
+                    utxo.slpMeta.tokenId === tokenId && // UTXO matches the token ID.
+                    !utxo.slpToken.isMintBaton // UTXO is not a minting baton.
+                ) {
+                    return true;
+                }
+                return false;
+            });
+            if (filteredTokenInputUtxos.length === 0) {
+                throw new Error(
+                    'No token UTXOs for the specified token could be found.',
+                );
+            }
+
+            // collate token UTXOs to cover the token amount being sent/burnt
+            for (let i = 0; i < filteredTokenInputUtxos.length; i++) {
+                finalTokenAmountSpent = finalTokenAmountSpent.plus(
+                    new BigNumber(filteredTokenInputUtxos[i].tokenQty),
+                );
+                txBuilder.addInput(
+                    filteredTokenInputUtxos[i].outpoint.txid,
+                    filteredTokenInputUtxos[i].outpoint.outIdx,
+                );
+                tokenUtxosBeingSpent.push(filteredTokenInputUtxos[i]);
+                if (tokenAmountBeingSpent.lte(finalTokenAmountSpent)) {
+                    break;
+                }
+            }
+
+            // calculate token change
+            remainderTokenValue = finalTokenAmountSpent.minus(
+                new BigNumber(tokenAmount),
+            );
+            if (remainderTokenValue.lt(0)) {
+                throw new Error(
+                    'Insufficient token UTXOs for the specified token amount.',
+                );
+            }
+        }
+    } catch (err) {
+        console.log(`generateTokenTxInput() error: ` + err);
+        throw err;
+    }
+
+    return {
+        txBuilder: txBuilder,
+        inputXecUtxos: totalXecInputUtxos,
+        inputTokenUtxos: tokenUtxosBeingSpent,
+        remainderXecValue: remainderXecValue,
+        remainderTokenValue: remainderTokenValue,
+    };
+};
+
 export const getChangeAddressFromInputUtxos = (BCH, inputUtxos, wallet) => {
     if (!BCH || !inputUtxos || !wallet) {
         throw new Error('Invalid getChangeAddressFromWallet input parameter');

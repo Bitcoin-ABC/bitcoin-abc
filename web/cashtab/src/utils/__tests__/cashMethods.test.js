@@ -20,6 +20,7 @@ import {
     generateOpReturnScript,
     generateTxInput,
     generateTxOutput,
+    generateTokenTxInput,
     signAndBuildTx,
     fromXecToSatoshis,
     getWalletBalanceFromUtxos,
@@ -85,9 +86,13 @@ import {
     unsubscribedWebsocket,
 } from '../__mocks__/chronikWs';
 import mockNonSlpUtxos from '../../hooks/__mocks__/mockNonSlpUtxos';
+import mockSlpUtxos from '../../hooks/__mocks__/mockSlpUtxos';
 import {
     mockOneToOneSendXecTxBuilderObj,
     mockOneToManySendXecTxBuilderObj,
+    mockCreateTokenTxBuilderObj,
+    mockSendTokenTxBuilderObj,
+    mockBurnTokenTxBuilderObj,
 } from '../__mocks__/mockTxBuilderObj';
 import {
     mockSingleInputUtxo,
@@ -503,6 +508,87 @@ it('generateOpReturnScript() correctly throws an error on an invalid airdrop inp
         thrownError = err;
     }
     expect(thrownError.message).toStrictEqual('Invalid OP RETURN script input');
+});
+
+it(`generateTokenTxInput() returns a valid object for a valid create token tx`, async () => {
+    const BCH = new BCHJS();
+    let txBuilder = new BCH.TransactionBuilder();
+    const tokenId =
+        '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e';
+    const tokenInputObj = generateTokenTxInput(
+        BCH,
+        'GENESIS',
+        mockNonSlpUtxos,
+        null, // no slpUtxos used for genesis tx
+        tokenId,
+        null, // no token send/burn amount for genesis tx
+        currency.defaultFee,
+        txBuilder,
+    );
+
+    expect(tokenInputObj.inputXecUtxos).toStrictEqual(
+        [mockNonSlpUtxos[0]].concat([mockNonSlpUtxos[1]]),
+    );
+    expect(tokenInputObj.txBuilder.toString()).toStrictEqual(
+        mockCreateTokenTxBuilderObj.toString(),
+    );
+    expect(tokenInputObj.remainderXecValue).toStrictEqual(
+        new BigNumber(699702), // remainder = tokenInputObj.inputXecUtxos - currency.etokenSats - txFee
+    );
+});
+
+it(`generateTokenTxInput() returns a valid object for a valid send token tx`, async () => {
+    const BCH = new BCHJS();
+    let txBuilder = new BCH.TransactionBuilder();
+    const tokenId = mockSlpUtxos[0].tokenId;
+
+    const tokenInputObj = generateTokenTxInput(
+        BCH,
+        'SEND',
+        mockNonSlpUtxos,
+        mockSlpUtxos,
+        tokenId,
+        new BigNumber(500), // sending 500 of these tokens
+        currency.defaultFee,
+        txBuilder,
+    );
+
+    expect(tokenInputObj.inputTokenUtxos).toStrictEqual(
+        [mockSlpUtxos[0]].concat([mockSlpUtxos[1]]), // mockSlpUtxos[0] 400 + mockSlpUtxos[1] 6500
+    );
+    expect(tokenInputObj.remainderTokenValue).toStrictEqual(
+        new BigNumber(6400), // token change is mockSlpUtxos[0] 400 + mockSlpUtxos[1] 6500 - [tokenAmount] 500
+    );
+    expect(tokenInputObj.txBuilder.toString()).toStrictEqual(
+        mockSendTokenTxBuilderObj.toString(),
+    );
+});
+
+it(`generateTokenTxInput() returns a valid object for a valid burn token tx`, async () => {
+    const BCH = new BCHJS();
+    let txBuilder = new BCH.TransactionBuilder();
+    const tokenId = mockSlpUtxos[0].tokenId;
+
+    const tokenInputObj = generateTokenTxInput(
+        BCH,
+        'BURN',
+        mockNonSlpUtxos,
+        mockSlpUtxos,
+        tokenId,
+        new BigNumber(500), // burning 500 of these tokens
+        currency.defaultFee,
+        txBuilder,
+    );
+
+    expect(tokenInputObj.inputTokenUtxos).toStrictEqual(
+        [mockSlpUtxos[0]].concat([mockSlpUtxos[1]]), // mockSlpUtxos[0] 400 + mockSlpUtxos[1] 6500
+    );
+    expect(tokenInputObj.remainderTokenValue).toStrictEqual(
+        new BigNumber(6400), // token change is mockSlpUtxos[0] 400 + mockSlpUtxos[1] 6500 - [tokenAmount] 500
+    );
+    expect(tokenInputObj.txBuilder.toString()).toStrictEqual(
+        mockBurnTokenTxBuilderObj.toString(),
+    );
 });
 
 it(`generateTxInput() returns an input object for a valid one to one XEC tx`, async () => {
