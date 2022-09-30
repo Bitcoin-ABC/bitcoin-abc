@@ -1,0 +1,25 @@
+# Copyright (c) 2022 The Bitcoin developers
+
+[package]
+name = "chronik-indexer"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.61.0"
+license = "MIT"
+
+[dependencies]
+abc-rust-lint = { path = "../abc-rust-lint" }
+abc-rust-error = { path = "../abc-rust-error" }
+bitcoinsuite-core = { path = "../bitcoinsuite-core" }
+chronik-db = { path = "../chronik-db" }
+chronik-util = { path = "../chronik-util" }
+
+# Derive error enums
+thiserror = "1.0"
+
+[dev-dependencies]
+# Colorful diffs for assertions
+pretty_assertions = "1.0"
+
+# Temporary directory that's deleted when dropped
+tempdir = "0.3"

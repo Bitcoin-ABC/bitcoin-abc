@@ -15,12 +15,15 @@ pub use chronik_bridge::ffi::{log_print, log_print_chronik};
 #[macro_export]
 macro_rules! log {
     ($($arg:tt)*) => {
+        #[cfg(not(test))]
         chronik_util::log_print(
             "<chronik unknown>",
             file!(),
             line!(),
             &format!($($arg)*),
         );
+        #[cfg(test)]
+        println!($($arg)*);
     };
 }
 
@@ -34,11 +37,14 @@ macro_rules! log {
 #[macro_export]
 macro_rules! log_chronik {
     ($($arg:tt)*) => {
+        #[cfg(not(test))]
         chronik_util::log_print_chronik(
             "<chronik unknown>",
             file!(),
             line!(),
             &format!($($arg)*),
         );
+        #[cfg(test)]
+        println!($($arg)*);
     };
 }

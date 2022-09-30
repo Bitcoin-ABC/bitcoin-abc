@@ -9,6 +9,7 @@
 use std::path::Path;
 
 use abc_rust_error::Result;
+pub use rocksdb::WriteBatch;
 use rocksdb::{ColumnFamilyDescriptor, IteratorMode};
 use thiserror::Error;
 
@@ -85,11 +86,8 @@ impl Db {
             .map(|result| Ok(result.map_err(RocksDb)?))
     }
 
-    #[cfg(test)]
-    pub(crate) fn write_batch(
-        &self,
-        write_batch: rocksdb::WriteBatch,
-    ) -> Result<()> {
+    /// Writes the batch to the Db atomically.
+    pub fn write_batch(&self, write_batch: WriteBatch) -> Result<()> {
         self.db.write(write_batch).map_err(RocksDb)?;
         Ok(())
     }

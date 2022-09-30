@@ -208,6 +208,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "chronik-indexer"
+version = "0.1.0"
+dependencies = [
+ "abc-rust-error",
+ "abc-rust-lint",
+ "bitcoinsuite-core",
+ "chronik-db",
+ "chronik-util",
+ "pretty_assertions",
+ "tempdir",
+ "thiserror",
+]
+
+[[package]]
 name = "chronik-lib"
 version = "0.1.0"
 dependencies = [
