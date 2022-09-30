@@ -204,18 +204,21 @@ const NavIcon = styled.span`
 `;
 
 const NavMenu = styled.div`
-    position: absolute;
+    position: fixed;
+    float: right;
+    margin-right:1px;
     bottom: 5rem;
     display: flex;
-    width: 8.31rem;
+    width: 8.23rem;
     flex-direction: column;
-    border: ${props => (props.open ? '0.1px solid' : '0px solid')};
+    border: ${props => (props.open ? '1px solid' : '0px solid')};
     border-color: ${props =>
         props.open ? props.theme.contrast : 'transparent'};
     justify-content: center;
     align-items: center;
     @media (max-width: 768px) {
-        margin-right: 4rem;
+        right: 0;
+        margin-right: 0;
     }
     overflow: hidden;
     transition: ${props =>

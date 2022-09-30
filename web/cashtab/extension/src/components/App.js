@@ -203,20 +203,18 @@ const NavIcon = styled.span`
 `;
 
 const NavMenu = styled.div`
-    position: absolute;
+    position: fixed;
+    right:0;
+    margin-right: 1px;
     bottom: 5rem;
     display: flex;
-    //NavMenu has a greater width in the extension
-    width: 8.5rem;
+    width: 8rem;
     flex-direction: column;
     border: ${props => (props.open ? '0.1px solid' : '0px solid')};
     border-color: ${props =>
         props.open ? props.theme.contrast : 'transparent'};
     justify-content: center;
     align-items: center;
-    @media (max-width: 768px) {
-        margin-right: 4rem;
-    }
     overflow: hidden;
     transition: ${props =>
         props.open
