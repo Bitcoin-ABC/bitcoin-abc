@@ -7,7 +7,7 @@ set -euxo pipefail
 TEAMCITY_DIR=$(dirname "$0")
 
 # Install all the build dependencies
-"${TEAMCITY_DIR}"/../utils/install-dependencies-buster.sh
+"${TEAMCITY_DIR}"/../utils/install-dependencies-bullseye.sh
 
 # Python library for interacting with teamcity
 pip3 install teamcity-messages

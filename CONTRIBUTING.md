@@ -132,37 +132,22 @@ enforce Bitcoin ABC code formatting standards, and often suggests changes.
 If code formatting tools do not install automatically on your system, you
 will have to install the following:
 
-On Ubuntu 20.04:
+Install all the code formatting tools on Debian Bullseye (11) or Ubuntu 20.04:
 ```
-sudo apt-get install clang-format-11 clang-tidy-11 clang-tools-11 python3-isort python3-autopep8 flake8 php-codesniffer yamllint
+sudo apt-get install clang-format-11 clang-tidy-11 clang-tools-11 python3-autopep8 python3-pip flake8 php-codesniffer shellcheck yamllint
+pip3 install isort>=5.6.4 mypy>=0.780
+echo "export PATH=\"`python3 -m site --user-base`/bin:\$PATH\"" >> ~/.bashrc
+source ~/.bashrc
 ```
 
 If not available in the distribution, `clang-format-11` and `clang-tidy-11` can be
 installed from <https://releases.llvm.org/download.html> or <https://apt.llvm.org>.
-
-On Debian (>= 10), the clang-11 family of tools is available from the https://apt.llvm.org/ repository:
-```
-wget https://apt.llvm.org/llvm.sh
-chmod +x llvm.sh
-sudo ./llvm.sh 11
-```
 
 For example, for macOS:
 ```
 curl -L https://github.com/llvm/llvm-project/releases/download/llvmorg-11.0.0/clang+llvm-11.0.0-x86_64-apple-darwin.tar.xz | tar -xJv
 ln -s $PWD/clang+llvm-11.0.0-x86_64-apple-darwin/bin/clang-format /usr/local/bin/clang-format
 ln -s $PWD/clang+llvm-11.0.0-x86_64-apple-darwin/bin/clang-tidy /usr/local/bin/clang-tidy
-```
-
-If you are modifying a python script, you will need to install `mypy` and `isort`.
-The minimum required version for `mypy` is 0.780, because the previous ones are
-known to have issues with some python type annotations.
-On Debian based systems, this can be installed via:
-```
-sudo apt-get install python3-pip
-pip3 install isort==5.6.4 mypy==0.780
-echo "export PATH=\"`python3 -m site --user-base`/bin:\$PATH\"" >> ~/.bashrc
-source ~/.bashrc
 ```
 
 If you are modifying a shell script, you will need to install the `shellcheck` linter.
@@ -173,7 +158,6 @@ Standalone binaries are available for download on
 **Note**: In order for arcanist to detect the `shellcheck` executable, you need to make it available in your `PATH`;
 if another version is already installed, make sure the recent one is found first.
 Arcanist will tell you what version is expected and what is found when running `arc lint` against a shell script.
-
 
 If you are running Debian 10, it is also available in the backports repository:
 ```

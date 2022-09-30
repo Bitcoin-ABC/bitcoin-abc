@@ -62,9 +62,9 @@ Dependency Build Instructions: Ubuntu & Debian
 ----------------------------------------------
 Build requirements:
 
-    sudo apt-get install bsdmainutils build-essential libssl-dev libevent-dev lld ninja-build python3
+    sudo apt-get install bsdmainutils build-essential cmake libssl-dev libevent-dev lld ninja-build python3
 
-**Installing cmake:**
+**Installing cmake on older distribution (Debian < 11 or Ubuntu < 20.04):**
 
 On Debian Buster (10), `cmake` should be installed from the backports repository:
 
@@ -72,11 +72,7 @@ On Debian Buster (10), `cmake` should be installed from the backports repository
     sudo apt-get update
     sudo apt-get -t buster-backports install cmake
 
-On Ubuntu 20.04 and later:
-
-    sudo apt-get install cmake
-
-On previous Ubuntu versions, the `cmake` package is too old and needs to be installed from the Kitware APT repository:
+If the `cmake` packaged version is too old it can be installed from the Kitware APT repository:
 
     sudo apt-get install apt-transport-https ca-certificates gnupg software-properties-common wget
     wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -

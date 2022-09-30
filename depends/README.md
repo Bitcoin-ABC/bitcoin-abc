@@ -65,7 +65,7 @@ First add the i386 architecture to `dpkg`:
 
 Then install the dependencies:
 
-    sudo apt-get install lib32stdc++-8-dev libc6-dev:i386
+    sudo apt-get install lib32stdc++-10-dev libc6-dev:i386
 
 For linux ARM cross compilation:
 
