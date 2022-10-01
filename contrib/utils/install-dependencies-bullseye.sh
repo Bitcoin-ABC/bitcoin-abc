@@ -26,13 +26,17 @@ PACKAGES=(
   dput
   flake8
   g++-9
-  g++-aarch64-linux-gnu
-  g++-arm-linux-gnueabihf
+  g++-9-aarch64-linux-gnu
+  g++-9-arm-linux-gnueabihf
+  g++-9-multilib
+  g++-mingw-w64
   gcc-9
+  gcc-9-aarch64-linux-gnu
+  gcc-9-arm-linux-gnueabihf
+  gcc-9-multilib
   gettext-base
   git
   golang
-  g++-mingw-w64
   gnupg
   graphviz
   gperf
