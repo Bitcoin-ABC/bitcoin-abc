@@ -122,6 +122,7 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
         totalAirdrop: '',
     });
 
+    const [equalDistributionRatio, setEqualDistributionRatio] = useState(false);
     const [tokenIdIsValid, setTokenIdIsValid] = useState(null);
     const [totalAirdropIsValid, setTotalAirdropIsValid] = useState(null);
     const [airdropRecipients, setAirdropRecipients] = useState('');
@@ -311,7 +312,6 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
         if (ignoreRecipientsBelowDust) {
             // minimum airdrop threshold
             const minEligibleAirdrop = fromSatoshisToXec(currency.dustSats);
-            // first calculation on expected pro rata airdrops
             let initialTotalTokenAmongstRecipients = new BigNumber(0);
             let initialTotalHolders = new BigNumber(airdropList.size); // amount of addresses that hold this eToken
             setEtokenHolders(initialTotalHolders);
@@ -366,22 +366,37 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
                 )),
         );
 
-        let circToAirdropRatio = new BigNumber(formData.totalAirdrop).div(
-            totalTokenAmongstRecipients,
-        );
-
+        let circToAirdropRatio = new BigNumber(0);
         let resultString = '';
 
-        airdropList.forEach(
-            (element, index) =>
-                (resultString +=
-                    convertEtokenToEcashAddr(index) +
-                    ',' +
-                    new BigNumber(element)
-                        .multipliedBy(circToAirdropRatio)
-                        .decimalPlaces(currency.cashDecimals) +
-                    '\n'),
-        );
+        // generate the resulting recipients list based on distribution ratio
+        if (equalDistributionRatio) {
+            const equalDividend = new BigNumber(
+                formData.totalAirdrop,
+            ).dividedBy(new BigNumber(totalHolders));
+            airdropList.forEach(
+                (element, index) =>
+                    (resultString +=
+                        convertEtokenToEcashAddr(index) +
+                        ',' +
+                        equalDividend.decimalPlaces(currency.cashDecimals) +
+                        '\n'),
+            );
+        } else {
+            circToAirdropRatio = new BigNumber(formData.totalAirdrop).div(
+                totalTokenAmongstRecipients,
+            );
+            airdropList.forEach(
+                (element, index) =>
+                    (resultString +=
+                        convertEtokenToEcashAddr(index) +
+                        ',' +
+                        new BigNumber(element)
+                            .multipliedBy(circToAirdropRatio)
+                            .decimalPlaces(currency.cashDecimals) +
+                        '\n'),
+            );
+        }
 
         resultString = resultString.substring(0, resultString.length - 1); // remove the final newline
 
@@ -594,6 +609,21 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
                                                 handleTotalAirdropInput(e)
                                             }
                                         />
+                                    </Form.Item>
+                                    <Form.Item>
+                                        <AirdropOptions>
+                                            <Switch
+                                                checkedChildren="Equal"
+                                                unCheckedChildren="Pro-Rata"
+                                                defaultunchecked="true"
+                                                checked={equalDistributionRatio}
+                                                onChange={() => {
+                                                    setEqualDistributionRatio(
+                                                        prev => !prev,
+                                                    );
+                                                }}
+                                            />
+                                        </AirdropOptions>
                                     </Form.Item>
                                     <Form.Item>
                                         <AirdropOptions>
