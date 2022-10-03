@@ -314,6 +314,17 @@ it(`Successfully parses an incoming eToken tx`, () => {
             tokenType: 'FUNGIBLE',
             txType: 'SEND',
         },
+        genesisInfo: {
+            decimals: 0,
+            success: true,
+            tokenDocumentHash: '',
+            tokenDocumentUrl:
+                'https://www.who.int/emergencies/diseases/novel-coronavirus-2019/covid-19-vaccines',
+            tokenId:
+                '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
+            tokenName: 'Covid19 Lifetime Immunity',
+            tokenTicker: 'NOCOVID',
+        },
         etokenAmount: '12',
         legacy: {
             airdropFlag: false,
@@ -357,6 +368,17 @@ it(`Successfully parses an outgoing eToken tx`, () => {
                 '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
             tokenType: 'FUNGIBLE',
             txType: 'SEND',
+        },
+        genesisInfo: {
+            decimals: 0,
+            success: true,
+            tokenDocumentHash: '',
+            tokenDocumentUrl:
+                'https://www.who.int/emergencies/diseases/novel-coronavirus-2019/covid-19-vaccines',
+            tokenId:
+                '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
+            tokenName: 'Covid19 Lifetime Immunity',
+            tokenTicker: 'NOCOVID',
         },
         etokenAmount: '17',
         legacy: {
@@ -403,6 +425,16 @@ it(`Successfully parses a genesis eToken tx`, () => {
             tokenId:
                 'cf601c56b58bc05a39a95374a4a865f0a8b56544ea937b30fb46315441717c50',
         },
+        genesisInfo: {
+            decimals: 7,
+            success: true,
+            tokenDocumentHash: '',
+            tokenDocumentUrl: 'https://cashtab.com/',
+            tokenId:
+                'cf601c56b58bc05a39a95374a4a865f0a8b56544ea937b30fb46315441717c50',
+            tokenName: 'UpdateTest',
+            tokenTicker: 'UDT',
+        },
         legacy: {
             amountSent: '0',
             amountReceived: 0,
@@ -446,6 +478,16 @@ it(`Successfully parses a received eToken tx with 9 decimal places`, () => {
             txType: 'SEND',
             tokenId:
                 'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
+        },
+        genesisInfo: {
+            decimals: 9,
+            success: true,
+            tokenDocumentHash: '',
+            tokenDocumentUrl: 'https://cashtabapp.com/',
+            tokenId:
+                'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
+            tokenName: 'CashTabBits',
+            tokenTicker: 'CTB',
         },
         legacy: {
             amountSent: 0,

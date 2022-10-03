@@ -680,21 +680,26 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
     xecAmount = xecAmount.toString();
 
     // Get decimal info for correct etokenAmount
+    let genesisInfo = {};
     if (isEtokenTx) {
         // Get token genesis info from cache
-        let tokenGenesisInfo = {};
+
         let decimals = 0;
         try {
-            tokenGenesisInfo = tokenInfoById[tx.slpTxData.slpMeta.tokenId];
+            genesisInfo = tokenInfoById[tx.slpTxData.slpMeta.tokenId];
+            genesisInfo.success = true;
             // tokenGenesisInfo should be there for every tx in tx history, since it's already been cached for every utxo in the wallet
             // but try...catch just in case
-            decimals = tokenGenesisInfo.decimals;
+            decimals = genesisInfo.decimals;
             etokenAmount = etokenAmount.shiftedBy(-1 * decimals);
         } catch (err) {
             console.log(
                 `Error getting token info from cache in parseChronikTx`,
                 err,
             );
+            // To keep this function synchronous, do not get this info from the API if it is not in cache
+            // Instead, return a flag so that useWallet.js knows and can fetch this info + add it to cache
+            genesisInfo.success = false;
         }
     }
     etokenAmount = etokenAmount.toString();
@@ -712,6 +717,7 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
             isEtokenTx,
             etokenAmount,
             slpMeta,
+            genesisInfo,
             legacy: {
                 amountSent: incoming ? 0 : xecAmount,
                 amountReceived: incoming ? xecAmount : 0,

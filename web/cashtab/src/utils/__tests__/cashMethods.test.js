@@ -14,7 +14,6 @@ import {
     parseOpReturn,
     convertEcashtoEtokenAddr,
     getHashArrayFromWallet,
-    checkWalletForTokenInfo,
     isActiveWebsocket,
     parseXecSendValue,
     getChangeAddressFromInputUtxos,
@@ -1366,27 +1365,6 @@ describe('Correctly executes cash utility functions', () => {
             '2be0e0c999e7e77a443ea726f82c441912fca92b',
             'ba8257db65f40359989c7b894c5e88ed7b6344f6',
         ]);
-    });
-
-    it(`Returns decimals, name, and ticker for an eToken stored in wallet object`, () => {
-        expect(
-            checkWalletForTokenInfo(
-                '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
-                validStoredWallet,
-            ),
-        ).toStrictEqual({
-            decimals: 0,
-            name: 'Covid19 Lifetime Immunity',
-            ticker: 'NOCOVID',
-        });
-    });
-    it(`Returns false for an eToken not stored in a wallet object`, () => {
-        expect(
-            checkWalletForTokenInfo(
-                '98183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48',
-                validStoredWallet,
-            ),
-        ).toBe(false);
     });
     it(`isActiveWebsocket returns true for an active chronik websocket connection`, () => {
         expect(isActiveWebsocket(activeWebsocketAlpha)).toBe(true);

@@ -832,31 +832,6 @@ export const getHashArrayFromWallet = wallet => {
     return hash160Array;
 };
 
-export const checkWalletForTokenInfo = (tokenId, wallet) => {
-    /* 
-    Check wallet for cached information about a given tokenId
-    Return {decimals: tokenDecimals, name: tokenName, ticker: tokenTicker}
-    If this tokenId does not exist in wallet, return false
-    */
-    try {
-        const { tokens } = wallet.state;
-        for (let i = 0; i < tokens.length; i += 1) {
-            const thisTokenId = tokens[i].tokenId;
-            if (tokenId === thisTokenId) {
-                return {
-                    decimals: tokens[i].info.decimals,
-                    ticker: tokens[i].info.tokenTicker,
-                    name: tokens[i].info.tokenName,
-                };
-            }
-        }
-    } catch (err) {
-        return false;
-    }
-
-    return false;
-};
-
 export const isActiveWebsocket = ws => {
     // Return true if websocket is connected and subscribed
     // Otherwise return false

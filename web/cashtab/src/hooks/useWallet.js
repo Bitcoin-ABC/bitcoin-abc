@@ -8,7 +8,6 @@ import {
     isValidStoredWallet,
     isLegacyMigrationRequired,
     getHashArrayFromWallet,
-    checkWalletForTokenInfo,
     isActiveWebsocket,
     getWalletBalanceFromUtxos,
 } from 'utils/cashMethods';
@@ -880,56 +879,91 @@ const useWallet = () => {
 
         // get txid info
         const txid = msg.txid;
-        const txDetails = await chronik.tx(txid);
+
+        let incomingTxDetails;
+        try {
+            incomingTxDetails = await chronik.tx(txid);
+        } catch (err) {
+            // In this case, no notification
+            return console.log(
+                `Error in chronik.tx(${txid} while processing an incoming websocket tx`,
+                err,
+            );
+        }
+
+        // Get tokenInfoById from cashtabCache to parse this tx
+        let tokenInfoById = {};
+        try {
+            tokenInfoById = cashtabCache.tokenInfoById;
+        } catch (err) {
+            console.log(
+                `Error getting tokenInfoById from cache on incoming tx`,
+                err,
+            );
+        }
 
         // parse tx for notification
-        const parsedChronikTx = parseChronikTx(txDetails, wallet);
+        const parsedChronikTx = parseChronikTx(
+            BCH,
+            incomingTxDetails,
+            wallet,
+            tokenInfoById,
+        );
+        /* If this is an incoming eToken tx and parseChronikTx was not able to get genesis info
+           from cache, then get genesis info from API and add to cache */
         if (parsedChronikTx.incoming) {
             if (parsedChronikTx.isEtokenTx) {
-                try {
-                    // Get the tokenID
-                    const incomingTokenId = parsedChronikTx.slpMeta.tokenId;
-
-                    // Check cache for token info
-                    // NB this procedure will change when chronik utxo formatting is implemented
-                    let incomingTokenInfo = checkWalletForTokenInfo(
-                        incomingTokenId,
-                        wallet,
+                let eTokenAmountReceived = parsedChronikTx.etokenAmount;
+                if (parsedChronikTx.genesisInfo.success) {
+                    // Send this info to the notification function
+                    eTokenReceivedNotification(
+                        currency,
+                        parsedChronikTx.genesisInfo.tokenTicker,
+                        eTokenAmountReceived,
+                        parsedChronikTx.genesisInfo.tokenName,
                     );
+                } else {
+                    // Get genesis info from API and add to cache
+                    try {
+                        // Get the tokenID
+                        const incomingTokenId = parsedChronikTx.slpMeta.tokenId;
 
-                    let eTokenAmountReceived;
-                    if (!incomingTokenInfo) {
                         // chronik call to genesis tx to get this info
                         const tokenGenesisInfo = await chronik.tx(
                             incomingTokenId,
                         );
-                        incomingTokenInfo = {
-                            decimals:
-                                tokenGenesisInfo.slpTxData.genesisInfo.decimals,
-                            name: tokenGenesisInfo.slpTxData.genesisInfo
-                                .tokenName,
-                            ticker: tokenGenesisInfo.slpTxData.genesisInfo
-                                .tokenTicker,
-                        };
+                        const { genesisInfo } = tokenGenesisInfo.slpTxData;
+                        // Add this to cashtabCache
+                        let tokenInfoByIdUpdatedForThisToken = tokenInfoById;
+                        tokenInfoByIdUpdatedForThisToken[incomingTokenId] =
+                            genesisInfo;
+                        writeTokenInfoByIdToCache(
+                            tokenInfoByIdUpdatedForThisToken,
+                        );
+                        // Update the tokenInfoById key in cashtabCache
+                        setCashtabCache({
+                            ...cashtabCache,
+                            tokenInfoById: tokenInfoByIdUpdatedForThisToken,
+                        });
+
+                        // Calculate eToken amount with decimals
+                        eTokenAmountReceived = new BigNumber(
+                            parsedChronikTx.etokenAmount,
+                        ).shiftedBy(-1 * genesisInfo.decimals);
+
+                        // Send this info to the notification function
+                        eTokenReceivedNotification(
+                            currency,
+                            genesisInfo.tokenTicker,
+                            eTokenAmountReceived,
+                            genesisInfo.tokenName,
+                        );
+                    } catch (err) {
+                        console.log(
+                            `Error in getting and setting new token info for incoming eToken tx`,
+                            err,
+                        );
                     }
-                    // Calculate eToken amount with decimals
-                    eTokenAmountReceived = new BigNumber(
-                        parsedChronikTx.etokenAmount,
-                    ).shiftedBy(-1 * incomingTokenInfo.decimals);
-                    // Send this info to the notification function
-                    eTokenReceivedNotification(
-                        currency,
-                        incomingTokenInfo.ticker,
-                        eTokenAmountReceived,
-                        incomingTokenInfo.name,
-                    );
-                } catch (err) {
-                    // In this case, no incoming tx notification is received
-                    // This is an acceptable error condition, no need to fallback to another notification option
-                    console.log(
-                        `Error parsing eToken data for incoming tx notification`,
-                        err,
-                    );
                 }
             } else {
                 xecReceivedNotificationWebsocket(
