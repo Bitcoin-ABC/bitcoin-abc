@@ -396,7 +396,13 @@ builds:
         # install-tests is broken on debian bullseye because the leveldb tests
         # do not export any symbol and trigger a mingw linker bug:
         # https://sourceware.org/bugzilla/show_bug.cgi?id=26588
+        # We still install most test suites so we can use the artifacts and run
+        # them on the native platform.
         #- install-tests
+        - install-test-suite-bitcoin
+        - install-test-suite-bitcoin-qt
+        - install-test-suite-avalanche
+        - install-test-suite-pow
       - - package
     post_build: |
       wine "${ARTIFACT_DIR}/bin/test_bitcoin.exe" --run_test=\!radix_tests,rcu_tests
