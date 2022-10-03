@@ -393,7 +393,10 @@ builds:
       - - all
         - install
         - install-secp256k1
-        - install-tests
+        # install-tests is broken on debian bullseye because the leveldb tests
+        # do not export any symbol and trigger a mingw linker bug:
+        # https://sourceware.org/bugzilla/show_bug.cgi?id=26588
+        #- install-tests
       - - package
     post_build: |
       wine "${ARTIFACT_DIR}/bin/test_bitcoin.exe" --run_test=\!radix_tests,rcu_tests
