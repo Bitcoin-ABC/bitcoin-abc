@@ -433,6 +433,14 @@ export const parseChronikTx = (BCH, tx, wallet) => {
     let originatingHash160 = '';
     let etokenAmount = new BigNumber(0);
     const isEtokenTx = 'slpTxData' in tx && typeof tx.slpTxData !== 'undefined';
+    const isGenesisTx =
+        isEtokenTx &&
+        tx.slpTxData.slpMeta &&
+        tx.slpTxData.slpMeta.txType &&
+        tx.slpTxData.slpMeta.txType === 'GENESIS';
+    if (isGenesisTx) {
+        console.log(`${tx.txid} isGenesisTx`);
+    }
 
     // Defining variables used in lines legacy parseTxData function from useBCH.js
     let substring = '';
@@ -635,9 +643,10 @@ export const parseChronikTx = (BCH, tx, wallet) => {
                             thisOutput.slpToken.amount,
                         );
 
-                        etokenAmount = incoming
-                            ? etokenAmount.plus(thisEtokenAmount)
-                            : etokenAmount.minus(thisEtokenAmount);
+                        etokenAmount =
+                            incoming || isGenesisTx
+                                ? etokenAmount.plus(thisEtokenAmount)
+                                : etokenAmount.minus(thisEtokenAmount);
                     } catch (err) {
                         // edge case described above; in this case there is zero eToken value for this Cashtab recipient, so add 0
                         etokenAmount.plus(new BigNumber(0));
@@ -646,10 +655,11 @@ export const parseChronikTx = (BCH, tx, wallet) => {
             }
         }
         // Output amounts not at your wallet are sent amounts if !incoming
+        // Exception for eToken genesis transactions
         if (!incoming) {
             const thisOutputAmount = new BigNumber(thisOutput.value);
             xecAmount = xecAmount.plus(thisOutputAmount);
-            if (isEtokenTx) {
+            if (isEtokenTx && !isGenesisTx) {
                 try {
                     const thisEtokenAmount = new BigNumber(
                         thisOutput.slpToken.amount,

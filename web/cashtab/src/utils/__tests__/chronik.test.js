@@ -41,6 +41,8 @@ import {
     lambdaOutgoingXecTx,
     lambdaIncomingEtokenTx,
     lambdaOutgoingEtokenTx,
+    eTokenGenesisTx,
+    anotherMockParseTxWallet,
 } from '../__mocks__/chronikTxHistory';
 import { ChronikClient } from 'chronik-client';
 import { when } from 'jest-when';
@@ -347,6 +349,45 @@ it(`Successfully parses an outgoing eToken tx`, () => {
             outgoingTx: true,
             replyAddress: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
             tokenTx: true,
+        },
+    });
+});
+it(`Successfully parses a genesis eToken tx`, () => {
+    const BCH = new BCHJS({
+        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
+    });
+    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
+    BCH.Address.hash160ToCash = jest
+        .fn()
+        .mockReturnValue(
+            'bitcoincash:qz2708636snqhsxu8wnlka78h6fdp77ar5ulhz04hr',
+        );
+    expect(
+        parseChronikTx(BCH, eTokenGenesisTx, anotherMockParseTxWallet),
+    ).toStrictEqual({
+        incoming: false,
+        xecAmount: '0',
+        originatingHash160: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+        isEtokenTx: true,
+        etokenAmount: '7777777777',
+        slpMeta: {
+            tokenType: 'FUNGIBLE',
+            txType: 'GENESIS',
+            tokenId:
+                'cf601c56b58bc05a39a95374a4a865f0a8b56544ea937b30fb46315441717c50',
+        },
+        legacy: {
+            amountSent: '0',
+            amountReceived: 0,
+            outgoingTx: true,
+            tokenTx: true,
+            airdropFlag: false,
+            airdropTokenId: '',
+            opReturnMessage: '',
+            isCashtabMessage: false,
+            isEncryptedMessage: false,
+            decryptionSuccess: false,
+            replyAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         },
     });
 });

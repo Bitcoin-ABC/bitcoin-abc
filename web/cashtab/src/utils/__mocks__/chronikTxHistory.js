@@ -5568,6 +5568,52 @@ export const mockParseTxWallet = {
     },
 };
 
+export const anotherMockParseTxWallet = {
+    mnemonic: 'string',
+    name: 'string',
+    Path245: {
+        publicKey: 'string',
+        hash160: 'a9f494266e4b3c823712f27dedcb83e30b2fe59f',
+        cashAddress: 'string',
+        slpAddress: 'string',
+        fundingWif: 'string',
+        fundingAddress: 'string',
+        legacyAddress: 'string',
+    },
+    Path145: {
+        publicKey: 'string',
+        hash160: '1fb76a7db96fc774cbad00e8a72890602b4be304',
+        cashAddress: 'string',
+        slpAddress: 'string',
+        fundingWif: 'string',
+        fundingAddress: 'string',
+        legacyAddress: 'string',
+    },
+    Path1899: {
+        publicKey: 'string',
+        hash160: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+        cashAddress: 'string',
+        slpAddress: 'string',
+        fundingWif: 'string',
+        fundingAddress: 'string',
+        legacyAddress: 'string',
+    },
+    state: {
+        balances: {
+            totalBalanceInSatoshis: '55421422',
+            totalBalance: '554214.22',
+        },
+        tokens: [],
+        slpBalancesAndUtxos: {
+            slpUtxos: [],
+            nonSlpUtxos: [],
+            tokens: [],
+        },
+        parsedTxHistory: [],
+        utxos: [],
+    },
+};
+
 export const lambdaIncomingXecTx = {
     txid: 'ac83faac54059c89c41dea4c3d6704e4f74fb82e4ad2fb948e640f1d19b760de',
     version: 2,
@@ -5769,5 +5815,63 @@ export const lambdaOutgoingEtokenTx = {
         },
     },
     timeFirstSeen: '1652823534',
+    network: 'XEC',
+};
+
+export const eTokenGenesisTx = {
+    txid: 'cf601c56b58bc05a39a95374a4a865f0a8b56544ea937b30fb46315441717c50',
+    version: 2,
+    inputs: [
+        {
+            prevOut: {
+                txid: 'b142b79dbda8ae4aa580220bec76ae5ee78ff2c206a39ce20138c4f371c22aca',
+                outIdx: 0,
+            },
+            inputScript:
+                '483045022100ab2a1e04a156e9cc5204e11e77ba399347f3b7ea3e05d45897c7fb7c6854a7ff022065c7e096e0526a0af223ce32e5e162aa577c42f7da231c13e28ebc3532396f20412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+            outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            value: '1300',
+            sequenceNo: 4294967295,
+        },
+    ],
+    outputs: [
+        {
+            value: '0',
+            outputScript:
+                '6a04534c500001010747454e45534953035544540a557064617465546573741468747470733a2f2f636173687461622e636f6d2f4c0001074c000800000001cf977871',
+        },
+        {
+            value: '546',
+            outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            slpToken: {
+                amount: '7777777777',
+                isMintBaton: false,
+            },
+        },
+    ],
+    lockTime: 0,
+    slpTxData: {
+        slpMeta: {
+            tokenType: 'FUNGIBLE',
+            txType: 'GENESIS',
+            tokenId:
+                'cf601c56b58bc05a39a95374a4a865f0a8b56544ea937b30fb46315441717c50',
+        },
+        genesisInfo: {
+            tokenTicker: 'UDT',
+            tokenName: 'UpdateTest',
+            tokenDocumentUrl: 'https://cashtab.com/',
+            tokenDocumentHash: '',
+            decimals: 7,
+        },
+    },
+    block: {
+        height: 759037,
+        hash: '00000000000000000bc95bfdd45e71585f27139e71b56dd5bc86ef05d35b502f',
+        timestamp: '1664226709',
+    },
+    timeFirstSeen: '1664226189',
+    size: 268,
+    isCoinbase: false,
     network: 'XEC',
 };

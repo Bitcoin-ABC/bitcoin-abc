@@ -248,6 +248,7 @@ const useWallet = () => {
             );
 
             const parsedWithTokens = await addTokenTxData(BCH, parsedTxHistory);
+            console.log(`parsedWithTokens`, parsedWithTokens);
 
             const newState = {
                 balances: getWalletBalanceFromUtxos(nonSlpUtxos),
