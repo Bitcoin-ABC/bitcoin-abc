@@ -12,6 +12,8 @@
 struct BlockHash;
 struct TxId;
 
+static constexpr bool DEFAULT_TXINDEX{false};
+
 /**
  * TxIndex is used to look up transactions included in the blockchain by ID.
  * The index is written to a LevelDB database and records the filesystem

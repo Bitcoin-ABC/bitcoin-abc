@@ -13,6 +13,8 @@
 
 struct Amount;
 
+static constexpr bool DEFAULT_COINSTATSINDEX{false};
+
 /**
  * CoinStatsIndex maintains statistics on the UTXO set.
  */
