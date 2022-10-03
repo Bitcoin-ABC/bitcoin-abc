@@ -4631,7 +4631,7 @@ bool CVerifyDB::VerifyDB(Chainstate &chainstate, const Config &config,
     BlockValidationState state;
     int reportDone = 0;
     bool skipped_l3_checks{false};
-    LogPrintfToBeContinued("[0%%]...");
+    LogPrintf("Verification progress: 0%%\n");
 
     const bool is_snapshot_cs{!chainstate.m_from_snapshot_blockhash};
 
@@ -4644,7 +4644,7 @@ bool CVerifyDB::VerifyDB(Chainstate &chainstate, const Config &config,
                                   (nCheckLevel >= 4 ? 50 : 100))));
         if (reportDone < percentageDone / 10) {
             // report every 10% step
-            LogPrintfToBeContinued("[%d%%]...", percentageDone);
+            LogPrintf("Verification progress: %d%%\n", percentageDone);
             reportDone = percentageDone / 10;
         }
 
@@ -4745,7 +4745,7 @@ bool CVerifyDB::VerifyDB(Chainstate &chainstate, const Config &config,
                                           double(nCheckDepth) * 50)));
             if (reportDone < percentageDone / 10) {
                 // report every 10% step
-                LogPrintfToBeContinued("[%d%%]...", percentageDone);
+                LogPrintf("Verification progress: %d%%\n", percentageDone);
                 reportDone = percentageDone / 10;
             }
             uiInterface.ShowProgress(_("Verifying blocks...").translated,
@@ -4770,9 +4770,8 @@ bool CVerifyDB::VerifyDB(Chainstate &chainstate, const Config &config,
         }
     }
 
-    LogPrintf("[DONE].\n");
-    LogPrintf("No coin database inconsistencies in last %i blocks (%i "
-              "transactions)\n",
+    LogPrintf("Verification: No coin database inconsistencies in last %i "
+              "blocks (%i transactions)\n",
               block_count, nGoodTransactions);
 
     return true;
