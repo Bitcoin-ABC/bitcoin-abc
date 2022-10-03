@@ -109,6 +109,12 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y $(join_by ' ' "${PACKAGES[@]}"
 update-alternatives --install /usr/bin/gcc gcc "$(command -v gcc-9)" 100
 update-alternatives --install /usr/bin/g++ g++ "$(command -v g++-9)" 100
 
+update-alternatives --install /usr/bin/aarch64-linux-gnu-gcc aarch64-linux-gnu-gcc "$(command -v aarch64-linux-gnu-gcc-9)" 100
+update-alternatives --install /usr/bin/aarch64-linux-gnu-g++ aarch64-linux-gnu-g++ "$(command -v aarch64-linux-gnu-g++-9)" 100
+
+update-alternatives --install /usr/bin/arm-linux-gnueabihf-gcc arm-linux-gnueabihf-gcc "$(command -v arm-linux-gnueabihf-gcc-9)" 100
+update-alternatives --install /usr/bin/arm-linux-gnueabihf-g++ arm-linux-gnueabihf-g++ "$(command -v arm-linux-gnueabihf-g++-9)" 100
+
 # Use the mingw posix variant
 update-alternatives --set x86_64-w64-mingw32-g++ $(command -v x86_64-w64-mingw32-g++-posix)
 update-alternatives --set x86_64-w64-mingw32-gcc $(command -v x86_64-w64-mingw32-gcc-posix)
