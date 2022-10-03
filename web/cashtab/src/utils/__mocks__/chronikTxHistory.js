@@ -5875,3 +5875,615 @@ export const eTokenGenesisTx = {
     isCoinbase: false,
     network: 'XEC',
 };
+export const receivedEtokenTxNineDecimals = {
+    txid: 'b808f6a831dcdfda2bd4c5f857f94e1a746a4effeda6a5ad742be6137884a4fb',
+    version: 2,
+    inputs: [
+        {
+            prevOut: {
+                txid: 'c638754cb7707edd4faad89bdfee899aa7acbbc61f66e21f8faf60bdbb34fd65',
+                outIdx: 3,
+            },
+            inputScript:
+                '4830450221009d649476ad963306a5210d9df2dfd7e2bb604be43d6cdfe359638d96239973eb02200ac6e71575f0f111dad2fbbeb2712490cc709ffe03eda7de33acc8614b2c0979412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
+            outputScript: '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+            value: '3503',
+            sequenceNo: 4294967295,
+        },
+        {
+            prevOut: {
+                txid: '82d8dc652779f8d6c8453d2ba5aefec91f5247489246e5672cf3c5986fa3d235',
+                outIdx: 2,
+            },
+            inputScript:
+                '483045022100b7bec6d09e71bc4c124886e5953f6e7a7845c920f66feac2e9e5d16fc58a649a0220689d617c11ef0bd63dbb7ea0fa5c0d3419d6500535bda8f7a7fc3e27f27c3de6412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
+            outputScript: '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+            value: '546',
+            sequenceNo: 4294967295,
+            slpToken: {
+                amount: '9876543156',
+                isMintBaton: false,
+            },
+        },
+    ],
+    outputs: [
+        {
+            value: '0',
+            outputScript:
+                '6a04534c500001010453454e4420acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f550800000000075bcd1508000000024554499f',
+        },
+        {
+            value: '546',
+            outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            slpToken: {
+                amount: '123456789',
+                isMintBaton: false,
+            },
+        },
+        {
+            value: '546',
+            outputScript: '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+            slpToken: {
+                amount: '9753086367',
+                isMintBaton: false,
+            },
+        },
+        {
+            value: '1685',
+            outputScript: '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+        },
+    ],
+    lockTime: 0,
+    slpTxData: {
+        slpMeta: {
+            tokenType: 'FUNGIBLE',
+            txType: 'SEND',
+            tokenId:
+                'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
+        },
+    },
+    timeFirstSeen: '1664837660',
+    size: 481,
+    isCoinbase: false,
+    network: 'XEC',
+};
+
+export const txHistoryTokenInfoById = {
+    'bf24d955f59351e738ecd905966606a6837e478e1982943d724eab10caad82fd': {
+        tokenTicker: 'ST',
+        tokenName: 'ST',
+        tokenDocumentUrl: 'developer.bitcoin.com',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            'bf24d955f59351e738ecd905966606a6837e478e1982943d724eab10caad82fd',
+    },
+    'bef614aac85c0c866f4d39e4d12a96851267d38d1bca5bdd6488bbd42e28b6b1': {
+        tokenTicker: 'CTP',
+        tokenName: 'Cash Tab Points',
+        tokenDocumentUrl: 'https://cashtabapp.com/',
+        tokenDocumentHash: '',
+        decimals: 9,
+        tokenId:
+            'bef614aac85c0c866f4d39e4d12a96851267d38d1bca5bdd6488bbd42e28b6b1',
+    },
+    '1f6a65e7a4bde92c0a012de2bcf4007034504a765377cdf08a3ee01d1eaa6901': {
+        tokenTicker: '🍔',
+        tokenName: 'Burger',
+        tokenDocumentUrl:
+            'https://c4.wallpaperflare.com/wallpaper/58/564/863/giant-hamburger-wallpaper-preview.jpg',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '1f6a65e7a4bde92c0a012de2bcf4007034504a765377cdf08a3ee01d1eaa6901',
+    },
+    'dd84ca78db4d617221b58eabc6667af8fe2f7eadbfcc213d35be9f1b419beb8d': {
+        tokenTicker: 'TAP',
+        tokenName: 'Thoughts and Prayers',
+        tokenDocumentUrl: '',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            'dd84ca78db4d617221b58eabc6667af8fe2f7eadbfcc213d35be9f1b419beb8d',
+    },
+    '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e': {
+        tokenTicker: 'TBC',
+        tokenName: 'tabcash',
+        tokenDocumentUrl: 'https://cashtabapp.com/',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
+    },
+    'df808a41672a0a0ae6475b44f272a107bc9961b90f29dc918d71301f24fe92fb': {
+        tokenTicker: 'NAKAMOTO',
+        tokenName: 'NAKAMOTO',
+        tokenDocumentUrl: '',
+        tokenDocumentHash: '',
+        decimals: 8,
+        tokenId:
+            'df808a41672a0a0ae6475b44f272a107bc9961b90f29dc918d71301f24fe92fb',
+    },
+    '22f4ba40312ea3e90e1bfa88d2aa694c271d2e07361907b6eb5568873ffa62bf': {
+        tokenTicker: 'CLA',
+        tokenName: 'Cashtab Local Alpha',
+        tokenDocumentUrl: 'boomertakes.com',
+        tokenDocumentHash: '',
+        decimals: 5,
+        tokenId:
+            '22f4ba40312ea3e90e1bfa88d2aa694c271d2e07361907b6eb5568873ffa62bf',
+    },
+    'da9460ce4b1c92b4f6ef4e4a6bc2d05539f49d02b17681389d9ce22b8dca50f0': {
+        tokenTicker: 'SA',
+        tokenName: 'Spinner Alpha',
+        tokenDocumentUrl: 'https://cashtabapp.com/',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            'da9460ce4b1c92b4f6ef4e4a6bc2d05539f49d02b17681389d9ce22b8dca50f0',
+    },
+    '4db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c875': {
+        tokenTicker: 'LVV',
+        tokenName: 'Lambda Variant Variants',
+        tokenDocumentUrl: 'https://cashtabapp.com/',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '4db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c875',
+    },
+    '16b12bbacdbb8c8a799adbfd782bfff9843c1f9b0be148eaae02a1a7f74f95c4': {
+        tokenTicker: 'CGEN',
+        tokenName: 'Cashtab Genesis',
+        tokenDocumentUrl: 'https://boomertakes.com/',
+        tokenDocumentHash: '',
+        decimals: 9,
+        tokenId:
+            '16b12bbacdbb8c8a799adbfd782bfff9843c1f9b0be148eaae02a1a7f74f95c4',
+    },
+    'bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba': {
+        tokenTicker: 'TBS',
+        tokenName: 'TestBits',
+        tokenDocumentUrl: 'https://thecryptoguy.com/',
+        tokenDocumentHash: '',
+        decimals: 9,
+        tokenId:
+            'bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba',
+    },
+    'aa7202397a06097e8ff36855aa72c0ee032659747e5bd7cbcd3099fc3a62b6b6': {
+        tokenTicker: 'CTL',
+        tokenName: 'Cashtab Token Launch Launch Token',
+        tokenDocumentUrl: 'https://cashtabapp.com/',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            'aa7202397a06097e8ff36855aa72c0ee032659747e5bd7cbcd3099fc3a62b6b6',
+    },
+    '9e9738e9ac3ff202736bf7775f875ebae6f812650df577a947c20c52475e43da': {
+        tokenTicker: 'CUTT',
+        tokenName: 'Cashtab Unit Test Token',
+        tokenDocumentUrl: 'https://cashtabapp.com/',
+        tokenDocumentHash: '',
+        decimals: 2,
+        tokenId:
+            '9e9738e9ac3ff202736bf7775f875ebae6f812650df577a947c20c52475e43da',
+    },
+    'f36e1b3d9a2aaf74f132fef3834e9743b945a667a4204e761b85f2e7b65fd41a': {
+        tokenTicker: 'POW',
+        tokenName: 'ProofofWriting.com Token',
+        tokenDocumentUrl: 'https://www.proofofwriting.com/26',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            'f36e1b3d9a2aaf74f132fef3834e9743b945a667a4204e761b85f2e7b65fd41a',
+    },
+    '7f8889682d57369ed0e32336f8b7e0ffec625a35cca183f4e81fde4e71a538a1': {
+        tokenTicker: 'HONK',
+        tokenName: 'HONK HONK',
+        tokenDocumentUrl: 'THE REAL HONK SLP TOKEN',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '7f8889682d57369ed0e32336f8b7e0ffec625a35cca183f4e81fde4e71a538a1',
+    },
+    '3515f4a9851ad44124e0ddf6149344deb27a97720fc7e5254a9d2c86da7415a9': {
+        tokenTicker: '001',
+        tokenName: '01',
+        tokenDocumentUrl: 'https://cashtab.com/',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '3515f4a9851ad44124e0ddf6149344deb27a97720fc7e5254a9d2c86da7415a9',
+    },
+    '6fb6122742cac8fd1df2d68997fdfa4c077bc22d9ef4a336bfb63d24225f9060': {
+        tokenTicker: '002',
+        tokenName: '2',
+        tokenDocumentUrl: 'https://cashtab.com/',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '6fb6122742cac8fd1df2d68997fdfa4c077bc22d9ef4a336bfb63d24225f9060',
+    },
+    '2936188a41f22a3e0a47d13296147fb3f9ddd2f939fe6382904d21a610e8e49c': {
+        tokenTicker: '002',
+        tokenName: '2',
+        tokenDocumentUrl: 'https://cashtab.com/',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '2936188a41f22a3e0a47d13296147fb3f9ddd2f939fe6382904d21a610e8e49c',
+    },
+    'e859eeb52e7afca6217fb36784b3b6d3c7386a52f391dd0d00f2ec03a5e8e77b': {
+        tokenTicker: 'test',
+        tokenName: 'test',
+        tokenDocumentUrl: 'https://cashtab.com/',
+        tokenDocumentHash: '',
+        decimals: 1,
+        tokenId:
+            'e859eeb52e7afca6217fb36784b3b6d3c7386a52f391dd0d00f2ec03a5e8e77b',
+    },
+    'bdb3b4215ca0622e0c4c07655522c376eaa891838a82f0217fa453bb0595a37c': {
+        tokenTicker: 'Service',
+        tokenName: 'Evc token',
+        tokenDocumentUrl: 'https://cashtab.com',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            'bdb3b4215ca0622e0c4c07655522c376eaa891838a82f0217fa453bb0595a37c',
+    },
+    '7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d': {
+        tokenTicker: 'WDT',
+        tokenName:
+            'Test Token With Exceptionally Long Name For CSS And Style Revisions',
+        tokenDocumentUrl:
+            'https://www.ImpossiblyLongWebsiteDidYouThinkWebDevWouldBeFun.org',
+        tokenDocumentHash:
+            '85b591c15c9f49531e39fcfeb2a5a26b2bd0f7c018fb9cd71b5d92dfb732d5cc',
+        decimals: 7,
+        tokenId:
+            '7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d',
+    },
+    '7bbf452698a24b138b0357f689587fc6ea58410c34503b1179b91e40e10bba8b': {
+        tokenTicker: 'COVID',
+        tokenName: 'COVID-19',
+        tokenDocumentUrl: 'https://en.wikipedia.org/wiki/COVID-19',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '7bbf452698a24b138b0357f689587fc6ea58410c34503b1179b91e40e10bba8b',
+    },
+    '6376cae692cf0302ecdd63234c14cbb2b21cec75ab538335f90254cfb3ed44cc': {
+        tokenTicker: 'CLT',
+        tokenName: 'Cashtab Local Tests',
+        tokenDocumentUrl: 'https://cashtab.com/',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '6376cae692cf0302ecdd63234c14cbb2b21cec75ab538335f90254cfb3ed44cc',
+    },
+    '666c4318d1f7fef5f2c698262492c519018d4e9130f95d05f6be9f0fb7149e96': {
+        tokenTicker: 'CPG',
+        tokenName: 'Cashtab Prod Gamma',
+        tokenDocumentUrl: 'thecryptoguy.com',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '666c4318d1f7fef5f2c698262492c519018d4e9130f95d05f6be9f0fb7149e96',
+    },
+    '157e0cdef5d5c51bdea00eac9ab821d809bb9d03cf98da85833614bedb129be6': {
+        tokenTicker: 'CLNSP',
+        tokenName: 'ComponentLongNameSpeedLoad',
+        tokenDocumentUrl: 'https://cashtabapp.com/',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '157e0cdef5d5c51bdea00eac9ab821d809bb9d03cf98da85833614bedb129be6',
+    },
+    'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55': {
+        tokenTicker: 'CTB',
+        tokenName: 'CashTabBits',
+        tokenDocumentUrl: 'https://cashtabapp.com/',
+        tokenDocumentHash: '',
+        decimals: 9,
+        tokenId:
+            'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
+    },
+    'ccf5fe5a387559c8ab9efdeb0c0ef1b444e677298cfddf07671245ce3cb3c79f': {
+        tokenTicker: 'XGB',
+        tokenName: 'Garmonbozia',
+        tokenDocumentUrl: 'https://twinpeaks.fandom.com/wiki/Garmonbozia',
+        tokenDocumentHash: '',
+        decimals: 8,
+        tokenId:
+            'ccf5fe5a387559c8ab9efdeb0c0ef1b444e677298cfddf07671245ce3cb3c79f',
+    },
+    '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3': {
+        tokenTicker: 'NOCOVID',
+        tokenName: 'Covid19 Lifetime Immunity',
+        tokenDocumentUrl:
+            'https://www.who.int/emergencies/diseases/novel-coronavirus-2019/covid-19-vaccines',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
+    },
+    'b8f2a9e767a0be7b80c7e414ef2534586d4da72efddb39a4e70e501ab73375cc': {
+        tokenTicker: 'CTD',
+        tokenName: 'Cashtab Dark',
+        tokenDocumentUrl: 'https://cashtab.com/',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            'b8f2a9e767a0be7b80c7e414ef2534586d4da72efddb39a4e70e501ab73375cc',
+    },
+    '1101bd5d7b6bbc3176fb2b93d08e76ab532b04ff731d71502249e3cb9b6fcb1a': {
+        tokenTicker: 'XBIT',
+        tokenName: 'eBits',
+        tokenDocumentUrl: 'https://boomertakes.com/',
+        tokenDocumentHash: '',
+        decimals: 9,
+        tokenId:
+            '1101bd5d7b6bbc3176fb2b93d08e76ab532b04ff731d71502249e3cb9b6fcb1a',
+    },
+    '3de671a7107d3803d78f7f4a4e5c794d0903a8d28d16076445c084943c1e2db8': {
+        tokenTicker: 'CLB',
+        tokenName: 'Cashtab Local Beta',
+        tokenDocumentUrl: 'boomertakes.com',
+        tokenDocumentHash: '',
+        decimals: 2,
+        tokenId:
+            '3de671a7107d3803d78f7f4a4e5c794d0903a8d28d16076445c084943c1e2db8',
+    },
+    '44929ff3b1fc634f982fede112cf12b21199a2ebbcf718412a38de9177d77168': {
+        tokenTicker: 'coin',
+        tokenName: 'johncoin',
+        tokenDocumentUrl: 'https://cashtab.com/',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '44929ff3b1fc634f982fede112cf12b21199a2ebbcf718412a38de9177d77168',
+    },
+    '639a8dba34788ff3ebd3977d4ac045825394285ee648bb1d159e1c12b787ff25': {
+        tokenTicker: 'CFL',
+        tokenName: 'Cashtab Facelift',
+        tokenDocumentUrl: 'https://cashtab.com/',
+        tokenDocumentHash: '',
+        decimals: 9,
+        tokenId:
+            '639a8dba34788ff3ebd3977d4ac045825394285ee648bb1d159e1c12b787ff25',
+    },
+    'd376ebcd518067c8e10c0505865cf7336160b47807e6f1a95739ba90ae838840': {
+        tokenTicker: 'CFL',
+        tokenName: 'Cashtab Facelift',
+        tokenDocumentUrl: 'https://cashtab.com/',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            'd376ebcd518067c8e10c0505865cf7336160b47807e6f1a95739ba90ae838840',
+    },
+    'b40d1f6acdb6ee68d7eca0167fe2753c076bc309b2e3b1af8bff70ca34b945b0': {
+        tokenTicker: 'KAT',
+        tokenName: 'KA_Test',
+        tokenDocumentUrl: 'https://cashtab.com/',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            'b40d1f6acdb6ee68d7eca0167fe2753c076bc309b2e3b1af8bff70ca34b945b0',
+    },
+    'b39fdb53e21d67fa5fd3a11122f1452f15884047f2b80e8efe633c3b520b7a39': {
+        tokenTicker: 'SCΩΩG',
+        tokenName: 'Scoogi Omega',
+        tokenDocumentUrl: 'https://cashtab.com/',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            'b39fdb53e21d67fa5fd3a11122f1452f15884047f2b80e8efe633c3b520b7a39',
+    },
+    '3adbf501e21c711d20118e003711168eb39f560c01f4c6d6736fa3f3fceaa577': {
+        tokenTicker: 'OMI',
+        tokenName: 'Omicron',
+        tokenDocumentUrl: 'cdc.gov',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '3adbf501e21c711d20118e003711168eb39f560c01f4c6d6736fa3f3fceaa577',
+    },
+    '0916e71779c9de7ee125741d3f5ab01f556356dbc86fd327a24f1e9e22ebc917': {
+        tokenTicker: 'CTL2',
+        tokenName: 'Cashtab Token Launch Launch Token v2',
+        tokenDocumentUrl: 'thecryptoguy.com',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '0916e71779c9de7ee125741d3f5ab01f556356dbc86fd327a24f1e9e22ebc917',
+    },
+    '6e24e89b6d5284138c69777527760500b99614631bca7f2a5c38f4648dae9524': {
+        tokenTicker: 'CBB',
+        tokenName: 'Cashtab Beta Bits',
+        tokenDocumentUrl: 'https://cashtabapp.com/',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '6e24e89b6d5284138c69777527760500b99614631bca7f2a5c38f4648dae9524',
+    },
+    '8ead21ce4b3b9e7b57607b97b65b5013496dc6e3dfdea162c08ce7265a66ebc8': {
+        tokenTicker: 'IFP',
+        tokenName: 'Infrastructure Funding Proposal Token',
+        tokenDocumentUrl: 'ifp.cash',
+        tokenDocumentHash:
+            'b1674191a88ec5cdd733e4240a81803105dc412d6c6708d53ab94fc248f4f553',
+        decimals: 8,
+        tokenId:
+            '8ead21ce4b3b9e7b57607b97b65b5013496dc6e3dfdea162c08ce7265a66ebc8',
+    },
+    'e4e1a2fb071fa71ca727e08ed1d8ea52a9531c79d1e5f1ebf483c66b71a8621c': {
+        tokenTicker: 'CPA',
+        tokenName: 'Cashtab Prod Alpha',
+        tokenDocumentUrl: 'thecryptoguy.com',
+        tokenDocumentHash: '',
+        decimals: 8,
+        tokenId:
+            'e4e1a2fb071fa71ca727e08ed1d8ea52a9531c79d1e5f1ebf483c66b71a8621c',
+    },
+    '45f0ff5cae7e89da6b96c26c8c48a959214c5f0e983e78d0925f8956ca8848c6': {
+        tokenTicker: 'CMA',
+        tokenName: 'CashtabMintAlpha',
+        tokenDocumentUrl: 'https://cashtabapp.com/',
+        tokenDocumentHash: '',
+        decimals: 5,
+        tokenId:
+            '45f0ff5cae7e89da6b96c26c8c48a959214c5f0e983e78d0925f8956ca8848c6',
+    },
+    '56e9b1d16c9989186c846187db57d9a9389c3ecc74e7237c1d1d0327cf904a55': {
+        tokenTicker: 'CKA',
+        tokenName: 'Chronik Alpha',
+        tokenDocumentUrl: 'https://cashtab.com/',
+        tokenDocumentHash: '',
+        decimals: 8,
+        tokenId:
+            '56e9b1d16c9989186c846187db57d9a9389c3ecc74e7237c1d1d0327cf904a55',
+    },
+    '77ec4036ef8546ac46df6d3a5374e961216f92624627eaeef5d2e1a253df9fc6': {
+        tokenTicker: 'CTLv3',
+        tokenName: 'Cashtab Token Launch Launch Token v3',
+        tokenDocumentUrl: 'coinex.com',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '77ec4036ef8546ac46df6d3a5374e961216f92624627eaeef5d2e1a253df9fc6',
+    },
+    '98183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48': {
+        tokenTicker: 'DVV',
+        tokenName: 'Delta Variant Variants',
+        tokenDocumentUrl: 'https://cashtabapp.com/',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '98183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48',
+    },
+    'bfddfcfc9fb9a8d61ed74fa94b5e32ccc03305797eea461658303df5805578ef': {
+        tokenTicker: 'Sending Token',
+        tokenName: 'Sending Token',
+        tokenDocumentUrl: 'developer.bitcoin.com',
+        tokenDocumentHash: '',
+        decimals: 9,
+        tokenId:
+            'bfddfcfc9fb9a8d61ed74fa94b5e32ccc03305797eea461658303df5805578ef',
+    },
+    '55180a2527901ed4d7ef8f4d61d38d3543b0e7ac3aba04e7f4d3165c3320a6da': {
+        tokenTicker: 'cARRRl',
+        tokenName: 'Dachshund Pirate Token',
+        tokenDocumentUrl: 'https://cashtab.com/',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '55180a2527901ed4d7ef8f4d61d38d3543b0e7ac3aba04e7f4d3165c3320a6da',
+    },
+    '6a9305a13135625f4b533256e8d2e21a7343005331e1839348a39040f61e09d3': {
+        tokenTicker: 'SCOOG',
+        tokenName: 'Scoogi Alpha',
+        tokenDocumentUrl: 'cashtab.com',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '6a9305a13135625f4b533256e8d2e21a7343005331e1839348a39040f61e09d3',
+    },
+    '48090bcd94cf53289ce84e1d4aeb8035f6ea7d80d37baa6343d0f71e7d67a3ef': {
+        tokenTicker: 'WP5',
+        tokenName: 'Webpack 5',
+        tokenDocumentUrl: 'boomertakes.com',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '48090bcd94cf53289ce84e1d4aeb8035f6ea7d80d37baa6343d0f71e7d67a3ef',
+    },
+    '27277911435164c511c7dbc3ef00ba5ce9edf8c1ccab93681cb0ad984b801ef1': {
+        tokenTicker: 'SCOOG',
+        tokenName: 'Scoogi Alpha',
+        tokenDocumentUrl: 'cashtab.com',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '27277911435164c511c7dbc3ef00ba5ce9edf8c1ccab93681cb0ad984b801ef1',
+    },
+    'a3add503bba986398b39fa2200ce658423a597b4f7fe9de04a2da4501f8b05a3': {
+        tokenTicker: 'SCOOG',
+        tokenName: 'Scoogi Gamma',
+        tokenDocumentUrl: 'cashtab.com',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            'a3add503bba986398b39fa2200ce658423a597b4f7fe9de04a2da4501f8b05a3',
+    },
+    '8b402aab7682e1cef3da83bf754ae722cc95c3118dfe6e2149267f9a9e2ecc63': {
+        tokenTicker: 'AUG5',
+        tokenName: 'August 5',
+        tokenDocumentUrl: 'https://cashtab.com/',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '8b402aab7682e1cef3da83bf754ae722cc95c3118dfe6e2149267f9a9e2ecc63',
+    },
+    '2502bdc75d3afdce0742505d53e6d50cefb1268d7c2a835c06b701702b79e1b8': {
+        tokenTicker: 'SCOOG',
+        tokenName: 'Scoogi Epsilon',
+        tokenDocumentUrl: 'cashtab.com',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            '2502bdc75d3afdce0742505d53e6d50cefb1268d7c2a835c06b701702b79e1b8',
+    },
+    'f29939b961d8f3b27d7826e3f22451fcf9273ac84421312a20148b1e083a5bb0': {
+        tokenTicker: 'SCOOG',
+        tokenName: 'Scoogi Beta',
+        tokenDocumentUrl: 'cashtab.com',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            'f29939b961d8f3b27d7826e3f22451fcf9273ac84421312a20148b1e083a5bb0',
+    },
+    'edb693529851379bcbd75008f78940df8232510e6a1c64d8dc81693ae2a53f66': {
+        tokenTicker: 'SCOOG',
+        tokenName: 'Scoogi Eta',
+        tokenDocumentUrl: 'cashtab.com',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            'edb693529851379bcbd75008f78940df8232510e6a1c64d8dc81693ae2a53f66',
+    },
+    'c70d5f036368e184d2a52389b2f4c2471855aebaccbd418db24d4515ce062dbe': {
+        tokenTicker: 'SCOOG',
+        tokenName: 'Scoogi Zeta',
+        tokenDocumentUrl: 'cashtab.com',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            'c70d5f036368e184d2a52389b2f4c2471855aebaccbd418db24d4515ce062dbe',
+    },
+    'b9877d8f8d2364b983707df905d592f534a3ada18e52aa529a0f72fcc535abf7': {
+        tokenTicker: 'SRM',
+        tokenName: 'Server Redundancy Mint',
+        tokenDocumentUrl: 'https://cashtab.com/',
+        tokenDocumentHash: '',
+        decimals: 0,
+        tokenId:
+            'b9877d8f8d2364b983707df905d592f534a3ada18e52aa529a0f72fcc535abf7',
+    },
+    '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484': {
+        tokenTicker: 'Alita',
+        tokenName: 'Alita',
+        tokenDocumentUrl: 'alita.cash',
+        tokenDocumentHash: '',
+        decimals: 4,
+        tokenId:
+            '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
+    },
+    'cf601c56b58bc05a39a95374a4a865f0a8b56544ea937b30fb46315441717c50': {
+        tokenTicker: 'UDT',
+        tokenName: 'UpdateTest',
+        tokenDocumentUrl: 'https://cashtab.com/',
+        tokenDocumentHash: '',
+        decimals: 7,
+        tokenId:
+            'cf601c56b58bc05a39a95374a4a865f0a8b56544ea937b30fb46315441717c50',
+    },
+};

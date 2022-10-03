@@ -233,6 +233,7 @@ const useWallet = () => {
                 chronik,
                 BCH,
                 wallet,
+                updatedTokenInfoById,
             );
             console.log(
                 `chronikTxHistory as flattened array, sorted by blockheight and time first seen, with parse info, and partial legacy parse info`,

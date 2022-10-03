@@ -42,7 +42,9 @@ import {
     lambdaIncomingEtokenTx,
     lambdaOutgoingEtokenTx,
     eTokenGenesisTx,
+    receivedEtokenTxNineDecimals,
     anotherMockParseTxWallet,
+    txHistoryTokenInfoById,
 } from '../__mocks__/chronikTxHistory';
 import { ChronikClient } from 'chronik-client';
 import { when } from 'jest-when';
@@ -223,7 +225,12 @@ it(`Successfully parses an incoming XEC tx`, () => {
             'bitcoincash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvll3cvjwd',
         );
     expect(
-        parseChronikTx(BCH, lambdaIncomingXecTx, mockParseTxWallet),
+        parseChronikTx(
+            BCH,
+            lambdaIncomingXecTx,
+            mockParseTxWallet,
+            txHistoryTokenInfoById,
+        ),
     ).toStrictEqual({
         incoming: true,
         xecAmount: '42',
@@ -255,7 +262,12 @@ it(`Successfully parses an outgoing XEC tx`, () => {
             'bitcoincash:qpmytrdsakt0axrrlswvaj069nat3p9s7ct4lsf8k9',
         );
     expect(
-        parseChronikTx(BCH, lambdaOutgoingXecTx, mockParseTxWallet),
+        parseChronikTx(
+            BCH,
+            lambdaOutgoingXecTx,
+            mockParseTxWallet,
+            txHistoryTokenInfoById,
+        ),
     ).toStrictEqual({
         incoming: false,
         xecAmount: '222',
@@ -285,7 +297,12 @@ it(`Successfully parses an incoming eToken tx`, () => {
             'bitcoincash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvll3cvjwd',
         );
     expect(
-        parseChronikTx(BCH, lambdaIncomingEtokenTx, mockParseTxWallet),
+        parseChronikTx(
+            BCH,
+            lambdaIncomingEtokenTx,
+            mockParseTxWallet,
+            txHistoryTokenInfoById,
+        ),
     ).toStrictEqual({
         incoming: true,
         xecAmount: '5.46',
@@ -324,7 +341,12 @@ it(`Successfully parses an outgoing eToken tx`, () => {
             'bitcoincash:qpmytrdsakt0axrrlswvaj069nat3p9s7ct4lsf8k9',
         );
     expect(
-        parseChronikTx(BCH, lambdaOutgoingEtokenTx, mockParseTxWallet),
+        parseChronikTx(
+            BCH,
+            lambdaOutgoingEtokenTx,
+            mockParseTxWallet,
+            txHistoryTokenInfoById,
+        ),
     ).toStrictEqual({
         incoming: false,
         xecAmount: '5.46',
@@ -363,13 +385,18 @@ it(`Successfully parses a genesis eToken tx`, () => {
             'bitcoincash:qz2708636snqhsxu8wnlka78h6fdp77ar5ulhz04hr',
         );
     expect(
-        parseChronikTx(BCH, eTokenGenesisTx, anotherMockParseTxWallet),
+        parseChronikTx(
+            BCH,
+            eTokenGenesisTx,
+            anotherMockParseTxWallet,
+            txHistoryTokenInfoById,
+        ),
     ).toStrictEqual({
         incoming: false,
         xecAmount: '0',
         originatingHash160: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
         isEtokenTx: true,
-        etokenAmount: '7777777777',
+        etokenAmount: '777.7777777',
         slpMeta: {
             tokenType: 'FUNGIBLE',
             txType: 'GENESIS',
@@ -388,6 +415,50 @@ it(`Successfully parses a genesis eToken tx`, () => {
             isEncryptedMessage: false,
             decryptionSuccess: false,
             replyAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+        },
+    });
+});
+it(`Successfully parses a received eToken tx with 9 decimal places`, () => {
+    const BCH = new BCHJS({
+        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
+    });
+    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
+    BCH.Address.hash160ToCash = jest
+        .fn()
+        .mockReturnValue(
+            'bitcoincash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvll3cvjwd',
+        );
+    expect(
+        parseChronikTx(
+            BCH,
+            receivedEtokenTxNineDecimals,
+            anotherMockParseTxWallet,
+            txHistoryTokenInfoById,
+        ),
+    ).toStrictEqual({
+        incoming: true,
+        xecAmount: '5.46',
+        originatingHash160: '4e532257c01b310b3b5c1fd947c79a72addf8523',
+        isEtokenTx: true,
+        etokenAmount: '0.123456789',
+        slpMeta: {
+            tokenType: 'FUNGIBLE',
+            txType: 'SEND',
+            tokenId:
+                'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
+        },
+        legacy: {
+            amountSent: 0,
+            amountReceived: '5.46',
+            outgoingTx: false,
+            tokenTx: true,
+            airdropFlag: false,
+            airdropTokenId: '',
+            opReturnMessage: '',
+            isCashtabMessage: false,
+            isEncryptedMessage: false,
+            decryptionSuccess: false,
+            replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
         },
     });
 });

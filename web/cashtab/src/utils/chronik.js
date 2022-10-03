@@ -424,7 +424,7 @@ export const returnGetTxHistoryChronikPromise = (
     });
 };
 
-export const parseChronikTx = (BCH, tx, wallet) => {
+export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
     const walletHash160s = getHashArrayFromWallet(wallet);
     const { inputs, outputs } = tx;
     // Assign defaults
@@ -678,6 +678,25 @@ export const parseChronikTx = (BCH, tx, wallet) => {
 
     // Convert from BigNumber to string
     xecAmount = xecAmount.toString();
+
+    // Get decimal info for correct etokenAmount
+    if (isEtokenTx) {
+        // Get token genesis info from cache
+        let tokenGenesisInfo = {};
+        let decimals = 0;
+        try {
+            tokenGenesisInfo = tokenInfoById[tx.slpTxData.slpMeta.tokenId];
+            // tokenGenesisInfo should be there for every tx in tx history, since it's already been cached for every utxo in the wallet
+            // but try...catch just in case
+            decimals = tokenGenesisInfo.decimals;
+            etokenAmount = etokenAmount.shiftedBy(-1 * decimals);
+        } catch (err) {
+            console.log(
+                `Error getting token info from cache in parseChronikTx`,
+                err,
+            );
+        }
+    }
     etokenAmount = etokenAmount.toString();
 
     // Convert opReturnMessage to string
@@ -730,10 +749,16 @@ export const parseChronikTx = (BCH, tx, wallet) => {
     };
 };
 
-export const getTxHistoryChronik = async (chronik, BCH, wallet) => {
+export const getTxHistoryChronik = async (
+    chronik,
+    BCH,
+    wallet,
+    tokenInfoById,
+) => {
     // Create array of promises to get chronik history for each address
     // Combine them all and sort by blockheight and firstSeen
     // Add all the info cashtab needs to make them useful
+    console.log(`tokenInfoById`, tokenInfoById);
 
     const hash160AndAddressObjArray = [
         {
@@ -776,7 +801,8 @@ export const getTxHistoryChronik = async (chronik, BCH, wallet) => {
     const parsedTxs = [];
     for (let i = 0; i < sortedTxHistoryArray.length; i += 1) {
         const sortedTx = sortedTxHistoryArray[i];
-        sortedTx.parsed = parseChronikTx(BCH, sortedTx, wallet);
+        // Add token genesis info so parsing function can calculate amount by decimals
+        sortedTx.parsed = parseChronikTx(BCH, sortedTx, wallet, tokenInfoById);
         parsedTxs.push(sortedTx);
     }
 
