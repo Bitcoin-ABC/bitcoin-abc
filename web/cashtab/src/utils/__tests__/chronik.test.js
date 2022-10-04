@@ -1,4 +1,5 @@
 import BigNumber from 'bignumber.js';
+import { currency } from '../../components/Common/Ticker';
 import {
     organizeUtxosByType,
     getPreliminaryTokensArray,
@@ -45,6 +46,10 @@ import {
     receivedEtokenTxNineDecimals,
     anotherMockParseTxWallet,
     txHistoryTokenInfoById,
+    mockAirdropTx,
+    mockWalletWithPrivateKeys,
+    mockSentEncryptedTx,
+    mockReceivedEncryptedTx,
 } from '../__mocks__/chronikTxHistory';
 import { ChronikClient } from 'chronik-client';
 import { when } from 'jest-when';
@@ -500,6 +505,120 @@ it(`Successfully parses a received eToken tx with 9 decimal places`, () => {
             isCashtabMessage: false,
             isEncryptedMessage: false,
             decryptionSuccess: false,
+            replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
+        },
+    });
+});
+it(`Correctly parses a received airdrop transaction`, () => {
+    const BCH = new BCHJS({
+        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
+    });
+    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
+    BCH.Address.hash160ToCash = jest
+        .fn()
+        .mockReturnValue(
+            'bitcoincash:qp36z7k8xt7k4l5xnxeypg5mfqeyvvyduukc069ng6',
+        );
+    expect(
+        parseChronikTx(
+            BCH,
+            mockAirdropTx,
+            anotherMockParseTxWallet,
+            txHistoryTokenInfoById,
+        ),
+    ).toStrictEqual({
+        incoming: true,
+        xecAmount: '5.69',
+        originatingHash160: '63a17ac732fd6afe8699b240a29b483246308de7',
+        isEtokenTx: false,
+        legacy: {
+            amountSent: 0,
+            amountReceived: '5.69',
+            outgoingTx: false,
+            tokenTx: false,
+            airdropFlag: true,
+            airdropTokenId:
+                'bdb3b4215ca0622e0c4c07655522c376eaa891838a82f0217fa453bb0595a37c',
+            opReturnMessage:
+                'evc token service holders air drop🥇🌐🥇❤👌🛬🛬🍗🤴',
+            isCashtabMessage: true,
+            isEncryptedMessage: false,
+            decryptionSuccess: false,
+            replyAddress: 'ecash:qp36z7k8xt7k4l5xnxeypg5mfqeyvvyduu04m37fwd',
+        },
+    });
+});
+
+it(`Correctly parses a sent encyrpted message transaction`, () => {
+    const BCH = new BCHJS({
+        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
+    });
+    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
+    BCH.Address.hash160ToCash = jest
+        .fn()
+        .mockReturnValue(
+            'bitcoincash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfc4l80hyqu',
+        );
+    expect(
+        parseChronikTx(
+            BCH,
+            mockSentEncryptedTx,
+            mockWalletWithPrivateKeys,
+            txHistoryTokenInfoById,
+        ),
+    ).toStrictEqual({
+        incoming: false,
+        xecAmount: '12',
+        originatingHash160: 'ee6dc9d40f95d8e106a63385c6fa882991b9e84e',
+        isEtokenTx: false,
+        legacy: {
+            amountSent: '12',
+            amountReceived: 0,
+            outgoingTx: true,
+            tokenTx: false,
+            airdropFlag: false,
+            airdropTokenId: '',
+            opReturnMessage: 'Only the message recipient can view this',
+            isCashtabMessage: true,
+            isEncryptedMessage: true,
+            decryptionSuccess: false,
+            replyAddress: 'ecash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfcvjnyv7xt',
+        },
+    });
+});
+it(`Correctly parses a received encyrpted message transaction`, () => {
+    const BCH = new BCHJS({
+        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
+    });
+    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
+    BCH.Address.hash160ToCash = jest
+        .fn()
+        .mockReturnValue(
+            'bitcoincash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvll3cvjwd',
+        );
+    expect(
+        parseChronikTx(
+            BCH,
+            mockReceivedEncryptedTx,
+            mockWalletWithPrivateKeys,
+            txHistoryTokenInfoById,
+        ),
+    ).toStrictEqual({
+        incoming: true,
+        xecAmount: '11',
+        originatingHash160: '4e532257c01b310b3b5c1fd947c79a72addf8523',
+        isEtokenTx: false,
+        legacy: {
+            amountSent: 0,
+            amountReceived: '11',
+            outgoingTx: false,
+            tokenTx: false,
+            airdropFlag: false,
+            airdropTokenId: '',
+            opReturnMessage: 'Test encrypted message',
+            isCashtabMessage: true,
+            isEncryptedMessage: true,
+            decryptionSuccess: true,
             replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
         },
     });

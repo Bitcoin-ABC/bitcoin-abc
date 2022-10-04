@@ -5572,7 +5572,8 @@ export const anotherMockParseTxWallet = {
     mnemonic: 'string',
     name: 'string',
     Path245: {
-        publicKey: 'string',
+        publicKey:
+            '02c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
         hash160: 'a9f494266e4b3c823712f27dedcb83e30b2fe59f',
         cashAddress: 'string',
         slpAddress: 'string',
@@ -5581,7 +5582,8 @@ export const anotherMockParseTxWallet = {
         legacyAddress: 'string',
     },
     Path145: {
-        publicKey: 'string',
+        publicKey:
+            '03c477d7c44c1aff1549cdb74a32daea2ab4db9c664662a14aedfcb719cec96f29',
         hash160: '1fb76a7db96fc774cbad00e8a72890602b4be304',
         cashAddress: 'string',
         slpAddress: 'string',
@@ -5590,7 +5592,8 @@ export const anotherMockParseTxWallet = {
         legacyAddress: 'string',
     },
     Path1899: {
-        publicKey: 'string',
+        publicKey:
+            '03771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
         hash160: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
         cashAddress: 'string',
         slpAddress: 'string',
@@ -6486,4 +6489,748 @@ export const txHistoryTokenInfoById = {
         tokenId:
             'cf601c56b58bc05a39a95374a4a865f0a8b56544ea937b30fb46315441717c50',
     },
+};
+
+export const mockAirdropTx = {
+    txid: '6e3baf279770c3ed84981c414f433e654cdc1b12df3024051f0f7c215a13dca9',
+    version: 2,
+    inputs: [
+        {
+            prevOut: {
+                txid: '806abb677534eaa3b61ca050b65d4159d64e442699dd5460be87786f973bc079',
+                outIdx: 0,
+            },
+            inputScript:
+                '47304402207acf2b13eb099b42edf2d985afc4da3123a76e3120a66cd2e915fdd93b9ce243022055529f4f4db28c2d3b3ce98fd55dd539c92f0790d36cf8a63a4fbb89eb602b2a412102f2d4a75908a466eec993f27fb985836490d9af52f110b15b60fe6cb17dbedf6d',
+            outputScript: '76a91463a17ac732fd6afe8699b240a29b483246308de788ac',
+            value: '1595',
+            sequenceNo: 4294967295,
+        },
+        {
+            prevOut: {
+                txid: 'c257bdccd3804de5ce1359d986488902d73e11156e544ca9eaf15d9d3878a83c',
+                outIdx: 111,
+            },
+            inputScript:
+                '47304402205f670a5afb2b6cb10ae86818f50c0dd9a9bc639e979a3325ab8834c5631ac81b022078ce9092a5ded4afe261f1b311e5619f1f8673ace9de5dae3441f33834ecb33a412102f2d4a75908a466eec993f27fb985836490d9af52f110b15b60fe6cb17dbedf6d',
+            outputScript: '76a91463a17ac732fd6afe8699b240a29b483246308de788ac',
+            value: '22600',
+            sequenceNo: 4294967295,
+        },
+        {
+            prevOut: {
+                txid: '8db1137ec2cdaa0c5a93c575352eaf024ce304f189c91094cc6b711be876dff4',
+                outIdx: 3,
+            },
+            inputScript:
+                '483045022100cca98ffbd5034f1f07c459a2f7b694d0bfc8cd9c0f33fe0b45d5914a10b034610220592d50dd5f1fea5c1d689909e61d1d1bfad21ea6a42a01ba7d4e9428baedca06412102f2d4a75908a466eec993f27fb985836490d9af52f110b15b60fe6cb17dbedf6d',
+            outputScript: '76a91463a17ac732fd6afe8699b240a29b483246308de788ac',
+            value: '170214',
+            sequenceNo: 4294967295,
+            slpBurn: {
+                token: {
+                    amount: '0',
+                    isMintBaton: false,
+                },
+                tokenId:
+                    'bdb3b4215ca0622e0c4c07655522c376eaa891838a82f0217fa453bb0595a37c',
+            },
+        },
+        {
+            prevOut: {
+                txid: '5c7e9879f94258e7128f684c0be7786d9d2355c1f3b3ded5382e3a2745d9ec53',
+                outIdx: 111,
+            },
+            inputScript:
+                '483045022100fefd74866d212ff97b54fb4d6e588754b13d073b06200f255d891195fc57cb0502201948da90078778ab195c8adec213cc09972a1c89f8a35d10294894bcbf313941412102f2d4a75908a466eec993f27fb985836490d9af52f110b15b60fe6cb17dbedf6d',
+            outputScript: '76a91463a17ac732fd6afe8699b240a29b483246308de788ac',
+            value: '22583',
+            sequenceNo: 4294967295,
+        },
+        {
+            prevOut: {
+                txid: '6b86db3a0adb9963c3fbf911ad3935b611ea6224834f1664e0bdfc026fd57fc9',
+                outIdx: 3,
+            },
+            inputScript:
+                '483045022100e4dde7a7d227f0631d042a1953e55400b00386050eff672832e557a4438f0f0b022060fd64cb142723578a4fd25c703d7afa0db045d981c75f770cb66b3b87ccc72a412102f2d4a75908a466eec993f27fb985836490d9af52f110b15b60fe6cb17dbedf6d',
+            outputScript: '76a91463a17ac732fd6afe8699b240a29b483246308de788ac',
+            value: '16250',
+            sequenceNo: 4294967295,
+            slpBurn: {
+                token: {
+                    amount: '0',
+                    isMintBaton: false,
+                },
+                tokenId:
+                    'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
+            },
+        },
+        {
+            prevOut: {
+                txid: '81f52f89efc61072dcab4735f1a99b6648c8cc10314452185e728b383b170e30',
+                outIdx: 23,
+            },
+            inputScript:
+                '483045022100f057b22cbc643d6aa839d64c96eede889782e4738104dde84c5980089c75c9e702200449b7ad1e88141def532e3cd2943dfa29a9ede8a6d0b3283531dee085b867b1412102f2d4a75908a466eec993f27fb985836490d9af52f110b15b60fe6cb17dbedf6d',
+            outputScript: '76a91463a17ac732fd6afe8699b240a29b483246308de788ac',
+            value: '23567578',
+            sequenceNo: 4294967295,
+        },
+    ],
+    outputs: [
+        {
+            value: '0',
+            outputScript:
+                '6a0464726f7020bdb3b4215ca0622e0c4c07655522c376eaa891838a82f0217fa453bb0595a37c04007461624565766320746f6b656e207365727669636520686f6c64657273206169722064726f70f09fa587f09f8c90f09fa587e29da4f09f918cf09f9bacf09f9bacf09f8d97f09fa4b4',
+        },
+        {
+            value: '550',
+            outputScript: '76a9140352e2c246fa38fe57f6504dcff628a2ab85c9a888ac',
+        },
+        {
+            value: '550',
+            outputScript: '76a9147d2acc561f417bf3265d465fbd76b7976cd35add88ac',
+        },
+        {
+            value: '550',
+            outputScript: '76a91478a291a19347161a532f31cae95d492cc57965e888ac',
+        },
+        {
+            value: '584',
+            outputScript: '76a91478cc64d09c2c558e2c7f1baf463f4e2a6246559888ac',
+        },
+        {
+            value: '10027',
+            outputScript: '76a91471536340a5ad319f24ae433d7caa4475dd69faec88ac',
+        },
+        {
+            value: '10427',
+            outputScript: '76a914649be1781f962c54f47273d58e31439fb452b92988ac',
+        },
+        {
+            value: '560',
+            outputScript: '76a914be3ce499e31ebe80c7aabf673acd854c8969ddc488ac',
+        },
+        {
+            value: '551',
+            outputScript: '76a914e88f39383c4d264410f30d2b28cdae775c67ea8e88ac',
+        },
+        {
+            value: '557',
+            outputScript: '76a9145fbce9959ce7b712393138aef20b013d5a2802e688ac',
+        },
+        {
+            value: '550',
+            outputScript: '76a91450f35e3861d60945efcd2b05f562eff14d28db1088ac',
+        },
+        {
+            value: '10027',
+            outputScript: '76a914866ed8973e444d1f6533eb1858ca284ad589bc1988ac',
+        },
+        {
+            value: '555',
+            outputScript: '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+        },
+        {
+            value: '550',
+            outputScript: '76a9149750cdddb976b8466668a73b58c0a1afbd6f4db888ac',
+        },
+        {
+            value: '560',
+            outputScript: '76a9148ee151bf0f1637cdd2e1b41ed2cd32b0df0a932588ac',
+        },
+        {
+            value: '590',
+            outputScript: '76a914be792ef52fb6bc5adcabeb8eb604fbbb3dc4693488ac',
+        },
+        {
+            value: '551',
+            outputScript: '76a9142ad96e467f9354f86e0c11acfde351194a183dc888ac',
+        },
+        {
+            value: '550',
+            outputScript: '76a914afd2470f264252f1359d7b8093fff4fdd120c5f988ac',
+        },
+        {
+            value: '584',
+            outputScript: '76a9148a8e920239fb5cc647855c1d634b0bbe4c4b670188ac',
+        },
+        {
+            value: '569',
+            outputScript: '76a91412f84f54fad4695321f61c313d2e32a0a8f8086488ac',
+        },
+        {
+            value: '584',
+            outputScript: '76a914842b152a0bbd4647afaeceec8a6afaa90668e7c788ac',
+        },
+        {
+            value: '584',
+            outputScript: '76a914fe971eb2960defce93503c5641d54eaad2ab6a0588ac',
+        },
+        {
+            value: '584',
+            outputScript: '76a914685e825961b67456f440caaaaab0f94cb3354b7288ac',
+        },
+        {
+            value: '584',
+            outputScript: '76a91476b4447a3617e918d03261353e179a583f85d2c688ac',
+        },
+        {
+            value: '584',
+            outputScript: 'a91418bb4f7d8881c1d1457c33a6af8e5937f7f776a887',
+        },
+        {
+            value: '584',
+            outputScript: '76a914b366ef7c1ffd4ef452d72556634720cc8741e1dc88ac',
+        },
+        {
+            value: '553',
+            outputScript: '76a914f5e82dc01170d99a16bf9610da873df47f82aa7a88ac',
+        },
+        {
+            value: '569',
+            outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+        },
+        {
+            value: '553',
+            outputScript: '76a9142ed681dc5421dd4a052f49bda55a9c345fb025e088ac',
+        },
+        {
+            value: '584',
+            outputScript: '76a914b87d445b2dbba65c5a5bb79959b44c24593518f888ac',
+        },
+        {
+            value: '553',
+            outputScript: 'a9147d91dc783fb1c5b7f24befd92eedc8dabfa8ab7e87',
+        },
+        {
+            value: '584',
+            outputScript: 'a914f722fc8e23c5c23663aa3273f445b784b223aab587',
+        },
+        {
+            value: '584',
+            outputScript: '76a914940840311cbe6013e59aff729ffc1d902fd74d1988ac',
+        },
+        {
+            value: '584',
+            outputScript: '76a914d394d084607bce97fa4e661b6f2c7d2f237c89ee88ac',
+        },
+        {
+            value: '558',
+            outputScript: '76a91470e1b34c51cd5319c5ca54da978a6422605e6b3e88ac',
+        },
+        {
+            value: '556',
+            outputScript: '76a91440eeb036d9d6bc71cd65b91eb5bbfa5d808805ca88ac',
+        },
+        {
+            value: '584',
+            outputScript: '76a9144d55f769ce14fd44e2b63500d95016838a5d130d88ac',
+        },
+        {
+            value: '584',
+            outputScript: '76a914a17ee8562ede98dfe9cd00f7f84d74c4c9c58ee788ac',
+        },
+        {
+            value: '584',
+            outputScript: '76a914a13fc3642d1e7293eb4b9f17ec1b6f6d7ea4aaeb88ac',
+        },
+        {
+            value: '576',
+            outputScript: '76a91462e907b15cbf27d5425399ebf6f0fb50ebb88f1888ac',
+        },
+        {
+            value: '10427',
+            outputScript: '76a91486a911e65753b379774448230e7e8f7aeab8fa5e88ac',
+        },
+        {
+            value: '552',
+            outputScript: '76a914e9364c577078f16ee2b27f2c570a4e450dd52e7a88ac',
+        },
+        {
+            value: '1428',
+            outputScript: '76a914ed917afa96833c1fea678e23374c557ed83ff6ff88ac',
+        },
+        {
+            value: '1427',
+            outputScript: '76a91482cf48aefcd80072ef21e4a61dee8c2d70d0bcb388ac',
+        },
+        {
+            value: '9135',
+            outputScript: '76a91444e8388bdd64c1f67905279066f044638d0e166988ac',
+        },
+        {
+            value: '1427',
+            outputScript: '76a914d62e68453b75938616b75309c3381d14d61cb9a488ac',
+        },
+        {
+            value: '1427',
+            outputScript: '76a91425b1d2b4610b6deed8e3d2ac76f4f112883126e488ac',
+        },
+        {
+            value: '921',
+            outputScript: '76a91456423795dc2fa85fa3931cdf9e58f4f8661c2b2488ac',
+        },
+        {
+            value: '1843',
+            outputScript: '76a914e03d94e59bb300b965ac234a274b1cf41c3cadd788ac',
+        },
+        {
+            value: '1584',
+            outputScript: '76a9141e0d6a8ef2c8a0f6ceace8656059ea9dbeb11bda88ac',
+        },
+        {
+            value: '1843',
+            outputScript: '76a914f6cd6ef1bd7add314fd9b115c3ad0dce7844930c88ac',
+        },
+        {
+            value: '560',
+            outputScript: '76a91488fb294f87b0f05bf6eddc1d6bfde2ba3a87bcdd88ac',
+        },
+        {
+            value: '560',
+            outputScript: '76a914a154f00227476ec9741a416e96b69677fddf4b1d88ac',
+        },
+        {
+            value: '1427',
+            outputScript: '76a914362a3773f5685c89e4b800e4c4f9925db2ec1b5c88ac',
+        },
+        {
+            value: '584',
+            outputScript: '76a9146770958588049a3f39828e1ddc57f3dd77227a1188ac',
+        },
+        {
+            value: '1708',
+            outputScript: '76a914b0313745d5f7c850c9682c2711b6a14f2db9276b88ac',
+        },
+        {
+            value: '679',
+            outputScript: '76a914fe729aa40779f822a8c4988f49a115c8aabc0cc788ac',
+        },
+        {
+            value: '1511',
+            outputScript: '76a914ecef001f3c137c880f828d843f754a082eb5396b88ac',
+        },
+        {
+            value: '560',
+            outputScript: '76a91463e79addfc3ad33d04ce064ade02d3c8caca8afd88ac',
+        },
+        {
+            value: '552',
+            outputScript: '76a91489a6da1ed86c8967f03691ad9af8d93c6259137388ac',
+        },
+        {
+            value: '919',
+            outputScript: '76a9149fa178360cab170f9423223a5b166171f54d5bc188ac',
+        },
+        {
+            value: '15000',
+            outputScript: '76a914bc37eb24817a8442b23ae9a06cc405c8fdf1e7c488ac',
+        },
+        {
+            value: '560',
+            outputScript: '76a914e78d304632489ba240b29986fe6afd32c77aa16388ac',
+        },
+        {
+            value: '570',
+            outputScript: '76a914993e6beef74f4ed0c3fe51af895e476ce37c362b88ac',
+        },
+        {
+            value: '921329',
+            outputScript: '76a914b8820ca6b9ceb0f546e142ddd857a4974483719a88ac',
+        },
+        {
+            value: '5100',
+            outputScript: '76a914ca989ff4d3df17fe4dc6eb330b469bd6d5d4814e88ac',
+        },
+        {
+            value: '5200',
+            outputScript: '76a914ad29cdce2237f71e95fee551f04425f70b7e4c9d88ac',
+        },
+        {
+            value: '584',
+            outputScript: '76a9140f57872e06e15593c8a288fcb761b13ca571d78888ac',
+        },
+        {
+            value: '10266',
+            outputScript: '76a9142a96944d06700882bbd984761d9c9e4215f2d78e88ac',
+        },
+        {
+            value: '580',
+            outputScript: '76a9141e37634e6693e228801c194c45701d49a1d12e2c88ac',
+        },
+        {
+            value: '22743016',
+            outputScript: '76a91463a17ac732fd6afe8699b240a29b483246308de788ac',
+            spentBy: {
+                txid: '7242d84b3db853262c53f4b068c57e5a52b67a8b6fea313e0a6f7f58df16e413',
+                outIdx: 0,
+            },
+        },
+    ],
+    lockTime: 0,
+    block: {
+        height: 759800,
+        hash: '00000000000000000f1afd00cb83bd94abb0bec8712e9ed90a2cac1e7a27e84a',
+        timestamp: '1664667368',
+    },
+    timeFirstSeen: '1664667131',
+    size: 3393,
+    isCoinbase: false,
+    network: 'XEC',
+};
+export const mockWalletWithPrivateKeys = {
+    mnemonic:
+        'because achieve voyage useful ticket stem armed air pretty stand leaf bicycle',
+    name: 'Test Encrypt Burnt Wif',
+    Path245: {
+        publicKey:
+            '0375182c1737822265efaed62e91f84d34739cdc783ff8072165242fac4c8e32ab',
+        hash160: '278ac23f8ef6c40b98c23972cc60effdfe477326',
+        cashAddress: 'bitcoincash:qqnc4s3l3mmvgzuccguh9nrqal7lu3mnycmmlefsfr',
+        slpAddress: 'simpleledger:qqnc4s3l3mmvgzuccguh9nrqal7lu3mnychq5zusha',
+        fundingWif: 'L3HmNCzg2fVd8q8JP8fU4mkKhFXo74Gskfp9UatMh7WJ9FTwQQix',
+        fundingAddress:
+            'simpleledger:qqnc4s3l3mmvgzuccguh9nrqal7lu3mnychq5zusha',
+        legacyAddress: '14c5acR4uXmwH1dvWWmqnabD4H2mWhAuYW',
+    },
+    Path145: {
+        publicKey:
+            '03cfb60b9f457ce676ec01b4e92f05a08214989116650830e45b60e2c8cc144a77',
+        hash160: 'dbff532189502b22ecf88e10bc78d42c3785240b',
+        cashAddress: 'bitcoincash:qrdl75ep39gzkghvlz8pp0rc6skr0pfypv7htttdhx',
+        slpAddress: 'simpleledger:qrdl75ep39gzkghvlz8pp0rc6skr0pfypvjvqs7dfc',
+        fundingWif: 'L4TaWveyX8xEY7jLnS86JotV3tQkb1GqCaGxymES1i6Mkj5M77Cm',
+        fundingAddress:
+            'simpleledger:qrdl75ep39gzkghvlz8pp0rc6skr0pfypvjvqs7dfc',
+        legacyAddress: '1M4ErHUrjrv5zBv3YfGSkAkHdKYUnx4V2D',
+    },
+    Path1899: {
+        publicKey:
+            '038c4c26730d97cdeb18e69dff6c47cebb23e6f305c950923cd6110f35ab9006d0',
+        hash160: 'ee6dc9d40f95d8e106a63385c6fa882991b9e84e',
+        cashAddress: 'bitcoincash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfc4l80hyqu',
+        slpAddress: 'simpleledger:qrhxmjw5p72a3cgx5cect3h63q5erw0gfceyv5zy7z',
+        fundingWif: 'Kwt39o7LZJ54nKyYU2Sz6dAZToXtFvYHtn6xKf2Nbi5E9kZfpHSH',
+        fundingAddress:
+            'simpleledger:qrhxmjw5p72a3cgx5cect3h63q5erw0gfceyv5zy7z',
+        legacyAddress: '1NjhLtSNF32Nay82jV1b7yv6s7mxaeFeYP',
+    },
+    state: {
+        balances: {
+            totalBalanceInSatoshis: '49545',
+            totalBalance: '495.45',
+        },
+        tokens: [],
+        slpBalancesAndUtxos: {
+            slpUtxos: [],
+            nonSlpUtxos: [
+                {
+                    outpoint: {
+                        txid: '45411aa786288b679d1c1874f7b126d5ea0c83380304950d364b5b8279a460de',
+                        outIdx: 1,
+                    },
+                    blockHeight: -1,
+                    isCoinbase: false,
+                    value: '48445',
+                    network: 'XEC',
+                    address:
+                        'bitcoincash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfc4l80hyqu',
+                },
+                {
+                    outpoint: {
+                        txid: '66974f4a22ca1a4aa36c932b4effafcb9dd8a32b8766dfc7644ba5922252c4c6',
+                        outIdx: 1,
+                    },
+                    blockHeight: -1,
+                    isCoinbase: false,
+                    value: '1100',
+                    network: 'XEC',
+                    address:
+                        'bitcoincash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfc4l80hyqu',
+                },
+            ],
+            tokens: [],
+        },
+        parsedTxHistory: [
+            {
+                txid: '66974f4a22ca1a4aa36c932b4effafcb9dd8a32b8766dfc7644ba5922252c4c6',
+                version: 2,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: 'fec829a1ff34a9f84058cdd8bf795c114a8fcb3bcc6c3ca9ea8b9ae68420dd9a',
+                            outIdx: 1,
+                        },
+                        inputScript:
+                            '483045022100e9fce8984a9f0cb76642c6df63a83150aa31d1071b62debe89ecadd4d45e727e02205a87fcaad0dd188860db8053caf7d6a21ed7807dbcd1560c251f9a91a4f36815412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
+                        outputScript:
+                            '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        value: '36207',
+                        sequenceNo: 4294967295,
+                    },
+                ],
+                outputs: [
+                    {
+                        value: '0',
+                        outputScript:
+                            '6a04657461624c9104eaa5cbe6e13db7d91f35dca5d270c944a9a3e8c7738c56d12069312f589c7f193e67ea3d2f6d1f300f404c33c19e48dc3ac35145c8152624b7a8e22278e9133862425da2cc44f7297c8618ffa78dd09054a4a5490afd2b62139f19fa7b8516cbae692488fa50e79101d55e7582b3a662c3a5cc737044ef392f8c1fde63b8385886aed37d1b68e887284262f298fe74c0',
+                    },
+                    {
+                        value: '1100',
+                        outputScript:
+                            '76a914ee6dc9d40f95d8e106a63385c6fa882991b9e84e88ac',
+                    },
+                    {
+                        value: '34652',
+                        outputScript:
+                            '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: '1664909877',
+                size: 388,
+                isCoinbase: false,
+                network: 'XEC',
+                parsed: {
+                    incoming: true,
+                    xecAmount: '11',
+                    originatingHash160:
+                        '4e532257c01b310b3b5c1fd947c79a72addf8523',
+                    isEtokenTx: false,
+                    legacy: {
+                        amountSent: 0,
+                        amountReceived: '11',
+                        outgoingTx: false,
+                        tokenTx: false,
+                        airdropFlag: false,
+                        airdropTokenId: '',
+                        opReturnMessage: 'Test encrypted message',
+                        isCashtabMessage: true,
+                        isEncryptedMessage: true,
+                        decryptionSuccess: true,
+                        replyAddress:
+                            'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
+                    },
+                },
+            },
+            {
+                txid: '45411aa786288b679d1c1874f7b126d5ea0c83380304950d364b5b8279a460de',
+                version: 2,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: '60c6ad832e8f44ea59bb15166959b45828d8aec5554a2f70491dddf82dcda837',
+                            outIdx: 0,
+                        },
+                        inputScript:
+                            '47304402200a850b9bf5648bcca5811739fd22586b96460c1939d271b85d2906e31dff30ca0220536d5ab96f0fb4f488d9a4613849d2b212dcb7b755c296e92d11729ee2f939994121038c4c26730d97cdeb18e69dff6c47cebb23e6f305c950923cd6110f35ab9006d0',
+                        outputScript:
+                            '76a914ee6dc9d40f95d8e106a63385c6fa882991b9e84e88ac',
+                        value: '50000',
+                        sequenceNo: 4294967295,
+                    },
+                ],
+                outputs: [
+                    {
+                        value: '1100',
+                        outputScript:
+                            '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                    },
+                    {
+                        value: '48445',
+                        outputScript:
+                            '76a914ee6dc9d40f95d8e106a63385c6fa882991b9e84e88ac',
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: '1664909836',
+                size: 225,
+                isCoinbase: false,
+                network: 'XEC',
+                parsed: {
+                    incoming: false,
+                    xecAmount: '11',
+                    originatingHash160:
+                        'ee6dc9d40f95d8e106a63385c6fa882991b9e84e',
+                    isEtokenTx: false,
+                    legacy: {
+                        amountSent: '11',
+                        amountReceived: 0,
+                        outgoingTx: true,
+                        tokenTx: false,
+                        airdropFlag: false,
+                        airdropTokenId: '',
+                        opReturnMessage: '',
+                        isCashtabMessage: false,
+                        isEncryptedMessage: false,
+                        decryptionSuccess: false,
+                        replyAddress:
+                            'ecash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfcvjnyv7xt',
+                    },
+                },
+            },
+            {
+                txid: '60c6ad832e8f44ea59bb15166959b45828d8aec5554a2f70491dddf82dcda837',
+                version: 2,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: 'eb79e90e3b5a0b6766cbfab3efd9c52f831bef62f9f27c2aa925ee81e43b843f',
+                            outIdx: 1,
+                        },
+                        inputScript:
+                            '483045022100bc373f3fb8dc16b58c9138e8c884ace57e380d7787cf566f5889456a3fd1fd4202200346e070bfbf1d58aeb117890b3d9d5ff4927ee001b98f80f3b35babb486790d412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
+                        outputScript:
+                            '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        value: '1822907',
+                        sequenceNo: 4294967295,
+                    },
+                ],
+                outputs: [
+                    {
+                        value: '50000',
+                        outputScript:
+                            '76a914ee6dc9d40f95d8e106a63385c6fa882991b9e84e88ac',
+                        spentBy: {
+                            txid: '45411aa786288b679d1c1874f7b126d5ea0c83380304950d364b5b8279a460de',
+                            outIdx: 0,
+                        },
+                    },
+                    {
+                        value: '1772452',
+                        outputScript:
+                            '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                    },
+                ],
+                lockTime: 0,
+                timeFirstSeen: '1664909791',
+                size: 226,
+                isCoinbase: false,
+                network: 'XEC',
+                parsed: {
+                    incoming: true,
+                    xecAmount: '500',
+                    originatingHash160:
+                        '4e532257c01b310b3b5c1fd947c79a72addf8523',
+                    isEtokenTx: false,
+                    legacy: {
+                        amountSent: 0,
+                        amountReceived: '500',
+                        outgoingTx: false,
+                        tokenTx: false,
+                        airdropFlag: false,
+                        airdropTokenId: '',
+                        opReturnMessage: '',
+                        isCashtabMessage: false,
+                        isEncryptedMessage: false,
+                        decryptionSuccess: false,
+                        replyAddress:
+                            'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
+                    },
+                },
+            },
+        ],
+        utxos: [
+            {
+                outpoint: {
+                    txid: '45411aa786288b679d1c1874f7b126d5ea0c83380304950d364b5b8279a460de',
+                    outIdx: 1,
+                },
+                blockHeight: -1,
+                isCoinbase: false,
+                value: '48445',
+                network: 'XEC',
+                address:
+                    'bitcoincash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfc4l80hyqu',
+            },
+            {
+                outpoint: {
+                    txid: '66974f4a22ca1a4aa36c932b4effafcb9dd8a32b8766dfc7644ba5922252c4c6',
+                    outIdx: 1,
+                },
+                blockHeight: -1,
+                isCoinbase: false,
+                value: '1100',
+                network: 'XEC',
+                address:
+                    'bitcoincash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfc4l80hyqu',
+            },
+        ],
+    },
+};
+export const mockSentEncryptedTx = {
+    txid: '7ac10096c8a7b32fe338dc938bcf2e1341b99f841687e690d88241107ce4b84b',
+    version: 2,
+    inputs: [
+        {
+            prevOut: {
+                txid: '45411aa786288b679d1c1874f7b126d5ea0c83380304950d364b5b8279a460de',
+                outIdx: 1,
+            },
+            inputScript:
+                '483045022100d4a93c615a7af48f422c273a530ac7f2b78d31a2d4515f11b2f416fce4f4f380022075c22c73190a7de805f219ca8d294777440b558551fea6b59c6c84ec529b16f94121038c4c26730d97cdeb18e69dff6c47cebb23e6f305c950923cd6110f35ab9006d0',
+            outputScript: '76a914ee6dc9d40f95d8e106a63385c6fa882991b9e84e88ac',
+            value: '48445',
+            sequenceNo: 4294967295,
+        },
+    ],
+    outputs: [
+        {
+            value: '0',
+            outputScript:
+                '6a04657461624ca1040f3cc3bc507126c239cde840befd974bdac054f9b9f2bfd4ff32b5f59ca554c4f3fb2d11d30eae3e5d3f61625ff7812ba14f8c901c30ee7e03dea57681a8f7ab8c64d42ce505921b4d67507452537cbe7525281714857c75d7a441b65030b7ea646b59ed0c34adc9f739661620cf7678963db3cac78afd7f49ad0d63aad404b07730255ded82ea3a939c63ee040ae9fac9336bb8d84d7b3380665ffa514a45f4',
+        },
+        {
+            value: '1200',
+            outputScript: '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+        },
+        {
+            value: '46790',
+            outputScript: '76a914ee6dc9d40f95d8e106a63385c6fa882991b9e84e88ac',
+        },
+    ],
+    lockTime: 0,
+    timeFirstSeen: '1664910083',
+    size: 404,
+    isCoinbase: false,
+    network: 'XEC',
+};
+export const mockReceivedEncryptedTx = {
+    txid: '66974f4a22ca1a4aa36c932b4effafcb9dd8a32b8766dfc7644ba5922252c4c6',
+    version: 2,
+    inputs: [
+        {
+            prevOut: {
+                txid: 'fec829a1ff34a9f84058cdd8bf795c114a8fcb3bcc6c3ca9ea8b9ae68420dd9a',
+                outIdx: 1,
+            },
+            inputScript:
+                '483045022100e9fce8984a9f0cb76642c6df63a83150aa31d1071b62debe89ecadd4d45e727e02205a87fcaad0dd188860db8053caf7d6a21ed7807dbcd1560c251f9a91a4f36815412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
+            outputScript: '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+            value: '36207',
+            sequenceNo: 4294967295,
+        },
+    ],
+    outputs: [
+        {
+            value: '0',
+            outputScript:
+                '6a04657461624c9104eaa5cbe6e13db7d91f35dca5d270c944a9a3e8c7738c56d12069312f589c7f193e67ea3d2f6d1f300f404c33c19e48dc3ac35145c8152624b7a8e22278e9133862425da2cc44f7297c8618ffa78dd09054a4a5490afd2b62139f19fa7b8516cbae692488fa50e79101d55e7582b3a662c3a5cc737044ef392f8c1fde63b8385886aed37d1b68e887284262f298fe74c0',
+        },
+        {
+            value: '1100',
+            outputScript: '76a914ee6dc9d40f95d8e106a63385c6fa882991b9e84e88ac',
+        },
+        {
+            value: '34652',
+            outputScript: '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+        },
+    ],
+    lockTime: 0,
+    timeFirstSeen: '1664909877',
+    size: 388,
+    isCoinbase: false,
+    network: 'XEC',
 };
