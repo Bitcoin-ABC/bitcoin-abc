@@ -3,13 +3,13 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-jAaTju hiESqv"
+    className="sc-jDwBTQ cjeMuL"
   >
     <div
-      className="sc-jhAzac okSKK"
+      className="sc-fBuWsC fyVZMB"
     >
       <h4
-        className="sc-fBuWsC eRpPSf"
+        className="sc-fMiknA hzosfA"
       >
         MigrationTestAlpha
       </h4>
@@ -18,14 +18,14 @@ Array [
         onClick={[Function]}
       >
         <svg
-          className="sc-VigVT bdqxvL"
+          className="sc-jTzLTM bTdWCF"
         >
           edit.svg
         </svg>
       </a>
     </div>
     <div
-      className="sc-iRbamj hUnQmz"
+      className="sc-jlyJG jAbixn"
     >
       You currently have 0 
       XEC
@@ -35,7 +35,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-brqgnP bfyWvH"
+    className="sc-cMljjf eXmwYV"
   >
     <div
       className="ant-row"
@@ -47,10 +47,10 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-eNQAEJ bwvlcs"
+          className="sc-hMqMXs bnNnzv"
         >
           <div
-            className="ant-collapse ant-collapse-icon-position-start sc-kEYyzF jDxeXm"
+            className="ant-collapse ant-collapse-icon-position-start sc-kkGfuU htQGZx"
             role={null}
             style={
               Object {
@@ -99,7 +99,7 @@ Array [
                   onClick={null}
                 >
                   <div
-                    className="sc-jKJlTe loXQau"
+                    className="sc-eNQAEJ fAbPPh"
                   >
                     XEC Airdrop Calculator
                   </div>
@@ -117,13 +117,13 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-jAaTju hiESqv"
+    className="sc-jDwBTQ cjeMuL"
   >
     <div
-      className="sc-jhAzac okSKK"
+      className="sc-fBuWsC fyVZMB"
     >
       <h4
-        className="sc-fBuWsC eRpPSf"
+        className="sc-fMiknA hzosfA"
       >
         MigrationTestAlpha
       </h4>
@@ -132,14 +132,14 @@ Array [
         onClick={[Function]}
       >
         <svg
-          className="sc-VigVT bdqxvL"
+          className="sc-jTzLTM bTdWCF"
         >
           edit.svg
         </svg>
       </a>
     </div>
     <div
-      className="sc-iRbamj hUnQmz"
+      className="sc-jlyJG jAbixn"
     >
       You currently have 0 
       XEC
@@ -149,7 +149,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-brqgnP bfyWvH"
+    className="sc-cMljjf eXmwYV"
   >
     <div
       className="ant-row"
@@ -161,10 +161,10 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-eNQAEJ bwvlcs"
+          className="sc-hMqMXs bnNnzv"
         >
           <div
-            className="ant-collapse ant-collapse-icon-position-start sc-kEYyzF jDxeXm"
+            className="ant-collapse ant-collapse-icon-position-start sc-kkGfuU htQGZx"
             role={null}
             style={
               Object {
@@ -213,7 +213,7 @@ Array [
                   onClick={null}
                 >
                   <div
-                    className="sc-jKJlTe loXQau"
+                    className="sc-eNQAEJ fAbPPh"
                   >
                     XEC Airdrop Calculator
                   </div>
@@ -231,13 +231,13 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-jAaTju hiESqv"
+    className="sc-jDwBTQ cjeMuL"
   >
     <div
-      className="sc-jhAzac okSKK"
+      className="sc-fBuWsC fyVZMB"
     >
       <h4
-        className="sc-fBuWsC eRpPSf"
+        className="sc-fMiknA hzosfA"
       >
         MigrationTestAlpha
       </h4>
@@ -246,14 +246,14 @@ Array [
         onClick={[Function]}
       >
         <svg
-          className="sc-VigVT bdqxvL"
+          className="sc-jTzLTM bTdWCF"
         >
           edit.svg
         </svg>
       </a>
     </div>
     <div
-      className="sc-gPEVay djlRgR"
+      className="sc-iRbamj hTWIef"
     >
       0.06
        
@@ -262,7 +262,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-brqgnP bfyWvH"
+    className="sc-cMljjf eXmwYV"
   >
     <div
       className="ant-row"
@@ -274,10 +274,10 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-eNQAEJ bwvlcs"
+          className="sc-hMqMXs bnNnzv"
         >
           <div
-            className="ant-collapse ant-collapse-icon-position-start sc-kEYyzF jDxeXm"
+            className="ant-collapse ant-collapse-icon-position-start sc-kkGfuU htQGZx"
             role={null}
             style={
               Object {
@@ -326,7 +326,7 @@ Array [
                   onClick={null}
                 >
                   <div
-                    className="sc-jKJlTe loXQau"
+                    className="sc-eNQAEJ fAbPPh"
                   >
                     XEC Airdrop Calculator
                   </div>
@@ -344,13 +344,13 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-jAaTju hiESqv"
+    className="sc-jDwBTQ cjeMuL"
   >
     <div
-      className="sc-jhAzac okSKK"
+      className="sc-fBuWsC fyVZMB"
     >
       <h4
-        className="sc-fBuWsC eRpPSf"
+        className="sc-fMiknA hzosfA"
       >
         MigrationTestAlpha
       </h4>
@@ -359,14 +359,14 @@ Array [
         onClick={[Function]}
       >
         <svg
-          className="sc-VigVT bdqxvL"
+          className="sc-jTzLTM bTdWCF"
         >
           edit.svg
         </svg>
       </a>
     </div>
     <div
-      className="sc-iRbamj hUnQmz"
+      className="sc-jlyJG jAbixn"
     >
       You currently have 0 
       XEC
@@ -376,7 +376,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-brqgnP bfyWvH"
+    className="sc-cMljjf eXmwYV"
   >
     <div
       className="ant-row"
@@ -388,10 +388,10 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-eNQAEJ bwvlcs"
+          className="sc-hMqMXs bnNnzv"
         >
           <div
-            className="ant-collapse ant-collapse-icon-position-start sc-kEYyzF jDxeXm"
+            className="ant-collapse ant-collapse-icon-position-start sc-kkGfuU htQGZx"
             role={null}
             style={
               Object {
@@ -440,7 +440,7 @@ Array [
                   onClick={null}
                 >
                   <div
-                    className="sc-jKJlTe loXQau"
+                    className="sc-eNQAEJ fAbPPh"
                   >
                     XEC Airdrop Calculator
                   </div>
@@ -458,24 +458,24 @@ Array [
 exports[`Without wallet defined 1`] = `
 Array [
   <div
-    className="sc-jAaTju hiESqv"
+    className="sc-jDwBTQ cjeMuL"
   >
     <div
-      className="sc-jhAzac okSKK"
+      className="sc-fBuWsC fyVZMB"
     >
       <a
         href="/configure"
         onClick={[Function]}
       >
         <svg
-          className="sc-VigVT bdqxvL"
+          className="sc-jTzLTM bTdWCF"
         >
           edit.svg
         </svg>
       </a>
     </div>
     <div
-      className="sc-iRbamj hUnQmz"
+      className="sc-jlyJG jAbixn"
     >
       You currently have 0 
       XEC
@@ -485,7 +485,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-brqgnP bfyWvH"
+    className="sc-cMljjf eXmwYV"
   >
     <div
       className="ant-row"
@@ -497,10 +497,10 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-eNQAEJ bwvlcs"
+          className="sc-hMqMXs bnNnzv"
         >
           <div
-            className="ant-collapse ant-collapse-icon-position-start sc-kEYyzF jDxeXm"
+            className="ant-collapse ant-collapse-icon-position-start sc-kkGfuU htQGZx"
             role={null}
             style={
               Object {
@@ -549,7 +549,7 @@ Array [
                   onClick={null}
                 >
                   <div
-                    className="sc-jKJlTe loXQau"
+                    className="sc-eNQAEJ fAbPPh"
                   >
                     XEC Airdrop Calculator
                   </div>

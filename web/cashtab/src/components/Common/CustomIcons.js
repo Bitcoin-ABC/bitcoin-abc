@@ -9,6 +9,7 @@ import {
     SettingOutlined,
     LockOutlined,
     ContactsOutlined,
+    FireOutlined,
 } from '@ant-design/icons';
 import { Image } from 'antd';
 import { currency } from 'components/Common/Ticker';
@@ -50,6 +51,9 @@ export const MessageSignedNotificationIcon = () => (
         preview={false}
     />
 );
+export const ThemedBurnOutlined = styled(FireOutlined)`
+    color: ${props => props.theme.eCashPurple} !important;
+`;
 export const ThemedCopyOutlined = styled(CopyOutlined)`
     color: ${props => props.theme.icons.outlined} !important;
 `;

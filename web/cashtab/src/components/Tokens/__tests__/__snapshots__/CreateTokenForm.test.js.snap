@@ -2,13 +2,13 @@
 
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 <div
-  className="sc-Rmtcm dBQjWB"
+  className="sc-bRBYWo hCYsEO"
 >
   <h3>
     Create a Token
   </h3>
   <div
-    className="sc-kGXeez kWkKRl"
+    className="sc-kpOJdX bdyMIi"
   >
     <form
       className="ant-form ant-form-horizontal ant-form-small"
@@ -21,7 +21,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
       }
     >
       <label
-        className="sc-jWBwVP ovobL"
+        className="sc-brqgnP fxmmca"
       >
         Token Name
       </label>
@@ -59,7 +59,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-jWBwVP ovobL"
+        className="sc-brqgnP fxmmca"
       >
         Ticker
       </label>
@@ -97,7 +97,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-jWBwVP ovobL"
+        className="sc-brqgnP fxmmca"
       >
         Decimals
       </label>
@@ -135,7 +135,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-jWBwVP ovobL"
+        className="sc-brqgnP fxmmca"
       >
         Supply
       </label>
@@ -173,7 +173,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-jWBwVP ovobL"
+        className="sc-brqgnP fxmmca"
       >
         Document URL
       </label>
@@ -211,7 +211,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-jWBwVP ovobL"
+        className="sc-brqgnP fxmmca"
       >
         Add Image
       </label>
@@ -317,7 +317,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
     </form>
   </div>
   <button
-    className="sc-iAyFgw eGqICl"
+    className="sc-hSdWYo jjEmBC"
     disabled={true}
     onClick={[Function]}
     style={

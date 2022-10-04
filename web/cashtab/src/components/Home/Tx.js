@@ -8,6 +8,7 @@ import {
     GenesisIcon,
     UnparsedIcon,
     ThemedContactsOutlined,
+    ThemedBurnOutlined,
 } from 'components/Common/CustomIcons';
 import { currency } from 'components/Common/Ticker';
 import { formatBalance, formatDate } from 'utils/formatting';
@@ -44,6 +45,12 @@ const SentTx = styled(TxIcon)`
         margin-right: -3px;
     }
     fill: ${props => props.theme.contrast};
+`;
+const BurnedTx = styled(TxIcon)`
+    svg {
+        margin-right: -3px;
+    }
+    border-color: ${props => props.theme.eCashPurple};
 `;
 const ReceivedTx = styled(TxIcon)`
     svg {
@@ -441,6 +448,10 @@ const Tx = ({
                                                     <GenesisTx>
                                                         <GenesisIcon />
                                                     </GenesisTx>
+                                                ) : data.parsed.isTokenBurn ? (
+                                                    <BurnedTx>
+                                                        <ThemedBurnOutlined />
+                                                    </BurnedTx>
                                                 ) : (
                                                     <SentTx>
                                                         <SendIcon />
@@ -465,7 +476,12 @@ const Tx = ({
                                                             Genesis
                                                         </GenesisHeader>
                                                     ) : (
-                                                        <h3>Sent</h3>
+                                                        <h3>
+                                                            {data.parsed
+                                                                .isTokenBurn
+                                                                ? 'Burned'
+                                                                : 'Sent'}
+                                                        </h3>
                                                     )}
                                                 </>
                                             ) : (

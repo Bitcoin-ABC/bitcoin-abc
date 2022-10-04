@@ -432,6 +432,7 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
     let xecAmount = new BigNumber(0);
     let originatingHash160 = '';
     let etokenAmount = new BigNumber(0);
+    let isTokenBurn = false;
     const isEtokenTx = 'slpTxData' in tx && typeof tx.slpTxData !== 'undefined';
     const isGenesisTx =
         isEtokenTx &&
@@ -456,6 +457,23 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
     for (let i = 0; i < inputs.length; i += 1) {
         const thisInput = inputs[i];
         const thisInputSendingHash160 = thisInput.outputScript;
+        // If this is an etoken tx, check for token burn
+        if (isEtokenTx && typeof thisInput.slpBurn !== 'undefined') {
+            console.log(`Token burn at ${tx.txid}`);
+            // Assume that any eToken tx with a burn is a burn tx
+            isTokenBurn = true;
+            try {
+                const thisEtokenBurnAmount = new BigNumber(
+                    thisInput.slpBurn.token.amount,
+                );
+                // Need to know the total output amount to compare to total input amount and tell if this is a burn transaction
+                etokenAmount = etokenAmount.plus(thisEtokenBurnAmount);
+            } catch (err) {
+                // do nothing
+                // If this happens, the burn amount will render wrong in tx history because we don't have the info in chronik
+                // This is acceptable
+            }
+        }
         /* 
         
         Assume the first input is the originating address
@@ -637,7 +655,7 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
 
                 // Parse token qty if token tx
                 // Note: edge case this is a token tx that sends XEC to Cashtab recipient but token somewhere else
-                if (isEtokenTx) {
+                if (isEtokenTx && !isTokenBurn) {
                     try {
                         const thisEtokenAmount = new BigNumber(
                             thisOutput.slpToken.amount,
@@ -659,7 +677,7 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
         if (!incoming) {
             const thisOutputAmount = new BigNumber(thisOutput.value);
             xecAmount = xecAmount.plus(thisOutputAmount);
-            if (isEtokenTx && !isGenesisTx) {
+            if (isEtokenTx && !isGenesisTx && !isTokenBurn) {
                 try {
                     const thisEtokenAmount = new BigNumber(
                         thisOutput.slpToken.amount,
@@ -681,6 +699,7 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
 
     // Get decimal info for correct etokenAmount
     let genesisInfo = {};
+
     if (isEtokenTx) {
         // Get token genesis info from cache
 
@@ -703,6 +722,9 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
         }
     }
     etokenAmount = etokenAmount.toString();
+    if (isTokenBurn) {
+        console.log(`${etokenAmount} of ${genesisInfo.tokenName} burned`);
+    }
 
     // Convert opReturnMessage to string
     opReturnMessage = Buffer.from(opReturnMessage).toString();
@@ -716,6 +738,7 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
             originatingHash160,
             isEtokenTx,
             etokenAmount,
+            isTokenBurn,
             slpMeta,
             genesisInfo,
             legacy: {

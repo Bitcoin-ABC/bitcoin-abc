@@ -50,6 +50,8 @@ import {
     mockWalletWithPrivateKeys,
     mockSentEncryptedTx,
     mockReceivedEncryptedTx,
+    mockTokenBurnTx,
+    mockTokenBurnWithDecimalsTx,
 } from '../__mocks__/chronikTxHistory';
 import { ChronikClient } from 'chronik-client';
 import { when } from 'jest-when';
@@ -312,6 +314,7 @@ it(`Successfully parses an incoming eToken tx`, () => {
         incoming: true,
         xecAmount: '5.46',
         isEtokenTx: true,
+        isTokenBurn: false,
         originatingHash160: '4e532257c01b310b3b5c1fd947c79a72addf8523',
         slpMeta: {
             tokenId:
@@ -367,6 +370,7 @@ it(`Successfully parses an outgoing eToken tx`, () => {
         incoming: false,
         xecAmount: '5.46',
         isEtokenTx: true,
+        isTokenBurn: false,
         originatingHash160: '76458db0ed96fe9863fc1ccec9fa2cfab884b0f6',
         slpMeta: {
             tokenId:
@@ -423,6 +427,7 @@ it(`Successfully parses a genesis eToken tx`, () => {
         xecAmount: '0',
         originatingHash160: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
         isEtokenTx: true,
+        isTokenBurn: false,
         etokenAmount: '777.7777777',
         slpMeta: {
             tokenType: 'FUNGIBLE',
@@ -477,6 +482,7 @@ it(`Successfully parses a received eToken tx with 9 decimal places`, () => {
         xecAmount: '5.46',
         originatingHash160: '4e532257c01b310b3b5c1fd947c79a72addf8523',
         isEtokenTx: true,
+        isTokenBurn: false,
         etokenAmount: '0.123456789',
         slpMeta: {
             tokenType: 'FUNGIBLE',
@@ -620,6 +626,120 @@ it(`Correctly parses a received encyrpted message transaction`, () => {
             isEncryptedMessage: true,
             decryptionSuccess: true,
             replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
+        },
+    });
+});
+
+it(`Correctly parses a token burn transaction`, () => {
+    const BCH = new BCHJS({
+        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
+    });
+    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
+    BCH.Address.hash160ToCash = jest
+        .fn()
+        .mockReturnValue(
+            'bitcoincash:qz2708636snqhsxu8wnlka78h6fdp77ar5ulhz04hr',
+        );
+    expect(
+        parseChronikTx(
+            BCH,
+            mockTokenBurnTx,
+            anotherMockParseTxWallet,
+            txHistoryTokenInfoById,
+        ),
+    ).toStrictEqual({
+        incoming: false,
+        xecAmount: '0',
+        originatingHash160: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+        isEtokenTx: true,
+        isTokenBurn: true,
+        etokenAmount: '12',
+        slpMeta: {
+            tokenType: 'FUNGIBLE',
+            txType: 'SEND',
+            tokenId:
+                '4db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c875',
+        },
+        genesisInfo: {
+            tokenTicker: 'LVV',
+            tokenName: 'Lambda Variant Variants',
+            tokenDocumentUrl: 'https://cashtabapp.com/',
+            tokenDocumentHash: '',
+            decimals: 0,
+            tokenId:
+                '4db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c875',
+            success: true,
+        },
+        legacy: {
+            amountSent: '0',
+            amountReceived: 0,
+            outgoingTx: true,
+            tokenTx: true,
+            airdropFlag: false,
+            airdropTokenId: '',
+            opReturnMessage: '',
+            isCashtabMessage: false,
+            isEncryptedMessage: false,
+            decryptionSuccess: false,
+            replyAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+        },
+    });
+});
+it(`Correctly parses a token burn transaction with decimal places`, () => {
+    const BCH = new BCHJS({
+        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
+    });
+    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
+    BCH.Address.hash160ToCash = jest
+        .fn()
+        .mockReturnValue(
+            'bitcoincash:qz2708636snqhsxu8wnlka78h6fdp77ar5ulhz04hr',
+        );
+    expect(
+        parseChronikTx(
+            BCH,
+            mockTokenBurnWithDecimalsTx,
+            anotherMockParseTxWallet,
+            txHistoryTokenInfoById,
+        ),
+    ).toStrictEqual({
+        incoming: false,
+        xecAmount: '0',
+        originatingHash160: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+        isEtokenTx: true,
+        etokenAmount: '0.1234567',
+        isTokenBurn: true,
+        slpMeta: {
+            tokenType: 'FUNGIBLE',
+            txType: 'SEND',
+            tokenId:
+                '7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d',
+        },
+        genesisInfo: {
+            tokenTicker: 'WDT',
+            tokenName:
+                'Test Token With Exceptionally Long Name For CSS And Style Revisions',
+            tokenDocumentUrl:
+                'https://www.ImpossiblyLongWebsiteDidYouThinkWebDevWouldBeFun.org',
+            tokenDocumentHash:
+                '85b591c15c9f49531e39fcfeb2a5a26b2bd0f7c018fb9cd71b5d92dfb732d5cc',
+            decimals: 7,
+            tokenId:
+                '7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d',
+            success: true,
+        },
+        legacy: {
+            amountSent: '0',
+            amountReceived: 0,
+            outgoingTx: true,
+            tokenTx: true,
+            airdropFlag: false,
+            airdropTokenId: '',
+            opReturnMessage: '',
+            isCashtabMessage: false,
+            isEncryptedMessage: false,
+            decryptionSuccess: false,
+            replyAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
         },
     });
 });
