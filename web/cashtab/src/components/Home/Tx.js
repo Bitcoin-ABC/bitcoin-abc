@@ -651,8 +651,7 @@ const Tx = ({
                                                                 -
                                                                 {formatBalance(
                                                                     data.parsed
-                                                                        .legacy
-                                                                        .amountSent,
+                                                                        .xecAmount,
                                                                 )}{' '}
                                                                 {
                                                                     currency.ticker
@@ -662,8 +661,7 @@ const Tx = ({
                                                                 null &&
                                                                 !isNaN(
                                                                     data.parsed
-                                                                        .legacy
-                                                                        .amountSent,
+                                                                        .xecAmount,
                                                                 ) && (
                                                                     <h4>
                                                                         -
@@ -677,8 +675,7 @@ const Tx = ({
                                                                         {(
                                                                             data
                                                                                 .parsed
-                                                                                .legacy
-                                                                                .amountSent *
+                                                                                .xecAmount *
                                                                             fiatPrice
                                                                         ).toFixed(
                                                                             2,
@@ -697,8 +694,7 @@ const Tx = ({
                                                                 +
                                                                 {formatBalance(
                                                                     data.parsed
-                                                                        .legacy
-                                                                        .amountReceived,
+                                                                        .xecAmount,
                                                                 )}{' '}
                                                                 {
                                                                     currency.ticker
@@ -708,8 +704,7 @@ const Tx = ({
                                                                 null &&
                                                                 !isNaN(
                                                                     data.parsed
-                                                                        .legacy
-                                                                        .amountReceived,
+                                                                        .xecAmount,
                                                                 ) && (
                                                                     <h4>
                                                                         +
@@ -723,8 +718,7 @@ const Tx = ({
                                                                         {(
                                                                             data
                                                                                 .parsed
-                                                                                .legacy
-                                                                                .amountReceived *
+                                                                                .xecAmount *
                                                                             fiatPrice
                                                                         ).toFixed(
                                                                             2,

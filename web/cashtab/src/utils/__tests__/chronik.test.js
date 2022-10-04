@@ -246,8 +246,7 @@ it(`Successfully parses an incoming XEC tx`, () => {
         legacy: {
             airdropFlag: false,
             airdropTokenId: '',
-            amountReceived: '42',
-            amountSent: 0,
+
             decryptionSuccess: false,
             isCashtabMessage: false,
             isEncryptedMessage: false,
@@ -283,8 +282,7 @@ it(`Successfully parses an outgoing XEC tx`, () => {
         legacy: {
             airdropFlag: false,
             airdropTokenId: '',
-            amountReceived: 0,
-            amountSent: '222',
+
             decryptionSuccess: false,
             isCashtabMessage: false,
             isEncryptedMessage: false,
@@ -337,8 +335,7 @@ it(`Successfully parses an incoming eToken tx`, () => {
         legacy: {
             airdropFlag: false,
             airdropTokenId: '',
-            amountReceived: '5.46',
-            amountSent: 0,
+
             decryptionSuccess: false,
             isCashtabMessage: false,
             isEncryptedMessage: false,
@@ -393,8 +390,7 @@ it(`Successfully parses an outgoing eToken tx`, () => {
         legacy: {
             airdropFlag: false,
             airdropTokenId: '',
-            amountReceived: 0,
-            amountSent: '5.46',
+
             decryptionSuccess: false,
             isCashtabMessage: false,
             isEncryptedMessage: false,
@@ -446,8 +442,6 @@ it(`Successfully parses a genesis eToken tx`, () => {
             tokenTicker: 'UDT',
         },
         legacy: {
-            amountSent: '0',
-            amountReceived: 0,
             outgoingTx: true,
             tokenTx: true,
             airdropFlag: false,
@@ -501,8 +495,6 @@ it(`Successfully parses a received eToken tx with 9 decimal places`, () => {
             tokenTicker: 'CTB',
         },
         legacy: {
-            amountSent: 0,
-            amountReceived: '5.46',
             outgoingTx: false,
             tokenTx: true,
             airdropFlag: false,
@@ -538,8 +530,6 @@ it(`Correctly parses a received airdrop transaction`, () => {
         originatingHash160: '63a17ac732fd6afe8699b240a29b483246308de7',
         isEtokenTx: false,
         legacy: {
-            amountSent: 0,
-            amountReceived: '5.69',
             outgoingTx: false,
             tokenTx: false,
             airdropFlag: true,
@@ -578,8 +568,6 @@ it(`Correctly parses a sent encyrpted message transaction`, () => {
         originatingHash160: 'ee6dc9d40f95d8e106a63385c6fa882991b9e84e',
         isEtokenTx: false,
         legacy: {
-            amountSent: '12',
-            amountReceived: 0,
             outgoingTx: true,
             tokenTx: false,
             airdropFlag: false,
@@ -615,8 +603,6 @@ it(`Correctly parses a received encyrpted message transaction`, () => {
         originatingHash160: '4e532257c01b310b3b5c1fd947c79a72addf8523',
         isEtokenTx: false,
         legacy: {
-            amountSent: 0,
-            amountReceived: '11',
             outgoingTx: false,
             tokenTx: false,
             airdropFlag: false,
@@ -671,8 +657,6 @@ it(`Correctly parses a token burn transaction`, () => {
             success: true,
         },
         legacy: {
-            amountSent: '0',
-            amountReceived: 0,
             outgoingTx: true,
             tokenTx: true,
             airdropFlag: false,
@@ -729,8 +713,6 @@ it(`Correctly parses a token burn transaction with decimal places`, () => {
             success: true,
         },
         legacy: {
-            amountSent: '0',
-            amountReceived: 0,
             outgoingTx: true,
             tokenTx: true,
             airdropFlag: false,
