@@ -742,7 +742,6 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
             slpMeta,
             genesisInfo,
             legacy: {
-                outgoingTx: !incoming,
                 tokenTx: true,
                 airdropFlag,
                 airdropTokenId,
@@ -761,7 +760,6 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
         originatingHash160,
         isEtokenTx,
         legacy: {
-            outgoingTx: !incoming,
             tokenTx: false,
             airdropFlag,
             airdropTokenId,

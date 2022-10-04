@@ -251,7 +251,6 @@ it(`Successfully parses an incoming XEC tx`, () => {
             isCashtabMessage: false,
             isEncryptedMessage: false,
             opReturnMessage: '',
-            outgoingTx: false,
             replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
             tokenTx: false,
         },
@@ -287,7 +286,6 @@ it(`Successfully parses an outgoing XEC tx`, () => {
             isCashtabMessage: false,
             isEncryptedMessage: false,
             opReturnMessage: '',
-            outgoingTx: true,
             replyAddress: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
             tokenTx: false,
         },
@@ -340,7 +338,6 @@ it(`Successfully parses an incoming eToken tx`, () => {
             isCashtabMessage: false,
             isEncryptedMessage: false,
             opReturnMessage: '',
-            outgoingTx: false,
             replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
             tokenTx: true,
         },
@@ -395,7 +392,6 @@ it(`Successfully parses an outgoing eToken tx`, () => {
             isCashtabMessage: false,
             isEncryptedMessage: false,
             opReturnMessage: '',
-            outgoingTx: true,
             replyAddress: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
             tokenTx: true,
         },
@@ -442,7 +438,6 @@ it(`Successfully parses a genesis eToken tx`, () => {
             tokenTicker: 'UDT',
         },
         legacy: {
-            outgoingTx: true,
             tokenTx: true,
             airdropFlag: false,
             airdropTokenId: '',
@@ -495,7 +490,6 @@ it(`Successfully parses a received eToken tx with 9 decimal places`, () => {
             tokenTicker: 'CTB',
         },
         legacy: {
-            outgoingTx: false,
             tokenTx: true,
             airdropFlag: false,
             airdropTokenId: '',
@@ -530,7 +524,6 @@ it(`Correctly parses a received airdrop transaction`, () => {
         originatingHash160: '63a17ac732fd6afe8699b240a29b483246308de7',
         isEtokenTx: false,
         legacy: {
-            outgoingTx: false,
             tokenTx: false,
             airdropFlag: true,
             airdropTokenId:
@@ -568,7 +561,6 @@ it(`Correctly parses a sent encyrpted message transaction`, () => {
         originatingHash160: 'ee6dc9d40f95d8e106a63385c6fa882991b9e84e',
         isEtokenTx: false,
         legacy: {
-            outgoingTx: true,
             tokenTx: false,
             airdropFlag: false,
             airdropTokenId: '',
@@ -603,7 +595,6 @@ it(`Correctly parses a received encyrpted message transaction`, () => {
         originatingHash160: '4e532257c01b310b3b5c1fd947c79a72addf8523',
         isEtokenTx: false,
         legacy: {
-            outgoingTx: false,
             tokenTx: false,
             airdropFlag: false,
             airdropTokenId: '',
@@ -657,7 +648,6 @@ it(`Correctly parses a token burn transaction`, () => {
             success: true,
         },
         legacy: {
-            outgoingTx: true,
             tokenTx: true,
             airdropFlag: false,
             airdropTokenId: '',
@@ -713,7 +703,6 @@ it(`Correctly parses a token burn transaction with decimal places`, () => {
             success: true,
         },
         legacy: {
-            outgoingTx: true,
             tokenTx: true,
             airdropFlag: false,
             airdropTokenId: '',

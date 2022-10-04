@@ -440,7 +440,7 @@ const Tx = ({
                             header={
                                 <>
                                     <TxWrapper>
-                                        {data.parsed.legacy.outgoingTx ? (
+                                        {!data.parsed.incoming ? (
                                             <>
                                                 {data.parsed.legacy.tokenTx &&
                                                 data.slpTxData.slpMeta
@@ -465,7 +465,7 @@ const Tx = ({
                                         )}
 
                                         <LeftTextCtn>
-                                            {data.parsed.legacy.outgoingTx ? (
+                                            {!data.parsed.incoming ? (
                                                 <>
                                                     {data.parsed.legacy
                                                         .tokenTx &&
@@ -538,10 +538,7 @@ const Tx = ({
                                         </LeftTextCtn>
                                         {data.parsed.legacy.tokenTx ? (
                                             <TokenInfo
-                                                outgoing={
-                                                    data.parsed.legacy
-                                                        .outgoingTx
-                                                }
+                                                outgoing={!data.parsed.incoming}
                                             >
                                                 {data.parsed.legacy.tokenTx &&
                                                 data.parsed.genesisInfo ? (
@@ -556,8 +553,8 @@ const Tx = ({
                                                                 }
                                                             />
                                                         </TxTokenIcon>
-                                                        {data.parsed.legacy
-                                                            .outgoingTx ? (
+                                                        {!data.parsed
+                                                            .incoming ? (
                                                             <RightTextCtn>
                                                                 {data.slpTxData
                                                                     .slpMeta
@@ -640,12 +637,10 @@ const Tx = ({
                                             <>
                                                 <TxInfo
                                                     outgoing={
-                                                        data.parsed.legacy
-                                                            .outgoingTx
+                                                        !data.parsed.incoming
                                                     }
                                                 >
-                                                    {data.parsed.legacy
-                                                        .outgoingTx ? (
+                                                    {!data.parsed.incoming ? (
                                                         <>
                                                             <h3>
                                                                 -
@@ -739,8 +734,7 @@ const Tx = ({
                                             <>
                                                 <OpReturnType
                                                     received={
-                                                        !data.parsed.legacy
-                                                            .outgoingTx
+                                                        data.parsed.incoming
                                                     }
                                                     aria-expanded={
                                                         cashtabSettings.hideMessagesFromUnknownSenders
@@ -748,8 +742,7 @@ const Tx = ({
                                                             : false
                                                     }
                                                 >
-                                                    {!data.parsed.legacy
-                                                        .outgoingTx &&
+                                                    {data.parsed.incoming &&
                                                         !addressesInContactList.includes(
                                                             data.parsed.legacy
                                                                 .replyAddress,
@@ -791,10 +784,9 @@ const Tx = ({
                                                                     .isEncryptedMessage && (
                                                                     <>
                                                                         {!displayedMessage &&
-                                                                        !data
+                                                                        data
                                                                             .parsed
-                                                                            .legacy
-                                                                            .outgoingTx &&
+                                                                            .incoming &&
                                                                         !addressesInContactList.includes(
                                                                             data
                                                                                 .parsed
@@ -826,10 +818,9 @@ const Tx = ({
                                                                                         .legacy
                                                                                         .replyAddress,
                                                                                 ) &&
-                                                                                    !data
+                                                                                    data
                                                                                         .parsed
-                                                                                        .legacy
-                                                                                        .outgoingTx && (
+                                                                                        .incoming && (
                                                                                         <ShowHideMessageButton
                                                                                             onClick={e => {
                                                                                                 e.stopPropagation();
@@ -850,10 +841,9 @@ const Tx = ({
                                                                     .isEncryptedMessage && (
                                                                     <>
                                                                         {!displayedMessage &&
-                                                                        !data
+                                                                        data
                                                                             .parsed
-                                                                            .legacy
-                                                                            .outgoingTx &&
+                                                                            .incoming &&
                                                                         !addressesInContactList.includes(
                                                                             data
                                                                                 .parsed
@@ -966,8 +956,7 @@ const Tx = ({
                                                             )}
                                                         </>
                                                     )}
-                                                    {(!data.parsed.legacy
-                                                        .outgoingTx &&
+                                                    {(data.parsed.incoming &&
                                                         data.parsed.legacy
                                                             .replyAddress &&
                                                         addressesInContactList.includes(
@@ -975,8 +964,7 @@ const Tx = ({
                                                                 .replyAddress,
                                                         )) ||
                                                     (!cashtabSettings.hideMessagesFromUnknownSenders &&
-                                                        !data.parsed.legacy
-                                                            .outgoingTx &&
+                                                        data.parsed.incoming &&
                                                         data.parsed.legacy
                                                             .replyAddress &&
                                                         displayedMessage) ? (
@@ -1066,7 +1054,7 @@ const Tx = ({
                                         </DropdownIconWrapper>
                                     </DropdownButton>
                                 </TxLink>
-                                {!data.parsed.legacy.outgoingTx &&
+                                {!!data.parsed.incoming &&
                                     data.parsed.legacy.replyAddress &&
                                     !addressesInContactList.includes(
                                         data.parsed.legacy.replyAddress,
