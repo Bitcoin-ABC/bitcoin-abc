@@ -568,6 +568,7 @@ class P2PInterface(P2PConnection):
         if self.support_addrv2:
             self.send_message(msg_sendaddrv2())
         self.nServices = message.nServices
+        self.relay = message.relay
         self.send_message(msg_getaddr())
 
     # Connection helper methods

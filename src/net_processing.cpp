@@ -2087,8 +2087,7 @@ void PeerManagerImpl::PushNodeVersion(const Config &config, CNode &pnode,
             : CService();
     uint64_t your_services{addr.nServices};
 
-    const bool tx_relay = !m_opts.ignore_incoming_txs &&
-                          !pnode.IsBlockOnlyConn() && !pnode.IsFeelerConn();
+    const bool tx_relay{!RejectIncomingTxs(pnode)};
     m_connman.PushMessage(
         // your_services, addr_you: Together the pre-version-31402 serialization
         //     of CAddress "addrYou" (without nTime)
@@ -8116,6 +8115,9 @@ public:
 bool PeerManagerImpl::RejectIncomingTxs(const CNode &peer) const {
     // block-relay-only peers may never send txs to us
     if (peer.IsBlockOnlyConn()) {
+        return true;
+    }
+    if (peer.IsFeelerConn()) {
         return true;
     }
     // In -blocksonly mode, peers need the 'relay' permission to send txs to us
