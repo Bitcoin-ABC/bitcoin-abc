@@ -258,7 +258,7 @@ const useWallet = () => {
                     nonSlpUtxos,
                     tokens,
                 },
-                parsedTxHistory: parsedWithTokens,
+                parsedTxHistory: chronikTxHistory,
                 utxos: chronikUtxos,
             };
 

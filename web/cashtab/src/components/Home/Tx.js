@@ -10,7 +10,6 @@ import {
     ThemedContactsOutlined,
 } from 'components/Common/CustomIcons';
 import { currency } from 'components/Common/Ticker';
-import { fromLegacyDecimals } from 'utils/cashMethods';
 import { formatBalance, formatDate } from 'utils/formatting';
 import TokenIcon from 'components/Tokens/TokenIcon';
 import { Collapse } from 'antd';
@@ -404,14 +403,11 @@ const Tx = ({
     const handleShowMessage = () => {
         setDisplayedMessage(!displayedMessage);
     };
-    const txDate =
-        typeof data.blocktime === 'undefined'
-            ? formatDate()
-            : formatDate(data.blocktime, navigator.language);
-    // if data only includes height and txid, then the tx could not be parsed by cashtab
-    // render as such but keep link to block explorer
+    const txDate = formatDate(data.timeFirstSeen, navigator.language);
+
+    // A wallet migrating from bch-api tx history to chronik will get caught here for one update cycle
     let unparsedTx = false;
-    if (!Object.keys(data).includes('outgoingTx')) {
+    if (!Object.keys(data).includes('parsed')) {
         unparsedTx = true;
     }
     return (
@@ -437,12 +433,11 @@ const Tx = ({
                             header={
                                 <>
                                     <TxWrapper>
-                                        {data.outgoingTx ? (
+                                        {data.parsed.legacy.outgoingTx ? (
                                             <>
-                                                {data.tokenTx &&
-                                                data.tokenInfo
-                                                    .transactionType ===
-                                                    'GENESIS' ? (
+                                                {data.parsed.legacy.tokenTx &&
+                                                data.slpTxData.slpMeta
+                                                    .txType === 'GENESIS' ? (
                                                     <GenesisTx>
                                                         <GenesisIcon />
                                                     </GenesisTx>
@@ -459,11 +454,12 @@ const Tx = ({
                                         )}
 
                                         <LeftTextCtn>
-                                            {data.outgoingTx ? (
+                                            {data.parsed.legacy.outgoingTx ? (
                                                 <>
-                                                    {data.tokenTx &&
-                                                    data.tokenInfo
-                                                        .transactionType ===
+                                                    {data.parsed.legacy
+                                                        .tokenTx &&
+                                                    data.slpTxData.slpMeta
+                                                        .txType ===
                                                         'GENESIS' ? (
                                                         <GenesisHeader>
                                                             Genesis
@@ -479,7 +475,8 @@ const Tx = ({
                                                     </ReceivedHeader>
 
                                                     {addressesInContactList.includes(
-                                                        data.replyAddress,
+                                                        data.parsed.legacy
+                                                            .replyAddress,
                                                     ) && (
                                                         <>
                                                             <h4>from</h4>
@@ -492,7 +489,10 @@ const Tx = ({
                                                                     const contactAddress =
                                                                         contact.address;
                                                                     const dataAddress =
-                                                                        data.replyAddress;
+                                                                        data
+                                                                            .parsed
+                                                                            .legacy
+                                                                            .replyAddress;
                                                                     if (
                                                                         contactAddress ===
                                                                         dataAddress
@@ -520,43 +520,50 @@ const Tx = ({
                                             )}
                                             <h4>{txDate}</h4>
                                         </LeftTextCtn>
-                                        {data.tokenTx ? (
+                                        {data.parsed.legacy.tokenTx ? (
                                             <TokenInfo
-                                                outgoing={data.outgoingTx}
+                                                outgoing={
+                                                    data.parsed.legacy
+                                                        .outgoingTx
+                                                }
                                             >
-                                                {data.tokenTx &&
-                                                data.tokenInfo ? (
+                                                {data.parsed.legacy.tokenTx &&
+                                                data.parsed.genesisInfo ? (
                                                     <>
                                                         <TxTokenIcon>
                                                             <TokenIcon
                                                                 size={32}
                                                                 tokenId={
-                                                                    data
-                                                                        .tokenInfo
+                                                                    data.parsed
+                                                                        .genesisInfo
                                                                         .tokenId
                                                                 }
                                                             />
                                                         </TxTokenIcon>
-                                                        {data.outgoingTx ? (
+                                                        {data.parsed.legacy
+                                                            .outgoingTx ? (
                                                             <RightTextCtn>
-                                                                {data.tokenInfo
-                                                                    .transactionType ===
+                                                                {data.slpTxData
+                                                                    .slpMeta
+                                                                    .txType ===
                                                                 'GENESIS' ? (
                                                                     <>
                                                                         <TokenTxAmtGenesis>
                                                                             +{' '}
-                                                                            {data.tokenInfo.qtyReceived.toString()}
+                                                                            {data.parsed.etokenAmount.toString()}
                                                                             &nbsp;
                                                                             {
                                                                                 data
-                                                                                    .tokenInfo
+                                                                                    .parsed
+                                                                                    .genesisInfo
                                                                                     .tokenTicker
                                                                             }
                                                                         </TokenTxAmtGenesis>
                                                                         <TokenName>
                                                                             {
                                                                                 data
-                                                                                    .tokenInfo
+                                                                                    .parsed
+                                                                                    .genesisInfo
                                                                                     .tokenName
                                                                             }
                                                                         </TokenName>
@@ -565,18 +572,20 @@ const Tx = ({
                                                                     <>
                                                                         <TokenTxAmt>
                                                                             -{' '}
-                                                                            {data.tokenInfo.qtySent.toString()}
+                                                                            {data.parsed.etokenAmount.toString()}
                                                                             &nbsp;
                                                                             {
                                                                                 data
-                                                                                    .tokenInfo
+                                                                                    .parsed
+                                                                                    .genesisInfo
                                                                                     .tokenTicker
                                                                             }
                                                                         </TokenTxAmt>
                                                                         <TokenName>
                                                                             {
                                                                                 data
-                                                                                    .tokenInfo
+                                                                                    .parsed
+                                                                                    .genesisInfo
                                                                                     .tokenName
                                                                             }
                                                                         </TokenName>
@@ -587,18 +596,20 @@ const Tx = ({
                                                             <RightTextCtn>
                                                                 <TokenTxAmtReceived>
                                                                     +{' '}
-                                                                    {data.tokenInfo.qtyReceived.toString()}
+                                                                    {data.parsed.etokenAmount.toString()}
                                                                     &nbsp;
                                                                     {
                                                                         data
-                                                                            .tokenInfo
+                                                                            .parsed
+                                                                            .genesisInfo
                                                                             .tokenTicker
                                                                     }
                                                                 </TokenTxAmtReceived>
                                                                 <TokenName>
                                                                     {
                                                                         data
-                                                                            .tokenInfo
+                                                                            .parsed
+                                                                            .genesisInfo
                                                                             .tokenName
                                                                     }
                                                                 </TokenName>
@@ -612,16 +623,20 @@ const Tx = ({
                                         ) : (
                                             <>
                                                 <TxInfo
-                                                    outgoing={data.outgoingTx}
+                                                    outgoing={
+                                                        data.parsed.legacy
+                                                            .outgoingTx
+                                                    }
                                                 >
-                                                    {data.outgoingTx ? (
+                                                    {data.parsed.legacy
+                                                        .outgoingTx ? (
                                                         <>
                                                             <h3>
                                                                 -
                                                                 {formatBalance(
-                                                                    fromLegacyDecimals(
-                                                                        data.amountSent,
-                                                                    ),
+                                                                    data.parsed
+                                                                        .legacy
+                                                                        .amountSent,
                                                                 )}{' '}
                                                                 {
                                                                     currency.ticker
@@ -630,7 +645,9 @@ const Tx = ({
                                                             {fiatPrice !==
                                                                 null &&
                                                                 !isNaN(
-                                                                    data.amountSent,
+                                                                    data.parsed
+                                                                        .legacy
+                                                                        .amountSent,
                                                                 ) && (
                                                                     <h4>
                                                                         -
@@ -642,9 +659,10 @@ const Tx = ({
                                                                                 .symbol
                                                                         }
                                                                         {(
-                                                                            fromLegacyDecimals(
-                                                                                data.amountSent,
-                                                                            ) *
+                                                                            data
+                                                                                .parsed
+                                                                                .legacy
+                                                                                .amountSent *
                                                                             fiatPrice
                                                                         ).toFixed(
                                                                             2,
@@ -662,9 +680,9 @@ const Tx = ({
                                                             <TokenTxAmtReceived>
                                                                 +
                                                                 {formatBalance(
-                                                                    fromLegacyDecimals(
-                                                                        data.amountReceived,
-                                                                    ),
+                                                                    data.parsed
+                                                                        .legacy
+                                                                        .amountReceived,
                                                                 )}{' '}
                                                                 {
                                                                     currency.ticker
@@ -673,7 +691,9 @@ const Tx = ({
                                                             {fiatPrice !==
                                                                 null &&
                                                                 !isNaN(
-                                                                    data.amountReceived,
+                                                                    data.parsed
+                                                                        .legacy
+                                                                        .amountReceived,
                                                                 ) && (
                                                                     <h4>
                                                                         +
@@ -685,9 +705,10 @@ const Tx = ({
                                                                                 .symbol
                                                                         }
                                                                         {(
-                                                                            fromLegacyDecimals(
-                                                                                data.amountReceived,
-                                                                            ) *
+                                                                            data
+                                                                                .parsed
+                                                                                .legacy
+                                                                                .amountReceived *
                                                                             fiatPrice
                                                                         ).toFixed(
                                                                             2,
@@ -704,19 +725,24 @@ const Tx = ({
                                                 </TxInfo>
                                             </>
                                         )}
-                                        {data.opReturnMessage && (
+                                        {data.parsed.legacy.opReturnMessage && (
                                             <>
                                                 <OpReturnType
-                                                    received={!data.outgoingTx}
+                                                    received={
+                                                        !data.parsed.legacy
+                                                            .outgoingTx
+                                                    }
                                                     aria-expanded={
                                                         cashtabSettings.hideMessagesFromUnknownSenders
                                                             ? displayedMessage
                                                             : false
                                                     }
                                                 >
-                                                    {!data.outgoingTx &&
+                                                    {!data.parsed.legacy
+                                                        .outgoingTx &&
                                                         !addressesInContactList.includes(
-                                                            data.replyAddress,
+                                                            data.parsed.legacy
+                                                                .replyAddress,
                                                         ) && (
                                                             <NotInContactsAlert>
                                                                 Warning: This
@@ -726,7 +752,8 @@ const Tx = ({
                                                                 scams.
                                                             </NotInContactsAlert>
                                                         )}
-                                                    {data.isCashtabMessage ? (
+                                                    {data.parsed.legacy
+                                                        .isCashtabMessage ? (
                                                         <h4>
                                                             Cashtab Message{' '}
                                                         </h4>
@@ -735,7 +762,8 @@ const Tx = ({
                                                             External Message
                                                         </h4>
                                                     )}
-                                                    {data.isEncryptedMessage ? (
+                                                    {data.parsed.legacy
+                                                        .isEncryptedMessage ? (
                                                         <EncryptionMessageLabel>
                                                             &nbsp;-&nbsp;Encrypted
                                                         </EncryptionMessageLabel>
@@ -746,13 +774,22 @@ const Tx = ({
                                                     {cashtabSettings.hideMessagesFromUnknownSenders ? (
                                                         <>
                                                             {/*unencrypted OP_RETURN Message*/}
-                                                            {data.opReturnMessage &&
-                                                                !data.isEncryptedMessage && (
+                                                            {data.parsed.legacy
+                                                                .opReturnMessage &&
+                                                                !data.parsed
+                                                                    .legacy
+                                                                    .isEncryptedMessage && (
                                                                     <>
                                                                         {!displayedMessage &&
-                                                                        !data.outgoingTx &&
+                                                                        !data
+                                                                            .parsed
+                                                                            .legacy
+                                                                            .outgoingTx &&
                                                                         !addressesInContactList.includes(
-                                                                            data.replyAddress,
+                                                                            data
+                                                                                .parsed
+                                                                                .legacy
+                                                                                .replyAddress,
                                                                         ) ? (
                                                                             <ShowHideMessageButton
                                                                                 onClick={e => {
@@ -767,13 +804,22 @@ const Tx = ({
                                                                                 <p>
                                                                                     {' '}
                                                                                     {
-                                                                                        data.opReturnMessage
+                                                                                        data
+                                                                                            .parsed
+                                                                                            .legacy
+                                                                                            .opReturnMessage
                                                                                     }
                                                                                 </p>
                                                                                 {!addressesInContactList.includes(
-                                                                                    data.replyAddress,
+                                                                                    data
+                                                                                        .parsed
+                                                                                        .legacy
+                                                                                        .replyAddress,
                                                                                 ) &&
-                                                                                    !data.outgoingTx && (
+                                                                                    !data
+                                                                                        .parsed
+                                                                                        .legacy
+                                                                                        .outgoingTx && (
                                                                                         <ShowHideMessageButton
                                                                                             onClick={e => {
                                                                                                 e.stopPropagation();
@@ -787,13 +833,22 @@ const Tx = ({
                                                                         )}
                                                                     </>
                                                                 )}
-                                                            {data.opReturnMessage &&
-                                                                data.isEncryptedMessage && (
+                                                            {data.parsed.legacy
+                                                                .opReturnMessage &&
+                                                                data.parsed
+                                                                    .legacy
+                                                                    .isEncryptedMessage && (
                                                                     <>
                                                                         {!displayedMessage &&
-                                                                        !data.outgoingTx &&
+                                                                        !data
+                                                                            .parsed
+                                                                            .legacy
+                                                                            .outgoingTx &&
                                                                         !addressesInContactList.includes(
-                                                                            data.replyAddress,
+                                                                            data
+                                                                                .parsed
+                                                                                .legacy
+                                                                                .replyAddress,
                                                                         ) ? (
                                                                             <ShowHideMessageButton
                                                                                 onClick={e => {
@@ -807,18 +862,30 @@ const Tx = ({
                                                                             <>
                                                                                 <DecryptedMessage
                                                                                     authorized={
-                                                                                        data.decryptionSuccess
+                                                                                        data
+                                                                                            .parsed
+                                                                                            .legacy
+                                                                                            .decryptionSuccess
                                                                                     }
                                                                                 >
                                                                                     {
-                                                                                        data.opReturnMessage
+                                                                                        data
+                                                                                            .parsed
+                                                                                            .legacy
+                                                                                            .opReturnMessage
                                                                                     }
                                                                                 </DecryptedMessage>
                                                                                 {!addressesInContactList.includes(
-                                                                                    data.replyAddress,
+                                                                                    data
+                                                                                        .parsed
+                                                                                        .legacy
+                                                                                        .replyAddress,
                                                                                 ) &&
                                                                                     // do not render 'Hide' button if msg cannot be decrypted
-                                                                                    data.decryptionSuccess && (
+                                                                                    data
+                                                                                        .parsed
+                                                                                        .legacy
+                                                                                        .decryptionSuccess && (
                                                                                         <ShowHideMessageButton
                                                                                             onClick={e => {
                                                                                                 e.stopPropagation();
@@ -836,35 +903,52 @@ const Tx = ({
                                                     ) : (
                                                         <>
                                                             {/*unencrypted OP_RETURN Message*/}
-                                                            {data.opReturnMessage &&
-                                                            !data.isEncryptedMessage ? (
+                                                            {data.parsed.legacy
+                                                                .opReturnMessage &&
+                                                            !data.parsed.legacy
+                                                                .isEncryptedMessage ? (
                                                                 <p>
                                                                     {
-                                                                        data.opReturnMessage
+                                                                        data
+                                                                            .parsed
+                                                                            .legacy
+                                                                            .opReturnMessage
                                                                     }
                                                                 </p>
                                                             ) : (
                                                                 ''
                                                             )}
                                                             {/*encrypted and wallet is authorized to view OP_RETURN Message*/}
-                                                            {data.opReturnMessage &&
-                                                            data.isEncryptedMessage &&
-                                                            data.decryptionSuccess ? (
+                                                            {data.parsed.legacy
+                                                                .opReturnMessage &&
+                                                            data.parsed.legacy
+                                                                .isEncryptedMessage &&
+                                                            data.parsed.legacy
+                                                                .decryptionSuccess ? (
                                                                 <p>
                                                                     {
-                                                                        data.opReturnMessage
+                                                                        data
+                                                                            .parsed
+                                                                            .legacy
+                                                                            .opReturnMessage
                                                                     }
                                                                 </p>
                                                             ) : (
                                                                 ''
                                                             )}
                                                             {/*encrypted but wallet is not authorized to view OP_RETURN Message*/}
-                                                            {data.opReturnMessage &&
-                                                            data.isEncryptedMessage &&
-                                                            !data.decryptionSuccess ? (
+                                                            {data.parsed.legacy
+                                                                .opReturnMessage &&
+                                                            data.parsed.legacy
+                                                                .isEncryptedMessage &&
+                                                            !data.parsed.legacy
+                                                                .decryptionSuccess ? (
                                                                 <UnauthorizedDecryptionMessage>
                                                                     {
-                                                                        data.opReturnMessage
+                                                                        data
+                                                                            .parsed
+                                                                            .legacy
+                                                                            .opReturnMessage
                                                                     }
                                                                 </UnauthorizedDecryptionMessage>
                                                             ) : (
@@ -872,21 +956,29 @@ const Tx = ({
                                                             )}
                                                         </>
                                                     )}
-                                                    {(!data.outgoingTx &&
-                                                        data.replyAddress &&
+                                                    {(!data.parsed.legacy
+                                                        .outgoingTx &&
+                                                        data.parsed.legacy
+                                                            .replyAddress &&
                                                         addressesInContactList.includes(
-                                                            data.replyAddress,
+                                                            data.parsed.legacy
+                                                                .replyAddress,
                                                         )) ||
                                                     (!cashtabSettings.hideMessagesFromUnknownSenders &&
-                                                        !data.outgoingTx &&
-                                                        data.replyAddress &&
+                                                        !data.parsed.legacy
+                                                            .outgoingTx &&
+                                                        data.parsed.legacy
+                                                            .replyAddress &&
                                                         displayedMessage) ? (
                                                         <Link
                                                             to={{
                                                                 pathname: `/send`,
                                                                 state: {
                                                                     replyAddress:
-                                                                        data.replyAddress,
+                                                                        data
+                                                                            .parsed
+                                                                            .legacy
+                                                                            .replyAddress,
                                                                 },
                                                             }}
                                                         >
@@ -918,12 +1010,14 @@ const Tx = ({
                                         </DropdownIconWrapper>
                                     </DropdownButton>
                                 </CopyToClipboard>
-                                {data.opReturnMessage && (
+                                {data.parsed.legacy.opReturnMessage && (
                                     <CopyToClipboard
-                                        data={data.opReturnMessage}
+                                        data={
+                                            data.parsed.legacy.opReturnMessage
+                                        }
                                         optionalOnCopyNotification={{
                                             title: 'Cashtab message copied to clipboard',
-                                            msg: `${data.opReturnMessage}`,
+                                            msg: `${data.parsed.legacy.opReturnMessage}`,
                                         }}
                                     >
                                         <DropdownButton>
@@ -962,10 +1056,10 @@ const Tx = ({
                                         </DropdownIconWrapper>
                                     </DropdownButton>
                                 </TxLink>
-                                {!data.outgoingTx &&
-                                    data.replyAddress &&
+                                {!data.parsed.legacy.outgoingTx &&
+                                    data.parsed.legacy.replyAddress &&
                                     !addressesInContactList.includes(
-                                        data.replyAddress,
+                                        data.parsed.legacy.replyAddress,
                                     ) && (
                                         <AddToContacts>
                                             <DropdownButton>
@@ -974,7 +1068,9 @@ const Tx = ({
                                                         pathname: `/configure`,
                                                         state: {
                                                             contactToAdd:
-                                                                data.replyAddress,
+                                                                data.parsed
+                                                                    .legacy
+                                                                    .replyAddress,
                                                         },
                                                     }}
                                                 >
