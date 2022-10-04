@@ -480,8 +480,12 @@ bool TestLockPointValidity(const CChain &active_chain, const LockPoints *lp)
  * @param[in]   tip             Chain tip to check tx sequence locks against.
  *     For example, the tip of the current active chain.
  * @param[in]   coins_view      Any CCoinsView that provides access to the
- *     relevant coins for checking sequence locks. Any CCoinsView can be passed
- *     in; it is assumed to be consistent with the tip.
+ *     relevant coins for checking sequence locks. For example, it can be a
+ *     CCoinsViewCache that isn't connected to anything but contains all the
+ *     relevant coins, or a CCoinsViewMemPool that is connected to the mempool
+ *     and chainstate UTXO set. In the latter case, the caller is responsible
+ *     for holding the appropriate locks to ensure that calls to GetCoin()
+ *     return correct coins.
  * Simulates calling SequenceLocks() with data from the tip passed in.
  * Optionally stores in LockPoints the resulting height and time
  * calculated and the hash of the block needed for calculation or skips the

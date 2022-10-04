@@ -584,13 +584,13 @@ void CTxMemPool::removeForReorg(const Config &config,
         const CTransaction &tx = it->GetTx();
         LockPoints lp = it->GetLockPoints();
         bool validLP = TestLockPointValidity(active_chainstate.m_chain, &lp);
-        CCoinsViewMemPool viewMempool(&active_chainstate.CoinsTip(), *this);
+        CCoinsViewMemPool view_mempool(&active_chainstate.CoinsTip(), *this);
 
         TxValidationState state;
         if (!ContextualCheckTransactionForCurrentBlock(
                 active_chainstate.m_chain.Tip(),
                 config.GetChainParams().GetConsensus(), tx, state, flags) ||
-            !CheckSequenceLocks(active_chainstate.m_chain.Tip(), viewMempool,
+            !CheckSequenceLocks(active_chainstate.m_chain.Tip(), view_mempool,
                                 tx, flags, &lp, validLP)) {
             // Note if CheckSequenceLocks fails the LockPoints may still be
             // invalid. So it's critical that we remove the tx and not depend on
