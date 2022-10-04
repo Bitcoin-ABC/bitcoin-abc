@@ -52,7 +52,7 @@ const useWallet = () => {
     const [apiError, setApiError] = useState(false);
     const [checkFiatInterval, setCheckFiatInterval] = useState(null);
     const [hasUpdated, setHasUpdated] = useState(false);
-    const { getBCH, getTxHistory, getTxData, addTokenTxData } = useBCH();
+    const { getBCH } = useBCH();
     const [loading, setLoading] = useState(true);
     const [apiIndex, setApiIndex] = useState(0);
     const [BCH, setBCH] = useState(getBCH(apiIndex));
@@ -150,17 +150,6 @@ const useWallet = () => {
             if (!wallet) {
                 return;
             }
-            const cashAddresses = [
-                wallet.Path245.cashAddress,
-                wallet.Path145.cashAddress,
-                wallet.Path1899.cashAddress,
-            ];
-
-            const publicKeys = [
-                wallet.Path145.publicKey,
-                wallet.Path245.publicKey,
-                wallet.Path1899.publicKey,
-            ];
 
             /*
                This strange data structure is necessary because chronik requires the hash160
@@ -225,9 +214,6 @@ const useWallet = () => {
                 updatedTokenInfoById,
             );
 
-            // Preserve bch-api for tx history for now, as this will take another stacked diff to migrate to chronik
-            const txHistory = await getTxHistory(BCH, cashAddresses);
-
             const chronikTxHistory = await getTxHistoryChronik(
                 chronik,
                 BCH,
@@ -238,17 +224,6 @@ const useWallet = () => {
                 `chronikTxHistory as flattened array, sorted by blockheight and time first seen, with parse info, and partial legacy parse info`,
                 chronikTxHistory,
             );
-
-            // public keys are used to determined if a tx is incoming outgoing
-            const parsedTxHistory = await getTxData(
-                BCH,
-                txHistory,
-                publicKeys,
-                wallet,
-            );
-
-            const parsedWithTokens = await addTokenTxData(BCH, parsedTxHistory);
-            console.log(`parsedWithTokens`, parsedWithTokens);
 
             const newState = {
                 balances: getWalletBalanceFromUtxos(nonSlpUtxos),
