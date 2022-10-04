@@ -243,16 +243,14 @@ it(`Successfully parses an incoming XEC tx`, () => {
         xecAmount: '42',
         originatingHash160: '4e532257c01b310b3b5c1fd947c79a72addf8523',
         isEtokenTx: false,
-        legacy: {
-            airdropFlag: false,
-            airdropTokenId: '',
+        airdropFlag: false,
+        airdropTokenId: '',
 
-            decryptionSuccess: false,
-            isCashtabMessage: false,
-            isEncryptedMessage: false,
-            opReturnMessage: '',
-            replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
-        },
+        decryptionSuccess: false,
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        opReturnMessage: '',
+        replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
     });
 });
 it(`Successfully parses an outgoing XEC tx`, () => {
@@ -277,16 +275,14 @@ it(`Successfully parses an outgoing XEC tx`, () => {
         xecAmount: '222',
         originatingHash160: '76458db0ed96fe9863fc1ccec9fa2cfab884b0f6',
         isEtokenTx: false,
-        legacy: {
-            airdropFlag: false,
-            airdropTokenId: '',
+        airdropFlag: false,
+        airdropTokenId: '',
 
-            decryptionSuccess: false,
-            isCashtabMessage: false,
-            isEncryptedMessage: false,
-            opReturnMessage: '',
-            replyAddress: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
-        },
+        decryptionSuccess: false,
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        opReturnMessage: '',
+        replyAddress: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
     });
 });
 it(`Successfully parses an incoming eToken tx`, () => {
@@ -328,16 +324,14 @@ it(`Successfully parses an incoming eToken tx`, () => {
             tokenTicker: 'NOCOVID',
         },
         etokenAmount: '12',
-        legacy: {
-            airdropFlag: false,
-            airdropTokenId: '',
+        airdropFlag: false,
+        airdropTokenId: '',
 
-            decryptionSuccess: false,
-            isCashtabMessage: false,
-            isEncryptedMessage: false,
-            opReturnMessage: '',
-            replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
-        },
+        decryptionSuccess: false,
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        opReturnMessage: '',
+        replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
     });
 });
 it(`Successfully parses an outgoing eToken tx`, () => {
@@ -381,16 +375,14 @@ it(`Successfully parses an outgoing eToken tx`, () => {
             tokenTicker: 'NOCOVID',
         },
         etokenAmount: '17',
-        legacy: {
-            airdropFlag: false,
-            airdropTokenId: '',
+        airdropFlag: false,
+        airdropTokenId: '',
 
-            decryptionSuccess: false,
-            isCashtabMessage: false,
-            isEncryptedMessage: false,
-            opReturnMessage: '',
-            replyAddress: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
-        },
+        decryptionSuccess: false,
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        opReturnMessage: '',
+        replyAddress: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
     });
 });
 it(`Successfully parses a genesis eToken tx`, () => {
@@ -433,15 +425,13 @@ it(`Successfully parses a genesis eToken tx`, () => {
             tokenName: 'UpdateTest',
             tokenTicker: 'UDT',
         },
-        legacy: {
-            airdropFlag: false,
-            airdropTokenId: '',
-            opReturnMessage: '',
-            isCashtabMessage: false,
-            isEncryptedMessage: false,
-            decryptionSuccess: false,
-            replyAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-        },
+        airdropFlag: false,
+        airdropTokenId: '',
+        opReturnMessage: '',
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        decryptionSuccess: false,
+        replyAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
     });
 });
 it(`Successfully parses a received eToken tx with 9 decimal places`, () => {
@@ -484,15 +474,14 @@ it(`Successfully parses a received eToken tx with 9 decimal places`, () => {
             tokenName: 'CashTabBits',
             tokenTicker: 'CTB',
         },
-        legacy: {
-            airdropFlag: false,
-            airdropTokenId: '',
-            opReturnMessage: '',
-            isCashtabMessage: false,
-            isEncryptedMessage: false,
-            decryptionSuccess: false,
-            replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
-        },
+
+        airdropFlag: false,
+        airdropTokenId: '',
+        opReturnMessage: '',
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        decryptionSuccess: false,
+        replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
     });
 });
 it(`Correctly parses a received airdrop transaction`, () => {
@@ -517,17 +506,15 @@ it(`Correctly parses a received airdrop transaction`, () => {
         xecAmount: '5.69',
         originatingHash160: '63a17ac732fd6afe8699b240a29b483246308de7',
         isEtokenTx: false,
-        legacy: {
-            airdropFlag: true,
-            airdropTokenId:
-                'bdb3b4215ca0622e0c4c07655522c376eaa891838a82f0217fa453bb0595a37c',
-            opReturnMessage:
-                'evc token service holders air drop🥇🌐🥇❤👌🛬🛬🍗🤴',
-            isCashtabMessage: true,
-            isEncryptedMessage: false,
-            decryptionSuccess: false,
-            replyAddress: 'ecash:qp36z7k8xt7k4l5xnxeypg5mfqeyvvyduu04m37fwd',
-        },
+
+        airdropFlag: true,
+        airdropTokenId:
+            'bdb3b4215ca0622e0c4c07655522c376eaa891838a82f0217fa453bb0595a37c',
+        opReturnMessage: 'evc token service holders air drop🥇🌐🥇❤👌🛬🛬🍗🤴',
+        isCashtabMessage: true,
+        isEncryptedMessage: false,
+        decryptionSuccess: false,
+        replyAddress: 'ecash:qp36z7k8xt7k4l5xnxeypg5mfqeyvvyduu04m37fwd',
     });
 });
 
@@ -553,15 +540,14 @@ it(`Correctly parses a sent encyrpted message transaction`, () => {
         xecAmount: '12',
         originatingHash160: 'ee6dc9d40f95d8e106a63385c6fa882991b9e84e',
         isEtokenTx: false,
-        legacy: {
-            airdropFlag: false,
-            airdropTokenId: '',
-            opReturnMessage: 'Only the message recipient can view this',
-            isCashtabMessage: true,
-            isEncryptedMessage: true,
-            decryptionSuccess: false,
-            replyAddress: 'ecash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfcvjnyv7xt',
-        },
+
+        airdropFlag: false,
+        airdropTokenId: '',
+        opReturnMessage: 'Only the message recipient can view this',
+        isCashtabMessage: true,
+        isEncryptedMessage: true,
+        decryptionSuccess: false,
+        replyAddress: 'ecash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfcvjnyv7xt',
     });
 });
 it(`Correctly parses a received encyrpted message transaction`, () => {
@@ -586,15 +572,13 @@ it(`Correctly parses a received encyrpted message transaction`, () => {
         xecAmount: '11',
         originatingHash160: '4e532257c01b310b3b5c1fd947c79a72addf8523',
         isEtokenTx: false,
-        legacy: {
-            airdropFlag: false,
-            airdropTokenId: '',
-            opReturnMessage: 'Test encrypted message',
-            isCashtabMessage: true,
-            isEncryptedMessage: true,
-            decryptionSuccess: true,
-            replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
-        },
+        airdropFlag: false,
+        airdropTokenId: '',
+        opReturnMessage: 'Test encrypted message',
+        isCashtabMessage: true,
+        isEncryptedMessage: true,
+        decryptionSuccess: true,
+        replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
     });
 });
 
@@ -638,15 +622,13 @@ it(`Correctly parses a token burn transaction`, () => {
                 '4db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c875',
             success: true,
         },
-        legacy: {
-            airdropFlag: false,
-            airdropTokenId: '',
-            opReturnMessage: '',
-            isCashtabMessage: false,
-            isEncryptedMessage: false,
-            decryptionSuccess: false,
-            replyAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-        },
+        airdropFlag: false,
+        airdropTokenId: '',
+        opReturnMessage: '',
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        decryptionSuccess: false,
+        replyAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
     });
 });
 it(`Correctly parses a token burn transaction with decimal places`, () => {
@@ -692,14 +674,12 @@ it(`Correctly parses a token burn transaction with decimal places`, () => {
                 '7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d',
             success: true,
         },
-        legacy: {
-            airdropFlag: false,
-            airdropTokenId: '',
-            opReturnMessage: '',
-            isCashtabMessage: false,
-            isEncryptedMessage: false,
-            decryptionSuccess: false,
-            replyAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-        },
+        airdropFlag: false,
+        airdropTokenId: '',
+        opReturnMessage: '',
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        decryptionSuccess: false,
+        replyAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
     });
 });

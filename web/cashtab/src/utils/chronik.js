@@ -443,7 +443,7 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
         console.log(`${tx.txid} isGenesisTx`);
     }
 
-    // Defining variables used in lines legacy parseTxData function from useBCH.js
+    // Initialize required variables
     let substring = '';
     let airdropFlag = false;
     let airdropTokenId = '';
@@ -741,15 +741,13 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
             isTokenBurn,
             slpMeta,
             genesisInfo,
-            legacy: {
-                airdropFlag,
-                airdropTokenId,
-                opReturnMessage: '',
-                isCashtabMessage,
-                isEncryptedMessage,
-                decryptionSuccess,
-                replyAddress,
-            },
+            airdropFlag,
+            airdropTokenId,
+            opReturnMessage: '',
+            isCashtabMessage,
+            isEncryptedMessage,
+            decryptionSuccess,
+            replyAddress,
         };
     }
     // Otherwise do not include these fields
@@ -758,15 +756,13 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
         xecAmount,
         originatingHash160,
         isEtokenTx,
-        legacy: {
-            airdropFlag,
-            airdropTokenId,
-            opReturnMessage,
-            isCashtabMessage,
-            isEncryptedMessage,
-            decryptionSuccess,
-            replyAddress,
-        },
+        airdropFlag,
+        airdropTokenId,
+        opReturnMessage,
+        isCashtabMessage,
+        isEncryptedMessage,
+        decryptionSuccess,
+        replyAddress,
     };
 };
 

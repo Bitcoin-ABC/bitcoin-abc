@@ -490,7 +490,7 @@ const Tx = ({
                                                     </ReceivedHeader>
 
                                                     {addressesInContactList.includes(
-                                                        data.parsed.legacy
+                                                        data.parsed
                                                             .replyAddress,
                                                     ) && (
                                                         <>
@@ -506,7 +506,6 @@ const Tx = ({
                                                                     const dataAddress =
                                                                         data
                                                                             .parsed
-                                                                            .legacy
                                                                             .replyAddress;
                                                                     if (
                                                                         contactAddress ===
@@ -729,7 +728,7 @@ const Tx = ({
                                                 </TxInfo>
                                             </>
                                         )}
-                                        {data.parsed.legacy.opReturnMessage && (
+                                        {data.parsed.opReturnMessage && (
                                             <>
                                                 <OpReturnType
                                                     received={
@@ -743,7 +742,7 @@ const Tx = ({
                                                 >
                                                     {data.parsed.incoming &&
                                                         !addressesInContactList.includes(
-                                                            data.parsed.legacy
+                                                            data.parsed
                                                                 .replyAddress,
                                                         ) && (
                                                             <NotInContactsAlert>
@@ -754,7 +753,7 @@ const Tx = ({
                                                                 scams.
                                                             </NotInContactsAlert>
                                                         )}
-                                                    {data.parsed.legacy
+                                                    {data.parsed
                                                         .isCashtabMessage ? (
                                                         <h4>
                                                             Cashtab Message{' '}
@@ -764,7 +763,7 @@ const Tx = ({
                                                             External Message
                                                         </h4>
                                                     )}
-                                                    {data.parsed.legacy
+                                                    {data.parsed
                                                         .isEncryptedMessage ? (
                                                         <EncryptionMessageLabel>
                                                             &nbsp;-&nbsp;Encrypted
@@ -776,10 +775,9 @@ const Tx = ({
                                                     {cashtabSettings.hideMessagesFromUnknownSenders ? (
                                                         <>
                                                             {/*unencrypted OP_RETURN Message*/}
-                                                            {data.parsed.legacy
+                                                            {data.parsed
                                                                 .opReturnMessage &&
                                                                 !data.parsed
-                                                                    .legacy
                                                                     .isEncryptedMessage && (
                                                                     <>
                                                                         {!displayedMessage &&
@@ -789,7 +787,6 @@ const Tx = ({
                                                                         !addressesInContactList.includes(
                                                                             data
                                                                                 .parsed
-                                                                                .legacy
                                                                                 .replyAddress,
                                                                         ) ? (
                                                                             <ShowHideMessageButton
@@ -807,14 +804,12 @@ const Tx = ({
                                                                                     {
                                                                                         data
                                                                                             .parsed
-                                                                                            .legacy
                                                                                             .opReturnMessage
                                                                                     }
                                                                                 </p>
                                                                                 {!addressesInContactList.includes(
                                                                                     data
                                                                                         .parsed
-                                                                                        .legacy
                                                                                         .replyAddress,
                                                                                 ) &&
                                                                                     data
@@ -833,10 +828,9 @@ const Tx = ({
                                                                         )}
                                                                     </>
                                                                 )}
-                                                            {data.parsed.legacy
+                                                            {data.parsed
                                                                 .opReturnMessage &&
                                                                 data.parsed
-                                                                    .legacy
                                                                     .isEncryptedMessage && (
                                                                     <>
                                                                         {!displayedMessage &&
@@ -846,7 +840,6 @@ const Tx = ({
                                                                         !addressesInContactList.includes(
                                                                             data
                                                                                 .parsed
-                                                                                .legacy
                                                                                 .replyAddress,
                                                                         ) ? (
                                                                             <ShowHideMessageButton
@@ -863,27 +856,23 @@ const Tx = ({
                                                                                     authorized={
                                                                                         data
                                                                                             .parsed
-                                                                                            .legacy
                                                                                             .decryptionSuccess
                                                                                     }
                                                                                 >
                                                                                     {
                                                                                         data
                                                                                             .parsed
-                                                                                            .legacy
                                                                                             .opReturnMessage
                                                                                     }
                                                                                 </DecryptedMessage>
                                                                                 {!addressesInContactList.includes(
                                                                                     data
                                                                                         .parsed
-                                                                                        .legacy
                                                                                         .replyAddress,
                                                                                 ) &&
                                                                                     // do not render 'Hide' button if msg cannot be decrypted
                                                                                     data
                                                                                         .parsed
-                                                                                        .legacy
                                                                                         .decryptionSuccess && (
                                                                                         <ShowHideMessageButton
                                                                                             onClick={e => {
@@ -902,15 +891,14 @@ const Tx = ({
                                                     ) : (
                                                         <>
                                                             {/*unencrypted OP_RETURN Message*/}
-                                                            {data.parsed.legacy
+                                                            {data.parsed
                                                                 .opReturnMessage &&
-                                                            !data.parsed.legacy
+                                                            !data.parsed
                                                                 .isEncryptedMessage ? (
                                                                 <p>
                                                                     {
                                                                         data
                                                                             .parsed
-                                                                            .legacy
                                                                             .opReturnMessage
                                                                     }
                                                                 </p>
@@ -918,17 +906,16 @@ const Tx = ({
                                                                 ''
                                                             )}
                                                             {/*encrypted and wallet is authorized to view OP_RETURN Message*/}
-                                                            {data.parsed.legacy
+                                                            {data.parsed
                                                                 .opReturnMessage &&
-                                                            data.parsed.legacy
+                                                            data.parsed
                                                                 .isEncryptedMessage &&
-                                                            data.parsed.legacy
+                                                            data.parsed
                                                                 .decryptionSuccess ? (
                                                                 <p>
                                                                     {
                                                                         data
                                                                             .parsed
-                                                                            .legacy
                                                                             .opReturnMessage
                                                                     }
                                                                 </p>
@@ -936,17 +923,16 @@ const Tx = ({
                                                                 ''
                                                             )}
                                                             {/*encrypted but wallet is not authorized to view OP_RETURN Message*/}
-                                                            {data.parsed.legacy
+                                                            {data.parsed
                                                                 .opReturnMessage &&
-                                                            data.parsed.legacy
+                                                            data.parsed
                                                                 .isEncryptedMessage &&
-                                                            !data.parsed.legacy
+                                                            !data.parsed
                                                                 .decryptionSuccess ? (
                                                                 <UnauthorizedDecryptionMessage>
                                                                     {
                                                                         data
                                                                             .parsed
-                                                                            .legacy
                                                                             .opReturnMessage
                                                                     }
                                                                 </UnauthorizedDecryptionMessage>
@@ -956,15 +942,15 @@ const Tx = ({
                                                         </>
                                                     )}
                                                     {(data.parsed.incoming &&
-                                                        data.parsed.legacy
+                                                        data.parsed
                                                             .replyAddress &&
                                                         addressesInContactList.includes(
-                                                            data.parsed.legacy
+                                                            data.parsed
                                                                 .replyAddress,
                                                         )) ||
                                                     (!cashtabSettings.hideMessagesFromUnknownSenders &&
                                                         data.parsed.incoming &&
-                                                        data.parsed.legacy
+                                                        data.parsed
                                                             .replyAddress &&
                                                         displayedMessage) ? (
                                                         <Link
@@ -974,7 +960,6 @@ const Tx = ({
                                                                     replyAddress:
                                                                         data
                                                                             .parsed
-                                                                            .legacy
                                                                             .replyAddress,
                                                                 },
                                                             }}
@@ -1007,14 +992,12 @@ const Tx = ({
                                         </DropdownIconWrapper>
                                     </DropdownButton>
                                 </CopyToClipboard>
-                                {data.parsed.legacy.opReturnMessage && (
+                                {data.parsed.opReturnMessage && (
                                     <CopyToClipboard
-                                        data={
-                                            data.parsed.legacy.opReturnMessage
-                                        }
+                                        data={data.parsed.opReturnMessage}
                                         optionalOnCopyNotification={{
                                             title: 'Cashtab message copied to clipboard',
-                                            msg: `${data.parsed.legacy.opReturnMessage}`,
+                                            msg: `${data.parsed.opReturnMessage}`,
                                         }}
                                     >
                                         <DropdownButton>
@@ -1054,9 +1037,9 @@ const Tx = ({
                                     </DropdownButton>
                                 </TxLink>
                                 {!!data.parsed.incoming &&
-                                    data.parsed.legacy.replyAddress &&
+                                    data.parsed.replyAddress &&
                                     !addressesInContactList.includes(
-                                        data.parsed.legacy.replyAddress,
+                                        data.parsed.replyAddress,
                                     ) && (
                                         <AddToContacts>
                                             <DropdownButton>
@@ -1066,7 +1049,6 @@ const Tx = ({
                                                         state: {
                                                             contactToAdd:
                                                                 data.parsed
-                                                                    .legacy
                                                                     .replyAddress,
                                                         },
                                                     }}
