@@ -442,7 +442,7 @@ const Tx = ({
                                     <TxWrapper>
                                         {!data.parsed.incoming ? (
                                             <>
-                                                {data.parsed.legacy.tokenTx &&
+                                                {data.parsed.isEtokenTx &&
                                                 data.slpTxData.slpMeta
                                                     .txType === 'GENESIS' ? (
                                                     <GenesisTx>
@@ -467,8 +467,7 @@ const Tx = ({
                                         <LeftTextCtn>
                                             {!data.parsed.incoming ? (
                                                 <>
-                                                    {data.parsed.legacy
-                                                        .tokenTx &&
+                                                    {data.parsed.isEtokenTx &&
                                                     data.slpTxData.slpMeta
                                                         .txType ===
                                                         'GENESIS' ? (
@@ -536,11 +535,11 @@ const Tx = ({
                                             )}
                                             <h4>{txDate}</h4>
                                         </LeftTextCtn>
-                                        {data.parsed.legacy.tokenTx ? (
+                                        {data.parsed.isEtokenTx ? (
                                             <TokenInfo
                                                 outgoing={!data.parsed.incoming}
                                             >
-                                                {data.parsed.legacy.tokenTx &&
+                                                {data.parsed.isEtokenTx &&
                                                 data.parsed.genesisInfo ? (
                                                     <>
                                                         <TxTokenIcon>
