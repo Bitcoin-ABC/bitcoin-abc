@@ -915,6 +915,15 @@ private:
      */
     bool MaybeDiscourageAndDisconnect(CNode &pnode, Peer &peer);
 
+    /**
+     * Reconsider orphan transactions after a parent has been accepted to the
+     * mempool.
+     *
+     * @param[in]  peer  The peer whose orphan transactions we will reconsider.
+     *    Generally only one orphan will be reconsidered on each call of this
+     *    function. This set may be added to if accepting an orphan causes its
+     *    children to be reconsidered.
+     */
     void ProcessOrphanTx(const Config &config, Peer &peer)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, g_cs_orphans, !m_peer_mutex,
                                  g_msgproc_mutex);
@@ -3965,15 +3974,6 @@ void PeerManagerImpl::ProcessHeadersMessage(const Config &config, CNode &pfrom,
     HeadersDirectFetchBlocks(config, pfrom, pindexLast);
 }
 
-/**
- * Reconsider orphan transactions after a parent has been accepted to the
- * mempool.
- *
- * @param[in]  peer  The peer whose orphan transactions we will reconsider.
- *    Generally only one orphan will be reconsidered on each call of this
- *    function. This set may be added to if accepting an orphan causes its
- *    children to be reconsidered.
- */
 void PeerManagerImpl::ProcessOrphanTx(const Config &config, Peer &peer) {
     AssertLockHeld(cs_main);
     AssertLockHeld(g_cs_orphans);
