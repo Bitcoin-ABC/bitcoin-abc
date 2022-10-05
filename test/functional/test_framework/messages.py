@@ -26,7 +26,6 @@ import struct
 import time
 import unittest
 from base64 import b64decode, b64encode
-from codecs import encode
 from enum import IntEnum
 from io import BytesIO
 from typing import List
@@ -475,8 +474,7 @@ class CTransaction:
     def calc_sha256(self):
         if self.sha256 is None:
             self.sha256 = uint256_from_str(hash256(self.serialize()))
-        self.hash = encode(
-            hash256(self.serialize())[::-1], 'hex_codec').decode('ascii')
+        self.hash = hash256(self.serialize())[::-1].hex()
 
     def get_id(self):
         # For now, just forward the hash.
@@ -553,7 +551,7 @@ class CBlockHeader:
             r += struct.pack("<I", self.nBits)
             r += struct.pack("<I", self.nNonce)
             self.sha256 = uint256_from_str(hash256(r))
-            self.hash = encode(hash256(r)[::-1], 'hex_codec').decode('ascii')
+            self.hash = hash256(r)[::-1].hex()
 
     def rehash(self):
         self.sha256 = None
