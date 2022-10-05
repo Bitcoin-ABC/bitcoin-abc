@@ -12,7 +12,6 @@
 #include <scheduler.h>
 #include <script/script.h>
 #include <streams.h>
-#include <txorphanage.h>
 #include <validationinterface.h>
 #include <version.h>
 

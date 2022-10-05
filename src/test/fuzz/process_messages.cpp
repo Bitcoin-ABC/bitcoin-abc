@@ -7,7 +7,6 @@
 #include <net.h>
 #include <net_processing.h>
 #include <protocol.h>
-#include <txorphanage.h>
 #include <validation.h>
 #include <validationinterface.h>
 
