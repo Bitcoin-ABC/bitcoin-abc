@@ -224,17 +224,9 @@ const useWallet = () => {
                 wallet,
                 updatedTokenInfoById,
             );
-            console.log(
-                `chronikTxHistory as flattened array, sorted by blockheight and time first seen, with parse info, and partial legacy parse info`,
-                chronikTxHistory,
-            );
             if (txHistoryNewTokensToCache) {
                 console.log(
                     `Uncached token info found in tx history, adding to cache`,
-                );
-                console.log(
-                    `txHistoryUpdatedTokenInfoById`,
-                    txHistoryUpdatedTokenInfoById,
                 );
                 writeTokenInfoByIdToCache(txHistoryUpdatedTokenInfoById);
                 // Update the tokenInfoById key in cashtabCache

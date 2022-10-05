@@ -372,8 +372,6 @@ export const sortAndTrimChronikTxHistory = (
             confirmedTxs.push(thisTx);
         }
     }
-    console.log(`confirmed txs`, confirmedTxs);
-    console.log(`unconfirmed txs`, unconfirmedTxs);
     // Sort confirmed txs by blockheight, and then timeFirstSeen
     const sortedConfirmedTxHistoryArray = confirmedTxs.sort(
         (a, b) =>
@@ -411,10 +409,6 @@ export const returnGetTxHistoryChronikPromise = (
             .history(/*page=*/ 0, /*page_size=*/ currency.txHistoryCount)
             .then(
                 result => {
-                    console.log(
-                        `result for ${hash160AndAddressObj.hash160}`,
-                        result,
-                    );
                     resolve(result);
                 },
                 err => {
@@ -465,7 +459,6 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
             thisInput.slpBurn.token.amount &&
             thisInput.slpBurn.token.amount !== '0'
         ) {
-            console.log(`Token burn at ${tx.txid}`);
             // Assume that any eToken tx with a burn is a burn tx
             isTokenBurn = true;
             try {
@@ -505,7 +498,6 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
 
             const { type, hash } = cashaddr.decode(replyAddressBchFormat);
             replyAddress = cashaddr.encode('ecash', type, hash);
-            console.log(`replyAddressXecFormat`, replyAddress);
         } catch (err) {
             console.log(`err from ${originatingHash160}`, err);
             // If the transaction is nonstandard, don't worry about a reply address for now
@@ -725,13 +717,10 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
             );
             // To keep this function synchronous, do not get this info from the API if it is not in cache
             // Instead, return a flag so that useWallet.js knows and can fetch this info + add it to cache
-            genesisInfo.success = false;
+            genesisInfo = { success: false };
         }
     }
     etokenAmount = etokenAmount.toString();
-    if (isTokenBurn) {
-        console.log(`${etokenAmount} of ${genesisInfo.tokenName} burned`);
-    }
 
     // Convert opReturnMessage to string
     opReturnMessage = Buffer.from(opReturnMessage).toString();
@@ -782,7 +771,6 @@ export const getTxHistoryChronik = async (
     // Create array of promises to get chronik history for each address
     // Combine them all and sort by blockheight and firstSeen
     // Add all the info cashtab needs to make them useful
-    console.log(`tokenInfoById`, tokenInfoById);
 
     const hash160AndAddressObjArray = [
         {
@@ -813,9 +801,7 @@ export const getTxHistoryChronik = async (
     } catch (err) {
         console.log(`Error in Promise.all(txHistoryPromises)`, err);
     }
-    console.log(`txHistoryOfAllAddresses`, txHistoryOfAllAddresses);
     const flatTxHistoryArray = flattenChronikTxHistory(txHistoryOfAllAddresses);
-    console.log(`flatTxHistoryArray`, flatTxHistoryArray);
     const sortedTxHistoryArray = sortAndTrimChronikTxHistory(
         flatTxHistoryArray,
         currency.txHistoryCount,
