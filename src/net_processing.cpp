@@ -916,8 +916,8 @@ private:
     bool MaybeDiscourageAndDisconnect(CNode &pnode, Peer &peer);
 
     void ProcessOrphanTx(const Config &config, std::set<TxId> &orphan_work_set)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main, g_cs_orphans)
-            EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main, g_cs_orphans, !m_peer_mutex,
+                                 g_msgproc_mutex);
     /**
      * Process a single headers message from a peer.
      *
@@ -1349,7 +1349,7 @@ private:
     TxOrphanage m_orphanage;
 
     void AddToCompactExtraTransactions(const CTransactionRef &tx)
-        EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
+        EXCLUSIVE_LOCKS_REQUIRED(g_msgproc_mutex);
 
     /**
      * Orphan/conflicted/etc transactions that are kept for compact block
@@ -1359,9 +1359,9 @@ private:
      * these are kept in a ring buffer
      */
     std::vector<std::pair<TxHash, CTransactionRef>>
-        vExtraTxnForCompact GUARDED_BY(g_cs_orphans);
+        vExtraTxnForCompact GUARDED_BY(g_msgproc_mutex);
     /** Offset into vExtraTxnForCompact to insert the next tx */
-    size_t vExtraTxnForCompactIt GUARDED_BY(g_cs_orphans) = 0;
+    size_t vExtraTxnForCompactIt GUARDED_BY(g_msgproc_mutex) = 0;
 
     /**
      * Check whether the last unknown block a peer advertised is not yet known.
@@ -3978,6 +3978,8 @@ void PeerManagerImpl::ProcessOrphanTx(const Config &config,
                                       std::set<TxId> &orphan_work_set) {
     AssertLockHeld(cs_main);
     AssertLockHeld(g_cs_orphans);
+    AssertLockHeld(g_msgproc_mutex);
+
     while (!orphan_work_set.empty()) {
         const TxId orphanTxId = *orphan_work_set.begin();
         orphan_work_set.erase(orphan_work_set.begin());
