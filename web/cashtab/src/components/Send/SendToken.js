@@ -431,6 +431,10 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
         ) {
             passLoadingStatus(false);
         }
+        // In the case of a tx that burns all of a token, also lose the loader
+        if (!token && previousToken) {
+            passLoadingStatus(false);
+        }
     }, [token]);
 
     return (
