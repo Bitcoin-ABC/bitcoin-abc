@@ -15,7 +15,7 @@ from typing import List, Dict, Union
 NSEEDS = 512
 
 MAX_SEEDS_PER_ASN = {
-    'ipv4': 2,
+    'ipv4': 6,
     'ipv6': 10,
 }
 
