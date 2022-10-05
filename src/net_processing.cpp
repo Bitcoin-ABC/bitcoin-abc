@@ -923,8 +923,10 @@ private:
      *    Generally only one orphan will be reconsidered on each call of this
      *    function. This set may be added to if accepting an orphan causes its
      *    children to be reconsidered.
+     *
+     * @return  True if there are still orphans in this peer's work set.
      */
-    void ProcessOrphanTx(const Config &config, Peer &peer)
+    bool ProcessOrphanTx(const Config &config, Peer &peer)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, g_cs_orphans, !m_peer_mutex,
                                  g_msgproc_mutex);
     /**
@@ -3974,10 +3976,14 @@ void PeerManagerImpl::ProcessHeadersMessage(const Config &config, CNode &pfrom,
     HeadersDirectFetchBlocks(config, pfrom, pindexLast);
 }
 
-void PeerManagerImpl::ProcessOrphanTx(const Config &config, Peer &peer) {
+bool PeerManagerImpl::ProcessOrphanTx(const Config &config, Peer &peer) {
     AssertLockHeld(cs_main);
     AssertLockHeld(g_cs_orphans);
     AssertLockHeld(g_msgproc_mutex);
+
+    if (peer.m_orphan_work_set.empty()) {
+        return false;
+    }
 
     while (!peer.m_orphan_work_set.empty()) {
         const TxId orphanTxId = *peer.m_orphan_work_set.begin();
@@ -4018,6 +4024,8 @@ void PeerManagerImpl::ProcessOrphanTx(const Config &config, Peer &peer) {
             break;
         }
     }
+
+    return !peer.m_orphan_work_set.empty();
 }
 
 bool PeerManagerImpl::PrepareBlockFilterRequest(
@@ -6963,29 +6971,25 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
         }
     }
 
+    bool has_more_orphans;
     {
         LOCK2(cs_main, g_cs_orphans);
-        if (!peer->m_orphan_work_set.empty()) {
-            ProcessOrphanTx(config, *peer);
-        }
+        has_more_orphans = ProcessOrphanTx(config, *peer);
     }
 
     if (pfrom->fDisconnect) {
         return false;
     }
 
-    // this maintains the order of responses and prevents m_getdata_requests
-    // from growing unbounded
+    if (has_more_orphans) {
+        return true;
+    }
+
+    // this maintains the order of responses and prevents m_getdata_requests to
+    // grow unbounded
     {
         LOCK(peer->m_getdata_requests_mutex);
         if (!peer->m_getdata_requests.empty()) {
-            return true;
-        }
-    }
-
-    {
-        LOCK(g_cs_orphans);
-        if (!peer->m_orphan_work_set.empty()) {
             return true;
         }
     }
