@@ -458,7 +458,13 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
         const thisInput = inputs[i];
         const thisInputSendingHash160 = thisInput.outputScript;
         // If this is an etoken tx, check for token burn
-        if (isEtokenTx && typeof thisInput.slpBurn !== 'undefined') {
+        if (
+            isEtokenTx &&
+            typeof thisInput.slpBurn !== 'undefined' &&
+            thisInput.slpBurn.token &&
+            thisInput.slpBurn.token.amount &&
+            thisInput.slpBurn.token.amount !== '0'
+        ) {
             console.log(`Token burn at ${tx.txid}`);
             // Assume that any eToken tx with a burn is a burn tx
             isTokenBurn = true;

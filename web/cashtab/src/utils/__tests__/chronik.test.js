@@ -52,6 +52,7 @@ import {
     mockReceivedEncryptedTx,
     mockTokenBurnTx,
     mockTokenBurnWithDecimalsTx,
+    mockReceivedEtokenTx,
 } from '../__mocks__/chronikTxHistory';
 import { ChronikClient } from 'chronik-client';
 import { when } from 'jest-when';
@@ -681,5 +682,54 @@ it(`Correctly parses a token burn transaction with decimal places`, () => {
         isEncryptedMessage: false,
         decryptionSuccess: false,
         replyAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+    });
+});
+it(`Correctly parses received quantity for a received eToken address`, () => {
+    const BCH = new BCHJS({
+        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
+    });
+    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
+    BCH.Address.hash160ToCash = jest
+        .fn()
+        .mockReturnValue(
+            'bitcoincash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvll3cvjwd',
+        );
+    expect(
+        parseChronikTx(
+            BCH,
+            mockReceivedEtokenTx,
+            anotherMockParseTxWallet,
+            txHistoryTokenInfoById,
+        ),
+    ).toStrictEqual({
+        incoming: true,
+        xecAmount: '5.46',
+        originatingHash160: '4e532257c01b310b3b5c1fd947c79a72addf8523',
+        isEtokenTx: true,
+        etokenAmount: '0.123456789',
+        isTokenBurn: false,
+        slpMeta: {
+            tokenType: 'FUNGIBLE',
+            txType: 'SEND',
+            tokenId:
+                'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
+        },
+        genesisInfo: {
+            tokenTicker: 'CTB',
+            tokenName: 'CashTabBits',
+            tokenDocumentUrl: 'https://cashtabapp.com/',
+            tokenDocumentHash: '',
+            decimals: 9,
+            tokenId:
+                'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
+            success: true,
+        },
+        airdropFlag: false,
+        airdropTokenId: '',
+        opReturnMessage: '',
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        decryptionSuccess: false,
+        replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
     });
 });
