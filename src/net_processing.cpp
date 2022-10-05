@@ -915,7 +915,7 @@ private:
      */
     bool MaybeDiscourageAndDisconnect(CNode &pnode, Peer &peer);
 
-    void ProcessOrphanTx(const Config &config, std::set<TxId> &orphan_work_set)
+    void ProcessOrphanTx(const Config &config, Peer &peer)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, g_cs_orphans, !m_peer_mutex,
                                  g_msgproc_mutex);
     /**
@@ -3969,20 +3969,19 @@ void PeerManagerImpl::ProcessHeadersMessage(const Config &config, CNode &pfrom,
  * Reconsider orphan transactions after a parent has been accepted to the
  * mempool.
  *
- * @param[in,out]  orphan_work_set  The set of orphan transactions to
- *    reconsider. Generally only one orphan will be reconsidered on each call of
- *    this function. This set may be added to if accepting an orphan causes its
+ * @param[in]  peer  The peer whose orphan transactions we will reconsider.
+ *    Generally only one orphan will be reconsidered on each call of this
+ *    function. This set may be added to if accepting an orphan causes its
  *    children to be reconsidered.
  */
-void PeerManagerImpl::ProcessOrphanTx(const Config &config,
-                                      std::set<TxId> &orphan_work_set) {
+void PeerManagerImpl::ProcessOrphanTx(const Config &config, Peer &peer) {
     AssertLockHeld(cs_main);
     AssertLockHeld(g_cs_orphans);
     AssertLockHeld(g_msgproc_mutex);
 
-    while (!orphan_work_set.empty()) {
-        const TxId orphanTxId = *orphan_work_set.begin();
-        orphan_work_set.erase(orphan_work_set.begin());
+    while (!peer.m_orphan_work_set.empty()) {
+        const TxId orphanTxId = *peer.m_orphan_work_set.begin();
+        peer.m_orphan_work_set.erase(peer.m_orphan_work_set.begin());
 
         const auto [porphanTx, from_peer] = m_orphanage.GetTx(orphanTxId);
         if (porphanTx == nullptr) {
@@ -3996,7 +3995,8 @@ void PeerManagerImpl::ProcessOrphanTx(const Config &config,
             LogPrint(BCLog::MEMPOOL, "   accepted orphan tx %s\n",
                      orphanTxId.ToString());
             RelayTransaction(orphanTxId);
-            m_orphanage.AddChildrenToWorkSet(*porphanTx, orphan_work_set);
+            m_orphanage.AddChildrenToWorkSet(*porphanTx,
+                                             peer.m_orphan_work_set);
             m_orphanage.EraseTx(orphanTxId);
             break;
         } else if (state.GetResult() != TxValidationResult::TX_MISSING_INPUTS) {
@@ -5318,7 +5318,7 @@ void PeerManagerImpl::ProcessMessage(
 
             // Recursively process any orphan transactions that depended on this
             // one
-            ProcessOrphanTx(config, peer->m_orphan_work_set);
+            ProcessOrphanTx(config, *peer);
         } else if (state.GetResult() == TxValidationResult::TX_MISSING_INPUTS) {
             // It may be the case that the orphans parents have all been
             // rejected.
@@ -6966,7 +6966,7 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
     {
         LOCK2(cs_main, g_cs_orphans);
         if (!peer->m_orphan_work_set.empty()) {
-            ProcessOrphanTx(config, peer->m_orphan_work_set);
+            ProcessOrphanTx(config, *peer);
         }
     }
 
