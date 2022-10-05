@@ -539,14 +539,14 @@ const Tx = ({
                                                 outgoing={!data.parsed.incoming}
                                             >
                                                 {data.parsed.isEtokenTx &&
-                                                data.parsed.genesisInfo ? (
+                                                data.parsed.slpMeta ? (
                                                     <>
                                                         <TxTokenIcon>
                                                             <TokenIcon
                                                                 size={32}
                                                                 tokenId={
                                                                     data.parsed
-                                                                        .genesisInfo
+                                                                        .slpMeta
                                                                         .tokenId
                                                                 }
                                                             />

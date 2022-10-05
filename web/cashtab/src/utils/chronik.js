@@ -702,15 +702,16 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
 
     if (isEtokenTx) {
         // Get token genesis info from cache
-
         let decimals = 0;
         try {
             genesisInfo = tokenInfoById[tx.slpTxData.slpMeta.tokenId];
-            genesisInfo.success = true;
-            // tokenGenesisInfo should be there for every tx in tx history, since it's already been cached for every utxo in the wallet
-            // but try...catch just in case
-            decimals = genesisInfo.decimals;
-            etokenAmount = etokenAmount.shiftedBy(-1 * decimals);
+            if (typeof genesisInfo !== 'undefined') {
+                genesisInfo.success = true;
+                decimals = genesisInfo.decimals;
+                etokenAmount = etokenAmount.shiftedBy(-1 * decimals);
+            } else {
+                genesisInfo = { success: false };
+            }
         } catch (err) {
             console.log(
                 `Error getting token info from cache in parseChronikTx`,
@@ -815,13 +816,87 @@ export const getTxHistoryChronik = async (
     );
 
     // Parse txs
-    const parsedTxs = [];
+    const chronikTxHistory = [];
+    const uncachedTokenIds = [];
     for (let i = 0; i < sortedTxHistoryArray.length; i += 1) {
         const sortedTx = sortedTxHistoryArray[i];
         // Add token genesis info so parsing function can calculate amount by decimals
         sortedTx.parsed = parseChronikTx(BCH, sortedTx, wallet, tokenInfoById);
-        parsedTxs.push(sortedTx);
+        // Check to see if this tx was a token tx with uncached tokenInfoById
+        if (
+            sortedTx.parsed.isEtokenTx &&
+            sortedTx.parsed.genesisInfo &&
+            !sortedTx.parsed.genesisInfo.success
+        ) {
+            // Only add if the token id is not already in uncachedTokenIds
+            const uncachedTokenId = sortedTx.parsed.slpMeta.tokenId;
+            if (!uncachedTokenIds.includes(uncachedTokenId))
+                uncachedTokenIds.push(uncachedTokenId);
+        }
+        chronikTxHistory.push(sortedTx);
     }
 
-    return parsedTxs;
+    const txHistoryNewTokensToCache = uncachedTokenIds.length > 0;
+
+    if (!txHistoryNewTokensToCache) {
+        // This will almost always be the case
+        // Edge case to find uncached token info in tx history that was not caught in processing utxos
+        // Requires performing transactions in one wallet, then loading the same wallet in another browser later
+        return {
+            chronikTxHistory,
+            txHistoryUpdatedTokenInfoById: tokenInfoById,
+            txHistoryNewTokensToCache,
+        };
+    }
+
+    // Iterate over uncachedTokenIds to get genesis info and add to cache
+    const getTokenInfoPromises = [];
+    for (let i = 0; i < uncachedTokenIds.length; i += 1) {
+        const thisTokenId = uncachedTokenIds[i];
+
+        const thisTokenInfoPromise = returnGetTokenInfoChronikPromise(
+            chronik,
+            thisTokenId,
+        );
+        getTokenInfoPromises.push(thisTokenInfoPromise);
+    }
+
+    // Get all the token info you need
+    let tokenInfoArray = [];
+    try {
+        tokenInfoArray = await Promise.all(getTokenInfoPromises);
+    } catch (err) {
+        console.log(
+            `Error in Promise.all(getTokenInfoPromises) in getTxHistoryChronik`,
+            err,
+        );
+    }
+
+    // Add the token info you received from those API calls to
+    // your token info cache object, cachedTokenInfoByTokenId
+
+    const txHistoryUpdatedTokenInfoById = tokenInfoById;
+    for (let i = 0; i < tokenInfoArray.length; i += 1) {
+        /* tokenInfoArray is an array of objects that look like
+        {
+            "tokenTicker": "ST",
+            "tokenName": "ST",
+            "tokenDocumentUrl": "developer.bitcoin.com",
+            "tokenDocumentHash": "",
+            "decimals": 0,
+            "tokenId": "bf24d955f59351e738ecd905966606a6837e478e1982943d724eab10caad82fd"
+        }
+        */
+
+        const thisTokenInfo = tokenInfoArray[i];
+        const thisTokenId = thisTokenInfo.tokenId;
+        // Add this entry to updatedTokenInfoById
+        txHistoryUpdatedTokenInfoById[thisTokenId] = thisTokenInfo;
+    }
+
+    return {
+        chronikTxHistory,
+        txHistoryUpdatedTokenInfoById,
+        txHistoryNewTokensToCache,
+    };
 };

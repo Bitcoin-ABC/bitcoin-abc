@@ -214,7 +214,11 @@ const useWallet = () => {
                 updatedTokenInfoById,
             );
 
-            const chronikTxHistory = await getTxHistoryChronik(
+            const {
+                chronikTxHistory,
+                txHistoryUpdatedTokenInfoById,
+                txHistoryNewTokensToCache,
+            } = await getTxHistoryChronik(
                 chronik,
                 BCH,
                 wallet,
@@ -224,6 +228,23 @@ const useWallet = () => {
                 `chronikTxHistory as flattened array, sorted by blockheight and time first seen, with parse info, and partial legacy parse info`,
                 chronikTxHistory,
             );
+            if (txHistoryNewTokensToCache) {
+                console.log(
+                    `Uncached token info found in tx history, adding to cache`,
+                );
+                console.log(
+                    `txHistoryUpdatedTokenInfoById`,
+                    txHistoryUpdatedTokenInfoById,
+                );
+                writeTokenInfoByIdToCache(txHistoryUpdatedTokenInfoById);
+                // Update the tokenInfoById key in cashtabCache
+                setCashtabCache({
+                    ...cashtabCache,
+                    tokenInfoById: txHistoryUpdatedTokenInfoById,
+                });
+            }
+
+            // If you were missing any token info for tokens in this tx history, get it
 
             const newState = {
                 balances: getWalletBalanceFromUtxos(nonSlpUtxos),
