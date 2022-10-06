@@ -30,6 +30,7 @@ struct ChainstateLoadOptions {
     bool reindex{false};
     bool reindex_chainstate{false};
     bool prune{false};
+    bool require_full_verification{true};
     int64_t check_blocks{DEFAULT_CHECKBLOCKS};
     int64_t check_level{DEFAULT_CHECKLEVEL};
     std::function<bool()> check_interrupt;
@@ -44,6 +45,7 @@ enum class ChainstateLoadStatus {
     SUCCESS,
     FAILURE,
     FAILURE_INCOMPATIBLE_DB,
+    FAILURE_INSUFFICIENT_DBCACHE,
     INTERRUPTED
 };
 

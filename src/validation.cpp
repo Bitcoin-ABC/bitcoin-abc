@@ -4784,6 +4784,9 @@ VerifyDBResult CVerifyDB::VerifyDB(Chainstate &chainstate, const Config &config,
               "blocks (%i transactions)\n",
               block_count, nGoodTransactions);
 
+    if (skipped_l3_checks) {
+        return VerifyDBResult::SKIPPED_L3_CHECKS;
+    }
     return VerifyDBResult::SUCCESS;
 }
 
