@@ -562,6 +562,11 @@ bool TestBlockValidity(BlockValidationState &state, const CChainParams &params,
                        BlockValidationOptions validationOptions)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
+enum class VerifyDBResult {
+    SUCCESS,
+    CORRUPTED_BLOCK_DB,
+};
+
 /**
  * RAII wrapper for VerifyDB: Verify consistency of the block and coin
  * databases.
@@ -572,8 +577,9 @@ public:
 
     ~CVerifyDB();
 
-    bool VerifyDB(Chainstate &chainstate, const Config &config,
-                  CCoinsView &coinsview, int nCheckLevel, int nCheckDepth)
+    [[nodiscard]] VerifyDBResult
+    VerifyDB(Chainstate &chainstate, const Config &config,
+             CCoinsView &coinsview, int nCheckLevel, int nCheckDepth)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 };
 

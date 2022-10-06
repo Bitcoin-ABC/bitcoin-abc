@@ -275,12 +275,16 @@ VerifyLoadedChainstate(ChainstateManager &chainman,
                           "that your computer's date and time are correct")};
             }
 
-            if (!CVerifyDB().VerifyDB(
-                    *chainstate, config, chainstate->CoinsDB(),
-                    options.check_level, options.check_blocks)) {
-                return {ChainstateLoadStatus::FAILURE,
-                        _("Corrupted block database detected")};
-            }
+            VerifyDBResult result =
+                CVerifyDB().VerifyDB(*chainstate, config, chainstate->CoinsDB(),
+                                     options.check_level, options.check_blocks);
+            switch (result) {
+                case VerifyDBResult::SUCCESS:
+                    break;
+                case VerifyDBResult::CORRUPTED_BLOCK_DB:
+                    return {ChainstateLoadStatus::FAILURE,
+                            _("Corrupted block database detected")};
+            } // no default case, so the compiler can warn about missing cases
         }
     }
 

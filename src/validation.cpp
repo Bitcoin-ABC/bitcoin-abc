@@ -4602,9 +4602,9 @@ CVerifyDB::~CVerifyDB() {
     uiInterface.ShowProgress("", 100, false);
 }
 
-bool CVerifyDB::VerifyDB(Chainstate &chainstate, const Config &config,
-                         CCoinsView &coinsview, int nCheckLevel,
-                         int nCheckDepth) {
+VerifyDBResult CVerifyDB::VerifyDB(Chainstate &chainstate, const Config &config,
+                                   CCoinsView &coinsview, int nCheckLevel,
+                                   int nCheckDepth) {
     AssertLockHeld(cs_main);
 
     const CChainParams &params = config.GetChainParams();
@@ -4612,7 +4612,7 @@ bool CVerifyDB::VerifyDB(Chainstate &chainstate, const Config &config,
 
     if (chainstate.m_chain.Tip() == nullptr ||
         chainstate.m_chain.Tip()->pprev == nullptr) {
-        return true;
+        return VerifyDBResult::SUCCESS;
     }
 
     // Verify blocks in the best chain
@@ -4667,17 +4667,20 @@ bool CVerifyDB::VerifyDB(Chainstate &chainstate, const Config &config,
 
         // check level 0: read from disk
         if (!ReadBlockFromDisk(block, pindex, consensusParams)) {
-            return error(
-                "VerifyDB(): *** ReadBlockFromDisk failed at %d, hash=%s",
+            LogPrintf(
+                "Verification error: ReadBlockFromDisk failed at %d, hash=%s\n",
                 pindex->nHeight, pindex->GetBlockHash().ToString());
+            return VerifyDBResult::CORRUPTED_BLOCK_DB;
         }
 
         // check level 1: verify block validity
         if (nCheckLevel >= 1 && !CheckBlock(block, state, consensusParams,
                                             BlockValidationOptions(config))) {
-            return error("%s: *** found bad block at %d, hash=%s (%s)\n",
-                         __func__, pindex->nHeight,
-                         pindex->GetBlockHash().ToString(), state.ToString());
+            LogPrintf(
+                "Verification error: found bad block at %d, hash=%s (%s)\n",
+                pindex->nHeight, pindex->GetBlockHash().ToString(),
+                state.ToString());
+            return VerifyDBResult::CORRUPTED_BLOCK_DB;
         }
 
         // check level 2: verify undo validity
@@ -4685,9 +4688,11 @@ bool CVerifyDB::VerifyDB(Chainstate &chainstate, const Config &config,
             CBlockUndo undo;
             if (!pindex->GetUndoPos().IsNull()) {
                 if (!UndoReadFromDisk(undo, pindex)) {
-                    return error(
-                        "VerifyDB(): *** found bad undo data at %d, hash=%s\n",
-                        pindex->nHeight, pindex->GetBlockHash().ToString());
+                    LogPrintf("Verification error: found bad undo data at %d, "
+                              "hash=%s\n",
+                              pindex->nHeight,
+                              pindex->GetBlockHash().ToString());
+                    return VerifyDBResult::CORRUPTED_BLOCK_DB;
                 }
             }
         }
@@ -4702,10 +4707,11 @@ bool CVerifyDB::VerifyDB(Chainstate &chainstate, const Config &config,
                 DisconnectResult res =
                     chainstate.DisconnectBlock(block, pindex, coins);
                 if (res == DisconnectResult::FAILED) {
-                    return error("VerifyDB(): *** irrecoverable inconsistency "
-                                 "in block data at %d, hash=%s",
-                                 pindex->nHeight,
-                                 pindex->GetBlockHash().ToString());
+                    LogPrintf("Verification error: irrecoverable inconsistency "
+                              "in block data at %d, hash=%s\n",
+                              pindex->nHeight,
+                              pindex->GetBlockHash().ToString());
+                    return VerifyDBResult::CORRUPTED_BLOCK_DB;
                 }
                 if (res == DisconnectResult::UNCLEAN) {
                     nGoodTransactions = 0;
@@ -4719,20 +4725,22 @@ bool CVerifyDB::VerifyDB(Chainstate &chainstate, const Config &config,
         }
 
         if (ShutdownRequested()) {
-            return true;
+            return VerifyDBResult::SUCCESS;
         }
     }
 
     if (pindexFailure) {
-        return error("VerifyDB(): *** coin database inconsistencies found "
-                     "(last %i blocks, %i good transactions before that)\n",
-                     chainstate.m_chain.Height() - pindexFailure->nHeight + 1,
-                     nGoodTransactions);
+        LogPrintf("Verification error: coin database inconsistencies found "
+                  "(last %i blocks, %i good transactions before that)\n",
+                  chainstate.m_chain.Height() - pindexFailure->nHeight + 1,
+                  nGoodTransactions);
+        return VerifyDBResult::CORRUPTED_BLOCK_DB;
     }
     if (skipped_l3_checks) {
         LogPrintf("Skipped verification of level >=3 (insufficient database "
                   "cache size). Consider increasing -dbcache.\n");
     }
+
     // store block count as we move pindex at check level >= 4
     int block_count = chainstate.m_chain.Height() - pindex->nHeight;
 
@@ -4753,19 +4761,21 @@ bool CVerifyDB::VerifyDB(Chainstate &chainstate, const Config &config,
             pindex = chainstate.m_chain.Next(pindex);
             CBlock block;
             if (!ReadBlockFromDisk(block, pindex, consensusParams)) {
-                return error(
-                    "VerifyDB(): *** ReadBlockFromDisk failed at %d, hash=%s",
-                    pindex->nHeight, pindex->GetBlockHash().ToString());
+                LogPrintf("Verification error: ReadBlockFromDisk failed at %d, "
+                          "hash=%s\n",
+                          pindex->nHeight, pindex->GetBlockHash().ToString());
+                return VerifyDBResult::CORRUPTED_BLOCK_DB;
             }
             if (!chainstate.ConnectBlock(block, state, pindex, coins,
                                          BlockValidationOptions(config))) {
-                return error("VerifyDB(): *** found unconnectable block at %d, "
-                             "hash=%s (%s)",
-                             pindex->nHeight, pindex->GetBlockHash().ToString(),
-                             state.ToString());
+                LogPrintf("Verification error: found unconnectable block at "
+                          "%d, hash=%s (%s)\n",
+                          pindex->nHeight, pindex->GetBlockHash().ToString(),
+                          state.ToString());
+                return VerifyDBResult::CORRUPTED_BLOCK_DB;
             }
             if (ShutdownRequested()) {
-                return true;
+                return VerifyDBResult::SUCCESS;
             }
         }
     }
@@ -4774,7 +4784,7 @@ bool CVerifyDB::VerifyDB(Chainstate &chainstate, const Config &config,
               "blocks (%i transactions)\n",
               block_count, nGoodTransactions);
 
-    return true;
+    return VerifyDBResult::SUCCESS;
 }
 
 /**
