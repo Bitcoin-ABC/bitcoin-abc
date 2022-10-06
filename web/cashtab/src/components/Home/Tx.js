@@ -941,18 +941,19 @@ const Tx = ({
                                                             )}
                                                         </>
                                                     )}
-                                                    {(data.parsed.incoming &&
-                                                        data.parsed
-                                                            .replyAddress &&
-                                                        addressesInContactList.includes(
-                                                            data.parsed
-                                                                .replyAddress,
-                                                        )) ||
-                                                    (!cashtabSettings.hideMessagesFromUnknownSenders &&
+                                                    {(!cashtabSettings.hideMessagesFromUnknownSenders &&
                                                         data.parsed.incoming &&
                                                         data.parsed
-                                                            .replyAddress &&
-                                                        displayedMessage) ? (
+                                                            .replyAddress) ||
+                                                    (cashtabSettings.hideMessagesFromUnknownSenders &&
+                                                        displayedMessage) ||
+                                                    (addressesInContactList.includes(
+                                                        data.parsed
+                                                            .replyAddress,
+                                                    ) &&
+                                                        data.parsed.incoming &&
+                                                        data.parsed
+                                                            .replyAddress) ? (
                                                         <Link
                                                             to={{
                                                                 pathname: `/send`,
