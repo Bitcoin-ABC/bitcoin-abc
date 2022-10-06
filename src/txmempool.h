@@ -44,14 +44,12 @@ struct LockPoints {
     // Will be set to the blockchain height and median time past values that
     // would be necessary to satisfy all relative locktime constraints (BIP68)
     // of this tx given our view of block chain history
-    int height;
-    int64_t time;
+    int height{0};
+    int64_t time{0};
     // As long as the current chain descends from the highest height block
     // containing one of the inputs used in the calculation, then the cached
     // values are still valid even after a reorg.
-    CBlockIndex *maxInputBlock;
-
-    LockPoints() : height(0), time(0), maxInputBlock(nullptr) {}
+    CBlockIndex *maxInputBlock{nullptr};
 };
 
 struct CompareIteratorById {
@@ -110,7 +108,7 @@ private:
     const int64_t sigOpCount;
     //! Used for determining the priority of the transaction for mining in a
     //! block
-    Amount feeDelta;
+    Amount feeDelta{Amount::zero()};
     //! Track the height and time at which tx was final
     LockPoints lockPoints;
 
@@ -118,7 +116,7 @@ private:
     // mempool; if we remove this transaction we must remove all of these
     // descendants as well.
     //! number of descendant transactions
-    uint64_t nCountWithDescendants;
+    uint64_t nCountWithDescendants{1};
     //! ... and size
     uint64_t nSizeWithDescendants;
     //! ... and total fees (all including us)
@@ -127,15 +125,15 @@ private:
     int64_t nSigOpCountWithDescendants;
 
     // Analogous statistics for ancestor transactions
-    uint64_t nCountWithAncestors;
+    uint64_t nCountWithAncestors{1};
     uint64_t nSizeWithAncestors;
     Amount nModFeesWithAncestors;
     int64_t nSigOpCountWithAncestors;
 
 public:
-    CTxMemPoolEntry(const CTransactionRef &_tx, const Amount _nFee,
-                    int64_t _nTime, unsigned int _entryHeight,
-                    bool spendsCoinbase, int64_t _nSigOpCount, LockPoints lp);
+    CTxMemPoolEntry(const CTransactionRef &_tx, const Amount fee, int64_t time,
+                    unsigned int entry_height, bool spends_coinbase,
+                    int64_t sigops_count, LockPoints lp);
 
     const CTransaction &GetTx() const { return *this->tx; }
     CTransactionRef GetSharedTx() const { return this->tx; }
