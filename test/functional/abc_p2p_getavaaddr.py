@@ -306,7 +306,7 @@ class AvaAddrTest(BitcoinTestFramework):
             net=node.chain,
             timeout_factor=node.timeout_factor,
         )()
-        ip_port = f"127.0.01:{p2p_port(MAX_NODES - p2p_idx)}"
+        ip_port = f"127.0.0.1:{p2p_port(MAX_NODES - p2p_idx)}"
 
         node.addnode(node=ip_port, command="add")
         self.wait_until(lambda: added_node_connected(ip_port))
