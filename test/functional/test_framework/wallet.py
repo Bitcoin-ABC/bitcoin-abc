@@ -95,7 +95,7 @@ class MiniWallet:
         """Drop all utxos and rescan the utxo set"""
         self._utxos = []
         res = self._test_node.scantxoutset(
-            action="start", scanobjects=[f"raw({self._scriptPubKey.hex()})"]
+            action="start", scanobjects=[self.get_descriptor()]
         )
         assert_equal(True, res["success"])
         for utxo in res["unspents"]:
@@ -150,7 +150,7 @@ class MiniWallet:
     def generate(self, num_blocks, **kwargs):
         """Generate blocks with coinbase outputs to the internal address, and call rescan_utxos"""
         blocks = self._test_node.generatetodescriptor(
-            num_blocks, f"raw({self._scriptPubKey.hex()})", **kwargs
+            num_blocks, self.get_descriptor(), **kwargs
         )
         # Calling rescan_utxos here makes sure that after a generate the utxo
         # set is in a clean state. For example, the wallet will update
@@ -161,6 +161,11 @@ class MiniWallet:
         # - However, the wallet will not consider remaining mempool txs
         self.rescan_utxos()
         return blocks
+
+    def get_descriptor(self):
+        return self._test_node.getdescriptorinfo(f"raw({self._scriptPubKey.hex()})")[
+            "descriptor"
+        ]
 
     def get_scriptPubKey(self):
         return self._scriptPubKey

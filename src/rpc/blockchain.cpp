@@ -2361,6 +2361,8 @@ static RPCHelpMan scantxoutset() {
                               {RPCResult::Type::STR_AMOUNT, "amount",
                                "The total amount in " + ticker +
                                    " of the unspent output"},
+                              {RPCResult::Type::BOOL, "coinbase",
+                               "Whether this is a coinbase output"},
                               {RPCResult::Type::NUM, "height",
                                "Height of the unspent transaction output"},
                           }},
@@ -2464,6 +2466,7 @@ static RPCHelpMan scantxoutset() {
                     unspent.pushKV("scriptPubKey", HexStr(txo.scriptPubKey));
                     unspent.pushKV("desc", descriptors[txo.scriptPubKey]);
                     unspent.pushKV("amount", txo.nValue);
+                    unspent.pushKV("coinbase", coin.IsCoinBase());
                     unspent.pushKV("height", int32_t(coin.GetHeight()));
 
                     unspents.push_back(unspent);
