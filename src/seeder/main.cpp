@@ -332,8 +332,8 @@ const static unsigned int MAX_HOSTS_PER_SEED = 128;
 extern "C" void *ThreadSeeder(void *) {
     do {
         for (const std::string &seed : GetRandomizedDNSSeeds(Params())) {
-            std::vector<CNetAddr> ips;
-            LookupHost(seed.c_str(), ips, MAX_HOSTS_PER_SEED, true);
+            const std::vector<CNetAddr> ips{
+                LookupHost(seed.c_str(), MAX_HOSTS_PER_SEED, true)};
             for (auto &ip : ips) {
                 db.Add(CAddress(CService(ip, GetDefaultPort()), ServiceFlags()),
                        true);
