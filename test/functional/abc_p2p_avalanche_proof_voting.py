@@ -12,7 +12,7 @@ from test_framework.avatools import (
     get_ava_p2p_interface,
     get_proof_ids,
 )
-from test_framework.key import ECPubKey
+from test_framework.key import ECKey, ECPubKey
 from test_framework.messages import (
     MSG_AVA_PROOF,
     AvalancheProofVoteResponse,
@@ -34,13 +34,14 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
+        self.avaproof_stake_utxo_confirmations = 1
         self.conflicting_proof_cooldown = 100
         self.peer_replacement_cooldown = 2000
         self.extra_args = [
             [
                 '-avalanche=1',
                 '-avaproofstakeutxodustthreshold=1000000',
-                '-avaproofstakeutxoconfirmations=1',
+                f'-avaproofstakeutxoconfirmations={self.avaproof_stake_utxo_confirmations}',
                 f'-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}',
                 f'-avalanchepeerreplacementcooldown={self.peer_replacement_cooldown}',
                 '-avacooldown=0',
@@ -55,18 +56,8 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
     # Build a fake quorum of nodes.
     def get_quorum(self, node):
-        quorum = [get_ava_p2p_interface(node)
-                  for _ in range(0, QUORUM_NODE_COUNT)]
-
-        for n in quorum:
-            success = node.addavalanchenode(
-                n.nodeid,
-                self.privkey.get_pubkey().get_bytes().hex(),
-                self.quorum_proof.serialize().hex(),
-            )
-            assert success is True
-
-        return quorum
+        return [get_ava_p2p_interface(node, stake_utxo_confirmations=self.avaproof_stake_utxo_confirmations)
+                for _ in range(0, QUORUM_NODE_COUNT)]
 
     def can_find_proof_in_poll(self, hash, response):
         found_hash = False
@@ -90,7 +81,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
                 votes.append(AvalancheVote(r, inv.hash))
 
-            n.send_avaresponse(poll.round, votes, self.privkey)
+            n.send_avaresponse(poll.round, votes, n.delegated_privkey)
 
         return found_hash
 
@@ -112,13 +103,14 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
 
-        self.privkey, self.quorum_proof = gen_proof(node)
-        self.privkey_wif = bytes_to_wif(self.privkey.get_bytes())
+        privkey = ECKey()
+        privkey.generate()
+        self.privkey_wif = bytes_to_wif(privkey.get_bytes())
 
         self.quorum = self.get_quorum(node)
 
         addrkey0 = node.get_deterministic_priv_key()
-        blockhash = node.generatetoaddress(10, addrkey0.address)
+        blockhash = node.generatetoaddress(9, addrkey0.address)
         self.conflicting_stakes = create_coinbase_stakes(
             node, blockhash[5:9], addrkey0.key)
 
@@ -190,11 +182,11 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         # Restart the node to get rid of in-flight requests
         self.restart_node(0)
 
-        mock_time = int(time.time())
-        node.setmocktime(mock_time)
-
         self.quorum = self.get_quorum(node)
         peer = get_ava_p2p_interface(node)
+
+        mock_time = int(time.time())
+        node.setmocktime(mock_time)
 
         proof_seq30 = self.build_conflicting_proof(node, 30)
         proof_seq40 = self.build_conflicting_proof(node, 40)
@@ -293,10 +285,13 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
                                     node.getrawavalancheproof,
                                     uint256_hex(proofid_seq50))
 
+        node.setmocktime(0)
+
     def vote_tests(self, node):
+        self.avaproof_stake_utxo_confirmations = 2
         self.restart_node(0, extra_args=['-avalanche=1',
                                          '-avaproofstakeutxodustthreshold=1000000',
-                                         '-avaproofstakeutxoconfirmations=2',
+                                         f'-avaproofstakeutxoconfirmations={self.avaproof_stake_utxo_confirmations}',
                                          '-avacooldown=0',
                                          '-avalancheconflictingproofcooldown=0',
                                          '-avaminquorumstake=0',
@@ -304,8 +299,8 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
                                          '-whitelist=noban@127.0.0.1', ])
 
         self.get_quorum(node)
-
-        ava_node = get_ava_p2p_interface(node)
+        ava_node = get_ava_p2p_interface(
+            node, stake_utxo_confirmations=self.avaproof_stake_utxo_confirmations)
 
         # Generate coinbases to use for stakes
         stakes_key = node.get_deterministic_priv_key()
@@ -422,11 +417,11 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         # Restart the node to get rid of in-flight requests
         self.restart_node(0)
 
-        mock_time = int(time.time())
-        node.setmocktime(mock_time)
-
         self.quorum = self.get_quorum(node)
         peer = get_ava_p2p_interface(node)
+
+        mock_time = int(time.time())
+        node.setmocktime(mock_time)
 
         proof_seq1 = self.build_conflicting_proof(node, 1)
         proof_seq2 = self.build_conflicting_proof(node, 2)
@@ -465,12 +460,15 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
             AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proofid_seq1),
             AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proofid_seq2)])
 
+        node.setmocktime(0)
+
     def maturity_poll_tests(self, node):
         # Restart the node with appropriate flags for this test
+        self.avaproof_stake_utxo_confirmations = 2
         self.restart_node(0, extra_args=[
             '-avalanche=1',
             '-avaproofstakeutxodustthreshold=1000000',
-            '-avaproofstakeutxoconfirmations=2',
+            f'-avaproofstakeutxoconfirmations={self.avaproof_stake_utxo_confirmations}',
             '-avalancheconflictingproofcooldown=0',
             '-avacooldown=0',
             '-avaminquorumstake=0',
@@ -479,7 +477,8 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         ])
 
         self.quorum = self.get_quorum(node)
-        peer = get_ava_p2p_interface(node)
+        peer = get_ava_p2p_interface(
+            node, stake_utxo_confirmations=self.avaproof_stake_utxo_confirmations)
 
         _, immature_proof = gen_proof(node)
 

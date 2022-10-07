@@ -34,7 +34,7 @@ from .messages import (
 )
 from .p2p import P2PInterface, p2p_lock
 from .test_node import TestNode
-from .util import satoshi_round, wait_until_helper
+from .util import satoshi_round, uint256_hex, wait_until_helper
 from .wallet_util import bytes_to_wif
 
 
@@ -330,7 +330,7 @@ class AvaP2PInterface(NoHandshakeAvaP2PInterface):
             self.send_message(msg_notfound(not_found))
 
 
-def get_ava_p2p_interface(
+def get_ava_p2p_interface_no_handshake(
         node: TestNode,
         services=NODE_NETWORK | NODE_AVALANCHE) -> NoHandshakeAvaP2PInterface:
     """Build and return a NoHandshakeAvaP2PInterface connected to the specified
@@ -341,6 +341,38 @@ def get_ava_p2p_interface(
         n, services=services)
     n.wait_for_verack()
     n.nodeid = node.getpeerinfo()[-1]['id']
+
+    return n
+
+
+def get_ava_p2p_interface(
+        node: TestNode,
+        services=NODE_NETWORK | NODE_AVALANCHE,
+        stake_utxo_confirmations=1) -> AvaP2PInterface:
+    """Build and return an AvaP2PInterface connected to the specified TestNode.
+    """
+    n = AvaP2PInterface(node)
+
+    # Make sure the proof utxos are mature
+    if stake_utxo_confirmations > 1:
+        node.generate(stake_utxo_confirmations - 1)
+
+    assert node.verifyavalancheproof(n.proof.serialize().hex())
+
+    proofid_hex = uint256_hex(n.proof.proofid)
+    node.add_p2p_connection(n, services=services)
+    n.nodeid = node.getpeerinfo()[-1]['id']
+
+    def avapeer_connected():
+        node_list = []
+        try:
+            node_list = node.getavalanchepeerinfo(proofid_hex)[0]['node_list']
+        except BaseException:
+            pass
+
+        return n.nodeid in node_list
+
+    wait_until_helper(avapeer_connected, timeout=3)
 
     return n
 

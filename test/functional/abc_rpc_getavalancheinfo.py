@@ -12,7 +12,7 @@ from test_framework.avatools import (
     avalanche_proof_from_hex,
     create_coinbase_stakes,
     gen_proof,
-    get_ava_p2p_interface,
+    get_ava_p2p_interface_no_handshake,
     wait_for_proof,
 )
 from test_framework.key import ECKey
@@ -106,7 +106,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
 
         # Make sure receiving our own proof from the network before validating
         # the local proof doesn't change our proof count.
-        sender = get_ava_p2p_interface(node)
+        sender = get_ava_p2p_interface_no_handshake(node)
         sender.send_avaproof(proof)
 
         # Make sure getting the proof via RPC doesn't change our proof count
@@ -299,7 +299,10 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 None
             )
 
-            n = get_ava_p2p_interface(node)
+            # It would be much simpler to just use get_ava_p2p_interface here
+            # but the node would be able to download the proof, so the node
+            # won't be pending.
+            n = get_ava_p2p_interface_no_handshake(node)
             n.send_avahello(delegation, dg_priv)
             # Make sure we completed at least one time the ProcessMessage or we
             # might miss the last pending node for the following assert

@@ -8,7 +8,7 @@ from test_framework.avatools import (
     AvaP2PInterface,
     build_msg_avaproofs,
     gen_proof,
-    get_ava_p2p_interface,
+    get_ava_p2p_interface_no_handshake,
     get_proof_ids,
     wait_for_proof,
 )
@@ -50,10 +50,9 @@ class AvalancheQuorumTest(BitcoinTestFramework):
         # Initially all nodes start with 8 nodes attached to a single proof
         privkey, proof = gen_proof(self.nodes[0])
         for node in self.nodes:
-            quorum = [get_ava_p2p_interface(node)
-                      for _ in range(0, 8)]
+            for _ in range(8):
+                n = get_ava_p2p_interface_no_handshake(node)
 
-            for n in quorum:
                 success = node.addavalanchenode(
                     n.nodeid,
                     privkey.get_pubkey().get_bytes().hex(),
@@ -82,7 +81,8 @@ class AvalancheQuorumTest(BitcoinTestFramework):
         assert self.nodes[2].getblockchaininfo()['initialblockdownload']
 
         # Build polling nodes
-        pollers = [get_ava_p2p_interface(node) for node in self.nodes]
+        pollers = [get_ava_p2p_interface_no_handshake(
+            node) for node in self.nodes]
 
         def poll_and_assert_response(node, expected):
             pubkey = ECPubKey()

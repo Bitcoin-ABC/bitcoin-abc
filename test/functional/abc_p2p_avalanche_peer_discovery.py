@@ -16,7 +16,7 @@ from test_framework.avatools import (
     avalanche_proof_from_hex,
     create_coinbase_stakes,
     gen_proof,
-    get_ava_p2p_interface,
+    get_ava_p2p_interface_no_handshake,
     get_proof_ids,
     wait_for_proof,
 )
@@ -83,7 +83,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         self.log.info("Test the avahello signature with no proof")
 
-        peer = get_ava_p2p_interface(node)
+        peer = get_ava_p2p_interface_no_handshake(node)
         avahello = peer.wait_for_avahello().hello
         assert_equal(avahello.delegation.limited_proofid, 0)
 
@@ -113,7 +113,7 @@ class AvalancheTest(BitcoinTestFramework):
             # Restart the node with the given args
             self.restart_node(0, self.extra_args[0] + args)
 
-            peer = get_ava_p2p_interface(node)
+            peer = get_ava_p2p_interface_no_handshake(node)
 
             avahello = peer.wait_for_avahello().hello
 
@@ -162,7 +162,7 @@ class AvalancheTest(BitcoinTestFramework):
             None)
 
         self.log.info("Test that wrong avahello signature causes a ban")
-        bad_interface = get_ava_p2p_interface(node)
+        bad_interface = get_ava_p2p_interface_no_handshake(node)
         wrong_key = ECKey()
         wrong_key.generate()
         with node.assert_debug_log(
@@ -173,7 +173,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         self.log.info(
             'Check that receiving a valid avahello triggers a proof getdata request')
-        good_interface = get_ava_p2p_interface(node)
+        good_interface = get_ava_p2p_interface_no_handshake(node)
         proofid = good_interface.send_avahello(
             interface_delegation_hex, delegated_key)
 
@@ -218,7 +218,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         self.log.info(
             "The proof has not been announced, it cannot be requested")
-        peer = get_ava_p2p_interface(node, services=NODE_NETWORK)
+        peer = get_ava_p2p_interface_no_handshake(node, services=NODE_NETWORK)
 
         # Build a new proof and only announce this one
         _, new_proof_obj = gen_proof(node)
@@ -257,7 +257,7 @@ class AvalancheTest(BitcoinTestFramework):
         assert_equal(len(node.getavalanchepeerinfo()), 1)
         assert_equal(node.getavalanchepeerinfo()[0]["proof"], proof)
 
-        peer = get_ava_p2p_interface(node)
+        peer = get_ava_p2p_interface_no_handshake(node)
         peer_proofid = peer.send_avahello(
             interface_delegation_hex, delegated_key)
 
@@ -280,7 +280,7 @@ class AvalancheTest(BitcoinTestFramework):
             "Check that the peer gets added immediately if the proof is already known")
 
         # Connect another peer using the same proof
-        peer_proof_known = get_ava_p2p_interface(node)
+        peer_proof_known = get_ava_p2p_interface_no_handshake(node)
         peer_proof_known.send_avahello(interface_delegation_hex, delegated_key)
 
         self.wait_until(lambda: has_node_count(2))
@@ -312,7 +312,8 @@ class AvalancheTest(BitcoinTestFramework):
         self.log.info(
             "Check the node sends an avahello message to all peers even if the avalanche service bit is not advertised")
         for _ in range(3):
-            nonavapeer = get_ava_p2p_interface(node, services=NODE_NETWORK)
+            nonavapeer = get_ava_p2p_interface_no_handshake(
+                node, services=NODE_NETWORK)
             nonavapeer.wait_for_avahello()
 
 

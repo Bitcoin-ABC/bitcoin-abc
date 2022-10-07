@@ -5,15 +5,11 @@
 """Test the resolution of forks via avalanche."""
 import random
 
-from test_framework.avatools import (
-    create_coinbase_stakes,
-    get_ava_p2p_interface,
-)
-from test_framework.key import ECKey, ECPubKey
+from test_framework.avatools import get_ava_p2p_interface
+from test_framework.key import ECPubKey
 from test_framework.messages import AvalancheVote, AvalancheVoteError
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, uint256_hex
-from test_framework.wallet_util import bytes_to_wif
 
 QUORUM_NODE_COUNT = 16
 
@@ -30,6 +26,7 @@ class AvalancheTest(BitcoinTestFramework):
                 '-avacooldown=0',
                 '-avaminquorumstake=0',
                 '-avaminavaproofsnodecount=0',
+                '-whitelist=noban@127.0.0.1',
             ],
             [
                 '-avalanche=1',
@@ -38,7 +35,8 @@ class AvalancheTest(BitcoinTestFramework):
                 '-avaminquorumstake=0',
                 '-avaminavaproofsnodecount=0',
                 '-noparkdeepreorg',
-                '-maxreorgdepth=-1'
+                '-maxreorgdepth=-1',
+                '-whitelist=noban@127.0.0.1',
             ],
         ]
         self.supports_cli = False
@@ -56,29 +54,10 @@ class AvalancheTest(BitcoinTestFramework):
         quorum = get_quorum()
         poll_node = quorum[0]
 
+        assert node.getavalancheinfo()['ready_to_poll'] is True
+
         # Generate many block and poll for them.
-        addrkey0 = node.get_deterministic_priv_key()
-        blockhashes = node.generatetoaddress(100, addrkey0.address)
-        # Use the first coinbase to create a stake
-        stakes = create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key)
-
-        # duplicate the deterministic sig test from src/test/key_tests.cpp
-        privkey = ECKey()
-        privkey.set(bytes.fromhex(
-            "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747"), True)
-
-        proof_sequence = 11
-        proof_expiration = 0
-        proof = node.buildavalancheproof(
-            proof_sequence, proof_expiration, bytes_to_wif(
-                privkey.get_bytes()),
-            stakes)
-
-        # Activate the quorum.
-        for n in quorum:
-            success = node.addavalanchenode(
-                n.nodeid, privkey.get_pubkey().get_bytes().hex(), proof)
-            assert success is True
+        node.generate(100 - node.getblockcount())
 
         fork_node = self.nodes[1]
         # Make sure the fork node has synced the blocks
@@ -179,7 +158,7 @@ class AvalancheTest(BitcoinTestFramework):
 
                     votes.append(AvalancheVote(r, inv.hash))
 
-                n.send_avaresponse(poll.round, votes, privkey)
+                n.send_avaresponse(poll.round, votes, n.delegated_privkey)
 
             return found_hash
 
@@ -241,7 +220,7 @@ class AvalancheTest(BitcoinTestFramework):
                 ['Misbehaving', 'peer=1 (0 -> 2): unexpected-ava-response']):
             # unknown voting round
             poll_node.send_avaresponse(
-                round=2**32 - 1, votes=[], privkey=privkey)
+                round=2**32 - 1, votes=[], privkey=poll_node.delegated_privkey)
 
 
 if __name__ == '__main__':

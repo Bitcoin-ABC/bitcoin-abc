@@ -11,10 +11,10 @@ import time
 from test_framework.avatools import (
     gen_proof,
     get_ava_p2p_interface,
+    get_ava_p2p_interface_no_handshake,
     get_proof_ids,
     wait_for_proof,
 )
-from test_framework.key import ECKey
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
@@ -61,16 +61,9 @@ class ProofsCleanupTest(BitcoinTestFramework):
         peers = []
         # The first 5 peers have a node attached
         for _ in range(5):
-            key, proof = gen_proof(node)
-
             peer = get_ava_p2p_interface(node)
-            node.addavalanchenode(
-                peer.nodeid,
-                key.get_pubkey().get_bytes().hex(),
-                proof.serialize().hex())
-
-            proofs.append(proof)
-            keys.append(key)
+            proofs.append(peer.proof)
+            keys.append(peer.master_privkey)
             peers.append(peer)
 
         # The last 5 peers have no node attached
@@ -117,7 +110,7 @@ class ProofsCleanupTest(BitcoinTestFramework):
 
         self.log.info("Check the cleaned up proofs are no longer accepted...")
 
-        sender = get_ava_p2p_interface(node)
+        sender = get_ava_p2p_interface_no_handshake(node)
         for proof in proofs[1:]:
             with node.assert_debug_log(["dangling-proof"]):
                 sender.send_avaproof(proof)
@@ -132,26 +125,11 @@ class ProofsCleanupTest(BitcoinTestFramework):
         assert_equal(len(node.p2ps), 0)
 
         avanode = get_ava_p2p_interface(node)
-
-        avanode_key = keys[1]
-        avanode_proof = proofs[1]
-
-        delegated_key = ECKey()
-        delegated_key.generate()
-
-        delegation = node.delegateavalancheproof(
-            f"{avanode_proof.limited_proofid:064x}",
-            bytes_to_wif(avanode_key.get_bytes()),
-            delegated_key.get_pubkey().get_bytes().hex(),
-        )
-
-        avanode.send_avahello(delegation, delegated_key)
-        avanode.sync_with_ping()
         avanode.wait_until(lambda: avanode.last_message.get(
-            "getdata") and avanode.last_message["getdata"].inv[-1].hash == avanode_proof.proofid)
+            "getdata") and avanode.last_message["getdata"].inv[-1].hash == avanode.proof.proofid)
 
-        avanode.send_avaproof(avanode_proof)
-        self.wait_until(lambda: avanode_proof.proofid in get_proof_ids(node))
+        avanode.send_avaproof(avanode.proof)
+        self.wait_until(lambda: avanode.proof.proofid in get_proof_ids(node))
 
 
 if __name__ == '__main__':

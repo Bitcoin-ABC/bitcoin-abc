@@ -160,17 +160,11 @@ class CompactProofsTest(BitcoinTestFramework):
             services=NODE_NETWORK | NODE_AVALANCHE,
         )
         p2p_idx += 1
-        responding_outbound_avapeer_id = node.getpeerinfo()[-1]['id']
         outbound_avapeers.append(responding_outbound_avapeer)
 
         self.wait_until(all_peers_received_getavaproofs)
 
-        # Register as an avalanche node for the avaproofs message to be counted
-        key, proof = gen_proof(node)
-        assert node.addavalanchenode(
-            responding_outbound_avapeer_id,
-            key.get_pubkey().get_bytes().hex(),
-            proof.serialize().hex())
+        _, proof = gen_proof(node)
 
         # Send the avaproofs message
         avaproofs = build_msg_avaproofs([proof])

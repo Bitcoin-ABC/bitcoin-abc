@@ -8,7 +8,7 @@ from random import choice
 from test_framework.avatools import (
     avalanche_proof_from_hex,
     create_coinbase_stakes,
-    get_ava_p2p_interface,
+    get_ava_p2p_interface_no_handshake,
 )
 from test_framework.key import ECKey
 from test_framework.test_framework import BitcoinTestFramework
@@ -56,7 +56,7 @@ class GetAvalanchePeerInfoTest(BitcoinTestFramework):
             return (pubkey.get_bytes().hex(), proof)
 
         # Create peercount * nodecount node array
-        nodes = [[get_ava_p2p_interface(node) for _ in range(
+        nodes = [[get_ava_p2p_interface_no_handshake(node) for _ in range(
             nodecount)] for _ in range(peercount)]
 
         # Add peercount peers and bind all the nodes to each

@@ -17,7 +17,9 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.extra_args = [['-avalanche=1',
-                            '-avaproofstakeutxoconfirmations=1']]
+                            '-avaproofstakeutxoconfirmations=1',
+                            '-avaproofstakeutxodustthreshold=25000000',
+                            ]]
 
     def run_test(self):
         node = self.nodes[0]
