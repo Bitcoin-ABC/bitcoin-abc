@@ -484,7 +484,7 @@ const Configure = () => {
         cashtabSettings,
         changeCashtabSettings,
         getContactListFromLocalForage,
-        updateContactListInLocalForage,
+        updateContactList,
     } = ContextValue;
     const [savedWallets, setSavedWallets] = useState([]);
     const [formData, setFormData] = useState({
@@ -661,11 +661,11 @@ const Configure = () => {
             // update local storage
             let updateContactListStatus;
             try {
-                updateContactListStatus = await updateContactListInLocalForage(
+                updateContactListStatus = await updateContactList(
                     tempContactListArray,
                 );
             } catch (err) {
-                console.log('Error in updateContactListInLocalForage()');
+                console.log('Error in updateContactList()');
                 console.log(err);
             }
 
@@ -937,11 +937,11 @@ const Configure = () => {
 
             let updateContactListStatus;
             try {
-                updateContactListStatus = await updateContactListInLocalForage(
+                updateContactListStatus = await updateContactList(
                     contactListArray,
                 );
             } catch (err) {
-                console.log('Error in updateContactListInLocalForage()');
+                console.log('Error in updateContactList()');
                 console.log(err);
             }
 
@@ -1005,11 +1005,11 @@ const Configure = () => {
         // commit updated list to local storage
         let updateContactListStatus;
         try {
-            updateContactListStatus = await updateContactListInLocalForage(
+            updateContactListStatus = await updateContactList(
                 updatedContactList,
             );
         } catch (err) {
-            console.log('Error in updateContactListInLocalForage()');
+            console.log('Error in updateContactList()');
             console.log(err);
         }
 
@@ -1136,7 +1136,7 @@ const Configure = () => {
 
         // update localforage
         try {
-            await updateContactListInLocalForage(tempContactListArray);
+            await updateContactList(tempContactListArray);
         } catch (err) {
             console.log('Error in handleAddSavedWalletAsContactOk()');
             console.log(err);
@@ -1215,7 +1215,7 @@ const Configure = () => {
 
         // update localforage
         try {
-            await updateContactListInLocalForage(tempContactListArray);
+            await updateContactList(tempContactListArray);
         } catch (err) {
             console.log('Error in handleManualAddContactModalOk()');
             console.log(err);
