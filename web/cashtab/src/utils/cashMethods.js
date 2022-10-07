@@ -790,8 +790,8 @@ export const getPublicKey = async (BCH, address) => {
         return publicKey.publicKey;
     } catch (err) {
         if (err['error'] === 'No transaction history.') {
-            throw new Error(
-                'Cannot send an encrypted message to a wallet with no outgoing transactions',
+            console.log(
+                `bch-api sees legacy Cannot send an encrypted message to a wallet with no outgoing transactions error`,
             );
         } else {
             throw err;

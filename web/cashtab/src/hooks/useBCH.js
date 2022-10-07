@@ -485,15 +485,96 @@ export default function useBCH() {
         }
     };
 
-    const getRecipientPublicKey = async (BCH, recipientAddress) => {
-        let recipientPubKey;
+    const getRecipientPublicKey = async (
+        BCH,
+        chronik,
+        recipientAddress,
+        optionalMockPubKeyResponse = false,
+    ) => {
+        console.log(`recipientAddress`, recipientAddress);
+        // Necessary because jest can't mock
+        // chronikTxHistoryAtAddress = await chronik.script('p2pkh', recipientAddressHash160).history(/*page=*/ 0, /*page_size=*/ 10);
+        if (optionalMockPubKeyResponse) {
+            return optionalMockPubKeyResponse;
+        }
+        let recipientPubKeyBchApi;
         try {
-            recipientPubKey = await getPublicKey(BCH, recipientAddress);
+            recipientPubKeyBchApi = await getPublicKey(BCH, recipientAddress);
         } catch (err) {
             console.log(`useBCH.getRecipientPublicKey() error: ` + err);
             throw err;
         }
-        return recipientPubKey;
+
+        // get hash160 of address
+        let recipientAddressHash160;
+        try {
+            recipientAddressHash160 = BCH.Address.toHash160(recipientAddress);
+            console.log(`recipientHash160`, recipientAddressHash160);
+        } catch (err) {
+            console.log(
+                `Error determining BCH.Address.toHash160(${recipientAddress} in getRecipientPublicKey())`,
+                err,
+            );
+        }
+
+        let chronikTxHistoryAtAddress;
+        try {
+            // Get 20 txs. If no outgoing txs in those 20 txs, just don't send the tx
+            chronikTxHistoryAtAddress = await chronik
+                .script('p2pkh', recipientAddressHash160)
+                .history(/*page=*/ 0, /*page_size=*/ 20);
+        } catch (err) {
+            console.log(
+                `Error getting await chronik.script('p2pkh', ${recipientAddressHash160}).history();`,
+                err,
+            );
+        }
+        console.log(`chronikTxHistoryAtAddress`, chronikTxHistoryAtAddress);
+        let recipientPubKeyChronik;
+
+        // Iterate over tx history to find an outgoing tx
+        for (let i = 0; i < chronikTxHistoryAtAddress.txs.length; i += 1) {
+            const { inputs } = chronikTxHistoryAtAddress.txs[i];
+            for (let j = 0; j < inputs.length; j += 1) {
+                const thisInput = inputs[j];
+                const thisInputSendingHash160 = thisInput.outputScript;
+                if (thisInputSendingHash160.includes(recipientAddressHash160)) {
+                    // Then this is an outgoing tx, you can get the public key from this tx
+                    // Get the public key
+
+                    try {
+                        recipientPubKeyChronik =
+                            chronikTxHistoryAtAddress.txs[i].inputs[
+                                j
+                            ].inputScript.slice(-66);
+                    } catch (err) {
+                        throw new Error(
+                            '[chronik] Cannot send an encrypted message to a wallet with no outgoing transactions',
+                        );
+                    }
+                    console.log(`recipientPubKeyBchApi`, recipientPubKeyBchApi);
+                    console.log(
+                        `recipientPubKeyChronik`,
+                        recipientPubKeyChronik,
+                    );
+
+                    if (recipientPubKeyChronik === recipientPubKeyBchApi) {
+                        console.log(
+                            `Chronik and bch-api agree on this public key`,
+                        );
+                        return recipientPubKeyChronik;
+                    } else {
+                        throw new Error(
+                            `Looks like bch-api and chronik don't see this in quite the same way`,
+                        );
+                    }
+                }
+            }
+        }
+        // You get here if you find no outgoing txs in the chronik tx history
+        throw new Error(
+            '[chronik] Cannot send an encrypted message to a wallet with no outgoing transactions in the last 20 txs',
+        );
     };
 
     const sendXec = async (
@@ -510,6 +591,7 @@ export default function useBCH() {
         encryptionFlag,
         airdropFlag,
         airdropTokenId,
+        optionalMockPubKeyResponse = false,
     ) => {
         try {
             let txBuilder = new BCH.TransactionBuilder();
@@ -539,7 +621,9 @@ export default function useBCH() {
                     // get the pub key for the recipient address
                     let recipientPubKey = await getRecipientPublicKey(
                         BCH,
+                        chronik,
                         destinationAddress,
+                        optionalMockPubKeyResponse,
                     );
 
                     // if the API can't find a pub key, it is due to the wallet having no outbound tx

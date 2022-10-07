@@ -89,15 +89,8 @@ describe('useBCH hook', () => {
         );
         const { expectedTxId, utxos, wallet, destinationAddress, sendAmount } =
             sendBCHMock;
-        const expectedPubKeyResponse = {
-            success: true,
-            publicKey:
-                '03451a3e61ae8eb76b8d4cd6057e4ebaf3ef63ae3fe5f441b72c743b5810b6a389',
-        };
-
-        BCH.encryption.getPubKey = jest
-            .fn()
-            .mockResolvedValue(expectedPubKeyResponse);
+        const expectedPubKey =
+            '03451a3e61ae8eb76b8d4cd6057e4ebaf3ef63ae3fe5f441b72c743b5810b6a389';
 
         chronik.broadcastTx = jest
             .fn()
@@ -115,6 +108,9 @@ describe('useBCH hook', () => {
                 destinationAddress,
                 sendAmount,
                 true, // encryption flag for the OP_RETURN message
+                false, // airdrop flag
+                '', // airdrop token id
+                expectedPubKey, //optionalMockPubKeyResponse
             ),
         ).toBe(`${currency.blockExplorerUrl}/tx/${expectedTxId}`);
     });
@@ -387,20 +383,21 @@ describe('useBCH hook', () => {
     it(`getRecipientPublicKey() correctly retrieves the public key of a cash address`, async () => {
         const { getRecipientPublicKey } = useBCH();
         const BCH = new BCHJS();
-        const expectedPubKeyResponse = {
-            success: true,
-            publicKey:
-                '03208c4f52229e021ddec5fc6e07a59fd66388ac52bc2a2c1e0f1afb24b0e275ac',
-        };
+        const chronik = new ChronikClient(
+            'https://FakeChronikUrlToEnsureMocksOnly.com',
+        );
         const expectedPubKey =
             '03208c4f52229e021ddec5fc6e07a59fd66388ac52bc2a2c1e0f1afb24b0e275ac';
         const destinationAddress =
             'bitcoincash:qqvuj09f80sw9j7qru84ptxf0hyqffc38gstxfs5ru';
-        BCH.encryption.getPubKey = jest
-            .fn()
-            .mockResolvedValue(expectedPubKeyResponse);
-        expect(await getRecipientPublicKey(BCH, destinationAddress)).toBe(
-            expectedPubKey,
-        );
+
+        expect(
+            await getRecipientPublicKey(
+                BCH,
+                chronik,
+                destinationAddress,
+                expectedPubKey,
+            ),
+        ).toBe(expectedPubKey);
     });
 });
