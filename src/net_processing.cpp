@@ -921,8 +921,7 @@ private:
      * @return  True if there are still orphans in this peer's work set.
      */
     bool ProcessOrphanTx(const Config &config, Peer &peer)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main, g_cs_orphans, !m_peer_mutex,
-                                 g_msgproc_mutex);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main, !m_peer_mutex, g_msgproc_mutex);
     /**
      * Process a single headers message from a peer.
      *
@@ -2287,7 +2286,7 @@ void PeerManagerImpl::FinalizeNode(const Config &config, const CNode &node) {
         for (const QueuedBlock &entry : state->vBlocksInFlight) {
             mapBlocksInFlight.erase(entry.pindex->GetBlockHash());
         }
-        WITH_LOCK(g_cs_orphans, m_orphanage.EraseForPeer(nodeid));
+        m_orphanage.EraseForPeer(nodeid);
         m_txrequest.DisconnectedPeer(nodeid);
         m_num_preferred_download_peers -= state->fPreferredDownload;
         m_peers_downloading_from -= (state->nBlocksInFlight != 0);
@@ -3972,7 +3971,6 @@ void PeerManagerImpl::ProcessHeadersMessage(const Config &config, CNode &pfrom,
 
 bool PeerManagerImpl::ProcessOrphanTx(const Config &config, Peer &peer) {
     AssertLockHeld(cs_main);
-    AssertLockHeld(g_cs_orphans);
     AssertLockHeld(g_msgproc_mutex);
 
     NodeId from_peer = -1;
@@ -5270,7 +5268,7 @@ void PeerManagerImpl::ProcessMessage(
         const TxId &txid = tx.GetId();
         AddKnownTx(*peer, txid);
 
-        LOCK2(cs_main, g_cs_orphans);
+        LOCK(cs_main);
 
         m_txrequest.ReceivedResponse(pfrom.GetId(), txid);
 
@@ -5494,7 +5492,7 @@ void PeerManagerImpl::ProcessMessage(
         bool fBlockReconstructed = false;
 
         {
-            LOCK2(cs_main, g_cs_orphans);
+            LOCK(cs_main);
             // If AcceptBlockHeader returned true, it set pindex
             assert(pindex);
             UpdateBlockAvailability(pfrom.GetId(), pindex->GetBlockHash());
@@ -6960,7 +6958,7 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
 
     bool has_more_orphans;
     {
-        LOCK2(cs_main, g_cs_orphans);
+        LOCK(cs_main);
         has_more_orphans = ProcessOrphanTx(config, *peer);
     }
 

@@ -15,10 +15,10 @@ static constexpr int64_t ORPHAN_TX_EXPIRE_TIME = 20 * 60;
 /** Minimum time between orphan transactions expire time checks in seconds */
 static constexpr int64_t ORPHAN_TX_EXPIRE_INTERVAL = 5 * 60;
 
-RecursiveMutex g_cs_orphans;
+RecursiveMutex TxOrphanage::g_cs_orphans;
 
 bool TxOrphanage::AddTx(const CTransactionRef &tx, NodeId peer) {
-    AssertLockHeld(g_cs_orphans);
+    LOCK(g_cs_orphans);
 
     const TxId &txid = tx->GetId();
     if (m_orphans.count(txid)) {
@@ -54,6 +54,11 @@ bool TxOrphanage::AddTx(const CTransactionRef &tx, NodeId peer) {
 }
 
 int TxOrphanage::EraseTx(const TxId &txid) {
+    LOCK(g_cs_orphans);
+    return _EraseTx(txid);
+}
+
+int TxOrphanage::_EraseTx(const TxId &txid) {
     AssertLockHeld(g_cs_orphans);
     std::map<TxId, OrphanTx>::iterator it = m_orphans.find(txid);
     if (it == m_orphans.end()) {
@@ -86,7 +91,7 @@ int TxOrphanage::EraseTx(const TxId &txid) {
 }
 
 void TxOrphanage::EraseForPeer(NodeId peer) {
-    AssertLockHeld(g_cs_orphans);
+    LOCK(g_cs_orphans);
 
     m_peer_work_set.erase(peer);
 
@@ -96,7 +101,7 @@ void TxOrphanage::EraseForPeer(NodeId peer) {
         std::map<TxId, OrphanTx>::iterator maybeErase =
             iter++; // increment to avoid iterator becoming invalid
         if (maybeErase->second.fromPeer == peer) {
-            nErased += EraseTx(maybeErase->second.tx->GetId());
+            nErased += _EraseTx(maybeErase->second.tx->GetId());
         }
     }
     if (nErased > 0) {
@@ -106,7 +111,7 @@ void TxOrphanage::EraseForPeer(NodeId peer) {
 }
 
 unsigned int TxOrphanage::LimitOrphans(unsigned int max_orphans) {
-    AssertLockHeld(g_cs_orphans);
+    LOCK(g_cs_orphans);
 
     unsigned int nEvicted = 0;
     static int64_t nNextSweep;
@@ -120,7 +125,7 @@ unsigned int TxOrphanage::LimitOrphans(unsigned int max_orphans) {
         while (iter != m_orphans.end()) {
             std::map<TxId, OrphanTx>::iterator maybeErase = iter++;
             if (maybeErase->second.nTimeExpire <= nNow) {
-                nErased += EraseTx(maybeErase->second.tx->GetId());
+                nErased += _EraseTx(maybeErase->second.tx->GetId());
             } else {
                 nMinExpTime =
                     std::min(maybeErase->second.nTimeExpire, nMinExpTime);
@@ -138,14 +143,14 @@ unsigned int TxOrphanage::LimitOrphans(unsigned int max_orphans) {
     while (m_orphans.size() > max_orphans) {
         // Evict a random orphan:
         size_t randompos = rng.randrange(m_orphan_list.size());
-        EraseTx(m_orphan_list[randompos]->first);
+        _EraseTx(m_orphan_list[randompos]->first);
         ++nEvicted;
     }
     return nEvicted;
 }
 
 void TxOrphanage::AddChildrenToWorkSet(const CTransaction &tx, NodeId peer) {
-    AssertLockHeld(g_cs_orphans);
+    LOCK(g_cs_orphans);
 
     // Get this peer's work set, emplacing an empty set if it didn't exist
     std::set<TxId> &orphan_work_set =
@@ -169,7 +174,7 @@ bool TxOrphanage::HaveTx(const TxId &txid) const {
 
 CTransactionRef TxOrphanage::GetTxToReconsider(NodeId peer, NodeId &originator,
                                                bool &more) {
-    AssertLockHeld(g_cs_orphans);
+    LOCK(g_cs_orphans);
 
     auto work_set_it = m_peer_work_set.find(peer);
     if (work_set_it != m_peer_work_set.end()) {
@@ -218,7 +223,7 @@ void TxOrphanage::EraseForBlock(const CBlock &block) {
     if (vOrphanErase.size()) {
         int nErased = 0;
         for (const auto &orphanId : vOrphanErase) {
-            nErased += EraseTx(orphanId);
+            nErased += _EraseTx(orphanId);
         }
         LogPrint(BCLog::MEMPOOL,
                  "Erased %d orphan tx included or conflicted by block\n",
