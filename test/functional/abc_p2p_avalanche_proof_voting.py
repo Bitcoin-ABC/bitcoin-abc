@@ -40,7 +40,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
             [
                 '-avalanche=1',
                 '-avaproofstakeutxodustthreshold=1000000',
-                '-avaproofstakeutxoconfirmations=2',
+                '-avaproofstakeutxoconfirmations=1',
                 f'-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}',
                 f'-avalanchepeerreplacementcooldown={self.peer_replacement_cooldown}',
                 '-avacooldown=0',
@@ -48,6 +48,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
                 '-avastalevotefactor=1',
                 '-avaminquorumstake=0',
                 '-avaminavaproofsnodecount=0',
+                '-whitelist=noban@127.0.0.1',
             ],
         ]
         self.supports_cli = False
@@ -114,17 +115,12 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.privkey, self.quorum_proof = gen_proof(node)
         self.privkey_wif = bytes_to_wif(self.privkey.get_bytes())
 
-        # Make the quorum proof mature before preparing the quorum
-        node.generate(1)
-
         self.quorum = self.get_quorum(node)
 
         addrkey0 = node.get_deterministic_priv_key()
         blockhash = node.generatetoaddress(10, addrkey0.address)
         self.conflicting_stakes = create_coinbase_stakes(
             node, blockhash[5:9], addrkey0.key)
-        self.immature_stakes = create_coinbase_stakes(
-            node, blockhash[9:], addrkey0.key)
 
         self.poll_tests(node)
         self.update_tests(node)
@@ -137,9 +133,6 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         proof_seq20 = self.build_conflicting_proof(node, 20)
         proof_seq30 = self.build_conflicting_proof(node, 30)
         proof_seq40 = self.build_conflicting_proof(node, 40)
-
-        immature = node.buildavalancheproof(
-            100, 0, self.privkey_wif, self.immature_stakes)
 
         no_stake = node.buildavalancheproof(
             200, 2000000000, self.privkey_wif, []
@@ -185,10 +178,6 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         mock_time += self.conflicting_proof_cooldown
         node.setmocktime(mock_time)
 
-        self.log.info("Check we don't poll for immature proofs")
-        with node.assert_debug_log(["Not polling the avalanche proof (immature-proof)"]):
-            peer.send_avaproof(avalanche_proof_from_hex(immature))
-
         self.log.info("Check we don't poll for proofs that get rejected")
         with node.assert_debug_log(["Not polling the avalanche proof (rejected-proof)"]):
             peer.send_avaproof(avalanche_proof_from_hex(proof_seq10))
@@ -196,9 +185,6 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.log.info("Check we don't poll for invalid proofs and get banned")
         with node.assert_debug_log(["Misbehaving", "invalid-proof"]):
             peer.send_avaproof(avalanche_proof_from_hex(no_stake))
-        peer.wait_for_disconnect()
-
-        self.log.info("We don't poll for proofs if replacement is disabled")
 
     def update_tests(self, node):
         # Restart the node to get rid of in-flight requests
@@ -254,8 +240,6 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         assert self.conflicting_proof_cooldown < self.peer_replacement_cooldown
         mock_time += self.conflicting_proof_cooldown
         node.setmocktime(mock_time)
-
-        peer = get_ava_p2p_interface(node)
 
         with node.assert_debug_log(["Not polling the avalanche proof (cooldown-not-elapsed)"]):
             self.send_proof(peer, proof_seq50)
@@ -491,6 +475,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
             '-avacooldown=0',
             '-avaminquorumstake=0',
             '-avaminavaproofsnodecount=0',
+            '-whitelist=noban@127.0.0.1',
         ])
 
         self.quorum = self.get_quorum(node)
