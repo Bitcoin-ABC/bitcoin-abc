@@ -85,7 +85,7 @@ const StyledModal = styled(Modal)`
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
 const Airdrop = ({ jestBCH, passLoadingStatus }) => {
     const ContextValue = React.useContext(WalletContext);
-    const { BCH, wallet, fiatPrice, cashtabSettings } = ContextValue;
+    const { BCH, wallet, fiatPrice, cashtabSettings, chronik } = ContextValue;
     const location = useLocation();
     const walletState = getWalletState(wallet);
     const { balances } = walletState;
@@ -202,14 +202,18 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
         passLoadingStatus(true);
         setAirdropCalcModalProgress(25); // updated progress bar to 25%
 
-        let latestBlock;
+        let latestBlock, chainInfo;
         try {
-            latestBlock = await bchObj.Blockchain.getBlockCount();
+            chainInfo = await chronik.blockchainInfo();
+            latestBlock = chainInfo.tipHeight;
+            console.log(
+                'Calculating airdrop recipients as at block #' + latestBlock,
+            );
         } catch (err) {
             errorNotification(
                 err,
                 'Error retrieving latest block height',
-                'bchObj.Blockchain.getBlockCount() error',
+                'chronik.blockchainInfo() error',
             );
             setIsAirdropCalcModalVisible(false);
             passLoadingStatus(false);
