@@ -15,8 +15,8 @@
 
 template <typename PrefilledItemType, typename Adapter, typename ItemCompare>
 class ShortIdProcessor : Adapter, ItemCompare {
-    using ItemType = typename std::remove_reference<decltype(
-        std::declval<Adapter &>().getItem(
+    using ItemType = typename std::remove_reference<
+        decltype(std::declval<Adapter &>().getItem(
             std::declval<PrefilledItemType &>()))>::type;
 
     bool evenlyDistributed = true;

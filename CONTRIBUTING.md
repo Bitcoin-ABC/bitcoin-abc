@@ -134,20 +134,20 @@ will have to install the following:
 
 Install all the code formatting tools on Debian Bullseye (11) or Ubuntu 20.04:
 ```
-sudo apt-get install clang-format-11 clang-tidy-11 clang-tools-11 python3-autopep8 python3-pip flake8 php-codesniffer shellcheck yamllint
+sudo apt-get install python3-autopep8 python3-pip flake8 php-codesniffer shellcheck yamllint
 pip3 install isort>=5.6.4 mypy>=0.780
 echo "export PATH=\"`python3 -m site --user-base`/bin:\$PATH\"" >> ~/.bashrc
 source ~/.bashrc
 ```
 
-If not available in the distribution, `clang-format-11` and `clang-tidy-11` can be
+If not available in the distribution, `clang-format-12` and `clang-tidy-12` can be
 installed from <https://releases.llvm.org/download.html> or <https://apt.llvm.org>.
 
 For example, for macOS:
 ```
-curl -L https://github.com/llvm/llvm-project/releases/download/llvmorg-11.0.0/clang+llvm-11.0.0-x86_64-apple-darwin.tar.xz | tar -xJv
-ln -s $PWD/clang+llvm-11.0.0-x86_64-apple-darwin/bin/clang-format /usr/local/bin/clang-format
-ln -s $PWD/clang+llvm-11.0.0-x86_64-apple-darwin/bin/clang-tidy /usr/local/bin/clang-tidy
+curl -L https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.0/clang+llvm-12.0.0-x86_64-apple-darwin.tar.xz | tar -xJv
+ln -s $PWD/clang+llvm-12.0.0-x86_64-apple-darwin/bin/clang-format /usr/local/bin/clang-format
+ln -s $PWD/clang+llvm-12.0.0-x86_64-apple-darwin/bin/clang-tidy /usr/local/bin/clang-tidy
 ```
 
 If you are modifying a shell script, you will need to install the `shellcheck` linter.

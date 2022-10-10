@@ -43,8 +43,9 @@ private:
     static const int MASK = (1 << BITS) - 1;
     static const size_t CHILD_PER_LEVEL = 1 << BITS;
 
-    using KeyType = typename std::remove_reference<decltype(
-        std::declval<Adapter &>().getId(std::declval<T &>()))>::type;
+    using KeyType =
+        typename std::remove_reference<decltype(std::declval<Adapter &>().getId(
+            std::declval<T &>()))>::type;
     static const size_t KEY_BITS = 8 * sizeof(KeyType);
     static const uint32_t TOP_LEVEL = (KEY_BITS - 1) / BITS;
 
