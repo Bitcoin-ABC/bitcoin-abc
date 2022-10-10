@@ -9,6 +9,7 @@ const TxHistory = ({
     fiatCurrency,
     contactList,
     cashtabSettings,
+    cashtabCache,
 }) => {
     // Convert contactList array of objects to an array of addresses
     const addressesInContactList = flattenContactList(contactList);
@@ -23,6 +24,7 @@ const TxHistory = ({
                     addressesInContactList={addressesInContactList}
                     contactList={contactList}
                     cashtabSettings={cashtabSettings}
+                    cashtabCache={cashtabCache}
                 />
             ))}
         </div>
@@ -32,6 +34,7 @@ const TxHistory = ({
 TxHistory.propTypes = {
     txs: PropTypes.array,
     fiatPrice: PropTypes.number,
+    cashtabCache: PropTypes.object,
     fiatCurrency: PropTypes.string,
     contactList: PropTypes.arrayOf(
         PropTypes.shape({

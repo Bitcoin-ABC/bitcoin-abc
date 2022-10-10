@@ -141,8 +141,14 @@ const CreateToken = styled(Link)`
 
 const WalletInfo = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { wallet, fiatPrice, apiError, cashtabSettings, contactList } =
-        ContextValue;
+    const {
+        wallet,
+        fiatPrice,
+        apiError,
+        cashtabSettings,
+        contactList,
+        cashtabCache,
+    } = ContextValue;
     const walletState = getWalletState(wallet);
     const { balances, parsedTxHistory, tokens } = walletState;
     const [activeTab, setActiveTab] = React.useState('txHistory');
@@ -193,6 +199,7 @@ const WalletInfo = () => {
                         }
                         contactList={contactList}
                         cashtabSettings={cashtabSettings}
+                        cashtabCache={cashtabCache}
                     />
                     {!hasHistory && (
                         <>

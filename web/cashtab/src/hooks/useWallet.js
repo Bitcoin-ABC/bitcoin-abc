@@ -1441,6 +1441,7 @@ const useWallet = () => {
         apiError,
         contactList,
         cashtabSettings,
+        cashtabCache,
         changeCashtabSettings,
         getActiveWalletFromLocalForage,
         getWallet,

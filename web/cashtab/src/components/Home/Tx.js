@@ -73,6 +73,13 @@ const AirdropReceivedTx = styled(TxIcon)`
 
 const AirdropTokenInfoCtn = styled.div`
     flex-grow: 3;
+
+    h4 {
+        font-size: 10px;
+        color: ${props => props.theme.lightWhite};
+        margin: 0;
+        margin-top: 5px;
+    }
 `;
 
 const GenesisTx = styled(TxIcon)`
@@ -424,6 +431,7 @@ const Tx = ({
     addressesInContactList,
     contactList,
     cashtabSettings,
+    cashtabCache,
 }) => {
     const [displayedMessage, setDisplayedMessage] = useState(false);
     const handleShowMessage = () => {
@@ -683,6 +691,29 @@ const Tx = ({
                                                                     .airdropTokenId
                                                             }
                                                         />
+                                                        {cashtabCache &&
+                                                            Object.keys(
+                                                                cashtabCache.tokenInfoById,
+                                                            ).includes(
+                                                                data.parsed
+                                                                    .airdropTokenId,
+                                                            ) && (
+                                                                <h4>
+                                                                    {cashtabCache
+                                                                        .tokenInfoById[
+                                                                        data
+                                                                            .parsed
+                                                                            .airdropTokenId
+                                                                    ] &&
+                                                                        cashtabCache
+                                                                            .tokenInfoById[
+                                                                            data
+                                                                                .parsed
+                                                                                .airdropTokenId
+                                                                        ]
+                                                                            .tokenName}
+                                                                </h4>
+                                                            )}
                                                     </AirdropTokenInfoCtn>
                                                 )}
                                                 <TxInfo
@@ -1136,6 +1167,7 @@ Tx.propTypes = {
             name: PropTypes.string,
         }),
     ),
+    cashtabCache: PropTypes.object,
     cashtabSettings: PropTypes.oneOfType([
         PropTypes.shape({
             fiatCurrency: PropTypes.string,
