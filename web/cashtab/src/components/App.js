@@ -206,7 +206,7 @@ const NavIcon = styled.span`
 const NavMenu = styled.div`
     position: fixed;
     float: right;
-    margin-right:1px;
+    margin-right: 1px;
     bottom: 5rem;
     display: flex;
     width: 8.23rem;
