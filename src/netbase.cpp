@@ -217,11 +217,11 @@ bool LookupHost(const std::string &name, CNetAddr &addr, bool fAllowLookup,
     return true;
 }
 
-bool Lookup(const std::string &name, std::vector<CService> &vAddr,
-            uint16_t portDefault, bool fAllowLookup, unsigned int nMaxSolutions,
-            DNSLookupFn dns_lookup_function) {
+std::vector<CService> Lookup(const std::string &name, uint16_t portDefault,
+                             bool fAllowLookup, unsigned int nMaxSolutions,
+                             DNSLookupFn dns_lookup_function) {
     if (name.empty() || !ContainsNoNUL(name)) {
-        return false;
+        return {};
     }
     uint16_t port{portDefault};
     std::string hostname;
@@ -230,28 +230,24 @@ bool Lookup(const std::string &name, std::vector<CService> &vAddr,
     const std::vector<CNetAddr> addresses{LookupIntern(
         hostname, nMaxSolutions, fAllowLookup, dns_lookup_function)};
     if (addresses.empty()) {
-        return false;
+        return {};
     }
-    vAddr.resize(addresses.size());
-    for (unsigned int i = 0; i < addresses.size(); i++) {
-        vAddr[i] = CService(addresses[i], port);
+    std::vector<CService> services;
+    services.reserve(addresses.size());
+    for (const auto &addr : addresses) {
+        services.emplace_back(addr, port);
     }
-    return true;
+    return services;
 }
 
-bool Lookup(const std::string &name, CService &addr, uint16_t portDefault,
-            bool fAllowLookup, DNSLookupFn dns_lookup_function) {
-    if (!ContainsNoNUL(name)) {
-        return false;
-    }
-    std::vector<CService> vService;
-    bool fRet = Lookup(name, vService, portDefault, fAllowLookup, 1,
-                       dns_lookup_function);
-    if (!fRet) {
-        return false;
-    }
-    addr = vService[0];
-    return true;
+std::optional<CService> Lookup(const std::string &name, uint16_t portDefault,
+                               bool fAllowLookup,
+                               DNSLookupFn dns_lookup_function) {
+    const std::vector<CService> services{
+        Lookup(name, portDefault, fAllowLookup, 1, dns_lookup_function)};
+
+    return services.empty() ? std::nullopt
+                            : std::make_optional(services.front());
 }
 
 CService LookupNumeric(const std::string &name, uint16_t portDefault,
@@ -259,13 +255,11 @@ CService LookupNumeric(const std::string &name, uint16_t portDefault,
     if (!ContainsNoNUL(name)) {
         return {};
     }
-    CService addr;
     // "1.2:345" will fail to resolve the ip, but will still set the port.
     // If the ip fails to resolve, re-init the result.
-    if (!Lookup(name, addr, portDefault, false, dns_lookup_function)) {
-        addr = CService();
-    }
-    return addr;
+    return Lookup(name, portDefault, /*fAllowLookup=*/false,
+                  dns_lookup_function)
+        .value_or(CService{});
 }
 
 /** SOCKS version */

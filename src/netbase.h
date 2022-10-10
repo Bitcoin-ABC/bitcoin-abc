@@ -119,8 +119,8 @@ extern DNSLookupFn g_dns_lookup;
  * @returns The resulting network addresses to which the specified host
  *          string resolved.
  *
- * @see Lookup(const std::string&, std::vector<CService>&, uint16_t, bool,
- *      unsigned int, DNSLookupFn) for additional parameter descriptions.
+ * @see Lookup(const std::string&, uint16_t, bool, unsigned int, DNSLookupFn)
+ *      for additional parameter descriptions.
  */
 std::vector<CNetAddr>
 LookupHost(const std::string &name, unsigned int nMaxSolutions,
@@ -146,8 +146,6 @@ bool LookupHost(const std::string &name, CNetAddr &addr, bool fAllowLookup,
  *                disambiguated bracketed form), optionally followed by a
  * uint16_t port number. (e.g. example.com:8333 or
  *                [2001:db8:85a3:8d3:1319:8a2e:370:7348]:420)
- * @param[out] vAddr The resulting services to which the specified service
- * string resolved.
  * @param portDefault The default port for resulting services if not specified
  *                    by the service string.
  * @param fAllowLookup Whether or not hostname lookups are permitted. If yes,
@@ -155,21 +153,22 @@ bool LookupHost(const std::string &name, CNetAddr &addr, bool fAllowLookup,
  * @param nMaxSolutions The maximum number of results we want, specifying 0
  *                      means "as many solutions as we get."
  *
- * @returns Whether or not the service string successfully resolved to any
- *          resulting services.
+ * @returns The resulting services to which the specified service string
+ *          resolved.
  */
-bool Lookup(const std::string &name, std::vector<CService> &vAddr,
-            uint16_t portDefault, bool fAllowLookup, unsigned int nMaxSolutions,
-            DNSLookupFn dns_lookup_function = g_dns_lookup);
+std::vector<CService> Lookup(const std::string &name, uint16_t portDefault,
+                             bool fAllowLookup, unsigned int nMaxSolutions,
+                             DNSLookupFn dns_lookup_function = g_dns_lookup);
 
 /**
  * Resolve a service string to its first corresponding service.
  *
- * @see Lookup(const std::string&, std::vector<CService>&, int, bool,
- *      unsigned int, DNSLookupFn) for additional parameter descriptions.
+ * @see Lookup(const std::string&, uint16_t, bool, unsigned int, DNSLookupFn)
+ *      for additional parameter descriptions.
  */
-bool Lookup(const std::string &name, CService &addr, uint16_t portDefault,
-            bool fAllowLookup, DNSLookupFn dns_lookup_function = g_dns_lookup);
+std::optional<CService> Lookup(const std::string &name, uint16_t portDefault,
+                               bool fAllowLookup,
+                               DNSLookupFn dns_lookup_function = g_dns_lookup);
 
 /**
  * Resolve a service string with a numeric IP to its first corresponding
@@ -178,8 +177,8 @@ bool Lookup(const std::string &name, CService &addr, uint16_t portDefault,
  * @returns The resulting CService if the resolution was successful, [::]:0
  *          otherwise.
  *
- * @see Lookup(const std::string&, CService&, int, bool, DNSLookupFn) for
- *      additional parameter descriptions.
+ * @see Lookup(const std::string&, uint16_t, bool, unsigned int, DNSLookupFn)
+ *      for additional parameter descriptions.
  */
 CService LookupNumeric(const std::string &name, uint16_t portDefault = 0,
                        DNSLookupFn dns_lookup_function = g_dns_lookup);

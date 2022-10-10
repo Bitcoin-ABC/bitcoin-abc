@@ -140,13 +140,12 @@ uint16_t GetListenPort() {
     // If -bind= is provided with ":port" part, use that (first one if multiple
     // are provided).
     for (const std::string &bind_arg : gArgs.GetArgs("-bind")) {
-        CService bind_addr;
         constexpr uint16_t dummy_port = 0;
 
-        if (Lookup(bind_arg, bind_addr, dummy_port, /*fAllowLookup=*/false)) {
-            if (bind_addr.GetPort() != dummy_port) {
-                return bind_addr.GetPort();
-            }
+        const std::optional<CService> bind_addr{
+            Lookup(bind_arg, dummy_port, /*fAllowLookup=*/false)};
+        if (bind_addr.has_value() && bind_addr->GetPort() != dummy_port) {
+            return bind_addr->GetPort();
         }
     }
 
@@ -452,10 +451,9 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
                                     ? Params().GetDefaultPort(pszDest)
                                     : Params().GetDefaultPort()};
     if (pszDest) {
-        std::vector<CService> resolved;
-        if (Lookup(pszDest, resolved, default_port,
-                   fNameLookup && !HaveNameProxy(), 256) &&
-            !resolved.empty()) {
+        const std::vector<CService> resolved{Lookup(
+            pszDest, default_port, fNameLookup && !HaveNameProxy(), 256)};
+        if (!resolved.empty()) {
             addrConnect = CAddress(
                 resolved[FastRandomContext().randrange(resolved.size())],
                 NODE_NONE);
