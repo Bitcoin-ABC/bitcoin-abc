@@ -8,7 +8,6 @@ import { currency } from '../../components/Common/Ticker';
 import BigNumber from 'bignumber.js';
 import { fromSatoshisToXec } from 'utils/cashMethods';
 import { ChronikClient } from 'chronik-client'; // for mocking purposes
-import { when } from 'jest-when';
 
 describe('useBCH hook', () => {
     it('gets Rest Api Url on testnet', () => {
@@ -53,14 +52,8 @@ describe('useBCH hook', () => {
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
-        const {
-            expectedTxId,
-            expectedHex,
-            utxos,
-            wallet,
-            destinationAddress,
-            sendAmount,
-        } = sendBCHMock;
+        const { expectedTxId, utxos, wallet, destinationAddress, sendAmount } =
+            sendBCHMock;
 
         chronik.broadcastTx = jest
             .fn()
@@ -121,14 +114,7 @@ describe('useBCH hook', () => {
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
-        const {
-            expectedTxId,
-            expectedHex,
-            utxos,
-            wallet,
-            destinationAddress,
-            sendAmount,
-        } = sendBCHMock;
+        const { expectedTxId, utxos, wallet } = sendBCHMock;
 
         const addressAndValueArray = [
             'bitcoincash:qrzuvj0vvnsz5949h4axercl5k420eygavv0awgz05,6',
@@ -160,7 +146,7 @@ describe('useBCH hook', () => {
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
-        const { expectedTxId, utxos, wallet, destinationAddress } = sendBCHMock;
+        const { utxos, wallet, destinationAddress } = sendBCHMock;
 
         const expectedTxFeeInSats = 229;
 
@@ -220,7 +206,7 @@ describe('useBCH hook', () => {
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
-        const { expectedTxId, utxos, wallet, destinationAddress } = sendBCHMock;
+        const { utxos, wallet, destinationAddress } = sendBCHMock;
         const failedSendBch = sendXec(
             BCH,
             chronik,
