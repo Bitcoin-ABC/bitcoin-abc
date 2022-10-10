@@ -9,6 +9,7 @@ import {
     UnparsedIcon,
     ThemedContactsOutlined,
     ThemedBurnOutlined,
+    AirdropIcon,
 } from 'components/Common/CustomIcons';
 import { currency } from 'components/Common/Ticker';
 import { formatBalance, formatDate } from 'utils/formatting';
@@ -58,6 +59,22 @@ const ReceivedTx = styled(TxIcon)`
     }
     border-color: ${props => props.theme.eCashBlue};
 `;
+
+const AirdropSentTx = styled(TxIcon)`
+    fill: ${props => props.theme.contrast};
+`;
+
+const AirdropReceivedTx = styled(TxIcon)`
+    svg {
+        fill: ${props => props.theme.eCashBlue};
+    }
+    border-color: ${props => props.theme.eCashBlue};
+`;
+
+const AirdropTokenInfoCtn = styled.div`
+    flex-grow: 3;
+`;
+
 const GenesisTx = styled(TxIcon)`
     border-color: ${props => props.theme.genesisGreen};
     svg {
@@ -95,6 +112,7 @@ const LeftTextCtn = styled.div`
     }
     ${ReceivedHeader} {
         color: ${props => props.theme.eCashBlue};
+        justify-content: left;
     }
     h4 {
         font-size: 12px;
@@ -235,7 +253,7 @@ const TxInfo = styled.div`
     align-items: left;
     flex-direction: column;
     margin-left: 10px;
-    flex-grow: 2;
+    flex-grow: 1;
     h3 {
         color: ${props => props.theme.contrast};
         font-size: 14px;
@@ -392,7 +410,7 @@ const NotInContactsAlert = styled.h4`
 const ReceivedFromCtn = styled.div`
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: left;
     gap: 3px;
     h4 {
         margin-top: 2.5px;
@@ -454,15 +472,32 @@ const Tx = ({
                                                         <ThemedBurnOutlined />
                                                     </BurnedTx>
                                                 ) : (
-                                                    <SentTx>
-                                                        <SendIcon />
-                                                    </SentTx>
+                                                    <>
+                                                        {data.parsed
+                                                            .airdropFlag ? (
+                                                            <AirdropSentTx>
+                                                                <AirdropIcon />
+                                                            </AirdropSentTx>
+                                                        ) : (
+                                                            <SentTx>
+                                                                <SendIcon />
+                                                            </SentTx>
+                                                        )}
+                                                    </>
                                                 )}
                                             </>
                                         ) : (
-                                            <ReceivedTx>
-                                                <ReceiveIcon />
-                                            </ReceivedTx>
+                                            <>
+                                                {data.parsed.airdropFlag ? (
+                                                    <AirdropReceivedTx>
+                                                        <AirdropIcon />
+                                                    </AirdropReceivedTx>
+                                                ) : (
+                                                    <ReceivedTx>
+                                                        <ReceiveIcon />
+                                                    </ReceivedTx>
+                                                )}
+                                            </>
                                         )}
 
                                         <LeftTextCtn>
@@ -480,6 +515,9 @@ const Tx = ({
                                                             {data.parsed
                                                                 .isTokenBurn
                                                                 ? 'Burned'
+                                                                : data.parsed
+                                                                      .airdropFlag
+                                                                ? 'Airdrop'
                                                                 : 'Sent'}
                                                         </h3>
                                                     )}
@@ -487,7 +525,9 @@ const Tx = ({
                                             ) : (
                                                 <ReceivedFromCtn>
                                                     <ReceivedHeader>
-                                                        Received
+                                                        {data.parsed.airdropFlag
+                                                            ? 'Airdrop'
+                                                            : 'Received'}
                                                     </ReceivedHeader>
 
                                                     {addressesInContactList.includes(
@@ -634,6 +674,17 @@ const Tx = ({
                                             </TokenInfo>
                                         ) : (
                                             <>
+                                                {data.parsed.airdropFlag && (
+                                                    <AirdropTokenInfoCtn>
+                                                        <TokenIcon
+                                                            size={32}
+                                                            tokenId={
+                                                                data.parsed
+                                                                    .airdropTokenId
+                                                            }
+                                                        />
+                                                    </AirdropTokenInfoCtn>
+                                                )}
                                                 <TxInfo
                                                     outgoing={
                                                         !data.parsed.incoming

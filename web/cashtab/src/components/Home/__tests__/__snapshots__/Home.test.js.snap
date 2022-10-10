@@ -3,13 +3,13 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-tilXH jNMxhX"
+    className="sc-cIShpX kBtxOc"
   >
     <div
-      className="sc-lhVmIH heaCTn"
+      className="sc-jtRfpW ilaTRi"
     >
       <h4
-        className="sc-bYSBpT kfEmcu"
+        className="sc-kTUwUJ jBnodQ"
       >
         MigrationTestAlpha
       </h4>
@@ -25,7 +25,7 @@ Array [
       </a>
     </div>
     <div
-      className="sc-ktHwxA jftcqX"
+      className="sc-feJyhm dcfWPG"
     >
       0
        
@@ -33,26 +33,26 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-jnlKLf bGhdMf"
+    className="sc-hEsumM fVYKnA"
   >
     <div
-      className="sc-elJkPf iMWevG"
+      className="sc-dqBHgY ikRnZe"
     >
       <button
-        className="sc-jtRfpW hoSHxF"
+        className="sc-gxMtzJ iyHxMs"
         onClick={[Function]}
       >
         Transactions
       </button>
       <button
-        className="sc-jtRfpW frantW"
+        className="sc-gxMtzJ hbRqdo"
         onClick={[Function]}
       >
         eTokens
       </button>
     </div>
     <div
-      className="sc-kTUwUJ jEGfkE"
+      className="sc-dfVpRl jGQwrz"
     >
       <div />
       <span
@@ -79,10 +79,10 @@ Array [
        to send to others
     </div>
     <div
-      className="sc-kTUwUJ ewtTZh"
+      className="sc-dfVpRl boocvK"
     >
       <a
-        className="sc-gzOgki igtjKA"
+        className="sc-kPVwWT cDbiuF"
         href="/tokens"
         onClick={[Function]}
       >
@@ -101,13 +101,13 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-tilXH jNMxhX"
+    className="sc-cIShpX kBtxOc"
   >
     <div
-      className="sc-lhVmIH heaCTn"
+      className="sc-jtRfpW ilaTRi"
     >
       <h4
-        className="sc-bYSBpT kfEmcu"
+        className="sc-kTUwUJ jBnodQ"
       >
         MigrationTestAlpha
       </h4>
@@ -123,7 +123,7 @@ Array [
       </a>
     </div>
     <div
-      className="sc-ktHwxA jftcqX"
+      className="sc-feJyhm dcfWPG"
     >
       0
        
@@ -131,26 +131,26 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-jnlKLf bGhdMf"
+    className="sc-hEsumM fVYKnA"
   >
     <div
-      className="sc-elJkPf iMWevG"
+      className="sc-dqBHgY ikRnZe"
     >
       <button
-        className="sc-jtRfpW hoSHxF"
+        className="sc-gxMtzJ iyHxMs"
         onClick={[Function]}
       >
         Transactions
       </button>
       <button
-        className="sc-jtRfpW frantW"
+        className="sc-gxMtzJ hbRqdo"
         onClick={[Function]}
       >
         eTokens
       </button>
     </div>
     <div
-      className="sc-kTUwUJ jEGfkE"
+      className="sc-dfVpRl jGQwrz"
     >
       <div />
       <span
@@ -177,10 +177,10 @@ Array [
        to send to others
     </div>
     <div
-      className="sc-kTUwUJ ewtTZh"
+      className="sc-dfVpRl boocvK"
     >
       <a
-        className="sc-gzOgki igtjKA"
+        className="sc-kPVwWT cDbiuF"
         href="/tokens"
         onClick={[Function]}
       >
@@ -199,13 +199,13 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-tilXH jNMxhX"
+    className="sc-cIShpX kBtxOc"
   >
     <div
-      className="sc-lhVmIH heaCTn"
+      className="sc-jtRfpW ilaTRi"
     >
       <h4
-        className="sc-bYSBpT kfEmcu"
+        className="sc-kTUwUJ jBnodQ"
       >
         MigrationTestAlpha
       </h4>
@@ -221,7 +221,7 @@ Array [
       </a>
     </div>
     <div
-      className="sc-ktHwxA jftcqX"
+      className="sc-feJyhm dcfWPG"
     >
       0.06
        
@@ -229,26 +229,26 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-jnlKLf bGhdMf"
+    className="sc-hEsumM fVYKnA"
   >
     <div
-      className="sc-elJkPf iMWevG"
+      className="sc-dqBHgY ikRnZe"
     >
       <button
-        className="sc-jtRfpW hoSHxF"
+        className="sc-gxMtzJ iyHxMs"
         onClick={[Function]}
       >
         Transactions
       </button>
       <button
-        className="sc-jtRfpW frantW"
+        className="sc-gxMtzJ hbRqdo"
         onClick={[Function]}
       >
         eTokens
       </button>
     </div>
     <div
-      className="sc-kTUwUJ jEGfkE"
+      className="sc-dfVpRl jGQwrz"
     >
       <div />
       <span
@@ -275,10 +275,10 @@ Array [
        to send to others
     </div>
     <div
-      className="sc-kTUwUJ ewtTZh"
+      className="sc-dfVpRl boocvK"
     >
       <a
-        className="sc-gzOgki igtjKA"
+        className="sc-kPVwWT cDbiuF"
         href="/tokens"
         onClick={[Function]}
       >
@@ -316,13 +316,13 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-tilXH jNMxhX"
+    className="sc-cIShpX kBtxOc"
   >
     <div
-      className="sc-lhVmIH heaCTn"
+      className="sc-jtRfpW ilaTRi"
     >
       <h4
-        className="sc-bYSBpT kfEmcu"
+        className="sc-kTUwUJ jBnodQ"
       >
         MigrationTestAlpha
       </h4>
@@ -338,7 +338,7 @@ Array [
       </a>
     </div>
     <div
-      className="sc-ktHwxA jftcqX"
+      className="sc-feJyhm dcfWPG"
     >
       0
        
@@ -346,26 +346,26 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-jnlKLf bGhdMf"
+    className="sc-hEsumM fVYKnA"
   >
     <div
-      className="sc-elJkPf iMWevG"
+      className="sc-dqBHgY ikRnZe"
     >
       <button
-        className="sc-jtRfpW hoSHxF"
+        className="sc-gxMtzJ iyHxMs"
         onClick={[Function]}
       >
         Transactions
       </button>
       <button
-        className="sc-jtRfpW frantW"
+        className="sc-gxMtzJ hbRqdo"
         onClick={[Function]}
       >
         eTokens
       </button>
     </div>
     <div
-      className="sc-kTUwUJ jEGfkE"
+      className="sc-dfVpRl jGQwrz"
     >
       <div />
       <span
@@ -392,10 +392,10 @@ Array [
        to send to others
     </div>
     <div
-      className="sc-kTUwUJ ewtTZh"
+      className="sc-dfVpRl boocvK"
     >
       <a
-        className="sc-gzOgki igtjKA"
+        className="sc-kPVwWT cDbiuF"
         href="/tokens"
         onClick={[Function]}
       >
