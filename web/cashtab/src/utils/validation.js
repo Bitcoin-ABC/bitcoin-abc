@@ -52,6 +52,79 @@ export const fiatToCrypto = (
     return cryptoAmount;
 };
 
+export const isProbablyNotAScamTokenName = tokenName => {
+    // convert to lower case, trim leading and trailing spaces
+    // split, filter then join on ' ' for cases where user inputs multiple spaces
+    const sanitizedTokenName = tokenName
+        .toLowerCase()
+        .trim()
+        .split(' ')
+        .filter(string => string)
+        .join(' ');
+
+    return (
+        !currency.bannedTokenNames.includes(sanitizedTokenName) &&
+        // for cases where user adds spaces between e a c h letter
+        !currency.bannedTokenNames.includes(
+            sanitizedTokenName.split(' ').join(''),
+        ) &&
+        // cross reference with bannedTokenTickers
+        !currency.bannedTokenTickers.includes(sanitizedTokenName) &&
+        !currency.bannedTokenTickers.includes(
+            sanitizedTokenName.split(' ').join(''),
+        ) &&
+        //cross reference with bannedTokenIds
+        !currency.bannedTokenIds.includes(sanitizedTokenName) &&
+        !currency.bannedTokenIds.includes(
+            sanitizedTokenName.split(' ').join(''),
+        ) &&
+        //cross reference with bannedFiatCurrencies
+        !currency.settingsValidation.fiatCurrency.includes(
+            sanitizedTokenName,
+        ) &&
+        !currency.settingsValidation.fiatCurrency.includes(
+            sanitizedTokenName.split(' ').join(''),
+        )
+    );
+};
+
+export const isProbablyNotAScamTokenTicker = tokenTicker => {
+    // convert to lower case, trim leading and trailing spaces
+    // split, filter then join on ' ' for cases where user inputs multiple spaces
+    const sanitizedTokenTicker = tokenTicker
+        .toLowerCase()
+        .trim()
+        .split(' ')
+        .filter(string => string)
+        .join('');
+
+    return (
+        !currency.bannedTokenTickers.includes(sanitizedTokenTicker) &&
+        // for cases where user adds spaces between e a c h letter
+
+        !currency.bannedTokenTickers.includes(
+            sanitizedTokenTicker.split(' ').join(''),
+        ) &&
+        //cross reference with bannedTokenNames
+        !currency.bannedTokenNames.includes(sanitizedTokenTicker) &&
+        !currency.bannedTokenNames.includes(
+            sanitizedTokenTicker.split(' ').join(''),
+        ) &&
+        //cross reference with bannedTokenIds
+        !currency.bannedTokenIds.includes(sanitizedTokenTicker) &&
+        !currency.bannedTokenIds.includes(
+            sanitizedTokenTicker.split(' ').join(''),
+        ) &&
+        //cross reference with bannedFiatCurrencies
+        !currency.settingsValidation.fiatCurrency.includes(
+            sanitizedTokenTicker,
+        ) &&
+        !currency.settingsValidation.fiatCurrency.includes(
+            sanitizedTokenTicker.split(' ').join(''),
+        )
+    );
+};
+
 export const isValidTokenName = tokenName => {
     return (
         typeof tokenName === 'string' &&

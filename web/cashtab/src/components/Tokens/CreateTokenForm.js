@@ -15,6 +15,8 @@ import {
     isValidTokenDecimals,
     isValidTokenInitialQty,
     isValidTokenDocumentUrl,
+    isProbablyNotAScamTokenName,
+    isProbablyNotAScamTokenTicker,
 } from 'utils/validation';
 import {
     PlusSquareOutlined,
@@ -259,20 +261,55 @@ const CreateTokenForm = ({
     // New Token Name
     const [newTokenName, setNewTokenName] = useState('');
     const [newTokenNameIsValid, setNewTokenNameIsValid] = useState(null);
+    const [newTokenNameIsProbablyNotAScam, setNewTokenNameIsProbablyNotAScam] =
+        useState(null);
+    const [tokenNameError, setTokenNameError] = useState('');
     const handleNewTokenNameInput = e => {
         const { value } = e.target;
         // validation
+
         setNewTokenNameIsValid(isValidTokenName(value));
+        setNewTokenNameIsProbablyNotAScam(isProbablyNotAScamTokenName(value));
+
+        if (!isValidTokenName(value)) {
+            setTokenNameError('Validation Error');
+        }
+        if (!isProbablyNotAScamTokenName(value)) {
+            setTokenNameError('Blacklisted Error');
+        }
+        if (isValidTokenName(value) && isProbablyNotAScamTokenName(value)) {
+            setTokenNameError('');
+        }
+
         setNewTokenName(value);
     };
 
     // New Token Ticker
     const [newTokenTicker, setNewTokenTicker] = useState('');
     const [newTokenTickerIsValid, setNewTokenTickerIsValid] = useState(null);
+    const [
+        newTokenTickerIsProbablyNotAScam,
+        setNewTokenTickerIsProbablyNotAScam,
+    ] = useState(null);
+    const [tokenTickerError, setTokenTickerError] = useState('');
     const handleNewTokenTickerInput = e => {
         const { value } = e.target;
         // validation
         setNewTokenTickerIsValid(isValidTokenTicker(value));
+        setNewTokenTickerIsProbablyNotAScam(
+            isProbablyNotAScamTokenTicker(value),
+        );
+
+        if (!isValidTokenTicker(value)) {
+            setTokenTickerError('Validation Error');
+        }
+        if (!isProbablyNotAScamTokenTicker(value)) {
+            setTokenTickerError('Blacklisted Error');
+        }
+        if (isValidTokenTicker(value) && isProbablyNotAScamTokenTicker(value)) {
+            setTokenTickerError('');
+        }
+
         setNewTokenTicker(value);
     };
 
@@ -331,7 +368,9 @@ const CreateTokenForm = ({
         newTokenTickerIsValid &&
         newTokenDecimalsIsValid &&
         newTokenInitialQtyIsValid &&
-        newTokenDocumentUrlIsValid;
+        newTokenDocumentUrlIsValid &&
+        newTokenNameIsProbablyNotAScam &&
+        newTokenTickerIsProbablyNotAScam;
 
     // Modal settings
     const [showConfirmCreateToken, setShowConfirmCreateToken] = useState(false);
@@ -497,16 +536,18 @@ const CreateTokenForm = ({
                                 <FormLabel>Token Name</FormLabel>
                                 <Form.Item
                                     validateStatus={
-                                        newTokenNameIsValid === null ||
-                                        newTokenNameIsValid
-                                            ? ''
-                                            : 'error'
+                                        tokenNameError === '' ? '' : 'error'
                                     }
                                     help={
-                                        newTokenNameIsValid === null ||
-                                        newTokenNameIsValid
+                                        tokenNameError === ''
                                             ? ''
-                                            : 'Token name must be a string between 1 and 68 characters long'
+                                            : tokenNameError ===
+                                              'Validation Error'
+                                            ? 'Token name must be a valid string between 1 and 68 characters long.'
+                                            : tokenNameError ===
+                                              'Blacklisted Error'
+                                            ? 'Token name must not conflict with existing crypto or fiat'
+                                            : ''
                                     }
                                 >
                                     <Input
@@ -521,16 +562,18 @@ const CreateTokenForm = ({
                                 <FormLabel>Ticker</FormLabel>
                                 <Form.Item
                                     validateStatus={
-                                        newTokenTickerIsValid === null ||
-                                        newTokenTickerIsValid
-                                            ? ''
-                                            : 'error'
+                                        tokenTickerError === '' ? '' : 'error'
                                     }
                                     help={
-                                        newTokenTickerIsValid === null ||
-                                        newTokenTickerIsValid
+                                        tokenTickerError === ''
                                             ? ''
-                                            : 'Ticker must be a string between 1 and 12 characters long'
+                                            : tokenTickerError ===
+                                              'Validation Error'
+                                            ? 'Ticker must be a valid string between 1 and 12 characters long'
+                                            : tokenTickerError ===
+                                              'Blacklisted Error'
+                                            ? 'Token ticker must not conflict with existing crypto or fiat'
+                                            : ''
                                     }
                                 >
                                     <Input

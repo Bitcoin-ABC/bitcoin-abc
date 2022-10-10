@@ -162,7 +162,7 @@ describe('Validation utils', () => {
         expect(isValidTokenName('')).toBe(false);
     });
     it(`Accepts a 4-char ${currency.tokenTicker} token ticker`, () => {
-        expect(isValidTokenTicker('DOGE')).toBe(true);
+        expect(isValidTokenTicker('DOGG')).toBe(true);
     });
     it(`Accepts a 12-char ${currency.tokenTicker} token ticker`, () => {
         expect(isValidTokenTicker('123456789123')).toBe(true);
