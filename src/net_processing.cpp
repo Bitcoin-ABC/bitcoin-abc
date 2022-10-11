@@ -497,6 +497,7 @@ public:
     bool IgnoresIncomingTxs() override { return m_ignore_incoming_txs; }
     void SendPings() override;
     void RelayTransaction(const TxId &txid) override;
+    void RelayProof(const avalanche::ProofId &proofid) override;
     void SetBestHeight(int height) override { m_best_height = height; };
     void Misbehaving(const NodeId pnode, const int howmuch,
                      const std::string &message) override;
@@ -1668,7 +1669,7 @@ void PeerManagerImpl::ReattemptInitialBroadcast(CScheduler &scheduler) {
 
         // Remaining proofids are the ones to broadcast
         for (const auto &proofid : unbroadcasted_proofids) {
-            RelayProof(proofid, m_connman);
+            RelayProof(proofid);
         }
     }
 
@@ -2372,8 +2373,8 @@ void PeerManagerImpl::RelayTransaction(const TxId &txid) {
         [&txid](CNode *pnode) { pnode->PushTxInventory(txid); });
 }
 
-void RelayProof(const avalanche::ProofId &proofid, const CConnman &connman) {
-    connman.ForEachNode(
+void PeerManagerImpl::RelayProof(const avalanche::ProofId &proofid) {
+    m_connman.ForEachNode(
         [&proofid](CNode *pnode) { pnode->PushProofInventory(proofid); });
 }
 
@@ -7139,7 +7140,7 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &peer,
             return pm.registerProof(proof, state);
         })) {
         WITH_LOCK(cs_proofrequest, m_proofrequest.ForgetInvId(proofid));
-        RelayProof(proofid, m_connman);
+        RelayProof(proofid);
 
         peer.m_last_proof_time = GetTime<std::chrono::seconds>();
 

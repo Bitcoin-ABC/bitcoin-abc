@@ -1251,7 +1251,9 @@ static RPCHelpMan sendavalancheproof() {
                 pm.addUnbroadcastProof(proofid);
             });
 
-            RelayProof(proofid, *node.connman);
+            if (node.peerman) {
+                node.peerman->RelayProof(proofid);
+            }
 
             return true;
         },

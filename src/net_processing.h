@@ -68,6 +68,9 @@ public:
     /** Relay transaction to all peers. */
     virtual void RelayTransaction(const TxId &txid) = 0;
 
+    /** Relay proof to all peers */
+    virtual void RelayProof(const avalanche::ProofId &proofid) = 0;
+
     /** Send ping message to all peers */
     virtual void SendPings() = 0;
 
@@ -95,8 +98,5 @@ public:
                                 const std::chrono::microseconds time_received,
                                 const std::atomic<bool> &interruptMsgProc) = 0;
 };
-
-/** Relay proof to every node */
-void RelayProof(const avalanche::ProofId &proofid, const CConnman &connman);
 
 #endif // BITCOIN_NET_PROCESSING_H
