@@ -784,21 +784,6 @@ export const convertToEncryptStruct = encryptionBuffer => {
     }
 };
 
-export const getPublicKey = async (BCH, address) => {
-    try {
-        const publicKey = await BCH.encryption.getPubKey(address);
-        return publicKey.publicKey;
-    } catch (err) {
-        if (err['error'] === 'No transaction history.') {
-            console.log(
-                `bch-api sees legacy Cannot send an encrypted message to a wallet with no outgoing transactions error`,
-            );
-        } else {
-            throw err;
-        }
-    }
-};
-
 export const isLegacyMigrationRequired = wallet => {
     // If the wallet does not have Path1899,
     // Or each Path1899, Path145, Path245 does not have a public key

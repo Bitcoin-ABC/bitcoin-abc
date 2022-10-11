@@ -4,7 +4,6 @@ import SlpWallet from 'minimal-slp-wallet';
 import {
     fromXecToSatoshis,
     isValidStoredWallet,
-    getPublicKey,
     parseXecSendValue,
     generateOpReturnScript,
     generateTxInput,
@@ -491,29 +490,23 @@ export default function useBCH() {
         recipientAddress,
         optionalMockPubKeyResponse = false,
     ) => {
-        console.log(`recipientAddress`, recipientAddress);
         // Necessary because jest can't mock
         // chronikTxHistoryAtAddress = await chronik.script('p2pkh', recipientAddressHash160).history(/*page=*/ 0, /*page_size=*/ 10);
         if (optionalMockPubKeyResponse) {
             return optionalMockPubKeyResponse;
-        }
-        let recipientPubKeyBchApi;
-        try {
-            recipientPubKeyBchApi = await getPublicKey(BCH, recipientAddress);
-        } catch (err) {
-            console.log(`useBCH.getRecipientPublicKey() error: ` + err);
-            throw err;
         }
 
         // get hash160 of address
         let recipientAddressHash160;
         try {
             recipientAddressHash160 = BCH.Address.toHash160(recipientAddress);
-            console.log(`recipientHash160`, recipientAddressHash160);
         } catch (err) {
             console.log(
                 `Error determining BCH.Address.toHash160(${recipientAddress} in getRecipientPublicKey())`,
                 err,
+            );
+            throw new Error(
+                `Error determining BCH.Address.toHash160(${recipientAddress} in getRecipientPublicKey())`,
             );
         }
 
@@ -528,8 +521,10 @@ export default function useBCH() {
                 `Error getting await chronik.script('p2pkh', ${recipientAddressHash160}).history();`,
                 err,
             );
+            throw new Error(
+                'Error fetching tx history to parse for public key',
+            );
         }
-        console.log(`chronikTxHistoryAtAddress`, chronikTxHistoryAtAddress);
         let recipientPubKeyChronik;
 
         // Iterate over tx history to find an outgoing tx
@@ -541,7 +536,6 @@ export default function useBCH() {
                 if (thisInputSendingHash160.includes(recipientAddressHash160)) {
                     // Then this is an outgoing tx, you can get the public key from this tx
                     // Get the public key
-
                     try {
                         recipientPubKeyChronik =
                             chronikTxHistoryAtAddress.txs[i].inputs[
@@ -549,31 +543,16 @@ export default function useBCH() {
                             ].inputScript.slice(-66);
                     } catch (err) {
                         throw new Error(
-                            '[chronik] Cannot send an encrypted message to a wallet with no outgoing transactions',
+                            'Cannot send an encrypted message to a wallet with no outgoing transactions',
                         );
                     }
-                    console.log(`recipientPubKeyBchApi`, recipientPubKeyBchApi);
-                    console.log(
-                        `recipientPubKeyChronik`,
-                        recipientPubKeyChronik,
-                    );
-
-                    if (recipientPubKeyChronik === recipientPubKeyBchApi) {
-                        console.log(
-                            `Chronik and bch-api agree on this public key`,
-                        );
-                        return recipientPubKeyChronik;
-                    } else {
-                        throw new Error(
-                            `Looks like bch-api and chronik don't see this in quite the same way`,
-                        );
-                    }
+                    return recipientPubKeyChronik;
                 }
             }
         }
         // You get here if you find no outgoing txs in the chronik tx history
         throw new Error(
-            '[chronik] Cannot send an encrypted message to a wallet with no outgoing transactions in the last 20 txs',
+            'Cannot send an encrypted message to a wallet with no outgoing transactions in the last 20 txs',
         );
     };
 
