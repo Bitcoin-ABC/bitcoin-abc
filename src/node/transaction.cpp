@@ -36,18 +36,20 @@ TransactionError BroadcastTransaction(NodeContext &node, const Config &config,
                                       const Amount max_tx_fee, bool relay,
                                       bool wait_callback) {
     // BroadcastTransaction can be called by either sendrawtransaction RPC or
-    // wallet RPCs. node.peerman is assigned both before chain clients and
-    // before RPC server is accepting calls, and reset after chain clients and
-    // RPC sever are stopped. node.peerman should never be null here.
-    assert(node.peerman);
+    // the wallet. chainman, mempool and peerman are initialized before the RPC
+    // server and wallet are started and reset after the RPC server and wallet
+    // are stopped.
+    assert(node.chainman);
     assert(node.mempool);
+    assert(node.peerman);
+
     std::promise<void> promise;
     TxId txid = tx->GetId();
     bool callback_set = false;
 
-    { // cs_main scope
-        assert(node.chainman);
+    {
         LOCK(cs_main);
+
         // If the transaction is already confirmed in the chain, don't do
         // anything and return early.
         CCoinsViewCache &view = node.chainman->ActiveChainstate().CoinsTip();
@@ -88,6 +90,12 @@ TransactionError BroadcastTransaction(NodeContext &node, const Config &config,
 
             // Transaction was accepted to the mempool.
 
+            if (relay) {
+                // the mempool tracks locally submitted transactions to make a
+                // best-effort of initial broadcast
+                node.mempool->AddUnbroadcastTx(txid);
+            }
+
             if (wait_callback) {
                 // For transactions broadcast from outside the wallet, make sure
                 // that the wallet has been notified of the transaction before
@@ -111,10 +119,6 @@ TransactionError BroadcastTransaction(NodeContext &node, const Config &config,
     }
 
     if (relay) {
-        // the mempool tracks locally submitted transactions to make a
-        // best-effort of initial broadcast
-        node.mempool->AddUnbroadcastTx(txid);
-
         node.peerman->RelayTransaction(txid);
     }
 
