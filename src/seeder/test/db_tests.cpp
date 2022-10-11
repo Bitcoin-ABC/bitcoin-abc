@@ -7,9 +7,7 @@
 #include <boost/test/unit_test.hpp>
 
 static CNetAddr ResolveIP(const std::string &ip) {
-    CNetAddr addr;
-    LookupHost(ip, addr, false);
-    return addr;
+    return LookupHost(ip, false).value_or(CNetAddr{});
 }
 
 static SeederAddrInfo BuildSeederAddrInfo(const CService &ip, bool good,

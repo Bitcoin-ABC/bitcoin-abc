@@ -874,9 +874,11 @@ static RPCHelpMan setban() {
             }
 
             if (!isSubnet) {
-                CNetAddr resolved;
-                LookupHost(request.params[0].get_str(), resolved, false);
-                netAddr = resolved;
+                const std::optional<CNetAddr> addr{
+                    LookupHost(request.params[0].get_str(), false)};
+                if (addr.has_value()) {
+                    netAddr = addr.value();
+                }
             } else {
                 LookupSubNet(request.params[0].get_str(), subNet);
             }
@@ -1149,11 +1151,12 @@ static RPCHelpMan addpeeraddress() {
             const bool tried{request.params[2].isTrue()};
 
             UniValue obj(UniValue::VOBJ);
-            CNetAddr net_addr;
+            std::optional<CNetAddr> net_addr{LookupHost(addr_string, false)};
             bool success{false};
 
-            if (LookupHost(addr_string, net_addr, false)) {
-                CAddress address{{net_addr, port}, ServiceFlags(NODE_NETWORK)};
+            if (net_addr.has_value()) {
+                CAddress address{{net_addr.value(), port},
+                                 ServiceFlags(NODE_NETWORK)};
                 address.nTime = Now<NodeSeconds>();
                 // The source address is set equal to the address. This is
                 // equivalent to the peer announcing itself.

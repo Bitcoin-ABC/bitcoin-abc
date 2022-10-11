@@ -203,18 +203,12 @@ std::vector<CNetAddr> LookupHost(const std::string &name,
                         dns_lookup_function);
 }
 
-bool LookupHost(const std::string &name, CNetAddr &addr, bool fAllowLookup,
-                DNSLookupFn dns_lookup_function) {
-    if (!ContainsNoNUL(name)) {
-        return false;
-    }
+std::optional<CNetAddr> LookupHost(const std::string &name, bool fAllowLookup,
+                                   DNSLookupFn dns_lookup_function) {
     const std::vector<CNetAddr> addresses{
         LookupHost(name, 1, fAllowLookup, dns_lookup_function)};
-    if (addresses.empty()) {
-        return false;
-    }
-    addr = addresses.front();
-    return true;
+    return addresses.empty() ? std::nullopt
+                             : std::make_optional(addresses.front());
 }
 
 std::vector<CService> Lookup(const std::string &name, uint16_t portDefault,
@@ -792,30 +786,31 @@ bool LookupSubNet(const std::string &strSubnet, CSubNet &ret,
         return false;
     }
     size_t slash = strSubnet.find_last_of('/');
-    CNetAddr network;
-
     std::string strAddress = strSubnet.substr(0, slash);
-    if (LookupHost(strAddress, network, false, dns_lookup_function)) {
+    const std::optional<CNetAddr> network{
+        LookupHost(strAddress, /*fAllowLookup=*/false)};
+
+    if (network.has_value()) {
         if (slash != strSubnet.npos) {
             std::string strNetmask = strSubnet.substr(slash + 1);
             uint8_t n;
             if (ParseUInt8(strNetmask, &n)) {
                 // If valid number, assume CIDR variable-length subnet masking
-                ret = CSubNet(network, n);
+                ret = CSubNet(network.value(), n);
                 return ret.IsValid();
             } else {
                 // If not a valid number, try full netmask syntax
-                CNetAddr netmask;
+                const std::optional<CNetAddr> netmask{LookupHost(
+                    strNetmask, /*fAllowLookup=*/false, dns_lookup_function)};
                 // Never allow lookup for netmask
-                if (LookupHost(strNetmask, netmask, false,
-                               dns_lookup_function)) {
-                    ret = CSubNet(network, netmask);
+                if (netmask.has_value()) {
+                    ret = CSubNet(network.value(), netmask.value());
                     return ret.IsValid();
                 }
             }
             // Single IP subnet (<ipv4>/32 or <ipv6>/128)
         } else {
-            ret = CSubNet(network);
+            ret = CSubNet(network.value());
             return ret.IsValid();
         }
     }
