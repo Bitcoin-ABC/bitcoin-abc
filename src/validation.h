@@ -1259,9 +1259,10 @@ public:
     //                                  constructor
     //! @param[in] snapshot_blockhash   If given, signify that this chainstate
     //!                                 is based on a snapshot.
-    CChainState &InitializeChainstate(
-        CTxMemPool &mempool,
-        const std::optional<BlockHash> &snapshot_blockhash = std::nullopt)
+    CChainState &
+    InitializeChainstate(CTxMemPool &mempool,
+                         const std::optional<BlockHash> &snapshot_blockhash =
+                             std::nullopt) LIFETIMEBOUND
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
     //! Get all chainstates currently being used.
