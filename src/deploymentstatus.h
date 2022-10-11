@@ -11,7 +11,7 @@
 #include <limits>
 
 /** Global cache for versionbits deployment status */
-extern VersionBitsCache versionbitscache;
+extern VersionBitsCache g_versionbitscache;
 
 /** Determine if a deployment is active for the next block */
 inline bool DeploymentActiveAfter(const CBlockIndex *pindexPrev,
@@ -27,7 +27,7 @@ inline bool DeploymentActiveAfter(const CBlockIndex *pindexPrev,
                                   Consensus::DeploymentPos dep) {
     assert(Consensus::ValidDeployment(dep));
     return ThresholdState::ACTIVE ==
-           VersionBitsState(pindexPrev, params, dep, versionbitscache);
+           VersionBitsState(pindexPrev, params, dep, g_versionbitscache);
 }
 
 /** Determine if a deployment is active for this block */
