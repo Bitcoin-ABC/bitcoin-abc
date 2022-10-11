@@ -13,6 +13,7 @@ from test_framework.messages import (
     XEC,
     COutPoint,
     CTransaction,
+    CTxIn,
     CTxOut,
     FromHex,
     ToHex,
@@ -273,6 +274,16 @@ class MempoolAcceptanceTest(BitcoinTestFramework):
             result_expected=[{'txid': tx.rehash(
             ), 'allowed': False, 'reject-reason': 'bad-txns-inputs-duplicate'}],
             rawtxs=[ToHex(tx)],
+        )
+
+        self.log.info('A non-coinbase transaction with coinbase-like outpoint')
+        tx = FromHex(CTransaction(), raw_tx_reference)
+        tx.vin.append(CTxIn(COutPoint(hash=0, n=0xffffffff)))
+        self.check_mempool_result(
+            result_expected=[{'txid': tx.rehash(),
+                              'allowed': False,
+                              'reject-reason': 'bad-txns-prevout-null'}],
+            rawtxs=[tx.serialize().hex()],
         )
 
         self.log.info('A coinbase transaction')
