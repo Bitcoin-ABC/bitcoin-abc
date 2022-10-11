@@ -33,6 +33,7 @@
 #include <util/sock.h>
 #include <util/strencodings.h>
 #include <util/thread.h>
+#include <util/threadinterrupt.h>
 #include <util/trace.h>
 #include <util/translation.h>
 

@@ -31,7 +31,6 @@
 #include <span.h>
 #include <streams.h>
 #include <sync.h>
-#include <threadinterrupt.h>
 #include <uint256.h>
 #include <util/check.h>
 #include <util/sock.h>
@@ -53,6 +52,7 @@ class BanMan;
 class Config;
 class CNode;
 class CScheduler;
+class CThreadInterrupt;
 struct bilingual_str;
 
 /**

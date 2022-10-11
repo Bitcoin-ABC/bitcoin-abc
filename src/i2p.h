@@ -8,7 +8,6 @@
 #include <compat.h>
 #include <netaddress.h>
 #include <sync.h>
-#include <threadinterrupt.h>
 #include <util/fs.h>
 #include <util/sock.h>
 
@@ -17,6 +16,8 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+class CThreadInterrupt;
 
 namespace i2p {
 
