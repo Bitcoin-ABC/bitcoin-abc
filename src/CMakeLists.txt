@@ -478,6 +478,7 @@ add_library(common
 	consensus/merkle.cpp
 	coins.cpp
 	compressor.cpp
+	deploymentinfo.cpp
 	eventloop.cpp
 	feerate.cpp
 	core_read.cpp
@@ -496,7 +497,6 @@ add_library(common
 	rpc/rawtransaction_util.cpp
 	rpc/util.cpp
 	scheduler.cpp
-	versionbitsinfo.cpp
 	warnings.cpp
 
 	${NETWORK_SOURCES}

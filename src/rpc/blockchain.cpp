@@ -13,6 +13,7 @@
 #include <consensus/amount.h>
 #include <consensus/validation.h>
 #include <core_io.h>
+#include <deploymentinfo.h> // For VersionBitsDeploymentInfo
 #include <deploymentstatus.h>
 #include <hash.h>
 #include <index/blockfilterindex.h>
@@ -35,7 +36,6 @@
 #include <util/translation.h>
 #include <validation.h>
 #include <validationinterface.h>
-#include <versionbitsinfo.h> // For VersionBitsDeploymentInfo
 #include <warnings.h>
 
 #include <condition_variable>
