@@ -212,7 +212,7 @@ TestingSetup::TestingSetup(const std::string &chainName,
         SetRPCWarmupFinished();
     }
 
-    m_node.chainman->InitializeChainstate(*m_node.mempool);
+    m_node.chainman->InitializeChainstate(m_node.mempool.get());
     m_node.chainman->ActiveChainstate().InitCoinsDB(
         /* cache_size_bytes */ 1 << 23, /* in_memory */ true,
         /* should_wipe */ false);

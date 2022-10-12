@@ -2628,7 +2628,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             const int64_t load_block_index_start_time = GetTimeMillis();
             try {
                 LOCK(cs_main);
-                chainman.InitializeChainstate(*Assert(node.mempool));
+                chainman.InitializeChainstate(Assert(node.mempool.get()));
                 chainman.m_total_coinstip_cache = nCoinCacheUsage;
                 chainman.m_total_coinsdb_cache = nCoinDBCache;
 

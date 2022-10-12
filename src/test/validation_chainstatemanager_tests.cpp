@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(chainstatemanager) {
     // Create a legacy (IBD) chainstate.
     //
     CChainState &c1 =
-        *WITH_LOCK(::cs_main, return &manager.InitializeChainstate(mempool));
+        *WITH_LOCK(::cs_main, return &manager.InitializeChainstate(&mempool));
     chainstates.push_back(&c1);
     c1.InitCoinsDB(
         /* cache_size_bytes */ 1 << 23, /* in_memory */ true,
@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(chainstatemanager) {
     const BlockHash snapshot_blockhash{GetRandHash()};
     CChainState &c2 = *WITH_LOCK(
         ::cs_main,
-        return &manager.InitializeChainstate(mempool, snapshot_blockhash));
+        return &manager.InitializeChainstate(&mempool, snapshot_blockhash));
     chainstates.push_back(&c2);
 
     BOOST_CHECK_EQUAL(manager.SnapshotBlockhash().value(), snapshot_blockhash);
@@ -135,7 +135,7 @@ BOOST_AUTO_TEST_CASE(chainstatemanager_rebalance_caches) {
     // Create a legacy (IBD) chainstate.
     //
     CChainState &c1 =
-        *WITH_LOCK(cs_main, return &manager.InitializeChainstate(mempool));
+        *WITH_LOCK(cs_main, return &manager.InitializeChainstate(&mempool));
     chainstates.push_back(&c1);
     c1.InitCoinsDB(
         /* cache_size_bytes */ 1 << 23, /* in_memory */ true,
@@ -156,7 +156,7 @@ BOOST_AUTO_TEST_CASE(chainstatemanager_rebalance_caches) {
     //
     CChainState &c2 =
         *WITH_LOCK(cs_main, return &manager.InitializeChainstate(
-                                mempool, BlockHash{GetRandHash()}));
+                                &mempool, BlockHash{GetRandHash()}));
     chainstates.push_back(&c2);
     c2.InitCoinsDB(
         /* cache_size_bytes */ 1 << 23, /* in_memory */ true,

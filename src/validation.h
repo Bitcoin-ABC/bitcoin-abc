@@ -831,8 +831,9 @@ private:
      */
     mutable std::atomic<bool> m_cached_finished_ibd{false};
 
-    //! mempool that is kept in sync with the chain
-    CTxMemPool &m_mempool;
+    //! Optional mempool that is kept in sync with the chain.
+    //! Only the active chainstate has a mempool.
+    CTxMemPool *m_mempool;
 
     const CChainParams &m_params;
 
@@ -861,7 +862,7 @@ public:
     BlockManager &m_blockman;
 
     explicit CChainState(
-        CTxMemPool &mempool, BlockManager &blockman,
+        CTxMemPool *mempool, BlockManager &blockman,
         std::optional<BlockHash> from_snapshot_blockhash = std::nullopt);
 
     /**
@@ -998,7 +999,7 @@ public:
     // Block disconnection on our pcoinsTip:
     bool DisconnectTip(BlockValidationState &state,
                        DisconnectedBlockTransactions *disconnectpool)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_mempool.cs);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_mempool->cs);
 
     // Manual block validity manipulation:
     /**
@@ -1114,13 +1115,13 @@ private:
                                CBlockIndex *pindexMostWork,
                                const std::shared_ptr<const CBlock> &pblock,
                                bool &fInvalidFound, ConnectTrace &connectTrace)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_mempool.cs);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_mempool->cs);
     bool ConnectTip(const Config &config, BlockValidationState &state,
                     CBlockIndex *pindexNew,
                     const std::shared_ptr<const CBlock> &pblock,
                     ConnectTrace &connectTrace,
                     DisconnectedBlockTransactions &disconnectpool)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_mempool.cs);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_mempool->cs);
     void InvalidBlockFound(CBlockIndex *pindex,
                            const BlockValidationState &state)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
@@ -1152,6 +1153,12 @@ private:
 
     const CBlockIndex *FindBlockToFinalize(CBlockIndex *pindexNew)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    //! Indirection necessary to make lock annotations work with an optional
+    //! mempool.
+    RecursiveMutex *MempoolMutex() const LOCK_RETURNED(m_mempool->cs) {
+        return m_mempool ? &m_mempool->cs : nullptr;
+    }
 
     friend ChainstateManager;
 };
@@ -1262,7 +1269,7 @@ public:
     //! @param[in] snapshot_blockhash   If given, signify that this chainstate
     //!                                 is based on a snapshot.
     CChainState &
-    InitializeChainstate(CTxMemPool &mempool,
+    InitializeChainstate(CTxMemPool *mempool,
                          const std::optional<BlockHash> &snapshot_blockhash =
                              std::nullopt) LIFETIMEBOUND
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
