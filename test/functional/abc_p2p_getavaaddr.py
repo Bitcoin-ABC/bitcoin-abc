@@ -314,6 +314,9 @@ class AvaAddrTest(BitcoinTestFramework):
         assert_equal(node.getpeerinfo()[-1]['addr'], ip_port)
         assert_equal(node.getpeerinfo()[-1]['connection_type'], 'manual')
 
+        # Make sure p.is_connected is set, otherwise the last_message check
+        # below will assert.
+        p.wait_for_connect()
         p.wait_until(lambda: p.last_message.get("getavaaddr"))
 
         # Generate some block to poll for
