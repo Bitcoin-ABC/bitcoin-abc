@@ -280,7 +280,12 @@ class MultiWalletTest(BitcoinTestFramework):
         for _ in range(3):
             n = node.cli if self.options.usecli else get_rpc_proxy(
                 node.url, 1, timeout=600, coveragedir=node.coverage_dir)
-            t = Thread(target=test_load_unload, args=(n, wallet_names[2], ))
+            t = Thread(
+                target=test_load_unload,
+                args=(
+                    n,
+                    wallet_names[2],
+                    20 * self.rpc_timeout))
             t.start()
             threads.append(t)
         for t in threads:
