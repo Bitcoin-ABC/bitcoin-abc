@@ -314,11 +314,10 @@ static bool rest_block(const Config &config, const std::any &context,
             return RESTERR(req, HTTP_NOT_FOUND,
                            hashStr + " not available (pruned data)");
         }
-
-        if (!ReadBlockFromDisk(block, pblockindex,
-                               config.GetChainParams().GetConsensus())) {
-            return RESTERR(req, HTTP_NOT_FOUND, hashStr + " not found");
-        }
+    }
+    if (!ReadBlockFromDisk(block, pblockindex,
+                           config.GetChainParams().GetConsensus())) {
+        return RESTERR(req, HTTP_NOT_FOUND, hashStr + " not found");
     }
 
     switch (rf) {
