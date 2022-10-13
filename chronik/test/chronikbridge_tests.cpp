@@ -18,7 +18,7 @@ BOOST_FIXTURE_TEST_CASE(test_get_chain_tip_empty, ChainTestingSetup) {
     // Setup chainstate
     {
         LOCK(::cs_main);
-        m_node.chainman->InitializeChainstate(*m_node.mempool);
+        m_node.chainman->InitializeChainstate(m_node.mempool.get());
     }
     // Chain has no blocks yet:
     // get_chain_tip returns hash=000...000, height=-1
