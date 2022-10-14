@@ -2386,8 +2386,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     assert(!node.peerman);
     node.peerman = PeerManager::make(
-        chainparams, *node.connman, node.banman.get(), chainman, *node.mempool,
-        args.GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY));
+        chainparams, *node.connman, *node.addrman, node.banman.get(), chainman,
+        *node.mempool, args.GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY));
     RegisterValidationInterface(node.peerman.get());
 
     // sanitize comments per BIP-0014, format user agent and check total size

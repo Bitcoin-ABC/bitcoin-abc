@@ -1162,9 +1162,9 @@ BOOST_FIXTURE_TEST_CASE(net_group_limit, TestChain100Setup) {
 
     m_node.connman = std::make_unique<CConnmanTest>(GetConfig(), 0x1337, 0x1337,
                                                     *m_node.addrman);
-    m_node.peerman =
-        PeerManager::make(params, *m_node.connman, m_node.banman.get(),
-                          *m_node.chainman, *m_node.mempool, false);
+    m_node.peerman = PeerManager::make(params, *m_node.connman, *m_node.addrman,
+                                       m_node.banman.get(), *m_node.chainman,
+                                       *m_node.mempool, false);
 
     bilingual_str error;
     // Init the global avalanche object otherwise the avalanche outbound

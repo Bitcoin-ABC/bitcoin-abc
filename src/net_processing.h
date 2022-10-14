@@ -16,6 +16,7 @@ namespace avalanche {
 struct ProofId;
 }
 
+class CAddrMan;
 class CTxMemPool;
 class ChainstateManager;
 class Config;
@@ -49,11 +50,10 @@ struct CNodeStateStats {
 
 class PeerManager : public CValidationInterface, public NetEventsInterface {
 public:
-    static std::unique_ptr<PeerManager> make(const CChainParams &chainparams,
-                                             CConnman &connman, BanMan *banman,
-                                             ChainstateManager &chainman,
-                                             CTxMemPool &pool,
-                                             bool ignore_incoming_txs);
+    static std::unique_ptr<PeerManager>
+    make(const CChainParams &chainparams, CConnman &connman, CAddrMan &addrman,
+         BanMan *banman, ChainstateManager &chainman, CTxMemPool &pool,
+         bool ignore_incoming_txs);
     virtual ~PeerManager() {}
 
     /** Begin running background tasks, should only be called once */
