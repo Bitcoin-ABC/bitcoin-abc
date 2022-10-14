@@ -120,7 +120,6 @@ def _pre_and_post_app_setup(config) -> Callable[[], None]:
         # font if needed.
         os.environ["QT_QPA_PLATFORM"] = "windows:fontengine=freetype"
 
-    QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_X11InitThreads)
     if hasattr(QtCore.Qt, "AA_ShareOpenGLContexts"):
         QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
     if sys.platform not in ("darwin",) and hasattr(
