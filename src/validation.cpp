@@ -23,7 +23,6 @@
 #include <deploymentstatus.h>
 #include <hash.h>
 #include <index/blockfilterindex.h>
-#include <index/txindex.h>
 #include <logging.h>
 #include <logging/timer.h>
 #include <minerfund.h>
@@ -857,41 +856,6 @@ ProcessNewPackage(const Config &config, CChainState &active_chainstate,
         active_chainstate.CoinsTip().Uncache(hashTx);
     }
     return result;
-}
-
-CTransactionRef GetTransaction(const CBlockIndex *const block_index,
-                               const CTxMemPool *const mempool,
-                               const TxId &txid,
-                               const Consensus::Params &consensusParams,
-                               BlockHash &hashBlock) {
-    if (mempool && !block_index) {
-        CTransactionRef ptx = mempool->get(txid);
-        if (ptx) {
-            return ptx;
-        }
-    }
-    if (g_txindex) {
-        CTransactionRef tx;
-        BlockHash block_hash;
-        if (g_txindex->FindTx(txid, block_hash, tx)) {
-            if (!block_index || block_index->GetBlockHash() == block_hash) {
-                hashBlock = block_hash;
-                return tx;
-            }
-        }
-    }
-    if (block_index) {
-        CBlock block;
-        if (ReadBlockFromDisk(block, block_index, consensusParams)) {
-            for (const auto &tx : block.vtx) {
-                if (tx->GetId() == txid) {
-                    hashBlock = block_index->GetBlockHash();
-                    return tx;
-                }
-            }
-        }
-    }
-    return nullptr;
 }
 
 Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams) {

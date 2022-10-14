@@ -13,7 +13,6 @@ set -euo pipefail
 : "${TOPLEVEL:=$(git rev-parse --show-toplevel)}"
 
 EXPECTED_CIRCULAR_DEPENDENCIES=(
-    "index/txindex -> validation -> index/txindex"
     "node/blockstorage -> validation -> node/blockstorage"
     "index/blockfilterindex -> node/blockstorage -> validation -> index/blockfilterindex"
     "index/base -> validation -> index/blockfilterindex -> index/base"

@@ -221,27 +221,6 @@ void StartScriptCheckWorkerThreads(int threads_num);
  */
 void StopScriptCheckWorkerThreads();
 
-/**
- * Return transaction with a given txid.
- * If mempool is provided and block_index is not provided, check it first for
- * the tx.
- * If -txindex is available, check it next for the tx.
- * Finally, if block_index is provided, check for tx by reading entire block
- * from disk.
- *
- * @param[in]  block_index     The block to read from disk, or nullptr
- * @param[in]  mempool         If provided, check mempool for tx
- * @param[in]  txid            The txid
- * @param[in]  consensusParams The params
- * @param[out] hashBlock       The block hash, if the tx was found via -txindex
- *                             or block_index
- * @returns                    The tx if found, otherwise nullptr
- */
-CTransactionRef GetTransaction(const CBlockIndex *const block_index,
-                               const CTxMemPool *const mempool,
-                               const TxId &txid,
-                               const Consensus::Params &consensusParams,
-                               BlockHash &hashBlock);
 Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams);
 
 bool AbortNode(BlockValidationState &state, const std::string &strMessage,
