@@ -2079,9 +2079,6 @@ PeerManagerImpl::PeerManagerImpl(const CChainParams &chainparams,
     : m_chainparams(chainparams), m_connman(connman), m_addrman(addrman),
       m_banman(banman), m_chainman(chainman), m_mempool(pool),
       m_stale_tip_check_time(0), m_ignore_incoming_txs(ignore_incoming_txs) {
-    // FIXME Temporary workaround m_addrman not being used, remove asap
-    (void)m_addrman;
-
     // Initialize global variables that cannot be constructed at startup.
     recentRejects.reset(new CRollingBloomFilter(120000, 0.000001));
 
@@ -3508,7 +3505,7 @@ void PeerManagerImpl::ProcessMessage(
         }
         nServices = ServiceFlags(nServiceInt);
         if (!pfrom.IsInboundConn()) {
-            m_connman.SetServices(pfrom.addr, nServices);
+            m_addrman.SetServices(pfrom.addr, nServices);
         }
         if (pfrom.ExpectServicesFromConn() &&
             !HasAllDesirableServiceFlags(nServices)) {
