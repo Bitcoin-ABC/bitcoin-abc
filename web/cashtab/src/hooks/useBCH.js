@@ -471,19 +471,6 @@ export default function useBCH() {
         return link;
     };
 
-    const signPkMessage = async (BCH, pk, message) => {
-        try {
-            let signature = await BCH.BitcoinCash.signMessageWithPrivKey(
-                pk,
-                message,
-            );
-            return signature;
-        } catch (err) {
-            console.log(`useBCH.signPkMessage() error: `, err);
-            throw err;
-        }
-    };
-
     const getRecipientPublicKey = async (
         BCH,
         chronik,
@@ -743,7 +730,6 @@ export default function useBCH() {
         getBCH,
         calcFee,
         getRestUrl,
-        signPkMessage,
         sendXec,
         sendToken,
         createToken,

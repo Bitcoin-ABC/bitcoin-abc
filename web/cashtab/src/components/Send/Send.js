@@ -215,7 +215,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         setIsModalVisible(false);
     };
 
-    const { getRestUrl, sendXec, calcFee, signPkMessage } = useBCH();
+    const { getRestUrl, sendXec, calcFee } = useBCH();
 
     // If the balance has changed, unlock the UI
     // This is redundant, if backend has refreshed in 1.75s timeout below, UI will already be unlocked
@@ -701,11 +701,11 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
     const signMessageByPk = async () => {
         try {
-            const messageSignature = await signPkMessage(
-                bchObj,
-                wallet.Path1899.fundingWif,
-                msgToSign,
-            );
+            const messageSignature =
+                await BCH.BitcoinCash.signMessageWithPrivKey(
+                    wallet.Path1899.fundingWif,
+                    msgToSign,
+                );
             setMessageSignature(messageSignature);
             messageSignedNotification(messageSignature);
         } catch (err) {
