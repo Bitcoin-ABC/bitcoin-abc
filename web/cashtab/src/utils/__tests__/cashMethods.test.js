@@ -26,6 +26,7 @@ import {
     getWalletBalanceFromUtxos,
     signUtxosByAddress,
     getUtxoWif,
+    generateTokenTxOutput,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import {
@@ -90,6 +91,9 @@ import mockSlpUtxos from '../../hooks/__mocks__/mockSlpUtxos';
 import {
     mockOneToOneSendXecTxBuilderObj,
     mockOneToManySendXecTxBuilderObj,
+    mockCreateTokenOutputsTxBuilderObj,
+    mockSendTokenOutputsTxBuilderObj,
+    mockBurnTokenOutputsTxBuilderObj,
     mockCreateTokenTxBuilderObj,
     mockSendTokenTxBuilderObj,
     mockBurnTokenTxBuilderObj,
@@ -100,6 +104,7 @@ import {
     mockSingleOutput,
     mockMultipleOutputs,
 } from '../__mocks__/mockTxBuilderData';
+import createTokenMock from '../../hooks/__mocks__/createToken';
 
 it(`signUtxosByAddress() successfully returns a txBuilder object for a one to one XEC tx`, () => {
     const BCH = new BCHJS();
@@ -588,6 +593,74 @@ it(`generateTokenTxInput() returns a valid object for a valid burn token tx`, as
     );
     expect(tokenInputObj.txBuilder.toString()).toStrictEqual(
         mockBurnTokenTxBuilderObj.toString(),
+    );
+});
+
+it(`generateTokenTxOutput() returns a valid object for a valid create token tx`, async () => {
+    const BCH = new BCHJS();
+    let txBuilder = new BCH.TransactionBuilder();
+    const { configObj, wallet } = createTokenMock;
+    const tokenSenderCashAddress = wallet.Path1899.cashAddress;
+
+    const tokenOutputObj = generateTokenTxOutput(
+        BCH,
+        txBuilder,
+        'GENESIS',
+        tokenSenderCashAddress,
+        null, // optional, for SEND or BURN amount
+        new BigNumber(500), // remainder XEC value
+        configObj,
+    );
+
+    expect(tokenOutputObj.toString()).toStrictEqual(
+        mockCreateTokenOutputsTxBuilderObj.toString(),
+    );
+});
+
+it(`generateTokenTxOutput() returns a valid object for a valid send token tx`, async () => {
+    const BCH = new BCHJS();
+    let txBuilder = new BCH.TransactionBuilder();
+    const { wallet } = createTokenMock;
+    const tokenSenderCashAddress = wallet.Path1899.cashAddress;
+    const tokenRecipientTokenAddress = wallet.Path1899.slpAddress;
+
+    const tokenOutputObj = generateTokenTxOutput(
+        BCH,
+        txBuilder,
+        'SEND',
+        tokenSenderCashAddress,
+        mockSlpUtxos,
+        new BigNumber(500), // remainder XEC value
+        null, // only for genesis tx
+        tokenRecipientTokenAddress, // recipient token address
+        new BigNumber(50),
+    );
+
+    expect(tokenOutputObj.toString()).toStrictEqual(
+        mockSendTokenOutputsTxBuilderObj.toString(),
+    );
+});
+
+it(`generateTokenTxOutput() returns a valid object for a valid burn token tx`, async () => {
+    const BCH = new BCHJS();
+    let txBuilder = new BCH.TransactionBuilder();
+    const { wallet } = createTokenMock;
+    const tokenSenderCashAddress = wallet.Path1899.cashAddress;
+
+    const tokenOutputObj = generateTokenTxOutput(
+        BCH,
+        txBuilder,
+        'BURN',
+        tokenSenderCashAddress,
+        mockSlpUtxos,
+        new BigNumber(500), // remainder XEC value
+        null, // only for genesis tx
+        null, // no token recipients for burn tx
+        new BigNumber(50),
+    );
+
+    expect(tokenOutputObj.toString()).toStrictEqual(
+        mockBurnTokenOutputsTxBuilderObj.toString(),
     );
 });
 

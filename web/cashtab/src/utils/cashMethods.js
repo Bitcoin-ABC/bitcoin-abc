@@ -40,6 +40,85 @@ export const signUtxosByAddress = (BCH, inputUtxos, wallet, txBuilder) => {
     return txBuilder;
 };
 
+export const generateTokenTxOutput = (
+    BCH,
+    txBuilder,
+    tokenAction,
+    legacyCashOriginAddress,
+    tokenUtxosBeingSpent = [], // optional - send or burn tx only
+    remainderXecValue = new BigNumber(0), // optional - only if > dust
+    tokenConfigObj = {}, // optional - genesis only
+    tokenRecipientAddress = false, // optional - send tx only
+    tokenAmount = false, // optional - send or burn amount for send/burn tx only
+) => {
+    try {
+        if (!BCH || !tokenAction || !legacyCashOriginAddress || !txBuilder) {
+            throw new Error('Invalid token tx output parameter');
+        }
+
+        let script, opReturnObj, destinationAddress;
+        switch (tokenAction) {
+            case 'GENESIS':
+                script =
+                    BCH.SLP.TokenType1.generateGenesisOpReturn(tokenConfigObj);
+                destinationAddress = legacyCashOriginAddress;
+                break;
+            case 'SEND':
+                opReturnObj = BCH.SLP.TokenType1.generateSendOpReturn(
+                    tokenUtxosBeingSpent,
+                    tokenAmount.toString(),
+                );
+                script = opReturnObj.script;
+                destinationAddress = BCH.SLP.Address.toLegacyAddress(
+                    tokenRecipientAddress,
+                );
+                break;
+            case 'BURN':
+                script = BCH.SLP.TokenType1.generateBurnOpReturn(
+                    tokenUtxosBeingSpent,
+                    tokenAmount,
+                );
+                destinationAddress = BCH.SLP.Address.toLegacyAddress(
+                    legacyCashOriginAddress,
+                );
+                break;
+            default:
+                throw new Error('Invalid token transaction type');
+        }
+
+        // OP_RETURN needs to be the first output in the transaction.
+        txBuilder.addOutput(script, 0);
+
+        // add XEC dust output as fee for genesis, send or burn token output
+        txBuilder.addOutput(destinationAddress, parseInt(currency.etokenSats));
+
+        // Return any token change back to the sender for send and burn txs
+        if (
+            tokenAction !== 'GENESIS' ||
+            (opReturnObj && opReturnObj.outputs > 1)
+        ) {
+            // add XEC dust output as fee
+            txBuilder.addOutput(
+                tokenUtxosBeingSpent[0].address, // etoken address
+                parseInt(currency.etokenSats),
+            );
+        }
+
+        // Send xec change to own address
+        if (remainderXecValue.gte(new BigNumber(currency.dustSats))) {
+            txBuilder.addOutput(
+                legacyCashOriginAddress,
+                parseInt(remainderXecValue),
+            );
+        }
+    } catch (err) {
+        console.log(`generateTokenTxOutput() error: ` + err);
+        throw err;
+    }
+
+    return txBuilder;
+};
+
 export const generateTxInput = (
     BCH,
     isOneToMany,
