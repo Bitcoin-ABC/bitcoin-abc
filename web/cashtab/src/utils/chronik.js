@@ -571,6 +571,14 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
             } else if (
                 txType === currency.opReturn.appPrefixesHex.cashtabEncrypted
             ) {
+                if (!incoming) {
+                    // outgoing encrypted messages currently can not be decrypted by sender's wallet since the message is encrypted with the recipient's pub key
+                    opReturnMessage =
+                        'Only the message recipient can view this';
+                    isCashtabMessage = true;
+                    isEncryptedMessage = true;
+                    continue; // skip to next output hex
+                }
                 // this is an encrypted Cashtab message
                 let msgString = parsedOpReturnArray[1];
                 let fundingWif, privateKeyObj, privateKeyBuff;
@@ -587,7 +595,10 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
                     privateKeyObj = wif.decode(fundingWif);
                     privateKeyBuff = privateKeyObj.privateKey;
                     if (!privateKeyBuff) {
-                        throw new Error('Private key extraction error');
+                        isCashtabMessage = true;
+                        isEncryptedMessage = true;
+                        opReturnMessage = 'Private key extraction error';
+                        continue; // skip to next output hex without triggering an API error
                     }
                 } else {
                     break;
@@ -612,8 +623,7 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
                     console.log(
                         'useBCH.parsedTxData() decryption error: ' + err,
                     );
-                    decryptedMessage =
-                        'Only the message recipient can view this';
+                    decryptedMessage = 'Unable to decrypt this message';
                 }
                 isCashtabMessage = true;
                 isEncryptedMessage = true;
