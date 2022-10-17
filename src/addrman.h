@@ -653,12 +653,12 @@ protected:
     //! secret key to randomize bucket select with
     uint256 nKey;
 
-    //! Source of random numbers for randomization in inner loops
-    mutable FastRandomContext insecure_rand;
-
 private:
     //! A mutex to protect the inner data structures.
     mutable Mutex cs;
+
+    //! Source of random numbers for randomization in inner loops
+    mutable FastRandomContext insecure_rand;
 
     //! Serialization versions.
     enum Format : uint8_t {
