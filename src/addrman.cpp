@@ -499,6 +499,10 @@ int CAddrMan::Check_() const {
         return 0;
     }
 
+    LogPrint(BCLog::ADDRMAN,
+             "Addrman checks started: new %i, tried %i, total %u\n", nNew,
+             nTried, vRandom.size());
+
     std::unordered_set<int> setTried;
     std::unordered_map<int, int> mapNew;
 
@@ -597,6 +601,7 @@ int CAddrMan::Check_() const {
         return -16;
     }
 
+    LogPrint(BCLog::ADDRMAN, "Addrman checks completed successfully\n");
     return 0;
 }
 
