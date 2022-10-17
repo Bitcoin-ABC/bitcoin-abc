@@ -487,7 +487,7 @@ public:
         std::vector<int>().swap(vRandom);
 
         if (deterministic) {
-            nKey.SetNull();
+            nKey = uint256{1};
             insecure_rand = FastRandomContext(true);
         } else {
             nKey = insecure_rand.rand256();
