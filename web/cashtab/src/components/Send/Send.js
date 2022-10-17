@@ -1101,6 +1101,10 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                         placeholder={
                                             isEncryptedOptionalOpReturnMsg
                                                 ? `(max ${currency.opReturn.encryptedMsgCharLimit} characters)`
+                                                : location &&
+                                                  location.state &&
+                                                  location.state.airdropTokenId
+                                                ? `(max ${currency.opReturn.unencryptedAirdropMsgCharLimit} characters)`
                                                 : `(max ${currency.opReturn.unencryptedMsgCharLimit} characters)`
                                         }
                                         value={
@@ -1123,6 +1127,11 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                             isEncryptedOptionalOpReturnMsg
                                                 ? currency.opReturn
                                                       .encryptedMsgCharLimit
+                                                : location &&
+                                                  location.state &&
+                                                  location.state.airdropTokenId
+                                                ? currency.opReturn
+                                                      .unencryptedAirdropMsgCharLimit
                                                 : currency.opReturn
                                                       .unencryptedMsgCharLimit
                                         }

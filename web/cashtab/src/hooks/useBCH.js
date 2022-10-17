@@ -424,6 +424,7 @@ export default function useBCH() {
                     const structuredEj = await ecies.encrypt(
                         pubKeyBuf,
                         bufferedFile,
+                        { compressEpk: true },
                     );
 
                     // Serialize the encrypted data object

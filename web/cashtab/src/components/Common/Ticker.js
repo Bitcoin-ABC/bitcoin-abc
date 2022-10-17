@@ -51,8 +51,9 @@ export const currency = {
             cashtabEncrypted: '65746162',
             airdrop: '64726f70',
         },
-        encryptedMsgCharLimit: 94,
-        unencryptedMsgCharLimit: 145,
+        encryptedMsgCharLimit: 125,
+        unencryptedMsgCharLimit: 206,
+        unencryptedAirdropMsgCharLimit: 170,
     },
     settingsValidation: {
         fiatCurrency: [
