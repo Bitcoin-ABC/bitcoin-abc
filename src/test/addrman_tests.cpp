@@ -19,7 +19,8 @@
 
 class CAddrManTest : public CAddrMan {
 public:
-    explicit CAddrManTest(std::vector<bool> asmap = std::vector<bool>()) {
+    explicit CAddrManTest(std::vector<bool> asmap = std::vector<bool>())
+        : CAddrMan(/* consistency_check_ratio= */ 100) {
         // Set addrman addr placement to be deterministic.
         MakeDeterministic();
         m_asmap = asmap;

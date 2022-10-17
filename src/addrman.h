@@ -27,6 +27,9 @@
 #include <unordered_map>
 #include <vector>
 
+/** Default for -checkaddrman */
+static constexpr int32_t DEFAULT_ADDRMAN_CONSISTENCY_CHECKS{0};
+
 /**
  * Extended statistics about a CAddress
  */
@@ -131,9 +134,9 @@ public:
  *    * Bucket selection is based on cryptographic hashing, using a
  * randomly-generated 256-bit key, which should not
  *      be observable by adversaries.
- *    * Several indexes are kept for high performance. Defining DEBUG_ADDRMAN
- * will introduce frequent (and expensive)
- *      consistency checks for the entire data structure.
+ *    * Several indexes are kept for high performance. Setting
+ * m_consistency_check_ratio with the -checkaddrman configuration option will
+ * introduce (expensive) consistency checks for the entire data structure.
  */
 
 //! total number of buckets for tried addresses
@@ -512,7 +515,10 @@ public:
         mapAddr.clear();
     }
 
-    CAddrMan() { Clear(); }
+    CAddrMan(int32_t consistency_check_ratio)
+        : m_consistency_check_ratio{consistency_check_ratio} {
+        Clear();
+    }
 
     ~CAddrMan() { nKey.SetNull(); }
 
@@ -720,6 +726,12 @@ private:
     //! entries. Test-before-evict discipline used to resolve these collisions.
     std::set<int> m_tried_collisions;
 
+    /**
+     * Perform consistency checks every m_consistency_check_ratio operations
+     * (if non-zero).
+     */
+    const int32_t m_consistency_check_ratio;
+
     //! Use deterministic bucket selection and inner loops randomization.
     //! For testing purpose only.
     bool deterministic = false;
@@ -773,9 +785,11 @@ private:
     //! Consistency check
     void Check() const EXCLUSIVE_LOCKS_REQUIRED(cs) {
         AssertLockHeld(cs);
+
         const int err = Check_();
         if (err) {
             LogPrintf("ADDRMAN CONSISTENCY CHECK FAILED!!! err=%i\n", err);
+            assert(false);
         }
     }
 

@@ -971,12 +971,18 @@ void SetupServerArgs(NodeContext &node) {
                              regtestChainParams->DefaultConsistencyChecks()),
                    ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
                    OptionsCategory::DEBUG_TEST);
+    argsman.AddArg("-checkaddrman=<n>",
+                   strprintf("Run addrman consistency checks every <n> "
+                             "operations. Use 0 to disable. (default: %u)",
+                             DEFAULT_ADDRMAN_CONSISTENCY_CHECKS),
+                   ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
+                   OptionsCategory::DEBUG_TEST);
     argsman.AddArg(
         "-checkmempool=<n>",
-        strprintf(
-            "Run checks every <n> transactions (default: %u, regtest: %u)",
-            defaultChainParams->DefaultConsistencyChecks(),
-            regtestChainParams->DefaultConsistencyChecks()),
+        strprintf("Run mempool consistency checks every <n> transactions. Use "
+                  "0 to disable. (default: %u, regtest: %u)",
+                  defaultChainParams->DefaultConsistencyChecks(),
+                  regtestChainParams->DefaultConsistencyChecks()),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
     argsman.AddArg("-checkpoints",
@@ -2359,7 +2365,11 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     fDiscover = args.GetBoolArg("-discover", true);
 
     assert(!node.addrman);
-    node.addrman = std::make_unique<CAddrMan>();
+    auto check_addrman = std::clamp<int32_t>(
+        args.GetIntArg("-checkaddrman", DEFAULT_ADDRMAN_CONSISTENCY_CHECKS), 0,
+        1000000);
+    node.addrman = std::make_unique<CAddrMan>(
+        /* consistency_check_ratio= */ check_addrman);
     assert(!node.banman);
     node.banman = std::make_unique<BanMan>(
         gArgs.GetDataDirNet() / "banlist.dat", config.GetChainParams(),

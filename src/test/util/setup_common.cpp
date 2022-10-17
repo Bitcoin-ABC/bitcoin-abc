@@ -232,7 +232,8 @@ TestingSetup::TestingSetup(const std::string &chainName,
         }
     }
 
-    m_node.addrman = std::make_unique<CAddrMan>();
+    m_node.addrman =
+        std::make_unique<CAddrMan>(/* consistency_check_ratio= */ 0);
     m_node.banman = std::make_unique<BanMan>(
         m_args.GetDataDirBase() / "banlist.dat", chainparams, nullptr,
         DEFAULT_MISBEHAVING_BANTIME);
