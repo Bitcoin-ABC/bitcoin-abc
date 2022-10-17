@@ -109,8 +109,6 @@ static RPCHelpMan gettxoutproof() {
             const Consensus::Params &params =
                 config.GetChainParams().GetConsensus();
 
-            LOCK(cs_main);
-
             if (pblockindex == nullptr) {
                 const CTransactionRef tx = GetTransaction(
                     /* block_index */ nullptr,
@@ -121,6 +119,7 @@ static RPCHelpMan gettxoutproof() {
                                        "Transaction not yet in block");
                 }
 
+                LOCK(cs_main);
                 pblockindex = chainman.m_blockman.LookupBlockIndex(hashBlock);
                 if (!pblockindex) {
                     throw JSONRPCError(RPC_INTERNAL_ERROR,
