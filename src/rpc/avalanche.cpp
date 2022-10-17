@@ -186,7 +186,7 @@ static RPCHelpMan addavalanchenode() {
                         pnode->m_avalanche_state =
                             std::make_unique<CNode::AvalancheState>();
                     }
-                    pnode->m_avalanche_state->pubkey = std::move(key);
+                    pnode->m_avalanche_pubkey = std::move(key);
                     return true;
                 })) {
                 throw JSONRPCError(

@@ -4932,11 +4932,12 @@ void PeerManagerImpl::ProcessMessage(
         // no proof, so we're done.
         if (delegation.getLimitedProofId() != uint256::ZERO) {
             avalanche::DelegationState state;
-            CPubKey &pubkey = pfrom.m_avalanche_state->pubkey;
+            CPubKey pubkey;
             if (!delegation.verify(state, pubkey)) {
                 Misbehaving(pfrom, 100, "invalid-delegation");
                 return;
             }
+            pfrom.m_avalanche_pubkey = std::move(pubkey);
 
             CHashWriter sighasher(SER_GETHASH, 0);
             sighasher << delegation.getId();
@@ -4947,7 +4948,8 @@ void PeerManagerImpl::ProcessMessage(
 
             SchnorrSig sig;
             vRecv >> sig;
-            if (!pubkey.VerifySchnorr(sighasher.GetHash(), sig)) {
+            if (!(*pfrom.m_avalanche_pubkey)
+                     .VerifySchnorr(sighasher.GetHash(), sig)) {
                 Misbehaving(pfrom, 100, "invalid-avahello-signature");
                 return;
             }
@@ -5074,9 +5076,9 @@ void PeerManagerImpl::ProcessMessage(
 
         SchnorrSig sig;
         vRecv >> sig;
-        if (!pfrom.m_avalanche_state ||
-            !pfrom.m_avalanche_state->pubkey.VerifySchnorr(verifier.GetHash(),
-                                                           sig)) {
+        if (!pfrom.m_avalanche_pubkey.has_value() ||
+            !(*pfrom.m_avalanche_pubkey)
+                 .VerifySchnorr(verifier.GetHash(), sig)) {
             Misbehaving(pfrom, 100, "invalid-ava-response-signature");
             return;
         }

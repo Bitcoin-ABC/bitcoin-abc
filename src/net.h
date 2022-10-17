@@ -675,8 +675,6 @@ public:
         Mutex cs_statistics;
 
     public:
-        CPubKey pubkey;
-
         AvalancheState() : invCounters(0), availabilityScore(0.) {}
 
         /** The node was polled for count invs */
@@ -705,6 +703,9 @@ public:
 
         double getAvailabilityScore() const;
     };
+
+    // Pubkey used to verify signatures on Avalanche messages from this peer
+    std::optional<CPubKey> m_avalanche_pubkey;
 
     // m_avalanche_state == nullptr if we're not using avalanche with this peer
     std::unique_ptr<AvalancheState> m_avalanche_state;
