@@ -1090,13 +1090,15 @@ static CBlock GetBlockChecked(const Config &config, BlockManager &blockman,
 }
 
 static CBlockUndo GetUndoChecked(BlockManager &blockman,
-                                 const CBlockIndex *pblockindex)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-    AssertLockHeld(::cs_main);
+                                 const CBlockIndex *pblockindex) {
     CBlockUndo blockUndo;
-    if (blockman.IsBlockPruned(pblockindex)) {
-        throw JSONRPCError(RPC_MISC_ERROR,
-                           "Undo data not available (pruned data)");
+
+    {
+        LOCK(cs_main);
+        if (blockman.IsBlockPruned(pblockindex)) {
+            throw JSONRPCError(RPC_MISC_ERROR,
+                               "Undo data not available (pruned data)");
+        }
     }
 
     if (!UndoReadFromDisk(blockUndo, pblockindex)) {
@@ -2671,7 +2673,6 @@ static RPCHelpMan getblockstats() {
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             ChainstateManager &chainman = EnsureAnyChainman(request.context);
-            LOCK(cs_main);
             const CBlockIndex *pindex{
                 ParseHashOrHeight(request.params[0], chainman)};
             CHECK_NONFATAL(pindex != nullptr);
