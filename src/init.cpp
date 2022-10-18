@@ -2260,6 +2260,18 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         LogInfo("Log rate limiting disabled\n");
     }
 
+    // Check disk space every 5 minutes to avoid db corruption.
+    node.scheduler->scheduleEvery(
+        [&args] {
+            constexpr uint64_t min_disk_space = 250_MiB;
+            if (!CheckDiskSpace(args.GetBlocksDirPath(), min_disk_space)) {
+                LogPrintf("Shutting down due to lack of disk space!\n");
+                StartShutdown();
+            }
+            return true;
+        },
+        std::chrono::minutes{5});
+
     GetMainSignals().RegisterBackgroundSignalScheduler(*node.scheduler);
 
     /**
