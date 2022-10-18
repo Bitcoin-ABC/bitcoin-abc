@@ -558,6 +558,7 @@ public:
     }
 
     std::optional<Coin> GetCoin(const COutPoint &outpoint) const override;
+    bool HaveCoin(const COutPoint &outpoint) const override;
 
 private:
     /**
