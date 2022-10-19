@@ -25,9 +25,27 @@ extension.runtime.onConnect.addListener(function (port) {
     });
 });
 
+// Fetch item from extension storage and return it as a variable
+const getObjectFromExtensionStorage = async function (key) {
+    return new Promise((resolve, reject) => {
+        try {
+            extension.storage.sync.get(key, function (value) {
+                resolve(value[key]);
+            });
+        } catch (err) {
+            reject(err);
+        }
+    });
+};
+
 // Fetch the active extension address from extension storage API
 async function fetchAddress() {
     console.log(`fetchAddress called in background.js`);
+    const fetchedAddress = await getObjectFromExtensionStorage(['address']);
+    console.log(
+        `background.js fetched address from extension storage`,
+        fetchedAddress,
+    );
 }
 
 /**
