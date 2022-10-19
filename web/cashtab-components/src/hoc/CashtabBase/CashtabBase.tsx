@@ -7,6 +7,7 @@ import {
     adjustAmount,
     getAddressUnconfirmed,
     getTokenInfo,
+    getCashtabProviderStatus,
 } from '../../utils/cashtab-helpers';
 
 import Ticker from '../../atoms/Ticker';
@@ -143,18 +144,6 @@ const CashtabBase = (Wrapped: React.ComponentType<any>) => {
             }
         };
 
-        getCashtabProviderStatus = () => {
-            console.log(window.bitcoinAbc);
-            if (
-                window &&
-                window.bitcoinAbc &&
-                window.bitcoinAbc === 'cashtab'
-            ) {
-                return true;
-            }
-            return false;
-        };
-
         handleClick = () => {
             const { amount, to, opReturn, coinType, tokenId } = this.props;
 
@@ -165,7 +154,7 @@ const CashtabBase = (Wrapped: React.ComponentType<any>) => {
                 return;
             }
 
-            const walletProviderStatus = this.getCashtabProviderStatus();
+            const walletProviderStatus = getCashtabProviderStatus();
 
             if (typeof window === `undefined` || !walletProviderStatus) {
                 this.setState({ step: 'install' });
@@ -315,7 +304,7 @@ const CashtabBase = (Wrapped: React.ComponentType<any>) => {
         };
 
         confirmCashtabProviderStatus = () => {
-            const cashTabStatus = this.getCashtabProviderStatus();
+            const cashTabStatus = getCashtabProviderStatus();
             if (cashTabStatus) {
                 this.setState({ step: 'fresh' });
             }
@@ -335,7 +324,7 @@ const CashtabBase = (Wrapped: React.ComponentType<any>) => {
                 setTimeout(this.confirmCashtabProviderStatus, 750);
 
                 // Detect Cashtab and determine if button should show install CTA
-                const walletProviderStatus = this.getCashtabProviderStatus();
+                const walletProviderStatus = getCashtabProviderStatus();
                 if (walletProviderStatus) {
                     this.setState({ step: 'fresh' });
                 } else {

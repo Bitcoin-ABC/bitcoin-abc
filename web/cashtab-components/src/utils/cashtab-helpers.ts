@@ -115,6 +115,14 @@ const adjustAmount = (
         : undefined;
 };
 
+const getCashtabProviderStatus = () => {
+    console.log(window.bitcoinAbc);
+    if (window && window.bitcoinAbc && window.bitcoinAbc === 'cashtab') {
+        return true;
+    }
+    return false;
+};
+
 export {
     adjustAmount,
     buildPriceEndpoint,
@@ -126,4 +134,5 @@ export {
     getCurrencyPreSymbol,
     getTokenInfo,
     priceToSatoshis,
+    getCashtabProviderStatus,
 };
