@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import 'antd/dist/antd.less';
 import PropTypes from 'prop-types';
 import { Spin } from 'antd';
@@ -24,7 +24,7 @@ import NotFound from 'components/NotFound';
 import Cashtab from 'assets/cashtab_xec.png';
 import './App.css';
 import { WalletContext } from 'utils/context';
-import { isValidStoredWallet } from 'utils/cashMethods';
+import { isValidStoredWallet, convertToEcashPrefix } from 'utils/cashMethods';
 import {
     Route,
     Redirect,
@@ -343,6 +343,25 @@ const App = () => {
     const openInTab = () => {
         window.open(`index.html#/${selectedKey}`);
     };
+
+    const copyAddressToExtensionStorage = async wallet => {
+        // Get address from active wallet
+        let address;
+        try {
+            address = wallet.Path1899.cashAddress;
+            address = convertToEcashPrefix(address);
+            console.log(`Address fetched from extension`, address);
+        } catch (err) {
+            // The wallet object can be 'false' when Cashtab first loads. In this case, we want this function to do nothing.
+            return console.log(
+                `Wallet not loaded yet, exiting copyAddressToExtension`,
+            );
+        }
+    };
+
+    useEffect(() => {
+        copyAddressToExtensionStorage(wallet);
+    }, [wallet]);
 
     return (
         <ThemeProvider theme={theme}>
