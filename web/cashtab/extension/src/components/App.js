@@ -34,6 +34,8 @@ import {
 } from 'react-router-dom';
 // Extension-only import used for open in new tab link
 import PopOut from 'assets/popout.svg';
+// Extension-only import used for interacting with the extension API
+import extension from 'extensionizer';
 
 const GlobalStyle = createGlobalStyle`    
     *::placeholder {
@@ -343,6 +345,18 @@ const App = () => {
     const openInTab = () => {
         window.open(`index.html#/${selectedKey}`);
     };
+    // Extension storage get method
+    const getObjectFromExtensionStorage = async function (key) {
+        return new Promise((resolve, reject) => {
+            try {
+                extension.storage.sync.get(key, function (value) {
+                    resolve(value[key]);
+                });
+            } catch (err) {
+                reject(err);
+            }
+        });
+    };
 
     const copyAddressToExtensionStorage = async wallet => {
         // Get address from active wallet
@@ -357,6 +371,23 @@ const App = () => {
                 `Wallet not loaded yet, exiting copyAddressToExtension`,
             );
         }
+        // Save the address to extension storage API
+
+        // Check for stored value
+        const storedAddress = await getObjectFromExtensionStorage(['address']);
+        console.log(`storedAddress`, storedAddress);
+        if (address === storedAddress) {
+            // No need to store it again
+            console.log(`Active wallet address already in extension storage`);
+            return;
+        }
+
+        // If the address has not been set (or if the user has changed wallets since it was last set), set it
+        await extension.storage.sync.set({ address: address }, function () {
+            console.log(
+                `Address ${address} saved to storage under key 'address'`,
+            );
+        });
     };
 
     useEffect(() => {
