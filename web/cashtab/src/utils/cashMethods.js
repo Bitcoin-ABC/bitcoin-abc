@@ -199,7 +199,7 @@ export const generateTokenTxInput = (
             !BCH ||
             !tokenAction ||
             !totalXecUtxos ||
-            !tokenId ||
+            (tokenAction !== 'GENESIS' && !tokenId) ||
             !feeInSatsPerByte ||
             !txBuilder
         ) {

@@ -1,4 +1,3 @@
-import BigNumber from 'bignumber.js';
 import { currency } from 'components/Common/Ticker';
 import SlpWallet from 'minimal-slp-wallet';
 import {
@@ -8,9 +7,10 @@ import {
     generateOpReturnScript,
     generateTxInput,
     generateTxOutput,
+    generateTokenTxInput,
+    generateTokenTxOutput,
     signAndBuildTx,
     getChangeAddressFromInputUtxos,
-    signUtxosByAddress,
 } from 'utils/cashMethods';
 import ecies from 'ecies-lite';
 
@@ -46,7 +46,13 @@ export default function useBCH() {
         return txFee;
     };
 
-    const createToken = async (BCH, wallet, feeInSatsPerByte, configObj) => {
+    const createToken = async (
+        BCH,
+        chronik,
+        wallet,
+        feeInSatsPerByte,
+        configObj,
+    ) => {
         try {
             // Throw error if wallet does not have utxo set in state
             if (!isValidStoredWallet(wallet)) {
@@ -54,97 +60,63 @@ export default function useBCH() {
                 throw walletError;
             }
             const utxos = wallet.state.slpBalancesAndUtxos.nonSlpUtxos;
-
             const CREATION_ADDR = wallet.Path1899.cashAddress;
-            const inputUtxos = [];
-            let transactionBuilder;
+            let txBuilder = new BCH.TransactionBuilder();
 
-            // instance of transaction builder
-            if (process.env.REACT_APP_NETWORK === `mainnet`)
-                transactionBuilder = new BCH.TransactionBuilder();
-            else transactionBuilder = new BCH.TransactionBuilder('testnet');
-
-            let originalAmount = new BigNumber(0);
-
-            let txFee = 0;
-            for (let i = 0; i < utxos.length; i++) {
-                const utxo = utxos[i];
-                originalAmount = originalAmount.plus(new BigNumber(utxo.value));
-                const vout = utxo.outpoint.outIdx;
-                const txid = utxo.outpoint.txid;
-                // add input with txid and index of vout
-                transactionBuilder.addInput(txid, vout);
-
-                inputUtxos.push(utxo);
-                txFee = calcFee(BCH, inputUtxos, 3, feeInSatsPerByte);
-
-                if (
-                    originalAmount
-                        .minus(new BigNumber(currency.etokenSats))
-                        .minus(new BigNumber(txFee))
-                        .gte(0)
-                ) {
-                    break;
-                }
-            }
-
-            // amount to send back to the remainder address.
-            const remainder = originalAmount
-                .minus(new BigNumber(currency.etokenSats))
-                .minus(new BigNumber(txFee));
-
-            if (remainder.lt(0)) {
-                const error = new Error(`Insufficient funds`);
-                error.code = SEND_BCH_ERRORS.INSUFFICIENT_FUNDS;
-                throw error;
-            }
-
-            // Generate the OP_RETURN entry for an SLP GENESIS transaction.
-            const script =
-                BCH.SLP.TokenType1.generateGenesisOpReturn(configObj);
-            // OP_RETURN needs to be the first output in the transaction.
-            transactionBuilder.addOutput(script, 0);
-
-            // add output w/ address and amount to send
-            transactionBuilder.addOutput(CREATION_ADDR, currency.etokenSats);
-
-            // Send change to own address
-            if (remainder.gte(new BigNumber(currency.etokenSats))) {
-                transactionBuilder.addOutput(
-                    CREATION_ADDR,
-                    parseInt(remainder),
-                );
-            }
-
-            // Sign each XEC UTXO being consumed and refresh transactionBuilder
-            transactionBuilder = signUtxosByAddress(
+            let tokenTxInputObj = generateTokenTxInput(
                 BCH,
-                inputUtxos,
+                'GENESIS',
+                utxos,
+                null, // total token UTXOS - not applicable for GENESIS tx
+                null, // token ID - not applicable for GENESIS tx
+                null, // token amount - not applicable for GENESIS tx
+                feeInSatsPerByte,
+                txBuilder,
+            );
+            // update txBuilder object with inputs
+            txBuilder = tokenTxInputObj.txBuilder;
+
+            let tokenTxOutputObj = generateTokenTxOutput(
+                BCH,
+                txBuilder,
+                'GENESIS',
+                CREATION_ADDR,
+                null, // token UTXOS being spent - not applicable for GENESIS tx
+                tokenTxInputObj.remainderXecValue,
+                configObj,
+            );
+            // update txBuilder object with outputs
+            txBuilder = tokenTxOutputObj;
+
+            // sign the collated inputUtxos and build the raw tx hex
+            // returns the raw tx hex string
+            const rawTxHex = signAndBuildTx(
+                BCH,
+                tokenTxInputObj.inputXecUtxos,
+                txBuilder,
                 wallet,
-                transactionBuilder,
             );
 
-            // build tx
-            const tx = transactionBuilder.build();
-            // output rawhex
-            const hex = tx.toHex();
-
-            // Broadcast transaction to the network
-            const txidStr = await BCH.RawTransactions.sendRawTransaction([hex]);
-
-            if (txidStr && txidStr[0]) {
-                console.log(`${currency.ticker} txid`, txidStr[0]);
+            // Broadcast transaction to the network via the chronik client
+            // sample chronik.broadcastTx() response:
+            //    {"txid":"0075130c9ecb342b5162bb1a8a870e69c935ea0c9b2353a967cda404401acf19"}
+            let broadcastResponse;
+            try {
+                broadcastResponse = await chronik.broadcastTx(
+                    rawTxHex,
+                    true, // skipSlpCheck to bypass chronik safety mechanism in place to avoid accidental burns
+                    // if the wallet has existing burns via bch-api then chronik will throw 'invalid-slp-burns' errors without this flag
+                );
+                if (!broadcastResponse) {
+                    throw new Error('Empty chronik broadcast response');
+                }
+            } catch (err) {
+                console.log('Error broadcasting tx to chronik client');
+                throw err;
             }
-            let link;
 
-            if (process.env.REACT_APP_NETWORK === `mainnet`) {
-                link = `${currency.blockExplorerUrl}/tx/${txidStr}`;
-            } else {
-                link = `${currency.blockExplorerUrlTestnet}/tx/${txidStr}`;
-            }
-            //console.log(`link`, link);
-
-            return link;
+            // return the explorer link for the broadcasted tx
+            return `${currency.blockExplorerUrl}/tx/${broadcastResponse.txid}`;
         } catch (err) {
             if (err.error === 'insufficient priority (code 66)') {
                 err.code = SEND_BCH_ERRORS.INSUFFICIENT_PRIORITY;
@@ -165,10 +137,14 @@ export default function useBCH() {
 
     const sendToken = async (
         BCH,
+        chronik,
         wallet,
         { tokenId, amount, tokenReceiverAddress },
     ) => {
         const slpBalancesAndUtxos = wallet.state.slpBalancesAndUtxos;
+        const xecUtxos = slpBalancesAndUtxos.nonSlpUtxos;
+        const tokenUtxos = slpBalancesAndUtxos.slpUtxos;
+        const CREATION_ADDR = wallet.Path1899.cashAddress;
 
         // Handle error of user having no XEC
         if (
@@ -180,154 +156,78 @@ export default function useBCH() {
                 `You need some ${currency.ticker} to send ${currency.tokenTicker}`,
             );
         }
-        const utxos = wallet.state.slpBalancesAndUtxos.nonSlpUtxos;
 
         // instance of transaction builder
-        let transactionBuilder = new BCH.TransactionBuilder();
+        let txBuilder = new BCH.TransactionBuilder();
 
-        // collate XEC utxos to cover token tx
-        let totalXecInputUtxoValue = new BigNumber(0);
-        let xecInputUtxos = [];
-        let txFee = 0;
-        let remainder;
-        for (let i = 0; i < utxos.length; i++) {
-            const utxo = utxos[i];
-            totalXecInputUtxoValue = totalXecInputUtxoValue.plus(
-                new BigNumber(utxo.value),
-            );
-            const vout = utxo.outpoint.outIdx;
-            const txid = utxo.outpoint.txid;
-            // add input with txid and index of vout
-            transactionBuilder.addInput(txid, vout);
-
-            xecInputUtxos.push(utxo);
-            txFee = calcFee(BCH, xecInputUtxos, 5, 1.1 * currency.defaultFee);
-
-            remainder = totalXecInputUtxoValue
-                .minus(new BigNumber(currency.etokenSats * 2)) // one for token send output, one for token change
-                .minus(new BigNumber(txFee));
-
-            if (remainder.gte(0)) {
-                break;
-            }
-        }
-
-        if (remainder.lt(0)) {
-            const error = new Error(`Insufficient funds`);
-            error.code = SEND_BCH_ERRORS.INSUFFICIENT_FUNDS;
-            throw error;
-        }
-
-        // filter for token UTXOs matching the token being sent
-        const tokenUtxos = slpBalancesAndUtxos.slpUtxos.filter(utxo => {
-            if (
-                utxo && // UTXO is associated with a token.
-                utxo.slpMeta.tokenId === tokenId && // UTXO matches the token ID.
-                !utxo.slpToken.isMintBaton // UTXO is not a minting baton.
-            ) {
-                return true;
-            }
-            return false;
-        });
-        if (tokenUtxos.length === 0) {
-            throw new Error(
-                'No token UTXOs for the specified token could be found.',
-            );
-        }
-
-        // collate token UTXOs to cover the token amount being sent
-        let finalTokenAmountSent = new BigNumber(0);
-        let tokenAmountBeingSentToAddress = new BigNumber(amount);
-        let tokenUtxosBeingSpent = [];
-        for (let i = 0; i < tokenUtxos.length; i++) {
-            finalTokenAmountSent = finalTokenAmountSent.plus(
-                new BigNumber(tokenUtxos[i].tokenQty),
-            );
-            transactionBuilder.addInput(
-                tokenUtxos[i].outpoint.txid,
-                tokenUtxos[i].outpoint.outIdx,
-            );
-            tokenUtxosBeingSpent.push(tokenUtxos[i]);
-            if (tokenAmountBeingSentToAddress.lte(finalTokenAmountSent)) {
-                break;
-            }
-        }
-
-        const slpSendObj = BCH.SLP.TokenType1.generateSendOpReturn(
-            tokenUtxosBeingSpent,
-            tokenAmountBeingSentToAddress.toString(),
+        let tokenTxInputObj = generateTokenTxInput(
+            BCH,
+            'SEND',
+            xecUtxos,
+            tokenUtxos,
+            tokenId,
+            amount,
+            currency.defaultFee,
+            txBuilder,
         );
+        // update txBuilder object with inputs
+        txBuilder = tokenTxInputObj.txBuilder;
 
-        const slpData = slpSendObj.script;
-
-        // Add OP_RETURN as first output.
-        transactionBuilder.addOutput(slpData, 0);
-
-        // Send dust transaction representing tokens being sent.
-        transactionBuilder.addOutput(
-            BCH.SLP.Address.toLegacyAddress(tokenReceiverAddress),
-            currency.etokenSats,
+        let tokenTxOutputObj = generateTokenTxOutput(
+            BCH,
+            txBuilder,
+            'SEND',
+            CREATION_ADDR,
+            tokenTxInputObj.inputTokenUtxos,
+            tokenTxInputObj.remainderXecValue,
+            null, // token config object - for GENESIS tx only
+            tokenReceiverAddress,
+            amount,
         );
-
-        // Return any token change back to the sender.
-        if (slpSendObj.outputs > 1) {
-            // Change goes back to where slp utxo came from
-            transactionBuilder.addOutput(
-                BCH.SLP.Address.toLegacyAddress(
-                    tokenUtxosBeingSpent[0].address,
-                ),
-                currency.etokenSats,
-            );
-        }
-
-        // Last output: send the XEC change back to the wallet.
-        // Note: Only send XEC change if your XEC change is greater than dust
-        if (remainder.gte(new BigNumber(currency.dustSats))) {
-            transactionBuilder.addOutput(
-                BCH.Address.toLegacyAddress(xecInputUtxos[0].address),
-                remainder.toNumber(),
-            );
-        }
+        // update txBuilder object with outputs
+        txBuilder = tokenTxOutputObj;
 
         // append the token input UTXOs to the array of XEC input UTXOs for signing
-        const inputUtxos = xecInputUtxos.concat(tokenUtxosBeingSpent);
-
-        // Sign each UTXO being consumed and refresh transactionBuilder
-        transactionBuilder = signUtxosByAddress(
-            BCH,
-            inputUtxos,
-            wallet,
-            transactionBuilder,
+        const combinedInputUtxos = tokenTxInputObj.inputXecUtxos.concat(
+            tokenTxInputObj.inputTokenUtxos,
         );
 
-        // build tx
-        const tx = transactionBuilder.build();
+        // sign the collated inputUtxos and build the raw tx hex
+        // returns the raw tx hex string
+        const rawTxHex = signAndBuildTx(
+            BCH,
+            combinedInputUtxos,
+            txBuilder,
+            wallet,
+        );
 
-        // output rawhex
-        const hex = tx.toHex();
-        // console.log(`Transaction raw hex: `, hex);
-
-        // END transaction construction.
-
-        const txidStr = await BCH.RawTransactions.sendRawTransaction([hex]);
-        if (txidStr && txidStr[0]) {
-            console.log(`${currency.tokenTicker} txid`, txidStr[0]);
+        // Broadcast transaction to the network via the chronik client
+        // sample chronik.broadcastTx() response:
+        //    {"txid":"0075130c9ecb342b5162bb1a8a870e69c935ea0c9b2353a967cda404401acf19"}
+        let broadcastResponse;
+        try {
+            broadcastResponse = await chronik.broadcastTx(
+                rawTxHex,
+                true, // skipSlpCheck to bypass chronik safety mechanism in place to avoid accidental burns
+                // if the wallet has existing burns via bch-api then chronik will throw 'invalid-slp-burns' errors without this flag
+            );
+            if (!broadcastResponse) {
+                throw new Error('Empty chronik broadcast response');
+            }
+        } catch (err) {
+            console.log('Error broadcasting tx to chronik client');
+            throw err;
         }
 
-        let link;
-        if (process.env.REACT_APP_NETWORK === `mainnet`) {
-            link = `${currency.blockExplorerUrl}/tx/${txidStr}`;
-        } else {
-            link = `${currency.blockExplorerUrlTestnet}/tx/${txidStr}`;
-        }
-
-        //console.log(`link`, link);
-
-        return link;
+        // return the explorer link for the broadcasted tx
+        return `${currency.blockExplorerUrl}/tx/${broadcastResponse.txid}`;
     };
 
-    const burnToken = async (BCH, wallet, { tokenId, amount }) => {
+    const burnToken = async (BCH, chronik, wallet, { tokenId, amount }) => {
         const slpBalancesAndUtxos = wallet.state.slpBalancesAndUtxos;
+        const xecUtxos = slpBalancesAndUtxos.nonSlpUtxos;
+        const tokenUtxos = slpBalancesAndUtxos.slpUtxos;
+        const CREATION_ADDR = wallet.Path1899.cashAddress;
 
         // Handle error of user having no XEC
         if (
@@ -338,137 +238,69 @@ export default function useBCH() {
             throw new Error(`You need some ${currency.ticker} to burn eTokens`);
         }
 
-        const utxos = slpBalancesAndUtxos.nonSlpUtxos;
-
         // instance of transaction builder
-        let transactionBuilder = new BCH.TransactionBuilder();
+        let txBuilder = new BCH.TransactionBuilder();
 
-        // collate XEC utxos to cover token tx
-        let totalXecInputUtxoValue = new BigNumber(0);
-        let inputUtxos = [];
-        let txFee = 0;
-        let remainder;
-        for (let i = 0; i < utxos.length; i++) {
-            const utxo = utxos[i];
-            totalXecInputUtxoValue = totalXecInputUtxoValue.plus(
-                new BigNumber(utxo.value),
-            );
-            const vout = utxo.outpoint.outIdx;
-            const txid = utxo.outpoint.txid;
-            // add input with txid and index of vout
-            transactionBuilder.addInput(txid, vout);
-
-            inputUtxos.push(utxo);
-            txFee = calcFee(BCH, inputUtxos, 5, 1.1 * currency.defaultFee);
-
-            remainder = totalXecInputUtxoValue
-                .minus(new BigNumber(currency.etokenSats * 2)) // one for token burn output, one for token change
-                .minus(new BigNumber(txFee));
-
-            if (remainder.gte(0)) {
-                break;
-            }
-        }
-
-        if (remainder.lt(0)) {
-            const error = new Error(`Insufficient funds`);
-            error.code = SEND_BCH_ERRORS.INSUFFICIENT_FUNDS;
-            throw error;
-        }
-
-        // filter for token UTXOs matching the token being burnt
-        const tokenUtxos = slpBalancesAndUtxos.slpUtxos.filter(utxo => {
-            if (
-                utxo && // UTXO is associated with a token.
-                utxo.slpMeta.tokenId === tokenId && // UTXO matches the token ID.
-                !utxo.slpToken.isMintBaton // UTXO is not a minting baton.
-            ) {
-                return true;
-            }
-            return false;
-        });
-
-        if (tokenUtxos.length === 0) {
-            throw new Error(
-                'No token UTXOs for the specified token could be found.',
-            );
-        }
-
-        // collate token UTXOs to cover the token amount being burnt
-        let finalTokenAmountBurnt = new BigNumber(0);
-        let tokenAmountBeingBurnt = new BigNumber(amount);
-
-        let tokenUtxosBeingBurnt = [];
-        for (let i = 0; i < tokenUtxos.length; i++) {
-            finalTokenAmountBurnt = finalTokenAmountBurnt.plus(
-                new BigNumber(tokenUtxos[i].tokenQty),
-            );
-            transactionBuilder.addInput(
-                tokenUtxos[i].outpoint.txid,
-                tokenUtxos[i].outpoint.outIdx,
-            );
-            tokenUtxosBeingBurnt.push(tokenUtxos[i]);
-            if (tokenAmountBeingBurnt.lte(finalTokenAmountBurnt)) {
-                break;
-            }
-        }
-
-        const slpBurnObj = BCH.SLP.TokenType1.generateBurnOpReturn(
-            tokenUtxosBeingBurnt,
-            tokenAmountBeingBurnt,
+        let tokenTxInputObj = generateTokenTxInput(
+            BCH,
+            'BURN',
+            xecUtxos,
+            tokenUtxos,
+            tokenId,
+            amount,
+            currency.defaultFee,
+            txBuilder,
         );
+        // update txBuilder object with inputs
+        txBuilder = tokenTxInputObj.txBuilder;
 
-        if (!slpBurnObj) {
-            throw new Error(`Invalid eToken burn transaction.`);
-        }
-
-        // Add OP_RETURN as first output.
-        transactionBuilder.addOutput(slpBurnObj, 0);
-
-        // Send dust transaction representing tokens being burnt.
-        transactionBuilder.addOutput(
-            BCH.SLP.Address.toLegacyAddress(inputUtxos[0].address),
-            currency.etokenSats,
+        let tokenTxOutputObj = generateTokenTxOutput(
+            BCH,
+            txBuilder,
+            'BURN',
+            CREATION_ADDR,
+            tokenTxInputObj.inputTokenUtxos,
+            tokenTxInputObj.remainderXecValue,
+            null, // token config object - for GENESIS tx only
+            null, // token receiver address - for SEND tx only
+            amount,
         );
-
-        // Send XEC change back from whence it came, if amount is > dust
-        if (remainder.gt(new BigNumber(currency.dustSats))) {
-            transactionBuilder.addOutput(
-                BCH.Address.toLegacyAddress(inputUtxos[0].address),
-                remainder.toNumber(),
-            );
-        }
+        // update txBuilder object with outputs
+        txBuilder = tokenTxOutputObj;
 
         // append the token input UTXOs to the array of XEC input UTXOs for signing
-        inputUtxos = inputUtxos.concat(tokenUtxosBeingBurnt);
-
-        // Sign each UTXO being consumed and refresh transactionBuilder
-        transactionBuilder = signUtxosByAddress(
-            BCH,
-            inputUtxos,
-            wallet,
-            transactionBuilder,
+        const combinedInputUtxos = tokenTxInputObj.inputXecUtxos.concat(
+            tokenTxInputObj.inputTokenUtxos,
         );
 
-        // build tx
-        const tx = transactionBuilder.build();
+        // sign the collated inputUtxos and build the raw tx hex
+        // returns the raw tx hex string
+        const rawTxHex = signAndBuildTx(
+            BCH,
+            combinedInputUtxos,
+            txBuilder,
+            wallet,
+        );
 
-        // output rawhex
-        const hex = tx.toHex();
-
-        const txidStr = await BCH.RawTransactions.sendRawTransaction([hex]);
-        if (txidStr && txidStr[0]) {
-            console.log(`${currency.tokenTicker} txid`, txidStr[0]);
+        // Broadcast transaction to the network via the chronik client
+        // sample chronik.broadcastTx() response:
+        //    {"txid":"0075130c9ecb342b5162bb1a8a870e69c935ea0c9b2353a967cda404401acf19"}
+        let broadcastResponse;
+        try {
+            broadcastResponse = await chronik.broadcastTx(
+                rawTxHex,
+                true, // skipSlpCheck to bypass chronik safety mechanism in place to avoid accidental burns
+            );
+            if (!broadcastResponse) {
+                throw new Error('Empty chronik broadcast response');
+            }
+        } catch (err) {
+            console.log('Error broadcasting tx to chronik client');
+            throw err;
         }
 
-        let link;
-        if (process.env.REACT_APP_NETWORK === `mainnet`) {
-            link = `${currency.blockExplorerUrl}/tx/${txidStr}`;
-        } else {
-            link = `${currency.blockExplorerUrlTestnet}/tx/${txidStr}`;
-        }
-
-        return link;
+        // return the explorer link for the broadcasted tx
+        return `${currency.blockExplorerUrl}/tx/${broadcastResponse.txid}`;
     };
 
     const getRecipientPublicKey = async (

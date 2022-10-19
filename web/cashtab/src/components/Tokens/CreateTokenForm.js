@@ -72,7 +72,7 @@ const CreateTokenForm = ({
     disabled,
     passLoadingStatus,
 }) => {
-    const { wallet } = React.useContext(WalletContext);
+    const { wallet, chronik } = React.useContext(WalletContext);
 
     // eToken icon adds
     const [tokenIcon, setTokenIcon] = useState('');
@@ -420,6 +420,7 @@ const CreateTokenForm = ({
         try {
             const link = await createToken(
                 BCH,
+                chronik,
                 wallet,
                 currency.defaultFee,
                 configObj,

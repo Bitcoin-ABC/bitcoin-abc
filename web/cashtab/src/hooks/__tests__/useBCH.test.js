@@ -232,12 +232,15 @@ describe('useBCH hook', () => {
         const eTokenId = '0203c768a66eba24affNOTVALID103b772de4d9f8f63ba79e';
         const expectedError =
             'No token UTXOs for the specified token could be found.';
+        const chronik = new ChronikClient(
+            'https://FakeChronikUrlToEnsureMocksOnly.com',
+        );
 
         let thrownError;
         try {
-            await burnToken(BCH, wallet, {
-                eTokenId,
-                burnAmount,
+            await burnToken(BCH, chronik, wallet, {
+                tokenId: eTokenId,
+                amount: burnAmount,
             });
         } catch (err) {
             thrownError = err;
@@ -338,15 +341,14 @@ describe('useBCH hook', () => {
         const BCH = new BCHJS();
         const { expectedTxId, expectedHex, wallet, configObj } =
             createTokenMock;
-
-        BCH.RawTransactions.sendRawTransaction = jest
-            .fn()
-            .mockResolvedValue(expectedTxId);
-        expect(await createToken(BCH, wallet, 5.01, configObj)).toBe(
-            `${currency.blockExplorerUrl}/tx/${expectedTxId}`,
+        const chronik = new ChronikClient(
+            'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
-        expect(BCH.RawTransactions.sendRawTransaction).toHaveBeenCalledWith(
-            expectedHex,
+        chronik.broadcastTx = jest
+            .fn()
+            .mockResolvedValue({ txid: expectedTxId });
+        expect(await createToken(BCH, chronik, wallet, 5.01, configObj)).toBe(
+            `${currency.blockExplorerUrl}/tx/${expectedTxId}`,
         );
     });
 
@@ -354,9 +356,12 @@ describe('useBCH hook', () => {
         const { createToken } = useBCH();
         const BCH = new BCHJS();
         const { invalidWallet, configObj } = createTokenMock;
-
+        const chronik = new ChronikClient(
+            'https://FakeChronikUrlToEnsureMocksOnly.com',
+        );
         const invalidWalletTokenCreation = createToken(
             BCH,
+            chronik,
             invalidWallet,
             currency.defaultFee,
             configObj,

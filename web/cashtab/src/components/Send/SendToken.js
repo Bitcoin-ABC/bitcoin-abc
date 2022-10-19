@@ -189,7 +189,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
         cleanAddress = toLegacyToken(cleanAddress);
 
         try {
-            const link = await sendToken(bchObj, wallet, {
+            const link = await sendToken(bchObj, chronik, wallet, {
                 tokenId: tokenId,
                 tokenReceiverAddress: cleanAddress,
                 amount: value,
@@ -366,7 +366,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
         passLoadingStatus(true);
 
         try {
-            const link = await burnToken(bchObj, wallet, {
+            const link = await burnToken(bchObj, chronik, wallet, {
                 tokenId: tokenId,
                 amount: eTokenBurnAmount,
             });
