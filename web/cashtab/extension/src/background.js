@@ -46,6 +46,13 @@ async function fetchAddress() {
         `background.js fetched address from extension storage`,
         fetchedAddress,
     );
+    // Send this info back to the browser
+    extension.tabs.query(
+        { active: true, currentWindow: true },
+        function (tabs) {
+            extension.tabs.sendMessage(tabs[0].id, { address: fetchedAddress });
+        },
+    );
 }
 
 /**

@@ -27,5 +27,5 @@
         "192": "ecash192.png",
         "512": "ecash512.png"
     },
-    "permissions": ["storage"]
+    "permissions": ["storage", "tabs"]
 }

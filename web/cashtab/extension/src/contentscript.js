@@ -33,3 +33,19 @@ window.addEventListener(
     },
     false,
 );
+
+// Listen for msgs from background.js
+extension.runtime.onMessage.addListener(message => {
+    // Parse message for address
+    if (message && message.address) {
+        // Send as message that webpage can listen for
+        return window.postMessage(
+            {
+                type: 'FROM_CASHTAB',
+                address: message.address,
+            },
+            '*',
+        );
+    }
+    return true;
+});

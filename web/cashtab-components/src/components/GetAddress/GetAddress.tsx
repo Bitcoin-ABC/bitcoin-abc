@@ -117,10 +117,31 @@ class GetAddress extends React.PureComponent<Props, AddrState> {
 
     // Listen for address from messages on load
     componentDidMount() {
+        // Add an event listener for messages from the extension
+        window.addEventListener('message', this.handleMessage);
         // Check to see if Cashtab is installed
         // Sometimes this will be false immediately at componentDidMount, check at tested interval
         setTimeout(this.confirmCashtabProviderStatus, 750);
     }
+
+    componentWillUnmount() {
+        // Cleanup
+        window.removeEventListener('message', this.handleMessage);
+    }
+
+    handleMessage = (event: any) => {
+        // Parse for an address from cashtab
+        if (
+            event &&
+            event.data &&
+            event.data.type &&
+            event.data.type === 'FROM_CASHTAB'
+        ) {
+            // print it
+            console.log(`Incoming cashtab message`, event.data);
+        }
+    };
+
     handleGetAddress = () => {
         console.log(`handleGetAddress`);
         return window.postMessage(
