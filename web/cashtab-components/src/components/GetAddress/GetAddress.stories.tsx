@@ -8,7 +8,7 @@ const ButtonText = 'Get Address';
 storiesOf('GetAddress', module).add(
     'default',
     () => (
-        <GetAddress step="fresh">
+        <GetAddress>
             <Text>{ButtonText}</Text>
         </GetAddress>
     ),
