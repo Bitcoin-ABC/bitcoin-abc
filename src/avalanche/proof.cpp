@@ -30,7 +30,7 @@ StakeCommitment::StakeCommitment(int64_t expirationTime,
     ss << expirationTime;
     ss << master;
     const uint256 &hash = ss.GetHash();
-    memcpy(m_data, hash.data(), sizeof(m_data));
+    std::memcpy(m_data.data(), hash.data(), sizeof(m_data));
 }
 
 void Stake::computeStakeId() {

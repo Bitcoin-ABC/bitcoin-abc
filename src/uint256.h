@@ -9,42 +9,43 @@
 #include <crypto/common.h>
 #include <span.h>
 
+#include <algorithm>
+#include <array>
 #include <cassert>
 #include <cstdint>
 #include <cstring>
 #include <string>
-#include <vector>
 
 /** Template base class for fixed-sized opaque blobs. */
 template <unsigned int BITS> class base_blob {
 protected:
     static constexpr int WIDTH = BITS / 8;
-    uint8_t m_data[WIDTH];
+    std::array<uint8_t, WIDTH> m_data;
+    static_assert(WIDTH == sizeof(m_data), "Sanity check");
 
 public:
     /* construct 0 value by default */
     constexpr base_blob() : m_data() {}
 
     /* constructor for constants between 1 and 255 */
-    constexpr explicit base_blob(uint8_t v) : m_data{v} {}
+    constexpr explicit base_blob(uint8_t v) : m_data{{v}} {}
 
-    explicit base_blob(const std::vector<uint8_t> &vch);
-
-    bool IsNull() const {
-        for (int i = 0; i < WIDTH; i++) {
-            if (m_data[i] != 0) {
-                return false;
-            }
-        }
-        return true;
+    constexpr explicit base_blob(Span<const uint8_t> vch) {
+        assert(vch.size() == WIDTH);
+        std::copy(vch.begin(), vch.end(), m_data.begin());
     }
 
-    void SetNull() { memset(m_data, 0, sizeof(m_data)); }
+    constexpr bool IsNull() const {
+        return std::all_of(m_data.begin(), m_data.end(),
+                           [](uint8_t val) { return val == 0; });
+    }
 
-    inline int Compare(const base_blob &other) const {
-        for (size_t i = 0; i < sizeof(m_data); i++) {
-            uint8_t a = m_data[sizeof(m_data) - 1 - i];
-            uint8_t b = other.m_data[sizeof(m_data) - 1 - i];
+    constexpr void SetNull() { std::fill(m_data.begin(), m_data.end(), 0); }
+
+    constexpr int Compare(const base_blob &other) const {
+        for (size_t i = 0; i < WIDTH; i++) {
+            uint8_t a = m_data[WIDTH - 1 - i];
+            uint8_t b = other.m_data[WIDTH - 1 - i];
             if (a > b) {
                 return 1;
             }
@@ -56,22 +57,22 @@ public:
         return 0;
     }
 
-    friend inline bool operator==(const base_blob &a, const base_blob &b) {
+    friend constexpr bool operator==(const base_blob &a, const base_blob &b) {
         return a.Compare(b) == 0;
     }
-    friend inline bool operator!=(const base_blob &a, const base_blob &b) {
+    friend constexpr bool operator!=(const base_blob &a, const base_blob &b) {
         return a.Compare(b) != 0;
     }
-    friend inline bool operator<(const base_blob &a, const base_blob &b) {
+    friend constexpr bool operator<(const base_blob &a, const base_blob &b) {
         return a.Compare(b) < 0;
     }
-    friend inline bool operator<=(const base_blob &a, const base_blob &b) {
+    friend constexpr bool operator<=(const base_blob &a, const base_blob &b) {
         return a.Compare(b) <= 0;
     }
-    friend inline bool operator>(const base_blob &a, const base_blob &b) {
+    friend constexpr bool operator>(const base_blob &a, const base_blob &b) {
         return a.Compare(b) > 0;
     }
-    friend inline bool operator>=(const base_blob &a, const base_blob &b) {
+    friend constexpr bool operator>=(const base_blob &a, const base_blob &b) {
         return a.Compare(b) >= 0;
     }
 
@@ -80,20 +81,20 @@ public:
     void SetHex(const std::string &str);
     std::string ToString() const { return GetHex(); }
 
-    const uint8_t *data() const { return m_data; }
-    uint8_t *data() { return m_data; }
+    constexpr const uint8_t *data() const { return m_data.data(); }
+    constexpr uint8_t *data() { return m_data.data(); }
 
-    uint8_t *begin() { return &m_data[0]; }
+    constexpr uint8_t *begin() { return m_data.data(); }
+    constexpr uint8_t *end() { return m_data.data() + WIDTH; }
 
-    uint8_t *end() { return &m_data[WIDTH]; }
-
-    const uint8_t *begin() const { return &m_data[0]; }
-
-    const uint8_t *end() const { return &m_data[WIDTH]; }
+    constexpr const uint8_t *begin() const { return m_data.data(); }
+    constexpr const uint8_t *end() const { return m_data.data() + WIDTH; }
 
     static constexpr unsigned int size() { return WIDTH; }
 
-    uint64_t GetUint64(int pos) const { return ReadLE64(m_data + pos * 8); }
+    constexpr uint64_t GetUint64(int pos) const {
+        return ReadLE64(m_data.data() + pos * 8);
+    }
 
     template <typename Stream> void Serialize(Stream &s) const {
         s << Span(m_data);
@@ -111,8 +112,8 @@ public:
  */
 class uint160 : public base_blob<160> {
 public:
-    constexpr uint160() {}
-    explicit uint160(const std::vector<uint8_t> &vch) : base_blob<160>(vch) {}
+    constexpr uint160() = default;
+    constexpr explicit uint160(Span<const uint8_t> vch) : base_blob<160>(vch) {}
 };
 
 /**
@@ -123,9 +124,9 @@ public:
  */
 class uint256 : public base_blob<256> {
 public:
-    constexpr uint256() {}
+    constexpr uint256() = default;
     constexpr explicit uint256(uint8_t v) : base_blob<256>(v) {}
-    explicit uint256(const std::vector<uint8_t> &vch) : base_blob<256>(vch) {}
+    constexpr explicit uint256(Span<const uint8_t> vch) : base_blob<256>(vch) {}
     static const uint256 ZERO;
     static const uint256 ONE;
 };
