@@ -8,6 +8,13 @@ import LoadSVG from '../../images/LoadSVG';
 
 const GetAddressWrapper = styled.div``;
 
+const AddressInput = styled.input`
+    border-radius: 4px;
+    padding: 12px 20px;
+    width: 326px;
+    margin-left: 12px;
+`;
+
 const ButtonElement = styled('button')<{ isFresh?: boolean }>`
     border: none;
     border-radius: 4px;
@@ -98,11 +105,13 @@ type Props = {
     children: React.ReactNode;
 };
 interface AddrState {
+    address: string;
     step: ButtonStates;
 }
 
 class GetAddress extends React.PureComponent<Props, AddrState> {
     state = {
+        address: '',
         step: 'pending' as ButtonStates,
     };
 
@@ -139,6 +148,8 @@ class GetAddress extends React.PureComponent<Props, AddrState> {
         ) {
             // print it
             console.log(`Incoming cashtab message`, event.data);
+            // set in state
+            this.setState({ address: event.data.address });
         }
     };
 
@@ -155,7 +166,7 @@ class GetAddress extends React.PureComponent<Props, AddrState> {
     };
     render() {
         const { children } = this.props;
-        const { step } = this.state;
+        const { address, step } = this.state;
 
         const isPending = step === 'pending';
         const isFresh = step === 'fresh';
@@ -184,6 +195,14 @@ class GetAddress extends React.PureComponent<Props, AddrState> {
                         </WarningCover>
                     )}
                 </ButtonElement>
+                <AddressInput
+                    disabled
+                    value={
+                        typeof address !== 'undefined'
+                            ? address
+                            : 'Address not found, open extension and try again'
+                    }
+                ></AddressInput>
             </GetAddressWrapper>
         );
     }
