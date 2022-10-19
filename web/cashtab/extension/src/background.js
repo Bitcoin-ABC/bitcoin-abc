@@ -18,8 +18,17 @@ extension.runtime.onConnect.addListener(function (port) {
             console.log(`Caught, opening popup`);
             triggerUi(msg.txInfo);
         }
+        if (msg.text === `Cashtab` && msg.addressRequest) {
+            console.log(`User is requesting extension address`);
+            fetchAddress();
+        }
     });
 });
+
+// Fetch the active extension address from extension storage API
+async function fetchAddress() {
+    console.log(`fetchAddress called in background.js`);
+}
 
 /**
  * Opens the browser popup for user confirmation

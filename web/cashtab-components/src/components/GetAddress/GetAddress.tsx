@@ -123,6 +123,14 @@ class GetAddress extends React.PureComponent<Props, AddrState> {
     }
     handleGetAddress = () => {
         console.log(`handleGetAddress`);
+        return window.postMessage(
+            {
+                type: 'FROM_PAGE',
+                text: 'Cashtab',
+                addressRequest: true,
+            },
+            '*',
+        );
     };
     render() {
         const { children } = this.props;
