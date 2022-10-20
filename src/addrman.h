@@ -314,16 +314,15 @@ public:
         Clear();
     }
 
-protected:
-    //! secret key to randomize bucket select with
-    uint256 nKey;
-
 private:
     //! A mutex to protect the inner data structures.
     mutable Mutex cs;
 
     //! Source of random numbers for randomization in inner loops
     mutable FastRandomContext insecure_rand;
+
+    //! secret key to randomize bucket select with
+    uint256 nKey;
 
     //! Serialization versions.
     enum Format : uint8_t {
@@ -502,6 +501,7 @@ private:
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     friend class CAddrManTest;
+    friend class CAddrManCorrupted;
 };
 
 #endif // BITCOIN_ADDRMAN_H
