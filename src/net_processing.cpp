@@ -1709,7 +1709,7 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
 
     m_connman.ForEachNode([&](CNode *pnode) {
         // Build a list of the avalanche peers nodeids
-        if (pnode->m_avalanche_state &&
+        if (pnode->m_avalanche_enabled &&
             (!fQuorumEstablished || !pnode->IsInboundConn())) {
             avanode_ids.push_back(pnode->GetId());
         }
@@ -4914,12 +4914,16 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::AVAHELLO) {
-        if (pfrom.m_avalanche_state) {
-            LogPrint(
-                BCLog::AVALANCHE,
-                "Ignoring avahello from peer %d: already in our node set\n",
-                pfrom.GetId());
-            return;
+        {
+            bool expected = false;
+            if (!pfrom.m_avalanche_enabled.compare_exchange_strong(expected,
+                                                                   true)) {
+                LogPrint(
+                    BCLog::AVALANCHE,
+                    "Ignoring avahello from peer %d: already in our node set\n",
+                    pfrom.GetId());
+                return;
+            }
         }
 
         pfrom.m_avalanche_state = std::make_unique<CNode::AvalancheState>();
@@ -5463,8 +5467,14 @@ void PeerManagerImpl::ProcessMessage(
 
         auto availabilityScoreComparator = [](const CNode *lhs,
                                               const CNode *rhs) {
-            double scoreLhs = lhs->m_avalanche_state->getAvailabilityScore();
-            double scoreRhs = rhs->m_avalanche_state->getAvailabilityScore();
+            double scoreLhs =
+                lhs->m_avalanche_state
+                    ? lhs->m_avalanche_state->getAvailabilityScore()
+                    : 0.;
+            double scoreRhs =
+                rhs->m_avalanche_state
+                    ? rhs->m_avalanche_state->getAvailabilityScore()
+                    : 0.;
 
             if (scoreLhs != scoreRhs) {
                 return scoreLhs > scoreRhs;
@@ -5479,12 +5489,18 @@ void PeerManagerImpl::ProcessMessage(
         std::set<const CNode *, decltype(availabilityScoreComparator)> avaNodes(
             availabilityScoreComparator);
         m_connman.ForEachNode([&](const CNode *pnode) {
-            if (pnode && pnode->m_avalanche_state &&
-                !(pnode->m_avalanche_state->getAvailabilityScore() < 0.)) {
-                avaNodes.insert(pnode);
-                if (avaNodes.size() > GetMaxAddrToSend()) {
-                    avaNodes.erase(std::prev(avaNodes.end()));
-                }
+            if (!pnode->m_avalanche_enabled) {
+                return;
+            }
+
+            if (pnode->m_avalanche_state &&
+                pnode->m_avalanche_state->getAvailabilityScore() < 0.) {
+                return;
+            }
+
+            avaNodes.insert(pnode);
+            if (avaNodes.size() > GetMaxAddrToSend()) {
+                avaNodes.erase(std::prev(avaNodes.end()));
             }
         });
 

@@ -656,6 +656,9 @@ public:
     // m_proof_relay == nullptr if we're not relaying proofs with this peer
     const std::unique_ptr<ProofRelay> m_proof_relay;
 
+    // True if we know this peer is using Avalanche (at least polling)
+    std::atomic<bool> m_avalanche_enabled{false};
+
     class AvalancheState {
         /**
          * The inventories polled and voted couters since last score

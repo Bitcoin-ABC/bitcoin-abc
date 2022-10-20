@@ -179,14 +179,15 @@ static RPCHelpMan addavalanchenode() {
             }
 
             if (!node.connman->ForNode(nodeid, [&](CNode *pnode) {
-                    // FIXME This is not thread safe, and might cause issues if
-                    // the unlikely event the peer sends an avahello message at
-                    // the same time.
-                    if (!pnode->m_avalanche_state) {
-                        pnode->m_avalanche_state =
-                            std::make_unique<CNode::AvalancheState>();
+                    bool expected = false;
+                    if (pnode->m_avalanche_enabled.compare_exchange_strong(
+                            expected, true)) {
+                        pnode->m_avalanche_pubkey = std::move(key);
+                        if (!pnode->m_avalanche_state) {
+                            pnode->m_avalanche_state =
+                                std::make_unique<CNode::AvalancheState>();
+                        }
                     }
-                    pnode->m_avalanche_pubkey = std::move(key);
                     return true;
                 })) {
                 throw JSONRPCError(
