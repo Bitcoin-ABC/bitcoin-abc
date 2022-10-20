@@ -150,14 +150,6 @@ static constexpr int ADDRMAN_BUCKET_SIZE{1 << ADDRMAN_BUCKET_SIZE_LOG2};
  */
 class CAddrMan {
 public:
-    template <typename Stream>
-    void Serialize(Stream &s_) const EXCLUSIVE_LOCKS_REQUIRED(!cs);
-
-    template <typename Stream>
-    void Unserialize(Stream &s_) EXCLUSIVE_LOCKS_REQUIRED(!cs);
-
-    void Clear() EXCLUSIVE_LOCKS_REQUIRED(!cs);
-
     CAddrMan(std::vector<bool> asmap, int32_t consistency_check_ratio)
         : m_consistency_check_ratio{consistency_check_ratio}, m_asmap{std::move(
                                                                   asmap)} {
@@ -165,6 +157,12 @@ public:
     }
 
     ~CAddrMan();
+
+    template <typename Stream>
+    void Serialize(Stream &s_) const EXCLUSIVE_LOCKS_REQUIRED(!cs);
+
+    template <typename Stream>
+    void Unserialize(Stream &s_) EXCLUSIVE_LOCKS_REQUIRED(!cs);
 
     //! Return the number of (unique) addresses in all tables.
     size_t size() const EXCLUSIVE_LOCKS_REQUIRED(!cs);
@@ -217,6 +215,8 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(!cs);
 
     const std::vector<bool> &GetAsmap() const;
+
+    void Clear() EXCLUSIVE_LOCKS_REQUIRED(!cs);
 
     //! Ensure that bucket placement is always the same for testing purposes.
     void MakeDeterministic() EXCLUSIVE_LOCKS_REQUIRED(!cs);
@@ -330,15 +330,15 @@ private:
     void SwapRandom(unsigned int nRandomPos1, unsigned int nRandomPos2) const
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
-    //! Move an entry from the "new" table(s) to the "tried" table
-    void MakeTried(CAddrInfo &info, int nId) EXCLUSIVE_LOCKS_REQUIRED(cs);
-
     //! Delete an entry. It must not be in tried, and have refcount 0.
     void Delete(int nId) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     //! Clear a position in a "new" table. This is the only place where entries
     //! are actually deleted.
     void ClearNew(int nUBucket, int nUBucketPos) EXCLUSIVE_LOCKS_REQUIRED(cs);
+
+    //! Move an entry from the "new" table(s) to the "tried" table
+    void MakeTried(CAddrInfo &info, int nId) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     //! Mark an entry "good", possibly moving it from "new" to "tried".
     void Good_(const CService &addr, bool test_before_evict, int64_t time)
@@ -355,21 +355,6 @@ private:
     //! Select an address to connect to, if newOnly is set to true, only the new
     //! table is selected from.
     CAddrInfo Select_(bool newOnly) const EXCLUSIVE_LOCKS_REQUIRED(cs);
-
-    //! See if any to-be-evicted tried table entries have been tested and if so
-    //! resolve the collisions.
-    void ResolveCollisions_() EXCLUSIVE_LOCKS_REQUIRED(cs);
-
-    //! Return a random to-be-evicted tried table address.
-    CAddrInfo SelectTriedCollision_() EXCLUSIVE_LOCKS_REQUIRED(cs);
-
-    //! Consistency check, taking into account m_consistency_check_ratio. Will
-    //! std::abort if an inconsistency is detected.
-    void Check() const EXCLUSIVE_LOCKS_REQUIRED(cs);
-
-    //! Perform consistency check, regardless of m_consistency_check_ratio.
-    //! @returns an error code or zero.
-    int ForceCheckAddrman() const EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /**
      * Return all or many randomly selected addresses, optionally by network.
@@ -406,6 +391,21 @@ private:
     //! Update an entry's service bits.
     void SetServices_(const CService &addr, ServiceFlags nServices)
         EXCLUSIVE_LOCKS_REQUIRED(cs);
+
+    //! See if any to-be-evicted tried table entries have been tested and if so
+    //! resolve the collisions.
+    void ResolveCollisions_() EXCLUSIVE_LOCKS_REQUIRED(cs);
+
+    //! Return a random to-be-evicted tried table address.
+    CAddrInfo SelectTriedCollision_() EXCLUSIVE_LOCKS_REQUIRED(cs);
+
+    //! Consistency check, taking into account m_consistency_check_ratio. Will
+    //! std::abort if an inconsistency is detected.
+    void Check() const EXCLUSIVE_LOCKS_REQUIRED(cs);
+
+    //! Perform consistency check, regardless of m_consistency_check_ratio.
+    //! @returns an error code or zero.
+    int ForceCheckAddrman() const EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     friend class CAddrManTest;
     friend class CAddrManCorrupted;
