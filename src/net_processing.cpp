@@ -1047,9 +1047,8 @@ private:
      *                                  index.
      * @param[in,out]   headers             The headers to be processed.
      *
-     * @return      True if chain was low work and a headers sync was
-     *              initiated (and headers will be empty after calling); false
-     *              otherwise.
+     * @return      True if chain was low work (headers will be empty after
+     *              calling); false otherwise.
      */
     bool TryLowWorkHeadersSync(Peer &peer, CNode &pfrom,
                                const CBlockIndex *chain_start_header,
@@ -3758,18 +3757,21 @@ bool PeerManagerImpl::TryLowWorkHeadersSync(
                                      chain_start_header, minimum_chain_work));
 
             // Now a HeadersSyncState object for tracking this synchronization
-            // is created, process the headers using it as normal.
-            return IsContinuationOfLowWorkHeadersSync(peer, pfrom, headers);
+            // is created, process the headers using it as normal. Failures are
+            // handled inside of IsContinuationOfLowWorkHeadersSync.
+            (void)IsContinuationOfLowWorkHeadersSync(peer, pfrom, headers);
+        } else {
+            LogPrint(BCLog::NET,
+                     "Ignoring low-work chain (height=%u) from peer=%d\n",
+                     chain_start_header->nHeight + headers.size(),
+                     pfrom.GetId());
         }
-
-        LogPrint(BCLog::NET,
-                 "Ignoring low-work chain (height=%u) from peer=%d\n",
-                 chain_start_header->nHeight + headers.size(), pfrom.GetId());
-        // Since this is a low-work headers chain, no further processing is
-        // required.
+        // The peer has not yet given us a chain that meets our work threshold,
+        // so we want to prevent further processing of the headers in any case.
         headers = {};
         return true;
     }
+
     return false;
 }
 
