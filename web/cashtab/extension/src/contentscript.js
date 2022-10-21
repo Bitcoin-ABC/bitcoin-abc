@@ -18,16 +18,17 @@ window.addEventListener(
     'message',
     function (event) {
         if (typeof event.data.text !== 'undefined') {
-            console.log('Message received:');
-            console.log(event.data.text);
+            console.log('Message received:', event.data.text);
         }
+
+        // log other events to see if you are missing the popup msg
+        console.log(`Content script received an event`, event);
 
         // We only accept messages from ourselves
         if (event.source != window) return;
 
         if (event.data.type && event.data.type == 'FROM_PAGE') {
-            console.log(event);
-            console.log('Content script received: ' + event.data.text);
+            console.log(`FROM_PAGE Event`);
             port.postMessage(event.data);
         }
     },

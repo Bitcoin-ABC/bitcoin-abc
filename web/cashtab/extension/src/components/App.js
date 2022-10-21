@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import 'antd/dist/antd.less';
 import PropTypes from 'prop-types';
-import { Spin } from 'antd';
+import { Spin, Modal } from 'antd';
 import {
     CashLoadingIcon,
     HomeIcon,
@@ -333,6 +333,10 @@ const App = () => {
     const { wallet, loading } = ContextValue;
     const [loadingUtxosAfterSend, setLoadingUtxosAfterSend] = useState(false);
     const [navMenuClicked, setNavMenuClicked] = useState(false);
+    const [showApproveAddressShareModal, setShowApproveAddressShareModal] =
+        useState(false);
+    const [addressRequestTabId, setAddressRequestTabId] = useState(null);
+    const [addressRequestTabUrl, setAddressRequestTabUrl] = useState('');
     const handleNavMenuClick = () => setNavMenuClicked(!navMenuClicked);
     // If wallet is unmigrated, do not show page until it has migrated
     // An invalid wallet will be validated/populated after the next API call, ETA 10s
@@ -345,6 +349,8 @@ const App = () => {
     const openInTab = () => {
         window.open(`index.html#/${selectedKey}`);
     };
+    // Connect to extension messaging port
+    const port = extension.runtime.connect({ name: 'cashtabPort' });
     // Extension storage get method
     const getObjectFromExtensionStorage = async function (key) {
         return new Promise((resolve, reject) => {
@@ -390,13 +396,94 @@ const App = () => {
         });
     };
 
+    const handleApprovedAddressShare = () => {
+        console.log(`handleApprovedAddressShare called`);
+        // Let the background script know you approved this request
+        port.postMessage({
+            type: 'FROM_CASHTAB',
+            text: 'Cashtab',
+            addressRequestApproved: true,
+            url: addressRequestTabUrl,
+            tabId: addressRequestTabId,
+        });
+        setShowApproveAddressShareModal(false);
+        // Close the popup after user action
+        window.close();
+    };
+
+    const handleRejectedAddressShare = () => {
+        console.log(`handleRejectedAddressShare called`);
+        // Let the background script know you denied this request
+        port.postMessage({
+            type: 'FROM_CASHTAB',
+            text: 'Cashtab',
+            addressRequestApproved: false,
+            url: addressRequestTabUrl,
+            tabId: addressRequestTabId,
+        });
+        setShowApproveAddressShareModal(false);
+        // Close the popup after user action
+        window.close();
+    };
+
     useEffect(() => {
         copyAddressToExtensionStorage(wallet);
     }, [wallet]);
 
+    useEffect(() => {
+        // Parse for query string asking for user approval of sharing extension info with a web page
+        // Do not set txInfo in state if query strings are not present
+        if (
+            !window.location ||
+            !window.location.hash ||
+            window.location.hash === '#/wallet'
+        ) {
+            return;
+        }
+
+        try {
+            let windowHash = window.location.hash;
+            let queryStringArray = windowHash.split('#/wallet?');
+            let queryString = queryStringArray[1];
+            let queryStringParams = new URLSearchParams(queryString);
+            let request = queryStringParams.get('request');
+            let tabId = queryStringParams.get('tabId');
+            let tabUrl = queryStringParams.get('tabUrl');
+            console.log(`request`, request);
+            console.log(`tabId`, tabId);
+            console.log(`tabUrl`, tabUrl);
+            if (request !== 'addressRequest') {
+                return;
+            }
+
+            // Open a modal that asks for user approval
+            setAddressRequestTabId(tabId);
+            setAddressRequestTabUrl(tabUrl);
+            setShowApproveAddressShareModal(true);
+        } catch (err) {
+            // If you can't parse this, forget about it
+            return;
+        }
+
+        // Modal onApprove function should post a message that gets to background.js
+    }, []);
+
     return (
         <ThemeProvider theme={theme}>
             <GlobalStyle />
+            {showApproveAddressShareModal && (
+                <Modal
+                    title={`Share your address?`}
+                    open={showApproveAddressShareModal}
+                    onOk={() => handleApprovedAddressShare()}
+                    onCancel={() => handleRejectedAddressShare()}
+                >
+                    <p>
+                        The web page {addressRequestTabUrl} is requesting your
+                        eCash address.
+                    </p>
+                </Modal>
+            )}
             <Spin
                 spinning={
                     loading || loadingUtxosAfterSend || (wallet && !validWallet)

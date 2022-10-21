@@ -102,6 +102,10 @@ See the section about [deployment](https://facebook.github.io/create-react-app/d
 5. Click "Load unpacked"
 6. Select the `extension/dist` folder that was created with `npm run extension`
 
+## Developing web apps that interact with the extension
+
+A web app can request an extension user's active address. For an example implementation, please review the `GetAddress.tsx` component (and its associated `README.md`) in `/web/cashtab-components`.
+
 ## Docker deployment
 
 ```

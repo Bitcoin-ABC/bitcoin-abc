@@ -13,6 +13,7 @@ extension.runtime.onConnect.addListener(function (port) {
     console.assert(port.name == 'cashtabPort');
     port.onMessage.addListener(function (msg) {
         console.log('msg received in background.js');
+        console.log(`here's what we received in background.js`, msg);
         console.log(msg.text);
         if (msg.text == `Cashtab` && msg.txInfo) {
             console.log(`Caught, opening popup`);
@@ -20,7 +21,38 @@ extension.runtime.onConnect.addListener(function (port) {
         }
         if (msg.text === `Cashtab` && msg.addressRequest) {
             console.log(`User is requesting extension address`);
-            fetchAddress();
+            // Can you get the source from this?
+            console.log(`msg requesting address looks like this`, msg);
+            // get the tab this message came from
+            let requestingTab;
+            // Note that chrome extension does not support making this listener async, so need to use this syntax
+            getCurrentActiveTab().then(
+                result => {
+                    console.log(
+                        `here's what we get from getCurrentActiveTab`,
+                        result,
+                    );
+                    requestingTab = result;
+                    console.log(`requestingTab`, requestingTab);
+                    triggerApprovalModal('addressRequest', requestingTab);
+                },
+                err => {
+                    console.log('what?', err);
+                },
+            );
+        }
+        if (
+            msg.text === `Cashtab` &&
+            Object.keys(msg).includes('addressRequestApproved')
+        ) {
+            console.log(`User address approval/reject message`, msg);
+            // if good, then share the address
+            if (msg.addressRequestApproved) {
+                fetchAddress(msg.tabId);
+            } else {
+                // Let the webpage know that the user denied this request
+                handleDeniedAddressRequest(msg.tabId);
+            }
         }
     });
 });
@@ -37,9 +69,26 @@ const getObjectFromExtensionStorage = async function (key) {
         }
     });
 };
+// Get the current active tab
+const getCurrentActiveTab = async function () {
+    return new Promise((resolve, reject) => {
+        try {
+            extension.tabs.query(
+                { active: true, currentWindow: true },
+                function (tabs) {
+                    console.log(`get these tabs`, tabs);
+                    resolve(tabs[0]);
+                },
+            );
+        } catch (err) {
+            console.log(`err`, err);
+            reject(err);
+        }
+    });
+};
 
 // Fetch the active extension address from extension storage API
-async function fetchAddress() {
+async function fetchAddress(tabId) {
     console.log(`fetchAddress called in background.js`);
     const fetchedAddress = await getObjectFromExtensionStorage(['address']);
     console.log(
@@ -47,12 +96,50 @@ async function fetchAddress() {
         fetchedAddress,
     );
     // Send this info back to the browser
-    extension.tabs.query(
-        { active: true, currentWindow: true },
-        function (tabs) {
-            extension.tabs.sendMessage(tabs[0].id, { address: fetchedAddress });
-        },
-    );
+    extension.tabs.sendMessage(Number(tabId), { address: fetchedAddress });
+}
+
+async function handleDeniedAddressRequest(tabId) {
+    console.log(`User denied request, responding with msg, tabUrl is`, tabId);
+    // Need to remove `currentWindow: true` here otherwise you get an empty array for tabs
+    // This suggests that it's only the async request for the address coming first which allows this to work in fetchAddress()
+
+    extension.tabs.sendMessage(Number(tabId), {
+        address: 'Address request denied by user',
+    });
+}
+
+async function triggerApprovalModal(request, tab) {
+    console.log(`triggerApprovalModal called`);
+    // Open a pop-up
+    let left = 0;
+    let top = 0;
+    try {
+        const lastFocused = await getLastFocusedWindow();
+        // Position window in top right corner of lastFocused window.
+        top = lastFocused.top;
+        left = lastFocused.left + (lastFocused.width - NOTIFICATION_WIDTH);
+    } catch (_) {
+        // The following properties are more than likely 0, due to being
+        // opened from the background chrome process for the extension that
+        // has no physical dimensions
+        const { screenX, screenY, outerWidth } = window;
+        top = Math.max(screenY, 0);
+        left = Math.max(screenX + (outerWidth - NOTIFICATION_WIDTH), 0);
+    }
+
+    const queryString = `request=${request}&tabId=${tab.id}&tabUrl=${tab.url}`;
+    console.log(`background.js queryString`, queryString);
+
+    // create new notification popup
+    await openWindow({
+        url: `index.html#/wallet?${queryString}`,
+        type: 'popup',
+        width: NOTIFICATION_WIDTH,
+        height: NOTIFICATION_HEIGHT,
+        left,
+        top,
+    });
 }
 
 /**
