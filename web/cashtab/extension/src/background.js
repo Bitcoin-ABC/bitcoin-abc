@@ -12,45 +12,41 @@ const requestAccountTabIds = {};
 extension.runtime.onConnect.addListener(function (port) {
     console.assert(port.name == 'cashtabPort');
     port.onMessage.addListener(function (msg) {
-        console.log('msg received in background.js');
-        console.log(`here's what we received in background.js`, msg);
-        console.log(msg.text);
+        // Handle a transaction creation request
         if (msg.text == `Cashtab` && msg.txInfo) {
-            console.log(`Caught, opening popup`);
+            console.log(
+                `Received a transaction request, opening Cashtab extension`,
+            );
             triggerUi(msg.txInfo);
         }
+        // Handle an address sharing request
         if (msg.text === `Cashtab` && msg.addressRequest) {
-            console.log(`User is requesting extension address`);
-            // Can you get the source from this?
-            console.log(`msg requesting address looks like this`, msg);
+            console.log(`Received request for ecash address`);
             // get the tab this message came from
-            let requestingTab;
-            // Note that chrome extension does not support making this listener async, so need to use this syntax
+            // Note that chrome extension does not support making this listener async
+            // so need to use this Promise.then() syntax
             getCurrentActiveTab().then(
-                result => {
-                    console.log(
-                        `here's what we get from getCurrentActiveTab`,
-                        result,
-                    );
-                    requestingTab = result;
-                    console.log(`requestingTab`, requestingTab);
+                requestingTab => {
                     triggerApprovalModal('addressRequest', requestingTab);
                 },
                 err => {
-                    console.log('what?', err);
+                    console.log(
+                        'Error in getCurrentActiveTab() triggered by ecash address request',
+                        err,
+                    );
                 },
             );
         }
+        // Handle user approval / rejection of an ecash address sharing request
         if (
             msg.text === `Cashtab` &&
             Object.keys(msg).includes('addressRequestApproved')
         ) {
-            console.log(`User address approval/reject message`, msg);
-            // if good, then share the address
+            // If approved, then share the address
             if (msg.addressRequestApproved) {
                 fetchAddress(msg.tabId);
             } else {
-                // Let the webpage know that the user denied this request
+                // If denied, let the webpage know that the user denied this request
                 handleDeniedAddressRequest(msg.tabId);
             }
         }
@@ -76,12 +72,11 @@ const getCurrentActiveTab = async function () {
             extension.tabs.query(
                 { active: true, currentWindow: true },
                 function (tabs) {
-                    console.log(`get these tabs`, tabs);
                     resolve(tabs[0]);
                 },
             );
         } catch (err) {
-            console.log(`err`, err);
+            console.log(`Error in getCurrentActiveTab()`, err);
             reject(err);
         }
     });
@@ -89,28 +84,18 @@ const getCurrentActiveTab = async function () {
 
 // Fetch the active extension address from extension storage API
 async function fetchAddress(tabId) {
-    console.log(`fetchAddress called in background.js`);
     const fetchedAddress = await getObjectFromExtensionStorage(['address']);
-    console.log(
-        `background.js fetched address from extension storage`,
-        fetchedAddress,
-    );
     // Send this info back to the browser
     extension.tabs.sendMessage(Number(tabId), { address: fetchedAddress });
 }
 
 async function handleDeniedAddressRequest(tabId) {
-    console.log(`User denied request, responding with msg, tabUrl is`, tabId);
-    // Need to remove `currentWindow: true` here otherwise you get an empty array for tabs
-    // This suggests that it's only the async request for the address coming first which allows this to work in fetchAddress()
-
     extension.tabs.sendMessage(Number(tabId), {
         address: 'Address request denied by user',
     });
 }
 
 async function triggerApprovalModal(request, tab) {
-    console.log(`triggerApprovalModal called`);
     // Open a pop-up
     let left = 0;
     let top = 0;
@@ -129,7 +114,6 @@ async function triggerApprovalModal(request, tab) {
     }
 
     const queryString = `request=${request}&tabId=${tab.id}&tabUrl=${tab.url}`;
-    console.log(`background.js queryString`, queryString);
 
     // create new notification popup
     await openWindow({

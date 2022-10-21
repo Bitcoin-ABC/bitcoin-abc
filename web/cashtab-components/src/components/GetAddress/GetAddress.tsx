@@ -146,15 +146,12 @@ class GetAddress extends React.PureComponent<Props, AddrState> {
             event.data.type &&
             event.data.type === 'FROM_CASHTAB'
         ) {
-            // print it
-            console.log(`Incoming cashtab message`, event.data);
             // set in state
             this.setState({ address: event.data.address });
         }
     };
 
     handleGetAddress = () => {
-        console.log(`handleGetAddress`);
         return window.postMessage(
             {
                 type: 'FROM_PAGE',
