@@ -183,10 +183,6 @@ static RPCHelpMan addavalanchenode() {
                     if (pnode->m_avalanche_enabled.compare_exchange_strong(
                             expected, true)) {
                         pnode->m_avalanche_pubkey = std::move(key);
-                        if (!pnode->m_avalanche_state) {
-                            pnode->m_avalanche_state =
-                                std::make_unique<CNode::AvalancheState>();
-                        }
                     }
                     return true;
                 })) {

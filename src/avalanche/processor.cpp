@@ -823,7 +823,7 @@ void Processor::runEventLoop() {
                     peerManager->updateNextRequestTime(pnode->GetId(), timeout);
                 }
 
-                pnode->m_avalanche_state->invsPolled(invs.size());
+                pnode->invsPolled(invs.size());
 
                 // Send the query to the node.
                 connman->PushMessage(

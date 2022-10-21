@@ -659,58 +659,33 @@ public:
     // True if we know this peer is using Avalanche (at least polling)
     std::atomic<bool> m_avalanche_enabled{false};
 
-    class AvalancheState {
-        /**
-         * The inventories polled and voted couters since last score
-         * computation, stored as a pair of uint32_t with the poll counter
-         * being the 32 lowest bits and the vote counter the 32 highest bits.
-         */
-        std::atomic<uint64_t> invCounters;
-
-        /** The last computed score */
-        std::atomic<double> availabilityScore;
-
-        /**
-         * Protect the sequence of operations required for updating the
-         * statistics.
-         */
-        Mutex cs_statistics;
-
-    public:
-        AvalancheState() : invCounters(0), availabilityScore(0.) {}
-
-        /** The node was polled for count invs */
-        void invsPolled(uint32_t count);
-
-        /** The node voted for count invs */
-        void invsVoted(uint32_t count);
-
-        /**
-         * The availability score is calculated using an exponentially weighted
-         * average.
-         * This has several interesting properties:
-         *  - The most recent polls/responses have more weight than the previous
-         * ones. A node that recently stopped answering will see its ratio
-         * decrease quickly.
-         *  - This is a low-pass filter, so it causes delay. This means that a
-         * node needs to have a track record for the ratio to be high. A node
-         * that has been little requested will have a lower ratio than a node
-         * that failed to answer a few polls but answered a lot of them.
-         *  - It is cheap to compute.
-         *
-         * This is expected to be called at a fixed interval of
-         * AVALANCHE_STATISTICS_REFRESH_PERIOD.
-         */
-        void updateAvailabilityScore();
-
-        double getAvailabilityScore() const;
-    };
-
     // Pubkey used to verify signatures on Avalanche messages from this peer
     std::optional<CPubKey> m_avalanche_pubkey;
 
-    // m_avalanche_state == nullptr if we're not using avalanche with this peer
-    std::unique_ptr<AvalancheState> m_avalanche_state;
+    /** The node was polled for count invs */
+    void invsPolled(uint32_t count);
+
+    /** The node voted for count invs */
+    void invsVoted(uint32_t count);
+
+    /**
+     * The availability score is calculated using an exponentially weighted
+     * average.
+     * This has several interesting properties:
+     *  - The most recent polls/responses have more weight than the previous
+     * ones. A node that recently stopped answering will see its ratio
+     * decrease quickly.
+     *  - This is a low-pass filter, so it causes delay. This means that a
+     * node needs to have a track record for the ratio to be high. A node
+     * that has been little requested will have a lower ratio than a node
+     * that failed to answer a few polls but answered a lot of them.
+     *  - It is cheap to compute.
+     *
+     * This is expected to be called at a fixed interval of
+     * AVALANCHE_STATISTICS_REFRESH_PERIOD.
+     */
+    void updateAvailabilityScore();
+    double getAvailabilityScore() const;
 
     // Store the next time we will consider a getavaaddr message from this peer
     std::chrono::seconds m_nextGetAvaAddr{0};
@@ -802,6 +777,16 @@ private:
     // Our address, as reported by the peer
     CService addrLocal GUARDED_BY(cs_addrLocal);
     mutable RecursiveMutex cs_addrLocal;
+
+    /**
+     * The inventories polled and voted counters since last score
+     * computation, stored as a pair of uint32_t with the poll counter
+     * being the 32 lowest bits and the vote counter the 32 highest bits.
+     */
+    std::atomic<uint64_t> invCounters{0};
+
+    /** The last computed score */
+    std::atomic<double> availabilityScore{0.};
 
 public:
     NodeId GetId() const { return id; }

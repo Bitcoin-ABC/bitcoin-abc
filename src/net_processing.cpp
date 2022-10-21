@@ -1683,11 +1683,8 @@ void PeerManagerImpl::ReattemptInitialBroadcast(CScheduler &scheduler) {
 }
 
 void PeerManagerImpl::UpdateAvalancheStatistics() const {
-    m_connman.ForEachNode([](CNode *pnode) {
-        if (pnode->m_avalanche_state) {
-            pnode->m_avalanche_state->updateAvailabilityScore();
-        }
-    });
+    m_connman.ForEachNode(
+        [](CNode *pnode) { pnode->updateAvailabilityScore(); });
 }
 
 void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
@@ -4926,8 +4923,6 @@ void PeerManagerImpl::ProcessMessage(
             }
         }
 
-        pfrom.m_avalanche_state = std::make_unique<CNode::AvalancheState>();
-
         avalanche::Delegation delegation;
         vRecv >> delegation;
 
@@ -5096,7 +5091,7 @@ void PeerManagerImpl::ProcessMessage(
             return;
         }
 
-        pfrom.m_avalanche_state->invsVoted(response.GetVotes().size());
+        pfrom.invsVoted(response.GetVotes().size());
 
         auto logVoteUpdate = [](const auto &voteUpdate,
                                 const std::string &voteItemTypeStr,
@@ -5467,14 +5462,8 @@ void PeerManagerImpl::ProcessMessage(
 
         auto availabilityScoreComparator = [](const CNode *lhs,
                                               const CNode *rhs) {
-            double scoreLhs =
-                lhs->m_avalanche_state
-                    ? lhs->m_avalanche_state->getAvailabilityScore()
-                    : 0.;
-            double scoreRhs =
-                rhs->m_avalanche_state
-                    ? rhs->m_avalanche_state->getAvailabilityScore()
-                    : 0.;
+            double scoreLhs = lhs->getAvailabilityScore();
+            double scoreRhs = rhs->getAvailabilityScore();
 
             if (scoreLhs != scoreRhs) {
                 return scoreLhs > scoreRhs;
@@ -5489,12 +5478,8 @@ void PeerManagerImpl::ProcessMessage(
         std::set<const CNode *, decltype(availabilityScoreComparator)> avaNodes(
             availabilityScoreComparator);
         m_connman.ForEachNode([&](const CNode *pnode) {
-            if (!pnode->m_avalanche_enabled) {
-                return;
-            }
-
-            if (pnode->m_avalanche_state &&
-                pnode->m_avalanche_state->getAvailabilityScore() < 0.) {
+            if (!pnode->m_avalanche_enabled ||
+                pnode->getAvailabilityScore() < 0.) {
                 return;
             }
 

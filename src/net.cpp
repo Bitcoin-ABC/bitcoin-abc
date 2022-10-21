@@ -649,10 +649,9 @@ void CNode::copyStats(CNodeStats &stats) {
 
     stats.m_conn_type_string = ConnectionTypeAsString();
 
-    stats.m_availabilityScore =
-        m_avalanche_state
-            ? std::make_optional(m_avalanche_state->getAvailabilityScore())
-            : std::nullopt;
+    stats.m_availabilityScore = m_avalanche_enabled
+                                    ? std::make_optional(getAvailabilityScore())
+                                    : std::nullopt;
 }
 
 bool CNode::ReceiveMsgBytes(const Config &config, Span<const uint8_t> msg_bytes,
@@ -1236,8 +1235,8 @@ bool CConnman::AttemptToEvictConnection() {
                 node->m_prefer_evict,
                 node->addr.IsLocal(),
                 node->ConnectedThroughNetwork(),
-                node->m_avalanche_state
-                    ? node->m_avalanche_state->getAvailabilityScore()
+                node->m_avalanche_enabled
+                    ? node->getAvailabilityScore()
                     : -std::numeric_limits<double>::infinity()};
             vEvictionCandidates.push_back(candidate);
         }
@@ -3419,16 +3418,18 @@ unsigned int CConnman::GetReceiveFloodSize() const {
     return nReceiveFloodSize;
 }
 
-void CNode::AvalancheState::invsPolled(uint32_t count) {
+void CNode::invsPolled(uint32_t count) {
     invCounters += count;
 }
 
-void CNode::AvalancheState::invsVoted(uint32_t count) {
+void CNode::invsVoted(uint32_t count) {
     invCounters += uint64_t(count) << 32;
 }
 
-void CNode::AvalancheState::updateAvailabilityScore() {
-    LOCK(cs_statistics);
+void CNode::updateAvailabilityScore() {
+    if (!m_avalanche_enabled) {
+        return;
+    }
 
     uint64_t windowInvCounters = invCounters.exchange(0);
     double previousScore = availabilityScore;
@@ -3441,7 +3442,7 @@ void CNode::AvalancheState::updateAvailabilityScore() {
         (1. - AVALANCHE_STATISTICS_DECAY_FACTOR) * previousScore;
 }
 
-double CNode::AvalancheState::getAvailabilityScore() const {
+double CNode::getAvailabilityScore() const {
     // The score is set atomically so there is no need to lock the statistics
     // when reading.
     return availabilityScore;
