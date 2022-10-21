@@ -204,11 +204,11 @@ const NavIcon = styled.span`
 
 const NavMenu = styled.div`
     position: fixed;
-    right: 0;
+    float: right;
     margin-right: 1px;
     bottom: 5rem;
     display: flex;
-    width: 8rem;
+    width: 8.23rem;
     flex-direction: column;
     border: ${props => (props.open ? '0.1px solid' : '0px solid')};
     border-color: ${props =>
@@ -216,6 +216,10 @@ const NavMenu = styled.div`
     justify-content: center;
     align-items: center;
     overflow: hidden;
+    @media (max-width: 768px) {
+        right: 0;
+        margin-right: 0;
+    }
     transition: ${props =>
         props.open
             ? 'max-height 1000ms ease-in-out , border-color 800ms ease-in-out, border-width 800ms ease-in-out'
