@@ -730,10 +730,6 @@ MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
                           args.m_config.GetChainParams().GetConsensus(),
                           m_active_chainstate.m_chain.Tip()));
 
-    if (!PreChecks(args, ws)) {
-        return MempoolAcceptResult::Failure(ws.m_state);
-    }
-
     // Perform the inexpensive checks first and avoid hashing and signature
     // verification unless those checks pass, to mitigate CPU exhaustion
     // denial-of-service attacks.
