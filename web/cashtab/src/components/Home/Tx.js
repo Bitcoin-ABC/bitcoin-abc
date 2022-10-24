@@ -155,8 +155,9 @@ const OpReturnType = styled.div`
         color: ${props => props.theme.contrast};
         margin: 0;
         font-size: 14px;
+        width: 100%;
         margin-bottom: 10px;
-        overflow-wrap: break-word;
+        word-break: break-word;
     }
     a {
         color: ${props => props.theme.contrast};
