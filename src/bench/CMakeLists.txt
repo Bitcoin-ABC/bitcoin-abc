@@ -53,6 +53,7 @@ add_executable(bitcoin-bench
 	examples.cpp
 	gcs_filter.cpp
 	hashpadding.cpp
+	load_external.cpp
 	lockedpool.cpp
 	mempool_eviction.cpp
 	mempool_stress.cpp
