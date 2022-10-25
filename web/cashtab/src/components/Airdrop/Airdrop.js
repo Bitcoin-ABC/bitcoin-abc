@@ -254,29 +254,9 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
         // if Ignore eToken Minter option is checked, then filter out from recipients list
         if (ignoreMintAddress) {
             // extract the eToken mint address
-            let genesisTx;
+            let mintEtokenAddress;
             try {
-                // bch-api approach
-                genesisTx = await bchObj.RawTransactions.getRawTransaction(
-                    formData.tokenId,
-                    true,
-                );
-            } catch (err) {
-                errorNotification(
-                    null,
-                    'Unable to retrieve minting address for eToken ID: ' +
-                        formData.tokenId,
-                    'getRawTransaction Error',
-                );
-                setIsAirdropCalcModalVisible(false);
-                passLoadingStatus(false);
-                return;
-            }
-
-            // Chronik approach
-            let mintEtokenAddressChronik;
-            try {
-                mintEtokenAddressChronik = await getMintAddress(
+                mintEtokenAddress = await getMintAddress(
                     chronik,
                     bchObj,
                     formData.tokenId,
@@ -292,21 +272,6 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
                 setIsAirdropCalcModalVisible(false);
                 passLoadingStatus(false);
                 return;
-            }
-
-            // bch-api address conversion
-            const mintEcashAddress = convertToEcashPrefix(
-                genesisTx.vout[1].scriptPubKey.addresses[0],
-            ); //vout[0] is always the OP_RETURN output
-            const mintEtokenAddress =
-                convertEcashtoEtokenAddr(mintEcashAddress);
-
-            // Compare
-            if (mintEtokenAddressChronik === mintEtokenAddress) {
-                console.log(
-                    `Chronik and bch-api got the same minting address`,
-                    mintEtokenAddressChronik,
-                );
             }
 
             // remove the mint address from the recipients list
