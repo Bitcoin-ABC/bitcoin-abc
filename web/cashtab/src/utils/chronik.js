@@ -6,6 +6,8 @@ import {
     convertToEncryptStruct,
     getHashArrayFromWallet,
     getUtxoWif,
+    convertEcashtoEtokenAddr,
+    convertToEcashPrefix,
 } from 'utils/cashMethods';
 import ecies from 'ecies-lite';
 import wif from 'wif';
@@ -901,4 +903,45 @@ export const getTxHistoryChronik = async (
         txHistoryUpdatedTokenInfoById,
         txHistoryNewTokensToCache,
     };
+};
+
+export const getMintAddress = async (chronik, BCH, tokenId) => {
+    let genesisTx;
+    let mintingHash160;
+    try {
+        genesisTx = await chronik.tx(tokenId);
+        // get the minting address chronik
+        // iterate over the inputs
+        const { outputs } = genesisTx;
+        for (let i = 0; i < outputs.length; i += 1) {
+            const thisOutput = outputs[i];
+            // Check to see if this output has eTokens
+            if (
+                thisOutput &&
+                thisOutput.slpToken &&
+                typeof thisOutput.slpToken !== 'undefined' &&
+                thisOutput.slpToken.amount &&
+                Number(thisOutput.slpToken.amount) > 0
+            ) {
+                // then this is the minting address
+                const thisOutputHash160 = thisOutput.outputScript;
+                mintingHash160 = thisOutputHash160.substring(
+                    thisOutputHash160.indexOf('76a914') + '76a914'.length,
+                    thisOutputHash160.lastIndexOf('88ac'),
+                );
+            }
+        }
+        const mintingAdressBchFormat =
+            BCH.Address.hash160ToCash(mintingHash160);
+        const mintEcashAddressChronik = convertToEcashPrefix(
+            mintingAdressBchFormat,
+        );
+        const mintEtokenAddressChronik = convertEcashtoEtokenAddr(
+            mintEcashAddressChronik,
+        );
+        return mintEtokenAddressChronik;
+    } catch (err) {
+        console.log(`Error in getMintAddress`, err);
+        return err;
+    }
 };

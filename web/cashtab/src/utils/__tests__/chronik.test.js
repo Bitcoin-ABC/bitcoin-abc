@@ -9,6 +9,7 @@ import {
     flattenChronikTxHistory,
     sortAndTrimChronikTxHistory,
     parseChronikTx,
+    getMintAddress,
 } from 'utils/chronik';
 import {
     mockChronikUtxos,
@@ -54,6 +55,20 @@ import {
     mockTokenBurnWithDecimalsTx,
     mockReceivedEtokenTx,
 } from '../__mocks__/chronikTxHistory';
+import {
+    mintingTxTabCash,
+    mintingAddressTabCash,
+    mintingAddressBchFormatTabCash,
+    mintingHash160TabCash,
+    mintingTxPoW,
+    mintingAddressPoW,
+    mintingAddressBchFormatPoW,
+    mintingHash160PoW,
+    mintingTxAlita,
+    mintingAddressAlita,
+    mintingAddressBchFormatAlita,
+    mintingHash160Alita,
+} from '../__mocks__/chronikMintTxs';
 import { ChronikClient } from 'chronik-client';
 import { when } from 'jest-when';
 import BCHJS from '@psf/bch-js';
@@ -732,4 +747,99 @@ it(`Correctly parses received quantity for a received eToken address`, () => {
         decryptionSuccess: false,
         replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
     });
+});
+
+it(`getMintAddress successfully parses chronik.tx response to determine mint address for TabCash token`, async () => {
+    // Initialize chronik
+    const chronik = new ChronikClient(
+        'https://FakeChronikUrlToEnsureMocksOnly.com',
+    );
+    const BCH = new BCHJS({
+        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
+    });
+    /* 
+        Mock the API response from chronik.tx('tokenId') called 
+        in returnGetTokenInfoChronikPromise -- for each tokenId used
+    */
+    chronik.tx = jest.fn();
+
+    when(chronik.tx)
+        .calledWith(mintingTxTabCash.txid)
+        .mockResolvedValue(mintingTxTabCash);
+
+    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
+    BCH.Address.hash160ToCash = jest
+        .fn()
+        .mockReturnValue(mintingAddressBchFormatTabCash);
+
+    expect(await getMintAddress(chronik, BCH, mintingTxTabCash.txid)).toBe(
+        mintingAddressTabCash,
+    );
+
+    // spy on mintingHash160
+    expect(BCH.Address.hash160ToCash).toHaveBeenCalledWith(
+        mintingHash160TabCash,
+    );
+});
+
+it(`getMintAddress successfully parses chronik.tx response to determine mint address for PoW token`, async () => {
+    // Initialize chronik
+    const chronik = new ChronikClient(
+        'https://FakeChronikUrlToEnsureMocksOnly.com',
+    );
+    const BCH = new BCHJS({
+        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
+    });
+    /* 
+        Mock the API response from chronik.tx('tokenId') called 
+        in returnGetTokenInfoChronikPromise -- for each tokenId used
+    */
+    chronik.tx = jest.fn();
+
+    when(chronik.tx)
+        .calledWith(mintingTxPoW.txid)
+        .mockResolvedValue(mintingTxPoW);
+
+    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
+    BCH.Address.hash160ToCash = jest
+        .fn()
+        .mockReturnValue(mintingAddressBchFormatPoW);
+
+    expect(await getMintAddress(chronik, BCH, mintingTxPoW.txid)).toBe(
+        mintingAddressPoW,
+    );
+
+    // spy on mintingHash160
+    expect(BCH.Address.hash160ToCash).toHaveBeenCalledWith(mintingHash160PoW);
+});
+
+it(`getMintAddress successfully parses chronik.tx response to determine mint address for Alita token`, async () => {
+    // Initialize chronik
+    const chronik = new ChronikClient(
+        'https://FakeChronikUrlToEnsureMocksOnly.com',
+    );
+    const BCH = new BCHJS({
+        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
+    });
+    /* 
+        Mock the API response from chronik.tx('tokenId') called 
+        in returnGetTokenInfoChronikPromise -- for each tokenId used
+    */
+    chronik.tx = jest.fn();
+
+    when(chronik.tx)
+        .calledWith(mintingTxAlita.txid)
+        .mockResolvedValue(mintingTxAlita);
+
+    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
+    BCH.Address.hash160ToCash = jest
+        .fn()
+        .mockReturnValue(mintingAddressBchFormatAlita);
+
+    expect(await getMintAddress(chronik, BCH, mintingTxAlita.txid)).toBe(
+        mintingAddressAlita,
+    );
+
+    // spy on mintingHash160
+    expect(BCH.Address.hash160ToCash).toHaveBeenCalledWith(mintingHash160Alita);
 });

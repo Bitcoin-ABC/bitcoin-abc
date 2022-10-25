@@ -26,6 +26,7 @@ import {
     convertToEcashPrefix,
     convertEcashtoEtokenAddr,
 } from 'utils/cashMethods';
+import { getMintAddress } from 'utils/chronik';
 import {
     isValidTokenId,
     isValidXecAirdrop,
@@ -255,6 +256,7 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
             // extract the eToken mint address
             let genesisTx;
             try {
+                // bch-api approach
                 genesisTx = await bchObj.RawTransactions.getRawTransaction(
                     formData.tokenId,
                     true,
@@ -270,11 +272,42 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
                 passLoadingStatus(false);
                 return;
             }
+
+            // Chronik approach
+            let mintEtokenAddressChronik;
+            try {
+                mintEtokenAddressChronik = await getMintAddress(
+                    chronik,
+                    bchObj,
+                    formData.tokenId,
+                );
+            } catch (err) {
+                console.log(`Error in getMintAddress`, err);
+                errorNotification(
+                    null,
+                    'Unable to retrieve minting address for eToken ID: ' +
+                        formData.tokenId,
+                    'getMintAddress Error',
+                );
+                setIsAirdropCalcModalVisible(false);
+                passLoadingStatus(false);
+                return;
+            }
+
+            // bch-api address conversion
             const mintEcashAddress = convertToEcashPrefix(
                 genesisTx.vout[1].scriptPubKey.addresses[0],
             ); //vout[0] is always the OP_RETURN output
             const mintEtokenAddress =
                 convertEcashtoEtokenAddr(mintEcashAddress);
+
+            // Compare
+            if (mintEtokenAddressChronik === mintEtokenAddress) {
+                console.log(
+                    `Chronik and bch-api got the same minting address`,
+                    mintEtokenAddressChronik,
+                );
+            }
 
             // remove the mint address from the recipients list
             airdropList.delete(mintEtokenAddress);
