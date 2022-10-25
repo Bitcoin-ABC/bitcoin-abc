@@ -175,17 +175,6 @@ const useWallet = () => {
                 },
             ];
 
-            // Check that server is live
-            try {
-                await BCH.Blockchain.getBlockCount();
-            } catch (err) {
-                console.log(
-                    `Error in BCH.Blockchain.getBlockCount, the full node is likely down`,
-                    err,
-                );
-                throw new Error(`Node unavailable`);
-            }
-
             const chronikUtxos = await getUtxosChronik(
                 chronik,
                 hash160AndAddressObjArray,
