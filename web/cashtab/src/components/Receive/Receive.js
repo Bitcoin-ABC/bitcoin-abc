@@ -52,7 +52,7 @@ export const SwitchBtn = styled.div`
     }
 `;
 
-const WalletInfo = () => {
+const ReceiveWithWalletPresent = () => {
     const ContextValue = React.useContext(WalletContext);
     const { wallet } = ContextValue;
     const [isCashAddress, setIsCashAddress] = React.useState(true);
@@ -124,7 +124,7 @@ const Receive = () => {
                 <>
                     {(wallet && wallet.Path1899) ||
                     (previousWallet && previousWallet.path1899) ? (
-                        <WalletInfo />
+                        <ReceiveWithWalletPresent />
                     ) : (
                         <OnBoarding />
                     )}
