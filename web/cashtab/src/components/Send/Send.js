@@ -51,6 +51,7 @@ import {
     toLegacyCash,
     toLegacyCashArray,
     fromSatoshisToXec,
+    calcFee,
 } from 'utils/cashMethods';
 import ApiError from 'components/Common/ApiError';
 import { formatFiatBalance, formatBalance } from 'utils/formatting';
@@ -215,7 +216,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         setIsModalVisible(false);
     };
 
-    const { getRestUrl, sendXec, calcFee } = useBCH();
+    const { getRestUrl, sendXec } = useBCH();
 
     // If the balance has changed, unlock the UI
     // This is redundant, if backend has refreshed in 1.75s timeout below, UI will already be unlocked

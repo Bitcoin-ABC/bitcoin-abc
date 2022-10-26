@@ -11,7 +11,6 @@ import {
     generateTokenTxOutput,
     signAndBuildTx,
     getChangeAddressFromInputUtxos,
-    getCashtabByteCount,
 } from 'utils/cashMethods';
 import ecies from 'ecies-lite';
 
@@ -31,16 +30,6 @@ export default function useBCH() {
                 : process.env.REACT_APP_BCHA_APIS_TEST;
         const apiArray = apiString.split(',');
         return apiArray[apiIndex];
-    };
-
-    const calcFee = (
-        utxos,
-        p2pkhOutputNumber = 2,
-        satoshisPerByte = currency.defaultFee,
-    ) => {
-        const byteCount = getCashtabByteCount(utxos.length, p2pkhOutputNumber);
-        const txFee = Math.ceil(satoshisPerByte * byteCount);
-        return txFee;
     };
 
     const createToken = async (
@@ -557,7 +546,6 @@ export default function useBCH() {
 
     return {
         getBCH,
-        calcFee,
         getRestUrl,
         sendXec,
         sendToken,

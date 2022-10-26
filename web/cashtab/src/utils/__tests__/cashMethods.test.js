@@ -28,6 +28,7 @@ import {
     getUtxoWif,
     generateTokenTxOutput,
     getCashtabByteCount,
+    calcFee,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import {
@@ -1574,5 +1575,9 @@ describe('Correctly executes cash utility functions', () => {
         expect(getCashtabByteCount(1, 2000)).toBe(
             BCH.BitcoinCash.getByteCount({ P2PKH: 1 }, { P2PKH: 2000 }),
         );
+    });
+    it('calculates fee correctly for 2 P2PKH outputs', () => {
+        const utxosMock = [{}, {}];
+        expect(calcFee(utxosMock, 2, 1.01)).toBe(378);
     });
 });

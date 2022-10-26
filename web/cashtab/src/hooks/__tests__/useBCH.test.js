@@ -38,13 +38,6 @@ describe('useBCH hook', () => {
         expect(getRestUrl(0)).toBe(expectedApiUrl);
     });
 
-    it('calculates fee correctly for 2 P2PKH outputs', () => {
-        const { calcFee } = useBCH();
-        const utxosMock = [{}, {}];
-
-        expect(calcFee(utxosMock, 2, 1.01)).toBe(378);
-    });
-
     it('sends XEC correctly', async () => {
         const { sendXec } = useBCH();
         const BCH = new BCHJS();
