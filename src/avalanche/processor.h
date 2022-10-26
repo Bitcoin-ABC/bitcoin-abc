@@ -226,11 +226,11 @@ public:
     bool startEventLoop(CScheduler &scheduler);
     bool stopEventLoop();
 
-    void avaproofsSent(NodeId nodeid);
+    void avaproofsSent(NodeId nodeid) LOCKS_EXCLUDED(cs_main);
     int64_t getAvaproofsNodeCounter() const {
         return avaproofsNodeCounter.load();
     }
-    bool isQuorumEstablished();
+    bool isQuorumEstablished() LOCKS_EXCLUDED(cs_main);
 
     // Implement NetEventInterface. Only FinalizeNode is of interest.
     void InitializeNode(const ::Config &config, CNode *pnode) override {}
@@ -243,7 +243,8 @@ public:
     }
 
     /** Handle removal of a node */
-    void FinalizeNode(const ::Config &config, const CNode &node) override;
+    void FinalizeNode(const ::Config &config, const CNode &node) override
+        LOCKS_EXCLUDED(cs_main);
 
 private:
     void runEventLoop();

@@ -687,6 +687,8 @@ bool Processor::stopEventLoop() {
 }
 
 void Processor::avaproofsSent(NodeId nodeid) {
+    AssertLockNotHeld(cs_main);
+
     if (chainman.ActiveChainstate().IsInitialBlockDownload()) {
         // Before IBD is complete there is no way to make sure a proof is valid
         // or not, e.g. it can be spent in a block we don't know yet. In order
@@ -706,6 +708,8 @@ void Processor::avaproofsSent(NodeId nodeid) {
  * us to take decisions based on polls.
  */
 bool Processor::isQuorumEstablished() {
+    AssertLockNotHeld(cs_main);
+
     {
         LOCK(cs_peerManager);
         if (peerManager->getNodeCount() < 8) {
@@ -775,6 +779,8 @@ bool Processor::isQuorumEstablished() {
 }
 
 void Processor::FinalizeNode(const ::Config &config, const CNode &node) {
+    AssertLockNotHeld(cs_main);
+
     WITH_LOCK(cs_peerManager, peerManager->removeNode(node.GetId()));
 }
 
