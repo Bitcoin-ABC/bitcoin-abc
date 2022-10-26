@@ -27,6 +27,7 @@ import {
     signUtxosByAddress,
     getUtxoWif,
     generateTokenTxOutput,
+    getCashtabByteCount,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import {
@@ -1536,5 +1537,42 @@ describe('Correctly executes cash utility functions', () => {
     });
     it(`isActiveWebsocket returns false for an active websocket connection with no subscriptions`, () => {
         expect(isActiveWebsocket(unsubscribedWebsocket)).toBe(false);
+    });
+    it(`getCashtabByteCount for 2 inputs, 2 outputs returns the same value as BCH.BitcoinCash.getByteCount(
+            { P2PKH: utxos.length },
+            { P2PKH: p2pkhOutputNumber },
+        );`, () => {
+        const BCH = new BCHJS();
+        // 374
+        expect(getCashtabByteCount(2, 2)).toBe(
+            BCH.BitcoinCash.getByteCount({ P2PKH: 2 }, { P2PKH: 2 }),
+        );
+    });
+    it(`getCashtabByteCount for 1 input, 2 outputs returns the same value as BCH.BitcoinCash.getByteCount(
+            { P2PKH: utxos.length },
+            { P2PKH: p2pkhOutputNumber },
+        );`, () => {
+        const BCH = new BCHJS();
+        expect(getCashtabByteCount(1, 2)).toBe(
+            BCH.BitcoinCash.getByteCount({ P2PKH: 1 }, { P2PKH: 2 }),
+        );
+    });
+    it(`getCashtabByteCount for 173 input, 1 outputs returns the same value as BCH.BitcoinCash.getByteCount(
+            { P2PKH: utxos.length },
+            { P2PKH: p2pkhOutputNumber },
+        );`, () => {
+        const BCH = new BCHJS();
+        expect(getCashtabByteCount(173, 1)).toBe(
+            BCH.BitcoinCash.getByteCount({ P2PKH: 173 }, { P2PKH: 1 }),
+        );
+    });
+    it(`getCashtabByteCount for 1 input, 2000 outputs returns the same value as BCH.BitcoinCash.getByteCount(
+            { P2PKH: utxos.length },
+            { P2PKH: p2pkhOutputNumber },
+        );`, () => {
+        const BCH = new BCHJS();
+        expect(getCashtabByteCount(1, 2000)).toBe(
+            BCH.BitcoinCash.getByteCount({ P2PKH: 1 }, { P2PKH: 2000 }),
+        );
     });
 });
