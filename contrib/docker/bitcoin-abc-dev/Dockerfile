@@ -1,4 +1,4 @@
-FROM debian:buster
+FROM debian:bullseye
 
 # Expected to run from the project root
 COPY . /bitcoin-abc
@@ -8,7 +8,7 @@ VOLUME /bitcoin-abc
 # it after it's done
 RUN mkdir -p /install
 WORKDIR /install
-RUN /bitcoin-abc/contrib/utils/install-dependencies-buster.sh
+RUN /bitcoin-abc/contrib/utils/install-dependencies-bullseye.sh
 
 WORKDIR /bitcoin-abc
 RUN rm -rf /install
