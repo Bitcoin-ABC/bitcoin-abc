@@ -635,11 +635,7 @@ struct Peer {
 private:
     mutable Mutex m_tx_relay_mutex;
 
-    /**
-     * Transaction relay data. Will be a nullptr if we're not relaying
-     * transactions with this peer (e.g. if it's a block-relay-only peer or
-     * the peer has sent us fRelay=false with bloom filters disabled).
-     */
+    /** Transaction relay data. May be a nullptr. */
     std::unique_ptr<TxRelay> m_tx_relay GUARDED_BY(m_tx_relay_mutex);
 };
 
@@ -4833,11 +4829,12 @@ void PeerManagerImpl::ProcessMessage(
         }
         peer->m_starting_height = starting_height;
 
-        // We only initialize the m_tx_relay data structure if:
+        // Only initialize the m_tx_relay data structure if:
         // - this isn't an outbound block-relay-only connection; and
+        // - this isn't an outbound feeler connection, and
         // - fRelay=true or we're offering NODE_BLOOM to this peer
         //   (NODE_BLOOM means that the peer may turn on tx relay later)
-        if (!pfrom.IsBlockOnlyConn() &&
+        if (!pfrom.IsBlockOnlyConn() && !pfrom.IsFeelerConn() &&
             (fRelay || (peer->m_our_services & NODE_BLOOM))) {
             auto *const tx_relay = peer->SetTxRelay();
             {
