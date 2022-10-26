@@ -733,7 +733,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         // Set currency to BCH
         setSelectedCurrency(currency.ticker);
         try {
-            const txFeeSats = calcFee(bchObj, slpBalancesAndUtxos.nonSlpUtxos);
+            const txFeeSats = calcFee(slpBalancesAndUtxos.nonSlpUtxos);
 
             const txFeeBch = txFeeSats / 10 ** currency.cashDecimals;
             let value =

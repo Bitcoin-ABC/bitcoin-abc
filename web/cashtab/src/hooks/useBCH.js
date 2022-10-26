@@ -11,6 +11,7 @@ import {
     generateTokenTxOutput,
     signAndBuildTx,
     getChangeAddressFromInputUtxos,
+    getCashtabByteCount,
 } from 'utils/cashMethods';
 import ecies from 'ecies-lite';
 
@@ -33,15 +34,11 @@ export default function useBCH() {
     };
 
     const calcFee = (
-        BCH,
         utxos,
         p2pkhOutputNumber = 2,
         satoshisPerByte = currency.defaultFee,
     ) => {
-        const byteCount = BCH.BitcoinCash.getByteCount(
-            { P2PKH: utxos.length },
-            { P2PKH: p2pkhOutputNumber },
-        );
+        const byteCount = getCashtabByteCount(utxos.length, p2pkhOutputNumber);
         const txFee = Math.ceil(satoshisPerByte * byteCount);
         return txFee;
     };

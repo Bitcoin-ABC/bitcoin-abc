@@ -40,10 +40,9 @@ describe('useBCH hook', () => {
 
     it('calculates fee correctly for 2 P2PKH outputs', () => {
         const { calcFee } = useBCH();
-        const BCH = new BCHJS();
         const utxosMock = [{}, {}];
 
-        expect(calcFee(BCH, utxosMock, 2, 1.01)).toBe(378);
+        expect(calcFee(utxosMock, 2, 1.01)).toBe(378);
     });
 
     it('sends XEC correctly', async () => {

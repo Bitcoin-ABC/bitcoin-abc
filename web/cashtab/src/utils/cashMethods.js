@@ -159,7 +159,7 @@ export const generateTxInput = (
             txBuilder.addInput(txid, vout);
 
             inputUtxos.push(utxo);
-            txFee = calcFee(BCH, inputUtxos, txOutputs, feeInSatsPerByte);
+            txFee = calcFee(inputUtxos, txOutputs, feeInSatsPerByte);
 
             if (totalInputUtxoValue.minus(satoshisToSend).minus(txFee).gte(0)) {
                 break;
@@ -222,12 +222,7 @@ export const generateTokenTxInput = (
             txBuilder.addInput(txid, vout);
 
             totalXecInputUtxos.push(thisXecUtxo);
-            txFee = calcFee(
-                BCH,
-                totalXecInputUtxos,
-                txOutputs,
-                feeInSatsPerByte,
-            );
+            txFee = calcFee(totalXecInputUtxos, txOutputs, feeInSatsPerByte);
 
             remainderXecValue =
                 tokenAction === 'GENESIS'
