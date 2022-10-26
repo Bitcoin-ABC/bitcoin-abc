@@ -1174,6 +1174,7 @@ Tx.propTypes = {
             sendModal: PropTypes.bool,
             autoCameraOn: PropTypes.bool,
             hideMessagesFromUnknownSenders: PropTypes.bool,
+            toggleShowHideBalance: PropTypes.bool,
         }),
         PropTypes.bool,
     ]),

@@ -126,8 +126,15 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     // Else set it as blank
     const ContextValue = React.useContext(WalletContext);
     const location = useLocation();
-    const { BCH, wallet, fiatPrice, apiError, cashtabSettings, chronik } =
-        ContextValue;
+    const {
+        BCH,
+        wallet,
+        fiatPrice,
+        apiError,
+        cashtabSettings,
+        changeCashtabSettings,
+        chronik,
+    } = ContextValue;
     const walletState = getWalletState(wallet);
     const { balances, slpBalancesAndUtxos } = walletState;
     // Modal settings
@@ -815,7 +822,11 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 </p>
             </Modal>
             <WalletInfoCtn>
-                <WalletLabel name={wallet.name}></WalletLabel>
+                <WalletLabel
+                    name={wallet.name}
+                    cashtabSettings={cashtabSettings}
+                    changeCashtabSettings={changeCashtabSettings}
+                ></WalletLabel>
                 {!balances.totalBalance ? (
                     <ZeroBalanceHeader>
                         You currently have 0 {currency.ticker}
@@ -827,6 +838,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                         <BalanceHeader
                             balance={balances.totalBalance}
                             ticker={currency.ticker}
+                            cashtabSettings={cashtabSettings}
                         />
 
                         <BalanceHeaderFiat

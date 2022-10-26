@@ -3,13 +3,13 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-cIShpX kBtxOc"
+    className="sc-feJyhm eUbEor"
   >
     <div
-      className="sc-jtRfpW ilaTRi"
+      className="sc-dfVpRl hWGqGE"
     >
       <h4
-        className="sc-kTUwUJ jBnodQ"
+        className="sc-gzOgki exWAde"
       >
         MigrationTestAlpha
       </h4>
@@ -23,36 +23,68 @@ Array [
           edit.svg
         </svg>
       </a>
+      <div>
+         
+        <button
+          aria-checked={false}
+          className="ant-switch ant-switch-small"
+          onClick={[Function]}
+          onKeyDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          role="switch"
+          type="button"
+        >
+          <div
+            className="ant-switch-handle"
+          />
+          <span
+            className="ant-switch-inner"
+          >
+            <svg
+              className="sc-kAzzGY fUTkYj"
+            >
+              eye-invisible.svg
+            </svg>
+          </span>
+        </button>
+      </div>
     </div>
     <div
-      className="sc-feJyhm dcfWPG"
+      className="sc-cmTdod hzyoDN"
     >
-      0
-       
-      XEC
+      <span
+        className="sc-kTUwUJ gcNvGh"
+      >
+         
+        0
+         
+        XEC
+         
+      </span>
     </div>
   </div>,
   <div
-    className="sc-hEsumM fVYKnA"
+    className="sc-cIShpX jOmLZu"
   >
     <div
-      className="sc-dqBHgY ikRnZe"
+      className="sc-iyvyFf gnOzfi"
     >
       <button
-        className="sc-gxMtzJ iyHxMs"
+        className="sc-hwwEjo dBhmxo"
         onClick={[Function]}
       >
         Transactions
       </button>
       <button
-        className="sc-gxMtzJ hbRqdo"
+        className="sc-hwwEjo jUzRYa"
         onClick={[Function]}
       >
         eTokens
       </button>
     </div>
     <div
-      className="sc-dfVpRl jGQwrz"
+      className="sc-kPVwWT dzFBNb"
     >
       <div />
       <span
@@ -79,10 +111,10 @@ Array [
        to send to others
     </div>
     <div
-      className="sc-dfVpRl boocvK"
+      className="sc-kPVwWT djTHeQ"
     >
       <a
-        className="sc-kPVwWT cDbiuF"
+        className="sc-eXEjpC bsTGqu"
         href="/tokens"
         onClick={[Function]}
       >
@@ -101,13 +133,13 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-cIShpX kBtxOc"
+    className="sc-feJyhm eUbEor"
   >
     <div
-      className="sc-jtRfpW ilaTRi"
+      className="sc-dfVpRl hWGqGE"
     >
       <h4
-        className="sc-kTUwUJ jBnodQ"
+        className="sc-gzOgki exWAde"
       >
         MigrationTestAlpha
       </h4>
@@ -121,36 +153,68 @@ Array [
           edit.svg
         </svg>
       </a>
+      <div>
+         
+        <button
+          aria-checked={false}
+          className="ant-switch ant-switch-small"
+          onClick={[Function]}
+          onKeyDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          role="switch"
+          type="button"
+        >
+          <div
+            className="ant-switch-handle"
+          />
+          <span
+            className="ant-switch-inner"
+          >
+            <svg
+              className="sc-kAzzGY fUTkYj"
+            >
+              eye-invisible.svg
+            </svg>
+          </span>
+        </button>
+      </div>
     </div>
     <div
-      className="sc-feJyhm dcfWPG"
+      className="sc-cmTdod hzyoDN"
     >
-      0
-       
-      XEC
+      <span
+        className="sc-kTUwUJ gcNvGh"
+      >
+         
+        0
+         
+        XEC
+         
+      </span>
     </div>
   </div>,
   <div
-    className="sc-hEsumM fVYKnA"
+    className="sc-cIShpX jOmLZu"
   >
     <div
-      className="sc-dqBHgY ikRnZe"
+      className="sc-iyvyFf gnOzfi"
     >
       <button
-        className="sc-gxMtzJ iyHxMs"
+        className="sc-hwwEjo dBhmxo"
         onClick={[Function]}
       >
         Transactions
       </button>
       <button
-        className="sc-gxMtzJ hbRqdo"
+        className="sc-hwwEjo jUzRYa"
         onClick={[Function]}
       >
         eTokens
       </button>
     </div>
     <div
-      className="sc-dfVpRl jGQwrz"
+      className="sc-kPVwWT dzFBNb"
     >
       <div />
       <span
@@ -177,10 +241,10 @@ Array [
        to send to others
     </div>
     <div
-      className="sc-dfVpRl boocvK"
+      className="sc-kPVwWT djTHeQ"
     >
       <a
-        className="sc-kPVwWT cDbiuF"
+        className="sc-eXEjpC bsTGqu"
         href="/tokens"
         onClick={[Function]}
       >
@@ -199,13 +263,13 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-cIShpX kBtxOc"
+    className="sc-feJyhm eUbEor"
   >
     <div
-      className="sc-jtRfpW ilaTRi"
+      className="sc-dfVpRl hWGqGE"
     >
       <h4
-        className="sc-kTUwUJ jBnodQ"
+        className="sc-gzOgki exWAde"
       >
         MigrationTestAlpha
       </h4>
@@ -219,36 +283,68 @@ Array [
           edit.svg
         </svg>
       </a>
+      <div>
+         
+        <button
+          aria-checked={false}
+          className="ant-switch ant-switch-small"
+          onClick={[Function]}
+          onKeyDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          role="switch"
+          type="button"
+        >
+          <div
+            className="ant-switch-handle"
+          />
+          <span
+            className="ant-switch-inner"
+          >
+            <svg
+              className="sc-kAzzGY fUTkYj"
+            >
+              eye-invisible.svg
+            </svg>
+          </span>
+        </button>
+      </div>
     </div>
     <div
-      className="sc-feJyhm dcfWPG"
+      className="sc-cmTdod hzyoDN"
     >
-      0.06
-       
-      XEC
+      <span
+        className="sc-kTUwUJ gcNvGh"
+      >
+         
+        0.06
+         
+        XEC
+         
+      </span>
     </div>
   </div>,
   <div
-    className="sc-hEsumM fVYKnA"
+    className="sc-cIShpX jOmLZu"
   >
     <div
-      className="sc-dqBHgY ikRnZe"
+      className="sc-iyvyFf gnOzfi"
     >
       <button
-        className="sc-gxMtzJ iyHxMs"
+        className="sc-hwwEjo dBhmxo"
         onClick={[Function]}
       >
         Transactions
       </button>
       <button
-        className="sc-gxMtzJ hbRqdo"
+        className="sc-hwwEjo jUzRYa"
         onClick={[Function]}
       >
         eTokens
       </button>
     </div>
     <div
-      className="sc-dfVpRl jGQwrz"
+      className="sc-kPVwWT dzFBNb"
     >
       <div />
       <span
@@ -275,10 +371,10 @@ Array [
        to send to others
     </div>
     <div
-      className="sc-dfVpRl boocvK"
+      className="sc-kPVwWT djTHeQ"
     >
       <a
-        className="sc-kPVwWT cDbiuF"
+        className="sc-eXEjpC bsTGqu"
         href="/tokens"
         onClick={[Function]}
       >
@@ -290,13 +386,13 @@ Array [
           onClick={[Function]}
         >
           <div
-            className="sc-jWBwVP bjkrpT"
+            className="sc-cMljjf cXfDVI"
           >
             <div
-              className="sc-cvbbAY cvmFEm"
+              className="sc-brqgnP dYCkQm"
             >
               <div
-                className="sc-eHgmQL dXQFLA"
+                className="sc-jWBwVP bhoBDN"
               />
               <h4>
                 TBS
@@ -316,13 +412,13 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-cIShpX kBtxOc"
+    className="sc-feJyhm eUbEor"
   >
     <div
-      className="sc-jtRfpW ilaTRi"
+      className="sc-dfVpRl hWGqGE"
     >
       <h4
-        className="sc-kTUwUJ jBnodQ"
+        className="sc-gzOgki exWAde"
       >
         MigrationTestAlpha
       </h4>
@@ -336,36 +432,68 @@ Array [
           edit.svg
         </svg>
       </a>
+      <div>
+         
+        <button
+          aria-checked={false}
+          className="ant-switch ant-switch-small"
+          onClick={[Function]}
+          onKeyDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          role="switch"
+          type="button"
+        >
+          <div
+            className="ant-switch-handle"
+          />
+          <span
+            className="ant-switch-inner"
+          >
+            <svg
+              className="sc-kAzzGY fUTkYj"
+            >
+              eye-invisible.svg
+            </svg>
+          </span>
+        </button>
+      </div>
     </div>
     <div
-      className="sc-feJyhm dcfWPG"
+      className="sc-cmTdod hzyoDN"
     >
-      0
-       
-      XEC
+      <span
+        className="sc-kTUwUJ gcNvGh"
+      >
+         
+        0
+         
+        XEC
+         
+      </span>
     </div>
   </div>,
   <div
-    className="sc-hEsumM fVYKnA"
+    className="sc-cIShpX jOmLZu"
   >
     <div
-      className="sc-dqBHgY ikRnZe"
+      className="sc-iyvyFf gnOzfi"
     >
       <button
-        className="sc-gxMtzJ iyHxMs"
+        className="sc-hwwEjo dBhmxo"
         onClick={[Function]}
       >
         Transactions
       </button>
       <button
-        className="sc-gxMtzJ hbRqdo"
+        className="sc-hwwEjo jUzRYa"
         onClick={[Function]}
       >
         eTokens
       </button>
     </div>
     <div
-      className="sc-dfVpRl jGQwrz"
+      className="sc-kPVwWT dzFBNb"
     >
       <div />
       <span
@@ -392,10 +520,10 @@ Array [
        to send to others
     </div>
     <div
-      className="sc-dfVpRl boocvK"
+      className="sc-kPVwWT djTHeQ"
     >
       <a
-        className="sc-kPVwWT cDbiuF"
+        className="sc-eXEjpC bsTGqu"
         href="/tokens"
         onClick={[Function]}
       >
@@ -413,18 +541,18 @@ Array [
 
 exports[`Without wallet defined 1`] = `
 <div
-  className="sc-kkGfuU kHnByM"
+  className="sc-hSdWYo dlVucL"
 >
   <h2>
     Welcome to Cashtab!
   </h2>
   <p
-    className="sc-iAyFgw kZDEdD"
+    className="sc-eHgmQL hjidHj"
   >
     Cashtab is an
      
     <a
-      className="sc-hSdWYo deDdjM"
+      className="sc-cvbbAY ctEANP"
       href="https://github.com/bitcoin-abc/bitcoin-abc"
       rel="noreferrer"
       target="_blank"
@@ -440,7 +568,7 @@ exports[`Without wallet defined 1`] = `
     Want to learn more?
      
     <a
-      className="sc-hSdWYo deDdjM"
+      className="sc-cvbbAY ctEANP"
       href="https://docs.cashtab.com/docs/"
       rel="noreferrer"
       target="_blank"
@@ -449,7 +577,7 @@ exports[`Without wallet defined 1`] = `
     </a>
   </p>
   <button
-    className="sc-jKJlTe jWeghZ"
+    className="sc-hMqMXs jjgrrY"
     onClick={[Function]}
   >
     <span
@@ -477,7 +605,7 @@ exports[`Without wallet defined 1`] = `
      New Wallet
   </button>
   <button
-    className="sc-eNQAEJ khTDEN"
+    className="sc-kEYyzF flSOwg"
     onClick={[Function]}
   >
     <span

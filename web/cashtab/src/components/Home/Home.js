@@ -148,6 +148,7 @@ const WalletInfo = () => {
         cashtabSettings,
         contactList,
         cashtabCache,
+        changeCashtabSettings,
     } = ContextValue;
     const walletState = getWalletState(wallet);
     const { balances, parsedTxHistory, tokens } = walletState;
@@ -158,10 +159,15 @@ const WalletInfo = () => {
     return (
         <>
             <WalletInfoCtn>
-                <WalletLabel name={wallet.name}></WalletLabel>
+                <WalletLabel
+                    name={wallet.name}
+                    cashtabSettings={cashtabSettings}
+                    changeCashtabSettings={changeCashtabSettings}
+                ></WalletLabel>
                 <BalanceHeader
                     balance={balances.totalBalance}
                     ticker={currency.ticker}
+                    cashtabSettings={cashtabSettings}
                 />
                 <BalanceHeaderFiat
                     balance={balances.totalBalance}

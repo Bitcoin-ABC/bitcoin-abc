@@ -3,12 +3,15 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { ThemedEditOutlined } from 'components/Common/CustomIcons';
 import { Link } from 'react-router-dom';
-
+import HideBalanceSwitch from './HideBalanceSwitch';
 const LabelCtn = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 3%;
+    .ant-switch {
+        margin-bottom: 5px;
+    }
 `;
 
 const WalletName = styled.h4`
@@ -21,7 +24,7 @@ const WalletName = styled.h4`
     }
 `;
 
-const WalletLabel = ({ name }) => {
+const WalletLabel = ({ name, cashtabSettings, changeCashtabSettings }) => {
     return (
         <LabelCtn>
             {name && typeof name === 'string' && (
@@ -37,12 +40,27 @@ const WalletLabel = ({ name }) => {
             >
                 <ThemedEditOutlined />
             </Link>
+            <HideBalanceSwitch
+                cashtabSettings={cashtabSettings}
+                changeCashtabSettings={changeCashtabSettings}
+            />
         </LabelCtn>
     );
 };
 
 WalletLabel.propTypes = {
     name: PropTypes.string,
+    cashtabSettings: PropTypes.oneOfType([
+        PropTypes.shape({
+            fiatCurrency: PropTypes.string,
+            sendModal: PropTypes.bool,
+            autoCameraOn: PropTypes.bool,
+            hideMessagesFromUnknownSender: PropTypes.bool,
+            toggleShowHideBalance: PropTypes.bool,
+        }),
+        PropTypes.bool,
+    ]),
+    changeCashtabSettings: PropTypes.func,
 };
 
 export default WalletLabel;

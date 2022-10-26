@@ -497,6 +497,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                     <BalanceHeader
                         balance={token.balance}
                         ticker={token.info.tokenTicker}
+                        cashtabSettings={cashtabSettings}
                     />
                     <Row type="flex">
                         <Col span={24}>

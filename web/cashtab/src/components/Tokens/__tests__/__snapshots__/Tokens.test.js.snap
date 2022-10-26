@@ -3,13 +3,13 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-cMljjf dFxlUP"
+    className="sc-jDwBTQ cjeMuL"
   >
     <div
-      className="sc-jhAzac okSKK"
+      className="sc-eqIVtm dNfXPS"
     >
       <h4
-        className="sc-fBuWsC eRpPSf"
+        className="sc-fAjcbJ fxxTmW"
       >
         MigrationTestAlpha
       </h4>
@@ -23,27 +23,59 @@ Array [
           edit.svg
         </svg>
       </a>
+      <div>
+         
+        <button
+          aria-checked={false}
+          className="ant-switch ant-switch-small"
+          onClick={[Function]}
+          onKeyDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          role="switch"
+          type="button"
+        >
+          <div
+            className="ant-switch-handle"
+          />
+          <span
+            className="ant-switch-inner"
+          >
+            <svg
+              className="sc-kAzzGY fUTkYj"
+            >
+              eye-invisible.svg
+            </svg>
+          </span>
+        </button>
+      </div>
     </div>
     <div
-      className="sc-jDwBTQ dLkfcN"
+      className="sc-iRbamj hTWIef"
     >
-      0
-       
-      XEC
+      <span
+        className="sc-fBuWsC dPGzRB"
+      >
+         
+        0
+         
+        XEC
+         
+      </span>
     </div>
   </div>,
   <div
-    className="sc-jWBwVP bOCXcR"
+    className="sc-cMljjf eXmwYV"
   >
     <div
-      className="sc-bRBYWo hCYsEO"
+      className="sc-jhAzac ceDTEv"
     >
       <h3>
         Create a Token
       </h3>
     </div>
     <p
-      className="sc-gipzik kajjMR"
+      className="sc-Rmtcm kekmNr"
     >
       You need at least
        
@@ -64,13 +96,13 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-cMljjf dFxlUP"
+    className="sc-jDwBTQ cjeMuL"
   >
     <div
-      className="sc-jhAzac okSKK"
+      className="sc-eqIVtm dNfXPS"
     >
       <h4
-        className="sc-fBuWsC eRpPSf"
+        className="sc-fAjcbJ fxxTmW"
       >
         MigrationTestAlpha
       </h4>
@@ -84,27 +116,59 @@ Array [
           edit.svg
         </svg>
       </a>
+      <div>
+         
+        <button
+          aria-checked={false}
+          className="ant-switch ant-switch-small"
+          onClick={[Function]}
+          onKeyDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          role="switch"
+          type="button"
+        >
+          <div
+            className="ant-switch-handle"
+          />
+          <span
+            className="ant-switch-inner"
+          >
+            <svg
+              className="sc-kAzzGY fUTkYj"
+            >
+              eye-invisible.svg
+            </svg>
+          </span>
+        </button>
+      </div>
     </div>
     <div
-      className="sc-jDwBTQ dLkfcN"
+      className="sc-iRbamj hTWIef"
     >
-      0
-       
-      XEC
+      <span
+        className="sc-fBuWsC dPGzRB"
+      >
+         
+        0
+         
+        XEC
+         
+      </span>
     </div>
   </div>,
   <div
-    className="sc-jWBwVP bOCXcR"
+    className="sc-cMljjf eXmwYV"
   >
     <div
-      className="sc-bRBYWo hCYsEO"
+      className="sc-jhAzac ceDTEv"
     >
       <h3>
         Create a Token
       </h3>
     </div>
     <p
-      className="sc-gipzik kajjMR"
+      className="sc-Rmtcm kekmNr"
     >
       You need at least
        
@@ -125,13 +189,13 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-cMljjf dFxlUP"
+    className="sc-jDwBTQ cjeMuL"
   >
     <div
-      className="sc-jhAzac okSKK"
+      className="sc-eqIVtm dNfXPS"
     >
       <h4
-        className="sc-fBuWsC eRpPSf"
+        className="sc-fAjcbJ fxxTmW"
       >
         MigrationTestAlpha
       </h4>
@@ -145,26 +209,58 @@ Array [
           edit.svg
         </svg>
       </a>
+      <div>
+         
+        <button
+          aria-checked={false}
+          className="ant-switch ant-switch-small"
+          onClick={[Function]}
+          onKeyDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          role="switch"
+          type="button"
+        >
+          <div
+            className="ant-switch-handle"
+          />
+          <span
+            className="ant-switch-inner"
+          >
+            <svg
+              className="sc-kAzzGY fUTkYj"
+            >
+              eye-invisible.svg
+            </svg>
+          </span>
+        </button>
+      </div>
     </div>
     <div
-      className="sc-jDwBTQ dLkfcN"
+      className="sc-iRbamj hTWIef"
     >
-      0.06
-       
-      XEC
+      <span
+        className="sc-fBuWsC dPGzRB"
+      >
+         
+        0.06
+         
+        XEC
+         
+      </span>
     </div>
   </div>,
   <div
-    className="sc-jWBwVP bOCXcR"
+    className="sc-cMljjf eXmwYV"
   >
     <div
-      className="sc-bRBYWo hCYsEO"
+      className="sc-jhAzac ceDTEv"
     >
       <h3>
         Create a Token
       </h3>
       <div
-        className="sc-kpOJdX bdyMIi"
+        className="sc-ckVGcZ hIDNYb"
       >
         <form
           className="ant-form ant-form-horizontal ant-form-small"
@@ -177,7 +273,7 @@ Array [
           }
         >
           <label
-            className="sc-brqgnP fxmmca"
+            className="sc-jAaTju hSUYiq"
           >
             Token Name
           </label>
@@ -215,7 +311,7 @@ Array [
             </div>
           </div>
           <label
-            className="sc-brqgnP fxmmca"
+            className="sc-jAaTju hSUYiq"
           >
             Ticker
           </label>
@@ -253,7 +349,7 @@ Array [
             </div>
           </div>
           <label
-            className="sc-brqgnP fxmmca"
+            className="sc-jAaTju hSUYiq"
           >
             Decimals
           </label>
@@ -291,7 +387,7 @@ Array [
             </div>
           </div>
           <label
-            className="sc-brqgnP fxmmca"
+            className="sc-jAaTju hSUYiq"
           >
             Supply
           </label>
@@ -329,7 +425,7 @@ Array [
             </div>
           </div>
           <label
-            className="sc-brqgnP fxmmca"
+            className="sc-jAaTju hSUYiq"
           >
             Document URL
           </label>
@@ -367,7 +463,7 @@ Array [
             </div>
           </div>
           <label
-            className="sc-brqgnP fxmmca"
+            className="sc-jAaTju hSUYiq"
           >
             Add Image
           </label>
@@ -473,7 +569,7 @@ Array [
         </form>
       </div>
       <button
-        className="sc-hSdWYo jjEmBC"
+        className="sc-cvbbAY isBuUD"
         disabled={true}
         onClick={[Function]}
         style={
@@ -514,13 +610,13 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-cMljjf dFxlUP"
+    className="sc-jDwBTQ cjeMuL"
   >
     <div
-      className="sc-jhAzac okSKK"
+      className="sc-eqIVtm dNfXPS"
     >
       <h4
-        className="sc-fBuWsC eRpPSf"
+        className="sc-fAjcbJ fxxTmW"
       >
         MigrationTestAlpha
       </h4>
@@ -534,27 +630,59 @@ Array [
           edit.svg
         </svg>
       </a>
+      <div>
+         
+        <button
+          aria-checked={false}
+          className="ant-switch ant-switch-small"
+          onClick={[Function]}
+          onKeyDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          role="switch"
+          type="button"
+        >
+          <div
+            className="ant-switch-handle"
+          />
+          <span
+            className="ant-switch-inner"
+          >
+            <svg
+              className="sc-kAzzGY fUTkYj"
+            >
+              eye-invisible.svg
+            </svg>
+          </span>
+        </button>
+      </div>
     </div>
     <div
-      className="sc-jDwBTQ dLkfcN"
+      className="sc-iRbamj hTWIef"
     >
-      0
-       
-      XEC
+      <span
+        className="sc-fBuWsC dPGzRB"
+      >
+         
+        0
+         
+        XEC
+         
+      </span>
     </div>
   </div>,
   <div
-    className="sc-jWBwVP bOCXcR"
+    className="sc-cMljjf eXmwYV"
   >
     <div
-      className="sc-bRBYWo hCYsEO"
+      className="sc-jhAzac ceDTEv"
     >
       <h3>
         Create a Token
       </h3>
     </div>
     <p
-      className="sc-gipzik kajjMR"
+      className="sc-Rmtcm kekmNr"
     >
       You need at least
        
@@ -575,10 +703,10 @@ Array [
 exports[`Without wallet defined 1`] = `
 Array [
   <div
-    className="sc-cMljjf dFxlUP"
+    className="sc-jDwBTQ cjeMuL"
   >
     <div
-      className="sc-jhAzac okSKK"
+      className="sc-eqIVtm dNfXPS"
     >
       <a
         href="/configure"
@@ -590,27 +718,59 @@ Array [
           edit.svg
         </svg>
       </a>
+      <div>
+         
+        <button
+          aria-checked={false}
+          className="ant-switch ant-switch-small"
+          onClick={[Function]}
+          onKeyDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          role="switch"
+          type="button"
+        >
+          <div
+            className="ant-switch-handle"
+          />
+          <span
+            className="ant-switch-inner"
+          >
+            <svg
+              className="sc-kAzzGY fUTkYj"
+            >
+              eye-invisible.svg
+            </svg>
+          </span>
+        </button>
+      </div>
     </div>
     <div
-      className="sc-jDwBTQ dLkfcN"
+      className="sc-iRbamj hTWIef"
     >
-      0
-       
-      XEC
+      <span
+        className="sc-fBuWsC dPGzRB"
+      >
+         
+        0
+         
+        XEC
+         
+      </span>
     </div>
   </div>,
   <div
-    className="sc-jWBwVP bOCXcR"
+    className="sc-cMljjf eXmwYV"
   >
     <div
-      className="sc-bRBYWo hCYsEO"
+      className="sc-jhAzac ceDTEv"
     >
       <h3>
         Create a Token
       </h3>
     </div>
     <p
-      className="sc-gipzik kajjMR"
+      className="sc-Rmtcm kekmNr"
     >
       You need at least
        

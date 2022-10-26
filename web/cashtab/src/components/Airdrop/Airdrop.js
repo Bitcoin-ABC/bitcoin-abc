@@ -86,7 +86,14 @@ const StyledModal = styled(Modal)`
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
 const Airdrop = ({ jestBCH, passLoadingStatus }) => {
     const ContextValue = React.useContext(WalletContext);
-    const { BCH, wallet, fiatPrice, cashtabSettings, chronik } = ContextValue;
+    const {
+        BCH,
+        wallet,
+        fiatPrice,
+        cashtabSettings,
+        chronik,
+        changeCashtabSettings,
+    } = ContextValue;
     const location = useLocation();
     const walletState = getWalletState(wallet);
     const { balances } = walletState;
@@ -505,7 +512,11 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
     return (
         <>
             <WalletInfoCtn>
-                <WalletLabel name={wallet.name}></WalletLabel>
+                <WalletLabel
+                    name={wallet.name}
+                    cashtabSettings={cashtabSettings}
+                    changeCashtabSettings={changeCashtabSettings}
+                ></WalletLabel>
                 {!balances.totalBalance ? (
                     <ZeroBalanceHeader>
                         You currently have 0 {currency.ticker}
@@ -517,6 +528,7 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
                         <BalanceHeader
                             balance={balances.totalBalance}
                             ticker={currency.ticker}
+                            cashtabSettings={cashtabSettings}
                         />
                         {fiatPrice !== null && (
                             <BalanceHeaderFiat

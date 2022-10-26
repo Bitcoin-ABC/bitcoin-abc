@@ -280,6 +280,7 @@ describe('Validation utils', () => {
                 sendModal: false,
                 autoCameraOn: true,
                 hideMessagesFromUnknownSenders: true,
+                toggleHideBalance: false,
             }),
         ).toBe(true);
     });
@@ -641,6 +642,7 @@ describe('Validation utils', () => {
             sendModal: false,
             autoCameraOn: true,
             hideMessagesFromUnknownSenders: false,
+            toggleHideBalance: false,
         }));
     it('sets settings object with no exsting valid settings to default values', () =>
         expect(parseInvalidSettingsForMigration({})).toStrictEqual({
@@ -648,6 +650,7 @@ describe('Validation utils', () => {
             sendModal: false,
             autoCameraOn: true,
             hideMessagesFromUnknownSenders: false,
+            toggleHideBalance: false,
         }));
     it('does nothing if valid settings object is present in localStorage', () =>
         expect(
@@ -656,12 +659,14 @@ describe('Validation utils', () => {
                 sendModal: true,
                 autoCameraOn: true,
                 hideMessagesFromUnknownSenders: false,
+                toggleHideBalance: true,
             }),
         ).toStrictEqual({
             fiatCurrency: 'brl',
             sendModal: true,
             autoCameraOn: true,
             hideMessagesFromUnknownSenders: false,
+            toggleHideBalance: true,
         }));
     it(`accepts a valid wallet name`, () => {
         expect(isValidNewWalletNameLength('Apollo')).toBe(true);

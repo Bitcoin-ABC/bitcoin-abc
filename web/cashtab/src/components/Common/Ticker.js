@@ -34,6 +34,7 @@ export const currency = {
         sendModal: false,
         autoCameraOn: true,
         hideMessagesFromUnknownSenders: false,
+        toggleHideBalance: false,
     },
     notificationDurationShort: 3,
     notificationDurationLong: 5,
@@ -84,6 +85,7 @@ export const currency = {
         sendModal: [true, false],
         autoCameraOn: [true, false],
         hideMessagesFromUnknownSenders: [true, false],
+        toggleHideBalance: [true, false],
     },
     fiatCurrencies: {
         usd: { name: 'US Dollar', symbol: '$', slug: 'usd' },

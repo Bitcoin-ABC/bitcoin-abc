@@ -17,8 +17,14 @@ import WalletLabel from 'components/Common/WalletLabel.js';
 import BigNumber from 'bignumber.js';
 
 const Tokens = ({ jestBCH, passLoadingStatus }) => {
-    const { BCH, wallet, apiError, fiatPrice, cashtabSettings } =
-        React.useContext(WalletContext);
+    const {
+        BCH,
+        wallet,
+        apiError,
+        fiatPrice,
+        cashtabSettings,
+        changeCashtabSettings,
+    } = React.useContext(WalletContext);
     const walletState = getWalletState(wallet);
     const { balances } = walletState;
     const { getRestUrl, createToken } = useBCH();
@@ -34,10 +40,15 @@ const Tokens = ({ jestBCH, passLoadingStatus }) => {
     return (
         <>
             <WalletInfoCtn>
-                <WalletLabel name={wallet.name}></WalletLabel>
+                <WalletLabel
+                    name={wallet.name}
+                    cashtabSettings={cashtabSettings}
+                    changeCashtabSettings={changeCashtabSettings}
+                ></WalletLabel>
                 <BalanceHeader
                     balance={balances.totalBalance}
                     ticker={currency.ticker}
+                    cashtabSettings={cashtabSettings}
                 />
                 <BalanceHeaderFiat
                     balance={balances.totalBalance}

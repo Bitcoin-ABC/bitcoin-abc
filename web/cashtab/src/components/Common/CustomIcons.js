@@ -28,6 +28,8 @@ import { ReactComponent as Download } from 'assets/download.svg';
 import { ReactComponent as Edit } from 'assets/edit.svg';
 import { ReactComponent as Trashcan } from 'assets/trashcan.svg';
 import { ReactComponent as FingerprintSVG } from 'assets/fingerprint-solid.svg';
+import { ReactComponent as EyeSVG } from 'assets/eye.svg';
+import { ReactComponent as EyeInvisibleSVG } from 'assets/eye-invisible.svg';
 
 export const CashLoadingIcon = <LoadingOutlined className="cashLoadingIcon" />;
 
@@ -135,6 +137,19 @@ export const ThemedTrashcanOutlined = styled(Trashcan)`
 
 export const ThemedFingerprintSVG = styled(FingerprintSVG)`
     fill: ${props => props.theme.buttons.primary.color};
+`;
+
+export const ThemedEyeSVG = styled(EyeSVG)`
+    fill: ${props => props.theme.buttons.primary.color};
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+`;
+export const ThemedInvisibleEyeSVG = styled(EyeInvisibleSVG)`
+    fill: ${props => props.theme.buttons.primary.color};
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
 `;
 
 export const LoadingBlock = styled.div`

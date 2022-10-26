@@ -48,6 +48,7 @@ TxHistory.propTypes = {
             sendModal: PropTypes.bool,
             autoCameraOn: PropTypes.bool,
             hideMessagesFromUnknownSender: PropTypes.bool,
+            toggleShowHideBalance: PropTypes.bool,
         }),
         PropTypes.bool,
     ]),

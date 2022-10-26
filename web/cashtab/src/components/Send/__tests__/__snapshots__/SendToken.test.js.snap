@@ -4,14 +4,20 @@ exports[`Wallet with BCH balances and tokens 1`] = `null`;
 
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 <div
-  className="sc-hSdWYo hTUZUh"
+  className="sc-cvbbAY blOKNt"
 >
   <div
-    className="sc-brqgnP gQXNsF"
+    className="sc-jAaTju eoNejo"
   >
-    6.001
-     
-    TBS
+    <span
+      className="sc-Rmtcm iyxXlA"
+    >
+       
+      6.001
+       
+      TBS
+       
+    </span>
   </div>
   <div
     className="ant-row"
@@ -33,7 +39,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         }
       >
         <div
-          className="sc-eNQAEJ kPLQzL"
+          className="sc-kEYyzF bWkEuo"
         >
           <div
             className="ant-form-item ant-form-item-with-help"
@@ -107,7 +113,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                           className="ant-input-group-addon"
                         >
                           <span
-                            className="sc-dxgOiQ fraLQa"
+                            className="sc-jKJlTe bCAJHv"
                             onClick={[Function]}
                           >
                             <span
@@ -140,7 +146,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
           </div>
         </div>
         <div
-          className="sc-eNQAEJ kPLQzL"
+          className="sc-kEYyzF bWkEuo"
         >
           <div
             className="ant-form-item ant-form-item-with-help"
@@ -199,7 +205,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                           className="ant-input-group-addon"
                         >
                           <span
-                            className="sc-hMqMXs cHEytt"
+                            className="sc-kkGfuU kViUPB"
                             disabled={false}
                             onClick={[Function]}
                           >
@@ -222,7 +228,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
           }
         >
           <button
-            className="sc-chPdSV bWFpkA"
+            className="sc-kGXeez fPsebQ"
             onClick={[Function]}
           >
             Send 
