@@ -24,7 +24,7 @@ import {
 } from 'components/Common/EnhancedInputs';
 import useBCH from 'hooks/useBCH';
 import { SidePaddingCtn } from 'components/Common/Atoms';
-import BalanceHeader from 'components/Common/BalanceHeader';
+import BalanceHeaderToken from 'components/Common/BalanceHeaderToken';
 import { Redirect } from 'react-router-dom';
 import useWindowDimensions from 'hooks/useWindowDimensions';
 import usePrevious from 'hooks/usePrevious';
@@ -494,10 +494,11 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                             </Form>
                         </AntdFormWrapper>
                     </Modal>
-                    <BalanceHeader
+                    <BalanceHeaderToken
                         balance={token.balance}
                         ticker={token.info.tokenTicker}
                         cashtabSettings={cashtabSettings}
+                        tokenDecimals={token.info.decimals}
                     />
                     <Row type="flex">
                         <Col span={24}>

@@ -1,5 +1,5 @@
 import { currency } from 'components/Common/Ticker.js';
-
+import BigNumber from 'bignumber.js';
 export const formatDate = (dateString, userLocale = 'en') => {
     const options = { month: 'short', day: 'numeric', year: 'numeric' };
     const dateFormattingError = 'Unable to format date.';
@@ -66,6 +66,47 @@ export const formatBalance = (unformattedBalance, optionalLocale) => {
         });
     } catch (err) {
         console.log(`Error in formatBalance for ${unformattedBalance}`);
+        console.log(err);
+        return unformattedBalance;
+    }
+};
+
+// unformattedBalance will always be a BigNumber, tokenDecimal will always be a number
+export const formatTokenBalance = (
+    unformattedBalance,
+    tokenDecimal,
+    defaultLocale = 'en',
+) => {
+    let formattedTokenBalance;
+    let convertedTokenBalance;
+    let locale = defaultLocale;
+    try {
+        if (
+            tokenDecimal === undefined ||
+            unformattedBalance === undefined ||
+            typeof tokenDecimal !== 'number' ||
+            !BigNumber.isBigNumber(unformattedBalance)
+        ) {
+            return undefined;
+        }
+        if (navigator && navigator.language) {
+            locale = navigator.language;
+        }
+
+        // Use toFixed to get a string with the correct decimal places
+        formattedTokenBalance = new BigNumber(unformattedBalance).toFixed(
+            tokenDecimal,
+        );
+        // formattedTokenBalance is converted into a number as toLocaleString does not work with a string
+        convertedTokenBalance = parseFloat(
+            formattedTokenBalance,
+        ).toLocaleString(locale, {
+            minimumFractionDigits: tokenDecimal,
+        });
+
+        return convertedTokenBalance;
+    } catch (err) {
+        console.log(`Error in formatTokenBalance for ${unformattedBalance}`);
         console.log(err);
         return unformattedBalance;
     }

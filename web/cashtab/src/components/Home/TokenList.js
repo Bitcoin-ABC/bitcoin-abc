@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import TokenListItem from './TokenListItem';
 import { Link } from 'react-router-dom';
-import { formatBalance } from 'utils/formatting';
+import { formatTokenBalance } from 'utils/formatting';
 
 const TokenList = ({ tokens }) => {
     return (
@@ -12,7 +12,10 @@ const TokenList = ({ tokens }) => {
                     <TokenListItem
                         ticker={token.info.tokenTicker}
                         tokenId={token.tokenId}
-                        balance={formatBalance(token.balance)}
+                        balance={formatTokenBalance(
+                            token.balance,
+                            token.info.decimals,
+                        )}
                     />
                 </Link>
             ))}

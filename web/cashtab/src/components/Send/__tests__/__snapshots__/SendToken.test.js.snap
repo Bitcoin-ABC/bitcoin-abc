@@ -9,15 +9,8 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
   <div
     className="sc-jAaTju eoNejo"
   >
-    <span
-      className="sc-Rmtcm iyxXlA"
-    >
-       
-      6.001
-       
-      TBS
-       
-    </span>
+     
+    TBS
   </div>
   <div
     className="ant-row"

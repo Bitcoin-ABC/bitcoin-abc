@@ -1,8 +1,10 @@
+import BigNumber from 'bignumber.js';
 import {
     formatDate,
     formatFiatBalance,
     formatSavedBalance,
     formatBalance,
+    formatTokenBalance,
 } from 'utils/formatting';
 
 describe('Correctly executes formatting functions', () => {
@@ -136,5 +138,24 @@ describe('Correctly executes formatting functions', () => {
     });
     it(`test formatFiatBalance with undefined input`, () => {
         expect(formatFiatBalance(undefined, 'en-US')).toBe(undefined);
+    });
+    it(`returns undefined formatTokenBalance with undefined inputs`, () => {
+        expect(formatTokenBalance(undefined, undefined)).toBe(undefined);
+    });
+    it(`test formatTokenBalance with valid balance & decimal inputs`, () => {
+        const testBalance = new BigNumber(100.00000001);
+        expect(formatTokenBalance(testBalance, 8)).toBe('100.00000001');
+    });
+    it(`returns undefined when passed invalid decimals parameter`, () => {
+        const testBalance = new BigNumber(100.00000001);
+        expect(formatTokenBalance(testBalance, 'cheese')).toBe(undefined);
+    });
+    it(`returns undefined when passed invalid balance parameter`, () => {
+        const testBalance = '100.000010122';
+        expect(formatTokenBalance(testBalance, 9)).toBe(undefined);
+    });
+    it(`maintains trailing zeros in balance per tokenDecimal parameter`, () => {
+        const testBalance = new BigNumber(10000);
+        expect(formatTokenBalance(testBalance, 8)).toBe('10,000.00000000');
     });
 });
