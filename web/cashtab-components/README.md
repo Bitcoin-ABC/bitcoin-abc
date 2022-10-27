@@ -6,13 +6,13 @@ This project is based on [badger-components-react](https://github.com/Bitcoin-co
 
 ## Notes
 
-Some features from `badger-components-react` are not yet fully supported. Upcoming features:
+Upcoming features:
 
--   [ ] eToken invoices
--   [ ] OP Return text
--   [ ] successFn and failureFn props
--   [ ] Bip70-style invoices
+-   [x] Connect to webpages metamask-style
 -   [ ] Websocket monitoring of payment status
+-   [ ] Create transactions with OP_RETURN text
+-   [ ] successFn and failureFn props
+-   [ ] BIP70 invoices
 
 # Build on eCash (XEC)
 
@@ -21,7 +21,7 @@ A set of React components and helpers to integrate eCash (XEC) and tokens into y
 ## Get Started
 
 -   [Homepage](https://e.cash/)
--   [Component Showcase](https://laughing-villani-8cfcaf.netlify.app/)
+-   [Component Showcase](https://components.cashtab.com/)
 -   [Cashtab Extension](https://chrome.google.com/webstore/detail/cashtab/obldfcmebhllhjlhjbnghaipekcppeag)
 -   [NPM page](https://www.npmjs.com/package/cashtab-components)
 
@@ -47,12 +47,10 @@ $ npm install --save styled-components@4.4.1
 import { CashtabButton, CashtabBadge } from 'cashtab-components';
 
 const Example = props => {
-    // eatBCH bitcoin cash address
-    const toAddress = 'bitcoincash:pp8skudq3x5hzw8ew7vzsw8tn4k8wxsqsv0lt0mf3g';
+    const toAddress = 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035';
 
-    // Random SLP address
-    const toSLPAddress =
-        'simpleledger:qq6qcjt6xlkeqzdwkhdvfyl2q2d2wafkgg8phzcqez';
+    // eToken address
+    const toSLPAddress = 'etoken:qz2708636snqhsxu8wnlka78h6fdp77ar5tv2tzg4r';
 
     // tokenId
     const nakamotoID =
@@ -86,7 +84,7 @@ const Example = props => {
             <CashtabBadge
                 price={0.001} // Price in currency
                 currency="CAD" // Currency to convert from
-                to="bitcoincash:pp8skudq3x5hzw8ew7vzsw8tn4k8wxsqsv0lt0mf3g" // Payment address
+                to="ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035" // Payment address
                 opReturn={['0x6d02', 'Hello cashtab-components']}
                 tag="Cashtab Pay" // Text on button
                 text="Payment Total" // Text at top of badge
@@ -102,7 +100,7 @@ const Example = props => {
             <CashtabButton
                 price={0.003}
                 currency="USD"
-                to="bitcoincash:pp8skudq3x5hzw8ew7vzsw8tn4k8wxsqsv0lt0mf3g"
+                to="ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035"
                 opReturn={['0x6d02', 'Hello cashtab-components-react']}
                 text="cashtab Pay"
                 showAmount
@@ -116,7 +114,7 @@ const Example = props => {
             <CashtabBadge
                 amount={0.001} // Amount in crypto
                 coinType="XEC" // Defaults to XEC
-                to="bitcoincash:pp8skudq3x5hzw8ew7vzsw8tn4k8wxsqsv0lt0mf3g" // Payment address
+                to="ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035" // Payment address
                 isRepeatable // Reset to fresh state after a few seconds
                 repeatTimeout={4000} // time in ms to reset button after payment
                 watchAddress // Watch all payments to address
@@ -194,7 +192,7 @@ To develop additions to this project, run the local storybook development server
  $ npm run storybook
 ```
 
-Navigate to [http://localhost:9001](http://localhost:9001) to view your stories. They automatically update as you develop ✨.
+Navigate to [http://localhost:6006](http://localhost:6006) to view your stories. They automatically update as you develop ✨.
 
 Storybook will pick up stories from the `*stories.tsx` file in each components folder.
 
