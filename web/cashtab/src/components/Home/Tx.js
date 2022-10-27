@@ -418,7 +418,7 @@ const ReceivedFromCtn = styled.div`
     display: flex;
     align-items: center;
     justify-content: left;
-    gap: 3px;
+    gap: 2px;
     h4 {
         margin-top: 2.5px;
     }
