@@ -112,7 +112,7 @@ export const currency = {
         try: { name: 'Turkish Lira', symbol: '₺', slug: 'try' },
         vnd: { name: 'Vietnamese đồng', symbol: 'đ', slug: 'vnd' },
     },
-    bannedTokenTickers: [
+    coingeckoTop500Tickers: [
         'btc',
         'eth',
         'usdt',
@@ -613,7 +613,7 @@ export const currency = {
         'forth',
         'sb',
     ],
-    bannedTokenNames: [
+    coingeckoTop500Names: [
         'Bitcoin',
         'Ethereum',
         'Tether',
@@ -1115,7 +1115,7 @@ export const currency = {
         'Wanchain',
         'Ampleforth Governance',
     ],
-    bannedTokenIds: [
+    coingeckoTop500Ids: [
         'bitcoin',
         'ethereum',
         'tether',
@@ -1617,6 +1617,8 @@ export const currency = {
         'ellipsis',
         'superfarm',
     ],
+    bannedTickers: ['ebtc'],
+    bannedNames: ['ebitcoin'],
 };
 
 export function parseAddressForParams(addressString) {

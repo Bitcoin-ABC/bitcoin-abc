@@ -63,19 +63,19 @@ export const isProbablyNotAScamTokenName = tokenName => {
         .join(' ');
 
     return (
-        !currency.bannedTokenNames.includes(sanitizedTokenName) &&
+        !currency.coingeckoTop500Names.includes(sanitizedTokenName) &&
         // for cases where user adds spaces between e a c h letter
-        !currency.bannedTokenNames.includes(
+        !currency.coingeckoTop500Names.includes(
             sanitizedTokenName.split(' ').join(''),
         ) &&
-        // cross reference with bannedTokenTickers
-        !currency.bannedTokenTickers.includes(sanitizedTokenName) &&
-        !currency.bannedTokenTickers.includes(
+        // cross reference with coingeckoTop500Tickers
+        !currency.coingeckoTop500Tickers.includes(sanitizedTokenName) &&
+        !currency.coingeckoTop500Tickers.includes(
             sanitizedTokenName.split(' ').join(''),
         ) &&
-        //cross reference with bannedTokenIds
-        !currency.bannedTokenIds.includes(sanitizedTokenName) &&
-        !currency.bannedTokenIds.includes(
+        //cross reference with coingeckoTop500Ids
+        !currency.coingeckoTop500Ids.includes(sanitizedTokenName) &&
+        !currency.coingeckoTop500Ids.includes(
             sanitizedTokenName.split(' ').join(''),
         ) &&
         //cross reference with bannedFiatCurrencies
@@ -84,7 +84,15 @@ export const isProbablyNotAScamTokenName = tokenName => {
         ) &&
         !currency.settingsValidation.fiatCurrency.includes(
             sanitizedTokenName.split(' ').join(''),
-        )
+        ) &&
+        //cross reference with bannedTickers
+        !currency.bannedTickers.includes(sanitizedTokenName) &&
+        !currency.bannedTickers.includes(
+            sanitizedTokenName.split(' ').join(''),
+        ) &&
+        //cross reference with bannedNames
+        !currency.bannedNames.includes(sanitizedTokenName) &&
+        !currency.bannedNames.includes(sanitizedTokenName.split(' ').join(''))
     );
 };
 
@@ -99,20 +107,20 @@ export const isProbablyNotAScamTokenTicker = tokenTicker => {
         .join('');
 
     return (
-        !currency.bannedTokenTickers.includes(sanitizedTokenTicker) &&
+        !currency.coingeckoTop500Tickers.includes(sanitizedTokenTicker) &&
         // for cases where user adds spaces between e a c h letter
 
-        !currency.bannedTokenTickers.includes(
+        !currency.coingeckoTop500Tickers.includes(
             sanitizedTokenTicker.split(' ').join(''),
         ) &&
-        //cross reference with bannedTokenNames
-        !currency.bannedTokenNames.includes(sanitizedTokenTicker) &&
-        !currency.bannedTokenNames.includes(
+        //cross reference with coingeckoTop500Names
+        !currency.coingeckoTop500Names.includes(sanitizedTokenTicker) &&
+        !currency.coingeckoTop500Names.includes(
             sanitizedTokenTicker.split(' ').join(''),
         ) &&
-        //cross reference with bannedTokenIds
-        !currency.bannedTokenIds.includes(sanitizedTokenTicker) &&
-        !currency.bannedTokenIds.includes(
+        //cross reference with coingeckoTop500Ids
+        !currency.coingeckoTop500Ids.includes(sanitizedTokenTicker) &&
+        !currency.coingeckoTop500Ids.includes(
             sanitizedTokenTicker.split(' ').join(''),
         ) &&
         //cross reference with bannedFiatCurrencies
@@ -121,7 +129,15 @@ export const isProbablyNotAScamTokenTicker = tokenTicker => {
         ) &&
         !currency.settingsValidation.fiatCurrency.includes(
             sanitizedTokenTicker.split(' ').join(''),
-        )
+        ) &&
+        //cross reference with bannedTickers
+        !currency.bannedTickers.includes(sanitizedTokenTicker) &&
+        !currency.bannedTickers.includes(
+            sanitizedTokenTicker.split(' ').join(''),
+        ) &&
+        //cross reference with bannedNames
+        !currency.bannedNames.includes(sanitizedTokenTicker) &&
+        !currency.bannedNames.includes(sanitizedTokenTicker.split(' ').join(''))
     );
 };
 
