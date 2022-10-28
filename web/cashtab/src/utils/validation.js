@@ -389,6 +389,51 @@ export const isValidXecAddress = addr => {
     return isValidXecAddress;
 };
 
+export const isValidBchAddress = addr => {
+    /* 
+    Returns true for a valid BCH address
+
+    Valid BCH address:
+    - May or may not have prefix `bitcoincash:`
+    - Checksum must validate for prefix `bitcoincash:`
+    
+    A simple ledger address is not considered a valid bitcoincash address
+    */
+
+    if (!addr) {
+        return false;
+    }
+
+    let isValidBchAddress;
+    let isPrefixedBchAddress;
+
+    // Check for possible prefix
+    if (addr.includes(':')) {
+        // Test for 'ecash:' prefix
+        isPrefixedBchAddress = addr.slice(0, 12) === 'bitcoincash:';
+        // Any address including ':' that doesn't start explicitly with 'bitcoincash:' is invalid
+        if (!isPrefixedBchAddress) {
+            isValidBchAddress = false;
+            return isValidBchAddress;
+        }
+    } else {
+        isPrefixedBchAddress = false;
+    }
+
+    // If no prefix, assume it is checksummed for an bitcoincash: prefix
+    const testedXecAddr = isPrefixedBchAddress ? addr : `bitcoincash:${addr}`;
+
+    try {
+        const decoded = cashaddr.decode(testedXecAddr);
+        if (decoded.prefix === 'bitcoincash') {
+            isValidBchAddress = true;
+        }
+    } catch (err) {
+        isValidBchAddress = false;
+    }
+    return isValidBchAddress;
+};
+
 export const isValidEtokenAddress = addr => {
     /* 
     Returns true for a valid eToken address

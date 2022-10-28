@@ -3,6 +3,7 @@ import {
     isValidXecAddress,
     isValidEtokenAddress,
     isValidContactList,
+    isValidBchAddress,
 } from 'utils/validation';
 import BigNumber from 'bignumber.js';
 import cashaddr from 'ecashaddrjs';
@@ -351,7 +352,9 @@ export const getChangeAddressFromInputUtxos = (BCH, inputUtxos, wallet) => {
     // Validate address
     try {
         changeAddress = inputUtxos[0].address;
-        BCH.Address.isCashAddress(changeAddress);
+        if (!isValidBchAddress(changeAddress)) {
+            throw new Error('Invalid change address');
+        }
     } catch (err) {
         throw new Error('Invalid input utxo');
     }

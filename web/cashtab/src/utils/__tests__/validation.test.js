@@ -8,6 +8,7 @@ import {
     isValidTokenDocumentUrl,
     isValidCashtabSettings,
     isValidXecAddress,
+    isValidBchAddress,
     isValidNewWalletNameLength,
     isValidEtokenAddress,
     isValidXecSendAmount,
@@ -351,6 +352,54 @@ describe('Validation utils', () => {
     it(`isValidXecAddress rejects an empty string input`, () => {
         const addr = '';
         expect(isValidXecAddress(addr)).toBe(false);
+    });
+    it(`isValidBchAddress correctly validates a valid BCH address with bitcoincash: prefix`, () => {
+        const addr = 'bitcoincash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqqkm80dnl6';
+        expect(isValidBchAddress(addr)).toBe(true);
+    });
+    it(`isValidBchAddress correctly validates a valid BCH address without bitcoincash: prefix`, () => {
+        const addr = 'qzvydd4n3lm3xv62cx078nu9rg0e3srmqqkm80dnl6';
+        expect(isValidBchAddress(addr)).toBe(true);
+    });
+    it(`isValidBchAddress rejects a valid legacy address`, () => {
+        const addr = '1Efd9z9GRVJK2r73nUpFmBnsKUmfXNm2y2';
+        expect(isValidBchAddress(addr)).toBe(false);
+    });
+    it(`isValidBchAddress rejects a valid ecash: address`, () => {
+        const addr = 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035';
+        expect(isValidBchAddress(addr)).toBe(false);
+    });
+    it(`isValidBchAddress rejects a valid ecash: address without the ecash prefix`, () => {
+        const addr = 'qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035';
+        expect(isValidBchAddress(addr)).toBe(false);
+    });
+    it(`isValidBchAddress rejects a valid etoken: address with prefix`, () => {
+        const addr = 'etoken:qz2708636snqhsxu8wnlka78h6fdp77ar5tv2tzg4r';
+        expect(isValidBchAddress(addr)).toBe(false);
+    });
+    it(`isValidBchAddress rejects a valid etoken: address without prefix`, () => {
+        const addr = 'qz2708636snqhsxu8wnlka78h6fdp77ar5tv2tzg4r';
+        expect(isValidBchAddress(addr)).toBe(false);
+    });
+    it(`isValidBchAddress rejects a valid simpleledger: address with prefix`, () => {
+        const addr = 'simpleledger:qrujw0wrzncyxw8q3d0xkfet4jafrqhk6csev0v6y3';
+        expect(isValidBchAddress(addr)).toBe(false);
+    });
+    it(`isValidBchAddress rejects a valid simpleledger: address without prefix`, () => {
+        const addr = 'qrujw0wrzncyxw8q3d0xkfet4jafrqhk6csev0v6y3';
+        expect(isValidBchAddress(addr)).toBe(false);
+    });
+    it(`isValidBchAddress rejects an invalid address`, () => {
+        const addr = 'wtf is this definitely not an address';
+        expect(isValidBchAddress(addr)).toBe(false);
+    });
+    it(`isValidBchAddress rejects a null input`, () => {
+        const addr = null;
+        expect(isValidBchAddress(addr)).toBe(false);
+    });
+    it(`isValidBchAddress rejects an empty string input`, () => {
+        const addr = '';
+        expect(isValidBchAddress(addr)).toBe(false);
     });
     it(`isValidEtokenAddress rejects a valid XEC address with ecash: prefix`, () => {
         const addr = 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035';
