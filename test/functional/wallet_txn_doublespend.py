@@ -120,12 +120,24 @@ class TxnMallTest(BitcoinTestFramework):
         self.nodes[2].sendrawtransaction(fund_bar_tx["hex"])
         doublespend_txid = self.nodes[2].sendrawtransaction(doublespend["hex"])
         # ... mine a block...
-        self.generate(self.nodes[2], 1, sync_fun=self.no_op)
+        block_hash = self.generate(self.nodes[2], 1, sync_fun=self.no_op)[0]
 
-        # Reconnect the split network, and sync chain:
-        self.connect_nodes(1, 2)
-        # Mine another block to make sure we sync
-        self.generate(self.nodes[2], 1)
+        expected_logs = [
+            f"Transaction {doublespend_txid} (in block {block_hash}) conflicts with wallet transaction {txid1}",
+            f"Transaction {doublespend_txid} (in block {block_hash}) conflicts with wallet transaction {txid2}",
+        ]
+        if not self.options.mine_block:
+            # Additional logs for mempool removal
+            expected_logs += [
+                f"TransactionRemovedFromMempool: txid={txid1} reason=conflict",
+                f"TransactionRemovedFromMempool: txid={txid2} reason=conflict",
+            ]
+
+        with self.nodes[0].assert_debug_log(expected_msgs=expected_logs):
+            # Reconnect the split network, and sync chain:
+            self.connect_nodes(1, 2)
+            # Mine another block to make sure we sync
+            self.generate(self.nodes[2], 1)
         assert_equal(self.nodes[0].gettransaction(doublespend_txid)["confirmations"], 2)
 
         # Re-fetch transaction info:

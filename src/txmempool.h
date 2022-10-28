@@ -160,6 +160,8 @@ enum class MemPoolRemovalReason {
     AVALANCHE,
 };
 
+const std::string RemovalReasonToString(const MemPoolRemovalReason &r) noexcept;
+
 /**
  * CTxMemPool stores valid-according-to-the-current-best-chain transactions that
  * may be included in the next block.
