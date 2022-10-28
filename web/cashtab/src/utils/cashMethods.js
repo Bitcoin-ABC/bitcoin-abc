@@ -540,14 +540,14 @@ export const generateTxOutput = (
                     destinationAddressAndValueArray[i].split(',')[1],
                 );
                 txBuilder.addOutput(
-                    BCH.Address.toCashAddress(outputAddress),
+                    outputAddress,
                     parseInt(fromXecToSatoshis(outputValue)),
                 );
             }
         } else {
             // for one to one mode, add output w/ single address and amount to send
             txBuilder.addOutput(
-                BCH.Address.toCashAddress(destinationAddress),
+                destinationAddress,
                 parseInt(fromXecToSatoshis(singleSendValue)),
             );
         }
