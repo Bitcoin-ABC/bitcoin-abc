@@ -20,6 +20,7 @@
         "bfj": "^7.0.2",
         "bignumber.js": "^9.0.0",
         "browserslist": "^4.18.1",
+        "bs58": "^4.0.1",
         "buffer": "^6.0.3",
         "camelcase": "^6.2.1",
         "case-sensitive-paths-webpack-plugin": "^2.4.0",

@@ -10,6 +10,7 @@ import {
     getHashArrayFromWallet,
     isActiveWebsocket,
     getWalletBalanceFromUtxos,
+    toHash160,
 } from 'utils/cashMethods';
 import {
     isValidCashtabSettings,
@@ -106,6 +107,12 @@ const useWallet = () => {
         const cashAddress = BCH.HDNode.toCashAddress(node);
         const hash160 = BCH.Address.toHash160(cashAddress);
         const slpAddress = BCH.SLP.Address.toSLPAddress(cashAddress);
+
+        // temporary comparison between BCH-JS' toHash160() and the local toHash160() output
+        const localhash160 = toHash160(cashAddress);
+        if (hash160 === localhash160) {
+            console.log('deriveAccount(): hash160 matches localhash160');
+        }
 
         return {
             publicKey,

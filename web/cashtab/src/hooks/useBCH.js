@@ -11,6 +11,7 @@ import {
     generateTokenTxOutput,
     signAndBuildTx,
     getChangeAddressFromInputUtxos,
+    toHash160,
 } from 'utils/cashMethods';
 import ecies from 'ecies-lite';
 
@@ -302,9 +303,17 @@ export default function useBCH() {
         }
 
         // get hash160 of address
-        let recipientAddressHash160;
+        let recipientAddressHash160, localRecipientAddressHash160;
         try {
             recipientAddressHash160 = BCH.Address.toHash160(recipientAddress);
+
+            // temporary comparison between BCH-JS' toHash160() and the local toHash160() output
+            localRecipientAddressHash160 = toHash160(recipientAddress);
+            if (recipientAddressHash160 === localRecipientAddressHash160) {
+                console.log(
+                    'getRecipientPublicKey(): recipientAddressHash160 matches localRecipientAddressHash160',
+                );
+            }
         } catch (err) {
             console.log(
                 `Error determining BCH.Address.toHash160(${recipientAddress} in getRecipientPublicKey())`,

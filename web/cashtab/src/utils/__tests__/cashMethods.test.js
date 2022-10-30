@@ -29,6 +29,7 @@ import {
     generateTokenTxOutput,
     getCashtabByteCount,
     calcFee,
+    toHash160,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import {
@@ -1197,6 +1198,83 @@ describe('Correctly executes cash utility functions', () => {
     });
     it(`Recognizes a latest, current wallet that does not require migration`, () => {
         expect(isLegacyMigrationRequired(notLegacyWallet)).toBe(false);
+    });
+
+    test('toHash160() converts a valid bitcoincash: prefix address to a hash160', () => {
+        const result = toHash160(
+            'bitcoincash:qq9h6d0a5q65fgywv4ry64x04ep906mdku7ymranw3',
+        );
+        expect(result).toStrictEqual(
+            '0b7d35fda03544a08e65464d54cfae4257eb6db7',
+        );
+    });
+    test('toHash160 throws error if input address is an invalid bitcoincash: address', () => {
+        const address = 'bitcoincash:qqd3qnINVALIDDDDDDDDDza25m';
+
+        let errorThrown;
+        try {
+            toHash160(address);
+        } catch (err) {
+            errorThrown = err.message;
+        }
+        expect(errorThrown).toStrictEqual('Invalid address: ' + address + '.');
+    });
+    test('toHash160() converts a valid ecash: prefix address to a hash160', () => {
+        const result = toHash160(
+            'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+        );
+        expect(result).toStrictEqual(
+            '0b7d35fda03544a08e65464d54cfae4257eb6db7',
+        );
+    });
+    test('toHash160 throws error if input address is an invalid ecash address', () => {
+        const address = 'ecash:qqd3qn4zINVALIDDDDDtfza25m';
+
+        let errorThrown;
+        try {
+            toHash160(address);
+        } catch (err) {
+            errorThrown = err.message;
+        }
+        expect(errorThrown).toStrictEqual('Invalid address: ' + address + '.');
+    });
+    test('toHash160() converts a valid etoken: address to a hash160', () => {
+        const result = toHash160(
+            'etoken:qq9h6d0a5q65fgywv4ry64x04ep906mdkufhx2swv3',
+        );
+        expect(result).toStrictEqual(
+            '0b7d35fda03544a08e65464d54cfae4257eb6db7',
+        );
+    });
+    test('toHash160 throws error if input address is an invalid etoken: address', () => {
+        const address = 'etoken:qq9h6d0a5INVALIDDDDDDx2swv3';
+
+        let errorThrown;
+        try {
+            toHash160(address);
+        } catch (err) {
+            errorThrown = err.message;
+        }
+        expect(errorThrown).toStrictEqual('Invalid address: ' + address + '.');
+    });
+    test('toHash160() converts a valid simpleledger: address to a hash160', () => {
+        const result = toHash160(
+            'simpleledger:qq9h6d0a5q65fgywv4ry64x04ep906mdkujlscgns0',
+        );
+        expect(result).toStrictEqual(
+            '0b7d35fda03544a08e65464d54cfae4257eb6db7',
+        );
+    });
+    test('toHash160 throws error if input address is an invalid simpleledger: address', () => {
+        const address = 'simpleledger:qq9h6d0a5qINVALIDDDjlscgns0';
+
+        let errorThrown;
+        try {
+            toHash160(address);
+        } catch (err) {
+            errorThrown = err.message;
+        }
+        expect(errorThrown).toStrictEqual('Invalid address: ' + address + '.');
     });
 
     test('toLegacyCash() converts a valid ecash: prefix address to a valid bitcoincash: prefix address', async () => {
