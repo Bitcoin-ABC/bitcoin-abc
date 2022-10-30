@@ -303,24 +303,16 @@ export default function useBCH() {
         }
 
         // get hash160 of address
-        let recipientAddressHash160, localRecipientAddressHash160;
+        let recipientAddressHash160;
         try {
-            recipientAddressHash160 = BCH.Address.toHash160(recipientAddress);
-
-            // temporary comparison between BCH-JS' toHash160() and the local toHash160() output
-            localRecipientAddressHash160 = toHash160(recipientAddress);
-            if (recipientAddressHash160 === localRecipientAddressHash160) {
-                console.log(
-                    'getRecipientPublicKey(): recipientAddressHash160 matches localRecipientAddressHash160',
-                );
-            }
+            recipientAddressHash160 = toHash160(recipientAddress);
         } catch (err) {
             console.log(
-                `Error determining BCH.Address.toHash160(${recipientAddress} in getRecipientPublicKey())`,
+                `Error determining toHash160(${recipientAddress} in getRecipientPublicKey())`,
                 err,
             );
             throw new Error(
-                `Error determining BCH.Address.toHash160(${recipientAddress} in getRecipientPublicKey())`,
+                `Error determining toHash160(${recipientAddress} in getRecipientPublicKey())`,
             );
         }
 

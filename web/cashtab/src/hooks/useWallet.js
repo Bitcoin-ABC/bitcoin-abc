@@ -105,14 +105,8 @@ const useWallet = () => {
         const node = BCH.HDNode.derivePath(masterHDNode, path);
         const publicKey = BCH.HDNode.toPublicKey(node).toString('hex');
         const cashAddress = BCH.HDNode.toCashAddress(node);
-        const hash160 = BCH.Address.toHash160(cashAddress);
+        const hash160 = toHash160(cashAddress);
         const slpAddress = BCH.SLP.Address.toSLPAddress(cashAddress);
-
-        // temporary comparison between BCH-JS' toHash160() and the local toHash160() output
-        const localhash160 = toHash160(cashAddress);
-        if (hash160 === localhash160) {
-            console.log('deriveAccount(): hash160 matches localhash160');
-        }
 
         return {
             publicKey,
