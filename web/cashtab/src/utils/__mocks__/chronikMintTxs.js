@@ -249,3 +249,87 @@ export const mintingAddressBchFormatAlita =
     'bitcoincash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqf8w5lusm';
 export const mintingAddressAlita =
     'etoken:qr6lws9uwmjkkaau4w956lugs9nlg9hudq75najpjm';
+
+export const mintingAddressBchFormatBuxSelfMint =
+    'bitcoincash:qzzjdnmph2s8z5vf0vqpvr24tfue5krkdsnh48utfn';
+export const mintingAddressBuxSelfMint =
+    'etoken:qzzjdnmph2s8z5vf0vqpvr24tfue5krkdsyygw3ktn';
+export const mintingHash160BuxSelfMint =
+    '8526cf61baa07151897b00160d555a799a58766c';
+export const mintingTxBuxSelfMint = {
+    txid: 'c1eeede277658dfbf69f96feb1576c6cbb4f979a3026c371d3672fac5b876056',
+    version: 1,
+    inputs: [
+        {
+            prevOut: {
+                txid: 'f9c2812290dc2328b02ac75e971dbfae7c86dccc2acd1a132cc4a4aa09e03f1a',
+                outIdx: 590,
+            },
+            inputScript:
+                '4199c7c743428f1fa40496da8c715a0c07b6efc6c067010a1577083a1e68551e7c9a66f7eb4d9f42c2d15dba641ca0d8d2a3b2b15121ebba51da380c5e034af808412102897c9d315d70c7d84f2b4ddf80623c14b03ca365f88c34d3705d3f26614e9c1d4d0f010100000082b18043d5fda9bdfe01e832ed93cea0333be9da8948b27b71469b6b4efdfe1b752adad0a7b9ceca853768aebb6965eca126a62965f698a0c1bc43d83db632ad1a3fe009aaa4c42c131acd2accdc867caebf1d975ec72ab02823dc902281c2f94e020000726e01247f7576567901687f7501447f77887c76014e7f7701147f755779a9880284007f757e537a7c21027e6cf8229495afadcb5a7e40365bbc82afcf145eacca3193151e68a61fc81743bb527a76820128947f7c547f7701207f75537aaa8801207f757baa88a86f7b828c7f757c7bbb75acfc08000000000000ffffffffe775acb81af19a90bc586b40c64bee792daa010dea0fce2989b9de1a4ad412a30000000041000000473045022100cf4296727eeebaac8bcae5c67abee0e48b9f86fe577e0d370133fc0ccd23d6b5022018fe1ac98fd312f223ac5ca97bdf3f0bd8d94527099dacdecf841b283d7b01324c840000000000000000396a04534c50000101044d494e54207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e50102080000000000072bf022020000000000001976a9148526cf61baa07151897b00160d555a799a58766c88ac220200000000000017a91420d151c5ab4ca4154407626069eaafd8ce6306fc87481a3fe009aaa4c42c131acd2accdc867caebf1d975ec72ab02823dc902281c2f94e020000365a97e65945869279dc943f86cc1cbc81febdf67313c0c2cdfefcb117cceff5020000004c726e01247f7576567901687f7501447f77887c76014e7f7701147f755779a9880284007f757e537a7c21027e6cf8229495afadcb5a7e40365bbc82afcf145eacca3193151e68a61fc81743bb527a76820128947f7c547f7701207f75537aaa8801207f757baa88a86f7b828c7f757c7bbb75ac',
+            outputScript: 'a9144d80de3cda49fd1bd98eb535da0f2e4880935ea987',
+            value: '2300',
+            sequenceNo: 4294967295,
+        },
+        {
+            prevOut: {
+                txid: 'f5efcc17b1fcfecdc2c01373f6bdfe81bc1ccc863f94dc7992864559e6975a36',
+                outIdx: 2,
+            },
+            inputScript:
+                '412dd1c2c1f5daece7ddbfafd7b83726427941db3bf12f89a872632732f7fcecd7e9df8e41258e5ab7b19e05d0a2cd3a914090088cdd5818a72596810e7d5ec0f6412102897c9d315d70c7d84f2b4ddf80623c14b03ca365f88c34d3705d3f26614e9c1d4d03010100000082b18043d5fda9bdfe01e832ed93cea0333be9da8948b27b71469b6b4efdfe1b752adad0a7b9ceca853768aebb6965eca126a62965f698a0c1bc43d83db632ad365a97e65945869279dc943f86cc1cbc81febdf67313c0c2cdfefcb117cceff502000000666e01247f757c76014e7f7701147f755779a9880284007f757e537a7c21027e6cf8229495afadcb5a7e40365bbc82afcf145eacca3193151e68a61fc81743bb527a76820128947f7c547f7701207f75537aaa8801207f757baa88a86f7b828c7f757c7bbb75ac2202000000000000ffffffffe775acb81af19a90bc586b40c64bee792daa010dea0fce2989b9de1a4ad412a30000000041000000473045022100cf4296727eeebaac8bcae5c67abee0e48b9f86fe577e0d370133fc0ccd23d6b5022018fe1ac98fd312f223ac5ca97bdf3f0bd8d94527099dacdecf841b283d7b01324c840000000000000000396a04534c50000101044d494e54207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e50102080000000000072bf022020000000000001976a9148526cf61baa07151897b00160d555a799a58766c88ac220200000000000017a91420d151c5ab4ca4154407626069eaafd8ce6306fc87481a3fe009aaa4c42c131acd2accdc867caebf1d975ec72ab02823dc902281c2f94e020000365a97e65945869279dc943f86cc1cbc81febdf67313c0c2cdfefcb117cceff5020000004c666e01247f757c76014e7f7701147f755779a9880284007f757e537a7c21027e6cf8229495afadcb5a7e40365bbc82afcf145eacca3193151e68a61fc81743bb527a76820128947f7c547f7701207f75537aaa8801207f757baa88a86f7b828c7f757c7bbb75ac',
+            outputScript: 'a91420d151c5ab4ca4154407626069eaafd8ce6306fc87',
+            value: '546',
+            sequenceNo: 4294967295,
+            slpToken: {
+                amount: '0',
+                isMintBaton: true,
+            },
+        },
+    ],
+    outputs: [
+        {
+            value: '0',
+            outputScript:
+                '6a04534c50000101044d494e54207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e50102080000000000072bf0',
+        },
+        {
+            value: '546',
+            outputScript: '76a9148526cf61baa07151897b00160d555a799a58766c88ac',
+            slpToken: {
+                amount: '470000',
+                isMintBaton: false,
+            },
+            spentBy: {
+                txid: '3f14af158be922cc9c5328b6075be7ab528cea9464e8b3fca253f442541b9769',
+                outIdx: 0,
+            },
+        },
+        {
+            value: '546',
+            outputScript: 'a91420d151c5ab4ca4154407626069eaafd8ce6306fc87',
+            slpToken: {
+                amount: '0',
+                isMintBaton: true,
+            },
+        },
+    ],
+    lockTime: 0,
+    slpTxData: {
+        slpMeta: {
+            tokenType: 'FUNGIBLE',
+            txType: 'MINT',
+            tokenId:
+                '7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5',
+        },
+    },
+    block: {
+        height: 763770,
+        hash: '000000000000000009ecc653951db1cc89172c3f43daf48cd01bb5e0429d12b9',
+        timestamp: '1667043609',
+    },
+    timeFirstSeen: '1667043013',
+    size: 1742,
+    isCoinbase: false,
+    network: 'XEC',
+};

@@ -911,7 +911,7 @@ export const getMintAddress = async (chronik, BCH, tokenId) => {
     try {
         genesisTx = await chronik.tx(tokenId);
         // get the minting address chronik
-        // iterate over the inputs
+        // iterate over the tx outputs
         const { outputs } = genesisTx;
         for (let i = 0; i < outputs.length; i += 1) {
             const thisOutput = outputs[i];
