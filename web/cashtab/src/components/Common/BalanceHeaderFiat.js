@@ -28,7 +28,7 @@ const BalanceHeaderFiat = ({ balance, settings, fiatPrice }) => {
         <>
             {fiatPrice && (
                 <BalanceHeaderFiatWrap>
-                    {settings && settings.toggleHideBalance ? (
+                    {settings && settings.balanceVisible ? (
                         <span>
                             {' '}
                             {settings

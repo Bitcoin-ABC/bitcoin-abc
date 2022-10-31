@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 
 const HideBalanceSwitch = ({ cashtabSettings, changeCashtabSettings }) => {
     const handleShowHideBalance = checkedState => {
-        changeCashtabSettings('toggleHideBalance', checkedState);
+        changeCashtabSettings('balanceVisible', checkedState);
     };
     return (
         <div>
@@ -16,9 +16,7 @@ const HideBalanceSwitch = ({ cashtabSettings, changeCashtabSettings }) => {
                     checkedChildren={<ThemedEyeSVG />}
                     unCheckedChildren={<ThemedInvisibleEyeSVG />}
                     checked={
-                        cashtabSettings
-                            ? cashtabSettings.toggleHideBalance
-                            : false
+                        cashtabSettings ? cashtabSettings.balanceVisible : false
                     }
                     onChange={handleShowHideBalance}
                 />

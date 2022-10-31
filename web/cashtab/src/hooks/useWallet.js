@@ -1196,7 +1196,7 @@ const useWallet = () => {
     const changeCashtabSettings = async (key, newValue) => {
         // Set loading to true as you do not want to display the fiat price of the last currency
         // loading = true will lock the UI until the fiat price has updated
-        if (key !== 'toggleHideBalance') {
+        if (key !== 'balanceVisible') {
             setLoading(true);
         }
         // Get settings from localforage

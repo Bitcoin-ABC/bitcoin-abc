@@ -19,7 +19,7 @@ const HiddenBalanceCtn = styled.span`
 const BalanceHeader = ({ balance, ticker, cashtabSettings }) => {
     return (
         <BalanceHeaderWrap>
-            {cashtabSettings && cashtabSettings.toggleHideBalance ? (
+            {cashtabSettings && cashtabSettings.balanceVisible ? (
                 <span>
                     {formatBalance(balance)} {ticker}{' '}
                 </span>
