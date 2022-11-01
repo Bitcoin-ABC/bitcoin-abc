@@ -1,5 +1,3 @@
-import BigNumber from 'bignumber.js';
-import { currency } from '../../components/Common/Ticker';
 import {
     organizeUtxosByType,
     getPreliminaryTokensArray,
