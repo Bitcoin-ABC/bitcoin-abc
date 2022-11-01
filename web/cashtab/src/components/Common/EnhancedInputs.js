@@ -199,6 +199,9 @@ export const SendBchInput = ({
                     <Input
                         style={{ width: '60%', textAlign: 'left' }}
                         type="number"
+                        /*event.target.blur() is used as event.preventDefault() 
+                        will not work on passive targets such as onWheel */
+                        onWheel={event => event.target.blur()}
                         step={
                             inputProps.dollar === 1
                                 ? 0.01
@@ -249,6 +252,9 @@ export const DestinationAmount = ({ onMax, inputProps, ...otherProps }) => {
             <Form.Item {...otherProps}>
                 <Input
                     type="number"
+                    /*event.target.blur() is used as event.preventDefault() 
+                        will not work on passive targets such as onWheel */
+                    onWheel={event => event.target.blur()}
                     prefix={
                         <img
                             src={currency.logo}

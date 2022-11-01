@@ -259,6 +259,7 @@ Array [
                               onChange={[Function]}
                               onFocus={[Function]}
                               onKeyDown={[Function]}
+                              onWheel={[Function]}
                               placeholder="Amount"
                               required={true}
                               step={0.01}
@@ -861,6 +862,7 @@ Array [
                               onChange={[Function]}
                               onFocus={[Function]}
                               onKeyDown={[Function]}
+                              onWheel={[Function]}
                               placeholder="Amount"
                               required={true}
                               step={0.01}
@@ -1468,6 +1470,7 @@ Array [
                               onChange={[Function]}
                               onFocus={[Function]}
                               onKeyDown={[Function]}
+                              onWheel={[Function]}
                               placeholder="Amount"
                               required={true}
                               step={0.01}
@@ -2071,6 +2074,7 @@ Array [
                               onChange={[Function]}
                               onFocus={[Function]}
                               onKeyDown={[Function]}
+                              onWheel={[Function]}
                               placeholder="Amount"
                               required={true}
                               step={0.01}
@@ -2668,6 +2672,7 @@ Array [
                               onChange={[Function]}
                               onFocus={[Function]}
                               onKeyDown={[Function]}
+                              onWheel={[Function]}
                               placeholder="Amount"
                               required={true}
                               step={0.01}
