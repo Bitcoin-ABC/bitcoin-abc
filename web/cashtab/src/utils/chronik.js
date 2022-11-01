@@ -435,9 +435,6 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
         tx.slpTxData.slpMeta &&
         tx.slpTxData.slpMeta.txType &&
         tx.slpTxData.slpMeta.txType === 'GENESIS';
-    if (isGenesisTx) {
-        console.log(`${tx.txid} isGenesisTx`);
-    }
 
     // Initialize required variables
     let substring = '';
