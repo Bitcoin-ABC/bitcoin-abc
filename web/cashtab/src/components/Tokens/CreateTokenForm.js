@@ -453,6 +453,7 @@ const CreateTokenForm = ({
             decimals: newTokenDecimals,
             initialQty: newTokenInitialQty,
             documentHash: '',
+            mintBatonVout: null,
         };
 
         // create token with data in state fields

@@ -8,6 +8,37 @@ import {
 import BigNumber from 'bignumber.js';
 import cashaddr from 'ecashaddrjs';
 import bs58 from 'bs58';
+import * as slpMdm from 'slp-mdm';
+
+// function is based on BCH-JS' generateGenesisOpReturn() however it's been trimmed down for Cashtab use
+// Reference: https://github.com/Permissionless-Software-Foundation/bch-js/blob/62e56c832b35731880fe448269818b853c76dd80/src/slp/tokentype1.js#L286
+export const generateGenesisOpReturn = configObj => {
+    try {
+        if (!configObj) {
+            throw new Error('Invalid token configuration');
+        }
+
+        // adjust initial quantity for token decimals
+        const initialQty = new BigNumber(configObj.initialQty)
+            .times(10 ** configObj.decimals)
+            .toString();
+
+        const script = slpMdm.TokenType1.genesis(
+            configObj.ticker,
+            configObj.name,
+            configObj.documentUrl,
+            configObj.documentHash,
+            configObj.decimals,
+            configObj.mintBatonVout,
+            new slpMdm.BN(initialQty),
+        );
+
+        return script;
+    } catch (err) {
+        console.log('Error in generateGenesisOpReturn(): ' + err);
+        throw err;
+    }
+};
 
 export const getUtxoWif = (utxo, wallet) => {
     if (!wallet) {
@@ -99,8 +130,7 @@ export const generateTokenTxOutput = (
         let script, opReturnObj, destinationAddress;
         switch (tokenAction) {
             case 'GENESIS':
-                script =
-                    BCH.SLP.TokenType1.generateGenesisOpReturn(tokenConfigObj);
+                script = generateGenesisOpReturn(tokenConfigObj);
                 destinationAddress = legacyCashOriginAddress;
                 break;
             case 'SEND':

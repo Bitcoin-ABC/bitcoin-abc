@@ -30,6 +30,7 @@ import {
     getCashtabByteCount,
     calcFee,
     toHash160,
+    generateGenesisOpReturn,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import {
@@ -40,7 +41,7 @@ import {
     validLargeAddressArrayOutput,
     invalidAddressArrayInput,
 } from '../__mocks__/mockAddressArray';
-
+import { mockGenesisOpReturnScript } from '../__mocks__/mockOpReturnScript';
 import {
     cachedUtxos,
     utxosLoadedFromCache,
@@ -108,6 +109,44 @@ import {
     mockMultipleOutputs,
 } from '../__mocks__/mockTxBuilderData';
 import createTokenMock from '../../hooks/__mocks__/createToken';
+
+it(`generateGenesisOpReturn() returns correct script for a valid configObj`, () => {
+    const BCH = new BCHJS();
+    const configObj = {
+        name: 'ethantest',
+        ticker: 'ETN',
+        documentUrl: 'https://cashtab.com/',
+        decimals: '3',
+        initialQty: '5000',
+        documentHash: '',
+        mintBatonVout: null,
+    };
+
+    const genesisOpReturnScript = generateGenesisOpReturn(configObj);
+    const legacyGenesisOpReturnScript =
+        BCH.SLP.TokenType1.generateGenesisOpReturn(configObj);
+
+    expect(JSON.stringify(genesisOpReturnScript)).toStrictEqual(
+        JSON.stringify(mockGenesisOpReturnScript),
+    );
+
+    expect(JSON.stringify(genesisOpReturnScript)).toStrictEqual(
+        JSON.stringify(legacyGenesisOpReturnScript),
+    );
+});
+
+it(`generateGenesisOpReturn() throws error on invalid configObj`, () => {
+    const BCH = new BCHJS();
+    const configObj = null;
+
+    let errorThrown;
+    try {
+        generateGenesisOpReturn(configObj);
+    } catch (err) {
+        errorThrown = err.message;
+    }
+    expect(errorThrown).toStrictEqual('Invalid token configuration');
+});
 
 it(`signUtxosByAddress() successfully returns a txBuilder object for a one to one XEC tx`, () => {
     const BCH = new BCHJS();
