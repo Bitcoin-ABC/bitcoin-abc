@@ -368,17 +368,10 @@ const useWallet = () => {
     const migrateLegacyWallet = async (BCH, wallet) => {
         console.log(`migrateLegacyWallet`);
         console.log(`legacyWallet`, wallet);
-        const NETWORK = process.env.REACT_APP_NETWORK;
         const mnemonic = wallet.mnemonic;
         const rootSeedBuffer = await BCH.Mnemonic.toSeed(mnemonic);
 
-        let masterHDNode;
-
-        if (NETWORK === `mainnet`) {
-            masterHDNode = BCH.HDNode.fromSeed(rootSeedBuffer);
-        } else {
-            masterHDNode = BCH.HDNode.fromSeed(rootSeedBuffer, 'testnet');
-        }
+        const masterHDNode = BCH.HDNode.fromSeed(rootSeedBuffer);
 
         const Path245 = await deriveAccount(BCH, {
             masterHDNode,
@@ -437,16 +430,9 @@ const useWallet = () => {
             return false;
         }
         // Since this info is in localforage now, only get the var
-        const NETWORK = process.env.REACT_APP_NETWORK;
         const mnemonic = wallet.mnemonic;
         const rootSeedBuffer = await BCH.Mnemonic.toSeed(mnemonic);
-        let masterHDNode;
-
-        if (NETWORK === `mainnet`) {
-            masterHDNode = BCH.HDNode.fromSeed(rootSeedBuffer);
-        } else {
-            masterHDNode = BCH.HDNode.fromSeed(rootSeedBuffer, 'testnet');
-        }
+        const masterHDNode = BCH.HDNode.fromSeed(rootSeedBuffer);
 
         const Path245 = await deriveAccount(BCH, {
             masterHDNode,

@@ -10,27 +10,11 @@ import { fromSatoshisToXec } from 'utils/cashMethods';
 import { ChronikClient } from 'chronik-client'; // for mocking purposes
 
 describe('useBCH hook', () => {
-    it('gets Rest Api Url on testnet', () => {
-        process = {
-            env: {
-                REACT_APP_NETWORK: `testnet`,
-                REACT_APP_BCHA_APIS:
-                    'https://rest.kingbch.com/v3/,https://wallet-service-prod.bitframe.org/v3/,notevenaurl,https://rest.kingbch.com/v3/',
-                REACT_APP_BCHA_APIS_TEST:
-                    'https://free-test.fullstack.cash/v3/',
-            },
-        };
-        const { getRestUrl } = useBCH();
-        const expectedApiUrl = `https://free-test.fullstack.cash/v3/`;
-        expect(getRestUrl(0)).toBe(expectedApiUrl);
-    });
-
     it('gets primary Rest API URL on mainnet', () => {
         process = {
             env: {
                 REACT_APP_BCHA_APIS:
                     'https://rest.kingbch.com/v3/,https://wallet-service-prod.bitframe.org/v3/,notevenaurl,https://rest.kingbch.com/v3/',
-                REACT_APP_NETWORK: 'mainnet',
             },
         };
         const { getRestUrl } = useBCH();

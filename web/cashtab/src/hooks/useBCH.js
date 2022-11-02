@@ -25,10 +25,7 @@ export default function useBCH() {
     };
 
     const getRestUrl = (apiIndex = 0) => {
-        const apiString =
-            process.env.REACT_APP_NETWORK === `mainnet`
-                ? process.env.REACT_APP_BCHA_APIS
-                : process.env.REACT_APP_BCHA_APIS_TEST;
+        const apiString = process.env.REACT_APP_BCHA_APIS;
         const apiArray = apiString.split(',');
         return apiArray[apiIndex];
     };
