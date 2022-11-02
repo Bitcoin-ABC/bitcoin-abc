@@ -3,6 +3,8 @@ import usePrevious from 'hooks/usePrevious';
 import useInterval from './useInterval';
 import useBCH from 'hooks/useBCH';
 import BigNumber from 'bignumber.js';
+import Bitcoin from '@psf/bitcoincashjs-lib';
+import coininfo from 'utils/coininfo';
 import {
     loadStoredWallet,
     isValidStoredWallet,
@@ -373,6 +375,20 @@ const useWallet = () => {
 
         const masterHDNode = BCH.HDNode.fromSeed(rootSeedBuffer);
 
+        // temporary comparison of masterHDNode between BCH-JS and bitcoincashjs-lib
+        let localMasterHDNode = Bitcoin.HDNode.fromSeedBuffer(
+            rootSeedBuffer,
+            coininfo.bitcoincash.main.toBitcoinJS(),
+        );
+
+        if (
+            JSON.stringify(masterHDNode) === JSON.stringify(localMasterHDNode)
+        ) {
+            console.log(
+                'migrateLegacyWallet(): BCH-JS masterHDNode matches localMasterHDNode from bitcoincashjs-lib',
+            );
+        }
+
         const Path245 = await deriveAccount(BCH, {
             masterHDNode,
             path: "m/44'/245'/0'/0/0",
@@ -433,6 +449,19 @@ const useWallet = () => {
         const mnemonic = wallet.mnemonic;
         const rootSeedBuffer = await BCH.Mnemonic.toSeed(mnemonic);
         const masterHDNode = BCH.HDNode.fromSeed(rootSeedBuffer);
+
+        // temporary comparison of masterHDNode between BCH-JS and bitcoincashjs-lib
+        let localMasterHDNode = Bitcoin.HDNode.fromSeedBuffer(
+            rootSeedBuffer,
+            coininfo.bitcoincash.main.toBitcoinJS(),
+        );
+        if (
+            JSON.stringify(masterHDNode) === JSON.stringify(localMasterHDNode)
+        ) {
+            console.log(
+                'getWalletDetails(): BCH-JS masterHDNode matches localMasterHDNode from bitcoincashjs-lib',
+            );
+        }
 
         const Path245 = await deriveAccount(BCH, {
             masterHDNode,
