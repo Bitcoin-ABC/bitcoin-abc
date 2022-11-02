@@ -76,9 +76,9 @@ jobs:
           - env_vars: {WIDEMUL: 'int128',                 ECDH: 'yes', SCHNORRSIG: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes'}
           - env_vars: {WIDEMUL: 'int128',  ASM: 'x86_64'}
           - env_vars: {                    RECOVERY: 'yes',            SCHNORRSIG: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes'}
-          - env_vars: {AUTOTOOLS_TARGET: 'distcheck', CMAKE_TARGET: 'install', WITH_VALGRIND: 'no', CTIMETEST: 'no', BENCH: 'no'}
+          - env_vars: {AUTOTOOLS_TARGET: 'distcheck', CMAKE_TARGET: 'install', WITH_VALGRIND: 'no', CTIMETESTS: 'no', BENCH: 'no'}
           - env_vars: {AUTOTOOLS_EXTRA_FLAGS: 'CPPFLAGS=-DDETERMINISTIC', CMAKE_EXTRA_FLAGS: '-DCMAKE_C_FLAGS=-DDETERMINISTIC'}
-          - env_vars: {AUTOTOOLS_EXTRA_FLAGS: 'CFLAGS=-O0', CMAKE_EXTRA_FLAGS: '-DCMAKE_BUILD_TYPE=Debug', CTIMETEST: 'no'}
+          - env_vars: {AUTOTOOLS_EXTRA_FLAGS: 'CFLAGS=-O0', CMAKE_EXTRA_FLAGS: '-DCMAKE_BUILD_TYPE=Debug', CTIMETESTS: 'no'}
           - env_vars: {SCHNORR: 'no'}
           - env_vars: { ECMULTGENPRECISION: 2, ECMULTWINDOW: 2 }
           - env_vars: { ECMULTGENPRECISION: 8, ECMULTWINDOW: 4 }
@@ -323,7 +323,7 @@ jobs:
       EXPERIMENTAL: 'yes'
       MULTISET: 'yes'
       SCHNORRSIG: 'yes'
-      CTIMETESTS: 'yes'
+      CTIMETESTS: 'no'
       CC: 'clang'
       SECP256K1_TEST_ITERS: 32
       ASM: 'no'

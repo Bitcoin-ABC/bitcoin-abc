@@ -2,32 +2,34 @@
 
 export LC_ALL=C
 
-set -ex
+set -eux
 
 read -r -a CMAKE_EXTRA_FLAGS <<< "$CMAKE_EXTRA_FLAGS"
 
 if [ "x$HOST" = "xi686-linux-gnu" ]; then
-  CMAKE_EXTRA_FLAGS+="-DCMAKE_C_FLAGS=-m32"
+  CMAKE_EXTRA_FLAGS+=("-DCMAKE_C_FLAGS=-m32")
 fi
 
-if [ "$RUN_VALGRIND" = "yes" ]; then
+if [ "$WITH_VALGRIND" = "yes" ]; then
   CMAKE_C_FLAGS="-DVALGRIND"
-  if [ "${CIRRUS_OS}" = "darwin" ]; then
+  if [ "${RUNNER_OS}" = "macOS" ]; then
     # The valgrind/memcheck.h header is not in a standard cmake location when
     # installed from the LouisBrunner brew repo, so we need to add it.
     #CMAKE_C_FLAGS="-isystem $(brew --prefix valgrind)/include ${CMAKE_C_FLAGS}"
     CMAKE_C_FLAGS="-isystem /usr/local/include ${CMAKE_C_FLAGS}"
   fi
-  CMAKE_EXTRA_FLAGS+="-DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}"
+  CMAKE_EXTRA_FLAGS+=("-DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}")
 fi
 
 # "auto" is not a valid value for SECP256K1_ECMULT_GEN_PRECISION and
 # SECP256K1_ECMULT_WINDOW_SIZE with cmake.
 # In this case we use the default value instead by not setting the cache
 # variable on the cmake command line.
+ECMULT_GEN_PRECISION_ARG=""
 if [ "x$ECMULTGENPRECISION" != "xauto" ]; then
   ECMULT_GEN_PRECISION_ARG="-DSECP256K1_ECMULT_GEN_PRECISION=$ECMULTGENPRECISION"
 fi
+ECMULT_WINDOW_SIZE_ARG=""
 if [ "x$ECMULTWINDOW" != "xauto" ]; then
   ECMULT_WINDOW_SIZE_ARG="-DSECP256K1_ECMULT_WINDOW_SIZE=$ECMULTWINDOW"
 fi
@@ -37,6 +39,14 @@ pushd buildcmake
 
 CMAKE_COMMAND=cmake
 ${CMAKE_COMMAND} --version
+
+# If CMAKE_EXTRA_FLAGS was the empty string at the beginning of this script,
+# and we didn't append anything to it, it is now an empty array which
+# for some reason triggers an error with nounset checks enabled (set -u).
+# An empty string does not trigger the error.
+if [ -z "${CMAKE_EXTRA_FLAGS+set}" ]; then
+  CMAKE_EXTRA_FLAGS=""
+fi
 
 ${CMAKE_COMMAND} -GNinja .. \
   -DCMAKE_INSTALL_PREFIX=install \

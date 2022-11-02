@@ -62,3 +62,7 @@ RUN wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | tee /etc/apt/trusted.
 
 # Run a dummy command in wine to make it set up configuration
 RUN wine64-stable xcopy || true
+
+# The cmake build script expects this var to be set.
+# In non docker tasks it is set by Github Actions.
+ENV RUNNER_OS="linux"

@@ -2,11 +2,33 @@
 
 export LC_ALL=C
 
-set -ex
+set -eux
 
-if [ -n "$HOST" ]; then
-  USE_HOST="--host=$HOST"
-fi
+# Print relevant CI environment to allow reproducing the job outside of CI.
+print_environment() {
+    # Turn off -x because it messes up the output
+    set +x
+    # There are many ways to print variable names and their content. This one
+    # does not rely on bash.
+    for var in WERROR_CFLAGS MAKEFLAGS AUTOTOOLS_TARGET \
+            ECMULTWINDOW ECMULTGENPRECISION ASM WIDEMUL WITH_VALGRIND AUTOTOOLS_EXTRAFLAGS \
+            EXPERIMENTAL ECDH RECOVERY SCHNORR SCHNORRSIG MULTISET \
+            SECP256K1_TEST_ITERS BENCH SECP256K1_BENCH_ITERS CTIMETESTS \
+            EXAMPLES \
+            HOST WRAPPER_CMD \
+            CC CFLAGS CPPFLAGS AR NM
+    do
+        eval "isset=\${$var+x}"
+        if [ -n "$isset" ]; then
+            eval "val=\${$var}"
+            # shellcheck disable=SC2154
+            printf '%s="%s" ' "$var" "$val"
+        fi
+    done
+    echo "$0"
+    set -x
+}
+print_environment
 
 if [ "x$HOST" = "xi686-linux-gnu" ]; then
   CC="$CC -m32"
@@ -14,7 +36,7 @@ elif [ "x$HOST" = "xs390x-linux-gnu" ]; then
   CC="s390x-linux-gnu-gcc"
 fi
 
-if [ -n "$CC" ]; then
+if [ -n "${CC+x}" ]; then
     # The MSVC compiler "cl" doesn't understand "-v"
     $CC -v || true
 fi
@@ -30,7 +52,7 @@ fi
 # Workaround for https://bugs.kde.org/show_bug.cgi?id=452758 (fixed in valgrind 3.20.0).
 case "${CC:-undefined}" in
     clang*)
-        if [ "$CTIMETEST" = "yes" ] && [ "$WITH_VALGRIND" = "yes" ]
+        if [ "$CTIMETESTS" = "yes" ] && [ "$WITH_VALGRIND" = "yes" ]
         then
             export CFLAGS="${CFLAGS:+$CFLAGS }-gdwarf-4"
         else
@@ -61,8 +83,7 @@ pushd buildautotools
   --enable-module-schnorrsig=$SCHNORRSIG \
   --enable-examples="$EXAMPLES" \
   --with-valgrind=$WITH_VALGRIND \
-  $AUTOTOOLS_EXTRA_FLAGS \
-  $USE_HOST
+  --host="$HOST" $AUTOTOOLS_EXTRA_FLAGS
 
 print_logs() {
   cat tests.log || :
@@ -97,7 +118,7 @@ if [ "$BENCH" = "yes" ]; then
     $EXEC ./bench
   } >> bench.log 2>&1
 fi
-if [ "$CTIMETEST" = "yes" ]; then
+if [ "$CTIMETESTS" = "yes" ]; then
   ./libtool --mode=execute valgrind --error-exitcode=42 ./valgrind_ctime_test > valgrind_ctime_test.log 2>&1
 fi
 
