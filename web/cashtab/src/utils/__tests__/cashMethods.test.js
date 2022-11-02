@@ -32,6 +32,7 @@ import {
     toHash160,
     generateGenesisOpReturn,
     generateSendOpReturn,
+    generateBurnOpReturn,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import {
@@ -46,6 +47,8 @@ import {
     mockGenesisOpReturnScript,
     mockSendOpReturnScript,
     mockSendOpReturnTokenUtxos,
+    mockBurnOpReturnScript,
+    mockBurnOpReturnTokenUtxos,
 } from '../__mocks__/mockOpReturnScript';
 import {
     cachedUtxos,
@@ -147,6 +150,36 @@ it(`generateSendOpReturnScript() throws error on invalid input`, () => {
         errorThrown = err.message;
     }
     expect(errorThrown).toStrictEqual('Invalid send token parameter');
+});
+
+it(`generateBurnOpReturn() returns correct script for valid tokenUtxo and burn quantity`, () => {
+    const BCH = new BCHJS();
+    const tokensToBurn = 7000;
+    const burnOpReturnScript = generateBurnOpReturn(
+        mockBurnOpReturnTokenUtxos,
+        tokensToBurn,
+    );
+    const legacyBurnOpReturnScript = BCH.SLP.TokenType1.generateBurnOpReturn(
+        mockBurnOpReturnTokenUtxos,
+        tokensToBurn,
+    );
+    expect(JSON.stringify(burnOpReturnScript)).toStrictEqual(
+        JSON.stringify(mockBurnOpReturnScript),
+    );
+    expect(JSON.stringify(burnOpReturnScript)).toStrictEqual(
+        JSON.stringify(legacyBurnOpReturnScript),
+    );
+});
+
+it(`generateBurnOpReturn() throws error on invalid input`, () => {
+    const tokensToBurn = 7000;
+    let errorThrown;
+    try {
+        generateBurnOpReturn(null, tokensToBurn);
+    } catch (err) {
+        errorThrown = err.message;
+    }
+    expect(errorThrown).toStrictEqual('Invalid burn token parameter');
 });
 
 it(`generateGenesisOpReturn() returns correct script for a valid configObj`, () => {

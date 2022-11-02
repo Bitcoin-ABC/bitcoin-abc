@@ -10,6 +10,45 @@ import cashaddr from 'ecashaddrjs';
 import bs58 from 'bs58';
 import * as slpMdm from 'slp-mdm';
 
+// function is based on BCH-JS' generateBurnOpReturn() however it's been trimmed down for Cashtab use
+// Reference: https://github.com/Permissionless-Software-Foundation/bch-js/blob/62e56c832b35731880fe448269818b853c76dd80/src/slp/tokentype1.js#L217
+export const generateBurnOpReturn = (tokenUtxos, burnQty) => {
+    try {
+        if (!tokenUtxos || !burnQty) {
+            throw new Error('Invalid burn token parameter');
+        } // sendToken component already prevents burning of a value greater than the token utxo total held by the wallet
+
+        const tokenId = tokenUtxos[0].tokenId;
+        const decimals = tokenUtxos[0].decimals;
+
+        // account for token decimals
+        const finalBurnTokenQty = new BigNumber(burnQty).times(10 ** decimals);
+
+        // Calculate the total amount of tokens owned by the wallet.
+        const totalTokens = tokenUtxos.reduce(
+            (tot, txo) =>
+                tot.plus(new BigNumber(txo.tokenQty).times(10 ** decimals)),
+            new BigNumber(0),
+        );
+
+        // calculate the token change
+        const tokenChange = totalTokens.minus(finalBurnTokenQty);
+        const tokenChangeStr = tokenChange.toString();
+
+        // Generate the burn OP_RETURN as a Buffer
+        // No need for separate .send() calls for change and non-change burns as
+        // nil change values do not generate token outputs as the full balance is burnt
+        const script = slpMdm.TokenType1.send(tokenId, [
+            new slpMdm.BN(tokenChangeStr),
+        ]);
+
+        return script;
+    } catch (err) {
+        console.log('Error in generateBurnOpReturn(): ' + err);
+        throw err;
+    }
+};
+
 // Function originally based on BCH-JS' generateSendOpReturn function however trimmed down for Cashtab
 // Reference: https://github.com/Permissionless-Software-Foundation/bch-js/blob/62e56c832b35731880fe448269818b853c76dd80/src/slp/tokentype1.js#L95
 export const generateSendOpReturn = (tokenUtxos, sendQty) => {
@@ -195,7 +234,7 @@ export const generateTokenTxOutput = (
                 );
                 break;
             case 'BURN':
-                script = BCH.SLP.TokenType1.generateBurnOpReturn(
+                script = generateBurnOpReturn(
                     tokenUtxosBeingSpent,
                     tokenAmount,
                 );

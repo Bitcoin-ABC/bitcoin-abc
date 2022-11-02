@@ -45,3 +45,41 @@ export const mockSendOpReturnTokenUtxos = [
         decimals: 3,
     },
 ];
+
+export const mockBurnOpReturnScript = {
+    type: 'Buffer',
+    data: [
+        106, 4, 83, 76, 80, 0, 1, 1, 4, 83, 69, 78, 68, 32, 66, 9, 190, 107,
+        212, 137, 55, 38, 62, 222, 249, 76, 234, 247, 122, 65, 122, 177, 179,
+        91, 12, 105, 85, 156, 253, 244, 164, 53, 226, 191, 26, 136, 8, 0, 0, 0,
+        0, 2, 224, 255, 224,
+    ],
+};
+
+export const mockBurnOpReturnTokenUtxos = [
+    {
+        outpoint: {
+            txid: 'e1f75fd838056396dbaaa5431ae1f7a471b1e1d63f5467b99411f32ba3a54968',
+            outIdx: 1,
+        },
+        blockHeight: -1,
+        isCoinbase: false,
+        value: '546',
+        slpMeta: {
+            tokenType: 'FUNGIBLE',
+            txType: 'SEND',
+            tokenId:
+                '4209be6bd48937263edef94ceaf77a417ab1b35b0c69559cfdf4a435e2bf1a88',
+        },
+        slpToken: {
+            amount: '49000000',
+            isMintBaton: false,
+        },
+        network: 'XEC',
+        address: 'bitcoincash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqqkm80dnl6',
+        tokenQty: '490000',
+        tokenId:
+            '4209be6bd48937263edef94ceaf77a417ab1b35b0c69559cfdf4a435e2bf1a88',
+        decimals: 2,
+    },
+];
