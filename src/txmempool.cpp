@@ -691,64 +691,13 @@ void CTxMemPool::removeRecursive(const CTransaction &origTx,
     RemoveStaged(setAllRemoves, false, reason);
 }
 
-void CTxMemPool::removeForReorg(const Config &config,
-                                CChainState &active_chainstate, int flags) {
+void CTxMemPool::removeForReorg(
+    const Config &config, CChain &chain,
+    std::function<bool(txiter)> check_final_and_mature) {
     // Remove transactions spending a coinbase which are now immature and
     // no-longer-final transactions.
     AssertLockHeld(cs);
     AssertLockHeld(::cs_main);
-
-    const auto check_final_and_mature =
-        [this, &active_chainstate, flags,
-         &config](txiter it) EXCLUSIVE_LOCKS_REQUIRED(cs, ::cs_main) {
-            bool should_remove = false;
-            AssertLockHeld(cs);
-            AssertLockHeld(::cs_main);
-            const CTransaction &tx = it->GetTx();
-            LockPoints lp = it->GetLockPoints();
-            const bool validLP{
-                TestLockPointValidity(active_chainstate.m_chain, &lp)};
-            CCoinsViewMemPool view_mempool(&active_chainstate.CoinsTip(),
-                                           *this);
-
-            TxValidationState state;
-            if (!ContextualCheckTransactionForCurrentBlock(
-                    active_chainstate.m_chain.Tip(),
-                    config.GetChainParams().GetConsensus(), tx, state, flags) ||
-                !CheckSequenceLocks(active_chainstate.m_chain.Tip(),
-                                    view_mempool, tx, flags, &lp, validLP)) {
-                // Note if CheckSequenceLocks fails the LockPoints may still be
-                // invalid. So it's critical that we remove the tx and not
-                // depend on the LockPoints.
-                should_remove = true;
-            } else if (it->GetSpendsCoinbase()) {
-                for (const CTxIn &txin : tx.vin) {
-                    indexed_transaction_set::const_iterator it2 =
-                        mapTx.find(txin.prevout.GetTxId());
-                    if (it2 != mapTx.end()) {
-                        continue;
-                    }
-
-                    const Coin &coin{
-                        active_chainstate.CoinsTip().AccessCoin(txin.prevout)};
-                    assert(!coin.IsSpent());
-                    const auto mempool_spend_height{
-                        active_chainstate.m_chain.Tip()->nHeight + 1};
-                    if (coin.IsCoinBase() &&
-                        mempool_spend_height - coin.GetHeight() <
-                            COINBASE_MATURITY) {
-                        should_remove = true;
-                        break;
-                    }
-                }
-            }
-            // CheckSequenceLocks updates lp. Update the mempool entry
-            // LockPoints.
-            if (!validLP) {
-                mapTx.modify(it, update_lock_points(lp));
-            }
-            return should_remove;
-        };
 
     setEntries txToRemove;
     for (indexed_transaction_set::const_iterator it = mapTx.begin();
@@ -762,7 +711,6 @@ void CTxMemPool::removeForReorg(const Config &config,
         CalculateDescendants(it, setAllRemoves);
     }
     RemoveStaged(setAllRemoves, false, MemPoolRemovalReason::REORG);
-    auto &chain = active_chainstate.m_chain;
     for (indexed_transaction_set::const_iterator it = mapTx.begin();
          it != mapTx.end(); it++) {
         assert(TestLockPointValidity(chain, &it->GetLockPoints()));
@@ -1579,9 +1527,59 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(
     // disconnectpool that were added back and cleans up the mempool state.
     pool.UpdateTransactionsFromBlock(txidsUpdate);
 
+    const auto check_final_and_mature =
+        [&pool, &active_chainstate, flags = STANDARD_LOCKTIME_VERIFY_FLAGS,
+         &config](CTxMemPool::txiter it) EXCLUSIVE_LOCKS_REQUIRED(pool.cs,
+                                                                  ::cs_main) {
+            bool should_remove = false;
+            AssertLockHeld(pool.cs);
+            AssertLockHeld(::cs_main);
+            const CTransaction &tx = it->GetTx();
+            LockPoints lp = it->GetLockPoints();
+            const bool validLP{
+                TestLockPointValidity(active_chainstate.m_chain, &lp)};
+            CCoinsViewMemPool view_mempool(&active_chainstate.CoinsTip(), pool);
+
+            TxValidationState state;
+            if (!ContextualCheckTransactionForCurrentBlock(
+                    active_chainstate.m_chain.Tip(),
+                    config.GetChainParams().GetConsensus(), tx, state, flags) ||
+                !CheckSequenceLocks(active_chainstate.m_chain.Tip(),
+                                    view_mempool, tx, flags, &lp, validLP)) {
+                // Note if CheckSequenceLocks fails the LockPoints may still be
+                // invalid. So it's critical that we remove the tx and not
+                // depend on the LockPoints.
+                should_remove = true;
+            } else if (it->GetSpendsCoinbase()) {
+                for (const CTxIn &txin : tx.vin) {
+                    auto it2 = pool.mapTx.find(txin.prevout.GetTxId());
+                    if (it2 != pool.mapTx.end()) {
+                        continue;
+                    }
+                    const Coin &coin{
+                        active_chainstate.CoinsTip().AccessCoin(txin.prevout)};
+                    assert(!coin.IsSpent());
+                    const auto mempool_spend_height{
+                        active_chainstate.m_chain.Tip()->nHeight + 1};
+                    if (coin.IsCoinBase() &&
+                        mempool_spend_height - coin.GetHeight() <
+                            COINBASE_MATURITY) {
+                        should_remove = true;
+                        break;
+                    }
+                }
+            }
+            // CheckSequenceLocks updates lp. Update the mempool entry
+            // LockPoints.
+            if (!validLP) {
+                pool.mapTx.modify(it, update_lock_points(lp));
+            }
+            return should_remove;
+        };
+
     // We also need to remove any now-immature transactions
-    pool.removeForReorg(config, active_chainstate,
-                        STANDARD_LOCKTIME_VERIFY_FLAGS);
+    pool.removeForReorg(config, active_chainstate.m_chain,
+                        check_final_and_mature);
 
     // Re-limit mempool size, in case we added any transactions
     pool.LimitSize(active_chainstate.CoinsTip(),
