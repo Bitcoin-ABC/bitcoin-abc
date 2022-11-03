@@ -329,6 +329,41 @@ BOOST_FIXTURE_TEST_CASE(package_submission_tests, TestChain100Setup) {
         BOOST_CHECK(result_3gen_submit.m_package_feerate == std::nullopt);
     }
 
+    // Parent and child package where transactions are invalid for reasons other
+    // than fee and missing inputs, so the package validation isn't expected to
+    // happen.
+    {
+        CMutableTransaction mtx_parent_invalid{mtx_parent};
+        mtx_parent_invalid.vin[0].scriptSig << OP_FALSE;
+        CTransactionRef tx_parent_invalid =
+            MakeTransactionRef(mtx_parent_invalid);
+
+        // This changed the parent txid so we have to update the child
+        // accordingly
+        auto mtx_child_of_invalid_parent = CreateValidMempoolTransaction(
+            /*input_transaction=*/tx_parent_invalid, /*input_vout=*/0,
+            /*input_height=*/101, /*input_signing_key=*/parent_key,
+            /*output_destination=*/child_locking_script,
+            /*output_amount=*/Amount(48 * COIN), /*submit=*/false);
+        CTransactionRef tx_child_of_invalid_parent =
+            MakeTransactionRef(mtx_child_of_invalid_parent);
+
+        auto result_quit_early = WITH_LOCK(
+            cs_main, return ProcessNewPackage(
+                         m_node.chainman->ActiveChainstate(), *m_node.mempool,
+                         {tx_parent_invalid, tx_child_of_invalid_parent},
+                         /*test_accept=*/false));
+        BOOST_CHECK(result_quit_early.m_state.IsInvalid());
+        BOOST_CHECK_EQUAL(result_quit_early.m_state.GetResult(),
+                          PackageValidationResult::PCKG_TX);
+        BOOST_CHECK(!result_quit_early.m_tx_results.empty());
+        auto it_parent =
+            result_quit_early.m_tx_results.find(tx_parent_invalid->GetId());
+        BOOST_CHECK(it_parent != result_quit_early.m_tx_results.end());
+        BOOST_CHECK_EQUAL(it_parent->second.m_state.GetResult(),
+                          TxValidationResult::TX_CONSENSUS);
+    }
+
     // Child with missing parent.
     mtx_child.vin.push_back(CTxIn(COutPoint(package_unrelated[0]->GetId(), 0)));
     Package package_missing_parent;

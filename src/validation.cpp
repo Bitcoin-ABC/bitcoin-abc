@@ -1033,24 +1033,26 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
 PackageMempoolAcceptResult MemPoolAccept::AcceptPackage(const Package &package,
                                                         ATMPArgs &args) {
     AssertLockHeld(cs_main);
-    PackageValidationState package_state;
+    // Used if returning a PackageMempoolAcceptResult directly from this
+    // function.
+    PackageValidationState package_state_quit_early;
 
     // Check that the package is well-formed. If it isn't, we won't try to
     // validate any of the transactions and thus won't return any
     // MempoolAcceptResults, just a package-wide error.
 
     // Context-free package checks.
-    if (!CheckPackage(package, package_state)) {
-        return PackageMempoolAcceptResult(package_state, {});
+    if (!CheckPackage(package, package_state_quit_early)) {
+        return PackageMempoolAcceptResult(package_state_quit_early, {});
     }
 
     // All transactions in the package must be a parent of the last transaction.
     // This is just an opportunity for us to fail fast on a context-free check
     // without taking the mempool lock.
     if (!IsChildWithParents(package)) {
-        package_state.Invalid(PackageValidationResult::PCKG_POLICY,
-                              "package-not-child-with-parents");
-        return PackageMempoolAcceptResult(package_state, {});
+        package_state_quit_early.Invalid(PackageValidationResult::PCKG_POLICY,
+                                         "package-not-child-with-parents");
+        return PackageMempoolAcceptResult(package_state_quit_early, {});
     }
 
     // IsChildWithParents() guarantees the package is > 1 transactions.
@@ -1089,9 +1091,10 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptPackage(const Package &package,
     };
     if (!std::all_of(child->vin.cbegin(), child->vin.cend(),
                      package_or_confirmed)) {
-        package_state.Invalid(PackageValidationResult::PCKG_POLICY,
-                              "package-not-child-with-unconfirmed-parents");
-        return PackageMempoolAcceptResult(package_state, {});
+        package_state_quit_early.Invalid(
+            PackageValidationResult::PCKG_POLICY,
+            "package-not-child-with-unconfirmed-parents");
+        return PackageMempoolAcceptResult(package_state_quit_early, {});
     }
     // Protect against bugs where we pull more inputs from disk that miss being
     // added to coins_to_uncache. The backend will be connected again when
@@ -1153,6 +1156,9 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptPackage(const Package &package,
                 // the rest of the transactions, because some of them may still
                 // be valid.
                 quit_early = true;
+                package_state_quit_early.Invalid(
+                    PackageValidationResult::PCKG_TX, "transaction failed");
+                results.emplace(txid, single_res);
             } else {
                 txns_new.push_back(tx);
             }
@@ -1162,7 +1168,8 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptPackage(const Package &package,
     // Nothing to do if the entire package has already been submitted.
     if (quit_early || txns_new.empty()) {
         // No package feerate when no package validation was done.
-        return PackageMempoolAcceptResult(package_state, std::move(results));
+        return PackageMempoolAcceptResult(package_state_quit_early,
+                                          std::move(results));
     }
     // Validate the (deduplicated) transactions as a package.
     auto submission_result = AcceptMultipleTransactions(txns_new, args);
