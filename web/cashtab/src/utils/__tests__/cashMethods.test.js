@@ -31,6 +31,7 @@ import {
     calcFee,
     toHash160,
     generateGenesisOpReturn,
+    generateSendOpReturn,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import {
@@ -41,7 +42,11 @@ import {
     validLargeAddressArrayOutput,
     invalidAddressArrayInput,
 } from '../__mocks__/mockAddressArray';
-import { mockGenesisOpReturnScript } from '../__mocks__/mockOpReturnScript';
+import {
+    mockGenesisOpReturnScript,
+    mockSendOpReturnScript,
+    mockSendOpReturnTokenUtxos,
+} from '../__mocks__/mockOpReturnScript';
 import {
     cachedUtxos,
     utxosLoadedFromCache,
@@ -109,6 +114,40 @@ import {
     mockMultipleOutputs,
 } from '../__mocks__/mockTxBuilderData';
 import createTokenMock from '../../hooks/__mocks__/createToken';
+
+it(`generateSendOpReturn() returns correct script object for valid tokenUtxo and send quantity`, () => {
+    const BCH = new BCHJS();
+    const tokensToSend = 50;
+    const sendOpReturnScriptObj = generateSendOpReturn(
+        mockSendOpReturnTokenUtxos,
+        tokensToSend,
+    );
+    const legacySendOpReturnScriptObj = BCH.SLP.TokenType1.generateSendOpReturn(
+        mockSendOpReturnTokenUtxos,
+        tokensToSend.toString(),
+    );
+
+    expect(JSON.stringify(sendOpReturnScriptObj.script)).toStrictEqual(
+        JSON.stringify(mockSendOpReturnScript),
+    );
+    expect(JSON.stringify(sendOpReturnScriptObj.script)).toStrictEqual(
+        JSON.stringify(legacySendOpReturnScriptObj.script),
+    );
+});
+
+it(`generateSendOpReturnScript() throws error on invalid input`, () => {
+    const BCH = new BCHJS();
+    const mockSendOpReturnTokenUtxos = null;
+    const tokensToSend = 50;
+
+    let errorThrown;
+    try {
+        generateSendOpReturn(mockSendOpReturnTokenUtxos, tokensToSend);
+    } catch (err) {
+        errorThrown = err.message;
+    }
+    expect(errorThrown).toStrictEqual('Invalid send token parameter');
+});
 
 it(`generateGenesisOpReturn() returns correct script for a valid configObj`, () => {
     const BCH = new BCHJS();

@@ -10,6 +10,57 @@ import cashaddr from 'ecashaddrjs';
 import bs58 from 'bs58';
 import * as slpMdm from 'slp-mdm';
 
+// Function originally based on BCH-JS' generateSendOpReturn function however trimmed down for Cashtab
+// Reference: https://github.com/Permissionless-Software-Foundation/bch-js/blob/62e56c832b35731880fe448269818b853c76dd80/src/slp/tokentype1.js#L95
+export const generateSendOpReturn = (tokenUtxos, sendQty) => {
+    try {
+        if (!tokenUtxos || !sendQty) {
+            throw new Error('Invalid send token parameter');
+        }
+
+        const tokenId = tokenUtxos[0].tokenId;
+        const decimals = tokenUtxos[0].decimals;
+
+        // account for token decimals
+        const finalSendTokenQty = new BigNumber(sendQty).times(10 ** decimals);
+        const finalSendTokenQtyStr = finalSendTokenQty.toString();
+
+        // Calculate the total amount of tokens owned by the wallet.
+        const totalTokens = tokenUtxos.reduce(
+            (tot, txo) =>
+                tot.plus(new BigNumber(txo.tokenQty).times(10 ** decimals)),
+            new BigNumber(0),
+        );
+
+        // calculate token change
+        const tokenChange = totalTokens.minus(finalSendTokenQty);
+        const tokenChangeStr = tokenChange.toString();
+
+        // When token change output is required
+        let script, outputs;
+        if (tokenChange > 0) {
+            outputs = 2;
+            // Generate the OP_RETURN as a Buffer.
+            script = slpMdm.TokenType1.send(tokenId, [
+                new slpMdm.BN(finalSendTokenQtyStr),
+                new slpMdm.BN(tokenChangeStr),
+            ]);
+        } else {
+            // no token change needed
+            outputs = 1;
+            // Generate the OP_RETURN as a Buffer.
+            script = slpMdm.TokenType1.send(tokenId, [
+                new slpMdm.BN(finalSendTokenQtyStr),
+            ]);
+        }
+
+        return { script, outputs };
+    } catch (err) {
+        console.log('Error in generateSendOpReturn(): ' + err);
+        throw err;
+    }
+};
+
 // function is based on BCH-JS' generateGenesisOpReturn() however it's been trimmed down for Cashtab use
 // Reference: https://github.com/Permissionless-Software-Foundation/bch-js/blob/62e56c832b35731880fe448269818b853c76dd80/src/slp/tokentype1.js#L286
 export const generateGenesisOpReturn = configObj => {
@@ -134,7 +185,7 @@ export const generateTokenTxOutput = (
                 destinationAddress = legacyCashOriginAddress;
                 break;
             case 'SEND':
-                opReturnObj = BCH.SLP.TokenType1.generateSendOpReturn(
+                opReturnObj = generateSendOpReturn(
                     tokenUtxosBeingSpent,
                     tokenAmount.toString(),
                 );
