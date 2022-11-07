@@ -192,7 +192,7 @@ UniValue blockToJSON(const CBlock &block, const CBlockIndex *tip,
     for (const auto &tx : block.vtx) {
         if (txDetails) {
             UniValue objTx(UniValue::VOBJ);
-            TxToUniv(*tx, uint256(), objTx, true, RPCSerializationFlags());
+            TxToUniv(*tx, BlockHash(), objTx, true, RPCSerializationFlags());
             txs.push_back(objTx);
         } else {
             txs.push_back(tx->GetId().GetHex());

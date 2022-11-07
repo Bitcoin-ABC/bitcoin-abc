@@ -53,7 +53,7 @@ static void TxToJSON(const CTransaction &tx, const BlockHash &hashBlock,
     // Blockchain contextual information (confirmations and blocktime) is not
     // available to code in bitcoin-common, so we query them here and push the
     // data into the returned UniValue.
-    TxToUniv(tx, uint256(), entry, true, RPCSerializationFlags());
+    TxToUniv(tx, BlockHash(), entry, true, RPCSerializationFlags());
 
     if (!hashBlock.IsNull()) {
         LOCK(cs_main);
@@ -664,7 +664,7 @@ static RPCHelpMan decoderawtransaction() {
             }
 
             UniValue result(UniValue::VOBJ);
-            TxToUniv(CTransaction(std::move(mtx)), uint256(), result, false);
+            TxToUniv(CTransaction(std::move(mtx)), BlockHash(), result, false);
 
             return result;
         },
@@ -1420,7 +1420,7 @@ static RPCHelpMan decodepsbt() {
 
             // Add the decoded tx
             UniValue tx_univ(UniValue::VOBJ);
-            TxToUniv(CTransaction(*psbtx.tx), uint256(), tx_univ, false);
+            TxToUniv(CTransaction(*psbtx.tx), BlockHash(), tx_univ, false);
             result.pushKV("tx", tx_univ);
 
             // Unknown data

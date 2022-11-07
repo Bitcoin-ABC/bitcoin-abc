@@ -12,6 +12,7 @@
 #include <vector>
 
 struct Amount;
+struct BlockHash;
 class CBlock;
 class CBlockHeader;
 class CMutableTransaction;
@@ -48,7 +49,8 @@ std::string SighashToStr(uint8_t sighash_type);
 void ScriptPubKeyToUniv(const CScript &scriptPubKey, UniValue &out,
                         bool fIncludeHex);
 void ScriptToUniv(const CScript &script, UniValue &out, bool include_address);
-void TxToUniv(const CTransaction &tx, const uint256 &hashBlock, UniValue &entry,
-              bool include_hex = true, int serialize_flags = 0);
+void TxToUniv(const CTransaction &tx, const BlockHash &hashBlock,
+              UniValue &entry, bool include_hex = true,
+              int serialize_flags = 0);
 
 #endif // BITCOIN_CORE_IO_H

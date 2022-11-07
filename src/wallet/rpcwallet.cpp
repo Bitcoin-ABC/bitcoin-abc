@@ -2145,7 +2145,7 @@ static RPCHelpMan gettransaction() {
 
             if (verbose) {
                 UniValue decoded(UniValue::VOBJ);
-                TxToUniv(*wtx.tx, uint256(), decoded, false);
+                TxToUniv(*wtx.tx, BlockHash(), decoded, false);
                 entry.pushKV("decoded", decoded);
             }
 

@@ -7,6 +7,7 @@
 #include <config.h>
 #include <consensus/amount.h>
 #include <key_io.h>
+#include <primitives/blockhash.h>
 #include <primitives/transaction.h>
 #include <script/script.h>
 #include <script/sigencoding.h>
@@ -211,8 +212,8 @@ void ScriptPubKeyToUniv(const CScript &scriptPubKey, UniValue &out,
     out.pushKV("addresses", a);
 }
 
-void TxToUniv(const CTransaction &tx, const uint256 &hashBlock, UniValue &entry,
-              bool include_hex, int serialize_flags) {
+void TxToUniv(const CTransaction &tx, const BlockHash &hashBlock,
+              UniValue &entry, bool include_hex, int serialize_flags) {
     entry.pushKV("txid", tx.GetId().GetHex());
     entry.pushKV("hash", tx.GetHash().GetHex());
     // Transaction version is actually unsigned in consensus checks, just
