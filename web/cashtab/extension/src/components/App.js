@@ -21,6 +21,7 @@ import Send from 'components/Send/Send';
 import SendToken from 'components/Send/SendToken';
 import Airdrop from 'components/Airdrop/Airdrop';
 import Configure from 'components/Configure/Configure';
+import SignVerifyMsg from 'components/SignVerifyMsg/SignVerifyMsg';
 import NotFound from 'components/NotFound';
 import Cashtab from 'assets/cashtab_xec.png';
 import './App.css';
@@ -554,6 +555,9 @@ const App = () => {
                                             setLoadingUtxosAfterSend
                                         }
                                     />
+                                </Route>
+                                <Route path="/signverifymsg">
+                                    <SignVerifyMsg />
                                 </Route>
                                 <Route path="/configure">
                                     <Configure />
