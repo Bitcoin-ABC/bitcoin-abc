@@ -9,6 +9,7 @@ import {
     ReceiveIcon,
     SettingsIcon,
     AirdropIcon,
+    ThemedSignAndVerifyMsg,
 } from 'components/Common/CustomIcons';
 import '../index.css';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
@@ -239,8 +240,8 @@ const NavItem = styled.button`
     background-color: ${props => props.theme.walletBackground};
     border: none;
     color: ${props => props.theme.contrast};
+    gap: 6px;
     cursor: pointer;
-    gap: 1rem;
     &:hover {
         color: ${props => props.theme.navActive};
         svg {
@@ -249,8 +250,13 @@ const NavItem = styled.button`
     }
     svg {
         fill: ${props => props.theme.contrast};
-        width: 26px;
+        max-width: 26px;
         height: auto;
+        flex: 1;
+    }
+    p {
+        flex: 2;
+        margin-top: 5px;
     }
 `;
 export const NavButton = styled.button`
@@ -591,8 +597,19 @@ const App = () => {
                                             }
                                         >
                                             {' '}
-                                            Airdrop
+                                            <p>Airdrop</p>
                                             <AirdropIcon />
+                                        </NavItem>
+                                        <NavItem
+                                            active={
+                                                selectedKey === 'signverifymsg'
+                                            }
+                                            onClick={() =>
+                                                history.push('/signverifymsg')
+                                            }
+                                        >
+                                            <p>Sign & Verify</p>
+                                            <ThemedSignAndVerifyMsg />
                                         </NavItem>
                                         <NavItem
                                             active={selectedKey === 'configure'}
@@ -600,7 +617,7 @@ const App = () => {
                                                 history.push('/configure')
                                             }
                                         >
-                                            Settings
+                                            <p>Settings</p>
                                             <SettingsIcon />
                                         </NavItem>
                                     </NavMenu>

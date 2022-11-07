@@ -30,6 +30,7 @@ import { ReactComponent as Trashcan } from 'assets/trashcan.svg';
 import { ReactComponent as FingerprintSVG } from 'assets/fingerprint-solid.svg';
 import { ReactComponent as EyeSVG } from 'assets/eye.svg';
 import { ReactComponent as EyeInvisibleSVG } from 'assets/eye-invisible.svg';
+import { ReactComponent as Audit } from 'assets/audit.svg';
 
 export const CashLoadingIcon = <LoadingOutlined className="cashLoadingIcon" />;
 
@@ -150,6 +151,10 @@ export const ThemedInvisibleEyeSVG = styled(EyeInvisibleSVG)`
     width: 15px;
     height: 15px;
     cursor: pointer;
+`;
+
+export const ThemedSignAndVerifyMsg = styled(Audit)`
+    min-width: 24px;
 `;
 
 export const LoadingBlock = styled.div`

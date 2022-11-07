@@ -4,10 +4,10 @@ exports[`Wallet with BCH balances and tokens 1`] = `null`;
 
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 <div
-  className="sc-cvbbAY blOKNt"
+  className="sc-jWBwVP bOCXcR"
 >
   <div
-    className="sc-jAaTju eoNejo"
+    className="sc-jDwBTQ dLkfcN"
   >
      
     TBS
@@ -32,7 +32,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         }
       >
         <div
-          className="sc-kEYyzF bWkEuo"
+          className="sc-kkGfuU JWAsO"
         >
           <div
             className="ant-form-item ant-form-item-with-help"
@@ -106,7 +106,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                           className="ant-input-group-addon"
                         >
                           <span
-                            className="sc-jKJlTe bCAJHv"
+                            className="sc-eNQAEJ rjbMI"
                             onClick={[Function]}
                           >
                             <span
@@ -139,7 +139,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
           </div>
         </div>
         <div
-          className="sc-kEYyzF bWkEuo"
+          className="sc-kkGfuU JWAsO"
         >
           <div
             className="ant-form-item ant-form-item-with-help"
@@ -199,7 +199,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                           className="ant-input-group-addon"
                         >
                           <span
-                            className="sc-kkGfuU kViUPB"
+                            className="sc-iAyFgw jYZvjf"
                             disabled={false}
                             onClick={[Function]}
                           >
@@ -222,7 +222,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
           }
         >
           <button
-            className="sc-kGXeez fPsebQ"
+            className="sc-kpOJdX bVnaln"
             onClick={[Function]}
           >
             Send 
