@@ -257,7 +257,7 @@ const NavItem = styled.button`
     }
     p {
         flex: 2;
-        margin-top: 5px;
+        margin: 0;
     }
 `;
 
