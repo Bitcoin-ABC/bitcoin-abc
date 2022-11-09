@@ -51,8 +51,6 @@ class BlockchainTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
-        # TODO: remove -txindex. Currently required for getrawtransaction call.
-        self.extra_args = [["-txindex"]]
         self.supports_cli = False
 
     def run_test(self):
@@ -415,16 +413,16 @@ class BlockchainTest(BitcoinTestFramework):
     def _test_getblock(self):
         # Checks for getblock verbose outputs
         node = self.nodes[0]
-        (blockhash, nextblockhash) = node.generate(2)
+
+        blockcount = node.getblockcount()
+        blockhash = node.getblockhash(blockcount - 1)
+        nextblockhash = node.getblockhash(blockcount)
 
         blockinfo = node.getblock(blockhash, 2)
-        transactioninfo = node.gettransaction(blockinfo['tx'][0]['txid'])
         blockheaderinfo = node.getblockheader(blockhash, True)
 
-        assert_equal(blockinfo['hash'], transactioninfo['blockhash'])
-        assert_equal(
-            blockinfo['confirmations'],
-            transactioninfo['confirmations'])
+        assert_equal(blockinfo['hash'], blockhash)
+        assert_equal(blockinfo['confirmations'], 2)
         assert_equal(blockinfo['height'], blockheaderinfo['height'])
         assert_equal(blockinfo['versionHex'], blockheaderinfo['versionHex'])
         assert_equal(blockinfo['version'], blockheaderinfo['version'])
@@ -432,7 +430,8 @@ class BlockchainTest(BitcoinTestFramework):
         assert_equal(blockinfo['merkleroot'], blockheaderinfo['merkleroot'])
         # Verify transaction data by check the hex values
         for tx in blockinfo['tx']:
-            rawtransaction = node.getrawtransaction(tx['txid'], True)
+            rawtransaction = node.getrawtransaction(
+                txid=tx['txid'], verbose=True, blockhash=blockhash)
             assert_equal(tx['hex'], rawtransaction['hex'])
         assert_equal(blockinfo['time'], blockheaderinfo['time'])
         assert_equal(blockinfo['mediantime'], blockheaderinfo['mediantime'])
