@@ -181,7 +181,7 @@ export const ReceiveIcon = () => <Receive />;
 export const GenesisIcon = () => <Genesis />;
 export const UnparsedIcon = () => <Unparsed />;
 export const HomeIcon = () => <Home />;
-export const SettingsIcon = () => <Settings />;
+export const SettingsIcon = () => <Settings height={'33px'} width={'30px'} />;
 
 export const AirdropIcon = () => <Airdrop height={'33px'} width={'30px'} />;
 

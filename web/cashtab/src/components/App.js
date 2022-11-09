@@ -259,6 +259,14 @@ const NavItem = styled.button`
         flex: 2;
         margin: 0;
     }
+    ${({ active, ...props }) =>
+        active &&
+        `    
+        color: ${props.theme.navActive};
+        svg {
+            fill: ${props.theme.navActive};
+        }
+  `}
 `;
 
 export const NavButton = styled.button`
@@ -313,6 +321,8 @@ export const WalletCtn = styled.div`
 
 export const HeaderCtn = styled.div`
     display: flex;
+    flex-direction: column;
+    gap: 1rem;
     align-items: center;
     justify-content: center;
     width: 100%;
@@ -350,6 +360,21 @@ export const EasterEgg = styled.img`
 
     @media screen and (max-width: 1250px) {
         display: none;
+    }
+`;
+
+const NavHeader = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 1rem;
+    color: ${props => props.theme.navActive};
+    svg {
+        padding: 0.2rem;
+        fill: ${props => props.theme.navActive};
+        height: 33px;
+        width: 30px;
     }
 `;
 
@@ -412,6 +437,25 @@ const App = () => {
                         <WalletCtn>
                             <HeaderCtn>
                                 <CashTabLogo src={CashTab} alt="cashtab" />
+                                {selectedKey === 'airdrop' && (
+                                    <NavHeader>
+                                        Airdrop
+                                        <AirdropIcon />
+                                    </NavHeader>
+                                )}
+                                {selectedKey === 'configure' && (
+                                    <NavHeader>
+                                        Settings
+                                        <SettingsIcon />
+                                    </NavHeader>
+                                )}
+                                {selectedKey === 'signverifymsg' && (
+                                    <NavHeader>
+                                        {' '}
+                                        Sign & Verify Msg
+                                        <ThemedSignAndVerifyMsg />
+                                    </NavHeader>
+                                )}
                                 {/*Begin component not included in extension as desktop only*/}
                                 {hasTab && (
                                     <EasterEgg src={TabCash} alt="tabcash" />
@@ -500,7 +544,6 @@ const App = () => {
                                 >
                                     <ReceiveIcon />
                                 </NavButton>
-
                                 <NavWrapper onClick={handleNavMenuClick}>
                                     <NavIcon clicked={navMenuClicked} />
                                     <NavMenu open={navMenuClicked}>

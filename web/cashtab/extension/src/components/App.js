@@ -259,6 +259,14 @@ const NavItem = styled.button`
         flex: 2;
         margin-top: 5px;
     }
+    ${({ active, ...props }) =>
+        active &&
+        `    
+        color: ${props.theme.navActive};
+        svg {
+            fill: ${props.theme.navActive};
+        }
+  `}
 `;
 export const NavButton = styled.button`
     :focus,
@@ -312,6 +320,8 @@ export const WalletCtn = styled.div`
 
 export const HeaderCtn = styled.div`
     display: flex;
+    flex-direction: column;
+    gap: 1rem;
     align-items: center;
     justify-content: space-between;
     width: 100%;
@@ -333,6 +343,21 @@ const OpenInTabBtn = styled.button`
 
 const ExtTabImg = styled.img`
     max-width: 20px;
+`;
+
+const NavHeader = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 1rem;
+    color: ${props => props.theme.navActive};
+    svg {
+        padding: 0.2rem;
+        fill: ${props => props.theme.navActive};
+        height: 33px;
+        width: 30px;
+    }
 `;
 
 const App = () => {
@@ -524,6 +549,25 @@ const App = () => {
                         <WalletCtn>
                             <HeaderCtn>
                                 <CashtabLogo src={Cashtab} alt="cashtab" />
+                                {selectedKey === 'airdrop' && (
+                                    <NavHeader>
+                                        Airdrop
+                                        <AirdropIcon />
+                                    </NavHeader>
+                                )}
+                                {selectedKey === 'configure' && (
+                                    <NavHeader>
+                                        Settings
+                                        <SettingsIcon />
+                                    </NavHeader>
+                                )}
+                                {selectedKey === 'signverifymsg' && (
+                                    <NavHeader>
+                                        {' '}
+                                        Sign & Verify Msg
+                                        <ThemedSignAndVerifyMsg />
+                                    </NavHeader>
+                                )}
                                 {/*Begin extension-only components*/}
                                 <OpenInTabBtn
                                     data-tip="Open in tab"
