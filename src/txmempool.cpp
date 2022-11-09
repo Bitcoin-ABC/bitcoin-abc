@@ -677,6 +677,8 @@ void CTxMemPool::removeForReorg(const Config &config,
     // Remove transactions spending a coinbase which are now immature and
     // no-longer-final transactions.
     AssertLockHeld(cs);
+    AssertLockHeld(::cs_main);
+
     setEntries txToRemove;
     for (indexed_transaction_set::const_iterator it = mapTx.begin();
          it != mapTx.end(); it++) {
