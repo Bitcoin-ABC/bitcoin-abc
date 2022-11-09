@@ -39,6 +39,7 @@ import {
 import { ChronikClient } from 'chronik-client';
 // For XEC, eCash chain:
 const chronik = new ChronikClient(currency.chronikUrl);
+import cashaddr from 'ecashaddrjs';
 
 const useWallet = () => {
     const [walletRefreshInterval, setWalletRefreshInterval] = useState(
@@ -105,10 +106,42 @@ const useWallet = () => {
 
     const deriveAccount = async (BCH, { masterHDNode, path }) => {
         const node = BCH.HDNode.derivePath(masterHDNode, path);
+
+        // temporary comparison
+        const localNode = masterHDNode.derivePath(path);
+        if (JSON.stringify(node) === JSON.stringify(localNode)) {
+            console.log(path + ': derivePath() output match');
+        }
+
         const publicKey = BCH.HDNode.toPublicKey(node).toString('hex');
+
+        // temporary comparison
+        const localPublicKey = localNode.getPublicKeyBuffer().toString('hex');
+        if (publicKey === localPublicKey) {
+            console.log(path + ': getPublicKeyBuffer() output match');
+        }
+
         const cashAddress = BCH.HDNode.toCashAddress(node);
+
+        // temporary comparison
+        const localCashAddress = cashaddr.encode(
+            'bitcoincash',
+            'P2PKH',
+            localNode.getIdentifier(),
+        );
+        if (cashAddress === localCashAddress) {
+            console.log(path + ': toCashAddress output match');
+        }
+
         const hash160 = toHash160(cashAddress);
         const slpAddress = BCH.SLP.Address.toSLPAddress(cashAddress);
+
+        // temporary comparison
+        // see return statement for original toWIF
+        const localFundingWif = localNode.keyPair.toWIF();
+        if (BCH.HDNode.toWIF(node) === localFundingWif) {
+            console.log(path + ': toWIF() output match');
+        }
 
         return {
             publicKey,
@@ -373,21 +406,10 @@ const useWallet = () => {
         const mnemonic = wallet.mnemonic;
         const rootSeedBuffer = await BCH.Mnemonic.toSeed(mnemonic);
 
-        const masterHDNode = BCH.HDNode.fromSeed(rootSeedBuffer);
-
-        // temporary comparison of masterHDNode between BCH-JS and bitcoincashjs-lib
-        let localMasterHDNode = Bitcoin.HDNode.fromSeedBuffer(
+        const masterHDNode = Bitcoin.HDNode.fromSeedBuffer(
             rootSeedBuffer,
             coininfo.bitcoincash.main.toBitcoinJS(),
         );
-
-        if (
-            JSON.stringify(masterHDNode) === JSON.stringify(localMasterHDNode)
-        ) {
-            console.log(
-                'migrateLegacyWallet(): BCH-JS masterHDNode matches localMasterHDNode from bitcoincashjs-lib',
-            );
-        }
 
         const Path245 = await deriveAccount(BCH, {
             masterHDNode,
@@ -448,20 +470,10 @@ const useWallet = () => {
         // Since this info is in localforage now, only get the var
         const mnemonic = wallet.mnemonic;
         const rootSeedBuffer = await BCH.Mnemonic.toSeed(mnemonic);
-        const masterHDNode = BCH.HDNode.fromSeed(rootSeedBuffer);
-
-        // temporary comparison of masterHDNode between BCH-JS and bitcoincashjs-lib
-        let localMasterHDNode = Bitcoin.HDNode.fromSeedBuffer(
+        const masterHDNode = Bitcoin.HDNode.fromSeedBuffer(
             rootSeedBuffer,
             coininfo.bitcoincash.main.toBitcoinJS(),
         );
-        if (
-            JSON.stringify(masterHDNode) === JSON.stringify(localMasterHDNode)
-        ) {
-            console.log(
-                'getWalletDetails(): BCH-JS masterHDNode matches localMasterHDNode from bitcoincashjs-lib',
-            );
-        }
 
         const Path245 = await deriveAccount(BCH, {
             masterHDNode,
