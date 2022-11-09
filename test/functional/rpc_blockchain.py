@@ -463,15 +463,14 @@ class BlockchainTest(BitcoinTestFramework):
         blockhash = node.generate(1)[0]
 
         self.log.info(
-            "Test that getblock with verbosity 1 doesn't include fee")
+            "Test that getblock with verbosity only includes the txid")
         block = node.getblock(blockhash, 1)
-        assert 'fee' not in block['tx'][1]
+        assert_equal(block['tx'][1], miniwallet.get_utxo()['txid'])
 
         self.log.info(
             'Test that getblock with verbosity 2 includes expected fee')
         block = node.getblock(blockhash, 2)
         tx = block['tx'][1]
-        assert 'fee' in tx
         assert_equal(tx['fee'], tx['size'] * fee_per_byte)
 
         self.log.info(
