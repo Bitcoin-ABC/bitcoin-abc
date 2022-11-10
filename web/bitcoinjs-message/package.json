@@ -1,0 +1,49 @@
+{
+    "name": "bitcoinjs-message",
+    "version": "2.2.0",
+    "description": "bitcoinjs-message",
+    "keywords": [
+        "bitcoinjs-message",
+        "bitcoin"
+    ],
+    "homepage": "https://github.com/bitcoinjs/bitcoinjs-message",
+    "bugs": {
+        "url": "https://github.com/bitcoinjs/bitcoinjs-message/issues"
+    },
+    "license": "MIT",
+    "files": [
+        "index.js",
+        "index.d.ts"
+    ],
+    "main": "./index.js",
+    "types": "./index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/bitcoinjs/bitcoinjs-message.git"
+    },
+    "scripts": {
+        "coverage": "nyc tape test/*.js",
+        "prepublish": "npm run test",
+        "standard": "standard",
+        "test": "npm run standard && npm run unit",
+        "unit": "tape test/*.js"
+    },
+    "dependencies": {
+        "bech32": "^1.1.3",
+        "bs58check": "^2.1.2",
+        "buffer-equals": "^1.0.3",
+        "create-hash": "^1.1.2",
+        "secp256k1": "^3.0.1",
+        "varuint-bitcoin": "^1.0.1"
+    },
+    "devDependencies": {
+        "bigi": "^1.4.1",
+        "bitcoinjs-lib": "^3.2.0",
+        "nyc": "^14.1.1",
+        "standard": "^12.0.1",
+        "tape": "^4.5.1"
+    },
+    "engines": {
+        "node": ">=0.10"
+    }
+}

@@ -35,6 +35,7 @@ import { SmartButton } from 'components/Common/PrimaryButton';
 import { PlusSquareOutlined } from '@ant-design/icons';
 import { currency, parseAddressForParams } from 'components/Common/Ticker.js';
 import { isValidXecAddress, isValidEtokenAddress } from 'utils/validation';
+import bitcoinMessage from 'bitcoinjs-message';
 
 const Wrapper = styled.div`
     .ant-collapse {
@@ -133,17 +134,35 @@ const SignVerifyMsg = ({ jestBCH }) => {
 
     const verifyMessageBySig = () => {
         let verification;
+        let newVerification;
         try {
             verification = bchObj.BitcoinCash.verifyMessage(
                 toLegacyCash(messageVerificationAddr),
                 messageVerificationSig,
                 messageVerificationMsg,
             );
+            newVerification = bitcoinMessage.verify(
+                messageVerificationMsg,
+                bchObj.Address.toLegacyAddress(
+                    toLegacyCash(messageVerificationAddr),
+                ),
+                messageVerificationSig,
+            );
         } catch (err) {
             errorNotification(
+                err,
                 'Error',
                 'Unable to execute signature verification',
             );
+        }
+
+        if (verification === newVerification) {
+            console.log(
+                `Both signature verification methods return the same result`,
+            );
+        } else {
+            console.log(`legacy verification method returned`, verification);
+            console.log(`new verification method returned`, newVerification);
         }
 
         if (verification) {
@@ -152,6 +171,7 @@ const SignVerifyMsg = ({ jestBCH }) => {
             errorNotification(
                 'Error',
                 'Signature does not match address and message',
+                'Called from SignVerifyMsg.js on invalid message signing',
             );
         }
 
