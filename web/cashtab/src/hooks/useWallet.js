@@ -769,6 +769,14 @@ const useWallet = () => {
     const addNewSavedWallet = async importMnemonic => {
         // Add a new wallet to savedWallets from importMnemonic or just new wallet
         const lang = 'english';
+
+        if (
+            JSON.stringify(bip39.wordlists) ===
+            JSON.stringify(BCH.Mnemonic.wordLists())
+        ) {
+            console.log('bip39 wordlists matches BCH.Mnemonic wordlists');
+        }
+
         // create 128 bit BIP39 mnemonic
         const Bip39128BitMnemonic = importMnemonic
             ? importMnemonic
@@ -833,6 +841,14 @@ const useWallet = () => {
 
     const createWallet = async importMnemonic => {
         const lang = 'english';
+
+        if (
+            JSON.stringify(bip39.wordlists) ===
+            JSON.stringify(BCH.Mnemonic.wordLists())
+        ) {
+            console.log('bip39 wordlists matches BCH.Mnemonic wordlists');
+        }
+
         // create 128 bit BIP39 mnemonic
         const Bip39128BitMnemonic = importMnemonic
             ? importMnemonic
@@ -877,6 +893,16 @@ const useWallet = () => {
         wordlist = BCH.Mnemonic.wordLists().english,
     ) => {
         let mnemonicTestOutput;
+
+        // see function input param
+        if (
+            JSON.stringify(bip39.wordlists.english) ===
+            JSON.stringify(BCH.Mnemonic.wordLists().english)
+        ) {
+            console.log(
+                'bip39 english wordlist matches BCH.Mnemonic english wordlist',
+            );
+        }
 
         try {
             mnemonicTestOutput = BCH.Mnemonic.validate(mnemonic, wordlist);
