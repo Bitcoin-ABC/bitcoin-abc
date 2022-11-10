@@ -1781,7 +1781,7 @@ RPCHelpMan importmulti() {
              },
              RPCArgOptions{.oneline_description = "\"requests\""}},
             {"options",
-             RPCArg::Type::OBJ,
+             RPCArg::Type::OBJ_NAMED_PARAMS,
              RPCArg::Optional::OMITTED_NAMED_ARG,
              "",
              {

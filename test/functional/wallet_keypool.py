@@ -126,7 +126,8 @@ class KeyPoolTest(BitcoinTestFramework):
             w2.walletcreatefundedpsbt,
             inputs=[],
             outputs=[{addr.pop(): 50.00}],
-            options={"subtractFeeFromOutputs": [0], "feeRate": 100},
+            subtractFeeFromOutputs=[0],
+            feeRate=100,
         )
 
         # creating a 10,000 sat transaction without change, with a manual
@@ -134,7 +135,8 @@ class KeyPoolTest(BitcoinTestFramework):
         res = w2.walletcreatefundedpsbt(
             inputs=w2.listunspent(),
             outputs=[{destination: 100.00}],
-            options={"subtractFeeFromOutputs": [0], "feeRate": 100},
+            subtractFeeFromOutputs=[0],
+            feeRate=100,
         )
         assert_equal("psbt" in res, True)
 
@@ -143,19 +145,20 @@ class KeyPoolTest(BitcoinTestFramework):
         res = w2.walletcreatefundedpsbt(
             inputs=[],
             outputs=[{destination: 100.00}],
-            options={"subtractFeeFromOutputs": [0], "feeRate": 100},
+            subtractFeeFromOutputs=[0],
+            feeRate=100,
         )
         assert_equal("psbt" in res, True)
         # should work without subtractFeeFromOutputs if the exact fee is
         # subtracted from the amount
         res = w2.walletcreatefundedpsbt(
-            inputs=[], outputs=[{destination: 80.00}], options={"feeRate": 100}
+            inputs=[], outputs=[{destination: 80.00}], feeRate=100
         )
         assert_equal("psbt" in res, True)
 
         # dust change should be removed
         res = w2.walletcreatefundedpsbt(
-            inputs=[], outputs=[{destination: 79.00}], options={"feeRate": 100}
+            inputs=[], outputs=[{destination: 79.00}], feeRate=100
         )
         assert_equal("psbt" in res, True)
 
@@ -164,7 +167,8 @@ class KeyPoolTest(BitcoinTestFramework):
         res = w2.walletcreatefundedpsbt(
             inputs=[],
             outputs=[{destination: 100.00}],
-            options={"subtractFeeFromOutputs": [0], "feeRate": 494.90},
+            subtractFeeFromOutputs=[0],
+            feeRate=494.90,
         )
         assert_equal("psbt" in res, True)
         assert_equal(res["fee"], Decimal("94.53"))
@@ -174,11 +178,9 @@ class KeyPoolTest(BitcoinTestFramework):
         res = w2.walletcreatefundedpsbt(
             inputs=[],
             outputs=[{destination: 100.00}],
-            options={
-                "subtractFeeFromOutputs": [0],
-                "feeRate": 100,
-                "changeAddress": addr.pop(),
-            },
+            subtractFeeFromOutputs=[0],
+            feeRate=100,
+            changeAddress=addr.pop(),
         )
         assert_equal("psbt" in res, True)
 

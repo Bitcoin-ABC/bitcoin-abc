@@ -3005,7 +3005,7 @@ static RPCHelpMan listunspent() {
              "Include outputs that are not safe to spend\n"
              "                  See description of \"safe\" attribute below."},
             {"query_options",
-             RPCArg::Type::OBJ,
+             RPCArg::Type::OBJ_NAMED_PARAMS,
              RPCArg::Optional::OMITTED_NAMED_ARG,
              "JSON with query options",
              {
@@ -3460,9 +3460,9 @@ static RPCHelpMan fundrawtransaction() {
             {"hexstring", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "The hex string of the raw transaction"},
             {"options",
-             RPCArg::Type::OBJ,
+             RPCArg::Type::OBJ_NAMED_PARAMS,
              RPCArg::Optional::OMITTED_NAMED_ARG,
-             "for backward compatibility: passing in a true instead of an "
+             "For backward compatibility: passing in a true instead of an "
              "object will result in {\"includeWatching\":true}",
              {
                  {"add_inputs", RPCArg::Type::BOOL, RPCArg::Default{true},
@@ -3495,7 +3495,8 @@ static RPCHelpMan fundrawtransaction() {
                  {"feeRate", RPCArg::Type::AMOUNT,
                   RPCArg::DefaultHint{
                       "not set: makes wallet determine the fee"},
-                  "Set a specific fee rate in " + ticker + "/kB"},
+                  "Set a specific fee rate in " + ticker + "/kB",
+                  RPCArgOptions{.also_positional = true}},
                  {
                      "subtractFeeFromOutputs",
                      RPCArg::Type::ARR,
@@ -4258,7 +4259,7 @@ static RPCHelpMan send() {
              },
              RPCArgOptions{.skip_type_check = true}},
             {"options",
-             RPCArg::Type::OBJ,
+             RPCArg::Type::OBJ_NAMED_PARAMS,
              RPCArg::Optional::OMITTED_NAMED_ARG,
              "",
              {
@@ -4275,7 +4276,7 @@ static RPCHelpMan send() {
                  {"add_to_wallet", RPCArg::Type::BOOL, RPCArg::Default{true},
                   "When false, returns a serialized transaction which will not "
                   "be added to the wallet or broadcast"},
-                 {"change_address", RPCArg::Type::STR_HEX,
+                 {"change_address", RPCArg::Type::STR,
                   RPCArg::DefaultHint{"pool address"},
                   "The bitcoin address to receive the change"},
                  {"change_position", RPCArg::Type::NUM,
@@ -4285,7 +4286,8 @@ static RPCHelpMan send() {
                   RPCArg::DefaultHint{
                       "not set: makes wallet determine the fee"},
                   "Set a specific fee rate in " + Currency::get().ticker +
-                      "/kB"},
+                      "/kB",
+                  RPCArgOptions{.also_positional = true}},
                  {"include_watching", RPCArg::Type::BOOL,
                   RPCArg::DefaultHint{
                       "true for watch-only wallets, otherwise false"},
@@ -4719,7 +4721,7 @@ static RPCHelpMan walletcreatefundedpsbt() {
              "replaced by a transaction with higher fees. If provided, it is "
              "an error if explicit sequence numbers are incompatible."},
             {"options",
-             RPCArg::Type::OBJ,
+             RPCArg::Type::OBJ_NAMED_PARAMS,
              RPCArg::Optional::OMITTED_NAMED_ARG,
              "",
              {
@@ -4733,7 +4735,7 @@ static RPCHelpMan walletcreatefundedpsbt() {
                   "one of the unsafe inputs disappears.\n"
                   "If that happens, you will need to fund the transaction with "
                   "different inputs and republish it."},
-                 {"changeAddress", RPCArg::Type::STR_HEX,
+                 {"changeAddress", RPCArg::Type::STR,
                   RPCArg::DefaultHint{"pool address"},
                   "The bitcoin address to receive the change"},
                  {"changePosition", RPCArg::Type::NUM,
@@ -4748,7 +4750,8 @@ static RPCHelpMan walletcreatefundedpsbt() {
                  {"feeRate", RPCArg::Type::AMOUNT,
                   RPCArg::DefaultHint{
                       "not set: makes wallet determine the fee"},
-                  "Set a specific fee rate in " + ticker + "/kB"},
+                  "Set a specific fee rate in " + ticker + "/kB",
+                  RPCArgOptions{.also_positional = true}},
                  {
                      "subtractFeeFromOutputs",
                      RPCArg::Type::ARR,
