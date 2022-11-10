@@ -105,50 +105,22 @@ const useWallet = () => {
     };
 
     const deriveAccount = async (BCH, { masterHDNode, path }) => {
-        const node = BCH.HDNode.derivePath(masterHDNode, path);
-
-        // temporary comparison
-        const localNode = masterHDNode.derivePath(path);
-        if (JSON.stringify(node) === JSON.stringify(localNode)) {
-            console.log(path + ': derivePath() output match');
-        }
-
-        const publicKey = BCH.HDNode.toPublicKey(node).toString('hex');
-
-        // temporary comparison
-        const localPublicKey = localNode.getPublicKeyBuffer().toString('hex');
-        if (publicKey === localPublicKey) {
-            console.log(path + ': getPublicKeyBuffer() output match');
-        }
-
-        const cashAddress = BCH.HDNode.toCashAddress(node);
-
-        // temporary comparison
-        const localCashAddress = cashaddr.encode(
+        const node = masterHDNode.derivePath(path);
+        const publicKey = node.getPublicKeyBuffer().toString('hex');
+        const cashAddress = cashaddr.encode(
             'bitcoincash',
             'P2PKH',
-            localNode.getIdentifier(),
+            node.getIdentifier(),
         );
-        if (cashAddress === localCashAddress) {
-            console.log(path + ': toCashAddress output match');
-        }
-
         const hash160 = toHash160(cashAddress);
         const slpAddress = BCH.SLP.Address.toSLPAddress(cashAddress);
-
-        // temporary comparison
-        // see return statement for original toWIF
-        const localFundingWif = localNode.keyPair.toWIF();
-        if (BCH.HDNode.toWIF(node) === localFundingWif) {
-            console.log(path + ': toWIF() output match');
-        }
 
         return {
             publicKey,
             hash160,
             cashAddress,
             slpAddress,
-            fundingWif: BCH.HDNode.toWIF(node),
+            fundingWif: node.keyPair.toWIF(),
             fundingAddress: BCH.SLP.Address.toSLPAddress(cashAddress),
             legacyAddress: BCH.SLP.Address.toLegacyAddress(cashAddress),
         };
