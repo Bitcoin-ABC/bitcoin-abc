@@ -40,6 +40,7 @@ import { ChronikClient } from 'chronik-client';
 // For XEC, eCash chain:
 const chronik = new ChronikClient(currency.chronikUrl);
 import cashaddr from 'ecashaddrjs';
+import * as bip39 from 'bip39';
 
 const useWallet = () => {
     const [walletRefreshInterval, setWalletRefreshInterval] = useState(
@@ -382,6 +383,14 @@ const useWallet = () => {
             rootSeedBuffer,
             coininfo.bitcoincash.main.toBitcoinJS(),
         );
+        // temporary comparison
+        const localRootSeedBufffer = await bip39.mnemonicToSeed(mnemonic, '');
+        if (
+            JSON.stringify(rootSeedBuffer) ===
+            JSON.stringify(localRootSeedBufffer)
+        ) {
+            console.log('mnemonicToSeed() output match');
+        }
 
         const Path245 = await deriveAccount(BCH, {
             masterHDNode,
@@ -446,6 +455,15 @@ const useWallet = () => {
             rootSeedBuffer,
             coininfo.bitcoincash.main.toBitcoinJS(),
         );
+
+        // temporary comparison
+        const localRootSeedBufffer = await bip39.mnemonicToSeed(mnemonic, '');
+        if (
+            JSON.stringify(rootSeedBuffer) ===
+            JSON.stringify(localRootSeedBufffer)
+        ) {
+            console.log('mnemonicToSeed() output match');
+        }
 
         const Path245 = await deriveAccount(BCH, {
             masterHDNode,
