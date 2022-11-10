@@ -50,7 +50,7 @@ class AvalancheTest(BitcoinTestFramework):
             return [get_ava_p2p_interface(node)
                     for _ in range(0, QUORUM_NODE_COUNT)]
 
-        # Pick on node from the quorum for polling.
+        # Pick one node from the quorum for polling.
         quorum = get_quorum()
         poll_node = quorum[0]
 

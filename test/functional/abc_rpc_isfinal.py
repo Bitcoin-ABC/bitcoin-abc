@@ -64,7 +64,7 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
             return [node.add_p2p_connection(AvaP2PInterface(node))
                     for _ in range(0, QUORUM_NODE_COUNT)]
 
-        # Pick on node from the quorum for polling.
+        # Pick one node from the quorum for polling.
         quorum = get_quorum()
 
         def is_quorum_established():
