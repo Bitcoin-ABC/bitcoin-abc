@@ -1,14 +1,15 @@
 {
-    "name": "bitcoinjs-message",
-    "version": "2.2.0",
-    "description": "bitcoinjs-message",
+    "name": "xecjs-message",
+    "version": "1.0.0",
+    "description": "xecjs-message",
     "keywords": [
-        "bitcoinjs-message",
-        "bitcoin"
+        "xecjs-message",
+        "xec",
+        "ecash"
     ],
-    "homepage": "https://github.com/bitcoinjs/bitcoinjs-message",
+    "homepage": "https://reviews.bitcoinabc.org/",
     "bugs": {
-        "url": "https://github.com/bitcoinjs/bitcoinjs-message/issues"
+        "url": "https://reviews.bitcoinabc.org/"
     },
     "license": "MIT",
     "files": [
@@ -19,13 +20,12 @@
     "types": "./index.d.ts",
     "repository": {
         "type": "git",
-        "url": "https://github.com/bitcoinjs/bitcoinjs-message.git"
+        "url": "https://github.com/Bitcoin-ABC/bitcoin-abc.git"
     },
     "scripts": {
         "coverage": "nyc tape test/*.js",
         "prepublish": "npm run test",
-        "standard": "standard",
-        "test": "npm run standard && npm run unit",
+        "test": "npm run unit",
         "unit": "tape test/*.js"
     },
     "dependencies": {
@@ -33,6 +33,7 @@
         "bs58check": "^2.1.2",
         "buffer-equals": "^1.0.3",
         "create-hash": "^1.1.2",
+        "ecashaddrjs": "^1.0.7",
         "secp256k1": "^3.0.1",
         "varuint-bitcoin": "^1.0.1"
     },
@@ -40,7 +41,6 @@
         "bigi": "^1.4.1",
         "bitcoinjs-lib": "^3.2.0",
         "nyc": "^14.1.1",
-        "standard": "^12.0.1",
         "tape": "^4.5.1"
     },
     "engines": {

@@ -21,7 +21,6 @@
         "babel-preset-react-app": "^10.0.1",
         "bfj": "^7.0.2",
         "bignumber.js": "^9.0.0",
-        "bitcoinjs-message": "file:../bitcoinjs-message",
         "browserslist": "^4.18.1",
         "bs58": "^4.0.1",
         "buffer": "^6.0.3",
@@ -89,7 +88,8 @@
         "webpack-dev-server": "^4.6.0",
         "webpack-manifest-plugin": "^4.0.2",
         "wif": "^2.0.6",
-        "workbox-webpack-plugin": "^6.4.1"
+        "workbox-webpack-plugin": "^6.4.1",
+        "xecjs-message": "file:../xecjs-message"
     },
     "scripts": {
         "start": "node scripts/start.js",

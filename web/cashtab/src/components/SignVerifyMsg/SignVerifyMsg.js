@@ -35,7 +35,7 @@ import { SmartButton } from 'components/Common/PrimaryButton';
 import { PlusSquareOutlined } from '@ant-design/icons';
 import { currency, parseAddressForParams } from 'components/Common/Ticker.js';
 import { isValidXecAddress, isValidEtokenAddress } from 'utils/validation';
-import bitcoinMessage from 'bitcoinjs-message';
+import xecMessage from 'xecjs-message';
 
 const Wrapper = styled.div`
     .ant-collapse {
@@ -141,11 +141,9 @@ const SignVerifyMsg = ({ jestBCH }) => {
                 messageVerificationSig,
                 messageVerificationMsg,
             );
-            newVerification = bitcoinMessage.verify(
+            newVerification = xecMessage.verify(
                 messageVerificationMsg,
-                bchObj.Address.toLegacyAddress(
-                    toLegacyCash(messageVerificationAddr),
-                ),
+                messageVerificationAddr,
                 messageVerificationSig,
             );
         } catch (err) {

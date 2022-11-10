@@ -4,6 +4,7 @@ const bufferEquals = require('buffer-equals');
 const createHash = require('create-hash');
 const secp256k1 = require('secp256k1');
 const varuint = require('varuint-bitcoin');
+const ecashaddr = require('ecashaddrjs');
 
 const SEGWIT_TYPES = {
     P2WPKH: 'p2wpkh',
@@ -209,7 +210,11 @@ function verify(message, address, signature, messagePrefix, checkSegwitAlways) {
             }
         } else {
             actual = publicKeyHash;
-            expected = bs58check.decode(address).slice(1);
+            // Decode from XEC address instead of bs58 legacy format
+            const decodedAddress = ecashaddr.decode(address);
+
+            expected = Buffer.alloc(decodedAddress.hash.length);
+            expected.set(decodedAddress.hash);
         }
     }
 
