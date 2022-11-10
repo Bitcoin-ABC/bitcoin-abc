@@ -24,11 +24,7 @@ import {
     DestinationAddressSingleWithoutQRScan,
 } from 'components/Common/EnhancedInputs';
 const { TextArea } = Input;
-import {
-    toLegacyCash,
-    convertToEcashPrefix,
-    getWalletState,
-} from 'utils/cashMethods';
+import { convertToEcashPrefix, getWalletState } from 'utils/cashMethods';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { ThemedCopySolid } from 'components/Common/CustomIcons';
 import { SmartButton } from 'components/Common/PrimaryButton';
@@ -102,7 +98,7 @@ const SignVerifyMsg = ({ jestBCH }) => {
     const signMessageByPk = async () => {
         try {
             const messageSignature =
-                await BCH.BitcoinCash.signMessageWithPrivKey(
+                await bchObj.BitcoinCash.signMessageWithPrivKey(
                     wallet.Path1899.fundingWif,
                     msgToSign,
                 );
@@ -134,14 +130,8 @@ const SignVerifyMsg = ({ jestBCH }) => {
 
     const verifyMessageBySig = () => {
         let verification;
-        let newVerification;
         try {
-            verification = bchObj.BitcoinCash.verifyMessage(
-                toLegacyCash(messageVerificationAddr),
-                messageVerificationSig,
-                messageVerificationMsg,
-            );
-            newVerification = xecMessage.verify(
+            verification = xecMessage.verify(
                 messageVerificationMsg,
                 messageVerificationAddr,
                 messageVerificationSig,
@@ -152,15 +142,6 @@ const SignVerifyMsg = ({ jestBCH }) => {
                 'Error',
                 'Unable to execute signature verification',
             );
-        }
-
-        if (verification === newVerification) {
-            console.log(
-                `Both signature verification methods return the same result`,
-            );
-        } else {
-            console.log(`legacy verification method returned`, verification);
-            console.log(`new verification method returned`, newVerification);
         }
 
         if (verification) {
