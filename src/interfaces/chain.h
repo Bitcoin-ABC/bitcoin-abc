@@ -28,6 +28,7 @@ class CScheduler;
 class TxValidationState;
 
 enum class MemPoolRemovalReason;
+enum class ChainstateRole;
 
 struct bilingual_str;
 struct CBlockLocator;
@@ -252,10 +253,12 @@ public:
         virtual void transactionRemovedFromMempool(const CTransactionRef &ptx,
                                                    MemPoolRemovalReason reason,
                                                    uint64_t mempool_sequence) {}
-        virtual void blockConnected(const CBlock &block, int height) {}
+        virtual void blockConnected(ChainstateRole role, const CBlock &block,
+                                    int height) {}
         virtual void blockDisconnected(const CBlock &block, int height) {}
         virtual void updatedBlockTip() {}
-        virtual void chainStateFlushed(const CBlockLocator &locator) {}
+        virtual void chainStateFlushed(ChainstateRole role,
+                                       const CBlockLocator &locator) {}
     };
 
     //! Register handler for notifications.

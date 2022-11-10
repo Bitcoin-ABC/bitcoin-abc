@@ -26,6 +26,7 @@
 #include <headerssync.h>
 #include <index/blockfilterindex.h>
 #include <invrequest.h>
+#include <kernel/chain.h>
 #include <kernel/mempool_entry.h>
 #include <merkleblock.h>
 #include <netbase.h>
@@ -734,7 +735,8 @@ public:
                     avalanche::Processor *const avalanche, Options opts);
 
     /** Overridden from CValidationInterface. */
-    void BlockConnected(const std::shared_ptr<const CBlock> &pblock,
+    void BlockConnected(ChainstateRole role,
+                        const std::shared_ptr<const CBlock> &pblock,
                         const CBlockIndex *pindexConnected) override
         EXCLUSIVE_LOCKS_REQUIRED(!m_recent_confirmed_transactions_mutex);
     void BlockDisconnected(const std::shared_ptr<const CBlock> &block,
@@ -2881,7 +2883,8 @@ void PeerManagerImpl::StartScheduledTasks(CScheduler &scheduler) {
  * possibly reduce dynamic block stalling timeout.
  */
 void PeerManagerImpl::BlockConnected(
-    const std::shared_ptr<const CBlock> &pblock, const CBlockIndex *pindex) {
+    ChainstateRole role, const std::shared_ptr<const CBlock> &pblock,
+    const CBlockIndex *pindex) {
     m_mempool.withOrphanage([&pblock](TxOrphanage &orphanage) {
         orphanage.EraseForBlock(*pblock);
     });

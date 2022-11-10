@@ -443,9 +443,10 @@ namespace {
             m_notifications->transactionRemovedFromMempool(tx, reason,
                                                            mempool_sequence);
         }
-        void BlockConnected(const std::shared_ptr<const CBlock> &block,
+        void BlockConnected(ChainstateRole role,
+                            const std::shared_ptr<const CBlock> &block,
                             const CBlockIndex *index) override {
-            m_notifications->blockConnected(*block, index->nHeight);
+            m_notifications->blockConnected(role, *block, index->nHeight);
         }
         void BlockDisconnected(const std::shared_ptr<const CBlock> &block,
                                const CBlockIndex *index) override {
@@ -456,8 +457,9 @@ namespace {
                              bool is_ibd) override {
             m_notifications->updatedBlockTip();
         }
-        void ChainStateFlushed(const CBlockLocator &locator) override {
-            m_notifications->chainStateFlushed(locator);
+        void ChainStateFlushed(ChainstateRole role,
+                               const CBlockLocator &locator) override {
+            m_notifications->chainStateFlushed(role, locator);
         }
         std::shared_ptr<Chain::Notifications> m_notifications;
     };

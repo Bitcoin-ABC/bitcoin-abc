@@ -8,6 +8,7 @@
 #include <attributes.h>
 #include <chain.h>
 #include <consensus/validation.h>
+#include <kernel/chain.h>
 #include <logging.h>
 #include <primitives/block.h>
 #include <primitives/transaction.h>
@@ -239,11 +240,12 @@ void CMainSignals::TransactionRemovedFromMempool(const CTransactionRef &tx,
                           RemovalReasonToString(reason));
 }
 
-void CMainSignals::BlockConnected(const std::shared_ptr<const CBlock> &pblock,
+void CMainSignals::BlockConnected(ChainstateRole role,
+                                  const std::shared_ptr<const CBlock> &pblock,
                                   const CBlockIndex *pindex) {
-    auto event = [pblock, pindex, this] {
+    auto event = [role, pblock, pindex, this] {
         m_internals->Iterate([&](CValidationInterface &callbacks) {
-            callbacks.BlockConnected(pblock, pindex);
+            callbacks.BlockConnected(role, pblock, pindex);
         });
     };
     ENQUEUE_AND_LOG_EVENT(event, "%s: block hash=%s block height=%d", __func__,
@@ -261,10 +263,11 @@ void CMainSignals::BlockDisconnected(
                           pblock->GetHash().ToString());
 }
 
-void CMainSignals::ChainStateFlushed(const CBlockLocator &locator) {
-    auto event = [locator, this] {
+void CMainSignals::ChainStateFlushed(ChainstateRole role,
+                                     const CBlockLocator &locator) {
+    auto event = [role, locator, this] {
         m_internals->Iterate([&](CValidationInterface &callbacks) {
-            callbacks.ChainStateFlushed(locator);
+            callbacks.ChainStateFlushed(role, locator);
         });
     };
     ENQUEUE_AND_LOG_EVENT(event, "%s: block hash=%s", __func__,

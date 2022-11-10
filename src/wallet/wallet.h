@@ -612,7 +612,8 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     void transactionAddedToMempool(const CTransactionRef &tx,
                                    uint64_t mempool_sequence) override;
-    void blockConnected(const CBlock &block, int height) override;
+    void blockConnected(ChainstateRole role, const CBlock &block,
+                        int height) override;
     void blockDisconnected(const CBlock &block, int height) override;
     void updatedBlockTip() override;
     int64_t RescanFromTime(int64_t startTime,
@@ -797,7 +798,8 @@ public:
     /** should probably be renamed to IsRelevantToMe */
     bool IsFromMe(const CTransaction &tx) const;
     Amount GetDebit(const CTransaction &tx, const isminefilter &filter) const;
-    void chainStateFlushed(const CBlockLocator &loc) override;
+    void chainStateFlushed(ChainstateRole role,
+                           const CBlockLocator &loc) override;
 
     DBErrors LoadWallet();
     DBErrors ZapSelectTx(std::vector<TxId> &txIdsIn,

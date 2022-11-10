@@ -641,6 +641,7 @@ add_library(server
 	init.cpp
 	init/common.cpp
 	invrequest.cpp
+	kernel/chain.cpp
 	kernel/checks.cpp
 	kernel/coinstats.cpp
 	kernel/context.cpp
@@ -849,6 +850,7 @@ if(BUILD_BITCOIN_CHAINSTATE)
 	#       like index/*.cpp will be removed.
 	add_library(bitcoinkernel
 		kernel/bitcoinkernel.cpp
+		kernel/chain.cpp
 		kernel/chainparams.cpp
 		kernel/checks.cpp
 		kernel/coinstats.cpp

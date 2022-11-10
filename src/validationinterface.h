@@ -6,6 +6,7 @@
 #ifndef BITCOIN_VALIDATIONINTERFACE_H
 #define BITCOIN_VALIDATIONINTERFACE_H
 
+#include <kernel/chain.h>
 #include <kernel/cs_main.h>
 #include <primitives/transaction.h> // CTransaction(Ref)
 #include <sync.h>
@@ -150,12 +151,14 @@ protected:
      *
      * Called on a background thread.
      */
-    virtual void BlockConnected(const std::shared_ptr<const CBlock> &block,
+    virtual void BlockConnected(ChainstateRole role,
+                                const std::shared_ptr<const CBlock> &block,
                                 const CBlockIndex *pindex) {}
     /**
      * Notifies listeners of a block being disconnected
      *
-     * Called on a background thread.
+     * Called on a background thread. Only called for the active chainstate,
+     * since background chainstates should never disconnect blocks.
      */
     virtual void BlockDisconnected(const std::shared_ptr<const CBlock> &block,
                                    const CBlockIndex *pindex) {}
@@ -175,12 +178,13 @@ protected:
      *
      * Called on a background thread.
      */
-    virtual void ChainStateFlushed(const CBlockLocator &locator) {}
+    virtual void ChainStateFlushed(ChainstateRole role,
+                                   const CBlockLocator &locator) {}
     /**
      * Notifies listeners of a block validation result.
      * If the provided BlockValidationState IsValid, the provided block
      * is guaranteed to be the current best block at the time the
-     * callback was generated (not necessarily now)
+     * callback was generated (not necessarily now).
      */
     virtual void BlockChecked(const CBlock &, const BlockValidationState &) {}
     /**
@@ -190,11 +194,9 @@ protected:
      */
     virtual void NewPoWValidBlock(const CBlockIndex *pindex,
                                   const std::shared_ptr<const CBlock> &block){};
-
     virtual void BlockFinalized(const CBlockIndex *pindex){};
     virtual void BlockInvalidated(const CBlockIndex *pindex,
                                   const std::shared_ptr<const CBlock> &block){};
-
     friend class CMainSignals;
     friend class ValidationInterfaceTest;
 };
@@ -235,11 +237,11 @@ public:
     void TransactionRemovedFromMempool(const CTransactionRef &,
                                        MemPoolRemovalReason,
                                        uint64_t mempool_sequence);
-    void BlockConnected(const std::shared_ptr<const CBlock> &,
+    void BlockConnected(ChainstateRole, const std::shared_ptr<const CBlock> &,
                         const CBlockIndex *pindex);
     void BlockDisconnected(const std::shared_ptr<const CBlock> &,
                            const CBlockIndex *pindex);
-    void ChainStateFlushed(const CBlockLocator &);
+    void ChainStateFlushed(ChainstateRole, const CBlockLocator &);
     void BlockChecked(const CBlock &, const BlockValidationState &);
     void NewPoWValidBlock(const CBlockIndex *,
                           const std::shared_ptr<const CBlock> &);
