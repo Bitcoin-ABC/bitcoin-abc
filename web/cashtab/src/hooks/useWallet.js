@@ -41,6 +41,7 @@ import { ChronikClient } from 'chronik-client';
 const chronik = new ChronikClient(currency.chronikUrl);
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
+import * as randomBytes from 'randombytes';
 
 const useWallet = () => {
     const [walletRefreshInterval, setWalletRefreshInterval] = useState(
@@ -772,6 +773,17 @@ const useWallet = () => {
         const Bip39128BitMnemonic = importMnemonic
             ? importMnemonic
             : BCH.Mnemonic.generate(128, BCH.Mnemonic.wordLists()[lang]);
+
+        // temporary comparison
+        // reference: https://github.com/Permissionless-Software-Foundation/bch-js/blob/62e56c832b35731880fe448269818b853c76dd80/src/mnemonic.js#L52
+        // Note: by virtue of randombytes being used by BCH-JS the generated mnemonics will never match
+        const localBip39128BitMnemonic = bip39.generateMnemonic(
+            128,
+            randomBytes,
+            BCH.Mnemonic.wordLists()[lang],
+        );
+        console.log('localBip39128BitMnemonic: ' + localBip39128BitMnemonic);
+
         const newSavedWallet = await getWalletDetails({
             mnemonic: Bip39128BitMnemonic.toString(),
         });
@@ -825,6 +837,17 @@ const useWallet = () => {
         const Bip39128BitMnemonic = importMnemonic
             ? importMnemonic
             : BCH.Mnemonic.generate(128, BCH.Mnemonic.wordLists()[lang]);
+
+        // temporary comparison
+        // reference: https://github.com/Permissionless-Software-Foundation/bch-js/blob/62e56c832b35731880fe448269818b853c76dd80/src/mnemonic.js#L52
+        // Note: by virtue of randombytes being used by BCH-JS the generated mnemonics will never match
+        const localBip39128BitMnemonic = bip39.generateMnemonic(
+            128,
+            randomBytes,
+            BCH.Mnemonic.wordLists()[lang],
+        );
+        console.log('localBip39128BitMnemonic: ' + localBip39128BitMnemonic);
+
         const wallet = await getWalletDetails({
             mnemonic: Bip39128BitMnemonic.toString(),
         });
