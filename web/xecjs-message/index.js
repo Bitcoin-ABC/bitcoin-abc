@@ -160,30 +160,46 @@ function decodeBech32(address) {
     return Buffer.from(data);
 }
 
-function verify(message, address, signature, messagePrefix) {
+function verify(message, xecAddress, signature, messagePrefix) {
     if (!Buffer.isBuffer(signature))
         signature = Buffer.from(signature, 'base64');
 
     const parsed = decodeSignature(signature);
 
-    const hash = magicHash(message, messagePrefix);
-    const publicKey = secp256k1.recover(
-        hash,
+    const hashBitcoinSigned = magicHash(message, messagePrefix);
+    const publicKeyBitcoinSigned = secp256k1.recover(
+        hashBitcoinSigned,
         parsed.signature,
         parsed.recovery,
         parsed.compressed,
     );
-    const publicKeyHash = hash160(publicKey);
-    let actual, expected;
+    const publicKeyHashBitcoinSigned = hash160(publicKeyBitcoinSigned);
 
-    actual = publicKeyHash;
+    // Also test ecash: signed
+    const hashEcashSigned = magicHash(message, '\u0016eCash Signed Message:\n');
+    const publicKeyEcashSigned = secp256k1.recover(
+        hashEcashSigned,
+        parsed.signature,
+        parsed.recovery,
+        parsed.compressed,
+    );
+    const publicKeyHashEcashSigned = hash160(publicKeyEcashSigned);
+
+    let actualBitcoinSigned, actualEcashSigned, expected;
+
+    actualBitcoinSigned = publicKeyHashBitcoinSigned;
+    actualEcashSigned = publicKeyHashEcashSigned;
+
     // Decode from XEC address instead of bs58 legacy format
-    const decodedAddress = ecashaddr.decode(address);
+    const decodedAddress = ecashaddr.decode(xecAddress);
 
     expected = Buffer.alloc(decodedAddress.hash.length);
     expected.set(decodedAddress.hash);
 
-    return bufferEquals(actual, expected);
+    return (
+        bufferEquals(actualEcashSigned, expected) ||
+        bufferEquals(actualBitcoinSigned, expected)
+    );
 }
 
 module.exports = {
