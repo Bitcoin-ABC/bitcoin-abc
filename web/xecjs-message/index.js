@@ -1,5 +1,3 @@
-const bs58check = require('bs58check');
-const bech32 = require('bech32');
 const bufferEquals = require('buffer-equals');
 const createHash = require('create-hash');
 const secp256k1 = require('secp256k1');
@@ -144,20 +142,6 @@ function signAsync(message, privateKey, compressed, messagePrefix, sigOptions) {
                 segwitType,
             );
         });
-}
-
-function segwitRedeemHash(publicKeyHash) {
-    const redeemScript = Buffer.concat([
-        Buffer.from('0014', 'hex'),
-        publicKeyHash,
-    ]);
-    return hash160(redeemScript);
-}
-
-function decodeBech32(address) {
-    const result = bech32.decode(address);
-    const data = bech32.fromWords(result.words.slice(1));
-    return Buffer.from(data);
 }
 
 function verify(message, xecAddress, signature, messagePrefix) {
