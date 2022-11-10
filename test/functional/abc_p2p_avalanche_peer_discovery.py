@@ -47,7 +47,7 @@ class GetProofDataCountingInterface(AvaP2PInterface):
             self.get_proof_data_count += 1
 
 
-class AvalancheTest(BitcoinTestFramework):
+class AvalanchePeerDiscoveryTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
@@ -318,4 +318,4 @@ class AvalancheTest(BitcoinTestFramework):
 
 
 if __name__ == '__main__':
-    AvalancheTest().main()
+    AvalanchePeerDiscoveryTest().main()
