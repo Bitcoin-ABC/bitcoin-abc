@@ -2885,26 +2885,9 @@ void PeerManagerImpl::StartScheduledTasks(CScheduler &scheduler) {
 void PeerManagerImpl::BlockConnected(
     ChainstateRole role, const std::shared_ptr<const CBlock> &pblock,
     const CBlockIndex *pindex) {
-    m_mempool.withOrphanage([&pblock](TxOrphanage &orphanage) {
-        orphanage.EraseForBlock(*pblock);
-    });
-    m_mempool.withConflicting([&pblock](TxConflicting &conflicting) {
-        conflicting.EraseForBlock(*pblock);
-    });
+    // Update this for all chainstate roles so that we don't mistakenly see
+    // peers helping us do background IBD as having a stale tip.
     m_last_tip_update = GetTime<std::chrono::seconds>();
-
-    {
-        LOCK(m_recent_confirmed_transactions_mutex);
-        for (const CTransactionRef &ptx : pblock->vtx) {
-            m_recent_confirmed_transactions.insert(ptx->GetId());
-        }
-    }
-    {
-        LOCK(cs_main);
-        for (const auto &ptx : pblock->vtx) {
-            m_txrequest.ForgetInvId(ptx->GetId());
-        }
-    }
 
     // In case the dynamic timeout was doubled once or more, reduce it slowly
     // back to its default value
@@ -2919,6 +2902,31 @@ void PeerManagerImpl::BlockConnected(
                                                              new_timeout)) {
             LogPrint(BCLog::NET, "Decreased stalling timeout to %d seconds\n",
                      count_seconds(new_timeout));
+        }
+    }
+
+    // The following tasks can be skipped since we don't maintain a mempool for
+    // the ibd/background chainstate.
+    if (role == ChainstateRole::BACKGROUND) {
+        return;
+    }
+    m_mempool.withOrphanage([&pblock](TxOrphanage &orphanage) {
+        orphanage.EraseForBlock(*pblock);
+    });
+    m_mempool.withConflicting([&pblock](TxConflicting &conflicting) {
+        conflicting.EraseForBlock(*pblock);
+    });
+
+    {
+        LOCK(m_recent_confirmed_transactions_mutex);
+        for (const CTransactionRef &ptx : pblock->vtx) {
+            m_recent_confirmed_transactions.insert(ptx->GetId());
+        }
+    }
+    {
+        LOCK(cs_main);
+        for (const auto &ptx : pblock->vtx) {
+            m_txrequest.ForgetInvId(ptx->GetId());
         }
     }
 }
