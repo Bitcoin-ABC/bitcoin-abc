@@ -21,6 +21,7 @@ import {
     isValidContactList,
     parseInvalidSettingsForMigration,
     isValidCashtabCache,
+    validateMnemonicWordList,
 } from '../validation';
 import { currency } from 'components/Common/Ticker.js';
 import { fromSatoshisToXec } from 'utils/cashMethods';
@@ -48,8 +49,28 @@ import {
     cashtabCacheWithTokenNameNotString,
     cashtabCacheWithMissingTokenName,
 } from 'utils/__mocks__/mockCashtabCache';
+import * as bip39 from 'bip39';
 
 describe('Validation utils', () => {
+    it(`validateMnemonicWordList() returns a success message for a valid mnemonic`, () => {
+        const validMnemonic =
+            'labor tail bulb distance estate collect lecture into smile differ yard legal';
+        expect(
+            validateMnemonicWordList(validMnemonic, bip39.wordlists.english),
+        ).toBe('Valid mnemonic');
+    });
+    it(`validateMnemonicWordList() returns an error message for an invalid mnemonic`, () => {
+        const validMnemonic =
+            'labor tail bulb not valid collect lecture into smile differ yard legal';
+        expect(
+            validateMnemonicWordList(validMnemonic, bip39.wordlists.english),
+        ).toBe('Invalid mnemonic');
+    });
+    it(`validateMnemonicWordList() returns an error message for an empty mnemonic`, () => {
+        expect(validateMnemonicWordList('', bip39.wordlists.english)).toBe(
+            'Invalid mnemonic',
+        );
+    });
     it(`Returns 'false' if ${currency.ticker} send amount is a valid send amount`, () => {
         expect(shouldRejectAmountInput('10', currency.ticker, 20.0, 300)).toBe(
             false,

@@ -2,6 +2,21 @@ import BigNumber from 'bignumber.js';
 import { currency } from 'components/Common/Ticker.js';
 import { fromSatoshisToXec } from 'utils/cashMethods';
 import cashaddr from 'ecashaddrjs';
+import * as bip39 from 'bip39';
+
+// reference: https://github.com/Permissionless-Software-Foundation/bch-js/blob/62e56c832b35731880fe448269818b853c76dd80/src/mnemonic.js#L160-L180
+export const validateMnemonicWordList = (mnemonic, wordlist) => {
+    // Preprocess the words
+    const words = mnemonic.split(' ');
+    // Detect blank phrase
+    if (words.length === 0) return 'Blank mnemonic';
+
+    // Check the words are valid
+    const isValid = bip39.validateMnemonic(mnemonic, wordlist);
+    if (!isValid) return 'Invalid mnemonic';
+
+    return 'Valid mnemonic';
+};
 
 // Validate cash amount
 export const shouldRejectAmountInput = (

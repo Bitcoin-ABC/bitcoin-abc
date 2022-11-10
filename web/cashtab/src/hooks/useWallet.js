@@ -19,6 +19,7 @@ import {
     isValidCashtabCache,
     isValidContactList,
     parseInvalidSettingsForMigration,
+    validateMnemonicWordList,
 } from 'utils/validation';
 import localforage from 'localforage';
 import { currency } from 'components/Common/Ticker';
@@ -906,6 +907,16 @@ const useWallet = () => {
 
         try {
             mnemonicTestOutput = BCH.Mnemonic.validate(mnemonic, wordlist);
+            const localMnemonicTestOutput = validateMnemonicWordList(
+                mnemonic,
+                wordlist,
+            );
+
+            if (mnemonicTestOutput === localMnemonicTestOutput) {
+                console.log(
+                    'mnemonicTestOutput matches localMnemonicTestOutput',
+                );
+            }
 
             if (mnemonicTestOutput === 'Valid mnemonic') {
                 return true;
