@@ -131,10 +131,10 @@ const SignVerifyMsg = ({ jestBCH }) => {
         }
     };
 
-    const verifyMessageBySig = async () => {
+    const verifyMessageBySig = () => {
         let verification;
         try {
-            verification = await bchObj.BitcoinCash.verifyMessage(
+            verification = bchObj.BitcoinCash.verifyMessage(
                 toLegacyCash(messageVerificationAddr),
                 messageVerificationSig,
                 messageVerificationMsg,
