@@ -160,17 +160,11 @@ function decodeBech32(address) {
     return Buffer.from(data);
 }
 
-function verify(message, address, signature, messagePrefix, checkSegwitAlways) {
+function verify(message, address, signature, messagePrefix) {
     if (!Buffer.isBuffer(signature))
         signature = Buffer.from(signature, 'base64');
 
     const parsed = decodeSignature(signature);
-
-    if (checkSegwitAlways && !parsed.compressed) {
-        throw new Error(
-            'checkSegwitAlways can only be used with a compressed pubkey signature flagbyte',
-        );
-    }
 
     const hash = magicHash(message, messagePrefix);
     const publicKey = secp256k1.recover(
@@ -182,41 +176,12 @@ function verify(message, address, signature, messagePrefix, checkSegwitAlways) {
     const publicKeyHash = hash160(publicKey);
     let actual, expected;
 
-    if (parsed.segwitType) {
-        if (parsed.segwitType === SEGWIT_TYPES.P2SH_P2WPKH) {
-            actual = segwitRedeemHash(publicKeyHash);
-            expected = bs58check.decode(address).slice(1);
-        } else {
-            // parsed.segwitType === SEGWIT_TYPES.P2WPKH
-            // must be true since we only return null, P2SH_P2WPKH, or P2WPKH
-            // from the decodeSignature function.
-            actual = publicKeyHash;
-            expected = decodeBech32(address);
-        }
-    } else {
-        if (checkSegwitAlways) {
-            try {
-                expected = decodeBech32(address);
-                // if address is bech32 it is not p2sh
-                return bufferEquals(publicKeyHash, expected);
-            } catch (e) {
-                const redeemHash = segwitRedeemHash(publicKeyHash);
-                expected = bs58check.decode(address).slice(1);
-                // base58 can be p2pkh or p2sh-p2wpkh
-                return (
-                    bufferEquals(publicKeyHash, expected) ||
-                    bufferEquals(redeemHash, expected)
-                );
-            }
-        } else {
-            actual = publicKeyHash;
-            // Decode from XEC address instead of bs58 legacy format
-            const decodedAddress = ecashaddr.decode(address);
+    actual = publicKeyHash;
+    // Decode from XEC address instead of bs58 legacy format
+    const decodedAddress = ecashaddr.decode(address);
 
-            expected = Buffer.alloc(decodedAddress.hash.length);
-            expected.set(decodedAddress.hash);
-        }
-    }
+    expected = Buffer.alloc(decodedAddress.hash.length);
+    expected.set(decodedAddress.hash);
 
     return bufferEquals(actual, expected);
 }
