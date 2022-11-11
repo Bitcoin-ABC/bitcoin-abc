@@ -78,7 +78,8 @@ class BlockchainTest(BitcoinTestFramework):
                        TIME_GENESIS_BLOCK + 200 * 600, 600):
             # ten-minute steps from genesis block time
             self.nodes[0].setmocktime(t)
-            self.nodes[0].generatetoaddress(1, ADDRESS_ECREG_P2SH_OP_TRUE)
+            self.generatetoaddress(
+                self.nodes[0], 1, ADDRESS_ECREG_P2SH_OP_TRUE)
         assert_equal(self.nodes[0].getblockchaininfo()['blocks'], 200)
 
     def _test_getblockchaininfo(self):
@@ -357,13 +358,14 @@ class BlockchainTest(BitcoinTestFramework):
 
     def _test_stopatheight(self):
         assert_equal(self.nodes[0].getblockcount(), 200)
-        self.nodes[0].generatetoaddress(6, ADDRESS_ECREG_P2SH_OP_TRUE)
+        self.generatetoaddress(self.nodes[0], 6, ADDRESS_ECREG_P2SH_OP_TRUE)
         assert_equal(self.nodes[0].getblockcount(), 206)
         self.log.debug('Node should not stop at this height')
         assert_raises(subprocess.TimeoutExpired,
                       lambda: self.nodes[0].process.wait(timeout=3))
         try:
-            self.nodes[0].generatetoaddress(1, ADDRESS_ECREG_P2SH_OP_TRUE)
+            self.generatetoaddress(
+                self.nodes[0], 1, ADDRESS_ECREG_P2SH_OP_TRUE)
         except (ConnectionError, http.client.BadStatusLine):
             pass  # The node already shut down before response
         self.log.debug('Node should stop at this height...')
@@ -460,7 +462,7 @@ class BlockchainTest(BitcoinTestFramework):
         fee_per_kb = 1000 * fee_per_byte
 
         miniwallet.send_self_transfer(fee_rate=fee_per_kb, from_node=node)
-        blockhash = node.generate(1)[0]
+        blockhash = self.generate(node, 1)[0]
 
         self.log.info(
             "Test that getblock with verbosity only includes the txid")

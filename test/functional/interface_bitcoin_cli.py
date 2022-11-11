@@ -37,7 +37,7 @@ class TestBitcoinCli(BitcoinTestFramework):
 
     def run_test(self):
         """Main test logic"""
-        self.nodes[0].generate(BLOCKS)
+        self.generate(self.nodes[0], BLOCKS)
 
         self.log.info(
             "Compare responses from getblockchaininfo RPC and `bitcoin-cli getblockchaininfo`")
@@ -132,7 +132,7 @@ class TestBitcoinCli(BitcoinTestFramework):
 
             # Mine a block to confirm; adds a block reward (50 BTC) to the
             # default wallet.
-            self.nodes[0].generate(1)
+            self.generate(self.nodes[0], 1)
 
             self.log.info(
                 "Test -getinfo with multiple wallets and -rpcwallet returns specified wallet balance")
@@ -311,7 +311,7 @@ class TestBitcoinCli(BitcoinTestFramework):
             self.log.info(
                 "*** Wallet not compiled; cli getwalletinfo and -getinfo wallet tests skipped")
             # maintain block parity with the wallet_compiled conditional branch
-            self.nodes[0].generate(25)
+            self.generate(self.nodes[0], 25)
 
         self.log.info("Test -version with node stopped")
         self.stop_node(0)

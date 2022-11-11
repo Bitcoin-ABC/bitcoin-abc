@@ -75,8 +75,8 @@ class P2PEvict(BitcoinTestFramework):
         protected_peers = set()
         current_peer = -1
         node = self.nodes[0]
-        blocks = node.generatetoaddress(
-            101, node.get_deterministic_priv_key().address)
+        blocks = self.generatetoaddress(node,
+                                        101, node.get_deterministic_priv_key().address)
 
         self.log.info(
             "Create 4 peers and protect them from eviction by sending us a block")

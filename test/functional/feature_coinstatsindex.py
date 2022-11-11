@@ -59,13 +59,13 @@ class CoinStatsIndexTest(BitcoinTestFramework):
         index_hash_options = ['none', 'muhash']
 
         # Generate a normal transaction and mine it
-        node.generate(101)
+        self.generate(node, 101)
         address = self.nodes[0].get_deterministic_priv_key().address
         node.sendtoaddress(
             address=address,
             amount=10_000_000,
             subtractfeefromamount=True)
-        node.generate(1)
+        self.generate(node, 1)
 
         self.sync_blocks(timeout=120)
 
@@ -97,7 +97,7 @@ class CoinStatsIndexTest(BitcoinTestFramework):
             "heights with index")
 
         # Generate a new tip
-        node.generate(5)
+        self.generate(node, 5)
 
         self.wait_until(lambda: not try_rpc(-32603, "Unable to read UTXO set",
                                             index_node.gettxoutsetinfo,
@@ -184,7 +184,7 @@ class CoinStatsIndexTest(BitcoinTestFramework):
         self.nodes[0].sendrawtransaction(tx2_hex)
 
         # Include both txs in a block
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         self.sync_all()
 
         self.wait_until(lambda: not try_rpc(-32603, "Unable to read UTXO set",
@@ -251,7 +251,7 @@ class CoinStatsIndexTest(BitcoinTestFramework):
         res9 = index_node.gettxoutsetinfo('muhash')
         assert_equal(res8, res9)
 
-        index_node.generate(1)
+        self.generate(index_node, 1)
         self.wait_until(lambda: not try_rpc(-32603, "Unable to read UTXO set",
                                             index_node.gettxoutsetinfo, 'muhash'))
         res10 = index_node.gettxoutsetinfo('muhash')
@@ -274,8 +274,8 @@ class CoinStatsIndexTest(BitcoinTestFramework):
         # Generate two block, let the index catch up, then invalidate the
         # blocks
         index_node = self.nodes[1]
-        reorg_blocks = index_node.generatetoaddress(
-            2, index_node.getnewaddress())
+        reorg_blocks = self.generatetoaddress(index_node,
+                                              2, index_node.getnewaddress())
         reorg_block = reorg_blocks[1]
         self.wait_until(lambda: not try_rpc(-32603, "Unable to read UTXO set",
                                             index_node.gettxoutsetinfo, 'muhash'))
@@ -284,7 +284,7 @@ class CoinStatsIndexTest(BitcoinTestFramework):
         assert_equal(index_node.gettxoutsetinfo('muhash')['height'], 110)
 
         # Add two new blocks
-        block = index_node.generate(2)[1]
+        block = self.generate(index_node, 2)[1]
         self.wait_until(lambda: not try_rpc(-32603, "Unable to read UTXO set",
                                             index_node.gettxoutsetinfo, 'muhash'))
         res = index_node.gettxoutsetinfo(
@@ -307,7 +307,7 @@ class CoinStatsIndexTest(BitcoinTestFramework):
 
         # Add another block, so we don't depend on reconsiderblock remembering
         # which blocks were touched by invalidateblock
-        index_node.generate(1)
+        self.generate(index_node, 1)
 
         # Ensure that removing and re-adding blocks yields consistent results
         block = index_node.getblockhash(99)

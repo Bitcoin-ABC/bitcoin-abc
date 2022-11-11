@@ -21,14 +21,15 @@ class GenerateBlockTest(BitcoinTestFramework):
 
         self.log.info('Generate an empty block to address')
         address = node.getnewaddress()
-        hash = node.generateblock(output=address, transactions=[])['hash']
+        hash = self.generateblock(
+            node, output=address, transactions=[])['hash']
         block = node.getblock(blockhash=hash, verbose=2)
         assert_equal(len(block['tx']), 1)
         assert_equal(block['tx'][0]['vout'][0]
                      ['scriptPubKey']['addresses'][0], address)
 
         self.log.info('Generate an empty block to a descriptor')
-        hash = node.generateblock('addr(' + address + ')', [])['hash']
+        hash = self.generateblock(node, 'addr(' + address + ')', [])['hash']
         block = node.getblock(blockhash=hash, verbosity=2)
         assert_equal(len(block['tx']), 1)
         assert_equal(block['tx'][0]['vout'][0]
@@ -38,7 +39,7 @@ class GenerateBlockTest(BitcoinTestFramework):
             'Generate an empty block to a combo descriptor with compressed pubkey')
         combo_key = '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
         combo_address = 'ecregtest:qp63uahgrxged4z5jswyt5dn5v3lzsem6c49crxznd'
-        hash = node.generateblock('combo(' + combo_key + ')', [])['hash']
+        hash = self.generateblock(node, 'combo(' + combo_key + ')', [])['hash']
         block = node.getblock(hash, 2)
         assert_equal(len(block['tx']), 1)
         assert_equal(block['tx'][0]['vout'][0]['scriptPubKey']
@@ -48,14 +49,14 @@ class GenerateBlockTest(BitcoinTestFramework):
             'Generate an empty block to a combo descriptor with uncompressed pubkey')
         combo_key = '0408ef68c46d20596cc3f6ddf7c8794f71913add807f1dc55949fa805d764d191c0b7ce6894c126fce0babc6663042f3dde9b0cf76467ea315514e5a6731149c67'
         combo_address = 'ecregtest:qqmagqc48ln8p7zk6ez2h64amcamr86qwqku5075py'
-        hash = node.generateblock('combo(' + combo_key + ')', [])['hash']
+        hash = self.generateblock(node, 'combo(' + combo_key + ')', [])['hash']
         block = node.getblock(hash, 2)
         assert_equal(len(block['tx']), 1)
         assert_equal(block['tx'][0]['vout'][0]['scriptPubKey']
                      ['addresses'][0], combo_address)
 
         # Generate 110 blocks to spend
-        node.generatetoaddress(110, address)
+        self.generatetoaddress(node, 110, address)
 
         # Generate some extra mempool transactions to verify they don't get
         # mined
@@ -64,7 +65,7 @@ class GenerateBlockTest(BitcoinTestFramework):
 
         self.log.info('Generate block with txid')
         txid = node.sendtoaddress(address, 1000000)
-        hash = node.generateblock(address, [txid])['hash']
+        hash = self.generateblock(node, address, [txid])['hash']
         block = node.getblock(hash, 1)
         assert_equal(len(block['tx']), 2)
         assert_equal(block['tx'][1], txid)
@@ -74,7 +75,7 @@ class GenerateBlockTest(BitcoinTestFramework):
         raw = node.createrawtransaction(
             [{'txid': utxos[0]['txid'], 'vout':utxos[0]['vout']}], [{address: 1000000}])
         signed_raw = node.signrawtransactionwithwallet(raw)['hex']
-        hash = node.generateblock(address, [signed_raw])['hash']
+        hash = self.generateblock(node, address, [signed_raw])['hash']
         block = node.getblock(hash, 1)
         assert_equal(len(block['tx']), 2)
         txid = block['tx'][1]
@@ -93,7 +94,8 @@ class GenerateBlockTest(BitcoinTestFramework):
         txids = sorted([txid1, txid2], reverse=True)
         assert_raises_rpc_error(-25,
                                 'TestBlockValidity failed: tx-ordering',
-                                node.generateblock,
+                                self.generateblock,
+                                node,
                                 address,
                                 txids)
 
@@ -101,7 +103,8 @@ class GenerateBlockTest(BitcoinTestFramework):
         missing_txid = '0000000000000000000000000000000000000000000000000000000000000000'
         assert_raises_rpc_error(-5,
                                 'Transaction ' + missing_txid + ' not in mempool.',
-                                node.generateblock,
+                                self.generateblock,
+                                node,
                                 address,
                                 [missing_txid])
 
@@ -109,14 +112,16 @@ class GenerateBlockTest(BitcoinTestFramework):
         invalid_raw_tx = '0000'
         assert_raises_rpc_error(-22,
                                 'Transaction decode failed for ' + invalid_raw_tx,
-                                node.generateblock,
+                                self.generateblock,
+                                node,
                                 address,
                                 [invalid_raw_tx])
 
         self.log.info('Fail to generate block with invalid address/descriptor')
         assert_raises_rpc_error(-5,
                                 'Invalid address or descriptor',
-                                node.generateblock,
+                                self.generateblock,
+                                node,
                                 '1234',
                                 [])
 
@@ -125,7 +130,8 @@ class GenerateBlockTest(BitcoinTestFramework):
         assert_raises_rpc_error(
             -8,
             'Ranged descriptor not accepted. Maybe pass through deriveaddresses first?',
-            node.generateblock,
+            self.generateblock,
+            node,
             ranged_descriptor,
             [])
 
@@ -134,7 +140,8 @@ class GenerateBlockTest(BitcoinTestFramework):
         child_descriptor = 'pkh(tpubD6NzVbkrYhZ4XgiXtGrdW5XDAPFCL9h7we1vwNCpn8tGbBcgfVYjXyhWo4E1xkh56hjod1RhGjxbaTLV3X4FyWuejifB9jusQ46QzG87VKp/0\'/0)'
         assert_raises_rpc_error(-5,
                                 'Cannot derive script without private keys',
-                                node.generateblock,
+                                self.generateblock,
+                                node,
                                 child_descriptor,
                                 [])
 

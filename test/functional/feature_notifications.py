@@ -53,11 +53,11 @@ class NotificationsTest(BitcoinTestFramework):
     def run_test(self):
         self.log.info("test -blocknotify")
         block_count = 10
-        blocks = self.nodes[1].generatetoaddress(
-            block_count,
-            self.nodes[1].getnewaddress() if self.is_wallet_compiled()
-            else ADDRESS_ECREG_UNSPENDABLE
-        )
+        blocks = self.generatetoaddress(self.nodes[1],
+                                        block_count,
+                                        self.nodes[1].getnewaddress() if self.is_wallet_compiled()
+                                        else ADDRESS_ECREG_UNSPENDABLE
+                                        )
 
         # wait at most 10 seconds for expected number of files before reading
         # the content
@@ -116,7 +116,8 @@ class NotificationsTest(BitcoinTestFramework):
                         bytes.fromhex(
                             self.nodes[1].getwalletinfo()['hdseedid'])[::-1])))
             self.nodes[0].rescanblockchain()
-            self.nodes[0].generatetoaddress(100, ADDRESS_ECREG_UNSPENDABLE)
+            self.generatetoaddress(
+                self.nodes[0], 100, ADDRESS_ECREG_UNSPENDABLE)
 
             # Generate transaction on node 0, sync mempools, and check for
             # notification on node 1.
@@ -128,7 +129,7 @@ class NotificationsTest(BitcoinTestFramework):
 
             # Add tx1 transaction to new block, checking for a notification
             # and the correct number of confirmations.
-            self.nodes[0].generatetoaddress(1, ADDRESS_ECREG_UNSPENDABLE)
+            self.generatetoaddress(self.nodes[0], 1, ADDRESS_ECREG_UNSPENDABLE)
             self.sync_blocks()
             self.expect_wallet_notify([tx1])
             assert_equal(self.nodes[1].gettransaction(tx1)["confirmations"], 1)
@@ -151,7 +152,7 @@ class NotificationsTest(BitcoinTestFramework):
 
             # Mine a block on node0, reconnect the nodes, check that tx2_node1
             # has a conflicting tx after syncing with node0.
-            self.nodes[0].generatetoaddress(1, ADDRESS_ECREG_UNSPENDABLE)
+            self.generatetoaddress(self.nodes[0], 1, ADDRESS_ECREG_UNSPENDABLE)
             self.connect_nodes(0, 1)
             self.sync_blocks()
             assert tx2_node0 in self.nodes[1].gettransaction(tx2_node1)[
@@ -164,9 +165,9 @@ class NotificationsTest(BitcoinTestFramework):
         # Create an invalid chain and ensure the node warns.
         self.log.info("test -alertnotify for forked chain")
         fork_block = self.nodes[0].getbestblockhash()
-        self.nodes[0].generatetoaddress(1, ADDRESS_ECREG_UNSPENDABLE)
+        self.generatetoaddress(self.nodes[0], 1, ADDRESS_ECREG_UNSPENDABLE)
         invalid_block = self.nodes[0].getbestblockhash()
-        self.nodes[0].generatetoaddress(7, ADDRESS_ECREG_UNSPENDABLE)
+        self.generatetoaddress(self.nodes[0], 7, ADDRESS_ECREG_UNSPENDABLE)
 
         # Invalidate a large branch, which should trigger an alert.
         self.nodes[0].invalidateblock(invalid_block)

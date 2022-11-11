@@ -98,7 +98,7 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
 
             return found_hash
 
-        blockhash = node.generate(1)[0]
+        blockhash = self.generate(node, 1)[0]
         cb_txid = node.getblock(blockhash)['tx'][0]
         assert not node.isfinalblock(blockhash)
         assert not node.isfinaltransaction(cb_txid, blockhash)
@@ -122,7 +122,7 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
         if self.is_wallet_compiled():
             self.log.info("Check mempool transactions are not finalized")
             # Mature some utxos
-            tip = node.generate(100)[-1]
+            tip = self.generate(node, 100)[-1]
             wallet_txid = node.sendtoaddress(
                 ADDRESS_ECREG_UNSPENDABLE, 1_000_000)
             assert wallet_txid in node.getrawmempool()
@@ -136,7 +136,7 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
 
             self.log.info(
                 "A transaction is only finalized if the containing block is finalized")
-            tip = node.generate(1)[0]
+            tip = self.generate(node, 1)[0]
             assert wallet_txid not in node.getrawmempool()
             assert not node.isfinaltransaction(wallet_txid, tip)
             self.wait_until(lambda: is_finalblock(tip))

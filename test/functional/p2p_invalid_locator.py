@@ -22,7 +22,8 @@ class InvalidLocatorTest(BitcoinTestFramework):
         # Convenience reference to the node
         node = self.nodes[0]
         # Get node out of IBD
-        node.generatetoaddress(1, node.get_deterministic_priv_key().address)
+        self.generatetoaddress(
+            node, 1, node.get_deterministic_priv_key().address)
 
         self.log.info('Test max locator size')
         block_count = node.getblockcount()

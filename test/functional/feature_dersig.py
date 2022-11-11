@@ -54,7 +54,7 @@ class BIP66Test(BitcoinTestFramework):
 
         self.log.info("Mining {} blocks".format(DERSIG_HEIGHT - 1))
         self.coinbase_txids = [self.nodes[0].getblock(
-            b)['tx'][0] for b in self.nodes[0].generate(DERSIG_HEIGHT - 1)]
+            b)['tx'][0] for b in self.generate(self.nodes[0], DERSIG_HEIGHT - 1)]
         self.nodeaddress = self.nodes[0].getnewaddress()
 
         self.log.info("Test that blocks must now be at least version 3")

@@ -148,7 +148,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         block = self.build_block_on_tip(self.nodes[0])
         self.test_node.send_and_ping(msg_block(block))
         assert int(self.nodes[0].getbestblockhash(), 16) == block.sha256
-        self.nodes[0].generate(100)
+        self.generate(self.nodes[0], 100)
 
         total_value = block.vtx[0].vout[0].nValue
         out_value = total_value // 10
@@ -194,7 +194,7 @@ class CompactBlocksTest(BitcoinTestFramework):
 
         def check_announcement_of_new_block(node, peer, predicate):
             peer.clear_block_announcement()
-            block_hash = int(node.generate(1)[0], 16)
+            block_hash = int(self.generate(node, 1)[0], 16)
             peer.wait_for_block_announcement(block_hash, timeout=30)
             assert peer.block_announced
 
@@ -273,7 +273,7 @@ class CompactBlocksTest(BitcoinTestFramework):
     # This test actually causes bitcoind to (reasonably!) disconnect us, so do
     # this last.
     def test_invalid_cmpctblock_message(self):
-        self.nodes[0].generate(101)
+        self.generate(self.nodes[0], 101)
         block = self.build_block_on_tip(self.nodes[0])
 
         cmpct_block = P2PHeaderAndShortIDs()
@@ -290,7 +290,7 @@ class CompactBlocksTest(BitcoinTestFramework):
     # bitcoind's choice of nonce.
     def test_compactblock_construction(self, node, test_node):
         # Generate a bunch of transactions.
-        node.generate(101)
+        self.generate(node, 101)
         num_transactions = 25
         address = node.getnewaddress()
 
@@ -308,7 +308,7 @@ class CompactBlocksTest(BitcoinTestFramework):
 
         # Now mine a block, and look at the resulting compact block.
         test_node.clear_block_announcement()
-        block_hash = int(node.generate(1)[0], 16)
+        block_hash = int(self.generate(node, 1)[0], 16)
 
         # Store the raw block in our internal format.
         block = FromHex(CBlock(), node.getblock(
@@ -656,7 +656,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         new_blocks = []
         for _ in range(MAX_CMPCTBLOCK_DEPTH + 1):
             test_node.clear_block_announcement()
-            new_blocks.append(node.generate(1)[0])
+            new_blocks.append(self.generate(node, 1)[0])
             test_node.wait_until(test_node.received_block_announcement,
                                  timeout=30)
 
@@ -667,7 +667,7 @@ class CompactBlocksTest(BitcoinTestFramework):
                              timeout=30)
 
         test_node.clear_block_announcement()
-        node.generate(1)
+        self.generate(node, 1)
         test_node.wait_until(test_node.received_block_announcement,
                              timeout=30)
         test_node.clear_block_announcement()
@@ -841,7 +841,7 @@ class CompactBlocksTest(BitcoinTestFramework):
 
     def run_test(self):
         # Get the nodes out of IBD
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
 
         # Setup the p2p connections
         self.test_node = self.nodes[0].add_p2p_connection(TestP2PConn())

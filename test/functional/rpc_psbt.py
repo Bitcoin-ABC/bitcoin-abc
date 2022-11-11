@@ -93,7 +93,7 @@ class PSBTTest(BitcoinTestFramework):
         signed_tx = self.nodes[0].signrawtransactionwithwallet(rawtx['hex'])[
             'hex']
         txid = self.nodes[0].sendrawtransaction(signed_tx)
-        self.nodes[0].generate(6)
+        self.generate(self.nodes[0], 6)
         self.sync_all()
 
         # Find the output pos
@@ -193,7 +193,7 @@ class PSBTTest(BitcoinTestFramework):
         node2_addr = self.nodes[2].getnewaddress()
         txid1 = self.nodes[0].sendtoaddress(node1_addr, 13000000)
         txid2 = self.nodes[0].sendtoaddress(node2_addr, 13000000)
-        blockhash = self.nodes[0].generate(6)[0]
+        blockhash = self.generate(self.nodes[0], 6)[0]
         self.sync_all()
         vout1 = find_output(
             self.nodes[1],
@@ -232,7 +232,7 @@ class PSBTTest(BitcoinTestFramework):
         combined = self.nodes[0].combinepsbt([psbt1, psbt2])
         finalized = self.nodes[0].finalizepsbt(combined)['hex']
         self.nodes[0].sendrawtransaction(finalized)
-        self.nodes[0].generate(6)
+        self.generate(self.nodes[0], 6)
         self.sync_all()
 
         block_height = self.nodes[0].getblockcount()
@@ -382,7 +382,7 @@ class PSBTTest(BitcoinTestFramework):
         addr4 = self.nodes[1].getnewaddress("")
         txid4 = self.nodes[0].sendtoaddress(addr4, 5000000)
         vout4 = find_output(self.nodes[0], txid4, 5000000)
-        self.nodes[0].generate(6)
+        self.generate(self.nodes[0], 6)
         self.sync_all()
         psbt2 = self.nodes[1].createpsbt([{"txid": txid4, "vout": vout4}], {
                                          self.nodes[0].getnewaddress(): Decimal('4999000')})
@@ -413,7 +413,7 @@ class PSBTTest(BitcoinTestFramework):
         # Newly created PSBT needs UTXOs and updating
         addr = self.nodes[1].getnewaddress("")
         txid = self.nodes[0].sendtoaddress(addr, 7000000)
-        blockhash = self.nodes[0].generate(6)[0]
+        blockhash = self.generate(self.nodes[0], 6)[0]
         self.sync_all()
         vout = find_output(self.nodes[0], txid, 7000000, blockhash=blockhash)
         psbt = self.nodes[1].createpsbt([{"txid": txid, "vout": vout}], {

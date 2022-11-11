@@ -41,7 +41,7 @@ class WalletStandardnessTest(BitcoinTestFramework):
         address_nonstd = nonstd_node.getnewaddress()
 
         # make and mature some coins for the nonstandard node
-        nonstd_node.generate(120)
+        self.generate(nonstd_node, 120)
         self.sync_blocks()
 
         def fund_and_test_wallet(scriptPubKey, is_standard, expected_in_std_wallet,
@@ -85,7 +85,7 @@ class WalletStandardnessTest(BitcoinTestFramework):
             # make sure it's in nonstandard node's mempool, then mine it
             nonstd_node.sendrawtransaction(rawtx)
             assert txid in nonstd_node.getrawmempool()
-            [blockhash] = nonstd_node.generate(1)
+            [blockhash] = self.generate(nonstd_node, 1)
             # make sure it was mined
             assert txid in nonstd_node.getblock(blockhash)["tx"]
 
@@ -118,7 +118,7 @@ class WalletStandardnessTest(BitcoinTestFramework):
             if sign_error is None:
                 assert_equal(signresult['complete'], True)
                 txid = std_node.sendrawtransaction(signresult['hex'])
-                [blockhash] = std_node.generate(1)
+                [blockhash] = self.generate(std_node, 1)
                 # make sure it was mined
                 assert txid in std_node.getblock(blockhash)["tx"]
                 self.sync_blocks()

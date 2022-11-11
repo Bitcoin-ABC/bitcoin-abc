@@ -73,7 +73,7 @@ class AvalanchePeerDiscoveryTest(BitcoinTestFramework):
 
         # Create stakes by mining blocks
         addrkey0 = node.get_deterministic_priv_key()
-        blockhashes = node.generatetoaddress(4, addrkey0.address)
+        blockhashes = self.generatetoaddress(node, 4, addrkey0.address)
         stakes = create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key)
 
         proof_sequence = 11
@@ -211,7 +211,7 @@ class AvalanchePeerDiscoveryTest(BitcoinTestFramework):
 
         def wait_for_proof_validation():
             # Connect some blocks to trigger the proof verification
-            node.generate(1)
+            self.generate(node, 1)
             self.wait_until(lambda: node_proofid in get_proof_ids(node))
 
         wait_for_proof_validation()
@@ -226,7 +226,7 @@ class AvalanchePeerDiscoveryTest(BitcoinTestFramework):
         new_proofid = new_proof_obj.proofid
 
         # Make the proof mature
-        node.generate(2)
+        self.generate(node, 2)
 
         node.sendavalancheproof(new_proof)
         wait_for_proof(node, uint256_hex(new_proofid))
@@ -298,7 +298,8 @@ class AvalanchePeerDiscoveryTest(BitcoinTestFramework):
         # Change the address to make sure we don't generate a block identical
         # to the one we just invalidated. Can be generate(1) after D9694 or
         # D9697 is landed.
-        forked_tip = node.generatetoaddress(1, ADDRESS_ECREG_UNSPENDABLE)[0]
+        forked_tip = self.generatetoaddress(
+            node, 1, ADDRESS_ECREG_UNSPENDABLE)[0]
         self.wait_until(lambda: node.getbestblockhash() == forked_tip)
 
         self.wait_until(lambda: len(node.getavalanchepeerinfo()) == 1)

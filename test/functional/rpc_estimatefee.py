@@ -27,7 +27,7 @@ class EstimateFeeTest(BitcoinTestFramework):
         diff_relay_fee_node = self.nodes[1]
         diff_tx_fee_node = self.nodes[2]
         for i in range(5):
-            self.nodes[0].generate(1)
+            self.generate(self.nodes[0], 1)
 
             # estimatefee is 0.00001 by default, regardless of block contents
             assert_equal(default_node.estimatefee(), Decimal('10.00'))

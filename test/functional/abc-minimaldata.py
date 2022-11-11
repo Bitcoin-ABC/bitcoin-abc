@@ -113,7 +113,8 @@ class MinimaldataTest(BitcoinTestFramework):
         spendable_outputs = [block.vtx[0] for block in blocks]
 
         self.log.info("Mature the blocks and get out of IBD.")
-        node.generatetoaddress(100, node.get_deterministic_priv_key().address)
+        self.generatetoaddress(
+            node, 100, node.get_deterministic_priv_key().address)
 
         tip = self.getbestblock(node)
 

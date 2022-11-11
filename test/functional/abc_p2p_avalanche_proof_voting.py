@@ -110,7 +110,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.quorum = self.get_quorum(node)
 
         addrkey0 = node.get_deterministic_priv_key()
-        blockhash = node.generatetoaddress(9, addrkey0.address)
+        blockhash = self.generatetoaddress(node, 9, addrkey0.address)
         self.conflicting_stakes = create_coinbase_stakes(
             node, blockhash[5:9], addrkey0.key)
 
@@ -304,7 +304,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
         # Generate coinbases to use for stakes
         stakes_key = node.get_deterministic_priv_key()
-        blocks = node.generatetoaddress(4, stakes_key.address)
+        blocks = self.generatetoaddress(node, 4, stakes_key.address)
 
         # Get the ava key so we can verify signatures.
         ava_key = ECPubKey()
@@ -489,7 +489,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
         self.log.info("Newly mature proofs are polled")
 
-        node.generate(1)
+        self.generate(node, 1)
         self.send_and_check_for_polling(peer, immature_proof.serialize().hex())
 
 

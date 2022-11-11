@@ -50,14 +50,14 @@ class GetblockstatsTest(BitcoinTestFramework):
     def generate_test_data(self, filename):
         mocktime = 1525107225
         self.nodes[0].setmocktime(mocktime)
-        self.nodes[0].generate(101)
+        self.generate(self.nodes[0], 101)
 
         address = self.nodes[0].get_deterministic_priv_key().address
         self.nodes[0].sendtoaddress(
             address=address,
             amount=10000000,
             subtractfeefromamount=True)
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         self.sync_all()
 
         self.nodes[0].sendtoaddress(
@@ -74,7 +74,7 @@ class GetblockstatsTest(BitcoinTestFramework):
             amount=1000000,
             subtractfeefromamount=True)
         self.sync_all()
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
 
         self.expected_stats = self.get_stats()
 

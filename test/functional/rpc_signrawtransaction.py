@@ -140,7 +140,7 @@ class SignRawTransactionsTest(BitcoinTestFramework):
     def test_fully_signed_tx(self):
         self.log.info("Test signing a fully signed transaction does nothing")
         self.nodes[0].walletpassphrase("password", 9999)
-        self.nodes[0].generate(101)
+        self.generate(self.nodes[0], 101)
         rawtx = self.nodes[0].createrawtransaction(
             [], [{self.nodes[0].getnewaddress(): 10}])
         fundedtx = self.nodes[0].fundrawtransaction(rawtx)

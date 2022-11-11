@@ -40,7 +40,7 @@ class UTXOSetHashTest(BitcoinTestFramework):
 
         # Generate 100 blocks and remove the first since we plan to spend its
         # coinbase
-        block_hashes = node.generate(100)
+        block_hashes = self.generate(node, 100)
         blocks = list(map(
             lambda block: FromHex(CBlock(), node.getblock(block, False)),
             block_hashes))
@@ -53,9 +53,9 @@ class UTXOSetHashTest(BitcoinTestFramework):
         txid = node.sendrawtransaction(
             hexstring=tx.serialize().hex(), maxfeerate=0)
 
-        tx_block = node.generateblock(
-            output=node.getnewaddress(),
-            transactions=[txid])
+        tx_block = self.generateblock(node,
+                                      output=node.getnewaddress(),
+                                      transactions=[txid])
         blocks.append(
             FromHex(CBlock(), node.getblock(tx_block['hash'], False)))
 

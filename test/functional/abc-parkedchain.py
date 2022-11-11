@@ -37,11 +37,11 @@ class ParkedChainTest(BitcoinTestFramework):
         parking_node = self.nodes[1]
 
         self.log.info("Test chain parking...")
-        node.generate(10)
+        self.generate(node, 10)
         tip = node.getbestblockhash()
-        node.generate(1)
+        self.generate(node, 1)
         block_to_park = node.getbestblockhash()
-        node.generate(10)
+        self.generate(node, 10)
         parked_tip = node.getbestblockhash()
 
         # get parking_node caught up.
@@ -64,13 +64,13 @@ class ParkedChainTest(BitcoinTestFramework):
         # and invaliding and reconsidering a block should not change its
         # parked state.  See the following test cases:
         self.log.info("Test invalidate, park, unpark, reconsider...")
-        node.generate(1)
+        self.generate(node, 1)
         tip = node.getbestblockhash()
-        node.generate(1)
+        self.generate(node, 1)
         bad_tip = node.getbestblockhash()
         # Generate an extra block to check that children are invalidated as
         # expected and do not produce dangling chaintips
-        node.generate(1)
+        self.generate(node, 1)
         good_tip = node.getbestblockhash()
 
         # avoid race condition from parking_node requesting block when invalid
@@ -86,11 +86,11 @@ class ParkedChainTest(BitcoinTestFramework):
         self.only_valid_tip(good_tip)
 
         self.log.info("Test park, invalidate, reconsider, unpark")
-        node.generate(1)
+        self.generate(node, 1)
         tip = node.getbestblockhash()
-        node.generate(1)
+        self.generate(node, 1)
         bad_tip = node.getbestblockhash()
-        node.generate(1)
+        self.generate(node, 1)
         good_tip = node.getbestblockhash()
 
         # avoid race condition from parking_node requesting block when invalid
@@ -109,11 +109,11 @@ class ParkedChainTest(BitcoinTestFramework):
         self.only_valid_tip(good_tip)
 
         self.log.info("Test invalidate, park, reconsider, unpark...")
-        node.generate(1)
+        self.generate(node, 1)
         tip = node.getbestblockhash()
-        node.generate(1)
+        self.generate(node, 1)
         bad_tip = node.getbestblockhash()
-        node.generate(1)
+        self.generate(node, 1)
         good_tip = node.getbestblockhash()
 
         # avoid race condition from parking_node requesting block when invalid
@@ -129,11 +129,11 @@ class ParkedChainTest(BitcoinTestFramework):
         self.only_valid_tip(good_tip)
 
         self.log.info("Test park, invalidate, unpark, reconsider")
-        node.generate(1)
+        self.generate(node, 1)
         tip = node.getbestblockhash()
-        node.generate(1)
+        self.generate(node, 1)
         bad_tip = node.getbestblockhash()
-        node.generate(1)
+        self.generate(node, 1)
         good_tip = node.getbestblockhash()
 
         # avoid race condition from parking_node requesting block when invalid
@@ -172,19 +172,19 @@ class ParkedChainTest(BitcoinTestFramework):
             # Invalidate the tip on node 0, so it doesn't follow node 1.
             node.invalidateblock(node.getbestblockhash())
             # Mine block to create a fork of proper depth
-            parking_node.generatetoaddress(
-                nblocks=depth - 1,
-                address=parking_node.getnewaddress(label='coinbase'))
-            node.generatetoaddress(
-                nblocks=depth,
-                address=node.getnewaddress(label='coinbase'))
+            self.generatetoaddress(parking_node,
+                                   nblocks=depth - 1,
+                                   address=parking_node.getnewaddress(label='coinbase'))
+            self.generatetoaddress(node,
+                                   nblocks=depth,
+                                   address=node.getnewaddress(label='coinbase'))
             # extra block should now find themselves parked
             for _ in range(extra_blocks):
-                node.generate(1)
+                self.generate(node, 1)
                 wait_for_parked_block(node.getbestblockhash())
 
             # If we mine one more block, the node reorgs.
-            node.generate(1)
+            self.generate(node, 1)
             self.wait_until(lambda: parking_node.getbestblockhash()
                             == node.getbestblockhash())
 
@@ -207,9 +207,9 @@ class ParkedChainTest(BitcoinTestFramework):
         # generate a ton of blocks at once.
         try:
             with parking_node.assert_debug_log(["Park block"]):
-                node.generatetoaddress(
-                    nblocks=20,
-                    address=node.getnewaddress(label='coinbase'))
+                self.generatetoaddress(node,
+                                       nblocks=20,
+                                       address=node.getnewaddress(label='coinbase'))
                 self.wait_until(lambda: parking_node.getbestblockhash() ==
                                 node.getbestblockhash())
         except AssertionError as exc:
@@ -221,10 +221,10 @@ class ParkedChainTest(BitcoinTestFramework):
         self.log.info("Test that unparking works when -parkdeepreorg=0")
         # Set up parking node height = fork + 4, node height = fork + 5
         node.invalidateblock(node.getbestblockhash())
-        parking_node.generate(3)
-        node.generatetoaddress(
-            nblocks=5,
-            address=node.getnewaddress(label='coinbase'))
+        self.generate(parking_node, 3)
+        self.generatetoaddress(node,
+                               nblocks=5,
+                               address=node.getnewaddress(label='coinbase'))
         wait_for_parked_block(node.getbestblockhash())
         # Restart the parking node without parkdeepreorg.
         self.restart_node(1, ["-parkdeepreorg=0"])
@@ -234,10 +234,10 @@ class ParkedChainTest(BitcoinTestFramework):
         wait_for_parked_block(node.getbestblockhash())
         # Three more blocks is not enough to unpark. Even though its PoW is
         # larger, we are still following the delayed-unparking rules.
-        node.generate(3)
+        self.generate(node, 3)
         wait_for_parked_block(node.getbestblockhash())
         # Final block pushes over the edge, and should unpark.
-        node.generate(1)
+        self.generate(node, 1)
         self.wait_until(lambda: parking_node.getbestblockhash() ==
                         node.getbestblockhash(), timeout=5)
 

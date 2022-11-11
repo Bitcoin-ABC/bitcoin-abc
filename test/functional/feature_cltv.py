@@ -83,8 +83,8 @@ class BIP65Test(BitcoinTestFramework):
         wallet = MiniWallet(self.nodes[0])
 
         self.log.info("Mining {} blocks".format(CLTV_HEIGHT - 2))
-        wallet.generate(10)
-        self.nodes[0].generate(CLTV_HEIGHT - 2 - 10)
+        self.generate(wallet, 10)
+        self.generate(self.nodes[0], CLTV_HEIGHT - 2 - 10)
 
         self.log.info(
             "Test that an invalid-according-to-CLTV transaction can still appear in a block")

@@ -32,7 +32,7 @@ class MinerFundTest(BitcoinTestFramework):
 
         self.log.info('Create some history')
         for _ in range(0, 50):
-            node.generatetoaddress(1, address)
+            self.generatetoaddress(node, 1, address)
 
         node = self.nodes[0]
 

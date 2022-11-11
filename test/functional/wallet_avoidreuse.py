@@ -89,7 +89,7 @@ class AvoidReuseTest(BitcoinTestFramework):
         self.test_persistence()
         self.test_immutable()
 
-        self.nodes[0].generate(110)
+        self.generate(self.nodes[0], 110)
         self.sync_all()
         self.test_change_remains_change(self.nodes[1])
         reset_balance(self.nodes[1], self.nodes[0].getnewaddress())
@@ -202,7 +202,7 @@ class AvoidReuseTest(BitcoinTestFramework):
         retaddr = self.nodes[0].getnewaddress()
 
         self.nodes[0].sendtoaddress(fundaddr, 10000000)
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         self.sync_all()
 
         # listunspent should show 1 single, unused 10MM XEC output
@@ -219,7 +219,7 @@ class AvoidReuseTest(BitcoinTestFramework):
         assert "used" not in self.nodes[0].getbalances()["mine"]
 
         self.nodes[1].sendtoaddress(retaddr, 5000000)
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         self.sync_all()
 
         # listunspent should show 1 single, unused 5MM XEC output
@@ -233,7 +233,7 @@ class AvoidReuseTest(BitcoinTestFramework):
         assert_balances(self.nodes[1], mine={"used": 0, "trusted": 5000000})
 
         self.nodes[0].sendtoaddress(fundaddr, 10000000)
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         self.sync_all()
 
         # listunspent should show 2 total outputs (5MM, 10MM XEC), one unused
@@ -286,7 +286,7 @@ class AvoidReuseTest(BitcoinTestFramework):
         retaddr = self.nodes[0].getnewaddress()
 
         self.nodes[0].sendtoaddress(fundaddr, 10000000)
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         self.sync_all()
 
         # listunspent should show 1 single, unused 10MM XEC output
@@ -300,7 +300,7 @@ class AvoidReuseTest(BitcoinTestFramework):
         assert_balances(self.nodes[1], mine={"used": 0, "trusted": 10000000})
 
         self.nodes[1].sendtoaddress(retaddr, 5000000)
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         self.sync_all()
 
         # listunspent should show 1 single, unused 5MM XEC output
@@ -321,7 +321,7 @@ class AvoidReuseTest(BitcoinTestFramework):
             new_fundaddr = fundaddr
 
             self.nodes[0].sendtoaddress(new_fundaddr, 10000000)
-            self.nodes[0].generate(1)
+            self.generate(self.nodes[0], 1)
             self.sync_all()
 
             # listunspent should show 2 total outputs (5MM, 10MM XEC), one unused
@@ -395,7 +395,7 @@ class AvoidReuseTest(BitcoinTestFramework):
         for _ in range(11):
             self.nodes[0].sendtoaddress(new_addr, 1000000)
 
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         self.sync_all()
 
         # send transaction that should not use all the available outputs
@@ -437,7 +437,7 @@ class AvoidReuseTest(BitcoinTestFramework):
         for _ in range(11):
             self.nodes[0].sendtoaddress(new_addr, 1000000)
 
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         self.sync_all()
 
         # Sending a transaction that is smaller than each one of the
@@ -466,7 +466,7 @@ class AvoidReuseTest(BitcoinTestFramework):
         for _ in range(22):
             self.nodes[0].sendtoaddress(new_addr, 1000000)
 
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         self.sync_all()
 
         # Sending a transaction that needs to use the full groups

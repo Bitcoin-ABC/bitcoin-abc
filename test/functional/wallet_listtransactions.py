@@ -22,7 +22,7 @@ class ListTransactionsTest(BitcoinTestFramework):
 
     def run_test(self):
         # Leave IBD
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         # Simple send, 0 to 1:
         txid = self.nodes[0].sendtoaddress(
             self.nodes[1].getnewaddress(), 100000)
@@ -34,7 +34,7 @@ class ListTransactionsTest(BitcoinTestFramework):
                             {"txid": txid},
                             {"category": "receive", "amount": Decimal("100000"), "confirmations": 0})
         # mine a block, confirmations should change:
-        blockhash = self.nodes[0].generate(1)[0]
+        blockhash = self.generate(self.nodes[0], 1)[0]
         blockheight = self.nodes[0].getblockheader(blockhash)['height']
         self.sync_all()
         assert_array_result(self.nodes[0].listtransactions(),
@@ -99,7 +99,7 @@ class ListTransactionsTest(BitcoinTestFramework):
             self.nodes[0].importaddress(
                 multisig["redeemScript"], "watchonly", False, True)
             txid = self.nodes[1].sendtoaddress(multisig["address"], 100000)
-            self.nodes[1].generate(1)
+            self.generate(self.nodes[1], 1)
             self.sync_all()
             assert_equal(len(self.nodes[0].listtransactions(
                 label="watchonly", include_watchonly=True)), 1)

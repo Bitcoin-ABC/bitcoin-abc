@@ -35,7 +35,7 @@ class WalletGroupTest(BitcoinTestFramework):
 
     def run_test(self):
         # Mine some coins
-        self.nodes[0].generate(110)
+        self.generate(self.nodes[0], 110)
 
         # Get some addresses from the two nodes
         addr1 = [self.nodes[1].getnewaddress() for _ in range(3)]
@@ -46,7 +46,7 @@ class WalletGroupTest(BitcoinTestFramework):
         [self.nodes[0].sendtoaddress(addr, 1000000) for addr in addrs]
         [self.nodes[0].sendtoaddress(addr, 500000) for addr in addrs]
 
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         self.sync_all()
 
         # For each node, send 0.2 coins back to 0;
@@ -77,7 +77,7 @@ class WalletGroupTest(BitcoinTestFramework):
 
         # Test 'avoid partial if warranted, even if disabled'
         self.sync_all()
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         # Nodes 1-2 now have confirmed UTXOs (letters denote destinations):
         # Node #1:      Node #2:
         # - A  1.0      - D0 1.0
@@ -114,7 +114,7 @@ class WalletGroupTest(BitcoinTestFramework):
         addr_aps = self.nodes[3].getnewaddress()
         self.nodes[0].sendtoaddress(addr_aps, 1000000)
         self.nodes[0].sendtoaddress(addr_aps, 1000000)
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         self.sync_all()
         with self.nodes[3].assert_debug_log([
                 'Fee non-grouped = 225, grouped = 372, using grouped']):
@@ -128,7 +128,7 @@ class WalletGroupTest(BitcoinTestFramework):
 
         addr_aps2 = self.nodes[3].getnewaddress()
         [self.nodes[0].sendtoaddress(addr_aps2, 1_000_000) for _ in range(5)]
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         self.sync_all()
         with self.nodes[3].assert_debug_log([
                 'Fee non-grouped = 519, grouped = 813, using non-grouped']):
@@ -143,7 +143,7 @@ class WalletGroupTest(BitcoinTestFramework):
         # 1 sat higher, crossing the threshold from non-grouped to grouped.
         addr_aps3 = self.nodes[4].getnewaddress()
         [self.nodes[0].sendtoaddress(addr_aps3, 1_000_000) for _ in range(5)]
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         self.sync_all()
         with self.nodes[4].assert_debug_log([
                 'Fee non-grouped = 519, grouped = 813, using grouped']):
@@ -158,7 +158,7 @@ class WalletGroupTest(BitcoinTestFramework):
         self.nodes[2].sendtoaddress(address=self.nodes[0].getnewaddress(
         ), amount=self.nodes[2].getbalance(), subtractfeefromamount=True)
         self.sync_all()
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
 
         # Fill node2's wallet with 10000 outputs corresponding to the same
         # scriptPubKey
@@ -172,7 +172,7 @@ class WalletGroupTest(BitcoinTestFramework):
             signed_tx = self.nodes[0].signrawtransactionwithwallet(
                 funded_tx['hex'])
             self.nodes[0].sendrawtransaction(signed_tx['hex'])
-            self.nodes[0].generate(1)
+            self.generate(self.nodes[0], 1)
 
         self.sync_all()
 

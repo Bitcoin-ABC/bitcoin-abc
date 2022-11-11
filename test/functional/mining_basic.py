@@ -44,7 +44,7 @@ class MiningTest(BitcoinTestFramework):
         for t in range(TIME_GENESIS_BLOCK,
                        TIME_GENESIS_BLOCK + 200 * 600, 600):
             node.setmocktime(t)
-            node.generatetoaddress(1, address)
+            self.generatetoaddress(node, 1, address)
         mining_info = node.getmininginfo()
         assert_equal(mining_info['blocks'], 200)
         assert_equal(mining_info['currentblocktx'], 0)
@@ -88,7 +88,8 @@ class MiningTest(BitcoinTestFramework):
         assert_equal(mining_info['pooledtx'], 0)
 
         # Mine a block to leave initial block download
-        node.generatetoaddress(1, node.get_deterministic_priv_key().address)
+        self.generatetoaddress(
+            node, 1, node.get_deterministic_priv_key().address)
         tmpl = node.getblocktemplate()
         self.log.info("getblocktemplate: Test capability advertised")
         assert 'proposal' in tmpl['capabilities']
@@ -262,7 +263,8 @@ class MiningTest(BitcoinTestFramework):
                          branchlen=0) in node.getchaintips()
 
         # Building a few blocks should give the same results
-        node.generatetoaddress(10, node.get_deterministic_priv_key().address)
+        self.generatetoaddress(
+            node, 10, node.get_deterministic_priv_key().address)
         assert_raises_rpc_error(-25, 'time-too-old', lambda: node.submitheader(
             hexdata=CBlockHeader(bad_block_time).serialize().hex()))
         assert_raises_rpc_error(-25, 'bad-prevblk', lambda: node.submitheader(
@@ -275,9 +277,9 @@ class MiningTest(BitcoinTestFramework):
             hexdata=block.serialize().hex()), 'duplicate')
 
         # Sanity check that maxtries supports large integers
-        node.generatetoaddress(
-            1, node.get_deterministic_priv_key().address, pow(
-                2, 32))
+        self.generatetoaddress(node,
+                               1, node.get_deterministic_priv_key().address, pow(
+                                   2, 32))
 
 
 if __name__ == '__main__':

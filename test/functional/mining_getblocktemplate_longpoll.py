@@ -39,7 +39,7 @@ class GetBlockTemplateLPTest(BitcoinTestFramework):
             "Warning: this test will take about 70 seconds in the best case. Be patient.")
         self.log.info(
             "Test that longpollid doesn't change between successive getblocktemplate() invocations if nothing else happens")
-        self.nodes[0].generate(10)
+        self.generate(self.nodes[0], 10)
         templat = self.nodes[0].getblocktemplate()
         longpollid = templat['longpollid']
         # longpollid should not change between successive invocations if
@@ -77,7 +77,7 @@ class GetBlockTemplateLPTest(BitcoinTestFramework):
 
         # Add enough mature utxos to the wallets, so that all txs spend
         # confirmed coins
-        self.nodes[0].generate(100)
+        self.generate(self.nodes[0], 100)
         self.sync_blocks()
 
         self.log.info(

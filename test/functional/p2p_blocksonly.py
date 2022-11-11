@@ -95,7 +95,7 @@ class P2PBlocksOnly(BitcoinTestFramework):
             "Relay-permission peer's transaction is accepted and relayed")
 
         self.nodes[0].disconnect_p2ps()
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
 
     def blocks_relay_conn_tests(self):
         self.log.info(

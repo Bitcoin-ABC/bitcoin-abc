@@ -239,7 +239,8 @@ class BIP68_112_113Test(BitcoinTestFramework):
         # long_past_time
         self.nodes[0].setmocktime(long_past_time - 100)
         # 82 blocks generated for inputs
-        self.coinbase_blocks = self.nodes[0].generate(1 + 16 + 2 * 32 + 1)
+        self.coinbase_blocks = self.generate(
+            self.nodes[0], 1 + 16 + 2 * 32 + 1)
         # Set time back to present so yielded blocks aren't in the future as
         # we advance last_block_time
         self.nodes[0].setmocktime(0)
@@ -301,7 +302,7 @@ class BIP68_112_113Test(BitcoinTestFramework):
 
         self.nodes[0].setmocktime(self.last_block_time + 600)
         # 1 block generated for inputs to be in chain at height 572
-        inputblockhash = self.nodes[0].generate(1)[0]
+        inputblockhash = self.generate(self.nodes[0], 1)[0]
         self.nodes[0].setmocktime(0)
         self.tip = int(inputblockhash, 16)
         self.tipheight += 1
@@ -437,7 +438,7 @@ class BIP68_112_113Test(BitcoinTestFramework):
         self.send_blocks(test_blocks)
         assert_equal(get_csv_status(self.nodes[0]), False)
 
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         assert_equal(get_csv_status(self.nodes[0]), True)
         self.nodes[0].invalidateblock(self.nodes[0].getbestblockhash())
 

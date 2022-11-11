@@ -38,7 +38,7 @@ class GetAvalanchePeerInfoTest(BitcoinTestFramework):
             f"Generating {peercount} peers with {nodecount} nodes each")
 
         addrkey0 = node.get_deterministic_priv_key()
-        blockhashes = node.generatetoaddress(peercount, addrkey0.address)
+        blockhashes = self.generatetoaddress(node, peercount, addrkey0.address)
         # Use the first coinbase to create a stake
         stakes = create_coinbase_stakes(node, blockhashes, addrkey0.key)
 

@@ -53,10 +53,10 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         # Make real txs
         num_txs = 5
         wallet = MiniWallet(node)
-        wallet.generate(num_txs)
+        self.generate(wallet, num_txs)
 
         # Mature the coinbases
-        node.generate(100)
+        self.generate(node, 100)
 
         assert_equal(node.getmempoolinfo()['size'], 0)
         tx_ids = [int(wallet.send_self_transfer(from_node=node)

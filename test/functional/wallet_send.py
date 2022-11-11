@@ -200,7 +200,7 @@ class WalletSendTest(BitcoinTestFramework):
 
         # fund w3
         w0.sendtoaddress(a2_receive, 10_000_000)
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         self.sync_blocks()
 
         # w4 has private keys enabled, but only contains watch-only keys (from
@@ -221,7 +221,7 @@ class WalletSendTest(BitcoinTestFramework):
 
         # fund w4
         w0.sendtoaddress(a2_receive, 10_000_000)
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         self.sync_blocks()
 
         self.log.info("Send to address...")
@@ -379,14 +379,14 @@ class WalletSendTest(BitcoinTestFramework):
         assert not res[0]["allowed"]
         assert_equal(res[0]["reject-reason"], "bad-txns-nonfinal")
         # It shouldn't be confirmed in the next block
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         assert_equal(self.nodes[0].gettransaction(txid)["confirmations"], 0)
         # The mempool should allow it now:
         res = self.nodes[0].testmempoolaccept([hex])
         assert res[0]["allowed"]
         # Don't wait for wallet to add it to the mempool:
         res = self.nodes[0].sendrawtransaction(hex)
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         assert_equal(self.nodes[0].gettransaction(txid)["confirmations"], 1)
         self.sync_all()
 

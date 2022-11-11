@@ -180,7 +180,7 @@ class ImportRescanTest(BitcoinTestFramework):
             variant.initial_txid = self.nodes[0].sendtoaddress(
                 variant.address["address"], variant.initial_amount)
             # Generate one block for each send
-            self.nodes[0].generate(1)
+            self.generate(self.nodes[0], 1)
             variant.confirmation_height = self.nodes[0].getblockcount()
             variant.timestamp = self.nodes[0].getblockheader(
                 self.nodes[0].getbestblockhash())["time"]
@@ -191,7 +191,7 @@ class ImportRescanTest(BitcoinTestFramework):
         assert_equal(self.nodes[0].getrawmempool(), [])
         set_node_times(self.nodes, self.nodes[0].getblockheader(
             self.nodes[0].getbestblockhash())["time"] + TIMESTAMP_WINDOW + 1)
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         self.sync_all()
 
         # For each variation of wallet key import, invoke the import RPC and
@@ -218,7 +218,7 @@ class ImportRescanTest(BitcoinTestFramework):
             variant.sent_txid = self.nodes[0].sendtoaddress(
                 variant.address["address"], variant.sent_amount)
             # Generate one block for each send
-            self.nodes[0].generate(1)
+            self.generate(self.nodes[0], 1)
             variant.confirmation_height = self.nodes[0].getblockcount()
 
         assert_equal(self.nodes[0].getrawmempool(), [])

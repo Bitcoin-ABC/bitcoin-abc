@@ -23,7 +23,7 @@ class CreateWalletTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
         # Leave IBD for sethdseed
-        node.generate(1)
+        self.generate(node, 1)
 
         self.nodes[0].createwallet(wallet_name='w0')
         w0 = node.get_wallet_rpc('w0')

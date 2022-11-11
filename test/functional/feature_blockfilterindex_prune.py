@@ -34,7 +34,7 @@ class FeatureBlockfilterindexPruneTest(BitcoinTestFramework):
         assert_greater_than(
             len(node.getblockfilter(node.getbestblockhash())['filter']),
             0)
-        node.generate(500)
+        self.generate(node, 500)
         self.sync_index(height=700)
 
         self.log.info("prune some blocks")
@@ -60,7 +60,7 @@ class FeatureBlockfilterindexPruneTest(BitcoinTestFramework):
             0)
 
         # mine and sync index up to a height that will later be the pruneheight
-        node.generate(338)
+        self.generate(node, 338)
         # Backport note: 3 blk?????.dat file with 346 blocks each makes 1038.
         self.sync_index(height=1038)
 
@@ -71,7 +71,7 @@ class FeatureBlockfilterindexPruneTest(BitcoinTestFramework):
         assert_raises_rpc_error(
             -1, "Index is not enabled for filtertype basic",
             node.getblockfilter, node.getblockhash(2))
-        node.generate(462)
+        self.generate(node, 462)
 
         self.log.info("prune exactly up to the blockfilterindexes best block "
                       "while blockfilters are disabled")
@@ -88,7 +88,7 @@ class FeatureBlockfilterindexPruneTest(BitcoinTestFramework):
         self.restart_node(
             0,
             extra_args=["-fastprune", "-prune=1"])
-        node.generate(1000)
+        self.generate(node, 1000)
         pruneheight_3 = self.nodes[0].pruneblockchain(2000)
         assert_greater_than(pruneheight_3, pruneheight_2)
         self.stop_node(0)

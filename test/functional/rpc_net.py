@@ -57,7 +57,7 @@ class NetTest(BitcoinTestFramework):
 
     def run_test(self):
         # Get out of IBD for the minfeefilter and getpeerinfo tests.
-        self.nodes[0].generate(101)
+        self.generate(self.nodes[0], 101)
         # Connect nodes both ways.
         self.connect_nodes(0, 1)
         self.connect_nodes(1, 0)
@@ -188,7 +188,7 @@ class NetTest(BitcoinTestFramework):
         # values.
         if self.is_wallet_compiled():
             self.nodes[0].sendtoaddress(self.nodes[1].getnewaddress(), 1000000)
-        tip = self.nodes[1].generate(1)[0]
+        tip = self.generate(self.nodes[1], 1)[0]
         self.sync_all()
 
         stake = create_coinbase_stakes(

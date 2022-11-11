@@ -23,7 +23,7 @@ class BuildAvalancheProofTest(BitcoinTestFramework):
         node = self.nodes[0]
 
         addrkey0 = node.get_deterministic_priv_key()
-        blockhashes = node.generatetoaddress(2, addrkey0.address)
+        blockhashes = self.generatetoaddress(node, 2, addrkey0.address)
         stakes = create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key)
 
         privkey = ECKey()

@@ -59,7 +59,7 @@ class BIP68Test(BitcoinTestFramework):
         self.relayfee = self.nodes[0].getnetworkinfo()["relayfee"]
 
         # Generate some coins
-        self.nodes[0].generate(110)
+        self.generate(self.nodes[0], 110)
 
         self.log.info("Running test disable flag")
         self.test_disable_flag()
@@ -156,7 +156,7 @@ class BIP68Test(BitcoinTestFramework):
             for i in range(num_outputs):
                 outputs[addresses[i]] = random.randint(1, 20) * 10000
             self.nodes[0].sendmany("", outputs)
-            self.nodes[0].generate(1)
+            self.generate(self.nodes[0], 1)
 
         utxos = self.nodes[0].listunspent()
 
@@ -319,7 +319,7 @@ class BIP68Test(BitcoinTestFramework):
         cur_time = int(time.time())
         for _ in range(10):
             self.nodes[0].setmocktime(cur_time + 600)
-            self.nodes[0].generate(1)
+            self.generate(self.nodes[0], 1)
             cur_time += 600
 
         assert tx2.hash in self.nodes[0].getrawmempool()
@@ -337,7 +337,7 @@ class BIP68Test(BitcoinTestFramework):
         self.nodes[0].setmocktime(cur_time + 600)
         # Save block template now to use for the reorg later
         tmpl = self.nodes[0].getblocktemplate()
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         assert tx2.hash not in self.nodes[0].getrawmempool()
 
         # Now that tx2 is not in the mempool, a sequence locked spend should
@@ -346,7 +346,7 @@ class BIP68Test(BitcoinTestFramework):
             tx2, self.nodes[0], use_height_lock=False)
         assert tx3.hash in self.nodes[0].getrawmempool()
 
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         assert tx3.hash not in self.nodes[0].getrawmempool()
 
         # One more test, this time using height locks
@@ -407,7 +407,7 @@ class BIP68Test(BitcoinTestFramework):
         self.nodes[0].setmocktime(0)
         self.nodes[0].invalidateblock(
             self.nodes[0].getblockhash(cur_height + 1))
-        self.nodes[0].generate(10)
+        self.generate(self.nodes[0], 10)
 
     def get_csv_status(self):
         height = self.nodes[0].getblockchaininfo()['blocks']
@@ -471,10 +471,10 @@ class BIP68Test(BitcoinTestFramework):
         csv_activation_height = 576
         height = self.nodes[0].getblockcount()
         assert_greater_than(csv_activation_height - height, 1)
-        self.nodes[0].generate(csv_activation_height - height - 1)
+        self.generate(self.nodes[0], csv_activation_height - height - 1)
         assert_equal(self.get_csv_status(), False)
         self.disconnect_nodes(0, 1)
-        self.nodes[0].generate(1)
+        self.generate(self.nodes[0], 1)
         assert_equal(self.get_csv_status(), True)
         # We have a block that has CSV activated, but we want to be at
         # the activation point, so we invalidate the tip.

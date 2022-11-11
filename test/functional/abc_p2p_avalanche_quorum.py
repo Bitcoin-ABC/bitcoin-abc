@@ -194,7 +194,7 @@ class AvalancheQuorumTest(BitcoinTestFramework):
             self.nodes[2].getavalancheinfo()['network']['pending_node_count'],
             self.min_avaproofs_node_count)
 
-        self.nodes[2].generate(1)
+        self.generate(self.nodes[2], 1)
         assert not self.nodes[2].getblockchaininfo()['initialblockdownload']
 
         # Connect the pending nodes so the next compact proofs requests can get
