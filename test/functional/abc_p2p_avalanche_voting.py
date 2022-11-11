@@ -47,7 +47,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         # Build a fake quorum of nodes.
         def get_quorum():
-            return [get_ava_p2p_interface(node)
+            return [get_ava_p2p_interface(self, node)
                     for _ in range(0, QUORUM_NODE_COUNT)]
 
         # Pick one node from the quorum for polling.

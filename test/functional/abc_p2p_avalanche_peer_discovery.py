@@ -221,7 +221,7 @@ class AvalanchePeerDiscoveryTest(BitcoinTestFramework):
         peer = get_ava_p2p_interface_no_handshake(node, services=NODE_NETWORK)
 
         # Build a new proof and only announce this one
-        _, new_proof_obj = gen_proof(node)
+        _, new_proof_obj = gen_proof(self, node)
         new_proof = new_proof_obj.serialize().hex()
         new_proofid = new_proof_obj.proofid
 

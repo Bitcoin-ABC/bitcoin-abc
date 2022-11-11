@@ -383,7 +383,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
         node = self.nodes[0]
 
         # Build a proof with immature utxos
-        privkey, immature = gen_proof(node)
+        privkey, immature = gen_proof(self, node)
         proofid_hex = "{:064x}".format(immature.proofid)
 
         self.restart_node(0, extra_args=self.extra_args[0] + [

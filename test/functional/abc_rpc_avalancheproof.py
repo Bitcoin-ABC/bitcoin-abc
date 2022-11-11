@@ -394,7 +394,7 @@ class AvalancheProofTest(BitcoinTestFramework):
             # confirm the coinbase UTXOs
             node.generate(101)
             too_many_stakes = create_stakes(
-                node, new_blocks, AVALANCHE_MAX_PROOF_STAKES + 1)
+                self, node, new_blocks, AVALANCHE_MAX_PROOF_STAKES + 1)
             # Make the newly split UTXOs mature
             node.generate(stake_age)
 

@@ -43,7 +43,7 @@ class ProofsCleanupTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
 
-        master_key, local_proof = gen_proof(node)
+        master_key, local_proof = gen_proof(self, node)
 
         self.restart_node(0, self.extra_args[0] + [
             "-avaproof={}".format(local_proof.serialize().hex()),
@@ -61,14 +61,14 @@ class ProofsCleanupTest(BitcoinTestFramework):
         peers = []
         # The first 5 peers have a node attached
         for _ in range(5):
-            peer = get_ava_p2p_interface(node)
+            peer = get_ava_p2p_interface(self, node)
             proofs.append(peer.proof)
             keys.append(peer.master_privkey)
             peers.append(peer)
 
         # The last 5 peers have no node attached
         for _ in range(5):
-            _, proof = gen_proof(node)
+            _, proof = gen_proof(self, node)
             node.sendavalancheproof(proof.serialize().hex())
             proofs.append(proof)
 
@@ -124,7 +124,7 @@ class ProofsCleanupTest(BitcoinTestFramework):
         node.disconnect_p2ps()
         assert_equal(len(node.p2ps), 0)
 
-        avanode = get_ava_p2p_interface(node)
+        avanode = get_ava_p2p_interface(self, node)
         avanode.wait_until(lambda: avanode.last_message.get(
             "getdata") and avanode.last_message["getdata"].inv[-1].hash == avanode.proof.proofid)
 

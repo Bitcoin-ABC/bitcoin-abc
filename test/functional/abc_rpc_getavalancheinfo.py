@@ -40,7 +40,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
 
-        privkey, proof = gen_proof(node)
+        privkey, proof = gen_proof(self, node)
 
         # Make the proof mature
         node.generate(1)
@@ -181,7 +181,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         quorum = []
         N = 13
         for _ in range(N):
-            _privkey, _proof = gen_proof(node)
+            _privkey, _proof = gen_proof(self, node)
             proofs.append(_proof)
             privkeys.append(_privkey)
 
@@ -210,7 +210,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             n.send_avaproof(conflicting_proof)
 
         # Generate an immature proof
-        _, immature_proof = gen_proof(node)
+        _, immature_proof = gen_proof(self, node)
         n.send_avaproof(immature_proof)
 
         self.wait_until(
@@ -287,7 +287,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             dg_priv.generate()
             dg_pub = dg_priv.get_pubkey().get_bytes().hex()
 
-            _privkey, _proof = gen_proof(node)
+            _privkey, _proof = gen_proof(self, node)
 
             # Make the proof mature
             node.generate(1)

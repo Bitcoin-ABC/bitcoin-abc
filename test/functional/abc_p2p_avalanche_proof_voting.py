@@ -56,7 +56,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
     # Build a fake quorum of nodes.
     def get_quorum(self, node):
-        return [get_ava_p2p_interface(node, stake_utxo_confirmations=self.avaproof_stake_utxo_confirmations)
+        return [get_ava_p2p_interface(self, node, stake_utxo_confirmations=self.avaproof_stake_utxo_confirmations)
                 for _ in range(0, QUORUM_NODE_COUNT)]
 
     def can_find_proof_in_poll(self, hash, response):
@@ -136,7 +136,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
         self.log.info("Trigger polling from the node...")
 
-        peer = get_ava_p2p_interface(node)
+        peer = get_ava_p2p_interface(self, node)
 
         mock_time = int(time.time())
         node.setmocktime(mock_time)
@@ -183,7 +183,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.restart_node(0)
 
         self.quorum = self.get_quorum(node)
-        peer = get_ava_p2p_interface(node)
+        peer = get_ava_p2p_interface(self, node)
 
         mock_time = int(time.time())
         node.setmocktime(mock_time)
@@ -300,7 +300,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
         self.get_quorum(node)
         ava_node = get_ava_p2p_interface(
-            node, stake_utxo_confirmations=self.avaproof_stake_utxo_confirmations)
+            self, node, stake_utxo_confirmations=self.avaproof_stake_utxo_confirmations)
 
         # Generate coinbases to use for stakes
         stakes_key = node.get_deterministic_priv_key()
@@ -418,7 +418,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.restart_node(0)
 
         self.quorum = self.get_quorum(node)
-        peer = get_ava_p2p_interface(node)
+        peer = get_ava_p2p_interface(self, node)
 
         mock_time = int(time.time())
         node.setmocktime(mock_time)
@@ -478,9 +478,9 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
         self.quorum = self.get_quorum(node)
         peer = get_ava_p2p_interface(
-            node, stake_utxo_confirmations=self.avaproof_stake_utxo_confirmations)
+            self, node, stake_utxo_confirmations=self.avaproof_stake_utxo_confirmations)
 
-        _, immature_proof = gen_proof(node)
+        _, immature_proof = gen_proof(self, node)
 
         self.log.info("Immature proofs are not polled")
 

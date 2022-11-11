@@ -23,7 +23,7 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
 
     def run_test(self):
         node = self.nodes[0]
-        poll_node = get_ava_p2p_interface(node)
+        poll_node = get_ava_p2p_interface(self, node)
 
         # Create helper to check expected poll responses
         avakey = ECPubKey()

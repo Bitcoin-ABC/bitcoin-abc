@@ -48,7 +48,7 @@ class AvalancheQuorumTest(BitcoinTestFramework):
 
     def run_test(self):
         # Initially all nodes start with 8 nodes attached to a single proof
-        privkey, proof = gen_proof(self.nodes[0])
+        privkey, proof = gen_proof(self, self.nodes[0])
         for node in self.nodes:
             for _ in range(8):
                 n = get_ava_p2p_interface_no_handshake(node)
@@ -63,7 +63,7 @@ class AvalancheQuorumTest(BitcoinTestFramework):
         # Prepare peers proofs
         peers = []
         for i in range(0, self.min_avaproofs_node_count + 1):
-            key, proof = gen_proof(self.nodes[0])
+            key, proof = gen_proof(self, self.nodes[0])
             peers.append({'key': key, 'proof': proof})
 
         # Let the nodes known about all the blocks then disconnect them so we're
@@ -243,7 +243,7 @@ class AvalancheQuorumTest(BitcoinTestFramework):
             poll_and_assert_response(node, AvalancheVoteError.UNKNOWN)
 
             # Add a node back and check it resumes the quorum status
-            avapeer = AvaP2PInterface(node)
+            avapeer = AvaP2PInterface(self, node)
             node.add_p2p_connection(avapeer)
             wait_for_proof(node, uint256_hex(avapeer.proof.proofid))
             poll_and_assert_response(node, AvalancheVoteError.ACCEPTED)

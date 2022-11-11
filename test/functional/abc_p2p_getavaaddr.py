@@ -55,8 +55,8 @@ class AddrReceiver(P2PInterface):
 
 
 class MutedAvaP2PInterface(AvaP2PInterface):
-    def __init__(self, node=None):
-        super().__init__(node)
+    def __init__(self, test_framework=None, node=None):
+        super().__init__(test_framework, node)
         self.is_responding = False
         self.privkey = None
         self.addr = None
@@ -70,8 +70,8 @@ class MutedAvaP2PInterface(AvaP2PInterface):
 
 
 class AllYesAvaP2PInterface(MutedAvaP2PInterface):
-    def __init__(self, node=None):
-        super().__init__(node)
+    def __init__(self, test_framework=None, node=None):
+        super().__init__(test_framework, node)
         self.is_responding = True
 
     def on_avapoll(self, message):
@@ -128,7 +128,7 @@ class AvaAddrTest(BitcoinTestFramework):
 
         # Add some avalanche peers to the node
         for _ in range(10):
-            node.add_p2p_connection(AllYesAvaP2PInterface(node))
+            node.add_p2p_connection(AllYesAvaP2PInterface(self, node))
 
         # Build some statistics to ensure some addresses will be returned
         def all_peers_received_poll():
@@ -179,7 +179,7 @@ class AvaAddrTest(BitcoinTestFramework):
         # Create a bunch of proofs and associate each a bunch of nodes.
         avanodes = []
         for _ in range(num_proof):
-            master_privkey, proof = gen_proof(node)
+            master_privkey, proof = gen_proof(self, node)
             for n in range(num_avanode):
                 avanode = AllYesAvaP2PInterface() if n % 2 else MutedAvaP2PInterface()
                 avanode.master_privkey = master_privkey
@@ -339,7 +339,7 @@ class AvaAddrTest(BitcoinTestFramework):
 
         avapeers = []
         for i in range(16):
-            avapeer = AllYesAvaP2PInterface(node)
+            avapeer = AllYesAvaP2PInterface(self, node)
             node.add_outbound_p2p_connection(
                 avapeer,
                 p2p_idx=i,
@@ -390,7 +390,7 @@ class AvaAddrTest(BitcoinTestFramework):
 
         # Add more nodes so we reach the mininum quorum stake amount.
         for _ in range(4):
-            avapeer = AllYesAvaP2PInterface(node)
+            avapeer = AllYesAvaP2PInterface(self, node)
             node.add_p2p_connection(avapeer)
         self.wait_until(lambda: node.getavalancheinfo()
                         ['ready_to_poll'] is True)
@@ -457,7 +457,7 @@ class AvaAddrTest(BitcoinTestFramework):
 
         # Connect the minimum amount of stake and nodes
         for _ in range(8):
-            node.add_p2p_connection(AvaP2PInterface(node))
+            node.add_p2p_connection(AvaP2PInterface(self, node))
         self.wait_until(lambda: node.getavalancheinfo()
                         ['ready_to_poll'] is True)
 

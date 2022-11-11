@@ -6,7 +6,7 @@
 
 import random
 import struct
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from .authproxy import JSONRPCException
 from .key import ECKey
@@ -33,6 +33,10 @@ from .messages import (
     msg_tcpavaresponse,
 )
 from .p2p import P2PInterface, p2p_lock
+
+if TYPE_CHECKING:
+    from .test_framework import BitcoinTestFramework
+
 from .test_node import TestNode
 from .util import satoshi_round, uint256_hex, wait_until_helper
 from .wallet_util import bytes_to_wif
@@ -88,8 +92,10 @@ def get_utxos_in_blocks(node: TestNode, blockhashes: List[str]) -> List[Dict]:
 
 
 def create_stakes(
-        node: TestNode, blockhashes: List[str], count: int
-) -> List[Dict[str, Any]]:
+        test_framework: 'BitcoinTestFramework',
+        node: TestNode,
+        blockhashes: List[str],
+        count: int) -> List[Dict[str, Any]]:
     """
     Create a list of stakes by splitting existing UTXOs from a specified list
     of blocks into 10 new coins.
@@ -121,7 +127,7 @@ def create_stakes(
     # confirm the transactions
     new_blocks = []
     while node.getmempoolinfo()['size'] > 0:
-        new_blocks += node.generate(1)
+        new_blocks += test_framework.generate(node, 1)
 
     utxos = get_utxos_in_blocks(node, new_blocks)
     stakes = []
@@ -279,7 +285,12 @@ class NoHandshakeAvaP2PInterface(P2PInterface):
 
 
 class AvaP2PInterface(NoHandshakeAvaP2PInterface):
-    def __init__(self, node=None):
+    def __init__(self, test_framework=None, node=None):
+        if (test_framework is not None and node is None) or (
+                node is not None and test_framework is None):
+            raise AssertionError(
+                "test_framework and node should both be either set or None")
+
         super().__init__()
 
         self.master_privkey = None
@@ -289,8 +300,8 @@ class AvaP2PInterface(NoHandshakeAvaP2PInterface):
         self.delegated_privkey.generate()
         self.delegation = None
 
-        if node is not None:
-            self.master_privkey, self.proof = gen_proof(node)
+        if test_framework is not None and node is not None:
+            self.master_privkey, self.proof = gen_proof(test_framework, node)
             delegation_hex = node.delegateavalancheproof(
                 f"{self.proof.limited_proofid:0{64}x}",
                 bytes_to_wif(self.master_privkey.get_bytes()),
@@ -346,16 +357,17 @@ def get_ava_p2p_interface_no_handshake(
 
 
 def get_ava_p2p_interface(
+        test_framework: 'BitcoinTestFramework',
         node: TestNode,
         services=NODE_NETWORK | NODE_AVALANCHE,
         stake_utxo_confirmations=1) -> AvaP2PInterface:
     """Build and return an AvaP2PInterface connected to the specified TestNode.
     """
-    n = AvaP2PInterface(node)
+    n = AvaP2PInterface(test_framework, node)
 
     # Make sure the proof utxos are mature
     if stake_utxo_confirmations > 1:
-        node.generate(stake_utxo_confirmations - 1)
+        test_framework.generate(node, stake_utxo_confirmations - 1)
 
     assert node.verifyavalancheproof(n.proof.serialize().hex())
 
@@ -377,8 +389,8 @@ def get_ava_p2p_interface(
     return n
 
 
-def gen_proof(node, coinbase_utxos=1):
-    blockhashes = node.generate(coinbase_utxos)
+def gen_proof(test_framework, node, coinbase_utxos=1):
+    blockhashes = test_framework.generate(node, coinbase_utxos)
 
     privkey = ECKey()
     privkey.generate()

@@ -73,7 +73,7 @@ class DeprecatedRpcTest(BitcoinTestFramework):
         )
         assert not self.nodes[1].isfinaltransaction(cb_txid, blockhash)
 
-        [[node.add_p2p_connection(AvaP2PInterface(node))
+        [[node.add_p2p_connection(AvaP2PInterface(self, node))
           for _ in range(0, QUORUM_NODE_COUNT)] for node in self.nodes]
 
         self.wait_until(lambda: all(

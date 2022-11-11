@@ -63,7 +63,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         ]] * self.num_nodes
 
     def generate_proof(self, node, mature=True):
-        privkey, proof = gen_proof(node)
+        privkey, proof = gen_proof(self, node)
 
         if mature:
             node.generate(1)

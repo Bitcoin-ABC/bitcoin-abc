@@ -93,7 +93,7 @@ class CompactProofsTest(BitcoinTestFramework):
         outbound_avapeers = []
         # With a proof and the service bit set
         for _ in range(4):
-            peer = AvaP2PInterface(node)
+            peer = AvaP2PInterface(self, node)
             node.add_outbound_p2p_connection(
                 peer,
                 p2p_idx=p2p_idx,
@@ -152,7 +152,7 @@ class CompactProofsTest(BitcoinTestFramework):
         self.log.info(
             "After the first avaproofs has been received, all the peers are requested periodically")
 
-        responding_outbound_avapeer = AvaP2PInterface(node)
+        responding_outbound_avapeer = AvaP2PInterface(self, node)
         node.add_outbound_p2p_connection(
             responding_outbound_avapeer,
             p2p_idx=p2p_idx,
@@ -164,7 +164,7 @@ class CompactProofsTest(BitcoinTestFramework):
 
         self.wait_until(all_peers_received_getavaproofs)
 
-        _, proof = gen_proof(node)
+        _, proof = gen_proof(self, node)
 
         # Send the avaproofs message
         avaproofs = build_msg_avaproofs([proof])
@@ -212,7 +212,7 @@ class CompactProofsTest(BitcoinTestFramework):
         def connect_callback(address, port):
             self.log.debug("Connecting to {}:{}".format(address, port))
 
-        p = AvaP2PInterface(node)
+        p = AvaP2PInterface(self, node)
         p2p_idx = 1
         p.peer_accept_connection(
             connect_cb=connect_callback,
@@ -256,7 +256,7 @@ class CompactProofsTest(BitcoinTestFramework):
         # Add some proofs
         sending_peer = node.add_p2p_connection(NoHandshakeAvaP2PInterface())
         for _ in range(50):
-            _, proof = gen_proof(node)
+            _, proof = gen_proof(self, node)
             sending_peer.send_avaproof(proof)
             wait_for_proof(node, uint256_hex(proof.proofid))
 
@@ -287,7 +287,7 @@ class CompactProofsTest(BitcoinTestFramework):
 
         key0 = random.randint(0, 2**64 - 1)
         key1 = random.randint(0, 2**64 - 1)
-        proofs = [gen_proof(node)[1] for _ in range(10)]
+        proofs = [gen_proof(self, node)[1] for _ in range(10)]
 
         # Build a map from proofid to shortid. Use sorted proofids so we don't
         # have the same indices than the `proofs` list.
@@ -298,7 +298,7 @@ class CompactProofsTest(BitcoinTestFramework):
 
         self.log.info("The node ignores unsollicited avaproofs")
 
-        spam_peer = get_ava_p2p_interface(node)
+        spam_peer = get_ava_p2p_interface(self, node)
 
         msg = build_msg_avaproofs(
             proofs, prefilled_proofs=[], key_pair=[
@@ -316,7 +316,7 @@ class CompactProofsTest(BitcoinTestFramework):
         def add_avalanche_p2p_outbound():
             nonlocal p2p_idx
 
-            peer = AvaP2PInterface(node)
+            peer = AvaP2PInterface(self, node)
             node.add_outbound_p2p_connection(
                 peer,
                 p2p_idx=p2p_idx,
@@ -414,7 +414,7 @@ class CompactProofsTest(BitcoinTestFramework):
         msg = build_msg_avaproofs([], prefilled_proofs=[
             AvalanchePrefilledProof(
                 len(shortid_map) + 1,
-                gen_proof(node)[1])], key_pair=[key0, key1])
+                gen_proof(self, node)[1])], key_pair=[key0, key1])
         msg.shortids = list(shortid_map.values())
 
         with node.assert_debug_log(["Misbehaving", "avaproofs-bad-indexes"]):
@@ -423,7 +423,7 @@ class CompactProofsTest(BitcoinTestFramework):
 
         self.log.info("An invalid prefilled proof will trigger a ban")
 
-        _, no_stake = gen_proof(node)
+        _, no_stake = gen_proof(self, node)
         no_stake.stakes = []
 
         bad_peer = add_avalanche_p2p_outbound()
@@ -445,7 +445,7 @@ class CompactProofsTest(BitcoinTestFramework):
         self.restart_node(0)
 
         numof_proof = 10
-        proofs = [gen_proof(node)[1] for _ in range(numof_proof)]
+        proofs = [gen_proof(self, node)[1] for _ in range(numof_proof)]
 
         for proof in proofs:
             node.sendavalancheproof(proof.serialize().hex())
@@ -566,7 +566,7 @@ class CompactProofsTest(BitcoinTestFramework):
         self.restart_node(0)
 
         numof_proof = 10
-        proofs = [gen_proof(requestee)[1] for _ in range(numof_proof)]
+        proofs = [gen_proof(self, requestee)[1] for _ in range(numof_proof)]
 
         for proof in proofs:
             requestee.sendavalancheproof(proof.serialize().hex())
@@ -653,7 +653,7 @@ class CompactProofsTest(BitcoinTestFramework):
 
         # Connect the minimum amount of stake and nodes
         for _ in range(8):
-            node.add_p2p_connection(AvaP2PInterface(node))
+            node.add_p2p_connection(AvaP2PInterface(self, node))
         self.wait_until(lambda: node.getavalancheinfo()
                         ['ready_to_poll'] is True)
 
