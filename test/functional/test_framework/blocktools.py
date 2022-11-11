@@ -166,13 +166,13 @@ def get_legacy_sigopcount_tx(tx, accurate=True):
     return count
 
 
-def create_confirmed_utxos(node, count, age=101):
+def create_confirmed_utxos(test_framework, node, count, age=101):
     """
     Helper to create at least "count" utxos
     """
     to_generate = int(0.5 * count) + age
     while to_generate > 0:
-        node.generate(min(25, to_generate))
+        test_framework.generate(node, min(25, to_generate))
         to_generate -= 25
     utxos = node.listunspent()
     iterations = count - len(utxos)
@@ -198,14 +198,14 @@ def create_confirmed_utxos(node, count, age=101):
         node.sendrawtransaction(signed_tx)
 
     while (node.getmempoolinfo()['size'] > 0):
-        node.generate(1)
+        test_framework.generate(node, 1)
 
     utxos = node.listunspent()
     assert len(utxos) >= count
     return utxos
 
 
-def mine_big_block(node, utxos=None):
+def mine_big_block(test_framework, node, utxos=None):
     # generate a 66k transaction,
     # and 14 of them is close to the 1MB block limit
     num = 14
@@ -214,7 +214,7 @@ def mine_big_block(node, utxos=None):
         utxos.clear()
         utxos.extend(node.listunspent())
     send_big_transactions(node, utxos, num, 100)
-    node.generate(1)
+    test_framework.generate(node, 1)
 
 
 def send_big_transactions(node, utxos, num, fee_multiplier):

@@ -33,7 +33,7 @@ class MempoolUnbroadcastTest(BitcoinTestFramework):
         node = self.nodes[0]
 
         min_relay_fee = node.getnetworkinfo()["relayfee"]
-        create_confirmed_utxos(node, 10)
+        create_confirmed_utxos(self, node, 10)
 
         self.disconnect_nodes(node.index, 1)
 

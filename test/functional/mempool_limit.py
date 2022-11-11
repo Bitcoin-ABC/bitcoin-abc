@@ -43,7 +43,8 @@ class MempoolLimitTest(BitcoinTestFramework):
 
         txids = []
         utxo_groups = 4
-        utxos = create_confirmed_utxos(self.nodes[0], 1 + 30 * utxo_groups)
+        utxos = create_confirmed_utxos(
+            self, self.nodes[0], 1 + 30 * utxo_groups)
 
         self.log.info('Create a mempool tx that will be evicted')
         us0 = utxos.pop()

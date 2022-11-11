@@ -59,7 +59,7 @@ class GetBlockTemplateLPTest(BitcoinTestFramework):
         self.log.info(
             "Test that longpoll will terminate if another node generates a block")
         # generate a block on another node
-        miniwallets[1].generate(1)
+        self.generate(miniwallets[1], 1)
         # check that thread will exit now that new transaction entered mempool
         # wait 5 seconds or until thread exits
         thr.join(5)
@@ -70,7 +70,7 @@ class GetBlockTemplateLPTest(BitcoinTestFramework):
         thr = LongpollThread(self.nodes[0])
         thr.start()
         # generate a block on own node
-        miniwallets[0].generate(1)
+        self.generate(miniwallets[0], 1)
         # wait 5 seconds or until thread exits
         thr.join(5)
         assert not thr.is_alive()

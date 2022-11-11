@@ -233,7 +233,7 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
 
         # Start by creating a lot of utxos on node3
         initial_height = self.nodes[3].getblockcount()
-        utxo_list = create_confirmed_utxos(self.nodes[3], 5000)
+        utxo_list = create_confirmed_utxos(self, self.nodes[3], 5000)
         self.log.info("Prepped {} utxo entries".format(len(utxo_list)))
 
         # Sync these blocks with the other nodes
@@ -290,13 +290,15 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
             self.log.debug("Mining longer tip")
             block_hashes = []
             while current_height + 1 > self.nodes[3].getblockcount():
-                block_hashes.extend(self.nodes[3].generatetoaddress(
-                    nblocks=min(10, current_height + 1 -
-                                self.nodes[3].getblockcount()),
-                    # new address to avoid mining a block that has just been
-                    # invalidated
-                    address=self.nodes[3].getnewaddress(),
-                ))
+                block_hashes.extend(
+                    self.generatetoaddress(
+                        self.nodes[3],
+                        nblocks=min(10, current_height + 1 -
+                                    self.nodes[3].getblockcount()),
+                        # new address to avoid mining a block that has just been
+                        # invalidated
+                        address=self.nodes[3].getnewaddress(),
+                    ))
             self.log.debug("Syncing %d new blocks...", len(block_hashes))
             self.sync_node3blocks(block_hashes)
             utxo_list = self.nodes[3].listunspent()
