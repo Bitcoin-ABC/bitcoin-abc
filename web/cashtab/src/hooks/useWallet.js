@@ -379,20 +379,12 @@ const useWallet = () => {
         console.log(`migrateLegacyWallet`);
         console.log(`legacyWallet`, wallet);
         const mnemonic = wallet.mnemonic;
-        const rootSeedBuffer = await BCH.Mnemonic.toSeed(mnemonic);
+        const rootSeedBuffer = await bip39.mnemonicToSeed(mnemonic, '');
 
         const masterHDNode = Bitcoin.HDNode.fromSeedBuffer(
             rootSeedBuffer,
             coininfo.bitcoincash.main.toBitcoinJS(),
         );
-        // temporary comparison
-        const localRootSeedBufffer = await bip39.mnemonicToSeed(mnemonic, '');
-        if (
-            JSON.stringify(rootSeedBuffer) ===
-            JSON.stringify(localRootSeedBufffer)
-        ) {
-            console.log('mnemonicToSeed() output match');
-        }
 
         const Path245 = await deriveAccount(BCH, {
             masterHDNode,
@@ -452,20 +444,11 @@ const useWallet = () => {
         }
         // Since this info is in localforage now, only get the var
         const mnemonic = wallet.mnemonic;
-        const rootSeedBuffer = await BCH.Mnemonic.toSeed(mnemonic);
+        const rootSeedBuffer = await bip39.mnemonicToSeed(mnemonic, '');
         const masterHDNode = Bitcoin.HDNode.fromSeedBuffer(
             rootSeedBuffer,
             coininfo.bitcoincash.main.toBitcoinJS(),
         );
-
-        // temporary comparison
-        const localRootSeedBufffer = await bip39.mnemonicToSeed(mnemonic, '');
-        if (
-            JSON.stringify(rootSeedBuffer) ===
-            JSON.stringify(localRootSeedBufffer)
-        ) {
-            console.log('mnemonicToSeed() output match');
-        }
 
         const Path245 = await deriveAccount(BCH, {
             masterHDNode,
@@ -771,27 +754,10 @@ const useWallet = () => {
         // Add a new wallet to savedWallets from importMnemonic or just new wallet
         const lang = 'english';
 
-        if (
-            JSON.stringify(bip39.wordlists) ===
-            JSON.stringify(BCH.Mnemonic.wordLists())
-        ) {
-            console.log('bip39 wordlists matches BCH.Mnemonic wordlists');
-        }
-
         // create 128 bit BIP39 mnemonic
         const Bip39128BitMnemonic = importMnemonic
             ? importMnemonic
-            : BCH.Mnemonic.generate(128, BCH.Mnemonic.wordLists()[lang]);
-
-        // temporary comparison
-        // reference: https://github.com/Permissionless-Software-Foundation/bch-js/blob/62e56c832b35731880fe448269818b853c76dd80/src/mnemonic.js#L52
-        // Note: by virtue of randombytes being used by BCH-JS the generated mnemonics will never match
-        const localBip39128BitMnemonic = bip39.generateMnemonic(
-            128,
-            randomBytes,
-            BCH.Mnemonic.wordLists()[lang],
-        );
-        console.log('localBip39128BitMnemonic: ' + localBip39128BitMnemonic);
+            : bip39.generateMnemonic(128, randomBytes, bip39.wordlists[lang]);
 
         const newSavedWallet = await getWalletDetails({
             mnemonic: Bip39128BitMnemonic.toString(),
@@ -843,27 +809,10 @@ const useWallet = () => {
     const createWallet = async importMnemonic => {
         const lang = 'english';
 
-        if (
-            JSON.stringify(bip39.wordlists) ===
-            JSON.stringify(BCH.Mnemonic.wordLists())
-        ) {
-            console.log('bip39 wordlists matches BCH.Mnemonic wordlists');
-        }
-
         // create 128 bit BIP39 mnemonic
         const Bip39128BitMnemonic = importMnemonic
             ? importMnemonic
-            : BCH.Mnemonic.generate(128, BCH.Mnemonic.wordLists()[lang]);
-
-        // temporary comparison
-        // reference: https://github.com/Permissionless-Software-Foundation/bch-js/blob/62e56c832b35731880fe448269818b853c76dd80/src/mnemonic.js#L52
-        // Note: by virtue of randombytes being used by BCH-JS the generated mnemonics will never match
-        const localBip39128BitMnemonic = bip39.generateMnemonic(
-            128,
-            randomBytes,
-            BCH.Mnemonic.wordLists()[lang],
-        );
-        console.log('localBip39128BitMnemonic: ' + localBip39128BitMnemonic);
+            : bip39.generateMnemonic(128, randomBytes, bip39.wordlists[lang]);
 
         const wallet = await getWalletDetails({
             mnemonic: Bip39128BitMnemonic.toString(),
@@ -889,34 +838,11 @@ const useWallet = () => {
         return wallet;
     };
 
-    const validateMnemonic = (
-        mnemonic,
-        wordlist = BCH.Mnemonic.wordLists().english,
-    ) => {
+    const validateMnemonic = (mnemonic, wordlist = bip39.wordlists.english) => {
         let mnemonicTestOutput;
 
-        // see function input param
-        if (
-            JSON.stringify(bip39.wordlists.english) ===
-            JSON.stringify(BCH.Mnemonic.wordLists().english)
-        ) {
-            console.log(
-                'bip39 english wordlist matches BCH.Mnemonic english wordlist',
-            );
-        }
-
         try {
-            mnemonicTestOutput = BCH.Mnemonic.validate(mnemonic, wordlist);
-            const localMnemonicTestOutput = validateMnemonicWordList(
-                mnemonic,
-                wordlist,
-            );
-
-            if (mnemonicTestOutput === localMnemonicTestOutput) {
-                console.log(
-                    'mnemonicTestOutput matches localMnemonicTestOutput',
-                );
-            }
+            mnemonicTestOutput = validateMnemonicWordList(mnemonic, wordlist);
 
             if (mnemonicTestOutput === 'Valid mnemonic') {
                 return true;
