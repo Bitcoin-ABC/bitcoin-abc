@@ -707,6 +707,10 @@ endif()
 if(BUILD_BITCOIN_ZMQ)
 	add_subdirectory(zmq)
 	target_link_libraries(server zmq)
+
+	# FIXME: This is needed because of an unwanted dependency:
+	# zmqpublishnotifier.cpp -> blockstorage.h -> txdb.h -> dbwrapper.h -> leveldb/db.h
+	target_link_libraries(zmq leveldb)
 endif()
 
 # RPC client support

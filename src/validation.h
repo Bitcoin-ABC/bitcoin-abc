@@ -23,6 +23,7 @@
 #include <disconnectresult.h>
 #include <flatfile.h>
 #include <fs.h>
+#include <node/blockstorage.h>
 #include <node/utxo_snapshot.h>
 #include <policy/packages.h>
 #include <protocol.h> // For CMessageHeader::MessageMagic
@@ -34,7 +35,6 @@
 #include <txmempool.h> // For CTxMemPool::cs
 #include <uint256.h>
 #include <util/check.h>
-#include <util/hasher.h>
 #include <util/translation.h>
 
 #include <atomic>
@@ -49,7 +49,6 @@
 #include <vector>
 
 class BlockValidationState;
-class CBlockTreeDB;
 class CBlockUndo;
 class CChainParams;
 class CChainState;
@@ -62,7 +61,6 @@ class CTxMemPool;
 class CTxUndo;
 class DisconnectedBlockTransactions;
 
-struct CCheckpointData;
 struct ChainTxData;
 struct FlatFilePos;
 struct PrecomputedTransactionData;
@@ -137,7 +135,6 @@ static const uint64_t MIN_DISK_SPACE_FOR_BLOCK_FILES = 550 * 1024 * 1024;
 enum class SynchronizationState { INIT_REINDEX, INIT_DOWNLOAD, POST_INIT };
 
 extern RecursiveMutex cs_main;
-typedef std::unordered_map<BlockHash, CBlockIndex *, BlockHasher> BlockMap;
 extern Mutex g_best_block_mutex;
 extern std::condition_variable g_best_block_cv;
 /** Used to notify getblocktemplate RPC of new tips. */
@@ -598,96 +595,6 @@ enum class FlushStateMode { NONE, IF_NEEDED, PERIODIC, ALWAYS };
 /** Global variable that points to the active CCoinsView (protected by cs_main)
  */
 extern std::unique_ptr<CCoinsViewCache> pcoinsTip;
-
-/**
- * Maintains a tree of blocks (stored in `m_block_index`) which is consulted
- * to determine where the most-work tip is.
- *
- * This data is used mostly in `CChainState` - information about, e.g.,
- * candidate tips is not maintained here.
- */
-class BlockManager {
-    friend CChainState;
-
-private:
-    /**
-     * Calculate the block/rev files to delete based on height specified
-     * by user with RPC command pruneblockchain
-     */
-    void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
-                                int nManualPruneHeight, int chain_tip_height);
-
-    /**
-     * Prune block and undo files (blk???.dat and undo???.dat) so that the disk
-     * space used is less than a user-defined target. The user sets the target
-     * (in MB) on the command line or in config file.  This will be run on
-     * startup and whenever new space is allocated in a block or undo file,
-     * staying below the target. Changing back to unpruned requires a reindex
-     * (which in this case means the blockchain must be re-downloaded.)
-     *
-     * Pruning functions are called from FlushStateToDisk when the global
-     * fCheckForPruning flag has been set. Block and undo files are deleted in
-     * lock-step (when blk00003.dat is deleted, so is rev00003.dat.) Pruning
-     * cannot take place until the longest chain is at least a certain length
-     * (100000 on mainnet, 1000 on testnet, 1000 on regtest). Pruning will never
-     * delete a block within a defined distance (currently 288) from the active
-     * chain's tip. The block index is updated by unsetting HAVE_DATA and
-     * HAVE_UNDO for any blocks that were stored in the deleted files. A db flag
-     * records the fact that at least some block files have been pruned.
-     *
-     * @param[out]   setFilesToPrune   The set of file indices that can be
-     *                                 unlinked will be returned
-     */
-    void FindFilesToPrune(std::set<int> &setFilesToPrune,
-                          uint64_t nPruneAfterHeight, int chain_tip_height,
-                          int prune_height, bool is_ibd);
-
-public:
-    BlockMap m_block_index GUARDED_BY(cs_main);
-
-    /**
-     * All pairs A->B, where A (or one of its ancestors) misses transactions,
-     * but B has transactions. Pruned nodes may have entries where B is missing
-     * data.
-     */
-    std::multimap<CBlockIndex *, CBlockIndex *> m_blocks_unlinked;
-
-    std::unique_ptr<CBlockTreeDB> m_block_tree_db GUARDED_BY(::cs_main);
-
-    bool LoadBlockIndexDB(ChainstateManager &chainman)
-        EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
-
-    /**
-     * Load the blocktree off disk and into memory. Populate certain metadata
-     * per index entry (nStatus, nChainWork, nTimeMax, etc.) as well as
-     * peripheral collections like setDirtyBlockIndex.
-     */
-    bool LoadBlockIndex(const Consensus::Params &consensus_params,
-                        ChainstateManager &chainman)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-
-    /** Clear all data members. */
-    void Unload() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-
-    CBlockIndex *AddToBlockIndex(const CBlockHeader &block)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-    /** Create a new block index entry for a given block hash */
-    CBlockIndex *InsertBlockIndex(const BlockHash &hash)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-
-    //! Mark one block file as pruned (modify associated database entries)
-    void PruneOneBlockFile(const int fileNumber)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-
-    CBlockIndex *LookupBlockIndex(const BlockHash &hash) const
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-
-    //! Returns last CBlockIndex* that is a checkpoint
-    CBlockIndex *GetLastCheckpoint(const CCheckpointData &data)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-
-    ~BlockManager() { Unload(); }
-};
 
 /**
  * A convenience class for constructing the CCoinsView* hierarchy used
