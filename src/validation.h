@@ -592,10 +592,6 @@ public:
 /** @see CChainState::FlushStateToDisk */
 enum class FlushStateMode { NONE, IF_NEEDED, PERIODIC, ALWAYS };
 
-/** Global variable that points to the active CCoinsView (protected by cs_main)
- */
-extern std::unique_ptr<CCoinsViewCache> pcoinsTip;
-
 /**
  * A convenience class for constructing the CCoinsView* hierarchy used
  * to facilitate access to the UTXO set.
@@ -866,7 +862,7 @@ public:
                       BlockValidationOptions options, bool fJustCheck = false)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
-    // Block disconnection on our pcoinsTip:
+    // Apply the effects of a block disconnection on the UTXO set.
     bool DisconnectTip(BlockValidationState &state,
                        DisconnectedBlockTransactions *disconnectpool)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_mempool->cs);
