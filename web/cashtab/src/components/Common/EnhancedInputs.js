@@ -7,7 +7,6 @@ import {
 } from 'components/Common/CustomIcons';
 import styled, { css } from 'styled-components';
 import ScanQRCode from './ScanQRCode';
-import useBCH from 'hooks/useBCH';
 import { currency } from 'components/Common/Ticker.js';
 
 const { TextArea } = Input;
@@ -407,24 +406,4 @@ export const CurrencySelectDropdown = selectProps => {
             {currencyOptions}
         </Select>
     );
-};
-
-export const AddressValidators = () => {
-    const { BCH } = useBCH();
-
-    return {
-        safelyDetectAddressFormat: value => {
-            try {
-                return BCH.Address.detectAddressFormat(value);
-            } catch (error) {
-                return null;
-            }
-        },
-        isSLPAddress: value =>
-            AddressValidators.safelyDetectAddressFormat(value) === 'slpaddr',
-        isBCHAddress: value =>
-            AddressValidators.safelyDetectAddressFormat(value) === 'cashaddr',
-        isLegacyAddress: value =>
-            AddressValidators.safelyDetectAddressFormat(value) === 'legacy',
-    }();
 };
