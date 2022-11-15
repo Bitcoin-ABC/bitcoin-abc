@@ -70,6 +70,9 @@ static CCheckpointData mainNetCheckpointData = {
         // Gluon activation.
         {739536, BlockHash::fromHex("000000000000000006db04cd4609560905fe5a7be6"
                                     "2f2429b159ce6b59fc7b61")},
+        // Jefferson activation.
+        {766195, BlockHash::fromHex("0000000000000000102bc94853715b9ade9610eb31"
+                                    "b4ed7d955529b76d24e094")},
     }};
 
 static CCheckpointData testNetCheckpointData = {
@@ -108,6 +111,9 @@ static CCheckpointData testNetCheckpointData = {
         // Gluon activation.
         {1503557, BlockHash::fromHex("00000000000dbd764814fb67b5ff5aab606faa1f5"
                                      "881dc86f57639a1396e11ba")},
+        // Jefferson activation.
+        {1530063, BlockHash::fromHex("00000000013102d35674688b5fd478c3a048660d6"
+                                     "fea862401734a4b914132bf")},
     }};
 
 static CCheckpointData regTestCheckpointData = {
