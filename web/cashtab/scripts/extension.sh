@@ -11,6 +11,20 @@ echo Using workdir ${WORKDIR}
 
 # Delete workdir on script finish
 function cleanup {
+    # Replace original web files
+    echo 'Replacing original web files'
+    rm src/assets/popout.svg
+    rm public/manifest.json
+    rm src/components/App.js
+    rm src/components/App.css
+
+    # Note, src/assets/popout.svg does not need to be replaced, not used by web app
+    mv ${WORKDIR}/manifest.json public/
+    mv ${WORKDIR}/App.js src/components/
+    mv ${WORKDIR}/App.css src/components/
+
+    echo 'Web files replaced'
+
     echo Deleting workdir ${WORKDIR}
     rm -rf "${WORKDIR}"
 }
@@ -50,15 +64,4 @@ browserify extension/src/background.js -o extension/dist/background.js
 # Delete extension build from build/ folder (reserved for web app builds)
 rm -Rf build
 
-# Replace original web files
-rm src/assets/popout.svg
-rm public/manifest.json
-rm src/components/App.js
-rm src/components/App.css
-
-# Note, src/assets/popout.svg does not need to be replaced, not used by web app
-mv ${WORKDIR}/manifest.json public/
-mv ${WORKDIR}/App.js src/components/
-mv ${WORKDIR}/App.css src/components/
-
-echo 'Extension built and web files replaced!'
+echo 'Extension built!'
