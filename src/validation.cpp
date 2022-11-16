@@ -1365,7 +1365,7 @@ void CChainState::InvalidBlockFound(CBlockIndex *pindex,
     if (state.GetResult() != BlockValidationResult::BLOCK_MUTATED) {
         pindex->nStatus = pindex->nStatus.withFailed();
         m_chainman.m_failed_blocks.insert(pindex);
-        m_blockman.setDirtyBlockIndex.insert(pindex);
+        m_blockman.m_dirty_blockindex.insert(pindex);
         InvalidChainFound(pindex);
     }
 }
@@ -2162,7 +2162,7 @@ MinerFundSuccess:
 
     if (!pindex->IsValid(BlockValidity::SCRIPTS)) {
         pindex->RaiseValidity(BlockValidity::SCRIPTS);
-        m_blockman.setDirtyBlockIndex.insert(pindex);
+        m_blockman.m_dirty_blockindex.insert(pindex);
     }
 
     assert(pindex->phashBlock);
@@ -2230,7 +2230,7 @@ bool CChainState::FlushStateToDisk(BlockValidationState &state,
             CoinsCacheSizeState cache_state = GetCoinsCacheSizeState();
             LOCK(m_blockman.cs_LastBlockFile);
             if (fPruneMode &&
-                (m_blockman.fCheckForPruning || nManualPruneHeight > 0) &&
+                (m_blockman.m_check_for_pruning || nManualPruneHeight > 0) &&
                 !fReindex) {
                 // Make sure we don't prune above the blockfilterindexes
                 // bestblocks. Pruning is height-based.
@@ -2254,7 +2254,7 @@ bool CChainState::FlushStateToDisk(BlockValidationState &state,
                     m_blockman.FindFilesToPrune(
                         setFilesToPrune, m_params.PruneAfterHeight(),
                         m_chain.Height(), last_prune, IsInitialBlockDownload());
-                    m_blockman.fCheckForPruning = false;
+                    m_blockman.m_check_for_pruning = false;
                 }
                 if (!setFilesToPrune.empty()) {
                     fFlushForPrune = true;
@@ -2379,7 +2379,7 @@ void CChainState::ForceFlushStateToDisk() {
 
 void CChainState::PruneAndFlush() {
     BlockValidationState state;
-    m_blockman.fCheckForPruning = true;
+    m_blockman.m_check_for_pruning = true;
     if (!this->FlushStateToDisk(state, FlushStateMode::NONE)) {
         LogPrintf("%s: failed to flush state (%s)\n", __func__,
                   state.ToString());
@@ -3408,7 +3408,7 @@ bool CChainState::UnwindBlock(const Config &config, BlockValidationState &state,
             invalidate ? invalid_walk_tip->nStatus.withFailed()
                        : invalid_walk_tip->nStatus.withParked();
 
-        m_blockman.setDirtyBlockIndex.insert(invalid_walk_tip);
+        m_blockman.m_dirty_blockindex.insert(invalid_walk_tip);
         setBlockIndexCandidates.insert(invalid_walk_tip->pprev);
 
         if (invalid_walk_tip == to_mark_failed_or_parked->pprev &&
@@ -3424,7 +3424,7 @@ bool CChainState::UnwindBlock(const Config &config, BlockValidationState &state,
                      : to_mark_failed_or_parked->nStatus.withParked(false)
                            .withParkedParent());
 
-            m_blockman.setDirtyBlockIndex.insert(to_mark_failed_or_parked);
+            m_blockman.m_dirty_blockindex.insert(to_mark_failed_or_parked);
         }
 
         // Add any equal or more work headers to setBlockIndexCandidates
@@ -3461,7 +3461,7 @@ bool CChainState::UnwindBlock(const Config &config, BlockValidationState &state,
         to_mark_failed_or_parked->nStatus =
             invalidate ? to_mark_failed_or_parked->nStatus.withFailed()
                        : to_mark_failed_or_parked->nStatus.withParked();
-        m_blockman.setDirtyBlockIndex.insert(to_mark_failed_or_parked);
+        m_blockman.m_dirty_blockindex.insert(to_mark_failed_or_parked);
         if (invalidate) {
             m_chainman.m_failed_blocks.insert(to_mark_failed_or_parked);
         }
@@ -3567,7 +3567,7 @@ bool CChainState::UpdateFlagsForBlock(CBlockIndex *pindexBase,
         (!pindexBase ||
          pindex->GetAncestor(pindexBase->nHeight) == pindexBase)) {
         pindex->nStatus = newStatus;
-        m_blockman.setDirtyBlockIndex.insert(pindex);
+        m_blockman.m_dirty_blockindex.insert(pindex);
         if (newStatus.isValid()) {
             m_chainman.m_failed_blocks.erase(pindex);
         }
@@ -3720,7 +3720,7 @@ void CChainState::ReceivedBlockTransactions(const CBlock &block,
     pindexNew->nUndoPos = 0;
     pindexNew->nStatus = pindexNew->nStatus.withData();
     pindexNew->RaiseValidity(BlockValidity::TRANSACTIONS);
-    m_blockman.setDirtyBlockIndex.insert(pindexNew);
+    m_blockman.m_dirty_blockindex.insert(pindexNew);
 
     if (pindexNew->UpdateChainStats()) {
         // If pindexNew is the genesis block or all parents are
@@ -4187,7 +4187,7 @@ bool ChainstateManager::AcceptBlockHeader(const Config &config,
                     while (invalid_walk != failedit) {
                         invalid_walk->nStatus =
                             invalid_walk->nStatus.withFailedParent();
-                        m_blockman.setDirtyBlockIndex.insert(invalid_walk);
+                        m_blockman.m_dirty_blockindex.insert(invalid_walk);
                         invalid_walk = invalid_walk->pprev;
                     }
                     LogPrint(BCLog::VALIDATION, "%s: %s prev block invalid\n",
@@ -4360,7 +4360,7 @@ bool CChainState::AcceptBlock(const Config &config,
         if (state.IsInvalid() &&
             state.GetResult() != BlockValidationResult::BLOCK_MUTATED) {
             pindex->nStatus = pindex->nStatus.withFailed();
-            m_blockman.setDirtyBlockIndex.insert(pindex);
+            m_blockman.m_dirty_blockindex.insert(pindex);
         }
 
         return error("%s: %s (block %s)", __func__, state.ToString(),
@@ -4379,7 +4379,7 @@ bool CChainState::AcceptBlock(const Config &config,
             LogPrintf("Park block %s as it would cause a deep reorg.\n",
                       pindex->GetBlockHash().ToString());
             pindex->nStatus = pindex->nStatus.withParked();
-            m_blockman.setDirtyBlockIndex.insert(pindex);
+            m_blockman.m_dirty_blockindex.insert(pindex);
         }
     }
 
@@ -6037,7 +6037,7 @@ bool ChainstateManager::PopulateAndValidateSnapshot(
             index->nStatus = index->nStatus.withAssumedValid();
         }
 
-        m_blockman.setDirtyBlockIndex.insert(index);
+        m_blockman.m_dirty_blockindex.insert(index);
         // Changes to the block index will be flushed to disk after this call
         // returns in `ActivateSnapshot()`, when `MaybeRebalanceCaches()` is
         // called, since we've added a snapshot chainstate and therefore will
