@@ -311,14 +311,24 @@ public:
          */
         std::vector<COutPoint> &m_coins_to_uncache;
         const bool m_test_accept;
+        /**
+         * When true, the mempool will not be trimmed when individual
+         * transactions are submitted in Finalize(). Instead, limits should be
+         * enforced at the end to ensure the package is not partially submitted.
+         */
+        const bool m_package_submission;
 
         /** Parameters for single transaction mempool validation. */
         static ATMPArgs SingleAccept(const Config &config, int64_t accept_time,
                                      bool bypass_limits,
                                      std::vector<COutPoint> &coins_to_uncache,
                                      bool test_accept) {
-            return ATMPArgs{config, accept_time, bypass_limits,
-                            coins_to_uncache, test_accept};
+            return ATMPArgs{config,
+                            accept_time,
+                            bypass_limits,
+                            coins_to_uncache,
+                            test_accept,
+                            /*m_package_submission=*/false};
         }
 
         /**
@@ -328,10 +338,24 @@ public:
         static ATMPArgs
         PackageTestAccept(const Config &config, int64_t accept_time,
                           std::vector<COutPoint> &coins_to_uncache) {
-            return ATMPArgs{config, accept_time, /* m_bypass_limits =*/false,
-                            coins_to_uncache, /* m_test_accept =*/true};
+            return ATMPArgs{config, accept_time,
+                            /*m_bypass_limits=*/false, coins_to_uncache,
+                            /*m_test_accept=*/true,
+                            // not submitting to mempool
+                            /*m_package_submission=*/false};
         }
 
+        /** Parameters for child-with-unconfirmed-parents package validation. */
+        static ATMPArgs
+        PackageChildWithParents(const Config &config, int64_t accept_time,
+                                std::vector<COutPoint> &coins_to_uncache) {
+            return ATMPArgs{config,
+                            accept_time,
+                            /*m_bypass_limits=*/false,
+                            coins_to_uncache,
+                            /*m_test_accept=*/false,
+                            /*m_package_submission=*/true};
+        }
         // No default ctor to avoid exposing details to clients and allowing the
         // possibility of mixing up the order of the arguments. Use static
         // functions above instead.
@@ -345,12 +369,22 @@ public:
 
     /**
      * Multiple transaction acceptance. Transactions may or may not be
-     * interdependent, but must not conflict with each other. Parents must come
+     * interdependent, but must not conflict with each other, and the
+     * transactions cannot already be in the mempool. Parents must come
      * before children if any dependencies exist.
      */
     PackageMempoolAcceptResult
     AcceptMultipleTransactions(const std::vector<CTransactionRef> &txns,
                                ATMPArgs &args)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    /**
+     * Package (more specific than just multiple transactions) acceptance.
+     * Package must be a child with all of its unconfirmed parents, and
+     * topologically sorted.
+     */
+    PackageMempoolAcceptResult AcceptPackage(const Package &package,
+                                             ATMPArgs &args)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 private:
@@ -428,6 +462,18 @@ private:
     // Returns true if the transaction is in the mempool after any size
     // limiting is performed, false otherwise.
     bool Finalize(const ATMPArgs &args, Workspace &ws)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_pool.cs);
+
+    // Submit all transactions to the mempool and call ConsensusScriptChecks to
+    // add to the script cache - should only be called after successful
+    // validation of all transactions in the package.
+    // The package may end up partially-submitted after size limiting;
+    // returns true if all transactions are successfully added to the mempool,
+    // false otherwise.
+    bool
+    FinalizePackage(const ATMPArgs &args, std::vector<Workspace> &workspaces,
+                    PackageValidationState &package_state,
+                    std::map<const TxId, const MempoolAcceptResult> &results)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_pool.cs);
 
 private:
@@ -719,7 +765,11 @@ bool MemPoolAccept::Finalize(const ATMPArgs &args, Workspace &ws) {
     m_pool.addUnchecked(*entry, ws.m_ancestors);
 
     // Trim mempool and check if tx was trimmed.
-    if (!bypass_limits) {
+    // If we are validating a package, don't trim here because we could evict a
+    // previous transaction in the package. LimitMempoolSize() should be called
+    // at the very end to make sure the mempool is still within limits and
+    // package submission happens atomically.
+    if (!args.m_package_submission && !bypass_limits) {
         m_pool.LimitSize(
             m_active_chainstate.CoinsTip(),
             gArgs.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000,
@@ -731,6 +781,87 @@ bool MemPoolAccept::Finalize(const ATMPArgs &args, Workspace &ws) {
         }
     }
     return true;
+}
+
+bool MemPoolAccept::FinalizePackage(
+    const ATMPArgs &args, std::vector<Workspace> &workspaces,
+    PackageValidationState &package_state,
+    std::map<const TxId, const MempoolAcceptResult> &results) {
+    AssertLockHeld(cs_main);
+    AssertLockHeld(m_pool.cs);
+    bool all_submitted = true;
+    // ConsensusScriptChecks adds to the script cache and is therefore
+    // consensus-critical; CheckInputsFromMempoolAndCache asserts that
+    // transactions only spend coins available from the mempool or UTXO set.
+    // Submit each transaction to the mempool immediately after calling
+    // ConsensusScriptChecks to make the outputs available for subsequent
+    // transactions.
+    for (Workspace &ws : workspaces) {
+        if (!ConsensusScriptChecks(args, ws)) {
+            results.emplace(ws.m_ptx->GetId(),
+                            MempoolAcceptResult::Failure(ws.m_state));
+            // Since PreChecks() passed, this should never fail.
+            all_submitted = Assume(false);
+        }
+
+        // Re-calculate mempool ancestors to call addUnchecked(). They may have
+        // changed since the last calculation done in PreChecks, since package
+        // ancestors have already been submitted.
+        std::string err_string;
+        if (!m_pool.CalculateMemPoolAncestors(
+                *ws.m_entry, ws.m_ancestors, m_limit_ancestors,
+                m_limit_ancestor_size, m_limit_descendants,
+                m_limit_descendant_size, err_string)) {
+            results.emplace(ws.m_ptx->GetId(),
+                            MempoolAcceptResult::Failure(ws.m_state));
+            // Since PreChecks() and PackageMempoolChecks() both enforce limits,
+            // this should never fail.
+            all_submitted = Assume(false);
+        }
+        // If we call LimitMempoolSize() for each individual Finalize(), the
+        // mempool will not take the transaction's descendant feerate into
+        // account because it hasn't seen them yet. Also, we risk evicting a
+        // transaction that a subsequent package transaction depends on.
+        // Instead, allow the mempool to temporarily bypass limits, the maximum
+        // package size) while submitting transactions individually and then
+        // trim at the very end.
+        if (!Finalize(args, ws)) {
+            results.emplace(ws.m_ptx->GetId(),
+                            MempoolAcceptResult::Failure(ws.m_state));
+            // Since LimitMempoolSize() won't be called, this should never fail.
+            all_submitted = Assume(false);
+        }
+    }
+
+    // It may or may not be the case that all the transactions made it into the
+    // mempool. Regardless, make sure we haven't exceeded max mempool size.
+    m_pool.LimitSize(
+        m_active_chainstate.CoinsTip(),
+        gArgs.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000,
+        std::chrono::hours{
+            gArgs.GetIntArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY)});
+    if (!all_submitted) {
+        return false;
+    }
+
+    // Find the txids of the transactions that made it into the mempool. Allow
+    // partial submission, but don't report success unless they all made it into
+    // the mempool.
+    for (Workspace &ws : workspaces) {
+        if (m_pool.exists(ws.m_ptx->GetId())) {
+            results.emplace(ws.m_ptx->GetId(), MempoolAcceptResult::Success(
+                                                   ws.m_vsize, ws.m_base_fees));
+            GetMainSignals().TransactionAddedToMempool(
+                ws.m_ptx, m_pool.GetAndIncrementSequence());
+        } else {
+            all_submitted = false;
+            ws.m_state.Invalid(TxValidationResult::TX_MEMPOOL_POLICY,
+                               "mempool full");
+            results.emplace(ws.m_ptx->GetId(),
+                            MempoolAcceptResult::Failure(ws.m_state));
+        }
+    }
+    return all_submitted;
 }
 
 MempoolAcceptResult
@@ -830,9 +961,88 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
         return PackageMempoolAcceptResult(package_state, std::move(results));
     }
 
+    if (args.m_test_accept) {
+        return PackageMempoolAcceptResult(package_state, std::move(results));
+    }
+
+    if (!FinalizePackage(args, workspaces, package_state, results)) {
+        package_state.Invalid(PackageValidationResult::PCKG_TX,
+                              "submission failed");
+        return PackageMempoolAcceptResult(package_state, std::move(results));
+    }
+
     return PackageMempoolAcceptResult(package_state, std::move(results));
 }
 
+PackageMempoolAcceptResult MemPoolAccept::AcceptPackage(const Package &package,
+                                                        ATMPArgs &args) {
+    AssertLockHeld(cs_main);
+    PackageValidationState package_state;
+
+    // Check that the package is well-formed. If it isn't, we won't try to
+    // validate any of the transactions and thus won't return any
+    // MempoolAcceptResults, just a package-wide error.
+
+    // Context-free package checks.
+    if (!CheckPackage(package, package_state)) {
+        return PackageMempoolAcceptResult(package_state, {});
+    }
+
+    // All transactions in the package must be a parent of the last transaction.
+    // This is just an opportunity for us to fail fast on a context-free check
+    // without taking the mempool lock.
+    if (!IsChildWithParents(package)) {
+        package_state.Invalid(PackageValidationResult::PCKG_POLICY,
+                              "package-not-child-with-parents");
+        return PackageMempoolAcceptResult(package_state, {});
+    }
+
+    const auto &child = package[package.size() - 1];
+    // The package must be 1 child with all of its unconfirmed parents. The
+    // package is expected to be sorted, so the last transaction is the child.
+    std::unordered_set<TxId, SaltedTxIdHasher> unconfirmed_parent_txids;
+    std::transform(
+        package.cbegin(), package.end() - 1,
+        std::inserter(unconfirmed_parent_txids, unconfirmed_parent_txids.end()),
+        [](const auto &tx) { return tx->GetId(); });
+
+    // All child inputs must refer to a preceding package transaction or a
+    // confirmed UTXO. The only way to verify this is to look up the child's
+    // inputs in our current coins view (not including mempool), and enforce
+    // that all parents not present in the package be available at chain tip.
+    // Since this check can bring new coins into the coins cache, keep track of
+    // these coins and uncache them if we don't end up submitting this package
+    // to the mempool.
+    const CCoinsViewCache &coins_tip_cache = m_active_chainstate.CoinsTip();
+    for (const auto &input : child->vin) {
+        if (!coins_tip_cache.HaveCoinInCache(input.prevout)) {
+            args.m_coins_to_uncache.push_back(input.prevout);
+        }
+    }
+    // Using the MemPoolAccept m_view cache allows us to look up these same
+    // coins faster later. This should be connecting directly to CoinsTip, not
+    // to m_viewmempool, because we specifically require inputs to be confirmed
+    // if they aren't in the package.
+    m_view.SetBackend(m_active_chainstate.CoinsTip());
+    const auto package_or_confirmed = [this, &unconfirmed_parent_txids](
+                                          const auto &input) {
+        return unconfirmed_parent_txids.count(input.prevout.GetTxId()) > 0 ||
+               m_view.HaveCoin(input.prevout);
+    };
+    if (!std::all_of(child->vin.cbegin(), child->vin.cend(),
+                     package_or_confirmed)) {
+        package_state.Invalid(PackageValidationResult::PCKG_POLICY,
+                              "package-not-child-with-unconfirmed-parents");
+        return PackageMempoolAcceptResult(package_state, {});
+    }
+    // Protect against bugs where we pull more inputs from disk that miss being
+    // added to coins_to_uncache. The backend will be connected again when
+    // needed in PreChecks.
+    m_view.SetBackend(m_dummy);
+
+    LOCK(m_pool.cs);
+    return AcceptMultipleTransactions(package, args);
+}
 } // namespace
 
 MempoolAcceptResult AcceptToMemoryPool(const Config &config,
@@ -872,24 +1082,36 @@ PackageMempoolAcceptResult
 ProcessNewPackage(const Config &config, CChainState &active_chainstate,
                   CTxMemPool &pool, const Package &package, bool test_accept) {
     AssertLockHeld(cs_main);
-    // Only allow package accept dry-runs (testmempoolaccept RPC).
-    assert(test_accept);
     assert(!package.empty());
     assert(std::all_of(package.cbegin(), package.cend(),
                        [](const auto &tx) { return tx != nullptr; }));
 
     std::vector<COutPoint> coins_to_uncache;
-    auto args = MemPoolAccept::ATMPArgs::PackageTestAccept(config, GetTime(),
-                                                           coins_to_uncache);
-    const PackageMempoolAcceptResult result =
-        MemPoolAccept(pool, active_chainstate)
-            .AcceptMultipleTransactions(package, args);
+    const auto result = [&]() EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+        AssertLockHeld(cs_main);
+        if (test_accept) {
+            auto args = MemPoolAccept::ATMPArgs::PackageTestAccept(
+                config, GetTime(), coins_to_uncache);
+            return MemPoolAccept(pool, active_chainstate)
+                .AcceptMultipleTransactions(package, args);
+        } else {
+            auto args = MemPoolAccept::ATMPArgs::PackageChildWithParents(
+                config, GetTime(), coins_to_uncache);
+            return MemPoolAccept(pool, active_chainstate)
+                .AcceptPackage(package, args);
+        }
+    }();
 
     // Uncache coins pertaining to transactions that were not submitted to the
     // mempool.
-    for (const COutPoint &hashTx : coins_to_uncache) {
-        active_chainstate.CoinsTip().Uncache(hashTx);
+    if (test_accept || result.m_state.IsInvalid()) {
+        for (const COutPoint &hashTx : coins_to_uncache) {
+            active_chainstate.CoinsTip().Uncache(hashTx);
+        }
     }
+    // Ensure the coins cache is still within limits.
+    BlockValidationState state_dummy;
+    active_chainstate.FlushStateToDisk(state_dummy, FlushStateMode::PERIODIC);
     return result;
 }
 

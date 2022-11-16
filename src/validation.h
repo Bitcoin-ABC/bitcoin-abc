@@ -343,9 +343,12 @@ AcceptToMemoryPool(const Config &config, CChainState &active_chainstate,
  * Validate (and maybe submit) a package to the mempool.
  * See doc/policy/packages.md for full detailson package validation rules.
  *
+ * @param[in]    test_accept     When true, run validation checks but don't
+ *                               submit to mempool.
  * @returns a PackageMempoolAcceptResult which includes a MempoolAcceptResult
  *     for each transaction. If a transaction fails, validation will exit early
- *     and some results may be missing.
+ *     and some results may be missing. It is also possible for the package to
+ *     be partially submitted.
  */
 PackageMempoolAcceptResult
 ProcessNewPackage(const Config &config, CChainState &active_chainstate,

@@ -239,4 +239,159 @@ BOOST_FIXTURE_TEST_CASE(noncontextual_package_tests, TestChain100Setup) {
     }
 }
 
+BOOST_FIXTURE_TEST_CASE(package_submission_tests, TestChain100Setup) {
+    const Config &config{GetConfig()};
+    unsigned int expected_pool_size = m_node.mempool->size();
+    CKey parent_key;
+    parent_key.MakeNewKey(true);
+    CScript parent_locking_script =
+        GetScriptForDestination(PKHash(parent_key.GetPubKey()));
+
+    // Unrelated transactions are not allowed in package submission.
+    Package package_unrelated;
+    for (size_t i{0}; i < 10; ++i) {
+        auto mtx = CreateValidMempoolTransaction(
+            /*input_transaction=*/m_coinbase_txns[i + 25], /*vout=*/0,
+            /*input_height=*/0, /*input_signing_key=*/coinbaseKey,
+            /*output_destination=*/parent_locking_script,
+            /*output_amount=*/Amount(49 * COIN), /*submit=*/false);
+        package_unrelated.emplace_back(MakeTransactionRef(mtx));
+    }
+
+    {
+        LOCK(cs_main);
+        auto result_unrelated_submit = ProcessNewPackage(
+            config, m_node.chainman->ActiveChainstate(), *m_node.mempool,
+            package_unrelated, /*test_accept=*/false);
+        BOOST_CHECK(result_unrelated_submit.m_state.IsInvalid());
+        BOOST_CHECK_EQUAL(result_unrelated_submit.m_state.GetResult(),
+                          PackageValidationResult::PCKG_POLICY);
+        BOOST_CHECK_EQUAL(result_unrelated_submit.m_state.GetRejectReason(),
+                          "package-not-child-with-parents");
+        BOOST_CHECK_EQUAL(m_node.mempool->size(), expected_pool_size);
+    }
+
+    // Parent and Child (and Grandchild) Package
+    Package package_parent_child;
+    Package package_3gen;
+    auto mtx_parent = CreateValidMempoolTransaction(
+        /*input_transaction=*/m_coinbase_txns[0], /*vout=*/0,
+        /*input_height=*/0, /*input_signing_key=*/coinbaseKey,
+        /*output_destination=*/parent_locking_script,
+        /*output_amount=*/Amount(49 * COIN), /*submit=*/false);
+    CTransactionRef tx_parent = MakeTransactionRef(mtx_parent);
+    package_parent_child.push_back(tx_parent);
+    package_3gen.push_back(tx_parent);
+
+    CKey child_key;
+    child_key.MakeNewKey(true);
+    CScript child_locking_script =
+        GetScriptForDestination(PKHash(child_key.GetPubKey()));
+    auto mtx_child = CreateValidMempoolTransaction(
+        /*input_transaction=*/tx_parent, /*vout=*/0,
+        /*input_height=*/101, /*input_signing_key=*/parent_key,
+        /*output_destination=*/child_locking_script,
+        /*output_amount=*/Amount(48 * COIN), /*submit=*/false);
+    CTransactionRef tx_child = MakeTransactionRef(mtx_child);
+    package_parent_child.push_back(tx_child);
+    package_3gen.push_back(tx_child);
+
+    CKey grandchild_key;
+    grandchild_key.MakeNewKey(true);
+    CScript grandchild_locking_script =
+        GetScriptForDestination(PKHash(grandchild_key.GetPubKey()));
+    auto mtx_grandchild = CreateValidMempoolTransaction(
+        /*input_transaction=*/tx_child, /*vout=*/0,
+        /*input_height=*/101, /*input_signing_key=*/child_key,
+        /*output_destination=*/grandchild_locking_script,
+        /*output_amount=*/Amount(47 * COIN), /*submit=*/false);
+    CTransactionRef tx_grandchild = MakeTransactionRef(mtx_grandchild);
+    package_3gen.push_back(tx_grandchild);
+
+    // 3 Generations is not allowed.
+    {
+        LOCK(cs_main);
+        auto result_3gen_submit = ProcessNewPackage(
+            config, m_node.chainman->ActiveChainstate(), *m_node.mempool,
+            package_3gen, /*test_accept=*/false);
+        BOOST_CHECK(result_3gen_submit.m_state.IsInvalid());
+        BOOST_CHECK_EQUAL(result_3gen_submit.m_state.GetResult(),
+                          PackageValidationResult::PCKG_POLICY);
+        BOOST_CHECK_EQUAL(result_3gen_submit.m_state.GetRejectReason(),
+                          "package-not-child-with-parents");
+        BOOST_CHECK_EQUAL(m_node.mempool->size(), expected_pool_size);
+    }
+
+    // Child with missing parent.
+    mtx_child.vin.push_back(CTxIn(COutPoint(package_unrelated[0]->GetId(), 0)));
+    Package package_missing_parent;
+    package_missing_parent.push_back(tx_parent);
+    package_missing_parent.push_back(MakeTransactionRef(mtx_child));
+    {
+        LOCK(cs_main);
+        const auto result_missing_parent = ProcessNewPackage(
+            config, m_node.chainman->ActiveChainstate(), *m_node.mempool,
+            package_missing_parent, /*test_accept=*/false);
+        BOOST_CHECK(result_missing_parent.m_state.IsInvalid());
+        BOOST_CHECK_EQUAL(result_missing_parent.m_state.GetResult(),
+                          PackageValidationResult::PCKG_POLICY);
+        BOOST_CHECK_EQUAL(result_missing_parent.m_state.GetRejectReason(),
+                          "package-not-child-with-unconfirmed-parents");
+        BOOST_CHECK_EQUAL(m_node.mempool->size(), expected_pool_size);
+    }
+
+    // Submit package with parent + child.
+    {
+        LOCK(cs_main);
+        const auto submit_parent_child = ProcessNewPackage(
+            config, m_node.chainman->ActiveChainstate(), *m_node.mempool,
+            package_parent_child, /*test_accept=*/false);
+        expected_pool_size += 2;
+        BOOST_CHECK_MESSAGE(
+            submit_parent_child.m_state.IsValid(),
+            "Package validation unexpectedly failed: "
+                << submit_parent_child.m_state.GetRejectReason());
+        auto it_parent =
+            submit_parent_child.m_tx_results.find(tx_parent->GetId());
+        auto it_child =
+            submit_parent_child.m_tx_results.find(tx_child->GetId());
+        BOOST_CHECK(it_parent != submit_parent_child.m_tx_results.end());
+        BOOST_CHECK(it_parent->second.m_state.IsValid());
+        BOOST_CHECK(it_child != submit_parent_child.m_tx_results.end());
+        BOOST_CHECK(it_child->second.m_state.IsValid());
+
+        BOOST_CHECK_EQUAL(m_node.mempool->size(), expected_pool_size);
+        BOOST_CHECK(m_node.mempool->exists(tx_parent->GetId()));
+        BOOST_CHECK(m_node.mempool->exists(tx_child->GetId()));
+    }
+
+    // A package containing a confirmed transaction is rejected because the
+    // confirmed transaction is not accepted in the mempool.
+    CBlock block = CreateAndProcessBlock({mtx_parent}, parent_locking_script);
+    // tx_parent is now confirmed, and no longer in the mempool
+    expected_pool_size -= 1;
+
+    Package package_with_confirmed;
+    package_with_confirmed.push_back(tx_parent);
+    package_with_confirmed.push_back(tx_child);
+    {
+        LOCK(cs_main);
+        const auto result_confirmed_parent = ProcessNewPackage(
+            config, m_node.chainman->ActiveChainstate(), *m_node.mempool,
+            package_with_confirmed, /*test_accept=*/false);
+        BOOST_CHECK(result_confirmed_parent.m_state.IsInvalid());
+        BOOST_CHECK_EQUAL(result_confirmed_parent.m_state.GetResult(),
+                          PackageValidationResult::PCKG_TX);
+        BOOST_CHECK_EQUAL(result_confirmed_parent.m_state.GetRejectReason(),
+                          "transaction failed");
+        BOOST_CHECK_EQUAL(m_node.mempool->size(), expected_pool_size);
+
+        auto it_confirmed_tx =
+            result_confirmed_parent.m_tx_results.find(tx_parent->GetId());
+        BOOST_CHECK(it_confirmed_tx !=
+                    result_confirmed_parent.m_tx_results.end());
+        BOOST_CHECK_EQUAL(it_confirmed_tx->second.m_state.GetRejectReason(),
+                          "txn-already-known");
+    }
+}
 BOOST_AUTO_TEST_SUITE_END()
