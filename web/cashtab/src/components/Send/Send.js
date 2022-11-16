@@ -56,6 +56,7 @@ const TextAreaLabel = styled.div`
     text-align: left;
     color: ${props => props.theme.forms.text};
     padding-left: 1px;
+    white-space: nowrap;
 `;
 
 const AmountPreviewCtn = styled.div`
@@ -72,6 +73,25 @@ const LocaleFormattedValue = styled.h3`
     color: ${props => props.theme.contrast};
     font-weight: bold;
     margin-bottom: 0;
+`;
+
+const SendAddressHeader = styled.div`
+    display: flex;
+    align-items: center;
+`;
+const DestinationAddressSingleCtn = styled.div``;
+const DestinationAddressMultiCtn = styled.div``;
+
+const ExpandingAddressInputCtn = styled.div`
+    min-height: 14rem;
+    ${DestinationAddressSingleCtn} {
+        overflow: hidden;
+        max-height: ${props => (props.open ? '0rem' : '17rem')};
+    }
+    ${DestinationAddressMultiCtn} {
+        overflow: hidden;
+        max-height: ${props => (props.open ? '17rem' : '0rem')};
+    }
 `;
 
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
@@ -674,80 +694,111 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                 marginTop: '40px',
                             }}
                         >
-                            {!isOneToManyXECSend ? (
+                            <SendAddressHeader>
+                                {' '}
+                                <FormLabel>Send to</FormLabel>
+                                <TextAreaLabel>
+                                    Multiple Recipients:&nbsp;&nbsp;
+                                    <Switch
+                                        defaultunchecked="true"
+                                        checked={isOneToManyXECSend}
+                                        onChange={() => {
+                                            setIsOneToManyXECSend(
+                                                !isOneToManyXECSend,
+                                            );
+                                            setIsEncryptedOptionalOpReturnMsg(
+                                                false,
+                                            );
+                                        }}
+                                        style={{
+                                            marginBottom: '7px',
+                                        }}
+                                    />
+                                </TextAreaLabel>
+                            </SendAddressHeader>
+                            <ExpandingAddressInputCtn open={isOneToManyXECSend}>
                                 <SendInputCtn>
-                                    <FormLabel>Send to</FormLabel>
-                                    <DestinationAddressSingle
-                                        style={{ marginBottom: '0px' }}
-                                        loadWithCameraOpen={
-                                            location &&
-                                            location.state &&
-                                            location.state.replyAddress
-                                                ? false
-                                                : scannerSupported
-                                        }
-                                        validateStatus={
-                                            sendBchAddressError ? 'error' : ''
-                                        }
-                                        help={
-                                            sendBchAddressError
-                                                ? sendBchAddressError
-                                                : ''
-                                        }
-                                        onScan={result =>
-                                            handleAddressChange({
-                                                target: {
-                                                    name: 'address',
-                                                    value: result,
-                                                },
-                                            })
-                                        }
-                                        inputProps={{
-                                            placeholder: `${currency.ticker} Address`,
-                                            name: 'address',
-                                            onChange: e =>
-                                                handleAddressChange(e),
-                                            required: true,
-                                            value: formData.address,
-                                        }}
-                                    ></DestinationAddressSingle>
-                                    <FormLabel>Amount</FormLabel>
-                                    <SendBchInput
-                                        activeFiatCode={
-                                            cashtabSettings &&
-                                            cashtabSettings.fiatCurrency
-                                                ? cashtabSettings.fiatCurrency.toUpperCase()
-                                                : 'USD'
-                                        }
-                                        validateStatus={
-                                            sendBchAmountError ? 'error' : ''
-                                        }
-                                        help={
-                                            sendBchAmountError
-                                                ? sendBchAmountError
-                                                : ''
-                                        }
-                                        onMax={onMax}
-                                        inputProps={{
-                                            name: 'value',
-                                            dollar:
-                                                selectedCurrency === 'USD'
-                                                    ? 1
-                                                    : 0,
-                                            placeholder: 'Amount',
-                                            onChange: e =>
-                                                handleBchAmountChange(e),
-                                            required: true,
-                                            value: formData.value,
-                                            disabled: priceApiError,
-                                        }}
-                                        selectProps={{
-                                            value: selectedCurrency,
-                                            disabled: queryStringText !== null,
-                                            onChange: e =>
-                                                handleSelectedCurrencyChange(e),
-                                        }}
-                                    ></SendBchInput>
+                                    <DestinationAddressSingleCtn>
+                                        <DestinationAddressSingle
+                                            style={{ marginBottom: '0px' }}
+                                            loadWithCameraOpen={
+                                                location &&
+                                                location.state &&
+                                                location.state.replyAddress
+                                                    ? false
+                                                    : scannerSupported
+                                            }
+                                            validateStatus={
+                                                sendBchAddressError
+                                                    ? 'error'
+                                                    : ''
+                                            }
+                                            help={
+                                                sendBchAddressError
+                                                    ? sendBchAddressError
+                                                    : ''
+                                            }
+                                            onScan={result =>
+                                                handleAddressChange({
+                                                    target: {
+                                                        name: 'address',
+                                                        value: result,
+                                                    },
+                                                })
+                                            }
+                                            inputProps={{
+                                                placeholder: `${currency.ticker} Address`,
+                                                name: 'address',
+                                                onChange: e =>
+                                                    handleAddressChange(e),
+                                                required: true,
+                                                value: formData.address,
+                                            }}
+                                        ></DestinationAddressSingle>
+                                        <FormLabel>Amount</FormLabel>
+                                        <SendBchInput
+                                            activeFiatCode={
+                                                cashtabSettings &&
+                                                cashtabSettings.fiatCurrency
+                                                    ? cashtabSettings.fiatCurrency.toUpperCase()
+                                                    : 'USD'
+                                            }
+                                            validateStatus={
+                                                sendBchAmountError
+                                                    ? 'error'
+                                                    : ''
+                                            }
+                                            help={
+                                                sendBchAmountError
+                                                    ? sendBchAmountError
+                                                    : ''
+                                            }
+                                            onMax={onMax}
+                                            inputProps={{
+                                                name: 'value',
+                                                dollar:
+                                                    selectedCurrency === 'USD'
+                                                        ? 1
+                                                        : 0,
+                                                placeholder: 'Amount',
+                                                onChange: e =>
+                                                    handleBchAmountChange(e),
+                                                required: true,
+                                                value: formData.value,
+                                                disabled: priceApiError,
+                                            }}
+                                            selectProps={{
+                                                value: selectedCurrency,
+                                                disabled:
+                                                    queryStringText !== null,
+                                                onChange: e =>
+                                                    handleSelectedCurrencyChange(
+                                                        e,
+                                                    ),
+                                            }}
+                                        ></SendBchInput>
+                                    </DestinationAddressSingleCtn>
+
                                     {priceApiError && (
                                         <AlertMsg>
                                             Error fetching fiat price. Setting
@@ -759,44 +810,49 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                         </AlertMsg>
                                     )}
                                 </SendInputCtn>
-                            ) : (
+
                                 <>
-                                    <FormLabel>Send to</FormLabel>
-                                    <DestinationAddressMulti
-                                        validateStatus={
-                                            sendBchAddressError ? 'error' : ''
-                                        }
-                                        help={
-                                            sendBchAddressError
-                                                ? sendBchAddressError
-                                                : ''
-                                        }
-                                        inputProps={{
-                                            placeholder: `One XEC address & value per line, separated by comma \ne.g. \necash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8,500 \necash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700`,
-                                            name: 'address',
-                                            onChange: e =>
-                                                handleMultiAddressChange(e),
-                                            required: true,
-                                            value: formData.address,
-                                        }}
-                                    ></DestinationAddressMulti>
+                                    <DestinationAddressMultiCtn>
+                                        <DestinationAddressMulti
+                                            validateStatus={
+                                                sendBchAddressError
+                                                    ? 'error'
+                                                    : ''
+                                            }
+                                            help={
+                                                sendBchAddressError
+                                                    ? sendBchAddressError
+                                                    : ''
+                                            }
+                                            inputProps={{
+                                                placeholder: `One XEC address & value per line, separated by comma \ne.g. \necash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8,500 \necash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700`,
+                                                name: 'address',
+                                                onChange: e =>
+                                                    handleMultiAddressChange(e),
+                                                required: true,
+                                                value: formData.address,
+                                            }}
+                                        ></DestinationAddressMulti>
+                                    </DestinationAddressMultiCtn>
                                 </>
-                            )}
-                            {!priceApiError && !isOneToManyXECSend && (
                                 <AmountPreviewCtn>
-                                    <LocaleFormattedValue>
-                                        {formatBalance(
-                                            formData.value,
-                                            userLocale,
-                                        )}{' '}
-                                        {selectedCurrency}
-                                    </LocaleFormattedValue>
-                                    <ConvertAmount>
-                                        {fiatPriceString !== '' && '='}{' '}
-                                        {fiatPriceString}
-                                    </ConvertAmount>
+                                    {!priceApiError && !isOneToManyXECSend && (
+                                        <>
+                                            <LocaleFormattedValue>
+                                                {formatBalance(
+                                                    formData.value,
+                                                    userLocale,
+                                                )}{' '}
+                                                {selectedCurrency}
+                                            </LocaleFormattedValue>
+                                            <ConvertAmount>
+                                                {fiatPriceString !== '' && '='}{' '}
+                                                {fiatPriceString}
+                                            </ConvertAmount>
+                                        </>
+                                    )}
                                 </AmountPreviewCtn>
-                            )}
+                            </ExpandingAddressInputCtn>
 
                             {queryStringText && (
                                 <Alert
@@ -854,24 +910,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                         marginBottom: '20px',
                                     }}
                                 >
-                                    <TextAreaLabel>
-                                        Multiple Recipients:&nbsp;&nbsp;
-                                        <Switch
-                                            defaultunchecked="true"
-                                            checked={isOneToManyXECSend}
-                                            onChange={() => {
-                                                setIsOneToManyXECSend(
-                                                    !isOneToManyXECSend,
-                                                );
-                                                setIsEncryptedOptionalOpReturnMsg(
-                                                    false,
-                                                );
-                                            }}
-                                            style={{
-                                                marginBottom: '7px',
-                                            }}
-                                        />
-                                    </TextAreaLabel>
                                     <TextAreaLabel>
                                         Message:&nbsp;&nbsp;
                                         <Switch
