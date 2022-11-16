@@ -247,12 +247,14 @@ struct MempoolAcceptResult {
         VALID,
         //! Invalid.
         INVALID,
+        //! Valid, transaction was already in the mempool.
+        MEMPOOL_ENTRY,
     };
     const ResultType m_result_type;
     const TxValidationState m_state;
 
     // The following fields are only present when m_result_type =
-    // ResultType::VALID
+    // ResultType::VALID or MEMPOOL_ENTRY
     /**
      * Virtual size as used by the mempool, calculated using serialized size
      * and sigchecks.
@@ -264,8 +266,17 @@ struct MempoolAcceptResult {
         return MempoolAcceptResult(state);
     }
 
+    /** Constructor for success case */
     static MempoolAcceptResult Success(int64_t vsize, Amount fees) {
-        return MempoolAcceptResult(vsize, fees);
+        return MempoolAcceptResult(ResultType::VALID, vsize, fees);
+    }
+
+    /**
+     * Constructor for already-in-mempool case. It wouldn't replace any
+     * transactions.
+     */
+    static MempoolAcceptResult MempoolTx(int64_t vsize, Amount fees) {
+        return MempoolAcceptResult(ResultType::MEMPOOL_ENTRY, vsize, fees);
     }
 
     // Private constructors. Use static methods MempoolAcceptResult::Success,
@@ -279,9 +290,10 @@ private:
         Assume(!state.IsValid());
     }
 
-    /** Constructor for success case */
-    explicit MempoolAcceptResult(int64_t vsize, Amount fees)
-        : m_result_type(ResultType::VALID), m_vsize{vsize}, m_base_fees(fees) {}
+    /** Generic constructor for success cases */
+    explicit MempoolAcceptResult(ResultType result_type, int64_t vsize,
+                                 Amount fees)
+        : m_result_type(result_type), m_vsize{vsize}, m_base_fees(fees) {}
 };
 
 /**

@@ -365,6 +365,33 @@ BOOST_FIXTURE_TEST_CASE(package_submission_tests, TestChain100Setup) {
         BOOST_CHECK(m_node.mempool->exists(tx_child->GetId()));
     }
 
+    // Already-in-mempool transactions should be detected and de-duplicated.
+    {
+        LOCK(cs_main);
+        const auto submit_deduped = ProcessNewPackage(
+            config, m_node.chainman->ActiveChainstate(), *m_node.mempool,
+            package_parent_child, /*test_accept=*/false);
+        BOOST_CHECK_MESSAGE(submit_deduped.m_state.IsValid(),
+                            "Package validation unexpectedly failed: "
+                                << submit_deduped.m_state.GetRejectReason());
+        auto it_parent_deduped =
+            submit_deduped.m_tx_results.find(tx_parent->GetId());
+        auto it_child_deduped =
+            submit_deduped.m_tx_results.find(tx_child->GetId());
+        BOOST_CHECK(it_parent_deduped != submit_deduped.m_tx_results.end());
+        BOOST_CHECK(it_parent_deduped->second.m_state.IsValid());
+        BOOST_CHECK(it_parent_deduped->second.m_result_type ==
+                    MempoolAcceptResult::ResultType::MEMPOOL_ENTRY);
+        BOOST_CHECK(it_child_deduped != submit_deduped.m_tx_results.end());
+        BOOST_CHECK(it_child_deduped->second.m_state.IsValid());
+        BOOST_CHECK(it_child_deduped->second.m_result_type ==
+                    MempoolAcceptResult::ResultType::MEMPOOL_ENTRY);
+
+        BOOST_CHECK_EQUAL(m_node.mempool->size(), expected_pool_size);
+        BOOST_CHECK(m_node.mempool->exists(tx_parent->GetId()));
+        BOOST_CHECK(m_node.mempool->exists(tx_child->GetId()));
+    }
+
     // A package containing a confirmed transaction is rejected because the
     // confirmed transaction is not accepted in the mempool.
     CBlock block = CreateAndProcessBlock({mtx_parent}, parent_locking_script);
