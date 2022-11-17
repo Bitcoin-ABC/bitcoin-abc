@@ -153,11 +153,9 @@ class AvaAddrTest(BitcoinTestFramework):
         node.setmocktime(mock_time)
         requester.wait_until(requester.addr_received)
 
-        # Elapse the getavaaddr interval and check our message is now accepted
-        # again
-        mock_time = getavaddr_time + GETAVAADDR_INTERVAL
-        node.setmocktime(mock_time)
-
+        # Check our message is now accepted again now that the getavaaddr
+        # interval is elapsed
+        assert mock_time >= getavaddr_time + GETAVAADDR_INTERVAL
         requester.send_message(msg_getavaaddr())
 
         # We can get an addr message again
