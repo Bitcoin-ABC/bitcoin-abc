@@ -84,14 +84,26 @@ const DestinationAddressSingleCtn = styled.div``;
 const DestinationAddressMultiCtn = styled.div``;
 
 const ExpandingAddressInputCtn = styled.div`
-    min-height: 14rem;
+    min-height: 15rem;
     ${DestinationAddressSingleCtn} {
         overflow: hidden;
-        max-height: ${props => (props.open ? '0rem' : '17rem')};
+        transition: ${props =>
+            props.open
+                ? 'max-height 200ms ease-in, opacity 200ms ease-out'
+                : 'max-height 200ms cubic-bezier(0, 1, 0, 1), opacity 200ms ease-in'};
+        max-height: ${props => (props.open ? '0rem' : '14rem')};
+        opacity: ${props => (props.open ? 0 : 1)};
     }
     ${DestinationAddressMultiCtn} {
         overflow: hidden;
-        max-height: ${props => (props.open ? '17rem' : '0rem')};
+        transition: ${props =>
+            props.open
+                ? 'max-height 200ms ease-in, transform 200ms ease-out, opacity 200ms ease-in'
+                : 'max-height 200ms cubic-bezier(0, 1, 0, 1), transform 200ms ease-out'};
+        max-height: ${props => (props.open ? '14rem' : '0rem')};
+        transform: ${props =>
+            props.open ? 'translateY(0%)' : 'translateY(100%)'};
+        opacity: ${props => (props.open ? 1 : 0)};
     }
 `;
 

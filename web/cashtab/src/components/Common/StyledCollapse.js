@@ -144,7 +144,7 @@ export const CustomCollapseCtn = ({
 
 CustomCollapseCtn.propTypes = {
     optionalDefaultActiveKey: PropTypes.arrayOf(PropTypes.string),
-    panelHeader: PropTypes.string,
+    panelHeader: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     children: PropTypes.node,
     optionalKey: PropTypes.string,
 };
