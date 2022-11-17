@@ -8,6 +8,7 @@ import {
     DestinationAddressSingle,
     DestinationAddressMulti,
 } from 'components/Common/EnhancedInputs';
+import { ThemedMailOutlined } from 'components/Common/CustomIcons';
 import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
 import { Form, message, Modal, Alert, Input } from 'antd';
 import { Row, Col, Switch } from 'antd';
@@ -92,6 +93,13 @@ const ExpandingAddressInputCtn = styled.div`
         overflow: hidden;
         max-height: ${props => (props.open ? '17rem' : '0rem')};
     }
+`;
+
+const PanelHeaderCtn = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
 `;
 
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
@@ -895,7 +903,11 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             </div>
 
                             <CustomCollapseCtn
-                                panelHeader="Advanced"
+                                panelHeader={
+                                    <PanelHeaderCtn>
+                                        <ThemedMailOutlined /> Message
+                                    </PanelHeaderCtn>
+                                }
                                 optionalDefaultActiveKey={
                                     location &&
                                     location.state &&
