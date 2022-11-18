@@ -265,7 +265,7 @@ const SignVerifyMsg = ({ jestBCH }) => {
                     <TokenParamLabel>Message:</TokenParamLabel> {msgToSign}
                     <br />
                 </Modal>
-                <CustomCollapseCtn panelHeader="Sign Message">
+                <CustomCollapseCtn panelHeader="Sign">
                     <AntdFormWrapper>
                         <Form
                             size="small"
@@ -372,7 +372,7 @@ const SignVerifyMsg = ({ jestBCH }) => {
                     {messageVerificationSig}
                     <br />
                 </Modal>
-                <CustomCollapseCtn panelHeader="Verify Message">
+                <CustomCollapseCtn panelHeader="Verify">
                     <AntdFormWrapper>
                         <Form
                             size="small"

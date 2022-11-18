@@ -120,7 +120,7 @@ exports[`Wallet with BCH balances 1`] = `
               <div
                 className="sc-jlyJG bbyJzT"
               >
-                Sign Message
+                Sign
               </div>
             </span>
           </div>
@@ -182,7 +182,7 @@ exports[`Wallet with BCH balances 1`] = `
               <div
                 className="sc-jlyJG bbyJzT"
               >
-                Verify Message
+                Verify
               </div>
             </span>
           </div>
@@ -318,7 +318,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
               <div
                 className="sc-jlyJG bbyJzT"
               >
-                Sign Message
+                Sign
               </div>
             </span>
           </div>
@@ -380,7 +380,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
               <div
                 className="sc-jlyJG bbyJzT"
               >
-                Verify Message
+                Verify
               </div>
             </span>
           </div>
@@ -511,7 +511,7 @@ exports[`Wallet without BCH balance 1`] = `
               <div
                 className="sc-jlyJG bbyJzT"
               >
-                Sign Message
+                Sign
               </div>
             </span>
           </div>
@@ -573,7 +573,7 @@ exports[`Wallet without BCH balance 1`] = `
               <div
                 className="sc-jlyJG bbyJzT"
               >
-                Verify Message
+                Verify
               </div>
             </span>
           </div>
@@ -699,7 +699,7 @@ exports[`Without wallet defined 1`] = `
               <div
                 className="sc-jlyJG bbyJzT"
               >
-                Sign Message
+                Sign
               </div>
             </span>
           </div>
@@ -761,7 +761,7 @@ exports[`Without wallet defined 1`] = `
               <div
                 className="sc-jlyJG bbyJzT"
               >
-                Verify Message
+                Verify
               </div>
             </span>
           </div>
