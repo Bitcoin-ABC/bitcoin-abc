@@ -589,6 +589,10 @@ module.exports = function (webpackEnv) {
             new webpack.ProvidePlugin({
                 Buffer: ['buffer', 'Buffer'],
             }),
+            new webpack.IgnorePlugin({
+                resourceRegExp: /^\.\/wordlists\/(?!english)/,
+                contextRegExp: /bip39\/src$/,
+            }),
             // Generates an `index.html` file with the <script> injected.
             new HtmlWebpackPlugin(
                 Object.assign(

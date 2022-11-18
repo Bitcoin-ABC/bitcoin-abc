@@ -841,6 +841,24 @@ const useWallet = () => {
     const validateMnemonic = (mnemonic, wordlist = bip39.wordlists.english) => {
         let mnemonicTestOutput;
 
+        // temporary validation of wordlist exclusion
+        // to be removed in next diff in stack
+        console.log('english: ' + bip39.wordlists.english);
+        if (
+            !bip39.wordlists.japanese &&
+            !bip39.wordlists.spanish &&
+            !bip39.wordlists.italian &&
+            !bip39.wordlists.french &&
+            !bip39.wordlists.korean &&
+            !bip39.wordlists.czech &&
+            !bip39.wordlists.portuguese &&
+            !bip39.wordlists.chinese_traditional
+        ) {
+            console.log(
+                'bip39 wordlist is excluding japanese, spanish, italian, french, korean, czech, portuguese and chinese',
+            );
+        }
+
         try {
             mnemonicTestOutput = validateMnemonicWordList(mnemonic, wordlist);
 
