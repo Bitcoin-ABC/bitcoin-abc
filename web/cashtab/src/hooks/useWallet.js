@@ -19,7 +19,6 @@ import {
     isValidCashtabCache,
     isValidContactList,
     parseInvalidSettingsForMigration,
-    validateMnemonicWordList,
 } from 'utils/validation';
 import localforage from 'localforage';
 import { currency } from 'components/Common/Ticker';
@@ -839,34 +838,16 @@ const useWallet = () => {
     };
 
     const validateMnemonic = (mnemonic, wordlist = bip39.wordlists.english) => {
-        let mnemonicTestOutput;
-
-        // temporary validation of wordlist exclusion
-        // to be removed in next diff in stack
-        console.log('english: ' + bip39.wordlists.english);
-        if (
-            !bip39.wordlists.japanese &&
-            !bip39.wordlists.spanish &&
-            !bip39.wordlists.italian &&
-            !bip39.wordlists.french &&
-            !bip39.wordlists.korean &&
-            !bip39.wordlists.czech &&
-            !bip39.wordlists.portuguese &&
-            !bip39.wordlists.chinese_traditional
-        ) {
-            console.log(
-                'bip39 wordlist is excluding japanese, spanish, italian, french, korean, czech, portuguese and chinese',
-            );
-        }
-
         try {
-            mnemonicTestOutput = validateMnemonicWordList(mnemonic, wordlist);
+            if (!mnemonic || !wordlist) return false;
 
-            if (mnemonicTestOutput === 'Valid mnemonic') {
-                return true;
-            } else {
-                return false;
-            }
+            // Preprocess the words
+            const words = mnemonic.split(' ');
+            // Detect blank phrase
+            if (words.length === 0) return false;
+
+            // Check the words are valid
+            return bip39.validateMnemonic(mnemonic, wordlist);
         } catch (err) {
             console.log(err);
             return false;
