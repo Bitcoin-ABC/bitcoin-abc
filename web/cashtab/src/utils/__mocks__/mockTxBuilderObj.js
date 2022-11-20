@@ -1198,3 +1198,215 @@ export const mockBurnTokenOutputsTxBuilderObj = {
     bip68: {},
     p2shInput: false,
 };
+
+export const mockOnetoOneXecInputOnlyTxBuilderObj = {
+    transaction: {
+        prevTxMap: {
+            '6fbde3a1a13bb90e1d939a214d6eb845396e6a07e2c4406c5ba8b554bfb4836e:1': 0,
+        },
+        network: {
+            hashGenesisBlock:
+                '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f',
+            port: 8333,
+            portRpc: 8332,
+            protocol: {
+                magic: 3652501241,
+            },
+            seedsDns: [
+                'seed.bitcoinabc.org',
+                'seed-abc.bitcoinforks.org',
+                'btccash-seeder.bitcoinunlimited.info',
+                'seed.bitprim.org',
+                'seed.deadalnix.me',
+                'seeder.criptolayer.net',
+            ],
+            versions: {
+                bip32: {
+                    private: 76066276,
+                    public: 76067358,
+                },
+                bip44: 145,
+                private: 128,
+                public: 0,
+                scripthash: 5,
+                messagePrefix: '\u0018BitcoinCash Signed Message:\n',
+            },
+            name: 'BitcoinCash',
+            per1: 100000000,
+            unit: 'BCH',
+            testnet: false,
+            messagePrefix: '\u0018BitcoinCash Signed Message:\n',
+            bip32: {
+                public: 76067358,
+                private: 76066276,
+            },
+            pubKeyHash: 0,
+            scriptHash: 5,
+            wif: 128,
+            dustThreshold: null,
+        },
+        maximumFeeRate: 2500,
+        inputs: [{}],
+        bitcoinCash: true,
+        tx: {
+            version: 2,
+            locktime: 0,
+            ins: [
+                {
+                    hash: {
+                        type: 'Buffer',
+                        data: [
+                            111, 189, 227, 161, 161, 59, 185, 14, 29, 147, 154,
+                            33, 77, 110, 184, 69, 57, 110, 106, 7, 226, 196, 64,
+                            108, 91, 168, 181, 84, 191, 180, 131, 110,
+                        ],
+                    },
+                    index: 1,
+                    script: {
+                        type: 'Buffer',
+                        data: [],
+                    },
+                    sequence: 4294967295,
+                    witness: [],
+                },
+            ],
+            outs: [],
+        },
+    },
+    DEFAULT_SEQUENCE: 4294967295,
+    hashTypes: {
+        SIGHASH_ALL: 1,
+        SIGHASH_NONE: 2,
+        SIGHASH_SINGLE: 3,
+        SIGHASH_ANYONECANPAY: 128,
+        SIGHASH_BITCOINCASH_BIP143: 64,
+        ADVANCED_TRANSACTION_MARKER: 0,
+        ADVANCED_TRANSACTION_FLAG: 1,
+    },
+    signatureAlgorithms: {
+        ECDSA: 0,
+        SCHNORR: 1,
+    },
+    bip66: {},
+    bip68: {},
+    p2shInput: false,
+};
+
+export const mockOnetoOneXecInputAndOutputOnlyTxBuilderObj = {
+    transaction: {
+        prevTxMap: {
+            '6fbde3a1a13bb90e1d939a214d6eb845396e6a07e2c4406c5ba8b554bfb4836e:1': 0,
+        },
+        network: {
+            hashGenesisBlock:
+                '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f',
+            port: 8333,
+            portRpc: 8332,
+            protocol: {
+                magic: 3652501241,
+            },
+            seedsDns: [
+                'seed.bitcoinabc.org',
+                'seed-abc.bitcoinforks.org',
+                'btccash-seeder.bitcoinunlimited.info',
+                'seed.bitprim.org',
+                'seed.deadalnix.me',
+                'seeder.criptolayer.net',
+            ],
+            versions: {
+                bip32: {
+                    private: 76066276,
+                    public: 76067358,
+                },
+                bip44: 145,
+                private: 128,
+                public: 0,
+                scripthash: 5,
+                messagePrefix: '\u0018BitcoinCash Signed Message:\n',
+            },
+            name: 'BitcoinCash',
+            per1: 100000000,
+            unit: 'BCH',
+            testnet: false,
+            messagePrefix: '\u0018BitcoinCash Signed Message:\n',
+            bip32: {
+                public: 76067358,
+                private: 76066276,
+            },
+            pubKeyHash: 0,
+            scriptHash: 5,
+            wif: 128,
+            dustThreshold: null,
+        },
+        maximumFeeRate: 2500,
+        inputs: [{}],
+        bitcoinCash: true,
+        tx: {
+            version: 2,
+            locktime: 0,
+            ins: [
+                {
+                    hash: {
+                        type: 'Buffer',
+                        data: [
+                            111, 189, 227, 161, 161, 59, 185, 14, 29, 147, 154,
+                            33, 77, 110, 184, 69, 57, 110, 106, 7, 226, 196, 64,
+                            108, 91, 168, 181, 84, 191, 180, 131, 110,
+                        ],
+                    },
+                    index: 1,
+                    script: {
+                        type: 'Buffer',
+                        data: [],
+                    },
+                    sequence: 4294967295,
+                    witness: [],
+                },
+            ],
+            outs: [
+                {
+                    script: {
+                        type: 'Buffer',
+                        data: [
+                            118, 169, 20, 213, 48, 152, 14, 20, 238, 31, 32, 55,
+                            234, 240, 1, 100, 217, 199, 204, 251, 221, 205, 50,
+                            136, 172,
+                        ],
+                    },
+                    value: 600,
+                },
+                {
+                    script: {
+                        type: 'Buffer',
+                        data: [
+                            118, 169, 20, 213, 48, 152, 14, 20, 238, 31, 32, 55,
+                            234, 240, 1, 100, 217, 199, 204, 251, 221, 205, 50,
+                            136, 172,
+                        ],
+                    },
+                    value: 130634,
+                },
+            ],
+        },
+    },
+    DEFAULT_SEQUENCE: 4294967295,
+    hashTypes: {
+        SIGHASH_ALL: 1,
+        SIGHASH_NONE: 2,
+        SIGHASH_SINGLE: 3,
+        SIGHASH_ANYONECANPAY: 128,
+        SIGHASH_BITCOINCASH_BIP143: 64,
+        ADVANCED_TRANSACTION_MARKER: 0,
+        ADVANCED_TRANSACTION_FLAG: 1,
+    },
+    signatureAlgorithms: {
+        ECDSA: 0,
+        SCHNORR: 1,
+    },
+    bip66: {},
+    bip68: {},
+    p2shInput: false,
+};
+
+export const mockOnetoOneXecInputOutputSignedRawHex =
+    '02000000016fbde3a1a13bb90e1d939a214d6eb845396e6a07e2c4406c5ba8b554bfb4836e010000006b483045022100ccb8b4f18cd1c06ae263355a153c772132b77a7de0c1ee5d16c1f463024e59c00220166ba30a7ffa6e27eaae72becdcfea4b77e7740a2278ed3fa875b5d3ab234500412102322fe90c5255fe37ab321c386f9446a86e80c3940701d430f22325094fdcec60ffffffff0258020000000000001976a914d530980e14ee1f2037eaf00164d9c7ccfbddcd3288ac4afe0100000000001976a914d530980e14ee1f2037eaf00164d9c7ccfbddcd3288ac00000000';
