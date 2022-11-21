@@ -88,8 +88,8 @@ static void SetupCliArgs(ArgsManager &argsman) {
     argsman.AddArg(
         "-getinfo",
         "Get general information from the remote server. Note that unlike "
-        "server-side RPC calls, the results of -getinfo is the result of "
-        "multiple non-atomic requests. Some entries in the result may "
+        "server-side RPC calls, the output of -getinfo is the result of "
+        "multiple non-atomic requests. Some entries in the output may "
         "represent results from different states (e.g. wallet balance may be "
         "as of a different block from the chain state reported)",
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
