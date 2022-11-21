@@ -12,7 +12,7 @@ extension.runtime.onConnect.addListener(function (port) {
             console.log(
                 `Received a transaction request, opening Cashtab extension`,
             );
-            triggerUi(msg.txInfo);
+            openSendXec(msg.txInfo);
         }
         // Handle an address sharing request
         if (msg.text === `Cashtab` && msg.addressRequest) {
@@ -121,21 +121,8 @@ async function triggerApprovalModal(request, tab) {
     });
 }
 
-/**
- * Opens the browser popup for user confirmation
- */
-/*
-Breaking this function down
-1) Get all active tabs in browser
-2) Determine if the extension UI is currently open
-3) If extension is not open AND no other UI triggered popups are open, then open one
-
-Eventually will need similar model. Note that it actually goes much deeper than this in MetaMask.
-
-To start, just open a popup
-*/
-async function triggerUi(txInfo) {
-    // Open a pop-up
+// Open Cashtab extension with transaction information in the query string
+async function openSendXec(txInfo) {
     let left = 0;
     let top = 0;
     try {
@@ -151,9 +138,6 @@ async function triggerUi(txInfo) {
         top = Math.max(screenY, 0);
         left = Math.max(screenX + (outerWidth - NOTIFICATION_WIDTH), 0);
     }
-
-    console.log(`txInfo`);
-    console.log(txInfo);
 
     const queryString = Object.keys(txInfo)
         .map(key => key + '=' + txInfo[key])
