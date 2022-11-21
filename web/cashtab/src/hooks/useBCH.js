@@ -377,10 +377,7 @@ export default function useBCH() {
         optionalMockPubKeyResponse = false,
     ) => {
         try {
-            let txBuilder = new BCH.TransactionBuilder();
-
-            // for temporary comparison
-            let localTxBuilder = new TransactionBuilder();
+            let txBuilder = new TransactionBuilder();
 
             // parse the input value of XECs to send
             const value = parseXecSendValue(
@@ -458,9 +455,6 @@ export default function useBCH() {
                     encryptedEj,
                 );
                 txBuilder.addOutput(opReturnData, 0);
-
-                // for temporary comparison
-                localTxBuilder.addOutput(opReturnData, 0);
             }
 
             // generate the tx inputs and add to txBuilder instance
@@ -482,20 +476,6 @@ export default function useBCH() {
             );
             txBuilder = txInputObj.txBuilder; // update the local txBuilder with the generated tx inputs
 
-            // for temporary comparison
-            localTxBuilder = generateTxInput(
-                BCH,
-                isOneToMany,
-                utxos,
-                localTxBuilder,
-                destinationAddressAndValueArray,
-                satoshisToSend,
-                feeInSatsPerByte,
-            ).txBuilder;
-            if (JSON.stringify(txBuilder) === JSON.stringify(localTxBuilder)) {
-                console.log('post-generateTxInput() output matches');
-            }
-
             // generate the tx outputs and add to txBuilder instance
             // returns the updated txBuilder
             const txOutputObj = generateTxOutput(
@@ -512,23 +492,6 @@ export default function useBCH() {
             );
             txBuilder = txOutputObj; // update the local txBuilder with the generated tx outputs
 
-            // for temporary comparison
-            localTxBuilder = generateTxOutput(
-                BCH,
-                isOneToMany,
-                value,
-                satoshisToSend,
-                txInputObj.totalInputUtxoValue,
-                destinationAddress,
-                destinationAddressAndValueArray,
-                changeAddress,
-                txInputObj.txFee,
-                localTxBuilder,
-            );
-            if (JSON.stringify(txBuilder) === JSON.stringify(localTxBuilder)) {
-                console.log('post-generateTxOutput() output matches');
-            }
-
             // sign the collated inputUtxos and build the raw tx hex
             // returns the raw tx hex string
             const rawTxHex = signAndBuildTx(
@@ -537,17 +500,6 @@ export default function useBCH() {
                 txBuilder,
                 wallet,
             );
-
-            // for temporary comparison
-            const localRawTxHex = signAndBuildTx(
-                BCH,
-                txInputObj.inputUtxos,
-                localTxBuilder,
-                wallet,
-            );
-            if (JSON.stringify(rawTxHex) === JSON.stringify(localRawTxHex)) {
-                console.log('post-signAndBuildTx() output matches');
-            }
 
             // Broadcast transaction to the network via the chronik client
             // sample chronik.broadcastTx() response:
