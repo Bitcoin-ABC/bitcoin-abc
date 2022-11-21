@@ -433,11 +433,33 @@ const App = () => {
         window.close();
     };
 
+    const checkForPersistentStorage = async () => {
+        // Request persistent storage for site
+        if (navigator.storage && navigator.storage.persist) {
+            // Check if storage is persistent
+            const isPersisted = await navigator.storage.persisted();
+            console.log(`Persisted storage status: ${isPersisted}`);
+            // If not, request persistent storage
+            if (!isPersisted) {
+                console.log(`Requesting persistent storage`);
+                const persistanceRequestResult =
+                    await navigator.storage.persist();
+                console.log(
+                    `Persistent storage granted: ${persistanceRequestResult}`,
+                );
+            }
+        }
+    };
+
     useEffect(() => {
         copyAddressToExtensionStorage(wallet);
     }, [wallet]);
 
     useEffect(() => {
+        // On load useEffect() block
+
+        // Check for peristent storage
+        checkForPersistentStorage();
         // Parse for query string asking for user approval of sharing extension info with a web page
         // Do not set txInfo in state if query strings are not present
         if (

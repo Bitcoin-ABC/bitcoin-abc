@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import 'antd/dist/antd.less';
 import PropTypes from 'prop-types';
 import { Spin } from 'antd';
@@ -367,6 +367,24 @@ const App = () => {
     const selectedKey =
         location && location.pathname ? location.pathname.substr(1) : '';
 
+    const checkForPersistentStorage = async () => {
+        // Request persistent storage for site
+        if (navigator.storage && navigator.storage.persist) {
+            // Check if storage is persistent
+            const isPersisted = await navigator.storage.persisted();
+            console.log(`Persisted storage status: ${isPersisted}`);
+            // If not, request persistent storage
+            if (!isPersisted) {
+                console.log(`Requesting persistent storage`);
+                const persistanceRequestResult =
+                    await navigator.storage.persist();
+                console.log(
+                    `Persistent storage granted: ${persistanceRequestResult}`,
+                );
+            }
+        }
+    };
+
     // Easter egg boolean not used in extension/src/components/App.js
     const hasTab = validWallet
         ? checkForTokenById(
@@ -374,6 +392,10 @@ const App = () => {
               '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
           )
         : false;
+
+    useEffect(() => {
+        checkForPersistentStorage();
+    }, []);
 
     return (
         <ThemeProvider theme={theme}>
