@@ -22,7 +22,7 @@ extension.runtime.onConnect.addListener(function (port) {
             // so need to use this Promise.then() syntax
             getCurrentActiveTab().then(
                 requestingTab => {
-                    triggerApprovalModal('addressRequest', requestingTab);
+                    openAddressShareApproval('addressRequest', requestingTab);
                 },
                 err => {
                     console.log(
@@ -90,8 +90,8 @@ async function handleDeniedAddressRequest(tabId) {
     });
 }
 
-async function triggerApprovalModal(request, tab) {
-    // Open a pop-up
+// Open Cashtab extension with a request for address sharing
+async function openAddressShareApproval(request, tab) {
     let left = 0;
     let top = 0;
     try {
