@@ -3,11 +3,6 @@ const extension = require('extensionizer');
 const NOTIFICATION_HEIGHT = 600;
 const NOTIFICATION_WIDTH = 400;
 
-let popupIsOpen = false;
-let notificationIsOpen = false;
-const openMetamaskTabsIDs = {};
-const requestAccountTabIds = {};
-
 // This starts listening to the port created with `extension.runtime.connect` in contentscript.js
 extension.runtime.onConnect.addListener(function (port) {
     console.assert(port.name == 'cashtabPort');
