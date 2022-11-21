@@ -135,13 +135,6 @@ Eventually will need similar model. Note that it actually goes much deeper than 
 To start, just open a popup
 */
 async function triggerUi(txInfo) {
-    /*
-  const tabs = await extension.getActiveTabs();
-  const currentlyActiveCashtabTab = Boolean(tabs.find(tab => openMetamaskTabsIDs[tab.id]));
-  if (!popupIsOpen && !currentlyActiveCashtabTab) {
-    await notificationManager.showPopup();
-  }
-  */
     // Open a pop-up
     let left = 0;
     let top = 0;
