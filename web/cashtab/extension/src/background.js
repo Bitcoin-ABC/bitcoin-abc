@@ -167,7 +167,7 @@ async function triggerUi(txInfo) {
         .join('&');
 
     // create new notification popup
-    const popupWindow = await openWindow({
+    await openWindow({
         url: `index.html#/send?${queryString}`,
         type: 'popup',
         width: NOTIFICATION_WIDTH,
