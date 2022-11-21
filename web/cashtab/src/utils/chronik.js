@@ -429,7 +429,7 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
     let originatingHash160 = '';
     let etokenAmount = new BigNumber(0);
     let isTokenBurn = false;
-    const isEtokenTx = 'slpTxData' in tx && typeof tx.slpTxData !== 'undefined';
+    let isEtokenTx = 'slpTxData' in tx && typeof tx.slpTxData !== 'undefined';
     const isGenesisTx =
         isEtokenTx &&
         tx.slpTxData.slpMeta &&
@@ -673,7 +673,7 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
                                 ? etokenAmount.plus(thisEtokenAmount)
                                 : etokenAmount.minus(thisEtokenAmount);
                     } catch (err) {
-                        // edge case described above; in this case there is zero eToken value for this Cashtab recipient, so add 0
+                        // edge case described above; in this case there is zero eToken value for this Cashtab recipient in this output, so add 0
                         etokenAmount.plus(new BigNumber(0));
                     }
                 }
@@ -698,6 +698,17 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
         }
     }
 
+    /* If it's an eToken tx that 
+        - did not send any eTokens to the receiving Cashtab wallet
+        - did send XEC to the receiving Cashtab wallet
+       Parse it as an XEC received tx
+       This type of tx is created by this swap wallet. More detailed parsing to be added later as use case is better understood
+       https://www.youtube.com/watch?v=5EFWXHPwzRk
+    */
+    if (isEtokenTx && etokenAmount.isEqualTo(0)) {
+        isEtokenTx = false;
+        opReturnMessage = '';
+    }
     // Convert from sats to XEC
     xecAmount = xecAmount.shiftedBy(-1 * currency.cashDecimals);
 

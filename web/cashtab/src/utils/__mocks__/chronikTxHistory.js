@@ -7472,3 +7472,378 @@ export const mockReceivedEtokenTx = {
     isCoinbase: false,
     network: 'XEC',
 };
+
+export const mockSwapTx = {
+    txid: '2f030de7c8f80a1ecac3645092dd22f0943c34d54cb734e12d7dfda0641fdfcf',
+    version: 1,
+    inputs: [
+        {
+            prevOut: {
+                txid: '4e771bc4bbd377f05b467b0e070ff330f03112b9effb61af5568e174850afa1b',
+                outIdx: 1,
+            },
+            inputScript:
+                '41ff62002b741b8b4831484f9a214c72972965765dc398cccb2f9756a910415f89a28c3560b772a73cb6f987057a7204105cb8afab30a46e74308a134d15ceb48b4121038a124bbf306b5bd19e8d10a396a96ae18abe79229820f30e81989fd645cf0525',
+            outputScript: '76a91480ad93eff2bd02e6383ba62476ffd729d1b2660d88ac',
+            value: '546',
+            sequenceNo: 4294967295,
+        },
+        {
+            prevOut: {
+                txid: 'ffbe78a817d157a0debf3c6ee5e14cea8a2bd1cd0feaf8c368292b694110d7f4',
+                outIdx: 1,
+            },
+            inputScript:
+                '41a112ff6b2b9d288f507b48e042390b8b285bf761e617885eb9a536259c1bd1bec673325cebbf913d90ad0ec3237eac29e6592198cb52dcd6cf6786f784f5889e41210247295c2401b8846ddd915ba9808e0962241003baecd0242b3888d1b3182c2154',
+            outputScript: '76a91475c5980aa6eeada103b45f82e37163e9047903af88ac',
+            value: '546',
+            sequenceNo: 4294967295,
+            slpToken: {
+                amount: '10000',
+                isMintBaton: false,
+            },
+        },
+        {
+            prevOut: {
+                txid: '6684cb754ec82e4d9b9b068ab2191af8cfd0998da9f753c16fabb293664e45af',
+                outIdx: 0,
+            },
+            inputScript:
+                '41bb8866a6cd6975ec9fdd8c45860c6cee5f83c52c801f830b3a97a69b6a02762c73a71ef91ce519224eb7e62fc4eb895587231a258a8f368f007c6377e7ca0028412102744cf89c996b8ec7ea887a1c4d0e0f98a2c82f8a1e4956ed12d8c8dc8bb2f6e4',
+            outputScript: '76a914205c792fff2ffc891e986246760ee1079fa5a36988ac',
+            value: '101670',
+            sequenceNo: 4294967295,
+        },
+    ],
+    outputs: [
+        {
+            value: '0',
+            outputScript:
+                '6a04534c500001010453454e442054dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484080000000000002710',
+        },
+        {
+            value: '546',
+            outputScript: '76a914205c792fff2ffc891e986246760ee1079fa5a36988ac',
+            slpToken: {
+                amount: '10000',
+                isMintBaton: false,
+            },
+        },
+        {
+            value: '100546',
+            outputScript: '76a91480ad93eff2bd02e6383ba62476ffd729d1b2660d88ac',
+        },
+        {
+            value: '1000',
+            outputScript: '76a914a7d744e1246a20f26238e0510fb82d8df84cc82d88ac',
+        },
+    ],
+    lockTime: 0,
+    slpTxData: {
+        slpMeta: {
+            tokenType: 'FUNGIBLE',
+            txType: 'SEND',
+            tokenId:
+                '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
+        },
+    },
+    block: {
+        height: 767064,
+        hash: '0000000000000000018dacde348577244cca129a8787f1594ef3e2dff9831153',
+        timestamp: '1669029608',
+    },
+    timeFirstSeen: '1669028713',
+    size: 599,
+    isCoinbase: false,
+    network: 'XEC',
+    parsed: {
+        incoming: true,
+        xecAmount: '10',
+        originatingHash160: '205c792fff2ffc891e986246760ee1079fa5a369',
+        isEtokenTx: false,
+        airdropFlag: false,
+        airdropTokenId: '',
+        opReturnMessage: '',
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        decryptionSuccess: false,
+        replyAddress: 'ecash:qqs9c7f0luhlezg7np3yvaswuyrelfdrdyfxzg8vh0',
+    },
+};
+export const mockSwapWallet = {
+    mnemonic: '',
+    name: 'tx-history-tests',
+    Path245: {
+        publicKey:
+            '03b07958256f978e90669c4382b0be09caa05f847716746b3052cd6145df6062c1',
+        hash160: '056d6d7e88f008de89ee53fa8b6fe10ffe10271f',
+        cashAddress: 'bitcoincash:qqzk6mt73rcq3h5faefl4zm0uy8luyp8run6d3js23',
+        slpAddress: 'simpleledger:qqzk6mt73rcq3h5faefl4zm0uy8luyp8rulpx28s50',
+        fundingWif: '',
+        fundingAddress:
+            'simpleledger:qqzk6mt73rcq3h5faefl4zm0uy8luyp8rulpx28s50',
+        legacyAddress: '1VhU8XuKS7ihzt8WZW41FzwM4aqVTKMqH',
+    },
+    Path145: {
+        publicKey:
+            '0378e3a893ea4f69fe710baf0623562078cfe84f7650c8379cd32d6a76e3cb5d82',
+        hash160: '46d48362f35519ff656a3a5ca8cd43755efa74d1',
+        cashAddress: 'bitcoincash:qprdfqmz7d23nlm9dga9e2xdgd64a7n56y3zmmxyjp',
+        slpAddress: 'simpleledger:qprdfqmz7d23nlm9dga9e2xdgd64a7n56yaesqnyvl',
+        fundingWif: '',
+        fundingAddress:
+            'simpleledger:qprdfqmz7d23nlm9dga9e2xdgd64a7n56yaesqnyvl',
+        legacyAddress: '17TWt79xyS72UBHoxgb6xfnCaHQXd4zHyh',
+    },
+    Path1899: {
+        publicKey:
+            '0358a2f0ed38317f63de8400515ec376517d4020ca121a5b71e56d19028d6fee27',
+        hash160: 'a7d744e1246a20f26238e0510fb82d8df84cc82d',
+        cashAddress: 'bitcoincash:qznaw38py34zpunz8rs9zrac9kxlsnxg95m2sf5czz',
+        slpAddress: 'simpleledger:qznaw38py34zpunz8rs9zrac9kxlsnxg95h3mjpcuu',
+        fundingWif: '',
+        fundingAddress:
+            'simpleledger:qznaw38py34zpunz8rs9zrac9kxlsnxg95h3mjpcuu',
+        legacyAddress: '1GJTjC9c5o3G7LJEGfgqzghGY6ecrwLAG9',
+    },
+    state: {
+        balances: {
+            totalBalanceInSatoshis: '1997',
+            totalBalance: '19.97',
+        },
+        tokens: [],
+        slpBalancesAndUtxos: {
+            slpUtxos: [],
+            nonSlpUtxos: [
+                {
+                    outpoint: {
+                        txid: '0417094d2011c967e2ad8fe917415876f2e6a249bb486edb638d5659920a88ee',
+                        outIdx: 0,
+                    },
+                    blockHeight: 767064,
+                    isCoinbase: false,
+                    value: '997',
+                    network: 'XEC',
+                    address:
+                        'bitcoincash:qznaw38py34zpunz8rs9zrac9kxlsnxg95m2sf5czz',
+                },
+                {
+                    outpoint: {
+                        txid: '2f030de7c8f80a1ecac3645092dd22f0943c34d54cb734e12d7dfda0641fdfcf',
+                        outIdx: 3,
+                    },
+                    blockHeight: 767064,
+                    isCoinbase: false,
+                    value: '1000',
+                    slpMeta: {
+                        tokenType: 'FUNGIBLE',
+                        txType: 'SEND',
+                        tokenId:
+                            '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
+                    },
+                    network: 'XEC',
+                    address:
+                        'bitcoincash:qznaw38py34zpunz8rs9zrac9kxlsnxg95m2sf5czz',
+                },
+            ],
+            tokens: [],
+        },
+        parsedTxHistory: [
+            {
+                txid: '2f030de7c8f80a1ecac3645092dd22f0943c34d54cb734e12d7dfda0641fdfcf',
+                version: 1,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: '4e771bc4bbd377f05b467b0e070ff330f03112b9effb61af5568e174850afa1b',
+                            outIdx: 1,
+                        },
+                        inputScript:
+                            '41ff62002b741b8b4831484f9a214c72972965765dc398cccb2f9756a910415f89a28c3560b772a73cb6f987057a7204105cb8afab30a46e74308a134d15ceb48b4121038a124bbf306b5bd19e8d10a396a96ae18abe79229820f30e81989fd645cf0525',
+                        outputScript:
+                            '76a91480ad93eff2bd02e6383ba62476ffd729d1b2660d88ac',
+                        value: '546',
+                        sequenceNo: 4294967295,
+                    },
+                    {
+                        prevOut: {
+                            txid: 'ffbe78a817d157a0debf3c6ee5e14cea8a2bd1cd0feaf8c368292b694110d7f4',
+                            outIdx: 1,
+                        },
+                        inputScript:
+                            '41a112ff6b2b9d288f507b48e042390b8b285bf761e617885eb9a536259c1bd1bec673325cebbf913d90ad0ec3237eac29e6592198cb52dcd6cf6786f784f5889e41210247295c2401b8846ddd915ba9808e0962241003baecd0242b3888d1b3182c2154',
+                        outputScript:
+                            '76a91475c5980aa6eeada103b45f82e37163e9047903af88ac',
+                        value: '546',
+                        sequenceNo: 4294967295,
+                        slpToken: {
+                            amount: '10000',
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        prevOut: {
+                            txid: '6684cb754ec82e4d9b9b068ab2191af8cfd0998da9f753c16fabb293664e45af',
+                            outIdx: 0,
+                        },
+                        inputScript:
+                            '41bb8866a6cd6975ec9fdd8c45860c6cee5f83c52c801f830b3a97a69b6a02762c73a71ef91ce519224eb7e62fc4eb895587231a258a8f368f007c6377e7ca0028412102744cf89c996b8ec7ea887a1c4d0e0f98a2c82f8a1e4956ed12d8c8dc8bb2f6e4',
+                        outputScript:
+                            '76a914205c792fff2ffc891e986246760ee1079fa5a36988ac',
+                        value: '101670',
+                        sequenceNo: 4294967295,
+                    },
+                ],
+                outputs: [
+                    {
+                        value: '0',
+                        outputScript:
+                            '6a04534c500001010453454e442054dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484080000000000002710',
+                    },
+                    {
+                        value: '546',
+                        outputScript:
+                            '76a914205c792fff2ffc891e986246760ee1079fa5a36988ac',
+                        slpToken: {
+                            amount: '10000',
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        value: '100546',
+                        outputScript:
+                            '76a91480ad93eff2bd02e6383ba62476ffd729d1b2660d88ac',
+                    },
+                    {
+                        value: '1000',
+                        outputScript:
+                            '76a914a7d744e1246a20f26238e0510fb82d8df84cc82d88ac',
+                    },
+                ],
+                lockTime: 0,
+                slpTxData: {
+                    slpMeta: {
+                        tokenType: 'FUNGIBLE',
+                        txType: 'SEND',
+                        tokenId:
+                            '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
+                    },
+                },
+                block: {
+                    height: 767064,
+                    hash: '0000000000000000018dacde348577244cca129a8787f1594ef3e2dff9831153',
+                    timestamp: '1669029608',
+                },
+                timeFirstSeen: '1669028713',
+                size: 599,
+                isCoinbase: false,
+                network: 'XEC',
+                parsed: {
+                    incoming: true,
+                    xecAmount: '10',
+                    originatingHash160:
+                        '205c792fff2ffc891e986246760ee1079fa5a369',
+                    isEtokenTx: false,
+                    airdropFlag: false,
+                    airdropTokenId: '',
+                    opReturnMessage: '',
+                    isCashtabMessage: false,
+                    isEncryptedMessage: false,
+                    decryptionSuccess: false,
+                    replyAddress:
+                        'ecash:qqs9c7f0luhlezg7np3yvaswuyrelfdrdyfxzg8vh0',
+                },
+            },
+            {
+                txid: '0417094d2011c967e2ad8fe917415876f2e6a249bb486edb638d5659920a88ee',
+                version: 2,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: '4691723e4e2e5746d6970240ee090ba2cf78491cce661430da1edb2120c6b9e6',
+                            outIdx: 3,
+                        },
+                        inputScript:
+                            '473044022061633670542840e3cac8e755f9d71d7c3781bec7804167348f4e06d58e1397080220633dc3d2ee9754fd4631b9659ea8bf4db4de797b8eda77cdabf0f9732c773056412103555698203a7d3688e5b4c01ac5f272f5095f2ad238fdc5f55353cbb33fef6ff0',
+                        outputScript:
+                            '76a9146150012e55ab0130e2105d4e2f118824f3df1c4a88ac',
+                        value: '1600',
+                        sequenceNo: 4294967295,
+                        slpBurn: {
+                            token: {
+                                amount: '0',
+                                isMintBaton: false,
+                            },
+                            tokenId:
+                                '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
+                        },
+                    },
+                ],
+                outputs: [
+                    {
+                        value: '997',
+                        outputScript:
+                            '76a914a7d744e1246a20f26238e0510fb82d8df84cc82d88ac',
+                    },
+                ],
+                lockTime: 0,
+                block: {
+                    height: 767064,
+                    hash: '0000000000000000018dacde348577244cca129a8787f1594ef3e2dff9831153',
+                    timestamp: '1669029608',
+                },
+                timeFirstSeen: '1669028586',
+                size: 191,
+                isCoinbase: false,
+                network: 'XEC',
+                parsed: {
+                    incoming: true,
+                    xecAmount: '9.97',
+                    originatingHash160:
+                        '6150012e55ab0130e2105d4e2f118824f3df1c4a',
+                    isEtokenTx: false,
+                    airdropFlag: false,
+                    airdropTokenId: '',
+                    opReturnMessage: '',
+                    isCashtabMessage: false,
+                    isEncryptedMessage: false,
+                    decryptionSuccess: false,
+                    replyAddress:
+                        'ecash:qps4qqfw2k4szv8zzpw5utc33qj08hcufg8708r67w',
+                },
+            },
+        ],
+        utxos: [
+            {
+                outpoint: {
+                    txid: '0417094d2011c967e2ad8fe917415876f2e6a249bb486edb638d5659920a88ee',
+                    outIdx: 0,
+                },
+                blockHeight: 767064,
+                isCoinbase: false,
+                value: '997',
+                network: 'XEC',
+                address:
+                    'bitcoincash:qznaw38py34zpunz8rs9zrac9kxlsnxg95m2sf5czz',
+            },
+            {
+                outpoint: {
+                    txid: '2f030de7c8f80a1ecac3645092dd22f0943c34d54cb734e12d7dfda0641fdfcf',
+                    outIdx: 3,
+                },
+                blockHeight: 767064,
+                isCoinbase: false,
+                value: '1000',
+                slpMeta: {
+                    tokenType: 'FUNGIBLE',
+                    txType: 'SEND',
+                    tokenId:
+                        '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
+                },
+                network: 'XEC',
+                address:
+                    'bitcoincash:qznaw38py34zpunz8rs9zrac9kxlsnxg95m2sf5czz',
+            },
+        ],
+    },
+};

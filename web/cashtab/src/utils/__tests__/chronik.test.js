@@ -52,6 +52,8 @@ import {
     mockTokenBurnTx,
     mockTokenBurnWithDecimalsTx,
     mockReceivedEtokenTx,
+    mockSwapWallet,
+    mockSwapTx,
 } from '../__mocks__/chronikTxHistory';
 import {
     mintingTxTabCash,
@@ -748,6 +750,32 @@ it(`Correctly parses received quantity for a received eToken address`, () => {
         isEncryptedMessage: false,
         decryptionSuccess: false,
         replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
+    });
+});
+it(`Correctly parses an incoming eToken tx that send only XEC to the Cashtab user recipient`, () => {
+    const BCH = new BCHJS({
+        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
+    });
+    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
+    BCH.Address.hash160ToCash = jest
+        .fn()
+        .mockReturnValue(
+            'bitcoincash:qznaw38py34zpunz8rs9zrac9kxlsnxg95m2sf5czz',
+        );
+    expect(
+        parseChronikTx(BCH, mockSwapTx, mockSwapWallet, txHistoryTokenInfoById),
+    ).toStrictEqual({
+        incoming: true,
+        xecAmount: '10',
+        originatingHash160: '205c792fff2ffc891e986246760ee1079fa5a369',
+        isEtokenTx: false,
+        airdropFlag: false,
+        airdropTokenId: '',
+        opReturnMessage: '',
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        decryptionSuccess: false,
+        replyAddress: 'ecash:qznaw38py34zpunz8rs9zrac9kxlsnxg95z8yz0zy4',
     });
 });
 
