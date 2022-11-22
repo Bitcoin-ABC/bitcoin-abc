@@ -46,10 +46,7 @@ export default function useBCH() {
             }
             const utxos = wallet.state.slpBalancesAndUtxos.nonSlpUtxos;
             const CREATION_ADDR = wallet.Path1899.cashAddress;
-            let txBuilder = new BCH.TransactionBuilder();
-
-            // for temporary comparison
-            let localTxBuilder = new TransactionBuilder();
+            let txBuilder = new TransactionBuilder();
 
             let tokenTxInputObj = generateTokenTxInput(
                 BCH,
@@ -64,22 +61,6 @@ export default function useBCH() {
             // update txBuilder object with inputs
             txBuilder = tokenTxInputObj.txBuilder;
 
-            // for temporary comparison
-            let localTokenTxInputObj = generateTokenTxInput(
-                BCH,
-                'GENESIS',
-                utxos,
-                null, // total token UTXOS - not applicable for GENESIS tx
-                null, // token ID - not applicable for GENESIS tx
-                null, // token amount - not applicable for GENESIS tx
-                feeInSatsPerByte,
-                localTxBuilder,
-            );
-            localTxBuilder = localTokenTxInputObj.txBuilder;
-            if (JSON.stringify(txBuilder) === JSON.stringify(localTxBuilder)) {
-                console.log('post-generateTokenTxInput() output matches');
-            }
-
             let tokenTxOutputObj = generateTokenTxOutput(
                 BCH,
                 txBuilder,
@@ -92,21 +73,6 @@ export default function useBCH() {
             // update txBuilder object with outputs
             txBuilder = tokenTxOutputObj;
 
-            // for temporary comparison
-            let localTokenTxOutputObj = generateTokenTxOutput(
-                BCH,
-                localTxBuilder,
-                'GENESIS',
-                CREATION_ADDR,
-                null, // token UTXOS being spent - not applicable for GENESIS tx
-                localTokenTxInputObj.remainderXecValue,
-                configObj,
-            );
-            localTxBuilder = localTokenTxOutputObj;
-            if (JSON.stringify(txBuilder) === JSON.stringify(localTxBuilder)) {
-                console.log('post-generateTokenTxOutput() output matches');
-            }
-
             // sign the collated inputUtxos and build the raw tx hex
             // returns the raw tx hex string
             const rawTxHex = signAndBuildTx(
@@ -115,17 +81,6 @@ export default function useBCH() {
                 txBuilder,
                 wallet,
             );
-
-            // for temporary comparison
-            const localRawTxHex = signAndBuildTx(
-                BCH,
-                localTokenTxInputObj.inputXecUtxos,
-                localTxBuilder,
-                wallet,
-            );
-            if (JSON.stringify(rawTxHex) === JSON.stringify(localRawTxHex)) {
-                console.log('post-signAndBuildTx() output matches');
-            }
 
             // Broadcast transaction to the network via the chronik client
             // sample chronik.broadcastTx() response:
