@@ -837,23 +837,6 @@ const useWallet = () => {
         return wallet;
     };
 
-    const validateMnemonic = (mnemonic, wordlist = bip39.wordlists.english) => {
-        try {
-            if (!mnemonic || !wordlist) return false;
-
-            // Preprocess the words
-            const words = mnemonic.split(' ');
-            // Detect blank phrase
-            if (words.length === 0) return false;
-
-            // Check the words are valid
-            return bip39.validateMnemonic(mnemonic, wordlist);
-        } catch (err) {
-            console.log(err);
-            return false;
-        }
-    };
-
     // Parse chronik ws message for incoming tx notifications
     const processChronikWsMsg = async (msg, wallet, fiatPrice) => {
         // get the message type
@@ -1450,7 +1433,6 @@ const useWallet = () => {
         changeCashtabSettings,
         getActiveWalletFromLocalForage,
         getWallet,
-        validateMnemonic,
         getWalletDetails,
         getSavedWallets,
         migrateLegacyWallet,

@@ -15,6 +15,7 @@ import PrimaryButton, {
 } from 'components/Common/PrimaryButton';
 import { currency } from 'components/Common/Ticker.js';
 import { Event } from 'utils/GoogleAnalytics';
+import { validateMnemonic } from 'utils/validation';
 
 export const WelcomeCtn = styled.div`
     margin-top: 20px;
@@ -43,7 +44,7 @@ export const WelcomeLink = styled.a`
 
 const OnBoarding = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { createWallet, validateMnemonic } = ContextValue;
+    const { createWallet } = ContextValue;
     const [formData, setFormData] = useState({
         dirty: true,
         mnemonic: '',

@@ -21,6 +21,7 @@ import {
     isValidContactList,
     parseInvalidSettingsForMigration,
     isValidCashtabCache,
+    validateMnemonic,
 } from '../validation';
 import { currency } from 'components/Common/Ticker.js';
 import { fromSatoshisToXec } from 'utils/cashMethods';
@@ -50,6 +51,20 @@ import {
 } from 'utils/__mocks__/mockCashtabCache';
 
 describe('Validation utils', () => {
+    it(`validateMnemonic() returns true for a valid mnemonic`, () => {
+        const mnemonic =
+            'labor tail bulb distance estate collect lecture into smile differ yard legal';
+        expect(validateMnemonic(mnemonic)).toBe(true);
+    });
+    it(`validateMnemonic() returns false for an invalid mnemonic`, () => {
+        const mnemonic =
+            'labor tail bulb not valid collect lecture into smile differ yard legal';
+        expect(validateMnemonic(mnemonic)).toBe(false);
+    });
+    it(`validateMnemonic() returns false for an empty string mnemonic`, () => {
+        const mnemonic = '';
+        expect(validateMnemonic(mnemonic)).toBe(false);
+    });
     it(`Returns 'false' if ${currency.ticker} send amount is a valid send amount`, () => {
         expect(shouldRejectAmountInput('10', currency.ticker, 20.0, 300)).toBe(
             false,

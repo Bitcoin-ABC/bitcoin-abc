@@ -57,6 +57,7 @@ import { formatSavedBalance } from 'utils/formatting';
 import {
     isValidXecAddress,
     isValidNewWalletNameLength,
+    validateMnemonic,
 } from 'utils/validation';
 import { convertToEcashPrefix } from 'utils/cashMethods';
 import useWindowDimensions from 'hooks/useWindowDimensions';
@@ -479,7 +480,6 @@ const Configure = () => {
         renameSavedWallet,
         renameActiveWallet,
         deleteWallet,
-        validateMnemonic,
         getSavedWallets,
         cashtabSettings,
         changeCashtabSettings,

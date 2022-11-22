@@ -2,6 +2,27 @@ import BigNumber from 'bignumber.js';
 import { currency } from 'components/Common/Ticker.js';
 import { fromSatoshisToXec } from 'utils/cashMethods';
 import cashaddr from 'ecashaddrjs';
+import * as bip39 from 'bip39';
+
+export const validateMnemonic = (
+    mnemonic,
+    wordlist = bip39.wordlists.english,
+) => {
+    try {
+        if (!mnemonic || !wordlist) return false;
+
+        // Preprocess the words
+        const words = mnemonic.split(' ');
+        // Detect blank phrase
+        if (words.length === 0) return false;
+
+        // Check the words are valid
+        return bip39.validateMnemonic(mnemonic, wordlist);
+    } catch (err) {
+        console.log(err);
+        return false;
+    }
+};
 
 // Validate cash amount
 export const shouldRejectAmountInput = (
