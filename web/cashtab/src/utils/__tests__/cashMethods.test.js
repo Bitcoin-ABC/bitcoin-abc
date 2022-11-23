@@ -117,6 +117,7 @@ import {
     mockMultipleOutputs,
 } from '../__mocks__/mockTxBuilderData';
 import createTokenMock from '../../hooks/__mocks__/createToken';
+import TransactionBuilder from 'utils/txBuilder';
 
 it(`generateSendOpReturn() returns correct script object for valid tokenUtxo and send quantity`, () => {
     const BCH = new BCHJS();
@@ -224,7 +225,7 @@ it(`signUtxosByAddress() successfully returns a txBuilder object for a one to on
     const BCH = new BCHJS();
     const isOneToMany = false;
     const { destinationAddress, wallet, utxos } = sendBCHMock;
-    let txBuilder = new BCH.TransactionBuilder();
+    let txBuilder = new TransactionBuilder();
     const satoshisToSendInput = new BigNumber(2184);
     const feeInSatsPerByte = currency.defaultFee;
 
@@ -282,7 +283,7 @@ it(`signUtxosByAddress() successfully returns a txBuilder object for a one to ma
     const BCH = new BCHJS();
     const isOneToMany = true;
     const { wallet, utxos } = sendBCHMock;
-    let txBuilder = new BCH.TransactionBuilder();
+    let txBuilder = new TransactionBuilder();
     let destinationAddressAndValueArray = [
         'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r48,3000',
         'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx,3000',
@@ -631,7 +632,7 @@ it('generateOpReturnScript() correctly throws an error on an invalid airdrop inp
 
 it(`generateTokenTxInput() returns a valid object for a valid create token tx`, async () => {
     const BCH = new BCHJS();
-    let txBuilder = new BCH.TransactionBuilder();
+    let txBuilder = new TransactionBuilder();
     const tokenId =
         '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e';
     const tokenInputObj = generateTokenTxInput(
@@ -658,7 +659,7 @@ it(`generateTokenTxInput() returns a valid object for a valid create token tx`, 
 
 it(`generateTokenTxInput() returns a valid object for a valid send token tx`, async () => {
     const BCH = new BCHJS();
-    let txBuilder = new BCH.TransactionBuilder();
+    let txBuilder = new TransactionBuilder();
     const tokenId = mockSlpUtxos[0].tokenId;
 
     const tokenInputObj = generateTokenTxInput(
@@ -685,7 +686,7 @@ it(`generateTokenTxInput() returns a valid object for a valid send token tx`, as
 
 it(`generateTokenTxInput() returns a valid object for a valid burn token tx`, async () => {
     const BCH = new BCHJS();
-    let txBuilder = new BCH.TransactionBuilder();
+    let txBuilder = new TransactionBuilder();
     const tokenId = mockSlpUtxos[0].tokenId;
 
     const tokenInputObj = generateTokenTxInput(
@@ -712,7 +713,7 @@ it(`generateTokenTxInput() returns a valid object for a valid burn token tx`, as
 
 it(`generateTokenTxOutput() returns a valid object for a valid create token tx`, async () => {
     const BCH = new BCHJS();
-    let txBuilder = new BCH.TransactionBuilder();
+    let txBuilder = new TransactionBuilder();
     const { configObj, wallet } = createTokenMock;
     const tokenSenderCashAddress = wallet.Path1899.cashAddress;
 
@@ -733,7 +734,7 @@ it(`generateTokenTxOutput() returns a valid object for a valid create token tx`,
 
 it(`generateTokenTxOutput() returns a valid object for a valid send token tx`, async () => {
     const BCH = new BCHJS();
-    let txBuilder = new BCH.TransactionBuilder();
+    let txBuilder = new TransactionBuilder();
     const { wallet } = createTokenMock;
     const tokenSenderCashAddress = wallet.Path1899.cashAddress;
     const tokenRecipientTokenAddress = wallet.Path1899.slpAddress;
@@ -757,7 +758,7 @@ it(`generateTokenTxOutput() returns a valid object for a valid send token tx`, a
 
 it(`generateTokenTxOutput() returns a valid object for a valid burn token tx`, async () => {
     const BCH = new BCHJS();
-    let txBuilder = new BCH.TransactionBuilder();
+    let txBuilder = new TransactionBuilder();
     const { wallet } = createTokenMock;
     const tokenSenderCashAddress = wallet.Path1899.cashAddress;
 
@@ -782,7 +783,7 @@ it(`generateTxInput() returns an input object for a valid one to one XEC tx`, as
     const BCH = new BCHJS();
     const isOneToMany = false;
     const utxos = mockNonSlpUtxos;
-    let txBuilder = new BCH.TransactionBuilder();
+    let txBuilder = new TransactionBuilder();
     const destinationAddressAndValueArray = null;
     const satoshisToSend = new BigNumber(2184);
     const feeInSatsPerByte = currency.defaultFee;
@@ -806,7 +807,7 @@ it(`generateTxInput() returns an input object for a valid one to many XEC tx`, a
     const BCH = new BCHJS();
     const isOneToMany = true;
     const utxos = mockNonSlpUtxos;
-    let txBuilder = new BCH.TransactionBuilder();
+    let txBuilder = new TransactionBuilder();
     const destinationAddressAndValueArray = [
         'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r48,3000',
         'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx,3000',
@@ -834,7 +835,7 @@ it(`generateTxInput() throws error for a one to many XEC tx with invalid destina
     const BCH = new BCHJS();
     const isOneToMany = true;
     const utxos = mockNonSlpUtxos;
-    let txBuilder = new BCH.TransactionBuilder();
+    let txBuilder = new TransactionBuilder();
     const destinationAddressAndValueArray = null; // invalid since isOneToMany is true
     const satoshisToSend = new BigNumber(900000);
     const feeInSatsPerByte = currency.defaultFee;
@@ -860,7 +861,7 @@ it(`generateTxInput() throws error for a one to many XEC tx with invalid utxos i
     const BCH = new BCHJS();
     const isOneToMany = true;
     const utxos = null;
-    let txBuilder = new BCH.TransactionBuilder();
+    let txBuilder = new TransactionBuilder();
     const destinationAddressAndValueArray = [
         'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r48,3000',
         'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx,3000',
@@ -904,7 +905,7 @@ it(`generateTxOutput() returns a txBuilder instance for a valid one to one XEC t
     );
 
     const destinationAddressAndValueArray = null;
-    let txBuilder = new BCH.TransactionBuilder();
+    let txBuilder = new TransactionBuilder();
     const changeAddress = wallet.Path1899.cashAddress;
 
     const outputObj = generateTxOutput(
@@ -951,7 +952,7 @@ it(`generateTxOutput() returns a txBuilder instance for a valid one to many XEC 
     const destinationAddressAndValueArray = toLegacyCashArray(
         validAddressArrayInput,
     );
-    let txBuilder = new BCH.TransactionBuilder();
+    let txBuilder = new TransactionBuilder();
     const changeAddress = wallet.Path1899.cashAddress;
 
     const outputObj = generateTxOutput(
@@ -985,7 +986,7 @@ it(`generateTxOutput() throws an error on invalid input params for a one to one 
     const txFee = new BigNumber(totalInputUtxoValue).minus(satoshisToSend);
 
     const destinationAddressAndValueArray = null;
-    let txBuilder = new BCH.TransactionBuilder();
+    let txBuilder = new TransactionBuilder();
     const changeAddress = wallet.Path1899.cashAddress;
 
     let thrownError;
@@ -1032,7 +1033,7 @@ it(`generateTxOutput() throws an error on invalid input params for a one to many
             ),
         ); // change value
     const destinationAddressAndValueArray = null; // invalid as this is mandatory when isOneToMany is true
-    let txBuilder = new BCH.TransactionBuilder();
+    let txBuilder = new TransactionBuilder();
     const changeAddress = wallet.Path1899.cashAddress;
 
     let thrownError;
@@ -1058,7 +1059,7 @@ it(`generateTxOutput() throws an error on invalid input params for a one to many
 it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single input and a single output`, () => {
     // txbuilder output params
     const BCH = new BCHJS();
-    let txBuilder = new BCH.TransactionBuilder();
+    let txBuilder = new TransactionBuilder();
     const { wallet } = sendBCHMock;
     // add inputs to txBuilder
     txBuilder.addInput(
@@ -1086,7 +1087,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single in
 it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single input and multiple outputs`, () => {
     // txbuilder output params
     const BCH = new BCHJS();
-    let txBuilder = new BCH.TransactionBuilder();
+    let txBuilder = new TransactionBuilder();
     const { wallet } = sendBCHMock;
     // add inputs to txBuilder
     txBuilder.addInput(
@@ -1119,7 +1120,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single in
 it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple inputs and a single output`, () => {
     // txbuilder output params
     const BCH = new BCHJS();
-    let txBuilder = new BCH.TransactionBuilder();
+    let txBuilder = new TransactionBuilder();
     const { wallet } = sendBCHMock;
     // add inputs to txBuilder
     for (let i = 0; i < mockMultipleInputUtxos.length; i++) {
@@ -1149,7 +1150,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple in
 it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple inputs and multiple outputs`, () => {
     // txbuilder output params
     const BCH = new BCHJS();
-    let txBuilder = new BCH.TransactionBuilder();
+    let txBuilder = new TransactionBuilder();
     const { wallet } = sendBCHMock;
     // add inputs to txBuilder
     for (let i = 0; i < mockMultipleInputUtxos.length; i++) {
@@ -1183,7 +1184,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple in
 it(`signAndBuildTx() throws error on an empty inputUtxo param`, () => {
     // txbuilder output params
     const BCH = new BCHJS();
-    let txBuilder = new BCH.TransactionBuilder();
+    let txBuilder = new TransactionBuilder();
     const { wallet } = sendBCHMock;
     let thrownError;
     try {
@@ -1197,7 +1198,7 @@ it(`signAndBuildTx() throws error on an empty inputUtxo param`, () => {
 it(`signAndBuildTx() throws error on a null inputUtxo param`, () => {
     // txbuilder output params
     const BCH = new BCHJS();
-    let txBuilder = new BCH.TransactionBuilder();
+    let txBuilder = new TransactionBuilder();
     const inputUtxo = null; // invalid input param
     const { wallet } = sendBCHMock;
     let thrownError;
