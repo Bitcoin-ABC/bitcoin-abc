@@ -146,6 +146,9 @@ const useWallet = () => {
     };
 
     const update = async ({ wallet }) => {
+        if (wallet && wallet.name) {
+            console.log(`update loop called on ${wallet.name}`);
+        }
         //console.log(`tick()`);
         //console.time("update");
 
@@ -254,7 +257,6 @@ const useWallet = () => {
                 slpBalancesAndUtxos: {
                     slpUtxos: finalizedSlpUtxos,
                     nonSlpUtxos,
-                    tokens,
                 },
                 parsedTxHistory: chronikTxHistory,
                 utxos: chronikUtxos,
@@ -276,6 +278,7 @@ const useWallet = () => {
 
             // Write this state to indexedDb using localForage
             writeWalletState(wallet, newState);
+
             // If everything executed correctly, remove apiError
             setApiError(false);
         } catch (error) {
@@ -441,6 +444,9 @@ const useWallet = () => {
         wallet.state = newState;
         try {
             await localforage.setItem('wallet', wallet);
+            console.log(
+                `Wallet ${wallet.name} saved without duplicate token object`,
+            );
         } catch (err) {
             console.log(`Error in writeWalletState()`);
             console.log(err);
