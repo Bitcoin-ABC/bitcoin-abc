@@ -260,6 +260,16 @@ const useWallet = () => {
                 utxos: chronikUtxos,
             };
 
+            const walletStateAfterThisStack = {
+                balances: getWalletBalanceFromUtxos(nonSlpUtxos),
+                slpUtxos: finalizedSlpUtxos,
+                nonSlpUtxos,
+                tokens: finalTokenArray,
+                parsedTxHistory: chronikTxHistory,
+            };
+
+            console.log(`walletStateAfterThisStack`, walletStateAfterThisStack);
+
             // Set wallet with new state field
             wallet.state = newState;
             setWallet(wallet);
