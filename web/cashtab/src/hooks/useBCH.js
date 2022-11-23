@@ -145,6 +145,9 @@ export default function useBCH() {
         // instance of transaction builder
         let txBuilder = new BCH.TransactionBuilder();
 
+        // for temporary comparison
+        let localTxBuilder = new TransactionBuilder();
+
         let tokenTxInputObj = generateTokenTxInput(
             BCH,
             'SEND',
@@ -157,6 +160,22 @@ export default function useBCH() {
         );
         // update txBuilder object with inputs
         txBuilder = tokenTxInputObj.txBuilder;
+
+        // for temporary comparison
+        let localTokenTxInputObj = generateTokenTxInput(
+            BCH,
+            'SEND',
+            xecUtxos,
+            tokenUtxos,
+            tokenId,
+            amount,
+            currency.defaultFee,
+            localTxBuilder,
+        );
+        localTxBuilder = localTokenTxInputObj.txBuilder;
+        if (JSON.stringify(txBuilder) === JSON.stringify(localTxBuilder)) {
+            console.log('post-generateTokenTxInput() output matches');
+        }
 
         let tokenTxOutputObj = generateTokenTxOutput(
             BCH,
@@ -172,6 +191,23 @@ export default function useBCH() {
         // update txBuilder object with outputs
         txBuilder = tokenTxOutputObj;
 
+        // for temporary comparison
+        let localTokenTxOutputObj = generateTokenTxOutput(
+            BCH,
+            localTxBuilder,
+            'SEND',
+            CREATION_ADDR,
+            localTokenTxInputObj.inputTokenUtxos,
+            localTokenTxInputObj.remainderXecValue,
+            null, // token config object - for GENESIS tx only
+            tokenReceiverAddress,
+            amount,
+        );
+        localTxBuilder = localTokenTxOutputObj;
+        if (JSON.stringify(txBuilder) === JSON.stringify(localTxBuilder)) {
+            console.log('post-generateTokenTxOutput() output matches');
+        }
+
         // append the token input UTXOs to the array of XEC input UTXOs for signing
         const combinedInputUtxos = tokenTxInputObj.inputXecUtxos.concat(
             tokenTxInputObj.inputTokenUtxos,
@@ -185,6 +221,21 @@ export default function useBCH() {
             txBuilder,
             wallet,
         );
+
+        // for temporary comparison
+        const localCombinedInputUtxos =
+            localTokenTxInputObj.inputXecUtxos.concat(
+                localTokenTxInputObj.inputTokenUtxos,
+            );
+        const localRawTxHex = signAndBuildTx(
+            BCH,
+            localCombinedInputUtxos,
+            localTxBuilder,
+            wallet,
+        );
+        if (JSON.stringify(rawTxHex) === JSON.stringify(localRawTxHex)) {
+            console.log('post-signAndBuildTx() output matches');
+        }
 
         // Broadcast transaction to the network via the chronik client
         // sample chronik.broadcastTx() response:
