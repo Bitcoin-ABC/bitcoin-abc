@@ -259,7 +259,6 @@ const useWallet = () => {
                     nonSlpUtxos,
                 },
                 parsedTxHistory: chronikTxHistory,
-                utxos: chronikUtxos,
             };
 
             const walletStateAfterThisStack = {

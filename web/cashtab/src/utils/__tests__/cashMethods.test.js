@@ -49,6 +49,7 @@ import {
     validStoredWallet,
     invalidStoredWallet,
     invalidpreChronikStoredWallet,
+    validStoredWalletAfter20221123Streamline,
 } from '../__mocks__/mockStoredWallets';
 
 import {
@@ -1154,8 +1155,13 @@ describe('Correctly executes cash utility functions', () => {
             ),
         ).toStrictEqual(utxosLoadedFromCache.balances);
     });
-    it(`Recognizes a stored wallet as valid if it has all required fields`, () => {
+    it(`Recognizes a stored wallet as valid if it has all required fields prior to 20221123 updated format`, () => {
         expect(isValidStoredWallet(validStoredWallet)).toBe(true);
+    });
+    it(`Recognizes a stored wallet as valid if it has all required fields in 20221123 updated format`, () => {
+        expect(
+            isValidStoredWallet(validStoredWalletAfter20221123Streamline),
+        ).toBe(true);
     });
     it(`Recognizes a stored wallet as invalid if it is missing required fields`, () => {
         expect(isValidStoredWallet(invalidStoredWallet)).toBe(false);
