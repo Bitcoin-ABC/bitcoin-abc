@@ -2,7 +2,7 @@
 # Copyright (c) 2018 The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-"""Test the parckblock and unparkblock RPC calls."""
+"""Test the parkblock and unparkblock RPC calls."""
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
@@ -11,8 +11,17 @@ from test_framework.util import assert_equal
 class ParkedChainTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
-        self.extra_args = [["-noparkdeepreorg",
-                            "-noautomaticunparking", "-whitelist=noban@127.0.0.1"], ["-maxreorgdepth=-1"]]
+        self.extra_args = [
+            [
+                "-noparkdeepreorg",
+                "-noautomaticunparking",
+                "-whitelist=noban@127.0.0.1",
+            ],
+            [
+                "-automaticunparking=1",
+                "-maxreorgdepth=-1"
+            ]
+        ]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -216,7 +225,7 @@ class ParkedChainTest(BitcoinTestFramework):
                                )
         wait_for_parked_block(node.getbestblockhash())
         # Restart the parking node without parkdeepreorg.
-        self.restart_node(1, ["-parkdeepreorg=0"])
+        self.restart_node(1, self.extra_args[1] + ["-parkdeepreorg=0"])
         parking_node = self.nodes[1]
         self.connect_nodes(node.index, parking_node.index)
         # The other chain should still be marked 'parked'.

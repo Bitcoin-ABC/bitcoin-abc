@@ -14,3 +14,6 @@ This release includes the following features and fixes:
  - The `savemempool` RPC now returns the path to the saved mempool in the `filename` field.
  - Bitcoin ABC now supports User-space, Statically Defined Tracing (USDT).
    For now only a few tracepoints are available, see [tracing.md](/doc/tracing.md) for more info.
+ - Avalanche is now enabled by default. It is still possible to disable it by
+   using `-avalanche=0` on the command line, or setting `avalanche=0` in the
+   `bitcoin.conf` file.

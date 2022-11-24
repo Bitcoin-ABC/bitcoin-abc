@@ -31,8 +31,12 @@ class CoinStatsIndexTest(BitcoinTestFramework):
         self.num_nodes = 2
         self.supports_cli = False
         self.extra_args = [
-            [],
-            ["-coinstatsindex"]
+            [
+                "-automaticunparking=1",
+            ],
+            [
+                "-coinstatsindex",
+            ]
         ]
 
     def skip_test_if_missing_module(self):

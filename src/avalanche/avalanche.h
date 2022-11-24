@@ -19,7 +19,7 @@ class ArgsManager;
 /**
  * Is avalanche enabled by default.
  */
-static constexpr bool AVALANCHE_DEFAULT_ENABLED = false;
+static constexpr bool AVALANCHE_DEFAULT_ENABLED = true;
 
 /**
  * Conflicting proofs cooldown time default value in seconds.

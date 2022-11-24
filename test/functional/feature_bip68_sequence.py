@@ -48,7 +48,8 @@ class BIP68Test(BitcoinTestFramework):
             ],
             [
                 "-acceptnonstdtxn=0",
-                "-maxreorgdepth=-1"
+                "-maxreorgdepth=-1",
+                "-automaticunparking=1",
             ]
         ]
 
