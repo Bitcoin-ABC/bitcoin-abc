@@ -161,11 +161,11 @@ export const signUtxosByAddress = (inputUtxos, wallet, txBuilder) => {
             .filter(acc => acc.cashAddress === utxo.address)
             .pop().fundingWif;
 
-        const utxoEcPair = getECPairFromWIF(wif);
+        const utxoECPair = getECPairFromWIF(wif);
 
         txBuilder.sign(
             i,
-            utxoEcPair,
+            utxoECPair,
             undefined,
             txBuilder.hashTypes.SIGHASH_ALL,
             parseInt(utxo.value),
