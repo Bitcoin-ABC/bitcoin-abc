@@ -95,13 +95,12 @@ const SignVerifyMsg = ({ jestBCH }) => {
         useState(false);
     const [messageVerificationSigError, setMessageVerificationSigError] =
         useState(false);
-    const signMessageByPk = async () => {
+    const signMessageByPk = () => {
         try {
-            const messageSignature =
-                await bchObj.BitcoinCash.signMessageWithPrivKey(
-                    wallet.Path1899.fundingWif,
-                    msgToSign,
-                );
+            const messageSignature = bchObj.BitcoinCash.signMessageWithPrivKey(
+                wallet.Path1899.fundingWif,
+                msgToSign,
+            );
             setMessageSignature(messageSignature);
             messageSignedNotification(messageSignature);
         } catch (err) {
