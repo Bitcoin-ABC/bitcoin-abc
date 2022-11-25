@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { Form, Modal, Input } from 'antd';
@@ -73,9 +73,9 @@ const SignatureValidation = styled.div`
     color: ${props => props.theme.encryptionRed};
 `;
 
-const SignVerifyMsg = ({ jestBCH }) => {
+const SignVerifyMsg = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { BCH, wallet, fiatPrice, cashtabSettings, changeCashtabSettings } =
+    const { wallet, fiatPrice, cashtabSettings, changeCashtabSettings } =
         ContextValue;
     const walletState = getWalletState(wallet);
     const { balances } = walletState;
@@ -86,7 +86,6 @@ const SignVerifyMsg = ({ jestBCH }) => {
     const [signMessageIsValid, setSignMessageIsValid] = useState(null);
     const [showConfirmMsgToVerify, setShowConfirmMsgToVerify] = useState(false);
     const [messageVerificationAddr, setMessageVerificationAddr] = useState('');
-    const [bchObj, setBchObj] = useState(false);
     const [messageVerificationSig, setMessageVerificationSig] = useState('');
     const [messageVerificationMsg, setMessageVerificationMsg] = useState('');
     const [messageVerificationMsgIsValid, setMessageVerificationMsgIsValid] =
@@ -101,27 +100,15 @@ const SignVerifyMsg = ({ jestBCH }) => {
         useState(false);
     const signMessageByPk = () => {
         try {
-            const messageSignature = bchObj.BitcoinCash.signMessageWithPrivKey(
-                wallet.Path1899.fundingWif,
-                msgToSign,
-            );
-            // Get local messageSignature
             // First, get required params
             const keyPair = getECPairFromWIF(wallet.Path1899.fundingWif);
             // Reference https://github.com/Permissionless-Software-Foundation/bch-js/blob/master/src/bitcoincash.js#L161
             const privKey = keyPair.d.toBuffer(32);
             // Now you can get the local signature
-            const localMessageSignature = xecMessage
+            const messageSignature = xecMessage
                 .sign(msgToSign, privKey, keyPair.compressed)
                 .toString('base64');
 
-            // Compare to legacy method
-            console.log(`legacy signature`, messageSignature);
-            console.log(`local signature`, localMessageSignature);
-
-            if (messageSignature === localMessageSignature) {
-                console.log(`The signatures match`);
-            }
             setMessageSignature(messageSignature);
             messageSignedNotification(messageSignature);
         } catch (err) {
@@ -236,14 +223,6 @@ const SignVerifyMsg = ({ jestBCH }) => {
         setMessageVerificationAddrError(error);
         setMessageVerificationAddr(address);
     };
-
-    useEffect(() => {
-        // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
-        const activeBCH = jestBCH ? jestBCH : BCH;
-
-        // set the BCH instance to state, for other functions to reference
-        setBchObj(activeBCH);
-    }, [BCH]);
 
     return (
         <Wrapper>
@@ -470,7 +449,6 @@ const SignVerifyMsg = ({ jestBCH }) => {
 };
 
 SignVerifyMsg.propTypes = {
-    jestBCH: PropTypes.object,
     cashtabSettings: PropTypes.oneOfType([
         PropTypes.shape({
             fiatCurrency: PropTypes.string,

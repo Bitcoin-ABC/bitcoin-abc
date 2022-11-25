@@ -8,7 +8,6 @@ import {
     walletWithBalancesAndTokensWithCorrectState,
 } from '../../Home/__mocks__/walletAndBalancesMock';
 import SignVerifyMsg from '../SignVerifyMsg';
-import BCHJS from '@psf/bch-js';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { WalletContext } from 'utils/context';
 
@@ -31,12 +30,11 @@ beforeEach(() => {
 });
 
 test('Wallet without BCH balance', () => {
-    const testBCH = new BCHJS();
     const component = renderer.create(
         <WalletContext.Provider value={walletWithoutBalancesMock}>
             <ThemeProvider theme={theme}>
                 <Router>
-                    <SignVerifyMsg jestBCH={testBCH} />
+                    <SignVerifyMsg />
                 </Router>
             </ThemeProvider>
         </WalletContext.Provider>,
@@ -46,12 +44,11 @@ test('Wallet without BCH balance', () => {
 });
 
 test('Wallet with BCH balances', () => {
-    const testBCH = new BCHJS();
     const component = renderer.create(
         <WalletContext.Provider value={walletWithBalancesMock}>
             <ThemeProvider theme={theme}>
                 <Router>
-                    <SignVerifyMsg jestBCH={testBCH} />
+                    <SignVerifyMsg />
                 </Router>
             </ThemeProvider>
         </WalletContext.Provider>,
@@ -60,14 +57,13 @@ test('Wallet with BCH balances', () => {
     expect(tree).toMatchSnapshot();
 });
 test('Wallet with BCH balances and tokens and state field', () => {
-    const testBCH = new BCHJS();
     const component = renderer.create(
         <WalletContext.Provider
             value={walletWithBalancesAndTokensWithCorrectState}
         >
             <ThemeProvider theme={theme}>
                 <Router>
-                    <SignVerifyMsg jestBCH={testBCH} />
+                    <SignVerifyMsg />
                 </Router>
             </ThemeProvider>
         </WalletContext.Provider>,
@@ -82,12 +78,11 @@ test('Without wallet defined', () => {
         balances: { totalBalance: 0 },
         loading: false,
     };
-    const testBCH = new BCHJS();
     const component = renderer.create(
         <WalletContext.Provider value={withoutWalletDefinedMock}>
             <ThemeProvider theme={theme}>
                 <Router>
-                    <SignVerifyMsg jestBCH={testBCH} />
+                    <SignVerifyMsg />
                 </Router>
             </ThemeProvider>
         </WalletContext.Provider>,
