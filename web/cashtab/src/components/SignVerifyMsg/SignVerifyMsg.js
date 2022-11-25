@@ -24,7 +24,11 @@ import {
     DestinationAddressSingleWithoutQRScan,
 } from 'components/Common/EnhancedInputs';
 const { TextArea } = Input;
-import { convertToEcashPrefix, getWalletState } from 'utils/cashMethods';
+import {
+    convertToEcashPrefix,
+    getWalletState,
+    getECPairFromWIF,
+} from 'utils/cashMethods';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { ThemedCopySolid } from 'components/Common/CustomIcons';
 import { SmartButton } from 'components/Common/PrimaryButton';
@@ -101,6 +105,23 @@ const SignVerifyMsg = ({ jestBCH }) => {
                 wallet.Path1899.fundingWif,
                 msgToSign,
             );
+            // Get local messageSignature
+            // First, get required params
+            const keyPair = getECPairFromWIF(wallet.Path1899.fundingWif);
+            // Reference https://github.com/Permissionless-Software-Foundation/bch-js/blob/master/src/bitcoincash.js#L161
+            const privKey = keyPair.d.toBuffer(32);
+            // Now you can get the local signature
+            const localMessageSignature = xecMessage
+                .sign(msgToSign, privKey, keyPair.compressed)
+                .toString('base64');
+
+            // Compare to legacy method
+            console.log(`legacy signature`, messageSignature);
+            console.log(`local signature`, localMessageSignature);
+
+            if (messageSignature === localMessageSignature) {
+                console.log(`The signatures match`);
+            }
             setMessageSignature(messageSignature);
             messageSignedNotification(messageSignature);
         } catch (err) {
