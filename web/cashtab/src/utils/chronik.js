@@ -131,7 +131,7 @@ export const organizeUtxosByType = chronikUtxos => {
     /* 
     
     Convert chronik utxos (returned by getUtxosChronik function, above) to match 
-    shape of existing slpBalancesAndUtxos object
+    wallet storage pattern
     
     This means sequestering eToken utxos from non-eToken utxos
 
@@ -584,11 +584,11 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
                 if (
                     wallet &&
                     wallet.state &&
-                    wallet.state.slpBalancesAndUtxos &&
-                    wallet.state.slpBalancesAndUtxos.nonSlpUtxos[0]
+                    wallet.state.nonSlpUtxos &&
+                    wallet.state.nonSlpUtxos[0]
                 ) {
                     fundingWif = getUtxoWif(
-                        wallet.state.slpBalancesAndUtxos.nonSlpUtxos[0],
+                        wallet.state.nonSlpUtxos[0],
                         wallet,
                     );
                     privateKeyObj = wif.decode(fundingWif);

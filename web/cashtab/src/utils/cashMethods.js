@@ -859,7 +859,7 @@ export const loadStoredWallet = walletStateFromStorage => {
     // See BigNumber.js api for how to create a BigNumber object from an object
     // https://mikemcl.github.io/bignumber.js/
     const liveWalletState = walletStateFromStorage;
-    const { slpBalancesAndUtxos, tokens } = liveWalletState;
+    const { tokens } = liveWalletState;
     for (let i = 0; i < tokens.length; i += 1) {
         const thisTokenBalance = tokens[i].balance;
         thisTokenBalance._isBigNumber = true;
@@ -868,8 +868,16 @@ export const loadStoredWallet = walletStateFromStorage => {
 
     // Also confirm balance is correct
     // Necessary step in case currency.decimals changed since last startup
+    let nonSlpUtxosToParseForBalance;
+    if (Object.keys(liveWalletState).includes('slpBalancesAndUtxos')) {
+        // If this wallet still includes the wallet.state.slpBalancesAndUtxos field
+        nonSlpUtxosToParseForBalance =
+            liveWalletState.slpBalancesAndUtxos.nonSlpUtxos;
+    } else {
+        nonSlpUtxosToParseForBalance = liveWalletState.nonSlpUtxos;
+    }
     const balancesRebased = getWalletBalanceFromUtxos(
-        slpBalancesAndUtxos.nonSlpUtxos,
+        nonSlpUtxosToParseForBalance,
     );
     liveWalletState.balances = balancesRebased;
     return liveWalletState;
@@ -894,7 +902,9 @@ export const isValidStoredWallet = walletStateFromStorage => {
         typeof walletStateFromStorage.state === 'object' &&
         'balances' in walletStateFromStorage.state &&
         !('hydratedUtxoDetails' in walletStateFromStorage.state) &&
-        'slpBalancesAndUtxos' in walletStateFromStorage.state &&
+        ('slpBalancesAndUtxos' in walletStateFromStorage.state ||
+            ('slpUtxos' in walletStateFromStorage.state &&
+                'nonSlpUtxos' in walletStateFromStorage.state)) &&
         'tokens' in walletStateFromStorage.state
     );
 };
@@ -905,7 +915,8 @@ export const getWalletState = wallet => {
             balances: { totalBalance: 0, totalBalanceInSatoshis: 0 },
             hydratedUtxoDetails: {},
             tokens: [],
-            slpBalancesAndUtxos: {},
+            slpUtxos: [],
+            nonSlpUtxos: [],
             parsedTxHistory: [],
             utxos: [],
         };

@@ -43,7 +43,7 @@ export default function useBCH() {
                 const walletError = new Error(`Invalid wallet`);
                 throw walletError;
             }
-            const utxos = wallet.state.slpBalancesAndUtxos.nonSlpUtxos;
+            const utxos = wallet.state.nonSlpUtxos;
             const CREATION_ADDR = wallet.Path1899.cashAddress;
             let txBuilder = new TransactionBuilder();
 
@@ -121,17 +121,12 @@ export default function useBCH() {
         wallet,
         { tokenId, amount, tokenReceiverAddress },
     ) => {
-        const slpBalancesAndUtxos = wallet.state.slpBalancesAndUtxos;
-        const xecUtxos = slpBalancesAndUtxos.nonSlpUtxos;
-        const tokenUtxos = slpBalancesAndUtxos.slpUtxos;
+        const xecUtxos = wallet.state.nonSlpUtxos;
+        const tokenUtxos = wallet.state.slpUtxos;
         const CREATION_ADDR = wallet.Path1899.cashAddress;
 
         // Handle error of user having no XEC
-        if (
-            !slpBalancesAndUtxos ||
-            !slpBalancesAndUtxos.nonSlpUtxos ||
-            slpBalancesAndUtxos.nonSlpUtxos.length === 0
-        ) {
+        if (!xecUtxos || xecUtxos.length === 0) {
             throw new Error(
                 `You need some ${currency.ticker} to send ${currency.tokenTicker}`,
             );
@@ -197,17 +192,12 @@ export default function useBCH() {
     };
 
     const burnToken = async (chronik, wallet, { tokenId, amount }) => {
-        const slpBalancesAndUtxos = wallet.state.slpBalancesAndUtxos;
-        const xecUtxos = slpBalancesAndUtxos.nonSlpUtxos;
-        const tokenUtxos = slpBalancesAndUtxos.slpUtxos;
+        const xecUtxos = wallet.state.nonSlpUtxos;
+        const tokenUtxos = wallet.state.slpUtxos;
         const CREATION_ADDR = wallet.Path1899.cashAddress;
 
         // Handle error of user having no XEC
-        if (
-            !slpBalancesAndUtxos ||
-            !slpBalancesAndUtxos.nonSlpUtxos ||
-            slpBalancesAndUtxos.nonSlpUtxos.length === 0
-        ) {
+        if (!xecUtxos || xecUtxos.length === 0) {
             throw new Error(`You need some ${currency.ticker} to burn eTokens`);
         }
 

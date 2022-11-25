@@ -5558,13 +5558,9 @@ export const mockParseTxWallet = {
             totalBalance: '554214.22',
         },
         tokens: [],
-        slpBalancesAndUtxos: {
-            slpUtxos: [],
-            nonSlpUtxos: [],
-            tokens: [],
-        },
+        slpUtxos: [],
+        nonSlpUtxos: [],
         parsedTxHistory: [],
-        utxos: [],
     },
 };
 
@@ -5607,13 +5603,9 @@ export const anotherMockParseTxWallet = {
             totalBalance: '554214.22',
         },
         tokens: [],
-        slpBalancesAndUtxos: {
-            slpUtxos: [],
-            nonSlpUtxos: [],
-            tokens: [],
-        },
+        slpUtxos: [],
+        nonSlpUtxos: [],
         parsedTxHistory: [],
-        utxos: [],
     },
 };
 
@@ -6923,36 +6915,33 @@ export const mockWalletWithPrivateKeys = {
             totalBalance: '495.45',
         },
         tokens: [],
-        slpBalancesAndUtxos: {
-            slpUtxos: [],
-            nonSlpUtxos: [
-                {
-                    outpoint: {
-                        txid: '45411aa786288b679d1c1874f7b126d5ea0c83380304950d364b5b8279a460de',
-                        outIdx: 1,
-                    },
-                    blockHeight: -1,
-                    isCoinbase: false,
-                    value: '48445',
-                    network: 'XEC',
-                    address:
-                        'bitcoincash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfc4l80hyqu',
+        slpUtxos: [],
+        nonSlpUtxos: [
+            {
+                outpoint: {
+                    txid: '45411aa786288b679d1c1874f7b126d5ea0c83380304950d364b5b8279a460de',
+                    outIdx: 1,
                 },
-                {
-                    outpoint: {
-                        txid: '66974f4a22ca1a4aa36c932b4effafcb9dd8a32b8766dfc7644ba5922252c4c6',
-                        outIdx: 1,
-                    },
-                    blockHeight: -1,
-                    isCoinbase: false,
-                    value: '1100',
-                    network: 'XEC',
-                    address:
-                        'bitcoincash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfc4l80hyqu',
+                blockHeight: -1,
+                isCoinbase: false,
+                value: '48445',
+                network: 'XEC',
+                address:
+                    'bitcoincash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfc4l80hyqu',
+            },
+            {
+                outpoint: {
+                    txid: '66974f4a22ca1a4aa36c932b4effafcb9dd8a32b8766dfc7644ba5922252c4c6',
+                    outIdx: 1,
                 },
-            ],
-            tokens: [],
-        },
+                blockHeight: -1,
+                isCoinbase: false,
+                value: '1100',
+                network: 'XEC',
+                address:
+                    'bitcoincash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfc4l80hyqu',
+            },
+        ],
         parsedTxHistory: [
             {
                 txid: '66974f4a22ca1a4aa36c932b4effafcb9dd8a32b8766dfc7644ba5922252c4c6',
@@ -7130,32 +7119,6 @@ export const mockWalletWithPrivateKeys = {
                             'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
                     },
                 },
-            },
-        ],
-        utxos: [
-            {
-                outpoint: {
-                    txid: '45411aa786288b679d1c1874f7b126d5ea0c83380304950d364b5b8279a460de',
-                    outIdx: 1,
-                },
-                blockHeight: -1,
-                isCoinbase: false,
-                value: '48445',
-                network: 'XEC',
-                address:
-                    'bitcoincash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfc4l80hyqu',
-            },
-            {
-                outpoint: {
-                    txid: '66974f4a22ca1a4aa36c932b4effafcb9dd8a32b8766dfc7644ba5922252c4c6',
-                    outIdx: 1,
-                },
-                blockHeight: -1,
-                isCoinbase: false,
-                value: '1100',
-                network: 'XEC',
-                address:
-                    'bitcoincash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfc4l80hyqu',
             },
         ],
     },
@@ -7612,42 +7575,39 @@ export const mockSwapWallet = {
             totalBalance: '19.97',
         },
         tokens: [],
-        slpBalancesAndUtxos: {
-            slpUtxos: [],
-            nonSlpUtxos: [
-                {
-                    outpoint: {
-                        txid: '0417094d2011c967e2ad8fe917415876f2e6a249bb486edb638d5659920a88ee',
-                        outIdx: 0,
-                    },
-                    blockHeight: 767064,
-                    isCoinbase: false,
-                    value: '997',
-                    network: 'XEC',
-                    address:
-                        'bitcoincash:qznaw38py34zpunz8rs9zrac9kxlsnxg95m2sf5czz',
+        slpUtxos: [],
+        nonSlpUtxos: [
+            {
+                outpoint: {
+                    txid: '0417094d2011c967e2ad8fe917415876f2e6a249bb486edb638d5659920a88ee',
+                    outIdx: 0,
                 },
-                {
-                    outpoint: {
-                        txid: '2f030de7c8f80a1ecac3645092dd22f0943c34d54cb734e12d7dfda0641fdfcf',
-                        outIdx: 3,
-                    },
-                    blockHeight: 767064,
-                    isCoinbase: false,
-                    value: '1000',
-                    slpMeta: {
-                        tokenType: 'FUNGIBLE',
-                        txType: 'SEND',
-                        tokenId:
-                            '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
-                    },
-                    network: 'XEC',
-                    address:
-                        'bitcoincash:qznaw38py34zpunz8rs9zrac9kxlsnxg95m2sf5czz',
+                blockHeight: 767064,
+                isCoinbase: false,
+                value: '997',
+                network: 'XEC',
+                address:
+                    'bitcoincash:qznaw38py34zpunz8rs9zrac9kxlsnxg95m2sf5czz',
+            },
+            {
+                outpoint: {
+                    txid: '2f030de7c8f80a1ecac3645092dd22f0943c34d54cb734e12d7dfda0641fdfcf',
+                    outIdx: 3,
                 },
-            ],
-            tokens: [],
-        },
+                blockHeight: 767064,
+                isCoinbase: false,
+                value: '1000',
+                slpMeta: {
+                    tokenType: 'FUNGIBLE',
+                    txType: 'SEND',
+                    tokenId:
+                        '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
+                },
+                network: 'XEC',
+                address:
+                    'bitcoincash:qznaw38py34zpunz8rs9zrac9kxlsnxg95m2sf5czz',
+            },
+        ],
         parsedTxHistory: [
             {
                 txid: '2f030de7c8f80a1ecac3645092dd22f0943c34d54cb734e12d7dfda0641fdfcf',
@@ -7811,38 +7771,6 @@ export const mockSwapWallet = {
                     replyAddress:
                         'ecash:qps4qqfw2k4szv8zzpw5utc33qj08hcufg8708r67w',
                 },
-            },
-        ],
-        utxos: [
-            {
-                outpoint: {
-                    txid: '0417094d2011c967e2ad8fe917415876f2e6a249bb486edb638d5659920a88ee',
-                    outIdx: 0,
-                },
-                blockHeight: 767064,
-                isCoinbase: false,
-                value: '997',
-                network: 'XEC',
-                address:
-                    'bitcoincash:qznaw38py34zpunz8rs9zrac9kxlsnxg95m2sf5czz',
-            },
-            {
-                outpoint: {
-                    txid: '2f030de7c8f80a1ecac3645092dd22f0943c34d54cb734e12d7dfda0641fdfcf',
-                    outIdx: 3,
-                },
-                blockHeight: 767064,
-                isCoinbase: false,
-                value: '1000',
-                slpMeta: {
-                    tokenType: 'FUNGIBLE',
-                    txType: 'SEND',
-                    tokenId:
-                        '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
-                },
-                network: 'XEC',
-                address:
-                    'bitcoincash:qznaw38py34zpunz8rs9zrac9kxlsnxg95m2sf5czz',
             },
         ],
     },

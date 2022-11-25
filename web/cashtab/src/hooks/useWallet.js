@@ -254,10 +254,8 @@ const useWallet = () => {
             const newState = {
                 balances: getWalletBalanceFromUtxos(nonSlpUtxos),
                 tokens: finalTokenArray,
-                slpBalancesAndUtxos: {
-                    slpUtxos: finalizedSlpUtxos,
-                    nonSlpUtxos,
-                },
+                slpUtxos: finalizedSlpUtxos,
+                nonSlpUtxos,
                 parsedTxHistory: chronikTxHistory,
             };
 
@@ -444,7 +442,7 @@ const useWallet = () => {
         try {
             await localforage.setItem('wallet', wallet);
             console.log(
-                `Wallet ${wallet.name} saved without duplicate token object`,
+                `Wallet ${wallet.name} saved without slpBalancesAndUtxos parent object`,
             );
         } catch (err) {
             console.log(`Error in writeWalletState()`);

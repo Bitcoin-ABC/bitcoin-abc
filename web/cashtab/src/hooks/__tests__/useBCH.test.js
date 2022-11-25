@@ -2,7 +2,7 @@
 import useBCH from '../useBCH';
 import sendBCHMock from '../__mocks__/sendBCH';
 import createTokenMock from '../__mocks__/createToken';
-import { validStoredWallet } from '../../utils/__mocks__/mockStoredWallets';
+import { burnTokenWallet } from '../__mocks__/burnToken';
 import { currency } from '../../components/Common/Ticker';
 import BigNumber from 'bignumber.js';
 import { fromSatoshisToXec } from 'utils/cashMethods';
@@ -190,7 +190,7 @@ describe('useBCH hook', () => {
 
     it("Throws error attempting to burn an eToken ID that is not within the wallet's utxo", async () => {
         const { burnToken } = useBCH();
-        const wallet = validStoredWallet;
+        const wallet = burnTokenWallet;
         const burnAmount = 10;
         const eTokenId = '0203c768a66eba24affNOTVALID103b772de4d9f8f63ba79e';
         const expectedError =

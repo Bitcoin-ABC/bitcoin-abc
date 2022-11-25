@@ -1144,15 +1144,13 @@ describe('Correctly executes cash utility functions', () => {
     it(`Correctly determines a wallet's balance from its set of non-eToken utxos (nonSlpUtxos)`, () => {
         expect(
             getWalletBalanceFromUtxos(
-                validStoredWallet.state.slpBalancesAndUtxos.nonSlpUtxos,
+                validStoredWalletAfter20221123Streamline.state.nonSlpUtxos,
             ),
         ).toStrictEqual(validStoredWallet.state.balances);
     });
     it(`Correctly determines a wallet's zero balance from its empty set of non-eToken utxos (nonSlpUtxos)`, () => {
         expect(
-            getWalletBalanceFromUtxos(
-                utxosLoadedFromCache.slpBalancesAndUtxos.nonSlpUtxos,
-            ),
+            getWalletBalanceFromUtxos(utxosLoadedFromCache.nonSlpUtxos),
         ).toStrictEqual(utxosLoadedFromCache.balances);
     });
     it(`Recognizes a stored wallet as valid if it has all required fields prior to 20221123 updated format`, () => {

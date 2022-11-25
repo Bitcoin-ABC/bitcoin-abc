@@ -570,7 +570,7 @@ it(`Correctly parses a sent encyrpted message transaction`, () => {
         replyAddress: 'ecash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfcvjnyv7xt',
     });
 });
-it(`Correctly parses a received encyrpted message transaction`, () => {
+it(`Correctly parses a received encrypted message transaction`, () => {
     const BCH = new BCHJS({
         restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
     });

@@ -130,7 +130,7 @@ const SendBCH = ({ passLoadingStatus }) => {
         chronik,
     } = ContextValue;
     const walletState = getWalletState(wallet);
-    const { balances, slpBalancesAndUtxos } = walletState;
+    const { balances, nonSlpUtxos } = walletState;
     // Modal settings
     const [isOneToManyXECSend, setIsOneToManyXECSend] = useState(false);
     const [opReturnMsg, setOpReturnMsg] = useState(false);
@@ -337,7 +337,7 @@ const SendBCH = ({ passLoadingStatus }) => {
                 const link = await sendXec(
                     chronik,
                     wallet,
-                    slpBalancesAndUtxos.nonSlpUtxos,
+                    nonSlpUtxos,
                     currency.defaultFee,
                     opReturnMsg,
                     true, // indicate send mode is one to many
@@ -398,7 +398,7 @@ const SendBCH = ({ passLoadingStatus }) => {
                 const link = await sendXec(
                     chronik,
                     wallet,
-                    slpBalancesAndUtxos.nonSlpUtxos,
+                    nonSlpUtxos,
                     currency.defaultFee,
                     optionalOpReturnMsg,
                     false, // sendToMany boolean flag
@@ -576,7 +576,7 @@ const SendBCH = ({ passLoadingStatus }) => {
         // Set currency to BCH
         setSelectedCurrency(currency.ticker);
         try {
-            const txFeeSats = calcFee(slpBalancesAndUtxos.nonSlpUtxos);
+            const txFeeSats = calcFee(nonSlpUtxos);
 
             const txFeeBch = txFeeSats / 10 ** currency.cashDecimals;
             let value =
