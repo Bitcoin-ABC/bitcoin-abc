@@ -55,12 +55,17 @@ const TextAreaLabel = styled.div`
 `;
 
 const AmountPreviewCtn = styled.div`
-    margin-top: -30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: top;
+    max-height: 1rem;
 `;
 
 const SendInputCtn = styled.div`
-    .ant-form-item-with-help {
-        margin-bottom: 32px;
+    .ant-form-item-explain-error {
+        @media (max-width: 300px) {
+            font-size: 12px;
+        }
     }
 `;
 
@@ -869,7 +874,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             )}
                             <div
                                 style={{
-                                    paddingTop: '12px',
+                                    paddingTop: '2rem',
                                 }}
                             >
                                 {!balances.totalBalance ||
