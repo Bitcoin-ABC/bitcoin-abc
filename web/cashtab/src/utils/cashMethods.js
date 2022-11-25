@@ -152,7 +152,7 @@ export const getECPairFromWIF = wif => {
     return Bitcoin.ECPair.fromWIF(wif, xecBitcoinJSLib);
 };
 
-export const signUtxosByAddress = (BCH, inputUtxos, wallet, txBuilder) => {
+export const signUtxosByAddress = (inputUtxos, wallet, txBuilder) => {
     for (let i = 0; i < inputUtxos.length; i++) {
         const utxo = inputUtxos[i];
         const accounts = [wallet.Path245, wallet.Path145, wallet.Path1899];
@@ -161,7 +161,7 @@ export const signUtxosByAddress = (BCH, inputUtxos, wallet, txBuilder) => {
             .filter(acc => acc.cashAddress === utxo.address)
             .pop().fundingWif;
 
-        const utxoECPair = BCH.ECPair.fromWIF(wif);
+        const utxoECPair = getECPairFromWIF(wif);
 
         txBuilder.sign(
             i,
@@ -714,7 +714,7 @@ export const signAndBuildTx = (BCH, inputUtxos, txBuilder, wallet) => {
     }
 
     // Sign each XEC UTXO being consumed and refresh transactionBuilder
-    txBuilder = signUtxosByAddress(BCH, inputUtxos, wallet, txBuilder);
+    txBuilder = signUtxosByAddress(inputUtxos, wallet, txBuilder);
 
     let hex;
     try {
