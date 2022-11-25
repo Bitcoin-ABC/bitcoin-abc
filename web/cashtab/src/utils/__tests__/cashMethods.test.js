@@ -33,6 +33,7 @@ import {
     generateGenesisOpReturn,
     generateSendOpReturn,
     generateBurnOpReturn,
+    getECPairFromWIF,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import {
@@ -118,6 +119,7 @@ import {
 } from '../__mocks__/mockTxBuilderData';
 import createTokenMock from '../../hooks/__mocks__/createToken';
 import TransactionBuilder from 'utils/txBuilder';
+import { mockWif, mockStringifiedECPair } from '../__mocks__/mockECPair';
 
 it(`generateSendOpReturn() returns correct script object for valid tokenUtxo and send quantity`, () => {
     const BCH = new BCHJS();
@@ -1769,5 +1771,10 @@ describe('Correctly executes cash utility functions', () => {
     it('calculates fee correctly for 2 P2PKH outputs', () => {
         const utxosMock = [{}, {}];
         expect(calcFee(utxosMock, 2, 1.01)).toBe(378);
+    });
+    it(`Gets correct EC Pair from WIF`, () => {
+        expect(JSON.stringify(getECPairFromWIF(mockWif))).toBe(
+            mockStringifiedECPair,
+        );
     });
 });

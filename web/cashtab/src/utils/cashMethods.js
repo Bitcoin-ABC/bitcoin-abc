@@ -9,6 +9,8 @@ import BigNumber from 'bignumber.js';
 import cashaddr from 'ecashaddrjs';
 import bs58 from 'bs58';
 import * as slpMdm from 'slp-mdm';
+import Bitcoin from '@psf/bitcoincashjs-lib';
+import coininfo from 'utils/coininfo';
 
 // function is based on BCH-JS' generateBurnOpReturn() however it's been trimmed down for Cashtab use
 // Reference: https://github.com/Permissionless-Software-Foundation/bch-js/blob/62e56c832b35731880fe448269818b853c76dd80/src/slp/tokentype1.js#L217
@@ -141,14 +143,38 @@ export const getUtxoWif = (utxo, wallet) => {
     return wif;
 };
 
+// Reference https://github.com/Permissionless-Software-Foundation/bch-js/blob/master/src/ecpair.js#L24
+// Modified for mainnet only
+export const getECPairFromWIF = wif => {
+    let xec = coininfo.bitcoincash.main;
+    const xecBitcoinJSLib = xec.toBitcoinJS();
+
+    return Bitcoin.ECPair.fromWIF(wif, xecBitcoinJSLib);
+};
+
 export const signUtxosByAddress = (BCH, inputUtxos, wallet, txBuilder) => {
     for (let i = 0; i < inputUtxos.length; i++) {
         const utxo = inputUtxos[i];
         const accounts = [wallet.Path245, wallet.Path145, wallet.Path1899];
-        const utxoEcPair = BCH.ECPair.fromWIF(
-            accounts.filter(acc => acc.cashAddress === utxo.address).pop()
-                .fundingWif,
-        );
+
+        const wif = accounts
+            .filter(acc => acc.cashAddress === utxo.address)
+            .pop().fundingWif;
+
+        console.log(`wif`, wif);
+
+        const utxoEcPair = BCH.ECPair.fromWIF(wif);
+
+        const localUtxoEcPair = getECPairFromWIF(wif);
+
+        console.log(`utxoEcPair`, utxoEcPair);
+        console.log(`localUtxoEcPair`, localUtxoEcPair);
+
+        console.log(`stringified`, JSON.stringify(utxoEcPair));
+
+        if (JSON.stringify(utxoEcPair) === JSON.stringify(localUtxoEcPair)) {
+            console.log(`local method matches legacy method`);
+        }
 
         txBuilder.sign(
             i,
