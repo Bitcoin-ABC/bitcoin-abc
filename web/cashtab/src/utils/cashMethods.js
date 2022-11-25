@@ -631,9 +631,7 @@ export const generateOpReturnScript = (
         throw err;
     }
 
-    const data = encodeOpReturnScript(script);
-
-    return data;
+    return encodeOpReturnScript(script);
 };
 
 export const generateTxOutput = (
