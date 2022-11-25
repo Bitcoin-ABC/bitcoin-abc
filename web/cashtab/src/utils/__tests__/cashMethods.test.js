@@ -505,7 +505,6 @@ it(`parseXecSendValue() correctly throws error when the total value for a one to
 });
 
 it('generateOpReturnScript() correctly generates an encrypted message script', () => {
-    const BCH = new BCHJS();
     const optionalOpReturnMsg = 'testing generateOpReturnScript()';
     const encryptionFlag = true;
     const airdropFlag = false;
@@ -514,7 +513,6 @@ it('generateOpReturnScript() correctly generates an encrypted message script', (
         '04688f9907fe3c7c0b78a73c4ab4f75e15e7e2b79641add519617086126fe6f6b1405a14eed48e90c9c8c0fc77f0f36984a78173e76ce51f0a44af94b59e9da703c9ff82758cfdb9cc46437d662423400fb731d3bfc1df0599279356ca261213fbb40d398c041e1bac966afed1b404581ab1bcfcde1fa039d53b7c7b70e8edf26d64bea9fbeed24cc80909796e6af5863707fa021f2a2ebaa2fe894904702be19d';
 
     const encodedScript = generateOpReturnScript(
-        BCH,
         optionalOpReturnMsg,
         encryptionFlag,
         airdropFlag,
@@ -527,13 +525,11 @@ it('generateOpReturnScript() correctly generates an encrypted message script', (
 });
 
 it('generateOpReturnScript() correctly generates an un-encrypted non-airdrop message script', () => {
-    const BCH = new BCHJS();
     const optionalOpReturnMsg = 'testing generateOpReturnScript()';
     const encryptionFlag = false;
     const airdropFlag = false;
 
     const encodedScript = generateOpReturnScript(
-        BCH,
         optionalOpReturnMsg,
         encryptionFlag,
         airdropFlag,
@@ -544,7 +540,6 @@ it('generateOpReturnScript() correctly generates an un-encrypted non-airdrop mes
 });
 
 it('generateOpReturnScript() correctly generates an un-encrypted airdrop message script', () => {
-    const BCH = new BCHJS();
     const optionalOpReturnMsg = 'testing generateOpReturnScript()';
     const encryptionFlag = false;
     const airdropFlag = true;
@@ -552,7 +547,6 @@ it('generateOpReturnScript() correctly generates an un-encrypted airdrop message
         '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e';
 
     const encodedScript = generateOpReturnScript(
-        BCH,
         optionalOpReturnMsg,
         encryptionFlag,
         airdropFlag,
@@ -564,7 +558,6 @@ it('generateOpReturnScript() correctly generates an un-encrypted airdrop message
 });
 
 it('generateOpReturnScript() correctly generates an un-encrypted airdrop with no message script', () => {
-    const BCH = new BCHJS();
     const optionalOpReturnMsg = null;
     const encryptionFlag = false;
     const airdropFlag = true;
@@ -572,7 +565,6 @@ it('generateOpReturnScript() correctly generates an un-encrypted airdrop with no
         '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e';
 
     const encodedScript = generateOpReturnScript(
-        BCH,
         optionalOpReturnMsg,
         encryptionFlag,
         airdropFlag,
@@ -584,7 +576,6 @@ it('generateOpReturnScript() correctly generates an un-encrypted airdrop with no
 });
 
 it('generateOpReturnScript() correctly throws an error on an invalid encryption input', () => {
-    const BCH = new BCHJS();
     const optionalOpReturnMsg = null;
     const encryptionFlag = true;
     const airdropFlag = false;
@@ -594,7 +585,6 @@ it('generateOpReturnScript() correctly throws an error on an invalid encryption 
 
     try {
         generateOpReturnScript(
-            BCH,
             optionalOpReturnMsg,
             encryptionFlag,
             airdropFlag,
@@ -608,7 +598,6 @@ it('generateOpReturnScript() correctly throws an error on an invalid encryption 
 });
 
 it('generateOpReturnScript() correctly throws an error on an invalid airdrop input', () => {
-    const BCH = new BCHJS();
     const optionalOpReturnMsg = null;
     const encryptionFlag = false;
     const airdropFlag = true;
@@ -618,7 +607,6 @@ it('generateOpReturnScript() correctly throws an error on an invalid airdrop inp
 
     try {
         generateOpReturnScript(
-            BCH,
             optionalOpReturnMsg,
             encryptionFlag,
             airdropFlag,

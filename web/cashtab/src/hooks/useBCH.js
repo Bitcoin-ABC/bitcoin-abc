@@ -447,7 +447,6 @@ export default function useBCH() {
                 airdropFlag
             ) {
                 const opReturnData = generateOpReturnScript(
-                    BCH,
                     optionalOpReturnMsg,
                     encryptionFlag,
                     airdropFlag,

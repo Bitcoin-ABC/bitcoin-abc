@@ -553,6 +553,15 @@ export const parseXecSendValue = (
     return value;
 };
 
+export const encodeOpReturnScript = scriptChunks => {
+    // reference https://github.com/Permissionless-Software-Foundation/bch-js/blob/master/src/script.js#L153
+    const arr = [];
+    scriptChunks.forEach(chunk => {
+        arr.push(chunk);
+    });
+    return Bitcoin.script.compile(arr);
+};
+
 /*
  * Generates an OP_RETURN script to reflect the various send XEC permutations
  * involving messaging, encryption, eToken IDs and airdrop flags.
@@ -560,7 +569,6 @@ export const parseXecSendValue = (
  * Returns the final encoded script object
  */
 export const generateOpReturnScript = (
-    BCH,
     optionalOpReturnMsg,
     encryptionFlag,
     airdropFlag,
@@ -569,11 +577,7 @@ export const generateOpReturnScript = (
 ) => {
     // encrypted mesage is mandatory when encryptionFlag is true
     // airdrop token id is mandatory when airdropFlag is true
-    if (
-        !BCH ||
-        (encryptionFlag && !encryptedEj) ||
-        (airdropFlag && !airdropTokenId)
-    ) {
+    if ((encryptionFlag && !encryptedEj) || (airdropFlag && !airdropTokenId)) {
         throw new Error('Invalid OP RETURN script input');
     }
 
@@ -627,7 +631,8 @@ export const generateOpReturnScript = (
         throw err;
     }
 
-    const data = BCH.Script.encode(script);
+    const data = encodeOpReturnScript(script);
+
     return data;
 };
 
