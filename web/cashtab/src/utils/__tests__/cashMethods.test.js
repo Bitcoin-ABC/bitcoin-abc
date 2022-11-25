@@ -271,6 +271,7 @@ it(`signUtxosByAddress() successfully returns a txBuilder object for a one to on
     );
 
     const txBuilderResponse = signUtxosByAddress(
+        BCH,
         mockSingleInputUtxo,
         wallet,
         outputObj,
@@ -338,6 +339,7 @@ it(`signUtxosByAddress() successfully returns a txBuilder object for a one to ma
     );
 
     const txBuilderResponse = signUtxosByAddress(
+        BCH,
         mockSingleInputUtxo,
         wallet,
         outputObj,
