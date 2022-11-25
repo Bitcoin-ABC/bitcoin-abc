@@ -264,6 +264,17 @@ if(ENABLE_DBUS_NOTIFICATIONS)
 	set(USE_DBUS 1)
 endif()
 
+if(ENABLE_TRACING)
+	check_include_files("sys/sdt.h" HAVE_SDT_H)
+
+	if(NOT HAVE_SDT_H)
+		message(
+			FATAL_ERROR
+			"sys/sdt.h not found, you can disable eBPF tracing with -DENABLE_TRACING=OFF"
+		)
+	endif()
+endif()
+
 # Check if std::system or ::wsystem is available
 check_cxx_symbol_exists(std::system "cstdlib" _HAVE_STD_SYSTEM)
 check_cxx_symbol_exists(::wsystem "" _HAVE_WSYSTEM)

@@ -28,6 +28,7 @@ option(ENABLE_NATPMP "Enable NAT-PMP support" ON)
 option(START_WITH_NATPMP "Make NAT-PMP the default to map ports" OFF)
 option(ENABLE_CLANG_TIDY "Enable clang-tidy checks for Bitcoin ABC" OFF)
 option(ENABLE_PROFILING "Select the profiling tool to use" OFF)
+option(ENABLE_TRACING "Enable eBPF user static defined tracepoints" OFF)
 
 # Linker option
 if(CMAKE_CROSSCOMPILING)

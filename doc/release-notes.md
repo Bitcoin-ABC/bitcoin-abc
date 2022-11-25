@@ -12,3 +12,5 @@ This release includes the following features and fixes:
    process to more easily know whether the daemon started successfully by observing
    the program’s output or exit code.
  - The `savemempool` RPC now returns the path to the saved mempool in the `filename` field.
+ - Bitcoin ABC now supports User-space, Statically Defined Tracing (USDT).
+   For now only a few tracepoints are available, see [tracing.md](/doc/tracing.md) for more info.

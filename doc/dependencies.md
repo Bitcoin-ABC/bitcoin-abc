@@ -28,6 +28,7 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | qrencode | [3.4.4](https://fukuchi.org/works/qrencode) |  | No |  |  |
 | Qt | [5.9.7](https://download.qt.io/official_releases/qt/) | 5.9.5 | No |  |  |
 | SQLite | [3.32.1](https://sqlite.org/download.html) | 3.7.17 |  |  |  |
+| systemtap ([tracing](tracing.md))| | | | | |
 | XCB |  |  |  |  | Yes (Linux only) |
 | xkbcommon |  |  |  |  | Yes (Linux only) |
 | ZeroMQ | [4.3.1](https://github.com/zeromq/libzmq/releases) | 4.1.5 | No |  |  |
@@ -45,6 +46,7 @@ factors that affect the dependency list.
 * protobuf is not needed with `-DENABLE_BIP70=OFF`.
 * Qt is not needed with `-DBUILD_BITCOIN_QT=OFF`.
 * qrencode is not needed with `-DENABLE_QRCODE=OFF`.
+* systemtap is not needed with `-DENABLE_TRACING=OFF`.
 * ZeroMQ is not needed with the `-DBUILD_BITCOIN_ZMQ=OFF`.
 
 #### Other

@@ -101,4 +101,6 @@
 
 #cmakedefine HAVE___INT128 1
 
+#cmakedefine ENABLE_TRACING 0
+
 #endif // BITCOIN_BITCOIN_CONFIG_H

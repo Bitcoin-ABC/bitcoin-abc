@@ -46,6 +46,7 @@ Optional dependencies:
  libqrencode | QR codes in GUI  | Optional for generating QR codes (only needed when GUI enabled)
  univalue    | Utility          | JSON parsing and encoding (bundled version will be used unless --with-system-univalue passed to configure)
  libzmq3     | ZMQ notification | Optional, allows generating ZMQ notifications (requires ZMQ version >= 4.1.5)
+ systemtap   | Tracing (USDT)   | Optional, statically defined tracepoints
 
 For the versions used, see [dependencies.md](dependencies.md)
 
@@ -119,6 +120,10 @@ jemalloc dependencies (provides the jemalloc library, can be disabled by passing
 
     sudo apt-get install libjemalloc-dev
 
+User-Space, Statically Defined Tracing (USDT) dependencies (provides the tracepoint library, can be disabled by passing `-DENABLE_TRACING=OFF` on the cmake command line):
+
+    sudo apt install systemtap-sdt-dev
+
 Dependencies for the GUI: Ubuntu & Debian
 -----------------------------------------
 
@@ -147,6 +152,10 @@ Port mapping dependencies MiniUPnPc and NAT-PMP (can be disabled by passing `-DE
 ZMQ dependencies (can be disabled by passing `-DBUILD_BITCOIN_ZMQ=OFF` on the cmake command line):
 
     sudo dnf install zeromq-devel
+
+User-Space, Statically Defined Tracing (USDT) dependencies (provides the tracepoint library, can be disabled by passing `-DENABLE_TRACING=OFF` on the cmake command line):
+
+    sudo dnf install systemtap
 
 To build with Qt 5 you need the following:
 

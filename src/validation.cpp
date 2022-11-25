@@ -51,6 +51,7 @@
 #include <util/moneystr.h>
 #include <util/strencodings.h>
 #include <util/system.h>
+#include <util/trace.h>
 #include <util/translation.h>
 #include <validationinterface.h>
 #include <warnings.h>
@@ -1995,6 +1996,9 @@ bool CChainState::ConnectBlock(const CBlock &block, BlockValidationState &state,
     }
 
     size_t txIndex = 0;
+    // nSigChecksRet may be accurate (found in cache) or 0 (checks were
+    // deferred into vChecks).
+    int nSigChecksRet;
     for (const auto &ptx : block.vtx) {
         const CTransaction &tx = *ptx;
         const bool isCoinBase = tx.IsCoinBase();
@@ -2058,9 +2062,6 @@ bool CChainState::ConnectBlock(const CBlock &block, BlockValidationState &state,
         }
 
         std::vector<CScriptCheck> vChecks;
-        // nSigChecksRet may be accurate (found in cache) or 0 (checks were
-        // deferred into vChecks).
-        int nSigChecksRet;
         TxValidationState tx_state;
         if (fScriptChecks &&
             !CheckInputScripts(tx, tx_state, view, flags, fCacheResults,
@@ -2174,6 +2175,11 @@ MinerFundSuccess:
     LogPrint(BCLog::BENCH, "    - Index writing: %.2fms [%.2fs (%.2fms/blk)]\n",
              MILLI * (nTime5 - nTime4), nTimeIndex * MICRO,
              nTimeIndex * MILLI / nBlocksTotal);
+
+    TRACE7(validation, block_connected, block.GetHash().ToString().c_str(),
+           pindex->nHeight, block.vtx.size(), nInputs, nSigChecksRet,
+           // in microseconds (µs)
+           GetTimeMicros() - nTimeStart, block.GetHash().data());
 
     return true;
 }
