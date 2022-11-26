@@ -144,10 +144,6 @@ function verify(message, xecAddress, signature, messagePrefix) {
     expected = Buffer.alloc(decodedAddress.hash.length);
     expected.set(decodedAddress.hash);
 
-    if (bufferEquals(actualEcashSigned, expected)) {
-        console.log(`eCash signed message`);
-    }
-
     return (
         bufferEquals(actualEcashSigned, expected) ||
         bufferEquals(actualBitcoinSigned, expected)

@@ -98,7 +98,7 @@ const SignVerifyMsg = () => {
         useState(false);
     const [messageVerificationSigError, setMessageVerificationSigError] =
         useState(false);
-    const signMessageByPk = async () => {
+    const signMessageByPk = () => {
         try {
             // First, get required params
             const keyPair = getECPairFromWIF(wallet.Path1899.fundingWif);
@@ -108,22 +108,6 @@ const SignVerifyMsg = () => {
             const messageSignature = xecMessage
                 .sign(msgToSign, privKey, keyPair.compressed)
                 .toString('base64');
-
-            // Also test the async function
-            let asyncSignature = await (
-                await xecMessage.signAsync(
-                    msgToSign,
-                    privKey,
-                    keyPair.compressed,
-                )
-            ).toString('base64');
-
-            console.log(`sync sig`, messageSignature);
-            console.log(`asyncSignature`, asyncSignature);
-
-            if (messageSignature === asyncSignature) {
-                console.log(`Both methods not broken`);
-            }
 
             setMessageSignature(messageSignature);
             messageSignedNotification(messageSignature);
