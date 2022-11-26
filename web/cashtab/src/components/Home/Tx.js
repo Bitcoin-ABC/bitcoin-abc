@@ -437,7 +437,10 @@ const Tx = ({
     const handleShowMessage = () => {
         setDisplayedMessage(!displayedMessage);
     };
-    const txDate = formatDate(data.timeFirstSeen, navigator.language);
+    const txDate =
+        data.timeFirstSeen !== '0'
+            ? formatDate(data.timeFirstSeen, navigator.language)
+            : formatDate(data.block.timestamp, navigator.language);
 
     // A wallet migrating from bch-api tx history to chronik will get caught here for one update cycle
     let unparsedTx = false;
