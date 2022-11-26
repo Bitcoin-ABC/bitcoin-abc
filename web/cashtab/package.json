@@ -92,7 +92,7 @@
         "webpack-manifest-plugin": "^4.0.2",
         "wif": "^2.0.6",
         "workbox-webpack-plugin": "^6.4.1",
-        "xecjs-message": "^1.0.5"
+        "xecjs-message": "^1.0.5-b"
     },
     "scripts": {
         "start": "node scripts/start.js",

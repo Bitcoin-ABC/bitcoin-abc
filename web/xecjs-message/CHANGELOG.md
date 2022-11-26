@@ -33,3 +33,9 @@
 **removed**
 
 -   No changes. This is the first version published from the BitcoinABC monorepo.
+
+# 1.0.6
+
+**removed**
+
+-   All segwit support

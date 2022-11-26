@@ -4,11 +4,6 @@ const secp256k1 = require('secp256k1');
 const varuint = require('varuint-bitcoin');
 const ecashaddr = require('ecashaddrjs');
 
-const SEGWIT_TYPES = {
-    P2WPKH: 'p2wpkh',
-    P2SH_P2WPKH: 'p2sh(p2wpkh)',
-};
-
 function sha256(b) {
     return createHash('sha256').update(b).digest();
 }
@@ -19,13 +14,9 @@ function hash160(buffer) {
     return createHash('ripemd160').update(sha256(buffer)).digest();
 }
 
-function encodeSignature(signature, recovery, compressed, segwitType) {
-    if (segwitType !== undefined) {
-        recovery += 8;
-        if (segwitType === SEGWIT_TYPES.P2WPKH) recovery += 4;
-    } else {
-        if (compressed) recovery += 4;
-    }
+function encodeSignature(signature, recovery, compressed) {
+    if (compressed) recovery += 4;
+
     return Buffer.concat([Buffer.alloc(1, recovery + 27), signature]);
 }
 
@@ -39,11 +30,6 @@ function decodeSignature(buffer) {
 
     return {
         compressed: !!(flagByte & 12),
-        segwitType: !(flagByte & 8)
-            ? null
-            : !(flagByte & 4)
-            ? SEGWIT_TYPES.P2SH_P2WPKH
-            : SEGWIT_TYPES.P2WPKH,
         recovery: flagByte & 3,
         signature: buffer.slice(1),
     };
@@ -72,30 +58,10 @@ function prepareSign(messagePrefixArg, sigOptions) {
         sigOptions = messagePrefixArg;
         messagePrefixArg = undefined;
     }
-    let { segwitType, extraEntropy } = sigOptions || {};
-    if (
-        segwitType &&
-        (typeof segwitType === 'string' || segwitType instanceof String)
-    ) {
-        segwitType = segwitType.toLowerCase();
-    }
-    if (
-        segwitType &&
-        segwitType !== SEGWIT_TYPES.P2SH_P2WPKH &&
-        segwitType !== SEGWIT_TYPES.P2WPKH
-    ) {
-        throw new Error(
-            'Unrecognized segwitType: use "' +
-                SEGWIT_TYPES.P2SH_P2WPKH +
-                '" or "' +
-                SEGWIT_TYPES.P2WPKH +
-                '"',
-        );
-    }
+    let { extraEntropy } = sigOptions || {};
 
     return {
         messagePrefixArg,
-        segwitType,
         extraEntropy,
     };
 }
@@ -105,7 +71,7 @@ function isSigner(obj) {
 }
 
 function sign(message, privateKey, compressed, messagePrefix, sigOptions) {
-    const { messagePrefixArg, segwitType, extraEntropy } = prepareSign(
+    const { messagePrefixArg, extraEntropy } = prepareSign(
         messagePrefix,
         sigOptions,
     );
@@ -113,19 +79,14 @@ function sign(message, privateKey, compressed, messagePrefix, sigOptions) {
     const sigObj = isSigner(privateKey)
         ? privateKey.sign(hash, extraEntropy)
         : secp256k1.sign(hash, privateKey, { data: extraEntropy });
-    return encodeSignature(
-        sigObj.signature,
-        sigObj.recovery,
-        compressed,
-        segwitType,
-    );
+    return encodeSignature(sigObj.signature, sigObj.recovery, compressed);
 }
 
 function signAsync(message, privateKey, compressed, messagePrefix, sigOptions) {
-    let messagePrefixArg, segwitType, extraEntropy;
+    let messagePrefixArg, extraEntropy;
     return Promise.resolve()
         .then(() => {
-            ({ messagePrefixArg, segwitType, extraEntropy } = prepareSign(
+            ({ messagePrefixArg, extraEntropy } = prepareSign(
                 messagePrefix,
                 sigOptions,
             ));
@@ -139,7 +100,6 @@ function signAsync(message, privateKey, compressed, messagePrefix, sigOptions) {
                 sigObj.signature,
                 sigObj.recovery,
                 compressed,
-                segwitType,
             );
         });
 }
