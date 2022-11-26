@@ -22,7 +22,6 @@ import {
     fromXecToSatoshis,
     getWalletBalanceFromUtxos,
     signUtxosByAddress,
-    getUtxoWif,
     generateTokenTxOutput,
     getCashtabByteCount,
     calcFee,
@@ -132,7 +131,6 @@ it(`generateSendOpReturn() returns correct script object for valid tokenUtxo and
 });
 
 it(`generateSendOpReturnScript() throws error on invalid input`, () => {
-    const BCH = new BCHJS();
     const mockSendOpReturnTokenUtxos = null;
     const tokensToSend = 50;
 
@@ -201,7 +199,6 @@ it(`generateGenesisOpReturn() returns correct script for a valid configObj`, () 
 });
 
 it(`generateGenesisOpReturn() throws error on invalid configObj`, () => {
-    const BCH = new BCHJS();
     const configObj = null;
 
     let errorThrown;
