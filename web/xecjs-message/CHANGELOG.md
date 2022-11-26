@@ -39,3 +39,7 @@
 **removed**
 
 -   All segwit support
+
+**added**
+
+-   Support for signing a message with standard eCash prefix

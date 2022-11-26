@@ -36,7 +36,7 @@ function decodeSignature(buffer) {
 }
 
 function magicHash(message, messagePrefix) {
-    messagePrefix = messagePrefix || '\u0018Bitcoin Signed Message:\n';
+    messagePrefix = messagePrefix || '\u0016eCash Signed Message:\n';
     if (!Buffer.isBuffer(messagePrefix)) {
         messagePrefix = Buffer.from(messagePrefix, 'utf8');
     }
@@ -110,7 +110,11 @@ function verify(message, xecAddress, signature, messagePrefix) {
 
     const parsed = decodeSignature(signature);
 
-    const hashBitcoinSigned = magicHash(message, messagePrefix);
+    // Since Electrum ABC supports bitcoin signed messages, test for them by default
+    const hashBitcoinSigned = magicHash(
+        message,
+        '\u0018Bitcoin Signed Message:\n',
+    );
     const publicKeyBitcoinSigned = secp256k1.recover(
         hashBitcoinSigned,
         parsed.signature,
@@ -119,8 +123,8 @@ function verify(message, xecAddress, signature, messagePrefix) {
     );
     const publicKeyHashBitcoinSigned = hash160(publicKeyBitcoinSigned);
 
-    // Also test ecash: signed
-    const hashEcashSigned = magicHash(message, '\u0016eCash Signed Message:\n');
+    // Test for default eCash prefix or user specified prefix
+    const hashEcashSigned = magicHash(message, messagePrefix);
     const publicKeyEcashSigned = secp256k1.recover(
         hashEcashSigned,
         parsed.signature,
@@ -139,6 +143,10 @@ function verify(message, xecAddress, signature, messagePrefix) {
 
     expected = Buffer.alloc(decodedAddress.hash.length);
     expected.set(decodedAddress.hash);
+
+    if (bufferEquals(actualEcashSigned, expected)) {
+        console.log(`eCash signed message`);
+    }
 
     return (
         bufferEquals(actualEcashSigned, expected) ||
