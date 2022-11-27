@@ -39,12 +39,7 @@ import {
     SidePaddingCtn,
     FormLabel,
 } from 'components/Common/Atoms';
-import {
-    getWalletState,
-    toLegacyCashArray,
-    fromSatoshisToXec,
-    calcFee,
-} from 'utils/cashMethods';
+import { getWalletState, fromSatoshisToXec, calcFee } from 'utils/cashMethods';
 import ApiError from 'components/Common/ApiError';
 import { formatFiatBalance, formatBalance } from 'utils/formatting';
 import styled from 'styled-components';
@@ -345,10 +340,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             let addressAndValueArray = address.split('\n');
 
             try {
-                // construct array of XEC->BCH addresses due to bch-api constraint
-                let cleanAddressAndValueArray =
-                    toLegacyCashArray(addressAndValueArray);
-
                 const link = await sendXec(
                     bchObj,
                     chronik,
@@ -357,7 +348,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                     currency.defaultFee,
                     opReturnMsg,
                     true, // indicate send mode is one to many
-                    cleanAddressAndValueArray,
+                    addressAndValueArray,
                     null,
                     null,
                     false, // one to many tx msg can't be encrypted
