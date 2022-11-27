@@ -215,7 +215,6 @@ export const calcFee = (
 };
 
 export const generateTokenTxOutput = (
-    BCH,
     txBuilder,
     tokenAction,
     legacyCashOriginAddress,
@@ -226,7 +225,7 @@ export const generateTokenTxOutput = (
     tokenAmount = false, // optional - send or burn amount for send/burn tx only
 ) => {
     try {
-        if (!BCH || !tokenAction || !legacyCashOriginAddress || !txBuilder) {
+        if (!tokenAction || !legacyCashOriginAddress || !txBuilder) {
             throw new Error('Invalid token tx output parameter');
         }
 

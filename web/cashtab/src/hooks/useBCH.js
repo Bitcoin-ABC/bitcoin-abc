@@ -62,7 +62,6 @@ export default function useBCH() {
             txBuilder = tokenTxInputObj.txBuilder;
 
             let tokenTxOutputObj = generateTokenTxOutput(
-                BCH,
                 txBuilder,
                 'GENESIS',
                 CREATION_ADDR,
@@ -159,7 +158,6 @@ export default function useBCH() {
         txBuilder = tokenTxInputObj.txBuilder;
 
         let tokenTxOutputObj = generateTokenTxOutput(
-            BCH,
             txBuilder,
             'SEND',
             CREATION_ADDR,
@@ -240,7 +238,6 @@ export default function useBCH() {
         txBuilder = tokenTxInputObj.txBuilder;
 
         let tokenTxOutputObj = generateTokenTxOutput(
-            BCH,
             txBuilder,
             'BURN',
             CREATION_ADDR,

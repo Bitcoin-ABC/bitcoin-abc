@@ -700,13 +700,11 @@ it(`generateTokenTxInput() returns a valid object for a valid burn token tx`, as
 });
 
 it(`generateTokenTxOutput() returns a valid object for a valid create token tx`, async () => {
-    const BCH = new BCHJS();
     let txBuilder = new TransactionBuilder();
     const { configObj, wallet } = createTokenMock;
     const tokenSenderCashAddress = wallet.Path1899.cashAddress;
 
     const tokenOutputObj = generateTokenTxOutput(
-        BCH,
         txBuilder,
         'GENESIS',
         tokenSenderCashAddress,
@@ -721,14 +719,12 @@ it(`generateTokenTxOutput() returns a valid object for a valid create token tx`,
 });
 
 it(`generateTokenTxOutput() returns a valid object for a valid send token tx`, async () => {
-    const BCH = new BCHJS();
     let txBuilder = new TransactionBuilder();
     const { wallet } = createTokenMock;
     const tokenSenderCashAddress = wallet.Path1899.cashAddress;
     const tokenRecipientTokenAddress = wallet.Path1899.slpAddress;
 
     const tokenOutputObj = generateTokenTxOutput(
-        BCH,
         txBuilder,
         'SEND',
         tokenSenderCashAddress,
@@ -745,13 +741,11 @@ it(`generateTokenTxOutput() returns a valid object for a valid send token tx`, a
 });
 
 it(`generateTokenTxOutput() returns a valid object for a valid burn token tx`, async () => {
-    const BCH = new BCHJS();
     let txBuilder = new TransactionBuilder();
     const { wallet } = createTokenMock;
     const tokenSenderCashAddress = wallet.Path1899.cashAddress;
 
     const tokenOutputObj = generateTokenTxOutput(
-        BCH,
         txBuilder,
         'BURN',
         tokenSenderCashAddress,
