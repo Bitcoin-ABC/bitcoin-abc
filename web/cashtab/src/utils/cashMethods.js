@@ -1025,60 +1025,6 @@ export function toHash160(addr) {
     }
 }
 
-export function toLegacyCash(addr) {
-    // Confirm input is a valid ecash address
-    const isValidInput = isValidXecAddress(addr);
-    if (!isValidInput) {
-        return new Error(`${addr} is not a valid ecash address`);
-    }
-
-    // Check for ecash: prefix
-    const isPrefixedXecAddress = addr.slice(0, 6) === 'ecash:';
-
-    // If no prefix, assume it is checksummed for an ecash: prefix
-    const testedXecAddr = isPrefixedXecAddress ? addr : `ecash:${addr}`;
-
-    let legacyCashAddress;
-    try {
-        const { type, hash } = cashaddr.decode(testedXecAddr);
-        legacyCashAddress = cashaddr.encode(currency.legacyPrefix, type, hash);
-    } catch (err) {
-        return err;
-    }
-    return legacyCashAddress;
-}
-
-export function toLegacyCashArray(addressArray) {
-    let cleanArray = []; // array of bch converted addresses to be returned
-
-    if (
-        addressArray === null ||
-        addressArray === undefined ||
-        !addressArray.length ||
-        addressArray === ''
-    ) {
-        return new Error('Invalid addressArray input');
-    }
-
-    const arrayLength = addressArray.length;
-
-    for (let i = 0; i < arrayLength; i++) {
-        let addressValueArr = addressArray[i].split(',');
-        let address = addressValueArr[0];
-        let value = addressValueArr[1];
-
-        // NB that toLegacyCash() includes address validation; will throw error for invalid address input
-        const legacyAddress = toLegacyCash(address);
-        if (legacyAddress instanceof Error) {
-            return legacyAddress;
-        }
-        let convertedArrayData = legacyAddress + ',' + value + '\n';
-        cleanArray.push(convertedArrayData);
-    }
-
-    return cleanArray;
-}
-
 /* Converts a serialized buffer containing encrypted data into an object
  * that can be interpreted by the ecies-lite library.
  *

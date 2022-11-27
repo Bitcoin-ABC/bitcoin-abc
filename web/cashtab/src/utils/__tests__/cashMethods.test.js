@@ -7,8 +7,6 @@ import {
     fromLegacyDecimals,
     convertToEcashPrefix,
     isLegacyMigrationRequired,
-    toLegacyCash,
-    toLegacyCashArray,
     convertEtokenToEcashAddr,
     parseOpReturn,
     convertEcashtoEtokenAddr,
@@ -35,14 +33,7 @@ import {
     getECPairFromWIF,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
-import {
-    validAddressArrayInput,
-    validAddressArrayInputMixedPrefixes,
-    validAddressArrayOutput,
-    validLargeAddressArrayInput,
-    validLargeAddressArrayOutput,
-    invalidAddressArrayInput,
-} from '../__mocks__/mockAddressArray';
+import { validAddressArrayInput } from '../__mocks__/mockAddressArray';
 import {
     mockGenesisOpReturnScript,
     mockSendOpReturnScript,
@@ -321,7 +312,7 @@ it(`signUtxosByAddress() successfully returns a txBuilder object for a one to ma
                 mockOneToManySendXecTxBuilderObj.transaction.tx.outs[3].value,
             ),
         ); // change value
-    destinationAddressAndValueArray = toLegacyCashArray(validAddressArrayInput);
+    destinationAddressAndValueArray = validAddressArrayInput;
     const changeAddress = wallet.Path1899.cashAddress;
     const outputObj = generateTxOutput(
         BCH,
@@ -930,9 +921,7 @@ it(`generateTxOutput() returns a txBuilder instance for a valid one to many XEC 
             ),
         ); // change value
 
-    const destinationAddressAndValueArray = toLegacyCashArray(
-        validAddressArrayInput,
-    );
+    const destinationAddressAndValueArray = validAddressArrayInput;
     let txBuilder = new TransactionBuilder();
     const changeAddress = wallet.Path1899.cashAddress;
 
@@ -1358,118 +1347,6 @@ describe('Correctly executes cash utility functions', () => {
             errorThrown = err.message;
         }
         expect(errorThrown).toStrictEqual('Invalid address: ' + address + '.');
-    });
-
-    test('toLegacyCash() converts a valid ecash: prefix address to a valid bitcoincash: prefix address', async () => {
-        const result = toLegacyCash(
-            'ecash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gtfza25mc',
-        );
-        expect(result).toStrictEqual(
-            'bitcoincash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gjykk3wa0',
-        );
-    });
-
-    test('toLegacyCash() converts a valid ecash: prefixless address to a valid bitcoincash: prefix address', async () => {
-        const result = toLegacyCash(
-            'qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gtfza25mc',
-        );
-        expect(result).toStrictEqual(
-            'bitcoincash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gjykk3wa0',
-        );
-    });
-
-    test('toLegacyCash throws error if input address has invalid checksum', async () => {
-        const result = toLegacyCash(
-            'ecash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gtfza25m',
-        );
-        expect(result).toStrictEqual(
-            new Error(
-                'ecash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gtfza25m is not a valid ecash address',
-            ),
-        );
-    });
-
-    test('toLegacyCash() throws error with input of etoken: address', async () => {
-        const result = toLegacyCash(
-            'etoken:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4g9htlunl0',
-        );
-        expect(result).toStrictEqual(
-            new Error(
-                'etoken:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4g9htlunl0 is not a valid ecash address',
-            ),
-        );
-    });
-
-    test('toLegacyCash() throws error with input of legacy address', async () => {
-        const result = toLegacyCash('13U6nDrkRsC3Eb1pxPhNY8XJ5W9zdp6rNk');
-        expect(result).toStrictEqual(
-            new Error(
-                '13U6nDrkRsC3Eb1pxPhNY8XJ5W9zdp6rNk is not a valid ecash address',
-            ),
-        );
-    });
-
-    test('toLegacyCash() throws error with input of bitcoincash: address', async () => {
-        const result = toLegacyCash(
-            'bitcoincash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gjykk3wa0',
-        );
-        expect(result).toStrictEqual(
-            new Error(
-                'bitcoincash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gjykk3wa0 is not a valid ecash address',
-            ),
-        );
-    });
-
-    test('toLegacyCashArray throws error if the addressArray input is null', async () => {
-        const result = toLegacyCashArray(null);
-
-        expect(result).toStrictEqual(new Error('Invalid addressArray input'));
-    });
-
-    test('toLegacyCashArray throws error if the addressArray input is empty', async () => {
-        const result = toLegacyCashArray([]);
-
-        expect(result).toStrictEqual(new Error('Invalid addressArray input'));
-    });
-
-    test('toLegacyCashArray throws error if the addressArray input is a number', async () => {
-        const result = toLegacyCashArray(12345);
-
-        expect(result).toStrictEqual(new Error('Invalid addressArray input'));
-    });
-
-    test('toLegacyCashArray throws error if the addressArray input is undefined', async () => {
-        const result = toLegacyCashArray(undefined);
-
-        expect(result).toStrictEqual(new Error('Invalid addressArray input'));
-    });
-
-    test('toLegacyCashArray successfully converts a standard sized valid addressArray input', async () => {
-        const result = toLegacyCashArray(validAddressArrayInput);
-
-        expect(result).toStrictEqual(validAddressArrayOutput);
-    });
-
-    test('toLegacyCashArray successfully converts a standard sized valid addressArray input including prefixless ecash addresses', async () => {
-        const result = toLegacyCashArray(validAddressArrayInputMixedPrefixes);
-
-        expect(result).toStrictEqual(validAddressArrayOutput);
-    });
-
-    test('toLegacyCashArray successfully converts a large valid addressArray input', async () => {
-        const result = toLegacyCashArray(validLargeAddressArrayInput);
-
-        expect(result).toStrictEqual(validLargeAddressArrayOutput);
-    });
-
-    test('toLegacyCashArray throws an error on an addressArray with invalid addresses', async () => {
-        const result = toLegacyCashArray(invalidAddressArrayInput);
-
-        expect(result).toStrictEqual(
-            new Error(
-                'ecash:qrqgwxrrrrrrrrrrrrrrrrrrrrrrrrr7zsvk is not a valid ecash address',
-            ),
-        );
     });
 
     test('parseOpReturn() successfully parses a short cashtab message', async () => {
