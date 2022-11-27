@@ -8,7 +8,6 @@ import {
     convertToEcashPrefix,
     isLegacyMigrationRequired,
     toLegacyCash,
-    toLegacyToken,
     toLegacyCashArray,
     convertEtokenToEcashAddr,
     parseOpReturn,
@@ -1258,16 +1257,6 @@ describe('Correctly executes cash utility functions', () => {
                 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             ),
         ).toBe('ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035');
-    });
-    it(`toLegacyToken returns an etoken: prefix address as simpleledger:`, () => {
-        expect(
-            toLegacyToken('etoken:qz2708636snqhsxu8wnlka78h6fdp77ar5tv2tzg4r'),
-        ).toBe('simpleledger:qz2708636snqhsxu8wnlka78h6fdp77ar5syue64fa');
-    });
-    it(`toLegacyToken returns an prefixless valid etoken address in simpleledger: format with prefix`, () => {
-        expect(
-            toLegacyToken('qz2708636snqhsxu8wnlka78h6fdp77ar5tv2tzg4r'),
-        ).toBe('simpleledger:qz2708636snqhsxu8wnlka78h6fdp77ar5syue64fa');
     });
     it(`Recognizes a wallet with missing Path1889 is a Legacy Wallet and requires migration`, () => {
         expect(isLegacyMigrationRequired(missingPath1899Wallet)).toBe(true);

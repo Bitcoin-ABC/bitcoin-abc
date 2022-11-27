@@ -1079,29 +1079,6 @@ export function toLegacyCashArray(addressArray) {
     return cleanArray;
 }
 
-export function toLegacyToken(addr) {
-    // Confirm input is a valid ecash address
-    const isValidInput = isValidEtokenAddress(addr);
-    if (!isValidInput) {
-        return new Error(`${addr} is not a valid etoken address`);
-    }
-
-    // Check for ecash: prefix
-    const isPrefixedEtokenAddress = addr.slice(0, 7) === 'etoken:';
-
-    // If no prefix, assume it is checksummed for an ecash: prefix
-    const testedEtokenAddr = isPrefixedEtokenAddress ? addr : `etoken:${addr}`;
-
-    let legacyTokenAddress;
-    try {
-        const { type, hash } = cashaddr.decode(testedEtokenAddr);
-        legacyTokenAddress = cashaddr.encode('simpleledger', type, hash);
-    } catch (err) {
-        return err;
-    }
-    return legacyTokenAddress;
-}
-
 /* Converts a serialized buffer containing encrypted data into an object
  * that can be interpreted by the ecies-lite library.
  *
