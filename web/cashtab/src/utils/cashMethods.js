@@ -249,9 +249,7 @@ export const generateTokenTxOutput = (
                     tokenUtxosBeingSpent,
                     tokenAmount,
                 );
-                destinationAddress = BCH.SLP.Address.toLegacyAddress(
-                    legacyCashOriginAddress,
-                );
+                destinationAddress = legacyCashOriginAddress;
                 break;
             default:
                 throw new Error('Invalid token transaction type');
