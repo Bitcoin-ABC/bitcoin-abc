@@ -242,9 +242,7 @@ export const generateTokenTxOutput = (
                     tokenAmount.toString(),
                 );
                 script = opReturnObj.script;
-                destinationAddress = BCH.SLP.Address.toLegacyAddress(
-                    tokenRecipientAddress,
-                );
+                destinationAddress = tokenRecipientAddress;
                 break;
             case 'BURN':
                 script = generateBurnOpReturn(

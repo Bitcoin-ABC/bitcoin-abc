@@ -34,7 +34,7 @@ import makeBlockie from 'ethereum-blockies-base64';
 import BigNumber from 'bignumber.js';
 import { currency, parseAddressForParams } from 'components/Common/Ticker.js';
 import { Event } from 'utils/GoogleAnalytics';
-import { getWalletState, toLegacyToken } from 'utils/cashMethods';
+import { getWalletState } from 'utils/cashMethods';
 import ApiError from 'components/Common/ApiError';
 import {
     sendTokenNotification,
@@ -184,9 +184,6 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
 
         // Clear params from address
         let cleanAddress = address.split('?')[0];
-
-        // Convert to simpleledger prefix if etoken
-        cleanAddress = toLegacyToken(cleanAddress);
 
         try {
             const link = await sendToken(bchObj, chronik, wallet, {
