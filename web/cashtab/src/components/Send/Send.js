@@ -41,7 +41,6 @@ import {
 } from 'components/Common/Atoms';
 import {
     getWalletState,
-    toLegacyCash,
     toLegacyCashArray,
     fromSatoshisToXec,
     calcFee,
@@ -392,9 +391,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
             // Get the param-free address
             let cleanAddress = address.split('?')[0];
-
-            // Ensure address has bitcoincash: prefix and checksum
-            cleanAddress = toLegacyCash(cleanAddress);
 
             // Calculate the amount in BCH
             let bchValue = value;
