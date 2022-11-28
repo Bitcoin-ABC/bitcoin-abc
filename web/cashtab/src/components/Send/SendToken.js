@@ -252,8 +252,6 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
         let error = false;
         let addressString = value;
 
-        const isValid = isValidEtokenAddress(addressString);
-
         const addressInfo = parseAddressForParams(addressString);
         /*
         Model
@@ -271,13 +269,11 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
         // Show an alert that only amount and currency.ticker are supported
         setQueryStringText(queryString);
 
+        const isValid =
+            isValidEtokenAddress(address) || isValidXecAddress(address);
         // Is this valid address?
         if (!isValid) {
-            error = 'Address is not a valid etoken: address';
-            // If valid address but xec format
-            if (isValidXecAddress(address)) {
-                error = `Cashtab does not support sending eTokens to XEC addresses. Please convert to an eToken address.`;
-            }
+            error = 'Address is not a valid ecash: address';
         }
         setSendTokenAddressError(error);
 
