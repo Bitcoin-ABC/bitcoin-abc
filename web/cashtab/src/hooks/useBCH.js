@@ -75,7 +75,6 @@ export default function useBCH() {
             // sign the collated inputUtxos and build the raw tx hex
             // returns the raw tx hex string
             const rawTxHex = signAndBuildTx(
-                BCH,
                 tokenTxInputObj.inputXecUtxos,
                 txBuilder,
                 wallet,
@@ -177,12 +176,7 @@ export default function useBCH() {
 
         // sign the collated inputUtxos and build the raw tx hex
         // returns the raw tx hex string
-        const rawTxHex = signAndBuildTx(
-            BCH,
-            combinedInputUtxos,
-            txBuilder,
-            wallet,
-        );
+        const rawTxHex = signAndBuildTx(combinedInputUtxos, txBuilder, wallet);
 
         // Broadcast transaction to the network via the chronik client
         // sample chronik.broadcastTx() response:
@@ -257,12 +251,7 @@ export default function useBCH() {
 
         // sign the collated inputUtxos and build the raw tx hex
         // returns the raw tx hex string
-        const rawTxHex = signAndBuildTx(
-            BCH,
-            combinedInputUtxos,
-            txBuilder,
-            wallet,
-        );
+        const rawTxHex = signAndBuildTx(combinedInputUtxos, txBuilder, wallet);
 
         // Broadcast transaction to the network via the chronik client
         // sample chronik.broadcastTx() response:
@@ -488,7 +477,6 @@ export default function useBCH() {
             // sign the collated inputUtxos and build the raw tx hex
             // returns the raw tx hex string
             const rawTxHex = signAndBuildTx(
-                BCH,
                 txInputObj.inputUtxos,
                 txBuilder,
                 wallet,

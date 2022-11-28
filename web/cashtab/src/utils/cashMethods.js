@@ -694,9 +694,8 @@ export const generateTxOutput = (
     return txBuilder;
 };
 
-export const signAndBuildTx = (BCH, inputUtxos, txBuilder, wallet) => {
+export const signAndBuildTx = (inputUtxos, txBuilder, wallet) => {
     if (
-        !BCH ||
         !inputUtxos ||
         inputUtxos.length === 0 ||
         !txBuilder ||

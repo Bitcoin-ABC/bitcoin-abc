@@ -12,11 +12,9 @@ import {
     mockOnetoOneXecInputAndOutputOnlyTxBuilderObj,
     mockOnetoOneXecInputOutputSignedRawHex,
 } from 'utils/__mocks__/mockTxBuilderObj';
-import BCHJS from '@psf/bch-js';
 import TransactionBuilder from 'utils/txBuilder';
 
 it(`Transaction Builder returns correct builder object with valid input and output params`, () => {
-    const BCH = new BCHJS();
     const isOneToMany = false;
     let txBuilder = new TransactionBuilder();
     const { utxos, destinationAddress, wallet } = sendBCHMock;
@@ -52,12 +50,7 @@ it(`Transaction Builder returns correct builder object with valid input and outp
     );
 
     // verify txBuilder after signing and building tx
-    const rawTxHex = signAndBuildTx(
-        BCH,
-        txInputObj.inputUtxos,
-        txBuilder,
-        wallet,
-    );
+    const rawTxHex = signAndBuildTx(txInputObj.inputUtxos, txBuilder, wallet);
     expect(JSON.stringify(rawTxHex)).toStrictEqual(
         JSON.stringify(mockOnetoOneXecInputOutputSignedRawHex),
     );
