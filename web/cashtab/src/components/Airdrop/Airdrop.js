@@ -84,10 +84,9 @@ const StyledModal = styled(Modal)`
     }
 `;
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
-const Airdrop = ({ jestBCH, passLoadingStatus }) => {
+const Airdrop = ({ passLoadingStatus }) => {
     const ContextValue = React.useContext(WalletContext);
     const {
-        BCH,
         wallet,
         fiatPrice,
         cashtabSettings,
@@ -97,19 +96,9 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
     const location = useLocation();
     const walletState = getWalletState(wallet);
     const { balances } = walletState;
-
-    const [bchObj, setBchObj] = useState(false);
     const [isAirdropCalcModalVisible, setIsAirdropCalcModalVisible] =
         useState(false);
     const [airdropCalcModalProgress, setAirdropCalcModalProgress] = useState(0); // the dynamic % progress bar
-
-    useEffect(() => {
-        // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
-        const activeBCH = jestBCH ? jestBCH : BCH;
-
-        // set the BCH instance to state, for other functions to reference
-        setBchObj(activeBCH);
-    }, [BCH]);
 
     useEffect(() => {
         if (location && location.state && location.state.airdropEtokenId) {
@@ -265,7 +254,6 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
             try {
                 mintEtokenAddress = await getMintAddress(
                     chronik,
-                    bchObj,
                     formData.tokenId,
                 );
             } catch (err) {

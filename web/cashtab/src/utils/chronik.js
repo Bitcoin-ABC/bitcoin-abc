@@ -7,7 +7,7 @@ import {
     getHashArrayFromWallet,
     getUtxoWif,
     convertEcashtoEtokenAddr,
-    convertToEcashPrefix,
+    hash160ToAddress,
 } from 'utils/cashMethods';
 import ecies from 'ecies-lite';
 import wif from 'wif';
@@ -913,7 +913,7 @@ export const getTxHistoryChronik = async (
     };
 };
 
-export const getMintAddress = async (chronik, BCH, tokenId) => {
+export const getMintAddress = async (chronik, tokenId) => {
     let genesisTx;
     let mintingHash160;
     try {
@@ -939,15 +939,8 @@ export const getMintAddress = async (chronik, BCH, tokenId) => {
                 );
             }
         }
-        const mintingAdressBchFormat =
-            BCH.Address.hash160ToCash(mintingHash160);
-        const mintEcashAddressChronik = convertToEcashPrefix(
-            mintingAdressBchFormat,
-        );
-        const mintEtokenAddressChronik = convertEcashtoEtokenAddr(
-            mintEcashAddressChronik,
-        );
-        return mintEtokenAddressChronik;
+
+        return convertEcashtoEtokenAddr(hash160ToAddress(mintingHash160));
     } catch (err) {
         console.log(`Error in getMintAddress`, err);
         return err;
