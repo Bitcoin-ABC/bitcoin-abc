@@ -467,8 +467,8 @@ export const generateTokenTxInput = (
     };
 };
 
-export const getChangeAddressFromInputUtxos = (BCH, inputUtxos, wallet) => {
-    if (!BCH || !inputUtxos || !wallet) {
+export const getChangeAddressFromInputUtxos = (inputUtxos, wallet) => {
+    if (!inputUtxos || !wallet) {
         throw new Error('Invalid getChangeAddressFromWallet input parameter');
     }
 

@@ -465,7 +465,6 @@ export default function useBCH() {
             );
 
             const changeAddress = getChangeAddressFromInputUtxos(
-                BCH,
                 txInputObj.inputUtxos,
                 wallet,
             );

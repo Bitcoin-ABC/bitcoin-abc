@@ -333,7 +333,6 @@ it(`signUtxosByAddress() successfully returns a txBuilder object for a one to ma
 });
 
 it(`getChangeAddressFromInputUtxos() returns a correct change address from a valid inputUtxo`, () => {
-    const BCH = new BCHJS();
     const { wallet } = sendBCHMock;
     const inputUtxo = [
         {
@@ -350,16 +349,11 @@ it(`getChangeAddressFromInputUtxos() returns a correct change address from a val
         },
     ];
 
-    const changeAddress = getChangeAddressFromInputUtxos(
-        BCH,
-        inputUtxo,
-        wallet,
-    );
+    const changeAddress = getChangeAddressFromInputUtxos(inputUtxo, wallet);
     expect(changeAddress).toStrictEqual(inputUtxo[0].address);
 });
 
 it(`getChangeAddressFromInputUtxos() throws error upon a malformed input utxo`, () => {
-    const BCH = new BCHJS();
     const { wallet } = sendBCHMock;
     const invalidInputUtxo = [
         {
@@ -376,7 +370,7 @@ it(`getChangeAddressFromInputUtxos() throws error upon a malformed input utxo`, 
     ];
     let thrownError;
     try {
-        getChangeAddressFromInputUtxos(BCH, invalidInputUtxo, wallet);
+        getChangeAddressFromInputUtxos(invalidInputUtxo, wallet);
     } catch (err) {
         thrownError = err;
     }
@@ -384,7 +378,6 @@ it(`getChangeAddressFromInputUtxos() throws error upon a malformed input utxo`, 
 });
 
 it(`getChangeAddressFromInputUtxos() throws error upon a valid input utxo with invalid address param`, () => {
-    const BCH = new BCHJS();
     const { wallet } = sendBCHMock;
     const invalidInputUtxo = [
         {
@@ -402,7 +395,7 @@ it(`getChangeAddressFromInputUtxos() throws error upon a valid input utxo with i
     ];
     let thrownError;
     try {
-        getChangeAddressFromInputUtxos(BCH, invalidInputUtxo, wallet);
+        getChangeAddressFromInputUtxos(invalidInputUtxo, wallet);
     } catch (err) {
         thrownError = err;
     }
@@ -410,13 +403,12 @@ it(`getChangeAddressFromInputUtxos() throws error upon a valid input utxo with i
 });
 
 it(`getChangeAddressFromInputUtxos() throws an error upon a null inputUtxos param`, () => {
-    const BCH = new BCHJS();
     const { wallet } = sendBCHMock;
     const inputUtxo = null;
 
     let thrownError;
     try {
-        getChangeAddressFromInputUtxos(BCH, inputUtxo, wallet);
+        getChangeAddressFromInputUtxos(inputUtxo, wallet);
     } catch (err) {
         thrownError = err;
     }
