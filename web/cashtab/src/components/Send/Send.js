@@ -113,8 +113,7 @@ const PanelHeaderCtn = styled.div`
     gap: 1rem;
 `;
 
-// Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
-const SendBCH = ({ jestBCH, passLoadingStatus }) => {
+const SendBCH = ({ passLoadingStatus }) => {
     // use balance parameters from wallet.state object and not legacy balances parameter from walletState, if user has migrated wallet
     // this handles edge case of user with old wallet who has not opened latest Cashtab version yet
 
@@ -123,7 +122,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     const ContextValue = React.useContext(WalletContext);
     const location = useLocation();
     const {
-        BCH,
         wallet,
         fiatPrice,
         apiError,
@@ -138,7 +136,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     const [opReturnMsg, setOpReturnMsg] = useState(false);
     const [isEncryptedOptionalOpReturnMsg, setIsEncryptedOptionalOpReturnMsg] =
         useState(false);
-    const [bchObj, setBchObj] = useState(false);
 
     // Get device window width
     // If this is less than 769, the page will open with QR scanner open
@@ -205,14 +202,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     useEffect(() => {
         passLoadingStatus(false);
     }, [balances.totalBalance]);
-
-    useEffect(() => {
-        // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
-        const activeBCH = jestBCH ? jestBCH : BCH;
-
-        // set the BCH instance to state, for other functions to reference
-        setBchObj(activeBCH);
-    }, [BCH]);
 
     useEffect(() => {
         // Manually parse for txInfo object on page load when Send.js is loaded with a query string
@@ -346,7 +335,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
             try {
                 const link = await sendXec(
-                    bchObj,
                     chronik,
                     wallet,
                     slpBalancesAndUtxos.nonSlpUtxos,
@@ -408,7 +396,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
             try {
                 const link = await sendXec(
-                    bchObj,
                     chronik,
                     wallet,
                     slpBalancesAndUtxos.nonSlpUtxos,
@@ -1036,7 +1023,6 @@ SendBCH.defaultProps = {
 };
 
 SendBCH.propTypes = {
-    jestBCH: PropTypes.object,
     passLoadingStatus: PropTypes.func,
 };
 

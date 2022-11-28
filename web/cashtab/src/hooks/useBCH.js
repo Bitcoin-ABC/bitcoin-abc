@@ -346,7 +346,6 @@ export default function useBCH() {
     };
 
     const sendXec = async (
-        BCH,
         chronik,
         wallet,
         utxos,

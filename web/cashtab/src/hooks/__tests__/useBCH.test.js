@@ -24,7 +24,6 @@ describe('useBCH hook', () => {
 
     it('sends XEC correctly', async () => {
         const { sendXec } = useBCH();
-        const BCH = new BCHJS();
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
@@ -36,7 +35,6 @@ describe('useBCH hook', () => {
             .mockResolvedValue({ txid: expectedTxId });
         expect(
             await sendXec(
-                BCH,
                 chronik,
                 wallet,
                 utxos,
@@ -52,7 +50,6 @@ describe('useBCH hook', () => {
 
     it('sends XEC correctly with an encrypted OP_RETURN message', async () => {
         const { sendXec } = useBCH();
-        const BCH = new BCHJS();
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
@@ -66,7 +63,6 @@ describe('useBCH hook', () => {
             .mockResolvedValue({ txid: expectedTxId });
         expect(
             await sendXec(
-                BCH,
                 chronik,
                 wallet,
                 utxos,
@@ -86,7 +82,6 @@ describe('useBCH hook', () => {
 
     it('sends one to many XEC correctly', async () => {
         const { sendXec } = useBCH();
-        const BCH = new BCHJS();
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
@@ -104,7 +99,6 @@ describe('useBCH hook', () => {
             .mockResolvedValue({ txid: expectedTxId });
         expect(
             await sendXec(
-                BCH,
                 chronik,
                 wallet,
                 utxos,
@@ -118,7 +112,6 @@ describe('useBCH hook', () => {
 
     it(`Throws error if called trying to send one base unit ${currency.ticker} more than available in utxo set`, async () => {
         const { sendXec } = useBCH();
-        const BCH = new BCHJS();
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
@@ -143,7 +136,6 @@ describe('useBCH hook', () => {
         let errorThrown;
         try {
             await sendXec(
-                BCH,
                 chronik,
                 wallet,
                 utxos,
@@ -160,7 +152,6 @@ describe('useBCH hook', () => {
         expect(errorThrown.message).toStrictEqual('Insufficient funds');
 
         const nullValuesSendBch = sendXec(
-            BCH,
             chronik,
             wallet,
             utxos,
@@ -178,13 +169,11 @@ describe('useBCH hook', () => {
 
     it('Throws error on attempt to send one satoshi less than backend dust limit', async () => {
         const { sendXec } = useBCH();
-        const BCH = new BCHJS();
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
         const { utxos, wallet, destinationAddress } = sendBCHMock;
         const failedSendBch = sendXec(
-            BCH,
             chronik,
             wallet,
             utxos,
@@ -226,7 +215,6 @@ describe('useBCH hook', () => {
 
     it('receives errors from the network and parses it', async () => {
         const { sendXec } = useBCH();
-        const BCH = new BCHJS();
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
@@ -235,7 +223,6 @@ describe('useBCH hook', () => {
             throw new Error('insufficient priority (code 66)');
         });
         const insufficientPriority = sendXec(
-            BCH,
             chronik,
             wallet,
             utxos,
@@ -254,7 +241,6 @@ describe('useBCH hook', () => {
             throw new Error('txn-mempool-conflict (code 18)');
         });
         const txnMempoolConflict = sendXec(
-            BCH,
             chronik,
             wallet,
             utxos,
@@ -273,7 +259,6 @@ describe('useBCH hook', () => {
             throw new Error('Network Error');
         });
         const networkError = sendXec(
-            BCH,
             chronik,
             wallet,
             utxos,
@@ -294,7 +279,6 @@ describe('useBCH hook', () => {
         });
 
         const tooManyAncestorsMempool = sendXec(
-            BCH,
             chronik,
             wallet,
             utxos,
