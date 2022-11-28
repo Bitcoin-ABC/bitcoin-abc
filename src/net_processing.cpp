@@ -457,8 +457,8 @@ struct Peer {
          * The next time after which we will send an `inv` message containing
          * transaction announcements to this peer.
          */
-        std::chrono::microseconds m_next_inv_send_time
-            GUARDED_BY(NetEventsInterface::g_msgproc_mutex){0};
+        std::chrono::microseconds
+            m_next_inv_send_time GUARDED_BY(m_tx_inventory_mutex){0};
 
         /**
          * Minimum fee rate with which to filter transaction announcements to
@@ -3026,6 +3026,15 @@ void PeerManagerImpl::RelayTransaction(const TxId &txid) {
             continue;
         }
         LOCK(tx_relay->m_tx_inventory_mutex);
+        // Only queue transactions for announcement once the version handshake
+        // is completed. The time of arrival for these transactions is
+        // otherwise at risk of leaking to a spy, if the spy is able to
+        // distinguish transactions received during the handshake from the rest
+        // in the announcement.
+        if (tx_relay->m_next_inv_send_time == 0s) {
+            continue;
+        }
+
         if (!tx_relay->m_tx_inventory_known_filter.contains(txid)) {
             tx_relay->m_tx_inventory_to_send.insert(txid);
         }
@@ -5013,6 +5022,19 @@ void PeerManagerImpl::ProcessMessage(
                         localProof->getId());
                 }
             }
+        }
+
+        if (auto tx_relay = peer->GetTxRelay()) {
+            // `TxRelay::m_tx_inventory_to_send` must be empty before the
+            // version handshake is completed as
+            // `TxRelay::m_next_inv_send_time` is first initialised in
+            // `SendMessages` after the verack is received. Any transactions
+            // received during the version handshake would otherwise
+            // immediately be advertised without random delay, potentially
+            // leaking the time of arrival to a spy.
+            Assume(WITH_LOCK(tx_relay->m_tx_inventory_mutex,
+                             return tx_relay->m_tx_inventory_to_send.empty() &&
+                                    tx_relay->m_next_inv_send_time == 0s));
         }
 
         pfrom.fSuccessfullyConnected = true;
