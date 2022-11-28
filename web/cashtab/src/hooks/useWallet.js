@@ -67,7 +67,6 @@ const useWallet = () => {
         : {
               balances: {},
               tokens: [],
-              utxos: null,
           };
     const previousBalances = usePrevious(balances);
     const previousTokens = usePrevious(tokens);
