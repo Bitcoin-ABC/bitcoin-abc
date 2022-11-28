@@ -21,43 +21,6 @@ export const ReceiveCtn = styled.div`
     }
 `;
 
-export const SwitchBtnCtn = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    align-content: space-between;
-    margin-bottom: 15px;
-    .nonactiveBtn {
-        color: ${props => props.theme.walletBackground};
-        background: ${props => props.theme.contrast} !important;
-        opacity: 0.7;
-        box-shadow: none !important;
-    }
-    .slpActive {
-        background: ${props => props.theme.eCashPurple} !important;
-    }
-`;
-
-export const SwitchBtn = styled.div`
-    font-weight: bold;
-    display: inline-block;
-    cursor: pointer;
-    color: ${props => props.theme.switchButtonActiveText};
-    font-size: 14px;
-    padding: 6px 0;
-    width: 100px;
-    margin: 0 1px;
-    text-decoration: none;
-    background: ${props => props.theme.eCashBlue};
-    user-select: none;
-    :first-child {
-        border-radius: 100px 0 0 100px;
-    }
-    :nth-child(2) {
-        border-radius: 0 100px 100px 0;
-    }
-`;
-
 const ReceiveWithWalletPresent = ({
     wallet,
     cashtabSettings,
@@ -65,10 +28,6 @@ const ReceiveWithWalletPresent = ({
     fiatPrice,
     changeCashtabSettings,
 }) => {
-    const [isCashAddress, setIsCashAddress] = React.useState(true);
-    const handleChangeAddress = () => {
-        setIsCashAddress(!isCashAddress);
-    };
     return (
         <ReceiveCtn>
             <WalletInfoCtn>
@@ -99,51 +58,25 @@ const ReceiveWithWalletPresent = ({
                     </>
                 )}
             </WalletInfoCtn>
-            <h2>Receive {isCashAddress ? 'XEC' : 'eToken'}</h2>
             {wallet && ((wallet.Path245 && wallet.Path145) || wallet.Path1899) && (
                 <>
                     {wallet.Path1899 ? (
                         <>
                             <QRCode
                                 id="borderedQRCode"
-                                address={
-                                    isCashAddress
-                                        ? wallet.Path1899.cashAddress
-                                        : wallet.Path1899.slpAddress
-                                }
-                                isCashAddress={isCashAddress}
+                                address={wallet.Path1899.cashAddress}
                             />
                         </>
                     ) : (
                         <>
                             <QRCode
                                 id="borderedQRCode"
-                                address={
-                                    isCashAddress
-                                        ? wallet.Path245.cashAddress
-                                        : wallet.Path245.slpAddress
-                                }
-                                isCashAddress={isCashAddress}
+                                address={wallet.Path245.cashAddress}
                             />
                         </>
                     )}
                 </>
             )}
-
-            <SwitchBtnCtn>
-                <SwitchBtn
-                    onClick={() => handleChangeAddress()}
-                    className={isCashAddress ? null : 'nonactiveBtn'}
-                >
-                    {currency.ticker}
-                </SwitchBtn>
-                <SwitchBtn
-                    onClick={() => handleChangeAddress()}
-                    className={isCashAddress ? 'nonactiveBtn' : 'slpActive'}
-                >
-                    {currency.tokenTicker}
-                </SwitchBtn>
-            </SwitchBtnCtn>
         </ReceiveCtn>
     );
 };

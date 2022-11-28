@@ -6,17 +6,17 @@ import { currency } from 'components/Common/Ticker.js';
 import { Event } from 'utils/GoogleAnalytics';
 import { convertToEcashPrefix } from 'utils/cashMethods';
 import CopyToClipboard from './CopyToClipboard';
+
 export const StyledRawQRCode = styled(RawQRCode)`
     cursor: pointer;
     border-radius: 10px;
     background: ${props => props.theme.qr.background};
-    margin-bottom: 10px;
+    margin: 24px;
     path:first-child {
         fill: ${props => props.theme.qr.background};
     }
     :hover {
-        border-color: ${({ xec = 0, ...props }) =>
-            xec === 1 ? props.theme.eCashBlue : props.theme.eCashPurple};
+        border-color: ${props => props.theme.qr.eCashBlue};
     }
     @media (max-width: 768px) {
         border-radius: 18px;
@@ -30,11 +30,9 @@ const Copied = styled.div`
     font-weight: bold;
     width: 100%;
     text-align: center;
-    background-color: ${({ xec = 0, ...props }) =>
-        xec === 1 ? props.theme.eCashBlue : props.theme.eCashPurple};
+    background-color: ${props => props.theme.eCashBlue};
     border: 1px solid;
-    border-color: ${({ xec = 0, ...props }) =>
-        xec === 1 ? props.theme.eCashBlue : props.theme.eCashPurple};
+    border-color: ${props => props.theme.eCashBlue};
     color: ${props => props.theme.contrast};
     position: absolute;
     top: 65px;
@@ -47,8 +45,7 @@ const Copied = styled.div`
 const PrefixLabel = styled.span`
     text-align: right;
     font-weight: bold;
-    color: ${({ xec = 0, ...props }) =>
-        xec === 1 ? props.theme.eCashBlue : props.theme.eCashPurple};
+    color: ${props => props.theme.eCashBlue};
     @media (max-width: 768px) {
         font-size: 12px;
     }
@@ -85,7 +82,7 @@ const CustomInput = styled.div`
     text-align: center;
     cursor: pointer;
     margin-bottom: 10px;
-    padding: 6px 0;
+    padding: 0;
     font-family: 'Roboto Mono', monospace;
     border-radius: 5px;
     -webkit-touch-callout: none;
@@ -133,12 +130,7 @@ const CustomInput = styled.div`
     }
 `;
 
-export const QRCode = ({
-    address,
-    isCashAddress,
-    size = 210,
-    onClick = () => null,
-}) => {
+export const QRCode = ({ address, size = 210, onClick = () => null }) => {
     address = address ? convertToEcashPrefix(address) : '';
 
     const [visible, setVisible] = useState(false);
@@ -162,11 +154,8 @@ export const QRCode = ({
         // Event.("Category", "Action", "Label")
         // xec or etoken?
         let eventLabel = currency.ticker;
-        if (address && !isCashAddress) {
-            eventLabel = currency.tokenTicker;
-            // Event('Category', 'Action', 'Label')
-            Event('Wallet', 'Copy Address', eventLabel);
-        }
+
+        Event('Wallet', 'Copy Address', eventLabel);
 
         setVisible(true);
         setTimeout(() => {
@@ -185,10 +174,7 @@ export const QRCode = ({
                 onCopy={handleOnCopy}
             >
                 <div style={{ position: 'relative' }} onClick={handleOnClick}>
-                    <Copied
-                        xec={address && isCashAddress ? 1 : 0}
-                        style={{ display: visible ? null : 'none' }}
-                    >
+                    <Copied style={{ display: visible ? null : 'none' }}>
                         Copied <br />
                         <span style={{ fontSize: '12px' }}>{address}</span>
                     </Copied>
@@ -197,14 +183,10 @@ export const QRCode = ({
                         id="borderedQRCode"
                         value={address || ''}
                         size={size}
-                        xec={address && isCashAddress ? 1 : 0}
                         renderAs={'svg'}
                         includeMargin
                         imageSettings={{
-                            src:
-                                address && isCashAddress
-                                    ? currency.logo
-                                    : currency.tokenLogo,
+                            src: currency.logo,
                             x: null,
                             y: null,
                             height: 24,
@@ -222,7 +204,7 @@ export const QRCode = ({
                                 spellCheck="false"
                                 type="text"
                             />
-                            <PrefixLabel xec={address && isCashAddress ? 1 : 0}>
+                            <PrefixLabel>
                                 {address.slice(0, prefixLength)}
                             </PrefixLabel>
                             <AddressHighlightTrim>
@@ -248,7 +230,6 @@ export const QRCode = ({
 
 QRCode.propTypes = {
     address: PropTypes.string,
-    isCashAddress: PropTypes.bool,
     size: PropTypes.number,
     onClick: PropTypes.func,
 };

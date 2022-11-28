@@ -61,10 +61,6 @@ exports[`Wallet with BCH balances 1`] = `
       Deposit some funds to use this feature
     </div>
   </div>
-  <h2>
-    Receive 
-    XEC
-  </h2>
   <div
     onClick={[Function]}
   >
@@ -107,13 +103,12 @@ exports[`Wallet with BCH balances 1`] = `
           </span>
         </div>
         <svg
-          className="sc-cMljjf ALoye"
+          className="sc-cMljjf pSHwe"
           height={210}
           id="borderedQRCode"
           shapeRendering="crispEdges"
           viewBox="0 0 37 37"
           width={210}
-          xec={1}
         >
           <path
             d="M0,0 h37v37H0z"
@@ -133,7 +128,7 @@ exports[`Wallet with BCH balances 1`] = `
           />
         </svg>
         <div
-          className="sc-iRbamj dEGYOU notranslate"
+          className="sc-iRbamj kKGwqm notranslate"
         >
           <input
             readOnly={true}
@@ -159,22 +154,6 @@ exports[`Wallet with BCH balances 1`] = `
           </span>
         </div>
       </div>
-    </div>
-  </div>
-  <div
-    className="sc-ksYbfQ fidRXF"
-  >
-    <div
-      className="sc-hmzhuo cyyfUG"
-      onClick={[Function]}
-    >
-      XEC
-    </div>
-    <div
-      className="sc-hmzhuo cyyfUG nonactiveBtn"
-      onClick={[Function]}
-    >
-      eToken
     </div>
   </div>
 </div>
@@ -241,10 +220,6 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       Deposit some funds to use this feature
     </div>
   </div>
-  <h2>
-    Receive 
-    XEC
-  </h2>
   <div
     onClick={[Function]}
   >
@@ -287,13 +262,12 @@ exports[`Wallet with BCH balances and tokens 1`] = `
           </span>
         </div>
         <svg
-          className="sc-cMljjf ALoye"
+          className="sc-cMljjf pSHwe"
           height={210}
           id="borderedQRCode"
           shapeRendering="crispEdges"
           viewBox="0 0 37 37"
           width={210}
-          xec={1}
         >
           <path
             d="M0,0 h37v37H0z"
@@ -313,7 +287,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
           />
         </svg>
         <div
-          className="sc-iRbamj dEGYOU notranslate"
+          className="sc-iRbamj kKGwqm notranslate"
         >
           <input
             readOnly={true}
@@ -339,22 +313,6 @@ exports[`Wallet with BCH balances and tokens 1`] = `
           </span>
         </div>
       </div>
-    </div>
-  </div>
-  <div
-    className="sc-ksYbfQ fidRXF"
-  >
-    <div
-      className="sc-hmzhuo cyyfUG"
-      onClick={[Function]}
-    >
-      XEC
-    </div>
-    <div
-      className="sc-hmzhuo cyyfUG nonactiveBtn"
-      onClick={[Function]}
-    >
-      eToken
     </div>
   </div>
 </div>
@@ -426,10 +384,6 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
       </span>
     </div>
   </div>
-  <h2>
-    Receive 
-    XEC
-  </h2>
   <div
     onClick={[Function]}
   >
@@ -472,13 +426,12 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
           </span>
         </div>
         <svg
-          className="sc-cMljjf ALoye"
+          className="sc-cMljjf pSHwe"
           height={210}
           id="borderedQRCode"
           shapeRendering="crispEdges"
           viewBox="0 0 37 37"
           width={210}
-          xec={1}
         >
           <path
             d="M0,0 h37v37H0z"
@@ -498,7 +451,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
           />
         </svg>
         <div
-          className="sc-iRbamj dEGYOU notranslate"
+          className="sc-iRbamj kKGwqm notranslate"
         >
           <input
             readOnly={true}
@@ -524,22 +477,6 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
           </span>
         </div>
       </div>
-    </div>
-  </div>
-  <div
-    className="sc-ksYbfQ fidRXF"
-  >
-    <div
-      className="sc-hmzhuo cyyfUG"
-      onClick={[Function]}
-    >
-      XEC
-    </div>
-    <div
-      className="sc-hmzhuo cyyfUG nonactiveBtn"
-      onClick={[Function]}
-    >
-      eToken
     </div>
   </div>
 </div>
@@ -606,10 +543,6 @@ exports[`Wallet without BCH balance 1`] = `
       Deposit some funds to use this feature
     </div>
   </div>
-  <h2>
-    Receive 
-    XEC
-  </h2>
   <div
     onClick={[Function]}
   >
@@ -652,13 +585,12 @@ exports[`Wallet without BCH balance 1`] = `
           </span>
         </div>
         <svg
-          className="sc-cMljjf ALoye"
+          className="sc-cMljjf pSHwe"
           height={210}
           id="borderedQRCode"
           shapeRendering="crispEdges"
           viewBox="0 0 37 37"
           width={210}
-          xec={1}
         >
           <path
             d="M0,0 h37v37H0z"
@@ -678,7 +610,7 @@ exports[`Wallet without BCH balance 1`] = `
           />
         </svg>
         <div
-          className="sc-iRbamj dEGYOU notranslate"
+          className="sc-iRbamj kKGwqm notranslate"
         >
           <input
             readOnly={true}
@@ -704,22 +636,6 @@ exports[`Wallet without BCH balance 1`] = `
           </span>
         </div>
       </div>
-    </div>
-  </div>
-  <div
-    className="sc-ksYbfQ fidRXF"
-  >
-    <div
-      className="sc-hmzhuo cyyfUG"
-      onClick={[Function]}
-    >
-      XEC
-    </div>
-    <div
-      className="sc-hmzhuo cyyfUG nonactiveBtn"
-      onClick={[Function]}
-    >
-      eToken
     </div>
   </div>
 </div>
