@@ -349,7 +349,6 @@ describe('useBCH hook', () => {
 
     it(`getRecipientPublicKey() correctly retrieves the public key of a cash address`, async () => {
         const { getRecipientPublicKey } = useBCH();
-        const BCH = new BCHJS();
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
@@ -360,7 +359,6 @@ describe('useBCH hook', () => {
 
         expect(
             await getRecipientPublicKey(
-                BCH,
                 chronik,
                 destinationAddress,
                 expectedPubKey,

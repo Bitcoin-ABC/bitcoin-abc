@@ -275,7 +275,6 @@ export default function useBCH() {
     };
 
     const getRecipientPublicKey = async (
-        BCH,
         chronik,
         recipientAddress,
         optionalMockPubKeyResponse = false,
@@ -389,7 +388,6 @@ export default function useBCH() {
                 try {
                     // get the pub key for the recipient address
                     let recipientPubKey = await getRecipientPublicKey(
-                        BCH,
                         chronik,
                         destinationAddress,
                         optionalMockPubKeyResponse,
