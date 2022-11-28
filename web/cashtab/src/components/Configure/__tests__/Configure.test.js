@@ -3,12 +3,8 @@ import renderer from 'react-test-renderer';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
 import Configure from 'components/Configure/Configure';
-import BCHJS from '@psf/bch-js';
-import {
-    walletWithBalancesAndTokens,
-    walletWithBalancesMock,
-} from '../../Home/__mocks__/walletAndBalancesMock';
-import { BrowserRouter as Router, useLocation } from 'react-router-dom';
+import { walletWithBalancesAndTokens } from '../../Home/__mocks__/walletAndBalancesMock';
+import { BrowserRouter as Router } from 'react-router-dom';
 import { WalletContext } from 'utils/context';
 
 beforeEach(() => {
@@ -49,12 +45,11 @@ test('Without wallet defined', () => {
         balances: { totalBalance: 0 },
         loading: false,
     };
-    const testBCH = new BCHJS();
     const component = renderer.create(
         <WalletContext.Provider value={withoutWalletDefinedMock}>
             <ThemeProvider theme={theme}>
                 <Router>
-                    <Configure jestBCH={testBCH} />
+                    <Configure />
                 </Router>
             </ThemeProvider>
         </WalletContext.Provider>,
