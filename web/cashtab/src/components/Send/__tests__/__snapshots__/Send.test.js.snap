@@ -197,7 +197,7 @@ Array [
                                     onChange={[Function]}
                                     onFocus={[Function]}
                                     onKeyDown={[Function]}
-                                    placeholder="XEC Address"
+                                    placeholder="Address"
                                     required={true}
                                     style={null}
                                     type="text"
@@ -450,7 +450,7 @@ Array [
                             onCompositionEnd={[Function]}
                             onCompositionStart={[Function]}
                             onKeyDown={[Function]}
-                            placeholder="One XEC address & value per line, separated by comma 
+                            placeholder="One address & value per line, separated by comma 
 e.g. 
 ecash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8,500 
 ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
@@ -777,7 +777,7 @@ Array [
                                     onChange={[Function]}
                                     onFocus={[Function]}
                                     onKeyDown={[Function]}
-                                    placeholder="XEC Address"
+                                    placeholder="Address"
                                     required={true}
                                     style={null}
                                     type="text"
@@ -1030,7 +1030,7 @@ Array [
                             onCompositionEnd={[Function]}
                             onCompositionStart={[Function]}
                             onKeyDown={[Function]}
-                            placeholder="One XEC address & value per line, separated by comma 
+                            placeholder="One address & value per line, separated by comma 
 e.g. 
 ecash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8,500 
 ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
@@ -1362,7 +1362,7 @@ Array [
                                     onChange={[Function]}
                                     onFocus={[Function]}
                                     onKeyDown={[Function]}
-                                    placeholder="XEC Address"
+                                    placeholder="Address"
                                     required={true}
                                     style={null}
                                     type="text"
@@ -1615,7 +1615,7 @@ Array [
                             onCompositionEnd={[Function]}
                             onCompositionStart={[Function]}
                             onKeyDown={[Function]}
-                            placeholder="One XEC address & value per line, separated by comma 
+                            placeholder="One address & value per line, separated by comma 
 e.g. 
 ecash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8,500 
 ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
@@ -1943,7 +1943,7 @@ Array [
                                     onChange={[Function]}
                                     onFocus={[Function]}
                                     onKeyDown={[Function]}
-                                    placeholder="XEC Address"
+                                    placeholder="Address"
                                     required={true}
                                     style={null}
                                     type="text"
@@ -2196,7 +2196,7 @@ Array [
                             onCompositionEnd={[Function]}
                             onCompositionStart={[Function]}
                             onKeyDown={[Function]}
-                            placeholder="One XEC address & value per line, separated by comma 
+                            placeholder="One address & value per line, separated by comma 
 e.g. 
 ecash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8,500 
 ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
@@ -2518,7 +2518,7 @@ Array [
                                     onChange={[Function]}
                                     onFocus={[Function]}
                                     onKeyDown={[Function]}
-                                    placeholder="XEC Address"
+                                    placeholder="Address"
                                     required={true}
                                     style={null}
                                     type="text"
@@ -2771,7 +2771,7 @@ Array [
                             onCompositionEnd={[Function]}
                             onCompositionStart={[Function]}
                             onKeyDown={[Function]}
-                            placeholder="One XEC address & value per line, separated by comma 
+                            placeholder="One address & value per line, separated by comma 
 e.g. 
 ecash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8,500 
 ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"

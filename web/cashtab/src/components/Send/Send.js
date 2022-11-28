@@ -456,7 +456,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
         // Is this valid address?
         if (!isValid) {
-            error = `Invalid ${currency.ticker} address`;
+            error = `Invalid address`;
             // If valid address but token format
             if (isValidEtokenAddress(address)) {
                 error = `eToken addresses are not supported for ${currency.ticker} sends`;
@@ -759,7 +759,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                                 })
                                             }
                                             inputProps={{
-                                                placeholder: `${currency.ticker} Address`,
+                                                placeholder: `Address`,
                                                 name: 'address',
                                                 onChange: e =>
                                                     handleAddressChange(e),
@@ -837,7 +837,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                                     : ''
                                             }
                                             inputProps={{
-                                                placeholder: `One XEC address & value per line, separated by comma \ne.g. \necash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8,500 \necash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700`,
+                                                placeholder: `One address & value per line, separated by comma \ne.g. \necash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8,500 \necash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700`,
                                                 name: 'address',
                                                 onChange: e =>
                                                     handleMultiAddressChange(e),

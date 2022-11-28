@@ -273,7 +273,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
             isValidEtokenAddress(address) || isValidXecAddress(address);
         // Is this valid address?
         if (!isValid) {
-            error = 'Address is not a valid ecash: address';
+            error = 'Invalid address';
         }
         setSendTokenAddressError(error);
 
@@ -519,7 +519,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                                         })
                                     }
                                     inputProps={{
-                                        placeholder: `${currency.tokenTicker} Address`,
+                                        placeholder: `Address`,
                                         name: 'address',
                                         onChange: e =>
                                             handleTokenAddressChange(e),
