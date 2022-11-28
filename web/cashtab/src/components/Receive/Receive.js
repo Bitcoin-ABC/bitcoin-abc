@@ -11,6 +11,7 @@ import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
 import { WalletInfoCtn, ZeroBalanceHeader } from 'components/Common/Atoms';
 import WalletLabel from 'components/Common/WalletLabel';
 import { getWalletState } from 'utils/cashMethods';
+import { Alert } from 'antd';
 
 export const ReceiveCtn = styled.div`
     width: 100%;
@@ -19,6 +20,10 @@ export const ReceiveCtn = styled.div`
         margin: 0 0 20px;
         margin-top: 10px;
     }
+`;
+const InfoContainer = styled.div`
+    width: 80%;
+    margin: auto;
 `;
 
 const ReceiveWithWalletPresent = ({
@@ -77,6 +82,13 @@ const ReceiveWithWalletPresent = ({
                     )}
                 </>
             )}
+            <InfoContainer>
+                <Alert
+                    message="Cashtab now supports receiving eTokens at your eCash address"
+                    type="info"
+                    closable
+                />
+            </InfoContainer>
         </ReceiveCtn>
     );
 };
