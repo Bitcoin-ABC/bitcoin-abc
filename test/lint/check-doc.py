@@ -17,8 +17,8 @@ from pprint import PrettyPrinter
 from subprocess import check_output
 
 TOP_LEVEL = 'git rev-parse --show-toplevel'
-FOLDER_SRC = '/src/**/'
-FOLDER_TEST = '/src/**/test/'
+FOLDERS_SRC = ['/src/**/']
+FOLDERS_TEST = ['/src/**/test/']
 
 EXTENSIONS = ["*.c", "*.h", "*.cpp", "*.cc", "*.hpp"]
 REGEX_ARG = r'(?:ForceSet|SoftSet|Get|Is)(?:Bool|Int)?Args?(?:Set)?\(\s*"(-[^"]+)"'
@@ -66,10 +66,13 @@ def main():
     test_files = []
 
     for extension in EXTENSIONS:
-        source_files += glob.glob(top_level +
-                                  FOLDER_SRC + extension, recursive=True)
-        test_files += glob.glob(top_level + FOLDER_TEST +
-                                extension, recursive=True)
+        for folder_src in FOLDERS_SRC:
+            source_files += glob.glob(top_level +
+                                      folder_src + extension, recursive=True)
+        for folder_test in FOLDERS_TEST:
+            test_files += glob.glob(top_level +
+                                    folder_test +
+                                    extension, recursive=True)
 
     files = set(source_files) - set(test_files)
 
