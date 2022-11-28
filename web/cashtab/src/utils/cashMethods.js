@@ -628,7 +628,6 @@ export const generateOpReturnScript = (
 };
 
 export const generateTxOutput = (
-    BCH,
     isOneToMany,
     singleSendValue,
     satoshisToSend,
@@ -641,7 +640,6 @@ export const generateTxOutput = (
 ) => {
     try {
         if (
-            !BCH ||
             (isOneToMany && !destinationAddressAndValueArray) ||
             (!isOneToMany && !destinationAddress && !singleSendValue) ||
             !changeAddress ||

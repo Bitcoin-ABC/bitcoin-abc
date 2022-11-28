@@ -211,7 +211,6 @@ it(`generateGenesisOpReturn() throws error on invalid configObj`, () => {
 });
 
 it(`signUtxosByAddress() successfully returns a txBuilder object for a one to one XEC tx`, () => {
-    const BCH = new BCHJS();
     const isOneToMany = false;
     const { destinationAddress, wallet, utxos } = sendBCHMock;
     let txBuilder = new TransactionBuilder();
@@ -244,7 +243,6 @@ it(`signUtxosByAddress() successfully returns a txBuilder object for a one to on
     );
     const changeAddress = wallet.Path1899.cashAddress;
     const outputObj = generateTxOutput(
-        BCH,
         isOneToMany,
         singleSendValue,
         satoshisToSendOutput,
@@ -267,7 +265,6 @@ it(`signUtxosByAddress() successfully returns a txBuilder object for a one to on
 });
 
 it(`signUtxosByAddress() successfully returns a txBuilder object for a one to many XEC tx`, () => {
-    const BCH = new BCHJS();
     const isOneToMany = true;
     const { wallet, utxos } = sendBCHMock;
     let txBuilder = new TransactionBuilder();
@@ -310,7 +307,6 @@ it(`signUtxosByAddress() successfully returns a txBuilder object for a one to ma
     destinationAddressAndValueArray = validAddressArrayInput;
     const changeAddress = wallet.Path1899.cashAddress;
     const outputObj = generateTxOutput(
-        BCH,
         isOneToMany,
         singleSendValue,
         satoshisToSendOutput,
@@ -840,7 +836,6 @@ it(`generateTxInput() throws error for a one to many XEC tx with invalid utxos i
 
 it(`generateTxOutput() returns a txBuilder instance for a valid one to one XEC tx`, () => {
     // txbuilder output params
-    const BCH = new BCHJS();
     const { destinationAddress, wallet } = sendBCHMock;
     const isOneToMany = false;
     const singleSendValue = fromSatoshisToXec(
@@ -860,7 +855,6 @@ it(`generateTxOutput() returns a txBuilder instance for a valid one to one XEC t
     const changeAddress = wallet.Path1899.cashAddress;
 
     const outputObj = generateTxOutput(
-        BCH,
         isOneToMany,
         singleSendValue,
         satoshisToSend,
@@ -878,7 +872,6 @@ it(`generateTxOutput() returns a txBuilder instance for a valid one to one XEC t
 
 it(`generateTxOutput() returns a txBuilder instance for a valid one to many XEC tx`, () => {
     // txbuilder output params
-    const BCH = new BCHJS();
     const { destinationAddress, wallet } = sendBCHMock;
     const isOneToMany = true;
     const singleSendValue = null;
@@ -905,7 +898,6 @@ it(`generateTxOutput() returns a txBuilder instance for a valid one to many XEC 
     const changeAddress = wallet.Path1899.cashAddress;
 
     const outputObj = generateTxOutput(
-        BCH,
         isOneToMany,
         singleSendValue,
         satoshisToSend,
@@ -923,7 +915,6 @@ it(`generateTxOutput() returns a txBuilder instance for a valid one to many XEC 
 
 it(`generateTxOutput() throws an error on invalid input params for a one to one XEC tx`, () => {
     // txbuilder output params
-    const BCH = new BCHJS();
     const { wallet } = sendBCHMock;
     const isOneToMany = false;
     const singleSendValue = null; // invalid due to singleSendValue being mandatory when isOneToMany is false
@@ -941,7 +932,6 @@ it(`generateTxOutput() throws an error on invalid input params for a one to one 
     let thrownError;
     try {
         generateTxOutput(
-            BCH,
             isOneToMany,
             singleSendValue,
             satoshisToSend,
@@ -960,7 +950,6 @@ it(`generateTxOutput() throws an error on invalid input params for a one to one 
 
 it(`generateTxOutput() throws an error on invalid input params for a one to many XEC tx`, () => {
     // txbuilder output params
-    const BCH = new BCHJS();
     const { wallet } = sendBCHMock;
     const isOneToMany = true;
     const singleSendValue = null;
@@ -988,7 +977,6 @@ it(`generateTxOutput() throws an error on invalid input params for a one to many
     let thrownError;
     try {
         generateTxOutput(
-            BCH,
             isOneToMany,
             singleSendValue,
             satoshisToSend,

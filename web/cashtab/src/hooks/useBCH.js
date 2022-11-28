@@ -473,7 +473,6 @@ export default function useBCH() {
             // generate the tx outputs and add to txBuilder instance
             // returns the updated txBuilder
             const txOutputObj = generateTxOutput(
-                BCH,
                 isOneToMany,
                 value,
                 satoshisToSend,

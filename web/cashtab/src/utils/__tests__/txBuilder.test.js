@@ -37,7 +37,6 @@ it(`Transaction Builder returns correct builder object with valid input and outp
 
     // verify txBuilder after adding tx outputs
     txBuilder = generateTxOutput(
-        BCH,
         isOneToMany,
         new BigNumber(6), // XEC denomination of 600 satoshisToSend
         satoshisToSend,
