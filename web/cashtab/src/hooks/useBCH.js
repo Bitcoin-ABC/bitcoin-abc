@@ -49,7 +49,6 @@ export default function useBCH() {
             let txBuilder = new TransactionBuilder();
 
             let tokenTxInputObj = generateTokenTxInput(
-                BCH,
                 'GENESIS',
                 utxos,
                 null, // total token UTXOS - not applicable for GENESIS tx
@@ -144,7 +143,6 @@ export default function useBCH() {
         let txBuilder = new TransactionBuilder();
 
         let tokenTxInputObj = generateTokenTxInput(
-            BCH,
             'SEND',
             xecUtxos,
             tokenUtxos,
@@ -219,7 +217,6 @@ export default function useBCH() {
         let txBuilder = new TransactionBuilder();
 
         let tokenTxInputObj = generateTokenTxInput(
-            BCH,
             'BURN',
             xecUtxos,
             tokenUtxos,

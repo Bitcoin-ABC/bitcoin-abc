@@ -593,12 +593,10 @@ it('generateOpReturnScript() correctly throws an error on an invalid airdrop inp
 });
 
 it(`generateTokenTxInput() returns a valid object for a valid create token tx`, async () => {
-    const BCH = new BCHJS();
     let txBuilder = new TransactionBuilder();
     const tokenId =
         '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e';
     const tokenInputObj = generateTokenTxInput(
-        BCH,
         'GENESIS',
         mockNonSlpUtxos,
         null, // no slpUtxos used for genesis tx
@@ -620,12 +618,10 @@ it(`generateTokenTxInput() returns a valid object for a valid create token tx`, 
 });
 
 it(`generateTokenTxInput() returns a valid object for a valid send token tx`, async () => {
-    const BCH = new BCHJS();
     let txBuilder = new TransactionBuilder();
     const tokenId = mockSlpUtxos[0].tokenId;
 
     const tokenInputObj = generateTokenTxInput(
-        BCH,
         'SEND',
         mockNonSlpUtxos,
         mockSlpUtxos,
@@ -647,12 +643,10 @@ it(`generateTokenTxInput() returns a valid object for a valid send token tx`, as
 });
 
 it(`generateTokenTxInput() returns a valid object for a valid burn token tx`, async () => {
-    const BCH = new BCHJS();
     let txBuilder = new TransactionBuilder();
     const tokenId = mockSlpUtxos[0].tokenId;
 
     const tokenInputObj = generateTokenTxInput(
-        BCH,
         'BURN',
         mockNonSlpUtxos,
         mockSlpUtxos,

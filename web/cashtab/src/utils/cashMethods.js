@@ -342,7 +342,6 @@ export const generateTxInput = (
 };
 
 export const generateTokenTxInput = (
-    BCH,
     tokenAction, // GENESIS, SEND or BURN
     totalXecUtxos,
     totalTokenUtxos,
@@ -360,7 +359,6 @@ export const generateTokenTxInput = (
 
     try {
         if (
-            !BCH ||
             !tokenAction ||
             !totalXecUtxos ||
             (tokenAction !== 'GENESIS' && !tokenId) ||
