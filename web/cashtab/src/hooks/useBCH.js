@@ -456,7 +456,6 @@ export default function useBCH() {
             // generate the tx inputs and add to txBuilder instance
             // returns the updated txBuilder, txFee, totalInputUtxoValue and inputUtxos
             let txInputObj = generateTxInput(
-                BCH,
                 isOneToMany,
                 utxos,
                 txBuilder,

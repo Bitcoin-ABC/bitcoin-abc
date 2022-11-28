@@ -288,7 +288,6 @@ export const generateTokenTxOutput = (
 };
 
 export const generateTxInput = (
-    BCH,
     isOneToMany,
     utxos,
     txBuilder,
@@ -302,7 +301,6 @@ export const generateTxInput = (
     let totalInputUtxoValue = new BigNumber(0);
     try {
         if (
-            !BCH ||
             (isOneToMany && !destinationAddressAndValueArray) ||
             !utxos ||
             !txBuilder ||

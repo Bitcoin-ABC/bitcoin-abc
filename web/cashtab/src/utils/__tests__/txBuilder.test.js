@@ -23,7 +23,6 @@ it(`Transaction Builder returns correct builder object with valid input and outp
     const satoshisToSend = new BigNumber(600);
 
     const txInputObj = generateTxInput(
-        BCH,
         isOneToMany,
         utxos,
         txBuilder,

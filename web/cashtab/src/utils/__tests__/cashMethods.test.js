@@ -220,7 +220,6 @@ it(`signUtxosByAddress() successfully returns a txBuilder object for a one to on
 
     // mock tx input
     const inputObj = generateTxInput(
-        BCH,
         isOneToMany,
         utxos,
         txBuilder,
@@ -282,7 +281,6 @@ it(`signUtxosByAddress() successfully returns a txBuilder object for a one to ma
 
     // mock tx input
     const inputObj = generateTxInput(
-        BCH,
         isOneToMany,
         utxos,
         txBuilder,
@@ -749,7 +747,6 @@ it(`generateTokenTxOutput() returns a valid object for a valid burn token tx`, a
 });
 
 it(`generateTxInput() returns an input object for a valid one to one XEC tx`, async () => {
-    const BCH = new BCHJS();
     const isOneToMany = false;
     const utxos = mockNonSlpUtxos;
     let txBuilder = new TransactionBuilder();
@@ -758,7 +755,6 @@ it(`generateTxInput() returns an input object for a valid one to one XEC tx`, as
     const feeInSatsPerByte = currency.defaultFee;
 
     const inputObj = generateTxInput(
-        BCH,
         isOneToMany,
         utxos,
         txBuilder,
@@ -773,7 +769,6 @@ it(`generateTxInput() returns an input object for a valid one to one XEC tx`, as
 });
 
 it(`generateTxInput() returns an input object for a valid one to many XEC tx`, async () => {
-    const BCH = new BCHJS();
     const isOneToMany = true;
     const utxos = mockNonSlpUtxos;
     let txBuilder = new TransactionBuilder();
@@ -786,7 +781,6 @@ it(`generateTxInput() returns an input object for a valid one to many XEC tx`, a
     const feeInSatsPerByte = currency.defaultFee;
 
     const inputObj = generateTxInput(
-        BCH,
         isOneToMany,
         utxos,
         txBuilder,
@@ -801,7 +795,6 @@ it(`generateTxInput() returns an input object for a valid one to many XEC tx`, a
 });
 
 it(`generateTxInput() throws error for a one to many XEC tx with invalid destinationAddressAndValueArray input`, async () => {
-    const BCH = new BCHJS();
     const isOneToMany = true;
     const utxos = mockNonSlpUtxos;
     let txBuilder = new TransactionBuilder();
@@ -812,7 +805,6 @@ it(`generateTxInput() throws error for a one to many XEC tx with invalid destina
     let thrownError;
     try {
         generateTxInput(
-            BCH,
             isOneToMany,
             utxos,
             txBuilder,
@@ -827,7 +819,6 @@ it(`generateTxInput() throws error for a one to many XEC tx with invalid destina
 });
 
 it(`generateTxInput() throws error for a one to many XEC tx with invalid utxos input`, async () => {
-    const BCH = new BCHJS();
     const isOneToMany = true;
     const utxos = null;
     let txBuilder = new TransactionBuilder();
@@ -842,7 +833,6 @@ it(`generateTxInput() throws error for a one to many XEC tx with invalid utxos i
     let thrownError;
     try {
         generateTxInput(
-            BCH,
             isOneToMany,
             utxos,
             txBuilder,
