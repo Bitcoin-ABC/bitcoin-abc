@@ -121,12 +121,11 @@ export default function useBCH() {
         wallet,
         { tokenId, amount, tokenReceiverAddress },
     ) => {
-        const xecUtxos = wallet.state.nonSlpUtxos;
-        const tokenUtxos = wallet.state.slpUtxos;
+        const { slpUtxos, nonSlpUtxos } = wallet.state;
         const CREATION_ADDR = wallet.Path1899.cashAddress;
 
         // Handle error of user having no XEC
-        if (!xecUtxos || xecUtxos.length === 0) {
+        if (!nonSlpUtxos || nonSlpUtxos.length === 0) {
             throw new Error(
                 `You need some ${currency.ticker} to send ${currency.tokenTicker}`,
             );
@@ -137,8 +136,8 @@ export default function useBCH() {
 
         let tokenTxInputObj = generateTokenTxInput(
             'SEND',
-            xecUtxos,
-            tokenUtxos,
+            nonSlpUtxos,
+            slpUtxos,
             tokenId,
             amount,
             currency.defaultFee,
@@ -192,12 +191,11 @@ export default function useBCH() {
     };
 
     const burnToken = async (chronik, wallet, { tokenId, amount }) => {
-        const xecUtxos = wallet.state.nonSlpUtxos;
-        const tokenUtxos = wallet.state.slpUtxos;
+        const { slpUtxos, nonSlpUtxos } = wallet.state;
         const CREATION_ADDR = wallet.Path1899.cashAddress;
 
         // Handle error of user having no XEC
-        if (!xecUtxos || xecUtxos.length === 0) {
+        if (!nonSlpUtxos || nonSlpUtxos.length === 0) {
             throw new Error(`You need some ${currency.ticker} to burn eTokens`);
         }
 
@@ -206,8 +204,8 @@ export default function useBCH() {
 
         let tokenTxInputObj = generateTokenTxInput(
             'BURN',
-            xecUtxos,
-            tokenUtxos,
+            nonSlpUtxos,
+            slpUtxos,
             tokenId,
             amount,
             currency.defaultFee,
