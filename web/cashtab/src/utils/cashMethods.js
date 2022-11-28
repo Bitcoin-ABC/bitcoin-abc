@@ -1143,3 +1143,19 @@ export const isActiveWebsocket = ws => {
         ws._subs.length > 0
     );
 };
+
+export const hash160ToAddress = hash160 => {
+    const buffer = Buffer.from(hash160, 'hex');
+
+    // Because ecashaddrjs only accepts Uint8Array as input type, convert
+    const hash160ArrayBuffer = new ArrayBuffer(buffer.length);
+    const hash160Uint8Array = new Uint8Array(hash160ArrayBuffer);
+    for (let i = 0; i < hash160Uint8Array.length; i += 1) {
+        hash160Uint8Array[i] = buffer[i];
+    }
+
+    // Encode ecash: address
+    const ecashAddr = cashaddr.encode('ecash', 'P2PKH', hash160Uint8Array);
+
+    return ecashAddr;
+};

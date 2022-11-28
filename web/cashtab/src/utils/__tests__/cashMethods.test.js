@@ -30,6 +30,7 @@ import {
     generateSendOpReturn,
     generateBurnOpReturn,
     getECPairFromWIF,
+    hash160ToAddress,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import { validAddressArrayInput } from '../__mocks__/mockAddressArray';
@@ -1563,5 +1564,10 @@ describe('Correctly executes cash utility functions', () => {
         expect(JSON.stringify(getECPairFromWIF(mockWif))).toBe(
             mockStringifiedECPair,
         );
+    });
+    it(`Converts a hash160 to an ecash address`, () => {
+        expect(
+            hash160ToAddress('76458db0ed96fe9863fc1ccec9fa2cfab884b0f6'),
+        ).toBe('ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj');
     });
 });
