@@ -154,7 +154,7 @@ it(`finalizeTokensArray successfully returns finalTokenArray and cachedTokenInfo
     expect(
         await finalizeTokensArray(chronik, mockPreliminaryTokensArray),
     ).toStrictEqual({
-        finalTokenArray: mockFinalTokenArray,
+        tokens: mockFinalTokenArray,
         updatedTokenInfoById: mockFinalCachedTokenInfo,
         newTokensToCache: true,
     });
@@ -173,7 +173,7 @@ it(`finalizeTokensArray successfully returns finalTokenArray and cachedTokenInfo
             mockFinalCachedTokenInfo,
         ),
     ).toStrictEqual({
-        finalTokenArray: mockFinalTokenArray,
+        tokens: mockFinalTokenArray,
         updatedTokenInfoById: mockFinalCachedTokenInfo,
         newTokensToCache: false,
     });
@@ -202,7 +202,7 @@ it(`updateCachedTokenInfoAndFinalizeTokensArray successfully returns finalTokenA
             mockPartialCachedTokenInfo,
         ),
     ).toStrictEqual({
-        finalTokenArray: mockFinalTokenArray,
+        tokens: mockFinalTokenArray,
         updatedTokenInfoById: mockFinalCachedTokenInfo,
         newTokensToCache: true,
     });

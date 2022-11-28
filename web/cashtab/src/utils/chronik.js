@@ -321,7 +321,7 @@ export const finalizeTokensArray = async (
         updatedTokenInfoById,
     );
 
-    return { finalTokenArray, updatedTokenInfoById, newTokensToCache };
+    return { tokens: finalTokenArray, updatedTokenInfoById, newTokensToCache };
 };
 
 export const finalizeSlpUtxos = (preliminarySlpUtxos, tokenInfoById) => {
@@ -855,7 +855,7 @@ export const getTxHistoryChronik = async (
         // Edge case to find uncached token info in tx history that was not caught in processing utxos
         // Requires performing transactions in one wallet, then loading the same wallet in another browser later
         return {
-            chronikTxHistory,
+            parsedTxHistory: chronikTxHistory,
             txHistoryUpdatedTokenInfoById: tokenInfoById,
             txHistoryNewTokensToCache,
         };

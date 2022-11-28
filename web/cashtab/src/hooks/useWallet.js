@@ -205,7 +205,7 @@ const useWallet = () => {
             const preliminaryTokensArray =
                 getPreliminaryTokensArray(preliminarySlpUtxos);
 
-            const { finalTokenArray, updatedTokenInfoById, newTokensToCache } =
+            const { tokens, updatedTokenInfoById, newTokensToCache } =
                 await finalizeTokensArray(
                     chronik,
                     preliminaryTokensArray,
@@ -222,13 +222,13 @@ const useWallet = () => {
                 });
             }
 
-            const finalizedSlpUtxos = finalizeSlpUtxos(
+            const slpUtxos = finalizeSlpUtxos(
                 preliminarySlpUtxos,
                 updatedTokenInfoById,
             );
 
             const {
-                chronikTxHistory,
+                parsedTxHistory,
                 txHistoryUpdatedTokenInfoById,
                 txHistoryNewTokensToCache,
             } = await getTxHistoryChronik(
@@ -253,18 +253,18 @@ const useWallet = () => {
 
             const newState = {
                 balances: getWalletBalanceFromUtxos(nonSlpUtxos),
-                tokens: finalTokenArray,
-                slpUtxos: finalizedSlpUtxos,
+                slpUtxos,
                 nonSlpUtxos,
-                parsedTxHistory: chronikTxHistory,
+                tokens,
+                parsedTxHistory,
             };
 
             const walletStateAfterThisStack = {
                 balances: getWalletBalanceFromUtxos(nonSlpUtxos),
-                slpUtxos: finalizedSlpUtxos,
+                slpUtxos,
                 nonSlpUtxos,
-                tokens: finalTokenArray,
-                parsedTxHistory: chronikTxHistory,
+                tokens,
+                parsedTxHistory,
             };
 
             console.log(`walletStateAfterThisStack`, walletStateAfterThisStack);
