@@ -145,9 +145,6 @@ const useWallet = () => {
     };
 
     const update = async ({ wallet }) => {
-        if (wallet && wallet.name) {
-            console.log(`update loop called on ${wallet.name}`);
-        }
         //console.log(`tick()`);
         //console.time("update");
 
@@ -257,16 +254,6 @@ const useWallet = () => {
                 tokens,
                 parsedTxHistory,
             };
-
-            const walletStateAfterThisStack = {
-                balances: getWalletBalanceFromUtxos(nonSlpUtxos),
-                slpUtxos,
-                nonSlpUtxos,
-                tokens,
-                parsedTxHistory,
-            };
-
-            console.log(`walletStateAfterThisStack`, walletStateAfterThisStack);
 
             // Set wallet with new state field
             wallet.state = newState;
@@ -440,9 +427,6 @@ const useWallet = () => {
         wallet.state = newState;
         try {
             await localforage.setItem('wallet', wallet);
-            console.log(
-                `Wallet ${wallet.name} saved without slpBalancesAndUtxos parent object`,
-            );
         } catch (err) {
             console.log(`Error in writeWalletState()`);
             console.log(err);
