@@ -191,7 +191,6 @@ describe('useBCH hook', () => {
 
     it("Throws error attempting to burn an eToken ID that is not within the wallet's utxo", async () => {
         const { burnToken } = useBCH();
-        const BCH = new BCHJS();
         const wallet = validStoredWallet;
         const burnAmount = 10;
         const eTokenId = '0203c768a66eba24affNOTVALID103b772de4d9f8f63ba79e';
@@ -203,7 +202,7 @@ describe('useBCH hook', () => {
 
         let thrownError;
         try {
-            await burnToken(BCH, chronik, wallet, {
+            await burnToken(chronik, wallet, {
                 tokenId: eTokenId,
                 amount: burnAmount,
             });

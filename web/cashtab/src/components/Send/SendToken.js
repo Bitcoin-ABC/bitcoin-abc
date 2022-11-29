@@ -93,8 +93,8 @@ const AirdropButton = styled.div`
     `}
 `;
 
-const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
-    const { BCH, wallet, apiError, cashtabSettings, chronik } =
+const SendToken = ({ tokenId, passLoadingStatus }) => {
+    const { wallet, apiError, cashtabSettings, chronik } =
         React.useContext(WalletContext);
     const walletState = getWalletState(wallet);
     const { tokens } = walletState;
@@ -112,7 +112,6 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
     const [burnConfirmationValid, setBurnConfirmationValid] = useState(null);
     const [confirmationOfEtokenToBeBurnt, setConfirmationOfEtokenToBeBurnt] =
         useState('');
-    const [bchObj, setBchObj] = useState(false);
 
     // Get device window width
     // If this is less than 769, the page will open with QR scanner open
@@ -132,14 +131,6 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
     });
 
     const { getRestUrl, sendToken, burnToken } = useBCH();
-
-    useEffect(() => {
-        // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
-        const activeBCH = jestBCH ? jestBCH : BCH;
-
-        // set the BCH instance to state, for other functions to reference
-        setBchObj(activeBCH);
-    }, [BCH]);
 
     // Fetch token stats if you do not have them and API did not return an error
     if (tokenStats === null) {
@@ -186,7 +177,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
         let cleanAddress = address.split('?')[0];
 
         try {
-            const link = await sendToken(bchObj, chronik, wallet, {
+            const link = await sendToken(chronik, wallet, {
                 tokenId: tokenId,
                 tokenReceiverAddress: cleanAddress,
                 amount: value,
@@ -359,7 +350,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
         passLoadingStatus(true);
 
         try {
-            const link = await burnToken(bchObj, chronik, wallet, {
+            const link = await burnToken(chronik, wallet, {
                 tokenId: tokenId,
                 amount: eTokenBurnAmount,
             });
@@ -771,7 +762,6 @@ SendToken.defaultProps = {
 
 SendToken.propTypes = {
     tokenId: PropTypes.string,
-    jestBCH: PropTypes.object,
     passLoadingStatus: PropTypes.func,
 };
 

@@ -118,7 +118,6 @@ export default function useBCH() {
     };
 
     const sendToken = async (
-        BCH,
         chronik,
         wallet,
         { tokenId, amount, tokenReceiverAddress },
@@ -198,7 +197,7 @@ export default function useBCH() {
         return `${currency.blockExplorerUrl}/tx/${broadcastResponse.txid}`;
     };
 
-    const burnToken = async (BCH, chronik, wallet, { tokenId, amount }) => {
+    const burnToken = async (chronik, wallet, { tokenId, amount }) => {
         const slpBalancesAndUtxos = wallet.state.slpBalancesAndUtxos;
         const xecUtxos = slpBalancesAndUtxos.nonSlpUtxos;
         const tokenUtxos = slpBalancesAndUtxos.slpUtxos;

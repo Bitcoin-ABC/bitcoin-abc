@@ -3,7 +3,6 @@ import renderer from 'react-test-renderer';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
 import SendToken from 'components/Send/SendToken';
-import BCHJS from '@psf/bch-js';
 import {
     walletWithBalancesAndTokens,
     walletWithBalancesAndTokensWithCorrectState,
@@ -30,7 +29,6 @@ beforeEach(() => {
 });
 
 test('Wallet with BCH balances and tokens', () => {
-    const testBCH = new BCHJS();
     const component = renderer.create(
         <WalletContext.Provider value={walletWithBalancesAndTokens}>
             <ThemeProvider theme={theme}>
@@ -39,7 +37,6 @@ test('Wallet with BCH balances and tokens', () => {
                         tokenId={
                             'bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba'
                         }
-                        jestBCH={testBCH}
                     />
                 </Router>
             </ThemeProvider>
@@ -50,7 +47,6 @@ test('Wallet with BCH balances and tokens', () => {
 });
 
 test('Wallet with BCH balances and tokens and state field', () => {
-    const testBCH = new BCHJS();
     const component = renderer.create(
         <WalletContext.Provider
             value={walletWithBalancesAndTokensWithCorrectState}
@@ -61,7 +57,6 @@ test('Wallet with BCH balances and tokens and state field', () => {
                         tokenId={
                             'bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba'
                         }
-                        jestBCH={testBCH}
                     />
                 </Router>
             </ThemeProvider>
@@ -72,7 +67,6 @@ test('Wallet with BCH balances and tokens and state field', () => {
 });
 
 test('Without wallet defined', () => {
-    const testBCH = new BCHJS();
     const withoutWalletDefinedMock = {
         wallet: {},
         balances: { totalBalance: 0 },
@@ -86,7 +80,6 @@ test('Without wallet defined', () => {
                         tokenId={
                             'bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba'
                         }
-                        jestBCH={testBCH}
                     />
                 </Router>
             </ThemeProvider>
