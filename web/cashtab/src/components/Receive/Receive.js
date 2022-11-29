@@ -63,24 +63,11 @@ const ReceiveWithWalletPresent = ({
                     </>
                 )}
             </WalletInfoCtn>
-            {wallet && ((wallet.Path245 && wallet.Path145) || wallet.Path1899) && (
-                <>
-                    {wallet.Path1899 ? (
-                        <>
-                            <QRCode
-                                id="borderedQRCode"
-                                address={wallet.Path1899.cashAddress}
-                            />
-                        </>
-                    ) : (
-                        <>
-                            <QRCode
-                                id="borderedQRCode"
-                                address={wallet.Path245.cashAddress}
-                            />
-                        </>
-                    )}
-                </>
+            {wallet && wallet.Path1899 && (
+                <QRCode
+                    id="borderedQRCode"
+                    address={wallet.Path1899.cashAddress}
+                />
             )}
             <InfoContainer>
                 <Alert
