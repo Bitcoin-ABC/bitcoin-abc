@@ -100,7 +100,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
     const { tokens } = walletState;
 
     const token = tokens.find(token => token.tokenId === tokenId);
-    const previousToken = usePrevious(token);
+    const previousWalletState = usePrevious(walletState);
 
     const [tokenStats, setTokenStats] = useState(null);
     const [queryStringText, setQueryStringText] = useState(null);
@@ -406,29 +406,21 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
             setShowConfirmBurnEtoken(true);
         }
     };
-
     useEffect(() => {
-        /*         
-        If the balance has changed, unlock the UI
-           
-        Note that the 'token' dependency changes every time the wallet state is set
-        This useEffect loop can't use token.balance as the dependency as this is 
-        occasionally undefined, which the screen UI also makes use of
-        */
+        // Unlock UI after user sends an eToken tx to their own wallet
         if (
-            token &&
-            token.balance &&
-            previousToken &&
-            previousToken.balance &&
-            token.balance.toString() !== previousToken.balance.toString()
+            walletState &&
+            walletState.balances &&
+            walletState.balances.totalBalanceInSatoshis &&
+            previousWalletState &&
+            previousWalletState.balances &&
+            previousWalletState.balances.totalBalanceInSatoshis &&
+            walletState.balances.totalBalanceInSatoshis !==
+                previousWalletState.balances.totalBalanceInSatoshis
         ) {
             passLoadingStatus(false);
         }
-        // In the case of a tx that burns all of a token, also lose the loader
-        if (!token && previousToken) {
-            passLoadingStatus(false);
-        }
-    }, [token]);
+    }, [walletState]);
 
     return (
         <>
