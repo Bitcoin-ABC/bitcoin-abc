@@ -3,7 +3,6 @@ import renderer from 'react-test-renderer';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
 import Tokens from 'components/Tokens/Tokens';
-import BCHJS from '@psf/bch-js';
 import {
     walletWithBalancesAndTokens,
     walletWithBalancesMock,
@@ -32,12 +31,11 @@ beforeEach(() => {
 });
 
 test('Wallet without BCH balance', () => {
-    const testBCH = new BCHJS();
     const component = renderer.create(
         <WalletContext.Provider value={walletWithoutBalancesMock}>
             <ThemeProvider theme={theme}>
                 <Router>
-                    <Tokens jestBCH={testBCH} />
+                    <Tokens />
                 </Router>
             </ThemeProvider>
         </WalletContext.Provider>,
@@ -47,12 +45,11 @@ test('Wallet without BCH balance', () => {
 });
 
 test('Wallet with BCH balances', () => {
-    const testBCH = new BCHJS();
     const component = renderer.create(
         <WalletContext.Provider value={walletWithBalancesMock}>
             <ThemeProvider theme={theme}>
                 <Router>
-                    <Tokens jestBCH={testBCH} />
+                    <Tokens />
                 </Router>
             </ThemeProvider>
         </WalletContext.Provider>,
@@ -62,12 +59,11 @@ test('Wallet with BCH balances', () => {
 });
 
 test('Wallet with BCH balances and tokens', () => {
-    const testBCH = new BCHJS();
     const component = renderer.create(
         <WalletContext.Provider value={walletWithBalancesAndTokens}>
             <ThemeProvider theme={theme}>
                 <Router>
-                    <Tokens jestBCH={testBCH} />
+                    <Tokens />
                 </Router>
             </ThemeProvider>
         </WalletContext.Provider>,
@@ -77,14 +73,13 @@ test('Wallet with BCH balances and tokens', () => {
 });
 
 test('Wallet with BCH balances and tokens and state field', () => {
-    const testBCH = new BCHJS();
     const component = renderer.create(
         <WalletContext.Provider
             value={walletWithBalancesAndTokensWithCorrectState}
         >
             <ThemeProvider theme={theme}>
                 <Router>
-                    <Tokens jestBCH={testBCH} />
+                    <Tokens />
                 </Router>
             </ThemeProvider>
         </WalletContext.Provider>,
@@ -99,12 +94,11 @@ test('Without wallet defined', () => {
         balances: { totalBalance: 0 },
         loading: false,
     };
-    const testBCH = new BCHJS();
     const component = renderer.create(
         <WalletContext.Provider value={withoutWalletDefinedMock}>
             <ThemeProvider theme={theme}>
                 <Router>
-                    <Tokens jestBCH={testBCH} />
+                    <Tokens />
                 </Router>
             </ThemeProvider>
         </WalletContext.Provider>,

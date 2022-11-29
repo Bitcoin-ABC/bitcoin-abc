@@ -32,7 +32,6 @@ export default function useBCH() {
     };
 
     const createToken = async (
-        BCH,
         chronik,
         wallet,
         feeInSatsPerByte,

@@ -3,7 +3,6 @@ import renderer from 'react-test-renderer';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
 import CreateTokenForm from 'components/Tokens/CreateTokenForm';
-import BCHJS from '@psf/bch-js';
 import useBCH from 'hooks/useBCH';
 import { walletWithBalancesAndTokensWithCorrectState } from '../../Home/__mocks__/walletAndBalancesMock';
 import { WalletContext } from 'utils/context';
@@ -29,7 +28,6 @@ beforeEach(() => {
 });
 
 test('Wallet with BCH balances and tokens and state field', () => {
-    const testBCH = new BCHJS();
     const { getRestUrl, createToken } = useBCH();
     const component = renderer.create(
         <WalletContext.Provider
@@ -37,7 +35,6 @@ test('Wallet with BCH balances and tokens and state field', () => {
         >
             <ThemeProvider theme={theme}>
                 <CreateTokenForm
-                    BCH={testBCH}
                     getRestUrl={getRestUrl}
                     createToken={createToken}
                     disabled={new BigNumber(

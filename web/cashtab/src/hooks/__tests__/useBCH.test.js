@@ -3,7 +3,6 @@ import useBCH from '../useBCH';
 import sendBCHMock from '../__mocks__/sendBCH';
 import createTokenMock from '../__mocks__/createToken';
 import { validStoredWallet } from '../../utils/__mocks__/mockStoredWallets';
-import BCHJS from '@psf/bch-js'; // TODO: should be removed when external lib not needed anymore
 import { currency } from '../../components/Common/Ticker';
 import BigNumber from 'bignumber.js';
 import { fromSatoshisToXec } from 'utils/cashMethods';
@@ -297,7 +296,6 @@ describe('useBCH hook', () => {
 
     it('creates a token correctly', async () => {
         const { createToken } = useBCH();
-        const BCH = new BCHJS();
         const { expectedTxId, expectedHex, wallet, configObj } =
             createTokenMock;
         const chronik = new ChronikClient(
@@ -306,20 +304,18 @@ describe('useBCH hook', () => {
         chronik.broadcastTx = jest
             .fn()
             .mockResolvedValue({ txid: expectedTxId });
-        expect(await createToken(BCH, chronik, wallet, 5.01, configObj)).toBe(
+        expect(await createToken(chronik, wallet, 5.01, configObj)).toBe(
             `${currency.blockExplorerUrl}/tx/${expectedTxId}`,
         );
     });
 
     it('Throws correct error if user attempts to create a token with an invalid wallet', async () => {
         const { createToken } = useBCH();
-        const BCH = new BCHJS();
         const { invalidWallet, configObj } = createTokenMock;
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
         const invalidWalletTokenCreation = createToken(
-            BCH,
             chronik,
             invalidWallet,
             currency.defaultFee,

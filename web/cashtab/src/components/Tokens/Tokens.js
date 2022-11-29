@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { WalletContext } from 'utils/context';
 import { fromSatoshisToXec, getWalletState } from 'utils/cashMethods';
@@ -16,9 +16,8 @@ import ApiError from 'components/Common/ApiError';
 import WalletLabel from 'components/Common/WalletLabel.js';
 import BigNumber from 'bignumber.js';
 
-const Tokens = ({ jestBCH, passLoadingStatus }) => {
+const Tokens = ({ passLoadingStatus }) => {
     const {
-        BCH,
         wallet,
         apiError,
         fiatPrice,
@@ -28,15 +27,7 @@ const Tokens = ({ jestBCH, passLoadingStatus }) => {
     const walletState = getWalletState(wallet);
     const { balances } = walletState;
     const { getRestUrl, createToken } = useBCH();
-    const [bchObj, setBchObj] = useState(false);
 
-    useEffect(() => {
-        // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
-        const activeBCH = jestBCH ? jestBCH : BCH;
-
-        // set the BCH instance to state, for other functions to reference
-        setBchObj(activeBCH);
-    }, [BCH]);
     return (
         <>
             <WalletInfoCtn>
@@ -59,7 +50,6 @@ const Tokens = ({ jestBCH, passLoadingStatus }) => {
             <SidePaddingCtn>
                 {apiError && <ApiError />}
                 <CreateTokenForm
-                    BCH={bchObj}
                     getRestUrl={getRestUrl}
                     createToken={createToken}
                     disabled={new BigNumber(balances.totalBalanceInSatoshis).lt(
@@ -112,7 +102,6 @@ Tokens.defaultProps = {
 };
 
 Tokens.propTypes = {
-    jestBCH: PropTypes.object,
     passLoadingStatus: PropTypes.func,
 };
 

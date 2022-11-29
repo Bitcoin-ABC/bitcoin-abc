@@ -68,7 +68,6 @@ export const CreateTokenCtn = styled.div`
 `;
 
 const CreateTokenForm = ({
-    BCH,
     getRestUrl,
     createToken,
     disabled,
@@ -459,7 +458,6 @@ const CreateTokenForm = ({
         // create token with data in state fields
         try {
             const link = await createToken(
-                BCH,
                 chronik,
                 wallet,
                 currency.defaultFee,
@@ -851,7 +849,6 @@ CreateTokenForm.defaultProps = {
 };
 
 CreateTokenForm.propTypes = {
-    BCH: PropTypes.object,
     getRestUrl: PropTypes.func,
     createToken: PropTypes.func,
     disabled: PropTypes.bool,
