@@ -2174,10 +2174,10 @@ MinerFundSuccess:
              MILLI * (nTime5 - nTime4), nTimeIndex * MICRO,
              nTimeIndex * MILLI / nBlocksTotal);
 
-    TRACE7(validation, block_connected, block.GetHash().ToString().c_str(),
-           pindex->nHeight, block.vtx.size(), nInputs, nSigChecksRet,
+    TRACE6(validation, block_connected, block.GetHash().data(), pindex->nHeight,
+           block.vtx.size(), nInputs, nSigChecksRet,
            // in microseconds (µs)
-           GetTimeMicros() - nTimeStart, block.GetHash().data());
+           GetTimeMicros() - nTimeStart);
 
     return true;
 }
