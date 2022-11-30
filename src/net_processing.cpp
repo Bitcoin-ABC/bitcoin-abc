@@ -827,7 +827,7 @@ private:
     std::list<NodeId> lNodesAnnouncingHeaderAndIDs GUARDED_BY(cs_main);
 
     /** Number of peers from which we're downloading blocks. */
-    int nPeersWithValidatedDownloads GUARDED_BY(cs_main) = 0;
+    int m_peers_downloading_from GUARDED_BY(cs_main) = 0;
 
     /** Storage for orphan information */
     TxOrphanage m_orphanage;
@@ -1202,7 +1202,7 @@ bool PeerManagerImpl::MarkBlockAsReceived(const BlockHash &hash) {
         state->nBlocksInFlight--;
         if (state->nBlocksInFlight == 0) {
             // Last validated block on the queue was received.
-            nPeersWithValidatedDownloads--;
+            m_peers_downloading_from--;
         }
         state->m_stalling_since = 0us;
         mapBlocksInFlight.erase(itInFlight);
@@ -1246,7 +1246,7 @@ bool PeerManagerImpl::MarkBlockAsInFlight(
     if (state->nBlocksInFlight == 1) {
         // We're starting a block download (batch) from this peer.
         state->m_downloading_since = GetTime<std::chrono::microseconds>();
-        nPeersWithValidatedDownloads++;
+        m_peers_downloading_from++;
     }
 
     itInFlight = mapBlocksInFlight
@@ -1814,8 +1814,8 @@ void PeerManagerImpl::FinalizeNode(const Config &config, const CNode &node) {
         WITH_LOCK(g_cs_orphans, m_orphanage.EraseForPeer(nodeid));
         m_txrequest.DisconnectedPeer(nodeid);
         nPreferredDownload -= state->fPreferredDownload;
-        nPeersWithValidatedDownloads -= (state->nBlocksInFlight != 0);
-        assert(nPeersWithValidatedDownloads >= 0);
+        m_peers_downloading_from -= (state->nBlocksInFlight != 0);
+        assert(m_peers_downloading_from >= 0);
         m_outbound_peers_with_protect_from_disconnect -=
             state->m_chain_sync.m_protect;
         assert(m_outbound_peers_with_protect_from_disconnect >= 0);
@@ -1826,7 +1826,7 @@ void PeerManagerImpl::FinalizeNode(const Config &config, const CNode &node) {
             // Do a consistency check after the last peer is removed.
             assert(mapBlocksInFlight.empty());
             assert(nPreferredDownload == 0);
-            assert(nPeersWithValidatedDownloads == 0);
+            assert(m_peers_downloading_from == 0);
             assert(m_outbound_peers_with_protect_from_disconnect == 0);
             assert(m_txrequest.Size() == 0);
         }
@@ -6930,7 +6930,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
         if (state.vBlocksInFlight.size() > 0) {
             QueuedBlock &queuedBlock = state.vBlocksInFlight.front();
             int nOtherPeersWithValidatedDownloads =
-                nPeersWithValidatedDownloads - 1;
+                m_peers_downloading_from - 1;
             if (current_time >
                 state.m_downloading_since +
                     std::chrono::seconds{consensusParams.nPowTargetSpacing} *
