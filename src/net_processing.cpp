@@ -755,7 +755,7 @@ private:
      *  - the block has been received from a peer
      *  - the request for the block has timed out
      */
-    void MarkBlockAsReceived(const BlockHash &hash)
+    void RemoveBlockRequest(const BlockHash &hash)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     /**
@@ -764,9 +764,9 @@ private:
      * the same peer pit will only be valid as long as the same cs_main lock is
      * being held
      */
-    bool MarkBlockAsInFlight(const Config &config, NodeId nodeid,
-                             const CBlockIndex *pindex,
-                             std::list<QueuedBlock>::iterator **pit = nullptr)
+    bool BlockRequested(const Config &config, NodeId nodeid,
+                        const CBlockIndex *pindex,
+                        std::list<QueuedBlock>::iterator **pit = nullptr)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     bool TipMayBeStale() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
@@ -1190,7 +1190,7 @@ bool PeerManagerImpl::IsBlockRequested(const BlockHash &hash) {
     return mapBlocksInFlight.find(hash) != mapBlocksInFlight.end();
 }
 
-void PeerManagerImpl::MarkBlockAsReceived(const BlockHash &hash) {
+void PeerManagerImpl::RemoveBlockRequest(const BlockHash &hash) {
     auto it = mapBlocksInFlight.find(hash);
 
     if (it == mapBlocksInFlight.end()) {
@@ -1219,9 +1219,9 @@ void PeerManagerImpl::MarkBlockAsReceived(const BlockHash &hash) {
     mapBlocksInFlight.erase(it);
 }
 
-bool PeerManagerImpl::MarkBlockAsInFlight(
-    const Config &config, NodeId nodeid, const CBlockIndex *pindex,
-    std::list<QueuedBlock>::iterator **pit) {
+bool PeerManagerImpl::BlockRequested(const Config &config, NodeId nodeid,
+                                     const CBlockIndex *pindex,
+                                     std::list<QueuedBlock>::iterator **pit) {
     assert(pindex);
     const BlockHash &hash{pindex->GetBlockHash()};
 
@@ -1241,7 +1241,7 @@ bool PeerManagerImpl::MarkBlockAsInFlight(
     }
 
     // Make sure it's not listed somewhere already.
-    MarkBlockAsReceived(hash);
+    RemoveBlockRequest(hash);
 
     std::list<QueuedBlock>::iterator it = state->vBlocksInFlight.insert(
         state->vBlocksInFlight.end(),
@@ -3008,7 +3008,7 @@ void PeerManagerImpl::ProcessHeadersMessage(
                         break;
                     }
                     vGetData.push_back(CInv(MSG_BLOCK, pindex->GetBlockHash()));
-                    MarkBlockAsInFlight(config, pfrom.GetId(), pindex);
+                    BlockRequested(config, pfrom.GetId(), pindex);
                     LogPrint(BCLog::NET, "Requesting block %s from  peer=%d\n",
                              pindex->GetBlockHash().ToString(), pfrom.GetId());
                 }
@@ -4612,8 +4612,8 @@ void PeerManagerImpl::ProcessMessage(
                     (fAlreadyInFlight &&
                      blockInFlightIt->second.first == pfrom.GetId())) {
                     std::list<QueuedBlock>::iterator *queuedBlockIt = nullptr;
-                    if (!MarkBlockAsInFlight(config, pfrom.GetId(), pindex,
-                                             &queuedBlockIt)) {
+                    if (!BlockRequested(config, pfrom.GetId(), pindex,
+                                        &queuedBlockIt)) {
                         if (!(*queuedBlockIt)->partialBlock) {
                             (*queuedBlockIt)
                                 ->partialBlock.reset(
@@ -4635,7 +4635,7 @@ void PeerManagerImpl::ProcessMessage(
                     if (status == READ_STATUS_INVALID) {
                         // Reset in-flight state in case Misbehaving does not
                         // result in a disconnect
-                        MarkBlockAsReceived(pindex->GetBlockHash());
+                        RemoveBlockRequest(pindex->GetBlockHash());
                         Misbehaving(pfrom, 100, "invalid compact block");
                         return;
                     } else if (status == READ_STATUS_FAILED) {
@@ -4744,7 +4744,7 @@ void PeerManagerImpl::ProcessMessage(
                 // some other peer. We do this after calling. ProcessNewBlock so
                 // that a malleated cmpctblock announcement can't be used to
                 // interfere with block relay.
-                MarkBlockAsReceived(pblock->GetHash());
+                RemoveBlockRequest(pblock->GetHash());
             }
         }
         return;
@@ -4786,7 +4786,7 @@ void PeerManagerImpl::ProcessMessage(
             if (status == READ_STATUS_INVALID) {
                 // Reset in-flight state in case of Misbehaving does not
                 // result in a disconnect.
-                MarkBlockAsReceived(resp.blockhash);
+                RemoveBlockRequest(resp.blockhash);
                 Misbehaving(
                     pfrom, 100,
                     "invalid compact block/non-matching block transactions");
@@ -4817,7 +4817,7 @@ void PeerManagerImpl::ProcessMessage(
                 // updated, etc.
 
                 // it is now an empty pointer
-                MarkBlockAsReceived(resp.blockhash);
+                RemoveBlockRequest(resp.blockhash);
                 fBlockRead = true;
                 // mapBlockSource is used for potentially punishing peers and
                 // updating which peers send us compact blocks, so the race
@@ -4901,7 +4901,7 @@ void PeerManagerImpl::ProcessMessage(
             // Always process the block if we requested it, since we may
             // need it even when it's not a candidate for a new best tip.
             forceProcessing = IsBlockRequested(hash);
-            MarkBlockAsReceived(hash);
+            RemoveBlockRequest(hash);
             // mapBlockSource is only used for punishing peers and setting
             // which peers send us compact blocks, so the race between here and
             // cs_main in ProcessNewBlock is fine.
@@ -7021,7 +7021,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                                      vToDownload, staller);
             for (const CBlockIndex *pindex : vToDownload) {
                 vGetData.push_back(CInv(MSG_BLOCK, pindex->GetBlockHash()));
-                MarkBlockAsInFlight(config, pto->GetId(), pindex);
+                BlockRequested(config, pto->GetId(), pindex);
                 LogPrint(BCLog::NET, "Requesting block %s (%d) peer=%d\n",
                          pindex->GetBlockHash().ToString(), pindex->nHeight,
                          pto->GetId());
