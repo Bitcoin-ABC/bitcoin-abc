@@ -16,20 +16,15 @@
 #include <blockfileinfo.h>
 #include <blockindexworkcomparator.h>
 #include <chain.h>
-#include <coins.h>
 #include <consensus/amount.h>
 #include <consensus/consensus.h>
-#include <consensus/validation.h>
 #include <disconnectresult.h>
 #include <flatfile.h>
 #include <fs.h>
 #include <node/blockstorage.h>
-#include <node/utxo_snapshot.h>
 #include <policy/packages.h>
-#include <protocol.h> // For CMessageHeader::MessageMagic
 #include <script/script_error.h>
 #include <script/script_metrics.h>
-#include <serialize.h>
 #include <sync.h>
 #include <txdb.h>
 #include <txmempool.h> // For CTxMemPool::cs
@@ -48,18 +43,15 @@
 #include <utility>
 #include <vector>
 
-class BlockValidationState;
-class CBlockUndo;
 class CChainParams;
 class CChainState;
-class CConnman;
-class CInv;
 class ChainstateManager;
 class Config;
 class CScriptCheck;
 class CTxMemPool;
 class CTxUndo;
 class DisconnectedBlockTransactions;
+class SnapshotMetadata;
 
 struct ChainTxData;
 struct FlatFilePos;

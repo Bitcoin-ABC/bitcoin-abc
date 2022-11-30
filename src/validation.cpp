@@ -29,7 +29,7 @@
 #include <node/blockstorage.h>
 #include <node/coinstats.h>
 #include <node/ui_interface.h>
-#include <policy/fees.h>
+#include <node/utxo_snapshot.h>
 #include <policy/mempool.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
@@ -48,7 +48,6 @@
 #include <txmempool.h>
 #include <undo.h>
 #include <util/check.h> // For NDEBUG compile time check
-#include <util/moneystr.h>
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <util/trace.h>
