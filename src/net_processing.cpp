@@ -5874,7 +5874,7 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
 
     if (gArgs.GetBoolArg("-capturemessages", false)) {
         CaptureMessage(pfrom->addr, msg.m_command, MakeUCharSpan(msg.m_recv),
-                       /*incoming=*/true);
+                       /*is_incoming=*/true);
     }
 
     msg.SetVersion(pfrom->GetCommonVersion());

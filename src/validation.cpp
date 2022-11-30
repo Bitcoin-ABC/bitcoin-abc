@@ -261,9 +261,8 @@ static bool CheckInputsFromMempoolAndCache(
 
     // Call CheckInputScripts() to cache signature and script validity against
     // current tip consensus rules.
-    return CheckInputScripts(tx, state, view, flags, /* cacheSigStore = */ true,
-                             /* cacheFullScriptStore = */ true, txdata,
-                             nSigChecksOut);
+    return CheckInputScripts(tx, state, view, flags, /*sigCacheStore=*/true,
+                             /*scriptCacheStore=*/true, txdata, nSigChecksOut);
 }
 
 namespace {

@@ -1,2 +1,2 @@
-Checks:      -*,boost-use-to-string,readability-braces-around-statements
+Checks:      -*,boost-use-to-string,readability-braces-around-statements,bugprone-argument-comment
 FormatStyle: file

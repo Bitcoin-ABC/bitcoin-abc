@@ -3493,7 +3493,8 @@ void CConnman::PushMessage(CNode *pnode, CSerializedNetMsg &&msg) {
     LogPrint(BCLog::NET, "sending %s (%d bytes) peer=%d\n", msg.m_type,
              nMessageSize, pnode->GetId());
     if (gArgs.GetBoolArg("-capturemessages", false)) {
-        CaptureMessage(pnode->addr, msg.m_type, msg.data, /*incoming=*/false);
+        CaptureMessage(pnode->addr, msg.m_type, msg.data,
+                       /*is_incoming=*/false);
     }
 
     TRACE6(net, outbound_message, pnode->GetId(), pnode->m_addr_name.c_str(),
