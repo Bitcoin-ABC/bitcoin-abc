@@ -26,7 +26,6 @@ public:
 
     /// Write a batch of transaction positions to the DB.
     bool WriteTxs(const std::vector<std::pair<TxId, CDiskTxPos>> &v_pos);
-
 };
 
 TxIndex::DB::DB(size_t n_cache_size, bool f_memory, bool f_wipe)

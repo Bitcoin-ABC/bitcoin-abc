@@ -39,8 +39,8 @@ def mini_parser(dat_file):
     """
     with open(dat_file, 'rb') as f_in:
         # This should have at least one message in it
-        assert(os.fstat(f_in.fileno()).st_size >=
-               TIME_SIZE + LENGTH_SIZE + MSGTYPE_SIZE)
+        assert os.fstat(f_in.fileno()).st_size >= TIME_SIZE + \
+            LENGTH_SIZE + MSGTYPE_SIZE
         while True:
             tmp_header_raw = f_in.read(TIME_SIZE + LENGTH_SIZE + MSGTYPE_SIZE)
             if not tmp_header_raw:
@@ -50,9 +50,9 @@ def mini_parser(dat_file):
             raw_msgtype = tmp_header.read(MSGTYPE_SIZE)
             msgtype = raw_msgtype.split(b'\x00', 1)[0]
             remainder = raw_msgtype.split(b'\x00', 1)[1]
-            assert(len(msgtype) > 0)
-            assert(msgtype in MESSAGEMAP)
-            assert(len(remainder) == 0 or not remainder.decode().isprintable())
+            assert len(msgtype) > 0
+            assert msgtype in MESSAGEMAP
+            assert len(remainder) == 0 or not remainder.decode().isprintable()
             length = int.from_bytes(tmp_header.read(LENGTH_SIZE), "little")
             data = f_in.read(length)
             assert_equal(len(data), length)
