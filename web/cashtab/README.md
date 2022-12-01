@@ -2,8 +2,6 @@
 
 ## eCash Web Wallet
 
-![CashAppHome](./screenshots/ss-readme.png)
-
 ### Features
 
 -   Send & Receive XEC
