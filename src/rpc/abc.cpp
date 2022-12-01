@@ -3,13 +3,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <config.h>
-#include <consensus/consensus.h>
 #include <rpc/server.h>
 #include <rpc/util.h>
-#include <sync.h>
-#include <util/strencodings.h>
-#include <util/string.h>
-#include <validation.h>
 
 #include <univalue.h>
 
