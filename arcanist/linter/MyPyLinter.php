@@ -4,6 +4,12 @@
  * Uses the mypy tool to lint the typehints in python files.
  */
 final class MyPyLinter extends ArcanistExternalLinter {
+  const SEVERITYMAP = array(
+    // Disable the 'note' severity to avoid the [annotation-unchecked] spam
+    'note' => ArcanistLintSeverity::SEVERITY_DISABLED,
+    'warning' => ArcanistLintSeverity::SEVERITY_WARNING,
+    'error' => ArcanistLintSeverity::SEVERITY_ERROR,
+  );
 
   public function getInfoName() {
     return 'mypy';
@@ -62,7 +68,9 @@ final class MyPyLinter extends ArcanistExternalLinter {
         ->setGranularity(ArcanistLinter::GRANULARITY_FILE)
         ->setPath($path)
         ->setLine($line)
-        ->setSeverity(ArcanistLintSeverity::SEVERITY_ERROR)
+        // It's OK to crash if the severity is not part of the array, so we can
+        // detect the issue and fix it.
+        ->setSeverity(self::SEVERITYMAP[$severity])
         ->setName('mypy found an issue:')
         ->setDescription($message);
       }
