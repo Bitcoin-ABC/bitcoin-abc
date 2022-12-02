@@ -57,14 +57,14 @@ class MiniWallet:
         assert_equal(True, res['success'])
         for utxo in res['unspents']:
             self._utxos.append(
-                {'txid': utxo['txid'], 'vout': utxo['vout'], 'value': utxo['amount']})
+                {'txid': utxo['txid'], 'vout': utxo['vout'], 'value': utxo['amount'], 'height': utxo['height']})
 
     def scan_tx(self, tx):
         """Scan the tx for self._scriptPubKey outputs and add them to self._utxos"""
         for out in tx['vout']:
             if out['scriptPubKey']['hex'] == self._scriptPubKey.hex():
                 self._utxos.append(
-                    {'txid': tx['txid'], 'vout': out['n'], 'value': out['value']})
+                    {'txid': tx['txid'], 'vout': out['n'], 'value': out['value'], 'height': 0})
 
     def generate(self, num_blocks, **kwargs):
         """Generate blocks with coinbase outputs to the internal address,
@@ -72,9 +72,10 @@ class MiniWallet:
         blocks = self._test_node.generatetodescriptor(
             num_blocks, f'raw({self._scriptPubKey.hex()})', **kwargs)
         for b in blocks:
-            cb_tx = self._test_node.getblock(blockhash=b, verbosity=2)['tx'][0]
+            block_info = self._test_node.getblock(blockhash=b, verbosity=2)
+            cb_tx = block_info['tx'][0]
             self._utxos.append(
-                {'txid': cb_tx['txid'], 'vout': 0, 'value': cb_tx['vout'][0]['value']})
+                {'txid': cb_tx['txid'], 'vout': 0, 'value': cb_tx['vout'][0]['value'], 'height': block_info['height']})
         return blocks
 
     def get_utxo(self, *, txid: Optional[str] = ''):
@@ -129,7 +130,9 @@ class MiniWallet:
                              from_node, utxo_to_spend=None, mempool_valid=True, locktime=0):
         """Create and return a tx with the specified fee_rate. Fee may be exact or at most one satoshi higher than needed.
         Checking mempool validity via the testmempoolaccept RPC can be skipped by setting mempool_valid to False."""
-        self._utxos = sorted(self._utxos, key=lambda k: k['value'])
+        self._utxos = sorted(
+            self._utxos, key=lambda k: (
+                k['value'], -k['height']))
         # Pick the largest utxo (if none provided) and hope it covers the fee
         utxo_to_spend = utxo_to_spend or self._utxos.pop()
 
