@@ -83,7 +83,7 @@ const DestinationAddressSingleCtn = styled.div``;
 const DestinationAddressMultiCtn = styled.div``;
 
 const ExpandingAddressInputCtn = styled.div`
-    min-height: 13rem;
+    min-height: 14rem;
     ${DestinationAddressSingleCtn} {
         overflow: hidden;
         transition: ${props =>
@@ -99,7 +99,7 @@ const ExpandingAddressInputCtn = styled.div`
             props.open
                 ? 'max-height 200ms ease-in, transform 200ms ease-out, opacity 200ms ease-in'
                 : 'max-height 200ms cubic-bezier(0, 1, 0, 1), transform 200ms ease-out'};
-        max-height: ${props => (props.open ? '12rem' : '0rem')};
+        max-height: ${props => (props.open ? '13rem' : '0rem')};
         transform: ${props =>
             props.open ? 'translateY(0%)' : 'translateY(100%)'};
         opacity: ${props => (props.open ? 1 : 0)};
@@ -513,9 +513,7 @@ const SendBCH = ({ passLoadingStatus }) => {
             const validValueString = isValidXecSendAmount(valueString);
 
             if (!validAddress) {
-                error = `Invalid XEC address: ${addressString}${
-                    valueString !== undefined ? `, ${valueString}` : ''
-                }`;
+                error = 'Ensure each XEC address is valid';
                 setSendBchAddressError(error);
                 return setFormData(p => ({
                     ...p,
@@ -523,9 +521,7 @@ const SendBCH = ({ passLoadingStatus }) => {
                 }));
             }
             if (!validValueString) {
-                error = `Amount must be at least ${fromSatoshisToXec(
-                    currency.dustSats,
-                ).toString()} XEC: ${addressString}, ${valueString}`;
+                error = 'Ensure each tx is at least 5.5 XEC';
                 setSendBchAddressError(error);
                 return setFormData(p => ({
                     ...p,
@@ -861,7 +857,7 @@ const SendBCH = ({ passLoadingStatus }) => {
                             )}
                             <div
                                 style={{
-                                    paddingTop: '2rem',
+                                    paddingTop: '1rem',
                                 }}
                             >
                                 {!balances.totalBalance ||
