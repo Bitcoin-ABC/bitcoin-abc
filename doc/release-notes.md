@@ -25,3 +25,7 @@ Can now be shortened to:
 ```sh
 bitcoin-cli -named createwallet mywallet load_on_startup=1
 ```
+
+The JSON-RPC server now rejects requests where a parameter is specified
+multiple times with the same name, instead of silently overwriting earlier
+parameter values with later ones.
