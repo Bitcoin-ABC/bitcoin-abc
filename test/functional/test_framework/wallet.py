@@ -84,11 +84,13 @@ class MiniWallet:
 
         Args:
         txid: get the first utxo we find from a specific transaction
-
-        Note: Can be used to get the change output immediately after a send_self_transfer
         """
         # by default the last utxo
         index = -1
+        # Put the largest utxo last
+        self._utxos = sorted(
+            self._utxos, key=lambda k: (
+                k['value'], -k['height']))
         if txid:
             utxo = next(filter(lambda utxo: txid == utxo['txid'], self._utxos))
             index = self._utxos.index(utxo)
@@ -130,11 +132,7 @@ class MiniWallet:
                              from_node, utxo_to_spend=None, mempool_valid=True, locktime=0):
         """Create and return a tx with the specified fee_rate. Fee may be exact or at most one satoshi higher than needed.
         Checking mempool validity via the testmempoolaccept RPC can be skipped by setting mempool_valid to False."""
-        self._utxos = sorted(
-            self._utxos, key=lambda k: (
-                k['value'], -k['height']))
-        # Pick the largest utxo (if none provided) and hope it covers the fee
-        utxo_to_spend = utxo_to_spend or self._utxos.pop()
+        utxo_to_spend = utxo_to_spend or self.get_utxo()
 
         # The size will be enforced by pad_tx()
         size = 100

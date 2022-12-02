@@ -503,13 +503,14 @@ class BlockchainTest(BitcoinTestFramework):
         fee_per_byte = Decimal('0.1')
         fee_per_kb = 1000 * fee_per_byte
 
-        miniwallet.send_self_transfer(fee_rate=fee_per_kb, from_node=node)
+        txid = miniwallet.send_self_transfer(
+            fee_rate=fee_per_kb, from_node=node)['txid']
         blockhash = self.generate(node, 1)[0]
 
         self.log.info(
             "Test getblock with verbosity 1 only includes the txid")
         block = node.getblock(blockhash, 1)
-        assert_equal(block['tx'][1], miniwallet.get_utxo()['txid'])
+        assert_equal(block['tx'][1], txid)
 
         self.log.info('Test getblock with verbosity 2 includes expected fee')
         block = node.getblock(blockhash, 2)
