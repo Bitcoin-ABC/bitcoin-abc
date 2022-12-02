@@ -12,17 +12,11 @@ the index.
 from decimal import Decimal
 
 from test_framework.blocktools import create_block, create_coinbase
-from test_framework.messages import (
-    XEC,
-    COutPoint,
-    CTransaction,
-    CTxIn,
-    CTxOut,
-    ToHex,
-)
+from test_framework.messages import XEC, CTxOut, ToHex
 from test_framework.script import OP_FALSE, OP_RETURN, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error, try_rpc
+from test_framework.wallet import MiniWallet, getnewdestination
 
 
 class CoinStatsIndexTest(BitcoinTestFramework):
@@ -39,10 +33,8 @@ class CoinStatsIndexTest(BitcoinTestFramework):
             ]
         ]
 
-    def skip_test_if_missing_module(self):
-        self.skip_if_no_wallet()
-
     def run_test(self):
+        self.wallet = MiniWallet(self.nodes[0])
         self._test_coin_stats_index()
         self._test_use_index_option()
         self._test_reorg_index()
@@ -63,12 +55,8 @@ class CoinStatsIndexTest(BitcoinTestFramework):
         index_hash_options = ['none', 'muhash']
 
         # Generate a normal transaction and mine it
-        self.generate(node, 101)
-        address = self.nodes[0].get_deterministic_priv_key().address
-        node.sendtoaddress(
-            address=address,
-            amount=10_000_000,
-            subtractfeefromamount=True)
+        self.generate(self.wallet, 101)
+        self.wallet.send_self_transfer(from_node=node)
         self.generate(node, 1)
 
         self.log.info(
@@ -148,41 +136,34 @@ class CoinStatsIndexTest(BitcoinTestFramework):
             assert_equal(res5['block_info'], {
                 'unspendable': 0,
                 'prevout_spent': 50_000_000,
-                'new_outputs_ex_coinbase': Decimal('49999997.75'),
-                'coinbase': Decimal('50000002.25'),
+                'new_outputs_ex_coinbase': Decimal('49999700.00'),
+                'coinbase': Decimal('50000300.00'),
                 'unspendables': {
                     'genesis_block': 0,
                     'bip30': 0,
                     'scripts': 0,
-                    'unclaimed_rewards': 0
+                    'unclaimed_rewards': 0,
                 }
             })
             self.block_sanity_check(res5['block_info'])
 
         # Generate and send a normal tx with two outputs
-        tx1_inputs = []
-        tx1_outputs = {self.nodes[0].getnewaddress(): 21_000_000,
-                       self.nodes[0].getnewaddress(): 42_000_000}
-        raw_tx1 = self.nodes[0].createrawtransaction(tx1_inputs, tx1_outputs)
-        funded_tx1 = self.nodes[0].fundrawtransaction(raw_tx1)
-        signed_tx1 = self.nodes[0].signrawtransactionwithwallet(
-            funded_tx1['hex'])
-        tx1_txid = self.nodes[0].sendrawtransaction(signed_tx1['hex'])
+        tx1_txid, tx1_vout = self.wallet.send_to(
+            from_node=node,
+            scriptPubKey=self.wallet.get_scriptPubKey(),
+            amount=21_000_000 * XEC,
+        )
 
-        # Find the right position of the 21 000 000 XEC output
-        tx1_final = self.nodes[0].gettransaction(tx1_txid)
-        for output in tx1_final['details']:
-            if output['amount'] == Decimal(
-                    '21000000.00') and output['category'] == 'receive':
-                n = output['vout']
+        # Find the right position of the 21 MegXEC output
+        tx1_out_21 = self.wallet.get_utxo(txid=tx1_txid, vout=tx1_vout)
 
         # Generate and send another tx with an OP_RETURN output (which is
         # unspendable)
-        tx2 = CTransaction()
-        tx2.vin.append(CTxIn(COutPoint(int(tx1_txid, 16), n), b''))
-        tx2.vout.append(CTxOut(int(20_990_000 * XEC),
-                               CScript([OP_RETURN] + [OP_FALSE] * 30)))
-        tx2_hex = self.nodes[0].signrawtransactionwithwallet(ToHex(tx2))['hex']
+        tx2 = self.wallet.create_self_transfer(
+            from_node=self.nodes[0], utxo_to_spend=tx1_out_21)['tx']
+        tx2.vout = [CTxOut(int(20_990_000 * XEC),
+                           CScript([OP_RETURN] + [OP_FALSE] * 50))]
+        tx2_hex = tx2.serialize().hex()
         self.nodes[0].sendrawtransaction(tx2_hex)
 
         # Include both txs in a block
@@ -198,14 +179,14 @@ class CoinStatsIndexTest(BitcoinTestFramework):
                 Decimal('70990000.00'))
             assert_equal(res6['block_info'], {
                 'unspendable': Decimal('20990000.00'),
-                'prevout_spent': 111_000_000,
-                'new_outputs_ex_coinbase': Decimal('89999995.94'),
-                'coinbase': Decimal('50010004.06'),
+                'prevout_spent': 71_000_000,
+                'new_outputs_ex_coinbase': Decimal('49999990.00'),
+                'coinbase': Decimal('50010010.00'),
                 'unspendables': {
                     'genesis_block': 0,
                     'bip30': 0,
                     'scripts': Decimal('20990000.00'),
-                    'unclaimed_rewards': 0
+                    'unclaimed_rewards': 0,
                 }
             })
             self.block_sanity_check(res6['block_info'])
@@ -275,8 +256,8 @@ class CoinStatsIndexTest(BitcoinTestFramework):
         # Generate two block, let the index catch up, then invalidate the
         # blocks
         index_node = self.nodes[1]
-        reorg_blocks = self.generatetoaddress(index_node,
-                                              2, index_node.getnewaddress())
+        reorg_blocks = self.generatetoaddress(
+            index_node, 2, getnewdestination()[2])
         reorg_block = reorg_blocks[1]
         self.wait_until(lambda: not try_rpc(-32603, "Unable to read UTXO set",
                                             index_node.gettxoutsetinfo, 'muhash'))
