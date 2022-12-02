@@ -1622,7 +1622,7 @@ export const currency = {
         'ellipsis',
         'superfarm',
     ],
-    bannedTickers: ['ebtc'],
+    bannedTickers: ['ebtc', 'xbt'],
     bannedNames: ['ebitcoin'],
 };
 
