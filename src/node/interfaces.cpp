@@ -46,7 +46,14 @@
 #include <any>
 
 class HTTPRPCRequestProcessor;
-namespace interfaces {
+
+using interfaces::BlockTip;
+using interfaces::Handler;
+using interfaces::MakeHandler;
+using interfaces::Node;
+using interfaces::WalletClient;
+
+namespace node {
 namespace {
 
     class NodeImpl : public Node {
@@ -308,9 +315,10 @@ namespace {
         NodeContext *m_context{nullptr};
     };
 } // namespace
+} // namespace node
 
+namespace interfaces {
 std::unique_ptr<Node> MakeNode(NodeContext *context) {
-    return std::make_unique<NodeImpl>(context);
+    return std::make_unique<node::NodeImpl>(context);
 }
-
 } // namespace interfaces

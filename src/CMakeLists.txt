@@ -587,7 +587,6 @@ add_library(server
 	init.cpp
 	init/common.cpp
 	interfaces/chain.cpp
-	interfaces/node.cpp
 	invrequest.cpp
 	mapport.cpp
 	miner.cpp
@@ -600,6 +599,7 @@ add_library(server
 	node/coin.cpp
 	node/coinstats.cpp
 	node/context.cpp
+	node/interfaces.cpp
 	node/psbt.cpp
 	node/transaction.cpp
 	node/ui_interface.cpp
