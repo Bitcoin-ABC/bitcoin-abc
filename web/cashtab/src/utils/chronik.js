@@ -247,13 +247,16 @@ export const processPreliminaryTokensArray = (
         // Add info object to token
         thisToken.info = thisTokenInfo;
 
-        // Update balance according to decimals
-        thisToken.balance = thisToken.balance.shiftedBy(-1 * thisTokenDecimals);
+        // Update balance according to decimals and store it as a string
+        thisToken.balance = thisToken.balance
+            .shiftedBy(-1 * thisTokenDecimals)
+            .toString();
 
         // Now that you have the metadata and the correct balance,
         // preliminaryTokenInfo is finalTokenInfo
         finalTokenArray.push(thisToken);
     }
+    console.log(`Token balances stored as string`);
     return finalTokenArray;
 };
 

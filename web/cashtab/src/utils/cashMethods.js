@@ -870,12 +870,24 @@ export const loadStoredWallet = walletStateFromStorage => {
 
     // Newly created wallets may not have a state field
 
+    // You only need to do this if you are loading a wallet
+    // that hasn't yet saved tokens[i].balance as a string
+    // instead of a BigNumber
     if (keysInLiveWalletState.includes('tokens')) {
         const { tokens } = liveWalletState;
-        for (let i = 0; i < tokens.length; i += 1) {
-            const thisTokenBalance = tokens[i].balance;
-            thisTokenBalance._isBigNumber = true;
-            tokens[i].balance = new BigNumber(thisTokenBalance);
+        if (tokens.length > 0 && tokens[0] && tokens[0].balance) {
+            if (typeof tokens[0].balance !== 'string') {
+                console.log(
+                    `This wallet has token balance stored as a BigNumber`,
+                );
+                for (let i = 0; i < tokens.length; i += 1) {
+                    const thisTokenBalance = tokens[i].balance;
+                    thisTokenBalance._isBigNumber = true;
+                    tokens[i].balance = new BigNumber(thisTokenBalance);
+                }
+            } else {
+                console.log(`This wallet has token balance stored as a string`);
+            }
         }
     }
 

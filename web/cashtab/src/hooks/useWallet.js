@@ -1311,7 +1311,11 @@ const useWallet = () => {
             // If tokens[i].balance > previousTokens[i].balance, a new SLP tx of an existing token has been received
             // Note that tokens[i].balance is of type BigNumber
             for (let i = 0; i < tokens.length; i += 1) {
-                if (tokens[i].balance.gt(previousTokens[i].balance)) {
+                if (
+                    new BigNumber(tokens[i].balance).gt(
+                        new BigNumber(previousTokens[i].balance),
+                    )
+                ) {
                     // Received this token
                     // console.log(`previousTokenId`, previousTokens[i].tokenId);
                     // console.log(`currentTokenId`, tokens[i].tokenId);
@@ -1324,9 +1328,9 @@ const useWallet = () => {
                         // Also don't 'continue' ; this means you have sent a token, just stop iterating through
                         break;
                     }
-                    const receivedSlpQty = tokens[i].balance.minus(
-                        previousTokens[i].balance,
-                    );
+                    const receivedSlpQty = new BigNumber(
+                        tokens[i].balance,
+                    ).minus(new BigNumber(previousTokens[i].balance));
 
                     const receivedSlpTicker = tokens[i].info.tokenTicker;
                     const receivedSlpName = tokens[i].info.tokenName;

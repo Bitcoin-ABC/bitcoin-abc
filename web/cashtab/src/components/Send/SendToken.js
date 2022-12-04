@@ -212,7 +212,9 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
         if (!isNaN(value)) {
             const bigValue = new BigNumber(value);
             // Returns 1 if greater, -1 if less, 0 if the same, null if n/a
-            isGreaterThanBalance = bigValue.comparedTo(token.balance);
+            isGreaterThanBalance = bigValue.comparedTo(
+                new BigNumber(token.balance),
+            );
         }
 
         // Validate value for > 0
@@ -471,7 +473,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
                         </AntdFormWrapper>
                     </Modal>
                     <BalanceHeaderToken
-                        balance={token.balance}
+                        balance={new BigNumber(token.balance)}
                         ticker={token.info.tokenTicker}
                         cashtabSettings={cashtabSettings}
                         tokenDecimals={token.info.decimals}
