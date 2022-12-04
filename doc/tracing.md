@@ -140,7 +140,7 @@ Arguments passed:
 1. Transaction ID (hash) as `pointer to unsigned chars` (i.e. 32 bytes in little-endian)
 2. Output index as `uint32`
 3. Block height the coin was added to the UTXO-set as  `uint32`
-4. Value of the coin as `int64`
+4. Value of the coin as `pointer to unsigned chars` (e.g. "123456.78 XEC")
 5. If the coin is a coinbase as `bool`
 
 #### Tracepoint `utxocache:spent`
@@ -151,7 +151,7 @@ Arguments passed:
 1. Transaction ID (hash) as `pointer to unsigned chars` (i.e. 32 bytes in little-endian)
 2. Output index as `uint32`
 3. Block height the coin was spent, as `uint32`
-4. Value of the coin as `int64`
+4. Value of the coin as `pointer to unsigned chars` (e.g. "123456.78 XEC")
 5. If the coin is a coinbase as `bool`
 
 #### Tracepoint `utxocache:uncache`
@@ -165,7 +165,7 @@ Arguments passed:
 1. Transaction ID (hash) as `pointer to unsigned chars` (i.e. 32 bytes in little-endian)
 2. Output index as `uint32`
 3. Block height the coin was uncached, as `uint32`
-4. Value of the coin as `int64`
+4. Value of the coin as `pointer to unsigned chars` (e.g. "123456.78 XEC")
 5. If the coin is a coinbase as `bool`
 
 ## Adding tracepoints to Bitcoin ABC
