@@ -231,6 +231,7 @@ dependencies = [
  "chronik-util",
  "cxx",
  "cxx-build",
+ "thiserror",
 ]
 
 [[package]]

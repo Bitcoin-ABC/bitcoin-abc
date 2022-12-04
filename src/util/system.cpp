@@ -733,6 +733,9 @@ std::string ArgsManager::GetHelpMessage() const {
             case OptionsCategory::AVALANCHE:
                 usage += HelpMessageGroup("Avalanche options:");
                 break;
+            case OptionsCategory::CHRONIK:
+                usage += HelpMessageGroup("Chronik options:");
+                break;
             default:
                 break;
         }

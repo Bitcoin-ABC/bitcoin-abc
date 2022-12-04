@@ -7,6 +7,7 @@
 #include <chronik-cpp/chronik_bridge.h>
 #include <logging.h>
 #include <node/context.h>
+#include <node/ui_interface.h>
 #include <validation.h>
 
 std::array<uint8_t, 32> HashToArray(const uint256 &hash) {
@@ -48,6 +49,10 @@ BlockInfo ChronikBridge::get_chain_tip() const {
 
 std::unique_ptr<ChronikBridge> make_bridge(const NodeContext &node) {
     return std::make_unique<ChronikBridge>(node);
+}
+
+bool init_error(const rust::Str msg) {
+    return InitError(Untranslated(std::string(msg)));
 }
 
 } // namespace chronik_bridge

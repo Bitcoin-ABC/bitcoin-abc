@@ -132,6 +132,9 @@ enum class OptionsCategory {
 
     // Always the last option to avoid printing these in the help
     HIDDEN,
+
+    // Hide Chronik for now
+    CHRONIK,
 };
 
 struct SectionInfo {

@@ -20,6 +20,9 @@ chronik-util = { path = "../chronik-util" }
 # Bridge to C++
 cxx = "1.0"
 
+# Derive error enums
+thiserror = "1.0"
+
 [build-dependencies]
 # Build scripts for the cxx crate
 cxx-build = "1.0"

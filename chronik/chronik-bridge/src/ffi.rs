@@ -54,5 +54,9 @@ mod ffi_inner {
         /// Return the tip of the chain of the node.
         /// Returns hash=000...000, height=-1 if there's no block on the chain.
         fn get_chain_tip(self: &ChronikBridge) -> BlockInfo;
+
+        /// Calls `InitError` from `node/ui_interface.h` to report an error to
+        /// the user and then gracefully shut down the node.
+        fn init_error(msg: &str) -> bool;
     }
 }

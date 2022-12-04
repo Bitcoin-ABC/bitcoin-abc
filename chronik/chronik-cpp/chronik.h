@@ -5,13 +5,19 @@
 #ifndef BITCOIN_CHRONIK_CPP_CHRONIK_H
 #define BITCOIN_CHRONIK_CPP_CHRONIK_H
 
+#include <string>
+#include <vector>
+
 class Config;
 struct NodeContext;
 
 namespace chronik {
 
+static constexpr bool DEFAULT_ENABLED = false;
+static const std::vector<std::string> DEFAULT_BINDS = {"127.0.0.1", "::1"};
+
 // Registers Chronik indexer as ValidationInterface, listens to HTTP queries
-void Start(const Config &config, const NodeContext &node);
+bool Start(const Config &config, const NodeContext &node);
 
 // Unregisters Chronik indexer as ValidationInterface, stops the HTTP server
 void Stop();

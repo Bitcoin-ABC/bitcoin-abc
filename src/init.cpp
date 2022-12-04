@@ -623,6 +623,27 @@ void SetupServerArgs(NodeContext &node) {
                              "getrawtransaction rpc call (default: %d)",
                              DEFAULT_TXINDEX),
                    ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+#if ENABLE_CHRONIK
+    argsman.AddArg(
+        "-chronik",
+        strprintf("Enable the Chronik indexer, which can be read via a "
+                  "dedicated HTTP/Protobuf interface (default: %d)",
+                  chronik::DEFAULT_ENABLED),
+        ArgsManager::ALLOW_BOOL, OptionsCategory::CHRONIK);
+    argsman.AddArg(
+        "-chronikbind=<addr>[:port]",
+        strprintf(
+            "Bind the Chronik indexer to the given address to listen for "
+            "HTTP/Protobuf connections to access the index. Unlike the "
+            "JSON-RPC, it's ok to have this publicly exposed on the internet. "
+            "This option can be specified multiple times (default: %s; default "
+            "port: %u, testnet: %u, regtest: %u)",
+            Join(chronik::DEFAULT_BINDS, ", "),
+            defaultBaseParams->ChronikPort(), testnetBaseParams->ChronikPort(),
+            regtestBaseParams->ChronikPort()),
+        ArgsManager::ALLOW_STRING | ArgsManager::NETWORK_ONLY,
+        OptionsCategory::CHRONIK);
+#endif
     argsman.AddArg(
         "-blockfilterindex=<type>",
         strprintf("Maintain an index of compact filters by block "
@@ -2605,7 +2626,11 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
 
 #if ENABLE_CHRONIK
-    chronik::Start(config, node);
+    if (args.GetBoolArg("-chronik", chronik::DEFAULT_ENABLED)) {
+        if (!chronik::Start(config, node)) {
+            return false;
+        }
+    }
 #endif
 
     // Step 9: load wallet
