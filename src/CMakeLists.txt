@@ -586,7 +586,6 @@ add_library(server
 	index/txindex.cpp
 	init.cpp
 	init/common.cpp
-	interfaces/chain.cpp
 	invrequest.cpp
 	mapport.cpp
 	miner.cpp
