@@ -10,7 +10,6 @@
 #include <consensus/validation.h>
 #include <interfaces/chain.h>
 #include <interfaces/handler.h>
-#include <policy/fees.h>
 #include <primitives/transaction.h>
 #include <rpc/server.h>
 #include <script/standard.h>
@@ -26,7 +25,21 @@
 #include <wallet/rpcdump.h>
 #include <wallet/wallet.h>
 
-namespace interfaces {
+using interfaces::Chain;
+using interfaces::FoundBlock;
+using interfaces::Handler;
+using interfaces::MakeHandler;
+using interfaces::Wallet;
+using interfaces::WalletAddress;
+using interfaces::WalletBalances;
+using interfaces::WalletClient;
+using interfaces::WalletOrderForm;
+using interfaces::WalletTx;
+using interfaces::WalletTxOut;
+using interfaces::WalletTxStatus;
+using interfaces::WalletValueMap;
+
+namespace wallet {
 namespace {
 
     //! Construct wallet tx struct.
@@ -556,16 +569,16 @@ namespace {
         std::vector<std::unique_ptr<Handler>> m_rpc_handlers;
         std::list<CRPCCommand> m_rpc_commands;
     };
-
 } // namespace
+} // namespace wallet
 
+namespace interfaces {
 std::unique_ptr<Wallet> MakeWallet(const std::shared_ptr<CWallet> &wallet) {
-    return wallet ? std::make_unique<WalletImpl>(wallet) : nullptr;
+    return wallet ? std::make_unique<wallet::WalletImpl>(wallet) : nullptr;
 }
 
 std::unique_ptr<WalletClient> MakeWalletClient(Chain &chain,
                                                ArgsManager &args) {
-    return std::make_unique<WalletClientImpl>(chain, args);
+    return std::make_unique<wallet::WalletClientImpl>(chain, args);
 }
-
 } // namespace interfaces

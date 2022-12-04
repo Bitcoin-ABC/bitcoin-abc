@@ -14,7 +14,6 @@ find_package(SQLite3 3.7.17 REQUIRED)
 target_sources(server PRIVATE init.cpp)
 
 add_library(wallet
-	../interfaces/wallet.cpp
 	bdb.cpp
 	coincontrol.cpp
 	coinselection.cpp
@@ -22,6 +21,7 @@ add_library(wallet
 	crypter.cpp
 	db.cpp
 	fees.cpp
+	interfaces.cpp
 	load.cpp
 	rpcdump.cpp
 	rpcwallet.cpp
