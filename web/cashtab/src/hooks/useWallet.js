@@ -105,7 +105,7 @@ const useWallet = () => {
         // If you are at the "end" of the array, use the first one
     };
 
-    const deriveAccount = async (BCH, { masterHDNode, path }) => {
+    const deriveAccount = async ({ masterHDNode, path }) => {
         const node = masterHDNode.derivePath(path);
         const publicKey = node.getPublicKeyBuffer().toString('hex');
         const cashAddress = cashaddr.encode(
@@ -114,16 +114,12 @@ const useWallet = () => {
             node.getIdentifier(),
         );
         const hash160 = toHash160(cashAddress);
-        const slpAddress = BCH.SLP.Address.toSLPAddress(cashAddress);
 
         return {
             publicKey,
             hash160,
             cashAddress,
-            slpAddress,
             fundingWif: node.keyPair.toWIF(),
-            fundingAddress: BCH.SLP.Address.toSLPAddress(cashAddress),
-            legacyAddress: BCH.SLP.Address.toLegacyAddress(cashAddress),
         };
     };
 
@@ -328,10 +324,7 @@ const useWallet = () => {
                     console.log(
                         `Wallet does not have Path1899 or does not have public key`,
                     );
-                    existingWallet = await migrateLegacyWallet(
-                        BCH,
-                        existingWallet,
-                    );
+                    existingWallet = await migrateLegacyWallet(existingWallet);
                 }
             }
 
@@ -370,7 +363,7 @@ const useWallet = () => {
         return wallet;
     };
 
-    const migrateLegacyWallet = async (BCH, wallet) => {
+    const migrateLegacyWallet = async wallet => {
         console.log(`migrateLegacyWallet`);
         console.log(`legacyWallet`, wallet);
         const mnemonic = wallet.mnemonic;
@@ -381,15 +374,15 @@ const useWallet = () => {
             coininfo.bitcoincash.main.toBitcoinJS(),
         );
 
-        const Path245 = await deriveAccount(BCH, {
+        const Path245 = await deriveAccount({
             masterHDNode,
             path: "m/44'/245'/0'/0/0",
         });
-        const Path145 = await deriveAccount(BCH, {
+        const Path145 = await deriveAccount({
             masterHDNode,
             path: "m/44'/145'/0'/0/0",
         });
-        const Path1899 = await deriveAccount(BCH, {
+        const Path1899 = await deriveAccount({
             masterHDNode,
             path: "m/44'/1899'/0'/0/0",
         });
@@ -445,15 +438,15 @@ const useWallet = () => {
             coininfo.bitcoincash.main.toBitcoinJS(),
         );
 
-        const Path245 = await deriveAccount(BCH, {
+        const Path245 = await deriveAccount({
             masterHDNode,
             path: "m/44'/245'/0'/0/0",
         });
-        const Path145 = await deriveAccount(BCH, {
+        const Path145 = await deriveAccount({
             masterHDNode,
             path: "m/44'/145'/0'/0/0",
         });
-        const Path1899 = await deriveAccount(BCH, {
+        const Path1899 = await deriveAccount({
             masterHDNode,
             path: "m/44'/1899'/0'/0/0",
         });
@@ -592,7 +585,7 @@ const useWallet = () => {
                 `Case 2: Wallet to activate is not in the most up to date Cashtab format`,
             );
             console.log(`walletToActivate`, walletToActivate);
-            walletToActivate = await migrateLegacyWallet(BCH, walletToActivate);
+            walletToActivate = await migrateLegacyWallet(walletToActivate);
         } else {
             // Otherwise activate it as normal
             // Now that we have verified the last wallet was saved, we can activate the new wallet

@@ -21,12 +21,10 @@ test('Migrating legacy wallet on mainnet', async () => {
         },
     };
 
-    const BCH = new BCHJS();
     result.current.getWallet = false;
     let wallet;
     await act(async () => {
         wallet = await result.current.migrateLegacyWallet(
-            BCH,
             mockLegacyWallets.legacyAlphaMainnet,
         );
     });
