@@ -23,8 +23,8 @@ import {
     getWalletState,
     convertEtokenToEcashAddr,
     fromSatoshisToXec,
-    convertToEcashPrefix,
     convertEcashtoEtokenAddr,
+    convertToEcashPrefix,
 } from 'utils/cashMethods';
 import { getMintAddress } from 'utils/chronik';
 import {
@@ -241,10 +241,11 @@ const Airdrop = ({ passLoadingStatus }) => {
 
         // if Ignore Own Address option is checked, then filter out from recipients list
         if (ignoreOwnAddress) {
-            const ownEtokenAddress = convertToEcashPrefix(
-                wallet.Path1899.slpAddress,
+            airdropList.delete(
+                convertEcashtoEtokenAddr(
+                    convertToEcashPrefix(wallet.Path1899.cashAddress),
+                ),
             );
-            airdropList.delete(ownEtokenAddress);
         }
 
         // if Ignore eToken Minter option is checked, then filter out from recipients list

@@ -691,7 +691,7 @@ it(`generateTokenTxOutput() returns a valid object for a valid send token tx`, a
     let txBuilder = new TransactionBuilder();
     const { wallet } = createTokenMock;
     const tokenSenderCashAddress = wallet.Path1899.cashAddress;
-    const tokenRecipientTokenAddress = wallet.Path1899.slpAddress;
+    const tokenRecipientTokenAddress = wallet.Path1899.cashAddress;
 
     const tokenOutputObj = generateTokenTxOutput(
         txBuilder,
