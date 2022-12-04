@@ -858,27 +858,46 @@ export const loadStoredWallet = walletStateFromStorage => {
     // Return array with BigNumbers converted
     // See BigNumber.js api for how to create a BigNumber object from an object
     // https://mikemcl.github.io/bignumber.js/
-    const liveWalletState = walletStateFromStorage;
-    const { tokens } = liveWalletState;
-    for (let i = 0; i < tokens.length; i += 1) {
-        const thisTokenBalance = tokens[i].balance;
-        thisTokenBalance._isBigNumber = true;
-        tokens[i].balance = new BigNumber(thisTokenBalance);
+    const liveWalletState =
+        typeof walletStateFromStorage !== 'undefined'
+            ? walletStateFromStorage
+            : {};
+
+    const keysInLiveWalletState = Object.keys(liveWalletState);
+
+    // Newly created wallets may not have a state field
+
+    if (keysInLiveWalletState.includes('tokens')) {
+        const { tokens } = liveWalletState;
+        for (let i = 0; i < tokens.length; i += 1) {
+            const thisTokenBalance = tokens[i].balance;
+            thisTokenBalance._isBigNumber = true;
+            tokens[i].balance = new BigNumber(thisTokenBalance);
+        }
     }
 
     // Also confirm balance is correct
     // Necessary step in case currency.decimals changed since last startup
     let nonSlpUtxosToParseForBalance;
-    if (Object.keys(liveWalletState).includes('slpBalancesAndUtxos')) {
-        // If this wallet still includes the wallet.state.slpBalancesAndUtxos field
-        nonSlpUtxosToParseForBalance =
-            liveWalletState.slpBalancesAndUtxos.nonSlpUtxos;
+    let balancesRebased;
+    if (keysInLiveWalletState.length !== 0) {
+        if (keysInLiveWalletState.includes('slpBalancesAndUtxos')) {
+            // If this wallet still includes the wallet.state.slpBalancesAndUtxos field
+            nonSlpUtxosToParseForBalance =
+                liveWalletState.slpBalancesAndUtxos.nonSlpUtxos;
+        } else {
+            nonSlpUtxosToParseForBalance = liveWalletState.nonSlpUtxos;
+        }
+        balancesRebased = getWalletBalanceFromUtxos(
+            nonSlpUtxosToParseForBalance,
+        );
     } else {
-        nonSlpUtxosToParseForBalance = liveWalletState.nonSlpUtxos;
+        balancesRebased = {
+            totalBalanceInSatoshis: '0',
+            totalBalance: '0',
+        };
     }
-    const balancesRebased = getWalletBalanceFromUtxos(
-        nonSlpUtxosToParseForBalance,
-    );
+
     liveWalletState.balances = balancesRebased;
     return liveWalletState;
 };

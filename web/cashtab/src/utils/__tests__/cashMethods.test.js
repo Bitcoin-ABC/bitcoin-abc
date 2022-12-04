@@ -1141,6 +1141,14 @@ describe('Correctly executes cash utility functions', () => {
             utxosLoadedFromCache,
         );
     });
+    it(`loadStoredWallet accepts undefined wallet state as input and outputs a zero balance wallet state`, () => {
+        expect(loadStoredWallet(undefined)).toStrictEqual({
+            balances: {
+                totalBalanceInSatoshis: '0',
+                totalBalance: '0',
+            },
+        });
+    });
     it(`Correctly determines a wallet's balance from its set of non-eToken utxos (nonSlpUtxos)`, () => {
         expect(
             getWalletBalanceFromUtxos(
