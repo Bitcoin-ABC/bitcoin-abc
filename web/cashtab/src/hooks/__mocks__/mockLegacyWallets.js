@@ -30,24 +30,21 @@ export default {
             'apart vacuum color cream drama kind foil history hurt alone ask census',
         name: 'MigrationTestAlpha on Mainnet',
         Path245: {
-            cashAddress:
-                'bitcoincash:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy54hkry298',
+            cashAddress: 'ecash:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy5v6zglsrs',
             fundingWif: 'KwgNkyijAaxFr5XQdnaYyNMXVSZobgHzSoKKfWiC3Q7Xr4n7iYMG',
             hash160: '960c9ed561f1699f0c49974d50b3bb7cdc118625',
             publicKey:
                 '03c4a69fd90c8b196683216cffd2943a7b13b0db0812e44a4ff156ac7e03fc4ed7',
         },
         Path145: {
-            cashAddress:
-                'bitcoincash:qq47pcxfn8n7w7jy86njd7pvgsv39l9f9v0lgx569z',
+            cashAddress: 'ecash:qq47pcxfn8n7w7jy86njd7pvgsv39l9f9vkjud0qr4',
             fundingWif: 'L2xvTe6CdNxroR6pbdpGWNjAa55AZX5Wm59W5TXMuH31ihNJdDjt',
             hash160: '2be0e0c999e7e77a443ea726f82c441912fca92b',
             publicKey:
                 '02fe5308d77bcce825068a9e46adc6f032dbbe39167a7b6d05ac563ac71d8b186e',
         },
         Path1899: {
-            cashAddress:
-                'bitcoincash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cptzgcqy6',
+            cashAddress: 'ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd',
             fundingWif: 'Kx4FiBMvKK1iXjFk5QTaAK6E4mDGPjmwDZ2HDKGUZpE4gCXMaPe9',
             hash160: 'ba8257db65f40359989c7b894c5e88ed7b6344f6',
             publicKey:

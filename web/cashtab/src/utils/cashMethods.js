@@ -476,7 +476,10 @@ export const getChangeAddressFromInputUtxos = (inputUtxos, wallet) => {
     // Validate address
     try {
         changeAddress = inputUtxos[0].address;
-        if (!isValidBchAddress(changeAddress)) {
+        if (
+            !isValidXecAddress(changeAddress) &&
+            !isValidBchAddress(changeAddress)
+        ) {
             throw new Error('Invalid change address');
         }
     } catch (err) {

@@ -351,6 +351,27 @@ it(`getChangeAddressFromInputUtxos() returns a correct change address from a val
     expect(changeAddress).toStrictEqual(inputUtxo[0].address);
 });
 
+it(`getChangeAddressFromInputUtxos() returns a correct change address from a valid inputUtxo and accepts ecash: format`, () => {
+    const { wallet } = sendBCHMock;
+    const inputUtxo = [
+        {
+            height: 669639,
+            tx_hash:
+                '0da6d49cf95d4603958e53360ad1e90bfccef41bfb327d6b2e8a77e242fa2d58',
+            tx_pos: 0,
+            value: 1000,
+            txid: '0da6d49cf95d4603958e53360ad1e90bfccef41bfb327d6b2e8a77e242fa2d58',
+            vout: 0,
+            isValid: false,
+            address: 'ecash:qphpmfj0qn7znklqhrfn5dq7qh36l3vxav9up3h67g',
+            wif: 'L58jqHoi5ynSdsskPVBJuGuVqTP8ZML1MwHQsBJY32Pv7cqDSCeH',
+        },
+    ];
+
+    const changeAddress = getChangeAddressFromInputUtxos(inputUtxo, wallet);
+    expect(changeAddress).toStrictEqual(inputUtxo[0].address);
+});
+
 it(`getChangeAddressFromInputUtxos() throws error upon a malformed input utxo`, () => {
     const { wallet } = sendBCHMock;
     const invalidInputUtxo = [

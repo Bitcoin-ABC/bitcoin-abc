@@ -109,7 +109,7 @@ const useWallet = () => {
         const node = masterHDNode.derivePath(path);
         const publicKey = node.getPublicKeyBuffer().toString('hex');
         const cashAddress = cashaddr.encode(
-            'bitcoincash',
+            'ecash',
             'P2PKH',
             node.getIdentifier(),
         );
@@ -451,7 +451,7 @@ const useWallet = () => {
             path: "m/44'/1899'/0'/0/0",
         });
 
-        let name = Path1899.cashAddress.slice(12, 17);
+        let name = Path1899.cashAddress.slice(6, 11);
         // Only set the name if it does not currently exist
         if (wallet && wallet.name) {
             name = wallet.name;
