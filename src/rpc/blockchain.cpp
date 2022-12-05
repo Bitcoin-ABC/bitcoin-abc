@@ -487,6 +487,9 @@ static RPCHelpMan getblockfrompeer() {
         "the block data in a context where the undo data is needed.\n"
         "Subsequent calls for the same block may cause the response from the "
         "previous peer to be ignored.\n"
+        "Peers generally ignore requests for a stale block that they never "
+        "fully verified, or one that is more than a month old.\n"
+        "When a peer does not respond with a block, we will disconnect.\n"
         "\nReturns an empty JSON object if the request was successfully "
         "scheduled.",
         {

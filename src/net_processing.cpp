@@ -2826,6 +2826,8 @@ PeerManagerImpl::FetchBlock(const Config &config, NodeId peer_id,
     RemoveBlockRequest(block_index.GetBlockHash(), std::nullopt);
 
     // Mark block as in-flight
+    // If the peer does not send us a block, vBlocksInFlight remains non-empty,
+    // causing us to timeout and disconnect.
     if (!BlockRequested(config, peer_id, block_index)) {
         return "Already requested from this peer";
     }
