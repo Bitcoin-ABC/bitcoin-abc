@@ -566,6 +566,7 @@ add_library(server
 	avalanche/voterecord.cpp
 	banman.cpp
 	blockencodings.cpp
+	blockfileinfo.cpp
 	blockfilter.cpp
 	blockindex.cpp
 	chain.cpp
