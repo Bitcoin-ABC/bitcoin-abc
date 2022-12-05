@@ -3652,9 +3652,9 @@ void PeerManagerImpl::ProcessGetData(
                 std::vector<TxId> parent_ids_to_add;
                 {
                     LOCK(m_mempool.cs);
-                    auto txiter = m_mempool.GetIter(tx->GetId());
-                    if (txiter) {
-                        auto &pentry = *txiter;
+                    auto tx_iter = m_mempool.GetIter(tx->GetId());
+                    if (tx_iter) {
+                        auto &pentry = *tx_iter;
                         const CTxMemPoolEntry::Parents &parents =
                             (*pentry)->GetMemPoolParentsConst();
                         parent_ids_to_add.reserve(parents.size());
