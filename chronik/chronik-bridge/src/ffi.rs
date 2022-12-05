@@ -24,8 +24,8 @@ mod ffi_inner {
         include!("chronik-cpp/chronik_bridge.h");
         include!("node/context.h");
 
-        /// ::NodeContext from node/context.h
-        #[namespace = ""]
+        /// node::NodeContext from node/context.h
+        #[namespace = "node"]
         type NodeContext;
 
         /// Bridge to bitcoind to access the node

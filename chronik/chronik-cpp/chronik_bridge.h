@@ -8,7 +8,9 @@
 #include <memory>
 #include <rust/cxx.h>
 
+namespace node {
 struct NodeContext;
+} // namespace node
 class uint256;
 
 std::array<uint8_t, 32> HashToArray(const uint256 &hash);
@@ -28,15 +30,15 @@ void log_print_chronik(const rust::Str logging_function,
  * Bridge to bitcoind to access the node.
  */
 class ChronikBridge {
-    const NodeContext &m_node;
+    const node::NodeContext &m_node;
 
 public:
-    ChronikBridge(const NodeContext &node) : m_node(node) {}
+    ChronikBridge(const node::NodeContext &node) : m_node(node) {}
 
     BlockInfo get_chain_tip() const;
 };
 
-std::unique_ptr<ChronikBridge> make_bridge(const NodeContext &node);
+std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node);
 
 bool init_error(const rust::Str msg);
 

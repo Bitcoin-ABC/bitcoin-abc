@@ -47,7 +47,7 @@ BlockInfo ChronikBridge::get_chain_tip() const {
     };
 }
 
-std::unique_ptr<ChronikBridge> make_bridge(const NodeContext &node) {
+std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node) {
     return std::make_unique<ChronikBridge>(node);
 }
 
