@@ -8,8 +8,8 @@
 #include <config.h>
 #include <consensus/merkle.h>
 #include <key_io.h>
-#include <miner.h>
 #include <node/context.h>
+#include <node/miner.h>
 #include <pow/pow.h>
 #include <script/standard.h>
 #include <util/check.h>

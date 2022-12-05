@@ -588,7 +588,6 @@ add_library(server
 	init/common.cpp
 	invrequest.cpp
 	mapport.cpp
-	miner.cpp
 	minerfund.cpp
 	net.cpp
 	net_processing.cpp
@@ -599,6 +598,7 @@ add_library(server
 	node/coinstats.cpp
 	node/context.cpp
 	node/interfaces.cpp
+	node/miner.cpp
 	node/psbt.cpp
 	node/transaction.cpp
 	node/ui_interface.cpp

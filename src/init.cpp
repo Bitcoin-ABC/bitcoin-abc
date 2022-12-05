@@ -35,7 +35,6 @@
 #include <interfaces/chain.h>
 #include <interfaces/node.h>
 #include <mapport.h>
-#include <miner.h>
 #include <net.h>
 #include <net_permissions.h>
 #include <net_processing.h>
@@ -44,6 +43,7 @@
 #include <node/caches.h>
 #include <node/chainstate.h>
 #include <node/context.h>
+#include <node/miner.h>
 #include <node/ui_interface.h>
 #include <policy/mempool.h>
 #include <policy/policy.h>

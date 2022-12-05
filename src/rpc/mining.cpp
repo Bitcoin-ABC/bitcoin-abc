@@ -15,10 +15,10 @@
 #include <consensus/validation.h>
 #include <core_io.h>
 #include <key_io.h>
-#include <miner.h>
 #include <minerfund.h>
 #include <net.h>
 #include <node/context.h>
+#include <node/miner.h>
 #include <policy/policy.h>
 #include <pow/pow.h>
 #include <rpc/blockchain.h>

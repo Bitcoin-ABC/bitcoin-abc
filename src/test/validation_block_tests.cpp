@@ -9,7 +9,7 @@
 #include <config.h>
 #include <consensus/merkle.h>
 #include <consensus/validation.h>
-#include <miner.h>
+#include <node/miner.h>
 #include <pow/pow.h>
 #include <random.h>
 #include <script/standard.h>

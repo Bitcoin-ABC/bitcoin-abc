@@ -11,7 +11,7 @@
 #include <crypto/sha256.h>
 #include <key.h>
 #include <logging.h>
-#include <miner.h>
+#include <node/miner.h>
 #include <node/ui_interface.h>
 #include <pubkey.h>
 #include <random.h>

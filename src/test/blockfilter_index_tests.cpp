@@ -7,7 +7,7 @@
 #include <config.h>
 #include <consensus/validation.h>
 #include <index/blockfilterindex.h>
-#include <miner.h>
+#include <node/miner.h>
 #include <pow/pow.h>
 #include <script/standard.h>
 #include <test/util/blockfilter.h>

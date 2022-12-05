@@ -14,11 +14,11 @@
 #include <init.h>
 #include <interfaces/chain.h>
 #include <logging.h>
-#include <miner.h>
 #include <net.h>
 #include <net_processing.h>
 #include <node/blockstorage.h>
 #include <node/chainstate.h>
+#include <node/miner.h>
 #include <noui.h>
 #include <pow/pow.h>
 #include <rpc/blockchain.h>
