@@ -1,0 +1,62 @@
+{
+    "name": "@psf/bitcoincashjs-lib",
+    "version": "4.0.2",
+    "description": "Client-side Bitcoin JavaScript library",
+    "main": "./src/index.js",
+    "engines": {
+        "node": ">=10.15.1"
+    },
+    "keywords": [
+        "bitcoinjs",
+        "bitcoin",
+        "browserify",
+        "javascript",
+        "bitcoinjs"
+    ],
+    "scripts": {
+        "coverage-report": "nyc report --reporter=lcov",
+        "coverage-html": "nyc report --reporter=html",
+        "coverage": "nyc --check-coverage --branches 90 --functions 90 mocha",
+        "integration": "mocha test/integration/",
+        "test": "mocha"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/bitcoinjs/bitcoinjs-lib.git"
+    },
+    "files": [
+        "src"
+    ],
+    "dependencies": {
+        "bech32": "^1.1.2",
+        "bigi": "^1.4.0",
+        "bip66": "^1.1.0",
+        "@psf/bitcoincash-ops": "^2.0.0",
+        "bs58check": "^2.0.0",
+        "create-hash": "^1.1.0",
+        "create-hmac": "^1.1.3",
+        "ecurve": "^1.0.0",
+        "merkle-lib": "^2.0.10",
+        "@psf/pushdata-bitcoin": "^1.2.2",
+        "randombytes": "^2.0.1",
+        "safe-buffer": "^5.0.1",
+        "typeforce": "^1.18.0",
+        "varuint-bitcoin": "^1.0.4",
+        "wif": "^2.0.1"
+    },
+    "devDependencies": {
+        "async": "^2.0.1",
+        "bip39": "^2.3.0",
+        "bs58": "^4.0.0",
+        "cb-http-client": "^0.2.0",
+        "chai": "^4.2.0",
+        "coinselect": "^3.1.1",
+        "dhttp": "^2.3.5",
+        "@psf/minimaldata": "^1.0.2",
+        "mocha": "^6.1.4",
+        "nyc": "^14.1.1",
+        "proxyquire": "^1.8.0",
+        "sinon": "^1.17.7"
+    },
+    "license": "MIT"
+}

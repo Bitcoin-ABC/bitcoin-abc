@@ -1,0 +1,18 @@
+sudo: false
+language: node_js
+node_js:
+  - "4"
+  - "5"
+  - "6"
+  - "7"
+  - "8"
+matrix:
+  include:
+    - node_js: "7"
+      env: TEST_SUITE=standard
+    - node_js: "7"
+      env: TEST_SUITE=coverage
+env:
+  - TEST_SUITE=integration
+  - TEST_SUITE=unit
+script: npm run-script $TEST_SUITE
