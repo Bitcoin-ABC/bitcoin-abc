@@ -256,7 +256,6 @@ export const processPreliminaryTokensArray = (
         // preliminaryTokenInfo is finalTokenInfo
         finalTokenArray.push(thisToken);
     }
-    console.log(`Token balances stored as string`);
     return finalTokenArray;
 };
 
