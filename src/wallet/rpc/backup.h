@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_WALLET_RPCDUMP_H
-#define BITCOIN_WALLET_RPCDUMP_H
+#ifndef BITCOIN_WALLET_RPC_BACKUP_H
+#define BITCOIN_WALLET_RPC_BACKUP_H
 
 #include <span.h>
 
@@ -19,4 +19,4 @@ RPCHelpMan importmulti();
 RPCHelpMan dumpwallet();
 RPCHelpMan importwallet();
 
-#endif // BITCOIN_WALLET_RPCDUMP_H
+#endif // BITCOIN_WALLET_RPC_BACKUP_H

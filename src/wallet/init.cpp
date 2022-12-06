@@ -17,7 +17,7 @@
 #include <util/system.h>
 #include <util/translation.h>
 #include <wallet/coincontrol.h>
-#include <wallet/rpcdump.h>
+#include <wallet/rpc/backup.h>
 #include <wallet/wallet.h>
 #include <walletinitinterface.h>
 

@@ -22,7 +22,8 @@
 #include <wallet/fees.h>
 #include <wallet/ismine.h>
 #include <wallet/load.h>
-#include <wallet/rpcdump.h>
+#include <wallet/rpc/backup.h>
+#include <wallet/rpc/encrypt.h>
 #include <wallet/wallet.h>
 
 using interfaces::Chain;
@@ -505,6 +506,7 @@ namespace {
         void registerRpcs() override {
             registerRpcs(GetWalletRPCCommands());
             registerRpcs(GetWalletDumpRPCCommands());
+            registerRpcs(GetWalletEncryptRPCCommands());
         }
         bool verify() override { return VerifyWallets(*m_context.chain); }
         bool load() override { return LoadWallets(*m_context.chain); }

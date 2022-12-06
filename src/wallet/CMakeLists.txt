@@ -24,8 +24,9 @@ add_library(wallet
 	interfaces.cpp
 	load.cpp
 	receive.cpp
-	rpcdump.cpp
 	rpcwallet.cpp
+	rpc/backup.cpp
+	rpc/encrypt.cpp
 	rpc/signmessage.cpp
 	rpc/util.cpp
 	salvage.cpp

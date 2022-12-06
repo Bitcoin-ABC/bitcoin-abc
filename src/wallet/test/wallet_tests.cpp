@@ -13,7 +13,7 @@
 #include <util/translation.h>
 #include <validation.h>
 #include <wallet/coincontrol.h>
-#include <wallet/rpcdump.h>
+#include <wallet/rpc/backup.h>
 #include <wallet/wallet.h>
 
 #include <test/util/logging.h>
