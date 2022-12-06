@@ -214,17 +214,14 @@ bool CZMQPublishRawBlockNotifier::NotifyBlock(const CBlockIndex *pindex) {
 
     const Config &config = GetConfig();
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());
-    {
-        LOCK(cs_main);
-        CBlock block;
-        if (!ReadBlockFromDisk(block, pindex,
-                               config.GetChainParams().GetConsensus())) {
-            zmqError("Can't read block from disk");
-            return false;
-        }
-
-        ss << block;
+    CBlock block;
+    if (!ReadBlockFromDisk(block, pindex,
+                           config.GetChainParams().GetConsensus())) {
+        zmqError("Can't read block from disk");
+        return false;
     }
+
+    ss << block;
 
     return SendZmqMessage(MSG_RAWBLOCK, &(*ss.begin()), ss.size());
 }
