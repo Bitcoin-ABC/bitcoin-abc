@@ -75,7 +75,6 @@ import {
 } from '../__mocks__/chronikMintTxs';
 import { ChronikClient } from 'chronik-client';
 import { when } from 'jest-when';
-import BCHJS from '@psf/bch-js';
 
 it(`getTokenStats successfully returns a token stats object`, async () => {
     // Initialize chronik
@@ -242,18 +241,8 @@ it(`sortAndTrimChronikTxHistory successfully orders the result of flattenChronik
 });
 
 it(`Successfully parses an incoming XEC tx`, () => {
-    const BCH = new BCHJS({
-        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
-    });
-    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
-    BCH.Address.hash160ToCash = jest
-        .fn()
-        .mockReturnValue(
-            'bitcoincash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvll3cvjwd',
-        );
     expect(
         parseChronikTx(
-            BCH,
             lambdaIncomingXecTx,
             mockParseTxWallet,
             txHistoryTokenInfoById,
@@ -274,18 +263,8 @@ it(`Successfully parses an incoming XEC tx`, () => {
     });
 });
 it(`Successfully parses an outgoing XEC tx`, () => {
-    const BCH = new BCHJS({
-        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
-    });
-    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
-    BCH.Address.hash160ToCash = jest
-        .fn()
-        .mockReturnValue(
-            'bitcoincash:qpmytrdsakt0axrrlswvaj069nat3p9s7ct4lsf8k9',
-        );
     expect(
         parseChronikTx(
-            BCH,
             lambdaOutgoingXecTx,
             mockParseTxWallet,
             txHistoryTokenInfoById,
@@ -306,16 +285,8 @@ it(`Successfully parses an outgoing XEC tx`, () => {
     });
 });
 it(`Successfully parses an incoming eToken tx`, () => {
-    const BCH = new BCHJS();
-    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
-    BCH.Address.hash160ToCash = jest
-        .fn()
-        .mockReturnValue(
-            'bitcoincash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvll3cvjwd',
-        );
     expect(
         parseChronikTx(
-            BCH,
             lambdaIncomingEtokenTx,
             mockParseTxWallet,
             txHistoryTokenInfoById,
@@ -355,18 +326,8 @@ it(`Successfully parses an incoming eToken tx`, () => {
     });
 });
 it(`Successfully parses an outgoing eToken tx`, () => {
-    const BCH = new BCHJS({
-        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
-    });
-    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
-    BCH.Address.hash160ToCash = jest
-        .fn()
-        .mockReturnValue(
-            'bitcoincash:qpmytrdsakt0axrrlswvaj069nat3p9s7ct4lsf8k9',
-        );
     expect(
         parseChronikTx(
-            BCH,
             lambdaOutgoingEtokenTx,
             mockParseTxWallet,
             txHistoryTokenInfoById,
@@ -406,18 +367,8 @@ it(`Successfully parses an outgoing eToken tx`, () => {
     });
 });
 it(`Successfully parses a genesis eToken tx`, () => {
-    const BCH = new BCHJS({
-        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
-    });
-    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
-    BCH.Address.hash160ToCash = jest
-        .fn()
-        .mockReturnValue(
-            'bitcoincash:qz2708636snqhsxu8wnlka78h6fdp77ar5ulhz04hr',
-        );
     expect(
         parseChronikTx(
-            BCH,
             eTokenGenesisTx,
             anotherMockParseTxWallet,
             txHistoryTokenInfoById,
@@ -455,18 +406,8 @@ it(`Successfully parses a genesis eToken tx`, () => {
     });
 });
 it(`Successfully parses a received eToken tx with 9 decimal places`, () => {
-    const BCH = new BCHJS({
-        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
-    });
-    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
-    BCH.Address.hash160ToCash = jest
-        .fn()
-        .mockReturnValue(
-            'bitcoincash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvll3cvjwd',
-        );
     expect(
         parseChronikTx(
-            BCH,
             receivedEtokenTxNineDecimals,
             anotherMockParseTxWallet,
             txHistoryTokenInfoById,
@@ -505,18 +446,8 @@ it(`Successfully parses a received eToken tx with 9 decimal places`, () => {
     });
 });
 it(`Correctly parses a received airdrop transaction`, () => {
-    const BCH = new BCHJS({
-        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
-    });
-    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
-    BCH.Address.hash160ToCash = jest
-        .fn()
-        .mockReturnValue(
-            'bitcoincash:qp36z7k8xt7k4l5xnxeypg5mfqeyvvyduukc069ng6',
-        );
     expect(
         parseChronikTx(
-            BCH,
             mockAirdropTx,
             anotherMockParseTxWallet,
             txHistoryTokenInfoById,
@@ -539,18 +470,8 @@ it(`Correctly parses a received airdrop transaction`, () => {
 });
 
 it(`Correctly parses a sent encyrpted message transaction`, () => {
-    const BCH = new BCHJS({
-        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
-    });
-    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
-    BCH.Address.hash160ToCash = jest
-        .fn()
-        .mockReturnValue(
-            'bitcoincash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfc4l80hyqu',
-        );
     expect(
         parseChronikTx(
-            BCH,
             mockSentEncryptedTx,
             mockWalletWithPrivateKeys,
             txHistoryTokenInfoById,
@@ -560,7 +481,6 @@ it(`Correctly parses a sent encyrpted message transaction`, () => {
         xecAmount: '12',
         originatingHash160: 'ee6dc9d40f95d8e106a63385c6fa882991b9e84e',
         isEtokenTx: false,
-
         airdropFlag: false,
         airdropTokenId: '',
         opReturnMessage: 'Only the message recipient can view this',
@@ -571,18 +491,8 @@ it(`Correctly parses a sent encyrpted message transaction`, () => {
     });
 });
 it(`Correctly parses a received encrypted message transaction`, () => {
-    const BCH = new BCHJS({
-        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
-    });
-    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
-    BCH.Address.hash160ToCash = jest
-        .fn()
-        .mockReturnValue(
-            'bitcoincash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvll3cvjwd',
-        );
     expect(
         parseChronikTx(
-            BCH,
             mockReceivedEncryptedTx,
             mockWalletWithPrivateKeys,
             txHistoryTokenInfoById,
@@ -603,18 +513,8 @@ it(`Correctly parses a received encrypted message transaction`, () => {
 });
 
 it(`Correctly parses a token burn transaction`, () => {
-    const BCH = new BCHJS({
-        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
-    });
-    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
-    BCH.Address.hash160ToCash = jest
-        .fn()
-        .mockReturnValue(
-            'bitcoincash:qz2708636snqhsxu8wnlka78h6fdp77ar5ulhz04hr',
-        );
     expect(
         parseChronikTx(
-            BCH,
             mockTokenBurnTx,
             anotherMockParseTxWallet,
             txHistoryTokenInfoById,
@@ -652,18 +552,8 @@ it(`Correctly parses a token burn transaction`, () => {
     });
 });
 it(`Correctly parses a token burn transaction with decimal places`, () => {
-    const BCH = new BCHJS({
-        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
-    });
-    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
-    BCH.Address.hash160ToCash = jest
-        .fn()
-        .mockReturnValue(
-            'bitcoincash:qz2708636snqhsxu8wnlka78h6fdp77ar5ulhz04hr',
-        );
     expect(
         parseChronikTx(
-            BCH,
             mockTokenBurnWithDecimalsTx,
             anotherMockParseTxWallet,
             txHistoryTokenInfoById,
@@ -704,18 +594,8 @@ it(`Correctly parses a token burn transaction with decimal places`, () => {
     });
 });
 it(`Correctly parses received quantity for a received eToken address`, () => {
-    const BCH = new BCHJS({
-        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
-    });
-    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
-    BCH.Address.hash160ToCash = jest
-        .fn()
-        .mockReturnValue(
-            'bitcoincash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvll3cvjwd',
-        );
     expect(
         parseChronikTx(
-            BCH,
             mockReceivedEtokenTx,
             anotherMockParseTxWallet,
             txHistoryTokenInfoById,
@@ -752,22 +632,13 @@ it(`Correctly parses received quantity for a received eToken address`, () => {
         replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
     });
 });
-it(`Correctly parses an incoming eToken tx that send only XEC to the Cashtab user recipient`, () => {
-    const BCH = new BCHJS({
-        restURL: 'https://FakeBchApiUrlToEnsureMocksOnly.com',
-    });
-    // This function needs to be mocked as bch-js functions that require Buffer types do not work in jest environment
-    BCH.Address.hash160ToCash = jest
-        .fn()
-        .mockReturnValue(
-            'bitcoincash:qznaw38py34zpunz8rs9zrac9kxlsnxg95m2sf5czz',
-        );
+it(`Correctly parses an incoming eToken tx that sends only XEC to the Cashtab user recipient`, () => {
     expect(
-        parseChronikTx(BCH, mockSwapTx, mockSwapWallet, txHistoryTokenInfoById),
+        parseChronikTx(mockSwapTx, mockSwapWallet, txHistoryTokenInfoById),
     ).toStrictEqual({
         incoming: true,
         xecAmount: '10',
-        originatingHash160: '205c792fff2ffc891e986246760ee1079fa5a369',
+        originatingHash160: '80ad93eff2bd02e6383ba62476ffd729d1b2660d',
         isEtokenTx: false,
         airdropFlag: false,
         airdropTokenId: '',
@@ -775,7 +646,7 @@ it(`Correctly parses an incoming eToken tx that send only XEC to the Cashtab use
         isCashtabMessage: false,
         isEncryptedMessage: false,
         decryptionSuccess: false,
-        replyAddress: 'ecash:qznaw38py34zpunz8rs9zrac9kxlsnxg95z8yz0zy4',
+        replyAddress: 'ecash:qzq2myl0727s9e3c8wnzgahl6u5arvnxp5fs9sem4x',
     });
 });
 

@@ -225,7 +225,6 @@ const useWallet = () => {
                 txHistoryNewTokensToCache,
             } = await getTxHistoryChronik(
                 chronik,
-                BCH,
                 wallet,
                 updatedTokenInfoById,
             );
@@ -868,7 +867,6 @@ const useWallet = () => {
 
         // parse tx for notification
         const parsedChronikTx = parseChronikTx(
-            BCH,
             incomingTxDetails,
             wallet,
             tokenInfoById,

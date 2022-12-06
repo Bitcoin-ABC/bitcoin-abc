@@ -11,7 +11,6 @@ import {
 } from 'utils/cashMethods';
 import ecies from 'ecies-lite';
 import wif from 'wif';
-import cashaddr from 'ecashaddrjs';
 
 // Return false if do not get a valid response
 export const getTokenStats = async (chronik, tokenId) => {
@@ -422,7 +421,7 @@ export const returnGetTxHistoryChronikPromise = (
     });
 };
 
-export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
+export const parseChronikTx = (tx, wallet, tokenInfoById) => {
     const walletHash160s = getHashArrayFromWallet(wallet);
     const { inputs, outputs } = tx;
     // Assign defaults
@@ -488,28 +487,29 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
         So, the hash160 we want will be in between '76a914' and '88ac'
         ...most of the time ;)
         */
-        try {
-            originatingHash160 = thisInputSendingHash160.substring(
-                thisInputSendingHash160.indexOf('76a914') + '76a914'.length,
-                thisInputSendingHash160.lastIndexOf('88ac'),
-            );
 
-            let replyAddressBchFormat =
-                BCH.Address.hash160ToCash(originatingHash160);
+        // Since you may have more than one address in inputs, assume the first one is the replyAddress
+        if (i === 0) {
+            try {
+                originatingHash160 = thisInputSendingHash160.substring(
+                    thisInputSendingHash160.indexOf('76a914') + '76a914'.length,
+                    thisInputSendingHash160.lastIndexOf('88ac'),
+                );
 
-            const { type, hash } = cashaddr.decode(replyAddressBchFormat);
-            replyAddress = cashaddr.encode('ecash', type, hash);
-        } catch (err) {
-            console.log(`err from ${originatingHash160}`, err);
-            // If the transaction is nonstandard, don't worry about a reply address for now
-            originatingHash160 = 'N/A';
+                replyAddress = hash160ToAddress(originatingHash160);
+            } catch (err) {
+                console.log(`err from ${originatingHash160}`, err);
+                // If the transaction is nonstandard, don't worry about a reply address for now
+                originatingHash160 = 'N/A';
+            }
         }
+
         for (let j = 0; j < walletHash160s.length; j += 1) {
             const thisWalletHash160 = walletHash160s[j];
             if (thisInputSendingHash160.includes(thisWalletHash160)) {
                 // Then this is an outgoing tx
                 incoming = false;
-                // Break out of this for loop once you know this is an incoming tx
+                // Break out of this for loop once you know this is an outgoing tx
                 break;
             }
         }
@@ -784,12 +784,7 @@ export const parseChronikTx = (BCH, tx, wallet, tokenInfoById) => {
     };
 };
 
-export const getTxHistoryChronik = async (
-    chronik,
-    BCH,
-    wallet,
-    tokenInfoById,
-) => {
+export const getTxHistoryChronik = async (chronik, wallet, tokenInfoById) => {
     // Create array of promises to get chronik history for each address
     // Combine them all and sort by blockheight and firstSeen
     // Add all the info cashtab needs to make them useful
@@ -835,7 +830,7 @@ export const getTxHistoryChronik = async (
     for (let i = 0; i < sortedTxHistoryArray.length; i += 1) {
         const sortedTx = sortedTxHistoryArray[i];
         // Add token genesis info so parsing function can calculate amount by decimals
-        sortedTx.parsed = parseChronikTx(BCH, sortedTx, wallet, tokenInfoById);
+        sortedTx.parsed = parseChronikTx(sortedTx, wallet, tokenInfoById);
         // Check to see if this tx was a token tx with uncached tokenInfoById
         if (
             sortedTx.parsed.isEtokenTx &&
