@@ -196,7 +196,11 @@ const WalletInfo = () => {
 
                 <TabPane active={activeTab === 'txHistory'}>
                     <TxHistory
-                        txs={parsedTxHistory}
+                        txs={
+                            Array.isArray(parsedTxHistory)
+                                ? parsedTxHistory
+                                : []
+                        }
                         fiatPrice={fiatPrice}
                         fiatCurrency={
                             cashtabSettings && cashtabSettings.fiatCurrency
