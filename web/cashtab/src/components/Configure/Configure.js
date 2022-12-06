@@ -65,22 +65,6 @@ import { isMobile, isIOS, isSafari } from 'react-device-detect';
 import { currency } from 'components/Common/Ticker.js';
 const { Panel } = Collapse;
 
-const SettingsLinkCtn = styled.div`
-    color: ${props => props.theme.lightWhite};
-`;
-
-const SettingsLink = styled.a`
-    text-decoration: underline;
-    color: ${props => props.theme.eCashBlue};
-    :visited {
-        text-decoration: underline;
-        color: ${props => props.theme.eCashBlue};
-    }
-    :hover {
-        color: ${props => props.theme.eCashPurple};
-    }
-`;
-
 const SWRow = styled.div`
     border-radius: 3px;
     padding: 10px 0;
@@ -1920,19 +1904,6 @@ const Configure = () => {
                         onChange={handleUnknownSenderMsg}
                     />
                 </GeneralSettingsItem>
-                <StyledSpacer />
-                <SettingsLinkCtn>
-                    [
-                    <SettingsLink
-                        type="link"
-                        href="https://docs.cashtab.com/docs/"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        Documentation
-                    </SettingsLink>
-                    ]
-                </SettingsLinkCtn>
             </StyledConfigure>
         </SidePaddingCtn>
     );
