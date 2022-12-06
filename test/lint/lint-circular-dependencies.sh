@@ -33,6 +33,10 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "chainparams -> protocol -> config -> chainparams"
     "avalanche/peermanager -> avalanche/proofpool -> avalanche/peermanager"
     "node/coinstats -> validation -> node/coinstats"
+    # Temporary circular dependencies that allow wallet.h/wallet.cpp to be
+    # split up in a MOVEONLY commit. These are removed in #22100.
+    "wallet/receive -> wallet/wallet -> wallet/receive"
+    "wallet/spend -> wallet/wallet -> wallet/spend"
 )
 
 EXIT_CODE=0

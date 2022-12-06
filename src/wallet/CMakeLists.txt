@@ -23,11 +23,14 @@ add_library(wallet
 	fees.cpp
 	interfaces.cpp
 	load.cpp
+	receive.cpp
 	rpcdump.cpp
 	rpcwallet.cpp
 	salvage.cpp
 	scriptpubkeyman.cpp
+	spend.cpp
 	sqlite.cpp
+	transaction.cpp
 	wallet.cpp
 	walletdb.cpp
 	walletutil.cpp
