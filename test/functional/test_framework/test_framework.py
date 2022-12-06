@@ -904,11 +904,6 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         if not self.is_cli_compiled():
             raise SkipTest("bitcoin-cli has not been compiled.")
 
-    def skip_if_no_chronik(self):
-        """Skip the running test if Chronik indexer has not been compiled."""
-        if not self.is_chronik_compiled():
-            raise SkipTest("Chronik indexer has not been compiled.")
-
     def is_cli_compiled(self):
         """Checks whether bitcoin-cli was compiled."""
         return self.config["components"].getboolean("ENABLE_CLI")
@@ -920,10 +915,6 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
     def is_wallet_tool_compiled(self):
         """Checks whether bitcoin-wallet was compiled."""
         return self.config["components"].getboolean("ENABLE_WALLET_TOOL")
-
-    def is_chronik_compiled(self):
-        """Checks whether Chronik indexer was compiled."""
-        return self.config["components"].getboolean("ENABLE_CHRONIK")
 
     def is_zmq_compiled(self):
         """Checks whether the zmq module was compiled."""
