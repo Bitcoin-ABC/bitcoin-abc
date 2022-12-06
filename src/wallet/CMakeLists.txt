@@ -27,6 +27,7 @@ add_library(wallet
 	rpcdump.cpp
 	rpcwallet.cpp
 	rpc/signmessage.cpp
+	rpc/util.cpp
 	salvage.cpp
 	scriptpubkeyman.cpp
 	spend.cpp
