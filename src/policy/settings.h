@@ -15,7 +15,7 @@ class CTransaction;
 
 // Policy settings which are configurable at runtime.
 extern CFeeRate dustRelayFee;
-extern uint32_t nBytesPerSigOp;
+extern uint32_t nBytesPerSigCheck;
 extern bool fIsBareMultisigStd;
 
 static inline bool IsStandardTx(const CTransaction &tx, std::string &reason) {
@@ -23,8 +23,8 @@ static inline bool IsStandardTx(const CTransaction &tx, std::string &reason) {
 }
 
 static inline int64_t GetVirtualTransactionSize(int64_t nSize,
-                                                int64_t nSigOpCount) {
-    return GetVirtualTransactionSize(nSize, nSigOpCount, ::nBytesPerSigOp);
+                                                int64_t nSigChecks) {
+    return GetVirtualTransactionSize(nSize, nSigChecks, ::nBytesPerSigCheck);
 }
 
 #endif // BITCOIN_POLICY_SETTINGS_H

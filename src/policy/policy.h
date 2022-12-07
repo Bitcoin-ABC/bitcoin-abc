@@ -54,7 +54,7 @@ static const CFeeRate MEMPOOL_FULL_FEE_INCREMENT(1000 * SATOSHI);
 /**
  * Default for -bytespersigop .
  */
-static const unsigned int DEFAULT_BYTES_PER_SIGOP = 50;
+static const unsigned int DEFAULT_BYTES_PER_SIGCHECK = 50;
 /** Default for -permitbaremultisig */
 static const bool DEFAULT_PERMIT_BAREMULTISIG = true;
 /**
@@ -132,15 +132,15 @@ bool AreInputsStandard(const CTransaction &tx, const CCoinsViewCache &mapInputs,
                        uint32_t flags);
 
 /**
- * Compute the virtual transaction size (size, or more if sigops are too
+ * Compute the virtual transaction size (size, or more if sigChecks are too
  * dense).
  */
-int64_t GetVirtualTransactionSize(int64_t nSize, int64_t nSigOpCount,
-                                  unsigned int bytes_per_sigop);
-int64_t GetVirtualTransactionSize(const CTransaction &tx, int64_t nSigOpCount,
-                                  unsigned int bytes_per_sigop);
-int64_t GetVirtualTransactionInputSize(const CTxIn &txin, int64_t nSigOpCount,
-                                       unsigned int bytes_per_sigop);
+int64_t GetVirtualTransactionSize(int64_t nSize, int64_t nSigChecks,
+                                  unsigned int bytes_per_sigCheck);
+int64_t GetVirtualTransactionSize(const CTransaction &tx, int64_t nSigChecks,
+                                  unsigned int bytes_per_sigCheck);
+int64_t GetVirtualTransactionInputSize(const CTxIn &txin, int64_t nSigChecks,
+                                       unsigned int bytes_per_sigChecks);
 
 static inline int64_t GetVirtualTransactionSize(const CTransaction &tx) {
     return GetVirtualTransactionSize(tx, 0, 0);

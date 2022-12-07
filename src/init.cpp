@@ -1135,7 +1135,7 @@ void SetupServerArgs(NodeContext &node) {
     argsman.AddArg("-bytespersigop",
                    strprintf("Equivalent bytes per sigop in transactions for "
                              "relay and mining (default: %u)",
-                             DEFAULT_BYTES_PER_SIGOP),
+                             DEFAULT_BYTES_PER_SIGCHECK),
                    ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
     argsman.AddArg(
         "-datacarrier",
@@ -1991,7 +1991,7 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
                 "acceptnonstdtxn is not currently supported for %s chain"),
             chainparams.NetworkIDString()));
     }
-    nBytesPerSigOp = args.GetIntArg("-bytespersigop", nBytesPerSigOp);
+    nBytesPerSigCheck = args.GetIntArg("-bytespersigop", nBytesPerSigCheck);
 
     if (!g_wallet_init_interface.ParameterInteraction()) {
         return false;
