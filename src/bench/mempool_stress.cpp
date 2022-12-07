@@ -16,10 +16,10 @@ static void AddTx(const CTransactionRef &tx, CTxMemPool &pool)
     int64_t nTime = 0;
     unsigned int nHeight = 1;
     bool spendsCoinbase = false;
-    unsigned int sigOpCost = 4;
+    unsigned int sigChecks = 1;
     LockPoints lp;
     pool.addUnchecked(CTxMemPoolEntry(tx, 1000 * SATOSHI, nTime, nHeight,
-                                      spendsCoinbase, sigOpCost, lp));
+                                      spendsCoinbase, sigChecks, lp));
 }
 
 struct Available {

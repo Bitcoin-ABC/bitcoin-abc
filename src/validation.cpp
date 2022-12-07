@@ -4064,10 +4064,7 @@ static bool ContextualCheckBlock(const CBlock &block,
     // Check transactions:
     // - canonical ordering
     // - ensure they are finalized
-    // - perform a preliminary block-sigops count (they will be recounted more
-    // strictly during ConnectBlock).
-    // - perform a transaction-sigops check (again, a more strict check will
-    // happen in ConnectBlock).
+    // - check they have the minimum size
     const CTransaction *prevTx = nullptr;
     for (const auto &ptx : block.vtx) {
         const CTransaction &tx = *ptx;

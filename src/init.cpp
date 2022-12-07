@@ -1132,11 +1132,12 @@ void SetupServerArgs(NodeContext &node) {
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::NODE_RELAY);
 
-    argsman.AddArg("-bytespersigop",
-                   strprintf("Equivalent bytes per sigop in transactions for "
-                             "relay and mining (default: %u)",
-                             DEFAULT_BYTES_PER_SIGCHECK),
-                   ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
+    argsman.AddArg(
+        "-bytespersigop",
+        strprintf("Equivalent bytes per sigCheck in transactions for "
+                  "relay and mining (default: %u)",
+                  DEFAULT_BYTES_PER_SIGCHECK),
+        ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
     argsman.AddArg(
         "-datacarrier",
         strprintf("Relay and mine data carrier transactions (default: %d)",

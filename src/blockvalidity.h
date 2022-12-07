@@ -26,7 +26,7 @@ enum class BlockValidity : uint32_t {
 
     /**
      * Only first tx is coinbase, 2 <= coinbase input script length <= 100,
-     * transactions valid, no duplicate txids, sigops, size, merkle root.
+     * transactions valid, no duplicate txids, size, merkle root.
      * Implies all parents are at least TREE but not necessarily TRANSACTIONS.
      * When all parent blocks also have TRANSACTIONS, CBlockIndex::nChainTx and
      * CBlockIndex::nChainSize will be set.

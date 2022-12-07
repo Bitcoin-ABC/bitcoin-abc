@@ -726,10 +726,10 @@ static RPCHelpMan getblocktemplate() {
                                "if key is not present, fee is unknown and "
                                "clients MUST NOT assume there isn't one"},
                               {RPCResult::Type::NUM, "sigops",
-                               "total SigOps cost, as counted for purposes of "
-                               "block limits; if key is not present, sigop "
-                               "cost is unknown and clients MUST NOT assume it "
-                               "is zero"},
+                               "total sigChecks, as counted for purposes of "
+                               "block limits; if key is not present, sigChecks "
+                               "are unknown and clients MUST NOT assume it is "
+                               "zero"},
                           }},
                      }},
                     {RPCResult::Type::OBJ,
@@ -783,7 +783,7 @@ static RPCHelpMan getblocktemplate() {
                     {RPCResult::Type::STR_HEX, "noncerange",
                      "A range of valid nonces"},
                     {RPCResult::Type::NUM, "sigoplimit",
-                     "limit of sigops in blocks"},
+                     "limit of sigChecks in blocks"},
                     {RPCResult::Type::NUM, "sizelimit", "limit of block size"},
                     {RPCResult::Type::NUM_TIME, "curtime",
                      "current timestamp in " + UNIX_EPOCH_TIME},
