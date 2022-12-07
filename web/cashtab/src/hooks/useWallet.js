@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import usePrevious from 'hooks/usePrevious';
 import useInterval from './useInterval';
-import useBCH from 'hooks/useBCH';
 import BigNumber from 'bignumber.js';
 import Bitcoin from '@psf/bitcoincashjs-lib';
 import coininfo from 'utils/coininfo';
@@ -42,7 +41,9 @@ import * as bip39 from 'bip39';
 import * as randomBytes from 'randombytes';
 
 const useWallet = () => {
-    const [chronik] = useState(new ChronikClient(currency.chronikUrls[0]));
+    const [chronik, setChronik] = useState(
+        new ChronikClient(currency.chronikUrls[0]),
+    );
     const [walletRefreshInterval, setWalletRefreshInterval] = useState(
         currency.websocketDisconnectedRefreshInterval,
     );
@@ -57,10 +58,8 @@ const useWallet = () => {
     const [apiError, setApiError] = useState(false);
     const [checkFiatInterval, setCheckFiatInterval] = useState(null);
     const [hasUpdated, setHasUpdated] = useState(false);
-    const { getBCH } = useBCH();
     const [loading, setLoading] = useState(true);
-    const [apiIndex, setApiIndex] = useState(0);
-    const [BCH, setBCH] = useState(getBCH(apiIndex));
+    const [chronikIndex, setChronikIndex] = useState(0);
     const { balances, tokens } = isValidStoredWallet(wallet)
         ? wallet.state
         : {
@@ -70,38 +69,38 @@ const useWallet = () => {
     const previousBalances = usePrevious(balances);
     const previousTokens = usePrevious(tokens);
 
-    // If you catch API errors, call this function
-    const tryNextAPI = () => {
-        let currentApiIndex = apiIndex;
-        // How many APIs do you have?
-        const apiString = process.env.REACT_APP_BCHA_APIS;
+    const tryNextChronikUrl = () => {
+        console.log(`Error with chronik instance at ${chronik._url}`);
+        let currentChronikIndex = chronikIndex;
 
-        const apiArray = apiString.split(',');
+        // How many chronik URLs are available?
+        const chronikUrlCount = currency.chronikUrls.length;
 
-        console.log(`You have ${apiArray.length} APIs to choose from`);
-        console.log(`Current selection: ${apiIndex}`);
+        console.log(
+            `Cashtab has ${
+                chronikUrlCount - 1
+            } alternative chronik instances available`,
+        );
         // If only one, exit
-        if (apiArray.length === 0) {
+        if (chronikUrlCount === 1) {
             console.log(
-                `There are no backup APIs, you are stuck with this error`,
+                `There are no backup chronik servers. Please contact an admin to fix the chronik server.`,
             );
             return;
-        } else if (currentApiIndex < apiArray.length - 1) {
-            currentApiIndex += 1;
-            console.log(
-                `Incrementing API index from ${apiIndex} to ${currentApiIndex}`,
-            );
+        } else if (currentChronikIndex < chronikUrlCount - 1) {
+            // If you have another one, use the next one
+            currentChronikIndex += 1;
         } else {
-            // Otherwise use the first option again
-            console.log(`Retrying first API index`);
-            currentApiIndex = 0;
+            // If you are at the "end" of the array, use the first one
+            currentChronikIndex = 0;
         }
-        //return setApiIndex(currentApiIndex);
-        console.log(`Setting Api Index to ${currentApiIndex}`);
-        setApiIndex(currentApiIndex);
-        return setBCH(getBCH(currentApiIndex));
-        // If you have more than one, use the next one
-        // If you are at the "end" of the array, use the first one
+        setChronikIndex(currentChronikIndex);
+        console.log(
+            `Creating new chronik client with URL ${currency.chronikUrls[currentChronikIndex]}`,
+        );
+        return setChronik(
+            new ChronikClient(currency.chronikUrls[currentChronikIndex]),
+        );
     };
 
     const deriveAccount = async ({ masterHDNode, path }) => {
@@ -253,9 +252,8 @@ const useWallet = () => {
             // Set this in state so that transactions are disabled until the issue is resolved
             setApiError(true);
             //console.timeEnd("update");
-            // Try another endpoint
-            console.log(`Trying next API...`);
-            tryNextAPI();
+            // Try another chronik instance
+            tryNextChronikUrl();
         }
         //console.timeEnd("update");
     };
@@ -1400,7 +1398,6 @@ const useWallet = () => {
     }, [wallet.mnemonic, fiatPrice]);
 
     return {
-        BCH,
         chronik,
         wallet,
         fiatPrice,

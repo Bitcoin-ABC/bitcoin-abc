@@ -81,6 +81,7 @@ export const getUtxosSingleHashChronik = async (chronik, hash160) => {
         return utxos[0].utxos;
     } catch (err) {
         console.log(`Error in chronik.utxos(${hash160})`, err);
+        throw new Error(err);
     }
 };
 
