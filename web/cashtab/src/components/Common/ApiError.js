@@ -6,7 +6,7 @@ const ApiError = () => {
     return (
         <>
             <AlertMsg>
-                <b>API connection lost.</b>
+                <b>Error in chronik connection</b>
                 <br /> Re-establishing connection...
             </AlertMsg>
             <CashLoader />
