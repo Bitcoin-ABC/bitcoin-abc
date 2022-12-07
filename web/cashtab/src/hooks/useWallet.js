@@ -37,13 +37,12 @@ import {
     parseChronikTx,
 } from 'utils/chronik';
 import { ChronikClient } from 'chronik-client';
-// For XEC, eCash chain:
-const chronik = new ChronikClient(currency.chronikUrls[0]);
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
 import * as randomBytes from 'randombytes';
 
 const useWallet = () => {
+    const [chronik] = useState(new ChronikClient(currency.chronikUrls[0]));
     const [walletRefreshInterval, setWalletRefreshInterval] = useState(
         currency.websocketDisconnectedRefreshInterval,
     );
