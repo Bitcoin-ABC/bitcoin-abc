@@ -606,27 +606,6 @@ class CScript(bytes):
 
         return "CScript([{}])".format(', '.join(ops))
 
-    def GetSigOpCount(self, fAccurate):
-        """Get the SigOp count.
-
-        fAccurate - Accurately count CHECKMULTISIG, see BIP16 for details.
-
-        Note that this is consensus-critical.
-        """
-        n = 0
-        lastOpcode = OP_INVALIDOPCODE
-        for (opcode, data, sop_idx) in self.raw_iter():
-            if opcode in (OP_CHECKSIG, OP_CHECKSIGVERIFY):
-                n += 1
-            elif opcode in (OP_CHECKMULTISIG, OP_CHECKMULTISIGVERIFY):
-                if fAccurate and (OP_1 <= lastOpcode <= OP_16):
-                    n += opcode.decode_op_n()
-                else:
-                    n += 20
-            lastOpcode = opcode
-        return n
-
-
 SIGHASH_ALL = 1
 SIGHASH_NONE = 2
 SIGHASH_SINGLE = 3

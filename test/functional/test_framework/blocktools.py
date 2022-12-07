@@ -150,24 +150,6 @@ def create_raw_transaction(node, txid, to_address, *, amount):
     return signresult['hex']
 
 
-def get_legacy_sigopcount_block(block, accurate=True):
-    count = 0
-    for tx in block.vtx:
-        count += get_legacy_sigopcount_tx(tx, accurate)
-    return count
-
-
-def get_legacy_sigopcount_tx(tx, accurate=True):
-    count = 0
-    for i in tx.vout:
-        count += i.scriptPubKey.GetSigOpCount(accurate)
-    for j in tx.vin:
-        # scriptSig might be of type bytes, so convert to CScript for the
-        # moment
-        count += CScript(j.scriptSig).GetSigOpCount(accurate)
-    return count
-
-
 def create_confirmed_utxos(test_framework, node, count, age=101, **kwargs):
     """
     Helper to create at least "count" utxos
