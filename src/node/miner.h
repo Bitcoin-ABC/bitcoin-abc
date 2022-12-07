@@ -32,10 +32,10 @@ static const bool DEFAULT_PRINTPRIORITY = false;
 struct CBlockTemplateEntry {
     CTransactionRef tx;
     Amount fees;
-    int64_t sigOpCount;
+    int64_t sigChecks;
 
-    CBlockTemplateEntry(CTransactionRef _tx, Amount _fees, int64_t _sigOpCount)
-        : tx(_tx), fees(_fees), sigOpCount(_sigOpCount){};
+    CBlockTemplateEntry(CTransactionRef _tx, Amount _fees, int64_t _sigChecks)
+        : tx(_tx), fees(_fees), sigChecks(_sigChecks){};
 };
 
 struct CBlockTemplate {
@@ -145,7 +145,7 @@ private:
     // Information on the current status of the block
     uint64_t nBlockSize;
     uint64_t nBlockTx;
-    uint64_t nBlockSigOps;
+    uint64_t nBlockSigChecks;
     Amount nFees;
     CTxMemPool::setEntries inBlock;
 
@@ -200,7 +200,7 @@ private:
     /** Remove confirmed (inBlock) entries from given set */
     void onlyUnconfirmed(CTxMemPool::setEntries &testSet);
     /** Test if a new package would "fit" in the block */
-    bool TestPackage(uint64_t packageSize, int64_t packageSigOpCount) const;
+    bool TestPackage(uint64_t packageSize, int64_t packageSigChecks) const;
     /**
      * Perform checks on each transaction in a package:
      * locktime, serialized size (if necessary). These checks should always

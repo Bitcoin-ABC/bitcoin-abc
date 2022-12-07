@@ -777,7 +777,7 @@ BOOST_AUTO_TEST_CASE(TestCBlockTemplateEntry) {
     CBlockTemplateEntry txEntry(txRef, 1 * SATOSHI, 10);
     BOOST_CHECK_MESSAGE(txEntry.tx == txRef, "Transactions did not match");
     BOOST_CHECK_EQUAL(txEntry.fees, 1 * SATOSHI);
-    BOOST_CHECK_EQUAL(txEntry.sigOpCount, 10);
+    BOOST_CHECK_EQUAL(txEntry.sigChecks, 10);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

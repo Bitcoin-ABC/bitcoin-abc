@@ -110,7 +110,7 @@ void BlockAssembler::resetBlock() {
 
     // Reserve space for coinbase tx.
     nBlockSize = 1000;
-    nBlockSigOps = 100;
+    nBlockSigChecks = 100;
 
     // These counters do not include coinbase tx.
     nBlockTx = 0;
@@ -215,15 +215,16 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
 
     uint64_t nSerializeSize = GetSerializeSize(*pblock, PROTOCOL_VERSION);
 
-    LogPrintf("CreateNewBlock(): total size: %u txs: %u fees: %ld sigops %d\n",
-              nSerializeSize, nBlockTx, nFees, nBlockSigOps);
+    LogPrintf(
+        "CreateNewBlock(): total size: %u txs: %u fees: %ld sigChecks %d\n",
+        nSerializeSize, nBlockTx, nFees, nBlockSigChecks);
 
     // Fill in header.
     pblock->hashPrevBlock = pindexPrev->GetBlockHash();
     UpdateTime(pblock, chainParams, pindexPrev);
     pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, chainParams);
     pblock->nNonce = 0;
-    pblocktemplate->entries[0].sigOpCount = 0;
+    pblocktemplate->entries[0].sigChecks = 0;
 
     BlockValidationState state;
     if (!TestBlockValidity(state, chainParams, m_chainstate, *pblock,
@@ -259,13 +260,13 @@ void BlockAssembler::onlyUnconfirmed(CTxMemPool::setEntries &testSet) {
 }
 
 bool BlockAssembler::TestPackage(uint64_t packageSize,
-                                 int64_t packageSigOps) const {
+                                 int64_t packageSigChecks) const {
     auto blockSizeWithPackage = nBlockSize + packageSize;
     if (blockSizeWithPackage >= nMaxGeneratedBlockSize) {
         return false;
     }
 
-    if (nBlockSigOps + packageSigOps >= nMaxGeneratedBlockSigChecks) {
+    if (nBlockSigChecks + packageSigChecks >= nMaxGeneratedBlockSigChecks) {
         return false;
     }
 
@@ -304,7 +305,7 @@ void BlockAssembler::AddToBlock(CTxMemPool::txiter iter) {
                                          iter->GetSigChecks());
     nBlockSize += iter->GetTxSize();
     ++nBlockTx;
-    nBlockSigOps += iter->GetSigChecks();
+    nBlockSigChecks += iter->GetSigChecks();
     nFees += iter->GetFee();
     inBlock.insert(iter);
 
@@ -457,11 +458,11 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected,
 
         uint64_t packageSize = iter->GetSizeWithAncestors();
         Amount packageFees = iter->GetModFeesWithAncestors();
-        int64_t packageSigOps = iter->GetSigChecksWithAncestors();
+        int64_t packageSigChecks = iter->GetSigChecksWithAncestors();
         if (fUsingModified) {
             packageSize = modit->nSizeWithAncestors;
             packageFees = modit->nModFeesWithAncestors;
-            packageSigOps = modit->nSigChecksWithAncestors;
+            packageSigChecks = modit->nSigChecksWithAncestors;
         }
 
         if (packageFees < blockMinFeeRate.GetFee(packageSize)) {
@@ -480,8 +481,8 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected,
 
         // The following must not use virtual size since TestPackage relies on
         // having an accurate call to
-        // GetMaxBlockSigOpsCount(blockSizeWithPackage).
-        if (!TestPackage(packageSize, packageSigOps)) {
+        // GetMaxBlockSigChecks(blockSizeWithPackage).
+        if (!TestPackage(packageSize, packageSigChecks)) {
             if (fUsingModified) {
                 // Since we always look at the best entry in mapModifiedTx, we
                 // must erase failed entries so that we can consider the next

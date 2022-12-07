@@ -1002,9 +1002,9 @@ static RPCHelpMan getblocktemplate() {
                 entry.__pushKV("fee",
                                pblocktemplate->entries[index_in_template].fees /
                                    SATOSHI);
-                int64_t nTxSigOps =
-                    pblocktemplate->entries[index_in_template].sigOpCount;
-                entry.__pushKV("sigops", nTxSigOps);
+                entry.__pushKV(
+                    "sigops",
+                    pblocktemplate->entries[index_in_template].sigChecks);
 
                 transactions.push_back(entry);
                 index_in_template++;
