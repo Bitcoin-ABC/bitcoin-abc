@@ -146,7 +146,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
         for i in range(100):
             out.append(get_spendable_output())
 
-        # Generate a key pair to test P2SH sigops count
+        # Generate a key pair to test P2SH sigCheck count
         private_key = ECKey()
         private_key.generate()
         public_key = private_key.get_pubkey().get_bytes()

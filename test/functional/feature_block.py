@@ -253,8 +253,6 @@ class FullBlockTest(BitcoinTestFramework):
         # New tip should be b13.
         assert_equal(node.getbestblockhash(), b13.hash)
 
-        self.log.info("Skipped sigops tests")
-        # tests were moved to feature_block_sigops.py
         self.move_tip(13)
         b15 = self.next_block(15)
         self.save_spendable_output()
@@ -378,8 +376,6 @@ class FullBlockTest(BitcoinTestFramework):
         self.send_blocks([b30], True)
         self.save_spendable_output()
 
-        self.log.info("Skipped sigops tests")
-        # tests were moved to feature_block_sigops.py
         b31 = self.next_block(31)
         self.save_spendable_output()
         b33 = self.next_block(33)
@@ -415,8 +411,6 @@ class FullBlockTest(BitcoinTestFramework):
         self.send_blocks([b38], success=False,
                          reject_reason='bad-txns-inputs-missingorspent', reconnect=True)
 
-        self.log.info("Skipped sigops tests")
-        # tests were moved to feature_block_sigops.py
         self.move_tip(35)
         b39 = self.next_block(39)
         self.save_spendable_output()
@@ -957,10 +951,6 @@ class FullBlockTest(BitcoinTestFramework):
         self.move_tip(72)
         self.send_blocks([b72], True)
         self.save_spendable_output()
-
-        self.log.info("Skipped sigops tests")
-        # sigops tests were moved to feature_block_sigops.py,
-        # then deleted from Bitcoin ABC after the May 2020 upgrade
 
         b75 = self.next_block(75)
         self.save_spendable_output()

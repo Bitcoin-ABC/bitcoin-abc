@@ -8,7 +8,7 @@ This test checks simple acceptance of bigger blocks via p2p.
 It is derived from the much more complex p2p-fullblocktest.
 The intention is that small tests can be derived from this one, or
 this one can be extended, to cover the checks done for bigger blocks
-(e.g. sigops limits).
+(e.g. sigCheck limits).
 """
 
 import random

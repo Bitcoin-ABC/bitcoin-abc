@@ -68,11 +68,8 @@ class CTORMiningTest(BitcoinTestFramework):
             # Calculate a unique fee for this transaction
             fee = decimal.Decimal(random.randint(
                 1000, 2000)) / decimal.Decimal(1e2)
-            # Spend to the same number of outputs as inputs, so we can leave
-            # the amounts unchanged and avoid rounding errors. This also ensures
-            # the number of sigops == number of sigchecks.
-            #
-            # NOTE: There will be 1 sigop per output (which equals the number
+
+            # NOTE: There will be 1 sigCheck per output (which equals the number
             # of inputs now).  We need this randomization to ensure the
             # numbers are properly following the transactions in the block
             # template metadata
@@ -92,7 +89,7 @@ class CTORMiningTest(BitcoinTestFramework):
             rawtx = mining_node.createrawtransaction(inputs, outputs)
             signedtx = mining_node.signrawtransactionwithwallet(rawtx)
             txid = mining_node.sendrawtransaction(signedtx['hex'])
-            # number of outputs is the same as the number of sigops in this
+            # number of outputs is the same as the number of sigCheck in this
             # case
             transactions.update({txid: {'fee': fee, 'sigops': len(outputs)}})
 
@@ -105,13 +102,13 @@ class CTORMiningTest(BitcoinTestFramework):
             txid = txn['txid']
             txnMetadata = transactions[txid]
             expectedFeeSats = int(txnMetadata['fee'] * 10**2)
-            expectedSigOps = txnMetadata['sigops']
+            expectedSigChecks = txnMetadata['sigops']
 
             txid_decoded = int(txid, 16)
 
             # Assert we got the expected metadata
             assert expectedFeeSats == txn['fee']
-            assert expectedSigOps == txn['sigops']
+            assert expectedSigChecks == txn['sigops']
             # Assert transaction ids are in order
             assert last_txid == 0 or last_txid < txid_decoded
             last_txid = txid_decoded
