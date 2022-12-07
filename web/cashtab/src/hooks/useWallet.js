@@ -44,6 +44,7 @@ const useWallet = () => {
     const [chronik, setChronik] = useState(
         new ChronikClient(currency.chronikUrls[0]),
     );
+    const previousChronik = usePrevious(chronik);
     const [walletRefreshInterval, setWalletRefreshInterval] = useState(
         currency.websocketDisconnectedRefreshInterval,
     );
@@ -924,10 +925,7 @@ const useWallet = () => {
     };
 
     // Chronik websockets
-    const initializeWebsocket = async (wallet, fiatPrice) => {
-        console.log(
-            `Initializing websocket connection for wallet ${wallet.name}`,
-        );
+    const initializeWebsocket = async (chronik, wallet, fiatPrice) => {
         // Because wallet is set to `false` before it is loaded, do nothing if you find this case
         // Also return and wait for legacy migration if wallet is not migrated
         const hash160Array = getHashArrayFromWallet(wallet);
@@ -935,13 +933,27 @@ const useWallet = () => {
             return setChronikWebsocket(null);
         }
 
-        // Initialize if not in state
+        const hasChronikUrlChanged = chronik !== previousChronik;
+        if (hasChronikUrlChanged) {
+            console.log(`Chronik URL has changed to ${chronik._url}.`);
+        }
+
         let ws = chronikWebsocket;
-        if (ws === null) {
+
+        // If chronik URL has changed and ws is not null, close existing websocket
+        if (hasChronikUrlChanged && ws !== null) {
+            console.log(`Closing websocket connection at ${ws._wsUrl}`);
+            ws.close();
+        }
+
+        // Initialize websocket if not in state or if chronik URL has changed
+        if (ws === null || hasChronikUrlChanged) {
+            console.log(`Opening websocket connection at ${chronik._wsUrl}`);
             ws = chronik.ws({
                 onMessage: msg => {
                     processChronikWsMsg(msg, wallet, fiatPrice);
                 },
+                autoReconnect: true,
                 onReconnect: e => {
                     // Fired before a reconnect attempt is made:
                     console.log(
@@ -962,11 +974,14 @@ const useWallet = () => {
                 },
             });
 
+            // Need to put ws in state here so that, if the connection fails, it can be cleared for the next chronik URL
+            setChronikWebsocket(ws);
+
             // Wait for websocket to be connected:
             await ws.waitForOpen();
         } else {
             /*        
-            If the websocket connection is not null, initializeWebsocket was called
+            If the websocket connection is not null and the chronik URL has not changed, initializeWebsocket was called
             because one of the websocket's dependencies changed
 
             Update the onMessage method to get the latest dependencies (wallet, fiatPrice)
@@ -1387,15 +1402,15 @@ const useWallet = () => {
     }, []);
 
     /*
-    Run initializeWebsocket(wallet, fiatPrice) each time the wallet or fiatPrice changes
+    Run initializeWebsocket(chronik, wallet, fiatPrice) each time chronik, wallet, or fiatPrice changes
     
     Use wallet.mnemonic as the useEffect parameter here because we 
-    want to run initializeWebsocket(wallet, fiatPrice) when a new unique wallet
+    want to run initializeWebsocket(chronik, wallet, fiatPrice) when a new unique wallet
     is selected, not when the active wallet changes state
     */
     useEffect(async () => {
-        await initializeWebsocket(wallet, fiatPrice);
-    }, [wallet.mnemonic, fiatPrice]);
+        await initializeWebsocket(chronik, wallet, fiatPrice);
+    }, [chronik, wallet.mnemonic, fiatPrice]);
 
     return {
         chronik,
