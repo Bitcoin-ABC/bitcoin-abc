@@ -31,38 +31,38 @@
 // Helpers for modifying CTxMemPool::mapTx, which is a boost multi_index.
 struct update_descendant_state {
     update_descendant_state(int64_t _modifySize, Amount _modifyFee,
-                            int64_t _modifyCount, int64_t _modifySigOpCount)
+                            int64_t _modifyCount, int64_t _modifySigChecks)
         : modifySize(_modifySize), modifyFee(_modifyFee),
-          modifyCount(_modifyCount), modifySigOpCount(_modifySigOpCount) {}
+          modifyCount(_modifyCount), modifySigChecks(_modifySigChecks) {}
 
     void operator()(CTxMemPoolEntry &e) {
         e.UpdateDescendantState(modifySize, modifyFee, modifyCount,
-                                modifySigOpCount);
+                                modifySigChecks);
     }
 
 private:
     int64_t modifySize;
     Amount modifyFee;
     int64_t modifyCount;
-    int64_t modifySigOpCount;
+    int64_t modifySigChecks;
 };
 
 struct update_ancestor_state {
     update_ancestor_state(int64_t _modifySize, Amount _modifyFee,
-                          int64_t _modifyCount, int64_t _modifySigOpCount)
+                          int64_t _modifyCount, int64_t _modifySigChecks)
         : modifySize(_modifySize), modifyFee(_modifyFee),
-          modifyCount(_modifyCount), modifySigOpCount(_modifySigOpCount) {}
+          modifyCount(_modifyCount), modifySigChecks(_modifySigChecks) {}
 
     void operator()(CTxMemPoolEntry &e) {
         e.UpdateAncestorState(modifySize, modifyFee, modifyCount,
-                              modifySigOpCount);
+                              modifySigChecks);
     }
 
 private:
     int64_t modifySize;
     Amount modifyFee;
     int64_t modifyCount;
-    int64_t modifySigOpCount;
+    int64_t modifySigChecks;
 };
 
 bool TestLockPointValidity(const CChain &active_chain, const LockPoints &lp) {
@@ -85,32 +85,32 @@ bool TestLockPointValidity(const CChain &active_chain, const LockPoints &lp) {
 
 CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx, const Amount fee,
                                  int64_t time, unsigned int entry_height,
-                                 bool spends_coinbase, int64_t sigops_count,
+                                 bool spends_coinbase, int64_t _sigChecks,
                                  LockPoints lp)
     : tx{_tx}, nFee{fee},
       nTxSize(tx->GetTotalSize()), nUsageSize{RecursiveDynamicUsage(tx)},
       nTime(time), entryHeight{entry_height}, spendsCoinbase(spends_coinbase),
-      sigOpCount(sigops_count), lockPoints(lp),
-      nSizeWithDescendants{GetTxSize()}, nModFeesWithDescendants{nFee},
-      nSigOpCountWithDescendants{sigOpCount}, nSizeWithAncestors{GetTxSize()},
-      nModFeesWithAncestors{nFee}, nSigOpCountWithAncestors{sigOpCount} {}
+      sigChecks(_sigChecks), lockPoints(lp), nSizeWithDescendants{GetTxSize()},
+      nModFeesWithDescendants{nFee}, nSigChecksWithDescendants{sigChecks},
+      nSizeWithAncestors{GetTxSize()}, nModFeesWithAncestors{nFee},
+      nSigChecksWithAncestors{sigChecks} {}
 
 size_t CTxMemPoolEntry::GetTxVirtualSize() const {
-    return GetVirtualTransactionSize(nTxSize, sigOpCount);
+    return GetVirtualTransactionSize(nTxSize, sigChecks);
 }
 
 uint64_t CTxMemPoolEntry::GetVirtualSizeWithDescendants() const {
     // note this is distinct from the sum of descendants' individual virtual
     // sizes, and may be smaller.
     return GetVirtualTransactionSize(nSizeWithDescendants,
-                                     nSigOpCountWithDescendants);
+                                     nSigChecksWithDescendants);
 }
 
 uint64_t CTxMemPoolEntry::GetVirtualSizeWithAncestors() const {
     // note this is distinct from the sum of ancestors' individual virtual
     // sizes, and may be smaller.
     return GetVirtualTransactionSize(nSizeWithAncestors,
-                                     nSigOpCountWithAncestors);
+                                     nSigChecksWithAncestors);
 }
 
 void CTxMemPoolEntry::UpdateFeeDelta(Amount newFeeDelta) {
@@ -158,19 +158,19 @@ void CTxMemPool::UpdateForDescendants(txiter updateIt,
     int64_t modifySize = 0;
     int64_t modifyCount = 0;
     Amount modifyFee = Amount::zero();
-    int64_t modifySigOpCount = 0;
+    int64_t modifySigChecks = 0;
     for (const CTxMemPoolEntry &descendant : descendants) {
         if (!setExclude.count(descendant.GetTx().GetId())) {
             modifySize += descendant.GetTxSize();
             modifyFee += descendant.GetModifiedFee();
             modifyCount++;
-            modifySigOpCount += descendant.GetSigOpCount();
+            modifySigChecks += descendant.GetSigChecks();
             cachedDescendants[updateIt].insert(mapTx.iterator_to(descendant));
             // Update ancestor state for each descendant
             mapTx.modify(mapTx.iterator_to(descendant),
                          update_ancestor_state(updateIt->GetTxSize(),
                                                updateIt->GetModifiedFee(), 1,
-                                               updateIt->GetSigOpCount()));
+                                               updateIt->GetSigChecks()));
             // Don't directly remove the transaction here -- doing so would
             // invalidate iterators in cachedDescendants. Mark it for removal
             // by inserting into descendants_to_remove.
@@ -182,7 +182,7 @@ void CTxMemPool::UpdateForDescendants(txiter updateIt,
     }
     mapTx.modify(updateIt,
                  update_descendant_state(modifySize, modifyFee, modifyCount,
-                                         modifySigOpCount));
+                                         modifySigChecks));
 }
 
 void CTxMemPool::UpdateTransactionsFromBlock(
@@ -394,12 +394,12 @@ void CTxMemPool::UpdateAncestorsOf(bool add, txiter it,
     }
     const int64_t updateCount = (add ? 1 : -1);
     const int64_t updateSize = updateCount * it->GetTxSize();
-    const int64_t updateSigOpCount = updateCount * it->GetSigOpCount();
+    const int64_t updateSigChecks = updateCount * it->GetSigChecks();
     const Amount updateFee = updateCount * it->GetModifiedFee();
     for (txiter ancestorIt : setAncestors) {
         mapTx.modify(ancestorIt,
                      update_descendant_state(updateSize, updateFee, updateCount,
-                                             updateSigOpCount));
+                                             updateSigChecks));
     }
 }
 
@@ -407,16 +407,16 @@ void CTxMemPool::UpdateEntryForAncestors(txiter it,
                                          const setEntries &setAncestors) {
     int64_t updateCount = setAncestors.size();
     int64_t updateSize = 0;
-    int64_t updateSigOpsCount = 0;
+    int64_t updateSigChecks = 0;
     Amount updateFee = Amount::zero();
 
     for (txiter ancestorIt : setAncestors) {
         updateSize += ancestorIt->GetTxSize();
         updateFee += ancestorIt->GetModifiedFee();
-        updateSigOpsCount += ancestorIt->GetSigOpCount();
+        updateSigChecks += ancestorIt->GetSigChecks();
     }
     mapTx.modify(it, update_ancestor_state(updateSize, updateFee, updateCount,
-                                           updateSigOpsCount));
+                                           updateSigChecks));
 }
 
 void CTxMemPool::UpdateChildrenForRemoval(txiter it) {
@@ -444,10 +444,10 @@ void CTxMemPool::UpdateForRemoveFromMempool(const setEntries &entriesToRemove,
             setDescendants.erase(removeIt); // don't update state for self
             int64_t modifySize = -int64_t(removeIt->GetTxSize());
             Amount modifyFee = -1 * removeIt->GetModifiedFee();
-            int modifySigOps = -removeIt->GetSigOpCount();
+            int modifySigChecks = -removeIt->GetSigChecks();
             for (txiter dit : setDescendants) {
                 mapTx.modify(dit, update_ancestor_state(modifySize, modifyFee,
-                                                        -1, modifySigOps));
+                                                        -1, modifySigChecks));
             }
         }
     }
@@ -493,26 +493,26 @@ void CTxMemPool::UpdateForRemoveFromMempool(const setEntries &entriesToRemove,
 void CTxMemPoolEntry::UpdateDescendantState(int64_t modifySize,
                                             Amount modifyFee,
                                             int64_t modifyCount,
-                                            int64_t modifySigOpCount) {
+                                            int64_t modifySigChecks) {
     nSizeWithDescendants += modifySize;
     assert(int64_t(nSizeWithDescendants) > 0);
     nModFeesWithDescendants += modifyFee;
     nCountWithDescendants += modifyCount;
     assert(int64_t(nCountWithDescendants) > 0);
-    nSigOpCountWithDescendants += modifySigOpCount;
-    assert(int64_t(nSigOpCountWithDescendants) >= 0);
+    nSigChecksWithDescendants += modifySigChecks;
+    assert(int64_t(nSigChecksWithDescendants) >= 0);
 }
 
 void CTxMemPoolEntry::UpdateAncestorState(int64_t modifySize, Amount modifyFee,
                                           int64_t modifyCount,
-                                          int64_t modifySigOps) {
+                                          int64_t modifySigChecks) {
     nSizeWithAncestors += modifySize;
     assert(int64_t(nSizeWithAncestors) > 0);
     nModFeesWithAncestors += modifyFee;
     nCountWithAncestors += modifyCount;
     assert(int64_t(nCountWithAncestors) > 0);
-    nSigOpCountWithAncestors += modifySigOps;
-    assert(int(nSigOpCountWithAncestors) >= 0);
+    nSigChecksWithAncestors += modifySigChecks;
+    assert(int(nSigChecksWithAncestors) >= 0);
 }
 
 CTxMemPool::CTxMemPool(int check_ratio) : m_check_ratio(check_ratio) {
@@ -857,17 +857,17 @@ void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
         uint64_t nCountCheck = setAncestors.size() + 1;
         uint64_t nSizeCheck = it->GetTxSize();
         Amount nFeesCheck = it->GetModifiedFee();
-        int64_t nSigOpCheck = it->GetSigOpCount();
+        int64_t nSigChecksCheck = it->GetSigChecks();
 
         for (txiter ancestorIt : setAncestors) {
             nSizeCheck += ancestorIt->GetTxSize();
             nFeesCheck += ancestorIt->GetModifiedFee();
-            nSigOpCheck += ancestorIt->GetSigOpCount();
+            nSigChecksCheck += ancestorIt->GetSigChecks();
         }
 
         assert(it->GetCountWithAncestors() == nCountCheck);
         assert(it->GetSizeWithAncestors() == nSizeCheck);
-        assert(it->GetSigOpCountWithAncestors() == nSigOpCheck);
+        assert(it->GetSigChecksWithAncestors() == nSigChecksCheck);
         assert(it->GetModFeesWithAncestors() == nFeesCheck);
         // Sanity check: we are walking in ascending ancestor count order.
         assert(prev_ancestor_count <= it->GetCountWithAncestors());
@@ -877,7 +877,7 @@ void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
         CTxMemPoolEntry::Children setChildrenCheck;
         auto iter = mapNextTx.lower_bound(COutPoint(it->GetTx().GetId(), 0));
         uint64_t child_sizes = 0;
-        int64_t child_sigop_counts = 0;
+        int64_t child_sigChecks = 0;
         for (; iter != mapNextTx.end() &&
                iter->first->GetTxId() == it->GetTx().GetId();
              ++iter) {
@@ -886,7 +886,7 @@ void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
             assert(childit != mapTx.end());
             if (setChildrenCheck.insert(*childit).second) {
                 child_sizes += childit->GetTxSize();
-                child_sigop_counts += childit->GetSigOpCount();
+                child_sigChecks += childit->GetSigChecks();
             }
         }
         assert(setChildrenCheck.size() == it->GetMemPoolChildrenConst().size());
@@ -896,8 +896,8 @@ void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
         // children. Just a sanity check, not definitive that this calc is
         // correct...
         assert(it->GetSizeWithDescendants() >= child_sizes + it->GetTxSize());
-        assert(it->GetSigOpCountWithDescendants() >=
-               child_sigop_counts + it->GetSigOpCount());
+        assert(it->GetSigChecksWithDescendants() >=
+               child_sigChecks + it->GetSigChecks());
 
         // Not used. CheckTxInputs() should always pass
         TxValidationState dummy_state;

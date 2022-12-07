@@ -50,7 +50,7 @@ int64_t UpdateTime(CBlockHeader *pblock, const CChainParams &chainParams,
 
 uint64_t CTxMemPoolModifiedEntry::GetVirtualSizeWithAncestors() const {
     return GetVirtualTransactionSize(nSizeWithAncestors,
-                                     nSigOpCountWithAncestors);
+                                     nSigChecksWithAncestors);
 }
 
 BlockAssembler::Options::Options()
@@ -301,10 +301,10 @@ bool BlockAssembler::TestPackageTransactions(
 
 void BlockAssembler::AddToBlock(CTxMemPool::txiter iter) {
     pblocktemplate->entries.emplace_back(iter->GetSharedTx(), iter->GetFee(),
-                                         iter->GetSigOpCount());
+                                         iter->GetSigChecks());
     nBlockSize += iter->GetTxSize();
     ++nBlockTx;
-    nBlockSigOps += iter->GetSigOpCount();
+    nBlockSigOps += iter->GetSigChecks();
     nFees += iter->GetFee();
     inBlock.insert(iter);
 
@@ -337,7 +337,7 @@ int BlockAssembler::UpdatePackagesForAdded(
                 CTxMemPoolModifiedEntry modEntry(desc);
                 modEntry.nSizeWithAncestors -= it->GetTxSize();
                 modEntry.nModFeesWithAncestors -= it->GetModifiedFee();
-                modEntry.nSigOpCountWithAncestors -= it->GetSigOpCount();
+                modEntry.nSigChecksWithAncestors -= it->GetSigChecks();
                 mapModifiedTx.insert(modEntry);
             } else {
                 mapModifiedTx.modify(mit, update_for_parent_inclusion(it));
@@ -355,7 +355,7 @@ int BlockAssembler::UpdatePackagesForAdded(
 // and it fails: we can then potentially consider it again while walking mapTx.
 // It's currently guaranteed to fail again, but as a belt-and-suspenders check
 // we put it in failedTx and avoid re-evaluation, since the re-evaluation would
-// be using cached size/sigops/fee values that are not actually correct.
+// be using cached size/sigChecks/fee values that are not actually correct.
 bool BlockAssembler::SkipMapTxEntry(
     CTxMemPool::txiter it, indexed_modified_transaction_set &mapModifiedTx,
     CTxMemPool::setEntries &failedTx) {
@@ -457,11 +457,11 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected,
 
         uint64_t packageSize = iter->GetSizeWithAncestors();
         Amount packageFees = iter->GetModFeesWithAncestors();
-        int64_t packageSigOps = iter->GetSigOpCountWithAncestors();
+        int64_t packageSigOps = iter->GetSigChecksWithAncestors();
         if (fUsingModified) {
             packageSize = modit->nSizeWithAncestors;
             packageFees = modit->nModFeesWithAncestors;
-            packageSigOps = modit->nSigOpCountWithAncestors;
+            packageSigOps = modit->nSigChecksWithAncestors;
         }
 
         if (packageFees < blockMinFeeRate.GetFee(packageSize)) {

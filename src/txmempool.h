@@ -108,13 +108,8 @@ private:
     const unsigned int entryHeight;
     //! keep track of transactions that spend a coinbase
     const bool spendsCoinbase;
-    /**
-     * Total sigop plus P2SH sigops count.
-     * After the sigchecks activation we repurpose the 'sigops' tracking in
-     * mempool/mining to actually track sigchecks instead. (Proper SigOps will
-     * not need to be counted any more since it's getting deactivated.)
-     */
-    const int64_t sigOpCount;
+    //! Total sigChecks
+    const int64_t sigChecks;
     //! Used for determining the priority of the transaction for mining in a
     //! block
     Amount feeDelta{Amount::zero()};
@@ -130,19 +125,19 @@ private:
     uint64_t nSizeWithDescendants;
     //! ... and total fees (all including us)
     Amount nModFeesWithDescendants;
-    //! ... and sigop count
-    int64_t nSigOpCountWithDescendants;
+    //! ... and sichecks
+    int64_t nSigChecksWithDescendants;
 
     // Analogous statistics for ancestor transactions
     uint64_t nCountWithAncestors{1};
     uint64_t nSizeWithAncestors;
     Amount nModFeesWithAncestors;
-    int64_t nSigOpCountWithAncestors;
+    int64_t nSigChecksWithAncestors;
 
 public:
     CTxMemPoolEntry(const CTransactionRef &_tx, const Amount fee, int64_t time,
                     unsigned int entry_height, bool spends_coinbase,
-                    int64_t sigops_count, LockPoints lp);
+                    int64_t sigchecks, LockPoints lp);
 
     const CTransaction &GetTx() const { return *this->tx; }
     CTransactionRef GetSharedTx() const { return this->tx; }
@@ -152,17 +147,17 @@ public:
 
     std::chrono::seconds GetTime() const { return std::chrono::seconds{nTime}; }
     unsigned int GetHeight() const { return entryHeight; }
-    int64_t GetSigOpCount() const { return sigOpCount; }
+    int64_t GetSigChecks() const { return sigChecks; }
     Amount GetModifiedFee() const { return nFee + feeDelta; }
     size_t DynamicMemoryUsage() const { return nUsageSize; }
     const LockPoints &GetLockPoints() const { return lockPoints; }
 
     // Adjusts the descendant state.
     void UpdateDescendantState(int64_t modifySize, Amount modifyFee,
-                               int64_t modifyCount, int64_t modifySigOpCount);
+                               int64_t modifyCount, int64_t modifySigChecks);
     // Adjusts the ancestor state
     void UpdateAncestorState(int64_t modifySize, Amount modifyFee,
-                             int64_t modifyCount, int64_t modifySigOps);
+                             int64_t modifyCount, int64_t modifySigChecks);
     // Updates the fee delta used for mining priority score, and the
     // modified fees with descendants.
     void UpdateFeeDelta(Amount feeDelta);
@@ -173,8 +168,8 @@ public:
     uint64_t GetSizeWithDescendants() const { return nSizeWithDescendants; }
     uint64_t GetVirtualSizeWithDescendants() const;
     Amount GetModFeesWithDescendants() const { return nModFeesWithDescendants; }
-    int64_t GetSigOpCountWithDescendants() const {
-        return nSigOpCountWithDescendants;
+    int64_t GetSigChecksWithDescendants() const {
+        return nSigChecksWithDescendants;
     }
 
     bool GetSpendsCoinbase() const { return spendsCoinbase; }
@@ -183,8 +178,8 @@ public:
     uint64_t GetSizeWithAncestors() const { return nSizeWithAncestors; }
     uint64_t GetVirtualSizeWithAncestors() const;
     Amount GetModFeesWithAncestors() const { return nModFeesWithAncestors; }
-    int64_t GetSigOpCountWithAncestors() const {
-        return nSigOpCountWithAncestors;
+    int64_t GetSigChecksWithAncestors() const {
+        return nSigChecksWithAncestors;
     }
 
     const Parents &GetMemPoolParentsConst() const { return m_parents; }

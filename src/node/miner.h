@@ -51,7 +51,7 @@ struct CTxMemPoolModifiedEntry {
         iter = entry;
         nSizeWithAncestors = entry->GetSizeWithAncestors();
         nModFeesWithAncestors = entry->GetModFeesWithAncestors();
-        nSigOpCountWithAncestors = entry->GetSigOpCountWithAncestors();
+        nSigChecksWithAncestors = entry->GetSigChecksWithAncestors();
     }
 
     Amount GetModifiedFee() const { return iter->GetModifiedFee(); }
@@ -65,7 +65,7 @@ struct CTxMemPoolModifiedEntry {
     CTxMemPool::txiter iter;
     uint64_t nSizeWithAncestors;
     Amount nModFeesWithAncestors;
-    int64_t nSigOpCountWithAncestors;
+    int64_t nSigChecksWithAncestors;
 };
 
 /**
@@ -125,7 +125,7 @@ struct update_for_parent_inclusion {
     void operator()(CTxMemPoolModifiedEntry &e) {
         e.nModFeesWithAncestors -= iter->GetFee();
         e.nSizeWithAncestors -= iter->GetTxSize();
-        e.nSigOpCountWithAncestors -= iter->GetSigOpCount();
+        e.nSigChecksWithAncestors -= iter->GetSigChecks();
     }
 
     CTxMemPool::txiter iter;

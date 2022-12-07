@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
         parentOfAll.vout.emplace_back(10 * SATOSHI, CScript() << OP_TRUE);
     }
     TxId parentOfAllId = parentOfAll.GetId();
-    testPool.addUnchecked(entry.SigOpCount(0).FromTx(parentOfAll));
+    testPool.addUnchecked(entry.SigChecks(0).FromTx(parentOfAll));
 
     // Add some outpoints to the tracking vector
     for (size_t i = 0; i < maxOutputs; i++) {
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
     Amount totalFee = Amount::zero();
     size_t totalSize = CTransaction(parentOfAll).GetTotalSize();
     size_t totalVirtualSize = totalSize;
-    int64_t totalSigOpCount = 0;
+    int64_t totalSigChecks = 0;
 
     // Generate 100 transactions
     for (size_t totalTransactions = 0; totalTransactions < 100;
@@ -60,8 +60,8 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
         uint64_t maxSize = 0;
         uint64_t minVirtualSize = std::numeric_limits<size_t>::max();
         uint64_t maxVirtualSize = 0;
-        int64_t minSigOpCount = std::numeric_limits<int64_t>::max();
-        int64_t maxSigOpCount = 0;
+        int64_t minSigChecks = std::numeric_limits<int64_t>::max();
+        int64_t maxSigChecks = 0;
         // Consume random inputs, but make sure we don't consume more than
         // available
         for (size_t input = std::min(InsecureRandRange(maxOutputs) + 1,
@@ -89,9 +89,9 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
             minVirtualSize =
                 std::min(minSize, parent.GetVirtualSizeWithAncestors());
             maxVirtualSize += parent.GetVirtualSizeWithAncestors();
-            minSigOpCount =
-                std::min(minSigOpCount, parent.GetSigOpCountWithAncestors());
-            maxSigOpCount += parent.GetSigOpCountWithAncestors();
+            minSigChecks =
+                std::min(minSigChecks, parent.GetSigChecksWithAncestors());
+            maxSigChecks += parent.GetSigChecksWithAncestors();
         }
 
         // Produce random number of outputs
@@ -108,10 +108,10 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
         }
 
         Amount randFee = int64_t(InsecureRandRange(300)) * SATOSHI;
-        int randSigOpCount = InsecureRandRange(5);
+        int randSigChecks = InsecureRandRange(5);
 
         testPool.addUnchecked(
-            entry.Fee(randFee).SigOpCount(randSigOpCount).FromTx(tx));
+            entry.Fee(randFee).SigChecks(randSigChecks).FromTx(tx));
 
         // Add this transaction to the totals.
         minAncestors += 1;
@@ -126,28 +126,28 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
         // following:
         minVirtualSize += 0;
         maxVirtualSize += GetVirtualTransactionSize(
-            CTransaction(tx).GetTotalSize(), randSigOpCount);
-        minSigOpCount += randSigOpCount;
-        maxSigOpCount += randSigOpCount;
+            CTransaction(tx).GetTotalSize(), randSigChecks);
+        minSigChecks += randSigChecks;
+        maxSigChecks += randSigChecks;
 
         // Calculate overall values
         totalFee += randFee;
         totalSize += CTransaction(tx).GetTotalSize();
         totalVirtualSize += GetVirtualTransactionSize(
-            CTransaction(tx).GetTotalSize(), randSigOpCount);
-        totalSigOpCount += randSigOpCount;
+            CTransaction(tx).GetTotalSize(), randSigChecks);
+        totalSigChecks += randSigChecks;
         CTxMemPoolEntry parentEntry = *testPool.mapTx.find(parentOfAllId);
         CTxMemPoolEntry latestEntry = *testPool.mapTx.find(curId);
 
-        // Based on size/sigops ranges we can compute more strict bounds for the
-        // virtual size ranges/totals, assuming virtualsize is monotonic in each
-        // argument.
+        // Based on size/sigChecks ranges we can compute more strict bounds for
+        // the virtual size ranges/totals, assuming virtualsize is monotonic in
+        // each argument.
         uint64_t minVirtualSize_strict =
-            GetVirtualTransactionSize(minSize, minSigOpCount);
+            GetVirtualTransactionSize(minSize, minSigChecks);
         uint64_t maxVirtualSize_strict =
-            GetVirtualTransactionSize(maxSize, maxSigOpCount);
+            GetVirtualTransactionSize(maxSize, maxSigChecks);
         uint64_t totalVirtualSize_strict =
-            GetVirtualTransactionSize(totalSize, totalSigOpCount);
+            GetVirtualTransactionSize(totalSize, totalSigChecks);
         // these are as-good or better than the earlier estimations.
         BOOST_CHECK(minVirtualSize_strict >= minVirtualSize);
         BOOST_CHECK(maxVirtualSize_strict <= maxVirtualSize);
@@ -165,8 +165,8 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
         BOOST_CHECK(latestEntry.GetVirtualSizeWithAncestors() <=
                     maxVirtualSize_strict);
 
-        BOOST_CHECK(latestEntry.GetSigOpCountWithAncestors() >= minSigOpCount);
-        BOOST_CHECK(latestEntry.GetSigOpCountWithAncestors() <= maxSigOpCount);
+        BOOST_CHECK(latestEntry.GetSigChecksWithAncestors() >= minSigChecks);
+        BOOST_CHECK(latestEntry.GetSigChecksWithAncestors() <= maxSigChecks);
 
         BOOST_CHECK(latestEntry.GetModFeesWithAncestors() >= minFees);
         BOOST_CHECK(latestEntry.GetModFeesWithAncestors() <= maxFees);
@@ -177,8 +177,8 @@ BOOST_AUTO_TEST_CASE(TestPackageAccounting) {
         BOOST_CHECK_EQUAL(parentEntry.GetVirtualSizeWithDescendants(),
                           totalVirtualSize_strict);
         BOOST_CHECK_EQUAL(parentEntry.GetModFeesWithDescendants(), totalFee);
-        BOOST_CHECK_EQUAL(parentEntry.GetSigOpCountWithDescendants(),
-                          totalSigOpCount);
+        BOOST_CHECK_EQUAL(parentEntry.GetSigChecksWithDescendants(),
+                          totalSigChecks);
     }
 }
 
@@ -328,11 +328,11 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
     TestMemPoolEntryHelper entry;
 
     /**
-     * Remove the default nonzero sigops, since the below tests are focussing on
-     * fee-based ordering and involve some artificially very tiny 21-byte
-     * transactions without any inputs.
+     * Remove the default nonzero sigChecks, since the below tests are
+     * focussing on fee-based ordering and involve some artificially very tiny
+     * 21-byte transactions without any inputs.
      */
-    entry.SigOpCount(0);
+    entry.SigChecks(0);
 
     /* 3rd highest fee */
     CMutableTransaction tx1 = CMutableTransaction();
@@ -522,11 +522,11 @@ BOOST_AUTO_TEST_CASE(MempoolAncestorIndexingTest) {
     TestMemPoolEntryHelper entry;
 
     /**
-     * Remove the default nonzero sigops, since the below tests are focussing on
-     * fee-based ordering and involve some artificially very tiny 21-byte
+     * Remove the default nonzero sigChecks, since the below tests are focussing
+     * on fee-based ordering and involve some artificially very tiny 21-byte
      * transactions without any inputs.
      */
-    entry.SigOpCount(0);
+    entry.SigChecks(0);
 
     /* 3rd highest fee */
     CMutableTransaction tx1 = CMutableTransaction();
