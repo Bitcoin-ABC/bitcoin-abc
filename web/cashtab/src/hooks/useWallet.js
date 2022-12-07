@@ -38,7 +38,7 @@ import {
 } from 'utils/chronik';
 import { ChronikClient } from 'chronik-client';
 // For XEC, eCash chain:
-const chronik = new ChronikClient(currency.chronikUrl);
+const chronik = new ChronikClient(currency.chronikUrls[0]);
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
 import * as randomBytes from 'randombytes';
