@@ -14,7 +14,9 @@ crate-type = ["staticlib"]
 [dependencies]
 abc-rust-lint = { path = "../abc-rust-lint" }
 abc-rust-error = { path = "../abc-rust-error" }
+
 chronik-bridge = { path = "../chronik-bridge" }
+chronik-http = { path = "../chronik-http" }
 chronik-util = { path = "../chronik-util" }
 
 # Bridge to C++
@@ -22,6 +24,9 @@ cxx = "1.0"
 
 # Derive error enums
 thiserror = "1.0"
+
+# Async runtime
+tokio = { version = "1.21", features = ["sync", "rt", "rt-multi-thread"] }
 
 [build-dependencies]
 # Build scripts for the cxx crate

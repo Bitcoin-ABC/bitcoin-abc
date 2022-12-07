@@ -58,5 +58,9 @@ mod ffi_inner {
         /// Calls `InitError` from `node/ui_interface.h` to report an error to
         /// the user and then gracefully shut down the node.
         fn init_error(msg: &str) -> bool;
+
+        /// Calls `AbortNode` from shutdown.h to gracefully shut down the node
+        /// when an unrecoverable error occured.
+        fn abort_node(msg: &str, user_msg: &str);
     }
 }

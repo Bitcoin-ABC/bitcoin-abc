@@ -8,6 +8,7 @@
 #include <logging.h>
 #include <node/context.h>
 #include <node/ui_interface.h>
+#include <shutdown.h>
 #include <validation.h>
 
 std::array<uint8_t, 32> HashToArray(const uint256 &hash) {
@@ -53,6 +54,10 @@ std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node) {
 
 bool init_error(const rust::Str msg) {
     return InitError(Untranslated(std::string(msg)));
+}
+
+void abort_node(const rust::Str msg, const rust::Str user_msg) {
+    AbortNode(std::string(msg), Untranslated(std::string(user_msg)));
 }
 
 } // namespace chronik_bridge

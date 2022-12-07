@@ -42,6 +42,8 @@ std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node);
 
 bool init_error(const rust::Str msg);
 
+void abort_node(const rust::Str msg, const rust::Str user_msg);
+
 } // namespace chronik_bridge
 
 #endif // BITCOIN_CHRONIK_CPP_CHRONIK_BRIDGE_H

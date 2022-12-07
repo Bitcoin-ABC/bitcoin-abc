@@ -124,6 +124,12 @@ target_link_libraries(chronik
     chronik-lib-static
 )
 
+# mio crate (dependency of tokio) requires stuff from winternl.h, found in ntdll
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    find_package(NTDLL REQUIRED)
+    target_link_libraries(chronik NTDLL::ntdll)
+endif()
+
 # Add chronik to server
 target_link_libraries(server
     chronik

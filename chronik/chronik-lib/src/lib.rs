@@ -16,5 +16,6 @@
 
 abc_rust_lint::lint! {
     pub mod bridge;
+    mod error;
     pub mod ffi;
 }

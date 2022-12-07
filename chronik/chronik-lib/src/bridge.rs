@@ -8,10 +8,14 @@ use std::net::{AddrParseError, IpAddr, SocketAddr};
 
 use abc_rust_error::Result;
 use chronik_bridge::ffi::init_error;
+use chronik_http::server::{ChronikServer, ChronikServerParams};
 use chronik_util::{log, log_chronik};
 use thiserror::Error;
 
-use crate::ffi::{self, StartChronikValidationInterface};
+use crate::{
+    error::ok_or_abort_node,
+    ffi::{self, StartChronikValidationInterface},
+};
 
 /// Errors for [`Chronik`] and [`setup_chronik`].
 #[derive(Debug, Eq, Error, PartialEq)]
@@ -35,13 +39,25 @@ pub fn setup_chronik(params: ffi::SetupParams) -> bool {
 }
 
 fn try_setup_chronik(params: ffi::SetupParams) -> Result<()> {
-    let addrs = params
+    abc_rust_error::install();
+    let hosts = params
         .hosts
         .into_iter()
         .map(|host| parse_socket_addr(host, params.default_port))
         .collect::<Result<Vec<_>>>()?;
-    log!("Starting Chronik bound to {:?}\n", addrs);
-    StartChronikValidationInterface(Box::new(Chronik));
+    log!("Starting Chronik bound to {:?}\n", hosts);
+    let runtime = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()?;
+    let server = runtime.block_on(async move {
+        // try_bind requires a Runtime
+        ChronikServer::setup(ChronikServerParams { hosts })
+    })?;
+    runtime.spawn(async move {
+        ok_or_abort_node("ChronikServer::serve", server.serve().await);
+    });
+    let chronik = Box::new(Chronik { _runtime: runtime });
+    StartChronikValidationInterface(chronik);
     Ok(())
 }
 
@@ -59,7 +75,11 @@ fn parse_socket_addr(host: String, default_port: u16) -> Result<SocketAddr> {
 /// This makes it so when this struct is dropped, all handles are relased
 /// cleanly.
 #[derive(Debug)]
-pub struct Chronik;
+pub struct Chronik {
+    // Having this here ensures HTTP server, outstanding requests etc. will get
+    // stopped when `Chronik` is dropped.
+    _runtime: tokio::runtime::Runtime,
+}
 
 impl Chronik {
     /// Tx added to the bitcoind mempool
