@@ -92,6 +92,15 @@ NON_SCRIPTS = [
     "test_runner.py",
 ]
 
+EXTRA_PRIVILEGES_TESTS = [
+    # These tests can only run with extra privileges.
+    # They need to be excluded from the timing file because they are not
+    # designed to run in the same context as the other tests.
+    "interface_usdt_net.py",
+    "interface_usdt_utxocache.py",
+    "interface_usdt_validation.py",
+]
+
 TEST_PARAMS = {
     # Some test can be run with additional parameters.
     # When a test is listed here, then it will be run without parameter as well
@@ -328,7 +337,7 @@ def main():
     if (src_dir != build_dir):
         build_timings = Timings(os.path.join(build_dir, 'timing.json'))
 
-    # Always use timings from scr_dir if present
+    # Always use timings from src_dir if present
     src_timings = Timings(os.path.join(
         src_dir, "test", "functional", 'timing.json'))
 
@@ -896,9 +905,10 @@ class Timings:
 
     def save_timings(self, test_results):
         # we only save test that have passed - timings for failed test might be
-        # wrong (timeouts or early fails)
+        # wrong (timeouts or early fails), and we exclude the tests that require
+        # extra privileges.
         passed_results = [
-            test for test in test_results if test.status == 'Passed']
+            test for test in test_results if test.status == 'Passed' and test.name not in EXTRA_PRIVILEGES_TESTS]
         new_timings = list(map(lambda test: {'name': test.name, 'time': TimeResolution.seconds(test.time)},
                                passed_results))
         merged_timings = self.get_merged_timings(new_timings)
