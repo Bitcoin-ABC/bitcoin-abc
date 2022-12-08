@@ -16,7 +16,7 @@ import ecies from 'ecies-lite';
 import TransactionBuilder from 'utils/txBuilder';
 
 export default function useBCH() {
-    const SEND_BCH_ERRORS = {
+    const SEND_XEC_ERRORS = {
         INSUFFICIENT_FUNDS: 0,
         NETWORK_ERROR: 1,
         INSUFFICIENT_PRIORITY: 66, // ~insufficient fee
@@ -93,16 +93,16 @@ export default function useBCH() {
             return `${currency.blockExplorerUrl}/tx/${broadcastResponse.txid}`;
         } catch (err) {
             if (err.error === 'insufficient priority (code 66)') {
-                err.code = SEND_BCH_ERRORS.INSUFFICIENT_PRIORITY;
+                err.code = SEND_XEC_ERRORS.INSUFFICIENT_PRIORITY;
             } else if (err.error === 'txn-mempool-conflict (code 18)') {
-                err.code = SEND_BCH_ERRORS.DOUBLE_SPENDING;
+                err.code = SEND_XEC_ERRORS.DOUBLE_SPENDING;
             } else if (err.error === 'Network Error') {
-                err.code = SEND_BCH_ERRORS.NETWORK_ERROR;
+                err.code = SEND_XEC_ERRORS.NETWORK_ERROR;
             } else if (
                 err.error ===
                 'too-long-mempool-chain, too many unconfirmed ancestors [limit: 25] (code 64)'
             ) {
-                err.code = SEND_BCH_ERRORS.MAX_UNCONFIRMED_TXS;
+                err.code = SEND_XEC_ERRORS.MAX_UNCONFIRMED_TXS;
             }
             console.log(`error: `, err);
             throw err;
@@ -473,16 +473,16 @@ export default function useBCH() {
             return `${currency.blockExplorerUrl}/tx/${broadcastResponse.txid}`;
         } catch (err) {
             if (err.error === 'insufficient priority (code 66)') {
-                err.code = SEND_BCH_ERRORS.INSUFFICIENT_PRIORITY;
+                err.code = SEND_XEC_ERRORS.INSUFFICIENT_PRIORITY;
             } else if (err.error === 'txn-mempool-conflict (code 18)') {
-                err.code = SEND_BCH_ERRORS.DOUBLE_SPENDING;
+                err.code = SEND_XEC_ERRORS.DOUBLE_SPENDING;
             } else if (err.error === 'Network Error') {
-                err.code = SEND_BCH_ERRORS.NETWORK_ERROR;
+                err.code = SEND_XEC_ERRORS.NETWORK_ERROR;
             } else if (
                 err.error ===
                 'too-long-mempool-chain, too many unconfirmed ancestors [limit: 25] (code 64)'
             ) {
-                err.code = SEND_BCH_ERRORS.MAX_UNCONFIRMED_TXS;
+                err.code = SEND_XEC_ERRORS.MAX_UNCONFIRMED_TXS;
             }
             console.log(`error: `, err);
             throw err;
