@@ -25,7 +25,6 @@ unsigned-integer-overflow:script/interpreter.cpp
 unsigned-integer-overflow:stl_bvector.h
 unsigned-integer-overflow:txmempool.cpp
 unsigned-integer-overflow:util/strencodings.cpp
-unsigned-integer-overflow:validation.cpp
 # False positive vptr due to boost::unit_test::decorator::timeout
 vptr:avalanche/test/processor_tests.cpp
 vptr:avalanche/test/peermanager_tests.cpp
