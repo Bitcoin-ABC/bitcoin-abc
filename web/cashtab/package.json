@@ -56,7 +56,6 @@
         "lodash.isequal": "^4.5.0",
         "long": "^5.2.0",
         "mini-css-extract-plugin": "^2.4.5",
-        "minimal-slp-wallet": "^3.7.1",
         "postcss": "^8.4.4",
         "postcss-flexbugs-fixes": "^5.0.2",
         "postcss-loader": "^6.2.1",
@@ -189,6 +188,7 @@
         ]
     },
     "devDependencies": {
+        "@psf/bch-js": "^6.5.3",
         "husky": "^8.0.1",
         "jest-when": "^3.5.1"
     }

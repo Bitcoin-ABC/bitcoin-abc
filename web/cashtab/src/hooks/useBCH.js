@@ -1,5 +1,4 @@
 import { currency } from 'components/Common/Ticker';
-import SlpWallet from 'minimal-slp-wallet';
 import {
     fromXecToSatoshis,
     isValidStoredWallet,
@@ -496,17 +495,7 @@ export default function useBCH() {
         }
     };
 
-    const getBCH = (apiIndex = 0) => {
-        let ConstructedSlpWallet;
-
-        ConstructedSlpWallet = new SlpWallet('', {
-            restURL: getRestUrl(apiIndex),
-        });
-        return ConstructedSlpWallet.bchjs;
-    };
-
     return {
-        getBCH,
         getRestUrl,
         sendXec,
         sendToken,
