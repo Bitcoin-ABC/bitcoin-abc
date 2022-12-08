@@ -10,3 +10,5 @@ This release includes the following features and fixes:
    for fork monitoring and research purposes.
  - Add a new wallet RPC `restorewallet` to restore a wallet from a backup file
    created with the `backupwallet` RPC.
+ - The `bytespersigop` option has been deprecated and the more accurate
+   `-bytespersigcheck` should be used instead.

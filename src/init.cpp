@@ -1133,9 +1133,17 @@ void SetupServerArgs(NodeContext &node) {
         OptionsCategory::NODE_RELAY);
 
     argsman.AddArg(
+        "-bytespersigcheck",
+        strprintf("Equivalent bytes per sigCheck in transactions for relay and "
+                  "mining (default: %u).",
+                  DEFAULT_BYTES_PER_SIGCHECK),
+        ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
+    argsman.AddArg(
         "-bytespersigop",
-        strprintf("Equivalent bytes per sigCheck in transactions for "
-                  "relay and mining (default: %u)",
+        strprintf("DEPRECATED: Equivalent bytes per sigCheck in transactions "
+                  "for relay and mining (default: %u). This has been "
+                  "deprecated since v0.26.8 and will be removed in the future, "
+                  "please use -bytespersigcheck instead.",
                   DEFAULT_BYTES_PER_SIGCHECK),
         ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
     argsman.AddArg(
@@ -1992,7 +2000,10 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
                 "acceptnonstdtxn is not currently supported for %s chain"),
             chainparams.NetworkIDString()));
     }
-    nBytesPerSigCheck = args.GetIntArg("-bytespersigop", nBytesPerSigCheck);
+    nBytesPerSigCheck =
+        args.IsArgSet("-bytespersigcheck")
+            ? args.GetIntArg("-bytespersigcheck", nBytesPerSigCheck)
+            : args.GetIntArg("-bytespersigop", nBytesPerSigCheck);
 
     if (!g_wallet_init_interface.ParameterInteraction()) {
         return false;

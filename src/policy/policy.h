@@ -52,7 +52,7 @@ static const unsigned int DEFAULT_MAX_MEMPOOL_SIZE = 300;
  */
 static const CFeeRate MEMPOOL_FULL_FEE_INCREMENT(1000 * SATOSHI);
 /**
- * Default for -bytespersigop .
+ * Default for -bytespersigcheck .
  */
 static const unsigned int DEFAULT_BYTES_PER_SIGCHECK = 50;
 /** Default for -permitbaremultisig */
