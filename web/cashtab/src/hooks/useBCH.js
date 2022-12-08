@@ -24,12 +24,6 @@ export default function useBCH() {
         MAX_UNCONFIRMED_TXS: 64,
     };
 
-    const getRestUrl = (apiIndex = 0) => {
-        const apiString = process.env.REACT_APP_BCHA_APIS;
-        const apiArray = apiString.split(',');
-        return apiArray[apiIndex];
-    };
-
     const createToken = async (
         chronik,
         wallet,
@@ -496,7 +490,6 @@ export default function useBCH() {
     };
 
     return {
-        getRestUrl,
         sendXec,
         sendToken,
         createToken,

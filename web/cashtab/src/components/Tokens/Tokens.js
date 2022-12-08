@@ -26,7 +26,7 @@ const Tokens = ({ passLoadingStatus }) => {
     } = React.useContext(WalletContext);
     const walletState = getWalletState(wallet);
     const { balances } = walletState;
-    const { getRestUrl, createToken } = useBCH();
+    const { createToken } = useBCH();
 
     return (
         <>
@@ -50,7 +50,6 @@ const Tokens = ({ passLoadingStatus }) => {
             <SidePaddingCtn>
                 {apiError && <ApiError />}
                 <CreateTokenForm
-                    getRestUrl={getRestUrl}
                     createToken={createToken}
                     disabled={new BigNumber(balances.totalBalanceInSatoshis).lt(
                         new BigNumber(currency.dustSats),

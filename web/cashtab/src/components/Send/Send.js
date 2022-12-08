@@ -195,7 +195,7 @@ const SendBCH = ({ passLoadingStatus }) => {
         setIsModalVisible(false);
     };
 
-    const { getRestUrl, sendXec } = useBCH();
+    const { sendXec } = useBCH();
 
     // If the balance has changed, unlock the UI
     // This is redundant, if backend has refreshed in 1.75s timeout below, UI will already be unlocked
@@ -282,16 +282,7 @@ const SendBCH = ({ passLoadingStatus }) => {
         // Set loading to false here as well, as balance may not change depending on where error occured in try loop
         passLoadingStatus(false);
         let message;
-
-        if (!errorObj.error && !errorObj.message) {
-            message = `Transaction failed: no response from ${getRestUrl()}.`;
-        } else if (
-            /Could not communicate with full node or other external service/.test(
-                errorObj.error,
-            )
-        ) {
-            message = 'Could not communicate with API. Please try again.';
-        } else if (
+        if (
             errorObj.error &&
             errorObj.error.includes(
                 'too-long-mempool-chain, too many unconfirmed ancestors [limit: 50] (code 64)',

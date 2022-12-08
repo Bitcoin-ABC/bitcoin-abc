@@ -28,14 +28,13 @@ beforeEach(() => {
 });
 
 test('Wallet with BCH balances and tokens and state field', () => {
-    const { getRestUrl, createToken } = useBCH();
+    const { createToken } = useBCH();
     const component = renderer.create(
         <WalletContext.Provider
             value={walletWithBalancesAndTokensWithCorrectState}
         >
             <ThemeProvider theme={theme}>
                 <CreateTokenForm
-                    getRestUrl={getRestUrl}
                     createToken={createToken}
                     disabled={new BigNumber(
                         walletWithBalancesAndTokensWithCorrectState.wallet.state.balances.totalBalanceInSatoshis,

@@ -130,7 +130,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
         address: '',
     });
 
-    const { getRestUrl, sendToken, burnToken } = useBCH();
+    const { sendToken, burnToken } = useBCH();
 
     // Fetch token stats if you do not have them and API did not return an error
     if (tokenStats === null) {
@@ -186,20 +186,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
             clearInputForms();
         } catch (e) {
             passLoadingStatus(false);
-            let message;
-
-            if (!e.error && !e.message) {
-                message = `Transaction failed: no response from ${getRestUrl()}.`;
-            } else if (
-                /Could not communicate with full node or other external service/.test(
-                    e.error,
-                )
-            ) {
-                message = 'Could not communicate with API. Please try again.';
-            } else {
-                message = e.message || e.error || JSON.stringify(e);
-            }
-            errorNotification(e, message, 'Sending eToken');
+            errorNotification(e, JSON.stringify(e), 'Sending eToken');
         }
     }
 
@@ -364,22 +351,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
             setShowConfirmBurnEtoken(false);
             passLoadingStatus(false);
             setConfirmationOfEtokenToBeBurnt('');
-            let message;
-
-            if (!e.error && !e.message) {
-                message = `Transaction failed: no response from ${getRestUrl()}.`;
-            } else if (/dust/.test(e.error)) {
-                message = 'Unable to burn due to insufficient eToken utxos.';
-            } else if (
-                /Could not communicate with full node or other external service/.test(
-                    e.error,
-                )
-            ) {
-                message = 'Could not communicate with API. Please try again.';
-            } else {
-                message = e.message || e.error || JSON.stringify(e);
-            }
-            errorNotification(e, message, 'Burning eToken');
+            errorNotification(e, JSON.stringify(e), 'Burning eToken');
         }
     }
 

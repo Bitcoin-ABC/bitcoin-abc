@@ -67,12 +67,7 @@ export const CreateTokenCtn = styled.div`
     }
 `;
 
-const CreateTokenForm = ({
-    getRestUrl,
-    createToken,
-    disabled,
-    passLoadingStatus,
-}) => {
+const CreateTokenForm = ({ createToken, disabled, passLoadingStatus }) => {
     const { wallet, chronik } = React.useContext(WalletContext);
 
     // eToken icon adds
@@ -472,27 +467,7 @@ const CreateTokenForm = ({
         } catch (e) {
             // Set loading to false here as well, as balance may not change depending on where error occured in try loop
             passLoadingStatus(false);
-            let message;
-
-            if (!e.error && !e.message) {
-                message = `Transaction failed: no response from ${getRestUrl()}.`;
-            } else if (
-                /Could not communicate with full node or other external service/.test(
-                    e.error,
-                )
-            ) {
-                message = 'Could not communicate with API. Please try again.';
-            } else if (
-                e.error &&
-                e.error.includes(
-                    'too-long-mempool-chain, too many unconfirmed ancestors [limit: 50] (code 64)',
-                )
-            ) {
-                message = `The ${currency.ticker} you are trying to send has too many unconfirmed ancestors to send (limit 50). Sending will be possible after a block confirmation. Try again in about 10 minutes.`;
-            } else {
-                message = e.message || e.error || JSON.stringify(e);
-            }
-            errorNotification(e, message, 'Creating eToken');
+            errorNotification(e, JSON.stringify(e), 'Creating eToken');
         }
         // Hide the modal
         setShowConfirmCreateToken(false);
@@ -849,7 +824,6 @@ CreateTokenForm.defaultProps = {
 };
 
 CreateTokenForm.propTypes = {
-    getRestUrl: PropTypes.func,
     createToken: PropTypes.func,
     disabled: PropTypes.bool,
     passLoadingStatus: PropTypes.func,
