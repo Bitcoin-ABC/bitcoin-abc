@@ -7,7 +7,12 @@ import random
 
 from test_framework.avatools import AvaP2PInterface
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_raises_rpc_error, uint256_hex
+from test_framework.util import (
+    assert_greater_than,
+    assert_raises_rpc_error,
+    uint256_hex,
+)
+from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
 
@@ -34,6 +39,7 @@ class DeprecatedRpcTest(BitcoinTestFramework):
             '-avaminquorumconnectedstakeratio=0',
             "-deprecatedrpc=isfinalblock_noerror",
             "-deprecatedrpc=isfinaltransaction_noerror",
+            "-deprecatedrpc=getblocktemplate_sigops",
         ]]
 
     def run_test(self):
@@ -87,6 +93,38 @@ class DeprecatedRpcTest(BitcoinTestFramework):
             blockhash,
         )
         assert not self.nodes[1].isfinaltransaction(random_txid, blockhash)
+
+        self.log.info(
+            "Check the getblocktemplate output with and without -deprecatedrpc=getblocktemplate_sigops")
+
+        # Add a transaction to both nodes mempool
+        wallet = MiniWallet(self.nodes[0])
+        self.generate(wallet, 1)
+        unconfirmed_tx = wallet.send_self_transfer(from_node=self.nodes[0])
+        self.nodes[1].sendrawtransaction(unconfirmed_tx['hex'])
+        assert unconfirmed_tx['txid'] in self.nodes[0].getrawmempool()
+        assert unconfirmed_tx['txid'] in self.nodes[1].getrawmempool()
+
+        block_template = self.nodes[0].getblocktemplate()
+        block_template_txs = block_template.get('transactions', [])
+        assert_greater_than(len(block_template_txs), 0)
+
+        for tx in block_template_txs:
+            assert 'sigchecks' in tx
+            assert 'sigops' not in tx
+        assert 'sigchecklimit' in block_template
+        assert 'sigoplimit' not in block_template
+
+        deprecated_block_template = self.nodes[1].getblocktemplate()
+        deprecated_block_template_txs = deprecated_block_template.get(
+            'transactions', [])
+        assert_greater_than(len(deprecated_block_template_txs), 0)
+
+        for tx in deprecated_block_template_txs:
+            assert 'sigchecks' in tx
+            assert 'sigops' in tx
+        assert 'sigchecklimit' in deprecated_block_template
+        assert 'sigoplimit' in deprecated_block_template
 
 
 if __name__ == '__main__':

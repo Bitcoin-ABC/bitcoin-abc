@@ -12,3 +12,7 @@ This release includes the following features and fixes:
    created with the `backupwallet` RPC.
  - The `bytespersigop` option has been deprecated and the more accurate
    `-bytespersigcheck` should be used instead.
+ - The `sigops` and `sigoplimit` fields of the `getblocktemplate` RPC are now
+   deprecated and the new `sigchecks` and `sigchecklimit` fields should be used
+   instead. The option `-deprecatedrpc=getblocktemplate_sigops=1` can be used to
+   print the legacy fields.

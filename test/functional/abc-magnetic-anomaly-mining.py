@@ -91,7 +91,8 @@ class CTORMiningTest(BitcoinTestFramework):
             txid = mining_node.sendrawtransaction(signedtx['hex'])
             # number of outputs is the same as the number of sigCheck in this
             # case
-            transactions.update({txid: {'fee': fee, 'sigops': len(outputs)}})
+            transactions.update(
+                {txid: {'fee': fee, 'sigchecks': len(outputs)}})
 
         tmpl = mining_node.getblocktemplate()
         assert 'proposal' in tmpl['capabilities']
@@ -102,13 +103,13 @@ class CTORMiningTest(BitcoinTestFramework):
             txid = txn['txid']
             txnMetadata = transactions[txid]
             expectedFeeSats = int(txnMetadata['fee'] * 10**2)
-            expectedSigChecks = txnMetadata['sigops']
+            expectedSigChecks = txnMetadata['sigchecks']
 
             txid_decoded = int(txid, 16)
 
             # Assert we got the expected metadata
             assert expectedFeeSats == txn['fee']
-            assert expectedSigChecks == txn['sigops']
+            assert expectedSigChecks == txn['sigchecks']
             # Assert transaction ids are in order
             assert last_txid == 0 or last_txid < txid_decoded
             last_txid = txid_decoded

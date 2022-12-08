@@ -46,7 +46,7 @@ class AbcMiningRPCTest(BitcoinTestFramework):
         def assert_getblocktemplate(expected):
             # Always test these values in addition to those passed in
             expected = {**expected, **{
-                'sigoplimit': DEFAULT_MAX_BLOCK_SIZE // BLOCK_MAXBYTES_MAXSIGCHECKS_RATIO,
+                'sigchecklimit': DEFAULT_MAX_BLOCK_SIZE // BLOCK_MAXBYTES_MAXSIGCHECKS_RATIO,
             }}
 
             blockTemplate = node.getblocktemplate()
