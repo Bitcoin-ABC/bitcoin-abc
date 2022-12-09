@@ -1,6 +1,5 @@
 import { currency } from '../../components/Common/Ticker';
 import BigNumber from 'bignumber.js';
-import BCHJS from '@psf/bch-js';
 import { fromSatoshisToXec, fromXecToSatoshis } from 'utils/cashMethods';
 
 describe('Testing functions for upgrading Cashtab', () => {
@@ -10,28 +9,21 @@ describe('Testing functions for upgrading Cashtab', () => {
         );
     });
     it('Replicate 8-decimal return value from instance of toSatoshi in TransactionBuilder with fromXecToSatoshis', () => {
-        const BCH = new BCHJS();
         const testSendAmount = '0.12345678';
         expect(
             parseInt(fromXecToSatoshis(new BigNumber(testSendAmount), 8)),
-        ).toBe(BCH.BitcoinCash.toSatoshi(Number(testSendAmount).toFixed(8)));
+        ).toBe(12345678);
     });
     it('Replicate 2-decimal return value from instance of toSatoshi in TransactionBuilder with fromXecToSatoshis', () => {
-        const BCH = new BCHJS();
         const testSendAmount = '0.12';
         expect(
             parseInt(fromXecToSatoshis(new BigNumber(testSendAmount), 8)),
-        ).toBe(BCH.BitcoinCash.toSatoshi(Number(testSendAmount).toFixed(8)));
+        ).toBe(12000000);
     });
     it('Replicate 8-decimal return value from instance of toSatoshi in remainder comparison with fromXecToSatoshis', () => {
-        const BCH = new BCHJS();
         expect(
             parseFloat(fromXecToSatoshis(new BigNumber('0.00000546'), 8)),
-        ).toBe(
-            BCH.BitcoinCash.toSatoshi(
-                parseFloat(new BigNumber('0.00000546').toFixed(8)),
-            ),
-        );
+        ).toBe(546);
     });
     it('fromXecToSatoshis() returns false if input is not a BigNumber', () => {
         const testInput = 132.12345678;
@@ -60,13 +52,10 @@ describe('Testing functions for upgrading Cashtab', () => {
         );
     });
     it('fromXecToSatoshis() returns exact result as toSatoshi but in BigNumber format', () => {
-        const BCH = new BCHJS();
         const testAmount = new BigNumber('0.12345678');
 
         // Match legacy implementation, inputting a BigNumber converted to a string by .toFixed(8)
-        const testAmountInSatoshis = BCH.BitcoinCash.toSatoshi(
-            testAmount.toFixed(8),
-        );
+        const testAmountInSatoshis = 12345678;
 
         const testAmountInCashDecimals = fromXecToSatoshis(testAmount, 8);
 
@@ -101,26 +90,21 @@ describe('Testing functions for upgrading Cashtab', () => {
         expect(parseInt(remainder)).toStrictEqual(12345678);
     });
     it('Replicates return value from instance of toBitcoinCash with fromSatoshisToXec and cashDecimals = 8', () => {
-        const BCH = new BCHJS();
         const testSendAmount = '12345678';
         expect(fromSatoshisToXec(testSendAmount, 8).toNumber()).toBe(
-            BCH.BitcoinCash.toBitcoinCash(testSendAmount),
+            0.12345678,
         );
     });
     it('Replicates largest possible digits return value from instance of toBitcoinCash with fromSatoshisToXec and cashDecimals = 8', () => {
-        const BCH = new BCHJS();
         const testSendAmount = '1000000012345678';
         expect(fromSatoshisToXec(testSendAmount, 8).toNumber()).toBe(
-            BCH.BitcoinCash.toBitcoinCash(testSendAmount),
+            10000000.12345678,
         );
     });
 
     it('Replicates smallest unit value return value from instance of toBitcoinCash with fromSatoshisToXec and cashDecimals = 8', () => {
-        const BCH = new BCHJS();
         const testSendAmount = '1';
-        expect(fromSatoshisToXec(testSendAmount, 8).toNumber()).toBe(
-            BCH.BitcoinCash.toBitcoinCash(testSendAmount),
-        );
+        expect(fromSatoshisToXec(testSendAmount, 8).toNumber()).toBe(1e-8);
     });
 
     it(`Converts dust limit in satoshis to dust limit in current app setting`, () => {

@@ -22,7 +22,6 @@ import {
     DestinationAddressSingle,
     AntdFormWrapper,
 } from 'components/Common/EnhancedInputs';
-import useBCH from 'hooks/useBCH';
 import { SidePaddingCtn } from 'components/Common/Atoms';
 import BalanceHeaderToken from 'components/Common/BalanceHeaderToken';
 import { Redirect } from 'react-router-dom';
@@ -35,6 +34,7 @@ import BigNumber from 'bignumber.js';
 import { currency, parseAddressForParams } from 'components/Common/Ticker.js';
 import { Event } from 'utils/GoogleAnalytics';
 import { getWalletState } from 'utils/cashMethods';
+import { sendToken, burnToken } from 'utils/transactions';
 import ApiError from 'components/Common/ApiError';
 import {
     sendTokenNotification,
@@ -129,8 +129,6 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
         value: '',
         address: '',
     });
-
-    const { sendToken, burnToken } = useBCH();
 
     // Fetch token stats if you do not have them and API did not return an error
     if (tokenStats === null) {

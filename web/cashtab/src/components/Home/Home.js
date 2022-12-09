@@ -235,11 +235,7 @@ const WalletInfo = () => {
                         Create eToken
                     </CreateToken>
                     {tokens && tokens.length > 0 ? (
-                        <TokenList
-                            wallet={wallet}
-                            tokens={tokens}
-                            jestBCH={false}
-                        />
+                        <TokenList wallet={wallet} tokens={tokens} />
                     ) : (
                         <p>
                             Tokens sent to your {currency.tokenTicker} address

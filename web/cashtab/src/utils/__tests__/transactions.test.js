@@ -1,5 +1,4 @@
 /* eslint-disable no-native-reassign */
-import useBCH from '../useBCH';
 import sendBCHMock from '../__mocks__/sendBCH';
 import createTokenMock from '../__mocks__/createToken';
 import { burnTokenWallet } from '../__mocks__/burnToken';
@@ -7,10 +6,15 @@ import { currency } from '../../components/Common/Ticker';
 import BigNumber from 'bignumber.js';
 import { fromSatoshisToXec } from 'utils/cashMethods';
 import { ChronikClient } from 'chronik-client'; // for mocking purposes
+import {
+    sendXec,
+    burnToken,
+    createToken,
+    getRecipientPublicKey,
+} from 'utils/transactions';
 
-describe('useBCH hook', () => {
+describe('Cashtab transaction broadcasting functions', () => {
     it('sends XEC correctly', async () => {
-        const { sendXec } = useBCH();
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
@@ -36,7 +40,6 @@ describe('useBCH hook', () => {
     });
 
     it('sends XEC correctly with an encrypted OP_RETURN message', async () => {
-        const { sendXec } = useBCH();
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
@@ -68,7 +71,6 @@ describe('useBCH hook', () => {
     });
 
     it('sends one to many XEC correctly', async () => {
-        const { sendXec } = useBCH();
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
@@ -98,7 +100,6 @@ describe('useBCH hook', () => {
     });
 
     it(`Throws error if called trying to send one base unit ${currency.ticker} more than available in utxo set`, async () => {
-        const { sendXec } = useBCH();
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
@@ -149,13 +150,13 @@ describe('useBCH hook', () => {
             destinationAddress,
             null,
         );
-        expect(nullValuesSendBch).rejects.toThrow(
+
+        await expect(nullValuesSendBch).rejects.toThrow(
             new Error('Invalid singleSendValue'),
         );
     });
 
     it('Throws error on attempt to send one satoshi less than backend dust limit', async () => {
-        const { sendXec } = useBCH();
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
@@ -173,11 +174,10 @@ describe('useBCH hook', () => {
                 .minus(new BigNumber('0.00000001'))
                 .toString(),
         );
-        expect(failedSendBch).rejects.toThrow(new Error('dust'));
+        await expect(failedSendBch).rejects.toThrow(new Error('dust'));
     });
 
     it("Throws error attempting to burn an eToken ID that is not within the wallet's utxo", async () => {
-        const { burnToken } = useBCH();
         const wallet = burnTokenWallet;
         const burnAmount = 10;
         const eTokenId = '0203c768a66eba24affNOTVALID103b772de4d9f8f63ba79e';
@@ -200,7 +200,6 @@ describe('useBCH hook', () => {
     });
 
     it('receives errors from the network and parses it', async () => {
-        const { sendXec } = useBCH();
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
@@ -283,9 +282,7 @@ describe('useBCH hook', () => {
     });
 
     it('creates a token correctly', async () => {
-        const { createToken } = useBCH();
-        const { expectedTxId, expectedHex, wallet, configObj } =
-            createTokenMock;
+        const { expectedTxId, wallet, configObj } = createTokenMock;
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
@@ -298,7 +295,6 @@ describe('useBCH hook', () => {
     });
 
     it('Throws correct error if user attempts to create a token with an invalid wallet', async () => {
-        const { createToken } = useBCH();
         const { invalidWallet, configObj } = createTokenMock;
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
@@ -315,7 +311,6 @@ describe('useBCH hook', () => {
     });
 
     it(`getRecipientPublicKey() correctly retrieves the public key of a cash address`, async () => {
-        const { getRecipientPublicKey } = useBCH();
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );

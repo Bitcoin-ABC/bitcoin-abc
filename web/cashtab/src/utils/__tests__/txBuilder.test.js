@@ -1,7 +1,7 @@
 /* eslint-disable no-native-reassign */
 import BigNumber from 'bignumber.js';
 import { currency } from 'components/Common/Ticker.js';
-import sendBCHMock from 'hooks/__mocks__/sendBCH';
+import sendBCHMock from '../__mocks__/sendBCH';
 import {
     generateTxInput,
     generateTxOutput,

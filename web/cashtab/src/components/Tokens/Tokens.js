@@ -2,9 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { WalletContext } from 'utils/context';
 import { fromSatoshisToXec, getWalletState } from 'utils/cashMethods';
+import { createToken } from 'utils/transactions';
 import CreateTokenForm from 'components/Tokens/CreateTokenForm';
 import { currency } from 'components/Common/Ticker.js';
-import useBCH from 'hooks/useBCH';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
 import {
@@ -26,7 +26,6 @@ const Tokens = ({ passLoadingStatus }) => {
     } = React.useContext(WalletContext);
     const walletState = getWalletState(wallet);
     const { balances } = walletState;
-    const { createToken } = useBCH();
 
     return (
         <>

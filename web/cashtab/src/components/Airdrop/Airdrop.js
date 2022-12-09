@@ -83,7 +83,7 @@ const StyledModal = styled(Modal)`
         color: ${props => props.theme.lightWhite} !important;
     }
 `;
-// Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
+
 const Airdrop = ({ passLoadingStatus }) => {
     const ContextValue = React.useContext(WalletContext);
     const {
@@ -869,7 +869,6 @@ Airdrop.defaultProps = {
 };
 
 Airdrop.propTypes = {
-    jestBCH: PropTypes.object,
     passLoadingStatus: PropTypes.func,
 };
 

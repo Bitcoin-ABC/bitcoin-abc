@@ -188,7 +188,6 @@
         ]
     },
     "devDependencies": {
-        "@psf/bch-js": "^6.5.3",
         "husky": "^8.0.1",
         "jest-when": "^3.5.1"
     }

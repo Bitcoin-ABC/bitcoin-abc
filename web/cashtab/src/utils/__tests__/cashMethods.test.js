@@ -83,8 +83,7 @@ import {
 } from '../__mocks__/mockOpReturnParsedArray';
 
 import mockLegacyWallets from 'hooks/__mocks__/mockLegacyWallets';
-import BCHJS from '@psf/bch-js';
-import sendBCHMock from '../../hooks/__mocks__/sendBCH';
+import sendBCHMock from '../__mocks__/sendBCH';
 import {
     activeWebsocketAlpha,
     disconnectedWebsocketAlpha,
@@ -108,27 +107,19 @@ import {
     mockSingleOutput,
     mockMultipleOutputs,
 } from '../__mocks__/mockTxBuilderData';
-import createTokenMock from '../../hooks/__mocks__/createToken';
+import createTokenMock from '../__mocks__/createToken';
 import TransactionBuilder from 'utils/txBuilder';
 import { mockWif, mockStringifiedECPair } from '../__mocks__/mockECPair';
 
 it(`generateSendOpReturn() returns correct script object for valid tokenUtxo and send quantity`, () => {
-    const BCH = new BCHJS();
     const tokensToSend = 50;
     const sendOpReturnScriptObj = generateSendOpReturn(
         mockSendOpReturnTokenUtxos,
         tokensToSend,
     );
-    const legacySendOpReturnScriptObj = BCH.SLP.TokenType1.generateSendOpReturn(
-        mockSendOpReturnTokenUtxos,
-        tokensToSend.toString(),
-    );
 
     expect(JSON.stringify(sendOpReturnScriptObj.script)).toStrictEqual(
         JSON.stringify(mockSendOpReturnScript),
-    );
-    expect(JSON.stringify(sendOpReturnScriptObj.script)).toStrictEqual(
-        JSON.stringify(legacySendOpReturnScriptObj.script),
     );
 });
 
@@ -146,21 +137,14 @@ it(`generateSendOpReturnScript() throws error on invalid input`, () => {
 });
 
 it(`generateBurnOpReturn() returns correct script for valid tokenUtxo and burn quantity`, () => {
-    const BCH = new BCHJS();
     const tokensToBurn = 7000;
     const burnOpReturnScript = generateBurnOpReturn(
         mockBurnOpReturnTokenUtxos,
         tokensToBurn,
     );
-    const legacyBurnOpReturnScript = BCH.SLP.TokenType1.generateBurnOpReturn(
-        mockBurnOpReturnTokenUtxos,
-        tokensToBurn,
-    );
+
     expect(JSON.stringify(burnOpReturnScript)).toStrictEqual(
         JSON.stringify(mockBurnOpReturnScript),
-    );
-    expect(JSON.stringify(burnOpReturnScript)).toStrictEqual(
-        JSON.stringify(legacyBurnOpReturnScript),
     );
 });
 
@@ -176,7 +160,6 @@ it(`generateBurnOpReturn() throws error on invalid input`, () => {
 });
 
 it(`generateGenesisOpReturn() returns correct script for a valid configObj`, () => {
-    const BCH = new BCHJS();
     const configObj = {
         name: 'ethantest',
         ticker: 'ETN',
@@ -188,15 +171,9 @@ it(`generateGenesisOpReturn() returns correct script for a valid configObj`, () 
     };
 
     const genesisOpReturnScript = generateGenesisOpReturn(configObj);
-    const legacyGenesisOpReturnScript =
-        BCH.SLP.TokenType1.generateGenesisOpReturn(configObj);
 
     expect(JSON.stringify(genesisOpReturnScript)).toStrictEqual(
         JSON.stringify(mockGenesisOpReturnScript),
-    );
-
-    expect(JSON.stringify(genesisOpReturnScript)).toStrictEqual(
-        JSON.stringify(legacyGenesisOpReturnScript),
     );
 });
 
@@ -1550,38 +1527,25 @@ describe('Correctly executes cash utility functions', () => {
             { P2PKH: utxos.length },
             { P2PKH: p2pkhOutputNumber },
         );`, () => {
-        const BCH = new BCHJS();
-        // 374
-        expect(getCashtabByteCount(2, 2)).toBe(
-            BCH.BitcoinCash.getByteCount({ P2PKH: 2 }, { P2PKH: 2 }),
-        );
+        expect(getCashtabByteCount(2, 2)).toBe(374);
     });
     it(`getCashtabByteCount for 1 input, 2 outputs returns the same value as BCH.BitcoinCash.getByteCount(
             { P2PKH: utxos.length },
             { P2PKH: p2pkhOutputNumber },
         );`, () => {
-        const BCH = new BCHJS();
-        expect(getCashtabByteCount(1, 2)).toBe(
-            BCH.BitcoinCash.getByteCount({ P2PKH: 1 }, { P2PKH: 2 }),
-        );
+        expect(getCashtabByteCount(1, 2)).toBe(226);
     });
     it(`getCashtabByteCount for 173 input, 1 outputs returns the same value as BCH.BitcoinCash.getByteCount(
             { P2PKH: utxos.length },
             { P2PKH: p2pkhOutputNumber },
         );`, () => {
-        const BCH = new BCHJS();
-        expect(getCashtabByteCount(173, 1)).toBe(
-            BCH.BitcoinCash.getByteCount({ P2PKH: 173 }, { P2PKH: 1 }),
-        );
+        expect(getCashtabByteCount(173, 1)).toBe(25648);
     });
     it(`getCashtabByteCount for 1 input, 2000 outputs returns the same value as BCH.BitcoinCash.getByteCount(
             { P2PKH: utxos.length },
             { P2PKH: p2pkhOutputNumber },
         );`, () => {
-        const BCH = new BCHJS();
-        expect(getCashtabByteCount(1, 2000)).toBe(
-            BCH.BitcoinCash.getByteCount({ P2PKH: 1 }, { P2PKH: 2000 }),
-        );
+        expect(getCashtabByteCount(1, 2000)).toBe(68158);
     });
     it('calculates fee correctly for 2 P2PKH outputs', () => {
         const utxosMock = [{}, {}];

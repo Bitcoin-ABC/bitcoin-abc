@@ -13,7 +13,6 @@ import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
 import { Form, message, Modal, Alert, Input } from 'antd';
 import { Row, Col, Switch } from 'antd';
 import PrimaryButton, { DisabledButton } from 'components/Common/PrimaryButton';
-import useBCH from 'hooks/useBCH';
 import useWindowDimensions from 'hooks/useWindowDimensions';
 import {
     sendXecNotification,
@@ -40,6 +39,7 @@ import {
     FormLabel,
 } from 'components/Common/Atoms';
 import { getWalletState, fromSatoshisToXec, calcFee } from 'utils/cashMethods';
+import { sendXec } from 'utils/transactions';
 import ApiError from 'components/Common/ApiError';
 import { formatFiatBalance, formatBalance } from 'utils/formatting';
 import styled from 'styled-components';
@@ -194,8 +194,6 @@ const SendBCH = ({ passLoadingStatus }) => {
     const handleCancel = () => {
         setIsModalVisible(false);
     };
-
-    const { sendXec } = useBCH();
 
     // If the balance has changed, unlock the UI
     // This is redundant, if backend has refreshed in 1.75s timeout below, UI will already be unlocked

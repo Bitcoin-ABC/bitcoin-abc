@@ -3,11 +3,11 @@ import renderer from 'react-test-renderer';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
 import CreateTokenForm from 'components/Tokens/CreateTokenForm';
-import useBCH from 'hooks/useBCH';
 import { walletWithBalancesAndTokensWithCorrectState } from '../../Home/__mocks__/walletAndBalancesMock';
 import { WalletContext } from 'utils/context';
 import BigNumber from 'bignumber.js';
 import { currency } from 'components/Common/Ticker';
+import { createToken } from 'utils/transactions';
 
 beforeEach(() => {
     // Mock method not implemented in JSDOM
@@ -28,7 +28,6 @@ beforeEach(() => {
 });
 
 test('Wallet with BCH balances and tokens and state field', () => {
-    const { createToken } = useBCH();
     const component = renderer.create(
         <WalletContext.Provider
             value={walletWithBalancesAndTokensWithCorrectState}
