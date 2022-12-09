@@ -112,6 +112,11 @@ BOOST_FIXTURE_TEST_CASE(package_validation_tests, TestChain100Setup) {
         it_parent->second.m_effective_feerate.value().GetFeeCeiling(
             GetVirtualTransactionSize(*tx_parent)),
         COIN);
+    BOOST_CHECK_EQUAL(it_parent->second.m_txids_fee_calculations.value().size(),
+                      1);
+    BOOST_CHECK_EQUAL(
+        it_parent->second.m_txids_fee_calculations.value().front(),
+        tx_parent->GetId());
     BOOST_CHECK(it_child != result_parent_child.m_tx_results.end());
     BOOST_CHECK_MESSAGE(it_child->second.m_state.IsValid(),
                         "Package validation unexpectedly failed: "
@@ -124,6 +129,10 @@ BOOST_FIXTURE_TEST_CASE(package_validation_tests, TestChain100Setup) {
         it_child->second.m_effective_feerate.value().GetFeeCeiling(
             GetVirtualTransactionSize(*tx_child)),
         COIN);
+    BOOST_CHECK_EQUAL(it_child->second.m_txids_fee_calculations.value().size(),
+                      1);
+    BOOST_CHECK_EQUAL(it_child->second.m_txids_fee_calculations.value().front(),
+                      tx_child->GetId());
 
     // A single, giant transaction submitted through ProcessNewPackage fails on
     // single tx policy.
@@ -411,10 +420,20 @@ BOOST_FIXTURE_TEST_CASE(package_submission_tests, TestChain100Setup) {
         BOOST_CHECK(it_parent->second.m_state.IsValid());
         BOOST_CHECK(it_parent->second.m_effective_feerate ==
                     CFeeRate(1 * COIN, GetVirtualTransactionSize(*tx_parent)));
+        BOOST_CHECK_EQUAL(
+            it_parent->second.m_txids_fee_calculations.value().size(), 1);
+        BOOST_CHECK_EQUAL(
+            it_parent->second.m_txids_fee_calculations.value().front(),
+            tx_parent->GetId());
         BOOST_CHECK(it_child != submit_parent_child.m_tx_results.end());
         BOOST_CHECK(it_child->second.m_state.IsValid());
         BOOST_CHECK(it_child->second.m_effective_feerate ==
                     CFeeRate(1 * COIN, GetVirtualTransactionSize(*tx_child)));
+        BOOST_CHECK_EQUAL(
+            it_child->second.m_txids_fee_calculations.value().size(), 1);
+        BOOST_CHECK_EQUAL(
+            it_child->second.m_txids_fee_calculations.value().front(),
+            tx_child->GetId());
 
         BOOST_CHECK_EQUAL(m_node.mempool->size(), expected_pool_size);
         BOOST_CHECK(m_node.mempool->exists(tx_parent->GetId()));
@@ -550,6 +569,12 @@ BOOST_FIXTURE_TEST_CASE(package_mix, TestChain100Setup) {
                     expected_feerate);
         BOOST_CHECK(it_child->second.m_effective_feerate.value() ==
                     expected_feerate);
+        std::vector<TxId> expected_txids(
+            {ptx_parent2->GetId(), ptx_mixed_child->GetId()});
+        BOOST_CHECK(it_parent2->second.m_txids_fee_calculations.value() ==
+                    expected_txids);
+        BOOST_CHECK(it_child->second.m_txids_fee_calculations.value() ==
+                    expected_txids);
     }
 }
 
@@ -654,6 +679,12 @@ BOOST_FIXTURE_TEST_CASE(package_cpfp_tests, TestChain100Setup) {
                     expected_feerate);
         BOOST_CHECK(it_child->second.m_effective_feerate.value() ==
                     expected_feerate);
+        std::vector<TxId> expected_txids(
+            {tx_parent->GetId(), tx_child->GetId()});
+        BOOST_CHECK(it_parent->second.m_txids_fee_calculations.value() ==
+                    expected_txids);
+        BOOST_CHECK(it_child->second.m_txids_fee_calculations.value() ==
+                    expected_txids);
         BOOST_CHECK(expected_feerate.GetFeePerK() > 1000 * SATOSHI);
         BOOST_CHECK(submit_cpfp.m_package_feerate.has_value());
         BOOST_CHECK_MESSAGE(
@@ -757,6 +788,12 @@ BOOST_FIXTURE_TEST_CASE(package_cpfp_tests, TestChain100Setup) {
         BOOST_CHECK(it_child->second.m_base_fees.value() == 200 * SATOSHI);
         BOOST_CHECK(it_child->second.m_effective_feerate.value() ==
                     expected_feerate);
+        std::vector<TxId> expected_txids(
+            {tx_parent_cheap->GetId(), tx_child_cheap->GetId()});
+        BOOST_CHECK(it_parent->second.m_txids_fee_calculations.value() ==
+                    expected_txids);
+        BOOST_CHECK(it_child->second.m_txids_fee_calculations.value() ==
+                    expected_txids);
     }
 
     // Package feerate is calculated without topology in mind; it's just

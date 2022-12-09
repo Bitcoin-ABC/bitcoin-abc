@@ -866,6 +866,12 @@ bool MemPoolAccept::SubmitPackage(
     // mempool. Regardless, make sure we haven't exceeded max mempool size.
     m_pool.LimitSize(m_active_chainstate.CoinsTip());
 
+    std::vector<TxId> all_package_txids;
+    all_package_txids.reserve(workspaces.size());
+    std::transform(workspaces.cbegin(), workspaces.cend(),
+                   std::back_inserter(all_package_txids),
+                   [](const auto &ws) { return ws.m_ptx->GetId(); });
+
     // Find the txids of the transactions that made it into the mempool. Allow
     // partial submission, but don't report success unless they all made it into
     // the mempool.
@@ -875,10 +881,14 @@ bool MemPoolAccept::SubmitPackage(
                 ? ws.m_package_feerate
                 : CFeeRate{ws.m_modified_fees,
                            static_cast<uint32_t>(ws.m_vsize)};
+        const auto effective_feerate_txids =
+            args.m_package_feerates ? all_package_txids
+                                    : std::vector<TxId>({ws.m_ptx->GetId()});
         if (m_pool.exists(ws.m_ptx->GetId())) {
             results.emplace(ws.m_ptx->GetId(),
                             MempoolAcceptResult::Success(
-                                ws.m_vsize, ws.m_base_fees, effective_feerate));
+                                ws.m_vsize, ws.m_base_fees, effective_feerate,
+                                effective_feerate_txids));
             GetMainSignals().TransactionAddedToMempool(
                 ws.m_ptx,
                 std::make_shared<const std::vector<Coin>>(
@@ -942,10 +952,11 @@ MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
 
     const CFeeRate effective_feerate{ws.m_modified_fees,
                                      static_cast<uint32_t>(ws.m_vsize)};
+    const std::vector<TxId> single_txid{ws.m_ptx->GetId()};
     // Tx was accepted, but not added
     if (args.m_test_accept) {
         return MempoolAcceptResult::Success(ws.m_vsize, ws.m_base_fees,
-                                            effective_feerate);
+                                            effective_feerate, single_txid);
     }
 
     if (!Finalize(args, ws)) {
@@ -958,7 +969,7 @@ MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
         m_pool.GetAndIncrementSequence());
 
     return MempoolAcceptResult::Success(ws.m_vsize, ws.m_base_fees,
-                                        effective_feerate);
+                                        effective_feerate, single_txid);
 }
 
 PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
@@ -1028,6 +1039,12 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
         return PackageMempoolAcceptResult(package_state, package_feerate, {});
     }
 
+    std::vector<TxId> all_package_txids;
+    all_package_txids.reserve(workspaces.size());
+    std::transform(workspaces.cbegin(), workspaces.cend(),
+                   std::back_inserter(all_package_txids),
+                   [](const auto &ws) { return ws.m_ptx->GetId(); });
+
     for (Workspace &ws : workspaces) {
         ws.m_package_feerate = package_feerate;
         const TxId &ws_txid = ws.m_ptx->GetId();
@@ -1039,12 +1056,16 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
                     ? ws.m_package_feerate
                     : CFeeRate{ws.m_modified_fees,
                                static_cast<uint32_t>(ws.m_vsize)};
+            const auto effective_feerate_txids =
+                args.m_package_feerates ? all_package_txids
+                                        : std::vector<TxId>{ws.m_ptx->GetId()};
             // When test_accept=true, transactions that pass PreChecks
             // are valid because there are no further mempool checks (passing
             // PreChecks implies passing ConsensusScriptChecks).
             results.emplace(ws_txid,
                             MempoolAcceptResult::Success(
-                                ws.m_vsize, ws.m_base_fees, effective_feerate));
+                                ws.m_vsize, ws.m_base_fees, effective_feerate,
+                                effective_feerate_txids));
         }
     }
 

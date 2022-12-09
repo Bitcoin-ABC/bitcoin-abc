@@ -211,20 +211,29 @@ struct MempoolAcceptResult {
      * The feerate at which this transaction was considered. This includes any
      * fee delta added using prioritisetransaction (i.e. modified fees). If this
      * transaction was submitted as a package, this is the package feerate,
-     * which may also include its descendants and/or ancestors. Only present
-     * when m_result_type = ResultType::VALID.
+     * which may also include its descendants and/or ancestors
+     * (see m_txids_fee_calculations below). Only present when
+     * m_result_type = ResultType::VALID.
      */
     const std::optional<CFeeRate> m_effective_feerate;
+    /**
+     * Contains the txids of the transactions used for fee-related checks.
+     * Includes this transaction's txid and may include others if this
+     * transaction was validated as part of a package. This is not necessarily
+     * equivalent to the list of transactions passed to ProcessNewPackage().
+     * Only present when m_result_type = ResultType::VALID. */
+    const std::optional<std::vector<TxId>> m_txids_fee_calculations;
 
     static MempoolAcceptResult Failure(TxValidationState state) {
         return MempoolAcceptResult(state);
     }
 
     /** Constructor for success case */
-    static MempoolAcceptResult Success(int64_t vsize, Amount fees,
-                                       CFeeRate effective_feerate) {
+    static MempoolAcceptResult
+    Success(int64_t vsize, Amount fees, CFeeRate effective_feerate,
+            const std::vector<TxId> &txids_fee_calculations) {
         return MempoolAcceptResult(ResultType::VALID, vsize, fees,
-                                   effective_feerate);
+                                   effective_feerate, txids_fee_calculations);
     }
 
     /**
@@ -247,10 +256,13 @@ private:
     }
 
     /** Generic constructor for success cases */
-    explicit MempoolAcceptResult(ResultType result_type, int64_t vsize,
-                                 Amount fees, CFeeRate effective_feerate)
+    explicit MempoolAcceptResult(
+        ResultType result_type, int64_t vsize, Amount fees,
+        CFeeRate effective_feerate,
+        const std::vector<TxId> &txids_fee_calculations)
         : m_result_type(result_type), m_vsize{vsize}, m_base_fees(fees),
-          m_effective_feerate(effective_feerate) {}
+          m_effective_feerate(effective_feerate),
+          m_txids_fee_calculations(txids_fee_calculations) {}
 
     /** Constructor for already-in-mempool case. */
     explicit MempoolAcceptResult(int64_t vsize, Amount fees)
