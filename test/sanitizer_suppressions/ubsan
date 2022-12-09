@@ -30,7 +30,6 @@ unsigned-integer-overflow:prevector.h
 unsigned-integer-overflow:pubkey.h
 unsigned-integer-overflow:script/interpreter.cpp
 unsigned-integer-overflow:stl_bvector.h
-unsigned-integer-overflow:txmempool.cpp
 unsigned-integer-overflow:util/strencodings.cpp
 # False positive vptr due to boost::unit_test::decorator::timeout
 vptr:avalanche/test/processor_tests.cpp
@@ -55,7 +54,6 @@ implicit-integer-sign-change:prevector.h
 implicit-integer-sign-change:protocol.cpp
 implicit-integer-sign-change:script/bitcoinconsensus.cpp
 implicit-integer-sign-change:script/interpreter.cpp
-implicit-integer-sign-change:serialize.h
 implicit-integer-sign-change:test/arith_uint256_tests.cpp
 implicit-integer-sign-change:test/coins_tests.cpp
 implicit-integer-sign-change:test/pow_tests.cpp
@@ -64,7 +62,6 @@ implicit-integer-sign-change:test/sighash_tests.cpp
 implicit-integer-sign-change:test/skiplist_tests.cpp
 implicit-integer-sign-change:test/streams_tests.cpp
 implicit-integer-sign-change:test/transaction_tests.cpp
-implicit-integer-sign-change:txmempool.cpp
 implicit-signed-integer-truncation,implicit-integer-sign-change:test/skiplist_tests.cpp
 implicit-signed-integer-truncation:addrman.cpp
 implicit-signed-integer-truncation:addrman.h
