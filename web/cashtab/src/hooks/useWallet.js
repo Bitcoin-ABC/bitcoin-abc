@@ -282,6 +282,8 @@ const useWallet = () => {
     };
 
     const updateContactList = async contactListArray => {
+        console.log(`updateContactList lock UI`);
+        setLoading(true);
         let updateSuccess = true;
         try {
             await localforage.setItem('contactList', contactListArray);
@@ -290,6 +292,8 @@ const useWallet = () => {
             console.log('Error in updateContactList', err);
             updateSuccess = false;
         }
+        console.log(`updateContactList unlock UI`);
+        setLoading(false);
         return updateSuccess;
     };
 
@@ -453,6 +457,9 @@ const useWallet = () => {
     };
 
     const getSavedWallets = async activeWallet => {
+        console.log(`Lock UI for getSavedWallets`);
+        setLoading(true);
+
         let savedWallets;
         try {
             savedWallets = await localforage.getItem('savedWallets');
@@ -474,6 +481,9 @@ const useWallet = () => {
                 savedWallets.splice(i, 1);
             }
         }
+
+        console.log(`Unlock UI after completing getSavedWallets`);
+        setLoading(false);
         return savedWallets;
     };
 
@@ -594,6 +604,8 @@ const useWallet = () => {
     };
 
     const renameSavedWallet = async (oldName, newName) => {
+        console.log(`Lock UI to run renameSavedWallet`);
+        setLoading(true);
         // Load savedWallets
         let savedWallets;
         try {
@@ -603,12 +615,16 @@ const useWallet = () => {
                 `Error in await localforage.getItem("savedWallets") in renameSavedWallet`,
             );
             console.log(err);
+            console.log(`Unlock UI on exiting renameSavedWallet on error`);
+            setLoading(false);
             return false;
         }
         // Verify that no existing wallet has this name
         for (let i = 0; i < savedWallets.length; i += 1) {
             if (savedWallets[i].name === newName) {
                 // return an error
+                console.log(`Unlock UI on exiting renameSavedWallet on error`);
+                setLoading(false);
                 return false;
             }
         }
@@ -628,12 +644,18 @@ const useWallet = () => {
             console.log(
                 `Error in localforage.setItem("savedWallets", savedWallets) in renameSavedWallet()`,
             );
+            console.log(`Unlock UI on exiting renameSavedWallet on error`);
+            setLoading(false);
             return false;
         }
+        console.log(`Unlock UI on exiting renameSavedWallet on success`);
+        setLoading(false);
         return true;
     };
 
     const renameActiveWallet = async (wallet, oldName, newName) => {
+        console.log(`renameActiveWallet lock UI`);
+        setLoading(true);
         // Load savedWallets
         let savedWallets;
         try {
@@ -643,12 +665,16 @@ const useWallet = () => {
                 `Error in await localforage.getItem("savedWallets") in renameSavedWallet`,
             );
             console.log(err);
+            console.log(`renameActiveWallet unlock UI on error`);
+            setLoading(false);
             return false;
         }
         // Verify that no existing wallet has this name
         for (let i = 0; i < savedWallets.length; i += 1) {
             if (savedWallets[i].name === newName) {
                 // return an error
+                console.log(`renameActiveWallet unlock UI on error`);
+                setLoading(false);
                 return false;
             }
         }
@@ -673,12 +699,18 @@ const useWallet = () => {
             console.log(
                 `Error in localforage.setItem("wallet", wallet) in renameActiveWallet()`,
             );
+            console.log(`renameActiveWallet unlock UI on error`);
+            setLoading(false);
             return false;
         }
+        console.log(`renameActiveWallet unlock UI on success`);
+        setLoading(false);
         return true;
     };
 
     const deleteWallet = async walletToBeDeleted => {
+        console.log(`deleteWallet lock UI on start`);
+        setLoading(true);
         // delete a wallet
         // returns true if wallet is successfully deleted
         // otherwise returns false
@@ -691,6 +723,8 @@ const useWallet = () => {
                 `Error in await localforage.getItem("savedWallets") in deleteWallet`,
             );
             console.log(err);
+            console.log(`deleteWallet unlock UI on error`);
+            setLoading(false);
             return false;
         }
         // Iterate over to find the wallet to be deleted
@@ -708,6 +742,8 @@ const useWallet = () => {
         }
         // If you don't find the wallet, return false
         if (!walletFoundAndRemoved) {
+            console.log(`deleteWallet unlock UI on error`);
+            setLoading(false);
             return false;
         }
 
@@ -719,12 +755,18 @@ const useWallet = () => {
             console.log(
                 `Error in localforage.setItem("savedWallets", savedWallets) in deleteWallet()`,
             );
+            console.log(`deleteWallet unlock UI on error`);
+            setLoading(false);
             return false;
         }
+        console.log(`deleteWallet unlock UI on success`);
+        setLoading(false);
         return true;
     };
 
     const addNewSavedWallet = async importMnemonic => {
+        console.log(`Locking UI after to add a new saved wallet`);
+        setLoading(true);
         // Add a new wallet to savedWallets from importMnemonic or just new wallet
         const lang = 'english';
 
@@ -761,6 +803,10 @@ const useWallet = () => {
                         `Error: this wallet already exists in savedWallets`,
                     );
                     console.log(`Wallet not being added.`);
+                    console.log(
+                        `Unlocking UI after exiting addSavedWallet in error condition`,
+                    );
+                    setLoading(false);
                     return false;
                 }
             }
@@ -777,6 +823,8 @@ const useWallet = () => {
             console.log(`savedWallets`, savedWallets);
             console.log(err);
         }
+        console.log(`Unlocking UI after exiting addNewSavedWallet success`);
+        setLoading(false);
         return true;
     };
 
