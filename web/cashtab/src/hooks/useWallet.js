@@ -641,7 +641,7 @@ const useWallet = () => {
         return true;
     };
 
-    const renameActiveWallet = async (wallet, oldName, newName) => {
+    const renameActiveWallet = async (activeWallet, oldName, newName) => {
         console.log(`renameActiveWallet lock UI`);
         setLoading(true);
         // Load savedWallets
@@ -666,9 +666,9 @@ const useWallet = () => {
                 return false;
             }
         }
-        if (wallet.name === oldName) {
-            wallet.name = newName;
-            setWallet(wallet);
+        if (activeWallet.name === oldName) {
+            activeWallet.name = newName;
+            setWallet(activeWallet);
         }
 
         // change name of desired wallet
@@ -682,7 +682,7 @@ const useWallet = () => {
         try {
             // Set walletName as the active wallet
             await localforage.setItem('savedWallets', savedWallets);
-            await localforage.setItem('wallet', wallet);
+            await localforage.setItem('wallet', activeWallet);
         } catch (err) {
             console.log(
                 `Error in localforage.setItem("wallet", wallet) in renameActiveWallet()`,
