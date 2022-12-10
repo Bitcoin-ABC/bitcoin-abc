@@ -487,7 +487,7 @@ const useWallet = () => {
         return savedWallets;
     };
 
-    const activateWallet = async walletToActivate => {
+    const activateWallet = async (currentlyActiveWallet, walletToActivate) => {
         /*
     If the user is migrating from old version to this version, make sure to save the activeWallet
 
@@ -496,19 +496,7 @@ const useWallet = () => {
     */
         console.log(`Activating wallet ${walletToActivate.name}`);
         setHasUpdated(false);
-        let currentlyActiveWallet;
-        try {
-            //TODO this should just be a param used to call the function
-            currentlyActiveWallet = await localforage.getItem('wallet');
-            console.log(
-                `Currently active wallet is ${currentlyActiveWallet.name}`,
-            );
-        } catch (err) {
-            console.log(
-                `Error in localforage.getItem("wallet") in activateWallet()`,
-            );
-            return false;
-        }
+
         // Get savedwallets
         let savedWallets;
         try {
@@ -1485,7 +1473,7 @@ const useWallet = () => {
                 wallet: newWallet,
             }).finally(() => setLoading(false));
         },
-        activateWallet: async walletToActivate => {
+        activateWallet: async (currentlyActiveWallet, walletToActivate) => {
             setLoading(true);
             // Make sure that the wallet update interval is not called on the former wallet before this function completes
             console.log(
@@ -1494,7 +1482,10 @@ const useWallet = () => {
             setWalletRefreshInterval(
                 currency.websocketDisconnectedRefreshInterval,
             );
-            const newWallet = await activateWallet(walletToActivate);
+            const newWallet = await activateWallet(
+                currentlyActiveWallet,
+                walletToActivate,
+            );
             console.log(`activateWallet gives newWallet ${newWallet.name}`);
             // Changing the wallet here will cause `initializeWebsocket` to fire which will update the websocket interval on a successful connection
             setWallet(newWallet);

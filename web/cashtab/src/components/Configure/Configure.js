@@ -725,11 +725,16 @@ const Configure = ({ passLoadingStatus }) => {
     // Same here
     // TODO you need to lock UI here until this is complete
     // Otherwise user may try to load an already-loading wallet, wreak havoc with indexedDB
-    const updateSavedWalletsOnLoad = async walletToActivate => {
+    const updateSavedWalletsOnLoad = async (wallet, walletToActivate) => {
+        console.log(
+            `updateSavedWalletsOnLoad called with`,
+            wallet,
+            walletToActivate,
+        );
         // Event("Category", "Action", "Label")
         // Track number of times a different wallet is activated
         Event('Configure.js', 'Activate', '');
-        await activateWallet(walletToActivate);
+        await activateWallet(wallet, walletToActivate);
     };
 
     async function submit() {
@@ -1667,6 +1672,7 @@ const Configure = ({ passLoadingStatus }) => {
                                                 <button
                                                     onClick={() =>
                                                         updateSavedWalletsOnLoad(
+                                                            wallet,
                                                             sw,
                                                         )
                                                     }
