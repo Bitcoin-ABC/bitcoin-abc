@@ -455,11 +455,9 @@ const GeneralSettingsItem = styled.div`
 
 const Configure = ({ passLoadingStatus }) => {
     const ContextValue = React.useContext(WalletContext);
-    const authentication = React.useContext(AuthenticationContext);
-    const { wallet, apiError } = ContextValue;
-    const location = useLocation();
-
     const {
+        wallet,
+        apiError,
         addNewSavedWallet,
         activateWallet,
         renameSavedWallet,
@@ -471,6 +469,11 @@ const Configure = ({ passLoadingStatus }) => {
         getContactListFromLocalForage,
         updateContactList,
     } = ContextValue;
+
+    const authentication = React.useContext(AuthenticationContext);
+
+    const location = useLocation();
+
     const [savedWallets, setSavedWallets] = useState([]);
     const [formData, setFormData] = useState({
         dirty: true,
