@@ -382,6 +382,7 @@ const App = () => {
     const ContextValue = React.useContext(WalletContext);
     const { wallet, loading } = ContextValue;
     const [loadingUtxosAfterSend, setLoadingUtxosAfterSend] = useState(false);
+    const [updatingWalletInfo, setUpdatingWalletInfo] = useState(false);
     const [navMenuClicked, setNavMenuClicked] = useState(false);
     const handleNavMenuClick = () => setNavMenuClicked(!navMenuClicked);
     // If wallet is unmigrated, do not show page until it has migrated
@@ -428,7 +429,10 @@ const App = () => {
             <ServiceWorkerWrapper />
             <Spin
                 spinning={
-                    loading || loadingUtxosAfterSend || (wallet && !validWallet)
+                    loading ||
+                    loadingUtxosAfterSend ||
+                    updatingWalletInfo ||
+                    (wallet && !validWallet)
                 }
                 indicator={CashLoadingIcon}
             >
@@ -512,7 +516,11 @@ const App = () => {
                                         <SignVerifyMsg />
                                     </Route>
                                     <Route path="/configure">
-                                        <Configure />
+                                        <Configure
+                                            passLoadingStatus={
+                                                setUpdatingWalletInfo
+                                            }
+                                        />
                                     </Route>
                                     <Redirect exact from="/" to="/wallet" />
                                     <Route component={NotFound} />

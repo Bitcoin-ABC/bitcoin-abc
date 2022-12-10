@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { useLocation, Link } from 'react-router-dom';
 import {
@@ -452,7 +453,7 @@ const GeneralSettingsItem = styled.div`
     }
 `;
 
-const Configure = () => {
+const Configure = ({ passLoadingStatus }) => {
     const ContextValue = React.useContext(WalletContext);
     const authentication = React.useContext(AuthenticationContext);
     const { wallet, apiError } = ContextValue;
@@ -511,6 +512,8 @@ const Configure = () => {
         setShowDeleteWalletModal(false);
     };
     const updateSavedWallets = async activeWallet => {
+        // Lock the UI while getting the correct savedWallets value from indexedDb into state
+        passLoadingStatus(true);
         if (activeWallet) {
             let savedWallets;
             try {
@@ -559,6 +562,15 @@ const Configure = () => {
         // Update savedWallets every time the active wallet changes
         updateSavedWallets(wallet);
     }, [wallet]);
+
+    useEffect(() => {
+        // Only unlock UI when savedWallets is updated in state
+        passLoadingStatus(false);
+        console.log(
+            `savedWallets from useEffect in Configure.js updated, unlocking UI`,
+            savedWallets,
+        );
+    }, [savedWallets]);
 
     useEffect(async () => {
         const detectedBrowserLang = navigator.language;
@@ -1907,6 +1919,23 @@ const Configure = () => {
             </StyledConfigure>
         </SidePaddingCtn>
     );
+};
+
+/*
+passLoadingStatus must receive a default prop that is a function
+in order to pass the rendering unit test in Configure.test.js
+
+status => {console.log(status)} is an arbitrary stub function
+*/
+
+Configure.defaultProps = {
+    passLoadingStatus: status => {
+        console.log(status);
+    },
+};
+
+Configure.propTypes = {
+    passLoadingStatus: PropTypes.func,
 };
 
 export default Configure;
