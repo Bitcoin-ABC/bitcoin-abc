@@ -666,31 +666,48 @@ const useWallet = () => {
                 return false;
             }
         }
-        if (activeWallet.name === oldName) {
-            activeWallet.name = newName;
-            setWallet(activeWallet);
-        }
 
-        // change name of desired wallet
+        // Change name of active wallet at its entry in savedWallets
         for (let i = 0; i < savedWallets.length; i += 1) {
             if (savedWallets[i].name === oldName) {
                 // Replace the name of this entry with the new name
                 savedWallets[i].name = newName;
             }
         }
+
         // resave savedWallets
         try {
             // Set walletName as the active wallet
             await localforage.setItem('savedWallets', savedWallets);
-            await localforage.setItem('wallet', activeWallet);
         } catch (err) {
             console.log(
                 `Error in localforage.setItem("wallet", wallet) in renameActiveWallet()`,
+                err,
             );
             console.log(`renameActiveWallet unlock UI on error`);
             setLoading(false);
             return false;
         }
+
+        // Change name of active wallet param in this function
+        activeWallet.name = newName;
+
+        // Update the active wallet entry in indexedDb
+        try {
+            await localforage.setItem('wallet', activeWallet);
+        } catch (err) {
+            console.log(
+                `Error in localforage.setItem("wallet", ${activeWallet.name}) in renameActiveWallet()`,
+                err,
+            );
+            console.log(`renameActiveWallet unlock UI on error`);
+            setLoading(false);
+            return false;
+        }
+
+        // Only set the renamed activeWallet in state if no errors earlier in this function
+        setWallet(activeWallet);
+
         console.log(`renameActiveWallet unlock UI on success`);
         setLoading(false);
         return true;
