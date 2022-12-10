@@ -559,9 +559,11 @@ const Configure = ({ passLoadingStatus }) => {
     const scannerSupported = width < 769 && isMobile && !(isIOS && !isSafari);
 
     useEffect(() => {
+        console.log(`User has changed the active wallet in Configure.js`);
         // Update savedWallets every time the active wallet changes
+        // Use wallet.name and not wallet as the dep param, since wallet changes every time new txs come in or update function from useWallet.js runs
         updateSavedWallets(wallet);
-    }, [wallet]);
+    }, [wallet.name]);
 
     useEffect(() => {
         // Only unlock UI when savedWallets is updated in state
