@@ -282,7 +282,6 @@ const useWallet = () => {
     };
 
     const updateContactList = async contactListArray => {
-        console.log(`updateContactList lock UI`);
         setLoading(true);
         let updateSuccess = true;
         try {
@@ -292,7 +291,6 @@ const useWallet = () => {
             console.log('Error in updateContactList', err);
             updateSuccess = false;
         }
-        console.log(`updateContactList unlock UI`);
         setLoading(false);
         return updateSuccess;
     };
@@ -457,7 +455,6 @@ const useWallet = () => {
     };
 
     const getSavedWallets = async activeWallet => {
-        console.log(`Lock UI for getSavedWallets`);
         setLoading(true);
 
         let savedWallets;
@@ -467,8 +464,7 @@ const useWallet = () => {
                 savedWallets = [];
             }
         } catch (err) {
-            console.log(`Error in getSavedWallets`);
-            console.log(err);
+            console.log(`Error in getSavedWallets`, err);
             savedWallets = [];
         }
         // Even though the active wallet is still stored in savedWallets, don't return it in this function
@@ -482,7 +478,6 @@ const useWallet = () => {
             }
         }
 
-        console.log(`Unlock UI after completing getSavedWallets`);
         setLoading(false);
         return savedWallets;
     };
@@ -592,7 +587,6 @@ const useWallet = () => {
     };
 
     const renameSavedWallet = async (oldName, newName) => {
-        console.log(`Lock UI to run renameSavedWallet`);
         setLoading(true);
         // Load savedWallets
         let savedWallets;
@@ -601,9 +595,8 @@ const useWallet = () => {
         } catch (err) {
             console.log(
                 `Error in await localforage.getItem("savedWallets") in renameSavedWallet`,
+                err,
             );
-            console.log(err);
-            console.log(`Unlock UI on exiting renameSavedWallet on error`);
             setLoading(false);
             return false;
         }
@@ -611,7 +604,6 @@ const useWallet = () => {
         for (let i = 0; i < savedWallets.length; i += 1) {
             if (savedWallets[i].name === newName) {
                 // return an error
-                console.log(`Unlock UI on exiting renameSavedWallet on error`);
                 setLoading(false);
                 return false;
             }
@@ -631,18 +623,16 @@ const useWallet = () => {
         } catch (err) {
             console.log(
                 `Error in localforage.setItem("savedWallets", savedWallets) in renameSavedWallet()`,
+                err,
             );
-            console.log(`Unlock UI on exiting renameSavedWallet on error`);
             setLoading(false);
             return false;
         }
-        console.log(`Unlock UI on exiting renameSavedWallet on success`);
         setLoading(false);
         return true;
     };
 
     const renameActiveWallet = async (activeWallet, oldName, newName) => {
-        console.log(`renameActiveWallet lock UI`);
         setLoading(true);
         // Load savedWallets
         let savedWallets;
@@ -651,9 +641,8 @@ const useWallet = () => {
         } catch (err) {
             console.log(
                 `Error in await localforage.getItem("savedWallets") in renameSavedWallet`,
+                err,
             );
-            console.log(err);
-            console.log(`renameActiveWallet unlock UI on error`);
             setLoading(false);
             return false;
         }
@@ -661,7 +650,6 @@ const useWallet = () => {
         for (let i = 0; i < savedWallets.length; i += 1) {
             if (savedWallets[i].name === newName) {
                 // return an error
-                console.log(`renameActiveWallet unlock UI on error`);
                 setLoading(false);
                 return false;
             }
@@ -684,7 +672,6 @@ const useWallet = () => {
                 `Error in localforage.setItem("wallet", wallet) in renameActiveWallet()`,
                 err,
             );
-            console.log(`renameActiveWallet unlock UI on error`);
             setLoading(false);
             return false;
         }
@@ -700,7 +687,6 @@ const useWallet = () => {
                 `Error in localforage.setItem("wallet", ${activeWallet.name}) in renameActiveWallet()`,
                 err,
             );
-            console.log(`renameActiveWallet unlock UI on error`);
             setLoading(false);
             return false;
         }
@@ -708,13 +694,11 @@ const useWallet = () => {
         // Only set the renamed activeWallet in state if no errors earlier in this function
         setWallet(activeWallet);
 
-        console.log(`renameActiveWallet unlock UI on success`);
         setLoading(false);
         return true;
     };
 
     const deleteWallet = async walletToBeDeleted => {
-        console.log(`deleteWallet lock UI on start`);
         setLoading(true);
         // delete a wallet
         // returns true if wallet is successfully deleted
@@ -726,9 +710,8 @@ const useWallet = () => {
         } catch (err) {
             console.log(
                 `Error in await localforage.getItem("savedWallets") in deleteWallet`,
+                err,
             );
-            console.log(err);
-            console.log(`deleteWallet unlock UI on error`);
             setLoading(false);
             return false;
         }
@@ -747,7 +730,6 @@ const useWallet = () => {
         }
         // If you don't find the wallet, return false
         if (!walletFoundAndRemoved) {
-            console.log(`deleteWallet unlock UI on error`);
             setLoading(false);
             return false;
         }
@@ -759,18 +741,16 @@ const useWallet = () => {
         } catch (err) {
             console.log(
                 `Error in localforage.setItem("savedWallets", savedWallets) in deleteWallet()`,
+                err,
             );
-            console.log(`deleteWallet unlock UI on error`);
             setLoading(false);
             return false;
         }
-        console.log(`deleteWallet unlock UI on success`);
         setLoading(false);
         return true;
     };
 
     const addNewSavedWallet = async importMnemonic => {
-        console.log(`Locking UI after to add a new saved wallet`);
         setLoading(true);
         // Add a new wallet to savedWallets from importMnemonic or just new wallet
         const lang = 'english';
@@ -794,8 +774,8 @@ const useWallet = () => {
         } catch (err) {
             console.log(
                 `Error in savedWallets = await localforage.getItem("savedWallets") in addNewSavedWallet()`,
+                err,
             );
-            console.log(err);
             console.log(`savedWallets in error state`, savedWallets);
         }
         // If this wallet is from an imported mnemonic, make sure it does not already exist in savedWallets
@@ -808,9 +788,6 @@ const useWallet = () => {
                         `Error: this wallet already exists in savedWallets`,
                     );
                     console.log(`Wallet not being added.`);
-                    console.log(
-                        `Unlocking UI after exiting addSavedWallet in error condition`,
-                    );
                     setLoading(false);
                     return false;
                 }
@@ -824,11 +801,10 @@ const useWallet = () => {
         } catch (err) {
             console.log(
                 `Error in localforage.setItem("savedWallets", activeWallet) called in createWallet with ${importMnemonic}`,
+                err,
             );
             console.log(`savedWallets`, savedWallets);
-            console.log(err);
         }
-        console.log(`Unlocking UI after exiting addNewSavedWallet success`);
         setLoading(false);
         return true;
     };
