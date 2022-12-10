@@ -9,7 +9,7 @@ import BigNumber from 'bignumber.js';
 import cashaddr from 'ecashaddrjs';
 import bs58 from 'bs58';
 import * as slpMdm from 'slp-mdm';
-import Bitcoin from '@psf/bitcoincashjs-lib';
+import Bitcoin from 'ecashjs-lib';
 import coininfo from 'utils/coininfo';
 
 // function is based on BCH-JS' generateBurnOpReturn() however it's been trimmed down for Cashtab use

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import usePrevious from 'hooks/usePrevious';
 import useInterval from './useInterval';
 import BigNumber from 'bignumber.js';
-import Bitcoin from '@psf/bitcoincashjs-lib';
+import Bitcoin from 'ecashjs-lib';
 import coininfo from 'utils/coininfo';
 import {
     loadStoredWallet,

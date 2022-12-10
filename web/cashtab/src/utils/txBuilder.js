@@ -1,6 +1,6 @@
 // Transaction builder module streamlined for eCash
 // reference: https://github.com/Permissionless-Software-Foundation/bch-js/blob/master/src/transaction-builder.js
-const Bitcoin = require('@psf/bitcoincashjs-lib');
+const Bitcoin = require('ecashjs-lib');
 import coininfo from 'utils/coininfo';
 const bip66 = require('bip66');
 const bip68 = require('bc-bip68');
