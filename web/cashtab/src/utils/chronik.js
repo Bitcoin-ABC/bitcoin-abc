@@ -527,10 +527,6 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
             let hex = thisOutputReceivedAtHash160;
             let parsedOpReturnArray = parseOpReturn(hex);
 
-            // Exactly copying lines 177-293 of useBCH.js
-            // Differences
-            // 1 - patched ecies not async error
-            // 2 - Removed if loop for tx being token, as this is handled elsewhere here
             if (!parsedOpReturnArray) {
                 console.log(
                     'useBCH.parsedTxData() error: parsed array is empty',
@@ -623,7 +619,7 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
                     decryptionSuccess = true;
                 } catch (err) {
                     console.log(
-                        'useBCH.parsedTxData() decryption error: ' + err,
+                        `Decryption error in parseChronikTx${tx.txid}: ` + err,
                     );
                     decryptedMessage = 'Unable to decrypt this message';
                 }
@@ -634,7 +630,7 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
                 // this is an externally generated message
                 message = txType; // index 0 is the message content in this instance
 
-                // if there are more than one part to the external message
+                // if there is more than one part to the external message
                 const arrayLength = parsedOpReturnArray.length;
                 for (let i = 1; i < arrayLength; i++) {
                     message = message + parsedOpReturnArray[i];
@@ -646,7 +642,7 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
                     // soft error if an unexpected or invalid cashtab hex is encountered
                     opReturnMessage = '';
                     console.log(
-                        'useBCH.parsedTxData() error: invalid external msg hex: ' +
+                        `Error in parseChronikTx(${tx.txid}): invalid external msg hex: ` +
                             substring,
                     );
                 }
@@ -735,7 +731,7 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
             }
         } catch (err) {
             console.log(
-                `Error getting token info from cache in parseChronikTx`,
+                `Error getting token info from cache in parseChronikTx for ${tx.txid}`,
                 err,
             );
             // To keep this function synchronous, do not get this info from the API if it is not in cache
