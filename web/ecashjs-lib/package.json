@@ -1,17 +1,19 @@
 {
-    "name": "@psf/bitcoincashjs-lib",
-    "version": "4.0.2",
-    "description": "Client-side Bitcoin JavaScript library",
+    "name": "ecashjs-lib",
+    "version": "1.0.0",
+    "description": "Client-side eCash JavaScript library",
     "main": "./src/index.js",
     "engines": {
         "node": ">=10.15.1"
     },
     "keywords": [
+        "ecashjs",
+        "ecash",
+        "xec",
         "bitcoinjs",
         "bitcoin",
         "browserify",
-        "javascript",
-        "bitcoinjs"
+        "javascript"
     ],
     "scripts": {
         "coverage-report": "nyc report --reporter=lcov",
@@ -22,7 +24,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/bitcoinjs/bitcoinjs-lib.git"
+        "url": "https://github.com/Bitcoin-ABC/bitcoin-abc.git"
     },
     "files": [
         "src"
