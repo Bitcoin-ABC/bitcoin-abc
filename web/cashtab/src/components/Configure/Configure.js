@@ -561,10 +561,10 @@ const Configure = ({ passLoadingStatus }) => {
 
     const scannerSupported = width < 769 && isMobile && !(isIOS && !isSafari);
 
-    useEffect(() => {
+    useEffect(async () => {
         // Update savedWallets every time the active wallet changes
         // Use wallet.name and not wallet as the dep param, since wallet changes every time new txs come in or update function from useWallet.js runs
-        updateSavedWallets(wallet);
+        await updateSavedWallets(wallet);
     }, [wallet.name]);
 
     useEffect(() => {
