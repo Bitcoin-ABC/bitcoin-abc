@@ -7,6 +7,22 @@ export const currency = {
     ticker: 'XEC',
     logo: mainLogo,
     legacyPrefix: 'bitcoincash',
+    aliasSettings: {
+        // change to multisig prior to landing in prod
+        aliasPaymentAddress: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+        // nominal pricing tiers for testing only - to be used as 'aliasRegistrationFeeInSats.oneChar'
+        aliasRegistrationFeeInSats: {
+            oneChar: 558,
+            twoChar: 557,
+            threeChar: 556,
+            fourChar: 555,
+            fiveChar: 554,
+            sixChar: 553,
+            sevenChar: 552,
+            eightChar: 551,
+            minFee: 550, // dust
+        },
+    },
     coingeckoId: 'ecash',
     defaultFee: 2.01,
     dustSats: 550,
@@ -50,6 +66,7 @@ export const currency = {
             cashtab: '00746162',
             cashtabEncrypted: '65746162',
             airdrop: '64726f70',
+            aliasRegistration: '2E786563',
         },
         encryptedMsgCharLimit: 125,
         unencryptedMsgCharLimit: 206,

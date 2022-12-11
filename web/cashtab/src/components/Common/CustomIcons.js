@@ -32,6 +32,7 @@ import { ReactComponent as EyeInvisibleSVG } from 'assets/eye-invisible.svg';
 import { ReactComponent as Audit } from 'assets/audit.svg';
 import { ReactComponent as Mail } from 'assets/mail.svg';
 export const CashLoadingIcon = <LoadingOutlined className="cashLoadingIcon" />;
+import { ReactComponent as User } from 'assets/user.svg';
 
 export const CashReceivedNotificationIcon = () => (
     <Image height={'33px'} width={'30px'} src={currency.logo} preview={false} />
@@ -158,6 +159,11 @@ export const ThemedInvisibleEyeSVG = styled(EyeInvisibleSVG)`
 
 export const ThemedSignAndVerifyMsg = styled(Audit)`
     min-width: 24px;
+`;
+
+export const ThemedUserProfileIcon = styled(User)`
+    height: 33px;
+    width: 30px;
 `;
 
 export const LoadingBlock = styled.div`

@@ -567,6 +567,7 @@ export const generateOpReturnScript = (
     airdropFlag,
     airdropTokenId,
     encryptedEj,
+    // optionalAliasRegistrationFlag,
 ) => {
     // encrypted mesage is mandatory when encryptionFlag is true
     // airdrop token id is mandatory when airdropFlag is true
@@ -613,6 +614,13 @@ export const generateOpReturnScript = (
             script.push(
                 Buffer.from(currency.opReturn.appPrefixesHex.cashtab, 'hex'), // 00746162
             );
+
+            /*
+            if (optionalAliasRegistrationFlag) {
+                add currency.opReturn.appPrefixesHex.aliasRegistration to script
+            }
+            */
+            // the alias to be registered is the optionalOpReturnMsg
 
             // add the un-encrypted message to script if supplied
             if (optionalOpReturnMsg) {
@@ -781,6 +789,8 @@ export function parseOpReturn(hexStr) {
         ) {
             // add the airdrop prefix to array
             resultArray[i] = currency.opReturn.appPrefixesHex.airdrop;
+            // TODO: if i === 1 and message === currency.opReturn.appPrefixesHex.aliasRegistration
+            // flag accordingly
         } else {
             // this is either an external message or a subsequent cashtab message loop to extract the message
             resultArray[i] = message;

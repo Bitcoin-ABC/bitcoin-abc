@@ -18,6 +18,7 @@ App prefixes below are little-endian, i.e. how they appear in eCash transaction 
 | 00746162              | Cashtab           | Bitcoin ABC                         | ecash:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdg2jj94l5j | https://cashtab.com/                                          | n/a             |
 | 65746162              | Cashtab Encrypted | Bitcoin ABC                         | ecash:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdg2jj94l5j | https://cashtab.com/                                          | n/a             |
 | 64726f70              | Airdrop           | Bitcoin ABC                         | ecash:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdg2jj94l5j | https://cashtab.com/                                          | n/a             |
+| 2E786563              | Namespace Alias   | Bitcoin ABC                         | ecash:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdg2jj94l5j | https://cashtab.com/                                          | n/a             |
 
 ---
 

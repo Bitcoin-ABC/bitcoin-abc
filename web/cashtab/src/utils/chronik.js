@@ -551,6 +551,9 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
             }
 
             if (txType === currency.opReturn.appPrefixesHex.cashtab) {
+                // if this is an alias registration, render accordingly
+                // isAliasRegistration = true;
+
                 // this is a Cashtab message
                 try {
                     opReturnMessage = Buffer.from(

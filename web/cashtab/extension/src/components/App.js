@@ -10,6 +10,7 @@ import {
     SettingsIcon,
     AirdropIcon,
     ThemedSignAndVerifyMsg,
+    ThemedUserProfileIcon,
 } from 'components/Common/CustomIcons';
 import '../index.css';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
@@ -20,6 +21,7 @@ import Tokens from 'components/Tokens/Tokens';
 import Send from 'components/Send/Send';
 import SendToken from 'components/Send/SendToken';
 import Airdrop from 'components/Airdrop/Airdrop';
+import Alias from 'components/Alias/Alias';
 import Configure from 'components/Configure/Configure';
 import SignVerifyMsg from 'components/SignVerifyMsg/SignVerifyMsg';
 import NotFound from 'components/NotFound';
@@ -653,6 +655,13 @@ const App = () => {
                                 <Route path="/signverifymsg">
                                     <SignVerifyMsg />
                                 </Route>
+                                <Route path="/alias">
+                                    <Alias
+                                        passLoadingStatus={
+                                            setLoadingUtxosAfterSend
+                                        }
+                                    />
+                                </Route>
                                 <Route path="/configure">
                                     <Configure
                                         passLoadingStatus={
@@ -712,6 +721,16 @@ const App = () => {
                                         >
                                             <p>Sign & Verify</p>
                                             <ThemedSignAndVerifyMsg />
+                                        </NavItem>
+                                        <NavItem
+                                            active={selectedKey === 'alias'}
+                                            onClick={() =>
+                                                history.push('/alias')
+                                            }
+                                        >
+                                            {' '}
+                                            <p>Alias</p>
+                                            <ThemedUserProfileIcon />
                                         </NavItem>
                                         <NavItem
                                             active={selectedKey === 'configure'}

@@ -332,6 +332,7 @@ export const sendXec = async (
     airdropFlag,
     airdropTokenId,
     optionalMockPubKeyResponse = false,
+    // optionalAliasRegistrationFlag,
 ) => {
     try {
         let txBuilder = new TransactionBuilder();
@@ -406,6 +407,7 @@ export const sendXec = async (
                 airdropFlag,
                 airdropTokenId,
                 encryptedEj,
+                // optionalAliasRegistrationFlag,
             );
             txBuilder.addOutput(opReturnData, 0);
         }

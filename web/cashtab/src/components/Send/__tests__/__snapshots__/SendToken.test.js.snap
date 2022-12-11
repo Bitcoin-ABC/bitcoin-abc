@@ -4,10 +4,10 @@ exports[`Wallet with BCH balances and tokens 1`] = `null`;
 
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 <div
-  className="sc-jWBwVP bOCXcR"
+  className="sc-brqgnP bfyWvH"
 >
   <div
-    className="sc-jDwBTQ dLkfcN"
+    className="sc-gPEVay djlRgR"
   >
     6.001000000
      
@@ -33,7 +33,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         }
       >
         <div
-          className="sc-kkGfuU JWAsO"
+          className="sc-iAyFgw jzsFKO"
         >
           <div
             className="ant-form-item ant-form-item-with-help"
@@ -107,7 +107,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                           className="ant-input-group-addon"
                         >
                           <span
-                            className="sc-eNQAEJ rjbMI"
+                            className="sc-hMqMXs cVhNWA"
                             onClick={[Function]}
                           >
                             <span
@@ -140,7 +140,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
           </div>
         </div>
         <div
-          className="sc-kkGfuU JWAsO"
+          className="sc-iAyFgw jzsFKO"
         >
           <div
             className="ant-form-item ant-form-item-with-help"
@@ -200,7 +200,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                           className="ant-input-group-addon"
                         >
                           <span
-                            className="sc-iAyFgw jYZvjf"
+                            className="sc-hSdWYo cuaAmY"
                             disabled={false}
                             onClick={[Function]}
                           >
@@ -223,7 +223,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
           }
         >
           <button
-            className="sc-kpOJdX bVnaln"
+            className="sc-dxgOiQ jOtciy"
             onClick={[Function]}
           >
             Send 
