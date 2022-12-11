@@ -1,0 +1,30 @@
+{
+    "name": "bitcoincash-ops",
+    "version": "2.0.0",
+    "description": "Bitcoin Cash OP codes",
+    "author": "Gabriel Cardona <gabriel@bitcoin.com>",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/bitcoin-com/bitcoincash-ops.git"
+    },
+    "bugs": {
+        "url": "https://github.com/bitcoin-com/bitcoincash-ops/issues"
+    },
+    "homepage": "https://github.com/bitcoin-com/bitcoincash-ops",
+    "keywords": [
+        "opcodes",
+        "ops",
+        "bitcoincash-ops",
+        "bitcoin"
+    ],
+    "files": [
+        "index.json",
+        "map.js"
+    ],
+    "main": "./index.json",
+    "scripts": {},
+    "devDependencies": {
+        "standard": "*"
+    }
+}
