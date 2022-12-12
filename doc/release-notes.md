@@ -14,5 +14,5 @@ This release includes the following features and fixes:
    `-bytespersigcheck` should be used instead.
  - The `sigops` and `sigoplimit` fields of the `getblocktemplate` RPC are now
    deprecated and the new `sigchecks` and `sigchecklimit` fields should be used
-   instead. The option `-deprecatedrpc=getblocktemplate_sigops=1` can be used to
+   instead. The option `-deprecatedrpc=getblocktemplate_sigops` can be used to
    print the legacy fields.
