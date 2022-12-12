@@ -1,6 +1,6 @@
 {
-    "name": "pushdata-bitcoin",
-    "version": "1.0.1",
+    "name": "pushdata-ecash",
+    "version": "1.0.0",
     "description": "encode/decode value as bitcoin OP_PUSHDATA integer",
     "keywords": [
         "push",
@@ -12,13 +12,13 @@
         "OP_PUSHDATA1",
         "OP_PUSHDATA2",
         "OP_PUSHDATA4",
-        "pushdata-bitcoin",
-        "bitcoinjs-lib",
-        "bitcoin"
+        "pushdata-ecash",
+        "ecashjs-lib",
+        "ecash"
     ],
-    "homepage": "https://github.com/bitcoinjs/pushdata-bitcoin",
+    "homepage": "https://github.com/Bitcoin-ABC/bitcoin-abc/",
     "bugs": {
-        "url": "https://github.com/bitcoinjs/pushdata-bitcoin/issues"
+        "url": "https://github.com/Bitcoin-ABC/bitcoin-abc/issues"
     },
     "license": "MIT",
     "author": "Daniel Cousens",
@@ -28,21 +28,18 @@
     "main": "index.js",
     "repository": {
         "type": "git",
-        "url": "https://github.com/bitcoinjs/pushdata-bitcoin.git"
+        "url": "https://github.com/Bitcoin-ABC/bitcoin-abc.git"
     },
     "scripts": {
         "prepublish": "npm run test",
         "coverage": "nyc --check-coverage --branches 100 --functions 100 tape test/*.js",
-        "lint": "standard",
-        "test": "npm run lint && npm run unit",
-        "unit": "tape test/*.js"
+        "test": "tape test/*.js"
     },
     "devDependencies": {
         "nyc": "^6.4.0",
-        "standard": "*",
         "tape": "^4.5.1"
     },
     "dependencies": {
-        "bitcoin-ops": "^1.3.0"
+        "ecash-ops": "^1.0.1"
     }
 }
