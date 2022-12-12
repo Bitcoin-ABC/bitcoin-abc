@@ -11,7 +11,7 @@ const ProtectableComponentWrapper = ({ children }) => {
             authentication;
 
         if (loading) {
-            return <p>Loading authenticaion data...</p>;
+            return <p>Loading authentication data...</p>;
         }
 
         // prompt if user would like to enable biometric lock when the app first run
