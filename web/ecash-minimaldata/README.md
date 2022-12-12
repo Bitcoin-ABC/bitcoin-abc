@@ -1,14 +1,13 @@
-# minimaldata
+# minimaldata-ecash
 
-[![NPM Package](https://img.shields.io/npm/v/minimaldata.svg?style=flat-square)](https://www.npmjs.org/package/minimaldata)
-[![Build Status](https://img.shields.io/travis/bitcoinjs/minimaldata.svg?branch=master&style=flat-square)](https://travis-ci.org/bitcoinjs/minimaldata)
+[![NPM Package](https://img.shields.io/npm/v/minimaldata.svg?style=flat-square)](https://www.npmjs.org/package/minimaldata-ecash)
 
 Following BIP62.3, this module validates that a script uses only minimal data pushes.
 
 ## Example
 
 ```javascript
-var minimaldata = require('minimaldata');
+var minimaldata = require('minimaldata-ecash');
 
 // OP_PUSHDATA4, 1 byte
 var script = new Buffer('4e0100000000', 'hex');

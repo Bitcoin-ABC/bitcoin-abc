@@ -1,5 +1,5 @@
-var OPS = require('bitcoin-ops');
-var pushData = require('pushdata-bitcoin');
+var OPS = require('ecash-ops');
+var pushData = require('pushdata-ecash');
 
 // https://github.com/bitcoin/bitcoin/blob/master/src/script/script.h#L22
 var MAX_SCRIPT_ELEMENT_SIZE = 520;

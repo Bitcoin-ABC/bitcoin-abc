@@ -1,6 +1,6 @@
 {
     "name": "ecash-minimaldata",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "A module to check ecash policy: SCRIPT_VERIFY_MINIMALDATA",
     "keywords": [
         "minimal",
@@ -41,6 +41,6 @@
     },
     "dependencies": {
         "ecash-ops": "^1.0.1",
-        "pushdata-bitcoin": "^1.0.1"
+        "pushdata-ecash": "^1.0.0"
     }
 }
