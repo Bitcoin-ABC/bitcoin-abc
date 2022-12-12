@@ -64,8 +64,6 @@ static SendCoinsRecipient handleRequest(PaymentServer *server,
 }
 
 void PaymentServerTests::paymentServerTests() {
-    QSKIP("FIXME The certificates have expired and need to be renewed", true);
-
     // This is necessary to initialize openssl on the test framework
     // (at least on Darwin).
     SSL_library_init();
