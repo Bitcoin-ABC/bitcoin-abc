@@ -23,3 +23,9 @@
 -   Updated `index.js` to use correct dependencies
 -   Updated README.md to reflect `ecash-minimaldata` instead of legacy name `minimaldata`
 -   Unit tests patched
+
+# 1.0.1
+
+**patched**
+
+-   Corrected references to `minimaldata-ecash` in README.md to `ecash-minimaldata`

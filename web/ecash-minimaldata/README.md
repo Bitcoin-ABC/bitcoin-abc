@@ -1,4 +1,4 @@
-# minimaldata-ecash
+# ecash-minimaldata
 
 [![NPM Package](https://img.shields.io/npm/v/minimaldata.svg?style=flat-square)](https://www.npmjs.org/package/minimaldata-ecash)
 
@@ -7,7 +7,7 @@ Following BIP62.3, this module validates that a script uses only minimal data pu
 ## Example
 
 ```javascript
-var minimaldata = require('minimaldata-ecash');
+var minimaldata = require('ecash-minimaldata');
 
 // OP_PUSHDATA4, 1 byte
 var script = new Buffer('4e0100000000', 'hex');

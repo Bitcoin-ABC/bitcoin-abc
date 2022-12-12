@@ -1,6 +1,6 @@
 {
     "name": "ecash-minimaldata",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "A module to check ecash policy: SCRIPT_VERIFY_MINIMALDATA",
     "keywords": [
         "minimal",
