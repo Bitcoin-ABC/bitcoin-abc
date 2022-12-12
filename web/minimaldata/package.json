@@ -1,0 +1,49 @@
+{
+    "name": "minimaldata",
+    "version": "1.0.2",
+    "description": "A module to check bitcoin policy: SCRIPT_VERIFY_MINIMALDATA",
+    "keywords": [
+        "minimal",
+        "push",
+        "BIP62",
+        "OP_0",
+        "OP_1",
+        "OP_PUSHDATA1",
+        "OP_PUSHDATA2",
+        "OP_PUSHDATA4",
+        "malleability",
+        "minimaldata",
+        "bitcoinjs-lib",
+        "bitcoin"
+    ],
+    "homepage": "https://github.com/bitcoinjs/minimaldata",
+    "bugs": {
+        "url": "https://github.com/bitcoinjs/minimaldata/issues"
+    },
+    "license": "MIT",
+    "author": "Daniel Cousens",
+    "files": [
+        "index.js"
+    ],
+    "main": "index.js",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/bitcoinjs/minimaldata.git"
+    },
+    "scripts": {
+        "prepublish": "npm run test",
+        "coverage": "nyc --check-coverage --branches 100 --functions 100 tape test/*.js",
+        "lint": "standard",
+        "test": "npm run lint && npm run unit",
+        "unit": "tape test/*.js"
+    },
+    "devDependencies": {
+        "nyc": "^6.4.0",
+        "standard": "*",
+        "tape": "^4.5.1"
+    },
+    "dependencies": {
+        "bitcoin-ops": "^1.3.0",
+        "pushdata-bitcoin": "^1.0.1"
+    }
+}
