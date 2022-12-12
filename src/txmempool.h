@@ -370,8 +370,7 @@ enum class MemPoolRemovalReason {
  * example, the following new transactions will not be added to the mempool:
  * - a transaction which doesn't meet the minimum fee requirements.
  * - a new transaction that double-spends an input of a transaction already in
- * the pool where the new transaction does not meet the Replace-By-Fee
- * requirements as defined in BIP 125.
+ * the pool.
  * - a non-standard transaction.
  *
  * CTxMemPool::mapTx, and CTxMemPoolEntry bookkeeping:
@@ -390,8 +389,9 @@ enum class MemPoolRemovalReason {
  *
  * In order for the feerate sort to remain correct, we must update transactions
  * in the mempool when new descendants arrive. To facilitate this, we track the
- * set of in-mempool direct parents and direct children in mapLinks. Within each
- * CTxMemPoolEntry, we track the size and fees of all descendants.
+ * set of in-mempool direct parents and direct children in m_parents and
+ * m_children. Within each CTxMemPoolEntry, we track the size and fees of all
+ * descendants.
  *
  * Usually when a new transaction is added to the mempool, it has no in-mempool
  * children (because any such children would be an orphan). So in
@@ -423,7 +423,7 @@ enum class MemPoolRemovalReason {
  * state, to account for in-mempool, out-of-block descendants for all the
  * in-block transactions by calling UpdateTransactionsFromBlock(). Note that
  * until this is called, the mempool state is not consistent, and in particular
- * mapLinks may not be correct (and therefore functions like
+ * m_parents and m_children may not be correct (and therefore functions like
  * CalculateMemPoolAncestors() and CalculateDescendants() that rely on them to
  * walk the mempool are not generally safe to use).
  *
@@ -470,7 +470,7 @@ public:
 
     typedef boost::multi_index_container<
         CTxMemPoolEntry, boost::multi_index::indexed_by<
-                             // sorted by txid
+                             // indexed by txid
                              boost::multi_index::hashed_unique<
                                  mempoolentry_txid, SaltedTxIdHasher>,
                              // sorted by fee rate
@@ -698,7 +698,7 @@ public:
      *  limitDescendantSize = max size of descendants any ancestor can have
      *  errString = populated with error reason if any limits are hit
      * fSearchForParents = whether to search a tx's vin for in-mempool parents,
-     * or look up parents from mapLinks. Must be true for entries not in the
+     * or look up parents from m_parents. Must be true for entries not in the
      * mempool
      */
     bool CalculateMemPoolAncestors(

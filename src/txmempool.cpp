@@ -500,7 +500,7 @@ void CTxMemPoolEntry::UpdateDescendantState(int64_t modifySize,
     nCountWithDescendants += modifyCount;
     assert(int64_t(nCountWithDescendants) > 0);
     nSigChecksWithDescendants += modifySigChecks;
-    assert(int64_t(nSigChecksWithDescendants) >= 0);
+    assert(nSigChecksWithDescendants >= 0);
 }
 
 void CTxMemPoolEntry::UpdateAncestorState(int64_t modifySize, Amount modifyFee,
@@ -512,7 +512,7 @@ void CTxMemPoolEntry::UpdateAncestorState(int64_t modifySize, Amount modifyFee,
     nCountWithAncestors += modifyCount;
     assert(int64_t(nCountWithAncestors) > 0);
     nSigChecksWithAncestors += modifySigChecks;
-    assert(int(nSigChecksWithAncestors) >= 0);
+    assert(nSigChecksWithAncestors >= 0);
 }
 
 CTxMemPool::CTxMemPool(int check_ratio) : m_check_ratio(check_ratio) {
