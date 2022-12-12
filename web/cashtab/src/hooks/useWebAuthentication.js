@@ -13,9 +13,8 @@ const useWebAuthentication = () => {
     // Possible values of isAuthenticationRequired:
     //   true - YES, authentication is required
     //   false - NO, authentication is not required
-    //   undefined - has not been set, this is the first time the app runs
     const [isAuthenticationRequired, setIsAuthenticationRequired] =
-        useState(undefined);
+        useState(false);
     const [credentialId, setCredentialId] = useState(null);
     const [isSignedIn, setIsSignedIn] = useState(false);
     const [userId, setUserId] = useState(Date.now().toString(16));

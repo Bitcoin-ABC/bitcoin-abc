@@ -1,7 +1,6 @@
 import React, { useContext } from 'react';
 import { AuthenticationContext } from 'utils/context';
 import PropTypes from 'prop-types';
-import SignUp from './SignUp';
 import SignIn from './SignIn';
 
 const ProtectableComponentWrapper = ({ children }) => {
@@ -12,11 +11,6 @@ const ProtectableComponentWrapper = ({ children }) => {
 
         if (loading) {
             return <p>Loading authentication data...</p>;
-        }
-
-        // prompt if user would like to enable biometric lock when the app first run
-        if (isAuthenticationRequired === undefined) {
-            return <SignUp />;
         }
 
         // prompt user to sign in
