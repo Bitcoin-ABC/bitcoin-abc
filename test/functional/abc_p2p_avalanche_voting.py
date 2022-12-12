@@ -236,6 +236,34 @@ class AvalancheTest(BitcoinTestFramework):
         node.parkblock(fork_tip)
         assert not node.isfinalblock(fork_tip)
 
+        # Trigger polling and finalize a new tip to setup for the next test.
+        node.unparkblock(fork_tip)
+        fork_tip = self.generate(fork_node, 1)[-1]
+        hash_tip_final = int(fork_tip, 16)
+        self.wait_until(has_finalized_new_tip)
+        assert_equal(node.getbestblockhash(), fork_tip)
+
+        self.log.info("Verify finalization sticks...")
+        # Create a new fork 2 blocks deep
+        fork_node.invalidateblock(fork_tip)
+        # We need to send the coin to a new address in order to make sure we do
+        # not regenerate the same block.
+        self.generatetoaddress(
+            fork_node,
+            2,
+            'ecregtest:pqv2r67sgz3qumufap3h2uuj0zfmnzuv8v38gtrh5v',
+            sync_fun=self.no_op)
+
+        # node should park the block because its tip is finalized
+        fork_tip = fork_node.getbestblockhash()
+        hash_to_find = int(fork_tip, 16)
+        self.wait_until(lambda: parked_block(fork_tip))
+
+        # sanity check
+        poll_node.send_poll([hash_to_find])
+        assert_response(
+            [AvalancheVote(AvalancheVoteError.PARKED, hash_to_find)])
+
         self.log.info(
             "Check the node is discouraging unexpected avaresponses.")
         with node.assert_debug_log(
