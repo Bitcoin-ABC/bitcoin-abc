@@ -138,9 +138,6 @@ static RPCHelpMan addavalanchenode() {
             HelpExampleRpc("addavalanchenode", "5, \"<pubkey>\", \"<proof>\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params,
-                         {UniValue::VNUM, UniValue::VSTR, UniValue::VSTR});
-
             const NodeId nodeid = request.params[0].get_int64();
             CPubKey key = ParsePubKey(request.params[1]);
 
@@ -256,9 +253,6 @@ static RPCHelpMan buildavalancheproof() {
                                    "0 1234567800 \"<master>\" []")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params, {UniValue::VNUM, UniValue::VNUM,
-                                          UniValue::VSTR, UniValue::VARR});
-
             const uint64_t sequence = request.params[0].get_int64();
             const int64_t expiration = request.params[1].get_int64();
 
@@ -416,8 +410,6 @@ static RPCHelpMan decodeavalancheproof() {
                     HelpExampleRpc("decodeavalancheproof", "\"<hex proof>\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params, {UniValue::VSTR});
-
             avalanche::Proof proof;
             bilingual_str error;
             if (!avalanche::Proof::FromHex(proof, request.params[0].get_str(),
@@ -491,9 +483,6 @@ static RPCHelpMan delegateavalancheproof() {
                            "\"<limitedproofid>\" \"<privkey>\" \"<pubkey>\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params,
-                         {UniValue::VSTR, UniValue::VSTR, UniValue::VSTR});
-
             avalanche::LimitedProofId limitedProofId{
                 ParseHashV(request.params[0], "limitedproofid")};
 
@@ -593,8 +582,6 @@ static RPCHelpMan decodeavalanchedelegation() {
                                    "\"<hex delegation>\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params, {UniValue::VSTR});
-
             avalanche::Delegation delegation;
             bilingual_str error;
             if (!avalanche::Delegation::FromHex(
@@ -882,8 +869,6 @@ static RPCHelpMan getavalanchepeerinfo() {
                     HelpExampleRpc("getavalanchepeerinfo", "\"proofid\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params, {UniValue::VSTR});
-
             NodeContext &node = EnsureAnyNodeContext(request.context);
             avalanche::Processor &avalanche = EnsureAvalanche(node);
 
@@ -1633,8 +1618,6 @@ static RPCHelpMan verifyavalancheproof() {
         RPCExamples{HelpExampleRpc("verifyavalancheproof", "\"<proof>\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params, {UniValue::VSTR});
-
             avalanche::Proof proof;
             verifyProofOrThrow(EnsureAnyNodeContext(request.context), proof,
                                request.params[0].get_str());
@@ -1658,8 +1641,6 @@ static RPCHelpMan verifyavalanchedelegation() {
         RPCExamples{HelpExampleRpc("verifyavalanchedelegation", "\"<proof>\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params, {UniValue::VSTR});
-
             avalanche::Delegation delegation;
             CPubKey dummy;
             verifyDelegationOrThrow(delegation, request.params[0].get_str(),

@@ -688,7 +688,8 @@ static RPCHelpMan getblock() {
              "The block hash"},
             {"verbosity|verbose", RPCArg::Type::NUM, RPCArg::Default{1},
              "0 for hex-encoded data, 1 for a json object, and 2 for json "
-             "object with transaction data"},
+             "object with transaction data",
+             RPCArgOptions{.skip_type_check = true}},
         },
         {
             RPCResult{"for verbosity = 0", RPCResult::Type::STR_HEX, "",
@@ -916,7 +917,8 @@ static RPCHelpMan gettxoutsetinfo() {
             {"hash_or_height", RPCArg::Type::NUM, RPCArg::Optional::OMITTED,
              "The block hash or height of the target height (only available "
              "with coinstatsindex).",
-             RPCArgOptions{.type_str = {"", "string or numeric"}}},
+             RPCArgOptions{.skip_type_check = true,
+                           .type_str = {"", "string or numeric"}}},
             {"use_index", RPCArg::Type::BOOL, RPCArg::Default{true},
              "Use coinstatsindex, if available."},
         },
@@ -1927,7 +1929,8 @@ static RPCHelpMan getblockstats() {
         {
             {"hash_or_height", RPCArg::Type::NUM, RPCArg::Optional::NO,
              "The block hash or height of the target block",
-             RPCArgOptions{.type_str = {"", "string or numeric"}}},
+             RPCArgOptions{.skip_type_check = true,
+                           .type_str = {"", "string or numeric"}}},
             {"stats",
              RPCArg::Type::ARR,
              RPCArg::DefaultHint{"all values"},
@@ -2360,8 +2363,6 @@ static RPCHelpMan scantxoutset() {
         RPCExamples{""},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VARR});
-
             UniValue result(UniValue::VOBJ);
             if (request.params[0].get_str() == "status") {
                 CoinsViewScanReserver reserver;

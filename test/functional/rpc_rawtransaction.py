@@ -454,8 +454,8 @@ class RawTransactionsTest(BitcoinTestFramework):
         )
         # An invalid block hash should raise the correct errors
         assert_raises_rpc_error(
-            -1,
-            "JSON value is not a string as expected",
+            -3,
+            "Expected type string, got bool",
             self.nodes[0].getrawtransaction,
             tx,
             True,

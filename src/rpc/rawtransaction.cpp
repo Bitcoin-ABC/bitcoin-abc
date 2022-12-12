@@ -102,8 +102,11 @@ static RPCHelpMan getrawtransaction() {
         {
             {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "The transaction id"},
+            // Verbose is a boolean, but we accept an int for backward
+            // compatibility
             {"verbose", RPCArg::Type::BOOL, RPCArg::Default{false},
-             "If false, return a string, otherwise return a json object"},
+             "If false, return a string, otherwise return a json object",
+             RPCArgOptions{.skip_type_check = true}},
             {"blockhash", RPCArg::Type::STR_HEX,
              RPCArg::Optional::OMITTED_NAMED_ARG,
              "The block in which to look for the transaction"},
@@ -320,46 +323,43 @@ static RPCHelpMan createrawtransaction() {
                     },
                 },
             },
-            {
-                "outputs",
-                RPCArg::Type::ARR,
-                RPCArg::Optional::NO,
-                "The outputs (key-value pairs), where none of "
-                "the keys are duplicated.\n"
-                "That is, each address can only appear once and there can only "
-                "be one 'data' object.\n"
-                "For compatibility reasons, a dictionary, which holds the "
-                "key-value pairs directly, is also\n"
-                "                             accepted as second parameter.",
-                {
-                    {
-                        "",
-                        RPCArg::Type::OBJ_USER_KEYS,
-                        RPCArg::Optional::OMITTED,
-                        "",
-                        {
-                            {"address", RPCArg::Type::AMOUNT,
-                             RPCArg::Optional::NO,
-                             "A key-value pair. The key (string) is the "
-                             "bitcoin address, the value (float or string) is "
-                             "the amount in " +
-                                 Currency::get().ticker},
-                        },
-                    },
-                    {
-                        "",
-                        RPCArg::Type::OBJ,
-                        RPCArg::Optional::OMITTED,
-                        "",
-                        {
-                            {"data", RPCArg::Type::STR_HEX,
-                             RPCArg::Optional::NO,
-                             "A key-value pair. The key must be \"data\", the "
-                             "value is hex-encoded data"},
-                        },
-                    },
-                },
-            },
+            {"outputs",
+             RPCArg::Type::ARR,
+             RPCArg::Optional::NO,
+             "The outputs (key-value pairs), where none of "
+             "the keys are duplicated.\n"
+             "That is, each address can only appear once and there can only "
+             "be one 'data' object.\n"
+             "For compatibility reasons, a dictionary, which holds the "
+             "key-value pairs directly, is also\n"
+             "                             accepted as second parameter.",
+             {
+                 {
+                     "",
+                     RPCArg::Type::OBJ_USER_KEYS,
+                     RPCArg::Optional::OMITTED,
+                     "",
+                     {
+                         {"address", RPCArg::Type::AMOUNT, RPCArg::Optional::NO,
+                          "A key-value pair. The key (string) is the "
+                          "bitcoin address, the value (float or string) is "
+                          "the amount in " +
+                              Currency::get().ticker},
+                     },
+                 },
+                 {
+                     "",
+                     RPCArg::Type::OBJ,
+                     RPCArg::Optional::OMITTED,
+                     "",
+                     {
+                         {"data", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+                          "A key-value pair. The key must be \"data\", the "
+                          "value is hex-encoded data"},
+                     },
+                 },
+             },
+             RPCArgOptions{.skip_type_check = true}},
             {"locktime", RPCArg::Type::NUM, RPCArg::Default{0},
              "Raw locktime. Non-0 value also locktime-activates inputs"},
         },
@@ -380,12 +380,6 @@ static RPCHelpMan createrawtransaction() {
                            "\", \"[{\\\"data\\\":\\\"00010203\\\"}]\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params,
-                         {UniValue::VARR,
-                          UniValueType(), // ARR or OBJ, checked later
-                          UniValue::VNUM},
-                         true);
-
             CMutableTransaction rawTx =
                 ConstructTransaction(config.GetChainParams(), request.params[0],
                                      request.params[1], request.params[2]);
@@ -472,8 +466,6 @@ static RPCHelpMan decoderawtransaction() {
                     HelpExampleRpc("decoderawtransaction", "\"hexstring\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params, {UniValue::VSTR});
-
             CMutableTransaction mtx;
 
             if (!DecodeHexTx(mtx, request.params[0].get_str())) {
@@ -520,8 +512,6 @@ static RPCHelpMan decodescript() {
                     HelpExampleRpc("decodescript", "\"hexstring\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params, {UniValue::VSTR});
-
             UniValue r(UniValue::VOBJ);
             CScript script;
             if (request.params[0].get_str().size() > 0) {
@@ -752,11 +742,6 @@ static RPCHelpMan signrawtransactionwithkey() {
                            "\"myhex\", \"[\\\"key1\\\",\\\"key2\\\"]\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params,
-                         {UniValue::VSTR, UniValue::VARR, UniValue::VARR,
-                          UniValue::VSTR},
-                         true);
-
             CMutableTransaction mtx;
             if (!DecodeHexTx(mtx, request.params[0].get_str())) {
                 throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
@@ -827,13 +812,6 @@ static RPCHelpMan sendrawtransaction() {
             HelpExampleRpc("sendrawtransaction", "\"signedhex\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params,
-                         {
-                             UniValue::VSTR,
-                             // VNUM or VSTR, checked inside AmountFromValue()
-                             UniValueType(),
-                         });
-
             // parse hex string from parameter
             CMutableTransaction mtx;
             if (!DecodeHexTx(mtx, request.params[0].get_str())) {
@@ -955,12 +933,6 @@ static RPCHelpMan testmempoolaccept() {
             HelpExampleRpc("testmempoolaccept", "[\"signedhex\"]")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params,
-                         {
-                             UniValue::VARR,
-                             // VNUM or VSTR, checked inside AmountFromValue()
-                             UniValueType(),
-                         });
             const UniValue raw_transactions = request.params[0].get_array();
             if (raw_transactions.size() < 1 ||
                 raw_transactions.size() > MAX_PACKAGE_COUNT) {
@@ -1231,8 +1203,6 @@ static RPCHelpMan decodepsbt() {
         RPCExamples{HelpExampleCli("decodepsbt", "\"psbt\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params, {UniValue::VSTR});
-
             // Unserialize the transactions
             PartiallySignedTransaction psbtx;
             std::string error;
@@ -1437,8 +1407,6 @@ static RPCHelpMan combinepsbt() {
             "combinepsbt", R"('["mybase64_1", "mybase64_2", "mybase64_3"]')")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params, {UniValue::VARR}, true);
-
             // Unserialize the transactions
             std::vector<PartiallySignedTransaction> psbtxs;
             UniValue txs = request.params[0].get_array();
@@ -1503,9 +1471,6 @@ static RPCHelpMan finalizepsbt() {
         RPCExamples{HelpExampleCli("finalizepsbt", "\"psbt\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VBOOL},
-                         true);
-
             // Unserialize the transactions
             PartiallySignedTransaction psbtx;
             std::string error;
@@ -1571,46 +1536,43 @@ static RPCHelpMan createpsbt() {
                     },
                 },
             },
-            {
-                "outputs",
-                RPCArg::Type::ARR,
-                RPCArg::Optional::NO,
-                "The outputs (key-value pairs), where none of "
-                "the keys are duplicated.\n"
-                "That is, each address can only appear once and there can only "
-                "be one 'data' object.\n"
-                "For compatibility reasons, a dictionary, which holds the "
-                "key-value pairs directly, is also\n"
-                "                             accepted as second parameter.",
-                {
-                    {
-                        "",
-                        RPCArg::Type::OBJ,
-                        RPCArg::Optional::OMITTED,
-                        "",
-                        {
-                            {"address", RPCArg::Type::AMOUNT,
-                             RPCArg::Optional::NO,
-                             "A key-value pair. The key (string) is the "
-                             "bitcoin address, the value (float or string) is "
-                             "the amount in " +
-                                 Currency::get().ticker},
-                        },
-                    },
-                    {
-                        "",
-                        RPCArg::Type::OBJ,
-                        RPCArg::Optional::OMITTED,
-                        "",
-                        {
-                            {"data", RPCArg::Type::STR_HEX,
-                             RPCArg::Optional::NO,
-                             "A key-value pair. The key must be \"data\", the "
-                             "value is hex-encoded data"},
-                        },
-                    },
-                },
-            },
+            {"outputs",
+             RPCArg::Type::ARR,
+             RPCArg::Optional::NO,
+             "The outputs (key-value pairs), where none of "
+             "the keys are duplicated.\n"
+             "That is, each address can only appear once and there can only "
+             "be one 'data' object.\n"
+             "For compatibility reasons, a dictionary, which holds the "
+             "key-value pairs directly, is also\n"
+             "                             accepted as second parameter.",
+             {
+                 {
+                     "",
+                     RPCArg::Type::OBJ,
+                     RPCArg::Optional::OMITTED,
+                     "",
+                     {
+                         {"address", RPCArg::Type::AMOUNT, RPCArg::Optional::NO,
+                          "A key-value pair. The key (string) is the "
+                          "bitcoin address, the value (float or string) is "
+                          "the amount in " +
+                              Currency::get().ticker},
+                     },
+                 },
+                 {
+                     "",
+                     RPCArg::Type::OBJ,
+                     RPCArg::Optional::OMITTED,
+                     "",
+                     {
+                         {"data", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+                          "A key-value pair. The key must be \"data\", the "
+                          "value is hex-encoded data"},
+                     },
+                 },
+             },
+             RPCArgOptions{.skip_type_check = true}},
             {"locktime", RPCArg::Type::NUM, RPCArg::Default{0},
              "Raw locktime. Non-0 value also locktime-activates inputs"},
         },
@@ -1621,14 +1583,6 @@ static RPCHelpMan createpsbt() {
                           "\" \"[{\\\"data\\\":\\\"00010203\\\"}]\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params,
-                         {
-                             UniValue::VARR,
-                             UniValueType(), // ARR or OBJ, checked later
-                             UniValue::VNUM,
-                         },
-                         true);
-
             CMutableTransaction rawTx =
                 ConstructTransaction(config.GetChainParams(), request.params[0],
                                      request.params[1], request.params[2]);
@@ -1680,9 +1634,6 @@ static RPCHelpMan converttopsbt() {
             HelpExampleCli("converttopsbt", "\"rawtransaction\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VBOOL},
-                         true);
-
             // parse hex string from parameter
             CMutableTransaction tx;
             bool permitsigdata = request.params[1].isNull()
@@ -1755,9 +1706,6 @@ RPCHelpMan utxoupdatepsbt() {
         RPCExamples{HelpExampleCli("utxoupdatepsbt", "\"psbt\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VARR},
-                         true);
-
             // Unserialize the transactions
             PartiallySignedTransaction psbtx;
             std::string error;
@@ -1847,8 +1795,6 @@ RPCHelpMan joinpsbts() {
         RPCExamples{HelpExampleCli("joinpsbts", "\"psbt\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params, {UniValue::VARR}, true);
-
             // Unserialize the transactions
             std::vector<PartiallySignedTransaction> psbtxs;
             UniValue txs = request.params[0].get_array();
@@ -2020,8 +1966,6 @@ RPCHelpMan analyzepsbt() {
         RPCExamples{HelpExampleCli("analyzepsbt", "\"psbt\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params, {UniValue::VSTR});
-
             // Unserialize the transaction
             PartiallySignedTransaction psbtx;
             std::string error;

@@ -435,7 +435,6 @@ static RPCHelpMan addconnection() {
             NodeContext &node = EnsureAnyNodeContext(request.context);
             const ArgsManager &args{EnsureArgsman(node)};
 
-            RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VSTR});
             const std::string address = request.params[0].get_str();
             const std::string conn_type_in{
                 TrimString(request.params[1].get_str())};

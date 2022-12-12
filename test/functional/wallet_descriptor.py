@@ -67,7 +67,7 @@ class WalletDescriptorTest(BitcoinTestFramework):
             -4,
             "This type of wallet does not support this command",
             recv_wrpc.rpc.importpubkey,
-            send_wrpc.getaddressinfo(send_wrpc.getnewaddress()),
+            send_wrpc.getaddressinfo(send_wrpc.getnewaddress())["pubkey"],
         )
         assert_raises_rpc_error(
             -4,

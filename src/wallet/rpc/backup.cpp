@@ -1839,8 +1839,6 @@ RPCHelpMan importmulti() {
             }
             CWallet *const pwallet = wallet.get();
 
-            RPCTypeCheck(mainRequest.params, {UniValue::VARR, UniValue::VOBJ});
-
             EnsureLegacyScriptPubKeyMan(*wallet, true);
 
             const UniValue &requests = mainRequest.params[0];
@@ -2247,8 +2245,6 @@ RPCHelpMan importdescriptors() {
                                    "importdescriptors is not available for "
                                    "non-descriptor wallets");
             }
-
-            RPCTypeCheck(main_request.params, {UniValue::VARR, UniValue::VOBJ});
 
             WalletRescanReserver reserver(*pwallet);
             if (!reserver.reserve()) {

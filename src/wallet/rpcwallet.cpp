@@ -745,7 +745,8 @@ static RPCHelpMan sendmany() {
         {
             {"dummy", RPCArg::Type::STR, RPCArg::Optional::NO,
              "Must be set to \"\" for backwards compatibility.",
-             RPCArgOptions{.oneline_description = "\"\""}},
+             RPCArgOptions{.skip_type_check = true,
+                           .oneline_description = "\"\""}},
             {
                 "amounts",
                 RPCArg::Type::OBJ,
@@ -3524,7 +3525,8 @@ static RPCHelpMan fundrawtransaction() {
                      },
                  },
              },
-             RPCArgOptions{.oneline_description = "options"}},
+             RPCArgOptions{.skip_type_check = true,
+                           .oneline_description = "options"}},
         },
         RPCResult{RPCResult::Type::OBJ,
                   "",
@@ -3556,8 +3558,6 @@ static RPCHelpMan fundrawtransaction() {
                 return NullUniValue;
             }
             CWallet *const pwallet = wallet.get();
-
-            RPCTypeCheck(request.params, {UniValue::VSTR, UniValueType()});
 
             // parse hex string from parameter
             CMutableTransaction tx;
@@ -3675,10 +3675,6 @@ RPCHelpMan signrawtransactionwithwallet() {
                 return NullUniValue;
             }
             const CWallet *const pwallet = wallet.get();
-
-            RPCTypeCheck(request.params,
-                         {UniValue::VSTR, UniValue::VARR, UniValue::VSTR},
-                         true);
 
             CMutableTransaction mtx;
             if (!DecodeHexTx(mtx, request.params[0].get_str())) {
@@ -4234,45 +4230,42 @@ static RPCHelpMan send() {
         "EXPERIMENTAL warning: this call may be changed in future releases.\n"
         "\nSend a transaction.\n",
         {
-            {
-                "outputs",
-                RPCArg::Type::ARR,
-                RPCArg::Optional::NO,
-                "A JSON array with outputs (key-value pairs), where none of "
-                "the keys are duplicated.\n"
-                "That is, each address can only appear once and there can only "
-                "be one 'data' object.\n"
-                "For convenience, a dictionary, which holds the key-value "
-                "pairs directly, is also accepted.",
-                {
-                    {
-                        "",
-                        RPCArg::Type::OBJ,
-                        RPCArg::Optional::OMITTED,
-                        "",
-                        {
-                            {"address", RPCArg::Type::AMOUNT,
-                             RPCArg::Optional::NO,
-                             "A key-value pair. The key (string) is the "
-                             "bitcoin address, the value (float or string) is "
-                             "the amount in " +
-                                 Currency::get().ticker + ""},
-                        },
-                    },
-                    {
-                        "",
-                        RPCArg::Type::OBJ,
-                        RPCArg::Optional::OMITTED,
-                        "",
-                        {
-                            {"data", RPCArg::Type::STR_HEX,
-                             RPCArg::Optional::NO,
-                             "A key-value pair. The key must be \"data\", the "
-                             "value is hex-encoded data"},
-                        },
-                    },
-                },
-            },
+            {"outputs",
+             RPCArg::Type::ARR,
+             RPCArg::Optional::NO,
+             "A JSON array with outputs (key-value pairs), where none of "
+             "the keys are duplicated.\n"
+             "That is, each address can only appear once and there can only "
+             "be one 'data' object.\n"
+             "For convenience, a dictionary, which holds the key-value "
+             "pairs directly, is also accepted.",
+             {
+                 {
+                     "",
+                     RPCArg::Type::OBJ,
+                     RPCArg::Optional::OMITTED,
+                     "",
+                     {
+                         {"address", RPCArg::Type::AMOUNT, RPCArg::Optional::NO,
+                          "A key-value pair. The key (string) is the "
+                          "bitcoin address, the value (float or string) is "
+                          "the amount in " +
+                              Currency::get().ticker + ""},
+                     },
+                 },
+                 {
+                     "",
+                     RPCArg::Type::OBJ,
+                     RPCArg::Optional::OMITTED,
+                     "",
+                     {
+                         {"data", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+                          "A key-value pair. The key must be \"data\", the "
+                          "value is hex-encoded data"},
+                     },
+                 },
+             },
+             RPCArgOptions{.skip_type_check = true}},
             {"options",
              RPCArg::Type::OBJ,
              RPCArg::Optional::OMITTED_NAMED_ARG,
@@ -4386,11 +4379,6 @@ static RPCHelpMan send() {
                                "5e72f463568df1aadf0\", \"vout\":1}]}'")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            RPCTypeCheck(request.params,
-                         {// ARR or OBJ, checked later
-                          UniValueType(), UniValue::VOBJ},
-                         true);
-
             std::shared_ptr<CWallet> const wallet =
                 GetWalletForJSONRPCRequest(request);
             if (!wallet) {
@@ -4623,9 +4611,6 @@ static RPCHelpMan walletprocesspsbt() {
             }
             const CWallet *const pwallet = wallet.get();
 
-            RPCTypeCheck(request.params,
-                         {UniValue::VSTR, UniValue::VBOOL, UniValue::VSTR});
-
             // Unserialize the transaction
             PartiallySignedTransaction psbtx;
             std::string error;
@@ -4700,46 +4685,43 @@ static RPCHelpMan walletcreatefundedpsbt() {
                     },
                 },
             },
-            {
-                "outputs",
-                RPCArg::Type::ARR,
-                RPCArg::Optional::NO,
-                "The outputs (key-value pairs), where none of "
-                "the keys are duplicated.\n"
-                "That is, each address can only appear once and there can only "
-                "be one 'data' object.\n"
-                "For compatibility reasons, a dictionary, which holds the "
-                "key-value pairs directly, is also\n"
-                "                             accepted as second parameter.",
-                {
-                    {
-                        "",
-                        RPCArg::Type::OBJ,
-                        RPCArg::Optional::OMITTED,
-                        "",
-                        {
-                            {"address", RPCArg::Type::AMOUNT,
-                             RPCArg::Optional::NO,
-                             "A key-value pair. The key (string) is the "
-                             "bitcoin address, the value (float or string) is "
-                             "the amount in " +
-                                 ticker + ""},
-                        },
-                    },
-                    {
-                        "",
-                        RPCArg::Type::OBJ,
-                        RPCArg::Optional::OMITTED,
-                        "",
-                        {
-                            {"data", RPCArg::Type::STR_HEX,
-                             RPCArg::Optional::NO,
-                             "A key-value pair. The key must be \"data\", the "
-                             "value is hex-encoded data"},
-                        },
-                    },
-                },
-            },
+            {"outputs",
+             RPCArg::Type::ARR,
+             RPCArg::Optional::NO,
+             "The outputs (key-value pairs), where none of "
+             "the keys are duplicated.\n"
+             "That is, each address can only appear once and there can only "
+             "be one 'data' object.\n"
+             "For compatibility reasons, a dictionary, which holds the "
+             "key-value pairs directly, is also\n"
+             "                             accepted as second parameter.",
+             {
+                 {
+                     "",
+                     RPCArg::Type::OBJ,
+                     RPCArg::Optional::OMITTED,
+                     "",
+                     {
+                         {"address", RPCArg::Type::AMOUNT, RPCArg::Optional::NO,
+                          "A key-value pair. The key (string) is the "
+                          "bitcoin address, the value (float or string) is "
+                          "the amount in " +
+                              ticker + ""},
+                     },
+                 },
+                 {
+                     "",
+                     RPCArg::Type::OBJ,
+                     RPCArg::Optional::OMITTED,
+                     "",
+                     {
+                         {"data", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+                          "A key-value pair. The key must be \"data\", the "
+                          "value is hex-encoded data"},
+                     },
+                 },
+             },
+             RPCArgOptions{.skip_type_check = true}},
             {"locktime", RPCArg::Type::NUM, RPCArg::Default{0},
              "Raw locktime. Non-0 value also locktime-activates inputs\n"
              "                             Allows this transaction to be "
@@ -4826,12 +4808,6 @@ static RPCHelpMan walletcreatefundedpsbt() {
             }
             CWallet *const pwallet = wallet.get();
 
-            RPCTypeCheck(request.params,
-                         {UniValue::VARR,
-                          UniValueType(), // ARR or OBJ, checked later
-                          UniValue::VNUM, UniValue::VOBJ},
-                         true);
-
             Amount fee;
             int change_position;
             CMutableTransaction rawTx = ConstructTransaction(
@@ -4893,8 +4869,6 @@ static RPCHelpMan upgradewallet() {
                 return NullUniValue;
             }
             CWallet *const pwallet = wallet.get();
-
-            RPCTypeCheck(request.params, {UniValue::VNUM}, true);
 
             EnsureWalletIsUnlocked(pwallet);
 

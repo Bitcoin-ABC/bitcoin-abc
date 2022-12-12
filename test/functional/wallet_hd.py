@@ -210,14 +210,14 @@ class WalletHDTest(BitcoinTestFramework):
                 -5, "Invalid private key", self.nodes[1].sethdseed, False, "not_wif"
             )
             assert_raises_rpc_error(
-                -1,
-                "JSON value is not a boolean as expected",
+                -3,
+                "Expected type bool, got string",
                 self.nodes[1].sethdseed,
                 "Not_bool",
             )
             assert_raises_rpc_error(
-                -1,
-                "JSON value is not a string as expected",
+                -3,
+                "Expected type string, got bool",
                 self.nodes[1].sethdseed,
                 False,
                 True,
