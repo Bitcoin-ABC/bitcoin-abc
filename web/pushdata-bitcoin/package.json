@@ -1,0 +1,48 @@
+{
+    "name": "pushdata-bitcoin",
+    "version": "1.0.1",
+    "description": "encode/decode value as bitcoin OP_PUSHDATA integer",
+    "keywords": [
+        "push",
+        "encode",
+        "decode",
+        "abstract-encoding",
+        "OP_0",
+        "OP_1",
+        "OP_PUSHDATA1",
+        "OP_PUSHDATA2",
+        "OP_PUSHDATA4",
+        "pushdata-bitcoin",
+        "bitcoinjs-lib",
+        "bitcoin"
+    ],
+    "homepage": "https://github.com/bitcoinjs/pushdata-bitcoin",
+    "bugs": {
+        "url": "https://github.com/bitcoinjs/pushdata-bitcoin/issues"
+    },
+    "license": "MIT",
+    "author": "Daniel Cousens",
+    "files": [
+        "index.js"
+    ],
+    "main": "index.js",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/bitcoinjs/pushdata-bitcoin.git"
+    },
+    "scripts": {
+        "prepublish": "npm run test",
+        "coverage": "nyc --check-coverage --branches 100 --functions 100 tape test/*.js",
+        "lint": "standard",
+        "test": "npm run lint && npm run unit",
+        "unit": "tape test/*.js"
+    },
+    "devDependencies": {
+        "nyc": "^6.4.0",
+        "standard": "*",
+        "tape": "^4.5.1"
+    },
+    "dependencies": {
+        "bitcoin-ops": "^1.3.0"
+    }
+}
