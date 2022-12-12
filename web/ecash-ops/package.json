@@ -1,22 +1,22 @@
 {
-    "name": "bitcoincash-ops",
-    "version": "2.0.0",
-    "description": "Bitcoin Cash OP codes",
-    "author": "Gabriel Cardona <gabriel@bitcoin.com>",
+    "name": "ecash-ops",
+    "version": "1.0.0",
+    "description": "eCash OP codes",
+    "author": "Bitcoin ABC <joey@bitcoinabc.org>",
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "https://github.com/bitcoin-com/bitcoincash-ops.git"
+        "url": "https://github.com/Bitcoin-ABC/bitcoin-abc.git"
     },
     "bugs": {
-        "url": "https://github.com/bitcoin-com/bitcoincash-ops/issues"
+        "url": "https://github.com/Bitcoin-ABC/bitcoin-abc/issues"
     },
-    "homepage": "https://github.com/bitcoin-com/bitcoincash-ops",
+    "homepage": "https://github.com/Bitcoin-ABC/bitcoin-abc",
     "keywords": [
         "opcodes",
         "ops",
-        "bitcoincash-ops",
-        "bitcoin"
+        "ecash-ops",
+        "ecash"
     ],
     "files": [
         "index.json",
