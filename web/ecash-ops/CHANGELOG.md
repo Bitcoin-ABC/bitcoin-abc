@@ -3,3 +3,9 @@
 **renamed**
 
 -   Package from bitcoincash-ops to ecash-ops
+
+# 1.0.1
+
+**added**
+
+-   OP_REVERSEBYTES
