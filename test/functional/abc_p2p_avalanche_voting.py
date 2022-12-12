@@ -9,7 +9,7 @@ from test_framework.avatools import get_ava_p2p_interface
 from test_framework.key import ECPubKey
 from test_framework.messages import AvalancheVote, AvalancheVoteError
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, uint256_hex
+from test_framework.util import assert_equal
 
 QUORUM_NODE_COUNT = 16
 
@@ -193,6 +193,14 @@ class AvalancheTest(BitcoinTestFramework):
 
         # Because everybody answers yes, the node will accept that block.
         self.wait_until(has_accepted_new_tip, timeout=15)
+
+        def has_finalized_new_tip():
+            can_find_block_in_poll(hash_to_find)
+            return node.isfinalblock(fork_tip)
+
+        # And continuing to answer yes finalizes the block.
+        with node.assert_debug_log([f"Avalanche finalized block {fork_tip}"]):
+            self.wait_until(has_finalized_new_tip, timeout=15)
         assert_equal(node.getbestblockhash(), fork_tip)
 
         self.log.info("Answer all polls to park...")
@@ -207,7 +215,7 @@ class AvalancheTest(BitcoinTestFramework):
             return node.getbestblockhash() == fork_tip
 
         # Because everybody answers no, the node will park that block.
-        with node.assert_debug_log([f"Avalanche invalidated block {uint256_hex(hash_to_find)}"]):
+        with node.assert_debug_log([f"Avalanche invalidated block {tip_to_park}"]):
             self.wait_until(has_parked_new_tip, timeout=15)
         assert_equal(node.getbestblockhash(), fork_tip)
 
