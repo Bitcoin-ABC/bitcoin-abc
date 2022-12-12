@@ -2,7 +2,6 @@
 
 [![NPM Package](https://img.shields.io/npm/v/minimaldata.svg?style=flat-square)](https://www.npmjs.org/package/minimaldata)
 [![Build Status](https://img.shields.io/travis/bitcoinjs/minimaldata.svg?branch=master&style=flat-square)](https://travis-ci.org/bitcoinjs/minimaldata)
-[![js-standard-style](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
 
 Following BIP62.3, this module validates that a script uses only minimal data pushes.
 

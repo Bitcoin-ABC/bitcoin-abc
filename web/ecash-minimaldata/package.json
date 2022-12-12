@@ -1,7 +1,7 @@
 {
-    "name": "minimaldata",
-    "version": "1.0.2",
-    "description": "A module to check bitcoin policy: SCRIPT_VERIFY_MINIMALDATA",
+    "name": "ecash-minimaldata",
+    "version": "1.0.0",
+    "description": "A module to check ecash policy: SCRIPT_VERIFY_MINIMALDATA",
     "keywords": [
         "minimal",
         "push",
@@ -13,12 +13,12 @@
         "OP_PUSHDATA4",
         "malleability",
         "minimaldata",
-        "bitcoinjs-lib",
-        "bitcoin"
+        "ecashjs-lib",
+        "ecash"
     ],
-    "homepage": "https://github.com/bitcoinjs/minimaldata",
+    "homepage": "https://github.com/Bitcoin-ABC/bitcoin-abc/",
     "bugs": {
-        "url": "https://github.com/bitcoinjs/minimaldata/issues"
+        "url": "https://github.com/Bitcoin-ABC/bitcoin-abc/issues"
     },
     "license": "MIT",
     "author": "Daniel Cousens",
@@ -28,22 +28,19 @@
     "main": "index.js",
     "repository": {
         "type": "git",
-        "url": "https://github.com/bitcoinjs/minimaldata.git"
+        "url": "https://github.com/Bitcoin-ABC/bitcoin-abc.git"
     },
     "scripts": {
         "prepublish": "npm run test",
         "coverage": "nyc --check-coverage --branches 100 --functions 100 tape test/*.js",
-        "lint": "standard",
-        "test": "npm run lint && npm run unit",
-        "unit": "tape test/*.js"
+        "test": "tape test/*.js"
     },
     "devDependencies": {
         "nyc": "^6.4.0",
-        "standard": "*",
         "tape": "^4.5.1"
     },
     "dependencies": {
-        "bitcoin-ops": "^1.3.0",
+        "ecash-ops": "^1.0.1",
         "pushdata-bitcoin": "^1.0.1"
     }
 }
