@@ -341,6 +341,24 @@ const OpenInTabBtn = styled.button`
     border: none;
 `;
 
+const LogoCtn = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    width: 100%;
+    div {
+        flex-grow: 3;
+    }
+    ${CashtabLogo} {
+        flex: 2;
+        text-align: center;
+    }
+    ${OpenInTabBtn} {
+        flex: 3;
+        text-align: right;
+    }
+`;
+
 const ExtTabImg = styled.img`
     max-width: 20px;
 `;
@@ -552,7 +570,21 @@ const App = () => {
                     <WalletBody>
                         <WalletCtn>
                             <HeaderCtn>
-                                <CashtabLogo src={Cashtab} alt="cashtab" />
+                                <LogoCtn>
+                                    <div></div>
+                                    <CashtabLogo src={Cashtab} alt="cashtab" />
+                                    {/*Begin extension-only components*/}
+                                    <OpenInTabBtn
+                                        data-tip="Open in tab"
+                                        onClick={() => openInTab()}
+                                    >
+                                        <ExtTabImg
+                                            src={PopOut}
+                                            alt="Open in tab"
+                                        />
+                                    </OpenInTabBtn>
+                                    {/*End extension-only components*/}
+                                </LogoCtn>
                                 {selectedKey === 'airdrop' && (
                                     <NavHeader>
                                         Airdrop
@@ -572,14 +604,6 @@ const App = () => {
                                         <ThemedSignAndVerifyMsg />
                                     </NavHeader>
                                 )}
-                                {/*Begin extension-only components*/}
-                                <OpenInTabBtn
-                                    data-tip="Open in tab"
-                                    onClick={() => openInTab()}
-                                >
-                                    <ExtTabImg src={PopOut} alt="Open in tab" />
-                                </OpenInTabBtn>
-                                {/*End extension-only components*/}
                             </HeaderCtn>
                             {/*Note that the extension does not support biometric security*/}
                             {/*Hence <ProtectableComponentWrapper> is not pulled in*/}
