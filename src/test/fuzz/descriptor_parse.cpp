@@ -9,7 +9,6 @@
 #include <util/chaintype.h>
 
 void initialize_descriptor_parse() {
-    static const ECCVerifyHandle verify_handle;
     SelectParams(ChainType::REGTEST);
 }
 

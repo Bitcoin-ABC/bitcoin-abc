@@ -20,7 +20,6 @@
 #include <string>
 
 void initialize_block() {
-    static const ECCVerifyHandle verify_handle;
     SelectParams(ChainType::REGTEST);
 }
 

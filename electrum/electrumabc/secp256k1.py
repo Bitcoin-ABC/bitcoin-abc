@@ -13,19 +13,12 @@ from ctypes import c_char_p, c_int, c_size_t, c_uint, c_void_p
 
 from .printerror import print_stderr
 
-SECP256K1_FLAGS_TYPE_MASK = (1 << 8) - 1
 SECP256K1_FLAGS_TYPE_CONTEXT = 1 << 0
 SECP256K1_FLAGS_TYPE_COMPRESSION = 1 << 1
 # /** The higher bits contain the actual data. Do not use directly. */
-SECP256K1_FLAGS_BIT_CONTEXT_VERIFY = 1 << 8
-SECP256K1_FLAGS_BIT_CONTEXT_SIGN = 1 << 9
 SECP256K1_FLAGS_BIT_COMPRESSION = 1 << 8
 
-# /** Flags to pass to secp256k1_context_create. */
-SECP256K1_CONTEXT_VERIFY = (
-    SECP256K1_FLAGS_TYPE_CONTEXT | SECP256K1_FLAGS_BIT_CONTEXT_VERIFY
-)
-SECP256K1_CONTEXT_SIGN = SECP256K1_FLAGS_TYPE_CONTEXT | SECP256K1_FLAGS_BIT_CONTEXT_SIGN
+# /** Flag to pass to secp256k1_context_create. */
 SECP256K1_CONTEXT_NONE = SECP256K1_FLAGS_TYPE_CONTEXT
 
 SECP256K1_EC_COMPRESSED = (
@@ -220,9 +213,7 @@ def _load_library():
             "without required module (--enable-module-recovery)"
         )
 
-    secp256k1.ctx = secp256k1.secp256k1_context_create(
-        SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY
-    )
+    secp256k1.ctx = secp256k1.secp256k1_context_create(SECP256K1_CONTEXT_NONE)
     r = secp256k1.secp256k1_context_randomize(secp256k1.ctx, os.urandom(32))
     if not r:
         raise ImportError(

@@ -9,8 +9,6 @@
 
 #include <memory>
 
-class ECCVerifyHandle;
-
 namespace kernel {
 //! Context struct holding the kernel library's logically global state, and
 //! passed to external libbitcoin_kernel functions which need access to this
@@ -20,8 +18,6 @@ namespace kernel {
 //! State stored directly in this struct should be simple. More complex state
 //! should be stored to std::unique_ptr members pointing to opaque types.
 struct Context {
-    std::unique_ptr<ECCVerifyHandle> ecc_verify_handle;
-
     //! Interrupt object that can be used to stop long-running kernel
     //! operations.
     util::SignalInterrupt interrupt;

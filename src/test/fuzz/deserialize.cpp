@@ -37,13 +37,8 @@
 
 using node::SnapshotMetadata;
 
-void initialize_deserialize() {
-    // Fuzzers using pubkey must hold an ECCVerifyHandle.
-    static const ECCVerifyHandle verify_handle;
-}
-
 #define FUZZ_TARGET_DESERIALIZE(name, code)                                    \
-    FUZZ_TARGET_INIT(name, initialize_deserialize) {                           \
+    FUZZ_TARGET(name) {                                                        \
         try {                                                                  \
             code                                                               \
         } catch (const invalid_fuzzing_input_exception &) {                    \
@@ -117,7 +112,7 @@ FUZZ_TARGET_DESERIALIZE(block_filter_deserialize, {
     BlockFilter block_filter;
     DeserializeFromFuzzingInput(buffer, block_filter);
 })
-FUZZ_TARGET_INIT(addr_info_deserialize, initialize_deserialize) {
+FUZZ_TARGET(addr_info_deserialize) {
     FuzzedDataProvider fdp{buffer.data(), buffer.size()};
     (void)ConsumeDeserializable<AddrInfo>(
         fdp, ConsumeDeserializationParams<CAddress::SerParams>(fdp));
@@ -158,7 +153,7 @@ FUZZ_TARGET_DESERIALIZE(script_deserialize, {
     CScript script;
     DeserializeFromFuzzingInput(buffer, script);
 })
-FUZZ_TARGET_INIT(sub_net_deserialize, initialize_deserialize) {
+FUZZ_TARGET(sub_net_deserialize) {
     FuzzedDataProvider fdp{buffer.data(), buffer.size()};
     const auto ser_params{
         ConsumeDeserializationParams<CNetAddr::SerParams>(fdp)};
@@ -237,7 +232,7 @@ FUZZ_TARGET_DESERIALIZE(coins_deserialize, {
     Coin coin;
     DeserializeFromFuzzingInput(buffer, coin);
 })
-FUZZ_TARGET_INIT(netaddr_deserialize, initialize_deserialize) {
+FUZZ_TARGET(netaddr_deserialize) {
     FuzzedDataProvider fdp{buffer.data(), buffer.size()};
     const auto maybe_na{ConsumeDeserializable<CNetAddr>(
         fdp, ConsumeDeserializationParams<CNetAddr::SerParams>(fdp))};
@@ -251,7 +246,7 @@ FUZZ_TARGET_INIT(netaddr_deserialize, initialize_deserialize) {
     }
     AssertEqualAfterSerializeDeserialize(na, CNetAddr::V2);
 }
-FUZZ_TARGET_INIT(service_deserialize, initialize_deserialize) {
+FUZZ_TARGET(service_deserialize) {
     FuzzedDataProvider fdp{buffer.data(), buffer.size()};
     const auto ser_params{
         ConsumeDeserializationParams<CNetAddr::SerParams>(fdp)};
@@ -276,7 +271,7 @@ FUZZ_TARGET_DESERIALIZE(messageheader_deserialize, {
     DeserializeFromFuzzingInput(buffer, mh);
     (void)mh.IsValidWithoutConfig(pchMessageStart);
 })
-FUZZ_TARGET_INIT(address_deserialize, initialize_deserialize) {
+FUZZ_TARGET(address_deserialize) {
     FuzzedDataProvider fdp{buffer.data(), buffer.size()};
     const auto ser_enc{ConsumeDeserializationParams<CNetAddr::SerParams>(fdp)};
     const auto maybe_a{ConsumeDeserializable<CAddress>(

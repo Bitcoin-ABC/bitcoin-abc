@@ -13,11 +13,7 @@
 /** Flags that are not forbidden by an assert */
 static bool IsValidFlagCombination(uint32_t flags);
 
-void initialize_script_flags() {
-    static const ECCVerifyHandle verify_handle;
-}
-
-FUZZ_TARGET_INIT(script_flags, initialize_script_flags) {
+FUZZ_TARGET(script_flags) {
     DataStream ds{buffer};
     try {
         const CTransaction tx(deserialize, ds);

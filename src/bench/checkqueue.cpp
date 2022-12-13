@@ -21,7 +21,6 @@ static const size_t QUEUE_BATCH_SIZE = 128;
 // checks all contain a prevector that is indirect 50% of the time and there is
 // a little bit of work done between calls to Add.
 static void CCheckQueueSpeedPrevectorJob(benchmark::Bench &bench) {
-    const ECCVerifyHandle verify_handle;
     ECC_Start();
 
     struct PrevectorJob {

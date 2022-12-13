@@ -31,9 +31,6 @@
 #include <vector>
 
 void initialize_script() {
-    // Fuzzers using pubkey must hold an ECCVerifyHandle.
-    static const ECCVerifyHandle verify_handle;
-
     SelectParams(ChainType::REGTEST);
 }
 

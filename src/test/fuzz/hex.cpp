@@ -18,11 +18,7 @@
 #include <string>
 #include <vector>
 
-void initialize_hex() {
-    static const ECCVerifyHandle verify_handle;
-}
-
-FUZZ_TARGET_INIT(hex, initialize_hex) {
+FUZZ_TARGET(hex) {
     const std::string random_hex_string(buffer.begin(), buffer.end());
     const std::vector<uint8_t> data = ParseHex(random_hex_string);
     const std::vector<std::byte> bytes{ParseHex<std::byte>(random_hex_string)};

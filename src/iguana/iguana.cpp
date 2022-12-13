@@ -123,8 +123,6 @@ int main(int argc, char *argv[]) {
 
     const uint32_t flags = STANDARD_SCRIPT_VERIFY_FLAGS;
 
-    ECCVerifyHandle ecc_handle;
-
     IguanaInterpreter iguana(tx, inputIndex, txout, flags);
     IguanaResult result = iguana.Run();
 

@@ -13,10 +13,6 @@
 #include <string>
 #include <vector>
 
-void initialize_signature_checker() {
-    static const auto verify_handle = std::make_unique<ECCVerifyHandle>();
-}
-
 namespace {
 class FuzzedSignatureChecker : public BaseSignatureChecker {
     FuzzedDataProvider &m_fuzzed_data_provider;
@@ -43,7 +39,7 @@ public:
 };
 } // namespace
 
-FUZZ_TARGET_INIT(signature_checker, initialize_signature_checker) {
+FUZZ_TARGET(signature_checker) {
     FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
     const unsigned int flags =
         fuzzed_data_provider.ConsumeIntegral<unsigned int>();

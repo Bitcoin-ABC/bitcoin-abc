@@ -18,7 +18,6 @@
 #include <vector>
 
 void initialize_key_io() {
-    static const ECCVerifyHandle verify_handle;
     ECC_Start();
     SelectParams(ChainType::MAIN);
 }

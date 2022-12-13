@@ -14,7 +14,6 @@
 #include <string>
 
 void initialize_parse_univalue() {
-    static const ECCVerifyHandle verify_handle;
     SelectParams(ChainType::REGTEST);
 }
 

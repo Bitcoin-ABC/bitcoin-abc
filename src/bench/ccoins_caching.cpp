@@ -17,7 +17,6 @@
 // every benchmark."
 // (https://github.com/bitcoin/bitcoin/issues/7883#issuecomment-224807484)
 static void CCoinsCaching(benchmark::Bench &bench) {
-    const ECCVerifyHandle verify_handle;
     ECC_Start();
 
     FillableSigningProvider keystore;
