@@ -2837,6 +2837,15 @@ CBlockIndex *CChainState::FindMostWorkChain() {
             InvalidChainFound(pindexNew);
         }
 
+        {
+            LOCK(cs_avalancheFinalizedBlockIndex);
+            if (m_avalancheFinalizedBlockIndex &&
+                !AreOnTheSameFork(pindexNew, m_avalancheFinalizedBlockIndex)) {
+                pindexNew->nStatus = pindexNew->nStatus.withParked();
+                m_blockman.m_dirty_blockindex.insert(pindexNew);
+            }
+        }
+
         const bool fAvalancheEnabled = isAvalancheEnabled(gArgs);
         const bool fAutoUnpark =
             gArgs.GetBoolArg("-automaticunparking", !fAvalancheEnabled);
