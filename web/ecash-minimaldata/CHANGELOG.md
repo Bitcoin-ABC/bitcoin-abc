@@ -35,3 +35,14 @@
 **patched**
 
 -   Corrected link to npm module in README.md
+
+# 1.0.4
+
+**upgraded**
+
+-   `ecash-ops` to 1.0.2
+-   `pushdata-ecash` to 1.0.1
+
+**removed**
+
+-   `.travis.yml` as unit tests are confirmed by `prepublish`

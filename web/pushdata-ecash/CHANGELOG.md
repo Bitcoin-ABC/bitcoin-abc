@@ -12,3 +12,9 @@
 **added**
 
 -   Dependency ecash-ops
+
+# 1.0.1
+
+**upgraded**
+
+-   Dependency ecash-ops to 1.0.2

@@ -1,6 +1,6 @@
 {
     "name": "pushdata-ecash",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "encode/decode value as bitcoin OP_PUSHDATA integer",
     "keywords": [
         "push",
@@ -40,6 +40,6 @@
         "tape": "^4.5.1"
     },
     "dependencies": {
-        "ecash-ops": "^1.0.1"
+        "ecash-ops": "^1.0.2"
     }
 }
