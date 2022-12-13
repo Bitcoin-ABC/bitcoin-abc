@@ -1,5 +1,5 @@
-#ifndef _SECP256K1_SCHNORR_
-# define _SECP256K1_SCHNORR_
+#ifndef SECP256K1_SCHNORR_H
+#define SECP256K1_SCHNORR_H
 
 # include "secp256k1.h"
 

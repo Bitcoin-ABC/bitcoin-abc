@@ -21,7 +21,7 @@ RUN dpkg --add-architecture i386 && \
 
 # dkpg-dev: to make pkg-config work in cross-builds
 # llvm: for llvm-symbolizer, which is used by clang's UBSan for symbolized stack traces
-RUN apt-get update && apt-get install --no-install-recommends --no-upgrade -y \
+RUN apt-get update && apt-get install --no-install-recommends -y \
         git ca-certificates \
         automake cmake default-jdk dpkg-dev libssl-dev libtool make ninja-build pkg-config python3 qemu-user valgrind \
         gcc clang llvm libclang-rt-dev libc6-dbg \
@@ -72,8 +72,22 @@ RUN \
     apt-get autoremove -y wget && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Run a dummy command in wine to make it set up configuration
-RUN wine64-stable xcopy || true
+WORKDIR /root
+# The "wine" package provides a convience wrapper that we need
+RUN apt-get update && apt-get install --no-install-recommends -y \
+        git ca-certificates wine64 wine python3-simplejson python3-six msitools winbind procps && \
+# Workaround for `wine` package failure to employ the Debian alternatives system properly.
+    ln -s /usr/lib/wine/wine64 /usr/bin/wine64 && \
+# Set of tools for using MSVC on Linux.
+    git clone https://github.com/mstorsjo/msvc-wine && \
+    mkdir /opt/msvc && \
+    python3 msvc-wine/vsdownload.py --accept-license --dest /opt/msvc Microsoft.VisualStudio.Workload.VCTools && \
+    msvc-wine/install.sh /opt/msvc
+
+# Initialize the wine environment. Wait until the wineserver process has
+# exited before closing the session, to avoid corrupting the wine prefix.
+RUN wine64 wineboot --init && \
+    while (ps -A | grep wineserver) > /dev/null; do sleep 1; done
 
 # The cmake build script expects this var to be set.
 # In non docker tasks it is set by Github Actions.

@@ -3,6 +3,8 @@
 cmake_minimum_required(VERSION 3.18)
 project(secp256k1 LANGUAGES C VERSION 0.1.0)
 
+set(CMAKE_C_STANDARD 90)
+
 option(SECP256K1_BUILD_SHARED "Build secp256k1 (only) as a shared library" OFF)
 
 # Add path for custom modules when building as a standalone project
@@ -38,24 +40,49 @@ if(SECP256K1_ENABLE_COVERAGE)
 	set(COVERAGE 1)
 endif()
 
-
-
 # libsecp256k1 use a different set of flags.
-add_c_compiler_flags(
-	-pedantic
-	-Wall
-	-Wextra
-	-Wcast-align
-	-Wshadow
-	-Wundef
-	-Wno-unused-function
-	-Wno-overlength-strings
-	-std=c89
-	-Wnested-externs
-	-Wstrict-prototypes
-	-Wno-long-long
-	-Wno-duplicated-branches
-)
+if(MSVC)
+	# For both cl and clang-cl compilers.
+	add_c_compiler_flags(/W3) # Production quality warning level.
+	# Eliminate deprecation warnings for the older, less secure functions.
+	add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+else()
+	add_c_compiler_flags(-Wall)
+endif()
+if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
+	# Keep the following commands ordered lexicographically.
+	add_c_compiler_flags(
+		/wd4146 # Disable warning C4146 "unary minus operator applied to unsigned type, result still unsigned".
+		/wd4244 # Disable warning C4244 "'conversion' conversion from 'type1' to 'type2', possible loss of data".
+		/wd4267 # Disable warning C4267 "'var' : conversion from 'size_t' to 'type', possible loss of data".
+	)
+else()
+	# Keep the following commands ordered lexicographically.
+	add_c_compiler_flags(
+		-pedantic
+		-Wcast-align
+		-Wextra
+		-Wnested-externs
+		-Wno-long-long
+		-Wno-overlength-strings
+		-Wno-unused-function
+		-Wshadow
+		-Wstrict-prototypes
+		-Wundef
+	)
+	if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+		add_c_compiler_flags(
+			-Wcast-align=strict
+			-Wno-duplicated-branches
+		)
+	endif()
+	if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+		add_c_compiler_flags(
+			-Wconditional-uninitialized
+			-Wreserved-identifier
+		)
+	endif()
+endif()
 
 # Default visibility is hidden on all targets.
 set(CMAKE_C_VISIBILITY_PRESET hidden)
@@ -186,7 +213,7 @@ endif()
 # MultiSet module
 option(SECP256K1_ENABLE_MODULE_MULTISET "Build libsecp256k1's MULTISET module" ${SECP256K1_ENABLE_DEV_MODE})
 if(SECP256K1_ENABLE_MODULE_MULTISET)
-    set(ENABLE_MODULE_MULTISET 1)
+	set(ENABLE_MODULE_MULTISET 1)
 	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_multiset.h)
 endif()
 

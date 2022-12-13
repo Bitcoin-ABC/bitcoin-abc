@@ -5,8 +5,8 @@
  ***********************************************************************/
 
 
-#ifndef _SECP256K1_MULTISET__
-# define _SECP256K1_MULTISET__
+#ifndef SECP256K1_MULTISET_H
+#define SECP256K1_MULTISET_H
 
 # include "secp256k1.h"
 

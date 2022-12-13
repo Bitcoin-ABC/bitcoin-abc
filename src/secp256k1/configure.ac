@@ -17,7 +17,14 @@ AC_PROG_CC
 AM_PROG_AS
 AM_PROG_AR
 
+# Clear some cache variables as a workaround for a bug that appears due to a bad
+# interaction between AM_PROG_AR and LT_INIT when combining MSVC's archiver lib.exe.
+# https://debbugs.gnu.org/cgi/bugreport.cgi?bug=54421
+AS_UNSET(ac_cv_prog_AR)
+AS_UNSET(ac_cv_prog_ac_ct_AR)
 LT_INIT([win32-dll])
+
+PKG_PROG_PKG_CONFIG
 
 build_windows=no
 
@@ -65,23 +72,45 @@ esac
 #
 # TODO We should analogously not touch CPPFLAGS and LDFLAGS but currently there are no issues.
 AC_DEFUN([SECP_TRY_APPEND_DEFAULT_CFLAGS], [
-    # Try to append -Werror=unknown-warning-option to CFLAGS temporarily. Otherwise clang will
-    # not error out if it gets unknown warning flags and the checks here will always succeed
-    # no matter if clang knows the flag or not.
-    SECP_TRY_APPEND_DEFAULT_CFLAGS_saved_CFLAGS="$CFLAGS"
-    SECP_TRY_APPEND_CFLAGS([-Werror=unknown-warning-option], CFLAGS)
+    # GCC and compatible (incl. clang)
+    if test "x$GCC" = "xyes"; then
+      # Try to append -Werror=unknown-warning-option to CFLAGS temporarily. Otherwise clang will
+      # not error out if it gets unknown warning flags and the checks here will always succeed
+      # no matter if clang knows the flag or not.
+      SECP_TRY_APPEND_DEFAULT_CFLAGS_saved_CFLAGS="$CFLAGS"
+      SECP_TRY_APPEND_CFLAGS([-Werror=unknown-warning-option], CFLAGS)
 
-    SECP_TRY_APPEND_CFLAGS([-std=c89 -pedantic -Wno-long-long -Wnested-externs -Wshadow -Wstrict-prototypes -Wundef], $1) # GCC >= 3.0, -Wlong-long is implied by -pedantic.
-    SECP_TRY_APPEND_CFLAGS([-Wno-overlength-strings], $1) # GCC >= 4.2, -Woverlength-strings is implied by -pedantic.
-    SECP_TRY_APPEND_CFLAGS([-Wall], $1) # GCC >= 2.95 and probably many other compilers
-    SECP_TRY_APPEND_CFLAGS([-Wno-unused-function], $1) # GCC >= 3.0, -Wunused-function is implied by -Wall.
-    SECP_TRY_APPEND_CFLAGS([-Wextra], $1) # GCC >= 3.4, this is the newer name of -W, which we don't use because older GCCs will warn about unused functions.
-    SECP_TRY_APPEND_CFLAGS([-Wcast-align], $1) # GCC >= 2.95
-    SECP_TRY_APPEND_CFLAGS([-Wcast-align=strict], $1) # GCC >= 8.0
-    SECP_TRY_APPEND_CFLAGS([-Wconditional-uninitialized], $1) # Clang >= 3.0 only
-    SECP_TRY_APPEND_CFLAGS([-fvisibility=hidden], $1) # GCC >= 4.0
+      SECP_TRY_APPEND_CFLAGS([-std=c89 -pedantic -Wno-long-long -Wnested-externs -Wshadow -Wstrict-prototypes -Wundef], $1) # GCC >= 3.0, -Wlong-long is implied by -pedantic.
+      SECP_TRY_APPEND_CFLAGS([-Wno-overlength-strings], $1) # GCC >= 4.2, -Woverlength-strings is implied by -pedantic.
+      SECP_TRY_APPEND_CFLAGS([-Wall], $1) # GCC >= 2.95 and probably many other compilers
+      SECP_TRY_APPEND_CFLAGS([-Wno-unused-function], $1) # GCC >= 3.0, -Wunused-function is implied by -Wall.
+      SECP_TRY_APPEND_CFLAGS([-Wextra], $1) # GCC >= 3.4, this is the newer name of -W, which we don't use because older GCCs will warn about unused functions.
+      SECP_TRY_APPEND_CFLAGS([-Wcast-align], $1) # GCC >= 2.95
+      SECP_TRY_APPEND_CFLAGS([-Wcast-align=strict], $1) # GCC >= 8.0
+      SECP_TRY_APPEND_CFLAGS([-Wconditional-uninitialized], $1) # Clang >= 3.0 only
+      SECP_TRY_APPEND_CFLAGS([-fvisibility=hidden], $1) # GCC >= 4.0
 
-    CFLAGS="$SECP_TRY_APPEND_DEFAULT_CFLAGS_saved_CFLAGS"
+      CFLAGS="$SECP_TRY_APPEND_DEFAULT_CFLAGS_saved_CFLAGS"
+    fi
+
+    # MSVC
+    # Assume MSVC if we're building for Windows but not with GCC or compatible;
+    # libtool makes the same assumption internally.
+    # Note that "/opt" and "-opt" are equivalent for MSVC; we use "-opt" because "/opt" looks like a path.
+    if test x"$GCC" != x"yes" && test x"$build_windows" = x"yes"; then
+      SECP_TRY_APPEND_CFLAGS([-W3], $1) # Production quality warning level.
+      SECP_TRY_APPEND_CFLAGS([-wd4146], $1) # Disable warning C4146 "unary minus operator applied to unsigned type, result still unsigned".
+      SECP_TRY_APPEND_CFLAGS([-wd4244], $1) # Disable warning C4244 "'conversion' conversion from 'type1' to 'type2', possible loss of data".
+      SECP_TRY_APPEND_CFLAGS([-wd4267], $1) # Disable warning C4267 "'var' : conversion from 'size_t' to 'type', possible loss of data".
+      # Eliminate deprecation warnings for the older, less secure functions.
+      CPPFLAGS="-D_CRT_SECURE_NO_WARNINGS $CPPFLAGS"
+      # We pass -ignore:4217 to the MSVC linker to suppress warning 4217 when
+      # importing variables from a statically linked secp256k1.
+      # (See the libtool manual, section "Windows DLLs" for background.)
+      # Unfortunately, libtool tries to be too clever and strips "-Xlinker arg"
+      # into "arg", so this will be " -Xlinker -ignore:4217" after stripping.
+      LDFLAGS="-Xlinker -Xlinker -Xlinker -ignore:4217 $LDFLAGS" 
+    fi
 ])
 SECP_TRY_APPEND_DEFAULT_CFLAGS(SECP_CFLAGS)
 
