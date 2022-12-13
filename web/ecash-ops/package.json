@@ -1,6 +1,6 @@
 {
     "name": "ecash-ops",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "eCash OP codes",
     "author": "Bitcoin ABC <joey@bitcoinabc.org>",
     "license": "MIT",
@@ -23,8 +23,5 @@
         "map.js"
     ],
     "main": "./index.json",
-    "scripts": {},
-    "devDependencies": {
-        "standard": "*"
-    }
+    "scripts": {}
 }
