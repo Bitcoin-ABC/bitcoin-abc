@@ -24,8 +24,14 @@
 -   Updated README.md to reflect `ecash-minimaldata` instead of legacy name `minimaldata`
 -   Unit tests patched
 
-# 1.0.1
+# 1.0.2
 
 **patched**
 
 -   Corrected references to `minimaldata-ecash` in README.md to `ecash-minimaldata`
+
+# 1.0.3
+
+**patched**
+
+-   Corrected link to npm module in README.md
