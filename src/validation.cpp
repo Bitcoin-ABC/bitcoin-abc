@@ -3729,6 +3729,11 @@ bool CChainState::AvalancheFinalizeBlock(CBlockIndex *pindex) {
     return true;
 }
 
+void CChainState::ClearAvalancheFinalizedBlock() {
+    LOCK(cs_avalancheFinalizedBlockIndex);
+    m_avalancheFinalizedBlockIndex = nullptr;
+}
+
 bool CChainState::IsBlockAvalancheFinalized(const CBlockIndex *pindex) const {
     LOCK(cs_avalancheFinalizedBlockIndex);
     return pindex && m_avalancheFinalizedBlockIndex &&

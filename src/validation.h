@@ -916,6 +916,11 @@ public:
     bool AvalancheFinalizeBlock(CBlockIndex *pindex);
 
     /**
+     * Clear avalanche finalization.
+     */
+    void ClearAvalancheFinalizedBlock();
+
+    /**
      * Checks if a block is finalized by avalanche voting.
      */
     bool IsBlockAvalancheFinalized(const CBlockIndex *pindex) const;

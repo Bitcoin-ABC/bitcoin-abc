@@ -2297,6 +2297,7 @@ RPCHelpMan parkblock() {
             BlockValidationState state;
 
             ChainstateManager &chainman = EnsureAnyChainman(request.context);
+            CChainState &active_chainstate = chainman.ActiveChainstate();
             CBlockIndex *pblockindex = nullptr;
             {
                 LOCK(cs_main);
@@ -2305,11 +2306,18 @@ RPCHelpMan parkblock() {
                     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                        "Block not found");
                 }
+
+                if (active_chainstate.IsBlockAvalancheFinalized(pblockindex)) {
+                    // Reset avalanche finalization if we park a finalized
+                    // block.
+                    active_chainstate.ClearAvalancheFinalizedBlock();
+                }
             }
-            chainman.ActiveChainstate().ParkBlock(config, state, pblockindex);
+
+            active_chainstate.ParkBlock(config, state, pblockindex);
 
             if (state.IsValid()) {
-                chainman.ActiveChainstate().ActivateBestChain(config, state);
+                active_chainstate.ActivateBestChain(config, state);
             }
 
             if (!state.IsValid()) {
@@ -2381,6 +2389,7 @@ RPCHelpMan unparkblock() {
             const std::string strHash = request.params[0].get_str();
             ChainstateManager &chainman = EnsureAnyChainman(request.context);
             const BlockHash hash(uint256S(strHash));
+            CChainState &active_chainstate = chainman.ActiveChainstate();
 
             {
                 LOCK(cs_main);
@@ -2392,11 +2401,28 @@ RPCHelpMan unparkblock() {
                                        "Block not found");
                 }
 
-                chainman.ActiveChainstate().UnparkBlockAndChildren(pblockindex);
+                if (!pblockindex->nStatus.isOnParkedChain()) {
+                    // Block to unpark is not parked so there is nothing to do.
+                    return NullUniValue;
+                }
+
+                const CBlockIndex *tip = active_chainstate.m_chain.Tip();
+                if (tip) {
+                    const CBlockIndex *ancestor =
+                        LastCommonAncestor(tip, pblockindex);
+                    if (active_chainstate.IsBlockAvalancheFinalized(ancestor)) {
+                        // Only reset avalanche finalization if we unpark a
+                        // block that might conflict with avalanche finalized
+                        // blocks.
+                        active_chainstate.ClearAvalancheFinalizedBlock();
+                    }
+                }
+
+                active_chainstate.UnparkBlockAndChildren(pblockindex);
             }
 
             BlockValidationState state;
-            chainman.ActiveChainstate().ActivateBestChain(config, state);
+            active_chainstate.ActivateBestChain(config, state);
 
             if (!state.IsValid()) {
                 throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());
