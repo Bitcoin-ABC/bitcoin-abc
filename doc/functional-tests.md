@@ -70,6 +70,27 @@ options. Run `test/functional/test_runner.py -h` to see them all.
 
 #### Troubleshooting and debugging test failures
 
+##### Debug & iterate faster
+
+Don't wait longer than you need to identify issues. Save yourself time while
+debugging:
+
+**Use --failfast when running many tests**
+
+Stop on first test failure:
+```
+test/functional/test_runner.py --failfast
+```
+
+**Use --timeout-factor when debugging timeouts**
+
+Don't wait for the default timeout (60 seconds) for every failure when
+debugging an issue you know about. Use --timeout-factor while you iterate on a
+solution:
+```
+test/functional/test_runner.py --timeout-factor=0.3 abc_rpc_isfinal
+```
+
 ##### Resource contention
 
 The P2P and RPC ports used by the bitcoind nodes-under-test are chosen to make
