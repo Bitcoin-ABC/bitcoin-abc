@@ -13,6 +13,15 @@ from test_framework.util import assert_equal
 
 QUORUM_NODE_COUNT = 16
 
+ADDRS = [
+    "ecregtest:pqv2r67sgz3qumufap3h2uuj0zfmnzuv8v38gtrh5v",
+    "ecregtest:qqca3gh95tnjxqja7dt4kfdryyp0d2uss55p4myvzk",
+    "ecregtest:qqzkkywqd9xyqgal27hc2wweu47392xywqz0pes57w",
+    "ecregtest:qz7xgksy86wnenxf9t4hqc3lyvpjf6tpycfzk2wjml",
+    "ecregtest:qq7dt5j42hvj8txm3jc66mp7x029txwp5cmuu4wmxq",
+    "ecregtest:qrf5yf3t05hjlax0vl475t5nru29rwtegvzna37wyh",
+]
+
 
 class AvalancheTest(BitcoinTestFramework):
     def set_test_params(self):
@@ -107,8 +116,7 @@ class AvalancheTest(BitcoinTestFramework):
         node.invalidateblock(invalidated_block)
         # We need to send the coin to a new address in order to make sure we do
         # not regenerate the same block.
-        self.generatetoaddress(node,
-                               26, 'ecregtest:pqv2r67sgz3qumufap3h2uuj0zfmnzuv8v38gtrh5v', sync_fun=self.no_op)
+        self.generatetoaddress(node, 26, ADDRS[0], sync_fun=self.no_op)
         node.reconsiderblock(invalidated_block)
 
         poll_node.send_poll(various_block_hashes)
@@ -244,25 +252,55 @@ class AvalancheTest(BitcoinTestFramework):
         assert_equal(node.getbestblockhash(), fork_tip)
 
         self.log.info("Verify finalization sticks...")
-        # Create a new fork 2 blocks deep
-        fork_node.invalidateblock(fork_tip)
+        chain_head = fork_tip
+
+        self.log.info("...for a chain 1 block long...")
+        # Create a new fork at the chaintip
+        fork_node.invalidateblock(chain_head)
         # We need to send the coin to a new address in order to make sure we do
         # not regenerate the same block.
-        self.generatetoaddress(
-            fork_node,
-            2,
-            'ecregtest:pqv2r67sgz3qumufap3h2uuj0zfmnzuv8v38gtrh5v',
-            sync_fun=self.no_op)
+        blocks = self.generatetoaddress(
+            fork_node, 1, ADDRS[1], sync_fun=self.no_op)
+        chain_head = blocks[0]
+        fork_tip = blocks[0]
 
-        # node should park the block because its tip is finalized
-        fork_tip = fork_node.getbestblockhash()
-        hash_to_find = int(fork_tip, 16)
-        self.wait_until(lambda: parked_block(fork_tip))
+        # node does not attempt to connect alternate chaintips so it is not
+        # parked. We check for an inactive valid header instead.
+        def valid_headers_block(blockhash):
+            for tip in node.getchaintips():
+                if tip["hash"] == blockhash:
+                    assert tip["status"] != "active"
+                    return tip["status"] == "valid-headers"
+            return False
+        self.wait_until(lambda: valid_headers_block(fork_tip))
 
         # sanity check
+        hash_to_find = int(fork_tip, 16)
         poll_node.send_poll([hash_to_find])
-        assert_response(
-            [AvalancheVote(AvalancheVoteError.PARKED, hash_to_find)])
+        assert_response([AvalancheVote(AvalancheVoteError.FORK, hash_to_find)])
+
+        # Try some longer fork chains
+        for numblocks in range(2, len(ADDRS)):
+            self.log.info("...for a chain {} blocks long...".format(numblocks))
+
+            # Create a new fork N blocks deep
+            fork_node.invalidateblock(chain_head)
+            # We need to send the coin to a new address in order to make sure we do
+            # not regenerate the same block.
+            blocks = self.generatetoaddress(
+                fork_node, numblocks, ADDRS[numblocks], sync_fun=self.no_op)
+            chain_head = blocks[0]
+            fork_tip = blocks[-1]
+
+            # node should park the block if attempting to connect it because
+            # its tip is finalized
+            self.wait_until(lambda: parked_block(fork_tip))
+
+            # sanity check
+            hash_to_find = int(fork_tip, 16)
+            poll_node.send_poll([hash_to_find])
+            assert_response(
+                [AvalancheVote(AvalancheVoteError.PARKED, hash_to_find)])
 
         self.log.info(
             "Check the node is discouraging unexpected avaresponses.")
