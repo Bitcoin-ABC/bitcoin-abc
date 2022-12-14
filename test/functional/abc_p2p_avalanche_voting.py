@@ -162,7 +162,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         # Now that we have a peer, we should start polling for the tip.
         hash_tip = int(node.getbestblockhash(), 16)
-        self.wait_until(lambda: can_find_block_in_poll(hash_tip), timeout=5)
+        self.wait_until(lambda: can_find_block_in_poll(hash_tip))
 
         # Make sure the fork node has synced the blocks
         self.sync_blocks([node, fork_node])
@@ -191,7 +191,7 @@ class AvalancheTest(BitcoinTestFramework):
             return node.getbestblockhash() == fork_tip
 
         # Because everybody answers yes, the node will accept that block.
-        self.wait_until(has_accepted_new_tip, timeout=15)
+        self.wait_until(has_accepted_new_tip)
 
         def has_finalized_new_tip():
             can_find_block_in_poll(hash_tip_final)
@@ -199,7 +199,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         # And continuing to answer yes finalizes the block.
         with node.assert_debug_log([f"Avalanche finalized block {fork_tip}"]):
-            self.wait_until(has_finalized_new_tip, timeout=15)
+            self.wait_until(has_finalized_new_tip)
         assert_equal(node.getbestblockhash(), fork_tip)
 
         self.log.info("Answer all polls to park...")
@@ -215,7 +215,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         # Because everybody answers no, the node will park that block.
         with node.assert_debug_log([f"Avalanche invalidated block {tip_to_park}"]):
-            self.wait_until(has_parked_new_tip, timeout=15)
+            self.wait_until(has_parked_new_tip)
         assert_equal(node.getbestblockhash(), fork_tip)
 
         # Mine on the current chaintip to trigger polling and so we don't reorg
@@ -229,7 +229,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         # Wait until the new tip is finalized
         self.sync_blocks([node, fork_node])
-        self.wait_until(has_finalized_new_tip, timeout=15)
+        self.wait_until(has_finalized_new_tip)
         assert_equal(node.getbestblockhash(), fork_tip)
 
         # Manually parking the finalized chaintip will reset finalization.
