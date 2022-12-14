@@ -2860,10 +2860,15 @@ CBlockIndex *CChainState::FindMostWorkChain() {
             InvalidChainFound(pindexNew);
         }
 
+        // If this block will cause an avalanche finalized block to be reorged,
+        // then we park it.
         {
             LOCK(cs_avalancheFinalizedBlockIndex);
             if (m_avalancheFinalizedBlockIndex &&
                 !AreOnTheSameFork(pindexNew, m_avalancheFinalizedBlockIndex)) {
+                LogPrintf("Park block %s because it forks prior to the "
+                          "avalanche finalized chaintip.\n",
+                          pindexNew->GetBlockHash().ToString());
                 pindexNew->nStatus = pindexNew->nStatus.withParked();
                 m_blockman.m_dirty_blockindex.insert(pindexNew);
             }
