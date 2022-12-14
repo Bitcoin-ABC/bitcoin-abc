@@ -35,7 +35,7 @@
         "dotenv": "^10.0.0",
         "dotenv-expand": "^5.1.0",
         "ecashaddrjs": "^1.0.1",
-        "ecashjs-lib": "^1.0.0",
+        "ecashjs-lib": "^1.0.3",
         "ecies-lite": "^1.0.7",
         "eslint": "^8.3.0",
         "eslint-config-react-app": "^7.0.0",

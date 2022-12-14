@@ -17,3 +17,15 @@
 **added**
 
 -   Updated README.md
+
+# 1.0.3
+
+**replaced**
+
+-   `@psf/bitcoincash-ops` with `ecash-ops` in all places where it is called
+-   `@psf/pushdata-bitcoin` with `pushdata-ecash` in all places where it is called
+-   `@psf/minimaldata` with `ecash-minimaldata` in all places where it is called
+
+**removed**
+
+-   `travis.yml`

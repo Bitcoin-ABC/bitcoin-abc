@@ -8,7 +8,7 @@ const mocha = require('mocha');
 const chai = require('chai');
 const assert = chai.assert;
 
-const opcodes = require('@psf/bitcoincash-ops');
+const opcodes = require('ecash-ops');
 
 var script = require('../src/script');
 

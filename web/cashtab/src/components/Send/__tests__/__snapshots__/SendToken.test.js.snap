@@ -61,7 +61,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                         <span
                           className="ant-input-affix-wrapper"
                           hidden={null}
-                          onMouseDown={[Function]}
+                          onClick={[Function]}
                           style={null}
                         >
                           <span
@@ -168,7 +168,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                         <span
                           className="ant-input-affix-wrapper"
                           hidden={null}
-                          onMouseDown={[Function]}
+                          onClick={[Function]}
                           style={null}
                         >
                           <span

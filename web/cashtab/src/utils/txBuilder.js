@@ -1,6 +1,6 @@
 // Transaction builder module streamlined for eCash
 // reference: https://github.com/Permissionless-Software-Foundation/bch-js/blob/master/src/transaction-builder.js
-const Bitcoin = require('ecashjs-lib');
+const eCash = require('ecashjs-lib');
 import coininfo from 'utils/coininfo';
 const bip66 = require('bip66');
 const bip68 = require('bc-bip68');
@@ -13,7 +13,7 @@ class TransactionBuilder {
 
     constructor() {
         const bitcoincashBitcoinJSLib = coininfo.bitcoincash.main.toBitcoinJS();
-        this.transaction = new Bitcoin.TransactionBuilder(
+        this.transaction = new eCash.TransactionBuilder(
             bitcoincashBitcoinJSLib,
         );
         this.DEFAULT_SEQUENCE = 0xffffffff;
@@ -27,8 +27,8 @@ class TransactionBuilder {
             ADVANCED_TRANSACTION_FLAG: 0x01,
         };
         this.signatureAlgorithms = {
-            ECDSA: Bitcoin.ECSignature.ECDSA,
-            SCHNORR: Bitcoin.ECSignature.SCHNORR,
+            ECDSA: eCash.ECSignature.ECDSA,
+            SCHNORR: eCash.ECSignature.SCHNORR,
         };
         this.bip66 = bip66;
         this.bip68 = bip68;
@@ -73,7 +73,7 @@ class TransactionBuilder {
                         `Unsupported address type : ${decoded.type}`,
                     );
             }
-            const legacyAddress = Bitcoin.address.toBase58Check(
+            const legacyAddress = eCash.address.toBase58Check(
                 Buffer.from(decoded.hash),
                 version,
             );

@@ -4,7 +4,7 @@ var Buffer = require('safe-buffer').Buffer;
 var bscript = require('../../script');
 var p2mso = require('./output');
 var typeforce = require('typeforce');
-var OPS = require('@psf/bitcoincash-ops');
+var OPS = require('ecash-ops');
 
 function partialSignature(value) {
     return value === OPS.OP_0 || bscript.isCanonicalSignature(value);

@@ -1,4 +1,4 @@
-var pushdata = require('@psf/pushdata-bitcoin');
+var pushdata = require('pushdata-ecash');
 var varuint = require('varuint-bitcoin');
 
 // https://github.com/feross/buffer/blob/master/index.js#L1127

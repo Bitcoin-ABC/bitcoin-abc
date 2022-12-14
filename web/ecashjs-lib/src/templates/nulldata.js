@@ -3,7 +3,7 @@
 var bscript = require('../script');
 var types = require('../types');
 var typeforce = require('typeforce');
-var OPS = require('@psf/bitcoincash-ops');
+var OPS = require('ecash-ops');
 
 function check(script) {
     var buffer = bscript.compile(script);

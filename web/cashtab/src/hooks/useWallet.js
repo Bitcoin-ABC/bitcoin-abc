@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import usePrevious from 'hooks/usePrevious';
 import useInterval from './useInterval';
 import BigNumber from 'bignumber.js';
-import Bitcoin from 'ecashjs-lib';
+import eCash from 'ecashjs-lib';
 import coininfo from 'utils/coininfo';
 import {
     loadStoredWallet,
@@ -357,7 +357,7 @@ const useWallet = () => {
         const mnemonic = wallet.mnemonic;
         const rootSeedBuffer = await bip39.mnemonicToSeed(mnemonic, '');
 
-        const masterHDNode = Bitcoin.HDNode.fromSeedBuffer(
+        const masterHDNode = eCash.HDNode.fromSeedBuffer(
             rootSeedBuffer,
             coininfo.bitcoincash.main.toBitcoinJS(),
         );
@@ -421,7 +421,7 @@ const useWallet = () => {
         // Since this info is in localforage now, only get the var
         const mnemonic = wallet.mnemonic;
         const rootSeedBuffer = await bip39.mnemonicToSeed(mnemonic, '');
-        const masterHDNode = Bitcoin.HDNode.fromSeedBuffer(
+        const masterHDNode = eCash.HDNode.fromSeedBuffer(
             rootSeedBuffer,
             coininfo.bitcoincash.main.toBitcoinJS(),
         );

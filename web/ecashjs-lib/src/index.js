@@ -18,6 +18,6 @@ module.exports = {
     address: require('./address'),
     crypto: require('./crypto'),
     networks: require('./networks'),
-    opcodes: require('@psf/bitcoincash-ops'),
+    opcodes: require('ecash-ops'),
     script: script,
 };

@@ -162,7 +162,7 @@ Array [
                                 <span
                                   className="ant-input-affix-wrapper"
                                   hidden={null}
-                                  onMouseDown={[Function]}
+                                  onClick={[Function]}
                                   style={null}
                                 >
                                   <span
@@ -270,7 +270,7 @@ Array [
                             >
                               <span
                                 className="ant-input-affix-wrapper"
-                                onMouseDown={[Function]}
+                                onClick={[Function]}
                                 style={
                                   Object {
                                     "textAlign": "left",
@@ -742,7 +742,7 @@ Array [
                                 <span
                                   className="ant-input-affix-wrapper"
                                   hidden={null}
-                                  onMouseDown={[Function]}
+                                  onClick={[Function]}
                                   style={null}
                                 >
                                   <span
@@ -850,7 +850,7 @@ Array [
                             >
                               <span
                                 className="ant-input-affix-wrapper"
-                                onMouseDown={[Function]}
+                                onClick={[Function]}
                                 style={
                                   Object {
                                     "textAlign": "left",
@@ -1327,7 +1327,7 @@ Array [
                                 <span
                                   className="ant-input-affix-wrapper"
                                   hidden={null}
-                                  onMouseDown={[Function]}
+                                  onClick={[Function]}
                                   style={null}
                                 >
                                   <span
@@ -1435,7 +1435,7 @@ Array [
                             >
                               <span
                                 className="ant-input-affix-wrapper"
-                                onMouseDown={[Function]}
+                                onClick={[Function]}
                                 style={
                                   Object {
                                     "textAlign": "left",
@@ -1908,7 +1908,7 @@ Array [
                                 <span
                                   className="ant-input-affix-wrapper"
                                   hidden={null}
-                                  onMouseDown={[Function]}
+                                  onClick={[Function]}
                                   style={null}
                                 >
                                   <span
@@ -2016,7 +2016,7 @@ Array [
                             >
                               <span
                                 className="ant-input-affix-wrapper"
-                                onMouseDown={[Function]}
+                                onClick={[Function]}
                                 style={
                                   Object {
                                     "textAlign": "left",
@@ -2483,7 +2483,7 @@ Array [
                                 <span
                                   className="ant-input-affix-wrapper"
                                   hidden={null}
-                                  onMouseDown={[Function]}
+                                  onClick={[Function]}
                                   style={null}
                                 >
                                   <span
@@ -2591,7 +2591,7 @@ Array [
                             >
                               <span
                                 className="ant-input-affix-wrapper"
-                                onMouseDown={[Function]}
+                                onClick={[Function]}
                                 style={
                                   Object {
                                     "textAlign": "left",

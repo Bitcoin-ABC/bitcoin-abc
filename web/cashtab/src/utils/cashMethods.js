@@ -9,7 +9,7 @@ import BigNumber from 'bignumber.js';
 import cashaddr from 'ecashaddrjs';
 import bs58 from 'bs58';
 import * as slpMdm from 'slp-mdm';
-import Bitcoin from 'ecashjs-lib';
+import eCash from 'ecashjs-lib';
 import coininfo from 'utils/coininfo';
 
 // function is based on BCH-JS' generateBurnOpReturn() however it's been trimmed down for Cashtab use
@@ -149,7 +149,7 @@ export const getECPairFromWIF = wif => {
     let xec = coininfo.bitcoincash.main;
     const xecBitcoinJSLib = xec.toBitcoinJS();
 
-    return Bitcoin.ECPair.fromWIF(wif, xecBitcoinJSLib);
+    return eCash.ECPair.fromWIF(wif, xecBitcoinJSLib);
 };
 
 export const signUtxosByAddress = (inputUtxos, wallet, txBuilder) => {
@@ -553,7 +553,7 @@ export const encodeOpReturnScript = scriptChunks => {
     scriptChunks.forEach(chunk => {
         arr.push(chunk);
     });
-    return Bitcoin.script.compile(arr);
+    return eCash.script.compile(arr);
 };
 
 /*

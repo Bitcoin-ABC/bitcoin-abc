@@ -4,7 +4,7 @@ var assert = require('assert');
 var bcrypto = require('../src/crypto');
 var bscript = require('../src/script');
 var btemplates = require('../src/templates');
-var ops = require('@psf/bitcoincash-ops');
+var ops = require('ecash-ops');
 
 var fixtures = require('./fixtures/templates.json');
 
