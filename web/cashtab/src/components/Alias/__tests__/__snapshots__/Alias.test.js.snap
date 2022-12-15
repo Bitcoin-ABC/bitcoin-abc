@@ -72,7 +72,7 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-eqIVtm cyXONV"
+          className="sc-eqIVtm ipZZLx"
         >
           <h2>
             eCash Namespace Alias
@@ -98,7 +98,6 @@ Array [
               </svg>
             </span>
              
-            N/A
           </h3>
         </div>
         <div
@@ -143,6 +142,7 @@ Array [
                             <input
                               className="ant-input"
                               hidden={null}
+                              maxLength={21}
                               name="aliasName"
                               onBlur={[Function]}
                               onChange={[Function]}
@@ -183,7 +183,8 @@ Array [
                         className="ant-form-item-control-input-content"
                       >
                         <button
-                          className="sc-jhAzac fTVLCr"
+                          className="sc-jhAzac kHNRRv"
+                          disabled={true}
                           onClick={[Function]}
                         >
                           Register Alias
@@ -274,7 +275,7 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-eqIVtm cyXONV"
+          className="sc-eqIVtm ipZZLx"
         >
           <h2>
             eCash Namespace Alias
@@ -300,7 +301,6 @@ Array [
               </svg>
             </span>
              
-            N/A
           </h3>
         </div>
         <div
@@ -345,6 +345,7 @@ Array [
                             <input
                               className="ant-input"
                               hidden={null}
+                              maxLength={21}
                               name="aliasName"
                               onBlur={[Function]}
                               onChange={[Function]}
@@ -385,7 +386,8 @@ Array [
                         className="ant-form-item-control-input-content"
                       >
                         <button
-                          className="sc-jhAzac fTVLCr"
+                          className="sc-jhAzac kHNRRv"
+                          disabled={true}
                           onClick={[Function]}
                         >
                           Register Alias
@@ -481,7 +483,7 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-eqIVtm cyXONV"
+          className="sc-eqIVtm ipZZLx"
         >
           <h2>
             eCash Namespace Alias
@@ -507,7 +509,6 @@ Array [
               </svg>
             </span>
              
-            N/A
           </h3>
         </div>
         <div
@@ -552,6 +553,7 @@ Array [
                             <input
                               className="ant-input"
                               hidden={null}
+                              maxLength={21}
                               name="aliasName"
                               onBlur={[Function]}
                               onChange={[Function]}
@@ -592,7 +594,8 @@ Array [
                         className="ant-form-item-control-input-content"
                       >
                         <button
-                          className="sc-jhAzac fTVLCr"
+                          className="sc-jhAzac kHNRRv"
+                          disabled={true}
                           onClick={[Function]}
                         >
                           Register Alias
@@ -683,7 +686,7 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-eqIVtm cyXONV"
+          className="sc-eqIVtm ipZZLx"
         >
           <h2>
             eCash Namespace Alias
@@ -709,7 +712,6 @@ Array [
               </svg>
             </span>
              
-            N/A
           </h3>
         </div>
         <div
@@ -754,6 +756,7 @@ Array [
                             <input
                               className="ant-input"
                               hidden={null}
+                              maxLength={21}
                               name="aliasName"
                               onBlur={[Function]}
                               onChange={[Function]}
@@ -794,7 +797,8 @@ Array [
                         className="ant-form-item-control-input-content"
                       >
                         <button
-                          className="sc-jhAzac fTVLCr"
+                          className="sc-jhAzac kHNRRv"
+                          disabled={true}
                           onClick={[Function]}
                         >
                           Register Alias
@@ -880,7 +884,7 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-eqIVtm cyXONV"
+          className="sc-eqIVtm ipZZLx"
         >
           <h2>
             eCash Namespace Alias
@@ -906,7 +910,6 @@ Array [
               </svg>
             </span>
              
-            N/A
           </h3>
         </div>
         <div
@@ -951,6 +954,7 @@ Array [
                             <input
                               className="ant-input"
                               hidden={null}
+                              maxLength={21}
                               name="aliasName"
                               onBlur={[Function]}
                               onChange={[Function]}
@@ -991,7 +995,8 @@ Array [
                         className="ant-form-item-control-input-content"
                       >
                         <button
-                          className="sc-jhAzac fTVLCr"
+                          className="sc-jhAzac kHNRRv"
+                          disabled={true}
                           onClick={[Function]}
                         >
                           Register Alias

@@ -31,6 +31,7 @@ import {
     generateBurnOpReturn,
     getECPairFromWIF,
     hash160ToAddress,
+    getAliasRegistrationFee,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import { validAddressArrayInput } from '../__mocks__/mockAddressArray';
@@ -110,6 +111,22 @@ import {
 import createTokenMock from '../__mocks__/createToken';
 import TransactionBuilder from 'utils/txBuilder';
 import { mockWif, mockStringifiedECPair } from '../__mocks__/mockECPair';
+
+it(`getAliasRegistrationFee() returns correct fee in sats for an alias input with 5 chars`, () => {
+    const aliasInput = 'panda'; // 5 chars
+    const regFeeResult = getAliasRegistrationFee(aliasInput);
+    expect(regFeeResult).toStrictEqual(
+        currency.aliasSettings.aliasRegistrationFeeInSats.fiveChar,
+    );
+});
+
+it(`getAliasRegistrationFee() returns correct fee in sats for an alias input above 8 chars`, () => {
+    const aliasInput = 'pandapanda'; // 10 chars
+    const regFeeResult = getAliasRegistrationFee(aliasInput);
+    expect(regFeeResult).toStrictEqual(
+        currency.aliasSettings.aliasRegistrationFeeInSats.eightChar,
+    );
+});
 
 it(`generateSendOpReturn() returns correct script object for valid tokenUtxo and send quantity`, () => {
     const tokensToSend = 50;
@@ -589,6 +606,19 @@ it('generateOpReturnScript() correctly throws an error on an invalid airdrop inp
         thrownError = err;
     }
     expect(thrownError.message).toStrictEqual('Invalid OP RETURN script input');
+});
+
+it('generateOpReturnScript() correctly generates an alias registration script', () => {
+    const optionalOpReturnMsg = 'nfs'; // the alias name to be registered
+    const encodedScript = generateOpReturnScript(
+        optionalOpReturnMsg,
+        false,
+        false,
+        null,
+        null,
+        true, // alias registration flag
+    );
+    expect(encodedScript.toString('hex')).toBe('6a042e786563036e6673');
 });
 
 it(`generateTokenTxInput() returns a valid object for a valid create token tx`, async () => {

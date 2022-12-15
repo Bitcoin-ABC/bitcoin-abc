@@ -12,6 +12,22 @@ import {
 import ecies from 'ecies-lite';
 import wif from 'wif';
 
+export const isAliasAvailable = async alias => {
+    alias; // linting bypass
+
+    // if isLocalAliasStateLatest() is true then retrieve incoming tx history from localStorage
+    // else retrieve via chronik and update localStorage
+
+    // for each incoming tx with OP_RETURN outputs that paid at least currency.aliasSettings.aliasMinFee
+    // filter for currency.opReturn.appPrefixesHex.aliasRegistration
+    // filter for valid payment fee in output[1]
+    // add opReturnMsg (the alias) to an aliasArray
+
+    // if alias is in aliasArray
+    // return false
+    return true;
+};
+
 // Return false if do not get a valid response
 export const getTokenStats = async (chronik, tokenId) => {
     try {

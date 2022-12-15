@@ -12,6 +12,39 @@ import * as slpMdm from 'slp-mdm';
 import eCash from 'ecashjs-lib';
 import coininfo from 'utils/coininfo';
 
+export const getAliasRegistrationFee = alias => {
+    let registrationFee;
+    let fee = currency.aliasSettings.aliasRegistrationFeeInSats;
+    switch (alias.length) {
+        case 1:
+            registrationFee = fee.oneChar;
+            break;
+        case 2:
+            registrationFee = fee.twoChar;
+            break;
+        case 3:
+            registrationFee = fee.threeChar;
+            break;
+        case 4:
+            registrationFee = fee.fourChar;
+            break;
+        case 5:
+            registrationFee = fee.fiveChar;
+            break;
+        case 6:
+            registrationFee = fee.sixChar;
+            break;
+        case 7:
+            registrationFee = fee.sevenChar;
+            break;
+        default:
+            registrationFee = fee.eightChar;
+            break;
+    }
+
+    return registrationFee;
+};
+
 // function is based on BCH-JS' generateBurnOpReturn() however it's been trimmed down for Cashtab use
 // Reference: https://github.com/Permissionless-Software-Foundation/bch-js/blob/62e56c832b35731880fe448269818b853c76dd80/src/slp/tokentype1.js#L217
 export const generateBurnOpReturn = (tokenUtxos, burnQty) => {
@@ -567,7 +600,7 @@ export const generateOpReturnScript = (
     airdropFlag,
     airdropTokenId,
     encryptedEj,
-    // optionalAliasRegistrationFlag,
+    optionalAliasRegistrationFlag = false,
 ) => {
     // encrypted mesage is mandatory when encryptionFlag is true
     // airdrop token id is mandatory when airdropFlag is true
@@ -610,18 +643,22 @@ export const generateOpReturnScript = (
                 script.push(Buffer.from(airdropTokenId, 'hex'));
             }
 
-            // add the cashtab prefix to script
-            script.push(
-                Buffer.from(currency.opReturn.appPrefixesHex.cashtab, 'hex'), // 00746162
-            );
-
-            /*
             if (optionalAliasRegistrationFlag) {
-                add currency.opReturn.appPrefixesHex.aliasRegistration to script
+                script.push(
+                    Buffer.from(
+                        currency.opReturn.appPrefixesHex.aliasRegistration,
+                        'hex',
+                    ), // '.xec'
+                );
+            } else {
+                // add the cashtab prefix to script
+                script.push(
+                    Buffer.from(
+                        currency.opReturn.appPrefixesHex.cashtab,
+                        'hex',
+                    ), // 00746162
+                );
             }
-            */
-            // the alias to be registered is the optionalOpReturnMsg
-
             // add the un-encrypted message to script if supplied
             if (optionalOpReturnMsg) {
                 script.push(Buffer.from(optionalOpReturnMsg));

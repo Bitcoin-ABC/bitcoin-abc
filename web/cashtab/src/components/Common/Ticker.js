@@ -22,6 +22,7 @@ export const currency = {
             eightChar: 551,
             minFee: 550, // dust
         },
+        aliasMaxLength: 21, // refer to the Alias spec at https://reviews.bitcoinabc.org/D12972
     },
     coingeckoId: 'ecash',
     defaultFee: 2.01,

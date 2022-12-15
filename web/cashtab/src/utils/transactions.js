@@ -318,6 +318,116 @@ export const getRecipientPublicKey = async (
     );
 };
 
+export const registerNewAlias = async (
+    chronik,
+    wallet,
+    utxos,
+    feeInSatsPerByte,
+    aliasName,
+    registrationFee,
+) => {
+    try {
+        let txBuilder = new TransactionBuilder();
+
+        const satoshisToSend = fromXecToSatoshis(registrationFee);
+
+        // Throw validation error if fromXecToSatoshis returns false
+        if (!satoshisToSend) {
+            throw new Error(`Invalid alias registration fee`);
+        }
+
+        // Start of building the OP_RETURN output.
+        // only build the OP_RETURN output if the user supplied it
+        if (
+            aliasName &&
+            typeof aliasName !== 'undefined' &&
+            aliasName.trim() !== ''
+        ) {
+            const opReturnData = generateOpReturnScript(
+                aliasName,
+                false, // encryption use
+                false, // airdrop use
+                null, // airdrop use
+                null, // encrypted use
+                true, // alias registration flag
+            );
+            txBuilder.addOutput(opReturnData, 0);
+        }
+
+        // generate the tx inputs and add to txBuilder instance
+        // returns the updated txBuilder, txFee, totalInputUtxoValue and inputUtxos
+        let txInputObj = generateTxInput(
+            false, // not one to many
+            utxos,
+            txBuilder,
+            null, // one to many array
+            satoshisToSend,
+            feeInSatsPerByte,
+        );
+
+        const changeAddress = getChangeAddressFromInputUtxos(
+            txInputObj.inputUtxos,
+            wallet,
+        );
+        txBuilder = txInputObj.txBuilder; // update the local txBuilder with the generated tx inputs
+
+        // generate the tx outputs and add to txBuilder instance
+        // returns the updated txBuilder
+        const txOutputObj = generateTxOutput(
+            false, // not one to many
+            registrationFee,
+            satoshisToSend,
+            txInputObj.totalInputUtxoValue,
+            currency.aliasSettings.aliasPaymentAddress,
+            null, // one to many address array
+            changeAddress,
+            txInputObj.txFee,
+            txBuilder,
+        );
+        txBuilder = txOutputObj; // update the local txBuilder with the generated tx outputs
+
+        // sign the collated inputUtxos and build the raw tx hex
+        // returns the raw tx hex string
+        const rawTxHex = signAndBuildTx(
+            txInputObj.inputUtxos,
+            txBuilder,
+            wallet,
+        );
+
+        // Broadcast transaction to the network via the chronik client
+        // sample chronik.broadcastTx() response:
+        //    {"txid":"0075130c9ecb342b5162bb1a8a870e69c935ea0c9b2353a967cda404401acf19"}
+        let broadcastResponse;
+        try {
+            broadcastResponse = await chronik.broadcastTx(rawTxHex);
+            if (!broadcastResponse) {
+                throw new Error('Empty chronik broadcast response');
+            }
+        } catch (err) {
+            console.log('Error broadcasting tx to chronik client');
+            throw err;
+        }
+
+        // return the explorer link for the broadcasted tx
+        return `${currency.blockExplorerUrl}/tx/${broadcastResponse.txid}`;
+    } catch (err) {
+        if (err.error === 'insufficient priority (code 66)') {
+            err.code = SEND_XEC_ERRORS.INSUFFICIENT_PRIORITY;
+        } else if (err.error === 'txn-mempool-conflict (code 18)') {
+            err.code = SEND_XEC_ERRORS.DOUBLE_SPENDING;
+        } else if (err.error === 'Network Error') {
+            err.code = SEND_XEC_ERRORS.NETWORK_ERROR;
+        } else if (
+            err.error ===
+            'too-long-mempool-chain, too many unconfirmed ancestors [limit: 25] (code 64)'
+        ) {
+            err.code = SEND_XEC_ERRORS.MAX_UNCONFIRMED_TXS;
+        }
+        console.log(`error: `, err);
+        throw err;
+    }
+};
+
 export const sendXec = async (
     chronik,
     wallet,
@@ -332,7 +442,6 @@ export const sendXec = async (
     airdropFlag,
     airdropTokenId,
     optionalMockPubKeyResponse = false,
-    // optionalAliasRegistrationFlag,
 ) => {
     try {
         let txBuilder = new TransactionBuilder();
@@ -407,7 +516,6 @@ export const sendXec = async (
                 airdropFlag,
                 airdropTokenId,
                 encryptedEj,
-                // optionalAliasRegistrationFlag,
             );
             txBuilder.addOutput(opReturnData, 0);
         }
