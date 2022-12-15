@@ -6,16 +6,7 @@ import {
     errorNotification,
     generalNotification,
 } from 'components/Common/Notifications';
-import {
-    Collapse,
-    Form,
-    Input,
-    Modal,
-    Alert,
-    Switch,
-    Tag,
-    Tooltip,
-} from 'antd';
+import { Collapse, Form, Input, Modal, Alert, Switch, Tooltip } from 'antd';
 import { Row, Col } from 'antd';
 import {
     PlusSquareOutlined,
@@ -25,9 +16,8 @@ import {
     CheckOutlined,
     CloseOutlined,
     LockFilled,
-    ExclamationCircleFilled,
 } from '@ant-design/icons';
-import { WalletContext, AuthenticationContext } from 'utils/context';
+import { WalletContext } from 'utils/context';
 import { SidePaddingCtn, FormLabel } from 'components/Common/Atoms';
 import { StyledCollapse } from 'components/Common/StyledCollapse';
 import {
@@ -470,8 +460,6 @@ const Configure = ({ passLoadingStatus }) => {
         updateContactList,
     } = ContextValue;
 
-    const authentication = React.useContext(AuthenticationContext);
-
     const location = useLocation();
 
     const [savedWallets, setSavedWallets] = useState([]);
@@ -855,22 +843,6 @@ const Configure = ({ passLoadingStatus }) => {
             setWalletDeleteValid(false);
         }
         setConfirmationOfWalletToBeDeleted(value);
-    };
-
-    const handleAppLockToggle = checked => {
-        if (checked) {
-            // if there is an existing credential, that means user has registered
-            // simply turn on the Authentication Required flag
-            if (authentication.credentialId) {
-                authentication.turnOnAuthentication();
-            } else {
-                // there is no existing credential, that means user has not registered
-                // user need to register
-                authentication.signUp();
-            }
-        } else {
-            authentication.turnOffAuthentication();
-        }
     };
 
     const handleContactNameInput = e => {
@@ -1840,30 +1812,6 @@ const Configure = ({ passLoadingStatus }) => {
                 <h2>
                     <ThemedSettingOutlined /> General Settings
                 </h2>
-                <GeneralSettingsItem>
-                    <div className="title">
-                        <LockFilled /> Lock App
-                    </div>
-                    {authentication ? (
-                        <Switch
-                            size="small"
-                            checkedChildren={<CheckOutlined />}
-                            unCheckedChildren={<CloseOutlined />}
-                            checked={
-                                authentication.isAuthenticationRequired &&
-                                authentication.credentialId
-                                    ? true
-                                    : false
-                            }
-                            // checked={false}
-                            onChange={handleAppLockToggle}
-                        />
-                    ) : (
-                        <Tag color="warning" icon={<ExclamationCircleFilled />}>
-                            Not Supported
-                        </Tag>
-                    )}
-                </GeneralSettingsItem>
                 <GeneralSettingsItem>
                     <div className="SendConfirm">
                         <LockFilled /> Send Confirmations

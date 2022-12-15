@@ -27,7 +27,6 @@ import { ReactComponent as Plus } from 'assets/plus.svg';
 import { ReactComponent as Download } from 'assets/download.svg';
 import { ReactComponent as Edit } from 'assets/edit.svg';
 import { ReactComponent as Trashcan } from 'assets/trashcan.svg';
-import { ReactComponent as FingerprintSVG } from 'assets/fingerprint-solid.svg';
 import { ReactComponent as EyeSVG } from 'assets/eye.svg';
 import { ReactComponent as EyeInvisibleSVG } from 'assets/eye-invisible.svg';
 import { ReactComponent as Audit } from 'assets/audit.svg';
@@ -142,9 +141,6 @@ export const ThemedMailOutlined = styled(Mail)`
     width: 20px;
     height: 20px;
     cursor: pointer;
-`;
-export const ThemedFingerprintSVG = styled(FingerprintSVG)`
-    fill: ${props => props.theme.buttons.primary.color};
 `;
 
 export const ThemedEyeSVG = styled(EyeSVG)`

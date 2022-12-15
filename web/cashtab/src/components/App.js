@@ -37,8 +37,6 @@ import {
 // Easter egg imports not used in extension/src/components/App.js
 import TabCash from 'assets/tabcash.png';
 import { checkForTokenById } from 'utils/tokenMethods.js';
-// Biometric security import not used in extension/src/components/App.js
-import ProtectableComponentWrapper from './Authentication/ProtectableComponentWrapper';
 import ServiceWorkerWrapper from './Common/ServiceWorkerWrapper';
 
 const GlobalStyle = createGlobalStyle`
@@ -542,66 +540,62 @@ const App = () => {
                                 )}
                                 {/*End component not included in extension as desktop only*/}
                             </HeaderCtn>
-                            <ProtectableComponentWrapper>
-                                <Switch>
-                                    <Route path="/wallet">
-                                        <Home />
-                                    </Route>
-                                    <Route path="/receive">
-                                        <Receive
-                                            passLoadingStatus={
-                                                setLoadingUtxosAfterSend
-                                            }
-                                        />
-                                    </Route>
-                                    <Route path="/tokens">
-                                        <Tokens
-                                            passLoadingStatus={
-                                                setLoadingUtxosAfterSend
-                                            }
-                                        />
-                                    </Route>
-                                    <Route path="/send">
-                                        <Send
-                                            passLoadingStatus={
-                                                setLoadingUtxosAfterSend
-                                            }
-                                        />
-                                    </Route>
-                                    <Route
-                                        path="/send-token/:tokenId"
-                                        render={props => (
-                                            <SendToken
-                                                tokenId={
-                                                    props.match.params.tokenId
-                                                }
-                                                passLoadingStatus={
-                                                    setLoadingUtxosAfterSend
-                                                }
-                                            />
-                                        )}
+                            <Switch>
+                                <Route path="/wallet">
+                                    <Home />
+                                </Route>
+                                <Route path="/receive">
+                                    <Receive
+                                        passLoadingStatus={
+                                            setLoadingUtxosAfterSend
+                                        }
                                     />
-                                    <Route path="/airdrop">
-                                        <Airdrop
+                                </Route>
+                                <Route path="/tokens">
+                                    <Tokens
+                                        passLoadingStatus={
+                                            setLoadingUtxosAfterSend
+                                        }
+                                    />
+                                </Route>
+                                <Route path="/send">
+                                    <Send
+                                        passLoadingStatus={
+                                            setLoadingUtxosAfterSend
+                                        }
+                                    />
+                                </Route>
+                                <Route
+                                    path="/send-token/:tokenId"
+                                    render={props => (
+                                        <SendToken
+                                            tokenId={props.match.params.tokenId}
                                             passLoadingStatus={
                                                 setLoadingUtxosAfterSend
                                             }
                                         />
-                                    </Route>
-                                    <Route path="/signverifymsg">
-                                        <SignVerifyMsg />
-                                    </Route>
-                                    <Route path="/configure">
-                                        <Configure
-                                            passLoadingStatus={
-                                                setUpdatingWalletInfo
-                                            }
-                                        />
-                                    </Route>
-                                    <Redirect exact from="/" to="/wallet" />
-                                    <Route component={NotFound} />
-                                </Switch>
-                            </ProtectableComponentWrapper>
+                                    )}
+                                />
+                                <Route path="/airdrop">
+                                    <Airdrop
+                                        passLoadingStatus={
+                                            setLoadingUtxosAfterSend
+                                        }
+                                    />
+                                </Route>
+                                <Route path="/signverifymsg">
+                                    <SignVerifyMsg />
+                                </Route>
+                                <Route path="/configure">
+                                    <Configure
+                                        passLoadingStatus={
+                                            setUpdatingWalletInfo
+                                        }
+                                    />
+                                </Route>
+                                <Redirect exact from="/" to="/wallet" />
+                                <Route component={NotFound} />
+                            </Switch>
                         </WalletCtn>
                         {wallet ? (
                             <Footer>

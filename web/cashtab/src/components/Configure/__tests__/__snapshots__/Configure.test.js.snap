@@ -2,10 +2,10 @@
 
 exports[`Wallet with BCH balances and tokens 1`] = `
 <div
-  className="sc-jKJlTe iSWneW"
+  className="sc-ckVGcZ jBULtA"
 >
   <div
-    className="sc-kvZOFW eZAsyg"
+    className="sc-frDJqD PxYcf"
   >
     <h2>
       <span
@@ -72,7 +72,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </div>
     </div>
     <div
-      className="sc-hqyNC hEUPzP"
+      className="sc-kvZOFW ckGXuB"
     />
     <h2>
       <span
@@ -97,7 +97,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
        Manage Wallets
     </h2>
     <button
-      className="sc-jhAzac fsnDTQ"
+      className="sc-hzDkRC bwFRJ"
       onClick={[Function]}
     >
       <span
@@ -125,7 +125,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
        New Wallet
     </button>
     <button
-      className="sc-fBuWsC jHStXd"
+      className="sc-jhAzac ipjnfi"
       onClick={[Function]}
     >
       <span
@@ -159,7 +159,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
         style={Object {}}
       >
         <div
-          className="ant-collapse ant-collapse-icon-position-start sc-cMljjf jOzpQd"
+          className="ant-collapse ant-collapse-icon-position-start sc-brqgnP jOOFaf"
           role={null}
           style={
             Object {
@@ -215,7 +215,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </div>
     </div>
     <div
-      className="sc-hqyNC hEUPzP"
+      className="sc-kvZOFW ckGXuB"
     />
     <h2>
       <span
@@ -240,7 +240,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
        Fiat Currency
     </h2>
     <div
-      className="sc-Rmtcm ffxWXt"
+      className="sc-csuQGl Ltnqj"
     >
       <div
         className="ant-select select-after ant-select-single ant-select-show-arrow"
@@ -333,7 +333,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </div>
     </div>
     <div
-      className="sc-hqyNC hEUPzP"
+      className="sc-kvZOFW ckGXuB"
     />
     <h2>
       <span
@@ -358,66 +358,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-jqCOkK gebTRu"
-    >
-      <div
-        className="title"
-      >
-        <span
-          aria-label="lock"
-          className="anticon anticon-lock"
-          role="img"
-        >
-          <svg
-            aria-hidden="true"
-            data-icon="lock"
-            fill="currentColor"
-            focusable="false"
-            height="1em"
-            viewBox="64 64 896 896"
-            width="1em"
-          >
-            <path
-              d="M832 464h-68V240c0-70.7-57.3-128-128-128H388c-70.7 0-128 57.3-128 128v224h-68c-17.7 0-32 14.3-32 32v384c0 17.7 14.3 32 32 32h640c17.7 0 32-14.3 32-32V496c0-17.7-14.3-32-32-32zM540 701v53c0 4.4-3.6 8-8 8h-40c-4.4 0-8-3.6-8-8v-53a48.01 48.01 0 1156 0zm152-237H332V240c0-30.9 25.1-56 56-56h248c30.9 0 56 25.1 56 56v224z"
-            />
-          </svg>
-        </span>
-         Lock App
-      </div>
-      <span
-        className="ant-tag ant-tag-warning"
-        style={
-          Object {
-            "backgroundColor": undefined,
-          }
-        }
-      >
-        <span
-          aria-label="exclamation-circle"
-          className="anticon anticon-exclamation-circle"
-          role="img"
-        >
-          <svg
-            aria-hidden="true"
-            data-icon="exclamation-circle"
-            fill="currentColor"
-            focusable="false"
-            height="1em"
-            viewBox="64 64 896 896"
-            width="1em"
-          >
-            <path
-              d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm-32 232c0-4.4 3.6-8 8-8h48c4.4 0 8 3.6 8 8v272c0 4.4-3.6 8-8 8h-48c-4.4 0-8-3.6-8-8V296zm32 440a48.01 48.01 0 010-96 48.01 48.01 0 010 96z"
-            />
-          </svg>
-        </span>
-        <span>
-          Not Supported
-        </span>
-      </span>
-    </div>
-    <div
-      className="sc-jqCOkK gebTRu"
+      className="sc-dNLxif gMBAys"
     >
       <div
         className="SendConfirm"
@@ -480,7 +421,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </button>
     </div>
     <div
-      className="sc-jqCOkK gebTRu"
+      className="sc-dNLxif gMBAys"
     >
       <div
         className="ShowMessages"
@@ -548,10 +489,10 @@ exports[`Wallet with BCH balances and tokens 1`] = `
 
 exports[`Without wallet defined 1`] = `
 <div
-  className="sc-jKJlTe iSWneW"
+  className="sc-ckVGcZ jBULtA"
 >
   <div
-    className="sc-kvZOFW eZAsyg"
+    className="sc-frDJqD PxYcf"
   >
     <h2>
       <span
@@ -618,7 +559,7 @@ exports[`Without wallet defined 1`] = `
       </div>
     </div>
     <div
-      className="sc-hqyNC hEUPzP"
+      className="sc-kvZOFW ckGXuB"
     />
     <h2>
       <span
@@ -643,7 +584,7 @@ exports[`Without wallet defined 1`] = `
        Manage Wallets
     </h2>
     <button
-      className="sc-jhAzac fsnDTQ"
+      className="sc-hzDkRC bwFRJ"
       onClick={[Function]}
     >
       <span
@@ -671,7 +612,7 @@ exports[`Without wallet defined 1`] = `
        New Wallet
     </button>
     <button
-      className="sc-fBuWsC jHStXd"
+      className="sc-jhAzac ipjnfi"
       onClick={[Function]}
     >
       <span
@@ -705,7 +646,7 @@ exports[`Without wallet defined 1`] = `
         style={Object {}}
       >
         <div
-          className="ant-collapse ant-collapse-icon-position-start sc-cMljjf jOzpQd"
+          className="ant-collapse ant-collapse-icon-position-start sc-brqgnP jOOFaf"
           role={null}
           style={
             Object {
@@ -761,7 +702,7 @@ exports[`Without wallet defined 1`] = `
       </div>
     </div>
     <div
-      className="sc-hqyNC hEUPzP"
+      className="sc-kvZOFW ckGXuB"
     />
     <h2>
       <span
@@ -786,7 +727,7 @@ exports[`Without wallet defined 1`] = `
        Fiat Currency
     </h2>
     <div
-      className="sc-Rmtcm ffxWXt"
+      className="sc-csuQGl Ltnqj"
     >
       <div
         className="ant-select select-after ant-select-single ant-select-show-arrow"
@@ -879,7 +820,7 @@ exports[`Without wallet defined 1`] = `
       </div>
     </div>
     <div
-      className="sc-hqyNC hEUPzP"
+      className="sc-kvZOFW ckGXuB"
     />
     <h2>
       <span
@@ -904,66 +845,7 @@ exports[`Without wallet defined 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-jqCOkK gebTRu"
-    >
-      <div
-        className="title"
-      >
-        <span
-          aria-label="lock"
-          className="anticon anticon-lock"
-          role="img"
-        >
-          <svg
-            aria-hidden="true"
-            data-icon="lock"
-            fill="currentColor"
-            focusable="false"
-            height="1em"
-            viewBox="64 64 896 896"
-            width="1em"
-          >
-            <path
-              d="M832 464h-68V240c0-70.7-57.3-128-128-128H388c-70.7 0-128 57.3-128 128v224h-68c-17.7 0-32 14.3-32 32v384c0 17.7 14.3 32 32 32h640c17.7 0 32-14.3 32-32V496c0-17.7-14.3-32-32-32zM540 701v53c0 4.4-3.6 8-8 8h-40c-4.4 0-8-3.6-8-8v-53a48.01 48.01 0 1156 0zm152-237H332V240c0-30.9 25.1-56 56-56h248c30.9 0 56 25.1 56 56v224z"
-            />
-          </svg>
-        </span>
-         Lock App
-      </div>
-      <span
-        className="ant-tag ant-tag-warning"
-        style={
-          Object {
-            "backgroundColor": undefined,
-          }
-        }
-      >
-        <span
-          aria-label="exclamation-circle"
-          className="anticon anticon-exclamation-circle"
-          role="img"
-        >
-          <svg
-            aria-hidden="true"
-            data-icon="exclamation-circle"
-            fill="currentColor"
-            focusable="false"
-            height="1em"
-            viewBox="64 64 896 896"
-            width="1em"
-          >
-            <path
-              d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm-32 232c0-4.4 3.6-8 8-8h48c4.4 0 8 3.6 8 8v272c0 4.4-3.6 8-8 8h-48c-4.4 0-8-3.6-8-8V296zm32 440a48.01 48.01 0 010-96 48.01 48.01 0 010 96z"
-            />
-          </svg>
-        </span>
-        <span>
-          Not Supported
-        </span>
-      </span>
-    </div>
-    <div
-      className="sc-jqCOkK gebTRu"
+      className="sc-dNLxif gMBAys"
     >
       <div
         className="SendConfirm"
@@ -1026,7 +908,7 @@ exports[`Without wallet defined 1`] = `
       </button>
     </div>
     <div
-      className="sc-jqCOkK gebTRu"
+      className="sc-dNLxif gMBAys"
     >
       <div
         className="ShowMessages"

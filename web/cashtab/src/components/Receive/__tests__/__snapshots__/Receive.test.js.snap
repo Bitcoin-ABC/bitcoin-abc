@@ -2,16 +2,16 @@
 
 exports[`Wallet with BCH balances 1`] = `
 <div
-  className="sc-ksYbfQ eqHnSP"
+  className="sc-cJSrbW dHadJS"
 >
   <div
-    className="sc-bRBYWo ekBiyF"
+    className="sc-Rmtcm bkNomx"
   >
     <div
-      className="sc-TOsTZ eYrqmp"
+      className="sc-cHGsZl kXimCH"
     >
       <h4
-        className="sc-kgAjT cKPgvU"
+        className="sc-TOsTZ bsocru"
       >
         MigrationTestAlpha
       </h4>
@@ -44,7 +44,7 @@ exports[`Wallet with BCH balances 1`] = `
             className="ant-switch-inner"
           >
             <svg
-              className="sc-chPdSV gzfndC"
+              className="sc-kAzzGY fUTkYj"
             >
               eye-invisible.svg
             </svg>
@@ -53,7 +53,7 @@ exports[`Wallet with BCH balances 1`] = `
       </div>
     </div>
     <div
-      className="sc-fBuWsC hgNVpd"
+      className="sc-jhAzac kkbIYr"
     >
       You currently have 0 
       XEC
@@ -62,7 +62,7 @@ exports[`Wallet with BCH balances 1`] = `
     </div>
   </div>
   <div
-    className="sc-cJSrbW dLwzxs"
+    className="sc-kgAjT cuzzPp"
   >
     <div
       onClick={[Function]}
@@ -86,7 +86,7 @@ exports[`Wallet with BCH balances 1`] = `
           }
         >
           <div
-            className="sc-jAaTju gtTnsd"
+            className="sc-cMljjf lcsRlG"
             style={
               Object {
                 "display": "none",
@@ -106,7 +106,7 @@ exports[`Wallet with BCH balances 1`] = `
             </span>
           </div>
           <svg
-            className="sc-cMljjf pSHwe"
+            className="sc-brqgnP PeWJM"
             height={210}
             id="borderedQRCode"
             shapeRendering="crispEdges"
@@ -131,7 +131,7 @@ exports[`Wallet with BCH balances 1`] = `
             />
           </svg>
           <div
-            className="sc-iRbamj kKGwqm notranslate"
+            className="sc-gPEVay idShqM notranslate"
           >
             <input
               readOnly={true}
@@ -140,18 +140,18 @@ exports[`Wallet with BCH balances 1`] = `
               value="ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd"
             />
             <span
-              className="sc-jDwBTQ dYvcEx"
+              className="sc-jAaTju fdrnMa"
             >
               ecash:
             </span>
             <span
-              className="sc-gPEVay lexnxF"
+              className="sc-jDwBTQ kjecyh"
             >
               qzagy47m
             </span>
             vh6qxkvcn3acjnz73rkhkc6y7c
             <span
-              className="sc-gPEVay lexnxF"
+              className="sc-jDwBTQ kjecyh"
             >
               cxkrr6zd
             </span>
@@ -161,7 +161,7 @@ exports[`Wallet with BCH balances 1`] = `
     </div>
   </div>
   <div
-    className="sc-hmzhuo NVrWw"
+    className="sc-ksYbfQ ewTDBH"
   >
     <div
       className="ant-alert ant-alert-info ant-alert-no-icon"
@@ -211,16 +211,16 @@ exports[`Wallet with BCH balances 1`] = `
 
 exports[`Wallet with BCH balances and tokens 1`] = `
 <div
-  className="sc-ksYbfQ eqHnSP"
+  className="sc-cJSrbW dHadJS"
 >
   <div
-    className="sc-bRBYWo ekBiyF"
+    className="sc-Rmtcm bkNomx"
   >
     <div
-      className="sc-TOsTZ eYrqmp"
+      className="sc-cHGsZl kXimCH"
     >
       <h4
-        className="sc-kgAjT cKPgvU"
+        className="sc-TOsTZ bsocru"
       >
         MigrationTestAlpha
       </h4>
@@ -253,7 +253,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
             className="ant-switch-inner"
           >
             <svg
-              className="sc-chPdSV gzfndC"
+              className="sc-kAzzGY fUTkYj"
             >
               eye-invisible.svg
             </svg>
@@ -262,7 +262,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </div>
     </div>
     <div
-      className="sc-fBuWsC hgNVpd"
+      className="sc-jhAzac kkbIYr"
     >
       You currently have 0 
       XEC
@@ -271,7 +271,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
     </div>
   </div>
   <div
-    className="sc-cJSrbW dLwzxs"
+    className="sc-kgAjT cuzzPp"
   >
     <div
       onClick={[Function]}
@@ -295,7 +295,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
           }
         >
           <div
-            className="sc-jAaTju gtTnsd"
+            className="sc-cMljjf lcsRlG"
             style={
               Object {
                 "display": "none",
@@ -315,7 +315,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
             </span>
           </div>
           <svg
-            className="sc-cMljjf pSHwe"
+            className="sc-brqgnP PeWJM"
             height={210}
             id="borderedQRCode"
             shapeRendering="crispEdges"
@@ -340,7 +340,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
             />
           </svg>
           <div
-            className="sc-iRbamj kKGwqm notranslate"
+            className="sc-gPEVay idShqM notranslate"
           >
             <input
               readOnly={true}
@@ -349,18 +349,18 @@ exports[`Wallet with BCH balances and tokens 1`] = `
               value="ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd"
             />
             <span
-              className="sc-jDwBTQ dYvcEx"
+              className="sc-jAaTju fdrnMa"
             >
               ecash:
             </span>
             <span
-              className="sc-gPEVay lexnxF"
+              className="sc-jDwBTQ kjecyh"
             >
               qzagy47m
             </span>
             vh6qxkvcn3acjnz73rkhkc6y7c
             <span
-              className="sc-gPEVay lexnxF"
+              className="sc-jDwBTQ kjecyh"
             >
               cxkrr6zd
             </span>
@@ -370,7 +370,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
     </div>
   </div>
   <div
-    className="sc-hmzhuo NVrWw"
+    className="sc-ksYbfQ ewTDBH"
   >
     <div
       className="ant-alert ant-alert-info ant-alert-no-icon"
@@ -420,16 +420,16 @@ exports[`Wallet with BCH balances and tokens 1`] = `
 
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 <div
-  className="sc-ksYbfQ eqHnSP"
+  className="sc-cJSrbW dHadJS"
 >
   <div
-    className="sc-bRBYWo ekBiyF"
+    className="sc-Rmtcm bkNomx"
   >
     <div
-      className="sc-TOsTZ eYrqmp"
+      className="sc-cHGsZl kXimCH"
     >
       <h4
-        className="sc-kgAjT cKPgvU"
+        className="sc-TOsTZ bsocru"
       >
         MigrationTestAlpha
       </h4>
@@ -462,7 +462,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
             className="ant-switch-inner"
           >
             <svg
-              className="sc-chPdSV gzfndC"
+              className="sc-kAzzGY fUTkYj"
             >
               eye-invisible.svg
             </svg>
@@ -471,10 +471,10 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
       </div>
     </div>
     <div
-      className="sc-jhAzac dVfipN"
+      className="sc-hzDkRC kfpqXQ"
     >
       <span
-        className="sc-gisBJw plqbj"
+        className="sc-caSCKo gaZMix"
       >
          
         0.06
@@ -485,7 +485,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
     </div>
   </div>
   <div
-    className="sc-cJSrbW dLwzxs"
+    className="sc-kgAjT cuzzPp"
   >
     <div
       onClick={[Function]}
@@ -509,7 +509,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
           }
         >
           <div
-            className="sc-jAaTju gtTnsd"
+            className="sc-cMljjf lcsRlG"
             style={
               Object {
                 "display": "none",
@@ -529,7 +529,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
             </span>
           </div>
           <svg
-            className="sc-cMljjf pSHwe"
+            className="sc-brqgnP PeWJM"
             height={210}
             id="borderedQRCode"
             shapeRendering="crispEdges"
@@ -554,7 +554,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
             />
           </svg>
           <div
-            className="sc-iRbamj kKGwqm notranslate"
+            className="sc-gPEVay idShqM notranslate"
           >
             <input
               readOnly={true}
@@ -563,18 +563,18 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
               value="ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd"
             />
             <span
-              className="sc-jDwBTQ dYvcEx"
+              className="sc-jAaTju fdrnMa"
             >
               ecash:
             </span>
             <span
-              className="sc-gPEVay lexnxF"
+              className="sc-jDwBTQ kjecyh"
             >
               qzagy47m
             </span>
             vh6qxkvcn3acjnz73rkhkc6y7c
             <span
-              className="sc-gPEVay lexnxF"
+              className="sc-jDwBTQ kjecyh"
             >
               cxkrr6zd
             </span>
@@ -584,7 +584,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
     </div>
   </div>
   <div
-    className="sc-hmzhuo NVrWw"
+    className="sc-ksYbfQ ewTDBH"
   >
     <div
       className="ant-alert ant-alert-info ant-alert-no-icon"
@@ -634,16 +634,16 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
 
 exports[`Wallet without BCH balance 1`] = `
 <div
-  className="sc-ksYbfQ eqHnSP"
+  className="sc-cJSrbW dHadJS"
 >
   <div
-    className="sc-bRBYWo ekBiyF"
+    className="sc-Rmtcm bkNomx"
   >
     <div
-      className="sc-TOsTZ eYrqmp"
+      className="sc-cHGsZl kXimCH"
     >
       <h4
-        className="sc-kgAjT cKPgvU"
+        className="sc-TOsTZ bsocru"
       >
         MigrationTestAlpha
       </h4>
@@ -676,7 +676,7 @@ exports[`Wallet without BCH balance 1`] = `
             className="ant-switch-inner"
           >
             <svg
-              className="sc-chPdSV gzfndC"
+              className="sc-kAzzGY fUTkYj"
             >
               eye-invisible.svg
             </svg>
@@ -685,7 +685,7 @@ exports[`Wallet without BCH balance 1`] = `
       </div>
     </div>
     <div
-      className="sc-fBuWsC hgNVpd"
+      className="sc-jhAzac kkbIYr"
     >
       You currently have 0 
       XEC
@@ -694,7 +694,7 @@ exports[`Wallet without BCH balance 1`] = `
     </div>
   </div>
   <div
-    className="sc-cJSrbW dLwzxs"
+    className="sc-kgAjT cuzzPp"
   >
     <div
       onClick={[Function]}
@@ -718,7 +718,7 @@ exports[`Wallet without BCH balance 1`] = `
           }
         >
           <div
-            className="sc-jAaTju gtTnsd"
+            className="sc-cMljjf lcsRlG"
             style={
               Object {
                 "display": "none",
@@ -738,7 +738,7 @@ exports[`Wallet without BCH balance 1`] = `
             </span>
           </div>
           <svg
-            className="sc-cMljjf pSHwe"
+            className="sc-brqgnP PeWJM"
             height={210}
             id="borderedQRCode"
             shapeRendering="crispEdges"
@@ -763,7 +763,7 @@ exports[`Wallet without BCH balance 1`] = `
             />
           </svg>
           <div
-            className="sc-iRbamj kKGwqm notranslate"
+            className="sc-gPEVay idShqM notranslate"
           >
             <input
               readOnly={true}
@@ -772,18 +772,18 @@ exports[`Wallet without BCH balance 1`] = `
               value="ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd"
             />
             <span
-              className="sc-jDwBTQ dYvcEx"
+              className="sc-jAaTju fdrnMa"
             >
               ecash:
             </span>
             <span
-              className="sc-gPEVay lexnxF"
+              className="sc-jDwBTQ kjecyh"
             >
               qzagy47m
             </span>
             vh6qxkvcn3acjnz73rkhkc6y7c
             <span
-              className="sc-gPEVay lexnxF"
+              className="sc-jDwBTQ kjecyh"
             >
               cxkrr6zd
             </span>
@@ -793,7 +793,7 @@ exports[`Wallet without BCH balance 1`] = `
     </div>
   </div>
   <div
-    className="sc-hmzhuo NVrWw"
+    className="sc-ksYbfQ ewTDBH"
   >
     <div
       className="ant-alert ant-alert-info ant-alert-no-icon"
@@ -843,18 +843,18 @@ exports[`Wallet without BCH balance 1`] = `
 
 exports[`Without wallet defined 1`] = `
 <div
-  className="sc-cvbbAY iRzyBn"
+  className="sc-eHgmQL aQUNn"
 >
   <h2>
     Welcome to Cashtab!
   </h2>
   <p
-    className="sc-jWBwVP cwtNsa"
+    className="sc-cvbbAY daqIBh"
   >
     Cashtab is an
      
     <a
-      className="sc-brqgnP iIywyg"
+      className="sc-jWBwVP jvgrAu"
       href="https://github.com/bitcoin-abc/bitcoin-abc"
       rel="noreferrer"
       target="_blank"
@@ -870,7 +870,7 @@ exports[`Without wallet defined 1`] = `
     Want to learn more?
      
     <a
-      className="sc-brqgnP iIywyg"
+      className="sc-jWBwVP jvgrAu"
       href="https://docs.cashtab.com/docs/"
       rel="noreferrer"
       target="_blank"
@@ -879,7 +879,7 @@ exports[`Without wallet defined 1`] = `
     </a>
   </p>
   <button
-    className="sc-kkGfuU ORPKP"
+    className="sc-kEYyzF eGMKh"
     onClick={[Function]}
   >
     <span
@@ -907,7 +907,7 @@ exports[`Without wallet defined 1`] = `
      New Wallet
   </button>
   <button
-    className="sc-iAyFgw jNlDQp"
+    className="sc-kkGfuU hVRGbW"
     onClick={[Function]}
   >
     <span

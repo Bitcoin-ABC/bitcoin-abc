@@ -48,13 +48,11 @@ export const theme = {
                 'linear-gradient(270deg, #0074C2 0%, #273498 100%)',
             color: '#fff',
             hoverShadow: '0px 3px 10px -5px rgba(0, 0, 0, 0.75)',
-            disabledOverlay: 'rgba(255, 255, 255, 0.5)',
         },
         secondary: {
             background: '#4b67e1',
             color: '#fff',
             hoverShadow: '0px 3px 10px -5px rgba(0, 0, 0, 0.75)',
-            disabledOverlay: 'rgba(255, 255, 255, 0.5)',
         },
         styledLink: '#ffffff',
     },
