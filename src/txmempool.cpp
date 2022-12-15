@@ -578,9 +578,6 @@ void CTxMemPool::addUnchecked(const CTxMemPoolEntry &entry,
     nTransactionsUpdated++;
     totalTxSize += entry.GetTxSize();
     m_total_fee += entry.GetFee();
-
-    vTxHashes.emplace_back(tx.GetHash(), newit);
-    newit->vTxHashesIdx = vTxHashes.size() - 1;
 }
 
 void CTxMemPool::removeUnchecked(txiter it, MemPoolRemovalReason reason) {
@@ -603,17 +600,6 @@ void CTxMemPool::removeUnchecked(txiter it, MemPoolRemovalReason reason) {
 
     /* add logging because unchecked */
     RemoveUnbroadcastTx(it->GetTx().GetId(), true);
-
-    if (vTxHashes.size() > 1) {
-        vTxHashes[it->vTxHashesIdx] = std::move(vTxHashes.back());
-        vTxHashes[it->vTxHashesIdx].second->vTxHashesIdx = it->vTxHashesIdx;
-        vTxHashes.pop_back();
-        if (vTxHashes.size() * 2 < vTxHashes.capacity()) {
-            vTxHashes.shrink_to_fit();
-        }
-    } else {
-        vTxHashes.clear();
-    }
 
     totalTxSize -= it->GetTxSize();
     m_total_fee -= it->GetFee();
@@ -772,7 +758,6 @@ void CTxMemPool::removeForBlock(const std::vector<CTransactionRef> &vtx,
 void CTxMemPool::_clear() {
     mapTx.clear();
     mapNextTx.clear();
-    vTxHashes.clear();
     totalTxSize = 0;
     m_total_fee = Amount::zero();
     cachedInnerUsage = 0;
@@ -1164,8 +1149,7 @@ size_t CTxMemPool::DynamicMemoryUsage() const {
                                  12 * sizeof(void *)) *
                mapTx.size() +
            memusage::DynamicUsage(mapNextTx) +
-           memusage::DynamicUsage(mapDeltas) +
-           memusage::DynamicUsage(vTxHashes) + cachedInnerUsage;
+           memusage::DynamicUsage(mapDeltas) + cachedInnerUsage;
 }
 
 void CTxMemPool::RemoveUnbroadcastTx(const TxId &txid, const bool unchecked) {

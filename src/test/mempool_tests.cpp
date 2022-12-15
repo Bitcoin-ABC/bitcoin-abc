@@ -295,14 +295,12 @@ BOOST_AUTO_TEST_CASE(MempoolClearTest) {
     BOOST_CHECK_EQUAL(testPool.size(), 1UL);
     BOOST_CHECK_EQUAL(testPool.mapTx.size(), 1UL);
     BOOST_CHECK_EQUAL(testPool.mapNextTx.size(), 1UL);
-    BOOST_CHECK_EQUAL(testPool.vTxHashes.size(), 1UL);
 
     // CTxMemPool's members should be empty after a clear
     testPool.clear();
     BOOST_CHECK_EQUAL(testPool.size(), 0UL);
     BOOST_CHECK_EQUAL(testPool.mapTx.size(), 0UL);
     BOOST_CHECK_EQUAL(testPool.mapNextTx.size(), 0UL);
-    BOOST_CHECK_EQUAL(testPool.vTxHashes.size(), 0UL);
 }
 
 template <typename name>

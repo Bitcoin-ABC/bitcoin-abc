@@ -98,11 +98,13 @@ ReadStatus PartiallyDownloadedBlock::InitData(
 
     {
         LOCK(pool->cs);
-        for (size_t i = 0; i < pool->vTxHashes.size(); i++) {
-            uint64_t shortid = cmpctblock.GetShortID(pool->vTxHashes[i].first);
+        auto it = pool->mapTx.begin();
+        while (it != pool->mapTx.end()) {
+            uint64_t shortid = cmpctblock.GetShortID(it->GetTx().GetHash());
 
-            mempool_count += shortidProcessor->matchKnownItem(
-                shortid, pool->vTxHashes[i].second->GetSharedTx());
+            mempool_count +=
+                shortidProcessor->matchKnownItem(shortid, it->GetSharedTx());
+            it++;
 
             if (mempool_count == shortidProcessor->getShortIdCount()) {
                 break;

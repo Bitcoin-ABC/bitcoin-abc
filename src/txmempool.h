@@ -187,8 +187,6 @@ public:
     Parents &GetMemPoolParents() const { return m_parents; }
     Children &GetMemPoolChildren() const { return m_children; }
 
-    //! Index in mempool's vTxHashes
-    mutable size_t vTxHashesIdx;
     //! epoch when last touched, useful for graph algorithms
     mutable Epoch::Marker m_epoch_marker;
 };
@@ -521,9 +519,6 @@ public:
     indexed_transaction_set mapTx GUARDED_BY(cs);
 
     using txiter = indexed_transaction_set::nth_index<0>::type::const_iterator;
-    //! All tx hashes/entries in mapTx, in random order
-    std::vector<std::pair<TxHash, txiter>> vTxHashes GUARDED_BY(cs);
-
     typedef std::set<txiter, CompareIteratorById> setEntries;
 
     uint64_t CalculateDescendantMaximum(txiter entry) const
