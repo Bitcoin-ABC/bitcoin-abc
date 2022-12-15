@@ -99,7 +99,7 @@ class MiniWallet:
             "confirmations": confirmations,
         }
 
-    def rescan_utxos(self):
+    def rescan_utxos(self, *, include_mempool=True):
         """Drop all utxos and rescan the utxo set"""
         self._utxos = []
         res = self._test_node.scantxoutset(
@@ -117,6 +117,12 @@ class MiniWallet:
                     confirmations=res["height"] - utxo["height"] + 1,
                 )
             )
+        if include_mempool:
+            mempool = self._test_node.getrawmempool()
+            # Sort tx by txid.
+            sorted_mempool = sorted(mempool)
+            for txid in sorted_mempool:
+                self.scan_tx(self._test_node.getrawtransaction(txid=txid, verbose=True))
 
     def scan_tx(self, tx):
         """Scan the tx and adjust the internal list of owned utxos"""
@@ -142,25 +148,33 @@ class MiniWallet:
                     )
                 )
 
-    def sign_tx(self, tx, amount, fixed_length=True):
-        """Sign tx that has been created by MiniWallet in P2PK mode"""
-        assert_equal(self._mode, MiniWalletMode.RAW_P2PK)
-        sighash = SignatureHashForkId(
-            CScript(self._scriptPubKey), tx, 0, SIGHASH_ALL | SIGHASH_FORKID, amount
-        )
-        # for exact fee calculation, create only signatures with fixed size by
-        # default (>49.89% probability):
-        #   65 bytes: high-R val (33 bytes) + low-S val (32 bytes)
-        # with the DER header/skeleton data of 6 bytes added, this leads to a
-        # target size of 71 bytes
-        der_sig = b""
-        while not len(der_sig) == 71:
-            der_sig = self._priv_key.sign_ecdsa(sighash)
-            if not fixed_length:
-                break
-        tx.vin[0].scriptSig = CScript(
-            [der_sig + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))]
-        )
+    def sign_tx(self, tx, amount=None, fixed_length=True):
+        """Sign tx that has been created by MiniWallet"""
+        if self._mode == MiniWalletMode.RAW_P2PK:
+            assert amount is not None, "Amount is required to sign in P2PK mode"
+
+            sighash = SignatureHashForkId(
+                CScript(self._scriptPubKey), tx, 0, SIGHASH_ALL | SIGHASH_FORKID, amount
+            )
+            # for exact fee calculation, create only signatures with fixed size by
+            # default (>49.89% probability):
+            #   65 bytes: high-R val (33 bytes) + low-S val (32 bytes)
+            # with the DER header/skeleton data of 6 bytes added, this leads to a
+            # target size of 71 bytes
+            der_sig = b""
+            while not len(der_sig) == 71:
+                der_sig = self._priv_key.sign_ecdsa(sighash)
+                if not fixed_length:
+                    break
+            tx.vin[0].scriptSig = CScript(
+                [der_sig + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))]
+            )
+        elif self._mode == MiniWalletMode.ADDRESS_OP_TRUE:
+            for i in range(len(tx.vin)):
+                tx.vin[i].scriptSig = SCRIPTSIG_OP_TRUE
+        else:
+            assert False
+        pad_tx(tx, 100)
 
     def generate(self, num_blocks, **kwargs):
         """Generate blocks with coinbase outputs to the internal address, and call rescan_utxos"""
@@ -319,23 +333,12 @@ class MiniWallet:
         ]
         tx.nLockTime = locktime
 
-        if self._mode == MiniWalletMode.RAW_P2PK:
-            self.sign_tx(
-                tx,
-                sum(
-                    [
-                        int(utxo_to_spend["value"] * XEC)
-                        for utxo_to_spend in utxos_to_spend
-                    ]
-                ),
-            )
-        elif self._mode == MiniWalletMode.ADDRESS_OP_TRUE:
-            for i in range(len(utxos_to_spend)):
-                tx.vin[i].scriptSig = SCRIPTSIG_OP_TRUE
-        else:
-            assert False
-
-        pad_tx(tx, 100)
+        self.sign_tx(
+            tx,
+            sum(
+                [int(utxo_to_spend["value"] * XEC) for utxo_to_spend in utxos_to_spend]
+            ),
+        )
 
         if target_size:
             pad_tx(tx, target_size)
