@@ -912,23 +912,24 @@ static RPCHelpMan submitpackage() {
                     NONFATAL_UNREACHABLE();
                 }
             }
+            size_t num_broadcast{0};
             for (const auto &tx : txns) {
-                size_t num_submitted{0};
                 std::string err_string;
                 const auto err = BroadcastTransaction(
-                    node, tx, err_string, Amount::zero(), true, true);
+                    node, tx, err_string, /*max_tx_fee=*/Amount::zero(),
+                    /*relay=*/true, /*wait_callback=*/true);
                 if (err != TransactionError::OK) {
                     throw JSONRPCTransactionError(
                         err,
                         strprintf("transaction broadcast failed: %s (all "
                                   "transactions were submitted, %d "
                                   "transactions were broadcast successfully)",
-                                  err_string, num_submitted));
+                                  err_string, num_broadcast));
                 }
+                num_broadcast++;
             }
             UniValue rpc_result{UniValue::VOBJ};
             UniValue tx_result_map{UniValue::VOBJ};
-            std::set<uint256> replaced_txids;
             for (const auto &tx : txns) {
                 auto it = package_result.m_tx_results.find(tx->GetId());
                 CHECK_NONFATAL(it != package_result.m_tx_results.end());

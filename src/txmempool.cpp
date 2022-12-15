@@ -620,6 +620,7 @@ bool CCoinsViewMemPool::GetCoin(const COutPoint &outpoint, Coin &coin) const {
     if (ptx) {
         if (outpoint.GetN() < ptx->vout.size()) {
             coin = Coin(ptx->vout[outpoint.GetN()], MEMPOOL_HEIGHT, false);
+            m_non_base_coins.emplace(outpoint);
             return true;
         }
         return false;
@@ -631,7 +632,12 @@ void CCoinsViewMemPool::PackageAddTransaction(const CTransactionRef &tx) {
     for (uint32_t n = 0; n < tx->vout.size(); ++n) {
         m_temp_added.emplace(COutPoint(tx->GetId(), n),
                              Coin(tx->vout[n], MEMPOOL_HEIGHT, false));
+        m_non_base_coins.emplace(COutPoint(tx->GetId(), n));
     }
+}
+void CCoinsViewMemPool::Reset() {
+    m_temp_added.clear();
+    m_non_base_coins.clear();
 }
 
 size_t CTxMemPool::DynamicMemoryUsage() const {

@@ -14,6 +14,7 @@ from test_framework.address import (
     base58_to_byte,
     key_to_p2pkh,
 )
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.key import ECKey
 from test_framework.messages import XEC, COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.script import (
@@ -88,8 +89,15 @@ class MiniWallet:
         # for those mature UTXOs, so that all txs spend confirmed coins
         self.rescan_utxos()
 
-    def _create_utxo(self, *, txid, vout, value, height):
-        return {"txid": txid, "vout": vout, "value": value, "height": height}
+    def _create_utxo(self, *, txid, vout, value, height, coinbase, confirmations):
+        return {
+            "txid": txid,
+            "vout": vout,
+            "value": value,
+            "height": height,
+            "coinbase": coinbase,
+            "confirmations": confirmations,
+        }
 
     def rescan_utxos(self):
         """Drop all utxos and rescan the utxo set"""
@@ -105,6 +113,8 @@ class MiniWallet:
                     vout=utxo["vout"],
                     value=utxo["amount"],
                     height=utxo["height"],
+                    coinbase=utxo["coinbase"],
+                    confirmations=res["height"] - utxo["height"] + 1,
                 )
             )
 
@@ -123,7 +133,12 @@ class MiniWallet:
             if out["scriptPubKey"]["hex"] == self._scriptPubKey.hex():
                 self._utxos.append(
                     self._create_utxo(
-                        txid=tx["txid"], vout=out["n"], value=out["value"], height=0
+                        txid=tx["txid"],
+                        vout=out["n"],
+                        value=out["value"],
+                        height=0,
+                        coinbase=False,
+                        confirmations=0,
                     )
                 )
 
@@ -171,7 +186,12 @@ class MiniWallet:
         return self._scriptPubKey
 
     def get_utxo(
-        self, *, txid: str = "", vout: Optional[int] = None, mark_as_spent=True
+        self,
+        *,
+        txid: str = "",
+        vout: Optional[int] = None,
+        mark_as_spent=True,
+        confirmed_only=False,
     ):
         """
         Returns a utxo and marks it as spent (pops it from the internal list)
@@ -188,6 +208,8 @@ class MiniWallet:
             utxo_filter = reversed(self._utxos)
         if vout is not None:
             utxo_filter = filter(lambda utxo: vout == utxo["vout"], utxo_filter)
+        if confirmed_only:
+            utxo_filter = filter(lambda utxo: utxo["confirmations"] > 0, utxo_filter)
         index = self._utxos.index(next(utxo_filter))
 
         if mark_as_spent:
@@ -195,9 +217,25 @@ class MiniWallet:
         else:
             return self._utxos[index]
 
-    def get_utxos(self, *, mark_as_spent=True):
+    def get_utxos(
+        self,
+        *,
+        include_immature_coinbase=False,
+        mark_as_spent=True,
+        confirmed_only=False,
+    ):
         """Returns the list of all utxos and optionally mark them as spent"""
-        utxos = deepcopy(self._utxos)
+        if not include_immature_coinbase:
+            utxo_filter = filter(
+                lambda utxo: not utxo["coinbase"]
+                or COINBASE_MATURITY <= utxo["confirmations"],
+                self._utxos,
+            )
+        else:
+            utxo_filter = self._utxos
+        if confirmed_only:
+            utxo_filter = filter(lambda utxo: utxo["confirmations"] > 0, utxo_filter)
+        utxos = deepcopy(list(utxo_filter))
         if mark_as_spent:
             self._utxos = []
         return utxos
@@ -243,13 +281,16 @@ class MiniWallet:
         sequence=0,
         fee_per_output=1000,
         target_size=0,
+        confirmed_only=False,
     ):
         """
         Create and return a transaction that spends the given UTXOs and creates a
         certain number of outputs with equal amounts. The output amounts can be
         set by amount_per_output or automatically calculated with a fee_per_output.
         """
-        utxos_to_spend = utxos_to_spend or [self.get_utxo()]
+        utxos_to_spend = utxos_to_spend or [
+            self.get_utxo(confirmed_only=confirmed_only)
+        ]
         sequence = (
             [sequence] * len(utxos_to_spend) if type(sequence) is int else sequence
         )
@@ -307,6 +348,8 @@ class MiniWallet:
                     vout=i,
                     value=Decimal(tx.vout[i].nValue) / XEC,
                     height=0,
+                    coinbase=False,
+                    confirmations=0,
                 )
                 for i in range(len(tx.vout))
             ],
@@ -325,9 +368,10 @@ class MiniWallet:
         locktime=0,
         sequence=0,
         target_size=0,
+        confirmed_only=False,
     ):
         """Create and return a tx with the specified fee. If fee is 0, use fee_rate, where the resulting fee may be exact or at most one satoshi higher than needed."""
-        utxo_to_spend = utxo_to_spend or self.get_utxo()
+        utxo_to_spend = utxo_to_spend or self.get_utxo(confirmed_only=confirmed_only)
         assert fee_rate >= 0
         assert fee >= 0
 

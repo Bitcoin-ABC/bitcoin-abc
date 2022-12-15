@@ -307,7 +307,7 @@ private:
  * Validation result for package mempool acceptance.
  */
 struct PackageMempoolAcceptResult {
-    const PackageValidationState m_state;
+    PackageValidationState m_state;
     /**
      * Map from txid to finished MempoolAcceptResults. The client is
      * responsible for keeping track of the transaction objects themselves.
@@ -315,11 +315,11 @@ struct PackageMempoolAcceptResult {
      * transaction. If there was a package-wide error (see result in m_state),
      * m_tx_results will be empty.
      */
-    std::map<const TxId, const MempoolAcceptResult> m_tx_results;
+    std::map<TxId, MempoolAcceptResult> m_tx_results;
 
     explicit PackageMempoolAcceptResult(
         PackageValidationState state,
-        std::map<const TxId, const MempoolAcceptResult> &&results)
+        std::map<TxId, MempoolAcceptResult> &&results)
         : m_state{state}, m_tx_results(std::move(results)) {}
 
     /**

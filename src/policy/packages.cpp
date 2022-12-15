@@ -40,6 +40,14 @@ bool CheckPackage(const Package &txns, PackageValidationState &state) {
     std::transform(txns.cbegin(), txns.cend(),
                    std::inserter(later_txids, later_txids.end()),
                    [](const auto &tx) { return tx->GetId(); });
+
+    // Package must not contain any duplicate transactions, which is checked by
+    // txid.
+    if (later_txids.size() != txns.size()) {
+        return state.Invalid(PackageValidationResult::PCKG_POLICY,
+                             "package-contains-duplicates");
+    }
+
     for (const auto &tx : txns) {
         for (const auto &input : tx->vin) {
             if (later_txids.find(input.prevout.GetTxId()) !=
