@@ -38,7 +38,7 @@ if(SECP256K1_ENABLE_COVERAGE)
 		message(WARNING "It is advised to not enforce CMAKE_BUILD_TYPE to get the best coverage results")
 	endif()
 
-	set(COVERAGE 1)
+	add_compile_definitions(COVERAGE=1)
 endif()
 
 # libsecp256k1 use a different set of flags.
@@ -149,9 +149,10 @@ if(SECP256K1_ENABLE_ASM)
 		if(NOT USE_ASM_X86_64)
 			unsupported_asm_error()
 		endif()
+		add_compile_definitions(USE_ASM_X86_64=1)
 	elseif(SECP256K1_ASM_BUILD_TARGET MATCHES "arm-linux-gnueabihf")
 		enable_language(ASM)
-		set(USE_EXTERNAL_ASM 1)
+		add_compile_definitions(USE_EXTERNAL_ASM=1)
 		add_library(secp256k1_common src/asm/field_10x26_arm.s)
 		target_link_libraries(secp256k1 secp256k1_common)
 	else()
@@ -171,13 +172,6 @@ elseif(SECP256K1_TEST_OVERRIDE_WIDE_MULTIPLY STREQUAL "int64")
 	target_compile_definitions(secp256k1 PUBLIC USE_FORCE_WIDEMUL_INT64=1)
 endif()
 
-# Executable internal to secp256k1 need to have the HAVE_CONFIG_H define set.
-# For convenience, we wrap this into a function.
-function(link_secp256k1_internal NAME)
-	target_link_libraries(${NAME} secp256k1)
-	target_compile_definitions(${NAME} PRIVATE HAVE_CONFIG_H)
-endfunction(link_secp256k1_internal)
-
 include(InstallationHelper)
 
 # Phony target to build benchmarks
@@ -186,7 +180,7 @@ add_custom_target(bench-secp256k1)
 function(add_secp256k1_bench NAME)
 	set(EXECUTABLE_NAME "${NAME}-bench")
 	add_executable(${EXECUTABLE_NAME} ${ARGN})
-	link_secp256k1_internal(${EXECUTABLE_NAME})
+	target_link_libraries(${EXECUTABLE_NAME} secp256k1)
 
 	set(BENCH_NAME "bench-secp256k1-${NAME}")
 	add_custom_target(${BENCH_NAME}
@@ -207,35 +201,35 @@ option(SECP256K1_ENABLE_DEV_MODE "Build all modules" OFF)
 # ECDH module
 option(SECP256K1_ENABLE_MODULE_ECDH "Build libsecp256k1's ECDH module" ON)
 if(SECP256K1_ENABLE_MODULE_ECDH)
-	set(ENABLE_MODULE_ECDH 1)
+	add_compile_definitions(ENABLE_MODULE_ECDH=1)
 	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_ecdh.h)
 endif()
 
 # MultiSet module
 option(SECP256K1_ENABLE_MODULE_MULTISET "Build libsecp256k1's MULTISET module" ${SECP256K1_ENABLE_DEV_MODE})
 if(SECP256K1_ENABLE_MODULE_MULTISET)
-	set(ENABLE_MODULE_MULTISET 1)
+	add_compile_definitions(ENABLE_MODULE_MULTISET=1)
 	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_multiset.h)
 endif()
 
 # Recovery module
 option(SECP256K1_ENABLE_MODULE_RECOVERY "Build libsecp256k1's recovery module" ON)
 if(SECP256K1_ENABLE_MODULE_RECOVERY)
-	set(ENABLE_MODULE_RECOVERY 1)
+	add_compile_definitions(ENABLE_MODULE_RECOVERY=1)
 	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_recovery.h)
 endif()
 
 # Schnorr module
 option(SECP256K1_ENABLE_MODULE_SCHNORR "Build libsecp256k1's Schnorr module" ON)
 if(SECP256K1_ENABLE_MODULE_SCHNORR)
-	set(ENABLE_MODULE_SCHNORR 1)
+	add_compile_definitions(ENABLE_MODULE_SCHNORR=1)
 	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_schnorr.h)
 endif()
 
 # Extrakeys module
 option(SECP256K1_ENABLE_MODULE_EXTRAKEYS "Build libsecp256k1's Extrakeys module" ON)
 if(SECP256K1_ENABLE_MODULE_EXTRAKEYS)
-	set(ENABLE_MODULE_EXTRAKEYS 1)
+	add_compile_definitions(ENABLE_MODULE_EXTRAKEYS=1)
 	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_extrakeys.h)
 endif()
 
@@ -245,14 +239,14 @@ if(SECP256K1_ENABLE_MODULE_SCHNORRSIG)
 	if(NOT SECP256K1_ENABLE_MODULE_EXTRAKEYS)
 		message(FATAL_ERROR "The module Schnorrsig require Extrakeys. Try running cmake using -DSECP256K1_ENABLE_MODULE_EXTRAKEYS=On")
 	endif()
-	set(ENABLE_MODULE_SCHNORRSIG 1)
+	add_compile_definitions(ENABLE_MODULE_SCHNORRSIG=1)
 	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_schnorrsig.h)
 endif()
 
 # External default callbacks
 option(SECP256K1_ENABLE_EXTERNAL_DEFAULT_CALLBACKS "Enable external default callbacks" OFF)
 if(SECP256K1_ENABLE_EXTERNAL_DEFAULT_CALLBACKS)
-	set(USE_EXTERNAL_DEFAULT_CALLBACKS 1)
+	add_compile_definitions(USE_EXTERNAL_DEFAULT_CALLBACKS=1)
 endif()
 
 # Do not allow unresolved symbols, except when external default callbacks are enabled or when using sanitizers
@@ -270,6 +264,7 @@ if(${SECP256K1_ECMULT_WINDOW_SIZE} GREATER 15)
 	# file so that it can be rebuilt (see gen-precomp target).
 	file(REMOVE "${CMAKE_CURRENT_SOURCE_DIR}/src/precomputed_ecmult.c")
 endif()
+add_compile_definitions(ECMULT_WINDOW_SIZE=${SECP256K1_ECMULT_WINDOW_SIZE})
 
 include(NativeExecutable)
 
@@ -304,6 +299,7 @@ set(VALID_PRECISIONS 2 4 8)
 if(NOT ${SECP256K1_ECMULT_GEN_PRECISION} IN_LIST VALID_PRECISIONS)
 	message(FATAL_ERROR "SECP256K1_ECMULT_GEN_PRECISION not 2, 4, 8")
 endif()
+add_compile_definitions(ECMULT_GEN_PREC_BITS=${SECP256K1_ECMULT_GEN_PRECISION})
 
 # Static precomputation for elliptic curve multiplication
 native_add_cmake_flags(
@@ -330,10 +326,6 @@ else()
 	install_target(secp256k1 ${SECP256K1_INSTALL_EXCLUDE_FROM_ALL})
 endif()
 
-# Generate the config
-configure_file(src/libsecp256k1-config.h.cmake.in src/libsecp256k1-config.h ESCAPE_QUOTES)
-target_compile_definitions(secp256k1 PRIVATE HAVE_CONFIG_H)
-
 # Tests
 option(SECP256K1_BUILD_TEST "Build secp256k1's unit tests" ON)
 
@@ -343,7 +335,7 @@ if(SECP256K1_BUILD_TEST)
 
 	function(create_secp256k1_test NAME FILES)
 		add_test_to_suite(secp256k1 ${NAME} EXCLUDE_FROM_ALL ${FILES})
-		link_secp256k1_internal(${NAME})
+		target_link_libraries(${NAME} secp256k1)
 	endfunction()
 
 	create_secp256k1_test(secp256k1-tests src/tests.c)
@@ -365,7 +357,7 @@ add_secp256k1_bench(ecmult src/bench_ecmult.c)
 # "External" benchmarks
 set(EXECUTABLE_NAME "bench")
 add_executable(bench src/bench.c)
-link_secp256k1_internal(bench)
+target_link_libraries(bench secp256k1)
 
 set(BENCH_NAME "bench-secp256k1-external")
 add_custom_target(${BENCH_NAME}

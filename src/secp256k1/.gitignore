@@ -34,8 +34,6 @@ libtool
 *.lo
 *.o
 *~
-src/libsecp256k1-config.h
-src/libsecp256k1-config.h.in
 build-aux/ar-lib
 build-aux/config.guess
 build-aux/config.sub
@@ -50,5 +48,4 @@ build-aux/m4/ltversion.m4
 build-aux/missing
 build-aux/compile
 build-aux/test-driver
-src/stamp-h1
 libsecp256k1.pc
