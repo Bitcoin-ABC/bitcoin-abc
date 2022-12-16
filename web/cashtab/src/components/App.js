@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import 'antd/dist/antd.less';
 import PropTypes from 'prop-types';
-import { Spin } from 'antd';
+import { Spin, Modal } from 'antd';
 import {
     CashLoadingIcon,
     HomeIcon,
@@ -413,11 +413,28 @@ const App = () => {
         }).then(function (permissionResult) {
             console.log(`permissionResult`, permissionResult);
             if (permissionResult !== 'granted') {
-                throw new Error("We weren't granted permission.");
-                // TODO in this case, we should display a modal saying we'll keep asking
+                // Warning modal if user does not accept notifications
+                Modal.warn({
+                    title: 'Notification permission refused',
+                    content:
+                        'Please enable notifications from Cashtab.com to help prevent your browser from deleting Cashtab wallet info.',
+                });
             } else {
+                console.log(`Notification permission granted`);
                 // If it is granted, ask again for persistent storage
                 // Best way to do this is to show a modal that refreshes the page
+
+                // Success modal when user accepts notifications, prompting a refresh
+                Modal.success({
+                    title: 'Notification permission granted',
+                    content: 'Please refresh the page',
+                    onOk: () => {
+                        console.log(
+                            `Reloading page to retry for persistent storage permission`,
+                        );
+                        window.location.reload(true);
+                    },
+                });
             }
         });
     };
