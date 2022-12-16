@@ -6,6 +6,8 @@
 #ifndef BITCOIN_CLIENTVERSION_H
 #define BITCOIN_CLIENTVERSION_H
 
+#include <util/macros.h>
+
 #if defined(HAVE_CONFIG_H)
 #include <config/bitcoin-config.h>
 #endif // HAVE_CONFIG_H
@@ -17,14 +19,6 @@
     !defined(CLIENT_VERSION_IS_RELEASE)
 #error Client version information missing: version is not defined by bitcoin-config.h nor defined any other way
 #endif
-
-/**
- * Converts the parameter X to a string after macro replacement on X has been
- * performed.
- * Don't merge these into one macro!
- */
-#define STRINGIZE(X) DO_STRINGIZE(X)
-#define DO_STRINGIZE(X) #X
 
 //! Copyright string used in Windows .rc files
 #define COPYRIGHT_STR                                                          \
