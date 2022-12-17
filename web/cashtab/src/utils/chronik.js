@@ -8,24 +8,143 @@ import {
     getUtxoWif,
     convertEcashtoEtokenAddr,
     hash160ToAddress,
+    getAliasRegistrationFee,
 } from 'utils/cashMethods';
 import ecies from 'ecies-lite';
 import wif from 'wif';
 
-export const isAliasAvailable = async alias => {
-    alias; // linting bypass
-
+export const isAliasAvailable = async (chronik, alias) => {
+    // TODO: Implement caching mechanism to reduce the API call below
     // if isLocalAliasStateLatest() is true then retrieve incoming tx history from localStorage
     // else retrieve via chronik and update localStorage
 
-    // for each incoming tx with OP_RETURN outputs that paid at least currency.aliasSettings.aliasMinFee
-    // filter for currency.opReturn.appPrefixesHex.aliasRegistration
-    // filter for valid payment fee in output[1]
-    // add opReturnMsg (the alias) to an aliasArray
+    // retrieve alias payment address tx history
+    let aliasPaymentTxs;
+    try {
+        aliasPaymentTxs = await chronik
+            .script(
+                'p2pkh', // TODO: change type to p2sh when we switch to multisig
+                currency.aliasSettings.aliasPaymentHash160,
+            )
+            .history();
+    } catch (err) {
+        console.log('Error retireving onchain aliases: ' + err);
+        return false;
+    }
 
-    // if alias is in aliasArray
-    // return false
-    return true;
+    if (!aliasPaymentTxs || !aliasPaymentTxs.txs) {
+        console.log('Invalid alias payment transaction history');
+        return false;
+    }
+
+    // extract aliases from payment address' tx history
+    let registeredAliases = getAliases(aliasPaymentTxs);
+
+    // temporary debut output of all registered aliases
+    console.log('Registered Aliases:');
+    registeredAliases.forEach(element => console.log(`- ${element}`));
+
+    // check if the chosen alias has already been registered onchain
+    let isAliasTaken = isAliasRegistered(registeredAliases, alias);
+
+    return !isAliasTaken; // if isAliasTaken is true then return false for availability
+};
+
+export const isAliasRegistered = (registeredAliases, alias) => {
+    for (let i = 0; i < registeredAliases.length; i++) {
+        if (
+            registeredAliases[i].toString().toLowerCase() ===
+            alias.toLowerCase()
+        ) {
+            console.log(alias + ' has already been taken');
+            return true;
+        }
+    }
+    return false;
+};
+
+export const getAliases = aliasPaymentTxs => {
+    const registeredAliases = [];
+    let aliasName;
+
+    // parse through each txs in alias payment address
+    for (let i = 0; i < aliasPaymentTxs.txs.length; i += 1) {
+        let totalAliasFeePaid = new BigNumber(0);
+        // extract the OP_RETURN script for txs[i]
+        const opReturnScript = aliasPaymentTxs.txs[i].outputs[0].outputScript;
+
+        // parse the OP_RETURN script - expected structure is [.xec][the alias]
+        const aliasTxOpReturnArray = parseOpReturn(opReturnScript);
+        if (!aliasTxOpReturnArray) {
+            continue; // skip this txs[i] as it's not a registration tx
+        }
+
+        const parsedAliasPrefixHex = aliasTxOpReturnArray[0];
+        const parsedAliasNameHex = aliasTxOpReturnArray[1];
+        const parsedAliasNameStr = Buffer.from(parsedAliasNameHex, 'hex')
+            .toString()
+            .toLowerCase();
+
+        // if this transaction has a valid OP_RETURN and is indicating an alias prefix
+        // then parse through all outputs in this txs[i]
+        if (
+            parsedAliasPrefixHex &&
+            parsedAliasNameHex &&
+            parsedAliasPrefixHex.toLowerCase() ===
+                currency.opReturn.appPrefixesHex.aliasRegistration.toLowerCase()
+        ) {
+            let aliasNameFound = false;
+
+            // parse through each output in this txs[i] and tally up the total alias registration payments where the destination address is the alias payment address
+            for (let j = 0; j < aliasPaymentTxs.txs[i].outputs.length; j++) {
+                const thisOutputScript =
+                    aliasPaymentTxs.txs[i].outputs[j].outputScript;
+                if (
+                    thisOutputScript.includes(
+                        currency.aliasSettings.aliasPaymentHash160,
+                    ) // this output is being sent to the alias payment address
+                ) {
+                    // set the alias name only once
+                    if (!aliasNameFound) {
+                        aliasName = parsedAliasNameStr;
+                        aliasNameFound = true;
+                    }
+
+                    const thisOutputValue =
+                        aliasPaymentTxs.txs[i].outputs[j].value;
+
+                    // increment fee paid
+                    totalAliasFeePaid = totalAliasFeePaid.plus(
+                        new BigNumber(thisOutputValue),
+                    );
+                }
+            }
+
+            // having now parsed all outputs in txs[i] for total payment value and aliasName
+            // add alias to array if the cumulative payment matches expected fee and alias is within max char length
+            if (aliasName) {
+                // parse the valid fee based on aliasName length
+                const expectedAliasPaymentFee =
+                    getAliasRegistrationFee(aliasName);
+
+                if (
+                    totalAliasFeePaid.eq(
+                        new BigNumber(expectedAliasPaymentFee),
+                    ) &&
+                    aliasName.length <=
+                        currency.aliasSettings.aliasMaxLength - 1
+                ) {
+                    // consider alias as valid and add to array
+                    registeredAliases.push(aliasName);
+
+                    // reset fee increment for the next txs[i]
+                    totalAliasFeePaid = new BigNumber(0);
+                }
+            }
+        }
+    }
+
+    return registeredAliases;
 };
 
 // Return false if do not get a valid response

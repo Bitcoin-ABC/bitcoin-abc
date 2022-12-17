@@ -8,6 +8,8 @@ import {
     sortAndTrimChronikTxHistory,
     parseChronikTx,
     getMintAddress,
+    getAliases,
+    isAliasRegistered,
 } from 'utils/chronik';
 import {
     mockChronikUtxos,
@@ -54,6 +56,7 @@ import {
     mockReceivedEtokenTx,
     mockSwapWallet,
     mockSwapTx,
+    mockTxHistoryOfAliasPaymentAddress,
 } from '../__mocks__/chronikTxHistory';
 import {
     mintingTxTabCash,
@@ -722,4 +725,27 @@ it(`getMintAddress successfully parses chronik.tx response to determine mint add
     expect(await getMintAddress(chronik, mintingTxBuxSelfMint.txid)).toBe(
         mintingAddressBuxSelfMint,
     );
+});
+
+it(`Successfully extracts aliases from an alias payment address tx history`, () => {
+    expect(getAliases(mockTxHistoryOfAliasPaymentAddress)).toStrictEqual([
+        'range',
+        '123',
+        'foo',
+        'foo',
+        'foo',
+        'joey',
+        'nfs',
+        'nfs',
+    ]);
+});
+
+it(`isAliasRegistered() returns true for a registered alias`, () => {
+    const registeredAliases = ['joey', 'ethan', 'antony'];
+    expect(isAliasRegistered(registeredAliases, 'ethan')).toStrictEqual(true);
+});
+
+it(`isAliasRegistered() returns false for an unregistered alias`, () => {
+    const registeredAliases = ['joey', 'ethan', 'antony'];
+    expect(isAliasRegistered(registeredAliases, 'koush')).toStrictEqual(false);
 });

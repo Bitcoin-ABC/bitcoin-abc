@@ -72,7 +72,7 @@ const Alias = ({ passLoadingStatus }) => {
         // note: input already validated via handleAliasNameInput()
         const aliasInput = formData.aliasName;
 
-        const aliasAvailable = await isAliasAvailable(aliasInput);
+        const aliasAvailable = await isAliasAvailable(chronik, aliasInput);
 
         if (aliasAvailable) {
             // calculate registration fee based on chars
@@ -85,7 +85,9 @@ const Alias = ({ passLoadingStatus }) => {
                     registrationFee +
                     ' sats.',
             );
-
+            console.log(
+                `Alias ${aliasInput} is available. Broadcasting registration transaction.`,
+            );
             try {
                 const link = await registerNewAlias(
                     chronik,
@@ -96,20 +98,27 @@ const Alias = ({ passLoadingStatus }) => {
                     fromSatoshisToXec(registrationFee),
                 );
                 sendXecNotification(link);
-                setFormData({ value: '' });
             } catch (err) {
                 handleAliasRegistrationError(err);
             }
+            setIsValidAliasInput(true);
 
             // TODO: ** Utilize websockets to only trigger success notification upon 1 conf of the registration tx **
 
-            setIsValidAliasInput(true);
-        } else {
-            // error notificationon alias being unavailable
-        }
+            // set alias as pending until subsequent websocket notification on 1 conf on the registration tx
+            setAlias(prevArray => [...prevArray, `${aliasInput} (Pending)`]);
 
-        // set alias as pending until subsequent websocket notification on 1 conf on the registration tx
-        setAlias(prevArray => [...prevArray, `${aliasInput} (Pending)`]);
+            // TODO: add alias array to local storage
+        } else {
+            // error notification on alias being unavailable
+            errorNotification(
+                null,
+                'This alias [' +
+                    aliasInput +
+                    '] has already been taken, please try another alias',
+                'Alias availability check',
+            );
+        }
 
         passLoadingStatus(false);
     };
