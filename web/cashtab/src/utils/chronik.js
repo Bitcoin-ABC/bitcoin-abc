@@ -9,6 +9,7 @@ import {
     convertEcashtoEtokenAddr,
     hash160ToAddress,
     getAliasRegistrationFee,
+    convertToEcashPrefix,
 } from 'utils/cashMethods';
 import ecies from 'ecies-lite';
 import wif from 'wif';
@@ -19,23 +20,7 @@ export const isAliasAvailable = async (chronik, alias) => {
     // else retrieve via chronik and update localStorage
 
     // retrieve alias payment address tx history
-    let aliasPaymentTxs;
-    try {
-        aliasPaymentTxs = await chronik
-            .script(
-                'p2pkh', // TODO: change type to p2sh when we switch to multisig
-                currency.aliasSettings.aliasPaymentHash160,
-            )
-            .history();
-    } catch (err) {
-        console.log('Error retireving onchain aliases: ' + err);
-        return false;
-    }
-
-    if (!aliasPaymentTxs || !aliasPaymentTxs.txs) {
-        console.log('Invalid alias payment transaction history');
-        return false;
-    }
+    let aliasPaymentTxs = await getAliasPaymentHistory(chronik);
 
     // extract aliases from payment address' tx history
     let registeredAliases = getAliases(aliasPaymentTxs);
@@ -145,6 +130,66 @@ export const getAliases = aliasPaymentTxs => {
     }
 
     return registeredAliases;
+};
+
+export const getAliasPaymentHistory = async chronik => {
+    // TODO: Implement caching mechanism to reduce the API call below
+    // if isLocalAliasStateLatest() is true then retrieve incoming tx history from localStorage
+    // else retrieve via chronik and update localStorage
+
+    // retireve alias payment address tx history
+    let aliasPaymentTxs;
+    try {
+        aliasPaymentTxs = await chronik
+            .script(
+                'p2pkh', // TODO: change type to p2sh when we switch to multisig
+                currency.aliasSettings.aliasPaymentHash160,
+            )
+            .history();
+    } catch (err) {
+        console.log('Error retireving onchain aliases');
+        return false;
+    }
+
+    if (!aliasPaymentTxs || !aliasPaymentTxs.txs) {
+        console.log('Invalid alias payment transaction history');
+        return false;
+    }
+
+    return aliasPaymentTxs;
+};
+
+export const isAddressRegistered = activeWallet => {
+    //@TODO: temporary local storage mock until caching is implemented later in this stack
+    const mockAliasLocalStorage = [
+        {
+            alias: 'zoo6',
+            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
+            blockHeight: 775340,
+        },
+        {
+            alias: 'chicken1',
+            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
+            blockHeight: 775331,
+        },
+    ];
+
+    let addressMatch = false;
+    const activeWalletAddress = convertToEcashPrefix(
+        activeWallet.Path1899.cashAddress,
+    );
+
+    // loop through mockAliasLocalStorage and check if active wallet matches any of the cached addresses
+    mockAliasLocalStorage.forEach(function (cachedAliasObj) {
+        if (
+            cachedAliasObj.address.toLowerCase() ===
+            activeWalletAddress.toLowerCase()
+        ) {
+            addressMatch = true;
+        }
+    });
+
+    return addressMatch;
 };
 
 // Return false if do not get a valid response

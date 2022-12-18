@@ -20,7 +20,7 @@ import {
     fromSatoshisToXec,
     getAliasRegistrationFee,
 } from 'utils/cashMethods';
-import { isAliasAvailable } from 'utils/chronik';
+import { isAliasAvailable, isAddressRegistered } from 'utils/chronik';
 import { currency } from 'components/Common/Ticker.js';
 import { registerNewAlias } from 'utils/transactions';
 import {
@@ -65,6 +65,16 @@ const Alias = ({ passLoadingStatus }) => {
     useEffect(() => {
         passLoadingStatus(false);
     }, [balances.totalBalance]);
+
+    useEffect(async () => {
+        // check whether the address is attached to an onchain alias on page load
+        let walletHasAlias = isAddressRegistered(wallet);
+
+        console.log(
+            'Does this active wallet have an onchain alias? : ' +
+                walletHasAlias,
+        );
+    }, []);
 
     const registerAlias = async () => {
         passLoadingStatus(true);
