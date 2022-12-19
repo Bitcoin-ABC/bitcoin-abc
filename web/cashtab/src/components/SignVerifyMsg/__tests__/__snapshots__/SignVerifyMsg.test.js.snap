@@ -5,7 +5,7 @@ exports[`Wallet with BCH balances 1`] = `
   className="sc-cHGsZl dwpoOs"
 >
   <div
-    className="sc-hMqMXs kpJXFt"
+    className="sc-hMqMXs goXyzY"
   >
     <div
       className="sc-cMljjf kvVOCQ"
@@ -198,7 +198,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
   className="sc-cHGsZl dwpoOs"
 >
   <div
-    className="sc-hMqMXs kpJXFt"
+    className="sc-hMqMXs goXyzY"
   >
     <div
       className="sc-cMljjf kvVOCQ"
@@ -396,7 +396,7 @@ exports[`Wallet without BCH balance 1`] = `
   className="sc-cHGsZl dwpoOs"
 >
   <div
-    className="sc-hMqMXs kpJXFt"
+    className="sc-hMqMXs goXyzY"
   >
     <div
       className="sc-cMljjf kvVOCQ"
@@ -589,7 +589,7 @@ exports[`Without wallet defined 1`] = `
   className="sc-cHGsZl dwpoOs"
 >
   <div
-    className="sc-hMqMXs kpJXFt"
+    className="sc-hMqMXs goXyzY"
   >
     <div
       className="sc-cMljjf kvVOCQ"

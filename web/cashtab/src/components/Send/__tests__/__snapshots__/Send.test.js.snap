@@ -3,7 +3,7 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-gipzik cVmPKw"
+    className="sc-gipzik gABIqL"
   >
     <div
       className="sc-gisBJw eendT"
@@ -583,7 +583,7 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-gipzik cVmPKw"
+    className="sc-gipzik gABIqL"
   >
     <div
       className="sc-gisBJw eendT"
@@ -1163,7 +1163,7 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-gipzik cVmPKw"
+    className="sc-gipzik gABIqL"
   >
     <div
       className="sc-gisBJw eendT"
@@ -1749,7 +1749,7 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-gipzik cVmPKw"
+    className="sc-gipzik gABIqL"
   >
     <div
       className="sc-gisBJw eendT"
@@ -2329,7 +2329,7 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
 exports[`Without wallet defined 1`] = `
 Array [
   <div
-    className="sc-gipzik cVmPKw"
+    className="sc-gipzik gABIqL"
   >
     <div
       className="sc-gisBJw eendT"

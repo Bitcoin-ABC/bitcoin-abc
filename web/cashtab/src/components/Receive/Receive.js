@@ -13,12 +13,20 @@ import WalletLabel from 'components/Common/WalletLabel';
 import { getWalletState } from 'utils/cashMethods';
 import { Alert } from 'antd';
 
+const QrCodeCtn = styled.div``;
+
 export const ReceiveCtn = styled.div`
     width: 100%;
     h2 {
         color: ${props => props.theme.contrast};
         margin: 0 0 20px;
         margin-top: 10px;
+    }
+    ${QrCodeCtn} {
+        margin-top: 12%;
+        @media (max-width: 1000px) {
+            margin-top: 8%;
+        }
     }
 `;
 const InfoContainer = styled.div`
@@ -64,10 +72,12 @@ const ReceiveWithWalletPresent = ({
                 )}
             </WalletInfoCtn>
             {wallet && wallet.Path1899 && (
-                <QRCode
-                    id="borderedQRCode"
-                    address={wallet.Path1899.cashAddress}
-                />
+                <QrCodeCtn>
+                    <QRCode
+                        id="borderedQRCode"
+                        address={wallet.Path1899.cashAddress}
+                    />
+                </QrCodeCtn>
             )}
             <InfoContainer>
                 <Alert
