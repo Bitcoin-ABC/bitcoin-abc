@@ -746,7 +746,8 @@ public:
     //! @returns whether or not the CoinsViews object has been fully initialized
     //! and we can
     //!          safely flush this object to disk.
-    bool CanFlushToDisk() const EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+    bool CanFlushToDisk() const EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
+        AssertLockHeld(::cs_main);
         return m_coins_views && m_coins_views->m_cacheview;
     }
 
@@ -778,13 +779,17 @@ public:
     std::set<CBlockIndex *, CBlockIndexWorkComparator> setBlockIndexCandidates;
 
     //! @returns A reference to the in-memory cache of the UTXO set.
-    CCoinsViewCache &CoinsTip() EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+    CCoinsViewCache &CoinsTip() EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
+        AssertLockHeld(::cs_main);
         assert(m_coins_views->m_cacheview);
         return *m_coins_views->m_cacheview.get();
     }
 
     //! @returns A reference to the on-disk UTXO set database.
-    CCoinsViewDB &CoinsDB() { return m_coins_views->m_dbview; }
+    CCoinsViewDB &CoinsDB() EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
+        AssertLockHeld(::cs_main);
+        return m_coins_views->m_dbview;
+    }
 
     //! @returns A pointer to the mempool.
     CTxMemPool *GetMempool() { return m_mempool; }
@@ -793,6 +798,7 @@ public:
     //!     handles disk read errors gracefully.
     CCoinsViewErrorCatcher &CoinsErrorCatcher()
         EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+        AssertLockHeld(::cs_main);
         return m_coins_views->m_catcherview;
     }
 
@@ -1219,6 +1225,7 @@ public:
     CBlockIndex *ActiveTip() const { return ActiveChain().Tip(); }
 
     node::BlockMap &BlockIndex() EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
+        AssertLockHeld(::cs_main);
         return m_blockman.m_block_index;
     }
 

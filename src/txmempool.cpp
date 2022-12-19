@@ -1193,6 +1193,8 @@ int CTxMemPool::Expire(std::chrono::seconds time) {
 
 void CTxMemPool::LimitSize(CCoinsViewCache &coins_cache, size_t limit,
                            std::chrono::seconds age) {
+    AssertLockHeld(::cs_main);
+    AssertLockHeld(cs);
     int expired = Expire(GetTime<std::chrono::seconds>() - age);
     if (expired != 0) {
         LogPrint(BCLog::MEMPOOL,
