@@ -22,7 +22,7 @@ struct RCUTest {
     }
 };
 
-BOOST_FIXTURE_TEST_SUITE(rcu_tests, BasicTestingSetup)
+BOOST_AUTO_TEST_SUITE(rcu_tests)
 
 enum RCUTestStep {
     Init,
