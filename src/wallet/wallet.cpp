@@ -1095,19 +1095,20 @@ bool CWallet::LoadToWallet(const TxId &txid, const UpdateWalletTxFn &fill_wtx) {
 bool CWallet::AddToWalletIfInvolvingMe(const CTransactionRef &ptx,
                                        CWalletTx::Confirmation confirm,
                                        bool fUpdate) {
-    const CTransaction &tx = *ptx;
     AssertLockHeld(cs_wallet);
 
+    const TxId &txid = ptx->GetId();
+
     if (!confirm.hashBlock.IsNull()) {
-        for (const CTxIn &txin : tx.vin) {
+        for (const CTxIn &txin : ptx->vin) {
             std::pair<TxSpends::const_iterator, TxSpends::const_iterator>
                 range = mapTxSpends.equal_range(txin.prevout);
             while (range.first != range.second) {
-                if (range.first->second != tx.GetId()) {
+                if (range.first->second != txid) {
                     WalletLogPrintf(
                         "Transaction %s (in block %s) conflicts with wallet "
                         "transaction %s (both spend %s:%i)\n",
-                        tx.GetId().ToString(), confirm.hashBlock.ToString(),
+                        txid.ToString(), confirm.hashBlock.ToString(),
                         range.first->second.ToString(),
                         range.first->first.GetTxId().ToString(),
                         range.first->first.GetN());
@@ -1119,11 +1120,11 @@ bool CWallet::AddToWalletIfInvolvingMe(const CTransactionRef &ptx,
         }
     }
 
-    bool fExisted = mapWallet.count(tx.GetId()) != 0;
+    bool fExisted = mapWallet.count(txid) != 0;
     if (fExisted && !fUpdate) {
         return false;
     }
-    if (fExisted || IsMine(tx) || IsFromMe(tx)) {
+    if (fExisted || IsMine(*ptx) || IsFromMe(*ptx)) {
         /**
          * Check if any keys in the wallet keypool that were supposed to be
          * unused have appeared in a new transaction. If so, remove those keys
@@ -1133,7 +1134,7 @@ bool CWallet::AddToWalletIfInvolvingMe(const CTransactionRef &ptx,
          */
 
         // loop though all outputs
-        for (const CTxOut &txout : tx.vout) {
+        for (const CTxOut &txout : ptx->vout) {
             for (const auto &spk_man_pair : m_spk_managers) {
                 spk_man_pair.second->MarkUnusedAddresses(txout.scriptPubKey);
             }
@@ -1141,7 +1142,7 @@ bool CWallet::AddToWalletIfInvolvingMe(const CTransactionRef &ptx,
 
         // Block disconnection override an abandoned tx as unconfirmed
         // which means user may have to call abandontransaction again
-        return AddToWallet(MakeTransactionRef(tx), confirm,
+        return AddToWallet(ptx, confirm,
                            /* update_wtx= */ nullptr,
                            /* fFlushOnClose= */ false);
     }
