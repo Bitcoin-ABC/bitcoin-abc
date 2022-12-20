@@ -190,6 +190,7 @@ cd bitcoin-abc
 [sudo] nvm install 16
 [sudo] npm install -g npm@latest
 [sudo] npm install -g prettier
+[sudo] npm install -g eslint
 ```
 
 To work on the extension, you will need `browserify`
