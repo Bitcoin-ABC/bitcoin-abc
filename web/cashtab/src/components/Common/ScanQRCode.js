@@ -33,12 +33,6 @@ const ScanQRCode = ({
 }) => {
     const [visible, setVisible] = useState(loadWithCameraOpen);
     const [error, setError] = useState(false);
-    // Use these states to debug video errors on mobile
-    // Note: iOS chrome/brave/firefox does not support accessing camera, will throw error
-    // iOS users can use safari
-    // todo only show scanner with safari
-    //const [mobileError, setMobileError] = useState(false);
-    //const [mobileErrorMsg, setMobileErrorMsg] = useState(false);
     const [activeCodeReader, setActiveCodeReader] = useState(null);
 
     const teardownCodeReader = codeReader => {
@@ -76,14 +70,6 @@ const ScanQRCode = ({
             // Need to execute this before you can decode input
             // eslint-disable-next-line no-unused-vars
             const videoInputDevices = await codeReader.getVideoInputDevices();
-            //console.log(`videoInputDevices`, videoInputDevices);
-            //setMobileError(JSON.stringify(videoInputDevices));
-
-            // choose your media device (webcam, frontal camera, back camera, etc.)
-            // TODO implement if necessary
-            //const selectedDeviceId = videoInputDevices[0].deviceId;
-
-            //const previewElem = document.querySelector("#test-area-qr-code-webcam");
 
             let result = { type: 'unknown', values: {} };
 
@@ -110,7 +96,6 @@ const ScanQRCode = ({
             console.log(`Error in QR scanner:`);
             console.log(err);
             console.log(JSON.stringify(err.message));
-            //setMobileErrorMsg(JSON.stringify(err.message));
             setError(err);
             return teardownCodeReader(codeReader);
         }

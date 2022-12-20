@@ -140,9 +140,6 @@ const useWallet = () => {
     };
 
     const update = async ({ wallet }) => {
-        //console.log(`tick()`);
-        //console.time("update");
-
         // Check if walletRefreshInterval is set to 10, i.e. this was called by websocket tx detection
         // If walletRefreshInterval is 10, set it back to the usual refresh rate
         if (walletRefreshInterval === 10) {
@@ -252,11 +249,9 @@ const useWallet = () => {
             console.log(error);
             // Set this in state so that transactions are disabled until the issue is resolved
             setApiError(true);
-            //console.timeEnd("update");
             // Try another chronik instance
             tryNextChronikUrl();
         }
-        //console.timeEnd("update");
     };
 
     const getActiveWalletFromLocalForage = async () => {
@@ -1294,8 +1289,6 @@ const useWallet = () => {
             const previousTokenIds = previousTokens.map(
                 ({ tokenId }) => tokenId,
             );
-            //console.log(`tokenIds`, tokenIds);
-            //console.log(`previousTokenIds`, previousTokenIds);
 
             // An array with the new token Id
             const newTokenIdArr = tokenIds.filter(
@@ -1304,26 +1297,19 @@ const useWallet = () => {
             // It's possible that 2 new tokens were received
             // To do, handle this case
             const newTokenId = newTokenIdArr[0];
-            //console.log(newTokenId);
-
-            // How much of this tokenId did you get?
-            // would be at
 
             // Find where the newTokenId is
             const receivedTokenObjectIndex = tokens.findIndex(
                 x => x.tokenId === newTokenId,
             );
-            //console.log(`receivedTokenObjectIndex`, receivedTokenObjectIndex);
-            // Calculate amount received
-            //console.log(`receivedTokenObject:`, tokens[receivedTokenObjectIndex]);
 
+            // Calculate amount received
             const receivedSlpQty =
                 tokens[receivedTokenObjectIndex].balance.toString();
             const receivedSlpTicker =
                 tokens[receivedTokenObjectIndex].info.tokenTicker;
             const receivedSlpName =
                 tokens[receivedTokenObjectIndex].info.tokenName;
-            //console.log(`receivedSlpQty`, receivedSlpQty);
 
             // Notification if you received SLP
             if (receivedSlpQty > 0) {
@@ -1344,10 +1330,6 @@ const useWallet = () => {
                         new BigNumber(previousTokens[i].balance),
                     )
                 ) {
-                    // Received this token
-                    // console.log(`previousTokenId`, previousTokens[i].tokenId);
-                    // console.log(`currentTokenId`, tokens[i].tokenId);
-
                     if (previousTokens[i].tokenId !== tokens[i].tokenId) {
                         console.log(
                             `TokenIds do not match, breaking from SLP notifications`,
@@ -1398,14 +1380,12 @@ const useWallet = () => {
         let bchPriceJson;
         try {
             bchPrice = await fetch(priceApiUrl);
-            //console.log(`bchPrice`, bchPrice);
         } catch (err) {
             console.log(`Error fetching BCH Price`);
             console.log(err);
         }
         try {
             bchPriceJson = await bchPrice.json();
-            //console.log(`bchPriceJson`, bchPriceJson);
             let bchPriceInFiat = bchPriceJson[cryptoId][fiatCode];
 
             const validEcashPrice = typeof bchPriceInFiat === 'number';

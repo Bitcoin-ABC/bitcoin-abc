@@ -412,18 +412,6 @@ const SendBCH = ({ passLoadingStatus }) => {
         const addressInfo = parseAddressForParams(addressString);
         // validate address
         const isValid = isValidXecAddress(addressInfo.address);
-
-        /*
-        Model
-
-        addressInfo = 
-        {
-            address: '',
-            queryString: '',
-            amount: null,
-        };
-        */
-
         const { address, queryString, amount } = addressInfo;
 
         // If query string,

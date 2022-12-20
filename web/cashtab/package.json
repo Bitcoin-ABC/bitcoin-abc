@@ -188,6 +188,7 @@
         ]
     },
     "devDependencies": {
+        "eslint-plugin-etc": "2.0.2",
         "husky": "^8.0.1",
         "jest-when": "^3.5.1"
     }

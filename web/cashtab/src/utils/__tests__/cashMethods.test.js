@@ -612,7 +612,7 @@ it(`generateTokenTxInput() returns a valid object for a valid create token tx`, 
         mockCreateTokenTxBuilderObj.toString(),
     );
     expect(tokenInputObj.remainderXecValue).toStrictEqual(
-        new BigNumber(699702), // remainder = tokenInputObj.inputXecUtxos - currency.etokenSats - txFee
+        new BigNumber(699702), // tokenInputObj.inputXecUtxos - currency.etokenSats 546 - txFee
     );
 });
 

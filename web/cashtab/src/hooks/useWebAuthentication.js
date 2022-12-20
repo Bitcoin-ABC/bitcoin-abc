@@ -144,7 +144,6 @@ const useWebAuthentication = () => {
             c.charCodeAt(0),
         ),
         timeout: 60000,
-        // rpId: document.domain,
         allowCredentials: [
             {
                 type: 'public-key',

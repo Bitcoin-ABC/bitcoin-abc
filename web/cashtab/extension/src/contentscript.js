@@ -11,8 +11,6 @@ document.head.appendChild(cashTabInject);
 // Chrome extensions communicate with web pages through the DOM
 // Page sends a message to itself, chrome extension intercepts it
 var port = extension.runtime.connect({ name: 'cashtabPort' });
-//console.log(`port: ${JSON.stringify(port)}`);
-//console.log(port);
 
 window.addEventListener(
     'message',

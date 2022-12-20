@@ -1,8 +1,9 @@
-// satoshisToSend: 600
-// totalInputUtxos: 1100
-// txFee: 455
-// output:
-//    bitcoincash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqqkm80dnl6,6
+// Transaction details:
+//    satoshisToSend: 600
+//    totalInputUtxos: 1100
+//    txFee: 455
+//    output:
+//       bitcoincash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqqkm80dnl6,6
 export const mockOneToOneSendXecTxBuilderObj = {
     transaction: {
         prevTxMap: {
@@ -155,13 +156,14 @@ export const mockOneToOneSendXecTxBuilderObj = {
     p2shInput: false,
 };
 
-// satoshisToSend: 1650
-// totalInputUtxos: 20586
-// txFee: 1186
-// outputs:
-//    bitcoincash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0ul96a2ens,5.5
-//    bitcoincash:qq9h6d0a5q65fgywv4ry64x04ep906mdku7ymranw3,5.5
-//    bitcoincash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqqkm80dnl6,5.5
+// Transaction details:
+//    satoshisToSend: 1650
+//    totalInputUtxos: 20586
+//    txFee: 1186
+//    outputs:
+//       bitcoincash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0ul96a2ens,5.5
+//       bitcoincash:qq9h6d0a5q65fgywv4ry64x04ep906mdku7ymranw3,5.5
+//       bitcoincash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqqkm80dnl6,5.5
 export const mockOneToManySendXecTxBuilderObj = {
     transaction: {
         prevTxMap: {

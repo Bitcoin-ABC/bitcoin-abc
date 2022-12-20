@@ -163,7 +163,6 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
             return;
         }
 
-        // Event("Category", "Action", "Label")
         // Track number of SLPA send transactions and
         // SLPA token IDs
         Event('SendToken.js', 'Send', tokenId);
@@ -231,16 +230,6 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
         let addressString = value;
 
         const addressInfo = parseAddressForParams(addressString);
-        /*
-        Model
-        addressInfo = 
-        {
-            address: '',
-            queryString: '',
-            amount: null,
-        };
-        */
-
         const { address, queryString } = addressInfo;
 
         // If query string,
@@ -331,7 +320,6 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
             return;
         }
 
-        // Event("Category", "Action", "Label")
         Event('SendToken.js', 'Burn eToken', tokenId);
 
         passLoadingStatus(true);

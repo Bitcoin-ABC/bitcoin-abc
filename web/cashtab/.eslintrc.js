@@ -16,7 +16,10 @@ module.exports = {
         ecmaVersion: 12,
         sourceType: 'module',
     },
-    plugins: ['react', 'jest'],
-    rules: { 'jest/no-mocks-import': 'off' },
+    plugins: ['etc', 'react', 'jest'],
+    rules: {
+        'jest/no-mocks-import': 'off',
+        'etc/no-commented-out-code': 'error',
+    },
     settings: { react: { version: 'detect' } },
 };

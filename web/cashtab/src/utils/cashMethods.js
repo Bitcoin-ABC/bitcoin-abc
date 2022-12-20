@@ -178,16 +178,15 @@ export const signUtxosByAddress = (inputUtxos, wallet, txBuilder) => {
 export const getCashtabByteCount = (p2pkhInputCount, p2pkhOutputCount) => {
     // Simplifying bch-js function for P2PKH txs only, as this is all Cashtab supports for now
     // https://github.com/Permissionless-Software-Foundation/bch-js/blob/master/src/bitcoincash.js#L408
-    /*
-    const types = {
-        inputs: {            
-            'P2PKH': 148 * 4,
-        },
-        outputs: {
-            P2PKH: 34 * 4,
-        },
-    };
-    */
+    // The below magic numbers refer to:
+    // const types = {
+    //     inputs: {
+    //         'P2PKH': 148 * 4,
+    //     },
+    //     outputs: {
+    //         P2PKH: 34 * 4,
+    //     },
+    // };
 
     const inputCount = new BigNumber(p2pkhInputCount);
     const outputCount = new BigNumber(p2pkhOutputCount);

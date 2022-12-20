@@ -146,7 +146,6 @@ const CreateTokenForm = ({ createToken, disabled, passLoadingStatus }) => {
                     img.src = event.target.result;
                     img.onload = () => {
                         const elem = document.createElement('canvas');
-                        //console.log(`Canvas created`);
                         elem.width = width;
                         elem.height = height;
                         const ctx = elem.getContext('2d');

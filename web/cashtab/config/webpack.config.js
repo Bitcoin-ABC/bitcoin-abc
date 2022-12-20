@@ -734,7 +734,6 @@ module.exports = function (webpackEnv) {
                             syntactic: true,
                         },
                         mode: 'write-references',
-                        // profile: true,
                     },
                     issue: {
                         // This one is specifically to match during CI tests,

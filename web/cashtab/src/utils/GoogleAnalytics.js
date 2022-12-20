@@ -1,4 +1,3 @@
-// utils/GoogleAnalytics.js
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import * as ReactGA from 'react-ga';
