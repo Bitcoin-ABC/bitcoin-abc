@@ -149,12 +149,12 @@ describe('Validation utils', () => {
         ).toBe(expectedValidationError);
     });
     it(`Returns expected crypto amount with ${currency.cashDecimals} decimals of precision even if inputs have higher precision`, () => {
-        expect(fiatToCrypto('10.97231694823432', 20.3231342349234234, 8)).toBe(
+        expect(fiatToCrypto('10.97231694823432', 20.323134234923423, 8)).toBe(
             '0.53989295',
         );
     });
     it(`Returns expected crypto amount with ${currency.cashDecimals} decimals of precision even if inputs have higher precision`, () => {
-        expect(fiatToCrypto('10.97231694823432', 20.3231342349234234, 2)).toBe(
+        expect(fiatToCrypto('10.97231694823432', 20.323134234923423, 2)).toBe(
             '0.54',
         );
     });
@@ -537,6 +537,7 @@ describe('Validation utils', () => {
         expect(isValidTokenId(testValidTokenId)).toBe(false);
     });
     it(`isValidTokenId rejects a token ID number that is 64 digits in length`, () => {
+        // eslint-disable-next-line no-loss-of-precision
         const testValidTokenId = 8912345678912345678912345678912345678912345678912345678912345679;
         expect(isValidTokenId(testValidTokenId)).toBe(false);
     });
