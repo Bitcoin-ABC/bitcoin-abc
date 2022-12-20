@@ -58,19 +58,11 @@ import {
 import {
     mintingTxTabCash,
     mintingAddressTabCash,
-    mintingAddressBchFormatTabCash,
-    mintingHash160TabCash,
     mintingTxPoW,
     mintingAddressPoW,
-    mintingAddressBchFormatPoW,
-    mintingHash160PoW,
     mintingTxAlita,
     mintingAddressAlita,
-    mintingAddressBchFormatAlita,
-    mintingHash160Alita,
-    mintingAddressBchFormatBuxSelfMint,
     mintingAddressBuxSelfMint,
-    mintingHash160BuxSelfMint,
     mintingTxBuxSelfMint,
 } from '../__mocks__/chronikMintTxs';
 import { ChronikClient } from 'chronik-client';

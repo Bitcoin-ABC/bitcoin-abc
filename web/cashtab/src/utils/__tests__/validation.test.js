@@ -12,7 +12,6 @@ import {
     isValidNewWalletNameLength,
     isValidEtokenAddress,
     isValidXecSendAmount,
-    isValidSendToMany,
     isValidEtokenBurnAmount,
     isValidTokenId,
     isValidXecAirdrop,
@@ -25,12 +24,6 @@ import {
 } from '../validation';
 import { currency } from 'components/Common/Ticker.js';
 import { fromSatoshisToXec } from 'utils/cashMethods';
-import {
-    stStatsValid,
-    noCovidStatsValid,
-    noCovidStatsInvalid,
-    cGenStatsValid,
-} from '../__mocks__/mockTokenStats';
 import {
     validXecAirdropList,
     invalidXecAirdropList,
