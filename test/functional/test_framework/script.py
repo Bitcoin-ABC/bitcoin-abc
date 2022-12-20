@@ -606,6 +606,7 @@ class CScript(bytes):
 
         return "CScript([{}])".format(', '.join(ops))
 
+
 SIGHASH_ALL = 1
 SIGHASH_NONE = 2
 SIGHASH_SINGLE = 3
