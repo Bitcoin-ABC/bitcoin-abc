@@ -5016,6 +5016,8 @@ bool ChainstateManager::LoadBlockIndex() {
             return false;
         }
 
+        m_blockman.ScanAndUnlinkAlreadyPrunedFiles();
+
         std::vector<CBlockIndex *> vSortedByHeight{
             m_blockman.GetAllBlockIndices()};
         std::sort(vSortedByHeight.begin(), vSortedByHeight.end(),
