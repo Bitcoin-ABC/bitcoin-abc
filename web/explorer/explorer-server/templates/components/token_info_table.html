@@ -1,0 +1,107 @@
+{% macro render(tx, slp_genesis_info, slp_meta, token_input, token_output) %} {%
+match slp_genesis_info %} {% when Some with (genesis_info) %}
+<div class="tx-details-half">
+    <div class="tx-details-row">
+        <div>Token Ticker</div>
+        <div>{{ genesis_info.token_ticker|string_from_lossy_utf8 }}</div>
+    </div>
+
+    <div class="tx-details-row">
+        <div>Token Name</div>
+        <div>{{ genesis_info.token_name|string_from_lossy_utf8 }}</div>
+    </div>
+
+    <div class="tx-details-row">
+        <div>Token Type</div>
+        <div>
+            {% match slp_meta %} {% when Some with (slp_meta) %} {% match
+            slp_meta.token_type() %} {% when SlpTokenType::Fungible %} Type1 (<a
+                href="https://github.com/simpleledger/slp-specifications/blob/master/slp-token-type-1.md"
+                >Specification</a
+            >) {% when SlpTokenType::Nft1Group %} NFT1 Group (<a
+                href="https://github.com/simpleledger/slp-specifications/blob/master/slp-nft-1.md"
+                >Specification</a
+            >) {% when SlpTokenType::Nft1Child %} NFT1 Child (<a
+                href="https://github.com/simpleledger/slp-specifications/blob/master/slp-nft-1.md"
+                >Specification</a
+            >) {% when _ %} Unknown {% endmatch %} {% when None %} Unknown {%
+            endmatch %}
+        </div>
+    </div>
+
+    <div class="tx-details-row">
+        <div>Transaction Type</div>
+        <div>
+            {% match slp_meta %} {% when Some with (slp_meta) %} {% match
+            slp_meta.token_type() %} {% when SlpTokenType::Fungible %} {% match
+            slp_meta.tx_type() %} {% when SlpTxType::Genesis %} GENESIS {% when
+            SlpTxType::Mint %} MINT {% when SlpTxType::Send %} SEND {% when _ %}
+            {% endmatch %} {% when SlpTokenType::Nft1Group %} {% match
+            slp_meta.tx_type() %} {% when SlpTxType::Genesis %} NFT1 GROUP
+            GENESIS {% when SlpTxType::Mint %} NFT1 GROUP MINT {% when
+            SlpTxType::Send %} NFT1 GROUP SEND {% when _ %} {% endmatch %} {%
+            when SlpTokenType::Nft1Child %} {% match slp_meta.tx_type() %} {%
+            when SlpTxType::Genesis %} NFT1 Child GENESIS {% when
+            SlpTxType::Send %} NFT1 Child SEND {% when _ %} {% endmatch %} {%
+            when _ %} Unknown {% endmatch %} {% when None %} {% endmatch %}
+        </div>
+    </div>
+</div>
+
+<div class="tx-details-half">
+    <div class="tx-details-row">
+        <div>Token Output</div>
+        <div>
+            {{ token_output|render_token_amount(genesis_info.decimals)|safe }}
+            {{ genesis_info.token_ticker|string_from_lossy_utf8 }} {% if
+            token_output < token_input %}
+            <br />
+            ({{ (token_input -
+            token_output)|render_token_amount(genesis_info.decimals)|safe }} {{
+            genesis_info.token_ticker|string_from_lossy_utf8 }} burned) {% endif
+            %}
+        </div>
+    </div>
+
+    <div class="tx-details-row">
+        <div style="white-space: nowrap">Document URI</div>
+        <div style="word-break: break-all; padding-left: 20px">
+            {% let token_url =
+            genesis_info.token_document_url|string_from_lossy_utf8 %}
+            <a
+                href="#"
+                onclick="checkDocumentUri('{{ token_url }}');return false;"
+                target="_blank"
+                >{{ token_url }}</a
+            >
+        </div>
+    </div>
+
+    <div class="tx-details-row">
+        <div>Document Hash</div>
+        <div>
+            {% match genesis_info.token_document_url.len() %} {% when 0 %}
+            <div class="ui black horizontal label">Not set</div>
+            {% when _ %}
+            <div class="hex">
+                {{ genesis_info.token_document_hash|hexify_u8_vector }}
+            </div>
+            {% endmatch %}
+        </div>
+    </div>
+
+    <div class="tx-details-row">
+        <div>Decimals</div>
+        <div>{{ genesis_info.decimals }}</div>
+    </div>
+</div>
+<script type="text/javascript">
+    const checkDocumentUri = address => {
+        if (!address.slice(0, 4).includes('http')) {
+            window.open('http://' + address, '_blank');
+        } else {
+            window.open(address, '_blank');
+        }
+    };
+</script>
+{% when None %} {% endmatch %} {% endmacro %}

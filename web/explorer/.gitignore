@@ -1,0 +1,9 @@
+**/target
+*.crt
+Cargo.lock
+.DS_Store
+*.sled
+*.rocksdb
+.cargo
+
+**/config.toml

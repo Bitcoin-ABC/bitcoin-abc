@@ -1,0 +1,12 @@
+[package]
+name = "explorer-exe"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bitcoinsuite-chronik-client = { git = "https://github.com/LogosFoundation/bitcoinsuite", rev = "f473ad8" }
+bitcoinsuite-error =  { git = "https://github.com/LogosFoundation/bitcoinsuite", rev = "f473ad8" }
+explorer-server = { path = "../explorer-server" }
+tokio = { version = "1.14", features = ["full"] }
+futures = "0.3"
+axum = "0.5.7"

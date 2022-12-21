@@ -1,0 +1,28 @@
+[package]
+name = "explorer-server"
+version = "0.1.0"
+authors = ["tobiasruck <ruck.tobias@gmail.com>"]
+edition = "2021"
+
+[dependencies]
+bitcoinsuite-chronik-client = { git = "https://github.com/LogosFoundation/bitcoinsuite", rev = "f473ad8" }
+bitcoinsuite-error =  { git = "https://github.com/LogosFoundation/bitcoinsuite", rev = "f473ad8" }
+bitcoinsuite-core =  { git = "https://github.com/LogosFoundation/bitcoinsuite", rev = "f473ad8" }
+bitcoin = "0.25"
+maud = "0.22"
+tokio = { version = "1.14", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+hex = "0.4"
+futures = "0.3"
+num-format = "0.4"
+chrono = "0.4"
+chrono-humanize = "0.1.1"
+base64 = "0.13"
+qrcode-generator = "4.0"
+toml = "0.5"
+askama = "0.10.5"
+humansize = "1.1.1"
+eyre = "0.6"
+axum = "0.5.7"
+tower-http = { version = "0.3.4", features = ["fs"] }
