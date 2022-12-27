@@ -55,7 +55,10 @@ class CompactFiltersTest(BitcoinTestFramework):
         peer_1 = self.nodes[1].add_p2p_connection(FiltersClient())
 
         # Nodes 0 & 1 share the same first 999 blocks in the chain.
-        self.generate(self.nodes[0], 999)
+        self.generate(self.nodes[0], 999, sync_fun=self.no_op)
+        # Sync the blocks. Since they are numerous, bump the timeout so it
+        # doesn't fail on slow machines.
+        self.sync_blocks(timeout=360)
 
         # Stale blocks by disconnecting nodes 0 & 1, mining, then reconnecting
         self.disconnect_nodes(0, 1)
