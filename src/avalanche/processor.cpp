@@ -100,6 +100,9 @@ static bool VerifyDelegation(const Delegation &dg,
 struct Processor::PeerData {
     ProofRef proof;
     Delegation delegation;
+
+    mutable Mutex cs_proofState;
+    ProofRegistrationState proofState GUARDED_BY(cs_proofState);
 };
 
 class Processor::NotificationsHandler
@@ -115,10 +118,16 @@ public:
 
             auto registeredProofs = m_processor->peerManager->updatedBlockTip();
 
-            if (m_processor->peerData && m_processor->peerData->proof &&
-                m_processor->peerManager->registerProof(
-                    m_processor->peerData->proof)) {
-                registeredProofs.insert(m_processor->peerData->proof);
+            ProofRegistrationState localProofState;
+            if (m_processor->peerData && m_processor->peerData->proof) {
+                if (m_processor->peerManager->registerProof(
+                        m_processor->peerData->proof, localProofState)) {
+                    registeredProofs.insert(m_processor->peerData->proof);
+                }
+
+                WITH_LOCK(m_processor->peerData->cs_proofState,
+                          m_processor->peerData->proofState =
+                              std::move(localProofState));
             }
 
             return registeredProofs;
@@ -675,6 +684,12 @@ bool Processor::sendHello(CNode *pfrom) const {
 
 ProofRef Processor::getLocalProof() const {
     return peerData ? peerData->proof : ProofRef();
+}
+
+ProofRegistrationState Processor::getLocalProofRegistrationState() const {
+    return peerData
+               ? WITH_LOCK(peerData->cs_proofState, return peerData->proofState)
+               : ProofRegistrationState();
 }
 
 bool Processor::startEventLoop(CScheduler &scheduler) {

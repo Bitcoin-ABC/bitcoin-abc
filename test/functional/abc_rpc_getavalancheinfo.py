@@ -18,7 +18,12 @@ from test_framework.avatools import (
 from test_framework.key import ECKey
 from test_framework.messages import AvalancheProofVoteResponse, AvalancheVote
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, try_rpc, uint256_hex
+from test_framework.util import (
+    assert_equal,
+    assert_raises_rpc_error,
+    try_rpc,
+    uint256_hex,
+)
 from test_framework.wallet_util import bytes_to_wif
 
 
@@ -29,7 +34,6 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         self.extra_args = [[
             '-avalanche=1',
             f'-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}',
-            '-avaproofstakeutxoconfirmations=2',
             '-avacooldown=0',
             '-avaminquorumstake=250000000',
             '-avaminquorumconnectedstakeratio=0.9',
@@ -41,9 +45,6 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         node = self.nodes[0]
 
         privkey, proof = gen_proof(self, node)
-
-        # Make the proof mature
-        self.generate(node, 1, sync_fun=self.no_op)
 
         def assert_avalancheinfo(expected):
             assert_equal(node.getavalancheinfo(), expected)
@@ -75,12 +76,14 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
 
         self.restart_node(0, self.extra_args[0] + [
             '-avaproof={}'.format(proof.serialize().hex()),
-            '-avamasterkey={}'.format(bytes_to_wif(privkey.get_bytes()))
+            '-avamasterkey={}'.format(bytes_to_wif(privkey.get_bytes())),
+            '-avaproofstakeutxoconfirmations=1',
         ])
         assert_avalancheinfo({
             "ready_to_poll": False,
             "local": {
                 "verified": False,
+                "verification_status": "pending",
                 "proofid": uint256_hex(proof.proofid),
                 "limited_proofid": uint256_hex(proof.limited_proofid),
                 "master": privkey.get_pubkey().get_bytes().hex(),
@@ -116,6 +119,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             "ready_to_poll": False,
             "local": {
                 "verified": False,
+                "verification_status": "pending",
                 "proofid": f"{proof.proofid:0{64}x}",
                 "limited_proofid": f"{proof.limited_proofid:0{64}x}",
                 "master": privkey.get_pubkey().get_bytes().hex(),
@@ -139,7 +143,46 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             }
         })
 
-        # Mine a block to trigger proof validation
+        self.restart_node(0, self.extra_args[0] + [
+            '-avaproof={}'.format(proof.serialize().hex()),
+            '-avamasterkey={}'.format(bytes_to_wif(privkey.get_bytes())),
+            '-avaproofstakeutxoconfirmations=3',
+        ])
+
+        self.log.info(
+            "Mine a block to trigger proof validation, check it is immature")
+        self.generate(node, 1, sync_fun=self.no_op)
+        self.wait_until(
+            lambda: node.getavalancheinfo() == {
+                "ready_to_poll": False,
+                "local": {
+                    "verified": False,
+                    "verification_status": "immature-proof",
+                    "proofid": uint256_hex(proof.proofid),
+                    "limited_proofid": uint256_hex(proof.limited_proofid),
+                    "master": privkey.get_pubkey().get_bytes().hex(),
+                    "stake_amount": coinbase_amount,
+                    "payout_address": ADDRESS_ECREG_UNSPENDABLE,
+                },
+                "network": {
+                    "proof_count": 0,
+                    "connected_proof_count": 0,
+                    "dangling_proof_count": 0,
+                    "finalized_proof_count": 0,
+                    "conflicting_proof_count": 0,
+                    "immature_proof_count": 1,
+                    "total_stake_amount": Decimal('0.00'),
+                    "connected_stake_amount": Decimal('0.00'),
+                    "dangling_stake_amount": Decimal('0.00'),
+                    "immature_stake_amount": coinbase_amount,
+                    "node_count": 0,
+                    "connected_node_count": 0,
+                    "pending_node_count": 0,
+                }
+            }
+        )
+
+        self.log.info("Mine another block to mature the local proof")
         self.generate(node, 1, sync_fun=self.no_op)
         self.wait_until(
             lambda: node.getavalancheinfo() == {
@@ -194,7 +237,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             conflicting_proofs.append(conflicting_proof)
 
             # Make the proof and its conflicting proof mature
-            self.generate(node, 1, sync_fun=self.no_op)
+            self.generate(node, 2, sync_fun=self.no_op)
 
             n = AvaP2PInterface()
             n.proof = _proof
@@ -408,6 +451,28 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "pending_node_count": 0,
             }
         })
+
+        self.log.info(
+            "Expire the local proof and check the verification status is now invalid")
+
+        node.setmocktime(proof.expiration + 1)
+        # Expiry is based on MTP, so we have to generate 6 blocks
+        self.generate(node, 6, sync_fun=self.no_op)
+        # Check the proof status is what we expect
+        assert_raises_rpc_error(
+            -8,
+            "expired-proof",
+            node.verifyavalancheproof,
+            proof.serialize().hex(),
+        )
+
+        # We ignore the network status as cleanup might happen due to the big
+        # mocked time jump.
+        def local_status_invalid():
+            local_info = node.getavalancheinfo()["local"]
+            return local_info["verified"] is False and local_info["verification_status"] == "invalid-proof"
+
+        self.wait_until(local_status_invalid)
 
 
 if __name__ == '__main__':

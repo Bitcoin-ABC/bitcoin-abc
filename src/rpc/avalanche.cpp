@@ -655,6 +655,9 @@ static RPCHelpMan getavalancheinfo() {
                      {RPCResult::Type::BOOL, "verified",
                       "Whether the node local proof has been locally verified "
                       "or not."},
+                     {RPCResult::Type::STR, "verification_status",
+                      "The proof verification status. Only available if the "
+                      "\"verified\" flag is false."},
                      {RPCResult::Type::STR_HEX, "proofid",
                       "The node local proof id."},
                      {RPCResult::Type::STR_HEX, "limited_proofid",
@@ -741,12 +744,21 @@ static RPCHelpMan getavalancheinfo() {
             auto localProof = g_avalanche->getLocalProof();
             if (localProof != nullptr) {
                 UniValue local(UniValue::VOBJ);
-                local.pushKV("verified",
-                             g_avalanche->withPeerManager(
-                                 [&](const avalanche::PeerManager &pm) {
-                                     return pm.isBoundToPeer(
-                                         localProof->getId());
-                                 }));
+                const bool verified = g_avalanche->withPeerManager(
+                    [&](const avalanche::PeerManager &pm) {
+                        const avalanche::ProofId &proofid = localProof->getId();
+                        return pm.isBoundToPeer(proofid);
+                    });
+                local.pushKV("verified", verified);
+                if (!verified) {
+                    avalanche::ProofRegistrationState state =
+                        g_avalanche->getLocalProofRegistrationState();
+                    // If the local proof is not registered but the state is
+                    // valid, no registration attempt occurred yet.
+                    local.pushKV("verification_status",
+                                 state.IsValid() ? "pending"
+                                                 : state.GetRejectReason());
+                }
                 local.pushKV("proofid", localProof->getId().ToString());
                 local.pushKV("limited_proofid",
                              localProof->getLimitedId().ToString());

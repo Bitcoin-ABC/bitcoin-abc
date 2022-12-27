@@ -54,6 +54,7 @@ namespace avalanche {
 class Delegation;
 class PeerManager;
 class Proof;
+class ProofRegistrationState;
 struct VoteRecord;
 
 enum struct VoteStatus : uint8_t {
@@ -217,6 +218,7 @@ public:
     bool sendHello(CNode *pfrom) const;
 
     ProofRef getLocalProof() const;
+    ProofRegistrationState getLocalProofRegistrationState() const;
 
     /*
      * Return whether the avalanche service flag should be set.
