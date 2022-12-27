@@ -342,7 +342,7 @@ struct ProofProvider {
         : fixture(_fixture), invType(MSG_AVA_PROOF) {}
 
     ProofRef buildVoteItem() const {
-        const ProofRef proof = fixture->GetProof();
+        ProofRef proof = fixture->GetProof();
         fixture->m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
             BOOST_CHECK(pm.registerProof(proof));
         });

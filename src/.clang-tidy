@@ -4,6 +4,7 @@ boost-use-to-string,
 readability-braces-around-statements,
 bugprone-argument-comment,
 performance-move-const-arg,
+performance-no-automatic-move,
 '
 FormatStyle: file
 CheckOptions:

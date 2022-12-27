@@ -616,7 +616,7 @@ UniValue RPCHelpMan::HandleRequest(const Config &config,
     }
     CHECK_NONFATAL(m_req == nullptr);
     m_req = &request;
-    const UniValue ret = m_fun(*this, config, request);
+    UniValue ret = m_fun(*this, config, request);
     m_req = nullptr;
     if (gArgs.GetBoolArg("-rpcdoccheck", DEFAULT_RPC_DOC_CHECK)) {
         UniValue mismatch{UniValue::VARR};

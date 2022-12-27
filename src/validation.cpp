@@ -1430,8 +1430,8 @@ MempoolAcceptResult AcceptToMemoryPool(Chainstate &active_chainstate,
     auto args = MemPoolAccept::ATMPArgs::SingleAccept(
         active_chainstate.m_chainman.GetConfig(), accept_time, bypass_limits,
         coins_to_uncache, test_accept, heightOverride);
-    const MempoolAcceptResult result = MemPoolAccept(pool, active_chainstate)
-                                           .AcceptSingleTransaction(tx, args);
+    MempoolAcceptResult result = MemPoolAccept(pool, active_chainstate)
+                                     .AcceptSingleTransaction(tx, args);
     if (result.m_result_type != MempoolAcceptResult::ResultType::VALID) {
         // Remove coins that were not present in the coins cache before calling
         // ATMPW; this is to prevent memory DoS in case we receive a large
@@ -1463,7 +1463,7 @@ PackageMempoolAcceptResult ProcessNewPackage(Chainstate &active_chainstate,
     const Config &config = active_chainstate.m_chainman.GetConfig();
 
     std::vector<COutPoint> coins_to_uncache;
-    const auto result = [&]() EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+    auto result = [&]() EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
         AssertLockHeld(cs_main);
         if (test_accept) {
             auto args = MemPoolAccept::ATMPArgs::PackageTestAccept(

@@ -1224,7 +1224,7 @@ void AddrManImpl::ResolveCollisions() {
 std::pair<CAddress, NodeSeconds> AddrManImpl::SelectTriedCollision() {
     LOCK(cs);
     Check();
-    const auto ret = SelectTriedCollision_();
+    auto ret = SelectTriedCollision_();
     Check();
     return ret;
 }
@@ -1232,7 +1232,7 @@ std::pair<CAddress, NodeSeconds> AddrManImpl::SelectTriedCollision() {
 std::pair<CAddress, NodeSeconds> AddrManImpl::Select(bool newOnly) const {
     LOCK(cs);
     Check();
-    const auto addrRet = Select_(newOnly);
+    auto addrRet = Select_(newOnly);
     Check();
     return addrRet;
 }
@@ -1242,7 +1242,7 @@ AddrManImpl::GetAddr(size_t max_addresses, size_t max_pct,
                      std::optional<Network> network) const {
     LOCK(cs);
     Check();
-    const auto addresses = GetAddr_(max_addresses, max_pct, network);
+    auto addresses = GetAddr_(max_addresses, max_pct, network);
     Check();
     return addresses;
 }
