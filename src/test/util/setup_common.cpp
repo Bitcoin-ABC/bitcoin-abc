@@ -61,7 +61,6 @@ using kernel::ValidationCacheSizes;
 using node::ApplyArgsManOptions;
 using node::BlockAssembler;
 using node::CalculateCacheSizes;
-using node::fPruneMode;
 using node::fReindex;
 using node::LoadChainstate;
 using node::NodeContext;

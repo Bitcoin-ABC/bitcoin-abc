@@ -26,7 +26,6 @@
 namespace node {
 std::atomic_bool fImporting(false);
 std::atomic_bool fReindex(false);
-bool fPruneMode = false;
 
 static FILE *OpenUndoFile(const FlatFilePos &pos, bool fReadOnly = false);
 
@@ -132,7 +131,7 @@ void BlockManager::PruneOneBlockFile(const int fileNumber) {
 void BlockManager::FindFilesToPruneManual(std::set<int> &setFilesToPrune,
                                           int nManualPruneHeight,
                                           int chain_tip_height) {
-    assert(fPruneMode && nManualPruneHeight > 0);
+    assert(IsPruneMode() && nManualPruneHeight > 0);
 
     LOCK2(cs_main, cs_LastBlockFile);
     if (chain_tip_height < 0) {
@@ -644,7 +643,7 @@ bool BlockManager::FindBlockPos(FlatFilePos &pos, unsigned int nAddSize,
             return AbortNode("Disk space is too low!",
                              _("Disk space is too low!"));
         }
-        if (bytes_allocated != 0 && fPruneMode) {
+        if (bytes_allocated != 0 && IsPruneMode()) {
             m_check_for_pruning = true;
         }
     }
@@ -670,7 +669,7 @@ bool BlockManager::FindUndoPos(BlockValidationState &state, int nFile,
         return AbortNode(state, "Disk space is too low!",
                          _("Disk space is too low!"));
     }
-    if (bytes_allocated != 0 && fPruneMode) {
+    if (bytes_allocated != 0 && IsPruneMode()) {
         m_check_for_pruning = true;
     }
 
