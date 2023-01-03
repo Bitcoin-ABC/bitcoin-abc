@@ -82,7 +82,6 @@ using node::CCoinsStats;
 using node::CoinStatsHashType;
 using node::ComputeUTXOStats;
 using node::fReindex;
-using node::nPruneTarget;
 using node::OpenBlockFile;
 using node::ReadBlockFromDisk;
 using node::SnapshotMetadata;
@@ -6405,8 +6404,10 @@ static ChainstateManager::Options &&Flatten(ChainstateManager::Options &&opts) {
     return std::move(opts);
 }
 
-ChainstateManager::ChainstateManager(Options options)
-    : m_options{Flatten(std::move(options))} {}
+ChainstateManager::ChainstateManager(
+    Options options, node::BlockManager::Options blockman_options)
+    : m_options{Flatten(std::move(options))}, m_blockman{std::move(
+                                                  blockman_options)} {}
 
 bool ChainstateManager::DetectSnapshotChainstate(CTxMemPool *mempool) {
     assert(!m_snapshot_chainstate);

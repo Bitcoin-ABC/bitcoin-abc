@@ -10,6 +10,7 @@
 
 #include <chain.h>
 #include <fs.h>
+#include <kernel/blockmanager_opts.h>
 #include <kernel/cs_main.h>
 #include <protocol.h> // For CMessageHeader::MessageStartChars
 #include <sync.h>
@@ -50,7 +51,6 @@ static constexpr size_t BLOCK_SERIALIZATION_HEADER_SIZE =
 extern std::atomic_bool fImporting;
 extern std::atomic_bool fReindex;
 extern bool fPruneMode;
-extern uint64_t nPruneTarget;
 
 // Because validation code takes pointers to the map's CBlockIndex objects, if
 // we ever switch to another associative container, we need to either use a
@@ -133,7 +133,13 @@ private:
     /** Dirty block file entries. */
     std::set<int> m_dirty_fileinfo;
 
+    const kernel::BlockManagerOpts m_opts;
+
 public:
+    using Options = kernel::BlockManagerOpts;
+
+    explicit BlockManager(Options opts) : m_opts{std::move(opts)} {};
+
     BlockMap m_block_index GUARDED_BY(cs_main);
 
     std::vector<CBlockIndex *> GetAllBlockIndices()
@@ -189,7 +195,9 @@ public:
     [[nodiscard]] bool IsPruneMode() const { return fPruneMode; }
 
     /** Attempt to stay below this number of bytes of block files. */
-    [[nodiscard]] uint64_t GetPruneTarget() const { return nPruneTarget; }
+    [[nodiscard]] uint64_t GetPruneTarget() const {
+        return m_opts.prune_target;
+    }
 
     [[nodiscard]] bool LoadingBlocks() const { return fImporting || fReindex; }
 

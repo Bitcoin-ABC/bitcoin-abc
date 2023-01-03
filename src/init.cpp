@@ -43,6 +43,7 @@
 #include <net_permissions.h>
 #include <net_processing.h>
 #include <netbase.h>
+#include <node/blockmanager_args.h>
 #include <node/blockstorage.h>
 #include <node/caches.h>
 #include <node/chainstate.h>
@@ -122,7 +123,6 @@ using node::fReindex;
 using node::LoadChainstate;
 using node::MempoolPath;
 using node::NodeContext;
-using node::nPruneTarget;
 using node::ShouldPersistMempool;
 using node::ThreadImport;
 using node::VerifyLoadedChainstate;
@@ -1878,28 +1878,6 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
                            "(excessiveblocksize)"));
     }
 
-    // block pruning; get the amount of disk space (in MiB) to allot for block &
-    // undo files
-    int64_t nPruneArg = args.GetIntArg("-prune", 0);
-    if (nPruneArg < 0) {
-        return InitError(
-            _("Prune cannot be configured with a negative value."));
-    }
-    nPruneTarget = (uint64_t)nPruneArg * 1024 * 1024;
-    if (nPruneArg == 1) {
-        // manual pruning: -prune=1
-        nPruneTarget = std::numeric_limits<uint64_t>::max();
-        fPruneMode = true;
-    } else if (nPruneTarget) {
-        if (nPruneTarget < MIN_DISK_SPACE_FOR_BLOCK_FILES) {
-            return InitError(
-                strprintf(_("Prune configured below the minimum of %d MiB. "
-                            "Please use a higher number."),
-                          MIN_DISK_SPACE_FOR_BLOCK_FILES / 1024 / 1024));
-        }
-        fPruneMode = true;
-    }
-
     nConnectTimeout = args.GetIntArg("-timeout", DEFAULT_CONNECT_TIMEOUT);
     if (nConnectTimeout <= 0) {
         nConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
@@ -2005,6 +1983,10 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
             .config = config,
         };
         if (const auto error{ApplyArgsManOptions(args, chainman_opts_dummy)}) {
+            return InitError(*error);
+        }
+        node::BlockManager::Options blockman_opts_dummy{};
+        if (const auto error{ApplyArgsManOptions(args, blockman_opts_dummy)}) {
             return InitError(*error);
         }
     }
@@ -2391,6 +2373,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         LogPrintf("Skipping checkpoint verification.\n");
     }
 
+    node::BlockManager::Options blockman_opts{};
+    // no error can happen, already checked in AppInitParameterInteraction
+    Assert(!ApplyArgsManOptions(args, blockman_opts));
+
     // cache size calculations
     CacheSizes cache_sizes =
         CalculateCacheSizes(args, g_enabled_filter_types.size());
@@ -2441,7 +2427,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     for (bool fLoaded = false; !fLoaded && !ShutdownRequested();) {
         node.mempool = std::make_unique<CTxMemPool>(mempool_opts);
 
-        node.chainman = std::make_unique<ChainstateManager>(chainman_opts);
+        node.chainman =
+            std::make_unique<ChainstateManager>(chainman_opts, blockman_opts);
         ChainstateManager &chainman = *node.chainman;
 
         node::ChainstateLoadOptions options;

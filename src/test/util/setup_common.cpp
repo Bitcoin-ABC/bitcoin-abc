@@ -217,7 +217,8 @@ ChainTestingSetup::ChainTestingSetup(
         .check_block_index = true,
     };
     ApplyArgsManOptions(*m_node.args, chainman_opts);
-    m_node.chainman = std::make_unique<ChainstateManager>(chainman_opts);
+    m_node.chainman = std::make_unique<ChainstateManager>(
+        chainman_opts, node::BlockManager::Options{});
     m_node.chainman->m_blockman.m_block_tree_db =
         std::make_unique<CBlockTreeDB>(m_cache_sizes.block_tree_db, true);
     // Call Upgrade on the block database so that the version field is set,
