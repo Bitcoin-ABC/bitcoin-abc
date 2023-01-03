@@ -174,14 +174,11 @@ public:
  * templates. Fills with data in linear time; some stringstream implementations
  * take N^2 time.
  */
-class CDataStream {
+class DataStream {
 protected:
     using vector_type = SerializeData;
     vector_type vch;
     unsigned int nReadPos{0};
-
-    int nType;
-    int nVersion;
 
 public:
     typedef vector_type::allocator_type allocator_type;
@@ -194,20 +191,10 @@ public:
     typedef vector_type::const_iterator const_iterator;
     typedef vector_type::reverse_iterator reverse_iterator;
 
-    explicit CDataStream(int nTypeIn, int nVersionIn)
-        : nType{nTypeIn}, nVersion{nVersionIn} {}
-
-    explicit CDataStream(Span<const uint8_t> sp, int type, int version)
-        : CDataStream{AsBytes(sp), type, version} {}
-    explicit CDataStream(Span<const value_type> sp, int nTypeIn, int nVersionIn)
-        : vch(sp.data(), sp.data() + sp.size()), nType{nTypeIn},
-          nVersion{nVersionIn} {}
-
-    template <typename... Args>
-    CDataStream(int nTypeIn, int nVersionIn, Args &&...args)
-        : nType{nTypeIn}, nVersion{nVersionIn} {
-        ::SerializeMany(*this, std::forward<Args>(args)...);
-    }
+    explicit DataStream() {}
+    explicit DataStream(Span<const uint8_t> sp) : DataStream{AsBytes(sp)} {}
+    explicit DataStream(Span<const value_type> sp)
+        : vch(sp.data(), sp.data() + sp.size()) {}
 
     std::string str() const {
         return std::string{UCharCast(data()), UCharCast(data() + size())};
@@ -324,13 +311,7 @@ public:
     // Stream subset
     //
     bool eof() const { return size() == 0; }
-    CDataStream *rdbuf() { return this; }
     int in_avail() const { return size(); }
-
-    void SetType(int n) { nType = n; }
-    int GetType() const { return nType; }
-    void SetVersion(int n) { nVersion = n; }
-    int GetVersion() const { return nVersion; }
 
     void read(Span<value_type> dst) {
         if (dst.size() == 0) {
@@ -340,7 +321,7 @@ public:
         // Read from the beginning of the buffer
         unsigned int nReadPosNext = nReadPos + dst.size();
         if (nReadPosNext > vch.size()) {
-            throw std::ios_base::failure("CDataStream::read(): end of data");
+            throw std::ios_base::failure("DataStream::read(): end of data");
         }
         memcpy(dst.data(), &vch[nReadPos], dst.size());
         if (nReadPosNext == vch.size()) {
@@ -355,13 +336,13 @@ public:
         // Ignore from the beginning of the buffer
         if (nSize < 0) {
             throw std::ios_base::failure(
-                "CDataStream::ignore(): nSize negative");
+                "DataStream::ignore(): nSize negative");
         }
         unsigned int nReadPosNext = nReadPos + nSize;
         if (nReadPosNext >= vch.size()) {
             if (nReadPosNext > vch.size()) {
                 throw std::ios_base::failure(
-                    "CDataStream::ignore(): end of data");
+                    "DataStream::ignore(): end of data");
             }
             nReadPos = 0;
             vch.clear();
@@ -382,13 +363,13 @@ public:
         }
     }
 
-    template <typename T> CDataStream &operator<<(const T &obj) {
+    template <typename T> DataStream &operator<<(const T &obj) {
         // Serialize to this stream
         ::Serialize(*this, obj);
         return (*this);
     }
 
-    template <typename T> CDataStream &operator>>(T &&obj) {
+    template <typename T> DataStream &operator>>(T &&obj) {
         // Unserialize from this stream
         ::Unserialize(*this, obj);
         return (*this);
@@ -413,6 +394,42 @@ public:
             // each byte Xor'd -- much slower than need be.
             if (j == key.size()) j = 0;
         }
+    }
+};
+
+class CDataStream : public DataStream {
+private:
+    int nType;
+    int nVersion;
+
+public:
+    explicit CDataStream(int nTypeIn, int nVersionIn)
+        : nType{nTypeIn}, nVersion{nVersionIn} {}
+
+    explicit CDataStream(Span<const uint8_t> sp, int type, int version)
+        : CDataStream{AsBytes(sp), type, version} {}
+    explicit CDataStream(Span<const value_type> sp, int nTypeIn, int nVersionIn)
+        : DataStream{sp}, nType{nTypeIn}, nVersion{nVersionIn} {}
+
+    template <typename... Args>
+    CDataStream(int nTypeIn, int nVersionIn, Args &&...args)
+        : nType{nTypeIn}, nVersion{nVersionIn} {
+        ::SerializeMany(*this, std::forward<Args>(args)...);
+    }
+
+    void SetType(int n) { nType = n; }
+    int GetType() const { return nType; }
+    void SetVersion(int n) { nVersion = n; }
+    int GetVersion() const { return nVersion; }
+
+    template <typename T> CDataStream &operator<<(const T &obj) {
+        ::Serialize(*this, obj);
+        return *this;
+    }
+
+    template <typename T> CDataStream &operator>>(T &&obj) {
+        ::Unserialize(*this, obj);
+        return *this;
     }
 };
 

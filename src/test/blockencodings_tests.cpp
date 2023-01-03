@@ -484,7 +484,7 @@ BOOST_AUTO_TEST_CASE(compactblock_overflow) {
     // We just check the stream expects more data as a matter of verifying that
     // the overflow check did not trigger while saving test time and memory by
     // not constructing the large object.
-    checkShortdTxIdsSizeException(MAX_SIZE, "CDataStream::read(): end of data");
+    checkShortdTxIdsSizeException(MAX_SIZE, "DataStream::read(): end of data");
     checkShortdTxIdsSizeException(MAX_SIZE + 1,
                                   "ReadCompactSize(): size too large");
 
@@ -507,8 +507,7 @@ BOOST_AUTO_TEST_CASE(compactblock_overflow) {
     // We just check the stream expects more data as a matter of verifying that
     // the overflow check did not trigger while saving test time and memory by
     // not constructing the large object.
-    checkPrefilledTxnSizeException(MAX_SIZE,
-                                   "CDataStream::read(): end of data");
+    checkPrefilledTxnSizeException(MAX_SIZE, "DataStream::read(): end of data");
     checkPrefilledTxnSizeException(MAX_SIZE + 1,
                                    "ReadCompactSize(): size too large");
 
