@@ -3,12 +3,10 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test descendant package tracking code."""
 
-from decimal import Decimal
-
-from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.p2p import P2PTxInvStore
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, satoshi_round
+from test_framework.wallet import MiniWallet
 
 MAX_ANCESTORS = 50
 
@@ -18,49 +16,22 @@ class MempoolPackagesTest(BitcoinTestFramework):
         self.num_nodes = 2
         self.extra_args = [["-maxorphantx=1000"]] * self.num_nodes
 
-    def skip_test_if_missing_module(self):
-        self.skip_if_no_wallet()
-
-    # Build a transaction that spends parent_txid:vout
-    # Return amount sent
-    def chain_transaction(self, node, parent_txid, vout, value, fee, num_outputs):
-        send_value = satoshi_round((value - fee) / num_outputs)
-        inputs = [{"txid": parent_txid, "vout": vout}]
-        outputs = {}
-        for _ in range(num_outputs):
-            outputs[node.getnewaddress()] = send_value
-        rawtx = node.createrawtransaction(inputs, outputs)
-        signedtx = node.signrawtransactionwithwallet(rawtx)
-        txid = node.sendrawtransaction(signedtx["hex"])
-        fulltx = node.getrawtransaction(txid, 1)
-        # make sure we didn't generate a change output
-        assert len(fulltx["vout"]) == num_outputs
-        return (txid, send_value)
-
     def run_test(self):
-        # Mine some blocks and have them mature.
-        # keep track of invs
-        peer_inv_store = self.nodes[0].add_p2p_connection(P2PTxInvStore())
-        self.generate(self.nodes[0], COINBASE_MATURITY + 1)
-        utxo = self.nodes[0].listunspent(10)
-        txid = utxo[0]["txid"]
-        value = utxo[0]["amount"]
+        self.wallet = MiniWallet(self.nodes[0])
+        self.wallet.rescan_utxos()
 
-        fee = Decimal("100")
+        peer_inv_store = self.nodes[0].add_p2p_connection(P2PTxInvStore())
+
         # MAX_ANCESTORS transactions off a confirmed tx should be fine
-        chain = []
-        for i in range(MAX_ANCESTORS):
-            (txid, sent_value) = self.chain_transaction(
-                self.nodes[0], txid, 0, value, fee, 1
-            )
-            value = sent_value
-            chain.append(txid)
+        chain = self.wallet.send_self_transfer_chain(
+            from_node=self.nodes[0], chain_length=MAX_ANCESTORS
+        )
 
         # Wait until mempool transactions have passed initial broadcast
         # (sent inv and received getdata)
         # Otherwise, getrawmempool may be inconsistent with getmempoolentry if
         # unbroadcast changes in between
-        peer_inv_store.wait_for_broadcast(chain)
+        peer_inv_store.wait_for_broadcast([t["txid"] for t in chain])
 
         # Check mempool has MAX_ANCESTORS transactions in it
         mempool = self.nodes[0].getrawmempool(True)
@@ -74,7 +45,8 @@ class MempoolPackagesTest(BitcoinTestFramework):
         ancestor_fees = sum([mempool[tx]["fees"]["base"] for tx in mempool])
 
         descendants = []
-        ancestors = list(chain)
+        ancestors = [t["txid"] for t in chain]
+        chain = [t["txid"] for t in chain]
         for x in reversed(chain):
             # Check that getmempoolentry is consistent with getrawmempool
             entry = self.nodes[0].getmempoolentry(x)

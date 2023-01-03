@@ -22,9 +22,12 @@ class ChainedTxTest(BitcoinTestFramework):
         wallet = MiniWallet(node)
 
         self.generate(wallet, COINBASE_MATURITY + 2)
-        chain_hex = wallet.create_self_transfer_chain(
-            chain_length=LEGACY_MAX_CHAINED_TX * 2
-        )["chain_hex"]
+        chain_hex = [
+            t["hex"]
+            for t in wallet.create_self_transfer_chain(
+                chain_length=LEGACY_MAX_CHAINED_TX * 2
+            )
+        ]
 
         for i, tx_hex in enumerate(chain_hex):
             txid = wallet.sendrawtransaction(from_node=node, tx_hex=tx_hex)
