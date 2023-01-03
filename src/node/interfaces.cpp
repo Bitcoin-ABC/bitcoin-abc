@@ -270,7 +270,7 @@ namespace {
             return chainman().ActiveChainstate().IsInitialBlockDownload();
         }
         bool isLoadingBlocks() override {
-            return node::fReindex || node::fImporting;
+            return chainman().m_blockman.LoadingBlocks();
         }
         void setNetworkActive(bool active) override {
             if (m_context->connman) {

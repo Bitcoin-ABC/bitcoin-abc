@@ -24,7 +24,6 @@
 #include <map>
 
 namespace node {
-std::atomic_bool fImporting(false);
 std::atomic_bool fReindex(false);
 
 static FILE *OpenUndoFile(const FlatFilePos &pos, bool fReadOnly = false);
@@ -855,15 +854,17 @@ FlatFilePos BlockManager::SaveBlockToDisk(const CBlock &block, int nHeight,
     return blockPos;
 }
 
-struct CImportingNow {
-    CImportingNow() {
-        assert(fImporting == false);
-        fImporting = true;
-    }
+class ImportingNow {
+    std::atomic<bool> &m_importing;
 
-    ~CImportingNow() {
-        assert(fImporting == true);
-        fImporting = false;
+public:
+    ImportingNow(std::atomic<bool> &importing) : m_importing{importing} {
+        assert(m_importing == false);
+        m_importing = true;
+    }
+    ~ImportingNow() {
+        assert(m_importing == true);
+        m_importing = false;
     }
 };
 
@@ -873,7 +874,7 @@ void ThreadImport(ChainstateManager &chainman,
     ScheduleBatchPriority();
 
     {
-        CImportingNow imp;
+        ImportingNow imp{chainman.m_blockman.m_importing};
 
         // -reindex
         if (fReindex) {
@@ -978,7 +979,7 @@ void ThreadImport(ChainstateManager &chainman,
             StartShutdown();
             return;
         }
-    } // End scope of CImportingNow
+    } // End scope of ImportingNow
     chainman.ActiveChainstate().LoadMempool(mempool_path);
 }
 } // namespace node
