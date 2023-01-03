@@ -407,8 +407,7 @@ bool BlockManager::LoadBlockIndexDB(
 
     for (const int i : setBlkDataFiles) {
         FlatFilePos pos(i, 0);
-        if (CAutoFile(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION)
-                .IsNull()) {
+        if (AutoFile{OpenBlockFile(pos, true)}.IsNull()) {
             return false;
         }
     }
@@ -562,14 +561,14 @@ bool BlockManager::UndoWriteToDisk(
     const CBlockUndo &blockundo, FlatFilePos &pos, const BlockHash &hashBlock,
     const CMessageHeader::MessageMagic &messageStart) const {
     // Open history file to append
-    CAutoFile fileout(OpenUndoFile(pos), SER_DISK, CLIENT_VERSION);
+    AutoFile fileout{OpenUndoFile(pos)};
     if (fileout.IsNull()) {
         LogError("%s: OpenUndoFile failed\n", __func__);
         return false;
     }
 
     // Write index header
-    unsigned int nSize = GetSerializeSize(blockundo, fileout.GetVersion());
+    unsigned int nSize = GetSerializeSize(blockundo, CLIENT_VERSION);
     fileout << messageStart << nSize;
 
     // Write undo data
@@ -600,7 +599,7 @@ bool BlockManager::UndoReadFromDisk(CBlockUndo &blockundo,
     }
 
     // Open history file to read
-    CAutoFile filein(OpenUndoFile(pos, true), SER_DISK, CLIENT_VERSION);
+    AutoFile filein{OpenUndoFile(pos, true)};
     if (filein.IsNull()) {
         LogError("%s: OpenUndoFile failed\n", __func__);
         return false;
@@ -608,8 +607,9 @@ bool BlockManager::UndoReadFromDisk(CBlockUndo &blockundo,
 
     // Read block
     uint256 hashChecksum;
-    // We need a CHashVerifier as reserializing may lose data
-    CHashVerifier<CAutoFile> verifier(&filein);
+    // Use HashVerifier as reserializing may lose data
+    // c.f. commit 80df982ab2f63e60edc1033d1ef8929c837d00c5
+    HashVerifier verifier{filein};
     try {
         verifier << index.pprev->GetBlockHash();
         verifier >> blockundo;
