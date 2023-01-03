@@ -2442,7 +2442,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         options.mempool = Assert(node.mempool.get());
         options.reindex = node::fReindex;
         options.reindex_chainstate = fReindexChainState;
-        options.prune = node::fPruneMode;
+        options.prune = chainman.m_blockman.IsPruneMode();
         options.check_blocks =
             args.GetIntArg("-checkblocks", DEFAULT_CHECKBLOCKS);
         options.check_level = args.GetIntArg("-checklevel", DEFAULT_CHECKLEVEL);
@@ -2607,7 +2607,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     // if pruning, unset the service bit and perform the initial blockstore
     // prune after any wallet rescanning has taken place.
-    if (fPruneMode) {
+    if (chainman.m_blockman.IsPruneMode()) {
         LogPrintf("Unsetting NODE_NETWORK on prune mode\n");
         nLocalServices = ServiceFlags(nLocalServices & ~NODE_NETWORK);
         if (!fReindex) {

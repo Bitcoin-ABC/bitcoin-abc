@@ -175,14 +175,15 @@ ChainstateLoadResult LoadChainstate(ChainstateManager &chainman,
         LogPrintf("Warning: nMinimumChainWork set below default value of %s\n",
                   chainman.GetConsensus().nMinimumChainWork.GetHex());
     }
-    if (nPruneTarget == std::numeric_limits<uint64_t>::max()) {
+    if (chainman.m_blockman.GetPruneTarget() ==
+        std::numeric_limits<uint64_t>::max()) {
         LogPrintf(
             "Block pruning enabled.  Use RPC call pruneblockchain(height) to "
             "manually prune block and undo files.\n");
-    } else if (nPruneTarget) {
+    } else if (chainman.m_blockman.GetPruneTarget()) {
         LogPrintf("Prune configured to target %u MiB on disk for block and "
                   "undo files.\n",
-                  nPruneTarget / 1024 / 1024);
+                  chainman.m_blockman.GetPruneTarget() / 1024 / 1024);
     }
 
     LOCK(cs_main);

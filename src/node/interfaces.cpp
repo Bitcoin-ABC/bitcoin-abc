@@ -629,7 +629,7 @@ namespace {
             return m_node.chainman->m_blockman.m_have_pruned;
         }
         bool isReadyToBroadcast() override {
-            return !node::fImporting && !node::fReindex &&
+            return !chainman().m_blockman.LoadingBlocks() &&
                    !isInitialBlockDownload();
         }
         bool isInitialBlockDownload() override {

@@ -72,8 +72,6 @@ using node::BlockMap;
 using node::CCoinsStats;
 using node::CoinStatsHashType;
 using node::ComputeUTXOStats;
-using node::fImporting;
-using node::fPruneMode;
 using node::fReindex;
 using node::nPruneTarget;
 using node::OpenBlockFile;
@@ -1215,7 +1213,7 @@ bool Chainstate::IsInitialBlockDownload() const {
     if (m_cached_finished_ibd.load(std::memory_order_relaxed)) {
         return false;
     }
-    if (fImporting || fReindex) {
+    if (m_chainman.m_blockman.LoadingBlocks()) {
         return true;
     }
     if (m_chain.Tip() == nullptr) {
@@ -2221,7 +2219,7 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
 
             CoinsCacheSizeState cache_state = GetCoinsCacheSizeState();
             LOCK(m_blockman.cs_LastBlockFile);
-            if (fPruneMode &&
+            if (m_blockman.IsPruneMode() &&
                 (m_blockman.m_check_for_pruning || nManualPruneHeight > 0) &&
                 !fReindex) {
                 // Make sure we don't prune above the blockfilterindexes
@@ -4654,7 +4652,8 @@ VerifyDBResult CVerifyDB::VerifyDB(Chainstate &chainstate, const Config &config,
             break;
         }
 
-        if ((fPruneMode || is_snapshot_cs) && !pindex->nStatus.hasData()) {
+        if ((chainstate.m_blockman.IsPruneMode() || is_snapshot_cs) &&
+            !pindex->nStatus.hasData()) {
             // If pruning or running under an assumeutxo snapshot, only go
             // back as far as we have data.
             LogPrintf("VerifyDB(): block verification stopping at height %d "
