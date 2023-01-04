@@ -949,6 +949,7 @@ std::string RPCArg::ToStringObj(const bool oneline) const {
             // no default case, so the compiler can warn about missing cases
     }
     CHECK_NONFATAL(false);
+    return res + "unknown";
 }
 
 std::string RPCArg::ToString(const bool oneline) const {
