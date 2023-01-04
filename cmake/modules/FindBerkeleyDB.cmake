@@ -43,6 +43,13 @@ function(generate_versions_variants VARIANTS LIB MAJOR MINOR)
 		endforeach()
 	endforeach()
 
+	# We need to search from the most specific to the least specific to prevent
+	# mismatches, e.g. if the include dir is /usr/include/db5.3 we want to link
+	# /usr/lib/libdb5.3.so and not libdb.so, which could very well be another
+	# version. Note that this is not only theoretical and actually happened on
+	# Archlinux with both db5.3 and db6.2 installed.
+	list(REVERSE ${VARIANTS})
+
 	set(${VARIANTS} ${${VARIANTS}} PARENT_SCOPE)
 endfunction()
 
