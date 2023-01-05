@@ -873,9 +873,9 @@ BOOST_AUTO_TEST_CASE(txsize_activation_test) {
     TxValidationState state;
 
     BOOST_CHECK(ContextualCheckTransaction(
-        params, minTx, state, magneticAnomalyActivationHeight - 1, 5678, 1234));
+        params, minTx, state, magneticAnomalyActivationHeight - 1, 5678));
     BOOST_CHECK(!ContextualCheckTransaction(
-        params, minTx, state, magneticAnomalyActivationHeight, 5678, 1234));
+        params, minTx, state, magneticAnomalyActivationHeight, 5678));
     BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txns-undersize");
 }
 

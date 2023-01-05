@@ -284,8 +284,7 @@ bool BlockAssembler::TestPackageTransactions(
     for (CTxMemPool::txiter it : package) {
         TxValidationState state;
         if (!ContextualCheckTransaction(chainParams.GetConsensus(), it->GetTx(),
-                                        state, nHeight, nLockTimeCutoff,
-                                        nMedianTimePast)) {
+                                        state, nHeight, nLockTimeCutoff)) {
             return false;
         }
 

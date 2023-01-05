@@ -4070,13 +4070,12 @@ bool ContextualCheckTransactionForCurrentBlock(
     // When the next block is created its previous block will be the current
     // chain tip, so we use that to calculate the median time passed to
     // ContextualCheckTransaction() if LOCKTIME_MEDIAN_TIME_PAST is set.
-    const int64_t nMedianTimePast = active_chain_tip->GetMedianTimePast();
     const int64_t nLockTimeCutoff = (flags & LOCKTIME_MEDIAN_TIME_PAST)
-                                        ? nMedianTimePast
+                                        ? active_chain_tip->GetMedianTimePast()
                                         : GetAdjustedTime();
 
     return ContextualCheckTransaction(params, tx, state, nBlockHeight,
-                                      nLockTimeCutoff, nMedianTimePast);
+                                      nLockTimeCutoff);
 }
 
 /**
@@ -4139,7 +4138,7 @@ static bool ContextualCheckBlock(const CBlock &block,
 
         TxValidationState tx_state;
         if (!ContextualCheckTransaction(params, tx, tx_state, nHeight,
-                                        nLockTimeCutoff, nMedianTimePast)) {
+                                        nLockTimeCutoff)) {
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
                                  tx_state.GetRejectReason(),
                                  tx_state.GetDebugMessage());

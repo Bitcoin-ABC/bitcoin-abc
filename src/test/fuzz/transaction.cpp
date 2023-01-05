@@ -86,7 +86,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     (void)EncodeHexTx(tx);
     (void)GetVirtualTransactionSize(tx);
     (void)ContextualCheckTransaction(params->GetConsensus(), tx, state, 1024,
-                                     1024, 0);
+                                     1024);
     (void)IsStandardTx(tx, reason);
     (void)RecursiveDynamicUsage(tx);
 

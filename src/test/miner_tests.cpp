@@ -614,10 +614,9 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         TxValidationState state;
         int64_t nMedianTimePast =
             m_node.chainman->ActiveTip()->GetMedianTimePast();
-        BOOST_CHECK(
-            ContextualCheckTransaction(params, CTransaction(tx), state,
-                                       m_node.chainman->ActiveHeight() + 2,
-                                       nMedianTimePast, nMedianTimePast));
+        BOOST_CHECK(ContextualCheckTransaction(
+            params, CTransaction(tx), state,
+            m_node.chainman->ActiveHeight() + 2, nMedianTimePast));
     }
 
     // Absolute time locked.
@@ -645,10 +644,9 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         TxValidationState state;
         int64_t nMedianTimePast =
             m_node.chainman->ActiveTip()->GetMedianTimePast() + 1;
-        BOOST_CHECK(
-            ContextualCheckTransaction(params, CTransaction(tx), state,
-                                       m_node.chainman->ActiveHeight() + 1,
-                                       nMedianTimePast, nMedianTimePast));
+        BOOST_CHECK(ContextualCheckTransaction(
+            params, CTransaction(tx), state,
+            m_node.chainman->ActiveHeight() + 1, nMedianTimePast));
     }
 
     // mempool-dependent transactions (not added)
