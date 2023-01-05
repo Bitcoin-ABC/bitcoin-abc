@@ -20,16 +20,16 @@
 #define CHECK_EQUAL(a,b) { \
     unsigned char hash1[32]; \
     unsigned char hash2[32]; \
-    secp256k1_multiset_finalize(ctx, hash1, (a)); \
-    secp256k1_multiset_finalize(ctx, hash2, (b)); \
+    secp256k1_multiset_finalize(CTX, hash1, (a)); \
+    secp256k1_multiset_finalize(CTX, hash2, (b)); \
     CHECK(memcmp(hash1,hash2,sizeof(hash1))==0); \
 }
 
 #define CHECK_NOTEQUAL(a,b) { \
     unsigned char hash1[32]; \
     unsigned char hash2[32]; \
-    secp256k1_multiset_finalize(ctx, hash1, (a)); \
-    secp256k1_multiset_finalize(ctx, hash2, (b)); \
+    secp256k1_multiset_finalize(CTX, hash1, (a)); \
+    secp256k1_multiset_finalize(CTX, hash2, (b)); \
     CHECK(memcmp(hash1,hash2,sizeof(hash1))!=0); \
 }
 
@@ -53,46 +53,46 @@ void test_unordered(void) {
 
     secp256k1_multiset empty, r1,r2,r3;
 
-    secp256k1_multiset_init(ctx, &empty);
-    secp256k1_multiset_init(ctx, &r1);
-    secp256k1_multiset_init(ctx, &r2);
-    secp256k1_multiset_init(ctx, &r3);
+    secp256k1_multiset_init(CTX, &empty);
+    secp256k1_multiset_init(CTX, &r1);
+    secp256k1_multiset_init(CTX, &r2);
+    secp256k1_multiset_init(CTX, &r3);
 
-    secp256k1_multiset_add(ctx, &r1, elements[0], DATALEN);
-    secp256k1_multiset_add(ctx, &r2, elements[1], DATALEN);
+    secp256k1_multiset_add(CTX, &r1, elements[0], DATALEN);
+    secp256k1_multiset_add(CTX, &r2, elements[1], DATALEN);
 
     CHECK_NOTEQUAL(&r1,&r2); /* M(0,1)!=M() */
 
-    secp256k1_multiset_add(ctx, &r1, elements[1], DATALEN);
-    secp256k1_multiset_add(ctx, &r2, elements[0], DATALEN);
+    secp256k1_multiset_add(CTX, &r1, elements[1], DATALEN);
+    secp256k1_multiset_add(CTX, &r2, elements[0], DATALEN);
     CHECK_EQUAL(&r1,&r2); /* M(0,1)==M(1,0) */
 
-    secp256k1_multiset_init(ctx, &r1);
-    secp256k1_multiset_init(ctx, &r2);
-    secp256k1_multiset_init(ctx, &r3);
+    secp256k1_multiset_init(CTX, &r1);
+    secp256k1_multiset_init(CTX, &r2);
+    secp256k1_multiset_init(CTX, &r3);
 
     CHECK_EQUAL(&r1,&r2); /* M()==M() */
 
-    secp256k1_multiset_add(ctx, &r1, elements[0], DATALEN);
-    secp256k1_multiset_add(ctx, &r1, elements[1], DATALEN);
-    secp256k1_multiset_add(ctx, &r1, elements[2], DATALEN);
+    secp256k1_multiset_add(CTX, &r1, elements[0], DATALEN);
+    secp256k1_multiset_add(CTX, &r1, elements[1], DATALEN);
+    secp256k1_multiset_add(CTX, &r1, elements[2], DATALEN);
 
-    secp256k1_multiset_add(ctx, &r2, elements[2], DATALEN);
-    secp256k1_multiset_add(ctx, &r2, elements[0], DATALEN);
-    secp256k1_multiset_add(ctx, &r2, elements[1], DATALEN);
+    secp256k1_multiset_add(CTX, &r2, elements[2], DATALEN);
+    secp256k1_multiset_add(CTX, &r2, elements[0], DATALEN);
+    secp256k1_multiset_add(CTX, &r2, elements[1], DATALEN);
 
-    secp256k1_multiset_add(ctx, &r3, elements[1], DATALEN);
-    secp256k1_multiset_add(ctx, &r3, elements[0], DATALEN);
-    secp256k1_multiset_add(ctx, &r3, elements[2], DATALEN);
+    secp256k1_multiset_add(CTX, &r3, elements[1], DATALEN);
+    secp256k1_multiset_add(CTX, &r3, elements[0], DATALEN);
+    secp256k1_multiset_add(CTX, &r3, elements[2], DATALEN);
 
     CHECK_EQUAL(&r1,&r2); /* M(0,1,2)==M(2,0,1) */
     CHECK_EQUAL(&r1,&r3); /* M(0,1,2)==M(1,0,2) */
 
 
-    secp256k1_multiset_combine(ctx, &r3, &empty);
+    secp256k1_multiset_combine(CTX, &r3, &empty);
     CHECK_EQUAL(&r1,&r3); /* M(1,0,2)+M()=M(0,1,2) */
 
-    secp256k1_multiset_combine(ctx, &r3, &r2);
+    secp256k1_multiset_combine(CTX, &r3, &r2);
     CHECK_NOTEQUAL(&r1,&r3); /* M(1,0,2)+M(0,1,2)!=M(0,1,2) */
 
 }
@@ -104,54 +104,54 @@ void test_combine(void) {
     secp256k1_multiset empty, r1,r2,r3;
     secp256k1_gej gej_pos, gej_neg;
 
-    secp256k1_multiset_init(ctx, &empty);
-    secp256k1_multiset_init(ctx, &r1);
-    secp256k1_multiset_init(ctx, &r2);
-    secp256k1_multiset_init(ctx, &r3);
+    secp256k1_multiset_init(CTX, &empty);
+    secp256k1_multiset_init(CTX, &r1);
+    secp256k1_multiset_init(CTX, &r2);
+    secp256k1_multiset_init(CTX, &r3);
 
-    secp256k1_multiset_add(ctx, &r1, elements[0], DATALEN);
-    secp256k1_multiset_add(ctx, &r2, elements[1], DATALEN);
+    secp256k1_multiset_add(CTX, &r1, elements[0], DATALEN);
+    secp256k1_multiset_add(CTX, &r2, elements[1], DATALEN);
     CHECK_NOTEQUAL(&r1,&r2); /* M(0) != M(1) */
 
-    secp256k1_multiset_add(ctx, &r1, elements[1], DATALEN);
-    secp256k1_multiset_add(ctx, &r2, elements[0], DATALEN);
+    secp256k1_multiset_add(CTX, &r1, elements[1], DATALEN);
+    secp256k1_multiset_add(CTX, &r2, elements[0], DATALEN);
     CHECK_EQUAL(&r1,&r2); /* M(1,0) == M(0,1) */
 
-    secp256k1_multiset_init(ctx, &r1);
-    secp256k1_multiset_init(ctx, &r2);
-    secp256k1_multiset_init(ctx, &r3);
+    secp256k1_multiset_init(CTX, &r1);
+    secp256k1_multiset_init(CTX, &r2);
+    secp256k1_multiset_init(CTX, &r3);
 
     CHECK_EQUAL(&r1,&r2); /* M() == M() */
 
-    secp256k1_multiset_add(ctx, &r1, elements[0], DATALEN);
-    secp256k1_multiset_add(ctx, &r1, elements[1], DATALEN);
-    secp256k1_multiset_add(ctx, &r1, elements[2], DATALEN);
+    secp256k1_multiset_add(CTX, &r1, elements[0], DATALEN);
+    secp256k1_multiset_add(CTX, &r1, elements[1], DATALEN);
+    secp256k1_multiset_add(CTX, &r1, elements[2], DATALEN);
 
-    secp256k1_multiset_add(ctx, &r2, elements[2], DATALEN);
-    secp256k1_multiset_add(ctx, &r3, elements[0], DATALEN);
-    secp256k1_multiset_add(ctx, &r3, elements[1], DATALEN);
-    secp256k1_multiset_combine(ctx, &r2, &r3);
+    secp256k1_multiset_add(CTX, &r2, elements[2], DATALEN);
+    secp256k1_multiset_add(CTX, &r3, elements[0], DATALEN);
+    secp256k1_multiset_add(CTX, &r3, elements[1], DATALEN);
+    secp256k1_multiset_combine(CTX, &r2, &r3);
     CHECK_EQUAL(&r1,&r2); /* M(0,1,2) == M(2)+M(0,1) */
 
-    secp256k1_multiset_init(ctx, &r2);
-    secp256k1_multiset_init(ctx, &r3);
-    secp256k1_multiset_add(ctx, &r2, elements[2], DATALEN);
-    secp256k1_multiset_add(ctx, &r2, elements[0], DATALEN);
-    secp256k1_multiset_add(ctx, &r3, elements[1], DATALEN);
-    secp256k1_multiset_combine(ctx, &r2, &r3);
+    secp256k1_multiset_init(CTX, &r2);
+    secp256k1_multiset_init(CTX, &r3);
+    secp256k1_multiset_add(CTX, &r2, elements[2], DATALEN);
+    secp256k1_multiset_add(CTX, &r2, elements[0], DATALEN);
+    secp256k1_multiset_add(CTX, &r3, elements[1], DATALEN);
+    secp256k1_multiset_combine(CTX, &r2, &r3);
     CHECK_EQUAL(&r1,&r2); /* M(0,1,2) == M(2,0)+M(1) */
 
-    secp256k1_multiset_combine(ctx, &r2, &empty);
+    secp256k1_multiset_combine(CTX, &r2, &empty);
     CHECK_EQUAL(&r1,&r2); /* M(0,1,2)+M() == M(0,1,2) */
-    secp256k1_multiset_combine(ctx, &r2, &r1);
+    secp256k1_multiset_combine(CTX, &r2, &r1);
     CHECK_NOTEQUAL(&r1,&r2); /* M(0,1,2)+M(0,1,2) != M(0,1,2) */
 
     /* Combine multisets so that the combination representation is infinity */
-    secp256k1_multiset_init(ctx, &r1);
-    secp256k1_multiset_init(ctx, &r2);
+    secp256k1_multiset_init(CTX, &r1);
+    secp256k1_multiset_init(CTX, &r2);
     CHECK_EQUAL(&r1, &r2); /* M() == M() */
 
-    secp256k1_multiset_add(ctx, &r1, elements[0], DATALEN);
+    secp256k1_multiset_add(CTX, &r1, elements[0], DATALEN);
 
     gej_from_multiset_var(&gej_pos, &r1);
     secp256k1_gej_neg(&gej_neg, &gej_pos);
@@ -162,7 +162,7 @@ void test_combine(void) {
     multiset_from_gej_var(&r2, &gej_neg);
 
     /* This is equivalent to a removal due to multisets being associative */
-    secp256k1_multiset_combine(ctx, &r1, &r2);
+    secp256k1_multiset_combine(CTX, &r1, &r2);
     CHECK_EQUAL(&empty, &r1); /* M() == M(X)+M(-X) == M(X)-M(X) */
 }
 
@@ -172,53 +172,53 @@ void test_remove(void) {
     /* Testing removal of elements */
     secp256k1_multiset empty, r1,r2,r3;
 
-    secp256k1_multiset_init(ctx, &empty);
-    secp256k1_multiset_init(ctx, &r1);
-    secp256k1_multiset_init(ctx, &r2);
-    secp256k1_multiset_init(ctx, &r3);
+    secp256k1_multiset_init(CTX, &empty);
+    secp256k1_multiset_init(CTX, &r1);
+    secp256k1_multiset_init(CTX, &r2);
+    secp256k1_multiset_init(CTX, &r3);
 
     CHECK_EQUAL(&r1,&r2); /* M()==M() */
 
-    secp256k1_multiset_add   (ctx, &r1, elements[0], DATALEN);
-    secp256k1_multiset_add   (ctx, &r1, elements[1], DATALEN);
-    secp256k1_multiset_add   (ctx, &r1, elements[3], DATALEN);
-    secp256k1_multiset_add   (ctx, &r1, elements[9], DATALEN);
-    secp256k1_multiset_add   (ctx, &r1, elements[8], DATALEN);
+    secp256k1_multiset_add   (CTX, &r1, elements[0], DATALEN);
+    secp256k1_multiset_add   (CTX, &r1, elements[1], DATALEN);
+    secp256k1_multiset_add   (CTX, &r1, elements[3], DATALEN);
+    secp256k1_multiset_add   (CTX, &r1, elements[9], DATALEN);
+    secp256k1_multiset_add   (CTX, &r1, elements[8], DATALEN);
 
-    secp256k1_multiset_add   (ctx, &r2, elements[1], DATALEN);
-    secp256k1_multiset_add   (ctx, &r2, elements[9], DATALEN);
-    secp256k1_multiset_add   (ctx, &r2, elements[11], DATALEN);
-    secp256k1_multiset_add   (ctx, &r2, elements[10], DATALEN);
-    secp256k1_multiset_add   (ctx, &r2, elements[0], DATALEN);
-    secp256k1_multiset_remove(ctx, &r2, elements[10], DATALEN);
-    secp256k1_multiset_add   (ctx, &r2, elements[3], DATALEN);
-    secp256k1_multiset_add   (ctx, &r2, elements[8], DATALEN);
-    secp256k1_multiset_remove(ctx, &r2, elements[11], DATALEN);
+    secp256k1_multiset_add   (CTX, &r2, elements[1], DATALEN);
+    secp256k1_multiset_add   (CTX, &r2, elements[9], DATALEN);
+    secp256k1_multiset_add   (CTX, &r2, elements[11], DATALEN);
+    secp256k1_multiset_add   (CTX, &r2, elements[10], DATALEN);
+    secp256k1_multiset_add   (CTX, &r2, elements[0], DATALEN);
+    secp256k1_multiset_remove(CTX, &r2, elements[10], DATALEN);
+    secp256k1_multiset_add   (CTX, &r2, elements[3], DATALEN);
+    secp256k1_multiset_add   (CTX, &r2, elements[8], DATALEN);
+    secp256k1_multiset_remove(CTX, &r2, elements[11], DATALEN);
 
-    secp256k1_multiset_add   (ctx, &r3, elements[9], DATALEN);
-    secp256k1_multiset_add   (ctx, &r3, elements[15], DATALEN);
-    secp256k1_multiset_add   (ctx, &r3, elements[15], DATALEN);
-    secp256k1_multiset_add   (ctx, &r3, elements[1], DATALEN);
-    secp256k1_multiset_add   (ctx, &r3, elements[9], DATALEN);
-    secp256k1_multiset_remove(ctx, &r3, elements[15], DATALEN);
-    secp256k1_multiset_add   (ctx, &r3, elements[0], DATALEN);
-    secp256k1_multiset_remove(ctx, &r3, elements[15], DATALEN);
-    secp256k1_multiset_remove(ctx, &r3, elements[9], DATALEN);
-    secp256k1_multiset_add   (ctx, &r3, elements[3], DATALEN);
-    secp256k1_multiset_add   (ctx, &r3, elements[8], DATALEN);
+    secp256k1_multiset_add   (CTX, &r3, elements[9], DATALEN);
+    secp256k1_multiset_add   (CTX, &r3, elements[15], DATALEN);
+    secp256k1_multiset_add   (CTX, &r3, elements[15], DATALEN);
+    secp256k1_multiset_add   (CTX, &r3, elements[1], DATALEN);
+    secp256k1_multiset_add   (CTX, &r3, elements[9], DATALEN);
+    secp256k1_multiset_remove(CTX, &r3, elements[15], DATALEN);
+    secp256k1_multiset_add   (CTX, &r3, elements[0], DATALEN);
+    secp256k1_multiset_remove(CTX, &r3, elements[15], DATALEN);
+    secp256k1_multiset_remove(CTX, &r3, elements[9], DATALEN);
+    secp256k1_multiset_add   (CTX, &r3, elements[3], DATALEN);
+    secp256k1_multiset_add   (CTX, &r3, elements[8], DATALEN);
 
     CHECK_EQUAL(&r1,&r2); /* M(0,1,3,9,8)==M(1,9,11,10,9,3,8)-M(10,11) */
     CHECK_EQUAL(&r1,&r3); /* M(0,1,3,9,8)==M(9,15,15,1,9,0,3,8)-M(15,15,9) */
     CHECK_NOTEQUAL(&r1,&empty); /* M(0,1,3,9,8)!=M() */
 
-    secp256k1_multiset_remove(ctx, &r3, elements[8], DATALEN);
+    secp256k1_multiset_remove(CTX, &r3, elements[8], DATALEN);
     CHECK_NOTEQUAL(&r1,&r3); /* M(0,1,3,9,8)-M(8)!=M(0,1,3,9,8) */
 
-    secp256k1_multiset_remove(ctx, &r2, elements[0], DATALEN);
-    secp256k1_multiset_remove(ctx, &r2, elements[9], DATALEN);
-    secp256k1_multiset_remove(ctx, &r2, elements[8], DATALEN);
-    secp256k1_multiset_remove(ctx, &r2, elements[1], DATALEN);
-    secp256k1_multiset_remove(ctx, &r2, elements[3], DATALEN);
+    secp256k1_multiset_remove(CTX, &r2, elements[0], DATALEN);
+    secp256k1_multiset_remove(CTX, &r2, elements[9], DATALEN);
+    secp256k1_multiset_remove(CTX, &r2, elements[8], DATALEN);
+    secp256k1_multiset_remove(CTX, &r2, elements[1], DATALEN);
+    secp256k1_multiset_remove(CTX, &r2, elements[3], DATALEN);
 
     CHECK_EQUAL(&r2,&empty); /* M(0,1,3,9,8)-M(0,1,3,9,8)==M() */
 }
@@ -228,31 +228,31 @@ void test_duplicate(void) {
     /* Test if the multiset properly handles duplicates */
     secp256k1_multiset empty, r1,r2,r3;
 
-    secp256k1_multiset_init(ctx, &empty);
-    secp256k1_multiset_init(ctx, &r1);
-    secp256k1_multiset_init(ctx, &r2);
-    secp256k1_multiset_init(ctx, &r3);
+    secp256k1_multiset_init(CTX, &empty);
+    secp256k1_multiset_init(CTX, &r1);
+    secp256k1_multiset_init(CTX, &r2);
+    secp256k1_multiset_init(CTX, &r3);
 
-    secp256k1_multiset_add   (ctx, &r1, elements[0], DATALEN);
-    secp256k1_multiset_add   (ctx, &r1, elements[0], DATALEN);
-    secp256k1_multiset_add   (ctx, &r1, elements[1], DATALEN);
-    secp256k1_multiset_add   (ctx, &r1, elements[1], DATALEN);
+    secp256k1_multiset_add   (CTX, &r1, elements[0], DATALEN);
+    secp256k1_multiset_add   (CTX, &r1, elements[0], DATALEN);
+    secp256k1_multiset_add   (CTX, &r1, elements[1], DATALEN);
+    secp256k1_multiset_add   (CTX, &r1, elements[1], DATALEN);
 
-    secp256k1_multiset_add   (ctx, &r2, elements[0], DATALEN);
-    secp256k1_multiset_add   (ctx, &r2, elements[1], DATALEN);
+    secp256k1_multiset_add   (CTX, &r2, elements[0], DATALEN);
+    secp256k1_multiset_add   (CTX, &r2, elements[1], DATALEN);
 
     CHECK_NOTEQUAL(&r1, &r2); /* M(0,0,1,1)!=M(0,1) */
 
-    secp256k1_multiset_add   (ctx, &r2, elements[0], DATALEN);
-    secp256k1_multiset_add   (ctx, &r2, elements[1], DATALEN);
+    secp256k1_multiset_add   (CTX, &r2, elements[0], DATALEN);
+    secp256k1_multiset_add   (CTX, &r2, elements[1], DATALEN);
     CHECK_EQUAL(&r1, &r2); /* M(0,0,1,1)!=M(0,0,1,1) */
 
-    secp256k1_multiset_add   (ctx, &r1, elements[0], DATALEN);
-    secp256k1_multiset_add   (ctx, &r1, elements[1], DATALEN);
-    secp256k1_multiset_add   (ctx, &r3, elements[0], DATALEN);
-    secp256k1_multiset_add   (ctx, &r3, elements[1], DATALEN);
+    secp256k1_multiset_add   (CTX, &r1, elements[0], DATALEN);
+    secp256k1_multiset_add   (CTX, &r1, elements[1], DATALEN);
+    secp256k1_multiset_add   (CTX, &r3, elements[0], DATALEN);
+    secp256k1_multiset_add   (CTX, &r3, elements[1], DATALEN);
 
-    secp256k1_multiset_combine(ctx, &r2, &r3);
+    secp256k1_multiset_combine(CTX, &r2, &r3);
     CHECK_EQUAL(&r1, &r2); /* M(0,0,0,1,1,1)!=M(0,0,1,1)+M(0,1) */
 }
 
@@ -262,14 +262,14 @@ void test_empty(void) {
 
     secp256k1_multiset empty, r1,r2;
 
-    secp256k1_multiset_init(ctx, &empty);
-    secp256k1_multiset_init(ctx, &r1);
-    secp256k1_multiset_init(ctx, &r2);
+    secp256k1_multiset_init(CTX, &empty);
+    secp256k1_multiset_init(CTX, &r1);
+    secp256k1_multiset_init(CTX, &r2);
 
     CHECK_EQUAL(&empty,&r1); /* M()==M() */
 
     /* empty + empty = empty */
-    secp256k1_multiset_combine(ctx, &r1, &r2);
+    secp256k1_multiset_combine(CTX, &r1, &r2);
     CHECK_EQUAL(&empty, &r1); /* M()+M()==M() */
 }
 
@@ -305,25 +305,25 @@ void test_testvector(void) {
     unsigned char m0[32],m1[32],m2[32],m3[32],m1m2[32],m1m2m3[32];
     secp256k1_multiset r0,r1,r2,r3;
 
-    secp256k1_multiset_init(ctx, &r0);
-    secp256k1_multiset_init(ctx, &r1);
-    secp256k1_multiset_init(ctx, &r2);
-    secp256k1_multiset_init(ctx, &r3);
+    secp256k1_multiset_init(CTX, &r0);
+    secp256k1_multiset_init(CTX, &r1);
+    secp256k1_multiset_init(CTX, &r2);
+    secp256k1_multiset_init(CTX, &r3);
 
-    secp256k1_multiset_add    (ctx, &r1, d1, sizeof(d1));
-    secp256k1_multiset_add    (ctx, &r2, d2, sizeof(d2));
-    secp256k1_multiset_add    (ctx, &r3, d3, sizeof(d3));
+    secp256k1_multiset_add    (CTX, &r1, d1, sizeof(d1));
+    secp256k1_multiset_add    (CTX, &r2, d2, sizeof(d2));
+    secp256k1_multiset_add    (CTX, &r3, d3, sizeof(d3));
 
-    secp256k1_multiset_finalize(ctx, m0, &r0);
-    secp256k1_multiset_finalize(ctx, m1, &r1);
-    secp256k1_multiset_finalize(ctx, m2, &r2);
-    secp256k1_multiset_finalize(ctx, m3, &r3);
+    secp256k1_multiset_finalize(CTX, m0, &r0);
+    secp256k1_multiset_finalize(CTX, m1, &r1);
+    secp256k1_multiset_finalize(CTX, m2, &r2);
+    secp256k1_multiset_finalize(CTX, m3, &r3);
 
-    secp256k1_multiset_combine(ctx, &r1, &r2);
-    secp256k1_multiset_finalize(ctx, m1m2, &r1);
+    secp256k1_multiset_combine(CTX, &r1, &r2);
+    secp256k1_multiset_finalize(CTX, m1m2, &r1);
 
-    secp256k1_multiset_combine(ctx, &r1, &r3);
-    secp256k1_multiset_finalize(ctx, m1m2m3, &r1);
+    secp256k1_multiset_combine(CTX, &r1, &r3);
+    secp256k1_multiset_finalize(CTX, m1m2m3, &r1);
 
     CHECK(memcmp(m0,exp_empty,32)==0);
     CHECK(memcmp(m1,exp_m1,32)==0);
