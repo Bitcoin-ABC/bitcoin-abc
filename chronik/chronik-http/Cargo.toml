@@ -24,4 +24,4 @@ hyper = "0.14"
 thiserror = "1.0"
 
 # Async runtime
-tokio = { version = "1.21", features = ["sync", "rt", "rt-multi-thread"] }
+tokio = { version = "1.23", features = ["sync", "rt", "rt-multi-thread"] }
