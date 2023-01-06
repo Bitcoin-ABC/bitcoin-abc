@@ -1153,7 +1153,7 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptPackage(const Package &package,
     m_view.SetBackend(m_dummy);
 
     LOCK(m_pool.cs);
-    std::map<const TxId, const MempoolAcceptResult> results;
+    std::map<const TxId, const MempoolAcceptResult> results_final;
     // Node operators are free to set their mempool policies however they
     // please, nodes may receive transactions in different orders, and malicious
     // counterparties may try to take advantage of policy differences to pin or
@@ -1167,7 +1167,7 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptPackage(const Package &package,
     // fee-related policy.
     ATMPArgs single_args = ATMPArgs::SingleInPackageAccept(args);
     bool quit_early{false};
-    std::vector<CTransactionRef> txns_new;
+    std::vector<CTransactionRef> txns_package_eval;
     for (const auto &tx : package) {
         const auto &txid = tx->GetId();
         // An already confirmed tx is treated as one not in mempool, because all
@@ -1176,9 +1176,9 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptPackage(const Package &package,
             // Exact transaction already exists in the mempool.
             auto iter = m_pool.GetIter(txid);
             assert(iter != std::nullopt);
-            results.emplace(txid, MempoolAcceptResult::MempoolTx(
-                                      (*iter.value())->GetTxSize(),
-                                      (*iter.value())->GetFee()));
+            results_final.emplace(txid, MempoolAcceptResult::MempoolTx(
+                                            (*iter.value())->GetTxSize(),
+                                            (*iter.value())->GetFee()));
         } else {
             // Transaction does not already exist in the mempool.
             // Try submitting the transaction on its own.
@@ -1189,7 +1189,7 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptPackage(const Package &package,
                 // mempool. Don't include it in package validation, because its
                 // fees should only be "used" once.
                 assert(m_pool.exists(txid));
-                results.emplace(txid, single_res);
+                results_final.emplace(txid, single_res);
             } else if (single_res.m_state.GetResult() !=
                            TxValidationResult::TX_MEMPOOL_POLICY &&
                        single_res.m_state.GetResult() !=
@@ -1209,22 +1209,23 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptPackage(const Package &package,
                 quit_early = true;
                 package_state_quit_early.Invalid(
                     PackageValidationResult::PCKG_TX, "transaction failed");
-                results.emplace(txid, single_res);
+                results_final.emplace(txid, single_res);
             } else {
-                txns_new.push_back(tx);
+                txns_package_eval.push_back(tx);
             }
         }
     }
 
     // Nothing to do if the entire package has already been submitted.
-    if (quit_early || txns_new.empty()) {
+    if (quit_early || txns_package_eval.empty()) {
         return PackageMempoolAcceptResult(package_state_quit_early,
-                                          std::move(results));
+                                          std::move(results_final));
     }
     // Validate the (deduplicated) transactions as a package.
-    auto submission_result = AcceptMultipleTransactions(txns_new, args);
+    auto submission_result =
+        AcceptMultipleTransactions(txns_package_eval, args);
     // Include already-in-mempool transaction results in the final result.
-    for (const auto &[txid, mempoolaccept_res] : results) {
+    for (const auto &[txid, mempoolaccept_res] : results_final) {
         submission_result.m_tx_results.emplace(txid, mempoolaccept_res);
     }
     return submission_result;
