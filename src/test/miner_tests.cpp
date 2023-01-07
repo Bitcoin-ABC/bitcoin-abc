@@ -658,8 +658,9 @@ void MinerTestingSetup::TestPrioritisedMining(
     tx.vin[0].prevout = COutPoint{txFirst[0]->GetId(), 0};
     tx.vin[0].scriptSig = CScript() << OP_1;
     tx.vout.resize(1);
+    const int64_t fiveBillion = 5000000000;
     // 0 fee
-    tx.vout[0].nValue = 5000000000 * SATOSHI;
+    tx.vout[0].nValue = fiveBillion * SATOSHI;
     const TxId hashFreePrioritisedTx = tx.GetId();
     m_node.mempool->addUnchecked(entry.Fee(Amount::zero())
                                      .Time(GetTime())
@@ -669,7 +670,7 @@ void MinerTestingSetup::TestPrioritisedMining(
 
     // This tx has a low fee: 1000 satoshis
     tx.vin[0].prevout = COutPoint{txFirst[1]->GetId(), 0};
-    tx.vout[0].nValue = (5000000000 - 1000) * SATOSHI;
+    tx.vout[0].nValue = (fiveBillion - 1000) * SATOSHI;
     // save this txid for later use
     const TxId hashParentTx = tx.GetId();
     m_node.mempool->addUnchecked(entry.Fee(1000 * SATOSHI)
@@ -679,7 +680,7 @@ void MinerTestingSetup::TestPrioritisedMining(
 
     // This tx has a medium fee: 10000 satoshis
     tx.vin[0].prevout = COutPoint{txFirst[2]->GetId(), 0};
-    tx.vout[0].nValue = (5000000000 - 10000) * SATOSHI;
+    tx.vout[0].nValue = (fiveBillion - 10000) * SATOSHI;
     const TxId hashMediumFeeTx = tx.GetId();
     m_node.mempool->addUnchecked(entry.Fee(10000 * SATOSHI)
                                      .Time(GetTime())
@@ -690,7 +691,7 @@ void MinerTestingSetup::TestPrioritisedMining(
     // This tx also has a low fee, but is prioritised
     tx.vin[0].prevout = COutPoint{hashParentTx, 0};
     // 1000 satoshi fee
-    tx.vout[0].nValue = (5000000000 - 1000 - 1000) * SATOSHI;
+    tx.vout[0].nValue = (fiveBillion - 1000 - 1000) * SATOSHI;
     const TxId hashPrioritisedChild = tx.GetId();
     m_node.mempool->addUnchecked(entry.Fee(1000 * SATOSHI)
                                      .Time(GetTime())
@@ -708,7 +709,7 @@ void MinerTestingSetup::TestPrioritisedMining(
     // included.
     tx.vin[0].prevout = COutPoint{txFirst[3]->GetId(), 0};
     // 0 fee
-    tx.vout[0].nValue = 5000000000 * SATOSHI;
+    tx.vout[0].nValue = fiveBillion * SATOSHI;
     const TxId hashFreeParent = tx.GetId();
     m_node.mempool->addUnchecked(
         entry.Fee(Amount::zero()).SpendsCoinbase(true).FromTx(tx));
@@ -716,7 +717,7 @@ void MinerTestingSetup::TestPrioritisedMining(
 
     tx.vin[0].prevout = COutPoint{hashFreeParent, 0};
     // 0 fee
-    tx.vout[0].nValue = 5000000000 * SATOSHI;
+    tx.vout[0].nValue = fiveBillion * SATOSHI;
     const TxId hashFreeChild = tx.GetId();
     m_node.mempool->addUnchecked(
         entry.Fee(Amount::zero()).SpendsCoinbase(false).FromTx(tx));
@@ -724,7 +725,7 @@ void MinerTestingSetup::TestPrioritisedMining(
 
     tx.vin[0].prevout = COutPoint{hashFreeChild, 0};
     // 0 fee
-    tx.vout[0].nValue = 5000000000 * SATOSHI;
+    tx.vout[0].nValue = fiveBillion * SATOSHI;
     const TxId hashFreeGrandchild = tx.GetId();
     m_node.mempool->addUnchecked(
         entry.Fee(Amount::zero()).SpendsCoinbase(false).FromTx(tx));
