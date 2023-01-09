@@ -5,15 +5,16 @@ Table of Contents
 -----------------
 
 * [General](#general)
-   * [Cache compilations with `ccache`](#cache-compilations-with-ccache)
-   * [Disable features with `cmake`](#disable-features-with-configure)
-  * [Multiple working directories with `git worktrees`](#multiple-working-directories-with-git-worktrees)
+    * [Cache compilations with `ccache`](#cache-compilations-with-ccache)
+    * [Disable features with `cmake`](#disable-features-with-configure)
+    * [Multiple working directories with `git worktrees`](#multiple-working-directories-with-git-worktrees)
+    * [Bash completion for locally built binaries](#bash-completion-for-locally-built-binaries)
 * [Rebasing/Merging code](#rebasingmerging-code)
-   * [More conflict context with `merge.conflictstyle diff3`](#more-conflict-context-with-mergeconflictstyle-diff3)
+    * [More conflict context with `merge.conflictstyle diff3`](#more-conflict-context-with-mergeconflictstyle-diff3)
 * [Reviewing code](#reviewing-code)
-   * [Reduce mental load with `git diff` options](#reduce-mental-load-with-git-diff-options)
-   * [Reference PRs easily with `refspec`s](#reference-prs-easily-with-refspecs)
-   * [Diff the diffs with `git range-diff`](#diff-the-diffs-with-git-range-diff)
+    * [Reduce mental load with `git diff` options](#reduce-mental-load-with-git-diff-options)
+    * [Reference PRs easily with `refspec`s](#reference-prs-easily-with-refspecs)
+    * [Diff the diffs with `git range-diff`](#diff-the-diffs-with-git-range-diff)
 
 General
 ------
@@ -60,6 +61,21 @@ git worktree add --checkout ../where-my-checkout-commit-ish-will-live my-checkou
 This synergizes well with [`ccache`](#cache-compilations-with-ccache) as objects resulting from unchanged code will most likely hit the cache and won't need to be recompiled.
 
 You can also set up [upstream refspecs](#reference-prs-easily-with-refspecs) to refer to pull requests easier in the above `git worktree` commands.
+
+### Bash completion for locally built binaries
+
+Bash completion does not work out of the box for locally built binaries, but
+you can make it work for your environment for any binary that has a
+`.bash-completion` file in `/contrib`. In this example, binaries are built
+out-of-tree and we setup bash completion for bitcoin-cli and bitcoind. The
+completion function names can be determined by inspecting the
+`.bash-completion` file for each binary.
+```
+source ./contrib/bitcoind.bash-completion
+complete -F _bitcoind ./bitcoind
+source ./contrib/bitcoin-cli.bash-completion
+complete -F _bitcoin_cli ./bitcoin-cli
+```
 
 Rebasing/Merging code
 -------------
