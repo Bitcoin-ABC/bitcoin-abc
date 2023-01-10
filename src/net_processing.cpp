@@ -750,7 +750,7 @@ private:
      * We use this to avoid requesting transactions that have already been
      * confirmed.
      */
-    Mutex m_recent_confirmed_transactions_mutex;
+    mutable Mutex m_recent_confirmed_transactions_mutex;
     std::unique_ptr<CRollingBloomFilter> m_recent_confirmed_transactions
         GUARDED_BY(m_recent_confirmed_transactions_mutex);
 
@@ -958,6 +958,15 @@ private:
      * @return                      Our current vote for the block
      */
     uint32_t GetAvalancheVoteForBlock(const BlockHash &hash) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    /**
+     * Decide a response for an Avalanche poll about the given transaction.
+     *
+     * @param[in] id       The id of the transaction being polled for
+     * @return             Our current vote for the transaction
+     */
+    uint32_t GetAvalancheVoteForTx(const TxId &id) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     /**
@@ -3431,17 +3440,26 @@ PeerManagerImpl::GetAvalancheVoteForBlock(const BlockHash &hash) const {
     return -3;
 };
 
-/**
- * Decide a response for an Avalanche poll about the given transaction.
- *
- * FIXME This function should be expanded to return different vote responses
- * based on inspection of mempool.
- *
- * @param[in] mempool  The mempool to base our votes on
- * @param[in] id       The id of the transaction being polled for
- * @return             Our current vote for the proof
- */
-static uint32_t getAvalancheVoteForTx(CTxMemPool &mempool, const TxId &id) {
+uint32_t PeerManagerImpl::GetAvalancheVoteForTx(const TxId &id) const {
+    // Accepted in mempool, or in a recent block
+    if (m_mempool.exists(id) ||
+        WITH_LOCK(m_recent_confirmed_transactions_mutex,
+                  return m_recent_confirmed_transactions->contains(id))) {
+        return 0;
+    }
+
+    // Invalid tx
+    assert(recentRejects);
+    if (recentRejects->contains(id)) {
+        return 1;
+    }
+
+    // Orphan tx
+    if (m_orphanage.HaveTx(id)) {
+        return 2;
+    }
+
+    // Unknown tx
     return -1;
 };
 
@@ -5090,7 +5108,10 @@ void PeerManagerImpl::ProcessMessage(
             // If inv's type is known, get a vote for its hash
             switch (inv.type) {
                 case MSG_TX: {
-                    vote = getAvalancheVoteForTx(m_mempool, TxId(inv.hash));
+                    if (gArgs.GetBoolArg("-avalanchepreconsensus", false)) {
+                        vote = WITH_LOCK(cs_main, return GetAvalancheVoteForTx(
+                                                      TxId(inv.hash)));
+                    }
                 } break;
                 case MSG_BLOCK: {
                     vote = WITH_LOCK(cs_main, return GetAvalancheVoteForBlock(

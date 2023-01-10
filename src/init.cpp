@@ -1407,6 +1407,8 @@ void SetupServerArgs(NodeContext &node) {
             DEFAULT_MAX_AVALANCHE_OUTBOUND_CONNECTIONS),
         ArgsManager::ALLOW_INT, OptionsCategory::AVALANCHE);
 
+    hidden_args.emplace_back("-avalanchepreconsensus");
+
     // Add the hidden options
     argsman.AddHiddenArgs(hidden_args);
 }

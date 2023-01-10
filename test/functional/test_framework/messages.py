@@ -1020,6 +1020,13 @@ class AvalancheProofVoteResponse(IntEnum):
     UNKNOWN = -1
 
 
+class AvalancheTxVoteError(IntEnum):
+    ACCEPTED = 0
+    INVALID = 1
+    ORPHAN = 2
+    UNKNOWN = -1
+
+
 class AvalancheVote:
     __slots__ = ("error", "hash")
 
