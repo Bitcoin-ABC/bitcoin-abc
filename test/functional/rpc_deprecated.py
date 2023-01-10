@@ -21,7 +21,6 @@ class DeprecatedRpcTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
         self.extra_args = [[
-            "-avalanche=1",
             '-avaproofstakeutxodustthreshold=1000000',
             '-avaproofstakeutxoconfirmations=1',
             '-avacooldown=0',
@@ -30,7 +29,6 @@ class DeprecatedRpcTest(BitcoinTestFramework):
             '-avaminquorumconnectedstakeratio=0',
         ],
             [
-            "-avalanche=1",
             '-avaproofstakeutxodustthreshold=1000000',
             '-avaproofstakeutxoconfirmations=1',
             '-avacooldown=0',

@@ -31,7 +31,6 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
         self.num_nodes = 1
         self.extra_args = [
             [
-                '-avalanche=1',
                 '-avaproofstakeutxodustthreshold=1000000',
                 '-avaproofstakeutxoconfirmations=1',
                 '-avacooldown=0',

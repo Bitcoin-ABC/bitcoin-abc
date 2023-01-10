@@ -65,7 +65,6 @@ class P2PEvict(BitcoinTestFramework):
         # sent us transactions, 8 via lowest ping time, 128 with the best
         # avalanche availability score
         self.extra_args = [["-maxconnections=188",
-                            "-avalanche=1",
                             "-avaproofstakeutxodustthreshold=1000000",
                             "-avaproofstakeutxoconfirmations=1",
                             "-maxavalancheoutbound=16"]]

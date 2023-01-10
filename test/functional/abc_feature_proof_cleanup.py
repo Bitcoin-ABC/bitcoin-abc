@@ -33,7 +33,6 @@ class ProofsCleanupTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.extra_args = [[
-            '-avalanche=1',
             '-avaproofstakeutxodustthreshold=1000000',
             '-avaproofstakeutxoconfirmations=1',
             # Get rid of the getdata delay penalty for inbounds

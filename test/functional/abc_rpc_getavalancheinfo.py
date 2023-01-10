@@ -32,7 +32,6 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         self.num_nodes = 1
         self.conflicting_proof_cooldown = 100
         self.extra_args = [[
-            '-avalanche=1',
             f'-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}',
             '-avacooldown=0',
             '-avaminquorumstake=250000000',

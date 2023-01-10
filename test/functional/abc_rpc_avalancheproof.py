@@ -57,12 +57,11 @@ class AvalancheProofTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 2
-        self.extra_args = [['-avalanche=1',
-                            '-avaproofstakeutxodustthreshold={}'.format(
-                                PROOF_DUST_THRESHOLD),
-                            '-avaproofstakeutxoconfirmations=1',
-                            '-avalancheconflictingproofcooldown=0',
-                            '-avacooldown=0']] * self.num_nodes
+        self.extra_args = [['-avaproofstakeutxodustthreshold={}'.format(
+            PROOF_DUST_THRESHOLD),
+            '-avaproofstakeutxoconfirmations=1',
+            '-avalancheconflictingproofcooldown=0',
+            '-avacooldown=0']] * self.num_nodes
         self.supports_cli = False
         self.rpc_timeout = 120
 

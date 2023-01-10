@@ -34,7 +34,6 @@ class P2PAddConnections(BitcoinTestFramework):
         self.num_nodes = 2
         self.extra_args = [
             [
-                "-avalanche=1",
                 "-avaproofstakeutxoconfirmations=1",
                 f"-maxavalancheoutbound={MAX_AVALANCHE_OUTBOUND_CONNECTIONS}"
             ],
