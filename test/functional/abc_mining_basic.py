@@ -21,7 +21,7 @@ MINER_FUND_LEGACY_ADDR = '2NCXTUCFd1Q3EteVpVVDTrBBoKqvMPAoeEn'
 
 class AbcMiningRPCTest(BitcoinTestFramework):
     def set_test_params(self):
-        self.num_nodes = 4
+        self.num_nodes = 2
         self.extra_args = [
             [
                 '-enableminerfund',
@@ -29,7 +29,7 @@ class AbcMiningRPCTest(BitcoinTestFramework):
                 '-enableminerfund',
                 '-usecashaddr=0',
             ],
-        ] * 2
+        ]
 
     def setup_network(self):
         self.setup_nodes()
