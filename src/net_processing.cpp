@@ -957,7 +957,7 @@ private:
      * @param[in]   hash            The hash of the block being polled for
      * @return                      Our current vote for the block
      */
-    uint32_t GetAvalancheVoteForBlock(const BlockHash &hash)
+    uint32_t GetAvalancheVoteForBlock(const BlockHash &hash) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     /**
@@ -3387,7 +3387,8 @@ bool IsAvalancheMessageType(const std::string &msg_type) {
            msg_type == NetMsgType::AVAPROOFSREQ;
 }
 
-uint32_t PeerManagerImpl::GetAvalancheVoteForBlock(const BlockHash &hash) {
+uint32_t
+PeerManagerImpl::GetAvalancheVoteForBlock(const BlockHash &hash) const {
     AssertLockHeld(cs_main);
 
     const CBlockIndex *pindex = m_chainman.m_blockman.LookupBlockIndex(hash);
