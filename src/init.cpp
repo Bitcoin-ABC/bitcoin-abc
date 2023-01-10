@@ -427,8 +427,6 @@ void SetupServerArgs(NodeContext &node) {
 
     // Hidden Options
     std::vector<std::string> hidden_args = {
-        // Don't apply addrman network group limit for outbound connections
-        "-bypassnetgrouplimit",
         "-dbcrashratio",
         "-forcecompactdb",
         "-maxaddrtosend",
