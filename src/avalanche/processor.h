@@ -70,7 +70,7 @@ template <typename VoteItem> class VoteItemUpdate {
     VoteStatus status;
 
 public:
-    VoteItemUpdate(const VoteItem itemIn, VoteStatus statusIn)
+    VoteItemUpdate(VoteItem itemIn, VoteStatus statusIn)
         : item(std::move(itemIn)), status(statusIn) {}
 
     const VoteStatus &getStatus() const { return status; }

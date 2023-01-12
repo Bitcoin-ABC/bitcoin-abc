@@ -601,7 +601,7 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
             auto &vr = it->second;
             if (!vr.registerVote(nodeid, v.GetError())) {
                 if (vr.isStale(staleVoteThreshold, staleVoteFactor)) {
-                    updates.emplace_back(item, VoteStatus::Stale);
+                    updates.emplace_back(std::move(item), VoteStatus::Stale);
 
                     // Just drop stale votes. If we see this item again, we'll
                     // do a new vote.
@@ -614,16 +614,17 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
             if (!vr.hasFinalized()) {
                 // This item has not been finalized, so we have nothing more to
                 // do.
-                updates.emplace_back(item, vr.isAccepted()
-                                               ? VoteStatus::Accepted
-                                               : VoteStatus::Rejected);
+                updates.emplace_back(std::move(item),
+                                     vr.isAccepted() ? VoteStatus::Accepted
+                                                     : VoteStatus::Rejected);
                 continue;
             }
 
             // We just finalized a vote. If it is valid, then let the caller
             // know. Either way, remove the item from the map.
-            updates.emplace_back(item, vr.isAccepted() ? VoteStatus::Finalized
-                                                       : VoteStatus::Invalid);
+            updates.emplace_back(std::move(item), vr.isAccepted()
+                                                      ? VoteStatus::Finalized
+                                                      : VoteStatus::Invalid);
             voteRecordsWriteView->erase(it);
         }
     };
