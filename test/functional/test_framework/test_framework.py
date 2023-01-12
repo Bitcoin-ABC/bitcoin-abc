@@ -702,6 +702,22 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             )
             == to_num_peers
         )
+        # The message bytes are counted before processing the message, so make
+        # sure it was fully processed by waiting for a ping.
+        self.wait_until(
+            lambda: sum(
+                peer["bytesrecv_per_msg"].pop("pong", 0) >= 32
+                for peer in from_connection.getpeerinfo()
+            )
+            == from_num_peers
+        )
+        self.wait_until(
+            lambda: sum(
+                peer["bytesrecv_per_msg"].pop("pong", 0) >= 32
+                for peer in to_connection.getpeerinfo()
+            )
+            == to_num_peers
+        )
 
     def disconnect_nodes(self, a, b):
         from_node = self.nodes[a]
