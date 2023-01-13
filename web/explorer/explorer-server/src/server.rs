@@ -202,7 +202,8 @@ impl Server {
         let best_height = blockchain_info.tip_height;
 
         let difficulty = calculate_block_difficulty(block_info.n_bits);
-        let timestamp = Utc.timestamp(block_info.timestamp, 0);
+        let timestamp =
+            Utc.timestamp_nanos(block_info.timestamp * 1_000_000_000);
         let coinbase_data = block.txs[0].inputs[0].input_script.clone();
         let confirmations = best_height - block_info.height + 1;
 
@@ -311,9 +312,10 @@ impl Server {
             None => 0,
         };
         let timestamp = match &tx.block {
-            Some(block_meta) => Utc.timestamp(block_meta.timestamp, 0),
-            None => Utc.timestamp(tx.time_first_seen, 0),
+            Some(block_meta) => block_meta.timestamp,
+            None => tx.time_first_seen,
         };
+        let timestamp = Utc.timestamp_nanos(timestamp * 1_000_000_000);
 
         let raw_tx = self.chronik.raw_tx(&tx_hash).await?;
         let raw_tx = raw_tx.hex();
