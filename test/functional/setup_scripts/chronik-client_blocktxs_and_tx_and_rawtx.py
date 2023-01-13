@@ -25,7 +25,6 @@ class ChronikClient_Block_Setup(SetupFramework):
         # Init
         node = self.nodes[0]
         wallet = MiniWallet(node)
-        wallet.rescan_utxos()
 
         yield True
 

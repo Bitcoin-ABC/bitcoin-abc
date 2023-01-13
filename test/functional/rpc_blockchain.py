@@ -516,7 +516,6 @@ class BlockchainTest(BitcoinTestFramework):
         node = self.nodes[0]
 
         miniwallet = MiniWallet(node)
-        miniwallet.rescan_utxos()
 
         fee_per_byte = Decimal("0.1")
         fee_per_kb = 1000 * fee_per_byte
