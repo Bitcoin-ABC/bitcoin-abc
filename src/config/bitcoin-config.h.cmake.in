@@ -63,18 +63,10 @@
 #cmakedefine USE_QRCODE 1
 
 /* UPnP support not compiled if undefined */
-#cmakedefine ENABLE_UPNP
-#ifdef ENABLE_UPNP
-/* Value (0 or 1) determines the UPnP default state at startup. */
-#cmakedefine01 USE_UPNP
-#endif
+#cmakedefine USE_UPNP
 
 /* NAT-PMP support not compiled if undefined */
-#cmakedefine ENABLE_NATPMP
-#ifdef ENABLE_NATPMP
-/* Value (0 or 1) determines the NATPMP default state at startup. */
-#cmakedefine01 USE_NATPMP
-#endif
+#cmakedefine USE_NATPMP
 
 /* Define if QtDBus support should be enabled */
 #cmakedefine USE_DBUS 1

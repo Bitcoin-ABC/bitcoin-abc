@@ -190,7 +190,6 @@ https://miniupnp.tuxfamily.org/files/).  UPnP support is compiled in and
 turned off by default.  See the cmake options for UPnP behavior desired:
 
     ENABLE_UPNP            Enable UPnP support (miniupnp required, default ON)
-    START_WITH_UPNP        UPnP support turned on by default at runtime (default OFF)
 
 libnatpmp
 ---------
@@ -200,7 +199,6 @@ from [here](https://miniupnp.tuxfamily.org/files/). NAT-PMP support is compiled 
 turned off by default. See the configure options for NAT-PMP behavior desired:
 
     ENABLE_NATPMP          NAT-PMP support (libnatpmp required, default ON)
-    START_WITH_NATPMP      NAT-PMP support turned on by default at runtime (default OFF)
 
 Boost
 -----

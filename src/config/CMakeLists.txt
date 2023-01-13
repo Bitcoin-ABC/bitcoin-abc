@@ -206,22 +206,12 @@ endif()
 
 # Try to find miniupnpc
 if(ENABLE_UPNP)
-	# The expected behavior is as follow:
-	#  - If UPnP is enabled USE_UPNP must be defined
-	#  - If UPnP should be the default port map method, USE_UPNP should be
-	#    defined to 1, otherwise it should be defined to 0.
-	set(USE_UPNP ${START_WITH_UPNP} CACHE INTERNAL "UPnP is enabled")
+	set(USE_UPNP 1 CACHE INTERNAL "UPnP is supported")
 endif()
 
 # Try to find natpmp
 if(ENABLE_NATPMP)
-	# The expected behavior is as follow:
-	#  - If NAT-PMP is enabled USE_NATPMP must be defined
-	#  - If NAT-PMP should be a port map method, USE_NATPMP should be
-	#    defined to 1, otherwise it should be defined to 0.
-	#  - If both USE_UPNP and USE_NATPMP are defined to 1, UPnP is used first.
-	#    If it fails, NAT-PMP is then used.
-	set(USE_NATPMP ${START_WITH_NATPMP} CACHE INTERNAL "NAT-PMP is enabled")
+	set(USE_NATPMP 1 CACHE INTERNAL "NAT-PMP is supported")
 endif()
 
 if(ENABLE_DBUS_NOTIFICATIONS)
