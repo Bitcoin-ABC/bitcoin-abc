@@ -90,10 +90,6 @@ class FeeFilterTest(BitcoinTestFramework):
         node1 = self.nodes[1]
         node0 = self.nodes[0]
         miniwallet = MiniWallet(node1)
-        # Add enough mature utxos to the wallet, so that all txs spend
-        # confirmed coins
-        self.generate(miniwallet, 5)
-        self.generate(node1, 100)
 
         conn = self.nodes[0].add_p2p_connection(TestP2PConn())
 
