@@ -27,6 +27,7 @@
 #include <chrono>
 #include <cstdint>
 #include <memory>
+#include <variant>
 #include <vector>
 
 class ArgsManager;
@@ -81,6 +82,48 @@ public:
 
 using BlockUpdate = VoteItemUpdate<CBlockIndex *>;
 using ProofUpdate = VoteItemUpdate<ProofRef>;
+
+using AnyVoteItem = std::variant<const ProofRef, const CBlockIndex *>;
+
+template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+// explicit deduction guide (not needed as of C++20)
+template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
+struct VoteMapComparator {
+    bool operator()(const AnyVoteItem &lhs, const AnyVoteItem &rhs) const {
+        // If the variants are of different types, sort them by variant index
+        if (lhs.index() != rhs.index()) {
+            return lhs.index() < rhs.index();
+        }
+
+        return std::visit(
+            overloaded{
+                [](const ProofRef &lhs, const ProofRef &rhs) {
+                    return ProofComparatorByScore()(lhs, rhs);
+                },
+                [](const CBlockIndex *lhs, const CBlockIndex *rhs) {
+                    // Reverse ordering so we get the highest work first
+                    return CBlockIndexWorkComparator()(rhs, lhs);
+                },
+                [](const auto &lhs, const auto &rhs) {
+                    // This serves 2 purposes:
+                    //  - This makes sure that we don't forget to implement a
+                    //    comparison case when adding a new variant type.
+                    //  - This avoids having to write all the cross type cases
+                    //    which are already handled by the index sort above.
+                    //    Because the compiler has no way to determine that, we
+                    //    cannot use static assertions here without having to
+                    //    define the whole type matrix also.
+                    assert(false);
+                    // Return any bool, it's only there to make the compiler
+                    // happy.
+                    return false;
+                },
+            },
+            lhs, rhs);
+    }
+};
+using VoteMap = std::map<AnyVoteItem, VoteRecord, VoteMapComparator>;
 
 using BlockVoteMap =
     std::map<const CBlockIndex *, VoteRecord, CBlockIndexWorkComparator>;

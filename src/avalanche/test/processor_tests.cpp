@@ -4,6 +4,7 @@
 
 #include <avalanche/processor.h>
 
+#include <arith_uint256.h>
 #include <avalanche/delegationbuilder.h>
 #include <avalanche/peermanager.h>
 #include <avalanche/proofbuilder.h>
@@ -1786,6 +1787,96 @@ BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
     invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 1);
     BOOST_CHECK_EQUAL(invs[0].hash, alttip->GetBlockHash());
+}
+
+BOOST_AUTO_TEST_CASE(vote_map_comparator) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    CChainState &activeChainState = chainman.ActiveChainstate();
+
+    const int numberElementsEachType = 100;
+    FastRandomContext rng;
+
+    std::vector<ProofRef> proofs;
+    for (size_t i = 1; i <= numberElementsEachType; i++) {
+        auto proof =
+            buildRandomProof(activeChainState, i * MIN_VALID_PROOF_SCORE);
+        BOOST_CHECK(proof != nullptr);
+        proofs.emplace_back(std::move(proof));
+    }
+    Shuffle(proofs.begin(), proofs.end(), rng);
+
+    std::vector<CBlockIndex> indexes;
+    for (size_t i = 1; i <= numberElementsEachType; i++) {
+        CBlockIndex index;
+        index.nChainWork = i;
+        indexes.emplace_back(std::move(index));
+    }
+    Shuffle(indexes.begin(), indexes.end(), rng);
+
+    auto allItems = std::make_tuple(std::move(proofs), std::move(indexes));
+    static const size_t numTypes = std::tuple_size<decltype(allItems)>::value;
+
+    RWCollection<VoteMap> voteMap;
+
+    {
+        auto writeView = voteMap.getWriteView();
+        for (size_t i = 0; i < numberElementsEachType; i++) {
+            // Randomize the insert order at each loop increment
+            const size_t firstType = rng.randrange(numTypes);
+
+            for (size_t j = 0; j < numTypes; j++) {
+                switch ((firstType + j) % numTypes) {
+                    // ProofRef
+                    case 0:
+                        writeView->insert(std::make_pair(
+                            std::get<0>(allItems)[i], VoteRecord(true)));
+                        break;
+                    // CBlockIndex *
+                    case 1:
+                        writeView->insert(std::make_pair(
+                            &std::get<1>(allItems)[i], VoteRecord(true)));
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+
+    {
+        // Check ordering
+        auto readView = voteMap.getReadView();
+        auto it = readView.begin();
+
+        // The first batch of items is the proofs ordered by score (descending)
+        uint32_t lastScore = std::numeric_limits<uint32_t>::max();
+        for (size_t i = 0; i < numberElementsEachType; i++) {
+            BOOST_CHECK(std::holds_alternative<const ProofRef>(it->first));
+
+            uint32_t currentScore =
+                std::get<const ProofRef>(it->first)->getScore();
+            BOOST_CHECK_LT(currentScore, lastScore);
+            lastScore = currentScore;
+
+            it++;
+        }
+
+        // The next batch of items is the block indexes ordered by work
+        // (descending)
+        arith_uint256 lastWork = -1;
+        for (size_t i = 0; i < numberElementsEachType; i++) {
+            BOOST_CHECK(std::holds_alternative<const CBlockIndex *>(it->first));
+
+            arith_uint256 currentWork =
+                std::get<const CBlockIndex *>(it->first)->nChainWork;
+            BOOST_CHECK(currentWork < lastWork);
+            lastWork = currentWork;
+
+            it++;
+        }
+
+        BOOST_CHECK(it == readView.end());
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
