@@ -2499,8 +2499,7 @@ static RPCHelpMan getwalletinfo() {
                 {RPCResult::Type::NUM, "keypoolsize_hd_internal",
                  "how many new keys are pre-generated for internal use (used "
                  "for change outputs, only appears if the wallet is using "
-                 "this "
-                 "feature, otherwise external keys are used)"},
+                 "this feature, otherwise external keys are used)"},
                 {RPCResult::Type::NUM_TIME, "unlocked_until",
                  /* optional */ true,
                  "the " + UNIX_EPOCH_TIME +
