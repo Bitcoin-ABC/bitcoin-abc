@@ -46,7 +46,6 @@ class multidict(dict):
 # Create one-input, one-output, no-fee transaction:
 class RawTransactionsTest(BitcoinTestFramework):
     def set_test_params(self):
-        self.setup_clean_chain = True
         self.num_nodes = 3
         self.extra_args = [["-txindex"], ["-txindex"], ["-txindex"]]
         # whitelist all peers to speed up tx relay / mempool sync
@@ -63,15 +62,6 @@ class RawTransactionsTest(BitcoinTestFramework):
         self.connect_nodes(0, 2)
 
     def run_test(self):
-        self.log.info("prepare some coins for multiple *rawtransaction commands")
-        self.generate(self.nodes[2], 1)
-        self.generate(self.nodes[0], 101)
-        self.nodes[0].sendtoaddress(self.nodes[2].getnewaddress(), 1500000)
-        self.nodes[0].sendtoaddress(self.nodes[2].getnewaddress(), 1000000)
-        self.nodes[0].sendtoaddress(self.nodes[2].getnewaddress(), 5000000)
-        self.sync_all()
-        self.generate(self.nodes[0], 5)
-
         self.log.info(
             "Test getrawtransaction on genesis block coinbase returns an error"
         )

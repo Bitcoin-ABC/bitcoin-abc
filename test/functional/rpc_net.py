@@ -43,7 +43,6 @@ def assert_net_servicesnames(servicesflag, servicenames):
 
 class NetTest(BitcoinTestFramework):
     def set_test_params(self):
-        self.setup_clean_chain = True
         self.num_nodes = 2
         self.extra_args = [
             [
@@ -60,8 +59,6 @@ class NetTest(BitcoinTestFramework):
         self.supports_cli = False
 
     def run_test(self):
-        # Get out of IBD for the minfeefilter and getpeerinfo tests.
-        self.generate(self.nodes[0], 101)
         # Connect nodes both ways.
         self.connect_nodes(0, 1)
         self.connect_nodes(1, 0)
