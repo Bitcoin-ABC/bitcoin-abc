@@ -7238,7 +7238,7 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &peer,
         return false;
     }
 
-    if (!g_avalanche->addProofToReconcile(proof)) {
+    if (!g_avalanche->addToReconcile(proof)) {
         LogPrint(BCLog::AVALANCHE,
                  "Not polling the avalanche proof (%s): peer=%d, proofid %s\n",
                  state.IsValid() ? "not-worth-polling"

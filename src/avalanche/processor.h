@@ -125,11 +125,6 @@ struct VoteMapComparator {
 };
 using VoteMap = std::map<AnyVoteItem, VoteRecord, VoteMapComparator>;
 
-using BlockVoteMap =
-    std::map<const CBlockIndex *, VoteRecord, CBlockIndexWorkComparator>;
-using ProofVoteMap =
-    std::map<const ProofRef, VoteRecord, ProofComparatorByScore>;
-
 struct query_timeout {};
 
 namespace {
@@ -144,14 +139,9 @@ class Processor final : public NetEventsInterface {
     ChainstateManager &chainman;
 
     /**
-     * Blocks to run avalanche on.
+     * Items to run avalanche on.
      */
-    RWCollection<BlockVoteMap> blockVoteRecords;
-
-    /**
-     * Proofs to run avalanche on.
-     */
-    RWCollection<ProofVoteMap> proofVoteRecords;
+    RWCollection<VoteMap> voteRecords;
 
     /**
      * Keep track of peers and queries sent.
@@ -219,7 +209,7 @@ class Processor final : public NetEventsInterface {
     class NotificationsHandler;
     std::unique_ptr<interfaces::Handler> chainNotificationsHandler;
 
-    Mutex cs_finalizationTip;
+    mutable Mutex cs_finalizationTip;
     CBlockIndex *finalizationTip GUARDED_BY(cs_finalizationTip){nullptr};
 
     Processor(Config avaconfig, interfaces::Chain &chain, CConnman *connmanIn,
@@ -238,12 +228,9 @@ public:
                   CConnman *connman, ChainstateManager &chainman,
                   CScheduler &scheduler, bilingual_str &error);
 
-    bool addBlockToReconcile(const CBlockIndex *pindex);
-    bool addProofToReconcile(const ProofRef &proof);
-    bool isAccepted(const CBlockIndex *pindex) const;
-    bool isAccepted(const ProofRef &proof) const;
-    int getConfidence(const CBlockIndex *pindex) const;
-    int getConfidence(const ProofRef &proof) const;
+    bool addToReconcile(const AnyVoteItem &item);
+    bool isAccepted(const AnyVoteItem &item) const;
+    int getConfidence(const AnyVoteItem &item) const;
 
     // TODO: Refactor the API to remove the dependency on avalanche/protocol.h
     void sendResponse(CNode *pfrom, Response response) const;
@@ -296,10 +283,34 @@ private:
     void clearTimedoutRequests();
     std::vector<CInv> getInvsForNextPoll(bool forPoll = true);
 
-    bool isWorthPolling(const CBlockIndex *pindex)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-    bool isWorthPolling(const ProofRef &proof) const
-        EXCLUSIVE_LOCKS_REQUIRED(cs_peerManager);
+    struct IsWorthPolling {
+        const Processor &processor;
+
+        IsWorthPolling(const Processor &_processor) : processor(_processor){};
+
+        bool operator()(const CBlockIndex *pindex) const
+            LOCKS_EXCLUDED(cs_main);
+        bool operator()(const ProofRef &proof) const
+            LOCKS_EXCLUDED(cs_peerManager);
+    };
+    bool isWorthPolling(const AnyVoteItem &item) const {
+        return std::visit(IsWorthPolling(*this), item);
+    }
+
+    struct GetLocalAcceptance {
+        const Processor &processor;
+
+        GetLocalAcceptance(const Processor &_processor)
+            : processor(_processor){};
+
+        bool operator()(const CBlockIndex *pindex) const
+            LOCKS_EXCLUDED(cs_main);
+        bool operator()(const ProofRef &proof) const
+            LOCKS_EXCLUDED(cs_peerManager);
+    };
+    bool getLocalAcceptance(const AnyVoteItem &item) const {
+        return std::visit(GetLocalAcceptance(*this), item);
+    }
 
     friend struct ::avalanche::AvalancheTest;
 };

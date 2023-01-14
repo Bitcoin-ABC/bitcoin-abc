@@ -135,7 +135,7 @@ public:
 
         auto registeredProofs = registerProofs();
         for (const auto &proof : registeredProofs) {
-            m_processor->addProofToReconcile(proof);
+            m_processor->addToReconcile(proof);
         }
     }
 };
@@ -359,57 +359,36 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
         stakeUtxoDustThreshold));
 }
 
-bool Processor::addBlockToReconcile(const CBlockIndex *pindex) {
-    if (!pindex) {
-        // isWorthPolling expects this to be non-null, so bail early.
+static bool isNull(const AnyVoteItem &item) {
+    return item.valueless_by_exception() ||
+           std::visit([](const auto &item) { return item == nullptr; }, item);
+};
+
+bool Processor::addToReconcile(const AnyVoteItem &item) {
+    if (isNull(item)) {
         return false;
     }
 
-    bool isAccepted;
-    {
-        LOCK(cs_main);
-        if (!isWorthPolling(pindex)) {
-            // There is no point polling this block.
-            return false;
-        }
-
-        isAccepted = chainman.ActiveChain().Contains(pindex);
+    if (!isWorthPolling(item)) {
+        return false;
     }
 
-    return blockVoteRecords.getWriteView()
-        ->insert(std::make_pair(pindex, VoteRecord(isAccepted)))
+    // getLocalAcceptance() takes the voteRecords read lock, so we can't inline
+    // the calls or we get a deadlock.
+    const bool accepted = getLocalAcceptance(item);
+
+    return voteRecords.getWriteView()
+        ->insert(std::make_pair(item, VoteRecord(accepted)))
         .second;
 }
 
-bool Processor::addProofToReconcile(const ProofRef &proof) {
-    if (!proof) {
-        // isWorthPolling expects this to be non-null, so bail early.
+bool Processor::isAccepted(const AnyVoteItem &item) const {
+    if (isNull(item)) {
         return false;
     }
 
-    bool isAccepted;
-    {
-        LOCK(cs_peerManager);
-        if (!isWorthPolling(proof)) {
-            return false;
-        }
-
-        isAccepted = peerManager->isBoundToPeer(proof->getId());
-    }
-
-    return proofVoteRecords.getWriteView()
-        ->insert(std::make_pair(proof, VoteRecord(isAccepted)))
-        .second;
-}
-
-bool Processor::isAccepted(const CBlockIndex *pindex) const {
-    if (!pindex) {
-        // CBlockIndexWorkComparator expects this to be non-null, so bail early.
-        return false;
-    }
-
-    auto r = blockVoteRecords.getReadView();
-    auto it = r->find(pindex);
+    auto r = voteRecords.getReadView();
+    auto it = r->find(item);
     if (it == r.end()) {
         return false;
     }
@@ -417,34 +396,13 @@ bool Processor::isAccepted(const CBlockIndex *pindex) const {
     return it->second.isAccepted();
 }
 
-bool Processor::isAccepted(const ProofRef &proof) const {
-    auto r = proofVoteRecords.getReadView();
-    auto it = r->find(proof);
-    if (it == r.end()) {
-        return false;
-    }
-
-    return it->second.isAccepted();
-}
-
-int Processor::getConfidence(const CBlockIndex *pindex) const {
-    if (!pindex) {
-        // CBlockIndexWorkComparator expects this to be non-null, so bail early.
+int Processor::getConfidence(const AnyVoteItem &item) const {
+    if (isNull(item)) {
         return -1;
     }
 
-    auto r = blockVoteRecords.getReadView();
-    auto it = r->find(pindex);
-    if (it == r.end()) {
-        return -1;
-    }
-
-    return it->second.getConfidence();
-}
-
-int Processor::getConfidence(const ProofRef &proof) const {
-    auto r = proofVoteRecords.getReadView();
-    auto it = r->find(proof);
+    auto r = voteRecords.getReadView();
+    auto it = r->find(item);
     if (it == r.end()) {
         return -1;
     }
@@ -544,20 +502,18 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
     // the inv type to retrieve what is being voted on.
     for (size_t i = 0; i < size; i++) {
         if (invs[i].IsMsgBlk()) {
-            CBlockIndex *pindex;
-            {
-                LOCK(cs_main);
-                pindex = chainman.m_blockman.LookupBlockIndex(
-                    BlockHash(votes[i].GetHash()));
-                if (!pindex) {
-                    // This should not happen, but just in case...
-                    continue;
-                }
+            CBlockIndex *pindex =
+                WITH_LOCK(cs_main, return chainman.m_blockman.LookupBlockIndex(
+                                       BlockHash(votes[i].GetHash())));
+            if (!pindex) {
+                // This should not happen, but just in case...
+                continue;
+            }
 
-                if (!isWorthPolling(pindex)) {
-                    // There is no point polling this block.
-                    continue;
-                }
+            AnyVoteItem item{pindex};
+            if (!isWorthPolling(item)) {
+                // There is no point polling this block.
+                continue;
             }
 
             responseIndex.insert(std::make_pair(pindex, votes[i]));
@@ -566,17 +522,15 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
         if (invs[i].IsMsgProof()) {
             const ProofId proofid(votes[i].GetHash());
 
-            ProofRef proof;
-            {
-                LOCK(cs_peerManager);
-                proof = peerManager->getProof(proofid);
-                if (!proof) {
-                    continue;
-                }
+            ProofRef proof = WITH_LOCK(cs_peerManager,
+                                       return peerManager->getProof(proofid));
+            if (!proof) {
+                continue;
+            }
 
-                if (!isWorthPolling(proof)) {
-                    continue;
-                }
+            AnyVoteItem item{proof};
+            if (!isWorthPolling(item)) {
+                continue;
             }
 
             responseProof.insert(std::make_pair(proof, votes[i]));
@@ -629,10 +583,8 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
         }
     };
 
-    registerVoteItems(blockVoteRecords.getWriteView(), blockUpdates,
-                      responseIndex);
-    registerVoteItems(proofVoteRecords.getWriteView(), proofUpdates,
-                      responseProof);
+    registerVoteItems(voteRecords.getWriteView(), blockUpdates, responseIndex);
+    registerVoteItems(voteRecords.getWriteView(), proofUpdates, responseProof);
 
     for (const auto &blockUpdate : blockUpdates) {
         if (blockUpdate.getStatus() != VoteStatus::Finalized) {
@@ -889,14 +841,15 @@ void Processor::clearTimedoutRequests() {
         return;
     }
 
-    auto clearInflightRequest = [&](auto &voteRecords, const auto &voteItem,
+    auto clearInflightRequest = [&](auto &_voteRecords, const auto &voteItem,
                                     uint8_t count) {
         if (!voteItem) {
             return false;
         }
 
-        auto voteRecordsWriteView = voteRecords.getWriteView();
-        auto it = voteRecordsWriteView->find(voteItem);
+        auto voteRecordsWriteView = _voteRecords.getWriteView();
+        AnyVoteItem item{voteItem};
+        auto it = voteRecordsWriteView->find(item);
         if (it == voteRecordsWriteView.end()) {
             return false;
         }
@@ -914,7 +867,7 @@ void Processor::clearTimedoutRequests() {
                 WITH_LOCK(cs_main, return chainman.m_blockman.LookupBlockIndex(
                                        BlockHash(inv.hash)));
 
-            if (!clearInflightRequest(blockVoteRecords, pindex, p.second)) {
+            if (!clearInflightRequest(voteRecords, pindex, p.second)) {
                 continue;
             }
         }
@@ -924,7 +877,7 @@ void Processor::clearTimedoutRequests() {
                 WITH_LOCK(cs_peerManager,
                           return peerManager->getProof(ProofId(inv.hash)));
 
-            if (!clearInflightRequest(proofVoteRecords, proof, p.second)) {
+            if (!clearInflightRequest(voteRecords, proof, p.second)) {
                 continue;
             }
         }
@@ -934,81 +887,68 @@ void Processor::clearTimedoutRequests() {
 std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
     std::vector<CInv> invs;
 
-    // Use NO_THREAD_SAFETY_ANALYSIS to avoid false positive due to
-    // isWorthPolling requiring a different lock depending of the prototype.
-    auto removeItemsNotWorthPolling =
-        [&](auto &itemVoteRecords) NO_THREAD_SAFETY_ANALYSIS {
-            auto w = itemVoteRecords.getWriteView();
-            for (auto it = w->begin(); it != w->end();) {
-                if (!isWorthPolling(it->first)) {
-                    it = w->erase(it);
-                } else {
-                    ++it;
-                }
+    {
+        // First remove all items that are not worth polling.
+        auto w = voteRecords.getWriteView();
+        for (auto it = w->begin(); it != w->end();) {
+            if (!isWorthPolling(it->first)) {
+                it = w->erase(it);
+            } else {
+                ++it;
             }
-        };
-
-    auto extractVoteRecordsToInvs = [&](const auto &itemVoteRecordRange,
-                                        auto buildInvFromVoteItem) {
-        for (const auto &[item, voteRecord] : itemVoteRecordRange) {
-            if (invs.size() >= AVALANCHE_MAX_ELEMENT_POLL) {
-                // Make sure we do not produce more invs than specified by the
-                // protocol.
-                return true;
-            }
-
-            const bool shouldPoll =
-                forPoll ? voteRecord.registerPoll() : voteRecord.shouldPoll();
-
-            if (!shouldPoll) {
-                continue;
-            }
-
-            invs.emplace_back(buildInvFromVoteItem(item));
         }
-
-        return invs.size() >= AVALANCHE_MAX_ELEMENT_POLL;
-    };
-
-    // First remove all proofs that are not worth polling.
-    WITH_LOCK(cs_peerManager, removeItemsNotWorthPolling(proofVoteRecords));
-
-    if (extractVoteRecordsToInvs(proofVoteRecords.getReadView(),
-                                 [](const ProofRef &proof) {
-                                     return CInv(MSG_AVA_PROOF, proof->getId());
-                                 })) {
-        // The inventory vector is full, we're done
-        return invs;
     }
 
-    // First remove all blocks that are not worth polling.
-    WITH_LOCK(cs_main, removeItemsNotWorthPolling(blockVoteRecords));
+    auto buildInvFromVoteItem = overloaded{
+        [](const ProofRef &proof) {
+            return CInv(MSG_AVA_PROOF, proof->getId());
+        },
+        [](const CBlockIndex *pindex) {
+            return CInv(MSG_BLOCK, pindex->GetBlockHash());
+        },
+    };
 
-    auto r = blockVoteRecords.getReadView();
-    extractVoteRecordsToInvs(reverse_iterate(r), [](const CBlockIndex *pindex) {
-        return CInv(MSG_BLOCK, pindex->GetBlockHash());
-    });
+    auto r = voteRecords.getReadView();
+    for (const auto &[item, voteRecord] : r) {
+        if (invs.size() >= AVALANCHE_MAX_ELEMENT_POLL) {
+            // Make sure we do not produce more invs than specified by the
+            // protocol.
+            return invs;
+        }
+
+        const bool shouldPoll =
+            forPoll ? voteRecord.registerPoll() : voteRecord.shouldPoll();
+
+        if (!shouldPoll) {
+            continue;
+        }
+
+        invs.emplace_back(std::visit(buildInvFromVoteItem, item));
+    }
 
     return invs;
 }
 
-bool Processor::isWorthPolling(const CBlockIndex *pindex) {
-    AssertLockHeld(cs_main);
+bool Processor::IsWorthPolling::operator()(const CBlockIndex *pindex) const {
+    AssertLockNotHeld(cs_main);
 
     if (pindex->nStatus.isInvalid()) {
         // No point polling invalid blocks.
         return false;
     }
 
-    if (WITH_LOCK(cs_finalizationTip,
-                  return finalizationTip && finalizationTip->GetAncestor(
-                                                pindex->nHeight) == pindex)) {
+    LOCK(cs_main);
+
+    if (WITH_LOCK(processor.cs_finalizationTip,
+                  return processor.finalizationTip &&
+                         processor.finalizationTip->GetAncestor(
+                             pindex->nHeight) == pindex)) {
         // There is no point polling blocks that are ancestor of a block that
         // has been accepted by the network.
         return false;
     }
 
-    if (chainman.ActiveChainstate().IsBlockFinalized(pindex)) {
+    if (processor.chainman.ActiveChainstate().IsBlockFinalized(pindex)) {
         // There is no point polling finalized block.
         return false;
     }
@@ -1016,14 +956,32 @@ bool Processor::isWorthPolling(const CBlockIndex *pindex) {
     return true;
 }
 
-bool Processor::isWorthPolling(const ProofRef &proof) const {
-    AssertLockHeld(cs_peerManager);
+bool Processor::IsWorthPolling::operator()(const ProofRef &proof) const {
+    AssertLockNotHeld(processor.cs_peerManager);
 
     const ProofId &proofid = proof->getId();
 
+    LOCK(processor.cs_peerManager);
+
     // No point polling immature or discarded proofs
-    return peerManager->isBoundToPeer(proofid) ||
-           peerManager->isInConflictingPool(proofid);
+    return processor.peerManager->isBoundToPeer(proofid) ||
+           processor.peerManager->isInConflictingPool(proofid);
+}
+
+bool Processor::GetLocalAcceptance::operator()(
+    const CBlockIndex *pindex) const {
+    AssertLockNotHeld(cs_main);
+
+    return WITH_LOCK(cs_main,
+                     return processor.chainman.ActiveChain().Contains(pindex));
+}
+
+bool Processor::GetLocalAcceptance::operator()(const ProofRef &proof) const {
+    AssertLockNotHeld(processor.cs_peerManager);
+
+    return WITH_LOCK(
+        processor.cs_peerManager,
+        return processor.peerManager->isBoundToPeer(proof->getId()));
 }
 
 } // namespace avalanche

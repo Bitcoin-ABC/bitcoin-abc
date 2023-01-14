@@ -3312,7 +3312,7 @@ bool CChainState::ActivateBestChain(const Config &config,
         // pindexNewTip).
 
         for (const CBlockIndex *pindex : blocksToReconcile) {
-            g_avalanche->addBlockToReconcile(pindex);
+            g_avalanche->addToReconcile(pindex);
         }
 
         if (!blocks_connected) {

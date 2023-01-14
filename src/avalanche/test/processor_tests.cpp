@@ -259,7 +259,7 @@ struct BlockProvider {
     }
 
     bool addToReconcile(const CBlockIndex *pindex) {
-        return fixture->m_processor->addBlockToReconcile(pindex);
+        return fixture->m_processor->addToReconcile(pindex);
     }
 
     std::vector<Vote> buildVotesForItems(uint32_t error,
@@ -317,7 +317,7 @@ struct ProofProvider {
     }
 
     bool addToReconcile(const ProofRef &proof) {
-        return fixture->m_processor->addProofToReconcile(proof);
+        return fixture->m_processor->addToReconcile(proof);
     }
 
     std::vector<Vote> buildVotesForItems(uint32_t error,
@@ -980,7 +980,7 @@ BOOST_AUTO_TEST_CASE(quorum_diversity) {
     BOOST_CHECK(!m_processor->isAccepted(pindex));
 
     // Add a new block. Check it is added to the polls.
-    BOOST_CHECK(m_processor->addBlockToReconcile(pindex));
+    BOOST_CHECK(m_processor->addToReconcile(pindex));
 
     // Do one valid round of voting.
     uint64_t round = getRound();
@@ -1059,7 +1059,7 @@ BOOST_AUTO_TEST_CASE(event_loop) {
 
     // Add a new block. Check it is added to the polls.
     uint64_t queryRound = getRound();
-    BOOST_CHECK(m_processor->addBlockToReconcile(pindex));
+    BOOST_CHECK(m_processor->addToReconcile(pindex));
 
     // Wait until all nodes got a poll
     for (int i = 0; i < 60 * 1000; i++) {
@@ -1143,7 +1143,7 @@ BOOST_AUTO_TEST_CASE(add_proof_to_reconcile) {
         m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
             BOOST_CHECK(pm.registerProof(proof));
         });
-        BOOST_CHECK(m_processor->addProofToReconcile(proof));
+        BOOST_CHECK(m_processor->addToReconcile(proof));
         return proof;
     };
 
@@ -1234,9 +1234,9 @@ BOOST_AUTO_TEST_CASE(proof_record) {
     BOOST_CHECK_EQUAL(m_processor->getConfidence(immatureProof), -1);
 
     // Reconciling proofs that don't exist will fail
-    BOOST_CHECK(!m_processor->addProofToReconcile(conflictingProof));
-    BOOST_CHECK(!m_processor->addProofToReconcile(validProof));
-    BOOST_CHECK(!m_processor->addProofToReconcile(immatureProof));
+    BOOST_CHECK(!m_processor->addToReconcile(conflictingProof));
+    BOOST_CHECK(!m_processor->addToReconcile(validProof));
+    BOOST_CHECK(!m_processor->addToReconcile(immatureProof));
 
     m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
         BOOST_CHECK(pm.registerProof(conflictingProof));
@@ -1248,7 +1248,7 @@ BOOST_AUTO_TEST_CASE(proof_record) {
         BOOST_CHECK(pm.isImmature(immatureProof->getId()));
     });
 
-    BOOST_CHECK(m_processor->addProofToReconcile(conflictingProof));
+    BOOST_CHECK(m_processor->addToReconcile(conflictingProof));
     BOOST_CHECK(!m_processor->isAccepted(conflictingProof));
     BOOST_CHECK(!m_processor->isAccepted(validProof));
     BOOST_CHECK(!m_processor->isAccepted(immatureProof));
@@ -1256,7 +1256,7 @@ BOOST_AUTO_TEST_CASE(proof_record) {
     BOOST_CHECK_EQUAL(m_processor->getConfidence(validProof), -1);
     BOOST_CHECK_EQUAL(m_processor->getConfidence(immatureProof), -1);
 
-    BOOST_CHECK(m_processor->addProofToReconcile(validProof));
+    BOOST_CHECK(m_processor->addToReconcile(validProof));
     BOOST_CHECK(!m_processor->isAccepted(conflictingProof));
     BOOST_CHECK(m_processor->isAccepted(validProof));
     BOOST_CHECK(!m_processor->isAccepted(immatureProof));
@@ -1264,7 +1264,7 @@ BOOST_AUTO_TEST_CASE(proof_record) {
     BOOST_CHECK_EQUAL(m_processor->getConfidence(validProof), 0);
     BOOST_CHECK_EQUAL(m_processor->getConfidence(immatureProof), -1);
 
-    BOOST_CHECK(!m_processor->addProofToReconcile(immatureProof));
+    BOOST_CHECK(!m_processor->addToReconcile(immatureProof));
     BOOST_CHECK(!m_processor->isAccepted(conflictingProof));
     BOOST_CHECK(m_processor->isAccepted(validProof));
     BOOST_CHECK(!m_processor->isAccepted(immatureProof));
