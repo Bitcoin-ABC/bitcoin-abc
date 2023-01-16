@@ -69,6 +69,7 @@ add_executable(fuzz EXCLUDE_FROM_ALL
 	parse_numbers.cpp
 	parse_script.cpp
 	parse_univalue.cpp
+	partially_downloaded_block.cpp
 	prevector.cpp
 	pow.cpp
 	primitives_transaction.cpp

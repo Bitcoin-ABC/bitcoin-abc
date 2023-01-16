@@ -189,3 +189,27 @@ bool FuzzedSock::Wait(std::chrono::milliseconds timeout, Event requested,
                       Event *occurred) const {
     return m_fuzzed_data_provider.ConsumeBool();
 }
+
+CTxMemPoolEntryRef
+ConsumeTxMemPoolEntryRef(FuzzedDataProvider &fuzzed_data_provider,
+                         const CTransaction &tx, uint32_t max_height) noexcept {
+    // Avoid:
+    // policy/feerate.cpp:28:34: runtime error: signed integer overflow:
+    // 34873208148477500 * 1000 cannot be represented in type 'long'
+    //
+    // Reproduce using CFeeRate(348732081484775, 10).GetFeePerK()
+    const Amount fee{ConsumeMoney(fuzzed_data_provider,
+                                  /*max=*/std::numeric_limits<int64_t>::max() /
+                                      int64_t{100'000})};
+    assert(MoneyRange(fee));
+    const int64_t time = fuzzed_data_provider.ConsumeIntegral<int64_t>();
+    const auto entry_height{
+        fuzzed_data_provider.ConsumeIntegralInRange<uint32_t>(0, max_height)};
+    const unsigned int sig_checks =
+        fuzzed_data_provider.ConsumeIntegralInRange<int64_t>(0,
+                                                             MAX_TX_SIGCHECKS);
+    CTxMemPoolEntry entry{MakeTransactionRef(tx), fee,        time,
+                          entry_height,           sig_checks, {}};
+
+    return CTxMemPoolEntryRef::make(std::move(entry));
+}

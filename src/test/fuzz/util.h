@@ -9,6 +9,7 @@
 #include <arith_uint256.h>
 #include <coins.h>
 #include <consensus/amount.h>
+#include <kernel/mempool_entry.h>
 #include <net.h>
 #include <netbase.h>
 #include <script/script.h>
@@ -29,6 +30,8 @@
 #include <memory>
 #include <optional>
 #include <string>
+
+class CTxMemPool;
 
 namespace fuzzer {
 // FIXME find a better way to avoid duplicating the MAX_MONEY definition
@@ -190,9 +193,10 @@ ConsumeOpcodeType(FuzzedDataProvider &fuzzed_data_provider) noexcept {
 }
 
 [[nodiscard]] inline Amount
-ConsumeMoney(FuzzedDataProvider &fuzzed_data_provider) noexcept {
+ConsumeMoney(FuzzedDataProvider &fuzzed_data_provider,
+             const std::optional<int64_t> &max = std::nullopt) noexcept {
     return fuzzed_data_provider.ConsumeIntegralInRange<int64_t>(
-               0, MAX_MONEY_AS_INT) *
+               0, max.value_or(MAX_MONEY_AS_INT)) *
            SATOSHI;
 }
 
@@ -255,6 +259,10 @@ ConsumeTxDestination(FuzzedDataProvider &fuzzed_data_provider) noexcept {
         });
     return tx_destination;
 }
+
+[[nodiscard]] CTxMemPoolEntryRef ConsumeTxMemPoolEntryRef(
+    FuzzedDataProvider &fuzzed_data_provider, const CTransaction &tx,
+    uint32_t max_height = std::numeric_limits<uint32_t>::max()) noexcept;
 
 template <typename T>
 [[nodiscard]] bool MultiplicationOverflow(const T i, const T j) noexcept {

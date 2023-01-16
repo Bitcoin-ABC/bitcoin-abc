@@ -10,11 +10,17 @@
 #include <shortidprocessor.h>
 
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <vector>
 
 class Config;
 class CTxMemPool;
+class BlockValidationOptions;
+class BlockValidationState;
+namespace Consensus {
+struct Params;
+};
 
 // Transaction compression schemes for compact block relay can be introduced by
 // writing an actual formatter here.
@@ -174,6 +180,13 @@ protected:
 
 public:
     CBlockHeader header;
+
+    // Can be overridden for testing
+    using CheckBlockFn =
+        std::function<bool(const CBlock &, BlockValidationState &,
+                           const Consensus::Params &, BlockValidationOptions)>;
+    CheckBlockFn m_check_block_mock{nullptr};
+
     PartiallyDownloadedBlock(const Config &configIn, CTxMemPool *poolIn)
         : pool(poolIn), config(&configIn) {}
 
