@@ -220,9 +220,16 @@ class AvalancheTest(BitcoinTestFramework):
             return node.getbestblockhash() == fork_tip
 
         # Because everybody answers no, the node will park that block.
-        with node.assert_debug_log([f"Avalanche invalidated block {tip_to_park}"]):
+        with node.assert_debug_log([f"Avalanche rejected block {tip_to_park}"]):
             self.wait_until(has_parked_new_tip)
         assert_equal(node.getbestblockhash(), fork_tip)
+
+        # Vote a few more times until the block gets invalidated
+        node.wait_for_debug_log(
+            [f"Avalanche invalidated block {tip_to_park}"],
+            chatty_callable=lambda: can_find_block_in_poll(
+                hash_tip_park, AvalancheVoteError.PARKED)
+        )
 
         # Mine on the current chaintip to trigger polling and so we don't reorg
         old_fork_tip = fork_tip

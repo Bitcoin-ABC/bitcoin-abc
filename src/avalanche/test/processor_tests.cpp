@@ -5,6 +5,7 @@
 #include <avalanche/processor.h>
 
 #include <arith_uint256.h>
+#include <avalanche/avalanche.h>
 #include <avalanche/delegationbuilder.h>
 #include <avalanche/peermanager.h>
 #include <avalanche/proofbuilder.h>
@@ -1877,6 +1878,54 @@ BOOST_AUTO_TEST_CASE(vote_map_comparator) {
 
         BOOST_CHECK(it == readView.end());
     }
+}
+
+BOOST_AUTO_TEST_CASE(block_reconcile_initial_vote) {
+    const auto &config = GetConfig();
+    auto &chainman = Assert(m_node.chainman);
+    CChainState &chainstate = chainman->ActiveChainstate();
+
+    const auto block = std::make_shared<const CBlock>(
+        this->CreateBlock({}, CScript(), chainstate));
+    const BlockHash blockhash = block->GetHash();
+
+    BlockValidationState state;
+    CBlockIndex *blockindex;
+    {
+        LOCK(cs_main);
+        BOOST_CHECK(chainstate.AcceptBlock(config, block, state,
+                                           /*fRequested=*/true, /*dbp=*/nullptr,
+                                           /*fNewBlock=*/nullptr));
+
+        blockindex = chainman->m_blockman.LookupBlockIndex(blockhash);
+        BOOST_CHECK(blockindex);
+    }
+
+    // ActivateBestChain() interacts with g_avalanche, so make it happy
+    g_avalanche = std::move(m_processor);
+
+    // The block is not connected yet, and not added to the poll list yet
+    BOOST_CHECK(AvalancheTest::getInvsForNextPoll(*g_avalanche).empty());
+    BOOST_CHECK(!g_avalanche->isAccepted(blockindex));
+
+    // Call ActivateBestChain to connect the new block
+    BOOST_CHECK(chainstate.ActivateBestChain(config, state, block));
+    // It is a valid block so the tip is updated
+    BOOST_CHECK_EQUAL(chainstate.m_chain.Tip(), blockindex);
+
+    // Check the block is added to the poll
+    auto invs = AvalancheTest::getInvsForNextPoll(*g_avalanche);
+    BOOST_CHECK_EQUAL(invs.size(), 1);
+    BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
+    BOOST_CHECK_EQUAL(invs[0].hash, blockhash);
+
+    // This block is our new tip so we should vote "yes"
+    BOOST_CHECK(g_avalanche->isAccepted(blockindex));
+
+    // Prevent a data race between UpdatedBlockTip and the Processor destructor
+    SyncWithValidationInterfaceQueue();
+
+    g_avalanche.reset(nullptr);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

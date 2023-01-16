@@ -2833,7 +2833,8 @@ bool CChainState::ConnectTip(const Config &config, BlockValidationState &state,
  * Return the tip of the chain with the most work in it, that isn't known to be
  * invalid (it's however far from certain to be valid).
  */
-CBlockIndex *CChainState::FindMostWorkChain() {
+CBlockIndex *CChainState::FindMostWorkChain(
+    std::vector<const CBlockIndex *> &blocksToReconcile) {
     AssertLockHeld(::cs_main);
     do {
         CBlockIndex *pindexNew = nullptr;
@@ -2999,7 +3000,7 @@ CBlockIndex *CChainState::FindMostWorkChain() {
         }
 
         if (fAvalancheEnabled && g_avalanche) {
-            g_avalanche->addBlockToReconcile(pindexNew);
+            blocksToReconcile.push_back(pindexNew);
         }
 
         // We found a candidate that has valid ancestors. This is our guy.
@@ -3226,13 +3227,15 @@ bool CChainState::ActivateBestChain(const Config &config,
         // probably have a DEBUG_LOCKORDER test for this in the future.
         LimitValidationInterfaceQueue();
 
+        std::vector<const CBlockIndex *> blocksToReconcile;
+        bool blocks_connected = false;
+
         {
             LOCK(cs_main);
             // Lock transaction pool for at least as long as it takes for
             // connectTrace to be consumed
             LOCK(MempoolMutex());
             CBlockIndex *starting_tip = m_chain.Tip();
-            bool blocks_connected = false;
             do {
                 // We absolutely may not unlock cs_main until we've made forward
                 // progress (with the exception of shutdown due to hardware
@@ -3242,7 +3245,7 @@ bool CChainState::ActivateBestChain(const Config &config,
                 ConnectTrace connectTrace;
 
                 if (pindexMostWork == nullptr) {
-                    pindexMostWork = FindMostWorkChain();
+                    pindexMostWork = FindMostWorkChain(blocksToReconcile);
                 }
 
                 // Whether we have anything to do at all.
@@ -3286,28 +3289,35 @@ bool CChainState::ActivateBestChain(const Config &config,
             // randomly have it cause a problem in a race.
             CheckBlockIndex();
 
-            if (!blocks_connected) {
-                return true;
-            }
+            if (blocks_connected) {
+                const CBlockIndex *pindexFork = m_chain.FindFork(starting_tip);
+                bool fInitialDownload = IsInitialBlockDownload();
 
-            const CBlockIndex *pindexFork = m_chain.FindFork(starting_tip);
-            bool fInitialDownload = IsInitialBlockDownload();
+                // Notify external listeners about the new tip.
+                // Enqueue while holding cs_main to ensure that UpdatedBlockTip
+                // is called in the order in which blocks are connected
+                if (pindexFork != pindexNewTip) {
+                    // Notify ValidationInterface subscribers
+                    GetMainSignals().UpdatedBlockTip(pindexNewTip, pindexFork,
+                                                     fInitialDownload);
 
-            // Notify external listeners about the new tip.
-            // Enqueue while holding cs_main to ensure that UpdatedBlockTip is
-            // called in the order in which blocks are connected
-            if (pindexFork != pindexNewTip) {
-                // Notify ValidationInterface subscribers
-                GetMainSignals().UpdatedBlockTip(pindexNewTip, pindexFork,
-                                                 fInitialDownload);
-
-                // Always notify the UI if a new block tip was connected
-                uiInterface.NotifyBlockTip(
-                    GetSynchronizationState(fInitialDownload), pindexNewTip);
+                    // Always notify the UI if a new block tip was connected
+                    uiInterface.NotifyBlockTip(
+                        GetSynchronizationState(fInitialDownload),
+                        pindexNewTip);
+                }
             }
         }
         // When we reach this point, we switched to a new tip (stored in
         // pindexNewTip).
+
+        for (const CBlockIndex *pindex : blocksToReconcile) {
+            g_avalanche->addBlockToReconcile(pindex);
+        }
+
+        if (!blocks_connected) {
+            return true;
+        }
 
         if (nStopAtHeight && pindexNewTip &&
             pindexNewTip->nHeight >= nStopAtHeight) {

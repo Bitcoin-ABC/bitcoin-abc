@@ -557,11 +557,11 @@ class TestNode:
                 str(expected_msgs), print_log))
 
     @contextlib.contextmanager
-    def wait_for_debug_log(self, expected_msgs: List[bytes], timeout=60):
+    def wait_for_debug_log(
+            self, expected_msgs: List[bytes], timeout=60, interval=0.05, chatty_callable=None):
         """
-        Block until we see a particular debug log message fragment or until we exceed the timeout.
-        Return:
-            the number of log lines we encountered when matching
+        Block until we see all the debug log messages or until we exceed the timeout.
+        If a chatty_callable is provided, it is repeated at every iteration.
         """
         time_end = time.time() + timeout * self.timeout_factor
         prev_size = self.debug_log_bytes()
@@ -570,6 +570,12 @@ class TestNode:
 
         while True:
             found = True
+
+            if chatty_callable is not None:
+                # Ignore the chatty_callable returned value, as we are only
+                # interested in the debug log content here.
+                chatty_callable()
+
             with open(self.debug_log_path, "rb") as dl:
                 dl.seek(prev_size)
                 log = dl.read()
@@ -586,8 +592,7 @@ class TestNode:
                     "\n - ".join([f"\n - {line.decode()}" for line in log.splitlines()])
                 break
 
-            # No sleep here because we want to detect the message fragment as fast as
-            # possible.
+            time.sleep(interval)
 
         self._raise_assertion_error(
             'Expected messages "{}" does not partially match log:\n\n{}\n\n'.format(
