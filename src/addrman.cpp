@@ -1304,8 +1304,7 @@ template <typename Stream> void AddrMan::Unserialize(Stream &s_) {
 }
 
 // explicit instantiation
-template void AddrMan::Serialize(CHashWriter &s) const;
-template void AddrMan::Serialize(CAutoFile &s) const;
+template void AddrMan::Serialize(HashedSourceWriter<CAutoFile> &s) const;
 template void AddrMan::Serialize(CDataStream &s) const;
 template void AddrMan::Unserialize(CAutoFile &s);
 template void AddrMan::Unserialize(CHashVerifier<CAutoFile> &s);

@@ -32,10 +32,9 @@ bool SerializeDB(const CChainParams &chainParams, Stream &stream,
                  const Data &data) {
     // Write and commit header, data
     try {
-        CHashWriter hasher(stream.GetType(), stream.GetVersion());
-        stream << chainParams.DiskMagic() << data;
-        hasher << chainParams.DiskMagic() << data;
-        stream << hasher.GetHash();
+        HashedSourceWriter hashwriter{stream};
+        hashwriter << chainParams.DiskMagic() << data;
+        stream << hashwriter.GetHash();
     } catch (const std::exception &e) {
         return error("%s: Serialize or I/O error - %s", __func__, e.what());
     }
