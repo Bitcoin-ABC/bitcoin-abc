@@ -2138,7 +2138,7 @@ bool CChainState::ConnectBlock(const CBlock &block, BlockValidationState &state,
              nInputs <= 1 ? 0 : MILLI * (nTime3 - nTime2) / (nInputs - 1),
              nTimeConnect * MICRO, nTimeConnect * MILLI / nBlocksTotal);
 
-    Amount blockReward =
+    const Amount blockReward =
         nFees + GetBlockSubsidy(pindex->nHeight, consensusParams);
     if (block.vtx[0]->GetValueOut() > blockReward) {
         LogPrintf("ERROR: ConnectBlock(): coinbase pays too much (actual=%d vs "
