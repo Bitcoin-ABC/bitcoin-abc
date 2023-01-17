@@ -134,15 +134,13 @@ BlockHash ClientModel::getBestBlockHash() {
     return m_cached_tip_blocks;
 }
 
-enum BlockSource ClientModel::getBlockSource() const {
-    if (m_node.getReindex()) {
-        return BlockSource::REINDEX;
-    } else if (m_node.getImporting()) {
+BlockSource ClientModel::getBlockSource() const {
+    if (m_node.isLoadingBlocks()) {
         return BlockSource::DISK;
-    } else if (getNumConnections() > 0) {
+    }
+    if (getNumConnections() > 0) {
         return BlockSource::NETWORK;
     }
-
     return BlockSource::NONE;
 }
 

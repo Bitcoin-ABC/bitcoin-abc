@@ -269,8 +269,9 @@ namespace {
         bool isInitialBlockDownload() override {
             return chainman().ActiveChainstate().IsInitialBlockDownload();
         }
-        bool getReindex() override { return node::fReindex; }
-        bool getImporting() override { return node::fImporting; }
+        bool isLoadingBlocks() override {
+            return node::fReindex || node::fImporting;
+        }
         void setNetworkActive(bool active) override {
             if (m_context->connman) {
                 m_context->connman->SetNetworkActive(active);
