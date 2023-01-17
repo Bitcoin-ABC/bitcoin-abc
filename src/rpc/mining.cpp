@@ -1035,7 +1035,7 @@ static RPCHelpMan getblocktemplate() {
             UniValue minerFundList(UniValue::VARR);
             const Consensus::Params &consensusParams =
                 chainparams.GetConsensus();
-            for (auto fundDestination :
+            for (const auto &fundDestination :
                  GetMinerFundWhitelist(consensusParams, pindexPrev)) {
                 minerFundList.push_back(
                     EncodeDestination(fundDestination, config));
