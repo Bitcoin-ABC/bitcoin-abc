@@ -16,6 +16,7 @@
 #include <key.h>
 #include <net.h>
 #include <rwcollection.h>
+#include <util/variant.h>
 
 #include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/hashed_index.hpp>
@@ -85,10 +86,6 @@ using ProofUpdate = VoteItemUpdate<ProofRef>;
 
 using AnyVoteItem = std::variant<const ProofRef, const CBlockIndex *>;
 
-template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-// explicit deduction guide (not needed as of C++20)
-template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
-
 struct VoteMapComparator {
     bool operator()(const AnyVoteItem &lhs, const AnyVoteItem &rhs) const {
         // If the variants are of different types, sort them by variant index
@@ -97,7 +94,7 @@ struct VoteMapComparator {
         }
 
         return std::visit(
-            overloaded{
+            variant::overloaded{
                 [](const ProofRef &lhs, const ProofRef &rhs) {
                     return ProofComparatorByScore()(lhs, rhs);
                 },

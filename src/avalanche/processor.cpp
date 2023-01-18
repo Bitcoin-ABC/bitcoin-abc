@@ -899,7 +899,7 @@ std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
         }
     }
 
-    auto buildInvFromVoteItem = overloaded{
+    auto buildInvFromVoteItem = variant::overloaded{
         [](const ProofRef &proof) {
             return CInv(MSG_AVA_PROOF, proof->getId());
         },
