@@ -201,8 +201,8 @@ static RPCHelpMan getpeerinfo() {
                        "object and all bytes received\n"
                        "of unknown message types are listed under '" +
                            NET_MESSAGE_COMMAND_OTHER + "'."}}},
-                    {RPCResult::Type::NUM, "activity_score",
-                     "Avalanche activity score of this node (if any)"},
+                    {RPCResult::Type::NUM, "availability_score",
+                     "Avalanche availability score of this node (if any)"},
                 }},
             }},
         },
