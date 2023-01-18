@@ -1702,8 +1702,9 @@ void PeerManagerImpl::ReattemptInitialBroadcast(CScheduler &scheduler) {
 }
 
 void PeerManagerImpl::UpdateAvalancheStatistics() const {
-    m_connman.ForEachNode(
-        [](CNode *pnode) { pnode->updateAvailabilityScore(); });
+    m_connman.ForEachNode([](CNode *pnode) {
+        pnode->updateAvailabilityScore(AVALANCHE_STATISTICS_DECAY_FACTOR);
+    });
 }
 
 void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {

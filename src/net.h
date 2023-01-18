@@ -676,7 +676,7 @@ public:
      * This is expected to be called at a fixed interval of
      * AVALANCHE_STATISTICS_REFRESH_PERIOD.
      */
-    void updateAvailabilityScore();
+    void updateAvailabilityScore(double decayFactor);
     double getAvailabilityScore() const;
 
     // Store the next time we will consider a getavaaddr message from this peer

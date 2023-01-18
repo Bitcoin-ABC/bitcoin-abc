@@ -12,7 +12,6 @@
 #include <addrdb.h>
 #include <addrman.h>
 #include <avalanche/avalanche.h>
-#include <avalanche/statistics.h>
 #include <banman.h>
 #include <clientversion.h>
 #include <compat.h>
@@ -3414,7 +3413,7 @@ void CNode::invsVoted(uint32_t count) {
     invCounters += uint64_t(count) << 32;
 }
 
-void CNode::updateAvailabilityScore() {
+void CNode::updateAvailabilityScore(double decayFactor) {
     if (!m_avalanche_enabled) {
         return;
     }
@@ -3426,8 +3425,7 @@ void CNode::updateAvailabilityScore() {
     int64_t votes = windowInvCounters >> 32;
 
     availabilityScore =
-        AVALANCHE_STATISTICS_DECAY_FACTOR * (2 * votes - polls) +
-        (1. - AVALANCHE_STATISTICS_DECAY_FACTOR) * previousScore;
+        decayFactor * (2 * votes - polls) + (1. - decayFactor) * previousScore;
 }
 
 double CNode::getAvailabilityScore() const {

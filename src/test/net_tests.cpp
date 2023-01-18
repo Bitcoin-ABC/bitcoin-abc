@@ -920,82 +920,91 @@ BOOST_AUTO_TEST_CASE(ipv4_peer_with_ipv6_addrMe_test) {
 }
 
 BOOST_AUTO_TEST_CASE(avalanche_statistics) {
-    const uint32_t step = AVALANCHE_STATISTICS_REFRESH_PERIOD.count();
-    const uint32_t tau = AVALANCHE_STATISTICS_TIME_CONSTANT.count();
+    const std::vector<std::tuple<uint32_t, uint32_t, double>> testCases = {
+        // {step, tau, decay_factor}
+        {10, 100, 1. - std::exp(-1. * 10 / 100)},
+        // Current defaults
+        {AVALANCHE_STATISTICS_REFRESH_PERIOD.count(),
+         AVALANCHE_STATISTICS_TIME_CONSTANT.count(),
+         AVALANCHE_STATISTICS_DECAY_FACTOR},
+    };
+    for (const auto &[step, tau, decayFactor] : testCases) {
+        in_addr ipv4Addr;
+        ipv4Addr.s_addr = 0xa0b0c001;
+        CAddress addr = CAddress(CService(ipv4Addr, 7777), NODE_NETWORK);
+        std::unique_ptr<CNode> pnode = std::make_unique<CNode>(
+            0, NODE_NETWORK, INVALID_SOCKET, addr, 0, 0, 0, CAddress(),
+            std::string{}, ConnectionType::OUTBOUND_FULL_RELAY, false);
+        pnode->m_avalanche_enabled = true;
 
-    in_addr ipv4Addr;
-    ipv4Addr.s_addr = 0xa0b0c001;
-    CAddress addr = CAddress(CService(ipv4Addr, 7777), NODE_NETWORK);
-    std::unique_ptr<CNode> pnode = std::make_unique<CNode>(
-        0, NODE_NETWORK, INVALID_SOCKET, addr, 0, 0, 0, CAddress(),
-        std::string{}, ConnectionType::OUTBOUND_FULL_RELAY, false);
-    pnode->m_avalanche_enabled = true;
+        double previousScore = pnode->getAvailabilityScore();
+        BOOST_CHECK_SMALL(previousScore, 1e-6);
 
-    double previousScore = pnode->getAvailabilityScore();
-    BOOST_CHECK_SMALL(previousScore, 1e-6);
+        // Check the statistics follow an exponential response for 1 to 10 tau
+        for (size_t i = 1; i <= 10; i++) {
+            for (uint32_t j = 0; j < tau; j += step) {
+                pnode->invsPolled(1);
+                // Always respond to everything correctly
+                pnode->invsVoted(1);
 
-    // Check the statistics follow an exponential response for 1 to 10 tau
-    for (size_t i = 1; i <= 10; i++) {
-        for (uint32_t j = 0; j < tau; j += step) {
-            pnode->invsPolled(1);
-            // Always respond to everything correctly
-            pnode->invsVoted(1);
+                pnode->updateAvailabilityScore(decayFactor);
 
-            pnode->updateAvailabilityScore();
+                // Expect a monotonic rise
+                double currentScore = pnode->getAvailabilityScore();
+                BOOST_CHECK_GE(currentScore, previousScore);
+                previousScore = currentScore;
+            }
 
-            // Expect a monotonic rise
-            double currentScore = pnode->getAvailabilityScore();
-            BOOST_CHECK_GE(currentScore, previousScore);
-            previousScore = currentScore;
+            // We expect (1 - e^-i) after i * tau. The tolerance is expressed
+            // as a percentage, and we add a (large) 0.1% margin to account for
+            // floating point errors.
+            BOOST_CHECK_CLOSE(previousScore, -1 * std::expm1(-1. * i),
+                              100.1 / tau);
         }
 
-        // We expect (1 - e^-i) after i * tau. The tolerance is expressed
-        // as a percentage, and we add a (large) 0.1% margin to account for
-        // floating point errors.
-        BOOST_CHECK_CLOSE(previousScore, -1 * std::expm1(-1. * i), 100.1 / tau);
-    }
+        // After 10 tau we should be very close to 100% (about 99.995%)
+        BOOST_CHECK_CLOSE(previousScore, 1., 0.01);
 
-    // After 10 tau we should be very close to 100% (about 99.995%)
-    BOOST_CHECK_CLOSE(previousScore, 1., 0.01);
+        for (size_t i = 1; i <= 3; i++) {
+            for (uint32_t j = 0; j < tau; j += step) {
+                pnode->invsPolled(2);
 
-    for (size_t i = 1; i <= 3; i++) {
-        for (uint32_t j = 0; j < tau; j += step) {
-            pnode->invsPolled(2);
+                // Stop responding to the polls.
+                pnode->invsVoted(1);
 
-            // Stop responding to the polls.
-            pnode->invsVoted(1);
+                pnode->updateAvailabilityScore(decayFactor);
 
-            pnode->updateAvailabilityScore();
+                // Expect a monotonic fall
+                double currentScore = pnode->getAvailabilityScore();
+                BOOST_CHECK_LE(currentScore, previousScore);
+                previousScore = currentScore;
+            }
 
-            // Expect a monotonic fall
+            // There is a slight error in the expected value because we did not
+            // start the decay at exactly 100%, but the 0.1% margin is at least
+            // an order of magnitude larger than the expected error so it
+            // doesn't matter.
+            BOOST_CHECK_CLOSE(previousScore, 1. + std::expm1(-1. * i),
+                              100.1 / tau);
+        }
+
+        // After 3 more tau we should be under 5%
+        BOOST_CHECK_LT(previousScore, .05);
+
+        for (size_t i = 1; i <= 100; i++) {
+            pnode->invsPolled(10);
+
+            // Completely stop responding to the polls.
+            pnode->invsVoted(0);
+
+            pnode->updateAvailabilityScore(decayFactor);
+
+            // It's still a monotonic fall, and the score should turn negative.
             double currentScore = pnode->getAvailabilityScore();
             BOOST_CHECK_LE(currentScore, previousScore);
+            BOOST_CHECK_LE(currentScore, 0.);
             previousScore = currentScore;
         }
-
-        // There is a slight error in the expected value because we did not
-        // start the decay at exactly 100%, but the 0.1% margin is at least an
-        // order of magnitude larger than the expected error so it doesn't
-        // matter.
-        BOOST_CHECK_CLOSE(previousScore, 1. + std::expm1(-1. * i), 100.1 / tau);
-    }
-
-    // After 3 more tau we should be under 5%
-    BOOST_CHECK_LT(previousScore, .05);
-
-    for (size_t i = 1; i <= 100; i++) {
-        pnode->invsPolled(10);
-
-        // Completely stop responding to the polls.
-        pnode->invsVoted(0);
-
-        pnode->updateAvailabilityScore();
-
-        // It's still a monotonic fall, and the score should turn negative.
-        double currentScore = pnode->getAvailabilityScore();
-        BOOST_CHECK_LE(currentScore, previousScore);
-        BOOST_CHECK_LE(currentScore, 0.);
-        previousScore = currentScore;
     }
 }
 
