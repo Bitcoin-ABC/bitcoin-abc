@@ -104,18 +104,6 @@ static const bool DEFAULT_FIXEDSEEDS = true;
 static const size_t DEFAULT_MAXRECEIVEBUFFER = 5 * 1000;
 static const size_t DEFAULT_MAXSENDBUFFER = 1 * 1000;
 
-/** Refresh period for the avalanche statistics computation */
-static constexpr std::chrono::minutes AVALANCHE_STATISTICS_REFRESH_PERIOD{10};
-/** Time constant for the avalanche statistics computation */
-static constexpr std::chrono::minutes AVALANCHE_STATISTICS_TIME_CONSTANT{10};
-/**
- * Pre-computed decay factor for the avalanche statistics computation.
- * There is currently no constexpr variant of std::exp, so use a const.
- */
-static const double AVALANCHE_STATISTICS_DECAY_FACTOR =
-    1. - std::exp(-1. * AVALANCHE_STATISTICS_REFRESH_PERIOD.count() /
-                  AVALANCHE_STATISTICS_TIME_CONSTANT.count());
-
 struct AddedNodeInfo {
     std::string strAddedNode;
     CService resolvedAddress;

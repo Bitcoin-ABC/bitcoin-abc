@@ -11,6 +11,7 @@
 #include <avalanche/peermanager.h>
 #include <avalanche/processor.h>
 #include <avalanche/proof.h>
+#include <avalanche/statistics.h>
 #include <avalanche/validation.h>
 #include <banman.h>
 #include <blockencodings.h>

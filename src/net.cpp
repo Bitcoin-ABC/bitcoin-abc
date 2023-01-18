@@ -12,6 +12,7 @@
 #include <addrdb.h>
 #include <addrman.h>
 #include <avalanche/avalanche.h>
+#include <avalanche/statistics.h>
 #include <banman.h>
 #include <clientversion.h>
 #include <compat.h>
