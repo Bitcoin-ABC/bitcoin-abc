@@ -778,16 +778,17 @@ BOOST_AUTO_TEST_CASE(verify) {
                 {value, value, ProofValidationResult::NONE},
             };
 
-        for (auto it = testCases.begin(); it != testCases.end(); ++it) {
+        for (const auto &[utxoValue, dustThreshold, expectedResult] :
+             testCases) {
             ProofBuilder pb(0, 0, key, UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
             BOOST_CHECK(
-                pb.addUTXO(pkh_outpoint, std::get<0>(*it), height, false, key));
+                pb.addUTXO(pkh_outpoint, utxoValue, height, false, key));
             ProofRef p = pb.build();
 
             ProofValidationState state;
-            BOOST_CHECK(p->verify(std::get<1>(*it), chainman, state) ==
-                        (std::get<2>(*it) == ProofValidationResult::NONE));
-            BOOST_CHECK(state.GetResult() == std::get<2>(*it));
+            BOOST_CHECK(p->verify(dustThreshold, chainman, state) ==
+                        (expectedResult == ProofValidationResult::NONE));
+            BOOST_CHECK(state.GetResult() == expectedResult);
         }
     }
 
@@ -858,15 +859,15 @@ BOOST_AUTO_TEST_CASE(verify) {
                 {50, "100", ProofValidationResult::IMMATURE_UTXO},
             };
 
-        for (auto it = testCases.begin(); it != testCases.end(); ++it) {
-            const uint32_t stakeConfs = std::get<0>(*it);
+        for (const auto &[stakeConfs, configuredStakeConfs, expectedResult] :
+             testCases) {
             COutPoint outpoint(TxId(InsecureRand256()), InsecureRand32());
             CTxOut output(value, GetScriptForRawPubKey(pubkey));
             coins.AddCoin(outpoint, Coin(output, stakeConfs, false), false);
 
             gArgs.ForceSetArg("-avaproofstakeutxoconfirmations",
-                              std::get<1>(*it));
-            runCheck(std::get<2>(*it), outpoint, value, stakeConfs, false, key);
+                              configuredStakeConfs);
+            runCheck(expectedResult, outpoint, value, stakeConfs, false, key);
         }
         gArgs.ClearForcedArg("-avaproofstakeutxoconfirmations");
     }

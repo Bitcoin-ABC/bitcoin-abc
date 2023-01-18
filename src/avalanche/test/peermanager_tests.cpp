@@ -94,9 +94,8 @@ namespace {
                bool is_coinbase = false, int64_t expirationTime = 0) {
         ProofBuilder pb(sequence, expirationTime, master,
                         UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
-        for (const auto &outpoint : outpoints) {
-            BOOST_CHECK(pb.addUTXO(std::get<0>(outpoint), std::get<1>(outpoint),
-                                   height, is_coinbase, key));
+        for (const auto &[outpoint, amount] : outpoints) {
+            BOOST_CHECK(pb.addUTXO(outpoint, amount, height, is_coinbase, key));
         }
         return pb.build();
     }

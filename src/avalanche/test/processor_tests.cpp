@@ -1457,7 +1457,7 @@ BOOST_AUTO_TEST_CASE(quorum_detection_parameter_validation) {
     // Create vector of tuples of:
     // <min stake, min ratio, min avaproofs messages, success bool>
     const std::vector<std::tuple<std::string, std::string, std::string, bool>>
-        tests = {
+        testCases = {
             // All parameters are invalid
             {"", "", "", false},
             {"-1", "-1", "-1", false},
@@ -1488,17 +1488,18 @@ BOOST_AUTO_TEST_CASE(quorum_detection_parameter_validation) {
 
     // For each case set the parameters and check that making the processor
     // succeeds or fails as expected
-    for (auto it = tests.begin(); it != tests.end(); ++it) {
-        gArgs.ForceSetArg("-avaminquorumstake", std::get<0>(*it));
-        gArgs.ForceSetArg("-avaminquorumconnectedstakeratio", std::get<1>(*it));
-        gArgs.ForceSetArg("-avaminavaproofsnodecount", std::get<2>(*it));
+    for (const auto &[stake, stakeRatio, numProofsMessages, success] :
+         testCases) {
+        gArgs.ForceSetArg("-avaminquorumstake", stake);
+        gArgs.ForceSetArg("-avaminquorumconnectedstakeratio", stakeRatio);
+        gArgs.ForceSetArg("-avaminavaproofsnodecount", numProofsMessages);
 
         bilingual_str error;
         std::unique_ptr<Processor> processor = Processor::MakeProcessor(
             *m_node.args, *m_node.chain, m_node.connman.get(),
             *Assert(m_node.chainman), *m_node.scheduler, error);
 
-        if (std::get<3>(*it)) {
+        if (success) {
             BOOST_CHECK(processor != nullptr);
             BOOST_CHECK(error.empty());
             BOOST_CHECK_EQUAL(error.original, "");
@@ -1609,7 +1610,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(voting_parameters, P, VoteItemProviders) {
     auto avanodes = ConnectNodes();
     int nextNodeIndex = 0;
 
-    for (const auto &testCase : testCases) {
+    for (const auto &[numYesVotes, numNeutralVotes] : testCases) {
         // Add a new item. Check it is added to the polls.
         BOOST_CHECK(provider.addToReconcile(item));
         auto invs = getInvsForNextPoll();
@@ -1626,7 +1627,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(voting_parameters, P, VoteItemProviders) {
         };
 
         // Add some confidence
-        for (int i = 0; i < std::get<0>(testCase); i++) {
+        for (int i = 0; i < numYesVotes; i++) {
             Response resp = {getRound(), 0, {Vote(0, itemid)}};
             registerNewVote(next(resp));
             BOOST_CHECK(m_processor->isAccepted(item));
@@ -1636,7 +1637,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(voting_parameters, P, VoteItemProviders) {
         }
 
         // Vote until just before item goes stale
-        for (int i = 0; i < std::get<1>(testCase); i++) {
+        for (int i = 0; i < numNeutralVotes; i++) {
             Response resp = {getRound(), 0, {Vote(-1, itemid)}};
             registerNewVote(next(resp));
             BOOST_CHECK_EQUAL(updates.size(), 0);
