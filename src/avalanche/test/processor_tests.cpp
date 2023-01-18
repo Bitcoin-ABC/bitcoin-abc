@@ -1456,8 +1456,8 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
 BOOST_AUTO_TEST_CASE(quorum_detection_parameter_validation) {
     // Create vector of tuples of:
     // <min stake, min ratio, min avaproofs messages, success bool>
-    std::vector<std::tuple<std::string, std::string, std::string, bool>> tests =
-        {
+    const std::vector<std::tuple<std::string, std::string, std::string, bool>>
+        tests = {
             // All parameters are invalid
             {"", "", "", false},
             {"-1", "-1", "-1", false},
@@ -1584,7 +1584,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(voting_parameters, P, VoteItemProviders) {
                       ToString(AVALANCHE_VOTE_STALE_MIN_THRESHOLD));
     gArgs.ForceSetArg("-avastalevotefactor", "2");
 
-    std::vector<std::tuple<int, int>> testCases = {
+    const std::vector<std::tuple<int, int>> testCases = {
         // {number of yes votes, number of neutral votes}
         {0, AVALANCHE_VOTE_STALE_MIN_THRESHOLD},
         {AVALANCHE_FINALIZATION_SCORE + 4, AVALANCHE_FINALIZATION_SCORE - 6},
@@ -1609,7 +1609,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(voting_parameters, P, VoteItemProviders) {
     auto avanodes = ConnectNodes();
     int nextNodeIndex = 0;
 
-    for (auto &testCase : testCases) {
+    for (const auto &testCase : testCases) {
         // Add a new item. Check it is added to the polls.
         BOOST_CHECK(provider.addToReconcile(item));
         auto invs = getInvsForNextPoll();

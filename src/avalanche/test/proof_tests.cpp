@@ -82,7 +82,7 @@ struct TestVector {
 BOOST_AUTO_TEST_CASE(deserialization) {
     // Proof master key:
     // privkey L4J6gEE4wL9ji2EQbzS5dPMTTsw8LRvcMst1Utij4e3X5ccUSdqW
-    std::vector<TestVector> testCases{
+    const std::vector<TestVector> testCases{
         // Using P2PK payout to
         // 023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3
         {"No utxo staked",
@@ -627,7 +627,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          2 * 444638638, ProofValidationResult::NONE},
     };
 
-    for (auto &c : testCases) {
+    for (const auto &c : testCases) {
         Proof p;
         bilingual_str error;
         BOOST_CHECK(Proof::FromHex(p, c.hex, error));
@@ -763,7 +763,7 @@ BOOST_AUTO_TEST_CASE(verify) {
     // Dust thresold
     {
         // tuple<utxo value, dust threshold, result>
-        std::vector<std::tuple<Amount, Amount, ProofValidationResult>>
+        const std::vector<std::tuple<Amount, Amount, ProofValidationResult>>
             testCases = {
                 // Defaults
                 {Amount::zero(), PROOF_DUST_THRESHOLD,
@@ -843,7 +843,8 @@ BOOST_AUTO_TEST_CASE(verify) {
         }
 
         // tuple<stake utxo confs, avaproofstakeutxoconfirmations, result>
-        std::vector<std::tuple<uint32_t, std::string, ProofValidationResult>>
+        const std::vector<
+            std::tuple<uint32_t, std::string, ProofValidationResult>>
             testCases = {
                 // Require less or equal the number of confirmations the stake
                 // has
