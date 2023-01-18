@@ -93,6 +93,8 @@ struct Peer {
     std::chrono::seconds registration_time;
     std::chrono::seconds nextPossibleConflictTime;
 
+    double availabilityScore = 0.0;
+
     /**
      * Consider dropping the peer if no node is attached after this timeout
      * expired.
@@ -377,6 +379,26 @@ public:
      */
     uint32_t getTotalPeersScore() const { return totalPeersScore; }
     uint32_t getConnectedPeersScore() const { return connectedPeersScore; }
+
+    template <typename Callable>
+    void updateAvailabilityScores(const double decayFactor,
+                                  Callable &&getNodeAvailabilityScore) {
+        for (auto it = peers.begin(); it != peers.end(); it++) {
+            peers.modify(it, [&](Peer &peer) {
+                // Calculate average of current node scores
+                double peerScore{0.0};
+                forEachNode(peer, [&](const avalanche::Node &node) {
+                    peerScore += getNodeAvailabilityScore(node.nodeid);
+                });
+                peerScore /= peer.node_count;
+
+                // Calculate exponential moving average of averaged node scores
+                peer.availabilityScore =
+                    decayFactor * peerScore +
+                    (1. - decayFactor) * peer.availabilityScore;
+            });
+        }
+    }
 
     /****************************************************
      * Functions which are public for testing purposes. *
