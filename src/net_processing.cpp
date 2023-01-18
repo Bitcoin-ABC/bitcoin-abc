@@ -5155,12 +5155,11 @@ void PeerManagerImpl::ProcessMessage(
             return;
         }
 
-        std::vector<avalanche::BlockUpdate> blockUpdates;
-        std::vector<avalanche::ProofUpdate> proofUpdates;
+        std::vector<avalanche::VoteItemUpdate> updates;
         int banscore;
         std::string error;
-        if (!g_avalanche->registerVotes(pfrom.GetId(), response, blockUpdates,
-                                        proofUpdates, banscore, error)) {
+        if (!g_avalanche->registerVotes(pfrom.GetId(), response, updates,
+                                        banscore, error)) {
             Misbehaving(pfrom, banscore, error);
             return;
         }
@@ -5196,68 +5195,84 @@ void PeerManagerImpl::ProcessMessage(
                      voteItemTypeStr, voteItemId.ToString());
         };
 
-        for (avalanche::ProofUpdate &u : proofUpdates) {
-            avalanche::ProofRef proof = u.getVoteItem();
-            const avalanche::ProofId &proofid = proof->getId();
+        bool shouldActivateBestChain = false;
 
-            logVoteUpdate(u, "proof", proofid);
+        for (const auto &u : updates) {
+            const avalanche::AnyVoteItem &item = u.getVoteItem();
 
-            auto rejectionMode = avalanche::PeerManager::RejectionMode::DEFAULT;
-            auto nextCooldownTimePoint = GetTime<std::chrono::seconds>();
-            switch (u.getStatus()) {
-                case avalanche::VoteStatus::Invalid:
-                    WITH_LOCK(cs_invalidProofs, invalidProofs->insert(proofid));
-                    // Fallthrough
-                case avalanche::VoteStatus::Stale:
-                    // Invalidate mode removes the proof from all proof pools
-                    rejectionMode =
-                        avalanche::PeerManager::RejectionMode::INVALIDATE;
-                    // Fallthrough
-                case avalanche::VoteStatus::Rejected:
-                    if (!g_avalanche->withPeerManager(
-                            [&](avalanche::PeerManager &pm) {
-                                return pm.rejectProof(proofid, rejectionMode);
-                            })) {
-                        LogPrint(BCLog::AVALANCHE,
-                                 "ERROR: Failed to reject proof: %s\n",
-                                 proofid.GetHex());
-                    }
-                    break;
-                case avalanche::VoteStatus::Finalized:
-                    nextCooldownTimePoint +=
-                        std::chrono::seconds(gArgs.GetIntArg(
-                            "-avalanchepeerreplacementcooldown",
-                            AVALANCHE_DEFAULT_PEER_REPLACEMENT_COOLDOWN));
-                case avalanche::VoteStatus::Accepted:
-                    if (!g_avalanche->withPeerManager(
-                            [&](avalanche::PeerManager &pm) {
-                                pm.registerProof(
-                                    proof, avalanche::PeerManager::
-                                               RegistrationMode::FORCE_ACCEPT);
-                                return pm.forPeer(
-                                    proofid, [&](const avalanche::Peer &peer) {
-                                        pm.updateNextPossibleConflictTime(
-                                            peer.peerid, nextCooldownTimePoint);
-                                        if (u.getStatus() ==
-                                            avalanche::VoteStatus::Finalized) {
-                                            pm.setFinalized(peer.peerid);
-                                        }
-                                        // Only fail if the peer was not
-                                        // created
-                                        return true;
-                                    });
-                            })) {
-                        LogPrint(BCLog::AVALANCHE,
-                                 "ERROR: Failed to accept proof: %s\n",
-                                 proofid.GetHex());
-                    }
-                    break;
+            // Don't use a visitor here as we want to ignore unsupported item
+            // types. This comes in handy when adding new types.
+            if (auto pitem = std::get_if<const avalanche::ProofRef>(&item)) {
+                avalanche::ProofRef proof = *pitem;
+                const avalanche::ProofId &proofid = proof->getId();
+
+                logVoteUpdate(u, "proof", proofid);
+
+                auto rejectionMode =
+                    avalanche::PeerManager::RejectionMode::DEFAULT;
+                auto nextCooldownTimePoint = GetTime<std::chrono::seconds>();
+                switch (u.getStatus()) {
+                    case avalanche::VoteStatus::Invalid:
+                        WITH_LOCK(cs_invalidProofs,
+                                  invalidProofs->insert(proofid));
+                        // Fallthrough
+                    case avalanche::VoteStatus::Stale:
+                        // Invalidate mode removes the proof from all proof
+                        // pools
+                        rejectionMode =
+                            avalanche::PeerManager::RejectionMode::INVALIDATE;
+                        // Fallthrough
+                    case avalanche::VoteStatus::Rejected:
+                        if (!g_avalanche->withPeerManager(
+                                [&](avalanche::PeerManager &pm) {
+                                    return pm.rejectProof(proofid,
+                                                          rejectionMode);
+                                })) {
+                            LogPrint(BCLog::AVALANCHE,
+                                     "ERROR: Failed to reject proof: %s\n",
+                                     proofid.GetHex());
+                        }
+                        break;
+                    case avalanche::VoteStatus::Finalized:
+                        nextCooldownTimePoint +=
+                            std::chrono::seconds(gArgs.GetIntArg(
+                                "-avalanchepeerreplacementcooldown",
+                                AVALANCHE_DEFAULT_PEER_REPLACEMENT_COOLDOWN));
+                    case avalanche::VoteStatus::Accepted:
+                        if (!g_avalanche->withPeerManager(
+                                [&](avalanche::PeerManager &pm) {
+                                    pm.registerProof(
+                                        proof,
+                                        avalanche::PeerManager::
+                                            RegistrationMode::FORCE_ACCEPT);
+                                    return pm.forPeer(
+                                        proofid,
+                                        [&](const avalanche::Peer &peer) {
+                                            pm.updateNextPossibleConflictTime(
+                                                peer.peerid,
+                                                nextCooldownTimePoint);
+                                            if (u.getStatus() ==
+                                                avalanche::VoteStatus::
+                                                    Finalized) {
+                                                pm.setFinalized(peer.peerid);
+                                            }
+                                            // Only fail if the peer was not
+                                            // created
+                                            return true;
+                                        });
+                                })) {
+                            LogPrint(BCLog::AVALANCHE,
+                                     "ERROR: Failed to accept proof: %s\n",
+                                     proofid.GetHex());
+                        }
+                        break;
+                }
             }
-        }
 
-        if (blockUpdates.size()) {
-            for (avalanche::BlockUpdate &u : blockUpdates) {
-                CBlockIndex *pindex = u.getVoteItem();
+            if (auto pitem = std::get_if<const CBlockIndex *>(&item)) {
+                CBlockIndex *pindex = const_cast<CBlockIndex *>(*pitem);
+
+                shouldActivateBestChain = true;
 
                 logVoteUpdate(u, "block", pindex->GetBlockHash());
 
@@ -5292,7 +5307,9 @@ void PeerManagerImpl::ProcessMessage(
                         break;
                 }
             }
+        }
 
+        if (shouldActivateBestChain) {
             BlockValidationState state;
             if (!m_chainman.ActiveChainstate().ActivateBestChain(config,
                                                                  state)) {

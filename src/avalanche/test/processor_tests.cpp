@@ -217,12 +217,11 @@ struct AvalancheTestingSetup : public TestChain100Setup {
     uint64_t getRound() const { return AvalancheTest::getRound(*m_processor); }
 
     bool registerVotes(NodeId nodeid, const avalanche::Response &response,
-                       std::vector<avalanche::BlockUpdate> &blockUpdates) {
+                       std::vector<avalanche::VoteItemUpdate> &updates) {
         int banscore;
         std::string error;
-        std::vector<avalanche::ProofUpdate> proofUpdates;
-        return m_processor->registerVotes(nodeid, response, blockUpdates,
-                                          proofUpdates, banscore, error);
+        return m_processor->registerVotes(nodeid, response, updates, banscore,
+                                          error);
     }
 
     void setArg(std::string key, std::string value) {
@@ -235,7 +234,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
 struct BlockProvider {
     AvalancheTestingSetup *fixture;
 
-    std::vector<BlockUpdate> updates;
+    std::vector<avalanche::VoteItemUpdate> updates;
     uint32_t invType;
 
     BlockProvider(AvalancheTestingSetup *_fixture)
@@ -257,9 +256,8 @@ struct BlockProvider {
     bool registerVotes(NodeId nodeid, const avalanche::Response &response,
                        std::string &error) {
         int banscore;
-        std::vector<avalanche::ProofUpdate> proofUpdates;
-        return fixture->m_processor->registerVotes(
-            nodeid, response, updates, proofUpdates, banscore, error);
+        return fixture->m_processor->registerVotes(nodeid, response, updates,
+                                                   banscore, error);
     }
     bool registerVotes(NodeId nodeid, const avalanche::Response &response) {
         std::string error;
@@ -289,12 +287,16 @@ struct BlockProvider {
     void invalidateItem(CBlockIndex *pindex) {
         pindex->nStatus = pindex->nStatus.withFailed();
     }
+
+    const CBlockIndex *fromAnyVoteItem(const AnyVoteItem &item) {
+        return std::get<const CBlockIndex *>(item);
+    }
 };
 
 struct ProofProvider {
     AvalancheTestingSetup *fixture;
 
-    std::vector<ProofUpdate> updates;
+    std::vector<avalanche::VoteItemUpdate> updates;
     uint32_t invType;
 
     ProofProvider(AvalancheTestingSetup *_fixture)
@@ -315,9 +317,8 @@ struct ProofProvider {
     bool registerVotes(NodeId nodeid, const avalanche::Response &response,
                        std::string &error) {
         int banscore;
-        std::vector<avalanche::BlockUpdate> blockUpdates;
-        return fixture->m_processor->registerVotes(
-            nodeid, response, blockUpdates, updates, banscore, error);
+        return fixture->m_processor->registerVotes(nodeid, response, updates,
+                                                   banscore, error);
     }
     bool registerVotes(NodeId nodeid, const avalanche::Response &response) {
         std::string error;
@@ -350,6 +351,10 @@ struct ProofProvider {
                            avalanche::PeerManager::RejectionMode::INVALIDATE);
         });
     }
+
+    const ProofRef fromAnyVoteItem(const AnyVoteItem &item) {
+        return std::get<const ProofRef>(item);
+    }
 };
 
 } // namespace
@@ -359,21 +364,22 @@ BOOST_FIXTURE_TEST_SUITE(processor_tests, AvalancheTestingSetup)
 // FIXME A std::tuple can be used instead of boost::mpl::list after boost 1.67
 using VoteItemProviders = boost::mpl::list<BlockProvider, ProofProvider>;
 
-BOOST_AUTO_TEST_CASE(block_update) {
-    CBlockIndex index;
-    CBlockIndex *pindex = &index;
+BOOST_AUTO_TEST_CASE_TEMPLATE(voteitemupdate, P, VoteItemProviders) {
+    P provider(this);
 
     std::set<VoteStatus> status{
         VoteStatus::Invalid,   VoteStatus::Rejected, VoteStatus::Accepted,
         VoteStatus::Finalized, VoteStatus::Stale,
     };
 
+    auto item = provider.buildVoteItem();
+
     for (auto s : status) {
-        BlockUpdate abu(pindex, s);
+        VoteItemUpdate itemUpdate(item, s);
         // The use of BOOST_CHECK instead of BOOST_CHECK_EQUAL prevents from
         // having to define operator<<() for each argument type.
-        BOOST_CHECK(abu.getVoteItem() == pindex);
-        BOOST_CHECK(abu.getStatus() == s);
+        BOOST_CHECK(provider.fromAnyVoteItem(itemUpdate.getVoteItem()) == item);
+        BOOST_CHECK(itemUpdate.getStatus() == s);
     }
 }
 
@@ -507,7 +513,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(vote_item_register, P, VoteItemProviders) {
     // Now finalize the decision.
     registerNewVote(next(resp));
     BOOST_CHECK_EQUAL(updates.size(), 1);
-    BOOST_CHECK(updates[0].getVoteItem() == item);
+    BOOST_CHECK(provider.fromAnyVoteItem(updates[0].getVoteItem()) == item);
     BOOST_CHECK(updates[0].getStatus() == VoteStatus::Finalized);
     updates.clear();
 
@@ -537,7 +543,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(vote_item_register, P, VoteItemProviders) {
     registerNewVote(next(resp));
     BOOST_CHECK(!m_processor->isAccepted(item));
     BOOST_CHECK_EQUAL(updates.size(), 1);
-    BOOST_CHECK(updates[0].getVoteItem() == item);
+    BOOST_CHECK(provider.fromAnyVoteItem(updates[0].getVoteItem()) == item);
     BOOST_CHECK(updates[0].getStatus() == VoteStatus::Rejected);
     updates.clear();
 
@@ -558,7 +564,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(vote_item_register, P, VoteItemProviders) {
     registerNewVote(next(resp));
     BOOST_CHECK(!m_processor->isAccepted(item));
     BOOST_CHECK_EQUAL(updates.size(), 1);
-    BOOST_CHECK(updates[0].getVoteItem() == item);
+    BOOST_CHECK(provider.fromAnyVoteItem(updates[0].getVoteItem()) == item);
     BOOST_CHECK(updates[0].getStatus() == VoteStatus::Invalid);
     updates.clear();
 
@@ -639,7 +645,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(multi_item_register, P, VoteItemProviders) {
     // Next vote will finalize item A.
     BOOST_CHECK(provider.registerVotes(firstNodeid, next(resp)));
     BOOST_CHECK_EQUAL(updates.size(), 1);
-    BOOST_CHECK(updates[0].getVoteItem() == itemA);
+    BOOST_CHECK(provider.fromAnyVoteItem(updates[0].getVoteItem()) == itemA);
     BOOST_CHECK(updates[0].getStatus() == VoteStatus::Finalized);
     updates.clear();
 
@@ -652,7 +658,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(multi_item_register, P, VoteItemProviders) {
     // Next vote will finalize item B.
     BOOST_CHECK(provider.registerVotes(secondNodeid, resp));
     BOOST_CHECK_EQUAL(updates.size(), 1);
-    BOOST_CHECK(updates[0].getVoteItem() == itemB);
+    BOOST_CHECK(provider.fromAnyVoteItem(updates[0].getVoteItem()) == itemB);
     BOOST_CHECK(updates[0].getStatus() == VoteStatus::Finalized);
     updates.clear();
 
@@ -969,7 +975,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_count, P, VoteItemProviders) {
 }
 
 BOOST_AUTO_TEST_CASE(quorum_diversity) {
-    std::vector<BlockUpdate> updates;
+    std::vector<VoteItemUpdate> updates;
 
     CBlock block = CreateAndProcessBlock({}, CScript());
     const BlockHash blockHash = block.GetHash();
@@ -1086,7 +1092,7 @@ BOOST_AUTO_TEST_CASE(event_loop) {
     auto queryTime =
         std::chrono::steady_clock::now() + std::chrono::milliseconds(100);
 
-    std::vector<BlockUpdate> updates;
+    std::vector<VoteItemUpdate> updates;
     // Only the first node answers, so it's the only one that gets polled again
     BOOST_CHECK(registerVotes(nodeid, {queryRound, 100, {Vote(0, blockHash)}},
                               updates));
@@ -1647,7 +1653,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(voting_parameters, P, VoteItemProviders) {
         Response resp = {getRound(), 0, {Vote(-1, itemid)}};
         registerNewVote(next(resp));
         BOOST_CHECK_EQUAL(updates.size(), 1);
-        BOOST_CHECK(updates[0].getVoteItem() == item);
+        BOOST_CHECK(provider.fromAnyVoteItem(updates[0].getVoteItem()) == item);
         BOOST_CHECK(updates[0].getStatus() == VoteStatus::Stale);
         updates.clear();
 
@@ -1703,7 +1709,8 @@ BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
 
         for (auto &update : provider.updates) {
             if (update.getStatus() == VoteStatus::Finalized &&
-                update.getVoteItem()->GetBlockHash() == eleventhBlockHash) {
+                provider.fromAnyVoteItem(update.getVoteItem())
+                        ->GetBlockHash() == eleventhBlockHash) {
                 eleventhBlockFinalized = true;
             }
         }
@@ -1767,7 +1774,8 @@ BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
 
         for (auto &update : provider.updates) {
             if (update.getStatus() == VoteStatus::Finalized &&
-                update.getVoteItem()->GetBlockHash() == tiphash) {
+                provider.fromAnyVoteItem(update.getVoteItem())
+                        ->GetBlockHash() == tiphash) {
                 tipFinalized = true;
             }
         }

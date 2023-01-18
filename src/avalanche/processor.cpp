@@ -446,8 +446,7 @@ void Processor::sendResponse(CNode *pfrom, Response response) const {
 }
 
 bool Processor::registerVotes(NodeId nodeid, const Response &response,
-                              std::vector<BlockUpdate> &blockUpdates,
-                              std::vector<ProofUpdate> &proofUpdates,
+                              std::vector<VoteItemUpdate> &updates,
                               int &banscore, std::string &error) {
     {
         // Save the time at which we can query again.
@@ -494,104 +493,97 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
         }
     }
 
-    std::map<CBlockIndex *, Vote> responseIndex;
-    std::map<ProofRef, Vote, ProofRefComparatorByAddress> responseProof;
+    auto getVoteItemFromInv = [&](const CInv &inv) -> AnyVoteItem {
+        if (inv.IsMsgBlk()) {
+            return WITH_LOCK(cs_main,
+                             return chainman.m_blockman.LookupBlockIndex(
+                                 BlockHash(inv.hash)));
+        }
+        if (inv.IsMsgProof()) {
+            return WITH_LOCK(cs_peerManager,
+                             return peerManager->getProof(ProofId(inv.hash)));
+        }
+
+        return {nullptr};
+    };
+
+    std::map<AnyVoteItem, Vote, VoteMapComparator> responseItems;
 
     // At this stage we are certain that invs[i] matches votes[i], so we can use
     // the inv type to retrieve what is being voted on.
     for (size_t i = 0; i < size; i++) {
-        if (invs[i].IsMsgBlk()) {
-            CBlockIndex *pindex =
-                WITH_LOCK(cs_main, return chainman.m_blockman.LookupBlockIndex(
-                                       BlockHash(votes[i].GetHash())));
-            if (!pindex) {
-                // This should not happen, but just in case...
-                continue;
-            }
+        auto item = getVoteItemFromInv(invs[i]);
 
-            AnyVoteItem item{pindex};
-            if (!isWorthPolling(item)) {
-                // There is no point polling this block.
-                continue;
-            }
-
-            responseIndex.insert(std::make_pair(pindex, votes[i]));
-        }
-
-        if (invs[i].IsMsgProof()) {
-            const ProofId proofid(votes[i].GetHash());
-
-            ProofRef proof = WITH_LOCK(cs_peerManager,
-                                       return peerManager->getProof(proofid));
-            if (!proof) {
-                continue;
-            }
-
-            AnyVoteItem item{proof};
-            if (!isWorthPolling(item)) {
-                continue;
-            }
-
-            responseProof.insert(std::make_pair(proof, votes[i]));
-        }
-    }
-
-    // Thanks to C++14 generic lambdas, we can apply the same logic to various
-    // parameter types sharing the same interface.
-    auto registerVoteItems = [&](auto voteRecordsWriteView, auto &updates,
-                                 auto responseItems) {
-        // Register votes.
-        for (const auto &p : responseItems) {
-            auto item = p.first;
-            const Vote &v = p.second;
-
-            auto it = voteRecordsWriteView->find(item);
-            if (it == voteRecordsWriteView.end()) {
-                // We are not voting on that item anymore.
-                continue;
-            }
-
-            auto &vr = it->second;
-            if (!vr.registerVote(nodeid, v.GetError())) {
-                if (vr.isStale(staleVoteThreshold, staleVoteFactor)) {
-                    updates.emplace_back(std::move(item), VoteStatus::Stale);
-
-                    // Just drop stale votes. If we see this item again, we'll
-                    // do a new vote.
-                    voteRecordsWriteView->erase(it);
-                }
-                // This vote did not provide any extra information, move on.
-                continue;
-            }
-
-            if (!vr.hasFinalized()) {
-                // This item has not been finalized, so we have nothing more to
-                // do.
-                updates.emplace_back(std::move(item),
-                                     vr.isAccepted() ? VoteStatus::Accepted
-                                                     : VoteStatus::Rejected);
-                continue;
-            }
-
-            // We just finalized a vote. If it is valid, then let the caller
-            // know. Either way, remove the item from the map.
-            updates.emplace_back(std::move(item), vr.isAccepted()
-                                                      ? VoteStatus::Finalized
-                                                      : VoteStatus::Invalid);
-            voteRecordsWriteView->erase(it);
-        }
-    };
-
-    registerVoteItems(voteRecords.getWriteView(), blockUpdates, responseIndex);
-    registerVoteItems(voteRecords.getWriteView(), proofUpdates, responseProof);
-
-    for (const auto &blockUpdate : blockUpdates) {
-        if (blockUpdate.getStatus() != VoteStatus::Finalized) {
+        if (isNull(item)) {
+            // This should not happen, but just in case...
             continue;
         }
 
+        if (!isWorthPolling(item)) {
+            // There is no point polling this item.
+            continue;
+        }
+
+        responseItems.insert(std::make_pair(std::move(item), votes[i]));
+    }
+
+    auto voteRecordsWriteView = voteRecords.getWriteView();
+
+    // Register votes.
+    for (const auto &p : responseItems) {
+        auto item = p.first;
+        const Vote &v = p.second;
+
+        auto it = voteRecordsWriteView->find(item);
+        if (it == voteRecordsWriteView.end()) {
+            // We are not voting on that item anymore.
+            continue;
+        }
+
+        auto &vr = it->second;
+        if (!vr.registerVote(nodeid, v.GetError())) {
+            if (vr.isStale(staleVoteThreshold, staleVoteFactor)) {
+                updates.emplace_back(std::move(item), VoteStatus::Stale);
+
+                // Just drop stale votes. If we see this item again, we'll
+                // do a new vote.
+                voteRecordsWriteView->erase(it);
+            }
+            // This vote did not provide any extra information, move on.
+            continue;
+        }
+
+        if (!vr.hasFinalized()) {
+            // This item has not been finalized, so we have nothing more to
+            // do.
+            updates.emplace_back(std::move(item), vr.isAccepted()
+                                                      ? VoteStatus::Accepted
+                                                      : VoteStatus::Rejected);
+            continue;
+        }
+
+        // We just finalized a vote. If it is valid, then let the caller
+        // know. Either way, remove the item from the map.
+        updates.emplace_back(std::move(item), vr.isAccepted()
+                                                  ? VoteStatus::Finalized
+                                                  : VoteStatus::Invalid);
+        voteRecordsWriteView->erase(it);
+    }
+
+    // FIXME This doesn't belong here as it has nothing to do with vote
+    // registration.
+    for (const auto &update : updates) {
+        if (update.getStatus() != VoteStatus::Finalized) {
+            continue;
+        }
+
+        const auto &item = update.getVoteItem();
+        if (!std::holds_alternative<const CBlockIndex *>(item)) {
+            continue;
+        }
+
+        const CBlockIndex *pindex = std::get<const CBlockIndex *>(item);
         LOCK(cs_finalizationTip);
-        CBlockIndex *pindex = blockUpdate.getVoteItem();
         if (finalizationTip &&
             finalizationTip->GetAncestor(pindex->nHeight) == pindex) {
             continue;

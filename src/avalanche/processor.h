@@ -67,24 +67,19 @@ enum struct VoteStatus : uint8_t {
     Stale,
 };
 
-template <typename VoteItem> class VoteItemUpdate {
-    VoteItem item;
+using AnyVoteItem = std::variant<const ProofRef, const CBlockIndex *>;
+
+class VoteItemUpdate {
+    AnyVoteItem item;
     VoteStatus status;
 
 public:
-    VoteItemUpdate(VoteItem itemIn, VoteStatus statusIn)
+    VoteItemUpdate(AnyVoteItem itemIn, VoteStatus statusIn)
         : item(std::move(itemIn)), status(statusIn) {}
 
     const VoteStatus &getStatus() const { return status; }
-
-    VoteItem getVoteItem() { return item; }
-    const VoteItem getVoteItem() const { return item; }
+    const AnyVoteItem &getVoteItem() const { return item; }
 };
-
-using BlockUpdate = VoteItemUpdate<CBlockIndex *>;
-using ProofUpdate = VoteItemUpdate<ProofRef>;
-
-using AnyVoteItem = std::variant<const ProofRef, const CBlockIndex *>;
 
 struct VoteMapComparator {
     bool operator()(const AnyVoteItem &lhs, const AnyVoteItem &rhs) const {
@@ -232,8 +227,7 @@ public:
     // TODO: Refactor the API to remove the dependency on avalanche/protocol.h
     void sendResponse(CNode *pfrom, Response response) const;
     bool registerVotes(NodeId nodeid, const Response &response,
-                       std::vector<BlockUpdate> &blockUpdates,
-                       std::vector<ProofUpdate> &proofUpdates, int &banscore,
+                       std::vector<VoteItemUpdate> &updates, int &banscore,
                        std::string &error);
 
     template <typename Callable> auto withPeerManager(Callable &&func) const {
