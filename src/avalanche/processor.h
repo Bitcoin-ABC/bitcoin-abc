@@ -210,7 +210,7 @@ class Processor final : public NetEventsInterface {
     std::unique_ptr<interfaces::Handler> chainNotificationsHandler;
 
     mutable Mutex cs_finalizationTip;
-    CBlockIndex *finalizationTip GUARDED_BY(cs_finalizationTip){nullptr};
+    const CBlockIndex *finalizationTip GUARDED_BY(cs_finalizationTip){nullptr};
 
     Processor(Config avaconfig, interfaces::Chain &chain, CConnman *connmanIn,
               ChainstateManager &chainman, CScheduler &scheduler,
