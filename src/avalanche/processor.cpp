@@ -932,12 +932,12 @@ std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
 bool Processor::IsWorthPolling::operator()(const CBlockIndex *pindex) const {
     AssertLockNotHeld(cs_main);
 
+    LOCK(cs_main);
+
     if (pindex->nStatus.isInvalid()) {
         // No point polling invalid blocks.
         return false;
     }
-
-    LOCK(cs_main);
 
     if (WITH_LOCK(processor.cs_finalizationTip,
                   return processor.finalizationTip &&
