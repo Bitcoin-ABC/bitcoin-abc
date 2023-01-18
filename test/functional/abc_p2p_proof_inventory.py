@@ -174,7 +174,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         proofs_keys = [self.generate_proof(self.nodes[0]) for _ in self.nodes]
         proofids = set([proof_key[1].proofid for proof_key in proofs_keys])
         # generate_proof does not sync, so do it manually
-        self.sync_all()
+        self.sync_blocks()
 
         def restart_nodes_with_proof(nodes, extra_args=None):
             for node in nodes:
@@ -194,7 +194,7 @@ class ProofInventoryTest(BitcoinTestFramework):
           for j in range(node.index)] for node in self.nodes]
 
         # Connect a block to make the proofs added to our pool
-        self.generate(self.nodes[0], 1)
+        self.generate(self.nodes[0], 1, sync_fun=self.sync_blocks)
 
         self.log.info("Nodes should eventually get the proof from their peer")
         self.sync_proofs(self.nodes[:-1])

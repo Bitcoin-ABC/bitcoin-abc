@@ -190,7 +190,7 @@ class AvalancheProofTest(BitcoinTestFramework):
         ])
         # Mine a block to trigger an attempt at registering the proof
         self.connect_nodes(1, node.index)
-        self.sync_all()
+        self.sync_blocks()
         self.generate(self.nodes[1], 1, sync_fun=self.no_op)
         wait_for_proof(self.nodes[1], proofid_hex, expect_status="immature")
 

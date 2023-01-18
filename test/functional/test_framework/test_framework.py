@@ -698,6 +698,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
     def sync_all(self, nodes=None):
         self.sync_blocks(nodes)
         self.sync_mempools(nodes)
+        self.sync_proofs(nodes)
 
     def wait_until(self, test_function, timeout=60):
         return wait_until_helper(test_function, timeout=timeout,
