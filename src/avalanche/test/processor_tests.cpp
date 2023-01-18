@@ -633,7 +633,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(multi_item_register, P, VoteItemProviders) {
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(updates[0].getVoteItem() == itemA);
     BOOST_CHECK(updates[0].getStatus() == VoteStatus::Finalized);
-    updates = {};
+    updates.clear();
 
     // We do not vote on A anymore.
     invs = getInvsForNextPoll();
@@ -646,7 +646,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(multi_item_register, P, VoteItemProviders) {
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(updates[0].getVoteItem() == itemB);
     BOOST_CHECK(updates[0].getStatus() == VoteStatus::Finalized);
-    updates = {};
+    updates.clear();
 
     // There is nothing left to vote on.
     invs = getInvsForNextPoll();
