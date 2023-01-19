@@ -14,7 +14,6 @@
 #include <key_io.h> // For DecodeSecret
 #include <net.h>
 #include <netmessagemaker.h>
-#include <reverse_iterator.h>
 #include <scheduler.h>
 #include <util/bitmanip.h>
 #include <util/moneystr.h>
