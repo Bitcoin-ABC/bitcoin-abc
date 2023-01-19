@@ -96,6 +96,8 @@ struct AvalancheTestingSetup : public TestChain100Setup {
     // The master private key we delegate to.
     CKey masterpriv;
 
+    std::unordered_set<std::string> m_overridden_args;
+
     AvalancheTestingSetup()
         : TestChain100Setup(), config(GetConfig()),
           masterpriv(CKey::MakeCompressedKey()) {
@@ -110,26 +112,26 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         m_node.chain = interfaces::MakeChain(m_node, config.GetChainParams());
 
         // Get the processor ready.
-        gArgs.ForceSetArg("-avaminquorumstake", "0");
-        gArgs.ForceSetArg("-avaminquorumconnectedstakeratio", "0");
-        gArgs.ForceSetArg("avaminavaproofsnodecount", "0");
+        setArg("-avaminquorumstake", "0");
+        setArg("-avaminquorumconnectedstakeratio", "0");
+        setArg("avaminavaproofsnodecount", "0");
+        setArg("-avaproofstakeutxoconfirmations", "1");
         bilingual_str error;
         m_processor = Processor::MakeProcessor(
             *m_node.args, *m_node.chain, m_node.connman.get(),
             *Assert(m_node.chainman), *m_node.scheduler, error);
         BOOST_CHECK(m_processor);
-
-        gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "1");
     }
 
     ~AvalancheTestingSetup() {
         m_connman->ClearNodes();
         SyncWithValidationInterfaceQueue();
 
-        gArgs.ClearForcedArg("-avaproofstakeutxoconfirmations");
-        gArgs.ClearForcedArg("-avaminquorumstake");
-        gArgs.ClearForcedArg("-avaminquorumconnectedstakeratio");
-        gArgs.ClearForcedArg("-avaminavaproofsnodecount");
+        ArgsManager &argsman = *Assert(m_node.args);
+        for (const std::string &key : m_overridden_args) {
+            argsman.ClearForcedArg(key);
+        }
+        m_overridden_args.clear();
     }
 
     CNode *ConnectNode(ServiceFlags nServices) {
@@ -221,6 +223,12 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         std::vector<avalanche::ProofUpdate> proofUpdates;
         return m_processor->registerVotes(nodeid, response, blockUpdates,
                                           proofUpdates, banscore, error);
+    }
+
+    void setArg(std::string key, std::string value) {
+        ArgsManager &argsman = *Assert(m_node.args);
+        argsman.ForceSetArg(key, std::move(value));
+        m_overridden_args.emplace(std::move(key));
     }
 };
 
@@ -850,19 +858,18 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(dont_poll_invalid_item, P, VoteItemProviders) {
 BOOST_TEST_DECORATOR(*boost::unit_test::timeout(60))
 BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_timeout, P, VoteItemProviders) {
     P provider(this);
-    ArgsManager argsman;
     ChainstateManager &chainman = *Assert(m_node.chainman);
 
     auto queryTimeDuration = std::chrono::milliseconds(10);
-    argsman.ForceSetArg("-avatimeout", ToString(queryTimeDuration.count()));
-    argsman.ForceSetArg("-avaminquorumstake", "0");
-    argsman.ForceSetArg("-avaminquorumconnectedstakeratio", "0");
-    argsman.ForceSetArg("avaminavaproofsnodecount", "0");
+    setArg("-avatimeout", ToString(queryTimeDuration.count()));
+    setArg("-avaminquorumstake", "0");
+    setArg("-avaminquorumconnectedstakeratio", "0");
+    setArg("avaminavaproofsnodecount", "0");
 
     bilingual_str error;
-    m_processor =
-        Processor::MakeProcessor(argsman, *m_node.chain, m_node.connman.get(),
-                                 chainman, *m_node.scheduler, error);
+    m_processor = Processor::MakeProcessor(*m_node.args, *m_node.chain,
+                                           m_node.connman.get(), chainman,
+                                           *m_node.scheduler, error);
 
     const auto item = provider.buildVoteItem();
     const auto itemid = provider.getVoteItemId(item);
@@ -1191,8 +1198,8 @@ BOOST_AUTO_TEST_CASE(add_proof_to_reconcile) {
 }
 
 BOOST_AUTO_TEST_CASE(proof_record) {
-    gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "2");
-    gArgs.ForceSetArg("-avalancheconflictingproofcooldown", "0");
+    setArg("-avaproofstakeutxoconfirmations", "2");
+    setArg("-avalancheconflictingproofcooldown", "0");
 
     BOOST_CHECK(!m_processor->isAccepted(nullptr));
     BOOST_CHECK_EQUAL(m_processor->getConfidence(nullptr), -1);
@@ -1272,16 +1279,13 @@ BOOST_AUTO_TEST_CASE(proof_record) {
     BOOST_CHECK_EQUAL(m_processor->getConfidence(conflictingProof), 0);
     BOOST_CHECK_EQUAL(m_processor->getConfidence(validProof), 0);
     BOOST_CHECK_EQUAL(m_processor->getConfidence(immatureProof), -1);
-
-    gArgs.ClearForcedArg("-avaproofstakeutxoconfirmations");
-    gArgs.ClearForcedArg("-avalancheconflictingproofcooldown");
 }
 
 BOOST_AUTO_TEST_CASE(quorum_detection) {
     // Set min quorum parameters for our test
     int minStake = 400'000'000;
-    gArgs.ForceSetArg("-avaminquorumstake", ToString(minStake));
-    gArgs.ForceSetArg("-avaminquorumconnectedstakeratio", "0.5");
+    setArg("-avaminquorumstake", ToString(minStake));
+    setArg("-avaminquorumconnectedstakeratio", "0.5");
 
     // Create a new processor with our given quorum parameters
     const auto currency = Currency::get();
@@ -1293,8 +1297,8 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
     const CKey key = CKey::MakeCompressedKey();
     auto localProof =
         buildRandomProof(active_chainstate, minScore / 4, 100, key);
-    gArgs.ForceSetArg("-avamasterkey", EncodeSecret(key));
-    gArgs.ForceSetArg("-avaproof", localProof->ToHex());
+    setArg("-avamasterkey", EncodeSecret(key));
+    setArg("-avaproof", localProof->ToHex());
 
     bilingual_str error;
     ChainstateManager &chainman = *Assert(m_node.chainman);
@@ -1447,11 +1451,6 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
     });
     // There is no node left
     BOOST_CHECK(!m_processor->isQuorumEstablished());
-
-    gArgs.ClearForcedArg("-avamasterkey");
-    gArgs.ClearForcedArg("-avaproof");
-    gArgs.ClearForcedArg("-avaminquorumstake");
-    gArgs.ClearForcedArg("-avaminquorumconnectedstakeratio");
 }
 
 BOOST_AUTO_TEST_CASE(quorum_detection_parameter_validation) {
@@ -1491,9 +1490,9 @@ BOOST_AUTO_TEST_CASE(quorum_detection_parameter_validation) {
     // succeeds or fails as expected
     for (const auto &[stake, stakeRatio, numProofsMessages, success] :
          testCases) {
-        gArgs.ForceSetArg("-avaminquorumstake", stake);
-        gArgs.ForceSetArg("-avaminquorumconnectedstakeratio", stakeRatio);
-        gArgs.ForceSetArg("-avaminavaproofsnodecount", numProofsMessages);
+        setArg("-avaminquorumstake", stake);
+        setArg("-avaminquorumconnectedstakeratio", stakeRatio);
+        setArg("-avaminavaproofsnodecount", numProofsMessages);
 
         bilingual_str error;
         std::unique_ptr<Processor> processor = Processor::MakeProcessor(
@@ -1510,26 +1509,20 @@ BOOST_AUTO_TEST_CASE(quorum_detection_parameter_validation) {
             BOOST_CHECK(error.original != "");
         }
     }
-
-    gArgs.ClearForcedArg("-avaminquorumstake");
-    gArgs.ClearForcedArg("-avaminquorumconnectedstakeratio");
-    gArgs.ClearForcedArg("-avaminavaproofsnodecount");
 }
 
 BOOST_AUTO_TEST_CASE(min_avaproofs_messages) {
-    ArgsManager argsman;
-    argsman.ForceSetArg("-avaminquorumstake", "0");
-    argsman.ForceSetArg("-avaminquorumconnectedstakeratio", "0");
+    setArg("-avaminquorumstake", "0");
+    setArg("-avaminquorumconnectedstakeratio", "0");
 
     ChainstateManager &chainman = *Assert(m_node.chainman);
 
     auto checkMinAvaproofsMessages = [&](int64_t minAvaproofsMessages) {
-        argsman.ForceSetArg("-avaminavaproofsnodecount",
-                            ToString(minAvaproofsMessages));
+        setArg("-avaminavaproofsnodecount", ToString(minAvaproofsMessages));
 
         bilingual_str error;
         auto processor = Processor::MakeProcessor(
-            argsman, *m_node.chain, m_node.connman.get(), chainman,
+            *m_node.args, *m_node.chain, m_node.connman.get(), chainman,
             *m_node.scheduler, error);
 
         auto addNode = [&](NodeId nodeid) {
@@ -1582,9 +1575,9 @@ BOOST_AUTO_TEST_CASE(min_avaproofs_messages) {
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(voting_parameters, P, VoteItemProviders) {
     // Check that setting voting parameters has the expected effect
-    gArgs.ForceSetArg("-avastalevotethreshold",
-                      ToString(AVALANCHE_VOTE_STALE_MIN_THRESHOLD));
-    gArgs.ForceSetArg("-avastalevotefactor", "2");
+    setArg("-avastalevotethreshold",
+           ToString(AVALANCHE_VOTE_STALE_MIN_THRESHOLD));
+    setArg("-avastalevotefactor", "2");
 
     const std::vector<std::tuple<int, int>> testCases = {
         // {number of yes votes, number of neutral votes}
@@ -1662,9 +1655,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(voting_parameters, P, VoteItemProviders) {
         invs = getInvsForNextPoll();
         BOOST_CHECK_EQUAL(invs.size(), 0);
     }
-
-    gArgs.ClearForcedArg("-avastalevotethreshold");
-    gArgs.ClearForcedArg("-avastalevotefactor");
 }
 
 BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
