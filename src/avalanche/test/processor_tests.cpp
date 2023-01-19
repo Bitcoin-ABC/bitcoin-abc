@@ -1081,7 +1081,8 @@ BOOST_AUTO_TEST_CASE(event_loop) {
 
     std::vector<BlockUpdate> updates;
     // Only the first node answers, so it's the only one that gets polled again
-    registerVotes(nodeid, {queryRound, 100, {Vote(0, blockHash)}}, updates);
+    BOOST_CHECK(registerVotes(nodeid, {queryRound, 100, {Vote(0, blockHash)}},
+                              updates));
 
     for (int i = 0; i < 10000; i++) {
         // We make sure that we do not get a request before queryTime.
