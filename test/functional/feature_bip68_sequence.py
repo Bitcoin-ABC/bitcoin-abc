@@ -43,12 +43,10 @@ class BIP68Test(BitcoinTestFramework):
         self.extra_args = [
             [
                 "-noparkdeepreorg",
-                "-maxreorgdepth=-1",
                 "-acceptnonstdtxn=1",
             ],
             [
                 "-acceptnonstdtxn=0",
-                "-maxreorgdepth=-1",
                 "-automaticunparking=1",
             ]
         ]

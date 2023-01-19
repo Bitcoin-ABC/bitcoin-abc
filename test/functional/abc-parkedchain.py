@@ -19,7 +19,6 @@ class ParkedChainTest(BitcoinTestFramework):
             ],
             [
                 "-automaticunparking=1",
-                "-maxreorgdepth=-1"
             ]
         ]
 

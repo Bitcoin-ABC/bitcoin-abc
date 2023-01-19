@@ -232,29 +232,6 @@ static RPCHelpMan getbestblockhash() {
     };
 }
 
-RPCHelpMan getfinalizedblockhash() {
-    return RPCHelpMan{
-        "getfinalizedblockhash",
-        "Returns the hash of the currently finalized block\n",
-        {},
-        RPCResult{RPCResult::Type::STR_HEX, "", "the block hash, hex-encoded"},
-        RPCExamples{HelpExampleCli("getfinalizedblockhash", "") +
-                    HelpExampleRpc("getfinalizedblockhash", "")},
-        [&](const RPCHelpMan &self, const Config &config,
-            const JSONRPCRequest &request) -> UniValue {
-            ChainstateManager &chainman = EnsureAnyChainman(request.context);
-            LOCK(cs_main);
-            CChainState &active_chainstate = chainman.ActiveChainstate();
-            const CBlockIndex *blockIndexFinalized =
-                active_chainstate.GetFinalizedBlock();
-            if (blockIndexFinalized) {
-                return blockIndexFinalized->GetBlockHash().GetHex();
-            }
-            return UniValue(UniValue::VSTR);
-        },
-    };
-}
-
 void RPCNotifyBlockChange(const CBlockIndex *pindex) {
     if (pindex) {
         LOCK(cs_blockchange);
@@ -2201,53 +2178,6 @@ static RPCHelpMan preciousblock() {
     };
 }
 
-RPCHelpMan finalizeblock() {
-    return RPCHelpMan{
-        "finalizeblock",
-        "Treats a block as final. It cannot be reorged. Any chain\n"
-        "that does not contain this block is invalid. Used on a less\n"
-        "work chain, it can effectively PUT YOU OUT OF CONSENSUS.\n"
-        "USE WITH CAUTION!\n",
-        {
-            {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
-             "the hash of the block to mark as invalid"},
-        },
-        RPCResult{RPCResult::Type::NONE, "", ""},
-        RPCExamples{HelpExampleCli("finalizeblock", "\"blockhash\"") +
-                    HelpExampleRpc("finalizeblock", "\"blockhash\"")},
-        [&](const RPCHelpMan &self, const Config &config,
-            const JSONRPCRequest &request) -> UniValue {
-            std::string strHash = request.params[0].get_str();
-            BlockHash hash(uint256S(strHash));
-            BlockValidationState state;
-
-            ChainstateManager &chainman = EnsureAnyChainman(request.context);
-            CBlockIndex *pblockindex = nullptr;
-            {
-                LOCK(cs_main);
-                pblockindex = chainman.m_blockman.LookupBlockIndex(hash);
-                if (!pblockindex) {
-                    throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                                       "Block not found");
-                }
-            } // end of locked cs_main scope
-
-            chainman.ActiveChainstate().FinalizeBlock(config, state,
-                                                      pblockindex);
-
-            if (state.IsValid()) {
-                chainman.ActiveChainstate().ActivateBestChain(config, state);
-            }
-
-            if (!state.IsValid()) {
-                throw JSONRPCError(RPC_DATABASE_ERROR, state.ToString());
-            }
-
-            return NullUniValue;
-        },
-    };
-}
-
 static RPCHelpMan invalidateblock() {
     return RPCHelpMan{
         "invalidateblock",
@@ -3437,8 +3367,6 @@ void RegisterBlockchainRPCCommands(CRPCTable &t) {
         { "blockchain",         getblockfilter,                    },
 
         /* Not shown in help */
-        { "hidden",             getfinalizedblockhash,             },
-        { "hidden",             finalizeblock,                     },
         { "hidden",             invalidateblock,                   },
         { "hidden",             parkblock,                         },
         { "hidden",             reconsiderblock,                   },

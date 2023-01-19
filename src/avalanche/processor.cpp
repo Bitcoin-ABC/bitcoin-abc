@@ -988,11 +988,6 @@ bool Processor::IsWorthPolling::operator()(const CBlockIndex *pindex) const {
         return false;
     }
 
-    if (processor.chainman.ActiveChainstate().IsBlockFinalized(pindex)) {
-        // There is no point polling finalized block.
-        return false;
-    }
-
     return true;
 }
 

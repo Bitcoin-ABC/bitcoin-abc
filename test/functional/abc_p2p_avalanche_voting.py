@@ -43,7 +43,6 @@ class AvalancheTest(BitcoinTestFramework):
                 '-avaminquorumstake=0',
                 '-avaminavaproofsnodecount=0',
                 '-noparkdeepreorg',
-                '-maxreorgdepth=-1',
                 '-whitelist=noban@127.0.0.1',
             ],
         ]

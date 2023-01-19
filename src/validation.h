@@ -94,15 +94,6 @@ static const bool DEFAULT_PEERBLOOMFILTERS = true;
 
 /** Default for -stopatheight */
 static const int DEFAULT_STOPATHEIGHT = 0;
-/** Default for -maxreorgdepth */
-static const int DEFAULT_MAX_REORG_DEPTH = 10;
-/**
- * Default for -finalizationdelay
- * This is the minimum time between a block header reception and the block
- * finalization.
- * This value should be >> block propagation and validation time
- */
-static const int64_t DEFAULT_MIN_FINALIZATION_DELAY = 2 * 60 * 60;
 /**
  * Block files containing a block-height within MIN_BLOCKS_TO_KEEP of
  * ActiveChain().Tip() will not be pruned.
@@ -689,12 +680,6 @@ private:
     //! `m_chain`.
     std::unique_ptr<CoinsViews> m_coins_views;
 
-    /**
-     * The best finalized block.
-     * This block cannot be reorged in any way except by explicit user action.
-     */
-    const CBlockIndex *m_finalizedBlockIndex GUARDED_BY(cs_main) = nullptr;
-
     mutable Mutex cs_avalancheFinalizedBlockIndex;
 
     /**
@@ -894,22 +879,6 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(!m_chainstate_mutex);
 
     /**
-     * Finalize a block.
-     * A finalized block can not be reorged in any way.
-     */
-    bool FinalizeBlock(const Config &config, BlockValidationState &state,
-                       CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main)
-        EXCLUSIVE_LOCKS_REQUIRED(!m_chainstate_mutex);
-    /** Return the currently finalized block index. */
-    const CBlockIndex *GetFinalizedBlock() const
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-    /**
-     * Checks if a block is finalized.
-     */
-    bool IsBlockFinalized(const CBlockIndex *pindex) const
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-
-    /**
      * Mark a block as finalized by avalanche.
      */
     bool AvalancheFinalizeBlock(CBlockIndex *pindex);
@@ -1011,9 +980,6 @@ private:
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     CBlockIndex *
     FindMostWorkChain(std::vector<const CBlockIndex *> &blocksToReconcile)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-    bool MarkBlockAsFinal(BlockValidationState &state,
-                          const CBlockIndex *pindex)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     void ReceivedBlockTransactions(const CBlock &block, CBlockIndex *pindexNew,
                                    const FlatFilePos &pos)

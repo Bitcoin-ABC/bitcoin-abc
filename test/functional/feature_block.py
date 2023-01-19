@@ -76,7 +76,7 @@ class FullBlockTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         # This is a consensus block test, we don't care about tx policy
         self.extra_args = [['-noparkdeepreorg',
-                            '-maxreorgdepth=-1', '-acceptnonstdtxn=1']]
+                            '-acceptnonstdtxn=1']]
 
     def run_test(self):
         node = self.nodes[0]  # convenience reference to the node

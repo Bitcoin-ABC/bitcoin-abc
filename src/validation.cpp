@@ -1376,9 +1376,6 @@ void CChainState::InvalidChainFound(CBlockIndex *pindexNew) {
 
     // If the invalid chain found is supposed to be finalized, we need to move
     // back the finalization point.
-    if (IsBlockFinalized(pindexNew)) {
-        m_finalizedBlockIndex = pindexNew->pprev;
-    }
     if (IsBlockAvalancheFinalized(pindexNew)) {
         LOCK(cs_avalancheFinalizedBlockIndex);
         m_avalancheFinalizedBlockIndex = pindexNew->pprev;
@@ -2563,11 +2560,6 @@ bool CChainState::DisconnectTip(BlockValidationState &state,
         }
     }
 
-    // If the tip is finalized, then undo it.
-    if (m_finalizedBlockIndex == pindexDelete) {
-        m_finalizedBlockIndex = pindexDelete->pprev;
-    }
-
     m_chain.SetTip(pindexDelete->pprev);
 
     UpdateTip(pindexDelete->pprev);
@@ -2625,83 +2617,6 @@ public:
     }
 };
 
-bool CChainState::MarkBlockAsFinal(BlockValidationState &state,
-                                   const CBlockIndex *pindex) {
-    AssertLockHeld(cs_main);
-    if (pindex->nStatus.isInvalid()) {
-        // We try to finalize an invalid block.
-        LogPrintf("ERROR: %s: Trying to finalize invalid block %s\n", __func__,
-                  pindex->GetBlockHash().ToString());
-        return state.Invalid(BlockValidationResult::BLOCK_CACHED_INVALID,
-                             "finalize-invalid-block");
-    }
-
-    // Check that the request is consistent with current finalization.
-    if (m_finalizedBlockIndex &&
-        !AreOnTheSameFork(pindex, m_finalizedBlockIndex)) {
-        LogPrintf("ERROR: %s: Trying to finalize block %s which conflicts with "
-                  "already finalized block\n",
-                  __func__, pindex->GetBlockHash().ToString());
-        return state.Invalid(BlockValidationResult::BLOCK_FINALIZATION,
-                             "bad-fork-prior-finalized");
-    }
-
-    if (IsBlockFinalized(pindex)) {
-        // The block is already finalized.
-        return true;
-    }
-
-    // We have a new block to finalize.
-    m_finalizedBlockIndex = pindex;
-    return true;
-}
-
-const CBlockIndex *CChainState::FindBlockToFinalize(CBlockIndex *pindexNew) {
-    AssertLockHeld(cs_main);
-
-    const int32_t maxreorgdepth =
-        gArgs.GetIntArg("-maxreorgdepth", DEFAULT_MAX_REORG_DEPTH);
-
-    const int64_t finalizationdelay =
-        gArgs.GetIntArg("-finalizationdelay", DEFAULT_MIN_FINALIZATION_DELAY);
-
-    // Find our candidate.
-    // If maxreorgdepth is < 0 pindex will be null and auto finalization
-    // disabled
-    const CBlockIndex *pindex =
-        pindexNew->GetAncestor(pindexNew->nHeight - maxreorgdepth);
-
-    int64_t now = GetTime();
-
-    // If the finalization delay is not expired since the startup time,
-    // finalization should be avoided. Header receive time is not saved to disk
-    // and so cannot be anterior to startup time.
-    if (now < (GetStartupTime() + finalizationdelay)) {
-        return nullptr;
-    }
-
-    // While our candidate is not eligible (finalization delay not expired), try
-    // the previous one.
-    while (pindex && (pindex != GetFinalizedBlock())) {
-        // Check that the block to finalize is known for a long enough time.
-        // This test will ensure that an attacker could not cause a block to
-        // finalize by forking the chain with a depth > maxreorgdepth.
-        // If the block is loaded from disk, header receive time is 0 and the
-        // block will be finalized. This is safe because the delay since the
-        // node startup is already expired.
-        auto headerReceivedTime = pindex->GetHeaderReceivedTime();
-
-        // If finalization delay is <= 0, finalization always occurs immediately
-        if (now >= (headerReceivedTime + finalizationdelay)) {
-            return pindex;
-        }
-
-        pindex = pindex->pprev;
-    }
-
-    return nullptr;
-}
-
 /**
  * Connect a new block to m_chain. pblock is either nullptr or a pointer to
  * a CBlock corresponding to pindexNew, to bypass loading it again from disk.
@@ -2755,14 +2670,6 @@ bool CChainState::ConnectTip(const Config &config, BlockValidationState &state,
             }
 
             return error("%s: ConnectBlock %s failed, %s", __func__,
-                         pindexNew->GetBlockHash().ToString(),
-                         state.ToString());
-        }
-
-        // Update the finalized block.
-        const CBlockIndex *pindexToFinalize = FindBlockToFinalize(pindexNew);
-        if (pindexToFinalize && !MarkBlockAsFinal(state, pindexToFinalize)) {
-            return error("ConnectTip(): MarkBlockAsFinal %s failed (%s)",
                          pindexNew->GetBlockHash().ToString(),
                          state.ToString());
         }
@@ -2851,18 +2758,6 @@ CBlockIndex *CChainState::FindMostWorkChain(
                 return nullptr;
             }
             pindexNew = *it;
-        }
-
-        // If this block will cause a finalized block to be reorged, then we
-        // mark it as invalid.
-        if (m_finalizedBlockIndex &&
-            !AreOnTheSameFork(pindexNew, m_finalizedBlockIndex)) {
-            LogPrintf("Mark block %s invalid because it forks prior to the "
-                      "finalization point %d.\n",
-                      pindexNew->GetBlockHash().ToString(),
-                      m_finalizedBlockIndex->nHeight);
-            pindexNew->nStatus = pindexNew->nStatus.withFailed();
-            InvalidChainFound(pindexNew);
         }
 
         // If this block will cause an avalanche finalized block to be reorged,
@@ -3600,50 +3495,6 @@ bool CChainState::ParkBlock(const Config &config, BlockValidationState &state,
     return UnwindBlock(config, state, pindex, false);
 }
 
-bool CChainState::FinalizeBlock(const Config &config,
-                                BlockValidationState &state,
-                                CBlockIndex *pindex) {
-    AssertLockNotHeld(m_chainstate_mutex);
-    AssertLockNotHeld(::cs_main);
-    // See 'Note for backport of Core PR16849' in CChainState::UnwindBlock
-    LOCK(m_chainstate_mutex);
-
-    AssertLockNotHeld(cs_main);
-    CBlockIndex *pindexToInvalidate = nullptr;
-    {
-        LOCK(cs_main);
-        if (!MarkBlockAsFinal(state, pindex)) {
-            // state is set by MarkBlockAsFinal.
-            return false;
-        }
-
-        // We have a valid candidate, make sure it is not parked.
-        if (pindex->nStatus.isOnParkedChain()) {
-            UnparkBlock(pindex);
-        }
-
-        // If the finalized block is on the active chain, there is no need to
-        // rewind.
-        if (m_chain.Contains(pindex)) {
-            return true;
-        }
-
-        // If the finalized block is not on the active chain, that chain is
-        // invalid
-        // ...
-        const CBlockIndex *pindexFork = m_chain.FindFork(pindex);
-        pindexToInvalidate = m_chain.Next(pindexFork);
-        if (!pindexToInvalidate) {
-            return false;
-        }
-    } // end of locked cs_main scope
-
-    // ... therefore, we invalidate the block on the active chain that comes
-    // immediately after it
-    return UnwindBlock(config, state, pindexToInvalidate,
-                       true /* invalidating */);
-}
-
 template <typename F>
 bool CChainState::UpdateFlagsForBlock(CBlockIndex *pindexBase,
                                       CBlockIndex *pindex, F f) {
@@ -3700,13 +3551,6 @@ void CChainState::UpdateFlags(CBlockIndex *pindex, CBlockIndex *&pindexReset,
 void CChainState::ResetBlockFailureFlags(CBlockIndex *pindex) {
     AssertLockHeld(cs_main);
 
-    // In case we are reconsidering something before the finalization point,
-    // move the finalization point to the last common ancestor.
-    if (m_finalizedBlockIndex) {
-        m_finalizedBlockIndex =
-            LastCommonAncestor(pindex, m_finalizedBlockIndex);
-    }
-
     UpdateFlags(
         pindex, m_chainman.m_best_invalid,
         [](const BlockStatus status) {
@@ -3743,18 +3587,6 @@ void CChainState::UnparkBlockAndChildren(CBlockIndex *pindex) {
 
 void CChainState::UnparkBlock(CBlockIndex *pindex) {
     return UnparkBlockImpl(pindex, false);
-}
-
-bool CChainState::IsBlockFinalized(const CBlockIndex *pindex) const {
-    AssertLockHeld(cs_main);
-    return m_finalizedBlockIndex &&
-           m_finalizedBlockIndex->GetAncestor(pindex->nHeight) == pindex;
-}
-
-/** Return the currently finalized block index. */
-const CBlockIndex *CChainState::GetFinalizedBlock() const {
-    AssertLockHeld(cs_main);
-    return m_finalizedBlockIndex;
 }
 
 bool CChainState::AvalancheFinalizeBlock(CBlockIndex *pindex) {
@@ -4977,9 +4809,6 @@ void CChainState::UnloadBlockIndex() {
     AssertLockHeld(::cs_main);
     nBlockSequenceId = 1;
     setBlockIndexCandidates.clear();
-
-    // Do not point to CBlockIndex that will be free'd
-    m_finalizedBlockIndex = nullptr;
 }
 
 // May NOT be used after any connections are up as much

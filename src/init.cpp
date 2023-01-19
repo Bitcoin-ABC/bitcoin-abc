@@ -523,22 +523,10 @@ void SetupServerArgs(NodeContext &node) {
                   MIN_DB_CACHE_MB, MAX_DB_CACHE_MB, DEFAULT_DB_CACHE_MB),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg(
-        "-finalizationdelay=<n>",
-        strprintf("Set the minimum amount of time to wait between a "
-                  "block header reception and the block finalization. "
-                  "Unit is seconds (default: %d)",
-                  DEFAULT_MIN_FINALIZATION_DELAY),
-        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    argsman.AddArg(
         "-includeconf=<file>",
         "Specify additional configuration file, relative to the -datadir path "
         "(only useable from configuration file, not command line)",
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    argsman.AddArg("-maxreorgdepth=<n>",
-                   strprintf("Configure at what depth blocks are considered "
-                             "final (default: %d). Use -1 to disable.",
-                             DEFAULT_MAX_REORG_DEPTH),
-                   ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg("-loadblock=<file>",
                    "Imports blocks from external file on startup",
                    ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
