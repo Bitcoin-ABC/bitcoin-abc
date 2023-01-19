@@ -14,5 +14,8 @@
         "bitcoin"
     ],
     "author": "Bitcoin ABC",
-    "license": "MIT"
+    "license": "MIT",
+    "dependencies": {
+        "chronik-client": "^0.8.1"
+    }
 }
