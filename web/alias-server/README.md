@@ -6,6 +6,7 @@ A node backend for validating eCash alias registrations
 
 [x] Template node app
 [x] Install chronik and add function for getting tx history
+[] Timestamped logging
 [] Match Cashtab alias functions and unit tests
 [] Add database
 [] Add API endpoint for getting aliases by blockheight
