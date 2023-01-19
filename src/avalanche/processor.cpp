@@ -185,8 +185,8 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
     CKey sessionKey;
 
     Amount stakeUtxoDustThreshold = PROOF_DUST_THRESHOLD;
-    if (gArgs.IsArgSet("-avaproofstakeutxodustthreshold") &&
-        !ParseMoney(gArgs.GetArg("-avaproofstakeutxodustthreshold", ""),
+    if (argsman.IsArgSet("-avaproofstakeutxodustthreshold") &&
+        !ParseMoney(argsman.GetArg("-avaproofstakeutxodustthreshold", ""),
                     stakeUtxoDustThreshold)) {
         error = _("The avalanche stake utxo dust threshold amount is invalid.");
         return nullptr;
