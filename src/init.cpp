@@ -846,10 +846,11 @@ void SetupServerArgs(NodeContext &node) {
         "-seednode=<ip>",
         "Connect to a node to retrieve peer addresses, and disconnect",
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    gArgs.AddArg("-networkactive",
-                 "Enable all P2P network activity (default: 1). Can be changed "
-                 "by the setnetworkactive RPC command",
-                 ArgsManager::ALLOW_BOOL, OptionsCategory::CONNECTION);
+    argsman.AddArg(
+        "-networkactive",
+        "Enable all P2P network activity (default: 1). Can be changed "
+        "by the setnetworkactive RPC command",
+        ArgsManager::ALLOW_BOOL, OptionsCategory::CONNECTION);
     argsman.AddArg("-timeout=<n>",
                    strprintf("Specify connection timeout in milliseconds "
                              "(minimum: 1, default: %d)",
@@ -1737,7 +1738,7 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
         InitWarning(warnings);
     }
 
-    if (!fs::is_directory(gArgs.GetBlocksDirPath())) {
+    if (!fs::is_directory(args.GetBlocksDirPath())) {
         return InitError(
             strprintf(_("Specified blocks directory \"%s\" does not exist."),
                       args.GetArg("-blocksdir", "")));
@@ -1763,7 +1764,7 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
 
     // Signal NODE_COMPACT_FILTERS if peerblockfilters and basic filters index
     // are both enabled.
-    if (gArgs.GetBoolArg("-peerblockfilters", DEFAULT_PEERBLOCKFILTERS)) {
+    if (args.GetBoolArg("-peerblockfilters", DEFAULT_PEERBLOCKFILTERS)) {
         if (g_enabled_filter_types.count(BlockFilterType::BASIC) != 1) {
             return InitError(
                 _("Cannot set -peerblockfilters without -blockfilterindex."));
@@ -2252,7 +2253,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 asmap_path = fs::PathFromString(DEFAULT_ASMAP_FILENAME);
             }
             if (!asmap_path.is_absolute()) {
-                asmap_path = gArgs.GetDataDirNet() / asmap_path;
+                asmap_path = args.GetDataDirNet() / asmap_path;
             }
             if (!fs::exists(asmap_path)) {
                 InitError(strprintf(_("Could not find asmap file %s"),
@@ -2281,13 +2282,13 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     assert(!node.banman);
     node.banman = std::make_unique<BanMan>(
-        gArgs.GetDataDirNet() / "banlist.dat", config.GetChainParams(),
+        args.GetDataDirNet() / "banlist.dat", config.GetChainParams(),
         &uiInterface, args.GetIntArg("-bantime", DEFAULT_MISBEHAVING_BANTIME));
     assert(!node.connman);
     node.connman = std::make_unique<CConnman>(
         config, GetRand(std::numeric_limits<uint64_t>::max()),
         GetRand(std::numeric_limits<uint64_t>::max()), *node.addrman,
-        gArgs.GetBoolArg("-networkactive", true));
+        args.GetBoolArg("-networkactive", true));
 
     assert(!node.mempool);
     int check_ratio = std::min<int>(
@@ -2684,16 +2685,16 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
 
     // Step 11: import blocks
-    if (!CheckDiskSpace(gArgs.GetDataDirNet())) {
+    if (!CheckDiskSpace(args.GetDataDirNet())) {
         InitError(
             strprintf(_("Error: Disk space is low for %s"),
-                      fs::quoted(fs::PathToString(gArgs.GetDataDirNet()))));
+                      fs::quoted(fs::PathToString(args.GetDataDirNet()))));
         return false;
     }
-    if (!CheckDiskSpace(gArgs.GetBlocksDirPath())) {
+    if (!CheckDiskSpace(args.GetBlocksDirPath())) {
         InitError(
             strprintf(_("Error: Disk space is low for %s"),
-                      fs::quoted(fs::PathToString(gArgs.GetBlocksDirPath()))));
+                      fs::quoted(fs::PathToString(args.GetBlocksDirPath()))));
         return false;
     }
 
@@ -2786,7 +2787,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     // Map ports with UPnP or NAT-PMP.
     StartMapPort(args.GetBoolArg("-upnp", DEFAULT_UPNP),
-                 gArgs.GetBoolArg("-natpmp", DEFAULT_NATPMP));
+                 args.GetBoolArg("-natpmp", DEFAULT_NATPMP));
 
     CConnman::Options connOptions;
     connOptions.nLocalServices = nLocalServices;
