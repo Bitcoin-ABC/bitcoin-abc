@@ -11,7 +11,6 @@ address/netgroup since in the current framework, all peers are connecting from
 the same local address. See Issue #14210 for more info.
 Therefore, this test is limited to the remaining protection criteria.
 """
-
 import time
 
 from test_framework.avatools import (
@@ -19,18 +18,20 @@ from test_framework.avatools import (
     avalanche_proof_from_hex,
     create_coinbase_stakes,
 )
-from test_framework.blocktools import COINBASE_MATURITY, create_block, create_coinbase
+from test_framework.blocktools import create_block, create_coinbase
 from test_framework.key import ECKey
 from test_framework.messages import (
-    CTransaction,
-    FromHex,
     msg_avaproof,
     msg_pong,
     msg_tx,
 )
-from test_framework.p2p import P2PDataStore, P2PInterface
+from test_framework.p2p import (
+    P2PDataStore,
+    P2PInterface,
+)
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
+from test_framework.wallet import MiniWallet
 from test_framework.wallet_util import bytes_to_wif
 
 
@@ -54,7 +55,6 @@ class SlowAvaP2PInterface(AvaP2PInterface):
 
 class P2PEvict(BitcoinTestFramework):
     def set_test_params(self):
-        self.setup_clean_chain = True
         self.num_nodes = 1
         # The choice of maxconnections=188 results in a maximum of 153 inbound
         # connections (188 - 34 outbound - 1 feeler). The 34 outbounds count is
@@ -77,9 +77,7 @@ class P2PEvict(BitcoinTestFramework):
         protected_peers = set()
         current_peer = -1
         node = self.nodes[0]
-        blocks = self.generatetoaddress(
-            node, COINBASE_MATURITY + 1, node.get_deterministic_priv_key().address
-        )
+        self.wallet = MiniWallet(node)
 
         self.log.info(
             "Create 4 peers and protect them from eviction by sending us a block"
@@ -105,6 +103,7 @@ class P2PEvict(BitcoinTestFramework):
         privkey.generate()
         wif_privkey = bytes_to_wif(privkey.get_bytes())
 
+        blocks = [node.getblockhash(n) for n in range(1, 5)]
         stakes = create_coinbase_stakes(
             node, blocks, node.get_deterministic_priv_key().key
         )
@@ -134,26 +133,8 @@ class P2PEvict(BitcoinTestFramework):
             current_peer += 1
             txpeer.sync_with_ping()
 
-            prevtx = node.getblock(node.getblockhash(i + 1), 2)["tx"][0]
-            rawtx = node.createrawtransaction(
-                inputs=[{"txid": prevtx["txid"], "vout": 0}],
-                outputs=[
-                    {node.get_deterministic_priv_key().address: 50000000 - 1250.00}
-                ],
-            )
-            sigtx = node.signrawtransactionwithkey(
-                hexstring=rawtx,
-                privkeys=[node.get_deterministic_priv_key().key],
-                prevtxs=[
-                    {
-                        "txid": prevtx["txid"],
-                        "vout": 0,
-                        "amount": prevtx["vout"][0]["value"],
-                        "scriptPubKey": prevtx["vout"][0]["scriptPubKey"]["hex"],
-                    }
-                ],
-            )["hex"]
-            txpeer.send_message(msg_tx(FromHex(CTransaction(), sigtx)))
+            tx = self.wallet.create_self_transfer()["tx"]
+            txpeer.send_message(msg_tx(tx))
             protected_peers.add(current_peer)
 
         self.log.info(

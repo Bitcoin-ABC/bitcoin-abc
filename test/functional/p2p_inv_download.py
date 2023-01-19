@@ -11,7 +11,6 @@ import time
 from dataclasses import dataclass
 from typing import Optional
 
-from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.avatools import avalanche_proof_from_hex, gen_proof, wait_for_proof
 from test_framework.key import ECKey
 from test_framework.messages import (
@@ -20,8 +19,6 @@ from test_framework.messages import (
     MSG_TX,
     MSG_TYPE_MASK,
     CInv,
-    CTransaction,
-    FromHex,
     msg_avaproof,
     msg_getdata,
     msg_inv,
@@ -36,6 +33,7 @@ from test_framework.p2p import (
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error, uint256_hex
+from test_framework.wallet import MiniWallet
 from test_framework.wallet_util import bytes_to_wif
 
 
@@ -177,24 +175,8 @@ class InventoryDownloadTest(BitcoinTestFramework):
     @skip(PROOF_TEST_CONTEXT)
     def test_inv_tx(self, context):
         self.log.info("Generate a transaction on node 0")
-        tx = self.nodes[0].createrawtransaction(
-            inputs=[
-                {
-                    # coinbase
-                    "txid": self.nodes[0].getblock(self.nodes[0].getblockhash(1))["tx"][
-                        0
-                    ],
-                    "vout": 0,
-                }
-            ],
-            outputs={ADDRESS_ECREG_UNSPENDABLE: 50000000 - 250.00},
-        )
-        tx = self.nodes[0].signrawtransactionwithkey(
-            hexstring=tx,
-            privkeys=[self.nodes[0].get_deterministic_priv_key().key],
-        )["hex"]
-        ctx = FromHex(CTransaction(), tx)
-        txid = int(ctx.rehash(), 16)
+        tx = self.wallet.create_self_transfer()
+        txid = int(tx["txid"], 16)
 
         self.log.info(
             f"Announce the transaction to all nodes from all {NUM_INBOUND} incoming "
@@ -214,7 +196,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
         with self.nodes[1].assert_debug_log(
             [f"got inv: tx {uint256_hex(txid)}  new peer=0"]
         ):
-            self.nodes[0].sendrawtransaction(tx)
+            self.nodes[0].sendrawtransaction(tx["hex"])
             self.nodes[0].setmocktime(int(time.time()) + UNCONDITIONAL_RELAY_DELAY)
 
         # Since node 1 is connected outbound to an honest peer (node 0), it
@@ -519,6 +501,8 @@ class InventoryDownloadTest(BitcoinTestFramework):
                 assert "notfound" not in peer.last_message
 
     def run_test(self):
+        self.wallet = MiniWallet(self.nodes[0])
+
         for context in [STAKE_CONTENDER_TEST_CONTEXT]:
             self.test_inv_ignore(context)
 
