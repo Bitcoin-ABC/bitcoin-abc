@@ -1,4 +1,5 @@
 const config = require('./config');
+const log = require('./log');
 const { ChronikClient } = require('chronik-client');
 const chronik = new ChronikClient(config.chronik);
 
@@ -12,7 +13,7 @@ module.exports = {
                 .history(page, config.txHistoryPageSize);
             return txHistoryPage;
         } catch (err) {
-            console.log(`Error in getTxHistoryPage(${hash160})`, err);
+            log(`Error in getTxHistoryPage(${hash160})`, err);
         }
     },
     returnGetTxHistoryPagePromise: async function (hash160, page = 0) {
@@ -53,13 +54,6 @@ module.exports = {
             txHistoryPageResponsePromises.push(txHistoryPageResponsePromise);
         }
 
-        // Add a promise that errors to confirm this case is handled
-        /*
-        const failingPromise =
-            module.exports.returnGetTxHistoryPagePromise('not-a-hash160');
-        txHistoryPageResponsePromises.push(failingPromise);
-        */
-
         // Use Promise.all so that an error is thrown if any single promise fails
         let remainingTxHistoryPageResponses;
         try {
@@ -67,10 +61,7 @@ module.exports = {
                 txHistoryPageResponsePromises,
             );
         } catch (err) {
-            console.log(
-                `Error in Promise.all(txHistoryPageResponsePromises)`,
-                err,
-            );
+            log(`Error in Promise.all(txHistoryPageResponsePromises)`, err);
             // Return false; you won't have all the tx history if this happens
             return false;
         }

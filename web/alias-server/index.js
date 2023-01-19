@@ -1,11 +1,12 @@
-const { getAllTxHistory } = require('./chronik');
 const config = require('./config');
+const log = require('./log');
+const { getAllTxHistory } = require('./chronik');
 
 async function testTxHistory() {
     const aliasTxHistory = await getAllTxHistory(config.aliasHash160);
-    console.log(`aliasTxHistory`, aliasTxHistory);
+    log(`aliasTxHistory`, aliasTxHistory);
     if (aliasTxHistory) {
-        console.log(`aliasTxHistory.length`, aliasTxHistory.length);
+        log(`aliasTxHistory.length`, aliasTxHistory.length);
     }
 }
 
