@@ -15,6 +15,7 @@
 #include <attributes.h>
 #include <blockfileinfo.h>
 #include <blockindexcomparators.h>
+#include <bloom.h>
 #include <chain.h>
 #include <consensus/amount.h>
 #include <consensus/consensus.h>
@@ -686,6 +687,15 @@ private:
     const CBlockIndex *m_avalancheFinalizedBlockIndex
         GUARDED_BY(cs_avalancheFinalizedBlockIndex) = nullptr;
 
+    /**
+     * Filter to prevent parking a block due to block policies more than once.
+     * After first application of block policies, Avalanche voting will
+     * determine the final acceptance state. Rare false positives will be
+     * reconciled by the network and should not have any negative impact.
+     */
+    CRollingBloomFilter m_filterParkingPoliciesApplied =
+        CRollingBloomFilter{1000, 0.000001};
+
     CBlockIndex const *m_best_fork_tip = nullptr;
     CBlockIndex const *m_best_fork_base = nullptr;
 
@@ -852,7 +862,8 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
     bool ConnectBlock(const CBlock &block, BlockValidationState &state,
                       CBlockIndex *pindex, CCoinsViewCache &view,
-                      BlockValidationOptions options, bool fJustCheck = false)
+                      BlockValidationOptions options,
+                      Amount *blockFees = nullptr, bool fJustCheck = false)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     // Apply the effects of a block disconnection on the UTXO set.

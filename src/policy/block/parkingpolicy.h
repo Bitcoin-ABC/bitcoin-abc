@@ -6,6 +6,8 @@
 #define BITCOIN_POLICY_BLOCK_PARKINGPOLICY_H
 
 struct ParkingPolicy {
+    virtual ~ParkingPolicy() {}
+
     // Return true if a policy succeeds. False will park the block.
     virtual bool operator()() = 0;
 };

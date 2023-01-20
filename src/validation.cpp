@@ -30,6 +30,7 @@
 #include <node/coinstats.h>
 #include <node/ui_interface.h>
 #include <node/utxo_snapshot.h>
+#include <policy/block/minerfund.h>
 #include <policy/mempool.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
@@ -1813,7 +1814,8 @@ static int64_t nBlocksTotal = 0;
  */
 bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
                               CBlockIndex *pindex, CCoinsViewCache &view,
-                              BlockValidationOptions options, bool fJustCheck) {
+                              BlockValidationOptions options, Amount *blockFees,
+                              bool fJustCheck) {
     AssertLockHeld(cs_main);
     assert(pindex);
 
@@ -2191,7 +2193,12 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
                              "bad-cb-amount");
     }
 
-    if (!CheckMinerFund(consensusParams, pindex->pprev, block.vtx[0]->vout,
+    if (blockFees) {
+        *blockFees = nFees;
+    }
+
+    if (!IsWellingtonEnabled(consensusParams, pindex->pprev) &&
+        !CheckMinerFund(consensusParams, pindex->pprev, block.vtx[0]->vout,
                         blockReward)) {
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
                              "bad-cb-minerfund");
@@ -2675,9 +2682,10 @@ bool Chainstate::ConnectTip(const Config &config, BlockValidationState &state,
     LogPrint(BCLog::BENCH, "  - Load block from disk: %.2fms [%.2fs]\n",
              (nTime2 - nTime1) * MILLI, nTimeReadFromDisk * MICRO);
     {
+        Amount blockFees{Amount::zero()};
         CCoinsViewCache view(&CoinsTip());
         bool rv = ConnectBlock(blockConnecting, state, pindexNew, view,
-                               BlockValidationOptions(config));
+                               BlockValidationOptions(config), &blockFees);
         GetMainSignals().BlockChecked(blockConnecting, state);
         if (!rv) {
             if (state.IsInvalid()) {
@@ -2687,6 +2695,40 @@ bool Chainstate::ConnectTip(const Config &config, BlockValidationState &state,
             return error("%s: ConnectBlock %s failed, %s", __func__,
                          pindexNew->GetBlockHash().ToString(),
                          state.ToString());
+        }
+
+        /**
+         * The block is valid by consensus rules so now we check if the block
+         * passes all block policy checks. If not, then park the block and bail.
+         *
+         * We check block parking policies before flushing changes to the UTXO
+         * set. This allows us to avoid rewinding everything immediately after.
+         *
+         * Only check block parking policies the first time the block is
+         * connected. Avalanche voting can override the parking decision made by
+         * these policies.
+         */
+        const BlockHash blockhash = pindexNew->GetBlockHash();
+        if (!IsInitialBlockDownload() &&
+            !m_filterParkingPoliciesApplied.contains(blockhash)) {
+            m_filterParkingPoliciesApplied.insert(blockhash);
+
+            const Amount blockReward =
+                blockFees +
+                GetBlockSubsidy(pindexNew->nHeight, consensusParams);
+
+            std::vector<std::unique_ptr<ParkingPolicy>> parkingPolicies;
+            parkingPolicies.emplace_back(std::make_unique<MinerFundPolicy>(
+                consensusParams, *pindexNew, blockConnecting, blockReward));
+
+            if (!std::all_of(parkingPolicies.begin(), parkingPolicies.end(),
+                             [&](const auto &policy) { return (*policy)(); })) {
+                LogPrintf("Park block %s because it violated a block policy\n",
+                          blockhash.ToString());
+                pindexNew->nStatus = pindexNew->nStatus.withParked();
+                m_blockman.m_dirty_blockindex.insert(pindexNew);
+                return false;
+            }
         }
 
         nTime3 = GetTimeMicros();
@@ -3029,6 +3071,12 @@ bool Chainstate::ActivateBestChainStep(
                     break;
                 }
 
+                if (pindexConnect->nStatus.isParked()) {
+                    // The block was parked due to a policy violation.
+                    fContinue = false;
+                    break;
+                }
+
                 // A system error occurred (disk space, database error, ...).
                 // Make the mempool consistent with the current tip, just in
                 // case any observers try to use it before shutdown.
@@ -3190,7 +3238,8 @@ bool Chainstate::ActivateBestChain(const Config &config,
                 }
                 blocks_connected = true;
 
-                if (fInvalidFound) {
+                if (fInvalidFound ||
+                    (pindexMostWork && pindexMostWork->nStatus.isParked())) {
                     // Wipe cache, we may need another branch now.
                     pindexMostWork = nullptr;
                 }
@@ -4507,7 +4556,7 @@ bool TestBlockValidity(BlockValidationState &state, const CChainParams &params,
     }
 
     if (!chainstate.ConnectBlock(block, state, &indexDummy, viewNew,
-                                 validationOptions, true)) {
+                                 validationOptions, nullptr, true)) {
         return false;
     }
 

@@ -31,3 +31,6 @@ changes will become activated:
   - The chained transactions limit policy will no longer be enforced by the
     mempool. All the related RPC statistics and options will become irrelevant
     and should no longer be relied upon.
+  - Miner fund moves from consensus rule to policy rule. This will allow future
+    seamless upgrades such as changes to the miner fund without delaying until
+    a flag day upgrade.

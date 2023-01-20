@@ -13,6 +13,7 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal, assert_greater_than_or_equal
 
+WELLINGTON_ACTIVATION_TIME = 2100000600
 MINER_FUND_RATIO = 8
 MINER_FUND_ADDR = 'ecregtest:prfhcnyqnl5cgrnmlfmms675w93ld7mvvq9jcw0zsn'
 MINER_FUND_ADDR_AXION = 'ecregtest:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdgz0wv9ltl'
@@ -21,26 +22,29 @@ MINER_FUND_ADDR_AXION = 'ecregtest:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdgz0wv9ltl'
 class MinerFundTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
-        self.num_nodes = 1
+        self.num_nodes = 2
         self.extra_args = [[
             '-enableminerfund',
+            '-wellingtonactivationtime={}'.format(WELLINGTON_ACTIVATION_TIME),
+        ], [
+            '-wellingtonactivationtime={}'.format(WELLINGTON_ACTIVATION_TIME),
         ]]
 
     def run_test(self):
         node = self.nodes[0]
 
         self.log.info('Create some history')
-        self.generate(node, 50, sync_fun=self.no_op)
+        self.generate(node, 10)
 
-        def get_best_coinbase():
-            return node.getblock(node.getbestblockhash(), 2)['tx'][0]
+        def get_best_coinbase(n):
+            return n.getblock(n.getbestblockhash(), 2)['tx'][0]
 
-        coinbase = get_best_coinbase()
+        coinbase = get_best_coinbase(node)
         assert_greater_than_or_equal(len(coinbase['vout']), 2)
         block_reward = sum([vout['value'] for vout in coinbase['vout']])
 
         def check_miner_fund_output(expected_address):
-            coinbase = get_best_coinbase()
+            coinbase = get_best_coinbase(node)
             assert_equal(len(coinbase['vout']), 2)
             assert_equal(
                 coinbase['vout'][1]['scriptPubKey']['addresses'][0],
@@ -112,6 +116,57 @@ class MinerFundTest(BitcoinTestFramework):
 
         node.submitblock(ToHex(good_block))
         assert_equal(node.getbestblockhash(), good_block.hash)
+
+        # Move MTP forward to wellington activation. Next block will enforce
+        # new rules.
+        address = node.get_deterministic_priv_key().address
+        for n in self.nodes:
+            n.setmocktime(WELLINGTON_ACTIVATION_TIME)
+        self.generatetoaddress(node, nblocks=6, address=address)
+        assert_equal(
+            node.getblockchaininfo()['mediantime'],
+            WELLINGTON_ACTIVATION_TIME)
+
+        # First block that does not have miner fund as a consensus requirement.
+        # node0 still mines a block with a coinbase output to the miner fund.
+        first_block_has_miner_fund = self.generatetoaddress(
+            node, nblocks=1, address=address)[0]
+        check_miner_fund_output(MINER_FUND_ADDR)
+
+        # Invalidate it
+        for n in self.nodes:
+            n.invalidateblock(first_block_has_miner_fund)
+
+        # node1 mines a block without a coinbase output to the miner fund.
+        first_block_no_miner_fund = self.generatetoaddress(
+            self.nodes[1],
+            nblocks=1,
+            address=address,
+            sync_fun=self.no_op)[0]
+        coinbase = get_best_coinbase(self.nodes[1])
+        assert_equal(len(coinbase['vout']), 1)
+
+        # node0 parks the block since the miner fund is enforced by policy.
+        def parked_block(blockhash):
+            for tip in node.getchaintips():
+                if tip["hash"] == blockhash:
+                    assert tip["status"] != "active"
+                    return tip["status"] == "parked"
+            return False
+        self.wait_until(lambda: parked_block(first_block_no_miner_fund))
+
+        # Unpark the block
+        node.unparkblock(first_block_no_miner_fund)
+
+        # Invalidate it
+        for n in self.nodes:
+            n.invalidateblock(first_block_no_miner_fund)
+
+        # Connecting the block again does not park because block policies are
+        # only checked the first time a block is connected.
+        for n in self.nodes:
+            n.reconsiderblock(first_block_no_miner_fund)
+            assert_equal(n.getbestblockhash(), first_block_no_miner_fund)
 
 
 if __name__ == '__main__':
