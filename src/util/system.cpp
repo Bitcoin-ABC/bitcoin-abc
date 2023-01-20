@@ -634,7 +634,7 @@ void ArgsManager::ForceSetArg(const std::string &strArg,
 /**
  * This function is only used for testing purpose so
  * so we should not worry about element uniqueness and
- * integrity of mapMultiArgs data structure
+ * integrity of the data structure
  */
 void ArgsManager::ForceSetMultiArg(const std::string &strArg,
                                    const std::vector<std::string> &values) {
