@@ -13,6 +13,21 @@ import {
 } from 'utils/cashMethods';
 import ecies from 'ecies-lite';
 import wif from 'wif';
+import { mockAliasLocalStorage } from 'utils/__mocks__/mockCachedAliases';
+
+export const getAddressFromAlias = alias => {
+    let aliasAddress = false;
+
+    // loop through mockAliasLocalStorage and get the matching address
+    // returns false if none found
+    mockAliasLocalStorage.forEach(function (cachedAliasObj) {
+        if (cachedAliasObj.alias.toLowerCase() === alias.toLowerCase()) {
+            aliasAddress = cachedAliasObj.address;
+        }
+    });
+
+    return aliasAddress;
+};
 
 export const isAliasAvailable = async (chronik, alias) => {
     // TODO: Implement caching mechanism to reduce the API call below
@@ -160,25 +175,12 @@ export const getAliasPaymentHistory = async chronik => {
 };
 
 export const isAddressRegistered = activeWallet => {
-    //@TODO: temporary local storage mock until caching is implemented later in this stack
-    const mockAliasLocalStorage = [
-        {
-            alias: 'zoo6',
-            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
-            blockHeight: 775340,
-        },
-        {
-            alias: 'chicken1',
-            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
-            blockHeight: 775331,
-        },
-    ];
-
     let addressMatch = false;
     const activeWalletAddress = convertToEcashPrefix(
         activeWallet.Path1899.cashAddress,
     );
 
+    //@TODO: temporary local storage mock until caching is implemented later in this stack
     // loop through mockAliasLocalStorage and check if active wallet matches any of the cached addresses
     mockAliasLocalStorage.forEach(function (cachedAliasObj) {
         if (
