@@ -1,6 +1,7 @@
 Checks: '
 -*,
 boost-use-to-string,
+readability-const-return-type,
 readability-braces-around-statements,
 readability-redundant-declaration,
 bugprone-argument-comment,

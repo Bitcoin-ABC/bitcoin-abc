@@ -7,8 +7,7 @@
 #include <common/args.h>
 #include <random.h>
 
-const std::vector<std::string>
-GetRandomizedDNSSeeds(const CChainParams &params) {
+std::vector<std::string> GetRandomizedDNSSeeds(const CChainParams &params) {
     FastRandomContext rng;
     std::vector<std::string> seeds;
     if (gArgs.IsArgSet("-overridednsseed")) {

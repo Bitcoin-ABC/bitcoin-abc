@@ -193,7 +193,7 @@ protected:
     std::vector<AssumeutxoData> m_assumeutxo_data;
     ChainTxData chainTxData;
 
-    friend const std::vector<std::string>
+    friend std::vector<std::string>
     GetRandomizedDNSSeeds(const CChainParams &params);
 };
 

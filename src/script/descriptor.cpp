@@ -1340,11 +1340,11 @@ bool DescriptorCache::GetCachedDerivedExtPubKey(uint32_t key_exp_pos,
     return true;
 }
 
-const ExtPubKeyMap DescriptorCache::GetCachedParentExtPubKeys() const {
+ExtPubKeyMap DescriptorCache::GetCachedParentExtPubKeys() const {
     return m_parent_xpubs;
 }
 
-const std::unordered_map<uint32_t, ExtPubKeyMap>
+std::unordered_map<uint32_t, ExtPubKeyMap>
 DescriptorCache::GetCachedDerivedExtPubKeys() const {
     return m_derived_xpubs;
 }

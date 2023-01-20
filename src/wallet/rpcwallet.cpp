@@ -1359,7 +1359,7 @@ static void ListTransactions(const CWallet *const pwallet, const CWalletTx &wtx,
     }
 }
 
-static const std::vector<RPCResult> TransactionDescriptionString() {
+static std::vector<RPCResult> TransactionDescriptionString() {
     return {
         {RPCResult::Type::NUM, "confirmations",
          "The number of confirmations for the transaction. Negative "

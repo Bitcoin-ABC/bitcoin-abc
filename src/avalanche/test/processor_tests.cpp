@@ -376,7 +376,7 @@ struct ProofProvider {
         });
     }
 
-    const ProofRef fromAnyVoteItem(const AnyVoteItem &item) {
+    ProofRef fromAnyVoteItem(const AnyVoteItem &item) {
         return std::get<const ProofRef>(item);
     }
 };
@@ -460,7 +460,7 @@ struct StakeContenderProvider {
                                         contenderVoteItem);
     }
 
-    const StakeContenderId fromAnyVoteItem(const AnyVoteItem &item) {
+    StakeContenderId fromAnyVoteItem(const AnyVoteItem &item) {
         return std::get<const StakeContenderId>(item);
     }
 };
@@ -527,7 +527,7 @@ struct TxProvider {
         BOOST_CHECK(!mempool->exists(tx->GetId()));
     }
 
-    const CTransactionRef fromAnyVoteItem(const AnyVoteItem &item) {
+    CTransactionRef fromAnyVoteItem(const AnyVoteItem &item) {
         return std::get<const CTransactionRef>(item);
     }
 };

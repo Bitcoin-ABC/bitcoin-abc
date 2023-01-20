@@ -37,7 +37,7 @@ struct bilingual_str;
 class WalletStorage {
 public:
     virtual ~WalletStorage() = default;
-    virtual const std::string GetDisplayName() const = 0;
+    virtual std::string GetDisplayName() const = 0;
     virtual WalletDatabase &GetDatabase() = 0;
     virtual const CChainParams &GetChainParams() const = 0;
     virtual bool IsWalletFlagSet(uint64_t) const = 0;
@@ -782,9 +782,9 @@ public:
     void AddDescriptorKey(const CKey &key, const CPubKey &pubkey);
     void WriteDescriptor();
 
-    const WalletDescriptor GetWalletDescriptor() const
+    WalletDescriptor GetWalletDescriptor() const
         EXCLUSIVE_LOCKS_REQUIRED(cs_desc_man);
-    const std::vector<CScript> GetScriptPubKeys() const;
+    std::vector<CScript> GetScriptPubKeys() const;
 };
 
 #endif // BITCOIN_WALLET_SCRIPTPUBKEYMAN_H

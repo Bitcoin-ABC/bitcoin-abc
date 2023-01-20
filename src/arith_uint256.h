@@ -67,7 +67,7 @@ public:
 
     explicit base_uint(const std::string &str);
 
-    const base_uint operator~() const {
+    base_uint operator~() const {
         base_uint ret;
         for (int i = 0; i < WIDTH; i++) {
             ret.pn[i] = ~pn[i];
@@ -75,7 +75,7 @@ public:
         return ret;
     }
 
-    const base_uint operator-() const {
+    base_uint operator-() const {
         base_uint ret;
         for (int i = 0; i < WIDTH; i++) {
             ret.pn[i] = ~pn[i];
@@ -173,7 +173,7 @@ public:
         return *this;
     }
 
-    const base_uint operator++(int) {
+    base_uint operator++(int) {
         // postfix operator
         const base_uint ret = *this;
         ++(*this);
@@ -189,7 +189,7 @@ public:
         return *this;
     }
 
-    const base_uint operator--(int) {
+    base_uint operator--(int) {
         // postfix operator
         const base_uint ret = *this;
         --(*this);
@@ -199,41 +199,34 @@ public:
     int CompareTo(const base_uint &b) const;
     bool EqualTo(uint64_t b) const;
 
-    friend inline const base_uint operator+(const base_uint &a,
-                                            const base_uint &b) {
+    friend inline base_uint operator+(const base_uint &a, const base_uint &b) {
         return base_uint(a) += b;
     }
-    friend inline const base_uint operator-(const base_uint &a,
-                                            const base_uint &b) {
+    friend inline base_uint operator-(const base_uint &a, const base_uint &b) {
         return base_uint(a) -= b;
     }
-    friend inline const base_uint operator*(const base_uint &a,
-                                            const base_uint &b) {
+    friend inline base_uint operator*(const base_uint &a, const base_uint &b) {
         return base_uint(a) *= b;
     }
-    friend inline const base_uint operator/(const base_uint &a,
-                                            const base_uint &b) {
+    friend inline base_uint operator/(const base_uint &a, const base_uint &b) {
         return base_uint(a) /= b;
     }
-    friend inline const base_uint operator|(const base_uint &a,
-                                            const base_uint &b) {
+    friend inline base_uint operator|(const base_uint &a, const base_uint &b) {
         return base_uint(a) |= b;
     }
-    friend inline const base_uint operator&(const base_uint &a,
-                                            const base_uint &b) {
+    friend inline base_uint operator&(const base_uint &a, const base_uint &b) {
         return base_uint(a) &= b;
     }
-    friend inline const base_uint operator^(const base_uint &a,
-                                            const base_uint &b) {
+    friend inline base_uint operator^(const base_uint &a, const base_uint &b) {
         return base_uint(a) ^= b;
     }
-    friend inline const base_uint operator>>(const base_uint &a, int shift) {
+    friend inline base_uint operator>>(const base_uint &a, int shift) {
         return base_uint(a) >>= shift;
     }
-    friend inline const base_uint operator<<(const base_uint &a, int shift) {
+    friend inline base_uint operator<<(const base_uint &a, int shift) {
         return base_uint(a) <<= shift;
     }
-    friend inline const base_uint operator*(const base_uint &a, uint32_t b) {
+    friend inline base_uint operator*(const base_uint &a, uint32_t b) {
         return base_uint(a) *= b;
     }
     friend inline bool operator==(const base_uint &a, const base_uint &b) {

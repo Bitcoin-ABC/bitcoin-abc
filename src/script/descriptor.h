@@ -62,9 +62,9 @@ public:
                                    CExtPubKey &xpub) const;
 
     /** Retrieve all cached parent xpubs */
-    const ExtPubKeyMap GetCachedParentExtPubKeys() const;
+    ExtPubKeyMap GetCachedParentExtPubKeys() const;
     /** Retrieve all cached derived xpubs */
-    const std::unordered_map<uint32_t, ExtPubKeyMap>
+    std::unordered_map<uint32_t, ExtPubKeyMap>
     GetCachedDerivedExtPubKeys() const;
 };
 

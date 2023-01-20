@@ -29,7 +29,7 @@
 
 const char *DEFAULT_GUI_PROXY_HOST = "127.0.0.1";
 
-static const QString GetDefaultProxyAddress();
+static QString GetDefaultProxyAddress();
 
 OptionsModel::OptionsModel(QObject *parent, bool resetSettings)
     : QAbstractListModel(parent) {
@@ -289,7 +289,7 @@ static void SetProxySetting(QSettings &settings, const QString &name,
     settings.setValue(name, ip_port.ip + ":" + ip_port.port);
 }
 
-static const QString GetDefaultProxyAddress() {
+static QString GetDefaultProxyAddress() {
     return QString("%1:%2")
         .arg(DEFAULT_GUI_PROXY_HOST)
         .arg(DEFAULT_GUI_PROXY_PORT);

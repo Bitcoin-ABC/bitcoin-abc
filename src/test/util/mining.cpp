@@ -63,7 +63,7 @@ std::shared_ptr<CBlock> PrepareBlock(const Config &config,
     return block;
 }
 
-static const std::vector<uint8_t>
+static std::vector<uint8_t>
 getExcessiveBlockSizeSig(uint64_t nExcessiveBlockSize) {
     std::string cbmsg = "/EB" + getSubVersionEB(nExcessiveBlockSize) + "/";
     std::vector<uint8_t> vec(cbmsg.begin(), cbmsg.end());

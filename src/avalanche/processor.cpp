@@ -36,7 +36,7 @@ static constexpr std::chrono::milliseconds AVALANCHE_TIME_STEP{10};
 static const std::string AVAPEERS_FILE_NAME{"avapeers.dat"};
 
 namespace avalanche {
-static const uint256 GetVoteItemId(const AnyVoteItem &item) {
+static uint256 GetVoteItemId(const AnyVoteItem &item) {
     return std::visit(variant::overloaded{
                           [](const ProofRef &proof) {
                               uint256 id = proof->getId();

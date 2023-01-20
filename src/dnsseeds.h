@@ -11,7 +11,6 @@
 #include <vector>
 
 /** Return the list of hostnames to look up for DNS seeds */
-const std::vector<std::string>
-GetRandomizedDNSSeeds(const CChainParams &params);
+std::vector<std::string> GetRandomizedDNSSeeds(const CChainParams &params);
 
 #endif // BITCOIN_DNSSEEDS_H
