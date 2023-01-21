@@ -41,6 +41,7 @@ export const currency = {
     tokenIconsUrl: 'https://etoken-icons.s3.us-west-2.amazonaws.com',
     tokenDbUrl: 'https://tokendb.kingbch.com',
     txHistoryCount: 10,
+    txHistoryPageSize: 25,
     xecApiBatchSize: 20,
     websocketDisconnectedRefreshInterval: 5000, // 1000 = 1s
     websocketConnectedRefreshInterval: 10000,

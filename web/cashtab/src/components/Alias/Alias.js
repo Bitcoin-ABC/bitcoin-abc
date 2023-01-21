@@ -20,7 +20,11 @@ import {
     fromSatoshisToXec,
     getAliasRegistrationFee,
 } from 'utils/cashMethods';
-import { isAliasAvailable, isAddressRegistered } from 'utils/chronik';
+import {
+    isAliasAvailable,
+    isAddressRegistered,
+    getAllTxHistory,
+} from 'utils/chronik';
 import { currency } from 'components/Common/Ticker.js';
 import { registerNewAlias } from 'utils/transactions';
 import {
@@ -67,6 +71,15 @@ const Alias = ({ passLoadingStatus }) => {
     }, [balances.totalBalance]);
 
     useEffect(async () => {
+        // get latest tx count for payment address
+        const totalPaymentTx = await getAllTxHistory(
+            chronik,
+            currency.aliasSettings.aliasPaymentHash160,
+        );
+
+        // temporary log for reviewer
+        console.log(`totalPaymentTx: ${totalPaymentTx.length}`);
+
         // check whether the address is attached to an onchain alias on page load
         let walletHasAlias = isAddressRegistered(wallet);
 
