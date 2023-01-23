@@ -480,7 +480,8 @@ static bool UndoWriteToDisk(const CBlockUndo &blockundo, FlatFilePos &pos,
 }
 
 bool UndoReadFromDisk(CBlockUndo &blockundo, const CBlockIndex *pindex) {
-    FlatFilePos pos = pindex->GetUndoPos();
+    const FlatFilePos pos{WITH_LOCK(::cs_main, return pindex->GetUndoPos())};
+
     if (pos.IsNull()) {
         return error("%s: no undo data available", __func__);
     }
