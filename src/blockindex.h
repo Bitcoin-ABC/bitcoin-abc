@@ -216,7 +216,9 @@ public:
 
     //! Raise the validity level of this block index entry.
     //! Returns true if the validity was changed.
-    bool RaiseValidity(enum BlockValidity nUpTo) {
+    bool RaiseValidity(enum BlockValidity nUpTo)
+        EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
+        AssertLockHeld(::cs_main);
         // Only validity flags allowed.
         if (nStatus.isInvalid()) {
             return false;

@@ -98,7 +98,8 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         if (!block_status.isValid()) {
             continue;
         }
-        (void)disk_block_index->RaiseValidity(block_validity);
+        WITH_LOCK(::cs_main,
+                  (void)disk_block_index->RaiseValidity(block_validity));
     }
 
     CBlockIndex block_index{block_header};

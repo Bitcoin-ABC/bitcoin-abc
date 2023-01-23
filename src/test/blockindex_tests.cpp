@@ -278,6 +278,8 @@ BOOST_AUTO_TEST_CASE(index_validity_tests) {
                                     .withFailedParent(withFailedParent);
 
                 for (BlockValidity validUpTo : validityValues) {
+                    LOCK(::cs_main);
+
                     // Test isValidity()
                     bool isValid = index.IsValid(validUpTo);
                     if (validUpTo <= validity && !withFailed &&
@@ -432,6 +434,8 @@ BOOST_AUTO_TEST_CASE(index_assumevalid_tests) {
     std::set<bool> boolValues = {false, true};
     for (BlockValidity validityFrom : validityValues) {
         for (bool withAssumedValid : boolValues) {
+            LOCK(cs_main);
+
             index.nStatus = BlockStatus()
                                 .withValidity(validityFrom)
                                 .withAssumedValid(withAssumedValid);
