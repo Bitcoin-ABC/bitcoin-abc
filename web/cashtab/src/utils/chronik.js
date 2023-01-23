@@ -119,7 +119,10 @@ export const isAliasAvailable = async (chronik, alias) => {
     // else retrieve via chronik and update localStorage
 
     // retrieve alias payment address tx history
-    let aliasPaymentTxs = await getAliasPaymentHistory(chronik);
+    let aliasPaymentTxs = await getAllTxHistory(
+        chronik,
+        currency.aliasSettings.aliasPaymentHash160,
+    );
 
     // extract aliases from payment address' tx history
     let registeredAliases = getAliases(aliasPaymentTxs);
@@ -152,10 +155,10 @@ export const getAliases = aliasPaymentTxs => {
     let aliasName;
 
     // parse through each txs in alias payment address
-    for (let i = 0; i < aliasPaymentTxs.txs.length; i += 1) {
+    for (let i = 0; i < aliasPaymentTxs.length; i += 1) {
         let totalAliasFeePaid = new BigNumber(0);
         // extract the OP_RETURN script for txs[i]
-        const opReturnScript = aliasPaymentTxs.txs[i].outputs[0].outputScript;
+        const opReturnScript = aliasPaymentTxs[i].outputs[0].outputScript;
 
         // parse the OP_RETURN script - expected structure is [.xec][the alias]
         const aliasTxOpReturnArray = parseOpReturn(opReturnScript);
@@ -180,9 +183,9 @@ export const getAliases = aliasPaymentTxs => {
             let aliasNameFound = false;
 
             // parse through each output in this txs[i] and tally up the total alias registration payments where the destination address is the alias payment address
-            for (let j = 0; j < aliasPaymentTxs.txs[i].outputs.length; j++) {
+            for (let j = 0; j < aliasPaymentTxs[i].outputs.length; j += 1) {
                 const thisOutputScript =
-                    aliasPaymentTxs.txs[i].outputs[j].outputScript;
+                    aliasPaymentTxs[i].outputs[j].outputScript;
                 if (
                     thisOutputScript.includes(
                         currency.aliasSettings.aliasPaymentHash160,
@@ -194,8 +197,7 @@ export const getAliases = aliasPaymentTxs => {
                         aliasNameFound = true;
                     }
 
-                    const thisOutputValue =
-                        aliasPaymentTxs.txs[i].outputs[j].value;
+                    const thisOutputValue = aliasPaymentTxs[i].outputs[j].value;
 
                     // increment fee paid
                     totalAliasFeePaid = totalAliasFeePaid.plus(
@@ -229,33 +231,6 @@ export const getAliases = aliasPaymentTxs => {
     }
 
     return registeredAliases;
-};
-
-export const getAliasPaymentHistory = async chronik => {
-    // TODO: Implement caching mechanism to reduce the API call below
-    // if isLocalAliasStateLatest() is true then retrieve incoming tx history from localStorage
-    // else retrieve via chronik and update localStorage
-
-    // retireve alias payment address tx history
-    let aliasPaymentTxs;
-    try {
-        aliasPaymentTxs = await chronik
-            .script(
-                'p2pkh', // TODO: change type to p2sh when we switch to multisig
-                currency.aliasSettings.aliasPaymentHash160,
-            )
-            .history();
-    } catch (err) {
-        console.log('Error retireving onchain aliases');
-        return false;
-    }
-
-    if (!aliasPaymentTxs || !aliasPaymentTxs.txs) {
-        console.log('Invalid alias payment transaction history');
-        return false;
-    }
-
-    return aliasPaymentTxs;
 };
 
 export const isAddressRegistered = activeWallet => {
