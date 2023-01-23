@@ -82,6 +82,16 @@ class AvalanchePeerDiscoveryTest(BitcoinTestFramework):
         proof = node.buildavalancheproof(
             proof_sequence, proof_expiration, wif_privkey, stakes)
 
+        master_key = ECKey()
+        master_key.generate()
+
+        limited_id = avalanche_proof_from_hex(proof).limited_proofid
+        delegation = node.delegateavalancheproof(
+            uint256_hex(limited_id),
+            bytes_to_wif(privkey.get_bytes()),
+            master_key.get_pubkey().get_bytes().hex(),
+        )
+
         self.log.info("Test the avahello signature with no proof")
 
         peer = get_ava_p2p_interface_no_handshake(node)
@@ -99,6 +109,33 @@ class AvalanchePeerDiscoveryTest(BitcoinTestFramework):
         # No proof is requested
         with p2p_lock:
             assert_equal(no_proof_peer.get_proof_data_count, 0)
+        assert_equal(len(node.getavalanchepeerinfo()), 0)
+
+        self.log.info(
+            "A peer can send another hello containing a proof, only if the previous delegation was empty")
+
+        # Send another hello, with a non-null delegation
+        no_proof_peer.send_avahello(delegation, master_key)
+        # Check the associated proof gets requested by the node
+        no_proof_peer.wait_until(
+            lambda: no_proof_peer.get_proof_data_count > 0)
+
+        # Send the proof
+        proofobj = avalanche_proof_from_hex(proof)
+        no_proof_peer.send_avaproof(proofobj)
+        wait_for_proof(node, uint256_hex(proofobj.proofid))
+
+        # Make sure we are added as a peer
+        avalanchepeerinfo = node.getavalanchepeerinfo()
+        assert_equal(len(avalanchepeerinfo), 1)
+        # With a single node
+        assert_equal(len(avalanchepeerinfo[0]["node_list"]), 1)
+        nodeid = avalanchepeerinfo[0]["node_list"][0]
+
+        # Subsequent avahello get ignored
+        for _ in range(3):
+            with node.assert_debug_log([f"Ignoring avahello from peer {nodeid}: already in our node set"]):
+                no_proof_peer.send_avahello(delegation, master_key)
 
         # Restart the node
         self.restart_node(0, self.extra_args[0] + [
@@ -129,16 +166,6 @@ class AvalanchePeerDiscoveryTest(BitcoinTestFramework):
             "-avaproof={}".format(proof),
             "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN"
         ])
-
-        master_key = ECKey()
-        master_key.generate()
-
-        limited_id = avalanche_proof_from_hex(proof).limited_proofid
-        delegation = node.delegateavalancheproof(
-            uint256_hex(limited_id),
-            bytes_to_wif(privkey.get_bytes()),
-            master_key.get_pubkey().get_bytes().hex(),
-        )
 
         self.log.info("Test the avahello signature with a supplied delegation")
         check_avahello([

@@ -183,6 +183,7 @@ static RPCHelpMan addavalanchenode() {
             }
 
             if (!node.connman->ForNode(nodeid, [&](CNode *pnode) {
+                    LOCK(pnode->cs_avalanche_pubkey);
                     bool expected = false;
                     if (pnode->m_avalanche_enabled.compare_exchange_strong(
                             expected, true)) {

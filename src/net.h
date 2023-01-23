@@ -651,8 +651,9 @@ public:
     // True if we know this peer is using Avalanche (at least polling)
     std::atomic<bool> m_avalanche_enabled{false};
 
+    mutable Mutex cs_avalanche_pubkey;
     // Pubkey used to verify signatures on Avalanche messages from this peer
-    std::optional<CPubKey> m_avalanche_pubkey;
+    std::optional<CPubKey> m_avalanche_pubkey GUARDED_BY(cs_avalanche_pubkey);
 
     /** The node was polled for count invs */
     void invsPolled(uint32_t count);

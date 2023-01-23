@@ -4984,62 +4984,63 @@ void PeerManagerImpl::ProcessMessage(
 
     if (msg_type == NetMsgType::AVAHELLO) {
         {
-            bool expected = false;
-            if (!pfrom.m_avalanche_enabled.compare_exchange_strong(expected,
-                                                                   true)) {
+            LOCK(pfrom.cs_avalanche_pubkey);
+            if (pfrom.m_avalanche_pubkey.has_value()) {
                 LogPrint(
                     BCLog::AVALANCHE,
                     "Ignoring avahello from peer %d: already in our node set\n",
                     pfrom.GetId());
                 return;
             }
-        }
 
-        avalanche::Delegation delegation;
-        vRecv >> delegation;
+            avalanche::Delegation delegation;
+            vRecv >> delegation;
 
-        // A delegation with an all zero limited id indicates that the peer has
-        // no proof, so we're done.
-        if (delegation.getLimitedProofId() != uint256::ZERO) {
-            avalanche::DelegationState state;
-            CPubKey pubkey;
-            if (!delegation.verify(state, pubkey)) {
-                Misbehaving(pfrom, 100, "invalid-delegation");
-                return;
+            // A delegation with an all zero limited id indicates that the peer
+            // has no proof, so we're done.
+            if (delegation.getLimitedProofId() != uint256::ZERO) {
+                avalanche::DelegationState state;
+                CPubKey pubkey;
+                if (!delegation.verify(state, pubkey)) {
+                    Misbehaving(pfrom, 100, "invalid-delegation");
+                    return;
+                }
+                pfrom.m_avalanche_pubkey = std::move(pubkey);
+
+                CHashWriter sighasher(SER_GETHASH, 0);
+                sighasher << delegation.getId();
+                sighasher << pfrom.nRemoteHostNonce;
+                sighasher << pfrom.GetLocalNonce();
+                sighasher << pfrom.nRemoteExtraEntropy;
+                sighasher << pfrom.GetLocalExtraEntropy();
+
+                SchnorrSig sig;
+                vRecv >> sig;
+                if (!(*pfrom.m_avalanche_pubkey)
+                         .VerifySchnorr(sighasher.GetHash(), sig)) {
+                    Misbehaving(pfrom, 100, "invalid-avahello-signature");
+                    return;
+                }
+
+                // If we don't know this proof already, add it to the tracker so
+                // it can be requested.
+                const avalanche::ProofId proofid(delegation.getProofId());
+                if (!AlreadyHaveProof(proofid)) {
+                    const bool preferred = isPreferredDownloadPeer(pfrom);
+                    LOCK(cs_proofrequest);
+                    AddProofAnnouncement(pfrom, proofid,
+                                         GetTime<std::chrono::microseconds>(),
+                                         preferred);
+                }
+
+                // Don't check the return value. If it fails we probably don't
+                // know about the proof yet.
+                g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+                    return pm.addNode(pfrom.GetId(), proofid);
+                });
             }
-            pfrom.m_avalanche_pubkey = std::move(pubkey);
 
-            CHashWriter sighasher(SER_GETHASH, 0);
-            sighasher << delegation.getId();
-            sighasher << pfrom.nRemoteHostNonce;
-            sighasher << pfrom.GetLocalNonce();
-            sighasher << pfrom.nRemoteExtraEntropy;
-            sighasher << pfrom.GetLocalExtraEntropy();
-
-            SchnorrSig sig;
-            vRecv >> sig;
-            if (!(*pfrom.m_avalanche_pubkey)
-                     .VerifySchnorr(sighasher.GetHash(), sig)) {
-                Misbehaving(pfrom, 100, "invalid-avahello-signature");
-                return;
-            }
-
-            // If we don't know this proof already, add it to the tracker so it
-            // can be requested.
-            const avalanche::ProofId proofid(delegation.getProofId());
-            if (!AlreadyHaveProof(proofid)) {
-                const bool preferred = isPreferredDownloadPeer(pfrom);
-                LOCK(cs_proofrequest);
-                AddProofAnnouncement(pfrom, proofid,
-                                     GetTime<std::chrono::microseconds>(),
-                                     preferred);
-            }
-
-            // Don't check the return value. If it fails we probably don't
-            // know about the proof yet.
-            g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
-                return pm.addNode(pfrom.GetId(), proofid);
-            });
+            pfrom.m_avalanche_enabled = true;
         }
 
         // Send getavaaddr and getavaproofs to our avalanche outbound or
@@ -5149,11 +5150,15 @@ void PeerManagerImpl::ProcessMessage(
 
         SchnorrSig sig;
         vRecv >> sig;
-        if (!pfrom.m_avalanche_pubkey.has_value() ||
-            !(*pfrom.m_avalanche_pubkey)
-                 .VerifySchnorr(verifier.GetHash(), sig)) {
-            Misbehaving(pfrom, 100, "invalid-ava-response-signature");
-            return;
+
+        {
+            LOCK(pfrom.cs_avalanche_pubkey);
+            if (!pfrom.m_avalanche_pubkey.has_value() ||
+                !(*pfrom.m_avalanche_pubkey)
+                     .VerifySchnorr(verifier.GetHash(), sig)) {
+                Misbehaving(pfrom, 100, "invalid-ava-response-signature");
+                return;
+            }
         }
 
         std::vector<avalanche::VoteItemUpdate> updates;
