@@ -212,7 +212,10 @@ public:
 
     //! @returns true if the block is assumed-valid; this means it is queued
     //! to be validated by a background chainstate.
-    bool IsAssumedValid() const { return nStatus.isAssumedValid(); }
+    bool IsAssumedValid() const EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
+        AssertLockHeld(::cs_main);
+        return nStatus.isAssumedValid();
+    }
 
     //! Raise the validity level of this block index entry.
     //! Returns true if the validity was changed.
