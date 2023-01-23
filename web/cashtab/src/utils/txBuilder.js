@@ -16,7 +16,7 @@ class TransactionBuilder {
         this.transaction = new eCash.TransactionBuilder(
             bitcoincashBitcoinJSLib,
         );
-        this.DEFAULT_SEQUENCE = 0xffffffff;
+        this.DEFAULT_SEQUENCE = 0xfffffffe;
         this.hashTypes = {
             SIGHASH_ALL: 0x01,
             SIGHASH_NONE: 0x02,

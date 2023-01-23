@@ -17,6 +17,8 @@ import TransactionBuilder from 'utils/txBuilder';
 it(`Transaction Builder returns correct builder object with valid input and output params`, () => {
     const isOneToMany = false;
     let txBuilder = new TransactionBuilder();
+    // Use legacy sequencing for legacy unit tests
+    txBuilder.DEFAULT_SEQUENCE = 0xffffffff;
     const { utxos, destinationAddress, wallet } = sendBCHMock;
     const satoshisToSend = new BigNumber(600);
 

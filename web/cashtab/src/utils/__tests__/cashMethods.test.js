@@ -990,6 +990,8 @@ it(`generateTxOutput() throws an error on invalid input params for a one to many
 it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single input and a single output`, () => {
     // txbuilder output params
     let txBuilder = new TransactionBuilder();
+    // Use legacy sequencing for legacy unit tests
+    txBuilder.DEFAULT_SEQUENCE = 0xffffffff;
     const { wallet } = sendBCHMock;
     // add inputs to txBuilder
     txBuilder.addInput(
@@ -1012,6 +1014,8 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single in
 it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single input and multiple outputs`, () => {
     // txbuilder output params
     let txBuilder = new TransactionBuilder();
+    // Use legacy sequencing for legacy unit tests
+    txBuilder.DEFAULT_SEQUENCE = 0xffffffff;
     const { wallet } = sendBCHMock;
     // add inputs to txBuilder
     txBuilder.addInput(
@@ -1039,6 +1043,8 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single in
 it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple inputs and a single output`, () => {
     // txbuilder output params
     let txBuilder = new TransactionBuilder();
+    // Use legacy sequencing for legacy unit tests
+    txBuilder.DEFAULT_SEQUENCE = 0xffffffff;
     const { wallet } = sendBCHMock;
     // add inputs to txBuilder
     for (let i = 0; i < mockMultipleInputUtxos.length; i++) {
@@ -1063,6 +1069,8 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple in
 it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple inputs and multiple outputs`, () => {
     // txbuilder output params
     let txBuilder = new TransactionBuilder();
+    // Use legacy sequencing for legacy unit tests
+    txBuilder.DEFAULT_SEQUENCE = 0xffffffff;
     const { wallet } = sendBCHMock;
     // add inputs to txBuilder
     for (let i = 0; i < mockMultipleInputUtxos.length; i++) {
