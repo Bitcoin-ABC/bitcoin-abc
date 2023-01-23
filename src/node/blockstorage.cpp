@@ -229,8 +229,7 @@ CBlockIndex *BlockManager::InsertBlockIndex(const BlockHash &hash) {
     return pindex;
 }
 
-bool BlockManager::LoadBlockIndex(const Consensus::Params &params,
-                                  ChainstateManager &chainman) {
+bool BlockManager::LoadBlockIndex(const Consensus::Params &params) {
     AssertLockHeld(cs_main);
     if (!m_block_tree_db->LoadBlockIndexGuts(
             params, [this](const BlockHash &hash) EXCLUSIVE_LOCKS_REQUIRED(
@@ -250,33 +249,6 @@ bool BlockManager::LoadBlockIndex(const Consensus::Params &params,
              return pa->nHeight < pb->nHeight;
          });
 
-    // Find start of assumed-valid region.
-    int first_assumed_valid_height = std::numeric_limits<int>::max();
-
-    for (const CBlockIndex *block : vSortedByHeight) {
-        if (block->IsAssumedValid()) {
-            auto chainstates = chainman.GetAll();
-
-            // If we encounter an assumed-valid block index entry, ensure that
-            // we have one chainstate that tolerates assumed-valid entries and
-            // another that does not (i.e. the background validation
-            // chainstate), since assumed-valid entries should always be
-            // pending validation by a fully-validated chainstate.
-            auto any_chain = [&](auto fnc) {
-                return std::any_of(chainstates.cbegin(), chainstates.cend(),
-                                   fnc);
-            };
-            assert(any_chain([](auto chainstate) {
-                return chainstate->reliesOnAssumedValid();
-            }));
-            assert(any_chain([](auto chainstate) {
-                return !chainstate->reliesOnAssumedValid();
-            }));
-
-            first_assumed_valid_height = block->nHeight;
-            break;
-        }
-    }
     for (CBlockIndex *pindex : vSortedByHeight) {
         if (ShutdownRequested()) {
             return false;
@@ -301,53 +273,6 @@ bool BlockManager::LoadBlockIndex(const Consensus::Params &params,
             pindex->pprev->nStatus.hasFailed()) {
             pindex->nStatus = pindex->nStatus.withFailedParent();
             m_dirty_blockindex.insert(pindex);
-        }
-        if (pindex->IsAssumedValid() ||
-            (pindex->IsValid(BlockValidity::TRANSACTIONS) &&
-             (pindex->HaveTxsDownloaded() || pindex->pprev == nullptr))) {
-            // Fill each chainstate's block candidate set. Only add
-            // assumed-valid blocks to the tip candidate set if the chainstate
-            // is allowed to rely on assumed-valid blocks.
-            //
-            // If all setBlockIndexCandidates contained the assumed-valid
-            // blocks, the background chainstate's ActivateBestChain() call
-            // would add assumed-valid blocks to the chain (based on how
-            // FindMostWorkChain() works). Obviously we don't want this since
-            // the purpose of the background validation chain is to validate
-            // assumed-valid blocks.
-            //
-            // Note: This is considering all blocks whose height is greater or
-            // equal to the first assumed-valid block to be assumed-valid
-            // blocks, and excluding them from the background chainstate's
-            // setBlockIndexCandidates set. This does mean that some blocks
-            // which are not technically assumed-valid (later blocks on a fork
-            // beginning before the first assumed-valid block) might not get
-            // added to the background chainstate, but this is ok, because they
-            // will still be attached to the active chainstate if they actually
-            // contain more work.
-            //
-            // Instead of this height-based approach, an earlier attempt was
-            // made at detecting "holistically" whether the block index under
-            // consideration relied on an assumed-valid ancestor, but this
-            // proved to be too slow to be practical.
-            for (CChainState *chainstate : chainman.GetAll()) {
-                if (chainstate->reliesOnAssumedValid() ||
-                    pindex->nHeight < first_assumed_valid_height) {
-                    chainstate->setBlockIndexCandidates.insert(pindex);
-                }
-            }
-        }
-
-        if (pindex->nStatus.isInvalid() &&
-            (!chainman.m_best_invalid ||
-             pindex->nChainWork > chainman.m_best_invalid->nChainWork)) {
-            chainman.m_best_invalid = pindex;
-        }
-
-        if (pindex->nStatus.isOnParkedChain() &&
-            (!chainman.m_best_parked ||
-             pindex->nChainWork > chainman.m_best_parked->nChainWork)) {
-            chainman.m_best_parked = pindex;
         }
 
         if (pindex->pprev) {
@@ -398,8 +323,8 @@ bool BlockManager::WriteBlockIndexDB() {
     return true;
 }
 
-bool BlockManager::LoadBlockIndexDB(ChainstateManager &chainman) {
-    if (!LoadBlockIndex(::Params().GetConsensus(), chainman)) {
+bool BlockManager::LoadBlockIndexDB() {
+    if (!LoadBlockIndex(::Params().GetConsensus())) {
         return false;
     }
 
