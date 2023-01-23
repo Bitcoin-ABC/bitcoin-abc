@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import BigNumber from 'bignumber.js';
 import styled from 'styled-components';
 import { WalletContext } from 'utils/context';
 import PropTypes from 'prop-types';
@@ -55,6 +56,7 @@ const Alias = ({ passLoadingStatus }) => {
         cashtabSettings,
         chronik,
         changeCashtabSettings,
+        getAliasesFromLocalForage,
     } = ContextValue;
     const walletState = getWalletState(wallet);
     const { balances, nonSlpUtxos } = walletState;
@@ -71,6 +73,8 @@ const Alias = ({ passLoadingStatus }) => {
     }, [balances.totalBalance]);
 
     useEffect(async () => {
+        passLoadingStatus(true);
+
         // get latest tx count for payment address
         const totalPaymentTx = await getAllTxHistory(
             chronik,
@@ -80,6 +84,26 @@ const Alias = ({ passLoadingStatus }) => {
         // temporary log for reviewer
         console.log(`totalPaymentTx: ${totalPaymentTx.length}`);
 
+        // retrieve cached aliases
+        let cachedAliases;
+        try {
+            cachedAliases = await getAliasesFromLocalForage();
+        } catch (err) {
+            console.log(`Error retrieving aliases from local forage`, err);
+        }
+
+        if (
+            !cachedAliases ||
+            !cachedAliases.totalPaymentTx ||
+            new BigNumber(cachedAliases.totalPaymentTx) <
+                new BigNumber(totalPaymentTx)
+        ) {
+            // temporary console log for reviewer
+            console.log(`alias cache refresh required`);
+
+            // call updateAliases() in next diff to refresh the alias cache object
+        }
+
         // check whether the address is attached to an onchain alias on page load
         let walletHasAlias = isAddressRegistered(wallet);
 
@@ -87,6 +111,7 @@ const Alias = ({ passLoadingStatus }) => {
             'Does this active wallet have an onchain alias? : ' +
                 walletHasAlias,
         );
+        passLoadingStatus(false);
     }, []);
 
     const registerAlias = async () => {

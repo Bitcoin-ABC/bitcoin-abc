@@ -265,6 +265,17 @@ const useWallet = () => {
         return wallet;
     };
 
+    const getAliasesFromLocalForage = async () => {
+        let cachedAliases;
+        try {
+            cachedAliases = await localforage.getItem('aliases');
+        } catch (err) {
+            console.log(`Error in getAliasesFromLocalForage`, err);
+            cachedAliases = null;
+        }
+        return cachedAliases;
+    };
+
     const getContactListFromLocalForage = async () => {
         let contactListArray = [];
         try {
@@ -1437,6 +1448,7 @@ const useWallet = () => {
         getSavedWallets,
         migrateLegacyWallet,
         getContactListFromLocalForage,
+        getAliasesFromLocalForage,
         updateContactList,
         createWallet: async importMnemonic => {
             setLoading(true);
