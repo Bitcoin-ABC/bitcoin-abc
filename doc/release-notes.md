@@ -1,8 +1,7 @@
-# Bitcoin ABC 0.26.10 Release Notes
+# Bitcoin ABC 0.26.11 Release Notes
 
-Bitcoin ABC version 0.26.10 is now available from:
+Bitcoin ABC version 0.26.11 is now available from:
 
-  <https://download.bitcoinabc.org/0.26.10/>
+  <https://download.bitcoinabc.org/0.26.11/>
 
- - The `getavalancheinfo` RPC returns a new `verification_status` field
-   with a status description string to indicate why local proof is not verified.
+This is a maintenance release with no user-visible change.
