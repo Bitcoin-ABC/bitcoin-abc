@@ -16,6 +16,8 @@ NODE2_BLOCKS_REQUIRED = 2047
 
 class RejectLowDifficultyHeadersTest(BitcoinTestFramework):
     def set_test_params(self):
+        # Bump the timeout to avoid timeout when generating BLOCKS_TO_MINE
+        self.rpc_timeout *= 4
         self.setup_clean_chain = True
         self.num_nodes = 3
         # Node0 has no required chainwork; node1 requires 15 blocks on top of the
