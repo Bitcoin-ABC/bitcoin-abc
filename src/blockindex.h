@@ -206,7 +206,9 @@ public:
 
     //! Check whether this block index entry is valid up to the passed validity
     //! level.
-    bool IsValid(enum BlockValidity nUpTo = BlockValidity::TRANSACTIONS) const {
+    bool IsValid(enum BlockValidity nUpTo = BlockValidity::TRANSACTIONS) const
+        EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
+        AssertLockHeld(::cs_main);
         return nStatus.isValid(nUpTo);
     }
 
