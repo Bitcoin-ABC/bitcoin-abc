@@ -1184,7 +1184,8 @@ static RPCHelpMan isfinaltransaction() {
                 if (!tx) {
                     std::string errmsg;
                     if (pindex) {
-                        if (!pindex->nStatus.hasData()) {
+                        if (WITH_LOCK(::cs_main,
+                                      return !pindex->nStatus.hasData())) {
                             throw JSONRPCError(
                                 RPC_MISC_ERROR,
                                 "Block data not downloaded yet.");

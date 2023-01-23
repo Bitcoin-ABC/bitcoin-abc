@@ -251,7 +251,8 @@ static RPCHelpMan getrawtransaction() {
             if (!tx) {
                 std::string errmsg;
                 if (blockindex) {
-                    if (!blockindex->nStatus.hasData()) {
+                    if (WITH_LOCK(::cs_main,
+                                  return !blockindex->nStatus.hasData())) {
                         throw JSONRPCError(RPC_MISC_ERROR,
                                            "Block not available");
                     }

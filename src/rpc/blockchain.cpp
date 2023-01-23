@@ -928,7 +928,7 @@ static RPCHelpMan getblockfrompeer() {
                 throw JSONRPCError(RPC_MISC_ERROR, "Block header missing");
             }
 
-            if (index->nStatus.hasData()) {
+            if (WITH_LOCK(::cs_main, return index->nStatus.hasData())) {
                 throw JSONRPCError(RPC_MISC_ERROR, "Block already downloaded");
             }
 

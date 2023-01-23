@@ -285,6 +285,7 @@ struct BlockProvider {
     }
 
     void invalidateItem(CBlockIndex *pindex) {
+        LOCK(::cs_main);
         pindex->nStatus = pindex->nStatus.withFailed();
     }
 

@@ -119,7 +119,9 @@ public:
     bool ReadFlag(const std::string &name, bool &fValue);
     bool LoadBlockIndexGuts(
         const Consensus::Params &params,
-        std::function<CBlockIndex *(const BlockHash &)> insertBlockIndex);
+        std::function<CBlockIndex *(const BlockHash &)> insertBlockIndex)
+        EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+    ;
 
     //! Attempt to update from an older database format.
     //! Returns whether an error occurred.

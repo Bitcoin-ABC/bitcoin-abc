@@ -81,6 +81,7 @@ public:
     }
 
     SERIALIZE_METHODS(CDiskBlockIndex, obj) {
+        LOCK(::cs_main);
         int _nVersion = s.GetVersion();
         if (!(s.GetType() & SER_GETHASH)) {
             READWRITE(VARINT_MODE(_nVersion, VarIntMode::NONNEGATIVE_SIGNED));

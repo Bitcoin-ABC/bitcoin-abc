@@ -39,13 +39,13 @@ public:
     int nHeight{0};
 
     //! Which # file this block is stored in (blk?????.dat)
-    int nFile{0};
+    int nFile GUARDED_BY(::cs_main){0};
 
     //! Byte offset within blk?????.dat where this block's data is stored
-    unsigned int nDataPos{0};
+    unsigned int nDataPos GUARDED_BY(::cs_main){0};
 
     //! Byte offset within rev?????.dat where this block's undo data is stored
-    unsigned int nUndoPos{0};
+    unsigned int nUndoPos GUARDED_BY(::cs_main){0};
 
     //! (memory only) Total amount of work (expected number of hashes) in the
     //! chain up to and including this block
@@ -85,7 +85,7 @@ private:
 
 public:
     //! Verification status of this block. See enum BlockStatus
-    BlockStatus nStatus{};
+    BlockStatus nStatus GUARDED_BY(::cs_main){};
 
     //! block header
     int32_t nVersion{0};

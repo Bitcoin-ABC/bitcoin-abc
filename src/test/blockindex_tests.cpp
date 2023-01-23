@@ -44,6 +44,7 @@ BOOST_AUTO_TEST_CASE(get_disk_positions) {
         BlockValidity::UNKNOWN, BlockValidity::RESERVED,
         BlockValidity::TREE,    BlockValidity::TRANSACTIONS,
         BlockValidity::CHAIN,   BlockValidity::SCRIPTS};
+    LOCK(cs_main);
     for (BlockValidity validity : validityValues) {
         // Test against all combinations of data and undo flags
         for (int flags = 0; flags <= 0x03; flags++) {
@@ -68,7 +69,6 @@ BOOST_AUTO_TEST_CASE(get_disk_positions) {
             }
 
             // Data and undo positions should be unmodified
-            LOCK(::cs_main);
             FlatFilePos dataPosition = index.GetBlockPos();
             if (flags & 0x01) {
                 BOOST_CHECK(dataPosition.nFile == expectedFile);
@@ -269,6 +269,7 @@ BOOST_AUTO_TEST_CASE(index_validity_tests) {
         BlockValidity::TREE,    BlockValidity::TRANSACTIONS,
         BlockValidity::CHAIN,   BlockValidity::SCRIPTS};
     std::set<bool> boolValues = {false, true};
+    LOCK(::cs_main);
     for (BlockValidity validity : validityValues) {
         for (bool withFailed : boolValues) {
             for (bool withFailedParent : boolValues) {
@@ -278,8 +279,6 @@ BOOST_AUTO_TEST_CASE(index_validity_tests) {
                                     .withFailedParent(withFailedParent);
 
                 for (BlockValidity validUpTo : validityValues) {
-                    LOCK(::cs_main);
-
                     // Test isValidity()
                     bool isValid = index.IsValid(validUpTo);
                     if (validUpTo <= validity && !withFailed &&
