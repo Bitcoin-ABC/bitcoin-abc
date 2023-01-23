@@ -190,6 +190,9 @@ class ProofInventoryTest(BitcoinTestFramework):
         restart_nodes_with_proof(
             self.nodes[-1:], extra_args=[f'-minimumchainwork={chainwork + 100:#x}'])
 
+        # Add an inbound so the node proof can be registered and advertised
+        [node.add_p2p_connection(P2PInterface()) for node in self.nodes]
+
         [[self.connect_nodes(node.index, j)
           for j in range(node.index)] for node in self.nodes]
 

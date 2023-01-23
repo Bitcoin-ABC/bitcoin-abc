@@ -4,4 +4,5 @@ Bitcoin ABC version 0.26.11 is now available from:
 
   <https://download.bitcoinabc.org/0.26.11/>
 
-This is a maintenance release with no user-visible change.
+ - An avalanche node that accepts no inbound connection will now behave as a
+   poll-only node and will not advertise its proof to the avalanche network.

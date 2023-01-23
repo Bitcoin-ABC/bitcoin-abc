@@ -29,12 +29,13 @@ from test_framework.messages import (
     CInv,
     msg_getdata,
 )
-from test_framework.p2p import p2p_lock
+from test_framework.p2p import P2PInterface, p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, uint256_hex
 from test_framework.wallet_util import bytes_to_wif
 
 UNCONDITIONAL_RELAY_DELAY = 2 * 60
+MAX_AVALANCHE_PERIODIC_NETWORKING = 5 * 60
 
 
 class GetProofDataCountingInterface(AvaP2PInterface):
@@ -238,6 +239,8 @@ class AvalanchePeerDiscoveryTest(BitcoinTestFramework):
         ])
 
         def wait_for_proof_validation():
+            # Add an inbound so the node proof can be registered and advertised
+            node.add_p2p_connection(P2PInterface())
             # Connect some blocks to trigger the proof verification
             self.generate(node, 1, sync_fun=self.no_op)
             self.wait_until(lambda: node_proofid in get_proof_ids(node))
@@ -343,6 +346,76 @@ class AvalanchePeerDiscoveryTest(BitcoinTestFramework):
             nonavapeer = get_ava_p2p_interface_no_handshake(
                 node, services=NODE_NETWORK)
             nonavapeer.wait_for_avahello()
+
+        self.log.info(
+            "Check the node waits for inbound connection to advertise its proof")
+
+        self.restart_node(0, self.extra_args[0] + [
+            "-avaproof={}".format(proof),
+            "-avadelegation={}".format(delegation),
+            "-avamasterkey={}".format(bytes_to_wif(master_key.get_bytes())),
+        ])
+
+        outbound = AvaP2PInterface()
+        outbound.master_privkey, outbound.proof = gen_proof(self, node)
+        node.add_outbound_p2p_connection(
+            outbound,
+            p2p_idx=1,
+            connection_type="avalanche",
+            services=NODE_NETWORK | NODE_AVALANCHE,
+        )
+
+        # Check the proof is not advertised when there is no inbound
+        hello = outbound.wait_for_avahello().hello
+        assert_equal(hello.delegation.limited_proofid, 0)
+        outbound.avahello = None
+
+        # Check we don't get any avahello message until we have inbounds
+        for _ in range(5):
+            node.mockscheduler(MAX_AVALANCHE_PERIODIC_NETWORKING)
+            outbound.sync_send_with_ping()
+            assert outbound.avahello is None
+
+        # Add an inbound
+        inbound = node.add_p2p_connection(P2PInterface())
+
+        # Wait for the periodic update
+        node.mockscheduler(MAX_AVALANCHE_PERIODIC_NETWORKING)
+
+        # Check we got an avahello with the expected proof
+        hello = outbound.wait_for_avahello().hello
+        assert_equal(
+            hello.delegation.limited_proofid,
+            proofobj.limited_proofid)
+        outbound.avahello = None
+
+        # Check we don't get any avahello message anymore
+        for _ in range(5):
+            node.mockscheduler(MAX_AVALANCHE_PERIODIC_NETWORKING)
+            outbound.sync_send_with_ping()
+            assert outbound.avahello is None
+
+        # Disconnect the inbound peer
+        inbound.peer_disconnect()
+        inbound.wait_for_disconnect()
+
+        # Add another outbound peer
+        other_outbound = AvaP2PInterface()
+        other_outbound.master_privkey, other_outbound.proof = gen_proof(
+            self, node)
+        node.add_outbound_p2p_connection(
+            other_outbound,
+            p2p_idx=2,
+            connection_type="avalanche",
+            services=NODE_NETWORK | NODE_AVALANCHE,
+        )
+
+        # Check we got an avahello with the expected proof, because the inbound
+        # capability has been latched
+        hello = other_outbound.wait_for_avahello().hello
+        assert_equal(
+            hello.delegation.limited_proofid,
+            proofobj.limited_proofid)
 
 
 if __name__ == '__main__':

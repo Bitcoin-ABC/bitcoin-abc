@@ -17,6 +17,7 @@ from test_framework.avatools import (
 )
 from test_framework.key import ECKey
 from test_framework.messages import AvalancheProofVoteResponse, AvalancheVote
+from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
@@ -78,6 +79,9 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             '-avamasterkey={}'.format(bytes_to_wif(privkey.get_bytes())),
             '-avaproofstakeutxoconfirmations=1',
         ])
+        # Add an inbound so the node proof can be registered and advertised
+        node.add_p2p_connection(P2PInterface())
+
         assert_avalancheinfo({
             "ready_to_poll": False,
             "local": {
@@ -147,6 +151,8 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             '-avamasterkey={}'.format(bytes_to_wif(privkey.get_bytes())),
             '-avaproofstakeutxoconfirmations=3',
         ])
+        # Add an inbound so the node proof can be registered and advertised
+        node.add_p2p_connection(P2PInterface())
 
         self.log.info(
             "Mine a block to trigger proof validation, check it is immature")

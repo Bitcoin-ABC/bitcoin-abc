@@ -1718,6 +1718,8 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
         goto scheduleLater;
     }
 
+    g_avalanche->sendDelayedAvahello();
+
     fQuorumEstablished = g_avalanche->isQuorumEstablished();
     fShouldRequestMoreNodes =
         g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {

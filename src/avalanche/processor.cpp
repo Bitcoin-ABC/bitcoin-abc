@@ -112,13 +112,15 @@ public:
     NotificationsHandler(Processor *p) : m_processor(p) {}
 
     void updatedBlockTip() override {
+        const bool registerLocalProof = m_processor->canShareLocalProof();
         auto registerProofs = [&]() {
             LOCK(m_processor->cs_peerManager);
 
             auto registeredProofs = m_processor->peerManager->updatedBlockTip();
 
             ProofRegistrationState localProofState;
-            if (m_processor->peerData && m_processor->peerData->proof) {
+            if (m_processor->peerData && m_processor->peerData->proof &&
+                registerLocalProof) {
                 if (m_processor->peerManager->registerProof(
                         m_processor->peerData->proof, localProofState)) {
                     registeredProofs.insert(m_processor->peerData->proof);
@@ -599,11 +601,20 @@ CPubKey Processor::getSessionPubKey() const {
     return sessionKey.GetPubKey();
 }
 
-bool Processor::sendHello(CNode *pfrom) const {
+bool Processor::sendHelloInternal(CNode *pfrom) {
+    AssertLockHeld(cs_delayedAvahelloNodeIds);
+
     Delegation delegation;
     if (peerData) {
-        delegation = peerData->delegation;
-        pfrom->AddKnownProof(delegation.getProofId());
+        if (!canShareLocalProof()) {
+            if (!delayedAvahelloNodeIds.emplace(pfrom->GetId()).second) {
+                // Nothing to do
+                return false;
+            }
+        } else {
+            delegation = peerData->delegation;
+            pfrom->AddKnownProof(delegation.getProofId());
+        }
     }
 
     CHashWriter hasher(SER_GETHASH, 0);
@@ -623,7 +634,29 @@ bool Processor::sendHello(CNode *pfrom) const {
         pfrom, CNetMsgMaker(pfrom->GetCommonVersion())
                    .Make(NetMsgType::AVAHELLO, Hello(delegation, sig)));
 
-    return true;
+    return delegation.getLimitedProofId() != uint256::ZERO;
+}
+
+bool Processor::sendHello(CNode *pfrom) {
+    return WITH_LOCK(cs_delayedAvahelloNodeIds,
+                     return sendHelloInternal(pfrom));
+}
+
+void Processor::sendDelayedAvahello() {
+    LOCK(cs_delayedAvahelloNodeIds);
+
+    auto it = delayedAvahelloNodeIds.begin();
+    while (it != delayedAvahelloNodeIds.end()) {
+        if (connman->ForNode(*it, [&](CNode *pnode) EXCLUSIVE_LOCKS_REQUIRED(
+                                      cs_delayedAvahelloNodeIds) {
+                return sendHelloInternal(pnode);
+            })) {
+            // Our proof has been announced to this node
+            it = delayedAvahelloNodeIds.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
 ProofRef Processor::getLocalProof() const {
@@ -737,10 +770,26 @@ bool Processor::isQuorumEstablished() {
     return true;
 }
 
+bool Processor::canShareLocalProof() {
+    // The flag is latched
+    if (m_canShareLocalProof) {
+        return true;
+    }
+
+    // Don't share our proof if we don't have any inbound connection.
+    // This is a best effort measure to prevent advertising a proof if we have
+    // limited network connectivity.
+    m_canShareLocalProof = connman->GetNodeCount(CConnman::CONNECTIONS_IN) > 0;
+
+    return m_canShareLocalProof;
+}
+
 void Processor::FinalizeNode(const ::Config &config, const CNode &node) {
     AssertLockNotHeld(cs_main);
 
-    WITH_LOCK(cs_peerManager, peerManager->removeNode(node.GetId()));
+    const NodeId nodeid = node.GetId();
+    WITH_LOCK(cs_peerManager, peerManager->removeNode(nodeid));
+    WITH_LOCK(cs_delayedAvahelloNodeIds, delayedAvahelloNodeIds.erase(nodeid));
 }
 
 void Processor::runEventLoop() {

@@ -190,6 +190,7 @@ class Processor final : public NetEventsInterface {
     uint32_t minQuorumScore;
     double minQuorumConnectedScoreRatio;
     std::atomic<bool> quorumIsEstablished{false};
+    std::atomic<bool> m_canShareLocalProof{false};
     int64_t minAvaproofsNodeCount;
     std::atomic<int64_t> avaproofsNodeCounter{0};
 
@@ -203,6 +204,14 @@ class Processor final : public NetEventsInterface {
 
     mutable Mutex cs_finalizationTip;
     const CBlockIndex *finalizationTip GUARDED_BY(cs_finalizationTip){nullptr};
+
+    mutable Mutex cs_delayedAvahelloNodeIds;
+    /**
+     * A list of the nodes that did not get our proof announced via avahello
+     * yet because we had no inbound connection.
+     */
+    std::unordered_set<NodeId>
+        delayedAvahelloNodeIds GUARDED_BY(cs_delayedAvahelloNodeIds);
 
     Processor(Config avaconfig, interfaces::Chain &chain, CConnman *connmanIn,
               ChainstateManager &chainman, CScheduler &scheduler,
@@ -236,7 +245,14 @@ public:
     }
 
     CPubKey getSessionPubKey() const;
-    bool sendHello(CNode *pfrom) const;
+    /**
+     * @brief Send a avahello message
+     *
+     * @param pfrom The node to send the message to
+     * @return True if a non-null delegation has been announced
+     */
+    bool sendHello(CNode *pfrom);
+    void sendDelayedAvahello();
 
     ProofRef getLocalProof() const;
     ProofRegistrationState getLocalProofRegistrationState() const;
@@ -254,6 +270,7 @@ public:
         return avaproofsNodeCounter.load();
     }
     bool isQuorumEstablished() LOCKS_EXCLUDED(cs_main);
+    bool canShareLocalProof();
 
     // Implement NetEventInterface. Only FinalizeNode is of interest.
     void InitializeNode(const ::Config &config, CNode *pnode) override {}
@@ -273,6 +290,8 @@ private:
     void runEventLoop();
     void clearTimedoutRequests();
     std::vector<CInv> getInvsForNextPoll(bool forPoll = true);
+    bool sendHelloInternal(CNode *pfrom)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_delayedAvahelloNodeIds);
 
     struct IsWorthPolling {
         const Processor &processor;

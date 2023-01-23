@@ -13,6 +13,7 @@ from test_framework.avatools import (
     wait_for_proof,
 )
 from test_framework.messages import AvalancheProofVoteResponse, AvalancheVote
+from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, try_rpc, uint256_hex
 from test_framework.wallet_util import bytes_to_wif
@@ -70,6 +71,8 @@ class GetAvalancheProofsTest(BitcoinTestFramework):
             "immature": [],
         })
 
+        # Add an inbound so the node proof can be registered and advertised
+        node.add_p2p_connection(P2PInterface())
         # Mine a block to trigger proof validation
         self.generate(node, 1, sync_fun=self.no_op)
         self.wait_until(

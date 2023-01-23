@@ -15,6 +15,7 @@ from test_framework.avatools import (
     get_proof_ids,
     wait_for_proof,
 )
+from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
@@ -48,6 +49,8 @@ class ProofsCleanupTest(BitcoinTestFramework):
             "-avaproof={}".format(local_proof.serialize().hex()),
             "-avamasterkey={}".format(bytes_to_wif(master_key.get_bytes())),
         ])
+        # Add an inbound so the node proof can be registered and advertised
+        node.add_p2p_connection(P2PInterface())
 
         self.generate(node, 1, sync_fun=self.no_op)
         wait_for_proof(node, uint256_hex(local_proof.proofid))

@@ -57,11 +57,13 @@ class AvalancheProofTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 2
-        self.extra_args = [['-avaproofstakeutxodustthreshold={}'.format(
-            PROOF_DUST_THRESHOLD),
+        self.extra_args = [[
+            '-avaproofstakeutxodustthreshold={}'.format(PROOF_DUST_THRESHOLD),
             '-avaproofstakeutxoconfirmations=1',
             '-avalancheconflictingproofcooldown=0',
-            '-avacooldown=0']] * self.num_nodes
+            '-avacooldown=0',
+            '-whitelist=noban@127.0.01',
+        ]] * self.num_nodes
         self.supports_cli = False
         self.rpc_timeout = 120
 
@@ -171,11 +173,17 @@ class AvalancheProofTest(BitcoinTestFramework):
             "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
         ])
 
-        self.log.info("The proof is registered at first chaintip update")
+        self.log.info(
+            "The proof is registered at first chaintip update if we have inbounds")
         assert_equal(len(node.getavalanchepeerinfo()), 0)
         self.generate(node, 1, sync_fun=self.no_op)
-        self.wait_until(lambda: len(node.getavalanchepeerinfo()) == 1,
-                        timeout=5)
+        node.syncwithvalidationinterfacequeue()
+        assert_equal(len(node.getavalanchepeerinfo()), 0)
+
+        # Add an inbound and check it now registers the proof
+        node.add_p2p_connection(P2PInterface())
+        self.generate(node, 1, sync_fun=self.no_op)
+        self.wait_until(lambda: len(node.getavalanchepeerinfo()) == 1)
 
         # This case will occur for users building proofs with a third party
         # tool and then starting a new node that is not yet aware of the
@@ -188,9 +196,13 @@ class AvalancheProofTest(BitcoinTestFramework):
             "-avaproof={}".format(proof),
             "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
         ])
-        # Mine a block to trigger an attempt at registering the proof
+
         self.connect_nodes(1, node.index)
         self.sync_blocks()
+
+        # Add an inbound so the node proof can be registered and advertised
+        self.nodes[1].add_p2p_connection(P2PInterface())
+        # Mine a block to trigger an attempt at registering the proof
         self.generate(self.nodes[1], 1, sync_fun=self.no_op)
         wait_for_proof(self.nodes[1], proofid_hex, expect_status="immature")
 
