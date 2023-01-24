@@ -79,6 +79,36 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             '-avamasterkey={}'.format(bytes_to_wif(privkey.get_bytes())),
             '-avaproofstakeutxoconfirmations=1',
         ])
+
+        assert_avalancheinfo({
+            "ready_to_poll": False,
+            "local": {
+                "verified": False,
+                "verification_status": "pending",
+                "sharing": False,
+                "proofid": uint256_hex(proof.proofid),
+                "limited_proofid": uint256_hex(proof.limited_proofid),
+                "master": privkey.get_pubkey().get_bytes().hex(),
+                "stake_amount": coinbase_amount,
+                "payout_address": ADDRESS_ECREG_UNSPENDABLE,
+            },
+            "network": {
+                "proof_count": 0,
+                "connected_proof_count": 0,
+                "dangling_proof_count": 0,
+                "finalized_proof_count": 0,
+                "conflicting_proof_count": 0,
+                "immature_proof_count": 0,
+                "total_stake_amount": Decimal('0.00'),
+                "connected_stake_amount": Decimal('0.00'),
+                "dangling_stake_amount": Decimal('0.00'),
+                "immature_stake_amount": Decimal('0.00'),
+                "node_count": 0,
+                "connected_node_count": 0,
+                "pending_node_count": 0,
+            }
+        })
+
         # Add an inbound so the node proof can be registered and advertised
         node.add_p2p_connection(P2PInterface())
 
@@ -87,6 +117,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             "local": {
                 "verified": False,
                 "verification_status": "pending",
+                "sharing": True,
                 "proofid": uint256_hex(proof.proofid),
                 "limited_proofid": uint256_hex(proof.limited_proofid),
                 "master": privkey.get_pubkey().get_bytes().hex(),
@@ -123,6 +154,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             "local": {
                 "verified": False,
                 "verification_status": "pending",
+                "sharing": True,
                 "proofid": f"{proof.proofid:0{64}x}",
                 "limited_proofid": f"{proof.limited_proofid:0{64}x}",
                 "master": privkey.get_pubkey().get_bytes().hex(),
@@ -151,6 +183,36 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             '-avamasterkey={}'.format(bytes_to_wif(privkey.get_bytes())),
             '-avaproofstakeutxoconfirmations=3',
         ])
+
+        assert_avalancheinfo({
+            "ready_to_poll": False,
+            "local": {
+                "verified": False,
+                "verification_status": "pending",
+                "sharing": False,
+                "proofid": uint256_hex(proof.proofid),
+                "limited_proofid": uint256_hex(proof.limited_proofid),
+                "master": privkey.get_pubkey().get_bytes().hex(),
+                "stake_amount": coinbase_amount,
+                "payout_address": ADDRESS_ECREG_UNSPENDABLE,
+            },
+            "network": {
+                "proof_count": 0,
+                "connected_proof_count": 0,
+                "dangling_proof_count": 0,
+                "finalized_proof_count": 0,
+                "conflicting_proof_count": 0,
+                "immature_proof_count": 0,
+                "total_stake_amount": Decimal('0.00'),
+                "connected_stake_amount": Decimal('0.00'),
+                "dangling_stake_amount": Decimal('0.00'),
+                "immature_stake_amount": Decimal('0.00'),
+                "node_count": 0,
+                "connected_node_count": 0,
+                "pending_node_count": 0,
+            }
+        })
+
         # Add an inbound so the node proof can be registered and advertised
         node.add_p2p_connection(P2PInterface())
 
@@ -163,6 +225,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "local": {
                     "verified": False,
                     "verification_status": "immature-proof",
+                    "sharing": True,
                     "proofid": uint256_hex(proof.proofid),
                     "limited_proofid": uint256_hex(proof.limited_proofid),
                     "master": privkey.get_pubkey().get_bytes().hex(),
@@ -194,6 +257,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "ready_to_poll": False,
                 "local": {
                     "verified": True,
+                    "sharing": True,
                     "proofid": uint256_hex(proof.proofid),
                     "limited_proofid": uint256_hex(proof.limited_proofid),
                     "master": privkey.get_pubkey().get_bytes().hex(),
@@ -266,6 +330,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "ready_to_poll": True,
                 "local": {
                     "verified": True,
+                    "sharing": True,
                     "proofid": uint256_hex(proof.proofid),
                     "limited_proofid": uint256_hex(proof.limited_proofid),
                     "master": privkey.get_pubkey().get_bytes().hex(),
@@ -303,6 +368,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "ready_to_poll": True,
                 "local": {
                     "verified": True,
+                    "sharing": True,
                     "proofid": uint256_hex(proof.proofid),
                     "limited_proofid": uint256_hex(proof.limited_proofid),
                     "master": privkey.get_pubkey().get_bytes().hex(),
@@ -363,6 +429,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             "ready_to_poll": True,
             "local": {
                 "verified": True,
+                "sharing": True,
                 "proofid": uint256_hex(proof.proofid),
                 "limited_proofid": uint256_hex(proof.limited_proofid),
                 "master": privkey.get_pubkey().get_bytes().hex(),
@@ -434,6 +501,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             "ready_to_poll": False,
             "local": {
                 "verified": True,
+                "sharing": True,
                 "proofid": uint256_hex(proof.proofid),
                 "limited_proofid": uint256_hex(proof.limited_proofid),
                 "master": privkey.get_pubkey().get_bytes().hex(),

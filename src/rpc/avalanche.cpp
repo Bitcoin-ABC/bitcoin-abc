@@ -658,6 +658,9 @@ static RPCHelpMan getavalancheinfo() {
                      {RPCResult::Type::STR, "verification_status",
                       "The proof verification status. Only available if the "
                       "\"verified\" flag is false."},
+                     {RPCResult::Type::BOOL, "sharing",
+                      "Whether the node local proof is being advertised on the "
+                      "network or not."},
                      {RPCResult::Type::STR_HEX, "proofid",
                       "The node local proof id."},
                      {RPCResult::Type::STR_HEX, "limited_proofid",
@@ -759,6 +762,7 @@ static RPCHelpMan getavalancheinfo() {
                                  state.IsValid() ? "pending"
                                                  : state.GetRejectReason());
                 }
+                local.pushKV("sharing", g_avalanche->canShareLocalProof());
                 local.pushKV("proofid", localProof->getId().ToString());
                 local.pushKV("limited_proofid",
                              localProof->getLimitedId().ToString());
