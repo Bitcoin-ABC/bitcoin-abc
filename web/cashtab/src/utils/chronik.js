@@ -157,23 +157,27 @@ export const getAliases = aliasPaymentTxs => {
     // parse through each txs in alias payment address
     for (let i = 0; i < aliasPaymentTxs.length; i += 1) {
         let totalAliasFeePaid = new BigNumber(0);
-        // extract the OP_RETURN script for txs[i]
+        // extract the OP_RETURN script for aliasPaymentTxs[i]
         const opReturnScript = aliasPaymentTxs[i].outputs[0].outputScript;
 
         // parse the OP_RETURN script - expected structure is [.xec][the alias]
         const aliasTxOpReturnArray = parseOpReturn(opReturnScript);
         if (!aliasTxOpReturnArray) {
-            continue; // skip this txs[i] as it's not a registration tx
+            continue; // skip this aliasPaymentTxs[i] as it's not a registration tx
         }
 
         const parsedAliasPrefixHex = aliasTxOpReturnArray[0];
         const parsedAliasNameHex = aliasTxOpReturnArray[1];
+        if (!parsedAliasNameHex) {
+            continue; // skip this aliasPaymentTxs[i] as it's not a registration tx e.g. eToken send txs
+        }
+
         const parsedAliasNameStr = Buffer.from(parsedAliasNameHex, 'hex')
             .toString()
             .toLowerCase();
 
         // if this transaction has a valid OP_RETURN and is indicating an alias prefix
-        // then parse through all outputs in this txs[i]
+        // then parse through all outputs in this aliasPaymentTxs[i]
         if (
             parsedAliasPrefixHex &&
             parsedAliasNameHex &&
@@ -182,7 +186,7 @@ export const getAliases = aliasPaymentTxs => {
         ) {
             let aliasNameFound = false;
 
-            // parse through each output in this txs[i] and tally up the total alias registration payments where the destination address is the alias payment address
+            // parse through each output in this aliasPaymentTxs[i] and tally up the total alias registration payments where the destination address is the alias payment address
             for (let j = 0; j < aliasPaymentTxs[i].outputs.length; j += 1) {
                 const thisOutputScript =
                     aliasPaymentTxs[i].outputs[j].outputScript;
@@ -206,7 +210,7 @@ export const getAliases = aliasPaymentTxs => {
                 }
             }
 
-            // having now parsed all outputs in txs[i] for total payment value and aliasName
+            // having now parsed all outputs in aliasPaymentTxs[i] for total payment value and aliasName
             // add alias to array if the cumulative payment matches expected fee and alias is within max char length
             if (aliasName) {
                 // parse the valid fee based on aliasName length
@@ -223,7 +227,7 @@ export const getAliases = aliasPaymentTxs => {
                     // consider alias as valid and add to array
                     registeredAliases.push(aliasName);
 
-                    // reset fee increment for the next txs[i]
+                    // reset fee increment for the next aliasPaymentTxs[i]
                     totalAliasFeePaid = new BigNumber(0);
                 }
             }

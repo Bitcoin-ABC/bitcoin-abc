@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import BigNumber from 'bignumber.js';
 import styled from 'styled-components';
 import { WalletContext } from 'utils/context';
 import PropTypes from 'prop-types';
@@ -57,6 +56,7 @@ const Alias = ({ passLoadingStatus }) => {
         chronik,
         changeCashtabSettings,
         getAliasesFromLocalForage,
+        updateAliases,
     } = ContextValue;
     const walletState = getWalletState(wallet);
     const { balances, nonSlpUtxos } = walletState;
@@ -76,13 +76,14 @@ const Alias = ({ passLoadingStatus }) => {
         passLoadingStatus(true);
 
         // get latest tx count for payment address
-        const totalPaymentTx = await getAllTxHistory(
+        const aliasPaymentTxHistory = await getAllTxHistory(
             chronik,
             currency.aliasSettings.aliasPaymentHash160,
         );
+        const totalPaymentTxCount = aliasPaymentTxHistory.length;
 
         // temporary log for reviewer
-        console.log(`totalPaymentTx: ${totalPaymentTx.length}`);
+        console.log(`onchain totalPaymentTxCount: ${totalPaymentTxCount}`);
 
         // retrieve cached aliases
         let cachedAliases;
@@ -92,16 +93,34 @@ const Alias = ({ passLoadingStatus }) => {
             console.log(`Error retrieving aliases from local forage`, err);
         }
 
+        // temporary console log for reviewer
+        if (cachedAliases) {
+            console.log(
+                `cached totalPaymentTxCount: `,
+                cachedAliases.totalPaymentTxCount,
+            );
+        }
+
+        // conditions where an alias refresh is required
         if (
             !cachedAliases ||
-            !cachedAliases.totalPaymentTx ||
-            new BigNumber(cachedAliases.totalPaymentTx) <
-                new BigNumber(totalPaymentTx)
+            !cachedAliases.totalPaymentTxCount ||
+            BigInt(cachedAliases.totalPaymentTxCount) <
+                BigInt(totalPaymentTxCount)
         ) {
             // temporary console log for reviewer
             console.log(`alias cache refresh required`);
 
-            // call updateAliases() in next diff to refresh the alias cache object
+            try {
+                await updateAliases(aliasPaymentTxHistory);
+                // temporary console log for reviewer
+                console.log(`alias cache update complete`);
+            } catch (err) {
+                console.log(`Error calling updateAliases() in Alias.js`, err);
+            }
+        } else {
+            // temporary console log for reviewer
+            console.log(`alias cache refresh NOT required`);
         }
 
         // check whether the address is attached to an onchain alias on page load

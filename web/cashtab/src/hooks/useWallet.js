@@ -34,6 +34,7 @@ import {
     finalizeSlpUtxos,
     getTxHistoryChronik,
     parseChronikTx,
+    getAliases,
 } from 'utils/chronik';
 import { ChronikClient } from 'chronik-client';
 import cashaddr from 'ecashaddrjs';
@@ -274,6 +275,32 @@ const useWallet = () => {
             cachedAliases = null;
         }
         return cachedAliases;
+    };
+
+    const updateAliases = async totalPaymentTxHistory => {
+        setLoading(true);
+        let updateSuccess = true;
+
+        // calculate total tx count for the alias payment address
+        const onChainTotalPaymentTx = totalPaymentTxHistory.length;
+
+        // extract an array of aliases from totalPaymentTxHistory
+        const aliasListArray = getAliases(totalPaymentTxHistory);
+        let aliasCacheObject = {
+            totalPaymentTxCount: onChainTotalPaymentTx,
+            aliases: aliasListArray,
+        };
+
+        // set array into local forage
+        try {
+            await localforage.setItem('aliases', aliasCacheObject);
+        } catch (err) {
+            console.log('Error in updateAliases', err);
+            updateSuccess = false;
+        }
+
+        setLoading(false);
+        return updateSuccess;
     };
 
     const getContactListFromLocalForage = async () => {
@@ -1449,6 +1476,7 @@ const useWallet = () => {
         migrateLegacyWallet,
         getContactListFromLocalForage,
         getAliasesFromLocalForage,
+        updateAliases,
         updateContactList,
         createWallet: async importMnemonic => {
             setLoading(true);
