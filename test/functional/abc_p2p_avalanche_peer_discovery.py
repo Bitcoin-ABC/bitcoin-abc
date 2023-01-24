@@ -43,8 +43,9 @@ class GetProofDataCountingInterface(AvaP2PInterface):
         super().__init__()
 
     def on_getdata(self, message):
-        if message.inv.type & MSG_TYPE_MASK == MSG_AVA_PROOF:
-            self.get_proof_data_count += 1
+        for i in message.inv:
+            if i.type & MSG_TYPE_MASK == MSG_AVA_PROOF:
+                self.get_proof_data_count += 1
 
 
 class AvalanchePeerDiscoveryTest(BitcoinTestFramework):
