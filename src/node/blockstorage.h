@@ -193,7 +193,7 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     /** True if any block files have ever been pruned. */
-    bool fHavePruned = false;
+    bool m_have_pruned = false;
 
     //! Check whether the block associated with this index entry is pruned or
     //! not.

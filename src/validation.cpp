@@ -1368,10 +1368,10 @@ void CChainState::InvalidChainFound(CBlockIndex *pindexNew) {
         pindexNew->nChainWork > m_chainman.m_best_invalid->nChainWork) {
         m_chainman.m_best_invalid = pindexNew;
     }
-    if (m_chainman.pindexBestHeader != nullptr &&
-        m_chainman.pindexBestHeader->GetAncestor(pindexNew->nHeight) ==
+    if (m_chainman.m_best_header != nullptr &&
+        m_chainman.m_best_header->GetAncestor(pindexNew->nHeight) ==
             pindexNew) {
-        m_chainman.pindexBestHeader = m_chain.Tip();
+        m_chainman.m_best_header = m_chain.Tip();
     }
 
     // If the invalid chain found is supposed to be finalized, we need to move
@@ -1837,9 +1837,9 @@ bool CChainState::ConnectBlock(const CBlock &block, BlockValidationState &state,
             m_blockman.m_block_index.find(hashAssumeValid);
         if (it != m_blockman.m_block_index.end()) {
             if (it->second.GetAncestor(pindex->nHeight) == pindex &&
-                m_chainman.pindexBestHeader->GetAncestor(pindex->nHeight) ==
+                m_chainman.m_best_header->GetAncestor(pindex->nHeight) ==
                     pindex &&
-                m_chainman.pindexBestHeader->nChainWork >= nMinimumChainWork) {
+                m_chainman.m_best_header->nChainWork >= nMinimumChainWork) {
                 // This block is a member of the assumed verified chain and an
                 // ancestor of the best header.
                 // Script verification is skipped when connecting blocks under
@@ -1860,8 +1860,8 @@ bool CChainState::ConnectBlock(const CBlock &block, BlockValidationState &state,
                 // against nMinimumChainWork prevents the skipping when denied
                 // access to any chain at least as good as the expected chain.
                 fScriptChecks = (GetBlockProofEquivalentTime(
-                                     *m_chainman.pindexBestHeader, *pindex,
-                                     *m_chainman.pindexBestHeader,
+                                     *m_chainman.m_best_header, *pindex,
+                                     *m_chainman.m_best_header,
                                      consensusParams) <= 60 * 60 * 24 * 7 * 2);
             }
         }
@@ -2305,10 +2305,10 @@ bool CChainState::FlushStateToDisk(BlockValidationState &state,
                 }
                 if (!setFilesToPrune.empty()) {
                     fFlushForPrune = true;
-                    if (!m_blockman.fHavePruned) {
+                    if (!m_blockman.m_have_pruned) {
                         m_blockman.m_block_tree_db->WriteFlag(
                             "prunedblockfiles", true);
-                        m_blockman.fHavePruned = true;
+                        m_blockman.m_have_pruned = true;
                     }
                 }
             }
@@ -3171,7 +3171,7 @@ static bool NotifyHeaderTip(CChainState &chainstate) LOCKS_EXCLUDED(cs_main) {
     CBlockIndex *pindexHeader = nullptr;
     {
         LOCK(cs_main);
-        pindexHeader = chainstate.m_chainman.pindexBestHeader;
+        pindexHeader = chainstate.m_chainman.m_best_header;
 
         if (pindexHeader != pindexHeaderOld) {
             fNotify = true;
@@ -4276,7 +4276,7 @@ bool ChainstateManager::AcceptBlockHeader(const Config &config,
         }
     }
 
-    CBlockIndex *pindex{m_blockman.AddToBlockIndex(block, pindexBestHeader)};
+    CBlockIndex *pindex{m_blockman.AddToBlockIndex(block, m_best_header)};
 
     if (ppindex) {
         *ppindex = pindex;
@@ -5087,9 +5087,9 @@ bool ChainstateManager::LoadBlockIndex() {
             }
 
             if (pindex->IsValid(BlockValidity::TREE) &&
-                (pindexBestHeader == nullptr ||
-                 CBlockIndexWorkComparator()(pindexBestHeader, pindex))) {
-                pindexBestHeader = pindex;
+                (m_best_header == nullptr ||
+                 CBlockIndexWorkComparator()(m_best_header, pindex))) {
+                m_best_header = pindex;
             }
         }
 
@@ -5127,7 +5127,7 @@ bool CChainState::LoadGenesisBlock() {
             return error("%s: writing genesis block to disk failed", __func__);
         }
         CBlockIndex *pindex =
-            m_blockman.AddToBlockIndex(block, m_chainman.pindexBestHeader);
+            m_blockman.AddToBlockIndex(block, m_chainman.m_best_header);
         ReceivedBlockTransactions(block, pindex, blockPos);
     } catch (const std::runtime_error &e) {
         return error("%s: failed to write genesis block: %s", __func__,
@@ -5408,7 +5408,7 @@ void CChainState::CheckBlockIndex() {
         // (or VALID_TRANSACTIONS) if no pruning has occurred.
         // Unless these indexes are assumed valid and pending block download on
         // a background chainstate.
-        if (!m_blockman.fHavePruned && !pindex->IsAssumedValid()) {
+        if (!m_blockman.m_have_pruned && !pindex->IsAssumedValid()) {
             // If we've never pruned, then HAVE_DATA should be equivalent to nTx
             // > 0
             assert(pindex->nStatus.hasData() == (pindex->nTx > 0));
@@ -5545,7 +5545,7 @@ void CChainState::CheckBlockIndex() {
             // We HAVE_DATA for this block, have received data for all parents
             // at some point, but we're currently missing data for some parent.
             // We must have pruned.
-            assert(m_blockman.fHavePruned);
+            assert(m_blockman.m_have_pruned);
             // This block may have entered m_blocks_unlinked if:
             //  - it has a descendant that at some point had more work than the
             //    tip, and
@@ -6258,7 +6258,7 @@ void ChainstateManager::Unload() {
 
     m_failed_blocks.clear();
     m_blockman.Unload();
-    pindexBestHeader = nullptr;
+    m_best_header = nullptr;
     m_best_invalid = nullptr;
     m_best_parked = nullptr;
 }

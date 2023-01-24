@@ -2550,7 +2550,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
                 auto check_blocks =
                     args.GetIntArg("-checkblocks", DEFAULT_CHECKBLOCKS);
-                if (chainman.m_blockman.fHavePruned &&
+                if (chainman.m_blockman.m_have_pruned &&
                     check_blocks > MIN_BLOCKS_TO_KEEP) {
                     LogPrintf("Prune: pruned datadir may not have more than %d "
                               "blocks; only checking available blocks\n",
@@ -2773,9 +2773,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             tip_info->verification_progress = GuessVerificationProgress(
                 Params().TxData(), chainman.ActiveChain().Tip());
         }
-        if (tip_info && chainman.pindexBestHeader) {
-            tip_info->header_height = chainman.pindexBestHeader->nHeight;
-            tip_info->header_time = chainman.pindexBestHeader->GetBlockTime();
+        if (tip_info && chainman.m_best_header) {
+            tip_info->header_height = chainman.m_best_header->nHeight;
+            tip_info->header_time = chainman.m_best_header->GetBlockTime();
         }
     }
     LogPrintf("nBestHeight = %d\n", chain_active_height);

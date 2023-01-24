@@ -58,7 +58,7 @@ LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
         return ChainstateLoadingError::SHUTDOWN_PROBED;
     }
 
-    // LoadBlockIndex will load fHavePruned if we've ever removed a
+    // LoadBlockIndex will load m_have_pruned if we've ever removed a
     // block file from disk.
     // Note that it also sets fReindex based on the disk flag!
     // From here on out fReindex and fReset mean something different!
@@ -78,7 +78,7 @@ LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
     // Check for changed -prune state.  What we are concerned about is a
     // user who has pruned blocks in the past, but is now trying to run
     // unpruned.
-    if (chainman.m_blockman.fHavePruned && !fPruneMode_) {
+    if (chainman.m_blockman.m_have_pruned && !fPruneMode_) {
         return ChainstateLoadingError::ERROR_PRUNED_NEEDS_REINDEX;
     }
 

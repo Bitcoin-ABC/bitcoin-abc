@@ -297,7 +297,7 @@ void BlockManager::Unload() {
     m_dirty_blockindex.clear();
     m_dirty_fileinfo.clear();
 
-    fHavePruned = false;
+    m_have_pruned = false;
 }
 
 bool BlockManager::WriteBlockIndexDB() {
@@ -364,8 +364,8 @@ bool BlockManager::LoadBlockIndexDB() {
     }
 
     // Check whether we have ever pruned block & undo files
-    m_block_tree_db->ReadFlag("prunedblockfiles", fHavePruned);
-    if (fHavePruned) {
+    m_block_tree_db->ReadFlag("prunedblockfiles", m_have_pruned);
+    if (m_have_pruned) {
         LogPrintf(
             "LoadBlockIndexDB(): Block files have previously been pruned\n");
     }
@@ -395,7 +395,7 @@ BlockManager::GetLastCheckpoint(const CCheckpointData &data) {
 
 bool BlockManager::IsBlockPruned(const CBlockIndex *pblockindex) {
     AssertLockHeld(::cs_main);
-    return (fHavePruned && !pblockindex->nStatus.hasData() &&
+    return (m_have_pruned && !pblockindex->nStatus.hasData() &&
             pblockindex->nTx > 0);
 }
 
