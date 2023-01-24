@@ -193,7 +193,6 @@ static RPCHelpMan addavalanchenode() {
                 throw JSONRPCError(
                     RPC_INVALID_PARAMETER,
                     strprintf("The node does not exist: %d", nodeid));
-                ;
             }
 
             return g_avalanche->withPeerManager(
