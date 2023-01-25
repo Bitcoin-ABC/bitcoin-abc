@@ -237,6 +237,10 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         argsman.ForceSetArg(key, std::move(value));
         m_overridden_args.emplace(std::move(key));
     }
+
+    bool addToReconcile(const AnyVoteItem &item) {
+        return m_processor->addToReconcile(item);
+    }
 };
 
 struct BlockProvider {
@@ -257,10 +261,6 @@ struct BlockProvider {
 
     uint256 getVoteItemId(const CBlockIndex *pindex) const {
         return pindex->GetBlockHash();
-    }
-
-    bool addToReconcile(const CBlockIndex *pindex) {
-        return fixture->m_processor->addToReconcile(pindex);
     }
 
     std::vector<Vote> buildVotesForItems(uint32_t error,
@@ -306,10 +306,6 @@ struct ProofProvider {
 
     uint256 getVoteItemId(const ProofRef &proof) const {
         return proof->getId();
-    }
-
-    bool addToReconcile(const ProofRef &proof) {
-        return fixture->m_processor->addToReconcile(proof);
     }
 
     std::vector<Vote> buildVotesForItems(uint32_t error,
@@ -372,8 +368,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(item_reconcile_twice, P, VoteItemProviders) {
     auto item = provider.buildVoteItem();
 
     // Adding the item twice does nothing.
-    BOOST_CHECK(provider.addToReconcile(item));
-    BOOST_CHECK(!provider.addToReconcile(item));
+    BOOST_CHECK(addToReconcile(item));
+    BOOST_CHECK(!addToReconcile(item));
     BOOST_CHECK(m_processor->isAccepted(item));
 }
 
@@ -386,13 +382,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(item_null, P, VoteItemProviders) {
 
     auto item = decltype(provider.buildVoteItem())();
     BOOST_CHECK(item == nullptr);
-    BOOST_CHECK(!provider.addToReconcile(item));
+    BOOST_CHECK(!addToReconcile(item));
 
     // Check that adding item to vote on doesn't change the outcome. A
     // comparator is used under the hood, and this is skipped if there are no
     // vote records.
     item = provider.buildVoteItem();
-    BOOST_CHECK(provider.addToReconcile(item));
+    BOOST_CHECK(addToReconcile(item));
 
     BOOST_CHECK(!m_processor->isAccepted(nullptr));
     BOOST_CHECK_EQUAL(m_processor->getConfidence(nullptr), -1);
@@ -420,7 +416,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(vote_item_register, P, VoteItemProviders) {
     BOOST_CHECK(!m_processor->isAccepted(item));
 
     // Add a new item. Check it is added to the polls.
-    BOOST_CHECK(provider.addToReconcile(item));
+    BOOST_CHECK(addToReconcile(item));
     auto invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 1);
     BOOST_CHECK_EQUAL(invs[0].type, invType);
@@ -507,7 +503,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(vote_item_register, P, VoteItemProviders) {
     // Get a new item to vote on
     item = provider.buildVoteItem();
     itemid = provider.getVoteItemId(item);
-    BOOST_CHECK(provider.addToReconcile(item));
+    BOOST_CHECK(addToReconcile(item));
 
     // Now let's finalize rejection.
     invs = getInvsForNextPoll();
@@ -574,7 +570,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(multi_item_register, P, VoteItemProviders) {
     BOOST_CHECK(!m_processor->isAccepted(itemB));
 
     // Start voting on item A.
-    BOOST_CHECK(provider.addToReconcile(itemA));
+    BOOST_CHECK(addToReconcile(itemA));
     auto invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 1);
     BOOST_CHECK_EQUAL(invs[0].type, invType);
@@ -590,7 +586,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(multi_item_register, P, VoteItemProviders) {
     // Start voting on item B after one vote.
     std::vector<Vote> votes = provider.buildVotesForItems(0, {itemA, itemB});
     Response resp{round + 1, 0, votes};
-    BOOST_CHECK(provider.addToReconcile(itemB));
+    BOOST_CHECK(addToReconcile(itemB));
     invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 2);
 
@@ -679,7 +675,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_and_response, P, VoteItemProviders) {
     NodeId avanodeid = getSelectedAvanodeId();
 
     // Register an item and check it is added to the list of elements to poll.
-    BOOST_CHECK(provider.addToReconcile(item));
+    BOOST_CHECK(addToReconcile(item));
     auto invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 1);
     BOOST_CHECK_EQUAL(invs[0].type, invType);
@@ -760,7 +756,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_and_response, P, VoteItemProviders) {
 
     item = provider.buildVoteItem();
     itemid = provider.getVoteItemId(item);
-    BOOST_CHECK(provider.addToReconcile(item));
+    BOOST_CHECK(addToReconcile(item));
 
     invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 1);
@@ -788,7 +784,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_and_response, P, VoteItemProviders) {
 
     // Out of order response are rejected.
     const auto item2 = provider.buildVoteItem();
-    BOOST_CHECK(provider.addToReconcile(item2));
+    BOOST_CHECK(addToReconcile(item2));
 
     std::vector<Vote> votes = provider.buildVotesForItems(0, {item, item2});
     resp = {getRound(), 0, {votes[1], votes[0]}};
@@ -818,8 +814,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(dont_poll_invalid_item, P, VoteItemProviders) {
 
     // Register the items and check they are added to the list of elements to
     // poll.
-    BOOST_CHECK(provider.addToReconcile(itemA));
-    BOOST_CHECK(provider.addToReconcile(itemB));
+    BOOST_CHECK(addToReconcile(itemA));
+    BOOST_CHECK(addToReconcile(itemB));
     auto invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 2);
     for (size_t i = 0; i < invs.size(); i++) {
@@ -864,7 +860,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_timeout, P, VoteItemProviders) {
     const auto itemid = provider.getVoteItemId(item);
 
     // Add the item
-    BOOST_CHECK(provider.addToReconcile(item));
+    BOOST_CHECK(addToReconcile(item));
 
     // Create a quorum of nodes that support avalanche.
     ConnectNodes();
@@ -923,7 +919,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_count, P, VoteItemProviders) {
     // Add an item to poll
     const auto item = provider.buildVoteItem();
     const auto itemid = provider.getVoteItemId(item);
-    BOOST_CHECK(provider.addToReconcile(item));
+    BOOST_CHECK(addToReconcile(item));
 
     // Ensure there are enough requests in flight.
     std::map<NodeId, uint64_t> node_round_map;
@@ -1597,7 +1593,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(voting_parameters, P, VoteItemProviders) {
     std::vector<avalanche::VoteItemUpdate> updates;
     for (const auto &[numYesVotes, numNeutralVotes] : testCases) {
         // Add a new item. Check it is added to the polls.
-        BOOST_CHECK(provider.addToReconcile(item));
+        BOOST_CHECK(addToReconcile(item));
         auto invs = getInvsForNextPoll();
         BOOST_CHECK_EQUAL(invs.size(), 1);
         BOOST_CHECK_EQUAL(invs[0].type, invType);
@@ -1654,7 +1650,7 @@ BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
     std::vector<CBlockIndex *> blockIndexes;
     for (size_t i = 0; i < AVALANCHE_MAX_ELEMENT_POLL; i++) {
         CBlockIndex *pindex = provider.buildVoteItem();
-        BOOST_CHECK(provider.addToReconcile(pindex));
+        BOOST_CHECK(addToReconcile(pindex));
         blockIndexes.push_back(pindex);
     }
 
@@ -1714,7 +1710,7 @@ BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
 
     // Adding ancestor blocks to reconcile will fail
     for (size_t i = 0; i < AVALANCHE_MAX_ELEMENT_POLL - 10 - 1; i++) {
-        BOOST_CHECK(!provider.addToReconcile(blockIndexes[i]));
+        BOOST_CHECK(!addToReconcile(blockIndexes[i]));
     }
 
     // Create a couple concurrent chain tips
@@ -1741,8 +1737,8 @@ BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
     }
     activeChainstate.ActivateBestChain(config, state);
 
-    BOOST_CHECK(provider.addToReconcile(tip));
-    BOOST_CHECK(provider.addToReconcile(alttip));
+    BOOST_CHECK(addToReconcile(tip));
+    BOOST_CHECK(addToReconcile(alttip));
     invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 12);
 
