@@ -217,6 +217,14 @@ struct AvalancheTestingSetup : public TestChain100Setup {
     uint64_t getRound() const { return AvalancheTest::getRound(*m_processor); }
 
     bool registerVotes(NodeId nodeid, const avalanche::Response &response,
+                       std::vector<avalanche::VoteItemUpdate> &updates,
+                       std::string &error) {
+        int banscore;
+        return m_processor->registerVotes(nodeid, response, updates, banscore,
+                                          error);
+    }
+
+    bool registerVotes(NodeId nodeid, const avalanche::Response &response,
                        std::vector<avalanche::VoteItemUpdate> &updates) {
         int banscore;
         std::string error;
@@ -233,8 +241,6 @@ struct AvalancheTestingSetup : public TestChain100Setup {
 
 struct BlockProvider {
     AvalancheTestingSetup *fixture;
-
-    std::vector<avalanche::VoteItemUpdate> updates;
     uint32_t invType;
 
     BlockProvider(AvalancheTestingSetup *_fixture)
@@ -251,17 +257,6 @@ struct BlockProvider {
 
     uint256 getVoteItemId(const CBlockIndex *pindex) const {
         return pindex->GetBlockHash();
-    }
-
-    bool registerVotes(NodeId nodeid, const avalanche::Response &response,
-                       std::string &error) {
-        int banscore;
-        return fixture->m_processor->registerVotes(nodeid, response, updates,
-                                                   banscore, error);
-    }
-    bool registerVotes(NodeId nodeid, const avalanche::Response &response) {
-        std::string error;
-        return registerVotes(nodeid, response, error);
     }
 
     bool addToReconcile(const CBlockIndex *pindex) {
@@ -296,8 +291,6 @@ struct BlockProvider {
 
 struct ProofProvider {
     AvalancheTestingSetup *fixture;
-
-    std::vector<avalanche::VoteItemUpdate> updates;
     uint32_t invType;
 
     ProofProvider(AvalancheTestingSetup *_fixture)
@@ -313,17 +306,6 @@ struct ProofProvider {
 
     uint256 getVoteItemId(const ProofRef &proof) const {
         return proof->getId();
-    }
-
-    bool registerVotes(NodeId nodeid, const avalanche::Response &response,
-                       std::string &error) {
-        int banscore;
-        return fixture->m_processor->registerVotes(nodeid, response, updates,
-                                                   banscore, error);
-    }
-    bool registerVotes(NodeId nodeid, const avalanche::Response &response) {
-        std::string error;
-        return registerVotes(nodeid, response, error);
     }
 
     bool addToReconcile(const ProofRef &proof) {
@@ -426,7 +408,6 @@ Response next(Response &r) {
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(vote_item_register, P, VoteItemProviders) {
     P provider(this);
-    auto &updates = provider.updates;
     const uint32_t invType = provider.invType;
 
     auto item = provider.buildVoteItem();
@@ -448,10 +429,11 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(vote_item_register, P, VoteItemProviders) {
     BOOST_CHECK(m_processor->isAccepted(item));
 
     int nextNodeIndex = 0;
+    std::vector<avalanche::VoteItemUpdate> updates;
     auto registerNewVote = [&](const Response &resp) {
         runEventLoop();
         auto nodeid = avanodes[nextNodeIndex++ % avanodes.size()]->GetId();
-        BOOST_CHECK(provider.registerVotes(nodeid, resp));
+        BOOST_CHECK(registerVotes(nodeid, resp, updates));
     };
 
     // Let's vote for this item a few times.
@@ -576,7 +558,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(vote_item_register, P, VoteItemProviders) {
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(multi_item_register, P, VoteItemProviders) {
     P provider(this);
-    auto &updates = provider.updates;
     const uint32_t invType = provider.invType;
 
     auto itemA = provider.buildVoteItem();
@@ -601,8 +582,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(multi_item_register, P, VoteItemProviders) {
 
     uint64_t round = getRound();
     runEventLoop();
-    BOOST_CHECK(provider.registerVotes(avanodes[0]->GetId(),
-                                       {round, 0, {Vote(0, itemidA)}}));
+    std::vector<avalanche::VoteItemUpdate> updates;
+    BOOST_CHECK(registerVotes(avanodes[0]->GetId(),
+                              {round, 0, {Vote(0, itemidA)}}, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
 
     // Start voting on item B after one vote.
@@ -622,7 +604,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(multi_item_register, P, VoteItemProviders) {
     for (int i = 0; i < 4; i++) {
         NodeId nodeid = getSuitableNodeToQuery();
         runEventLoop();
-        BOOST_CHECK(provider.registerVotes(nodeid, next(resp)));
+        BOOST_CHECK(registerVotes(nodeid, next(resp), updates));
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
@@ -630,7 +612,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(multi_item_register, P, VoteItemProviders) {
     for (int i = 0; i < AVALANCHE_FINALIZATION_SCORE; i++) {
         NodeId nodeid = getSuitableNodeToQuery();
         runEventLoop();
-        BOOST_CHECK(provider.registerVotes(nodeid, next(resp)));
+        BOOST_CHECK(registerVotes(nodeid, next(resp), updates));
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
@@ -644,7 +626,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(multi_item_register, P, VoteItemProviders) {
     BOOST_CHECK(firstNodeid != secondNodeid);
 
     // Next vote will finalize item A.
-    BOOST_CHECK(provider.registerVotes(firstNodeid, next(resp)));
+    BOOST_CHECK(registerVotes(firstNodeid, next(resp), updates));
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(provider.fromAnyVoteItem(updates[0].getVoteItem()) == itemA);
     BOOST_CHECK(updates[0].getStatus() == VoteStatus::Finalized);
@@ -657,7 +639,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(multi_item_register, P, VoteItemProviders) {
     BOOST_CHECK(invs[0].hash == itemidB);
 
     // Next vote will finalize item B.
-    BOOST_CHECK(provider.registerVotes(secondNodeid, resp));
+    BOOST_CHECK(registerVotes(secondNodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(provider.fromAnyVoteItem(updates[0].getVoteItem()) == itemB);
     BOOST_CHECK(updates[0].getStatus() == VoteStatus::Finalized);
@@ -670,7 +652,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(multi_item_register, P, VoteItemProviders) {
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(poll_and_response, P, VoteItemProviders) {
     P provider(this);
-    auto &updates = provider.updates;
     const uint32_t invType = provider.invType;
 
     auto item = provider.buildVoteItem();
@@ -726,7 +707,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_and_response, P, VoteItemProviders) {
 
     // Respond to the request.
     Response resp = {round, 0, {Vote(0, itemid)}};
-    BOOST_CHECK(provider.registerVotes(avanodeid, resp));
+    std::vector<avalanche::VoteItemUpdate> updates;
+    BOOST_CHECK(registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
 
     // Now that avanode fullfilled his request, it is added back to the list of
@@ -737,7 +719,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_and_response, P, VoteItemProviders) {
                                        const avalanche::Response &response,
                                        const std::string &expectedError) {
         std::string error;
-        BOOST_CHECK(!provider.registerVotes(nodeid, response, error));
+        BOOST_CHECK(!registerVotes(nodeid, response, updates, error));
         BOOST_CHECK_EQUAL(error, expectedError);
         BOOST_CHECK_EQUAL(updates.size(), 0);
     };
@@ -800,7 +782,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_and_response, P, VoteItemProviders) {
 
     // Proper response gets processed and avanode is available again.
     resp = {queryRound, 0, {Vote(0, itemid)}};
-    BOOST_CHECK(provider.registerVotes(avanodeid, resp));
+    BOOST_CHECK(registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
 
@@ -817,14 +799,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_and_response, P, VoteItemProviders) {
     // But they are accepted in order.
     resp = {getRound(), 0, votes};
     runEventLoop();
-    BOOST_CHECK(provider.registerVotes(avanodeid, resp));
+    BOOST_CHECK(registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(dont_poll_invalid_item, P, VoteItemProviders) {
     P provider(this);
-    auto &updates = provider.updates;
     const uint32_t invType = provider.invType;
 
     auto itemA = provider.buildVoteItem();
@@ -850,15 +831,16 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(dont_poll_invalid_item, P, VoteItemProviders) {
     provider.invalidateItem(itemB);
 
     Response goodResp{getRound(), 0, {Vote(0, provider.getVoteItemId(itemA))}};
+    std::vector<avalanche::VoteItemUpdate> updates;
     runEventLoop();
-    BOOST_CHECK(provider.registerVotes(avanodes[0]->GetId(), goodResp));
+    BOOST_CHECK(registerVotes(avanodes[0]->GetId(), goodResp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
 
     // Votes including itemB are rejected
     Response badResp{getRound(), 0, votes};
     runEventLoop();
     std::string error;
-    BOOST_CHECK(!provider.registerVotes(avanodes[1]->GetId(), badResp, error));
+    BOOST_CHECK(!registerVotes(avanodes[1]->GetId(), badResp, updates, error));
     BOOST_CHECK_EQUAL(error, "invalid-ava-response-size");
 }
 
@@ -900,7 +882,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_timeout, P, VoteItemProviders) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         runEventLoop();
 
-        bool ret = provider.registerVotes(avanodeid, next(resp));
+        std::vector<avalanche::VoteItemUpdate> updates;
+        bool ret = registerVotes(avanodeid, next(resp), updates);
         if (std::chrono::steady_clock::now() > start + queryTimeDuration) {
             // We waited for too long, bail. Because we can't know for sure when
             // previous steps ran, ret is not deterministic and we do not check
@@ -918,7 +901,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_timeout, P, VoteItemProviders) {
         runEventLoop();
         std::this_thread::sleep_for(queryTimeDuration);
         runEventLoop();
-        BOOST_CHECK(!provider.registerVotes(avanodeid, next(resp)));
+        BOOST_CHECK(!registerVotes(avanodeid, next(resp), updates));
     }
 }
 
@@ -966,7 +949,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_count, P, VoteItemProviders) {
     // Send one response, now we can poll again.
     auto it = node_round_map.begin();
     Response resp = {it->second, 0, {Vote(0, itemid)}};
-    BOOST_CHECK(provider.registerVotes(it->first, resp));
+    std::vector<avalanche::VoteItemUpdate> updates;
+    BOOST_CHECK(registerVotes(it->first, resp, updates));
     node_round_map.erase(it);
 
     invs = getInvsForNextPoll();
@@ -1601,7 +1585,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(voting_parameters, P, VoteItemProviders) {
     BOOST_CHECK(error.empty());
 
     P provider(this);
-    auto &updates = provider.updates;
     const uint32_t invType = provider.invType;
 
     const auto item = provider.buildVoteItem();
@@ -1611,6 +1594,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(voting_parameters, P, VoteItemProviders) {
     auto avanodes = ConnectNodes();
     int nextNodeIndex = 0;
 
+    std::vector<avalanche::VoteItemUpdate> updates;
     for (const auto &[numYesVotes, numNeutralVotes] : testCases) {
         // Add a new item. Check it is added to the polls.
         BOOST_CHECK(provider.addToReconcile(item));
@@ -1624,7 +1608,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(voting_parameters, P, VoteItemProviders) {
         auto registerNewVote = [&](const Response &resp) {
             runEventLoop();
             auto nodeid = avanodes[nextNodeIndex++ % avanodes.size()]->GetId();
-            BOOST_CHECK(provider.registerVotes(nodeid, resp));
+            BOOST_CHECK(registerVotes(nodeid, resp, updates));
         };
 
         // Add some confidence
@@ -1696,11 +1680,12 @@ BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
     auto avanodes = ConnectNodes();
     int nextNodeIndex = 0;
 
+    std::vector<avalanche::VoteItemUpdate> updates;
     auto registerNewVote = [&]() {
         Response resp = {getRound(), 0, votes};
         runEventLoop();
         auto nodeid = avanodes[nextNodeIndex++ % avanodes.size()]->GetId();
-        BOOST_CHECK(provider.registerVotes(nodeid, resp));
+        BOOST_CHECK(registerVotes(nodeid, resp, updates));
     };
 
     // Vote for the blocks until the one being accepted finalizes
@@ -1708,7 +1693,7 @@ BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
     for (size_t i = 0; i < 10000 && !eleventhBlockFinalized; i++) {
         registerNewVote();
 
-        for (auto &update : provider.updates) {
+        for (auto &update : updates) {
             if (update.getStatus() == VoteStatus::Finalized &&
                 provider.fromAnyVoteItem(update.getVoteItem())
                         ->GetBlockHash() == eleventhBlockHash) {
@@ -1773,7 +1758,7 @@ BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
     for (size_t i = 0; i < 10000 && !tipFinalized; i++) {
         registerNewVote();
 
-        for (auto &update : provider.updates) {
+        for (auto &update : updates) {
             if (update.getStatus() == VoteStatus::Finalized &&
                 provider.fromAnyVoteItem(update.getVoteItem())
                         ->GetBlockHash() == tiphash) {
