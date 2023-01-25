@@ -578,6 +578,8 @@ public:
             BOOST_CHECK(CreateTransaction(*wallet, {recipient}, tx, fee,
                                           changePos, error, dummy));
         }
+        BOOST_CHECK_EQUAL(tx->nLockTime, 0);
+
         wallet->CommitTransaction(tx, {}, {});
         CMutableTransaction blocktx;
         {

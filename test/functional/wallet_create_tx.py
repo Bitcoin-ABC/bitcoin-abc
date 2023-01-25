@@ -22,10 +22,13 @@ class CreateTxWalletTest(BitcoinTestFramework):
         self.generate(self.nodes[0], 200)
         self.nodes[0].setmocktime(0)
 
-        self.test_anti_fee_sniping()
+        self.test_anti_fee_sniping_disabled()
         self.test_tx_size_too_large()
 
-    def test_anti_fee_sniping(self):
+    def test_anti_fee_sniping_disabled(self):
+        # Wallet transactions used to set locktime to the current block height
+        # to prevent fee-sniping. This feature is now disabled because it hurts
+        # privacy and fee-sniping is now mitigated by avalanche post-consensus.
         self.log.info(
             'Check that we have some (old) blocks and that anti-fee-sniping is disabled')
         assert_equal(self.nodes[0].getblockchaininfo()['blocks'], 200)
@@ -35,12 +38,12 @@ class CreateTxWalletTest(BitcoinTestFramework):
         assert_equal(tx['locktime'], 0)
 
         self.log.info(
-            'Check that anti-fee-sniping is enabled when we mine a recent block')
+            'Check that anti-fee-sniping is still disabled when we mine a recent block')
         self.generate(self.nodes[0], 1)
         txid = self.nodes[0].sendtoaddress(
             self.nodes[0].getnewaddress(), 1000000)
         tx = self.nodes[0].gettransaction(txid=txid, verbose=True)['decoded']
-        assert 0 < tx['locktime'] <= 201
+        assert_equal(tx['locktime'], 0)
 
     def test_tx_size_too_large(self):
         # More than 10kB of outputs, so that we hit -maxtxfee with a high

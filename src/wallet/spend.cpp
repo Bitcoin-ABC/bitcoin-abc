@@ -569,71 +569,6 @@ bool SelectCoins(const CWallet &wallet,
     return res;
 }
 
-static bool IsCurrentForAntiFeeSniping(interfaces::Chain &chain,
-                                       const BlockHash &block_hash) {
-    if (chain.isInitialBlockDownload()) {
-        return false;
-    }
-
-    // in seconds
-    constexpr int64_t MAX_ANTI_FEE_SNIPING_TIP_AGE = 8 * 60 * 60;
-    int64_t block_time;
-    CHECK_NONFATAL(chain.findBlock(block_hash, FoundBlock().time(block_time)));
-    if (block_time < (GetTime() - MAX_ANTI_FEE_SNIPING_TIP_AGE)) {
-        return false;
-    }
-    return true;
-}
-
-/**
- * Return a height-based locktime for new transactions (uses the height of the
- * current chain tip unless we are not synced with the current chain
- */
-static uint32_t GetLocktimeForNewTransaction(interfaces::Chain &chain,
-                                             const BlockHash &block_hash,
-                                             int block_height) {
-    uint32_t locktime;
-    // Discourage fee sniping.
-    //
-    // For a large miner the value of the transactions in the best block and
-    // the mempool can exceed the cost of deliberately attempting to mine two
-    // blocks to orphan the current best block. By setting nLockTime such that
-    // only the next block can include the transaction, we discourage this
-    // practice as the height restricted and limited blocksize gives miners
-    // considering fee sniping fewer options for pulling off this attack.
-    //
-    // A simple way to think about this is from the wallet's point of view we
-    // always want the blockchain to move forward. By setting nLockTime this
-    // way we're basically making the statement that we only want this
-    // transaction to appear in the next block; we don't want to potentially
-    // encourage reorgs by allowing transactions to appear at lower heights
-    // than the next block in forks of the best chain.
-    //
-    // Of course, the subsidy is high enough, and transaction volume low
-    // enough, that fee sniping isn't a problem yet, but by implementing a fix
-    // now we ensure code won't be written that makes assumptions about
-    // nLockTime that preclude a fix later.
-    if (IsCurrentForAntiFeeSniping(chain, block_hash)) {
-        locktime = block_height;
-
-        // Secondly occasionally randomly pick a nLockTime even further back, so
-        // that transactions that are delayed after signing for whatever reason,
-        // e.g. high-latency mix networks and some CoinJoin implementations,
-        // have better privacy.
-        if (GetRandInt(10) == 0) {
-            locktime = std::max(0, int(locktime) - GetRandInt(100));
-        }
-    } else {
-        // If our chain is lagging behind, we can't discourage fee sniping nor
-        // help the privacy of high-latency transactions. To avoid leaking a
-        // potentially unique "nLockTime fingerprint", set nLockTime to a
-        // constant.
-        locktime = 0;
-    }
-    assert(locktime < LOCKTIME_THRESHOLD);
-    return locktime;
-}
-
 static bool CreateTransactionInternal(
     CWallet &wallet, const std::vector<CRecipient> &vecSend,
     CTransactionRef &tx, Amount &nFeeRet, int &nChangePosInOut,
@@ -673,9 +608,13 @@ static bool CreateTransactionInternal(
     {
         std::set<CInputCoin> setCoins;
         LOCK(wallet.cs_wallet);
-        txNew.nLockTime = GetLocktimeForNewTransaction(
-            wallet.chain(), wallet.GetLastBlockHash(),
-            wallet.GetLastBlockHeight());
+        // Previously the locktime was set to the current block height, to
+        // prevent fee-sniping. This is now disabled as fee-sniping is mitigated
+        // by avalanche post-consensus. Consistently Using a locktime of 0 for
+        // most wallets in the ecosystem improves privacy, as this is the
+        // easiest solution to implement for light wallets which are not aware
+        // of the current block height.
+        txNew.nLockTime = 0;
         std::vector<COutput> vAvailableCoins;
         AvailableCoins(wallet, vAvailableCoins, true, &coin_control);
         // Parameters for coin selection, init with dummy
