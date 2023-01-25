@@ -1379,6 +1379,10 @@ void CChainState::InvalidChainFound(CBlockIndex *pindexNew) {
     if (IsBlockFinalized(pindexNew)) {
         m_finalizedBlockIndex = pindexNew->pprev;
     }
+    if (IsBlockAvalancheFinalized(pindexNew)) {
+        LOCK(cs_avalancheFinalizedBlockIndex);
+        m_avalancheFinalizedBlockIndex = pindexNew->pprev;
+    }
 
     LogPrintf("%s: invalid block=%s  height=%d  log2_work=%f  date=%s\n",
               __func__, pindexNew->GetBlockHash().ToString(),
