@@ -7,8 +7,10 @@
 
 #include <avalanche/config.h>
 #include <avalanche/node.h>
+#include <avalanche/proof.h>
 #include <avalanche/proofcomparator.h>
 #include <avalanche/protocol.h>
+#include <blockindex.h>
 #include <blockindexcomparators.h>
 #include <eventloop.h>
 #include <interfaces/chain.h>
@@ -32,7 +34,6 @@
 #include <vector>
 
 class ArgsManager;
-class CBlockIndex;
 class CConnman;
 class CNode;
 class CScheduler;
@@ -55,7 +56,6 @@ namespace avalanche {
 
 class Delegation;
 class PeerManager;
-class Proof;
 class ProofRegistrationState;
 struct VoteRecord;
 
