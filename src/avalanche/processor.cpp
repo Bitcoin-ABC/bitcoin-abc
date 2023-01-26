@@ -495,20 +495,6 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
         }
     }
 
-    auto getVoteItemFromInv = [&](const CInv &inv) -> AnyVoteItem {
-        if (inv.IsMsgBlk()) {
-            return WITH_LOCK(cs_main,
-                             return chainman.m_blockman.LookupBlockIndex(
-                                 BlockHash(inv.hash)));
-        }
-        if (inv.IsMsgProof()) {
-            return WITH_LOCK(cs_peerManager,
-                             return peerManager->getProof(ProofId(inv.hash)));
-        }
-
-        return {nullptr};
-    };
-
     std::map<AnyVoteItem, Vote, VoteMapComparator> responseItems;
 
     // At this stage we are certain that invs[i] matches votes[i], so we can use
@@ -881,46 +867,21 @@ void Processor::clearTimedoutRequests() {
         return;
     }
 
-    auto clearInflightRequest = [&](auto &_voteRecords, const auto &voteItem,
-                                    uint8_t count) {
-        if (!voteItem) {
-            return false;
+    // In flight request accounting.
+    auto voteRecordsWriteView = voteRecords.getWriteView();
+    for (const auto &p : timedout_items) {
+        auto item = getVoteItemFromInv(p.first);
+
+        if (isNull(item)) {
+            continue;
         }
 
-        auto voteRecordsWriteView = _voteRecords.getWriteView();
-        AnyVoteItem item{voteItem};
         auto it = voteRecordsWriteView->find(item);
         if (it == voteRecordsWriteView.end()) {
-            return false;
+            continue;
         }
 
-        it->second.clearInflightRequest(count);
-
-        return true;
-    };
-
-    // In flight request accounting.
-    for (const auto &p : timedout_items) {
-        const CInv &inv = p.first;
-        if (inv.IsMsgBlk()) {
-            const CBlockIndex *pindex =
-                WITH_LOCK(cs_main, return chainman.m_blockman.LookupBlockIndex(
-                                       BlockHash(inv.hash)));
-
-            if (!clearInflightRequest(voteRecords, pindex, p.second)) {
-                continue;
-            }
-        }
-
-        if (inv.IsMsgProof()) {
-            const ProofRef proof =
-                WITH_LOCK(cs_peerManager,
-                          return peerManager->getProof(ProofId(inv.hash)));
-
-            if (!clearInflightRequest(voteRecords, proof, p.second)) {
-                continue;
-            }
-        }
+        it->second.clearInflightRequest(p.second);
     }
 }
 
@@ -967,6 +928,20 @@ std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
     }
 
     return invs;
+}
+
+AnyVoteItem Processor::getVoteItemFromInv(const CInv &inv) const {
+    if (inv.IsMsgBlk()) {
+        return WITH_LOCK(cs_main, return chainman.m_blockman.LookupBlockIndex(
+                                      BlockHash(inv.hash)));
+    }
+
+    if (inv.IsMsgProof()) {
+        return WITH_LOCK(cs_peerManager,
+                         return peerManager->getProof(ProofId(inv.hash)));
+    }
+
+    return {nullptr};
 }
 
 bool Processor::IsWorthPolling::operator()(const CBlockIndex *pindex) const {

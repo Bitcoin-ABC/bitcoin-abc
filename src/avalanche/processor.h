@@ -292,6 +292,7 @@ private:
     std::vector<CInv> getInvsForNextPoll(bool forPoll = true);
     bool sendHelloInternal(CNode *pfrom)
         EXCLUSIVE_LOCKS_REQUIRED(cs_delayedAvahelloNodeIds);
+    AnyVoteItem getVoteItemFromInv(const CInv &inv) const;
 
     struct IsWorthPolling {
         const Processor &processor;
