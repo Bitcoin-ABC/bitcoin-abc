@@ -99,12 +99,12 @@ export const getAllTxHistory = async (chronik, hash160) => {
     return allTxHistory;
 };
 
-export const getAddressFromAlias = alias => {
+export const getAddressFromAlias = (alias, cachedAliases) => {
     let aliasAddress = false;
 
-    // loop through mockAliasLocalStorage and get the matching address
+    // loop through cachedAliases and get the matching address
     // returns false if none found
-    mockAliasLocalStorage.forEach(function (cachedAliasObj) {
+    cachedAliases.forEach(function (cachedAliasObj) {
         if (cachedAliasObj.alias.toLowerCase() === alias.toLowerCase()) {
             aliasAddress = cachedAliasObj.address;
         }
@@ -125,11 +125,7 @@ export const isAliasAvailable = async (chronik, alias) => {
     );
 
     // extract aliases from payment address' tx history
-    let registeredAliases = getAliases(aliasPaymentTxs);
-
-    // temporary debut output of all registered aliases
-    console.log('Registered Aliases:');
-    registeredAliases.forEach(element => console.log(`- ${element}`));
+    let registeredAliases = getAliasAndAddresses(aliasPaymentTxs);
 
     // check if the chosen alias has already been registered onchain
     let isAliasTaken = isAliasRegistered(registeredAliases, alias);
@@ -140,7 +136,7 @@ export const isAliasAvailable = async (chronik, alias) => {
 export const isAliasRegistered = (registeredAliases, alias) => {
     for (let i = 0; i < registeredAliases.length; i++) {
         if (
-            registeredAliases[i].toString().toLowerCase() ===
+            registeredAliases[i].alias.toString().toLowerCase() ===
             alias.toLowerCase()
         ) {
             console.log(alias + ' has already been taken');
@@ -150,7 +146,7 @@ export const isAliasRegistered = (registeredAliases, alias) => {
     return false;
 };
 
-export const getAliases = aliasPaymentTxs => {
+export const getAliasAndAddresses = aliasPaymentTxs => {
     const registeredAliases = [];
     let aliasName;
 
@@ -175,6 +171,34 @@ export const getAliases = aliasPaymentTxs => {
         const parsedAliasNameStr = Buffer.from(parsedAliasNameHex, 'hex')
             .toString()
             .toLowerCase();
+
+        /* 
+        Assume the first input is the address registering the alias
+
+        https://en.bitcoin.it/wiki/Script for reference
+
+        Assume standard pay-to-pubkey-hash tx        
+        scriptPubKey: OP_DUP OP_HASH160 <pubKeyHash> OP_EQUALVERIFY OP_CHECKSIG
+        76 + a9 + 14 = OP_DUP + OP_HASH160 + 14 Bytes to push
+        88 + ac = OP_EQUALVERIFY + OP_CHECKSIG
+
+        So, the hash160 we want will be in between '76a914' and '88ac'
+        */
+
+        // The first input is the registering address
+        const aliasAddressScript = aliasPaymentTxs[i].inputs[0].outputScript;
+        let aliasHash160, aliasAddress;
+
+        try {
+            aliasHash160 = aliasAddressScript.substring(
+                aliasAddressScript.indexOf('76a914') + '76a914'.length,
+                aliasAddressScript.lastIndexOf('88ac'),
+            );
+            aliasAddress = hash160ToAddress(aliasHash160);
+        } catch (err) {
+            console.log(`err from ${aliasAddressScript}`, err);
+            aliasAddress = 'N/A';
+        }
 
         // if this transaction has a valid OP_RETURN and is indicating an alias prefix
         // then parse through all outputs in this aliasPaymentTxs[i]
@@ -225,7 +249,15 @@ export const getAliases = aliasPaymentTxs => {
                         currency.aliasSettings.aliasMaxLength - 1
                 ) {
                     // consider alias as valid and add to array
-                    registeredAliases.push(aliasName);
+                    registeredAliases.push({
+                        alias: aliasName,
+                        address: aliasAddress,
+                    });
+
+                    // temporary console log for review
+                    console.log(
+                        `Validated-> alias: ${aliasName}, address: ${aliasAddress}`,
+                    );
 
                     // reset fee increment for the next aliasPaymentTxs[i]
                     totalAliasFeePaid = new BigNumber(0);

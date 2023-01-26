@@ -8,7 +8,7 @@ import {
     sortAndTrimChronikTxHistory,
     parseChronikTx,
     getMintAddress,
-    getAliases,
+    getAliasAndAddresses,
     isAliasRegistered,
     getAddressFromAlias,
 } from 'utils/chronik';
@@ -75,14 +75,16 @@ import { when } from 'jest-when';
 
 it(`getAddressFromAlias successfully returns a corresponding address`, async () => {
     const alias = mockAliasLocalStorage[1].alias;
-    expect(getAddressFromAlias(alias)).toStrictEqual(
+    expect(getAddressFromAlias(alias, mockAliasLocalStorage)).toStrictEqual(
         mockAliasLocalStorage[1].address,
     );
 });
 
 it(`getAddressFromAlias successfully returns false on a non-existent alias`, async () => {
     const alias = 'thisAliasDoesNotExist';
-    expect(getAddressFromAlias(alias)).toStrictEqual(false);
+    expect(getAddressFromAlias(alias, mockAliasLocalStorage)).toStrictEqual(
+        false,
+    );
 });
 
 it(`getTokenStats successfully returns a token stats object`, async () => {
@@ -742,24 +744,76 @@ it(`getMintAddress successfully parses chronik.tx response to determine mint add
 });
 
 it(`Successfully extracts aliases from an alias payment address tx history`, () => {
-    expect(getAliases(mockTxHistoryOfAliasPaymentAddress)).toStrictEqual([
-        'range',
-        '123',
-        'foo',
-        'foo',
-        'foo',
-        'joey',
-        'nfs',
-        'nfs',
+    expect(
+        getAliasAndAddresses(mockTxHistoryOfAliasPaymentAddress),
+    ).toStrictEqual([
+        {
+            alias: 'range',
+            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
+        },
+        {
+            alias: '123',
+            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
+        },
+        {
+            alias: 'foo',
+            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
+        },
+        {
+            alias: 'foo',
+            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
+        },
+        {
+            alias: 'foo',
+            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
+        },
+        {
+            alias: 'joey',
+            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
+        },
+        {
+            alias: 'nfs',
+            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
+        },
+        {
+            alias: 'nfs',
+            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
+        },
     ]);
 });
 
 it(`isAliasRegistered() returns true for a registered alias`, () => {
-    const registeredAliases = ['joey', 'ethan', 'antony'];
+    const registeredAliases = [
+        {
+            alias: 'joey',
+            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
+        },
+        {
+            alias: 'ethan',
+            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
+        },
+        {
+            alias: 'antony',
+            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
+        },
+    ];
     expect(isAliasRegistered(registeredAliases, 'ethan')).toStrictEqual(true);
 });
 
 it(`isAliasRegistered() returns false for an unregistered alias`, () => {
-    const registeredAliases = ['joey', 'ethan', 'antony'];
+    const registeredAliases = [
+        {
+            alias: 'joey',
+            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
+        },
+        {
+            alias: 'ethan',
+            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
+        },
+        {
+            alias: 'antony',
+            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
+        },
+    ];
     expect(isAliasRegistered(registeredAliases, 'koush')).toStrictEqual(false);
 });

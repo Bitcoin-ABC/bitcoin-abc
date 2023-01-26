@@ -126,6 +126,7 @@ const Alias = ({ passLoadingStatus }) => {
         // check whether the address is attached to an onchain alias on page load
         let walletHasAlias = isAddressRegistered(wallet);
 
+        // temporary console log for reviewer
         console.log(
             'Does this active wallet have an onchain alias? : ' +
                 walletHasAlias,

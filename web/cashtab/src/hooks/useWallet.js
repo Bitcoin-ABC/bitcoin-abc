@@ -34,7 +34,7 @@ import {
     finalizeSlpUtxos,
     getTxHistoryChronik,
     parseChronikTx,
-    getAliases,
+    getAliasAndAddresses,
 } from 'utils/chronik';
 import { ChronikClient } from 'chronik-client';
 import cashaddr from 'ecashaddrjs';
@@ -284,11 +284,15 @@ const useWallet = () => {
         // calculate total tx count for the alias payment address
         const onChainTotalPaymentTx = totalPaymentTxHistory.length;
 
-        // extract an array of aliases from totalPaymentTxHistory
-        const aliasListArray = getAliases(totalPaymentTxHistory);
+        // extract an array of aliases and addresses from totalPaymentTxHistory
+        const aliasAndAddressListArray = getAliasAndAddresses(
+            totalPaymentTxHistory,
+        );
+
+        // for each record in aliasAndAddressListArray
         let aliasCacheObject = {
             totalPaymentTxCount: onChainTotalPaymentTx,
-            aliases: aliasListArray,
+            aliases: aliasAndAddressListArray,
         };
 
         // set array into local forage
