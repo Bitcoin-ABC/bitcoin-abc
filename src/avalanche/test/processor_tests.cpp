@@ -114,7 +114,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         // Get the processor ready.
         setArg("-avaminquorumstake", "0");
         setArg("-avaminquorumconnectedstakeratio", "0");
-        setArg("avaminavaproofsnodecount", "0");
+        setArg("-avaminavaproofsnodecount", "0");
         setArg("-avaproofstakeutxoconfirmations", "1");
         bilingual_str error;
         m_processor = Processor::MakeProcessor(
@@ -847,9 +847,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_timeout, P, VoteItemProviders) {
 
     auto queryTimeDuration = std::chrono::milliseconds(10);
     setArg("-avatimeout", ToString(queryTimeDuration.count()));
-    setArg("-avaminquorumstake", "0");
-    setArg("-avaminquorumconnectedstakeratio", "0");
-    setArg("avaminavaproofsnodecount", "0");
 
     bilingual_str error;
     m_processor = Processor::MakeProcessor(*m_node.args, *m_node.chain,
@@ -1499,9 +1496,6 @@ BOOST_AUTO_TEST_CASE(quorum_detection_parameter_validation) {
 }
 
 BOOST_AUTO_TEST_CASE(min_avaproofs_messages) {
-    setArg("-avaminquorumstake", "0");
-    setArg("-avaminquorumconnectedstakeratio", "0");
-
     ChainstateManager &chainman = *Assert(m_node.chainman);
 
     auto checkMinAvaproofsMessages = [&](int64_t minAvaproofsMessages) {
