@@ -17,6 +17,7 @@
 #include <interfaces/handler.h>
 #include <key.h>
 #include <net.h>
+#include <primitives/transaction.h>
 #include <rwcollection.h>
 #include <util/variant.h>
 
@@ -67,7 +68,8 @@ enum struct VoteStatus : uint8_t {
     Stale,
 };
 
-using AnyVoteItem = std::variant<const ProofRef, const CBlockIndex *>;
+using AnyVoteItem =
+    std::variant<const ProofRef, const CBlockIndex *, const CTransactionRef>;
 
 class VoteItemUpdate {
     AnyVoteItem item;
@@ -96,6 +98,9 @@ struct VoteMapComparator {
                 [](const CBlockIndex *lhs, const CBlockIndex *rhs) {
                     // Reverse ordering so we get the highest work first
                     return CBlockIndexWorkComparator()(rhs, lhs);
+                },
+                [](const CTransactionRef &lhs, const CTransactionRef &rhs) {
+                    return lhs->GetId() < rhs->GetId();
                 },
                 [](const auto &lhs, const auto &rhs) {
                     // This serves 2 purposes:
@@ -129,6 +134,7 @@ class Processor final : public NetEventsInterface {
     Config avaconfig;
     CConnman *connman;
     ChainstateManager &chainman;
+    CTxMemPool *mempool;
 
     /**
      * Items to run avalanche on.
@@ -214,9 +220,9 @@ class Processor final : public NetEventsInterface {
         delayedAvahelloNodeIds GUARDED_BY(cs_delayedAvahelloNodeIds);
 
     Processor(Config avaconfig, interfaces::Chain &chain, CConnman *connmanIn,
-              ChainstateManager &chainman, CScheduler &scheduler,
-              std::unique_ptr<PeerData> peerDataIn, CKey sessionKeyIn,
-              uint32_t minQuorumTotalScoreIn,
+              ChainstateManager &chainman, CTxMemPool *mempoolIn,
+              CScheduler &scheduler, std::unique_ptr<PeerData> peerDataIn,
+              CKey sessionKeyIn, uint32_t minQuorumTotalScoreIn,
               double minQuorumConnectedScoreRatioIn,
               int64_t minAvaproofsNodeCountIn, uint32_t staleVoteThresholdIn,
               uint32_t staleVoteFactorIn, Amount stakeUtxoDustThresholdIn);
@@ -227,7 +233,8 @@ public:
     static std::unique_ptr<Processor>
     MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
                   CConnman *connman, ChainstateManager &chainman,
-                  CScheduler &scheduler, bilingual_str &error);
+                  CTxMemPool *mempoolIn, CScheduler &scheduler,
+                  bilingual_str &error);
 
     bool addToReconcile(const AnyVoteItem &item);
     bool isAccepted(const AnyVoteItem &item) const;
@@ -303,6 +310,7 @@ private:
             LOCKS_EXCLUDED(cs_main);
         bool operator()(const ProofRef &proof) const
             LOCKS_EXCLUDED(cs_peerManager);
+        bool operator()(const CTransactionRef &tx) const;
     };
     bool isWorthPolling(const AnyVoteItem &item) const {
         return std::visit(IsWorthPolling(*this), item);
@@ -318,6 +326,7 @@ private:
             LOCKS_EXCLUDED(cs_main);
         bool operator()(const ProofRef &proof) const
             LOCKS_EXCLUDED(cs_peerManager);
+        bool operator()(const CTransactionRef &tx) const;
     };
     bool getLocalAcceptance(const AnyVoteItem &item) const {
         return std::visit(GetLocalAcceptance(*this), item);

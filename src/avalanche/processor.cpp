@@ -143,7 +143,7 @@ public:
 
 Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
                      CConnman *connmanIn, ChainstateManager &chainmanIn,
-                     CScheduler &scheduler,
+                     CTxMemPool *mempoolIn, CScheduler &scheduler,
                      std::unique_ptr<PeerData> peerDataIn, CKey sessionKeyIn,
                      uint32_t minQuorumTotalScoreIn,
                      double minQuorumConnectedScoreRatioIn,
@@ -151,8 +151,9 @@ Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
                      uint32_t staleVoteThresholdIn, uint32_t staleVoteFactorIn,
                      Amount stakeUtxoDustThreshold)
     : avaconfig(std::move(avaconfigIn)), connman(connmanIn),
-      chainman(chainmanIn), round(0), peerManager(std::make_unique<PeerManager>(
-                                          stakeUtxoDustThreshold, chainman)),
+      chainman(chainmanIn), mempool(mempoolIn), round(0),
+      peerManager(
+          std::make_unique<PeerManager>(stakeUtxoDustThreshold, chainman)),
       peerData(std::move(peerDataIn)), sessionKey(std::move(sessionKeyIn)),
       minQuorumScore(minQuorumTotalScoreIn),
       minQuorumConnectedScoreRatio(minQuorumConnectedScoreRatioIn),
@@ -180,7 +181,8 @@ Processor::~Processor() {
 std::unique_ptr<Processor>
 Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
                          CConnman *connman, ChainstateManager &chainman,
-                         CScheduler &scheduler, bilingual_str &error) {
+                         CTxMemPool *mempool, CScheduler &scheduler,
+                         bilingual_str &error) {
     std::unique_ptr<PeerData> peerData;
     CKey masterKey;
     CKey sessionKey;
@@ -353,7 +355,7 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
 
     // We can't use std::make_unique with a private constructor
     return std::unique_ptr<Processor>(new Processor(
-        std::move(avaconfig), chain, connman, chainman, scheduler,
+        std::move(avaconfig), chain, connman, chainman, mempool, scheduler,
         std::move(peerData), std::move(sessionKey),
         Proof::amountToScore(minQuorumStake), minQuorumConnectedStakeRatio,
         minAvaproofsNodeCount, staleVoteThreshold, staleVoteFactor,
@@ -907,6 +909,7 @@ std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
         [](const CBlockIndex *pindex) {
             return CInv(MSG_BLOCK, pindex->GetBlockHash());
         },
+        [](const CTransactionRef &tx) { return CInv(MSG_TX, tx->GetHash()); },
     };
 
     auto r = voteRecords.getReadView();
@@ -939,6 +942,10 @@ AnyVoteItem Processor::getVoteItemFromInv(const CInv &inv) const {
     if (inv.IsMsgProof()) {
         return WITH_LOCK(cs_peerManager,
                          return peerManager->getProof(ProofId(inv.hash)));
+    }
+
+    if (mempool && inv.IsMsgTx()) {
+        return WITH_LOCK(mempool->cs, return mempool->get(TxId(inv.hash)));
     }
 
     return {nullptr};
@@ -978,6 +985,18 @@ bool Processor::IsWorthPolling::operator()(const ProofRef &proof) const {
            processor.peerManager->isInConflictingPool(proofid);
 }
 
+bool Processor::IsWorthPolling::operator()(const CTransactionRef &tx) const {
+    if (!processor.mempool) {
+        return false;
+    }
+
+    // TODO For now the transactions with conflicts or rejected by policies are
+    // not stored anywhere, so only the mempool transactions are worth polling.
+    AssertLockNotHeld(processor.mempool->cs);
+    return WITH_LOCK(processor.mempool->cs,
+                     return processor.mempool->exists(tx->GetId()));
+}
+
 bool Processor::GetLocalAcceptance::operator()(
     const CBlockIndex *pindex) const {
     AssertLockNotHeld(cs_main);
@@ -992,6 +1011,18 @@ bool Processor::GetLocalAcceptance::operator()(const ProofRef &proof) const {
     return WITH_LOCK(
         processor.cs_peerManager,
         return processor.peerManager->isBoundToPeer(proof->getId()));
+}
+
+bool Processor::GetLocalAcceptance::operator()(
+    const CTransactionRef &tx) const {
+    if (!processor.mempool) {
+        return false;
+    }
+
+    AssertLockNotHeld(processor.mempool->cs);
+
+    return WITH_LOCK(processor.mempool->cs,
+                     return processor.mempool->exists(tx->GetId()));
 }
 
 } // namespace avalanche

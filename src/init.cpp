@@ -2424,8 +2424,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // Step 6.5 (I guess ?): Initialize Avalanche.
     bilingual_str avalancheError;
     g_avalanche = avalanche::Processor::MakeProcessor(
-        args, *node.chain, node.connman.get(), chainman, *node.scheduler,
-        avalancheError);
+        args, *node.chain, node.connman.get(), chainman, node.mempool.get(),
+        *node.scheduler, avalancheError);
     if (!g_avalanche) {
         InitError(avalancheError);
         return false;

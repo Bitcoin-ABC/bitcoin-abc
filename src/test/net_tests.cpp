@@ -1064,7 +1064,7 @@ BOOST_FIXTURE_TEST_CASE(net_group_limit, TestChain100Setup) {
     // slots are not allocated.
     g_avalanche = avalanche::Processor::MakeProcessor(
         *m_node.args, *m_node.chain, m_node.connman.get(), *m_node.chainman,
-        *m_node.scheduler, error);
+        m_node.mempool.get(), *m_node.scheduler, error);
     BOOST_CHECK(g_avalanche);
 
     CConnman::Options options;

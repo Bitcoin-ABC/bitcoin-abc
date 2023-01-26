@@ -119,7 +119,8 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         bilingual_str error;
         m_processor = Processor::MakeProcessor(
             *m_node.args, *m_node.chain, m_node.connman.get(),
-            *Assert(m_node.chainman), *m_node.scheduler, error);
+            *Assert(m_node.chainman), m_node.mempool.get(), *m_node.scheduler,
+            error);
         BOOST_CHECK(m_processor);
     }
 
@@ -336,12 +337,80 @@ struct ProofProvider {
     }
 };
 
+struct TxProvider {
+    AvalancheTestingSetup *fixture;
+
+    std::vector<avalanche::VoteItemUpdate> updates;
+    uint32_t invType;
+
+    TxProvider(AvalancheTestingSetup *_fixture)
+        : fixture(_fixture), invType(MSG_TX) {}
+
+    CTransactionRef buildVoteItem() const {
+        CMutableTransaction mtx;
+        mtx.nVersion = 2;
+        mtx.vin.emplace_back(COutPoint{TxId(FastRandomContext().rand256()), 0});
+        mtx.vout.emplace_back(1 * COIN, CScript() << OP_TRUE);
+
+        CTransactionRef tx = MakeTransactionRef(std::move(mtx));
+
+        TestMemPoolEntryHelper mempoolEntryHelper;
+        auto entry = mempoolEntryHelper.FromTx(tx);
+
+        CTxMemPool *mempool = Assert(fixture->m_node.mempool.get());
+        {
+            LOCK2(cs_main, mempool->cs);
+            mempool->addUnchecked(entry);
+            BOOST_CHECK(mempool->exists(tx->GetId()));
+        }
+
+        return tx;
+    }
+
+    uint256 getVoteItemId(const CTransactionRef &tx) const {
+        return tx->GetId();
+    }
+
+    std::vector<Vote> buildVotesForItems(uint32_t error,
+                                         std::vector<CTransactionRef> &&items) {
+        size_t numItems = items.size();
+
+        std::vector<Vote> votes;
+        votes.reserve(numItems);
+
+        // Transactions are sorted by TxId
+        std::sort(items.begin(), items.end(),
+                  [](const CTransactionRef &lhs, const CTransactionRef &rhs) {
+                      return lhs->GetId() < rhs->GetId();
+                  });
+        for (auto &item : items) {
+            votes.emplace_back(error, item->GetId());
+        }
+
+        return votes;
+    }
+
+    void invalidateItem(const CTransactionRef &tx) {
+        BOOST_CHECK(tx != nullptr);
+        CTxMemPool *mempool = Assert(fixture->m_node.mempool.get());
+
+        LOCK(mempool->cs);
+        mempool->removeRecursive(*tx, MemPoolRemovalReason::CONFLICT);
+        BOOST_CHECK(!mempool->exists(tx->GetId()));
+    }
+
+    const CTransactionRef fromAnyVoteItem(const AnyVoteItem &item) {
+        return std::get<const CTransactionRef>(item);
+    }
+};
+
 } // namespace
 
 BOOST_FIXTURE_TEST_SUITE(processor_tests, AvalancheTestingSetup)
 
 // FIXME A std::tuple can be used instead of boost::mpl::list after boost 1.67
-using VoteItemProviders = boost::mpl::list<BlockProvider, ProofProvider>;
+using VoteItemProviders =
+    boost::mpl::list<BlockProvider, ProofProvider, TxProvider>;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(voteitemupdate, P, VoteItemProviders) {
     P provider(this);
@@ -849,9 +918,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_timeout, P, VoteItemProviders) {
     setArg("-avatimeout", ToString(queryTimeDuration.count()));
 
     bilingual_str error;
-    m_processor = Processor::MakeProcessor(*m_node.args, *m_node.chain,
-                                           m_node.connman.get(), chainman,
-                                           *m_node.scheduler, error);
+    m_processor = Processor::MakeProcessor(
+        *m_node.args, *m_node.chain, m_node.connman.get(), chainman,
+        m_node.mempool.get(), *m_node.scheduler, error);
 
     const auto item = provider.buildVoteItem();
     const auto itemid = provider.getVoteItemId(item);
@@ -1286,9 +1355,9 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
 
     bilingual_str error;
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    m_processor = Processor::MakeProcessor(*m_node.args, *m_node.chain,
-                                           m_node.connman.get(), chainman,
-                                           *m_node.scheduler, error);
+    m_processor = Processor::MakeProcessor(
+        *m_node.args, *m_node.chain, m_node.connman.get(), chainman,
+        m_node.mempool.get(), *m_node.scheduler, error);
 
     BOOST_CHECK(m_processor != nullptr);
     BOOST_CHECK(m_processor->getLocalProof() != nullptr);
@@ -1481,7 +1550,8 @@ BOOST_AUTO_TEST_CASE(quorum_detection_parameter_validation) {
         bilingual_str error;
         std::unique_ptr<Processor> processor = Processor::MakeProcessor(
             *m_node.args, *m_node.chain, m_node.connman.get(),
-            *Assert(m_node.chainman), *m_node.scheduler, error);
+            *Assert(m_node.chainman), m_node.mempool.get(), *m_node.scheduler,
+            error);
 
         if (success) {
             BOOST_CHECK(processor != nullptr);
@@ -1504,7 +1574,7 @@ BOOST_AUTO_TEST_CASE(min_avaproofs_messages) {
         bilingual_str error;
         auto processor = Processor::MakeProcessor(
             *m_node.args, *m_node.chain, m_node.connman.get(), chainman,
-            *m_node.scheduler, error);
+            m_node.mempool.get(), *m_node.scheduler, error);
 
         auto addNode = [&](NodeId nodeid) {
             auto proof = buildRandomProof(chainman.ActiveChainstate(),
@@ -1569,7 +1639,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(voting_parameters, P, VoteItemProviders) {
     bilingual_str error;
     m_processor = Processor::MakeProcessor(
         *m_node.args, *m_node.chain, m_node.connman.get(),
-        *Assert(m_node.chainman), *m_node.scheduler, error);
+        *Assert(m_node.chainman), m_node.mempool.get(), *m_node.scheduler,
+        error);
 
     BOOST_CHECK(m_processor != nullptr);
     BOOST_CHECK(error.empty());
