@@ -26,14 +26,13 @@ use crate::{
     },
     server_http::{
         address, address_qr, block, block_height, blocks, data_address_txs,
-        data_block_txs, data_blocks, homepage, search, serve_files, tx,
+        data_block_txs, data_blocks, search, serve_files, tx,
     },
     server_primitives::{
         JsonBalance, JsonBlock, JsonBlocksResponse, JsonTxsResponse, JsonUtxo,
     },
     templating::{
-        AddressTemplate, BlockTemplate, BlocksTemplate, HomepageTemplate,
-        TransactionTemplate,
+        AddressTemplate, BlockTemplate, BlocksTemplate, TransactionTemplate,
     },
 };
 
@@ -59,7 +58,7 @@ impl Server {
 
     pub fn router(&self) -> Router {
         Router::new()
-            .route("/", get(homepage))
+            .route("/", get(blocks))
             .route("/tx/:hash", get(tx))
             .route("/blocks", get(blocks))
             .route("/block/:hash", get(block))
@@ -80,11 +79,6 @@ impl Server {
 }
 
 impl Server {
-    pub async fn homepage(&self) -> Result<String> {
-        let homepage = HomepageTemplate {};
-        Ok(homepage.render().unwrap())
-    }
-
     pub async fn blocks(&self) -> Result<String> {
         let blockchain_info = self.chronik.blockchain_info().await?;
 

@@ -16,12 +16,6 @@ use crate::{
     server_primitives::{JsonBlocksResponse, JsonTxsResponse},
 };
 
-pub async fn homepage(
-    server: Extension<Arc<Server>>,
-) -> Result<Html<String>, ServerError> {
-    Ok(Html(server.homepage().await.map_err(to_server_error)?))
-}
-
 pub async fn blocks(
     server: Extension<Arc<Server>>,
 ) -> Result<Html<String>, ServerError> {

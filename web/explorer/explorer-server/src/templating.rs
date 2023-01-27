@@ -12,10 +12,6 @@ use crate::{blockchain::Destination, server_primitives::JsonBalance};
 mod filters;
 
 #[derive(Template)]
-#[template(path = "pages/homepage.html")]
-pub struct HomepageTemplate {}
-
-#[derive(Template)]
 #[template(path = "pages/blocks.html")]
 pub struct BlocksTemplate {
     pub last_block_height: u32,
