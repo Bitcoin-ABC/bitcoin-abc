@@ -4,10 +4,13 @@
 
 #include <minerfund.h>
 
+#include <blockindex.h>
 #include <chainparams.h>
 #include <consensus/activation.h>
+#include <consensus/amount.h>
 #include <currencyunit.h>
 #include <key_io.h> // For DecodeDestination
+#include <primitives/transaction.h>
 #include <util/system.h>
 
 /**
@@ -57,4 +60,36 @@ GetMinerFundWhitelist(const Consensus::Params &params,
     }
 
     return {GetMinerFundDestination(!IsGluonEnabled(params, pindexPrev))};
+}
+
+bool CheckMinerFund(const Consensus::Params &params,
+                    const CBlockIndex *pindexPrev,
+                    const std::vector<CTxOut> &coinbaseTxOut,
+                    const Amount &blockReward) {
+    const auto whitelist = GetMinerFundWhitelist(params, pindexPrev);
+    if (whitelist.empty()) {
+        return true;
+    }
+
+    const Amount required = GetMinerFundAmount(blockReward);
+    for (auto &o : coinbaseTxOut) {
+        if (o.nValue < required) {
+            // This output doesn't qualify because its amount is too low.
+            continue;
+        }
+
+        CTxDestination address;
+        if (!ExtractDestination(o.scriptPubKey, address)) {
+            // Cannot decode address.
+            continue;
+        }
+
+        if (std::find(whitelist.begin(), whitelist.end(), address) !=
+            whitelist.end()) {
+            return true;
+        }
+    }
+
+    // We did not find an output that match the miner fund requirements.
+    return false;
 }
