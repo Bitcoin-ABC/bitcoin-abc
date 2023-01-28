@@ -29,7 +29,7 @@ fn main() {
         .flag_if_supported("-Wno-unused-function")
         // patching out printf causes this warning
         .flag_if_supported("-Wno-unused-parameter")
-        .define("SECP256K1_API", Some(""))
+        .define("SECP256K1_API", Some("extern"))
         .define("ENABLE_MODULE_ECDH", Some("1"))
         .define("ENABLE_MODULE_SCHNORRSIG", Some("1"))
         .define("ENABLE_MODULE_SCHNORR", Some("1"))

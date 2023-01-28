@@ -100,6 +100,11 @@ if (SECP256K1_BUILD_SHARED)
 	set(SECP256K1_SHARED "SHARED")
 endif()
 add_library(secp256k1 ${SECP256K1_SHARED} src/secp256k1.c)
+if(WIN32)
+	# Define our export symbol only for shared libs.
+	set_target_properties(secp256k1 PROPERTIES DEFINE_SYMBOL SECP256K1_DLL_EXPORT)
+	target_compile_definitions(secp256k1 INTERFACE $<$<NOT:$<BOOL:${SECP256K1_BUILD_SHARED}>>:SECP256K1_STATIC>)
+endif()
 target_include_directories(secp256k1 PUBLIC include)
 target_sources(secp256k1 PRIVATE
 	src/precomputed_ecmult.c
