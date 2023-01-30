@@ -399,8 +399,8 @@ BOOST_AUTO_TEST_CASE(class_methods) {
     BOOST_CHECK(methodtest2 == methodtest3);
     BOOST_CHECK(methodtest3 == methodtest4);
 
-    CDataStream ss2(SER_DISK, PROTOCOL_VERSION, intval, boolval, stringval,
-                    charstrval, txval, proofval);
+    CDataStream ss2{SER_DISK, PROTOCOL_VERSION};
+    ss2 << intval << boolval << stringval << charstrval << txval << proofval;
     ss2 >> methodtest3;
     BOOST_CHECK(methodtest3 == methodtest4);
 }

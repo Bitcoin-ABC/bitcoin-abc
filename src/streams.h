@@ -411,12 +411,6 @@ public:
     explicit CDataStream(Span<const value_type> sp, int nTypeIn, int nVersionIn)
         : DataStream{sp}, nType{nTypeIn}, nVersion{nVersionIn} {}
 
-    template <typename... Args>
-    CDataStream(int nTypeIn, int nVersionIn, Args &&...args)
-        : nType{nTypeIn}, nVersion{nVersionIn} {
-        ::SerializeMany(*this, std::forward<Args>(args)...);
-    }
-
     int GetType() const { return nType; }
     void SetVersion(int n) { nVersion = n; }
     int GetVersion() const { return nVersion; }
