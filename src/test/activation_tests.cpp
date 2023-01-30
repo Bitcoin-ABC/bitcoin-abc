@@ -7,22 +7,12 @@
 #include <consensus/activation.h>
 #include <util/system.h>
 
+#include <test/util/blockindex.h>
 #include <test/util/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
 
 BOOST_FIXTURE_TEST_SUITE(activation_tests, BasicTestingSetup)
-
-[[maybe_unused]] static void SetMTP(std::array<CBlockIndex, 12> &blocks,
-                                    int64_t mtp) {
-    size_t len = blocks.size();
-
-    for (size_t i = 0; i < len; ++i) {
-        blocks[i].nTime = mtp + (i - (len / 2));
-    }
-
-    BOOST_CHECK_EQUAL(blocks.back().GetMedianTimePast(), mtp);
-}
 
 static void testPastActivation(
     std::function<bool(const Consensus::Params &, const CBlockIndex *)> func,
