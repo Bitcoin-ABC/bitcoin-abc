@@ -177,6 +177,7 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 		merkle_tests.cpp
 		merkleblock_tests.cpp
 		miner_tests.cpp
+		minerfund_tests.cpp
 		monolith_opcodes_tests.cpp
 		multisig_tests.cpp
 		net_peer_eviction_tests.cpp
