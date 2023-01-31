@@ -420,10 +420,11 @@ void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, CTxUndo &txundo,
                  int nHeight);
 
 /**
- * Check if transaction will be BIP68 final in the next block to be created on
- * top of tip.
- * @param[in]   tip             Chain tip to check tx sequence locks against.
- *     For example, the tip of the current active chain.
+ * Calculate LockPoints required to check if transaction will be BIP68 final in
+ * the next block to be created on top of tip.
+ *
+ * @param[in]   tip             Chain tip for which tx sequence locks are
+ *     calculated. For example, the tip of the current active chain.
  * @param[in]   coins_view      Any CCoinsView that provides access to the
  *     relevant coins for checking sequence locks. For example, it can be a
  *     CCoinsViewCache that isn't connected to anything but contains all the
@@ -431,15 +432,25 @@ void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, CTxUndo &txundo,
  *     and chainstate UTXO set. In the latter case, the caller is responsible
  *     for holding the appropriate locks to ensure that calls to GetCoin()
  *     return correct coins.
- * Simulates calling SequenceLocks() with data from the tip passed in.
- * Optionally stores in LockPoints the resulting height and time
- * calculated and the hash of the block needed for calculation or skips the
- * calculation and uses the LockPoints passed in for evaluation. The LockPoints
- * should not be considered valid if CheckSequenceLocksAtTip returns false.
+ * @param[in]   tx              The transaction being evaluated.
+ *
+ * @returns The resulting height and time calculated and the hash of the block
+ *          needed for calculation, or std::nullopt if there is an error.
  */
-bool CheckSequenceLocksAtTip(CBlockIndex *tip, const CCoinsView &coins_view,
-                             const CTransaction &tx, LockPoints *lp = nullptr,
-                             bool useExistingLockPoints = false);
+std::optional<LockPoints> CalculateLockPointsAtTip(CBlockIndex *tip,
+                                                   const CCoinsView &coins_view,
+                                                   const CTransaction &tx);
+
+/**
+ * Check if transaction will be BIP68 final in the next block to be created on
+ * top of tip.
+ * @param[in]   tip             Chain tip to check tx sequence locks against.
+ *     For example, the tip of the current active chain.
+ * @param[in]   lock_points     LockPoints containing the height and time at
+ *     which this transaction is final.
+ * Simulates calling SequenceLocks() with data from the tip passed in.
+ */
+bool CheckSequenceLocksAtTip(CBlockIndex *tip, const LockPoints &lock_points);
 
 /**
  * Closure representing one script verification.

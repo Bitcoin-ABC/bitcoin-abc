@@ -57,8 +57,11 @@ struct MinerTestingSetup : public TestingSetup {
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main, m_node.mempool->cs) {
         CCoinsViewMemPool view_mempool(
             &m_node.chainman->ActiveChainstate().CoinsTip(), *m_node.mempool);
-        return CheckSequenceLocksAtTip(m_node.chainman->ActiveChain().Tip(),
-                                       view_mempool, tx);
+        CBlockIndex *tip{m_node.chainman->ActiveChain().Tip()};
+        const std::optional<LockPoints> lock_points{
+            CalculateLockPointsAtTip(tip, view_mempool, tx)};
+        return lock_points.has_value() &&
+               CheckSequenceLocksAtTip(tip, *lock_points);
     }
     BlockAssembler AssemblerForTest(const CChainParams &params);
 };
