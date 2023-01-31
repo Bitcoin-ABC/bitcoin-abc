@@ -1174,7 +1174,7 @@ body .ui.slider.checkbox input:checked ~ .box,
     border-right: 1px solid rgba(255, 255, 255, 0.4);
 }
 
-.tx-details-half:last-child {
+.tx-details-half:nth-child(2) {
     padding-left: 20px;
 }
 
@@ -1702,7 +1702,7 @@ div.dt-buttons button:hover {
         border-right: none;
     }
 
-    .tx-details-half:last-child {
+    .tx-details-half:nth-child(2) {
         padding-left: 0px;
     }
 
