@@ -10,8 +10,9 @@
 SaltedUint256Hasher::SaltedUint256Hasher()
     : k0(GetRand<uint64_t>()), k1(GetRand<uint64_t>()) {}
 
-SaltedOutpointHasher::SaltedOutpointHasher()
-    : k0(GetRand<uint64_t>()), k1(GetRand<uint64_t>()) {}
+SaltedOutpointHasher::SaltedOutpointHasher(bool deterministic)
+    : k0(deterministic ? 0x8e819f2607a18de6 : GetRand<uint64_t>()),
+      k1(deterministic ? 0xf4020d2e3983b0eb : GetRand<uint64_t>()) {}
 
 SaltedSipHasher::SaltedSipHasher()
     : m_k0(GetRand<uint64_t>()), m_k1(GetRand<uint64_t>()) {}

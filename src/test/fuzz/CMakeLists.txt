@@ -26,6 +26,7 @@ add_executable(fuzz EXCLUDE_FROM_ALL
 	cashaddr.cpp
 	chain.cpp
 	checkqueue.cpp
+	coinscache_sim.cpp
 	coins_view.cpp
 	connman.cpp
 	crypto.cpp

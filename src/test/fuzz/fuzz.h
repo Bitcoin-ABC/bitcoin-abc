@@ -10,6 +10,9 @@
 #include <string_view>
 #include <vector>
 
+#define LIMITED_WHILE(condition, limit)                                        \
+    for (unsigned _count{limit}; (condition) && _count; --_count)
+
 using TypeTestOneInput = std::function<void(const std::vector<uint8_t> &)>;
 using TypeInitialize = std::function<void()>;
 
