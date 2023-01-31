@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP @generated
+// Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Wallet with BCH balances 1`] = `
 <div
@@ -865,18 +865,6 @@ exports[`Without wallet defined 1`] = `
     non-custodial web wallet for 
     eCash
     .
-    <br />
-    <br />
-    Want to learn more?
-     
-    <a
-      className="sc-jWBwVP jvgrAu"
-      href="https://docs.cashtab.com/docs/"
-      rel="noreferrer"
-      target="_blank"
-    >
-      Check out the Cashtab documentation.
-    </a>
   </p>
   <button
     className="sc-kEYyzF eGMKh"

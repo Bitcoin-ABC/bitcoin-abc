@@ -108,16 +108,6 @@ const OnBoarding = () => {
                     open source,
                 </WelcomeLink>{' '}
                 non-custodial web wallet for {currency.name}.
-                <br />
-                <br />
-                Want to learn more?{' '}
-                <WelcomeLink
-                    href="https://docs.cashtab.com/docs/"
-                    target="_blank"
-                    rel="noreferrer"
-                >
-                    Check out the Cashtab documentation.
-                </WelcomeLink>
             </WelcomeText>
 
             <PrimaryButton onClick={() => showBackupConfirmModal()}>
