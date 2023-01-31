@@ -19,14 +19,15 @@
 class ArgsManager;
 class AddrMan;
 class CAddress;
-class CDataStream;
+class DataStream;
 class CChainParams;
+
+/** Only used by tests. */
+void ReadFromStream(const CChainParams &chainParams, AddrMan &addr,
+                    DataStream &ssPeers);
 
 bool DumpPeerAddresses(const CChainParams &chainParams, const ArgsManager &args,
                        const AddrMan &addr);
-/** Only used by tests. */
-void ReadFromStream(const CChainParams &chainParams, AddrMan &addr,
-                    CDataStream &ssPeers);
 
 class CBanEntry {
 public:

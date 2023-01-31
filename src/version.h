@@ -40,7 +40,4 @@ static const int INVALID_CB_NO_BAN_VERSION = 70015;
 //! send extra peer specific entropy in the version message
 static const int PEER_ENTROPY_VERSION = 70016;
 
-// Make sure that none of the values above collide with
-// `ADDRV2_FORMAT`.
-
 #endif // BITCOIN_VERSION_H

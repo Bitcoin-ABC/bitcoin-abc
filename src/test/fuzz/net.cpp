@@ -31,13 +31,17 @@ FUZZ_TARGET_INIT(net, initialize_net) {
     FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
     const Config &config = GetConfig();
 
-    const std::optional<CAddress> address =
-        ConsumeDeserializable<CAddress>(fuzzed_data_provider);
+    const std::optional<CAddress> address = ConsumeDeserializable<CAddress>(
+        fuzzed_data_provider, ConsumeDeserializationParams<CAddress::SerParams>(
+                                  fuzzed_data_provider));
     if (!address) {
         return;
     }
     const std::optional<CAddress> address_bind =
-        ConsumeDeserializable<CAddress>(fuzzed_data_provider);
+        ConsumeDeserializable<CAddress>(
+            fuzzed_data_provider,
+            ConsumeDeserializationParams<CAddress::SerParams>(
+                fuzzed_data_provider));
     if (!address_bind) {
         return;
     }
@@ -76,7 +80,10 @@ FUZZ_TARGET_INIT(net, initialize_net) {
             },
             [&] {
                 const std::optional<CService> service_opt =
-                    ConsumeDeserializable<CService>(fuzzed_data_provider);
+                    ConsumeDeserializable<CService>(
+                        fuzzed_data_provider,
+                        ConsumeDeserializationParams<CNetAddr::SerParams>(
+                            fuzzed_data_provider));
                 if (!service_opt) {
                     return;
                 }

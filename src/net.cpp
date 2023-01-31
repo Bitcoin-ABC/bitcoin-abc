@@ -205,6 +205,7 @@ convertSeed6(const std::vector<SeedSpec6> &vSeedsIn) {
     std::vector<CAddress> vSeedsOut;
     vSeedsOut.reserve(vSeedsIn.size());
     FastRandomContext rng;
+    // TODO: apply core#25284 when backporting core#21560
     for (const auto &seed_in : vSeedsIn) {
         struct in6_addr ip;
         memcpy(&ip, seed_in.addr, sizeof(ip));

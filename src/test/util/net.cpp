@@ -33,11 +33,11 @@ void ConnmanTestMsg::Handshake(CNode &node, bool successfully_connected,
                 // ignored service bits
                 int64_t{},
                 // dummy addrMe
-                CService{},
+                WithParams(CNetAddr::V1, CService{}),
                 // ignored service bits
                 int64_t{},
                 // dummy addrFrom
-                CService{},
+                WithParams(CNetAddr::V1, CService{}),
                 // dummy nonce
                 uint64_t{1},
                 // dummy subver

@@ -214,7 +214,8 @@ public:
 
     SERIALIZE_METHODS(SeederAddrInfo, obj) {
         uint8_t version = 5;
-        READWRITE(version, obj.ip, obj.services, obj.lastTry);
+        READWRITE(version, WithParams(CAddress::V1_DISK, obj.ip), obj.services,
+                  obj.lastTry);
         uint8_t tried = obj.ourLastTry != 0;
         READWRITE(tried);
         if (!tried) {
@@ -381,7 +382,7 @@ public:
             std::map<int, SeederAddrInfo>::iterator ci = db->idToInfo.find(*it);
             s << (*ci).second;
         }
-        s << banned;
+        s << WithParams(CAddress::V1_DISK, banned);
     }
 
     template <typename Stream> void Unserialize(Stream &s) {
@@ -412,7 +413,7 @@ public:
             }
         }
 
-        s >> banned;
+        s >> WithParams(CAddress::V1_DISK, banned);
     }
 
     void Add(const CAddress &addr, bool fForce = false) {

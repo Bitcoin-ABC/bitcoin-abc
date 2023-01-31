@@ -41,12 +41,13 @@ static SeederAddrInfo BuildSeederAddrInfo(const CService &ip, bool good,
     int blocks{0};
     int64_t ourLastSuccess{0};
 
-    info_stream << version << ip << services << lastTry << tried << ourLastTry
-                << ignoreTill << stat2H << stat8H << stat1D << stat1W << stat1M
-                << total << success << clientVersion << clientSubVersion
-                << blocks << ourLastSuccess << checkpointVerified;
+    info_stream << version << WithParams(CAddress::V1_DISK, ip) << services
+                << lastTry << tried << ourLastTry << ignoreTill << stat2H
+                << stat8H << stat1D << stat1W << stat1M << total << success
+                << clientVersion << clientSubVersion << blocks << ourLastSuccess
+                << checkpointVerified;
 
-    info_stream >> info;
+    info_stream >> WithParams(CAddress::V1_DISK, info);
     info.Update(good);
     return info;
 }

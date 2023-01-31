@@ -35,8 +35,7 @@ FUZZ_TARGET_INIT(script_sign, initialize_script_sign) {
         ConsumeRandomLengthByteVector(fuzzed_data_provider, 128);
 
     {
-        CDataStream random_data_stream =
-            ConsumeDataStream(fuzzed_data_provider);
+        DataStream random_data_stream{ConsumeDataStream(fuzzed_data_provider)};
         std::map<CPubKey, KeyOriginInfo> hd_keypaths;
         try {
             DeserializeHDKeypaths(random_data_stream, key, hd_keypaths);

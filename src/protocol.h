@@ -486,21 +486,29 @@ public:
     CAddress(CService ipIn, ServiceFlags nServicesIn, NodeSeconds time)
         : CService{ipIn}, nTime{time}, nServices{nServicesIn} {};
 
-    SERIALIZE_METHODS(CAddress, obj) {
-        // CAddress has a distinct network serialization and a disk
-        // serialization, but it should never be hashed (except through
-        // CHashWriter in addrdb.cpp, which sets SER_DISK), and it's ambiguous
-        // what that would mean. Make sure no code relying on that is
-        // introduced:
-        assert(!(s.GetType() & SER_GETHASH));
+    enum class Format {
+        Disk,
+        Network,
+    };
+    struct SerParams : CNetAddr::SerParams {
+        const Format fmt;
+    };
+    static constexpr SerParams V1_NETWORK{{CNetAddr::Encoding::V1},
+                                          Format::Network};
+    static constexpr SerParams V2_NETWORK{{CNetAddr::Encoding::V2},
+                                          Format::Network};
+    static constexpr SerParams V1_DISK{{CNetAddr::Encoding::V1}, Format::Disk};
+    static constexpr SerParams V2_DISK{{CNetAddr::Encoding::V2}, Format::Disk};
+
+    SERIALIZE_METHODS_PARAMS(CAddress, obj, SerParams, params) {
         bool use_v2;
-        if (s.GetType() & SER_DISK) {
+        if (params.fmt == Format::Disk) {
             // In the disk serialization format, the encoding (v1 or v2) is
             // determined by a flag version that's part of the serialization
             // itself. ADDRV2_FORMAT in the stream version only determines
             // whether V2 is chosen/permitted at all.
             uint32_t stored_format_version = DISK_VERSION_INIT;
-            if (s.GetVersion() & ADDRV2_FORMAT) {
+            if (params.enc == Encoding::V2) {
                 stored_format_version |= DISK_VERSION_ADDRV2;
             }
             READWRITE(stored_format_version);
@@ -509,19 +517,19 @@ public:
             if (stored_format_version == 0) {
                 use_v2 = false;
             } else if (stored_format_version == DISK_VERSION_ADDRV2 &&
-                       (s.GetVersion() & ADDRV2_FORMAT)) {
-                // Only support v2 deserialization if ADDRV2_FORMAT is set.
+                       params.enc == Encoding::V2) {
+                // Only support v2 deserialization if V2 is set.
                 use_v2 = true;
             } else {
                 throw std::ios_base::failure(
                     "Unsupported CAddress disk format version");
             }
         } else {
+            assert(params.fmt == Format::Network);
             // In the network serialization format, the encoding (v1 or v2) is
-            // determined directly by the value of ADDRV2_FORMAT in the stream
-            // version, as no explicitly encoded version exists in the stream.
-            assert(s.GetType() & SER_NETWORK);
-            use_v2 = s.GetVersion() & ADDRV2_FORMAT;
+            // determined directly by the value of enc in the stream params, as
+            // no explicitly encoded version exists in the stream.
+            use_v2 = params.enc == Encoding::V2;
         }
 
         READWRITE(Using<LossyChronoFormatter<uint32_t>>(obj.nTime));
@@ -536,8 +544,8 @@ public:
             READWRITE(Using<CustomUintFormatter<8>>(obj.nServices));
         }
         // Invoke V1/V2 serializer for CService parent object.
-        OverrideStream<Stream> os(&s, s.GetType(), use_v2 ? ADDRV2_FORMAT : 0);
-        SerReadWriteMany(os, ser_action, AsBase<CService>(obj));
+        const auto ser_params{use_v2 ? CNetAddr::V2 : CNetAddr::V1};
+        READWRITE(WithParams(ser_params, AsBase<CService>(obj)));
     }
 
     //! Always included in serialization, except in the network format on

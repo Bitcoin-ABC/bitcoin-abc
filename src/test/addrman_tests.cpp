@@ -725,7 +725,7 @@ BOOST_AUTO_TEST_CASE(addrman_serialization) {
     auto addrman_asmap1 = std::make_unique<AddrManTest>(asmap1);
     auto addrman_asmap1_dup = std::make_unique<AddrManTest>(asmap1);
     auto addrman_noasmap = std::make_unique<AddrManTest>();
-    CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+    DataStream stream{};
 
     CAddress addr = CAddress(ResolveService("250.1.1.1"), NODE_NONE);
     CNetAddr default_source;
@@ -944,8 +944,8 @@ BOOST_AUTO_TEST_CASE(addrman_evictionworks) {
     BOOST_CHECK(addrman.SelectTriedCollision().first.ToString() == "[::]:0");
 }
 
-static CDataStream AddrmanToStream(const AddrMan &addrman) {
-    CDataStream ssPeersIn(SER_DISK, CLIENT_VERSION);
+static auto AddrmanToStream(const AddrMan &addrman) {
+    DataStream ssPeersIn{};
     ssPeersIn << Params().DiskMagic();
     ssPeersIn << addrman;
     return ssPeersIn;
@@ -970,7 +970,7 @@ BOOST_AUTO_TEST_CASE(load_addrman) {
     BOOST_CHECK(addrman.Add({CAddress(addr3, NODE_NONE)}, source));
 
     // Test that the de-serialization does not throw an exception.
-    CDataStream ssPeers1 = AddrmanToStream(addrman);
+    auto ssPeers1{AddrmanToStream(addrman)};
     bool exceptionThrown = false;
     AddrMan addrman1(/*asmap=*/std::vector<bool>(), /*deterministic=*/false,
                      /*consistency_check_ratio=*/100);
@@ -989,7 +989,7 @@ BOOST_AUTO_TEST_CASE(load_addrman) {
 
     // Test that ReadFromStream creates an addrman with the correct number of
     // addrs.
-    CDataStream ssPeers2 = AddrmanToStream(addrman);
+    DataStream ssPeers2 = AddrmanToStream(addrman);
 
     AddrMan addrman2(/*asmap=*/std::vector<bool>(), /*deterministic=*/false,
                      /*consistency_check_ratio=*/100);
@@ -999,8 +999,8 @@ BOOST_AUTO_TEST_CASE(load_addrman) {
 }
 
 // Produce a corrupt peers.dat that claims 20 addrs when it only has one addr.
-static CDataStream MakeCorruptPeersDat() {
-    CDataStream s(SER_DISK, CLIENT_VERSION);
+static auto MakeCorruptPeersDat() {
+    DataStream s{};
     s << ::Params().DiskMagic();
 
     uint8_t nVersion = 1;
@@ -1019,7 +1019,7 @@ static CDataStream MakeCorruptPeersDat() {
     CNetAddr resolved;
     BOOST_CHECK(LookupHost("252.2.2.2", resolved, false));
     AddrInfo info = AddrInfo(addr, resolved);
-    s << info;
+    s << WithParams(CAddress::V1_DISK, info);
 
     return s;
 }
@@ -1027,7 +1027,7 @@ static CDataStream MakeCorruptPeersDat() {
 BOOST_AUTO_TEST_CASE(load_addrman_corrupted) {
     // Test that the de-serialization of corrupted peers.dat throws an
     // exception.
-    CDataStream ssPeers1 = MakeCorruptPeersDat();
+    auto ssPeers1{MakeCorruptPeersDat()};
     bool exceptionThrown = false;
     AddrMan addrman1(/*asmap=*/std::vector<bool>(), /*deterministic=*/false,
                      /*consistency_check_ratio=*/100);
@@ -1044,7 +1044,7 @@ BOOST_AUTO_TEST_CASE(load_addrman_corrupted) {
     BOOST_CHECK(exceptionThrown);
 
     // Test that ReadFromStream fails if peers.dat is corrupt
-    CDataStream ssPeers2 = MakeCorruptPeersDat();
+    auto ssPeers2{MakeCorruptPeersDat()};
 
     AddrMan addrman2(/*asmap=*/std::vector<bool>(), /*deterministic=*/false,
                      /*consistency_check_ratio=*/100);

@@ -44,8 +44,10 @@ BOOST_AUTO_TEST_CASE(simple_header_and_payload_message_writer_test) {
     // [-Werror=stringop-overflow=] warning in gcc <= 12.2.
     // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100366#c20
     versionPayload.reserve(200);
-    versionPayload << PROTOCOL_VERSION << serviceFlags << now << addrTo
-                   << addrFrom << nonce << user_agent << start_height;
+    versionPayload << PROTOCOL_VERSION << serviceFlags << now
+                   << WithParams(CAddress::V1_NETWORK, addrTo)
+                   << WithParams(CAddress::V1_NETWORK, addrFrom) << nonce
+                   << user_agent << start_height;
 
     CMessageHeader versionhdr(Params().NetMagic(), NetMsgType::VERSION,
                               versionPayload.size());
@@ -57,7 +59,8 @@ BOOST_AUTO_TEST_CASE(simple_header_and_payload_message_writer_test) {
     expectedVersion.write(versionPayload);
 
     CheckMessage(expectedVersion, NetMsgType::VERSION, PROTOCOL_VERSION,
-                 serviceFlags, now, addrTo, addrFrom, nonce, user_agent,
+                 serviceFlags, now, WithParams(CAddress::V1_NETWORK, addrTo),
+                 WithParams(CAddress::V1_NETWORK, addrFrom), nonce, user_agent,
                  start_height);
 }
 

@@ -82,7 +82,8 @@ BOOST_AUTO_TEST_CASE(process_version_msg) {
 
     // Don't include the time in CAddress serialization. See D14753.
     versionMessage << INIT_PROTO_VERSION << serviceflags << GetTime()
-                   << addr_to_services << addr_to << serviceflags << addr_from
+                   << addr_to_services << WithParams(CNetAddr::V1, addr_to)
+                   << serviceflags << WithParams(CNetAddr::V1, addr_from)
                    << nonce << user_agent << GetRequireHeight();
 
     // Verify the version is set as the initial value
@@ -127,7 +128,7 @@ static CDataStream CreateAddrMessage(std::vector<CAddress> sendAddrs,
                                      uint32_t nVersion = INIT_PROTO_VERSION) {
     CDataStream payload(SER_NETWORK, 0);
     payload.SetVersion(nVersion);
-    payload << sendAddrs;
+    payload << WithParams(CAddress::V1_NETWORK, sendAddrs);
     return payload;
 }
 
@@ -235,6 +236,10 @@ BOOST_FIXTURE_TEST_CASE(good_checkpoint, MainNetSeederTestingSetup) {
     testNode->setStartingHeight(recentCheckpointHeight + 1);
     CDataStream headersOnCorrectChain(SER_NETWORK, 0);
     headersOnCorrectChain.SetVersion(INIT_PROTO_VERSION);
+    // The following .reserve() call is a workaround for a spurious
+    // [-Werror=stringop-overflow=] warning in gcc <= 12.2.
+    // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100366#c20
+    headersOnCorrectChain.reserve(4);
     WriteCompactSize(headersOnCorrectChain, 1);
     headersOnCorrectChain << header;
     testNode->TestProcessMessage(NetMsgType::HEADERS, headersOnCorrectChain,

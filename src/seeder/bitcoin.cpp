@@ -51,7 +51,7 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
         yourServices = ServiceFlags(nServiceInt);
         // Ignore the addrMe service bits sent by the peer
         recv.ignore(8);
-        recv >> addrMe;
+        recv >> WithParams(CNetAddr::V1, addrMe);
 
         // The version message includes information about the sending node
         // which we don't use:
@@ -97,7 +97,7 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
     if (strCommand == NetMsgType::ADDR && vAddr) {
         needAddrReply = false;
         std::vector<CAddress> vAddrNew;
-        recv >> vAddrNew;
+        recv >> WithParams(CAddress::V1_NETWORK, vAddrNew);
         // tfm::format(std::cout, "%s: got %i addresses\n",
         // ToString(you),
         //        (int)vAddrNew.size());
@@ -305,10 +305,11 @@ bool CSeederNode::Run() {
     const std::string userAgent =
         FormatUserAgent(clientName, clientVersion, {"seeder"});
 
-    MessageWriter::WriteMessage(vSend, NetMsgType::VERSION, PROTOCOL_VERSION,
-                                nLocalServices, GetTime(), your_services, you,
-                                my_services, CService(), nLocalNonce, userAgent,
-                                GetRequireHeight(), fRelayTxs);
+    MessageWriter::WriteMessage(
+        vSend, NetMsgType::VERSION, PROTOCOL_VERSION, nLocalServices, GetTime(),
+        your_services, WithParams(CNetAddr::V1, you), my_services,
+        WithParams(CNetAddr::V1, CService{}), nLocalNonce, userAgent,
+        GetRequireHeight(), fRelayTxs);
     Send();
 
     bool res = true;

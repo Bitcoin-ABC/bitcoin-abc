@@ -252,7 +252,7 @@ extern "C" void *ThreadDumper(void *data) {
             FILE *f = fsbridge::fopen("dnsseed.dat.new", "w+");
             if (f) {
                 {
-                    CAutoFile cf(f, SER_DISK, CLIENT_VERSION);
+                    AutoFile cf(f);
                     cf << db;
                 }
                 rename("dnsseed.dat.new", "dnsseed.dat");
@@ -408,7 +408,7 @@ int main(int argc, char **argv) {
     FILE *f = fsbridge::fopen("dnsseed.dat", "r");
     if (f) {
         tfm::format(std::cout, "Loading dnsseed.dat...");
-        CAutoFile cf(f, SER_DISK, CLIENT_VERSION);
+        AutoFile cf(f);
         cf >> db;
         if (opts.fWipeBan) {
             db.banned.clear();

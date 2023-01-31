@@ -113,15 +113,15 @@ bool SerializeDB(const CChainParams &chainParams, Stream &stream,
 
 template <typename Data>
 bool SerializeFileDB(const CChainParams &chainParams, const std::string &prefix,
-                     const fs::path &path, const Data &data, int version) {
+                     const fs::path &path, const Data &data) {
     // Generate random temporary filename
     const uint16_t randv{FastRandomContext().rand<uint16_t>()};
     std::string tmpfn = strprintf("%s.%04x", prefix, randv);
 
-    // open temp output file, and associate with CAutoFile
+    // open temp output file
     fs::path pathTmp = gArgs.GetDataDirNet() / tmpfn;
     FILE *file = fsbridge::fopen(pathTmp, "wb");
-    CAutoFile fileout(file, SER_DISK, version);
+    AutoFile fileout{file};
     if (fileout.IsNull()) {
         fileout.fclose();
         remove(pathTmp);
@@ -156,9 +156,9 @@ bool SerializeFileDB(const CChainParams &chainParams, const std::string &prefix,
 }
 
 template <typename Stream, typename Data>
-void DeserializeDB(const CChainParams &chainParams, Stream &stream, Data &data,
+void DeserializeDB(const CChainParams &chainParams, Stream &stream, Data &&data,
                    bool fCheckSum = true) {
-    CHashVerifier<Stream> verifier(&stream);
+    HashVerifier verifier{stream};
     // de-serialize file header (network specific magic number) and ..
     uint8_t pchMsgTmp[4];
     verifier >> pchMsgTmp;
@@ -183,10 +183,9 @@ void DeserializeDB(const CChainParams &chainParams, Stream &stream, Data &data,
 
 template <typename Data>
 void DeserializeFileDB(const CChainParams &chainParams, const fs::path &path,
-                       Data &data, int version) {
-    // open input file, and associate with CAutoFile
+                       Data &&data) {
     FILE *file = fsbridge::fopen(path, "rb");
-    CAutoFile filein(file, SER_DISK, version);
+    AutoFile filein{file};
     if (filein.IsNull()) {
         throw DbNotFoundError{};
     }
@@ -223,8 +222,8 @@ bool CBanDB::Read(banmap_t &banSet, bool &dirty) {
         // JSON banlist.
         dirty = true;
         try {
-            DeserializeFileDB(chainParams, m_banlist_dat, banSet,
-                              CLIENT_VERSION);
+            DeserializeFileDB(chainParams, m_banlist_dat,
+                              WithParams(CAddress::V1_DISK, banSet));
         } catch (const std::exception &) {
             LogPrintf("Missing or invalid file %s\n",
                       fs::quoted(fs::PathToString(m_banlist_dat)));
@@ -260,12 +259,11 @@ bool CBanDB::Read(banmap_t &banSet, bool &dirty) {
 bool DumpPeerAddresses(const CChainParams &chainParams, const ArgsManager &args,
                        const AddrMan &addr) {
     const auto pathAddr = args.GetDataDirNet() / "peers.dat";
-    return SerializeFileDB(chainParams, "peers", pathAddr, addr,
-                           CLIENT_VERSION);
+    return SerializeFileDB(chainParams, "peers", pathAddr, addr);
 }
 
 void ReadFromStream(const CChainParams &chainParams, AddrMan &addr,
-                    CDataStream &ssPeers) {
+                    DataStream &ssPeers) {
     DeserializeDB(chainParams, ssPeers, addr, false);
 }
 
@@ -282,7 +280,7 @@ LoadAddrman(const CChainParams &chainparams, const std::vector<bool> &asmap,
     int64_t nStart = GetTimeMillis();
     const auto path_addr{args.GetDataDirNet() / "peers.dat"};
     try {
-        DeserializeFileDB(chainparams, path_addr, *addrman, CLIENT_VERSION);
+        DeserializeFileDB(chainparams, path_addr, *addrman);
         LogPrintf("Loaded %i addresses from peers.dat  %dms\n", addrman->size(),
                   GetTimeMillis() - nStart);
     } catch (const DbNotFoundError &) {
@@ -329,16 +327,16 @@ void DumpAnchors(const CChainParams &chainParams,
     LOG_TIME_SECONDS(strprintf(
         "Flush %d outbound block-relay-only peer addresses to anchors.dat",
         anchors.size()));
-    SerializeFileDB(chainParams, "anchors", anchors_db_path, anchors,
-                    CLIENT_VERSION | ADDRV2_FORMAT);
+    SerializeFileDB(chainParams, "anchors", anchors_db_path,
+                    WithParams(CAddress::V2_DISK, anchors));
 }
 
 std::vector<CAddress> ReadAnchors(const CChainParams &chainParams,
                                   const fs::path &anchors_db_path) {
     std::vector<CAddress> anchors;
     try {
-        DeserializeFileDB(chainParams, anchors_db_path, anchors,
-                          CLIENT_VERSION | ADDRV2_FORMAT);
+        DeserializeFileDB(chainParams, anchors_db_path,
+                          WithParams(CAddress::V2_DISK, anchors));
         LogPrintf("Loaded %i addresses from %s\n", anchors.size(),
                   fs::quoted(fs::PathToString(anchors_db_path.filename())));
     } catch (const std::exception &) {
