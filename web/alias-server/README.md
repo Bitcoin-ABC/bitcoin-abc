@@ -13,6 +13,7 @@ A node backend for validating eCash alias registrations
 [x] return addresses in parseAliasTx
 [] Complete getAliases function
 [] unit tests for getAliases function
+[] Refactor alias functions to accept constants as inputs, so unit tests can test different fees and addresses
 [] **Database**
 [] **API endpoints**
 

@@ -6,24 +6,20 @@ const { getAllTxHistory } = require('./chronik');
 const { outputScriptToAddress } = require('./utils');
 
 module.exports = {
-    getAliases: async function (aliasRegistrationHash160) {
-        // get all tx history
-        const aliasTxHistory = await getAllTxHistory(aliasRegistrationHash160);
-        // get total tx count
-        const aliasTxHistoryCount = aliasTxHistory.length;
-        log(`aliasTxHistoryCount`, aliasTxHistoryCount);
+    getAliases: function (aliasTxHistory) {
+        const aliasTxCount = aliasTxHistory.length;
+
+        // initialize array for all valid aliases
+        const aliases = [];
         // iterate over history to get all alias:address pairs
-        for (let i = 0; i < aliasTxHistoryCount; i += 1) {
+        for (let i = 0; i < aliasTxCount; i += 1) {
             const thisAliasTx = aliasTxHistory[i];
-            log(`thisAliasTx`, thisAliasTx);
             const parsedAliasTx = module.exports.parseAliasTx(thisAliasTx);
-            log(`parsedAliasTx`, parsedAliasTx);
-            //testing
-            if (i > 0) {
-                break;
+            if (parsedAliasTx) {
+                aliases.push(parsedAliasTx);
             }
         }
-        // return item
+        return { aliasTxCount, aliases };
     },
     parseAliasTx: function (aliasTx) {
         // Input: a single tx from chronik tx history
