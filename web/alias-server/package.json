@@ -4,7 +4,7 @@
     "description": "A node back-end for indexing eCash aliases",
     "main": "index.js",
     "scripts": {
-        "test": "npm test"
+        "test": "mocha"
     },
     "keywords": [
         "ecash",
@@ -16,6 +16,11 @@
     "author": "Bitcoin ABC",
     "license": "MIT",
     "dependencies": {
-        "chronik-client": "^0.8.1"
+        "assert": "^2.0.0",
+        "chronik-client": "^0.8.1",
+        "ecashaddrjs": "^1.0.7"
+    },
+    "devDependencies": {
+        "mocha": "^10.2.0"
     }
 }
