@@ -15,8 +15,7 @@ The config.dist.toml is just an example on which to base your config from:
 
 ```toml
 host = "0.0.0.0:3035"
-chronik_api_url = "https://chronik.be.cash/xec"
-base_dir = "../explorer-server"
+chronik_api_url = "https://chronik.fabien.cash"
 ```
 
 You're all done! Now you can run the project.
