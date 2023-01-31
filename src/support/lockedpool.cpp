@@ -289,8 +289,7 @@ size_t PosixLockedPageAllocator::GetLimit() {
 
 LockedPool::LockedPool(std::unique_ptr<LockedPageAllocator> allocator_in,
                        LockingFailed_Callback lf_cb_in)
-    : allocator(std::move(allocator_in)), lf_cb(lf_cb_in),
-      cumulative_bytes_locked(0) {}
+    : allocator(std::move(allocator_in)), lf_cb(lf_cb_in) {}
 
 LockedPool::~LockedPool() = default;
 void *LockedPool::alloc(size_t size) {

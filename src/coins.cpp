@@ -62,8 +62,7 @@ size_t CCoinsViewBacked::EstimateSize() const {
 CCoinsViewCache::CCoinsViewCache(CCoinsView *baseIn, bool deterministic)
     : CCoinsViewBacked(baseIn), m_deterministic(deterministic),
       cacheCoins(0, SaltedOutpointHasher(/*deterministic=*/deterministic),
-                 CCoinsMap::key_equal{}, &m_cache_coins_memory_resource),
-      cachedCoinsUsage(0) {
+                 CCoinsMap::key_equal{}, &m_cache_coins_memory_resource) {
     m_sentinel.second.SelfRef(m_sentinel);
 }
 

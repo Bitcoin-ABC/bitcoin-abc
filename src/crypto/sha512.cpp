@@ -241,7 +241,7 @@ namespace sha512 {
 
 ////// SHA-512
 
-CSHA512::CSHA512() : bytes(0) {
+CSHA512::CSHA512() {
     sha512::Initialize(s);
 }
 

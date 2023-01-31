@@ -93,7 +93,7 @@
  */
 template <typename C> class Span {
     C *m_data;
-    std::size_t m_size;
+    std::size_t m_size{0};
 
     template <class T> struct is_Span_int : public std::false_type {};
     template <class T> struct is_Span_int<Span<T>> : public std::true_type {};
@@ -101,7 +101,7 @@ template <typename C> class Span {
     struct is_Span : public is_Span_int<typename std::remove_cv<T>::type> {};
 
 public:
-    constexpr Span() noexcept : m_data(nullptr), m_size(0) {}
+    constexpr Span() noexcept : m_data(nullptr) {}
 
     /**
      * Construct a span from a begin pointer and a size.

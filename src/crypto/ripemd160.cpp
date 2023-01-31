@@ -281,7 +281,7 @@ namespace ripemd160 {
 
 ////// RIPEMD160
 
-CRIPEMD160::CRIPEMD160() : bytes(0) {
+CRIPEMD160::CRIPEMD160() {
     ripemd160::Initialize(s);
 }
 

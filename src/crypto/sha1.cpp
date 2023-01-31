@@ -151,7 +151,7 @@ namespace sha1 {
 
 ////// SHA1
 
-CSHA1::CSHA1() : bytes(0) {
+CSHA1::CSHA1() {
     sha1::Initialize(s);
 }
 

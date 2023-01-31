@@ -14,7 +14,7 @@ class CSHA256 {
 private:
     uint32_t s[8];
     uint8_t buf[64];
-    uint64_t bytes;
+    uint64_t bytes{0};
 
 public:
     static const size_t OUTPUT_SIZE = 32;

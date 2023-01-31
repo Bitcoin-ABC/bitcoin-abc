@@ -506,9 +506,9 @@ class BufferedFile {
 private:
     AutoFile &m_src;
     //! how many bytes have been read from source
-    uint64_t nSrcPos;
+    uint64_t nSrcPos{0};
     //! how many bytes have been read from this
-    uint64_t m_read_pos;
+    uint64_t m_read_pos{0};
     //! up to which position we're allowed to read
     uint64_t nReadLimit;
     //! how many bytes we guarantee to rewind
@@ -566,9 +566,8 @@ private:
 
 public:
     BufferedFile(AutoFile &file, uint64_t nBufSize, uint64_t nRewindIn)
-        : m_src{file}, nSrcPos{0}, m_read_pos{0},
-          nReadLimit{std::numeric_limits<uint64_t>::max()}, nRewind{nRewindIn},
-          vchBuf{nBufSize, std::byte{0}} {
+        : m_src{file}, nReadLimit{std::numeric_limits<uint64_t>::max()},
+          nRewind{nRewindIn}, vchBuf{nBufSize, std::byte{0}} {
         if (nRewindIn >= nBufSize) {
             throw std::ios_base::failure(
                 "Rewind limit must be less than buffer size");

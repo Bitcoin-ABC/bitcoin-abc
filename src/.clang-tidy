@@ -22,3 +22,5 @@ FormatStyle: file
 CheckOptions:
  - key: performance-move-const-arg.CheckTriviallyCopyableMove
    value: false
+HeaderFilterRegex: '.*'
+ExcludeHeaderFilterRegex: '.*(src/tinyformat\\.h|src/(crc32c|crypto/ctaes|leveldb|secp256k1|univalue)/.*)'

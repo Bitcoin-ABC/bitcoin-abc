@@ -212,7 +212,7 @@ private:
 
     std::list<LockedPageArena> arenas;
     LockingFailed_Callback lf_cb;
-    size_t cumulative_bytes_locked;
+    size_t cumulative_bytes_locked{0};
     /**
      * Mutex protects access to this pool's data structures, including arenas.
      */

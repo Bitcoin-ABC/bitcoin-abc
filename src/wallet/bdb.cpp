@@ -336,8 +336,7 @@ BerkeleyDatabase::~BerkeleyDatabase() {
 
 BerkeleyBatch::BerkeleyBatch(BerkeleyDatabase &database, const bool read_only,
                              bool fFlushOnCloseIn)
-    : pdb(nullptr), activeTxn(nullptr), m_cursor(nullptr),
-      m_database(database) {
+    : m_database(database) {
     database.AddRef();
     database.Open();
     fReadOnly = read_only;
