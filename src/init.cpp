@@ -2421,21 +2421,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
 #endif
 
-    // Step 6.5 (I guess ?): Initialize Avalanche.
-    bilingual_str avalancheError;
-    g_avalanche = avalanche::Processor::MakeProcessor(
-        args, *node.chain, node.connman.get(), chainman, node.mempool.get(),
-        *node.scheduler, avalancheError);
-    if (!g_avalanche) {
-        InitError(avalancheError);
-        return false;
-    }
-
-    if (isAvalancheEnabled(args) &&
-        g_avalanche->isAvalancheServiceAvailable()) {
-        nLocalServices = ServiceFlags(nLocalServices | NODE_AVALANCHE);
-    }
-
     // Step 7: load block chain
 
     fReindex = args.GetBoolArg("-reindex", false);
@@ -2616,6 +2601,21 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // Encoded addresses using cashaddr instead of base58.
     // We do this by default to avoid confusion with BTC addresses.
     config.SetCashAddrEncoding(args.GetBoolArg("-usecashaddr", true));
+
+    // Step 7.5 (I guess ?): Initialize Avalanche.
+    bilingual_str avalancheError;
+    g_avalanche = avalanche::Processor::MakeProcessor(
+        args, *node.chain, node.connman.get(), chainman, node.mempool.get(),
+        *node.scheduler, avalancheError);
+    if (!g_avalanche) {
+        InitError(avalancheError);
+        return false;
+    }
+
+    if (isAvalancheEnabled(args) &&
+        g_avalanche->isAvalancheServiceAvailable()) {
+        nLocalServices = ServiceFlags(nLocalServices | NODE_AVALANCHE);
+    }
 
     // Step 8: load indexers
     if (args.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
