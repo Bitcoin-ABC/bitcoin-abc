@@ -3,6 +3,7 @@ const log = require('./log');
 const { ChronikClient } = require('chronik-client');
 const chronik = new ChronikClient(config.chronik);
 const { getAllTxHistory } = require('./chronik');
+const { outputScriptToAddress } = require('./utils');
 
 module.exports = {
     getAliases: async function (aliasRegistrationHash160) {
@@ -32,10 +33,8 @@ module.exports = {
 
         // Assume P2PKH for now. Add P2SH support in later diff.
         const inputZeroOutputScript = aliasTx.inputs[0].outputScript;
-        const registeringHash160 = inputZeroOutputScript.substring(
-            inputZeroOutputScript.indexOf('76a914') + '76a914'.length,
-            inputZeroOutputScript.lastIndexOf('88ac'),
-        );
+
+        const registeringAddress = outputScriptToAddress(inputZeroOutputScript);
 
         // Initialize vars used later for validation
         let aliasFeePaidSats = BigInt(0);
@@ -99,7 +98,7 @@ module.exports = {
             log(`Valid registration fee`);
         }
         return {
-            address: registeringHash160,
+            address: registeringAddress,
             alias,
             txid: aliasTx.txid,
         };

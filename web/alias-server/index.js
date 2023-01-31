@@ -7,7 +7,7 @@ async function testTxHistory() {
     const aliasTxHistory = await getAllTxHistory(
         config.aliasConstants.registrationHash160,
     );
-    log(`aliasTxHistory`, aliasTxHistory);
+    log(`last 3 alias txs`, aliasTxHistory.slice(-3));
     if (aliasTxHistory) {
         log(`aliasTxHistory.length`, aliasTxHistory.length);
     }

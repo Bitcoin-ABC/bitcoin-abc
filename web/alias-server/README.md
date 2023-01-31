@@ -8,8 +8,9 @@ A node backend for validating eCash alias registrations
 [x] Install chronik and add function for getting tx history
 [x] Timestamped logging
 [] **Match Cashtab alias functions and unit tests**
-[] getAliases function
-[] util function getAddressFromHash160
+[x] getAliases function
+[x] util function getAddressFromHash160
+[x] return addresses in parseAliasTx
 [] Complete getAliases function
 [] unit tests for getAliases function
 [] **Database**
