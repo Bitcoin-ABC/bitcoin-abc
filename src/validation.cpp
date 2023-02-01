@@ -1257,9 +1257,6 @@ bool CChainState::IsInitialBlockDownload() const {
     return false;
 }
 
-static CBlockIndex const *pindexBestForkTip = nullptr;
-static CBlockIndex const *pindexBestForkBase = nullptr;
-
 static void AlertNotify(const std::string &strMessage) {
     uiInterface.NotifyAlertChanged();
 #if defined(HAVE_SYSTEM)
@@ -1294,31 +1291,30 @@ void CChainState::CheckForkWarningConditions() {
 
     // If our best fork is no longer within 72 blocks (+/- 12 hours if no one
     // mines it) of our head, drop it
-    if (pindexBestForkTip &&
-        m_chain.Height() - pindexBestForkTip->nHeight >= 72) {
-        pindexBestForkTip = nullptr;
+    if (m_best_fork_tip && m_chain.Height() - m_best_fork_tip->nHeight >= 72) {
+        m_best_fork_tip = nullptr;
     }
 
-    if (pindexBestForkTip ||
+    if (m_best_fork_tip ||
         (m_chainman.m_best_invalid &&
          m_chainman.m_best_invalid->nChainWork >
              m_chain.Tip()->nChainWork + (GetBlockProof(*m_chain.Tip()) * 6))) {
-        if (!GetfLargeWorkForkFound() && pindexBestForkBase) {
+        if (!GetfLargeWorkForkFound() && m_best_fork_base) {
             std::string warning =
                 std::string("'Warning: Large-work fork detected, forking after "
                             "block ") +
-                pindexBestForkBase->phashBlock->ToString() + std::string("'");
+                m_best_fork_base->phashBlock->ToString() + std::string("'");
             AlertNotify(warning);
         }
 
-        if (pindexBestForkTip && pindexBestForkBase) {
+        if (m_best_fork_tip && m_best_fork_base) {
             LogPrintf("%s: Warning: Large fork found\n  forking the "
                       "chain at height %d (%s)\n  lasting to height %d "
                       "(%s).\nChain state database corruption likely.\n",
-                      __func__, pindexBestForkBase->nHeight,
-                      pindexBestForkBase->phashBlock->ToString(),
-                      pindexBestForkTip->nHeight,
-                      pindexBestForkTip->phashBlock->ToString());
+                      __func__, m_best_fork_base->nHeight,
+                      m_best_fork_base->phashBlock->ToString(),
+                      m_best_fork_tip->nHeight,
+                      m_best_fork_tip->phashBlock->ToString());
             SetfLargeWorkForkFound(true);
         } else {
             LogPrintf("%s: Warning: Found invalid chain at least ~6 blocks "
@@ -1349,13 +1345,13 @@ void CChainState::CheckForkWarningConditionsOnNewFork(
     // to only store the highest fork tip (+ base) which meets the 7-block
     // condition and from this always have the most-likely-to-cause-warning fork
     if (pfork &&
-        (!pindexBestForkTip ||
-         pindexNewForkTip->nHeight > pindexBestForkTip->nHeight) &&
+        (!m_best_fork_tip ||
+         pindexNewForkTip->nHeight > m_best_fork_tip->nHeight) &&
         pindexNewForkTip->nChainWork - pfork->nChainWork >
             (GetBlockProof(*pfork) * 7) &&
         m_chain.Height() - pindexNewForkTip->nHeight < 72) {
-        pindexBestForkTip = pindexNewForkTip;
-        pindexBestForkBase = pfork;
+        m_best_fork_tip = pindexNewForkTip;
+        m_best_fork_base = pfork;
     }
 
     CheckForkWarningConditions();
@@ -4808,6 +4804,8 @@ bool CChainState::ReplayBlocks() {
 void CChainState::UnloadBlockIndex() {
     AssertLockHeld(::cs_main);
     nBlockSequenceId = 1;
+    m_best_fork_tip = nullptr;
+    m_best_fork_base = nullptr;
     setBlockIndexCandidates.clear();
 }
 
@@ -4817,8 +4815,6 @@ void CChainState::UnloadBlockIndex() {
 void UnloadBlockIndex(ChainstateManager &chainman) {
     AssertLockHeld(::cs_main);
     chainman.Unload();
-    pindexBestForkTip = nullptr;
-    pindexBestForkBase = nullptr;
 }
 
 bool ChainstateManager::LoadBlockIndex() {

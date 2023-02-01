@@ -689,6 +689,9 @@ private:
     const CBlockIndex *m_avalancheFinalizedBlockIndex
         GUARDED_BY(cs_avalancheFinalizedBlockIndex) = nullptr;
 
+    CBlockIndex const *m_best_fork_tip = nullptr;
+    CBlockIndex const *m_best_fork_base = nullptr;
+
 public:
     //! Reference to a BlockManager instance which itself is shared across all
     //! CChainState instances.
