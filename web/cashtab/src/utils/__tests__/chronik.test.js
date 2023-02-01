@@ -11,6 +11,7 @@ import {
     getAliasAndAddresses,
     isAliasRegistered,
     getAddressFromAlias,
+    calculateAliasTxCount,
 } from 'utils/chronik';
 import {
     mockChronikUtxos,
@@ -58,6 +59,8 @@ import {
     mockSwapWallet,
     mockSwapTx,
     mockTxHistoryOfAliasPaymentAddress,
+    mockTxHistoryLastPageResponse23Txs,
+    mockTxHistoryLastPageResponse25Txs,
 } from '../__mocks__/chronikTxHistory';
 import {
     mintingTxTabCash,
@@ -72,6 +75,22 @@ import {
 import { mockAliasLocalStorage } from 'utils/__mocks__/mockCachedAliases';
 import { ChronikClient } from 'chronik-client';
 import { when } from 'jest-when';
+
+it(`calculateAliasTxCount returns a correct tx count for a final page containing less than the full 25 txs`, async () => {
+    const txCount = calculateAliasTxCount(
+        mockTxHistoryLastPageResponse23Txs,
+        mockTxHistoryLastPageResponse23Txs.numPages,
+    );
+    expect(txCount).toStrictEqual(123);
+});
+
+it(`calculateAliasTxCount returns a correct tx count for a final page containing the full 25 txs`, async () => {
+    const txCount = calculateAliasTxCount(
+        mockTxHistoryLastPageResponse25Txs,
+        mockTxHistoryLastPageResponse25Txs.numPages,
+    );
+    expect(txCount).toStrictEqual(125);
+});
 
 it(`getAddressFromAlias successfully returns a corresponding address`, async () => {
     const alias = mockAliasLocalStorage[1].alias;

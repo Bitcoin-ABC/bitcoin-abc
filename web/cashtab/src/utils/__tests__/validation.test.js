@@ -41,6 +41,10 @@ import {
     cashtabCacheWithDecimalNotNumber,
     cashtabCacheWithTokenNameNotString,
     cashtabCacheWithMissingTokenName,
+    cashtabCacheWithNoAliasCache,
+    cashtabCacheWithAliasesNotArray,
+    cashtabCacheWithPaymentTxHistoryNotArray,
+    cashtabCacheWithTotalPaymentTxCountNotNumber,
 } from 'utils/__mocks__/mockCashtabCache';
 
 describe('Validation utils', () => {
@@ -266,6 +270,24 @@ describe('Validation utils', () => {
     });
     it(`Rejects a cashtabCache object if one token id is invalid`, () => {
         expect(isValidCashtabCache(cashtabCacheWithOneBadTokenId)).toBe(false);
+    });
+    it(`Rejects a cashtabCache object if aliasCache does not exist`, () => {
+        expect(isValidCashtabCache(cashtabCacheWithNoAliasCache)).toBe(false);
+    });
+    it(`Rejects a cashtabCache object if the aliases param is not an array`, () => {
+        expect(isValidCashtabCache(cashtabCacheWithAliasesNotArray)).toBe(
+            false,
+        );
+    });
+    it(`Rejects a cashtabCache object if the paymentTxHistory param is not an array`, () => {
+        expect(
+            isValidCashtabCache(cashtabCacheWithPaymentTxHistoryNotArray),
+        ).toBe(false);
+    });
+    it(`Rejects a cashtabCache object if the totalPaymentTxCount param is not a number`, () => {
+        expect(
+            isValidCashtabCache(cashtabCacheWithTotalPaymentTxCountNotNumber),
+        ).toBe(false);
     });
     it(`Rejects a cashtabCache object if decimals is not a number`, () => {
         expect(isValidCashtabCache(cashtabCacheWithDecimalNotNumber)).toBe(

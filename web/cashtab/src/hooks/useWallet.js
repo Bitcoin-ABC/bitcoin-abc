@@ -267,9 +267,10 @@ const useWallet = () => {
     };
 
     const getAliasesFromLocalForage = async () => {
-        let cachedAliases;
+        let cachedAliases, cashtabCache;
         try {
-            cachedAliases = await localforage.getItem('aliases');
+            cashtabCache = await localforage.getItem('cashtabCache');
+            cachedAliases = cashtabCache.aliasCache;
         } catch (err) {
             console.log(`Error in getAliasesFromLocalForage`, err);
             cachedAliases = null;
@@ -278,6 +279,10 @@ const useWallet = () => {
     };
 
     const updateAliases = async totalPaymentTxHistory => {
+        if (!totalPaymentTxHistory) {
+            console.log(`Invalid totalPaymentTxHistory input`);
+            return false;
+        }
         setLoading(true);
         let updateSuccess = true;
 
@@ -293,16 +298,18 @@ const useWallet = () => {
         let aliasCacheObject = {
             totalPaymentTxCount: onChainTotalPaymentTx,
             aliases: aliasAndAddressListArray,
+            paymentTxHistory: totalPaymentTxHistory,
         };
+        cashtabCache.aliasCache = aliasCacheObject;
 
         // set array into local forage
         try {
-            await localforage.setItem('aliases', aliasCacheObject);
+            await localforage.setItem('cashtabCache', cashtabCache);
         } catch (err) {
             console.log('Error in updateAliases', err);
             updateSuccess = false;
         }
-
+        setCashtabCache(cashtabCache);
         setLoading(false);
         return updateSuccess;
     };
@@ -1206,10 +1213,19 @@ const useWallet = () => {
         // If you found an object in localforage at the cashtabCache key, make sure it's valid
         if (isValidCashtabCache(localCashtabCache)) {
             setCashtabCache(localCashtabCache);
+            // temporary log for reviewer
+            console.log(`valid cashtabCache detected`);
             return localCashtabCache;
         }
         // if not valid, also set to default
+        localforage.setItem('cashtabCache', currency.defaultCashtabCache);
         setCashtabCache(currency.defaultCashtabCache);
+
+        // temporary log for reviewer
+        console.log(
+            `invalid cashtabCache detected, initializing to currency.defaultCashtabCache`,
+        );
+
         return currency.defaultCashtabCache;
     };
 

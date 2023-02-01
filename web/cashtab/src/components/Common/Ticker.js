@@ -25,6 +25,7 @@ export const currency = {
         },
         aliasMaxLength: 21, // refer to the Alias spec at https://reviews.bitcoinabc.org/D12972
     },
+    chronikTxsPerPage: 25, // number of txs per page retrieved via chronik.script.history()
     coingeckoId: 'ecash',
     defaultFee: 2.01,
     dustSats: 550,
@@ -47,6 +48,11 @@ export const currency = {
     websocketConnectedRefreshInterval: 10000,
     defaultCashtabCache: {
         tokenInfoById: {},
+        aliasCache: {
+            aliases: [],
+            paymentTxHistory: [],
+            totalPaymentTxCount: 0,
+        },
     },
     defaultSettings: {
         fiatCurrency: 'usd',

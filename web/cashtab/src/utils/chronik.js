@@ -13,7 +13,55 @@ import {
 } from 'utils/cashMethods';
 import ecies from 'ecies-lite';
 import wif from 'wif';
-import { mockAliasLocalStorage } from 'utils/__mocks__/mockCachedAliases';
+
+export const getOnchainAliasTxCount = async chronik => {
+    let onchainAliasTxCount;
+    const txHistoryFirstPageResponse = await getTxHistoryPage(
+        chronik,
+        currency.aliasSettings.aliasPaymentHash160,
+    );
+    if (!txHistoryFirstPageResponse) {
+        console.log(
+            `Error retrieving first alias tx history page in getOnchainAliasTxCount()`,
+        );
+        return false;
+    }
+    const { numPages } = txHistoryFirstPageResponse;
+    // temporary log for reviewer
+    console.log(`onchain numPages: `, numPages);
+
+    // check number of txs on the final page in numPages
+    const txHistoryLastPageResponse = await getTxHistoryPage(
+        chronik,
+        currency.aliasSettings.aliasPaymentHash160,
+        numPages - 1,
+    );
+    if (!txHistoryLastPageResponse) {
+        console.log(`Error retrieving last alias tx history page in Alias.js`);
+        return false;
+    }
+    onchainAliasTxCount = calculateAliasTxCount(
+        txHistoryLastPageResponse,
+        numPages,
+    );
+    return onchainAliasTxCount;
+};
+
+export const calculateAliasTxCount = (txHistoryLastPageResponse, numPages) => {
+    let onchainAliasTxCount;
+    const { txs } = txHistoryLastPageResponse;
+    const txsCountOnLastPage = txs.length;
+
+    if (txsCountOnLastPage === currency.chronikTxsPerPage) {
+        // if the last tx history page contains the full 'currency.chronikTxsPerPage' txs
+        onchainAliasTxCount = numPages * currency.chronikTxsPerPage;
+    } else {
+        // otherwise calculate onchain count by multiplying earlier pages by the full 'currency.chronikTxsPerPage' txs and add on final page's specific tx count
+        onchainAliasTxCount =
+            (numPages - 1) * currency.chronikTxsPerPage + txsCountOnLastPage;
+    }
+    return onchainAliasTxCount;
+};
 
 export const getTxHistoryPage = async (chronik, hash160, page = 0) => {
     let txHistoryPage;
@@ -52,25 +100,52 @@ export const returnGetTxHistoryPagePromise = async (
     });
 };
 
-export const getAllTxHistory = async (chronik, hash160) => {
+export const getAllTxHistory = async (
+    chronik,
+    hash160,
+    customPagesToIterate = 0,
+) => {
     let allTxHistory = [];
-    const txHistoryFirstPageResponse = await getTxHistoryPage(chronik, hash160);
+    let txHistoryFirstPageResponse, secondPageIndex;
+
+    txHistoryFirstPageResponse = await getTxHistoryPage(
+        chronik,
+        hash160,
+        0, // both full and partial tx histories will iterate from page 0
+    );
+    secondPageIndex = customPagesToIterate + 1;
+
     if (!txHistoryFirstPageResponse) {
         console.log(`Error retrieving tx history page in getTxHistoryPage()`);
         return false;
     }
 
-    const { txs, numPages } = txHistoryFirstPageResponse;
+    let { txs, numPages } = txHistoryFirstPageResponse;
 
     // Add first page of results to allTxHistory
     allTxHistory = allTxHistory.concat(txs);
 
     // Iterate through remaining pages to get remaining tx history
     // Start with i=1, as you already have data from page 0
+    // If this is a partial tx history retrieval, start from customStartPage+1
     // Note: Since 0 is a page number, 3 pages of data ends with pageNumber i=2
     const txHistoryPageResponsePromises = [];
-    for (let i = 1; i < numPages; i += 1) {
-        const txHistoryPageResponsePromise = returnGetTxHistoryPagePromise(
+    let txHistoryPageResponsePromise;
+
+    if (customPagesToIterate > 0) {
+        numPages = customPagesToIterate; // overwrite numPages to only iterate as far as specified
+        // temporary log for reviewer
+        console.log(
+            `partial tx history retrieval, stopping at page ${numPages - 1}`,
+        );
+    } else {
+        // temporary log for reviewer
+        console.log(`full tx history retrieval`);
+    }
+
+    // retrieve full or partial tx history
+    for (let i = secondPageIndex; i < numPages; i += 1) {
+        txHistoryPageResponsePromise = returnGetTxHistoryPagePromise(
             chronik,
             hash160,
             i,
@@ -78,22 +153,27 @@ export const getAllTxHistory = async (chronik, hash160) => {
         txHistoryPageResponsePromises.push(txHistoryPageResponsePromise);
     }
 
-    // Use Promise.all so that an error is thrown if any single promise fails
-    let remainingTxHistoryPageResponses;
-    try {
-        remainingTxHistoryPageResponses = await Promise.all(
-            txHistoryPageResponsePromises,
-        );
-    } catch (err) {
-        console.log(`Error in Promise.all(txHistoryPageResponsePromises)`, err);
-        // Return false; you won't have all the tx history if this happens
-        return false;
-    }
+    if (txHistoryPageResponsePromise) {
+        // Use Promise.all so that an error is thrown if any single promise fails
+        let remainingTxHistoryPageResponses;
+        try {
+            remainingTxHistoryPageResponses = await Promise.all(
+                txHistoryPageResponsePromises,
+            );
+        } catch (err) {
+            console.log(
+                `Error in Promise.all(txHistoryPageResponsePromises)`,
+                err,
+            );
+            // Return false; you won't have all the tx history if this happens
+            return false;
+        }
 
-    // Iterate over results to complete allTxHistory
-    for (let i = 0; i < remainingTxHistoryPageResponses.length; i += 1) {
-        const { txs } = remainingTxHistoryPageResponses[i];
-        allTxHistory = allTxHistory.concat(txs);
+        // Iterate over results to complete allTxHistory
+        for (let i = 0; i < remainingTxHistoryPageResponses.length; i += 1) {
+            const { txs } = remainingTxHistoryPageResponses[i];
+            allTxHistory = allTxHistory.concat(txs);
+        }
     }
 
     return allTxHistory;
@@ -153,6 +233,7 @@ export const getAliasAndAddresses = aliasPaymentTxs => {
     // parse through each txs in alias payment address
     for (let i = 0; i < aliasPaymentTxs.length; i += 1) {
         let totalAliasFeePaid = new BigNumber(0);
+
         // extract the OP_RETURN script for aliasPaymentTxs[i]
         const opReturnScript = aliasPaymentTxs[i].outputs[0].outputScript;
 
@@ -254,11 +335,6 @@ export const getAliasAndAddresses = aliasPaymentTxs => {
                         address: aliasAddress,
                     });
 
-                    // temporary console log for review
-                    console.log(
-                        `Validated-> alias: ${aliasName}, address: ${aliasAddress}`,
-                    );
-
                     // reset fee increment for the next aliasPaymentTxs[i]
                     totalAliasFeePaid = new BigNumber(0);
                 }
@@ -269,15 +345,17 @@ export const getAliasAndAddresses = aliasPaymentTxs => {
     return registeredAliases;
 };
 
-export const isAddressRegistered = activeWallet => {
+export const isAddressRegistered = (activeWallet, aliasCache) => {
+    if (!activeWallet || !aliasCache) {
+        return false;
+    }
     let addressMatch = false;
     const activeWalletAddress = convertToEcashPrefix(
         activeWallet.Path1899.cashAddress,
     );
 
-    //@TODO: temporary local storage mock until caching is implemented later in this stack
-    // loop through mockAliasLocalStorage and check if active wallet matches any of the cached addresses
-    mockAliasLocalStorage.forEach(function (cachedAliasObj) {
+    let cachedAliases = aliasCache.aliases;
+    cachedAliases.forEach(function (cachedAliasObj) {
         if (
             cachedAliasObj.address.toLowerCase() ===
             activeWalletAddress.toLowerCase()

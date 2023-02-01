@@ -318,7 +318,15 @@ export const isValidCashtabCache = cashtabCache => {
         'tokenDocumentHash' is a string
         'decimals' is a number
         'tokenId' is a valid tokenId
-        */
+        
+        The aliasCache object must have the following keys:
+        {
+            'aliases' is an array,
+            'paymentTxHistory' is an array,
+            'totalPaymentTxCount' is a number,
+        }
+        
+    */
 
     // Check that every key in currency.defaultCashtabCache is also in this cashtabCache
     const cashtabCacheKeys = Object.keys(currency.defaultCashtabCache);
@@ -360,6 +368,24 @@ export const isValidCashtabCache = cashtabCache => {
         ) {
             return false;
         }
+    }
+
+    // check the aliasCache object contains the aliases and paymentTxHistory arrays and the totalPaymentTxCount num
+    const { aliasCache } = cashtabCache;
+    if (!aliasCache) {
+        // temporary log for reviewer
+        console.log(`aliasCache in cashtabCache is false`);
+        return false;
+    }
+    const { aliases, paymentTxHistory, totalPaymentTxCount } = aliasCache;
+    if (
+        !Array.isArray(aliases) ||
+        !Array.isArray(paymentTxHistory) ||
+        typeof totalPaymentTxCount !== 'number'
+    ) {
+        // temporary log for reviewer
+        console.log(`aliasCache in cashtabCache is false`);
+        return false;
     }
 
     return true;
