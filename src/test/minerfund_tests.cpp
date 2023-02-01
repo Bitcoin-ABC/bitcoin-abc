@@ -14,6 +14,18 @@
 
 BOOST_FIXTURE_TEST_SUITE(minerfund_tests, BasicTestingSetup)
 
+static void
+CheckWhitelist(const Consensus::Params &consensusParams,
+               const CBlockIndex *pindexPrev,
+               const std::unordered_set<CTxDestination, TxDestinationHasher>
+                   expectedWhitelist) {
+    auto whitelist = GetMinerFundWhitelist(consensusParams, pindexPrev);
+    BOOST_CHECK_EQUAL(whitelist.size(), expectedWhitelist.size());
+    for (const auto &expectedDest : expectedWhitelist) {
+        BOOST_CHECK_EQUAL(whitelist.count(expectedDest), 1);
+    }
+}
+
 BOOST_AUTO_TEST_CASE(minerfund_whitelist) {
     const CChainParams &chainparams = Params();
     const Consensus::Params &consensusParams = chainparams.GetConsensus();
@@ -21,29 +33,28 @@ BOOST_AUTO_TEST_CASE(minerfund_whitelist) {
     CBlockIndex block;
 
     // Consensus whitelist has not activated yet
-    const std::vector<CTxDestination> emptyWhitelist;
+    const std::unordered_set<CTxDestination, TxDestinationHasher>
+        emptyWhitelist;
     block.nHeight = consensusParams.axionHeight - 1;
-    BOOST_CHECK(GetMinerFundWhitelist(consensusParams, &block) ==
-                emptyWhitelist);
+    CheckWhitelist(consensusParams, &block, emptyWhitelist);
 
     // Axion whitelist is active
-    const std::vector<CTxDestination> expectedAxion = {DecodeDestination(
-        "ecash:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdg2jj94l5j", chainparams)};
+    const std::unordered_set<CTxDestination, TxDestinationHasher>
+        expectedAxion = {DecodeDestination(
+            "ecash:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdg2jj94l5j", chainparams)};
     block.nHeight = consensusParams.axionHeight;
-    BOOST_CHECK(GetMinerFundWhitelist(consensusParams, &block) ==
-                expectedAxion);
+    CheckWhitelist(consensusParams, &block, expectedAxion);
 
     // Does not change up to Gluon activation
     block.nHeight = consensusParams.gluonHeight - 1;
-    BOOST_CHECK(GetMinerFundWhitelist(consensusParams, &block) ==
-                expectedAxion);
+    CheckWhitelist(consensusParams, &block, expectedAxion);
 
     // Miner fund address changed with Gluon
-    const std::vector<CTxDestination> expectedMinerFund = {DecodeDestination(
-        "ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07", chainparams)};
+    const std::unordered_set<CTxDestination, TxDestinationHasher>
+        expectedMinerFund = {DecodeDestination(
+            "ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07", chainparams)};
     block.nHeight = consensusParams.gluonHeight;
-    BOOST_CHECK(GetMinerFundWhitelist(consensusParams, &block) ==
-                expectedMinerFund);
+    CheckWhitelist(consensusParams, &block, expectedMinerFund);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

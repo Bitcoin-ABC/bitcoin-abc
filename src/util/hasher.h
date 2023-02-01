@@ -9,6 +9,7 @@
 #include <primitives/blockhash.h>
 #include <primitives/transaction.h>
 #include <primitives/txid.h>
+#include <script/standard.h>
 #include <uint256.h>
 
 class SaltedUint256Hasher {
@@ -100,6 +101,12 @@ public:
     SaltedSipHasher();
 
     size_t operator()(const Span<const uint8_t> &script) const;
+};
+
+struct TxDestinationHasher : SaltedSipHasher {
+    size_t operator()(const CTxDestination &dest) const {
+        return SaltedSipHasher::operator()(GetScriptForDestination(dest));
+    }
 };
 
 #endif // BITCOIN_UTIL_HASHER_H

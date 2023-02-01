@@ -193,13 +193,12 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
         nFees + GetBlockSubsidy(nHeight, consensusParams);
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
 
-    const std::vector<CTxDestination> whitelisted =
-        GetMinerFundWhitelist(consensusParams, pindexPrev);
+    const auto whitelisted = GetMinerFundWhitelist(consensusParams, pindexPrev);
     if (!whitelisted.empty()) {
         const Amount fund = GetMinerFundAmount(coinbaseTx.vout[0].nValue);
         coinbaseTx.vout[0].nValue -= fund;
-        coinbaseTx.vout.emplace_back(fund,
-                                     GetScriptForDestination(whitelisted[0]));
+        coinbaseTx.vout.emplace_back(
+            fund, GetScriptForDestination(*whitelisted.begin()));
     }
 
     // Make sure the coinbase is big enough.

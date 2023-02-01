@@ -45,7 +45,7 @@ GetMinerFundDestination(const bool useAxionDestination) {
     return useAxionDestination ? destAxion : dest;
 }
 
-std::vector<CTxDestination>
+std::unordered_set<CTxDestination, TxDestinationHasher>
 GetMinerFundWhitelist(const Consensus::Params &params,
                       const CBlockIndex *pindexPrev) {
     if (!gArgs.GetBoolArg("-enableminerfund", params.enableMinerFund)) {

@@ -2145,7 +2145,7 @@ bool CChainState::ConnectBlock(const CBlock &block, BlockValidationState &state,
                              "bad-cb-amount");
     }
 
-    const std::vector<CTxDestination> whitelist =
+    const auto whitelist =
         GetMinerFundWhitelist(consensusParams, pindex->pprev);
     if (!whitelist.empty()) {
         const Amount required = GetMinerFundAmount(blockReward);

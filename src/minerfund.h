@@ -7,8 +7,9 @@
 
 #include <consensus/amount.h>
 #include <script/standard.h>
+#include <util/hasher.h>
 
-#include <vector>
+#include <unordered_set>
 
 class CBlockIndex;
 
@@ -18,7 +19,7 @@ struct Params;
 
 Amount GetMinerFundAmount(const Amount &coinbaseValue);
 
-std::vector<CTxDestination>
+std::unordered_set<CTxDestination, TxDestinationHasher>
 GetMinerFundWhitelist(const Consensus::Params &params,
                       const CBlockIndex *pindexPrev);
 
