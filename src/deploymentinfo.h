@@ -12,14 +12,10 @@
 struct VBDeploymentInfo {
     /** Deployment name */
     const char *name;
-    /** Whether GBT clients can safely ignore this rule in simplified usage */
-    bool gbt_force;
 };
 
 extern const VBDeploymentInfo
     VersionBitsDeploymentInfo[Consensus::MAX_VERSION_BITS_DEPLOYMENTS];
-
-[[maybe_unused]] std::string DeploymentName(Consensus::BuriedDeployment dep);
 
 inline std::string DeploymentName(Consensus::DeploymentPos pos) {
     assert(Consensus::ValidDeployment(pos));

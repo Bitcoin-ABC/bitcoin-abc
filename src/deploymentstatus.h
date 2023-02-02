@@ -22,40 +22,12 @@ inline bool DeploymentActiveAfter(const CBlockIndex *pindexPrev,
            params.DeploymentHeight(dep);
 }
 
-inline bool DeploymentActiveAfter(const CBlockIndex *pindexPrev,
-                                  const Consensus::Params &params,
-                                  Consensus::DeploymentPos dep) {
-    assert(Consensus::ValidDeployment(dep));
-    return ThresholdState::ACTIVE ==
-           g_versionbitscache.State(pindexPrev, params, dep);
-}
-
 /** Determine if a deployment is active for this block */
 inline bool DeploymentActiveAt(const CBlockIndex &index,
                                const Consensus::Params &params,
                                Consensus::BuriedDeployment dep) {
     assert(Consensus::ValidDeployment(dep));
     return index.nHeight >= params.DeploymentHeight(dep);
-}
-
-inline bool DeploymentActiveAt(const CBlockIndex &index,
-                               const Consensus::Params &params,
-                               Consensus::DeploymentPos dep) {
-    assert(Consensus::ValidDeployment(dep));
-    return DeploymentActiveAfter(index.pprev, params, dep);
-}
-
-/** Determine if a deployment is enabled (can ever be active) */
-inline bool DeploymentEnabled(const Consensus::Params &params,
-                              Consensus::BuriedDeployment dep) {
-    assert(Consensus::ValidDeployment(dep));
-    return params.DeploymentHeight(dep) != std::numeric_limits<int>::max();
-}
-
-inline bool DeploymentEnabled(const Consensus::Params &params,
-                              Consensus::DeploymentPos dep) {
-    assert(Consensus::ValidDeployment(dep));
-    return params.vDeployments[dep].nTimeout != 0;
 }
 
 #endif // BITCOIN_DEPLOYMENTSTATUS_H
