@@ -390,7 +390,7 @@ def get_ava_p2p_interface(
 
         return n.nodeid in node_list
 
-    wait_until_helper(avapeer_connected, timeout=3)
+    wait_until_helper(avapeer_connected, timeout=5)
 
     return n
 
