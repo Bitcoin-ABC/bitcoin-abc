@@ -950,7 +950,9 @@ class AvalancheProof:
         return r
 
     def __repr__(self):
-        return f"AvalancheProof(sequence={self.sequence}, " \
+        return f"AvalancheProof(proofid={uint256_hex(self.proofid)}, " \
+               f"limited_proofid={uint256_hex(self.limited_proofid)}, " \
+               f"sequence={self.sequence}, " \
                f"expiration={self.expiration}, " \
                f"master={self.master.hex()}, " \
                f"payout_script={self.payout_script.hex()}, " \
