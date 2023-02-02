@@ -8,6 +8,7 @@ import random
 from test_framework.avatools import AvaP2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
+    assert_equal,
     assert_greater_than,
     assert_raises_rpc_error,
     uint256_hex,
@@ -38,6 +39,7 @@ class DeprecatedRpcTest(BitcoinTestFramework):
             "-deprecatedrpc=isfinalblock_noerror",
             "-deprecatedrpc=isfinaltransaction_noerror",
             "-deprecatedrpc=getblocktemplate_sigops",
+            "-deprecatedrpc=softforks",
         ]]
 
     def run_test(self):
@@ -123,6 +125,12 @@ class DeprecatedRpcTest(BitcoinTestFramework):
             assert 'sigops' in tx
         assert 'sigchecklimit' in deprecated_block_template
         assert 'sigoplimit' in deprecated_block_template
+
+        self.log.info(
+            "Check the getblockchaininfo output with and without -deprecatedrpc=softforks")
+        assert 'softforks' not in self.nodes[0].getblockchaininfo()
+        res = self.nodes[1].getblockchaininfo()
+        assert_equal(res['softforks'], {})
 
 
 if __name__ == '__main__':

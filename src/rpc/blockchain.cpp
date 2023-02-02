@@ -14,8 +14,6 @@
 #include <consensus/params.h>
 #include <consensus/validation.h>
 #include <core_io.h>
-#include <deploymentinfo.h>
-#include <deploymentstatus.h>
 #include <hash.h>
 #include <index/blockfilterindex.h>
 #include <index/coinstatsindex.h>
@@ -40,7 +38,6 @@
 #include <util/translation.h>
 #include <validation.h>
 #include <validationinterface.h>
-#include <versionbits.h>
 #include <warnings.h>
 
 #include <condition_variable>
@@ -1722,70 +1719,6 @@ static RPCHelpMan verifychain() {
     };
 }
 
-static void SoftForkDescPushBack(const CBlockIndex *active_chain_tip,
-                                 UniValue &softforks,
-                                 const Consensus::Params &consensusParams,
-                                 Consensus::DeploymentPos id) {
-    // For BIP9 deployments.
-    // Deployments (e.g. testdummy) with timeout value before Jan 1, 2009 are
-    // hidden. A timeout value of 0 guarantees a softfork will never be
-    // activated. This is used when merging logic to implement a proposed
-    // softfork without a specified deployment schedule.
-    if (consensusParams.vDeployments[id].nTimeout <= 1230768000) {
-        return;
-    }
-
-    UniValue bip9(UniValue::VOBJ);
-    const ThresholdState thresholdState =
-        g_versionbitscache.State(active_chain_tip, consensusParams, id);
-    switch (thresholdState) {
-        case ThresholdState::DEFINED:
-            bip9.pushKV("status", "defined");
-            break;
-        case ThresholdState::STARTED:
-            bip9.pushKV("status", "started");
-            break;
-        case ThresholdState::LOCKED_IN:
-            bip9.pushKV("status", "locked_in");
-            break;
-        case ThresholdState::ACTIVE:
-            bip9.pushKV("status", "active");
-            break;
-        case ThresholdState::FAILED:
-            bip9.pushKV("status", "failed");
-            break;
-    }
-    if (ThresholdState::STARTED == thresholdState) {
-        bip9.pushKV("bit", consensusParams.vDeployments[id].bit);
-    }
-    bip9.pushKV("start_time", consensusParams.vDeployments[id].nStartTime);
-    bip9.pushKV("timeout", consensusParams.vDeployments[id].nTimeout);
-    int64_t since_height = g_versionbitscache.StateSinceHeight(
-        active_chain_tip, consensusParams, id);
-    bip9.pushKV("since", since_height);
-    if (ThresholdState::STARTED == thresholdState) {
-        UniValue statsUV(UniValue::VOBJ);
-        BIP9Stats statsStruct = g_versionbitscache.Statistics(
-            active_chain_tip, consensusParams, id);
-        statsUV.pushKV("period", statsStruct.period);
-        statsUV.pushKV("threshold", statsStruct.threshold);
-        statsUV.pushKV("elapsed", statsStruct.elapsed);
-        statsUV.pushKV("count", statsStruct.count);
-        statsUV.pushKV("possible", statsStruct.possible);
-        bip9.pushKV("statistics", statsUV);
-    }
-
-    UniValue rv(UniValue::VOBJ);
-    rv.pushKV("type", "bip9");
-    rv.pushKV("bip9", bip9);
-    if (ThresholdState::ACTIVE == thresholdState) {
-        rv.pushKV("height", since_height);
-    }
-    rv.pushKV("active", ThresholdState::ACTIVE == thresholdState);
-
-    softforks.pushKV(DeploymentName(id), rv);
-}
-
 RPCHelpMan getblockchaininfo() {
     return RPCHelpMan{
         "getblockchaininfo",
@@ -1833,7 +1766,9 @@ RPCHelpMan getblockchaininfo() {
                  "pruning is enabled)"},
                 {RPCResult::Type::OBJ_DYN,
                  "softforks",
-                 "status of softforks",
+                 "status of softforks. DEPRECATED: Only displayed if the "
+                 "-deprecatedrpc=softforks "
+                 "option is set",
                  {
                      {RPCResult::Type::OBJ,
                       "xxxx",
@@ -1943,14 +1878,14 @@ RPCHelpMan getblockchaininfo() {
                 }
             }
 
-            UniValue softforks(UniValue::VOBJ);
-            for (int i = 0; i < (int)Consensus::MAX_VERSION_BITS_DEPLOYMENTS;
-                 i++) {
-                SoftForkDescPushBack(&tip, softforks,
-                                     chainparams.GetConsensus(),
-                                     Consensus::DeploymentPos(i));
+            // Deprecated in v0.27.0
+            if (IsDeprecatedRPCEnabled(gArgs, "softforks")) {
+                // This field has been empty for a long while and the associated
+                // code has already been removed, as there is no plan to use
+                // BIP9 again.
+                UniValue softforks(UniValue::VOBJ);
+                obj.pushKV("softforks", softforks);
             }
-            obj.pushKV("softforks", softforks);
 
             obj.pushKV("warnings", GetWarnings(false).original);
             return obj;

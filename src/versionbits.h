@@ -40,31 +40,6 @@ enum class ThresholdState {
 // will either be nullptr or a block with (height + 1) % Period() == 0.
 typedef std::map<const CBlockIndex *, ThresholdState> ThresholdConditionCache;
 
-/** Display status of an in-progress BIP9 softfork */
-struct BIP9Stats {
-    /** Length of blocks of the BIP9 signalling period */
-    int period;
-    /**
-     * Number of blocks with the version bit set required to activate the
-     * softfork.
-     */
-    int threshold;
-    /**
-     * Number of blocks elapsed since the beginning of the current period.
-     */
-    int elapsed;
-    /**
-     * Number of blocks with the version bit set since the beginning of the
-     * current period.
-     */
-    int count;
-    /**
-     * False if there are not enough blocks left in this period to pass
-     * activation threshold.
-     */
-    bool possible;
-};
-
 /**
  * Abstract class that implements BIP9-style threshold logic, and caches
  * results.
@@ -80,24 +55,11 @@ protected:
 
 public:
     /**
-     * Returns the numerical statistics of an in-progress BIP9 softfork in the
-     * current period.
-     */
-    BIP9Stats GetStateStatisticsFor(const CBlockIndex *pindex,
-                                    const Consensus::Params &params) const;
-    /**
      * Returns the state for pindex A based on parent pindexPrev B. Applies any
      * state transition if conditions are present. Caches state from first block
      * of period.
      */
     ThresholdState GetStateFor(const CBlockIndex *pindexPrev,
-                               const Consensus::Params &params,
-                               ThresholdConditionCache &cache) const;
-    /**
-     * Returns the height since when the ThresholdState has started for pindex.
-     * A based on parent pindexPrev B, all blocks of a period share the same.
-     */
-    int GetStateSinceHeightFor(const CBlockIndex *pindexPrev,
                                const Consensus::Params &params,
                                ThresholdConditionCache &cache) const;
 };
@@ -113,30 +75,7 @@ private:
         m_caches[Consensus::MAX_VERSION_BITS_DEPLOYMENTS] GUARDED_BY(m_mutex);
 
 public:
-    /**
-     * Get the numerical statistics for a given deployment for the signalling
-     * period that includes the block after pindexPrev.
-     */
-    static BIP9Stats Statistics(const CBlockIndex *pindexPrev,
-                                const Consensus::Params &params,
-                                Consensus::DeploymentPos pos);
-
     static uint32_t Mask(const Consensus::Params &params,
-                         Consensus::DeploymentPos pos);
-
-    /**
-     * Get the BIP9 state for a given deployment for the block after pindexPrev.
-     */
-    ThresholdState State(const CBlockIndex *pindexPrev,
-                         const Consensus::Params &params,
-                         Consensus::DeploymentPos pos);
-
-    /**
-     * Get the block height at which the BIP9 deployment switched into the
-     * state for the block after pindexPrev.
-     */
-    int StateSinceHeight(const CBlockIndex *pindexPrev,
-                         const Consensus::Params &params,
                          Consensus::DeploymentPos pos);
 
     /**
@@ -144,8 +83,6 @@ public:
      */
     int32_t ComputeBlockVersion(const CBlockIndex *pindexPrev,
                                 const Consensus::Params &params);
-
-    void Clear();
 };
 
 #endif // BITCOIN_VERSIONBITS_H

@@ -29,8 +29,6 @@ constexpr bool ValidDeployment(BuriedDeployment dep) {
 
 enum DeploymentPos : uint16_t {
     DEPLOYMENT_TESTDUMMY,
-    // NOTE: Also add new deployments to VersionBitsDeploymentInfo in
-    // deploymentinfo.cpp
     MAX_VERSION_BITS_DEPLOYMENTS,
 };
 constexpr bool ValidDeployment(DeploymentPos dep) {
