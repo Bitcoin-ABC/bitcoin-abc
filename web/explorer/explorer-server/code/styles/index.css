@@ -258,6 +258,15 @@ table.dataTable.no-footer {
     text-align: right;
 }
 
+.num-col-suffix::after {
+    content: attr(data-suffix);
+    margin-left: 4px;
+}
+
+.fee-per-byte::after {
+    color: gray;
+}
+
 #footer {
     width: 100%;
     height: 50px;
@@ -630,11 +639,6 @@ table.dataTable thead .sorting {
 
 #txs-table .fee .webix_cell {
     overflow: visible;
-}
-
-#txs-table .fee-per-byte {
-    margin-left: 3px;
-    color: grey;
 }
 
 #txs-table small {

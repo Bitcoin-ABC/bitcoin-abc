@@ -19,33 +19,6 @@ var xecDate = 1605441600;
 var bchDate = 1502193600;
 
 const renderSize = size => formatByteSize(size);
-const renderFee = (_value, _type, row) => {
-    if (row.isCoinbase) {
-        return '<div class="ui green horizontal label">Coinbase</div>';
-    }
-
-    const fee = renderInteger(
-        (row.stats.satsInput - row.stats.satsOutput) / 100,
-    );
-    let markup = '';
-
-    markup += `<span>${fee}</span>`;
-    markup += `<span class="fee-per-byte">(${renderFeePerByte(
-        _value,
-        _type,
-        row,
-    )})</span>`;
-
-    return markup;
-};
-const renderFeePerByte = (_value, _type, row) => {
-    if (row.isCoinbase) {
-        return '';
-    }
-    const fee = row.stats.satsInput - row.stats.satsOutput;
-    const feePerByte = fee / row.size;
-    return renderInteger(Math.round(feePerByte * 1000)) + '/kB';
-};
 
 const renderInput = data => {
     const txDate = data.timestamp;
@@ -76,14 +49,18 @@ const renderInput = data => {
 const renderOutput = (satsOutput, _type, row) => {
     if (row.token) {
         var ticker =
-            ' <a href="/tx/' +
+            '<a href="/tx/' +
             row.txHash +
-            '">' +
+            '" class="num-col-suffix" data-suffix=' +
             row.token.tokenTicker +
-            '</a>';
+            '></a>';
         return renderAmount(row.stats.tokenOutput, row.token.decimals) + ticker;
     }
-    return renderSats(row.stats.satsOutput) + ' XEC';
+    return (
+        '<div class="num-col-suffix" data-suffix="XEC">' +
+        renderSats(row.stats.satsOutput) +
+        '</div>'
+    );
 };
 
 const updateLoading = status => {
@@ -148,6 +125,8 @@ const datatable = () => {
                 render: renderSize,
                 className: 'text-right',
                 orderSequence: ['desc', 'asc'],
+                type: 'file-size',
+                targets: 0,
             },
             {
                 name: 'fee',
@@ -156,6 +135,7 @@ const datatable = () => {
                 render: renderFee,
                 className: 'text-right',
                 orderSequence: ['desc', 'asc'],
+                type: 'html-num-fmt',
             },
             {
                 data: { numInputs: 'numInputs' },

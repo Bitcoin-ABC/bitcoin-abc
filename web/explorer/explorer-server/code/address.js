@@ -250,43 +250,18 @@ const renderBlockHeight = (_value, _type, row) => {
 
 const renderSize = size => formatByteSize(size);
 
-const renderFee = (_value, _type, row) => {
-    if (row.isCoinbase) {
-        return '<div class="ui green horizontal label">Coinbase</div>';
-    }
-
-    const fee = renderInteger(
-        (row.stats.satsInput - row.stats.satsOutput) / 100,
-    );
-    let markup = '';
-
-    markup += `<span>${fee}</span>`;
-    markup += `<span class="fee-per-byte">&nbsp(${renderFeePerByte(
-        _value,
-        _type,
-        row,
-    )})</span>`;
-
-    return markup;
-};
-
-const renderFeePerByte = (_value, _type, row) => {
-    if (row.isCoinbase) {
-        return '';
-    }
-    const fee = row.stats.satsInput - row.stats.satsOutput;
-    const feePerByte = fee / row.size;
-    return renderInteger(Math.round(feePerByte * 1000)) + '/kB';
-};
-
 const renderAmountXEC = (_value, _type, row) => {
     if (row.stats.deltaSats < 0) {
-        return '<span>' + renderSats(row.stats.deltaSats) + ' XEC</span>';
+        return (
+            '<span class="num-col-suffix" data-suffix="XEC">' +
+            renderSats(row.stats.deltaSats) +
+            '</span>'
+        );
     } else
         return (
-            '<span style="color:#15ee3e">+' +
+            '<span style="color:#15ee3e" class="num-col-suffix" data-suffix="XEC">+' +
             renderSats(row.stats.deltaSats) +
-            ' XEC</span>'
+            '</span>'
         );
 };
 
@@ -384,6 +359,8 @@ const datatable = () => {
                 title: 'Size',
                 render: renderSize,
                 orderSequence: ['desc', 'asc'],
+                type: 'file-size',
+                targets: 0,
             },
             {
                 name: 'fee',

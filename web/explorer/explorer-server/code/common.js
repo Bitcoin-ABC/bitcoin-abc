@@ -17,11 +17,19 @@ var tzOffset;
 
 function formatByteSize(size) {
     if (size < 1024) {
-        return size + ' B';
+        return '<div class="num-col-suffix" data-suffix="B">' + size + '</div>';
     } else if (size < 1024 * 1024) {
-        return (size / 1000).toFixed(2) + ' kB';
+        return (
+            '<div class="num-col-suffix" data-suffix="kB">' +
+            (size / 1000).toFixed(2) +
+            '</div>'
+        );
     } else {
-        return (size / 1000000).toFixed(2) + ' MB';
+        return (
+            '<div class="num-col-suffix" data-suffix="MB">' +
+            (size / 1000000).toFixed(2) +
+            '</div>'
+        );
     }
 }
 
@@ -76,6 +84,34 @@ function renderSats(sats) {
         return renderInteger(integerPart) + '.<small>' + fractPart + '</small>';
     }
 }
+
+const renderFee = (_value, _type, row) => {
+    if (row.isCoinbase) {
+        return '<div class="ui green horizontal label">Coinbase</div>';
+    }
+
+    const fee = renderInteger(
+        (row.stats.satsInput - row.stats.satsOutput) / 100,
+    );
+    let markup = '';
+
+    markup += `<div class="num-col-suffix fee-per-byte" data-suffix="(${renderFeePerByte(
+        _value,
+        _type,
+        row,
+    )})">${fee}</div>`;
+
+    return markup;
+};
+
+const renderFeePerByte = (_value, _type, row) => {
+    if (row.isCoinbase) {
+        return '';
+    }
+    const fee = row.stats.satsInput - row.stats.satsOutput;
+    const feePerByte = fee / row.size;
+    return renderInteger(Math.round(feePerByte * 1000)) + '/kB';
+};
 
 function renderTxHash(txHash) {
     return txHash.substr(0, 10) + '&hellip;' + txHash.substr(60, 4);
