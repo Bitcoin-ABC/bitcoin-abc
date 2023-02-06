@@ -257,10 +257,10 @@ class PruneTest(BitcoinTestFramework):
         with self.nodes[2].assert_debug_log(
             expected_msgs=[
                 "block verification stopping at height",
-                "(pruning, no data)",
+                "(no data)",
             ]
         ):
-            self.nodes[2].verifychain(checklevel=4, nblocks=0)
+            assert not self.nodes[2].verifychain(checklevel=4, nblocks=0)
         self.log.info(f"Will need to redownload block {self.forkheight}")
 
         # Verify that we have enough history to reorg back to the fork point.

@@ -280,6 +280,7 @@ VerifyLoadedChainstate(ChainstateManager &chainman,
                                      options.check_level, options.check_blocks);
             switch (result) {
                 case VerifyDBResult::SUCCESS:
+                case VerifyDBResult::SKIPPED_MISSING_BLOCKS:
                     break;
                 case VerifyDBResult::INTERRUPTED:
                     return {ChainstateLoadStatus::INTERRUPTED,

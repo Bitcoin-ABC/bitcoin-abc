@@ -567,6 +567,7 @@ enum class VerifyDBResult {
     CORRUPTED_BLOCK_DB,
     INTERRUPTED,
     SKIPPED_L3_CHECKS,
+    SKIPPED_MISSING_BLOCKS,
 };
 
 /**
