@@ -17,6 +17,7 @@
 #include <test/util/mining.h>
 #include <test/util/setup_common.h>
 
+#include <list>
 #include <queue>
 #include <vector>
 
@@ -171,7 +172,7 @@ static void benchReorg(const Config &config, node::NodeContext &node,
                        size_t chainSizePerBlock, bool includeMempoolTxRemoval) {
     auto utxos = createUTXOs(config, reorgDepth, node);
     std::vector<std::vector<CTransactionRef>> chains;
-    for (auto utxo : utxos) {
+    for (auto &utxo : utxos) {
         chains.emplace_back(
             oneInOneOutChain(config, std::move(utxo), chainSizePerBlock));
     }
@@ -299,6 +300,63 @@ benchGenerateNewBlock(const Config &config, node::NodeContext &node,
     });
 }
 
+static void
+benchEviction(const Config &, benchmark::Bench &bench,
+              const std::vector<std::vector<CTransactionRef>> &chains,
+              bool revFee = true) {
+    std::list<CTxMemPool> pools;
+
+    // Note: in order to isolate how long eviction takes (as opposed to add +
+    // eviction), we are forced to pre-create all the pools we will be needing
+    // up front.
+
+    bench.epochs(2).epochIterations(1);
+
+    for (uint64_t i = 0; i < bench.epochs() * bench.epochIterations() + 1;
+         ++i) {
+        pools.emplace_back();
+        CTxMemPool &pool = pools.back();
+        TestMemPoolEntryHelper entry;
+        // Fill mempool
+        size_t txCount = 0;
+        entry.nFee = 1337 * SATOSHI;
+        // add in order of decreasing fee if revFee, increasing otherwise
+        const Amount feeBump =
+            revFee ? int64_t(-1) * SATOSHI : int64_t(1) * SATOSHI;
+        for (const auto &chain : chains) {
+            entry.spendsCoinbase = true;
+            if (revFee) {
+                entry.nFee += int64_t(chain.size()) * SATOSHI;
+            }
+            LOCK2(cs_main, pool.cs);
+            for (const auto &tx : chain) {
+                pool.addUnchecked(entry.FromTx(tx));
+                entry.nFee += feeBump;
+                // Setting spendCoinbase to false here assumes it's a chain of
+                // 1-in-1-out transaction chain.
+                entry.spendsCoinbase = false;
+                ++txCount;
+            }
+            if (revFee) {
+                entry.nFee += int64_t(chain.size()) * SATOSHI;
+            }
+        }
+        assert(pool.size() == txCount);
+    }
+
+    auto it = pools.begin();
+
+    bench.run([&] {
+        assert(it != pools.end());
+        auto &pool = *it++;
+        LOCK2(cs_main, pool.cs);
+        while (auto prevSize = pool.size()) {
+            pool.TrimToSize(pool.DynamicMemoryUsage() * 99 / 100);
+            assert(pool.size() < prevSize);
+        }
+    });
+}
+
 /// Tests a chain of 50 1-input-1-output transactions.
 static void MempoolAcceptance50ChainedTxs(benchmark::Bench &bench) {
     RegTestingSetup test_setup{};
@@ -389,6 +447,36 @@ static void GenerateBlock500ChainedTxs(benchmark::Bench &bench) {
                           {oneInOneOutChain(config, std::move(utxo), 500)});
 }
 
+/// Fill a mempool then evict 2000 x 50 1-input-1-output transactions,
+/// CTxMemPool version, in order of increasing fee
+static void EvictChained50Tx(benchmark::Bench &bench) {
+    RegTestingSetup test_setup{};
+    const Config &config = GetConfig();
+    // create 2000 chains of 50 1-in-1-out each
+    std::vector<std::vector<CTransactionRef>> chains;
+    constexpr int NChains = 2000;
+    const auto utxos = createUTXOs(config, NChains, test_setup.m_node);
+    for (int i = 0; i < NChains; ++i) {
+        chains.push_back(oneInOneOutChain(config, utxos[i], 50));
+    }
+    benchEviction(config, bench, chains, false);
+}
+
+/// Fill a mempool then evict 2000 x 50 1-input-1-output transactions,
+/// CTxMemPool version, in order of decreasing fee
+static void EvictChained50TxRev(benchmark::Bench &bench) {
+    RegTestingSetup test_setup{};
+    const Config &config = GetConfig();
+    // create 2000 chains of 50 1-in-1-out each
+    std::vector<std::vector<CTransactionRef>> chains;
+    constexpr int NChains = 2000;
+    const auto utxos = createUTXOs(config, NChains, test_setup.m_node);
+    for (int i = 0; i < NChains; ++i) {
+        chains.push_back(oneInOneOutChain(config, utxos[i], 50));
+    }
+    benchEviction(config, bench, chains, true);
+}
+
 BENCHMARK(MempoolAcceptance50ChainedTxs);
 BENCHMARK(MempoolAcceptance500ChainedTxs);
 BENCHMARK(MempoolAcceptance63TxTree);
@@ -401,3 +489,6 @@ BENCHMARK(Reorg10BlocksWith500TxChainSkipMempool);
 
 BENCHMARK(GenerateBlock50ChainedTxs);
 BENCHMARK(GenerateBlock500ChainedTxs);
+
+BENCHMARK(EvictChained50Tx);
+BENCHMARK(EvictChained50TxRev);
