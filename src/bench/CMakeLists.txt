@@ -43,6 +43,7 @@ add_executable(bitcoin-bench
 	ccoins_caching.cpp
 	chacha_poly_aead.cpp
 	chacha20.cpp
+	chained_tx.cpp
 	checkblock.cpp
 	checkqueue.cpp
 	crypto_aes.cpp
