@@ -91,7 +91,9 @@ class EndpointBackportcheckTestCase(ABCBotFixture):
                 "and secp256k1#253431 in a multi-line code block\n```\n"
 
                 "  this is a very unlikely backport of core#16723, core-gui#2 and "
-                "secp256k1#253431 in a code block using indentation\n",
+                "secp256k1#253431 in a code block using indentation\n"
+
+                "this is a port of bchn#1234\n",
             },
         }])
 
@@ -141,7 +143,10 @@ class EndpointBackportcheckTestCase(ABCBotFixture):
             "and secp256k1#253431 in a multi-line code block\n```\n"
 
             "  this is a very unlikely backport of core#16723, core-gui#2 and "
-            "secp256k1#253431 in a code block using indentation\n",
+            "secp256k1#253431 in a code block using indentation\n"
+
+            "this is a port of [[https://gitlab.com/bitcoin-cash-node/bitcoin-cash-node/merge_requests/1234 | "
+            "bchn#1234]]\n",
         }], objectIdentifier='1234')]
         self.phab.differential.revision.edit.assert_has_calls(
             calls, any_order=True)
