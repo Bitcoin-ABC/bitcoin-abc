@@ -163,9 +163,12 @@ static void benchATMP(const Config &config, node::NodeContext &node,
 
 /// Run benchmark that reorganizes blocks with one-input-one-output transaction
 /// chains in them.
+///
+/// If 'includeMempoolTxRemoval' is set, the benchmark will include the time
+/// it takes to remove the transactions of re-connected blocks from the mempool.
 static void benchReorg(const Config &config, node::NodeContext &node,
                        benchmark::Bench &bench, size_t reorgDepth,
-                       size_t chainSizePerBlock) {
+                       size_t chainSizePerBlock, bool includeMempoolTxRemoval) {
     auto utxos = createUTXOs(config, reorgDepth, node);
     std::vector<std::vector<CTransactionRef>> chains;
     for (auto utxo : utxos) {
@@ -233,6 +236,13 @@ static void benchReorg(const Config &config, node::NodeContext &node,
 
         // Transactions should be stuffed back into the mempool.
         assert(mempool.size() == reorgDepth * chainSizePerBlock);
+
+        if (!includeMempoolTxRemoval) {
+            // As of writing this test, removing transactions from mempool
+            // during re-connect takes significant amount of time, so we allow
+            // to test both with and without this process.
+            mempool.clear();
+        }
 
         // Reconnect block
         {
@@ -332,7 +342,7 @@ static void MempoolAcceptance511TxTree(benchmark::Bench &bench) {
 static void Reorg10BlocksWith50TxChain(benchmark::Bench &bench) {
     RegTestingSetup test_setup{};
     const Config &config = GetConfig();
-    benchReorg(config, test_setup.m_node, bench, 10, 50);
+    benchReorg(config, test_setup.m_node, bench, 10, 50, true);
 }
 
 /// Try to reorg a chain of depth 10 where each block has a 500 tx
@@ -340,7 +350,25 @@ static void Reorg10BlocksWith50TxChain(benchmark::Bench &bench) {
 static void Reorg10BlocksWith500TxChain(benchmark::Bench &bench) {
     RegTestingSetup test_setup{};
     const Config &config = GetConfig();
-    benchReorg(config, test_setup.m_node, bench, 10, 500);
+    benchReorg(config, test_setup.m_node, bench, 10, 500, true);
+}
+
+/// Try to reorg a chain of depth 10 where each block has a 50 tx
+/// 1-input-1-output chain, skipping the process of removing transactions from
+/// the mempool during re-connect.
+static void Reorg10BlocksWith50TxChainSkipMempool(benchmark::Bench &bench) {
+    RegTestingSetup test_setup{};
+    const Config &config = GetConfig();
+    benchReorg(config, test_setup.m_node, bench, 10, 50, false);
+}
+
+/// Try to reorg a chain of depth 10 where each block has a 500 tx
+/// 1-input-1-output chain, skipping the process of removing transactions from
+/// the mempool during re-connect.
+static void Reorg10BlocksWith500TxChainSkipMempool(benchmark::Bench &bench) {
+    RegTestingSetup test_setup{};
+    const Config &config = GetConfig();
+    benchReorg(config, test_setup.m_node, bench, 10, 500, false);
 }
 
 /// Generate a block with 50 1-input-1-output transactions
@@ -368,6 +396,8 @@ BENCHMARK(MempoolAcceptance511TxTree);
 
 BENCHMARK(Reorg10BlocksWith50TxChain);
 BENCHMARK(Reorg10BlocksWith500TxChain);
+BENCHMARK(Reorg10BlocksWith50TxChainSkipMempool);
+BENCHMARK(Reorg10BlocksWith500TxChainSkipMempool);
 
 BENCHMARK(GenerateBlock50ChainedTxs);
 BENCHMARK(GenerateBlock500ChainedTxs);
