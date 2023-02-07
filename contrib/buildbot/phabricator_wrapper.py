@@ -491,7 +491,7 @@ class PhabWrapper(Phabricator):
             build_target.update_build_status(build_id, status)
 
         self.harbormaster.sendmessage(
-            buildTargetPHID=build_target.phid,
+            receiver=build_target.phid,
             type=harbormaster_build_status_mapping[build_target.status()]
         )
 

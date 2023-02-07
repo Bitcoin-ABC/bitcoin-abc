@@ -72,7 +72,7 @@ class EndpointBuildDiffTestCase(ABCBotFixture):
 
             if len(expectedBuilds) == 0:
                 self.phab.harbormaster.sendmessage.assert_called_with(
-                    buildTargetPHID=data.targetPHID, type="pass")
+                    receiver=data.targetPHID, type="pass")
 
             expected_calls = [
                 call(AnyWith(requests.PreparedRequest, {
