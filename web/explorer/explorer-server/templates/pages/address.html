@@ -7,10 +7,11 @@ block content %}
                 <div class="address-info-ctn">
                     <h4>Address</h4>
                     <div class="address-copy-ctn">
-                        <h2 id="address">
-                            {% if sats_address == address %}{{ sats_address }}{%
-                            else %}{{ token_address }}{% endif %}
-                        </h2>
+                        {% if sats_address == address %}
+                        <h2 id="address">{{ sats_address }}</h2>
+                        {% else %}
+                        <h2 id="address">{{ token_address }}</h2>
+                        {% endif %}
                         <div class="copy-btn" onclick="copyText('address')">
                             <span class="tooltiptext">Copy to clipboard</span>
                         </div>
@@ -161,14 +162,7 @@ block content %}
 
             <table
                 id="address-txs-table"
-                class="
-                    block-listing__datatable
-                    dataTable
-                    compact
-                    responsive
-                    nowrap
-                    no-footer
-                "
+                class="block-listing__datatable dataTable compact responsive nowrap no-footer"
                 style="width: 100%"
             >
                 <thead>
