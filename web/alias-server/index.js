@@ -14,7 +14,7 @@ async function testTxHistory() {
         JSON.stringify(aliasTxHistory, null, 2),
         'utf-8',
     );
-    const aliases = getAliases(aliasTxHistory);
+    const aliases = getAliases(aliasTxHistory, config.aliasConstants);
 
     // write this to a file for test mock
     fs.writeFileSync(

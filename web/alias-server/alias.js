@@ -96,6 +96,11 @@ module.exports = {
             address: registeringAddress,
             alias,
             txid: aliasTx.txid,
+            blockheight: aliasTx && aliasTx.block ? aliasTx.block.height : 0,
         };
+    },
+    cleanAliases: function (aliases, aliasConstants) {
+        // Remove duplicate aliases that are registered in later blockheights
+        // Determine the valid alias for aliases registered in the same blockheight
     },
 };
