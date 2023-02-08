@@ -33,10 +33,8 @@ BOOST_AUTO_TEST_CASE(minerfund_whitelist) {
     CBlockIndex block;
 
     // Consensus whitelist has not activated yet
-    const std::unordered_set<CTxDestination, TxDestinationHasher>
-        emptyWhitelist;
     block.nHeight = consensusParams.axionHeight - 1;
-    CheckWhitelist(consensusParams, &block, emptyWhitelist);
+    CheckWhitelist(consensusParams, &block, {});
 
     // Axion whitelist is active
     const std::unordered_set<CTxDestination, TxDestinationHasher>
