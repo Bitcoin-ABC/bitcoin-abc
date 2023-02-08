@@ -2,11 +2,11 @@ const log = require('./log');
 const { outputScriptToAddress } = require('./utils');
 
 module.exports = {
-    getAliases: function (aliasTxHistory, aliasConstants) {
+    getAllAliasTxs: function (aliasTxHistory, aliasConstants) {
         const aliasTxCount = aliasTxHistory.length;
 
         // initialize array for all valid aliases
-        const aliases = [];
+        const allAliasTxs = [];
         // iterate over history to get all alias:address pairs
         for (let i = 0; i < aliasTxCount; i += 1) {
             const thisAliasTx = aliasTxHistory[i];
@@ -15,10 +15,10 @@ module.exports = {
                 aliasConstants,
             );
             if (parsedAliasTx) {
-                aliases.push(parsedAliasTx);
+                allAliasTxs.push(parsedAliasTx);
             }
         }
-        return { aliasTxCount, aliases };
+        return allAliasTxs;
     },
     parseAliasTx: function (aliasTx, aliasConstants) {
         // Input: a single tx from chronik tx history
@@ -96,11 +96,67 @@ module.exports = {
             address: registeringAddress,
             alias,
             txid: aliasTx.txid,
-            blockheight: aliasTx && aliasTx.block ? aliasTx.block.height : 0,
+            // arbitrary to set unconfirmed txs at blockheight of 100,000,000
+            // note that this constant must be adjusted in the fall of 3910 A.D., assuming 10 min blocks
+            // setting it high instead of zero because it's important we sort aliases by blockheight
+            // for sortAliasTxsByTxidAndBlockheight function
+            blockheight:
+                aliasTx && aliasTx.block ? aliasTx.block.height : 100000000,
         };
     },
-    cleanAliases: function (aliases, aliasConstants) {
-        // Remove duplicate aliases that are registered in later blockheights
-        // Determine the valid alias for aliases registered in the same blockheight
+    sortAliasTxsByTxidAndBlockheight: function (unsortedAliasTxs) {
+        // First, sort the aliases array by alphabetical txid
+        // (alphabetical first to last, 0 comes before a comes before b comes before c, etc)
+        const aliasesTxsSortedByTxid = unsortedAliasTxs.sort((a, b) => {
+            return a.txid.localeCompare(b.txid);
+        });
+
+        // Next, sort the aliases array by blockheight. This will preserve the alphabetical txid sort
+        // 735,625 comes before 735,626 comes before 100,000,000 etc
+        const aliasTxsSortedByTxidAndBlockheight = aliasesTxsSortedByTxid.sort(
+            (a, b) => {
+                return a.blockheight - b.blockheight;
+            },
+        );
+
+        return aliasTxsSortedByTxidAndBlockheight;
+    },
+    getValidAliasRegistrations: function (unsortedAliasTxs) {
+        // Sort aliases such that the earliest aliases are the valid ones
+        const aliasesSortedByTxidAndBlockheight =
+            module.exports.sortAliasTxsByTxidAndBlockheight(unsortedAliasTxs);
+
+        // Initialize arrays to store alias registration info
+        const registeredAliases = [];
+        const validAliasTxs = [];
+        const pendingAliasTxs = [];
+
+        // Iterate over sorted aliases starting from oldest registrations to newest
+        // (and alphabetically first txids to last)
+        for (let i = 0; i < aliasesSortedByTxidAndBlockheight.length; i += 1) {
+            const thisAliasTx = aliasesSortedByTxidAndBlockheight[i];
+            const { alias, blockheight } = thisAliasTx;
+            // If you haven't seen this alias yet, it's a valid registered alias
+            if (!registeredAliases.includes(alias)) {
+                // If the tx is confirmed, add this alias to the registeredAlias array
+                registeredAliases.push(alias);
+                // If the tx is confirmed,
+                if (blockheight < 100000000) {
+                    // Add thisAliasObject to the validAliasObjects array
+                    validAliasTxs.push(thisAliasTx);
+                } else {
+                    // If it is not confirmed, add it to pendingAliasObjects
+                    pendingAliasTxs.push(thisAliasTx);
+                }
+            } else {
+                // If you've already seen it at an earlier blockheight or earlier alphabetical txid,
+                // then this is not a valid registration.
+                // Do not include it in valid registrations
+
+                // Note, we could just remove this else block. But it's useful for code readability.
+                continue;
+            }
+        }
+        return { validAliasTxs, pendingAliasTxs };
     },
 };
