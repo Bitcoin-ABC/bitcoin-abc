@@ -11,9 +11,9 @@ A node backend for validating eCash alias registrations
 [x] getAliases function
 [x] util function getAddressFromHash160
 [x] return addresses in parseAliasTx
-[] Complete getAliases function
+[x] Complete getAliases function
+[x] Refactor alias functions to accept constants as inputs, so unit tests can test different fees and addresses
 [] unit tests for getAliases function
-[] Refactor alias functions to accept constants as inputs, so unit tests can test different fees and addresses
 [] **Database**
 [] **API endpoints**
 

@@ -1,12 +1,8 @@
-const config = require('./config');
 const log = require('./log');
-const { ChronikClient } = require('chronik-client');
-const chronik = new ChronikClient(config.chronik);
-const { getAllTxHistory } = require('./chronik');
 const { outputScriptToAddress } = require('./utils');
 
 module.exports = {
-    getAliases: function (aliasTxHistory) {
+    getAliases: function (aliasTxHistory, aliasConstants) {
         const aliasTxCount = aliasTxHistory.length;
 
         // initialize array for all valid aliases
@@ -14,14 +10,17 @@ module.exports = {
         // iterate over history to get all alias:address pairs
         for (let i = 0; i < aliasTxCount; i += 1) {
             const thisAliasTx = aliasTxHistory[i];
-            const parsedAliasTx = module.exports.parseAliasTx(thisAliasTx);
+            const parsedAliasTx = module.exports.parseAliasTx(
+                thisAliasTx,
+                aliasConstants,
+            );
             if (parsedAliasTx) {
                 aliases.push(parsedAliasTx);
             }
         }
         return { aliasTxCount, aliases };
     },
-    parseAliasTx: function (aliasTx) {
+    parseAliasTx: function (aliasTx, aliasConstants) {
         // Input: a single tx from chronik tx history
         // output: false if invalid tx
         // output: {address: 'address', alias: 'alias', txid} if valid
@@ -46,7 +45,7 @@ module.exports = {
                 // Check for valid alias prefix
                 const validAliasPrefix =
                     outputScript.slice(0, 12) ===
-                    `6a04${config.aliasConstants.opCodePrefix}`;
+                    `6a04${aliasConstants.opCodePrefix}`;
 
                 if (!validAliasPrefix) {
                     return false;
@@ -64,7 +63,7 @@ module.exports = {
                 log(`alias`, alias);
 
                 const validAliasLength =
-                    aliasLength <= config.aliasConstants.maxLength &&
+                    aliasLength <= aliasConstants.maxLength &&
                     aliasHex.length === 2 * aliasLength;
 
                 if (!validAliasLength) {
@@ -75,7 +74,7 @@ module.exports = {
                 // Check if output is p2pkh for the alias registration hash160
                 if (
                     outputScript ===
-                    `76a914${config.aliasConstants.registrationHash160}88ac`
+                    `76a914${aliasConstants.registrationHash160}88ac`
                 )
                     // If so, then the value here is part of the alias registration fee, aliasFeePaidSats
                     aliasFeePaidSats += BigInt(value);
@@ -84,10 +83,10 @@ module.exports = {
         // Confirm that the correct fee is paid to the correct address
         if (
             parseInt(aliasFeePaidSats) !==
-            config.aliasConstants.registrationFeesSats[aliasLength]
+            aliasConstants.registrationFeesSats[aliasLength]
         ) {
             log(
-                `Invalid fee. This transaction paid ${aliasFeePaidSats} sats to register ${alias}. The correct fee for an alias of ${aliasLength} characters is ${config.aliasConstants.registrationFeesSats[aliasLength]}`,
+                `Invalid fee. This transaction paid ${aliasFeePaidSats} sats to register ${alias}. The correct fee for an alias of ${aliasLength} characters is ${aliasConstants.registrationFeesSats[aliasLength]}`,
             );
             return false;
         } else {

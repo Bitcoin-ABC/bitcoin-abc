@@ -14,6 +14,7 @@ describe('alias-server alias.js', function () {
                             '9d9fd465f56a7946c48b2e214386b51d7968a3a40d46cc697036e4fc1cc644df',
                     )
                 ],
+                config.aliasConstants,
             ),
             {
                 address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
@@ -32,6 +33,7 @@ describe('alias-server alias.js', function () {
                             '36fdab59d25625b6ff3661aa5ab22a4893698fa5618e5e958e1d75bf921e6107',
                     )
                 ],
+                config.aliasConstants,
             ),
             {
                 address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
@@ -50,13 +52,14 @@ describe('alias-server alias.js', function () {
                             'feafd053d4166601d42949a768b9c3e8ee1f27912fc84b6190aeb022fba7fa39',
                     )
                 ],
+                config.aliasConstants,
             ),
             false,
         );
     });
     it('Correctly parses all aliases through 84 transactions at test address ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8', function () {
         assert.deepEqual(
-            getAliases(aliases20230207.txHistory),
+            getAliases(aliases20230207.txHistory, config.aliasConstants),
             aliases20230207.aliases,
         );
     });
