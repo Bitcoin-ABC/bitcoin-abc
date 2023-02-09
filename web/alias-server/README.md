@@ -16,9 +16,10 @@ A node backend for validating eCash alias registrations
 [x] Handle duplicate alias registrations at different blockheights
 [x] Handle duplicate alias registrations in the same blockheight
 [x] unit tests for getAliases function
-[] Mocks and unit tests for sorting function
-[] Mocks with unconfirmed aliases
-[] Mocks with unconfirmed and conflicting alias registrations
+[x] Mocks and unit tests for sorting function
+[x] Mocks with unconfirmed aliases
+[x] Mocks with unconfirmed and conflicting alias registrations
+
 [] **Database**
 [] **API endpoints**
 

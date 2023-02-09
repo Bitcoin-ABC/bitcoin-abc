@@ -3,9 +3,14 @@ const config = require('../config');
 const {
     parseAliasTx,
     getAllAliasTxs,
+    sortAliasTxsByTxidAndBlockheight,
     getValidAliasRegistrations,
 } = require('../alias');
-const { aliases20230208 } = require('./mocks/aliasMocks');
+const {
+    aliases20230208,
+    aliases_20230209_unconfirmed,
+    aliases_fake_data,
+} = require('./mocks/aliasMocks');
 
 describe('alias-server alias.js', function () {
     it('Correctly parses a 5-character alias transaction', function () {
@@ -71,12 +76,52 @@ describe('alias-server alias.js', function () {
             aliases20230208.allAliasTxs,
         );
     });
+    it('Correctly parses all aliases through transactions at test address ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8 including unconfirmed txs', function () {
+        assert.deepEqual(
+            getAllAliasTxs(
+                aliases_20230209_unconfirmed.txHistory,
+                config.aliasConstants,
+            ),
+            aliases_20230209_unconfirmed.allAliasTxs,
+        );
+    });
+    it('Correctly sorts simple template alias txs including unconfirmed alias txs by blockheight and txid', function () {
+        assert.deepEqual(
+            sortAliasTxsByTxidAndBlockheight(aliases_fake_data.unsortedSimple),
+            aliases_fake_data.sortedSimple,
+        );
+    });
+    it('Correctly sorts template alias txs including unconfirmed alias txs by blockheight and txid', function () {
+        assert.deepEqual(
+            sortAliasTxsByTxidAndBlockheight(aliases_fake_data.allAliasTxs),
+            aliases_fake_data.allAliasTxsSortedByTxidAndBlockheight,
+        );
+    });
+    it('Correctly sorts alias txs including unconfirmed alias txs by blockheight and txid', function () {
+        assert.deepEqual(
+            sortAliasTxsByTxidAndBlockheight(
+                aliases_20230209_unconfirmed.allAliasTxs,
+            ),
+            aliases_20230209_unconfirmed.allAliasTxsSortedByTxidAndBlockheight,
+        );
+    });
     it('Correctly returns only valid alias registrations at test address ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8', function () {
         assert.deepEqual(
             getValidAliasRegistrations(aliases20230208.allAliasTxs),
             {
                 validAliasTxs: aliases20230208.validAliasTxs,
                 pendingAliasTxs: [],
+            },
+        );
+    });
+    it('Correctly returns valid and pending alias registrations at test address ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8', function () {
+        assert.deepEqual(
+            getValidAliasRegistrations(
+                aliases_20230209_unconfirmed.allAliasTxs,
+            ),
+            {
+                validAliasTxs: aliases_20230209_unconfirmed.validAliasTxs,
+                pendingAliasTxs: aliases_20230209_unconfirmed.pendingAliasTxs,
             },
         );
     });
