@@ -175,6 +175,7 @@ static std::string JoinErrors(const std::vector<std::string> &errors) {
 }
 
 static bool InitSettings() {
+    gArgs.EnsureDataDir();
     if (!gArgs.GetSettingsPath()) {
         // Do nothing if settings file disabled.
         return true;
