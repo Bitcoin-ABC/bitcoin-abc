@@ -587,7 +587,7 @@ UniValue MempoolToJSON(const CTxMemPool &pool, bool verbose,
         LOCK(pool.cs);
         UniValue o(UniValue::VOBJ);
         for (const CTxMemPoolEntry &e : pool.mapTx) {
-            const uint256 &txid = e.GetTx().GetId();
+            const TxId &txid = e.GetTx().GetId();
             UniValue info(UniValue::VOBJ);
             entryToJSON(pool, info, e);
             // Mempool has unique entries so there is no advantage in using
@@ -598,14 +598,14 @@ UniValue MempoolToJSON(const CTxMemPool &pool, bool verbose,
         return o;
     } else {
         uint64_t mempool_sequence;
-        std::vector<uint256> vtxids;
+        std::vector<TxId> vtxids;
         {
             LOCK(pool.cs);
-            pool.queryHashes(vtxids);
+            pool.getAllTxIds(vtxids);
             mempool_sequence = pool.GetSequence();
         }
         UniValue a(UniValue::VARR);
-        for (const uint256 &txid : vtxids) {
+        for (const TxId &txid : vtxids) {
             a.push_back(txid.ToString());
         }
 

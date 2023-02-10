@@ -653,7 +653,7 @@ public:
     // lock free
     void _clear() EXCLUSIVE_LOCKS_REQUIRED(cs);
     bool CompareDepthAndScore(const TxId &txida, const TxId &txidb);
-    void queryHashes(std::vector<uint256> &vtxid) const;
+    void getAllTxIds(std::vector<TxId> &vtxid) const;
     bool isSpent(const COutPoint &outpoint) const;
     unsigned int GetTransactionsUpdated() const;
     void AddTransactionsUpdated(unsigned int n);
