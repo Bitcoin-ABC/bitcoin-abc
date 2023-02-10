@@ -19,6 +19,7 @@ import {
     getWalletState,
     fromSatoshisToXec,
     getAliasRegistrationFee,
+    convertToEcashPrefix,
 } from 'utils/cashMethods';
 import {
     isAliasAvailable,
@@ -46,6 +47,14 @@ export const NamespaceCtn = styled.div`
         color: ${props => props.theme.contrast};
         margin: 0 0 10px;
     }
+    white-space: pre-wrap;
+`;
+
+const StyledSpacer = styled.div`
+    height: 1px;
+    width: 100%;
+    background-color: ${props => props.theme.lightWhite};
+    margin: 60px 0 50px;
 `;
 
 const Alias = ({ passLoadingStatus }) => {
@@ -64,8 +73,8 @@ const Alias = ({ passLoadingStatus }) => {
     const [formData, setFormData] = useState({
         aliasName: '',
     });
-    const [alias, setAlias] = useState([]); // stores the alias name array
     const [isValidAliasInput, setIsValidAliasInput] = useState(false); // tracks whether to activate the registration button
+    const [activeWalletAliases, setActiveWalletAliases] = useState([]); // stores the list of aliases registered to this active wallet
 
     useEffect(() => {
         passLoadingStatus(false);
@@ -216,6 +225,24 @@ const Alias = ({ passLoadingStatus }) => {
             'Does this active wallet have an onchain alias? : ' +
                 walletHasAlias,
         );
+
+        // retrieve aliases for this active wallet from cache for rendering on the frontend
+        if (
+            walletHasAlias &&
+            cachedAliases &&
+            cachedAliases.aliases.length > 0
+        ) {
+            const thisAddress = convertToEcashPrefix(
+                wallet.Path1899.cashAddress,
+            );
+            // filter for aliases that matches this wallet's address
+            const registeredAliasesToWallet = cachedAliases.aliases.filter(
+                alias => alias.address === thisAddress,
+            );
+
+            setActiveWalletAliases(registeredAliasesToWallet);
+        }
+
         passLoadingStatus(false);
     }, [wallet.name]);
 
@@ -257,9 +284,16 @@ const Alias = ({ passLoadingStatus }) => {
             setIsValidAliasInput(true);
 
             // set alias as pending until subsequent websocket notification on 1 conf on the registration tx
-            setAlias(prevArray => [...prevArray, `${aliasInput} (Pending)`]);
 
-            // TODO: add alias array to local storage
+            let tempactiveWalletAliases = activeWalletAliases;
+            const thisAddress = convertToEcashPrefix(
+                wallet.Path1899.cashAddress,
+            );
+            tempactiveWalletAliases.push({
+                alias: `${aliasInput} (Pending)`,
+                address: thisAddress,
+            });
+            setActiveWalletAliases(tempactiveWalletAliases);
         } else {
             // error notification on alias being unavailable
             errorNotification(
@@ -344,16 +378,6 @@ const Alias = ({ passLoadingStatus }) => {
                     <Col span={24}>
                         <NamespaceCtn>
                             <h2>eCash Namespace Alias</h2>
-                            <h3>
-                                <UserOutlined />
-                                {/*TODO: alias array to be rendered appropriately in later diffs*/}
-                                &emsp;
-                                {alias && Array.isArray(alias)
-                                    ? alias.map(alias => (
-                                          <li key={alias}>{alias}</li>
-                                      ))
-                                    : 'N/A'}
-                            </h3>
                         </NamespaceCtn>
                         <SidePaddingCtn>
                             <AntdFormWrapper>
@@ -386,6 +410,23 @@ const Alias = ({ passLoadingStatus }) => {
                                     </Form.Item>
                                 </Form>
                             </AntdFormWrapper>
+                            <StyledSpacer />
+                            <NamespaceCtn>
+                                <h3>
+                                    <p>
+                                        <UserOutlined />
+                                        &emsp;Registered aliases
+                                    </p>
+                                    {activeWalletAliases &&
+                                    activeWalletAliases.length > 0
+                                        ? activeWalletAliases
+                                              .map(
+                                                  alias => alias.alias + '.xec',
+                                              )
+                                              .join('\n')
+                                        : 'N/A'}
+                                </h3>
+                            </NamespaceCtn>
                         </SidePaddingCtn>
                     </Col>
                 </Row>
