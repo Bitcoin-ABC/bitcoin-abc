@@ -34,3 +34,5 @@ changes will become activated:
   - Miner fund moves from consensus rule to policy rule. This will allow future
     seamless upgrades such as changes to the miner fund without delaying until
     a flag day upgrade.
+  - Bump automatic replay protection to the next upgrade, timestamp `1700049600`
+    (Nov 15, 2023 12:00:00 UTC).
