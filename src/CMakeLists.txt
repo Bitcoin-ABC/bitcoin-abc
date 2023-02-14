@@ -604,6 +604,7 @@ add_library(server
 	node/transaction.cpp
 	node/ui_interface.cpp
 	noui.cpp
+	policy/block/minerfund.cpp
 	policy/fees.cpp
 	policy/packages.cpp
 	policy/settings.cpp
