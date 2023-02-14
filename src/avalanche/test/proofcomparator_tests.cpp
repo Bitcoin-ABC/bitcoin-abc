@@ -20,8 +20,7 @@ using namespace avalanche;
 BOOST_FIXTURE_TEST_SUITE(proofcomparator_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(proof_shared_pointer_comparator) {
-    CChainState &active_chainstate =
-        Assert(m_node.chainman)->ActiveChainstate();
+    Chainstate &active_chainstate = Assert(m_node.chainman)->ActiveChainstate();
     uint32_t score = MIN_VALID_PROOF_SCORE;
 
     auto proofMinScore =
@@ -62,8 +61,7 @@ BOOST_AUTO_TEST_CASE(proof_shared_pointer_comparator) {
 }
 
 BOOST_AUTO_TEST_CASE(proofref_comparator_by_address) {
-    CChainState &active_chainstate =
-        Assert(m_node.chainman)->ActiveChainstate();
+    Chainstate &active_chainstate = Assert(m_node.chainman)->ActiveChainstate();
     std::vector<ProofRef> proofs;
     for (size_t i = 0; i < 100; i++) {
         auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);

@@ -820,7 +820,7 @@ static RPCHelpMan getblocktemplate() {
             std::string strMode = "template";
             UniValue lpval = NullUniValue;
             std::set<std::string> setClientRules;
-            CChainState &active_chainstate = chainman.ActiveChainstate();
+            Chainstate &active_chainstate = chainman.ActiveChainstate();
             CChain &active_chain = active_chainstate.m_chain;
             if (!request.params[0].isNull()) {
                 const UniValue &oparam = request.params[0].get_obj();

@@ -1468,7 +1468,7 @@ void DisconnectedBlockTransactions::importMempool(CTxMemPool &pool) {
 }
 
 void DisconnectedBlockTransactions::updateMempoolForReorg(
-    const Config &config, CChainState &active_chainstate, bool fAddToMempool,
+    const Config &config, Chainstate &active_chainstate, bool fAddToMempool,
     CTxMemPool &pool) {
     AssertLockHeld(cs_main);
     AssertLockHeld(pool.cs);

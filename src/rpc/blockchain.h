@@ -15,7 +15,7 @@
 
 class CBlock;
 class CBlockIndex;
-class CChainState;
+class Chainstate;
 class ChainstateManager;
 class CTxMemPool;
 class RPCHelpMan;
@@ -59,7 +59,7 @@ UniValue blockheaderToJSON(const CBlockIndex *tip,
  * Helper to create UTXO snapshots given a chainstate and a file handle.
  * @return a UniValue map containing metadata about the snapshot.
  */
-UniValue CreateUTXOSnapshot(node::NodeContext &node, CChainState &chainstate,
+UniValue CreateUTXOSnapshot(node::NodeContext &node, Chainstate &chainstate,
                             CAutoFile &afile);
 
 #endif // BITCOIN_RPC_BLOCKCHAIN_H

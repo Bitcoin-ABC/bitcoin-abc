@@ -11,7 +11,7 @@
 
 class CBlock;
 class CBlockIndex;
-class CChainState;
+class Chainstate;
 
 struct IndexSummary {
     std::string name;
@@ -77,7 +77,7 @@ private:
     bool Commit();
 
 protected:
-    CChainState *m_chainstate{nullptr};
+    Chainstate *m_chainstate{nullptr};
 
     void BlockConnected(const std::shared_ptr<const CBlock> &block,
                         const CBlockIndex *pindex) override;
@@ -123,7 +123,7 @@ public:
 
     /// Start initializes the sync state and registers the instance as a
     /// ValidationInterface so that it stays in sync with blockchain updates.
-    void Start(CChainState &active_chainstate);
+    void Start(Chainstate &active_chainstate);
 
     /// Stops the instance from staying in sync with blockchain updates.
     void Stop();

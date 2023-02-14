@@ -55,8 +55,7 @@ BOOST_AUTO_TEST_CASE(compactproofs_roundtrip) {
         BOOST_CHECK_EQUAL(cpr.getKeys().second, cpw.getKeys().second);
     }
 
-    CChainState &active_chainstate =
-        Assert(m_node.chainman)->ActiveChainstate();
+    Chainstate &active_chainstate = Assert(m_node.chainman)->ActiveChainstate();
 
     {
         // Check index boundaries
@@ -149,8 +148,7 @@ BOOST_AUTO_TEST_CASE(compactproofs_roundtrip) {
 }
 
 BOOST_AUTO_TEST_CASE(compactproofs_overflow) {
-    CChainState &active_chainstate =
-        Assert(m_node.chainman)->ActiveChainstate();
+    Chainstate &active_chainstate = Assert(m_node.chainman)->ActiveChainstate();
     {
         CompactProofs cp;
 

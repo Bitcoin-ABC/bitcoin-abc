@@ -1250,7 +1250,7 @@ static RPCHelpMan pruneblockchain() {
 
             ChainstateManager &chainman = EnsureAnyChainman(request.context);
             LOCK(cs_main);
-            CChainState &active_chainstate = chainman.ActiveChainstate();
+            Chainstate &active_chainstate = chainman.ActiveChainstate();
             CChain &active_chain = active_chainstate.m_chain;
 
             int heightParam = request.params[0].get_int();
@@ -1418,7 +1418,7 @@ static RPCHelpMan gettxoutsetinfo() {
 
             NodeContext &node = EnsureAnyNodeContext(request.context);
             ChainstateManager &chainman = EnsureChainman(node);
-            CChainState &active_chainstate = chainman.ActiveChainstate();
+            Chainstate &active_chainstate = chainman.ActiveChainstate();
             active_chainstate.ForceFlushStateToDisk();
 
             CCoinsView *coins_view;
@@ -1600,7 +1600,7 @@ RPCHelpMan gettxout() {
             }
 
             Coin coin;
-            CChainState &active_chainstate = chainman.ActiveChainstate();
+            Chainstate &active_chainstate = chainman.ActiveChainstate();
             CCoinsViewCache *coins_view = &active_chainstate.CoinsTip();
 
             if (fMempool) {
@@ -1665,7 +1665,7 @@ static RPCHelpMan verifychain() {
             ChainstateManager &chainman = EnsureAnyChainman(request.context);
             LOCK(cs_main);
 
-            CChainState &active_chainstate = chainman.ActiveChainstate();
+            Chainstate &active_chainstate = chainman.ActiveChainstate();
             return CVerifyDB().VerifyDB(active_chainstate, config,
                                         active_chainstate.CoinsTip(),
                                         check_level, check_depth);
@@ -1879,7 +1879,7 @@ RPCHelpMan getblockchaininfo() {
 
             ChainstateManager &chainman = EnsureAnyChainman(request.context);
             LOCK(cs_main);
-            CChainState &active_chainstate = chainman.ActiveChainstate();
+            Chainstate &active_chainstate = chainman.ActiveChainstate();
 
             const CBlockIndex &tip{
                 *CHECK_NONFATAL(active_chainstate.m_chain.Tip())};
@@ -2234,7 +2234,7 @@ RPCHelpMan parkblock() {
             BlockValidationState state;
 
             ChainstateManager &chainman = EnsureAnyChainman(request.context);
-            CChainState &active_chainstate = chainman.ActiveChainstate();
+            Chainstate &active_chainstate = chainman.ActiveChainstate();
             CBlockIndex *pblockindex = nullptr;
             {
                 LOCK(cs_main);
@@ -2326,7 +2326,7 @@ RPCHelpMan unparkblock() {
             const std::string strHash = request.params[0].get_str();
             ChainstateManager &chainman = EnsureAnyChainman(request.context);
             const BlockHash hash(uint256S(strHash));
-            CChainState &active_chainstate = chainman.ActiveChainstate();
+            Chainstate &active_chainstate = chainman.ActiveChainstate();
 
             {
                 LOCK(cs_main);
@@ -3066,8 +3066,7 @@ static RPCHelpMan scantxoutset() {
                 {
                     ChainstateManager &chainman = EnsureChainman(node);
                     LOCK(cs_main);
-                    CChainState &active_chainstate =
-                        chainman.ActiveChainstate();
+                    Chainstate &active_chainstate = chainman.ActiveChainstate();
                     active_chainstate.ForceFlushStateToDisk();
                     pcursor = CHECK_NONFATAL(std::unique_ptr<CCoinsViewCursor>(
                         active_chainstate.CoinsDB().Cursor()));
@@ -3263,7 +3262,7 @@ static RPCHelpMan dumptxoutset() {
     };
 }
 
-UniValue CreateUTXOSnapshot(NodeContext &node, CChainState &chainstate,
+UniValue CreateUTXOSnapshot(NodeContext &node, Chainstate &chainstate,
                             CAutoFile &afile) {
     std::unique_ptr<CCoinsViewCursor> pcursor;
     CCoinsStats stats{CoinStatsHashType::NONE};

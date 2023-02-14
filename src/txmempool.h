@@ -31,7 +31,7 @@
 
 class CBlockIndex;
 class CChain;
-class CChainState;
+class Chainstate;
 class Config;
 
 extern RecursiveMutex cs_main;
@@ -1134,7 +1134,7 @@ public:
      * back, and instead just erase from the mempool as needed.
      */
     void updateMempoolForReorg(const Config &config,
-                               CChainState &active_chainstate,
+                               Chainstate &active_chainstate,
                                bool fAddToMempool, CTxMemPool &pool)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, pool.cs);
 };

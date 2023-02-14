@@ -12,7 +12,7 @@
 #include <tinyformat.h>
 #include <util/thread.h>
 #include <util/translation.h>
-#include <validation.h> // For CChainState
+#include <validation.h> // For Chainstate
 #include <warnings.h>
 
 #include <functional>
@@ -364,7 +364,7 @@ void BaseIndex::Interrupt() {
     m_interrupt();
 }
 
-void BaseIndex::Start(CChainState &active_chainstate) {
+void BaseIndex::Start(Chainstate &active_chainstate) {
     m_chainstate = &active_chainstate;
     // Need to register this ValidationInterface before running Init(), so that
     // callbacks are not missed if Init sets m_synced to true.

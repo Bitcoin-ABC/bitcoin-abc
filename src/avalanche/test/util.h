@@ -20,7 +20,7 @@ const CScript UNSPENDABLE_ECREG_PAYOUT_SCRIPT =
     CScript() << OP_DUP << OP_HASH160 << std::vector<uint8_t>(20, 0)
               << OP_EQUALVERIFY << OP_CHECKSIG;
 
-ProofRef buildRandomProof(CChainState &active_chainstate, uint32_t score,
+ProofRef buildRandomProof(Chainstate &active_chainstate, uint32_t score,
                           int height = 100,
                           const CKey &masterKey = CKey::MakeCompressedKey());
 

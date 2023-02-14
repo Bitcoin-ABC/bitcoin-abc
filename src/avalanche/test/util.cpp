@@ -17,7 +17,7 @@
 
 namespace avalanche {
 
-ProofRef buildRandomProof(CChainState &active_chainstate, uint32_t score,
+ProofRef buildRandomProof(Chainstate &active_chainstate, uint32_t score,
                           int height, const CKey &masterKey) {
     auto key = CKey::MakeCompressedKey();
 

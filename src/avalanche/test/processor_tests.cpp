@@ -1196,8 +1196,7 @@ BOOST_AUTO_TEST_CASE(destructor) {
 
 BOOST_AUTO_TEST_CASE(add_proof_to_reconcile) {
     uint32_t score = MIN_VALID_PROOF_SCORE;
-    CChainState &active_chainstate =
-        Assert(m_node.chainman)->ActiveChainstate();
+    Chainstate &active_chainstate = Assert(m_node.chainman)->ActiveChainstate();
 
     auto addProofToReconcile = [&](uint32_t proofScore) {
         auto proof = buildRandomProof(active_chainstate, proofScore);
@@ -1344,8 +1343,7 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
     const auto currency = Currency::get();
     uint32_t minScore = Proof::amountToScore(minStake * currency.baseunit);
 
-    CChainState &active_chainstate =
-        Assert(m_node.chainman)->ActiveChainstate();
+    Chainstate &active_chainstate = Assert(m_node.chainman)->ActiveChainstate();
 
     const CKey key = CKey::MakeCompressedKey();
     auto localProof =
@@ -1839,7 +1837,7 @@ BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
 
 BOOST_AUTO_TEST_CASE(vote_map_comparator) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    CChainState &activeChainState = chainman.ActiveChainstate();
+    Chainstate &activeChainState = chainman.ActiveChainstate();
 
     const int numberElementsEachType = 100;
     FastRandomContext rng;
@@ -1930,7 +1928,7 @@ BOOST_AUTO_TEST_CASE(vote_map_comparator) {
 BOOST_AUTO_TEST_CASE(block_reconcile_initial_vote) {
     const auto &config = GetConfig();
     auto &chainman = Assert(m_node.chainman);
-    CChainState &chainstate = chainman->ActiveChainstate();
+    Chainstate &chainstate = chainman->ActiveChainstate();
 
     const auto block = std::make_shared<const CBlock>(
         this->CreateBlock({}, CScript(), chainstate));

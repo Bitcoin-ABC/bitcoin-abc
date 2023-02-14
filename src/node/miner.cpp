@@ -56,7 +56,7 @@ BlockAssembler::Options::Options()
       nMaxGeneratedBlockSize(DEFAULT_MAX_GENERATED_BLOCK_SIZE),
       blockMinFeeRate(DEFAULT_BLOCK_MIN_TX_FEE_PER_KB) {}
 
-BlockAssembler::BlockAssembler(CChainState &chainstate,
+BlockAssembler::BlockAssembler(Chainstate &chainstate,
                                const CChainParams &params,
                                const CTxMemPool &mempool,
                                const Options &options)
@@ -98,7 +98,7 @@ static BlockAssembler::Options DefaultOptions(const Config &config) {
     return options;
 }
 
-BlockAssembler::BlockAssembler(const Config &config, CChainState &chainstate,
+BlockAssembler::BlockAssembler(const Config &config, Chainstate &chainstate,
                                const CTxMemPool &mempool)
     : BlockAssembler(chainstate, config.GetChainParams(), mempool,
                      DefaultOptions(config)) {}

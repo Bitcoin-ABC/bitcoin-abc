@@ -86,7 +86,7 @@ static RPCHelpMan gettxoutproof() {
                 }
             } else {
                 LOCK(cs_main);
-                CChainState &active_chainstate = chainman.ActiveChainstate();
+                Chainstate &active_chainstate = chainman.ActiveChainstate();
                 // Loop through txids and try to find which block they're in.
                 // Exit loop once a block is found.
                 for (const auto &txid : setTxIds) {

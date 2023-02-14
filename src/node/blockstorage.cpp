@@ -897,7 +897,7 @@ void ThreadImport(const Config &config, ChainstateManager &chainman,
         // accessing the chainman unique_ptrs since ABC requires us not to be
         // holding cs_main, so retrieve the relevant pointers before the ABC
         // call.
-        for (CChainState *chainstate :
+        for (Chainstate *chainstate :
              WITH_LOCK(::cs_main, return chainman.GetAll())) {
             BlockValidationState state;
             if (!chainstate->ActivateBestChain(config, state, nullptr)) {

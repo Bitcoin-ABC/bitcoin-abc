@@ -776,7 +776,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 }
 
 static void CheckBlockMaxSize(const Config &config, const CTxMemPool &mempool,
-                              CChainState &active_chainstate, uint64_t size,
+                              Chainstate &active_chainstate, uint64_t size,
                               uint64_t expected) {
     gArgs.ForceSetArg("-blockmaxsize", ToString(size));
 
@@ -791,7 +791,7 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
     LOCK(cs_main);
 
     const CTxMemPool &mempool = *m_node.mempool;
-    CChainState &active_chainstate = m_node.chainman->ActiveChainstate();
+    Chainstate &active_chainstate = m_node.chainman->ActiveChainstate();
 
     // Test around historical 1MB (plus one byte because that's mandatory)
     config.SetMaxBlockSize(ONE_MEGABYTE + 1);

@@ -19,7 +19,7 @@ LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
                std::function<bool()> shutdown_requested,
                std::function<void()> coins_error_cb) {
     auto is_coinsview_empty =
-        [&](CChainState *chainstate) EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
+        [&](Chainstate *chainstate) EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
             return fReset || fReindexChainState ||
                    chainstate->CoinsTip().GetBestBlock().IsNull();
         };
@@ -91,7 +91,7 @@ LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
     // At this point we're either in reindex or we've loaded a useful
     // block tree into BlockIndex()!
 
-    for (CChainState *chainstate : chainman.GetAll()) {
+    for (Chainstate *chainstate : chainman.GetAll()) {
         chainstate->InitCoinsDB(
             /* cache_size_bytes */ nCoinDBCache,
             /* in_memory */ coins_db_in_memory,
@@ -137,14 +137,14 @@ VerifyLoadedChainstate(ChainstateManager &chainman, bool fReset,
                        unsigned int check_blocks, unsigned int check_level,
                        std::function<int64_t()> get_unix_time_seconds) {
     auto is_coinsview_empty =
-        [&](CChainState *chainstate) EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
+        [&](Chainstate *chainstate) EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
             return fReset || fReindexChainState ||
                    chainstate->CoinsTip().GetBestBlock().IsNull();
         };
 
     LOCK(cs_main);
 
-    for (CChainState *chainstate : chainman.GetAll()) {
+    for (Chainstate *chainstate : chainman.GetAll()) {
         if (!is_coinsview_empty(chainstate)) {
             const CBlockIndex *tip = chainstate->m_chain.Tip();
             if (tip &&

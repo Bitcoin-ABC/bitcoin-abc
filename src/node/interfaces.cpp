@@ -497,7 +497,7 @@ namespace {
         std::optional<int>
         findLocatorFork(const CBlockLocator &locator) override {
             LOCK(cs_main);
-            const CChainState &active =
+            const Chainstate &active =
                 Assert(m_node.chainman)->ActiveChainstate();
             if (const CBlockIndex *fork =
                     active.FindForkInGlobalIndex(locator)) {

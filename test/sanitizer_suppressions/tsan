@@ -15,7 +15,7 @@ race:bitcoin-qt
 # deadlock (TODO fix)
 deadlock:CConnman::ForNode
 deadlock:CConnman::GetNodeStats
-deadlock:CChainState::ConnectTip
+deadlock:Chainstate::ConnectTip
 deadlock:UpdateTip
 
 # Lock order inversion due to the large cs_main lock from Shutdown, which comes

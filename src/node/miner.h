@@ -68,7 +68,7 @@ private:
     const CChainParams &chainParams;
 
     const CTxMemPool &m_mempool;
-    CChainState &m_chainstate;
+    Chainstate &m_chainstate;
 
 public:
     struct Options {
@@ -78,9 +78,9 @@ public:
         CFeeRate blockMinFeeRate;
     };
 
-    BlockAssembler(const Config &config, CChainState &chainstate,
+    BlockAssembler(const Config &config, Chainstate &chainstate,
                    const CTxMemPool &mempool);
-    BlockAssembler(CChainState &chainstate, const CChainParams &params,
+    BlockAssembler(Chainstate &chainstate, const CChainParams &params,
                    const CTxMemPool &mempool, const Options &options);
 
     /** Construct a new block template with coinbase to scriptPubKeyIn */

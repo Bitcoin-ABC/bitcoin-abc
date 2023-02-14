@@ -57,7 +57,7 @@ using node::PSBTAnalysis;
 using node::ReadBlockFromDisk;
 
 static void TxToJSON(const CTransaction &tx, const BlockHash &hashBlock,
-                     UniValue &entry, CChainState &active_chainstate) {
+                     UniValue &entry, Chainstate &active_chainstate) {
     // Call into TxToUniv() in bitcoin-common to decode the transaction hex.
     //
     // Blockchain contextual information (confirmations and blocktime) is not
@@ -986,7 +986,7 @@ static RPCHelpMan testmempoolaccept() {
             NodeContext &node = EnsureAnyNodeContext(request.context);
             CTxMemPool &mempool = EnsureMemPool(node);
             ChainstateManager &chainman = EnsureChainman(node);
-            CChainState &chainstate = chainman.ActiveChainstate();
+            Chainstate &chainstate = chainman.ActiveChainstate();
             const PackageMempoolAcceptResult package_result = [&] {
                 LOCK(::cs_main);
                 if (txns.size() > 1) {

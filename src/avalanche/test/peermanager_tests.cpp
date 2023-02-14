@@ -65,7 +65,7 @@ namespace {
         }
     };
 
-    static void addCoin(CChainState &chainstate, const COutPoint &outpoint,
+    static void addCoin(Chainstate &chainstate, const COutPoint &outpoint,
                         const CKey &key,
                         const Amount amount = PROOF_DUST_THRESHOLD,
                         uint32_t height = 100, bool is_coinbase = false) {
@@ -77,7 +77,7 @@ namespace {
                       Coin(CTxOut(amount, script), height, is_coinbase), false);
     }
 
-    static COutPoint createUtxo(CChainState &chainstate, const CKey &key,
+    static COutPoint createUtxo(Chainstate &chainstate, const CKey &key,
                                 const Amount amount = PROOF_DUST_THRESHOLD,
                                 uint32_t height = 100,
                                 bool is_coinbase = false) {
@@ -285,7 +285,7 @@ BOOST_AUTO_TEST_CASE(select_peer_random) {
     }
 }
 
-static void addNodeWithScore(CChainState &active_chainstate,
+static void addNodeWithScore(Chainstate &active_chainstate,
                              avalanche::PeerManager &pm, NodeId node,
                              uint32_t score) {
     auto proof = buildRandomProof(active_chainstate, score);
@@ -301,7 +301,7 @@ BOOST_AUTO_TEST_CASE(peer_probabilities) {
 
     const NodeId node0 = 42, node1 = 69, node2 = 37;
 
-    CChainState &active_chainstate = chainman.ActiveChainstate();
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
     // One peer, we always return it.
     addNodeWithScore(active_chainstate, pm, node0, MIN_VALID_PROOF_SCORE);
     BOOST_CHECK_EQUAL(pm.selectNode(), node0);
@@ -337,7 +337,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
     avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
     BOOST_CHECK_EQUAL(pm.selectPeer(), NO_PEER);
 
-    CChainState &active_chainstate = chainman.ActiveChainstate();
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
     // Add 4 peers.
     std::array<PeerId, 8> peerids;
     for (int i = 0; i < 4; i++) {
@@ -444,7 +444,7 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
     avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
-    CChainState &active_chainstate = chainman.ActiveChainstate();
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
 
     // Create one peer.
     auto proof =
@@ -508,7 +508,7 @@ BOOST_AUTO_TEST_CASE(node_binding) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
     avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
-    CChainState &active_chainstate = chainman.ActiveChainstate();
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
 
     auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
     const ProofId &proofid = proof->getId();
@@ -826,7 +826,7 @@ BOOST_AUTO_TEST_CASE(dangling_node) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
     avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
-    CChainState &active_chainstate = chainman.ActiveChainstate();
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
 
     auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
     PeerId peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
@@ -925,7 +925,7 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_rescan, NoCoolDownFixture) {
 
     const CKey key = CKey::MakeCompressedKey();
 
-    CChainState &active_chainstate = chainman.ActiveChainstate();
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
 
     const COutPoint conflictingOutpoint = createUtxo(active_chainstate, key);
     const COutPoint outpointToSend = createUtxo(active_chainstate, key);
@@ -964,7 +964,7 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_selection, NoCoolDownFixture) {
     const bool is_coinbase = false;
 
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    CChainState &active_chainstate = chainman.ActiveChainstate();
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
 
     // This will be the conflicting UTXO for all the following proofs
     auto conflictingOutpoint = createUtxo(active_chainstate, key, amount);
@@ -1057,7 +1057,7 @@ BOOST_AUTO_TEST_CASE(conflicting_immature_proofs) {
 
     const CKey key = CKey::MakeCompressedKey();
 
-    CChainState &active_chainstate = chainman.ActiveChainstate();
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
 
     const COutPoint conflictingOutpoint = createUtxo(active_chainstate, key);
     const COutPoint matureOutpoint =
@@ -1342,7 +1342,7 @@ BOOST_FIXTURE_TEST_CASE(reject_proof, NoCoolDownFixture) {
 
     const CKey key = CKey::MakeCompressedKey();
 
-    CChainState &active_chainstate = chainman.ActiveChainstate();
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
 
     const COutPoint conflictingOutpoint =
         createUtxo(active_chainstate, key, PROOF_DUST_THRESHOLD, 99);
@@ -1550,7 +1550,7 @@ BOOST_FIXTURE_TEST_CASE(known_score_tracking, NoCoolDownFixture) {
     const Amount amount1(PROOF_DUST_THRESHOLD);
     const Amount amount2(2 * PROOF_DUST_THRESHOLD);
 
-    CChainState &active_chainstate = chainman.ActiveChainstate();
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
 
     const COutPoint peer1ConflictingOutput =
         createUtxo(active_chainstate, key, amount1, 99);
@@ -1669,7 +1669,7 @@ BOOST_AUTO_TEST_CASE(connected_score_tracking) {
     // Start out with 0s
     checkScores(0, 0);
 
-    CChainState &active_chainstate = chainman.ActiveChainstate();
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
 
     // Create one peer without a node. Its score should be registered but not
     // connected
@@ -1772,7 +1772,7 @@ BOOST_FIXTURE_TEST_CASE(proof_radix_tree, NoCoolDownFixture) {
     CKey key = CKey::MakeCompressedKey();
     const int64_t sequence = 10;
 
-    CChainState &active_chainstate = chainman.ActiveChainstate();
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
 
     // Add some initial proofs
     for (size_t i = 0; i < 10; i++) {

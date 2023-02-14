@@ -140,7 +140,7 @@ struct RegTestingSetup : public TestingSetup {
 };
 
 class CBlock;
-class CChainState;
+class Chainstate;
 class CMutableTransaction;
 class CScript;
 
@@ -157,14 +157,14 @@ struct TestChain100Setup : public RegTestingSetup {
      */
     CBlock CreateAndProcessBlock(const std::vector<CMutableTransaction> &txns,
                                  const CScript &scriptPubKey,
-                                 CChainState *chainstate = nullptr);
+                                 Chainstate *chainstate = nullptr);
 
     /**
      * Create a new block with just given transactions, coinbase paying to
      * scriptPubKey.
      */
     CBlock CreateBlock(const std::vector<CMutableTransaction> &txns,
-                       const CScript &scriptPubKey, CChainState &chainstate);
+                       const CScript &scriptPubKey, Chainstate &chainstate);
 
     //! Mine a series of new blocks on the active chain.
     void mineBlocks(int num_blocks);

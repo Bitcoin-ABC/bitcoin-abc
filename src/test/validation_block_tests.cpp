@@ -277,7 +277,7 @@ BOOST_AUTO_TEST_CASE(avalanche_finalization_bad_state) {
     // tip manually. This does not happen under normal conditions. Rewind
     // the chain tip immediately after finalizing.
     CBlockIndex *pindex = const_cast<CBlockIndex *>(pindexBadBlock);
-    CChainState &activeChainstate = chainman.ActiveChainstate();
+    Chainstate &activeChainstate = chainman.ActiveChainstate();
     // Set the tip to pindex because AvalancheFinalizeBlock checks it is in the
     // active chain.
     activeChainstate.m_chain.SetTip(pindex);

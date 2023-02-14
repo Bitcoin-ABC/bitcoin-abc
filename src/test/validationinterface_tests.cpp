@@ -144,7 +144,7 @@ BOOST_AUTO_TEST_CASE(block_finalized) {
     BOOST_CHECK_EQUAL(callCount, expectedCallCount);
 
     // Check calling from AvalancheFinalizedBlock
-    CChainState &activeChainState = m_node.chainman->ActiveChainstate();
+    Chainstate &activeChainState = m_node.chainman->ActiveChainstate();
     CBlockIndex *tip = m_node.chainman->ActiveTip();
 
     expectedIndex = nullptr;

@@ -44,7 +44,7 @@
 #include <vector>
 
 class CChainParams;
-class CChainState;
+class Chainstate;
 class ChainstateManager;
 class Config;
 class CScriptCheck;
@@ -209,7 +209,7 @@ double GuessVerificationProgress(const ChainTxData &data,
                                  const CBlockIndex *pindex);
 
 /** Prune block files up to a given height */
-void PruneBlockFilesManual(CChainState &active_chainstate,
+void PruneBlockFilesManual(Chainstate &active_chainstate,
                            int nManualPruneHeight);
 
 /**
@@ -321,7 +321,7 @@ struct PackageMempoolAcceptResult {
  *     accepted/rejected with reason.
  */
 MempoolAcceptResult
-AcceptToMemoryPool(const Config &config, CChainState &active_chainstate,
+AcceptToMemoryPool(const Config &config, Chainstate &active_chainstate,
                    const CTransactionRef &tx, int64_t accept_time,
                    bool bypass_limits, bool test_accept = false)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
@@ -338,7 +338,7 @@ AcceptToMemoryPool(const Config &config, CChainState &active_chainstate,
  *     be partially submitted.
  */
 PackageMempoolAcceptResult
-ProcessNewPackage(const Config &config, CChainState &active_chainstate,
+ProcessNewPackage(const Config &config, Chainstate &active_chainstate,
                   CTxMemPool &pool, const Package &txns, bool test_accept)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
@@ -556,7 +556,7 @@ bool ContextualCheckTransactionForCurrentBlock(
  * our current best block)
  */
 bool TestBlockValidity(BlockValidationState &state, const CChainParams &params,
-                       CChainState &chainstate, const CBlock &block,
+                       Chainstate &chainstate, const CBlock &block,
                        CBlockIndex *pindexPrev,
                        BlockValidationOptions validationOptions)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
@@ -571,12 +571,12 @@ public:
 
     ~CVerifyDB();
 
-    bool VerifyDB(CChainState &chainstate, const Config &config,
+    bool VerifyDB(Chainstate &chainstate, const Config &config,
                   CCoinsView &coinsview, int nCheckLevel, int nCheckDepth)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 };
 
-/** @see CChainState::FlushStateToDisk */
+/** @see Chainstate::FlushStateToDisk */
 enum class FlushStateMode { NONE, IF_NEEDED, PERIODIC, ALWAYS };
 
 /**
@@ -626,7 +626,7 @@ enum class CoinsCacheSizeState {
 };
 
 /**
- * CChainState stores and provides an API to update our local knowledge of the
+ * Chainstate stores and provides an API to update our local knowledge of the
  * current best chain.
  *
  * Eventually, the API here is targeted at being exposed externally as a
@@ -639,7 +639,7 @@ enum class CoinsCacheSizeState {
  * whereas block information and metadata independent of the current tip is
  * kept in `BlockManager`.
  */
-class CChainState {
+class Chainstate {
 private:
     /**
      * The ChainState Mutex.
@@ -688,7 +688,7 @@ private:
 
 public:
     //! Reference to a BlockManager instance which itself is shared across all
-    //! CChainState instances.
+    //! Chainstate instances.
     node::BlockManager &m_blockman;
 
     /** Chain parameters for this chainstate */
@@ -699,7 +699,7 @@ public:
     //! chainstate within deeply nested method calls.
     ChainstateManager &m_chainman;
 
-    explicit CChainState(
+    explicit Chainstate(
         CTxMemPool *mempool, node::BlockManager &blockman,
         ChainstateManager &chainman,
         std::optional<BlockHash> from_snapshot_blockhash = std::nullopt);
@@ -1060,7 +1060,7 @@ private:
     //! This is especially important when, e.g., calling ActivateBestChain()
     //! on all chainstates because we are not able to hold ::cs_main going into
     //! that call.
-    std::unique_ptr<CChainState> m_ibd_chainstate GUARDED_BY(::cs_main);
+    std::unique_ptr<Chainstate> m_ibd_chainstate GUARDED_BY(::cs_main);
 
     //! A chainstate initialized on the basis of a UTXO snapshot. If this is
     //! non-null, it is always our active chainstate.
@@ -1071,7 +1071,7 @@ private:
     //! This is especially important when, e.g., calling ActivateBestChain()
     //! on all chainstates because we are not able to hold ::cs_main going into
     //! that call.
-    std::unique_ptr<CChainState> m_snapshot_chainstate GUARDED_BY(::cs_main);
+    std::unique_ptr<Chainstate> m_snapshot_chainstate GUARDED_BY(::cs_main);
 
     //! Points to either the ibd or snapshot chainstate; indicates our
     //! most-work chain.
@@ -1082,7 +1082,7 @@ private:
     //! This is especially important when, e.g., calling ActivateBestChain()
     //! on all chainstates because we are not able to hold ::cs_main going into
     //! that call.
-    CChainState *m_active_chainstate GUARDED_BY(::cs_main){nullptr};
+    Chainstate *m_active_chainstate GUARDED_BY(::cs_main){nullptr};
 
     //! If true, the assumed-valid chainstate has been fully validated
     //! by the background validation chainstate.
@@ -1093,7 +1093,7 @@ private:
 
     //! Internal helper for ActivateSnapshot().
     [[nodiscard]] bool
-    PopulateAndValidateSnapshot(CChainState &snapshot_chainstate,
+    PopulateAndValidateSnapshot(Chainstate &snapshot_chainstate,
                                 CAutoFile &coins_file,
                                 const node::SnapshotMetadata &metadata);
     /**
@@ -1104,7 +1104,7 @@ private:
     bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
                            BlockValidationState &state, CBlockIndex **ppindex)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-    friend CChainState;
+    friend Chainstate;
 
 public:
     std::thread m_load_block;
@@ -1154,20 +1154,20 @@ public:
     //                                  constructor
     //! @param[in] snapshot_blockhash   If given, signify that this chainstate
     //!                                 is based on a snapshot.
-    CChainState &
+    Chainstate &
     InitializeChainstate(CTxMemPool *mempool,
                          const std::optional<BlockHash> &snapshot_blockhash =
                              std::nullopt) LIFETIMEBOUND
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
     //! Get all chainstates currently being used.
-    std::vector<CChainState *> GetAll();
+    std::vector<Chainstate *> GetAll();
 
     //! Construct and activate a Chainstate on the basis of UTXO snapshot data.
     //!
     //! Steps:
     //!
-    //! - Initialize an unused CChainState.
+    //! - Initialize an unused Chainstate.
     //! - Load its `CoinsViews` contents from `coins_file`.
     //! - Verify that the hash of the resulting coinsdb matches the expected
     //!   hash per assumeutxo chain parameters.
@@ -1181,7 +1181,7 @@ public:
                                         bool in_memory);
 
     //! The most-work chain.
-    CChainState &ActiveChainstate() const;
+    Chainstate &ActiveChainstate() const;
     CChain &ActiveChain() const { return ActiveChainstate().m_chain; }
     int ActiveHeight() const { return ActiveChain().Height(); }
     CBlockIndex *ActiveTip() const { return ActiveChain().Tip(); }
@@ -1276,7 +1276,7 @@ bool DumpMempool(const CTxMemPool &pool);
 
 /** Load the mempool from disk. */
 bool LoadMempool(const Config &config, CTxMemPool &pool,
-                 CChainState &active_chainstate);
+                 Chainstate &active_chainstate);
 
 /**
  * Return the expected assumeutxo value for a given height, if one exists.

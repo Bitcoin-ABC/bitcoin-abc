@@ -139,7 +139,7 @@ static void benchATMP(const Config &config, node::NodeContext &node,
                       ToString(chainedTxs.size() * 1000));
 
     auto chainman = Assert(node.chainman.get());
-    CChainState &activeChainState = chainman->ActiveChainstate();
+    Chainstate &activeChainState = chainman->ActiveChainstate();
 
     CTxMemPool &mempool{*Assert(activeChainState.GetMempool())};
     assert(mempool.size() == 0);
@@ -178,7 +178,7 @@ static void benchReorg(const Config &config, node::NodeContext &node,
     }
 
     auto chainman = Assert(node.chainman.get());
-    CChainState &activeChainState = chainman->ActiveChainstate();
+    Chainstate &activeChainState = chainman->ActiveChainstate();
 
     // Current tip will be last valid block.
     CBlockIndex *tipBeforeInvalidate = activeChainState.m_chain.Tip();
@@ -271,7 +271,7 @@ benchGenerateNewBlock(const Config &config, node::NodeContext &node,
     entry.nFee = 1337 * SATOSHI;
 
     auto chainman = Assert(node.chainman.get());
-    CChainState &activeChainState = chainman->ActiveChainstate();
+    Chainstate &activeChainState = chainman->ActiveChainstate();
     CTxMemPool &mempool{*Assert(activeChainState.GetMempool())};
 
     // Fill mempool
