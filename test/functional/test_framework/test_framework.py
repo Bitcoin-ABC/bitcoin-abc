@@ -34,6 +34,7 @@ from .util import (
     initialize_datadir,
     p2p_port,
     rpc_port,
+    uint256_hex,
     wait_until_helper,
 )
 
@@ -680,7 +681,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
 
         def format_ids(id_list):
             """Convert ProodIDs to hex strings for easier debugging"""
-            return list(f"{i:064x}" for i in id_list)
+            return list(uint256_hex(i) for i in id_list)
 
         while time.time() <= stop_time:
             nodes_proofs = [

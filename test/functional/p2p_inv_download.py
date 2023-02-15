@@ -29,7 +29,11 @@ from test_framework.messages import (
 )
 from test_framework.p2p import P2PInterface, p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, assert_raises_rpc_error
+from test_framework.util import (
+    assert_equal,
+    assert_raises_rpc_error,
+    uint256_hex,
+)
 from test_framework.wallet_util import bytes_to_wif
 
 
@@ -193,7 +197,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
         # In order to make sure the inv is sent we move the time 2 minutes
         # forward, which has the added side effect that the tx can be
         # unconditionally requested.
-        with self.nodes[1].assert_debug_log([f"got inv: tx {txid:064x}  new peer=0"]):
+        with self.nodes[1].assert_debug_log([f"got inv: tx {uint256_hex(txid)}  new peer=0"]):
             self.nodes[0].setmocktime(
                 int(time.time()) + UNCONDITIONAL_RELAY_DELAY)
 
@@ -383,7 +387,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
 
         # Build a proof with immature utxos
         privkey, immature = gen_proof(self, node)
-        proofid_hex = "{:064x}".format(immature.proofid)
+        proofid_hex = uint256_hex(immature.proofid)
 
         self.restart_node(0, extra_args=self.extra_args[0] + [
             "-avaproofstakeutxoconfirmations=3",

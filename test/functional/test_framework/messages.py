@@ -321,8 +321,8 @@ class CInv:
         return r
 
     def __repr__(self):
-        return "CInv(type={} hash={:064x})".format(
-            self.typemap[self.type], self.hash)
+        return "CInv(type={} hash={})".format(
+            self.typemap[self.type], uint256_hex(self.hash))
 
     def __eq__(self, other):
         return isinstance(
@@ -369,7 +369,7 @@ class COutPoint:
         return r
 
     def __repr__(self):
-        return "COutPoint(hash={:064x} n={})".format(self.hash, self.n)
+        return "COutPoint(hash={} n={})".format(uint256_hex(self.hash), self.n)
 
 
 class CTxIn:
@@ -559,9 +559,10 @@ class CBlockHeader:
         return self.sha256
 
     def __repr__(self):
-        return "CBlockHeader(nVersion={} hashPrevBlock={:064x} hashMerkleRoot={:064x} nTime={} nBits={:08x} nNonce={:08x})".format(
-            self.nVersion, self.hashPrevBlock, self.hashMerkleRoot,
-            self.nTime, self.nBits, self.nNonce)
+        return "CBlockHeader(nVersion={} hashPrevBlock={} hashMerkleRoot={} nTime={} nBits={:08x} nNonce={:08x})".format(
+            self.nVersion, uint256_hex(self.hashPrevBlock),
+            uint256_hex(self.hashMerkleRoot), self.nTime, self.nBits,
+            self.nNonce)
 
 
 BLOCK_HEADER_SIZE = len(CBlockHeader().serialize())
@@ -622,9 +623,10 @@ class CBlock(CBlockHeader):
             self.rehash()
 
     def __repr__(self):
-        return "CBlock(nVersion={} hashPrevBlock={:064x} hashMerkleRoot={:064x} nTime={} nBits={:08x} nNonce={:08x} vtx={})".format(
-            self.nVersion, self.hashPrevBlock, self.hashMerkleRoot,
-            self.nTime, self.nBits, self.nNonce, repr(self.vtx))
+        return "CBlock(nVersion={} hashPrevBlock={} hashMerkleRoot={} nTime={} nBits={:08x} nNonce={:08x} vtx={})".format(
+            self.nVersion, uint256_hex(self.hashPrevBlock),
+            uint256_hex(self.hashMerkleRoot), self.nTime, self.nBits,
+            self.nNonce, repr(self.vtx))
 
 
 class PrefilledTransaction:
@@ -804,8 +806,8 @@ class BlockTransactionsRequest:
         return absolute_indexes
 
     def __repr__(self):
-        return "BlockTransactionsRequest(hash={:064x} indexes={})".format(
-            self.blockhash, repr(self.indexes))
+        return "BlockTransactionsRequest(hash={} indexes={})".format(
+            uint256_hex(self.blockhash), repr(self.indexes))
 
 
 class BlockTransactions:
@@ -826,8 +828,8 @@ class BlockTransactions:
         return r
 
     def __repr__(self):
-        return "BlockTransactions(hash={:064x} transactions={})".format(
-            self.blockhash, repr(self.transactions))
+        return "BlockTransactions(hash={} transactions={})".format(
+            uint256_hex(self.blockhash), repr(self.transactions))
 
 
 class AvalancheStake:
@@ -1047,8 +1049,8 @@ class AvalancheVote:
         return r
 
     def __repr__(self):
-        return "AvalancheVote(error={}, hash={:064x})".format(
-            self.error, self.hash)
+        return "AvalancheVote(error={}, hash={})".format(
+            self.error, uint256_hex(self.hash))
 
 
 class AvalancheResponse:
@@ -1152,8 +1154,10 @@ class AvalancheDelegation:
         return r
 
     def __repr__(self):
-        return f"AvalancheDelegation(limitedProofId={self.limited_proofid:064x}, " \
-               f"proofMaster={self.proof_master.hex()}, proofid={self.proofid:064x}, " \
+        return f"AvalancheDelegation(" \
+               f"limitedProofId={uint256_hex(self.limited_proofid)}, " \
+               f"proofMaster={self.proof_master.hex()}, " \
+               f"proofid={uint256_hex(self.proofid)}, " \
                f"levels={self.levels})"
 
     def getid(self):
@@ -1429,8 +1433,8 @@ class msg_getblocks:
         return r
 
     def __repr__(self):
-        return "msg_getblocks(locator={} hashstop={:064x})".format(
-            repr(self.locator), self.hashstop)
+        return "msg_getblocks(locator={} hashstop={})".format(
+            repr(self.locator), uint256_hex(self.hashstop))
 
 
 class msg_tx:
@@ -1616,8 +1620,8 @@ class msg_getheaders:
         return r
 
     def __repr__(self):
-        return "msg_getheaders(locator={}, stop={:064x})".format(
-            repr(self.locator), self.hashstop)
+        return "msg_getheaders(locator={}, stop={})".format(
+            repr(self.locator), uint256_hex(self.hashstop))
 
 
 # headers message has

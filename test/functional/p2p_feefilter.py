@@ -9,7 +9,7 @@ from decimal import Decimal
 from test_framework.messages import MSG_TX, msg_feefilter
 from test_framework.p2p import P2PInterface, p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, uint256_hex
 from test_framework.wallet import MiniWallet
 
 
@@ -32,7 +32,7 @@ class TestP2PConn(P2PInterface):
     def on_inv(self, message):
         for i in message.inv:
             if (i.type == MSG_TX):
-                self.txinvs.append('{:064x}'.format(i.hash))
+                self.txinvs.append(uint256_hex(i.hash))
 
     def wait_for_invs_to_match(self, invs_expected):
         invs_expected.sort()

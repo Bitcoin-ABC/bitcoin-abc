@@ -100,7 +100,7 @@ from test_framework.messages import (
 )
 from test_framework.p2p import P2PInterface, p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, uint256_hex
 
 DIRECT_FETCH_RESPONSE_TIME = 0.05
 
@@ -407,8 +407,8 @@ class SendHeadersTest(BitcoinTestFramework):
 
             block_time += 9
 
-            fork_point = self.nodes[0].getblock("{:064x}".format(
-                new_block_hashes[0]))["previousblockhash"]
+            fork_point = self.nodes[0].getblock(
+                uint256_hex(new_block_hashes[0]))["previousblockhash"]
             fork_point = int(fork_point, 16)
 
             # Use getblocks/getdata

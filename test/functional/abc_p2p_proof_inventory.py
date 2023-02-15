@@ -29,6 +29,7 @@ from test_framework.util import (
     assert_equal,
     assert_greater_than,
     assert_raises_rpc_error,
+    uint256_hex,
 )
 from test_framework.wallet_util import bytes_to_wif
 
@@ -122,7 +123,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         self.log.info("Test receiving a proof with an immature utxo")
 
         _, immature = self.generate_proof(node, mature=False)
-        immature_proofid = "{:064x}".format(immature.proofid)
+        immature_proofid = uint256_hex(immature.proofid)
 
         msg = msg_avaproof()
         msg.proof = immature
@@ -252,7 +253,7 @@ class ProofInventoryTest(BitcoinTestFramework):
             return peers
 
         _, proof = self.generate_proof(node)
-        proofid_hex = "{:064x}".format(proof.proofid)
+        proofid_hex = uint256_hex(proof.proofid)
 
         # Broadcast the proof
         peers = add_peers(3)
@@ -306,7 +307,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         raw_tx = node.createrawtransaction(
             inputs=[{
                 # coinbase
-                "txid": "{:064x}".format(utxo.hash),
+                "txid": uint256_hex(utxo.hash),
                 "vout": utxo.n
             }],
             outputs={ADDRESS_ECREG_UNSPENDABLE: 25_000_000 - 250.00},

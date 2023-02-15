@@ -46,7 +46,7 @@ from test_framework.p2p import P2PInterface, p2p_lock
 from test_framework.script import OP_TRUE, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, uint256_hex
 
 # TestP2PConn: A peer we use to send messages to bitcoind, and store responses.
 
@@ -311,8 +311,8 @@ class CompactBlocksTest(BitcoinTestFramework):
         block_hash = int(self.generate(node, 1)[0], 16)
 
         # Store the raw block in our internal format.
-        block = FromHex(CBlock(), node.getblock(
-            "{:064x}".format(block_hash), False))
+        block = FromHex(CBlock(),
+                        node.getblock(uint256_hex(block_hash), False))
         for tx in block.vtx:
             tx.calc_sha256()
         block.rehash()

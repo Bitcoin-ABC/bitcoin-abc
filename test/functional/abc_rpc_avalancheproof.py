@@ -472,7 +472,7 @@ class AvalancheProofTest(BitcoinTestFramework):
 
         self.log.info("Check the getrawproof RPC")
 
-        raw_proof = node.getrawavalancheproof("{:064x}".format(proofid))
+        raw_proof = node.getrawavalancheproof(uint256_hex(proofid))
         assert_equal(raw_proof['proof'], proof)
         assert_equal(raw_proof['immature'], False)
         assert_equal(raw_proof['boundToPeer'], True)
@@ -518,7 +518,7 @@ class AvalancheProofTest(BitcoinTestFramework):
         # validity has updated
         node.syncwithvalidationinterfacequeue()
 
-        raw_proof = node.getrawavalancheproof("{:064x}".format(proofid))
+        raw_proof = node.getrawavalancheproof(uint256_hex(proofid))
         assert_equal(raw_proof['proof'], proof)
         assert_equal(raw_proof['immature'], True)
         assert_equal(raw_proof['boundToPeer'], False)

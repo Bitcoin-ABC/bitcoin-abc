@@ -305,7 +305,7 @@ class AvaP2PInterface(NoHandshakeAvaP2PInterface):
         if test_framework is not None and node is not None:
             self.master_privkey, self.proof = gen_proof(test_framework, node)
             delegation_hex = node.delegateavalancheproof(
-                f"{self.proof.limited_proofid:0{64}x}",
+                uint256_hex(self.proof.limited_proofid),
                 bytes_to_wif(self.master_privkey.get_bytes()),
                 self.delegated_privkey.get_pubkey().get_bytes().hex(),
             )
