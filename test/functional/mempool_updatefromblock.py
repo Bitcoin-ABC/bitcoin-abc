@@ -17,8 +17,8 @@ from test_framework.util import assert_equal
 class MempoolUpdateFromBlockTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
-        self.limitancestorcount = 200
-        self.limitdescendantcount = 50
+        self.limitancestorcount = 60
+        self.limitdescendantcount = 15
         self.extra_args = [
             [
                 '-limitdescendantsize=5000',
@@ -153,7 +153,7 @@ class MempoolUpdateFromBlockTest(BitcoinTestFramework):
             assert_equal(entry['ancestorsize'], sum(tx_size[0:(k + 1)]))
 
     def run_test(self):
-        # Use batch size limited by DEFAULT_DESCENDANT_LIMIT = 50 to not fire
+        # Use batch size limited to self.limitdescendantcount to not fire
         # "too many unconfirmed descendants" error.
         self.transaction_graph_test(
             size=self.limitancestorcount,
