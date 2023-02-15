@@ -17,8 +17,16 @@ from test_framework.util import assert_equal
 class MempoolUpdateFromBlockTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
+        self.limitancestorcount = 200
+        self.limitdescendantcount = 50
         self.extra_args = [
-            ['-limitdescendantsize=5000', '-limitancestorsize=5000', '-limitancestorcount=200']]
+            [
+                '-limitdescendantsize=5000',
+                '-limitancestorsize=5000',
+                f'-limitancestorcount={self.limitancestorcount}',
+                f'-limitdescendantcount={self.limitdescendantcount}',
+            ],
+        ]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -145,9 +153,13 @@ class MempoolUpdateFromBlockTest(BitcoinTestFramework):
             assert_equal(entry['ancestorsize'], sum(tx_size[0:(k + 1)]))
 
     def run_test(self):
-        # Use batch size limited by DEFAULT_ANCESTOR_LIMIT = 50 to not fire
-        # "too many unconfirmed parents" error.
-        self.transaction_graph_test(size=200, n_tx_to_mine=[50, 100, 150])
+        # Use batch size limited by DEFAULT_DESCENDANT_LIMIT = 50 to not fire
+        # "too many unconfirmed descendants" error.
+        self.transaction_graph_test(
+            size=self.limitancestorcount,
+            n_tx_to_mine=range(0, self.limitancestorcount,
+                               self.limitdescendantcount),
+        )
 
 
 if __name__ == '__main__':
