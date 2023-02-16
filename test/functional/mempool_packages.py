@@ -6,7 +6,6 @@
 
 from decimal import Decimal
 
-from test_framework.messages import XEC
 from test_framework.p2p import P2PTxInvStore
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
@@ -105,7 +104,7 @@ class MempoolPackagesTest(BitcoinTestFramework):
                      sum([mempool[tx]['size'] for tx in mempool]))
         ancestor_count = MAX_ANCESTORS
         assert_equal(ancestor_fees,
-                     sum([mempool[tx]['fee'] for tx in mempool]))
+                     sum([mempool[tx]['fees']['base'] for tx in mempool]))
 
         descendants = []
         ancestors = list(chain)
@@ -116,12 +115,10 @@ class MempoolPackagesTest(BitcoinTestFramework):
 
             # Check that the descendant calculations are correct
             assert_equal(mempool[x]['descendantcount'], descendant_count)
-            descendant_fees += mempool[x]['fee']
-            assert_equal(mempool[x]['modifiedfee'], mempool[x]['fee'])
-            assert_equal(mempool[x]['fees']['base'], mempool[x]['fee'])
-            assert_equal(mempool[x]['fees']['modified'],
-                         mempool[x]['modifiedfee'])
-            assert_equal(mempool[x]['descendantfees'], descendant_fees * XEC)
+            descendant_fees += mempool[x]['fees']['base']
+            assert_equal(
+                mempool[x]['fees']['modified'],
+                mempool[x]['fees']['base'])
             assert_equal(mempool[x]['fees']['descendant'], descendant_fees)
             descendant_size += mempool[x]['size']
             assert_equal(mempool[x]['descendantsize'], descendant_size)
@@ -129,10 +126,10 @@ class MempoolPackagesTest(BitcoinTestFramework):
 
             # Check that ancestor calculations are correct
             assert_equal(mempool[x]['ancestorcount'], ancestor_count)
-            assert_equal(mempool[x]['ancestorfees'], ancestor_fees * XEC)
+            assert_equal(mempool[x]['fees']['ancestor'], ancestor_fees)
             assert_equal(mempool[x]['ancestorsize'], ancestor_size)
             ancestor_size -= mempool[x]['size']
-            ancestor_fees -= mempool[x]['fee']
+            ancestor_fees -= mempool[x]['fees']['base']
             ancestor_count -= 1
 
             # Check that parent/child list is correct
@@ -191,11 +188,9 @@ class MempoolPackagesTest(BitcoinTestFramework):
         mempool = self.nodes[0].getrawmempool(True)
         ancestor_fees = 0
         for x in chain:
-            ancestor_fees += mempool[x]['fee']
+            ancestor_fees += mempool[x]['fees']['base']
             assert_equal(mempool[x]['fees']['ancestor'],
                          ancestor_fees + Decimal('10.00'))
-            assert_equal(mempool[x]['ancestorfees'],
-                         ancestor_fees * XEC + 1000)
 
         # Undo the prioritisetransaction for later tests
         self.nodes[0].prioritisetransaction(txid=chain[0], fee_delta=-1000)
@@ -207,11 +202,9 @@ class MempoolPackagesTest(BitcoinTestFramework):
 
         descendant_fees = 0
         for x in reversed(chain):
-            descendant_fees += mempool[x]['fee']
+            descendant_fees += mempool[x]['fees']['base']
             assert_equal(mempool[x]['fees']['descendant'],
                          descendant_fees + Decimal('10.00'))
-            assert_equal(mempool[x]['descendantfees'],
-                         descendant_fees * XEC + 1000)
 
         # Adding one more transaction on to the chain should fail.
         assert_raises_rpc_error(-26, "too-long-mempool-chain",
@@ -234,14 +227,10 @@ class MempoolPackagesTest(BitcoinTestFramework):
 
         descendant_fees = 0
         for x in reversed(chain):
-            descendant_fees += mempool[x]['fee']
+            descendant_fees += mempool[x]['fees']['base']
             if (x == chain[-1]):
-                assert_equal(mempool[x]['modifiedfee'],
-                             mempool[x]['fee'] + satoshi_round(20.00))
                 assert_equal(mempool[x]['fees']['modified'],
-                             mempool[x]['fee'] + satoshi_round(20.00))
-            assert_equal(mempool[x]['descendantfees'],
-                         descendant_fees * XEC + 2000)
+                             mempool[x]['fees']['base'] + satoshi_round(20.00))
             assert_equal(mempool[x]['fees']['descendant'],
                          descendant_fees + satoshi_round(20.00))
 

@@ -462,11 +462,6 @@ static std::vector<RPCResult> MempoolEntryDescription() {
     const auto &ticker = Currency::get().ticker;
     return {
         RPCResult{RPCResult::Type::NUM, "size", "transaction size."},
-        RPCResult{RPCResult::Type::STR_AMOUNT, "fee",
-                  "transaction fee in " + ticker + " (DEPRECATED)"},
-        RPCResult{RPCResult::Type::STR_AMOUNT, "modifiedfee",
-                  "transaction fee with fee deltas used for mining priority "
-                  "(DEPRECATED)"},
         RPCResult{RPCResult::Type::NUM_TIME, "time",
                   "local time transaction entered pool in seconds since 1 Jan "
                   "1970 GMT"},
@@ -478,18 +473,12 @@ static std::vector<RPCResult> MempoolEntryDescription() {
         RPCResult{RPCResult::Type::NUM, "descendantsize",
                   "transaction size of in-mempool descendants "
                   "(including this one)"},
-        RPCResult{RPCResult::Type::STR_AMOUNT, "descendantfees",
-                  "modified fees (see above) of in-mempool descendants "
-                  "(including this one) (DEPRECATED)"},
         RPCResult{
             RPCResult::Type::NUM, "ancestorcount",
             "number of in-mempool ancestor transactions (including this one)"},
         RPCResult{
             RPCResult::Type::NUM, "ancestorsize",
             "transaction size of in-mempool ancestors (including this one)"},
-        RPCResult{RPCResult::Type::STR_AMOUNT, "ancestorfees",
-                  "modified fees (see above) of in-mempool ancestors "
-                  "(including this one) (DEPRECATED)"},
         RPCResult{RPCResult::Type::OBJ,
                   "fees",
                   "",
@@ -540,16 +529,12 @@ static void entryToJSON(const CTxMemPool &pool, UniValue &info,
     info.pushKV("fees", fees);
 
     info.pushKV("size", (int)e.GetTxSize());
-    info.pushKV("fee", e.GetFee());
-    info.pushKV("modifiedfee", e.GetModifiedFee());
     info.pushKV("time", count_seconds(e.GetTime()));
     info.pushKV("height", (int)e.GetHeight());
     info.pushKV("descendantcount", e.GetCountWithDescendants());
     info.pushKV("descendantsize", e.GetSizeWithDescendants());
-    info.pushKV("descendantfees", e.GetModFeesWithDescendants() / SATOSHI);
     info.pushKV("ancestorcount", e.GetCountWithAncestors());
     info.pushKV("ancestorsize", e.GetSizeWithAncestors());
-    info.pushKV("ancestorfees", e.GetModFeesWithAncestors() / SATOSHI);
     const CTransaction &tx = e.GetTx();
     std::set<std::string> setDepends;
     for (const CTxIn &txin : tx.vin) {
