@@ -1,9 +1,7 @@
-# Bitcoin ABC 0.26.12 Release Notes
+# Bitcoin ABC 0.27.0 Release Notes
 
-Bitcoin ABC version 0.26.12 is now available from:
+Bitcoin ABC version 0.27.0 is now available from:
 
-  <https://download.bitcoinabc.org/0.26.12/>
+  <https://download.bitcoinabc.org/0.27.0/>
 
- - Removed 10-block rolling finalization. This only affects configurations
-   where Avalanche is explicitly disabled. This removal includes associated
-   command-line parameters `-finalizationdelay` and `-maxreorgdepth`.
+This is a maintenance release with no user-visible change.
