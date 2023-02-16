@@ -41,7 +41,6 @@ export const getAliasRegistrationFee = alias => {
             registrationFee = fee.eightChar;
             break;
     }
-
     return registrationFee;
 };
 

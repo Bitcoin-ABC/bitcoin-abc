@@ -106,6 +106,7 @@ export const getAllTxHistory = async (
     customPagesToIterate = 0,
 ) => {
     let allTxHistory = [];
+    let sortedAllTxHistory = [];
     let txHistoryFirstPageResponse, secondPageIndex;
 
     txHistoryFirstPageResponse = await getTxHistoryPage(
@@ -176,7 +177,65 @@ export const getAllTxHistory = async (
         }
     }
 
-    return allTxHistory;
+    // sort allTxHistory based on blockheight and txid
+    sortedAllTxHistory = sortAliasTxsByTxidAndBlockheight(allTxHistory);
+
+    return sortedAllTxHistory;
+};
+
+export const filterDuplicateAliasTxs = sortedAllTxHistory => {
+    let uniqueSortedAllTxHistory = [];
+    // filter out duplicate aliases
+    sortedAllTxHistory.forEach(function (aliasTx) {
+        // if this is the first instance of this alias OP_RETURN script, add to uniqueSortedAllTxHistory
+        if (
+            !JSON.stringify(uniqueSortedAllTxHistory).includes(
+                JSON.stringify(aliasTx.outputs[0].outputScript),
+            )
+        ) {
+            uniqueSortedAllTxHistory.push(aliasTx);
+        }
+    });
+
+    return uniqueSortedAllTxHistory;
+};
+
+export const sortAliasTxsByTxidAndBlockheight = unsortedAliasTxs => {
+    // arbitrary to set unconfirmed txs at blockheight of 100,000,000
+    // note that this constant must be adjusted in the fall of 3910 A.D., assuming 10 min blocks
+    // setting it high instead of zero because it's important we sort aliases by blockheight
+    // for sortAliasTxsByTxidAndBlockheight function
+    unsortedAliasTxs.forEach(function (aliasTx) {
+        if (!aliasTx.block) {
+            // if this tx does not have a block attribute, i.e. unconfirmed
+            aliasTx.block = { height: 100000000 };
+            console.log(
+                `unconfirmed tx found, setting .block attribute to 100000000`,
+            );
+        }
+    });
+
+    // First, sort the aliases array by alphabetical txid
+    // (alphabetical first to last, 0 comes before a comes before b comes before c, etc)
+    const aliasesTxsSortedByTxid = unsortedAliasTxs.sort((a, b) => {
+        return a.txid.localeCompare(b.txid);
+    });
+
+    // Next, sort the aliases array by blockheight. This will preserve the alphabetical txid sort
+    // 735,625 comes before 735,626 comes before 100,000,000 etc
+    const aliasTxsSortedByTxidAndBlockheight = aliasesTxsSortedByTxid.sort(
+        (a, b) => {
+            return a.block.height - b.block.height;
+        },
+    );
+
+    // temporary log for reviewer
+    console.log(
+        `aliasTxsSortedByTxidAndBlockheight: `,
+        JSON.stringify(aliasTxsSortedByTxidAndBlockheight),
+    );
+
+    return aliasTxsSortedByTxidAndBlockheight;
 };
 
 export const getAddressFromAlias = (alias, cachedAliases) => {
@@ -194,18 +253,17 @@ export const getAddressFromAlias = (alias, cachedAliases) => {
 };
 
 export const isAliasAvailable = async (chronik, alias) => {
-    // TODO: Implement caching mechanism to reduce the API call below
-    // if isLocalAliasStateLatest() is true then retrieve incoming tx history from localStorage
-    // else retrieve via chronik and update localStorage
-
     // retrieve alias payment address tx history
     let aliasPaymentTxs = await getAllTxHistory(
         chronik,
         currency.aliasSettings.aliasPaymentHash160,
     );
 
+    // filter out duplicate alias registrations
+    let uniqueRegisteredAlaises = filterDuplicateAliasTxs(aliasPaymentTxs);
+
     // extract aliases from payment address' tx history
-    let registeredAliases = getAliasAndAddresses(aliasPaymentTxs);
+    let registeredAliases = getAliasAndAddresses(uniqueRegisteredAlaises);
 
     // check if the chosen alias has already been registered onchain
     let isAliasTaken = isAliasRegistered(registeredAliases, alias);
@@ -226,9 +284,10 @@ export const isAliasRegistered = (registeredAliases, alias) => {
     return false;
 };
 
-export const getAliasAndAddresses = aliasPaymentTxs => {
+export const getAliasAndAddresses = unfilteredAliasPaymentTxs => {
     const registeredAliases = [];
     let aliasName;
+    let aliasPaymentTxs = filterDuplicateAliasTxs(unfilteredAliasPaymentTxs);
 
     // parse through each txs in alias payment address
     for (let i = 0; i < aliasPaymentTxs.length; i += 1) {
@@ -334,7 +393,6 @@ export const getAliasAndAddresses = aliasPaymentTxs => {
                         alias: aliasName,
                         address: aliasAddress,
                     });
-
                     // reset fee increment for the next aliasPaymentTxs[i]
                     totalAliasFeePaid = new BigNumber(0);
                 }

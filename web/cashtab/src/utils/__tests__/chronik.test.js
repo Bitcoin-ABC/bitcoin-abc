@@ -12,6 +12,8 @@ import {
     isAliasRegistered,
     getAddressFromAlias,
     calculateAliasTxCount,
+    sortAliasTxsByTxidAndBlockheight,
+    filterDuplicateAliasTxs,
 } from 'utils/chronik';
 import {
     mockChronikUtxos,
@@ -61,6 +63,12 @@ import {
     mockTxHistoryOfAliasPaymentAddress,
     mockTxHistoryLastPageResponse23Txs,
     mockTxHistoryLastPageResponse25Txs,
+    mockUnsortedAliasTxHistoryWithUnconfirmedTxs,
+    mockSortedAliasTxHistoryWithUnconfirmedTxs,
+    mockSortedAliasTxHistoryWithTxsInSameBlock,
+    mockUnsortedAliasTxHistoryWithTxsInSameBlock,
+    mockFilteredSortedAliasTxHistoryWithDuplicateTxs,
+    mockUnfilteredSortedAliasTxHistoryWithDuplicateTxs,
 } from '../__mocks__/chronikTxHistory';
 import {
     mintingTxTabCash,
@@ -75,6 +83,30 @@ import {
 import { mockAliasLocalStorage } from 'utils/__mocks__/mockCachedAliases';
 import { ChronikClient } from 'chronik-client';
 import { when } from 'jest-when';
+
+it(`sortAliasTxsByTxidAndBlockheight correctly sorts an alias payment tx history with unconfirmed transactions`, async () => {
+    expect(
+        sortAliasTxsByTxidAndBlockheight(
+            mockUnsortedAliasTxHistoryWithUnconfirmedTxs,
+        ),
+    ).toStrictEqual(mockSortedAliasTxHistoryWithUnconfirmedTxs);
+});
+
+it(`sortAliasTxsByTxidAndBlockheight correctly sorts an alias payment tx history with unconfirmed transactions in the same block`, async () => {
+    expect(
+        sortAliasTxsByTxidAndBlockheight(
+            mockUnsortedAliasTxHistoryWithTxsInSameBlock,
+        ),
+    ).toStrictEqual(mockSortedAliasTxHistoryWithTxsInSameBlock);
+});
+
+it(`filterDuplicateAliasTxs correctly filters out subsequent duplicate alias registrations for the same alias`, async () => {
+    expect(
+        filterDuplicateAliasTxs(
+            mockUnfilteredSortedAliasTxHistoryWithDuplicateTxs,
+        ),
+    ).toStrictEqual(mockFilteredSortedAliasTxHistoryWithDuplicateTxs);
+});
 
 it(`calculateAliasTxCount returns a correct tx count for a final page containing less than the full 25 txs`, async () => {
     const txCount = calculateAliasTxCount(
@@ -762,7 +794,7 @@ it(`getMintAddress successfully parses chronik.tx response to determine mint add
     );
 });
 
-it(`Successfully extracts aliases from an alias payment address tx history`, () => {
+it(`Successfully extracts unique aliases from an alias payment address tx history`, () => {
     expect(
         getAliasAndAddresses(mockTxHistoryOfAliasPaymentAddress),
     ).toStrictEqual([
@@ -779,19 +811,7 @@ it(`Successfully extracts aliases from an alias payment address tx history`, () 
             address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
         },
         {
-            alias: 'foo',
-            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
-        },
-        {
-            alias: 'foo',
-            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
-        },
-        {
             alias: 'joey',
-            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
-        },
-        {
-            alias: 'nfs',
             address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
         },
         {
