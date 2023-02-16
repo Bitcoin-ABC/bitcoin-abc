@@ -4725,7 +4725,7 @@ VerifyDBResult CVerifyDB::VerifyDB(Chainstate &chainstate, const Config &config,
         }
 
         if (ShutdownRequested()) {
-            return VerifyDBResult::SUCCESS;
+            return VerifyDBResult::INTERRUPTED;
         }
     }
 
@@ -4775,7 +4775,7 @@ VerifyDBResult CVerifyDB::VerifyDB(Chainstate &chainstate, const Config &config,
                 return VerifyDBResult::CORRUPTED_BLOCK_DB;
             }
             if (ShutdownRequested()) {
-                return VerifyDBResult::SUCCESS;
+                return VerifyDBResult::INTERRUPTED;
             }
         }
     }

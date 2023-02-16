@@ -565,6 +565,7 @@ bool TestBlockValidity(BlockValidationState &state, const CChainParams &params,
 enum class VerifyDBResult {
     SUCCESS,
     CORRUPTED_BLOCK_DB,
+    INTERRUPTED,
 };
 
 /**

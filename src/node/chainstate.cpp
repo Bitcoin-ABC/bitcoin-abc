@@ -281,6 +281,9 @@ VerifyLoadedChainstate(ChainstateManager &chainman,
             switch (result) {
                 case VerifyDBResult::SUCCESS:
                     break;
+                case VerifyDBResult::INTERRUPTED:
+                    return {ChainstateLoadStatus::INTERRUPTED,
+                            _("Block verification was interrupted")};
                 case VerifyDBResult::CORRUPTED_BLOCK_DB:
                     return {ChainstateLoadStatus::FAILURE,
                             _("Corrupted block database detected")};
