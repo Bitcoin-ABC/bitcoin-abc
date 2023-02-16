@@ -21,16 +21,23 @@ A node backend for validating eCash alias registrations
 [x] Mocks with unconfirmed and conflicting alias registrations
 
 [] **Database**
+[] Initialize MongoDB
 [] **API endpoints**
+
+## Requirements
+
+You will need a local instance of MongoDB. See installation instructions [here](https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/).
 
 ## Development
 
-1. Copy `config.sample.js` to `config.js` and update parameters
-
-`cp config.sample.js config.js`
-
-2. Run `index.js` to test current functionality
+Run `index.js` to test current functionality
 
 `node index.js`
+
+Run `db.js` to test database functionality.
+
+1. Install `mongodb`
+2. `sudo systemctl start mongod`
+3. `node db.js` and confirm data is successfully written.
 
 ## Production

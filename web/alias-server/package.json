@@ -18,7 +18,8 @@
     "dependencies": {
         "assert": "^2.0.0",
         "chronik-client": "^0.8.1",
-        "ecashaddrjs": "^1.0.7"
+        "ecashaddrjs": "^1.0.7",
+        "mongodb": "^5.0.1"
     },
     "devDependencies": {
         "mocha": "^10.2.0"

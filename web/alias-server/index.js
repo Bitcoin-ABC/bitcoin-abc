@@ -7,6 +7,8 @@ const {
 } = require('./alias.js');
 const fs = require('fs');
 
+async function writeTestDataToDatabase(testData) {}
+
 async function generateMocks() {
     // chronik tx history of alias registration address
     const aliasTxHistory = await getAllTxHistory(
