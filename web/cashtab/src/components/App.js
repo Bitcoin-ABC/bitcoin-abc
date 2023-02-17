@@ -40,6 +40,7 @@ import {
 import TabCash from 'assets/tabcash.png';
 import { checkForTokenById } from 'utils/tokenMethods.js';
 import ServiceWorkerWrapper from './Common/ServiceWorkerWrapper';
+import { currency } from 'components/Common/Ticker.js';
 
 const GlobalStyle = createGlobalStyle`
     *::placeholder {
@@ -588,13 +589,15 @@ const App = () => {
                                 <Route path="/signverifymsg">
                                     <SignVerifyMsg />
                                 </Route>
-                                <Route path="/alias">
-                                    <Alias
-                                        passLoadingStatus={
-                                            setLoadingUtxosAfterSend
-                                        }
-                                    />
-                                </Route>
+                                {currency.aliasSettings.aliasEnabled && (
+                                    <Route path="/alias">
+                                        <Alias
+                                            passLoadingStatus={
+                                                setLoadingUtxosAfterSend
+                                            }
+                                        />
+                                    </Route>
+                                )}
                                 <Route path="/configure">
                                     <Configure
                                         passLoadingStatus={
@@ -655,16 +658,19 @@ const App = () => {
                                             <p>Sign & Verify</p>
                                             <ThemedSignAndVerifyMsg />
                                         </NavItem>
-                                        <NavItem
-                                            active={selectedKey === 'alias'}
-                                            onClick={() =>
-                                                history.push('/alias')
-                                            }
-                                        >
-                                            {' '}
-                                            <p>Alias</p>
-                                            <ThemedUserProfileIcon />
-                                        </NavItem>
+                                        {currency.aliasSettings
+                                            .aliasEnabled && (
+                                            <NavItem
+                                                active={selectedKey === 'alias'}
+                                                onClick={() =>
+                                                    history.push('/alias')
+                                                }
+                                            >
+                                                {' '}
+                                                <p>Alias</p>
+                                                <ThemedUserProfileIcon />
+                                            </NavItem>
+                                        )}
                                         <NavItem
                                             active={selectedKey === 'configure'}
                                             onClick={() =>

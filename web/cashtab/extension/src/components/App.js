@@ -40,6 +40,7 @@ import {
 import PopOut from 'assets/popout.svg';
 // Extension-only import used for interacting with the extension API
 import extension from 'extensionizer';
+import { currency } from 'components/Common/Ticker.js';
 
 const GlobalStyle = createGlobalStyle`    
     *::placeholder {
@@ -655,13 +656,15 @@ const App = () => {
                                 <Route path="/signverifymsg">
                                     <SignVerifyMsg />
                                 </Route>
-                                <Route path="/alias">
-                                    <Alias
-                                        passLoadingStatus={
-                                            setLoadingUtxosAfterSend
-                                        }
-                                    />
-                                </Route>
+                                {currency.aliasSettings.aliasEnabled && (
+                                    <Route path="/alias">
+                                        <Alias
+                                            passLoadingStatus={
+                                                setLoadingUtxosAfterSend
+                                            }
+                                        />
+                                    </Route>
+                                )}
                                 <Route path="/configure">
                                     <Configure
                                         passLoadingStatus={
@@ -722,16 +725,19 @@ const App = () => {
                                             <p>Sign & Verify</p>
                                             <ThemedSignAndVerifyMsg />
                                         </NavItem>
-                                        <NavItem
-                                            active={selectedKey === 'alias'}
-                                            onClick={() =>
-                                                history.push('/alias')
-                                            }
-                                        >
-                                            {' '}
-                                            <p>Alias</p>
-                                            <ThemedUserProfileIcon />
-                                        </NavItem>
+                                        {currency.aliasSettings
+                                            .aliasEnabled && (
+                                            <NavItem
+                                                active={selectedKey === 'alias'}
+                                                onClick={() =>
+                                                    history.push('/alias')
+                                                }
+                                            >
+                                                {' '}
+                                                <p>Alias</p>
+                                                <ThemedUserProfileIcon />
+                                            </NavItem>
+                                        )}
                                         <NavItem
                                             active={selectedKey === 'configure'}
                                             onClick={() =>
