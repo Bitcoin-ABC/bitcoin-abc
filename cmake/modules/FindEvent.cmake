@@ -33,7 +33,7 @@ find_path(Event_INCLUDE_DIR
 	NAMES event.h
 	PATHS ${PC_Event_INCLUDE_DIRS}
 	HINTS ${_Event_BREW_HINT}
-	PATH_SUFFIXES include
+	PATH_SUFFIXES include event2 include/event2
 )
 
 set(Event_INCLUDE_DIRS ${Event_INCLUDE_DIR})
