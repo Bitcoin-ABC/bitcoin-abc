@@ -148,10 +148,10 @@ source ~/.bashrc
 curl -sL https://deb.nodesource.com/setup_15.x | bash -
 apt-get install -y nodejs
 
-# Install Rust stable 1.61 and nightly from the 2022-06-29
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain=1.61.0
+# Install Rust stable 1.67.1 and nightly from the 2023-02-17
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain=1.67.1
 RUST_HOME="${HOME}/.cargo/bin"
-RUST_NIGHTLY_DATE=2022-06-29
+RUST_NIGHTLY_DATE=2023-02-17
 "${RUST_HOME}/rustup" install nightly-${RUST_NIGHTLY_DATE}
 "${RUST_HOME}/rustup" component add rustfmt --toolchain nightly-${RUST_NIGHTLY_DATE}
 # Name the nightly toolchain "abc-nightly"

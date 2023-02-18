@@ -170,7 +170,7 @@ where
     /// );
     /// ```
     fn hex_be(&self) -> String {
-        hex::encode(&self.to_be_vec())
+        hex::encode(self.to_be_vec())
     }
 
     /// [`Vec<u8>`] of this hash, in little-endian.
