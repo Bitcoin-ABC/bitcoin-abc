@@ -1,5 +1,13 @@
 module.exports = {
     chronik: 'https://chronik.fabien.cash', // URL of chronik instance
+    database: {
+        name: 'ecashAliases',
+        collections: {
+            validAliases: 'validAliasTxs',
+            pendingAliases: 'pendingAliasTxs',
+        },
+        connectionUrl: 'mongodb://localhost:27017',
+    },
     aliasConstants: {
         registrationHash160: '638568e36d0b5d7d49a6e99854caa27d9772b093',
         opCodePrefix: '2e786563',

@@ -7,7 +7,8 @@ A node backend for validating eCash alias registrations
 [x] Template node app
 [x] Install chronik and add function for getting tx history
 [x] Timestamped logging
-[] **Match Cashtab alias functions and unit tests**
+
+[x] **Alias parsing functions and unit tests**
 [x] getAliases function
 [x] util function getAddressFromHash160
 [x] return addresses in parseAliasTx
@@ -21,8 +22,22 @@ A node backend for validating eCash alias registrations
 [x] Mocks with unconfirmed and conflicting alias registrations
 
 [] **Database**
-[] Initialize MongoDB
+[x] Initialize MongoDB
+[x] Insert alias info into db
+[] Improve insert logic so that only aliases that are not already in the database are inserted
+[] pendingAlias database logic (entries must be removed after they exist in validAliasTxs)
+
 [] **API endpoints**
+[] Make alias info available at endpoint
+
+[] **App**
+[] Connect to chronik websockets for blocks and txs at registration address
+[] Functions to update database on new txs
+[] Finalize unit test matching with Cashtab
+
+[] **Deployment**
+[] Update README
+[] CI
 
 ## Requirements
 

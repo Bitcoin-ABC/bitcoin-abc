@@ -6,8 +6,44 @@ const {
     getValidAliasRegistrations,
 } = require('./alias.js');
 const fs = require('fs');
+const { initializeDb } = require('./db');
+const log = require('./log');
 
-async function writeTestDataToDatabase(testData) {}
+async function writeAliasDataToDatabase() {
+    // Get alias data
+    // chronik tx history of alias registration address
+    const aliasTxHistory = await getAllTxHistory(
+        config.aliasConstants.registrationHash160,
+    );
+    const allAliasTxs = getAllAliasTxs(aliasTxHistory, config.aliasConstants);
+    const { validAliasTxs, pendingAliasTxs } =
+        getValidAliasRegistrations(allAliasTxs);
+
+    // Initialize db connection
+    const db = await initializeDb();
+
+    // Update with real data
+    if (validAliasTxs.length > 0) {
+        try {
+            const validAliasTxsCollectionInsertResult = await db
+                .collection(config.database.collections.validAliases)
+                .insertMany(validAliasTxs);
+            console.log(
+                'validAliasTxsCollection inserted documents =>',
+                validAliasTxsCollectionInsertResult,
+            );
+        } catch (err) {
+            log(
+                `A MongoBulkWriteException occurred adding validAliasTxs to the db, but there are successfully processed documents.`,
+            );
+            let ids = err.result.result.insertedIds;
+            for (let id of Object.values(ids)) {
+                log(`Processed a document with id ${id._id}`);
+            }
+            log(`Number of documents inserted: ${err.result.result.nInserted}`);
+        }
+    }
+}
 
 async function generateMocks() {
     // chronik tx history of alias registration address
@@ -67,4 +103,5 @@ async function generateMocks() {
     );
 }
 
-generateMocks();
+//generateMocks();
+writeAliasDataToDatabase();
