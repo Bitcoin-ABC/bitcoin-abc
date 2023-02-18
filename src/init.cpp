@@ -116,7 +116,6 @@ using kernel::ValidationCacheSizes;
 using node::ApplyArgsManOptions;
 using node::CacheSizes;
 using node::CalculateCacheSizes;
-using node::CleanupBlockRevFiles;
 using node::DEFAULT_PERSIST_MEMPOOL;
 using node::DEFAULT_STOPAFTERBLOCKIMPORT;
 using node::fReindex;
@@ -2358,8 +2357,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     g_zmq_notification_interface = CZMQNotificationInterface::Create(
         [&chainman = node.chainman](CBlock &block, const CBlockIndex &index) {
             assert(chainman);
-            return node::ReadBlockFromDisk(block, &index,
-                                           chainman->GetConsensus());
+            return chainman->m_blockman.ReadBlockFromDisk(block, index);
         });
 
     if (g_zmq_notification_interface) {

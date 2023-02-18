@@ -11,8 +11,6 @@
 #include <util/system.h>
 #include <validation.h>
 
-using node::OpenBlockFile;
-
 constexpr uint8_t DB_TXINDEX{'t'};
 
 std::unique_ptr<TxIndex> g_txindex;
@@ -81,7 +79,8 @@ bool TxIndex::FindTx(const TxId &txid, BlockHash &block_hash,
         return false;
     }
 
-    CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
+    CAutoFile file(m_chainstate->m_blockman.OpenBlockFile(postx, true),
+                   SER_DISK, CLIENT_VERSION);
     if (file.IsNull()) {
         return error("%s: OpenBlockFile failed", __func__);
     }

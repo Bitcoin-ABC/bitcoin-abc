@@ -8,10 +8,9 @@
 #include <primitives/blockhash.h>
 #include <util/fs_helpers.h>
 #include <util/system.h>
+#include <validation.h>
 
 #include <map>
-
-using node::UndoReadFromDisk;
 
 /**
  * The index database stores three items for each block: the disk location of
@@ -236,7 +235,7 @@ bool BlockFilterIndex::WriteBlock(const CBlock &block,
     uint256 prev_header;
 
     if (pindex->nHeight > 0) {
-        if (!UndoReadFromDisk(block_undo, pindex)) {
+        if (!m_chainstate->m_blockman.UndoReadFromDisk(block_undo, *pindex)) {
             return false;
         }
 

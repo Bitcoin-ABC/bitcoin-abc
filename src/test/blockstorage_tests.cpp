@@ -12,18 +12,22 @@
 
 #include <boost/test/unit_test.hpp>
 
+using node::BlockManager;
+
 BOOST_FIXTURE_TEST_SUITE(blockstorage_tests, TestChain100Setup)
 
-void CheckReadTx(FlatFilePos pos, const CTransaction &expected) {
+static void CheckReadTx(const BlockManager &blockman, FlatFilePos pos,
+                        const CTransaction &expected) {
     CMutableTransaction tx;
-    BOOST_CHECK(node::ReadTxFromDisk(tx, pos));
+    BOOST_CHECK(blockman.ReadTxFromDisk(tx, pos));
     BOOST_CHECK_EQUAL(tx.GetId(), expected.GetId());
     BOOST_CHECK_EQUAL(tx.GetHash(), expected.GetHash());
 }
 
-void CheckReadTxUndo(FlatFilePos pos, const std::vector<Coin> &expected) {
+static void CheckReadTxUndo(const BlockManager &blockman, FlatFilePos pos,
+                            const std::vector<Coin> &expected) {
     CTxUndo txundo;
-    BOOST_CHECK(node::ReadTxUndoFromDisk(txundo, pos));
+    BOOST_CHECK(blockman.ReadTxUndoFromDisk(txundo, pos));
     BOOST_CHECK_EQUAL(txundo.vprevout.size(), expected.size());
     for (size_t idx = 0; idx < expected.size(); ++idx) {
         const Coin &expectedCoin = expected[idx];
@@ -36,7 +40,6 @@ void CheckReadTxUndo(FlatFilePos pos, const std::vector<Coin> &expected) {
 
 BOOST_AUTO_TEST_CASE(read_tx_data_from_disk) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    const CChainParams &params = chainman.GetParams();
 
     // Read 100 existing coinbase txs
     auto active_tip =
@@ -44,10 +47,10 @@ BOOST_AUTO_TEST_CASE(read_tx_data_from_disk) {
     for (int32_t height = 0; height < 100; ++height) {
         CBlockIndex *pindex = active_tip->GetAncestor(height);
         CBlock block;
-        BOOST_CHECK(
-            node::ReadBlockFromDisk(block, pindex, params.GetConsensus()));
+        BOOST_CHECK(chainman.m_blockman.ReadBlockFromDisk(block, *pindex));
         // + 81 = CBlockHeader + CompactSize
         CheckReadTx(
+            chainman.m_blockman,
             WITH_LOCK(cs_main,
                       return FlatFilePos(pindex->nFile, pindex->nDataPos + 81)),
             *block.vtx[0]);
@@ -70,11 +73,13 @@ BOOST_AUTO_TEST_CASE(read_tx_data_from_disk) {
     BOOST_CHECK_EQUAL(ptest->GetBlockHash(), testBlock.GetHash());
 
     // Check coinbase tx
-    CheckReadTx(WITH_LOCK(cs_main, return FlatFilePos(ptest->nFile,
+    CheckReadTx(chainman.m_blockman,
+                WITH_LOCK(cs_main, return FlatFilePos(ptest->nFile,
                                                       ptest->nDataPos + 81)),
                 *testBlock.vtx[0]);
     // Check 2nd tx
     CheckReadTx(
+        chainman.m_blockman,
         WITH_LOCK(cs_main,
                   return FlatFilePos(ptest->nFile,
                                      ptest->nDataPos + 81 +
@@ -82,7 +87,8 @@ BOOST_AUTO_TEST_CASE(read_tx_data_from_disk) {
         *testBlock.vtx[1]);
     // Check undo data of 2nd tx
     // + 1 = CompactSize
-    CheckReadTxUndo(WITH_LOCK(cs_main, return FlatFilePos(ptest->nFile,
+    CheckReadTxUndo(chainman.m_blockman,
+                    WITH_LOCK(cs_main, return FlatFilePos(ptest->nFile,
                                                           ptest->nUndoPos + 1)),
                     {Coin(CTxOut(50 * COIN, CScript() << OP_1), 101, true)});
 }
@@ -90,10 +96,15 @@ BOOST_AUTO_TEST_CASE(read_tx_data_from_disk) {
 BOOST_AUTO_TEST_CASE(read_tx_data_from_disk_bad) {
     CMutableTransaction tx;
     CTxUndo txundo;
-    BOOST_CHECK(!node::ReadTxFromDisk(tx, FlatFilePos(0x7fffffff, 0)));
-    BOOST_CHECK(!node::ReadTxFromDisk(tx, FlatFilePos(0, 0x7fffffff)));
-    BOOST_CHECK(!node::ReadTxUndoFromDisk(txundo, FlatFilePos(0x7fffffff, 0)));
-    BOOST_CHECK(!node::ReadTxUndoFromDisk(txundo, FlatFilePos(0, 0x7fffffff)));
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    BOOST_CHECK(
+        !chainman.m_blockman.ReadTxFromDisk(tx, FlatFilePos(0x7fffffff, 0)));
+    BOOST_CHECK(
+        !chainman.m_blockman.ReadTxFromDisk(tx, FlatFilePos(0, 0x7fffffff)));
+    BOOST_CHECK(!chainman.m_blockman.ReadTxUndoFromDisk(
+        txundo, FlatFilePos(0x7fffffff, 0)));
+    BOOST_CHECK(!chainman.m_blockman.ReadTxUndoFromDisk(
+        txundo, FlatFilePos(0, 0x7fffffff)));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

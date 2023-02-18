@@ -34,7 +34,6 @@
 #include <vector>
 
 using node::MAX_BLOCKFILE_SIZE;
-using node::UnlinkPrunedFiles;
 
 extern RecursiveMutex cs_wallets;
 
@@ -147,7 +146,7 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
         file_number = oldTip->GetBlockPos().nFile;
         Assert(m_node.chainman)->m_blockman.PruneOneBlockFile(file_number);
     }
-    UnlinkPrunedFiles({file_number});
+    m_node.chainman->m_blockman.UnlinkPrunedFiles({file_number});
 
     // Verify ScanForWalletTransactions only picks transactions in the new block
     // file.
@@ -179,7 +178,7 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
         file_number = newTip->GetBlockPos().nFile;
         Assert(m_node.chainman)->m_blockman.PruneOneBlockFile(file_number);
     }
-    UnlinkPrunedFiles({file_number});
+    m_node.chainman->m_blockman.UnlinkPrunedFiles({file_number});
 
     // Verify ScanForWalletTransactions scans no blocks.
     {
@@ -224,7 +223,7 @@ BOOST_FIXTURE_TEST_CASE(importmulti_rescan, TestChain100Setup) {
         file_number = oldTip->GetBlockPos().nFile;
         chainman.m_blockman.PruneOneBlockFile(file_number);
     }
-    UnlinkPrunedFiles({file_number});
+    m_node.chainman->m_blockman.UnlinkPrunedFiles({file_number});
 
     // Verify importmulti RPC returns failure for a key whose creation time is
     // before the missing block, and success for a key whose creation time is

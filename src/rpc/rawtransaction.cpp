@@ -54,7 +54,6 @@ using node::FindCoins;
 using node::GetTransaction;
 using node::NodeContext;
 using node::PSBTAnalysis;
-using node::ReadBlockFromDisk;
 
 static void TxToJSON(const CTransaction &tx, const BlockHash &hashBlock,
                      UniValue &entry, Chainstate &active_chainstate) {
@@ -246,8 +245,8 @@ static RPCHelpMan getrawtransaction() {
 
             BlockHash hash_block;
             const CTransactionRef tx =
-                GetTransaction(blockindex, node.mempool.get(), txid,
-                               params.GetConsensus(), hash_block);
+                GetTransaction(blockindex, node.mempool.get(), txid, hash_block,
+                               chainman.m_blockman);
             if (!tx) {
                 std::string errmsg;
                 if (blockindex) {

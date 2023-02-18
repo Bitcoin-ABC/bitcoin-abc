@@ -19,8 +19,6 @@
 
 #include <functional>
 
-using node::ReadBlockFromDisk;
-
 constexpr uint8_t DB_BEST_BLOCK{'B'};
 
 constexpr int64_t SYNC_LOG_INTERVAL = 30;           // secon
@@ -85,8 +83,9 @@ bool BaseIndex::Init() {
         if (!m_best_block_index) {
             // index is not built yet
             // make sure we have all block data back to the genesis
-            prune_violation = node::GetFirstStoredBlock(active_chain.Tip()) !=
-                              active_chain.Genesis();
+            prune_violation =
+                m_chainstate->m_blockman.GetFirstStoredBlock(
+                    *active_chain.Tip()) != active_chain.Genesis();
         }
         // in case the index has a best block set and is not fully synced
         // check if we have the required blocks to continue building the index
@@ -144,8 +143,6 @@ static const CBlockIndex *NextSyncBlock(const CBlockIndex *pindex_prev,
 void BaseIndex::ThreadSync() {
     const CBlockIndex *pindex = m_best_block_index.load();
     if (!m_synced) {
-        auto &consensus_params = m_chainstate->m_chainman.GetConsensus();
-
         int64_t last_log_time = 0;
         int64_t last_locator_write_time = 0;
         while (true) {
@@ -196,7 +193,7 @@ void BaseIndex::ThreadSync() {
             }
 
             CBlock block;
-            if (!ReadBlockFromDisk(block, pindex, consensus_params)) {
+            if (!m_chainstate->m_blockman.ReadBlockFromDisk(block, *pindex)) {
                 FatalError("%s: Failed to read block %s from disk", __func__,
                            pindex->GetBlockHash().ToString());
                 return;

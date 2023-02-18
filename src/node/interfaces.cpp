@@ -371,7 +371,8 @@ namespace {
     };
 
     bool FillBlock(const CBlockIndex *index, const FoundBlock &block,
-                   UniqueLock<RecursiveMutex> &lock, const CChain &active) {
+                   UniqueLock<RecursiveMutex> &lock, const CChain &active,
+                   const BlockManager &blockman) {
         if (!index) {
             return false;
         }
@@ -398,12 +399,11 @@ namespace {
             FillBlock(active[index->nHeight] == index
                           ? active[index->nHeight + 1]
                           : nullptr,
-                      *block.m_next_block, lock, active);
+                      *block.m_next_block, lock, active, blockman);
         }
         if (block.m_data) {
             REVERSE_LOCK(lock);
-            if (!ReadBlockFromDisk(*block.m_data, index,
-                                   Params().GetConsensus())) {
+            if (!blockman.ReadBlockFromDisk(*block.m_data, *index)) {
                 block.m_data->SetNull();
             }
         }
@@ -559,14 +559,14 @@ namespace {
             WAIT_LOCK(cs_main, lock);
             const CChain &active = Assert(m_node.chainman)->ActiveChain();
             return FillBlock(m_node.chainman->m_blockman.LookupBlockIndex(hash),
-                             block, lock, active);
+                             block, lock, active, chainman().m_blockman);
         }
         bool findFirstBlockWithTimeAndHeight(int64_t min_time, int min_height,
                                              const FoundBlock &block) override {
             WAIT_LOCK(cs_main, lock);
             const CChain &active = Assert(m_node.chainman)->ActiveChain();
             return FillBlock(active.FindEarliestAtLeast(min_time, min_height),
-                             block, lock, active);
+                             block, lock, active, chainman().m_blockman);
         }
         bool findAncestorByHeight(const BlockHash &block_hash,
                                   int ancestor_height,
@@ -577,10 +577,12 @@ namespace {
                     m_node.chainman->m_blockman.LookupBlockIndex(block_hash)) {
                 if (const CBlockIndex *ancestor =
                         block->GetAncestor(ancestor_height)) {
-                    return FillBlock(ancestor, ancestor_out, lock, active);
+                    return FillBlock(ancestor, ancestor_out, lock, active,
+                                     chainman().m_blockman);
                 }
             }
-            return FillBlock(nullptr, ancestor_out, lock, active);
+            return FillBlock(nullptr, ancestor_out, lock, active,
+                             chainman().m_blockman);
         }
         bool findAncestorByHash(const BlockHash &block_hash,
                                 const BlockHash &ancestor_hash,
@@ -595,7 +597,8 @@ namespace {
                 block->GetAncestor(ancestor->nHeight) != ancestor) {
                 ancestor = nullptr;
             }
-            return FillBlock(ancestor, ancestor_out, lock, active);
+            return FillBlock(ancestor, ancestor_out, lock, active,
+                             chainman().m_blockman);
         }
         bool findCommonAncestor(const BlockHash &block_hash1,
                                 const BlockHash &block_hash2,
@@ -613,9 +616,12 @@ namespace {
             // Using & instead of && below to avoid short circuiting and leaving
             // output uninitialized. Cast bool to int to avoid
             // -Wbitwise-instead-of-logical compiler warnings.
-            return int{FillBlock(ancestor, ancestor_out, lock, active)} &
-                   int{FillBlock(block1, block1_out, lock, active)} &
-                   int{FillBlock(block2, block2_out, lock, active)};
+            return int{FillBlock(ancestor, ancestor_out, lock, active,
+                                 chainman().m_blockman)} &
+                   int{FillBlock(block1, block1_out, lock, active,
+                                 chainman().m_blockman)} &
+                   int{FillBlock(block2, block2_out, lock, active,
+                                 chainman().m_blockman)};
         }
         void findCoins(std::map<COutPoint, Coin> &coins) override {
             return FindCoins(m_node, coins);

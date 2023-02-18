@@ -22,6 +22,7 @@
 #include <boost/test/unit_test.hpp>
 
 using namespace chronik::util;
+using node::BlockManager;
 
 BOOST_AUTO_TEST_SUITE(bridgeprimitives_tests)
 
@@ -76,12 +77,12 @@ void CheckBlocksEqual(const chronik_bridge::Block &left,
     }
 }
 
-void CheckMatchesDisk(const CBlock &block,
-                      const chronik_bridge::Block &bridgedBlock) {
+static void CheckMatchesDisk(const BlockManager &blockman, const CBlock &block,
+                             const chronik_bridge::Block &bridgedBlock) {
     for (size_t idx = 0; idx < block.vtx.size(); ++idx) {
         const chronik_bridge::BlockTx blockTx = bridgedBlock.txs[idx];
         CMutableTransaction txFromDisk;
-        BOOST_CHECK(node::ReadTxFromDisk(
+        BOOST_CHECK(blockman.ReadTxFromDisk(
             txFromDisk, FlatFilePos(bridgedBlock.file_num, blockTx.data_pos)));
         BOOST_CHECK(txFromDisk.GetHash() == block.vtx[idx]->GetHash());
 
@@ -90,7 +91,7 @@ void CheckMatchesDisk(const CBlock &block,
         }
 
         CTxUndo txundo;
-        BOOST_CHECK(node::ReadTxUndoFromDisk(
+        BOOST_CHECK(blockman.ReadTxUndoFromDisk(
             txundo, FlatFilePos(bridgedBlock.file_num, blockTx.undo_pos)));
         BOOST_CHECK_EQUAL(txundo.vprevout.size(), txFromDisk.vin.size());
         for (size_t inputIdx = 0; inputIdx < blockTx.tx.inputs.size();
@@ -163,7 +164,7 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_genesis, TestChain100Setup) {
 
     chronik_bridge::BlockTx &bridgedGenesisTx = bridgedGenesisBlock.txs[0];
     CMutableTransaction genesisTxFromDisk;
-    BOOST_CHECK(node::ReadTxFromDisk(
+    BOOST_CHECK(chainman.m_blockman.ReadTxFromDisk(
         genesisTxFromDisk,
         FlatFilePos(bridgedGenesisBlock.file_num, bridgedGenesisTx.data_pos)));
     BOOST_CHECK(genesisTxFromDisk.GetHash() == genesisBlock.vtx[0]->GetHash());
@@ -319,7 +320,7 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_detailled, TestChain100Setup) {
 
     CheckBlocksEqual(bridgedTestBlock, expectedBridgedTestBlock);
 
-    CheckMatchesDisk(testBlock, bridgedTestBlock);
+    CheckMatchesDisk(chainman.m_blockman, testBlock, bridgedTestBlock);
 
     for (const chronik_bridge::BlockTx &bridgedTx : bridgedTestBlock.txs) {
         CheckTxsEqual(bridge.load_tx(bridgedTestBlock.file_num,
@@ -439,7 +440,7 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_big, TestChain100Setup) {
         // test matches disk
         chronik_bridge::Block bridgedBlock = chronik_bridge::bridge_block(
             testBlock, *testBlockUndo, *chainman.ActiveTip());
-        CheckMatchesDisk(testBlock, bridgedBlock);
+        CheckMatchesDisk(chainman.m_blockman, testBlock, bridgedBlock);
 
         for (const chronik_bridge::BlockTx &bridgedTx : bridgedBlock.txs) {
             CheckTxsEqual(bridge.load_tx(bridgedBlock.file_num,

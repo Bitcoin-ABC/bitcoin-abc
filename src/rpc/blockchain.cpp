@@ -52,9 +52,7 @@ using kernel::CoinStatsHashType;
 using node::BlockManager;
 using node::GetUTXOStats;
 using node::NodeContext;
-using node::ReadBlockFromDisk;
 using node::SnapshotMetadata;
-using node::UndoReadFromDisk;
 
 struct CUpdatedBlock {
     BlockHash hash;
@@ -175,7 +173,7 @@ UniValue blockToJSON(BlockManager &blockman, const CBlock &block,
         const bool is_not_pruned{
             WITH_LOCK(::cs_main, return !blockman.IsBlockPruned(blockindex))};
         const bool have_undo{is_not_pruned &&
-                             UndoReadFromDisk(blockUndo, blockindex)};
+                             blockman.UndoReadFromDisk(blockUndo, *blockindex)};
         for (size_t i = 0; i < block.vtx.size(); ++i) {
             const CTransactionRef &tx = block.vtx.at(i);
             // coinbase transaction (i == 0) doesn't have undo data
@@ -634,7 +632,7 @@ static RPCHelpMan getblockheader() {
     };
 }
 
-static CBlock GetBlockChecked(const Config &config, BlockManager &blockman,
+static CBlock GetBlockChecked(BlockManager &blockman,
                               const CBlockIndex *pblockindex) {
     CBlock block;
     {
@@ -645,8 +643,7 @@ static CBlock GetBlockChecked(const Config &config, BlockManager &blockman,
         }
     }
 
-    if (!ReadBlockFromDisk(block, pblockindex,
-                           config.GetChainParams().GetConsensus())) {
+    if (!blockman.ReadBlockFromDisk(block, *pblockindex)) {
         // Block not found on disk. This could be because we have the block
         // header in our index but not yet have the block or did not accept the
         // block. Or if the block was pruned right after we released the lock
@@ -669,7 +666,7 @@ static CBlockUndo GetUndoChecked(BlockManager &blockman,
         }
     }
 
-    if (!UndoReadFromDisk(blockUndo, pblockindex)) {
+    if (!blockman.UndoReadFromDisk(blockUndo, *pblockindex)) {
         throw JSONRPCError(RPC_MISC_ERROR, "Can't read undo data from disk");
     }
 
@@ -798,7 +795,7 @@ static RPCHelpMan getblock() {
             }
 
             const CBlock block =
-                GetBlockChecked(config, chainman.m_blockman, pblockindex);
+                GetBlockChecked(chainman.m_blockman, pblockindex);
 
             if (verbosity <= 0) {
                 CDataStream ssBlock(SER_NETWORK,
@@ -882,8 +879,9 @@ static RPCHelpMan pruneblockchain() {
             }
 
             PruneBlockFilesManual(active_chainstate, height);
-            const CBlockIndex *block = CHECK_NONFATAL(active_chain.Tip());
-            const CBlockIndex *last_block = node::GetFirstStoredBlock(block);
+            const CBlockIndex &block{*CHECK_NONFATAL(active_chain.Tip())};
+            const CBlockIndex *last_block{
+                active_chainstate.m_blockman.GetFirstStoredBlock(block)};
 
             return static_cast<uint64_t>(last_block->nHeight);
         },
@@ -1367,8 +1365,9 @@ RPCHelpMan getblockchaininfo() {
             obj.pushKV("pruned", chainman.m_blockman.IsPruneMode());
 
             if (chainman.m_blockman.IsPruneMode()) {
-                obj.pushKV("pruneheight",
-                           node::GetFirstStoredBlock(&tip)->nHeight);
+                obj.pushKV(
+                    "pruneheight",
+                    chainman.m_blockman.GetFirstStoredBlock(tip)->nHeight);
 
                 const bool automatic_pruning{
                     chainman.m_blockman.GetPruneTarget() !=
@@ -2018,8 +2017,7 @@ static RPCHelpMan getblockstats() {
                 }
             }
 
-            const CBlock &block =
-                GetBlockChecked(config, chainman.m_blockman, &pindex);
+            const CBlock &block = GetBlockChecked(chainman.m_blockman, &pindex);
             const CBlockUndo &blockUndo =
                 GetUndoChecked(chainman.m_blockman, &pindex);
 

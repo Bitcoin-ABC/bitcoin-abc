@@ -128,9 +128,8 @@ TransactionError BroadcastTransaction(const NodeContext &node,
 
 CTransactionRef GetTransaction(const CBlockIndex *const block_index,
                                const CTxMemPool *const mempool,
-                               const TxId &txid,
-                               const Consensus::Params &consensusParams,
-                               BlockHash &hashBlock) {
+                               const TxId &txid, BlockHash &hashBlock,
+                               const BlockManager &blockman) {
     if (mempool && !block_index) {
         CTransactionRef ptx = mempool->get(txid);
         if (ptx) {
@@ -153,7 +152,7 @@ CTransactionRef GetTransaction(const CBlockIndex *const block_index,
     }
     if (block_index) {
         CBlock block;
-        if (ReadBlockFromDisk(block, block_index, consensusParams)) {
+        if (blockman.ReadBlockFromDisk(block, *block_index)) {
             for (const auto &tx : block.vtx) {
                 if (tx->GetId() == txid) {
                     hashBlock = block_index->GetBlockHash();

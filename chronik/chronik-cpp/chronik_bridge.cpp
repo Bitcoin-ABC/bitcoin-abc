@@ -201,8 +201,7 @@ ChronikBridge::lookup_block_index(std::array<uint8_t, 32> hash) const {
 std::unique_ptr<CBlock>
 ChronikBridge::load_block(const CBlockIndex &bindex) const {
     CBlock block;
-    if (!node::ReadBlockFromDisk(block, &bindex,
-                                 m_node.chainman->GetConsensus())) {
+    if (!m_node.chainman->m_blockman.ReadBlockFromDisk(block, bindex)) {
         throw std::runtime_error("Reading block data failed");
     }
     return std::make_unique<CBlock>(std::move(block));
@@ -213,7 +212,7 @@ ChronikBridge::load_block_undo(const CBlockIndex &bindex) const {
     CBlockUndo block_undo;
     // Read undo data (genesis block doesn't have undo data)
     if (bindex.nHeight > 0) {
-        if (!node::UndoReadFromDisk(block_undo, &bindex)) {
+        if (!m_node.chainman->m_blockman.UndoReadFromDisk(block_undo, bindex)) {
             throw std::runtime_error("Reading block undo data failed");
         }
     }
@@ -225,12 +224,13 @@ Tx ChronikBridge::load_tx(uint32_t file_num, uint32_t data_pos,
     CMutableTransaction tx;
     CTxUndo txundo{};
     const bool isCoinbase = undo_pos == 0;
-    if (!node::ReadTxFromDisk(tx, FlatFilePos(file_num, data_pos))) {
+    if (!m_node.chainman->m_blockman.ReadTxFromDisk(
+            tx, FlatFilePos(file_num, data_pos))) {
         throw std::runtime_error("Reading tx data from disk failed");
     }
     if (!isCoinbase) {
-        if (!node::ReadTxUndoFromDisk(txundo,
-                                      FlatFilePos(file_num, undo_pos))) {
+        if (!m_node.chainman->m_blockman.ReadTxUndoFromDisk(
+                txundo, FlatFilePos(file_num, undo_pos))) {
             throw std::runtime_error("Reading tx undo data from disk failed");
         }
     }
@@ -240,7 +240,8 @@ Tx ChronikBridge::load_tx(uint32_t file_num, uint32_t data_pos,
 rust::Vec<uint8_t> ChronikBridge::load_raw_tx(uint32_t file_num,
                                               uint32_t data_pos) const {
     CMutableTransaction tx;
-    if (!node::ReadTxFromDisk(tx, FlatFilePos(file_num, data_pos))) {
+    if (!m_node.chainman->m_blockman.ReadTxFromDisk(
+            tx, FlatFilePos(file_num, data_pos))) {
         throw std::runtime_error("Reading tx data from disk failed");
     }
     CDataStream raw_tx{SER_NETWORK, PROTOCOL_VERSION};

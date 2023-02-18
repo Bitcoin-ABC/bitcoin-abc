@@ -1490,8 +1490,7 @@ static RPCHelpMan isfinaltransaction() {
 
             BlockHash hash_block;
             const CTransactionRef tx = GetTransaction(
-                pindex, &mempool, txid, config.GetChainParams().GetConsensus(),
-                hash_block);
+                pindex, &mempool, txid, hash_block, chainman.m_blockman);
 
             if (!g_avalanche->isQuorumEstablished()) {
                 throw JSONRPCError(RPC_MISC_ERROR,

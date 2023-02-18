@@ -20,6 +20,7 @@ struct Params;
 }
 
 namespace node {
+class BlockManager;
 struct NodeContext;
 
 /**
@@ -68,16 +69,14 @@ BroadcastTransaction(const NodeContext &node, CTransactionRef tx,
  * @param[in]  block_index     The block to read from disk, or nullptr
  * @param[in]  mempool         If provided, check mempool for tx
  * @param[in]  txid            The txid
- * @param[in]  consensusParams The params
  * @param[out] hashBlock       The block hash, if the tx was found via -txindex
  *                             or block_index
  * @returns                    The tx if found, otherwise nullptr
  */
 CTransactionRef GetTransaction(const CBlockIndex *const block_index,
                                const CTxMemPool *const mempool,
-                               const TxId &txid,
-                               const Consensus::Params &consensusParams,
-                               BlockHash &hashBlock);
+                               const TxId &txid, BlockHash &hashBlock,
+                               const BlockManager &blockman);
 } // namespace node
 
 #endif // BITCOIN_NODE_TRANSACTION_H
