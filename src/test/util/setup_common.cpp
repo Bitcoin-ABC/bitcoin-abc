@@ -62,6 +62,7 @@
 using kernel::ValidationCacheSizes;
 using node::ApplyArgsManOptions;
 using node::BlockAssembler;
+using node::BlockManager;
 using node::CalculateCacheSizes;
 using node::fReindex;
 using node::LoadChainstate;
@@ -191,8 +192,9 @@ ChainTestingSetup::ChainTestingSetup(
         .check_block_index = true,
     };
     ApplyArgsManOptions(*m_node.args, chainman_opts);
-    node::BlockManager::Options blockman_opts{
+    const BlockManager::Options blockman_opts{
         .chainparams = chainman_opts.config.GetChainParams(),
+        .blocks_dir = m_args.GetBlocksDirPath(),
     };
     m_node.chainman =
         std::make_unique<ChainstateManager>(chainman_opts, blockman_opts);

@@ -431,7 +431,7 @@ void BlockManager::CleanupBlockRevFiles() const {
     // ordered map keyed by block file index.
     LogPrintf("Removing unusable blk?????.dat and rev?????.dat files for "
               "-reindex with -prune\n");
-    for (const auto &file : fs::directory_iterator{gArgs.GetBlocksDirPath()}) {
+    for (const auto &file : fs::directory_iterator{m_opts.blocks_dir}) {
         const std::string path = fs::PathToString(file.path().filename());
         if (fs::is_regular_file(file) && path.length() == 12 &&
             path.substr(8, 4) == ".dat") {
@@ -591,13 +591,13 @@ void BlockManager::UnlinkPrunedFiles(
 }
 
 FlatFileSeq BlockManager::BlockFileSeq() const {
-    return FlatFileSeq(gArgs.GetBlocksDirPath(), "blk",
+    return FlatFileSeq(m_opts.blocks_dir, "blk",
                        m_opts.fast_prune ? 0x4000 /* 16kb */
                                          : BLOCKFILE_CHUNK_SIZE);
 }
 
 FlatFileSeq BlockManager::UndoFileSeq() const {
-    return FlatFileSeq(gArgs.GetBlocksDirPath(), "rev", UNDOFILE_CHUNK_SIZE);
+    return FlatFileSeq(m_opts.blocks_dir, "rev", UNDOFILE_CHUNK_SIZE);
 }
 
 FILE *BlockManager::OpenBlockFile(const FlatFilePos &pos,

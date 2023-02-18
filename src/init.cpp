@@ -114,6 +114,7 @@ using kernel::DumpMempool;
 using kernel::ValidationCacheSizes;
 
 using node::ApplyArgsManOptions;
+using node::BlockManager;
 using node::CacheSizes;
 using node::CalculateCacheSizes;
 using node::DEFAULT_PERSIST_MEMPOOL;
@@ -1989,8 +1990,9 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
         if (const auto error{ApplyArgsManOptions(args, chainman_opts_dummy)}) {
             return InitError(*error);
         }
-        node::BlockManager::Options blockman_opts_dummy{
+        BlockManager::Options blockman_opts_dummy{
             .chainparams = chainman_opts_dummy.config.GetChainParams(),
+            .blocks_dir = args.GetBlocksDirPath(),
         };
         if (const auto error{ApplyArgsManOptions(args, blockman_opts_dummy)}) {
             return InitError(*error);
@@ -2384,8 +2386,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         LogPrintf("Skipping checkpoint verification.\n");
     }
 
-    node::BlockManager::Options blockman_opts{
+    BlockManager::Options blockman_opts{
         .chainparams = chainman_opts.config.GetChainParams(),
+        .blocks_dir = args.GetBlocksDirPath(),
     };
     // no error can happen, already checked in AppInitParameterInteraction
     Assert(!ApplyArgsManOptions(args, blockman_opts));
