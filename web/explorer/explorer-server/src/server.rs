@@ -269,6 +269,7 @@ impl Server {
                     (SlpTokenType::Fungible, SlpTxType::Genesis) => "GENESIS",
                     (SlpTokenType::Fungible, SlpTxType::Mint) => "MINT",
                     (SlpTokenType::Fungible, SlpTxType::Send) => "SEND",
+                    (SlpTokenType::Fungible, SlpTxType::Burn) => "BURN",
                     (SlpTokenType::Nft1Group, SlpTxType::Genesis) => {
                         "NFT1 GROUP GENESIS"
                     }
@@ -278,13 +279,19 @@ impl Server {
                     (SlpTokenType::Nft1Group, SlpTxType::Send) => {
                         "NFT1 GROUP SEND"
                     }
+                    (SlpTokenType::Nft1Group, SlpTxType::Burn) => {
+                        "NFT1 GROUP BURN"
+                    }
                     (SlpTokenType::Nft1Child, SlpTxType::Genesis) => {
                         "NFT1 Child GENESIS"
                     }
                     (SlpTokenType::Nft1Child, SlpTxType::Send) => {
                         "NFT1 Child SEND"
                     }
-                    _ => "",
+                    (SlpTokenType::Nft1Child, SlpTxType::Burn) => {
+                        "NFT1 Child BURN"
+                    }
+                    _ => "Unknown",
                 };
 
                 format!("Token Details ({} Transaction)", action_str).into()
