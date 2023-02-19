@@ -110,6 +110,7 @@
 #include <thread>
 #include <vector>
 
+using kernel::DEFAULT_STOPAFTERBLOCKIMPORT;
 using kernel::DumpMempool;
 using kernel::ValidationCacheSizes;
 
@@ -118,7 +119,6 @@ using node::BlockManager;
 using node::CacheSizes;
 using node::CalculateCacheSizes;
 using node::DEFAULT_PERSIST_MEMPOOL;
-using node::DEFAULT_STOPAFTERBLOCKIMPORT;
 using node::fReindex;
 using node::LoadChainstate;
 using node::MempoolPath;
@@ -2680,7 +2680,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     chainman.m_load_block =
         std::thread(&util::TraceThread, "loadblk", [=, &chainman, &args] {
-            ThreadImport(chainman, vImportFiles, args,
+            ThreadImport(chainman, vImportFiles,
                          ShouldPersistMempool(args) ? MempoolPath(args)
                                                     : fs::path{});
         });

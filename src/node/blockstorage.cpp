@@ -910,7 +910,7 @@ public:
 };
 
 void ThreadImport(ChainstateManager &chainman,
-                  std::vector<fs::path> vImportFiles, const ArgsManager &args,
+                  std::vector<fs::path> vImportFiles,
                   const fs::path &mempool_path) {
     ScheduleBatchPriority();
 
@@ -1014,8 +1014,7 @@ void ThreadImport(ChainstateManager &chainman,
             }
         }
 
-        if (args.GetBoolArg("-stopafterblockimport",
-                            DEFAULT_STOPAFTERBLOCKIMPORT)) {
+        if (chainman.m_blockman.StopAfterBlockImport()) {
             LogPrintf("Stopping after block import\n");
             StartShutdown();
             return;
