@@ -24,20 +24,23 @@ A node backend for validating eCash alias registrations
 [] **Database**
 [x] Initialize MongoDB
 [x] Insert alias info into db
-[] Improve insert logic so that only aliases that are not already in the database are inserted
-[] pendingAlias database logic (entries must be removed after they exist in validAliasTxs)
-
-[] **API endpoints**
-[] Make alias info available at endpoint
+[x] Improve insert logic so that only aliases that are not already in the database are inserted
 
 [] **App**
 [] Connect to chronik websockets for blocks and txs at registration address
 [] Functions to update database on new txs
 [] Finalize unit test matching with Cashtab
 
+[] **API endpoints**
+[] Make alias info available at endpoint
+[] Add validBlockheight to endpoint result, so user can know given aliases are valid up to a certain blockheight
+
 [] **Deployment**
 [] Update README
 [] CI
+
+[] **Other Features**
+[] pendingAlias database logic (entries must be removed after they exist in validAliasTxs)
 
 ## Requirements
 
