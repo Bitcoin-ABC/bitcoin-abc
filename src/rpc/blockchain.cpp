@@ -547,14 +547,14 @@ static std::vector<RPCResult> MempoolEntryDescription() {
         RPCResult{RPCResult::Type::OBJ,
                   "fees",
                   "",
-                  {
+                  {{
                       RPCResult{RPCResult::Type::STR_AMOUNT, "base",
                                 "transaction fee in " + ticker},
                       RPCResult{RPCResult::Type::STR_AMOUNT, "modified",
                                 "transaction fee with fee deltas used for "
                                 "mining priority in " +
                                     ticker},
-                  }},
+                  }}},
         RPCResult{
             RPCResult::Type::ARR,
             "depends",
