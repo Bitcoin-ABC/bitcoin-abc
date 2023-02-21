@@ -190,41 +190,48 @@ class AvalancheTest(BitcoinTestFramework):
         self.wait_until(lambda: parked_block(fork_tip))
 
         self.log.info("Answer all polls to finalize...")
-        hash_tip_final = int(fork_tip, 16)
 
-        def has_accepted_new_tip():
-            can_find_block_in_poll(hash_tip_final)
-            return node.getbestblockhash() == fork_tip
+        def has_accepted_tip(tip_expected):
+            hash_tip_accept = int(tip_expected, 16)
+            can_find_block_in_poll(hash_tip_accept)
+            return node.getbestblockhash() == tip_expected
 
         # Because everybody answers yes, the node will accept that block.
-        self.wait_until(has_accepted_new_tip)
+        self.wait_until(lambda: has_accepted_tip(fork_tip))
 
-        def has_finalized_new_tip():
+        def has_finalized_tip(tip_expected):
+            hash_tip_final = int(tip_expected, 16)
             can_find_block_in_poll(hash_tip_final)
-            return node.isfinalblock(fork_tip)
+            return node.isfinalblock(tip_expected)
 
         # And continuing to answer yes finalizes the block.
         with node.assert_debug_log([f"Avalanche finalized block {fork_tip}"]):
-            self.wait_until(has_finalized_new_tip)
+            self.wait_until(lambda: has_finalized_tip(fork_tip))
         assert_equal(node.getbestblockhash(), fork_tip)
 
         self.log.info("Answer all polls to park...")
         self.generate(node, 1, sync_fun=self.no_op)
 
         tip_to_park = node.getbestblockhash()
-        hash_tip_park = int(tip_to_park, 16)
         assert tip_to_park != fork_tip
 
-        def has_parked_new_tip():
-            can_find_block_in_poll(hash_tip_park, AvalancheVoteError.PARKED)
-            return node.getbestblockhash() == fork_tip
+        def has_parked_tip(tip_park):
+            hash_tip_park = int(tip_park, 16)
+            can_find_block_in_poll(
+                hash_tip_park, AvalancheVoteError.PARKED)
+
+            for tip in node.getchaintips():
+                if tip["hash"] == tip_park:
+                    return tip["status"] == "parked"
+            return False
 
         # Because everybody answers no, the node will park that block.
         with node.assert_debug_log([f"Avalanche rejected block {tip_to_park}"]):
-            self.wait_until(has_parked_new_tip)
+            self.wait_until(lambda: has_parked_tip(tip_to_park))
         assert_equal(node.getbestblockhash(), fork_tip)
 
         # Vote a few more times until the block gets invalidated
+        hash_tip_park = int(tip_to_park, 16)
         node.wait_for_debug_log(
             [f"Avalanche invalidated block {tip_to_park}"],
             chatty_callable=lambda: can_find_block_in_poll(
@@ -234,7 +241,6 @@ class AvalancheTest(BitcoinTestFramework):
         # Mine on the current chaintip to trigger polling and so we don't reorg
         old_fork_tip = fork_tip
         fork_tip = self.generate(fork_node, 2, sync_fun=self.no_op)[-1]
-        hash_tip_final = int(fork_tip, 16)
 
         # Manually unparking the invalidated block will reset finalization.
         node.unparkblock(tip_to_park)
@@ -242,7 +248,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         # Wait until the new tip is finalized
         self.sync_blocks([node, fork_node])
-        self.wait_until(has_finalized_new_tip)
+        self.wait_until(lambda: has_finalized_tip(fork_tip))
         assert_equal(node.getbestblockhash(), fork_tip)
 
         # Manually parking the finalized chaintip will reset finalization.
@@ -252,8 +258,7 @@ class AvalancheTest(BitcoinTestFramework):
         # Trigger polling and finalize a new tip to setup for the next test.
         node.unparkblock(fork_tip)
         fork_tip = self.generate(fork_node, 1)[-1]
-        hash_tip_final = int(fork_tip, 16)
-        self.wait_until(has_finalized_new_tip)
+        self.wait_until(lambda: has_finalized_tip(fork_tip))
         assert_equal(node.getbestblockhash(), fork_tip)
 
         self.log.info("Verify finalization sticks...")
