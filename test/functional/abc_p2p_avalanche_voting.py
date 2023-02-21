@@ -197,7 +197,8 @@ class AvalancheTest(BitcoinTestFramework):
             return node.getbestblockhash() == tip_expected
 
         # Because everybody answers yes, the node will accept that block.
-        self.wait_until(lambda: has_accepted_tip(fork_tip))
+        with node.assert_debug_log([f"Avalanche accepted block {fork_tip}"]):
+            self.wait_until(lambda: has_accepted_tip(fork_tip))
 
         def has_finalized_tip(tip_expected):
             hash_tip_final = int(tip_expected, 16)
@@ -226,6 +227,15 @@ class AvalancheTest(BitcoinTestFramework):
             return False
 
         # Because everybody answers no, the node will park that block.
+        with node.assert_debug_log([f"Avalanche rejected block {tip_to_park}"]):
+            self.wait_until(lambda: has_parked_tip(tip_to_park))
+        assert_equal(node.getbestblockhash(), fork_tip)
+
+        # Voting yes will switch to accepting the block.
+        with node.assert_debug_log([f"Avalanche accepted block {tip_to_park}"]):
+            self.wait_until(lambda: has_accepted_tip(tip_to_park))
+
+        # Answer no again and switch back to rejecting the block.
         with node.assert_debug_log([f"Avalanche rejected block {tip_to_park}"]):
             self.wait_until(lambda: has_parked_tip(tip_to_park))
         assert_equal(node.getbestblockhash(), fork_tip)
