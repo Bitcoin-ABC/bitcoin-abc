@@ -19,6 +19,7 @@ import {
     isValidAirdropExclusionArray,
     isValidContactList,
     parseInvalidSettingsForMigration,
+    parseInvalidCashtabCacheForMigration,
     isValidCashtabCache,
     validateMnemonic,
 } from '../validation';
@@ -712,6 +713,73 @@ describe('Validation utils', () => {
                 },
             ]),
         ).toBe(false));
+
+    it('parseInvalidCashtabCacheForMigration updates an invalid cashtabCache object and keeps existing valid cache params intact', () =>
+        expect(
+            parseInvalidCashtabCacheForMigration({
+                tokenInfoById: {
+                    '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e':
+                        {
+                            decimals: 2,
+                            tokenDocumentHash: '',
+                            tokenDocumentUrl: 'https://cashtab.com/',
+                            tokenId:
+                                '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e',
+                            tokenName: 'test',
+                            tokenTicker: 'TEST',
+                        },
+                    'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa':
+                        {
+                            decimals: 2,
+                            tokenDocumentHash: '',
+                            tokenDocumentUrl: 'https://cashtab.com/',
+                            tokenId:
+                                'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
+                            tokenName: 'test2',
+                            tokenTicker: 'TEST2',
+                        },
+                },
+            }),
+        ).toStrictEqual({
+            aliasCache: {
+                aliases: [],
+                paymentTxHistory: [],
+                totalPaymentTxCount: 0,
+            },
+            tokenInfoById: {
+                '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e':
+                    {
+                        decimals: 2,
+                        tokenDocumentHash: '',
+                        tokenDocumentUrl: 'https://cashtab.com/',
+                        tokenId:
+                            '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e',
+                        tokenName: 'test',
+                        tokenTicker: 'TEST',
+                    },
+                'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa':
+                    {
+                        decimals: 2,
+                        tokenDocumentHash: '',
+                        tokenDocumentUrl: 'https://cashtab.com/',
+                        tokenId:
+                            'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
+                        tokenName: 'test2',
+                        tokenTicker: 'TEST2',
+                    },
+            },
+        }));
+
+    it('parseInvalidCashtabCacheForMigration sets cashtabCache object with no exsting valid cache to default values', () =>
+        expect(parseInvalidCashtabCacheForMigration({})).toStrictEqual({
+            aliasCache: {
+                aliases: [],
+                paymentTxHistory: [],
+                totalPaymentTxCount: 0,
+            },
+            tokenInfoById: {},
+        }));
+
     it('updates an invalid settings object and keeps existing valid settings intact', () =>
         expect(
             parseInvalidSettingsForMigration({

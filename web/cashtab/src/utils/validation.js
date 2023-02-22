@@ -250,6 +250,19 @@ export const parseInvalidSettingsForMigration = invalidCashtabSettings => {
     return migratedCashtabSettings;
 };
 
+export const parseInvalidCashtabCacheForMigration = invalidCashtabCache => {
+    // create a copy of the invalidCashtabCache
+    let migratedCashtabCache = invalidCashtabCache;
+    // determine if settings are invalid because it is missing a parameter
+    for (let param in currency.defaultCashtabCache) {
+        if (!Object.prototype.hasOwnProperty.call(invalidCashtabCache, param)) {
+            // adds the default setting for only that parameter
+            migratedCashtabCache[param] = currency.defaultCashtabCache[param];
+        }
+    }
+    return migratedCashtabCache;
+};
+
 export const isValidContactList = contactList => {
     /* 
     A valid contact list is an array of objects

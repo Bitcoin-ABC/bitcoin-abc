@@ -18,6 +18,7 @@ import {
     isValidCashtabCache,
     isValidContactList,
     parseInvalidSettingsForMigration,
+    parseInvalidCashtabCacheForMigration,
 } from 'utils/validation';
 import localforage from 'localforage';
 import { currency } from 'components/Common/Ticker';
@@ -1217,13 +1218,15 @@ const useWallet = () => {
             console.log(`valid cashtabCache detected`);
             return localCashtabCache;
         }
-        // if not valid, also set to default
-        localforage.setItem('cashtabCache', currency.defaultCashtabCache);
-        setCashtabCache(currency.defaultCashtabCache);
+        // if not valid, parse the cache object, finds what param is missing, and sticks it in
+        const migratedCashtabCache =
+            parseInvalidCashtabCacheForMigration(localCashtabCache);
+        localforage.setItem('cashtabCache', migratedCashtabCache);
+        setCashtabCache(migratedCashtabCache);
 
         // temporary log for reviewer
         console.log(
-            `invalid cashtabCache detected, initializing to currency.defaultCashtabCache`,
+            `invalid cashtabCache detected, missing params initialized from currency.defaultCashtabCache`,
         );
 
         return currency.defaultCashtabCache;
