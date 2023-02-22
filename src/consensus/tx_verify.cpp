@@ -40,8 +40,8 @@ static bool IsFinalTx(const CTransaction &tx, int nBlockHeight,
 bool ContextualCheckTransaction(const Consensus::Params &params,
                                 const CTransaction &tx,
                                 TxValidationState &state, int nHeight,
-                                int64_t nLockTimeCutoff) {
-    if (!IsFinalTx(tx, nHeight, nLockTimeCutoff)) {
+                                int64_t nMedianTimePast) {
+    if (!IsFinalTx(tx, nHeight, nMedianTimePast)) {
         // While this is only one transaction, we use txns in the error to
         // ensure continuity with other clients.
         return state.Invalid(TxValidationResult::TX_CONSENSUS,

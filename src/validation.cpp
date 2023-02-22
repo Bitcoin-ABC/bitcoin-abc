@@ -3959,10 +3959,11 @@ bool ContextualCheckTransactionForCurrentBlock(
     // When the next block is created its previous block will be the current
     // chain tip, so we use that to calculate the median time passed to
     // ContextualCheckTransaction().
-    const int64_t nLockTimeCutoff{active_chain_tip->GetMedianTimePast()};
+    // This time can also be used for consensus upgrades.
+    const int64_t nMedianTimePast{active_chain_tip->GetMedianTimePast()};
 
     return ContextualCheckTransaction(params, tx, state, nBlockHeight,
-                                      nLockTimeCutoff);
+                                      nMedianTimePast);
 }
 
 /**

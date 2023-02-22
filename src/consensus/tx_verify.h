@@ -39,7 +39,7 @@ bool CheckTxInputs(const CTransaction &tx, TxValidationState &state,
 bool ContextualCheckTransaction(const Consensus::Params &params,
                                 const CTransaction &tx,
                                 TxValidationState &state, int nHeight,
-                                int64_t nLockTimeCutoff);
+                                int64_t nMedianTimePast);
 
 /**
  * Calculates the block height and previous block's median time past at which
