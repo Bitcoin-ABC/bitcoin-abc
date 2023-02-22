@@ -102,12 +102,16 @@ bool IsGluonEnabled(const Consensus::Params &params,
 }
 
 bool IsWellingtonEnabled(const Consensus::Params &params,
+                         int64_t nMedianTimePast) {
+    return nMedianTimePast >= gArgs.GetIntArg("-wellingtonactivationtime",
+                                              params.wellingtonActivationTime);
+}
+
+bool IsWellingtonEnabled(const Consensus::Params &params,
                          const CBlockIndex *pindexPrev) {
     if (pindexPrev == nullptr) {
         return false;
     }
 
-    return pindexPrev->GetMedianTimePast() >=
-           gArgs.GetIntArg("-wellingtonactivationtime",
-                           params.wellingtonActivationTime);
+    return IsWellingtonEnabled(params, pindexPrev->GetMedianTimePast());
 }

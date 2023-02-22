@@ -55,15 +55,20 @@ BOOST_AUTO_TEST_CASE(iswellingtonenabled) {
         blocks[i].pprev = &blocks[i - 1];
     }
     BOOST_CHECK(!IsWellingtonEnabled(params, &blocks.back()));
+    BOOST_CHECK(
+        !IsWellingtonEnabled(params, blocks.back().GetMedianTimePast()));
 
     SetMTP(blocks, activation - 1);
     BOOST_CHECK(!IsWellingtonEnabled(params, &blocks.back()));
+    BOOST_CHECK(!IsWellingtonEnabled(params, activation - 1));
 
     SetMTP(blocks, activation);
     BOOST_CHECK(IsWellingtonEnabled(params, &blocks.back()));
+    BOOST_CHECK(IsWellingtonEnabled(params, activation));
 
     SetMTP(blocks, activation + 1);
     BOOST_CHECK(IsWellingtonEnabled(params, &blocks.back()));
+    BOOST_CHECK(IsWellingtonEnabled(params, activation + 1));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
