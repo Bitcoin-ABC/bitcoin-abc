@@ -27,6 +27,7 @@ import {
     isValidXecAddress,
     isValidEtokenAddress,
     isValidXecSendAmount,
+    isAliasFormat,
 } from 'utils/validation';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
@@ -44,6 +45,7 @@ import ApiError from 'components/Common/ApiError';
 import { formatFiatBalance, formatBalance } from 'utils/formatting';
 import styled from 'styled-components';
 import WalletLabel from 'components/Common/WalletLabel.js';
+import { getAddressFromAlias } from 'utils/chronik';
 
 const { TextArea } = Input;
 
@@ -128,6 +130,7 @@ const SendBCH = ({ passLoadingStatus }) => {
         cashtabSettings,
         changeCashtabSettings,
         chronik,
+        getAliasesFromLocalForage,
     } = ContextValue;
     const walletState = getWalletState(wallet);
     const { balances, nonSlpUtxos } = walletState;
@@ -156,6 +159,7 @@ const SendBCH = ({ passLoadingStatus }) => {
     const [queryStringText, setQueryStringText] = useState(null);
     const [sendBchAddressError, setSendBchAddressError] = useState(false);
     const [sendBchAmountError, setSendBchAmountError] = useState(false);
+    const [aliasInputAddress, setAliasInputAddress] = useState(false);
     const [selectedCurrency, setSelectedCurrency] = useState(currency.ticker);
 
     // Support cashtab button from web pages
@@ -362,9 +366,18 @@ const SendBCH = ({ passLoadingStatus }) => {
             passLoadingStatus(true);
             const { address, value } = formData;
 
-            // Get the param-free address
-            let cleanAddress = address.split('?')[0];
-
+            let cleanAddress;
+            // check state on whether this is an alias or ecash address
+            if (aliasInputAddress) {
+                cleanAddress = aliasInputAddress;
+                // temporary log for reviewer
+                console.log(
+                    `parsed address for ${address} is: ${cleanAddress}`,
+                );
+            } else {
+                // Get the non-alias param-free address
+                cleanAddress = address.split('?')[0];
+            }
             // Calculate the amount in BCH
             let bchValue = value;
 
@@ -404,15 +417,16 @@ const SendBCH = ({ passLoadingStatus }) => {
         }
     }
 
-    const handleAddressChange = e => {
+    const handleAddressChange = async e => {
         const { value, name } = e.target;
         let error = false;
         let addressString = value;
         // parse address for parameters
         const addressInfo = parseAddressForParams(addressString);
+        const { address, queryString, amount } = addressInfo;
+
         // validate address
         const isValid = isValidXecAddress(addressInfo.address);
-        const { address, queryString, amount } = addressInfo;
 
         // If query string,
         // Show an alert that only amount and currency.ticker are supported
@@ -426,6 +440,34 @@ const SendBCH = ({ passLoadingStatus }) => {
                 error = `eToken addresses are not supported for ${currency.ticker} sends`;
             }
         }
+
+        // if input is invalid as an ecash address, check if it's a valid alias
+        // otherwise the invalid address error above will be displayed
+        const isAliasInput = isAliasFormat(address);
+        if (isAliasInput) {
+            // reset the invalid address check from above
+            error = false;
+
+            // extract alias without the `.xec`
+            const aliasName = address.slice(0, address.length - 4);
+            // extract alias address from cache
+            const aliasCacheObj = await getAliasesFromLocalForage();
+
+            const aliasAddress = getAddressFromAlias(
+                aliasName,
+                aliasCacheObj.aliases,
+            );
+
+            // if not found in alias cache, display input error
+            if (!aliasAddress) {
+                error = 'eCash Alias does not exist';
+                setAliasInputAddress(false);
+            } else {
+                // otherwise set parsed address to state for use in Send()
+                setAliasInputAddress(aliasAddress);
+            }
+        }
+
         setSendBchAddressError(error);
 
         // Set amount if it's in the query string
@@ -719,7 +761,10 @@ const SendBCH = ({ passLoadingStatus }) => {
                                                 })
                                             }
                                             inputProps={{
-                                                placeholder: `Address`,
+                                                placeholder: currency
+                                                    .aliasSettings.aliasEnabled
+                                                    ? `Address or Alias`
+                                                    : `Address`,
                                                 name: 'address',
                                                 onChange: e =>
                                                     handleAddressChange(e),

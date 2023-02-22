@@ -4,6 +4,10 @@ import { fromSatoshisToXec } from 'utils/cashMethods';
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
 
+export const isAliasFormat = address => {
+    return address.slice(-4) === '.xec';
+};
+
 export const validateMnemonic = (
     mnemonic,
     wordlist = bip39.wordlists.english,

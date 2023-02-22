@@ -21,18 +21,14 @@ import {
     getAliasRegistrationFee,
     convertToEcashPrefix,
 } from 'utils/cashMethods';
-import {
-    isAliasAvailable,
-    isAddressRegistered,
-    getAllTxHistory,
-    getOnchainAliasTxCount,
-} from 'utils/chronik';
+import { isAliasAvailable, isAddressRegistered } from 'utils/chronik';
 import { currency } from 'components/Common/Ticker.js';
 import { registerNewAlias } from 'utils/transactions';
 import {
     sendXecNotification,
     errorNotification,
 } from 'components/Common/Notifications';
+import { isAliasFormat } from 'utils/validation';
 
 export const NamespaceCtn = styled.div`
     width: 100%;
@@ -65,8 +61,7 @@ const Alias = ({ passLoadingStatus }) => {
         cashtabSettings,
         chronik,
         changeCashtabSettings,
-        getAliasesFromLocalForage,
-        updateAliases,
+        synchronizeAliasCache,
     } = ContextValue;
     const walletState = getWalletState(wallet);
     const { balances, nonSlpUtxos } = walletState;
@@ -87,134 +82,12 @@ const Alias = ({ passLoadingStatus }) => {
         }
         passLoadingStatus(true);
 
+        // check if alias cache is sync'ed with onchain tx count, if not, update
         let cachedAliases;
-        // retrieve cached aliases
         try {
-            cachedAliases = await getAliasesFromLocalForage();
+            cachedAliases = await synchronizeAliasCache(chronik);
         } catch (err) {
-            console.log(`Error retrieving aliases from local forage`, err);
-        }
-
-        // if alias cache exists, check if partial tx history retrieval is required
-        if (cachedAliases && cachedAliases.paymentTxHistory.length > 0) {
-            // get cached tx count
-            const cachedAliasTxCount = cachedAliases.totalPaymentTxCount;
-
-            // temporary log for reviewer
-            console.log(`cached Alias Tx Count: `, cachedAliasTxCount);
-
-            // get onchain tx count
-            let onchainAliasTxCount = await getOnchainAliasTxCount(chronik);
-
-            // temporary log for reviewer
-            console.log(`onchain Alias Tx Count: `, onchainAliasTxCount);
-
-            // condition where a partial alias tx history refresh is required
-            if (cachedAliasTxCount !== onchainAliasTxCount) {
-                // temporary log for reviewer
-                console.log(`partial tx history retrieval required`);
-
-                const onchainPages = Math.ceil(
-                    cachedAliasTxCount / currency.chronikTxsPerPage,
-                );
-
-                // execute a partial tx history retrieval instead of full history
-                const pagesToTraverse = Math.ceil(
-                    onchainPages -
-                        cachedAliasTxCount / currency.chronikTxsPerPage,
-                ); // how many pages to traverse backwards via chronik
-                const partialAliasPaymentTxHistory = await getAllTxHistory(
-                    chronik,
-                    currency.aliasSettings.aliasPaymentHash160,
-                    pagesToTraverse,
-                );
-
-                // temporary log for reviewer
-                console.log(
-                    `partial txs retrieved: `,
-                    partialAliasPaymentTxHistory.length,
-                );
-
-                // update cache with the latest alias transactions
-                let allTxHistory = cachedAliases.paymentTxHistory; // starting point is what's currently cached
-
-                if (allTxHistory) {
-                    // only concat non-duplicate entries from the partial tx history retrieval
-                    partialAliasPaymentTxHistory.forEach(element => {
-                        if (
-                            !JSON.stringify(allTxHistory).includes(
-                                JSON.stringify(element.txid),
-                            )
-                        ) {
-                            allTxHistory = allTxHistory.concat(element);
-                            // temporary log for reviewer
-                            console.log(
-                                `${element.txid} appended to allTxHistory`,
-                            );
-                        }
-                    });
-                }
-
-                // update cached alias list
-                // updateAliases() handles the extraction of the aliases and generates the expected JSON format
-                await updateAliases(allTxHistory);
-
-                // temporary console log for reviewer
-                console.log(`alias cache update complete`);
-            } else {
-                // temporary console log for reviewer
-                console.log(
-                    `cachedAliases exist however partial alias cache refresh NOT required`,
-                );
-            }
-        } else {
-            // first time loading Alias, execute full tx history retrieval
-            // temporary console log for reviewer
-            console.log(
-                `Alias.js: cachedAliases DOES NOT exist, retrieving full tx history`,
-            );
-
-            // get latest tx count for payment address
-            const aliasPaymentTxHistory = await getAllTxHistory(
-                chronik,
-                currency.aliasSettings.aliasPaymentHash160,
-            );
-            const totalPaymentTxCount = aliasPaymentTxHistory.length;
-
-            // temporary log for reviewer
-            console.log(`onchain totalPaymentTxCount: ${totalPaymentTxCount}`);
-
-            // temporary console log for reviewer
-            if (cachedAliases) {
-                console.log(
-                    `cached totalPaymentTxCount: `,
-                    cachedAliases.totalPaymentTxCount,
-                );
-            }
-
-            // conditions where an alias refresh is required
-            if (
-                !cachedAliases ||
-                !cachedAliases.totalPaymentTxCount ||
-                cachedAliases.totalPaymentTxCount < totalPaymentTxCount
-            ) {
-                // temporary console log for reviewer
-                console.log(`alias cache refresh required`);
-
-                try {
-                    // update cached alias list
-                    // updateAliases() handles the extraction of the alias and generates the expected JSON format
-                    await updateAliases(aliasPaymentTxHistory);
-
-                    // temporary console log for reviewer
-                    console.log(`alias cache update complete`);
-                } catch (err) {
-                    console.log(`Error updating alias cache in Alias.js`, err);
-                }
-            } else {
-                // temporary console log for reviewer
-                console.log(`alias cache refresh NOT required`);
-            }
+            console.log(`Error synchronizing alias cache in Alias.js`, err);
         }
 
         // check whether the address is attached to an onchain alias on page load
@@ -251,6 +124,18 @@ const Alias = ({ passLoadingStatus }) => {
 
         // note: input already validated via handleAliasNameInput()
         const aliasInput = formData.aliasName;
+
+        // check if the user is trying to essentially register chicken.xec.xec
+        const doubleExtensionInput = isAliasFormat(aliasInput);
+        if (doubleExtensionInput) {
+            errorNotification(
+                null,
+                'Please input an alias without the ".xec"',
+                'Alias extension check',
+            );
+            passLoadingStatus(false);
+            return;
+        }
 
         const aliasAvailable = await isAliasAvailable(chronik, aliasInput);
 

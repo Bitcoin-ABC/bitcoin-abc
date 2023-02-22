@@ -36,6 +36,8 @@ import {
     getTxHistoryChronik,
     parseChronikTx,
     getAliasAndAddresses,
+    getOnchainAliasTxCount,
+    getAllTxHistory,
 } from 'utils/chronik';
 import { ChronikClient } from 'chronik-client';
 import cashaddr from 'ecashaddrjs';
@@ -1120,6 +1122,148 @@ const useWallet = () => {
 
     const handleUpdateWallet = async setWallet => {
         await loadWalletFromStorageOnStartup(setWallet);
+
+        if (currency.aliasSettings.aliasEnabled) {
+            // only sync alias cache if alias feature is enabled
+            await synchronizeAliasCache(chronik);
+        }
+    };
+
+    const synchronizeAliasCache = async chronik => {
+        let cachedAliases;
+        // retrieve cached aliases
+        try {
+            cachedAliases = await getAliasesFromLocalForage();
+        } catch (err) {
+            console.log(
+                `synchronizeAliasCache(): Error retrieving aliases from local forage`,
+                err,
+            );
+        }
+
+        // if alias cache exists, check if partial tx history retrieval is required
+        if (cachedAliases && cachedAliases.paymentTxHistory.length > 0) {
+            // get cached tx count
+            const cachedAliasTxCount = cachedAliases.totalPaymentTxCount;
+
+            // temporary log for reviewer
+            console.log(`cached Alias Tx Count: `, cachedAliasTxCount);
+
+            // get onchain tx count
+            let onchainAliasTxCount = await getOnchainAliasTxCount(chronik);
+
+            // temporary log for reviewer
+            console.log(`onchain Alias Tx Count: `, onchainAliasTxCount);
+
+            // condition where a partial alias tx history refresh is required
+            if (cachedAliasTxCount !== onchainAliasTxCount) {
+                // temporary log for reviewer
+                console.log(`partial tx history retrieval required`);
+
+                const onchainPages = Math.ceil(
+                    cachedAliasTxCount / currency.chronikTxsPerPage,
+                );
+
+                // execute a partial tx history retrieval instead of full history
+                const pagesToTraverse = Math.ceil(
+                    onchainPages -
+                        cachedAliasTxCount / currency.chronikTxsPerPage,
+                ); // how many pages to traverse backwards via chronik
+                const partialAliasPaymentTxHistory = await getAllTxHistory(
+                    chronik,
+                    currency.aliasSettings.aliasPaymentHash160,
+                    pagesToTraverse,
+                );
+
+                // temporary log for reviewer
+                console.log(
+                    `partial txs retrieved: `,
+                    partialAliasPaymentTxHistory.length,
+                );
+
+                // update cache with the latest alias transactions
+                let allTxHistory = cachedAliases.paymentTxHistory; // starting point is what's currently cached
+
+                if (allTxHistory) {
+                    // only concat non-duplicate entries from the partial tx history retrieval
+                    partialAliasPaymentTxHistory.forEach(element => {
+                        if (
+                            !JSON.stringify(allTxHistory).includes(
+                                JSON.stringify(element.txid),
+                            )
+                        ) {
+                            allTxHistory = allTxHistory.concat(element);
+                            // temporary log for reviewer
+                            console.log(
+                                `${element.txid} appended to allTxHistory`,
+                            );
+                        }
+                    });
+                }
+
+                // update cached alias list
+                // updateAliases() handles the extraction of the aliases and generates the expected JSON format
+                await updateAliases(allTxHistory);
+
+                // temporary console log for reviewer
+                console.log(`alias cache update complete`);
+            } else {
+                // temporary console log for reviewer
+                console.log(
+                    `cachedAliases exist however partial alias cache refresh NOT required`,
+                );
+            }
+        } else {
+            // first time loading Alias, execute full tx history retrieval
+            // temporary console log for reviewer
+            console.log(
+                `Alias.js: cachedAliases DOES NOT exist, retrieving full tx history`,
+            );
+
+            // get latest tx count for payment address
+            const aliasPaymentTxHistory = await getAllTxHistory(
+                chronik,
+                currency.aliasSettings.aliasPaymentHash160,
+            );
+            const totalPaymentTxCount = aliasPaymentTxHistory.length;
+
+            // temporary log for reviewer
+            console.log(`onchain totalPaymentTxCount: ${totalPaymentTxCount}`);
+
+            // temporary console log for reviewer
+            if (cachedAliases) {
+                console.log(
+                    `cached totalPaymentTxCount: `,
+                    cachedAliases.totalPaymentTxCount,
+                );
+            }
+
+            // conditions where an alias refresh is required
+            if (
+                !cachedAliases ||
+                !cachedAliases.totalPaymentTxCount ||
+                cachedAliases.totalPaymentTxCount < totalPaymentTxCount
+            ) {
+                // temporary console log for reviewer
+                console.log(`alias cache refresh required`);
+
+                try {
+                    // update cached alias list
+                    // updateAliases() handles the extraction of the alias and generates the expected JSON format
+                    await updateAliases(aliasPaymentTxHistory);
+
+                    // temporary console log for reviewer
+                    console.log(`alias cache update complete`);
+                } catch (err) {
+                    console.log(`Error updating alias cache in Alias.js`, err);
+                }
+            } else {
+                // temporary console log for reviewer
+                console.log(`alias cache refresh NOT required`);
+            }
+        }
+
+        return cachedAliases;
     };
 
     const loadCashtabSettings = async () => {
@@ -1497,6 +1641,7 @@ const useWallet = () => {
         getWalletDetails,
         getSavedWallets,
         migrateLegacyWallet,
+        synchronizeAliasCache,
         getContactListFromLocalForage,
         getAliasesFromLocalForage,
         updateAliases,
