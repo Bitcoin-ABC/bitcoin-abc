@@ -6,12 +6,8 @@
 #define BITCOIN_DEPLOYMENTSTATUS_H
 
 #include <chain.h>
-#include <versionbits.h>
 
 #include <limits>
-
-/** Global cache for versionbits deployment status */
-extern VersionBitsCache g_versionbitscache;
 
 /** Determine if a deployment is active for the next block */
 inline bool DeploymentActiveAfter(const CBlockIndex *pindexPrev,

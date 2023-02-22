@@ -27,47 +27,6 @@ constexpr bool ValidDeployment(BuriedDeployment dep) {
     return dep <= DEPLOYMENT_CSV;
 }
 
-enum DeploymentPos : uint16_t {
-    DEPLOYMENT_TESTDUMMY,
-    MAX_VERSION_BITS_DEPLOYMENTS,
-};
-constexpr bool ValidDeployment(DeploymentPos dep) {
-    return dep < MAX_VERSION_BITS_DEPLOYMENTS;
-}
-
-/**
- * Struct for each individual consensus rule change using BIP9.
- */
-struct BIP9Deployment {
-    /** Bit position to select the particular bit in nVersion. */
-    int bit;
-    /**
-     * Minimum number of blocks within an activation window that must signal to
-     * activate the deployement.
-     * Default to 75% of 2016.
-     */
-    uint32_t nActivationThreshold = 1512;
-    /**
-     * Start MedianTime for version bits miner confirmation. Can be a date in
-     * the past.
-     */
-    int64_t nStartTime = 0;
-    /** Timeout/expiry MedianTime for the deployment attempt. */
-    int64_t nTimeout = NO_TIMEOUT;
-
-    /** Constant for nTimeout very far in the future. */
-    static constexpr int64_t NO_TIMEOUT = std::numeric_limits<int64_t>::max();
-
-    /**
-     * Special value for nStartTime indicating that the deployment is always
-     * active. This is useful for testing, as it means tests don't need to deal
-     * with the activation process (which takes at least 3 BIP9 intervals). Only
-     * tests that specifically test the behaviour during activation cannot use
-     * this.
-     */
-    static constexpr int64_t ALWAYS_ACTIVE = -1;
-};
-
 /**
  * Parameters that influence chain consensus.
  */
@@ -103,14 +62,6 @@ struct Params {
     int jeffersonActivationTime;
     /** Unix time used for MTP activation of 15 May 2023 12:00:00 UTC upgrade */
     int wellingtonActivationTime;
-
-    /**
-     * Don't warn about unknown BIP 9 activations below this height.
-     * This prevents us from warning about the CSV and segwit activations.
-     */
-    int MinBIP9WarningHeight;
-    uint32_t nMinerConfirmationWindow;
-    BIP9Deployment vDeployments[MAX_VERSION_BITS_DEPLOYMENTS];
 
     /** Enable or disable the miner fund by default */
     bool enableMinerFund;

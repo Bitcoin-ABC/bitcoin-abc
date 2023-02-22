@@ -18,7 +18,6 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
 
 VERSIONBITS_TOP_BITS = 0x20000000
-VERSIONBITS_DEPLOYMENT_TESTDUMMY_BIT = 28
 
 
 def assert_template(node, block, expect, rehash=True):
@@ -58,7 +57,7 @@ class MiningTest(BitcoinTestFramework):
         self.restart_node(0, extra_args=['-mocktime={}'.format(t)])
         self.connect_nodes(0, 1)
         assert_equal(
-            VERSIONBITS_TOP_BITS + (1 << VERSIONBITS_DEPLOYMENT_TESTDUMMY_BIT),
+            VERSIONBITS_TOP_BITS,
             self.nodes[0].getblocktemplate()['version'])
         self.restart_node(0)
         self.connect_nodes(0, 1)
