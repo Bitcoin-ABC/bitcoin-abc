@@ -494,6 +494,10 @@ std::unordered_set<ProofRef, SaltedProofHasher> PeerManager::updatedBlockTip() {
                     newImmatures.push_back(p.proof);
                 }
                 invalidProofIds.push_back(p.getProofId());
+
+                LogPrint(BCLog::AVALANCHE,
+                         "Invalidating proof %s: verification failed (%s)\n",
+                         p.proof->getId().GetHex(), state.ToString());
             }
         }
     }
