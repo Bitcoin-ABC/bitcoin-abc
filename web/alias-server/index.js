@@ -1,5 +1,9 @@
 const config = require('./config');
-const { getAllTxHistory } = require('./chronik');
+const {
+    getAllTxHistory,
+    initializeWebsocket,
+    parseWebsocketMessage,
+} = require('./chronik');
 const {
     getAllAliasTxs,
     sortAliasTxsByTxidAndBlockheight,
@@ -8,6 +12,21 @@ const {
 const fs = require('fs');
 const { initializeDb } = require('./db');
 const log = require('./log');
+
+async function main() {
+    // Initialize db connection
+    const db = await initializeDb();
+
+    // Initialize websocket connection
+    const aliasWebsocket = await initializeWebsocket(db);
+    if (aliasWebsocket && aliasWebsocket._subs && aliasWebsocket._subs[0]) {
+        const subscribedHash160 = aliasWebsocket._subs[0].scriptPayload;
+        log(`Websocket subscribed to ${subscribedHash160}`);
+    }
+
+    // Run parseWebsocketMessage on startup mocking a block found
+    parseWebsocketMessage(db);
+}
 
 async function writeAliasDataToDatabase() {
     // Get alias data
@@ -104,4 +123,5 @@ async function generateMocks() {
 }
 
 //generateMocks();
-writeAliasDataToDatabase();
+//writeAliasDataToDatabase();
+main();

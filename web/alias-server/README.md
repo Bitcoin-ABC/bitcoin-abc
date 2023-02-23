@@ -27,8 +27,8 @@ A node backend for validating eCash alias registrations
 [x] Improve insert logic so that only aliases that are not already in the database are inserted
 
 [] **App**
-[] Connect to chronik websockets for blocks and txs at registration address
-[] Functions to update database on new txs
+[x] Connect to chronik websockets for blocks and txs at registration address
+[] Update database on new block
 [] Finalize unit test matching with Cashtab
 
 [] **API endpoints**
@@ -41,6 +41,8 @@ A node backend for validating eCash alias registrations
 
 [] **Other Features**
 [] pendingAlias database logic (entries must be removed after they exist in validAliasTxs)
+[] move generateMocks function to test folder
+[] Refine methods for updating database. Update pending on tx. No need to update all every block, sometimes there are no txs. So you really should be updating on confirmed.
 
 ## Requirements
 
