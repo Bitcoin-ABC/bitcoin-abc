@@ -395,7 +395,7 @@ def get_ava_p2p_interface(
     return n
 
 
-def gen_proof(test_framework, node, coinbase_utxos=1, sync_fun=None):
+def gen_proof(test_framework, node, coinbase_utxos=1, expiry=0, sync_fun=None):
     blockhashes = test_framework.generate(
         node,
         coinbase_utxos,
@@ -407,7 +407,7 @@ def gen_proof(test_framework, node, coinbase_utxos=1, sync_fun=None):
     stakes = create_coinbase_stakes(
         node, blockhashes, node.get_deterministic_priv_key().key)
     proof_hex = node.buildavalancheproof(
-        42, 2000000000, bytes_to_wif(privkey.get_bytes()), stakes)
+        42, expiry, bytes_to_wif(privkey.get_bytes()), stakes)
 
     return privkey, avalanche_proof_from_hex(proof_hex)
 

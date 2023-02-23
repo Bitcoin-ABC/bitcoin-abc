@@ -44,7 +44,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
 
-        privkey, proof = gen_proof(self, node)
+        privkey, proof = gen_proof(self, node, expiry=2000000000)
 
         def assert_avalancheinfo(expected):
             assert_equal(node.getavalancheinfo(), expected)
