@@ -19,6 +19,7 @@
         "assert": "^2.0.0",
         "chronik-client": "^0.8.1",
         "ecashaddrjs": "^1.0.7",
+        "express": "^4.18.2",
         "mongodb": "^5.0.1"
     },
     "devDependencies": {
