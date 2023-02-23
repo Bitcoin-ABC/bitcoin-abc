@@ -485,6 +485,15 @@ public:
     std::map<TxId, Amount> mapDeltas GUARDED_BY(cs);
 
     /**
+     * Wellington activation latch. This is latched permanently to true in
+     * AcceptToMemoryPool the first time a tx arrives and
+     * IsWellingtonActivated() returns true. This should be removed after
+     * wellington is checkpointed and its mempool-accept/relay rules become
+     * retroactively permanent.
+     */
+    std::atomic<bool> wellingtonLatched{false};
+
+    /**
      * Create a new CTxMemPool.
      * Sanity checks will be off by default for performance, because otherwise
      * accepting transactions becomes O(N^2) where N is the number of

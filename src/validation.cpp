@@ -58,6 +58,7 @@
 #include <boost/algorithm/string/replace.hpp>
 
 #include <algorithm>
+#include <atomic>
 #include <numeric>
 #include <optional>
 #include <string>
@@ -900,9 +901,20 @@ MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
     // GetMainSignals().TransactionAddedToMempool())
     LOCK(m_pool.cs);
 
-    Workspace ws(ptx, GetNextBlockScriptFlags(
-                          args.m_config.GetChainParams().GetConsensus(),
-                          m_active_chainstate.m_chain.Tip()));
+    const Consensus::Params &consensusParams =
+        args.m_config.GetChainParams().GetConsensus();
+    const CBlockIndex *tip = m_active_chainstate.m_chain.Tip();
+
+    // After wellington we will stop computing the ancestors and descendant
+    // limits, and stop enforcing them. Because the mempool has no idea what the
+    // current tip is (and it should not), we will use an activation latch so it
+    // knows when the statistics can be skipped. This also makes an hypothetical
+    // reorg event easier to handle.
+    // Note that |= operator is not defined for atomic bool !
+    m_pool.wellingtonLatched =
+        m_pool.wellingtonLatched || IsWellingtonEnabled(consensusParams, tip);
+
+    Workspace ws(ptx, GetNextBlockScriptFlags(consensusParams, tip));
 
     // Perform the inexpensive checks first and avoid hashing and signature
     // verification unless those checks pass, to mitigate CPU exhaustion
