@@ -46,12 +46,12 @@ BOOST_AUTO_TEST_CASE(MempoolMinimumFeeEstimate) {
             mpool.addUnchecked(
                 entry.Fee((j + 1) * DEFAULT_BLOCK_MIN_TX_FEE_PER_KB)
                     .Time(GetTime())
-                    .Height(blocknum)
+                    .Height(blocknum++)
                     .FromTx(tx));
             CTransactionRef ptx = mpool.get(txid);
             block.push_back(ptx);
         }
-        mpool.removeForBlock(block, ++blocknum);
+        mpool.removeForBlock(block);
         block.clear();
     }
 
