@@ -41,7 +41,9 @@ add_library(wallet
 
 # There is a circular dependency between wallet and server, see:
 # https://github.com/bitcoin/bitcoin/pull/14437#discussion_r226237048
-target_link_libraries(wallet bitcoinconsensus univalue BerkeleyDB::CXX SQLite::SQLite3)
+# This dependency can be dropped after the mempool_ancestors_descendants
+# statistics is removed
+target_link_libraries(wallet server bitcoinconsensus univalue BerkeleyDB::CXX SQLite::SQLite3)
 
 # wallet-tool library
 add_library(wallet-tool wallettool.cpp)
