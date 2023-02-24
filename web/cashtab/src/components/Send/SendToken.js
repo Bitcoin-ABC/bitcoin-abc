@@ -45,8 +45,9 @@ import {
     isValidXecAddress,
     isValidEtokenAddress,
     isValidEtokenBurnAmount,
+    isAliasFormat,
 } from 'utils/validation';
-import { getTokenStats } from 'utils/chronik';
+import { getTokenStats, getAddressFromAlias } from 'utils/chronik';
 import { formatDate } from 'utils/formatting';
 import styled, { css } from 'styled-components';
 import TokenIcon from 'components/Tokens/TokenIcon';
@@ -94,8 +95,13 @@ const AirdropButton = styled.div`
 `;
 
 const SendToken = ({ tokenId, passLoadingStatus }) => {
-    const { wallet, apiError, cashtabSettings, chronik } =
-        React.useContext(WalletContext);
+    const {
+        wallet,
+        apiError,
+        cashtabSettings,
+        chronik,
+        getAliasesFromLocalForage,
+    } = React.useContext(WalletContext);
     const walletState = getWalletState(wallet);
     const { tokens } = walletState;
 
@@ -112,6 +118,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
     const [burnConfirmationValid, setBurnConfirmationValid] = useState(null);
     const [confirmationOfEtokenToBeBurnt, setConfirmationOfEtokenToBeBurnt] =
         useState('');
+    const [aliasInputAddress, setAliasInputAddress] = useState(false);
 
     // Get device window width
     // If this is less than 769, the page will open with QR scanner open
@@ -170,8 +177,16 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
         passLoadingStatus(true);
         const { address, value } = formData;
 
-        // Clear params from address
-        let cleanAddress = address.split('?')[0];
+        let cleanAddress;
+        // check state on whether this is an alias or ecash address
+        if (aliasInputAddress) {
+            cleanAddress = aliasInputAddress;
+            // temporary log for reviewer
+            console.log(`parsed address for ${address} is: ${cleanAddress}`);
+        } else {
+            // Get the non-alias param-free address
+            cleanAddress = address.split('?')[0];
+        }
 
         try {
             const link = await sendToken(chronik, wallet, {
@@ -220,7 +235,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
         }));
     };
 
-    const handleTokenAddressChange = e => {
+    const handleTokenAddressChange = async e => {
         const { value, name } = e.target;
         // validate for token address
         // validate for parameters
@@ -242,6 +257,34 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
         if (!isValid) {
             error = 'Invalid address';
         }
+
+        // if input is invalid as an ecash address, check if it's a valid alias
+        // otherwise the invalid address error above will be displayed
+        const isAliasInput = isAliasFormat(address);
+        if (isAliasInput) {
+            // reset the invalid address check from above
+            error = false;
+
+            // extract alias without the `.xec`
+            const aliasName = address.slice(0, address.length - 4);
+            // extract alias address from cache
+            const aliasCacheObj = await getAliasesFromLocalForage();
+
+            const aliasAddress = getAddressFromAlias(
+                aliasName,
+                aliasCacheObj.aliases,
+            );
+
+            // if not found in alias cache, display input error
+            if (!aliasAddress) {
+                error = 'eCash Alias does not exist';
+                setAliasInputAddress(false);
+            } else {
+                // otherwise set parsed address to state for use in Send()
+                setAliasInputAddress(aliasAddress);
+            }
+        }
+
         setSendTokenAddressError(error);
 
         setFormData(p => ({
@@ -462,7 +505,10 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
                                         })
                                     }
                                     inputProps={{
-                                        placeholder: `Address`,
+                                        placeholder: currency.aliasSettings
+                                            .aliasEnabled
+                                            ? `Address or Alias`
+                                            : `Address`,
                                         name: 'address',
                                         onChange: e =>
                                             handleTokenAddressChange(e),
