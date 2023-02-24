@@ -1,14 +1,14 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP @generated
+// Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 <div
-  className="sc-fMiknA jZzFfL"
+  className="sc-dVhcbM wDhWQ"
 >
   <h3>
     Create a Token
   </h3>
   <div
-    className="sc-eNQAEJ kPLQzL"
+    className="sc-hMqMXs deFyXd"
   >
     <form
       className="ant-form ant-form-horizontal ant-form-small"
@@ -21,7 +21,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
       }
     >
       <label
-        className="sc-gPEVay honyxf"
+        className="sc-iRbamj bjnTvN"
       >
         Token Name
       </label>
@@ -59,7 +59,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-gPEVay honyxf"
+        className="sc-iRbamj bjnTvN"
       >
         Ticker
       </label>
@@ -97,7 +97,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-gPEVay honyxf"
+        className="sc-iRbamj bjnTvN"
       >
         Decimals
       </label>
@@ -135,7 +135,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-gPEVay honyxf"
+        className="sc-iRbamj bjnTvN"
       >
         Supply
       </label>
@@ -173,7 +173,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-gPEVay honyxf"
+        className="sc-iRbamj bjnTvN"
       >
         Document URL
       </label>
@@ -211,7 +211,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-gPEVay honyxf"
+        className="sc-iRbamj bjnTvN"
       >
         Add Image
       </label>
@@ -317,7 +317,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
     </form>
   </div>
   <button
-    className="sc-brqgnP bPIDjd"
+    className="sc-cMljjf hrxNPl"
     disabled={true}
     onClick={[Function]}
     style={

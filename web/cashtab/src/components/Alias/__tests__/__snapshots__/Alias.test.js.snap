@@ -3,13 +3,13 @@
 exports[`Wallet with XEC balances 1`] = `
 Array [
   <div
-    className="sc-kkGfuU jfxnHc"
+    className="sc-iAyFgw gXtUud"
   >
     <div
-      className="sc-dxgOiQ ftpIpC"
+      className="sc-ckVGcZ dURHZT"
     >
       <h4
-        className="sc-ckVGcZ gcRXVO"
+        className="sc-jKJlTe jiqJFQ"
       >
         MigrationTestAlpha
       </h4>
@@ -51,7 +51,7 @@ Array [
       </div>
     </div>
     <div
-      className="sc-eHgmQL jCioUo"
+      className="sc-cvbbAY ekZlPO"
     >
       You currently have 0 
       XEC
@@ -60,7 +60,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hMqMXs kjfrok"
+    className="sc-kEYyzF gZfJyA"
   >
     <div
       className="ant-row"
@@ -72,17 +72,17 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-eqIVtm ckPQah"
+          className="sc-fAjcbJ eCiCrk"
         >
           <h2>
             eCash Namespace Alias
           </h2>
         </div>
         <div
-          className="sc-hMqMXs kjfrok"
+          className="sc-kEYyzF gZfJyA"
         >
           <div
-            className="sc-jlyJG ihTnaY"
+            className="sc-gipzik iAGCgG"
           >
             <form
               className="ant-form ant-form-horizontal"
@@ -161,7 +161,7 @@ Array [
                         className="ant-form-item-control-input-content"
                       >
                         <button
-                          className="sc-jhAzac kHNRRv"
+                          className="sc-fBuWsC cMgDXa"
                           disabled={true}
                           onClick={[Function]}
                         >
@@ -175,10 +175,10 @@ Array [
             </form>
           </div>
           <div
-            className="sc-fAjcbJ bxdoEv"
+            className="sc-caSCKo bZftbI"
           />
           <div
-            className="sc-eqIVtm ckPQah"
+            className="sc-fAjcbJ eCiCrk"
           >
             <h3>
               <p>
@@ -216,13 +216,13 @@ Array [
 exports[`Wallet with XEC balances and tokens 1`] = `
 Array [
   <div
-    className="sc-kkGfuU jfxnHc"
+    className="sc-iAyFgw gXtUud"
   >
     <div
-      className="sc-dxgOiQ ftpIpC"
+      className="sc-ckVGcZ dURHZT"
     >
       <h4
-        className="sc-ckVGcZ gcRXVO"
+        className="sc-jKJlTe jiqJFQ"
       >
         MigrationTestAlpha
       </h4>
@@ -264,7 +264,7 @@ Array [
       </div>
     </div>
     <div
-      className="sc-eHgmQL jCioUo"
+      className="sc-cvbbAY ekZlPO"
     >
       You currently have 0 
       XEC
@@ -273,7 +273,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hMqMXs kjfrok"
+    className="sc-kEYyzF gZfJyA"
   >
     <div
       className="ant-row"
@@ -285,17 +285,17 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-eqIVtm ckPQah"
+          className="sc-fAjcbJ eCiCrk"
         >
           <h2>
             eCash Namespace Alias
           </h2>
         </div>
         <div
-          className="sc-hMqMXs kjfrok"
+          className="sc-kEYyzF gZfJyA"
         >
           <div
-            className="sc-jlyJG ihTnaY"
+            className="sc-gipzik iAGCgG"
           >
             <form
               className="ant-form ant-form-horizontal"
@@ -374,7 +374,7 @@ Array [
                         className="ant-form-item-control-input-content"
                       >
                         <button
-                          className="sc-jhAzac kHNRRv"
+                          className="sc-fBuWsC cMgDXa"
                           disabled={true}
                           onClick={[Function]}
                         >
@@ -388,10 +388,10 @@ Array [
             </form>
           </div>
           <div
-            className="sc-fAjcbJ bxdoEv"
+            className="sc-caSCKo bZftbI"
           />
           <div
-            className="sc-eqIVtm ckPQah"
+            className="sc-fAjcbJ eCiCrk"
           >
             <h3>
               <p>
@@ -429,13 +429,13 @@ Array [
 exports[`Wallet with XEC balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-kkGfuU jfxnHc"
+    className="sc-iAyFgw gXtUud"
   >
     <div
-      className="sc-dxgOiQ ftpIpC"
+      className="sc-ckVGcZ dURHZT"
     >
       <h4
-        className="sc-ckVGcZ gcRXVO"
+        className="sc-jKJlTe jiqJFQ"
       >
         MigrationTestAlpha
       </h4>
@@ -477,10 +477,10 @@ Array [
       </div>
     </div>
     <div
-      className="sc-hSdWYo bXDUps"
+      className="sc-eHgmQL znFwg"
     >
       <span
-        className="sc-fBuWsC dPGzRB"
+        className="sc-fMiknA iAqacI"
       >
          
         0.06
@@ -491,7 +491,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hMqMXs kjfrok"
+    className="sc-kEYyzF gZfJyA"
   >
     <div
       className="ant-row"
@@ -503,17 +503,17 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-eqIVtm ckPQah"
+          className="sc-fAjcbJ eCiCrk"
         >
           <h2>
             eCash Namespace Alias
           </h2>
         </div>
         <div
-          className="sc-hMqMXs kjfrok"
+          className="sc-kEYyzF gZfJyA"
         >
           <div
-            className="sc-jlyJG ihTnaY"
+            className="sc-gipzik iAGCgG"
           >
             <form
               className="ant-form ant-form-horizontal"
@@ -592,7 +592,7 @@ Array [
                         className="ant-form-item-control-input-content"
                       >
                         <button
-                          className="sc-jhAzac kHNRRv"
+                          className="sc-fBuWsC cMgDXa"
                           disabled={true}
                           onClick={[Function]}
                         >
@@ -606,10 +606,10 @@ Array [
             </form>
           </div>
           <div
-            className="sc-fAjcbJ bxdoEv"
+            className="sc-caSCKo bZftbI"
           />
           <div
-            className="sc-eqIVtm ckPQah"
+            className="sc-fAjcbJ eCiCrk"
           >
             <h3>
               <p>
@@ -647,13 +647,13 @@ Array [
 exports[`Wallet without XEC balance 1`] = `
 Array [
   <div
-    className="sc-kkGfuU jfxnHc"
+    className="sc-iAyFgw gXtUud"
   >
     <div
-      className="sc-dxgOiQ ftpIpC"
+      className="sc-ckVGcZ dURHZT"
     >
       <h4
-        className="sc-ckVGcZ gcRXVO"
+        className="sc-jKJlTe jiqJFQ"
       >
         MigrationTestAlpha
       </h4>
@@ -695,7 +695,7 @@ Array [
       </div>
     </div>
     <div
-      className="sc-eHgmQL jCioUo"
+      className="sc-cvbbAY ekZlPO"
     >
       You currently have 0 
       XEC
@@ -704,7 +704,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hMqMXs kjfrok"
+    className="sc-kEYyzF gZfJyA"
   >
     <div
       className="ant-row"
@@ -716,17 +716,17 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-eqIVtm ckPQah"
+          className="sc-fAjcbJ eCiCrk"
         >
           <h2>
             eCash Namespace Alias
           </h2>
         </div>
         <div
-          className="sc-hMqMXs kjfrok"
+          className="sc-kEYyzF gZfJyA"
         >
           <div
-            className="sc-jlyJG ihTnaY"
+            className="sc-gipzik iAGCgG"
           >
             <form
               className="ant-form ant-form-horizontal"
@@ -805,7 +805,7 @@ Array [
                         className="ant-form-item-control-input-content"
                       >
                         <button
-                          className="sc-jhAzac kHNRRv"
+                          className="sc-fBuWsC cMgDXa"
                           disabled={true}
                           onClick={[Function]}
                         >
@@ -819,10 +819,10 @@ Array [
             </form>
           </div>
           <div
-            className="sc-fAjcbJ bxdoEv"
+            className="sc-caSCKo bZftbI"
           />
           <div
-            className="sc-eqIVtm ckPQah"
+            className="sc-fAjcbJ eCiCrk"
           >
             <h3>
               <p>
@@ -860,10 +860,10 @@ Array [
 exports[`Without wallet defined 1`] = `
 Array [
   <div
-    className="sc-kkGfuU jfxnHc"
+    className="sc-iAyFgw gXtUud"
   >
     <div
-      className="sc-dxgOiQ ftpIpC"
+      className="sc-ckVGcZ dURHZT"
     >
       <a
         href="/configure"
@@ -903,7 +903,7 @@ Array [
       </div>
     </div>
     <div
-      className="sc-eHgmQL jCioUo"
+      className="sc-cvbbAY ekZlPO"
     >
       You currently have 0 
       XEC
@@ -912,7 +912,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hMqMXs kjfrok"
+    className="sc-kEYyzF gZfJyA"
   >
     <div
       className="ant-row"
@@ -924,17 +924,17 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-eqIVtm ckPQah"
+          className="sc-fAjcbJ eCiCrk"
         >
           <h2>
             eCash Namespace Alias
           </h2>
         </div>
         <div
-          className="sc-hMqMXs kjfrok"
+          className="sc-kEYyzF gZfJyA"
         >
           <div
-            className="sc-jlyJG ihTnaY"
+            className="sc-gipzik iAGCgG"
           >
             <form
               className="ant-form ant-form-horizontal"
@@ -1013,7 +1013,7 @@ Array [
                         className="ant-form-item-control-input-content"
                       >
                         <button
-                          className="sc-jhAzac kHNRRv"
+                          className="sc-fBuWsC cMgDXa"
                           disabled={true}
                           onClick={[Function]}
                         >
@@ -1027,10 +1027,10 @@ Array [
             </form>
           </div>
           <div
-            className="sc-fAjcbJ bxdoEv"
+            className="sc-caSCKo bZftbI"
           />
           <div
-            className="sc-eqIVtm ckPQah"
+            className="sc-fAjcbJ eCiCrk"
           >
             <h3>
               <p>

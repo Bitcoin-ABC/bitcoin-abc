@@ -77,7 +77,7 @@ export const currency = {
             cashtab: '00746162',
             cashtabEncrypted: '65746162',
             airdrop: '64726f70',
-            aliasRegistration: '2E786563',
+            aliasRegistration: '2e786563',
         },
         encryptedMsgCharLimit: 125,
         unencryptedMsgCharLimit: 206,

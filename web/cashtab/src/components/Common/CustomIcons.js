@@ -197,4 +197,5 @@ export const AirdropIcon = () => <Airdrop height={'33px'} width={'30px'} />;
 export const SendIcon = styled(Send)`
     transform: rotate(-35deg);
 `;
+export const AliasIcon = styled(User)``;
 export const CustomSpinner = <LoadingOutlined style={{ fontSize: 24 }} spin />;

@@ -1,13 +1,13 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP @generated
+// Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Wallet with BCH balances and tokens 1`] = `null`;
 
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 <div
-  className="sc-brqgnP bfyWvH"
+  className="sc-cMljjf eXmwYV"
 >
   <div
-    className="sc-gPEVay djlRgR"
+    className="sc-iRbamj hTWIef"
   >
     6.001000000
      
@@ -33,7 +33,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         }
       >
         <div
-          className="sc-iAyFgw jzsFKO"
+          className="sc-hSdWYo ftBlXh"
         >
           <div
             className="ant-form-item ant-form-item-with-help"
@@ -107,7 +107,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                           className="ant-input-group-addon"
                         >
                           <span
-                            className="sc-hMqMXs cVhNWA"
+                            className="sc-kEYyzF eQAIRP"
                             onClick={[Function]}
                           >
                             <span
@@ -140,7 +140,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
           </div>
         </div>
         <div
-          className="sc-iAyFgw jzsFKO"
+          className="sc-hSdWYo ftBlXh"
         >
           <div
             className="ant-form-item ant-form-item-with-help"
@@ -200,7 +200,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                           className="ant-input-group-addon"
                         >
                           <span
-                            className="sc-hSdWYo cuaAmY"
+                            className="sc-eHgmQL Rlngw"
                             disabled={false}
                             onClick={[Function]}
                           >
@@ -223,7 +223,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
           }
         >
           <button
-            className="sc-dxgOiQ jOtciy"
+            className="sc-ckVGcZ hUbpO"
             onClick={[Function]}
           >
             Send 

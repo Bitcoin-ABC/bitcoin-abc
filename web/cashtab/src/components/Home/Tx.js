@@ -10,6 +10,7 @@ import {
     ThemedContactsOutlined,
     ThemedBurnOutlined,
     AirdropIcon,
+    AliasIcon,
 } from 'components/Common/CustomIcons';
 import { currency } from 'components/Common/Ticker';
 import { formatBalance, formatDate } from 'utils/formatting';
@@ -83,6 +84,12 @@ const AirdropTokenInfoCtn = styled.div`
 `;
 
 const GenesisTx = styled(TxIcon)`
+    border-color: ${props => props.theme.genesisGreen};
+    svg {
+        fill: ${props => props.theme.genesisGreen};
+    }
+`;
+const AliasRegistrationTx = styled(TxIcon)`
     border-color: ${props => props.theme.genesisGreen};
     svg {
         fill: ${props => props.theme.genesisGreen};
@@ -489,6 +496,11 @@ const Tx = ({
                                                             <AirdropSentTx>
                                                                 <AirdropIcon />
                                                             </AirdropSentTx>
+                                                        ) : data.parsed
+                                                              .aliasFlag ? (
+                                                            <AliasRegistrationTx>
+                                                                <AliasIcon />
+                                                            </AliasRegistrationTx>
                                                         ) : (
                                                             <SentTx>
                                                                 <SendIcon />
@@ -529,6 +541,9 @@ const Tx = ({
                                                                 : data.parsed
                                                                       .airdropFlag
                                                                 ? 'Airdrop'
+                                                                : data.parsed
+                                                                      .aliasFlag
+                                                                ? 'Alias'
                                                                 : 'Sent'}
                                                         </h3>
                                                     )}
@@ -843,6 +858,11 @@ const Tx = ({
                                                         .isCashtabMessage ? (
                                                         <h4>
                                                             Cashtab Message{' '}
+                                                        </h4>
+                                                    ) : data.parsed
+                                                          .aliasFlag ? (
+                                                        <h4>
+                                                            Alias Registration
                                                         </h4>
                                                     ) : (
                                                         <h4>

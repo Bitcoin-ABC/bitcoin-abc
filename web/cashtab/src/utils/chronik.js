@@ -860,6 +860,7 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
     let isEncryptedMessage = false;
     let decryptionSuccess = false;
     let replyAddress = '';
+    let aliasFlag = false;
 
     // Iterate over inputs to see if this is an incoming tx (incoming === true)
     for (let i = 0; i < inputs.length; i += 1) {
@@ -1042,6 +1043,12 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
                 isCashtabMessage = true;
                 isEncryptedMessage = true;
                 opReturnMessage = decryptedMessage;
+            } else if (
+                txType === currency.opReturn.appPrefixesHex.aliasRegistration
+            ) {
+                // if this is an alias registration transaction
+                aliasFlag = true;
+                opReturnMessage = Buffer.from(parsedOpReturnArray[1], 'hex');
             } else {
                 // this is an externally generated message
                 message = txType; // index 0 is the message content in this instance
@@ -1194,6 +1201,7 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
         isEncryptedMessage,
         decryptionSuccess,
         replyAddress,
+        aliasFlag,
     };
 };
 

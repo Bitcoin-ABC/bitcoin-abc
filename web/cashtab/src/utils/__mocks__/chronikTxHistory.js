@@ -10347,6 +10347,36 @@ export const lambdaOutgoingXecTx = {
     network: 'XEC',
 };
 
+export const lambdaOutgoingAliasRegistrationTx = {
+    txid: 'b02d4ef6c54010f2fc27bc3d47786778a77c179b35c78a6d11157f52af44e638',
+    version: 2,
+    inputs: [
+        {
+            prevOut: {
+                txid: 'bb161d20f884ce45374fa3f9f1452290a2e52e93c8b552f559fad8ccd1ca33cc',
+                outIdx: 5,
+            },
+            inputScript:
+                '473044022054a6b2065a0b0bbe70048e782aa9be048cc8bee0a241d08d0b98fcd74505a90202201ed5224f34c9ff73dc0c581390247686af521476a977a58e55ed33c4afd177c2412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
+            outputScript: '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+            value: '4400000',
+            sequenceNo: 4294967295,
+        },
+    ],
+    outputs: [
+        {
+            value: '0',
+            outputScript: '6a042e7865630466616465',
+        },
+        {
+            value: '555',
+            outputScript: '76a914638568e36d0b5d7d49a6e99854caa27d9772b09388ac',
+        },
+    ],
+    lockTime: 0,
+    timeFirstSeen: '1652823464',
+    network: 'XEC',
+};
 export const lambdaIncomingEtokenTx = {
     txid: '46cf8bf009dbc6da45045c23af878cd2fd6dd3d3f62bf524d675e75959d5fdbd',
     version: 2,

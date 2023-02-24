@@ -47,6 +47,7 @@ import {
     lambdaOutgoingXecTx,
     lambdaIncomingEtokenTx,
     lambdaOutgoingEtokenTx,
+    lambdaOutgoingAliasRegistrationTx,
     eTokenGenesisTx,
     receivedEtokenTxNineDecimals,
     anotherMockParseTxWallet,
@@ -316,7 +317,7 @@ it(`Successfully parses an incoming XEC tx`, () => {
         isEtokenTx: false,
         airdropFlag: false,
         airdropTokenId: '',
-
+        aliasFlag: false,
         decryptionSuccess: false,
         isCashtabMessage: false,
         isEncryptedMessage: false,
@@ -338,11 +339,33 @@ it(`Successfully parses an outgoing XEC tx`, () => {
         isEtokenTx: false,
         airdropFlag: false,
         airdropTokenId: '',
-
+        aliasFlag: false,
         decryptionSuccess: false,
         isCashtabMessage: false,
         isEncryptedMessage: false,
         opReturnMessage: '',
+        replyAddress: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+    });
+});
+it(`Successfully parses an outgoing Alias Registration tx`, () => {
+    expect(
+        parseChronikTx(
+            lambdaOutgoingAliasRegistrationTx,
+            mockParseTxWallet,
+            txHistoryTokenInfoById,
+        ),
+    ).toStrictEqual({
+        incoming: false,
+        xecAmount: '5.55',
+        originatingHash160: '76458db0ed96fe9863fc1ccec9fa2cfab884b0f6',
+        isEtokenTx: false,
+        airdropFlag: false,
+        airdropTokenId: '',
+        aliasFlag: true,
+        decryptionSuccess: false,
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        opReturnMessage: 'fade',
         replyAddress: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
     });
 });
@@ -379,7 +402,6 @@ it(`Successfully parses an incoming eToken tx`, () => {
         etokenAmount: '12',
         airdropFlag: false,
         airdropTokenId: '',
-
         decryptionSuccess: false,
         isCashtabMessage: false,
         isEncryptedMessage: false,
@@ -420,7 +442,6 @@ it(`Successfully parses an outgoing eToken tx`, () => {
         etokenAmount: '17',
         airdropFlag: false,
         airdropTokenId: '',
-
         decryptionSuccess: false,
         isCashtabMessage: false,
         isEncryptedMessage: false,
@@ -497,7 +518,6 @@ it(`Successfully parses a received eToken tx with 9 decimal places`, () => {
             tokenName: 'CashTabBits',
             tokenTicker: 'CTB',
         },
-
         airdropFlag: false,
         airdropTokenId: '',
         opReturnMessage: '',
@@ -519,7 +539,7 @@ it(`Correctly parses a received airdrop transaction`, () => {
         xecAmount: '5.69',
         originatingHash160: '63a17ac732fd6afe8699b240a29b483246308de7',
         isEtokenTx: false,
-
+        aliasFlag: false,
         airdropFlag: true,
         airdropTokenId:
             'bdb3b4215ca0622e0c4c07655522c376eaa891838a82f0217fa453bb0595a37c',
@@ -545,6 +565,7 @@ it(`Correctly parses a sent encyrpted message transaction`, () => {
         isEtokenTx: false,
         airdropFlag: false,
         airdropTokenId: '',
+        aliasFlag: false,
         opReturnMessage: 'Only the message recipient can view this',
         isCashtabMessage: true,
         isEncryptedMessage: true,
@@ -566,6 +587,7 @@ it(`Correctly parses a received encrypted message transaction`, () => {
         isEtokenTx: false,
         airdropFlag: false,
         airdropTokenId: '',
+        aliasFlag: false,
         opReturnMessage: 'Test encrypted message',
         isCashtabMessage: true,
         isEncryptedMessage: true,
@@ -702,6 +724,7 @@ it(`Correctly parses an incoming eToken tx that sends only XEC to the Cashtab us
         xecAmount: '10',
         originatingHash160: '80ad93eff2bd02e6383ba62476ffd729d1b2660d',
         isEtokenTx: false,
+        aliasFlag: false,
         airdropFlag: false,
         airdropTokenId: '',
         opReturnMessage: '',
