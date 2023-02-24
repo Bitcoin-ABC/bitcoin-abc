@@ -11691,8 +11691,6 @@ export const mockWalletWithPrivateKeys = {
                 parsed: {
                     incoming: true,
                     xecAmount: '11',
-                    originatingHash160:
-                        '4e532257c01b310b3b5c1fd947c79a72addf8523',
                     isEtokenTx: false,
                     legacy: {
                         amountSent: 0,
@@ -11747,8 +11745,6 @@ export const mockWalletWithPrivateKeys = {
                 parsed: {
                     incoming: false,
                     xecAmount: '11',
-                    originatingHash160:
-                        'ee6dc9d40f95d8e106a63385c6fa882991b9e84e',
                     isEtokenTx: false,
                     legacy: {
                         amountSent: '11',
@@ -11807,8 +11803,6 @@ export const mockWalletWithPrivateKeys = {
                 parsed: {
                     incoming: true,
                     xecAmount: '500',
-                    originatingHash160:
-                        '4e532257c01b310b3b5c1fd947c79a72addf8523',
                     isEtokenTx: false,
                     legacy: {
                         amountSent: 0,
@@ -12228,7 +12222,6 @@ export const mockSwapTx = {
     parsed: {
         incoming: true,
         xecAmount: '10',
-        originatingHash160: '205c792fff2ffc891e986246760ee1079fa5a369',
         isEtokenTx: false,
         airdropFlag: false,
         airdropTokenId: '',
@@ -12407,8 +12400,6 @@ export const mockSwapWallet = {
                 parsed: {
                     incoming: true,
                     xecAmount: '10',
-                    originatingHash160:
-                        '205c792fff2ffc891e986246760ee1079fa5a369',
                     isEtokenTx: false,
                     airdropFlag: false,
                     airdropTokenId: '',
@@ -12465,8 +12456,6 @@ export const mockSwapWallet = {
                 parsed: {
                     incoming: true,
                     xecAmount: '9.97',
-                    originatingHash160:
-                        '6150012e55ab0130e2105d4e2f118824f3df1c4a',
                     isEtokenTx: false,
                     airdropFlag: false,
                     airdropTokenId: '',

@@ -32,6 +32,7 @@ import {
     getECPairFromWIF,
     hash160ToAddress,
     getAliasRegistrationFee,
+    outputScriptToAddress,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import { validAddressArrayInput } from '../__mocks__/mockAddressArray';
@@ -1598,5 +1599,39 @@ describe('Correctly executes cash utility functions', () => {
         expect(
             hash160ToAddress('76458db0ed96fe9863fc1ccec9fa2cfab884b0f6'),
         ).toBe('ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj');
+    });
+    it(`outputScriptToAddress determines P2PKH address type from output script and returns the ecash address`, () => {
+        expect(
+            outputScriptToAddress(
+                '76a914da45fd71b76e34c88e97ccbebb454d7cd395e52c88ac',
+            ),
+        ).toBe('ecash:qrdytlt3kahrfjywjlxtaw69f47d89099s393kne5c');
+    });
+    it(`outputScriptToAddress determines P2SH address type from output script and returns the ecash address`, () => {
+        expect(
+            outputScriptToAddress(
+                'a914c5e60aad8d98f298a76434750630dc1b46a2382187',
+            ),
+        ).toBe('ecash:prz7vz4d3kv09x98vs682p3smsd5dg3cyykjye6grt');
+    });
+    it(`outputScriptToAddress throws correct error for an output script that does not parse as P2PKH or P2SH`, () => {
+        let thrownError;
+        try {
+            outputScriptToAddress('notAnOutputScript');
+        } catch (err) {
+            thrownError = err;
+        }
+        expect(thrownError.message).toBe('Unrecognized outputScript format');
+    });
+    it(`outputScriptToAddress throws correct error for an output script that for some reason is bracketed by P2PKH markers but is not a valid hash160`, () => {
+        let thrownError;
+        try {
+            outputScriptToAddress(
+                '76a914da45fd71b76eeeeeeeee34c88e97ccbebb454d7cd395e52c88ac',
+            );
+        } catch (err) {
+            thrownError = err;
+        }
+        expect(thrownError.message).toBe('Parsed hash160 is incorrect length');
     });
 });

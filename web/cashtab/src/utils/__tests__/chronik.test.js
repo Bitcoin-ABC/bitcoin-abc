@@ -313,7 +313,6 @@ it(`Successfully parses an incoming XEC tx`, () => {
     ).toStrictEqual({
         incoming: true,
         xecAmount: '42',
-        originatingHash160: '4e532257c01b310b3b5c1fd947c79a72addf8523',
         isEtokenTx: false,
         airdropFlag: false,
         airdropTokenId: '',
@@ -335,7 +334,6 @@ it(`Successfully parses an outgoing XEC tx`, () => {
     ).toStrictEqual({
         incoming: false,
         xecAmount: '222',
-        originatingHash160: '76458db0ed96fe9863fc1ccec9fa2cfab884b0f6',
         isEtokenTx: false,
         airdropFlag: false,
         airdropTokenId: '',
@@ -357,7 +355,6 @@ it(`Successfully parses an outgoing Alias Registration tx`, () => {
     ).toStrictEqual({
         incoming: false,
         xecAmount: '5.55',
-        originatingHash160: '76458db0ed96fe9863fc1ccec9fa2cfab884b0f6',
         isEtokenTx: false,
         airdropFlag: false,
         airdropTokenId: '',
@@ -381,7 +378,6 @@ it(`Successfully parses an incoming eToken tx`, () => {
         xecAmount: '5.46',
         isEtokenTx: true,
         isTokenBurn: false,
-        originatingHash160: '4e532257c01b310b3b5c1fd947c79a72addf8523',
         slpMeta: {
             tokenId:
                 '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
@@ -421,7 +417,6 @@ it(`Successfully parses an outgoing eToken tx`, () => {
         xecAmount: '5.46',
         isEtokenTx: true,
         isTokenBurn: false,
-        originatingHash160: '76458db0ed96fe9863fc1ccec9fa2cfab884b0f6',
         slpMeta: {
             tokenId:
                 '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
@@ -459,7 +454,6 @@ it(`Successfully parses a genesis eToken tx`, () => {
     ).toStrictEqual({
         incoming: false,
         xecAmount: '0',
-        originatingHash160: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
         isEtokenTx: true,
         isTokenBurn: false,
         etokenAmount: '777.7777777',
@@ -498,7 +492,6 @@ it(`Successfully parses a received eToken tx with 9 decimal places`, () => {
     ).toStrictEqual({
         incoming: true,
         xecAmount: '5.46',
-        originatingHash160: '4e532257c01b310b3b5c1fd947c79a72addf8523',
         isEtokenTx: true,
         isTokenBurn: false,
         etokenAmount: '0.123456789',
@@ -537,7 +530,6 @@ it(`Correctly parses a received airdrop transaction`, () => {
     ).toStrictEqual({
         incoming: true,
         xecAmount: '5.69',
-        originatingHash160: '63a17ac732fd6afe8699b240a29b483246308de7',
         isEtokenTx: false,
         aliasFlag: false,
         airdropFlag: true,
@@ -561,7 +553,6 @@ it(`Correctly parses a sent encyrpted message transaction`, () => {
     ).toStrictEqual({
         incoming: false,
         xecAmount: '12',
-        originatingHash160: 'ee6dc9d40f95d8e106a63385c6fa882991b9e84e',
         isEtokenTx: false,
         airdropFlag: false,
         airdropTokenId: '',
@@ -583,7 +574,6 @@ it(`Correctly parses a received encrypted message transaction`, () => {
     ).toStrictEqual({
         incoming: true,
         xecAmount: '11',
-        originatingHash160: '4e532257c01b310b3b5c1fd947c79a72addf8523',
         isEtokenTx: false,
         airdropFlag: false,
         airdropTokenId: '',
@@ -606,7 +596,6 @@ it(`Correctly parses a token burn transaction`, () => {
     ).toStrictEqual({
         incoming: false,
         xecAmount: '0',
-        originatingHash160: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
         isEtokenTx: true,
         isTokenBurn: true,
         etokenAmount: '12',
@@ -645,7 +634,6 @@ it(`Correctly parses a token burn transaction with decimal places`, () => {
     ).toStrictEqual({
         incoming: false,
         xecAmount: '0',
-        originatingHash160: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
         isEtokenTx: true,
         etokenAmount: '0.1234567',
         isTokenBurn: true,
@@ -687,7 +675,6 @@ it(`Correctly parses received quantity for a received eToken address`, () => {
     ).toStrictEqual({
         incoming: true,
         xecAmount: '5.46',
-        originatingHash160: '4e532257c01b310b3b5c1fd947c79a72addf8523',
         isEtokenTx: true,
         etokenAmount: '0.123456789',
         isTokenBurn: false,
@@ -722,7 +709,6 @@ it(`Correctly parses an incoming eToken tx that sends only XEC to the Cashtab us
     ).toStrictEqual({
         incoming: true,
         xecAmount: '10',
-        originatingHash160: '80ad93eff2bd02e6383ba62476ffd729d1b2660d',
         isEtokenTx: false,
         aliasFlag: false,
         airdropFlag: false,

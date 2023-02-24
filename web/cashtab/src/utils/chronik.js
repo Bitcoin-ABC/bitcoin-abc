@@ -10,6 +10,7 @@ import {
     hash160ToAddress,
     getAliasRegistrationFee,
     convertToEcashPrefix,
+    outputScriptToAddress,
 } from 'utils/cashMethods';
 import ecies from 'ecies-lite';
 import wif from 'wif';
@@ -841,7 +842,6 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
     // Assign defaults
     let incoming = true;
     let xecAmount = new BigNumber(0);
-    let originatingHash160 = '';
     let etokenAmount = new BigNumber(0);
     let isTokenBurn = false;
     let isEtokenTx = 'slpTxData' in tx && typeof tx.slpTxData !== 'undefined';
@@ -865,7 +865,7 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
     // Iterate over inputs to see if this is an incoming tx (incoming === true)
     for (let i = 0; i < inputs.length; i += 1) {
         const thisInput = inputs[i];
-        const thisInputSendingHash160 = thisInput.outputScript;
+
         // If this is an etoken tx, check for token burn
         if (
             isEtokenTx &&
@@ -906,22 +906,20 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
         // Since you may have more than one address in inputs, assume the first one is the replyAddress
         if (i === 0) {
             try {
-                originatingHash160 = thisInputSendingHash160.substring(
-                    thisInputSendingHash160.indexOf('76a914') + '76a914'.length,
-                    thisInputSendingHash160.lastIndexOf('88ac'),
-                );
-
-                replyAddress = hash160ToAddress(originatingHash160);
+                replyAddress = outputScriptToAddress(thisInput.outputScript);
             } catch (err) {
-                console.log(`err from ${originatingHash160}`, err);
+                console.log(
+                    `Error from outputScriptToAddress(${thisInput.outputScript})`,
+                    err,
+                );
                 // If the transaction is nonstandard, don't worry about a reply address for now
-                originatingHash160 = 'N/A';
+                replyAddress = 'N/A';
             }
         }
 
         for (let j = 0; j < walletHash160s.length; j += 1) {
             const thisWalletHash160 = walletHash160s[j];
-            if (thisInputSendingHash160.includes(thisWalletHash160)) {
+            if (thisInput.outputScript.includes(thisWalletHash160)) {
                 // Then this is an outgoing tx
                 incoming = false;
                 // Break out of this for loop once you know this is an outgoing tx
@@ -1173,7 +1171,6 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
         return {
             incoming,
             xecAmount,
-            originatingHash160,
             isEtokenTx,
             etokenAmount,
             isTokenBurn,
@@ -1192,7 +1189,6 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
     return {
         incoming,
         xecAmount,
-        originatingHash160,
         isEtokenTx,
         airdropFlag,
         airdropTokenId,
@@ -1333,7 +1329,6 @@ export const getTxHistoryChronik = async (chronik, wallet, tokenInfoById) => {
 
 export const getMintAddress = async (chronik, tokenId) => {
     let genesisTx;
-    let mintingHash160;
     try {
         genesisTx = await chronik.tx(tokenId);
         // get the minting address chronik
@@ -1350,15 +1345,11 @@ export const getMintAddress = async (chronik, tokenId) => {
                 Number(thisOutput.slpToken.amount) > 0
             ) {
                 // then this is the minting address
-                const thisOutputHash160 = thisOutput.outputScript;
-                mintingHash160 = thisOutputHash160.substring(
-                    thisOutputHash160.indexOf('76a914') + '76a914'.length,
-                    thisOutputHash160.lastIndexOf('88ac'),
+                return convertEcashtoEtokenAddr(
+                    outputScriptToAddress(thisOutput.outputScript),
                 );
             }
         }
-
-        return convertEcashtoEtokenAddr(hash160ToAddress(mintingHash160));
     } catch (err) {
         console.log(`Error in getMintAddress`, err);
         return err;
