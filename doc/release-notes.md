@@ -24,3 +24,6 @@ changes will become activated:
     other than 1 or 2), but miners were still able to mine transactions with
     versions other than 1 and 2. Disallowing them by consensus allows us to use
     the version field for e.g. a new & scalable transaction format.
+  - The chained transactions limit policy will no longer be enforced by the
+    mempool. All the related RPC statistics and options will become irrelevant
+    and should no longer be relied upon.

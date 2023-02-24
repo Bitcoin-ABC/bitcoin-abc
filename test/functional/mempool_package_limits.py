@@ -20,11 +20,18 @@ from test_framework.wallet import (
     make_chain,
 )
 
+FAR_IN_THE_FUTURE = 2000000000
+
 
 class MempoolPackageLimitsTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.setup_clean_chain = True
+        self.extra_args = [[
+            # The packages mempool limits are no longer applied after wellington
+            # activation.
+            f'-wellingtonactivationtime={FAR_IN_THE_FUTURE}',
+        ]]
 
     def run_test(self):
         self.log.info("Generate blocks to create UTXOs")

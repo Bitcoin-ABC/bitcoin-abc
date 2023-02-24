@@ -311,9 +311,13 @@ std::vector<OutputGroup> GroupOutputs(const CWallet &wallet,
             CTxDestination dst;
             CInputCoin input_coin = output.GetInputCoin();
 
+            // deprecated -- after wellington activation these 2 stats should
+            // always just be 0 since these stat becomes irrelevant at that
+            // point
             size_t ancestors, descendants;
             wallet.chain().getTransactionAncestry(output.tx->GetId(), ancestors,
                                                   descendants);
+
             if (!single_coin &&
                 ExtractDestination(output.tx->tx->vout[output.i].scriptPubKey,
                                    dst)) {
@@ -502,6 +506,8 @@ bool SelectCoins(const CWallet &wallet,
         }
     }
 
+    // Note: after wellington the ancestor stats will always be 0, since this
+    // limitation becomes irrelevant.
     size_t max_ancestors{0};
     size_t max_descendants{0};
     wallet.chain().getPackageLimits(max_ancestors, max_descendants);
@@ -942,6 +948,7 @@ static bool CreateTransactionInternal(
         return false;
     }
 
+    // After wellington this option will no longer exist
     if (gArgs.GetBoolArg("-walletrejectlongchains",
                          DEFAULT_WALLET_REJECT_LONG_CHAINS)) {
         // Lastly, ensure this tx will pass the mempool's chain limits

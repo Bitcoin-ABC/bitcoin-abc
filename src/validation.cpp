@@ -697,14 +697,19 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
             strprintf("%d < %d", ws.m_modified_fees, mempoolRejectFee));
     }
 
-    // Calculate in-mempool ancestors, up to a limit.
-    std::string errString;
-    if (!m_pool.CalculateMemPoolAncestors(
-            *entry, ws.m_ancestors, m_limit_ancestors, m_limit_ancestor_size,
-            m_limit_descendants, m_limit_descendant_size, errString)) {
-        return state.Invalid(TxValidationResult::TX_MEMPOOL_POLICY,
-                             "too-long-mempool-chain", errString);
+    // Remove after wellington
+    if (!m_pool.wellingtonLatched) {
+        // Calculate in-mempool ancestors, up to a limit.
+        std::string errString;
+        if (!m_pool.CalculateMemPoolAncestors(
+                *entry, ws.m_ancestors, m_limit_ancestors,
+                m_limit_ancestor_size, m_limit_descendants,
+                m_limit_descendant_size, errString)) {
+            return state.Invalid(TxValidationResult::TX_MEMPOOL_POLICY,
+                                 "too-long-mempool-chain", errString);
+        }
     }
+
     return true;
 }
 

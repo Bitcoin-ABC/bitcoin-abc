@@ -12,6 +12,8 @@ from test_framework.address import (
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
 
+FAR_IN_THE_FUTURE = 2000000000
+
 
 def create_transactions(node, address, amt, fees):
     # Create and sign raw transactions from node to address for amt.
@@ -50,8 +52,11 @@ class WalletTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.extra_args = [
             # Limit mempool descendants as a hack to have wallet txs rejected
-            # from the mempool
-            ['-limitdescendantcount=3'],
+            # from the mempool. This will no longer work after wellington, so
+            # move the activation in the future for this test.
+            ['-limitdescendantcount=3',
+             f'-wellingtonactivationtime={FAR_IN_THE_FUTURE}',
+             ],
             [],
         ]
         # whitelist peers to speed up tx relay / mempool sync

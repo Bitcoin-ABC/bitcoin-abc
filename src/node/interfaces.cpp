@@ -627,7 +627,8 @@ namespace {
                                     size_t &descendants, size_t *ancestorsize,
                                     Amount *ancestorfees) override {
             ancestors = descendants = 0;
-            if (!m_node.mempool) {
+            // After wellington this stat will no longer exist
+            if (!m_node.mempool || m_node.mempool->wellingtonLatched) {
                 return;
             }
             m_node.mempool->GetTransactionAncestry(txid, ancestors, descendants,
@@ -643,7 +644,8 @@ namespace {
                                    DEFAULT_DESCENDANT_LIMIT)));
         }
         bool checkChainLimits(const CTransactionRef &tx) override {
-            if (!m_node.mempool) {
+            // After wellington this limitation will no longer exist
+            if (!m_node.mempool || m_node.mempool->wellingtonLatched) {
                 return true;
             }
             LockPoints lp;

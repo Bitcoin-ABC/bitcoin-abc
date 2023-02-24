@@ -21,13 +21,20 @@ MAX_DESCENDANTS = 50
 # custom limits for node1
 MAX_ANCESTORS_CUSTOM = 5
 
+FAR_IN_THE_FUTURE = 2000000000
+
 
 class MempoolPackagesTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
         common_params = [
             "-maxorphantx=1000",
-            "-deprecatedrpc=mempool_ancestors_descendants"]
+            "-deprecatedrpc=mempool_ancestors_descendants",
+            # This test tests mempool ancestor chain limits, which are no longer
+            # enforced after wellington, so we need to force wellington to
+            # activate in the distant future
+            f"-wellingtonactivationtime={FAR_IN_THE_FUTURE}",
+        ]
         self.extra_args = [
             common_params, common_params +
             ["-limitancestorcount={}".format(MAX_ANCESTORS_CUSTOM)]]

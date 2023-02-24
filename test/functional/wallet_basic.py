@@ -16,13 +16,25 @@ from test_framework.util import (
 )
 from test_framework.wallet_util import test_address
 
+FAR_IN_THE_FUTURE = 2000000000
+
 
 class WalletTest(BitcoinTestFramework):
+
+    WELLINGTON_FAR_FUTURE = f"-wellingtonactivationtime={int(9e9)}"
+
     def set_test_params(self):
         self.num_nodes = 4
         self.setup_clean_chain = True
         self.extra_args = [
-            ["-acceptnonstdtxn=1", "-whitelist=noban@127.0.0.1"],
+            [
+                "-acceptnonstdtxn=1",
+                "-whitelist=noban@127.0.0.1",
+                # This test tests mempool ancestor chain limits, which are no
+                # longer enforced after wellington, so we need to force
+                # wellington to activate in the distant future
+                f"-wellingtonactivationtime={FAR_IN_THE_FUTURE}",
+            ],
         ] * self.num_nodes
         self.supports_cli = False
 

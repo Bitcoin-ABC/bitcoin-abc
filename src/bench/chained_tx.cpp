@@ -144,6 +144,9 @@ static void benchATMP(const Config &config, node::NodeContext &node,
     CTxMemPool &mempool{*Assert(activeChainState.GetMempool())};
     assert(mempool.size() == 0);
 
+    // test with wellington latched (faster)
+    const bool wellingtonBefore = mempool.wellingtonLatched.exchange(true);
+
     bench.run([&] {
         LOCK(::cs_main);
         for (const auto &tx : chainedTxs) {
@@ -155,6 +158,9 @@ static void benchATMP(const Config &config, node::NodeContext &node,
         }
         mempool.clear();
     });
+
+    // restore state
+    mempool.wellingtonLatched = wellingtonBefore;
 
     gArgs.ClearForcedArg("-limitdescendantcount");
     gArgs.ClearForcedArg("-limitancestorcount");
@@ -188,6 +194,9 @@ static void benchReorg(const Config &config, node::NodeContext &node,
 
     CTxMemPool &mempool{*Assert(activeChainState.GetMempool())};
     assert(mempool.size() == 0);
+
+    // test with wellington latched (faster)
+    const bool wellingtonBefore = mempool.wellingtonLatched.exchange(true);
 
     // Build blocks
     TestMemPoolEntryHelper entry;
@@ -257,6 +266,9 @@ static void benchReorg(const Config &config, node::NodeContext &node,
         assert(mempool.size() == 0);
     });
 
+    // restore state
+    mempool.wellingtonLatched = wellingtonBefore;
+
     gArgs.ClearForcedArg("-limitdescendantcount");
     gArgs.ClearForcedArg("-limitancestorcount");
     gArgs.ClearForcedArg("-limitancestorsize");
@@ -273,6 +285,9 @@ benchGenerateNewBlock(const Config &config, node::NodeContext &node,
     auto chainman = Assert(node.chainman.get());
     Chainstate &activeChainState = chainman->ActiveChainstate();
     CTxMemPool &mempool{*Assert(activeChainState.GetMempool())};
+
+    // test with wellington latched (faster)
+    const bool wellingtonBefore = mempool.wellingtonLatched.exchange(true);
 
     // Fill mempool
     size_t txCount = 0;
@@ -298,6 +313,9 @@ benchGenerateNewBlock(const Config &config, node::NodeContext &node,
         // +1 for coinbase
         assert(blocktemplate->block.vtx.size() == txCount + 1);
     });
+
+    // restore state
+    mempool.wellingtonLatched = wellingtonBefore;
 }
 
 static void
@@ -316,6 +334,8 @@ benchEviction(const Config &, benchmark::Bench &bench,
          ++i) {
         pools.emplace_back();
         CTxMemPool &pool = pools.back();
+        // test with wellington latched (faster)
+        pool.wellingtonLatched = true;
         TestMemPoolEntryHelper entry;
         // Fill mempool
         size_t txCount = 0;

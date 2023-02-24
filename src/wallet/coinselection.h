@@ -82,8 +82,8 @@ struct OutputGroup {
     bool m_from_me{true};
     Amount m_value = Amount::zero();
     int m_depth{999};
-    size_t m_ancestors{0};
-    size_t m_descendants{0};
+    size_t m_ancestors{0};   ///< deprecated after wellington activation
+    size_t m_descendants{0}; ///< deprecated after wellington activation
     Amount effective_value = Amount::zero();
     Amount fee = Amount::zero();
     Amount long_term_fee = Amount::zero();
