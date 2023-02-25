@@ -70,6 +70,8 @@ const Alias = ({ passLoadingStatus }) => {
     });
     const [isValidAliasInput, setIsValidAliasInput] = useState(false); // tracks whether to activate the registration button
     const [activeWalletAliases, setActiveWalletAliases] = useState([]); // stores the list of aliases registered to this active wallet
+    const [aliasLength, setAliasLength] = useState(false); // real time tracking of alias char length
+    const [aliasFee, setAliasFee] = useState(false); // real time tracking of alias registration fee
 
     useEffect(() => {
         passLoadingStatus(false);
@@ -167,18 +169,6 @@ const Alias = ({ passLoadingStatus }) => {
                 handleAliasRegistrationError(err);
             }
             setIsValidAliasInput(true);
-
-            // set alias as pending until subsequent websocket notification on 1 conf on the registration tx
-
-            let tempactiveWalletAliases = activeWalletAliases;
-            const thisAddress = convertToEcashPrefix(
-                wallet.Path1899.cashAddress,
-            );
-            tempactiveWalletAliases.push({
-                alias: `${aliasInput} (Pending)`,
-                address: thisAddress,
-            });
-            setActiveWalletAliases(tempactiveWalletAliases);
         } else {
             // error notification on alias being unavailable
             errorNotification(
@@ -198,8 +188,13 @@ const Alias = ({ passLoadingStatus }) => {
 
         if (value && value.trim() !== '') {
             setIsValidAliasInput(true);
+            const registratioFee = getAliasRegistrationFee(value);
+            setAliasFee(registratioFee);
+            setAliasLength(new Blob([value]).size);
         } else {
             setIsValidAliasInput(false);
+            setAliasFee(false);
+            setAliasLength(false);
         }
 
         setFormData(p => ({
@@ -284,6 +279,11 @@ const Alias = ({ passLoadingStatus }) => {
                                                 handleAliasNameInput(e)
                                             }
                                         />
+                                        {aliasLength &&
+                                            aliasFee &&
+                                            `Registration fee for this ${aliasLength} byte Alias is ${fromSatoshisToXec(
+                                                aliasFee,
+                                            )} XEC`}
                                     </Form.Item>
                                     <Form.Item>
                                         <SmartButton

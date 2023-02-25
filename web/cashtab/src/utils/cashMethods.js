@@ -15,7 +15,7 @@ import coininfo from 'utils/coininfo';
 export const getAliasRegistrationFee = alias => {
     let registrationFee;
     let fee = currency.aliasSettings.aliasRegistrationFeeInSats;
-    switch (alias.length) {
+    switch (new Blob([alias]).size) {
         case 1:
             registrationFee = fee.oneChar;
             break;
