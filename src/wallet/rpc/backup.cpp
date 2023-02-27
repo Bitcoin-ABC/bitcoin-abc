@@ -2479,8 +2479,7 @@ RPCHelpMan restorewallet() {
 
             auto wallet_file = wallet_path / "wallet.dat";
 
-            fs::copy_file(backup_file, wallet_file,
-                          fs::copy_option::fail_if_exists);
+            fs::copy_file(backup_file, wallet_file, fs::copy_options::none);
 
             auto [wallet, warnings] =
                 LoadWalletHelper(context, request.params[2], wallet_name);
