@@ -81,18 +81,22 @@ bool IsHexNumber(std::string_view str) {
     return str.size() > 0;
 }
 
-template <typename Byte> std::vector<Byte> ParseHex(std::string_view str) {
+template <typename Byte>
+std::optional<std::vector<Byte>> TryParseHex(std::string_view str) {
     std::vector<Byte> vch;
     auto it = str.begin();
-    while (it != str.end() && it + 1 != str.end()) {
+    while (it != str.end()) {
         if (IsSpace(*it)) {
             ++it;
             continue;
         }
         auto c1 = HexDigit(*(it++));
+        if (it == str.end()) {
+            return std::nullopt;
+        }
         auto c2 = HexDigit(*(it++));
         if (c1 < 0 || c2 < 0) {
-            break;
+            return std::nullopt;
         }
         vch.push_back(Byte(c1 << 4) | Byte(c2));
     }
