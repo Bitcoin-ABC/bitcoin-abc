@@ -242,11 +242,12 @@ class AvalancheTest(BitcoinTestFramework):
 
         # Vote a few more times until the block gets invalidated
         hash_tip_park = int(tip_to_park, 16)
-        node.wait_for_debug_log(
-            [f"Avalanche invalidated block {tip_to_park}"],
+        with node.wait_for_debug_log(
+            [f"Avalanche invalidated block {tip_to_park}".encode()],
             chatty_callable=lambda: can_find_block_in_poll(
                 hash_tip_park, AvalancheVoteError.PARKED)
-        )
+        ):
+            pass
 
         # Mine on the current chaintip to trigger polling and so we don't reorg
         old_fork_tip = fork_tip
