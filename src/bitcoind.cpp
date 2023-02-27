@@ -180,7 +180,7 @@ static bool AppInit(int argc, char *argv[]) {
     TokenPipeEnd daemon_ep;
 #endif
     try {
-        if (!CheckDataDirOption()) {
+        if (!CheckDataDirOption(args)) {
             return InitError(Untranslated(
                 strprintf("Specified data directory \"%s\" does not exist.\n",
                           args.GetArg("-datadir", ""))));

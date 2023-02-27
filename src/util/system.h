@@ -31,6 +31,8 @@
 #include <utility>
 #include <vector>
 
+class ArgsManager;
+
 // Application startup time (used for uptime calculation)
 int64_t GetStartupTime();
 
@@ -42,8 +44,8 @@ bool SetupNetworking();
 
 // Return true if -datadir option points to a valid directory or is not
 // specified.
-bool CheckDataDirOption();
-fs::path GetConfigFile(const std::string &confPath);
+bool CheckDataDirOption(const ArgsManager &args);
+fs::path GetConfigFile(const ArgsManager &args, const std::string &confPath);
 #ifndef WIN32
 std::string ShellEscape(const std::string &arg);
 #endif
@@ -57,11 +59,13 @@ void runCommand(const std::string &strCommand);
  * Most paths passed as configuration arguments are treated as relative to
  * the datadir if they are not absolute.
  *
+ * @param args Parsed arguments and settings.
  * @param path The path to be conditionally prefixed with datadir.
  * @param net_specific Use network specific datadir variant
  * @return The normalized path.
  */
-fs::path AbsPathForConfigVal(const fs::path &path, bool net_specific = true);
+fs::path AbsPathForConfigVal(const ArgsManager &args, const fs::path &path,
+                             bool net_specific = true);
 
 inline bool IsSwitchChar(char c) {
 #ifdef WIN32
