@@ -205,7 +205,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
         def accept_proof(proofid):
             self.wait_until(lambda: self.can_find_proof_in_poll(
-                proofid, response=AvalancheProofVoteResponse.ACTIVE), timeout=5)
+                proofid, response=AvalancheProofVoteResponse.ACTIVE))
             return proofid in get_proof_ids(node)
 
         mock_time += self.conflicting_proof_cooldown
