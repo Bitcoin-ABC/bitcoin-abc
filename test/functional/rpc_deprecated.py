@@ -16,6 +16,7 @@ from test_framework.util import (
 from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
+FAR_IN_THE_FUTURE = 2000000000
 
 
 class DeprecatedRpcTest(BitcoinTestFramework):
@@ -40,6 +41,11 @@ class DeprecatedRpcTest(BitcoinTestFramework):
             "-deprecatedrpc=isfinaltransaction_noerror",
             "-deprecatedrpc=getblocktemplate_sigops",
             "-deprecatedrpc=softforks",
+            # This test checks for the presence of the ancestor count in
+            # the listunspent output. However this is only displayed if the
+            # count is non-null, which will no longer be the case after
+            # wellington activation.
+            f"-wellingtonactivationtime={FAR_IN_THE_FUTURE}",
             "-deprecatedrpc=mempool_ancestors_descendants",
         ]]
 
