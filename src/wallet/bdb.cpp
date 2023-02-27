@@ -699,7 +699,7 @@ bool BerkeleyDatabase::Backup(const std::string &strDest) const {
                     }
 
                     fs::copy_file(pathSrc, pathDest,
-                                  fs::copy_options::overwrite_existing);
+                                  fs::copy_option::overwrite_if_exists);
                     LogPrintf("copied %s to %s\n", strFile,
                               fs::PathToString(pathDest));
                     return true;
