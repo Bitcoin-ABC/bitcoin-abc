@@ -13,7 +13,9 @@
 //! swapped-out easily.
 
 abc_rust_lint::lint! {
-    pub use eyre::{bail, Report, Result, WrapErr};
+    mod http_status;
+
+    pub use {eyre::{bail, Report, Result, WrapErr}, crate::http_status::*};
 
     /// Install a backtrace handler. Captures a detailed backtrace for
     /// [`Report`]s.
