@@ -311,7 +311,7 @@ class UTXOCacheTracepointTest(BitcoinTestFramework):
                         "txid": vin["txid"],
                         "index": vin["vout"],
                         "height": prevout_tx_block["height"],
-                        "value": "{:.2f} XEC".format(int(prevout_tx["vout"][vin["vout"]]["value"])),
+                        "value": f"{int(prevout_tx['vout'][vin['vout']]['value']):.2f} XEC",
                         "is_coinbase": spends_coinbase,
                     })
             for (i, vout) in enumerate(tx["vout"]):
@@ -320,7 +320,7 @@ class UTXOCacheTracepointTest(BitcoinTestFramework):
                         "txid": tx["txid"],
                         "index": i,
                         "height": block["height"],
-                        "value": "{:.2f} XEC".format(int(vout["value"])),
+                        "value": f"{int(vout['value']):.2f} XEC",
                         "is_coinbase": block_index == 0,
                     })
 

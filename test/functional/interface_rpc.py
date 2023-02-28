@@ -18,7 +18,7 @@ def expect_http_status(expected_http_status, expected_rpc_code,
     try:
         fcn(*args)
         raise AssertionError(
-            "Expected RPC error {}, got none".format(expected_rpc_code))
+            f"Expected RPC error {expected_rpc_code}, got none")
     except JSONRPCException as exc:
         assert_equal(exc.error["code"], expected_rpc_code)
         assert_equal(exc.http_status, expected_http_status)
