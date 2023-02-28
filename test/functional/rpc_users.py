@@ -21,7 +21,7 @@ def call_with_auth(node, user, password):
     url = urllib.parse.urlparse(node.url)
     headers = {
         "Authorization":
-            "Basic " + str_to_b64str('{}:{}'.format(user, password))}
+            f"Basic {str_to_b64str(f'{user}:{password}')}"}
 
     conn = http.client.HTTPConnection(url.hostname, url.port)
     conn.connect()
@@ -69,12 +69,12 @@ class HTTPBasicsTest(BitcoinTestFramework):
         self.password = lines[3]
 
         with open(os.path.join(get_datadir_path(self.options.tmpdir, 0), "bitcoin.conf"), 'a', encoding='utf8') as f:
-            f.write(rpcauth + "\n")
-            f.write(rpcauth2 + "\n")
-            f.write(rpcauth3 + "\n")
+            f.write(f"{rpcauth}\n")
+            f.write(f"{rpcauth2}\n")
+            f.write(f"{rpcauth3}\n")
         with open(os.path.join(get_datadir_path(self.options.tmpdir, 1), "bitcoin.conf"), 'a', encoding='utf8') as f:
-            f.write("rpcuser={}\n".format(self.rpcuser))
-            f.write("rpcpassword={}\n".format(self.rpcpassword))
+            f.write(f"rpcuser={self.rpcuser}\n")
+            f.write(f"rpcpassword={self.rpcpassword}\n")
 
     def test_auth(self, node, user, password):
         self.log.info('Correct...')
@@ -82,16 +82,16 @@ class HTTPBasicsTest(BitcoinTestFramework):
 
         self.log.info('Wrong...')
         assert_equal(
-            401, call_with_auth(node, user, password + 'wrong').status)
+            401, call_with_auth(node, user, f"{password}wrong").status)
 
         self.log.info('Wrong...')
         assert_equal(
-            401, call_with_auth(node, user + 'wrong', password).status)
+            401, call_with_auth(node, f"{user}wrong", password).status)
 
         self.log.info('Wrong...')
         assert_equal(
-            401, call_with_auth(node, user + 'wrong',
-                                password + 'wrong').status)
+            401, call_with_auth(node, f"{user}wrong",
+                                f"{password}wrong").status)
 
     def run_test(self):
         self.log.info('Check correctness of the rpcauth config option')

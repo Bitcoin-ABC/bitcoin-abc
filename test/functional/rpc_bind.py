@@ -59,12 +59,12 @@ class RPCBindTest(BitcoinTestFramework):
         then try to connect, and check if the set of bound addresses
         matches the expected set.
         '''
-        self.log.info("Bind test for {}".format(str(addresses)))
+        self.log.info(f"Bind test for {str(addresses)}")
         expected = [(addr_to_hex(addr), port) for (addr, port) in expected]
         base_args = ['-disablewallet', '-nolisten']
         if allow_ips:
-            base_args += ['-rpcallowip=' + x for x in allow_ips]
-        binds = ['-rpcbind=' + addr for addr in addresses]
+            base_args += [f"-rpcallowip={x}" for x in allow_ips]
+        binds = [f"-rpcbind={addr}" for addr in addresses]
         parts = connect_to.split(':')
         if len(parts) == 2:
             self.nodes[0].host = parts[0]
@@ -82,11 +82,11 @@ class RPCBindTest(BitcoinTestFramework):
         Start a node with rpcallow IP, and request getnetworkinfo
         at a non-localhost IP.
         '''
-        self.log.info("Allow IP test for {}:{}".format(rpchost, rpcport))
+        self.log.info(f"Allow IP test for {rpchost}:{rpcport}")
         node_args = \
             ['-disablewallet', '-nolisten'] + \
-            ['-rpcallowip=' + x for x in allow_ips] + \
-            ['-rpcbind=' + addr for addr in ['127.0.0.1',
+            [f"-rpcallowip={x}" for x in allow_ips] + \
+            [f"-rpcbind={addr}" for addr in ['127.0.0.1',
                                              "{}:{}".format(rpchost,
                                                             rpcport)]]  # Bind to localhost as well so start_nodes doesn't hang
         self.nodes[0].host = None
@@ -169,8 +169,7 @@ class RPCBindTest(BitcoinTestFramework):
 
     def _run_nonloopback_tests(self):
         self.log.info(
-            "Using interface {} for testing".format(
-                self.non_loopback_ip))
+            f"Using interface {self.non_loopback_ip} for testing")
         # check only non-loopback interface
         self.run_bind_test([self.non_loopback_ip], self.non_loopback_ip, [self.non_loopback_ip],
                            [(self.non_loopback_ip, self.defaultport)])

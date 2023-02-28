@@ -16,14 +16,10 @@ from test_framework.util import assert_equal, get_datadir_path, str_to_b64str
 def rpccall(node, user, method):
     url = urllib.parse.urlparse(node.url)
     headers = {
-        "Authorization": "Basic " +
-        str_to_b64str(
-            '{}:{}'.format(
-                user[0],
-                user[3]))}
+        "Authorization": f"Basic {str_to_b64str(f'{user[0]}:{user[3]}')}"}
     conn = http.client.HTTPConnection(url.hostname, url.port)
     conn.connect()
-    conn.request('POST', '/', '{"method": "' + method + '"}', headers)
+    conn.request('POST', '/', f"{{\"method\": \"{method}\"}}", headers)
     resp = conn.getresponse()
     conn.close()
     return resp
@@ -86,21 +82,14 @@ class RPCWhitelistTest(BitcoinTestFramework):
         with open(os.path.join(get_datadir_path(self.options.tmpdir, 0), "bitcoin.conf"), 'a', encoding='utf8') as f:
             f.write("\nrpcwhitelistdefault=0\n")
             for user in self.users:
-                f.write("rpcauth=" + user[0] + ":" + user[1] + "\n")
-                f.write("rpcwhitelist=" + user[0] + ":" + user[2] + "\n")
+                f.write(f"rpcauth={user[0]}:{user[1]}\n")
+                f.write(f"rpcwhitelist={user[0]}:{user[2]}\n")
             # Special cases
             for strangedude in self.strange_users:
                 f.write(
-                    "rpcauth=" +
-                    strangedude[0] +
-                    ":" +
-                    strangedude[1] +
-                    "\n")
+                    f"rpcauth={strangedude[0]}:{strangedude[1]}\n")
                 f.write(
-                    "rpcwhitelist=" +
-                    strangedude[0] +
-                    strangedude[2] +
-                    "\n")
+                    f"rpcwhitelist={strangedude[0]}{strangedude[2]}\n")
 
     def run_test(self):
         for user in self.users:
@@ -114,7 +103,7 @@ class RPCWhitelistTest(BitcoinTestFramework):
                 i += 1
             for permission in permissions:
                 self.log.info(
-                    "[" + user[0] + "]: Testing a permitted permission (" + permission + ")")
+                    f"[{user[0]}]: Testing a permitted permission ({permission})")
                 assert_equal(
                     200,
                     rpccall(
@@ -123,7 +112,7 @@ class RPCWhitelistTest(BitcoinTestFramework):
                         permission).status)
             for permission in self.never_allowed:
                 self.log.info(
-                    "[" + user[0] + "]: Testing a non permitted permission (" + permission + ")")
+                    f"[{user[0]}]: Testing a non permitted permission ({permission})")
                 assert_equal(
                     403,
                     rpccall(

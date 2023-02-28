@@ -290,8 +290,8 @@ class PSBTTest(BitcoinTestFramework):
 
         # Signer tests
         for i, signer in enumerate(signers):
-            self.nodes[2].createwallet("wallet{}".format(i))
-            wrpc = self.nodes[2].get_wallet_rpc("wallet{}".format(i))
+            self.nodes[2].createwallet(f"wallet{i}")
+            wrpc = self.nodes[2].get_wallet_rpc(f"wallet{i}")
             for key in signer['privkeys']:
                 wrpc.importprivkey(key)
             signed_tx = wrpc.walletprocesspsbt(signer['psbt'])['psbt']

@@ -212,7 +212,7 @@ class RawTransactionsTest(BitcoinTestFramework):
             pubkey = addrinfo["scriptPubKey"]
 
             self.log.info(
-                'sendrawtransaction with missing prevtx info ({})'.format(type))
+                f'sendrawtransaction with missing prevtx info ({type})')
 
             # Test `signrawtransactionwithwallet` invalid `prevtxs`
             inputs = [{'txid': txid, 'vout': 3, 'sequence': 1000}]
@@ -723,7 +723,7 @@ class RawTransactionsTest(BitcoinTestFramework):
 
         self.log.info('Refuse garbage after transaction')
         assert_raises_rpc_error(-22, 'TX decode failed',
-                                self.nodes[0].decoderawtransaction, ToHex(tx) + '00')
+                                self.nodes[0].decoderawtransaction, f"{ToHex(tx)}00")
 
 
 if __name__ == '__main__':

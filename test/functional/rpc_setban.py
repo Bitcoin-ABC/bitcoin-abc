@@ -27,7 +27,7 @@ class SetBanTests(BitcoinTestFramework):
         # Node 0 should not be able to reconnect
         with self.nodes[1].assert_debug_log(expected_msgs=['dropped (banned)\n'], timeout=5):
             self.restart_node(1, [])
-            self.nodes[0].addnode("127.0.0.1:" + str(p2p_port(1)), "onetry")
+            self.nodes[0].addnode(f"127.0.0.1:{str(p2p_port(1))}", "onetry")
 
         # However, node 0 should be able to reconnect if it has noban
         # permission

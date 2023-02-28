@@ -82,11 +82,11 @@ class RpcCreateMultiSigTest(BitcoinTestFramework):
 
         for t in vectors:
             key_str = ','.join(t['keys'])
-            desc = descsum_create('sh(sortedmulti(2,{}))'.format(key_str))
+            desc = descsum_create(f'sh(sortedmulti(2,{key_str}))')
             assert_equal(self.nodes[0].deriveaddresses(desc)[0], t['address'])
             sorted_key_str = ','.join(t['sorted_keys'])
             sorted_key_desc = descsum_create(
-                'sh(multi(2,{}))'.format(sorted_key_str))
+                f'sh(multi(2,{sorted_key_str}))')
             assert_equal(self.nodes[0].deriveaddresses(
                 sorted_key_desc)[0], t['address'])
 
@@ -143,8 +143,8 @@ class RpcCreateMultiSigTest(BitcoinTestFramework):
         wmulti = node1.get_wallet_rpc('wmulti')
 
         # Construct the expected descriptor
-        desc = 'multi({},{})'.format(self.nsigs, ','.join(self.pub))
-        desc = 'sh({})'.format(desc)
+        desc = f"multi({self.nsigs},{','.join(self.pub)})"
+        desc = f'sh({desc})'
         desc = descsum_create(desc)
 
         msig = node2.createmultisig(self.nsigs, self.pub)
@@ -190,8 +190,7 @@ class RpcCreateMultiSigTest(BitcoinTestFramework):
         assert tx in node0.getblock(blk)["tx"]
 
         txinfo = node0.getrawtransaction(tx, True, blk)
-        self.log.info("n/m={}/{} size={}".format(self.nsigs,
-                                                 self.nkeys, txinfo["size"]))
+        self.log.info(f"n/m={self.nsigs}/{self.nkeys} size={txinfo['size']}")
 
         wmulti.unloadwallet()
 

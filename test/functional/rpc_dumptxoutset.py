@@ -46,7 +46,7 @@ class DumptxoutsetTest(BitcoinTestFramework):
 
         # Specifying a path to an existing file will fail.
         assert_raises_rpc_error(
-            -8, '{} already exists'.format(FILENAME), node.dumptxoutset, FILENAME)
+            -8, f'{FILENAME} already exists', node.dumptxoutset, FILENAME)
 
 
 if __name__ == '__main__':

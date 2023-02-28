@@ -23,7 +23,7 @@ def get_unspent(listunspent, amount):
         if utx['amount'] == amount:
             return utx
     raise AssertionError(
-        'Could not find unspent with amount={}'.format(amount))
+        f'Could not find unspent with amount={amount}')
 
 
 class RawTransactionsTest(BitcoinTestFramework):
@@ -280,7 +280,7 @@ class RawTransactionsTest(BitcoinTestFramework):
         rawTx = self.nodes[2].createrawtransaction(inputs, outputs)
 
         # 4-byte version + 1-byte vin count + 36-byte prevout then script_len
-        rawTx = rawTx[:82] + "0100" + rawTx[84:]
+        rawTx = f"{rawTx[:82]}0100{rawTx[84:]}"
 
         dec_tx = self.nodes[2].decoderawtransaction(rawTx)
         assert_equal(utx['txid'], dec_tx['vin'][0]['txid'])

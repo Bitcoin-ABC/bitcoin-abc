@@ -90,13 +90,13 @@ class ScantxoutsetTest(BitcoinTestFramework):
 
         self.log.info("Test if we have found the non HD unspent outputs.")
         assert_equal(self.nodes[0].scantxoutset(
-            "start", ["pkh(" + pubk.hex() + ")"])['total_amount'], Decimal("2000"))
+            "start", [f"pkh({pubk.hex()})"])['total_amount'], Decimal("2000"))
         assert_equal(self.nodes[0].scantxoutset(
-            "start", ["combo(" + pubk.hex() + ")"])['total_amount'], Decimal("2000"))
+            "start", [f"combo({pubk.hex()})"])['total_amount'], Decimal("2000"))
         assert_equal(self.nodes[0].scantxoutset(
-            "start", ["addr(" + addr + ")"])['total_amount'], Decimal("2000"))
+            "start", [f"addr({addr})"])['total_amount'], Decimal("2000"))
         assert_equal(self.nodes[0].scantxoutset(
-            "start", ["addr(" + addr + ")"])['total_amount'], Decimal("2000"))
+            "start", [f"addr({addr})"])['total_amount'], Decimal("2000"))
 
         self.log.info("Test range validation.")
         assert_raises_rpc_error(-8,

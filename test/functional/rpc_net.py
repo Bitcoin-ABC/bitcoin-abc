@@ -37,7 +37,7 @@ def assert_net_servicesnames(servicesflag, servicenames):
     servicesflag_generated = 0
     for servicename in servicenames:
         servicesflag_generated |= getattr(
-            test_framework.messages, 'NODE_' + servicename)
+            test_framework.messages, f"NODE_{servicename}")
     assert servicesflag_generated == servicesflag
 
 
@@ -155,7 +155,7 @@ class NetTest(BitcoinTestFramework):
         self.log.info("Test getaddednodeinfo")
         assert_equal(self.nodes[0].getaddednodeinfo(), [])
         # add a node (node2) to node0
-        ip_port = "127.0.0.1:{}".format(p2p_port(2))
+        ip_port = f"127.0.0.1:{p2p_port(2)}"
         self.nodes[0].addnode(node=ip_port, command='add')
         # check that the node has indeed been added
         added_nodes = self.nodes[0].getaddednodeinfo(ip_port)

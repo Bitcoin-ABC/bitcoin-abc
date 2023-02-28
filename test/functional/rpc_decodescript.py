@@ -16,9 +16,9 @@ class DecodeScriptTest(BitcoinTestFramework):
 
     def decodescript_script_sig(self):
         signature = '304502207fa7a6d1e0ee81132a269ad84e68d695483745cde8b541e3bf630749894e342a022100c1f7ab20e13e22fb95281a870f3dcf38d782e53023ee313d741ad0cfbc0c509001'
-        push_signature = '48' + signature
+        push_signature = f"48{signature}"
         public_key = '03b0da749730dc9b4b1f4a14d6902877a92541f5368778853d9c4a0cb7802dcfb2'
-        push_public_key = '21' + public_key
+        push_public_key = f"21{public_key}"
 
         # below are test cases for all of the standard transaction types
 
@@ -31,14 +31,14 @@ class DecodeScriptTest(BitcoinTestFramework):
         # 2) P2PKH scriptSig
         rpc_result = self.nodes[0].decodescript(
             push_signature + push_public_key)
-        assert_equal(signature + ' ' + public_key, rpc_result['asm'])
+        assert_equal(f"{signature} {public_key}", rpc_result['asm'])
 
         # 3) multisig scriptSig
         # this also tests the leading portion of a P2SH multisig scriptSig
         # OP_0 <A sig> <B sig>
         rpc_result = self.nodes[0].decodescript(
-            '00' + push_signature + push_signature)
-        assert_equal('0 ' + signature + ' ' + signature, rpc_result['asm'])
+            f"00{push_signature}{push_signature}")
+        assert_equal(f"0 {signature} {signature}", rpc_result['asm'])
 
         # 4) P2SH scriptSig
         # an empty P2SH redeemScript is valid and makes for a very simple test case.
@@ -52,21 +52,21 @@ class DecodeScriptTest(BitcoinTestFramework):
 
     def decodescript_script_pub_key(self):
         public_key = '03b0da749730dc9b4b1f4a14d6902877a92541f5368778853d9c4a0cb7802dcfb2'
-        push_public_key = '21' + public_key
+        push_public_key = f"21{public_key}"
         public_key_hash = '11695b6cd891484c2d49ec5aa738ec2b2f897777'
-        push_public_key_hash = '14' + public_key_hash
+        push_public_key_hash = f"14{public_key_hash}"
 
         # below are test cases for all of the standard transaction types
 
         # 1) P2PK scriptPubKey
         # <pubkey> OP_CHECKSIG
-        rpc_result = self.nodes[0].decodescript(push_public_key + 'ac')
-        assert_equal(public_key + ' OP_CHECKSIG', rpc_result['asm'])
+        rpc_result = self.nodes[0].decodescript(f"{push_public_key}ac")
+        assert_equal(f"{public_key} OP_CHECKSIG", rpc_result['asm'])
 
         # 2) P2PKH scriptPubKey
         # OP_DUP OP_HASH160 <PubKeyHash> OP_EQUALVERIFY OP_CHECKSIG
         rpc_result = self.nodes[0].decodescript(
-            '76a9' + push_public_key_hash + '88ac')
+            f"76a9{push_public_key_hash}88ac")
         assert_equal('OP_DUP OP_HASH160 ' + public_key_hash +
                      ' OP_EQUALVERIFY OP_CHECKSIG', rpc_result['asm'])
 
@@ -76,7 +76,7 @@ class DecodeScriptTest(BitcoinTestFramework):
         # for our purposes here it does not matter that they are the same even
         # though it is unrealistic.
         rpc_result = self.nodes[0].decodescript(
-            '52' + push_public_key + push_public_key + push_public_key + '53ae')
+            f"52{push_public_key}{push_public_key}{push_public_key}53ae")
         assert_equal('2 ' + public_key + ' ' + public_key + ' ' +
                      public_key + ' 3 OP_CHECKMULTISIG', rpc_result['asm'])
 
@@ -85,9 +85,9 @@ class DecodeScriptTest(BitcoinTestFramework):
         # push_public_key_hash here should actually be the hash of a redeem script.
         # but this works the same for purposes of this test.
         rpc_result = self.nodes[0].decodescript(
-            'a9' + push_public_key_hash + '87')
+            f"a9{push_public_key_hash}87")
         assert_equal(
-            'OP_HASH160 ' + public_key_hash + ' OP_EQUAL', rpc_result['asm'])
+            f"OP_HASH160 {public_key_hash} OP_EQUAL", rpc_result['asm'])
 
         # 5) null data scriptPubKey
         # use a signature look-alike here to make sure that we do not decode random data as a signature.
@@ -96,8 +96,8 @@ class DecodeScriptTest(BitcoinTestFramework):
         # case.
         signature_imposter = '48304502207fa7a6d1e0ee81132a269ad84e68d695483745cde8b541e3bf630749894e342a022100c1f7ab20e13e22fb95281a870f3dcf38d782e53023ee313d741ad0cfbc0c509001'
         # OP_RETURN <data>
-        rpc_result = self.nodes[0].decodescript('6a' + signature_imposter)
-        assert_equal('OP_RETURN ' + signature_imposter[2:], rpc_result['asm'])
+        rpc_result = self.nodes[0].decodescript(f"6a{signature_imposter}")
+        assert_equal(f"OP_RETURN {signature_imposter[2:]}", rpc_result['asm'])
 
         # 6) a CLTV redeem script. redeem scripts are in-effect scriptPubKey scripts, so adding a test here.
         # OP_NOP2 is also known as OP_CHECKLOCKTIMEVERIFY.
@@ -113,7 +113,7 @@ class DecodeScriptTest(BitcoinTestFramework):
         #
         # lock until block 500,000
         rpc_result = self.nodes[0].decodescript(
-            '63' + push_public_key + 'ad670320a107b17568' + push_public_key + 'ac')
+            f"63{push_public_key}ad670320a107b17568{push_public_key}ac")
         assert_equal('OP_IF ' + public_key + ' OP_CHECKSIGVERIFY OP_ELSE 500000 OP_CHECKLOCKTIMEVERIFY OP_DROP OP_ENDIF ' +
                      public_key + ' OP_CHECKSIG', rpc_result['asm'])
 
@@ -172,10 +172,10 @@ class DecodeScriptTest(BitcoinTestFramework):
         push_signature = txSave.vin[0].scriptSig.hex()[2:(0x48 * 2 + 4)]
         signature = push_signature[2:]
         der_signature = signature[:-2]
-        signature_sighash_decoded = der_signature + '[ALL]'
-        signature_2 = der_signature + '82'
-        push_signature_2 = '48' + signature_2
-        signature_2_sighash_decoded = der_signature + '[NONE|ANYONECANPAY]'
+        signature_sighash_decoded = f"{der_signature}[ALL]"
+        signature_2 = f"{der_signature}82"
+        push_signature_2 = f"48{signature_2}"
+        signature_2_sighash_decoded = f"{der_signature}[NONE|ANYONECANPAY]"
 
         # 1) P2PK scriptSig
         txSave.vin[0].scriptSig = bytes.fromhex(push_signature)
@@ -192,7 +192,7 @@ class DecodeScriptTest(BitcoinTestFramework):
 
         # 2) multisig scriptSig
         txSave.vin[0].scriptSig = bytes.fromhex(
-            '00' + push_signature + push_signature_2)
+            f"00{push_signature}{push_signature_2}")
         rpc_result = self.nodes[0].decoderawtransaction(ToHex(txSave))
         assert_equal('0 ' + signature_sighash_decoded + ' ' +
                      signature_2_sighash_decoded, rpc_result['vin'][0]['scriptSig']['asm'])

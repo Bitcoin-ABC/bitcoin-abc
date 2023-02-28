@@ -21,7 +21,7 @@ def EncodeDecimal(o):
         # json.load will read a quoted float as a string and not convert it back
         # to decimal, so store the value as unquoted float instead.
         return float(o)
-    raise TypeError(repr(o) + " is not JSON serializable")
+    raise TypeError(f"{repr(o)} is not JSON serializable")
 
 
 class GetblockstatsTest(BitcoinTestFramework):
@@ -130,7 +130,7 @@ class GetblockstatsTest(BitcoinTestFramework):
                      self.start_height + self.max_stat_pos)
 
         for i in range(self.max_stat_pos + 1):
-            self.log.info('Checking block {}\n'.format(i))
+            self.log.info(f'Checking block {i}\n')
             assert_equal(stats[i], self.expected_stats[i])
 
             # Check selecting block by hash too
@@ -146,8 +146,9 @@ class GetblockstatsTest(BitcoinTestFramework):
                     hash_or_height=self.start_height + i, stats=[stat])
                 assert_equal(list(result.keys()), [stat])
                 if result[stat] != self.expected_stats[i][stat]:
-                    self.log.info('result[{}] ({}) failed, {!r} != {!r}'.format(
-                        stat, i, result[stat], self.expected_stats[i][stat]))
+                    self.log.info(
+                        f'result[{stat}] ({i}) failed, '
+                        f'{result[stat]!r} != {self.expected_stats[i][stat]!r}')
                 assert_equal(result[stat], self.expected_stats[i][stat])
 
         # Make sure only the selected statistics are included (more than one)
@@ -158,10 +159,12 @@ class GetblockstatsTest(BitcoinTestFramework):
 
         # Test invalid parameters raise the proper json exceptions
         tip = self.start_height + self.max_stat_pos
-        assert_raises_rpc_error(-8, 'Target block height {} after current tip {}'.format(
-            tip + 1, tip), self.nodes[0].getblockstats, hash_or_height=tip + 1)
-        assert_raises_rpc_error(-8, 'Target block height {} is negative'.format(-1),
-                                self.nodes[0].getblockstats, hash_or_height=-1)
+        assert_raises_rpc_error(
+            -8, f'Target block height {tip + 1} after current tip {tip}',
+            self.nodes[0].getblockstats, hash_or_height=tip + 1)
+        assert_raises_rpc_error(
+            -8, 'Target block height -1 is negative',
+            self.nodes[0].getblockstats, hash_or_height=-1)
 
         # Make sure not valid stats aren't allowed
         inv_sel_stat = 'asdfghjkl'
@@ -172,8 +175,9 @@ class GetblockstatsTest(BitcoinTestFramework):
             ['minfee', inv_sel_stat, 'maxfee'],
         ]
         for inv_stat in inv_stats:
-            assert_raises_rpc_error(-8, 'Invalid selected statistic {}'.format(
-                inv_sel_stat), self.nodes[0].getblockstats, hash_or_height=1, stats=inv_stat)
+            assert_raises_rpc_error(
+                -8, f'Invalid selected statistic {inv_sel_stat}',
+                self.nodes[0].getblockstats, hash_or_height=1, stats=inv_stat)
 
         # Make sure we aren't always returning inv_sel_stat as the culprit stat
         # Mainchain's genesis block shouldn't be found on regtest

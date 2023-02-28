@@ -111,7 +111,7 @@ class SignRawTransactionsTest(BitcoinTestFramework):
 
         # Make sure decoderawtransaction throws if there is extra data
         assert_raises_rpc_error(-22, "TX decode failed",
-                                self.nodes[0].decoderawtransaction, rawTx + "00")
+                                self.nodes[0].decoderawtransaction, f"{rawTx}00")
 
         rawTxSigned = self.nodes[0].signrawtransactionwithkey(
             rawTx, privKeys, scripts)
@@ -212,7 +212,7 @@ class SignRawTransactionsTest(BitcoinTestFramework):
 
         # 3) If the sighash is invalid the RPC throws an error
         for sighash in invalid_sighashes:
-            assert_raises_rpc_error(-1, sighash + " is not a valid sighash parameter.",
+            assert_raises_rpc_error(-1, f"{sighash} is not a valid sighash parameter.",
                                     self.nodes[0].signrawtransactionwithkey,
                                     rawTx, privKeys, inputs, sighash)
 
