@@ -172,7 +172,7 @@ class ImportRescanTest(BitcoinTestFramework):
         # Create one transaction on node 0 with a unique amount for
         # each possible type of wallet import RPC.
         for i, variant in enumerate(IMPORT_VARIANTS):
-            variant.label = "label {} {}".format(i, variant)
+            variant.label = f"label {i} {variant}"
             variant.address = self.nodes[1].getaddressinfo(
                 self.nodes[1].getnewaddress(label=variant.label))
             variant.key = self.nodes[1].dumpprivkey(variant.address["address"])
@@ -194,7 +194,7 @@ class ImportRescanTest(BitcoinTestFramework):
         # For each variation of wallet key import, invoke the import RPC and
         # check the results from getbalance and listtransactions.
         for variant in IMPORT_VARIANTS:
-            self.log.info('Run import for variant {}'.format(variant))
+            self.log.info(f'Run import for variant {variant}')
             expect_rescan = variant.rescan == Rescan.yes
             variant.node = self.nodes[2 + IMPORT_NODES.index(
                 ImportNode(variant.prune, expect_rescan))]
@@ -223,7 +223,7 @@ class ImportRescanTest(BitcoinTestFramework):
 
         # Check the latest results from getbalance and listtransactions.
         for variant in IMPORT_VARIANTS:
-            self.log.info('Run check for variant {}'.format(variant))
+            self.log.info(f'Run check for variant {variant}')
             variant.expected_balance += variant.sent_amount
             variant.expected_txs += 1
             variant.check(variant.sent_txid, variant.sent_amount,

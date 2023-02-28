@@ -141,9 +141,9 @@ class ListSinceBlockTest(BitcoinTestFramework):
         nodes2_first_blockhash = self.generate(
             self.nodes[2], 7, sync_fun=lambda: self.sync_all(self.nodes[2:]))[0]
         self.log.debug(
-            "nodes[1] last blockhash = {}".format(nodes1_last_blockhash))
+            f"nodes[1] last blockhash = {nodes1_last_blockhash}")
         self.log.debug(
-            "nodes[2] first blockhash = {}".format(nodes2_first_blockhash))
+            f"nodes[2] first blockhash = {nodes2_first_blockhash}")
 
         self.join_network()
 
@@ -207,7 +207,7 @@ class ListSinceBlockTest(BitcoinTestFramework):
         self.split_network()
 
         # send from nodes[1] using utxo to nodes[0]
-        change = '{:.2f}'.format(float(utxo['amount']) - 1000300.00)
+        change = f"{float(utxo['amount']) - 1000300.0:.2f}"
         recipient_dict = {
             self.nodes[0].getnewaddress(): 1000000,
             self.nodes[1].getnewaddress(): change,
@@ -286,7 +286,7 @@ class ListSinceBlockTest(BitcoinTestFramework):
         # create and sign a transaction
         utxos = self.nodes[2].listunspent()
         utxo = utxos[0]
-        change = '{:.2f}'.format(float(utxo['amount']) - 1000300.00)
+        change = f"{float(utxo['amount']) - 1000300.0:.2f}"
         recipient_dict = {
             self.nodes[0].getnewaddress(): 1000000,
             self.nodes[2].getnewaddress(): change,

@@ -46,7 +46,7 @@ class CreateWalletTest(BitcoinTestFramework):
             -4, 'Cannot import private keys to a wallet with private keys disabled', w1.importprivkey, privkey)
         if self.options.descriptors:
             result = w1.importdescriptors(
-                [{'desc': descsum_create('pkh(' + privkey + ')'),
+                [{'desc': descsum_create(f"pkh({privkey})"),
                   'timestamp': 'now'}])
         else:
             result = w1.importmulti(

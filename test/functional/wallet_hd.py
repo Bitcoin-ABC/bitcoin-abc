@@ -59,9 +59,9 @@ class WalletHDTest(BitcoinTestFramework):
             hd_add = self.nodes[1].getnewaddress()
             hd_info = self.nodes[1].getaddressinfo(hd_add)
             if self.options.descriptors:
-                assert_equal(hd_info["hdkeypath"], "m/44'/1'/0'/0/" + str(i))
+                assert_equal(hd_info["hdkeypath"], f"m/44'/1'/0'/0/{str(i)}")
             else:
-                assert_equal(hd_info["hdkeypath"], "m/0'/0'/" + str(i) + "'")
+                assert_equal(hd_info["hdkeypath"], f"m/0'/0'/{str(i)}'")
                 assert_equal(hd_info["hdmasterfingerprint"], hd_fingerprint)
             self.nodes[0].sendtoaddress(hd_add, 1000000)
             self.generate(self.nodes[0], 1)
@@ -106,9 +106,9 @@ class WalletHDTest(BitcoinTestFramework):
             hd_add_2 = self.nodes[1].getnewaddress()
             hd_info_2 = self.nodes[1].getaddressinfo(hd_add_2)
             if self.options.descriptors:
-                assert_equal(hd_info_2["hdkeypath"], "m/44'/1'/0'/0/" + str(i))
+                assert_equal(hd_info_2["hdkeypath"], f"m/44'/1'/0'/0/{str(i)}")
             else:
-                assert_equal(hd_info_2["hdkeypath"], "m/0'/0'/" + str(i) + "'")
+                assert_equal(hd_info_2["hdkeypath"], f"m/0'/0'/{str(i)}'")
             assert_equal(hd_info_2["hdmasterfingerprint"], hd_fingerprint)
         assert_equal(hd_add, hd_add_2)
         self.connect_nodes(0, 1)

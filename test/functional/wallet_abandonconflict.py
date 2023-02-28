@@ -235,7 +235,7 @@ class AbandonConflictTest(BitcoinTestFramework):
             "If balance has not declined after invalidateblock then out of mempool wallet tx which is no longer")
         self.log.info(
             "conflicted has not resumed causing its inputs to be seen as spent.  See Issue #7315")
-        self.log.info(str(balance) + " -> " + str(newbalance) + " ?")
+        self.log.info(f"{str(balance)} -> {str(newbalance)} ?")
 
 
 if __name__ == '__main__':

@@ -99,7 +99,7 @@ class ImportDescriptorsTest(BitcoinTestFramework):
         # # Test importing of a P2PKH descriptor
         key = get_generate_key()
         self.log.info("Should import a p2pkh descriptor")
-        self.test_importdesc({"desc": descsum_create("pkh(" + key.pubkey + ")"),
+        self.test_importdesc({"desc": descsum_create(f"pkh({key.pubkey})"),
                               "timestamp": "now",
                               "label": "Descriptor import test"},
                              success=True)
@@ -111,7 +111,7 @@ class ImportDescriptorsTest(BitcoinTestFramework):
         assert_equal(w1.getwalletinfo()['keypoolsize'], 0)
 
         self.log.info("Internal addresses cannot have labels")
-        self.test_importdesc({"desc": descsum_create("pkh(" + key.pubkey + ")"),
+        self.test_importdesc({"desc": descsum_create(f"pkh({key.pubkey})"),
                               "timestamp": "now",
                               "internal": True,
                               "label": "Descriptor import test"},
@@ -122,7 +122,7 @@ class ImportDescriptorsTest(BitcoinTestFramework):
         self.log.info("Internal addresses should be detected as such")
         key = get_generate_key()
         addr = key_to_p2pkh(key.pubkey)
-        self.test_importdesc({"desc": descsum_create("pkh(" + key.pubkey + ")"),
+        self.test_importdesc({"desc": descsum_create(f"pkh({key.pubkey})"),
                               "timestamp": "now",
                               "internal": True},
                              success=True)
@@ -148,7 +148,7 @@ class ImportDescriptorsTest(BitcoinTestFramework):
         key1 = get_generate_key()
         key2 = get_generate_key()
         self.log.info("Should import a 1-of-2 bare multisig from descriptor")
-        self.test_importdesc({"desc": descsum_create("multi(1," + key1.pubkey + "," + key2.pubkey + ")"),
+        self.test_importdesc({"desc": descsum_create(f"multi(1,{key1.pubkey},{key2.pubkey})"),
                               "timestamp": "now"},
                              success=True)
         self.log.info(
@@ -166,7 +166,7 @@ class ImportDescriptorsTest(BitcoinTestFramework):
         # wpkh subscripts corresponding to the above addresses
         addresses += ["ecregtest:prvn9ycvgr5atuyh49sua3mapskh2mnnzg7t9yp6dt",
                       "ecregtest:pp3n087yx0njv2e5wcvltahfxqst7l66rutz8ceeat"]
-        desc = "sh(pkh(" + xpub + "/0/0/*" + "))"
+        desc = f"sh(pkh({xpub}/0/0/*))"
 
         self.log.info("Ranged descriptors cannot have labels")
         self.test_importdesc({"desc": descsum_create(desc),
@@ -197,7 +197,7 @@ class ImportDescriptorsTest(BitcoinTestFramework):
         # # Test importing of a ranged descriptor with xpriv
         self.log.info(
             "Should not import a ranged descriptor that includes xpriv into a watch-only wallet")
-        desc = "sh(pkh(" + xpriv + "/0'/0'/*'" + "))"
+        desc = f"sh(pkh({xpriv}/0'/0'/*'))"
         self.test_importdesc({"desc": descsum_create(desc),
                               "timestamp": "now",
                               "range": 1},
@@ -207,7 +207,7 @@ class ImportDescriptorsTest(BitcoinTestFramework):
 
         self.log.info("Should not import a descriptor with hardened "
                       "derivations when private keys are disabled")
-        self.test_importdesc({"desc": descsum_create("pkh(" + xpub + "/1h/*)"),
+        self.test_importdesc({"desc": descsum_create(f"pkh({xpub}/1h/*)"),
                               "timestamp": "now",
                               "range": 1},
                              success=False,
@@ -247,13 +247,13 @@ class ImportDescriptorsTest(BitcoinTestFramework):
             'ecregtest:qzpqhett2uwltq803vrxv7zkqhft5vsnmcjeh50v0p',  # m/0'/0'/4
         ]
 
-        self.test_importdesc({'desc': descsum_create('sh(pkh([abcdef12/0h/0h]' + xpub + '/*))'),
+        self.test_importdesc({'desc': descsum_create(f"sh(pkh([abcdef12/0h/0h]{xpub}/*))"),
                               'active': True,
                               'range': [0, 2],
                               'timestamp': 'now'
                               },
                              success=True)
-        self.test_importdesc({'desc': descsum_create('pkh([12345678/0h/0h]' + xpub + '/*)'),
+        self.test_importdesc({'desc': descsum_create(f"pkh([12345678/0h/0h]{xpub}/*)"),
                               'active': True,
                               'range': [0, 2],
                               'timestamp': 'now'
@@ -270,7 +270,7 @@ class ImportDescriptorsTest(BitcoinTestFramework):
             assert_equal(pkh_addr, expected_addr)
             pkh_addr_info = w1.getaddressinfo(pkh_addr)
             assert_equal(pkh_addr_info['desc'][:22],
-                         'pkh([12345678/0\'/0\'/{}]'.format(i))
+                         f'pkh([12345678/0\'/0\'/{i}]')
 
             # After retrieving a key, we don't refill the keypool again, so
             # it's one less for each address type
@@ -280,7 +280,7 @@ class ImportDescriptorsTest(BitcoinTestFramework):
 
         # Check active=False default
         self.log.info('Check imported descriptors are not active by default')
-        self.test_importdesc({'desc': descsum_create('pkh([12345678/0h/0h]' + xpub + '/*)'),
+        self.test_importdesc({'desc': descsum_create(f"pkh([12345678/0h/0h]{xpub}/*)"),
                               'range': [0, 2],
                               'timestamp': 'now',
                               'internal': True
@@ -293,7 +293,7 @@ class ImportDescriptorsTest(BitcoinTestFramework):
         # # Test importing a descriptor containing a WIF private key
         wif_priv = "cTe1f5rdT8A8DFgVWTjyPwACsDPJM9ff4QngFxUixCSvvbg1x6sh"
         address = "ecregtest:ppn85zpvym8cdccmgw8km6e48jfhnpa435h3hkyfd6"
-        desc = "sh(pkh(" + wif_priv + "))"
+        desc = f"sh(pkh({wif_priv}))"
         self.log.info(
             "Should import a descriptor with a WIF private key as spendable")
         self.test_importdesc({"desc": descsum_create(desc),

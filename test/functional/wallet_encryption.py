@@ -77,7 +77,7 @@ class WalletEncryptionTest(BitcoinTestFramework):
 
         # Test wrong passphrase
         assert_raises_rpc_error(-14, "wallet passphrase entered was incorrect",
-                                self.nodes[0].walletpassphrase, passphrase + "wrong", 10)
+                                self.nodes[0].walletpassphrase, f"{passphrase}wrong", 10)
 
         # Test walletlock and unlocked_until values
         self.mocktime = 1

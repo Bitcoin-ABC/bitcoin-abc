@@ -126,7 +126,7 @@ class AddressTypeTest(BitcoinTestFramework):
         if not multisig and typ == 'legacy':
             # P2PKH
             assert_equal(info['desc'],
-                         descsum_create("pkh({})".format(key_descs[info['pubkey']])))
+                         descsum_create(f"pkh({key_descs[info['pubkey']]})"))
         elif typ == 'legacy':
             # P2SH-multisig
             assert_equal(info['desc'], descsum_create("sh(multi(2,{},{}))".format(
@@ -154,10 +154,7 @@ class AddressTypeTest(BitcoinTestFramework):
         assert_equal(len(change_addresses), 1)
 
         self.log.debug(
-            "Check if change address " +
-            change_addresses[0] +
-            " is " +
-            expected_type)
+            f"Check if change address {change_addresses[0]} is {expected_type}")
         self.test_address(
             node_sender,
             change_addresses[0],
@@ -214,9 +211,9 @@ class AddressTypeTest(BitcoinTestFramework):
 
         for multisig, from_node in itertools.product(do_multisigs, range(4)):
             self.log.info(
-                "Sending from node {} with{} multisig".format(from_node, "" if multisig else "out"))
+                f"Sending from node {from_node} with{'' if multisig else 'out'} multisig")
             old_balances = self.get_balances()
-            self.log.debug("Old balances are {}".format(old_balances))
+            self.log.debug(f"Old balances are {old_balances}")
             to_send = (
                 old_balances[from_node] /
                 101).quantize(
@@ -248,13 +245,13 @@ class AddressTypeTest(BitcoinTestFramework):
                 sends[address] = to_send * 10 * (1 + n)
                 addresses[to_node] = (address, typ)
 
-            self.log.debug("Sending: {}".format(sends))
+            self.log.debug(f"Sending: {sends}")
             self.nodes[from_node].sendmany("", sends)
             self.sync_mempools()
 
             unconf_balances = self.get_balances('untrusted_pending')
             self.log.debug(
-                "Check unconfirmed balances: {}".format(unconf_balances))
+                f"Check unconfirmed balances: {unconf_balances}")
             assert_equal(unconf_balances[from_node], 0)
             for n, to_node in enumerate(range(from_node + 1, from_node + 4)):
                 to_node %= 4
@@ -281,7 +278,7 @@ class AddressTypeTest(BitcoinTestFramework):
                 assert found
 
             new_balances = self.get_balances()
-            self.log.debug("Check new balances: {}".format(new_balances))
+            self.log.debug(f"Check new balances: {new_balances}")
             # We don't know what fee was set, so we can only check bounds on
             # the balance of the sending node
             assert_greater_than(new_balances[from_node], to_send * 10)

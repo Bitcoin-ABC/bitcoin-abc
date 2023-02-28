@@ -96,7 +96,7 @@ class MultiWalletTest(BitcoinTestFramework):
 
         # create another dummy wallet for use in testing backups later
         self.start_node(
-            0, ["-nowallet", "-wallet=" + self.default_wallet_name])
+            0, ["-nowallet", f"-wallet={self.default_wallet_name}"])
         self.stop_nodes()
         empty_wallet = os.path.join(self.options.tmpdir, 'empty.dat')
         os.rename(wallet_dir(self.default_wallet_name, self.wallet_data_filename),
@@ -116,7 +116,7 @@ class MultiWalletTest(BitcoinTestFramework):
         if os.name == 'nt':
             wallet_names.remove('w7_symlink')
         extra_args = ['-nowallet'] + \
-            ['-wallet={}'.format(n) for n in wallet_names]
+            [f'-wallet={n}' for n in wallet_names]
         self.start_node(0, extra_args)
         assert_equal(
             sorted(map(lambda w: w['name'],
@@ -165,7 +165,7 @@ class MultiWalletTest(BitcoinTestFramework):
         not_a_dir = wallet_dir('notadir')
         open(not_a_dir, 'a', encoding="utf8").close()
         self.nodes[0].assert_start_raises_init_error(
-            ['-walletdir=' + not_a_dir], 'Error: Specified -walletdir "' + not_a_dir + '" is not a directory')
+            [f"-walletdir={not_a_dir}"], f"Error: Specified -walletdir \"{not_a_dir}\" is not a directory")
 
         # if wallets/ doesn't exist, datadir should be the default wallet dir
         wallet_dir2 = data_dir('walletdir')
@@ -183,7 +183,7 @@ class MultiWalletTest(BitcoinTestFramework):
         # walletdir, w4 and w5 should still be loaded
         os.rename(wallet_dir2, wallet_dir())
         self.restart_node(0, ['-nowallet', '-wallet=w4', '-wallet=w5',
-                              '-walletdir=' + data_dir()])
+                              f"-walletdir={data_dir()}"])
         assert_equal(set(node.listwallets()), {"w4", "w5"})
         w5 = wallet("w5")
         w5_info = w5.getwalletinfo()
@@ -192,10 +192,10 @@ class MultiWalletTest(BitcoinTestFramework):
         competing_wallet_dir = os.path.join(
             self.options.tmpdir, 'competing_walletdir')
         os.mkdir(competing_wallet_dir)
-        self.restart_node(0, ['-walletdir=' + competing_wallet_dir])
+        self.restart_node(0, [f"-walletdir={competing_wallet_dir}"])
         exp_stderr = r"Error: Error initializing wallet database environment \"\S+competing_walletdir\"!"
         self.nodes[1].assert_start_raises_init_error(
-            ['-walletdir=' + competing_wallet_dir], exp_stderr, match=ErrorMatch.PARTIAL_REGEX)
+            [f"-walletdir={competing_wallet_dir}"], exp_stderr, match=ErrorMatch.PARTIAL_REGEX)
 
         self.restart_node(0, extra_args)
 
