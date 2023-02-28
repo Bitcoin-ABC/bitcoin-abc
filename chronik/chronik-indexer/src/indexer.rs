@@ -37,7 +37,7 @@ pub struct ChronikBlock {
 /// Errors for [`BlockWriter`] and [`BlockReader`].
 #[derive(Debug, Eq, Error, PartialEq)]
 pub enum ChronikIndexerError {
-    /// Block height must be 4 bytes.
+    /// Failed creating the folder for the indexes
     #[error("Failed creating path {0}")]
     CreateIndexesDirFailed(PathBuf),
 }
