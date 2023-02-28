@@ -103,7 +103,7 @@ class InitStressTest(BitcoinTestFramework):
 
             for target_file in target_files:
                 self.log.info(f"Tweaking file to ensure failure {target_file}")
-                bak_path = str(target_file) + ".bak"
+                bak_path = f"{target_file}.bak"
                 target_file.rename(bak_path)
 
             # TODO: at some point, we should test perturbing the files instead
@@ -128,7 +128,7 @@ class InitStressTest(BitcoinTestFramework):
             )
 
             for target_file in target_files:
-                bak_path = str(target_file) + ".bak"
+                bak_path = f"{target_file}.bak"
                 self.log.debug(
                     f"Restoring file from {bak_path} and restarting")
                 Path(bak_path).rename(target_file)

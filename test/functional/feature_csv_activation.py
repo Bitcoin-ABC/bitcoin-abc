@@ -625,7 +625,7 @@ class BIP68_112_113Test(BitcoinTestFramework):
         # Generate 9 blocks then spend in the 10th
         block = self.nodes[0].getbestblockhash()
         self.last_block_time += 600
-        self.tip = int("0x" + block, 0)
+        self.tip = int(f"0x{block}", 0)
         self.tipheight += 1
         # Test #122
         self.send_blocks(self.generate_blocks(9))
@@ -656,7 +656,7 @@ class BIP68_112_113Test(BitcoinTestFramework):
         # Generate 8 blocks then spend in the 9th (9 * 600 > 10 * 512)
         block = self.nodes[0].getbestblockhash()
         self.last_block_time += 600
-        self.tip = int("0x" + block, 0)
+        self.tip = int(f"0x{block}", 0)
         self.tipheight += 1
         # Test #125
         self.send_blocks(self.generate_blocks(8))

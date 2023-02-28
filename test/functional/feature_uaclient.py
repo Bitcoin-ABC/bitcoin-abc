@@ -54,17 +54,17 @@ class UseragentTest(BitcoinTestFramework):
         self.stop_node(0)
         expected = r"Error: Total length of network version string \([0-9]+\) exceeds maximum length \([0-9]+\)\. Reduce the number or size of uacomments\."
         self.nodes[0].assert_start_raises_init_error(
-            ["-uaclientname=" + "a" * 256], expected, match=ErrorMatch.FULL_REGEX)
+            [f"-uaclientname={'a' * 256}"], expected, match=ErrorMatch.FULL_REGEX)
 
         self.log.info("test -uaclientversion max length")
         expected = r"Error: Total length of network version string \([0-9]+\) exceeds maximum length \([0-9]+\)\. Reduce the number or size of uacomments\."
         self.nodes[0].assert_start_raises_init_error(
-            ["-uaclientversion=" + "a" * 256], expected, match=ErrorMatch.FULL_REGEX)
+            [f"-uaclientversion={'a' * 256}"], expected, match=ErrorMatch.FULL_REGEX)
 
         self.log.info("test -uaclientname and -uaclientversion max length")
         expected = r"Error: Total length of network version string \([0-9]+\) exceeds maximum length \([0-9]+\)\. Reduce the number or size of uacomments\."
         self.nodes[0].assert_start_raises_init_error(
-            ["-uaclientname=" + "a" * 128, "-uaclientversion=" + "a" * 128], expected, match=ErrorMatch.FULL_REGEX)
+            [f"-uaclientname={'a' * 128}", f"-uaclientversion={'a' * 128}"], expected, match=ErrorMatch.FULL_REGEX)
 
         self.log.info(
             "test -uaclientname and -uaclientversion invalid characters")
@@ -73,20 +73,20 @@ class UseragentTest(BitcoinTestFramework):
             expected = r"Error: -uaclientname \(" + \
                 re.escape(invalid_char) + r"\) contains invalid characters\."
             self.nodes[0].assert_start_raises_init_error(
-                ["-uaclientname=" + invalid_char],
+                [f"-uaclientname={invalid_char}"],
                 expected, match=ErrorMatch.FULL_REGEX)
             # for client version
             expected = r"Error: -uaclientversion \(" + \
                 re.escape(invalid_char) + r"\) contains invalid characters\."
             self.nodes[0].assert_start_raises_init_error(
-                ["-uaclientversion=" + invalid_char],
+                [f"-uaclientversion={invalid_char}"],
                 expected, match=ErrorMatch.FULL_REGEX)
             # for both
             expected = r"Error: -uaclientname \(" + \
                 re.escape(invalid_char) + r"\) contains invalid characters\."
             self.nodes[0].assert_start_raises_init_error(
-                ["-uaclientname=" + invalid_char,
-                    "-uaclientversion=" + invalid_char],
+                [f"-uaclientname={invalid_char}",
+                    f"-uaclientversion={invalid_char}"],
                 expected, match=ErrorMatch.FULL_REGEX)
 
 

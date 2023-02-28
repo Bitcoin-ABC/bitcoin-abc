@@ -52,7 +52,7 @@ class BIP66Test(BitcoinTestFramework):
     def run_test(self):
         peer = self.nodes[0].add_p2p_connection(P2PInterface())
 
-        self.log.info("Mining {} blocks".format(DERSIG_HEIGHT - 1))
+        self.log.info(f"Mining {DERSIG_HEIGHT - 1} blocks")
         self.coinbase_txids = [self.nodes[0].getblock(
             b)['tx'][0] for b in self.generate(self.nodes[0], DERSIG_HEIGHT - 1)]
         self.nodeaddress = self.nodes[0].getnewaddress()

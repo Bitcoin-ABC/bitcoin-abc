@@ -113,7 +113,7 @@ class FullBlockTest(BitcoinTestFramework):
         # Allow the block to mature
         blocks = []
         for i in range(NUM_BUFFER_BLOCKS_TO_GENERATE):
-            blocks.append(self.next_block("maturitybuffer.{}".format(i)))
+            blocks.append(self.next_block(f"maturitybuffer.{i}"))
             self.save_spendable_output()
         self.send_blocks(blocks)
 
@@ -149,7 +149,7 @@ class FullBlockTest(BitcoinTestFramework):
             self.log.info(
                 "Reject block with invalid tx: %s",
                 TxTemplate.__name__)
-            blockname = "for_invalid.{}".format(TxTemplate.__name__)
+            blockname = f"for_invalid.{TxTemplate.__name__}"
             badblock = self.next_block(blockname)
             badtx = template.get_tx()
             if TxTemplate != invalid_txs.InputMissing:
@@ -1116,11 +1116,11 @@ class FullBlockTest(BitcoinTestFramework):
         self.move_tip(88)
         blocks2 = []
         for i in range(89, LARGE_REORG_SIZE + 89):
-            blocks2.append(self.next_block("alt" + str(i)))
+            blocks2.append(self.next_block(f"alt{i}"))
         self.send_blocks(blocks2, False, force_send=True)
 
         # extend alt chain to trigger re-org
-        block = self.next_block("alt" + str(chain1_tip + 1))
+        block = self.next_block(f"alt{chain1_tip + 1}")
         self.send_blocks([block], True, timeout=2440)
 
         # ... and re-org back to the first chain
@@ -1226,13 +1226,12 @@ class FullBlockTest(BitcoinTestFramework):
 
     # save the current tip so it can be spent by a later block
     def save_spendable_output(self):
-        self.log.debug("saving spendable output {}".format(self.tip.vtx[0]))
+        self.log.debug(f"saving spendable output {self.tip.vtx[0]}")
         self.spendable_outputs.append(self.tip)
 
     # get an output that we previously marked as spendable
     def get_spendable_output(self):
-        self.log.debug("getting spendable output {}".format(
-            self.spendable_outputs[0].vtx[0]))
+        self.log.debug(f"getting spendable output {self.spendable_outputs[0].vtx[0]}")
         return self.spendable_outputs.pop(0).vtx[0]
 
     # move the tip back to a previous block

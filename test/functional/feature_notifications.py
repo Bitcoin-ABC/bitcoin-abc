@@ -20,7 +20,7 @@ FILE_CHAR_BLACKLIST = '/\\?%*:|"<>' if os.name == 'nt' else '/'
 
 
 def notify_outputname(walletname, txid):
-    return txid if os.name == 'nt' else '{}_{}'.format(walletname, txid)
+    return txid if os.name == 'nt' else f'{walletname}_{txid}'
 
 
 class NotificationsTest(BitcoinTestFramework):
@@ -44,9 +44,9 @@ class NotificationsTest(BitcoinTestFramework):
         # -alertnotify and -blocknotify on node0, walletnotify on node1
         self.extra_args = [["-alertnotify=echo > {}".format(
             os.path.join(self.alertnotify_dir, '%s')),
-            "-blocknotify=echo > {}".format(os.path.join(self.blocknotify_dir, '%s'))],
+            f"-blocknotify=echo > {os.path.join(self.blocknotify_dir, '%s')}"],
             ["-rescan",
-             "-walletnotify=echo > {}".format(os.path.join(self.walletnotify_dir, notify_outputname('%w', '%s')))]]
+             f"-walletnotify=echo > {os.path.join(self.walletnotify_dir, notify_outputname('%w', '%s'))}"]]
         self.wallet_names = [self.default_wallet_name, self.wallet]
         super().setup_network()
 

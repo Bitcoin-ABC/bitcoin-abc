@@ -153,8 +153,8 @@ class AssumeValidTest(BitcoinTestFramework):
 
         # Start node1 and node2 with assumevalid so they accept a block with a
         # bad signature.
-        self.start_node(1, extra_args=["-assumevalid=" + hex(block102.sha256)])
-        self.start_node(2, extra_args=["-assumevalid=" + hex(block102.sha256)])
+        self.start_node(1, extra_args=[f"-assumevalid={hex(block102.sha256)}"])
+        self.start_node(2, extra_args=[f"-assumevalid={hex(block102.sha256)}"])
 
         p2p0 = self.nodes[0].add_p2p_connection(BaseNode())
         p2p1 = self.nodes[1].add_p2p_connection(BaseNode())
