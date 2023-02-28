@@ -156,9 +156,12 @@ void WalletInit::AddWalletOptions(ArgsManager &argsman) const {
                              DEFAULT_WALLET_PRIVDB),
                    ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
                    OptionsCategory::WALLET_DEBUG_TEST);
+    // TODO Remove after wellington activation
     argsman.AddArg("-walletrejectlongchains",
-                   strprintf("Wallet will not create transactions that violate "
-                             "mempool chain limits (default: %d)",
+                   strprintf("DEPRECATED: Wallet will not create transactions "
+                             "that violate mempool chain limits (default: %d). "
+                             "This is no longer evaluated after the May 15th "
+                             "2023 eCash network upgrade.",
                              DEFAULT_WALLET_REJECT_LONG_CHAINS),
                    ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
                    OptionsCategory::WALLET_DEBUG_TEST);

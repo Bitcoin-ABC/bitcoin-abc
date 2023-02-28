@@ -1027,31 +1027,40 @@ void SetupServerArgs(NodeContext &node) {
                              DEFAULT_STOPATHEIGHT),
                    ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
                    OptionsCategory::DEBUG_TEST);
+    // TODO Remove after wellington activation
     argsman.AddArg(
         "-limitancestorcount=<n>",
-        strprintf("Do not accept transactions if number of in-mempool "
-                  "ancestors is <n> or more (default: %u)",
+        strprintf("DEPRECATED: Do not accept transactions if number of "
+                  "in-mempool ancestors is <n> or more (default: %u). This is "
+                  "no longer evaluated after the May 15th 2023 eCash network "
+                  "upgrade.",
                   DEFAULT_ANCESTOR_LIMIT),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
     argsman.AddArg(
         "-limitancestorsize=<n>",
-        strprintf("Do not accept transactions whose size with all in-mempool "
-                  "ancestors exceeds <n> kilobytes (default: %u)",
+        strprintf("DEPRECATED: Do not accept transactions whose size with all "
+                  "in-mempool ancestors exceeds <n> kilobytes (default: %u). "
+                  "This is no longer evaluated after the May 15th 2023 eCash "
+                  "network upgrade.",
                   DEFAULT_ANCESTOR_SIZE_LIMIT),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
     argsman.AddArg(
         "-limitdescendantcount=<n>",
-        strprintf("Do not accept transactions if any ancestor would have <n> "
-                  "or more in-mempool descendants (default: %u)",
+        strprintf("DEPRECATED: Do not accept transactions if any ancestor "
+                  "would have <n> or more in-mempool descendants (default: %u)"
+                  ". This is no longer evaluated after the May 15th 2023 eCash "
+                  "network upgrade.",
                   DEFAULT_DESCENDANT_LIMIT),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
     argsman.AddArg(
         "-limitdescendantsize=<n>",
-        strprintf("Do not accept transactions if any ancestor would have more "
-                  "than <n> kilobytes of in-mempool descendants (default: %u).",
+        strprintf("DEPRECATED: Do not accept transactions if any ancestor "
+                  "would have more than <n> kilobytes of in-mempool "
+                  "descendants (default: %u). This is no longer evaluated "
+                  "after the May 15th 2023 eCash network upgrade.",
                   DEFAULT_DESCENDANT_SIZE_LIMIT),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
