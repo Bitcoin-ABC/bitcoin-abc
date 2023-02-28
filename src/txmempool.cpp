@@ -593,17 +593,6 @@ void CTxMemPool::removeForBlock(const std::vector<CTransactionRef> &vtx) {
     DisconnectedBlockTransactions disconnectpool;
     disconnectpool.addForBlock(vtx, *this);
 
-    std::vector<const CTxMemPoolEntry *> entries;
-    for (const CTransactionRef &tx :
-         reverse_iterate(disconnectpool.GetQueuedTx().get<insertion_order>())) {
-        const TxId &txid = tx->GetId();
-
-        indexed_transaction_set::iterator i = mapTx.find(txid);
-        if (i != mapTx.end()) {
-            entries.push_back(&*i);
-        }
-    }
-
     for (const CTransactionRef &tx :
          reverse_iterate(disconnectpool.GetQueuedTx().get<insertion_order>())) {
         txiter it = mapTx.find(tx->GetId());
