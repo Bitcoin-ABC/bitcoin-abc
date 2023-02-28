@@ -90,6 +90,11 @@ class RPCInterfaceTest(BitcoinTestFramework):
         expect_http_status(500, -8, self.nodes[0].getblockhash, 42)
 
     def test_work_queue_exceeded(self):
+        if not self.is_cli_compiled():
+            self.log.info(
+                "Skipping test_work_queue_exceeded (CLI not compiled)")
+            return
+
         self.log.info("Testing work queue exceeded...")
         self.restart_node(0, ['-rpcworkqueue=1', '-rpcthreads=1'])
         got_exceeded_error = []
