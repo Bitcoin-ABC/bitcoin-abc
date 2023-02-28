@@ -75,8 +75,8 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         self.log.info("The test node has a proof")
 
         self.restart_node(0, self.extra_args[0] + [
-            '-avaproof={}'.format(proof.serialize().hex()),
-            '-avamasterkey={}'.format(bytes_to_wif(privkey.get_bytes())),
+            f'-avaproof={proof.serialize().hex()}',
+            f'-avamasterkey={bytes_to_wif(privkey.get_bytes())}',
             '-avaproofstakeutxoconfirmations=1',
         ])
 
@@ -179,8 +179,8 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         })
 
         self.restart_node(0, self.extra_args[0] + [
-            '-avaproof={}'.format(proof.serialize().hex()),
-            '-avamasterkey={}'.format(bytes_to_wif(privkey.get_bytes())),
+            f'-avaproof={proof.serialize().hex()}',
+            f'-avamasterkey={bytes_to_wif(privkey.get_bytes())}',
             '-avaproofstakeutxoconfirmations=3',
         ])
 

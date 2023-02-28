@@ -140,7 +140,7 @@ class AvalanchePeerDiscoveryTest(BitcoinTestFramework):
 
         # Restart the node
         self.restart_node(0, self.extra_args[0] + [
-            "-avaproof={}".format(proof),
+            f"-avaproof={proof}",
             "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
         ])
 
@@ -164,15 +164,15 @@ class AvalanchePeerDiscoveryTest(BitcoinTestFramework):
         self.log.info(
             "Test the avahello signature with a generated delegation")
         check_avahello([
-            "-avaproof={}".format(proof),
+            f"-avaproof={proof}",
             "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN"
         ])
 
         self.log.info("Test the avahello signature with a supplied delegation")
         check_avahello([
-            "-avaproof={}".format(proof),
-            "-avadelegation={}".format(delegation),
-            "-avamasterkey={}".format(bytes_to_wif(master_key.get_bytes())),
+            f"-avaproof={proof}",
+            f"-avadelegation={delegation}",
+            f"-avamasterkey={bytes_to_wif(master_key.get_bytes())}",
         ])
 
         stakes = create_coinbase_stakes(node, [blockhashes[1]], addrkey0.key)
@@ -234,7 +234,7 @@ class AvalanchePeerDiscoveryTest(BitcoinTestFramework):
 
         # Restart the node
         self.restart_node(0, self.extra_args[0] + [
-            "-avaproof={}".format(proof),
+            f"-avaproof={proof}",
             "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
         ])
 
@@ -280,7 +280,7 @@ class AvalanchePeerDiscoveryTest(BitcoinTestFramework):
 
         # Restart the node
         self.restart_node(0, self.extra_args[0] + [
-            "-avaproof={}".format(proof),
+            f"-avaproof={proof}",
             "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
         ])
         wait_for_proof_validation()
@@ -351,9 +351,9 @@ class AvalanchePeerDiscoveryTest(BitcoinTestFramework):
             "Check the node waits for inbound connection to advertise its proof")
 
         self.restart_node(0, self.extra_args[0] + [
-            "-avaproof={}".format(proof),
-            "-avadelegation={}".format(delegation),
-            "-avamasterkey={}".format(bytes_to_wif(master_key.get_bytes())),
+            f"-avaproof={proof}",
+            f"-avadelegation={delegation}",
+            f"-avamasterkey={bytes_to_wif(master_key.get_bytes())}",
         ])
 
         outbound = AvaP2PInterface()

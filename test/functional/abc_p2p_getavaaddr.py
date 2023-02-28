@@ -295,7 +295,7 @@ class AvaAddrTest(BitcoinTestFramework):
                 added_node_info) == 1 and added_node_info[0]['connected']
 
         def connect_callback(address, port):
-            self.log.debug("Connecting to {}:{}".format(address, port))
+            self.log.debug(f"Connecting to {address}:{port}")
 
         p = AvaP2PInterface()
         p2p_idx = 1

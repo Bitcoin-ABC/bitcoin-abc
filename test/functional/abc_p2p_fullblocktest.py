@@ -53,7 +53,7 @@ class FullBlockTest(BitcoinTestFramework):
         self.blocks = {}
         self.excessive_block_size = 100 * ONE_MEGABYTE
         self.extra_args = [['-whitelist=noban@127.0.0.1',
-                            "-excessiveblocksize={}".format(self.excessive_block_size)]]
+                            f"-excessiveblocksize={self.excessive_block_size}"]]
         self.supports_cli = False
         # The default timeout is not enough when submitting large blocks with
         # TSAN enabled

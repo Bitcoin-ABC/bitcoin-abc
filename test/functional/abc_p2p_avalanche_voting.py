@@ -302,7 +302,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         # Try some longer fork chains
         for numblocks in range(2, len(ADDRS)):
-            self.log.info("...for a chain {} blocks long...".format(numblocks))
+            self.log.info(f"...for a chain {numblocks} blocks long...")
 
             # Create a new fork N blocks deep
             fork_node.invalidateblock(chain_head)

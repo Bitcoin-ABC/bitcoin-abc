@@ -52,7 +52,7 @@ class WalletStandardnessTest(BitcoinTestFramework):
             Finally, it attempts to spend the coin.
             """
 
-            self.log.info("Trying script {}".format(scriptPubKey.hex(),))
+            self.log.info(f"Trying script {scriptPubKey.hex()}")
 
             # get nonstandard node to fund the script
             tx = CTransaction()

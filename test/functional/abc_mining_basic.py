@@ -26,13 +26,11 @@ class AbcMiningRPCTest(BitcoinTestFramework):
         self.extra_args = [
             [
                 '-enableminerfund',
-                '-wellingtonactivationtime={}'.format(
-                    WELLINGTON_ACTIVATION_TIME),
+                f'-wellingtonactivationtime={WELLINGTON_ACTIVATION_TIME}',
             ], [
                 '-enableminerfund',
                 '-usecashaddr=0',
-                '-wellingtonactivationtime={}'.format(
-                    WELLINGTON_ACTIVATION_TIME),
+                f'-wellingtonactivationtime={WELLINGTON_ACTIVATION_TIME}',
             ],
         ]
 

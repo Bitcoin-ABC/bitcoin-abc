@@ -58,7 +58,7 @@ class AvalancheProofTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 2
         self.extra_args = [[
-            '-avaproofstakeutxodustthreshold={}'.format(PROOF_DUST_THRESHOLD),
+            f'-avaproofstakeutxodustthreshold={PROOF_DUST_THRESHOLD}',
             '-avaproofstakeutxoconfirmations=1',
             '-avalancheconflictingproofcooldown=0',
             '-avacooldown=0',
@@ -169,7 +169,7 @@ class AvalancheProofTest(BitcoinTestFramework):
 
         # Restart the node with this proof
         self.restart_node(0, self.extra_args[0] + [
-            "-avaproof={}".format(proof),
+            f"-avaproof={proof}",
             "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
         ])
 
@@ -192,8 +192,8 @@ class AvalancheProofTest(BitcoinTestFramework):
 
         stake_age = node.getblockcount() + 2
         self.restart_node(1, self.extra_args[0] + [
-            "-avaproofstakeutxoconfirmations={}".format(stake_age),
-            "-avaproof={}".format(proof),
+            f"-avaproofstakeutxoconfirmations={stake_age}",
+            f"-avaproof={proof}",
             "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
         ])
 
@@ -430,7 +430,7 @@ class AvalancheProofTest(BitcoinTestFramework):
                                     rpc, "f00d")
 
             def check_rpc_failure(proof, message):
-                assert_raises_rpc_error(-8, "The proof is invalid: " + message,
+                assert_raises_rpc_error(-8, f"The proof is invalid: {message}",
                                         rpc, proof)
 
             check_rpc_failure(no_stake, "no-stake")
@@ -451,7 +451,7 @@ class AvalancheProofTest(BitcoinTestFramework):
         # Clear the proof pool
         stake_age = node.getblockcount()
         self.restart_node(0, self.extra_args[0] + [
-            "-avaproofstakeutxoconfirmations={}".format(stake_age),
+            f"-avaproofstakeutxoconfirmations={stake_age}",
             '-avalancheconflictingproofcooldown=0'
         ])
 
@@ -538,14 +538,14 @@ class AvalancheProofTest(BitcoinTestFramework):
 
         node.assert_start_raises_init_error(
             self.extra_args[0] + [
-                "-avaproof={}".format(proof),
+                f"-avaproof={proof}",
             ],
             expected_msg="Error: The avalanche master key is missing for the avalanche proof.",
         )
 
         node.assert_start_raises_init_error(
             self.extra_args[0] + [
-                "-avaproof={}".format(proof),
+                f"-avaproof={proof}",
                 "-avamasterkey=0",
             ],
             expected_msg="Error: The avalanche master key is invalid.",
@@ -554,10 +554,10 @@ class AvalancheProofTest(BitcoinTestFramework):
         def check_proof_init_error(proof, message):
             node.assert_start_raises_init_error(
                 self.extra_args[0] + [
-                    "-avaproof={}".format(proof),
+                    f"-avaproof={proof}",
                     "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
                 ],
-                expected_msg="Error: " + message,
+                expected_msg=f"Error: {message}",
             )
 
         check_proof_init_error(no_stake,
@@ -573,7 +573,7 @@ class AvalancheProofTest(BitcoinTestFramework):
         if self.is_wallet_compiled():
             # The too many utxos case creates a proof which is that large that it
             # cannot fit on the command line
-            append_config(node.datadir, ["avaproof={}".format(too_many_utxos)])
+            append_config(node.datadir, [f"avaproof={too_many_utxos}"])
             node.assert_start_raises_init_error(
                 self.extra_args[0] + [
                     "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
@@ -587,9 +587,8 @@ class AvalancheProofTest(BitcoinTestFramework):
         random_privkey.generate()
         node.assert_start_raises_init_error(
             self.extra_args[0] + [
-                "-avaproof={}".format(proof),
-                "-avamasterkey={}".format(
-                    bytes_to_wif(random_privkey.get_bytes())),
+                f"-avaproof={proof}",
+                f"-avamasterkey={bytes_to_wif(random_privkey.get_bytes())}",
             ],
             expected_msg="Error: The master key does not match the proof public key.",
         )
@@ -599,15 +598,13 @@ class AvalancheProofTest(BitcoinTestFramework):
         def check_delegation_init_error(delegation, message):
             node.assert_start_raises_init_error(
                 self.extra_args[0] + [
-                    "-avadelegation={}".format(delegation),
-                    "-avaproof={}".format(proof),
-                    "-avamasterkey={}".format(
-                        bytes_to_wif(delegated_privkey.get_bytes())),
+                    f"-avadelegation={delegation}",
+                    f"-avaproof={proof}",
+                    f"-avamasterkey={bytes_to_wif(delegated_privkey.get_bytes())}",
                     # Prevent the node from adding a delegation level
-                    "-avasessionkey={}".format(
-                        bytes_to_wif(delegated_privkey.get_bytes())),
+                    f"-avasessionkey={bytes_to_wif(delegated_privkey.get_bytes())}",
                 ],
-                expected_msg="Error: " + message,
+                expected_msg=f"Error: {message}",
             )
 
         check_delegation_init_error(
@@ -622,10 +619,9 @@ class AvalancheProofTest(BitcoinTestFramework):
 
         node.assert_start_raises_init_error(
             self.extra_args[0] + [
-                "-avadelegation={}".format(delegation),
-                "-avaproof={}".format(proof),
-                "-avamasterkey={}".format(
-                    bytes_to_wif(random_privkey.get_bytes())),
+                f"-avadelegation={delegation}",
+                f"-avaproof={proof}",
+                f"-avamasterkey={bytes_to_wif(random_privkey.get_bytes())}",
             ],
             expected_msg="Error: The master key does not match the delegation public key.",
         )
@@ -633,22 +629,19 @@ class AvalancheProofTest(BitcoinTestFramework):
         # The node stacks another delegation level at startup
         node.assert_start_raises_init_error(
             self.extra_args[0] + [
-                "-avadelegation={}".format(delegation),
-                "-avaproof={}".format(proof),
-                "-avamasterkey={}".format(
-                    bytes_to_wif(delegated_privkey.get_bytes())),
+                f"-avadelegation={delegation}",
+                f"-avaproof={proof}",
+                f"-avamasterkey={bytes_to_wif(delegated_privkey.get_bytes())}",
             ],
             expected_msg="Error: The avalanche delegation has too many delegation levels.",
         )
 
         node.assert_start_raises_init_error(
             self.extra_args[0] + [
-                "-avadelegation={}".format(too_many_levels_delegation),
-                "-avaproof={}".format(proof),
-                "-avamasterkey={}".format(
-                    bytes_to_wif(too_many_levels_privkey.get_bytes())),
-                "-avasessionkey={}".format(
-                    bytes_to_wif(too_many_levels_privkey.get_bytes())),
+                f"-avadelegation={too_many_levels_delegation}",
+                f"-avaproof={proof}",
+                f"-avamasterkey={bytes_to_wif(too_many_levels_privkey.get_bytes())}",
+                f"-avasessionkey={bytes_to_wif(too_many_levels_privkey.get_bytes())}",
             ],
             expected_msg="Error: The avalanche delegation has too many delegation levels.",
         )

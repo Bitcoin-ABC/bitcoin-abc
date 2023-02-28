@@ -181,8 +181,8 @@ class ProofInventoryTest(BitcoinTestFramework):
             for node in nodes:
                 privkey, proof = proofs_keys[node.index]
                 self.restart_node(node.index, self.extra_args[node.index] + [
-                    "-avaproof={}".format(proof.serialize().hex()),
-                    "-avamasterkey={}".format(bytes_to_wif(privkey.get_bytes()))
+                    f"-avaproof={proof.serialize().hex()}",
+                    f"-avamasterkey={bytes_to_wif(privkey.get_bytes())}"
                 ] + (extra_args or []))
 
         restart_nodes_with_proof(self.nodes[:-1])

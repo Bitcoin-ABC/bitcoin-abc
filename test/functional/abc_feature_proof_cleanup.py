@@ -46,8 +46,8 @@ class ProofsCleanupTest(BitcoinTestFramework):
         master_key, local_proof = gen_proof(self, node)
 
         self.restart_node(0, self.extra_args[0] + [
-            "-avaproof={}".format(local_proof.serialize().hex()),
-            "-avamasterkey={}".format(bytes_to_wif(master_key.get_bytes())),
+            f"-avaproof={local_proof.serialize().hex()}",
+            f"-avamasterkey={bytes_to_wif(master_key.get_bytes())}",
         ])
         # Add an inbound so the node proof can be registered and advertised
         node.add_p2p_connection(P2PInterface())
@@ -91,7 +91,7 @@ class ProofsCleanupTest(BitcoinTestFramework):
 
         # Run the cleanup, the proofs with no node are cleaned excepted our
         # local proof
-        with node.assert_debug_log(["Proof dropped for dangling too long (no connected node): {}".format(uint256_hex(p.proofid)) for p in proofs[6:]]):
+        with node.assert_debug_log([f"Proof dropped for dangling too long (no connected node): {uint256_hex(p.proofid)}" for p in proofs[6:]]):
             # Expire the dangling proof timeout
             mocktime += 1
             node.setmocktime(mocktime)
