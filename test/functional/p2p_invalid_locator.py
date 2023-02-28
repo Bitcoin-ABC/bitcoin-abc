@@ -37,7 +37,7 @@ class InvalidLocatorTest(BitcoinTestFramework):
             exceed_max_peer.wait_for_disconnect()
 
             self.log.info(
-                'Wait for response when sending {} hashes in locator'.format(MAX_LOCATOR_SZ))
+                f'Wait for response when sending {MAX_LOCATOR_SZ} hashes in locator')
             within_max_peer = node.add_p2p_connection(P2PInterface())
             msg.locator.vHave = [int(node.getblockhash(
                 i - 1), 16) for i in range(block_count, block_count - (MAX_LOCATOR_SZ), -1)]

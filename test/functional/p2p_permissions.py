@@ -66,12 +66,11 @@ class P2PPermissionsTests(BitcoinTestFramework):
         # Let's make sure permissions are merged correctly
         # For this, we need to use whitebind instead of bind
         # by modifying the configuration file.
-        ip_port = "127.0.0.1:{}".format(p2p_port(1))
+        ip_port = f"127.0.0.1:{p2p_port(1)}"
         self.replaceinconfig(
             1,
             "bind=127.0.0.1",
-            "whitebind=bloomfilter,forcerelay@" +
-            ip_port)
+            f"whitebind=bloomfilter,forcerelay@{ip_port}")
         self.checkpermission(
             ["-whitelist=noban@127.0.0.1"],
             # Check parameter interaction forcerelay should activate relay
@@ -79,8 +78,7 @@ class P2PPermissionsTests(BitcoinTestFramework):
         )
         self.replaceinconfig(
             1,
-            "whitebind=bloomfilter,forcerelay@" +
-            ip_port,
+            f"whitebind=bloomfilter,forcerelay@{ip_port}",
             "bind=127.0.0.1")
 
         self.checkpermission(
@@ -166,7 +164,7 @@ class P2PPermissionsTests(BitcoinTestFramework):
             " is already in the mempool")
         self.connect_nodes(1, 0)
         with self.nodes[1].assert_debug_log(
-                ["Force relaying tx {} from peer=0".format(txid)]):
+                [f"Force relaying tx {txid} from peer=0"]):
             p2p_rebroadcast_wallet.send_txs_and_test([tx], self.nodes[1])
             self.wait_until(lambda: txid in self.nodes[0].getrawmempool())
 
@@ -200,7 +198,7 @@ class P2PPermissionsTests(BitcoinTestFramework):
         for p in expectedPermissions:
             if p not in peerinfo['permissions']:
                 raise AssertionError(
-                    "Expected permissions {!r} is not granted.".format(p))
+                    f"Expected permissions {p!r} is not granted.")
 
     def replaceinconfig(self, nodeid, old, new):
         with open(self.nodes[nodeid].bitcoinconf, encoding="utf8") as f:

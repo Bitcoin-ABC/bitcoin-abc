@@ -190,16 +190,12 @@ class P2PEvict(BitcoinTestFramework):
 
         self.log.info("Test that one peer was evicted")
         self.log.debug(
-            "{} evicted peer: {}".format(
-                len(evicted_peers),
-                set(evicted_peers)))
+            f"{len(evicted_peers)} evicted peer: {set(evicted_peers)}")
         assert_equal(len(evicted_peers), 1)
 
         self.log.info("Test that no peer expected to be protected was evicted")
         self.log.debug(
-            "{} protected peers: {}".format(
-                len(protected_peers),
-                protected_peers))
+            f"{len(protected_peers)} protected peers: {protected_peers}")
         assert evicted_peers[0] not in protected_peers
 
 

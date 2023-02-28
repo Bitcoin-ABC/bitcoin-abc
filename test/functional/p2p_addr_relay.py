@@ -41,7 +41,7 @@ class AddrReceiver(P2PInterface):
                 assert_equal(addr.nServices, NODE_NETWORK)
                 if not 8333 <= addr.port < 8343:
                     raise AssertionError(
-                        "Invalid addr.port of {} (8333-8342 expected)".format(addr.port))
+                        f"Invalid addr.port of {addr.port} (8333-8342 expected)")
                 assert addr.ip.startswith('123.123.123.')
 
     def on_getaddr(self, message):
@@ -159,8 +159,7 @@ class AddrTest(BitcoinTestFramework):
         msg = self.setup_addr_msg(num_ipv4_addrs)
         with self.nodes[0].assert_debug_log(
             [
-                'Added {} addresses from 127.0.0.1: 0 tried'.format(
-                    num_ipv4_addrs),
+                f'Added {num_ipv4_addrs} addresses from 127.0.0.1: 0 tried',
                 'received: addr (301 bytes) peer=1',
             ]
         ):

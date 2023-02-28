@@ -88,7 +88,7 @@ class AcceptBlockTest(BitcoinTestFramework):
 
         # 1. Have nodes mine a block (leave IBD)
         [self.generate(n, 1, sync_fun=self.no_op) for n in self.nodes]
-        tips = [int("0x" + n.getbestblockhash(), 0) for n in self.nodes]
+        tips = [int(n.getbestblockhash(), 16) for n in self.nodes]
 
         # 2. Send one block that builds on each tip.
         # This should be accepted by node0
@@ -109,7 +109,7 @@ class AcceptBlockTest(BitcoinTestFramework):
 
         # 3. Send another block that builds on genesis.
         block_h1f = create_block(
-            int("0x" + self.nodes[0].getblockhash(0), 0), create_coinbase(1), block_time)
+            int(self.nodes[0].getblockhash(0), 16), create_coinbase(1), block_time)
         block_time += 1
         block_h1f.solve()
         test_node.send_and_ping(msg_block(block_h1f))

@@ -278,7 +278,7 @@ class SendHeadersTest(BitcoinTestFramework):
         self.log.info(
             "Part 1: headers don't start before sendheaders message...")
         for i in range(4):
-            self.log.debug("Part 1.{}: starting...".format(i))
+            self.log.debug(f"Part 1.{i}: starting...")
             old_tip = tip
             tip = self.mine_blocks(1)
             inv_node.check_last_inv_announcement(inv=[tip])
@@ -333,13 +333,13 @@ class SendHeadersTest(BitcoinTestFramework):
         height = self.nodes[0].getblockcount() + 1
         block_time += 10  # Advance far enough ahead
         for i in range(10):
-            self.log.debug("Part 2.{}: starting...".format(i))
+            self.log.debug(f"Part 2.{i}: starting...")
             # Mine i blocks, and alternate announcing either via
             # inv (of tip) or via headers. After each, new blocks
             # mined by the node should successfully be announced
             # with block header, even though the blocks are never requested
             for j in range(2):
-                self.log.debug("Part 2.{}.{}: starting...".format(i, j))
+                self.log.debug(f"Part 2.{i}.{j}: starting...")
                 blocks = []
                 for _ in range(i + 1):
                     blocks.append(create_block(
@@ -388,7 +388,7 @@ class SendHeadersTest(BitcoinTestFramework):
         # PART 3.  Headers announcements can stop after large reorg, and resume after
         # getheaders or inv from peer.
         for j in range(2):
-            self.log.debug("Part 3.{}: starting...".format(j))
+            self.log.debug(f"Part 3.{j}: starting...")
             # First try mining a reorg that can propagate with header
             # announcement
             new_block_hashes = self.mine_reorg(length=7)
@@ -418,7 +418,7 @@ class SendHeadersTest(BitcoinTestFramework):
             test_node.wait_for_block(new_block_hashes[-1])
 
             for i in range(3):
-                self.log.debug("Part 3.{}.{}: starting...".format(j, i))
+                self.log.debug(f"Part 3.{j}.{i}: starting...")
 
                 # Mine another block, still should get only an inv
                 tip = self.mine_blocks(1)
@@ -552,7 +552,7 @@ class SendHeadersTest(BitcoinTestFramework):
         # First we test that receipt of an unconnecting header doesn't prevent
         # chain sync.
         for i in range(10):
-            self.log.debug("Part 5.{}: starting...".format(i))
+            self.log.debug(f"Part 5.{i}: starting...")
             test_node.last_message.pop("getdata", None)
             blocks = []
             # Create two more blocks.

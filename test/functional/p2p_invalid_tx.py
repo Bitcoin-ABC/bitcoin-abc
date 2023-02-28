@@ -204,7 +204,7 @@ class InvalidTxRequestTest(BitcoinTestFramework):
                 scriptPubKey=SCRIPT_PUB_KEY_OP_TRUE))
         pad_tx(rejected_parent)
         rejected_parent.rehash()
-        with node.assert_debug_log(['not keeping orphan with rejected parents {}'.format(rejected_parent.hash)]):
+        with node.assert_debug_log([f'not keeping orphan with rejected parents {rejected_parent.hash}']):
             node.p2ps[0].send_txs_and_test(
                 [rejected_parent], node, success=False)
 

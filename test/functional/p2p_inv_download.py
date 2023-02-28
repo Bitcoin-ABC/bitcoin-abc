@@ -184,7 +184,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
         txid = int(ctx.rehash(), 16)
 
         self.log.info(
-            "Announce the transaction to all nodes from all {} incoming peers, but never send it".format(NUM_INBOUND))
+            f"Announce the transaction to all nodes from all {NUM_INBOUND} incoming peers, but never send it")
         msg = msg_inv([CInv(t=context.inv_type, h=txid)])
         for p in self.peers:
             p.send_and_ping(msg)
@@ -213,7 +213,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
             context.constants.getdata_interval
         margin = 2
         self.log.info(
-            "Tx should be received at node 1 after {} seconds".format(max_delay + margin))
+            f"Tx should be received at node 1 after {max_delay + margin} seconds")
         self.nodes[1].setmocktime(int(time.time()) + max_delay)
         self.sync_mempools(timeout=margin)
 
@@ -353,11 +353,11 @@ class InventoryDownloadTest(BitcoinTestFramework):
         max_peer_announcements = context.constants.max_peer_announcements
         net_permissions = context.constants.bypass_request_limits_permission_flags
         self.log.info(
-            'Test how large inv batches are handled with {} permission'.format(net_permissions))
+            f'Test how large inv batches are handled with {net_permissions} permission')
         self.restart_node(
             0,
             extra_args=self.extra_args[0] +
-            ['-whitelist={}@127.0.0.1'.format(net_permissions)])
+            [f'-whitelist={net_permissions}@127.0.0.1'])
         peer = self.nodes[0].add_p2p_connection(context.p2p_conn())
         peer.send_message(msg_inv([CInv(t=context.inv_type, h=invid)
                                    for invid in range(max_peer_announcements + 1)]))
@@ -365,7 +365,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
                         max_peer_announcements + 1)
 
         self.log.info(
-            'Test how large inv batches are handled without {} permission'.format(net_permissions))
+            f'Test how large inv batches are handled without {net_permissions} permission')
         self.restart_node(0)
         peer = self.nodes[0].add_p2p_connection(context.p2p_conn())
         peer.send_message(msg_inv([CInv(t=context.inv_type, h=invid)
@@ -391,8 +391,8 @@ class InventoryDownloadTest(BitcoinTestFramework):
 
         self.restart_node(0, extra_args=self.extra_args[0] + [
             "-avaproofstakeutxoconfirmations=3",
-            "-avaproof={}".format(immature.serialize().hex()),
-            "-avamasterkey={}".format(bytes_to_wif(privkey.get_bytes())),
+            f"-avaproof={immature.serialize().hex()}",
+            f"-avamasterkey={bytes_to_wif(privkey.get_bytes())}",
         ])
         # Add an inbound so the node proof can be registered and advertised
         node.add_p2p_connection(P2PInterface())
@@ -449,9 +449,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
     def run_test(self):
         for context in [TX_TEST_CONTEXT, PROOF_TEST_CONTEXT]:
             self.log.info(
-                "Starting tests using " +
-                context.inv_name +
-                " inventory type")
+                f"Starting tests using {context.inv_name} inventory type")
 
             # Run tests without mocktime that only need one peer-connection first,
             # to avoid restarting the nodes
@@ -477,7 +475,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
                             node.add_p2p_connection(
                                 context.p2p_conn()))
                 self.log.info(
-                    "Nodes are setup with {} incoming connections each".format(NUM_INBOUND))
+                    f"Nodes are setup with {NUM_INBOUND} incoming connections each")
                 test(context)
 
 
