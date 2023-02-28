@@ -158,7 +158,7 @@ class ParkedChainTest(BitcoinTestFramework):
 
         def check_reorg_protection(depth, extra_blocks):
             self.log.info(
-                "Test deep reorg parking, {} block deep".format(depth))
+                f"Test deep reorg parking, {depth} block deep")
 
             # Invalidate the tip on node 0, so it doesn't follow node 1.
             node.invalidateblock(node.getbestblockhash())

@@ -85,8 +85,7 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
         self.log.info("  Set to twice the default, i.e. {} bytes".format(
             2 * LEGACY_MAX_BLOCK_SIZE))
         self.stop_node(0)
-        self.start_node(0, ["-excessiveblocksize={}".format(
-            2 * LEGACY_MAX_BLOCK_SIZE)])
+        self.start_node(0, [f"-excessiveblocksize={2 * LEGACY_MAX_BLOCK_SIZE}"])
         self.check_excessive(2 * LEGACY_MAX_BLOCK_SIZE)
         # Check for EB correctness in the subver string
         self.check_subversion(r"/Bitcoin ABC:.*\(EB2\.0; .*\)/")
@@ -95,7 +94,7 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
             LEGACY_MAX_BLOCK_SIZE))
         self.stop_node(0)
         self.nodes[0].assert_start_raises_init_error(
-            ["-excessiveblocksize={}".format(LEGACY_MAX_BLOCK_SIZE)],
+            [f"-excessiveblocksize={LEGACY_MAX_BLOCK_SIZE}"],
             'Error: Excessive block size must be > 1,000,000 bytes (1MB)')
         self.nodes[0].assert_start_raises_init_error(
             ["-excessiveblocksize=0"],
@@ -105,7 +104,7 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
             'Error: Excessive block size must be > 1,000,000 bytes (1MB)')
         self.log.info("  Attempt to set below blockmaxsize (mining limit)")
         self.nodes[0].assert_start_raises_init_error(
-            ['-blockmaxsize=1500000', '-excessiveblocksize=1300000'], 'Error: ' + MAX_GENERATED_BLOCK_SIZE_ERROR)
+            ['-blockmaxsize=1500000', '-excessiveblocksize=1300000'], f"Error: {MAX_GENERATED_BLOCK_SIZE_ERROR}")
         self.nodes[0].assert_start_raises_init_error(
             ['-blockmaxsize=0'], 'Error: Max generated block size must be greater than 0')
         self.nodes[0].assert_start_raises_init_error(

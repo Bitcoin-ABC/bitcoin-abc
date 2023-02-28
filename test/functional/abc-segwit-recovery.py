@@ -42,7 +42,7 @@ TEST_TIME = int(time.time())
 CLEANSTACK_ERROR = 'non-mandatory-script-verify-flag (Stack size must be exactly one after execution)'
 RPC_CLEANSTACK_ERROR = CLEANSTACK_ERROR
 EVAL_FALSE_ERROR = 'non-mandatory-script-verify-flag (Script evaluated without error but finished with a false/empty top stack elem'
-RPC_EVAL_FALSE_ERROR = EVAL_FALSE_ERROR + "ent)"
+RPC_EVAL_FALSE_ERROR = f"{EVAL_FALSE_ERROR}ent)"
 
 
 class PreviousSpendableOutput(object):

@@ -34,7 +34,7 @@ class SyncChainTest(BitcoinTestFramework):
         self.num_nodes = 1
         # Setting minimumchainwork makes sure we test IBD as well as post-IBD
         self.extra_args = [
-            ["-minimumchainwork={:#x}".format(202 + 2 * NUM_IBD_BLOCKS)]]
+            [f"-minimumchainwork={202 + 2 * NUM_IBD_BLOCKS:#x}"]]
 
     def run_test(self):
         node0 = self.nodes[0]

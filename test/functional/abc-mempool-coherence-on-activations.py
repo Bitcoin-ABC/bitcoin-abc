@@ -51,7 +51,7 @@ from test_framework.util import assert_equal, assert_raises_rpc_error
 # It might change depending on the activation code currently existing in the
 # client software. We use the replay protection activation for this test.
 ACTIVATION_TIME = 2000000000
-EXTRA_ARG = "-replayprotectionactivationtime={}".format(ACTIVATION_TIME)
+EXTRA_ARG = f"-replayprotectionactivationtime={ACTIVATION_TIME}"
 
 # simulation starts before activation
 FIRST_BLOCK_TIME = ACTIVATION_TIME - 86400
