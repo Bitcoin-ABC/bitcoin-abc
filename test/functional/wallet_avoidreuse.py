@@ -5,11 +5,7 @@
 """Test the avoid_reuse and setwalletflag features."""
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_approx,
-    assert_equal,
-    assert_raises_rpc_error,
-)
+from test_framework.util import assert_approx, assert_equal, assert_raises_rpc_error
 
 
 def reset_balance(node, discardaddr):

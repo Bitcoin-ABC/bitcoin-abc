@@ -9,13 +9,7 @@ In this test we connect to one node over p2p, and test tx requests.
 
 from data import invalid_txs
 from test_framework.blocktools import create_block, create_coinbase
-from test_framework.messages import (
-    COIN,
-    COutPoint,
-    CTransaction,
-    CTxIn,
-    CTxOut,
-)
+from test_framework.messages import COIN, COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.p2p import P2PDataStore
 from test_framework.script import OP_TRUE, CScript
 from test_framework.test_framework import BitcoinTestFramework

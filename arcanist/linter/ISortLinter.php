@@ -39,8 +39,6 @@ final class ISortFormatLinter extends ArcanistExternalLinter {
        * See https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html#isort
        */
       '--profile=black',
-      /* Use stricter rule than black, 79 instead of 88. */
-      '--line-length=79',
     );
   }
 

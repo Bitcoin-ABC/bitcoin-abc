@@ -6,10 +6,7 @@
 
 import time
 
-from test_framework.blocktools import (
-    create_confirmed_utxos,
-    send_big_transactions,
-)
+from test_framework.blocktools import create_confirmed_utxos, send_big_transactions
 
 # FIXME: review how this test needs to be adapted w.r.t _LEGACY_MAX_BLOCK_SIZE
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE

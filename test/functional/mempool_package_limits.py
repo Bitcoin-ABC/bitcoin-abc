@@ -6,10 +6,7 @@
 
 from decimal import Decimal
 
-from test_framework.address import (
-    ADDRESS_ECREG_P2SH_OP_TRUE,
-    SCRIPTSIG_OP_TRUE,
-)
+from test_framework.address import ADDRESS_ECREG_P2SH_OP_TRUE, SCRIPTSIG_OP_TRUE
 from test_framework.messages import XEC, CTransaction, FromHex, ToHex
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx

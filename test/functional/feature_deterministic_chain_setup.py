@@ -6,14 +6,7 @@
 the checkpoints and coinstatindexes."""
 
 from test_framework.key import ECKey
-from test_framework.messages import (
-    COIN,
-    CBlock,
-    COutPoint,
-    CTransaction,
-    CTxIn,
-    CTxOut,
-)
+from test_framework.messages import COIN, CBlock, COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.script import OP_CHECKSIG, CScript, CScriptNum, CScriptOp
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal

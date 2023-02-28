@@ -51,12 +51,7 @@ from test_framework.blocktools import (
 )
 from test_framework.messages import XEC, CTransaction, FromHex, ToHex
 from test_framework.p2p import P2PDataStore
-from test_framework.script import (
-    OP_CHECKSEQUENCEVERIFY,
-    OP_DROP,
-    OP_TRUE,
-    CScript,
-)
+from test_framework.script import OP_CHECKSEQUENCEVERIFY, OP_DROP, OP_TRUE, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal

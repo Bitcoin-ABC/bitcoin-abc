@@ -7,10 +7,7 @@
 Test that permissions are correctly calculated and applied
 """
 
-from test_framework.address import (
-    ADDRESS_ECREG_P2SH_OP_TRUE,
-    SCRIPTSIG_OP_TRUE,
-)
+from test_framework.address import ADDRESS_ECREG_P2SH_OP_TRUE, SCRIPTSIG_OP_TRUE
 from test_framework.messages import CTransaction, FromHex
 from test_framework.p2p import P2PDataStore
 from test_framework.test_framework import BitcoinTestFramework

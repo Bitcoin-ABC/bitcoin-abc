@@ -16,13 +16,7 @@ from collections import OrderedDict
 from decimal import Decimal
 from io import BytesIO
 
-from test_framework.messages import (
-    COutPoint,
-    CTransaction,
-    CTxIn,
-    CTxOut,
-    ToHex,
-)
+from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut, ToHex
 from test_framework.script import CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_raw_tx

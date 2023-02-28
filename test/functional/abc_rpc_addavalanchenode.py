@@ -4,10 +4,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the addavalanchenode RPC"""
 
-from test_framework.avatools import (
-    avalanche_proof_from_hex,
-    create_coinbase_stakes,
-)
+from test_framework.avatools import avalanche_proof_from_hex, create_coinbase_stakes
 from test_framework.key import ECKey
 from test_framework.messages import (
     AvalancheDelegation,

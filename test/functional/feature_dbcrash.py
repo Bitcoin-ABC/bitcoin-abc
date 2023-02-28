@@ -32,14 +32,7 @@ import time
 
 from test_framework.blocktools import create_confirmed_utxos
 from test_framework.cdefs import DEFAULT_MAX_BLOCK_SIZE
-from test_framework.messages import (
-    XEC,
-    COutPoint,
-    CTransaction,
-    CTxIn,
-    CTxOut,
-    ToHex,
-)
+from test_framework.messages import XEC, COutPoint, CTransaction, CTxIn, CTxOut, ToHex
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 

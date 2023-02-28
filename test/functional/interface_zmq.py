@@ -7,10 +7,7 @@ import struct
 from io import BytesIO
 from time import sleep
 
-from test_framework.address import (
-    ADDRESS_ECREG_P2SH_OP_TRUE,
-    ADDRESS_ECREG_UNSPENDABLE,
-)
+from test_framework.address import ADDRESS_ECREG_P2SH_OP_TRUE, ADDRESS_ECREG_UNSPENDABLE
 from test_framework.blocktools import (
     create_block,
     create_coinbase,

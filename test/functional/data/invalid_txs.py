@@ -24,13 +24,7 @@ from typing import Optional
 
 from test_framework import script as sc
 from test_framework.blocktools import create_tx_with_script
-from test_framework.messages import (
-    MAX_MONEY,
-    COutPoint,
-    CTransaction,
-    CTxIn,
-    CTxOut,
-)
+from test_framework.messages import MAX_MONEY, COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.script import (
     OP_2DIV,
     OP_2MUL,

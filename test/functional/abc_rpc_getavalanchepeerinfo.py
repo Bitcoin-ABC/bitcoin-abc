@@ -12,11 +12,7 @@ from test_framework.avatools import (
 )
 from test_framework.key import ECKey
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    assert_raises_rpc_error,
-    uint256_hex,
-)
+from test_framework.util import assert_equal, assert_raises_rpc_error, uint256_hex
 from test_framework.wallet_util import bytes_to_wif
 
 

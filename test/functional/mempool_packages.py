@@ -8,11 +8,7 @@ from decimal import Decimal
 
 from test_framework.p2p import P2PTxInvStore
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    assert_raises_rpc_error,
-    satoshi_round,
-)
+from test_framework.util import assert_equal, assert_raises_rpc_error, satoshi_round
 
 # default limits
 MAX_ANCESTORS = 50

@@ -26,14 +26,7 @@ from test_framework.blocktools import (
     make_conform_to_ctor,
 )
 from test_framework.key import ECKey
-from test_framework.messages import (
-    COIN,
-    COutPoint,
-    CTransaction,
-    CTxIn,
-    CTxOut,
-    ToHex,
-)
+from test_framework.messages import COIN, COutPoint, CTransaction, CTxIn, CTxOut, ToHex
 from test_framework.p2p import P2PDataStore
 from test_framework.script import (
     OP_CHECKSIG,
