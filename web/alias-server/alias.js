@@ -80,9 +80,14 @@ module.exports = {
                     aliasFeePaidSats += BigInt(value);
             }
         }
+        // If `alias` is undefined after the above loop, then this is not a valid alias registration tx
+        if (typeof alias === 'undefined') {
+            log(`No OP_RETURN in tx`);
+            return false;
+        }
         // Confirm that the correct fee is paid to the correct address
         if (
-            parseInt(aliasFeePaidSats) !==
+            parseInt(aliasFeePaidSats) <
             aliasConstants.registrationFeesSats[aliasLength]
         ) {
             log(
