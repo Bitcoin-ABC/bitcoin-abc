@@ -31,7 +31,7 @@ def get_socket_inodes(pid):
     '''
     Get list of socket inodes for process pid.
     '''
-    base = '/proc/{}/fd'.format(pid)
+    base = f'/proc/{pid}/fd'
     inodes = []
     for item in os.listdir(base):
         try:
@@ -62,7 +62,7 @@ def _convert_ip_port(array):
     host_out = ''
     for x in range(0, len(host) // 4):
         (val,) = struct.unpack('=I', host[x * 4:(x + 1) * 4])
-        host_out += '{:08x}'.format(val)
+        host_out += f'{val:08x}'
 
     return host_out, int(port, 16)
 
@@ -73,7 +73,7 @@ def netstat(typ='tcp'):
     To get pid of all network process running on system, you must run this script
     as superuser
     '''
-    with open('/proc/net/' + typ, 'r', encoding='utf8') as f:
+    with open(f"/proc/net/{typ}", 'r', encoding='utf8') as f:
         content = f.readlines()
         content.pop(0)
     result = []
@@ -161,7 +161,7 @@ def addr_to_hex(addr):
         assert (x == 0 and nullbytes == 0) or (x == 1 and nullbytes > 0)
         addr = sub[0] + ([0] * nullbytes) + sub[1]
     else:
-        raise ValueError('Could not parse address {}'.format(addr))
+        raise ValueError(f'Could not parse address {addr}')
     return bytearray(addr).hex()
 
 

@@ -29,8 +29,8 @@ class ToolWalletTest(BitcoinTestFramework):
     def bitcoin_wallet_process(self, *args):
         binary = self.config["environment"]["BUILDDIR"] + \
             '/src/bitcoin-wallet' + self.config["environment"]["EXEEXT"]
-        args = ['-datadir={}'.format(self.nodes[0].datadir),
-                '-chain={}'.format(self.chain)] + list(args)
+        args = [f'-datadir={self.nodes[0].datadir}',
+                f'-chain={self.chain}'] + list(args)
 
         command_line = [binary] + args
         if self.config["environment"]["EMULATOR"]:
@@ -70,7 +70,7 @@ class ToolWalletTest(BitcoinTestFramework):
 
     def log_wallet_timestamp_comparison(self, old, new):
         result = 'unchanged' if new == old else 'increased!'
-        self.log.debug('Wallet file timestamp {}'.format(result))
+        self.log.debug(f'Wallet file timestamp {result}')
 
     def test_invalid_tool_commands_and_args(self):
         self.log.info(
@@ -88,7 +88,7 @@ class ToolWalletTest(BitcoinTestFramework):
                                   "wallets")
         self.assert_raises_tool_error(
             f'Error initializing wallet database environment "{locked_dir}"!',
-            '-wallet=' + self.default_wallet_name,
+            f"-wallet={self.default_wallet_name}",
             'info',
         )
         path = os.path.join(self.options.tmpdir, "node0", "regtest",
@@ -113,7 +113,7 @@ class ToolWalletTest(BitcoinTestFramework):
         # shasum_before = self.wallet_shasum()
         timestamp_before = self.wallet_timestamp()
         self.log.debug(
-            'Wallet file timestamp before calling info: {}'.format(timestamp_before))
+            f'Wallet file timestamp before calling info: {timestamp_before}')
         out = textwrap.dedent('''\
             Wallet info
             ===========
@@ -125,11 +125,11 @@ class ToolWalletTest(BitcoinTestFramework):
         ''')
         self.assert_tool_output(
             out,
-            '-wallet=' + self.default_wallet_name,
+            f"-wallet={self.default_wallet_name}",
             'info')
         timestamp_after = self.wallet_timestamp()
         self.log.debug(
-            'Wallet file timestamp after calling info: {}'.format(timestamp_after))
+            f'Wallet file timestamp after calling info: {timestamp_after}')
         self.log_wallet_timestamp_comparison(timestamp_before, timestamp_after)
         self.log.debug(
             'Setting wallet file permissions back to 600 (read/write)')
@@ -160,7 +160,7 @@ class ToolWalletTest(BitcoinTestFramework):
         shasum_before = self.wallet_shasum()
         timestamp_before = self.wallet_timestamp()
         self.log.debug(
-            'Wallet file timestamp before calling info: {}'.format(timestamp_before))
+            f'Wallet file timestamp before calling info: {timestamp_before}')
         out = textwrap.dedent('''\
             Wallet info
             ===========
@@ -172,12 +172,12 @@ class ToolWalletTest(BitcoinTestFramework):
         ''')
         self.assert_tool_output(
             out,
-            '-wallet=' + self.default_wallet_name,
+            f"-wallet={self.default_wallet_name}",
             'info')
         shasum_after = self.wallet_shasum()
         timestamp_after = self.wallet_timestamp()
         self.log.debug(
-            'Wallet file timestamp after calling info: {}'.format(timestamp_after))
+            f'Wallet file timestamp after calling info: {timestamp_after}')
         self.log_wallet_timestamp_comparison(timestamp_before, timestamp_after)
         #
         # TODO: Wallet tool info should not write to the wallet file.
@@ -192,7 +192,7 @@ class ToolWalletTest(BitcoinTestFramework):
         shasum_before = self.wallet_shasum()
         timestamp_before = self.wallet_timestamp()
         self.log.debug(
-            'Wallet file timestamp before calling create: {}'.format(timestamp_before))
+            f'Wallet file timestamp before calling create: {timestamp_before}')
         out = textwrap.dedent('''\
             Topping up keypool...
             Wallet info
@@ -207,7 +207,7 @@ class ToolWalletTest(BitcoinTestFramework):
         shasum_after = self.wallet_shasum()
         timestamp_after = self.wallet_timestamp()
         self.log.debug(
-            'Wallet file timestamp after calling create: {}'.format(timestamp_after))
+            f'Wallet file timestamp after calling create: {timestamp_after}')
         self.log_wallet_timestamp_comparison(timestamp_before, timestamp_after)
         assert_equal(timestamp_before, timestamp_after)
         assert_equal(shasum_before, shasum_after)
@@ -222,14 +222,14 @@ class ToolWalletTest(BitcoinTestFramework):
         shasum_before = self.wallet_shasum()
         timestamp_before = self.wallet_timestamp()
         self.log.debug(
-            'Wallet file timestamp before calling getwalletinfo: {}'.format(timestamp_before))
+            f'Wallet file timestamp before calling getwalletinfo: {timestamp_before}')
         out = self.nodes[0].getwalletinfo()
         self.stop_node(0)
 
         shasum_after = self.wallet_shasum()
         timestamp_after = self.wallet_timestamp()
         self.log.debug(
-            'Wallet file timestamp after calling getwalletinfo: {}'.format(timestamp_after))
+            f'Wallet file timestamp after calling getwalletinfo: {timestamp_after}')
 
         assert_equal(0, out['txcount'])
         assert_equal(1000, out['keypoolsize'])

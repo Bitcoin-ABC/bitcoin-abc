@@ -138,7 +138,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             self.log.exception("JSONRPC error")
             self.success = TestStatus.FAILED
         except SkipTest as e:
-            self.log.warning("Test Skipped: {}".format(e.message))
+            self.log.warning(f"Test Skipped: {e.message}")
             self.success = TestStatus.SKIPPED
         except AssertionError:
             self.log.exception("Assertion failed")
@@ -165,7 +165,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                             help="Leave bitcoinds and test.* datadir on exit or error")
         parser.add_argument("--noshutdown", dest="noshutdown", default=False, action="store_true",
                             help="Don't stop bitcoinds after the test execution")
-        parser.add_argument("--cachedir", dest="cachedir", default=os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + "/../../cache"),
+        parser.add_argument("--cachedir", dest="cachedir", default=os.path.abspath(f"{os.path.dirname(os.path.realpath(__file__))}/../../cache"),
                             help="Directory for caching pregenerated datadirs (default: %(default)s)")
         parser.add_argument("--tmpdir", dest="tmpdir",
                             help="Root directory for datadirs")
@@ -192,7 +192,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         parser.add_argument("--descriptors", default=False, action="store_true",
                             help="Run test using a descriptor wallet")
         parser.add_argument("--with-wellingtonactivation", dest="wellingtonactivation", default=False, action="store_true",
-                            help="Activate wellington update on timestamp {}".format(TIMESTAMP_IN_THE_PAST))
+                            help=f"Activate wellington update on timestamp {TIMESTAMP_IN_THE_PAST}")
         parser.add_argument(
             '--timeout-factor',
             dest="timeout_factor",
@@ -218,12 +218,12 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         fname_bitcoind = os.path.join(
             config["environment"]["BUILDDIR"],
             "src",
-            "bitcoind" + config["environment"]["EXEEXT"]
+            f"bitcoind{config['environment']['EXEEXT']}"
         )
         fname_bitcoincli = os.path.join(
             config["environment"]["BUILDDIR"],
             "src",
-            "bitcoin-cli" + config["environment"]["EXEEXT"]
+            f"bitcoin-cli{config['environment']['EXEEXT']}"
         )
         self.options.bitcoind = os.getenv("BITCOIND", default=fname_bitcoind)
         self.options.bitcoincli = os.getenv(
@@ -253,10 +253,10 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         if seed is None:
             seed = random.randrange(sys.maxsize)
         else:
-            self.log.debug("User supplied random seed {}".format(seed))
+            self.log.debug(f"User supplied random seed {seed}")
 
         random.seed(seed)
-        self.log.debug("PRNG seed is: {}".format(seed))
+        self.log.debug(f"PRNG seed is: {seed}")
 
         self.log.debug('Setting up network thread')
         self.network_thread = NetworkThread()
@@ -298,16 +298,15 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             not self.options.perf
         )
         if should_clean_up:
-            self.log.info("Cleaning up {} on exit".format(self.options.tmpdir))
+            self.log.info(f"Cleaning up {self.options.tmpdir} on exit")
             cleanup_tree_on_exit = True
         elif self.options.perf:
             self.log.warning(
-                "Not cleaning up dir {} due to perf data".format(
-                    self.options.tmpdir))
+                f"Not cleaning up dir {self.options.tmpdir} due to perf data")
             cleanup_tree_on_exit = False
         else:
             self.log.warning(
-                "Not cleaning up dir {}".format(self.options.tmpdir))
+                f"Not cleaning up dir {self.options.tmpdir}")
             cleanup_tree_on_exit = False
 
         if self.success == TestStatus.PASSED:
@@ -318,10 +317,10 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             exit_code = TEST_EXIT_SKIPPED
         else:
             self.log.error(
-                "Test failed. Test logging available at {}/test_framework.log".format(self.options.tmpdir))
+                f"Test failed. Test logging available at {self.options.tmpdir}/test_framework.log")
             self.log.error("")
             self.log.error("Hint: Call {} '{}' to consolidate all logs".format(os.path.normpath(
-                os.path.dirname(os.path.realpath(__file__)) + "/../combine_logs.py"), self.options.tmpdir))
+                f"{os.path.dirname(os.path.realpath(__file__))}/../combine_logs.py"), self.options.tmpdir))
             self.log.error("")
             self.log.error(
                 "If this failure happened unexpectedly or intermittently, please"
@@ -362,7 +361,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
 
     def setup_chain(self):
         """Override this method to customize blockchain setup"""
-        self.log.info("Initializing test directory " + self.options.tmpdir)
+        self.log.info(f"Initializing test directory {self.options.tmpdir}")
         if self.setup_clean_chain:
             self._initialize_chain_clean()
         else:
@@ -478,7 +477,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
 
             if self.options.wellingtonactivation:
                 self.nodes[i].extend_default_args(
-                    ["-wellingtonactivationtime={}".format(TIMESTAMP_IN_THE_PAST)])
+                    [f"-wellingtonactivationtime={TIMESTAMP_IN_THE_PAST}"])
 
     def start_node(self, i, *args, **kwargs):
         """Start a bitcoind"""
@@ -541,7 +540,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         host = to_node.host
         if host is None:
             host = '127.0.0.1'
-        ip_port = host + ':' + str(to_node.p2p_port)
+        ip_port = f"{host}:{str(to_node.p2p_port)}"
         from_node.addnode(ip_port, "onetry")
         # poll until version handshake complete to avoid race conditions
         # with transaction relaying
@@ -714,7 +713,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         self.log.setLevel(logging.DEBUG)
         # Create file handler to log all messages
         fh = logging.FileHandler(
-            self.options.tmpdir + '/test_framework.log', encoding='utf-8')
+            f"{self.options.tmpdir}/test_framework.log", encoding='utf-8')
         fh.setLevel(logging.DEBUG)
         # Create console handler to log messages to stderr. By default this
         # logs only error messages, but can be configured with --loglevel.
@@ -755,7 +754,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
 
         if not os.path.isdir(cache_node_dir):
             self.log.debug(
-                "Creating cache directory {}".format(cache_node_dir))
+                f"Creating cache directory {cache_node_dir}")
 
             initialize_datadir(
                 self.options.cachedir,
@@ -785,7 +784,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
 
             if self.options.wellingtonactivation:
                 self.nodes[CACHE_NODE_ID].extend_default_args(
-                    ["-wellingtonactivationtime={}".format(TIMESTAMP_IN_THE_PAST)])
+                    [f"-wellingtonactivationtime={TIMESTAMP_IN_THE_PAST}"])
 
             self.start_node(CACHE_NODE_ID)
             cache_node = self.nodes[CACHE_NODE_ID]
@@ -833,8 +832,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
 
         for i in range(self.num_nodes):
             self.log.debug(
-                "Copy cache directory {} to node {}".format(
-                    cache_node_dir, i))
+                f"Copy cache directory {cache_node_dir} to node {i}")
             to_dir = get_datadir_path(self.options.tmpdir, i)
             shutil.copytree(cache_node_dir, to_dir)
             # Overwrite port/rpcport in bitcoin.conf

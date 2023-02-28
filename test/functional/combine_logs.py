@@ -60,7 +60,7 @@ def main():
         sys.exit(1)
 
     if not args.testdir:
-        print("Opening latest test directory: {}".format(testdir),
+        print(f"Opening latest test directory: {testdir}",
               file=sys.stderr)
 
     colors = defaultdict(lambda: '')
@@ -100,12 +100,12 @@ def read_logs(tmp_dir):
         # fallback to regtest (should only happen when none exists)
         chain = 'regtest'
 
-    files = [("test", "{}/test_framework.log".format(tmp_dir))]
+    files = [("test", f"{tmp_dir}/test_framework.log")]
     for i in itertools.count():
-        logfile = "{}/node{}/{}/debug.log".format(tmp_dir, i, chain)
+        logfile = f"{tmp_dir}/node{i}/{chain}/debug.log"
         if not os.path.isfile(logfile):
             break
-        files.append(("node{}".format(i), logfile))
+        files.append((f"node{i}", logfile))
 
     return heapq.merge(*[get_log_events(source, f) for source, f in files])
 
@@ -116,21 +116,20 @@ def print_node_warnings(tmp_dir, colors):
     warnings = []
     for stream in ['stdout', 'stderr']:
         for i in itertools.count():
-            folder = "{}/node{}/{}".format(tmp_dir, i, stream)
+            folder = f"{tmp_dir}/node{i}/{stream}"
             if not os.path.isdir(folder):
                 break
             for (_, _, fns) in os.walk(folder):
                 for fn in fns:
                     warning = pathlib.Path(
-                        '{}/{}'.format(folder, fn)).read_text().strip()
+                        f'{folder}/{fn}').read_text().strip()
                     if warning:
-                        warnings.append(("node{} {}".format(i, stream),
+                        warnings.append((f"node{i} {stream}",
                                          warning))
 
     print()
     for w in warnings:
-        print("{} {} {} {}".format(colors[w[0].split()[0]],
-                                   w[0], w[1], colors["reset"]))
+        print(f"{colors[w[0].split()[0]]} {w[0]} {w[1]} {colors['reset']}")
 
 
 def find_latest_test_dir():
@@ -185,7 +184,7 @@ def get_log_events(source, logfile):
                 else:
                     # Add the line. Prefix with space equivalent to the source
                     # + timestamp so log lines are aligned
-                    event += "                                   " + line
+                    event += f"                                   {line}"
             # Flush the final event
             yield LogEvent(timestamp=timestamp, source=source, event=event.rstrip())
     except FileNotFoundError:
@@ -202,8 +201,7 @@ def print_logs_plain(log_events, colors):
                                            colors["reset"]))
         if len(lines) > 1:
             for line in lines[1:]:
-                print("{0}{1}{2}".format(
-                    colors[event.source.rstrip()], line, colors["reset"]))
+                print(f"{colors[event.source.rstrip()]}{line}{colors['reset']}")
 
 
 def print_logs_html(log_events):

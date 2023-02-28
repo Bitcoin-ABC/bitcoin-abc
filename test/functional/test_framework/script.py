@@ -72,7 +72,7 @@ class CScriptOp(int):
         """Encode a small integer op, returning an opcode"""
         if not (0 <= n <= 16):
             raise ValueError(
-                'Integer must be in range 0 <= n <= 16, got {}'.format(n))
+                f'Integer must be in range 0 <= n <= 16, got {n}')
 
         if n == 0:
             return OP_0
@@ -85,7 +85,7 @@ class CScriptOp(int):
             return 0
 
         if not (self == OP_0 or OP_1 <= self <= OP_16):
-            raise ValueError('op {!r} is not an OP_N'.format(self))
+            raise ValueError(f'op {self!r} is not an OP_N')
 
         return int(self - OP_1 + 1)
 
@@ -103,7 +103,7 @@ class CScriptOp(int):
         if self in OPCODE_NAMES:
             return OPCODE_NAMES[self]
         else:
-            return 'CScriptOp(0x{:x})'.format(self)
+            return f'CScriptOp(0x{self:x})'
 
     def __new__(cls, n):
         try:
@@ -517,7 +517,7 @@ class CScript(bytes):
                 datasize = None
                 pushdata_type = None
                 if opcode < OP_PUSHDATA1:
-                    pushdata_type = 'PUSHDATA({})'.format(opcode)
+                    pushdata_type = f'PUSHDATA({opcode})'
                     datasize = opcode
 
                 elif opcode == OP_PUSHDATA1:
@@ -553,7 +553,7 @@ class CScript(bytes):
                 # Check for truncation
                 if len(data) < datasize:
                     raise CScriptTruncatedPushDataError(
-                        '{}: truncated data'.format(pushdata_type), data)
+                        f'{pushdata_type}: truncated data', data)
 
                 i += datasize
 
@@ -582,7 +582,7 @@ class CScript(bytes):
     def __repr__(self):
         def _repr(o):
             if isinstance(o, bytes):
-                return "x('{}')".format(o.hex())
+                return f"x('{o.hex()}')"
             else:
                 return repr(o)
 
@@ -593,10 +593,10 @@ class CScript(bytes):
             try:
                 op = _repr(next(i))
             except CScriptTruncatedPushDataError as err:
-                op = '{}...<ERROR: {}>'.format(_repr(err.data), err)
+                op = f'{_repr(err.data)}...<ERROR: {err}>'
                 break
             except CScriptInvalidError as err:
-                op = '<ERROR: {}>'.format(err)
+                op = f'<ERROR: {err}>'
                 break
             except StopIteration:
                 break
@@ -604,7 +604,7 @@ class CScript(bytes):
                 if op is not None:
                     ops.append(op)
 
-        return "CScript([{}])".format(', '.join(ops))
+        return f"CScript([{', '.join(ops)}])"
 
 
 SIGHASH_ALL = 1
@@ -641,8 +641,7 @@ def SignatureHash(script, txTo, inIdx, hashtype):
     HASH_ONE = b'\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
     if inIdx >= len(txTo.vin):
-        return (HASH_ONE, "inIdx {} out of range ({})".format(
-            inIdx, len(txTo.vin)))
+        return (HASH_ONE, f"inIdx {inIdx} out of range ({len(txTo.vin)})")
     txtmp = CTransaction(txTo)
 
     for txin in txtmp.vin:
@@ -660,8 +659,7 @@ def SignatureHash(script, txTo, inIdx, hashtype):
     elif (hashtype & 0x1f) == SIGHASH_SINGLE:
         outIdx = inIdx
         if outIdx >= len(txtmp.vout):
-            return (HASH_ONE, "outIdx {} out of range ({})".format(
-                outIdx, len(txtmp.vout)))
+            return (HASH_ONE, f"outIdx {outIdx} out of range ({len(txtmp.vout)})")
 
         tmp = txtmp.vout[outIdx]
         txtmp.vout = []

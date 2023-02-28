@@ -31,11 +31,9 @@ logger = logging.getLogger("TestFramework.utils")
 def assert_approx(v, vexp, vspan=10):
     """Assert that `v` is within `vspan` of `vexp`"""
     if v < vexp - vspan:
-        raise AssertionError("{} < [{}..{}]".format(
-            str(v), str(vexp - vspan), str(vexp + vspan)))
+        raise AssertionError(f"{str(v)} < [{str(vexp - vspan)}..{str(vexp + vspan)}]")
     if v > vexp + vspan:
-        raise AssertionError("{} > [{}..{}]".format(
-            str(v), str(vexp - vspan), str(vexp + vspan)))
+        raise AssertionError(f"{str(v)} > [{str(vexp - vspan)}..{str(vexp + vspan)}]")
 
 
 def assert_fee_amount(fee, tx_size, fee_per_kB, wiggleroom=2):
@@ -50,10 +48,10 @@ def assert_fee_amount(fee, tx_size, fee_per_kB, wiggleroom=2):
     target_fee = satoshi_round(tx_size * fee_per_kB / 1000)
     if fee < (tx_size - wiggleroom) * fee_per_kB / 1000:
         raise AssertionError(
-            "Fee of {} XEC too low! (Should be {} XEC)".format(str(fee), str(target_fee)))
+            f"Fee of {str(fee)} XEC too low! (Should be {str(target_fee)} XEC)")
     if fee > (tx_size + wiggleroom) * fee_per_kB / 1000:
         raise AssertionError(
-            "Fee of {} XEC too high! (Should be {} XEC)".format(str(fee), str(target_fee)))
+            f"Fee of {str(fee)} XEC too high! (Should be {str(target_fee)} XEC)")
 
 
 def assert_equal(thing1, thing2, *args):
@@ -64,12 +62,12 @@ def assert_equal(thing1, thing2, *args):
 
 def assert_greater_than(thing1, thing2):
     if thing1 <= thing2:
-        raise AssertionError("{} <= {}".format(str(thing1), str(thing2)))
+        raise AssertionError(f"{str(thing1)} <= {str(thing2)}")
 
 
 def assert_greater_than_or_equal(thing1, thing2):
     if thing1 < thing2:
-        raise AssertionError("{} < {}".format(str(thing1), str(thing2)))
+        raise AssertionError(f"{str(thing1)} < {str(thing2)}")
 
 
 def assert_raises(exc, fun, *args, **kwds):
@@ -89,7 +87,7 @@ def assert_raises_message(exc, message, fun, *args, **kwds):
                     message, e.error['message']))
     except Exception as e:
         raise AssertionError(
-            "Unexpected exception raised: " + type(e).__name__)
+            f"Unexpected exception raised: {type(e).__name__}")
     else:
         raise AssertionError("No exception raised")
 
@@ -114,9 +112,9 @@ def assert_raises_process_error(
     except CalledProcessError as e:
         if returncode != e.returncode:
             raise AssertionError(
-                "Unexpected returncode {}".format(e.returncode))
+                f"Unexpected returncode {e.returncode}")
         if output not in e.output:
-            raise AssertionError("Expected substring not found:" + e.output)
+            raise AssertionError(f"Expected substring not found:{e.output}")
     else:
         raise AssertionError("No exception raised")
 
@@ -153,7 +151,7 @@ def try_rpc(code, message, fun, *args, **kwds):
         # values are correct.
         if (code is not None) and (code != e.error["code"]):
             raise AssertionError(
-                "Unexpected JSONRPC error code {}".format(e.error["code"]))
+                f"Unexpected JSONRPC error code {e.error['code']}")
         if (message is not None) and (message not in e.error['message']):
             raise AssertionError(
                 "Expected substring not found in error message:\nsubstring: '{}'\nerror message: '{}'.".format(
@@ -161,7 +159,7 @@ def try_rpc(code, message, fun, *args, **kwds):
         return True
     except Exception as e:
         raise AssertionError(
-            "Unexpected exception raised: " + type(e).__name__)
+            f"Unexpected exception raised: {type(e).__name__}")
     else:
         return False
 
@@ -171,19 +169,19 @@ def assert_is_hex_string(string):
         int(string, 16)
     except Exception as e:
         raise AssertionError(
-            "Couldn't interpret {!r} as hexadecimal; raised: {}".format(string, e))
+            f"Couldn't interpret {string!r} as hexadecimal; raised: {e}")
 
 
 def assert_is_hash_string(string, length=64):
     if not isinstance(string, str):
         raise AssertionError(
-            "Expected a string, got type {!r}".format(type(string)))
+            f"Expected a string, got type {type(string)!r}")
     elif length and len(string) != length:
         raise AssertionError(
-            "String of length {} expected; got {}".format(length, len(string)))
+            f"String of length {length} expected; got {len(string)}")
     elif not re.match('[abcdef0-9]+$', string):
         raise AssertionError(
-            "String {!r} contains invalid characters for a hash.".format(string))
+            f"String {string!r} contains invalid characters for a hash.")
 
 
 def assert_array_result(object_array, to_match, expected,
@@ -209,13 +207,12 @@ def assert_array_result(object_array, to_match, expected,
             num_matched = num_matched + 1
         for key, value in expected.items():
             if item[key] != value:
-                raise AssertionError("{} : expected {}={}".format(
-                    str(item), str(key), str(value)))
+                raise AssertionError(f"{str(item)} : expected {str(key)}={str(value)}")
             num_matched = num_matched + 1
     if num_matched == 0 and not should_not_find:
-        raise AssertionError("No objects matched {}".format(str(to_match)))
+        raise AssertionError(f"No objects matched {str(to_match)}")
     if num_matched > 0 and should_not_find:
-        raise AssertionError("Objects were found {}".format(str(to_match)))
+        raise AssertionError(f"Objects were found {str(to_match)}")
 
 # Utility functions
 ###################
@@ -233,7 +230,7 @@ def check_json_precision():
 def EncodeDecimal(o):
     if isinstance(o, Decimal):
         return str(o)
-    raise TypeError(repr(o) + " is not JSON serializable")
+    raise TypeError(f"{repr(o)} is not JSON serializable")
 
 
 def count_bytes(hex_string):
@@ -276,14 +273,14 @@ def wait_until_helper(predicate, *, attempts=float('inf'),
         time.sleep(0.05)
 
     # Print the cause of the timeout
-    predicate_source = "''''\n" + inspect.getsource(predicate) + "'''"
-    logger.error("wait_until() failed. Predicate: {}".format(predicate_source))
+    predicate_source = f"''''\n{inspect.getsource(predicate)}'''"
+    logger.error(f"wait_until() failed. Predicate: {predicate_source}")
     if attempt >= attempts:
         raise AssertionError("Predicate {} not true after {} attempts".format(
             predicate_source, attempts))
     elif time.time() >= time_end:
         raise AssertionError(
-            "Predicate {} not true after {} seconds".format(predicate_source, timeout))
+            f"Predicate {predicate_source} not true after {timeout} seconds")
     raise RuntimeError('Unreachable')
 
 # RPC/P2P connection constants and functions
@@ -398,7 +395,7 @@ def rpc_url(datadir, chain, host, port):
     rpc_u, rpc_p = get_auth_cookie(datadir, chain)
     if host is None:
         host = '127.0.0.1'
-    return "http://{}:{}@{}:{}".format(rpc_u, rpc_p, host, int(port))
+    return f"http://{rpc_u}:{rpc_p}@{host}:{int(port)}"
 
 # Node functions
 ################
@@ -416,10 +413,10 @@ def initialize_datadir(dirname, n, chain, disable_autoconnect=True):
         chain_name_conf_arg = chain
         chain_name_conf_section = chain
     with open(os.path.join(datadir, "bitcoin.conf"), 'w', encoding='utf8') as f:
-        f.write("{}=1\n".format(chain_name_conf_arg))
-        f.write("[{}]\n".format(chain_name_conf_section))
-        f.write("port=" + str(p2p_port(n)) + "\n")
-        f.write("rpcport=" + str(rpc_port(n)) + "\n")
+        f.write(f"{chain_name_conf_arg}=1\n")
+        f.write(f"[{chain_name_conf_section}]\n")
+        f.write(f"port={str(p2p_port(n))}\n")
+        f.write(f"rpcport={str(rpc_port(n))}\n")
         f.write("fallbackfee=200\n")
         f.write("server=1\n")
         f.write("keypool=1\n")
@@ -445,13 +442,13 @@ def initialize_datadir(dirname, n, chain, disable_autoconnect=True):
 
 
 def get_datadir_path(dirname, n):
-    return os.path.join(dirname, "node" + str(n))
+    return os.path.join(dirname, f"node{str(n)}")
 
 
 def append_config(datadir, options):
     with open(os.path.join(datadir, "bitcoin.conf"), 'a', encoding='utf8') as f:
         for option in options:
-            f.write(option + "\n")
+            f.write(f"{option}\n")
 
 
 def get_auth_cookie(datadir, chain):
@@ -510,8 +507,7 @@ def find_output(node, txid, amount, *, blockhash=None):
     for i in range(len(txdata["vout"])):
         if txdata["vout"][i]["value"] == amount:
             return i
-    raise RuntimeError("find_output txid {} : {} not found".format(
-        txid, str(amount)))
+    raise RuntimeError(f"find_output txid {txid} : {str(amount)} not found")
 
 
 # Create large OP_RETURN txouts that can be appended to a transaction
@@ -524,7 +520,7 @@ def gen_return_txouts():
     # create one script_pubkey
     script_pubkey = "6a4d0200"  # OP_RETURN OP_PUSH2 512 bytes
     for _ in range(512):
-        script_pubkey = script_pubkey + "01"
+        script_pubkey = f"{script_pubkey}01"
     # concatenate 128 txouts of above script_pubkey which we'll insert before
     # the txout for change
     txouts = []
@@ -573,7 +569,7 @@ def find_vout_for_address(node, txid, addr):
         if any([addr == a for a in tx["vout"][i]["scriptPubKey"]["addresses"]]):
             return i
     raise RuntimeError(
-        "Vout not found for address: txid={}, addr={}".format(txid, addr))
+        f"Vout not found for address: txid={txid}, addr={addr}")
 
 
 def modinv(a, n):

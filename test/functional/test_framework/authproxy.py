@@ -54,7 +54,7 @@ log = logging.getLogger("BitcoinRPC")
 class JSONRPCException(Exception):
     def __init__(self, rpc_error, http_status=None):
         try:
-            errmsg = '{} ({})'.format(rpc_error['message'], rpc_error['code'])
+            errmsg = f"{rpc_error['message']} ({rpc_error['code']})"
         except (KeyError, TypeError):
             errmsg = ''
         super().__init__(errmsg)
@@ -65,7 +65,7 @@ class JSONRPCException(Exception):
 def EncodeDecimal(o):
     if isinstance(o, decimal.Decimal):
         return str(o)
-    raise TypeError(repr(o) + " is not JSON serializable")
+    raise TypeError(f"{repr(o)} is not JSON serializable")
 
 
 class AuthServiceProxy:
@@ -92,7 +92,7 @@ class AuthServiceProxy:
             # Python internal stuff
             raise AttributeError
         if self._service_name is not None:
-            name = "{}.{}".format(self._service_name, name)
+            name = f"{self._service_name}.{name}"
         return AuthServiceProxy(
             self.__service_url, name, connection=self.__conn)
 
@@ -173,7 +173,7 @@ class AuthServiceProxy:
     def batch(self, rpc_call_list):
         postdata = json.dumps(
             list(rpc_call_list), default=EncodeDecimal, ensure_ascii=self.ensure_ascii)
-        log.debug("--> " + postdata)
+        log.debug(f"--> {postdata}")
         response, status = self._request(
             'POST', self.__url.path, postdata.encode('utf-8'))
         if status != HTTPStatus.OK:
@@ -211,7 +211,7 @@ class AuthServiceProxy:
             log.debug("<-{}- [{:.6f}] {}".format(response["id"], elapsed, json.dumps(
                 response["result"], default=EncodeDecimal, ensure_ascii=self.ensure_ascii)))
         else:
-            log.debug("<-- [{:.6f}] {}".format(elapsed, responsedata))
+            log.debug(f"<-- [{elapsed:.6f}] {responsedata}")
         return response, http_response.status
 
     def __truediv__(self, relative_uri):

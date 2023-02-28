@@ -179,7 +179,7 @@ class P2PConnection(asyncio.Protocol):
 
         loop = NetworkThread.network_event_loop
         logger.debug(
-            'Connecting to Bitcoin ABC Node: {}:{}'.format(self.dstaddr, self.dstport))
+            f'Connecting to Bitcoin ABC Node: {self.dstaddr}:{self.dstport}')
         coroutine = loop.create_connection(
             lambda: self, host=self.dstaddr, port=self.dstport)
         return lambda: loop.call_soon_threadsafe(loop.create_task, coroutine)
@@ -189,7 +189,7 @@ class P2PConnection(asyncio.Protocol):
         self.peer_connect_helper('0', 0, net, timeout_factor)
 
         logger.debug(
-            'Listening for Bitcoin ABC Node with id: {}'.format(connect_id))
+            f'Listening for Bitcoin ABC Node with id: {connect_id}')
         return lambda: NetworkThread.listen(self, connect_cb, idx=connect_id)
 
     def peer_disconnect(self):
@@ -202,8 +202,7 @@ class P2PConnection(asyncio.Protocol):
     def connection_made(self, transport):
         """asyncio callback when a connection is opened."""
         assert not self._transport
-        logger.debug("Connected & Listening: {}:{}".format(
-            self.dstaddr, self.dstport))
+        logger.debug(f"Connected & Listening: {self.dstaddr}:{self.dstport}")
         self._transport = transport
         if self.on_connection_send_msg:
             if self.on_connection_send_msg_is_raw:
@@ -220,8 +219,7 @@ class P2PConnection(asyncio.Protocol):
             logger.warning("Connection lost to {}:{} due to {}".format(
                 self.dstaddr, self.dstport, exc))
         else:
-            logger.debug("Closed connection to: {}:{}".format(
-                self.dstaddr, self.dstport))
+            logger.debug(f"Closed connection to: {self.dstaddr}:{self.dstport}")
         self._transport = None
         self.recvbuf = b""
         self.on_close()
@@ -267,7 +265,7 @@ class P2PConnection(asyncio.Protocol):
                 msg = self.recvbuf[4 + 12 + 4 + 4:4 + 12 + 4 + 4 + msglen]
                 h = sha256(sha256(msg))
                 if checksum != h[:4]:
-                    raise ValueError("got bad checksum " + repr(self.recvbuf))
+                    raise ValueError(f"got bad checksum {repr(self.recvbuf)}")
                 self.recvbuf = self.recvbuf[4 + 12 + 4 + 4 + msglen:]
                 if msgtype not in MESSAGEMAP:
                     raise ValueError("Received unknown msgtype from {}:{}: '{}' {}".format(
@@ -336,8 +334,7 @@ class P2PConnection(asyncio.Protocol):
             log_message = "Send message to "
         elif direction == "receive":
             log_message = "Received message from "
-        log_message += "{}:{}: {}".format(
-            self.dstaddr, self.dstport, repr(msg)[:500])
+        log_message += f"{self.dstaddr}:{self.dstport}: {repr(msg)[:500]}"
         if len(log_message) > 500:
             log_message += "... (msg truncated)"
         logger.debug(log_message)
@@ -415,10 +412,9 @@ class P2PInterface(P2PConnection):
                 msgtype = message.msgtype.decode('ascii')
                 self.message_count[msgtype] += 1
                 self.last_message[msgtype] = message
-                getattr(self, 'on_' + msgtype)(message)
+                getattr(self, f"on_{msgtype}")(message)
             except Exception:
-                print("ERROR delivering {} ({})".format(
-                    repr(message), sys.exc_info()[0]))
+                print(f"ERROR delivering {repr(message)} ({sys.exc_info()[0]})")
                 raise
 
     # Callback methods. Can be overridden by subclasses in individual test
@@ -718,7 +714,7 @@ class NetworkThread(threading.Thread):
 
             listener = await cls.network_event_loop.create_server(peer_protocol, addr, port)
             logger.debug(
-                "Listening server on {}:{} should be started".format(addr, port))
+                f"Listening server on {addr}:{port} should be started")
             cls.listeners[(addr, port)] = listener
 
         cls.protos[(addr, port)] = proto
@@ -749,7 +745,7 @@ class P2PDataStore(P2PInterface):
                 self.send_message(msg_block(self.block_store[inv.hash]))
             else:
                 logger.debug(
-                    'getdata message type {} received.'.format(hex(inv.type)))
+                    f'getdata message type {hex(inv.type)} received.')
 
     def on_getheaders(self, message):
         """Search back through our block store for the locator, and reply with a headers message if found."""
@@ -860,13 +856,11 @@ class P2PDataStore(P2PInterface):
             if success:
                 # Check that all txs are now in the mempool
                 for tx in txs:
-                    assert tx.hash in raw_mempool, "{} not found in mempool".format(
-                        tx.hash)
+                    assert tx.hash in raw_mempool, f"{tx.hash} not found in mempool"
             else:
                 # Check that none of the txs are now in the mempool
                 for tx in txs:
-                    assert tx.hash not in raw_mempool, "{} tx found in mempool".format(
-                        tx.hash)
+                    assert tx.hash not in raw_mempool, f"{tx.hash} tx found in mempool"
 
         if reject_reason:
             with node.assert_debug_log(expected_msgs=[reject_reason]):

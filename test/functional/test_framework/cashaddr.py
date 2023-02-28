@@ -80,7 +80,7 @@ def _pack_addr_data(kind, addr_hash):
     # invalid size?
     if ((len(addr_hash) - 20 * offset) % (4 * offset) != 0
             or not 0 <= encoded_size <= 7):
-        raise ValueError('invalid address hash size {}'.format(addr_hash))
+        raise ValueError(f'invalid address hash size {addr_hash}')
 
     version_byte |= encoded_size
 
@@ -100,28 +100,26 @@ def _decode_payload(addr):
     """
     lower = addr.lower()
     if lower != addr and addr.upper() != addr:
-        raise ValueError('mixed case in address: {}'.format(addr))
+        raise ValueError(f'mixed case in address: {addr}')
 
     parts = lower.split(':', 1)
     if len(parts) != 2:
-        raise ValueError("address missing ':' separator: {}".format(addr))
+        raise ValueError(f"address missing ':' separator: {addr}")
 
     prefix, payload = parts
     if not prefix:
-        raise ValueError('address prefix is missing: {}'.format(addr))
+        raise ValueError(f'address prefix is missing: {addr}')
     if not all(33 <= ord(x) <= 126 for x in prefix):
-        raise ValueError('invalid address prefix: {}'.format(prefix))
+        raise ValueError(f'invalid address prefix: {prefix}')
     if not (8 <= len(payload) <= 124):
-        raise ValueError('address payload has invalid length: {}'
-                         .format(len(addr)))
+        raise ValueError(f'address payload has invalid length: {len(addr)}')
     try:
         data = bytes(_CHARSET.find(x) for x in payload)
     except ValueError:
-        raise ValueError('invalid characters in address: {}'
-                         .format(payload))
+        raise ValueError(f'invalid characters in address: {payload}')
 
     if _polymod(_prefix_expand(prefix) + data):
-        raise ValueError('invalid checksum in address: {}'.format(addr))
+        raise ValueError(f'invalid checksum in address: {addr}')
 
     if lower != addr:
         prefix = prefix.upper()
@@ -151,11 +149,11 @@ def decode(address):
     # Ensure there isn't extra padding
     extrabits = len(payload) * 5 % 8
     if extrabits >= 5:
-        raise ValueError('excess padding in address {}'.format(address))
+        raise ValueError(f'excess padding in address {address}')
 
     # Ensure extrabits are zeros
     if payload[-1] & ((1 << extrabits) - 1):
-        raise ValueError('non-zero padding in address {}'.format(address))
+        raise ValueError(f'non-zero padding in address {address}')
 
     decoded = _convertbits(payload, 5, 8, False)
     version = decoded[0]
@@ -170,7 +168,7 @@ def decode(address):
 
     kind = version >> 3
     if kind not in (SCRIPT_TYPE, PUBKEY_TYPE):
-        raise ValueError('unrecognised address type {}'.format(kind))
+        raise ValueError(f'unrecognised address type {kind}')
 
     return prefix, kind, addr_hash
 
@@ -184,7 +182,7 @@ def encode(prefix, kind, addr_hash):
         raise TypeError('addr_hash must be binary bytes')
 
     if kind not in (SCRIPT_TYPE, PUBKEY_TYPE):
-        raise ValueError('unrecognised address type {}'.format(kind))
+        raise ValueError(f'unrecognised address type {kind}')
 
     payload = _pack_addr_data(kind, addr_hash)
     checksum = _create_checksum(prefix, payload)

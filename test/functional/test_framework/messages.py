@@ -321,8 +321,7 @@ class CInv:
         return r
 
     def __repr__(self):
-        return "CInv(type={} hash={})".format(
-            self.typemap[self.type], uint256_hex(self.hash))
+        return f"CInv(type={self.typemap[self.type]} hash={uint256_hex(self.hash)})"
 
     def __eq__(self, other):
         return isinstance(
@@ -348,7 +347,7 @@ class CBlockLocator:
         return r
 
     def __repr__(self):
-        return "CBlockLocator(vHave={})".format(repr(self.vHave))
+        return f"CBlockLocator(vHave={repr(self.vHave)})"
 
 
 class COutPoint:
@@ -369,7 +368,7 @@ class COutPoint:
         return r
 
     def __repr__(self):
-        return "COutPoint(hash={} n={})".format(uint256_hex(self.hash), self.n)
+        return f"COutPoint(hash={uint256_hex(self.hash)} n={self.n})"
 
 
 class CTxIn:
@@ -648,8 +647,7 @@ class PrefilledTransaction:
         return r
 
     def __repr__(self):
-        return "PrefilledTransaction(index={}, tx={})".format(
-            self.index, repr(self.tx))
+        return f"PrefilledTransaction(index={self.index}, tx={repr(self.tx)})"
 
 
 # This is what we send on the wire, in a cmpctblock message.
@@ -980,8 +978,7 @@ class AvalanchePrefilledProof:
         return r
 
     def __repr__(self):
-        return "AvalanchePrefilledProof(index={}, proof={})".format(
-            self.index, repr(self.proof))
+        return f"AvalanchePrefilledProof(index={self.index}, proof={repr(self.proof)})"
 
 
 class AvalanchePoll:
@@ -1002,8 +999,7 @@ class AvalanchePoll:
         return r
 
     def __repr__(self):
-        return "AvalanchePoll(round={}, invs={})".format(
-            self.round, repr(self.invs))
+        return f"AvalanchePoll(round={self.round}, invs={repr(self.invs)})"
 
 
 class AvalancheVoteError(IntEnum):
@@ -1049,8 +1045,7 @@ class AvalancheVote:
         return r
 
     def __repr__(self):
-        return "AvalancheVote(error={}, hash={})".format(
-            self.error, uint256_hex(self.hash))
+        return f"AvalancheVote(error={self.error}, hash={uint256_hex(self.hash)})"
 
 
 class AvalancheResponse:
@@ -1099,8 +1094,7 @@ class TCPAvalancheResponse:
         return r
 
     def __repr__(self):
-        return "TCPAvalancheResponse(response={}, sig={})".format(
-            repr(self.response), self.sig)
+        return f"TCPAvalancheResponse(response={repr(self.response)}, sig={self.sig})"
 
 
 class AvalancheDelegationLevel:
@@ -1121,8 +1115,7 @@ class AvalancheDelegationLevel:
         return r
 
     def __repr__(self):
-        return "AvalancheDelegationLevel(pubkey={}, sig={})".format(
-            self.pubkey.hex(), self.sig)
+        return f"AvalancheDelegationLevel(pubkey={self.pubkey.hex()}, sig={self.sig})"
 
 
 class AvalancheDelegation:
@@ -1185,8 +1178,7 @@ class AvalancheHello:
         return r
 
     def __repr__(self):
-        return "AvalancheHello(delegation={}, sig={})".format(
-            repr(self.delegation), self.sig)
+        return f"AvalancheHello(delegation={repr(self.delegation)}, sig={self.sig})"
 
     def get_sighash(self, node):
         b = self.delegation.getid()
@@ -1246,8 +1238,7 @@ class CMerkleBlock:
         return r
 
     def __repr__(self):
-        return "CMerkleBlock(header={}, txn={})".format(
-            repr(self.header), repr(self.txn))
+        return f"CMerkleBlock(header={repr(self.header)}, txn={repr(self.txn)})"
 
 
 # Objects that correspond to messages on the wire
@@ -1339,7 +1330,7 @@ class msg_addr:
         return ser_vector(self.addrs)
 
     def __repr__(self):
-        return "msg_addr(addrs={})".format(repr(self.addrs))
+        return f"msg_addr(addrs={repr(self.addrs)})"
 
 
 class msg_addrv2:
@@ -1356,7 +1347,7 @@ class msg_addrv2:
         return ser_vector(self.addrs, "serialize_v2")
 
     def __repr__(self):
-        return "msg_addrv2(addrs={})".format(repr(self.addrs))
+        return f"msg_addrv2(addrs={repr(self.addrs)})"
 
 
 class msg_sendaddrv2:
@@ -1393,7 +1384,7 @@ class msg_inv:
         return ser_vector(self.inv)
 
     def __repr__(self):
-        return "msg_inv(inv={})".format(repr(self.inv))
+        return f"msg_inv(inv={repr(self.inv)})"
 
 
 class msg_getdata:
@@ -1410,7 +1401,7 @@ class msg_getdata:
         return ser_vector(self.inv)
 
     def __repr__(self):
-        return "msg_getdata(inv={})".format(repr(self.inv))
+        return f"msg_getdata(inv={repr(self.inv)})"
 
 
 class msg_getblocks:
@@ -1451,7 +1442,7 @@ class msg_tx:
         return self.tx.serialize()
 
     def __repr__(self):
-        return "msg_tx(tx={})".format(repr(self.tx))
+        return f"msg_tx(tx={repr(self.tx)})"
 
 
 class msg_block:
@@ -1471,7 +1462,7 @@ class msg_block:
         return self.block.serialize()
 
     def __repr__(self):
-        return "msg_block(block={})".format(repr(self.block))
+        return f"msg_block(block={repr(self.block)})"
 
 
 # for cases where a user needs tighter control over what is sent over the wire
@@ -1523,7 +1514,7 @@ class msg_ping:
         return r
 
     def __repr__(self):
-        return "msg_ping(nonce={:08x})".format(self.nonce)
+        return f"msg_ping(nonce={self.nonce:08x})"
 
 
 class msg_pong:
@@ -1542,7 +1533,7 @@ class msg_pong:
         return r
 
     def __repr__(self):
-        return "msg_pong(nonce={:08x})".format(self.nonce)
+        return f"msg_pong(nonce={self.nonce:08x})"
 
 
 class msg_mempool:
@@ -1576,7 +1567,7 @@ class msg_notfound:
         return ser_vector(self.vec)
 
     def __repr__(self):
-        return "msg_notfound(vec={})".format(repr(self.vec))
+        return f"msg_notfound(vec={repr(self.vec)})"
 
 
 class msg_sendheaders:
@@ -1644,7 +1635,7 @@ class msg_headers:
         return ser_vector(blocks)
 
     def __repr__(self):
-        return "msg_headers(headers={})".format(repr(self.headers))
+        return f"msg_headers(headers={repr(self.headers)})"
 
 
 class msg_merkleblock:
@@ -1664,7 +1655,7 @@ class msg_merkleblock:
         return self.merkleblock.serialize()
 
     def __repr__(self):
-        return "msg_merkleblock(merkleblock={})".format(repr(self.merkleblock))
+        return f"msg_merkleblock(merkleblock={repr(self.merkleblock)})"
 
 
 class msg_filterload:
@@ -1712,7 +1703,7 @@ class msg_filteradd:
         return r
 
     def __repr__(self):
-        return "msg_filteradd(data={})".format(self.data)
+        return f"msg_filteradd(data={self.data})"
 
 
 class msg_filterclear:
@@ -1748,7 +1739,7 @@ class msg_feefilter:
         return r
 
     def __repr__(self):
-        return "msg_feefilter(feerate={:08x})".format(self.feerate)
+        return f"msg_feefilter(feerate={self.feerate:08x})"
 
 
 class msg_sendcmpct:
@@ -1770,8 +1761,7 @@ class msg_sendcmpct:
         return r
 
     def __repr__(self):
-        return "msg_sendcmpct(announce={}, version={})".format(
-            self.announce, self.version)
+        return f"msg_sendcmpct(announce={self.announce}, version={self.version})"
 
 
 class msg_cmpctblock:
@@ -1791,8 +1781,7 @@ class msg_cmpctblock:
         return r
 
     def __repr__(self):
-        return "msg_cmpctblock(HeaderAndShortIDs={})".format(
-            repr(self.header_and_shortids))
+        return f"msg_cmpctblock(HeaderAndShortIDs={repr(self.header_and_shortids)})"
 
 
 class msg_getblocktxn:
@@ -1812,8 +1801,7 @@ class msg_getblocktxn:
         return r
 
     def __repr__(self):
-        return "msg_getblocktxn(block_txn_request={})".format(
-            repr(self.block_txn_request))
+        return f"msg_getblocktxn(block_txn_request={repr(self.block_txn_request)})"
 
 
 class msg_blocktxn:
@@ -1832,8 +1820,7 @@ class msg_blocktxn:
         return r
 
     def __repr__(self):
-        return "msg_blocktxn(block_transactions={})".format(
-            repr(self.block_transactions))
+        return f"msg_blocktxn(block_transactions={repr(self.block_transactions)})"
 
 
 class msg_getcfilters:
@@ -2009,7 +1996,7 @@ class msg_avaproof:
         return r
 
     def __repr__(self):
-        return "msg_avaproof(proof={})".format(repr(self.proof))
+        return f"msg_avaproof(proof={repr(self.proof)})"
 
 
 class msg_avapoll:
@@ -2028,7 +2015,7 @@ class msg_avapoll:
         return r
 
     def __repr__(self):
-        return "msg_avapoll(poll={})".format(repr(self.poll))
+        return f"msg_avapoll(poll={repr(self.poll)})"
 
 
 class msg_avaresponse:
@@ -2047,7 +2034,7 @@ class msg_avaresponse:
         return r
 
     def __repr__(self):
-        return "msg_avaresponse(response={})".format(repr(self.response))
+        return f"msg_avaresponse(response={repr(self.response)})"
 
 
 class msg_tcpavaresponse:
@@ -2066,7 +2053,7 @@ class msg_tcpavaresponse:
         return r
 
     def __repr__(self):
-        return "msg_tcpavaresponse(response={})".format(repr(self.response))
+        return f"msg_tcpavaresponse(response={repr(self.response)})"
 
 
 class msg_avahello:
@@ -2085,7 +2072,7 @@ class msg_avahello:
         return r
 
     def __repr__(self):
-        return "msg_avahello(response={})".format(repr(self.hello))
+        return f"msg_avahello(response={repr(self.hello)})"
 
 
 class msg_getavaaddr:

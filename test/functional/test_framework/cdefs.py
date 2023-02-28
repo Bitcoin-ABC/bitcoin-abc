@@ -87,5 +87,5 @@ MAX_TXOUT_PUBKEY_SCRIPT = 10000
 
 if __name__ == "__main__":
     # Output values if run standalone to verify
-    print("DEFAULT_MAX_BLOCK_SIZE = {} (bytes)".format(DEFAULT_MAX_BLOCK_SIZE))
-    print("COINBASE_MATURITY = {} (blocks)".format(COINBASE_MATURITY))
+    print(f"DEFAULT_MAX_BLOCK_SIZE = {DEFAULT_MAX_BLOCK_SIZE} (bytes)")
+    print(f"COINBASE_MATURITY = {COINBASE_MATURITY} (blocks)")

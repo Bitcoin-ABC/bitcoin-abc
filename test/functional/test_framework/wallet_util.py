@@ -89,7 +89,7 @@ def test_address(node, address, **kwargs):
         if value is None:
             if key in addr_info.keys():
                 raise AssertionError(
-                    "key {} unexpectedly returned in getaddressinfo.".format(key))
+                    f"key {key} unexpectedly returned in getaddressinfo.")
         elif addr_info[key] != value:
             raise AssertionError(
                 "key {} value {} did not match expected value {}".format(

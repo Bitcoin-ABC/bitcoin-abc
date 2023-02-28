@@ -245,7 +245,7 @@ def getDisabledOpcodeTemplate(opcode):
         tx.calc_sha256()
         return tx
 
-    return type('DisabledOpcode_' + str(opcode), (BadTxTemplate,), {
+    return type(f"DisabledOpcode_{str(opcode)}", (BadTxTemplate,), {
         'reject_reason': "disabled opcode",
         'expect_disconnect': True,
         'get_tx': get_tx,

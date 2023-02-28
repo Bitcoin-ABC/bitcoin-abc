@@ -39,7 +39,7 @@ class TestShell:
                 elif hasattr(self.options, key):
                     setattr(self.options, key, value)
                 else:
-                    raise KeyError(key + " not a valid parameter key!")
+                    raise KeyError(f"{key} not a valid parameter key!")
 
             super().setup()
             self.running = True
