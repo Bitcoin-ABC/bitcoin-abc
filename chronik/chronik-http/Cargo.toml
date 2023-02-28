@@ -10,6 +10,10 @@ license = "MIT"
 [dependencies]
 abc-rust-error = { path = "../abc-rust-error" }
 abc-rust-lint = { path = "../abc-rust-lint" }
+chronik-util = { path = "../chronik-util" }
+
+# Allow traits to use async functions
+async-trait = "0.1"
 
 # HTTP webapps
 axum = "0.6"
@@ -20,8 +24,17 @@ futures = "0.3"
 # HTTP implementation
 hyper = "0.14"
 
+# Protobuf en-/decoding
+prost = "0.11"
+
 # Derive error enums
 thiserror = "1.0"
 
 # Async runtime
-tokio = { version = "1.21", features = ["sync", "rt", "rt-multi-thread"] }
+[dependencies.tokio]
+version = "1.25"
+features = ["sync", "rt", "rt-multi-thread", "macros"]
+
+[build-dependencies]
+# Build structs for protobuf messages from a *.proto file
+prost-build = "0.11"

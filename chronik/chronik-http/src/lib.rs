@@ -5,5 +5,13 @@
 //! Crate for the HTTP endpoint for Chronik.
 
 abc_rust_lint::lint! {
+    pub mod error;
+    pub mod protobuf;
     pub mod server;
+    pub(crate) mod validation;
+
+    /// Protobuf structs/enums for the Chronik HTTP server
+    pub mod proto {
+        include!(concat!(env!("OUT_DIR"), "/chronik.rs"));
+    }
 }
