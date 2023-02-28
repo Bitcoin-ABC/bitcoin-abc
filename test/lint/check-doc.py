@@ -91,11 +91,11 @@ def main():
     args_unknown = args_docd - args_used
 
     pp = PrettyPrinter()
-    print("Args used        : {}".format(len(args_used)))
-    print("Args documented  : {}".format(len(args_docd)))
-    print("Args undocumented: {}".format(len(args_need_doc)))
+    print(f"Args used        : {len(args_used)}")
+    print(f"Args documented  : {len(args_docd)}")
+    print(f"Args undocumented: {len(args_need_doc)}")
     pp.pprint(args_need_doc)
-    print("Args unknown     : {}".format(len(args_unknown)))
+    print(f"Args unknown     : {len(args_unknown)}")
     pp.pprint(args_unknown)
 
 

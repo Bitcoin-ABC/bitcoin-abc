@@ -72,7 +72,7 @@ def parse_function_calls(function_name, source_code):
              for line in source_code.split("\n")
              if not line.strip().startswith("#")]
     return re.findall(
-        r"[^a-zA-Z_](?=({}\(.*).*)".format(function_name), " " + " ".join(lines))
+        r"[^a-zA-Z_](?=({}\(.*).*)".format(function_name), f" {' '.join(lines)}")
 
 
 def normalize(s):
@@ -183,7 +183,7 @@ def parse_function_call_and_arguments(function_name, function_call):
     assert isinstance(function_name, str) and isinstance(
         function_call, str) and function_name
     remaining = normalize(escape(function_call))
-    expected_function_call = "{}(".format(function_name)
+    expected_function_call = f"{function_name}("
     assert remaining.startswith(expected_function_call)
     parts = [expected_function_call]
     remaining = remaining[len(expected_function_call):]

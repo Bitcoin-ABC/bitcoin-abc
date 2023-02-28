@@ -54,10 +54,10 @@ def bctester(testDir, input_basename, buildenv):
         try:
             bctest(testDir, testObj, buildenv)
         except Exception:
-            logging.info("FAILED: " + testObj["description"])
+            logging.info(f"FAILED: {testObj['description']}")
             failed_testcases.append(testObj["description"])
         else:
-            logging.info("PASSED: " + testObj["description"])
+            logging.info(f"PASSED: {testObj['description']}")
 
     if failed_testcases:
         error_message = "FAILED_TESTCASES:\n"
@@ -102,14 +102,14 @@ def bctest(testDir, testObj, buildenv):
             outputData = open(os.path.join(testDir, outputFn),
                               encoding="utf8").read()
         except OSError:
-            logging.error("Output file " + outputFn + " can not be opened")
+            logging.error(f"Output file {outputFn} can not be opened")
             raise
         if not outputData:
-            logging.error("Output data missing for " + outputFn)
+            logging.error(f"Output data missing for {outputFn}")
             raise Exception
         if not outputType:
             logging.error(
-                "Output file {} does not have a file extension".format(outputFn))
+                f"Output file {outputFn} does not have a file extension")
             raise Exception
 
     # Run the test
@@ -118,7 +118,7 @@ def bctest(testDir, testObj, buildenv):
     try:
         outs = proc.communicate(input=inputData)
     except OSError:
-        logging.error("OSError, Failed to execute " + execprog)
+        logging.error(f"OSError, Failed to execute {execprog}")
         raise
 
     if outputData:
@@ -128,7 +128,7 @@ def bctest(testDir, testObj, buildenv):
             a_parsed = parse_output(outs[0], outputType)
         except Exception as e:
             logging.error(
-                'Error parsing command output as {}: {}'.format(outputType, e))
+                f'Error parsing command output as {outputType}: {e}')
             raise
         try:
             b_parsed = parse_output(outputData, outputType)
@@ -138,12 +138,11 @@ def bctest(testDir, testObj, buildenv):
             raise
         # Compare data
         if a_parsed != b_parsed:
-            logging.error("Output data mismatch for " +
-                          outputFn + " (format " + outputType + ")")
+            logging.error(f"Output data mismatch for {outputFn} (format {outputType})")
             data_mismatch = True
         # Compare formatting
         if outs[0] != outputData:
-            error_message = "Output formatting mismatch for " + outputFn + ":\n"
+            error_message = f"Output formatting mismatch for {outputFn}:\n"
             error_message += "".join(difflib.context_diff(outputData.splitlines(True),
                                                           outs[0].splitlines(
                                                               True),
@@ -159,7 +158,7 @@ def bctest(testDir, testObj, buildenv):
     if "return_code" in testObj:
         wantRC = testObj['return_code']
     if proc.returncode != wantRC:
-        logging.error("Return code mismatch for " + outputFn)
+        logging.error(f"Return code mismatch for {outputFn}")
         raise Exception
 
     if "error_txt" in testObj:
@@ -185,7 +184,7 @@ def parse_output(a, fmt):
     elif fmt == 'hex':  # hex: parse and compare binary data
         return bytes.fromhex(a.strip())
     else:
-        raise NotImplementedError("Don't know how to compare {}".format(fmt))
+        raise NotImplementedError(f"Don't know how to compare {fmt}")
 
 
 if __name__ == '__main__':

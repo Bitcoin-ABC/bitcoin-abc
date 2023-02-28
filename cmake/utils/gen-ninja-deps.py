@@ -164,7 +164,7 @@ def dump(deps):
         if len(d) == 0:
             continue
 
-        str = t.decode() + ": \\\n  "
+        str = f"{t.decode()}: \\\n  "
         str += " \\\n  ".join(sorted(map((lambda x: x.decode()), d)))
 
         print(str)

@@ -11,9 +11,8 @@ def main(input_file, output_file):
 
     with open(output_file, "w", encoding="utf-8") as f:
         f.write(
-            "static unsigned const char {}_raw[] = {{\n".format(
-                Path(input_file).stem))
-        f.write(", ".join(map(lambda x: "0x{:02x}".format(x), contents)))
+            f"static unsigned const char {Path(input_file).stem}_raw[] = {{\n")
+        f.write(", ".join(map(lambda x: f"0x{x:02x}", contents)))
         f.write("\n};\n")
 
 

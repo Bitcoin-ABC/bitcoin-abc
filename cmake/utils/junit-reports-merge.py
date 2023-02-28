@@ -14,7 +14,7 @@ class TestSuite:
     def __init__(self, name, report_dir):
         self.name = name
         self.test_cases = {}
-        self.report_file = os.path.join(report_dir, '{}.xml'.format(self.name))
+        self.report_file = os.path.join(report_dir, f'{self.name}.xml')
 
     def add_test_case(self, test_case):
         self.test_cases[test_case.test_id] = test_case
@@ -69,14 +69,14 @@ class TestCase:
 
     def __getattr__(self, attribute):
         if attribute == 'test_id':
-            return self.classname + '/' + self.name
+            return f"{self.classname}/{self.name}"
 
         return self.node.attrib[attribute]
 
 
 class Lock:
     def __init__(self, suite, lock_dir):
-        self.lock_file = os.path.join(lock_dir, '{}.lock'.format(suite))
+        self.lock_file = os.path.join(lock_dir, f'{suite}.lock')
 
     def __enter__(self):
         os.makedirs(os.path.dirname(self.lock_file), exist_ok=True)
@@ -89,7 +89,7 @@ class Lock:
 
 
 def main(report_dir, lock_dir, suite, test):
-    junit = '{}-{}.xml'.format(suite, test)
+    junit = f'{suite}-{test}.xml'
     if not os.path.isfile(junit):
         return 0
 

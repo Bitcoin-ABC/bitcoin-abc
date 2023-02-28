@@ -106,9 +106,9 @@ def build_replacement(error):
         elif specifier == "r":
             return "{!r}"
         elif specifier.startswith("-"):
-            return "{:" + specifier[1:] + "}"
+            return f"{{:{specifier[1:]}}}"
         specifier = specifier.replace("i", "d")
-        return "{:" + specifier + "}"
+        return f"{{:{specifier}}}"
 
     (replacement, count) = re.subn(
         r"%([.-]?[0-9]*[a-zA-Z])", specifier_sub, replacement, flags=re.MULTILINE)
@@ -117,7 +117,7 @@ def build_replacement(error):
     # E.g % 42 => .format(42)
     # E.g. % (42, "my_string") => .format(42, "my_string")
     def single_qualifier_sub(match):
-        qualifier = ".format(" + match.group(1).strip()
+        qualifier = f".format({match.group(1).strip()}"
         # Where to close the parenthesis if there is a single specifier ?
         # It is whether at the end or before the first ',', ']', '}' (if
         # enclosed in a function call, a list or a dictionary).
@@ -133,12 +133,12 @@ def build_replacement(error):
                 if c == "]" and opening_count > 0:
                     opening_count -= 1
                     continue
-                return qualifier[:i] + ")" + qualifier[i:]
-        return qualifier + ")"
+                return f"{qualifier[:i]}){qualifier[i:]}"
+        return f"{qualifier})"
 
     def multi_qualifier_sub(match):
         # The closing parenthesis is already there as we are replacing a tuple
-        qualifier = ".format(" + match.group(1).strip()
+        qualifier = f".format({match.group(1).strip()}"
         return qualifier
 
     # There are 2 possible way to write the qualifier:
@@ -273,8 +273,8 @@ def main(file):
     for line_number, error in sorted(errors.items(),
                                      key=lambda pair: int(pair[0])):
         replacement = build_replacement(error)
-        print("({}) {}".format(line_number, error.rstrip()))
-        print("=> " + replacement)
+        print(f"({line_number}) {error.rstrip()}")
+        print(f"=> {replacement}")
 
 
 if __name__ == "__main__":
