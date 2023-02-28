@@ -51,10 +51,10 @@ class MiningTest(BitcoinTestFramework):
 
         self.log.info('test blockversion')
         self.restart_node(
-            0, extra_args=['-mocktime={}'.format(t), '-blockversion=1337'])
+            0, extra_args=[f'-mocktime={t}', '-blockversion=1337'])
         self.connect_nodes(0, 1)
         assert_equal(1337, self.nodes[0].getblocktemplate()['version'])
-        self.restart_node(0, extra_args=['-mocktime={}'.format(t)])
+        self.restart_node(0, extra_args=[f'-mocktime={t}'])
         self.connect_nodes(0, 1)
         assert_equal(
             VERSIONBITS_TOP_BITS,

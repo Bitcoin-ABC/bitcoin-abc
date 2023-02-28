@@ -61,9 +61,9 @@ class MempoolUpdateFromBlockTest(BitcoinTestFramework):
         first_block_hash = ''
         tx_id = []
         tx_size = []
-        self.log.info('Creating {} transactions...'.format(size))
+        self.log.info(f'Creating {size} transactions...')
         for i in range(0, size):
-            self.log.debug('Preparing transaction #{}...'.format(i))
+            self.log.debug(f'Preparing transaction #{i}...')
             # Prepare inputs.
             if i == 0:
                 inputs = [{'txid': start_input_txid, 'vout': 0}]
@@ -79,8 +79,8 @@ class MempoolUpdateFromBlockTest(BitcoinTestFramework):
                     inputs.append({'txid': tx_id[j], 'vout': vout})
                     inputs_value += self.nodes[0].gettxout(tx, vout)['value']
 
-            self.log.debug('inputs={}'.format(inputs))
-            self.log.debug('inputs_value={}'.format(inputs_value))
+            self.log.debug(f'inputs={inputs}')
+            self.log.debug(f'inputs_value={inputs_value}')
 
             # Prepare outputs.
             tx_count = i + 1
@@ -103,8 +103,8 @@ class MempoolUpdateFromBlockTest(BitcoinTestFramework):
                     Decimal('0.01'))
                 outputs = {end_address: output_value}
 
-            self.log.debug('output_value={}'.format(output_value))
-            self.log.debug('outputs={}'.format(outputs))
+            self.log.debug(f'output_value={output_value}')
+            self.log.debug(f'outputs={outputs}')
 
             # Create a new transaction.
             unsigned_raw_tx = self.nodes[0].createrawtransaction(
@@ -145,7 +145,7 @@ class MempoolUpdateFromBlockTest(BitcoinTestFramework):
             'Checking descendants/ancestors properties of all of the'
             ' in-mempool transactions...')
         for k, tx in enumerate(tx_id):
-            self.log.debug('Check transaction #{}.'.format(k))
+            self.log.debug(f'Check transaction #{k}.')
             entry = self.nodes[0].getmempoolentry(tx)
             assert_equal(entry['descendantcount'], size - k)
             assert_equal(entry['descendantsize'], sum(tx_size[k:size]))
