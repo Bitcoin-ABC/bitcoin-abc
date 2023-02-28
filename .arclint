@@ -23,7 +23,8 @@
             ],
             "flags": [
                 "--aggressive",
-                "--ignore=W503,W504"
+                "--ignore=W503,W504",
+                "--max-line-length=88"
             ]
         },
         "flake8": {
