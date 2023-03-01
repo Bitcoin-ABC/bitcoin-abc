@@ -4,9 +4,10 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Tests some generic aspects of the RPC interface."""
 
+import multiprocessing
 import os
 import subprocess
-from threading import Thread
+import time
 
 from test_framework.authproxy import JSONRPCException
 from test_framework.test_framework import BitcoinTestFramework
@@ -24,15 +25,14 @@ def expect_http_status(expected_http_status, expected_rpc_code,
         assert_equal(exc.http_status, expected_http_status)
 
 
-def test_work_queue_getblock(node, got_exceeded_error):
-    while not got_exceeded_error:
+def test_work_queue_getrpcinfo(node, error_queue, stop_queue):
+    got_error = False
+    while not got_error and stop_queue.empty():
         try:
             node.cli('getrpcinfo').send_cli()
         except subprocess.CalledProcessError as e:
-            assert_equal(
-                e.output,
-                'error: Server response: Work queue depth exceeded\n')
-            got_exceeded_error.append(True)
+            error_queue.put(e.output)
+            got_error = True
 
 
 class RPCInterfaceTest(BitcoinTestFramework):
@@ -97,16 +97,25 @@ class RPCInterfaceTest(BitcoinTestFramework):
 
         self.log.info("Testing work queue exceeded...")
         self.restart_node(0, ['-rpcworkqueue=1', '-rpcthreads=1'])
-        got_exceeded_error = []
-        threads = []
+        processes = []
+        error_queue = multiprocessing.Queue()
+        stop_queue = multiprocessing.Queue()
         for _ in range(3):
-            t = Thread(
-                target=test_work_queue_getblock,
-                args=(self.nodes[0], got_exceeded_error))
-            t.start()
-            threads.append(t)
-        for t in threads:
-            t.join()
+            p = multiprocessing.Process(
+                target=test_work_queue_getrpcinfo,
+                args=(self.nodes[0], error_queue, stop_queue))
+            p.start()
+            processes.append(p)
+
+        while error_queue.empty():
+            time.sleep(0.1)
+        stop_queue.put(True)
+        for p in processes:
+            p.join()
+        while not error_queue.empty():
+            assert_equal(
+                error_queue.get(),
+                'error: Server response: Work queue depth exceeded\n')
 
     def run_test(self):
         self.test_getrpcinfo()
