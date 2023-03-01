@@ -234,6 +234,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             config['environment']['BUILDDIR'] + os.path.sep + "qt" + os.pathsep + \
             os.environ['PATH']
 
+        # Add test dir to sys.path (to access generated modules)
+        sys.path.append(os.path.join(config['environment']['BUILDDIR'], "test"))
+
         # Set up temp directory and start logging
         if self.options.tmpdir:
             self.options.tmpdir = os.path.abspath(self.options.tmpdir)

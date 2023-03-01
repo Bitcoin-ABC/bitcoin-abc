@@ -6,6 +6,7 @@
 
 abc_rust_lint::lint! {
     pub mod error;
+    pub mod handlers;
     pub mod protobuf;
     pub mod server;
     pub(crate) mod validation;

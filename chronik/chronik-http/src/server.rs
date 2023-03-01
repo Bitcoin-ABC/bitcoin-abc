@@ -11,6 +11,8 @@ use axum::Router;
 use hyper::server::conn::AddrIncoming;
 use thiserror::Error;
 
+use crate::handlers::handle_not_found;
+
 /// Params defining what and where to serve for [`ChronikServer`].
 #[derive(Clone, Debug)]
 pub struct ChronikServerParams {
@@ -25,7 +27,7 @@ pub struct ChronikServer {
     server_builders: Vec<hyper::server::Builder<AddrIncoming>>,
 }
 
-/// Errors for [`BlockWriter`] and [`BlockReader`].
+/// Errors for [`ChronikServer`].
 #[derive(Debug, Eq, Error, PartialEq)]
 pub enum ChronikServerError {
     /// Binding to host address failed
@@ -56,7 +58,7 @@ impl ChronikServer {
 
     /// Serve a Chronik HTTP endpoint with the given parameters.
     pub async fn serve(self) -> Result<()> {
-        let app = Router::new();
+        let app = Self::make_router();
         let servers = self
             .server_builders
             .into_iter()
@@ -72,5 +74,9 @@ impl ChronikServer {
         let (result, _, _) = futures::future::select_all(servers).await;
         result?;
         Ok(())
+    }
+
+    fn make_router() -> Router {
+        Router::new().fallback(handle_not_found)
     }
 }

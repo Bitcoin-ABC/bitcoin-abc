@@ -137,6 +137,9 @@ update-alternatives --set x86_64-w64-mingw32-gcc $(command -v x86_64-w64-mingw32
 pip3 install deepmerge
 # For running Python test suites
 pip3 install pytest
+# For en/-decoding protobuf messages
+# This version is compatible with Debian's "protobuf-compiler" package
+pip3 install "protobuf<=3.20"
 
 # Up-to-date mypy and isort packages are required python linters
 pip3 install isort==5.6.4 mypy==0.780
