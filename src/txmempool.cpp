@@ -590,6 +590,15 @@ void CTxMemPool::removeConflicts(const CTransaction &tx) {
 void CTxMemPool::removeForBlock(const std::vector<CTransactionRef> &vtx) {
     AssertLockHeld(cs);
 
+    if (mapTx.empty() && mapDeltas.empty()) {
+        // fast-path for IBD and/or when mempool is empty; there is no need to
+        // do any of the set-up work below which eats precious cycles.
+        // Note that this also skips updating the rolling fee udpate, which is
+        // fine: it is only recomputed when the mempool has to be trimmed down
+        // because it is full which is contradictory with this condition.
+        return;
+    }
+
     DisconnectedBlockTransactions disconnectpool;
     disconnectpool.addForBlock(vtx, *this);
 
@@ -600,8 +609,10 @@ void CTxMemPool::removeForBlock(const std::vector<CTransactionRef> &vtx) {
             setEntries stage;
             stage.insert(it);
             RemoveStaged(stage, true, MemPoolRemovalReason::BLOCK);
+        } else {
+            // Conflicting txs can only exist if the tx was not in the mempool
+            removeConflicts(*tx);
         }
-        removeConflicts(*tx);
         ClearPrioritisation(tx->GetId());
     }
 
