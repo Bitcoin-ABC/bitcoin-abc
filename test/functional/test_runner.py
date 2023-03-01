@@ -605,7 +605,7 @@ def execute_test_processes(
 
 def print_results(test_results, tests_dir, max_len_name,
                   runtime, combined_logs_len):
-    results = bold(f"\n{'TEST':<{max_len_name}} | STATUS | DURATION\n\n")
+    results = bold(f"\n{'TEST':<{max_len_name}} | {'STATUS':<9} | DURATION\n\n")
 
     test_results.sort(key=TestResult.sort_key)
     all_passed = True
