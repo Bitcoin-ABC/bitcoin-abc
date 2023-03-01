@@ -5,6 +5,7 @@
 #include <chainparams.h>
 #include <chronik-bridge/src/ffi.rs.h>
 #include <chronik-cpp/chronik_bridge.h>
+#include <chronik-cpp/util/hash.h>
 #include <config.h>
 #include <validation.h>
 
@@ -33,8 +34,8 @@ BOOST_FIXTURE_TEST_CASE(test_get_chain_tip_genesis, TestingSetup) {
     // Check for genesis block
     chronik_bridge::BlockInfo block = bridge.get_chain_tip();
     chronik_bridge::BlockInfo expected_block{
-        .hash =
-            HashToArray(GetConfig().GetChainParams().GenesisBlock().GetHash()),
+        .hash = chronik::util::HashToArray(
+            GetConfig().GetChainParams().GenesisBlock().GetHash()),
         .height = 0};
     BOOST_CHECK(block == expected_block);
 }
@@ -47,7 +48,7 @@ BOOST_FIXTURE_TEST_CASE(test_get_chain_tip_100, TestChain100Setup) {
     // Check if block is 101th
     chronik_bridge::BlockInfo block = bridge.get_chain_tip();
     chronik_bridge::BlockInfo expected_block{
-        .hash = HashToArray(tip_block.GetHash()), .height = 101};
+        .hash = chronik::util::HashToArray(tip_block.GetHash()), .height = 101};
     BOOST_CHECK(block == expected_block);
 }
 

@@ -5,17 +5,12 @@
 #include <blockindex.h>
 #include <chronik-bridge/src/ffi.rs.h>
 #include <chronik-cpp/chronik_bridge.h>
+#include <chronik-cpp/util/hash.h>
 #include <logging.h>
 #include <node/context.h>
 #include <node/ui_interface.h>
 #include <shutdown.h>
 #include <validation.h>
-
-std::array<uint8_t, 32> HashToArray(const uint256 &hash) {
-    std::array<uint8_t, 32> array;
-    std::copy_n(hash.begin(), 32, array.begin());
-    return array;
-}
 
 namespace chronik_bridge {
 
@@ -43,7 +38,7 @@ BlockInfo ChronikBridge::get_chain_tip() const {
         };
     }
     return {
-        .hash = HashToArray(tip->GetBlockHash()),
+        .hash = chronik::util::HashToArray(tip->GetBlockHash()),
         .height = tip->nHeight,
     };
 }

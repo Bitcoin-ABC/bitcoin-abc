@@ -13,8 +13,6 @@ struct NodeContext;
 } // namespace node
 class uint256;
 
-std::array<uint8_t, 32> HashToArray(const uint256 &hash);
-
 namespace chronik_bridge {
 
 struct BlockInfo;
