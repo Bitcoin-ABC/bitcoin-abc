@@ -6,6 +6,7 @@
 #define BITCOIN_CHRONIK_CPP_UTIL_HASH_H
 
 #include <array>
+#include <cstdint>
 
 class uint256;
 
