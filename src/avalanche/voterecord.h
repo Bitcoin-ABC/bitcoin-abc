@@ -41,6 +41,8 @@ static constexpr int AVALANCHE_MAX_INFLIGHT_POLL = 10;
 
 namespace avalanche {
 
+struct TestVoteRecord;
+
 /**
  * Vote history.
  */
@@ -124,6 +126,8 @@ private:
      * quorum.
      */
     bool addNodeToQuorum(NodeId nodeid);
+
+    friend struct ::avalanche::TestVoteRecord;
 };
 
 } // namespace avalanche

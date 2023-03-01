@@ -10,6 +10,7 @@
 #include <avalanche/proof.h>
 #include <avalanche/proofcomparator.h>
 #include <avalanche/protocol.h>
+#include <avalanche/voterecord.h> // For AVALANCHE_MAX_INFLIGHT_POLL
 #include <blockindex.h>
 #include <blockindexcomparators.h>
 #include <bloom.h>
@@ -53,6 +54,17 @@ static constexpr size_t AVALANCHE_MAX_ELEMENT_POLL = 16;
  */
 static constexpr std::chrono::milliseconds AVALANCHE_DEFAULT_QUERY_TIMEOUT{
     10000};
+
+/**
+ * The size of the finalized items filter. It should be large enough that an
+ * influx of inventories cannot roll any particular item out of the filter on
+ * demand. For example, transactions will roll blocks out of the filter.
+ * Tracking many more items than can possibly be polled at once ensures that
+ * recently polled items will come to a stable state on the network before
+ * rolling out of the filter.
+ */
+static constexpr uint32_t AVALANCHE_FINALIZED_ITEMS_FILTER_NUM_ELEMENTS =
+    AVALANCHE_MAX_INFLIGHT_POLL * 20;
 
 namespace avalanche {
 
@@ -302,13 +314,28 @@ private:
         EXCLUSIVE_LOCKS_REQUIRED(cs_delayedAvahelloNodeIds);
     AnyVoteItem getVoteItemFromInv(const CInv &inv) const;
 
+    /**
+     * We don't need many blocks but a low false positive rate.
+     * In the event of a false positive the node might skip polling this block.
+     * Such a block will not get marked as finalized until it is reconsidered
+     * for polling (if the filter changed its state) or another block is found.
+     */
     mutable Mutex cs_invalidatedBlocks;
-    // We don't need much blocks but a low false positive rate.
-    // In the event of a false positive the node might skip polling this block.
-    // Such a block will not get marked as finalized until it is reconsidered
-    // for polling (if the filter changed its state) or another block is found.
     CRollingBloomFilter invalidatedBlocks GUARDED_BY(cs_invalidatedBlocks){
         100, 0.0000001};
+
+    /**
+     * Rolling bloom filter to track recently finalized inventory items of any
+     * type. Once placed in this filter, those items will not be polled again
+     * unless they roll out. Note that this one filter tracks all types so
+     * blocks may be rolled out by transaction activity for example.
+     *
+     * We want a low false positive rate to prevent accidentally not polling
+     * for an item when it is first seen.
+     */
+    mutable Mutex cs_finalizedItems;
+    CRollingBloomFilter finalizedItems GUARDED_BY(cs_finalizedItems){
+        AVALANCHE_FINALIZED_ITEMS_FILTER_NUM_ELEMENTS, 0.0000001};
 
     struct IsWorthPolling {
         const Processor &processor;
@@ -321,9 +348,7 @@ private:
             LOCKS_EXCLUDED(cs_peerManager);
         bool operator()(const CTransactionRef &tx) const;
     };
-    bool isWorthPolling(const AnyVoteItem &item) const {
-        return std::visit(IsWorthPolling(*this), item);
-    }
+    bool isWorthPolling(const AnyVoteItem &item) const;
 
     struct GetLocalAcceptance {
         const Processor &processor;

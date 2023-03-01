@@ -34,6 +34,24 @@ static constexpr std::chrono::milliseconds AVALANCHE_TIME_STEP{10};
 std::unique_ptr<avalanche::Processor> g_avalanche;
 
 namespace avalanche {
+static const uint256 GetVoteItemId(const AnyVoteItem &item) {
+    return std::visit(variant::overloaded{
+                          [](const ProofRef &proof) {
+                              uint256 id = proof->getId();
+                              return id;
+                          },
+                          [](const CBlockIndex *pindex) {
+                              uint256 hash = pindex->GetBlockHash();
+                              return hash;
+                          },
+                          [](const CTransactionRef &tx) {
+                              uint256 id = tx->GetId();
+                              return id;
+                          },
+                      },
+                      item);
+}
+
 static bool VerifyProof(const Amount &stakeUtxoDustThreshold,
                         const Proof &proof, bilingual_str &error) {
     ProofValidationState proof_state;
@@ -569,18 +587,31 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
         }
 
         const auto &item = update.getVoteItem();
+
+        if (update.getStatus() == VoteStatus::Finalized) {
+            // Always track finalized items regardless of type. Once finalized
+            // they should never become invalid.
+            WITH_LOCK(cs_finalizedItems,
+                      return finalizedItems.insert(GetVoteItemId(item)));
+        }
+
         if (!std::holds_alternative<const CBlockIndex *>(item)) {
             continue;
         }
 
-        const CBlockIndex *pindex = std::get<const CBlockIndex *>(item);
         if (update.getStatus() == VoteStatus::Invalid) {
+            // Track invalidated blocks. Other invalidated types are not
+            // tracked because they may be rejected for transient reasons
+            // (ex: immature proofs or orphaned txs) With blocks this is not
+            // the case. A rejected block will not be mined on. To prevent
+            // reorgs, invalidated blocks should never be polled again.
             LOCK(cs_invalidatedBlocks);
-            invalidatedBlocks.insert(pindex->GetBlockHash());
+            invalidatedBlocks.insert(GetVoteItemId(item));
             continue;
         }
 
         // At this point the block index can only be finalized
+        const CBlockIndex *pindex = std::get<const CBlockIndex *>(item);
         LOCK(cs_finalizationTip);
         if (finalizationTip &&
             finalizationTip->GetAncestor(pindex->nHeight) == pindex) {
@@ -1010,6 +1041,12 @@ bool Processor::IsWorthPolling::operator()(const CTransactionRef &tx) const {
     AssertLockNotHeld(processor.mempool->cs);
     return WITH_LOCK(processor.mempool->cs,
                      return processor.mempool->exists(tx->GetId()));
+}
+
+bool Processor::isWorthPolling(const AnyVoteItem &item) const {
+    return std::visit(IsWorthPolling(*this), item) &&
+           WITH_LOCK(cs_finalizedItems,
+                     return !finalizedItems.contains(GetVoteItemId(item)));
 }
 
 bool Processor::GetLocalAcceptance::operator()(

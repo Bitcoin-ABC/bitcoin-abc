@@ -61,8 +61,26 @@ namespace {
         static void clearavaproofsNodeCounter(Processor &p) {
             p.avaproofsNodeCounter = 0;
         }
+
+        static void addVoteRecord(Processor &p, AnyVoteItem &item,
+                                  VoteRecord &voteRecord) {
+            p.voteRecords.getWriteView()->insert(
+                std::make_pair(item, voteRecord));
+        }
+
+        static void setFinalizationTip(Processor &p,
+                                       const CBlockIndex *pindex) {
+            LOCK(p.cs_finalizationTip);
+            p.finalizationTip = pindex;
+        }
     };
 } // namespace
+
+struct TestVoteRecord : public VoteRecord {
+    explicit TestVoteRecord(uint16_t conf) : VoteRecord(true) {
+        confidence |= conf << 1;
+    }
+};
 } // namespace avalanche
 
 namespace {
@@ -431,15 +449,85 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(voteitemupdate, P, VoteItemProviders) {
     }
 }
 
+namespace {
+Response next(Response &r) {
+    auto copy = r;
+    r = {r.getRound() + 1, r.getCooldown(), r.GetVotes()};
+    return copy;
+}
+} // namespace
+
 BOOST_AUTO_TEST_CASE_TEMPLATE(item_reconcile_twice, P, VoteItemProviders) {
     P provider(this);
+    const CBlockIndex *chaintip = Assert(m_node.chainman)->ActiveTip();
 
     auto item = provider.buildVoteItem();
+    auto itemid = provider.getVoteItemId(item);
 
     // Adding the item twice does nothing.
     BOOST_CHECK(addToReconcile(item));
     BOOST_CHECK(!addToReconcile(item));
     BOOST_CHECK(m_processor->isAccepted(item));
+
+    // Create nodes that supports avalanche so we can finalize the item.
+    auto avanodes = ConnectNodes();
+
+    int nextNodeIndex = 0;
+    std::vector<avalanche::VoteItemUpdate> updates;
+    auto registerNewVote = [&](const Response &resp) {
+        runEventLoop();
+        auto nodeid = avanodes[nextNodeIndex++ % avanodes.size()]->GetId();
+        BOOST_CHECK(registerVotes(nodeid, resp, updates));
+    };
+
+    // Finalize the item.
+    auto finalize = [&](const auto finalizeItemId) {
+        Response resp = {getRound(), 0, {Vote(0, finalizeItemId)}};
+        for (int i = 0; i < AVALANCHE_FINALIZATION_SCORE + 6; i++) {
+            registerNewVote(next(resp));
+            if (updates.size() > 0) {
+                break;
+            }
+        }
+        BOOST_CHECK_EQUAL(updates.size(), 1);
+        BOOST_CHECK(updates[0].getStatus() == VoteStatus::Finalized);
+        updates.clear();
+    };
+    finalize(itemid);
+
+    // The finalized item cannot be reconciled for a while.
+    BOOST_CHECK(!addToReconcile(item));
+
+    auto finalizeNewItem = [&]() {
+        auto anotherItem = provider.buildVoteItem();
+        AnyVoteItem anotherVoteItem = AnyVoteItem(anotherItem);
+        auto anotherItemId = provider.getVoteItemId(anotherItem);
+
+        TestVoteRecord voteRecord(AVALANCHE_FINALIZATION_SCORE - 1);
+        AvalancheTest::addVoteRecord(*m_processor, anotherVoteItem, voteRecord);
+        finalize(anotherItemId);
+    };
+
+    // The filter can have new items added up to its size and the item will
+    // still not reconcile.
+    for (uint32_t i = 0; i < AVALANCHE_FINALIZED_ITEMS_FILTER_NUM_ELEMENTS;
+         i++) {
+        finalizeNewItem();
+        BOOST_CHECK(!addToReconcile(item));
+    }
+
+    // But if we keep going it will eventually roll out of the filter and can
+    // be reconciled again.
+    for (uint32_t i = 0; i < AVALANCHE_FINALIZED_ITEMS_FILTER_NUM_ELEMENTS;
+         i++) {
+        finalizeNewItem();
+    }
+
+    // Roll back the finalization point so that reconciling the old block does
+    // not fail the finalization check. This is a no-op for other types.
+    AvalancheTest::setFinalizationTip(*m_processor, chaintip);
+
+    BOOST_CHECK(addToReconcile(item));
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(item_null, P, VoteItemProviders) {
@@ -462,14 +550,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(item_null, P, VoteItemProviders) {
     BOOST_CHECK(!m_processor->isAccepted(nullptr));
     BOOST_CHECK_EQUAL(m_processor->getConfidence(nullptr), -1);
 }
-
-namespace {
-Response next(Response &r) {
-    auto copy = r;
-    r = {r.getRound() + 1, r.getCooldown(), r.GetVotes()};
-    return copy;
-}
-} // namespace
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(vote_item_register, P, VoteItemProviders) {
     P provider(this);
