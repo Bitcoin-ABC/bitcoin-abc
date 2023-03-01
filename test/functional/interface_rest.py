@@ -105,9 +105,8 @@ class RESTTest (BitcoinTestFramework):
 
         # Get the vin to later check for utxo (should be spent by then)
         spent = (json_obj['vin'][0]['txid'], json_obj['vin'][0]['vout'])
-        # Get n of 0.1 outpoint
-        n, = filter_output_indices_by_value(
-            json_obj['vout'], Decimal('100000'))
+        # Get n of 100_000 XEC outpoint
+        n, = filter_output_indices_by_value(json_obj['vout'], Decimal('100000'))
         spending = (txid, n)
 
         self.log.info("Query an unspent TXO using the /getutxos URI")
@@ -118,7 +117,7 @@ class RESTTest (BitcoinTestFramework):
         assert_equal(self.nodes[1].getbalance(), Decimal("100000"))
 
         # Check chainTip response
-        json_obj = self.test_rest_request("/getutxos/{}-{}".format(*spending))
+        json_obj = self.test_rest_request(f"/getutxos/{txid}-{n}")
         assert_equal(json_obj['chaintipHash'], bb_hash)
 
         # Make sure there is one utxo
@@ -127,7 +126,7 @@ class RESTTest (BitcoinTestFramework):
 
         self.log.info("Query a spent TXO using the /getutxos URI")
 
-        json_obj = self.test_rest_request("/getutxos/{}-{}".format(*spent))
+        json_obj = self.test_rest_request(f"/getutxos/{spent[0]}-{spent[1]}")
 
         # Check chainTip response
         assert_equal(json_obj['chaintipHash'], bb_hash)
@@ -142,7 +141,7 @@ class RESTTest (BitcoinTestFramework):
         self.log.info("Query two TXOs using the /getutxos URI")
 
         json_obj = self.test_rest_request(
-            "/getutxos/{}-{}/{}-{}".format(*(spending + spent)))
+            f"/getutxos/{txid}-{n}/{spent[0]}-{spent[1]}")
 
         assert_equal(len(json_obj['utxos']), 1)
         assert_equal(json_obj['bitmap'], "10")
@@ -178,32 +177,28 @@ class RESTTest (BitcoinTestFramework):
         # Get the spent output to later check for utxo (should be spent by
         # then)
         spent = (json_obj['vin'][0]['txid'], json_obj['vin'][0]['vout'])
-        # Get n of 0.1 outpoint
-        n, = filter_output_indices_by_value(
-            json_obj['vout'], Decimal('100000'))
-        spending = (txid, n)
+        # Get n of 100_000 XEC outpoint
+        n, = filter_output_indices_by_value(json_obj['vout'], Decimal('100000'))
 
-        json_obj = self.test_rest_request("/getutxos/{}-{}".format(*spending))
+        json_obj = self.test_rest_request(f"/getutxos/{txid}-{n}")
         assert_equal(len(json_obj['utxos']), 0)
 
-        json_obj = self.test_rest_request(
-            "/getutxos/checkmempool/{}-{}".format(*spending))
+        json_obj = self.test_rest_request(f"/getutxos/checkmempool/{txid}-{n}")
         assert_equal(len(json_obj['utxos']), 1)
 
-        json_obj = self.test_rest_request("/getutxos/{}-{}".format(*spent))
+        json_obj = self.test_rest_request(f"/getutxos/{spent[0]}-{spent[1]}")
         assert_equal(len(json_obj['utxos']), 1)
 
         json_obj = self.test_rest_request(
-            "/getutxos/checkmempool/{}-{}".format(*spent))
+            f"/getutxos/checkmempool/{spent[0]}-{spent[1]}")
         assert_equal(len(json_obj['utxos']), 0)
 
         self.generate(self.nodes[0], 1)
 
-        json_obj = self.test_rest_request("/getutxos/{}-{}".format(*spending))
+        json_obj = self.test_rest_request(f"/getutxos/{txid}-{n}")
         assert_equal(len(json_obj['utxos']), 1)
 
-        json_obj = self.test_rest_request(
-            "/getutxos/checkmempool/{}-{}".format(*spending))
+        json_obj = self.test_rest_request(f"/getutxos/checkmempool/{txid}-{n}")
         assert_equal(len(json_obj['utxos']), 1)
 
         # Do some invalid requests
