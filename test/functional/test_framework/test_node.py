@@ -85,12 +85,13 @@ class TestNode:
         self.host = host
         self.rpc_port = rpc_port
         self.p2p_port = p2p_port
-        self.name = "testnode-{}".format(i)
+        self.name = f"testnode-{i}"
         self.rpc_timeout = timewait
         self.binary = bitcoind
         if not os.path.isfile(self.binary):
             raise FileNotFoundError(
-                "Binary '{}' could not be found.\nTry setting it manually:\n\tBITCOIND=<path/to/bitcoind> {}".format(self.binary, sys.argv[0]))
+                f"Binary '{self.binary}' could not be found.\nTry setting it manually:\n"
+                f"\tBITCOIND=<path/to/bitcoind> {sys.argv[0]}")
         self.coverage_dir = coverage_dir
         self.cwd = cwd
         self.descriptors = descriptors
@@ -125,19 +126,20 @@ class TestNode:
                                           default_suppressions_file)
             self.binary = "valgrind"
             self.bitcoind_args = [bitcoind] + self.default_args
-            self.default_args = ["--suppressions={}".format(suppressions_file),
+            self.default_args = [f"--suppressions={suppressions_file}",
                                  "--gen-suppressions=all", "--exit-on-first-error=yes",
                                  "--error-exitcode=1", "--quiet"] + self.bitcoind_args
 
         if emulator is not None:
             if not os.path.isfile(emulator):
                 raise FileNotFoundError(
-                    "Emulator '{}' could not be found.".format(emulator))
+                    f"Emulator '{emulator}' could not be found.")
         self.emulator = emulator
 
         if use_cli and not os.path.isfile(bitcoin_cli):
             raise FileNotFoundError(
-                "Binary '{}' could not be found.\nTry setting it manually:\n\tBITCOINCLI=<path/to/bitcoin-cli> {}".format(bitcoin_cli, sys.argv[0]))
+                f"Binary '{bitcoin_cli}' could not be found.\nTry setting it manually:\n"
+                f"\tBITCOINCLI=<path/to/bitcoin-cli> {sys.argv[0]}")
         self.cli = TestNodeCLI(bitcoin_cli, self.datadir, self.emulator)
         self.use_cli = use_cli
         self.start_perf = start_perf
@@ -148,7 +150,7 @@ class TestNode:
         self.rpc = None
         self.url = None
         self.relay_fee_cache = None
-        self.log = logging.getLogger('TestFramework.node{}'.format(i))
+        self.log = logging.getLogger(f'TestFramework.node{i}')
         # Whether to kill the node when this object goes away
         self.cleanup_on_exit = True
         # Cache perf subprocesses here by their data output filename.
@@ -201,12 +203,14 @@ class TestNode:
     def get_deterministic_priv_key(self):
         """Return a deterministic priv key in base58, that only depends on the node's index"""
         num_keys = len(self.PRIV_KEYS)
-        assert self.index < num_keys, f"Only {num_keys} keys are defined, please extend TestNode.PRIV_KEYS if more are needed."
+        assert self.index < num_keys, \
+            f"Only {num_keys} keys are defined, please extend TestNode.PRIV_KEYS if " \
+            f"more are needed."
         return self.PRIV_KEYS[self.index]
 
     def _node_msg(self, msg: str) -> str:
         """Return a modified msg that identifies this node by its index as a debugging aid."""
-        return "[node {}] {}".format(self.index, msg)
+        return f"[node {self.index}] {msg}"
 
     def _raise_assertion_error(self, msg: str):
         """Raise an AssertionError with msg modified to identify this node."""
@@ -304,7 +308,8 @@ class TestNode:
         for _ in range(poll_per_s * self.rpc_timeout):
             if self.process.poll() is not None:
                 raise FailedToStartError(self._node_msg(
-                    'bitcoind exited with status {} during initialization'.format(self.process.returncode)))
+                    f'bitcoind exited with status {self.process.returncode} during '
+                    f'initialization'))
             try:
                 rpc = get_rpc_proxy(
                     rpc_url(
@@ -374,8 +379,7 @@ class TestNode:
                     raise
             time.sleep(1.0 / poll_per_s)
         self._raise_assertion_error(
-            "Unable to connect to bitcoind after {}s".format(
-                self.rpc_timeout))
+            f"Unable to connect to bitcoind after {self.rpc_timeout}s")
 
     def wait_for_cookie_credentials(self):
         """Ensures auth cookie credentials can be read, e.g. for testing CLI
@@ -395,8 +399,7 @@ class TestNode:
                 pass
             time.sleep(1.0 / poll_per_s)
         self._raise_assertion_error(
-            "Unable to retrieve cookie credentials after {}s".format(
-                self.rpc_timeout))
+            f"Unable to retrieve cookie credentials after {self.rpc_timeout}s")
 
     def generate(self, nblocks, maxtries=1000000, **kwargs):
         self.log.debug(
@@ -429,14 +432,14 @@ class TestNode:
     def get_wallet_rpc(self, wallet_name):
         if self.use_cli:
             return RPCOverloadWrapper(
-                self.cli("-rpcwallet={}".format(wallet_name)), True,
+                self.cli(f"-rpcwallet={wallet_name}"), True,
                 self.descriptors)
         else:
             assert self.rpc is not None, self._node_msg(
                 "Error: RPC not initialized")
             assert self.rpc_connected, self._node_msg(
                 "Error: RPC not connected")
-            wallet_path = "wallet/{}".format(urllib.parse.quote(wallet_name))
+            wallet_path = f"wallet/{urllib.parse.quote(wallet_name)}"
             return RPCOverloadWrapper(self.rpc / wallet_path,
                                       descriptors=self.descriptors)
 
@@ -460,7 +463,7 @@ class TestNode:
         stderr = self.stderr.read().decode('utf-8').strip()
         if stderr != expected_stderr:
             raise AssertionError(
-                "Unexpected stderr {} != {}".format(stderr, expected_stderr))
+                f"Unexpected stderr {stderr} != {expected_stderr}")
 
         self.stdout.close()
         self.stderr.close()
@@ -483,7 +486,7 @@ class TestNode:
 
         # process has stopped. Assert that it didn't return an error code.
         assert return_code == 0, self._node_msg(
-            "Node returned non-zero exit code ({}) when stopping".format(return_code))
+            f"Node returned non-zero exit code ({return_code}) when stopping")
         self.running = False
         self.process = None
         self.rpc_connected = False
@@ -541,8 +544,8 @@ class TestNode:
                 if re.search(re.escape(unexpected_msg),
                              log, flags=re.MULTILINE):
                     self._raise_assertion_error(
-                        'Unexpected message "{}" partially matches log:\n\n{}\n\n'.format(
-                            unexpected_msg, print_log))
+                        f'Unexpected message "{unexpected_msg}" partially matches '
+                        f'log:\n\n{print_log}\n\n')
             for expected_msg in expected_msgs:
                 if re.search(re.escape(expected_msg), log,
                              flags=re.MULTILINE) is None:
@@ -553,8 +556,8 @@ class TestNode:
                 break
             time.sleep(0.05)
         self._raise_assertion_error(
-            'Expected messages "{}" does not partially match log:\n\n{}\n\n'.format(
-                str(expected_msgs), print_log))
+            f'Expected messages "{expected_msgs}" does not partially match '
+            f'log:\n\n{print_log}\n\n')
 
     @contextlib.contextmanager
     def wait_for_debug_log(
@@ -595,8 +598,8 @@ class TestNode:
             time.sleep(interval)
 
         self._raise_assertion_error(
-            'Expected messages "{}" does not partially match log:\n\n{}\n\n'.format(
-                str(expected_msgs), print_log))
+            f'Expected messages "{str(expected_msgs)}" does not partially match '
+            f'log:\n\n{print_log}\n\n')
 
     @contextlib.contextmanager
     def profile_with_perf(self, profile_name: str):
@@ -639,13 +642,13 @@ class TestNode:
             return None
 
         if not test_success(
-                'readelf -S {} | grep .debug_str'.format(shlex.quote(self.binary))):
+                f'readelf -S {shlex.quote(self.binary)} | grep .debug_str'):
             self.log.warning(
                 "perf output won't be very useful without debug symbols compiled into bitcoind")
 
         output_path = tempfile.NamedTemporaryFile(
             dir=self.datadir,
-            prefix="{}.perf.data.".format(profile_name or 'test'),
+            prefix=f"{profile_name or 'test'}.perf.data.",
             delete=False,
         ).name
 
@@ -680,8 +683,8 @@ class TestNode:
                 "perf couldn't collect data! Try "
                 "'sudo sysctl -w kernel.perf_event_paranoid=-1'")
         else:
-            report_cmd = "perf report -i {}".format(output_path)
-            self.log.info("See perf output by running '{}'".format(report_cmd))
+            report_cmd = f"perf report -i {output_path}"
+            self.log.info(f"See perf output by running '{report_cmd}'")
 
     def assert_start_raises_init_error(
             self, extra_args=None, expected_msg=None, match=ErrorMatch.FULL_TEXT, *args, **kwargs):
@@ -710,15 +713,18 @@ class TestNode:
                         if re.search(expected_msg, stderr,
                                      flags=re.MULTILINE) is None:
                             self._raise_assertion_error(
-                                'Expected message "{}" does not partially match stderr:\n"{}"'.format(expected_msg, stderr))
+                                f'Expected message "{expected_msg}" does not partially '
+                                f'match stderr:\n"{stderr}"')
                     elif match == ErrorMatch.FULL_REGEX:
                         if re.fullmatch(expected_msg, stderr) is None:
                             self._raise_assertion_error(
-                                'Expected message "{}" does not fully match stderr:\n"{}"'.format(expected_msg, stderr))
+                                f'Expected message "{expected_msg}" does not fully '
+                                f'match stderr:\n"{stderr}"')
                     elif match == ErrorMatch.FULL_TEXT:
                         if expected_msg != stderr:
                             self._raise_assertion_error(
-                                'Expected message "{}" does not fully match stderr:\n"{}"'.format(expected_msg, stderr))
+                                f'Expected message "{expected_msg}" does not fully '
+                                f'match stderr:\n"{stderr}"')
             except subprocess.TimeoutExpired:
                 self.process.kill()
                 self.running = False
@@ -807,8 +813,8 @@ class TestNode:
 
         def addconnection_callback(address, port):
             self.log.debug(
-                "Connecting to {}:{} {}".format(address, port, connection_type))
-            self.addconnection('{}:{}'.format(address, port), connection_type)
+                f"Connecting to {address}:{port} {connection_type}")
+            self.addconnection(f'{address}:{port}', connection_type)
 
         p2p_conn.peer_accept_connection(
             connect_cb=addconnection_callback,
@@ -908,15 +914,16 @@ class TestNodeCLI:
         pos_args = [arg_to_cli(arg) for arg in args]
         named_args = [str(key) + "=" + arg_to_cli(value)
                       for (key, value) in kwargs.items()]
-        assert not (
-            pos_args and named_args), "Cannot use positional arguments and named arguments in the same bitcoin-cli call"
+        assert not (pos_args and named_args), \
+            "Cannot use positional arguments and named arguments in the same " \
+            "bitcoin-cli call"
         p_args = [self.binary, "-datadir=" + self.datadir] + self.options
         if named_args:
             p_args += ["-named"]
         if command is not None:
             p_args += [command]
         p_args += pos_args + named_args
-        self.log.debug("Running bitcoin-cli {}".format(p_args[2:]))
+        self.log.debug(f"Running bitcoin-cli {p_args[2:]}")
         if self.emulator is not None:
             p_args = [self.emulator] + p_args
         process = subprocess.Popen(p_args, stdin=subprocess.PIPE,

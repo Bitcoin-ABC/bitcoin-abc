@@ -216,8 +216,8 @@ class P2PConnection(asyncio.Protocol):
     def connection_lost(self, exc):
         """asyncio callback when a connection is closed."""
         if exc:
-            logger.warning("Connection lost to {}:{} due to {}".format(
-                self.dstaddr, self.dstport, exc))
+            logger.warning(
+                f"Connection lost to {self.dstaddr}:{self.dstport} due to {exc}")
         else:
             logger.debug(f"Closed connection to: {self.dstaddr}:{self.dstport}")
         self._transport = None
@@ -250,10 +250,8 @@ class P2PConnection(asyncio.Protocol):
                     return None
                 if self.recvbuf[:4] != self.magic_bytes:
                     raise ValueError(
-                        "magic bytes mismatch: {} != {}".format(
-                            repr(
-                                self.magic_bytes), repr(
-                                self.recvbuf)))
+                        f"magic bytes mismatch: "
+                        f"{self.magic_bytes!r} != {self.recvbuf!r}")
                 if len(self.recvbuf) < 4 + 12 + 4 + 4:
                     return None
                 msgtype = self.recvbuf[4:4 + 12].split(b"\x00", 1)[0]
@@ -268,8 +266,9 @@ class P2PConnection(asyncio.Protocol):
                     raise ValueError(f"got bad checksum {repr(self.recvbuf)}")
                 self.recvbuf = self.recvbuf[4 + 12 + 4 + 4 + msglen:]
                 if msgtype not in MESSAGEMAP:
-                    raise ValueError("Received unknown msgtype from {}:{}: '{}' {}".format(
-                        self.dstaddr, self.dstport, msgtype, repr(msg)))
+                    raise ValueError(
+                        f"Received unknown msgtype from {self.dstaddr}:{self.dstport}:"
+                        f" '{msgtype}' {msg!r}")
                 f = BytesIO(msg)
                 m = MESSAGEMAP[msgtype]()
                 m.deserialize(f)
@@ -509,8 +508,9 @@ class P2PInterface(P2PConnection):
         pass
 
     def on_version(self, message):
-        assert message.nVersion >= MIN_P2P_VERSION_SUPPORTED, "Version {} received. Test framework only supports versions greater than {}".format(
-            message.nVersion, MIN_P2P_VERSION_SUPPORTED)
+        assert message.nVersion >= MIN_P2P_VERSION_SUPPORTED, \
+            f"Version {message.nVersion} received. Test framework only supports " \
+            f"versions greater than {MIN_P2P_VERSION_SUPPORTED}"
         self.send_message(msg_verack())
         if self.support_addrv2:
             self.send_message(msg_sendaddrv2())
@@ -769,8 +769,8 @@ class P2PDataStore(P2PInterface):
                     # if this is the hashstop header, stop here
                     break
             else:
-                logger.debug('block hash {} not found in block store'.format(
-                    hex(prev_block_hash)))
+                logger.debug(
+                    f'block hash {hex(prev_block_hash)} not found in block store')
                 break
 
         # Truncate the list if there are too many headers

@@ -56,8 +56,8 @@ def assert_fee_amount(fee, tx_size, fee_per_kB, wiggleroom=2):
 
 def assert_equal(thing1, thing2, *args):
     if thing1 != thing2 or any(thing1 != arg for arg in args):
-        raise AssertionError("not({})".format(" == ".join(str(arg)
-                                                          for arg in (thing1, thing2) + args)))
+        raise AssertionError(
+            f"not({' == '.join(str(arg) for arg in (thing1, thing2) + args)})")
 
 
 def assert_greater_than(thing1, thing2):
@@ -83,8 +83,7 @@ def assert_raises_message(exc, message, fun, *args, **kwds):
     except exc as e:
         if message is not None and message not in e.error['message']:
             raise AssertionError(
-                "Expected substring not found in error message:\nsubstring: '{}'\nerror message: '{}'.".format(
-                    message, e.error['message']))
+                f"Expected substring not found in error message:\nsubstring: '{message}'\nerror message: '{e.error['message']}'.")
     except Exception as e:
         raise AssertionError(
             f"Unexpected exception raised: {type(e).__name__}")
@@ -154,8 +153,7 @@ def try_rpc(code, message, fun, *args, **kwds):
                 f"Unexpected JSONRPC error code {e.error['code']}")
         if (message is not None) and (message not in e.error['message']):
             raise AssertionError(
-                "Expected substring not found in error message:\nsubstring: '{}'\nerror message: '{}'.".format(
-                    message, e.error['message']))
+                f"Expected substring not found in error message:\nsubstring: '{message}'\nerror message: '{e.error['message']}'.")
         return True
     except Exception as e:
         raise AssertionError(
@@ -276,8 +274,8 @@ def wait_until_helper(predicate, *, attempts=float('inf'),
     predicate_source = f"''''\n{inspect.getsource(predicate)}'''"
     logger.error(f"wait_until() failed. Predicate: {predicate_source}")
     if attempt >= attempts:
-        raise AssertionError("Predicate {} not true after {} attempts".format(
-            predicate_source, attempts))
+        raise AssertionError(
+            f"Predicate {predicate_source} not true after {attempts} attempts")
     elif time.time() >= time_end:
         raise AssertionError(
             f"Predicate {predicate_source} not true after {timeout} seconds")

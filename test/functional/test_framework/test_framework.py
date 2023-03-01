@@ -317,10 +317,14 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             exit_code = TEST_EXIT_SKIPPED
         else:
             self.log.error(
-                f"Test failed. Test logging available at {self.options.tmpdir}/test_framework.log")
+                f"Test failed. Test logging available at {self.options.tmpdir}"
+                f"/test_framework.log")
             self.log.error("")
-            self.log.error("Hint: Call {} '{}' to consolidate all logs".format(os.path.normpath(
-                f"{os.path.dirname(os.path.realpath(__file__))}/../combine_logs.py"), self.options.tmpdir))
+            combine_logs_path = os.path.normpath(
+                f'{os.path.dirname(os.path.realpath(__file__))}/../combine_logs.py')
+            self.log.error(
+                f"Hint: Call {combine_logs_path} '{self.options.tmpdir}' to "
+                f"consolidate all logs")
             self.log.error("")
             self.log.error(
                 "If this failure happened unexpectedly or intermittently, please"
@@ -568,7 +572,8 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         peer_ids = get_peer_ids()
         if not peer_ids:
             self.log.warning(
-                f"disconnect_nodes: {from_node.index} and {to_node.index} were not connected")
+                f"disconnect_nodes: {from_node.index} and {to_node.index} were not "
+                "connected")
             return
         for peer_id in peer_ids:
             try:
@@ -641,10 +646,8 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             # Check that each peer has at least one connection
             assert (all([len(x.getpeerinfo()) for x in rpc_connections]))
             time.sleep(wait)
-        raise AssertionError("Block sync timed out after {}s:{}".format(
-            timeout,
-            "".join("\n  {!r}".format(b) for b in best_hash),
-        ))
+        best_hashes = "".join(f"\n  {b!r}" for b in best_hash)
+        raise AssertionError(f"Block sync timed out after {timeout}s:{best_hashes}")
 
     def sync_mempools(self, nodes=None, wait=1, timeout=60,
                       flush_scheduler=True):
@@ -665,10 +668,8 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             # Check that each peer has at least one connection
             assert (all([len(x.getpeerinfo()) for x in rpc_connections]))
             time.sleep(wait)
-        raise AssertionError("Mempool sync timed out after {}s:{}".format(
-            timeout,
-            "".join("\n  {!r}".format(m) for m in pool),
-        ))
+        pool_str = "".join(f"\n  {m!r}" for m in pool)
+        raise AssertionError(f"Mempool sync timed out after {timeout}s:{pool_str}")
 
     def sync_proofs(self, nodes=None, wait=1, timeout=60):
         """
@@ -690,10 +691,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             # Check that each peer has at least one connection
             assert (all([len(x.getpeerinfo()) for x in rpc_connections]))
             time.sleep(wait)
-        raise AssertionError("Proofs sync timed out after {}s:{}".format(
-            timeout,
-            "".join("\n  {!r}".format(m) for m in nodes_proofs),
-        ))
+        nodes_proofs_str = "".join(f"\n  {m!r}" for m in nodes_proofs)
+        raise AssertionError(
+            f"Proofs sync timed out after {timeout}s:{nodes_proofs_str}")
 
     def sync_all(self, nodes=None):
         self.sync_blocks(nodes)

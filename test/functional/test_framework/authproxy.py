@@ -188,10 +188,10 @@ class AuthServiceProxy:
         except socket.timeout:
             raise JSONRPCException({
                 'code': -344,
-                'message': '{!r} RPC took longer than {} seconds. Consider '
-                           'using larger timeout for calls that take '
-                           'longer to return.'.format(self._service_name,
-                                                      self.__conn.timeout)})
+                'message':
+                    f'{self._service_name!r} RPC took longer than '
+                    f'{self.__conn.timeout} seconds. Consider using larger '
+                    'timeout for calls that take longer to return.'})
         if http_response is None:
             raise JSONRPCException({
                 'code': -342, 'message': 'missing HTTP response from server'})
@@ -200,8 +200,8 @@ class AuthServiceProxy:
         if content_type != 'application/json':
             raise JSONRPCException(
                 {'code': -342,
-                 'message': 'non-JSON HTTP response with \'{} {}\' from server'.format(
-                     http_response.status, http_response.reason)},
+                 'message': f'non-JSON HTTP response with \'{http_response.status} '
+                            f'{http_response.reason}\' from server'},
                 http_response.status)
 
         responsedata = http_response.read().decode('utf8')
@@ -215,8 +215,8 @@ class AuthServiceProxy:
         return response, http_response.status
 
     def __truediv__(self, relative_uri):
-        return AuthServiceProxy("{}/{}".format(self.__service_url,
-                                               relative_uri), self._service_name, connection=self.__conn)
+        return AuthServiceProxy(f"{self.__service_url}/{relative_uri}",
+                                self._service_name, connection=self.__conn)
 
     def _set_conn(self, connection=None):
         port = 80 if self.__url.port is None else self.__url.port

@@ -92,8 +92,7 @@ def test_address(node, address, **kwargs):
                     f"key {key} unexpectedly returned in getaddressinfo.")
         elif addr_info[key] != value:
             raise AssertionError(
-                "key {} value {} did not match expected value {}".format(
-                    key, addr_info[key], value))
+                f"key {key} value {addr_info[key]} did not match expected value {value}")
 
 
 def bytes_to_wif(b, compressed=True):

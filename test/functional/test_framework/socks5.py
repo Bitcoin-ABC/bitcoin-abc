@@ -62,8 +62,7 @@ class Socks5Command:
         self.password = password
 
     def __repr__(self):
-        return 'Socks5Command({},{},{},{},{},{})'.format(
-            self.cmd, self.atyp, self.addr, self.port, self.username, self.password)
+        return f'Socks5Command({self.cmd},{self.atyp},{self.addr},{self.port},{self.username},{self.password})'
 
 
 class Socks5Connection:

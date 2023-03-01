@@ -163,8 +163,8 @@ def decode(address):
     if version & 0x04:
         size <<= 1
     if size != len(addr_hash):
-        raise ValueError('address hash has length {} but expected {}'
-                         .format(len(addr_hash), size))
+        raise ValueError(
+            f'address hash has length {len(addr_hash)} but expected {size}')
 
     kind = version >> 3
     if kind not in (SCRIPT_TYPE, PUBKEY_TYPE):
