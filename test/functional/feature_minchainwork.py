@@ -59,8 +59,9 @@ class MinimumChainWorkTest(BitcoinTestFramework):
             num_blocks_to_generate,
             sync_fun=self.no_op)
 
-        self.log.info("Node0 current chain work: {}".format(
-                      self.nodes[0].getblockheader(hashes[-1])['chainwork']))
+        self.log.info(
+            "Node0 current chain work: "
+            f"{self.nodes[0].getblockheader(hashes[-1])['chainwork']}")
 
         # Sleep a few seconds and verify that node2 didn't get any new blocks
         # or headers.  We sleep, rather than sync_blocks(node0, node1) because

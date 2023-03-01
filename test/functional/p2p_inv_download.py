@@ -176,7 +176,8 @@ class InventoryDownloadTest(BitcoinTestFramework):
         txid = int(ctx.rehash(), 16)
 
         self.log.info(
-            f"Announce the transaction to all nodes from all {NUM_INBOUND} incoming peers, but never send it")
+            f"Announce the transaction to all nodes from all {NUM_INBOUND} incoming "
+            "peers, but never send it")
         msg = msg_inv([CInv(t=context.inv_type, h=txid)])
         for p in self.peers:
             p.send_and_ping(msg)
@@ -189,7 +190,8 @@ class InventoryDownloadTest(BitcoinTestFramework):
         # In order to make sure the inv is sent we move the time 2 minutes
         # forward, which has the added side effect that the tx can be
         # unconditionally requested.
-        with self.nodes[1].assert_debug_log([f"got inv: tx {uint256_hex(txid)}  new peer=0"]):
+        with self.nodes[1].assert_debug_log(
+                [f"got inv: tx {uint256_hex(txid)}  new peer=0"]):
             self.nodes[0].setmocktime(
                 int(time.time()) + UNCONDITIONAL_RELAY_DELAY)
 
@@ -214,8 +216,9 @@ class InventoryDownloadTest(BitcoinTestFramework):
         max_inbound_delay = context.constants.inbound_peer_delay + \
             context.constants.overloaded_peer_delay
 
-        self.log.info("Test that we don't load peers with more than {} getdata requests immediately".format(
-            max_getdata_in_flight))
+        self.log.info(
+            f"Test that we don't load peers with more than {max_getdata_in_flight} "
+            "getdata requests immediately")
         invids = [i for i in range(max_getdata_in_flight + 2)]
 
         p = self.nodes[0].p2ps[0]
@@ -235,9 +238,8 @@ class InventoryDownloadTest(BitcoinTestFramework):
             p.send_message(msg_inv([CInv(t=context.inv_type, h=invids[i])]))
         p.sync_with_ping()
         self.log.info(
-            "No more than {} requests should be seen within {} seconds after announcement".format(
-                max_getdata_in_flight,
-                max_inbound_delay - 1))
+            f"No more than {max_getdata_in_flight} requests should be seen within "
+            f"{max_inbound_delay - 1} seconds after announcement")
         self.nodes[0].setmocktime(
             mock_time +
             max_inbound_delay - 1)
@@ -245,8 +247,8 @@ class InventoryDownloadTest(BitcoinTestFramework):
         with p2p_lock:
             assert_equal(p.getdata_count, max_getdata_in_flight)
         self.log.info(
-            "If we wait {} seconds after announcement, we should eventually get more requests".format(
-                max_inbound_delay))
+            f"If we wait {max_inbound_delay} seconds after announcement, we should "
+            f"eventually get more requests")
         self.nodes[0].setmocktime(
             mock_time +
             max_inbound_delay)

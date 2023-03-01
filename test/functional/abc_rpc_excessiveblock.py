@@ -15,8 +15,9 @@ from test_framework.cdefs import (
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
-BLOCKSIZE_TOO_LOW = "Error: Excessive block size must be > {:,} bytes".format(
-    LEGACY_MAX_BLOCK_SIZE)
+BLOCKSIZE_TOO_LOW = (
+    f"Error: Excessive block size must be > {LEGACY_MAX_BLOCK_SIZE:,} bytes"
+)
 
 
 class ExcessiveBlockSizeRPCTest(BitcoinTestFramework):

@@ -138,10 +138,12 @@ class RawTransactionsTest(BitcoinTestFramework):
                                 self.nodes[0].createrawtransaction, [], {address: 'foo'})
         assert_raises_rpc_error(-3, "Amount out of range",
                                 self.nodes[0].createrawtransaction, [], {address: -1})
-        assert_raises_rpc_error(-8, "Invalid parameter, duplicated address: {}".format(
-            address), self.nodes[0].createrawtransaction, [], multidict([(address, 1), (address, 1)]))
-        assert_raises_rpc_error(-8, "Invalid parameter, duplicated address: {}".format(
-            address), self.nodes[0].createrawtransaction, [], [{address: 1}, {address: 1}])
+        assert_raises_rpc_error(-8, f"Invalid parameter, duplicated address: {address}",
+                                self.nodes[0].createrawtransaction, [],
+                                multidict([(address, 1), (address, 1)]))
+        assert_raises_rpc_error(-8, f"Invalid parameter, duplicated address: {address}",
+                                self.nodes[0].createrawtransaction, [],
+                                [{address: 1}, {address: 1}])
         assert_raises_rpc_error(-8,
                                 "Invalid parameter, duplicate key: data",
                                 self.nodes[0].createrawtransaction,

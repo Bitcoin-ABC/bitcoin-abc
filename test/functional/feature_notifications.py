@@ -42,9 +42,9 @@ class NotificationsTest(BitcoinTestFramework):
         os.mkdir(self.walletnotify_dir)
 
         # -alertnotify and -blocknotify on node0, walletnotify on node1
-        self.extra_args = [["-alertnotify=echo > {}".format(
-            os.path.join(self.alertnotify_dir, '%s')),
-            f"-blocknotify=echo > {os.path.join(self.blocknotify_dir, '%s')}"],
+        self.extra_args = [
+            [f"-alertnotify=echo > {os.path.join(self.alertnotify_dir, '%s')}",
+             f"-blocknotify=echo > {os.path.join(self.blocknotify_dir, '%s')}"],
             ["-rescan",
              f"-walletnotify=echo > {os.path.join(self.walletnotify_dir, notify_outputname('%w', '%s'))}"]]
         self.wallet_names = [self.default_wallet_name, self.wallet]

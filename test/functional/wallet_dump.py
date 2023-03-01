@@ -125,9 +125,9 @@ class WalletDumpTest(BitcoinTestFramework):
                 dump_time,
                 tz=datetime.timezone.utc,
             ).replace(tzinfo=None).isoformat())
-        dump_best_block_1 = '# * Best block at time of backup was {} ({}),'.format(
-            self.nodes[0].getblockcount(),
-            self.nodes[0].getbestblockhash(),
+        dump_best_block_1 = (
+            f'# * Best block at time of backup was {self.nodes[0].getblockcount()} '
+            f'({self.nodes[0].getbestblockhash()}),'
         )
         dump_best_block_2 = '#   mined on {}Z'.format(
             datetime.datetime.fromtimestamp(

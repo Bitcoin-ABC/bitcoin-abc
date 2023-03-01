@@ -314,8 +314,8 @@ class MultiWalletTest(BitcoinTestFramework):
                             "wallets", "wallets")
         assert_raises_rpc_error(
             -18,
-            "Wallet file verification failed. Failed to load database path "
-            "'{}'. Path does not exist.".format(path),
+            f"Wallet file verification failed. Failed to load database path '{path}'. "
+            "Path does not exist.",
             self.nodes[0].loadwallet, 'wallets')
 
         # Fail to load duplicate wallets
@@ -328,8 +328,8 @@ class MultiWalletTest(BitcoinTestFramework):
             self.wallet_data_filename)
         assert_raises_rpc_error(
             -4,
-            "Wallet file verification failed. Refusing to load database. Data file '{}' is already loaded.".format(
-                path),
+            "Wallet file verification failed. Refusing to load database. "
+            f"Data file '{path}' is already loaded.",
             self.nodes[0].loadwallet,
             wallet_names[0])
 
@@ -343,8 +343,8 @@ class MultiWalletTest(BitcoinTestFramework):
             self.wallet_data_filename)
         assert_raises_rpc_error(
             -4,
-            "Wallet file verification failed. Refusing to load database. Data file '{}' is already loaded.".format(
-                path),
+            "Wallet file verification failed. Refusing to load database. "
+            f"Data file '{path}' is already loaded.",
             self.nodes[0].loadwallet,
             self.wallet_data_filename)
 
@@ -373,8 +373,8 @@ class MultiWalletTest(BitcoinTestFramework):
                             "wallets", "empty_wallet_dir")
         assert_raises_rpc_error(
             -18,
-            "Wallet file verification failed. Failed to load database "
-            "path '{}'. Data is not in recognized format.".format(path),
+            f"Wallet file verification failed. Failed to load database path '{path}'. "
+            "Data is not in recognized format.",
             self.nodes[0].loadwallet, 'empty_wallet_dir')
 
         self.log.info("Test dynamic wallet creation.")

@@ -118,8 +118,9 @@ class MempoolUpdateFromBlockTest(BitcoinTestFramework):
 
             if tx_count in n_tx_to_mine:
                 # The created transactions are mined into blocks by batches.
-                self.log.info('The batch of {} transactions has been accepted'
-                              ' into the mempool.'.format(len(self.nodes[0].getrawmempool())))
+                self.log.info(
+                    f'The batch of {len(self.nodes[0].getrawmempool())} transactions '
+                    'has been accepted into the mempool.')
                 block_hash = self.generate(self.nodes[0], 1)[0]
                 if not first_block_hash:
                     first_block_hash = block_hash
@@ -131,15 +132,16 @@ class MempoolUpdateFromBlockTest(BitcoinTestFramework):
                 # At the end all of the mined blocks are invalidated, and all of the created
                 # transactions should be re-added from disconnected blocks to
                 # the mempool.
-                self.log.info('The last batch of {} transactions has been'
-                              ' accepted into the mempool.'.format(len(self.nodes[0].getrawmempool())))
+                self.log.info(
+                    f'The last batch of {len(self.nodes[0].getrawmempool())} '
+                    'transactions has been accepted into the mempool.')
                 start = time.time()
                 self.nodes[0].invalidateblock(first_block_hash)
                 end = time.time()
                 assert_equal(len(self.nodes[0].getrawmempool()), size)
                 self.log.info(
-                    'All of the recently mined transactions have been re-added'
-                    ' into the mempool in {} seconds.'.format(end - start))
+                    f'All of the recently mined transactions have been re-added into '
+                    f'the mempool in {end - start} seconds.')
 
         self.log.info(
             'Checking descendants/ancestors properties of all of the'

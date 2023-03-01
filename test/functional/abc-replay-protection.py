@@ -54,8 +54,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
         self.tip = None
         self.blocks = {}
         self.extra_args = [['-whitelist=noban@127.0.0.1',
-                            "-replayprotectionactivationtime={}".format(
-                                REPLAY_PROTECTION_START_TIME),
+                            f"-replayprotectionactivationtime={REPLAY_PROTECTION_START_TIME}",
                             "-acceptnonstdtxn=1"]]
 
     def next_block(self, number):

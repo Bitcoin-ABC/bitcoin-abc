@@ -102,20 +102,21 @@ class ProxyTest(BitcoinTestFramework):
         # This is because the proxy to use is based on CService.GetNetwork(),
         # which returns NET_UNROUTABLE for localhost.
         args = [
-            ['-listen', '-proxy={}:{}'.format(
-                self.conf1.addr[0], self.conf1.addr[1]), '-proxyrandomize=1'],
+            ['-listen', f'-proxy={self.conf1.addr[0]}:{self.conf1.addr[1]}',
+             '-proxyrandomize=1'],
             ['-listen', '-proxy={}:{}'.format(*self.conf1.addr),
              '-onion={}:{}'.format(*self.conf2.addr),
              '-i2psam={}:{}'.format(*self.i2p_sam), '-i2pacceptincoming=0',
              '-proxyrandomize=0'],
-            ['-listen', '-proxy={}:{}'.format(
-                self.conf2.addr[0], self.conf2.addr[1]), '-proxyrandomize=1'],
+            ['-listen', f'-proxy={self.conf2.addr[0]}:{self.conf2.addr[1]}',
+             '-proxyrandomize=1'],
             []
         ]
         if self.have_ipv6:
-            args[3] = ['-listen', '-proxy=[{}]:{}'.format(
-                self.conf3.addr[0], self.conf3.addr[1]), '-proxyrandomize=0',
-                '-noonion']
+            args[3] = [
+                '-listen',
+                f'-proxy=[{self.conf3.addr[0]}]:{self.conf3.addr[1]}',
+                '-proxyrandomize=0', '-noonion']
         self.add_nodes(self.num_nodes, extra_args=args)
         self.start_nodes()
 

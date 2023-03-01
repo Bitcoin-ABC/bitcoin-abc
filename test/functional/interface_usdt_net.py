@@ -28,34 +28,28 @@ MAX_MSG_TYPE_LENGTH = 20
 # larger messanges see contrib/tracing/log_raw_p2p_msgs.py
 MAX_MSG_DATA_LENGTH = 150
 
-net_tracepoints_program = """
+net_tracepoints_program = f"""
 #include <uapi/linux/ptrace.h>
 
-#define MAX_PEER_ADDR_LENGTH {}
-#define MAX_PEER_CONN_TYPE_LENGTH {}
-#define MAX_MSG_TYPE_LENGTH {}
-#define MAX_MSG_DATA_LENGTH {}
-""".format(
-    MAX_PEER_ADDR_LENGTH,
-    MAX_PEER_CONN_TYPE_LENGTH,
-    MAX_MSG_TYPE_LENGTH,
-    MAX_MSG_DATA_LENGTH
-) + """
-#define MIN(a,b) ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a < _b ? _a : _b; })
+#define MAX_PEER_ADDR_LENGTH {MAX_PEER_ADDR_LENGTH}
+#define MAX_PEER_CONN_TYPE_LENGTH {MAX_PEER_CONN_TYPE_LENGTH}
+#define MAX_MSG_TYPE_LENGTH {MAX_MSG_TYPE_LENGTH}
+#define MAX_MSG_DATA_LENGTH {MAX_MSG_DATA_LENGTH}
+#define MIN(a,b) ({{ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a < _b ? _a : _b; }})
 
 struct p2p_message
-{
+{{
     u64     peer_id;
     char    peer_addr[MAX_PEER_ADDR_LENGTH];
     char    peer_conn_type[MAX_PEER_CONN_TYPE_LENGTH];
     char    msg_type[MAX_MSG_TYPE_LENGTH];
     u64     msg_size;
     u8      msg[MAX_MSG_DATA_LENGTH];
-};
+}};
 
 BPF_PERF_OUTPUT(inbound_messages);
-int trace_inbound_message(struct pt_regs *ctx) {
-    struct p2p_message msg = {};
+int trace_inbound_message(struct pt_regs *ctx) {{
+    struct p2p_message msg = {{}};
     bpf_usdt_readarg(1, ctx, &msg.peer_id);
     bpf_usdt_readarg_p(2, ctx, &msg.peer_addr, MAX_PEER_ADDR_LENGTH);
     bpf_usdt_readarg_p(3, ctx, &msg.peer_conn_type, MAX_PEER_CONN_TYPE_LENGTH);
@@ -64,11 +58,11 @@ int trace_inbound_message(struct pt_regs *ctx) {
     bpf_usdt_readarg_p(6, ctx, &msg.msg, MIN(msg.msg_size, MAX_MSG_DATA_LENGTH));
     inbound_messages.perf_submit(ctx, &msg, sizeof(msg));
     return 0;
-}
+}}
 
 BPF_PERF_OUTPUT(outbound_messages);
-int trace_outbound_message(struct pt_regs *ctx) {
-    struct p2p_message msg = {};
+int trace_outbound_message(struct pt_regs *ctx) {{
+    struct p2p_message msg = {{}};
     bpf_usdt_readarg(1, ctx, &msg.peer_id);
     bpf_usdt_readarg_p(2, ctx, &msg.peer_addr, MAX_PEER_ADDR_LENGTH);
     bpf_usdt_readarg_p(3, ctx, &msg.peer_conn_type, MAX_PEER_CONN_TYPE_LENGTH);
@@ -77,7 +71,7 @@ int trace_outbound_message(struct pt_regs *ctx) {
     bpf_usdt_readarg_p(6, ctx, &msg.msg, MIN(msg.msg_size, MAX_MSG_DATA_LENGTH));
     outbound_messages.perf_submit(ctx, &msg, sizeof(msg));
     return 0;
-};
+}};
 """
 
 

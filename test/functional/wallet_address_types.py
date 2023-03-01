@@ -129,8 +129,9 @@ class AddressTypeTest(BitcoinTestFramework):
                          descsum_create(f"pkh({key_descs[info['pubkey']]})"))
         elif typ == 'legacy':
             # P2SH-multisig
-            assert_equal(info['desc'], descsum_create("sh(multi(2,{},{}))".format(
-                key_descs[info['pubkeys'][0]], key_descs[info['pubkeys'][1]])))
+            assert_equal(info['desc'],
+                         descsum_create(f"sh(multi(2,{key_descs[info['pubkeys'][0]]},"
+                                        f"{key_descs[info['pubkeys'][1]]}))"))
         else:
             # Unknown type
             assert False

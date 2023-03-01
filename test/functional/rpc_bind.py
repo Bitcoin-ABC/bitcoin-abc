@@ -83,12 +83,12 @@ class RPCBindTest(BitcoinTestFramework):
         at a non-localhost IP.
         '''
         self.log.info(f"Allow IP test for {rpchost}:{rpcport}")
-        node_args = \
-            ['-disablewallet', '-nolisten'] + \
-            [f"-rpcallowip={x}" for x in allow_ips] + \
-            [f"-rpcbind={addr}" for addr in ['127.0.0.1',
-                                             "{}:{}".format(rpchost,
-                                                            rpcport)]]  # Bind to localhost as well so start_nodes doesn't hang
+        node_args = (
+            ['-disablewallet', '-nolisten'] +
+            [f"-rpcallowip={x}" for x in allow_ips] +
+            # Bind to localhost as well so start_nodes doesn't hang
+            [f"-rpcbind={addr}" for addr in ['127.0.0.1', f"{rpchost}:{rpcport}"]]
+        )
         self.nodes[0].host = None
         self.start_nodes([node_args])
         # connect to node through non-loopback interface

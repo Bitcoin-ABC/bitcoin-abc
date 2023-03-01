@@ -200,8 +200,10 @@ class CompactBlocksTest(BitcoinTestFramework):
 
             with p2p_lock:
                 assert predicate(peer), (
-                    "block_hash={!r}, cmpctblock={!r}, inv={!r}".format(
-                        block_hash, peer.last_message.get("cmpctblock", None), peer.last_message.get("inv", None)))
+                    f"block_hash={block_hash!r}, "
+                    f"cmpctblock={peer.last_message.get('cmpctblock', None)!r}, "
+                    f"inv={peer.last_message.get('inv', None)!r}"
+                )
 
         # We shouldn't get any block announcements via cmpctblock yet.
         check_announcement_of_new_block(

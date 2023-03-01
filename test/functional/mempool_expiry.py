@@ -60,8 +60,9 @@ class MempoolExpiryTest(BitcoinTestFramework):
         assert_equal(
             parent_txid,
             node.getmempoolentry(child_txid)['depends'][0])
-        self.log.info('Broadcast child transaction after {} hours.'.format(
-            timedelta(seconds=(half_expiry_time - entry_time))))
+        self.log.info(
+            'Broadcast child transaction after '
+            f'{timedelta(seconds=half_expiry_time - entry_time)} hours.')
 
         # Broadcast another (independent) transaction.
         independent_txid = self.wallet.send_self_transfer(
@@ -75,8 +76,9 @@ class MempoolExpiryTest(BitcoinTestFramework):
         # is only checked when a new transaction is added to the mempool.
         self.wallet.send_self_transfer(
             from_node=node, utxo_to_spend=trigger_utxo1)
-        self.log.info('Test parent tx not expired after {} hours.'.format(
-            timedelta(seconds=(nearly_expiry_time - entry_time))))
+        self.log.info(
+            'Test parent tx not expired after '
+            f'{timedelta(seconds=nearly_expiry_time - entry_time)} hours.')
         assert_equal(entry_time, node.getmempoolentry(parent_txid)['time'])
 
         # Transaction should be evicted from the mempool after the expiry time
@@ -87,8 +89,9 @@ class MempoolExpiryTest(BitcoinTestFramework):
         # mempool is checked.
         self.wallet.send_self_transfer(
             from_node=node, utxo_to_spend=trigger_utxo2)
-        self.log.info('Test parent tx expiry after {} hours.'.format(
-            timedelta(seconds=(expiry_time - entry_time))))
+        self.log.info(
+            'Test parent tx expiry after '
+            f'{timedelta(seconds=expiry_time - entry_time)} hours.')
         assert_raises_rpc_error(-5, 'Transaction not in mempool',
                                 node.getmempoolentry, parent_txid)
 
@@ -98,19 +101,21 @@ class MempoolExpiryTest(BitcoinTestFramework):
                                 node.getmempoolentry, child_txid)
 
         # Check that the independent tx is still in the mempool.
-        self.log.info('Test the independent tx not expired after {} hours.'.format(
-            timedelta(seconds=(expiry_time - half_expiry_time))))
+        self.log.info(
+            f'Test the independent tx not expired after '
+            f'{timedelta(seconds=expiry_time - half_expiry_time)} hours.')
         assert_equal(
             half_expiry_time,
             node.getmempoolentry(independent_txid)['time'])
 
     def run_test(self):
-        self.log.info('Test default mempool expiry timeout of {} hours.'.format(
-            DEFAULT_MEMPOOL_EXPIRY))
+        self.log.info(
+            'Test default mempool expiry timeout of '
+            f'{DEFAULT_MEMPOOL_EXPIRY} hours.')
         self.test_transaction_expiry(DEFAULT_MEMPOOL_EXPIRY)
 
-        self.log.info('Test custom mempool expiry timeout of {} hours.'.format(
-            CUSTOM_MEMPOOL_EXPIRY))
+        self.log.info(
+            f'Test custom mempool expiry timeout of {CUSTOM_MEMPOOL_EXPIRY} hours.')
         self.restart_node(
             0, [f'-mempoolexpiry={CUSTOM_MEMPOOL_EXPIRY}'])
         self.test_transaction_expiry(CUSTOM_MEMPOOL_EXPIRY)

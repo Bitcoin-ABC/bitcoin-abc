@@ -317,8 +317,10 @@ class TestBitcoinCli(BitcoinTestFramework):
         self.log.info("Test -version with node stopped")
         self.stop_node(0)
         cli_response = self.nodes[0].cli().send_cli('-version')
-        assert "{} RPC client version".format(
-            self.config['environment']['PACKAGE_NAME']) in cli_response
+        assert (
+            f"{self.config['environment']['PACKAGE_NAME']} RPC client version"
+            in cli_response
+        )
 
         self.log.info(
             "Test -rpcwait option successfully waits for RPC connection")

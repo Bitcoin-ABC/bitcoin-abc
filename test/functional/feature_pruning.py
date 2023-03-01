@@ -136,8 +136,8 @@ class PruneTest(BitcoinTestFramework):
         assert os.path.isfile(os.path.join(
             self.prunedir, "blk00000.dat")), "blk00000.dat is missing, pruning too early"
         self.log.info("Success")
-        self.log.info("Though we're already using more than 550MiB, current usage: {}".format(
-                      calc_usage(self.prunedir)))
+        self.log.info("Though we're already using more than 550MiB, current usage: "
+                      f"{calc_usage(self.prunedir)}")
         self.log.info(
             "Mining 25 more blocks should cause the first block file to be pruned")
         # Pruning doesn't run until we're allocating another chunk, 20 full
@@ -178,8 +178,8 @@ class PruneTest(BitcoinTestFramework):
             self.connect_nodes(0, 2)
             self.sync_blocks(self.nodes[0:3])
 
-        self.log.info("Usage can be over target because of high stale rate: {}".format(
-                      calc_usage(self.prunedir)))
+        self.log.info("Usage can be over target because of high stale rate: "
+                      f"{calc_usage(self.prunedir)}")
 
     def reorg_test(self):
         # Node 1 will mine a 300 block chain starting 287 blocks back from Node
@@ -219,8 +219,8 @@ class PruneTest(BitcoinTestFramework):
         self.sync_blocks(self.nodes[0:3], timeout=120)
 
         self.log.info(f"Verify height on node 2: {self.nodes[2].getblockcount()}")
-        self.log.info("Usage possibly still high because of stale blocks in block files: {}".format(
-                      calc_usage(self.prunedir)))
+        self.log.info("Usage possibly still high because of stale blocks in block "
+                      f"files: {calc_usage(self.prunedir)}")
 
         self.log.info(
             "Mine 220 more large blocks so we have requisite history")
@@ -266,8 +266,8 @@ class PruneTest(BitcoinTestFramework):
         if self.nodes[2].getblockcount() < self.mainchainheight:
             blocks_to_mine = first_reorg_height + 1 - self.mainchainheight
             self.log.info(
-                "Rewind node 0 to prev main chain to mine longer chain to trigger redownload. Blocks needed: {}".format(
-                    blocks_to_mine))
+                "Rewind node 0 to prev main chain to mine longer chain to trigger "
+                f"redownload. Blocks needed: {blocks_to_mine}")
             self.nodes[0].invalidateblock(curchainhash)
             assert_equal(self.nodes[0].getblockcount(), self.mainchainheight)
             assert_equal(self.nodes[0].getbestblockhash(), self.mainchainhash2)

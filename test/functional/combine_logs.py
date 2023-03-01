@@ -188,17 +188,16 @@ def get_log_events(source, logfile):
             # Flush the final event
             yield LogEvent(timestamp=timestamp, source=source, event=event.rstrip())
     except FileNotFoundError:
-        print("File {} could not be opened. Continuing without it.".format(
-            logfile), file=sys.stderr)
+        print(f"File {logfile} could not be opened. Continuing without it.",
+              file=sys.stderr)
 
 
 def print_logs_plain(log_events, colors):
     """Renders the iterator of log events into text."""
     for event in log_events:
         lines = event.event.splitlines()
-        print("{0} {1: <5} {2} {3}".format(colors[event.source.rstrip()],
-                                           event.source, lines[0],
-                                           colors["reset"]))
+        print(f"{colors[event.source.rstrip()]} {event.source: <5} "
+              f"{lines[0]} {colors['reset']}")
         if len(lines) > 1:
             for line in lines[1:]:
                 print(f"{colors[event.source.rstrip()]}{line}{colors['reset']}")

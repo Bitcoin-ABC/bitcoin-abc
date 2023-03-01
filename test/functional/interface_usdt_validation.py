@@ -77,8 +77,12 @@ class ValidationTracepointTest(BitcoinTestFramework):
             ]
 
             def __repr__(self):
-                return "ConnectedBlock(hash={} height={}, transactions={}, inputs={}, sigchk={}, duration={})".format(
-                    bytes(self.hash[::-1]).hex(), self.height, self.transactions, self.inputs, self.sigchk, self.duration)
+                return (
+                    f"ConnectedBlock(hash={bytes(self.hash[::-1]).hex()} "
+                    f"height={self.height}, transactions={self.transactions}, "
+                    f"inputs={self.inputs}, sigchk={self.sigchk}, "
+                    f"duration={self.duration})"
+                )
 
         # The handle_* function is a ctypes callback function called from C. When
         # we assert in the handle_* function, the AssertError doesn't propagate
