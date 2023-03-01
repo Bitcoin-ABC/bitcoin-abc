@@ -2,11 +2,30 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <blockindex.h>
+#include <chronik-cpp/util/hash.h>
 #include <chronik-lib/src/ffi.rs.h>
+#include <primitives/block.h>
 #include <validationinterface.h>
 
 namespace chronik {
 
+chronik_bridge::Block BridgeBlock(const CBlock &block,
+                                  const CBlockIndex *pindex) {
+    const CBlockHeader header = pindex->GetBlockHeader();
+    return {.hash = chronik::util::HashToArray(header.GetHash()),
+            .prev_hash = chronik::util::HashToArray(header.hashPrevBlock),
+            .n_bits = header.nBits,
+            .timestamp = header.GetBlockTime(),
+            .height = pindex->nHeight,
+            .file_num = uint32_t(pindex->nFile),
+            .data_pos = pindex->nDataPos,
+            .undo_pos = pindex->nUndoPos};
+}
+
+/**
+ * CValidationInterface connecting bitcoind events to Chronik
+ */
 class ChronikValidationInterface final : public CValidationInterface {
 public:
     ChronikValidationInterface(rust::Box<chronik_bridge::Chronik> chronik_box)
@@ -32,12 +51,12 @@ private:
 
     void BlockConnected(const std::shared_ptr<const CBlock> &block,
                         const CBlockIndex *pindex) override {
-        m_chronik->handle_block_connected();
+        m_chronik->handle_block_connected(BridgeBlock(*block, pindex));
     }
 
     void BlockDisconnected(const std::shared_ptr<const CBlock> &block,
                            const CBlockIndex *pindex) override {
-        m_chronik->handle_block_disconnected();
+        m_chronik->handle_block_disconnected(BridgeBlock(*block, pindex));
     }
 };
 

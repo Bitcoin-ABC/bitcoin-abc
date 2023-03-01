@@ -18,14 +18,20 @@ hex = "0.4"
 # Compact and fast serialization
 postcard = { version = "1.0", features = ["alloc"] }
 
-# Key-value database
-rocksdb = { version = "0.19", default-features = false }
-
 # Serialize structs
 serde = { version = "1.0", features = ["derive"] }
 
 # Derive error enums
 thiserror = "1.0"
+
+# Key-value database
+# This is currently a git dependency, as this commit to fix the linux-arm build
+# hasn't been published yet. TODO: Change it back to version once published.
+# See this GitHub issue: https://github.com/rust-rocksdb/rust-rocksdb/pull/754
+[dependencies.rocksdb]
+git = "https://github.com/rust-rocksdb/rust-rocksdb.git"
+rev = "a6103ef"
+default-features = false
 
 [dev-dependencies]
 # Colorful diffs for assertions

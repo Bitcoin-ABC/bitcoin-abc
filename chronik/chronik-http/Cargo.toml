@@ -10,6 +10,7 @@ license = "MIT"
 [dependencies]
 abc-rust-error = { path = "../abc-rust-error" }
 abc-rust-lint = { path = "../abc-rust-lint" }
+chronik-indexer = { path = "../chronik-indexer" }
 chronik-util = { path = "../chronik-util" }
 
 # Allow traits to use async functions

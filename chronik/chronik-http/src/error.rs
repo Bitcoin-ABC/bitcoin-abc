@@ -9,7 +9,7 @@ use axum::response::{IntoResponse, Response};
 use chronik_util::{log, log_chronik};
 use hyper::StatusCode;
 
-use crate::{proto, protobuf::Protobuf};
+use crate::{proto, protobuf::Protobuf, server::ChronikServerError};
 
 /// Wrapper around [`Report`] which can be converted into a [`Response`].
 #[derive(Debug)]
@@ -18,6 +18,12 @@ pub struct ReportError(pub Report);
 impl From<Report> for ReportError {
     fn from(err: Report) -> Self {
         ReportError(err)
+    }
+}
+
+impl From<ChronikServerError> for ReportError {
+    fn from(err: ChronikServerError) -> Self {
+        ReportError(err.into())
     }
 }
 

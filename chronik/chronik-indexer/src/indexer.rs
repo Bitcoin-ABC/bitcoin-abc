@@ -9,7 +9,7 @@ use std::path::PathBuf;
 use abc_rust_error::{Result, WrapErr};
 use chronik_db::{
     db::{Db, WriteBatch},
-    io::{BlockWriter, DbBlock},
+    io::{BlockReader, BlockWriter, DbBlock},
 };
 use chronik_util::log_chronik;
 use thiserror::Error;
@@ -81,6 +81,11 @@ impl ChronikIndexer {
         block_writer.delete_by_height(&mut batch, block.db_block.height)?;
         self.db.write_batch(batch)?;
         Ok(())
+    }
+
+    /// Return [`BlockReader`] to read blocks from the DB.
+    pub fn blocks(&self) -> Result<BlockReader<'_>> {
+        BlockReader::new(&self.db)
     }
 }
 

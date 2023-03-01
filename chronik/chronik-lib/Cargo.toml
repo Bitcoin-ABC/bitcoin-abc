@@ -15,8 +15,12 @@ crate-type = ["staticlib"]
 abc-rust-lint = { path = "../abc-rust-lint" }
 abc-rust-error = { path = "../abc-rust-error" }
 
+bitcoinsuite-core = { path = "../bitcoinsuite-core" }
+
 chronik-bridge = { path = "../chronik-bridge" }
+chronik-db = { path = "../chronik-db" }
 chronik-http = { path = "../chronik-http" }
+chronik-indexer = { path = "../chronik-indexer" }
 chronik-util = { path = "../chronik-util" }
 
 # Bridge to C++

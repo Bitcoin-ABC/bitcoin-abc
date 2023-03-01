@@ -4,12 +4,18 @@
 
 //! Module for [`ChronikServer`].
 
-use std::net::SocketAddr;
+use std::{net::SocketAddr, sync::Arc};
 
 use abc_rust_error::Result;
-use axum::Router;
+use axum::{extract::Path, routing, Extension, Router};
+use chronik_indexer::indexer::ChronikIndexer;
 use hyper::server::conn::AddrIncoming;
 use thiserror::Error;
+use tokio::sync::RwLock;
+
+use crate::{error::ReportError, proto, protobuf::Protobuf};
+
+type ChronikIndexerRef = Arc<RwLock<ChronikIndexer>>;
 
 use crate::handlers::handle_not_found;
 
@@ -18,6 +24,8 @@ use crate::handlers::handle_not_found;
 pub struct ChronikServerParams {
     /// Host address (port + IP) where to serve Chronik at.
     pub hosts: Vec<SocketAddr>,
+    /// Indexer to read data from
+    pub indexer: ChronikIndexerRef,
 }
 
 /// Chronik HTTP server, holding all the data/handles required to serve an
@@ -25,6 +33,7 @@ pub struct ChronikServerParams {
 #[derive(Debug)]
 pub struct ChronikServer {
     server_builders: Vec<hyper::server::Builder<AddrIncoming>>,
+    indexer: ChronikIndexerRef,
 }
 
 /// Errors for [`ChronikServer`].
@@ -37,6 +46,10 @@ pub enum ChronikServerError {
     /// Serving Chronik failed
     #[error("Chronik failed serving: {0}")]
     ServingFailed(String),
+
+    /// Block not found in DB
+    #[error("404: Block not found: {0}")]
+    BlockNotFound(String),
 }
 
 use self::ChronikServerError::*;
@@ -53,12 +66,15 @@ impl ChronikServer {
                 })
             })
             .collect::<Result<Vec<_>>>()?;
-        Ok(ChronikServer { server_builders })
+        Ok(ChronikServer {
+            server_builders,
+            indexer: params.indexer,
+        })
     }
 
     /// Serve a Chronik HTTP endpoint with the given parameters.
     pub async fn serve(self) -> Result<()> {
-        let app = Self::make_router();
+        let app = Self::make_router(self.indexer);
         let servers = self
             .server_builders
             .into_iter()
@@ -76,7 +92,30 @@ impl ChronikServer {
         Ok(())
     }
 
-    fn make_router() -> Router {
-        Router::new().fallback(handle_not_found)
+    fn make_router(indexer: ChronikIndexerRef) -> Router {
+        Router::new()
+            .route("/block/:height", routing::get(handle_block))
+            .fallback(handle_not_found)
+            .layer(Extension(indexer))
     }
+}
+
+async fn handle_block(
+    Path(height): Path<i32>,
+    Extension(indexer): Extension<ChronikIndexerRef>,
+) -> Result<Protobuf<proto::Block>, ReportError> {
+    let indexer = indexer.read().await;
+    let blocks = indexer.blocks()?;
+    let db_block = blocks
+        .by_height(height)?
+        .ok_or_else(|| BlockNotFound(height.to_string()))?;
+    Ok(Protobuf(proto::Block {
+        block_info: Some(proto::BlockInfo {
+            hash: db_block.hash.to_vec(),
+            prev_hash: db_block.prev_hash.to_vec(),
+            height: db_block.height,
+            n_bits: db_block.n_bits,
+            timestamp: db_block.timestamp,
+        }),
+    }))
 }

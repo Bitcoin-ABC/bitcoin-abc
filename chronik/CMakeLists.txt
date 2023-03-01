@@ -125,10 +125,21 @@ target_link_libraries(chronik
     chronik-lib-static
 )
 
-# mio crate (dependency of tokio) requires stuff from winternl.h, found in ntdll
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    # mio crate (dependency of tokio) requires winternl.h, found in ntdll
     find_package(NTDLL REQUIRED)
     target_link_libraries(chronik NTDLL::ntdll)
+
+    # rocksdb requires items from rpcdce.h, found in rpcrt4
+    find_package(RPCRT4 REQUIRED)
+    target_link_libraries(chronik RPCRT4::rpcrt4)
+endif()
+
+# Rocksdb requires "atomic"
+include(AddCompilerFlags)
+custom_check_linker_flag(LINKER_HAS_ATOMIC "-latomic")
+if(LINKER_HAS_ATOMIC)
+    target_link_libraries(chronik atomic)
 endif()
 
 # Add chronik to server

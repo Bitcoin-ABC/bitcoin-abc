@@ -4,13 +4,22 @@
 
 //! Rust side of the bridge; these structs and functions are exposed to C++.
 
-use std::net::{AddrParseError, IpAddr, SocketAddr};
+use std::{
+    net::{AddrParseError, IpAddr, SocketAddr},
+    sync::Arc,
+};
 
 use abc_rust_error::Result;
+use bitcoinsuite_core::block::BlockHash;
 use chronik_bridge::ffi::init_error;
+use chronik_db::io::DbBlock;
 use chronik_http::server::{ChronikServer, ChronikServerParams};
+use chronik_indexer::indexer::{
+    ChronikBlock, ChronikIndexer, ChronikIndexerParams,
+};
 use chronik_util::{log, log_chronik};
 use thiserror::Error;
+use tokio::sync::RwLock;
 
 use crate::{
     error::ok_or_abort_node,
@@ -46,17 +55,27 @@ fn try_setup_chronik(params: ffi::SetupParams) -> Result<()> {
         .map(|host| parse_socket_addr(host, params.default_port))
         .collect::<Result<Vec<_>>>()?;
     log!("Starting Chronik bound to {:?}\n", hosts);
+    let indexer = ChronikIndexer::setup(ChronikIndexerParams {
+        datadir_net: params.datadir_net.into(),
+    })?;
+    let indexer = Arc::new(RwLock::new(indexer));
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()?;
-    let server = runtime.block_on(async move {
-        // try_bind requires a Runtime
-        ChronikServer::setup(ChronikServerParams { hosts })
+    let server = runtime.block_on({
+        let indexer = Arc::clone(&indexer);
+        async move {
+            // try_bind requires a Runtime
+            ChronikServer::setup(ChronikServerParams { hosts, indexer })
+        }
     })?;
     runtime.spawn(async move {
         ok_or_abort_node("ChronikServer::serve", server.serve().await);
     });
-    let chronik = Box::new(Chronik { _runtime: runtime });
+    let chronik = Box::new(Chronik {
+        indexer,
+        _runtime: runtime,
+    });
     StartChronikValidationInterface(chronik);
     Ok(())
 }
@@ -76,6 +95,7 @@ fn parse_socket_addr(host: String, default_port: u16) -> Result<SocketAddr> {
 /// cleanly.
 #[derive(Debug)]
 pub struct Chronik {
+    indexer: Arc<RwLock<ChronikIndexer>>,
     // Having this here ensures HTTP server, outstanding requests etc. will get
     // stopped when `Chronik` is dropped.
     _runtime: tokio::runtime::Runtime,
@@ -93,12 +113,35 @@ impl Chronik {
     }
 
     /// Block connected to the longest chain
-    pub fn handle_block_connected(&self) {
+    pub fn handle_block_connected(&self, block: ffi::Block) {
+        let mut indexer = self.indexer.blocking_write();
+        ok_or_abort_node(
+            "handle_block_connected",
+            indexer.handle_block_connected(make_chronik_block(block)),
+        );
         log_chronik!("Chronik: block connected\n");
     }
 
     /// Block disconnected from the longest chain
-    pub fn handle_block_disconnected(&self) {
+    pub fn handle_block_disconnected(&self, block: ffi::Block) {
+        let mut indexer = self.indexer.blocking_write();
+        ok_or_abort_node(
+            "handle_block_disconnected",
+            indexer.handle_block_disconnected(make_chronik_block(block)),
+        );
         log_chronik!("Chronik: block disconnected\n");
     }
+}
+
+fn make_chronik_block(block: ffi::Block) -> ChronikBlock {
+    let db_block = DbBlock {
+        hash: BlockHash::from(block.hash),
+        prev_hash: BlockHash::from(block.prev_hash),
+        height: block.height,
+        n_bits: block.n_bits,
+        timestamp: block.timestamp,
+        file_num: block.file_num,
+        data_pos: block.data_pos,
+    };
+    ChronikBlock { db_block }
 }

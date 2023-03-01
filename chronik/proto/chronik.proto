@@ -6,6 +6,26 @@ syntax = "proto3";
 
 package chronik;
 
+// Block on the blockchain
+message Block {
+    // Info about the block
+    BlockInfo block_info = 1;
+}
+
+// Info about a block
+message BlockInfo {
+    // Hash (little-endian)
+    bytes hash = 1;
+    // Hash of the previous block (little-endian)
+    bytes prev_hash = 2;
+    // Height in the chain
+    int32 height = 3;
+    // nBits field encoding the target
+    uint32 n_bits = 4;
+    // Timestamp field of the block
+    int64 timestamp = 5;
+}
+
 // Error message returned from our APIs.
 message Error {
     // 2, as legacy chronik uses this for the message so we're still compatible.

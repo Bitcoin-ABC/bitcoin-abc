@@ -24,6 +24,7 @@ template <typename T, typename C> rust::Vec<T> ToRustVec(const C &container) {
 bool Start([[maybe_unused]] const Config &config,
            [[maybe_unused]] const node::NodeContext &node) {
     return chronik_bridge::setup_chronik({
+        .datadir_net = gArgs.GetDataDirNet().u8string(),
         .hosts = ToRustVec<rust::String>(gArgs.IsArgSet("-chronikbind")
                                              ? gArgs.GetArgs("-chronikbind")
                                              : DEFAULT_BINDS),
