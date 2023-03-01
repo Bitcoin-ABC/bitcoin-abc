@@ -146,6 +146,10 @@ DEFAULT_EXTENDED_CUTOFF = 40
 DEFAULT_JOBS = (multiprocessing.cpu_count() // 3) + 1
 
 
+def bold(text) -> str:
+    return f"{BOLD[1]}{text}{BOLD[0]}"
+
+
 class TestCase:
     """
     Data structure to hold and run information necessary to launch a test case.
@@ -166,13 +170,13 @@ class TestCase:
                               "", "Skipped", 0, "", "")
 
         portseed = self.test_num
-        portseed_arg = ["--portseed={}".format(portseed)]
+        portseed_arg = [f"--portseed={portseed}"]
         log_stdout = tempfile.SpooledTemporaryFile(max_size=2**16)
         log_stderr = tempfile.SpooledTemporaryFile(max_size=2**16)
         test_argv = self.test_case.split()
-        testdir = os.path.join("{}", "{}_{}").format(
-            self.tmpdir, re.sub(".py$", "", test_argv[0]), portseed)
-        tmpdir_arg = ["--tmpdir={}".format(testdir)]
+        testname = re.sub('.py$', '', test_argv[0])
+        testdir = os.path.join(f"{self.tmpdir}", f"{testname}_{portseed}")
+        tmpdir_arg = [f"--tmpdir={testdir}"]
         start_time = time.time()
         process = subprocess.Popen([sys.executable, os.path.join(self.tests_dir, test_argv[0])] + test_argv[1:] + self.flags + portseed_arg + tmpdir_arg,
                                    universal_newlines=True,
@@ -257,20 +261,20 @@ def main():
     # remaining unknown args
     tests = [arg for arg in unknown_args if arg[:2] != "--"]
     passon_args = [arg for arg in unknown_args if arg[:2] == "--"]
-    passon_args.append("--configfile={}".format(configfile))
+    passon_args.append(f"--configfile={configfile}")
 
     # Set up logging
     logging_level = logging.INFO if args.quiet else logging.DEBUG
     logging.basicConfig(format='%(message)s', level=logging_level)
-    logging.info("Starting {}".format(args.testsuitename))
+    logging.info(f"Starting {args.testsuitename}")
 
     # Create base test directory
-    tmpdir = os.path.join("{}", "test_runner_₿₵_🏃_{:%Y%m%d_%H%M%S}").format(
-        args.tmpdirprefix, datetime.datetime.now())
+    tmpdir = os.path.join(f"{args.tmpdirprefix}",
+                          f"test_runner_₿₵_🏃_{datetime.datetime.now():%Y%m%d_%H%M%S}")
 
     os.makedirs(tmpdir)
 
-    logging.debug("Temporary test directory at {}".format(tmpdir))
+    logging.debug(f"Temporary test directory at {tmpdir}")
 
     if args.junitoutput and not os.path.isabs(args.junitoutput):
         args.junitoutput = os.path.join(tmpdir, args.junitoutput)
@@ -288,8 +292,8 @@ def main():
     # Check all tests with parameters actually exist
     for test in TEST_PARAMS:
         if test not in all_scripts:
-            print("ERROR: Test with parameter {} does not exist, check it has "
-                  "not been renamed or deleted".format(test))
+            print(f"ERROR: Test with parameter {test} does not exist, check it has "
+                  "not been renamed or deleted")
             sys.exit(1)
 
     if tests:
@@ -303,8 +307,7 @@ def main():
             if test in all_scripts:
                 test_list.append(test)
             else:
-                print("{}WARNING!{} Test '{}' not found in full test list.".format(
-                    BOLD[1], BOLD[0], test))
+                print(f"{bold('WARNING!')} Test '{test}' not found in full test list.")
 
         # Allow for wildcard at the end of the name, so a single input can
         # match multiple tests
@@ -328,8 +331,8 @@ def main():
             if exclude_test in test_list:
                 test_list.remove(exclude_test)
             else:
-                print("{}WARNING!{} Test '{}' not found in current test list.".format(
-                    BOLD[1], BOLD[0], exclude_test))
+                print(f"{bold('WARNING!')} Test '{exclude_test}' not found in current "
+                      f"test list.")
 
     # Update timings from build_dir only if separate build directory is used.
     # We do not want to pollute source directory.
@@ -389,8 +392,9 @@ def run_tests(test_list, build_dir, tests_dir, junitoutput, tmpdir, num_jobs, te
         # pgrep exits with code zero when one or more matching processes found
         if subprocess.run(["pgrep", "-x", "bitcoind"],
                           stdout=subprocess.DEVNULL).returncode == 0:
-            print("{}WARNING!{} There is already a bitcoind process running on this system. Tests may fail unexpectedly due to resource contention!".format(
-                BOLD[1], BOLD[0]))
+            print(
+                f"{bold('WARNING!')} There is already a bitcoind process running on "
+                f"this system. Tests may fail unexpectedly due to resource contention!")
     except OSError:
         # pgrep not supported
         pass
@@ -398,16 +402,15 @@ def run_tests(test_list, build_dir, tests_dir, junitoutput, tmpdir, num_jobs, te
     # Warn if there is a cache directory
     cache_dir = os.path.join(build_dir, "test", "cache")
     if os.path.isdir(cache_dir):
-        print("{}WARNING!{} There is a cache directory here: {}. If tests fail unexpectedly, try deleting the cache directory.".format(
-            BOLD[1], BOLD[0], cache_dir))
+        print(f"{bold('WARNING!')} There is a cache directory here: {cache_dir}. "
+              "If tests fail unexpectedly, try deleting the cache directory.")
 
     # Test Framework Tests
     print("Running Unit Tests for Test Framework Modules")
     test_framework_tests = unittest.TestSuite()
     for module in TEST_FRAMEWORK_MODULES:
         test_framework_tests.addTest(
-            unittest.TestLoader().loadTestsFromName(
-                "test_framework.{}".format(module)))
+            unittest.TestLoader().loadTestsFromName(f"test_framework.{module}"))
     result = unittest.TextTestRunner(
         verbosity=1, failfast=True).run(test_framework_tests)
     if not result.wasSuccessful():
@@ -415,21 +418,22 @@ def run_tests(test_list, build_dir, tests_dir, junitoutput, tmpdir, num_jobs, te
             "Early exiting after failure in TestFramework unit tests")
         sys.exit(False)
 
-    flags = ['--cachedir={}'.format(cache_dir)] + args
+    flags = [f'--cachedir={cache_dir}'] + args
 
     if enable_coverage:
         coverage = RPCCoverage()
         flags.append(coverage.flag)
         logging.debug(
-            "Initializing coverage directory at {}".format(coverage.dir))
+            f"Initializing coverage directory at {coverage.dir}")
     else:
         coverage = None
 
     if len(test_list) > 1 and num_jobs > 1:
         # Populate cache
         try:
-            subprocess.check_output([sys.executable, os.path.join(
-                tests_dir, 'create_cache.py')] + flags + [os.path.join("--tmpdir={}", "cache") .format(tmpdir)])
+            subprocess.check_output(
+                [sys.executable, os.path.join(tests_dir, 'create_cache.py')] + flags +
+                [os.path.join(f"--tmpdir={tmpdir}", "cache")])
         except subprocess.CalledProcessError as e:
             sys.stdout.buffer.write(e.output)
             raise
@@ -490,7 +494,7 @@ def execute_test_processes(
         """
         if isinstance(message, TestCase):
             running_jobs.append((message.test_num, message.test_case))
-            print("{}{}{} started".format(BOLD[1], message.test_case, BOLD[0]))
+            print(f"{bold(message.test_case)} started")
             return
 
         if isinstance(message, TestResult):
@@ -500,17 +504,16 @@ def execute_test_processes(
             test_results.append(test_result)
 
             if test_result.status == "Passed":
-                print("{}{}{} passed, Duration: {} s".format(
-                    BOLD[1], test_result.name, BOLD[0], TimeResolution.seconds(test_result.time)))
+                print(f"{bold(test_result.name)} passed, "
+                      f"Duration: {TimeResolution.seconds(test_result.time)} s")
             elif test_result.status == "Skipped":
-                print("{}{}{} skipped".format(
-                    BOLD[1], test_result.name, BOLD[0]))
+                print(f"{bold(test_result.name)} skipped")
             else:
-                print("{}{}{} failed, Duration: {} s\n".format(
-                    BOLD[1], test_result.name, BOLD[0], TimeResolution.seconds(test_result.time)))
-                print(BOLD[1] + 'stdout:' + BOLD[0])
+                print(f"{bold(test_result.name)} failed, "
+                      f"Duration: {TimeResolution.seconds(test_result.time)} s\n")
+                print(bold('stdout:'))
                 print(test_result.stdout)
-                print(BOLD[1] + 'stderr:' + BOLD[0])
+                print(bold('stderr:'))
                 print(test_result.stderr)
 
                 if failfast:
@@ -545,8 +548,8 @@ def execute_test_processes(
                 update_queue.task_done()
             except Empty:
                 if not on_ci():
-                    print("Running jobs: {}".format(
-                        ", ".join([j[1] for j in running_jobs])), end="\r")
+                    jobs = ", ".join([j[1] for j in running_jobs])
+                    print(f"Running jobs: {jobs}", end="\r")
                     sys.stdout.flush()
                     printed_status = True
 
@@ -602,8 +605,7 @@ def execute_test_processes(
 
 def print_results(test_results, tests_dir, max_len_name,
                   runtime, combined_logs_len):
-    results = "\n" + BOLD[1] + "{} | {} | {}\n\n".format(
-        "TEST".ljust(max_len_name), "STATUS   ", "DURATION") + BOLD[0]
+    results = bold(f"\n{'TEST':<{max_len_name}} | STATUS | DURATION\n\n")
 
     test_results.sort(key=TestResult.sort_key)
     all_passed = True
@@ -618,10 +620,10 @@ def print_results(test_results, tests_dir, max_len_name,
         testdir = test_result.testdir
         if combined_logs_len and os.path.isdir(testdir):
             # Print the final `combinedlogslen` lines of the combined logs
-            print('{}Combine the logs and print the last {} lines ...{}'.format(
-                BOLD[1], combined_logs_len, BOLD[0]))
+            print(
+                bold(f'Combine the logs and print the last {combined_logs_len} lines ...'))
             print('\n============')
-            print('{}Combined log for {}:{}'.format(BOLD[1], testdir, BOLD[0]))
+            print(bold(f'Combined log for {testdir}:'))
             print('============\n')
             combined_logs_args = [
                 sys.executable, os.path.join(
@@ -640,11 +642,12 @@ def print_results(test_results, tests_dir, max_len_name,
     status = TICK + "Passed" if all_passed else CROSS + "Failed"
     if not all_passed:
         results += RED[1]
-    results += BOLD[1] + "\n{} | {} | {} s (accumulated) \n".format(
-        "ALL".ljust(max_len_name), status.ljust(9), TimeResolution.seconds(time_sum)) + BOLD[0]
+    results += bold(
+        f"\n{'ALL':<{max_len_name}} | {status:<9} | "
+        f"{TimeResolution.seconds(time_sum)} s (accumulated) \n")
     if not all_passed:
         results += RED[0]
-    results += "Runtime: {} s\n".format(TimeResolution.seconds(runtime))
+    results += f"Runtime: {TimeResolution.seconds(runtime)} s\n"
     print(results)
 
 
@@ -682,8 +685,10 @@ class TestResult:
             color = GREY
             glyph = CIRCLE
 
-        return color[1] + "{} | {}{} | {} s\n".format(
-            self.name.ljust(self.padding), glyph, self.status.ljust(7), TimeResolution.seconds(self.time)) + color[0]
+        return (
+            f"{color[1]}{self.name:<{self.padding}} | {glyph}{self.status:<7} | "
+            f"{TimeResolution.seconds(self.time)} s\n{color[0]}"
+        )
 
     @property
     def was_successful(self):
@@ -714,19 +719,19 @@ def check_script_prefixes(all_scripts):
         script for script in all_scripts if good_prefixes_re.match(script) is None]
 
     if len(bad_script_names) < EXPECTED_VIOLATION_COUNT:
-        print(
-            "{}HURRAY!{} Number of functional tests violating naming convention reduced!".format(
-                BOLD[1],
-                BOLD[0]))
-        print("Consider reducing EXPECTED_VIOLATION_COUNT from {} to {}".format(
-            EXPECTED_VIOLATION_COUNT, len(bad_script_names)))
+        print(f"{bold('HURRAY!')} Number of functional tests violating naming "
+              "convention reduced!")
+        print("Consider reducing EXPECTED_VIOLATION_COUNT from "
+              f"{EXPECTED_VIOLATION_COUNT} to {len(bad_script_names)}")
     elif len(bad_script_names) > EXPECTED_VIOLATION_COUNT:
-        print(
-            "INFO: {} tests not meeting naming conventions (expected {}):".format(len(bad_script_names), EXPECTED_VIOLATION_COUNT))
-        print("  {}".format("\n  ".join(sorted(bad_script_names))))
-        assert len(bad_script_names) <= EXPECTED_VIOLATION_COUNT + \
-            LEEWAY, "Too many tests not following naming convention! ({} found, expected: <= {})".format(
-                len(bad_script_names), EXPECTED_VIOLATION_COUNT)
+        print(f"INFO: {len(bad_script_names)} tests not meeting naming conventions "
+              f"(expected {EXPECTED_VIOLATION_COUNT}):")
+        formatted_bad_script_names = '\n  '.join(sorted(bad_script_names))
+        print(f"  {formatted_bad_script_names}")
+        assert \
+            len(bad_script_names) <= EXPECTED_VIOLATION_COUNT + LEEWAY, \
+            f"Too many tests not following naming convention! ({len(bad_script_names)}" \
+            f" found, expected: <= {EXPECTED_VIOLATION_COUNT})"
 
 
 def get_tests_to_run(test_list, test_params, cutoff, src_timings):
@@ -776,7 +781,7 @@ class RPCCoverage:
 
     def __init__(self):
         self.dir = tempfile.mkdtemp(prefix="coverage")
-        self.flag = '--coveragedir={}'.format(self.dir)
+        self.flag = f"--coveragedir={self.dir}"
 
     def report_rpc_coverage(self):
         """
@@ -787,7 +792,7 @@ class RPCCoverage:
 
         if uncovered:
             print("Uncovered RPC commands:")
-            print("".join(("  - {}\n".format(i)) for i in sorted(uncovered)))
+            print("".join(f"  - {i}\n" for i in sorted(uncovered)))
             return False
         else:
             print("All RPC commands covered.")
@@ -838,7 +843,7 @@ def save_results_as_junit(test_results, file_name, time, test_suite_name):
     See http://llg.cubic.org/docs/junit/ for specification of format
     """
     e_test_suite = ET.Element("testsuite",
-                              {"name": "{}".format(test_suite_name),
+                              {"name": f"{test_suite_name}",
                                "tests": str(len(test_results)),
                                # "errors":
                                "failures": str(len([t for t in test_results if t.status == "Failed"])),
