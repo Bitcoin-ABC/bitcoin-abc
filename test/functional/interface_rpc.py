@@ -125,4 +125,8 @@ class RPCInterfaceTest(BitcoinTestFramework):
 
 
 if __name__ == '__main__':
+    # Setting the multiprocessing start method to "spawn" causes the test to fail
+    # on all platforms. Not setting it causes a failure on Mac OS, because it defaults
+    # to spawn (for python 3.8+).
+    multiprocessing.set_start_method("fork")
     RPCInterfaceTest().main()
