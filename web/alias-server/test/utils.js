@@ -1,5 +1,13 @@
 const assert = require('assert');
-const { outputScriptToAddress } = require('../utils');
+const {
+    outputScriptToAddress,
+    getValidAliasTxsToBeAddedToDb,
+} = require('../utils');
+const {
+    validAliasesInDb,
+    validAliasTxs,
+    validAliasTxsToBeAddedToDb,
+} = require('./mocks/utilsMocks');
 
 describe('alias-server utils.js', function () {
     it('Converts a P2PKH output script to a valid P2PKH ecash: address', function () {
@@ -28,5 +36,26 @@ describe('alias-server utils.js', function () {
     });
     it('Returns false when input is an empty string', function () {
         assert.strictEqual(outputScriptToAddress(''), false);
+    });
+    it('getValidAliasTxsToBeAddedToDb recognizes new aliases to be added to the database', function () {
+        assert.deepEqual(
+            getValidAliasTxsToBeAddedToDb(validAliasesInDb, validAliasTxs),
+            validAliasTxsToBeAddedToDb,
+        );
+    });
+    it('getValidAliasTxsToBeAddedToDb returns an empty array when no new aliases need to be added to the database', function () {
+        assert.deepEqual(
+            getValidAliasTxsToBeAddedToDb(validAliasesInDb, validAliasesInDb),
+            [],
+        );
+    });
+    it('getValidAliasTxsToBeAddedToDb returns an empty array when template data arrays of objects have the same length', function () {
+        assert.deepEqual(
+            getValidAliasTxsToBeAddedToDb(
+                [{ alias: 'test' }, { alias: 'test1' }, { alias: 'test2' }],
+                [{ alias: 'test' }, { alias: 'test1' }, { alias: 'test2' }],
+            ),
+            [],
+        );
     });
 });

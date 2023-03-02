@@ -50,17 +50,14 @@ module.exports = {
                 if (!validAliasPrefix) {
                     return false;
                 }
-                log(`Valid alias prefix`);
 
                 // Check for valid alias length
                 const aliasLengthHex = outputScript.slice(12, 14);
                 aliasLength = parseInt(aliasLengthHex, 16);
-                log(`aliasLength`, aliasLength);
 
                 // Parse for the alias
                 const aliasHex = outputScript.slice(14, outputScript.length);
                 alias = Buffer.from(aliasHex, 'hex').toString('utf8');
-                log(`alias`, alias);
 
                 const validAliasLength =
                     aliasLength <= aliasConstants.maxLength &&
@@ -69,7 +66,6 @@ module.exports = {
                 if (!validAliasLength) {
                     return false;
                 }
-                log(`Valid alias length`);
             } else {
                 // Check if output is p2pkh for the alias registration hash160
                 if (
@@ -82,7 +78,6 @@ module.exports = {
         }
         // If `alias` is undefined after the above loop, then this is not a valid alias registration tx
         if (typeof alias === 'undefined') {
-            log(`No OP_RETURN in tx`);
             return false;
         }
         // Confirm that the correct fee is paid to the correct address
@@ -94,8 +89,6 @@ module.exports = {
                 `Invalid fee. This transaction paid ${aliasFeePaidSats} sats to register ${alias}. The correct fee for an alias of ${aliasLength} characters is ${aliasConstants.registrationFeesSats[aliasLength]}`,
             );
             return false;
-        } else {
-            log(`Valid registration fee`);
         }
         return {
             address: registeringAddress,

@@ -1,6 +1,7 @@
 const config = require('./config');
 const log = require('./log');
 const { getAllAliasTxs, getValidAliasRegistrations } = require('./alias.js');
+const { getValidAliasTxsToBeAddedToDb } = require('./utils.js');
 const { ChronikClient } = require('chronik-client');
 const chronik = new ChronikClient(config.chronik);
 
@@ -49,27 +50,51 @@ module.exports = {
                 );
                 const { validAliasTxs, pendingAliasTxs } =
                     getValidAliasRegistrations(allAliasTxs);
+                log(`${validAliasTxs.length} valid alias registrations`);
+                log(`${pendingAliasTxs.length} pending alias registrations`);
 
-                // Update with real data
-                if (validAliasTxs.length > 0) {
+                // Get the valid aliases already in the db
+                let validAliasesInDb;
+                try {
+                    validAliasesInDb = await db
+                        .collection(config.database.collections.validAliases)
+                        .find()
+                        .sort({ blockheight: 1 })
+                        .project({ _id: 0 })
+                        .toArray();
+                    log(`${validAliasesInDb.length} valid aliases in database`);
+                } catch (error) {
+                    log(`Error in determining validAliasesInDb`, error);
+                }
+
+                const validAliasTxsToBeAddedToDb =
+                    getValidAliasTxsToBeAddedToDb(
+                        validAliasesInDb,
+                        validAliasTxs,
+                    );
+                log(`validAliasTxsToBeAddedToDb`, validAliasTxsToBeAddedToDb);
+
+                if (validAliasTxsToBeAddedToDb.length > 0) {
+                    // Update with real data
                     try {
                         const validAliasTxsCollectionInsertResult = await db
                             .collection(
                                 config.database.collections.validAliases,
                             )
-                            .insertMany(validAliasTxs);
-                        console.log(
-                            'validAliasTxsCollection inserted documents =>',
-                            validAliasTxsCollectionInsertResult,
+                            .insertMany(validAliasTxsToBeAddedToDb);
+                        log(
+                            `Inserted ${validAliasTxsCollectionInsertResult.insertedCount} aliases into ${config.database.collections.validAliases}`,
                         );
                     } catch (err) {
                         log(
                             `A MongoBulkWriteException occurred adding validAliasTxs to the db, but there are successfully processed documents.`,
                         );
+                        /*
                         let ids = err.result.result.insertedIds;
                         for (let id of Object.values(ids)) {
                             log(`Processed a document with id ${id._id}`);
                         }
+                        */
                         log(
                             `Number of documents inserted: ${err.result.result.nInserted}`,
                         );
