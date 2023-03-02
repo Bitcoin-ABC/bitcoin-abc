@@ -23,7 +23,7 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | Ninja |  | [1.5.1](https://github.com/ninja-build/ninja/releases) |  |  |  |
 | OpenSSL | [1.0.1k](https://www.openssl.org/source) |  | Yes |  |  |
 | PCRE |  |  |  |  | Yes |
-| protobuf | [2.6.1](https://github.com/google/protobuf/releases) |  | No |  |  |
+| protobuf | [21.12](https://github.com/protocolbuffers/protobuf/releases/tag/v21.12) |  | No |  |  |
 | Python (tests) |  | [3.6](https://www.python.org/downloads) |  |  |  |
 | qrencode | [3.4.4](https://fukuchi.org/works/qrencode) |  | No |  |  |
 | Qt | [5.9.7](https://download.qt.io/official_releases/qt/) | 5.9.5 | No |  |  |
