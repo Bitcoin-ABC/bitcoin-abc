@@ -99,6 +99,30 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         return node.buildavalancheproof(
             sequence, 0, self.privkey_wif, self.conflicting_stakes)
 
+    def wait_for_invalidated_proof(self, node, proofid):
+        def invalidate_proof(proofid):
+            self.wait_until(
+                lambda: self.can_find_proof_in_poll(
+                    proofid, response=AvalancheProofVoteResponse.REJECTED))
+            return try_rpc(-8, "Proof not found",
+                           node.getrawavalancheproof, uint256_hex(proofid))
+
+        with node.assert_debug_log(
+            [f"Avalanche invalidated proof {uint256_hex(proofid)}"],
+            ["Failed to reject proof"]
+        ):
+            self.wait_until(lambda: invalidate_proof(proofid))
+
+    def wait_for_finalized_proof(self, node, proofid):
+        def finalize_proof(proofid):
+            self.can_find_proof_in_poll(
+                proofid, response=AvalancheProofVoteResponse.ACTIVE)
+            return node.getrawavalancheproof(
+                uint256_hex(proofid)).get("finalized", False)
+
+        with node.assert_debug_log([f"Avalanche finalized proof {uint256_hex(proofid)}"]):
+            self.wait_until(lambda: finalize_proof(proofid))
+
     def run_test(self):
         node = self.nodes[0]
 
@@ -121,6 +145,13 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.maturity_poll_tests(node)
 
     def poll_tests(self, node):
+        # Disable the peer replacement cooldown for this test
+        self.restart_node(
+            0,
+            extra_args=self.extra_args[0] +
+            ['-avalanchepeerreplacementcooldown=0'])
+        self.quorum = self.get_quorum(node)
+
         proof_seq10 = self.build_conflicting_proof(node, 10)
         proof_seq20 = self.build_conflicting_proof(node, 20)
         proof_seq30 = self.build_conflicting_proof(node, 30)
@@ -144,6 +175,9 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.log.info("Check we poll for valid proof")
         self.send_and_check_for_polling(peer, proof_seq30)
 
+        proofid_seq30 = avalanche_proof_from_hex(proof_seq30).proofid
+        self.wait_for_finalized_proof(node, proofid_seq30)
+
         self.log.info(
             "Check we don't poll for subsequent proofs if the cooldown is not elapsed, proof not the favorite")
         with node.assert_debug_log(["Not polling the avalanche proof (cooldown-not-elapsed)"]):
@@ -160,6 +194,10 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         node.setmocktime(mock_time)
         self.send_and_check_for_polling(
             peer, proof_seq20, response=AvalancheProofVoteResponse.REJECTED)
+
+        # Continue to vote until the proof is invalidated
+        proofid_seq20 = avalanche_proof_from_hex(proof_seq20).proofid
+        self.wait_for_invalidated_proof(node, proofid_seq20)
 
         self.log.info(
             "Check we poll for conflicting proof if the proof is the favorite")
@@ -218,15 +256,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         assert proofid_seq40 not in get_proof_ids(node)
 
         self.log.info("Test the peer replacement rate limit")
-
-        def vote_until_finalized(proofid):
-            self.can_find_proof_in_poll(
-                proofid, response=AvalancheProofVoteResponse.ACTIVE)
-            return node.getrawavalancheproof(
-                uint256_hex(proofid)).get("finalized", False)
-
-        # Wait until proof_seq30 is finalized
-        self.wait_until(lambda: vote_until_finalized(proofid_seq30))
+        self.wait_for_finalized_proof(node, proofid_seq30)
 
         # Not enough
         assert self.conflicting_proof_cooldown < self.peer_replacement_cooldown
@@ -261,19 +291,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         assert proofid_seq40 in get_proof_ids(node)
 
         self.log.info("Test proof invalidation")
-
-        def invalidate_proof(proofid):
-            self.wait_until(
-                lambda: self.can_find_proof_in_poll(
-                    proofid, response=AvalancheProofVoteResponse.REJECTED))
-            return try_rpc(-8, "Proof not found",
-                           node.getrawavalancheproof, uint256_hex(proofid))
-
-        with node.assert_debug_log(
-            [f"Avalanche invalidated proof {uint256_hex(proofid_seq50)}"],
-            ["Failed to reject proof"]
-        ):
-            self.wait_until(lambda: invalidate_proof(proofid_seq50))
+        self.wait_for_invalidated_proof(node, proofid_seq50)
 
         self.log.info("The node will now ignore the invalid proof")
 
