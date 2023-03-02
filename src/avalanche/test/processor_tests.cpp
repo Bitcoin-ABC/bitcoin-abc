@@ -1833,6 +1833,32 @@ BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
     invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 1);
     BOOST_CHECK_EQUAL(invs[0].hash, alttip->GetBlockHash());
+
+    // Cannot reconcile a finalized block
+    BOOST_CHECK(!addToReconcile(tip));
+
+    // Vote for alttip until it invalidates
+    BlockHash alttiphash = alttip->GetBlockHash();
+    votes = {{1, alttiphash}};
+
+    bool alttipInvalidated = false;
+    for (size_t i = 0; i < 10000 && !alttipInvalidated; i++) {
+        registerNewVote();
+
+        for (auto &update : updates) {
+            if (update.getStatus() == VoteStatus::Invalid &&
+                provider.fromAnyVoteItem(update.getVoteItem())
+                        ->GetBlockHash() == alttiphash) {
+                alttipInvalidated = true;
+            }
+        }
+    }
+    BOOST_CHECK(alttipInvalidated);
+    invs = getInvsForNextPoll();
+    BOOST_CHECK_EQUAL(invs.size(), 0);
+
+    // Cannot reconcile an invalidated block
+    BOOST_CHECK(!addToReconcile(alttip));
 }
 
 BOOST_AUTO_TEST_CASE(vote_map_comparator) {

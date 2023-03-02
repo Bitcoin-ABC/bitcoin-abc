@@ -563,7 +563,8 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
     // FIXME This doesn't belong here as it has nothing to do with vote
     // registration.
     for (const auto &update : updates) {
-        if (update.getStatus() != VoteStatus::Finalized) {
+        if (update.getStatus() != VoteStatus::Finalized &&
+            update.getStatus() != VoteStatus::Invalid) {
             continue;
         }
 
@@ -573,6 +574,13 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
         }
 
         const CBlockIndex *pindex = std::get<const CBlockIndex *>(item);
+        if (update.getStatus() == VoteStatus::Invalid) {
+            LOCK(cs_invalidatedBlocks);
+            invalidatedBlocks.insert(pindex->GetBlockHash());
+            continue;
+        }
+
+        // At this point the block index can only be finalized
         LOCK(cs_finalizationTip);
         if (finalizationTip &&
             finalizationTip->GetAncestor(pindex->nHeight) == pindex) {
@@ -967,6 +975,13 @@ bool Processor::IsWorthPolling::operator()(const CBlockIndex *pindex) const {
                              pindex->nHeight) == pindex)) {
         // There is no point polling blocks that are ancestor of a block that
         // has been accepted by the network.
+        return false;
+    }
+
+    if (WITH_LOCK(processor.cs_invalidatedBlocks,
+                  return processor.invalidatedBlocks.contains(
+                      pindex->GetBlockHash()))) {
+        // Blocks invalidated by Avalanche should not be polled twice.
         return false;
     }
 

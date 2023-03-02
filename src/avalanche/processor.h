@@ -12,6 +12,7 @@
 #include <avalanche/protocol.h>
 #include <blockindex.h>
 #include <blockindexcomparators.h>
+#include <bloom.h>
 #include <eventloop.h>
 #include <interfaces/chain.h>
 #include <interfaces/handler.h>
@@ -300,6 +301,14 @@ private:
     bool sendHelloInternal(CNode *pfrom)
         EXCLUSIVE_LOCKS_REQUIRED(cs_delayedAvahelloNodeIds);
     AnyVoteItem getVoteItemFromInv(const CInv &inv) const;
+
+    mutable Mutex cs_invalidatedBlocks;
+    // We don't need much blocks but a low false positive rate.
+    // In the event of a false positive the node might skip polling this block.
+    // Such a block will not get marked as finalized until it is reconsidered
+    // for polling (if the filter changed its state) or another block is found.
+    CRollingBloomFilter invalidatedBlocks GUARDED_BY(cs_invalidatedBlocks){
+        100, 0.0000001};
 
     struct IsWorthPolling {
         const Processor &processor;
