@@ -22257,5 +22257,33 @@ module.exports = {
                 blockheight: 100000000,
             },
         ],
+        allAliasTxsMixedCases: [
+            {
+                address: 'ecash:q1',
+                alias: 'test',
+                txid: 'abc',
+                blockheight: 1,
+            },
+            {
+                address: 'ecash:q2',
+                alias: 'Test',
+                txid: 'def',
+                blockheight: 2,
+            },
+            {
+                address: 'ecash:q3',
+                alias: 'TEST',
+                txid: 'ghi',
+                blockheight: 3,
+            },
+        ],
+        validAliasTxsMixedCases: [
+            {
+                address: 'ecash:q1',
+                alias: 'test',
+                txid: 'abc',
+                blockheight: 1,
+            },
+        ],
     },
 };

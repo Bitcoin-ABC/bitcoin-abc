@@ -143,4 +143,13 @@ describe('alias-server alias.js', function () {
             },
         );
     });
+    it('getValidAliasRegistrations recognizes case variations of a taken alias as invalid', function () {
+        assert.deepEqual(
+            getValidAliasRegistrations(aliases_fake_data.allAliasTxsMixedCases),
+            {
+                validAliasTxs: aliases_fake_data.validAliasTxsMixedCases,
+                pendingAliasTxs: [],
+            },
+        );
+    });
 });
