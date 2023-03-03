@@ -62,7 +62,7 @@ class AvalancheProofTest(BitcoinTestFramework):
             '-avaproofstakeutxoconfirmations=1',
             '-avalancheconflictingproofcooldown=0',
             '-avacooldown=0',
-            '-whitelist=noban@127.0.01',
+            '-whitelist=noban@127.0.0.1',
         ]] * self.num_nodes
         self.supports_cli = False
         self.rpc_timeout = 120
