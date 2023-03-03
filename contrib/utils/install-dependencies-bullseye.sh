@@ -141,8 +141,8 @@ pip3 install pytest
 # This version is compatible with Debian's "protobuf-compiler" package
 pip3 install "protobuf<=3.20"
 
-# Up-to-date mypy and isort packages are required python linters
-pip3 install isort==5.6.4 mypy==0.780
+# Up-to-date mypy, isort and flynt packages are required python linters
+pip3 install isort==5.6.4 mypy==0.780 flynt==0.78
 echo "export PATH=\"$(python3 -m site --user-base)/bin:\$PATH\"" >> ~/.bashrc
 # shellcheck source=/dev/null
 source ~/.bashrc

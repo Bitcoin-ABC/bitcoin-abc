@@ -56,15 +56,6 @@
             "type": "lint-tests",
             "include": "(^src/(seeder/|rpc/|wallet/)?test/.*\\.(cpp)$)"
         },
-        "lint-python-format": {
-            "type": "lint-python-format",
-            "include": "(\\.py$)",
-            "exclude": [
-                "(^test/lint/lint-python-format\\.py$)",
-                "(^contrib/gitian-builder/)",
-                "(^contrib/apple-sdk-tools/)"
-            ]
-        },
         "phpcs": {
             "type": "phpcs",
             "include": "(\\.php$)",
@@ -303,6 +294,15 @@
             "type": "eslint",
             "version": ">=8.0.0",
             "include": "(web/cashtab/.*\\.js$)"
+        },
+        "lint-python-flynt": {
+            "type": "lint-python-flynt",
+            "version": ">=0.78",
+            "include": "(\\.py$)",
+            "exclude": "(^contrib/)",
+            "flags": [
+                "--transform-concats"
+            ]
         }
     }
 }
