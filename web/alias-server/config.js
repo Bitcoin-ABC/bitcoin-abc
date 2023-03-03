@@ -65,4 +65,5 @@ module.exports = {
         ],
     },
     txHistoryPageSize: 25,
+    blockExplorer: 'https://explorer.e.cash',
 };

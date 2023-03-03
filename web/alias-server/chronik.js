@@ -2,6 +2,7 @@ const config = require('./config');
 const log = require('./log');
 const { getAllAliasTxs, getValidAliasRegistrations } = require('./alias.js');
 const { getValidAliasTxsToBeAddedToDb } = require('./utils.js');
+const { returnTelegramBotSendMessagePromise } = require('./telegram.js');
 const { ChronikClient } = require('chronik-client');
 const chronik = new ChronikClient(config.chronik);
 
@@ -97,6 +98,61 @@ module.exports = {
                         */
                         log(
                             `Number of documents inserted: ${err.result.result.nInserted}`,
+                        );
+                        log(`Error:`, err);
+                    }
+
+                    // Send msgs to Telegram channel about newly registered aliases
+                    const tgBotMsgPromises = [];
+                    for (
+                        let i = 0;
+                        i < validAliasTxsToBeAddedToDb.length;
+                        i += 1
+                    ) {
+                        // Get interesting info for a telegram message
+                        const { alias, address, txid } =
+                            validAliasTxsToBeAddedToDb[i];
+                        const aliasLength = alias.length;
+                        const aliasPriceSats =
+                            config.aliasConstants.registrationFeesSats[
+                                aliasLength
+                            ];
+                        // Construct your Telegram message in markdown
+                        const tgMsg =
+                            `A new ${aliasLength}-byte alias has been registered for ${(
+                                aliasPriceSats / 100
+                            ).toLocaleString()} XEC!\n` +
+                            `\n` +
+                            `"${alias}"\n` +
+                            `\n` +
+                            `[address](${config.blockExplorer}/address/${address}) | [tx](${config.blockExplorer}/tx/${txid})`;
+                        // Configure msg parse settings
+                        let tgMsgOptions = {
+                            parse_mode: 'markdown',
+                            disable_web_page_preview: true,
+                        };
+                        const tgBotMsgPromise =
+                            returnTelegramBotSendMessagePromise(
+                                tgMsg,
+                                tgMsgOptions,
+                            );
+                        tgBotMsgPromises.push(tgBotMsgPromise);
+                    }
+                    /* 
+                    Send msgs in a batch to handle nodejs async threads
+                    Note: you will still run into rate limit issues if 
+                    you are trying to send more than 25 msgs at once
+                    */
+                    let tgMsgBatchSuccess;
+                    try {
+                        tgMsgBatchSuccess = await Promise.all(tgBotMsgPromises);
+                        log(
+                            `Successfully sent ${tgBotMsgPromises.length} messages to channel`,
+                        );
+                    } catch (err) {
+                        log(
+                            `Error sending Telegram Bot message for aliases`,
+                            err,
                         );
                     }
                 }
