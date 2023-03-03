@@ -12,33 +12,56 @@ import * as slpMdm from 'slp-mdm';
 import eCash from 'ecashjs-lib';
 import coininfo from 'utils/coininfo';
 
-export const getAliasRegistrationFee = alias => {
+export const getAliasByteSize = aliasInputStr => {
+    if (!aliasInputStr || aliasInputStr.trim() === '') {
+        return 0;
+    }
+
+    // generate the OP_RETURN script
+    const opReturnData = generateOpReturnScript(
+        aliasInputStr,
+        false, // encryption use
+        false, // airdrop use
+        null, // airdrop use
+        null, // encrypted use
+        true, // alias registration flag
+    );
+    // extract the alias input from the OP_RETURN script and check the backend size
+    const hexString = opReturnData.toString('hex'); // convert to hex
+    const opReturnAlias = parseOpReturn(hexString)[1]; // extract the alias
+    const aliasInputByteSize = opReturnAlias.length / 2; // calculate the byte size
+
+    return aliasInputByteSize;
+};
+
+export const getAliasRegistrationFee = aliasInputStr => {
     let registrationFee;
     let fee = currency.aliasSettings.aliasRegistrationFeeInSats;
-    switch (new Blob([alias]).size) {
+    const aliasByteCount = getAliasByteSize(aliasInputStr);
+    switch (aliasByteCount) {
         case 1:
-            registrationFee = fee.oneChar;
+            registrationFee = fee.oneByte;
             break;
         case 2:
-            registrationFee = fee.twoChar;
+            registrationFee = fee.twoByte;
             break;
         case 3:
-            registrationFee = fee.threeChar;
+            registrationFee = fee.threeByte;
             break;
         case 4:
-            registrationFee = fee.fourChar;
+            registrationFee = fee.fourByte;
             break;
         case 5:
-            registrationFee = fee.fiveChar;
+            registrationFee = fee.fiveByte;
             break;
         case 6:
-            registrationFee = fee.sixChar;
+            registrationFee = fee.sixByte;
             break;
         case 7:
-            registrationFee = fee.sevenChar;
+            registrationFee = fee.sevenByte;
             break;
         default:
-            registrationFee = fee.eightChar;
+            registrationFee = fee.eightByte;
             break;
     }
     return registrationFee;

@@ -111,33 +111,90 @@ Array [
                       <div
                         className="ant-form-item-control-input-content"
                       >
-                        <span
-                          className="ant-input-group-wrapper"
+                        <div
+                          className="sc-gipzik iAGCgG"
                         >
-                          <span
-                            className="ant-input-wrapper ant-input-group"
+                          <div
+                            className="ant-form-item ant-form-item-with-help ant-form-item-has-error"
                           >
-                            <input
-                              className="ant-input"
-                              hidden={null}
-                              maxLength={21}
-                              name="aliasName"
-                              onBlur={[Function]}
-                              onChange={[Function]}
-                              onFocus={[Function]}
-                              onKeyDown={[Function]}
-                              placeholder="Enter a desired alias"
-                              style={null}
-                              type="text"
-                              value=""
-                            />
-                            <span
-                              className="ant-input-group-addon"
+                            <div
+                              className="ant-row ant-form-item-row"
+                              style={Object {}}
                             >
-                               . xec
-                            </span>
-                          </span>
-                        </span>
+                              <div
+                                className="ant-col ant-form-item-control"
+                                style={Object {}}
+                              >
+                                <div
+                                  className="ant-form-item-control-input"
+                                >
+                                  <div
+                                    className="ant-form-item-control-input-content"
+                                  >
+                                    <span
+                                      className="ant-input-group-wrapper ant-input-group-wrapper-status-error"
+                                    >
+                                      <span
+                                        className="ant-input-wrapper ant-input-group"
+                                      >
+                                        <span
+                                          className="ant-input-affix-wrapper ant-input-affix-wrapper-status-error"
+                                          hidden={null}
+                                          onClick={[Function]}
+                                          style={null}
+                                        >
+                                          <span
+                                            className="ant-input-prefix"
+                                          >
+                                            <span
+                                              aria-label="wallet"
+                                              className="anticon anticon-wallet sc-bxivhb iBBRHU"
+                                              role="img"
+                                            >
+                                              <svg
+                                                aria-hidden="true"
+                                                data-icon="wallet"
+                                                fill="currentColor"
+                                                focusable="false"
+                                                height="1em"
+                                                viewBox="64 64 896 896"
+                                                width="1em"
+                                              >
+                                                <path
+                                                  d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
+                                                />
+                                              </svg>
+                                            </span>
+                                          </span>
+                                          <input
+                                            autoComplete="off"
+                                            className="ant-input"
+                                            hidden={null}
+                                            name="aliasName"
+                                            onBlur={[Function]}
+                                            onChange={[Function]}
+                                            onFocus={[Function]}
+                                            onKeyDown={[Function]}
+                                            placeholder="Enter a desired alias"
+                                            required={true}
+                                            style={null}
+                                            type="text"
+                                            value=""
+                                          />
+                                        </span>
+                                        <span
+                                          className="ant-input-group-addon"
+                                        >
+                                           . xec
+                                        </span>
+                                      </span>
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -324,33 +381,90 @@ Array [
                       <div
                         className="ant-form-item-control-input-content"
                       >
-                        <span
-                          className="ant-input-group-wrapper"
+                        <div
+                          className="sc-gipzik iAGCgG"
                         >
-                          <span
-                            className="ant-input-wrapper ant-input-group"
+                          <div
+                            className="ant-form-item ant-form-item-with-help ant-form-item-has-error"
                           >
-                            <input
-                              className="ant-input"
-                              hidden={null}
-                              maxLength={21}
-                              name="aliasName"
-                              onBlur={[Function]}
-                              onChange={[Function]}
-                              onFocus={[Function]}
-                              onKeyDown={[Function]}
-                              placeholder="Enter a desired alias"
-                              style={null}
-                              type="text"
-                              value=""
-                            />
-                            <span
-                              className="ant-input-group-addon"
+                            <div
+                              className="ant-row ant-form-item-row"
+                              style={Object {}}
                             >
-                               . xec
-                            </span>
-                          </span>
-                        </span>
+                              <div
+                                className="ant-col ant-form-item-control"
+                                style={Object {}}
+                              >
+                                <div
+                                  className="ant-form-item-control-input"
+                                >
+                                  <div
+                                    className="ant-form-item-control-input-content"
+                                  >
+                                    <span
+                                      className="ant-input-group-wrapper ant-input-group-wrapper-status-error"
+                                    >
+                                      <span
+                                        className="ant-input-wrapper ant-input-group"
+                                      >
+                                        <span
+                                          className="ant-input-affix-wrapper ant-input-affix-wrapper-status-error"
+                                          hidden={null}
+                                          onClick={[Function]}
+                                          style={null}
+                                        >
+                                          <span
+                                            className="ant-input-prefix"
+                                          >
+                                            <span
+                                              aria-label="wallet"
+                                              className="anticon anticon-wallet sc-bxivhb iBBRHU"
+                                              role="img"
+                                            >
+                                              <svg
+                                                aria-hidden="true"
+                                                data-icon="wallet"
+                                                fill="currentColor"
+                                                focusable="false"
+                                                height="1em"
+                                                viewBox="64 64 896 896"
+                                                width="1em"
+                                              >
+                                                <path
+                                                  d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
+                                                />
+                                              </svg>
+                                            </span>
+                                          </span>
+                                          <input
+                                            autoComplete="off"
+                                            className="ant-input"
+                                            hidden={null}
+                                            name="aliasName"
+                                            onBlur={[Function]}
+                                            onChange={[Function]}
+                                            onFocus={[Function]}
+                                            onKeyDown={[Function]}
+                                            placeholder="Enter a desired alias"
+                                            required={true}
+                                            style={null}
+                                            type="text"
+                                            value=""
+                                          />
+                                        </span>
+                                        <span
+                                          className="ant-input-group-addon"
+                                        >
+                                           . xec
+                                        </span>
+                                      </span>
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -542,33 +656,90 @@ Array [
                       <div
                         className="ant-form-item-control-input-content"
                       >
-                        <span
-                          className="ant-input-group-wrapper"
+                        <div
+                          className="sc-gipzik iAGCgG"
                         >
-                          <span
-                            className="ant-input-wrapper ant-input-group"
+                          <div
+                            className="ant-form-item ant-form-item-with-help ant-form-item-has-error"
                           >
-                            <input
-                              className="ant-input"
-                              hidden={null}
-                              maxLength={21}
-                              name="aliasName"
-                              onBlur={[Function]}
-                              onChange={[Function]}
-                              onFocus={[Function]}
-                              onKeyDown={[Function]}
-                              placeholder="Enter a desired alias"
-                              style={null}
-                              type="text"
-                              value=""
-                            />
-                            <span
-                              className="ant-input-group-addon"
+                            <div
+                              className="ant-row ant-form-item-row"
+                              style={Object {}}
                             >
-                               . xec
-                            </span>
-                          </span>
-                        </span>
+                              <div
+                                className="ant-col ant-form-item-control"
+                                style={Object {}}
+                              >
+                                <div
+                                  className="ant-form-item-control-input"
+                                >
+                                  <div
+                                    className="ant-form-item-control-input-content"
+                                  >
+                                    <span
+                                      className="ant-input-group-wrapper ant-input-group-wrapper-status-error"
+                                    >
+                                      <span
+                                        className="ant-input-wrapper ant-input-group"
+                                      >
+                                        <span
+                                          className="ant-input-affix-wrapper ant-input-affix-wrapper-status-error"
+                                          hidden={null}
+                                          onClick={[Function]}
+                                          style={null}
+                                        >
+                                          <span
+                                            className="ant-input-prefix"
+                                          >
+                                            <span
+                                              aria-label="wallet"
+                                              className="anticon anticon-wallet sc-bxivhb iBBRHU"
+                                              role="img"
+                                            >
+                                              <svg
+                                                aria-hidden="true"
+                                                data-icon="wallet"
+                                                fill="currentColor"
+                                                focusable="false"
+                                                height="1em"
+                                                viewBox="64 64 896 896"
+                                                width="1em"
+                                              >
+                                                <path
+                                                  d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
+                                                />
+                                              </svg>
+                                            </span>
+                                          </span>
+                                          <input
+                                            autoComplete="off"
+                                            className="ant-input"
+                                            hidden={null}
+                                            name="aliasName"
+                                            onBlur={[Function]}
+                                            onChange={[Function]}
+                                            onFocus={[Function]}
+                                            onKeyDown={[Function]}
+                                            placeholder="Enter a desired alias"
+                                            required={true}
+                                            style={null}
+                                            type="text"
+                                            value=""
+                                          />
+                                        </span>
+                                        <span
+                                          className="ant-input-group-addon"
+                                        >
+                                           . xec
+                                        </span>
+                                      </span>
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -755,33 +926,90 @@ Array [
                       <div
                         className="ant-form-item-control-input-content"
                       >
-                        <span
-                          className="ant-input-group-wrapper"
+                        <div
+                          className="sc-gipzik iAGCgG"
                         >
-                          <span
-                            className="ant-input-wrapper ant-input-group"
+                          <div
+                            className="ant-form-item ant-form-item-with-help ant-form-item-has-error"
                           >
-                            <input
-                              className="ant-input"
-                              hidden={null}
-                              maxLength={21}
-                              name="aliasName"
-                              onBlur={[Function]}
-                              onChange={[Function]}
-                              onFocus={[Function]}
-                              onKeyDown={[Function]}
-                              placeholder="Enter a desired alias"
-                              style={null}
-                              type="text"
-                              value=""
-                            />
-                            <span
-                              className="ant-input-group-addon"
+                            <div
+                              className="ant-row ant-form-item-row"
+                              style={Object {}}
                             >
-                               . xec
-                            </span>
-                          </span>
-                        </span>
+                              <div
+                                className="ant-col ant-form-item-control"
+                                style={Object {}}
+                              >
+                                <div
+                                  className="ant-form-item-control-input"
+                                >
+                                  <div
+                                    className="ant-form-item-control-input-content"
+                                  >
+                                    <span
+                                      className="ant-input-group-wrapper ant-input-group-wrapper-status-error"
+                                    >
+                                      <span
+                                        className="ant-input-wrapper ant-input-group"
+                                      >
+                                        <span
+                                          className="ant-input-affix-wrapper ant-input-affix-wrapper-status-error"
+                                          hidden={null}
+                                          onClick={[Function]}
+                                          style={null}
+                                        >
+                                          <span
+                                            className="ant-input-prefix"
+                                          >
+                                            <span
+                                              aria-label="wallet"
+                                              className="anticon anticon-wallet sc-bxivhb iBBRHU"
+                                              role="img"
+                                            >
+                                              <svg
+                                                aria-hidden="true"
+                                                data-icon="wallet"
+                                                fill="currentColor"
+                                                focusable="false"
+                                                height="1em"
+                                                viewBox="64 64 896 896"
+                                                width="1em"
+                                              >
+                                                <path
+                                                  d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
+                                                />
+                                              </svg>
+                                            </span>
+                                          </span>
+                                          <input
+                                            autoComplete="off"
+                                            className="ant-input"
+                                            hidden={null}
+                                            name="aliasName"
+                                            onBlur={[Function]}
+                                            onChange={[Function]}
+                                            onFocus={[Function]}
+                                            onKeyDown={[Function]}
+                                            placeholder="Enter a desired alias"
+                                            required={true}
+                                            style={null}
+                                            type="text"
+                                            value=""
+                                          />
+                                        </span>
+                                        <span
+                                          className="ant-input-group-addon"
+                                        >
+                                           . xec
+                                        </span>
+                                      </span>
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -963,33 +1191,90 @@ Array [
                       <div
                         className="ant-form-item-control-input-content"
                       >
-                        <span
-                          className="ant-input-group-wrapper"
+                        <div
+                          className="sc-gipzik iAGCgG"
                         >
-                          <span
-                            className="ant-input-wrapper ant-input-group"
+                          <div
+                            className="ant-form-item ant-form-item-with-help ant-form-item-has-error"
                           >
-                            <input
-                              className="ant-input"
-                              hidden={null}
-                              maxLength={21}
-                              name="aliasName"
-                              onBlur={[Function]}
-                              onChange={[Function]}
-                              onFocus={[Function]}
-                              onKeyDown={[Function]}
-                              placeholder="Enter a desired alias"
-                              style={null}
-                              type="text"
-                              value=""
-                            />
-                            <span
-                              className="ant-input-group-addon"
+                            <div
+                              className="ant-row ant-form-item-row"
+                              style={Object {}}
                             >
-                               . xec
-                            </span>
-                          </span>
-                        </span>
+                              <div
+                                className="ant-col ant-form-item-control"
+                                style={Object {}}
+                              >
+                                <div
+                                  className="ant-form-item-control-input"
+                                >
+                                  <div
+                                    className="ant-form-item-control-input-content"
+                                  >
+                                    <span
+                                      className="ant-input-group-wrapper ant-input-group-wrapper-status-error"
+                                    >
+                                      <span
+                                        className="ant-input-wrapper ant-input-group"
+                                      >
+                                        <span
+                                          className="ant-input-affix-wrapper ant-input-affix-wrapper-status-error"
+                                          hidden={null}
+                                          onClick={[Function]}
+                                          style={null}
+                                        >
+                                          <span
+                                            className="ant-input-prefix"
+                                          >
+                                            <span
+                                              aria-label="wallet"
+                                              className="anticon anticon-wallet sc-bxivhb iBBRHU"
+                                              role="img"
+                                            >
+                                              <svg
+                                                aria-hidden="true"
+                                                data-icon="wallet"
+                                                fill="currentColor"
+                                                focusable="false"
+                                                height="1em"
+                                                viewBox="64 64 896 896"
+                                                width="1em"
+                                              >
+                                                <path
+                                                  d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
+                                                />
+                                              </svg>
+                                            </span>
+                                          </span>
+                                          <input
+                                            autoComplete="off"
+                                            className="ant-input"
+                                            hidden={null}
+                                            name="aliasName"
+                                            onBlur={[Function]}
+                                            onChange={[Function]}
+                                            onFocus={[Function]}
+                                            onKeyDown={[Function]}
+                                            placeholder="Enter a desired alias"
+                                            required={true}
+                                            style={null}
+                                            type="text"
+                                            value=""
+                                          />
+                                        </span>
+                                        <span
+                                          className="ant-input-group-addon"
+                                        >
+                                           . xec
+                                        </span>
+                                      </span>
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>

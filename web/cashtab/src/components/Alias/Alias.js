@@ -8,8 +8,9 @@ import {
     SidePaddingCtn,
     WalletInfoCtn,
 } from 'components/Common/Atoms';
+import { DestinationAddressSingle } from 'components/Common/EnhancedInputs';
 import { AntdFormWrapper } from 'components/Common/EnhancedInputs';
-import { Form, Input } from 'antd';
+import { Form } from 'antd';
 import { SmartButton } from 'components/Common/PrimaryButton';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
@@ -20,6 +21,7 @@ import {
     fromSatoshisToXec,
     getAliasRegistrationFee,
     convertToEcashPrefix,
+    getAliasByteSize,
 } from 'utils/cashMethods';
 import { isAliasAvailable, isAddressRegistered } from 'utils/chronik';
 import { currency } from 'components/Common/Ticker.js';
@@ -69,6 +71,7 @@ const Alias = ({ passLoadingStatus }) => {
         aliasName: '',
     });
     const [isValidAliasInput, setIsValidAliasInput] = useState(false); // tracks whether to activate the registration button
+    const [aliasValidationError, setAliasValidationError] = useState(false);
     const [activeWalletAliases, setActiveWalletAliases] = useState([]); // stores the list of aliases registered to this active wallet
     const [aliasLength, setAliasLength] = useState(false); // real time tracking of alias char length
     const [aliasFee, setAliasFee] = useState(false); // real time tracking of alias registration fee
@@ -185,13 +188,21 @@ const Alias = ({ passLoadingStatus }) => {
 
     const handleAliasNameInput = e => {
         const { name, value } = e.target;
-
-        if (value && value.trim() !== '') {
+        const aliasInputByteSize = getAliasByteSize(value);
+        if (
+            value &&
+            value.trim() !== '' &&
+            aliasInputByteSize <= currency.aliasSettings.aliasMaxLength
+        ) {
             setIsValidAliasInput(true);
-            const registratioFee = getAliasRegistrationFee(value);
-            setAliasFee(registratioFee);
-            setAliasLength(new Blob([value]).size);
+            const registrationFee = getAliasRegistrationFee(value);
+            setAliasFee(registrationFee);
+            setAliasLength(aliasInputByteSize);
+            setAliasValidationError(false);
         } else {
+            setAliasValidationError(
+                'Please enter an alias between 1 and 21 bytes',
+            );
             setIsValidAliasInput(false);
             setAliasFee(false);
             setAliasLength(false);
@@ -267,17 +278,24 @@ const Alias = ({ passLoadingStatus }) => {
                                     }}
                                 >
                                     <Form.Item>
-                                        <Input
-                                            addonAfter=" . xec"
-                                            placeholder="Enter a desired alias"
-                                            name="aliasName"
-                                            maxLength={
-                                                currency.aliasSettings
-                                                    .aliasMaxLength
+                                        <DestinationAddressSingle
+                                            validateStatus={
+                                                isValidAliasInput ? '' : 'error'
                                             }
-                                            onChange={e =>
-                                                handleAliasNameInput(e)
+                                            help={
+                                                aliasValidationError
+                                                    ? aliasValidationError
+                                                    : ''
                                             }
+                                            inputProps={{
+                                                addonAfter: ' . xec',
+                                                placeholder:
+                                                    'Enter a desired alias',
+                                                name: 'aliasName',
+                                                onChange: e =>
+                                                    handleAliasNameInput(e),
+                                                required: true,
+                                            }}
                                         />
                                         {aliasLength &&
                                             aliasFee &&

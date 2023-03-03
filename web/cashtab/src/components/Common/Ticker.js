@@ -13,19 +13,19 @@ export const currency = {
         // change to multisig prior to landing in prod
         aliasPaymentAddress: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
         aliasPaymentHash160: '638568e36d0b5d7d49a6e99854caa27d9772b093', // hash160 of currency.aliasSettings.aliasPaymentAddress
-        // nominal pricing tiers for testing only - to be used as 'aliasRegistrationFeeInSats.oneChar'
+        // nominal pricing tiers for testing only - to be used as 'aliasRegistrationFeeInSats.oneByte'
         aliasRegistrationFeeInSats: {
-            oneChar: 558,
-            twoChar: 557,
-            threeChar: 556,
-            fourChar: 555,
-            fiveChar: 554,
-            sixChar: 553,
-            sevenChar: 552,
-            eightChar: 551,
+            oneByte: 558,
+            twoByte: 557,
+            threeByte: 556,
+            fourByte: 555,
+            fiveByte: 554,
+            sixByte: 553,
+            sevenByte: 552,
+            eightByte: 551,
             minFee: 550, // dust
         },
-        aliasMaxLength: 21, // refer to the Alias spec at https://reviews.bitcoinabc.org/D12972
+        aliasMaxLength: 21, // max byte length, refer to the Alias spec at https://reviews.bitcoinabc.org/D12972
     },
     chronikTxsPerPage: 25, // number of txs per page retrieved via chronik.script.history()
     coingeckoId: 'ecash',

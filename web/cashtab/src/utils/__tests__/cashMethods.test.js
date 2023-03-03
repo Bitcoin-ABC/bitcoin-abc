@@ -33,6 +33,7 @@ import {
     hash160ToAddress,
     getAliasRegistrationFee,
     outputScriptToAddress,
+    getAliasByteSize,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import { validAddressArrayInput } from '../__mocks__/mockAddressArray';
@@ -115,178 +116,59 @@ import { mockWif, mockStringifiedECPair } from '../__mocks__/mockECPair';
 
 it(`Alias byte length matches for an alias input with a single emoji`, () => {
     const aliasInput = '🙈';
-    const aliasInputByteLength = new Blob([aliasInput]).size;
-
-    // generate the OP_RETURN script
-    const opReturnData = generateOpReturnScript(
-        aliasInput,
-        false, // encryption use
-        false, // airdrop use
-        null, // airdrop use
-        null, // encrypted use
-        true, // alias registration flag
-    );
-
-    // extract the alias input from the OP_RETURN script and check the backend size
-    const hexString = opReturnData.toString('hex'); // convert to hex
-    const opReturnAlias = parseOpReturn(hexString); // parse OP_RETURN script into array
-    const opReturnAliasStr = Buffer.from(opReturnAlias[1], 'hex'); // retrieve the alias string from array
-    const opReturnAliasByteLength = new Blob([opReturnAliasStr]).size; // get the alias string size in bytes
-
-    expect(aliasInputByteLength).toStrictEqual(opReturnAliasByteLength);
+    const opReturnAliasByteLength = getAliasByteSize(aliasInput);
+    expect(opReturnAliasByteLength).toStrictEqual(4);
 });
 
 it(`Alias byte length matches for an alias input with characters and emojis`, () => {
     const aliasInput = 'monkey🙈';
-    const aliasInputByteLength = new Blob([aliasInput]).size;
-
-    // generate the OP_RETURN script
-    const opReturnData = generateOpReturnScript(
-        aliasInput,
-        false, // encryption use
-        false, // airdrop use
-        null, // airdrop use
-        null, // encrypted use
-        true, // alias registration flag
-    );
-
-    // extract the alias input from the OP_RETURN script and check the backend size
-    const hexString = opReturnData.toString('hex'); // convert to hex
-    const opReturnAlias = parseOpReturn(hexString); // parse OP_RETURN script into array
-    const opReturnAliasStr = Buffer.from(opReturnAlias[1], 'hex'); // retrieve the alias string from array
-    const opReturnAliasByteLength = new Blob([opReturnAliasStr]).size; // get the alias string size in bytes
-
-    expect(aliasInputByteLength).toStrictEqual(opReturnAliasByteLength);
+    const opReturnAliasByteLength = getAliasByteSize(aliasInput);
+    expect(opReturnAliasByteLength).toStrictEqual(10);
 });
 
 it(`Alias byte length matches for an alias input with special characters`, () => {
     const aliasInput = 'monkey©®ʕ•́ᴥ•̀ʔっ♡';
-    const aliasInputByteLength = new Blob([aliasInput]).size;
-
-    // generate the OP_RETURN script
-    const opReturnData = generateOpReturnScript(
-        aliasInput,
-        false, // encryption use
-        false, // airdrop use
-        null, // airdrop use
-        null, // encrypted use
-        true, // alias registration flag
-    );
-
-    // extract the alias input from the OP_RETURN script and check the backend size
-    const hexString = opReturnData.toString('hex'); // convert to hex
-    const opReturnAlias = parseOpReturn(hexString); // parse OP_RETURN script into array
-    const opReturnAliasStr = Buffer.from(opReturnAlias[1], 'hex'); // retrieve the alias string from array
-    const opReturnAliasByteLength = new Blob([opReturnAliasStr]).size; // get the alias string size in bytes
-
-    expect(aliasInputByteLength).toStrictEqual(opReturnAliasByteLength);
+    const opReturnAliasByteLength = getAliasByteSize(aliasInput);
+    expect(opReturnAliasByteLength).toStrictEqual(33);
 });
 
 it(`Alias byte length matches for an alias input with Korean characters`, () => {
     const aliasInput = '소주';
-    const aliasInputByteLength = new Blob([aliasInput]).size;
-
-    // generate the OP_RETURN script
-    const opReturnData = generateOpReturnScript(
-        aliasInput,
-        false, // encryption use
-        false, // airdrop use
-        null, // airdrop use
-        null, // encrypted use
-        true, // alias registration flag
-    );
-
-    // extract the alias input from the OP_RETURN script and check the backend size
-    const hexString = opReturnData.toString('hex'); // convert to hex
-    const opReturnAlias = parseOpReturn(hexString); // parse OP_RETURN script into array
-    const opReturnAliasStr = Buffer.from(opReturnAlias[1], 'hex'); // retrieve the alias string from array
-    const opReturnAliasByteLength = new Blob([opReturnAliasStr]).size; // get the alias string size in bytes
-
-    expect(aliasInputByteLength).toStrictEqual(opReturnAliasByteLength);
+    const opReturnAliasByteLength = getAliasByteSize(aliasInput);
+    expect(opReturnAliasByteLength).toStrictEqual(6);
 });
 
 it(`Alias byte length matches for an alias input with Arabic characters`, () => {
     const aliasInput = 'محيط';
-    const aliasInputByteLength = new Blob([aliasInput]).size;
-
-    // generate the OP_RETURN script
-    const opReturnData = generateOpReturnScript(
-        aliasInput,
-        false, // encryption use
-        false, // airdrop use
-        null, // airdrop use
-        null, // encrypted use
-        true, // alias registration flag
-    );
-
-    // extract the alias input from the OP_RETURN script and check the backend size
-    const hexString = opReturnData.toString('hex'); // convert to hex
-    const opReturnAlias = parseOpReturn(hexString); // parse OP_RETURN script into array
-    const opReturnAliasStr = Buffer.from(opReturnAlias[1], 'hex'); // retrieve the alias string from array
-    const opReturnAliasByteLength = new Blob([opReturnAliasStr]).size; // get the alias string size in bytes
-
-    expect(aliasInputByteLength).toStrictEqual(opReturnAliasByteLength);
+    const opReturnAliasByteLength = getAliasByteSize(aliasInput);
+    expect(opReturnAliasByteLength).toStrictEqual(8);
 });
 
 it(`Alias byte length matches for an alias input with Chinese characters`, () => {
     const aliasInput = '冰淇淋';
-    const aliasInputByteLength = new Blob([aliasInput]).size;
-
-    // generate the OP_RETURN script
-    const opReturnData = generateOpReturnScript(
-        aliasInput,
-        false, // encryption use
-        false, // airdrop use
-        null, // airdrop use
-        null, // encrypted use
-        true, // alias registration flag
-    );
-
-    // extract the alias input from the OP_RETURN script and check the backend size
-    const hexString = opReturnData.toString('hex'); // convert to hex
-    const opReturnAlias = parseOpReturn(hexString); // parse OP_RETURN script into array
-    const opReturnAliasStr = Buffer.from(opReturnAlias[1], 'hex'); // retrieve the alias string from array
-    const opReturnAliasByteLength = new Blob([opReturnAliasStr]).size; // get the alias string size in bytes
-
-    expect(aliasInputByteLength).toStrictEqual(opReturnAliasByteLength);
+    const opReturnAliasByteLength = getAliasByteSize(aliasInput);
+    expect(opReturnAliasByteLength).toStrictEqual(9);
 });
 
 it(`Alias byte length matches for an alias input with a mixture of symbols, multilingual characters and emojis`, () => {
     const aliasInput = '🙈©冰소주';
-    const aliasInputByteLength = new Blob([aliasInput]).size;
-
-    // generate the OP_RETURN script
-    const opReturnData = generateOpReturnScript(
-        aliasInput,
-        false, // encryption use
-        false, // airdrop use
-        null, // airdrop use
-        null, // encrypted use
-        true, // alias registration flag
-    );
-
-    // extract the alias input from the OP_RETURN script and check the backend size
-    const hexString = opReturnData.toString('hex'); // convert to hex
-    const opReturnAlias = parseOpReturn(hexString); // parse OP_RETURN script into array
-    const opReturnAliasStr = Buffer.from(opReturnAlias[1], 'hex'); // retrieve the alias string from array
-    const opReturnAliasByteLength = new Blob([opReturnAliasStr]).size; // get the alias string size in bytes
-
-    expect(aliasInputByteLength).toStrictEqual(opReturnAliasByteLength);
+    const opReturnAliasByteLength = getAliasByteSize(aliasInput);
+    expect(opReturnAliasByteLength).toStrictEqual(15);
 });
 
-it(`getAliasRegistrationFee() returns correct fee in sats for an alias input with 5 chars`, () => {
-    const aliasInput = 'panda'; // 5 chars
+it(`getAliasRegistrationFee() returns correct fee in sats for an alias input with 5 bytes`, () => {
+    const aliasInput = 'panda'; // 5 bytes
     const regFeeResult = getAliasRegistrationFee(aliasInput);
     expect(regFeeResult).toStrictEqual(
-        currency.aliasSettings.aliasRegistrationFeeInSats.fiveChar,
+        currency.aliasSettings.aliasRegistrationFeeInSats.fiveByte,
     );
 });
 
-it(`getAliasRegistrationFee() returns correct fee in sats for an alias input above 8 chars`, () => {
-    const aliasInput = 'pandapanda'; // 10 chars
+it(`getAliasRegistrationFee() returns correct fee in sats for an alias input above 8 bytes`, () => {
+    const aliasInput = 'pandapanda'; // 10 bytes
     const regFeeResult = getAliasRegistrationFee(aliasInput);
     expect(regFeeResult).toStrictEqual(
-        currency.aliasSettings.aliasRegistrationFeeInSats.eightChar,
+        currency.aliasSettings.aliasRegistrationFeeInSats.eightByte,
     );
 });
 
