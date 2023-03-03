@@ -185,6 +185,19 @@ static const CRPCConvertParam vRPCConvertParams[] = {
     {"setstakingreward", 2, "append"},
 };
 
+/**
+ * Parse string to UniValue or throw runtime_error if string contains invalid
+ * JSON
+ */
+static UniValue Parse(std::string_view raw) {
+    UniValue parsed;
+    if (!parsed.read(raw)) {
+        throw std::runtime_error(tfm::format("Error parsing JSON: %s", raw));
+    }
+
+    return parsed;
+}
+
 class CRPCConvertTable {
 private:
     std::set<std::pair<std::string, int>> members;
@@ -199,9 +212,8 @@ public:
      */
     UniValue ArgToUniValue(std::string_view arg_value,
                            const std::string &method, int param_idx) {
-        return members.count({method, param_idx}) > 0
-                   ? ParseNonRFCJSONValue(arg_value)
-                   : arg_value;
+        return members.count({method, param_idx}) > 0 ? Parse(arg_value)
+                                                      : arg_value;
     }
 
     /**
@@ -211,9 +223,8 @@ public:
     UniValue ArgToUniValue(std::string_view arg_value,
                            const std::string &method,
                            const std::string &param_name) {
-        return membersByName.count({method, param_name}) > 0
-                   ? ParseNonRFCJSONValue(arg_value)
-                   : arg_value;
+        return membersByName.count({method, param_name}) > 0 ? Parse(arg_value)
+                                                             : arg_value;
     }
 };
 
@@ -225,18 +236,6 @@ CRPCConvertTable::CRPCConvertTable() {
 }
 
 static CRPCConvertTable rpcCvtTable;
-
-/**
- * Non-RFC4627 JSON parser, accepts internal values (such as numbers, true,
- * false, null) as well as objects and arrays.
- */
-UniValue ParseNonRFCJSONValue(std::string_view raw) {
-    UniValue parsed;
-    if (!parsed.read(raw)) {
-        throw std::runtime_error(tfm::format("Error parsing JSON: %s", raw));
-    }
-    return parsed;
-}
 
 UniValue RPCConvertValues(const std::string &strMethod,
                           const std::vector<std::string> &strParams) {

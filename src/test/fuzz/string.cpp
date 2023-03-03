@@ -70,10 +70,6 @@ FUZZ_TARGET(string) {
     (void)OnlyHasDefaultSectionSetting(settings, random_string_1,
                                        random_string_2);
     (void)ParseNetwork(random_string_1);
-    try {
-        (void)ParseNonRFCJSONValue(random_string_1);
-    } catch (const std::runtime_error &) {
-    }
     OutputType output_type;
     (void)ParseOutputType(random_string_1, output_type);
     (void)RemovePrefix(random_string_1, random_string_2);
