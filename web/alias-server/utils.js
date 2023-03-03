@@ -1,4 +1,5 @@
 const cashaddr = require('ecashaddrjs');
+const config = require('./config');
 
 module.exports = {
     outputScriptToAddress: function (outputScript) {
@@ -67,5 +68,21 @@ module.exports = {
         } else {
             return [];
         }
+    },
+    generateReservedAliasTxArray: function () {
+        const reservedAliasTxs = [];
+        for (
+            let i = 0;
+            i < config.aliasConstants.reservedAliases.length;
+            i += 1
+        ) {
+            reservedAliasTxs.push({
+                address: config.aliasConstants.address,
+                alias: config.aliasConstants.reservedAliases[i],
+                blockheight: 1,
+                txid: 'reserved',
+            });
+        }
+        return reservedAliasTxs;
     },
 };

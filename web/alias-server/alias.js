@@ -1,5 +1,9 @@
+const config = require('./config');
 const log = require('./log');
-const { outputScriptToAddress } = require('./utils');
+const {
+    outputScriptToAddress,
+    generateReservedAliasTxArray,
+} = require('./utils');
 
 module.exports = {
     getAllAliasTxs: function (aliasTxHistory, aliasConstants) {
@@ -125,9 +129,17 @@ module.exports = {
             module.exports.sortAliasTxsByTxidAndBlockheight(unsortedAliasTxs);
 
         // Initialize arrays to store alias registration info
-        const registeredAliases = [];
-        const validAliasTxs = [];
+        let registeredAliases = [];
+        // Add reservedAliases to the registeredAliases array to make sure they cannot be valid if seen in a tx
+        registeredAliases = registeredAliases.concat(
+            config.aliasConstants.reservedAliases,
+        );
+        let validAliasTxs = [];
         const pendingAliasTxs = [];
+
+        // Add reservedAliasTxs to validAliasTxs
+        const reservedAliasTxs = generateReservedAliasTxArray();
+        validAliasTxs = validAliasTxs.concat(reservedAliasTxs);
 
         // Iterate over sorted aliases starting from oldest registrations to newest
         // (and alphabetically first txids to last)

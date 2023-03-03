@@ -9,6 +9,7 @@ const {
     sortAliasTxsByTxidAndBlockheight,
     getValidAliasRegistrations,
 } = require('./alias.js');
+const { generateReservedAliasTxArray } = require('./utils');
 const fs = require('fs');
 const { initializeDb } = require('./db');
 const log = require('./log');
@@ -144,6 +145,16 @@ async function generateMocks() {
     );
 }
 
+function generateReservedAliasTxsMock() {
+    const reservedAliasTxArray = generateReservedAliasTxArray();
+    fs.writeFileSync(
+        './test/mocks/generated/reservedAliasTxArray.json',
+        JSON.stringify(reservedAliasTxArray, null, 2),
+        'utf-8',
+    );
+}
+
 //generateMocks();
 //writeAliasDataToDatabase();
+//generateReservedAliasTxsMock();
 main();

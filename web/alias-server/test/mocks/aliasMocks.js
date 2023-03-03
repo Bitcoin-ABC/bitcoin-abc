@@ -1,3 +1,4 @@
+const reservedAliasTxs = require('./reservedAliasTxs');
 module.exports = {
     testAliases20230228: {
         txHistory: [
@@ -12084,7 +12085,7 @@ module.exports = {
                 blockheight: 781114,
             },
         ],
-        validAliasTxs: [
+        validAliasTxs: reservedAliasTxs.concat([
             {
                 address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
                 alias: 'nfs',
@@ -12201,20 +12202,8 @@ module.exports = {
             },
             {
                 address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-                alias: 'abc',
-                txid: '8d754bb5ae0024814e1c35ca6aba5c780a0119c33552d84f4876275275deeca4',
-                blockheight: 775263,
-            },
-            {
-                address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                 alias: 'chicken3',
                 txid: 'a6a0a20e5c4f2245e32ab545dbf07171d46a18c9d60d741a3a81064f4b7a59d0',
-                blockheight: 775263,
-            },
-            {
-                address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-                alias: 'gnc',
-                txid: 'fb065af525c4fe0cd0885602612944aef0545ea09246434bc314411f9f59637b',
                 blockheight: 775263,
             },
             {
@@ -12997,7 +12986,7 @@ module.exports = {
                 txid: 'd4b6bdbaac5ad3408feb3be216b2759124212cd2653b889c6f3a559aa35c21bc',
                 blockheight: 780874,
             },
-        ],
+        ]),
     },
     aliases_20230209_unconfirmed: {
         txHistory: [
@@ -21520,7 +21509,7 @@ module.exports = {
                 blockheight: 100000000,
             },
         ],
-        validAliasTxs: [
+        validAliasTxs: reservedAliasTxs.concat([
             {
                 address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
                 alias: 'nfs',
@@ -21637,20 +21626,8 @@ module.exports = {
             },
             {
                 address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-                alias: 'abc',
-                txid: '8d754bb5ae0024814e1c35ca6aba5c780a0119c33552d84f4876275275deeca4',
-                blockheight: 775263,
-            },
-            {
-                address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                 alias: 'chicken3',
                 txid: 'a6a0a20e5c4f2245e32ab545dbf07171d46a18c9d60d741a3a81064f4b7a59d0',
-                blockheight: 775263,
-            },
-            {
-                address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-                alias: 'gnc',
-                txid: 'fb065af525c4fe0cd0885602612944aef0545ea09246434bc314411f9f59637b',
                 blockheight: 775263,
             },
             {
@@ -22109,7 +22086,7 @@ module.exports = {
                 txid: '5dbfeca8f27ec2c9e65e2e38115fff55f97df302337582cccad1e6f12a18f82c',
                 blockheight: 778612,
             },
-        ],
+        ]),
         pendingAliasTxs: [
             {
                 address: 'ecash:qz7yjv3h90en64an5gdjkf3kjxdusw585u9j5rqxcg',
@@ -22277,13 +22254,13 @@ module.exports = {
                 blockheight: 3,
             },
         ],
-        validAliasTxsMixedCases: [
+        validAliasTxsMixedCases: reservedAliasTxs.concat([
             {
                 address: 'ecash:q1',
                 alias: 'test',
                 txid: 'abc',
                 blockheight: 1,
             },
-        ],
+        ]),
     },
 };

@@ -2,7 +2,9 @@ const assert = require('assert');
 const {
     outputScriptToAddress,
     getValidAliasTxsToBeAddedToDb,
+    generateReservedAliasTxArray,
 } = require('../utils');
+const reservedAliasTxs = require('./mocks/reservedAliasTxs');
 const {
     validAliasesInDb,
     validAliasTxs,
@@ -57,5 +59,8 @@ describe('alias-server utils.js', function () {
             ),
             [],
         );
+    });
+    it('generateReservedAliasTxArray returns an array of reserved alias txs in the correct format', function () {
+        assert.deepEqual(generateReservedAliasTxArray(), reservedAliasTxs);
     });
 });
