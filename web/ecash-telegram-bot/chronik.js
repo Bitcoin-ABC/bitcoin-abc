@@ -35,13 +35,27 @@ module.exports = {
                 // Here is where you will send a telegram msg
                 // Construct your Telegram message in markdown
                 const { blockHash } = wsMsg;
+
+                // Get some info about this block
+                let blockDetails;
+                try {
+                    blockDetails = await chronik.block(blockHash);
+                } catch (err) {
+                    blockDetails = false;
+                    console.log(`Error in chronik.block(${blockHash})`, err);
+                }
+
                 // Construct your Telegram message in markdown
                 const tgMsg =
                     `New Block Found\n` +
                     `\n` +
-                    `${blockHash}\n` +
+                    (blockDetails
+                        ? `Height: ${blockDetails.blockInfo.height}\n` +
+                          `Txs: ${blockDetails.blockInfo.numTxs}\n`
+                        : `${blockHash}\n`) +
                     `\n` +
                     `[explorer](${config.blockExplorer}/block/${blockHash})`;
+
                 // Configure msg parse settings
                 let tgMsgOptions = {
                     parse_mode: 'markdown',
