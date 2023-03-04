@@ -1,0 +1,22 @@
+{
+    "name": "ecash-telegram-bot",
+    "version": "1.0.0",
+    "description": "A telegram bot to broadcast ecash chain events",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [
+        "ecash",
+        "xec",
+        "telegram",
+        "bot",
+        "crypto"
+    ],
+    "author": "Bitcoin ABC",
+    "license": "MIT",
+    "dependencies": {
+        "chronik-client": "^0.8.1",
+        "node-telegram-bot-api": "^0.61.0"
+    }
+}
