@@ -65,6 +65,12 @@ Registration fees are paid to a single address. This address will be polled via 
 
 The designated registration address will either be the IFP address or an address that periodically sends funds from valid registrations to the IFP address. Automatically processing hot wallet refunds for invalid transactions would not be feasible from the IFP address.
 
+### Reserved Aliases
+
+A list of reserved Aliases should be defined which are not available for registration. These include trademarks as well as mitigation for common phishing websites and scammer usernames. For reference, Cashtab maintains such a reserved list via the `reservedAliases` array in `/Common/Ticker.js`.
+
+As a matter of efficiency, the logic to check whether an alias is reserved should occur before checking local cache or onchain data to see whether the alias has been registered or not.
+
 ### Known risks
 
 Resolving conflicting alias registrations at the same blockheight by choosing the alphabetically first txid is arbitrary. It would be possible for someone to watch for broadcast registration transactions, send multiple transactions registering the same alias, and have a good chance of securing the alias before the original registrant.

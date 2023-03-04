@@ -254,6 +254,14 @@ export const getAddressFromAlias = (alias, cachedAliases) => {
 };
 
 export const isAliasAvailable = async (chronik, alias) => {
+    // check whether alias is reserved
+    const isReservedAlias = currency.aliasSettings.reservedAliases.includes(
+        alias.toLowerCase(),
+    );
+    if (isReservedAlias) {
+        return false;
+    }
+
     // retrieve alias payment address tx history
     let aliasPaymentTxs = await getAllTxHistory(
         chronik,
@@ -312,6 +320,13 @@ export const getAliasAndAddresses = unfilteredAliasPaymentTxs => {
         const parsedAliasNameStr = Buffer.from(parsedAliasNameHex, 'hex')
             .toString()
             .toLowerCase();
+
+        // if this alias is reserved, skip it
+        const isReservedAlias =
+            currency.aliasSettings.reservedAliases.includes(parsedAliasNameStr);
+        if (isReservedAlias) {
+            continue;
+        }
 
         /* 
         Assume the first input is the address registering the alias
