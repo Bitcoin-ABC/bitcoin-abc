@@ -84,6 +84,9 @@ contrib/devtools/split-debug.sh
 # Ignore node_modules at every level
 node_modules/
 
+# Ignore secrets.js for JS apps that use secret keys, e.g. databases or telegram bots
+secrets.js
+
 # Local Netlify folder
 .netlify
 
