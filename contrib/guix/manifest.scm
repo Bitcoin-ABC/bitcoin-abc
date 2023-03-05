@@ -610,7 +610,7 @@ inspecting signatures in Mach-O binaries.")
         gcc-toolchain-10
         (list gcc-toolchain-10 "static")
         ;; Scripting
-        python-3
+        python-minimal ;; (3.9)
         perl
         ;; Git
         git-minimal
