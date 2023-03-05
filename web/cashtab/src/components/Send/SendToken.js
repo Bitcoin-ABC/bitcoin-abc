@@ -267,6 +267,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
 
             // extract alias without the `.xec`
             const aliasName = address.slice(0, address.length - 4);
+
             // extract alias address from cache
             const aliasCacheObj = await getAliasesFromLocalForage();
 
@@ -280,7 +281,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
                 error = 'eCash Alias does not exist';
                 setAliasInputAddress(false);
             } else {
-                // otherwise set parsed address to state for use in Send()
+                // otherwise set parsed address to state for use in Submit()
                 setAliasInputAddress(aliasAddress);
             }
         }

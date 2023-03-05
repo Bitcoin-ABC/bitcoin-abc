@@ -295,6 +295,15 @@ export const isAliasRegistered = (registeredAliases, alias) => {
 
 export const getAliasAndAddresses = unfilteredAliasPaymentTxs => {
     const registeredAliases = [];
+
+    // add reserved aliases to registeredAliases
+    currency.aliasSettings.reservedAliases.forEach(element =>
+        registeredAliases.push({
+            alias: element,
+            address: currency.aliasSettings.aliasPaymentAddress,
+        }),
+    );
+
     let aliasName;
     let aliasPaymentTxs = filterDuplicateAliasTxs(unfilteredAliasPaymentTxs);
 

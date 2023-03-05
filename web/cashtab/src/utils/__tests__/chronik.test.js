@@ -808,6 +808,102 @@ it(`Successfully extracts unique aliases from an alias payment address tx histor
         getAliasAndAddresses(mockTxHistoryOfAliasPaymentAddress),
     ).toStrictEqual([
         {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'avalanche',
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'electrum',
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'electrumabc',
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'bitcoin',
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'bitcoinabc',
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'ecash',
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'ecashofficial',
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'xec',
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'abc',
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'cashtab', // test to ensure the reserved alias address *pqa8 takes precedence
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'ecashtab',
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'cashtabwallet',
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'xecwallet',
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'gnc',
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'etoken',
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'token',
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'cashfusion',
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'coinbase',
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'binance',
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'ethereum',
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'helpdesk',
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'admin',
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'support',
+        },
+        {
+            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+            alias: 'official',
+        },
+        {
             alias: 'range',
             address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
         },

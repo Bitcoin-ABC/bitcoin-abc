@@ -450,16 +450,16 @@ const SendBCH = ({ passLoadingStatus }) => {
 
             // extract alias without the `.xec`
             const aliasName = address.slice(0, address.length - 4);
-            // extract alias address from cache
-            const aliasCacheObj = await getAliasesFromLocalForage();
 
+            // extract and check alias address from cache
+            const aliasCacheObj = await getAliasesFromLocalForage();
             const aliasAddress = getAddressFromAlias(
                 aliasName,
                 aliasCacheObj.aliases,
             );
 
-            // if not found in alias cache, display input error
             if (!aliasAddress) {
+                // if not found in alias cache, display input error
                 error = 'eCash Alias does not exist';
                 setAliasInputAddress(false);
             } else {

@@ -3497,6 +3497,45 @@ export const mockTxHistoryOfAliasPaymentAddress = [
         outputs: [
             {
                 value: '0',
+                outputScript: '6a042e7865632063617368746162', // 'cashtab' alias registration outside of cashtab
+            },
+            {
+                value: '559', // intentionally setting payment to higher than the minimum fee to ensure it is still parsed as a valid alias
+                outputScript:
+                    '76a914638568e36d0b5d7d49a6e99854caa27d9772b09388ac',
+            },
+            {
+                value: '166807',
+                outputScript:
+                    '76a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: '1671544936',
+        size: 247,
+        isCoinbase: false,
+        network: 'XEC',
+    },
+    {
+        txid: 'f720c61be27eebc4bab010f05e47c90e2223464b246a1f9b8a20075c7236de81',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '3a437f5550aeee740da958bff262c1750054d8553eeb1a4600ef3ff9b8bdeab6',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '48304502210096fe24492b82265dc28444e72b4fe7602ea4eff8ae30eb7665e189123fe5fd08022014dbe711d852909e27bc22d16bdf2899d828d1f80896c6bfa5cf202de4d990754121031e9483074a9f0ee7380131a870edbe9403e7b807a4b5611b01540a150f6aa454',
+                outputScript:
+                    '76a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac',
+                value: '167816',
+                sequenceNo: 4294967295,
+            },
+        ],
+        outputs: [
+            {
+                value: '0',
                 outputScript: '6a042e7865630572616e6765',
             },
             {
