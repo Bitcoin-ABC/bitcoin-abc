@@ -134,6 +134,7 @@ const CLogCategoryDesc LogCategories[] = {
 #endif
     {BCLog::BLOCKSTORE, "blockstorage"},
     {BCLog::NETDEBUG, "netdebug"},
+    {BCLog::TXPACKAGES, "txpackages"},
     {BCLog::ALL, "1"},
     {BCLog::ALL, "all"},
 };

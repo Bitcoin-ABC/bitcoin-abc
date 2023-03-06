@@ -3997,23 +3997,31 @@ bool PeerManagerImpl::ProcessOrphanTx(const Config &config, Peer &peer) {
         const TxId &orphanTxId = porphanTx->GetId();
 
         if (result.m_result_type == MempoolAcceptResult::ResultType::VALID) {
-            LogPrint(BCLog::MEMPOOL, "   accepted orphan tx %s\n",
+            LogPrint(BCLog::TXPACKAGES, "   accepted orphan tx %s\n",
                      orphanTxId.ToString());
+            LogPrint(BCLog::MEMPOOL,
+                     "AcceptToMemoryPool: peer=%d: accepted %s (poolsz %u txn, "
+                     "%u kB)\n",
+                     peer.m_id, orphanTxId.ToString(), m_mempool.size(),
+                     m_mempool.DynamicMemoryUsage() / 1000);
             RelayTransaction(orphanTxId);
             m_orphanage.AddChildrenToWorkSet(*porphanTx);
             m_orphanage.EraseTx(orphanTxId);
             return true;
         } else if (state.GetResult() != TxValidationResult::TX_MISSING_INPUTS) {
             if (state.IsInvalid()) {
-                LogPrint(BCLog::MEMPOOL,
+                LogPrint(BCLog::TXPACKAGES,
                          "   invalid orphan tx %s from peer=%d. %s\n",
+                         orphanTxId.ToString(), peer.m_id, state.ToString());
+                LogPrint(BCLog::MEMPOOLREJ,
+                         "%s from peer=%d was not accepted: %s\n",
                          orphanTxId.ToString(), peer.m_id, state.ToString());
                 // Punish peer that gave us an invalid orphan tx
                 MaybePunishNodeForTx(peer.m_id, state);
             }
             // Has inputs but not accepted to mempool
             // Probably non-standard or insufficient fee
-            LogPrint(BCLog::MEMPOOL, "   removed orphan tx %s\n",
+            LogPrint(BCLog::TXPACKAGES, "   removed orphan tx %s\n",
                      orphanTxId.ToString());
 
             m_recent_rejects.insert(orphanTxId);
@@ -5300,6 +5308,23 @@ void PeerManagerImpl::ProcessMessage(
                     RelayTransaction(tx.GetId());
                 }
             }
+
+            // If a tx is detected by m_recent_rejects it is ignored. Because we
+            // haven't submitted the tx to our mempool, we won't have computed a
+            // DoS score for it or determined exactly why we consider it
+            // invalid.
+            //
+            // This means we won't penalize any peer subsequently relaying a
+            // DoSy tx (even if we penalized the first peer who gave it to us)
+            // because we have to account for m_recent_rejects showing false
+            // positives. In other words, we shouldn't penalize a peer if we
+            // aren't *sure* they submitted a DoSy tx.
+            //
+            // Note that m_recent_rejects doesn't just record DoSy or invalid
+            // transactions, but any tx not accepted by the mempool, which may
+            // be due to node policy (vs. consensus). So we can't blanket
+            // penalize a peer simply for relaying a tx that our
+            // m_recent_rejects has caught, regardless of false positives.
             return;
         }
 
@@ -5370,7 +5395,7 @@ void PeerManagerImpl::ProcessMessage(
                                     DEFAULT_MAX_ORPHAN_TRANSACTIONS));
                 unsigned int nEvicted = m_orphanage.LimitOrphans(nMaxOrphanTx);
                 if (nEvicted > 0) {
-                    LogPrint(BCLog::MEMPOOL,
+                    LogPrint(BCLog::TXPACKAGES,
                              "orphanage overflow, removed %u tx\n", nEvicted);
                 }
             } else {
@@ -5390,23 +5415,6 @@ void PeerManagerImpl::ProcessMessage(
                 AddToCompactExtraTransactions(ptx);
             }
         }
-
-        // If a tx has been detected by m_recent_rejects, we will have reached
-        // this point and the tx will have been ignored. Because we haven't
-        // submitted the tx to our mempool, we won't have computed a DoS
-        // score for it or determined exactly why we consider it invalid.
-        //
-        // This means we won't penalize any peer subsequently relaying a DoSy
-        // tx (even if we penalized the first peer who gave it to us) because
-        // we have to account for m_recent_rejects showing false positives. In
-        // other words, we shouldn't penalize a peer if we aren't *sure* they
-        // submitted a DoSy tx.
-        //
-        // Note that m_recent_rejects doesn't just record DoSy or invalid
-        // transactions, but any tx not accepted by the mempool, which may be
-        // due to node policy (vs. consensus). So we can't blanket penalize a
-        // peer simply for relaying a tx that our m_recent_rejects has caught,
-        // regardless of false positives.
 
         if (state.IsInvalid()) {
             LogPrint(BCLog::MEMPOOLREJ,
