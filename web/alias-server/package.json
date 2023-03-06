@@ -4,7 +4,8 @@
     "description": "A node back-end for indexing eCash aliases",
     "main": "index.js",
     "scripts": {
-        "test": "mocha"
+        "test": "mocha",
+        "mocks": "node scripts/generateMocks.js"
     },
     "keywords": [
         "ecash",
