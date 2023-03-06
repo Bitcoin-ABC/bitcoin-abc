@@ -4,8 +4,8 @@
 //
 #include <fs.h>
 
+#include <util/fs_helpers.h>
 #include <util/getuniquepath.h>
-#include <util/system.h>
 
 #include <test/util/setup_common.h>
 

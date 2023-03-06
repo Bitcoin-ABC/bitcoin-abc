@@ -23,6 +23,7 @@
 #include <qt/transactiontablemodel.h>
 #include <qt/transactionview.h>
 #include <qt/walletmodel.h>
+#include <util/fs_helpers.h>
 #include <util/strencodings.h>
 
 #include <QAction>

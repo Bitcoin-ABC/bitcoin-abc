@@ -53,9 +53,9 @@
 #include <txmempool.h>
 #include <undo.h>
 #include <util/check.h> // For NDEBUG compile time check
+#include <util/fs_helpers.h>
 #include <util/strencodings.h>
 #include <util/string.h>
-#include <util/system.h>
 #include <util/time.h>
 #include <util/trace.h>
 #include <util/translation.h>

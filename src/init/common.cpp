@@ -15,6 +15,7 @@
 #include <node/ui_interface.h>
 #include <pubkey.h>
 #include <random.h>
+#include <util/fs_helpers.h>
 #include <util/system.h>
 #include <util/time.h>
 #include <util/translation.h>

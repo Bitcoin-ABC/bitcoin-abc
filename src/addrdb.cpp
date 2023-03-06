@@ -15,6 +15,7 @@
 #include <random.h>
 #include <streams.h>
 #include <tinyformat.h>
+#include <util/fs_helpers.h>
 #include <util/system.h>
 #include <util/translation.h>
 

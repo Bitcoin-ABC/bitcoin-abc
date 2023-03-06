@@ -7,6 +7,7 @@
 #include <wallet/bdb.h>
 #include <wallet/db.h>
 
+#include <util/fs_helpers.h>
 #include <util/strencodings.h>
 #include <util/translation.h>
 

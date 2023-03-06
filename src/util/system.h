@@ -40,44 +40,10 @@ extern const char *const BITCOIN_SETTINGS_FILENAME;
 void SetupEnvironment();
 bool SetupNetworking();
 
-bool FileCommit(FILE *file);
-bool TruncateFile(FILE *file, unsigned int length);
-int RaiseFileDescriptorLimit(int nMinFD);
-void AllocateFileRange(FILE *file, unsigned int offset, unsigned int length);
-[[nodiscard]] bool RenameOver(fs::path src, fs::path dest);
-bool LockDirectory(const fs::path &directory, const std::string lockfile_name,
-                   bool probe_only = false);
-void UnlockDirectory(const fs::path &directory,
-                     const std::string &lockfile_name);
-bool DirIsWritable(const fs::path &directory);
-bool CheckDiskSpace(const fs::path &dir, uint64_t additional_bytes = 0);
-
-/**
- * Get the size of a file by scanning it.
- *
- * @param[in] path The file path
- * @param[in] max Stop seeking beyond this limit
- * @return The file size or max
- */
-std::streampos
-GetFileSize(const char *path,
-            std::streamsize max = std::numeric_limits<std::streamsize>::max());
-
-/**
- * Release all directory locks. This is used for unit testing only, at runtime
- * the global destructor will take care of the locks.
- */
-void ReleaseDirectoryLocks();
-
-bool TryCreateDirectories(const fs::path &p);
-fs::path GetDefaultDataDir();
 // Return true if -datadir option points to a valid directory or is not
 // specified.
 bool CheckDataDirOption();
 fs::path GetConfigFile(const std::string &confPath);
-#ifdef WIN32
-fs::path GetSpecialFolderPath(int nFolder, bool fCreate = true);
-#endif
 #ifndef WIN32
 std::string ShellEscape(const std::string &arg);
 #endif

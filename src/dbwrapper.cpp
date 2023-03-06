@@ -5,6 +5,7 @@
 #include <dbwrapper.h>
 
 #include <random.h>
+#include <util/fs_helpers.h>
 
 #include <leveldb/cache.h>
 #include <leveldb/env.h>

@@ -6,6 +6,7 @@
 #include <index/blockfilterindex.h>
 #include <node/blockstorage.h>
 #include <primitives/blockhash.h>
+#include <util/fs_helpers.h>
 #include <util/system.h>
 
 #include <map>

@@ -15,6 +15,7 @@
 #include <key_io.h>
 #include <script/standard.h>
 #include <uint256.h>
+#include <util/fs_helpers.h>
 #include <util/time.h>
 #include <util/translation.h>
 #include <validation.h>

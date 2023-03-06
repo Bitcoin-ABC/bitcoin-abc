@@ -2,8 +2,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <util/system.h>
-
 #include <chainparams.h>
 #include <clientversion.h>
 #include <fs.h>
@@ -15,6 +13,7 @@
 #include <uint256.h>
 #include <util/bitdeque.h>
 #include <util/check.h>
+#include <util/fs_helpers.h>
 #include <util/getuniquepath.h>
 #include <util/message.h> // For MessageSign(), MessageVerify(), MESSAGE_MAGIC
 #include <util/moneystr.h>

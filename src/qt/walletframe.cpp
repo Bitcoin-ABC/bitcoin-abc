@@ -11,7 +11,7 @@
 #include <qt/walletcontroller.h>
 #include <qt/walletmodel.h>
 #include <qt/walletview.h>
-#include <util/system.h>
+#include <util/fs_helpers.h>
 
 #include <QGroupBox>
 #include <QHBoxLayout>

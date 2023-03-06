@@ -19,6 +19,7 @@
 #include <script/script.h>
 #include <script/standard.h>
 #include <util/exception.h>
+#include <util/fs_helpers.h>
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <util/time.h>

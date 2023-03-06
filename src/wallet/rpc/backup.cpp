@@ -18,6 +18,7 @@
 #include <script/standard.h>
 #include <sync.h>
 #include <util/bip32.h>
+#include <util/fs_helpers.h>
 #include <util/system.h>
 #include <util/time.h>
 #include <util/translation.h>

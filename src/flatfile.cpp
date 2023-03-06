@@ -6,7 +6,7 @@
 #include <flatfile.h>
 #include <logging.h>
 #include <tinyformat.h>
-#include <util/system.h>
+#include <util/fs_helpers.h>
 
 #include <stdexcept>
 

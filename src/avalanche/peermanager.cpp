@@ -15,6 +15,7 @@
 #include <scheduler.h>
 #include <uint256.h>
 #include <util/fastrange.h>
+#include <util/fs_helpers.h>
 #include <util/system.h>
 #include <util/time.h>
 #include <validation.h> // For ChainstateManager

@@ -72,6 +72,7 @@
 #include <txorphanage.h>
 #include <util/asmap.h>
 #include <util/check.h>
+#include <util/fs_helpers.h>
 #include <util/moneystr.h>
 #include <util/string.h>
 #include <util/thread.h>
