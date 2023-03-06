@@ -85,4 +85,15 @@ module.exports = {
         }
         return reservedAliasTxs;
     },
+    getAliasFromHex: function (aliasHex) {
+        return Buffer.from(aliasHex, 'hex').toString('utf8');
+    },
+    getHexFromAlias: function (alias) {
+        return Buffer.from(alias, 'utf8').toString('hex');
+    },
+    getAliasBytecount: function (alias) {
+        const aliasHex = module.exports.getHexFromAlias(alias);
+        const aliasByteCount = aliasHex.length / 2;
+        return aliasByteCount;
+    },
 };

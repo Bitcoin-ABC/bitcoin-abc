@@ -2,7 +2,7 @@ const config = require('./config');
 const log = require('./log');
 const { getAllAliasTxs, getValidAliasRegistrations } = require('./alias');
 const { getAllTxHistory } = require('./chronik');
-const { getValidAliasTxsToBeAddedToDb } = require('./utils');
+const { getValidAliasTxsToBeAddedToDb, getAliasBytecount } = require('./utils');
 const { returnTelegramBotSendMessagePromise } = require('./telegram');
 const { chronik } = require('./chronik');
 
@@ -112,14 +112,17 @@ module.exports = {
                         // Get interesting info for a telegram message
                         const { alias, address, txid } =
                             validAliasTxsToBeAddedToDb[i];
-                        const aliasLength = alias.length;
+
+                        // Get alias byte count
+                        const aliasBytecount = getAliasBytecount(alias);
+
                         const aliasPriceSats =
                             config.aliasConstants.registrationFeesSats[
-                                aliasLength
+                                aliasBytecount
                             ];
                         // Construct your Telegram message in markdown
                         const tgMsg =
-                            `A new ${aliasLength}-byte alias has been registered for ${(
+                            `A new ${aliasBytecount}-byte alias has been registered for ${(
                                 aliasPriceSats / 100
                             ).toLocaleString()} XEC!\n` +
                             `\n` +

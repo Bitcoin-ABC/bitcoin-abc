@@ -3,6 +3,7 @@ const log = require('./log');
 const {
     outputScriptToAddress,
     generateReservedAliasTxArray,
+    getAliasFromHex,
 } = require('./utils');
 
 module.exports = {
@@ -61,7 +62,7 @@ module.exports = {
 
                 // Parse for the alias
                 const aliasHex = outputScript.slice(14, outputScript.length);
-                alias = Buffer.from(aliasHex, 'hex').toString('utf8');
+                alias = getAliasFromHex(aliasHex);
 
                 const validAliasLength =
                     aliasLength <= aliasConstants.maxLength &&

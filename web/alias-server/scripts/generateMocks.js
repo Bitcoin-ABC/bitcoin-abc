@@ -7,7 +7,11 @@ const {
     getValidAliasRegistrations,
 } = require('../alias');
 const { getAllTxHistory } = require('../chronik');
-const { generateReservedAliasTxArray } = require('../utils');
+const {
+    generateReservedAliasTxArray,
+    getHexFromAlias,
+    getAliasBytecount,
+} = require('../utils');
 
 async function generateMocks() {
     // Directory for mocks. Relative to /scripts, ../test/mocks/generated/
@@ -77,6 +81,20 @@ async function generateMocks() {
     fs.writeFileSync(
         `${mocksDir}/reservedAliasTxArray.json`,
         JSON.stringify(reservedAliasTxArray, null, 2),
+        'utf-8',
+    );
+
+    // Get an array of just valid aliases
+    const aliasHexConversions = [];
+    for (let i = 0; i < validAliasTxs.length; i += 1) {
+        const { alias } = validAliasTxs[i];
+        const aliasHex = getHexFromAlias(alias);
+        const aliasByteCount = getAliasBytecount(alias);
+        aliasHexConversions.push({ alias, aliasHex, aliasByteCount });
+    }
+    fs.writeFileSync(
+        `${mocksDir}/aliasHexConversions.json`,
+        JSON.stringify(aliasHexConversions, null, 2),
         'utf-8',
     );
 }

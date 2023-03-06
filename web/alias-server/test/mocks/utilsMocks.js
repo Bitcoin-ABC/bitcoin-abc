@@ -1937,4 +1937,1181 @@ module.exports = {
             blockheight: 781529,
         },
     ],
+    aliasHexConversions: [
+        {
+            alias: 'avalanche',
+            aliasHex: '6176616c616e636865',
+            aliasByteCount: 9,
+        },
+        {
+            alias: 'electrum',
+            aliasHex: '656c65637472756d',
+            aliasByteCount: 8,
+        },
+        {
+            alias: 'electrumabc',
+            aliasHex: '656c65637472756d616263',
+            aliasByteCount: 11,
+        },
+        {
+            alias: 'bitcoin',
+            aliasHex: '626974636f696e',
+            aliasByteCount: 7,
+        },
+        {
+            alias: 'bitcoinabc',
+            aliasHex: '626974636f696e616263',
+            aliasByteCount: 10,
+        },
+        {
+            alias: 'ecash',
+            aliasHex: '6563617368',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'ecashofficial',
+            aliasHex: '65636173686f6666696369616c',
+            aliasByteCount: 13,
+        },
+        {
+            alias: 'xec',
+            aliasHex: '786563',
+            aliasByteCount: 3,
+        },
+        {
+            alias: 'abc',
+            aliasHex: '616263',
+            aliasByteCount: 3,
+        },
+        {
+            alias: 'cashtab',
+            aliasHex: '63617368746162',
+            aliasByteCount: 7,
+        },
+        {
+            alias: 'ecashtab',
+            aliasHex: '6563617368746162',
+            aliasByteCount: 8,
+        },
+        {
+            alias: 'cashtabwallet',
+            aliasHex: '6361736874616277616c6c6574',
+            aliasByteCount: 13,
+        },
+        {
+            alias: 'xecwallet',
+            aliasHex: '78656377616c6c6574',
+            aliasByteCount: 9,
+        },
+        {
+            alias: 'gnc',
+            aliasHex: '676e63',
+            aliasByteCount: 3,
+        },
+        {
+            alias: 'etoken',
+            aliasHex: '65746f6b656e',
+            aliasByteCount: 6,
+        },
+        {
+            alias: 'token',
+            aliasHex: '746f6b656e',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'cashfusion',
+            aliasHex: '63617368667573696f6e',
+            aliasByteCount: 10,
+        },
+        {
+            alias: 'coinbase',
+            aliasHex: '636f696e62617365',
+            aliasByteCount: 8,
+        },
+        {
+            alias: 'binance',
+            aliasHex: '62696e616e6365',
+            aliasByteCount: 7,
+        },
+        {
+            alias: 'ethereum',
+            aliasHex: '657468657265756d',
+            aliasByteCount: 8,
+        },
+        {
+            alias: 'helpdesk',
+            aliasHex: '68656c706465736b',
+            aliasByteCount: 8,
+        },
+        {
+            alias: 'admin',
+            aliasHex: '61646d696e',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'support',
+            aliasHex: '737570706f7274',
+            aliasByteCount: 7,
+        },
+        {
+            alias: 'official',
+            aliasHex: '6f6666696369616c',
+            aliasByteCount: 8,
+        },
+        {
+            alias: 'nfs',
+            aliasHex: '6e6673',
+            aliasByteCount: 3,
+        },
+        {
+            alias: 'joey',
+            aliasHex: '6a6f6579',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'foo',
+            aliasHex: '666f6f',
+            aliasByteCount: 3,
+        },
+        {
+            alias: '123',
+            aliasHex: '313233',
+            aliasByteCount: 3,
+        },
+        {
+            alias: 'range',
+            aliasHex: '72616e6765',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'congo',
+            aliasHex: '636f6e676f',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'chicken',
+            aliasHex: '636869636b656e',
+            aliasByteCount: 7,
+        },
+        {
+            alias: '111',
+            aliasHex: '313131',
+            aliasByteCount: 3,
+        },
+        {
+            alias: 'foo2',
+            aliasHex: '666f6f32',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'dog',
+            aliasHex: '646f67',
+            aliasByteCount: 3,
+        },
+        {
+            alias: 'cat',
+            aliasHex: '636174',
+            aliasByteCount: 3,
+        },
+        {
+            alias: 'king',
+            aliasHex: '6b696e67',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'ethan',
+            aliasHex: '657468616e',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'king2',
+            aliasHex: '6b696e6732',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'test2',
+            aliasHex: '7465737432',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'test3',
+            aliasHex: '7465737433',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'test',
+            aliasHex: '74657374',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'chicken4',
+            aliasHex: '636869636b656e34',
+            aliasByteCount: 8,
+        },
+        {
+            alias: 'chicken2',
+            aliasHex: '636869636b656e32',
+            aliasByteCount: 8,
+        },
+        {
+            alias: 'chicken3',
+            aliasHex: '636869636b656e33',
+            aliasByteCount: 8,
+        },
+        {
+            alias: 'chicken5',
+            aliasHex: '636869636b656e35',
+            aliasByteCount: 8,
+        },
+        {
+            alias: 'zoo1',
+            aliasHex: '7a6f6f31',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'chicken1',
+            aliasHex: '636869636b656e31',
+            aliasByteCount: 8,
+        },
+        {
+            alias: 'zoo2',
+            aliasHex: '7a6f6f32',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'zoo3',
+            aliasHex: '7a6f6f33',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'zoo4',
+            aliasHex: '7a6f6f34',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'zoo6',
+            aliasHex: '7a6f6f36',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'zoo5',
+            aliasHex: '7a6f6f35',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'chicken55',
+            aliasHex: '636869636b656e3535',
+            aliasByteCount: 9,
+        },
+        {
+            alias: 'pmp',
+            aliasHex: '706d70',
+            aliasByteCount: 3,
+        },
+        {
+            alias: 'fffff',
+            aliasHex: '6666666666',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'cats',
+            aliasHex: '63617473',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'king3',
+            aliasHex: '6b696e6733',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'chicken77',
+            aliasHex: '636869636b656e3737',
+            aliasByteCount: 9,
+        },
+        {
+            alias: 'chicken78',
+            aliasHex: '636869636b656e3738',
+            aliasByteCount: 9,
+        },
+        {
+            alias: 'chubaca',
+            aliasHex: '63687562616361',
+            aliasByteCount: 7,
+        },
+        {
+            alias: 'foo6',
+            aliasHex: '666f6f36',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'pizza1',
+            aliasHex: '70697a7a6131',
+            aliasByteCount: 6,
+        },
+        {
+            alias: 'foo7',
+            aliasHex: '666f6f37',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'choo1',
+            aliasHex: '63686f6f31',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'bytesofman',
+            aliasHex: '62797465736f666d616e',
+            aliasByteCount: 10,
+        },
+        {
+            alias: 'foo9',
+            aliasHex: '666f6f39',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'django',
+            aliasHex: '646a616e676f',
+            aliasByteCount: 6,
+        },
+        {
+            alias: 'foo10',
+            aliasHex: '666f6f3130',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'abcd',
+            aliasHex: '61626364',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'foo11',
+            aliasHex: '666f6f3131',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'rain1',
+            aliasHex: '7261696e31',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'nfs1',
+            aliasHex: '6e667331',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'jump',
+            aliasHex: '6a756d70',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'jump2',
+            aliasHex: '6a756d7032',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'jump3',
+            aliasHex: '6a756d7033',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'jump4',
+            aliasHex: '6a756d7034',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'jump5',
+            aliasHex: '6a756d7035',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'jump7',
+            aliasHex: '6a756d7037',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'jump6',
+            aliasHex: '6a756d7036',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'jump8',
+            aliasHex: '6a756d7038',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'nfs11',
+            aliasHex: '6e66733131',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'nfs12',
+            aliasHex: '6e66733132',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'nfs13',
+            aliasHex: '6e66733133',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'nfs14',
+            aliasHex: '6e66733134',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'nfs15',
+            aliasHex: '6e66733135',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'jump9',
+            aliasHex: '6a756d7039',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'jump10',
+            aliasHex: '6a756d703130',
+            aliasByteCount: 6,
+        },
+        {
+            alias: 'a1',
+            aliasHex: '6131',
+            aliasByteCount: 2,
+        },
+        {
+            alias: 'a2',
+            aliasHex: '6132',
+            aliasByteCount: 2,
+        },
+        {
+            alias: 'a3',
+            aliasHex: '6133',
+            aliasByteCount: 2,
+        },
+        {
+            alias: 'a4',
+            aliasHex: '6134',
+            aliasByteCount: 2,
+        },
+        {
+            alias: 'a7',
+            aliasHex: '6137',
+            aliasByteCount: 2,
+        },
+        {
+            alias: 'a6',
+            aliasHex: '6136',
+            aliasByteCount: 2,
+        },
+        {
+            alias: 'a5',
+            aliasHex: '6135',
+            aliasByteCount: 2,
+        },
+        {
+            alias: 'a8',
+            aliasHex: '6138',
+            aliasByteCount: 2,
+        },
+        {
+            alias: 'a9',
+            aliasHex: '6139',
+            aliasByteCount: 2,
+        },
+        {
+            alias: 'a10',
+            aliasHex: '613130',
+            aliasByteCount: 3,
+        },
+        {
+            alias: 'a12',
+            aliasHex: '613132',
+            aliasByteCount: 3,
+        },
+        {
+            alias: 'a11',
+            aliasHex: '613131',
+            aliasByteCount: 3,
+        },
+        {
+            alias: 'a13',
+            aliasHex: '613133',
+            aliasByteCount: 3,
+        },
+        {
+            alias: 'jay2',
+            aliasHex: '6a617932',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'jay1',
+            aliasHex: '6a617931',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'nfs133',
+            aliasHex: '6e6673313333',
+            aliasByteCount: 6,
+        },
+        {
+            alias: 'foo21',
+            aliasHex: '666f6f3231',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'kane3',
+            aliasHex: '6b616e6533',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'kane2',
+            aliasHex: '6b616e6532',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'kane1',
+            aliasHex: '6b616e6531',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'kane4',
+            aliasHex: '6b616e6534',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'a33',
+            aliasHex: '613333',
+            aliasByteCount: 3,
+        },
+        {
+            alias: 'shoo1',
+            aliasHex: '73686f6f31',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'comp1',
+            aliasHex: '636f6d7031',
+            aliasByteCount: 5,
+        },
+        {
+            alias: '123456',
+            aliasHex: '313233343536',
+            aliasByteCount: 6,
+        },
+        {
+            alias: '1234',
+            aliasHex: '31323334',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'you1',
+            aliasHex: '796f7531',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'you2',
+            aliasHex: '796f7532',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'you3',
+            aliasHex: '796f7533',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'delta',
+            aliasHex: '64656c7461',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'alpha',
+            aliasHex: '616c706861',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'beta',
+            aliasHex: '62657461',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'gamma',
+            aliasHex: '67616d6d61',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'andanotherone',
+            aliasHex: '616e64616e6f746865726f6e65',
+            aliasByteCount: 13,
+        },
+        {
+            alias: 'omega',
+            aliasHex: '6f6d656761',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'omicron',
+            aliasHex: '6f6d6963726f6e',
+            aliasByteCount: 7,
+        },
+        {
+            alias: 'you5',
+            aliasHex: '796f7535',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'q8n4e',
+            aliasHex: '71386e3465',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'you8',
+            aliasHex: '796f7538',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'you7',
+            aliasHex: '796f7537',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'you9',
+            aliasHex: '796f7539',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'you11',
+            aliasHex: '796f753131',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'you10',
+            aliasHex: '796f753130',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'you13',
+            aliasHex: '796f753133',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'you12',
+            aliasHex: '796f753132',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'you14',
+            aliasHex: '796f753134',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'quant',
+            aliasHex: '7175616e74',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'quant2',
+            aliasHex: '7175616e7432',
+            aliasByteCount: 6,
+        },
+        {
+            alias: 'thisisareallylongalia',
+            aliasHex: '746869736973617265616c6c796c6f6e67616c6961',
+            aliasByteCount: 21,
+        },
+        {
+            alias: 'aaaaaaaaaaaaaaaaaaaaa',
+            aliasHex: '616161616161616161616161616161616161616161',
+            aliasByteCount: 21,
+        },
+        {
+            alias: 'aaaaaaaaaaaaaaaaaaaa2',
+            aliasHex: '616161616161616161616161616161616161616132',
+            aliasByteCount: 21,
+        },
+        {
+            alias: 'asidjfiasdjfiasjdfi',
+            aliasHex: '617369646a66696173646a666961736a646669',
+            aliasByteCount: 19,
+        },
+        {
+            alias: 'feb13',
+            aliasHex: '6665623133',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'feb14',
+            aliasHex: '6665623134',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'foo112',
+            aliasHex: '666f6f313132',
+            aliasByteCount: 6,
+        },
+        {
+            alias: 'foo111',
+            aliasHex: '666f6f313131',
+            aliasByteCount: 6,
+        },
+        {
+            alias: 'foo113',
+            aliasHex: '666f6f313133',
+            aliasByteCount: 6,
+        },
+        {
+            alias: 'foo114',
+            aliasHex: '666f6f313134',
+            aliasByteCount: 6,
+        },
+        {
+            alias: '苦屎',
+            aliasHex: 'e88ba6e5b18e',
+            aliasByteCount: 6,
+        },
+        {
+            alias: '( ͡~ ͜ʖ ͡°)',
+            aliasHex: '2820cda17e20cd9cca9620cda1c2b029',
+            aliasByteCount: 16,
+        },
+        {
+            alias: ' محيط',
+            aliasHex: '20d985d8add98ad8b7',
+            aliasByteCount: 9,
+        },
+        {
+            alias: ' sandía',
+            aliasHex: '2073616e64c3ad61',
+            aliasByteCount: 8,
+        },
+        {
+            alias: 'محيط',
+            aliasHex: 'd985d8add98ad8b7',
+            aliasByteCount: 8,
+        },
+        {
+            alias: 'Mädchen',
+            aliasHex: '4dc3a4646368656e',
+            aliasByteCount: 8,
+        },
+        {
+            alias: '소주',
+            aliasHex: 'ec868ceca3bc',
+            aliasByteCount: 6,
+        },
+        {
+            alias: 'tang1',
+            aliasHex: '74616e6731',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'foo115',
+            aliasHex: '666f6f313135',
+            aliasByteCount: 6,
+        },
+        {
+            alias: 'anewalias',
+            aliasHex: '616e6577616c696173',
+            aliasByteCount: 9,
+        },
+        {
+            alias: '👀',
+            aliasHex: 'f09f9180',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'app.xec',
+            aliasHex: '6170702e786563',
+            aliasByteCount: 7,
+        },
+        {
+            alias: 'ajhsidfjiasasfijhisad',
+            aliasHex: '616a68736964666a696173617366696a6869736164',
+            aliasByteCount: 21,
+        },
+        {
+            alias: 'foo. xec',
+            aliasHex: '666f6f2e20786563',
+            aliasByteCount: 8,
+        },
+        {
+            alias: 'choo',
+            aliasHex: '63686f6f',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'fade',
+            aliasHex: '66616465',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'taco',
+            aliasHex: '7461636f',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'choco',
+            aliasHex: '63686f636f',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'lamb',
+            aliasHex: '6c616d62',
+            aliasByteCount: 4,
+        },
+        {
+            alias: '😾',
+            aliasHex: 'f09f98be',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'testingtxhistory',
+            aliasHex: '74657374696e677478686973746f7279',
+            aliasByteCount: 16,
+        },
+        {
+            alias: '🤔',
+            aliasHex: 'f09fa494',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'choo2',
+            aliasHex: '63686f6f32',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'chimichanga',
+            aliasHex: '6368696d696368616e6761',
+            aliasByteCount: 11,
+        },
+        {
+            alias: '🙈🙉🙊',
+            aliasHex: 'f09f9988f09f9989f09f998a',
+            aliasByteCount: 12,
+        },
+        {
+            alias: '🙊',
+            aliasHex: 'f09f998a',
+            aliasByteCount: 4,
+        },
+        {
+            alias: '🙊joey',
+            aliasHex: 'f09f998a6a6f6579',
+            aliasByteCount: 8,
+        },
+        {
+            alias: 'chunks',
+            aliasHex: '6368756e6b73',
+            aliasByteCount: 6,
+        },
+        {
+            alias: 'extension',
+            aliasHex: '657874656e73696f6e',
+            aliasByteCount: 9,
+        },
+        {
+            alias: 'newTestAlias',
+            aliasHex: '6e657754657374416c696173',
+            aliasByteCount: 12,
+        },
+        {
+            alias: 'testDbAlias2',
+            aliasHex: '746573744462416c69617332',
+            aliasByteCount: 12,
+        },
+        {
+            alias: 'testDbAlias1',
+            aliasHex: '746573744462416c69617331',
+            aliasByteCount: 12,
+        },
+        {
+            alias: 'alias🤔🤨💬',
+            aliasHex: '616c696173f09fa494f09fa4a8f09f92ac',
+            aliasByteCount: 17,
+        },
+        {
+            alias: 'testDbAlias3',
+            aliasHex: '746573744462416c69617333',
+            aliasByteCount: 12,
+        },
+        {
+            alias: '🤔🤨💬TEST3',
+            aliasHex: 'f09fa494f09fa4a8f09f92ac5445535433',
+            aliasByteCount: 17,
+        },
+        {
+            alias: '🤔🤨💬TEST1',
+            aliasHex: 'f09fa494f09fa4a8f09f92ac5445535431',
+            aliasByteCount: 17,
+        },
+        {
+            alias: '🤔🤨💬TEST',
+            aliasHex: 'f09fa494f09fa4a8f09f92ac54455354',
+            aliasByteCount: 16,
+        },
+        {
+            alias: '🤔🤨💬TEST2',
+            aliasHex: 'f09fa494f09fa4a8f09f92ac5445535432',
+            aliasByteCount: 17,
+        },
+        {
+            alias: '🤔🤔🤔🤔',
+            aliasHex: 'f09fa494f09fa494f09fa494f09fa494',
+            aliasByteCount: 16,
+        },
+        {
+            alias: '🤔🤔🤔',
+            aliasHex: 'f09fa494f09fa494f09fa494',
+            aliasByteCount: 12,
+        },
+        {
+            alias: '🤔🤔🤔🤔🤔',
+            aliasHex: 'f09fa494f09fa494f09fa494f09fa494f09fa494',
+            aliasByteCount: 20,
+        },
+        {
+            alias: '🤔🤔',
+            aliasHex: 'f09fa494f09fa494',
+            aliasByteCount: 8,
+        },
+        {
+            alias: 'freedom',
+            aliasHex: '66726565646f6d',
+            aliasByteCount: 7,
+        },
+        {
+            alias: 'freedom2',
+            aliasHex: '66726565646f6d32',
+            aliasByteCount: 8,
+        },
+        {
+            alias: '🤔🤔🤔!!/^32309',
+            aliasHex: 'f09fa494f09fa494f09fa49421212f5e3332333039',
+            aliasByteCount: 21,
+        },
+        {
+            alias: 'Wolfgang',
+            aliasHex: '576f6c6667616e67',
+            aliasByteCount: 8,
+        },
+        {
+            alias: 'a',
+            aliasHex: '61',
+            aliasByteCount: 1,
+        },
+        {
+            alias: 'maybe',
+            aliasHex: '6d61796265',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'z',
+            aliasHex: '7a',
+            aliasByteCount: 1,
+        },
+        {
+            alias: 'q',
+            aliasHex: '71',
+            aliasByteCount: 1,
+        },
+        {
+            alias: 'aabbccdd',
+            aliasHex: '6161626263636464',
+            aliasByteCount: 8,
+        },
+        {
+            alias: 'abcdabcd',
+            aliasHex: '6162636461626364',
+            aliasByteCount: 8,
+        },
+        {
+            alias: 'aabbddcc',
+            aliasHex: '6161626264646363',
+            aliasByteCount: 8,
+        },
+        {
+            alias: '😃',
+            aliasHex: 'f09f9883',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'fisherman2',
+            aliasHex: '6669736865726d616e32',
+            aliasByteCount: 10,
+        },
+        {
+            alias: 'fisherman',
+            aliasHex: '6669736865726d616e',
+            aliasByteCount: 9,
+        },
+        {
+            alias: '😃😃-😃😃',
+            aliasHex: 'f09f9883f09f98832df09f9883f09f9883',
+            aliasByteCount: 17,
+        },
+        {
+            alias: '한국어',
+            aliasHex: 'ed959ceab5adec96b4',
+            aliasByteCount: 9,
+        },
+        {
+            alias: 'اَلْعَرَبِ',
+            aliasHex: 'd8a7d98ed984d992d8b9d98ed8b1d98ed8a8d990',
+            aliasByteCount: 20,
+        },
+        {
+            alias: 'cashtab1',
+            aliasHex: '6361736874616231',
+            aliasByteCount: 8,
+        },
+        {
+            alias: 'cashtab9',
+            aliasHex: '6361736874616239',
+            aliasByteCount: 8,
+        },
+        {
+            alias: 'ship1',
+            aliasHex: '7368697031',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'ship2',
+            aliasHex: '7368697032',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'nfs99',
+            aliasHex: '6e66733939',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'twitter',
+            aliasHex: '74776974746572',
+            aliasByteCount: 7,
+        },
+        {
+            alias: 'e',
+            aliasHex: '65',
+            aliasByteCount: 1,
+        },
+        {
+            alias: 'TgBot👮‍♀️',
+            aliasHex: '5467426f74f09f91aee2808de29980efb88f',
+            aliasByteCount: 18,
+        },
+        {
+            alias: 'foo🤔bar',
+            aliasHex: '666f6ff09fa494626172',
+            aliasByteCount: 10,
+        },
+        {
+            alias: '🤔foobar',
+            aliasHex: 'f09fa494666f6f626172',
+            aliasByteCount: 10,
+        },
+        {
+            alias: 'foobar',
+            aliasHex: '666f6f626172',
+            aliasByteCount: 6,
+        },
+        {
+            alias: 'cshtab',
+            aliasHex: '637368746162',
+            aliasByteCount: 6,
+        },
+        {
+            alias: 'cake',
+            aliasHex: '63616b65',
+            aliasByteCount: 4,
+        },
+        {
+            alias: 'gnc1',
+            aliasHex: '676e6331',
+            aliasByteCount: 4,
+        },
+        {
+            alias: '👉',
+            aliasHex: 'f09f9189',
+            aliasByteCount: 4,
+        },
+        {
+            alias: '조선글',
+            aliasHex: 'eca1b0ec84a0eab880',
+            aliasByteCount: 9,
+        },
+        {
+            alias: '😃😃',
+            aliasHex: 'f09f9883f09f9883',
+            aliasByteCount: 8,
+        },
+        {
+            alias: 'swift',
+            aliasHex: '7377696674',
+            aliasByteCount: 5,
+        },
+        {
+            alias: 'swift2',
+            aliasHex: '737769667432',
+            aliasByteCount: 6,
+        },
+        {
+            alias: '😇',
+            aliasHex: 'f09f9887',
+            aliasByteCount: 4,
+        },
+        {
+            alias: '😓',
+            aliasHex: 'f09f9893',
+            aliasByteCount: 4,
+        },
+        {
+            alias: '🤯',
+            aliasHex: 'f09fa4af',
+            aliasByteCount: 4,
+        },
+        {
+            alias: '🤤',
+            aliasHex: 'f09fa4a4',
+            aliasByteCount: 4,
+        },
+        {
+            alias: '🤐',
+            aliasHex: 'f09fa490',
+            aliasByteCount: 4,
+        },
+        {
+            alias: '🤠',
+            aliasHex: 'f09fa4a0',
+            aliasByteCount: 4,
+        },
+        {
+            alias: '😞',
+            aliasHex: 'f09f989e',
+            aliasByteCount: 4,
+        },
+        {
+            alias: '글글',
+            aliasHex: 'eab880eab880',
+            aliasByteCount: 6,
+        },
+        {
+            alias: 'Düsseldorf',
+            aliasHex: '44c3bc7373656c646f7266',
+            aliasByteCount: 11,
+        },
+        {
+            alias: '선선',
+            aliasHex: 'ec84a0ec84a0',
+            aliasByteCount: 6,
+        },
+        {
+            alias: '😈😈😈',
+            aliasHex: 'f09f9888f09f9888f09f9888',
+            aliasByteCount: 12,
+        },
+        {
+            alias: '👏',
+            aliasHex: 'f09f918f',
+            aliasByteCount: 4,
+        },
+    ],
 };
