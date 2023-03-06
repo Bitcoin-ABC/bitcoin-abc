@@ -7,10 +7,10 @@
 #include <coins.h>
 #include <crypto/muhash.h>
 #include <hash.h>
+#include <logging.h>
 #include <primitives/txid.h>
 #include <serialize.h>
 #include <util/check.h>
-#include <util/system.h>
 #include <validation.h>
 
 #include <map>

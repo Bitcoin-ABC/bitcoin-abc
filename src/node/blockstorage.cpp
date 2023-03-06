@@ -13,6 +13,7 @@
 #include <fs.h>
 #include <hash.h>
 #include <kernel/chainparams.h>
+#include <logging.h>
 #include <pow/pow.h>
 #include <reverse_iterator.h>
 #include <shutdown.h>

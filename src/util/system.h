@@ -40,11 +40,6 @@ extern const char *const BITCOIN_SETTINGS_FILENAME;
 void SetupEnvironment();
 bool SetupNetworking();
 
-template <typename... Args> bool error(const char *fmt, const Args &...args) {
-    LogPrintf("ERROR: %s\n", tfm::format(fmt, args...));
-    return false;
-}
-
 bool FileCommit(FILE *file);
 bool TruncateFile(FILE *file, unsigned int length);
 int RaiseFileDescriptorLimit(int nMinFD);

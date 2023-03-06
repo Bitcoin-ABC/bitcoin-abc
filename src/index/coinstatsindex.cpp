@@ -8,6 +8,7 @@
 #include <coins.h>
 #include <consensus/amount.h>
 #include <crypto/muhash.h>
+#include <logging.h>
 #include <node/blockstorage.h>
 #include <primitives/blockhash.h>
 #include <serialize.h>

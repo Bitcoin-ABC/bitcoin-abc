@@ -222,4 +222,9 @@ LogPrintf_(const std::string &logging_function, const std::string &source_file,
 #define LogPrintfToBeContinued LogPrintf
 #define LogPrintToBeContinued LogPrint
 
+template <typename... Args> bool error(const char *fmt, const Args &...args) {
+    LogPrintf("ERROR: %s\n", tfm::format(fmt, args...));
+    return false;
+}
+
 #endif // BITCOIN_LOGGING_H

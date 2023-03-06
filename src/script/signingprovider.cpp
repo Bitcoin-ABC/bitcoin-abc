@@ -6,7 +6,7 @@
 #include <script/keyorigin.h>
 #include <script/signingprovider.h>
 
-#include <util/system.h>
+#include <logging.h>
 
 #include <variant>
 

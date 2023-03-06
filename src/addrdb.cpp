@@ -10,6 +10,7 @@
 #include <clientversion.h>
 #include <fs.h>
 #include <hash.h>
+#include <logging.h>
 #include <logging/timer.h>
 #include <random.h>
 #include <streams.h>

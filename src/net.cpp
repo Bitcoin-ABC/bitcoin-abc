@@ -21,6 +21,7 @@
 #include <dnsseeds.h>
 #include <fs.h>
 #include <i2p.h>
+#include <logging.h>
 #include <netaddress.h>
 #include <netbase.h>
 #include <node/ui_interface.h>
