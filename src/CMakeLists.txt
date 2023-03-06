@@ -428,6 +428,7 @@ add_library(util
 	util/bytevectorhash.cpp
 	util/check.cpp
 	util/hasher.cpp
+	util/exception.cpp
 	util/error.cpp
 	util/getuniquepath.cpp
 	util/message.cpp
@@ -918,6 +919,7 @@ if(BUILD_BITCOIN_CHAINSTATE)
 		uint256.cpp
 		util/bytevectorhash.cpp
 		util/check.cpp
+		util/exception.cpp
 		util/getuniquepath.cpp
 		util/hasher.cpp
 		util/moneystr.cpp

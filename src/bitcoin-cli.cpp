@@ -16,6 +16,7 @@
 #include <rpc/request.h>
 #include <support/events.h>
 #include <tinyformat.h>
+#include <util/exception.h>
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <util/translation.h>

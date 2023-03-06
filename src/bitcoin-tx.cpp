@@ -20,6 +20,7 @@
 #include <script/script.h>
 #include <script/sign.h>
 #include <script/signingprovider.h>
+#include <util/exception.h>
 #include <util/moneystr.h>
 #include <util/strencodings.h>
 #include <util/string.h>

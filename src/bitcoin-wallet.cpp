@@ -10,6 +10,7 @@
 #include <chainparamsbase.h>
 #include <currencyunit.h>
 #include <logging.h>
+#include <util/exception.h>
 #include <util/system.h>
 #include <util/translation.h>
 #include <wallet/wallettool.h>

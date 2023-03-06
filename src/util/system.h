@@ -19,13 +19,11 @@
 #include <fs.h>
 #include <logging.h>
 #include <sync.h>
-#include <tinyformat.h>
 #include <util/settings.h>
 #include <util/time.h>
 
 #include <any>
 #include <cstdint>
-#include <exception>
 #include <map>
 #include <optional>
 #include <set>
@@ -47,7 +45,6 @@ template <typename... Args> bool error(const char *fmt, const Args &...args) {
     return false;
 }
 
-void PrintExceptionContinue(const std::exception *pex, const char *pszThread);
 bool FileCommit(FILE *file);
 bool TruncateFile(FILE *file, unsigned int length);
 int RaiseFileDescriptorLimit(int nMinFD);
