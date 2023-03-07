@@ -5,6 +5,7 @@ const { getAllTxHistory } = require('./chronik');
 const { getValidAliasTxsToBeAddedToDb, getAliasBytecount } = require('./utils');
 const { returnTelegramBotSendMessagePromise } = require('./telegram');
 const { chronik } = require('./chronik');
+const axios = require('axios');
 
 module.exports = {
     initializeWebsocket: async function (db) {
@@ -102,6 +103,20 @@ module.exports = {
                         log(`Error:`, err);
                     }
 
+                    // Get the XEC price to use in the Telegram msgs
+                    let coingeckoPriceResponse;
+                    let xecPrice;
+                    try {
+                        coingeckoPriceResponse = await axios.get(
+                            `https://api.coingecko.com/api/v3/simple/price?ids=ecash&vs_currencies=usd`,
+                        );
+                        xecPrice = coingeckoPriceResponse.data.ecash.usd;
+                        log(`xecPrice`, xecPrice);
+                    } catch (err) {
+                        log(`Error getting XEC price from Coingecko API`, err);
+                        xecPrice = false;
+                    }
+
                     // Send msgs to Telegram channel about newly registered aliases
                     const tgBotMsgPromises = [];
                     for (
@@ -122,9 +137,18 @@ module.exports = {
                             ];
                         // Construct your Telegram message in markdown
                         const tgMsg =
-                            `A new ${aliasBytecount}-byte alias has been registered for ${(
-                                aliasPriceSats / 100
-                            ).toLocaleString()} XEC!\n` +
+                            `A new ${aliasBytecount}-byte alias has been registered for ` +
+                            (xecPrice
+                                ? `$${(
+                                      (aliasPriceSats / 100) *
+                                      xecPrice
+                                  ).toLocaleString('en-US', {
+                                      maximumFractionDigits: 2,
+                                  })} USD`
+                                : `${(
+                                      aliasPriceSats / 100
+                                  ).toLocaleString()} XEC`) +
+                            `!\n` +
                             `\n` +
                             `"${alias}"\n` +
                             `\n` +
