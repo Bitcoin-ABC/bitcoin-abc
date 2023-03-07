@@ -188,11 +188,13 @@ const Alias = ({ passLoadingStatus }) => {
 
     const handleAliasNameInput = e => {
         const { name, value } = e.target;
+        const containsUppercase = /[A-Z]/.test(value);
         const aliasInputByteSize = getAliasByteSize(value);
         if (
             value &&
             value.trim() !== '' &&
-            aliasInputByteSize <= currency.aliasSettings.aliasMaxLength
+            aliasInputByteSize <= currency.aliasSettings.aliasMaxLength &&
+            !containsUppercase
         ) {
             setIsValidAliasInput(true);
             const registrationFee = getAliasRegistrationFee(value);
@@ -200,9 +202,10 @@ const Alias = ({ passLoadingStatus }) => {
             setAliasLength(aliasInputByteSize);
             setAliasValidationError(false);
         } else {
-            setAliasValidationError(
-                'Please enter an alias between 1 and 21 bytes',
-            );
+            let errorMesage = containsUppercase
+                ? 'Uppercase characters are not permitted'
+                : 'Please enter an alias between 1 and 21 bytes';
+            setAliasValidationError(errorMesage);
             setIsValidAliasInput(false);
             setAliasFee(false);
             setAliasLength(false);
