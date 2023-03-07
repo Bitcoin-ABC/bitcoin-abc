@@ -398,7 +398,7 @@ export const getAliasAndAddresses = unfilteredAliasPaymentTxs => {
                     getAliasRegistrationFee(aliasName);
 
                 if (
-                    totalAliasFeePaid.eq(
+                    totalAliasFeePaid.isGreaterThanOrEqualTo(
                         new BigNumber(expectedAliasPaymentFee),
                     ) &&
                     aliasName.length <=

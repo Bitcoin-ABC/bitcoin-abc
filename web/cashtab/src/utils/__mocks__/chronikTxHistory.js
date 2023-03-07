@@ -3500,7 +3500,7 @@ export const mockTxHistoryOfAliasPaymentAddress = [
                 outputScript: '6a042e7865630572616e6765',
             },
             {
-                value: '554',
+                value: '559', // intentionally setting payment to higher than the minimum fee to ensure it is still parsed as a valid alias
                 outputScript:
                     '76a914638568e36d0b5d7d49a6e99854caa27d9772b09388ac',
             },
