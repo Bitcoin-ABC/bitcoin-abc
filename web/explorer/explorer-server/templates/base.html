@@ -120,26 +120,36 @@
                 <a class="header-logo" href="/">
                     <img class="logo" src="/assets/logo.png" />
                 </a>
-
-                <div id="search-box" class="ui transparent icon input">
-                    <input
-                        id="search-bar"
-                        type="text"
-                        placeholder="Search blocks, transactions, addresses, tokens..."
-                        onchange="searchBarChange()"
-                        onkeyup="searchBarChange()"
-                    />
-                    <i
-                        id="#search-button"
-                        class="search link icon"
-                        onclick="searchButton()"
-                    ></i>
+                <div class="search-ctn">
+                    <a href="https://e.cash" target="_blank"
+                        >Learn more about e.Cash</a
+                    >
+                    <div id="search-box" class="ui transparent icon input">
+                        <input
+                            id="search-bar"
+                            type="text"
+                            placeholder="Search blocks, transactions, addresses, tokens..."
+                            onchange="searchBarChange()"
+                            onkeyup="searchBarChange()"
+                        />
+                        <i
+                            id="#search-button"
+                            class="search link icon"
+                            onclick="searchButton()"
+                        ></i>
+                    </div>
                 </div>
             </div>
 
             {% block content %}{% endblock %}
         </div>
 
-        <div id="footer">©2023 Bitcoin ABC</div>
+        <div id="footer">
+            For more information visit&nbsp;<a
+                href="https://e.cash"
+                target="_blank"
+                >e.Cash</a
+            >&nbsp;| ©2023 Bitcoin ABC
+        </div>
     </body>
 </html>
