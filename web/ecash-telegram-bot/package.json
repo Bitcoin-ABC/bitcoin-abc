@@ -16,7 +16,7 @@
     "author": "Bitcoin ABC",
     "license": "MIT",
     "dependencies": {
-        "chronik-client": "^0.8.1",
+        "chronik-client": "^0.8.2",
         "node-telegram-bot-api": "^0.61.0"
     }
 }
