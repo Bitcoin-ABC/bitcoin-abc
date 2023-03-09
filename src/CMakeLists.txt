@@ -258,8 +258,11 @@ option(EXTRA_WARNINGS "Enable extra warnings" OFF)
 if(EXTRA_WARNINGS)
 	add_cxx_compiler_flags(-Wsuggest-override)
 else()
-	add_compiler_flags(-Wno-unused-parameter)
-	add_compiler_flags(-Wno-implicit-fallthrough)
+	add_compiler_flags(
+		-Wno-unused-parameter
+		-Wno-implicit-fallthrough
+		-Wno-psabi
+	)
 endif()
 
 # libtool style configure
