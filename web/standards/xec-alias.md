@@ -65,6 +65,14 @@ Registration fees are paid to a single address. This address will be polled via 
 
 The designated registration address will either be the IFP address or an address that periodically sends funds from valid registrations to the IFP address. Automatically processing hot wallet refunds for invalid transactions would not be feasible from the IFP address.
 
+### Valid Alias Inputs
+
+The intent of the alias feature is to get away from some of the clunkiness of addresses. One issue with addresses is that they are human unreadable and thus must always be copy pasted to ensure accuracy.
+
+If one alias can be human indistinguishable from another alias, then all aliases will also be copy-paste only inputs.
+
+In the initial release of this feature, aliases are limited to lowercase alphanumeric characters (a-z, 0-9) to mitigate edge cases such as zero-width spaces and language specific character similarities.
+
 ### Reserved Aliases
 
 A list of reserved Aliases should be defined which are not available for registration. These include trademarks as well as mitigation for common phishing websites and scammer usernames. For reference, Cashtab maintains such a reserved list via the `reservedAliases` array in `/Common/Ticker.js`.

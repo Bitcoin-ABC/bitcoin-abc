@@ -4,6 +4,10 @@ import { fromSatoshisToXec } from 'utils/cashMethods';
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
 
+export const isAlphanumeric = inputStr => {
+    return /^[a-z0-9]+$/.test(inputStr);
+};
+
 export const isAliasFormat = address => {
     return address.slice(-4) === '.xec';
 };

@@ -30,7 +30,7 @@ import {
     sendXecNotification,
     errorNotification,
 } from 'components/Common/Notifications';
-import { isAliasFormat } from 'utils/validation';
+import { isAliasFormat, isAlphanumeric } from 'utils/validation';
 
 export const NamespaceCtn = styled.div`
     width: 100%;
@@ -188,13 +188,13 @@ const Alias = ({ passLoadingStatus }) => {
 
     const handleAliasNameInput = e => {
         const { name, value } = e.target;
-        const containsUppercase = /[A-Z]/.test(value);
+        const validAliasInput = isAlphanumeric(value);
         const aliasInputByteSize = getAliasByteSize(value);
         if (
             value &&
             value.trim() !== '' &&
             aliasInputByteSize <= currency.aliasSettings.aliasMaxLength &&
-            !containsUppercase
+            validAliasInput
         ) {
             setIsValidAliasInput(true);
             const registrationFee = getAliasRegistrationFee(value);
@@ -202,10 +202,9 @@ const Alias = ({ passLoadingStatus }) => {
             setAliasLength(aliasInputByteSize);
             setAliasValidationError(false);
         } else {
-            let errorMesage = containsUppercase
-                ? 'Uppercase characters are not permitted'
-                : 'Please enter an alias between 1 and 21 bytes';
-            setAliasValidationError(errorMesage);
+            setAliasValidationError(
+                'Please enter an alias (lowercase a-z, 0-9) between 1 and 21 bytes',
+            );
             setIsValidAliasInput(false);
             setAliasFee(false);
             setAliasLength(false);

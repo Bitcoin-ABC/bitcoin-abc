@@ -19,6 +19,7 @@ import {
     isValidContactList,
     parseInvalidSettingsForMigration,
     parseInvalidCashtabCacheForMigration,
+    isAlphanumeric,
 } from 'utils/validation';
 import localforage from 'localforage';
 import { currency } from 'components/Common/Ticker';
@@ -273,7 +274,19 @@ const useWallet = () => {
         let cachedAliases, cashtabCache;
         try {
             cashtabCache = await localforage.getItem('cashtabCache');
-            cachedAliases = cashtabCache.aliasCache;
+
+            // clear aliasCache if at least one cached alias is not alphanumeric
+            let invalidAliasFound = false;
+            for (let element of cashtabCache.aliasCache.aliases) {
+                if (!isAlphanumeric(element.alias)) {
+                    // temporary log for reviewer
+                    console.log(
+                        `Non-alphanumeric alias detected in cache, resetting aliasCache`,
+                    );
+                    invalidAliasFound = true;
+                }
+            }
+            cachedAliases = invalidAliasFound ? [] : cashtabCache.aliasCache;
         } catch (err) {
             console.log(`Error in getAliasesFromLocalForage`, err);
             cachedAliases = null;
@@ -1142,7 +1155,11 @@ const useWallet = () => {
         }
 
         // if alias cache exists, check if partial tx history retrieval is required
-        if (cachedAliases && cachedAliases.paymentTxHistory.length > 0) {
+        if (
+            cachedAliases &&
+            cachedAliases.paymentTxHistory &&
+            cachedAliases.paymentTxHistory.length > 0
+        ) {
             // get cached tx count
             const cachedAliasTxCount = cachedAliases.totalPaymentTxCount;
 

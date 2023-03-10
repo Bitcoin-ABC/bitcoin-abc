@@ -12,6 +12,7 @@ import {
     convertToEcashPrefix,
     outputScriptToAddress,
 } from 'utils/cashMethods';
+import { isAlphanumeric } from 'utils/validation';
 import ecies from 'ecies-lite';
 import wif from 'wif';
 
@@ -334,6 +335,11 @@ export const getAliasAndAddresses = unfilteredAliasPaymentTxs => {
         const isReservedAlias =
             currency.aliasSettings.reservedAliases.includes(parsedAliasNameStr);
         if (isReservedAlias) {
+            continue;
+        }
+
+        // if this alias is not alphanumeric, skip it
+        if (!isAlphanumeric(parsedAliasNameStr)) {
             continue;
         }
 

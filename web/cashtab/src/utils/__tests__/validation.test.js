@@ -22,6 +22,7 @@ import {
     parseInvalidCashtabCacheForMigration,
     isValidCashtabCache,
     validateMnemonic,
+    isAlphanumeric,
 } from '../validation';
 import { currency } from 'components/Common/Ticker.js';
 import { fromSatoshisToXec } from 'utils/cashMethods';
@@ -49,6 +50,30 @@ import {
 } from 'utils/__mocks__/mockCashtabCache';
 
 describe('Validation utils', () => {
+    it(`isAlphanumeric() returns true for a valid lowercase alphanumeric input`, () => {
+        expect(isAlphanumeric('jasdf3873')).toBe(true);
+    });
+    it(`isAlphanumeric() returns false for an uppercase alphanumeric input`, () => {
+        expect(isAlphanumeric('jasDf3873')).toBe(false);
+    });
+    it(`isAlphanumeric() returns false for a non-english input`, () => {
+        expect(isAlphanumeric('Glück')).toBe(false);
+    });
+    it(`isAlphanumeric() returns false for an emoji input`, () => {
+        expect(isAlphanumeric('😉')).toBe(false);
+    });
+    it(`isAlphanumeric() returns false for a special character input`, () => {
+        expect(isAlphanumeric('( ͡° ͜ʖ ͡°)')).toBe(false);
+    });
+    it(`isAlphanumeric() returns false for a zero width character input`, () => {
+        expect(isAlphanumeric('​')).toBe(false);
+    });
+    it(`isAlphanumeric() returns false for a valid alphanumeric input with spaces`, () => {
+        expect(isAlphanumeric('​jasdf3873 ')).toBe(false);
+    });
+    it(`isAlphanumeric() returns false for a valid alphanumeric input with symbols`, () => {
+        expect(isAlphanumeric('​jasdf3873@#')).toBe(false);
+    });
     it(`validateMnemonic() returns true for a valid mnemonic`, () => {
         const mnemonic =
             'labor tail bulb distance estate collect lecture into smile differ yard legal';
