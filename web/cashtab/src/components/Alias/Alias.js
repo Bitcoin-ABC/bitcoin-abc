@@ -75,6 +75,7 @@ const Alias = ({ passLoadingStatus }) => {
     const [activeWalletAliases, setActiveWalletAliases] = useState([]); // stores the list of aliases registered to this active wallet
     const [aliasLength, setAliasLength] = useState(false); // real time tracking of alias char length
     const [aliasFee, setAliasFee] = useState(false); // real time tracking of alias registration fee
+    const [aliasRefreshToggle, setAliasRefreshToggle] = useState(false); // toggle to trigger useEffect() upon alias registration so the alias list is always current
 
     useEffect(() => {
         passLoadingStatus(false);
@@ -122,7 +123,7 @@ const Alias = ({ passLoadingStatus }) => {
         }
 
         passLoadingStatus(false);
-    }, [wallet.name]);
+    }, [wallet.name, aliasRefreshToggle]);
 
     const registerAlias = async () => {
         passLoadingStatus(true);
@@ -168,6 +169,16 @@ const Alias = ({ passLoadingStatus }) => {
                     fromSatoshisToXec(registrationFee),
                 );
                 sendXecNotification(link);
+                // synchronize alias cache upon successful registration broadcast
+                try {
+                    await synchronizeAliasCache(chronik);
+                } catch (err) {
+                    console.log(
+                        `Error synchronizing alias cache after registration in Alias.js`,
+                        err,
+                    );
+                }
+                setAliasRefreshToggle(prevCheck => !prevCheck);
             } catch (err) {
                 handleAliasRegistrationError(err);
             }
@@ -182,7 +193,6 @@ const Alias = ({ passLoadingStatus }) => {
                 'Alias availability check',
             );
         }
-
         passLoadingStatus(false);
     };
 
