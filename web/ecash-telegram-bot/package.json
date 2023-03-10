@@ -4,7 +4,8 @@
     "description": "A telegram bot to broadcast ecash chain events",
     "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "mocha",
+        "mocks": "node scripts/generateMocks.js"
     },
     "keywords": [
         "ecash",
@@ -18,5 +19,8 @@
     "dependencies": {
         "chronik-client": "^0.8.2",
         "node-telegram-bot-api": "^0.61.0"
+    },
+    "devDependencies": {
+        "mocha": "^10.2.0"
     }
 }

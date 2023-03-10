@@ -2,6 +2,8 @@ const config = require('./config');
 const { telegramBot, channelId } = require('./telegram');
 const { ChronikClient } = require('chronik-client');
 const chronik = new ChronikClient(config.chronik);
+const { parseBlock, getBlockTgMessage } = require('./parse');
+const parse = require('./parse');
 
 module.exports = {
     initializeWebsocket: async function () {
@@ -38,23 +40,25 @@ module.exports = {
 
                 // Get some info about this block
                 let blockDetails;
+                let parsedBlock;
+                let generatedTgMsg;
                 try {
                     blockDetails = await chronik.block(blockHash);
+                    parsedBlock = parseBlock(blockDetails);
+                    generatedTgMsg = getBlockTgMessage(parsedBlock);
                 } catch (err) {
                     blockDetails = false;
                     console.log(`Error in chronik.block(${blockHash})`, err);
                 }
 
                 // Construct your Telegram message in markdown
-                const tgMsg =
-                    `New Block Found\n` +
-                    `\n` +
-                    (blockDetails
-                        ? `Height: ${blockDetails.blockInfo.height}\n` +
-                          `Txs: ${blockDetails.blockInfo.numTxs}\n`
-                        : `${blockHash}\n`) +
-                    `\n` +
-                    `[explorer](${config.blockExplorer}/block/${blockHash})`;
+                const tgMsg = blockDetails
+                    ? generatedTgMsg
+                    : `New Block Found\n` +
+                      `\n` +
+                      `${blockHash}\n` +
+                      `\n` +
+                      `[explorer](${config.blockExplorer}/block/${blockHash})`;
 
                 // Configure msg parse settings
                 let tgMsgOptions = {
