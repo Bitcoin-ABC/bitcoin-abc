@@ -604,7 +604,6 @@ void CNode::copyStats(CNodeStats &stats) {
         stats.cleanSubVer = cleanSubVer;
     }
     stats.fInbound = IsInboundConn();
-    stats.m_manual_connection = IsManualConn();
     stats.m_bip152_highbandwidth_to = m_bip152_highbandwidth_to;
     stats.m_bip152_highbandwidth_from = m_bip152_highbandwidth_from;
     {
@@ -617,7 +616,6 @@ void CNode::copyStats(CNodeStats &stats) {
         stats.mapRecvBytesPerMsgCmd = mapRecvBytesPerMsgCmd;
         stats.nRecvBytes = nRecvBytes;
     }
-    stats.m_legacyWhitelisted = m_legacyWhitelisted;
     stats.m_permissionFlags = m_permissionFlags;
     if (m_tx_relay != nullptr) {
         stats.minFeeFilter = m_tx_relay->minFeeFilter;
@@ -1282,7 +1280,6 @@ void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
     int nMaxInbound = nMaxConnections - m_max_outbound;
 
     AddWhitelistPermissionFlags(permissionFlags, addr);
-    bool legacyWhitelisted = false;
     if (NetPermissions::HasFlag(permissionFlags,
                                 NetPermissionFlags::PF_ISIMPLICIT)) {
         NetPermissions::ClearFlag(permissionFlags, PF_ISIMPLICIT);
@@ -1295,7 +1292,6 @@ void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
         }
         NetPermissions::AddFlag(permissionFlags, PF_MEMPOOL);
         NetPermissions::AddFlag(permissionFlags, PF_NOBAN);
-        legacyWhitelisted = true;
     }
 
     {
@@ -1381,9 +1377,6 @@ void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
         extra_entropy, addr_bind, "", ConnectionType::INBOUND, inbound_onion);
     pnode->AddRef();
     pnode->m_permissionFlags = permissionFlags;
-    // If this flag is present, the user probably expect that RPC and QT report
-    // it as whitelisted (backward compatibility)
-    pnode->m_legacyWhitelisted = legacyWhitelisted;
     pnode->m_prefer_evict = discouraged;
     for (auto interface : m_msgproc) {
         interface->InitializeNode(*config, pnode);

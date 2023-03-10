@@ -286,7 +286,6 @@ struct CNodeStats {
     int nVersion;
     std::string cleanSubVer;
     bool fInbound;
-    bool m_manual_connection;
     bool m_bip152_highbandwidth_to;
     bool m_bip152_highbandwidth_from;
     int m_starting_height;
@@ -295,7 +294,6 @@ struct CNodeStats {
     uint64_t nRecvBytes;
     mapMsgCmdSize mapRecvBytesPerMsgCmd;
     NetPermissionFlags m_permissionFlags;
-    bool m_legacyWhitelisted;
     std::chrono::microseconds m_last_ping_time;
     std::chrono::microseconds m_min_ping_time;
     Amount minFeeFilter;
@@ -500,9 +498,6 @@ public:
     bool HasPermission(NetPermissionFlags permission) const {
         return NetPermissions::HasFlag(m_permissionFlags, permission);
     }
-    // This boolean is unusued in actual processing, only present for backward
-    // compatibility at RPC/QT level
-    bool m_legacyWhitelisted{false};
     // set by version message
     bool fClient{false};
     // after BIP159, set by version message
