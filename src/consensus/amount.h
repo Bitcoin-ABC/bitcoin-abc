@@ -24,20 +24,10 @@ private:
 
 public:
     constexpr Amount() : amount(0) {}
-    constexpr Amount(const Amount &other) : amount(other.amount) {}
-
     /**
      * Convenient implicit UniValue conversion operator
      */
     operator UniValue() const;
-
-    /**
-     * Assignement operator.
-     */
-    constexpr Amount &operator=(const Amount &other) {
-        amount = other.amount;
-        return *this;
-    }
 
     static constexpr Amount zero() { return Amount(0); }
     static constexpr Amount satoshi() { return Amount(1); }
