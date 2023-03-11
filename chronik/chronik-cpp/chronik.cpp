@@ -21,15 +21,16 @@ template <typename T, typename C> rust::Vec<T> ToRustVec(const C &container) {
     return vec;
 }
 
-bool Start([[maybe_unused]] const Config &config,
-           [[maybe_unused]] const node::NodeContext &node) {
-    return chronik_bridge::setup_chronik({
-        .datadir_net = gArgs.GetDataDirNet().u8string(),
-        .hosts = ToRustVec<rust::String>(gArgs.IsArgSet("-chronikbind")
-                                             ? gArgs.GetArgs("-chronikbind")
-                                             : DEFAULT_BINDS),
-        .default_port = BaseParams().ChronikPort(),
-    });
+bool Start(const Config &config, const node::NodeContext &node) {
+    return chronik_bridge::setup_chronik(
+        {
+            .datadir_net = gArgs.GetDataDirNet().u8string(),
+            .hosts = ToRustVec<rust::String>(gArgs.IsArgSet("-chronikbind")
+                                                 ? gArgs.GetArgs("-chronikbind")
+                                                 : DEFAULT_BINDS),
+            .default_port = BaseParams().ChronikPort(),
+        },
+        config, node);
 }
 
 void Stop() {

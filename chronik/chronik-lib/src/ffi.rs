@@ -24,7 +24,11 @@ mod ffi_inner {
 
     extern "Rust" {
         type Chronik;
-        fn setup_chronik(params: SetupParams) -> bool;
+        fn setup_chronik(
+            params: SetupParams,
+            config: &Config,
+            node: &NodeContext,
+        ) -> bool;
 
         fn handle_tx_added_to_mempool(&self);
         fn handle_tx_removed_from_mempool(&self);
@@ -39,6 +43,8 @@ mod ffi_inner {
     unsafe extern "C++" {
         include!("blockindex.h");
         include!("chronik-cpp/chronik_validationinterface.h");
+        include!("config.h");
+        include!("node/context.h");
         include!("primitives/block.h");
 
         /// CBlockIndex from blockindex.h
@@ -48,6 +54,14 @@ mod ffi_inner {
         /// ::CBlock from primitives/block.h
         #[namespace = ""]
         type CBlock = chronik_bridge::ffi::CBlock;
+
+        /// ::Config from config.h
+        #[namespace = ""]
+        type Config = chronik_bridge::ffi::Config;
+
+        /// NodeContext from node/context.h
+        #[namespace = "node"]
+        type NodeContext = chronik_bridge::ffi::NodeContext;
 
         /// Register the Chronik instance as CValidationInterface to receive
         /// chain updates from the node.

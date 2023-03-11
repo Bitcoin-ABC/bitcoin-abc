@@ -7,11 +7,13 @@
 use std::path::PathBuf;
 
 use abc_rust_error::{Result, WrapErr};
+use bitcoinsuite_core::block::BlockHash;
+use chronik_bridge::{ffi, util::expect_unique_ptr};
 use chronik_db::{
     db::{Db, WriteBatch},
-    io::{BlockReader, BlockWriter, DbBlock},
+    io::{BlockHeight, BlockReader, BlockWriter, DbBlock},
 };
-use chronik_util::log_chronik;
+use chronik_util::{log, log_chronik};
 use thiserror::Error;
 
 /// Params for setting up a [`ChronikIndexer`] instance.
@@ -40,6 +42,24 @@ pub enum ChronikIndexerError {
     /// Failed creating the folder for the indexes
     #[error("Failed creating path {0}")]
     CreateIndexesDirFailed(PathBuf),
+
+    /// Cannot rewind blocks that bitcoind doesn't have
+    #[error(
+        "Cannot rewind Chronik, it contains block {0} that the node doesn't \
+         have. You may need to -reindex, or delete indexes/chronik and restart"
+    )]
+    CannotRewindChronik(BlockHash),
+
+    /// Lower block doesn't exist but higher block does
+    #[error(
+        "Inconsistent DB: Block {missing} doesn't exist, but {exists} does"
+    )]
+    BlocksBelowMissing {
+        /// Lower height that is missing
+        missing: BlockHeight,
+        /// Higher height that exists
+        exists: BlockHeight,
+    },
 }
 
 use self::ChronikIndexerError::*;
@@ -57,6 +77,107 @@ impl ChronikIndexer {
         log_chronik!("Opening Chronik at {}\n", db_path.to_string_lossy());
         let db = Db::open(&db_path)?;
         Ok(ChronikIndexer { db })
+    }
+
+    /// Resync Chronik index to the node
+    pub fn resync_indexer(
+        &mut self,
+        bridge: &ffi::ChronikBridge,
+    ) -> Result<()> {
+        let indexer_tip = self.blocks()?.tip()?;
+        let Ok(node_tip_index) = bridge.get_chain_tip() else {
+            if let Some(indexer_tip) = &indexer_tip {
+                return Err(
+                    CannotRewindChronik(indexer_tip.hash.clone()).into()
+                );
+            }
+            return Ok(());
+        };
+        let node_tip_info = ffi::get_block_info(node_tip_index);
+        let node_height = node_tip_info.height;
+        let node_tip_hash = BlockHash::from(node_tip_info.hash);
+        let fork_height = match indexer_tip {
+            Some(tip) => {
+                let indexer_tip_hash = tip.hash.clone();
+                let indexer_height = tip.height;
+                log!(
+                    "Node and Chronik diverged, node is on block \
+                     {node_tip_hash} at height {node_height}, and Chronik is \
+                     on block {indexer_tip_hash} at height {indexer_height}.\n"
+                );
+                let indexer_tip_index = bridge
+                    .lookup_block_index(tip.hash.to_bytes())
+                    .map_err(|_| CannotRewindChronik(tip.hash.clone()))?;
+                self.rewind_indexer(bridge, indexer_tip_index, &tip)?
+            }
+            None => {
+                log!(
+                    "Chronik database empty, syncing to block {node_tip_hash} \
+                     at height {node_height}.\n"
+                );
+                -1
+            }
+        };
+        let tip_height = node_tip_info.height;
+        for height in fork_height + 1..=tip_height {
+            let block_index = ffi::get_block_ancestor(node_tip_index, height)?;
+            let ffi_block = bridge.load_block(block_index)?;
+            let ffi_block = expect_unique_ptr("load_block", &ffi_block);
+            let block = make_chronik_block(ffi_block, block_index);
+            let hash = block.db_block.hash.clone();
+            self.handle_block_connected(block)?;
+            log_chronik!(
+                "Added block {hash}, height {height}/{tip_height} to Chronik\n"
+            );
+            if height % 100 == 0 {
+                log!(
+                    "Synced Chronik up to block {hash} at height \
+                     {height}/{tip_height}\n"
+                );
+            }
+        }
+        log!(
+            "Chronik completed re-syncing with the node, both are now at \
+             block {node_tip_hash} at height {node_height}.\n"
+        );
+        Ok(())
+    }
+
+    fn rewind_indexer(
+        &mut self,
+        bridge: &ffi::ChronikBridge,
+        indexer_tip_index: &ffi::CBlockIndex,
+        indexer_db_tip: &DbBlock,
+    ) -> Result<BlockHeight> {
+        let indexer_height = indexer_db_tip.height;
+        let fork_block_index = bridge
+            .find_fork(indexer_tip_index)
+            .map_err(|_| CannotRewindChronik(indexer_db_tip.hash.clone()))?;
+        let fork_info = ffi::get_block_info(fork_block_index);
+        let fork_block_hash = BlockHash::from(fork_info.hash);
+        let fork_height = fork_info.height;
+        let revert_height = fork_height + 1;
+        log!(
+            "The last common block is {fork_block_hash} at height \
+             {fork_height}.\n"
+        );
+        log!("Reverting Chronik blocks {revert_height} to {indexer_height}.\n");
+        for height in (revert_height..indexer_height).rev() {
+            let db_block = self.blocks()?.by_height(height)?.ok_or(
+                BlocksBelowMissing {
+                    missing: height,
+                    exists: indexer_height,
+                },
+            )?;
+            let block_index = bridge
+                .lookup_block_index(db_block.hash.to_bytes())
+                .map_err(|_| CannotRewindChronik(db_block.hash))?;
+            let ffi_block = bridge.load_block(block_index)?;
+            let ffi_block = expect_unique_ptr("load_block", &ffi_block);
+            let block = make_chronik_block(ffi_block, block_index);
+            self.handle_block_disconnected(block)?;
+        }
+        Ok(fork_info.height)
     }
 
     /// Add the block to the index.
@@ -87,6 +208,24 @@ impl ChronikIndexer {
     pub fn blocks(&self) -> Result<BlockReader<'_>> {
         BlockReader::new(&self.db)
     }
+}
+
+/// Build the ChronikBlock from the CBlockIndex
+pub fn make_chronik_block(
+    block: &ffi::CBlock,
+    bindex: &ffi::CBlockIndex,
+) -> ChronikBlock {
+    let block = ffi::bridge_block(block, bindex);
+    let db_block = DbBlock {
+        hash: BlockHash::from(block.hash),
+        prev_hash: BlockHash::from(block.prev_hash),
+        height: block.height,
+        n_bits: block.n_bits,
+        timestamp: block.timestamp,
+        file_num: block.file_num,
+        data_pos: block.data_pos,
+    };
+    ChronikBlock { db_block }
 }
 
 #[cfg(test)]

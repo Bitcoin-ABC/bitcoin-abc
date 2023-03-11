@@ -10,12 +10,10 @@ use std::{
 };
 
 use abc_rust_error::Result;
-use bitcoinsuite_core::block::BlockHash;
-use chronik_bridge::ffi::{bridge_block, init_error};
-use chronik_db::io::DbBlock;
+use chronik_bridge::{ffi::init_error, util::expect_unique_ptr};
 use chronik_http::server::{ChronikServer, ChronikServerParams};
 use chronik_indexer::indexer::{
-    ChronikBlock, ChronikIndexer, ChronikIndexerParams,
+    make_chronik_block, ChronikIndexer, ChronikIndexerParams,
 };
 use chronik_util::{log, log_chronik};
 use thiserror::Error;
@@ -37,8 +35,12 @@ pub enum ChronikError {
 use self::ChronikError::*;
 
 /// Setup the Chronik bridge. Returns a ChronikIndexer object.
-pub fn setup_chronik(params: ffi::SetupParams) -> bool {
-    match try_setup_chronik(params) {
+pub fn setup_chronik(
+    params: ffi::SetupParams,
+    config: &ffi::Config,
+    node: &ffi::NodeContext,
+) -> bool {
+    match try_setup_chronik(params, config, node) {
         Ok(()) => true,
         Err(report) => {
             log_chronik!("{report:?}");
@@ -47,7 +49,11 @@ pub fn setup_chronik(params: ffi::SetupParams) -> bool {
     }
 }
 
-fn try_setup_chronik(params: ffi::SetupParams) -> Result<()> {
+fn try_setup_chronik(
+    params: ffi::SetupParams,
+    config: &ffi::Config,
+    node: &ffi::NodeContext,
+) -> Result<()> {
     abc_rust_error::install();
     let hosts = params
         .hosts
@@ -55,9 +61,12 @@ fn try_setup_chronik(params: ffi::SetupParams) -> Result<()> {
         .map(|host| parse_socket_addr(host, params.default_port))
         .collect::<Result<Vec<_>>>()?;
     log!("Starting Chronik bound to {:?}\n", hosts);
-    let indexer = ChronikIndexer::setup(ChronikIndexerParams {
+    let bridge = chronik_bridge::ffi::make_bridge(config, node);
+    let bridge = expect_unique_ptr("make_bridge", &bridge);
+    let mut indexer = ChronikIndexer::setup(ChronikIndexerParams {
         datadir_net: params.datadir_net.into(),
     })?;
+    indexer.resync_indexer(bridge)?;
     let indexer = Arc::new(RwLock::new(indexer));
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
@@ -140,21 +149,4 @@ impl Chronik {
         );
         log_chronik!("Chronik: block disconnected\n");
     }
-}
-
-fn make_chronik_block(
-    block: &ffi::CBlock,
-    bindex: &ffi::CBlockIndex,
-) -> ChronikBlock {
-    let block = bridge_block(block, bindex);
-    let db_block = DbBlock {
-        hash: BlockHash::from(block.hash),
-        prev_hash: BlockHash::from(block.prev_hash),
-        height: block.height,
-        n_bits: block.n_bits,
-        timestamp: block.timestamp,
-        file_num: block.file_num,
-        data_pos: block.data_pos,
-    };
-    ChronikBlock { db_block }
 }

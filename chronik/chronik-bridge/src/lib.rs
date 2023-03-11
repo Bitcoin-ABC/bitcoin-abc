@@ -14,4 +14,5 @@
 
 abc_rust_lint::lint! {
     pub mod ffi;
+    pub mod util;
 }
