@@ -20,13 +20,10 @@ async function sendTestTgMsgs() {
     const blockNames = Object.keys(blocks);
     for (let i = 0; i < blockNames.length; i += 1) {
         const thisBlock = blocks[blockNames[i]];
-        const { tgMarkdown } = thisBlock;
+        const { tgHtml } = thisBlock;
 
         testTgMsgPromises.push(
-            returnTelegramBotSendMessagePromise(
-                tgMarkdown,
-                config.tgMsgOptions,
-            ),
+            returnTelegramBotSendMessagePromise(tgHtml, config.tgMsgOptions),
         );
     }
 

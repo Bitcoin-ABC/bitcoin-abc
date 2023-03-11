@@ -59,7 +59,7 @@ Assumptions
             }
         }
         const tgMsg =
-            `[${height}](${config.blockExplorer}/block/${hash}) | ${numTxs} txs\n` +
+            `<a href="${config.blockExplorer}/block/${hash}">${height}</a> | ${numTxs} txs\n` +
             `\n` +
             (etokenTxCount > 0
                 ? `${etokenTxCount} eToken txs\n` +
@@ -77,7 +77,7 @@ Assumptions
                                     tokenName,
                                     tokenDocumentUrl,
                                 } = genesisInfo;
-                                return `${tokenName} (${tokenTicker}) [url](${tokenDocumentUrl})`;
+                                return `${tokenName} (${tokenTicker}) <a href="${tokenDocumentUrl}">url</a>`;
                             })
                             .join('\n')}`
                       : '')

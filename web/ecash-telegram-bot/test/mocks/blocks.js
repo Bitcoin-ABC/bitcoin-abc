@@ -74,8 +74,7 @@ module.exports = {
                 },
             ],
         },
-        tgMarkdown:
-            '[0](https://explorer.e.cash/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f) | 1 txs\n\n',
+        tgHtml: '<a href="https://explorer.e.cash/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f">0</a> | 1 txs\n\n',
     },
     etokenGenesisTx: {
         chronikData: {
@@ -5447,8 +5446,7 @@ module.exports = {
                 },
             ],
         },
-        tgMarkdown:
-            '[700722](https://explorer.e.cash/block/0000000000000000260ee4c3b4f4ddde127bc0105d685c0ef31775b612627222) | 97 txs\n\n1 eToken txs\n\n\nThis block created 1 new eToken:\n\nLambda Variant Variants (LVV) [url](https://cashtabapp.com/)',
+        tgHtml: '<a href="https://explorer.e.cash/block/0000000000000000260ee4c3b4f4ddde127bc0105d685c0ef31775b612627222">700722</a> | 97 txs\n\n1 eToken txs\n\n\nThis block created 1 new eToken:\n\nLambda Variant Variants (LVV) <a href="https://cashtabapp.com/">url</a>',
     },
     multipleGenesis: {
         chronikData: {
@@ -5498,6 +5496,10 @@ module.exports = {
                             value: '575044063',
                             outputScript:
                                 '76a914f1c075a01882ae0972f95d3a4177c86c852b7d9188ac',
+                            spentBy: {
+                                txid: 'd1f1212a4f7908e378923ea09a6c0a1caa434486625fd74c46235851e82c1350',
+                                outIdx: 14,
+                            },
                         },
                         {
                             value: '50003831',
@@ -6354,6 +6356,10 @@ module.exports = {
                             value: '4773',
                             outputScript:
                                 '76a91490f6ced5395995526cf84ea2d790f15b2a2ca8c888ac',
+                            spentBy: {
+                                txid: 'b77e6770fdb069d9a6655b69064381dc3bd0f51f299c4a561f81db7a6f2eed77',
+                                outIdx: 0,
+                            },
                         },
                     ],
                     lockTime: 0,
@@ -6422,6 +6428,10 @@ module.exports = {
                             slpToken: {
                                 amount: '9879374553000',
                                 isMintBaton: false,
+                            },
+                            spentBy: {
+                                txid: 'a641c77c3ef1bfe6a020255b792361db598dbcd8c7674034aebdb6543c0d4694',
+                                outIdx: 1,
                             },
                         },
                         {
@@ -7584,6 +7594,10 @@ module.exports = {
                             value: '172040616',
                             outputScript:
                                 '76a914231f7087937684790d1049294f3aef9cfb7b05dd88ac',
+                            spentBy: {
+                                txid: 'e2a9c1244bc71137c896612d0bc2bf3ca8a92c68e77a990d87e7fde8073125ba',
+                                outIdx: 0,
+                            },
                         },
                     ],
                     lockTime: 0,
@@ -8130,11 +8144,19 @@ module.exports = {
                             value: '600',
                             outputScript:
                                 '76a914967068b4d0cafd57456ca4aca019985754ccd32e88ac',
+                            spentBy: {
+                                txid: 'dc6a2594cb045ddc7ed289ad6c6bd870a0008b0d0b9686ca56bad5cc2d7376b1',
+                                outIdx: 0,
+                            },
                         },
                         {
                             value: '23157',
                             outputScript:
                                 '76a914967068b4d0cafd57456ca4aca019985754ccd32e88ac',
+                            spentBy: {
+                                txid: 'dc6a2594cb045ddc7ed289ad6c6bd870a0008b0d0b9686ca56bad5cc2d7376b1',
+                                outIdx: 1,
+                            },
                         },
                     ],
                     lockTime: 0,
@@ -8367,6 +8389,10 @@ module.exports = {
                             value: '17451417',
                             outputScript:
                                 '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                            spentBy: {
+                                txid: 'd6c3f37f2a9e2d0a38a4b8ecfe655a22c8e37cae7e5706a24a1808bb5a2ce6da',
+                                outIdx: 0,
+                            },
                         },
                     ],
                     lockTime: 0,
@@ -8478,6 +8504,10 @@ module.exports = {
                             value: '200000',
                             outputScript:
                                 '76a914271f434fa0aff8d0fc51f2e72c123104b6ee79fc88ac',
+                            spentBy: {
+                                txid: '9c0d9b2fd2bdd078d7710a74c46372bc5dc8320111998556e9ce1ac58f37cfcc',
+                                outIdx: 27,
+                            },
                         },
                         {
                             value: '70780',
@@ -8668,11 +8698,19 @@ module.exports = {
                                 amount: '949656450',
                                 isMintBaton: false,
                             },
+                            spentBy: {
+                                txid: '1f139b737593a18a52ff686a70257b8e6c7c588fb2419c46ed6fb58a04b8a4f2',
+                                outIdx: 1,
+                            },
                         },
                         {
                             value: '163948',
                             outputScript:
                                 '76a914d94bba6bfd2f5d9036452d9b6b12a254df6aab3188ac',
+                            spentBy: {
+                                txid: 'a641c77c3ef1bfe6a020255b792361db598dbcd8c7674034aebdb6543c0d4694',
+                                outIdx: 0,
+                            },
                         },
                     ],
                     lockTime: 0,
@@ -9294,8 +9332,7 @@ module.exports = {
                 },
             ],
         },
-        tgMarkdown:
-            '[782665](https://explorer.e.cash/block/00000000000000001239831f90580c859ec174316e91961cf0e8cde57c0d3acb) | 43 txs\n\n29 eToken txs\n\n\nThis block created 2 new eTokens:\n\nBearNip (BEAR) [url](https://cashtab.com/)\neCash Herald (TRIB) [url](https://cashtab.com/)',
+        tgHtml: '<a href="https://explorer.e.cash/block/00000000000000001239831f90580c859ec174316e91961cf0e8cde57c0d3acb">782665</a> | 43 txs\n\n29 eToken txs\n\n\nThis block created 2 new eTokens:\n\nBearNip (BEAR) <a href="https://cashtab.com/">url</a>\neCash Herald (TRIB) <a href="https://cashtab.com/">url</a>',
     },
     buxTxs: {
         chronikData: {
@@ -9345,6 +9382,10 @@ module.exports = {
                             value: '575003431',
                             outputScript:
                                 '76a914f1c075a01882ae0972f95d3a4177c86c852b7d9188ac',
+                            spentBy: {
+                                txid: 'd05b10b7f0a399c3e1eb488b1b2f633ae54cb985555b4315c4b634ad612d82ab',
+                                outIdx: 0,
+                            },
                         },
                         {
                             value: '50000298',
@@ -9620,6 +9661,10 @@ module.exports = {
                             value: '106152387',
                             outputScript:
                                 '76a914d71b6d842ab10517d93a10341975448f2e358a1788ac',
+                            spentBy: {
+                                txid: '391b6d802ab1ee180d7b80812bef54a33d8bc0dc40781d0878af041472dd590a',
+                                outIdx: 6,
+                            },
                         },
                         {
                             value: '1000',
@@ -9723,8 +9768,7 @@ module.exports = {
                 },
             ],
         },
-        tgMarkdown:
-            '[782571](https://explorer.e.cash/block/000000000000000003a43161c1d963b1df57f639a4621f56d3dbf69d5a8d0561) | 5 txs\n\n3 eToken txs\n\n',
+        tgHtml: '<a href="https://explorer.e.cash/block/000000000000000003a43161c1d963b1df57f639a4621f56d3dbf69d5a8d0561">782571</a> | 5 txs\n\n3 eToken txs\n\n',
     },
     cashtabMsg: {
         chronikData: {
@@ -9774,6 +9818,10 @@ module.exports = {
                             value: '575006712',
                             outputScript:
                                 '76a914f1c075a01882ae0972f95d3a4177c86c852b7d9188ac',
+                            spentBy: {
+                                txid: 'd1f1212a4f7908e378923ea09a6c0a1caa434486625fd74c46235851e82c1350',
+                                outIdx: 7,
+                            },
                         },
                         {
                             value: '50000583',
@@ -9866,6 +9914,10 @@ module.exports = {
                             value: '299300000',
                             outputScript:
                                 '76a914e8aab2dca7950c166737adfc8e65aa42c83eec8e88ac',
+                            spentBy: {
+                                txid: '9c0d9b2fd2bdd078d7710a74c46372bc5dc8320111998556e9ce1ac58f37cfcc',
+                                outIdx: 26,
+                            },
                         },
                         {
                             value: '577021461125',
@@ -9979,6 +10031,10 @@ module.exports = {
                             value: '402049000',
                             outputScript:
                                 '76a9141935990188a4e088a8a25e553e5cee1fb2830c5a88ac',
+                            spentBy: {
+                                txid: '9c0d9b2fd2bdd078d7710a74c46372bc5dc8320111998556e9ce1ac58f37cfcc',
+                                outIdx: 56,
+                            },
                         },
                     ],
                     lockTime: 782587,
@@ -10573,7 +10629,6 @@ module.exports = {
                 },
             ],
         },
-        tgMarkdown:
-            '[782657](https://explorer.e.cash/block/00000000000000000a528f0c4e4b4f214a72d9b34d84003df6150d5a4bcd0d32) | 10 txs\n\n',
+        tgHtml: '<a href="https://explorer.e.cash/block/00000000000000000a528f0c4e4b4f214a72d9b34d84003df6150d5a4bcd0d32">782657</a> | 10 txs\n\n',
     },
 };

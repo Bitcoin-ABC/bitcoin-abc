@@ -79,7 +79,7 @@ async function generateMocks() {
         blocksMock[thisBlockName].parsed = parseBlock(
             blocksMock[thisBlockName].chronikData,
         );
-        blocksMock[thisBlockName].tgMarkdown = getBlockTgMessage(
+        blocksMock[thisBlockName].tgHtml = getBlockTgMessage(
             blocksMock[thisBlockName].parsed,
         );
     }
