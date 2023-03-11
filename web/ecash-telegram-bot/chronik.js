@@ -60,17 +60,12 @@ module.exports = {
                       `\n` +
                       `[explorer](${config.blockExplorer}/block/${blockHash})`;
 
-                // Configure msg parse settings
-                let tgMsgOptions = {
-                    parse_mode: 'markdown',
-                    disable_web_page_preview: true,
-                };
                 let blockFoundMessageSuccess;
                 try {
                     blockFoundMessageSuccess = await telegramBot.sendMessage(
                         channelId,
                         tgMsg,
-                        tgMsgOptions,
+                        config.tgMsgOptions,
                     );
                 } catch (err) {
                     console.log(`Error in telegramBot.send(${wsMsg})`, err);
