@@ -2,6 +2,9 @@
 # Copyright (c) 2023 The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
+"""
+Test Chronik's /block endpoint.
+"""
 
 import http.client
 
@@ -11,7 +14,7 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
 
-class ChronikServeTest(BitcoinTestFramework):
+class ChronikBlockTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
@@ -58,7 +61,7 @@ class ChronikServeTest(BitcoinTestFramework):
         # Generate 100 blocks, verify they form a chain
         node = self.nodes[0]
         block_hashes = (
-            [expected_genesis_block.block_info.hash[::-1].hex()] +
+            [GENESIS_BLOCK_HASH] +
             self.generatetoaddress(node, 100, ADDRESS_ECREG_P2SH_OP_TRUE)
         )
 
@@ -111,4 +114,4 @@ class ChronikServeTest(BitcoinTestFramework):
 
 
 if __name__ == '__main__':
-    ChronikServeTest().main()
+    ChronikBlockTest().main()
