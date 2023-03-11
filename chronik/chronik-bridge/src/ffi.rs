@@ -110,6 +110,12 @@ mod ffi_inner {
         /// Bridge bitcoind's classes to the shared struct [`Block`].
         fn bridge_block(block: &CBlock, block_index: &CBlockIndex) -> Block;
 
+        /// CBlockIndex::GetAncestor
+        fn get_block_ancestor(
+            block_index: &CBlockIndex,
+            height: i32,
+        ) -> Result<&CBlockIndex>;
+
         /// Calls `InitError` from `node/ui_interface.h` to report an error to
         /// the user and then gracefully shut down the node.
         fn init_error(msg: &str) -> bool;

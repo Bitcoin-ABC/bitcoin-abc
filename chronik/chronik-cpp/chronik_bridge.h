@@ -53,6 +53,8 @@ std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node);
 
 Block bridge_block(const CBlock &block, const CBlockIndex &bindex);
 
+const CBlockIndex &get_block_ancestor(const CBlockIndex &index, int32_t height);
+
 bool init_error(const rust::Str msg);
 
 void abort_node(const rust::Str msg, const rust::Str user_msg);

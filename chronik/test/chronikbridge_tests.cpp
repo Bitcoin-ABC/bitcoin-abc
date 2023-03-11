@@ -73,4 +73,31 @@ BOOST_FIXTURE_TEST_CASE(test_lookup_block_index, TestChain100Setup) {
                       chronik_bridge::block_index_not_found);
 }
 
+BOOST_FIXTURE_TEST_CASE(test_get_block_ancestor, TestChain100Setup) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    const CBlockIndex &tip = *chainman.ActiveTip();
+
+    // Block 100 is the tip
+    BOOST_CHECK_EQUAL(
+        chronik_bridge::get_block_ancestor(tip, 100).GetBlockHash(),
+        tip.GetBlockHash());
+
+    // Block 99 is the prev of the tip
+    BOOST_CHECK_EQUAL(
+        chronik_bridge::get_block_ancestor(tip, 99).GetBlockHash(),
+        tip.GetBlockHeader().hashPrevBlock);
+
+    // Genesis block is block 0
+    BOOST_CHECK_EQUAL(chronik_bridge::get_block_ancestor(tip, 0).GetBlockHash(),
+                      GetConfig().GetChainParams().GenesisBlock().GetHash());
+
+    // Block -1 doesn't exist
+    BOOST_CHECK_THROW(chronik_bridge::get_block_ancestor(tip, -1),
+                      chronik_bridge::block_index_not_found);
+
+    // Block 101 doesn't exist
+    BOOST_CHECK_THROW(chronik_bridge::get_block_ancestor(tip, tip.nHeight + 1),
+                      chronik_bridge::block_index_not_found);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

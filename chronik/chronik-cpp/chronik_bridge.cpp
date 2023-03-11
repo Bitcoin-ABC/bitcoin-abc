@@ -71,6 +71,15 @@ chronik_bridge::Block bridge_block(const CBlock &block,
             .undo_pos = bindex.nUndoPos};
 }
 
+const CBlockIndex &get_block_ancestor(const CBlockIndex &index,
+                                      int32_t height) {
+    const CBlockIndex *pindex = index.GetAncestor(height);
+    if (!pindex) {
+        throw block_index_not_found();
+    }
+    return *pindex;
+}
+
 bool init_error(const rust::Str msg) {
     return InitError(Untranslated(std::string(msg)));
 }
