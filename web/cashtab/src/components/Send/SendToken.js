@@ -62,6 +62,12 @@ const AntdDescriptionsCss = css`
         color: ${props => props.theme.lightWhite};
     }
 `;
+const AliasAddressPreviewLabel = styled.div`
+    text-align: center;
+    color: ${props => props.theme.forms.text};
+    padding-left: 1px;
+    white-space: nowrap;
+`;
 const AntdDescriptionsWrapper = styled.div`
     ${AntdDescriptionsCss}
 `;
@@ -154,6 +160,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
             value: '',
             address: '',
         });
+        setAliasInputAddress(false); // clear alias address preview
     };
 
     async function submit() {
@@ -236,6 +243,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
     };
 
     const handleTokenAddressChange = async e => {
+        setAliasInputAddress(false); // clear alias address preview
         const { value, name } = e.target;
         // validate for token address
         // validate for parameters
@@ -516,7 +524,16 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
                                         required: true,
                                         value: formData.address,
                                     }}
+                                    style={{ marginBottom: '0px' }}
                                 />
+                                <AliasAddressPreviewLabel>
+                                    {aliasInputAddress &&
+                                        `${aliasInputAddress.slice(
+                                            0,
+                                            10,
+                                        )}...${aliasInputAddress.slice(-5)}`}
+                                </AliasAddressPreviewLabel>
+                                <br />
                                 <DestinationAmount
                                     validateStatus={
                                         sendTokenAmountError ? 'error' : ''

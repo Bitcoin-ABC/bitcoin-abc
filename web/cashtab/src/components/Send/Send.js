@@ -56,6 +56,13 @@ const TextAreaLabel = styled.div`
     white-space: nowrap;
 `;
 
+const AliasAddressPreviewLabel = styled.div`
+    text-align: center;
+    color: ${props => props.theme.forms.text};
+    padding-left: 1px;
+    white-space: nowrap;
+`;
+
 const AmountPreviewCtn = styled.div`
     display: flex;
     flex-direction: column;
@@ -177,6 +184,7 @@ const SendBCH = ({ passLoadingStatus }) => {
             address: '',
         });
         setOpReturnMsg(''); // OP_RETURN message has its own state field
+        setAliasInputAddress(false); // clear alias address preview
     };
 
     const checkForConfirmationBeforeSendXec = () => {
@@ -418,6 +426,7 @@ const SendBCH = ({ passLoadingStatus }) => {
     }
 
     const handleAddressChange = async e => {
+        setAliasInputAddress(false); // clear alias address preview
         const { value, name } = e.target;
         let error = false;
         let addressString = value;
@@ -772,6 +781,15 @@ const SendBCH = ({ passLoadingStatus }) => {
                                                 value: formData.address,
                                             }}
                                         ></DestinationAddressSingle>
+                                        <AliasAddressPreviewLabel>
+                                            {aliasInputAddress &&
+                                                `${aliasInputAddress.slice(
+                                                    0,
+                                                    10,
+                                                )}...${aliasInputAddress.slice(
+                                                    -5,
+                                                )}`}
+                                        </AliasAddressPreviewLabel>
                                         <FormLabel>Amount</FormLabel>
                                         <SendBchInput
                                             activeFiatCode={
@@ -815,7 +833,6 @@ const SendBCH = ({ passLoadingStatus }) => {
                                             }}
                                         ></SendBchInput>
                                     </DestinationAddressSingleCtn>
-
                                     {priceApiError && (
                                         <AlertMsg>
                                             Error fetching fiat price. Setting

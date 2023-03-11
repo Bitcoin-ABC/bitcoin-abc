@@ -37,6 +37,11 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         >
           <div
             className="ant-form-item ant-form-item-with-help"
+            style={
+              Object {
+                "marginBottom": "0px",
+              }
+            }
           >
             <div
               className="ant-row ant-form-item-row"
@@ -139,6 +144,10 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
             </div>
           </div>
         </div>
+        <div
+          className="sc-jhAzac Mkkxq"
+        />
+        <br />
         <div
           className="sc-hSdWYo ftBlXh"
         >
