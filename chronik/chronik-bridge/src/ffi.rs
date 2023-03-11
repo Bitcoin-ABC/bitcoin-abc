@@ -98,7 +98,7 @@ mod ffi_inner {
 
         /// Return the tip of the chain of the node.
         /// Returns hash=000...000, height=-1 if there's no block on the chain.
-        fn get_chain_tip(self: &ChronikBridge) -> BlockInfo;
+        fn get_chain_tip(self: &ChronikBridge) -> Result<&CBlockIndex>;
 
         /// Lookup the block index with the given hash, or throw an error
         /// if it couldn't be found.

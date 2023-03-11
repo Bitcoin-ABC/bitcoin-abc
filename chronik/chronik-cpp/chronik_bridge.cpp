@@ -28,19 +28,13 @@ void log_print_chronik(const rust::Str logging_function,
     }
 }
 
-BlockInfo ChronikBridge::get_chain_tip() const {
+const CBlockIndex &ChronikBridge::get_chain_tip() const {
     const CBlockIndex *tip =
         WITH_LOCK(cs_main, return m_node.chainman->ActiveTip());
     if (tip == nullptr) {
-        return {
-            .hash = {},
-            .height = -1,
-        };
+        throw block_index_not_found();
     }
-    return {
-        .hash = chronik::util::HashToArray(tip->GetBlockHash()),
-        .height = tip->nHeight,
-    };
+    return *tip;
 }
 
 const CBlockIndex &

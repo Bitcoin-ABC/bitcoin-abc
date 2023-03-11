@@ -22,22 +22,18 @@ BOOST_FIXTURE_TEST_CASE(test_get_chain_tip_empty, ChainTestingSetup) {
         m_node.chainman->InitializeChainstate(m_node.mempool.get());
     }
     // Chain has no blocks yet:
-    // get_chain_tip returns hash=000...000, height=-1
+    // get_chain_tip throws block_index_not_found
     const chronik_bridge::ChronikBridge bridge(m_node);
-    chronik_bridge::BlockInfo block = bridge.get_chain_tip();
-    chronik_bridge::BlockInfo expected_block{.hash = {}, .height = -1};
-    BOOST_CHECK(block == expected_block);
+    BOOST_CHECK_THROW(bridge.get_chain_tip(),
+                      chronik_bridge::block_index_not_found);
 }
 
 BOOST_FIXTURE_TEST_CASE(test_get_chain_tip_genesis, TestingSetup) {
     const chronik_bridge::ChronikBridge bridge(m_node);
     // Check for genesis block
-    chronik_bridge::BlockInfo block = bridge.get_chain_tip();
-    chronik_bridge::BlockInfo expected_block{
-        .hash = chronik::util::HashToArray(
-            GetConfig().GetChainParams().GenesisBlock().GetHash()),
-        .height = 0};
-    BOOST_CHECK(block == expected_block);
+    const CBlockIndex &bindex = bridge.get_chain_tip();
+    BOOST_CHECK_EQUAL(bindex.GetBlockHash(),
+                      GetConfig().GetChainParams().GenesisBlock().GetHash());
 }
 
 BOOST_FIXTURE_TEST_CASE(test_get_chain_tip_100, TestChain100Setup) {
@@ -46,10 +42,8 @@ BOOST_FIXTURE_TEST_CASE(test_get_chain_tip_100, TestChain100Setup) {
         {}, CScript() << std::vector<uint8_t>(33) << OP_CHECKSIG);
     const chronik_bridge::ChronikBridge bridge(m_node);
     // Check if block is 101th
-    chronik_bridge::BlockInfo block = bridge.get_chain_tip();
-    chronik_bridge::BlockInfo expected_block{
-        .hash = chronik::util::HashToArray(tip_block.GetHash()), .height = 101};
-    BOOST_CHECK(block == expected_block);
+    const CBlockIndex &bindex = bridge.get_chain_tip();
+    BOOST_CHECK_EQUAL(bindex.GetBlockHash(), tip_block.GetHash());
 }
 
 BOOST_FIXTURE_TEST_CASE(test_lookup_block_index, TestChain100Setup) {
