@@ -16,4 +16,9 @@ module.exports = {
             miner: 'Mining-Dutch',
         },
     ],
+    opReturn: {
+        opReturnPrefix: '6a',
+        opReturnAppPrefixLength: '04',
+        opPushDataOne: '4c',
+    },
 };

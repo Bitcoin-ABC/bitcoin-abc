@@ -41,11 +41,12 @@ Assumptions
 - any input addresses are potential change addresses
 - Assume total outputs not at input addresses are "sent" amounts
 */
-        const { txid } = tx;
+        const { txid, outputs } = tx;
 
         let isTokenTx = false;
         let isGenesisTx = false;
         let genesisInfo = false;
+        let opReturnInfo = false;
 
         if (tx.slpTxData !== null && typeof tx.slpTxData !== 'undefined') {
             isTokenTx = true;
@@ -60,7 +61,73 @@ Assumptions
                 genesisInfo = tx.slpTxData.genesisInfo;
             }
         }
-        return { txid, isTokenTx, isGenesisTx, genesisInfo };
+
+        // Iterate over outputs to check for OP_RETURN msgs
+        for (let i = 0; i < outputs.length; i += 1) {
+            const thisOutput = outputs[i];
+            const { value } = thisOutput;
+            // Don't parse OP_RETURN values of etoken txs, this info is available from chronik
+            if (value === '0' && !isTokenTx) {
+                const { outputScript } = thisOutput;
+                opReturnInfo = module.exports.parseOpReturn(outputScript);
+            }
+        }
+
+        return { txid, isTokenTx, isGenesisTx, genesisInfo, opReturnInfo };
+    },
+    parseOpReturn: function (outputScript) {
+        // Initialize required vars
+        let msg;
+
+        // Determine if this is an OP_RETURN field
+        const isOpReturn =
+            outputScript.slice(0, 2) === config.opReturn.opReturnPrefix;
+        if (!isOpReturn) {
+            return false;
+        }
+
+        msg = module.exports.hexOpReturnToUtf8(outputScript.slice(2));
+        return { msg };
+    },
+    hexOpReturnToUtf8: function (hexStr) {
+        /*
+        Accept as input an OP_RETURN hex string less the 6a prefix
+        String will have the form of 4c+bytelength+msg (? + 4c + bytelength + msg)
+        */
+        let hexStrLength = hexStr.length;
+        let opReturnMsgArray = [];
+        for (let i = 0; hexStrLength !== 0; i++) {
+            // Check first byte for the message length or 4c + message length
+            let byteValue = hexStr.slice(0, 2);
+            let msgByteSize = 0;
+            if (byteValue === config.opReturn.opPushDataOne) {
+                // If this byte is 4c, then the next byte is the message byte size.
+                // Retrieve the message byte size and convert from hex to decimal
+                msgByteSize = parseInt(hexStr.substring(2, 4), 16);
+                // Remove 4c + message byte size info from the beginning of hexStr
+                hexStr = hexStr.slice(4);
+            } else {
+                // This byte is the length of an upcoming msg
+                msgByteSize = parseInt(hexStr.substring(0, 2), 16);
+                // Remove message byte size info from the beginning of hexStr
+                hexStr = hexStr.slice(2);
+            }
+            // Use msgByteSize to parse the message
+            const msgCharLength = 2 * msgByteSize;
+            message = hexStr.slice(0, msgCharLength);
+
+            // Add to opReturnMsgArray
+            opReturnMsgArray.push(Buffer.from(message, 'hex').toString('utf8'));
+
+            // strip out the parsed message
+            hexStr = hexStr.slice(msgCharLength);
+            hexStrLength = hexStr.length;
+
+            // Sometimes OP_RETURN will have a series of msgs
+            // Return to beginning of loop with i=0 if there hexStr still has remaining unparsed characters
+        }
+        // If there are multiple messages, for example an unknown prefix, signify this with the | character
+        return opReturnMsgArray.join('|');
     },
     prepareStringForTelegramHTML: function (string) {
         /*
@@ -84,10 +151,14 @@ Assumptions
         // Iterate over parsedTxs to find anything newsworthy
         let tokenTxCount = 0;
         let genesisTxCount = 0;
+        let opReturnTxCount = 0;
         const genesisInfoArray = [];
+        const opReturnInfoArray = [];
+
         for (let i = 0; i < parsedTxs.length; i += 1) {
             const thisParsedTx = parsedTxs[i];
-            const { txid, isTokenTx, isGenesisTx, genesisInfo } = thisParsedTx;
+            const { txid, isTokenTx, isGenesisTx, genesisInfo, opReturnInfo } =
+                thisParsedTx;
             if (isTokenTx) {
                 tokenTxCount += 1;
                 if (isGenesisTx) {
@@ -97,6 +168,11 @@ Assumptions
                     const tgGenesisInfo = { ...genesisInfo, tokenId: txid };
                     genesisInfoArray.push(tgGenesisInfo);
                 }
+            }
+            if (opReturnInfo) {
+                opReturnTxCount += 1;
+                const tgOpReturnInfo = { ...opReturnInfo, txid };
+                opReturnInfoArray.push(tgOpReturnInfo);
             }
         }
         const tgMsg =
@@ -134,6 +210,23 @@ Assumptions
                             })
                             .join('\n')}`
                       : '')
+                : '') +
+            (opReturnTxCount > 0
+                ? `\n` +
+                  `This block contained ${
+                      opReturnTxCount > 1
+                          ? `OP_RETURN msgs`
+                          : `an OP_RETURN msg`
+                  }:\n` +
+                  `\n` +
+                  `${opReturnInfoArray
+                      .map(tgOpReturnInfo => {
+                          let { msg, txid } = tgOpReturnInfo;
+                          msg =
+                              module.exports.prepareStringForTelegramHTML(msg);
+                          return `<a href="${config.blockExplorer}/tx/${txid}">tx:</a> ${msg}`;
+                      })
+                      .join('\n')}`
                 : '');
 
         return tgMsg;
