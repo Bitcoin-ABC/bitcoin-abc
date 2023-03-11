@@ -75,6 +75,13 @@ chronik_bridge::Block bridge_block(const CBlock &block,
             .undo_pos = bindex.nUndoPos};
 }
 
+BlockInfo get_block_info(const CBlockIndex &bindex) {
+    return {
+        .hash = chronik::util::HashToArray(bindex.GetBlockHash()),
+        .height = bindex.nHeight,
+    };
+}
+
 const CBlockIndex &get_block_ancestor(const CBlockIndex &index,
                                       int32_t height) {
     const CBlockIndex *pindex = index.GetAncestor(height);

@@ -119,4 +119,22 @@ BOOST_FIXTURE_TEST_CASE(test_get_block_ancestor, TestChain100Setup) {
                       chronik_bridge::block_index_not_found);
 }
 
+BOOST_FIXTURE_TEST_CASE(test_get_block_info, TestChain100Setup) {
+    const chronik_bridge::ChronikBridge bridge(m_node);
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    const CBlockIndex &tip = *chainman.ActiveTip();
+
+    chronik_bridge::BlockInfo expected_genesis_info{
+        .hash = chronik::util::HashToArray(
+            GetConfig().GetChainParams().GenesisBlock().GetHash()),
+        .height = 0};
+    BOOST_CHECK(chronik_bridge::get_block_info(*tip.GetAncestor(0)) ==
+                expected_genesis_info);
+
+    chronik_bridge::BlockInfo expected_tip_info{
+        .hash = chronik::util::HashToArray(tip.GetBlockHash()),
+        .height = tip.nHeight};
+    BOOST_CHECK(chronik_bridge::get_block_info(tip) == expected_tip_info);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -116,6 +116,9 @@ mod ffi_inner {
         /// Bridge bitcoind's classes to the shared struct [`Block`].
         fn bridge_block(block: &CBlock, block_index: &CBlockIndex) -> Block;
 
+        /// Get a BlockInfo for this CBlockIndex.
+        fn get_block_info(block_index: &CBlockIndex) -> BlockInfo;
+
         /// CBlockIndex::GetAncestor
         fn get_block_ancestor(
             block_index: &CBlockIndex,
