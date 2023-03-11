@@ -6,4 +6,14 @@ module.exports = {
         parse_mode: 'HTML',
         disable_web_page_preview: true,
     },
+    knownMiners: [
+        {
+            coinbaseScript: '566961425443',
+            miner: 'ViaBTC',
+        },
+        {
+            coinbaseScript: '4d696e696e672d4475746368',
+            miner: 'Mining-Dutch',
+        },
+    ],
 };

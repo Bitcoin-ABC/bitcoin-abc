@@ -4,11 +4,30 @@ module.exports = {
         const { blockInfo, txs } = chronikBlockResponse;
         const { hash } = blockInfo;
         const { height, numTxs } = blockInfo;
+
+        // Parse coinbase string
+        const coinbaseScript = txs[0].inputs[0].inputScript;
+        const miner = module.exports.getMinerFromCoinbase(coinbaseScript);
+
+        // Start with i=1 to skip Coinbase tx
         const parsedTxs = [];
-        for (let i = 0; i < txs.length; i += 1) {
+        for (let i = 1; i < txs.length; i += 1) {
             parsedTxs.push(module.exports.parseTx(txs[i]));
         }
-        return { hash, height, numTxs, parsedTxs };
+        return { hash, height, miner, numTxs, parsedTxs };
+    },
+    getMinerFromCoinbase: function (coinbaseHexString) {
+        const knownMiners = config.knownMiners;
+        let miner = 'unknown';
+        // Iterate over known miners to find a match
+        for (let i = 0; i < knownMiners.length; i += 1) {
+            const testedMiner = knownMiners[i];
+            const { coinbaseScript } = testedMiner;
+            if (coinbaseHexString.includes(coinbaseScript)) {
+                miner = testedMiner.miner;
+            }
+        }
+        return miner;
     },
     parseTx: function (tx) {
         /*
@@ -41,7 +60,7 @@ Assumptions
         return { isTokenTx, isGenesisTx, genesisInfo };
     },
     getBlockTgMessage: function (parsedBlock) {
-        const { hash, height, numTxs, parsedTxs } = parsedBlock;
+        const { hash, height, miner, numTxs, parsedTxs } = parsedBlock;
 
         // Iterate over parsedTxs to find anything newsworthy
         let tokenTxCount = 0;
@@ -63,7 +82,7 @@ Assumptions
                 config.blockExplorer
             }/block/${hash}">${height}</a> | ${numTxs} tx${
                 numTxs > 1 ? `s` : ''
-            }\n` +
+            } | ${miner}\n` +
             `\n` +
             (tokenTxCount > 0
                 ? `${tokenTxCount} eToken tx${tokenTxCount > 1 ? `s` : ''}\n` +

@@ -65,16 +65,11 @@ module.exports = {
         parsed: {
             hash: '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f',
             height: 0,
+            miner: 'unknown',
             numTxs: '1',
-            parsedTxs: [
-                {
-                    isTokenTx: false,
-                    isGenesisTx: false,
-                    genesisInfo: false,
-                },
-            ],
+            parsedTxs: [],
         },
-        tgHtml: '<a href="https://explorer.e.cash/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f">0</a> | 1 tx\n\n',
+        tgHtml: '<a href="https://explorer.e.cash/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f">0</a> | 1 tx | unknown\n\n',
     },
     etokenGenesisTx: {
         chronikData: {
@@ -4951,13 +4946,9 @@ module.exports = {
         parsed: {
             hash: '0000000000000000260ee4c3b4f4ddde127bc0105d685c0ef31775b612627222',
             height: 700722,
+            miner: 'unknown',
             numTxs: '97',
             parsedTxs: [
-                {
-                    isTokenTx: false,
-                    isGenesisTx: false,
-                    genesisInfo: false,
-                },
                 {
                     isTokenTx: false,
                     isGenesisTx: false,
@@ -5446,7 +5437,7 @@ module.exports = {
                 },
             ],
         },
-        tgHtml: '<a href="https://explorer.e.cash/block/0000000000000000260ee4c3b4f4ddde127bc0105d685c0ef31775b612627222">700722</a> | 97 txs\n\n1 eToken tx\n\nThis block created 1 new eToken:\n\nLambda Variant Variants (LVV) <a href="https://cashtabapp.com/">[doc]</a>',
+        tgHtml: '<a href="https://explorer.e.cash/block/0000000000000000260ee4c3b4f4ddde127bc0105d685c0ef31775b612627222">700722</a> | 97 txs | unknown\n\n1 eToken tx\n\nThis block created 1 new eToken:\n\nLambda Variant Variants (LVV) <a href="https://cashtabapp.com/">[doc]</a>',
     },
     multipleGenesis: {
         chronikData: {
@@ -9101,13 +9092,9 @@ module.exports = {
         parsed: {
             hash: '00000000000000001239831f90580c859ec174316e91961cf0e8cde57c0d3acb',
             height: 782665,
+            miner: 'ViaBTC',
             numTxs: '43',
             parsedTxs: [
-                {
-                    isTokenTx: false,
-                    isGenesisTx: false,
-                    genesisInfo: false,
-                },
                 {
                     isTokenTx: true,
                     isGenesisTx: false,
@@ -9332,7 +9319,7 @@ module.exports = {
                 },
             ],
         },
-        tgHtml: '<a href="https://explorer.e.cash/block/00000000000000001239831f90580c859ec174316e91961cf0e8cde57c0d3acb">782665</a> | 43 txs\n\n29 eToken txs\n\nThis block created 2 new eTokens:\n\nBearNip (BEAR) <a href="https://cashtab.com/">[doc]</a>\neCash Herald (TRIB) <a href="https://cashtab.com/">[doc]</a>',
+        tgHtml: '<a href="https://explorer.e.cash/block/00000000000000001239831f90580c859ec174316e91961cf0e8cde57c0d3acb">782665</a> | 43 txs | ViaBTC\n\n29 eToken txs\n\nThis block created 2 new eTokens:\n\nBearNip (BEAR) <a href="https://cashtab.com/">[doc]</a>\neCash Herald (TRIB) <a href="https://cashtab.com/">[doc]</a>',
     },
     buxTxs: {
         chronikData: {
@@ -9739,13 +9726,9 @@ module.exports = {
         parsed: {
             hash: '000000000000000003a43161c1d963b1df57f639a4621f56d3dbf69d5a8d0561',
             height: 782571,
+            miner: 'ViaBTC',
             numTxs: '5',
             parsedTxs: [
-                {
-                    isTokenTx: false,
-                    isGenesisTx: false,
-                    genesisInfo: false,
-                },
                 {
                     isTokenTx: true,
                     isGenesisTx: false,
@@ -9768,7 +9751,7 @@ module.exports = {
                 },
             ],
         },
-        tgHtml: '<a href="https://explorer.e.cash/block/000000000000000003a43161c1d963b1df57f639a4621f56d3dbf69d5a8d0561">782571</a> | 5 txs\n\n3 eToken txs\n',
+        tgHtml: '<a href="https://explorer.e.cash/block/000000000000000003a43161c1d963b1df57f639a4621f56d3dbf69d5a8d0561">782571</a> | 5 txs | ViaBTC\n\n3 eToken txs\n',
     },
     cashtabMsg: {
         chronikData: {
@@ -10575,6 +10558,7 @@ module.exports = {
         parsed: {
             hash: '00000000000000000a528f0c4e4b4f214a72d9b34d84003df6150d5a4bcd0d32',
             height: 782657,
+            miner: 'ViaBTC',
             numTxs: '10',
             parsedTxs: [
                 {
@@ -10622,13 +10606,8 @@ module.exports = {
                     isGenesisTx: false,
                     genesisInfo: false,
                 },
-                {
-                    isTokenTx: false,
-                    isGenesisTx: false,
-                    genesisInfo: false,
-                },
             ],
         },
-        tgHtml: '<a href="https://explorer.e.cash/block/00000000000000000a528f0c4e4b4f214a72d9b34d84003df6150d5a4bcd0d32">782657</a> | 10 txs\n\n',
+        tgHtml: '<a href="https://explorer.e.cash/block/00000000000000000a528f0c4e4b4f214a72d9b34d84003df6150d5a4bcd0d32">782657</a> | 10 txs | ViaBTC\n\n',
     },
 };
