@@ -47,6 +47,8 @@ public:
     BlockInfo get_chain_tip() const;
 
     const CBlockIndex &lookup_block_index(std::array<uint8_t, 32> hash) const;
+
+    const CBlockIndex &find_fork(const CBlockIndex &index) const;
 };
 
 std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node);

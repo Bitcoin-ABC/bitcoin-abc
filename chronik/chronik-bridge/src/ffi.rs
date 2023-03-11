@@ -107,6 +107,12 @@ mod ffi_inner {
             hash: [u8; 32],
         ) -> Result<&CBlockIndex>;
 
+        /// Find at which block the given block_index forks off from the node.
+        fn find_fork(
+            self: &ChronikBridge,
+            block_index: &CBlockIndex,
+        ) -> Result<&CBlockIndex>;
+
         /// Bridge bitcoind's classes to the shared struct [`Block`].
         fn bridge_block(block: &CBlock, block_index: &CBlockIndex) -> Block;
 

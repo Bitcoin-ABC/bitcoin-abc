@@ -55,6 +55,16 @@ ChronikBridge::lookup_block_index(std::array<uint8_t, 32> hash) const {
     return *pindex;
 }
 
+const CBlockIndex &ChronikBridge::find_fork(const CBlockIndex &index) const {
+    const CBlockIndex *fork = WITH_LOCK(
+        cs_main,
+        return m_node.chainman->ActiveChainstate().m_chain.FindFork(&index));
+    if (!fork) {
+        throw block_index_not_found();
+    }
+    return *fork;
+}
+
 std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node) {
     return std::make_unique<ChronikBridge>(node);
 }

@@ -73,6 +73,31 @@ BOOST_FIXTURE_TEST_CASE(test_lookup_block_index, TestChain100Setup) {
                       chronik_bridge::block_index_not_found);
 }
 
+BOOST_FIXTURE_TEST_CASE(test_find_fork, TestChain100Setup) {
+    const chronik_bridge::ChronikBridge bridge(m_node);
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    CBlockIndex *tip = chainman.ActiveTip();
+
+    // Fork of the tip is the tip
+    BOOST_CHECK_EQUAL(bridge.find_fork(*tip).GetBlockHash(),
+                      tip->GetBlockHash());
+    // Fork of the genesis block is the genesis block
+    BOOST_CHECK_EQUAL(bridge.find_fork(*tip->GetAncestor(0)).GetBlockHash(),
+                      GetConfig().GetChainParams().GenesisBlock().GetHash());
+
+    // Invalidate block in the middle of the chain
+    BlockValidationState state;
+    chainman.ActiveChainstate().InvalidateBlock(GetConfig(), state,
+                                                tip->GetAncestor(50));
+
+    // Mine 100 blocks, up to height 150
+    mineBlocks(100);
+
+    // Fork of old tip is block 49
+    BOOST_CHECK_EQUAL(bridge.find_fork(*tip).GetBlockHash(),
+                      chainman.ActiveTip()->GetAncestor(49)->GetBlockHash());
+}
+
 BOOST_FIXTURE_TEST_CASE(test_get_block_ancestor, TestChain100Setup) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
     const CBlockIndex &tip = *chainman.ActiveTip();
