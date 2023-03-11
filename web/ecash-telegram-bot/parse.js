@@ -41,9 +41,12 @@ Assumptions
 - any input addresses are potential change addresses
 - Assume total outputs not at input addresses are "sent" amounts
 */
+        const { txid } = tx;
+
         let isTokenTx = false;
         let isGenesisTx = false;
         let genesisInfo = false;
+
         if (tx.slpTxData !== null && typeof tx.slpTxData !== 'undefined') {
             isTokenTx = true;
             if (
@@ -57,7 +60,7 @@ Assumptions
                 genesisInfo = tx.slpTxData.genesisInfo;
             }
         }
-        return { isTokenTx, isGenesisTx, genesisInfo };
+        return { txid, isTokenTx, isGenesisTx, genesisInfo };
     },
     prepareStringForTelegramHTML: function (string) {
         /*
@@ -84,12 +87,15 @@ Assumptions
         const genesisInfoArray = [];
         for (let i = 0; i < parsedTxs.length; i += 1) {
             const thisParsedTx = parsedTxs[i];
-            const { isTokenTx, isGenesisTx, genesisInfo } = thisParsedTx;
+            const { txid, isTokenTx, isGenesisTx, genesisInfo } = thisParsedTx;
             if (isTokenTx) {
                 tokenTxCount += 1;
                 if (isGenesisTx) {
                     genesisTxCount += 1;
-                    genesisInfoArray.push(genesisInfo);
+
+                    // Add txid to genesisInfo array as tokenId
+                    const tgGenesisInfo = { ...genesisInfo, tokenId: txid };
+                    genesisInfoArray.push(tgGenesisInfo);
                 }
             }
         }
@@ -111,6 +117,7 @@ Assumptions
                         `${genesisInfoArray
                             .map(genesisInfo => {
                                 let {
+                                    tokenId,
                                     tokenTicker,
                                     tokenName,
                                     tokenDocumentUrl,
@@ -123,7 +130,7 @@ Assumptions
                                     module.exports.prepareStringForTelegramHTML(
                                         tokenTicker,
                                     );
-                                return `${tokenName} (${tokenTicker}) <a href="${tokenDocumentUrl}">[doc]</a>`;
+                                return `<a href="${config.blockExplorer}/tx/${tokenId}">${tokenName}</a> (${tokenTicker}) <a href="${tokenDocumentUrl}">[doc]</a>`;
                             })
                             .join('\n')}`
                       : '')
