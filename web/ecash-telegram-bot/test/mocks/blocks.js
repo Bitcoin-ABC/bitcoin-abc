@@ -5446,7 +5446,7 @@ module.exports = {
                 },
             ],
         },
-        tgHtml: '<a href="https://explorer.e.cash/block/0000000000000000260ee4c3b4f4ddde127bc0105d685c0ef31775b612627222">700722</a> | 97 txs\n\n1 eToken tx\n\n\nThis block created 1 new eToken:\n\nLambda Variant Variants (LVV) <a href="https://cashtabapp.com/">[doc]</a>',
+        tgHtml: '<a href="https://explorer.e.cash/block/0000000000000000260ee4c3b4f4ddde127bc0105d685c0ef31775b612627222">700722</a> | 97 txs\n\n1 eToken tx\n\nThis block created 1 new eToken:\n\nLambda Variant Variants (LVV) <a href="https://cashtabapp.com/">[doc]</a>',
     },
     multipleGenesis: {
         chronikData: {
@@ -9332,7 +9332,7 @@ module.exports = {
                 },
             ],
         },
-        tgHtml: '<a href="https://explorer.e.cash/block/00000000000000001239831f90580c859ec174316e91961cf0e8cde57c0d3acb">782665</a> | 43 txs\n\n29 eToken txs\n\n\nThis block created 2 new eTokens:\n\nBearNip (BEAR) <a href="https://cashtab.com/">[doc]</a>\neCash Herald (TRIB) <a href="https://cashtab.com/">[doc]</a>',
+        tgHtml: '<a href="https://explorer.e.cash/block/00000000000000001239831f90580c859ec174316e91961cf0e8cde57c0d3acb">782665</a> | 43 txs\n\n29 eToken txs\n\nThis block created 2 new eTokens:\n\nBearNip (BEAR) <a href="https://cashtab.com/">[doc]</a>\neCash Herald (TRIB) <a href="https://cashtab.com/">[doc]</a>',
     },
     buxTxs: {
         chronikData: {
@@ -9768,7 +9768,7 @@ module.exports = {
                 },
             ],
         },
-        tgHtml: '<a href="https://explorer.e.cash/block/000000000000000003a43161c1d963b1df57f639a4621f56d3dbf69d5a8d0561">782571</a> | 5 txs\n\n3 eToken txs\n\n',
+        tgHtml: '<a href="https://explorer.e.cash/block/000000000000000003a43161c1d963b1df57f639a4621f56d3dbf69d5a8d0561">782571</a> | 5 txs\n\n3 eToken txs\n',
     },
     cashtabMsg: {
         chronikData: {

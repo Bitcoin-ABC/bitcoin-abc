@@ -67,7 +67,6 @@ Assumptions
             `\n` +
             (tokenTxCount > 0
                 ? `${tokenTxCount} eToken tx${tokenTxCount > 1 ? `s` : ''}\n` +
-                  `\n` +
                   (genesisTxCount > 0
                       ? `\n` +
                         `This block created ${genesisTxCount} new eToken${
