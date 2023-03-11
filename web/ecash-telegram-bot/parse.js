@@ -59,10 +59,14 @@ Assumptions
             }
         }
         const tgMsg =
-            `<a href="${config.blockExplorer}/block/${hash}">${height}</a> | ${numTxs} txs\n` +
+            `<a href="${
+                config.blockExplorer
+            }/block/${hash}">${height}</a> | ${numTxs} tx${
+                numTxs > 1 ? `s` : ''
+            }\n` +
             `\n` +
             (tokenTxCount > 0
-                ? `${tokenTxCount} eToken txs\n` +
+                ? `${tokenTxCount} eToken tx${tokenTxCount > 1 ? `s` : ''}\n` +
                   `\n` +
                   (genesisTxCount > 0
                       ? `\n` +

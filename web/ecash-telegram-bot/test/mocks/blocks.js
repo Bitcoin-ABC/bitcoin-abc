@@ -74,7 +74,7 @@ module.exports = {
                 },
             ],
         },
-        tgHtml: '<a href="https://explorer.e.cash/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f">0</a> | 1 txs\n\n',
+        tgHtml: '<a href="https://explorer.e.cash/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f">0</a> | 1 tx\n\n',
     },
     etokenGenesisTx: {
         chronikData: {
@@ -5446,7 +5446,7 @@ module.exports = {
                 },
             ],
         },
-        tgHtml: '<a href="https://explorer.e.cash/block/0000000000000000260ee4c3b4f4ddde127bc0105d685c0ef31775b612627222">700722</a> | 97 txs\n\n1 eToken txs\n\n\nThis block created 1 new eToken:\n\nLambda Variant Variants (LVV) <a href="https://cashtabapp.com/">url</a>',
+        tgHtml: '<a href="https://explorer.e.cash/block/0000000000000000260ee4c3b4f4ddde127bc0105d685c0ef31775b612627222">700722</a> | 97 txs\n\n1 eToken tx\n\n\nThis block created 1 new eToken:\n\nLambda Variant Variants (LVV) <a href="https://cashtabapp.com/">url</a>',
     },
     multipleGenesis: {
         chronikData: {
