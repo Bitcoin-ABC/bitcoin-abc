@@ -15,18 +15,18 @@ module.exports = {
 Parse an eCash tx as returned by chronik for interesting information
 
 Model
-{ opreturn: '', isEtoken: true, fromAddress: '', toAddress: '', isGenesisTx: true, isCoinbaseTx: true }
+{ opreturn: '', isTokenTx: true, fromAddress: '', toAddress: '', isGenesisTx: true, isCoinbaseTx: true }
 
 Assumptions
 - input[0] is the sending address
 - any input addresses are potential change addresses
 - Assume total outputs not at input addresses are "sent" amounts
 */
-        let isEtokenTx = false;
+        let isTokenTx = false;
         let isGenesisTx = false;
         let genesisInfo = false;
         if (tx.slpTxData !== null && typeof tx.slpTxData !== 'undefined') {
-            isEtokenTx = true;
+            isTokenTx = true;
             if (
                 tx.slpTxData.slpMeta !== null &&
                 typeof tx.slpTxData.slpMeta !== 'undefined' &&
@@ -38,20 +38,20 @@ Assumptions
                 genesisInfo = tx.slpTxData.genesisInfo;
             }
         }
-        return { isEtokenTx, isGenesisTx, genesisInfo };
+        return { isTokenTx, isGenesisTx, genesisInfo };
     },
     getBlockTgMessage: function (parsedBlock) {
         const { hash, height, numTxs, parsedTxs } = parsedBlock;
 
         // Iterate over parsedTxs to find anything newsworthy
-        let etokenTxCount = 0;
+        let tokenTxCount = 0;
         let genesisTxCount = 0;
         const genesisInfoArray = [];
         for (let i = 0; i < parsedTxs.length; i += 1) {
             const thisParsedTx = parsedTxs[i];
-            const { isEtokenTx, isGenesisTx, genesisInfo } = thisParsedTx;
-            if (isEtokenTx) {
-                etokenTxCount += 1;
+            const { isTokenTx, isGenesisTx, genesisInfo } = thisParsedTx;
+            if (isTokenTx) {
+                tokenTxCount += 1;
                 if (isGenesisTx) {
                     genesisTxCount += 1;
                     genesisInfoArray.push(genesisInfo);
@@ -61,13 +61,13 @@ Assumptions
         const tgMsg =
             `<a href="${config.blockExplorer}/block/${hash}">${height}</a> | ${numTxs} txs\n` +
             `\n` +
-            (etokenTxCount > 0
-                ? `${etokenTxCount} eToken txs\n` +
+            (tokenTxCount > 0
+                ? `${tokenTxCount} eToken txs\n` +
                   `\n` +
                   (genesisTxCount > 0
                       ? `\n` +
                         `This block created ${genesisTxCount} new eToken${
-                            etokenTxCount > 1 ? `s` : ''
+                            tokenTxCount > 1 ? `s` : ''
                         }:\n` +
                         `\n` +
                         `${genesisInfoArray
