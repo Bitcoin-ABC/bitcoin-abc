@@ -81,7 +81,7 @@ Assumptions
                                     tokenName,
                                     tokenDocumentUrl,
                                 } = genesisInfo;
-                                return `${tokenName} (${tokenTicker}) <a href="${tokenDocumentUrl}">url</a>`;
+                                return `${tokenName} (${tokenTicker}) <a href="${tokenDocumentUrl}">[doc]</a>`;
                             })
                             .join('\n')}`
                       : '')
