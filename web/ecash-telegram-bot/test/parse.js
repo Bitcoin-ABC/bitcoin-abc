@@ -5,9 +5,15 @@ const {
     buxTxs,
     cashtabMsg,
     multipleGenesis,
+    htmlEscapeTest,
 } = require('./mocks/blocks');
+const { telegramHtmlStrings } = require('./mocks/templates');
 
-const { parseBlock, getBlockTgMessage } = require('../parse');
+const {
+    parseBlock,
+    getBlockTgMessage,
+    prepareStringForTelegramHTML,
+} = require('../parse');
 
 describe('ecash-telegram-bot parse.js chronik parsing functions', function () {
     it('Parses the genesis block', function () {
@@ -59,6 +65,30 @@ describe('ecash-telegram-bot parse.js chronik parsing functions', function () {
         assert.deepEqual(
             getBlockTgMessage(etokenGenesisTx.parsed),
             etokenGenesisTx.tgHtml,
+        );
+    });
+    it('Parses a block containing genesis txs that require html escape processing', function () {
+        assert.deepEqual(
+            parseBlock(htmlEscapeTest.chronikData),
+            htmlEscapeTest.parsed,
+        );
+    });
+    it('Creates a tg message for a block containing genesis txs that require html escape processing', function () {
+        assert.deepEqual(
+            getBlockTgMessage(htmlEscapeTest.parsed),
+            htmlEscapeTest.tgHtml,
+        );
+    });
+    it(`prepareStringForTelegramHTML replaces '<', '>', and '&' per specifications`, function () {
+        assert.strictEqual(
+            prepareStringForTelegramHTML(telegramHtmlStrings.dangerous),
+            telegramHtmlStrings.safe,
+        );
+    });
+    it(`prepareStringForTelegramHTML does not change a string if it does not contain characters restricted by Telegram's API`, function () {
+        assert.strictEqual(
+            prepareStringForTelegramHTML(telegramHtmlStrings.noChangeExpected),
+            telegramHtmlStrings.noChangeExpected,
         );
     });
 });

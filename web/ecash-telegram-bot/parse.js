@@ -59,6 +59,22 @@ Assumptions
         }
         return { isTokenTx, isGenesisTx, genesisInfo };
     },
+    prepareStringForTelegramHTML: function (string) {
+        /*
+        See "HTML Style" at https://core.telegram.org/bots/api
+
+        Replace < with &lt;
+        Replace > with &gt;
+        Replace & with &amp;
+      */
+        let tgReadyString = string;
+        // need to replace the '&' characters first
+        tgReadyString = tgReadyString.replace(/&/g, '&amp;');
+        tgReadyString = tgReadyString.replace(/</g, '&lt;');
+        tgReadyString = tgReadyString.replace(/>/g, '&gt;');
+
+        return tgReadyString;
+    },
     getBlockTgMessage: function (parsedBlock) {
         const { hash, height, miner, numTxs, parsedTxs } = parsedBlock;
 
@@ -94,11 +110,19 @@ Assumptions
                         `\n` +
                         `${genesisInfoArray
                             .map(genesisInfo => {
-                                const {
+                                let {
                                     tokenTicker,
                                     tokenName,
                                     tokenDocumentUrl,
                                 } = genesisInfo;
+                                tokenName =
+                                    module.exports.prepareStringForTelegramHTML(
+                                        tokenName,
+                                    );
+                                tokenTicker =
+                                    module.exports.prepareStringForTelegramHTML(
+                                        tokenTicker,
+                                    );
                                 return `${tokenName} (${tokenTicker}) <a href="${tokenDocumentUrl}">[doc]</a>`;
                             })
                             .join('\n')}`

@@ -46,6 +46,12 @@ async function generateMocks() {
                 '00000000000000000a528f0c4e4b4f214a72d9b34d84003df6150d5a4bcd0d32',
             blockname: 'cashtabMsg',
         },
+        // block with Cashtab msgs and genesis tx feature html escape chars
+        {
+            blockhash:
+                '0000000000000000000067d535eccdfaf5397541e948d87aa22e659d8417e497',
+            blockname: 'htmlEscapeTest',
+        },
     ];
 
     // Iterate over blockhashArray making an array of promises for getting block details
