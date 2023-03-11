@@ -89,41 +89,6 @@ async function generateMocks() {
         JSON.stringify(blocksMock, null, 2),
         'utf-8',
     );
-
-    /*
-
-    // Parse the blocks for results
-    const parsedBlocksMock = {};
-    const blockNames = Object.keys(blocksMock);
-    for (let i = 0; i < blockNames.length; i += 1) {
-        const thisBlockName = blockNames[i];
-        const parsedBlockName = `${thisBlockName}_parsed`;
-        parsedBlocksMock[parsedBlockName] = parseBlock(
-            blocksMock[thisBlockName],
-        );
-    }
-    fs.writeFileSync(
-        `${mocksDir}/parsedBlocks.json`,
-        JSON.stringify(parsedBlocksMock, null, 2),
-        'utf-8',
-    );
-
-    // Generate markdown Telegram messages
-    const markdownTgMsgsMock = {};
-    const parsedBlockNames = Object.keys(parsedBlocksMock);
-    for (let i = 0; i < parsedBlockNames.length; i += 1) {
-        const thisParsedBlockName = parsedBlockNames[i];
-        const parsedBlockName = `${thisBlockName}_parsed`;
-        parsedBlocksMock[parsedBlockName] = parseBlock(
-            blocksMock[thisBlockName],
-        );
-    }
-    fs.writeFileSync(
-        `${mocksDir}/parsedBlocks.json`,
-        JSON.stringify(parsedBlocksMock, null, 2),
-        'utf-8',
-    );
-    */
 }
 
 generateMocks();
