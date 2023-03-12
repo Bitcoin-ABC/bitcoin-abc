@@ -217,16 +217,16 @@ Assumptions
                 config.blockExplorer
             }/block/${hash}">${height}</a> | ${numTxs} tx${
                 numTxs > 1 ? `s` : ''
-            } | ${miner}\n` +
-            `\n` +
+            } | ${miner}` +
             (tokenTxCount > 0
-                ? `${tokenTxCount} eToken tx${tokenTxCount > 1 ? `s` : ''}\n` +
+                ? `\n\n` +
+                  `${tokenTxCount} eToken tx${tokenTxCount > 1 ? `s` : ''}` +
                   (genesisTxCount > 0
-                      ? `\n` +
+                      ? `\n\n` +
                         `This block created ${genesisTxCount} new eToken${
                             tokenTxCount > 1 ? `s` : ''
-                        }:\n` +
-                        `\n` +
+                        }:` +
+                        `\n\n` +
                         `${genesisInfoArray
                             .map(genesisInfo => {
                                 let {
@@ -249,13 +249,13 @@ Assumptions
                       : '')
                 : '') +
             (opReturnTxCount > 0
-                ? `\n` +
+                ? `\n\n` +
                   `This block contained ${
                       opReturnTxCount > 1
                           ? `OP_RETURN msgs`
                           : `an OP_RETURN msg`
-                  }:\n` +
-                  `\n` +
+                  }:` +
+                  `\n\n` +
                   `${opReturnInfoArray
                       .map(tgOpReturnInfo => {
                           let { app, msg, txid } = tgOpReturnInfo;
