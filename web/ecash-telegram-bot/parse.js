@@ -77,6 +77,7 @@ Assumptions
     },
     parseOpReturn: function (outputScript) {
         // Initialize required vars
+        let app;
         let msg;
 
         // Determine if this is an OP_RETURN field
@@ -86,8 +87,44 @@ Assumptions
             return false;
         }
 
-        msg = module.exports.hexOpReturnToUtf8(outputScript.slice(2));
-        return { msg };
+        // Parse for app prefix
+        // See https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/web/standards/op_return-prefix-guideline.md
+        const hasAppPrefix =
+            outputScript.slice(2, 4) ===
+            config.opReturn.opReturnAppPrefixLength;
+
+        if (hasAppPrefix) {
+            appPrefix = outputScript.slice(4, 12);
+            if (Object.keys(config.opReturn.appPrefixes).includes(appPrefix)) {
+                app = config.opReturn.appPrefixes[appPrefix];
+            } else {
+                app = 'unknown app';
+            }
+            switch (app) {
+                case 'Cashtab Msg':
+                    // For a Cashtab msg, the rest of the string will be parsed as an OP_RETURN msg
+                    msg = module.exports.hexOpReturnToUtf8(
+                        outputScript.slice(12),
+                    );
+                    break;
+                case 'unknown':
+                    // Parse the whole string less the 6a prefix, so we can see the unknown app prefix
+                    msg = module.exports.hexOpReturnToUtf8(
+                        outputScript.slice(2),
+                    );
+                    break;
+                default:
+                    // Parse the whole string less the 6a prefix, so we can see the unknown app prefix
+                    msg = module.exports.hexOpReturnToUtf8(
+                        outputScript.slice(2),
+                    );
+            }
+        } else {
+            app = 'no app';
+            msg = module.exports.hexOpReturnToUtf8(outputScript.slice(2));
+        }
+
+        return { app, msg };
     },
     hexOpReturnToUtf8: function (hexStr) {
         /*
@@ -221,10 +258,10 @@ Assumptions
                   `\n` +
                   `${opReturnInfoArray
                       .map(tgOpReturnInfo => {
-                          let { msg, txid } = tgOpReturnInfo;
+                          let { app, msg, txid } = tgOpReturnInfo;
                           msg =
                               module.exports.prepareStringForTelegramHTML(msg);
-                          return `<a href="${config.blockExplorer}/tx/${txid}">tx:</a> ${msg}`;
+                          return `<a href="${config.blockExplorer}/tx/${txid}">${app}:</a> ${msg}`;
                       })
                       .join('\n')}`
                 : '');

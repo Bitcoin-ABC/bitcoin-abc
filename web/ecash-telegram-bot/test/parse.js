@@ -6,6 +6,7 @@ const {
     cashtabMsg,
     multipleGenesis,
     htmlEscapeTest,
+    cashtabMsgMulti,
 } = require('./mocks/blocks');
 const { telegramHtmlStrings } = require('./mocks/templates');
 
@@ -71,6 +72,18 @@ describe('ecash-telegram-bot parse.js chronik parsing functions', function () {
         assert.deepEqual(
             parseBlock(htmlEscapeTest.chronikData),
             htmlEscapeTest.parsed,
+        );
+    });
+    it('Parses a block containing multiple Cashtab msg txs', function () {
+        assert.deepEqual(
+            parseBlock(cashtabMsgMulti.chronikData),
+            cashtabMsgMulti.parsed,
+        );
+    });
+    it('Creates a tg message for a block containing multiple Cashtab msg txs', function () {
+        assert.deepEqual(
+            getBlockTgMessage(cashtabMsgMulti.parsed),
+            cashtabMsgMulti.tgHtml,
         );
     });
     it('Creates a tg message for a block containing genesis txs that require html escape processing', function () {

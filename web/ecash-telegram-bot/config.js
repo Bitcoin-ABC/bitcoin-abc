@@ -20,5 +20,8 @@ module.exports = {
         opReturnPrefix: '6a',
         opReturnAppPrefixLength: '04',
         opPushDataOne: '4c',
+        appPrefixes: {
+            '00746162': 'Cashtab Msg',
+        },
     },
 };
