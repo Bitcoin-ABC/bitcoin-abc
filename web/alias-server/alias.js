@@ -4,6 +4,7 @@ const {
     outputScriptToAddress,
     generateReservedAliasTxArray,
     getAliasFromHex,
+    isValidAliasString,
 } = require('./utils');
 
 module.exports = {
@@ -63,6 +64,13 @@ module.exports = {
                 // Parse for the alias
                 const aliasHex = outputScript.slice(14, outputScript.length);
                 alias = getAliasFromHex(aliasHex);
+
+                // Check for valid character set
+                // only lower case roman alphabet a-z
+                // numbers 0 through 9
+                if (!isValidAliasString(alias)) {
+                    return false;
+                }
 
                 const validAliasLength =
                     aliasLength <= aliasConstants.maxLength &&

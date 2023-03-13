@@ -6,6 +6,7 @@ const {
     getAliasFromHex,
     getHexFromAlias,
     getAliasBytecount,
+    isValidAliasString,
 } = require('../utils');
 const reservedAliasTxs = require('./mocks/reservedAliasTxs');
 const {
@@ -13,6 +14,8 @@ const {
     validAliasTxs,
     validAliasTxsToBeAddedToDb,
     aliasHexConversions,
+    validAliasStrings,
+    invalidAliasStrings,
 } = require('./mocks/utilsMocks');
 
 describe('alias-server utils.js', function () {
@@ -73,6 +76,18 @@ describe('alias-server utils.js', function () {
             assert.deepEqual(getHexFromAlias(alias), aliasHex);
             assert.deepEqual(getAliasFromHex(aliasHex), alias);
             assert.deepEqual(getAliasBytecount(alias), aliasByteCount);
+        }
+    });
+    it('Recognizes lower case alphanumeric strings as valid alias strings', function () {
+        for (let i = 0; i < validAliasStrings.length; i += 1) {
+            const validAliasString = validAliasStrings[i];
+            assert.deepEqual(isValidAliasString(validAliasString), true);
+        }
+    });
+    it('Recognizes strings with characters other than lower case a-z or numbers 0-9 as invalid alias strings', function () {
+        for (let i = 0; i < invalidAliasStrings.length; i += 1) {
+            const invalidAliasString = invalidAliasStrings[i];
+            assert.deepEqual(isValidAliasString(invalidAliasString), false);
         }
     });
 });

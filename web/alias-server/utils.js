@@ -96,4 +96,10 @@ module.exports = {
         const aliasByteCount = aliasHex.length / 2;
         return aliasByteCount;
     },
+    isValidAliasString: function (alias) {
+        /*
+        Initial launch will support only lower case roman alphabet and numbers 0 through 9
+        */
+        return /^[a-z0-9]+$/.test(alias);
+    },
 };
