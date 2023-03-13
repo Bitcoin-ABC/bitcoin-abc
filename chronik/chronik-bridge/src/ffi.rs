@@ -73,6 +73,10 @@ mod ffi_inner {
         #[namespace = ""]
         type CBlock;
 
+        /// ::Config from config.h
+        #[namespace = ""]
+        type Config;
+
         /// Bridge to bitcoind to access the node
         type ChronikBridge;
 
@@ -94,7 +98,10 @@ mod ffi_inner {
         );
 
         /// Make the bridge given the NodeContext
-        fn make_bridge(node: &NodeContext) -> UniquePtr<ChronikBridge>;
+        fn make_bridge(
+            config: &Config,
+            node: &NodeContext,
+        ) -> UniquePtr<ChronikBridge>;
 
         /// Return the tip of the chain of the node.
         /// Returns hash=000...000, height=-1 if there's no block on the chain.
@@ -106,6 +113,12 @@ mod ffi_inner {
             self: &ChronikBridge,
             hash: [u8; 32],
         ) -> Result<&CBlockIndex>;
+
+        /// Load the CBlock data of this CBlockIndex from the disk
+        fn load_block(
+            self: &ChronikBridge,
+            block_index: &CBlockIndex,
+        ) -> Result<UniquePtr<CBlock>>;
 
         /// Find at which block the given block_index forks off from the node.
         fn find_fork(

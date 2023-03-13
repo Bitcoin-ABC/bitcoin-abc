@@ -10,6 +10,11 @@
 
 class CBlock;
 class CBlockIndex;
+class Config;
+
+namespace Consensus {
+struct Params;
+} // namespace Consensus
 
 namespace node {
 struct NodeContext;
@@ -39,19 +44,25 @@ void log_print_chronik(const rust::Str logging_function,
  * Bridge to bitcoind to access the node.
  */
 class ChronikBridge {
+    const Consensus::Params &m_consensus;
     const node::NodeContext &m_node;
 
 public:
-    ChronikBridge(const node::NodeContext &node) : m_node(node) {}
+    ChronikBridge(const Consensus::Params &consensus,
+                  const node::NodeContext &node)
+        : m_consensus(consensus), m_node(node) {}
 
     const CBlockIndex &get_chain_tip() const;
 
     const CBlockIndex &lookup_block_index(std::array<uint8_t, 32> hash) const;
 
+    std::unique_ptr<CBlock> load_block(const CBlockIndex &bindex) const;
+
     const CBlockIndex &find_fork(const CBlockIndex &index) const;
 };
 
-std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node);
+std::unique_ptr<ChronikBridge> make_bridge(const Config &config,
+                                           const node::NodeContext &node);
 
 Block bridge_block(const CBlock &block, const CBlockIndex &bindex);
 

@@ -3,10 +3,13 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <blockindex.h>
+#include <chainparams.h>
 #include <chronik-bridge/src/ffi.rs.h>
 #include <chronik-cpp/chronik_bridge.h>
 #include <chronik-cpp/util/hash.h>
+#include <config.h>
 #include <logging.h>
+#include <node/blockstorage.h>
 #include <node/context.h>
 #include <node/ui_interface.h>
 #include <shutdown.h>
@@ -49,6 +52,15 @@ ChronikBridge::lookup_block_index(std::array<uint8_t, 32> hash) const {
     return *pindex;
 }
 
+std::unique_ptr<CBlock>
+ChronikBridge::load_block(const CBlockIndex &bindex) const {
+    CBlock block;
+    if (!node::ReadBlockFromDisk(block, &bindex, m_consensus)) {
+        throw std::runtime_error("Reading block data failed");
+    }
+    return std::make_unique<CBlock>(std::move(block));
+}
+
 const CBlockIndex &ChronikBridge::find_fork(const CBlockIndex &index) const {
     const CBlockIndex *fork = WITH_LOCK(
         cs_main,
@@ -59,8 +71,10 @@ const CBlockIndex &ChronikBridge::find_fork(const CBlockIndex &index) const {
     return *fork;
 }
 
-std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node) {
-    return std::make_unique<ChronikBridge>(node);
+std::unique_ptr<ChronikBridge> make_bridge(const Config &config,
+                                           const node::NodeContext &node) {
+    return std::make_unique<ChronikBridge>(
+        config.GetChainParams().GetConsensus(), node);
 }
 
 chronik_bridge::Block bridge_block(const CBlock &block,
