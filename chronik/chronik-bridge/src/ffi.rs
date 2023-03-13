@@ -100,6 +100,13 @@ mod ffi_inner {
         /// Returns hash=000...000, height=-1 if there's no block on the chain.
         fn get_chain_tip(self: &ChronikBridge) -> BlockInfo;
 
+        /// Lookup the block index with the given hash, or throw an error
+        /// if it couldn't be found.
+        fn lookup_block_index(
+            self: &ChronikBridge,
+            hash: [u8; 32],
+        ) -> Result<&CBlockIndex>;
+
         /// Bridge bitcoind's classes to the shared struct [`Block`].
         fn bridge_block(block: &CBlock, block_index: &CBlockIndex) -> Block;
 

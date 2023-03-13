@@ -52,4 +52,25 @@ BOOST_FIXTURE_TEST_CASE(test_get_chain_tip_100, TestChain100Setup) {
     BOOST_CHECK(block == expected_block);
 }
 
+BOOST_FIXTURE_TEST_CASE(test_lookup_block_index, TestChain100Setup) {
+    const chronik_bridge::ChronikBridge bridge(m_node);
+    BlockHash genesis_hash =
+        GetConfig().GetChainParams().GenesisBlock().GetHash();
+    const CBlockIndex &bindex_genesis =
+        bridge.lookup_block_index(chronik::util::HashToArray(genesis_hash));
+    BOOST_CHECK_EQUAL(bindex_genesis.GetBlockHash(), genesis_hash);
+
+    // Generate new block (at height 101)
+    CBlock tip_block = CreateAndProcessBlock(
+        {}, CScript() << std::vector<uint8_t>(33) << OP_CHECKSIG);
+    // Query block
+    const CBlockIndex &bindex_tip = bridge.lookup_block_index(
+        chronik::util::HashToArray(tip_block.GetHash()));
+    BOOST_CHECK_EQUAL(bindex_tip.GetBlockHash(), tip_block.GetHash());
+
+    // Block 000...000 doesn't exist
+    BOOST_CHECK_THROW(bridge.lookup_block_index({}),
+                      chronik_bridge::block_index_not_found);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

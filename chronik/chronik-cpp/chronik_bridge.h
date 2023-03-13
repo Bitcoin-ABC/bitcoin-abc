@@ -21,6 +21,13 @@ namespace chronik_bridge {
 struct BlockInfo;
 struct Block;
 
+class block_index_not_found : public std::exception {
+public:
+    const char *what() const noexcept override {
+        return "CBlockIndex not found";
+    }
+};
+
 void log_print(const rust::Str logging_function, const rust::Str source_file,
                const uint32_t source_line, const rust::Str msg);
 
@@ -38,6 +45,8 @@ public:
     ChronikBridge(const node::NodeContext &node) : m_node(node) {}
 
     BlockInfo get_chain_tip() const;
+
+    const CBlockIndex &lookup_block_index(std::array<uint8_t, 32> hash) const;
 };
 
 std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node);
