@@ -8,6 +8,9 @@
 #include <memory>
 #include <rust/cxx.h>
 
+class CBlock;
+class CBlockIndex;
+
 namespace node {
 struct NodeContext;
 } // namespace node
@@ -16,6 +19,7 @@ class uint256;
 namespace chronik_bridge {
 
 struct BlockInfo;
+struct Block;
 
 void log_print(const rust::Str logging_function, const rust::Str source_file,
                const uint32_t source_line, const rust::Str msg);
@@ -37,6 +41,8 @@ public:
 };
 
 std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node);
+
+Block bridge_block(const CBlock &block, const CBlockIndex &bindex);
 
 bool init_error(const rust::Str msg);
 

@@ -10,19 +10,6 @@
 
 namespace chronik {
 
-chronik_bridge::Block BridgeBlock(const CBlock &block,
-                                  const CBlockIndex *pindex) {
-    const CBlockHeader header = pindex->GetBlockHeader();
-    return {.hash = chronik::util::HashToArray(header.GetHash()),
-            .prev_hash = chronik::util::HashToArray(header.hashPrevBlock),
-            .n_bits = header.nBits,
-            .timestamp = header.GetBlockTime(),
-            .height = pindex->nHeight,
-            .file_num = uint32_t(pindex->nFile),
-            .data_pos = pindex->nDataPos,
-            .undo_pos = pindex->nUndoPos};
-}
-
 /**
  * CValidationInterface connecting bitcoind events to Chronik
  */
@@ -51,12 +38,15 @@ private:
 
     void BlockConnected(const std::shared_ptr<const CBlock> &block,
                         const CBlockIndex *pindex) override {
-        m_chronik->handle_block_connected(BridgeBlock(*block, pindex));
+        // We can safely pass T& here as Rust guarantees us that no references
+        // can be kept after the below function call completed.
+        m_chronik->handle_block_connected(*block, *pindex);
     }
 
     void BlockDisconnected(const std::shared_ptr<const CBlock> &block,
                            const CBlockIndex *pindex) override {
-        m_chronik->handle_block_disconnected(BridgeBlock(*block, pindex));
+        // See BlockConnected for safety
+        m_chronik->handle_block_disconnected(*block, *pindex);
     }
 };
 

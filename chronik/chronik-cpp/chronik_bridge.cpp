@@ -47,6 +47,18 @@ std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node) {
     return std::make_unique<ChronikBridge>(node);
 }
 
+chronik_bridge::Block bridge_block(const CBlock &block,
+                                   const CBlockIndex &bindex) {
+    return {.hash = chronik::util::HashToArray(block.GetHash()),
+            .prev_hash = chronik::util::HashToArray(block.hashPrevBlock),
+            .n_bits = block.nBits,
+            .timestamp = block.GetBlockTime(),
+            .height = bindex.nHeight,
+            .file_num = uint32_t(bindex.nFile),
+            .data_pos = bindex.nDataPos,
+            .undo_pos = bindex.nUndoPos};
+}
+
 bool init_error(const rust::Str msg) {
     return InitError(Untranslated(std::string(msg)));
 }

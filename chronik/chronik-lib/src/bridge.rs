@@ -11,7 +11,7 @@ use std::{
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::block::BlockHash;
-use chronik_bridge::ffi::init_error;
+use chronik_bridge::ffi::{bridge_block, init_error};
 use chronik_db::io::DbBlock;
 use chronik_http::server::{ChronikServer, ChronikServerParams};
 use chronik_indexer::indexer::{
@@ -113,27 +113,40 @@ impl Chronik {
     }
 
     /// Block connected to the longest chain
-    pub fn handle_block_connected(&self, block: ffi::Block) {
+    pub fn handle_block_connected(
+        &self,
+        block: &ffi::CBlock,
+        bindex: &ffi::CBlockIndex,
+    ) {
         let mut indexer = self.indexer.blocking_write();
         ok_or_abort_node(
             "handle_block_connected",
-            indexer.handle_block_connected(make_chronik_block(block)),
+            indexer.handle_block_connected(make_chronik_block(block, bindex)),
         );
         log_chronik!("Chronik: block connected\n");
     }
 
     /// Block disconnected from the longest chain
-    pub fn handle_block_disconnected(&self, block: ffi::Block) {
+    pub fn handle_block_disconnected(
+        &self,
+        block: &ffi::CBlock,
+        bindex: &ffi::CBlockIndex,
+    ) {
         let mut indexer = self.indexer.blocking_write();
         ok_or_abort_node(
             "handle_block_disconnected",
-            indexer.handle_block_disconnected(make_chronik_block(block)),
+            indexer
+                .handle_block_disconnected(make_chronik_block(block, bindex)),
         );
         log_chronik!("Chronik: block disconnected\n");
     }
 }
 
-fn make_chronik_block(block: ffi::Block) -> ChronikBlock {
+fn make_chronik_block(
+    block: &ffi::CBlock,
+    bindex: &ffi::CBlockIndex,
+) -> ChronikBlock {
+    let block = bridge_block(block, bindex);
     let db_block = DbBlock {
         hash: BlockHash::from(block.hash),
         prev_hash: BlockHash::from(block.prev_hash),
