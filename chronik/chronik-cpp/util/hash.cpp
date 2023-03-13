@@ -14,4 +14,10 @@ std::array<uint8_t, 32> HashToArray(const uint256 &hash) {
     return array;
 }
 
+uint256 ArrayToHash(const std::array<uint8_t, 32> &array) {
+    uint256 hash;
+    std::copy_n(array.begin(), 32, hash.begin());
+    return hash;
+}
+
 } // namespace chronik::util

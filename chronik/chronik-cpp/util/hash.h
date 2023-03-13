@@ -13,6 +13,7 @@ class uint256;
 namespace chronik::util {
 
 std::array<uint8_t, 32> HashToArray(const uint256 &hash);
+uint256 ArrayToHash(const std::array<uint8_t, 32> &hash);
 
 } // namespace chronik::util
 
