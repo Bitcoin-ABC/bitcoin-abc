@@ -102,4 +102,15 @@ module.exports = {
         */
         return /^[a-z0-9]+$/.test(alias);
     },
+    removeUnconfirmedTxsFromTxHistory: function (txHistory) {
+        // Remove unconfirmed txs from an array of chronik tx objects
+        const confirmedTxHistory = [];
+        for (let i = 0; i < txHistory.length; i += 1) {
+            const thisTx = txHistory[i];
+            if (typeof thisTx.block !== 'undefined') {
+                confirmedTxHistory.push(thisTx);
+            }
+        }
+        return confirmedTxHistory;
+    },
 };

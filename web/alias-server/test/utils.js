@@ -7,8 +7,10 @@ const {
     getHexFromAlias,
     getAliasBytecount,
     isValidAliasString,
+    removeUnconfirmedTxsFromTxHistory,
 } = require('../utils');
 const reservedAliasTxs = require('./mocks/reservedAliasTxs');
+const unconfirmedAliasTxs = require('./mocks/unconfirmedAliasTxs');
 const {
     validAliasesInDb,
     validAliasTxs,
@@ -17,6 +19,7 @@ const {
     validAliasStrings,
     invalidAliasStrings,
 } = require('./mocks/utilsMocks');
+const { testAddressAliases } = require('./mocks/aliasMocks');
 
 describe('alias-server utils.js', function () {
     it('Converts a P2PKH output script to a valid P2PKH ecash: address', function () {
@@ -89,5 +92,13 @@ describe('alias-server utils.js', function () {
             const invalidAliasString = invalidAliasStrings[i];
             assert.deepEqual(isValidAliasString(invalidAliasString), false);
         }
+    });
+    it('removeUnconfirmedTxsFromTxHistory removes unconfirmed txs from an array of chronik tx history', function () {
+        assert.deepEqual(
+            removeUnconfirmedTxsFromTxHistory(
+                unconfirmedAliasTxs.concat(testAddressAliases.txHistory),
+            ),
+            testAddressAliases.txHistory,
+        );
     });
 });
