@@ -12,6 +12,7 @@ const {
     getHexFromAlias,
     getAliasBytecount,
 } = require('../utils');
+const { initializeDb } = require('../db');
 
 async function generateMocks() {
     // Directory for mocks. Relative to /scripts, ../test/mocks/generated/
@@ -21,6 +22,35 @@ async function generateMocks() {
     if (!fs.existsSync(mocksDir)) {
         fs.mkdirSync(mocksDir);
     }
+
+    // confirmed txs stored in the database
+    // Get confirmedTxHistory already in db
+    const db = await initializeDb();
+    let confirmedTxHistoryInDb;
+    try {
+        confirmedTxHistoryInDb = await db
+            .collection(config.database.collections.confirmedTxHistory)
+            .find()
+            .sort({ blockheight: 1 })
+            .project({ _id: 0 })
+            .toArray();
+        console.log(
+            `Fetched ${confirmedTxHistoryInDb.length} confirmed transactions at alias registration address from database`,
+        );
+    } catch (error) {
+        console.log(`Error in determining confirmedTxHistoryInDb`, error);
+        console.log(`Assuming no cached tx history`);
+        confirmedTxHistoryInDb = [];
+        // Exit script in error condition
+        process.exit(1);
+    }
+
+    fs.writeFileSync(
+        `${mocksDir}/confirmedTxHistoryInDb.json`,
+        JSON.stringify(confirmedTxHistoryInDb, null, 2),
+        'utf-8',
+    );
+
     // chronik tx history of alias registration address
     const aliasTxHistory = await getAllTxHistory(
         config.aliasConstants.registrationHash160,
@@ -97,6 +127,8 @@ async function generateMocks() {
         JSON.stringify(aliasHexConversions, null, 2),
         'utf-8',
     );
+    // Exit script in success condition
+    process.exit(0);
 }
 
 generateMocks();

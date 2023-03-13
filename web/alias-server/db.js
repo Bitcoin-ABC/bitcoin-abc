@@ -18,6 +18,15 @@ module.exports = {
                 unique: true,
             },
         );
+        // Enforce unique txids, i.e. you cannot have the same txid in the db more than once
+        db.collection(
+            config.database.collections.confirmedTxHistory,
+        ).createIndex(
+            { txid: 1 },
+            {
+                unique: true,
+            },
+        );
         log(`Configured connection to database ${config.database.name}`);
         return db;
     },

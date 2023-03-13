@@ -69,6 +69,25 @@ module.exports = {
             return [];
         }
     },
+    getConfirmedTxsToBeAddedToDb: function (confirmedTxsInDb, confirmedTxs) {
+        /*
+        - See if any confirmed tx exists in confirmedTxs and not in confirmedTxsInDb
+        - Return confirmedTxsToBeAddedToDb, an array of these txs
+        - Note that confirmedTxsInDb and confirmedTxs are sorted by blockheight, highest to lowest;
+          hence you want the first ${confirmedTxsToBeAddedToDbCount} entries of confirmedTxs
+        */
+        const confirmedTxsToBeAddedToDbCount =
+            confirmedTxs.length - confirmedTxsInDb.length;
+        if (confirmedTxsToBeAddedToDbCount > 0) {
+            const confirmedTxsToBeAddedToDb = confirmedTxs.slice(
+                0,
+                confirmedTxsToBeAddedToDbCount,
+            );
+            return confirmedTxsToBeAddedToDb;
+        } else {
+            return [];
+        }
+    },
     generateReservedAliasTxArray: function () {
         const reservedAliasTxs = [];
         for (

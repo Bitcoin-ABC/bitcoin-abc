@@ -2,7 +2,12 @@ const config = require('./config');
 const log = require('./log');
 const { getAllAliasTxs, getValidAliasRegistrations } = require('./alias');
 const { getAllTxHistory } = require('./chronik');
-const { getValidAliasTxsToBeAddedToDb, getAliasBytecount } = require('./utils');
+const {
+    getValidAliasTxsToBeAddedToDb,
+    getConfirmedTxsToBeAddedToDb,
+    getAliasBytecount,
+    removeUnconfirmedTxsFromTxHistory,
+} = require('./utils');
 const { returnTelegramBotSendMessagePromise } = require('./telegram');
 const { chronik } = require('./chronik');
 const axios = require('axios');
@@ -43,9 +48,80 @@ module.exports = {
                 typeof wsMsg.blockHash !== 'undefined'
                     ? log(`New block found: ${wsMsg.blockHash}`)
                     : log(`Checking for new aliases on startup`);
+
+                // Get confirmedTxHistory already in db
+                let confirmedTxHistoryInDb;
+                try {
+                    confirmedTxHistoryInDb = await db
+                        .collection(
+                            config.database.collections.confirmedTxHistory,
+                        )
+                        .find()
+                        .sort({ blockheight: 1 })
+                        .project({ _id: 0 })
+                        .toArray();
+                    log(
+                        `Fetched ${confirmedTxHistoryInDb.length} confirmed transactions at alias registration address from database`,
+                    );
+                } catch (error) {
+                    log(`Error in determining confirmedTxHistoryInDb`, error);
+
+                    log(`Assuming no cached tx history`);
+                    confirmedTxHistoryInDb = [];
+                }
+
                 const aliasTxHistory = await getAllTxHistory(
                     config.aliasConstants.registrationHash160,
                 );
+
+                // Update your database cache of confirmed txs at the alias registration address
+
+                // First, remove any unconfired txs from your tx history
+                const confirmedAliasTxHistory =
+                    removeUnconfirmedTxsFromTxHistory(aliasTxHistory);
+
+                // Compare this result with your previously cached confirmed tx history
+                const confirmedTxsToBeAddedToDb = getConfirmedTxsToBeAddedToDb(
+                    confirmedTxHistoryInDb,
+                    confirmedAliasTxHistory,
+                );
+
+                if (confirmedTxsToBeAddedToDb.length > 0) {
+                    log(
+                        `Adding ${confirmedTxsToBeAddedToDb.length} confirmed txs to the db`,
+                    );
+                    // add them
+                    // Update with real data
+                    try {
+                        const confirmedTxHistoryCollectionInsertResult =
+                            await db
+                                .collection(
+                                    config.database.collections
+                                        .confirmedTxHistory,
+                                )
+                                .insertMany(confirmedTxsToBeAddedToDb);
+                        log(
+                            `Inserted ${confirmedTxHistoryCollectionInsertResult.insertedCount} confirmed txs into ${config.database.collections.confirmedTxHistory}`,
+                        );
+                    } catch (err) {
+                        log(
+                            `A MongoBulkWriteException occurred adding confirmedTxsToBeAddedToDb to the db, but there are successfully processed documents.`,
+                        );
+                        /*
+                        let ids = err.result.result.insertedIds;
+                        for (let id of Object.values(ids)) {
+                            log(`Processed a document with id ${id._id}`);
+                        }
+                        */
+                        log(
+                            `Number of documents inserted: ${err.result.result.nInserted}`,
+                        );
+                        log(`Error:`, err);
+                    }
+                } else {
+                    log(`No new confirmed alias txs since last block`);
+                }
+
                 const allAliasTxs = getAllAliasTxs(
                     aliasTxHistory,
                     config.aliasConstants,
