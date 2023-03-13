@@ -3,13 +3,13 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-csuQGl jAqaxZ"
+    className="sc-Rmtcm bkNomx"
   >
     <div
-      className="sc-kjoXOD cVIweh"
+      className="sc-cHGsZl kXimCH"
     >
       <h4
-        className="sc-cHGsZl kcvMRJ"
+        className="sc-TOsTZ bsocru"
       >
         MigrationTestAlpha
       </h4>
@@ -51,7 +51,7 @@ Array [
       </div>
     </div>
     <div
-      className="sc-hzDkRC heYuAG"
+      className="sc-jhAzac kkbIYr"
     >
       You currently have 0 
       XEC
@@ -60,7 +60,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-jlyJG dWrfoZ"
+    className="sc-gipzik cfOthW"
   >
     <div
       className="ant-row"
@@ -83,16 +83,16 @@ Array [
           }
         >
           <div
-            className="sc-frDJqD dKvhEI"
+            className="sc-kvZOFW jDKvV"
           >
              
             <label
-              className="sc-gipzik enMVxg"
+              className="sc-csuQGl eweHsc"
             >
               Send to
             </label>
             <div
-              className="sc-TOsTZ eHYtFq"
+              className="sc-kgAjT cwsgRe"
             >
               Multiple Recipients:  
               <button
@@ -119,14 +119,14 @@ Array [
             </div>
           </div>
           <div
-            className="sc-jbKcbu bwxSgp"
+            className="sc-dNLxif eAYzhf"
             open={false}
           >
             <div
-              className="sc-ksYbfQ iImAXS"
+              className="sc-hmzhuo dQBsGF"
             >
               <div
-                className="sc-kvZOFW eiPhbT"
+                className="sc-hqyNC keRCOE"
               >
                 <div
                   className="sc-hMqMXs deFyXd"
@@ -241,10 +241,17 @@ Array [
                   </div>
                 </div>
                 <div
-                  className="sc-kgAjT zQaSN"
-                />
+                  className="sc-cJSrbW gGpacZ"
+                >
+                  <a
+                    className="sc-jlyJG leYmrq"
+                    href="https://explorer.e.cash/address/false"
+                    rel="noreferrer"
+                    target="_blank"
+                  />
+                </div>
                 <label
-                  className="sc-gipzik enMVxg"
+                  className="sc-csuQGl eweHsc"
                 >
                   Amount
                 </label>
@@ -422,7 +429,7 @@ Array [
               </div>
             </div>
             <div
-              className="sc-hqyNC keRCOE"
+              className="sc-jbKcbu cWSlbe"
             >
               <div
                 className="sc-hMqMXs deFyXd"
@@ -474,17 +481,17 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
               </div>
             </div>
             <div
-              className="sc-cJSrbW iOoFVk"
+              className="sc-ksYbfQ jqeEFw"
             >
               <h3
-                className="sc-hmzhuo ifROFL"
+                className="sc-frDJqD lhZVxP"
               >
                 0
                  
                 XEC
               </h3>
               <div
-                className="sc-dVhcbM jAxLPx"
+                className="sc-eqIVtm btzope"
               >
                 =
                  
@@ -561,7 +568,7 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
                       className="sc-hSdWYo bIQQAp"
                     >
                       <div
-                        className="sc-dNLxif eXWVHJ"
+                        className="sc-jqCOkK iieVkZ"
                       >
                         <svg
                           className="sc-jzJRlG kLfsyF"
@@ -586,13 +593,13 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-csuQGl jAqaxZ"
+    className="sc-Rmtcm bkNomx"
   >
     <div
-      className="sc-kjoXOD cVIweh"
+      className="sc-cHGsZl kXimCH"
     >
       <h4
-        className="sc-cHGsZl kcvMRJ"
+        className="sc-TOsTZ bsocru"
       >
         MigrationTestAlpha
       </h4>
@@ -634,7 +641,7 @@ Array [
       </div>
     </div>
     <div
-      className="sc-hzDkRC heYuAG"
+      className="sc-jhAzac kkbIYr"
     >
       You currently have 0 
       XEC
@@ -643,7 +650,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-jlyJG dWrfoZ"
+    className="sc-gipzik cfOthW"
   >
     <div
       className="ant-row"
@@ -666,16 +673,16 @@ Array [
           }
         >
           <div
-            className="sc-frDJqD dKvhEI"
+            className="sc-kvZOFW jDKvV"
           >
              
             <label
-              className="sc-gipzik enMVxg"
+              className="sc-csuQGl eweHsc"
             >
               Send to
             </label>
             <div
-              className="sc-TOsTZ eHYtFq"
+              className="sc-kgAjT cwsgRe"
             >
               Multiple Recipients:  
               <button
@@ -702,14 +709,14 @@ Array [
             </div>
           </div>
           <div
-            className="sc-jbKcbu bwxSgp"
+            className="sc-dNLxif eAYzhf"
             open={false}
           >
             <div
-              className="sc-ksYbfQ iImAXS"
+              className="sc-hmzhuo dQBsGF"
             >
               <div
-                className="sc-kvZOFW eiPhbT"
+                className="sc-hqyNC keRCOE"
               >
                 <div
                   className="sc-hMqMXs deFyXd"
@@ -824,10 +831,17 @@ Array [
                   </div>
                 </div>
                 <div
-                  className="sc-kgAjT zQaSN"
-                />
+                  className="sc-cJSrbW gGpacZ"
+                >
+                  <a
+                    className="sc-jlyJG leYmrq"
+                    href="https://explorer.e.cash/address/false"
+                    rel="noreferrer"
+                    target="_blank"
+                  />
+                </div>
                 <label
-                  className="sc-gipzik enMVxg"
+                  className="sc-csuQGl eweHsc"
                 >
                   Amount
                 </label>
@@ -1005,7 +1019,7 @@ Array [
               </div>
             </div>
             <div
-              className="sc-hqyNC keRCOE"
+              className="sc-jbKcbu cWSlbe"
             >
               <div
                 className="sc-hMqMXs deFyXd"
@@ -1057,17 +1071,17 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
               </div>
             </div>
             <div
-              className="sc-cJSrbW iOoFVk"
+              className="sc-ksYbfQ jqeEFw"
             >
               <h3
-                className="sc-hmzhuo ifROFL"
+                className="sc-frDJqD lhZVxP"
               >
                 0
                  
                 XEC
               </h3>
               <div
-                className="sc-dVhcbM jAxLPx"
+                className="sc-eqIVtm btzope"
               >
                 =
                  
@@ -1144,7 +1158,7 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
                       className="sc-hSdWYo bIQQAp"
                     >
                       <div
-                        className="sc-dNLxif eXWVHJ"
+                        className="sc-jqCOkK iieVkZ"
                       >
                         <svg
                           className="sc-jzJRlG kLfsyF"
@@ -1169,13 +1183,13 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-csuQGl jAqaxZ"
+    className="sc-Rmtcm bkNomx"
   >
     <div
-      className="sc-kjoXOD cVIweh"
+      className="sc-cHGsZl kXimCH"
     >
       <h4
-        className="sc-cHGsZl kcvMRJ"
+        className="sc-TOsTZ bsocru"
       >
         MigrationTestAlpha
       </h4>
@@ -1217,10 +1231,10 @@ Array [
       </div>
     </div>
     <div
-      className="sc-bRBYWo iEbkSo"
+      className="sc-hzDkRC kfpqXQ"
     >
       <span
-        className="sc-fAjcbJ laaQkm"
+        className="sc-caSCKo gaZMix"
       >
          
         0.06
@@ -1231,7 +1245,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-jlyJG dWrfoZ"
+    className="sc-gipzik cfOthW"
   >
     <div
       className="ant-row"
@@ -1254,16 +1268,16 @@ Array [
           }
         >
           <div
-            className="sc-frDJqD dKvhEI"
+            className="sc-kvZOFW jDKvV"
           >
              
             <label
-              className="sc-gipzik enMVxg"
+              className="sc-csuQGl eweHsc"
             >
               Send to
             </label>
             <div
-              className="sc-TOsTZ eHYtFq"
+              className="sc-kgAjT cwsgRe"
             >
               Multiple Recipients:  
               <button
@@ -1290,14 +1304,14 @@ Array [
             </div>
           </div>
           <div
-            className="sc-jbKcbu bwxSgp"
+            className="sc-dNLxif eAYzhf"
             open={false}
           >
             <div
-              className="sc-ksYbfQ iImAXS"
+              className="sc-hmzhuo dQBsGF"
             >
               <div
-                className="sc-kvZOFW eiPhbT"
+                className="sc-hqyNC keRCOE"
               >
                 <div
                   className="sc-hMqMXs deFyXd"
@@ -1412,10 +1426,17 @@ Array [
                   </div>
                 </div>
                 <div
-                  className="sc-kgAjT zQaSN"
-                />
+                  className="sc-cJSrbW gGpacZ"
+                >
+                  <a
+                    className="sc-jlyJG leYmrq"
+                    href="https://explorer.e.cash/address/false"
+                    rel="noreferrer"
+                    target="_blank"
+                  />
+                </div>
                 <label
-                  className="sc-gipzik enMVxg"
+                  className="sc-csuQGl eweHsc"
                 >
                   Amount
                 </label>
@@ -1593,7 +1614,7 @@ Array [
               </div>
             </div>
             <div
-              className="sc-hqyNC keRCOE"
+              className="sc-jbKcbu cWSlbe"
             >
               <div
                 className="sc-hMqMXs deFyXd"
@@ -1645,17 +1666,17 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
               </div>
             </div>
             <div
-              className="sc-cJSrbW iOoFVk"
+              className="sc-ksYbfQ jqeEFw"
             >
               <h3
-                className="sc-hmzhuo ifROFL"
+                className="sc-frDJqD lhZVxP"
               >
                 0
                  
                 XEC
               </h3>
               <div
-                className="sc-dVhcbM jAxLPx"
+                className="sc-eqIVtm btzope"
               >
                 =
                  
@@ -1733,7 +1754,7 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
                       className="sc-hSdWYo bIQQAp"
                     >
                       <div
-                        className="sc-dNLxif eXWVHJ"
+                        className="sc-jqCOkK iieVkZ"
                       >
                         <svg
                           className="sc-jzJRlG kLfsyF"
@@ -1758,13 +1779,13 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-csuQGl jAqaxZ"
+    className="sc-Rmtcm bkNomx"
   >
     <div
-      className="sc-kjoXOD cVIweh"
+      className="sc-cHGsZl kXimCH"
     >
       <h4
-        className="sc-cHGsZl kcvMRJ"
+        className="sc-TOsTZ bsocru"
       >
         MigrationTestAlpha
       </h4>
@@ -1806,7 +1827,7 @@ Array [
       </div>
     </div>
     <div
-      className="sc-hzDkRC heYuAG"
+      className="sc-jhAzac kkbIYr"
     >
       You currently have 0 
       XEC
@@ -1815,7 +1836,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-jlyJG dWrfoZ"
+    className="sc-gipzik cfOthW"
   >
     <div
       className="ant-row"
@@ -1838,16 +1859,16 @@ Array [
           }
         >
           <div
-            className="sc-frDJqD dKvhEI"
+            className="sc-kvZOFW jDKvV"
           >
              
             <label
-              className="sc-gipzik enMVxg"
+              className="sc-csuQGl eweHsc"
             >
               Send to
             </label>
             <div
-              className="sc-TOsTZ eHYtFq"
+              className="sc-kgAjT cwsgRe"
             >
               Multiple Recipients:  
               <button
@@ -1874,14 +1895,14 @@ Array [
             </div>
           </div>
           <div
-            className="sc-jbKcbu bwxSgp"
+            className="sc-dNLxif eAYzhf"
             open={false}
           >
             <div
-              className="sc-ksYbfQ iImAXS"
+              className="sc-hmzhuo dQBsGF"
             >
               <div
-                className="sc-kvZOFW eiPhbT"
+                className="sc-hqyNC keRCOE"
               >
                 <div
                   className="sc-hMqMXs deFyXd"
@@ -1996,10 +2017,17 @@ Array [
                   </div>
                 </div>
                 <div
-                  className="sc-kgAjT zQaSN"
-                />
+                  className="sc-cJSrbW gGpacZ"
+                >
+                  <a
+                    className="sc-jlyJG leYmrq"
+                    href="https://explorer.e.cash/address/false"
+                    rel="noreferrer"
+                    target="_blank"
+                  />
+                </div>
                 <label
-                  className="sc-gipzik enMVxg"
+                  className="sc-csuQGl eweHsc"
                 >
                   Amount
                 </label>
@@ -2177,7 +2205,7 @@ Array [
               </div>
             </div>
             <div
-              className="sc-hqyNC keRCOE"
+              className="sc-jbKcbu cWSlbe"
             >
               <div
                 className="sc-hMqMXs deFyXd"
@@ -2229,17 +2257,17 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
               </div>
             </div>
             <div
-              className="sc-cJSrbW iOoFVk"
+              className="sc-ksYbfQ jqeEFw"
             >
               <h3
-                className="sc-hmzhuo ifROFL"
+                className="sc-frDJqD lhZVxP"
               >
                 0
                  
                 XEC
               </h3>
               <div
-                className="sc-dVhcbM jAxLPx"
+                className="sc-eqIVtm btzope"
               >
                 =
                  
@@ -2316,7 +2344,7 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
                       className="sc-hSdWYo bIQQAp"
                     >
                       <div
-                        className="sc-dNLxif eXWVHJ"
+                        className="sc-jqCOkK iieVkZ"
                       >
                         <svg
                           className="sc-jzJRlG kLfsyF"
@@ -2341,10 +2369,10 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
 exports[`Without wallet defined 1`] = `
 Array [
   <div
-    className="sc-csuQGl jAqaxZ"
+    className="sc-Rmtcm bkNomx"
   >
     <div
-      className="sc-kjoXOD cVIweh"
+      className="sc-cHGsZl kXimCH"
     >
       <a
         href="/configure"
@@ -2384,7 +2412,7 @@ Array [
       </div>
     </div>
     <div
-      className="sc-hzDkRC heYuAG"
+      className="sc-jhAzac kkbIYr"
     >
       You currently have 0 
       XEC
@@ -2393,7 +2421,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-jlyJG dWrfoZ"
+    className="sc-gipzik cfOthW"
   >
     <div
       className="ant-row"
@@ -2416,16 +2444,16 @@ Array [
           }
         >
           <div
-            className="sc-frDJqD dKvhEI"
+            className="sc-kvZOFW jDKvV"
           >
              
             <label
-              className="sc-gipzik enMVxg"
+              className="sc-csuQGl eweHsc"
             >
               Send to
             </label>
             <div
-              className="sc-TOsTZ eHYtFq"
+              className="sc-kgAjT cwsgRe"
             >
               Multiple Recipients:  
               <button
@@ -2452,14 +2480,14 @@ Array [
             </div>
           </div>
           <div
-            className="sc-jbKcbu bwxSgp"
+            className="sc-dNLxif eAYzhf"
             open={false}
           >
             <div
-              className="sc-ksYbfQ iImAXS"
+              className="sc-hmzhuo dQBsGF"
             >
               <div
-                className="sc-kvZOFW eiPhbT"
+                className="sc-hqyNC keRCOE"
               >
                 <div
                   className="sc-hMqMXs deFyXd"
@@ -2574,10 +2602,17 @@ Array [
                   </div>
                 </div>
                 <div
-                  className="sc-kgAjT zQaSN"
-                />
+                  className="sc-cJSrbW gGpacZ"
+                >
+                  <a
+                    className="sc-jlyJG leYmrq"
+                    href="https://explorer.e.cash/address/false"
+                    rel="noreferrer"
+                    target="_blank"
+                  />
+                </div>
                 <label
-                  className="sc-gipzik enMVxg"
+                  className="sc-csuQGl eweHsc"
                 >
                   Amount
                 </label>
@@ -2755,7 +2790,7 @@ Array [
               </div>
             </div>
             <div
-              className="sc-hqyNC keRCOE"
+              className="sc-jbKcbu cWSlbe"
             >
               <div
                 className="sc-hMqMXs deFyXd"
@@ -2807,17 +2842,17 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
               </div>
             </div>
             <div
-              className="sc-cJSrbW iOoFVk"
+              className="sc-ksYbfQ jqeEFw"
             >
               <h3
-                className="sc-hmzhuo ifROFL"
+                className="sc-frDJqD lhZVxP"
               >
                 0
                  
                 XEC
               </h3>
               <div
-                className="sc-dVhcbM jAxLPx"
+                className="sc-eqIVtm btzope"
               >
                 =
                  
@@ -2894,7 +2929,7 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
                       className="sc-hSdWYo bIQQAp"
                     >
                       <div
-                        className="sc-dNLxif eXWVHJ"
+                        className="sc-jqCOkK iieVkZ"
                       >
                         <svg
                           className="sc-jzJRlG kLfsyF"

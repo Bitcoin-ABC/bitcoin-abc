@@ -3,7 +3,7 @@
 exports[`Wallet with XEC balances 1`] = `
 Array [
   <div
-    className="sc-iAyFgw gXtUud"
+    className="sc-hSdWYo dSfyeO"
   >
     <div
       className="sc-ckVGcZ dURHZT"
@@ -51,7 +51,7 @@ Array [
       </div>
     </div>
     <div
-      className="sc-cvbbAY ekZlPO"
+      className="sc-jWBwVP guDxFN"
     >
       You currently have 0 
       XEC
@@ -60,7 +60,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-kEYyzF gZfJyA"
+    className="sc-kkGfuU eBAFxM"
   >
     <div
       className="ant-row"
@@ -72,17 +72,17 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-fAjcbJ eCiCrk"
+          className="sc-caSCKo leAtkw"
         >
           <h2>
             eCash Namespace Alias
           </h2>
         </div>
         <div
-          className="sc-kEYyzF gZfJyA"
+          className="sc-kkGfuU eBAFxM"
         >
           <div
-            className="sc-gipzik iAGCgG"
+            className="sc-csuQGl Ltnqj"
           >
             <form
               className="ant-form ant-form-horizontal"
@@ -112,7 +112,7 @@ Array [
                         className="ant-form-item-control-input-content"
                       >
                         <div
-                          className="sc-gipzik iAGCgG"
+                          className="sc-csuQGl Ltnqj"
                         >
                           <div
                             className="ant-form-item ant-form-item-with-help ant-form-item-has-error"
@@ -218,7 +218,7 @@ Array [
                         className="ant-form-item-control-input-content"
                       >
                         <button
-                          className="sc-fBuWsC cMgDXa"
+                          className="sc-fMiknA kZrnoQ"
                           disabled={true}
                           onClick={[Function]}
                         >
@@ -232,10 +232,10 @@ Array [
             </form>
           </div>
           <div
-            className="sc-caSCKo bZftbI"
+            className="sc-gisBJw efUbOz"
           />
           <div
-            className="sc-fAjcbJ eCiCrk"
+            className="sc-caSCKo leAtkw"
           >
             <h3>
               <p>
@@ -273,7 +273,7 @@ Array [
 exports[`Wallet with XEC balances and tokens 1`] = `
 Array [
   <div
-    className="sc-iAyFgw gXtUud"
+    className="sc-hSdWYo dSfyeO"
   >
     <div
       className="sc-ckVGcZ dURHZT"
@@ -321,7 +321,7 @@ Array [
       </div>
     </div>
     <div
-      className="sc-cvbbAY ekZlPO"
+      className="sc-jWBwVP guDxFN"
     >
       You currently have 0 
       XEC
@@ -330,7 +330,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-kEYyzF gZfJyA"
+    className="sc-kkGfuU eBAFxM"
   >
     <div
       className="ant-row"
@@ -342,17 +342,17 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-fAjcbJ eCiCrk"
+          className="sc-caSCKo leAtkw"
         >
           <h2>
             eCash Namespace Alias
           </h2>
         </div>
         <div
-          className="sc-kEYyzF gZfJyA"
+          className="sc-kkGfuU eBAFxM"
         >
           <div
-            className="sc-gipzik iAGCgG"
+            className="sc-csuQGl Ltnqj"
           >
             <form
               className="ant-form ant-form-horizontal"
@@ -382,7 +382,7 @@ Array [
                         className="ant-form-item-control-input-content"
                       >
                         <div
-                          className="sc-gipzik iAGCgG"
+                          className="sc-csuQGl Ltnqj"
                         >
                           <div
                             className="ant-form-item ant-form-item-with-help ant-form-item-has-error"
@@ -488,7 +488,7 @@ Array [
                         className="ant-form-item-control-input-content"
                       >
                         <button
-                          className="sc-fBuWsC cMgDXa"
+                          className="sc-fMiknA kZrnoQ"
                           disabled={true}
                           onClick={[Function]}
                         >
@@ -502,10 +502,10 @@ Array [
             </form>
           </div>
           <div
-            className="sc-caSCKo bZftbI"
+            className="sc-gisBJw efUbOz"
           />
           <div
-            className="sc-fAjcbJ eCiCrk"
+            className="sc-caSCKo leAtkw"
           >
             <h3>
               <p>
@@ -543,7 +543,7 @@ Array [
 exports[`Wallet with XEC balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-iAyFgw gXtUud"
+    className="sc-hSdWYo dSfyeO"
   >
     <div
       className="sc-ckVGcZ dURHZT"
@@ -591,10 +591,10 @@ Array [
       </div>
     </div>
     <div
-      className="sc-eHgmQL znFwg"
+      className="sc-cvbbAY bixHxt"
     >
       <span
-        className="sc-fMiknA iAqacI"
+        className="sc-dVhcbM dXNsNY"
       >
          
         0.06
@@ -605,7 +605,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-kEYyzF gZfJyA"
+    className="sc-kkGfuU eBAFxM"
   >
     <div
       className="ant-row"
@@ -617,17 +617,17 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-fAjcbJ eCiCrk"
+          className="sc-caSCKo leAtkw"
         >
           <h2>
             eCash Namespace Alias
           </h2>
         </div>
         <div
-          className="sc-kEYyzF gZfJyA"
+          className="sc-kkGfuU eBAFxM"
         >
           <div
-            className="sc-gipzik iAGCgG"
+            className="sc-csuQGl Ltnqj"
           >
             <form
               className="ant-form ant-form-horizontal"
@@ -657,7 +657,7 @@ Array [
                         className="ant-form-item-control-input-content"
                       >
                         <div
-                          className="sc-gipzik iAGCgG"
+                          className="sc-csuQGl Ltnqj"
                         >
                           <div
                             className="ant-form-item ant-form-item-with-help ant-form-item-has-error"
@@ -763,7 +763,7 @@ Array [
                         className="ant-form-item-control-input-content"
                       >
                         <button
-                          className="sc-fBuWsC cMgDXa"
+                          className="sc-fMiknA kZrnoQ"
                           disabled={true}
                           onClick={[Function]}
                         >
@@ -777,10 +777,10 @@ Array [
             </form>
           </div>
           <div
-            className="sc-caSCKo bZftbI"
+            className="sc-gisBJw efUbOz"
           />
           <div
-            className="sc-fAjcbJ eCiCrk"
+            className="sc-caSCKo leAtkw"
           >
             <h3>
               <p>
@@ -818,7 +818,7 @@ Array [
 exports[`Wallet without XEC balance 1`] = `
 Array [
   <div
-    className="sc-iAyFgw gXtUud"
+    className="sc-hSdWYo dSfyeO"
   >
     <div
       className="sc-ckVGcZ dURHZT"
@@ -866,7 +866,7 @@ Array [
       </div>
     </div>
     <div
-      className="sc-cvbbAY ekZlPO"
+      className="sc-jWBwVP guDxFN"
     >
       You currently have 0 
       XEC
@@ -875,7 +875,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-kEYyzF gZfJyA"
+    className="sc-kkGfuU eBAFxM"
   >
     <div
       className="ant-row"
@@ -887,17 +887,17 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-fAjcbJ eCiCrk"
+          className="sc-caSCKo leAtkw"
         >
           <h2>
             eCash Namespace Alias
           </h2>
         </div>
         <div
-          className="sc-kEYyzF gZfJyA"
+          className="sc-kkGfuU eBAFxM"
         >
           <div
-            className="sc-gipzik iAGCgG"
+            className="sc-csuQGl Ltnqj"
           >
             <form
               className="ant-form ant-form-horizontal"
@@ -927,7 +927,7 @@ Array [
                         className="ant-form-item-control-input-content"
                       >
                         <div
-                          className="sc-gipzik iAGCgG"
+                          className="sc-csuQGl Ltnqj"
                         >
                           <div
                             className="ant-form-item ant-form-item-with-help ant-form-item-has-error"
@@ -1033,7 +1033,7 @@ Array [
                         className="ant-form-item-control-input-content"
                       >
                         <button
-                          className="sc-fBuWsC cMgDXa"
+                          className="sc-fMiknA kZrnoQ"
                           disabled={true}
                           onClick={[Function]}
                         >
@@ -1047,10 +1047,10 @@ Array [
             </form>
           </div>
           <div
-            className="sc-caSCKo bZftbI"
+            className="sc-gisBJw efUbOz"
           />
           <div
-            className="sc-fAjcbJ eCiCrk"
+            className="sc-caSCKo leAtkw"
           >
             <h3>
               <p>
@@ -1088,7 +1088,7 @@ Array [
 exports[`Without wallet defined 1`] = `
 Array [
   <div
-    className="sc-iAyFgw gXtUud"
+    className="sc-hSdWYo dSfyeO"
   >
     <div
       className="sc-ckVGcZ dURHZT"
@@ -1131,7 +1131,7 @@ Array [
       </div>
     </div>
     <div
-      className="sc-cvbbAY ekZlPO"
+      className="sc-jWBwVP guDxFN"
     >
       You currently have 0 
       XEC
@@ -1140,7 +1140,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-kEYyzF gZfJyA"
+    className="sc-kkGfuU eBAFxM"
   >
     <div
       className="ant-row"
@@ -1152,17 +1152,17 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-fAjcbJ eCiCrk"
+          className="sc-caSCKo leAtkw"
         >
           <h2>
             eCash Namespace Alias
           </h2>
         </div>
         <div
-          className="sc-kEYyzF gZfJyA"
+          className="sc-kkGfuU eBAFxM"
         >
           <div
-            className="sc-gipzik iAGCgG"
+            className="sc-csuQGl Ltnqj"
           >
             <form
               className="ant-form ant-form-horizontal"
@@ -1192,7 +1192,7 @@ Array [
                         className="ant-form-item-control-input-content"
                       >
                         <div
-                          className="sc-gipzik iAGCgG"
+                          className="sc-csuQGl Ltnqj"
                         >
                           <div
                             className="ant-form-item ant-form-item-with-help ant-form-item-has-error"
@@ -1298,7 +1298,7 @@ Array [
                         className="ant-form-item-control-input-content"
                       >
                         <button
-                          className="sc-fBuWsC cMgDXa"
+                          className="sc-fMiknA kZrnoQ"
                           disabled={true}
                           onClick={[Function]}
                         >
@@ -1312,10 +1312,10 @@ Array [
             </form>
           </div>
           <div
-            className="sc-caSCKo bZftbI"
+            className="sc-gisBJw efUbOz"
           />
           <div
-            className="sc-fAjcbJ eCiCrk"
+            className="sc-caSCKo leAtkw"
           >
             <h3>
               <p>

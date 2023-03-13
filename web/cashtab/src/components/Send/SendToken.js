@@ -22,7 +22,7 @@ import {
     DestinationAddressSingle,
     AntdFormWrapper,
 } from 'components/Common/EnhancedInputs';
-import { SidePaddingCtn } from 'components/Common/Atoms';
+import { SidePaddingCtn, TxLink } from 'components/Common/Atoms';
 import BalanceHeaderToken from 'components/Common/BalanceHeaderToken';
 import { Redirect } from 'react-router-dom';
 import useWindowDimensions from 'hooks/useWindowDimensions';
@@ -527,11 +527,20 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
                                     style={{ marginBottom: '0px' }}
                                 />
                                 <AliasAddressPreviewLabel>
-                                    {aliasInputAddress &&
-                                        `${aliasInputAddress.slice(
-                                            0,
-                                            10,
-                                        )}...${aliasInputAddress.slice(-5)}`}
+                                    <TxLink
+                                        key={aliasInputAddress}
+                                        href={`${currency.blockExplorerUrl}/address/${aliasInputAddress}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        {aliasInputAddress &&
+                                            `${aliasInputAddress.slice(
+                                                0,
+                                                10,
+                                            )}...${aliasInputAddress.slice(
+                                                -5,
+                                            )}`}
+                                    </TxLink>
                                 </AliasAddressPreviewLabel>
                                 <br />
                                 <DestinationAmount

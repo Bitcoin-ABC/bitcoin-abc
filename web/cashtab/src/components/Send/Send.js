@@ -38,6 +38,7 @@ import {
     WalletInfoCtn,
     SidePaddingCtn,
     FormLabel,
+    TxLink,
 } from 'components/Common/Atoms';
 import { getWalletState, fromSatoshisToXec, calcFee } from 'utils/cashMethods';
 import { sendXec } from 'utils/transactions';
@@ -782,13 +783,20 @@ const SendBCH = ({ passLoadingStatus }) => {
                                             }}
                                         ></DestinationAddressSingle>
                                         <AliasAddressPreviewLabel>
-                                            {aliasInputAddress &&
-                                                `${aliasInputAddress.slice(
-                                                    0,
-                                                    10,
-                                                )}...${aliasInputAddress.slice(
-                                                    -5,
-                                                )}`}
+                                            <TxLink
+                                                key={aliasInputAddress}
+                                                href={`${currency.blockExplorerUrl}/address/${aliasInputAddress}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                            >
+                                                {aliasInputAddress &&
+                                                    `${aliasInputAddress.slice(
+                                                        0,
+                                                        10,
+                                                    )}...${aliasInputAddress.slice(
+                                                        -5,
+                                                    )}`}
+                                            </TxLink>
                                         </AliasAddressPreviewLabel>
                                         <FormLabel>Amount</FormLabel>
                                         <SendBchInput

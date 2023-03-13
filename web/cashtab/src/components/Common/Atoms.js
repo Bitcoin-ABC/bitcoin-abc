@@ -20,6 +20,10 @@ export const LoadingCtn = styled.div`
     }
 `;
 
+export const TxLink = styled.a`
+    color: ${props => props.theme.primary};
+`;
+
 export const SidePaddingCtn = styled.div`
     padding: 0px 30px;
     @media (max-width: 768px) {

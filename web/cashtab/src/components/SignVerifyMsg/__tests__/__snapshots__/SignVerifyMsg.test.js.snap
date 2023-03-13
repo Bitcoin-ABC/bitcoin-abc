@@ -2,16 +2,16 @@
 
 exports[`Wallet with BCH balances 1`] = `
 <div
-  className="sc-TOsTZ WtZJc"
+  className="sc-kgAjT dXlfXJ"
 >
   <div
-    className="sc-kEYyzF jKmnbp"
+    className="sc-kkGfuU jfxnHc"
   >
     <div
-      className="sc-jAaTju eqgADx"
+      className="sc-jDwBTQ eKKbla"
     >
       <h4
-        className="sc-jDwBTQ bzrOPC"
+        className="sc-gPEVay iWobZS"
       >
         MigrationTestAlpha
       </h4>
@@ -53,7 +53,7 @@ exports[`Wallet with BCH balances 1`] = `
       </div>
     </div>
     <div
-      className="sc-hSdWYo kyjFNV"
+      className="sc-eHgmQL jCioUo"
     >
       You currently have 0 
       XEC
@@ -63,13 +63,13 @@ exports[`Wallet with BCH balances 1`] = `
   </div>
    
   <div
-    className="sc-eNQAEJ eAXuBE"
+    className="sc-hMqMXs kjfrok"
   >
     <div
-      className="sc-Rmtcm igNtrc"
+      className="sc-bRBYWo gEhJJg"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-start sc-hzDkRC dxDylW"
+        className="ant-collapse ant-collapse-icon-position-start sc-jhAzac jeWfsM"
         role={null}
         style={
           Object {
@@ -118,7 +118,7 @@ exports[`Wallet with BCH balances 1`] = `
               onClick={null}
             >
               <div
-                className="sc-csuQGl CQhxV"
+                className="sc-Rmtcm gwGgYM"
               >
                 Sign
               </div>
@@ -128,10 +128,10 @@ exports[`Wallet with BCH balances 1`] = `
       </div>
     </div>
     <div
-      className="sc-Rmtcm igNtrc"
+      className="sc-bRBYWo gEhJJg"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-start sc-hzDkRC dxDylW"
+        className="ant-collapse ant-collapse-icon-position-start sc-jhAzac jeWfsM"
         role={null}
         style={
           Object {
@@ -180,7 +180,7 @@ exports[`Wallet with BCH balances 1`] = `
               onClick={null}
             >
               <div
-                className="sc-csuQGl CQhxV"
+                className="sc-Rmtcm gwGgYM"
               >
                 Verify
               </div>
@@ -195,16 +195,16 @@ exports[`Wallet with BCH balances 1`] = `
 
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 <div
-  className="sc-TOsTZ WtZJc"
+  className="sc-kgAjT dXlfXJ"
 >
   <div
-    className="sc-kEYyzF jKmnbp"
+    className="sc-kkGfuU jfxnHc"
   >
     <div
-      className="sc-jAaTju eqgADx"
+      className="sc-jDwBTQ eKKbla"
     >
       <h4
-        className="sc-jDwBTQ bzrOPC"
+        className="sc-gPEVay iWobZS"
       >
         MigrationTestAlpha
       </h4>
@@ -246,10 +246,10 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
       </div>
     </div>
     <div
-      className="sc-iAyFgw sQyhO"
+      className="sc-hSdWYo bXDUps"
     >
       <span
-        className="sc-gPEVay bvkoGq"
+        className="sc-iRbamj idRwYr"
       >
          
         0.06
@@ -261,13 +261,13 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
   </div>
    
   <div
-    className="sc-eNQAEJ eAXuBE"
+    className="sc-hMqMXs kjfrok"
   >
     <div
-      className="sc-Rmtcm igNtrc"
+      className="sc-bRBYWo gEhJJg"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-start sc-hzDkRC dxDylW"
+        className="ant-collapse ant-collapse-icon-position-start sc-jhAzac jeWfsM"
         role={null}
         style={
           Object {
@@ -316,7 +316,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
               onClick={null}
             >
               <div
-                className="sc-csuQGl CQhxV"
+                className="sc-Rmtcm gwGgYM"
               >
                 Sign
               </div>
@@ -326,10 +326,10 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
       </div>
     </div>
     <div
-      className="sc-Rmtcm igNtrc"
+      className="sc-bRBYWo gEhJJg"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-start sc-hzDkRC dxDylW"
+        className="ant-collapse ant-collapse-icon-position-start sc-jhAzac jeWfsM"
         role={null}
         style={
           Object {
@@ -378,7 +378,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
               onClick={null}
             >
               <div
-                className="sc-csuQGl CQhxV"
+                className="sc-Rmtcm gwGgYM"
               >
                 Verify
               </div>
@@ -393,16 +393,16 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
 
 exports[`Wallet without BCH balance 1`] = `
 <div
-  className="sc-TOsTZ WtZJc"
+  className="sc-kgAjT dXlfXJ"
 >
   <div
-    className="sc-kEYyzF jKmnbp"
+    className="sc-kkGfuU jfxnHc"
   >
     <div
-      className="sc-jAaTju eqgADx"
+      className="sc-jDwBTQ eKKbla"
     >
       <h4
-        className="sc-jDwBTQ bzrOPC"
+        className="sc-gPEVay iWobZS"
       >
         MigrationTestAlpha
       </h4>
@@ -444,7 +444,7 @@ exports[`Wallet without BCH balance 1`] = `
       </div>
     </div>
     <div
-      className="sc-hSdWYo kyjFNV"
+      className="sc-eHgmQL jCioUo"
     >
       You currently have 0 
       XEC
@@ -454,13 +454,13 @@ exports[`Wallet without BCH balance 1`] = `
   </div>
    
   <div
-    className="sc-eNQAEJ eAXuBE"
+    className="sc-hMqMXs kjfrok"
   >
     <div
-      className="sc-Rmtcm igNtrc"
+      className="sc-bRBYWo gEhJJg"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-start sc-hzDkRC dxDylW"
+        className="ant-collapse ant-collapse-icon-position-start sc-jhAzac jeWfsM"
         role={null}
         style={
           Object {
@@ -509,7 +509,7 @@ exports[`Wallet without BCH balance 1`] = `
               onClick={null}
             >
               <div
-                className="sc-csuQGl CQhxV"
+                className="sc-Rmtcm gwGgYM"
               >
                 Sign
               </div>
@@ -519,10 +519,10 @@ exports[`Wallet without BCH balance 1`] = `
       </div>
     </div>
     <div
-      className="sc-Rmtcm igNtrc"
+      className="sc-bRBYWo gEhJJg"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-start sc-hzDkRC dxDylW"
+        className="ant-collapse ant-collapse-icon-position-start sc-jhAzac jeWfsM"
         role={null}
         style={
           Object {
@@ -571,7 +571,7 @@ exports[`Wallet without BCH balance 1`] = `
               onClick={null}
             >
               <div
-                className="sc-csuQGl CQhxV"
+                className="sc-Rmtcm gwGgYM"
               >
                 Verify
               </div>
@@ -586,13 +586,13 @@ exports[`Wallet without BCH balance 1`] = `
 
 exports[`Without wallet defined 1`] = `
 <div
-  className="sc-TOsTZ WtZJc"
+  className="sc-kgAjT dXlfXJ"
 >
   <div
-    className="sc-kEYyzF jKmnbp"
+    className="sc-kkGfuU jfxnHc"
   >
     <div
-      className="sc-jAaTju eqgADx"
+      className="sc-jDwBTQ eKKbla"
     >
       <a
         href="/configure"
@@ -632,7 +632,7 @@ exports[`Without wallet defined 1`] = `
       </div>
     </div>
     <div
-      className="sc-hSdWYo kyjFNV"
+      className="sc-eHgmQL jCioUo"
     >
       You currently have 0 
       XEC
@@ -642,13 +642,13 @@ exports[`Without wallet defined 1`] = `
   </div>
    
   <div
-    className="sc-eNQAEJ eAXuBE"
+    className="sc-hMqMXs kjfrok"
   >
     <div
-      className="sc-Rmtcm igNtrc"
+      className="sc-bRBYWo gEhJJg"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-start sc-hzDkRC dxDylW"
+        className="ant-collapse ant-collapse-icon-position-start sc-jhAzac jeWfsM"
         role={null}
         style={
           Object {
@@ -697,7 +697,7 @@ exports[`Without wallet defined 1`] = `
               onClick={null}
             >
               <div
-                className="sc-csuQGl CQhxV"
+                className="sc-Rmtcm gwGgYM"
               >
                 Sign
               </div>
@@ -707,10 +707,10 @@ exports[`Without wallet defined 1`] = `
       </div>
     </div>
     <div
-      className="sc-Rmtcm igNtrc"
+      className="sc-bRBYWo gEhJJg"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-start sc-hzDkRC dxDylW"
+        className="ant-collapse ant-collapse-icon-position-start sc-jhAzac jeWfsM"
         role={null}
         style={
           Object {
@@ -759,7 +759,7 @@ exports[`Without wallet defined 1`] = `
               onClick={null}
             >
               <div
-                className="sc-csuQGl CQhxV"
+                className="sc-Rmtcm gwGgYM"
               >
                 Verify
               </div>
