@@ -2546,91 +2546,87 @@ void PeerManagerImpl::ProcessGetBlockData(const Config &config, CNode &pfrom,
     }
     // Pruned nodes may have deleted the block, so check whether it's available
     // before trying to send.
-    if (pindex->nStatus.hasData()) {
-        std::shared_ptr<const CBlock> pblock;
-        if (a_recent_block &&
-            a_recent_block->GetHash() == pindex->GetBlockHash()) {
-            pblock = a_recent_block;
+    if (!pindex->nStatus.hasData()) {
+        return;
+    }
+    std::shared_ptr<const CBlock> pblock;
+    if (a_recent_block && a_recent_block->GetHash() == pindex->GetBlockHash()) {
+        pblock = a_recent_block;
+    } else {
+        // Send block from disk
+        std::shared_ptr<CBlock> pblockRead = std::make_shared<CBlock>();
+        if (!ReadBlockFromDisk(*pblockRead, pindex,
+                               m_chainparams.GetConsensus())) {
+            assert(!"cannot load block from disk");
+        }
+        pblock = pblockRead;
+    }
+    if (inv.IsMsgBlk()) {
+        m_connman.PushMessage(&pfrom,
+                              msgMaker.Make(NetMsgType::BLOCK, *pblock));
+    } else if (inv.IsMsgFilteredBlk()) {
+        bool sendMerkleBlock = false;
+        CMerkleBlock merkleBlock;
+        if (pfrom.m_tx_relay != nullptr) {
+            LOCK(pfrom.m_tx_relay->cs_filter);
+            if (pfrom.m_tx_relay->pfilter) {
+                sendMerkleBlock = true;
+                merkleBlock = CMerkleBlock(*pblock, *pfrom.m_tx_relay->pfilter);
+            }
+        }
+        if (sendMerkleBlock) {
+            m_connman.PushMessage(
+                &pfrom, msgMaker.Make(NetMsgType::MERKLEBLOCK, merkleBlock));
+            // CMerkleBlock just contains hashes, so also push any
+            // transactions in the block the client did not see. This avoids
+            // hurting performance by pointlessly requiring a round-trip.
+            // Note that there is currently no way for a node to request any
+            // single transactions we didn't send here - they must either
+            // disconnect and retry or request the full block. Thus, the
+            // protocol spec specified allows for us to provide duplicate
+            // txn here, however we MUST always provide at least what the
+            // remote peer needs.
+            typedef std::pair<size_t, uint256> PairType;
+            for (PairType &pair : merkleBlock.vMatchedTxn) {
+                m_connman.PushMessage(
+                    &pfrom,
+                    msgMaker.Make(NetMsgType::TX, *pblock->vtx[pair.first]));
+            }
+        }
+        // else
+        // no response
+    } else if (inv.IsMsgCmpctBlk()) {
+        // If a peer is asking for old blocks, we're almost guaranteed they
+        // won't have a useful mempool to match against a compact block, and
+        // we don't feel like constructing the object for them, so instead
+        // we respond with the full, non-compact block.
+        int nSendFlags = 0;
+        if (CanDirectFetch() &&
+            pindex->nHeight >=
+                m_chainman.ActiveChain().Height() - MAX_CMPCTBLOCK_DEPTH) {
+            CBlockHeaderAndShortTxIDs cmpctblock(*pblock);
+            m_connman.PushMessage(
+                &pfrom,
+                msgMaker.Make(nSendFlags, NetMsgType::CMPCTBLOCK, cmpctblock));
         } else {
-            // Send block from disk
-            std::shared_ptr<CBlock> pblockRead = std::make_shared<CBlock>();
-            if (!ReadBlockFromDisk(*pblockRead, pindex,
-                                   m_chainparams.GetConsensus())) {
-                assert(!"cannot load block from disk");
-            }
-            pblock = pblockRead;
+            m_connman.PushMessage(
+                &pfrom, msgMaker.Make(nSendFlags, NetMsgType::BLOCK, *pblock));
         }
-        if (inv.IsMsgBlk()) {
-            m_connman.PushMessage(&pfrom,
-                                  msgMaker.Make(NetMsgType::BLOCK, *pblock));
-        } else if (inv.IsMsgFilteredBlk()) {
-            bool sendMerkleBlock = false;
-            CMerkleBlock merkleBlock;
-            if (pfrom.m_tx_relay != nullptr) {
-                LOCK(pfrom.m_tx_relay->cs_filter);
-                if (pfrom.m_tx_relay->pfilter) {
-                    sendMerkleBlock = true;
-                    merkleBlock =
-                        CMerkleBlock(*pblock, *pfrom.m_tx_relay->pfilter);
-                }
-            }
-            if (sendMerkleBlock) {
-                m_connman.PushMessage(
-                    &pfrom,
-                    msgMaker.Make(NetMsgType::MERKLEBLOCK, merkleBlock));
-                // CMerkleBlock just contains hashes, so also push any
-                // transactions in the block the client did not see. This avoids
-                // hurting performance by pointlessly requiring a round-trip.
-                // Note that there is currently no way for a node to request any
-                // single transactions we didn't send here - they must either
-                // disconnect and retry or request the full block. Thus, the
-                // protocol spec specified allows for us to provide duplicate
-                // txn here, however we MUST always provide at least what the
-                // remote peer needs.
-                typedef std::pair<size_t, uint256> PairType;
-                for (PairType &pair : merkleBlock.vMatchedTxn) {
-                    m_connman.PushMessage(
-                        &pfrom, msgMaker.Make(NetMsgType::TX,
-                                              *pblock->vtx[pair.first]));
-                }
-            }
-            // else
-            // no response
-        } else if (inv.IsMsgCmpctBlk()) {
-            // If a peer is asking for old blocks, we're almost guaranteed they
-            // won't have a useful mempool to match against a compact block, and
-            // we don't feel like constructing the object for them, so instead
-            // we respond with the full, non-compact block.
-            int nSendFlags = 0;
-            if (CanDirectFetch() &&
-                pindex->nHeight >=
-                    m_chainman.ActiveChain().Height() - MAX_CMPCTBLOCK_DEPTH) {
-                CBlockHeaderAndShortTxIDs cmpctblock(*pblock);
-                m_connman.PushMessage(
-                    &pfrom, msgMaker.Make(nSendFlags, NetMsgType::CMPCTBLOCK,
-                                          cmpctblock));
-            } else {
-                m_connman.PushMessage(
-                    &pfrom,
-                    msgMaker.Make(nSendFlags, NetMsgType::BLOCK, *pblock));
-            }
-        }
+    }
 
-        {
-            LOCK(peer.m_block_inv_mutex);
-            // Trigger the peer node to send a getblocks request for the next
-            // batch of inventory.
-            if (hash == peer.m_continuation_block) {
-                // Send immediately. This must send even if redundant, and
-                // we want it right after the last block so they don't wait for
-                // other stuff first.
-                std::vector<CInv> vInv;
-                vInv.push_back(CInv(
-                    MSG_BLOCK, m_chainman.ActiveChain().Tip()->GetBlockHash()));
-                m_connman.PushMessage(&pfrom,
-                                      msgMaker.Make(NetMsgType::INV, vInv));
-                peer.m_continuation_block = BlockHash();
-            }
+    {
+        LOCK(peer.m_block_inv_mutex);
+        // Trigger the peer node to send a getblocks request for the next
+        // batch of inventory.
+        if (hash == peer.m_continuation_block) {
+            // Send immediately. This must send even if redundant, and
+            // we want it right after the last block so they don't wait for
+            // other stuff first.
+            std::vector<CInv> vInv;
+            vInv.push_back(CInv(
+                MSG_BLOCK, m_chainman.ActiveChain().Tip()->GetBlockHash()));
+            m_connman.PushMessage(&pfrom, msgMaker.Make(NetMsgType::INV, vInv));
+            peer.m_continuation_block = BlockHash();
         }
     }
 }
