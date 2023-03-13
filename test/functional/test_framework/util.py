@@ -17,7 +17,7 @@ from decimal import ROUND_DOWN, Decimal
 from functools import lru_cache
 from io import BytesIO
 from subprocess import CalledProcessError
-from typing import Callable, Optional
+from typing import Callable, Dict, Literal, Optional
 
 from . import coverage
 from .authproxy import AuthServiceProxy, JSONRPCException
@@ -287,6 +287,8 @@ def wait_until_helper(predicate, *, attempts=float('inf'),
 
 # The maximum number of nodes a single test can spawn
 MAX_NODES = 64
+# Type for the valid port names
+PortName = Literal['P2P', 'RPC', 'CHRONIK']
 # Don't assign rpc or p2p ports lower than this (for example: 18333 is the
 # default testnet port)
 PORT_MIN = int(os.getenv('TEST_RUNNER_PORT_MIN', default=20000))
@@ -295,11 +297,15 @@ PORT_RANGE = 5000
 # The number of times we increment the port counters and test it again before
 # giving up.
 MAX_PORT_RETRY = 5
+PORT_START_MAP: Dict[PortName, int] = {
+    'P2P': 0,
+    'RPC': PORT_RANGE,
+    'CHRONIK': PORT_RANGE * 2,
+}
 
 # Globals used for incrementing ports. Initially uninitialized because they
 # depend on PortSeed.n.
-LAST_P2P_PORT_USED: Optional[int] = None
-LAST_RPC_PORT_USED: Optional[int] = None
+LAST_USED_PORT_MAP: Dict[PortName, int] = {}
 
 
 class PortSeed:
@@ -337,18 +343,14 @@ def get_rpc_proxy(url, node_number, *, timeout=None, coveragedir=None):
 # We initialize the port counters at runtime, because at import time PortSeed.n
 # will not yet be defined. It is defined based on a command line option
 # in the BitcoinTestFramework class __init__
-def initialize_p2p_port():
-    global LAST_P2P_PORT_USED
+def initialize_port(port_name: PortName):
+    global LAST_USED_PORT_MAP
     assert PortSeed.n is not None
-    LAST_P2P_PORT_USED = PORT_MIN + (
-        MAX_NODES * PortSeed.n) % (PORT_RANGE - 1 - MAX_NODES)
-
-
-def initialize_rpc_port():
-    global LAST_RPC_PORT_USED
-    assert PortSeed.n is not None
-    LAST_RPC_PORT_USED = PORT_MIN + PORT_RANGE + (
-        MAX_NODES * PortSeed.n) % (PORT_RANGE - 1 - MAX_NODES)
+    LAST_USED_PORT_MAP[port_name] = (
+        PORT_MIN +
+        PORT_START_MAP[port_name] +
+        (MAX_NODES * PortSeed.n) % (PORT_RANGE - 1 - MAX_NODES)
+    )
 
 
 def is_port_available(port: int) -> bool:
@@ -356,37 +358,35 @@ def is_port_available(port: int) -> bool:
         return sock.connect_ex(('127.0.0.1', port)) != 0
 
 
-# The LRU cache ensures that for a given peer / node index, the functions
-# always return the same port, and that it is tested only the first time.
-# The parameter `n` is not unused, it is the key in the cache dictionary.
+# The LRU cache ensures that for a given type and peer / node index, the
+# functions always return the same port, and that it is tested only the
+# first time. The parameter `n` is not unused, it is the key in the cache
+# dictionary.
 @lru_cache(maxsize=None)
+def unique_port(port_name: PortName, n: int) -> int:
+    global LAST_USED_PORT_MAP
+    if port_name not in LAST_USED_PORT_MAP:
+        initialize_port(port_name)
+
+    for _ in range(MAX_PORT_RETRY):
+        LAST_USED_PORT_MAP[port_name] += 1
+        if is_port_available(LAST_USED_PORT_MAP[port_name]):
+            return LAST_USED_PORT_MAP[port_name]
+
+    raise RuntimeError(
+        f"Could not find available {port_name} port after {MAX_PORT_RETRY} attempts.")
+
+
 def p2p_port(n: int) -> int:
-    global LAST_P2P_PORT_USED
-    if LAST_P2P_PORT_USED is None:
-        initialize_p2p_port()
-
-    for _ in range(MAX_PORT_RETRY):
-        LAST_P2P_PORT_USED += 1    # type: ignore
-        if is_port_available(LAST_P2P_PORT_USED):
-            return LAST_P2P_PORT_USED
-
-    raise RuntimeError(
-        f"Could not find available P2P port after {MAX_PORT_RETRY} attempts.")
+    return unique_port('P2P', n)
 
 
-@lru_cache(maxsize=None)
 def rpc_port(n: int) -> int:
-    global LAST_RPC_PORT_USED
-    if LAST_RPC_PORT_USED is None:
-        initialize_rpc_port()
+    return unique_port('RPC', n)
 
-    for _ in range(MAX_PORT_RETRY):
-        LAST_RPC_PORT_USED += 1    # type: ignore
-        if is_port_available(LAST_RPC_PORT_USED):
-            return LAST_RPC_PORT_USED
 
-    raise RuntimeError(
-        f"Could not find available RPC port after {MAX_PORT_RETRY} attempts.")
+def chronik_port(n: int) -> int:
+    return unique_port('CHRONIK', n)
 
 
 def rpc_url(datadir, chain, host, port):
@@ -415,6 +415,8 @@ def initialize_datadir(dirname, n, chain, disable_autoconnect=True):
         f.write(f"[{chain_name_conf_section}]\n")
         f.write(f"port={str(p2p_port(n))}\n")
         f.write(f"rpcport={str(rpc_port(n))}\n")
+        f.write(f"chronikbind=127.0.0.1:{str(chronik_port(n))}\n")
+        f.write(f"chronikbind=[::1]:{str(chronik_port(n))}\n")
         f.write("fallbackfee=200\n")
         f.write("server=1\n")
         f.write("keypool=1\n")

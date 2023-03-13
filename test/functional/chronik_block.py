@@ -27,7 +27,8 @@ class ChronikBlockTest(BitcoinTestFramework):
         import chronik_pb2 as pb
 
         def query_block(block_height):
-            client = http.client.HTTPConnection('127.0.0.1', 18442, timeout=4)
+            chronik_port = self.nodes[0].chronik_port
+            client = http.client.HTTPConnection('127.0.0.1', chronik_port, timeout=4)
             client.request('GET', f'/block/{block_height}')
             response = client.getresponse()
             assert_equal(response.getheader('Content-Type'),

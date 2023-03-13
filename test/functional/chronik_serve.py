@@ -33,7 +33,7 @@ class ChronikServeTest(BitcoinTestFramework):
             proto_error.ParseFromString(response.read())
             assert_equal(proto_error.msg, '404: Not found: /path/does/not/exist')
 
-        test_host('127.0.0.1', 18442)
+        test_host('127.0.0.1', self.nodes[0].chronik_port)
 
         self.restart_node(0, ['-chronik', '-chronikbind=0.0.0.0'])
         test_host('127.0.0.1', 18442)

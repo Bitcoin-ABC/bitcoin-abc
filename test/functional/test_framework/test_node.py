@@ -66,7 +66,7 @@ class TestNode:
     To make things easier for the test writer, any unrecognised messages will
     be dispatched to the RPC connection."""
 
-    def __init__(self, i, datadir, *, chain, host, rpc_port, p2p_port, timewait, timeout_factor, bitcoind, bitcoin_cli,
+    def __init__(self, i, datadir, *, chain, host, rpc_port, p2p_port, chronik_port, timewait, timeout_factor, bitcoind, bitcoin_cli,
                  coverage_dir, cwd, extra_conf=None, extra_args=None, use_cli=False, emulator=None, start_perf=False,
                  use_valgrind=False, descriptors=False):
         """
@@ -85,6 +85,7 @@ class TestNode:
         self.host = host
         self.rpc_port = rpc_port
         self.p2p_port = p2p_port
+        self.chronik_port = chronik_port
         self.name = f"testnode-{i}"
         self.rpc_timeout = timewait
         self.binary = bitcoind
