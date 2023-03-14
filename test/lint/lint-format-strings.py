@@ -271,15 +271,18 @@ def count_format_specifiers(format_string):
     3
     >>> count_format_specifiers("foo %d bar %i foo %% foo %*d foo")
     4
+    >>> count_format_specifiers("%%%u")
+    1
+    >>> [count_format_specifiers(i * "%" + "u") for i in range(10)]
+    [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
     """
     assert isinstance(format_string, str)
     n = 0
     in_specifier = False
+    # remove any number of escaped % characters
+    format_string = format_string.replace("%%", "")
     for i, char in enumerate(format_string):
-        if format_string[i - 1:i +
-                         1] == "%%" or format_string[i:i + 2] == "%%":
-            pass
-        elif char == "%":
+        if char == "%":
             in_specifier = True
             n += 1
         elif char in "aAcdeEfFgGinopsuxX":
@@ -297,6 +300,8 @@ def main(args_in):
     test/lint/lint-format-strings-tests.txt: Expected 2 argument(s) after format string but found 3 argument(s): printf("%a %b", 1, 2, "anything")
     test/lint/lint-format-strings-tests.txt: Expected 1 argument(s) after format string but found 0 argument(s): printf("%d")
     test/lint/lint-format-strings-tests.txt: Expected 3 argument(s) after format string but found 2 argument(s): printf("%a%b%z", 1, "anything")
+    test/lint/lint-format-strings-tests.txt: Expected 0 argument(s) after format string but found 1 argument(s): strprintf("%%%%u", scope_id)
+    test/lint/lint-format-strings-tests.txt: Expected 1 argument(s) after format string but found 0 argument(s): strprintf("%%%u")
 
     >>> main(["test/lint/lint-format-strings-tests-skip-arguments.txt"])
     test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 1 argument(s) after format string but found 2 argument(s): fprintf(skipped, "%d", 1, 2)
