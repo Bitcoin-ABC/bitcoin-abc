@@ -5898,6 +5898,10 @@ module.exports = {
                                 amount: '36',
                                 isMintBaton: false,
                             },
+                            spentBy: {
+                                txid: '8cfd16c21596fba3f3414cfb5337f2646c19d9b9d84654dde841d308c5bb36c5',
+                                outIdx: 1,
+                            },
                         },
                     ],
                     lockTime: 0,
@@ -6056,6 +6060,10 @@ module.exports = {
                                 amount: '1122',
                                 isMintBaton: false,
                             },
+                            spentBy: {
+                                txid: '8cfd16c21596fba3f3414cfb5337f2646c19d9b9d84654dde841d308c5bb36c5',
+                                outIdx: 2,
+                            },
                         },
                     ],
                     lockTime: 0,
@@ -6123,6 +6131,10 @@ module.exports = {
                             slpToken: {
                                 amount: '512',
                                 isMintBaton: false,
+                            },
+                            spentBy: {
+                                txid: '8cfd16c21596fba3f3414cfb5337f2646c19d9b9d84654dde841d308c5bb36c5',
+                                outIdx: 3,
                             },
                         },
                     ],
@@ -6301,6 +6313,10 @@ module.exports = {
                             value: '1025339067',
                             outputScript:
                                 '76a9148601eacf1714e53be19eff09aba47b06b42837b188ac',
+                            spentBy: {
+                                txid: '8b672b150b5b4abbe308405664dc4abca9c39244a899a8f09de1a37b4240523e',
+                                outIdx: 0,
+                            },
                         },
                     ],
                     lockTime: 0,
@@ -6473,6 +6489,10 @@ module.exports = {
                             value: '1000',
                             outputScript:
                                 '76a914c827790bcc0443c910cca58bfdd247bf85982e9288ac',
+                            spentBy: {
+                                txid: '80b8a3369f26d256f634a5f1992dc05b357039339526a930f1968fd58a11dfe2',
+                                outIdx: 3,
+                            },
                         },
                         {
                             value: '2727972823',
@@ -6640,6 +6660,10 @@ module.exports = {
                             slpToken: {
                                 amount: '242',
                                 isMintBaton: false,
+                            },
+                            spentBy: {
+                                txid: '8cfd16c21596fba3f3414cfb5337f2646c19d9b9d84654dde841d308c5bb36c5',
+                                outIdx: 4,
                             },
                         },
                     ],
@@ -7547,136 +7571,244 @@ module.exports = {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: '774d66eeaa80dd04ec4a9b615291a09d346c64c35035f4dbd87e9d0c256819b3',
+                                outIdx: 1,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: '534652fa9b72f57d92d4df8b0b9efa151cf6af655e4bb0467ad1be0b524d493e',
+                                outIdx: 1,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: '67cbe5ea0e9cce54e290b428542e5a594f0078ea9a76d1f066e6ba1e8b088c4f',
+                                outIdx: 1,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: 'b1820cbac6bb23c0ad19be1d9f98f40164b7c8ce6cf14fb45ee24928ac2d838a',
+                                outIdx: 1,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: 'd6abb796eb26d8a8d090c2929399009adf05f39b9e2594df4b9eb5c0ccd91c57',
+                                outIdx: 1,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: 'd6abb796eb26d8a8d090c2929399009adf05f39b9e2594df4b9eb5c0ccd91c57',
+                                outIdx: 2,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: '5ccf7bb45e7249a26d4e59119786df9be97ceb84ed80dc272d6f96388b6b253b',
+                                outIdx: 4,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: '5ccf7bb45e7249a26d4e59119786df9be97ceb84ed80dc272d6f96388b6b253b',
+                                outIdx: 5,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: '5ccf7bb45e7249a26d4e59119786df9be97ceb84ed80dc272d6f96388b6b253b',
+                                outIdx: 6,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: '5ccf7bb45e7249a26d4e59119786df9be97ceb84ed80dc272d6f96388b6b253b',
+                                outIdx: 7,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: '8cfd16c21596fba3f3414cfb5337f2646c19d9b9d84654dde841d308c5bb36c5',
+                                outIdx: 6,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: '8cfd16c21596fba3f3414cfb5337f2646c19d9b9d84654dde841d308c5bb36c5',
+                                outIdx: 7,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: '8cfd16c21596fba3f3414cfb5337f2646c19d9b9d84654dde841d308c5bb36c5',
+                                outIdx: 8,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: '39492b64ced48ddd3f6fb0779defebe2fceb68bfca55fdb54909119609af54fc',
+                                outIdx: 1,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: 'e38192c8bbf0b63c61434d6206434c62c75c8e204939bb629aea1ff2f8b8a1c3',
+                                outIdx: 1,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: '163b0e84f3dfc1fc0a75784347b949b2c1428bbec1cb6d92350becf01af349c9',
+                                outIdx: 1,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: '6d1896869f0ea80f019504951a5033a909f5377441a1c137da4de45c3c43d094',
+                                outIdx: 1,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: '6d1896869f0ea80f019504951a5033a909f5377441a1c137da4de45c3c43d094',
+                                outIdx: 2,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: '25205e208cbafbafb7ca46ca5c6ad8ff7be3439bc6e9c9e8cdeb9f376fdd1a25',
+                                outIdx: 4,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: '25205e208cbafbafb7ca46ca5c6ad8ff7be3439bc6e9c9e8cdeb9f376fdd1a25',
+                                outIdx: 5,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: '25205e208cbafbafb7ca46ca5c6ad8ff7be3439bc6e9c9e8cdeb9f376fdd1a25',
+                                outIdx: 6,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: '25205e208cbafbafb7ca46ca5c6ad8ff7be3439bc6e9c9e8cdeb9f376fdd1a25',
+                                outIdx: 7,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: '3fb6d7b5413187bf400a3a413659f18774a1e13d5395ebee596033995edf802b',
+                                outIdx: 4,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: '3fb6d7b5413187bf400a3a413659f18774a1e13d5395ebee596033995edf802b',
+                                outIdx: 5,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: '3fb6d7b5413187bf400a3a413659f18774a1e13d5395ebee596033995edf802b',
+                                outIdx: 6,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: '3fb6d7b5413187bf400a3a413659f18774a1e13d5395ebee596033995edf802b',
+                                outIdx: 7,
+                            },
                         },
                         {
                             value: '1000',
                             outputScript:
                                 '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                            spentBy: {
+                                txid: 'bfc6305aa754c983199d76a98e969cc84e86dc38b3ea5943e3ab9cbde6d1485d',
+                                outIdx: 1,
+                            },
                         },
                         {
                             value: '171256',
@@ -7831,6 +7963,10 @@ module.exports = {
                             slpToken: {
                                 amount: '66381',
                                 isMintBaton: false,
+                            },
+                            spentBy: {
+                                txid: '8cfd16c21596fba3f3414cfb5337f2646c19d9b9d84654dde841d308c5bb36c5',
+                                outIdx: 5,
                             },
                         },
                     ],
@@ -7994,6 +8130,10 @@ module.exports = {
                             value: '1000',
                             outputScript:
                                 '76a914c827790bcc0443c910cca58bfdd247bf85982e9288ac',
+                            spentBy: {
+                                txid: 'e09ecf12967c2422ef4b9141ee0ea93dd39057feabfbbbd84843ce8600cb2a8a',
+                                outIdx: 1,
+                            },
                         },
                         {
                             value: '573713600',
@@ -8092,6 +8232,10 @@ module.exports = {
                             slpToken: {
                                 amount: '15219',
                                 isMintBaton: false,
+                            },
+                            spentBy: {
+                                txid: '163b0e84f3dfc1fc0a75784347b949b2c1428bbec1cb6d92350becf01af349c9',
+                                outIdx: 0,
                             },
                         },
                         {
@@ -8223,6 +8367,10 @@ module.exports = {
                                 amount: '227',
                                 isMintBaton: false,
                             },
+                            spentBy: {
+                                txid: 'e38192c8bbf0b63c61434d6206434c62c75c8e204939bb629aea1ff2f8b8a1c3',
+                                outIdx: 0,
+                            },
                         },
                     ],
                     lockTime: 0,
@@ -8291,6 +8439,10 @@ module.exports = {
                                 amount: '19',
                                 isMintBaton: false,
                             },
+                            spentBy: {
+                                txid: '39492b64ced48ddd3f6fb0779defebe2fceb68bfca55fdb54909119609af54fc',
+                                outIdx: 0,
+                            },
                         },
                     ],
                     lockTime: 0,
@@ -8358,6 +8510,10 @@ module.exports = {
                             slpToken: {
                                 amount: '96625',
                                 isMintBaton: false,
+                            },
+                            spentBy: {
+                                txid: '6d1896869f0ea80f019504951a5033a909f5377441a1c137da4de45c3c43d094',
+                                outIdx: 0,
                             },
                         },
                     ],
@@ -9759,8 +9915,8 @@ module.exports = {
                     isGenesisTx: false,
                     genesisInfo: false,
                     opReturnInfo: {
-                        app: 'no app',
-                        msg: "m\u0003|�V��iM�j�t[P\u001c\u000e����J\u0018_�z7�\b�k\u0005u\n|From what I'm gathering, it seems that the media went from questioning authority to doing their bidding as a collective NPC hivemind!",
+                        app: 'memo',
+                        msg: "Reply to memo|�V��iM�j�t[P\u001c\u000e����J\u0018_�z7�\b�k\u0005u\n|From what I'm gathering, it seems that the media went from questioning authority to doing their bidding as a collective NPC hivemind!",
                     },
                 },
                 {
@@ -9983,7 +10139,7 @@ module.exports = {
                 },
             ],
         },
-        tgHtml: '<a href="https://explorer.e.cash/block/00000000000000001239831f90580c859ec174316e91961cf0e8cde57c0d3acb">782665</a> | 43 txs | ViaBTC\n\n29 eToken txs\n\nThis block created 2 new eTokens:\n\n<a href="https://explorer.e.cash/tx/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109">BearNip</a> (BEAR) <a href="https://cashtab.com/">[doc]</a>\n<a href="https://explorer.e.cash/tx/79c5a1cec698350dd93f645fcae8d6ff3902b7cdc582839dfface3cb0c83d823">eCash Herald</a> (TRIB) <a href="https://cashtab.com/">[doc]</a>\n\nThis block contained OP_RETURN msgs:\n\n<a href="https://explorer.e.cash/tx/28f3ec1f134dc8ea2e37a0645774fa2aa19e0bc2871b6edcc7e99cd86d77b1b6">no app:</a> m\u0003|�V��iM�j�t[P\u001c\u000e����J\u0018_�z7�\b�k\u0005u\n|From what I\'m gathering, it seems that the media went from questioning authority to doing their bidding as a collective NPC hivemind!\n<a href="https://explorer.e.cash/tx/ec659dfb1c2ea784fd3d4ec6616f738293a5be631c0f7d09258558e64b49d9e6">unknown app:</a> .xec|12345',
+        tgHtml: '<a href="https://explorer.e.cash/block/00000000000000001239831f90580c859ec174316e91961cf0e8cde57c0d3acb">782665</a> | 43 txs | ViaBTC\n\n29 eToken txs\n\nThis block created 2 new eTokens:\n\n<a href="https://explorer.e.cash/tx/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109">BearNip</a> (BEAR) <a href="https://cashtab.com/">[doc]</a>\n<a href="https://explorer.e.cash/tx/79c5a1cec698350dd93f645fcae8d6ff3902b7cdc582839dfface3cb0c83d823">eCash Herald</a> (TRIB) <a href="https://cashtab.com/">[doc]</a>\n\nThis block contained OP_RETURN msgs:\n\n<a href="https://explorer.e.cash/tx/28f3ec1f134dc8ea2e37a0645774fa2aa19e0bc2871b6edcc7e99cd86d77b1b6">memo:</a> Reply to memo|�V��iM�j�t[P\u001c\u000e����J\u0018_�z7�\b�k\u0005u\n|From what I\'m gathering, it seems that the media went from questioning authority to doing their bidding as a collective NPC hivemind!\n<a href="https://explorer.e.cash/tx/ec659dfb1c2ea784fd3d4ec6616f738293a5be631c0f7d09258558e64b49d9e6">unknown app:</a> .xec|12345',
     },
     buxTxs: {
         chronikData: {
@@ -10685,6 +10841,10 @@ module.exports = {
                             value: '6350850481',
                             outputScript:
                                 '76a9146f326f0a1d9cc7845c0a6df9d258cfcd555ebacd88ac',
+                            spentBy: {
+                                txid: '41bf6054c8cc9201a608c36dd51b9c64a4588f79c9411bcccb96cb5f2958ae6e',
+                                outIdx: 0,
+                            },
                         },
                         {
                             value: '402049000',
@@ -11833,11 +11993,19 @@ module.exports = {
                                 amount: '335',
                                 isMintBaton: false,
                             },
+                            spentBy: {
+                                txid: '93398af9df0d0660462d3a962b950c16368b8c9f2f6731403dbf4f6f71d98497',
+                                outIdx: 0,
+                            },
                         },
                         {
                             value: '67261',
                             outputScript:
                                 '76a9141069c0f04b4ca8693344e6ff778f34a6e05724ac88ac',
+                            spentBy: {
+                                txid: 'd97cc32d90f8f16bebe4ff5cac4f4703eeeb0d0c0a997aa5df95bf5b09e20a5b',
+                                outIdx: 1,
+                            },
                         },
                     ],
                     lockTime: 0,
@@ -13206,6 +13374,10 @@ module.exports = {
                             value: '456869659',
                             outputScript:
                                 'a91410f3ed6835b5e1a36c6e7e272a08024e45a4f3a087',
+                            spentBy: {
+                                txid: '95889f90d2219fab6a65af0eed09075f3a7bff30c899ad5950b91b63ebf699d2',
+                                outIdx: 98,
+                            },
                         },
                         {
                             value: '1272',

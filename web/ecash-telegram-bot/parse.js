@@ -87,6 +87,16 @@ Assumptions
             return false;
         }
 
+        // Determine if this is a memo tx
+        // Memo txs have a shorter prefix and require special processing
+        const isMemoTx =
+            outputScript.slice(2, 6) === config.opReturn.memo.prefix;
+        if (isMemoTx) {
+            // memo txs require special processing
+            // Send the unprocessed remainder of the string to a specialized function
+            return module.exports.parseMemoOutputScript(outputScript);
+        }
+
         // Parse for app prefix
         // See https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/web/standards/op_return-prefix-guideline.md
         const hasAppPrefix =
@@ -165,6 +175,36 @@ Assumptions
         }
         // If there are multiple messages, for example an unknown prefix, signify this with the | character
         return opReturnMsgArray.join('|');
+    },
+    parseMemoOutputScript: function (memoHexStr) {
+        // Remove the memo prefix, already processed
+        memoHexStr = memoHexStr.slice(6);
+        // At the beginning of this function, we have already popped off '0d6d'
+        let app = config.opReturn.memo.app;
+        let msg = '';
+        for (let i = 0; memoHexStr !== 0; i++) {
+            // Get the memo action code
+            // See https://memo.cash/protocol
+            const actionCode = memoHexStr.slice(0, 2);
+            // Remove actionCode from memoHexStr
+            memoHexStr = memoHexStr.slice(2);
+            switch (actionCode) {
+                case '01' || '02' || '05' || '0a' || '0c' || '0d' || '0e':
+                    // Action codes where the entire string may be parsed to utf8
+                    msg += `${
+                        config.opReturn.memo[actionCode]
+                    }|${module.exports.hexOpReturnToUtf8(memoHexStr)}`;
+                    break;
+                default:
+                    // parse the rest of the string like a normal op_return utf8 string
+                    msg += `${
+                        Object.keys(config.opReturn.memo).includes(actionCode)
+                            ? config.opReturn.memo[actionCode]
+                            : ''
+                    }|${module.exports.hexOpReturnToUtf8(memoHexStr)}`;
+            }
+            return { app, msg };
+        }
     },
     prepareStringForTelegramHTML: function (string) {
         /*

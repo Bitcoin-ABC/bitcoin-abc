@@ -1,4 +1,5 @@
 const assert = require('assert');
+const config = require('../config');
 const {
     genesisBlock,
     etokenGenesisTx,
@@ -9,9 +10,11 @@ const {
     cashtabMsgMulti,
 } = require('./mocks/blocks');
 const { telegramHtmlStrings } = require('./mocks/templates');
+const memoOutputScripts = require('./mocks/memo');
 
 const {
     parseBlock,
+    parseMemoOutputScript,
     getBlockTgMessage,
     prepareStringForTelegramHTML,
 } = require('../parse');
@@ -103,5 +106,14 @@ describe('ecash-telegram-bot parse.js chronik parsing functions', function () {
             prepareStringForTelegramHTML(telegramHtmlStrings.noChangeExpected),
             telegramHtmlStrings.noChangeExpected,
         );
+    });
+    it(`parseMemoOutputScript correctly parses all tested memo actions in memo.js`, function () {
+        memoOutputScripts.map(memoTestObj => {
+            const { outputScript, parsed } = memoTestObj;
+            assert.deepEqual(parseMemoOutputScript(outputScript), {
+                app: config.opReturn.memo.app,
+                msg: parsed,
+            });
+        });
     });
 });
