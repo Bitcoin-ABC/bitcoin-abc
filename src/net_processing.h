@@ -10,8 +10,6 @@
 #include <sync.h>
 #include <validationinterface.h>
 
-extern RecursiveMutex cs_main;
-
 namespace avalanche {
 struct ProofId;
 }
