@@ -15,7 +15,6 @@ struct NodeContext;
 
 namespace chronik {
 
-static constexpr bool DEFAULT_ENABLED = false;
 static const std::vector<std::string> DEFAULT_BINDS = {"127.0.0.1", "::1"};
 
 // Registers Chronik indexer as ValidationInterface, listens to HTTP queries

@@ -115,6 +115,7 @@ using node::VerifyLoadedChainstate;
 
 static const bool DEFAULT_PROXYRANDOMIZE = true;
 static const bool DEFAULT_REST_ENABLE = false;
+static constexpr bool DEFAULT_CHRONIK = false;
 
 #ifdef WIN32
 // Win32 LevelDB doesn't use filedescriptors, and the ones used for accessing
@@ -627,7 +628,7 @@ void SetupServerArgs(NodeContext &node) {
         "-chronik",
         strprintf("Enable the Chronik indexer, which can be read via a "
                   "dedicated HTTP/Protobuf interface (default: %d)",
-                  chronik::DEFAULT_ENABLED),
+                  DEFAULT_CHRONIK),
         ArgsManager::ALLOW_BOOL, OptionsCategory::CHRONIK);
     argsman.AddArg(
         "-chronikbind=<addr>[:port]",
@@ -1772,7 +1773,7 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
         nLocalServices = ServiceFlags(nLocalServices | NODE_COMPACT_FILTERS);
     }
 
-    // if using block pruning, then disallow txindex and coinstatsindex
+    // if using block pruning, then disallow txindex, coinstatsindex and chronik
     if (args.GetIntArg("-prune", 0)) {
         if (args.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
             return InitError(_("Prune mode is incompatible with -txindex."));
@@ -1780,6 +1781,9 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
         if (args.GetBoolArg("-coinstatsindex", DEFAULT_COINSTATSINDEX)) {
             return InitError(
                 _("Prune mode is incompatible with -coinstatsindex."));
+        }
+        if (args.GetBoolArg("-chronik", DEFAULT_CHRONIK)) {
+            return InitError(_("Prune mode is incompatible with -chronik."));
         }
     }
 
@@ -2654,7 +2658,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
 
 #if ENABLE_CHRONIK
-    if (args.GetBoolArg("-chronik", chronik::DEFAULT_ENABLED)) {
+    if (args.GetBoolArg("-chronik", DEFAULT_CHRONIK)) {
         const bool fReindexChronik =
             fReindex || args.GetBoolArg("-chronikreindex", false);
         if (!chronik::Start(config, node, fReindexChronik)) {
