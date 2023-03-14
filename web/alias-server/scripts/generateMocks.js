@@ -23,9 +23,30 @@ async function generateMocks() {
         fs.mkdirSync(mocksDir);
     }
 
-    // confirmed txs stored in the database
-    // Get confirmedTxHistory already in db
+    // Initialize db
     const db = await initializeDb();
+
+    // Get the valid aliases already in the db
+    let validAliasesInDb;
+    try {
+        validAliasesInDb = await db
+            .collection(config.database.collections.validAliases)
+            .find()
+            .sort({ blockheight: 1 })
+            .project({ _id: 0 })
+            .toArray();
+        console.log(`${validAliasesInDb.length} valid aliases in database`);
+    } catch (error) {
+        console.log(`Error in determining validAliasesInDb`, error);
+    }
+
+    fs.writeFileSync(
+        `${mocksDir}/validAliasesInDb.json`,
+        JSON.stringify(validAliasesInDb, null, 2),
+        'utf-8',
+    );
+
+    // Get confirmedTxHistory already in db
     let confirmedTxHistoryInDb;
     try {
         confirmedTxHistoryInDb = await db

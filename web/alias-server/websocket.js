@@ -49,6 +49,36 @@ module.exports = {
                     ? log(`New block found: ${wsMsg.blockHash}`)
                     : log(`Checking for new aliases on startup`);
 
+                // Get the valid aliases already in the db
+                let validAliasesInDb;
+                try {
+                    validAliasesInDb = await db
+                        .collection(config.database.collections.validAliases)
+                        .find()
+                        .sort({ blockheight: 1 })
+                        .project({ _id: 0 })
+                        .toArray();
+                    log(`${validAliasesInDb.length} valid aliases in database`);
+                } catch (error) {
+                    log(`Error in determining validAliasesInDb`, error);
+                }
+
+                let mostRecentAlias;
+                let processedBlockheight;
+                // If you have aliases in the db, determine the most recently processed block
+                if (validAliasesInDb && validAliasesInDb.length > 0) {
+                    // The alias with the highest blockheight will be the last element
+                    mostRecentAlias =
+                        validAliasesInDb[validAliasesInDb.length - 1];
+
+                    processedBlockheight = mostRecentAlias.blockheight;
+                } else {
+                    // If nothing is in cache, get the full tx history
+                    processedBlockheight = 0;
+                }
+
+                log(`processedBlockheight: ${processedBlockheight}`);
+
                 // Get confirmedTxHistory already in db
                 let confirmedTxHistoryInDb;
                 try {
@@ -130,20 +160,6 @@ module.exports = {
                     getValidAliasRegistrations(allAliasTxs);
                 log(`${validAliasTxs.length} valid alias registrations`);
                 log(`${pendingAliasTxs.length} pending alias registrations`);
-
-                // Get the valid aliases already in the db
-                let validAliasesInDb;
-                try {
-                    validAliasesInDb = await db
-                        .collection(config.database.collections.validAliases)
-                        .find()
-                        .sort({ blockheight: 1 })
-                        .project({ _id: 0 })
-                        .toArray();
-                    log(`${validAliasesInDb.length} valid aliases in database`);
-                } catch (error) {
-                    log(`Error in determining validAliasesInDb`, error);
-                }
 
                 const validAliasTxsToBeAddedToDb =
                     getValidAliasTxsToBeAddedToDb(
