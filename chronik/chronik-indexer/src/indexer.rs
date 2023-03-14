@@ -11,10 +11,15 @@ use bitcoinsuite_core::block::BlockHash;
 use chronik_bridge::{ffi, util::expect_unique_ptr};
 use chronik_db::{
     db::{Db, WriteBatch},
-    io::{BlockHeight, BlockReader, BlockWriter, DbBlock},
+    io::{
+        BlockHeight, BlockReader, BlockWriter, DbBlock, MetadataReader,
+        MetadataWriter, SchemaVersion,
+    },
 };
 use chronik_util::{log, log_chronik};
 use thiserror::Error;
+
+const CURRENT_INDEXER_VERSION: SchemaVersion = 1;
 
 /// Params for setting up a [`ChronikIndexer`] instance.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -63,6 +68,37 @@ pub enum ChronikIndexerError {
         /// Higher height that exists
         exists: BlockHeight,
     },
+
+    /// Corrupted schema version
+    #[error(
+        "Corrupted schema version in the Chronik database, consider running \
+         -reindex/-chronikreindex"
+    )]
+    CorruptedSchemaVersion,
+
+    /// Missing schema version for non-empty database
+    #[error(
+        "Missing schema version in non-empty Chronik database, consider \
+         running -reindex/-chronikreindex"
+    )]
+    MissingSchemaVersion,
+
+    /// This Chronik instance is outdated
+    #[error(
+        "Chronik outdated: Chronik has version {}, but the database has \
+         version {0}. Upgrade your node to the appropriate version.",
+        CURRENT_INDEXER_VERSION
+    )]
+    ChronikOutdated(SchemaVersion),
+
+    /// Database is outdated
+    #[error(
+        "DB outdated: Chronik has version {}, but the database has version \
+         {0}. -reindex/-chronikreindex to reindex the database to the new \
+         version.",
+        CURRENT_INDEXER_VERSION
+    )]
+    DatabaseOutdated(SchemaVersion),
 }
 
 use self::ChronikIndexerError::*;
@@ -83,6 +119,7 @@ impl ChronikIndexer {
         }
         log_chronik!("Opening Chronik at {}\n", db_path.to_string_lossy());
         let db = Db::open(&db_path)?;
+        verify_schema_version(&db)?;
         Ok(ChronikIndexer { db })
     }
 
@@ -235,15 +272,50 @@ pub fn make_chronik_block(
     ChronikBlock { db_block }
 }
 
+fn verify_schema_version(db: &Db) -> Result<()> {
+    let metadata_reader = MetadataReader::new(db)?;
+    let metadata_writer = MetadataWriter::new(db)?;
+    let is_empty = db.is_db_empty()?;
+    match metadata_reader
+        .schema_version()
+        .wrap_err(CorruptedSchemaVersion)?
+    {
+        Some(schema_version) => {
+            assert!(!is_empty, "Empty DB can't have a schema version");
+            if schema_version > CURRENT_INDEXER_VERSION {
+                return Err(ChronikOutdated(schema_version).into());
+            }
+            if schema_version < CURRENT_INDEXER_VERSION {
+                return Err(DatabaseOutdated(schema_version).into());
+            }
+        }
+        None => {
+            if !is_empty {
+                return Err(MissingSchemaVersion.into());
+            }
+            let mut batch = WriteBatch::default();
+            metadata_writer
+                .update_schema_version(&mut batch, CURRENT_INDEXER_VERSION)?;
+            db.write_batch(batch)?;
+        }
+    }
+    log!("Chronik has version {CURRENT_INDEXER_VERSION}\n");
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use abc_rust_error::Result;
     use bitcoinsuite_core::block::BlockHash;
-    use chronik_db::io::{BlockReader, DbBlock};
+    use chronik_db::{
+        db::{Db, WriteBatch, CF_META},
+        io::{BlockReader, DbBlock, MetadataReader, MetadataWriter},
+    };
     use pretty_assertions::assert_eq;
 
     use crate::indexer::{
-        ChronikBlock, ChronikIndexer, ChronikIndexerError, ChronikIndexerParams,
+        ChronikBlock, ChronikIndexer, ChronikIndexerError,
+        ChronikIndexerParams, CURRENT_INDEXER_VERSION,
     };
 
     #[test]
@@ -304,6 +376,106 @@ mod tests {
             ..params
         })?;
         assert_eq!(BlockReader::new(&indexer.db)?.by_height(0)?, None);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_schema_version() -> Result<()> {
+        let dir = tempdir::TempDir::new("chronik-indexer--schema_version")?;
+        let chronik_path = dir.path().join("indexes").join("chronik");
+        let params = ChronikIndexerParams {
+            datadir_net: dir.path().to_path_buf(),
+            wipe_db: false,
+        };
+
+        // Setting up DB first time sets the schema version
+        ChronikIndexer::setup(params.clone())?;
+        {
+            let db = Db::open(&chronik_path)?;
+            assert_eq!(
+                MetadataReader::new(&db)?.schema_version()?,
+                Some(CURRENT_INDEXER_VERSION)
+            );
+        }
+        // Opening DB again works fine
+        ChronikIndexer::setup(params.clone())?;
+
+        // Override DB schema version to 0
+        {
+            let db = Db::open(&chronik_path)?;
+            let mut batch = WriteBatch::default();
+            MetadataWriter::new(&db)?.update_schema_version(&mut batch, 0)?;
+            db.write_batch(batch)?;
+        }
+        // -> DB too old
+        assert_eq!(
+            ChronikIndexer::setup(params.clone())
+                .unwrap_err()
+                .downcast::<ChronikIndexerError>()?,
+            ChronikIndexerError::DatabaseOutdated(0),
+        );
+
+        // Override DB schema version to CURRENT_INDEXER_VERSION + 1
+        {
+            let db = Db::open(&chronik_path)?;
+            let mut batch = WriteBatch::default();
+            MetadataWriter::new(&db)?.update_schema_version(
+                &mut batch,
+                CURRENT_INDEXER_VERSION + 1,
+            )?;
+            db.write_batch(batch)?;
+        }
+        // -> Chronik too old
+        assert_eq!(
+            ChronikIndexer::setup(params.clone())
+                .unwrap_err()
+                .downcast::<ChronikIndexerError>()?,
+            ChronikIndexerError::ChronikOutdated(CURRENT_INDEXER_VERSION + 1),
+        );
+
+        // Corrupt schema version
+        {
+            let db = Db::open(&chronik_path)?;
+            let cf_meta = db.cf(CF_META)?;
+            let mut batch = WriteBatch::default();
+            batch.put_cf(cf_meta, b"SCHEMA_VERSION", [0xff]);
+            db.write_batch(batch)?;
+        }
+        assert_eq!(
+            ChronikIndexer::setup(params)
+                .unwrap_err()
+                .downcast::<ChronikIndexerError>()?,
+            ChronikIndexerError::CorruptedSchemaVersion,
+        );
+
+        // New db path, but has existing data
+        let new_dir = dir.path().join("new");
+        let new_chronik_path = new_dir.join("indexes").join("chronik");
+        std::fs::create_dir_all(&new_chronik_path)?;
+        let new_params = ChronikIndexerParams {
+            datadir_net: new_dir,
+            wipe_db: false,
+        };
+        {
+            // new db with obscure field in meta
+            let db = Db::open(&new_chronik_path)?;
+            let mut batch = WriteBatch::default();
+            batch.put_cf(db.cf(CF_META)?, b"FOO", b"BAR");
+            db.write_batch(batch)?;
+        }
+        // Error: non-empty DB without schema version
+        assert_eq!(
+            ChronikIndexer::setup(new_params.clone())
+                .unwrap_err()
+                .downcast::<ChronikIndexerError>()?,
+            ChronikIndexerError::MissingSchemaVersion,
+        );
+        // with wipe it works
+        ChronikIndexer::setup(ChronikIndexerParams {
+            wipe_db: true,
+            ..new_params
+        })?;
 
         Ok(())
     }

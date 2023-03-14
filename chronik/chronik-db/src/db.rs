@@ -13,10 +13,13 @@ pub use rocksdb::WriteBatch;
 use rocksdb::{ColumnFamilyDescriptor, IteratorMode};
 use thiserror::Error;
 
-use crate::io::BlockWriter;
+use crate::io::{BlockWriter, MetadataWriter};
 
 // All column family names used by Chronik should be defined here
-pub(crate) const CF_BLK: &str = "blk";
+/// Column family name for the block data.
+pub const CF_BLK: &str = "blk";
+/// Column family name for db metadata.
+pub const CF_META: &str = "meta";
 
 pub(crate) type CF = rocksdb::ColumnFamily;
 
@@ -25,6 +28,7 @@ pub(crate) type CF = rocksdb::ColumnFamily;
 #[derive(Debug)]
 pub struct Db {
     db: rocksdb::DB,
+    cf_names: Vec<String>,
 }
 
 /// Errors indicating something went wrong with the database itself.
@@ -47,6 +51,7 @@ impl Db {
     pub fn open(path: impl AsRef<Path>) -> Result<Self> {
         let mut cfs = Vec::new();
         BlockWriter::add_cfs(&mut cfs);
+        MetadataWriter::add_cfs(&mut cfs);
         Self::open_with_cfs(path, cfs)
     }
 
@@ -55,9 +60,10 @@ impl Db {
         cfs: Vec<ColumnFamilyDescriptor>,
     ) -> Result<Self> {
         let db_options = Self::db_options();
+        let cf_names = cfs.iter().map(|cf| cf.name().to_string()).collect();
         let db = rocksdb::DB::open_cf_descriptors(&db_options, path, cfs)
             .map_err(RocksDb)?;
-        Ok(Db { db })
+        Ok(Db { db, cf_names })
     }
 
     fn db_options() -> rocksdb::Options {
@@ -81,7 +87,8 @@ impl Db {
         Ok(())
     }
 
-    pub(crate) fn cf(&self, name: &str) -> Result<&CF> {
+    /// Return a column family handle with the given name.
+    pub fn cf(&self, name: &str) -> Result<&CF> {
         Ok(self
             .db
             .cf_handle(name)
@@ -109,5 +116,20 @@ impl Db {
     pub fn write_batch(&self, write_batch: WriteBatch) -> Result<()> {
         self.db.write(write_batch).map_err(RocksDb)?;
         Ok(())
+    }
+
+    /// Whether any of the column families in the DB have any data.
+    ///
+    /// Note: RocksDB forbids not opening all column families, therefore, this
+    /// will always iter through all column families.
+    pub fn is_db_empty(&self) -> Result<bool> {
+        for cf_name in &self.cf_names {
+            let cf = self.cf(cf_name)?;
+            let mut cf_iter = self.db.full_iterator_cf(cf, IteratorMode::Start);
+            if cf_iter.next().is_some() {
+                return Ok(false);
+            }
+        }
+        Ok(true)
     }
 }
