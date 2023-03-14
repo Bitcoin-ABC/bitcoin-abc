@@ -1188,7 +1188,7 @@ bool CConnman::AttemptToEvictConnection() {
     {
         LOCK(cs_vNodes);
         for (const CNode *node : vNodes) {
-            if (node->HasPermission(NetPermissionFlags::PF_NOBAN)) {
+            if (node->HasPermission(NetPermissionFlags::NoBan)) {
                 continue;
             }
             if (!node->IsInboundConn()) {
@@ -1266,7 +1266,7 @@ void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
 
     const CAddress addr_bind = GetBindAddress(hSocket);
 
-    NetPermissionFlags permissionFlags = NetPermissionFlags::PF_NONE;
+    NetPermissionFlags permissionFlags = NetPermissionFlags::None;
     hListenSocket.AddSocketPermissionFlags(permissionFlags);
 
     CreateNodeFromAcceptedSocket(hSocket, permissionFlags, addr_bind, addr);
@@ -1281,21 +1281,19 @@ void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
 
     AddWhitelistPermissionFlags(permissionFlags, addr);
     if (NetPermissions::HasFlag(permissionFlags,
-                                NetPermissionFlags::PF_ISIMPLICIT)) {
+                                NetPermissionFlags::Implicit)) {
         NetPermissions::ClearFlag(permissionFlags,
-                                  NetPermissionFlags::PF_ISIMPLICIT);
+                                  NetPermissionFlags::Implicit);
         if (gArgs.GetBoolArg("-whitelistforcerelay",
                              DEFAULT_WHITELISTFORCERELAY)) {
             NetPermissions::AddFlag(permissionFlags,
-                                    NetPermissionFlags::PF_FORCERELAY);
+                                    NetPermissionFlags::ForceRelay);
         }
         if (gArgs.GetBoolArg("-whitelistrelay", DEFAULT_WHITELISTRELAY)) {
-            NetPermissions::AddFlag(permissionFlags,
-                                    NetPermissionFlags::PF_RELAY);
+            NetPermissions::AddFlag(permissionFlags, NetPermissionFlags::Relay);
         }
-        NetPermissions::AddFlag(permissionFlags,
-                                NetPermissionFlags::PF_MEMPOOL);
-        NetPermissions::AddFlag(permissionFlags, NetPermissionFlags::PF_NOBAN);
+        NetPermissions::AddFlag(permissionFlags, NetPermissionFlags::Mempool);
+        NetPermissions::AddFlag(permissionFlags, NetPermissionFlags::NoBan);
     }
 
     {
@@ -1328,8 +1326,7 @@ void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
 
     // Don't accept connections from banned peers.
     bool banned = m_banman && m_banman->IsBanned(addr);
-    if (!NetPermissions::HasFlag(permissionFlags,
-                                 NetPermissionFlags::PF_NOBAN) &&
+    if (!NetPermissions::HasFlag(permissionFlags, NetPermissionFlags::NoBan) &&
         banned) {
         LogPrint(BCLog::NET, "connection from %s dropped (banned)\n",
                  addr.ToString());
@@ -1340,8 +1337,7 @@ void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
     // Only accept connections from discouraged peers if our inbound slots
     // aren't (almost) full.
     bool discouraged = m_banman && m_banman->IsDiscouraged(addr);
-    if (!NetPermissions::HasFlag(permissionFlags,
-                                 NetPermissionFlags::PF_NOBAN) &&
+    if (!NetPermissions::HasFlag(permissionFlags, NetPermissionFlags::NoBan) &&
         nInbound + 1 >= nMaxInbound && discouraged) {
         LogPrint(BCLog::NET, "connection from %s dropped (discouraged)\n",
                  addr.ToString());
@@ -1370,7 +1366,7 @@ void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
 
     ServiceFlags nodeServices = nLocalServices;
     if (NetPermissions::HasFlag(permissionFlags,
-                                NetPermissionFlags::PF_BLOOMFILTER)) {
+                                NetPermissionFlags::BloomFilter)) {
         nodeServices = static_cast<ServiceFlags>(nodeServices | NODE_BLOOM);
     }
 
@@ -2695,7 +2691,7 @@ void CConnman::ThreadI2PAcceptIncoming() {
         }
 
         CreateNodeFromAcceptedSocket(
-            conn.sock->Release(), NetPermissionFlags::PF_NONE,
+            conn.sock->Release(), NetPermissionFlags::None,
             CAddress{conn.me, NODE_NONE}, CAddress{conn.peer, NODE_NONE});
     }
 }
@@ -2869,7 +2865,7 @@ bool CConnman::Bind(const CService &addr, unsigned int flags,
     }
 
     if (addr.IsRoutable() && fDiscover && !(flags & BF_DONT_ADVERTISE) &&
-        !NetPermissions::HasFlag(permissions, NetPermissionFlags::PF_NOBAN)) {
+        !NetPermissions::HasFlag(permissions, NetPermissionFlags::NoBan)) {
         AddLocal(addr, LOCAL_BIND);
     }
 
@@ -2880,7 +2876,7 @@ bool CConnman::InitBinds(const Options &options) {
     bool fBound = false;
     for (const auto &addrBind : options.vBinds) {
         fBound |= Bind(addrBind, (BF_EXPLICIT | BF_REPORT_ERROR),
-                       NetPermissionFlags::PF_NONE);
+                       NetPermissionFlags::None);
     }
     for (const auto &addrBind : options.vWhiteBinds) {
         fBound |= Bind(addrBind.m_service, (BF_EXPLICIT | BF_REPORT_ERROR),
@@ -2888,17 +2884,17 @@ bool CConnman::InitBinds(const Options &options) {
     }
     for (const auto &addr_bind : options.onion_binds) {
         fBound |= Bind(addr_bind, BF_EXPLICIT | BF_DONT_ADVERTISE,
-                       NetPermissionFlags::PF_NONE);
+                       NetPermissionFlags::None);
     }
     if (options.bind_on_any) {
         struct in_addr inaddr_any;
         inaddr_any.s_addr = htonl(INADDR_ANY);
         struct in6_addr inaddr6_any = IN6ADDR_ANY_INIT;
         fBound |= Bind(CService(inaddr6_any, GetListenPort()), BF_NONE,
-                       NetPermissionFlags::PF_NONE);
-        fBound |= Bind(CService(inaddr_any, GetListenPort()),
-                       !fBound ? BF_REPORT_ERROR : BF_NONE,
-                       NetPermissionFlags::PF_NONE);
+                       NetPermissionFlags::None);
+        fBound |=
+            Bind(CService(inaddr_any, GetListenPort()),
+                 !fBound ? BF_REPORT_ERROR : BF_NONE, NetPermissionFlags::None);
     }
     return fBound;
 }

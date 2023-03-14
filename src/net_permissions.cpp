@@ -29,13 +29,13 @@ namespace {
 // The parse the following format "perm1,perm2@xxxxxx"
 bool TryParsePermissionFlags(const std::string str, NetPermissionFlags &output,
                              size_t &readen, bilingual_str &error) {
-    NetPermissionFlags flags = NetPermissionFlags::PF_NONE;
+    NetPermissionFlags flags = NetPermissionFlags::None;
     const auto atSeparator = str.find('@');
 
     // if '@' is not found (ie, "xxxxx"), the caller should apply implicit
     // permissions
     if (atSeparator == std::string::npos) {
-        NetPermissions::AddFlag(flags, NetPermissionFlags::PF_ISIMPLICIT);
+        NetPermissions::AddFlag(flags, NetPermissionFlags::Implicit);
         readen = 0;
     }
     // else (ie, "perm1,perm2@xxxxx"), let's enumerate the permissions by
@@ -59,26 +59,24 @@ bool TryParsePermissionFlags(const std::string str, NetPermissionFlags &output,
             }
 
             if (permission == "bloomfilter" || permission == "bloom") {
-                NetPermissions::AddFlag(flags,
-                                        NetPermissionFlags::PF_BLOOMFILTER);
+                NetPermissions::AddFlag(flags, NetPermissionFlags::BloomFilter);
             } else if (permission == "noban") {
-                NetPermissions::AddFlag(flags, NetPermissionFlags::PF_NOBAN);
+                NetPermissions::AddFlag(flags, NetPermissionFlags::NoBan);
             } else if (permission == "forcerelay") {
-                NetPermissions::AddFlag(flags,
-                                        NetPermissionFlags::PF_FORCERELAY);
+                NetPermissions::AddFlag(flags, NetPermissionFlags::ForceRelay);
             } else if (permission == "mempool") {
-                NetPermissions::AddFlag(flags, NetPermissionFlags::PF_MEMPOOL);
+                NetPermissions::AddFlag(flags, NetPermissionFlags::Mempool);
             } else if (permission == "download") {
-                NetPermissions::AddFlag(flags, NetPermissionFlags::PF_DOWNLOAD);
+                NetPermissions::AddFlag(flags, NetPermissionFlags::Download);
             } else if (permission == "all") {
-                NetPermissions::AddFlag(flags, NetPermissionFlags::PF_ALL);
+                NetPermissions::AddFlag(flags, NetPermissionFlags::All);
             } else if (permission == "relay") {
-                NetPermissions::AddFlag(flags, NetPermissionFlags::PF_RELAY);
+                NetPermissions::AddFlag(flags, NetPermissionFlags::Relay);
             } else if (permission == "addr") {
-                NetPermissions::AddFlag(flags, NetPermissionFlags::PF_ADDR);
+                NetPermissions::AddFlag(flags, NetPermissionFlags::Addr);
             } else if (permission == "bypass_proof_request_limits") {
                 NetPermissions::AddFlag(
-                    flags, NetPermissionFlags::PF_BYPASS_PROOF_REQUEST_LIMITS);
+                    flags, NetPermissionFlags::BypassProofRequestLimits);
             } else if (permission.length() == 0) {
                 // Allow empty entries
             } else {
@@ -99,29 +97,29 @@ bool TryParsePermissionFlags(const std::string str, NetPermissionFlags &output,
 
 std::vector<std::string> NetPermissions::ToStrings(NetPermissionFlags flags) {
     std::vector<std::string> strings;
-    if (NetPermissions::HasFlag(flags, NetPermissionFlags::PF_BLOOMFILTER)) {
+    if (NetPermissions::HasFlag(flags, NetPermissionFlags::BloomFilter)) {
         strings.push_back("bloomfilter");
     }
-    if (NetPermissions::HasFlag(flags, NetPermissionFlags::PF_NOBAN)) {
+    if (NetPermissions::HasFlag(flags, NetPermissionFlags::NoBan)) {
         strings.push_back("noban");
     }
-    if (NetPermissions::HasFlag(flags, NetPermissionFlags::PF_FORCERELAY)) {
+    if (NetPermissions::HasFlag(flags, NetPermissionFlags::ForceRelay)) {
         strings.push_back("forcerelay");
     }
-    if (NetPermissions::HasFlag(flags, NetPermissionFlags::PF_RELAY)) {
+    if (NetPermissions::HasFlag(flags, NetPermissionFlags::Relay)) {
         strings.push_back("relay");
     }
-    if (NetPermissions::HasFlag(flags, NetPermissionFlags::PF_MEMPOOL)) {
+    if (NetPermissions::HasFlag(flags, NetPermissionFlags::Mempool)) {
         strings.push_back("mempool");
     }
-    if (NetPermissions::HasFlag(flags, NetPermissionFlags::PF_DOWNLOAD)) {
+    if (NetPermissions::HasFlag(flags, NetPermissionFlags::Download)) {
         strings.push_back("download");
     }
-    if (NetPermissions::HasFlag(flags, NetPermissionFlags::PF_ADDR)) {
+    if (NetPermissions::HasFlag(flags, NetPermissionFlags::Addr)) {
         strings.push_back("addr");
     }
-    if (NetPermissions::HasFlag(
-            flags, NetPermissionFlags::PF_BYPASS_PROOF_REQUEST_LIMITS)) {
+    if (NetPermissions::HasFlag(flags,
+                                NetPermissionFlags::BypassProofRequestLimits)) {
         strings.push_back("bypass_proof_request_limits");
     }
     return strings;

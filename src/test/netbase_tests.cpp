@@ -410,40 +410,38 @@ BOOST_AUTO_TEST_CASE(netpermissions_test) {
                                                   whitebindPermissions, error));
     BOOST_CHECK(error.empty());
     BOOST_CHECK_EQUAL(whitebindPermissions.m_flags,
-                      NetPermissionFlags::PF_ISIMPLICIT);
+                      NetPermissionFlags::Implicit);
     BOOST_CHECK(NetPermissions::HasFlag(whitebindPermissions.m_flags,
-                                        NetPermissionFlags::PF_ISIMPLICIT));
+                                        NetPermissionFlags::Implicit));
     NetPermissions::ClearFlag(whitebindPermissions.m_flags,
-                              NetPermissionFlags::PF_ISIMPLICIT);
+                              NetPermissionFlags::Implicit);
     BOOST_CHECK(!NetPermissions::HasFlag(whitebindPermissions.m_flags,
-                                         NetPermissionFlags::PF_ISIMPLICIT));
-    BOOST_CHECK_EQUAL(whitebindPermissions.m_flags,
-                      NetPermissionFlags::PF_NONE);
+                                         NetPermissionFlags::Implicit));
+    BOOST_CHECK_EQUAL(whitebindPermissions.m_flags, NetPermissionFlags::None);
     NetPermissions::AddFlag(whitebindPermissions.m_flags,
-                            NetPermissionFlags::PF_ISIMPLICIT);
+                            NetPermissionFlags::Implicit);
     BOOST_CHECK(NetPermissions::HasFlag(whitebindPermissions.m_flags,
-                                        NetPermissionFlags::PF_ISIMPLICIT));
+                                        NetPermissionFlags::Implicit));
 
     // Can set one permission
     BOOST_CHECK(NetWhitebindPermissions::TryParse("bloom@1.2.3.4:32",
                                                   whitebindPermissions, error));
     BOOST_CHECK_EQUAL(whitebindPermissions.m_flags,
-                      NetPermissionFlags::PF_BLOOMFILTER);
+                      NetPermissionFlags::BloomFilter);
     BOOST_CHECK(NetWhitebindPermissions::TryParse("@1.2.3.4:32",
                                                   whitebindPermissions, error));
-    BOOST_CHECK_EQUAL(whitebindPermissions.m_flags,
-                      NetPermissionFlags::PF_NONE);
+    BOOST_CHECK_EQUAL(whitebindPermissions.m_flags, NetPermissionFlags::None);
 
     NetWhitebindPermissions noban, noban_download, download_noban, download;
 
     // "noban" implies "download"
     BOOST_REQUIRE(
         NetWhitebindPermissions::TryParse("noban@1.2.3.4:32", noban, error));
-    BOOST_CHECK_EQUAL(noban.m_flags, NetPermissionFlags::PF_NOBAN);
-    BOOST_CHECK(NetPermissions::HasFlag(noban.m_flags,
-                                        NetPermissionFlags::PF_DOWNLOAD));
+    BOOST_CHECK_EQUAL(noban.m_flags, NetPermissionFlags::NoBan);
     BOOST_CHECK(
-        NetPermissions::HasFlag(noban.m_flags, NetPermissionFlags::PF_NOBAN));
+        NetPermissions::HasFlag(noban.m_flags, NetPermissionFlags::Download));
+    BOOST_CHECK(
+        NetPermissions::HasFlag(noban.m_flags, NetPermissionFlags::NoBan));
 
     // "noban,download" is equivalent to "noban"
     BOOST_REQUIRE(NetWhitebindPermissions::TryParse("noban,download@1.2.3.4:32",
@@ -458,31 +456,31 @@ BOOST_AUTO_TEST_CASE(netpermissions_test) {
     // "download" excludes (does not imply) "noban"
     BOOST_REQUIRE(NetWhitebindPermissions::TryParse("download@1.2.3.4:32",
                                                     download, error));
-    BOOST_CHECK_EQUAL(download.m_flags, NetPermissionFlags::PF_DOWNLOAD);
+    BOOST_CHECK_EQUAL(download.m_flags, NetPermissionFlags::Download);
     BOOST_CHECK(NetPermissions::HasFlag(download.m_flags,
-                                        NetPermissionFlags::PF_DOWNLOAD));
-    BOOST_CHECK(!NetPermissions::HasFlag(download.m_flags,
-                                         NetPermissionFlags::PF_NOBAN));
+                                        NetPermissionFlags::Download));
+    BOOST_CHECK(
+        !NetPermissions::HasFlag(download.m_flags, NetPermissionFlags::NoBan));
 
     // Happy path, can parse flags
     BOOST_CHECK(NetWhitebindPermissions::TryParse("bloom,forcerelay@1.2.3.4:32",
                                                   whitebindPermissions, error));
     // forcerelay should also activate the relay permission
     BOOST_CHECK_EQUAL(whitebindPermissions.m_flags,
-                      NetPermissionFlags::PF_BLOOMFILTER |
-                          NetPermissionFlags::PF_FORCERELAY |
-                          NetPermissionFlags::PF_RELAY);
+                      NetPermissionFlags::BloomFilter |
+                          NetPermissionFlags::ForceRelay |
+                          NetPermissionFlags::Relay);
     BOOST_CHECK(NetWhitebindPermissions::TryParse(
         "bloom,relay,noban@1.2.3.4:32", whitebindPermissions, error));
     BOOST_CHECK_EQUAL(whitebindPermissions.m_flags,
-                      NetPermissionFlags::PF_BLOOMFILTER |
-                          NetPermissionFlags::PF_RELAY |
-                          NetPermissionFlags::PF_NOBAN);
+                      NetPermissionFlags::BloomFilter |
+                          NetPermissionFlags::Relay |
+                          NetPermissionFlags::NoBan);
     BOOST_CHECK(NetWhitebindPermissions::TryParse(
         "bloom,forcerelay,noban@1.2.3.4:32", whitebindPermissions, error));
     BOOST_CHECK(NetWhitebindPermissions::TryParse("all@1.2.3.4:32",
                                                   whitebindPermissions, error));
-    BOOST_CHECK_EQUAL(whitebindPermissions.m_flags, NetPermissionFlags::PF_ALL);
+    BOOST_CHECK_EQUAL(whitebindPermissions.m_flags, NetPermissionFlags::All);
 
     // Allow dups
     BOOST_CHECK(NetWhitebindPermissions::TryParse(
@@ -490,24 +488,22 @@ BOOST_AUTO_TEST_CASE(netpermissions_test) {
     // "noban" implies "download"
     BOOST_CHECK_EQUAL(
         whitebindPermissions.m_flags,
-        NetPermissionFlags::PF_BLOOMFILTER | NetPermissionFlags::PF_RELAY |
-            NetPermissionFlags::PF_NOBAN | NetPermissionFlags::PF_DOWNLOAD);
+        NetPermissionFlags::BloomFilter | NetPermissionFlags::Relay |
+            NetPermissionFlags::NoBan | NetPermissionFlags::Download);
 
     // Allow empty
     BOOST_CHECK(NetWhitebindPermissions::TryParse(
         "bloom,relay,,noban@1.2.3.4:32", whitebindPermissions, error));
     BOOST_CHECK_EQUAL(whitebindPermissions.m_flags,
-                      NetPermissionFlags::PF_BLOOMFILTER |
-                          NetPermissionFlags::PF_RELAY |
-                          NetPermissionFlags::PF_NOBAN);
+                      NetPermissionFlags::BloomFilter |
+                          NetPermissionFlags::Relay |
+                          NetPermissionFlags::NoBan);
     BOOST_CHECK(NetWhitebindPermissions::TryParse(",@1.2.3.4:32",
                                                   whitebindPermissions, error));
-    BOOST_CHECK_EQUAL(whitebindPermissions.m_flags,
-                      NetPermissionFlags::PF_NONE);
+    BOOST_CHECK_EQUAL(whitebindPermissions.m_flags, NetPermissionFlags::None);
     BOOST_CHECK(NetWhitebindPermissions::TryParse(",,@1.2.3.4:32",
                                                   whitebindPermissions, error));
-    BOOST_CHECK_EQUAL(whitebindPermissions.m_flags,
-                      NetPermissionFlags::PF_NONE);
+    BOOST_CHECK_EQUAL(whitebindPermissions.m_flags, NetPermissionFlags::None);
 
     // Detect invalid flag
     BOOST_CHECK(!NetWhitebindPermissions::TryParse(
@@ -525,26 +521,25 @@ BOOST_AUTO_TEST_CASE(netpermissions_test) {
     // Happy path for whitelist parsing
     BOOST_CHECK(NetWhitelistPermissions::TryParse("noban@1.2.3.4",
                                                   whitelistPermissions, error));
-    BOOST_CHECK_EQUAL(whitelistPermissions.m_flags,
-                      NetPermissionFlags::PF_NOBAN);
+    BOOST_CHECK_EQUAL(whitelistPermissions.m_flags, NetPermissionFlags::NoBan);
     BOOST_CHECK(NetPermissions::HasFlag(whitelistPermissions.m_flags,
-                                        NetPermissionFlags::PF_NOBAN));
+                                        NetPermissionFlags::NoBan));
 
     BOOST_CHECK(NetWhitelistPermissions::TryParse(
         "bloom,forcerelay,noban,relay,bypass_proof_request_limits@1.2.3.4/32",
         whitelistPermissions, error));
     BOOST_CHECK_EQUAL(
         whitelistPermissions.m_flags,
-        NetPermissionFlags::PF_BLOOMFILTER | NetPermissionFlags::PF_FORCERELAY |
-            NetPermissionFlags::PF_NOBAN | NetPermissionFlags::PF_RELAY |
-            NetPermissionFlags::PF_BYPASS_PROOF_REQUEST_LIMITS);
+        NetPermissionFlags::BloomFilter | NetPermissionFlags::ForceRelay |
+            NetPermissionFlags::NoBan | NetPermissionFlags::Relay |
+            NetPermissionFlags::BypassProofRequestLimits);
     BOOST_CHECK(error.empty());
     BOOST_CHECK_EQUAL(whitelistPermissions.m_subnet.ToString(), "1.2.3.4/32");
     BOOST_CHECK(NetWhitelistPermissions::TryParse(
         "bloom,forcerelay,noban,relay,mempool@1.2.3.4/32", whitelistPermissions,
         error));
 
-    const auto strings = NetPermissions::ToStrings(NetPermissionFlags::PF_ALL);
+    const auto strings = NetPermissions::ToStrings(NetPermissionFlags::All);
     BOOST_CHECK_EQUAL(strings.size(), 8U);
     BOOST_CHECK(std::find(strings.begin(), strings.end(), "bloomfilter") !=
                 strings.end());

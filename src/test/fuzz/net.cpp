@@ -126,13 +126,10 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     const NetPermissionFlags net_permission_flags =
         fuzzed_data_provider.ConsumeBool()
             ? fuzzed_data_provider.PickValueInArray<NetPermissionFlags>(
-                  {NetPermissionFlags::PF_NONE,
-                   NetPermissionFlags::PF_BLOOMFILTER,
-                   NetPermissionFlags::PF_RELAY,
-                   NetPermissionFlags::PF_FORCERELAY,
-                   NetPermissionFlags::PF_NOBAN, NetPermissionFlags::PF_MEMPOOL,
-                   NetPermissionFlags::PF_ISIMPLICIT,
-                   NetPermissionFlags::PF_ALL})
+                  {NetPermissionFlags::None, NetPermissionFlags::BloomFilter,
+                   NetPermissionFlags::Relay, NetPermissionFlags::ForceRelay,
+                   NetPermissionFlags::NoBan, NetPermissionFlags::Mempool,
+                   NetPermissionFlags::Implicit, NetPermissionFlags::All})
             : static_cast<NetPermissionFlags>(
                   fuzzed_data_provider.ConsumeIntegral<uint32_t>());
     (void)node.HasPermission(net_permission_flags);
