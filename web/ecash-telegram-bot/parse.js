@@ -117,6 +117,12 @@ Assumptions
                         outputScript.slice(12),
                     );
                     break;
+                case 'Alias':
+                    // For an Alias Registration, the rest of the string will be parsed as an OP_RETURN msg
+                    msg = module.exports.hexOpReturnToUtf8(
+                        outputScript.slice(12),
+                    );
+                    break;
                 case 'unknown':
                     // Parse the whole string less the 6a prefix, so we can see the unknown app prefix
                     msg = module.exports.hexOpReturnToUtf8(

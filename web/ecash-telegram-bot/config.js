@@ -22,6 +22,7 @@ module.exports = {
         opPushDataOne: '4c',
         appPrefixes: {
             '00746162': 'Cashtab Msg',
+            '2e786563': 'Alias',
         },
         memo: {
             'prefix': '026d',

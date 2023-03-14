@@ -10098,8 +10098,8 @@ module.exports = {
                     isGenesisTx: false,
                     genesisInfo: false,
                     opReturnInfo: {
-                        app: 'unknown app',
-                        msg: '.xec|12345',
+                        app: 'Alias',
+                        msg: '12345',
                     },
                 },
                 {
@@ -10139,7 +10139,7 @@ module.exports = {
                 },
             ],
         },
-        tgHtml: '<a href="https://explorer.e.cash/block/00000000000000001239831f90580c859ec174316e91961cf0e8cde57c0d3acb">782665</a> | 43 txs | ViaBTC\n\n29 eToken txs\n\nThis block created 2 new eTokens:\n\n<a href="https://explorer.e.cash/tx/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109">BearNip</a> (BEAR) <a href="https://cashtab.com/">[doc]</a>\n<a href="https://explorer.e.cash/tx/79c5a1cec698350dd93f645fcae8d6ff3902b7cdc582839dfface3cb0c83d823">eCash Herald</a> (TRIB) <a href="https://cashtab.com/">[doc]</a>\n\nThis block contained OP_RETURN msgs:\n\n<a href="https://explorer.e.cash/tx/28f3ec1f134dc8ea2e37a0645774fa2aa19e0bc2871b6edcc7e99cd86d77b1b6">memo:</a> Reply to memo|�V��iM�j�t[P\u001c\u000e����J\u0018_�z7�\b�k\u0005u\n|From what I\'m gathering, it seems that the media went from questioning authority to doing their bidding as a collective NPC hivemind!\n<a href="https://explorer.e.cash/tx/ec659dfb1c2ea784fd3d4ec6616f738293a5be631c0f7d09258558e64b49d9e6">unknown app:</a> .xec|12345',
+        tgHtml: '<a href="https://explorer.e.cash/block/00000000000000001239831f90580c859ec174316e91961cf0e8cde57c0d3acb">782665</a> | 43 txs | ViaBTC\n\n29 eToken txs\n\nThis block created 2 new eTokens:\n\n<a href="https://explorer.e.cash/tx/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109">BearNip</a> (BEAR) <a href="https://cashtab.com/">[doc]</a>\n<a href="https://explorer.e.cash/tx/79c5a1cec698350dd93f645fcae8d6ff3902b7cdc582839dfface3cb0c83d823">eCash Herald</a> (TRIB) <a href="https://cashtab.com/">[doc]</a>\n\nThis block contained OP_RETURN msgs:\n\n<a href="https://explorer.e.cash/tx/28f3ec1f134dc8ea2e37a0645774fa2aa19e0bc2871b6edcc7e99cd86d77b1b6">memo:</a> Reply to memo|�V��iM�j�t[P\u001c\u000e����J\u0018_�z7�\b�k\u0005u\n|From what I\'m gathering, it seems that the media went from questioning authority to doing their bidding as a collective NPC hivemind!\n<a href="https://explorer.e.cash/tx/ec659dfb1c2ea784fd3d4ec6616f738293a5be631c0f7d09258558e64b49d9e6">Alias:</a> 12345',
     },
     buxTxs: {
         chronikData: {
@@ -10322,6 +10322,10 @@ module.exports = {
                             slpToken: {
                                 amount: '996918',
                                 isMintBaton: false,
+                            },
+                            spentBy: {
+                                txid: 'f490c4dd2b2a7cf14a04af6efaba9851cd233e753e239ff021296aae4b71ad88',
+                                outIdx: 3,
                             },
                         },
                     ],
@@ -12406,6 +12410,10 @@ module.exports = {
                                 amount: '44',
                                 isMintBaton: false,
                             },
+                            spentBy: {
+                                txid: '39345befc6120e29ad564c8f9db734ecf3c7582aa8163db445cb7f29c0057c49',
+                                outIdx: 0,
+                            },
                         },
                         {
                             value: '546',
@@ -12490,6 +12498,10 @@ module.exports = {
                             slpToken: {
                                 amount: '10550',
                                 isMintBaton: false,
+                            },
+                            spentBy: {
+                                txid: '39345befc6120e29ad564c8f9db734ecf3c7582aa8163db445cb7f29c0057c49',
+                                outIdx: 1,
                             },
                         },
                     ],
