@@ -65,6 +65,7 @@ fn try_setup_chronik(
     let bridge = expect_unique_ptr("make_bridge", &bridge);
     let mut indexer = ChronikIndexer::setup(ChronikIndexerParams {
         datadir_net: params.datadir_net.into(),
+        wipe_db: params.wipe_db,
     })?;
     indexer.resync_indexer(bridge)?;
     let indexer = Arc::new(RwLock::new(indexer));

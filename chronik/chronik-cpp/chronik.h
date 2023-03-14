@@ -19,7 +19,7 @@ static constexpr bool DEFAULT_ENABLED = false;
 static const std::vector<std::string> DEFAULT_BINDS = {"127.0.0.1", "::1"};
 
 // Registers Chronik indexer as ValidationInterface, listens to HTTP queries
-bool Start(const Config &config, const node::NodeContext &node);
+bool Start(const Config &config, const node::NodeContext &node, bool fWipe);
 
 // Unregisters Chronik indexer as ValidationInterface, stops the HTTP server
 void Stop();

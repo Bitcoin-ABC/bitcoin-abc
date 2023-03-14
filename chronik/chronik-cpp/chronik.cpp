@@ -21,7 +21,7 @@ template <typename T, typename C> rust::Vec<T> ToRustVec(const C &container) {
     return vec;
 }
 
-bool Start(const Config &config, const node::NodeContext &node) {
+bool Start(const Config &config, const node::NodeContext &node, bool fWipe) {
     return chronik_bridge::setup_chronik(
         {
             .datadir_net = gArgs.GetDataDirNet().u8string(),
@@ -29,6 +29,7 @@ bool Start(const Config &config, const node::NodeContext &node) {
                                                  ? gArgs.GetArgs("-chronikbind")
                                                  : DEFAULT_BINDS),
             .default_port = BaseParams().ChronikPort(),
+            .wipe_db = fWipe,
         },
         config, node);
 }

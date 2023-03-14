@@ -110,6 +110,20 @@ class ChronikResyncTest(BitcoinTestFramework):
         node.stop_node()
         node.assert_start_raises_init_error(["-chronik"], init_error_msg)
 
+        # Reindexing with -chronik now works, as it wipes the Chronik data
+        with node.assert_debug_log(["Wiping Chronik at "]):
+            self.restart_node(0, ['-chronik', '-reindex'])
+        assert_equal(query_block(0).status, 200)
+        assert_equal(query_block(1).status, 404)
+
+        # Generate 100 blocks without chronik
+        self.restart_node(0, [])
+        self.generatetoaddress(node, 100, ADDRESS_ECREG_P2SH_OP_TRUE)
+
+        # Reindexing indexes 100 blocks
+        self.restart_node(0, ['-chronik', '-reindex'])
+        assert_equal(query_block(100).status, 200)
+
 
 if __name__ == '__main__':
     ChronikResyncTest().main()

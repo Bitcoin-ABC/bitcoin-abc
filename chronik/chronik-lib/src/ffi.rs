@@ -20,6 +20,8 @@ mod ffi_inner {
         pub hosts: Vec<String>,
         /// Default port for `hosts` if only an IP address is given
         pub default_port: u16,
+        /// Whether to clear the DB before proceeding, e.g. when reindexing
+        pub wipe_db: bool,
     }
 
     extern "Rust" {

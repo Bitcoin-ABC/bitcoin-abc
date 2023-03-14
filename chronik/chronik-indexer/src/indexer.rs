@@ -21,6 +21,8 @@ use thiserror::Error;
 pub struct ChronikIndexerParams {
     /// Folder where the node stores its data, net-dependent.
     pub datadir_net: PathBuf,
+    /// Whether to clear the DB before opening the DB, e.g. when reindexing.
+    pub wipe_db: bool,
 }
 
 /// Struct for indexing blocks and txs. Maintains db handles and mempool.
@@ -74,6 +76,10 @@ impl ChronikIndexer {
             })?;
         }
         let db_path = indexes_path.join("chronik");
+        if params.wipe_db {
+            log!("Wiping Chronik at {}\n", db_path.to_string_lossy());
+            Db::destroy(&db_path)?;
+        }
         log_chronik!("Opening Chronik at {}\n", db_path.to_string_lossy());
         let db = Db::open(&db_path)?;
         Ok(ChronikIndexer { db })
@@ -245,6 +251,7 @@ mod tests {
         let datadir_net = tempdir.path().join("regtest");
         let params = ChronikIndexerParams {
             datadir_net: datadir_net.clone(),
+            wipe_db: false,
         };
         // regtest folder doesn't exist yet -> error
         assert_eq!(
@@ -258,7 +265,7 @@ mod tests {
 
         // create regtest folder, setup will work now
         std::fs::create_dir(&datadir_net)?;
-        let mut indexer = ChronikIndexer::setup(params)?;
+        let mut indexer = ChronikIndexer::setup(params.clone())?;
         // indexes and indexes/chronik folder now exist
         assert!(datadir_net.join("indexes").exists());
         assert!(datadir_net.join("indexes").join("chronik").exists());
@@ -285,7 +292,16 @@ mod tests {
         );
 
         // Remove block again
-        indexer.handle_block_disconnected(block)?;
+        indexer.handle_block_disconnected(block.clone())?;
+        assert_eq!(BlockReader::new(&indexer.db)?.by_height(0)?, None);
+
+        // Add block then wipe, block not there
+        indexer.handle_block_connected(block)?;
+        std::mem::drop(indexer);
+        let indexer = ChronikIndexer::setup(ChronikIndexerParams {
+            wipe_db: true,
+            ..params
+        })?;
         assert_eq!(BlockReader::new(&indexer.db)?.by_height(0)?, None);
 
         Ok(())

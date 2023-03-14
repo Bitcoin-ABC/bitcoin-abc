@@ -2651,7 +2651,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
 #if ENABLE_CHRONIK
     if (args.GetBoolArg("-chronik", chronik::DEFAULT_ENABLED)) {
-        if (!chronik::Start(config, node)) {
+        if (!chronik::Start(config, node, fReindex)) {
             return false;
         }
     }

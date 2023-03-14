@@ -54,12 +54,31 @@ impl Db {
         path: impl AsRef<Path>,
         cfs: Vec<ColumnFamilyDescriptor>,
     ) -> Result<Self> {
-        let mut db_options = rocksdb::Options::default();
-        db_options.create_if_missing(true);
-        db_options.create_missing_column_families(true);
+        let db_options = Self::db_options();
         let db = rocksdb::DB::open_cf_descriptors(&db_options, path, cfs)
             .map_err(RocksDb)?;
         Ok(Db { db })
+    }
+
+    fn db_options() -> rocksdb::Options {
+        let mut db_options = rocksdb::Options::default();
+        db_options.create_if_missing(true);
+        db_options.create_missing_column_families(true);
+        db_options
+    }
+
+    /// Destroy the DB, i.e. delete all it's associated files.
+    ///
+    /// According to the RocksDB docs, this differs from removing the dir:
+    /// DestroyDB() will take care of the case where the RocksDB database is
+    /// stored in multiple directories. For instance, a single DB can be
+    /// configured to store its data in multiple directories by specifying
+    /// different paths to DBOptions::db_paths, DBOptions::db_log_dir, and
+    /// DBOptions::wal_dir.
+    pub fn destroy(path: impl AsRef<Path>) -> Result<()> {
+        let db_options = Self::db_options();
+        rocksdb::DB::destroy(&db_options, path).map_err(RocksDb)?;
+        Ok(())
     }
 
     pub(crate) fn cf(&self, name: &str) -> Result<&CF> {
