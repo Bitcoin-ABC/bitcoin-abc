@@ -98,8 +98,8 @@ class ChronikResyncTest(BitcoinTestFramework):
         # It needs the node's block data to undo the stale blocks.
         init_error_msg = (
             f"Error: Cannot rewind Chronik, it contains block {block_hashes[149]} " +
-            "that the node doesn't have. You may need to -reindex, or delete " +
-            "indexes/chronik and restart"
+            "that the node doesn't have. You may need to use -reindex/" +
+            "-chronikreindex, or delete indexes/chronik and restart"
         )
         node.assert_start_raises_init_error(["-chronik"], init_error_msg)
 
@@ -123,6 +123,13 @@ class ChronikResyncTest(BitcoinTestFramework):
         # Reindexing indexes 100 blocks
         self.restart_node(0, ['-chronik', '-reindex'])
         assert_equal(query_block(100).status, 200)
+
+        # Test -chronikreindex
+        with node.assert_debug_log(["Wiping Chronik at "]):
+            self.restart_node(0, ['-chronik', '-chronikreindex'])
+        assert_equal(query_block(0).status, 200)
+        assert_equal(query_block(100).status, 200)
+        assert_equal(query_block(101).status, 404)
 
 
 if __name__ == '__main__':

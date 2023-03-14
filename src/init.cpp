@@ -642,6 +642,10 @@ void SetupServerArgs(NodeContext &node) {
             regtestBaseParams->ChronikPort()),
         ArgsManager::ALLOW_STRING | ArgsManager::NETWORK_ONLY,
         OptionsCategory::CHRONIK);
+    argsman.AddArg("-chronikreindex",
+                   "Reindex the Chronik indexer from genesis, but leave the "
+                   "other indexes untouched",
+                   ArgsManager::ALLOW_BOOL, OptionsCategory::CHRONIK);
 #endif
     argsman.AddArg(
         "-blockfilterindex=<type>",
@@ -2651,7 +2655,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
 #if ENABLE_CHRONIK
     if (args.GetBoolArg("-chronik", chronik::DEFAULT_ENABLED)) {
-        if (!chronik::Start(config, node, fReindex)) {
+        const bool fReindexChronik =
+            fReindex || args.GetBoolArg("-chronikreindex", false);
+        if (!chronik::Start(config, node, fReindexChronik)) {
             return false;
         }
     }

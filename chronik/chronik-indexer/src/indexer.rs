@@ -48,7 +48,8 @@ pub enum ChronikIndexerError {
     /// Cannot rewind blocks that bitcoind doesn't have
     #[error(
         "Cannot rewind Chronik, it contains block {0} that the node doesn't \
-         have. You may need to -reindex, or delete indexes/chronik and restart"
+         have. You may need to use -reindex/-chronikreindex, or delete \
+         indexes/chronik and restart"
     )]
     CannotRewindChronik(BlockHash),
 
