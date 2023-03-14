@@ -9,6 +9,7 @@ module.exports = {
         },
         connectionUrl: 'mongodb://localhost:27017',
     },
+    unconfirmedBlockheight: 100000000,
     express: { port: 5000 },
     aliasConstants: {
         registrationHash160: '638568e36d0b5d7d49a6e99854caa27d9772b093',

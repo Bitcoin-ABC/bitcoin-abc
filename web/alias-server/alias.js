@@ -112,7 +112,9 @@ module.exports = {
             // setting it high instead of zero because it's important we sort aliases by blockheight
             // for sortAliasTxsByTxidAndBlockheight function
             blockheight:
-                aliasTx && aliasTx.block ? aliasTx.block.height : 100000000,
+                aliasTx && aliasTx.block
+                    ? aliasTx.block.height
+                    : config.unconfirmedBlockheight,
         };
     },
     sortAliasTxsByTxidAndBlockheight: function (unsortedAliasTxs) {

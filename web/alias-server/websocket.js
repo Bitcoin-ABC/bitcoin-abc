@@ -1,7 +1,7 @@
 const config = require('./config');
 const log = require('./log');
 const { getAllAliasTxs, getValidAliasRegistrations } = require('./alias');
-const { getAllTxHistory } = require('./chronik');
+const { getUnprocessedTxHistory, getAllTxHistory } = require('./chronik');
 const {
     getValidAliasTxsToBeAddedToDb,
     getConfirmedTxsToBeAddedToDb,
@@ -107,6 +107,19 @@ module.exports = {
                         : 0;
 
                 log(`processedTxCount`, processedTxCount);
+
+                const unprocessedTxs = await getUnprocessedTxHistory(
+                    config.aliasConstants.registrationHash160,
+                    processedBlockheight,
+                    processedTxCount,
+                );
+
+                // Debug logging for unprocessed txs
+
+                log(`${unprocessedTxs.length} unprocessed transactions`);
+                for (let i = 0; i < unprocessedTxs.length; i += 1) {
+                    log(`Unprocessed tx: ${unprocessedTxs[i].txid}`);
+                }
 
                 const aliasTxHistory = await getAllTxHistory(
                     config.aliasConstants.registrationHash160,
