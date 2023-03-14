@@ -100,6 +100,14 @@ module.exports = {
                     confirmedTxHistoryInDb = [];
                 }
 
+                // Determine the number of transactions you have seen
+                const processedTxCount =
+                    confirmedTxHistoryInDb && confirmedTxHistoryInDb.length
+                        ? confirmedTxHistoryInDb.length
+                        : 0;
+
+                log(`processedTxCount`, processedTxCount);
+
                 const aliasTxHistory = await getAllTxHistory(
                     config.aliasConstants.registrationHash160,
                 );
