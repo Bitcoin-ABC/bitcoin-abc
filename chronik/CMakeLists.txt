@@ -27,6 +27,8 @@ find_program_or_fail(RUSTDOC_EXECUTABLE rustdoc
     PATHS "${RUST_BIN_DIR}"
 )
 
+set(CHRONIK_CARGO_FLAGS --locked)
+
 function(add_cargo_custom_target TARGET)
     add_custom_target(${TARGET}
     COMMAND
@@ -36,6 +38,7 @@ function(add_cargo_custom_target TARGET)
             CARGO_BUILD_RUSTC="$<TARGET_FILE:Rust::Rustc>"
             CARGO_BUILD_RUSTDOC="${RUSTDOC_EXECUTABLE}"
         "$<TARGET_FILE:Rust::Cargo>"
+        ${CHRONIK_CARGO_FLAGS}
         ${ARGN}
     WORKING_DIRECTORY
         "${CMAKE_SOURCE_DIR}"
@@ -75,7 +78,10 @@ add_crate_test_targets(bitcoinsuite)
 add_crate_test_targets(chronik)
 
 # Compile Rust, generates chronik-lib-static
-corrosion_import_crate(MANIFEST_PATH "chronik-lib/Cargo.toml")
+corrosion_import_crate(
+    MANIFEST_PATH "chronik-lib/Cargo.toml"
+    FLAGS ${CHRONIK_CARGO_FLAGS}
+)
 
 # cxx crate generates some source files at this location
 set(CXXBRIDGE_GENERATED_FOLDER
