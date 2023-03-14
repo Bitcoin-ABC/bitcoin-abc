@@ -835,7 +835,7 @@ private:
     //! service advertisements.
     const ServiceFlags nLocalServices;
 
-    NetPermissionFlags m_permissionFlags{PF_NONE};
+    NetPermissionFlags m_permissionFlags{NetPermissionFlags::PF_NONE};
     // Used only by SocketHandler thread
     std::list<CNetMessage> vRecvMsg;
 

@@ -1311,7 +1311,7 @@ void RPCConsole::updateDetailWidget() {
                                                          : tr("Outbound"));
     ui->peerNetwork->setText(
         GUIUtil::NetworkToQString(stats->nodeStats.m_network));
-    if (stats->nodeStats.m_permissionFlags == PF_NONE) {
+    if (stats->nodeStats.m_permissionFlags == NetPermissionFlags::PF_NONE) {
         ui->peerPermissions->setText(tr("N/A"));
     } else {
         QStringList permissions;
