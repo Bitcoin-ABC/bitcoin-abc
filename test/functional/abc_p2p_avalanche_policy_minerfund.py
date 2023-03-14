@@ -31,6 +31,7 @@ class AvalancheMinerFundTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
+        self.noban_tx_relay = True
         self.extra_args = [
             [
                 "-enableminerfund",
@@ -39,7 +40,6 @@ class AvalancheMinerFundTest(BitcoinTestFramework):
                 "-avacooldown=0",
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
-                "-whitelist=noban@127.0.0.1",
             ],
         ]
 

@@ -97,7 +97,7 @@ class ZMQTestSetupBlock:
 class ZMQTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
-        self.extra_args = [["-whitelist=noban@127.0.0.1"]] * self.num_nodes
+        self.noban_tx_relay = True
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_py3_zmq()
@@ -126,8 +126,7 @@ class ZMQTest(BitcoinTestFramework):
 
         self.restart_node(
             0,
-            self.extra_args[0]
-            + [f"-zmqpub{topic}={address}" for topic, address in services],
+            [f"-zmqpub{topic}={address}" for topic, address in services],
         )
 
         for i, sub in enumerate(subscribers):

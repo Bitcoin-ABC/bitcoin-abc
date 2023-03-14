@@ -19,12 +19,13 @@ class CTORMiningTest(BitcoinTestFramework):
         # it errors out if it is not connected to other nodes
         self.num_nodes = 2
         self.setup_clean_chain = True
+        self.noban_tx_relay = True
         self.block_heights = {}
         self.tip = None
         self.blocks = {}
         self.mocktime = int(time.time()) - 600 * 100
 
-        extra_arg = ["-spendzeroconfchange=0", "-whitelist=noban@127.0.0.1"]
+        extra_arg = ["-spendzeroconfchange=0"]
         self.extra_args = [extra_arg, extra_arg]
 
     def skip_test_if_missing_module(self):

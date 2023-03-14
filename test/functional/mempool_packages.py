@@ -14,9 +14,8 @@ MAX_ANCESTORS = 50
 class MempoolPackagesTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
-        self.extra_args = [
-            ["-maxorphantx=1000", "-whitelist=noban@127.0.0.1"]
-        ] * self.num_nodes
+        self.noban_tx_relay = True
+        self.extra_args = [["-maxorphantx=1000"]] * self.num_nodes
 
     def run_test(self):
         self.wallet = MiniWallet(self.nodes[0])

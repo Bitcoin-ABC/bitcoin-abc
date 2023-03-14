@@ -13,6 +13,7 @@ class WalletGroupTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 5
+        self.noban_tx_relay = True
         self.extra_args = [
             [],
             [],
@@ -24,9 +25,6 @@ class WalletGroupTest(BitcoinTestFramework):
             ["-maxapsfee=2.93"],
             ["-maxapsfee=2.94"],
         ]
-        # whitelist peers to speed up tx relay / mempool sync
-        for args in self.extra_args:
-            args.append("-whitelist=noban@127.0.0.1")
 
         self.rpc_timeout = 480
         self.supports_cli = False

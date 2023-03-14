@@ -48,12 +48,12 @@ class ReplayProtectionTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.setup_clean_chain = True
+        self.noban_tx_relay = True
         self.block_heights = {}
         self.tip = None
         self.blocks = {}
         self.extra_args = [
             [
-                "-whitelist=noban@127.0.0.1",
                 f"-replayprotectionactivationtime={REPLAY_PROTECTION_START_TIME}",
                 "-acceptnonstdtxn=1",
             ]

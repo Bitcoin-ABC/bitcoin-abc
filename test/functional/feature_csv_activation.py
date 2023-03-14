@@ -91,7 +91,7 @@ class BIP68_112_113Test(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.setup_clean_chain = True
-        self.extra_args = [["-whitelist=noban@127.0.0.1"]]
+        self.noban_tx_relay = True
 
     def create_self_transfer_from_utxo(self, input_tx):
         utxo = self.miniwallet.get_utxo(txid=input_tx.rehash(), mark_as_spent=False)

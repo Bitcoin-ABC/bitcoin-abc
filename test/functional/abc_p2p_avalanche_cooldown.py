@@ -26,6 +26,7 @@ class AvalancheCooldownTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
+        self.noban_tx_relay = True
         self.extra_args = [
             [
                 "-enableminerfund",
@@ -33,7 +34,6 @@ class AvalancheCooldownTest(BitcoinTestFramework):
                 "-avaproofstakeutxoconfirmations=1",
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
-                "-whitelist=noban@127.0.0.1",
                 "-avacooldown=10000",
                 "-persistavapeers=0",
                 # For polling transactions

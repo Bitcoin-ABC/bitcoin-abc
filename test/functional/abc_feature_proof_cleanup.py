@@ -28,12 +28,11 @@ AVALANCHE_DANGLING_PROOF_TIMEOUT = 15 * 60
 class ProofsCleanupTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
+        self.noban_tx_relay = True
         self.extra_args = [
             [
                 "-avaproofstakeutxodustthreshold=1000000",
                 "-avaproofstakeutxoconfirmations=1",
-                # Get rid of the getdata delay penalty for inbounds
-                "-whitelist=noban@127.0.0.1",
             ]
         ] * self.num_nodes
 

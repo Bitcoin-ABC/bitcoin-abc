@@ -106,6 +106,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         """Sets test framework defaults. Do not override this method. Instead, override the set_test_params() method"""
         self.chain: str = "regtest"
         self.setup_clean_chain: bool = False
+        self.noban_tx_relay: bool = False
         self.nodes: List[TestNode] = []
         self.network_thread = None
         # Wait for up to 60 seconds for the RPC server to respond
@@ -567,6 +568,11 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             extra_confs = [[]] * num_nodes
         if extra_args is None:
             extra_args = [[]] * num_nodes
+        # Whitelist peers to speed up tx relay / mempool sync.
+        # Don't use it if testing tx relay or timing.
+        if self.noban_tx_relay:
+            for i in range(len(extra_args)):
+                extra_args[i] = extra_args[i] + ["-whitelist=noban,in,out@127.0.0.1"]
         if binary is None:
             binary = [self.options.bitcoind] * num_nodes
         assert_equal(len(extra_confs), num_nodes)

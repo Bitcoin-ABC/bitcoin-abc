@@ -31,6 +31,7 @@ QUORUM_NODE_COUNT = 16
 class AvalancheTransactionVotingTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
+        self.noban_tx_relay = True
         self.extra_args = [
             [
                 "-avalanchepreconsensus=1",
@@ -40,7 +41,6 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
                 "-avaproofstakeutxodustthreshold=1000000",
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
-                "-whitelist=noban@127.0.0.1",
             ]
         ]
 

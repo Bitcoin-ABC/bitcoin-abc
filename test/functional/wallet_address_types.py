@@ -43,8 +43,7 @@ from test_framework.util import assert_equal, assert_greater_than
 class AddressTypeTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 5
-        # whitelist all peers to speed up tx relay / mempool sync
-        self.extra_args = [["-whitelist=noban@127.0.0.1"]] * self.num_nodes
+        self.noban_tx_relay = True
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()

@@ -29,10 +29,10 @@ class AvalanchePersistAvapeers(BitcoinTestFramework):
                 "-avacooldown=0",
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
-                "-whitelist=noban@127.0.0.1",
                 "-avalanchestakingrewards=1",
             ]
         ]
+        self.noban_tx_relay = True
 
     def run_test(self):
         node = self.nodes[0]

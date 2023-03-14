@@ -26,15 +26,8 @@ class PackageRelayTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 4
-        self.extra_args = [
-            [
-                "-acceptnonstdtxn=1",
-                "-maxmempool=5",
-                # hugely speeds up the test, as it involves multiple hops of tx
-                # relay.
-                "-whitelist=noban@127.0.0.1",
-            ]
-        ] * self.num_nodes
+        self.noban_tx_relay = True
+        self.extra_args = [["-acceptnonstdtxn=1", "-maxmempool=5"]] * self.num_nodes
         self.supports_cli = False
 
     def raise_network_minfee(self):

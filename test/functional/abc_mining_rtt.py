@@ -43,6 +43,7 @@ class LongpollThread(threading.Thread):
 class AbcMiningHeartbeatTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
+        self.noban_tx_relay = True
         self.extra_args = [
             [
                 "-enablertt",
@@ -51,7 +52,6 @@ class AbcMiningHeartbeatTest(BitcoinTestFramework):
                 "-avacooldown=0",
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
-                "-whitelist=noban@127.0.0.1",
                 f"-augustoactivationtime={THE_FUTURE}",
             ],
         ]

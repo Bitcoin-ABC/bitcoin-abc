@@ -82,9 +82,9 @@ class FullBlockTest(BitcoinTestFramework):
         self.tip = None
         self.blocks = {}
         self.excessive_block_size = 16 * ONE_MEGABYTE
+        self.noban_tx_relay = True
         self.extra_args = [
             [
-                "-whitelist=noban@127.0.0.1",
                 "-maxmempool=99999",
                 f"-excessiveblocksize={self.excessive_block_size}",
                 "-acceptnonstdtxn=1",

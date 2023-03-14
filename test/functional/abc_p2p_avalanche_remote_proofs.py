@@ -32,6 +32,7 @@ AVALANCHE_DANGLING_PROOF_TIMEOUT = 15 * 60
 class AvalancheRemoteProofsTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
+        self.noban_tx_relay = True
         self.extra_args = [
             [
                 "-avaproofstakeutxodustthreshold=10000",
@@ -39,7 +40,6 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
                 "-avaminquorumstake=1000000",
                 "-avaminavaproofsnodecount=0",
                 "-avacooldown=0",
-                "-whitelist=noban@127.0.0.1",
                 "-persistavapeers=0",
             ]
         ] * self.num_nodes

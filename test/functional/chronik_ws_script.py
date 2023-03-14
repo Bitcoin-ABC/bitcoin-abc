@@ -30,6 +30,7 @@ class ChronikWsScriptTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
+        self.noban_tx_relay = True
         self.extra_args = [
             [
                 "-avaproofstakeutxodustthreshold=1000000",
@@ -38,7 +39,6 @@ class ChronikWsScriptTest(BitcoinTestFramework):
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
                 "-chronik",
-                "-whitelist=noban@127.0.0.1",
             ],
         ]
         self.supports_cli = False

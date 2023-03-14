@@ -46,6 +46,7 @@ class LongpollThread(threading.Thread):
 class AbcMiningStakingRewardsTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
+        self.noban_tx_relay = True
         self.extra_args = [
             [
                 "-avaproofstakeutxodustthreshold=1000000",
@@ -53,7 +54,6 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
                 "-avacooldown=0",
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
-                "-whitelist=noban@127.0.0.1",
                 "-avalanchestakingrewards=1",
             ],
         ]

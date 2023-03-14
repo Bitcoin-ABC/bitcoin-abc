@@ -45,18 +45,16 @@ class TestP2PConn(P2PInterface):
 class FeeFilterTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
+        self.noban_tx_relay = True
         # We lower the various required feerates for this test
         # to catch a corner-case where feefilter used to slightly undercut
         # mempool and wallet feerate calculation based on GetFee
         # rounding down 3 places, leading to stranded transactions.
         # See issue #16499
-        # grant noban permission to all peers to speed up tx relay / mempool
-        # sync
         self.extra_args = [
             [
                 "-minrelaytxfee=1",
                 "-mintxfee=1",
-                "-whitelist=noban@127.0.0.1",
             ]
         ] * self.num_nodes
 

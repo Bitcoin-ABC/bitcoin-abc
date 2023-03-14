@@ -28,6 +28,7 @@ QUORUM_NODE_COUNT = 16
 class ChronikClient_Websocket_Setup(SetupFramework):
     def set_test_params(self):
         self.num_nodes = 1
+        self.noban_tx_relay = True
         self.extra_args = [
             [
                 "-chronik",
@@ -38,7 +39,6 @@ class ChronikClient_Websocket_Setup(SetupFramework):
                 "-avaminavaproofsnodecount=0",
                 "-persistavapeers=0",
                 "-acceptnonstdtxn=1",
-                "-whitelist=noban@127.0.0.1",
             ]
         ]
 
