@@ -201,6 +201,8 @@ public:
     [[nodiscard]] uint64_t GetPruneTarget() const {
         return m_opts.prune_target;
     }
+    static constexpr auto PRUNE_TARGET_MANUAL{
+        std::numeric_limits<uint64_t>::max()};
 
     [[nodiscard]] bool LoadingBlocks() const { return m_importing || fReindex; }
 

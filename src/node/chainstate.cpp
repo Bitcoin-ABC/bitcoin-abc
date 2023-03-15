@@ -177,7 +177,7 @@ ChainstateLoadResult LoadChainstate(ChainstateManager &chainman,
                   chainman.GetConsensus().nMinimumChainWork.GetHex());
     }
     if (chainman.m_blockman.GetPruneTarget() ==
-        std::numeric_limits<uint64_t>::max()) {
+        BlockManager::PRUNE_TARGET_MANUAL) {
         LogPrintf(
             "Block pruning enabled.  Use RPC call pruneblockchain(height) to "
             "manually prune block and undo files.\n");
