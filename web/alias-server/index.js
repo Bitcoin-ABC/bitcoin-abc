@@ -3,6 +3,7 @@ const { initializeWebsocket, parseWebsocketMessage } = require('./websocket');
 const { initializeDb } = require('./db');
 const log = require('./log');
 const express = require('express');
+const requestIp = require('request-ip');
 
 async function main() {
     // Initialize db connection
@@ -21,9 +22,12 @@ async function main() {
     // Set up your API endpoints
     const app = express();
     app.use(express.json());
+    app.use(requestIp.mw());
 
     app.get('/aliases', async function (req, res) {
-        log(`API request received, processing...`);
+        // Get IP address from before cloudflare proxy
+        const ip = req.clientIp;
+        log(`/aliases from IP: ${ip}, host ${req.headers.host}`);
         let aliases;
         try {
             aliases = await db
