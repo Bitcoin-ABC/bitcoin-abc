@@ -1,19 +1,16 @@
-/* log.js
-
-  Display timestamp before log statements
-
+/* 
+  For objects and arrays, print full contents to log
 */
 
 'use strict';
 
 function log(msg, data) {
-    const logStamp = new Date().toISOString();
     let formattedData;
-    if (data) {
+    if (typeof data !== 'undefined') {
         formattedData = JSON.stringify(data, null, 2);
-        console.log(`${logStamp}: ${msg}`, formattedData);
+        console.log(msg, formattedData);
     } else {
-        console.log(`${logStamp}: ${msg}`);
+        console.log(msg);
     }
 }
 
