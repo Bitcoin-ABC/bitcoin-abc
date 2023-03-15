@@ -19,10 +19,6 @@ module.exports = {
             onMessage: async msg => {
                 await module.exports.parseWebsocketMessage(db, msg);
             },
-            onReconnect: e => {
-                // Fired before a reconnect attempt is made:
-                log('Websocket disconnected. Reconnecting...');
-            },
         });
         // Wait for WS to be connected:
         await ws.waitForOpen();
