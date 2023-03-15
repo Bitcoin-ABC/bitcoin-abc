@@ -497,19 +497,19 @@ static std::vector<RPCResult> MempoolEntryDescription() {
 }
 
 static void entryToJSON(const CTxMemPool &pool, UniValue &info,
-                        const CTxMemPoolEntry &e)
+                        const CTxMemPoolEntryRef &e)
     EXCLUSIVE_LOCKS_REQUIRED(pool.cs) {
     AssertLockHeld(pool.cs);
 
     UniValue fees(UniValue::VOBJ);
-    fees.pushKV("base", e.GetFee());
-    fees.pushKV("modified", e.GetModifiedFee());
+    fees.pushKV("base", e->GetFee());
+    fees.pushKV("modified", e->GetModifiedFee());
     info.pushKV("fees", fees);
 
-    info.pushKV("size", (int)e.GetTxSize());
-    info.pushKV("time", count_seconds(e.GetTime()));
-    info.pushKV("height", (int)e.GetHeight());
-    const CTransaction &tx = e.GetTx();
+    info.pushKV("size", (int)e->GetTxSize());
+    info.pushKV("time", count_seconds(e->GetTime()));
+    info.pushKV("height", (int)e->GetHeight());
+    const CTransaction &tx = e->GetTx();
     std::set<std::string> setDepends;
     for (const CTxIn &txin : tx.vin) {
         if (pool.exists(txin.prevout.GetTxId())) {
@@ -525,8 +525,8 @@ static void entryToJSON(const CTxMemPool &pool, UniValue &info,
     info.pushKV("depends", depends);
 
     UniValue spent(UniValue::VARR);
-    for (const CTxMemPoolEntry &child : e.GetMemPoolChildrenConst()) {
-        spent.push_back(child.GetTx().GetId().ToString());
+    for (const auto &child : e->GetMemPoolChildrenConst()) {
+        spent.push_back(child.get()->GetTx().GetId().ToString());
     }
 
     info.pushKV("spentby", spent);
@@ -543,8 +543,8 @@ UniValue MempoolToJSON(const CTxMemPool &pool, bool verbose,
         }
         LOCK(pool.cs);
         UniValue o(UniValue::VOBJ);
-        for (const CTxMemPoolEntry &e : pool.mapTx) {
-            const TxId &txid = e.GetTx().GetId();
+        for (const CTxMemPoolEntryRef &e : pool.mapTx) {
+            const TxId &txid = e->GetTx().GetId();
             UniValue info(UniValue::VOBJ);
             entryToJSON(pool, info, e);
             // Mempool has unique entries so there is no advantage in using
@@ -696,14 +696,14 @@ static RPCHelpMan getmempoolancestors() {
             if (!fVerbose) {
                 UniValue o(UniValue::VARR);
                 for (CTxMemPool::txiter ancestorIt : setAncestors) {
-                    o.push_back(ancestorIt->GetTx().GetId().ToString());
+                    o.push_back((*ancestorIt)->GetTx().GetId().ToString());
                 }
                 return o;
             } else {
                 UniValue o(UniValue::VOBJ);
                 for (CTxMemPool::txiter ancestorIt : setAncestors) {
-                    const CTxMemPoolEntry &e = *ancestorIt;
-                    const TxId &_txid = e.GetTx().GetId();
+                    const CTxMemPoolEntryRef &e = *ancestorIt;
+                    const TxId &_txid = e->GetTx().GetId();
                     UniValue info(UniValue::VOBJ);
                     entryToJSON(mempool, info, e);
                     o.pushKV(_txid.ToString(), info);
@@ -769,15 +769,15 @@ static RPCHelpMan getmempooldescendants() {
             if (!fVerbose) {
                 UniValue o(UniValue::VARR);
                 for (CTxMemPool::txiter descendantIt : setDescendants) {
-                    o.push_back(descendantIt->GetTx().GetId().ToString());
+                    o.push_back((*descendantIt)->GetTx().GetId().ToString());
                 }
 
                 return o;
             } else {
                 UniValue o(UniValue::VOBJ);
                 for (CTxMemPool::txiter descendantIt : setDescendants) {
-                    const CTxMemPoolEntry &e = *descendantIt;
-                    const TxId &_txid = e.GetTx().GetId();
+                    const CTxMemPoolEntryRef &e = *descendantIt;
+                    const TxId &_txid = e->GetTx().GetId();
                     UniValue info(UniValue::VOBJ);
                     entryToJSON(mempool, info, e);
                     o.pushKV(_txid.ToString(), info);
@@ -812,9 +812,8 @@ static RPCHelpMan getmempoolentry() {
                                    "Transaction not in mempool");
             }
 
-            const CTxMemPoolEntry &e = *it;
             UniValue info(UniValue::VOBJ);
-            entryToJSON(mempool, info, e);
+            entryToJSON(mempool, info, *it);
             return info;
         },
     };

@@ -67,7 +67,7 @@ static void expectUseCount(const CTxMemPool &pool, const TxId &txid,
                            long expectedCount)
     EXCLUSIVE_LOCKS_REQUIRED(pool.cs) {
     AssertLockHeld(pool.cs);
-    BOOST_CHECK_EQUAL(pool.mapTx.find(txid)->GetSharedTx().use_count(),
+    BOOST_CHECK_EQUAL((*pool.mapTx.find(txid))->GetSharedTx().use_count(),
                       SHARED_TX_OFFSET + expectedCount);
 }
 

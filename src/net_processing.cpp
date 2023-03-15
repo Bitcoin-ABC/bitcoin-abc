@@ -3145,14 +3145,15 @@ void PeerManagerImpl::ProcessGetData(
                     LOCK(m_mempool.cs);
                     auto txiter = m_mempool.GetIter(tx->GetId());
                     if (txiter) {
+                        auto &pentry = *txiter;
                         const CTxMemPoolEntry::Parents &parents =
-                            (*txiter)->GetMemPoolParentsConst();
+                            (*pentry)->GetMemPoolParentsConst();
                         parent_ids_to_add.reserve(parents.size());
-                        for (const CTxMemPoolEntry &parent : parents) {
-                            if (parent.GetTime() >
+                        for (const auto &parent : parents) {
+                            if (parent.get()->GetTime() >
                                 now - UNCONDITIONAL_RELAY_DELAY) {
                                 parent_ids_to_add.push_back(
-                                    parent.GetTx().GetId());
+                                    parent.get()->GetTx().GetId());
                             }
                         }
                     }

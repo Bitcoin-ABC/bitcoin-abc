@@ -745,8 +745,8 @@ namespace {
                 return;
             }
             LOCK2(::cs_main, m_node.mempool->cs);
-            for (const CTxMemPoolEntry &entry : m_node.mempool->mapTx) {
-                notifications.transactionAddedToMempool(entry.GetSharedTx(),
+            for (const CTxMemPoolEntryRef &entry : m_node.mempool->mapTx) {
+                notifications.transactionAddedToMempool(entry->GetSharedTx(),
                                                         /*mempool_sequence=*/0);
             }
         }

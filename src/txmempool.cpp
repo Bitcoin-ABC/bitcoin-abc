@@ -72,16 +72,18 @@ bool CTxMemPool::CalculateAncestors(
     setEntries &setAncestors,
     CTxMemPoolEntry::Parents &staged_ancestors) const {
     while (!staged_ancestors.empty()) {
-        const CTxMemPoolEntry &stage = staged_ancestors.begin()->get();
-        txiter stageit = mapTx.iterator_to(stage);
+        const auto stage = staged_ancestors.begin()->get();
 
+        txiter stageit = mapTx.find(stage->GetTx().GetId());
+        assert(stageit != mapTx.end());
         setAncestors.insert(stageit);
         staged_ancestors.erase(staged_ancestors.begin());
 
         const CTxMemPoolEntry::Parents &parents =
-            stageit->GetMemPoolParentsConst();
-        for (const CTxMemPoolEntry &parent : parents) {
-            txiter parent_it = mapTx.iterator_to(parent);
+            (*stageit)->GetMemPoolParentsConst();
+        for (const auto &parent : parents) {
+            txiter parent_it = mapTx.find(parent.get()->GetTx().GetId());
+            assert(parent_it != mapTx.end());
 
             // If this is a new ancestor, add it.
             if (setAncestors.count(parent_it) == 0) {
@@ -94,10 +96,10 @@ bool CTxMemPool::CalculateAncestors(
 }
 
 bool CTxMemPool::CalculateMemPoolAncestors(
-    const CTxMemPoolEntry &entry, setEntries &setAncestors,
+    const CTxMemPoolEntryRef &entry, setEntries &setAncestors,
     bool fSearchForParents /* = true */) const {
     CTxMemPoolEntry::Parents staged_ancestors;
-    const CTransaction &tx = entry.GetTx();
+    const CTransaction &tx = entry->GetTx();
 
     if (fSearchForParents) {
         // Get parents of this transaction that are in the mempool
@@ -113,7 +115,7 @@ bool CTxMemPool::CalculateMemPoolAncestors(
     } else {
         // If we're not searching for parents, we require this to be an entry in
         // the mempool already.
-        staged_ancestors = entry.GetMemPoolParentsConst();
+        staged_ancestors = entry->GetMemPoolParentsConst();
     }
 
     return CalculateAncestors(setAncestors, staged_ancestors);
@@ -121,15 +123,20 @@ bool CTxMemPool::CalculateMemPoolAncestors(
 
 void CTxMemPool::UpdateParentsOf(bool add, txiter it) {
     // add or remove this tx as a child of each parent
-    for (const CTxMemPoolEntry &parent : it->GetMemPoolParentsConst()) {
-        UpdateChild(mapTx.iterator_to(parent), it, add);
+    for (const auto &parent : (*it)->GetMemPoolParentsConst()) {
+        auto parent_it = mapTx.find(parent.get()->GetTx().GetId());
+        assert(parent_it != mapTx.end());
+        UpdateChild(parent_it, it, add);
     }
 }
 
 void CTxMemPool::UpdateChildrenForRemoval(txiter it) {
-    const CTxMemPoolEntry::Children &children = it->GetMemPoolChildrenConst();
-    for (const CTxMemPoolEntry &updateIt : children) {
-        UpdateParent(mapTx.iterator_to(updateIt), it, false);
+    const CTxMemPoolEntry::Children &children =
+        (*it)->GetMemPoolChildrenConst();
+    for (const auto &child : children) {
+        auto updateIt = mapTx.find(child.get()->GetTx().GetId());
+        assert(updateIt != mapTx.end());
+        UpdateParent(updateIt, it, false);
     }
 }
 
@@ -183,7 +190,8 @@ void CTxMemPool::addUnchecked(const CTxMemPoolEntry &entryIn) {
 
     // Add to memory pool without checking anything.
     // Used by AcceptToMemoryPool(), which DOES do all the appropriate checks.
-    auto [newit, inserted] = mapTx.insert(entry);
+    auto [newit, inserted] =
+        mapTx.insert(std::make_shared<CTxMemPoolEntry>(entry));
     // Sanity check: It is a programming error if insertion fails (uniqueness
     // invariants in mapTx are violated, etc)
     assert(inserted);
@@ -196,7 +204,7 @@ void CTxMemPool::addUnchecked(const CTxMemPoolEntry &entryIn) {
     // further updated.)
     cachedInnerUsage += entry.DynamicMemoryUsage();
 
-    const CTransaction &tx = newit->GetTx();
+    const CTransaction &tx = entry.GetTx();
     std::set<TxId> setParentTransactions;
     for (const CTxIn &in : tx.vin) {
         mapNextTx.insert(std::make_pair(&in.prevout, &tx));
@@ -229,21 +237,22 @@ void CTxMemPool::removeUnchecked(txiter it, MemPoolRemovalReason reason) {
         // in transactions included in blocks can subscribe to the
         // BlockConnected notification.
         GetMainSignals().TransactionRemovedFromMempool(
-            it->GetSharedTx(), reason, mempool_sequence);
+            (*it)->GetSharedTx(), reason, mempool_sequence);
     }
 
-    for (const CTxIn &txin : it->GetTx().vin) {
+    for (const CTxIn &txin : (*it)->GetTx().vin) {
         mapNextTx.erase(txin.prevout);
     }
 
     /* add logging because unchecked */
-    RemoveUnbroadcastTx(it->GetTx().GetId(), true);
+    RemoveUnbroadcastTx((*it)->GetTx().GetId(), true);
 
-    totalTxSize -= it->GetTxSize();
-    m_total_fee -= it->GetFee();
-    cachedInnerUsage -= it->DynamicMemoryUsage();
-    cachedInnerUsage -= memusage::DynamicUsage(it->GetMemPoolParentsConst()) +
-                        memusage::DynamicUsage(it->GetMemPoolChildrenConst());
+    totalTxSize -= (*it)->GetTxSize();
+    m_total_fee -= (*it)->GetFee();
+    cachedInnerUsage -= (*it)->DynamicMemoryUsage();
+    cachedInnerUsage -=
+        memusage::DynamicUsage((*it)->GetMemPoolParentsConst()) +
+        memusage::DynamicUsage((*it)->GetMemPoolChildrenConst());
     mapTx.erase(it);
     nTransactionsUpdated++;
 }
@@ -269,9 +278,11 @@ void CTxMemPool::CalculateDescendants(txiter entryit,
         stage.erase(stage.begin());
 
         const CTxMemPoolEntry::Children &children =
-            it->GetMemPoolChildrenConst();
-        for (const CTxMemPoolEntry &child : children) {
-            txiter childiter = mapTx.iterator_to(child);
+            (*it)->GetMemPoolChildrenConst();
+        for (const auto &child : children) {
+            txiter childiter = mapTx.find(child.get()->GetTx().GetId());
+            assert(childiter != mapTx.end());
+
             if (!setDescendants.count(childiter)) {
                 stage.insert(childiter);
             }
@@ -404,13 +415,13 @@ void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
     CCoinsViewCache mempoolDuplicate(
         const_cast<CCoinsViewCache *>(&active_coins_tip));
 
-    for (const CTxMemPoolEntry &entry : mapTx.get<entry_id>()) {
-        checkTotal += entry.GetTxSize();
-        check_total_fee += entry.GetFee();
-        innerUsage += entry.DynamicMemoryUsage();
-        const CTransaction &tx = entry.GetTx();
-        innerUsage += memusage::DynamicUsage(entry.GetMemPoolParentsConst()) +
-                      memusage::DynamicUsage(entry.GetMemPoolChildrenConst());
+    for (const CTxMemPoolEntryRef &entry : mapTx.get<entry_id>()) {
+        checkTotal += entry->GetTxSize();
+        check_total_fee += entry->GetFee();
+        innerUsage += entry->DynamicMemoryUsage();
+        const CTransaction &tx = entry->GetTx();
+        innerUsage += memusage::DynamicUsage(entry->GetMemPoolParentsConst()) +
+                      memusage::DynamicUsage(entry->GetMemPoolChildrenConst());
 
         CTxMemPoolEntry::Parents setParentCheck;
         for (const CTxIn &txin : tx.vin) {
@@ -418,13 +429,13 @@ void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
             // coins, or other mempool tx's.
             txiter parentIt = mapTx.find(txin.prevout.GetTxId());
             if (parentIt != mapTx.end()) {
-                const CTransaction &parentTx = parentIt->GetTx();
+                const CTransaction &parentTx = (*parentIt)->GetTx();
                 assert(parentTx.vout.size() > txin.prevout.GetN() &&
                        !parentTx.vout[txin.prevout.GetN()].IsNull());
                 setParentCheck.insert(*parentIt);
                 // also check that parents have a topological ordering before
                 // their children
-                assert(parentIt->GetEntryId() < entry.GetEntryId());
+                assert((*parentIt)->GetEntryId() < entry->GetEntryId());
             }
             // We are iterating through the mempool entries sorted
             // topologically.
@@ -437,13 +448,12 @@ void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
             assert(prevoutNextIt->first == &txin.prevout);
             assert(prevoutNextIt->second == &tx);
         }
-        auto comp = [](const CTxMemPoolEntry &a,
-                       const CTxMemPoolEntry &b) -> bool {
-            return a.GetTx().GetId() == b.GetTx().GetId();
+        auto comp = [](const auto &a, const auto &b) -> bool {
+            return a.get()->GetTx().GetId() == b.get()->GetTx().GetId();
         };
-        assert(setParentCheck.size() == entry.GetMemPoolParentsConst().size());
+        assert(setParentCheck.size() == entry->GetMemPoolParentsConst().size());
         assert(std::equal(setParentCheck.begin(), setParentCheck.end(),
-                          entry.GetMemPoolParentsConst().begin(), comp));
+                          entry->GetMemPoolParentsConst().begin(), comp));
 
         // Verify ancestor state is correct.
         setEntries setAncestors;
@@ -454,14 +464,14 @@ void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
 
         // all ancestors should have entryId < this tx's entryId
         for (const auto &ancestor : setAncestors) {
-            assert(ancestor->GetEntryId() < entry.GetEntryId());
+            assert((*ancestor)->GetEntryId() < entry->GetEntryId());
         }
 
         // Check children against mapNextTx
         CTxMemPoolEntry::Children setChildrenCheck;
-        auto iter = mapNextTx.lower_bound(COutPoint(entry.GetTx().GetId(), 0));
+        auto iter = mapNextTx.lower_bound(COutPoint(entry->GetTx().GetId(), 0));
         for (; iter != mapNextTx.end() &&
-               iter->first->GetTxId() == entry.GetTx().GetId();
+               iter->first->GetTxId() == entry->GetTx().GetId();
              ++iter) {
             txiter childIt = mapTx.find(iter->second->GetId());
             // mapNextTx points to in-mempool transactions
@@ -469,9 +479,9 @@ void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
             setChildrenCheck.insert(*childIt);
         }
         assert(setChildrenCheck.size() ==
-               entry.GetMemPoolChildrenConst().size());
+               entry->GetMemPoolChildrenConst().size());
         assert(std::equal(setChildrenCheck.begin(), setChildrenCheck.end(),
-                          entry.GetMemPoolChildrenConst().begin(), comp));
+                          entry->GetMemPoolChildrenConst().begin(), comp));
 
         // Not used. CheckTxInputs() should always pass
         TxValidationState dummy_state;
@@ -488,7 +498,7 @@ void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
     for (auto &[_, nextTx] : mapNextTx) {
         txiter it = mapTx.find(nextTx->GetId());
         assert(it != mapTx.end());
-        assert(&it->GetTx() == nextTx);
+        assert(&(*it)->GetTx() == nextTx);
     }
 
     assert(totalTxSize == checkTotal);
@@ -507,7 +517,7 @@ bool CTxMemPool::CompareTopologically(const TxId &txida,
     if (it2 == mapTx.end()) {
         return true;
     }
-    return it1->GetEntryId() < it2->GetEntryId();
+    return (*it1)->GetEntryId() < (*it2)->GetEntryId();
 }
 
 void CTxMemPool::getAllTxIds(std::vector<TxId> &vtxid) const {
@@ -517,14 +527,15 @@ void CTxMemPool::getAllTxIds(std::vector<TxId> &vtxid) const {
     vtxid.reserve(mapTx.size());
 
     for (const auto &entry : mapTx.get<entry_id>()) {
-        vtxid.push_back(entry.GetTx().GetId());
+        vtxid.push_back(entry->GetTx().GetId());
     }
 }
 
 static TxMempoolInfo
 GetInfo(CTxMemPool::indexed_transaction_set::const_iterator it) {
-    return TxMempoolInfo{it->GetSharedTx(), it->GetTime(), it->GetFee(),
-                         it->GetTxSize(), it->GetModifiedFee() - it->GetFee()};
+    return TxMempoolInfo{(*it)->GetSharedTx(), (*it)->GetTime(),
+                         (*it)->GetFee(), (*it)->GetTxSize(),
+                         (*it)->GetModifiedFee() - (*it)->GetFee()};
 }
 
 std::vector<TxMempoolInfo> CTxMemPool::infoAll() const {
@@ -548,7 +559,7 @@ CTransactionRef CTxMemPool::get(const TxId &txid) const {
         return nullptr;
     }
 
-    return i->GetSharedTx();
+    return (*i)->GetSharedTx();
 }
 
 TxMempoolInfo CTxMemPool::info(const TxId &txid) const {
@@ -581,8 +592,9 @@ void CTxMemPool::PrioritiseTransaction(const TxId &txid,
         delta += nFeeDelta;
         txiter it = mapTx.find(txid);
         if (it != mapTx.end()) {
-            mapTx.modify(
-                it, [&delta](CTxMemPoolEntry &e) { e.UpdateFeeDelta(delta); });
+            mapTx.modify(it, [&delta](CTxMemPoolEntryRef &e) {
+                e->UpdateFeeDelta(delta);
+            });
             ++nTransactionsUpdated;
         }
     }
@@ -710,7 +722,7 @@ int CTxMemPool::Expire(std::chrono::seconds time) {
     indexed_transaction_set::index<entry_time>::type::iterator it =
         mapTx.get<entry_time>().begin();
     setEntries toremove;
-    while (it != mapTx.get<entry_time>().end() && it->GetTime() < time) {
+    while (it != mapTx.get<entry_time>().end() && (*it)->GetTime() < time) {
         toremove.insert(mapTx.project<0>(it));
         it++;
     }
@@ -744,9 +756,9 @@ void CTxMemPool::LimitSize(CCoinsViewCache &coins_cache, size_t limit,
 void CTxMemPool::UpdateChild(txiter entry, txiter child, bool add) {
     AssertLockHeld(cs);
     CTxMemPoolEntry::Children s;
-    if (add && entry->GetMemPoolChildren().insert(*child).second) {
+    if (add && (*entry)->GetMemPoolChildren().insert(*child).second) {
         cachedInnerUsage += memusage::IncrementalDynamicUsage(s);
-    } else if (!add && entry->GetMemPoolChildren().erase(*child)) {
+    } else if (!add && (*entry)->GetMemPoolChildren().erase(*child)) {
         cachedInnerUsage -= memusage::IncrementalDynamicUsage(s);
     }
 }
@@ -754,9 +766,9 @@ void CTxMemPool::UpdateChild(txiter entry, txiter child, bool add) {
 void CTxMemPool::UpdateParent(txiter entry, txiter parent, bool add) {
     AssertLockHeld(cs);
     CTxMemPoolEntry::Parents s;
-    if (add && entry->GetMemPoolParents().insert(*parent).second) {
+    if (add && (*entry)->GetMemPoolParents().insert(*parent).second) {
         cachedInnerUsage += memusage::IncrementalDynamicUsage(s);
-    } else if (!add && entry->GetMemPoolParents().erase(*parent)) {
+    } else if (!add && (*entry)->GetMemPoolParents().erase(*parent)) {
         cachedInnerUsage -= memusage::IncrementalDynamicUsage(s);
     }
 }
@@ -807,7 +819,7 @@ void CTxMemPool::TrimToSize(size_t sizelimit,
         // under which we consider txn to have 0 fee). This way, we don't allow
         // txn to enter mempool with feerate equal to txn which were removed
         // with no block in between.
-        CFeeRate removed = it->GetModifiedFeeRate();
+        CFeeRate removed = (*it)->GetModifiedFeeRate();
         removed += MEMPOOL_FULL_FEE_INCREMENT;
 
         trackPackageRemoved(removed);
@@ -819,7 +831,7 @@ void CTxMemPool::TrimToSize(size_t sizelimit,
 
         if (pvNoSpendsRemaining) {
             for (const txiter &iter : stage) {
-                for (const CTxIn &txin : iter->GetTx().vin) {
+                for (const CTxIn &txin : (*iter)->GetTx().vin) {
                     if (!exists(txin.prevout.GetTxId())) {
                         pvNoSpendsRemaining->push_back(txin.prevout);
                     }
@@ -924,14 +936,14 @@ void DisconnectedBlockTransactions::importMempool(CTxMemPool &pool) {
 
     vtx.reserve(pool.mapTx.size());
     txInfo.reserve(pool.mapTx.size());
-    for (const CTxMemPoolEntry &e : pool.mapTx.get<entry_id>()) {
-        vtx.push_back(e.GetSharedTx());
+    for (const CTxMemPoolEntryRef &e : pool.mapTx.get<entry_id>()) {
+        vtx.push_back(e->GetSharedTx());
         // save entry time, feeDelta, and height for use in
         // updateMempoolForReorg()
-        txInfo.try_emplace(e.GetTx().GetId(), e.GetTime(),
-                           e.GetModifiedFee() - e.GetFee(), e.GetHeight());
+        txInfo.try_emplace(e->GetTx().GetId(), e->GetTime(),
+                           e->GetModifiedFee() - e->GetFee(), e->GetHeight());
     }
-    for (const CTxMemPoolEntry &e :
+    for (const CTxMemPoolEntryRef &e :
          reverse_iterate(pool.mapTx.get<entry_id>())) {
         // Notify all observers of this (possibly temporary) removal. This is
         // necessary for tracking the transactions that are removed from the
@@ -940,7 +952,7 @@ void DisconnectedBlockTransactions::importMempool(CTxMemPool &pool) {
         // notification. Make sure to notify in reverse topological order,
         // children first.
         GetMainSignals().TransactionRemovedFromMempool(
-            e.GetSharedTx(), MemPoolRemovalReason::REORG,
+            e->GetSharedTx(), MemPoolRemovalReason::REORG,
             pool.GetAndIncrementSequence());
     }
     pool.clear();

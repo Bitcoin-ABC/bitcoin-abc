@@ -1055,9 +1055,9 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptPackage(const Package &package,
             // Exact transaction already exists in the mempool.
             auto iter = m_pool.GetIter(txid);
             assert(iter != std::nullopt);
-            results.emplace(
-                txid, MempoolAcceptResult::MempoolTx(iter.value()->GetTxSize(),
-                                                     iter.value()->GetFee()));
+            results.emplace(txid, MempoolAcceptResult::MempoolTx(
+                                      (*iter.value())->GetTxSize(),
+                                      (*iter.value())->GetFee()));
         } else {
             // Transaction does not already exist in the mempool.
             txns_new.push_back(tx);

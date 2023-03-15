@@ -62,17 +62,20 @@ bool TestLockPointValidity(const CChain &active_chain, const LockPoints &lp)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 struct CompareIteratorById {
-    // SFINAE for T where T is either a pointer type (e.g., a txiter) or a
-    // reference_wrapper<T> (e.g. a wrapped CTxMemPoolEntry&)
+    // SFINAE for T where T is either a std::reference_wrapper<T> (e.g. a
+    // CTxMemPoolEntryRef) or an iterator to a pointer type (e.g., a txiter)
     template <typename T>
     bool operator()(const std::reference_wrapper<T> &a,
                     const std::reference_wrapper<T> &b) const {
-        return a.get().GetTx().GetId() < b.get().GetTx().GetId();
+        return a.get()->GetTx().GetId() < b.get()->GetTx().GetId();
     }
     template <typename T> bool operator()(const T &a, const T &b) const {
-        return a->GetTx().GetId() < b->GetTx().GetId();
+        return (*a)->GetTx().GetId() < (*b)->GetTx().GetId();
     }
 };
+
+class CTxMemPoolEntry;
+using CTxMemPoolEntryRef = std::shared_ptr<CTxMemPoolEntry>;
 
 /** \class CTxMemPoolEntry
  *
@@ -83,10 +86,13 @@ struct CompareIteratorById {
 
 class CTxMemPoolEntry {
 public:
-    typedef std::reference_wrapper<const CTxMemPoolEntry> CTxMemPoolEntryRef;
     // two aliases, should the types ever diverge
-    typedef std::set<CTxMemPoolEntryRef, CompareIteratorById> Parents;
-    typedef std::set<CTxMemPoolEntryRef, CompareIteratorById> Children;
+    typedef std::set<std::reference_wrapper<const CTxMemPoolEntryRef>,
+                     CompareIteratorById>
+        Parents;
+    typedef std::set<std::reference_wrapper<const CTxMemPoolEntryRef>,
+                     CompareIteratorById>
+        Children;
 
 private:
     //! Unique identifier -- used for topological sorting
@@ -157,8 +163,9 @@ public:
 // extracts a transaction id from CTxMemPoolEntry or CTransactionRef
 struct mempoolentry_txid {
     typedef TxId result_type;
-    result_type operator()(const CTxMemPoolEntry &entry) const {
-        return entry.GetTx().GetId();
+
+    result_type operator()(const CTxMemPoolEntryRef &entry) const {
+        return entry->GetTx().GetId();
     }
 
     result_type operator()(const CTransactionRef &tx) const {
@@ -168,15 +175,17 @@ struct mempoolentry_txid {
 
 // used by the entry_time index
 struct CompareTxMemPoolEntryByEntryTime {
-    bool operator()(const CTxMemPoolEntry &a, const CTxMemPoolEntry &b) const {
-        return a.GetTime() < b.GetTime();
+    bool operator()(const CTxMemPoolEntryRef &a,
+                    const CTxMemPoolEntryRef &b) const {
+        return a->GetTime() < b->GetTime();
     }
 };
 
 // used by the entry_id index
 struct CompareTxMemPoolEntryByEntryId {
-    bool operator()(const CTxMemPoolEntry &a, const CTxMemPoolEntry &b) const {
-        return a.GetEntryId() < b.GetEntryId();
+    bool operator()(const CTxMemPoolEntryRef &a,
+                    const CTxMemPoolEntryRef &b) const {
+        return a->GetEntryId() < b->GetEntryId();
     }
 };
 
@@ -187,6 +196,7 @@ struct CompareTxMemPoolEntryByEntryId {
  *  This is used by the block assembler (mining).
  */
 struct CompareTxMemPoolEntryByModifiedFeeRate {
+    // Used in tests
     bool operator()(const CTxMemPoolEntry &a, const CTxMemPoolEntry &b) const {
         const CFeeRate frA = a.GetModifiedFeeRate();
         const CFeeRate frB = b.GetModifiedFeeRate();
@@ -205,6 +215,11 @@ struct CompareTxMemPoolEntryByModifiedFeeRate {
         // If nothing else, sort by txid (this should never happen as entryID is
         // expected to be unique).
         return a.GetSharedTx()->GetId() < b.GetSharedTx()->GetId();
+    }
+
+    bool operator()(const CTxMemPoolEntryRef &a,
+                    const CTxMemPoolEntryRef &b) const {
+        return operator()(*a, *b);
     }
 };
 
@@ -334,25 +349,26 @@ public:
     static const int ROLLING_FEE_HALFLIFE = 60 * 60 * 12;
 
     typedef boost::multi_index_container<
-        CTxMemPoolEntry, boost::multi_index::indexed_by<
-                             // indexed by txid
-                             boost::multi_index::hashed_unique<
-                                 mempoolentry_txid, SaltedTxIdHasher>,
-                             // sorted by fee rate
-                             boost::multi_index::ordered_non_unique<
-                                 boost::multi_index::tag<modified_feerate>,
-                                 boost::multi_index::identity<CTxMemPoolEntry>,
-                                 CompareTxMemPoolEntryByModifiedFeeRate>,
-                             // sorted by entry time
-                             boost::multi_index::ordered_non_unique<
-                                 boost::multi_index::tag<entry_time>,
-                                 boost::multi_index::identity<CTxMemPoolEntry>,
-                                 CompareTxMemPoolEntryByEntryTime>,
-                             // sorted topologically (insertion order)
-                             boost::multi_index::ordered_unique<
-                                 boost::multi_index::tag<entry_id>,
-                                 boost::multi_index::identity<CTxMemPoolEntry>,
-                                 CompareTxMemPoolEntryByEntryId>>>
+        CTxMemPoolEntryRef,
+        boost::multi_index::indexed_by<
+            // indexed by txid
+            boost::multi_index::hashed_unique<mempoolentry_txid,
+                                              SaltedTxIdHasher>,
+            // sorted by fee rate
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<modified_feerate>,
+                boost::multi_index::identity<CTxMemPoolEntryRef>,
+                CompareTxMemPoolEntryByModifiedFeeRate>,
+            // sorted by entry time
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<entry_time>,
+                boost::multi_index::identity<CTxMemPoolEntryRef>,
+                CompareTxMemPoolEntryByEntryTime>,
+            // sorted topologically (insertion order)
+            boost::multi_index::ordered_unique<
+                boost::multi_index::tag<entry_id>,
+                boost::multi_index::identity<CTxMemPoolEntryRef>,
+                CompareTxMemPoolEntryByEntryId>>>
         indexed_transaction_set;
 
     /**
@@ -498,7 +514,7 @@ public:
      * or look up parents from m_parents. Must be true for entries not in the
      * mempool
      */
-    bool CalculateMemPoolAncestors(const CTxMemPoolEntry &entry,
+    bool CalculateMemPoolAncestors(const CTxMemPoolEntryRef &entry,
                                    setEntries &setAncestors,
                                    bool fSearchForParents = true) const
         EXCLUSIVE_LOCKS_REQUIRED(cs);

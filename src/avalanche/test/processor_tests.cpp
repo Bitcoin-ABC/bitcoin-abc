@@ -2107,7 +2107,7 @@ BOOST_AUTO_TEST_CASE(vote_map_comparator) {
                     std::get<const CTransactionRef>(it->first)->GetId());
                 BOOST_CHECK(iter.has_value());
 
-                CFeeRate currentFeeRate = (*iter)->GetModifiedFeeRate();
+                CFeeRate currentFeeRate = (**iter)->GetModifiedFeeRate();
 
                 BOOST_CHECK(currentFeeRate < lastFeeRate);
                 lastFeeRate = currentFeeRate;
@@ -2178,8 +2178,8 @@ BOOST_AUTO_TEST_CASE(vote_map_tx_comparator) {
             auto iter = mempool->GetIter(tx->GetId());
             BOOST_CHECK(iter.has_value());
 
-            BOOST_CHECK((*iter)->GetModifiedFeeRate() <= lastFeeRate);
-            lastFeeRate = (*iter)->GetModifiedFeeRate();
+            BOOST_CHECK((**iter)->GetModifiedFeeRate() <= lastFeeRate);
+            lastFeeRate = (**iter)->GetModifiedFeeRate();
             it++;
         }
 

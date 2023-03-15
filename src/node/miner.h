@@ -98,7 +98,7 @@ private:
     /** Clear the block's state and prepare for assembling a new block */
     void resetBlock();
     /** Add a tx to the block */
-    void AddToBlock(const CTxMemPoolEntry &entry);
+    void AddToBlock(const CTxMemPoolEntryRef &entry);
 
     // Methods for how to add transactions to a block.
     /**

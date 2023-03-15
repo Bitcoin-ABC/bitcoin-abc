@@ -262,19 +262,19 @@ bool BlockAssembler::TestTxFits(uint64_t txSize, int64_t txSigChecks) const {
     return true;
 }
 
-void BlockAssembler::AddToBlock(const CTxMemPoolEntry &entry) {
-    pblocktemplate->entries.emplace_back(entry.GetSharedTx(), entry.GetFee(),
-                                         entry.GetSigChecks());
-    nBlockSize += entry.GetTxSize();
+void BlockAssembler::AddToBlock(const CTxMemPoolEntryRef &entry) {
+    pblocktemplate->entries.emplace_back(entry->GetSharedTx(), entry->GetFee(),
+                                         entry->GetSigChecks());
+    nBlockSize += entry->GetTxSize();
     ++nBlockTx;
-    nBlockSigChecks += entry.GetSigChecks();
-    nFees += entry.GetFee();
+    nBlockSigChecks += entry->GetSigChecks();
+    nFees += entry->GetFee();
 
     if (fPrintPriority) {
         LogPrintf(
             "fee rate %s txid %s\n",
-            CFeeRate(entry.GetModifiedFee(), entry.GetTxSize()).ToString(),
-            entry.GetTx().GetId().ToString());
+            CFeeRate(entry->GetModifiedFee(), entry->GetTxSize()).ToString(),
+            entry->GetTx().GetId().ToString());
     }
 }
 
@@ -293,24 +293,24 @@ void BlockAssembler::addTxs() {
     // mapped_value is the number of mempool parents that are still needed for
     // the entry. We decrement this count each time we add a parent of the entry
     // to the block.
-    std::unordered_map<const CTxMemPoolEntry *, size_t> missingParentCount;
+    std::unordered_map<CTxMemPoolEntryRef, size_t> missingParentCount;
     missingParentCount.reserve(m_mempool.size() / 2);
 
     // set of children we skipped because we have not yet added their parents
-    std::unordered_set<const CTxMemPoolEntry *> skippedChildren;
+    std::unordered_set<CTxMemPoolEntryRef> skippedChildren;
 
     auto hasMissingParents =
-        [&missingParentCount](const CTxMemPoolEntry &entry)
+        [&missingParentCount](const CTxMemPoolEntryRef &entry)
             EXCLUSIVE_LOCKS_REQUIRED(m_mempool.cs) {
                 // If we've added any of this tx's parents already, then
                 // missingParentCount will have the current count
-                if (auto pcIt = missingParentCount.find(&entry);
+                if (auto pcIt = missingParentCount.find(entry);
                     pcIt != missingParentCount.end()) {
                     // when pcIt->second reaches 0, we have added all of this
                     // tx's parents
                     return pcIt->second != 0;
                 }
-                return !entry.GetMemPoolParentsConst().empty();
+                return !entry->GetMemPoolParentsConst().empty();
             };
 
     // Limit the number of attempts to add transactions to the block when it is
@@ -321,15 +321,15 @@ void BlockAssembler::addTxs() {
 
     // Transactions where a parent has been added and need to be checked for
     // inclusion.
-    std::queue<const CTxMemPoolEntry *> backlog;
+    std::queue<CTxMemPoolEntryRef> backlog;
     auto mi = m_mempool.mapTx.get<modified_feerate>().begin();
 
-    auto nextEntry = [&backlog, &mi](bool &isFromBacklog) -> decltype(auto) {
+    auto nextEntry = [&backlog, &mi](bool &isFromBacklog) {
         if (backlog.empty()) {
             return *mi++;
         }
 
-        auto &entry = *backlog.front();
+        auto &entry = backlog.front();
         backlog.pop();
 
         isFromBacklog = true;
@@ -341,9 +341,9 @@ void BlockAssembler::addTxs() {
            mi != m_mempool.mapTx.get<modified_feerate>().end()) {
         // Get a new or old transaction in mapTx to evaluate.
         bool isFromBacklog = false;
-        const CTxMemPoolEntry &entry = nextEntry(isFromBacklog);
+        const CTxMemPoolEntryRef &entry = nextEntry(isFromBacklog);
 
-        if (entry.GetModifiedFeeRate() < blockMinFeeRate) {
+        if (entry->GetModifiedFeeRate() < blockMinFeeRate) {
             // Since the txs are sorted by fee, bail early if there is none that
             // can be included in the block anymore.
             break;
@@ -355,12 +355,12 @@ void BlockAssembler::addTxs() {
         // If it's from the backlog, then we know all parents are already in
         // the block.
         if (!isFromBacklog && hasMissingParents(entry)) {
-            skippedChildren.insert(&entry);
+            skippedChildren.insert(entry);
             continue;
         }
 
         // Check whether the tx will exceed the block limits.
-        if (!TestTxFits(entry.GetTxSize(), entry.GetSigChecks())) {
+        if (!TestTxFits(entry->GetTxSize(), entry->GetSigChecks())) {
             ++nConsecutiveFailed;
             if (nConsecutiveFailed > MAX_CONSECUTIVE_FAILURES &&
                 nBlockSize > nMaxGeneratedBlockSize - 1000) {
@@ -372,7 +372,7 @@ void BlockAssembler::addTxs() {
         }
 
         // Test transaction finality (locktime)
-        if (!CheckTx(entry.GetTx())) {
+        if (!CheckTx(entry->GetTx())) {
             continue;
         }
 
@@ -390,12 +390,12 @@ void BlockAssembler::addTxs() {
         // ends up taking O(n) time to process a single tx with n children,
         // that's okay because the amount of time taken is proportional to the
         // tx's byte size and fee paid.
-        for (const CTxMemPoolEntry &child : entry.GetMemPoolChildrenConst()) {
+        for (const auto &child : entry->GetMemPoolChildrenConst()) {
             // Remember this tx has missing parents.
             // Create the map entry if it doesn't exist already, and init with
             // the number of parents.
             const auto &[parentCount, _] = missingParentCount.try_emplace(
-                &child, child.GetMemPoolParentsConst().size());
+                child, child.get()->GetMemPoolParentsConst().size());
             // We just added one parent, so decrement the counter and check if
             // we have any missing parent remaining.
             const bool allParentsAdded = --parentCount->second == 0;
@@ -403,8 +403,8 @@ void BlockAssembler::addTxs() {
             // If all parents have been added to the block, and if this child
             // has been previously skipped due to missing parents, enqueue it
             // (if it hasn't been skipped it will come up in a later iteration)
-            if (allParentsAdded && skippedChildren.count(&child) > 0) {
-                backlog.push(&child);
+            if (allParentsAdded && skippedChildren.count(child) > 0) {
+                backlog.push(child);
             }
         }
     }

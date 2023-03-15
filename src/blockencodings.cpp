@@ -100,10 +100,10 @@ ReadStatus PartiallyDownloadedBlock::InitData(
         LOCK(pool->cs);
         auto it = pool->mapTx.begin();
         while (it != pool->mapTx.end()) {
-            uint64_t shortid = cmpctblock.GetShortID(it->GetTx().GetHash());
+            uint64_t shortid = cmpctblock.GetShortID((*it)->GetTx().GetHash());
 
             mempool_count +=
-                shortidProcessor->matchKnownItem(shortid, it->GetSharedTx());
+                shortidProcessor->matchKnownItem(shortid, (*it)->GetSharedTx());
             it++;
 
             if (mempool_count == shortidProcessor->getShortIdCount()) {

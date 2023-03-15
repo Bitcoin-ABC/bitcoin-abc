@@ -148,9 +148,9 @@ static void CheckSort(CTxMemPool &pool, std::vector<std::string> &sortedOrder,
         it = pool.mapTx.get<name>().begin();
     int count = 0;
     for (; it != pool.mapTx.get<name>().end(); ++it, ++count) {
-        BOOST_CHECK_MESSAGE(it->GetTx().GetId().ToString() ==
+        BOOST_CHECK_MESSAGE((*it)->GetTx().GetId().ToString() ==
                                 sortedOrder[count],
-                            it->GetTx().GetId().ToString()
+                            (*it)->GetTx().GetId().ToString()
                                 << " != " << sortedOrder[count] << " in test "
                                 << testcase << ":" << count);
     }
