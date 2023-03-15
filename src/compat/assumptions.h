@@ -9,6 +9,7 @@
 #define BITCOIN_COMPAT_ASSUMPTIONS_H
 
 #include <climits>
+#include <cstddef>
 #include <cstdint>
 #include <limits>
 #include <type_traits>
