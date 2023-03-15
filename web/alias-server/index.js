@@ -3,6 +3,7 @@ const { initializeWebsocket, parseWebsocketMessage } = require('./websocket');
 const { initializeDb } = require('./db');
 const log = require('./log');
 const express = require('express');
+var cors = require('cors');
 const requestIp = require('request-ip');
 
 async function main() {
@@ -23,6 +24,7 @@ async function main() {
     const app = express();
     app.use(express.json());
     app.use(requestIp.mw());
+    app.use(cors());
 
     app.get('/aliases', async function (req, res) {
         // Get IP address from before cloudflare proxy
