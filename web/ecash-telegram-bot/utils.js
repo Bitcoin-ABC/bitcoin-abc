@@ -72,4 +72,12 @@ module.exports = {
 
         return ecashAddress;
     },
+    returnAddressPreview: function (cashAddress, sliceSize = 3) {
+        const addressParts = cashAddress.split(':');
+        const unprefixedAddress = addressParts[addressParts.length - 1];
+        return `${unprefixedAddress.slice(
+            0,
+            sliceSize,
+        )}...${unprefixedAddress.slice(-sliceSize)}`;
+    },
 };

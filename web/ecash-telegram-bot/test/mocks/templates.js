@@ -5,4 +5,46 @@ module.exports = {
         noChangeExpected:
             'Just a normal sentence with punctuation and things, but none of the forbidden characters.',
     },
+    addressPreviews: [
+        {
+            address: 'ecash:qqf76scx4s8yayz80n6r3wcvuqdnypw5dvt38lr8up',
+            preview: 'qqf...8up',
+            sliceSize: 3,
+        },
+        {
+            address: 'ecash:qpp66yg3dsp0fx3w8gl9zw6nwkwf587pqcduy5jp3z',
+            preview: 'qpp...p3z',
+            sliceSize: 3,
+        },
+        {
+            address: 'ecash:qq7uq470gu0afsffkveesckges366wrcrssvngy7gu',
+            preview: 'qq7...7gu',
+            sliceSize: 3,
+        },
+        {
+            address: 'ecash:qqf76scx4s8yayz80n6r3wcvuqdnypw5dvt38lr8up',
+            preview: 'qqf76s...8lr8up',
+            sliceSize: 6,
+        },
+        {
+            address: 'ecash:qpp66yg3dsp0fx3w8gl9zw6nwkwf587pqcduy5jp3z',
+            preview: 'qpp66y...y5jp3z',
+            sliceSize: 6,
+        },
+        {
+            address: 'ecash:qq7uq470gu0afsffkveesckges366wrcrssvngy7gu',
+            preview: 'qq7uq4...ngy7gu',
+            sliceSize: 6,
+        },
+        {
+            address: 'ecash:qq7uq470gu0afsffkveesckges366wrcrssvngy7gu',
+            preview: 'qq...gu',
+            sliceSize: 2,
+        },
+        {
+            address: 'ecash:qqf76scx4s8yayz80n6r3wcvuqdnypw5dvt38lr8up',
+            preview: 'qqf76...lr8up',
+            sliceSize: 5,
+        },
+    ],
 };
