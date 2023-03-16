@@ -30,15 +30,15 @@ namespace {
 struct CConnmanTest : public CConnman {
     using CConnman::CConnman;
     void AddNode(CNode &node) {
-        LOCK(cs_vNodes);
-        vNodes.push_back(&node);
+        LOCK(m_nodes_mutex);
+        m_nodes.push_back(&node);
     }
     void ClearNodes() {
-        LOCK(cs_vNodes);
-        for (CNode *node : vNodes) {
+        LOCK(m_nodes_mutex);
+        for (CNode *node : m_nodes) {
             delete node;
         }
-        vNodes.clear();
+        m_nodes.clear();
     }
 };
 } // namespace
