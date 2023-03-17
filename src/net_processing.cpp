@@ -739,7 +739,8 @@ private:
      *
      * Memory used: 1.3 MB
      */
-    CRollingBloomFilter recentRejects GUARDED_BY(::cs_main){120'000, 0.000'001};
+    CRollingBloomFilter m_recent_rejects GUARDED_BY(::cs_main){120'000,
+                                                               0.000'001};
     uint256 hashRecentRejectsChainTip GUARDED_BY(cs_main);
 
     /**
@@ -2392,7 +2393,7 @@ bool PeerManagerImpl::AlreadyHaveTx(const TxId &txid) {
         // those txs a second chance.
         hashRecentRejectsChainTip =
             m_chainman.ActiveChain().Tip()->GetBlockHash();
-        recentRejects.reset();
+        m_recent_rejects.reset();
     }
 
     if (m_orphanage.HaveTx(txid)) {
@@ -2406,7 +2407,7 @@ bool PeerManagerImpl::AlreadyHaveTx(const TxId &txid) {
         }
     }
 
-    return recentRejects.contains(txid) || m_mempool.exists(txid);
+    return m_recent_rejects.contains(txid) || m_mempool.exists(txid);
 }
 
 bool PeerManagerImpl::AlreadyHaveBlock(const BlockHash &block_hash) {
@@ -3181,7 +3182,7 @@ void PeerManagerImpl::ProcessOrphanTx(const Config &config,
             LogPrint(BCLog::MEMPOOL, "   removed orphan tx %s\n",
                      orphanTxId.ToString());
 
-            recentRejects.insert(orphanTxId);
+            m_recent_rejects.insert(orphanTxId);
 
             m_orphanage.EraseTx(orphanTxId);
             break;
@@ -3438,7 +3439,7 @@ uint32_t PeerManagerImpl::GetAvalancheVoteForTx(const TxId &id) const {
     }
 
     // Invalid tx
-    if (recentRejects.contains(id)) {
+    if (m_recent_rejects.contains(id)) {
         return 1;
     }
 
@@ -4458,7 +4459,7 @@ void PeerManagerImpl::ProcessMessage(
                 std::unique(unique_parents.begin(), unique_parents.end()),
                 unique_parents.end());
             for (const TxId &parent_txid : unique_parents) {
-                if (recentRejects.contains(parent_txid)) {
+                if (m_recent_rejects.contains(parent_txid)) {
                     fRejectedParents = true;
                     break;
                 }
@@ -4499,11 +4500,11 @@ void PeerManagerImpl::ProcessMessage(
                          tx.GetId().ToString());
                 // We will continue to reject this tx since it has rejected
                 // parents so avoid re-requesting it from other peers.
-                recentRejects.insert(tx.GetId());
+                m_recent_rejects.insert(tx.GetId());
                 m_txrequest.ForgetInvId(tx.GetId());
             }
         } else {
-            recentRejects.insert(tx.GetId());
+            m_recent_rejects.insert(tx.GetId());
             m_txrequest.ForgetInvId(tx.GetId());
 
             if (RecursiveDynamicUsage(*ptx) < 100000) {
@@ -4511,21 +4512,21 @@ void PeerManagerImpl::ProcessMessage(
             }
         }
 
-        // If a tx has been detected by recentRejects, we will have reached
+        // If a tx has been detected by m_recent_rejects, we will have reached
         // this point and the tx will have been ignored. Because we haven't
         // submitted the tx to our mempool, we won't have computed a DoS
         // score for it or determined exactly why we consider it invalid.
         //
         // This means we won't penalize any peer subsequently relaying a DoSy
         // tx (even if we penalized the first peer who gave it to us) because
-        // we have to account for recentRejects showing false positives. In
+        // we have to account for m_recent_rejects showing false positives. In
         // other words, we shouldn't penalize a peer if we aren't *sure* they
         // submitted a DoSy tx.
         //
-        // Note that recentRejects doesn't just record DoSy or invalid
+        // Note that m_recent_rejects doesn't just record DoSy or invalid
         // transactions, but any tx not accepted by the mempool, which may be
         // due to node policy (vs. consensus). So we can't blanket penalize a
-        // peer simply for relaying a tx that our recentRejects has caught,
+        // peer simply for relaying a tx that our m_recent_rejects has caught,
         // regardless of false positives.
 
         if (state.IsInvalid()) {
