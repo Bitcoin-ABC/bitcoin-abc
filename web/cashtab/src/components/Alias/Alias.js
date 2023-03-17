@@ -27,10 +27,10 @@ import { isAliasAvailable, isAddressRegistered } from 'utils/chronik';
 import { currency } from 'components/Common/Ticker.js';
 import { registerNewAlias } from 'utils/transactions';
 import {
-    sendXecNotification,
     errorNotification,
+    registerAliasNotification,
 } from 'components/Common/Notifications';
-import { isAliasFormat, isAlphanumeric } from 'utils/validation';
+import { isAliasFormat, isValidAliasString } from 'utils/validation';
 
 export const NamespaceCtn = styled.div`
     width: 100%;
@@ -63,7 +63,7 @@ const Alias = ({ passLoadingStatus }) => {
         cashtabSettings,
         chronik,
         changeCashtabSettings,
-        synchronizeAliasCache,
+        cashtabCache,
     } = ContextValue;
     const walletState = getWalletState(wallet);
     const { balances, nonSlpUtxos } = walletState;
@@ -75,29 +75,28 @@ const Alias = ({ passLoadingStatus }) => {
     const [activeWalletAliases, setActiveWalletAliases] = useState([]); // stores the list of aliases registered to this active wallet
     const [aliasLength, setAliasLength] = useState(false); // real time tracking of alias char length
     const [aliasFee, setAliasFee] = useState(false); // real time tracking of alias registration fee
-    const [aliasRefreshToggle, setAliasRefreshToggle] = useState(false); // toggle to trigger useEffect() upon alias registration so the alias list is always current
 
     useEffect(() => {
         passLoadingStatus(false);
     }, [balances.totalBalance]);
 
     useEffect(async () => {
-        // only run this useEffect block if wallet is defined
-        if (!wallet || typeof wallet === 'undefined') {
+        // only run this useEffect block if wallet or cashtabCache is defined
+        if (
+            !wallet ||
+            typeof wallet === 'undefined' ||
+            !cashtabCache ||
+            typeof cashtabCache === 'undefined'
+        ) {
             return;
         }
         passLoadingStatus(true);
 
-        // check if alias cache is sync'ed with onchain tx count, if not, update
-        let cachedAliases;
-        try {
-            cachedAliases = await synchronizeAliasCache(chronik);
-        } catch (err) {
-            console.log(`Error synchronizing alias cache in Alias.js`, err);
-        }
-
         // check whether the address is attached to an onchain alias on page load
-        const walletHasAlias = isAddressRegistered(wallet, cachedAliases);
+        const walletHasAlias = isAddressRegistered(
+            wallet,
+            cashtabCache.aliasCache,
+        );
 
         // temporary console log for reviewer
         console.log(
@@ -108,22 +107,23 @@ const Alias = ({ passLoadingStatus }) => {
         // retrieve aliases for this active wallet from cache for rendering on the frontend
         if (
             walletHasAlias &&
-            cachedAliases &&
-            cachedAliases.aliases.length > 0
+            cashtabCache.aliasCache &&
+            cashtabCache.aliasCache.cachedAliasCount > 0
         ) {
             const thisAddress = convertToEcashPrefix(
                 wallet.Path1899.cashAddress,
             );
             // filter for aliases that matches this wallet's address
-            const registeredAliasesToWallet = cachedAliases.aliases.filter(
-                alias => alias.address === thisAddress,
-            );
+            const registeredAliasesToWallet =
+                cashtabCache.aliasCache.aliases.filter(
+                    alias => alias.address === thisAddress,
+                );
 
             setActiveWalletAliases(registeredAliasesToWallet);
         }
 
         passLoadingStatus(false);
-    }, [wallet.name, aliasRefreshToggle]);
+    }, [wallet.name, cashtabCache]);
 
     const registerAlias = async () => {
         passLoadingStatus(true);
@@ -143,7 +143,10 @@ const Alias = ({ passLoadingStatus }) => {
             return;
         }
 
-        const aliasAvailable = await isAliasAvailable(chronik, aliasInput);
+        const aliasAvailable = await isAliasAvailable(
+            aliasInput,
+            cashtabCache.aliasCache,
+        );
 
         if (aliasAvailable) {
             // calculate registration fee based on chars
@@ -168,17 +171,7 @@ const Alias = ({ passLoadingStatus }) => {
                     aliasInput,
                     fromSatoshisToXec(registrationFee),
                 );
-                sendXecNotification(link);
-                // synchronize alias cache upon successful registration broadcast
-                try {
-                    await synchronizeAliasCache(chronik);
-                } catch (err) {
-                    console.log(
-                        `Error synchronizing alias cache after registration in Alias.js`,
-                        err,
-                    );
-                }
-                setAliasRefreshToggle(prevCheck => !prevCheck);
+                registerAliasNotification(link, aliasInput);
             } catch (err) {
                 handleAliasRegistrationError(err);
             }
@@ -198,7 +191,7 @@ const Alias = ({ passLoadingStatus }) => {
 
     const handleAliasNameInput = e => {
         const { name, value } = e.target;
-        const validAliasInput = isAlphanumeric(value);
+        const validAliasInput = isValidAliasString(value);
         const aliasInputByteSize = getAliasByteSize(value);
         if (
             value &&

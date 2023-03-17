@@ -3,6 +3,7 @@ import { notification } from 'antd';
 import {
     CashReceivedNotificationIcon,
     TokenReceivedNotificationIcon,
+    ThemedUserProfileIcon,
 } from 'components/Common/CustomIcons';
 import Paragraph from 'antd/lib/typography/Paragraph';
 import { currency } from 'components/Common/Ticker';
@@ -39,6 +40,23 @@ const sendXecNotification = link => {
         ),
         duration: currency.notificationDurationShort,
         icon: <CashReceivedNotificationIcon />,
+        style: notificationStyle,
+    });
+};
+
+const registerAliasNotification = (link, alias) => {
+    const notificationStyle = getDeviceNotificationStyle();
+    notification.success({
+        message: 'Success',
+        description: (
+            <a href={link} target="_blank" rel="noopener noreferrer">
+                <Paragraph>
+                    Alias `{alias}` registration pending 1 confirmation.
+                </Paragraph>
+            </a>
+        ),
+        duration: currency.notificationDurationShort,
+        icon: <ThemedUserProfileIcon />,
         style: notificationStyle,
     });
 };
@@ -225,6 +243,7 @@ const generalNotification = (data, msgStr) => {
 
 export {
     sendXecNotification,
+    registerAliasNotification,
     createTokenNotification,
     tokenIconSubmitSuccess,
     sendTokenNotification,

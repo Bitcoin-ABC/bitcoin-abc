@@ -22,7 +22,7 @@ import {
     parseInvalidCashtabCacheForMigration,
     isValidCashtabCache,
     validateMnemonic,
-    isAlphanumeric,
+    isValidAliasString,
 } from '../validation';
 import { currency } from 'components/Common/Ticker.js';
 import { fromSatoshisToXec } from 'utils/cashMethods';
@@ -50,29 +50,29 @@ import {
 } from 'utils/__mocks__/mockCashtabCache';
 
 describe('Validation utils', () => {
-    it(`isAlphanumeric() returns true for a valid lowercase alphanumeric input`, () => {
-        expect(isAlphanumeric('jasdf3873')).toBe(true);
+    it(`isValidAliasString() returns true for a valid lowercase alphanumeric input`, () => {
+        expect(isValidAliasString('jasdf3873')).toBe(true);
     });
-    it(`isAlphanumeric() returns false for an uppercase alphanumeric input`, () => {
-        expect(isAlphanumeric('jasDf3873')).toBe(false);
+    it(`isValidAliasString() returns false for an uppercase alphanumeric input`, () => {
+        expect(isValidAliasString('jasDf3873')).toBe(false);
     });
-    it(`isAlphanumeric() returns false for a non-english input`, () => {
-        expect(isAlphanumeric('Glück')).toBe(false);
+    it(`isValidAliasString() returns false for a non-english input`, () => {
+        expect(isValidAliasString('Glück')).toBe(false);
     });
-    it(`isAlphanumeric() returns false for an emoji input`, () => {
-        expect(isAlphanumeric('😉')).toBe(false);
+    it(`isValidAliasString() returns false for an emoji input`, () => {
+        expect(isValidAliasString('😉')).toBe(false);
     });
-    it(`isAlphanumeric() returns false for a special character input`, () => {
-        expect(isAlphanumeric('( ͡° ͜ʖ ͡°)')).toBe(false);
+    it(`isValidAliasString() returns false for a special character input`, () => {
+        expect(isValidAliasString('( ͡° ͜ʖ ͡°)')).toBe(false);
     });
-    it(`isAlphanumeric() returns false for a zero width character input`, () => {
-        expect(isAlphanumeric('​')).toBe(false);
+    it(`isValidAliasString() returns false for a zero width character input`, () => {
+        expect(isValidAliasString('​')).toBe(false);
     });
-    it(`isAlphanumeric() returns false for a valid alphanumeric input with spaces`, () => {
-        expect(isAlphanumeric('​jasdf3873 ')).toBe(false);
+    it(`isValidAliasString() returns false for a valid alphanumeric input with spaces`, () => {
+        expect(isValidAliasString('​jasdf3873 ')).toBe(false);
     });
-    it(`isAlphanumeric() returns false for a valid alphanumeric input with symbols`, () => {
-        expect(isAlphanumeric('​jasdf3873@#')).toBe(false);
+    it(`isValidAliasString() returns false for a valid alphanumeric input with symbols`, () => {
+        expect(isValidAliasString('​jasdf3873@#')).toBe(false);
     });
     it(`validateMnemonic() returns true for a valid mnemonic`, () => {
         const mnemonic =
@@ -768,8 +768,7 @@ describe('Validation utils', () => {
         ).toStrictEqual({
             aliasCache: {
                 aliases: [],
-                paymentTxHistory: [],
-                totalPaymentTxCount: 0,
+                cachedAliasCount: 0,
             },
             tokenInfoById: {
                 '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e':
@@ -799,8 +798,7 @@ describe('Validation utils', () => {
         expect(parseInvalidCashtabCacheForMigration({})).toStrictEqual({
             aliasCache: {
                 aliases: [],
-                paymentTxHistory: [],
-                totalPaymentTxCount: 0,
+                cachedAliasCount: 0,
             },
             tokenInfoById: {},
         }));

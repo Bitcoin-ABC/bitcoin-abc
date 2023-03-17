@@ -138,7 +138,7 @@ const SendBCH = ({ passLoadingStatus }) => {
         cashtabSettings,
         changeCashtabSettings,
         chronik,
-        getAliasesFromLocalForage,
+        cashtabCache,
     } = ContextValue;
     const walletState = getWalletState(wallet);
     const { balances, nonSlpUtxos } = walletState;
@@ -215,6 +215,11 @@ const SendBCH = ({ passLoadingStatus }) => {
     }, [balances.totalBalance]);
 
     useEffect(() => {
+        // only run this useEffect block if cashtabCache is defined
+        if (!cashtabCache || typeof cashtabCache === 'undefined') {
+            return;
+        }
+
         // Manually parse for txInfo object on page load when Send.js is loaded with a query string
 
         // if this was routed from Wallet screen's Reply to message link then prepopulate the address and value field
@@ -278,7 +283,7 @@ const SendBCH = ({ passLoadingStatus }) => {
         console.log(`txInfo from page params`, txInfo);
         setTxInfoFromUrl(txInfo);
         populateFormsFromUrl(txInfo);
-    }, []);
+    }, [cashtabCache]);
 
     function populateFormsFromUrl(txInfo) {
         if (txInfo && txInfo.address && txInfo.value) {
@@ -461,16 +466,15 @@ const SendBCH = ({ passLoadingStatus }) => {
             // extract alias without the `.xec`
             const aliasName = address.slice(0, address.length - 4);
 
-            // extract and check alias address from cache
-            const aliasCacheObj = await getAliasesFromLocalForage();
             const aliasAddress = getAddressFromAlias(
                 aliasName,
-                aliasCacheObj.aliases,
+                cashtabCache.aliasCache.aliases,
             );
 
             if (!aliasAddress) {
                 // if not found in alias cache, display input error
-                error = 'eCash Alias does not exist';
+                error =
+                    'eCash Alias does not exist or yet to receive 1 confirmation';
                 setAliasInputAddress(false);
             } else {
                 // otherwise set parsed address to state for use in Send()

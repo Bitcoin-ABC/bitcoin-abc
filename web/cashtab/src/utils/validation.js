@@ -4,7 +4,7 @@ import { fromSatoshisToXec } from 'utils/cashMethods';
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
 
-export const isAlphanumeric = inputStr => {
+export const isValidAliasString = inputStr => {
     return /^[a-z0-9]+$/.test(inputStr);
 };
 
@@ -268,6 +268,25 @@ export const parseInvalidCashtabCacheForMigration = invalidCashtabCache => {
             migratedCashtabCache[param] = currency.defaultCashtabCache[param];
         }
     }
+
+    // validate aliases array
+    if (
+        !invalidCashtabCache.aliasCache ||
+        !Array.isArray(invalidCashtabCache.aliasCache.aliases)
+    ) {
+        migratedCashtabCache.aliasCache.aliases = [];
+    } else {
+        // determine if there is a non alphanumeric
+        for (let element of invalidCashtabCache.aliasCache.aliases) {
+            if (!isValidAliasString(element.alias)) {
+                // temporary log for reviewer
+                console.log(
+                    `Non-alphanumeric or missing blockheight param alias detected in cache, resetting aliasCache`,
+                );
+                migratedCashtabCache.aliasCache.aliases = [];
+            }
+        }
+    }
     return migratedCashtabCache;
 };
 
@@ -398,12 +417,8 @@ export const isValidCashtabCache = cashtabCache => {
         console.log(`aliasCache in cashtabCache is false`);
         return false;
     }
-    const { aliases, paymentTxHistory, totalPaymentTxCount } = aliasCache;
-    if (
-        !Array.isArray(aliases) ||
-        !Array.isArray(paymentTxHistory) ||
-        typeof totalPaymentTxCount !== 'number'
-    ) {
+    const { aliases, cachedAliasCount } = aliasCache;
+    if (!Array.isArray(aliases) || typeof cachedAliasCount !== 'number') {
         // temporary log for reviewer
         console.log(`aliasCache in cashtabCache is false`);
         return false;

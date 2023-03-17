@@ -7,63 +7,11 @@ import {
     getHashArrayFromWallet,
     getUtxoWif,
     convertEcashtoEtokenAddr,
-    hash160ToAddress,
-    getAliasRegistrationFee,
     convertToEcashPrefix,
     outputScriptToAddress,
 } from 'utils/cashMethods';
-import { isAlphanumeric } from 'utils/validation';
 import ecies from 'ecies-lite';
 import wif from 'wif';
-
-export const getOnchainAliasTxCount = async chronik => {
-    let onchainAliasTxCount;
-    const txHistoryFirstPageResponse = await getTxHistoryPage(
-        chronik,
-        currency.aliasSettings.aliasPaymentHash160,
-    );
-    if (!txHistoryFirstPageResponse) {
-        console.log(
-            `Error retrieving first alias tx history page in getOnchainAliasTxCount()`,
-        );
-        return false;
-    }
-    const { numPages } = txHistoryFirstPageResponse;
-    // temporary log for reviewer
-    console.log(`onchain numPages: `, numPages);
-
-    // check number of txs on the final page in numPages
-    const txHistoryLastPageResponse = await getTxHistoryPage(
-        chronik,
-        currency.aliasSettings.aliasPaymentHash160,
-        numPages - 1,
-    );
-    if (!txHistoryLastPageResponse) {
-        console.log(`Error retrieving last alias tx history page in Alias.js`);
-        return false;
-    }
-    onchainAliasTxCount = calculateAliasTxCount(
-        txHistoryLastPageResponse,
-        numPages,
-    );
-    return onchainAliasTxCount;
-};
-
-export const calculateAliasTxCount = (txHistoryLastPageResponse, numPages) => {
-    let onchainAliasTxCount;
-    const { txs } = txHistoryLastPageResponse;
-    const txsCountOnLastPage = txs.length;
-
-    if (txsCountOnLastPage === currency.chronikTxsPerPage) {
-        // if the last tx history page contains the full 'currency.chronikTxsPerPage' txs
-        onchainAliasTxCount = numPages * currency.chronikTxsPerPage;
-    } else {
-        // otherwise calculate onchain count by multiplying earlier pages by the full 'currency.chronikTxsPerPage' txs and add on final page's specific tx count
-        onchainAliasTxCount =
-            (numPages - 1) * currency.chronikTxsPerPage + txsCountOnLastPage;
-    }
-    return onchainAliasTxCount;
-};
 
 export const getTxHistoryPage = async (chronik, hash160, page = 0) => {
     let txHistoryPage;
@@ -102,144 +50,6 @@ export const returnGetTxHistoryPagePromise = async (
     });
 };
 
-export const getAllTxHistory = async (
-    chronik,
-    hash160,
-    customPagesToIterate = 0,
-) => {
-    let allTxHistory = [];
-    let sortedAllTxHistory = [];
-    let txHistoryFirstPageResponse, secondPageIndex;
-
-    txHistoryFirstPageResponse = await getTxHistoryPage(
-        chronik,
-        hash160,
-        0, // both full and partial tx histories will iterate from page 0
-    );
-    secondPageIndex = customPagesToIterate + 1;
-
-    if (!txHistoryFirstPageResponse) {
-        console.log(`Error retrieving tx history page in getTxHistoryPage()`);
-        return false;
-    }
-
-    let { txs, numPages } = txHistoryFirstPageResponse;
-
-    // Add first page of results to allTxHistory
-    allTxHistory = allTxHistory.concat(txs);
-
-    // Iterate through remaining pages to get remaining tx history
-    // Start with i=1, as you already have data from page 0
-    // If this is a partial tx history retrieval, start from customStartPage+1
-    // Note: Since 0 is a page number, 3 pages of data ends with pageNumber i=2
-    const txHistoryPageResponsePromises = [];
-    let txHistoryPageResponsePromise;
-
-    if (customPagesToIterate > 0) {
-        numPages = customPagesToIterate; // overwrite numPages to only iterate as far as specified
-        // temporary log for reviewer
-        console.log(
-            `partial tx history retrieval, stopping at page ${numPages - 1}`,
-        );
-    } else {
-        // temporary log for reviewer
-        console.log(`full tx history retrieval`);
-    }
-
-    // retrieve full or partial tx history
-    for (let i = secondPageIndex; i < numPages; i += 1) {
-        txHistoryPageResponsePromise = returnGetTxHistoryPagePromise(
-            chronik,
-            hash160,
-            i,
-        );
-        txHistoryPageResponsePromises.push(txHistoryPageResponsePromise);
-    }
-
-    if (txHistoryPageResponsePromise) {
-        // Use Promise.all so that an error is thrown if any single promise fails
-        let remainingTxHistoryPageResponses;
-        try {
-            remainingTxHistoryPageResponses = await Promise.all(
-                txHistoryPageResponsePromises,
-            );
-        } catch (err) {
-            console.log(
-                `Error in Promise.all(txHistoryPageResponsePromises)`,
-                err,
-            );
-            // Return false; you won't have all the tx history if this happens
-            return false;
-        }
-
-        // Iterate over results to complete allTxHistory
-        for (let i = 0; i < remainingTxHistoryPageResponses.length; i += 1) {
-            const { txs } = remainingTxHistoryPageResponses[i];
-            allTxHistory = allTxHistory.concat(txs);
-        }
-    }
-
-    // sort allTxHistory based on blockheight and txid
-    sortedAllTxHistory = sortAliasTxsByTxidAndBlockheight(allTxHistory);
-
-    return sortedAllTxHistory;
-};
-
-export const filterDuplicateAliasTxs = sortedAllTxHistory => {
-    let uniqueSortedAllTxHistory = [];
-    // filter out duplicate aliases
-    sortedAllTxHistory.forEach(function (aliasTx) {
-        // if this is the first instance of this alias OP_RETURN script, add to uniqueSortedAllTxHistory
-        if (
-            !JSON.stringify(uniqueSortedAllTxHistory).includes(
-                JSON.stringify(aliasTx.outputs[0].outputScript),
-            )
-        ) {
-            uniqueSortedAllTxHistory.push(aliasTx);
-        }
-    });
-
-    return uniqueSortedAllTxHistory;
-};
-
-export const sortAliasTxsByTxidAndBlockheight = unsortedAliasTxs => {
-    // arbitrary to set unconfirmed txs at blockheight of 100,000,000
-    // note that this constant must be adjusted in the fall of 3910 A.D., assuming 10 min blocks
-    // setting it high instead of zero because it's important we sort aliases by blockheight
-    // for sortAliasTxsByTxidAndBlockheight function
-    unsortedAliasTxs.forEach(function (aliasTx) {
-        if (!aliasTx.block) {
-            // if this tx does not have a block attribute, i.e. unconfirmed
-            aliasTx.block = { height: 100000000 };
-            console.log(
-                `unconfirmed tx found, setting .block attribute to 100000000`,
-            );
-        }
-    });
-
-    // First, sort the aliases array by alphabetical txid
-    // (alphabetical first to last, 0 comes before a comes before b comes before c, etc)
-    const aliasesTxsSortedByTxid = unsortedAliasTxs.sort((a, b) => {
-        return a.txid.localeCompare(b.txid);
-    });
-
-    // Next, sort the aliases array by blockheight. This will preserve the alphabetical txid sort
-    // 735,625 comes before 735,626 comes before 100,000,000 etc
-    const aliasTxsSortedByTxidAndBlockheight = aliasesTxsSortedByTxid.sort(
-        (a, b) => {
-            return a.block.height - b.block.height;
-        },
-    );
-
-    // temporary log for reviewer
-    console.log(
-        `aliasTxsSortedByTxidAndBlockheight: `,
-        JSON.stringify(aliasTxsSortedByTxidAndBlockheight),
-    );
-
-    return aliasTxsSortedByTxidAndBlockheight;
-};
-
 export const getAddressFromAlias = (alias, cachedAliases) => {
     let aliasAddress = false;
 
@@ -254,7 +64,7 @@ export const getAddressFromAlias = (alias, cachedAliases) => {
     return aliasAddress;
 };
 
-export const isAliasAvailable = async (chronik, alias) => {
+export const isAliasAvailable = async (alias, aliasesFromLocalForage) => {
     // check whether alias is reserved
     const isReservedAlias = currency.aliasSettings.reservedAliases.includes(
         alias.toLowerCase(),
@@ -263,17 +73,8 @@ export const isAliasAvailable = async (chronik, alias) => {
         return false;
     }
 
-    // retrieve alias payment address tx history
-    let aliasPaymentTxs = await getAllTxHistory(
-        chronik,
-        currency.aliasSettings.aliasPaymentHash160,
-    );
-
-    // filter out duplicate alias registrations
-    let uniqueRegisteredAlaises = filterDuplicateAliasTxs(aliasPaymentTxs);
-
-    // extract aliases from payment address' tx history
-    let registeredAliases = getAliasAndAddresses(uniqueRegisteredAlaises);
+    // extract aliases from cache
+    const registeredAliases = aliasesFromLocalForage.aliases;
 
     // check if the chosen alias has already been registered onchain
     let isAliasTaken = isAliasRegistered(registeredAliases, alias);
@@ -292,146 +93,6 @@ export const isAliasRegistered = (registeredAliases, alias) => {
         }
     }
     return false;
-};
-
-export const getAliasAndAddresses = unfilteredAliasPaymentTxs => {
-    const registeredAliases = [];
-
-    // add reserved aliases to registeredAliases
-    currency.aliasSettings.reservedAliases.forEach(element =>
-        registeredAliases.push({
-            alias: element,
-            address: currency.aliasSettings.aliasPaymentAddress,
-        }),
-    );
-
-    let aliasName;
-    let aliasPaymentTxs = filterDuplicateAliasTxs(unfilteredAliasPaymentTxs);
-
-    // parse through each txs in alias payment address
-    for (let i = 0; i < aliasPaymentTxs.length; i += 1) {
-        let totalAliasFeePaid = new BigNumber(0);
-
-        // extract the OP_RETURN script for aliasPaymentTxs[i]
-        const opReturnScript = aliasPaymentTxs[i].outputs[0].outputScript;
-
-        // parse the OP_RETURN script - expected structure is [.xec][the alias]
-        const aliasTxOpReturnArray = parseOpReturn(opReturnScript);
-        if (!aliasTxOpReturnArray) {
-            continue; // skip this aliasPaymentTxs[i] as it's not a registration tx
-        }
-
-        const parsedAliasPrefixHex = aliasTxOpReturnArray[0];
-        const parsedAliasNameHex = aliasTxOpReturnArray[1];
-        if (!parsedAliasNameHex) {
-            continue; // skip this aliasPaymentTxs[i] as it's not a registration tx e.g. eToken send txs
-        }
-
-        const parsedAliasNameStr = Buffer.from(parsedAliasNameHex, 'hex')
-            .toString()
-            .toLowerCase();
-
-        // if this alias is reserved, skip it
-        const isReservedAlias =
-            currency.aliasSettings.reservedAliases.includes(parsedAliasNameStr);
-        if (isReservedAlias) {
-            continue;
-        }
-
-        // if this alias is not alphanumeric, skip it
-        if (!isAlphanumeric(parsedAliasNameStr)) {
-            continue;
-        }
-
-        /* 
-        Assume the first input is the address registering the alias
-
-        https://en.bitcoin.it/wiki/Script for reference
-
-        Assume standard pay-to-pubkey-hash tx        
-        scriptPubKey: OP_DUP OP_HASH160 <pubKeyHash> OP_EQUALVERIFY OP_CHECKSIG
-        76 + a9 + 14 = OP_DUP + OP_HASH160 + 14 Bytes to push
-        88 + ac = OP_EQUALVERIFY + OP_CHECKSIG
-
-        So, the hash160 we want will be in between '76a914' and '88ac'
-        */
-
-        // The first input is the registering address
-        const aliasAddressScript = aliasPaymentTxs[i].inputs[0].outputScript;
-        let aliasHash160, aliasAddress;
-
-        try {
-            aliasHash160 = aliasAddressScript.substring(
-                aliasAddressScript.indexOf('76a914') + '76a914'.length,
-                aliasAddressScript.lastIndexOf('88ac'),
-            );
-            aliasAddress = hash160ToAddress(aliasHash160);
-        } catch (err) {
-            console.log(`err from ${aliasAddressScript}`, err);
-            aliasAddress = 'N/A';
-        }
-
-        // if this transaction has a valid OP_RETURN and is indicating an alias prefix
-        // then parse through all outputs in this aliasPaymentTxs[i]
-        if (
-            parsedAliasPrefixHex &&
-            parsedAliasNameHex &&
-            parsedAliasPrefixHex.toLowerCase() ===
-                currency.opReturn.appPrefixesHex.aliasRegistration.toLowerCase()
-        ) {
-            let aliasNameFound = false;
-
-            // parse through each output in this aliasPaymentTxs[i] and tally up the total alias registration payments where the destination address is the alias payment address
-            for (let j = 0; j < aliasPaymentTxs[i].outputs.length; j += 1) {
-                const thisOutputScript =
-                    aliasPaymentTxs[i].outputs[j].outputScript;
-                if (
-                    thisOutputScript.includes(
-                        currency.aliasSettings.aliasPaymentHash160,
-                    ) // this output is being sent to the alias payment address
-                ) {
-                    // set the alias name only once
-                    if (!aliasNameFound) {
-                        aliasName = parsedAliasNameStr;
-                        aliasNameFound = true;
-                    }
-
-                    const thisOutputValue = aliasPaymentTxs[i].outputs[j].value;
-
-                    // increment fee paid
-                    totalAliasFeePaid = totalAliasFeePaid.plus(
-                        new BigNumber(thisOutputValue),
-                    );
-                }
-            }
-
-            // having now parsed all outputs in aliasPaymentTxs[i] for total payment value and aliasName
-            // add alias to array if the cumulative payment matches expected fee and alias is within max char length
-            if (aliasName) {
-                // parse the valid fee based on aliasName length
-                const expectedAliasPaymentFee =
-                    getAliasRegistrationFee(aliasName);
-
-                if (
-                    totalAliasFeePaid.isGreaterThanOrEqualTo(
-                        new BigNumber(expectedAliasPaymentFee),
-                    ) &&
-                    aliasName.length <=
-                        currency.aliasSettings.aliasMaxLength - 1
-                ) {
-                    // consider alias as valid and add to array
-                    registeredAliases.push({
-                        alias: aliasName,
-                        address: aliasAddress,
-                    });
-                    // reset fee increment for the next aliasPaymentTxs[i]
-                    totalAliasFeePaid = new BigNumber(0);
-                }
-            }
-        }
-    }
-
-    return registeredAliases;
 };
 
 export const isAddressRegistered = (activeWallet, aliasCache) => {

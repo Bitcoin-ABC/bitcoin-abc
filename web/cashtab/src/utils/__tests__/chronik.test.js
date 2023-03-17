@@ -8,12 +8,8 @@ import {
     sortAndTrimChronikTxHistory,
     parseChronikTx,
     getMintAddress,
-    getAliasAndAddresses,
     isAliasRegistered,
     getAddressFromAlias,
-    calculateAliasTxCount,
-    sortAliasTxsByTxidAndBlockheight,
-    filterDuplicateAliasTxs,
 } from 'utils/chronik';
 import {
     mockChronikUtxos,
@@ -61,15 +57,6 @@ import {
     mockReceivedEtokenTx,
     mockSwapWallet,
     mockSwapTx,
-    mockTxHistoryOfAliasPaymentAddress,
-    mockTxHistoryLastPageResponse23Txs,
-    mockTxHistoryLastPageResponse25Txs,
-    mockUnsortedAliasTxHistoryWithUnconfirmedTxs,
-    mockSortedAliasTxHistoryWithUnconfirmedTxs,
-    mockSortedAliasTxHistoryWithTxsInSameBlock,
-    mockUnsortedAliasTxHistoryWithTxsInSameBlock,
-    mockFilteredSortedAliasTxHistoryWithDuplicateTxs,
-    mockUnfilteredSortedAliasTxHistoryWithDuplicateTxs,
 } from '../__mocks__/chronikTxHistory';
 import {
     mintingTxTabCash,
@@ -84,46 +71,6 @@ import {
 import { mockAliasLocalStorage } from 'utils/__mocks__/mockCachedAliases';
 import { ChronikClient } from 'chronik-client';
 import { when } from 'jest-when';
-
-it(`sortAliasTxsByTxidAndBlockheight correctly sorts an alias payment tx history with unconfirmed transactions`, async () => {
-    expect(
-        sortAliasTxsByTxidAndBlockheight(
-            mockUnsortedAliasTxHistoryWithUnconfirmedTxs,
-        ),
-    ).toStrictEqual(mockSortedAliasTxHistoryWithUnconfirmedTxs);
-});
-
-it(`sortAliasTxsByTxidAndBlockheight correctly sorts an alias payment tx history with unconfirmed transactions in the same block`, async () => {
-    expect(
-        sortAliasTxsByTxidAndBlockheight(
-            mockUnsortedAliasTxHistoryWithTxsInSameBlock,
-        ),
-    ).toStrictEqual(mockSortedAliasTxHistoryWithTxsInSameBlock);
-});
-
-it(`filterDuplicateAliasTxs correctly filters out subsequent duplicate alias registrations for the same alias`, async () => {
-    expect(
-        filterDuplicateAliasTxs(
-            mockUnfilteredSortedAliasTxHistoryWithDuplicateTxs,
-        ),
-    ).toStrictEqual(mockFilteredSortedAliasTxHistoryWithDuplicateTxs);
-});
-
-it(`calculateAliasTxCount returns a correct tx count for a final page containing less than the full 25 txs`, async () => {
-    const txCount = calculateAliasTxCount(
-        mockTxHistoryLastPageResponse23Txs,
-        mockTxHistoryLastPageResponse23Txs.numPages,
-    );
-    expect(txCount).toStrictEqual(123);
-});
-
-it(`calculateAliasTxCount returns a correct tx count for a final page containing the full 25 txs`, async () => {
-    const txCount = calculateAliasTxCount(
-        mockTxHistoryLastPageResponse25Txs,
-        mockTxHistoryLastPageResponse25Txs.numPages,
-    );
-    expect(txCount).toStrictEqual(125);
-});
 
 it(`getAddressFromAlias successfully returns a corresponding address`, async () => {
     const alias = mockAliasLocalStorage[1].alias;
@@ -801,129 +748,6 @@ it(`getMintAddress successfully parses chronik.tx response to determine mint add
     expect(await getMintAddress(chronik, mintingTxBuxSelfMint.txid)).toBe(
         mintingAddressBuxSelfMint,
     );
-});
-
-it(`Successfully extracts unique aliases from an alias payment address tx history`, () => {
-    expect(
-        getAliasAndAddresses(mockTxHistoryOfAliasPaymentAddress),
-    ).toStrictEqual([
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'avalanche',
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'electrum',
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'electrumabc',
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'bitcoin',
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'bitcoinabc',
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'ecash',
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'ecashofficial',
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'xec',
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'abc',
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'cashtab', // test to ensure the reserved alias address *pqa8 takes precedence
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'ecashtab',
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'cashtabwallet',
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'xecwallet',
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'gnc',
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'etoken',
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'token',
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'cashfusion',
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'coinbase',
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'binance',
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'ethereum',
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'helpdesk',
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'admin',
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'support',
-        },
-        {
-            address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            alias: 'official',
-        },
-        {
-            alias: 'range',
-            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
-        },
-        {
-            alias: '123',
-            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
-        },
-        {
-            alias: 'foo',
-            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
-        },
-        {
-            alias: 'joey',
-            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
-        },
-        {
-            alias: 'nfs',
-            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
-        },
-    ]);
 });
 
 it(`isAliasRegistered() returns true for a registered alias`, () => {

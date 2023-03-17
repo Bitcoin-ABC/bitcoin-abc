@@ -101,13 +101,8 @@ const AirdropButton = styled.div`
 `;
 
 const SendToken = ({ tokenId, passLoadingStatus }) => {
-    const {
-        wallet,
-        apiError,
-        cashtabSettings,
-        chronik,
-        getAliasesFromLocalForage,
-    } = React.useContext(WalletContext);
+    const { wallet, apiError, cashtabSettings, chronik, cashtabCache } =
+        React.useContext(WalletContext);
     const walletState = getWalletState(wallet);
     const { tokens } = walletState;
 
@@ -276,17 +271,15 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
             // extract alias without the `.xec`
             const aliasName = address.slice(0, address.length - 4);
 
-            // extract alias address from cache
-            const aliasCacheObj = await getAliasesFromLocalForage();
-
             const aliasAddress = getAddressFromAlias(
                 aliasName,
-                aliasCacheObj.aliases,
+                cashtabCache.aliasCache.aliases,
             );
 
             // if not found in alias cache, display input error
             if (!aliasAddress) {
-                error = 'eCash Alias does not exist';
+                error =
+                    'eCash Alias does not exist or yet to receive 1 confirmation';
                 setAliasInputAddress(false);
             } else {
                 // otherwise set parsed address to state for use in Submit()
@@ -423,7 +416,12 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
         ) {
             passLoadingStatus(false);
         }
-    }, [walletState]);
+
+        // only run this useEffect block if cashtabCache is defined
+        if (!cashtabCache || typeof cashtabCache === 'undefined') {
+            return;
+        }
+    }, [walletState, cashtabCache]);
 
     return (
         <>
