@@ -11,7 +11,6 @@
         "clean": "shx rm -rf dist/ docs/",
         "build": "webpack",
         "test": "nyc --reporter=html --reporter=text mocha",
-        "coveralls": "nyc report --reporter=text-lcov | coveralls",
         "readme": "mustache package.json README.tpl.md > README.md"
     },
     "repository": {
@@ -35,21 +34,20 @@
     },
     "homepage": "https://github.com/bytesofman/ecashaddrjs#readme",
     "devDependencies": {
-        "@babel/cli": "7.12.10",
-        "@babel/core": "7.12.10",
-        "@babel/preset-env": "7.12.11",
-        "babel-loader": "8.2.2",
-        "chai": "4.2.0",
-        "coveralls": "3.0.9",
-        "debug": "4.3.1",
-        "jsdoc": "3.6.3",
-        "mocha": "8.2.1",
-        "mustache": "3.0.1",
-        "nyc": "15.0.0",
-        "random-js": "1.0.8",
-        "shx": "0.3.3",
-        "webpack": "5.11.0",
-        "webpack-cli": "4.3.0"
+        "@babel/cli": "^7.21.0",
+        "@babel/core": "^7.21.3",
+        "@babel/preset-env": "^7.20.2",
+        "babel-loader": "^9.1.2",
+        "chai": "^4.3.7",
+        "debug": "^4.3.4",
+        "jsdoc": "^4.0.2",
+        "mocha": "^10.2.0",
+        "mustache": "^4.2.0",
+        "nyc": "^15.1.0",
+        "random-js": "^2.1.0",
+        "shx": "^0.3.4",
+        "webpack": "^5.76.2",
+        "webpack-cli": "^5.0.1"
     },
     "dependencies": {
         "big-integer": "1.6.36"

@@ -10,10 +10,10 @@
 const { assert } = require('chai');
 const { ValidationError } = require('../src/validation');
 const base32 = require('../src/base32');
-const Random = require('random-js');
+const { Random, MersenneTwister19937 } = require('random-js');
 
 describe('base32', () => {
-    const random = new Random(Random.engines.mt19937().seed(42));
+    const random = new Random(MersenneTwister19937.seed(42));
 
     function getRandomData(size) {
         const data = new Uint8Array(size);

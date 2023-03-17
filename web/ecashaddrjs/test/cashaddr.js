@@ -9,7 +9,7 @@
 
 const { assert } = require('chai');
 const cashaddr = require('../src/cashaddr');
-const Random = require('random-js');
+const { Random, MersenneTwister19937 } = require('random-js');
 
 describe('cashaddr', () => {
     const NETWORKS = ['bitcoincash', 'bchtest', 'bchreg'];
@@ -57,7 +57,7 @@ describe('cashaddr', () => {
         'bchtest:pqq3728yw0y47sqn6l2na30mcw6zm78dzqswu8q0kz',
     ];
 
-    const random = new Random(Random.engines.mt19937().seed(42));
+    const random = new Random(MersenneTwister19937.seed(42));
 
     function getRandomHash(size) {
         const hash = new Uint8Array(size);
