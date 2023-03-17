@@ -1,0 +1,58 @@
+{
+    "name": "ecashaddrjs",
+    "version": "1.0.7",
+    "description": "eCash cashaddr address format support for Node.js and web browsers.",
+    "main": "src/cashaddr.js",
+    "files": [
+        "src/",
+        "dist/"
+    ],
+    "scripts": {
+        "clean": "shx rm -rf dist/ docs/",
+        "build": "webpack",
+        "test": "nyc --reporter=html --reporter=text mocha",
+        "coveralls": "nyc report --reporter=text-lcov | coveralls",
+        "readme": "mustache package.json README.tpl.md > README.md"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/bytesofman/ecashaddrjs.git"
+    },
+    "keywords": [
+        "ecash",
+        "bitcoin",
+        "cash",
+        "cashaddr",
+        "address",
+        "format",
+        "node",
+        "browser"
+    ],
+    "author": "Emilio Almansi",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/bytesofman/ecashaddrjs/issues"
+    },
+    "homepage": "https://github.com/bytesofman/ecashaddrjs#readme",
+    "devDependencies": {
+        "@babel/cli": "7.12.10",
+        "@babel/core": "7.12.10",
+        "@babel/preset-env": "7.12.11",
+        "babel-loader": "8.2.2",
+        "chai": "4.2.0",
+        "coveralls": "3.0.9",
+        "debug": "4.3.1",
+        "eslint": "6.2.2",
+        "jsdoc": "3.6.3",
+        "mocha": "8.2.1",
+        "mustache": "3.0.1",
+        "nyc": "15.0.0",
+        "random-js": "1.0.8",
+        "shx": "0.3.3",
+        "webpack": "5.11.0",
+        "webpack-cli": "4.3.0"
+    },
+    "dependencies": {
+        "big-integer": "1.6.36"
+    }
+}
