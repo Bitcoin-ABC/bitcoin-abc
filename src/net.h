@@ -491,8 +491,8 @@ public:
      * cleanSubVer is a sanitized string of the user agent byte array we read
      * from the wire. This cleaned string can safely be logged or displayed.
      */
-    RecursiveMutex cs_SubVer;
-    std::string cleanSubVer GUARDED_BY(cs_SubVer){};
+    Mutex m_subver_mutex;
+    std::string cleanSubVer GUARDED_BY(m_subver_mutex){};
     // This peer is preferred for eviction.
     bool m_prefer_evict{false};
     bool HasPermission(NetPermissionFlags permission) const {
