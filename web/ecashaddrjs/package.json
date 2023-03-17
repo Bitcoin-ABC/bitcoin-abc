@@ -42,7 +42,6 @@
         "chai": "4.2.0",
         "coveralls": "3.0.9",
         "debug": "4.3.1",
-        "eslint": "6.2.2",
         "jsdoc": "3.6.3",
         "mocha": "8.2.1",
         "mustache": "3.0.1",
