@@ -29,7 +29,7 @@ PATTERN_ONION = re.compile(
 
 # Used to only select nodes with a user agent string compatible with the
 # eCash network.
-PATTERN_AGENT = re.compile(r"^(/Bitcoin ABC:0.(26|25).(\d+)\(.+\)/)")
+PATTERN_AGENT = re.compile(r"^(/Bitcoin ABC:0.(26|27).(\d+)\(.+\)/)")
 
 
 def parseline(line: str) -> Union[dict, None]:
