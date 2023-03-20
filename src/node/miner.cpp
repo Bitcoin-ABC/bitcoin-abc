@@ -252,19 +252,19 @@ bool BlockAssembler::TestTxFits(uint64_t txSize, int64_t txSigChecks) const {
     return true;
 }
 
-void BlockAssembler::AddToBlock(CTxMemPool::txiter iter) {
-    pblocktemplate->entries.emplace_back(iter->GetSharedTx(), iter->GetFee(),
-                                         iter->GetSigChecks());
-    nBlockSize += iter->GetTxSize();
+void BlockAssembler::AddToBlock(const CTxMemPoolEntry &entry) {
+    pblocktemplate->entries.emplace_back(entry.GetSharedTx(), entry.GetFee(),
+                                         entry.GetSigChecks());
+    nBlockSize += entry.GetTxSize();
     ++nBlockTx;
-    nBlockSigChecks += iter->GetSigChecks();
-    nFees += iter->GetFee();
+    nBlockSigChecks += entry.GetSigChecks();
+    nFees += entry.GetFee();
 
     if (fPrintPriority) {
         LogPrintf(
             "fee rate %s txid %s\n",
-            CFeeRate(iter->GetModifiedFee(), iter->GetTxSize()).ToString(),
-            iter->GetTx().GetId().ToString());
+            CFeeRate(entry.GetModifiedFee(), entry.GetTxSize()).ToString(),
+            entry.GetTx().GetId().ToString());
     }
 }
 
@@ -365,7 +365,7 @@ void BlockAssembler::addTxs() {
         nConsecutiveFailed = 0;
 
         // Tx can be added.
-        AddToBlock(iter);
+        AddToBlock(*iter);
 
         // This tx's children may now be candidates for addition if they have
         // higher scores than the tx at the cursor. We can only process a
