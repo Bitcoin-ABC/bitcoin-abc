@@ -150,6 +150,8 @@ public:
     virtual size_t CountCandidates(NodeId peer) const = 0;
     virtual size_t Count(NodeId peer) const = 0;
     virtual size_t Size() const = 0;
+    virtual void GetCandidatePeers(const uint256 &invid,
+                                   std::vector<NodeId> &result_peers) const = 0;
     virtual uint64_t ComputePriority(const uint256 &invid, NodeId peer,
                                      bool preferred) const = 0;
     virtual void SanityCheck() const = 0;
@@ -314,6 +316,16 @@ public:
      * and inventory ids.
      */
     size_t Size() const { return m_impl->Size(); }
+
+    /**
+     * For some invid, finds all peers with non-COMPLETED announcements and
+     * appends them to result_peers. Does not try to ensure that result_peers
+     * contains no duplicates.
+     */
+    void GetCandidatePeers(const InvId &invid,
+                           std::vector<NodeId> &result_peers) const {
+        m_impl->GetCandidatePeers(invid, result_peers);
+    }
 
     /** Access to the internal priority computation (testing only) */
     uint64_t ComputePriority(const InvId &invid, NodeId peer,

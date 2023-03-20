@@ -676,6 +676,17 @@ public:
         }
     }
 
+    void GetCandidatePeers(const uint256 &invid,
+                           std::vector<NodeId> &result_peers) const override {
+        auto it = m_index.get<ByInvId>().lower_bound(
+            ByInvIdView{invid, State::CANDIDATE_DELAYED, 0});
+        while (it != m_index.get<ByInvId>().end() && it->m_invid == invid &&
+               it->GetState() != State::COMPLETED) {
+            result_peers.push_back(it->m_peer);
+            ++it;
+        }
+    }
+
     void ReceivedInv(NodeId peer, const uint256 &invid, bool preferred,
                      std::chrono::microseconds reqtime) override {
         // Bail out if we already have a CANDIDATE_BEST announcement for this

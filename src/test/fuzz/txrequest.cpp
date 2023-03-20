@@ -313,6 +313,22 @@ public:
                     m_announcements[txid][peer].m_state == State::REQUESTED;
                 candidates +=
                     m_announcements[txid][peer].m_state == State::CANDIDATE;
+
+                std::bitset<MAX_PEERS> expected_announcers;
+                for (int peer2 = 0; peer2 < MAX_PEERS; ++peer2) {
+                    if (m_announcements[txid][peer2].m_state ==
+                            State::CANDIDATE ||
+                        m_announcements[txid][peer2].m_state ==
+                            State::REQUESTED) {
+                        expected_announcers[peer2] = true;
+                    }
+                }
+                std::vector<NodeId> candidate_peers;
+                m_tracker.GetCandidatePeers(TXIDS[txid], candidate_peers);
+                assert(expected_announcers.count() == candidate_peers.size());
+                for (const auto &candidate_peer : candidate_peers) {
+                    assert(expected_announcers[candidate_peer]);
+                }
             }
             assert(m_tracker.Count(peer) == tracked);
             assert(m_tracker.CountInFlight(peer) == inflight);
