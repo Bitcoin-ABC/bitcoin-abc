@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+export LC_ALL=C
+set -e -o pipefail
+
+# Source the common prelude, which:
+#   1. Checks if we're at the top directory of the Bitcoin ABC repository
+#   2. Defines a few common functions and variables
+#
+# shellcheck source=libexec/prelude.bash
+source "$(dirname "${BASH_SOURCE[0]}")/libexec/prelude.bash"
+
+git clean -xdff \
+ --exclude="${var_base_basename}/precious_dirs" \
+ --exclude=depends/sources \
+ --exclude=depends/built \
+ --exclude=depends/SDKs \
+ --exclude=output \
+ --exclude=var

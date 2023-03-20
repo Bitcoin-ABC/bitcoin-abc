@@ -52,6 +52,7 @@ src/qt/bitcoin-qt.includes
 # Only ignore unexpected patches
 *.patch
 !depends/patches/**/*.patch
+!contrib/guix/**/*.patch
 
 # Compilation and Qt preprocessor part
 *.qm
