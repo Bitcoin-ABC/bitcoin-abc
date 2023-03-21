@@ -118,7 +118,7 @@ def check_ELF_control_flow(binary) -> bool:
         main, 4, lief.Binary.VA_TYPES.AUTO
     )
 
-    return content == [243, 15, 30, 250]  # endbr64
+    return content.tolist() == [243, 15, 30, 250]  # endbr64
 
 
 def check_PE_DYNAMIC_BASE(binary) -> bool:
@@ -159,7 +159,7 @@ def check_PE_control_flow(binary) -> bool:
         virtual_address, 4, lief.Binary.VA_TYPES.VA
     )
 
-    return content == [243, 15, 30, 250]  # endbr64
+    return content.tolist() == [243, 15, 30, 250]  # endbr64
 
 
 def check_MACHO_NOUNDEFS(binary) -> bool:
@@ -198,7 +198,7 @@ def check_MACHO_control_flow(binary) -> bool:
     content = binary.get_content_from_virtual_address(
         binary.entrypoint, 4, lief.Binary.VA_TYPES.AUTO
     )
-    return content == [243, 15, 30, 250]  # endbr64
+    return content.tolist() == [243, 15, 30, 250]  # endbr64
 
 
 BASE_ELF = [

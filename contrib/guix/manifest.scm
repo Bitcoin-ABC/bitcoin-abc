@@ -26,6 +26,7 @@
              (gnu packages perl)
              (gnu packages pkg-config)
              (gnu packages python)
+             ((gnu packages python-build) #:select (python-tomli))
              (gnu packages python-crypto)
              (gnu packages python-web)
              (gnu packages shells)
@@ -207,35 +208,50 @@ chain for " target " development."))
     (search-our-patches "nsis-gcc-10-memmove.patch"
                         "nsis-disable-installer-reloc.patch")))
 
-(define-public lief
+;; While LIEF is packaged in Guix, we maintain our own package,
+;; to simplify building, and more easily apply updates.
+;; Moreover, the Guix's package uses cmake, which caused build
+;; failure; see https://github.com/bitcoin/bitcoin/pull/27296.
+(define-public python-lief
   (package
-   (name "python-lief")
-   (version "0.12.1")
-   (source
-    (origin
-     (method git-fetch)
-     (uri (git-reference
-           (url "https://github.com/lief-project/LIEF.git")
-           (commit version)))
-     (file-name (git-file-name name version))
-     (sha256
-      (base32
-       "1xzbh3bxy4rw1yamnx68da1v5s56ay4g081cyamv67256g0qy2i1"))))
-   (build-system python-build-system)
-   (arguments
-    `(#:phases
-      (modify-phases %standard-phases
-        (add-after 'unpack 'parallel-jobs
-          ;; build with multiple cores
-          (lambda _
-            (substitute* "setup.py" (("self.parallel if self.parallel else 1") (number->string (parallel-job-count)))))))))
-   (native-inputs
-    `(("cmake" ,cmake)))
-   (home-page "https://github.com/lief-project/LIEF")
-   (synopsis "Library to Instrument Executable Formats")
-   (description "Python library to to provide a cross platform library which can
-parse, modify and abstract ELF, PE and MachO formats.")
-   (license license:asl2.0)))
+    (name "python-lief")
+    (version "0.13.2")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/lief-project/LIEF")
+                    (commit version)))
+              (file-name (git-file-name name version))
+              (modules '((guix build utils)))
+              (snippet
+               '(begin
+                  ;; Configure build for Python bindings.
+                  (substitute* "api/python/config-default.toml"
+                    (("(ninja         = )true" all m)
+                     (string-append m "false"))
+                    (("(parallel-jobs = )0" all m)
+                     (string-append m (number->string (parallel-job-count)))))))
+              (sha256
+               (base32
+                "0y48x358ppig5xp97ahcphfipx7cg9chldj2q5zrmn610fmi4zll"))))
+    (build-system python-build-system)
+    (native-inputs (list cmake-minimal python-tomli))
+    (arguments
+     (list
+      #:tests? #f                  ;needs network
+      #:phases #~(modify-phases %standard-phases
+                   (add-before 'build 'change-directory
+                     (lambda _
+                       (chdir "api/python")))
+                   (replace 'build
+                     (lambda _
+                       (invoke "python" "setup.py" "build"))))))
+    (home-page "https://github.com/lief-project/LIEF")
+    (synopsis "Library to instrument executable formats")
+    (description
+     "@code{python-lief} is a cross platform library which can parse, modify
+and abstract ELF, PE and MachO formats.")
+    (license license:asl2.0)))
 
 (define osslsigncode
   (package
@@ -598,7 +614,7 @@ inspecting signatures in Mach-O binaries.")
         ;; Git
         git-minimal
         ;; Tests
-        lief)
+        python-lief)
   (let ((target (getenv "HOST")))
     (cond ((string-suffix? "-mingw32" target)
            ;; Windows
