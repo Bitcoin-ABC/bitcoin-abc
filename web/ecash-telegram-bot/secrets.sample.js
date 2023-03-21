@@ -1,6 +1,14 @@
 module.exports = {
-    telegram: {
-        botId: 'botIdFromTelegramBotfather',
-        channelId: 'channelIdCanFindInTelegramWebThenPrefaceWith100',
+    dev: {
+        telegram: {
+            botId: 'botIdFromTelegramBotfather',
+            channelId: 'channelIdCanFindInTelegramWebThenPrefaceWith100',
+        },
+    },
+    prod: {
+        telegram: {
+            botId: 'botIdFromTelegramBotfather',
+            channelId: 'channelIdCanFindInTelegramWebThenPrefaceWith100',
+        },
     },
 };

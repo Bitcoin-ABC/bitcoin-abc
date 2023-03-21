@@ -1,10 +1,15 @@
 const config = require('../config');
-const { telegramBot, channelId } = require('../telegram');
+const secrets = require('../secrets');
+const TelegramBot = require('node-telegram-bot-api');
+const { dev } = secrets;
+const { botId, channelId } = dev.telegram;
+// Create a bot that uses 'polling' to fetch new updates
+const telegramBotDev = new TelegramBot(botId, { polling: true });
 
 const blocks = require('../test/mocks/blocks');
 function returnTelegramBotSendMessagePromise(msg, options) {
     return new Promise((resolve, reject) => {
-        telegramBot.sendMessage(channelId, msg, options).then(
+        telegramBotDev.sendMessage(channelId, msg, options).then(
             result => {
                 resolve(result);
             },
@@ -31,10 +36,20 @@ async function sendTestTgMsgs() {
     let testTgMsgsSuccess;
     try {
         testTgMsgsSuccess = await Promise.all(testTgMsgPromises);
-        process.exit();
+        console.log(
+            '\x1b[32m%s\x1b[0m',
+            `✔ Sent ${testTgMsgsSuccess.length} telegram messages to ${testTgMsgsSuccess[0].chat.title}`,
+        );
+
+        // Exit in success condition
+        process.exit(0);
     } catch (err) {
-        console.log(`Error sending test Telegram messages`);
-        console.log(err);
+        console.log(
+            '\x1b[31m%s\x1b[0m',
+            `Error sending test Telegram messages`,
+            err,
+        );
+        // Exit in error condition
         process.exit(1);
     }
 }
