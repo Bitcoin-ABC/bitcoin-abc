@@ -33,6 +33,22 @@ pub enum SerError {
         /// Byte sequence that made deserialization fail.
         bytes: Vec<u8>,
     },
+
+    /// Deserialization left some data unprocessed.
+    #[error(
+        "Inconsistent DB: Deserializing as {type_name} has leftover data: \
+         {}[{}]",
+        hex::encode(.processed),
+        hex::encode(.leftover),
+    )]
+    DeserializeLeftover {
+        /// Name of the type we tried to deserialize.
+        type_name: &'static str,
+        /// Byte sequence that was able to be processed, without leftover.
+        processed: Vec<u8>,
+        /// Byte sequence that was left over after processing.
+        leftover: Vec<u8>,
+    },
 }
 
 pub(crate) fn db_serialize<T: serde::Serialize>(value: &T) -> Result<Vec<u8>> {
@@ -47,13 +63,24 @@ pub(crate) fn db_serialize<T: serde::Serialize>(value: &T) -> Result<Vec<u8>> {
 pub(crate) fn db_deserialize<'a, T: serde::Deserialize<'a>>(
     bytes: &'a [u8],
 ) -> Result<T> {
-    Ok(postcard::from_bytes(bytes).map_err(|error| {
-        SerError::DeserializeError {
-            type_name: std::any::type_name::<T>(),
-            error,
-            bytes: bytes.to_vec(),
+    let type_name = std::any::type_name::<T>();
+    let (data, leftover) =
+        postcard::take_from_bytes(bytes).map_err(|error| {
+            SerError::DeserializeError {
+                type_name,
+                error,
+                bytes: bytes.to_vec(),
+            }
+        })?;
+    if !leftover.is_empty() {
+        return Err(SerError::DeserializeLeftover {
+            type_name,
+            processed: bytes[..bytes.len() - leftover.len()].to_vec(),
+            leftover: leftover.to_vec(),
         }
-    })?)
+        .into());
+    }
+    Ok(data)
 }
 
 #[cfg(test)]
@@ -125,6 +152,22 @@ mod tests {
     }
 
     #[test]
+    fn test_deserialize_leftover_err() -> Result<()> {
+        let invalid_bytes = vec![1, 2, 3];
+        assert_eq!(
+            db_deserialize::<u64>(&invalid_bytes)
+                .unwrap_err()
+                .downcast::<SerError>()?,
+            SerError::DeserializeLeftover {
+                type_name: "u64",
+                processed: vec![1],
+                leftover: vec![2, 3],
+            },
+        );
+        Ok(())
+    }
+
+    #[test]
     fn test_err_display_serialize() {
         let err = SerError::SerializeError {
             type_name: "chronik_db::io::blocks::SerBlock",
@@ -149,6 +192,20 @@ mod tests {
             "Inconsistent DB: Cannot deserialize byte sequence as \
              chronik_db::io::blocks::SerBlock: Hit the end of buffer, \
              expected more data. Byte sequence: 010203",
+        );
+    }
+
+    #[test]
+    fn test_err_display_deserialize_leftover() {
+        let err = SerError::DeserializeLeftover {
+            type_name: "u64",
+            processed: vec![1, 2, 3],
+            leftover: vec![4, 5, 6],
+        };
+        assert_eq!(
+            err.to_string(),
+            "Inconsistent DB: Deserializing as u64 has leftover data: \
+             010203[040506]",
         );
     }
 }
