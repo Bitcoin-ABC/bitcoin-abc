@@ -488,6 +488,11 @@ public:
           pTxLimitSigChecks(pTxLimitSigChecksIn),
           pBlockLimitSigChecks(pBlockLimitSigChecksIn) {}
 
+    CScriptCheck(const CScriptCheck &) = delete;
+    CScriptCheck &operator=(const CScriptCheck &) = delete;
+    CScriptCheck(CScriptCheck &&) = default;
+    CScriptCheck &operator=(CScriptCheck &&) = default;
+
     bool operator()();
 
     void swap(CScriptCheck &check) noexcept {
