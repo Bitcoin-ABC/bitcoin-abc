@@ -9,8 +9,10 @@ import inspect
 import json
 import logging
 import os
+import pathlib
 import re
 import socket
+import sys
 import time
 import unittest
 from base64 import b64encode
@@ -531,6 +533,22 @@ def write_config(config_path, *, n, chain, extra_config="", disable_autoconnect=
 
 def get_datadir_path(dirname, n):
     return os.path.join(dirname, f"node{n}")
+
+
+def get_temp_default_datadir(temp_dir: pathlib.Path) -> tuple[dict, pathlib.Path]:
+    """Return os-specific environment variables that can be set to make the
+    GetDefaultDataDir() function return a datadir path under the provided
+    temp_dir, as well as the complete path it would return."""
+    if sys.platform == "win32":
+        env = {"APPDATA": str(temp_dir)}
+        datadir = temp_dir / "Bitcoin"
+    else:
+        env = {"HOME": str(temp_dir)}
+        if sys.platform == "darwin":
+            datadir = temp_dir / "Library/Application Support/Bitcoin"
+        else:
+            datadir = temp_dir / ".bitcoin"
+    return env, datadir
 
 
 def append_config(datadir, options):

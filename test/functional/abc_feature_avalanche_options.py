@@ -53,6 +53,7 @@ class AvalancheOptionsTest(BitcoinTestFramework):
                 f"-avaproof={proof.serialize().hex()}",
                 f"-avamasterkey={bytes_to_wif(privkey.get_bytes())}",
                 f"-conf={os.path.join(node.datadir, 'bitcoin_nobind.conf')}",
+                "-allowignoredconf",
                 "-listen=0",
             ],
             expected_msg="Error: Running a staking node requires accepting inbound connections. Please enable -listen.",

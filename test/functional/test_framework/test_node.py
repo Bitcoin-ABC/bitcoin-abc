@@ -310,7 +310,9 @@ class TestNode:
                 if rm_arg != def_arg and not def_arg.startswith(rm_arg + "=")
             ]
 
-    def start(self, extra_args=None, *, cwd=None, stdout=None, stderr=None, **kwargs):
+    def start(
+        self, extra_args=None, *, cwd=None, stdout=None, stderr=None, env=None, **kwargs
+    ):
         """Start the node."""
         if extra_args is None:
             extra_args = self.extra_args
@@ -347,6 +349,8 @@ class TestNode:
         # add environment variable LIBC_FATAL_STDERR_=1 so that libc errors are
         # written to stderr and not the terminal
         subp_env = dict(os.environ, LIBC_FATAL_STDERR_="1")
+        if env is not None:
+            subp_env.update(env)
 
         p_args = [self.binary] + self.default_args + extra_args
         if self.emulator is not None:
