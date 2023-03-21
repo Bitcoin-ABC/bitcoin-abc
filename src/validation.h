@@ -473,11 +473,6 @@ private:
     CheckInputsLimiter *pBlockLimitSigChecks;
 
 public:
-    CScriptCheck()
-        : ptxTo(nullptr), nIn(0), nFlags(0), cacheStore(false),
-          error(ScriptError::UNKNOWN), txdata(), pTxLimitSigChecks(nullptr),
-          pBlockLimitSigChecks(nullptr) {}
-
     CScriptCheck(const CTxOut &outIn, const CTransaction &txToIn,
                  unsigned int nInIn, uint32_t nFlagsIn, bool cacheIn,
                  const PrecomputedTransactionData &txdataIn,

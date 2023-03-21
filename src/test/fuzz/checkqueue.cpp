@@ -16,13 +16,9 @@ namespace {
 struct DumbCheck {
     bool result = false;
 
-    DumbCheck() = default;
-
     explicit DumbCheck(const bool _result) : result(_result) {}
 
     bool operator()() const { return result; }
-
-    void swap(DumbCheck &x) noexcept {}
 };
 } // namespace
 
