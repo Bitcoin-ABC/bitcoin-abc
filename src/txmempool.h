@@ -13,7 +13,6 @@
 #include <policy/packages.h>
 #include <primitives/transaction.h>
 #include <sync.h>
-#include <util/epochguard.h>
 #include <util/hasher.h>
 
 #include <boost/multi_index/hashed_index.hpp>
@@ -203,9 +202,6 @@ public:
     const Children &GetMemPoolChildrenConst() const { return m_children; }
     Parents &GetMemPoolParents() const { return m_parents; }
     Children &GetMemPoolChildren() const { return m_children; }
-
-    //! epoch when last touched, useful for graph algorithms
-    mutable Epoch::Marker m_epoch_marker;
 };
 
 // extracts a transaction id from CTxMemPoolEntry or CTransactionRef
@@ -375,7 +371,6 @@ private:
     mutable bool blockSinceLastRollingFeeBump GUARDED_BY(cs);
     //! minimum fee to get into the pool, decreases exponentially
     mutable double rollingMinimumFeeRate GUARDED_BY(cs);
-    mutable Epoch m_epoch GUARDED_BY(cs);
 
     // In-memory counter for external mempool tracking purposes.
     // This number is incremented once every time a transaction
@@ -789,27 +784,6 @@ private:
      */
     void removeUnchecked(txiter entry, MemPoolRemovalReason reason)
         EXCLUSIVE_LOCKS_REQUIRED(cs);
-
-public:
-    /**
-     * visited marks a CTxMemPoolEntry as having been traversed
-     * during the lifetime of the most recently created Epoch::Guard
-     * and returns false if we are the first visitor, true otherwise.
-     *
-     * An Epoch::Guard must be held when visited is called or an assert will be
-     * triggered.
-     *
-     */
-    bool visited(const txiter it) const EXCLUSIVE_LOCKS_REQUIRED(cs, m_epoch) {
-        return m_epoch.visited(it->m_epoch_marker);
-    }
-
-    bool visited(std::optional<txiter> it) const
-        EXCLUSIVE_LOCKS_REQUIRED(cs, m_epoch) {
-        // verify guard even when it==nullopt
-        assert(m_epoch.guarded());
-        return !it || visited(*it);
-    }
 };
 
 /**
