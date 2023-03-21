@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE(TestPreAndPostWellingtonAccounting) {
                 // due to possible duplicates.  Calculate a valid range based on
                 // parents.
 
-                CTxMemPoolEntry parent =
+                const CTxMemPoolEntry &parent =
                     *testPool.mapTx.find(tx.vin.back().prevout.GetTxId());
 
                 minAncestors =
@@ -142,8 +142,9 @@ BOOST_AUTO_TEST_CASE(TestPreAndPostWellingtonAccounting) {
             totalVirtualSize += GetVirtualTransactionSize(
                 CTransaction(tx).GetTotalSize(), randSigChecks);
             totalSigChecks += randSigChecks;
-            CTxMemPoolEntry parentEntry = *testPool.mapTx.find(parentOfAllId);
-            CTxMemPoolEntry latestEntry = *testPool.mapTx.find(curId);
+            const CTxMemPoolEntry &parentEntry =
+                *testPool.mapTx.find(parentOfAllId);
+            const CTxMemPoolEntry &latestEntry = *testPool.mapTx.find(curId);
 
             // Based on size/sigChecks ranges we can compute more strict bounds
             // for the virtual size ranges/totals, assuming virtualsize is
