@@ -258,60 +258,71 @@ Assumptions
                 opReturnInfoArray.push(tgOpReturnInfo);
             }
         }
-        const tgMsg =
+
+        // Build up message as an array, with each line as an entry
+        let tgMsg = [];
+
+        // Header
+        // <height> | <numTxs> | <miner>
+        tgMsg.push(
             `<a href="${
                 config.blockExplorer
             }/block/${hash}">${height}</a> | ${numTxs} tx${
                 numTxs > 1 ? `s` : ''
-            } | ${miner}` +
-            (tokenTxCount > 0
-                ? `\n\n` +
-                  `${tokenTxCount} eToken tx${tokenTxCount > 1 ? `s` : ''}` +
-                  (genesisTxCount > 0
-                      ? `\n\n` +
-                        `This block created ${genesisTxCount} new eToken${
-                            tokenTxCount > 1 ? `s` : ''
-                        }:` +
-                        `\n\n` +
-                        `${genesisInfoArray
-                            .map(genesisInfo => {
-                                let {
-                                    tokenId,
-                                    tokenTicker,
-                                    tokenName,
-                                    tokenDocumentUrl,
-                                } = genesisInfo;
-                                tokenName =
-                                    module.exports.prepareStringForTelegramHTML(
-                                        tokenName,
-                                    );
-                                tokenTicker =
-                                    module.exports.prepareStringForTelegramHTML(
-                                        tokenTicker,
-                                    );
-                                return `<a href="${config.blockExplorer}/tx/${tokenId}">${tokenName}</a> (${tokenTicker}) <a href="${tokenDocumentUrl}">[doc]</a>`;
-                            })
-                            .join('\n')}`
-                      : '')
-                : '') +
-            (opReturnTxCount > 0
-                ? `\n\n` +
-                  `This block contained ${
-                      opReturnTxCount > 1
-                          ? `OP_RETURN msgs`
-                          : `an OP_RETURN msg`
-                  }:` +
-                  `\n\n` +
-                  `${opReturnInfoArray
-                      .map(tgOpReturnInfo => {
-                          let { app, msg, txid } = tgOpReturnInfo;
-                          msg =
-                              module.exports.prepareStringForTelegramHTML(msg);
-                          return `<a href="${config.blockExplorer}/tx/${txid}">${app}:</a> ${msg}`;
-                      })
-                      .join('\n')}`
-                : '');
+            } | ${miner}`,
+        );
 
-        return tgMsg;
+        // Parse and list genesis txs
+        if (genesisTxCount > 0) {
+            // Line break for new section
+            tgMsg.push('');
+
+            // 1 new eToken created:
+            // or
+            // <n> new eTokens created:
+            tgMsg.push(
+                `${genesisTxCount} new eToken${
+                    tokenTxCount > 1 ? `s` : ''
+                } created:`,
+            );
+
+            // <tokenName> (<tokenTicker) [doc]
+            const genesisTxMsgLines = genesisInfoArray.map(genesisInfo => {
+                let { tokenId, tokenTicker, tokenName, tokenDocumentUrl } =
+                    genesisInfo;
+                tokenName =
+                    module.exports.prepareStringForTelegramHTML(tokenName);
+                tokenTicker =
+                    module.exports.prepareStringForTelegramHTML(tokenTicker);
+                return `<a href="${config.blockExplorer}/tx/${tokenId}">${tokenName}</a> (${tokenTicker}) <a href="${tokenDocumentUrl}">[doc]</a>`;
+            });
+            // Add genesisTxs to tgMsgArray
+            tgMsg = tgMsg.concat(genesisTxMsgLines);
+        }
+
+        // Summary of OP_RETURN txs
+        if (opReturnTxCount > 0) {
+            // Line break for new section
+            tgMsg.push('');
+
+            // App txs:
+            // or
+            // App tx:
+            tgMsg.push(`App tx${opReturnTxCount > 1 ? `s` : ''}:`);
+
+            // <appName> : <parsedAppData>
+            // alias: newlyregisteredalias
+            // Cashtab Msg: This is a Cashtab Msg
+            const appTxMsgLines = opReturnInfoArray.map(tgOpReturnInfo => {
+                let { app, msg, txid } = tgOpReturnInfo;
+                msg = module.exports.prepareStringForTelegramHTML(msg);
+                return `<a href="${config.blockExplorer}/tx/${txid}">${app}:</a> ${msg}`;
+            });
+
+            // Add appTxs to tgMsgArray
+            tgMsg = tgMsg.concat(appTxMsgLines);
+        }
+        // Join array with newLine char, \n
+        return tgMsg.join('\n');
     },
 };
