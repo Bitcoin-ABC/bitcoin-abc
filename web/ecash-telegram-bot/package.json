@@ -6,6 +6,7 @@
     "scripts": {
         "test": "mocha",
         "mocks": "node scripts/generateMocks.js",
+        "newmocks": "OVERWRITE=true node scripts/generateMocks.js",
         "msgs": "node scripts/sendTestTgMsgs.js"
     },
     "keywords": [

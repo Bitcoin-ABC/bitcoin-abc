@@ -7,8 +7,17 @@ const { returnLabeledChronikBlockPromise } = require('../utils');
 const { parseBlock, getBlockTgMessage } = require('../parse');
 
 async function generateMocks() {
-    // Directory for mocks. Relative to /scripts, ../test/mocks/generated/
-    const mocksDir = path.join(__dirname, '..', 'test', 'mocks', 'generated');
+    let mocksDir, mocksFileName;
+    if (process.env.OVERWRITE) {
+        console.log(`Overwriting existing blocks.js mock`);
+        // Directory for mocks. Relative to /scripts, ../test/mocks/
+        mocksDir = path.join(__dirname, '..', 'test', 'mocks');
+        mocksFileName = `blocks.js`;
+    } else {
+        // Directory for mocks. Relative to /scripts, ../test/mocks/generated/
+        mocksDir = path.join(__dirname, '..', 'test', 'mocks', 'generated');
+        mocksFileName = `blocks_${Date.now()}.json`;
+    }
 
     // Create directory if it does not exist
     if (!fs.existsSync(mocksDir)) {
@@ -96,11 +105,14 @@ async function generateMocks() {
         );
     }
 
-    fs.writeFileSync(
-        `${mocksDir}/blocks_${Date.now()}.json`,
-        JSON.stringify(blocksMock, null, 2),
-        'utf-8',
-    );
+    let mocksWrite;
+    if (process.env.OVERWRITE) {
+        mocksWrite = `module.exports=${JSON.stringify(blocksMock, null, 2)}`;
+    } else {
+        mocksWrite = JSON.stringify(blocksMock, null, 2);
+    }
+
+    fs.writeFileSync(`${mocksDir}/${mocksFileName}`, mocksWrite, 'utf-8');
 }
 
 generateMocks();
