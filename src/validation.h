@@ -466,7 +466,7 @@ private:
     unsigned int nIn;
     uint32_t nFlags;
     bool cacheStore;
-    ScriptError error;
+    ScriptError error{ScriptError::UNKNOWN};
     ScriptExecutionMetrics metrics;
     PrecomputedTransactionData txdata;
     TxSigCheckLimiter *pTxLimitSigChecks;
@@ -479,7 +479,7 @@ public:
                  TxSigCheckLimiter *pTxLimitSigChecksIn = nullptr,
                  CheckInputsLimiter *pBlockLimitSigChecksIn = nullptr)
         : m_tx_out(outIn), ptxTo(&txToIn), nIn(nInIn), nFlags(nFlagsIn),
-          cacheStore(cacheIn), error(ScriptError::UNKNOWN), txdata(txdataIn),
+          cacheStore(cacheIn), txdata(txdataIn),
           pTxLimitSigChecks(pTxLimitSigChecksIn),
           pBlockLimitSigChecks(pBlockLimitSigChecksIn) {}
 
