@@ -287,20 +287,20 @@ void BlockAssembler::addTxs() {
     missingParentCount.reserve(m_mempool.size() / 2);
 
     // set of children we skipped because we have not yet added their parents
-    CTxMemPoolEntry::Children skippedChildren;
+    std::unordered_set<const CTxMemPoolEntry *> skippedChildren;
 
     auto hasMissingParents =
-        [&missingParentCount](const auto &iter)
+        [&missingParentCount](const CTxMemPoolEntry &entry)
             EXCLUSIVE_LOCKS_REQUIRED(m_mempool.cs) {
                 // If we've added any of this tx's parents already, then
                 // missingParentCount will have the current count
-                if (auto pcIt = missingParentCount.find(&*iter);
+                if (auto pcIt = missingParentCount.find(&entry);
                     pcIt != missingParentCount.end()) {
                     // when pcIt->second reaches 0, we have added all of this
                     // tx's parents
                     return pcIt->second != 0;
                 }
-                return !iter->GetMemPoolParentsConst().empty();
+                return !entry.GetMemPoolParentsConst().empty();
             };
 
     // Limit the number of attempts to add transactions to the block when it is
@@ -311,24 +311,29 @@ void BlockAssembler::addTxs() {
 
     // Transactions where a parent has been added and need to be checked for
     // inclusion.
-    std::queue<CTxMemPool::txiter> backlog;
-
-    CTxMemPool::txiter iter;
+    std::queue<const CTxMemPoolEntry *> backlog;
     auto mi = m_mempool.mapTx.get<modified_feerate>().begin();
+
+    auto nextEntry = [&backlog, &mi](bool &isFromBacklog) -> decltype(auto) {
+        if (backlog.empty()) {
+            return *mi++;
+        }
+
+        auto &entry = *backlog.front();
+        backlog.pop();
+
+        isFromBacklog = true;
+
+        return entry;
+    };
+
     while (!backlog.empty() ||
            mi != m_mempool.mapTx.get<modified_feerate>().end()) {
         // Get a new or old transaction in mapTx to evaluate.
         bool isFromBacklog = false;
-        if (!backlog.empty()) {
-            iter = backlog.front();
-            backlog.pop();
-            isFromBacklog = true;
-        } else {
-            // Cast the iterator to CTxMemPool::txiter
-            iter = m_mempool.mapTx.project<0>(mi++);
-        }
+        const CTxMemPoolEntry &entry = nextEntry(isFromBacklog);
 
-        if (iter->GetModifiedFeeRate() < blockMinFeeRate) {
+        if (entry.GetModifiedFeeRate() < blockMinFeeRate) {
             // Since the txs are sorted by fee, bail early if there is none that
             // can be included in the block anymore.
             break;
@@ -339,13 +344,13 @@ void BlockAssembler::addTxs() {
         //
         // If it's from the backlog, then we know all parents are already in
         // the block.
-        if (!isFromBacklog && hasMissingParents(iter)) {
-            skippedChildren.insert(*iter);
+        if (!isFromBacklog && hasMissingParents(entry)) {
+            skippedChildren.insert(&entry);
             continue;
         }
 
         // Check whether the tx will exceed the block limits.
-        if (!TestTxFits(iter->GetTxSize(), iter->GetSigChecks())) {
+        if (!TestTxFits(entry.GetTxSize(), entry.GetSigChecks())) {
             ++nConsecutiveFailed;
             if (nConsecutiveFailed > MAX_CONSECUTIVE_FAILURES &&
                 nBlockSize > nMaxGeneratedBlockSize - 1000) {
@@ -357,7 +362,7 @@ void BlockAssembler::addTxs() {
         }
 
         // Test transaction finality (locktime)
-        if (!CheckTx(iter->GetTx())) {
+        if (!CheckTx(entry.GetTx())) {
             continue;
         }
 
@@ -365,7 +370,7 @@ void BlockAssembler::addTxs() {
         nConsecutiveFailed = 0;
 
         // Tx can be added.
-        AddToBlock(*iter);
+        AddToBlock(entry);
 
         // This tx's children may now be candidates for addition if they have
         // higher scores than the tx at the cursor. We can only process a
@@ -375,17 +380,12 @@ void BlockAssembler::addTxs() {
         // ends up taking O(n) time to process a single tx with n children,
         // that's okay because the amount of time taken is proportional to the
         // tx's byte size and fee paid.
-        for (const CTxMemPoolEntry &child : iter->GetMemPoolChildrenConst()) {
-            const auto it = m_mempool.GetIter(child.GetTx().GetId());
-            if (!it.has_value()) {
-                continue;
-            }
-
+        for (const CTxMemPoolEntry &child : entry.GetMemPoolChildrenConst()) {
             // Remember this tx has missing parents.
             // Create the map entry if it doesn't exist already, and init with
             // the number of parents.
             const auto &[parentCount, _] = missingParentCount.try_emplace(
-                &*(*it), (*it)->GetMemPoolParentsConst().size());
+                &child, child.GetMemPoolParentsConst().size());
             // We just added one parent, so decrement the counter and check if
             // we have any missing parent remaining.
             const bool allParentsAdded = --parentCount->second == 0;
@@ -393,8 +393,8 @@ void BlockAssembler::addTxs() {
             // If all parents have been added to the block, and if this child
             // has been previously skipped due to missing parents, enqueue it
             // (if it hasn't been skipped it will come up in a later iteration)
-            if (allParentsAdded && skippedChildren.count(child) > 0) {
-                backlog.push(*it);
+            if (allParentsAdded && skippedChildren.count(&child) > 0) {
+                backlog.push(&child);
             }
         }
     }
