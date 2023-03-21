@@ -100,9 +100,7 @@ struct FrozenCleanupCheck {
     static std::atomic<uint64_t> nFrozen;
     static std::condition_variable cv;
     static std::mutex m;
-    // Freezing can't be the default initialized behavior given how the queue
-    // swaps in default initialized Checks.
-    bool should_freeze{false};
+    bool should_freeze{true};
     bool operator()() const { return true; }
     FrozenCleanupCheck() {}
     ~FrozenCleanupCheck() {
@@ -324,11 +322,6 @@ BOOST_AUTO_TEST_CASE(test_CheckQueue_FrozenCleanup) {
     std::thread t0([&]() {
         CCheckQueueControl<FrozenCleanupCheck> control(queue.get());
         std::vector<FrozenCleanupCheck> vChecks(1);
-        // Freezing can't be the default initialized behavior given how the
-        // queue
-        // swaps in default initialized Checks (otherwise freezing destructor
-        // would get called twice).
-        vChecks[0].should_freeze = true;
         control.Add(std::move(vChecks));
         // Hangs here
         bool waitResult = control.Wait();
