@@ -449,7 +449,7 @@ BOOST_AUTO_TEST_CASE(test_big_transaction) {
         std::vector<CScriptCheck> vChecks;
         vChecks.emplace_back(coins[tx.vin[i].prevout.GetN()].GetTxOut(), tx, i,
                              STANDARD_SCRIPT_VERIFY_FLAGS, false, txdata);
-        control.Add(vChecks);
+        control.Add(std::move(vChecks));
     }
 
     bool controlCheck = control.Wait();

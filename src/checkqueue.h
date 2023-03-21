@@ -10,6 +10,7 @@
 #include <util/threadnames.h>
 
 #include <algorithm>
+#include <iterator>
 #include <vector>
 
 template <typename T> class CCheckQueueControl;
@@ -168,12 +169,10 @@ public:
     }
 
     //! Add a batch of checks to the queue
-    void Add(std::vector<T> &vChecks) EXCLUSIVE_LOCKS_REQUIRED(!m_mutex) {
+    void Add(std::vector<T> &&vChecks) EXCLUSIVE_LOCKS_REQUIRED(!m_mutex) {
         LOCK(m_mutex);
-        for (T &check : vChecks) {
-            queue.push_back(T());
-            check.swap(queue.back());
-        }
+        queue.insert(queue.end(), std::make_move_iterator(vChecks.begin()),
+                     std::make_move_iterator(vChecks.end()));
         nTodo += vChecks.size();
         if (vChecks.size() == 1) {
             m_worker_cv.notify_one();
@@ -226,9 +225,9 @@ public:
         return fRet;
     }
 
-    void Add(std::vector<T> &vChecks) {
+    void Add(std::vector<T> &&vChecks) {
         if (pqueue != nullptr) {
-            pqueue->Add(vChecks);
+            pqueue->Add(std::move(vChecks));
         }
     }
 

@@ -55,7 +55,7 @@ static void CCheckQueueSpeedPrevectorJob(benchmark::Bench &bench) {
             CCheckQueueControl<PrevectorJob> control(&queue);
             std::vector<std::vector<PrevectorJob>> vBatches(BATCHES);
             for (auto &vChecks : vBatches) {
-                control.Add(vChecks);
+                control.Add(std::move(vChecks));
             }
             // control waits for completion by RAII, but it is done explicitly
             // here for clarity

@@ -2085,7 +2085,7 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
                 tx.GetId().ToString(), state.ToString());
         }
 
-        control.Add(vChecks);
+        control.Add(std::move(vChecks));
 
         // Note: this must execute in the same iteration as CheckTxInputs (not
         // in a separate loop) in order to detect double spends. However,
