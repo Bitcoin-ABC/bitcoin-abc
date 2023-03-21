@@ -2150,15 +2150,16 @@ BOOST_AUTO_TEST_CASE(peer_availability_score) {
                 previousScore = currentScore;
             }
 
-            // We expect (1 - e^-i) after i * tau. The tolerance is expressed
-            // as a percentage, and we add a (large) 0.1% margin to account for
-            // floating point errors.
-            BOOST_CHECK_CLOSE(previousScore, -1 * std::expm1(-1. * i),
+            // We expect (1 - e^-i) * numNodesPerPeer after i * tau. The
+            // tolerance is expressed as a percentage, and we add a (large)
+            // 0.1% margin to account for floating point errors.
+            BOOST_CHECK_CLOSE(previousScore,
+                              -1 * std::expm1(-1. * i) * numNodesPerPeer,
                               100.1 / tau);
         }
 
         // After 10 tau we should be very close to 100% (about 99.995%)
-        BOOST_CHECK_CLOSE(previousScore, 1., 0.01);
+        BOOST_CHECK_CLOSE(previousScore, numNodesPerPeer, 0.01);
 
         // Make the proof invalid
         BOOST_CHECK(pm.rejectProof(
@@ -2188,7 +2189,7 @@ BOOST_AUTO_TEST_CASE(peer_availability_score) {
             }
         }
         previousScore = getAvailabilityScore();
-        BOOST_CHECK_CLOSE(previousScore, 1., 0.01);
+        BOOST_CHECK_CLOSE(previousScore, numNodesPerPeer, 0.01);
 
         for (size_t i = 1; i <= 3; i++) {
             for (uint32_t j = 0; j < tau; j += step) {
@@ -2207,12 +2208,13 @@ BOOST_AUTO_TEST_CASE(peer_availability_score) {
             // start the decay at exactly 100%, but the 0.1% margin is at least
             // an order of magnitude larger than the expected error so it
             // doesn't matter.
-            BOOST_CHECK_CLOSE(previousScore, 1. + std::expm1(-1. * i),
+            BOOST_CHECK_CLOSE(previousScore,
+                              (1. + std::expm1(-1. * i)) * numNodesPerPeer,
                               100.1 / tau);
         }
 
         // After 3 more tau we should be under 5%
-        BOOST_CHECK_LT(previousScore, .05);
+        BOOST_CHECK_LT(previousScore, .05 * numNodesPerPeer);
 
         for (size_t i = 1; i <= 100; i++) {
             // Nodes respond to polls < 50% of the time (negative score)

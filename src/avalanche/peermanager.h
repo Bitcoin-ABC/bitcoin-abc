@@ -390,7 +390,6 @@ public:
                 forEachNode(peer, [&](const avalanche::Node &node) {
                     peerScore += getNodeAvailabilityScore(node.nodeid);
                 });
-                peerScore /= peer.node_count;
 
                 // Calculate exponential moving average of averaged node scores
                 peer.availabilityScore =

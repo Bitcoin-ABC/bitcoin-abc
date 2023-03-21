@@ -867,6 +867,8 @@ static RPCHelpMan getavalanchepeerinfo() {
                 {{
                     {RPCResult::Type::NUM, "avalanche_peerid",
                      "The avalanche internal peer identifier"},
+                    {RPCResult::Type::NUM, "availability_score",
+                     "The agreggated availability score of this peer's nodes"},
                     {RPCResult::Type::STR_HEX, "proofid",
                      "The avalanche proof id used by this peer"},
                     {RPCResult::Type::STR_HEX, "proof",
@@ -901,6 +903,7 @@ static RPCHelpMan getavalanchepeerinfo() {
                 UniValue obj(UniValue::VOBJ);
 
                 obj.pushKV("avalanche_peerid", uint64_t(peer.peerid));
+                obj.pushKV("availability_score", peer.availabilityScore);
                 obj.pushKV("proofid", peer.getProofId().ToString());
                 obj.pushKV("proof", peer.proof->ToHex());
 
