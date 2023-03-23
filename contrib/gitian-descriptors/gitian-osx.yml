@@ -137,7 +137,6 @@ script: |
     cd distsrc-${i}
     INSTALLPATH=`pwd`/installed/${DISTNAME}
     mkdir -p ${INSTALLPATH}
-    tar --strip-components=1 -xf ../$SOURCEDIST
 
     cmake -GNinja .. \
       -DCMAKE_TOOLCHAIN_FILE=${SOURCEDIR}/cmake/platforms/${CMAKE_TOOLCHAIN_FILE[${i}]} \
@@ -158,8 +157,8 @@ script: |
     OSX_VOLNAME="$(cat osx_volname)"
     mkdir -p unsigned-app-${i}
     cp osx_volname unsigned-app-${i}/
-    cp contrib/macdeploy/detached-sig-apply.sh unsigned-app-${i}
-    cp contrib/macdeploy/detached-sig-create.sh unsigned-app-${i}
+    cp ../contrib/macdeploy/detached-sig-apply.sh unsigned-app-${i}
+    cp ../contrib/macdeploy/detached-sig-create.sh unsigned-app-${i}
     cp ${BASEPREFIX}/${i}/native/bin/dmg ${BASEPREFIX}/${i}/native/bin/genisoimage unsigned-app-${i}
     cp ${BASEPREFIX}/${i}/native/bin/${i}-codesign_allocate unsigned-app-${i}/codesign_allocate
     cp ${BASEPREFIX}/${i}/native/bin/${i}-pagestuff unsigned-app-${i}/pagestuff
