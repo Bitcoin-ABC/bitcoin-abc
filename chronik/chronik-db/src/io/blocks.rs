@@ -9,7 +9,8 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::{
-    db::{Db, CF, CF_BLK},
+    db::{Db, CF, CF_BLK, CF_LOOKUP_BLK_BY_HASH},
+    reverse_lookup::{LookupColumn, ReverseLookup},
     ser::{db_deserialize, db_serialize},
 };
 
@@ -17,14 +18,19 @@ use crate::{
 /// -1 indicates "not part of the chain".
 pub type BlockHeight = i32;
 
+struct BlockColumn<'a> {
+    db: &'a Db,
+    cf_blk: &'a CF,
+}
+
 /// Writes block data to the database.
 pub struct BlockWriter<'a> {
-    cf: &'a CF,
+    col: BlockColumn<'a>,
 }
 
 /// Reads block data ([`DbBlock`]) from the database.
 pub struct BlockReader<'a> {
-    db: &'a Db,
+    col: BlockColumn<'a>,
 }
 
 /// Block data to/from the database.
@@ -56,6 +62,30 @@ struct SerBlock {
     data_pos: u32,
 }
 
+type LookupByHash<'a> = ReverseLookup<BlockColumn<'a>>;
+
+impl LookupColumn for BlockColumn<'_> {
+    type CheapHash = [u8; 4];
+    type Data = SerBlock;
+    type SerialNum = BlockHeight;
+
+    const CF_DATA: &'static str = CF_BLK;
+    const CF_INDEX: &'static str = CF_LOOKUP_BLK_BY_HASH;
+
+    fn cheap_hash(key: &[u8; 32]) -> Self::CheapHash {
+        // use the lowest 32 bits of seashash as hash
+        (seahash::hash(key) as u32).to_be_bytes()
+    }
+
+    fn data_key(data: &SerBlock) -> &[u8; 32] {
+        &data.hash
+    }
+
+    fn get_data(&self, block_height: BlockHeight) -> Result<Option<SerBlock>> {
+        self.get_block(block_height)
+    }
+}
+
 /// Errors for [`BlockWriter`] and [`BlockReader`].
 #[derive(Debug, Eq, Error, PartialEq)]
 pub enum BlocksError {
@@ -83,11 +113,27 @@ fn bytes_to_bh(bytes: &[u8]) -> Result<BlockHeight> {
     ))
 }
 
+impl<'a> BlockColumn<'a> {
+    fn new(db: &'a Db) -> Result<Self> {
+        let cf_blk = db.cf(CF_BLK)?;
+        db.cf(CF_LOOKUP_BLK_BY_HASH)?;
+        Ok(BlockColumn { db, cf_blk })
+    }
+
+    fn get_block(&self, block_height: BlockHeight) -> Result<Option<SerBlock>> {
+        match self.db.get(self.cf_blk, bh_to_bytes(block_height))? {
+            Some(bytes) => Ok(Some(db_deserialize::<SerBlock>(&bytes)?)),
+            None => Ok(None),
+        }
+    }
+}
+
 impl<'a> BlockWriter<'a> {
     /// Create writer to the database for blocks.
     pub fn new(db: &'a Db) -> Result<Self> {
-        let cf = db.cf(CF_BLK)?;
-        Ok(BlockWriter { cf })
+        Ok(BlockWriter {
+            col: BlockColumn::new(db)?,
+        })
     }
 
     /// Add a new block to the database.
@@ -104,17 +150,27 @@ impl<'a> BlockWriter<'a> {
             file_num: block.file_num,
             data_pos: block.data_pos,
         })?;
-        batch.put_cf(self.cf, bh_to_bytes(block.height), &data);
+        batch.put_cf(self.col.cf_blk, bh_to_bytes(block.height), &data);
+        LookupByHash::insert_pairs(
+            self.col.db,
+            batch,
+            [(block.height, &block.hash.to_bytes())],
+        )?;
         Ok(())
     }
 
     /// Remove a block by height from the database.
-    pub fn delete_by_height(
+    pub fn delete(
         &self,
         batch: &mut rocksdb::WriteBatch,
-        height: BlockHeight,
+        block: &DbBlock,
     ) -> Result<()> {
-        batch.delete_cf(self.cf, bh_to_bytes(height));
+        batch.delete_cf(self.col.cf_blk, bh_to_bytes(block.height));
+        LookupByHash::delete_pairs(
+            self.col.db,
+            batch,
+            [(block.height, &block.hash.to_bytes())],
+        )?;
         Ok(())
     }
 
@@ -123,6 +179,7 @@ impl<'a> BlockWriter<'a> {
             CF_BLK,
             rocksdb::Options::default(),
         ));
+        LookupByHash::add_cfs(columns, CF_LOOKUP_BLK_BY_HASH);
     }
 }
 
@@ -135,14 +192,15 @@ impl std::fmt::Debug for BlockWriter<'_> {
 impl<'a> BlockReader<'a> {
     /// Create reader from the database for blocks.
     pub fn new(db: &'a Db) -> Result<Self> {
-        db.cf(CF_BLK)?;
-        Ok(BlockReader { db })
+        Ok(BlockReader {
+            col: BlockColumn::new(db)?,
+        })
     }
 
     /// The height of the most-work fully-validated chain. The genesis block has
     /// height 0
     pub fn height(&self) -> Result<BlockHeight> {
-        let mut iter = self.db.iterator_end(self.cf());
+        let mut iter = self.col.db.iterator_end(self.col.cf_blk);
         match iter.next() {
             Some(result) => {
                 let (height_bytes, _) = result?;
@@ -155,7 +213,7 @@ impl<'a> BlockReader<'a> {
     /// Tip of the chain: the most recently added block.
     /// [`None`] if chain is empty (not even the genesis block).
     pub fn tip(&self) -> Result<Option<DbBlock>> {
-        let mut iter = self.db.iterator_end(self.cf());
+        let mut iter = self.col.db.iterator_end(self.col.cf_blk);
         match iter.next() {
             Some(result) => {
                 let (height_bytes, block_data) = result?;
@@ -178,11 +236,8 @@ impl<'a> BlockReader<'a> {
 
     /// [`DbBlock`] by height. The genesis block has height 0.
     pub fn by_height(&self, height: BlockHeight) -> Result<Option<DbBlock>> {
-        let block_data = self.db.get(self.cf(), bh_to_bytes(height))?;
-        let block_data = match &block_data {
-            Some(block_data) => db_deserialize::<SerBlock>(block_data)?,
-            None => return Ok(None),
-        };
+        let Some(block_data) = self.col.get_block(height)?
+            else { return Ok(None) };
         let prev_block_hash = self.get_prev_hash(height)?;
         Ok(Some(DbBlock {
             hash: BlockHash::from(block_data.hash),
@@ -195,20 +250,36 @@ impl<'a> BlockReader<'a> {
         }))
     }
 
+    /// [`DbBlock`] by hash.
+    pub fn by_hash(&self, hash: &BlockHash) -> Result<Option<DbBlock>> {
+        let hash = hash.to_bytes();
+        let (height, ser_block) =
+            match LookupByHash::get(&self.col, self.col.db, &hash)? {
+                Some(data) => data,
+                None => return Ok(None),
+            };
+        Ok(Some(DbBlock {
+            hash: BlockHash::from(ser_block.hash),
+            prev_hash: BlockHash::from(self.get_prev_hash(height)?),
+            height,
+            n_bits: ser_block.n_bits,
+            timestamp: ser_block.timestamp,
+            file_num: ser_block.file_num,
+            data_pos: ser_block.data_pos,
+        }))
+    }
+
     fn get_prev_hash(&self, height: BlockHeight) -> Result<[u8; 32]> {
         if height == 0 {
             return Ok([0; 32]);
         }
         let prev_block_data = self
+            .col
             .db
-            .get(self.cf(), bh_to_bytes(height - 1))?
+            .get(self.col.cf_blk, bh_to_bytes(height - 1))?
             .ok_or(OrphanBlock(height))?;
         let prev_block = db_deserialize::<SerBlock>(&prev_block_data)?;
         Ok(prev_block.hash)
-    }
-
-    fn cf(&self) -> &CF {
-        self.db.cf(CF_BLK).unwrap()
     }
 }
 
@@ -303,23 +374,23 @@ mod tests {
             assert_eq!(blocks.height()?, 1);
             assert_eq!(blocks.tip()?, Some(block1.clone()));
             assert_eq!(blocks.by_height(0)?, Some(block0.clone()));
-            assert_eq!(blocks.by_height(1)?, Some(block1));
+            assert_eq!(blocks.by_height(1)?, Some(block1.clone()));
             assert_eq!(blocks.by_height(2)?, None);
         }
         {
             let mut batch = rocksdb::WriteBatch::default();
-            writer.delete_by_height(&mut batch, 1)?;
+            writer.delete(&mut batch, &block1)?;
             db.write_batch(batch)?;
             assert_eq!(db.get(cf, [0, 0, 0, 1])?.as_deref(), None);
             assert!(db.get(cf, [0, 0, 0, 0])?.is_some());
             assert_eq!(blocks.height()?, 0);
             assert_eq!(blocks.tip()?, Some(block0.clone()));
-            assert_eq!(blocks.by_height(0)?, Some(block0));
+            assert_eq!(blocks.by_height(0)?, Some(block0.clone()));
             assert_eq!(blocks.by_height(1)?, None);
         }
         {
             let mut batch = rocksdb::WriteBatch::default();
-            writer.delete_by_height(&mut batch, 0)?;
+            writer.delete(&mut batch, &block0)?;
             db.write_batch(batch)?;
             assert_eq!(db.get(cf, [0, 0, 0, 1])?.as_deref(), None);
             assert_eq!(db.get(cf, [0, 0, 0, 0])?.as_deref(), None);

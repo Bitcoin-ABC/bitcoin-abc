@@ -18,6 +18,8 @@ use crate::io::{BlockWriter, MetadataWriter};
 // All column family names used by Chronik should be defined here
 /// Column family name for the block data.
 pub const CF_BLK: &str = "blk";
+/// Column family to lookup a block by its hash.
+pub const CF_LOOKUP_BLK_BY_HASH: &str = "lookup_blk_by_hash";
 /// Column family name for db metadata.
 pub const CF_META: &str = "meta";
 

@@ -273,10 +273,12 @@ dependencies = [
  "abc-rust-error",
  "abc-rust-lint",
  "bitcoinsuite-core",
+ "fastrand",
  "hex",
  "postcard",
  "pretty_assertions",
  "rocksdb",
+ "seahash",
  "serde",
  "tempdir",
  "thiserror",
@@ -290,6 +292,8 @@ dependencies = [
  "abc-rust-lint",
  "async-trait",
  "axum",
+ "bitcoinsuite-core",
+ "chronik-db",
  "chronik-indexer",
  "chronik-util",
  "futures",
@@ -1344,6 +1348,12 @@ name = "scratch"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c8132065adcfd6e02db789d9285a0deb2f3fcb04002865ab67d5fb103533898"
+
+[[package]]
+name = "seahash"
+version = "4.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1c107b6f4780854c8b126e228ea8869f4d7b71260f962fefb57b996b8959ba6b"
 
 [[package]]
 name = "semver"

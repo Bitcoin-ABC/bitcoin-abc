@@ -18,6 +18,9 @@ hex = "0.4"
 # Compact and fast serialization
 postcard = { version = "1.0", features = ["alloc"] }
 
+# Fast & simple hashing algo
+seahash = "4.1"
+
 # Serialize structs
 serde = { version = "1.0", features = ["derive"] }
 
@@ -39,3 +42,6 @@ pretty_assertions = "1.0"
 
 # Temporary directory that's deleted when dropped
 tempdir = "0.3"
+
+# Simple RNG
+fastrand = "1.9"

@@ -8,6 +8,8 @@ use std::{net::SocketAddr, sync::Arc};
 
 use abc_rust_error::Result;
 use axum::{extract::Path, routing, Extension, Router};
+use bitcoinsuite_core::block::BlockHash;
+use chronik_db::io::BlockHeight;
 use chronik_indexer::indexer::ChronikIndexer;
 use hyper::server::conn::AddrIncoming;
 use thiserror::Error;
@@ -46,6 +48,10 @@ pub enum ChronikServerError {
     /// Serving Chronik failed
     #[error("Chronik failed serving: {0}")]
     ServingFailed(String),
+
+    /// Query is neither a hex hash nor an integer string
+    #[error("400: Not a hash or height: {0}")]
+    NotHashOrHeight(String),
 
     /// Block not found in DB
     #[error("404: Block not found: {0}")]
@@ -94,21 +100,30 @@ impl ChronikServer {
 
     fn make_router(indexer: ChronikIndexerRef) -> Router {
         Router::new()
-            .route("/block/:height", routing::get(handle_block))
+            .route("/block/:hash_or_height", routing::get(handle_block))
             .fallback(handle_not_found)
             .layer(Extension(indexer))
     }
 }
 
 async fn handle_block(
-    Path(height): Path<i32>,
+    Path(hash_or_height): Path<String>,
     Extension(indexer): Extension<ChronikIndexerRef>,
 ) -> Result<Protobuf<proto::Block>, ReportError> {
     let indexer = indexer.read().await;
     let blocks = indexer.blocks()?;
-    let db_block = blocks
-        .by_height(height)?
-        .ok_or_else(|| BlockNotFound(height.to_string()))?;
+    let db_block = if let Ok(hash) = hash_or_height.parse::<BlockHash>() {
+        blocks.by_hash(&hash)?
+    } else {
+        let height = match hash_or_height.parse::<BlockHeight>() {
+            // disallow leading zeros
+            Ok(0) if hash_or_height.len() == 1 => 0,
+            Ok(height) if !hash_or_height.starts_with('0') => height,
+            _ => return Err(NotHashOrHeight(hash_or_height).into()),
+        };
+        blocks.by_height(height)?
+    };
+    let db_block = db_block.ok_or(BlockNotFound(hash_or_height))?;
     Ok(Protobuf(proto::Block {
         block_info: Some(proto::BlockInfo {
             hash: db_block.hash.to_vec(),

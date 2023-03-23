@@ -19,7 +19,7 @@ use chronik_db::{
 use chronik_util::{log, log_chronik};
 use thiserror::Error;
 
-const CURRENT_INDEXER_VERSION: SchemaVersion = 1;
+const CURRENT_INDEXER_VERSION: SchemaVersion = 2;
 
 /// Params for setting up a [`ChronikIndexer`] instance.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -243,7 +243,7 @@ impl ChronikIndexer {
     ) -> Result<()> {
         let mut batch = WriteBatch::default();
         let block_writer = BlockWriter::new(&self.db)?;
-        block_writer.delete_by_height(&mut batch, block.db_block.height)?;
+        block_writer.delete(&mut batch, &block.db_block)?;
         self.db.write_batch(batch)?;
         Ok(())
     }
