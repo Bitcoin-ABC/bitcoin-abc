@@ -355,7 +355,12 @@ def initialize_port(port_name: PortName):
 
 def is_port_available(port: int) -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        return sock.connect_ex(('127.0.0.1', port)) != 0
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            sock.bind(('127.0.0.1', port))
+            return True
+        except OSError:
+            return False
 
 
 # The LRU cache ensures that for a given type and peer / node index, the
