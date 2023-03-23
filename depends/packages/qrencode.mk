@@ -1,31 +1,35 @@
 package=qrencode
-$(package)_version=3.4.4
-$(package)_download_path=https://fukuchi.org/works/qrencode/
-$(package)_file_name=$(package)-$($(package)_version).tar.bz2
-$(package)_sha256_hash=efe5188b1ddbcbf98763b819b146be6a90481aac30cfc8d858ab78a19cde1fa5
+$(package)_version=4.1.1
+$(package)_download_path=https://github.com/fukuchi/libqrencode/archive/refs/tags/
+$(package)_download_file=v$($(package)_version).tar.gz
+$(package)_file_name=$(package)-$($(package)_version).tar.gz
+$(package)_sha256_hash=5385bc1b8c2f20f3b91d258bf8ccc8cf62023935df2d2676b5b67049f31a049c
+$(package)_patches=cmake_fixups.patch
 
 define $(package)_set_vars
-$(package)_config_opts=--disable-shared --without-tools --without-tests --disable-sdltest
-$(package)_config_opts += --disable-gprof --disable-gcov --disable-mudflap
-$(package)_config_opts += --disable-dependency-tracking --enable-option-checking
+$(package)_config_opts := -DWITH_TOOLS=NO -DWITH_TESTS=NO -DGPROF=OFF -DCOVERAGE=OFF
+$(package)_config_opts += -DCMAKE_DISABLE_FIND_PACKAGE_PNG=TRUE -DWITHOUT_PNG=ON
+$(package)_config_opts += -DCMAKE_DISABLE_FIND_PACKAGE_ICONV=TRUE
+$(package)_cflags += -Wno-int-conversion -Wno-implicit-function-declaration
 endef
 
 define $(package)_preprocess_cmds
-  cp -f $(BASEDIR)/config.guess $(BASEDIR)/config.sub use
+  patch -p1 < $($(package)_patch_dir)/cmake_fixups.patch
 endef
 
+
 define $(package)_config_cmds
-  $($(package)_autoconf)
+  $($(package)_cmake) -S . -B .
 endef
 
 define $(package)_build_cmds
-  $(MAKE) -j$(JOBS)
+  ninja -j$(JOBS)
 endef
 
 define $(package)_stage_cmds
-  $(MAKE) DESTDIR=$($(package)_staging_dir) install
+  cmake --install . --prefix $($(package)_staging_prefix_dir)
 endef
 
 define $(package)_postprocess_cmds
-  rm lib/*.la
+  rm -rf share
 endef
