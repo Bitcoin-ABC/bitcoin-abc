@@ -661,27 +661,27 @@ void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
     CCoinsViewCache mempoolDuplicate(
         const_cast<CCoinsViewCache *>(&active_coins_tip));
 
-    const auto &index = mapTx.get<entry_id>();
-    for (auto it = index.begin(); it != index.end(); ++it) {
-        checkTotal += it->GetTxSize();
-        check_total_fee += it->GetFee();
-        innerUsage += it->DynamicMemoryUsage();
-        const CTransaction &tx = it->GetTx();
-        innerUsage += memusage::DynamicUsage(it->GetMemPoolParentsConst()) +
-                      memusage::DynamicUsage(it->GetMemPoolChildrenConst());
+    for (const CTxMemPoolEntry &entry : mapTx.get<entry_id>()) {
+        checkTotal += entry.GetTxSize();
+        check_total_fee += entry.GetFee();
+        innerUsage += entry.DynamicMemoryUsage();
+        const CTransaction &tx = entry.GetTx();
+        innerUsage += memusage::DynamicUsage(entry.GetMemPoolParentsConst()) +
+                      memusage::DynamicUsage(entry.GetMemPoolChildrenConst());
+
         CTxMemPoolEntry::Parents setParentCheck;
         for (const CTxIn &txin : tx.vin) {
             // Check that every mempool transaction's inputs refer to available
             // coins, or other mempool tx's.
-            txiter it2 = mapTx.find(txin.prevout.GetTxId());
-            if (it2 != mapTx.end()) {
-                const CTransaction &tx2 = it2->GetTx();
-                assert(tx2.vout.size() > txin.prevout.GetN() &&
-                       !tx2.vout[txin.prevout.GetN()].IsNull());
-                setParentCheck.insert(*it2);
+            txiter parentIt = mapTx.find(txin.prevout.GetTxId());
+            if (parentIt != mapTx.end()) {
+                const CTransaction &parentTx = parentIt->GetTx();
+                assert(parentTx.vout.size() > txin.prevout.GetN() &&
+                       !parentTx.vout[txin.prevout.GetN()].IsNull());
+                setParentCheck.insert(*parentIt);
                 // also check that parents have a topological ordering before
                 // their children
-                assert(it2->GetEntryId() < it->GetEntryId());
+                assert(parentIt->GetEntryId() < entry.GetEntryId());
             }
             // We are iterating through the mempool entries sorted
             // topologically.
@@ -689,31 +689,32 @@ void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
             // their coins added to the mempoolDuplicate coins cache.
             assert(mempoolDuplicate.HaveCoin(txin.prevout));
             // Check whether its inputs are marked in mapNextTx.
-            auto it3 = mapNextTx.find(txin.prevout);
-            assert(it3 != mapNextTx.end());
-            assert(it3->first == &txin.prevout);
-            assert(it3->second == &tx);
+            auto prevoutNextIt = mapNextTx.find(txin.prevout);
+            assert(prevoutNextIt != mapNextTx.end());
+            assert(prevoutNextIt->first == &txin.prevout);
+            assert(prevoutNextIt->second == &tx);
         }
         auto comp = [](const CTxMemPoolEntry &a,
                        const CTxMemPoolEntry &b) -> bool {
             return a.GetTx().GetId() == b.GetTx().GetId();
         };
-        assert(setParentCheck.size() == it->GetMemPoolParentsConst().size());
+        assert(setParentCheck.size() == entry.GetMemPoolParentsConst().size());
         assert(std::equal(setParentCheck.begin(), setParentCheck.end(),
-                          it->GetMemPoolParentsConst().begin(), comp));
+                          entry.GetMemPoolParentsConst().begin(), comp));
+
         // Verify ancestor state is correct.
         setEntries setAncestors;
         std::string dummy;
 
         const bool ok = CalculateMemPoolAncestors(
-            *it, setAncestors, nNoLimit, nNoLimit, nNoLimit, nNoLimit, dummy);
+            entry, setAncestors, nNoLimit, nNoLimit, nNoLimit, nNoLimit, dummy);
         assert(ok);
 
         if (!wellingtonLatched) {
             uint64_t nCountCheck = setAncestors.size() + 1;
-            uint64_t nSizeCheck = it->GetTxSize();
-            Amount nFeesCheck = it->GetModifiedFee();
-            int64_t nSigChecksCheck = it->GetSigChecks();
+            uint64_t nSizeCheck = entry.GetTxSize();
+            Amount nFeesCheck = entry.GetModifiedFee();
+            int64_t nSigChecksCheck = entry.GetSigChecks();
 
             for (txiter ancestorIt : setAncestors) {
                 nSizeCheck += ancestorIt->GetTxSize();
@@ -721,44 +722,45 @@ void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
                 nSigChecksCheck += ancestorIt->GetSigChecks();
             }
 
-            assert(it->GetCountWithAncestors() == nCountCheck);
-            assert(it->GetSizeWithAncestors() == nSizeCheck);
-            assert(it->GetSigChecksWithAncestors() == nSigChecksCheck);
-            assert(it->GetModFeesWithAncestors() == nFeesCheck);
+            assert(entry.GetCountWithAncestors() == nCountCheck);
+            assert(entry.GetSizeWithAncestors() == nSizeCheck);
+            assert(entry.GetSigChecksWithAncestors() == nSigChecksCheck);
+            assert(entry.GetModFeesWithAncestors() == nFeesCheck);
         }
 
         // all ancestors should have entryId < this tx's entryId
         for (const auto &ancestor : setAncestors) {
-            assert(ancestor->GetEntryId() < it->GetEntryId());
+            assert(ancestor->GetEntryId() < entry.GetEntryId());
         }
 
         // Check children against mapNextTx
         CTxMemPoolEntry::Children setChildrenCheck;
-        auto iter = mapNextTx.lower_bound(COutPoint(it->GetTx().GetId(), 0));
+        auto iter = mapNextTx.lower_bound(COutPoint(entry.GetTx().GetId(), 0));
         uint64_t child_sizes = 0;
         int64_t child_sigChecks = 0;
         for (; iter != mapNextTx.end() &&
-               iter->first->GetTxId() == it->GetTx().GetId();
+               iter->first->GetTxId() == entry.GetTx().GetId();
              ++iter) {
-            txiter childit = mapTx.find(iter->second->GetId());
+            txiter childIt = mapTx.find(iter->second->GetId());
             // mapNextTx points to in-mempool transactions
-            assert(childit != mapTx.end());
-            if (setChildrenCheck.insert(*childit).second) {
-                child_sizes += childit->GetTxSize();
-                child_sigChecks += childit->GetSigChecks();
+            assert(childIt != mapTx.end());
+            if (setChildrenCheck.insert(*childIt).second) {
+                child_sizes += childIt->GetTxSize();
+                child_sigChecks += childIt->GetSigChecks();
             }
         }
-        assert(setChildrenCheck.size() == it->GetMemPoolChildrenConst().size());
+        assert(setChildrenCheck.size() ==
+               entry.GetMemPoolChildrenConst().size());
         assert(std::equal(setChildrenCheck.begin(), setChildrenCheck.end(),
-                          it->GetMemPoolChildrenConst().begin(), comp));
+                          entry.GetMemPoolChildrenConst().begin(), comp));
         if (!wellingtonLatched) {
             // Also check to make sure size is greater than sum with immediate
             // children. Just a sanity check, not definitive that this calc is
             // correct...
-            assert(it->GetSizeWithDescendants() >=
-                   child_sizes + it->GetTxSize());
-            assert(it->GetSigChecksWithDescendants() >=
-                   child_sigChecks + it->GetSigChecks());
+            assert(entry.GetSizeWithDescendants() >=
+                   child_sizes + entry.GetTxSize());
+            assert(entry.GetSigChecksWithDescendants() >=
+                   child_sigChecks + entry.GetSigChecks());
         }
 
         // Not used. CheckTxInputs() should always pass
@@ -773,12 +775,10 @@ void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
         AddCoins(mempoolDuplicate, tx, std::numeric_limits<int>::max());
     }
 
-    for (auto it = mapNextTx.cbegin(); it != mapNextTx.cend(); it++) {
-        const TxId &txid = it->second->GetId();
-        indexed_transaction_set::const_iterator it2 = mapTx.find(txid);
-        const CTransaction &tx = it2->GetTx();
-        assert(it2 != mapTx.end());
-        assert(&tx == it->second);
+    for (auto &[_, nextTx] : mapNextTx) {
+        txiter it = mapTx.find(nextTx->GetId());
+        assert(it != mapTx.end());
+        assert(&it->GetTx() == nextTx);
     }
 
     assert(totalTxSize == checkTotal);
