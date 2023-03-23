@@ -41,12 +41,12 @@ class ChronikServeTest(BitcoinTestFramework):
         self.restart_node(0, ['-chronik', '-chronikbind=127.0.0.1:12345'])
         test_host('127.0.0.1', 12345)
 
-        self.restart_node(0,
-                          ['-chronik',
-                           '-chronikbind=127.0.0.1:12345',
-                           '-chronikbind=[::1]:23456'])
-        test_host('127.0.0.1', 12345)
         if test_ipv6_local():
+            self.restart_node(0,
+                              ['-chronik',
+                               '-chronikbind=127.0.0.1:12345',
+                               '-chronikbind=[::1]:23456'])
+            test_host('127.0.0.1', 12345)
             test_host('::1', 23456)
 
 

@@ -421,7 +421,6 @@ def initialize_datadir(dirname, n, chain, disable_autoconnect=True):
         f.write(f"port={str(p2p_port(n))}\n")
         f.write(f"rpcport={str(rpc_port(n))}\n")
         f.write(f"chronikbind=127.0.0.1:{str(chronik_port(n))}\n")
-        f.write(f"chronikbind=[::1]:{str(chronik_port(n))}\n")
         f.write("fallbackfee=200\n")
         f.write("server=1\n")
         f.write("keypool=1\n")
