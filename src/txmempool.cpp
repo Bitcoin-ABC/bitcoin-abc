@@ -260,8 +260,7 @@ bool CTxMemPool::CalculateMemPoolAncestors(
     } else {
         // If we're not searching for parents, we require this to be an entry in
         // the mempool already.
-        txiter it = mapTx.iterator_to(entry);
-        staged_ancestors = it->GetMemPoolParentsConst();
+        staged_ancestors = entry.GetMemPoolParentsConst();
     }
 
     return CalculateAncestorsAndCheckLimits(
