@@ -63,6 +63,14 @@ static CBlock BuildBlockTestCase() {
 // (block + mempool + our copy from the GetSharedTx call)
 constexpr long SHARED_TX_OFFSET{3};
 
+static void expectUseCount(const CTxMemPool &pool, const CTransactionRef &tx,
+                           long expectedCount)
+    EXCLUSIVE_LOCKS_REQUIRED(pool.cs) {
+    AssertLockHeld(pool.cs);
+    BOOST_CHECK_EQUAL(pool.mapTx.find(tx->GetId())->GetSharedTx().use_count(),
+                      SHARED_TX_OFFSET + expectedCount);
+}
+
 BOOST_AUTO_TEST_CASE(SimpleRoundTripTest) {
     CTxMemPool pool;
     TestMemPoolEntryHelper entry;
@@ -70,9 +78,7 @@ BOOST_AUTO_TEST_CASE(SimpleRoundTripTest) {
 
     LOCK2(cs_main, pool.cs);
     pool.addUnchecked(entry.FromTx(block.vtx[2]));
-    BOOST_CHECK_EQUAL(
-        pool.mapTx.find(block.vtx[2]->GetId())->GetSharedTx().use_count(),
-        SHARED_TX_OFFSET + 0);
+    expectUseCount(pool, block.vtx[2], 0);
 
     // Do a simple ShortTxIDs RT
     {
@@ -91,9 +97,7 @@ BOOST_AUTO_TEST_CASE(SimpleRoundTripTest) {
         BOOST_CHECK(!partialBlock.IsTxAvailable(1));
         BOOST_CHECK(partialBlock.IsTxAvailable(2));
 
-        BOOST_CHECK_EQUAL(
-            pool.mapTx.find(block.vtx[2]->GetId())->GetSharedTx().use_count(),
-            SHARED_TX_OFFSET + 1);
+        expectUseCount(pool, block.vtx[2], 1);
 
         size_t poolSize = pool.size();
         pool.removeRecursive(*block.vtx[2], MemPoolRemovalReason::REPLACED);
@@ -171,11 +175,7 @@ BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest) {
 
     LOCK2(cs_main, pool.cs);
     pool.addUnchecked(entry.FromTx(block.vtx[2]));
-    BOOST_CHECK_EQUAL(
-        pool.mapTx.find(block.vtx[2]->GetId())->GetSharedTx().use_count(),
-        SHARED_TX_OFFSET + 0);
-
-    TxId txid;
+    expectUseCount(pool, block.vtx[2], 0);
 
     // Test with pre-forwarding tx 1, but not coinbase
     {
@@ -200,9 +200,7 @@ BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest) {
         BOOST_CHECK(partialBlock.IsTxAvailable(2));
 
         // +1 because of partialBlock
-        BOOST_CHECK_EQUAL(
-            pool.mapTx.find(block.vtx[2]->GetId())->GetSharedTx().use_count(),
-            SHARED_TX_OFFSET + 1);
+        expectUseCount(pool, block.vtx[2], 1);
 
         CBlock block2;
         {
@@ -223,9 +221,8 @@ BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest) {
         }
 
         // +2 because of partialBlock and block2
-        BOOST_CHECK_EQUAL(
-            pool.mapTx.find(block.vtx[2]->GetId())->GetSharedTx().use_count(),
-            SHARED_TX_OFFSET + 2);
+        expectUseCount(pool, block.vtx[2], 2);
+
         bool mutated;
         BOOST_CHECK(block.hashMerkleRoot != BlockMerkleRoot(block2, &mutated));
 
@@ -240,23 +237,18 @@ BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest) {
         BOOST_CHECK(!mutated);
 
         // +3 because of partialBlock and block2 and block3
-        BOOST_CHECK_EQUAL(
-            pool.mapTx.find(block.vtx[2]->GetId())->GetSharedTx().use_count(),
-            SHARED_TX_OFFSET + 3);
+        expectUseCount(pool, block.vtx[2], 3);
 
-        txid = block.vtx[2]->GetId();
         block.vtx.clear();
         block2.vtx.clear();
         block3.vtx.clear();
 
         // + 1 because of partialBlock; -1 because of block.
-        BOOST_CHECK_EQUAL(pool.mapTx.find(txid)->GetSharedTx().use_count(),
-                          SHARED_TX_OFFSET + 1 - 1);
+        expectUseCount(pool, block.vtx[2], 0);
     }
 
     // -1 because of block
-    BOOST_CHECK_EQUAL(pool.mapTx.find(txid)->GetSharedTx().use_count(),
-                      SHARED_TX_OFFSET - 1);
+    expectUseCount(pool, block.vtx[2], -1);
 }
 
 BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
@@ -266,11 +258,7 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
 
     LOCK2(cs_main, pool.cs);
     pool.addUnchecked(entry.FromTx(block.vtx[1]));
-    BOOST_CHECK_EQUAL(
-        pool.mapTx.find(block.vtx[1]->GetId())->GetSharedTx().use_count(),
-        SHARED_TX_OFFSET + 0);
-
-    TxId txid;
+    expectUseCount(pool, block.vtx[1], 0);
 
     // Test with pre-forwarding coinbase + tx 2 with tx 1 in mempool
     {
@@ -294,9 +282,7 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
         BOOST_CHECK(partialBlock.IsTxAvailable(1));
         BOOST_CHECK(partialBlock.IsTxAvailable(2));
 
-        BOOST_CHECK_EQUAL(
-            pool.mapTx.find(block.vtx[1]->GetId())->GetSharedTx().use_count(),
-            SHARED_TX_OFFSET + 1);
+        expectUseCount(pool, block.vtx[1], 1);
 
         CBlock block2;
         PartiallyDownloadedBlock partialBlockCopy = partialBlock;
@@ -308,18 +294,15 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
                           BlockMerkleRoot(block2, &mutated).ToString());
         BOOST_CHECK(!mutated);
 
-        txid = block.vtx[1]->GetId();
         block.vtx.clear();
         block2.vtx.clear();
 
         // + 1 because of partialBlock; -1 because of block.
-        BOOST_CHECK_EQUAL(pool.mapTx.find(txid)->GetSharedTx().use_count(),
-                          SHARED_TX_OFFSET + 1 - 1);
+        expectUseCount(pool, block.vtx[1], 0);
     }
 
     // -1 because of block
-    BOOST_CHECK_EQUAL(pool.mapTx.find(txid)->GetSharedTx().use_count(),
-                      SHARED_TX_OFFSET - 1);
+    expectUseCount(pool, block.vtx[1], -1);
 }
 
 BOOST_AUTO_TEST_CASE(EmptyBlockRoundTripTest) {
