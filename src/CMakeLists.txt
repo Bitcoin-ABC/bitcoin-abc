@@ -85,6 +85,7 @@ native_add_cmake_flags(
 	"-DUSE_JEMALLOC=OFF"
 	"-DENABLE_CLANG_TIDY=OFF"
 	"-DENABLE_BIP70=OFF"
+	"-DUSE_LINKER="
 )
 
 if(ENABLE_CLANG_TIDY)
