@@ -10,4 +10,5 @@
 abc_rust_lint::lint! {
     pub mod block;
     pub mod hash;
+    pub mod tx;
 }
