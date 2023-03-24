@@ -16,25 +16,25 @@ import re
 import sys
 import os
 
-# Debian 8.11 (Jessie) has:
+# Debian 10 (Buster) EOL: 2024. https://wiki.debian.org/LTS
 #
-# - g++ version 4.9.2 (https://packages.debian.org/search?suite=default&section=all&arch=any&searchon=names&keywords=g%2B%2B)
-# - libc version 2.19.18 (https://packages.debian.org/search?suite=default&section=all&arch=any&searchon=names&keywords=libc6)
+# - libgcc version 8.3.0 (https://packages.debian.org/search?suite=buster&arch=any&searchon=names&keywords=libgcc1)
+# - libc version 2.28 (https://packages.debian.org/search?suite=buster&arch=any&searchon=names&keywords=libc6)
 #
-# Ubuntu 14.04 (Trusty Tahr) has:
+# Ubuntu 18.04 (Bionic) EOL: 2028. https://wiki.ubuntu.com/ReleaseTeam
 #
-# - g++ version 4.8.2 (https://packages.ubuntu.com/search?suite=trusty&section=all&arch=any&keywords=g%2B%2B&searchon=names)
-# - libc version 2.19.0 (https://packages.ubuntu.com/search?suite=trusty&section=all&arch=any&keywords=libc6&searchon=names)
+# - libgcc version 8.4.0 (https://packages.ubuntu.com/bionic/libgcc1)
+# - libc version 2.27 (https://packages.ubuntu.com/bionic/libc6)
 #
-# Taking the minimum of these as our target.
+# CentOS Stream 8 EOL: 2024. https://wiki.centos.org/About/Product
 #
-# According to GNU ABI document (http://gcc.gnu.org/onlinedocs/libstdc++/manual/abi.html) this corresponds to:
-#   GCC 4.8.0: GCC_4.8.0
-#   (glibc)    GLIBC_2_19
+# - libgcc version 8.5.0 (http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/Packages/)
+# - libc version 2.28 (http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/Packages/)
 #
+# See https://gcc.gnu.org/onlinedocs/libstdc++/manual/abi.html for more info.
 MAX_VERSIONS = {
-    'GCC': (4, 8, 0),
-    'GLIBC': (2, 19),
+    'GCC': (8, 3, 0),
+    'GLIBC': (2, 27),
     'LIBATOMIC': (1, 0)
 }
 # See here for a description of _IO_stdin_used:
