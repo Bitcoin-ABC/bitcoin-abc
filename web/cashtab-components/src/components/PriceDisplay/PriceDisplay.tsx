@@ -39,7 +39,6 @@ const PriceText = styled.p`
 type Props = {
     price?: string;
     symbol: string;
-
     coinType?: ValidCoinTypes;
     preSymbol?: string;
     name?: string;

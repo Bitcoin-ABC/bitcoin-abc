@@ -1,4 +1,4 @@
-import { Meta, Story } from '@storybook/react/types-6-0';
+import { Meta, StoryFn } from '@storybook/react';
 import CashtabButton from './CashtabButton';
 import type { CashtabButtonProps } from './CashtabButton';
 import { currencyOptions } from '../../utils/currency-helpers';
@@ -12,7 +12,7 @@ const tokenIdOptions = [
     '259908ae44f46ef585edef4bcc1e50dc06e4c391ac4be929fae27235b8158cf1',
 ];
 
-const Template: Story<CashtabButtonProps> = (args: CashtabButtonProps) => (
+const Template: StoryFn<CashtabButtonProps> = (args: CashtabButtonProps) => (
     <CashtabButton {...args} />
 );
 

@@ -18,10 +18,7 @@ const getAddressUnconfirmed = async (address: string): Promise<string[]> => {
 };
 
 const getTokenInfo = async (coinId: string): Promise<any> => {
-    const tokenInfoRequest = await fetch(
-        `https://rest.bitcoin.com/v2/slp/list/${coinId}`,
-    );
-    const tokenInfo = await tokenInfoRequest.json();
+    const tokenInfo = 'pendingChronik';
     return tokenInfo;
 };
 

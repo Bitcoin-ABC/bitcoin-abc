@@ -30,11 +30,10 @@
     "scripts": {
         "start": "npm run storybook",
         "build": "rm -rf dist/ && webpack --mode=production",
-        "prepublish": "npm run build",
         "test": "jest",
         "eject": "react-scripts eject",
-        "storybook": "start-storybook -p 6006 -s public",
-        "build-storybook": "build-storybook -s public"
+        "storybook": "storybook dev -p 6006 -s public",
+        "build-storybook": "storybook build -s public"
     },
     "repository": {
         "type": "git",
@@ -80,17 +79,18 @@
     "devDependencies": {
         "@babel/core": "^7.12.10",
         "@babel/preset-env": "^7.12.11",
-        "@storybook/addon-actions": "^6.5.16",
-        "@storybook/addon-essentials": "^6.5.16",
+        "@storybook/addon-actions": "^7.0.0-rc.7",
+        "@storybook/addon-essentials": "^7.0.0-rc.7",
         "@storybook/addon-knobs": "^6.1.11",
-        "@storybook/addon-links": "^6.5.16",
-        "@storybook/addons": "^6.5.16",
-        "@storybook/builder-webpack5": "^6.5.16",
-        "@storybook/manager-webpack5": "^6.5.16",
-        "@storybook/node-logger": "^6.5.16",
-        "@storybook/preset-create-react-app": "^4.1.2",
-        "@storybook/react": "^6.5.16",
-        "@storybook/theming": "^6.5.16",
+        "@storybook/addon-links": "^7.0.0-rc.7",
+        "@storybook/addon-mdx-gfm": "^7.0.0-rc.7",
+        "@storybook/addons": "^7.0.0-rc.7",
+        "@storybook/node-logger": "^7.0.0-rc.7",
+        "@storybook/preset-create-react-app": "^7.0.0-rc.7",
+        "@storybook/react": "^7.0.0-rc.7",
+        "@storybook/react-webpack5": "^7.0.0-rc.7",
+        "@storybook/theming": "^7.0.0-rc.7",
+        "@svgr/webpack": "^7.0.0",
         "@types/jest": "^26.0.19",
         "@types/lodash": "^4.14.165",
         "@types/qrcode.react": "^1.0.1",
@@ -99,10 +99,17 @@
         "jest": "^29.0.3",
         "jest-environment-jsdom": "^29.0.3",
         "jest-junit": "^14.0.1",
+        "storybook": "^7.0.0-rc.7",
+        "ts-jest": "^29.0.5",
         "ts-loader": "^8.0.12",
-        "webpack": "^5.76.0"
+        "url-loader": "^4.1.1",
+        "webpack": "^5.76.3"
+    },
+    "overrides": {
+        "@svgr/webpack": "$@svgr/webpack"
     },
     "jest": {
+        "preset": "ts-jest",
         "roots": [
             "<rootDir>/src"
         ],
@@ -115,7 +122,7 @@
         ],
         "testEnvironment": "jsdom",
         "transform": {
-            "^.+\\.(js|jsx|ts|tsx)$": "<rootDir>/node_modules/babel-jest"
+            "^.+\\.(js|jsx|ts|tsx)$": "<rootDir>/node_modules/ts-jest"
         },
         "transformIgnorePatterns": [
             "[/\\\\]node_modules[/\\\\].+\\.(js|jsx|ts|tsx)$",

@@ -1,84 +1,53 @@
-import React from 'react';
-
-import { storiesOf } from '@storybook/react';
-import { text, number } from '@storybook/addon-knobs';
+import type { Meta, StoryObj } from '@storybook/react';
 
 import ButtonQR from './ButtonQR';
 import Text from '../Text';
 
 const ButtonText = 'Cashtab Pay';
 
-storiesOf('ButtonQR', module)
-    .add(
-        'default - all knobs',
-        () => (
-            <ButtonQR
-                toAddress={text(
-                    'To address',
-                    'bitcoincash:pp8skudq3x5hzw8ew7vzsw8tn4k8wxsqsv0lt0mf3g',
-                )}
-                amountSatoshis={number('Satoshis', 550)}
-                sizeQR={number('QR size', 125)}
-                step={'fresh'}
-            >
-                <Text>{ButtonText}</Text>
-            </ButtonQR>
-        ),
-        {
-            notes: 'Button is a stateful controlled component which is the primary visual indicator for the Cashtab payment process',
-        },
-    )
-    .add(
-        'payment pending',
-        () => (
-            <ButtonQR
-                toAddress={text(
-                    'To address',
-                    'bitcoincash:pp8skudq3x5hzw8ew7vzsw8tn4k8wxsqsv0lt0mf3g',
-                )}
-                amountSatoshis={number('Satoshis', 550)}
-                step={'pending'}
-            >
-                <Text>{ButtonText}</Text>
-            </ButtonQR>
-        ),
-        {
-            notes: 'Awaiting a confirmation or cancellation of Cashtab popup',
-        },
-    )
-    .add(
-        'payment complete',
-        () => (
-            <ButtonQR
-                toAddress={text(
-                    'To address',
-                    'bitcoincash:pp8skudq3x5hzw8ew7vzsw8tn4k8wxsqsv0lt0mf3g',
-                )}
-                amountSatoshis={number('Satoshis', 550)}
-                step={'complete'}
-            >
-                <Text>{ButtonText}</Text>
-            </ButtonQR>
-        ),
-        {
-            notes: 'Payment received, at least on the front-end',
-        },
-    )
-    .add(
-        'install prompt',
-        () => (
-            <ButtonQR
-                toAddress={text(
-                    'To address',
-                    'bitcoincash:pp8skudq3x5hzw8ew7vzsw8tn4k8wxsqsv0lt0mf3g',
-                )}
-                amountSatoshis={number('Satoshis', 550)}
-                step={'install'}
-            >
-                <Text>{ButtonText}</Text>
-            </ButtonQR>
-        ),
-        {
-            notes: 'Cashtab plugin not installed, prompt user to install Cashtab',
-        },
-    );
+const meta: Meta<typeof ButtonQR> = {
+    title: 'ButtonQR',
+    component: ButtonQR,
+};
+export default meta;
+type Story = StoryObj<typeof ButtonQR>;
+// ButtonQR is a stateful controlled component which is the primary visual indicator for the Cashtab payment process
+export const Default: Story = {
+    args: {
+        toAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+        amountSatoshis: 550,
+        sizeQR: 125,
+        step: 'fresh',
+        children: <Text>{ButtonText}</Text>,
+    },
+};
+// Awaiting a confirmation or cancellation of Cashtab popup
+export const paymentPending: Story = {
+    args: {
+        toAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+        amountSatoshis: 550,
+        sizeQR: 125,
+        step: 'pending',
+        children: <Text>{ButtonText}</Text>,
+    },
+};
+// Payment received, at least on the front-end
+export const paymentComplete: Story = {
+    args: {
+        toAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+        amountSatoshis: 550,
+        sizeQR: 125,
+        step: 'complete',
+        children: <Text>{ButtonText}</Text>,
+    },
+};
+// Cashtab plugin not installed, prompt user to install Cashtab
+export const installPrompt: Story = {
+    args: {
+        toAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+        amountSatoshis: 550,
+        sizeQR: 125,
+        step: 'install',
+        children: <Text>{ButtonText}</Text>,
+    },
+};

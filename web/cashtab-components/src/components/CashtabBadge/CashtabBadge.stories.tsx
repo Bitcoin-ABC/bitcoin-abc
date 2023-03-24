@@ -1,4 +1,4 @@
-import { Meta, Story } from '@storybook/react/types-6-0';
+import { Meta, StoryFn } from '@storybook/react';
 import CashtabBadge from './CashtabBadge';
 import type { CashtabBadgeProps } from './CashtabBadge';
 import { currencyOptions } from '../../utils/currency-helpers';
@@ -12,7 +12,7 @@ const tokenIdOptions = [
     '259908ae44f46ef585edef4bcc1e50dc06e4c391ac4be929fae27235b8158cf1',
 ];
 
-const Template: Story<CashtabBadgeProps> = (args: CashtabBadgeProps) => (
+const Template: StoryFn<CashtabBadgeProps> = (args: CashtabBadgeProps) => (
     <CashtabBadge {...args} />
 );
 
