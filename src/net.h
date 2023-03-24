@@ -388,6 +388,7 @@ public:
 struct CNodeOptions {
     NetPermissionFlags permission_flags = NetPermissionFlags::None;
     bool prefer_evict = false;
+    size_t recv_flood_size{DEFAULT_MAXRECEIVEBUFFER * 1000};
 };
 
 /** Information about a peer */
@@ -464,7 +465,7 @@ public:
     const ConnectionType m_conn_type;
 
     /** Move all messages from the received queue to the processing queue. */
-    void MarkReceivedMsgsForProcessing(unsigned int recv_flood_size)
+    void MarkReceivedMsgsForProcessing()
         EXCLUSIVE_LOCKS_REQUIRED(!m_msg_process_queue_mutex);
 
     /**
@@ -474,8 +475,7 @@ public:
      * consisting of the message and a bool that indicates if the processing
      * queue has more entries.
      */
-    std::optional<std::pair<CNetMessage, bool>>
-    PollMessage(size_t recv_flood_size)
+    std::optional<std::pair<CNetMessage, bool>> PollMessage()
         EXCLUSIVE_LOCKS_REQUIRED(!m_msg_process_queue_mutex);
 
     /**
@@ -739,6 +739,7 @@ private:
     const uint64_t nLocalExtraEntropy;
     std::atomic<int> m_greatest_common_version{INIT_PROTO_VERSION};
 
+    const size_t m_recv_flood_size;
     // Used only by SocketHandler thread
     std::list<CNetMessage> vRecvMsg;
 
@@ -1053,8 +1054,6 @@ public:
 
     /** Get a unique deterministic randomizer. */
     CSipHasher GetDeterministicRandomizer(uint64_t id) const;
-
-    unsigned int GetReceiveFloodSize() const;
 
     void WakeMessageHandler() EXCLUSIVE_LOCKS_REQUIRED(!mutexMsgProc);
 

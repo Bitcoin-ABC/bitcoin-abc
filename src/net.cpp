@@ -557,7 +557,10 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
         id, std::move(sock), addrConnect, CalculateKeyedNetGroup(addrConnect),
         nonce, extra_entropy, addr_bind, pszDest ? pszDest : "", conn_type,
         /* inbound_onion */ false,
-        CNodeOptions{.permission_flags = permission_flags});
+        CNodeOptions{
+            .permission_flags = permission_flags,
+            .recv_flood_size = nReceiveFloodSize,
+        });
     pnode->AddRef();
 
     // We're making a new connection, harvest entropy from the time (and our
@@ -1056,6 +1059,7 @@ void CConnman::CreateNodeFromAcceptedSocket(std::unique_ptr<Sock> &&sock,
         CNodeOptions{
             .permission_flags = permission_flags,
             .prefer_evict = discouraged,
+            .recv_flood_size = nReceiveFloodSize,
         });
     pnode->AddRef();
     for (auto interface : m_msgproc) {
@@ -1354,7 +1358,7 @@ void CConnman::SocketHandlerConnected(
                 }
                 RecordBytesRecv(nBytes);
                 if (notify) {
-                    pnode->MarkReceivedMsgsForProcessing(nReceiveFloodSize);
+                    pnode->MarkReceivedMsgsForProcessing();
                     WakeMessageHandler();
                 }
             } else if (nBytes == 0) {
@@ -2924,10 +2928,6 @@ ServiceFlags CConnman::GetLocalServices() const {
     return nLocalServices;
 }
 
-unsigned int CConnman::GetReceiveFloodSize() const {
-    return nReceiveFloodSize;
-}
-
 void CNode::invsPolled(uint32_t count) {
     invCounters += count;
 }
@@ -2969,7 +2969,8 @@ CNode::CNode(NodeId idIn, std::shared_ptr<Sock> sock, const CAddress &addrIn,
       m_inbound_onion(inbound_onion), m_prefer_evict{node_opts.prefer_evict},
       nKeyedNetGroup(nKeyedNetGroupIn), m_conn_type(conn_type_in), id(idIn),
       nLocalHostNonce(nLocalHostNonceIn),
-      nLocalExtraEntropy(nLocalExtraEntropyIn) {
+      nLocalExtraEntropy(nLocalExtraEntropyIn),
+      m_recv_flood_size{node_opts.recv_flood_size} {
     if (inbound_onion) {
         assert(conn_type_in == ConnectionType::INBOUND);
     }
@@ -2993,7 +2994,7 @@ CNode::CNode(NodeId idIn, std::shared_ptr<Sock> sock, const CAddress &addrIn,
         std::make_unique<V1TransportSerializer>(V1TransportSerializer());
 }
 
-void CNode::MarkReceivedMsgsForProcessing(unsigned int recv_flood_size) {
+void CNode::MarkReceivedMsgsForProcessing() {
     AssertLockNotHeld(m_msg_process_queue_mutex);
 
     size_t nSizeAdded = 0;
@@ -3007,11 +3008,10 @@ void CNode::MarkReceivedMsgsForProcessing(unsigned int recv_flood_size) {
     LOCK(m_msg_process_queue_mutex);
     m_msg_process_queue.splice(m_msg_process_queue.end(), vRecvMsg);
     m_msg_process_queue_size += nSizeAdded;
-    fPauseRecv = m_msg_process_queue_size > recv_flood_size;
+    fPauseRecv = m_msg_process_queue_size > m_recv_flood_size;
 }
 
-std::optional<std::pair<CNetMessage, bool>>
-CNode::PollMessage(size_t recv_flood_size) {
+std::optional<std::pair<CNetMessage, bool>> CNode::PollMessage() {
     LOCK(m_msg_process_queue_mutex);
     if (m_msg_process_queue.empty()) {
         return std::nullopt;
@@ -3021,7 +3021,7 @@ CNode::PollMessage(size_t recv_flood_size) {
     // Just take one message
     msgs.splice(msgs.begin(), m_msg_process_queue, m_msg_process_queue.begin());
     m_msg_process_queue_size -= msgs.front().m_raw_message_size;
-    fPauseRecv = m_msg_process_queue_size > recv_flood_size;
+    fPauseRecv = m_msg_process_queue_size > m_recv_flood_size;
 
     return std::make_pair(std::move(msgs.front()),
                           !m_msg_process_queue.empty());

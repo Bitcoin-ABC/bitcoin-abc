@@ -7805,7 +7805,7 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
         return false;
     }
 
-    auto poll_result{pfrom->PollMessage(m_connman.GetReceiveFloodSize())};
+    auto poll_result{pfrom->PollMessage()};
     if (!poll_result) {
         // No message to process
         return false;
