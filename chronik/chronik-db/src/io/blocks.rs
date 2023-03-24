@@ -100,12 +100,14 @@ pub enum BlocksError {
 
 use self::BlocksError::*;
 
-fn bh_to_bytes(height: BlockHeight) -> [u8; 4] {
-    // big-endian, so blocks are sorted ascendingly
+/// Serialize block height for using it as keys in the DB.
+/// Big-endian, so blocks are sorted ascendingly.
+pub(crate) fn bh_to_bytes(height: BlockHeight) -> [u8; 4] {
     height.to_be_bytes()
 }
 
-fn bytes_to_bh(bytes: &[u8]) -> Result<BlockHeight> {
+/// Deserialize block height from bytes.
+pub(crate) fn bytes_to_bh(bytes: &[u8]) -> Result<BlockHeight> {
     Ok(BlockHeight::from_be_bytes(
         bytes
             .try_into()

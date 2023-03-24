@@ -6,6 +6,8 @@
 
 mod blocks;
 mod metadata;
+mod txs;
 
 pub use self::blocks::*;
 pub use self::metadata::*;
+pub use self::txs::*;

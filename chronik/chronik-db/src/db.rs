@@ -13,15 +13,25 @@ pub use rocksdb::WriteBatch;
 use rocksdb::{ColumnFamilyDescriptor, IteratorMode};
 use thiserror::Error;
 
-use crate::io::{BlockWriter, MetadataWriter};
+use crate::io::{BlockWriter, MetadataWriter, TxWriter};
 
 // All column family names used by Chronik should be defined here
 /// Column family name for the block data.
 pub const CF_BLK: &str = "blk";
+/// Column family for the first tx_num of the block. Used to get a list of the
+/// txs of the block.
+pub const CF_BLK_BY_FIRST_TX: &str = "blk_by_first_tx";
+/// Column family for the block height of the first tx_num of that block. Used
+/// to get the block height of a tx.
+pub const CF_FIRST_TX_BY_BLK: &str = "first_tx_by_blk";
 /// Column family to lookup a block by its hash.
 pub const CF_LOOKUP_BLK_BY_HASH: &str = "lookup_blk_by_hash";
+/// Column family to lookup a tx by its hash.
+pub const CF_LOOKUP_TX_BY_HASH: &str = "lookup_tx_by_hash";
 /// Column family name for db metadata.
 pub const CF_META: &str = "meta";
+/// Column family for the tx data.
+pub const CF_TX: &str = "tx";
 
 pub(crate) type CF = rocksdb::ColumnFamily;
 
@@ -54,6 +64,7 @@ impl Db {
         let mut cfs = Vec::new();
         BlockWriter::add_cfs(&mut cfs);
         MetadataWriter::add_cfs(&mut cfs);
+        TxWriter::add_cfs(&mut cfs);
         Self::open_with_cfs(path, cfs)
     }
 
@@ -111,6 +122,17 @@ impl Db {
     ) -> impl Iterator<Item = Result<(Box<[u8]>, Box<[u8]>)>> + '_ {
         self.db
             .iterator_cf(cf, IteratorMode::End)
+            .map(|result| Ok(result.map_err(RocksDb)?))
+    }
+
+    pub(crate) fn iterator(
+        &self,
+        cf: &CF,
+        start: &[u8],
+        direction: rocksdb::Direction,
+    ) -> impl Iterator<Item = Result<(Box<[u8]>, Box<[u8]>)>> + '_ {
+        self.db
+            .iterator_cf(cf, IteratorMode::From(start, direction))
             .map(|result| Ok(result.map_err(RocksDb)?))
     }
 

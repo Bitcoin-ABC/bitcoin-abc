@@ -19,7 +19,7 @@ use chronik_db::{
 use chronik_util::{log, log_chronik};
 use thiserror::Error;
 
-const CURRENT_INDEXER_VERSION: SchemaVersion = 2;
+const CURRENT_INDEXER_VERSION: SchemaVersion = 3;
 
 /// Params for setting up a [`ChronikIndexer`] instance.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
