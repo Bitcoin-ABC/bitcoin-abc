@@ -131,7 +131,8 @@ impl Chronik {
         let mut indexer = self.indexer.blocking_write();
         ok_or_abort_node(
             "handle_block_connected",
-            indexer.handle_block_connected(make_chronik_block(block, bindex)),
+            make_chronik_block(block, bindex)
+                .and_then(|block| indexer.handle_block_connected(block)),
         );
         log_chronik!("Chronik: block connected\n");
     }
@@ -145,8 +146,8 @@ impl Chronik {
         let mut indexer = self.indexer.blocking_write();
         ok_or_abort_node(
             "handle_block_disconnected",
-            indexer
-                .handle_block_disconnected(make_chronik_block(block, bindex)),
+            make_chronik_block(block, bindex)
+                .and_then(|block| indexer.handle_block_disconnected(block)),
         );
         log_chronik!("Chronik: block disconnected\n");
     }

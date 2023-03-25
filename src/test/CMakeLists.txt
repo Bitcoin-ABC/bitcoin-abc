@@ -105,6 +105,7 @@ gen_asmap_headers(ASMAP_HEADERS
 if(BUILD_BITCOIN_CHRONIK)
 	set(BITCOIN_CHRONIK_TESTS
 		../../chronik/test/chronikbridge_tests.cpp
+		../../chronik/test/bridgeprimitives_tests.cpp
 	)
 endif()
 
@@ -140,6 +141,7 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 		blockfilter_index_tests.cpp
 		blockindex_tests.cpp
 		blockstatus_tests.cpp
+		blockstorage_tests.cpp
 		bloom_tests.cpp
 		bswap_tests.cpp
 		cashaddr_tests.cpp

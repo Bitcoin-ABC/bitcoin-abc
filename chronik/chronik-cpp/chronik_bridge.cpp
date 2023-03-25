@@ -6,6 +6,7 @@
 #include <chainparams.h>
 #include <chronik-bridge/src/ffi.rs.h>
 #include <chronik-cpp/chronik_bridge.h>
+#include <chronik-cpp/util/collection.h>
 #include <chronik-cpp/util/hash.h>
 #include <config.h>
 #include <logging.h>
@@ -13,7 +14,140 @@
 #include <node/context.h>
 #include <node/ui_interface.h>
 #include <shutdown.h>
+#include <undo.h>
 #include <validation.h>
+
+chronik_bridge::OutPoint BridgeOutPoint(const COutPoint &outpoint) {
+    return {
+        .txid = chronik::util::HashToArray(outpoint.GetTxId()),
+        .out_idx = outpoint.GetN(),
+    };
+}
+
+chronik_bridge::TxOutput BridgeTxOutput(const CTxOut &output) {
+    return {
+        .value = output.nValue / Amount::satoshi(),
+        .script = chronik::util::ToRustVec<uint8_t>(output.scriptPubKey),
+    };
+}
+
+chronik_bridge::Coin BridgeCoin(const Coin &coin) {
+    const int32_t nHeight =
+        coin.GetHeight() == 0x7fff'ffff ? -1 : coin.GetHeight();
+    return {
+        .output = BridgeTxOutput(coin.GetTxOut()),
+        .height = nHeight,
+        .is_coinbase = coin.IsCoinBase(),
+    };
+}
+
+rust::Vec<chronik_bridge::TxInput>
+BridgeTxInputs(bool isCoinbase, const std::vector<CTxIn> &inputs,
+               const std::vector<Coin> &spent_coins) {
+    rust::Vec<chronik_bridge::TxInput> bridged_inputs;
+    bridged_inputs.reserve(inputs.size());
+    for (size_t idx = 0; idx < inputs.size(); ++idx) {
+        const CTxIn &input = inputs[idx];
+        chronik_bridge::Coin bridge_coin{}; // empty coin
+        if (!isCoinbase) {
+            if (idx >= spent_coins.size()) {
+                throw std::runtime_error("Missing coin for input");
+            }
+            bridge_coin = BridgeCoin(spent_coins[idx]);
+        }
+        bridged_inputs.push_back({
+            .prev_out = BridgeOutPoint(input.prevout),
+            .script = chronik::util::ToRustVec<uint8_t>(input.scriptSig),
+            .sequence = input.nSequence,
+            .coin = std::move(bridge_coin),
+        });
+    }
+    return bridged_inputs;
+}
+
+rust::Vec<chronik_bridge::TxOutput>
+BridgeTxOutputs(const std::vector<CTxOut> &outputs) {
+    rust::Vec<chronik_bridge::TxOutput> bridged_outputs;
+    bridged_outputs.reserve(outputs.size());
+    for (const CTxOut &output : outputs) {
+        bridged_outputs.push_back(BridgeTxOutput(output));
+    }
+    return bridged_outputs;
+}
+
+chronik_bridge::Tx BridgeTx(bool isCoinbase, const CTransaction &tx,
+                            const std::vector<Coin> &spent_coins) {
+    return {
+        .txid = chronik::util::HashToArray(tx.GetId()),
+        .version = tx.nVersion,
+        .inputs = BridgeTxInputs(isCoinbase, tx.vin, spent_coins),
+        .outputs = BridgeTxOutputs(tx.vout),
+        .locktime = tx.nLockTime,
+    };
+}
+
+chronik_bridge::BlockTx BridgeBlockTx(bool isCoinbase, const CTransaction &tx,
+                                      const std::vector<Coin> &spent_coins,
+                                      size_t data_pos, size_t undo_pos) {
+    return {.tx = BridgeTx(isCoinbase, tx, spent_coins),
+            .data_pos = uint32_t(data_pos),
+            .undo_pos = uint32_t(isCoinbase ? 0 : undo_pos)};
+}
+
+size_t GetFirstBlockTxOffset(const CBlock &block, const CBlockIndex &bindex) {
+    return bindex.nDataPos + ::GetSerializeSize(CBlockHeader()) +
+           GetSizeOfCompactSize(block.vtx.size());
+}
+
+size_t GetFirstUndoOffset(const CBlock &block, const CBlockIndex &bindex) {
+    // We have to -1 here, because coinbase txs don't have undo data.
+    return bindex.nUndoPos + GetSizeOfCompactSize(block.vtx.size() - 1);
+}
+
+chronik_bridge::Block BridgeBlock(const CBlock &block,
+                                  const CBlockIndex &bindex) {
+    size_t data_pos = GetFirstBlockTxOffset(block, bindex);
+    size_t undo_pos = 0;
+    CBlockUndo block_undo;
+
+    // Read undo data (genesis block doesn't have undo data)
+    if (bindex.nHeight > 0) {
+        undo_pos = GetFirstUndoOffset(block, bindex);
+        if (!node::UndoReadFromDisk(block_undo, &bindex)) {
+            throw std::runtime_error("Reading block undo data failed");
+        }
+    }
+
+    rust::Vec<chronik_bridge::BlockTx> bridged_txs;
+    for (size_t tx_idx = 0; tx_idx < block.vtx.size(); ++tx_idx) {
+        const bool isCoinbase = tx_idx == 0;
+        const CTransaction &tx = *block.vtx[tx_idx];
+        if (!isCoinbase && tx_idx - 1 >= block_undo.vtxundo.size()) {
+            throw std::runtime_error("Missing undo data for tx");
+        }
+        const std::vector<Coin> &spent_coins =
+            isCoinbase ? std::vector<Coin>()
+                       : block_undo.vtxundo[tx_idx - 1].vprevout;
+        bridged_txs.push_back(
+            BridgeBlockTx(isCoinbase, tx, spent_coins, data_pos, undo_pos));
+
+        // advance data_pos and undo_pos positions
+        data_pos += ::GetSerializeSize(tx);
+        if (!isCoinbase) {
+            undo_pos += ::GetSerializeSize(block_undo.vtxundo[tx_idx - 1]);
+        }
+    }
+
+    return {.hash = chronik::util::HashToArray(block.GetHash()),
+            .prev_hash = chronik::util::HashToArray(block.hashPrevBlock),
+            .n_bits = block.nBits,
+            .timestamp = block.GetBlockTime(),
+            .height = bindex.nHeight,
+            .file_num = uint32_t(bindex.nFile),
+            .data_pos = bindex.nDataPos,
+            .undo_pos = bindex.nUndoPos,
+            .txs = bridged_txs};
+}
 
 namespace chronik_bridge {
 
@@ -79,14 +213,7 @@ std::unique_ptr<ChronikBridge> make_bridge(const Config &config,
 
 chronik_bridge::Block bridge_block(const CBlock &block,
                                    const CBlockIndex &bindex) {
-    return {.hash = chronik::util::HashToArray(block.GetHash()),
-            .prev_hash = chronik::util::HashToArray(block.hashPrevBlock),
-            .n_bits = block.nBits,
-            .timestamp = block.GetBlockTime(),
-            .height = bindex.nHeight,
-            .file_num = uint32_t(bindex.nFile),
-            .data_pos = bindex.nDataPos,
-            .undo_pos = bindex.nUndoPos};
+    return BridgeBlock(block, bindex);
 }
 
 BlockInfo get_block_info(const CBlockIndex &bindex) {

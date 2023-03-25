@@ -24,6 +24,7 @@ class CBlockHeader;
 class CBlockUndo;
 class CChain;
 class CChainParams;
+class CTxUndo;
 class Chainstate;
 class ChainstateManager;
 struct CCheckpointData;
@@ -219,6 +220,10 @@ bool ReadBlockFromDisk(CBlock &block, const FlatFilePos &pos,
 bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,
                        const Consensus::Params &consensusParams);
 bool UndoReadFromDisk(CBlockUndo &blockundo, const CBlockIndex *pindex);
+
+/** Functions for disk access for txs */
+bool ReadTxFromDisk(CMutableTransaction &tx, const FlatFilePos &pos);
+bool ReadTxUndoFromDisk(CTxUndo &tx, const FlatFilePos &pos);
 
 void ThreadImport(const Config &config, ChainstateManager &chainman,
                   std::vector<fs::path> vImportFiles, const ArgsManager &args);

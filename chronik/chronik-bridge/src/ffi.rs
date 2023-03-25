@@ -52,6 +52,76 @@ mod ffi_inner {
         pub data_pos: u32,
         /// Position of the undo data within the undo file.
         pub undo_pos: u32,
+        /// Txs of this block, including positions within the block/undo files.
+        pub txs: Vec<BlockTx>,
+    }
+
+    /// Tx in a block
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub struct BlockTx {
+        /// Tx (without disk data)
+        pub tx: Tx,
+        /// Where the tx is stored within the block file.
+        pub data_pos: u32,
+        /// Where the tx's undo data is stored within the block's undo file.
+        pub undo_pos: u32,
+    }
+
+    /// CTransaction, in a block or in the mempool.
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub struct Tx {
+        /// TxId of the tx.
+        pub txid: [u8; 32],
+        /// nVersion of the tx.
+        pub version: i32,
+        /// Tx inputs.
+        pub inputs: Vec<TxInput>,
+        /// Tx outputs.
+        pub outputs: Vec<TxOutput>,
+        /// Locktime of the tx.
+        pub locktime: u32,
+    }
+
+    /// COutPoint, pointing to a coin being spent.
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub struct OutPoint {
+        /// TxId of the output of the coin.
+        pub txid: [u8; 32],
+        /// Index in the outputs of the tx of the coin.
+        pub out_idx: u32,
+    }
+
+    /// CTxIn, spending an unspent output.
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub struct TxInput {
+        /// Points to an output being spent.
+        pub prev_out: OutPoint,
+        /// scriptSig unlocking the output.
+        pub script: Vec<u8>,
+        /// nSequence.
+        pub sequence: u32,
+        /// Coin being spent by this tx.
+        pub coin: Coin,
+    }
+
+    /// CTxOut, creating a new output.
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub struct TxOutput {
+        /// Value of the output.
+        pub value: i64,
+        /// Script locking the output.
+        pub script: Vec<u8>,
+    }
+
+    /// Coin, can be spent by providing a valid unlocking script.
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub struct Coin {
+        /// Output, locking the coins.
+        pub output: TxOutput,
+        /// Height of the coin in the chain.
+        pub height: i32,
+        /// Whether the coin is a coinbase.
+        pub is_coinbase: bool,
     }
 
     #[allow(missing_debug_implementations)]
@@ -127,7 +197,10 @@ mod ffi_inner {
         ) -> Result<&CBlockIndex>;
 
         /// Bridge bitcoind's classes to the shared struct [`Block`].
-        fn bridge_block(block: &CBlock, block_index: &CBlockIndex) -> Block;
+        fn bridge_block(
+            block: &CBlock,
+            block_index: &CBlockIndex,
+        ) -> Result<Block>;
 
         /// Get a BlockInfo for this CBlockIndex.
         fn get_block_info(block_index: &CBlockIndex) -> BlockInfo;

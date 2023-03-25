@@ -167,7 +167,7 @@ impl ChronikIndexer {
             let block_index = ffi::get_block_ancestor(node_tip_index, height)?;
             let ffi_block = bridge.load_block(block_index)?;
             let ffi_block = expect_unique_ptr("load_block", &ffi_block);
-            let block = make_chronik_block(ffi_block, block_index);
+            let block = make_chronik_block(ffi_block, block_index)?;
             let hash = block.db_block.hash.clone();
             self.handle_block_connected(block)?;
             log_chronik!(
@@ -218,7 +218,7 @@ impl ChronikIndexer {
                 .map_err(|_| CannotRewindChronik(db_block.hash))?;
             let ffi_block = bridge.load_block(block_index)?;
             let ffi_block = expect_unique_ptr("load_block", &ffi_block);
-            let block = make_chronik_block(ffi_block, block_index);
+            let block = make_chronik_block(ffi_block, block_index)?;
             self.handle_block_disconnected(block)?;
         }
         Ok(fork_info.height)
@@ -258,8 +258,8 @@ impl ChronikIndexer {
 pub fn make_chronik_block(
     block: &ffi::CBlock,
     bindex: &ffi::CBlockIndex,
-) -> ChronikBlock {
-    let block = ffi::bridge_block(block, bindex);
+) -> Result<ChronikBlock> {
+    let block = ffi::bridge_block(block, bindex)?;
     let db_block = DbBlock {
         hash: BlockHash::from(block.hash),
         prev_hash: BlockHash::from(block.prev_hash),
@@ -269,7 +269,7 @@ pub fn make_chronik_block(
         file_num: block.file_num,
         data_pos: block.data_pos,
     };
-    ChronikBlock { db_block }
+    Ok(ChronikBlock { db_block })
 }
 
 fn verify_schema_version(db: &Db) -> Result<()> {
