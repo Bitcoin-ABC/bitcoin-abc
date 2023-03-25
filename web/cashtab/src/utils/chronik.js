@@ -12,6 +12,7 @@ import {
 } from 'utils/cashMethods';
 import ecies from 'ecies-lite';
 import wif from 'wif';
+import { getPendingAliases } from 'utils/aliasUtils';
 
 export const getTxHistoryPage = async (chronik, hash160, page = 0) => {
     let txHistoryPage;
@@ -76,8 +77,14 @@ export const isAliasAvailable = async (alias, aliasesFromLocalForage) => {
     // extract aliases from cache
     const registeredAliases = aliasesFromLocalForage.aliases;
 
-    // check if the chosen alias has already been registered onchain
-    let isAliasTaken = isAliasRegistered(registeredAliases, alias);
+    // retrieve latest pending aliases
+    const pendingAliases = await getPendingAliases();
+
+    const registeredAndPendingAliases =
+        registeredAliases.concat(pendingAliases);
+
+    // check if the chosen alias has already been registered or in pending state onchain
+    let isAliasTaken = isAliasRegistered(registeredAndPendingAliases, alias);
 
     return !isAliasTaken; // if isAliasTaken is true then return false for availability
 };

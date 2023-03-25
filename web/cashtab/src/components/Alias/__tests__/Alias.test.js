@@ -93,6 +93,13 @@ test('Without wallet defined', () => {
         wallet: {},
         balances: { totalBalance: 0 },
         loading: false,
+        cashtabCache: {
+            tokenInfoById: {},
+            aliasCache: {
+                aliases: [],
+                cachedAliasCount: 0,
+            },
+        },
     };
     const component = renderer.create(
         <WalletContext.Provider value={withoutWalletDefinedMock}>

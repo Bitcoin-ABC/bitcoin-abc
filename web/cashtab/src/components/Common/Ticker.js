@@ -25,7 +25,7 @@ export const currency = {
             eightByte: 551,
             minFee: 550, // dust
         },
-        aliasServerUrl: 'https://aliasdev.etokens.cash/aliases',
+        aliasServerBaseUrl: 'https://aliasdev.etokens.cash',
         aliasMaxLength: 21, // max byte length, refer to the Alias spec at https://reviews.bitcoinabc.org/D12972
         reservedAliases: [
             'avalanche',

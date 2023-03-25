@@ -1,6 +1,13 @@
 // @generated
 
 export const walletWithBalancesMock = {
+    cashtabCache: {
+        tokenInfoById: {},
+        aliasCache: {
+            aliases: [],
+            cachedAliasCount: 0,
+        },
+    },
     wallet: {
         name: 'MigrationTestAlpha',
         Path245: {
@@ -42,6 +49,13 @@ export const walletWithBalancesMock = {
 };
 
 export const walletWithoutBalancesMock = {
+    cashtabCache: {
+        tokenInfoById: {},
+        aliasCache: {
+            aliases: [],
+            cachedAliasCount: 0,
+        },
+    },
     wallet: {
         name: 'MigrationTestAlpha',
         Path245: {
@@ -83,6 +97,13 @@ export const walletWithoutBalancesMock = {
 };
 
 export const walletWithBalancesAndTokens = {
+    cashtabCache: {
+        tokenInfoById: {},
+        aliasCache: {
+            aliases: [],
+            cachedAliasCount: 0,
+        },
+    },
     wallet: {
         name: 'MigrationTestAlpha',
         Path245: {
@@ -156,6 +177,13 @@ export const walletWithBalancesAndTokens = {
 };
 
 export const walletWithBalancesAndTokensWithCorrectState = {
+    cashtabCache: {
+        tokenInfoById: {},
+        aliasCache: {
+            aliases: [],
+            cachedAliasCount: 0,
+        },
+    },
     wallet: {
         name: 'MigrationTestAlpha',
         Path245: {
