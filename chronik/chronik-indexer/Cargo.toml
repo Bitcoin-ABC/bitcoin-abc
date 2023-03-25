@@ -15,6 +15,9 @@ chronik-bridge = { path = "../chronik-bridge" }
 chronik-db = { path = "../chronik-db" }
 chronik-util = { path = "../chronik-util" }
 
+# Protobuf en-/decoding
+prost = "0.11"
+
 # Derive error enums
 thiserror = "1.0"
 
@@ -24,3 +27,7 @@ pretty_assertions = "1.0"
 
 # Temporary directory that's deleted when dropped
 tempdir = "0.3"
+
+[build-dependencies]
+# Build structs for protobuf messages from a *.proto file
+prost-build = "0.11"

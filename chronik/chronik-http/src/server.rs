@@ -11,11 +11,12 @@ use axum::{extract::Path, routing, Extension, Router};
 use bitcoinsuite_core::block::BlockHash;
 use chronik_db::io::BlockHeight;
 use chronik_indexer::indexer::ChronikIndexer;
+use chronik_proto::proto;
 use hyper::server::conn::AddrIncoming;
 use thiserror::Error;
 use tokio::sync::RwLock;
 
-use crate::{error::ReportError, proto, protobuf::Protobuf};
+use crate::{error::ReportError, protobuf::Protobuf};
 
 type ChronikIndexerRef = Arc<RwLock<ChronikIndexer>>;
 

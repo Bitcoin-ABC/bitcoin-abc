@@ -58,7 +58,10 @@ if(BUILD_BITCOIN_WALLET)
 endif()
 if(BUILD_BITCOIN_CHRONIK)
 	find_package(Protobuf 3.0.0 REQUIRED)
-	protobuf_generate_python(PROTOBUF_PY ../chronik/proto/chronik.proto)
+	protobuf_generate_python(
+		PROTOBUF_PY
+		../chronik/chronik-proto/proto/chronik.proto
+	)
 	list(APPEND _TEST_TARGET_DEPENDS "${PROTOBUF_PY}")
 	add_custom_target(protobuf-chronik ALL DEPENDS "${PROTOBUF_PY}")
 endif()

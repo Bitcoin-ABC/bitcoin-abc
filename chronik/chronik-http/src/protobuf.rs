@@ -101,6 +101,7 @@ impl<P: Message + Default> IntoResponse for Protobuf<P> {
 mod tests {
     use abc_rust_error::Result;
     use axum::{routing::get, Router};
+    use chronik_proto::proto;
     use hyper::{
         body::to_bytes, header::CONTENT_TYPE, service::Service, Body, Request,
         StatusCode,
@@ -108,10 +109,7 @@ mod tests {
     use prost::Message;
     use thiserror::Error;
 
-    use crate::{
-        proto,
-        protobuf::{Protobuf, CONTENT_TYPE_PROTOBUF},
-    };
+    use crate::protobuf::{Protobuf, CONTENT_TYPE_PROTOBUF};
 
     #[tokio::test]
     async fn test_protobuf() -> Result<()> {

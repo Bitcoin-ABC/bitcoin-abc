@@ -10,9 +10,4 @@ abc_rust_lint::lint! {
     pub mod protobuf;
     pub mod server;
     pub(crate) mod validation;
-
-    /// Protobuf structs/enums for the Chronik HTTP server
-    pub mod proto {
-        include!(concat!(env!("OUT_DIR"), "/chronik.rs"));
-    }
 }

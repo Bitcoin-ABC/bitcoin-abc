@@ -6,10 +6,11 @@
 
 use abc_rust_error::{parse_error_status, Report};
 use axum::response::{IntoResponse, Response};
+use chronik_proto::proto;
 use chronik_util::{log, log_chronik};
 use hyper::StatusCode;
 
-use crate::{proto, protobuf::Protobuf, server::ChronikServerError};
+use crate::{protobuf::Protobuf, server::ChronikServerError};
 
 /// Wrapper around [`Report`] which can be converted into a [`Response`].
 #[derive(Debug)]
@@ -64,11 +65,12 @@ impl IntoResponse for ReportError {
 mod tests {
     use abc_rust_error::Result;
     use axum::response::IntoResponse;
+    use chronik_proto::proto;
     use hyper::{body::to_bytes, StatusCode};
     use prost::Message;
     use thiserror::Error;
 
-    use crate::{error::ReportError, proto};
+    use crate::error::ReportError;
 
     #[tokio::test]
     async fn test_report_error() -> Result<()> {

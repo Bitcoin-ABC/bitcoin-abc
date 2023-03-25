@@ -15,6 +15,7 @@ bitcoinsuite-core = { path = "../bitcoinsuite-core" }
 
 chronik-db = { path = "../chronik-db" }
 chronik-indexer = { path = "../chronik-indexer" }
+chronik-proto = { path = "../chronik-proto" }
 chronik-util = { path = "../chronik-util" }
 
 # Allow traits to use async functions
@@ -39,7 +40,3 @@ thiserror = "1.0"
 [dependencies.tokio]
 version = "1.25"
 features = ["sync", "rt", "rt-multi-thread", "macros"]
-
-[build-dependencies]
-# Build structs for protobuf messages from a *.proto file
-prost-build = "0.11"
