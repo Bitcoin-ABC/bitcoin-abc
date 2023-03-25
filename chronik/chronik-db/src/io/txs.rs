@@ -89,7 +89,7 @@ pub struct BlockTx {
 }
 
 /// Txs of a block, bundled in one struct so we can add it easily to the DB.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct BlockTxs {
     /// Tx data.
     pub txs: Vec<TxEntry>,

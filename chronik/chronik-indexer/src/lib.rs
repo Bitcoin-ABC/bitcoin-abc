@@ -6,4 +6,5 @@
 
 abc_rust_lint::lint! {
     pub mod indexer;
+    pub mod query;
 }

@@ -7,19 +7,21 @@
 use std::path::PathBuf;
 
 use abc_rust_error::{Result, WrapErr};
-use bitcoinsuite_core::block::BlockHash;
+use bitcoinsuite_core::{block::BlockHash, tx::TxId};
 use chronik_bridge::{ffi, util::expect_unique_ptr};
 use chronik_db::{
     db::{Db, WriteBatch},
     io::{
-        BlockHeight, BlockReader, BlockWriter, DbBlock, MetadataReader,
-        MetadataWriter, SchemaVersion,
+        BlockHeight, BlockReader, BlockTxs, BlockWriter, DbBlock,
+        MetadataReader, MetadataWriter, SchemaVersion, TxEntry, TxWriter,
     },
 };
 use chronik_util::{log, log_chronik};
 use thiserror::Error;
 
-const CURRENT_INDEXER_VERSION: SchemaVersion = 3;
+use crate::query::QueryTxs;
+
+const CURRENT_INDEXER_VERSION: SchemaVersion = 4;
 
 /// Params for setting up a [`ChronikIndexer`] instance.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -37,10 +39,12 @@ pub struct ChronikIndexer {
 }
 
 /// Block to be indexed by Chronik.
-#[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct ChronikBlock {
     /// Data about the block (w/o txs)
     pub db_block: DbBlock,
+    /// Txs of the block
+    pub block_txs: BlockTxs,
 }
 
 /// Errors for [`BlockWriter`] and [`BlockReader`].
@@ -231,7 +235,9 @@ impl ChronikIndexer {
     ) -> Result<()> {
         let mut batch = WriteBatch::default();
         let block_writer = BlockWriter::new(&self.db)?;
+        let tx_writer = TxWriter::new(&self.db)?;
         block_writer.insert(&mut batch, &block.db_block)?;
+        tx_writer.insert(&mut batch, &block.block_txs)?;
         self.db.write_batch(batch)?;
         Ok(())
     }
@@ -243,7 +249,9 @@ impl ChronikIndexer {
     ) -> Result<()> {
         let mut batch = WriteBatch::default();
         let block_writer = BlockWriter::new(&self.db)?;
+        let tx_writer = TxWriter::new(&self.db)?;
         block_writer.delete(&mut batch, &block.db_block)?;
+        tx_writer.insert(&mut batch, &block.block_txs)?;
         self.db.write_batch(batch)?;
         Ok(())
     }
@@ -251,6 +259,11 @@ impl ChronikIndexer {
     /// Return [`BlockReader`] to read blocks from the DB.
     pub fn blocks(&self) -> Result<BlockReader<'_>> {
         BlockReader::new(&self.db)
+    }
+
+    /// Return [`QueryTxs`] to return txs from mempool/DB.
+    pub fn txs(&self) -> QueryTxs<'_> {
+        QueryTxs::new(&self.db)
     }
 }
 
@@ -269,7 +282,28 @@ pub fn make_chronik_block(
         file_num: block.file_num,
         data_pos: block.data_pos,
     };
-    Ok(ChronikBlock { db_block })
+    let block_txs = BlockTxs {
+        block_height: block.height,
+        txs: block
+            .txs
+            .iter()
+            .map(|tx| {
+                let txid = TxId::from(tx.tx.txid);
+                TxEntry {
+                    txid,
+                    data_pos: tx.data_pos,
+                    undo_pos: tx.undo_pos,
+                    // TODO: set this to the value from the mempool
+                    time_first_seen: 0,
+                    is_coinbase: tx.undo_pos == 0,
+                }
+            })
+            .collect(),
+    };
+    Ok(ChronikBlock {
+        db_block,
+        block_txs,
+    })
 }
 
 fn verify_schema_version(db: &Db) -> Result<()> {
@@ -309,7 +343,7 @@ mod tests {
     use bitcoinsuite_core::block::BlockHash;
     use chronik_db::{
         db::{Db, WriteBatch, CF_META},
-        io::{BlockReader, DbBlock, MetadataReader, MetadataWriter},
+        io::{BlockReader, BlockTxs, DbBlock, MetadataReader, MetadataWriter},
     };
     use pretty_assertions::assert_eq;
 
@@ -354,6 +388,10 @@ mod tests {
                 timestamp: 1234567890,
                 file_num: 0,
                 data_pos: 1337,
+            },
+            block_txs: BlockTxs {
+                block_height: 0,
+                txs: vec![],
             },
         };
 

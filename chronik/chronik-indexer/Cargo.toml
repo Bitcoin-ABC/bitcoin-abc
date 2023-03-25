@@ -10,9 +10,12 @@ license = "MIT"
 [dependencies]
 abc-rust-lint = { path = "../abc-rust-lint" }
 abc-rust-error = { path = "../abc-rust-error" }
+
 bitcoinsuite-core = { path = "../bitcoinsuite-core" }
+
 chronik-bridge = { path = "../chronik-bridge" }
 chronik-db = { path = "../chronik-db" }
+chronik-proto = { path = "../chronik-proto" }
 chronik-util = { path = "../chronik-util" }
 
 # Protobuf en-/decoding

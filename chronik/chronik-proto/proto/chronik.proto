@@ -26,6 +26,78 @@ message BlockInfo {
     int64 timestamp = 5;
 }
 
+// Details about a transaction
+message Tx {
+    // TxId (little-endian) of the tx
+    bytes txid = 1;
+    // nVersion
+    int32 version = 2;
+    // Inputs of the tx (aka. `vin`)
+    repeated TxInput inputs = 3;
+    // Outputs of the tx (aka. `vout`)
+    repeated TxOutput outputs = 4;
+    // nLockTime
+    uint32 lock_time = 5;
+    // Which block this tx is in, or None, if in the mempool
+    BlockMetadata block = 8;
+    // Time this tx has first been added to the mempool, or 0 if unknown
+    int64 time_first_seen = 9;
+    // Whether this tx is a coinbase tx
+    bool is_coinbase = 12;
+}
+
+// COutPoint, points to a coin being spent by an input.
+message OutPoint {
+    // TxId of the tx of the output being spent.
+    bytes txid = 1;
+    // Index of the output spent within the transaction.
+    uint32 out_idx = 2;
+}
+
+// CTxIn, spends a coin.
+message TxInput {
+    // Reference to the coin being spent.
+    OutPoint prev_out = 1;
+    // scriptSig, script unlocking the coin.
+    bytes input_script = 2;
+    // scriptPubKey, script of the output locking the coin.
+    bytes output_script = 3;
+    // value of the output being spent, in satoshis.
+    int64 value = 4;
+    // nSequence of the input.
+    uint32 sequence_no = 5;
+}
+
+// CTxOut, creates a new coin.
+message TxOutput {
+    // Value of the coin, in satoshis.
+    int64 value = 1;
+    // scriptPubKey, script locking the output.
+    bytes output_script = 2;
+}
+
+// Data about a block which a Tx is in.
+message BlockMetadata {
+    // Height of the block the tx is in.
+    int32 height = 1;
+    // Hash of the block the tx is in.
+    bytes hash = 2;
+    // nTime of the block the tx is in.
+    int64 timestamp = 3;
+}
+
+// Which network a tx/block is on.
+enum Network {
+    // BCH
+    BCH = 0;
+    // eCash
+    XEC = 1;
+    // Lotus
+    XPI = 2;
+    // Ergon
+    XRG = 3;
+}
+
 // Error message returned from our APIs.
 message Error {
     // 2, as legacy chronik uses this for the message so we're still compatible.

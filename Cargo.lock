@@ -313,6 +313,7 @@ dependencies = [
  "bitcoinsuite-core",
  "chronik-bridge",
  "chronik-db",
+ "chronik-proto",
  "chronik-util",
  "pretty_assertions",
  "prost",

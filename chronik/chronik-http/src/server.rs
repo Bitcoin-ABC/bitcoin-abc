@@ -6,9 +6,10 @@
 
 use std::{net::SocketAddr, sync::Arc};
 
-use abc_rust_error::Result;
+use abc_rust_error::{Result, WrapErr};
 use axum::{extract::Path, routing, Extension, Router};
 use bitcoinsuite_core::block::BlockHash;
+use bitcoinsuite_core::tx::TxId;
 use chronik_db::io::BlockHeight;
 use chronik_indexer::indexer::ChronikIndexer;
 use chronik_proto::proto;
@@ -53,6 +54,10 @@ pub enum ChronikServerError {
     /// Query is neither a hex hash nor an integer string
     #[error("400: Not a hash or height: {0}")]
     NotHashOrHeight(String),
+
+    /// Query is not a txid
+    #[error("400: Not a txid: {0}")]
+    NotTxId(String),
 
     /// Block not found in DB
     #[error("404: Block not found: {0}")]
@@ -102,6 +107,7 @@ impl ChronikServer {
     fn make_router(indexer: ChronikIndexerRef) -> Router {
         Router::new()
             .route("/block/:hash_or_height", routing::get(handle_block))
+            .route("/tx/:txid", routing::get(handle_tx))
             .fallback(handle_not_found)
             .layer(Extension(indexer))
     }
@@ -134,4 +140,13 @@ async fn handle_block(
             timestamp: db_block.timestamp,
         }),
     }))
+}
+
+async fn handle_tx(
+    Path(txid): Path<String>,
+    Extension(indexer): Extension<ChronikIndexerRef>,
+) -> Result<Protobuf<proto::Tx>, ReportError> {
+    let indexer = indexer.read().await;
+    let txid = txid.parse::<TxId>().wrap_err(NotTxId(txid))?;
+    Ok(Protobuf(indexer.txs().tx_by_id(txid)?))
 }

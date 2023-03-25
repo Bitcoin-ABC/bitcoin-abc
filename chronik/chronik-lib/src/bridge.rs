@@ -128,13 +128,10 @@ impl Chronik {
         block: &ffi::CBlock,
         bindex: &ffi::CBlockIndex,
     ) {
-        let mut indexer = self.indexer.blocking_write();
         ok_or_abort_node(
             "handle_block_connected",
-            make_chronik_block(block, bindex)
-                .and_then(|block| indexer.handle_block_connected(block)),
+            self.connect_block(block, bindex),
         );
-        log_chronik!("Chronik: block connected\n");
     }
 
     /// Block disconnected from the longest chain
@@ -143,12 +140,45 @@ impl Chronik {
         block: &ffi::CBlock,
         bindex: &ffi::CBlockIndex,
     ) {
-        let mut indexer = self.indexer.blocking_write();
         ok_or_abort_node(
             "handle_block_disconnected",
-            make_chronik_block(block, bindex)
-                .and_then(|block| indexer.handle_block_disconnected(block)),
+            self.disconnect_block(block, bindex),
         );
-        log_chronik!("Chronik: block disconnected\n");
+    }
+
+    fn connect_block(
+        &self,
+        block: &ffi::CBlock,
+        bindex: &ffi::CBlockIndex,
+    ) -> Result<()> {
+        let mut indexer = self.indexer.blocking_write();
+        let block = make_chronik_block(block, bindex)?;
+        let block_hash = block.db_block.hash.clone();
+        let num_txs = block.block_txs.txs.len();
+        indexer.handle_block_connected(block)?;
+        log_chronik!(
+            "Chronik: block {} connected with {} txs\n",
+            block_hash,
+            num_txs,
+        );
+        Ok(())
+    }
+
+    fn disconnect_block(
+        &self,
+        block: &ffi::CBlock,
+        bindex: &ffi::CBlockIndex,
+    ) -> Result<()> {
+        let mut indexer = self.indexer.blocking_write();
+        let block = make_chronik_block(block, bindex)?;
+        let block_hash = block.db_block.hash.clone();
+        let num_txs = block.block_txs.txs.len();
+        indexer.handle_block_disconnected(block)?;
+        log_chronik!(
+            "Chronik: block {} disconnected with {} txs\n",
+            block_hash,
+            num_txs,
+        );
+        Ok(())
     }
 }
