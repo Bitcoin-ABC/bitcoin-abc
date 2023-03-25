@@ -216,6 +216,22 @@ chronik_bridge::Block bridge_block(const CBlock &block,
     return BridgeBlock(block, bindex);
 }
 
+Tx load_tx(uint32_t file_num, uint32_t data_pos, uint32_t undo_pos) {
+    CMutableTransaction tx;
+    CTxUndo txundo{};
+    const bool isCoinbase = undo_pos == 0;
+    if (!node::ReadTxFromDisk(tx, FlatFilePos(file_num, data_pos))) {
+        throw std::runtime_error("Reading tx data from disk failed");
+    }
+    if (!isCoinbase) {
+        if (!node::ReadTxUndoFromDisk(txundo,
+                                      FlatFilePos(file_num, undo_pos))) {
+            throw std::runtime_error("Reading tx undo data from disk failed");
+        }
+    }
+    return BridgeTx(isCoinbase, CTransaction(std::move(tx)), txundo.vprevout);
+}
+
 BlockInfo get_block_info(const CBlockIndex &bindex) {
     return {
         .hash = chronik::util::HashToArray(bindex.GetBlockHash()),

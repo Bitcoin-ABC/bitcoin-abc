@@ -25,6 +25,7 @@ namespace chronik_bridge {
 
 struct BlockInfo;
 struct Block;
+struct Tx;
 
 class block_index_not_found : public std::exception {
 public:
@@ -65,6 +66,8 @@ std::unique_ptr<ChronikBridge> make_bridge(const Config &config,
                                            const node::NodeContext &node);
 
 Block bridge_block(const CBlock &block, const CBlockIndex &bindex);
+
+Tx load_tx(uint32_t file_num, uint32_t data_pos, uint32_t undo_pos);
 
 BlockInfo get_block_info(const CBlockIndex &index);
 

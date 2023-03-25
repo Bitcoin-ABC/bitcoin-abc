@@ -202,6 +202,10 @@ mod ffi_inner {
             block_index: &CBlockIndex,
         ) -> Result<Block>;
 
+        /// Load the CTransaction and CTxUndo data from disk and turn it into a
+        /// bridged Tx, containing spent coins etc.
+        fn load_tx(file_num: u32, data_pos: u32, undo_pos: u32) -> Result<Tx>;
+
         /// Get a BlockInfo for this CBlockIndex.
         fn get_block_info(block_index: &CBlockIndex) -> BlockInfo;
 
