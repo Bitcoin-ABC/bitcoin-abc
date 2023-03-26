@@ -469,6 +469,7 @@ void BerkeleyEnvironment::ReloadDbEnv() {
     });
 
     std::vector<std::string> filenames;
+    filenames.reserve(m_databases.size());
     for (const auto &it : m_databases) {
         filenames.push_back(it.first);
     }

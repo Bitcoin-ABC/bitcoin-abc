@@ -429,6 +429,7 @@ BOOST_AUTO_TEST_CASE(insert_stress_test) {
     RadixTree<E> mytree;
     std::atomic<uint32_t> success{0};
     std::vector<std::thread> threads;
+    threads.reserve(THREADS);
 
     for (int i = 0; i < THREADS; i++) {
         threads.push_back(std::thread([&] {

@@ -54,6 +54,7 @@ static void CoinSelection(benchmark::Bench &bench) {
 
     // Create coins
     std::vector<COutput> coins;
+    coins.reserve(wtxs.size());
     for (const auto &wtx : wtxs) {
         coins.emplace_back(wallet, *wtx, 0 /* iIn */, 6 * 24 /* nDepthIn */,
                            true /* spendable */, true /* solvable */,

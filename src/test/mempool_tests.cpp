@@ -446,6 +446,7 @@ BOOST_AUTO_TEST_CASE(TestImportMempool) {
             // addForBlock inserts disconnectTxns in disconnectPool. They
             // simulate transactions that were once confirmed in a block
             std::vector<CTransactionRef> vtx;
+            vtx.reserve(disconnectedTxns.size());
             for (auto tx : disconnectedTxns) {
                 vtx.push_back(MakeTransactionRef(*tx));
             }

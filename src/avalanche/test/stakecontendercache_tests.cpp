@@ -156,6 +156,7 @@ BOOST_AUTO_TEST_CASE(winners_tests) {
     };
 
     std::vector<ProofRef> proofs;
+    proofs.reserve(4);
     for (int i = 0; i < 4; i++) {
         proofs.push_back(
             buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE));
@@ -292,6 +293,7 @@ BOOST_AUTO_TEST_CASE(cleanup_tests) {
     StakeContenderCache cache;
 
     std::vector<ProofRef> proofs;
+    proofs.reserve(10);
     for (int i = 0; i < 10; i++) {
         proofs.push_back(
             buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE));

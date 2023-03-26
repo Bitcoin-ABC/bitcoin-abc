@@ -15,8 +15,8 @@
 
 void ConnmanTestMsg::Handshake(CNode &node, bool successfully_connected,
                                ServiceFlags remote_services,
-                               ServiceFlags local_services,
-                               int32_t version, bool relay_txs) {
+                               ServiceFlags local_services, int32_t version,
+                               bool relay_txs) {
     // This assumes that peerman is the first element in m_msgproc (see D11302)
     auto &peerman{static_cast<PeerManager &>(*m_msgproc.front())};
     auto &connman{*this};
@@ -109,6 +109,7 @@ std::vector<NodeEvictionCandidate>
 GetRandomNodeEvictionCandidates(const int n_candidates,
                                 FastRandomContext &random_context) {
     std::vector<NodeEvictionCandidate> candidates;
+    candidates.reserve(n_candidates);
     for (int id = 0; id < n_candidates; ++id) {
         candidates.push_back({
             /* id */ id,

@@ -124,6 +124,7 @@ std::string CRPCTable::help(const Config &config, const std::string &strCommand,
     std::string category;
     std::set<intptr_t> setDone;
     std::vector<std::pair<std::string, const CRPCCommand *>> vCommands;
+    vCommands.reserve(mapCommands.size());
 
     for (const auto &entry : mapCommands) {
         vCommands.push_back(
@@ -622,6 +623,7 @@ static bool ExecuteCommand(const Config &config, const CRPCCommand &command,
 
 std::vector<std::string> CRPCTable::listCommands() const {
     std::vector<std::string> commandList;
+    commandList.reserve(mapCommands.size());
     for (const auto &i : mapCommands) {
         commandList.emplace_back(i.first);
     }

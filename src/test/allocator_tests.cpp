@@ -76,6 +76,7 @@ BOOST_AUTO_TEST_CASE(arena_tests) {
     b.walk();
 #endif
     // Sweeping allocate all memory
+    addr.reserve(2048);
     for (int x = 0; x < 1024; ++x) {
         addr.push_back(b.alloc(1024));
     }

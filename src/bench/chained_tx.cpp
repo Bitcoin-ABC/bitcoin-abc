@@ -159,6 +159,7 @@ static void benchReorg(const Config &config, node::NodeContext &node,
                        size_t chainSizePerBlock, bool includeMempoolTxRemoval) {
     auto utxos = createUTXOs(config, reorgDepth, node);
     std::vector<std::vector<CTransactionRef>> chains;
+    chains.reserve(utxos.size());
     for (auto &utxo : utxos) {
         chains.emplace_back(
             oneInOneOutChain(config, std::move(utxo), chainSizePerBlock));
@@ -420,8 +421,9 @@ static void EvictChained50Tx(benchmark::Bench &bench) {
     RegTestingSetup test_setup{};
     const Config &config = test_setup.m_node.chainman->GetConfig();
     // create 2000 chains of 50 1-in-1-out each
-    std::vector<std::vector<CTransactionRef>> chains;
     constexpr int NChains = 2000;
+    std::vector<std::vector<CTransactionRef>> chains;
+    chains.reserve(NChains);
     const auto utxos = createUTXOs(config, NChains, test_setup.m_node);
     for (int i = 0; i < NChains; ++i) {
         chains.push_back(oneInOneOutChain(config, utxos[i], 50));
@@ -435,8 +437,9 @@ static void EvictChained50TxRev(benchmark::Bench &bench) {
     RegTestingSetup test_setup{};
     const Config &config = test_setup.m_node.chainman->GetConfig();
     // create 2000 chains of 50 1-in-1-out each
-    std::vector<std::vector<CTransactionRef>> chains;
     constexpr int NChains = 2000;
+    std::vector<std::vector<CTransactionRef>> chains;
+    chains.reserve(NChains);
     const auto utxos = createUTXOs(config, NChains, test_setup.m_node);
     for (int i = 0; i < NChains; ++i) {
         chains.push_back(oneInOneOutChain(config, utxos[i], 50));
