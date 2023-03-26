@@ -5,11 +5,11 @@ readability-const-return-type,
 readability-braces-around-statements,
 readability-redundant-declaration,
 bugprone-argument-comment,
-performance-for-range-copy,
-performance-inefficient-vector-operation,
-performance-unnecessary-copy-initialization,
-performance-move-const-arg,
-performance-no-automatic-move,
+performance-*,
+-performance-inefficient-string-concatenation,
+-performance-no-int-to-ptr,
+-performance-noexcept-move-constructor,
+-performance-unnecessary-value-param,
 '
 FormatStyle: file
 CheckOptions:

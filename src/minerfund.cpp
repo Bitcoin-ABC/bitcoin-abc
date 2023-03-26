@@ -77,8 +77,7 @@ bool CheckMinerFund(const Consensus::Params &params,
             continue;
         }
 
-        if (std::find(whitelist.begin(), whitelist.end(), address) !=
-            whitelist.end()) {
+        if (whitelist.find(address) != whitelist.end()) {
             return true;
         }
     }
