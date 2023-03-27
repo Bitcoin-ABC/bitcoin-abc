@@ -19,7 +19,10 @@ use chronik_db::{
 use chronik_util::{log, log_chronik};
 use thiserror::Error;
 
-use crate::query::QueryTxs;
+use crate::{
+    mempool::{Mempool, MempoolTx},
+    query::QueryTxs,
+};
 
 const CURRENT_INDEXER_VERSION: SchemaVersion = 4;
 
@@ -36,6 +39,7 @@ pub struct ChronikIndexerParams {
 #[derive(Debug)]
 pub struct ChronikIndexer {
     db: Db,
+    mempool: Mempool,
 }
 
 /// Block to be indexed by Chronik.
@@ -124,7 +128,8 @@ impl ChronikIndexer {
         log_chronik!("Opening Chronik at {}\n", db_path.to_string_lossy());
         let db = Db::open(&db_path)?;
         verify_schema_version(&db)?;
-        Ok(ChronikIndexer { db })
+        let mempool = Mempool::default();
+        Ok(ChronikIndexer { db, mempool })
     }
 
     /// Resync Chronik index to the node
@@ -171,7 +176,7 @@ impl ChronikIndexer {
             let block_index = ffi::get_block_ancestor(node_tip_index, height)?;
             let ffi_block = bridge.load_block(block_index)?;
             let ffi_block = expect_unique_ptr("load_block", &ffi_block);
-            let block = make_chronik_block(ffi_block, block_index)?;
+            let block = self.make_chronik_block(ffi_block, block_index)?;
             let hash = block.db_block.hash.clone();
             self.handle_block_connected(block)?;
             log_chronik!(
@@ -222,10 +227,25 @@ impl ChronikIndexer {
                 .map_err(|_| CannotRewindChronik(db_block.hash))?;
             let ffi_block = bridge.load_block(block_index)?;
             let ffi_block = expect_unique_ptr("load_block", &ffi_block);
-            let block = make_chronik_block(ffi_block, block_index)?;
+            let block = self.make_chronik_block(ffi_block, block_index)?;
             self.handle_block_disconnected(block)?;
         }
         Ok(fork_info.height)
+    }
+
+    /// Add transaction to the indexer's mempool.
+    pub fn handle_tx_added_to_mempool(
+        &mut self,
+        mempool_tx: MempoolTx,
+    ) -> Result<()> {
+        self.mempool.insert(mempool_tx)
+    }
+
+    /// Remove tx from the indexer's mempool, e.g. by a conflicting tx, expiry
+    /// etc. This is not called when the transaction has been mined (and thus
+    /// also removed from the mempool).
+    pub fn handle_tx_removed_from_mempool(&mut self, txid: TxId) -> Result<()> {
+        self.mempool.remove(txid)
     }
 
     /// Add the block to the index.
@@ -239,6 +259,8 @@ impl ChronikIndexer {
         block_writer.insert(&mut batch, &block.db_block)?;
         tx_writer.insert(&mut batch, &block.block_txs)?;
         self.db.write_batch(batch)?;
+        self.mempool
+            .removed_mined_txs(block.block_txs.txs.iter().map(|tx| tx.txid));
         Ok(())
     }
 
@@ -263,47 +285,50 @@ impl ChronikIndexer {
 
     /// Return [`QueryTxs`] to return txs from mempool/DB.
     pub fn txs(&self) -> QueryTxs<'_> {
-        QueryTxs::new(&self.db)
+        QueryTxs::new(&self.db, &self.mempool)
     }
-}
 
-/// Build the ChronikBlock from the CBlockIndex
-pub fn make_chronik_block(
-    block: &ffi::CBlock,
-    bindex: &ffi::CBlockIndex,
-) -> Result<ChronikBlock> {
-    let block = ffi::bridge_block(block, bindex)?;
-    let db_block = DbBlock {
-        hash: BlockHash::from(block.hash),
-        prev_hash: BlockHash::from(block.prev_hash),
-        height: block.height,
-        n_bits: block.n_bits,
-        timestamp: block.timestamp,
-        file_num: block.file_num,
-        data_pos: block.data_pos,
-    };
-    let block_txs = BlockTxs {
-        block_height: block.height,
-        txs: block
-            .txs
-            .iter()
-            .map(|tx| {
-                let txid = TxId::from(tx.tx.txid);
-                TxEntry {
-                    txid,
-                    data_pos: tx.data_pos,
-                    undo_pos: tx.undo_pos,
-                    // TODO: set this to the value from the mempool
-                    time_first_seen: 0,
-                    is_coinbase: tx.undo_pos == 0,
-                }
-            })
-            .collect(),
-    };
-    Ok(ChronikBlock {
-        db_block,
-        block_txs,
-    })
+    /// Build the ChronikBlock from the CBlockIndex
+    pub fn make_chronik_block(
+        &self,
+        block: &ffi::CBlock,
+        bindex: &ffi::CBlockIndex,
+    ) -> Result<ChronikBlock> {
+        let block = ffi::bridge_block(block, bindex)?;
+        let db_block = DbBlock {
+            hash: BlockHash::from(block.hash),
+            prev_hash: BlockHash::from(block.prev_hash),
+            height: block.height,
+            n_bits: block.n_bits,
+            timestamp: block.timestamp,
+            file_num: block.file_num,
+            data_pos: block.data_pos,
+        };
+        let block_txs = BlockTxs {
+            block_height: block.height,
+            txs: block
+                .txs
+                .iter()
+                .map(|tx| {
+                    let txid = TxId::from(tx.tx.txid);
+                    TxEntry {
+                        txid,
+                        data_pos: tx.data_pos,
+                        undo_pos: tx.undo_pos,
+                        time_first_seen: match self.mempool.tx(&txid) {
+                            Some(tx) => tx.time_first_seen,
+                            None => 0,
+                        },
+                        is_coinbase: tx.undo_pos == 0,
+                    }
+                })
+                .collect(),
+        };
+        Ok(ChronikBlock {
+            db_block,
+            block_txs,
+        })
+    }
 }
 
 fn verify_schema_version(db: &Db) -> Result<()> {

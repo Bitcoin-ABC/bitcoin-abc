@@ -32,8 +32,12 @@ mod ffi_inner {
             node: &NodeContext,
         ) -> bool;
 
-        fn handle_tx_added_to_mempool(&self);
-        fn handle_tx_removed_from_mempool(&self);
+        fn handle_tx_added_to_mempool(
+            &self,
+            ptx: &CTransaction,
+            time_first_seen: i64,
+        );
+        fn handle_tx_removed_from_mempool(&self, txid: [u8; 32]);
         fn handle_block_connected(&self, block: &CBlock, bindex: &CBlockIndex);
         fn handle_block_disconnected(
             &self,
@@ -48,6 +52,7 @@ mod ffi_inner {
         include!("config.h");
         include!("node/context.h");
         include!("primitives/block.h");
+        include!("primitives/transaction.h");
 
         /// CBlockIndex from blockindex.h
         #[namespace = ""]
@@ -61,13 +66,23 @@ mod ffi_inner {
         #[namespace = ""]
         type Config = chronik_bridge::ffi::Config;
 
+        /// ::CTransaction from primitives/transaction.h
+        #[namespace = ""]
+        type CTransaction = chronik_bridge::ffi::CTransaction;
+
         /// NodeContext from node/context.h
         #[namespace = "node"]
         type NodeContext = chronik_bridge::ffi::NodeContext;
 
+        /// Bridge to bitcoind to access the node
+        type ChronikBridge = chronik_bridge::ffi::ChronikBridge;
+
         /// Register the Chronik instance as CValidationInterface to receive
         /// chain updates from the node.
         #[namespace = "chronik"]
-        fn StartChronikValidationInterface(node: Box<Chronik>);
+        fn StartChronikValidationInterface(
+            node: &NodeContext,
+            chronik: Box<Chronik>,
+        );
     }
 }

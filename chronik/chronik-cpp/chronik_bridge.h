@@ -11,6 +11,7 @@
 class CBlock;
 class CBlockIndex;
 class Config;
+class CTransaction;
 
 namespace Consensus {
 struct Params;
@@ -58,6 +59,8 @@ public:
     const CBlockIndex &lookup_block_index(std::array<uint8_t, 32> hash) const;
 
     std::unique_ptr<CBlock> load_block(const CBlockIndex &bindex) const;
+
+    Tx bridge_tx(const CTransaction &tx) const;
 
     const CBlockIndex &find_fork(const CBlockIndex &index) const;
 };

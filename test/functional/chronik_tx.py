@@ -18,9 +18,12 @@ from test_framework.blocktools import (
     GENESIS_BLOCK_HASH,
     GENESIS_CB_TXID,
     TIME_GENESIS_BLOCK,
+    create_block,
+    create_coinbase,
 )
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
-from test_framework.script import OP_EQUAL, OP_HASH160, CScript
+from test_framework.p2p import P2PDataStore
+from test_framework.script import OP_EQUAL, OP_HASH160, CScript, hash160
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
@@ -61,6 +64,7 @@ class ChronikTxTest(BitcoinTestFramework):
             return proto_error
 
         node = self.nodes[0]
+        peer = node.add_p2p_connection(P2PDataStore())
         node.setmocktime(1333333337)
 
         assert_equal(query_tx_err('0', 400).msg, '400: Not a txid: 0')
@@ -114,8 +118,9 @@ class ChronikTxTest(BitcoinTestFramework):
 
         coinvalue = 5000000000
         send_values = [coinvalue - 10000, 1000, 2000, 3000]
-        send_scripts = [CScript([OP_HASH160, bytes([i]) * 20, OP_EQUAL])
-                        for i in range(len(send_values))]
+        send_redeem_scripts = [bytes([i + 0x52]) for i in range(len(send_values))]
+        send_scripts = [CScript([OP_HASH160, hash160(redeem_script), OP_EQUAL])
+                        for redeem_script in send_redeem_scripts]
         tx = CTransaction()
         tx.nVersion = 2
         tx.vin = [CTxIn(outpoint=COutPoint(int(cointx, 16), 0),
@@ -141,17 +146,14 @@ class ChronikTxTest(BitcoinTestFramework):
             outputs=[pb.TxOutput(
                 value=value,
                 output_script=bytes(script),
-            ) for (value, script) in zip(send_values, send_scripts)],
+            ) for value, script in zip(send_values, send_scripts)],
             lock_time=1234567890,
             block=None,
-            time_first_seen=0,
+            time_first_seen=1333333337,
             is_coinbase=False,
         )
 
-        # Currently, the mempool is not implemented yet, so we get a 404.
-        # Once the mempool is implemented, this test will fail.
-        assert_equal(query_tx_err(txid, 404).msg,
-                     f'404: Transaction {txid} not found in the index')
+        assert_equal(query_tx_success(txid), proto_tx)
 
         # If we mine the block, querying will gives us all the tx details + block
         txblockhash = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[0]
@@ -163,6 +165,67 @@ class ChronikTxTest(BitcoinTestFramework):
             timestamp=1333333355,
         ))
         assert_equal(query_tx_success(txid), proto_tx)
+
+        node.setmocktime(1333333338)
+        tx2 = CTransaction()
+        tx2.nVersion = 2
+        tx2.vin = [CTxIn(outpoint=COutPoint(int(txid, 16), i),
+                         scriptSig=CScript([redeem_script]),
+                         nSequence=0xfffffff0 + i)
+                   for i, redeem_script in enumerate(send_redeem_scripts)]
+        tx2.vout = [CTxOut(coinvalue - 20000, send_scripts[0])]
+        tx2.nLockTime = 12
+
+        # Submit tx to mempool
+        txid2 = node.sendrawtransaction(tx2.serialize().hex())
+
+        proto_tx2 = pb.Tx(
+            txid=bytes.fromhex(txid2)[::-1],
+            version=tx2.nVersion,
+            inputs=[
+                pb.TxInput(
+                    prev_out=pb.OutPoint(txid=bytes.fromhex(txid)[::-1], out_idx=i),
+                    input_script=bytes(tx2.vin[i].scriptSig),
+                    output_script=bytes(script),
+                    value=value,
+                    sequence_no=0xfffffff0 + i,
+                )
+                for i, (value, script) in enumerate(zip(send_values, send_scripts))
+            ],
+            outputs=[pb.TxOutput(
+                value=tx2.vout[0].nValue,
+                output_script=bytes(tx2.vout[0].scriptPubKey),
+            )],
+            lock_time=12,
+            block=None,
+            time_first_seen=1333333338,
+            is_coinbase=False,
+        )
+
+        assert_equal(query_tx_success(txid2), proto_tx2)
+
+        conflict_tx = CTransaction(tx2)
+        conflict_tx.nLockTime = 13
+        block = create_block(int(txblockhash, 16),
+                             create_coinbase(103, b'\x03' * 33),
+                             1333333500)
+        block.vtx += [conflict_tx]
+        block.hashMerkleRoot = block.calc_merkle_root()
+        block.solve()
+        peer.send_blocks_and_test([block], node)
+
+        assert_equal(query_tx_err(txid2, 404).msg,
+                     f'404: Transaction {txid2} not found in the index')
+        proto_tx2.txid = bytes.fromhex(conflict_tx.hash)[::-1]
+        proto_tx2.lock_time = 13
+        proto_tx2.time_first_seen = 0
+        proto_tx2.block.CopyFrom(pb.BlockMetadata(
+            hash=bytes.fromhex(block.hash)[::-1],
+            height=103,
+            timestamp=1333333500,
+        ))
+
+        assert_equal(query_tx_success(conflict_tx.hash), proto_tx2)
 
 
 if __name__ == '__main__':

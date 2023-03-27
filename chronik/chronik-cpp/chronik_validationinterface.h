@@ -7,6 +7,10 @@
 #ifndef BITCOIN_CHRONIK_CPP_CHRONIK_VALIDATIONINTERFACE_H
 #define BITCOIN_CHRONIK_CPP_CHRONIK_VALIDATIONINTERFACE_H
 
+namespace node {
+struct NodeContext;
+} // namespace node
+
 namespace chronik_bridge {
 struct Chronik;
 } // namespace chronik_bridge
@@ -14,6 +18,7 @@ struct Chronik;
 namespace chronik {
 
 void StartChronikValidationInterface(
+    const node::NodeContext &node,
     rust::Box<chronik_bridge::Chronik> chronik_box);
 
 void StopChronikValidationInterface();

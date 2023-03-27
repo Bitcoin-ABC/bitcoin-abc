@@ -10,10 +10,12 @@ use std::{
 };
 
 use abc_rust_error::Result;
+use bitcoinsuite_core::tx::TxId;
 use chronik_bridge::{ffi::init_error, util::expect_unique_ptr};
 use chronik_http::server::{ChronikServer, ChronikServerParams};
-use chronik_indexer::indexer::{
-    make_chronik_block, ChronikIndexer, ChronikIndexerParams,
+use chronik_indexer::{
+    indexer::{ChronikIndexer, ChronikIndexerParams},
+    mempool::MempoolTx,
 };
 use chronik_util::{log, log_chronik};
 use thiserror::Error;
@@ -62,12 +64,12 @@ fn try_setup_chronik(
         .collect::<Result<Vec<_>>>()?;
     log!("Starting Chronik bound to {:?}\n", hosts);
     let bridge = chronik_bridge::ffi::make_bridge(config, node);
-    let bridge = expect_unique_ptr("make_bridge", &bridge);
+    let bridge_ref = expect_unique_ptr("make_bridge", &bridge);
     let mut indexer = ChronikIndexer::setup(ChronikIndexerParams {
         datadir_net: params.datadir_net.into(),
         wipe_db: params.wipe_db,
     })?;
-    indexer.resync_indexer(bridge)?;
+    indexer.resync_indexer(bridge_ref)?;
     let indexer = Arc::new(RwLock::new(indexer));
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
@@ -83,10 +85,11 @@ fn try_setup_chronik(
         ok_or_abort_node("ChronikServer::serve", server.serve().await);
     });
     let chronik = Box::new(Chronik {
+        bridge: Arc::new(bridge),
         indexer,
         _runtime: runtime,
     });
-    StartChronikValidationInterface(chronik);
+    StartChronikValidationInterface(node, chronik);
     Ok(())
 }
 
@@ -103,8 +106,8 @@ fn parse_socket_addr(host: String, default_port: u16) -> Result<SocketAddr> {
 /// Contains all db, runtime, tpc, etc. handles needed by Chronik.
 /// This makes it so when this struct is dropped, all handles are relased
 /// cleanly.
-#[derive(Debug)]
 pub struct Chronik {
+    bridge: Arc<cxx::UniquePtr<ffi::ChronikBridge>>,
     indexer: Arc<RwLock<ChronikIndexer>>,
     // Having this here ensures HTTP server, outstanding requests etc. will get
     // stopped when `Chronik` is dropped.
@@ -113,13 +116,26 @@ pub struct Chronik {
 
 impl Chronik {
     /// Tx added to the bitcoind mempool
-    pub fn handle_tx_added_to_mempool(&self) {
-        log_chronik!("Chronik: transaction added to mempool\n");
+    pub fn handle_tx_added_to_mempool(
+        &self,
+        ptx: &ffi::CTransaction,
+        time_first_seen: i64,
+    ) {
+        ok_or_abort_node(
+            "handle_tx_added_to_mempool",
+            self.add_tx_to_mempool(ptx, time_first_seen),
+        );
     }
 
     /// Tx removed from the bitcoind mempool
-    pub fn handle_tx_removed_from_mempool(&self) {
-        log_chronik!("Chronik: transaction removed from mempool\n");
+    pub fn handle_tx_removed_from_mempool(&self, txid: [u8; 32]) {
+        let mut indexer = self.indexer.blocking_write();
+        let txid = TxId::from(txid);
+        ok_or_abort_node(
+            "handle_tx_removed_from_mempool",
+            indexer.handle_tx_removed_from_mempool(txid),
+        );
+        log_chronik!("Chronik: transaction {} removed from mempool\n", txid);
     }
 
     /// Block connected to the longest chain
@@ -146,13 +162,29 @@ impl Chronik {
         );
     }
 
+    fn add_tx_to_mempool(
+        &self,
+        ptx: &ffi::CTransaction,
+        time_first_seen: i64,
+    ) -> Result<()> {
+        let mut indexer = self.indexer.blocking_write();
+        let tx = self.bridge.bridge_tx(ptx)?;
+        let txid = TxId::from(tx.txid);
+        indexer.handle_tx_added_to_mempool(MempoolTx {
+            tx,
+            time_first_seen,
+        })?;
+        log_chronik!("Chronik: transaction {} added to mempool\n", txid);
+        Ok(())
+    }
+
     fn connect_block(
         &self,
         block: &ffi::CBlock,
         bindex: &ffi::CBlockIndex,
     ) -> Result<()> {
         let mut indexer = self.indexer.blocking_write();
-        let block = make_chronik_block(block, bindex)?;
+        let block = indexer.make_chronik_block(block, bindex)?;
         let block_hash = block.db_block.hash.clone();
         let num_txs = block.block_txs.txs.len();
         indexer.handle_block_connected(block)?;
@@ -170,7 +202,7 @@ impl Chronik {
         bindex: &ffi::CBlockIndex,
     ) -> Result<()> {
         let mut indexer = self.indexer.blocking_write();
-        let block = make_chronik_block(block, bindex)?;
+        let block = indexer.make_chronik_block(block, bindex)?;
         let block_hash = block.db_block.hash.clone();
         let num_txs = block.block_txs.txs.len();
         indexer.handle_block_disconnected(block)?;
@@ -180,5 +212,11 @@ impl Chronik {
             num_txs,
         );
         Ok(())
+    }
+}
+
+impl std::fmt::Debug for Chronik {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Chronik {{ .. }}")
     }
 }

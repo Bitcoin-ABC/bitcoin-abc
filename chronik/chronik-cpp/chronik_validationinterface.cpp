@@ -5,7 +5,9 @@
 #include <blockindex.h>
 #include <chronik-cpp/util/hash.h>
 #include <chronik-lib/src/ffi.rs.h>
+#include <node/context.h>
 #include <primitives/block.h>
+#include <txmempool.h>
 #include <validationinterface.h>
 
 namespace chronik {
@@ -15,8 +17,9 @@ namespace chronik {
  */
 class ChronikValidationInterface final : public CValidationInterface {
 public:
-    ChronikValidationInterface(rust::Box<chronik_bridge::Chronik> chronik_box)
-        : m_chronik(std::move(chronik_box)) {}
+    ChronikValidationInterface(const node::NodeContext &node,
+                               rust::Box<chronik_bridge::Chronik> chronik_box)
+        : m_node(node), m_chronik(std::move(chronik_box)) {}
 
     void Register() { RegisterValidationInterface(this); }
 
@@ -24,16 +27,19 @@ public:
 
 private:
     rust::Box<chronik_bridge::Chronik> m_chronik;
+    const node::NodeContext &m_node;
 
     void TransactionAddedToMempool(const CTransactionRef &ptx,
                                    uint64_t mempool_sequence) override {
-        m_chronik->handle_tx_added_to_mempool();
+        const TxMempoolInfo info = m_node.mempool->info(ptx->GetId());
+        m_chronik->handle_tx_added_to_mempool(*ptx, info.m_time.count());
     }
 
     void TransactionRemovedFromMempool(const CTransactionRef &ptx,
                                        MemPoolRemovalReason reason,
                                        uint64_t mempool_sequence) override {
-        m_chronik->handle_tx_removed_from_mempool();
+        m_chronik->handle_tx_removed_from_mempool(
+            chronik::util::HashToArray(ptx->GetId()));
     }
 
     void BlockConnected(const std::shared_ptr<const CBlock> &block,
@@ -53,9 +59,11 @@ private:
 std::unique_ptr<ChronikValidationInterface> g_chronik_validation_interface;
 
 void StartChronikValidationInterface(
+    const node::NodeContext &node,
     rust::Box<chronik_bridge::Chronik> chronik_box) {
     g_chronik_validation_interface =
-        std::make_unique<ChronikValidationInterface>(std::move(chronik_box));
+        std::make_unique<ChronikValidationInterface>(node,
+                                                     std::move(chronik_box));
     g_chronik_validation_interface->Register();
 }
 

@@ -130,6 +130,7 @@ mod ffi_inner {
         include!("chronik-cpp/chronik_bridge.h");
         include!("node/context.h");
         include!("primitives/block.h");
+        include!("primitives/transaction.h");
 
         /// node::NodeContext from node/context.h
         #[namespace = "node"]
@@ -146,6 +147,10 @@ mod ffi_inner {
         /// ::Config from config.h
         #[namespace = ""]
         type Config;
+
+        /// ::CTransaction from primitives/transaction.h
+        #[namespace = ""]
+        type CTransaction;
 
         /// Bridge to bitcoind to access the node
         type ChronikBridge;
@@ -189,6 +194,10 @@ mod ffi_inner {
             self: &ChronikBridge,
             block_index: &CBlockIndex,
         ) -> Result<UniquePtr<CBlock>>;
+
+        /// Bridge CTransaction -> ffi::Tx, including finding the spent coins.
+        /// `tx` can be a mempool tx.
+        fn bridge_tx(self: &ChronikBridge, tx: &CTransaction) -> Result<Tx>;
 
         /// Find at which block the given block_index forks off from the node.
         fn find_fork(

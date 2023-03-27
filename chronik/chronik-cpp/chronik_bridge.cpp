@@ -11,6 +11,7 @@
 #include <config.h>
 #include <logging.h>
 #include <node/blockstorage.h>
+#include <node/coin.h>
 #include <node/context.h>
 #include <node/ui_interface.h>
 #include <shutdown.h>
@@ -193,6 +194,24 @@ ChronikBridge::load_block(const CBlockIndex &bindex) const {
         throw std::runtime_error("Reading block data failed");
     }
     return std::make_unique<CBlock>(std::move(block));
+}
+
+Tx ChronikBridge::bridge_tx(const CTransaction &tx) const {
+    std::map<COutPoint, ::Coin> coins;
+    for (const CTxIn &input : tx.vin) {
+        coins[input.prevout];
+    }
+    FindCoins(m_node, coins);
+    std::vector<::Coin> spent_coins;
+    spent_coins.reserve(tx.vin.size());
+    for (const CTxIn &input : tx.vin) {
+        const ::Coin &coin = coins[input.prevout];
+        if (coin.GetTxOut().IsNull()) {
+            throw std::runtime_error("Couldn't find coin for input");
+        }
+        spent_coins.push_back(coin);
+    }
+    return BridgeTx(false, tx, spent_coins);
 }
 
 const CBlockIndex &ChronikBridge::find_fork(const CBlockIndex &index) const {
