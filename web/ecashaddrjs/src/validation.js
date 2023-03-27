@@ -1,8 +1,8 @@
 /**
  * @license
  * https://reviews.bitcoinabc.org
- * Copyright (c) 2023 Bitcoin ABC
  * Copyright (c) 2017-2020 Emilio Almansi
+ * Copyright (c) 2023 Bitcoin ABC
  * Distributed under the MIT software license, see the accompanying
  * file LICENSE or http://www.opensource.org/licenses/mit-license.php.
  */
