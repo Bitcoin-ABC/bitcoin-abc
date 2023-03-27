@@ -279,8 +279,6 @@ endif()
 
 if(ENABLE_GLIBC_BACK_COMPAT)
 	# Wrap some glibc functions with ours
-	add_linker_flags(-Wl,--wrap=__divmoddi4)
-	add_linker_flags(-Wl,--wrap=log2f)
 	add_linker_flags(-Wl,--wrap=exp)
 	add_linker_flags(-Wl,--wrap=log)
 	add_linker_flags(-Wl,--wrap=pow)
