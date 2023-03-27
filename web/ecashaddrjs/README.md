@@ -57,7 +57,7 @@ function convertBitcoincashToEcash(bitcoincashAddress) {
 ```html
 <html>
     <head>
-        <script src="https://unpkg.com/ecashaddrjs@1.0.7/dist/cashaddrjs-1.0.7.min.js"></script>
+        <script src="https://unpkg.com/ecashaddrjs/dist/cashaddrjs.min.js"></script>
     </head>
     <body>
         <script>
@@ -89,7 +89,7 @@ You may include a script tag in your HTML and the `ecashaddr` module will be def
 <html>
     <head>
         ...
-        <script src="https://unpkg.com/ecashaddrjs@1.0.7/dist/cashaddrjs-1.0.7.min.js"></script>
+        <script src="https://unpkg.com/ecashaddrjs/dist/cashaddrjs.min.js"></script>
     </head>
     ...
 </html>
@@ -101,4 +101,6 @@ https://jsfiddle.net/zghd6c2y/
 
 #### Change Log
 
-Aug 4, 2021 - Added support for `ectest:` prefix
+1.1.0 - Support decoding prefixless addresses
+1.1.1 - Updated README to point to Bitcoin ABC monorepo
+1.1.2 - Updated `repository` field in `package.json` to Bitcoin ABC monorepo
