@@ -4,15 +4,12 @@ $(package)_download_path=https://github.com/protocolbuffers/protobuf/releases/do
 $(package)_file_name=protobuf-all-$($(package)_version).tar.gz
 $(package)_sha256_hash=2c6a36c7b5a55accae063667ef3c55f2642e67476d96d355ff0acb13dbb47f09
 
-define $(package)_set_vars
-$(package)_config_opts=--disable-shared --without-zlib
-endef
-
 define $(package)_config_cmds
   cmake -GNinja \
         -DCMAKE_INSTALL_PREFIX=$(build_prefix) \
         -DCMAKE_CXX_STANDARD=14 \
         -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_SHARED_LIBS=OFF \
         -Dprotobuf_BUILD_TESTS=OFF \
         -Dprotobuf_WITH_ZLIB=OFF \
         -Dprotobuf_DISABLE_RTTI=ON
