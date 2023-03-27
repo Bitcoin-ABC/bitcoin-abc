@@ -385,10 +385,14 @@ struct SnapshotTestSetup : TestChain100Setup {
 
         BOOST_TEST_MESSAGE("Simulating node restart");
         {
-            LOCK(::cs_main);
             for (Chainstate *cs : chainman.GetAll()) {
+                LOCK(::cs_main);
                 cs->ForceFlushStateToDisk();
             }
+            // Process all callbacks referring to the old manager before wiping
+            // it.
+            SyncWithValidationInterfaceQueue();
+            LOCK(::cs_main);
             chainman.ResetChainstates();
             BOOST_CHECK_EQUAL(chainman.GetAll().size(), 0);
             // For robustness, ensure the old manager is destroyed before
