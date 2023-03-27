@@ -12,7 +12,7 @@ const cashaddr = require('../src/cashaddr');
 const { Random, MersenneTwister19937 } = require('random-js');
 
 describe('cashaddr', () => {
-    const NETWORKS = ['bitcoincash', 'bchtest', 'bchreg'];
+    const NETWORKS = ['ecash', 'ectest', 'etoken'];
 
     const ADDRESS_TYPES = ['P2PKH', 'P2SH'];
 
@@ -34,27 +34,27 @@ describe('cashaddr', () => {
     ];
 
     const EXPECTED_P2PKH_OUTPUTS = [
-        'bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a',
-        'bitcoincash:qr95sy3j9xwd2ap32xkykttr4cvcu7as4y0qverfuy',
-        'bitcoincash:qqq3728yw0y47sqn6l2na30mcw6zm78dzqre909m2r',
+        'ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2',
+        'ecash:qr95sy3j9xwd2ap32xkykttr4cvcu7as4ykdcjcn6n',
+        'ecash:qqq3728yw0y47sqn6l2na30mcw6zm78dzq653y7pv5',
     ];
 
     const EXPECTED_P2SH_OUTPUTS = [
-        'bitcoincash:ppm2qsznhks23z7629mms6s4cwef74vcwvn0h829pq',
-        'bitcoincash:pr95sy3j9xwd2ap32xkykttr4cvcu7as4yc93ky28e',
-        'bitcoincash:pqq3728yw0y47sqn6l2na30mcw6zm78dzq5ucqzc37',
+        'ecash:ppm2qsznhks23z7629mms6s4cwef74vcwv2zrv3l8h',
+        'ecash:pr95sy3j9xwd2ap32xkykttr4cvcu7as4ypg9alspw',
+        'ecash:pqq3728yw0y47sqn6l2na30mcw6zm78dzqd3vtezhf',
     ];
 
     const EXPECTED_P2PKH_OUTPUTS_TESTNET = [
-        'bchtest:qpm2qsznhks23z7629mms6s4cwef74vcwvqcw003ap',
-        'bchtest:qr95sy3j9xwd2ap32xkykttr4cvcu7as4ytjg7p7mc',
-        'bchtest:qqq3728yw0y47sqn6l2na30mcw6zm78dzq8tpg8vdl',
+        'ectest:qpm2qsznhks23z7629mms6s4cwef74vcwvmvqr33lm',
+        'ectest:qr95sy3j9xwd2ap32xkykttr4cvcu7as4ysxxjl7ez',
+        'ectest:qqq3728yw0y47sqn6l2na30mcw6zm78dzqul0yev09',
     ];
 
     const EXPECTED_P2SH_OUTPUTS_TESTNET = [
-        'bchtest:ppm2qsznhks23z7629mms6s4cwef74vcwvhanqgjxu',
-        'bchtest:pr95sy3j9xwd2ap32xkykttr4cvcu7as4yuh43xaq9',
-        'bchtest:pqq3728yw0y47sqn6l2na30mcw6zm78dzqswu8q0kz',
+        'ectest:ppm2qsznhks23z7629mms6s4cwef74vcwvvfavkjyx',
+        'ectest:pr95sy3j9xwd2ap32xkykttr4cvcu7as4y8rmacazl',
+        'ectest:pqq3728yw0y47sqn6l2na30mcw6zm78dzqt6jt705c',
     ];
 
     const random = new Random(MersenneTwister19937.seed(42));
@@ -80,11 +80,7 @@ describe('cashaddr', () => {
 
         it('should fail on a prefix with mixed letter case', () => {
             assert.throws(() => {
-                cashaddr.encode(
-                    'BiTcOiNcAsH',
-                    ADDRESS_TYPES[0],
-                    new Uint8Array([]),
-                );
+                cashaddr.encode('EcAsH', ADDRESS_TYPES[0], new Uint8Array([]));
             }, cashaddr.ValidationError);
         });
 
@@ -110,11 +106,11 @@ describe('cashaddr', () => {
         it('should encode test hashes on mainnet correctly', () => {
             for (const index in TEST_HASHES) {
                 assert.equal(
-                    cashaddr.encode('bitcoincash', 'P2PKH', TEST_HASHES[index]),
+                    cashaddr.encode('ecash', 'P2PKH', TEST_HASHES[index]),
                     EXPECTED_P2PKH_OUTPUTS[index],
                 );
                 assert.equal(
-                    cashaddr.encode('bitcoincash', 'P2SH', TEST_HASHES[index]),
+                    cashaddr.encode('ecash', 'P2SH', TEST_HASHES[index]),
                     EXPECTED_P2SH_OUTPUTS[index],
                 );
             }
@@ -123,11 +119,11 @@ describe('cashaddr', () => {
         it('should encode test hashes on testnet correctly', () => {
             for (const index in TEST_HASHES) {
                 assert.equal(
-                    cashaddr.encode('bchtest', 'P2PKH', TEST_HASHES[index]),
+                    cashaddr.encode('ectest', 'P2PKH', TEST_HASHES[index]),
                     EXPECTED_P2PKH_OUTPUTS_TESTNET[index],
                 );
                 assert.equal(
-                    cashaddr.encode('bchtest', 'P2SH', TEST_HASHES[index]),
+                    cashaddr.encode('ectest', 'P2SH', TEST_HASHES[index]),
                     EXPECTED_P2SH_OUTPUTS_TESTNET[index],
                 );
             }
@@ -138,7 +134,7 @@ describe('cashaddr', () => {
         it('should fail when the version byte is invalid', () => {
             assert.throws(() => {
                 cashaddr.decode(
-                    'bitcoincash:zpm2qsznhks23z7629mms6s4cwef74vcwvrqekrq9w',
+                    'ecash:zpm2qsznhks23z7629mms6s4cwef74vcwv6ddac6re',
                 );
             }, cashaddr.ValidationError);
         });
@@ -146,17 +142,17 @@ describe('cashaddr', () => {
         it('should fail when given an address with mixed letter case', () => {
             assert.throws(() => {
                 cashaddr.decode(
-                    'bitcoincash:QPM2QSZNHKS23Z7629MMS6s4cwef74vcwvY22GDX6A',
+                    'ecash:QPM2QSZNHKS23Z7629MMS6s4cwef74vcwvA87RKUU2',
                 );
             }, cashaddr.ValidationError);
             assert.throws(() => {
                 cashaddr.decode(
-                    'BitCOINcash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a',
+                    'eCASH:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2',
                 );
             }, cashaddr.ValidationError);
             assert.throws(() => {
                 cashaddr.decode(
-                    'BitCOINcash:QPM2QSZNHKS23Z7629MMS6s4cwef74vcwvY22GDX6A',
+                    'Ecash:QPM2QSZNHKS23Z7629MMS6s4cwef74vcwvA87RKUU2',
                 );
             }, cashaddr.ValidationError);
         });
@@ -164,10 +160,10 @@ describe('cashaddr', () => {
         it('should decode a valid address regardless of letter case', () => {
             assert.deepEqual(
                 cashaddr.decode(
-                    'bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a',
+                    'ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2',
                 ).hash,
                 cashaddr.decode(
-                    'BITCOINCASH:QPM2QSZNHKS23Z7629MMS6S4CWEF74VCWVY22GDX6A',
+                    'ECASH:QPM2QSZNHKS23Z7629MMS6S4CWEF74VCWVA87RKUU2',
                 ).hash,
             );
         });
