@@ -44,6 +44,7 @@
 #include <utility>
 #include <vector>
 
+class BlockPolicyValidationState;
 class CChainParams;
 class Chainstate;
 class ChainstateManager;
@@ -981,6 +982,7 @@ private:
                                bool &fInvalidFound, ConnectTrace &connectTrace)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_mempool->cs);
     bool ConnectTip(const Config &config, BlockValidationState &state,
+                    BlockPolicyValidationState &blockPolicyState,
                     CBlockIndex *pindexNew,
                     const std::shared_ptr<const CBlock> &pblock,
                     ConnectTrace &connectTrace,

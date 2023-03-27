@@ -2654,6 +2654,7 @@ public:
  * The block is added to connectTrace if connection succeeds.
  */
 bool Chainstate::ConnectTip(const Config &config, BlockValidationState &state,
+                            BlockPolicyValidationState &blockPolicyState,
                             CBlockIndex *pindexNew,
                             const std::shared_ptr<const CBlock> &pblock,
                             ConnectTrace &connectTrace,
@@ -2731,7 +2732,6 @@ bool Chainstate::ConnectTip(const Config &config, BlockValidationState &state,
             if (std::find_if_not(
                     parkingPolicies.begin(), parkingPolicies.end(),
                     [&](const auto &policy) {
-                        BlockPolicyValidationState blockPolicyState;
                         bool ret = (*policy)(blockPolicyState);
                         if (!ret) {
                             LogPrintf("Park block because it "
@@ -3069,7 +3069,8 @@ bool Chainstate::ActivateBestChainStep(
 
         // Connect new blocks.
         for (CBlockIndex *pindexConnect : reverse_iterate(vpindexToConnect)) {
-            if (!ConnectTip(config, state, pindexConnect,
+            BlockPolicyValidationState blockPolicyState;
+            if (!ConnectTip(config, state, blockPolicyState, pindexConnect,
                             pindexConnect == pindexMostWork
                                 ? pblock
                                 : std::shared_ptr<const CBlock>(),
@@ -3086,8 +3087,8 @@ bool Chainstate::ActivateBestChainStep(
                     break;
                 }
 
-                if (pindexConnect->nStatus.isParked()) {
-                    // The block was parked due to a policy violation.
+                if (blockPolicyState.IsInvalid()) {
+                    // The block violates a policy rule.
                     fContinue = false;
                     break;
                 }
