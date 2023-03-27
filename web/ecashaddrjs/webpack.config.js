@@ -31,7 +31,7 @@ const base = {
 module.exports = [
     Object.assign({}, base, {
         output: Object.assign({}, base.output, {
-            filename: 'cashaddrjs-' + pkg.version + '.js',
+            filename: 'cashaddrjs.js',
         }),
         optimization: {
             minimize: false,
@@ -39,7 +39,7 @@ module.exports = [
     }),
     Object.assign({}, base, {
         output: Object.assign({}, base.output, {
-            filename: 'cashaddrjs-' + pkg.version + '.min.js',
+            filename: 'cashaddrjs.min.js',
         }),
     }),
 ];

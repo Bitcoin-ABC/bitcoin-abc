@@ -8,10 +8,9 @@
         "dist/"
     ],
     "scripts": {
-        "clean": "shx rm -rf dist/ docs/",
         "build": "webpack",
-        "test": "nyc --reporter=html --reporter=text mocha",
-        "readme": "mustache package.json README.tpl.md > README.md"
+        "prepublish": "npm run build",
+        "test": "nyc --reporter=html --reporter=text mocha"
     },
     "repository": {
         "type": "git",
@@ -42,10 +41,8 @@
         "debug": "^4.3.4",
         "jsdoc": "^4.0.2",
         "mocha": "^10.2.0",
-        "mustache": "^4.2.0",
         "nyc": "^15.1.0",
         "random-js": "^2.1.0",
-        "shx": "^0.3.4",
         "webpack": "^5.76.2",
         "webpack-cli": "^5.0.1"
     },

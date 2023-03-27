@@ -16,7 +16,7 @@ $ npm install --save ecashaddrjs
 
 ### Manually
 
-You may also download the distribution file manually and place it within your third-party scripts directory: [dist/cashaddrjs-1.0.7.min.js](https://unpkg.com/ecashaddrjs@1.0.7/dist/cashaddrjs-1.0.7.min.js).
+You may also download the distribution file manually and place it within your third-party scripts directory: [dist/cashaddrjs.min.js](https://unpkg.com/ecashaddrjs/dist/cashaddrjs.min.js).
 
 ## Usage
 
