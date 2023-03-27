@@ -66,13 +66,39 @@ function decode(address) {
         'Invalid address: ' + address + '.',
     );
     var pieces = address.toLowerCase().split(':');
-    validate(pieces.length === 2, 'Missing prefix: ' + address + '.');
-    var prefix = pieces[0];
-    var payload = base32.decode(pieces[1]);
-    validate(
-        validChecksum(prefix, payload),
-        'Invalid checksum: ' + address + '.',
-    );
+    // if there is no prefix, it might still be valid
+    let prefix, payload;
+    if (pieces.length === 1) {
+        // Check and see if it has a valid checksum for accepted prefixes
+        let hasValidChecksum = false;
+        for (let i = 0; i < VALID_PREFIXES.length; i += 1) {
+            const testedPrefix = VALID_PREFIXES[i];
+            const prefixlessPayload = base32.decode(pieces[0]);
+            hasValidChecksum = validChecksum(testedPrefix, prefixlessPayload);
+            if (hasValidChecksum) {
+                // Here's your prefix
+                prefix = testedPrefix;
+                payload = prefixlessPayload;
+                // Stop testing other prefixes
+                break;
+            }
+        }
+        validate(
+            hasValidChecksum,
+            `Prefixless address ${address} does not have valid checksum for any valid prefix (${VALID_PREFIXES.join(
+                ', ',
+            )})`,
+        );
+    } else {
+        validate(pieces.length === 2, 'Invalid address: ' + address + '.');
+        prefix = pieces[0];
+        payload = base32.decode(pieces[1]);
+        validate(
+            validChecksum(prefix, payload),
+            'Invalid checksum: ' + address + '.',
+        );
+    }
+
     var payloadData = fromUint5Array(payload.subarray(0, -8));
     var versionByte = payloadData[0];
     var hash = payloadData.subarray(1);

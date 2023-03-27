@@ -168,6 +168,32 @@ describe('cashaddr', () => {
             );
         });
 
+        it('should accept prefixless input if checksum is valid', () => {
+            assert.deepEqual(
+                cashaddr.decode('qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2')
+                    .hash,
+                cashaddr.decode(
+                    'ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2',
+                ).hash,
+            );
+        });
+
+        it('should reject prefixless input if checksum is invalid', () => {
+            assert.throws(() => {
+                cashaddr.decode(
+                    'qpm2qsznhks23z7629mms6s4cwef74vcwvINVALIDCHECKSUM',
+                );
+            }, cashaddr.ValidationError);
+        });
+
+        it('should reject any input that has two prefixes for some reason', () => {
+            assert.throws(() => {
+                cashaddr.decode(
+                    'ecash:bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2',
+                );
+            }, cashaddr.ValidationError);
+        });
+
         it('should fail when decoding for a different network', () => {
             for (const network of NETWORKS) {
                 for (const anotherNetwork of NETWORKS) {
