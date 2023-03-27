@@ -15,17 +15,17 @@ var validation = require('./validation');
 var validate = validation.validate;
 
 /**
- * Encoding and decoding of the new Cash Address format for Bitcoin Cash. <br />
+ * Encoding and decoding of the new Cash Address format for eCash. <br />
  * Compliant with the original cashaddr specification:
  * {@link https://github.com/bitcoincashorg/bitcoincash.org/blob/master/spec/cashaddr.md}
  * @module cashaddr
  */
 
 /**
- * Encodes a hash from a given type into a Bitcoin Cash address with the given prefix.
+ * Encodes a hash from a given type into an eCash address with the given prefix.
  *
  * @static
- * @param {string} prefix Network prefix. E.g.: 'bitcoincash'.
+ * @param {string} prefix Cash address prefix. E.g.: 'ecash'.
  * @param {string} type Type of address to generate. Either 'P2PKH' or 'P2SH'.
  * @param {Uint8Array} hash Hash to encode represented as an array of 8-bit integers.
  * @returns {string}
@@ -56,7 +56,7 @@ function encode(prefix, type, hash) {
  * Decodes the given address into its constituting prefix, type and hash. See [#encode()]{@link encode}.
  *
  * @static
- * @param {string} address Address to decode. E.g.: 'bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a'.
+ * @param {string} address Address to decode. E.g.: 'ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2'.
  * @returns {object}
  * @throws {ValidationError}
  */
@@ -139,7 +139,7 @@ var VALID_PREFIXES = [
 
 /**
  * Checks whether a string is a valid prefix; ie., it has a single letter case
- * and is one of 'bitcoincash', 'bchtest', or 'bchreg'.
+ * and is one of 'ecash', 'ectest', 'etoken', etc
  *
  * @private
  * @param {string} prefix
@@ -157,7 +157,7 @@ function isValidPrefix(prefix) {
  * of the address' checksum.
  *
  * @private
- * @param {string} prefix Network prefix. E.g.: 'bitcoincash'.
+ * @param {string} prefix Cash address prefix. E.g.: 'ecash'.
  * @returns {Uint8Array}
  */
 function prefixToUint5Array(prefix) {
@@ -363,7 +363,7 @@ function polymod(data) {
  * checksum is valid.
  *
  * @private
- * @param {string} prefix Network prefix. E.g.: 'bitcoincash'.
+ * @param {string} prefix Cash address prefix. E.g.: 'ecash'.
  * @param {Uint8Array} payload Array of 5-bit integers containing the address' payload.
  * @returns {boolean}
  */
