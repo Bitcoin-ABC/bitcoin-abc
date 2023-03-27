@@ -46,8 +46,11 @@ BOOST_AUTO_TEST_CASE(policy_minerfund) {
     const CChainParams &chainparams = Params();
     const Consensus::Params &consensusParams = chainparams.GetConsensus();
 
+    std::array<BlockHash, 12> blockhashes;
     std::array<CBlockIndex, 12> blocks;
     for (size_t i = 1; i < blocks.size(); ++i) {
+        blockhashes[i] = BlockHash(uint256(i));
+        blocks[i].phashBlock = &blockhashes[i];
         blocks[i].pprev = &blocks[i - 1];
         blocks[i].nHeight = consensusParams.gluonHeight + i;
     }
@@ -72,14 +75,22 @@ BOOST_AUTO_TEST_CASE(policy_minerfund) {
             CBlock block = BlockWithoutMinerFund(blockReward);
             MinerFundPolicy check(consensusParams, blockIndex, block,
                                   blockReward);
-            BOOST_CHECK(check());
+
+            BlockPolicyValidationState state;
+            BOOST_CHECK(check(state));
+            BOOST_CHECK(state.IsValid());
         }
     };
 
     auto checkMinerFundPolicy = [&](CBlock block, bool expected) {
+        BlockPolicyValidationState state;
         BOOST_CHECK_EQUAL(MinerFundPolicy(consensusParams, lastBlockIndexRef,
-                                          block, blockReward)(),
+                                          block, blockReward)(state),
                           expected);
+        BOOST_CHECK_EQUAL(state.IsValid(), expected);
+        if (!expected) {
+            BOOST_CHECK_EQUAL(state.GetRejectReason(), "policy-bad-miner-fund");
+        }
     };
 
     const std::vector<Amount> minerFundsTooSmall = {1 * SATOSHI, minerFund / 2,

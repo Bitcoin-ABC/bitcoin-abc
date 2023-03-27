@@ -8,7 +8,7 @@
 #include <consensus/activation.h>
 #include <minerfund.h>
 
-bool MinerFundPolicy::operator()() {
+bool MinerFundPolicy::operator()(BlockPolicyValidationState &state) {
     if (!m_blockIndex.pprev ||
         !IsWellingtonEnabled(m_consensusParams, m_blockIndex.pprev)) {
         // Do not apply the miner fund policy before Wellington activates.
@@ -16,6 +16,12 @@ bool MinerFundPolicy::operator()() {
     }
 
     assert(m_block.vtx.size());
-    return CheckMinerFund(m_consensusParams, m_blockIndex.pprev,
-                          m_block.vtx[0]->vout, m_blockReward);
+    if (!CheckMinerFund(m_consensusParams, m_blockIndex.pprev,
+                        m_block.vtx[0]->vout, m_blockReward)) {
+        return state.Invalid(BlockPolicyValidationResult::POLICY_VIOLATION,
+                             "policy-bad-miner-fund",
+                             strprintf("Block %s violates miner fund policy",
+                                       m_blockIndex.GetBlockHash().ToString()));
+    }
+    return true;
 }

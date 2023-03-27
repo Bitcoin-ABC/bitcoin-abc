@@ -25,9 +25,9 @@ class MinerFundTest(BitcoinTestFramework):
         self.num_nodes = 2
         self.extra_args = [[
             '-enableminerfund',
-            '-wellingtonactivationtime={}'.format(WELLINGTON_ACTIVATION_TIME),
+            f'-wellingtonactivationtime={WELLINGTON_ACTIVATION_TIME}',
         ], [
-            '-wellingtonactivationtime={}'.format(WELLINGTON_ACTIVATION_TIME),
+            f'-wellingtonactivationtime={WELLINGTON_ACTIVATION_TIME}',
         ]]
 
     def run_test(self):
@@ -138,11 +138,13 @@ class MinerFundTest(BitcoinTestFramework):
             n.invalidateblock(first_block_has_miner_fund)
 
         # node1 mines a block without a coinbase output to the miner fund.
-        first_block_no_miner_fund = self.generatetoaddress(
-            self.nodes[1],
-            nblocks=1,
-            address=address,
-            sync_fun=self.no_op)[0]
+        with node.assert_debug_log(expected_msgs=['policy-bad-miner-fund']):
+            first_block_no_miner_fund = self.generatetoaddress(
+                self.nodes[1],
+                nblocks=1,
+                address=address,
+                sync_fun=self.no_op)[0]
+
         coinbase = get_best_coinbase(self.nodes[1])
         assert_equal(len(coinbase['vout']), 1)
 

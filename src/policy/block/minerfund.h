@@ -29,7 +29,7 @@ public:
         : m_block(block), m_blockReward(blockReward),
           m_consensusParams(consensusParams), m_blockIndex(blockIndex) {}
 
-    bool operator()() override;
+    bool operator()(BlockPolicyValidationState &state) override;
 };
 
 #endif // BITCOIN_POLICY_BLOCK_MINERFUND_H

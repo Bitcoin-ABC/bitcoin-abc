@@ -2727,10 +2727,19 @@ bool Chainstate::ConnectTip(const Config &config, BlockValidationState &state,
             parkingPolicies.emplace_back(std::make_unique<MinerFundPolicy>(
                 consensusParams, *pindexNew, blockConnecting, blockReward));
 
-            if (!std::all_of(parkingPolicies.begin(), parkingPolicies.end(),
-                             [&](const auto &policy) { return (*policy)(); })) {
-                LogPrintf("Park block %s because it violated a block policy\n",
-                          blockhash.ToString());
+            // If any block policy is violated, bail on the first one found
+            if (std::find_if_not(
+                    parkingPolicies.begin(), parkingPolicies.end(),
+                    [&](const auto &policy) {
+                        BlockPolicyValidationState blockPolicyState;
+                        bool ret = (*policy)(blockPolicyState);
+                        if (!ret) {
+                            LogPrintf("Park block because it "
+                                      "violated a block policy: %s\n",
+                                      blockPolicyState.ToString());
+                        }
+                        return ret;
+                    }) != parkingPolicies.end()) {
                 pindexNew->nStatus = pindexNew->nStatus.withParked();
                 m_blockman.m_dirty_blockindex.insert(pindexNew);
                 return false;
