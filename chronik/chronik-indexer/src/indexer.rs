@@ -273,7 +273,7 @@ impl ChronikIndexer {
         let block_writer = BlockWriter::new(&self.db)?;
         let tx_writer = TxWriter::new(&self.db)?;
         block_writer.delete(&mut batch, &block.db_block)?;
-        tx_writer.insert(&mut batch, &block.block_txs)?;
+        tx_writer.delete(&mut batch, &block.block_txs)?;
         self.db.write_batch(batch)?;
         Ok(())
     }
