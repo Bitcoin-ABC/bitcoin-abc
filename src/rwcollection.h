@@ -70,6 +70,8 @@ private:
 
 public:
     RWCollection() : collection() {}
+    explicit RWCollection(T &&collection_)
+        : collection(std::move(collection_)) {}
 
     using ReadView =
         RWCollectionView<const T, std::shared_lock<std::shared_mutex>>;
