@@ -15,14 +15,12 @@ use chronik_db::{
         BlockHeight, BlockReader, BlockTxs, BlockWriter, DbBlock,
         MetadataReader, MetadataWriter, SchemaVersion, TxEntry, TxWriter,
     },
+    mem::{Mempool, MempoolTx},
 };
 use chronik_util::{log, log_chronik};
 use thiserror::Error;
 
-use crate::{
-    mempool::{Mempool, MempoolTx},
-    query::QueryTxs,
-};
+use crate::query::QueryTxs;
 
 const CURRENT_INDEXER_VERSION: SchemaVersion = 4;
 

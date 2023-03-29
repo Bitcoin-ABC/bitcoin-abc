@@ -12,11 +12,10 @@ use chronik_bridge::ffi;
 use chronik_db::{
     db::Db,
     io::{BlockReader, TxReader},
+    mem::Mempool,
 };
 use chronik_proto::proto;
 use thiserror::Error;
-
-use crate::mempool::Mempool;
 
 /// Struct for querying txs from the db/mempool.
 #[derive(Debug)]

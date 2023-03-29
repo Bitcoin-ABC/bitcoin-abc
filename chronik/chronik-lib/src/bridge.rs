@@ -12,11 +12,9 @@ use std::{
 use abc_rust_error::Result;
 use bitcoinsuite_core::tx::TxId;
 use chronik_bridge::{ffi::init_error, util::expect_unique_ptr};
+use chronik_db::mem::MempoolTx;
 use chronik_http::server::{ChronikServer, ChronikServerParams};
-use chronik_indexer::{
-    indexer::{ChronikIndexer, ChronikIndexerParams},
-    mempool::MempoolTx,
-};
+use chronik_indexer::indexer::{ChronikIndexer, ChronikIndexerParams};
 use chronik_util::{log, log_chronik};
 use thiserror::Error;
 use tokio::sync::RwLock;
