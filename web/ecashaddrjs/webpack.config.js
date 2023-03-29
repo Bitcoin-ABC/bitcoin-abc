@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 const pkg = require('./package.json');
 
 const base = {
@@ -9,6 +10,11 @@ const base = {
         library: 'cashaddr',
         libraryTarget: 'umd',
         globalObject: 'this',
+    },
+    resolve: {
+        fallback: {
+            buffer: require.resolve('buffer'),
+        },
     },
     module: {
         rules: [
@@ -26,6 +32,13 @@ const base = {
             },
         ],
     },
+    plugins: [
+        // Work around for Buffer is undefined:
+        // https://github.com/webpack/changelog-v5/issues/10
+        new webpack.ProvidePlugin({
+            Buffer: ['buffer', 'Buffer'],
+        }),
+    ],
 };
 
 module.exports = [

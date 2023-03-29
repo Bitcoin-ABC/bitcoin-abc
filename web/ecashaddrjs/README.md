@@ -104,3 +104,4 @@ https://jsfiddle.net/zghd6c2y/
 1.1.0 - Support decoding prefixless addresses
 1.1.1 - Updated README to point to Bitcoin ABC monorepo
 1.1.2 - Updated `repository` field in `package.json` to Bitcoin ABC monorepo
+1.1.3 - Support string input and output for `hash`

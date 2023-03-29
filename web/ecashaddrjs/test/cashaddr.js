@@ -35,6 +35,12 @@ describe('cashaddr', () => {
         ]),
     ];
 
+    const TEST_HASHES_STRINGS = [
+        '76a04053bda0a88bda5177b86a15c3b29f559873',
+        'cb481232299cd5743151ac4b2d63ae198e7bb0a9',
+        '011f28e473c95f4013d7d53ec5fbc3b42df8ed10',
+    ];
+
     const EXPECTED_P2PKH_OUTPUTS = [
         'ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2',
         'ecash:qr95sy3j9xwd2ap32xkykttr4cvcu7as4ykdcjcn6n',
@@ -105,7 +111,7 @@ describe('cashaddr', () => {
             }
         });
 
-        it('should encode test hashes on mainnet correctly', () => {
+        it('should encode test hashes on mainnet correctly with uint8Array hash input', () => {
             for (const index in TEST_HASHES) {
                 assert.equal(
                     cashaddr.encode('ecash', 'P2PKH', TEST_HASHES[index]),
@@ -113,6 +119,27 @@ describe('cashaddr', () => {
                 );
                 assert.equal(
                     cashaddr.encode('ecash', 'P2SH', TEST_HASHES[index]),
+                    EXPECTED_P2SH_OUTPUTS[index],
+                );
+            }
+        });
+
+        it('should encode test hashes on mainnet correctly with string input for hash', () => {
+            for (const index in TEST_HASHES) {
+                assert.equal(
+                    cashaddr.encode(
+                        'ecash',
+                        'P2PKH',
+                        TEST_HASHES_STRINGS[index],
+                    ),
+                    EXPECTED_P2PKH_OUTPUTS[index],
+                );
+                assert.equal(
+                    cashaddr.encode(
+                        'ecash',
+                        'P2SH',
+                        TEST_HASHES_STRINGS[index],
+                    ),
                     EXPECTED_P2SH_OUTPUTS[index],
                 );
             }
@@ -168,6 +195,24 @@ describe('cashaddr', () => {
                     'ECASH:QPM2QSZNHKS23Z7629MMS6S4CWEF74VCWVA87RKUU2',
                 ).hash,
             );
+        });
+
+        it('should decode valid addresses correctly and return hash160 as a string if user so specifies for P2PKH addresses', () => {
+            for (const index in EXPECTED_P2PKH_OUTPUTS) {
+                assert.equal(
+                    cashaddr.decode(EXPECTED_P2PKH_OUTPUTS[index], true).hash,
+                    TEST_HASHES_STRINGS[index],
+                );
+            }
+        });
+
+        it('should decode valid addresses correctly and return hash160 as a string if user so specifies for P2SH addresses', () => {
+            for (const index in EXPECTED_P2SH_OUTPUTS) {
+                assert.equal(
+                    cashaddr.decode(EXPECTED_P2SH_OUTPUTS[index], true).hash,
+                    TEST_HASHES_STRINGS[index],
+                );
+            }
         });
 
         it('should accept prefixless input if checksum is valid', () => {

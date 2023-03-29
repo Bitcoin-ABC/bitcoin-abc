@@ -28,7 +28,7 @@ var validate = validation.validate;
  * @static
  * @param {string} prefix Cash address prefix. E.g.: 'ecash'.
  * @param {string} type Type of address to generate. Either 'P2PKH' or 'P2SH'.
- * @param {Uint8Array} hash Hash to encode represented as an array of 8-bit integers.
+ * @param {Uint8Array or string} hash Hash to encode represented as an array of 8-bit integers.
  * @returns {string}
  * @throws {ValidationError}
  */
@@ -38,7 +38,13 @@ function encode(prefix, type, hash) {
         'Invalid prefix: ' + prefix + '.',
     );
     validate(typeof type === 'string', 'Invalid type: ' + type + '.');
-    validate(hash instanceof Uint8Array, 'Invalid hash: ' + hash + '.');
+    validate(
+        hash instanceof Uint8Array || typeof hash === 'string',
+        'Invalid hash: ' + hash + '. Must be string or Uint8Array.',
+    );
+    if (typeof hash === 'string') {
+        hash = stringToUint8Array(hash);
+    }
     var prefixData = concat(prefixToUint5Array(prefix), new Uint8Array(1));
     var versionByte = getTypeBits(type) + getHashSizeBits(hash);
     var payloadData = toUint5Array(concat(new Uint8Array([versionByte]), hash));
@@ -58,10 +64,11 @@ function encode(prefix, type, hash) {
  *
  * @static
  * @param {string} address Address to decode. E.g.: 'ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2'.
+ * @param {returnHashAsString} bool User may ask for the hash160 be returned as a string instead of a uint8array
  * @returns {object}
  * @throws {ValidationError}
  */
-function decode(address) {
+function decode(address, returnHashAsString = false) {
     validate(
         typeof address === 'string' && hasSingleCase(address),
         'Invalid address: ' + address + '.',
@@ -111,7 +118,7 @@ function decode(address) {
     return {
         prefix: prefix,
         type: type,
-        hash: hash,
+        hash: returnHashAsString ? uint8arraytoString(hash) : hash,
     };
 }
 
@@ -384,6 +391,40 @@ function validChecksum(prefix, payload) {
  */
 function hasSingleCase(string) {
     return string === string.toLowerCase() || string === string.toUpperCase();
+}
+
+/**
+ * Returns a uint8array for a given string input
+ *
+ * @private
+ * @param {string} string Input string.
+ * @returns {Uint8Array}
+ */
+function stringToUint8Array(string) {
+    const buffer = Buffer.from(string, 'hex');
+    const arrayBuffer = new ArrayBuffer(buffer.length);
+    const uint8Array = new Uint8Array(arrayBuffer);
+    for (let i = 0; i < uint8Array.length; i += 1) {
+        uint8Array[i] = buffer[i];
+    }
+    return uint8Array;
+}
+
+/**
+ * Returns a uint8array for a given string input
+ *
+ * @private
+ * @param {Uint8Array} uint8Array Input string.
+ * @returns {string}
+ */
+function uint8arraytoString(uint8Array) {
+    let buffer = [];
+    for (let i = 0; i < uint8Array.length; i += 1) {
+        buffer.push(uint8Array[i]);
+    }
+    const hexBuffer = Buffer.from(buffer, 'hex');
+    const string = hexBuffer.toString('hex');
+    return string;
 }
 
 module.exports = {
