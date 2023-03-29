@@ -5,9 +5,11 @@
 //! Module containing readers and writers for the database used by Chronik.
 
 mod blocks;
+mod group_history;
 mod metadata;
 mod txs;
 
 pub use self::blocks::*;
+pub use self::group_history::*;
 pub use self::metadata::*;
 pub use self::txs::*;

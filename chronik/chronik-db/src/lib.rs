@@ -6,7 +6,10 @@
 
 abc_rust_lint::lint! {
     pub mod db;
+    pub mod group;
     pub mod io;
     mod reverse_lookup;
     pub mod ser;
+    #[cfg(test)]
+    mod test;
 }
