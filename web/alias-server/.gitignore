@@ -1,3 +1,5 @@
 node_modules/
 test/mocks/generated/
 secrets.js
+test-results.xml
+.nyc_output

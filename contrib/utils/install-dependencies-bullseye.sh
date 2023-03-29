@@ -151,6 +151,9 @@ source ~/.bashrc
 curl -sL https://deb.nodesource.com/setup_15.x | bash -
 apt-get install -y nodejs
 
+# Install nyc for mocha unit test reporting
+npm i -g nyc
+
 # Install Rust stable 1.67.1 and nightly from the 2023-02-17
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain=1.67.1
 RUST_HOME="${HOME}/.cargo/bin"

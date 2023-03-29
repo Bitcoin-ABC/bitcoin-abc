@@ -5,6 +5,8 @@
     "main": "index.js",
     "scripts": {
         "test": "mocha",
+        "coverage": "nyc mocha",
+        "junit": "mocha test --reporter mocha-junit-reporter",
         "mocks": "node scripts/generateMocks.js"
     },
     "keywords": [
@@ -28,6 +30,8 @@
         "request-ip": "^3.3.0"
     },
     "devDependencies": {
-        "mocha": "^10.2.0"
+        "mocha": "^10.2.0",
+        "mocha-junit-reporter": "^2.2.0",
+        "nyc": "^15.1.0"
     }
 }
