@@ -4,6 +4,8 @@
 
 //! Module containing structs to index the mempool.
 
+mod group_history;
 mod mempool;
 
+pub use self::group_history::*;
 pub use self::mempool::*;
