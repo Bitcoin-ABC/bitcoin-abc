@@ -31,7 +31,7 @@ mod ffi_inner {
     /// the data the node already stores.
     ///
     /// Note that this prohibits us from using Chronik in pruned mode.
-    #[derive(Debug, Clone, PartialEq, Eq)]
+    #[derive(Clone, Debug, Default, Eq, PartialEq)]
     pub struct Block {
         /// Block hash
         pub hash: [u8; 32],
@@ -57,7 +57,7 @@ mod ffi_inner {
     }
 
     /// Tx in a block
-    #[derive(Debug, Clone, PartialEq, Eq)]
+    #[derive(Clone, Debug, Default, Eq, PartialEq)]
     pub struct BlockTx {
         /// Tx (without disk data)
         pub tx: Tx,
@@ -68,7 +68,7 @@ mod ffi_inner {
     }
 
     /// CTransaction, in a block or in the mempool.
-    #[derive(Debug, Clone, PartialEq, Eq)]
+    #[derive(Clone, Debug, Default, Eq, PartialEq)]
     pub struct Tx {
         /// TxId of the tx.
         pub txid: [u8; 32],
@@ -83,7 +83,7 @@ mod ffi_inner {
     }
 
     /// COutPoint, pointing to a coin being spent.
-    #[derive(Debug, Clone, PartialEq, Eq)]
+    #[derive(Clone, Debug, Default, Eq, PartialEq)]
     pub struct OutPoint {
         /// TxId of the output of the coin.
         pub txid: [u8; 32],
@@ -92,7 +92,7 @@ mod ffi_inner {
     }
 
     /// CTxIn, spending an unspent output.
-    #[derive(Debug, Clone, PartialEq, Eq)]
+    #[derive(Clone, Debug, Default, Eq, PartialEq)]
     pub struct TxInput {
         /// Points to an output being spent.
         pub prev_out: OutPoint,
@@ -105,7 +105,7 @@ mod ffi_inner {
     }
 
     /// CTxOut, creating a new output.
-    #[derive(Debug, Clone, PartialEq, Eq)]
+    #[derive(Clone, Debug, Default, Eq, PartialEq)]
     pub struct TxOutput {
         /// Value of the output.
         pub value: i64,
@@ -114,7 +114,7 @@ mod ffi_inner {
     }
 
     /// Coin, can be spent by providing a valid unlocking script.
-    #[derive(Debug, Clone, PartialEq, Eq)]
+    #[derive(Clone, Debug, Default, Eq, PartialEq)]
     pub struct Coin {
         /// Output, locking the coins.
         pub output: TxOutput,
