@@ -249,7 +249,7 @@ impl<'a> TxWriter<'a> {
         &self,
         batch: &mut WriteBatch,
         block_txs: &BlockTxs,
-    ) -> Result<()> {
+    ) -> Result<TxNum> {
         let first_tx_num = self
             .col
             .db
@@ -275,7 +275,7 @@ impl<'a> TxWriter<'a> {
             bh_to_bytes(block_txs.block_height),
         );
         LookupByHash::delete_pairs(self.col.db, batch, index_pairs)?;
-        Ok(())
+        Ok(first_tx_num)
     }
 
     /// Add the column families used for txs.
@@ -477,7 +477,7 @@ mod tests {
         {
             // insert genesis tx
             let mut batch = WriteBatch::default();
-            tx_writer.insert(&mut batch, &block1)?;
+            assert_eq!(tx_writer.insert(&mut batch, &block1)?, 0);
             db.write_batch(batch)?;
             let tx_reader = TxReader::new(&db)?;
             assert_eq!(tx_reader.first_tx_num_by_block(0)?, Some(0));
@@ -524,7 +524,7 @@ mod tests {
         {
             // insert 2 more txs
             let mut batch = WriteBatch::default();
-            tx_writer.insert(&mut batch, &block2)?;
+            assert_eq!(tx_writer.insert(&mut batch, &block2)?, 1);
             db.write_batch(batch)?;
             assert_eq!(tx_reader.first_tx_num_by_block(0)?, Some(0));
             assert_eq!(tx_reader.first_tx_num_by_block(1)?, Some(1));
@@ -563,7 +563,7 @@ mod tests {
         {
             // delete latest block
             let mut batch = WriteBatch::default();
-            tx_writer.delete(&mut batch, &block2)?;
+            assert_eq!(tx_writer.delete(&mut batch, &block2)?, 1);
             db.write_batch(batch)?;
             assert_eq!(tx_reader.first_tx_num_by_block(0)?, Some(0));
             assert_eq!(tx_reader.first_tx_num_by_block(1)?, None);
@@ -608,7 +608,7 @@ mod tests {
         {
             // Add reorg block
             let mut batch = WriteBatch::default();
-            tx_writer.insert(&mut batch, &block3)?;
+            assert_eq!(tx_writer.insert(&mut batch, &block3)?, 1);
             db.write_batch(batch)?;
 
             assert_eq!(tx_reader.first_tx_num_by_block(0)?, Some(0));
