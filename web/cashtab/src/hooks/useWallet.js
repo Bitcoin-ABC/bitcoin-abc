@@ -37,7 +37,7 @@ import {
     getTxHistoryChronik,
     parseChronikTx,
 } from 'utils/chronik';
-import { getAliasServerHistory } from 'utils/aliasUtils';
+import { getAliasServerHistory, getAliasServerState } from 'utils/aliasUtils';
 import { ChronikClient } from 'chronik-client';
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
@@ -1170,21 +1170,21 @@ const useWallet = () => {
             cachedAliases = currency.defaultCashtabCache.aliasCache;
         }
 
-        // retrieve onchain aliases via alias-server
-        let aliasServerRespJson;
+        // retrieve alias-server state
+        let aliasServerStateRespJson;
         try {
-            aliasServerRespJson = await getAliasServerHistory();
+            aliasServerStateRespJson = await getAliasServerState();
         } catch (err) {
             console.log(
-                `getLatestAliases(): Error retrieving aliases from alias-server`,
+                `getLatestAliases(): Error retrieving server state from alias-server`,
                 err,
             );
         }
 
         // get the onchain alias count
         let onchainAliasCount = 0;
-        if (aliasServerRespJson) {
-            onchainAliasCount = aliasServerRespJson.length;
+        if (aliasServerStateRespJson) {
+            onchainAliasCount = aliasServerStateRespJson.registeredAliasCount;
         }
 
         // get the cached alias count
@@ -1198,6 +1198,18 @@ const useWallet = () => {
             console.log(
                 `cache alias count does not match onchain alias count, refreshing aliasCache`,
             );
+
+            // retrieve onchain aliases via alias-server
+            let aliasServerRespJson;
+            try {
+                aliasServerRespJson = await getAliasServerHistory();
+            } catch (err) {
+                console.log(
+                    `getLatestAliases(): Error retrieving aliases from alias-server`,
+                    err,
+                );
+            }
+
             let aliasCacheObject = {
                 aliases: aliasServerRespJson,
                 cachedAliasCount: aliasServerRespJson.length,
