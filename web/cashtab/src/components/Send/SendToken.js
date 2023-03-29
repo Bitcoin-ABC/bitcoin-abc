@@ -183,8 +183,6 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
         // check state on whether this is an alias or ecash address
         if (aliasInputAddress) {
             cleanAddress = aliasInputAddress;
-            // temporary log for reviewer
-            console.log(`parsed address for ${address} is: ${cleanAddress}`);
         } else {
             // Get the non-alias param-free address
             cleanAddress = address.split('?')[0];

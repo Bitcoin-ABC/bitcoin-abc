@@ -1162,10 +1162,6 @@ const useWallet = () => {
         let invalidAliasFound = false;
         for (let element of cachedAliases.aliases) {
             if (!isValidAliasString(element.alias)) {
-                // temporary log for reviewer
-                console.log(
-                    `Non-alphanumeric alias detected in cache, resetting aliasCache`,
-                );
                 invalidAliasFound = true;
             }
         }
@@ -1190,16 +1186,12 @@ const useWallet = () => {
         if (aliasServerRespJson) {
             onchainAliasCount = aliasServerRespJson.length;
         }
-        // temporary log for reviewer
-        console.log(`onchain Alias Count: `, onchainAliasCount);
 
         // get the cached alias count
         let cachedAliasCount = 0;
         if (cachedAliases) {
             cachedAliasCount = cachedAliases.cachedAliasCount;
         }
-        // temporary log for reviewer
-        console.log(`cached Alias Count: `, cachedAliasCount);
 
         // if cache alias count does not match onchain alias count, update cache
         if (cachedAliasCount !== onchainAliasCount) {
@@ -1225,9 +1217,8 @@ const useWallet = () => {
             setCashtabCache(cashtabCache);
             console.log(`aliasCache refresh complete`);
         } else {
-            // temporary console log for reviewer
             console.log(
-                `alias count matches between onchain and cache, aliasCache update is NOT required`,
+                `Server and cache both have ${onchainAliasCount} aliases. Cashtab alias cache is up to date.`,
             );
         }
         return cachedAliases;
@@ -1325,8 +1316,6 @@ const useWallet = () => {
         // If you found an object in localforage at the cashtabCache key, make sure it's valid
         if (isValidCashtabCache(localCashtabCache)) {
             setCashtabCache(localCashtabCache);
-            // temporary log for reviewer
-            console.log(`valid cashtabCache detected`);
             return localCashtabCache;
         }
         // if not valid, parse the cache object, finds what param is missing, and sticks it in
@@ -1334,12 +1323,6 @@ const useWallet = () => {
             parseInvalidCashtabCacheForMigration(localCashtabCache);
         localforage.setItem('cashtabCache', migratedCashtabCache);
         setCashtabCache(migratedCashtabCache);
-
-        // temporary log for reviewer
-        console.log(
-            `invalid cashtabCache detected, missing params initialized from currency.defaultCashtabCache`,
-        );
-
         return currency.defaultCashtabCache;
     };
 

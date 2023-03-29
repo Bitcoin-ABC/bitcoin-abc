@@ -279,10 +279,6 @@ export const parseInvalidCashtabCacheForMigration = invalidCashtabCache => {
         // determine if there is a non alphanumeric
         for (let element of invalidCashtabCache.aliasCache.aliases) {
             if (!isValidAliasString(element.alias)) {
-                // temporary log for reviewer
-                console.log(
-                    `Non-alphanumeric or missing blockheight param alias detected in cache, resetting aliasCache`,
-                );
                 migratedCashtabCache.aliasCache.aliases = [];
             }
         }
@@ -413,14 +409,10 @@ export const isValidCashtabCache = cashtabCache => {
     // check the aliasCache object contains the aliases and paymentTxHistory arrays and the totalPaymentTxCount num
     const { aliasCache } = cashtabCache;
     if (!aliasCache) {
-        // temporary log for reviewer
-        console.log(`aliasCache in cashtabCache is false`);
         return false;
     }
     const { aliases, cachedAliasCount } = aliasCache;
     if (!Array.isArray(aliases) || typeof cachedAliasCount !== 'number') {
-        // temporary log for reviewer
-        console.log(`aliasCache in cashtabCache is false`);
         return false;
     }
 

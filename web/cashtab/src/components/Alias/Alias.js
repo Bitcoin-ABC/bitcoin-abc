@@ -99,12 +99,6 @@ const Alias = ({ passLoadingStatus }) => {
             cashtabCache.aliasCache,
         );
 
-        // temporary console log for reviewer
-        console.log(
-            'Does this active wallet have an onchain alias? : ' +
-                walletHasAlias,
-        );
-
         // retrieve aliases for this active wallet from cache for rendering on the frontend
         if (
             walletHasAlias &&
