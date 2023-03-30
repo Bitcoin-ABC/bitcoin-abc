@@ -46,3 +46,4 @@ darwin_native_toolchain=native_cctools
 else
 darwin_native_toolchain=
 endif
+darwin_cmake_system=Darwin
