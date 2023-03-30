@@ -58,6 +58,7 @@ const useWallet = () => {
     const [cashtabCache, setCashtabCache] = useState(
         currency.defaultCashtabCache,
     );
+    const [isAliasServerOnline, setIsAliasServerOnline] = useState(true);
     const [fiatPrice, setFiatPrice] = useState(null);
     const [apiError, setApiError] = useState(false);
     const [checkFiatInterval, setCheckFiatInterval] = useState(null);
@@ -1183,6 +1184,7 @@ const useWallet = () => {
 
         // if bad response from alias-server, retain the existing alias cache by skipping the remainder of this function which updates the alias cache
         if (!aliasServerStateRespJson) {
+            setIsAliasServerOnline(false);
             return;
         }
 
@@ -1217,6 +1219,7 @@ const useWallet = () => {
 
             // if bad response from alias-server, retain the existing alias cache
             if (!aliasServerRespJson) {
+                setIsAliasServerOnline(false);
                 return;
             }
 
@@ -1616,6 +1619,7 @@ const useWallet = () => {
         getLatestAliases,
         getContactListFromLocalForage,
         getAliasesFromLocalForage,
+        isAliasServerOnline,
         updateContactList,
         createWallet: async importMnemonic => {
             setLoading(true);
