@@ -1,3 +1,4 @@
+'use strict';
 const reservedAliasTxs = require('./reservedAliasTxs');
 const unconfirmedAliasTxs = require('./unconfirmedAliasTxs');
 module.exports = {

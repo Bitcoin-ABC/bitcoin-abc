@@ -1,3 +1,4 @@
+'use strict';
 const cashaddr = require('ecashaddrjs');
 const config = require('./config');
 

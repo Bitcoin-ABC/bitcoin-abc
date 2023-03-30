@@ -1,3 +1,4 @@
+'use strict';
 const { MongoClient } = require('mongodb');
 const log = require('./log');
 const config = require('./config');

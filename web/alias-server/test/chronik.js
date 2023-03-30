@@ -1,3 +1,4 @@
+'use strict';
 const assert = require('assert');
 const config = require('../config');
 const { getUnprocessedTxHistory } = require('../chronik');

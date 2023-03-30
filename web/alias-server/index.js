@@ -1,3 +1,4 @@
+'use strict';
 const config = require('./config');
 const { initializeWebsocket, parseWebsocketMessage } = require('./websocket');
 const { initializeDb } = require('./db');

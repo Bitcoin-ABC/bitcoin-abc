@@ -1,3 +1,4 @@
+'use strict';
 module.exports = [
     {
         address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',

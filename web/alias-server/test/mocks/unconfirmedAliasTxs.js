@@ -1,3 +1,4 @@
+'use strict';
 module.exports = [
     {
         txid: '7b265a49e0bd5fe0c5e4b4aec634a25dd85656766a035b6e436c415538c43d90',

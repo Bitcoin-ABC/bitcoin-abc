@@ -1,3 +1,4 @@
+'use strict';
 const config = require('./config');
 const log = require('./log');
 const { getAllAliasTxs, getValidAliasRegistrations } = require('./alias');
@@ -40,7 +41,7 @@ module.exports = {
         // For now, we are only interested in "Confirmed", as only these are valid
         // We will want to look at AddedToMempool to process pending alias registrations later
         switch (type) {
-            case 'BlockConnected':
+            case 'BlockConnected': {
                 typeof wsMsg.blockHash !== 'undefined'
                     ? log(`New block found: ${wsMsg.blockHash}`)
                     : log(`Checking for new aliases on startup`);
@@ -279,9 +280,8 @@ module.exports = {
                     Note: you will still run into rate limit issues if 
                     you are trying to send more than 25 msgs at once
                     */
-                    let tgMsgBatchSuccess;
                     try {
-                        tgMsgBatchSuccess = await Promise.all(tgBotMsgPromises);
+                        await Promise.all(tgBotMsgPromises);
                         log(
                             `Successfully sent ${tgBotMsgPromises.length} messages to channel`,
                         );
@@ -293,6 +293,7 @@ module.exports = {
                     }
                 }
                 break;
+            }
             case 'AddedToMempool':
                 log(`New tx: ${wsMsg.txid}`);
                 break;
