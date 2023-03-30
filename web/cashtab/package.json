@@ -96,7 +96,6 @@
     "scripts": {
         "start": "node scripts/start.js",
         "build": "node scripts/build.js",
-        "prepare": "cd ../.. && husky install web/cashtab/.husky",
         "test": "node scripts/test.js",
         "test:coverage": "CI=true npm run test --coverage",
         "preextension": "npm  i -g browserify",
@@ -188,7 +187,6 @@
     },
     "devDependencies": {
         "eslint-plugin-etc": "2.0.2",
-        "husky": "^8.0.1",
         "jest-when": "^3.5.1"
     }
 }
