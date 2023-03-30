@@ -1181,6 +1181,11 @@ const useWallet = () => {
             );
         }
 
+        // if bad response from alias-server, retain the existing alias cache by skipping the remainder of this function which updates the alias cache
+        if (!aliasServerStateRespJson) {
+            return;
+        }
+
         // get the onchain alias count
         let onchainAliasCount = 0;
         if (aliasServerStateRespJson) {
@@ -1208,6 +1213,11 @@ const useWallet = () => {
                     `getLatestAliases(): Error retrieving aliases from alias-server`,
                     err,
                 );
+            }
+
+            // if bad response from alias-server, retain the existing alias cache
+            if (!aliasServerRespJson) {
+                return;
             }
 
             let aliasCacheObject = {

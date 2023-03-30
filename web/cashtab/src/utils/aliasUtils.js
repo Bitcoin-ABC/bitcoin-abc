@@ -21,6 +21,7 @@ export const getAliasServerState = async () => {
             `getAliasServerState(): Error retrieving server state from alias-server`,
             err,
         );
+        return false;
     }
 
     return aliasServerRespJson;
@@ -46,6 +47,7 @@ export const getAliasServerHistory = async () => {
             `getAliasServerHistory(): Error retrieving aliases from alias-server`,
             err,
         );
+        return false;
     }
 
     return aliasServerRespJson;
