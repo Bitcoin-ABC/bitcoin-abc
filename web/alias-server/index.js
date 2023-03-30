@@ -1,8 +1,11 @@
 'use strict';
 const config = require('./config');
-const { initializeWebsocket, parseWebsocketMessage } = require('./websocket');
-const { initializeDb } = require('./db');
-const log = require('./log');
+const {
+    initializeWebsocket,
+    parseWebsocketMessage,
+} = require('./src/websocket');
+const { initializeDb } = require('./src/db');
+const log = require('./src/log');
 const express = require('express');
 var cors = require('cors');
 const requestIp = require('request-ip');

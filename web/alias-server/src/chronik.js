@@ -1,5 +1,5 @@
 'use strict';
-const config = require('./config');
+const config = require('../config');
 const log = require('./log');
 const { ChronikClient } = require('chronik-client');
 const chronik = new ChronikClient(config.chronik);

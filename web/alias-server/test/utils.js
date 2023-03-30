@@ -10,7 +10,7 @@ const {
     isValidAliasString,
     removeUnconfirmedTxsFromTxHistory,
     getConfirmedTxsToBeAddedToDb,
-} = require('../utils');
+} = require('../src/utils');
 const reservedAliasTxs = require('./mocks/reservedAliasTxs');
 const unconfirmedAliasTxs = require('./mocks/unconfirmedAliasTxs');
 const {

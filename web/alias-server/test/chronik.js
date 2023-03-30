@@ -1,7 +1,7 @@
 'use strict';
 const assert = require('assert');
 const config = require('../config');
-const { getUnprocessedTxHistory } = require('../chronik');
+const { getUnprocessedTxHistory } = require('../src/chronik');
 const {
     allTxHistoryFromChronik,
     unconfirmedTxs,

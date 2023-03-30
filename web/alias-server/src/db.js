@@ -1,7 +1,7 @@
 'use strict';
 const { MongoClient } = require('mongodb');
 const log = require('./log');
-const config = require('./config');
+const config = require('../config');
 
 module.exports = {
     initializeDb: async function () {

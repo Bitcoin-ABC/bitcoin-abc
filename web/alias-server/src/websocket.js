@@ -1,5 +1,5 @@
 'use strict';
-const config = require('./config');
+const config = require('../config');
 const log = require('./log');
 const { getAllAliasTxs, getValidAliasRegistrations } = require('./alias');
 const { getUnprocessedTxHistory, getAllTxHistory } = require('./chronik');

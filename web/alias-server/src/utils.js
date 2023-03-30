@@ -1,6 +1,6 @@
 'use strict';
 const cashaddr = require('ecashaddrjs');
-const config = require('./config');
+const config = require('../config');
 
 module.exports = {
     outputScriptToAddress: function (outputScript) {

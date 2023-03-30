@@ -6,7 +6,7 @@ const {
     getAllAliasTxs,
     sortAliasTxsByTxidAndBlockheight,
     getValidAliasRegistrations,
-} = require('../alias');
+} = require('../src/alias');
 const {
     testAddressAliases,
     testAddressAliasesWithUnconfirmedTxs,
