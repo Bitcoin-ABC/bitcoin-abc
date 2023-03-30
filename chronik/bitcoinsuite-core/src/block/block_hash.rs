@@ -2,7 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-use crate::hash::{Hashed, HashedError, Sha256d};
+use crate::{
+    error::DataError,
+    hash::{Hashed, Sha256d},
+};
 
 /// Wraps a block hash's [`Sha256d`], to avoid mixing different kinds of hashes.
 /// Block hashes are always represented with a big-endian hex string, but stored
@@ -55,7 +58,7 @@ impl BlockHash {
 }
 
 impl std::str::FromStr for BlockHash {
-    type Err = HashedError;
+    type Err = DataError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(BlockHash(Sha256d::from_be_hex(s)?))
@@ -63,7 +66,7 @@ impl std::str::FromStr for BlockHash {
 }
 
 impl TryFrom<&'_ [u8]> for BlockHash {
-    type Error = HashedError;
+    type Error = DataError;
 
     fn try_from(value: &'_ [u8]) -> Result<Self, Self::Error> {
         Ok(BlockHash(Sha256d::from_le_slice(value)?))
@@ -94,7 +97,8 @@ mod tests {
 
     use crate::{
         block::BlockHash,
-        hash::{Hashed, HashedError, Sha256d},
+        error::DataError,
+        hash::{Hashed, Sha256d},
     };
 
     const GENESIS_HASH_HEX: &str =
@@ -108,7 +112,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse() -> Result<(), HashedError> {
+    fn test_parse() -> Result<(), DataError> {
         let block_hash = GENESIS_HASH_HEX.parse::<BlockHash>()?;
         assert_eq!(block_hash, BlockHash::from(genesis_hash()));
         Ok(())
@@ -118,7 +122,7 @@ mod tests {
     fn test_parse_fail() {
         assert_eq!(
             "abcd".parse::<BlockHash>(),
-            Err(HashedError::InvalidLength {
+            Err(DataError::InvalidLength {
                 expected: 32,
                 actual: 2,
             }),
@@ -133,7 +137,7 @@ mod tests {
         assert_eq!(block_hash, BlockHash::from(hash));
         assert_eq!(
             BlockHash::try_from(b"ab".as_ref()),
-            Err(HashedError::InvalidLength {
+            Err(DataError::InvalidLength {
                 expected: 32,
                 actual: 2,
             }),
@@ -149,7 +153,7 @@ mod tests {
     }
 
     #[test]
-    fn test_display() -> Result<(), HashedError> {
+    fn test_display() -> Result<(), DataError> {
         assert_eq!(
             BlockHash::from(genesis_hash()).to_string(),
             GENESIS_HASH_HEX,

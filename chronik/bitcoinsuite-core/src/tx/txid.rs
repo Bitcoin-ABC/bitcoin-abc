@@ -2,7 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-use crate::hash::{Hashed, HashedError, Sha256d};
+use crate::{
+    error::DataError,
+    hash::{Hashed, Sha256d},
+};
 
 /// Wraps a tx ID's [`Sha256d`], to avoid mixing different kinds of hashes.
 /// Txids are always represented with a big-endian hex string, but stored
@@ -70,7 +73,7 @@ impl TxId {
 }
 
 impl std::str::FromStr for TxId {
-    type Err = HashedError;
+    type Err = DataError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(TxId(Sha256d::from_be_hex(s)?))
@@ -78,7 +81,7 @@ impl std::str::FromStr for TxId {
 }
 
 impl TryFrom<&'_ [u8]> for TxId {
-    type Error = HashedError;
+    type Error = DataError;
 
     fn try_from(value: &'_ [u8]) -> Result<Self, Self::Error> {
         Ok(TxId(Sha256d::from_le_slice(value)?))
@@ -108,7 +111,8 @@ mod tests {
     use hex_literal::hex;
 
     use crate::{
-        hash::{Hashed, HashedError, Sha256d},
+        error::DataError,
+        hash::{Hashed, Sha256d},
         tx::TxId,
     };
 
@@ -123,7 +127,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse() -> Result<(), HashedError> {
+    fn test_parse() -> Result<(), DataError> {
         let txid = HASH_HEX.parse::<TxId>()?;
         assert_eq!(txid, TxId::from(txid_hash()));
         Ok(())
@@ -133,7 +137,7 @@ mod tests {
     fn test_parse_fail() {
         assert_eq!(
             "abcd".parse::<TxId>(),
-            Err(HashedError::InvalidLength {
+            Err(DataError::InvalidLength {
                 expected: 32,
                 actual: 2,
             }),
@@ -148,7 +152,7 @@ mod tests {
         assert_eq!(txid, TxId::from(hash));
         assert_eq!(
             TxId::try_from(b"ab".as_ref()),
-            Err(HashedError::InvalidLength {
+            Err(DataError::InvalidLength {
                 expected: 32,
                 actual: 2,
             }),
@@ -164,7 +168,7 @@ mod tests {
     }
 
     #[test]
-    fn test_display() -> Result<(), HashedError> {
+    fn test_display() -> Result<(), DataError> {
         assert_eq!(TxId::from(txid_hash()).to_string(), HASH_HEX);
         Ok(())
     }
