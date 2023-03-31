@@ -124,32 +124,22 @@ describe('alias-server alias.js', function () {
     it('Correctly returns only valid alias registrations at test address ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8', function () {
         assert.deepEqual(
             getValidAliasRegistrations(testAddressAliases.allAliasTxs),
-            {
-                validAliasTxs: testAddressAliases.validAliasTxs,
-                pendingAliasTxs: [],
-            },
+            testAddressAliases.validAliasTxs,
         );
     });
-    it('Correctly returns valid and pending alias registrations at test address ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8', function () {
+    it('Correctly returns valid alias registrations at test address ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8', function () {
         assert.deepEqual(
             getValidAliasRegistrations(
                 testAddressAliasesWithUnconfirmedTxs.allAliasTxs,
             ),
-            {
-                validAliasTxs:
-                    testAddressAliasesWithUnconfirmedTxs.validAliasTxs,
-                pendingAliasTxs:
-                    testAddressAliasesWithUnconfirmedTxs.pendingAliasTxs,
-            },
+
+            testAddressAliasesWithUnconfirmedTxs.validAliasTxs,
         );
     });
     it('getValidAliasRegistrations recognizes case variations of a taken alias as invalid', function () {
         assert.deepEqual(
             getValidAliasRegistrations(aliases_fake_data.allAliasTxsMixedCases),
-            {
-                validAliasTxs: aliases_fake_data.validAliasTxsMixedCases,
-                pendingAliasTxs: [],
-            },
+            aliases_fake_data.validAliasTxsMixedCases,
         );
     });
 });

@@ -146,12 +146,12 @@ module.exports = {
         registeredAliases = registeredAliases.concat(
             config.aliasConstants.reservedAliases,
         );
-        let validAliasTxs = [];
-        const pendingAliasTxs = [];
+        let validAliasRegistrations = [];
 
         // Add reservedAliasTxs to validAliasTxs
         const reservedAliasTxs = generateReservedAliasTxArray();
-        validAliasTxs = validAliasTxs.concat(reservedAliasTxs);
+        validAliasRegistrations =
+            validAliasRegistrations.concat(reservedAliasTxs);
 
         // Iterate over sorted aliases starting from oldest registrations to newest
         // (and alphabetically first txids to last)
@@ -169,10 +169,7 @@ module.exports = {
                 // If the tx is confirmed,
                 if (blockheight < 100000000) {
                     // Add thisAliasObject to the validAliasObjects array
-                    validAliasTxs.push(thisAliasTx);
-                } else {
-                    // If it is not confirmed, add it to pendingAliasObjects
-                    pendingAliasTxs.push(thisAliasTx);
+                    validAliasRegistrations.push(thisAliasTx);
                 }
             } else {
                 // If you've already seen it at an earlier blockheight or earlier alphabetical txid,
@@ -183,6 +180,6 @@ module.exports = {
                 continue;
             }
         }
-        return { validAliasTxs, pendingAliasTxs };
+        return validAliasRegistrations;
     },
 };

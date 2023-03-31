@@ -174,15 +174,16 @@ module.exports = {
                     aliasTxHistory,
                     config.aliasConstants,
                 );
-                const { validAliasTxs, pendingAliasTxs } =
+                const validAliasRegistrations =
                     getValidAliasRegistrations(allAliasTxs);
-                log(`${validAliasTxs.length} valid alias registrations`);
-                log(`${pendingAliasTxs.length} pending alias registrations`);
+                log(
+                    `${validAliasRegistrations.length} valid alias registrations`,
+                );
 
                 const validAliasTxsToBeAddedToDb =
                     getValidAliasTxsToBeAddedToDb(
                         validAliasesInDb,
-                        validAliasTxs,
+                        validAliasRegistrations,
                     );
                 log(`validAliasTxsToBeAddedToDb`, validAliasTxsToBeAddedToDb);
 
@@ -199,7 +200,7 @@ module.exports = {
                         );
                     } catch (err) {
                         log(
-                            `A MongoBulkWriteException occurred adding validAliasTxs to the db, but there are successfully processed documents.`,
+                            `A MongoBulkWriteException occurred adding validAliasRegistrations to the db, but there are successfully processed documents.`,
                         );
                         /*
                         let ids = err.result.result.insertedIds;

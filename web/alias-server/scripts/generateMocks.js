@@ -108,24 +108,15 @@ async function generateMocks() {
     );
 
     /*
-    validAliasObjects, pendingAliasObjects
+    validAliasRegistrations
     
-    validAliasObjects are registered aliases. 
+    validAliasRegistrations are registered aliases. 
     These will never change unless and until Phase 2 migration.
-    
-    pendingAliasObjects are alias registrations that will be valid after the tx confirmed,
-    assuming no other tx with an alphabetically earlier txid comes into the same block
     */
-    const { validAliasTxs, pendingAliasTxs } =
-        getValidAliasRegistrations(allAliasTxs);
+    const validAliasRegistrations = getValidAliasRegistrations(allAliasTxs);
     fs.writeFileSync(
         `${mocksDir}/validAliasTxs.json`,
-        JSON.stringify(validAliasTxs, null, 2),
-        'utf-8',
-    );
-    fs.writeFileSync(
-        `${mocksDir}/pendingAliasTxs.json`,
-        JSON.stringify(pendingAliasTxs, null, 2),
+        JSON.stringify(validAliasRegistrations, null, 2),
         'utf-8',
     );
 
@@ -138,8 +129,8 @@ async function generateMocks() {
 
     // Get an array of just valid aliases
     const aliasHexConversions = [];
-    for (let i = 0; i < validAliasTxs.length; i += 1) {
-        const { alias } = validAliasTxs[i];
+    for (let i = 0; i < validAliasRegistrations.length; i += 1) {
+        const { alias } = validAliasRegistrations[i];
         const aliasHex = getHexFromAlias(alias);
         const aliasByteCount = getAliasBytecount(alias);
         aliasHexConversions.push({ alias, aliasHex, aliasByteCount });
