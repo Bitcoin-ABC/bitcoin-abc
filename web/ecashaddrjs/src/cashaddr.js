@@ -68,7 +68,7 @@ function encode(prefix, type, hash) {
  * @returns {object}
  * @throws {ValidationError}
  */
-function decode(address, returnHashAsString = false) {
+function decode(address, chronikReady = false) {
     validate(
         typeof address === 'string' && hasSingleCase(address),
         'Invalid address: ' + address + '.',
@@ -117,8 +117,8 @@ function decode(address, returnHashAsString = false) {
     var type = getType(versionByte);
     return {
         prefix: prefix,
-        type: type,
-        hash: returnHashAsString ? uint8arraytoString(hash) : hash,
+        type: chronikReady ? type.toLowerCase() : type,
+        hash: chronikReady ? uint8arraytoString(hash) : hash,
     };
 }
 
@@ -204,8 +204,10 @@ function checksumToUint5Array(checksum) {
  */
 function getTypeBits(type) {
     switch (type) {
+        case 'p2pkh':
         case 'P2PKH':
             return 0;
+        case 'p2sh':
         case 'P2SH':
             return 8;
         default:
@@ -430,5 +432,6 @@ function uint8arraytoString(uint8Array) {
 module.exports = {
     encode: encode,
     decode: decode,
+    uint8arraytoString: uint8arraytoString,
     ValidationError: ValidationError,
 };

@@ -301,6 +301,51 @@ describe('cashaddr', () => {
             }
         });
 
+        it('should encode and decode all types and networks if type input is lowercase', () => {
+            for (const type of ADDRESS_TYPES) {
+                for (const network of NETWORKS) {
+                    const hash = getRandomHash(20);
+                    const address = cashaddr.encode(
+                        network,
+                        type.toLowerCase(),
+                        hash,
+                    );
+                    const {
+                        prefix,
+                        type: actualType,
+                        hash: actualHash,
+                    } = cashaddr.decode(address);
+                    assert.equal(prefix, network);
+                    assert.equal(actualType, type);
+                    assert.deepEqual(actualHash, hash);
+                }
+            }
+        });
+
+        it('should encode and decode all types and networks if type input is lowercase and desired return data is formatted for chronik', () => {
+            for (const type of ADDRESS_TYPES) {
+                for (const network of NETWORKS) {
+                    const hash = getRandomHash(20);
+                    const address = cashaddr.encode(
+                        network,
+                        type.toLowerCase(),
+                        hash,
+                    );
+                    const {
+                        prefix,
+                        type: actualType,
+                        hash: actualHash,
+                    } = cashaddr.decode(address, true);
+                    assert.equal(prefix, network);
+                    assert.equal(actualType, type.toLowerCase());
+                    assert.deepEqual(
+                        actualHash,
+                        cashaddr.uint8arraytoString(hash),
+                    );
+                }
+            }
+        });
+
         it('should encode and decode many random hashes', () => {
             const NUM_TESTS = 1000;
             for (let i = 0; i < NUM_TESTS; ++i) {
