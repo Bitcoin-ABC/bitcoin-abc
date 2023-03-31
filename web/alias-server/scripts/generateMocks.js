@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const config = require('../config');
 const {
-    getAllAliasTxs,
+    getAliasTxs,
     sortAliasTxsByTxidAndBlockheight,
     getValidAliasRegistrations,
 } = require('../alias');
@@ -85,7 +85,7 @@ async function generateMocks() {
 
     // All valid alias txs at alias registration address
     // NB unconfirmed txs have blockheight === 100,000,000
-    const allAliasTxs = getAllAliasTxs(aliasTxHistory, config.aliasConstants);
+    const allAliasTxs = getAliasTxs(aliasTxHistory, config.aliasConstants);
     fs.writeFileSync(
         `${mocksDir}/allAliasTxs.json`,
         JSON.stringify(allAliasTxs, null, 2),

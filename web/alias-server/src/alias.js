@@ -9,11 +9,11 @@ const {
 } = require('./utils');
 
 module.exports = {
-    getAllAliasTxs: function (aliasTxHistory, aliasConstants) {
+    getAliasTxs: function (aliasTxHistory, aliasConstants) {
         const aliasTxCount = aliasTxHistory.length;
 
         // initialize array for all valid aliases
-        const allAliasTxs = [];
+        const aliasTxs = [];
         // iterate over history to get all alias:address pairs
         for (let i = 0; i < aliasTxCount; i += 1) {
             const thisAliasTx = aliasTxHistory[i];
@@ -22,10 +22,10 @@ module.exports = {
                 aliasConstants,
             );
             if (parsedAliasTx) {
-                allAliasTxs.push(parsedAliasTx);
+                aliasTxs.push(parsedAliasTx);
             }
         }
-        return allAliasTxs;
+        return aliasTxs;
     },
     parseAliasTx: function (aliasTx, aliasConstants) {
         // Input: a single tx from chronik tx history

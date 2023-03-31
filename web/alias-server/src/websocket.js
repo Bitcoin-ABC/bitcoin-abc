@@ -1,7 +1,7 @@
 'use strict';
 const config = require('../config');
 const log = require('./log');
-const { getAllAliasTxs, getValidAliasRegistrations } = require('./alias');
+const { getAliasTxs, getValidAliasRegistrations } = require('./alias');
 const { getUnprocessedTxHistory, getAllTxHistory } = require('./chronik');
 const {
     getValidAliasTxsToBeAddedToDb,
@@ -170,7 +170,7 @@ module.exports = {
                     log(`No new confirmed alias txs since last block`);
                 }
 
-                const allAliasTxs = getAllAliasTxs(
+                const allAliasTxs = getAliasTxs(
                     aliasTxHistory,
                     config.aliasConstants,
                 );
