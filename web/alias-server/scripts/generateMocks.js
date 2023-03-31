@@ -6,14 +6,14 @@ const {
     getAliasTxs,
     sortAliasTxsByTxidAndBlockheight,
     getValidAliasRegistrations,
-} = require('../alias');
-const { getAllTxHistory } = require('../chronik');
+} = require('../src/alias');
+const { getAllTxHistory } = require('../src/chronik');
 const {
     generateReservedAliasTxArray,
     getHexFromAlias,
     getAliasBytecount,
-} = require('../utils');
-const { initializeDb } = require('../db');
+} = require('../src/utils');
+const { initializeDb } = require('../src/db');
 
 async function generateMocks() {
     // Directory for mocks. Relative to /scripts, ../test/mocks/generated/
