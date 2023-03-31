@@ -208,7 +208,9 @@ class ChronikTxTest(BitcoinTestFramework):
         tx2blockhash = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[0]
         # Invalidate block
         node.invalidateblock(tx2blockhash)
+
         # Tx back in mempool
+        self.wait_until(lambda: txid2 in node.getrawmempool())
         assert_equal(query_tx_success(txid2), proto_tx2)
 
         # Mine conflicting tx
