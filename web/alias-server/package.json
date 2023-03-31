@@ -7,7 +7,8 @@
         "test": "mocha",
         "coverage": "nyc mocha",
         "junit": "mocha test --reporter mocha-junit-reporter",
-        "mocks": "node scripts/generateMocks.js"
+        "mocks": "node scripts/generateMocks.js",
+        "isFinalBlock": "node scripts/isFinalBlock"
     },
     "keywords": [
         "ecash",
@@ -30,9 +31,11 @@
         "request-ip": "^3.3.0"
     },
     "devDependencies": {
+        "axios-mock-adapter": "^1.21.4",
         "eslint": "^8.37.0",
         "mocha": "^10.2.0",
         "mocha-junit-reporter": "^2.2.0",
-        "nyc": "^15.1.0"
+        "nyc": "^15.1.0",
+        "test-console": "^2.0.0"
     }
 }
