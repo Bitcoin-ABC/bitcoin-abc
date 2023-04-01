@@ -7,7 +7,7 @@
 use std::borrow::Cow;
 
 use abc_rust_error::{Result, WrapErr};
-use bitcoinsuite_core::tx::TxId;
+use bitcoinsuite_core::tx::{Tx, TxId};
 use chronik_bridge::ffi;
 use chronik_db::{
     db::Db,
@@ -71,7 +71,7 @@ impl<'a> QueryTxs<'a> {
                     )
                     .wrap_err(ReadFailure(txid))?;
                     (
-                        Cow::Owned(tx),
+                        Cow::Owned(Tx::from(tx)),
                         tx_entry.time_first_seen,
                         tx_entry.is_coinbase,
                         Some(block),
@@ -84,15 +84,23 @@ impl<'a> QueryTxs<'a> {
             inputs: tx
                 .inputs
                 .iter()
-                .map(|input| proto::TxInput {
-                    prev_out: Some(proto::OutPoint {
-                        txid: input.prev_out.txid.to_vec(),
-                        out_idx: input.prev_out.out_idx,
-                    }),
-                    input_script: input.script.clone(),
-                    output_script: input.coin.output.script.clone(),
-                    value: input.coin.output.value,
-                    sequence_no: input.sequence,
+                .map(|input| {
+                    let coin = input.coin.as_ref();
+                    let (output_script, value) = coin
+                        .map(|coin| {
+                            (coin.output.script.to_vec(), coin.output.value)
+                        })
+                        .unwrap_or_default();
+                    proto::TxInput {
+                        prev_out: Some(proto::OutPoint {
+                            txid: input.prev_out.txid.to_vec(),
+                            out_idx: input.prev_out.out_idx,
+                        }),
+                        input_script: input.script.to_vec(),
+                        output_script,
+                        value,
+                        sequence_no: input.sequence,
+                    }
                 })
                 .collect(),
             outputs: tx
@@ -100,7 +108,7 @@ impl<'a> QueryTxs<'a> {
                 .iter()
                 .map(|output| proto::TxOutput {
                     value: output.value,
-                    output_script: output.script.clone(),
+                    output_script: output.script.to_vec(),
                 })
                 .collect(),
             lock_time: tx.locktime,

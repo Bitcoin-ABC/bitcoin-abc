@@ -10,7 +10,7 @@ use std::{
 };
 
 use abc_rust_error::Result;
-use bitcoinsuite_core::tx::TxId;
+use bitcoinsuite_core::tx::{Tx, TxId};
 use chronik_bridge::{ffi::init_error, util::expect_unique_ptr};
 use chronik_db::mem::MempoolTx;
 use chronik_http::server::{ChronikServer, ChronikServerParams};
@@ -169,7 +169,7 @@ impl Chronik {
         let tx = self.bridge.bridge_tx(ptx)?;
         let txid = TxId::from(tx.txid);
         indexer.handle_tx_added_to_mempool(MempoolTx {
-            tx,
+            tx: Tx::from(tx),
             time_first_seen,
         })?;
         log_chronik!("Chronik: transaction {} added to mempool\n", txid);

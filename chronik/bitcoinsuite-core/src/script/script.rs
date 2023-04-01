@@ -123,6 +123,17 @@ impl Script {
         &self.0
     }
 
+    /// Return the bytecode of the script as a [`Vec<u8>`].
+    /// ```
+    /// # use bitcoinsuite_core::script::Script;
+    /// use bytes::Bytes;
+    /// let bytecode = Bytes::from(vec![0x51]);
+    /// assert_eq!(Script::new(bytecode.clone()).to_vec(), vec![0x51]);
+    /// ```
+    pub fn to_vec(&self) -> Vec<u8> {
+        self.0.to_vec()
+    }
+
     /// Hex of the bytecode.
     /// ```
     /// # use bitcoinsuite_core::script::Script;

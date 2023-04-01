@@ -44,7 +44,7 @@ impl<G: Group> MempoolGroupHistory<G> {
                 .history
                 .get_mut(member_ser.as_ref())
                 .expect("Impossible");
-            member_history.insert((tx.time_first_seen, TxId::from(tx.tx.txid)));
+            member_history.insert((tx.time_first_seen, tx.tx.txid()));
         }
     }
 
@@ -57,7 +57,7 @@ impl<G: Group> MempoolGroupHistory<G> {
         for member in self.group.members_tx(query) {
             let member_ser: G::MemberSer<'_> = member.into();
             if let Some(entries) = self.history.get_mut(member_ser.as_ref()) {
-                entries.remove(&(tx.time_first_seen, TxId::from(tx.tx.txid)));
+                entries.remove(&(tx.time_first_seen, tx.tx.txid()));
                 if entries.is_empty() {
                     self.history.remove(member_ser.as_ref());
                 }

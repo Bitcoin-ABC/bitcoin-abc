@@ -5,7 +5,7 @@
 use std::{collections::HashMap, marker::PhantomData};
 
 use abc_rust_error::Result;
-use chronik_bridge::ffi;
+use bitcoinsuite_core::tx::Tx;
 use rocksdb::WriteBatch;
 
 use crate::{
@@ -124,7 +124,7 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
         &self,
         batch: &mut WriteBatch,
         first_tx_num: TxNum,
-        txs: &[ffi::Tx],
+        txs: &[Tx],
     ) -> Result<()> {
         let grouped_txs = self.group_txs(first_tx_num, txs);
         for (member, mut new_tx_nums) in grouped_txs {
@@ -152,7 +152,7 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
         &self,
         batch: &mut WriteBatch,
         first_tx_num: TxNum,
-        txs: &[ffi::Tx],
+        txs: &[Tx],
     ) -> Result<()> {
         let grouped_txs = self.group_txs(first_tx_num, txs);
         for (member, removed_tx_nums) in grouped_txs {
@@ -191,7 +191,7 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
     fn group_txs<'tx>(
         &self,
         first_tx_num: TxNum,
-        txs: &'tx [ffi::Tx],
+        txs: &'tx [Tx],
     ) -> HashMap<G::Member<'tx>, Vec<TxNum>> {
         let mut group_tx_nums = HashMap::<G::Member<'tx>, Vec<TxNum>>::new();
         for (tx_idx, tx) in txs.iter().enumerate() {
@@ -270,7 +270,7 @@ fn key_for_member_page(member_ser: &[u8], page_num: PageNum) -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     use abc_rust_error::Result;
-    use chronik_bridge::ffi;
+    use bitcoinsuite_core::tx::Tx;
     use rocksdb::WriteBatch;
 
     use crate::{
@@ -293,7 +293,7 @@ mod tests {
         let group_reader = GroupHistoryReader::<ValueGroup>::new(&db)?;
 
         let first_tx_num = std::cell::RefCell::new(0u64);
-        let connect_block = |txs: &[ffi::Tx]| -> Result<()> {
+        let connect_block = |txs: &[Tx]| -> Result<()> {
             let mut batch = WriteBatch::default();
             let mut first_tx_num = first_tx_num.borrow_mut();
             group_writer.insert(&mut batch, *first_tx_num, txs)?;
@@ -301,7 +301,7 @@ mod tests {
             db.write_batch(batch)?;
             Ok(())
         };
-        let disconnect_block = |txs: &[ffi::Tx]| -> Result<()> {
+        let disconnect_block = |txs: &[Tx]| -> Result<()> {
             let mut batch = WriteBatch::default();
             let mut first_tx_num = first_tx_num.borrow_mut();
             *first_tx_num -= txs.len() as u64;

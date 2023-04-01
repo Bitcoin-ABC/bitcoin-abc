@@ -4,5 +4,9 @@
 
 //! Module for data referring to txs, e.g. [`TxId`].
 
+#[allow(clippy::module_inception)]
+mod tx;
 mod txid;
+
+pub use self::tx::*;
 pub use self::txid::*;

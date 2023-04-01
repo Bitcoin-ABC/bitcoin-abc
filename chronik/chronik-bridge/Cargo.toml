@@ -10,6 +10,8 @@ license = "MIT"
 [dependencies]
 abc-rust-lint = { path = "../abc-rust-lint" }
 
+bitcoinsuite-core = { path = "../bitcoinsuite-core" }
+
 # Bridge to C++
 cxx = "1.0"
 

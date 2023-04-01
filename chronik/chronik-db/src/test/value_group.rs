@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-use chronik_bridge::ffi;
+use bitcoinsuite_core::tx::{Coin, Tx, TxId, TxInput, TxMut, TxOutput};
 
 use crate::{
     group::{Group, GroupQuery},
@@ -22,7 +22,9 @@ impl Group for ValueGroup {
         let mut values = Vec::new();
         if !query.is_coinbase {
             for input in &query.tx.inputs {
-                values.push(ser_value(input.coin.output.value));
+                if let Some(coin) = &input.coin {
+                    values.push(ser_value(coin.output.value));
+                }
             }
         }
         for output in &query.tx.outputs {
@@ -51,30 +53,32 @@ pub(crate) fn make_value_tx<const N: usize, const M: usize>(
     txid_num: u8,
     input_values: [i64; N],
     output_values: [i64; M],
-) -> ffi::Tx {
-    ffi::Tx {
-        txid: [txid_num; 32],
-        version: 0,
-        inputs: input_values
-            .into_iter()
-            .map(|value| ffi::TxInput {
-                coin: ffi::Coin {
-                    output: ffi::TxOutput {
-                        value,
+) -> Tx {
+    Tx::with_txid(
+        TxId::from([txid_num; 32]),
+        TxMut {
+            version: 0,
+            inputs: input_values
+                .into_iter()
+                .map(|value| TxInput {
+                    coin: Some(Coin {
+                        output: TxOutput {
+                            value,
+                            ..Default::default()
+                        },
                         ..Default::default()
-                    },
+                    }),
                     ..Default::default()
-                },
-                ..Default::default()
-            })
-            .collect(),
-        outputs: output_values
-            .into_iter()
-            .map(|value| ffi::TxOutput {
-                value,
-                ..Default::default()
-            })
-            .collect(),
-        locktime: 0,
-    }
+                })
+                .collect(),
+            outputs: output_values
+                .into_iter()
+                .map(|value| TxOutput {
+                    value,
+                    ..Default::default()
+                })
+                .collect(),
+            locktime: 0,
+        },
+    )
 }

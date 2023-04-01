@@ -263,6 +263,7 @@ name = "chronik-bridge"
 version = "0.1.0"
 dependencies = [
  "abc-rust-lint",
+ "bitcoinsuite-core",
  "cxx",
  "cxx-build",
 ]

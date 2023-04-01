@@ -7,8 +7,7 @@
 use std::collections::HashMap;
 
 use abc_rust_error::Result;
-use bitcoinsuite_core::tx::TxId;
-use chronik_bridge::ffi;
+use bitcoinsuite_core::tx::{Tx, TxId};
 use thiserror::Error;
 
 /// Mempool of the indexer. This stores txs from the node again, but having a
@@ -23,7 +22,7 @@ pub struct Mempool {
 #[derive(Debug, PartialEq, Eq)]
 pub struct MempoolTx {
     /// Transaction, including spent coins.
-    pub tx: ffi::Tx,
+    pub tx: Tx,
     /// Time this tx has been added to the node's mempool.
     pub time_first_seen: i64,
 }
@@ -45,7 +44,7 @@ use self::MempoolError::*;
 impl Mempool {
     /// Insert tx into the mempool.
     pub fn insert(&mut self, mempool_tx: MempoolTx) -> Result<()> {
-        let txid = TxId::from(mempool_tx.tx.txid);
+        let txid = mempool_tx.tx.txid();
         if self.txs.insert(txid, mempool_tx).is_some() {
             return Err(DuplicateTx(txid).into());
         }

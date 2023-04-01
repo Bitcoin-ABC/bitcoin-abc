@@ -4,7 +4,7 @@
 
 //! Module for [`Group`] and [`GroupQuery`].
 
-use chronik_bridge::ffi;
+use bitcoinsuite_core::tx::Tx;
 
 use crate::io::GroupHistoryConf;
 
@@ -15,7 +15,7 @@ pub struct GroupQuery<'a> {
     /// Whether the tx is a coinbase tx.
     pub is_coinbase: bool,
     /// The transaction that should be grouped.
-    pub tx: &'a ffi::Tx,
+    pub tx: &'a Tx,
 }
 
 /// Groups txs and determines which members they are.
