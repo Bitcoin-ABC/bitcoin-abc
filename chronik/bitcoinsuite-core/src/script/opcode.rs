@@ -70,6 +70,8 @@ define_opcodes! {
     OP_0 = 0x00,
     /// Push the number 1 onto the stack.
     OP_TRUE = 0x51,
+    /// Mark transaction as invalid. Used to add data to a tx in an output.
+    OP_RETURN = 0x6a,
     /// Duplicate the top stack item.
     OP_DUP = 0x76,
     /// If the top two stack items are byte-equal, push 1 onto the stack,

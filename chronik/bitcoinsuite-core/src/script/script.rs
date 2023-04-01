@@ -133,6 +133,20 @@ impl Script {
     pub fn hex(&self) -> String {
         hex::encode(&self.0)
     }
+
+    /// Whether this script is an OP_RETURN script.
+    /// ```
+    /// # use bitcoinsuite_core::script::Script;
+    /// assert!(Script::new(vec![0x6a].into()).is_opreturn());
+    /// assert!(Script::new(vec![0x6a, 0x00].into()).is_opreturn());
+    /// assert!(!Script::new(vec![0x6f].into()).is_opreturn());
+    /// ```
+    pub fn is_opreturn(&self) -> bool {
+        match self.0.first() {
+            Some(&byte) => byte == OP_RETURN.number(),
+            None => false,
+        }
+    }
 }
 
 impl AsRef<[u8]> for Script {
