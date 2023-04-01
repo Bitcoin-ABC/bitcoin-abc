@@ -41,10 +41,22 @@ describe('cashaddr', () => {
         '011f28e473c95f4013d7d53ec5fbc3b42df8ed10',
     ];
 
+    const TEST_P2PKH_OUTPUTSCRIPTS = [
+        '76a91476a04053bda0a88bda5177b86a15c3b29f55987388ac',
+        '76a914cb481232299cd5743151ac4b2d63ae198e7bb0a988ac',
+        '76a914011f28e473c95f4013d7d53ec5fbc3b42df8ed1088ac',
+    ];
+
     const EXPECTED_P2PKH_OUTPUTS = [
         'ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2',
         'ecash:qr95sy3j9xwd2ap32xkykttr4cvcu7as4ykdcjcn6n',
         'ecash:qqq3728yw0y47sqn6l2na30mcw6zm78dzq653y7pv5',
+    ];
+
+    const TEST_P2SH_OUTPUTSCRIPTS = [
+        'a91476a04053bda0a88bda5177b86a15c3b29f55987387',
+        'a914cb481232299cd5743151ac4b2d63ae198e7bb0a987',
+        'a914011f28e473c95f4013d7d53ec5fbc3b42df8ed1087',
     ];
 
     const EXPECTED_P2SH_OUTPUTS = [
@@ -156,6 +168,110 @@ describe('cashaddr', () => {
                     EXPECTED_P2SH_OUTPUTS_TESTNET[index],
                 );
             }
+        });
+    });
+
+    describe('#getTypeAndHashFromOutputScript()', () => {
+        it('should get type and hash from outputScripts on mainnet correctly', () => {
+            for (const index in TEST_HASHES_STRINGS) {
+                assert.deepEqual(
+                    cashaddr.getTypeAndHashFromOutputScript(
+                        TEST_P2PKH_OUTPUTSCRIPTS[index],
+                    ),
+                    { type: 'P2PKH', hash: TEST_HASHES_STRINGS[index] },
+                );
+                assert.deepEqual(
+                    cashaddr.getTypeAndHashFromOutputScript(
+                        TEST_P2SH_OUTPUTSCRIPTS[index],
+                    ),
+                    { type: 'P2SH', hash: TEST_HASHES_STRINGS[index] },
+                );
+            }
+        });
+        it('should fail on unsupported outputScripts', () => {
+            assert.throws(() => {
+                // missing initial a
+                cashaddr.getTypeAndHashFromOutputScript(
+                    '91476a04053bda0a88bda5177b86a15c3b29f55987387',
+                );
+            }, cashaddr.ValidationError);
+            assert.throws(() => {
+                // p2pkh prefix and p2sh suffix
+                cashaddr.getTypeAndHashFromOutputScript(
+                    '76a91476a04053bda0a88bda5177b86a15c3b29f55987387',
+                );
+            }, cashaddr.ValidationError);
+            assert.throws(() => {
+                // some random string
+                cashaddr.getTypeAndHashFromOutputScript(
+                    'chronikWouldNeverReturnThis',
+                );
+            }, cashaddr.ValidationError);
+            assert.throws(() => {
+                // Invalid hash length of 21 bytes (20 and 24 are valid)
+                cashaddr.getTypeAndHashFromOutputScript(
+                    'a91476a04053bda0a88bda5177b86a15c3b29f5598737387',
+                );
+            }, cashaddr.ValidationError);
+        });
+    });
+
+    describe('#encodeOutputScript()', () => {
+        it('should encode outputScripts on mainnet correctly', () => {
+            for (const index in TEST_HASHES) {
+                assert.equal(
+                    cashaddr.encodeOutputScript(
+                        TEST_P2PKH_OUTPUTSCRIPTS[index],
+                    ),
+                    EXPECTED_P2PKH_OUTPUTS[index],
+                );
+                assert.equal(
+                    cashaddr.encodeOutputScript(TEST_P2SH_OUTPUTSCRIPTS[index]),
+                    EXPECTED_P2SH_OUTPUTS[index],
+                );
+            }
+        });
+        it('should encode outputScripts to testnet prefix correctly', () => {
+            for (const index in TEST_HASHES) {
+                assert.equal(
+                    cashaddr.encodeOutputScript(
+                        TEST_P2PKH_OUTPUTSCRIPTS[index],
+                        'ectest',
+                    ),
+                    EXPECTED_P2PKH_OUTPUTS_TESTNET[index],
+                );
+                assert.equal(
+                    cashaddr.encodeOutputScript(
+                        TEST_P2SH_OUTPUTSCRIPTS[index],
+                        'ectest',
+                    ),
+                    EXPECTED_P2SH_OUTPUTS_TESTNET[index],
+                );
+            }
+        });
+        it('should fail on unsupported outputScripts', () => {
+            assert.throws(() => {
+                // missing initial a
+                cashaddr.encodeOutputScript(
+                    '91476a04053bda0a88bda5177b86a15c3b29f55987387',
+                );
+            }, cashaddr.ValidationError);
+            assert.throws(() => {
+                // p2pkh prefix and p2sh suffix
+                cashaddr.encodeOutputScript(
+                    '76a91476a04053bda0a88bda5177b86a15c3b29f55987387',
+                );
+            }, cashaddr.ValidationError);
+            assert.throws(() => {
+                // some random string
+                cashaddr.encodeOutputScript('chronikWouldNeverReturnThis');
+            }, cashaddr.ValidationError);
+            assert.throws(() => {
+                // Invalid hash length of 21 bytes (20 and 24 are valid)
+                cashaddr.encodeOutputScript(
+                    'a91476a04053bda0a88bda5177b86a15c3b29f5598737387',
+                );
+            }, cashaddr.ValidationError);
         });
     });
 

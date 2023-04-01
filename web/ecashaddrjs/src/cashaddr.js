@@ -429,9 +429,94 @@ function uint8arraytoString(uint8Array) {
     return string;
 }
 
+/**
+ * Get type and hash from an outputScript
+ *
+ * Supported outputScripts:
+ *
+ * P2PKH: 76a914<hash>88ac
+ * P2SH:  a914<hash>87
+ *
+ * Validates for supported outputScript and hash length *
+ *
+ * @private
+ * @param {string} outputScript an ecash tx outputScript
+ * @returns {object}
+ * @throws {ValidationError}
+ */
+function getTypeAndHashFromOutputScript(outputScript) {
+    const p2pkhPrefix = '76a914';
+    const p2pkhSuffix = '88ac';
+
+    const p2shPrefix = 'a914';
+    const p2shSuffix = '87';
+
+    let hash, type;
+
+    // If outputScript begins with '76a914' and ends with '88ac'
+    if (
+        outputScript.slice(0, p2pkhPrefix.length) === p2pkhPrefix &&
+        outputScript.slice(-1 * p2pkhSuffix.length) === p2pkhSuffix
+    ) {
+        // We have type p2pkh
+        type = 'P2PKH';
+
+        // hash is the string in between '76a194' and '88ac'
+        hash = outputScript.substring(
+            outputScript.indexOf(p2pkhPrefix) + p2pkhPrefix.length,
+            outputScript.lastIndexOf(p2pkhSuffix),
+        );
+        // If outputScript begins with 'a914' and ends with '87'
+    } else if (
+        outputScript.slice(0, p2shPrefix.length) === p2shPrefix &&
+        outputScript.slice(-1 * p2shSuffix.length) === p2shSuffix
+    ) {
+        // We have type p2sh
+        type = 'P2SH';
+        // hash is the string in between 'a914' and '87'
+        hash = outputScript.substring(
+            outputScript.indexOf(p2shPrefix) + p2shPrefix.length,
+            outputScript.lastIndexOf(p2shSuffix),
+        );
+    } else {
+        // Throw validation error if outputScript not of these two types
+        throw new ValidationError('Unsupported outputScript: ' + outputScript);
+    }
+
+    // Throw validation error if hash is of invalid size
+    // Per spec, valid hash sizes in bytes
+    const VALID_SIZES = [20, 24, 28, 32, 40, 48, 56, 64];
+
+    if (!VALID_SIZES.includes(hash.length / 2)) {
+        throw new ValidationError(
+            'Invalid hash size in outputScript: ' + outputScript,
+        );
+    }
+    return { type, hash };
+}
+
+/**
+ * Encodes a given outputScript into an eCash address using the optionally specified prefix.
+ *
+ * @static
+ * @param {string} outputScript an ecash tx outputScript
+ * @param {string} prefix Cash address prefix. E.g.: 'ecash'.
+ * @returns {string}
+ * @throws {ValidationError}
+ */
+function encodeOutputScript(outputScript, prefix = 'ecash') {
+    // Get type and hash from outputScript
+    const { type, hash } = getTypeAndHashFromOutputScript(outputScript);
+
+    // The encode function validates hash for correct length
+    return encode(prefix, type, hash);
+}
+
 module.exports = {
     encode: encode,
     decode: decode,
     uint8arraytoString: uint8arraytoString,
+    encodeOutputScript: encodeOutputScript,
+    getTypeAndHashFromOutputScript: getTypeAndHashFromOutputScript,
     ValidationError: ValidationError,
 };
