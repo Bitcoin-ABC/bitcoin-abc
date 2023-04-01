@@ -10,6 +10,9 @@ license = "MIT"
 [dependencies]
 abc-rust-lint = { path = "../abc-rust-lint" }
 
+# Efficient byte strings, with ref counted substrings
+bytes = "1.4"
+
 # En-/decode byte strings from/to hex
 hex = "0.4"
 

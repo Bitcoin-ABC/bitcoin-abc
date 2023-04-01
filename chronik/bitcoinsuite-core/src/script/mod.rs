@@ -6,7 +6,12 @@
 
 pub mod opcode;
 mod pubkey;
+#[allow(clippy::module_inception)]
+mod script;
+mod script_mut;
 mod uncompressed_pubkey;
 
 pub use self::pubkey::*;
+pub use self::script::*;
+pub use self::script_mut::*;
 pub use self::uncompressed_pubkey::*;
