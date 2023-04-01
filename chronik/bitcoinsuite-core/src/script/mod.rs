@@ -6,5 +6,7 @@
 
 pub mod opcode;
 mod pubkey;
+mod uncompressed_pubkey;
 
 pub use self::pubkey::*;
+pub use self::uncompressed_pubkey::*;
