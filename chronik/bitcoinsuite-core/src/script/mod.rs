@@ -5,3 +5,6 @@
 //! Module for structs and definitions regarding Script.
 
 pub mod opcode;
+mod pubkey;
+
+pub use self::pubkey::*;
