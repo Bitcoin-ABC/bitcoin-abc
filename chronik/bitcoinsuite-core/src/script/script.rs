@@ -35,7 +35,7 @@ impl Script {
     /// );
     /// ```
     pub fn p2pkh(hash: &ShaRmd160) -> Script {
-        let mut script = ScriptMut::with_capacity(25);
+        let mut script = ScriptMut::with_capacity(2 + 1 + ShaRmd160::SIZE + 2);
         script.put_opcodes([OP_DUP, OP_HASH160]);
         script.put_bytecode(&[ShaRmd160::SIZE as u8]);
         script.put_bytecode(hash.as_le_bytes());
@@ -55,7 +55,7 @@ impl Script {
     /// );
     /// ```
     pub fn p2sh(hash: &ShaRmd160) -> Script {
-        let mut script = ScriptMut::with_capacity(23);
+        let mut script = ScriptMut::with_capacity(1 + 1 + ShaRmd160::SIZE + 1);
         script.put_opcodes([OP_HASH160]);
         script.put_bytecode(&[ShaRmd160::SIZE as u8]);
         script.put_bytecode(hash.as_le_bytes());
@@ -78,7 +78,7 @@ impl Script {
     /// );
     /// ```
     pub fn p2pk(pubkey: &PubKey) -> Script {
-        let mut script = ScriptMut::with_capacity(35);
+        let mut script = ScriptMut::with_capacity(1 + PubKey::SIZE + 1);
         script.put_bytecode(&[PubKey::SIZE as u8]);
         script.put_bytecode(pubkey.as_slice());
         script.put_opcodes([OP_CHECKSIG]);
@@ -105,7 +105,8 @@ impl Script {
     /// );
     /// ```
     pub fn p2pk_uncompressed(pubkey: &UncompressedPubKey) -> Script {
-        let mut script = ScriptMut::with_capacity(35);
+        let mut script =
+            ScriptMut::with_capacity(1 + UncompressedPubKey::SIZE + 1);
         script.put_bytecode(&[UncompressedPubKey::SIZE as u8]);
         script.put_bytecode(pubkey.as_ref());
         script.put_opcodes([OP_CHECKSIG]);

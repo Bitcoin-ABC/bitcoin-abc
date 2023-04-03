@@ -40,7 +40,6 @@ impl ScriptMut {
     /// contain any kinds of opcodes.
     /// ```
     /// # use bitcoinsuite_core::script::ScriptMut;
-    /// use bitcoinsuite_core::script::opcode::{OP_EQUAL, OP_TRUE};
     /// let mut script_mut = ScriptMut::default();
     /// script_mut.put_bytecode(&[1, 2, 3, 4, 5]);
     /// assert_eq!(script_mut.freeze().hex(), "0102030405");
