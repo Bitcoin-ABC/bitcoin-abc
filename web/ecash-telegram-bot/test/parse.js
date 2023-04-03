@@ -1,14 +1,6 @@
 const assert = require('assert');
 const config = require('../config');
-const {
-    genesisBlock,
-    etokenGenesisTx,
-    buxTxs,
-    cashtabMsg,
-    multipleGenesis,
-    htmlEscapeTest,
-    cashtabMsgMulti,
-} = require('./mocks/blocks');
+const blocks = require('./mocks/blocks');
 const { telegramHtmlStrings } = require('./mocks/templates');
 const memoOutputScripts = require('./mocks/memo');
 
@@ -19,99 +11,34 @@ const {
     prepareStringForTelegramHTML,
 } = require('../parse');
 
-describe('ecash-telegram-bot parse.js chronik parsing functions', function () {
-    it('Parses the genesis block', function () {
-        assert.deepEqual(
-            parseBlock(genesisBlock.chronikData),
-            genesisBlock.parsed,
-        );
+describe('ecash-telegram-bot parses chronik block data and generates expected telegram msg', function () {
+    it('All test blocks', function () {
+        const blockNames = Object.keys(blocks);
+        for (let i = 0; i < blockNames.length; i += 1) {
+            const thisBlock = blocks[blockNames[i]];
+            const { chronikData, parsed, tgHtml } = thisBlock;
+            assert.deepEqual(parseBlock(chronikData), parsed);
+            assert.deepEqual(getBlockTgMessage(parsed), tgHtml);
+        }
     });
-    it('Creates a tg message for the genesis block', function () {
-        assert.deepEqual(
-            getBlockTgMessage(genesisBlock.parsed),
-            genesisBlock.tgHtml,
-        );
-    });
-    it('Parses a block containing an etoken genesis tx', function () {
-        assert.deepEqual(
-            parseBlock(etokenGenesisTx.chronikData),
-            etokenGenesisTx.parsed,
-        );
-    });
-    it('Creates a tg message for a block containing an etoken genesis tx', function () {
-        assert.deepEqual(
-            getBlockTgMessage(etokenGenesisTx.parsed),
-            etokenGenesisTx.tgHtml,
-        );
-    });
-    it('Parses a block containing multiple etoken genesis txs', function () {
-        assert.deepEqual(
-            parseBlock(multipleGenesis.chronikData),
-            multipleGenesis.parsed,
-        );
-    });
-    it('Creates a tg message for a block containing multiple etoken genesis txs', function () {
-        assert.deepEqual(
-            getBlockTgMessage(multipleGenesis.parsed),
-            multipleGenesis.tgHtml,
-        );
-    });
-    it('Parses a block containing BUX etoken txs', function () {
-        assert.deepEqual(parseBlock(buxTxs.chronikData), buxTxs.parsed);
-    });
-    it('Creates a tg message for a block containing BUX etoken txs', function () {
-        assert.deepEqual(getBlockTgMessage(buxTxs.parsed), buxTxs.tgHtml);
-    });
-    it('Parses a block containing a Cashtab message tx', function () {
-        assert.deepEqual(parseBlock(cashtabMsg.chronikData), cashtabMsg.parsed);
-    });
-    it('Creates a tg message for a block containing an etoken genesis tx', function () {
-        assert.deepEqual(
-            getBlockTgMessage(etokenGenesisTx.parsed),
-            etokenGenesisTx.tgHtml,
-        );
-    });
-    it('Parses a block containing genesis txs that require html escape processing', function () {
-        assert.deepEqual(
-            parseBlock(htmlEscapeTest.chronikData),
-            htmlEscapeTest.parsed,
-        );
-    });
-    it('Parses a block containing multiple Cashtab msg txs', function () {
-        assert.deepEqual(
-            parseBlock(cashtabMsgMulti.chronikData),
-            cashtabMsgMulti.parsed,
-        );
-    });
-    it('Creates a tg message for a block containing multiple Cashtab msg txs', function () {
-        assert.deepEqual(
-            getBlockTgMessage(cashtabMsgMulti.parsed),
-            cashtabMsgMulti.tgHtml,
-        );
-    });
-    it('Creates a tg message for a block containing genesis txs that require html escape processing', function () {
-        assert.deepEqual(
-            getBlockTgMessage(htmlEscapeTest.parsed),
-            htmlEscapeTest.tgHtml,
-        );
-    });
+
     it(`prepareStringForTelegramHTML replaces '<', '>', and '&' per specifications`, function () {
-        assert.strictEqual(
-            prepareStringForTelegramHTML(telegramHtmlStrings.dangerous),
-            telegramHtmlStrings.safe,
-        );
+        const { safe, dangerous } = telegramHtmlStrings;
+        assert.strictEqual(prepareStringForTelegramHTML(dangerous), safe);
     });
     it(`prepareStringForTelegramHTML does not change a string if it does not contain characters restricted by Telegram's API`, function () {
+        const { noChangeExpected } = telegramHtmlStrings;
         assert.strictEqual(
-            prepareStringForTelegramHTML(telegramHtmlStrings.noChangeExpected),
-            telegramHtmlStrings.noChangeExpected,
+            prepareStringForTelegramHTML(noChangeExpected),
+            noChangeExpected,
         );
     });
     it(`parseMemoOutputScript correctly parses all tested memo actions in memo.js`, function () {
         memoOutputScripts.map(memoTestObj => {
+            const app = config.opReturn.memo.app;
             const { outputScript, parsed } = memoTestObj;
             assert.deepEqual(parseMemoOutputScript(outputScript), {
-                app: config.opReturn.memo.app,
+                app,
                 msg: parsed,
             });
         });
