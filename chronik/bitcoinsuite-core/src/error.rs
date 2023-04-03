@@ -20,6 +20,17 @@ pub enum DataError {
         actual: usize,
     },
 
+    /// Expected bytes with multiple allowed lengths, none of which were met.
+    #[error(
+        "Invalid length, expected one of {expected:?} but got {actual} bytes"
+    )]
+    InvalidLengthMulti {
+        /// List of expected number of bytes.
+        expected: Vec<usize>,
+        /// Actual number of bytes.
+        actual: usize,
+    },
+
     /// Hex contains invalid characters, odd length, etc.
     #[error("Invalid hex: {0}")]
     InvalidHex(hex::FromHexError),
