@@ -9,6 +9,7 @@ define $(package)_config_cmds
         -DCMAKE_CXX_STANDARD=14 \
         -DCMAKE_BUILD_TYPE=Release \
         -DBUILD_SHARED_LIBS=OFF \
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
         -Dprotobuf_BUILD_TESTS=OFF \
         -Dprotobuf_WITH_ZLIB=OFF \
         -Dprotobuf_DISABLE_RTTI=ON
