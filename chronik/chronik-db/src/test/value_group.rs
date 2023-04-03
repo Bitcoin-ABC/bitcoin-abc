@@ -14,8 +14,8 @@ use crate::{
 pub(crate) struct ValueGroup;
 
 impl Group for ValueGroup {
-    type Iter<'a> = std::vec::IntoIter<[u8; 8]>;
-    type Member<'a> = [u8; 8];
+    type Iter<'a> = std::vec::IntoIter<i64>;
+    type Member<'a> = i64;
     type MemberSer<'a> = [u8; 8];
 
     fn members_tx(&self, query: GroupQuery<'_>) -> Self::Iter<'_> {
@@ -23,14 +23,18 @@ impl Group for ValueGroup {
         if !query.is_coinbase {
             for input in &query.tx.inputs {
                 if let Some(coin) = &input.coin {
-                    values.push(ser_value(coin.output.value));
+                    values.push(coin.output.value);
                 }
             }
         }
         for output in &query.tx.outputs {
-            values.push(ser_value(output.value));
+            values.push(output.value);
         }
         values.into_iter()
+    }
+
+    fn ser_member<'a>(&self, value: i64) -> Self::MemberSer<'a> {
+        ser_value(value)
     }
 
     fn tx_history_conf() -> GroupHistoryConf {

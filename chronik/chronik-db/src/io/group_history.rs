@@ -128,7 +128,7 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
     ) -> Result<()> {
         let grouped_txs = self.group_txs(first_tx_num, txs);
         for (member, mut new_tx_nums) in grouped_txs {
-            let member_ser: G::MemberSer<'_> = member.into();
+            let member_ser: G::MemberSer<'_> = self.group.ser_member(member);
             let (mut page_num, mut last_page_tx_nums) =
                 self.col.get_member_last_page(member_ser.as_ref())?;
             while !new_tx_nums.is_empty() {
@@ -156,7 +156,7 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
     ) -> Result<()> {
         let grouped_txs = self.group_txs(first_tx_num, txs);
         for (member, removed_tx_nums) in grouped_txs {
-            let member_ser: G::MemberSer<'_> = member.into();
+            let member_ser: G::MemberSer<'_> = self.group.ser_member(member);
             let mut num_remaining_removes = removed_tx_nums.len();
             let (mut page_num, mut last_page_tx_nums) =
                 self.col.get_member_last_page(member_ser.as_ref())?;

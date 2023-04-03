@@ -30,7 +30,7 @@ pub trait Group {
     /// Member of a group, this is what txs will be grouped by.
     ///
     /// We use a HashMap to group txs, so it must implement [`std::hash::Hash`].
-    type Member<'a>: Into<Self::MemberSer<'a>> + std::hash::Hash + Eq;
+    type Member<'a>: std::hash::Hash + Eq;
 
     /// Serialized member, this is what will be used as key in the DB.
     /// Normally, this will be a [`Vec<u8>`] or an [`u8`] array or slice.
@@ -50,6 +50,9 @@ pub trait Group {
     ///
     /// Note: The returned iterator is allowed to borrow from the query.
     fn members_tx<'a>(&self, query: GroupQuery<'a>) -> Self::Iter<'a>;
+
+    /// Serialize the given member.
+    fn ser_member<'a>(&self, member: Self::Member<'a>) -> Self::MemberSer<'a>;
 
     /// The [`GroupHistoryConf`] for this group.
     fn tx_history_conf() -> GroupHistoryConf;
