@@ -122,9 +122,10 @@ static const uint64_t RANDOMIZER_ID_ADDRCACHE = 0x1cf2e4ddd306dda9ULL;
 //
 bool fDiscover = true;
 bool fListen = true;
-RecursiveMutex cs_mapLocalHost;
-std::map<CNetAddr, LocalServiceInfo> mapLocalHost GUARDED_BY(cs_mapLocalHost);
-static bool vfLimited[NET_MAX] GUARDED_BY(cs_mapLocalHost) = {};
+Mutex g_maplocalhost_mutex;
+std::map<CNetAddr, LocalServiceInfo>
+    mapLocalHost GUARDED_BY(g_maplocalhost_mutex);
+static bool vfLimited[NET_MAX] GUARDED_BY(g_maplocalhost_mutex) = {};
 
 void CConnman::AddAddrFetch(const std::string &strDest) {
     LOCK(m_addr_fetches_mutex);
@@ -145,7 +146,7 @@ bool GetLocal(CService &addr, const CNetAddr *paddrPeer) {
     int nBestScore = -1;
     int nBestReachability = -1;
     {
-        LOCK(cs_mapLocalHost);
+        LOCK(g_maplocalhost_mutex);
         for (const auto &entry : mapLocalHost) {
             int nScore = entry.second.nScore;
             int nReachability = entry.first.GetReachabilityFrom(paddrPeer);
@@ -196,7 +197,7 @@ CAddress GetLocalAddress(const CNetAddr *paddrPeer,
 }
 
 static int GetnScore(const CService &addr) {
-    LOCK(cs_mapLocalHost);
+    LOCK(g_maplocalhost_mutex);
     const auto it = mapLocalHost.find(addr);
     return (it != mapLocalHost.end()) ? it->second.nScore : 0;
 }
@@ -252,7 +253,7 @@ bool AddLocal(const CService &addr, int nScore) {
     LogPrintf("AddLocal(%s,%i)\n", addr.ToString(), nScore);
 
     {
-        LOCK(cs_mapLocalHost);
+        LOCK(g_maplocalhost_mutex);
         const auto [it, is_newly_added] =
             mapLocalHost.emplace(addr, LocalServiceInfo());
         LocalServiceInfo &info = it->second;
@@ -270,7 +271,7 @@ bool AddLocal(const CNetAddr &addr, int nScore) {
 }
 
 void RemoveLocal(const CService &addr) {
-    LOCK(cs_mapLocalHost);
+    LOCK(g_maplocalhost_mutex);
     LogPrintf("RemoveLocal(%s)\n", addr.ToString());
     mapLocalHost.erase(addr);
 }
@@ -279,12 +280,12 @@ void SetReachable(enum Network net, bool reachable) {
     if (net == NET_UNROUTABLE || net == NET_INTERNAL) {
         return;
     }
-    LOCK(cs_mapLocalHost);
+    LOCK(g_maplocalhost_mutex);
     vfLimited[net] = !reachable;
 }
 
 bool IsReachable(enum Network net) {
-    LOCK(cs_mapLocalHost);
+    LOCK(g_maplocalhost_mutex);
     return !vfLimited[net];
 }
 
@@ -294,7 +295,7 @@ bool IsReachable(const CNetAddr &addr) {
 
 /** vote for a local address */
 bool SeenLocal(const CService &addr) {
-    LOCK(cs_mapLocalHost);
+    LOCK(g_maplocalhost_mutex);
     const auto it = mapLocalHost.find(addr);
     if (it == mapLocalHost.end()) {
         return false;
@@ -305,7 +306,7 @@ bool SeenLocal(const CService &addr) {
 
 /** check whether a given address is potentially local */
 bool IsLocal(const CService &addr) {
-    LOCK(cs_mapLocalHost);
+    LOCK(g_maplocalhost_mutex);
     return mapLocalHost.count(addr) > 0;
 }
 
