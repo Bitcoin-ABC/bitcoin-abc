@@ -224,6 +224,12 @@ mod ffi_inner {
             height: i32,
         ) -> Result<&CBlockIndex>;
 
+        /// Compress the given script using `ScriptCompression`.
+        fn compress_script(script: &[u8]) -> Vec<u8>;
+
+        /// Decompress the given script using `ScriptCompression`.
+        fn decompress_script(compressed: &[u8]) -> Result<Vec<u8>>;
+
         /// Calls `InitError` from `node/ui_interface.h` to report an error to
         /// the user and then gracefully shut down the node.
         fn init_error(msg: &str) -> bool;

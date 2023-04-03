@@ -8,6 +8,7 @@
 #include <chronik-cpp/chronik_bridge.h>
 #include <chronik-cpp/util/collection.h>
 #include <chronik-cpp/util/hash.h>
+#include <compressor.h>
 #include <config.h>
 #include <logging.h>
 #include <node/blockstorage.h>
@@ -15,6 +16,7 @@
 #include <node/context.h>
 #include <node/ui_interface.h>
 #include <shutdown.h>
+#include <streams.h>
 #include <undo.h>
 #include <validation.h>
 
@@ -265,6 +267,22 @@ const CBlockIndex &get_block_ancestor(const CBlockIndex &index,
         throw block_index_not_found();
     }
     return *pindex;
+}
+
+rust::Vec<uint8_t> compress_script(rust::Slice<const uint8_t> bytecode) {
+    std::vector<uint8_t> vec = chronik::util::FromRustSlice(bytecode);
+    CScript script{vec.begin(), vec.end()};
+    CDataStream compressed{SER_NETWORK, PROTOCOL_VERSION};
+    compressed << Using<ScriptCompression>(script);
+    return chronik::util::ToRustVec<uint8_t>(compressed);
+}
+
+rust::Vec<uint8_t> decompress_script(rust::Slice<const uint8_t> compressed) {
+    std::vector<uint8_t> vec = chronik::util::FromRustSlice(compressed);
+    CDataStream stream{vec, SER_NETWORK, PROTOCOL_VERSION};
+    CScript script;
+    stream >> Using<ScriptCompression>(script);
+    return chronik::util::ToRustVec<uint8_t>(script);
 }
 
 bool init_error(const rust::Str msg) {

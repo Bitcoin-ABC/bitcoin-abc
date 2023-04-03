@@ -76,6 +76,10 @@ BlockInfo get_block_info(const CBlockIndex &index);
 
 const CBlockIndex &get_block_ancestor(const CBlockIndex &index, int32_t height);
 
+rust::Vec<uint8_t> compress_script(rust::Slice<const uint8_t> script);
+
+rust::Vec<uint8_t> decompress_script(rust::Slice<const uint8_t> compressed);
+
 bool init_error(const rust::Str msg);
 
 void abort_node(const rust::Str msg, const rust::Str user_msg);

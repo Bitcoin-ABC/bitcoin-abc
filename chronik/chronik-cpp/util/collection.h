@@ -17,6 +17,13 @@ template <typename T, typename C> rust::Vec<T> ToRustVec(const C &container) {
     return vec;
 }
 
+template <typename T> std::vector<T> FromRustSlice(rust::Slice<const T> slice) {
+    std::vector<T> vec;
+    vec.reserve(slice.size());
+    std::copy(slice.begin(), slice.end(), std::back_inserter(vec));
+    return vec;
+}
+
 } // namespace chronik::util
 
 #endif // BITCOIN_CHRONIK_CPP_UTIL_COLLECTION_H

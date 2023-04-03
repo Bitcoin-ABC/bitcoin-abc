@@ -104,8 +104,9 @@ gen_asmap_headers(ASMAP_HEADERS
 
 if(BUILD_BITCOIN_CHRONIK)
 	set(BITCOIN_CHRONIK_TESTS
-		../../chronik/test/chronikbridge_tests.cpp
+		../../chronik/test/bridgecompression_tests.cpp
 		../../chronik/test/bridgeprimitives_tests.cpp
+		../../chronik/test/chronikbridge_tests.cpp
 	)
 endif()
 
