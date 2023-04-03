@@ -293,7 +293,7 @@
         "eslint": {
             "type": "eslint",
             "version": ">=8.0.0",
-            "include": ["(web/cashtab/.*\\.js$)", "(web/alias-server/.*\\.js$)"]
+            "include": ["(web/cashtab/.*\\.js$)", "(web/alias-server/.*\\.js$)", "(web/ecashaddrjs/.*\\.js$)"]
         },
         "lint-python-flynt": {
             "type": "lint-python-flynt",
