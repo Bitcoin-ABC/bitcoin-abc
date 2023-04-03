@@ -4,8 +4,12 @@
 
 ### Features
 
--   Send & Receive XEC
+-   Send & Receive eCash (XEC) and eTokens
 -   Import existing wallets
+-   Create and manage multiple wallets
+-   Create new eTokens with token icons
+-   Send and receive airdrops
+-   Public and encrypted messaging
 
 ## Development
 
@@ -112,28 +116,14 @@ docker-compose build
 docker-compose up
 ```
 
-## Redundant APIs
-
-Cashtab accepts multiple instances of `bch-api` as its backend. Input your desired API URLs separated commas into the `REACT_APP_BCHA_APIS` variable. For example, to run Cashtab with three redundant APIs, use:
-
-```
-REACT_APP_BCHA_APIS=https://rest.kingbch.com/v4/,https://wallet-service-prod.bitframe.org/v4/,https://free-main.fullstack.cash/v4/
-```
-
-You can also run Cashtab with a single API, e.g.
-
-```
-REACT_APP_BCHA_APIS=https://rest.kingbch.com/v4/
-```
-
-Cashtab will start with the first API in your list. If it receives an error from that API, it will try the next one.
-
 Navigate to `localhost:8080` to see the app.
 
-## Cashtab Roadmap
+## Redundant APIs
 
-The following features are under active development:
+Cashtab accepts multiple instances of `chronik` as its backend. Update the `chronikUrls` array in `src/components/Common/Ticker.js` to change your chronik server or add additional redundant backups.
 
--   Transaction history
--   Simple Ledger Postage Protocol Support
--   Cashtab browser extension
+```
+chronikUrls: ['https://chronik.fabien.cash', 'https://chronik.be.cash/xec'],
+```
+
+Cashtab will start with the first API in your array. If it receives an error from that API, it will try the next one.
