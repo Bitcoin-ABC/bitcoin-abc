@@ -1,6 +1,6 @@
+'use strict';
 const path = require('path');
 const webpack = require('webpack');
-const pkg = require('./package.json');
 
 const base = {
     mode: 'production',
