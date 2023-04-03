@@ -36,18 +36,18 @@ impl IntoResponse for ReportError {
             None => {
                 // Unknown internal error: don't expose potential
                 // vulnerabilities through HTTP, only log to node.
-                log_chronik!("{report:?}");
-                log!("Chronik HTTP server got an unknown error: {report:#}");
+                log_chronik!("{report:?}\n");
+                log!("Chronik HTTP server got an unknown error: {report:#}\n");
                 let unknown_msg = "Unknown error, contact admins".to_string();
                 (StatusCode::INTERNAL_SERVER_ERROR, unknown_msg)
             }
             Some(status) if status.is_server_error() => {
                 // Internal server error, but explicitly marked with "5xx: ", so
                 // we expose it through HTTP (and also log to node).
-                log_chronik!("{report:?}");
+                log_chronik!("{report:?}\n");
                 log!(
                     "Chronik HTTP server got an internal server error: \
-                     {report:#}"
+                     {report:#}\n"
                 );
                 (status, msg)
             }
