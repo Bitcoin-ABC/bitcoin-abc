@@ -11,9 +11,11 @@ mod pubkey_variant;
 mod script;
 mod script_mut;
 mod uncompressed_pubkey;
+mod variant;
 
 pub use self::pubkey::*;
 pub use self::pubkey_variant::*;
 pub use self::script::*;
 pub use self::script_mut::*;
 pub use self::uncompressed_pubkey::*;
+pub use self::variant::*;
