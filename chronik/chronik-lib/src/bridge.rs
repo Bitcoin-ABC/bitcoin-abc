@@ -10,7 +10,10 @@ use std::{
 };
 
 use abc_rust_error::Result;
-use bitcoinsuite_core::tx::{Tx, TxId};
+use bitcoinsuite_core::{
+    script::Script,
+    tx::{Tx, TxId},
+};
 use chronik_bridge::{ffi::init_error, util::expect_unique_ptr};
 use chronik_db::mem::MempoolTx;
 use chronik_http::server::{ChronikServer, ChronikServerParams};
@@ -66,6 +69,7 @@ fn try_setup_chronik(
     let mut indexer = ChronikIndexer::setup(ChronikIndexerParams {
         datadir_net: params.datadir_net.into(),
         wipe_db: params.wipe_db,
+        fn_compress_script: compress_script,
     })?;
     indexer.resync_indexer(bridge_ref)?;
     let indexer = Arc::new(RwLock::new(indexer));
@@ -99,6 +103,10 @@ fn parse_socket_addr(host: String, default_port: u16) -> Result<SocketAddr> {
         .parse::<IpAddr>()
         .map_err(|err| InvalidChronikHost(host, err))?;
     Ok(SocketAddr::new(ip_addr, default_port))
+}
+
+fn compress_script(script: &Script) -> Vec<u8> {
+    chronik_bridge::ffi::compress_script(script.as_ref())
 }
 
 /// Contains all db, runtime, tpc, etc. handles needed by Chronik.

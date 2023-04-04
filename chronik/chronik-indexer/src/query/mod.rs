@@ -4,8 +4,10 @@
 
 //! Module for structs helping to query the indexer.
 
+mod group_history;
 mod txs;
 mod util;
 
+pub use self::group_history::*;
 pub use self::txs::*;
 pub use self::util::*;

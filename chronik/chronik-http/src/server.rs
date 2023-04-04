@@ -4,10 +4,14 @@
 
 //! Module for [`ChronikServer`].
 
+use std::collections::HashMap;
 use std::{net::SocketAddr, sync::Arc};
 
 use abc_rust_error::{Result, WrapErr};
-use axum::{extract::Path, routing, Extension, Router};
+use axum::{
+    extract::{Path, Query},
+    routing, Extension, Router,
+};
 use bitcoinsuite_core::block::BlockHash;
 use bitcoinsuite_core::tx::TxId;
 use chronik_db::io::BlockHeight;
@@ -17,11 +21,9 @@ use hyper::server::conn::AddrIncoming;
 use thiserror::Error;
 use tokio::sync::RwLock;
 
-use crate::{error::ReportError, protobuf::Protobuf};
+use crate::{error::ReportError, handlers, protobuf::Protobuf};
 
 type ChronikIndexerRef = Arc<RwLock<ChronikIndexer>>;
-
-use crate::handlers::handle_not_found;
 
 /// Params defining what and where to serve for [`ChronikServer`].
 #[derive(Clone, Debug)]
@@ -108,7 +110,11 @@ impl ChronikServer {
         Router::new()
             .route("/block/:hash_or_height", routing::get(handle_block))
             .route("/tx/:txid", routing::get(handle_tx))
-            .fallback(handle_not_found)
+            .route(
+                "/script/:type/:payload/confirmed-txs",
+                routing::get(handle_script_confirmed_txs),
+            )
+            .fallback(handlers::handle_not_found)
             .layer(Extension(indexer))
     }
 }
@@ -149,4 +155,21 @@ async fn handle_tx(
     let indexer = indexer.read().await;
     let txid = txid.parse::<TxId>().wrap_err(NotTxId(txid))?;
     Ok(Protobuf(indexer.txs().tx_by_id(txid)?))
+}
+
+async fn handle_script_confirmed_txs(
+    Path((script_type, payload)): Path<(String, String)>,
+    Query(query_params): Query<HashMap<String, String>>,
+    Extension(indexer): Extension<ChronikIndexerRef>,
+) -> Result<Protobuf<proto::TxHistoryPage>, ReportError> {
+    let indexer = indexer.read().await;
+    Ok(Protobuf(
+        handlers::handle_script_confirmed_txs(
+            &script_type,
+            &payload,
+            &query_params,
+            &indexer,
+        )
+        .await?,
+    ))
 }

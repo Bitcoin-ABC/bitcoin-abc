@@ -27,6 +27,9 @@ axum = "0.6"
 # Async toolkit
 futures = "0.3"
 
+# En-/decode hex
+hex = "0.4"
+
 # HTTP implementation
 hyper = "0.14"
 

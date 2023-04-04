@@ -243,6 +243,12 @@ def satoshi_round(amount):
     return Decimal(amount).quantize(Decimal('0.01'), rounding=ROUND_DOWN)
 
 
+def iter_chunks(lst: list, n: int):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
+
 def wait_until_helper(predicate, *, attempts=float('inf'),
                       timeout=float('inf'), lock=None, timeout_factor=1.0):
     """Sleep until the predicate resolves to be True.

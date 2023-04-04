@@ -86,6 +86,16 @@ message BlockMetadata {
     int64 timestamp = 3;
 }
 
+// Page with txs
+message TxHistoryPage {
+    // Txs of the page
+    repeated Tx txs = 1;
+    // How many pages there are total
+    uint32 num_pages = 2;
+    // How many txs there are total
+    uint32 num_txs = 3;
+}
+
 // Error message returned from our APIs.
 message Error {
     // 2, as legacy chronik uses this for the message so we're still compatible.

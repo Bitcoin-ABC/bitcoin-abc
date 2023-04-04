@@ -13,7 +13,10 @@ pub use rocksdb::WriteBatch;
 use rocksdb::{ColumnFamilyDescriptor, IteratorMode};
 use thiserror::Error;
 
-use crate::io::{BlockWriter, MetadataWriter, TxWriter};
+use crate::{
+    groups::ScriptHistoryWriter,
+    io::{BlockWriter, MetadataWriter, TxWriter},
+};
 
 // All column family names used by Chronik should be defined here
 /// Column family name for the block data.
@@ -67,6 +70,7 @@ impl Db {
         BlockWriter::add_cfs(&mut cfs);
         MetadataWriter::add_cfs(&mut cfs);
         TxWriter::add_cfs(&mut cfs);
+        ScriptHistoryWriter::add_cfs(&mut cfs);
         Self::open_with_cfs(path, cfs)
     }
 

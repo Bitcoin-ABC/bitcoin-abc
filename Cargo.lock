@@ -300,6 +300,7 @@ dependencies = [
  "chronik-proto",
  "chronik-util",
  "futures",
+ "hex",
  "hyper",
  "prost",
  "thiserror",

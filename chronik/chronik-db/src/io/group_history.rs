@@ -217,7 +217,6 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
         group_tx_nums
     }
 
-    #[cfg(test)]
     pub(crate) fn add_cfs(columns: &mut Vec<rocksdb::ColumnFamilyDescriptor>) {
         columns.push(rocksdb::ColumnFamilyDescriptor::new(
             G::tx_history_conf().cf_name,

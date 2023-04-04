@@ -7,10 +7,14 @@
 use std::path::PathBuf;
 
 use abc_rust_error::{Result, WrapErr};
-use bitcoinsuite_core::{block::BlockHash, tx::TxId};
+use bitcoinsuite_core::{
+    block::BlockHash,
+    tx::{Tx, TxId},
+};
 use chronik_bridge::{ffi, util::expect_unique_ptr};
 use chronik_db::{
     db::{Db, WriteBatch},
+    groups::{FnCompressScript, ScriptGroup, ScriptHistoryWriter},
     io::{
         BlockHeight, BlockReader, BlockTxs, BlockWriter, DbBlock,
         MetadataReader, MetadataWriter, SchemaVersion, TxEntry, TxWriter,
@@ -20,17 +24,19 @@ use chronik_db::{
 use chronik_util::{log, log_chronik};
 use thiserror::Error;
 
-use crate::query::QueryTxs;
+use crate::query::{QueryGroupHistory, QueryTxs};
 
-const CURRENT_INDEXER_VERSION: SchemaVersion = 4;
+const CURRENT_INDEXER_VERSION: SchemaVersion = 5;
 
 /// Params for setting up a [`ChronikIndexer`] instance.
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone)]
 pub struct ChronikIndexerParams {
     /// Folder where the node stores its data, net-dependent.
     pub datadir_net: PathBuf,
     /// Whether to clear the DB before opening the DB, e.g. when reindexing.
     pub wipe_db: bool,
+    /// Function ptr to compress scripts.
+    pub fn_compress_script: FnCompressScript,
 }
 
 /// Struct for indexing blocks and txs. Maintains db handles and mempool.
@@ -38,6 +44,7 @@ pub struct ChronikIndexerParams {
 pub struct ChronikIndexer {
     db: Db,
     mempool: Mempool,
+    script_group: ScriptGroup,
 }
 
 /// Block to be indexed by Chronik.
@@ -45,8 +52,10 @@ pub struct ChronikIndexer {
 pub struct ChronikBlock {
     /// Data about the block (w/o txs)
     pub db_block: DbBlock,
-    /// Txs of the block
+    /// Txs in the block, with locations of where they are stored on disk.
     pub block_txs: BlockTxs,
+    /// Txs in the block, with inputs/outputs so we can group them.
+    pub txs: Vec<Tx>,
 }
 
 /// Errors for [`BlockWriter`] and [`BlockReader`].
@@ -126,8 +135,13 @@ impl ChronikIndexer {
         log_chronik!("Opening Chronik at {}\n", db_path.to_string_lossy());
         let db = Db::open(&db_path)?;
         verify_schema_version(&db)?;
+        let script_group = ScriptGroup::new(params.fn_compress_script);
         let mempool = Mempool::default();
-        Ok(ChronikIndexer { db, mempool })
+        Ok(ChronikIndexer {
+            db,
+            mempool,
+            script_group,
+        })
     }
 
     /// Resync Chronik index to the node
@@ -254,8 +268,11 @@ impl ChronikIndexer {
         let mut batch = WriteBatch::default();
         let block_writer = BlockWriter::new(&self.db)?;
         let tx_writer = TxWriter::new(&self.db)?;
+        let script_history_writer =
+            ScriptHistoryWriter::new(&self.db, self.script_group.clone())?;
         block_writer.insert(&mut batch, &block.db_block)?;
-        tx_writer.insert(&mut batch, &block.block_txs)?;
+        let first_tx_num = tx_writer.insert(&mut batch, &block.block_txs)?;
+        script_history_writer.insert(&mut batch, first_tx_num, &block.txs)?;
         self.db.write_batch(batch)?;
         self.mempool
             .removed_mined_txs(block.block_txs.txs.iter().map(|tx| tx.txid));
@@ -270,8 +287,11 @@ impl ChronikIndexer {
         let mut batch = WriteBatch::default();
         let block_writer = BlockWriter::new(&self.db)?;
         let tx_writer = TxWriter::new(&self.db)?;
+        let script_history_writer =
+            ScriptHistoryWriter::new(&self.db, self.script_group.clone())?;
         block_writer.delete(&mut batch, &block.db_block)?;
-        tx_writer.delete(&mut batch, &block.block_txs)?;
+        let first_tx_num = tx_writer.delete(&mut batch, &block.block_txs)?;
+        script_history_writer.delete(&mut batch, first_tx_num, &block.txs)?;
         self.db.write_batch(batch)?;
         Ok(())
     }
@@ -284,6 +304,15 @@ impl ChronikIndexer {
     /// Return [`QueryTxs`] to return txs from mempool/DB.
     pub fn txs(&self) -> QueryTxs<'_> {
         QueryTxs::new(&self.db, &self.mempool)
+    }
+
+    /// Return [`QueryGroupHistory`] for scripts to query the tx history of
+    /// scripts.
+    pub fn script_history(&self) -> Result<QueryGroupHistory<'_, ScriptGroup>> {
+        Ok(QueryGroupHistory {
+            db: &self.db,
+            group: self.script_group.clone(),
+        })
     }
 
     /// Build the ChronikBlock from the CBlockIndex
@@ -322,9 +351,15 @@ impl ChronikIndexer {
                 })
                 .collect(),
         };
+        let txs = block
+            .txs
+            .into_iter()
+            .map(|block_tx| Tx::from(block_tx.tx))
+            .collect::<Vec<_>>();
         Ok(ChronikBlock {
             db_block,
             block_txs,
+            txs,
         })
     }
 }
@@ -360,12 +395,23 @@ fn verify_schema_version(db: &Db) -> Result<()> {
     Ok(())
 }
 
+impl std::fmt::Debug for ChronikIndexerParams {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ChronikIndexerParams")
+            .field("datadir_net", &self.datadir_net)
+            .field("wipe_db", &self.wipe_db)
+            .field("fn_compress_script", &"..")
+            .finish()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use abc_rust_error::Result;
     use bitcoinsuite_core::block::BlockHash;
     use chronik_db::{
         db::{Db, WriteBatch, CF_META},
+        groups::prefix_mock_compress,
         io::{BlockReader, BlockTxs, DbBlock, MetadataReader, MetadataWriter},
     };
     use pretty_assertions::assert_eq;
@@ -382,6 +428,7 @@ mod tests {
         let params = ChronikIndexerParams {
             datadir_net: datadir_net.clone(),
             wipe_db: false,
+            fn_compress_script: prefix_mock_compress,
         };
         // regtest folder doesn't exist yet -> error
         assert_eq!(
@@ -416,6 +463,7 @@ mod tests {
                 block_height: 0,
                 txs: vec![],
             },
+            txs: vec![],
         };
 
         // Add block
@@ -448,6 +496,7 @@ mod tests {
         let params = ChronikIndexerParams {
             datadir_net: dir.path().to_path_buf(),
             wipe_db: false,
+            fn_compress_script: prefix_mock_compress,
         };
 
         // Setting up DB first time sets the schema version
@@ -504,7 +553,7 @@ mod tests {
             db.write_batch(batch)?;
         }
         assert_eq!(
-            ChronikIndexer::setup(params)
+            ChronikIndexer::setup(params.clone())
                 .unwrap_err()
                 .downcast::<ChronikIndexerError>()?,
             ChronikIndexerError::CorruptedSchemaVersion,
@@ -517,6 +566,7 @@ mod tests {
         let new_params = ChronikIndexerParams {
             datadir_net: new_dir,
             wipe_db: false,
+            ..params
         };
         {
             // new db with obscure field in meta
