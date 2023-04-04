@@ -67,7 +67,7 @@ Start by updating the build folder with your changes included.
 npm run build
 ```
 
-Then create a new site on [Netlify](https://www.netlify.com/) by choosing to "Deploy manually" and dragging in the /web/cashtab/build folder. Your diff will now be accessible via [projectname].netlify.app, which you can load up on your iOS or Android mobile devices for testing.
+Then create a new site on [Netlify](https://www.netlify.com/) by choosing to "Deploy manually" and dragging in the /cashtab/build folder. Your diff will now be accessible via [projectname].netlify.app, which you can load up on your iOS or Android mobile devices for testing.
 
 ### 5. Edge Tests
 

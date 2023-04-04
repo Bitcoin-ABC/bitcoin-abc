@@ -294,7 +294,7 @@
             "type": "eslint",
             "version": ">=8.0.0",
             "include": [
-                "(web/cashtab/.*\\.js$)", 
+                "(cashtab/.*\\.js$)", 
                 "(web/alias-server/.*\\.js$)", 
                 "(modules/ecashaddrjs/.*\\.js$)", 
                 "(apps/ecash-herald/.*\\.js$)"

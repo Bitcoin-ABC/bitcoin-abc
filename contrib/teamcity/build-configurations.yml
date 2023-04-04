@@ -518,7 +518,7 @@ builds:
 
   cashtab-tests:
     runOnDiffRegex:
-      - web/cashtab/
+      - cashtab/
     artifacts:
       coverage.tar.gz: coverage.tar.gz
     env:
@@ -529,7 +529,7 @@ builds:
       JEST_JUNIT_OUTPUT_DIR: "test/junit"
       JEST_JUNIT_OUTPUT_NAME: "cashtab.xml"
     script: |
-      pushd "${TOPLEVEL}/web/cashtab"
+      pushd "${TOPLEVEL}/cashtab"
       npm ci
       npm run build
 
