@@ -17,6 +17,8 @@ use chronik_db::{
 use chronik_proto::proto;
 use thiserror::Error;
 
+use crate::query::make_tx_proto;
+
 /// Struct for querying txs from the db/mempool.
 #[derive(Debug)]
 pub struct QueryTxs<'a> {
@@ -78,47 +80,11 @@ impl<'a> QueryTxs<'a> {
                     )
                 }
             };
-        Ok(proto::Tx {
-            txid: txid.to_vec(),
-            version: tx.version,
-            inputs: tx
-                .inputs
-                .iter()
-                .map(|input| {
-                    let coin = input.coin.as_ref();
-                    let (output_script, value) = coin
-                        .map(|coin| {
-                            (coin.output.script.to_vec(), coin.output.value)
-                        })
-                        .unwrap_or_default();
-                    proto::TxInput {
-                        prev_out: Some(proto::OutPoint {
-                            txid: input.prev_out.txid.to_vec(),
-                            out_idx: input.prev_out.out_idx,
-                        }),
-                        input_script: input.script.to_vec(),
-                        output_script,
-                        value,
-                        sequence_no: input.sequence,
-                    }
-                })
-                .collect(),
-            outputs: tx
-                .outputs
-                .iter()
-                .map(|output| proto::TxOutput {
-                    value: output.value,
-                    output_script: output.script.to_vec(),
-                })
-                .collect(),
-            lock_time: tx.locktime,
-            block: block.map(|block| proto::BlockMetadata {
-                hash: block.hash.to_vec(),
-                height: block.height,
-                timestamp: block.timestamp,
-            }),
+        Ok(make_tx_proto(
+            &tx,
             time_first_seen,
             is_coinbase,
-        })
+            block.as_ref(),
+        ))
     }
 }

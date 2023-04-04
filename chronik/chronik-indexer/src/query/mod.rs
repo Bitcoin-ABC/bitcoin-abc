@@ -4,6 +4,8 @@
 
 //! Module for structs helping to query the indexer.
 
-pub mod txs;
+mod txs;
+mod util;
 
 pub use self::txs::*;
+pub use self::util::*;
