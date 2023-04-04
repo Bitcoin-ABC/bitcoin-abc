@@ -13,7 +13,6 @@ const {
     getHexFromAlias,
     getAliasBytecount,
 } = require('../src/utils');
-const { initializeDb } = require('../src/db');
 
 async function generateMocks() {
     // Directory for mocks. Relative to /scripts, ../test/mocks/generated/
@@ -23,55 +22,6 @@ async function generateMocks() {
     if (!fs.existsSync(mocksDir)) {
         fs.mkdirSync(mocksDir);
     }
-
-    // Initialize db
-    const db = await initializeDb();
-
-    // Get the valid aliases already in the db
-    let validAliasesInDb;
-    try {
-        validAliasesInDb = await db
-            .collection(config.database.collections.validAliases)
-            .find()
-            .sort({ blockheight: 1 })
-            .project({ _id: 0 })
-            .toArray();
-        console.log(`${validAliasesInDb.length} valid aliases in database`);
-    } catch (error) {
-        console.log(`Error in determining validAliasesInDb`, error);
-    }
-
-    fs.writeFileSync(
-        `${mocksDir}/validAliasesInDb.json`,
-        JSON.stringify(validAliasesInDb, null, 2),
-        'utf-8',
-    );
-
-    // Get confirmedTxHistory already in db
-    let confirmedTxHistoryInDb;
-    try {
-        confirmedTxHistoryInDb = await db
-            .collection(config.database.collections.confirmedTxHistory)
-            .find()
-            .sort({ blockheight: 1 })
-            .project({ _id: 0 })
-            .toArray();
-        console.log(
-            `Fetched ${confirmedTxHistoryInDb.length} confirmed transactions at alias registration address from database`,
-        );
-    } catch (error) {
-        console.log(`Error in determining confirmedTxHistoryInDb`, error);
-        console.log(`Assuming no cached tx history`);
-        confirmedTxHistoryInDb = [];
-        // Exit script in error condition
-        process.exit(1);
-    }
-
-    fs.writeFileSync(
-        `${mocksDir}/confirmedTxHistoryInDb.json`,
-        JSON.stringify(confirmedTxHistoryInDb, null, 2),
-        'utf-8',
-    );
 
     // chronik tx history of alias registration address
     const aliasTxHistory = await getAllTxHistory(

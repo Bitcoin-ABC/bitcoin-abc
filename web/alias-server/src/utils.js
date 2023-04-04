@@ -2,42 +2,6 @@
 const config = require('../config');
 
 module.exports = {
-    getValidAliasTxsToBeAddedToDb: function (validAliasesInDb, validAliasTxs) {
-        /*
-        - See if any tx exist in validAliasTxs and not in validAliasesinDb
-        - Return validAliasTxsToBeAddedToDb, an array of these aliases
-        - Note that validAliasesInDb and validAliasTxs are sorted by blockheight
-        */
-        const validAliasTxsToBeAddedToDbCount =
-            validAliasTxs.length - validAliasesInDb.length;
-        if (validAliasTxsToBeAddedToDbCount > 0) {
-            const validAliasTxsToBeAddedToDb = validAliasTxs.slice(
-                -validAliasTxsToBeAddedToDbCount,
-            );
-            return validAliasTxsToBeAddedToDb;
-        } else {
-            return [];
-        }
-    },
-    getConfirmedTxsToBeAddedToDb: function (confirmedTxsInDb, confirmedTxs) {
-        /*
-        - See if any confirmed tx exists in confirmedTxs and not in confirmedTxsInDb
-        - Return confirmedTxsToBeAddedToDb, an array of these txs
-        - Note that confirmedTxsInDb and confirmedTxs are sorted by blockheight, highest to lowest;
-          hence you want the first ${confirmedTxsToBeAddedToDbCount} entries of confirmedTxs
-        */
-        const confirmedTxsToBeAddedToDbCount =
-            confirmedTxs.length - confirmedTxsInDb.length;
-        if (confirmedTxsToBeAddedToDbCount > 0) {
-            const confirmedTxsToBeAddedToDb = confirmedTxs.slice(
-                0,
-                confirmedTxsToBeAddedToDbCount,
-            );
-            return confirmedTxsToBeAddedToDb;
-        } else {
-            return [];
-        }
-    },
     generateReservedAliasTxArray: function () {
         const reservedAliasTxs = [];
         for (
