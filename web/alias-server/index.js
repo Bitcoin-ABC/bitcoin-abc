@@ -1,5 +1,6 @@
 'use strict';
 const config = require('./config');
+const secrets = require('./secrets');
 const {
     initializeWebsocket,
     parseWebsocketMessage,
@@ -9,20 +10,33 @@ const log = require('./src/log');
 const express = require('express');
 var cors = require('cors');
 const requestIp = require('request-ip');
+const TelegramBot = require('node-telegram-bot-api');
 
-async function main() {
+// Fire up your Telegram bot on app startup
+// Need to do it here so you can mock it in unit tests
+const { botId, channelId } = secrets.telegram;
+// Create a bot that uses 'polling' to fetch new updates
+const telegramBot = new TelegramBot(botId, {
+    polling: true,
+});
+
+async function main(telegramBot, channelId) {
     // Initialize db connection
     const db = await initializeDb();
 
     // Initialize websocket connection
-    const aliasWebsocket = await initializeWebsocket(db);
+    const aliasWebsocket = await initializeWebsocket(
+        db,
+        telegramBot,
+        channelId,
+    );
     if (aliasWebsocket && aliasWebsocket._subs && aliasWebsocket._subs[0]) {
         const subscribedHash160 = aliasWebsocket._subs[0].scriptPayload;
         log(`Websocket subscribed to ${subscribedHash160}`);
     }
 
     // Run parseWebsocketMessage on startup mocking a block found
-    parseWebsocketMessage(db);
+    parseWebsocketMessage(db, telegramBot, channelId);
 
     // Set up your API endpoints
     const app = express();
@@ -50,4 +64,4 @@ async function main() {
     app.listen(config.express.port);
 }
 
-main();
+main(telegramBot, channelId);

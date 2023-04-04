@@ -14,11 +14,16 @@ const { chronik } = require('./chronik');
 const axios = require('axios');
 
 module.exports = {
-    initializeWebsocket: async function (db) {
+    initializeWebsocket: async function (db, telegramBot, channelId) {
         // Subscribe to chronik websocket
         const ws = chronik.ws({
             onMessage: async msg => {
-                await module.exports.parseWebsocketMessage(db, msg);
+                await module.exports.parseWebsocketMessage(
+                    db,
+                    telegramBot,
+                    channelId,
+                    msg,
+                );
             },
         });
         // Wait for WS to be connected:
@@ -31,6 +36,8 @@ module.exports = {
     },
     parseWebsocketMessage: async function (
         db,
+        telegramBot,
+        channelId,
         wsMsg = { type: 'BlockConnected' },
     ) {
         log(`parseWebsocketMessage called on`, wsMsg);
@@ -271,6 +278,8 @@ module.exports = {
                         };
                         const tgBotMsgPromise =
                             returnTelegramBotSendMessagePromise(
+                                telegramBot,
+                                channelId,
                                 tgMsg,
                                 tgMsgOptions,
                             );
