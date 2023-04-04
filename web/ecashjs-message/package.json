@@ -1,9 +1,9 @@
 {
-    "name": "xecjs-message",
+    "name": "ecashjs-message",
     "version": "1.0.6",
-    "description": "xecjs-message",
+    "description": "ecashjs-message",
     "keywords": [
-        "xecjs-message",
+        "ecashjs-message",
         "xec",
         "ecash"
     ],
