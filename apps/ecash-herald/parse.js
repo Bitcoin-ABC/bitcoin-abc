@@ -1,3 +1,4 @@
+'use strict'
 const config = require('./config');
 module.exports = {
     parseBlock: function (chronikBlockResponse) {
@@ -104,7 +105,7 @@ Assumptions
             config.opReturn.opReturnAppPrefixLength;
 
         if (hasAppPrefix) {
-            appPrefix = outputScript.slice(4, 12);
+            const appPrefix = outputScript.slice(4, 12);
             if (Object.keys(config.opReturn.appPrefixes).includes(appPrefix)) {
                 app = config.opReturn.appPrefixes[appPrefix];
             } else {
@@ -167,7 +168,7 @@ Assumptions
             }
             // Use msgByteSize to parse the message
             const msgCharLength = 2 * msgByteSize;
-            message = hexStr.slice(0, msgCharLength);
+            const message = hexStr.slice(0, msgCharLength);
 
             // Add to opReturnMsgArray
             opReturnMsgArray.push(Buffer.from(message, 'hex').toString('utf8'));

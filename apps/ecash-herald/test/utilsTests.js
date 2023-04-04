@@ -1,5 +1,5 @@
+'use strict'
 const assert = require('assert');
-const config = require('../config');
 const { returnAddressPreview } = require('../utils');
 const { addressPreviews } = require('./mocks/templates');
 

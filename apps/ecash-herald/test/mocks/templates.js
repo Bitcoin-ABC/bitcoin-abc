@@ -1,3 +1,4 @@
+'use strict'
 module.exports = {
     telegramHtmlStrings: {
         dangerous: '<b>Try to hack the format</b> ${true && <i>yes</i>}',

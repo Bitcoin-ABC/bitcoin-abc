@@ -1,3 +1,4 @@
+'use strict'
 const fs = require('fs');
 const path = require('path');
 const config = require('../config');
@@ -82,7 +83,7 @@ async function generateMocks() {
     try {
         blockDetails = await Promise.all(blockDetailsPromises);
     } catch (err) {
-        log(`Error determining blockDetails in generateMocks()`, err);
+        console.log(`Error determining blockDetails in generateMocks()`, err);
     }
 
     // Convert blockDetails array of objects to one object

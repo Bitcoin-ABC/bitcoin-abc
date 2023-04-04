@@ -1,9 +1,9 @@
+'use strict'
 const config = require('./config');
 const { telegramBot, channelId } = require('./telegram');
 const { ChronikClient } = require('chronik-client');
 const chronik = new ChronikClient(config.chronik);
 const { parseBlock, getBlockTgMessage } = require('./parse');
-const parse = require('./parse');
 
 module.exports = {
     initializeWebsocket: async function () {
@@ -29,7 +29,7 @@ module.exports = {
         // type can be AddedToMempool, BlockConnected, or Confirmed
 
         switch (type) {
-            case 'BlockConnected':
+            case 'BlockConnected': {
                 // Here is where you will send a telegram msg
                 // Construct your Telegram message in markdown
                 const { blockHash } = wsMsg;
@@ -51,14 +51,13 @@ module.exports = {
                 const tgMsg = blockDetails
                     ? generatedTgMsg
                     : `New Block Found\n` +
-                      `\n` +
-                      `${blockHash}\n` +
-                      `\n` +
-                      `[explorer](${config.blockExplorer}/block/${blockHash})`;
+                    `\n` +
+                    `${blockHash}\n` +
+                    `\n` +
+                    `[explorer](${config.blockExplorer}/block/${blockHash})`;
 
-                let blockFoundMessageSuccess;
                 try {
-                    blockFoundMessageSuccess = await telegramBot.sendMessage(
+                    await telegramBot.sendMessage(
                         channelId,
                         tgMsg,
                         config.tgMsgOptions,
@@ -67,6 +66,7 @@ module.exports = {
                     console.log(`Error in telegramBot.send(${wsMsg})`, err);
                 }
                 break;
+            }
             case 'AddedToMempool':
                 console.log(`New tx: ${wsMsg.txid}`);
                 break;

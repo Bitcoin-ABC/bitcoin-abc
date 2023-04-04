@@ -1,3 +1,4 @@
+'use strict'
 const config = require('../config');
 const secrets = require('../secrets');
 const TelegramBot = require('node-telegram-bot-api');

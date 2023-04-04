@@ -1,3 +1,4 @@
+'use strict'
 const { initializeWebsocket } = require('./chronik');
 
 async function main() {
