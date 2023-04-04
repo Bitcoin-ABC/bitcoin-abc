@@ -623,3 +623,45 @@ builds:
       popd
       mv coverage/coverage.tar.gz "${BUILD_DIR}/"
       rm -rf coverage
+
+  ecash-herald-tests:
+    runOnDiffRegex:
+      - apps/ecash-herald/
+    artifacts:
+      coverage.tar.gz: coverage.tar.gz
+    script: |
+      pushd "${TOPLEVEL}/apps/ecash-herald"
+
+      MOCHA_JUNIT_DIR="test_results"
+      MOCHA_JUNIT_PATH="${MOCHA_JUNIT_DIR}/ecash-herald-junit.xml"
+      rm -rf "${MOCHA_JUNIT_DIR}" && mkdir -p "${MOCHA_JUNIT_DIR}"
+
+      npm ci
+
+      # Make sure the report is available even if the tests fail
+      move_junit_report() {
+        mv "${MOCHA_JUNIT_PATH}" "${BUILD_DIR}/"
+      }
+      trap "move_junit_report" EXIT
+
+      nyc \
+        --reporter=text \
+        --reporter=lcov \
+        --reporter=teamcity \
+        npm test -- \
+          --reporter mocha-junit-reporter \
+          --reporter-options mochaFile="${MOCHA_JUNIT_PATH}" \
+          --reporter-options testsuitesTitle="eCash Herald Unit Tests" \
+          --reporter-options rootSuiteTitle="eCash Herald"
+
+      # Generate a summary report
+      lcov \
+        --rc lcov_branch_coverage=1 \
+        --summary coverage/lcov.info \
+        > coverage/lcov-report/coverage-summary.txt 2>&1
+
+      pushd coverage/lcov-report
+      tar -czf ../coverage.tar.gz -- *
+      popd
+      mv coverage/coverage.tar.gz "${BUILD_DIR}/"
+      rm -rf coverage
