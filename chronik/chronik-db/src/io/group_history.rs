@@ -87,7 +87,7 @@ impl<'a> GroupHistoryColumn<'a> {
     fn get_member_last_page(
         &self,
         member_ser: &[u8],
-    ) -> Result<(u32, Vec<TxNum>)> {
+    ) -> Result<Option<(u32, Vec<TxNum>)>> {
         let last_key = key_for_member_page(member_ser, u32::MAX);
         let mut iter =
             self.db
@@ -98,16 +98,16 @@ impl<'a> GroupHistoryColumn<'a> {
                 if &key[..key.len() - PAGE_SER_SIZE] == member_ser {
                     (key, value)
                 } else {
-                    return Ok((0, vec![]));
+                    return Ok(None);
                 }
             }
-            None => return Ok((0, vec![])),
+            None => return Ok(None),
         };
         let numbers = db_deserialize::<Vec<u64>>(&value)?;
         let page_num = PageNum::from_be_bytes(
             key[key.len() - PAGE_SER_SIZE..].try_into().unwrap(),
         );
-        Ok((page_num, numbers))
+        Ok(Some((page_num, numbers)))
     }
 }
 
@@ -129,8 +129,10 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
         let grouped_txs = self.group_txs(first_tx_num, txs);
         for (member, mut new_tx_nums) in grouped_txs {
             let member_ser: G::MemberSer<'_> = self.group.ser_member(member);
-            let (mut page_num, mut last_page_tx_nums) =
-                self.col.get_member_last_page(member_ser.as_ref())?;
+            let (mut page_num, mut last_page_tx_nums) = self
+                .col
+                .get_member_last_page(member_ser.as_ref())?
+                .unwrap_or((0, vec![]));
             while !new_tx_nums.is_empty() {
                 let space_left = self.conf.page_size - last_page_tx_nums.len();
                 let num_new_txs = space_left.min(new_tx_nums.len());
@@ -158,8 +160,10 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
         for (member, removed_tx_nums) in grouped_txs {
             let member_ser: G::MemberSer<'_> = self.group.ser_member(member);
             let mut num_remaining_removes = removed_tx_nums.len();
-            let (mut page_num, mut last_page_tx_nums) =
-                self.col.get_member_last_page(member_ser.as_ref())?;
+            let (mut page_num, mut last_page_tx_nums) = self
+                .col
+                .get_member_last_page(member_ser.as_ref())?
+                .unwrap_or((0, vec![]));
             while num_remaining_removes > 0 {
                 let num_page_removes =
                     last_page_tx_nums.len().min(num_remaining_removes);
@@ -250,11 +254,22 @@ impl<'a, G: Group> GroupHistoryReader<'a, G> {
         self.col.get_page_txs(member_ser, page_num)
     }
 
-    /// Total number of txs for this serialized member.
-    pub fn member_num_txs(&self, member_ser: &[u8]) -> Result<usize> {
-        let (last_page_num, last_page_txs) =
-            self.col.get_member_last_page(member_ser)?;
-        Ok(self.conf.page_size * last_page_num as usize + last_page_txs.len())
+    /// Total number of pages and txs for this serialized member.
+    /// The result tuple is (num_pages, num_txs).
+    pub fn member_num_pages_and_txs(
+        &self,
+        member_ser: &[u8],
+    ) -> Result<(usize, usize)> {
+        match self.col.get_member_last_page(member_ser)? {
+            Some((last_page_num, last_page_txs)) => {
+                let last_page_num = last_page_num as usize;
+                Ok((
+                    last_page_num + 1,
+                    self.conf.page_size * last_page_num + last_page_txs.len(),
+                ))
+            }
+            None => Ok((0, 0)),
+        }
     }
 
     /// Size of pages the data is stored in.
@@ -315,11 +330,18 @@ mod tests {
                 group_reader.page_txs(&ser_value(val), page_num)
             };
 
+        let read_num_pages_and_txs = |val: i64| -> Result<(usize, usize)> {
+            group_reader.member_num_pages_and_txs(&ser_value(val))
+        };
+
         // Only adds an entry for value=10 (coinbase inputs are ignored)
         let block0 = [make_value_tx(0, [0xffff], [10])];
         connect_block(&block0)?;
         assert_eq!(read_page(0xffff, 0)?, None);
+        assert_eq!(read_num_pages_and_txs(0xffff)?, (0, 0));
+
         assert_eq!(read_page(10, 0)?, Some(vec![0]));
+        assert_eq!(read_num_pages_and_txs(10)?, (1, 1));
 
         // Block that adds a lot of pages to value=10, one entry to value=20
         let block1 = [
@@ -339,8 +361,11 @@ mod tests {
         assert_eq!(read_page(10, 1)?, Some(vec![5, 6, 7, 8]));
         assert_eq!(read_page(10, 2)?, Some(vec![9]));
         assert_eq!(read_page(10, 3)?, None);
+        assert_eq!(read_num_pages_and_txs(10)?, (3, 9));
+
         assert_eq!(read_page(20, 0)?, Some(vec![3]));
         assert_eq!(read_page(20, 1)?, None);
+        assert_eq!(read_num_pages_and_txs(20)?, (1, 1));
 
         // Only tx_num=0 remains
         // The other pages have been removed from the DB entirely
@@ -362,12 +387,16 @@ mod tests {
         // all txs add to value=10, with 2 pages
         assert_eq!(read_page(10, 0)?, Some(vec![0, 1, 2, 3]));
         assert_eq!(read_page(10, 1)?, Some(vec![4]));
+        assert_eq!(read_num_pages_and_txs(10)?, (2, 5));
         // only tx_num=2 adds to value=20
         assert_eq!(read_page(20, 0)?, Some(vec![2]));
+        assert_eq!(read_num_pages_and_txs(20)?, (1, 1));
         // tx_num=2 and tx_num=4 add to value=30
         assert_eq!(read_page(30, 0)?, Some(vec![2, 4]));
+        assert_eq!(read_num_pages_and_txs(30)?, (1, 2));
         // tx_num=3 and tx_num=4 add to value=40
         assert_eq!(read_page(40, 0)?, Some(vec![3, 4]));
+        assert_eq!(read_num_pages_and_txs(40)?, (1, 2));
 
         // Delete that block also
         disconnect_block(&block1)?;
@@ -391,11 +420,21 @@ mod tests {
         connect_block(&block2)?;
         assert_eq!(read_page(10, 0)?, Some(vec![0, 1, 2, 3]));
         assert_eq!(read_page(10, 1)?, Some(vec![4, 6, 7, 9]));
+        assert_eq!(read_page(10, 2)?, None);
+        assert_eq!(read_num_pages_and_txs(10)?, (2, 8));
+
         assert_eq!(read_page(20, 0)?, Some(vec![2, 9]));
+        assert_eq!(read_page(20, 1)?, None);
+        assert_eq!(read_num_pages_and_txs(20)?, (1, 2));
+
         assert_eq!(read_page(30, 0)?, Some(vec![2, 4, 5, 6]));
         assert_eq!(read_page(30, 1)?, Some(vec![7, 8]));
+        assert_eq!(read_page(30, 2)?, None);
+        assert_eq!(read_num_pages_and_txs(30)?, (2, 6));
+
         assert_eq!(read_page(40, 0)?, Some(vec![3, 4, 5, 8]));
         assert_eq!(read_page(40, 1)?, None);
+        assert_eq!(read_num_pages_and_txs(40)?, (1, 4));
 
         // Remove all blocks
         disconnect_block(&block2)?;
