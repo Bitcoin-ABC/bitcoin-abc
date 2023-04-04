@@ -10,12 +10,15 @@ use abc_rust_error::Result;
 use bitcoinsuite_core::tx::{Tx, TxId};
 use thiserror::Error;
 
+use crate::groups::{MempoolScriptHistory, ScriptGroup};
+
 /// Mempool of the indexer. This stores txs from the node again, but having a
 /// copy here simplifies the implementation significantly. If this redundancy
 /// becomes an issue (e.g. excessive RAM usage), we can optimize this later.
-#[derive(Debug, PartialEq, Eq, Default)]
+#[derive(Debug)]
 pub struct Mempool {
     txs: HashMap<TxId, MempoolTx>,
+    script_history: MempoolScriptHistory,
 }
 
 /// Transaction in the mempool.
@@ -42,9 +45,18 @@ pub enum MempoolError {
 use self::MempoolError::*;
 
 impl Mempool {
+    /// Create a new [`Mempool`].
+    pub fn new(script_group: ScriptGroup) -> Self {
+        Mempool {
+            txs: HashMap::new(),
+            script_history: MempoolScriptHistory::new(script_group),
+        }
+    }
+
     /// Insert tx into the mempool.
     pub fn insert(&mut self, mempool_tx: MempoolTx) -> Result<()> {
         let txid = mempool_tx.tx.txid();
+        self.script_history.insert(&mempool_tx);
         if self.txs.insert(txid, mempool_tx).is_some() {
             return Err(DuplicateTx(txid).into());
         }
@@ -53,21 +65,30 @@ impl Mempool {
 
     /// Remove tx from the mempool.
     pub fn remove(&mut self, txid: TxId) -> Result<()> {
-        if self.txs.remove(&txid).is_none() {
-            return Err(NoSuchMempoolTx(txid).into());
-        }
+        let mempool_tx = match self.txs.remove(&txid) {
+            Some(mempool_tx) => mempool_tx,
+            None => return Err(NoSuchMempoolTx(txid).into()),
+        };
+        self.script_history.remove(&mempool_tx);
         Ok(())
     }
 
     /// Remove mined txs from the mempool.
     pub fn removed_mined_txs(&mut self, txids: impl IntoIterator<Item = TxId>) {
         for txid in txids {
-            self.txs.remove(&txid);
+            if let Some(mempool_tx) = self.txs.remove(&txid) {
+                self.script_history.remove(&mempool_tx);
+            }
         }
     }
 
     /// Get a tx by [`TxId`], or [`None`], if not found.
     pub fn tx(&self, txid: &TxId) -> Option<&MempoolTx> {
         self.txs.get(txid)
+    }
+
+    /// Tx history of scripts in the mempool.
+    pub fn script_history(&self) -> &MempoolScriptHistory {
+        &self.script_history
     }
 }

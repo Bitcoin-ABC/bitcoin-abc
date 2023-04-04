@@ -114,6 +114,10 @@ impl ChronikServer {
                 "/script/:type/:payload/confirmed-txs",
                 routing::get(handle_script_confirmed_txs),
             )
+            .route(
+                "/script/:type/:payload/unconfirmed-txs",
+                routing::get(handle_script_unconfirmed_txs),
+            )
             .fallback(handlers::handle_not_found)
             .layer(Extension(indexer))
     }
@@ -168,6 +172,21 @@ async fn handle_script_confirmed_txs(
             &script_type,
             &payload,
             &query_params,
+            &indexer,
+        )
+        .await?,
+    ))
+}
+
+async fn handle_script_unconfirmed_txs(
+    Path((script_type, payload)): Path<(String, String)>,
+    Extension(indexer): Extension<ChronikIndexerRef>,
+) -> Result<Protobuf<proto::TxHistoryPage>, ReportError> {
+    let indexer = indexer.read().await;
+    Ok(Protobuf(
+        handlers::handle_script_unconfirmed_txs(
+            &script_type,
+            &payload,
             &indexer,
         )
         .await?,

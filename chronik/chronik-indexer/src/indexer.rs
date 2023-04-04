@@ -136,7 +136,7 @@ impl ChronikIndexer {
         let db = Db::open(&db_path)?;
         verify_schema_version(&db)?;
         let script_group = ScriptGroup::new(params.fn_compress_script);
-        let mempool = Mempool::default();
+        let mempool = Mempool::new(script_group.clone());
         Ok(ChronikIndexer {
             db,
             mempool,
@@ -311,6 +311,8 @@ impl ChronikIndexer {
     pub fn script_history(&self) -> Result<QueryGroupHistory<'_, ScriptGroup>> {
         Ok(QueryGroupHistory {
             db: &self.db,
+            mempool: &self.mempool,
+            mempool_history: self.mempool.script_history(),
             group: self.script_group.clone(),
         })
     }

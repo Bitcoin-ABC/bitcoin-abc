@@ -51,6 +51,19 @@ fn parse_hex(payload: &str) -> Result<Vec<u8>, ChronikHandlerError> {
     hex::decode(payload).map_err(ChronikHandlerError::InvalidHex)
 }
 
+fn parse_script_variant(
+    script_type: &str,
+    payload: &str,
+) -> Result<ScriptVariant> {
+    let script_type = script_type
+        .parse::<ScriptType>()
+        .map_err(InvalidScriptType)?;
+    Ok(
+        ScriptVariant::from_type_and_payload(script_type, &parse_hex(payload)?)
+            .map_err(|err| InvalidScriptPayload(script_type, err))?,
+    )
+}
+
 fn get_param<T: FromStr>(
     params: &HashMap<String, String>,
     param_name: &str,
@@ -79,15 +92,23 @@ pub async fn handle_script_confirmed_txs(
     query_params: &HashMap<String, String>,
     indexer: &ChronikIndexer,
 ) -> Result<proto::TxHistoryPage> {
-    let script_type = script_type
-        .parse::<ScriptType>()
-        .map_err(InvalidScriptType)?;
-    let script_variant =
-        ScriptVariant::from_type_and_payload(script_type, &parse_hex(payload)?)
-            .map_err(|err| InvalidScriptPayload(script_type, err))?;
+    let script_variant = parse_script_variant(script_type, payload)?;
     let script_history = indexer.script_history()?;
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
     let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
     let script = script_variant.to_script();
     script_history.confirmed_txs(&script, page_num as usize, page_size as usize)
+}
+
+/// Return a page of the confirmed txs of the given script.
+/// Scripts are identified by script_type and payload.
+pub async fn handle_script_unconfirmed_txs(
+    script_type: &str,
+    payload: &str,
+    indexer: &ChronikIndexer,
+) -> Result<proto::TxHistoryPage> {
+    let script_variant = parse_script_variant(script_type, payload)?;
+    let script_history = indexer.script_history()?;
+    let script = script_variant.to_script();
+    script_history.unconfirmed_txs(&script)
 }

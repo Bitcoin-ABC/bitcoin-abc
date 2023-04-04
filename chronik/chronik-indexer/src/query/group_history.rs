@@ -5,12 +5,13 @@
 //! Module for [`QueryGroupHistory`], to query the tx history of a group.
 
 use abc_rust_error::Result;
-use bitcoinsuite_core::tx::Tx;
+use bitcoinsuite_core::tx::{Tx, TxId};
 use chronik_bridge::ffi;
 use chronik_db::{
     db::Db,
     group::Group,
     io::{BlockReader, GroupHistoryReader, TxNum, TxReader},
+    mem::{Mempool, MempoolGroupHistory},
 };
 use chronik_proto::proto;
 use chronik_util::log;
@@ -28,6 +29,10 @@ pub const MAX_HISTORY_PAGE_SIZE: usize = 200;
 pub struct QueryGroupHistory<'a, G: Group> {
     /// Database
     pub db: &'a Db,
+    /// Mempool
+    pub mempool: &'a Mempool,
+    /// The part of the mempool we search for this group's history.
+    pub mempool_history: &'a MempoolGroupHistory<G>,
     /// Group to query txs by
     pub group: G,
 }
@@ -35,6 +40,10 @@ pub struct QueryGroupHistory<'a, G: Group> {
 /// Errors indicating something went wrong with reading txs.
 #[derive(Debug, Error, PartialEq)]
 pub enum QueryGroupHistoryError {
+    /// Transaction not in mempool.
+    #[error("500: Inconsistent mempool: Transaction {0} not in mempool")]
+    MissingMempoolTx(TxId),
+
     /// tx_num in group index but not in "tx" CF.
     #[error("500: Inconsistent DB: Transaction num {0} not in DB")]
     MissingDbTx(TxNum),
@@ -138,6 +147,43 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
 
         // Couldn't fill requested page size completely
         Ok(make_result(page_txs))
+    }
+
+    /// Return the unconfirmed txs (i.e. all txs in the mempool) in first-seen
+    /// order. If two txs have been seen at the same second, we order them by
+    /// txid.
+    ///
+    /// This should always be small enough to return without pagination, but
+    /// just to be future-proof, we always pretend as if there's exactly one
+    /// page with all the txs (or 0 pages if there's no txs), so we can add
+    /// pagination later.
+    pub fn unconfirmed_txs(
+        &self,
+        member: G::Member<'_>,
+    ) -> Result<proto::TxHistoryPage> {
+        let member_ser = self.group.ser_member(member);
+        let txs = match self.mempool_history.member_history(member_ser.as_ref())
+        {
+            Some(mempool_txs) => mempool_txs
+                .iter()
+                .map(|(_, txid)| -> Result<_> {
+                    let entry =
+                        self.mempool.tx(txid).ok_or(MissingMempoolTx(*txid))?;
+                    Ok(make_tx_proto(
+                        &entry.tx,
+                        entry.time_first_seen,
+                        false,
+                        None,
+                    ))
+                })
+                .collect::<Result<Vec<_>>>()?,
+            None => vec![],
+        };
+        Ok(proto::TxHistoryPage {
+            num_pages: if txs.is_empty() { 0 } else { 1 },
+            num_txs: txs.len() as u32,
+            txs,
+        })
     }
 
     fn read_block_tx(&self, tx_num: TxNum) -> Result<proto::Tx> {
