@@ -43,7 +43,7 @@ pub fn setup_chronik(
     match try_setup_chronik(params, config, node) {
         Ok(()) => true,
         Err(report) => {
-            log_chronik!("{report:?}");
+            log_chronik!("{report:?}\n");
             init_error(&report.to_string())
         }
     }

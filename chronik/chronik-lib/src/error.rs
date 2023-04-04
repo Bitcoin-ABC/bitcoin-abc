@@ -9,7 +9,7 @@ use chronik_util::log_chronik;
 /// If `result` is [`Err`], logs and aborts the node.
 pub(crate) fn ok_or_abort_node<T>(func_name: &str, result: Result<T>) {
     if let Err(report) = result {
-        log_chronik!("{report:?}");
+        log_chronik!("{report:?}\n");
         abort_node(
             &format!("ERROR Chronik in {func_name}"),
             &format!("{report:#}"),

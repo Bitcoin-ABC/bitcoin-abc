@@ -2729,17 +2729,17 @@ bool Chainstate::ConnectTip(const Config &config, BlockValidationState &state,
                 consensusParams, *pindexNew, blockConnecting, blockReward));
 
             // If any block policy is violated, bail on the first one found
-            if (std::find_if_not(
-                    parkingPolicies.begin(), parkingPolicies.end(),
-                    [&](const auto &policy) {
-                        bool ret = (*policy)(blockPolicyState);
-                        if (!ret) {
-                            LogPrintf("Park block because it "
-                                      "violated a block policy: %s\n",
-                                      blockPolicyState.ToString());
-                        }
-                        return ret;
-                    }) != parkingPolicies.end()) {
+            if (std::find_if_not(parkingPolicies.begin(), parkingPolicies.end(),
+                                 [&](const auto &policy) {
+                                     bool ret = (*policy)(blockPolicyState);
+                                     if (!ret) {
+                                         LogPrintf(
+                                             "Park block because it "
+                                             "violated a block policy: %s\n",
+                                             blockPolicyState.ToString());
+                                     }
+                                     return ret;
+                                 }) != parkingPolicies.end()) {
                 pindexNew->nStatus = pindexNew->nStatus.withParked();
                 m_blockman.m_dirty_blockindex.insert(pindexNew);
                 return false;

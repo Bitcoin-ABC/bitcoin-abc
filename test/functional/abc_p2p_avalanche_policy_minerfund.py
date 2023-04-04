@@ -40,8 +40,7 @@ class AvalancheMinerFundTest(BitcoinTestFramework):
                 '-avaminquorumstake=0',
                 '-avaminavaproofsnodecount=0',
                 '-whitelist=noban@127.0.0.1',
-                '-wellingtonactivationtime={}'.format(
-                    WELLINGTON_ACTIVATION_TIME),
+                f'-wellingtonactivationtime={WELLINGTON_ACTIVATION_TIME}',
             ],
         ]
 

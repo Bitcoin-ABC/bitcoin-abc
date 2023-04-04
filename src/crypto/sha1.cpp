@@ -22,12 +22,16 @@ namespace sha1 {
     inline uint32_t f1(uint32_t b, uint32_t c, uint32_t d) {
         return d ^ (b & (c ^ d));
     }
-    inline uint32_t f2(uint32_t b, uint32_t c, uint32_t d) { return b ^ c ^ d; }
+    inline uint32_t f2(uint32_t b, uint32_t c, uint32_t d) {
+        return b ^ c ^ d;
+    }
     inline uint32_t f3(uint32_t b, uint32_t c, uint32_t d) {
         return (b & c) | (d & (b | c));
     }
 
-    inline uint32_t left(uint32_t x) { return (x << 1) | (x >> 31); }
+    inline uint32_t left(uint32_t x) {
+        return (x << 1) | (x >> 31);
+    }
 
     /** Initialize SHA-1 state. */
     inline void Initialize(uint32_t *s) {

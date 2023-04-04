@@ -12,9 +12,13 @@
 namespace sha256d64_sse41 {
 namespace {
 
-    __m128i inline K(uint32_t x) { return _mm_set1_epi32(x); }
+    __m128i inline K(uint32_t x) {
+        return _mm_set1_epi32(x);
+    }
 
-    __m128i inline Add(__m128i x, __m128i y) { return _mm_add_epi32(x, y); }
+    __m128i inline Add(__m128i x, __m128i y) {
+        return _mm_add_epi32(x, y);
+    }
     __m128i inline Add(__m128i x, __m128i y, __m128i z) {
         return Add(Add(x, y), z);
     }
@@ -36,14 +40,24 @@ namespace {
         x = Add(x, y, z, w);
         return x;
     }
-    __m128i inline Xor(__m128i x, __m128i y) { return _mm_xor_si128(x, y); }
+    __m128i inline Xor(__m128i x, __m128i y) {
+        return _mm_xor_si128(x, y);
+    }
     __m128i inline Xor(__m128i x, __m128i y, __m128i z) {
         return Xor(Xor(x, y), z);
     }
-    __m128i inline Or(__m128i x, __m128i y) { return _mm_or_si128(x, y); }
-    __m128i inline And(__m128i x, __m128i y) { return _mm_and_si128(x, y); }
-    __m128i inline ShR(__m128i x, int n) { return _mm_srli_epi32(x, n); }
-    __m128i inline ShL(__m128i x, int n) { return _mm_slli_epi32(x, n); }
+    __m128i inline Or(__m128i x, __m128i y) {
+        return _mm_or_si128(x, y);
+    }
+    __m128i inline And(__m128i x, __m128i y) {
+        return _mm_and_si128(x, y);
+    }
+    __m128i inline ShR(__m128i x, int n) {
+        return _mm_srli_epi32(x, n);
+    }
+    __m128i inline ShL(__m128i x, int n) {
+        return _mm_slli_epi32(x, n);
+    }
 
     __m128i inline Ch(__m128i x, __m128i y, __m128i z) {
         return Xor(z, And(x, Xor(y, z)));
