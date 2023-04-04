@@ -195,6 +195,10 @@ if(ENABLE_HARDENING)
 	# Make the relocated sections read-only
 	add_linker_flags(-Wl,-z,relro -Wl,-z,now)
 
+	# Avoids mixing code pages with data to improve cache performance as well
+	# as security
+	add_linker_flags(-Wl,-z,separate-code)
+
 	# CMake provides the POSITION_INDEPENDENT_CODE property to set PIC/PIE.
 	cmake_policy(SET CMP0083 NEW)
 	include(CheckPIESupported)
