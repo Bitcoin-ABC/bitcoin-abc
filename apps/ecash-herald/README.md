@@ -1,4 +1,4 @@
-# ecash-telegram-bot
+# ecash-herald
 
 A telegram bot to broadcast ecash chain activity
 
