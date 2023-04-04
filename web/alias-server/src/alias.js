@@ -1,8 +1,8 @@
 'use strict';
+const cashaddr = require('ecashaddrjs');
 const config = require('../config');
 const log = require('./log');
 const {
-    outputScriptToAddress,
     generateReservedAliasTxArray,
     getAliasFromHex,
     isValidAliasString,
@@ -36,7 +36,9 @@ module.exports = {
         // Assume P2PKH for now. Add P2SH support in later diff.
         const inputZeroOutputScript = aliasTx.inputs[0].outputScript;
 
-        const registeringAddress = outputScriptToAddress(inputZeroOutputScript);
+        const registeringAddress = cashaddr.encodeOutputScript(
+            inputZeroOutputScript,
+        );
 
         // Initialize vars used later for validation
         let aliasFeePaidSats = BigInt(0);
