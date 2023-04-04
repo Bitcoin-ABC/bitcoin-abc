@@ -7,6 +7,7 @@
 abc_rust_lint::lint! {
     pub mod db;
     pub mod group;
+    pub mod groups;
     pub mod io;
     pub mod mem;
     mod reverse_lookup;
