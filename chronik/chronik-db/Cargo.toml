@@ -13,8 +13,6 @@ abc-rust-lint = { path = "../abc-rust-lint" }
 
 bitcoinsuite-core = { path = "../bitcoinsuite-core" }
 
-chronik-bridge = { path = "../chronik-bridge" }
-
 # En-/decode byte strings from/to hex
 hex = "0.4"
 
