@@ -210,7 +210,7 @@
         },
         "lint-logs": {
             "type": "lint-logs",
-            "include": "(^(src|chronik)/.*\\.(h|cpp)$)"
+            "include": "(^(src|chronik)/.*\\.(h|cpp|rs)$)"
         },
         "lint-qt": {
             "type": "lint-qt",
