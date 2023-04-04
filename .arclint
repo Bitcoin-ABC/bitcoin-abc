@@ -296,7 +296,7 @@
             "include": [
                 "(web/cashtab/.*\\.js$)", 
                 "(web/alias-server/.*\\.js$)", 
-                "(web/ecashaddrjs/.*\\.js$)", 
+                "(modules/ecashaddrjs/.*\\.js$)", 
                 "(apps/ecash-herald/.*\\.js$)"
             ]
         },
