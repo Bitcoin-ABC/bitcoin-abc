@@ -86,18 +86,6 @@ message BlockMetadata {
     int64 timestamp = 3;
 }
 
-// Which network a tx/block is on.
-enum Network {
-    // BCH
-    BCH = 0;
-    // eCash
-    XEC = 1;
-    // Lotus
-    XPI = 2;
-    // Ergon
-    XRG = 3;
-}
-
 // Error message returned from our APIs.
 message Error {
     // 2, as legacy chronik uses this for the message so we're still compatible.
