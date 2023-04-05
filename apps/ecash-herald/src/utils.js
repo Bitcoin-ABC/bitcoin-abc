@@ -1,4 +1,5 @@
-'use strict'
+'use strict';
+const axios = require('axios');
 
 module.exports = {
     returnLabeledChronikBlockPromise: async function (
@@ -20,7 +21,7 @@ module.exports = {
                 },
             );
         });
-    },    
+    },
     returnAddressPreview: function (cashAddress, sliceSize = 3) {
         const addressParts = cashAddress.split(':');
         const unprefixedAddress = addressParts[addressParts.length - 1];
@@ -28,5 +29,38 @@ module.exports = {
             0,
             sliceSize,
         )}...${unprefixedAddress.slice(-sliceSize)}`;
+    },
+    getCoingeckoPrices: async function (priceInfoObj) {
+        const { apiBase, cryptoIds, fiat, precision } = priceInfoObj;
+        let apiUrl = `${apiBase}?ids=${cryptoIds.join(
+            ',',
+        )}&vs_currencies=${fiat}&precision=${precision.toString()}`;
+        // https://api.coingecko.com/api/v3/simple/price?ids=ecash,bitcoin,ethereum&vs_currencies=usd&precision=8
+        let coingeckoApiResponse;
+        let prices = false;
+        try {
+            coingeckoApiResponse = await axios.get(apiUrl);
+            const { data } = coingeckoApiResponse;
+            // Validate for expected shape
+            // For each key in `cryptoIds`, data must contain {<fiat>: <price>}
+            if (data && typeof data === 'object') {
+                for (let i = 0; i < cryptoIds.length; i += 1) {
+                    const thisCrypto = cryptoIds[i];
+                    if (!data[thisCrypto] || !data[thisCrypto][fiat]) {
+                        return false;
+                    }
+                }
+                return data;
+            }
+            return false;
+        } catch (err) {
+            console.log(
+                `Error fetching prices of ${cryptoIds.join(
+                    ',',
+                )} from ${apiUrl}`,
+                err,
+            );
+        }
+        return prices;
     },
 };

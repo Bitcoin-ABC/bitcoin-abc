@@ -9,7 +9,8 @@
         "junit": "mocha test --reporter mocha-junit-reporter",
         "mocks": "node scripts/generateMocks.js",
         "newmocks": "OVERWRITE=true node scripts/generateMocks.js",
-        "msgs": "node scripts/sendTestTgMsgs.js"
+        "msgs": "node scripts/sendTestTgMsgs.js",
+        "getCoingeckoPrices": "node scripts/getCoingeckoPrices"
     },
     "keywords": [
         "ecash",
@@ -21,6 +22,8 @@
     "author": "Bitcoin ABC",
     "license": "MIT",
     "dependencies": {
+        "axios": "^1.3.4",
+        "axios-mock-adapter": "^1.21.4",
         "chronik-client": "^0.8.2",
         "node-telegram-bot-api": "^0.61.0"
     },
