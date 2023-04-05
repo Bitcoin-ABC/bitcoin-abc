@@ -295,7 +295,7 @@
             "version": ">=8.0.0",
             "include": [
                 "(cashtab/.*\\.js$)", 
-                "(web/alias-server/.*\\.js$)", 
+                "(apps/alias-server/.*\\.js$)", 
                 "(modules/ecashaddrjs/.*\\.js$)", 
                 "(apps/ecash-herald/.*\\.js$)"
             ]

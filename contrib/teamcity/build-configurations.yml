@@ -584,11 +584,11 @@ builds:
 
   alias-server-tests:
     runOnDiffRegex:
-      - web/alias-server/
+      - apps/alias-server/
     artifacts:
       coverage.tar.gz: coverage.tar.gz
     script: |
-      pushd "${TOPLEVEL}/web/alias-server"
+      pushd "${TOPLEVEL}/apps/alias-server"
 
       MOCHA_JUNIT_DIR="test_results"
       MOCHA_JUNIT_PATH="${MOCHA_JUNIT_DIR}/alias-server-junit.xml"
