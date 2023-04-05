@@ -1,7 +1,8 @@
 {
     "networks": {
         "bitcoin": "\u0018Bitcoin Signed Message:\n",
-        "dogecoin": "\u0019Dogecoin Signed Message:\n"
+        "dogecoin": "\u0019Dogecoin Signed Message:\n",
+        "ecash": "\u0016eCash Signed Message:\n"
     },
     "valid": {
         "signature": [

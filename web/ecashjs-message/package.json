@@ -29,6 +29,7 @@
         "unit": "tape test/*.js"
     },
     "dependencies": {
+        "bs58check": "^3.0.1",
         "buffer-equals": "^1.0.3",
         "create-hash": "^1.1.2",
         "ecashaddrjs": "^1.0.7",

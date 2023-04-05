@@ -1,3 +1,4 @@
+const bs58check = require('bs58check');
 const bufferEquals = require('buffer-equals');
 const createHash = require('create-hash');
 const secp256k1 = require('secp256k1');
@@ -138,11 +139,17 @@ function verify(message, xecAddress, signature, messagePrefix) {
     actualBitcoinSigned = publicKeyHashBitcoinSigned;
     actualEcashSigned = publicKeyHashEcashSigned;
 
-    // Decode from XEC address instead of bs58 legacy format
-    const decodedAddress = ecashaddr.decode(xecAddress);
-
-    expected = Buffer.alloc(decodedAddress.hash.length);
-    expected.set(decodedAddress.hash);
+    // Support both cashaddr format and legacy bs58
+    let decodedAddress;
+    try {
+        decodedAddress = ecashaddr.decode(xecAddress);
+        expected = Buffer.alloc(decodedAddress.hash.length);
+        expected.set(decodedAddress.hash);
+    } catch {
+        decodedAddress = bs58check.decode(xecAddress).slice(1);
+        expected = Buffer.alloc(decodedAddress.length);
+        expected.set(decodedAddress);
+    }
 
     return (
         bufferEquals(actualEcashSigned, expected) ||

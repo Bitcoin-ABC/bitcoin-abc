@@ -1,7 +1,4 @@
 const test = require('tape').test;
-const bs58check = require('bs58check');
-const bech32 = require('bech32');
-const createHash = require('create-hash');
 const bitcoin = require('bitcoinjs-lib');
 const BigInteger = require('bigi');
 const secp256k1 = require('secp256k1');
@@ -79,32 +76,6 @@ fixtures.valid.sign.forEach(f => {
             t.same(signature.toString('base64'), f.compressed.signature);
         }
 
-        if (f.segwit) {
-            if (f.segwit.P2SH_P2WPKH) {
-                signature = message.sign(
-                    f.message,
-                    pk,
-                    true,
-                    getMessagePrefix(f.network),
-                    { segwitType: 'p2sh(p2wpkh)' },
-                );
-                t.same(
-                    signature.toString('base64'),
-                    f.segwit.P2SH_P2WPKH.signature,
-                );
-            }
-            if (f.segwit.P2WPKH) {
-                signature = message.sign(
-                    f.message,
-                    pk,
-                    true,
-                    getMessagePrefix(f.network),
-                    { segwitType: 'p2wpkh' },
-                );
-                t.same(signature.toString('base64'), f.segwit.P2WPKH.signature);
-            }
-        }
-
         t.end();
     });
 });
@@ -140,47 +111,6 @@ fixtures.valid.verify.forEach(f => {
                         getMessagePrefix(f.network),
                     ),
                 );
-            }
-
-            if (f.segwit) {
-                if (f.segwit.P2SH_P2WPKH) {
-                    t.true(
-                        message.verify(
-                            f.message,
-                            f.segwit.P2SH_P2WPKH.address,
-                            f.segwit.P2SH_P2WPKH.signature,
-                            getMessagePrefix(f.network),
-                        ),
-                    );
-                    t.true(
-                        message.verify(
-                            f.message,
-                            f.segwit.P2SH_P2WPKH.address,
-                            f.segwit.P2SH_P2WPKH.signature.replace(/^./, 'I'),
-                            getMessagePrefix(f.network),
-                            true,
-                        ),
-                    );
-                }
-                if (f.segwit.P2WPKH) {
-                    t.true(
-                        message.verify(
-                            f.message,
-                            f.segwit.P2WPKH.address,
-                            f.segwit.P2WPKH.signature,
-                            getMessagePrefix(f.network),
-                        ),
-                    );
-                    t.true(
-                        message.verify(
-                            f.message,
-                            f.segwit.P2WPKH.address,
-                            f.segwit.P2WPKH.signature.replace(/^./, 'I'),
-                            getMessagePrefix(f.network),
-                            true,
-                        ),
-                    );
-                }
             }
 
             t.end();
@@ -229,66 +159,6 @@ fixtures.randomSig.forEach(f => {
     });
 });
 
-test('Check that compressed signatures can be verified as segwit', t => {
-    const keyPair = bitcoin.ECPair.makeRandom();
-    const privateKey = keyPair.d.toBuffer(32);
-    const publicKey = keyPair.getPublicKeyBuffer();
-    const publicKeyHash = hash160(publicKey);
-    const p2shp2wpkhRedeemHash = segwitRedeemHash(publicKeyHash);
-    // get addresses (p2pkh, p2sh-p2wpkh, p2wpkh)
-    const p2pkhAddress = keyPair.getAddress();
-    const p2shp2wpkhAddress = bs58check.encode(
-        Buffer.concat([Buffer.from([5]), p2shp2wpkhRedeemHash]),
-    );
-    const p2wpkhAddress = bech32.encode(
-        'bc',
-        [0].concat(bech32.toWords(publicKeyHash)),
-    );
-
-    const msg = 'Sign me';
-    const signature = message.sign(msg, privateKey, true);
-
-    // Make sure it verifies
-    t.true(message.verify(msg, p2pkhAddress, signature));
-    // Make sure it verifies even with checkSegwitAlways
-    t.true(message.verify(msg, p2pkhAddress, signature, null, true));
-
-    // Check segwit addresses with true
-    t.true(message.verify(msg, p2shp2wpkhAddress, signature, null, true));
-    t.true(message.verify(msg, p2wpkhAddress, signature, null, true));
-    // Check segwit with false
-    t.true(message.verify(msg, p2shp2wpkhAddress, signature) === false);
-    t.throws(() => {
-        message.verify(msg, p2wpkhAddress, signature);
-    }, new RegExp('^Error: Non-base58 character$'));
-
-    const signatureUncompressed = message.sign(msg, privateKey, false);
-    t.throws(() => {
-        message.verify(
-            msg,
-            p2shp2wpkhAddress,
-            signatureUncompressed,
-            null,
-            true,
-        );
-    }, new RegExp('^Error: checkSegwitAlways can only be used with a compressed pubkey signature flagbyte$'));
-
-    t.end();
-});
-
-test('Check that invalid segwitType fails', t => {
-    const keyPair = bitcoin.ECPair.fromWIF(
-        'L3n3e2LggPA5BuhXyBetWGhUfsEBTFe9Y6LhyAhY2mAXkA9jNE56',
-    );
-    const privateKey = keyPair.d.toBuffer(32);
-
-    t.throws(() => {
-        message.sign('Sign me', privateKey, true, { segwitType: 'XYZ' });
-    }, new RegExp('Unrecognized segwitType: use "p2sh\\(p2wpkh\\)" or "p2wpkh"'));
-
-    t.end();
-});
-
 test('Check that Buffers and wrapped Strings are accepted', t => {
     const keyPair = bitcoin.ECPair.fromWIF(
         'L3n3e2LggPA5BuhXyBetWGhUfsEBTFe9Y6LhyAhY2mAXkA9jNE56',
@@ -301,26 +171,11 @@ test('Check that Buffers and wrapped Strings are accepted', t => {
         privateKey,
         true,
         Buffer.from([1, 2, 3, 4]),
-        { segwitType: new String('p2wpkh') },
     );
     t.equals(
         sig.toString('hex'),
-        '276e5e5e75196dd93bba7b98f29f944156286d94cb34c376822c6ebc93e08d7b2d177e1f2215b2879caee53f39a376cf350ffdca70df4398a12d5b5adaf3b0f0bc',
+        '1f00e7f53fb54da299b981de40b15ffb7cb7e43842f95c04b07b2c08e7668ce5134d1fbacfb60e841cdcf0e6f5d9ca2bf7bd6820b2136aae79563f7d2d7975ee58',
     );
 
     t.end();
 });
-
-function sha256(b) {
-    return createHash('sha256').update(b).digest();
-}
-function hash160(buffer) {
-    return createHash('ripemd160').update(sha256(buffer)).digest();
-}
-function segwitRedeemHash(publicKeyHash) {
-    const redeemScript = Buffer.concat([
-        Buffer.from('0014', 'hex'),
-        publicKeyHash,
-    ]);
-    return hash160(redeemScript);
-}
