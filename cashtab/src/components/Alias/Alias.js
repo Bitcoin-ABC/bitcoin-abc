@@ -10,7 +10,7 @@ import {
 } from 'components/Common/Atoms';
 import { DestinationAddressSingle } from 'components/Common/EnhancedInputs';
 import { AntdFormWrapper } from 'components/Common/EnhancedInputs';
-import { Form } from 'antd';
+import { Form, Modal } from 'antd';
 import { SmartButton } from 'components/Common/PrimaryButton';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
@@ -78,6 +78,9 @@ const Alias = ({ passLoadingStatus }) => {
     const [aliasLength, setAliasLength] = useState(false); // real time tracking of alias char length
     const [aliasFee, setAliasFee] = useState(false); // real time tracking of alias registration fee
 
+    // Show a confirmation modal on alias registrations
+    const [isModalVisible, setIsModalVisible] = useState(false);
+
     useEffect(() => {
         passLoadingStatus(false);
     }, [balances.totalBalance]);
@@ -122,6 +125,15 @@ const Alias = ({ passLoadingStatus }) => {
         }
         passLoadingStatus(false);
     }, [wallet.name, cashtabCache.aliasCache.aliases]);
+
+    const handleOk = () => {
+        setIsModalVisible(false);
+        registerAlias();
+    };
+
+    const handleCancel = () => {
+        setIsModalVisible(false);
+    };
 
     const registerAlias = async () => {
         passLoadingStatus(true);
@@ -287,6 +299,16 @@ const Alias = ({ passLoadingStatus }) => {
 
     return (
         <>
+            <Modal
+                title="Confirm Alias Registration"
+                open={isModalVisible}
+                onOk={handleOk}
+                onCancel={handleCancel}
+            >
+                <p>
+                    {`Are you sure you want to register the alias '${formData.aliasName}' for ${fromSatoshisToXec(aliasFee)} XECs?`}
+                </p>
+            </Modal>
             <WalletInfoCtn>
                 <WalletLabel
                     name={wallet.name}
@@ -358,7 +380,7 @@ const Alias = ({ passLoadingStatus }) => {
                                     <Form.Item>
                                         <SmartButton
                                             disabled={!isValidAliasInput}
-                                            onClick={() => registerAlias()}
+                                            onClick={() => setIsModalVisible(true)}
                                         >
                                             Register Alias
                                         </SmartButton>
