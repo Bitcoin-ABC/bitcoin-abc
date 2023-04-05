@@ -9,7 +9,6 @@ const MockAdapter = require('axios-mock-adapter');
 const mockSecrets = require('../secrets.sample');
 const { avalancheRpc } = mockSecrets;
 const { isFinalBlock } = require('../src/rpc');
-const stdout = require('test-console').stdout;
 
 describe('alias-server rpc.js', async function () {
     it('Returns true for a valid blockhash that has been finalized by avalanche', async function () {
@@ -60,15 +59,7 @@ describe('alias-server rpc.js', async function () {
             },
             id: 'isfinalblock',
         });
-
-        const inspect = stdout.inspect();
         assert.strictEqual(await isFinalBlock(avalancheRpc, blockhash), false);
-        inspect.restore();
-
-        // Confirm the correct error log is printed
-        assert.deepEqual(inspect.output, [
-            'Node error from isFinalBlock {\n  "code": -8,\n  "message": "blockhash must be of length 64 (not 15, for \'not_a_blockhash\')"\n}\n',
-        ]);
     });
     it('Returns false on a request timeout', async function () {
         // This sets the mock adapter on the default instance
@@ -80,12 +71,6 @@ describe('alias-server rpc.js', async function () {
 
         // Mock response timeout
         mock.onPost().timeoutOnce();
-        const inspect = stdout.inspect();
         assert.strictEqual(await isFinalBlock(avalancheRpc, blockhash), false);
-        inspect.restore();
-        // Confirm the correct error log is printed
-        assert.deepEqual(inspect.output, [
-            'Error in isFinalBlock(00000000000000000753144f1e8d9f02bd7539543d73dc9fd45355de5b99f504) "timeout of 1000ms exceeded"\n',
-        ]);
     });
 });

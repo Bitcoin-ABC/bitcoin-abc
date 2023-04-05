@@ -44,6 +44,7 @@
         "eslint": "^8.37.0",
         "jsdoc": "^4.0.2",
         "mocha": "^10.2.0",
+        "mocha-suppress-logs": "^0.3.1",
         "nyc": "^15.1.0",
         "random-js": "^2.1.0",
         "webpack": "^5.76.2",
