@@ -1,4 +1,8 @@
-'use strict'
+// Copyright (c) 2023 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+'use strict';
 const config = require('../config');
 const { telegramBot, channelId } = require('./telegram');
 const { ChronikClient } = require('chronik-client');
@@ -51,10 +55,10 @@ module.exports = {
                 const tgMsg = blockDetails
                     ? generatedTgMsg
                     : `New Block Found\n` +
-                    `\n` +
-                    `${blockHash}\n` +
-                    `\n` +
-                    `[explorer](${config.blockExplorer}/block/${blockHash})`;
+                      `\n` +
+                      `${blockHash}\n` +
+                      `\n` +
+                      `[explorer](${config.blockExplorer}/block/${blockHash})`;
 
                 try {
                     await telegramBot.sendMessage(
