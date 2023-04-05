@@ -304,10 +304,7 @@
             "type": "lint-python-flynt",
             "version": ">=0.78",
             "include": "(\\.py$)",
-            "exclude": "(^contrib/)",
-            "flags": [
-                "--transform-concats"
-            ]
+            "exclude": "(^contrib/)"
         }
     }
 }
