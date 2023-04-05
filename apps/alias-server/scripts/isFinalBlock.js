@@ -1,3 +1,7 @@
+// Copyright (c) 2023 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 /* 
 Make the isFinalBlock rpc call to determine if a block has been finalized by avalanche
 
@@ -9,6 +13,7 @@ Call from the command line in the top level directory of alias-server with
 To specify a particular blockhash, add this to the end of the command, e.g.
 "npm run isFinalBlock 00000000000000000753144f1e8d9f02bd7539543d73dc9fd45355de5b99f504"
 */
+
 'use strict';
 const { isFinalBlock } = require('../src/rpc');
 const secrets = require('../secrets');
