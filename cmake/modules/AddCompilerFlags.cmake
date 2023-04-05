@@ -157,6 +157,8 @@ function(_internal_custom_check_linker_flag RESULT FLAG)
 endfunction()
 
 function(custom_check_linker_flag RESULT FLAG)
+	set(EXTRA_LD_FLAGS ${GLOBAL_LINKER_FLAGS})
+
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 		# Include -Wl,--disable-reloc-section so work around a bug from ld.bfd,
 		# the MinGw linker used to cross compile for Windows.
@@ -169,9 +171,9 @@ function(custom_check_linker_flag RESULT FLAG)
 		# flag is supported or not it's totally fine to manually disable it.
 		# See https://gitlab.kitware.com/cmake/cmake/-/merge_requests/5194
 		set(_LD_DISABLE_RELOC_SECTION "-Wl,--disable-reloc-section")
-		_internal_custom_check_linker_flag(_LD_DISABLE_RELOC_SECTION_SUPPORTED ${_LD_DISABLE_RELOC_SECTION})
+		_internal_custom_check_linker_flag(_LD_DISABLE_RELOC_SECTION_SUPPORTED ${_LD_DISABLE_RELOC_SECTION} ${EXTRA_LD_FLAGS})
 		if(_LD_DISABLE_RELOC_SECTION_SUPPORTED)
-			set(EXTRA_LD_FLAGS ${_LD_DISABLE_RELOC_SECTION})
+			list(APPEND EXTRA_LD_FLAGS ${_LD_DISABLE_RELOC_SECTION})
 		endif()
 	endif()
 

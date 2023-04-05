@@ -105,7 +105,12 @@ if(USE_LINKER)
 	if(NOT IS_LINKER_SUPPORTED)
 		message(FATAL_ERROR "The ${USE_LINKER} linker is not supported, make sure ${USE_LINKER} is properly installed or use -DUSE_LINKER= to use the system's linker")
 	endif()
+
 	add_linker_flags(${LINKER_FLAG})
+
+	# Remember the selected linker, it will be used for the subsequent
+	# custom_check_linker_flag calls
+	set(GLOBAL_LINKER_FLAGS ${LINKER_FLAG} CACHE INTERNAL "Additional linker flags for flag support checking")
 endif()
 
 # Prefer -g3, defaults to -g if unavailable
