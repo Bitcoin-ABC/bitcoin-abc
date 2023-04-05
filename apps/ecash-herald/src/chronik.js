@@ -1,5 +1,5 @@
 'use strict'
-const config = require('./config');
+const config = require('../config');
 const { telegramBot, channelId } = require('./telegram');
 const { ChronikClient } = require('chronik-client');
 const chronik = new ChronikClient(config.chronik);

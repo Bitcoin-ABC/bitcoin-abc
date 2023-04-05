@@ -1,5 +1,5 @@
 'use strict'
-const { initializeWebsocket } = require('./chronik');
+const { initializeWebsocket } = require('./src/chronik');
 
 async function main() {
     // Initialize websocket connection

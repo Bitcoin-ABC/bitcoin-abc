@@ -4,8 +4,8 @@ const path = require('path');
 const config = require('../config');
 const { ChronikClient } = require('chronik-client');
 const chronik = new ChronikClient(config.chronik);
-const { returnLabeledChronikBlockPromise } = require('../utils');
-const { parseBlock, getBlockTgMessage } = require('../parse');
+const { returnLabeledChronikBlockPromise } = require('../src/utils');
+const { parseBlock, getBlockTgMessage } = require('../src/parse');
 
 async function generateMocks() {
     let mocksDir, mocksFileName;

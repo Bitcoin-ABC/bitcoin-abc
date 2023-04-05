@@ -1,6 +1,6 @@
 'use strict'
 const assert = require('assert');
-const { returnAddressPreview } = require('../utils');
+const { returnAddressPreview } = require('../src/utils');
 const { addressPreviews } = require('./mocks/templates');
 
 describe('ecash-telegram-bot utils.js functions', function () {

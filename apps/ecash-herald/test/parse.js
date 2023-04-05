@@ -10,7 +10,7 @@ const {
     parseMemoOutputScript,
     getBlockTgMessage,
     prepareStringForTelegramHTML,
-} = require('../parse');
+} = require('../src/parse');
 
 describe('ecash-telegram-bot parses chronik block data and generates expected telegram msg', function () {
     it('All test blocks', function () {

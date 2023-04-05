@@ -1,5 +1,5 @@
 'use strict'
-const secrets = require('./secrets');
+const secrets = require('../secrets');
 const TelegramBot = require('node-telegram-bot-api');
 
 const { botId, channelId } = secrets.prod.telegram;

@@ -1,5 +1,5 @@
 'use strict'
-const config = require('./config');
+const config = require('../config');
 module.exports = {
     parseBlock: function (chronikBlockResponse) {
         const { blockInfo, txs } = chronikBlockResponse;
