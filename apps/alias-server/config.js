@@ -19,7 +19,7 @@ module.exports = {
     aliasConstants: {
         registrationHash160: '638568e36d0b5d7d49a6e99854caa27d9772b093',
         opCodePrefix: '2e786563',
-        address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+        registrationAddress: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
         maxLength: 21,
         registrationFeesSats: {
             1: 558,

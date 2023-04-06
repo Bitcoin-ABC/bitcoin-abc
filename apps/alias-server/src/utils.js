@@ -14,7 +14,7 @@ module.exports = {
             i += 1
         ) {
             reservedAliasTxs.push({
-                address: config.aliasConstants.address,
+                address: config.aliasConstants.registrationAddress,
                 alias: config.aliasConstants.reservedAliases[i],
                 blockheight: 1,
                 txid: 'reserved',

@@ -3,13 +3,18 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 'use strict';
-const config = require('../config');
 const log = require('./log');
-const { chronik } = require('./chronik');
 const { handleBlockConnected } = require('./events');
+const cashaddr = require('ecashaddrjs');
 
 module.exports = {
-    initializeWebsocket: async function (db, telegramBot, channelId) {
+    initializeWebsocket: async function (
+        chronik,
+        address,
+        db,
+        telegramBot,
+        channelId,
+    ) {
         // Subscribe to chronik websocket
         const ws = chronik.ws({
             onMessage: async msg => {
@@ -26,7 +31,8 @@ module.exports = {
         log(`Connected to websocket`);
         // Subscribe to scripts (on Lotus, current ABC payout address):
         // Will give a message on avg every 2 minutes
-        ws.subscribe('p2pkh', config.aliasConstants.registrationHash160);
+        const { type, hash } = cashaddr.decode(address);
+        ws.subscribe(type, hash);
         return ws;
     },
     parseWebsocketMessage: async function (

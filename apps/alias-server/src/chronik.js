@@ -3,30 +3,36 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 'use strict';
+const cashaddr = require('ecashaddrjs');
 const config = require('../config');
 const log = require('./log');
 
 module.exports = {
-    getTxHistoryPage: async function (chronik, hash160, page = 0) {
+    getTxHistoryPage: async function (chronik, type, hash, page = 0) {
         let txHistoryPage;
         try {
             txHistoryPage = await chronik
-                .script('p2pkh', hash160)
+                .script(type, hash)
                 // Get the 25 most recent transactions
                 .history(page, config.txHistoryPageSize);
             return txHistoryPage;
         } catch (err) {
-            log(`Error in getTxHistoryPage(${hash160})`, err);
+            log(`Error in getTxHistoryPage(type=${type}, hash=${hash})`, err);
         }
     },
-    returnGetTxHistoryPagePromise: async function (chronik, hash160, page = 0) {
+    returnGetTxHistoryPagePromise: async function (
+        chronik,
+        type,
+        hash,
+        page = 0,
+    ) {
         /* 
         Unlike getTxHistoryPage, this function will reject and 
         fail Promise.all() if there is an error in the chronik call
         */
         return new Promise((resolve, reject) => {
             chronik
-                .script('p2pkh', hash160)
+                .script(type, hash)
                 .history(page, config.txHistoryPageSize)
                 .then(
                     result => {
@@ -40,15 +46,16 @@ module.exports = {
     },
     getUnprocessedTxHistory: async function (
         chronik,
-        hash160,
+        address,
         processedBlockheight,
         processedTxCount,
     ) {
         let potentiallyUnprocessedTxs = [];
+        const { type, hash } = cashaddr.decode(address, true);
 
         // Get first page of most recent chronik tx history
         const txHistoryFirstPageResponse =
-            await module.exports.getTxHistoryPage(chronik, hash160);
+            await module.exports.getTxHistoryPage(chronik, type, hash);
         const { txs, numPages } = txHistoryFirstPageResponse;
 
         // This first page of results contains the most recent chronik txs at the address
@@ -86,7 +93,8 @@ module.exports = {
                 const txHistoryPageResponsePromise =
                     module.exports.returnGetTxHistoryPagePromise(
                         chronik,
-                        hash160,
+                        type,
+                        hash,
                         i,
                     );
                 txHistoryPageResponsePromises.push(
@@ -134,10 +142,11 @@ module.exports = {
 
         return unprocessedTxs;
     },
-    getAllTxHistory: async function (chronik, hash160) {
+    getAllTxHistory: async function (chronik, address) {
         let allTxHistory = [];
+        const { type, hash } = cashaddr.decode(address, true);
         const txHistoryFirstPageResponse =
-            await module.exports.getTxHistoryPage(chronik, hash160);
+            await module.exports.getTxHistoryPage(chronik, type, hash);
         const { txs, numPages } = txHistoryFirstPageResponse;
 
         // Add first page of results to allTxHistory
@@ -151,7 +160,8 @@ module.exports = {
             const txHistoryPageResponsePromise =
                 module.exports.returnGetTxHistoryPagePromise(
                     chronik,
-                    hash160,
+                    type,
+                    hash,
                     i,
                 );
             txHistoryPageResponsePromises.push(txHistoryPageResponsePromise);

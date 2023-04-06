@@ -4,9 +4,57 @@
 
 'use strict';
 const assert = require('assert');
-const { parseWebsocketMessage } = require('../src/websocket');
+const {
+    initializeWebsocket,
+    parseWebsocketMessage,
+} = require('../src/websocket');
+const { MockChronikClient } = require('./mocks/chronikMock');
 
 describe('alias-server websocket.js', async function () {
+    it('initializeWebsocket returns expected websocket object for a p2pkh address', async function () {
+        const wsTestAddress =
+            'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8';
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient(wsTestAddress, []);
+        const db = null;
+        const telegramBot = null;
+        const channelId = null;
+
+        const result = await initializeWebsocket(
+            mockedChronik,
+            wsTestAddress,
+            db,
+            telegramBot,
+            channelId,
+        );
+
+        assert.deepEqual(result.wsResult, {
+            success: true,
+            address: wsTestAddress,
+        });
+    });
+    it('initializeWebsocket returns expected websocket object for a p2sh address', async function () {
+        const wsTestAddress =
+            'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient(wsTestAddress, []);
+        const db = null;
+        const telegramBot = null;
+        const channelId = null;
+
+        const result = await initializeWebsocket(
+            mockedChronik,
+            wsTestAddress,
+            db,
+            telegramBot,
+            channelId,
+        );
+
+        assert.deepEqual(result.wsResult, {
+            success: true,
+            address: wsTestAddress,
+        });
+    });
     it('parseWebsocketMessage correctly processes a chronik websocket BlockConnected message', async function () {
         const db = null;
         const telegramBot = null;

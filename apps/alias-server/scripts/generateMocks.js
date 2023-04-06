@@ -33,7 +33,7 @@ async function generateMocks() {
     // chronik tx history of alias registration address
     const aliasTxHistory = await getAllTxHistory(
         chronik,
-        config.aliasConstants.registrationHash160,
+        config.aliasConstants.registrationAddress,
     );
     fs.writeFileSync(
         `${mocksDir}/aliasTxHistory.json`,

@@ -5,13 +5,13 @@
 'use strict';
 const assert = require('assert');
 const config = require('../config');
-const cashaddr = require('ecashaddrjs');
 const { getUnprocessedTxHistory } = require('../src/chronik');
 const {
     allTxHistoryFromChronik,
     unconfirmedTxs,
     unconfirmedTxsAfterConfirmation,
 } = require('./mocks/txHistoryMocks');
+const { MockChronikClient } = require('./mocks/chronikMock');
 
 // todo make txsperpage a param and test different values
 describe('alias-server chronik.js', () => {
@@ -21,24 +21,20 @@ describe('alias-server chronik.js', () => {
         const processedTxCount = processedTxs.length;
         const unprocessedTxs = [];
 
-        const { MockChronikClient } = require('./mocks/chronikMock');
         // Initialize chronik mock with full tx history of test alias address
-        const { type, hash } = cashaddr.decode(
-            config.aliasConstants.address,
-            true,
-        );
         const mockedChronik = new MockChronikClient(
-            type,
-            hash,
+            config.aliasConstants.registrationAddress,
             allTxHistoryFromChronik,
         );
 
         const result = await getUnprocessedTxHistory(
             mockedChronik,
-            config.aliasConstants.registrationHash160,
+            config.aliasConstants.registrationAddress,
+            allTxHistoryFromChronik,
             processedBlockheight,
             processedTxCount,
         );
+        console.log(`mockedChronik`, mockedChronik);
 
         assert.deepEqual(result, unprocessedTxs);
     });
@@ -49,17 +45,15 @@ describe('alias-server chronik.js', () => {
         const unprocessedTxs = unconfirmedTxs;
         const allTxHistory = unprocessedTxs.concat(processedTxs);
 
-        const { MockChronikClient } = require('./mocks/chronikMock');
         // Initialize chronik mock with full tx history of test alias address
-        const { type, hash } = cashaddr.decode(
-            config.aliasConstants.address,
-            true,
+        const mockedChronik = new MockChronikClient(
+            config.aliasConstants.registrationAddress,
+            allTxHistory,
         );
-        const mockedChronik = new MockChronikClient(type, hash, allTxHistory);
 
         const result = await getUnprocessedTxHistory(
             mockedChronik,
-            config.aliasConstants.registrationHash160,
+            config.aliasConstants.registrationAddress,
             processedBlockheight,
             processedTxCount,
         );
@@ -73,17 +67,15 @@ describe('alias-server chronik.js', () => {
         const unprocessedTxs = unconfirmedTxsAfterConfirmation;
         const allTxHistory = unprocessedTxs.concat(processedTxs);
 
-        const { MockChronikClient } = require('./mocks/chronikMock');
         // Initialize chronik mock with full tx history of test alias address
-        const { type, hash } = cashaddr.decode(
-            config.aliasConstants.address,
-            true,
+        const mockedChronik = new MockChronikClient(
+            config.aliasConstants.registrationAddress,
+            allTxHistory,
         );
-        const mockedChronik = new MockChronikClient(type, hash, allTxHistory);
 
         const result = await getUnprocessedTxHistory(
             mockedChronik,
-            config.aliasConstants.registrationHash160,
+            config.aliasConstants.registrationAddress,
             processedBlockheight,
             processedTxCount,
         );
@@ -116,15 +108,9 @@ describe('alias-server chronik.js', () => {
         }
 
         // Mock chronik with allTxHistory
-        const { MockChronikClient } = require('./mocks/chronikMock');
         // Initialize chronik mock with full tx history of test alias address
-        const { type, hash } = cashaddr.decode(
-            config.aliasConstants.address,
-            true,
-        );
         const mockedChronik = new MockChronikClient(
-            type,
-            hash,
+            config.aliasConstants.registrationAddress,
             allTxHistoryFromChronik,
         );
 
@@ -197,7 +183,7 @@ describe('alias-server chronik.js', () => {
 
             const result = await getUnprocessedTxHistory(
                 mockedChronik,
-                config.aliasConstants.registrationHash160,
+                config.aliasConstants.registrationAddress,
                 processedBlockheight,
                 processedTxCount,
             );

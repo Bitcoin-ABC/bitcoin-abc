@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 'use strict';
+const cashaddr = require('ecashaddrjs');
 
 /* Mock chronik-client instance
  * Must be initialized with type, hash, and full tx history
@@ -9,7 +10,8 @@
  */
 module.exports = {
     MockChronikClient: class {
-        constructor(type, hash, txHistory) {
+        constructor(address, txHistory) {
+            const { type, hash } = cashaddr.decode(address, true);
             this._url = `https://mocked-chronik-instance/not-a-url/`;
             this._wsUrl = `wss://mocked-chronik-instance/not-a-url/`;
             this.txHistory = txHistory;
@@ -40,6 +42,32 @@ module.exports = {
             // Return assigned mocks
             this.script = function (type, hash) {
                 return this.mock[type][hash];
+            };
+            this.ws = function (wsObj) {
+                if (wsObj !== null) {
+                    return {
+                        onMessage: wsObj.onMessage,
+                        waitForOpen: function () {
+                            return {
+                                // Stub method
+                                // Must be a function
+                                waitForOpen: { called: true },
+                            };
+                        },
+                        subscribe: function (type, hash) {
+                            return {
+                                // Stub method
+                                // Must be a function that accepts expected parameters
+                                subscribe: {
+                                    called: true,
+                                    params: { type, hash },
+                                },
+                            };
+                        },
+                        // Return object for unit test parsing
+                        wsResult: { success: true, address },
+                    };
+                }
             };
         }
     },
