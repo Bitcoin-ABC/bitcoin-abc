@@ -5,10 +5,8 @@
 'use strict';
 const config = require('./config');
 const secrets = require('./secrets');
-const {
-    initializeWebsocket,
-    parseWebsocketMessage,
-} = require('./src/websocket');
+const { initializeWebsocket } = require('./src/websocket');
+const { handleAppStartup } = require('./src/events');
 const { initializeDb } = require('./src/db');
 const log = require('./src/log');
 const express = require('express');
@@ -39,8 +37,8 @@ async function main(telegramBot, channelId) {
         log(`Websocket subscribed to ${subscribedHash160}`);
     }
 
-    // Run parseWebsocketMessage on startup mocking a block found
-    parseWebsocketMessage(db, telegramBot, channelId);
+    // Get the latest alias information on app startup
+    await handleAppStartup();
 
     // Set up your API endpoints
     const app = express();

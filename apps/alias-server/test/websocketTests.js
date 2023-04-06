@@ -7,24 +7,7 @@ const assert = require('assert');
 const { parseWebsocketMessage } = require('../src/websocket');
 
 describe('alias-server websocket.js', async function () {
-    it('parseWebsocketMessage correctly recognizes a call from app startup', async function () {
-        const db = null;
-        const telegramBot = null;
-        const channelId = null;
-        const wsMsg = { type: 'BlockConnected' };
-        const result = await parseWebsocketMessage(
-            db,
-            telegramBot,
-            channelId,
-            wsMsg,
-        );
-
-        assert.strictEqual(
-            result,
-            `Alias registrations updated on app startup`,
-        );
-    });
-    it('parseWebsocketMessage correctly recognizes a call a chronik websocket BlockConnected message', async function () {
+    it('parseWebsocketMessage correctly processes a chronik websocket BlockConnected message', async function () {
         const db = null;
         const telegramBot = null;
         const channelId = null;
