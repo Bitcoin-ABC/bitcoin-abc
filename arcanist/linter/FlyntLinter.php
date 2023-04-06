@@ -92,7 +92,7 @@ final class FlyntFormattLinter extends ArcanistExternalLinter {
     // (bug present at least in versions 0.77 and 0.78)
     $stdout = rtrim($stdout) . "\n";
 
-    if ($orig == $stdout) {
+    if (empty($orig) || $orig == $stdout) {
       return array();
     }
 
