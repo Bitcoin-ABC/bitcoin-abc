@@ -5,6 +5,7 @@
 'use strict';
 const assert = require('assert');
 const config = require('../config');
+const cashaddr = require('ecashaddrjs');
 const { getUnprocessedTxHistory } = require('../src/chronik');
 const {
     allTxHistoryFromChronik,
@@ -19,33 +20,27 @@ describe('alias-server chronik.js', () => {
         const processedBlockheight = processedTxs[0].block.height;
         const processedTxCount = processedTxs.length;
         const unprocessedTxs = [];
-        const allTxHistory = unprocessedTxs.concat(processedTxs);
 
-        const txHistoryFirstPageResponse = {
-            txs: allTxHistory.slice(0, config.txHistoryPageSize),
-            numPages: Math.ceil(allTxHistory.length / config.txHistoryPageSize),
-        };
-        const optionalMocks = {
-            txHistoryFirstPageResponse,
-            remainingTxHistoryPageResponses: [],
-        };
+        const { MockChronikClient } = require('./mocks/chronikMock');
+        // Initialize chronik mock with full tx history of test alias address
+        const { type, hash } = cashaddr.decode(
+            config.aliasConstants.address,
+            true,
+        );
+        const mockedChronik = new MockChronikClient(
+            type,
+            hash,
+            allTxHistoryFromChronik,
+        );
 
         const result = await getUnprocessedTxHistory(
-            null,
+            mockedChronik,
             config.aliasConstants.registrationHash160,
             processedBlockheight,
             processedTxCount,
-            optionalMocks,
         );
-        const expectedResult = {
-            maxTxs: undefined,
-            maxUnprocessedTxCount: undefined,
-            numPagesToFetch: undefined,
-            alreadyHaveAllPotentiallyUnprocessedTxs: true,
-            unprocessedTxs: unprocessedTxs,
-        };
 
-        assert.deepEqual(result, expectedResult);
+        assert.deepEqual(result, unprocessedTxs);
     });
     it(`getUnprocessedTxHistory correctly recognizes when 11 unprocessed unconfirmed transactions are available with a txHistoryPageSize=${config.txHistoryPageSize}`, async () => {
         const processedTxs = allTxHistoryFromChronik;
@@ -54,35 +49,22 @@ describe('alias-server chronik.js', () => {
         const unprocessedTxs = unconfirmedTxs;
         const allTxHistory = unprocessedTxs.concat(processedTxs);
 
-        const numPages = Math.ceil(
-            allTxHistory.length / config.txHistoryPageSize,
+        const { MockChronikClient } = require('./mocks/chronikMock');
+        // Initialize chronik mock with full tx history of test alias address
+        const { type, hash } = cashaddr.decode(
+            config.aliasConstants.address,
+            true,
         );
-
-        const txHistoryFirstPageResponse = {
-            txs: allTxHistory.slice(0, config.txHistoryPageSize),
-            numPages,
-        };
-        const optionalMocks = {
-            txHistoryFirstPageResponse,
-            remainingTxHistoryPageResponses: [],
-        };
+        const mockedChronik = new MockChronikClient(type, hash, allTxHistory);
 
         const result = await getUnprocessedTxHistory(
-            null,
+            mockedChronik,
             config.aliasConstants.registrationHash160,
             processedBlockheight,
             processedTxCount,
-            optionalMocks,
         );
-        const expectedResult = {
-            maxTxs: undefined,
-            maxUnprocessedTxCount: undefined,
-            numPagesToFetch: undefined,
-            alreadyHaveAllPotentiallyUnprocessedTxs: true,
-            unprocessedTxs: unprocessedTxs,
-        };
 
-        assert.deepEqual(result, expectedResult);
+        assert.deepEqual(result, unprocessedTxs);
     });
     it(`getUnprocessedTxHistory correctly recognizes when 11 unprocessed confirmed transactions are available with a txHistoryPageSize=${config.txHistoryPageSize}`, async () => {
         const processedTxs = allTxHistoryFromChronik;
@@ -91,35 +73,21 @@ describe('alias-server chronik.js', () => {
         const unprocessedTxs = unconfirmedTxsAfterConfirmation;
         const allTxHistory = unprocessedTxs.concat(processedTxs);
 
-        const numPages = Math.ceil(
-            allTxHistory.length / config.txHistoryPageSize,
+        const { MockChronikClient } = require('./mocks/chronikMock');
+        // Initialize chronik mock with full tx history of test alias address
+        const { type, hash } = cashaddr.decode(
+            config.aliasConstants.address,
+            true,
         );
-
-        const txHistoryFirstPageResponse = {
-            txs: allTxHistory.slice(0, config.txHistoryPageSize),
-            numPages,
-        };
-        const optionalMocks = {
-            txHistoryFirstPageResponse,
-            remainingTxHistoryPageResponses: [],
-        };
+        const mockedChronik = new MockChronikClient(type, hash, allTxHistory);
 
         const result = await getUnprocessedTxHistory(
-            null,
+            mockedChronik,
             config.aliasConstants.registrationHash160,
             processedBlockheight,
             processedTxCount,
-            optionalMocks,
         );
-        const expectedResult = {
-            maxTxs: undefined,
-            maxUnprocessedTxCount: undefined,
-            numPagesToFetch: undefined,
-            alreadyHaveAllPotentiallyUnprocessedTxs: true,
-            unprocessedTxs: unprocessedTxs,
-        };
-
-        assert.deepEqual(result, expectedResult);
+        assert.deepEqual(result, unprocessedTxs);
     });
     it(`getUnprocessedTxHistory correctly fetches and parses required tx history with a txHistoryPageSize=${config.txHistoryPageSize}`, async () => {
         // Note: txs are processed by blockheight. So, test will only work if you look at batches of txs from different blocks
@@ -146,6 +114,19 @@ describe('alias-server chronik.js', () => {
                 blockheightDeltaTxCounts.push(i + 1);
             }
         }
+
+        // Mock chronik with allTxHistory
+        const { MockChronikClient } = require('./mocks/chronikMock');
+        // Initialize chronik mock with full tx history of test alias address
+        const { type, hash } = cashaddr.decode(
+            config.aliasConstants.address,
+            true,
+        );
+        const mockedChronik = new MockChronikClient(
+            type,
+            hash,
+            allTxHistoryFromChronik,
+        );
 
         // Iterate over all block cutoff amounts of unprocessedTxs to test
         for (let i = 0; i < blockheightDeltaTxCounts; i += 1) {
@@ -193,11 +174,6 @@ describe('alias-server chronik.js', () => {
                     alreadyHaveAllPotentiallyUnprocessedTxs = true;
                 }
             }
-
-            const txHistoryFirstPageResponse = {
-                txs: txHistoryFirstPageTxs,
-                numPages,
-            };
             // Calculate these values as in the function
             let maxTxs, maxUnprocessedTxCount, numPagesToFetch;
             let remainingTxHistoryPageResponses = [];
@@ -219,27 +195,14 @@ describe('alias-server chronik.js', () => {
                 }
             }
 
-            const optionalMocks = {
-                txHistoryFirstPageResponse,
-                remainingTxHistoryPageResponses,
-            };
-
             const result = await getUnprocessedTxHistory(
-                null,
+                mockedChronik,
                 config.aliasConstants.registrationHash160,
                 processedBlockheight,
                 processedTxCount,
-                optionalMocks,
             );
-            const expectedResult = {
-                maxTxs,
-                maxUnprocessedTxCount,
-                numPagesToFetch,
-                alreadyHaveAllPotentiallyUnprocessedTxs,
-                unprocessedTxs: unprocessedTxs,
-            };
 
-            assert.deepEqual(result, expectedResult);
+            assert.deepEqual(result, unprocessedTxs);
         }
     });
 });

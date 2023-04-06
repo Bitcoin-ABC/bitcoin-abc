@@ -43,19 +43,12 @@ module.exports = {
         hash160,
         processedBlockheight,
         processedTxCount,
-        optionalMocks = false,
     ) {
         let potentiallyUnprocessedTxs = [];
 
-        // optionalMocks is a param used to inject mock chronik data for unit tests
-        /*
-        optionalMocks = {txHistoryFirstPageResponse, remainingTxHistoryPageResponses}
-        */
-
         // Get first page of most recent chronik tx history
-        const txHistoryFirstPageResponse = optionalMocks
-            ? optionalMocks.txHistoryFirstPageResponse
-            : await module.exports.getTxHistoryPage(chronik, hash160);
+        const txHistoryFirstPageResponse =
+            await module.exports.getTxHistoryPage(chronik, hash160);
         const { txs, numPages } = txHistoryFirstPageResponse;
 
         // This first page of results contains the most recent chronik txs at the address
@@ -103,9 +96,9 @@ module.exports = {
             // Use Promise.all so that an error is thrown if any single promise fails
             let remainingTxHistoryPageResponses;
             try {
-                remainingTxHistoryPageResponses = optionalMocks
-                    ? optionalMocks.remainingTxHistoryPageResponses
-                    : await Promise.all(txHistoryPageResponsePromises);
+                remainingTxHistoryPageResponses = await Promise.all(
+                    txHistoryPageResponsePromises,
+                );
             } catch (err) {
                 log(`Error in Promise.all(txHistoryPageResponsePromises)`, err);
                 // Return false; you won't have all the tx history if this happens
@@ -138,18 +131,8 @@ module.exports = {
                 }
             }
         }
-        if (optionalMocks) {
-            // Return spy variables to make sure they check out in unit tests
-            return {
-                maxTxs,
-                maxUnprocessedTxCount,
-                numPagesToFetch,
-                alreadyHaveAllPotentiallyUnprocessedTxs,
-                unprocessedTxs,
-            };
-        } else {
-            return unprocessedTxs;
-        }
+
+        return unprocessedTxs;
     },
     getAllTxHistory: async function (chronik, hash160) {
         let allTxHistory = [];
