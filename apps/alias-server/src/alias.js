@@ -10,11 +10,19 @@ const {
     generateReservedAliasTxArray,
     getAliasFromHex,
     isValidAliasString,
+    getOutputScriptFromAddress,
 } = require('./utils');
 
 module.exports = {
     getAliasTxs: function (aliasTxHistory, aliasConstants) {
         const aliasTxCount = aliasTxHistory.length;
+
+        // Get expected output script match for parseAliasTx
+        // Do it here and not in parseAliasTx so that you don't do it for every single tx
+        // Will all be the same for a given set of tx history
+        const registrationOutputScript = getOutputScriptFromAddress(
+            aliasConstants.registrationAddress,
+        );
 
         // initialize array for all valid aliases
         const aliasTxs = [];
@@ -24,6 +32,7 @@ module.exports = {
             const parsedAliasTx = module.exports.parseAliasTx(
                 thisAliasTx,
                 aliasConstants,
+                registrationOutputScript,
             );
             if (parsedAliasTx) {
                 aliasTxs.push(parsedAliasTx);
@@ -31,13 +40,12 @@ module.exports = {
         }
         return aliasTxs;
     },
-    parseAliasTx: function (aliasTx, aliasConstants) {
+    parseAliasTx: function (aliasTx, aliasConstants, registrationOutputScript) {
         // Input: a single tx from chronik tx history
         // output: false if invalid tx
         // output: {address: 'address', alias: 'alias', txid} if valid
         // validate for alias tx
 
-        // Assume P2PKH for now. Add P2SH support in later diff.
         const inputZeroOutputScript = aliasTx.inputs[0].outputScript;
 
         const registeringAddress = cashaddr.encodeOutputScript(
@@ -87,11 +95,8 @@ module.exports = {
                     return false;
                 }
             } else {
-                // Check if output is p2pkh for the alias registration hash160
-                if (
-                    outputScript ===
-                    `76a914${aliasConstants.registrationHash160}88ac`
-                )
+                // Check if outputScript matches alias registration address
+                if (outputScript === registrationOutputScript)
                     // If so, then the value here is part of the alias registration fee, aliasFeePaidSats
                     aliasFeePaidSats += BigInt(value);
             }

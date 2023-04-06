@@ -17,7 +17,6 @@ module.exports = {
     unconfirmedBlockheight: 100000000,
     express: { port: 5000 },
     aliasConstants: {
-        registrationHash160: '638568e36d0b5d7d49a6e99854caa27d9772b093',
         opCodePrefix: '2e786563',
         registrationAddress: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
         maxLength: 21,

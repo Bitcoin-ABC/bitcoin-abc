@@ -11,6 +11,7 @@ const {
     sortAliasTxsByTxidAndBlockheight,
     getValidAliasRegistrations,
 } = require('../src/alias');
+const { getOutputScriptFromAddress } = require('../src/utils');
 const {
     testAddressAliases,
     testAddressAliasesWithUnconfirmedTxs,
@@ -19,6 +20,9 @@ const {
 
 describe('alias-server alias.js', function () {
     it('Correctly parses a 5-character alias transaction', function () {
+        const registrationOutputScript = getOutputScriptFromAddress(
+            config.aliasConstants.registrationAddress,
+        );
         assert.deepEqual(
             parseAliasTx(
                 testAddressAliases.txHistory[
@@ -29,6 +33,7 @@ describe('alias-server alias.js', function () {
                     )
                 ],
                 config.aliasConstants,
+                registrationOutputScript,
             ),
             testAddressAliases.allAliasTxs[
                 testAddressAliases.allAliasTxs.findIndex(
@@ -40,6 +45,9 @@ describe('alias-server alias.js', function () {
         );
     });
     it('Correctly parses a 6-character alias transaction', function () {
+        const registrationOutputScript = getOutputScriptFromAddress(
+            config.aliasConstants.registrationAddress,
+        );
         assert.deepEqual(
             parseAliasTx(
                 testAddressAliases.txHistory[
@@ -50,6 +58,7 @@ describe('alias-server alias.js', function () {
                     )
                 ],
                 config.aliasConstants,
+                registrationOutputScript,
             ),
             testAddressAliases.allAliasTxs[
                 testAddressAliases.allAliasTxs.findIndex(
@@ -61,6 +70,9 @@ describe('alias-server alias.js', function () {
         );
     });
     it('Returns false for an eToken transaction', function () {
+        const registrationOutputScript = getOutputScriptFromAddress(
+            config.aliasConstants.registrationAddress,
+        );
         assert.deepEqual(
             parseAliasTx(
                 testAddressAliases.txHistory[
@@ -71,11 +83,15 @@ describe('alias-server alias.js', function () {
                     )
                 ],
                 config.aliasConstants,
+                registrationOutputScript,
             ),
             false,
         );
     });
     it('Returns false for a standard tx without an OP_RETURN', function () {
+        const registrationOutputScript = getOutputScriptFromAddress(
+            config.aliasConstants.registrationAddress,
+        );
         assert.deepEqual(
             parseAliasTx(
                 testAddressAliases.txHistory[
@@ -86,6 +102,7 @@ describe('alias-server alias.js', function () {
                     )
                 ],
                 config.aliasConstants,
+                registrationOutputScript,
             ),
             false,
         );

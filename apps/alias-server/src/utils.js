@@ -4,6 +4,7 @@
 
 'use strict';
 const config = require('../config');
+const cashaddr = require('ecashaddrjs');
 
 module.exports = {
     generateReservedAliasTxArray: function () {
@@ -49,5 +50,15 @@ module.exports = {
             }
         }
         return confirmedTxHistory;
+    },
+    getOutputScriptFromAddress: function (address) {
+        const { type, hash } = cashaddr.decode(address, true);
+        let registrationOutputScript;
+        if (type === 'p2pkh') {
+            registrationOutputScript = `76a914${hash}88ac`;
+        } else {
+            registrationOutputScript = `a914${hash}87`;
+        }
+        return registrationOutputScript;
     },
 };

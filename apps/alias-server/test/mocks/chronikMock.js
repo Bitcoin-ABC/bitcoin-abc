@@ -23,7 +23,6 @@ module.exports = {
             self.mock[type] = {};
             self.mock[type][hash] = {
                 history: function (pageNumber = 0, pageSize) {
-                    // return history
                     return self.getTxHistory(
                         pageNumber,
                         pageSize,
