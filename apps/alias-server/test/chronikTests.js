@@ -31,6 +31,7 @@ describe('alias-server chronik.js', () => {
         };
 
         const result = await getUnprocessedTxHistory(
+            null,
             config.aliasConstants.registrationHash160,
             processedBlockheight,
             processedTxCount,
@@ -67,6 +68,7 @@ describe('alias-server chronik.js', () => {
         };
 
         const result = await getUnprocessedTxHistory(
+            null,
             config.aliasConstants.registrationHash160,
             processedBlockheight,
             processedTxCount,
@@ -103,6 +105,7 @@ describe('alias-server chronik.js', () => {
         };
 
         const result = await getUnprocessedTxHistory(
+            null,
             config.aliasConstants.registrationHash160,
             processedBlockheight,
             processedTxCount,
@@ -222,6 +225,7 @@ describe('alias-server chronik.js', () => {
             };
 
             const result = await getUnprocessedTxHistory(
+                null,
                 config.aliasConstants.registrationHash160,
                 processedBlockheight,
                 processedTxCount,

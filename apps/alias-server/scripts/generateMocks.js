@@ -18,6 +18,9 @@ const {
     getAliasBytecount,
 } = require('../src/utils');
 
+const { ChronikClient } = require('chronik-client');
+const chronik = new ChronikClient(config.chronik);
+
 async function generateMocks() {
     // Directory for mocks. Relative to /scripts, ../test/mocks/generated/
     const mocksDir = path.join(__dirname, '..', 'test', 'mocks', 'generated');
@@ -29,6 +32,7 @@ async function generateMocks() {
 
     // chronik tx history of alias registration address
     const aliasTxHistory = await getAllTxHistory(
+        chronik,
         config.aliasConstants.registrationHash160,
     );
     fs.writeFileSync(

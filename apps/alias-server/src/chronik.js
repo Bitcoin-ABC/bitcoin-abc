@@ -5,12 +5,9 @@
 'use strict';
 const config = require('../config');
 const log = require('./log');
-const { ChronikClient } = require('chronik-client');
-const chronik = new ChronikClient(config.chronik);
 
 module.exports = {
-    chronik,
-    getTxHistoryPage: async function (hash160, page = 0) {
+    getTxHistoryPage: async function (chronik, hash160, page = 0) {
         let txHistoryPage;
         try {
             txHistoryPage = await chronik
@@ -22,7 +19,7 @@ module.exports = {
             log(`Error in getTxHistoryPage(${hash160})`, err);
         }
     },
-    returnGetTxHistoryPagePromise: async function (hash160, page = 0) {
+    returnGetTxHistoryPagePromise: async function (chronik, hash160, page = 0) {
         /* 
         Unlike getTxHistoryPage, this function will reject and 
         fail Promise.all() if there is an error in the chronik call
@@ -42,6 +39,7 @@ module.exports = {
         });
     },
     getUnprocessedTxHistory: async function (
+        chronik,
         hash160,
         processedBlockheight,
         processedTxCount,
@@ -57,7 +55,7 @@ module.exports = {
         // Get first page of most recent chronik tx history
         const txHistoryFirstPageResponse = optionalMocks
             ? optionalMocks.txHistoryFirstPageResponse
-            : await module.exports.getTxHistoryPage(hash160);
+            : await module.exports.getTxHistoryPage(chronik, hash160);
         const { txs, numPages } = txHistoryFirstPageResponse;
 
         // This first page of results contains the most recent chronik txs at the address
@@ -93,7 +91,11 @@ module.exports = {
             const txHistoryPageResponsePromises = [];
             for (let i = 1; i < numPagesToFetch; i += 1) {
                 const txHistoryPageResponsePromise =
-                    module.exports.returnGetTxHistoryPagePromise(hash160, i);
+                    module.exports.returnGetTxHistoryPagePromise(
+                        chronik,
+                        hash160,
+                        i,
+                    );
                 txHistoryPageResponsePromises.push(
                     txHistoryPageResponsePromise,
                 );
@@ -149,10 +151,10 @@ module.exports = {
             return unprocessedTxs;
         }
     },
-    getAllTxHistory: async function (hash160) {
+    getAllTxHistory: async function (chronik, hash160) {
         let allTxHistory = [];
         const txHistoryFirstPageResponse =
-            await module.exports.getTxHistoryPage(hash160);
+            await module.exports.getTxHistoryPage(chronik, hash160);
         const { txs, numPages } = txHistoryFirstPageResponse;
 
         // Add first page of results to allTxHistory
@@ -164,7 +166,11 @@ module.exports = {
         const txHistoryPageResponsePromises = [];
         for (let i = 1; i < numPages; i += 1) {
             const txHistoryPageResponsePromise =
-                module.exports.returnGetTxHistoryPagePromise(hash160, i);
+                module.exports.returnGetTxHistoryPagePromise(
+                    chronik,
+                    hash160,
+                    i,
+                );
             txHistoryPageResponsePromises.push(txHistoryPageResponsePromise);
         }
 
