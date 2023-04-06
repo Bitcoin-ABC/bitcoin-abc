@@ -66,6 +66,12 @@ class ChronikScriptClient:
             f'/script/{self.script_type}/{self.script_payload}/confirmed-txs{query}',
             _pb().TxHistoryPage)
 
+    def history(self, page=None, page_size=None):
+        query = self._query_params(page, page_size)
+        return self.client._request_get(
+            f'/script/{self.script_type}/{self.script_payload}/history{query}',
+            _pb().TxHistoryPage)
+
     def unconfirmed_txs(self):
         return self.client._request_get(
             f'/script/{self.script_type}/{self.script_payload}/unconfirmed-txs',

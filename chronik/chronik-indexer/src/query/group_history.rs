@@ -4,6 +4,8 @@
 
 //! Module for [`QueryGroupHistory`], to query the tx history of a group.
 
+use std::collections::BTreeSet;
+
 use abc_rust_error::Result;
 use bitcoinsuite_core::tx::{Tx, TxId};
 use chronik_bridge::ffi;
@@ -23,6 +25,8 @@ use crate::query::make_tx_proto;
 pub const MIN_HISTORY_PAGE_SIZE: usize = 1;
 /// Largest allowed page size
 pub const MAX_HISTORY_PAGE_SIZE: usize = 200;
+
+static EMPTY_MEMBER_TX_HISTORY: BTreeSet<(i64, TxId)> = BTreeSet::new();
 
 /// Query pages of the tx history of a group
 #[derive(Debug)]
@@ -146,6 +150,166 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
         }
 
         // Couldn't fill requested page size completely
+        Ok(make_result(page_txs))
+    }
+
+    /// Return the group history in reverse chronological order, i.e. the latest
+    /// one first, including mempool txs.
+    ///
+    /// We start pages at the most recent mempool tx, go backwards in the
+    /// mempool until we reach the oldest tx in the mempool, then continue with
+    /// the most recent DB tx and go backwards from there.
+    ///
+    /// Note that unlike `confirmed_txs` and `unconfirmed_txs`, the order of txs
+    /// observed by fetching multiple pages can change if new txs are added, or
+    /// the page size is changed. This is because txs are fetched from the DB
+    /// the order they appear on the blockchain, and only then are sorted by
+    /// time_first_seen.
+    ///
+    /// This means that if tx1 < tx2 wrt time_first_seen, but tx2 < tx1 wrt
+    /// txid, tx1 would be ordered *before* tx2 if they are in the same block
+    /// (because of time_first_seen), but tx1 might be cut out for other page
+    /// sizes entirely, because it isn't even queried because it comes "too
+    /// late" on the blockchain (because of txid).
+    ///
+    /// We accept this trade-off, because if we wanted to always get consistent
+    /// order here, we'd need to sort txs by time_first_seen in the DB, which
+    /// isn't a very reliable metric. We could also continue reading more txs
+    /// until we run into a new block, but that could open potential DoS
+    /// attacks. And in practice this ordering isn't a big issue, as most people
+    /// are mostly interested in the "latest" txs of the address.
+    pub fn rev_history(
+        &self,
+        member: G::Member<'_>,
+        request_page_num: usize,
+        request_page_size: usize,
+    ) -> Result<proto::TxHistoryPage> {
+        if request_page_size < MIN_HISTORY_PAGE_SIZE {
+            return Err(RequestPageSizeTooSmall(request_page_size).into());
+        }
+        if request_page_size > MAX_HISTORY_PAGE_SIZE {
+            return Err(RequestPageSizeTooBig(request_page_size).into());
+        }
+
+        let db_reader = GroupHistoryReader::<G>::new(self.db)?;
+        let member_ser = self.group.ser_member(member);
+        let (_, num_db_txs) =
+            db_reader.member_num_pages_and_txs(member_ser.as_ref())?;
+
+        // How many txs in total to skip, beginning from the mempool txs, and
+        // then continuing backwards into the DB txs.
+        let request_tx_offset =
+            request_page_num.saturating_mul(request_page_size);
+
+        // All the mempool txs for this member
+        let mempool_txs = self
+            .mempool_history
+            .member_history(member_ser.as_ref())
+            .unwrap_or(&EMPTY_MEMBER_TX_HISTORY);
+
+        let total_num_txs = mempool_txs.len() + num_db_txs;
+        let total_num_pages =
+            (total_num_txs + request_page_size - 1) / request_page_size;
+        let make_result = |txs: Vec<proto::Tx>| {
+            assert_eq!(txs.len(), txs.capacity());
+            proto::TxHistoryPage {
+                txs,
+                num_pages: total_num_pages as u32,
+                num_txs: total_num_txs as u32,
+            }
+        };
+
+        // Number of mempool txs in the result.
+        // We saturate to clip numbers to >= 0.
+        let num_page_mempool_txs = request_page_size
+            .min(mempool_txs.len().saturating_sub(request_tx_offset));
+
+        // Backwards offset into the DB. If this were zero, we'd start reading
+        // at the last tx in the DB.
+        let request_db_tx_offset =
+            request_tx_offset.saturating_sub(mempool_txs.len());
+
+        // DB txs left after skipping the requested offset.
+        let num_db_txs_available =
+            num_db_txs.saturating_sub(request_db_tx_offset);
+
+        // How many DB txs we can return at most; the page could already be
+        // partially filled with mempool txs. This cannot overflow as
+        // num_page_mempool_txs <= request_page_size.
+        let max_page_db_txs = request_page_size - num_page_mempool_txs;
+
+        // How many DB txs we return. It's either the number of txs we have left
+        // in the DB or the maximum we can still put on the page.
+        let num_page_db_txs = max_page_db_txs.min(num_db_txs_available);
+
+        // Allocate sufficient space for the txs on the page.
+        let mut page_txs =
+            Vec::with_capacity(num_page_mempool_txs + num_page_db_txs);
+
+        // Add the requested mempool txs, we skip over the requested offset, and
+        // take only as many as we can put on the page.
+        let page_mempool_txs_iter = mempool_txs
+            .iter()
+            .rev()
+            .skip(request_tx_offset)
+            .take(request_page_size);
+        for (_, txid) in page_mempool_txs_iter {
+            let entry = self.mempool.tx(txid).ok_or(MissingMempoolTx(*txid))?;
+            page_txs.push(make_tx_proto(
+                &entry.tx,
+                entry.time_first_seen,
+                false,
+                None,
+            ));
+        }
+
+        // If we filled up the page with mempool txs, or there's no DB txs on
+        // this page, we can return early to avoid reading the DB.
+        if num_page_mempool_txs == request_page_size || num_page_db_txs == 0 {
+            return Ok(make_result(page_txs));
+        }
+
+        // Initial index to start reading from in the list of all DB txs of this
+        // member. We then iterate this backwards, until we fill the page or hit
+        // the first DB tx of the member.
+        // Note that this never overflows, as num_db_txs_available > 0 due to
+        // the check num_page_db_txs == 0.
+        let first_db_tx_idx = num_db_txs_available - 1;
+
+        // First DB page to start reading from, from there we go backwards.
+        let db_page_num_start = first_db_tx_idx / db_reader.page_size();
+        // First tx index within that page, from there we go backwards.
+        let mut first_inner_idx = first_db_tx_idx % db_reader.page_size();
+
+        'outer: for current_page_num in (0..=db_page_num_start).rev() {
+            let db_page_tx_nums = db_reader
+                .page_txs(member_ser.as_ref(), current_page_num as u32)?
+                .unwrap_or_default();
+            for inner_idx in (0..=first_inner_idx).rev() {
+                let tx_num = db_page_tx_nums[inner_idx];
+                page_txs.push(self.read_block_tx(tx_num)?);
+                // Filled up page: break out of outer loop.
+                if page_txs.len() == request_page_size {
+                    break 'outer;
+                }
+            }
+            first_inner_idx = db_reader.page_size() - 1;
+        }
+
+        // We use stable sort, so the block order is retained when timestamps
+        // are identical.
+        page_txs[num_page_mempool_txs..].sort_by_key(|tx| {
+            match (&tx.block, tx.time_first_seen) {
+                // Within blocks, sort txs without time_first_seen first
+                (Some(block), 0) => (-block.height, i64::MIN),
+                // Otherwise, sort by time_first_seen within blocks
+                (Some(block), time_first_seen) => {
+                    (-block.height, -time_first_seen)
+                }
+                (None, _) => unreachable!("We skip sorting mempool txs"),
+            }
+        });
+
         Ok(make_result(page_txs))
     }
 
