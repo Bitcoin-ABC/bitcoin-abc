@@ -11,64 +11,62 @@ const cashaddr = require('ecashaddrjs');
 module.exports = {
     MockChronikClient: class {
         constructor(address, txHistory) {
+            // Use self since it is not a reserved term in js
+            // Can access self from inside a method and still get the class
+            const self = this;
             const { type, hash } = cashaddr.decode(address, true);
-            this._url = `https://mocked-chronik-instance/not-a-url/`;
-            this._wsUrl = `wss://mocked-chronik-instance/not-a-url/`;
-            this.txHistory = txHistory;
+            self._url = `https://mocked-chronik-instance/not-a-url/`;
+            self._wsUrl = `wss://mocked-chronik-instance/not-a-url/`;
+            self.txHistory = txHistory;
 
-            // Method to get paginated tx history with same variables as chronik
-            function getTxHistory(pageNumber = 0, pageSize) {
-                // Return chronik shaped responses
-                const startSliceOnePage = pageNumber * pageSize;
-                const endSliceOnePage = startSliceOnePage + pageSize;
-                const thisPage = txHistory.slice(
-                    startSliceOnePage,
-                    endSliceOnePage,
-                );
-                const response = {};
-
-                response.txs = thisPage;
-                response.numPages = Math.ceil(txHistory.length / pageSize);
-                return response;
-            }
-            this.mock = {};
-            this.mock[type] = {};
-            this.mock[type][hash] = {
+            self.mock = {};
+            self.mock[type] = {};
+            self.mock[type][hash] = {
                 history: function (pageNumber = 0, pageSize) {
                     // return history
-                    return getTxHistory(pageNumber, pageSize);
+                    return self.getTxHistory(
+                        pageNumber,
+                        pageSize,
+                        self.txHistory,
+                    );
                 },
             };
             // Return assigned mocks
-            this.script = function (type, hash) {
+            self.script = function (type, hash) {
                 return this.mock[type][hash];
             };
-            this.ws = function (wsObj) {
+            self.wsSubscribeCalled = false;
+            self.wsWaitForOpenCalled = false;
+            self.ws = function (wsObj) {
                 if (wsObj !== null) {
                     return {
                         onMessage: wsObj.onMessage,
                         waitForOpen: function () {
-                            return {
-                                // Stub method
-                                // Must be a function
-                                waitForOpen: { called: true },
-                            };
+                            self.wsWaitForOpenCalled = true;
                         },
                         subscribe: function (type, hash) {
-                            return {
-                                // Stub method
-                                // Must be a function that accepts expected parameters
-                                subscribe: {
-                                    called: true,
-                                    params: { type, hash },
-                                },
-                            };
+                            self.wsSubscribeCalled = { type, hash };
                         },
                         // Return object for unit test parsing
                         wsResult: { success: true, address },
                     };
                 }
             };
+        }
+        // Method to get paginated tx history with same variables as chronik
+        getTxHistory(pageNumber = 0, pageSize, txHistory) {
+            // Return chronik shaped responses
+            const startSliceOnePage = pageNumber * pageSize;
+            const endSliceOnePage = startSliceOnePage + pageSize;
+            const thisPage = txHistory.slice(
+                startSliceOnePage,
+                endSliceOnePage,
+            );
+            const response = {};
+
+            response.txs = thisPage;
+            response.numPages = Math.ceil(txHistory.length / pageSize);
+            return response;
         }
     },
 };

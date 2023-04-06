@@ -4,6 +4,7 @@
 
 'use strict';
 const assert = require('assert');
+const cashaddr = require('ecashaddrjs');
 const {
     initializeWebsocket,
     parseWebsocketMessage,
@@ -14,6 +15,7 @@ describe('alias-server websocket.js', async function () {
     it('initializeWebsocket returns expected websocket object for a p2pkh address', async function () {
         const wsTestAddress =
             'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8';
+        const { type, hash } = cashaddr.decode(wsTestAddress, true);
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient(wsTestAddress, []);
         const db = null;
@@ -28,6 +30,10 @@ describe('alias-server websocket.js', async function () {
             channelId,
         );
 
+        // Confirm websocket opened
+        assert.strictEqual(mockedChronik.wsWaitForOpenCalled, true);
+        // Confirm subscribe was called on expected type and hash
+        assert.deepEqual(mockedChronik.wsSubscribeCalled, { type, hash });
         assert.deepEqual(result.wsResult, {
             success: true,
             address: wsTestAddress,
@@ -36,6 +42,7 @@ describe('alias-server websocket.js', async function () {
     it('initializeWebsocket returns expected websocket object for a p2sh address', async function () {
         const wsTestAddress =
             'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
+        const { type, hash } = cashaddr.decode(wsTestAddress, true);
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient(wsTestAddress, []);
         const db = null;
@@ -50,6 +57,10 @@ describe('alias-server websocket.js', async function () {
             channelId,
         );
 
+        // Confirm websocket opened
+        assert.strictEqual(mockedChronik.wsWaitForOpenCalled, true);
+        // Confirm subscribe was called on expected type and hash
+        assert.deepEqual(mockedChronik.wsSubscribeCalled, { type, hash });
         assert.deepEqual(result.wsResult, {
             success: true,
             address: wsTestAddress,

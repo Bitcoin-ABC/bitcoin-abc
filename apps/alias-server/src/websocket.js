@@ -31,7 +31,7 @@ module.exports = {
         log(`Connected to websocket`);
         // Subscribe to scripts (on Lotus, current ABC payout address):
         // Will give a message on avg every 2 minutes
-        const { type, hash } = cashaddr.decode(address);
+        const { type, hash } = cashaddr.decode(address, true);
         ws.subscribe(type, hash);
         return ws;
     },
