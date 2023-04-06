@@ -59,7 +59,7 @@ final class MyPyLinter extends ArcanistExternalLinter {
   protected function parseLinterOutput($path, $err, $stdout, $stderr) {
     $messages = array();
 
-    $pattern = '/(.+):(\d+): (.+): (.+)/';
+    $pattern = '/(.+):(\d+): ([^:]+): (.+)/';
     if (preg_match_all($pattern, $stdout, $errors, PREG_SET_ORDER)) {
       foreach ($errors as $error) {
         list(, $file, $line, $severity, $message) = $error;
