@@ -99,9 +99,9 @@ class EndpointStatusTestCase(ABCBotFixture):
         for i in range(numCommits):
             commitId = 8000 + i
             commits.append({
-                'phid': 'PHID-COMMIT-{}'.format(commitId),
+                'phid': f'PHID-COMMIT-{commitId}',
                 'fields': {
-                    'identifier': 'deadbeef0000011122233344455566677788{}'.format(commitId)
+                    'identifier': f'deadbeef0000011122233344455566677788{commitId}'
                 },
             })
         self.phab.diffusion.commit.search.return_value = test.mocks.phabricator.Result(
@@ -113,7 +113,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         revisions = []
         for i in range(numCommits):
             revisions.append({
-                'sourcePHID': 'PHID-COMMIT-{}'.format(8000 + i),
+                'sourcePHID': f'PHID-COMMIT-{8000 + i}',
                 'destinationPHID': revisionSearchResult.data[i]['phid'],
             })
         self.phab.edge.search.return_value = test.mocks.phabricator.Result(
@@ -879,11 +879,11 @@ class EndpointStatusTestCase(ABCBotFixture):
         self.phab.differential.revision.search.return_value = test.mocks.phabricator.differential_revision_search_result()
 
         failures = [{
-            'id': 'id:2500,build:(id:{})'.format(DEFAULT_BUILD_ID),
+            'id': f'id:2500,build:(id:{DEFAULT_BUILD_ID})',
             'details': 'stacktrace1',
             'name': 'test name',
         }, {
-            'id': 'id:2620,build:(id:{})'.format(DEFAULT_BUILD_ID),
+            'id': f'id:2620,build:(id:{DEFAULT_BUILD_ID})',
             'details': 'stacktrace2',
             'name': 'other test name',
         }]
@@ -908,7 +908,7 @@ class EndpointStatusTestCase(ABCBotFixture):
             'url': self.teamcity.build_url(
                 "app/rest/testOccurrences",
                 {
-                    "locator": "build:(id:{}),status:FAILURE".format(DEFAULT_BUILD_ID),
+                    "locator": f"build:(id:{DEFAULT_BUILD_ID}),status:FAILURE",
                     "fields": "testOccurrence(id,details,name)",
                 }
             )
@@ -1057,7 +1057,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         # Add a few more builds to the build target
         for i in range(1, 1 + 5):
             build_id = DEFAULT_BUILD_ID + i
-            build_name = 'build-{}'.format(i)
+            build_name = f'build-{i}'
 
             data.buildName = build_name
             data.buildId = build_id
@@ -1252,9 +1252,9 @@ class EndpointStatusTestCase(ABCBotFixture):
         def associate_build(name, teamcity_build_type_id=None, teamcity_build_name=None,
                             teamcity_project_id=None, teamcity_project_name=None):
             if not teamcity_build_type_id:
-                teamcity_build_type_id = "{}_Type".format(name)
+                teamcity_build_type_id = f"{name}_Type"
             if not teamcity_build_name:
-                teamcity_build_name = "My Build {}".format(name)
+                teamcity_build_name = f"My Build {name}"
             if not teamcity_project_id:
                 teamcity_project_id = "ProjectId"
             if not teamcity_project_name:
@@ -1289,7 +1289,7 @@ class EndpointStatusTestCase(ABCBotFixture):
             )
 
         def header(project_name):
-            header = '| {} | Status |\n'.format(project_name)
+            header = f'| {project_name} | Status |\n'
             header += '|---|---|\n'
             return header
 
@@ -1298,9 +1298,9 @@ class EndpointStatusTestCase(ABCBotFixture):
             if not status:
                 status = BuildStatus.Success
             if not build_type_id:
-                build_type_id = "{}_Type".format(build_name)
+                build_type_id = f"{build_name}_Type"
             if not teamcity_build_name:
-                teamcity_build_name = "My Build {}".format(build_name)
+                teamcity_build_name = f"My Build {build_name}"
 
             url = self.teamcity.build_url(
                 "viewLog.html",

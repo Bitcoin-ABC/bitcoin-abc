@@ -84,7 +84,7 @@ class EndpointTriggerCITestCase(ABCBotFixture):
         comments_data = [
             {
                 "id": i,
-                "phid": "PHID-XCMT-comment{}".format(i),
+                "phid": f"PHID-XCMT-comment{i}",
                 "version": 1,
                 "authorPHID": user_PHID,
                 "dateCreated": i,
@@ -260,7 +260,7 @@ class EndpointTriggerCITestCase(ABCBotFixture):
             expected_calls = [
                 call(
                     "BitcoinABC_BitcoinAbcStaging",
-                    "refs/tags/phabricator/diff/{}".format(self.diff_id),
+                    f"refs/tags/phabricator/diff/{self.diff_id}",
                     properties=[{
                         'name': 'env.ABC_BUILD_NAME',
                         'value': build_id,
@@ -339,7 +339,7 @@ class EndpointTriggerCITestCase(ABCBotFixture):
             else:
                 self.teamcity.trigger_build.assert_called_once_with(
                     "BitcoinABC_BitcoinAbcStaging",
-                    "refs/tags/phabricator/diff/{}".format(self.diff_id),
+                    f"refs/tags/phabricator/diff/{self.diff_id}",
                     properties=[{
                         'name': 'env.ABC_BUILD_NAME',
                         'value': "build-1",

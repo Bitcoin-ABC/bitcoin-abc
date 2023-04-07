@@ -81,17 +81,17 @@ def create_server(tc, phab, slackbot, cirrus,
     # If db_file_no_ext is not None, attempt to restore old database state
     if db_file_no_ext:
         app.logger.info(
-            "Loading persisted state database with base name '{}'...".format(db_file_no_ext))
+            f"Loading persisted state database with base name '{db_file_no_ext}'...")
         try:
             with shelve.open(db_file_no_ext, flag='r') as db:
                 for key in create_server.db.keys():
                     if key in db:
                         create_server.db[key] = db[key]
                         app.logger.info(
-                            "Restored key '{}' from persisted state".format(key))
+                            f"Restored key '{key}' from persisted state")
         except BaseException:
             app.logger.info(
-                "Persisted state database with base name '{}' could not be opened. A new one will be created when written to.".format(db_file_no_ext))
+                f"Persisted state database with base name '{db_file_no_ext}' could not be opened. A new one will be created when written to.")
         app.logger.info("Done")
     else:
         app.logger.warning(
@@ -127,7 +127,7 @@ def create_server(tc, phab, slackbot, cirrus,
                 secret = os.getenv(secret_env, None)
                 if not secret:
                     app.logger.info(
-                        "Error: HMAC env variable '{}' does not exist".format(secret_env))
+                        f"Error: HMAC env variable '{secret_env}' does not exist")
                     abort(401)
 
                 data = request.get_data()
@@ -196,8 +196,7 @@ def create_server(tc, phab, slackbot, cirrus,
                             foundPRs += 1
                             PRNum = match.group(1)
 
-                            return '[[{}/{} | {}#{}]]'.format(
-                                baseUrl, PRNum, prefix, PRNum)
+                            return f'[[{baseUrl}/{PRNum} | {prefix}#{PRNum}]]'
                     return repl
 
                 githubUrl = 'https://github.com/{}/pull'
@@ -388,7 +387,7 @@ def create_server(tc, phab, slackbot, cirrus,
     @verify_hmac('HMAC_TRIGGER_CI')
     def triggerCI():
         data = get_json_request_data(request)
-        app.logger.info("Received /triggerCI POST:\n{}".format(data))
+        app.logger.info(f"Received /triggerCI POST:\n{data}")
 
         # We expect a webhook with an edited object and a list of transactions.
         if "object" not in data or "transactions" not in data:
@@ -528,7 +527,7 @@ def create_server(tc, phab, slackbot, cirrus,
     @persistDatabase
     def buildStatus():
         out = get_json_request_data(request)
-        app.logger.info("Received /status POST with data: {}".format(out))
+        app.logger.info(f"Received /status POST with data: {out}")
         return handle_build_result(**out)
 
     def send_harbormaster_build_link_if_required(
@@ -977,7 +976,7 @@ def create_server(tc, phab, slackbot, cirrus,
                         # This build may be flaky. Ping the channel with a
                         # less-noisy message.
                         slackbot.postMessage('dev',
-                                             "Build '{}' appears to be flaky: {}".format(buildName, shortBuildUrl))
+                                             f"Build '{buildName}' appears to be flaky: {shortBuildUrl}")
                         return SUCCESS, 200
 
                     # Only mark master as red for failures that are not flaky
@@ -1025,7 +1024,7 @@ def create_server(tc, phab, slackbot, cirrus,
             buildConfig = properties.get('env.ABC_BUILD_NAME', None)
             if not buildConfig:
                 buildConfig = properties.get('env.OS_NAME', 'UNKNOWN')
-            buildName = "{} ({})".format(buildName, buildConfig)
+            buildName = f"{buildName} ({buildConfig})"
 
             if status == BuildStatus.Failure:
                 msg = phab.createBuildStatusMessage(
@@ -1056,8 +1055,7 @@ def create_server(tc, phab, slackbot, cirrus,
                     msg += '\n\n'
                     msg += 'Each failure log is accessible here:'
                     for failure in testFailures:
-                        msg += "\n[[{} | {}]]".format(
-                            failure['logUrl'], failure['name'])
+                        msg += f"\n[[{failure['logUrl']} | {failure['name']}]]"
 
                 phab.commentOnRevision(revisionPHID, msg, buildName)
 

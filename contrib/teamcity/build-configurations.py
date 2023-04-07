@@ -51,9 +51,7 @@ class BuildConfiguration:
 
         if not config_file.is_file():
             raise FileNotFoundError(
-                "The configuration file does not exist {}".format(
-                    str(config_file)
-                )
+                f"The configuration file does not exist {str(config_file)}"
             )
 
         if build_name is not None:
@@ -163,8 +161,7 @@ class BuildConfiguration:
 
         # Get the cmake configuration definitions.
         self.cmake_flags = self.config.get("cmake_flags", [])
-        self.cmake_flags.append("-DCMAKE_INSTALL_PREFIX={}".format(
-            str(artifact_dir)))
+        self.cmake_flags.append(f"-DCMAKE_INSTALL_PREFIX={str(artifact_dir)}")
         # Get the targets to build. If none is provided then raise an error.
         targets = self.config.get("targets", None)
         if not targets:
@@ -209,7 +206,7 @@ class BuildConfiguration:
 
         # Max out the jobs by default when the generator uses make
         if generator_command == "make":
-            generator_flags.append("-j{}".format(self.jobs))
+            generator_flags.append(f"-j{self.jobs}")
 
         # Handle cross build configuration
         cross_build = self.config.get("cross_build", None)
@@ -234,16 +231,15 @@ class BuildConfiguration:
             )
 
             toolchain_file = self.project_root.joinpath(
-                "cmake/platforms/{}.cmake".format(toolchain)
+                f"cmake/platforms/{toolchain}.cmake"
             )
             self.cmake_flags.append(
-                "-DCMAKE_TOOLCHAIN_FILE={}".format(str(toolchain_file))
+                f"-DCMAKE_TOOLCHAIN_FILE={str(toolchain_file)}"
             )
 
             if emulator:
                 self.cmake_flags.append(
-                    "-DCMAKE_CROSSCOMPILING_EMULATOR={}".format(
-                        shutil.which(emulator))
+                    f"-DCMAKE_CROSSCOMPILING_EMULATOR={shutil.which(emulator)}"
                 )
 
         # Configure using cmake.
@@ -411,9 +407,7 @@ class UserBuild():
 
     async def wait_for_build(self, timeout, args=None):
         args = args if args is not None else []
-        message = "Build {} completed successfully".format(
-            self.configuration.name
-        )
+        message = f"Build {self.configuration.name} completed successfully"
         try:
             for step in self.configuration.build_steps:
                 return_code = await asyncio.wait_for(self.run_build(step["bin"], step["args"]), timeout)
@@ -483,9 +477,7 @@ class TeamcityBuild(UserBuild):
         super().copy_artifacts(artifacts)
 
         # Start loading the junit reports.
-        junit_reports_pattern = "{}/junit/*.xml".format(
-            str(self.artifact_dir.relative_to("/"))
-        )
+        junit_reports_pattern = f"{str(self.artifact_dir.relative_to('/'))}/junit/*.xml"
         self.teamcity_messages.importData("junit", junit_reports_pattern)
 
         # Instruct teamcity to upload our artifact directory
@@ -500,7 +492,7 @@ class TeamcityBuild(UserBuild):
         # Let the user know what build is being run.
         # This makes it easier to retrieve the info from the logs.
         self.teamcity_messages.customMessage(
-            "Starting build {}".format(self.configuration.name),
+            f"Starting build {self.configuration.name}",
             status="NORMAL"
         )
 
@@ -527,7 +519,7 @@ class TeamcityBuild(UserBuild):
             self.teamcity_messages.buildStatus(
                 # Don't change the status, let Teamcity set it to success
                 None,
-                "{} ({{build.status.text}})".format(message)
+                f"{message} ({{build.status.text}})"
             )
 
         return (return_code, message)

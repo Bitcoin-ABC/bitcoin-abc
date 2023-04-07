@@ -191,7 +191,7 @@ def postprocess_translations(reduce_diff_hacks=False):
                         source, translation, errors, numerus)
 
                     for error in errors:
-                        print('{}: {}'.format(filename, error))
+                        print(f'{filename}: {error}')
 
                     if not valid:  # set type to unfinished and clear string if invalid
                         translation_node.clear()
@@ -212,8 +212,7 @@ def postprocess_translations(reduce_diff_hacks=False):
             for message in context.findall('message'):
                 num_messages += 1
         if num_messages < MIN_NUM_MESSAGES:
-            print('Removing {}, as it contains only {} messages'.format(
-                filepath, num_messages))
+            print(f'Removing {filepath}, as it contains only {num_messages} messages')
             continue
 
         # write fixed-up tree

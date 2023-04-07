@@ -78,8 +78,7 @@ class TeamCity():
                             vars(request)), pprint(
                             vars(response))))
             raise TeamcityRequestException(
-                "Unexpected Teamcity API error! Status code: {}".format(
-                    response.status_code))
+                f"Unexpected Teamcity API error! Status code: {response.status_code}")
 
         content = response.content
         if expectJson:
@@ -117,7 +116,7 @@ class TeamCity():
 
     def get_artifact(self, buildId, path):
         endpoint = self.build_url(
-            "app/rest/builds/id:{}/artifacts/content/{}".format(buildId, path)
+            f"app/rest/builds/id:{buildId}/artifacts/content/{path}"
         )
 
         req = self._request('GET', endpoint)
@@ -170,7 +169,7 @@ class TeamCity():
         endpoint = self.build_url(
             "app/rest/problemOccurrences",
             {
-                "locator": "build:(id:{})".format(buildId),
+                "locator": f"build:(id:{buildId})",
                 "fields": "problemOccurrence(id,details)",
             }
         )
@@ -201,7 +200,7 @@ class TeamCity():
         endpoint = self.build_url(
             "app/rest/testOccurrences",
             {
-                "locator": "build:(id:{}),status:FAILURE".format(buildId),
+                "locator": f"build:(id:{buildId}),status:FAILURE",
                 "fields": "testOccurrence(id,details,name)",
             }
         )
@@ -232,7 +231,7 @@ class TeamCity():
         return []
 
     def getBuildChangeDetails(self, changeId):
-        endpoint = self.build_url("app/rest/changes/{}".format(changeId))
+        endpoint = self.build_url(f"app/rest/changes/{changeId}")
         req = self._request('GET', endpoint)
         return self.getResponse(req) or {}
 
@@ -240,7 +239,7 @@ class TeamCity():
         endpoint = self.build_url(
             "app/rest/changes",
             {
-                "locator": "build:(id:{})".format(buildId),
+                "locator": f"build:(id:{buildId})",
                 "fields": "change(id)"
             }
         )
@@ -257,7 +256,7 @@ class TeamCity():
         endpoint = self.build_url(
             "app/rest/builds",
             {
-                "locator": "id:{}".format(buildId),
+                "locator": f"id:{buildId}",
                 # Note: Wildcard does not match recursively, so if you need data
                 # from a sub-field, be sure to include it in the list.
                 "fields": "build(*,changes(*),properties(*),triggered(*))",
@@ -287,7 +286,7 @@ class TeamCity():
         buildEndpoint = self.build_url(
             "app/rest/problemOccurrences",
             {
-                "locator": "currentlyFailing:true,affectedProject:(id:{})".format(projectId),
+                "locator": f"currentlyFailing:true,affectedProject:(id:{projectId})",
                 "fields": "problemOccurrence(*)",
             }
         )
@@ -301,7 +300,7 @@ class TeamCity():
         testEndpoint = self.build_url(
             "app/rest/testOccurrences",
             {
-                "locator": "currentlyFailing:true,affectedProject:(id:{})".format(projectId),
+                "locator": f"currentlyFailing:true,affectedProject:(id:{projectId})",
                 "fields": "testOccurrence(*)",
             }
         )
@@ -321,8 +320,8 @@ class TeamCity():
         endpoint = self.build_url(
             "app/rest/builds",
             {
-                "locator": "buildType:{}".format(buildType),
-                "fields": "build({})".format(",".join(build_fields)),
+                "locator": f"buildType:{buildType}",
+                "fields": f"build({','.join(build_fields)})",
                 "count": 1,
             }
         )
@@ -338,10 +337,7 @@ class TeamCity():
         # But there should be no more than a single build
         if len(builds) > 1:
             raise AssertionError(
-                "Unexpected Teamcity result. Called:\n{}\nGot:\n{}".format(
-                    endpoint,
-                    content
-                )
+                f"Unexpected Teamcity result. Called:\n{endpoint}\nGot:\n{content}"
             )
 
         return builds[0]
@@ -356,7 +352,7 @@ class TeamCity():
         endpoint = self.build_url(
             "app/rest/builds",
             {
-                "locator": "buildType:{},sinceDate:{}".format(buildType, self.formatTime(sinceTime)),
+                "locator": f"buildType:{buildType},sinceDate:{self.formatTime(sinceTime)}",
                 "fields": "build",
             }
         )
@@ -377,7 +373,7 @@ class TeamCity():
         endpoint = self.build_url(
             "app/rest/buildTypes",
             {
-                "locator": "affectedProject:{}".format(project_id),
+                "locator": f"affectedProject:{project_id}",
                 "fields": "buildType(project(id,name),id,name,parameters($locator(name:env.ABC_BUILD_NAME),property))",
             }
         )
@@ -476,7 +472,7 @@ class TeamCity():
 
     def _request(self, verb, url, data=None, headers=None):
         if self.logger:
-            self.logger.info('{}: {}'.format(verb, url))
+            self.logger.info(f'{verb}: {url}')
 
         if headers is None:
             headers = {

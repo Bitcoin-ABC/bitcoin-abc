@@ -64,7 +64,7 @@ class EndpointBuildDiffTestCase(ABCBotFixture):
             ]
 
             response = self.app.post(
-                '/buildDiff{}'.format(data),
+                f'/buildDiff{data}',
                 headers=self.headers)
             self.assertEqual(response.status_code, 200)
 
@@ -151,7 +151,7 @@ class EndpointBuildDiffTestCase(ABCBotFixture):
         call_buildDiff([builds[1]])
 
         # Lot of builds
-        builds = [Build(i, BuildStatus.Queued, "build-{}".format(i))
+        builds = [Build(i, BuildStatus.Queued, f"build-{i}")
                   for i in range(10)]
         buildConfig = {}
         for build in builds:

@@ -170,7 +170,7 @@ class PhabWrapper(Phabricator):
             decoratedCommit = {
                 # TODO: Find a better way to get the commit link from
                 # Phabricator
-                'link': "https://reviews.bitcoinabc.org/rABC{}".format(commitHash),
+                'link': f"https://reviews.bitcoinabc.org/rABC{commitHash}",
             }
             if revisionPHID:
                 for rev in revs:
@@ -195,19 +195,17 @@ class PhabWrapper(Phabricator):
 
         msg = ""
         if build_status == BuildStatus.Failure:
-            msg = "(IMPORTANT) Build [[{} | {}]] failed.".format(
-                buildUrl, buildName)
+            msg = f"(IMPORTANT) Build [[{buildUrl} | {buildName}]] failed."
         elif build_status == BuildStatus.Success:
-            msg = "Build [[{} | {}]] passed.".format(buildUrl, buildName)
+            msg = f"Build [[{buildUrl} | {buildName}]] passed."
         else:
-            msg = "Build [[{} | {}]] started.".format(buildUrl, buildName)
+            msg = f"Build [[{buildUrl} | {buildName}]] started."
 
         return msg
 
     def commentOnRevision(self, revisionID, msg, buildName=""):
         self.logger.info(
-            "Comment on objectIdentifier '{}': '{}'".format(
-                revisionID, msg))
+            f"Comment on objectIdentifier '{revisionID}': '{msg}'")
         # Production build-bot posts live comments for builds that are not staging-specific
         # FIXME: Currently all builds kick off a completion hook in Teamcity. The bot doesn't
         # have a better mechanism for knowing if that build is high value (worth commenting on)
@@ -224,11 +222,11 @@ class PhabWrapper(Phabricator):
                     self.deployment))
 
     def getBrokenBuildTaskTitle(self, buildName):
-        return "Build {} is broken.".format(buildName)
+        return f"Build {buildName} is broken."
 
     def getBrokenBuildTask(self, taskTitle):
         response = self.maniphest.search(constraints={
-            "query": "\"{}\"".format(taskTitle),
+            "query": f"\"{taskTitle}\"",
             "statuses": ["open"],
         })
         self.logger.info(
@@ -241,12 +239,11 @@ class PhabWrapper(Phabricator):
         task_data = self.getBrokenBuildTask(title).data
         if len(task_data) == 0:
             self.logger.info(
-                "No existing broken build task with title '{}'. Skipping.".format(title))
+                f"No existing broken build task with title '{title}'. Skipping.")
             return None
 
         self.logger.info(
-            "Updating broken build task T{} status to '{}'.".format(
-                task_data[0]['id'], status))
+            f"Updating broken build task T{task_data[0]['id']} status to '{status}'.")
         updatedTask = self.maniphest.edit(transactions=[{
             'type': 'status',
             'value': status,
@@ -281,8 +278,7 @@ class PhabWrapper(Phabricator):
 
     def updateRevisionSummary(self, revisionId, summary):
         self.logger.info(
-            "Updated summary on objectIdentifier '{}': '{}'".format(
-                revisionId, summary))
+            f"Updated summary on objectIdentifier '{revisionId}': '{summary}'")
         if self.deployment == Deployment.PROD:
             self.differential.revision.edit(transactions=[{
                 "type": "summary",
@@ -323,11 +319,11 @@ class PhabWrapper(Phabricator):
 
         if not diff_data:
             self.logger.info(
-                "Failed to retrieve diff data from revision {}".format(revision_PHID))
+                f"Failed to retrieve diff data from revision {revision_PHID}")
             return ""
 
         # FIXME don't hardcode the staging branch mechanism
-        return "refs/tags/phabricator/diff/{}".format(diff_data[0]["id"])
+        return f"refs/tags/phabricator/diff/{diff_data[0]['id']}"
 
     def get_user_roles(self, user_PHID):
         """ Return a list of the user roles for the target user PHID """
@@ -362,7 +358,7 @@ class PhabWrapper(Phabricator):
 
         if not commit_data:
             raise AssertionError(
-                "Failed to get last master commit for repository {}".format(BITCOIN_ABC_REPO))
+                f"Failed to get last master commit for repository {BITCOIN_ABC_REPO}")
 
         return commit_data[0]["fields"]["identifier"]
 

@@ -589,17 +589,17 @@ class TeamcityTests(unittest.TestCase):
             self.teamcity.session.send.return_value.content = json.dumps({
                 "buildType": [
                     {
-                        "id": "{}_Build{}".format(project, i),
-                        "name": "My build {}".format(i),
+                        "id": f"{project}_Build{i}",
+                        "name": f"My build {i}",
                         "project": {
-                            "id": "Root_{}".format(project),
-                            "name": "My project {}".format(project)
+                            "id": f"Root_{project}",
+                            "name": f"My project {project}"
                         },
                         "parameters": {
                             "property": [
                                 {
                                     "name": "env.ABC_BUILD_NAME",
-                                    "value": "build-{}".format(i)
+                                    "value": f"build-{i}"
                                 }
                             ]
                         }
@@ -615,7 +615,7 @@ class TeamcityTests(unittest.TestCase):
             self.teamcity.session.send.assert_called()
             return config
 
-        build_names = ["build-{}".format(i) for i in range(3)]
+        build_names = [f"build-{i}" for i in range(3)]
 
         # No build type configured
         configure_build_types(0, 0)

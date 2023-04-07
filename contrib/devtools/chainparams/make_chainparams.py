@@ -113,7 +113,7 @@ if __name__ == "__main__":
         raise ValueError("Config is missing rpcpassword")
 
     args.rpc = AuthServiceProxy(
-        service_url='http://{}:{}@{}'.format(user, password, args.address), timeout=1200)
+        service_url=f'http://{user}:{password}@{args.address}', timeout=1200)
     output = main(vars(args))
     if output:
         print(output)

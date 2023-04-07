@@ -58,7 +58,7 @@ class PersistDataTestCase(ABCBotFixture):
                 ['test-change']), buildqueue=True)
         self.teamcity.session.send.return_value = triggerBuildResponse
         response = self.app.post(
-            '/build{}'.format(queryData),
+            f'/build{queryData}',
             headers=self.headers)
         self.assertEqual(response.status_code, 200)
 
@@ -100,7 +100,7 @@ class PersistDataTestCase(ABCBotFixture):
 
         self.phab.harbormaster.createartifact.assert_called_with(
             buildTargetPHID=BUILD_TARGET_PHID,
-            artifactKey="{}-{}".format(BUILD_NAME, BUILD_TARGET_PHID),
+            artifactKey=f"{BUILD_NAME}-{BUILD_TARGET_PHID}",
             artifactType="uri",
             artifactData={
                 "uri": self.teamcity.build_url(

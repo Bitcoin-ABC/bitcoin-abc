@@ -64,7 +64,7 @@ class SlackbotTestCase(unittest.TestCase):
 
     def test_formatMentionByName(self):
         user = test.mocks.slackbot.user()
-        expectedMention = '<@{}>'.format(user['id'])
+        expectedMention = f"<@{user['id']}>"
         self.slackbot.client.users_list.return_value = test.mocks.slackbot.users_list(
             initialUsers=[user])
         self.assertIsNone(self.slackbot.formatMentionByName('testname'))

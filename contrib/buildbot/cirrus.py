@@ -22,15 +22,15 @@ class Cirrus():
         self.logger = logger
 
     def get_default_branch_status(self, repo_id=BITCOIN_ABC_SECP256K1_REPO_ID):
-        query = """
+        query = f"""
             query {{
-                repository(id: "{}") {{
+                repository(id: "{repo_id}") {{
                     lastDefaultBranchBuild {{
                         status
                     }}
                 }}
             }}
-        """.format(repo_id)
+        """
 
         response = requests.post(self.base_url, json={'query': query})
 

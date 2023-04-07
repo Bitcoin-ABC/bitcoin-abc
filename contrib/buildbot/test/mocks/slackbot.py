@@ -18,7 +18,7 @@ def instance():
 
 
 DEFAULT_USER_NUM = 1000
-DEFAULT_USER_ID = 'U{}'.format(DEFAULT_USER_NUM)
+DEFAULT_USER_ID = f'U{DEFAULT_USER_NUM}'
 
 
 def userProfile(attributes=None):
@@ -49,7 +49,7 @@ def user(userId=DEFAULT_USER_ID, profile=None):
 def users_list(total=1, initialUsers=None):
     users = initialUsers if initialUsers is not None else []
     for i in range(len(users), total):
-        users.append(user('U{}'.format(DEFAULT_USER_NUM + i)))
+        users.append(user(f'U{DEFAULT_USER_NUM + i}'))
     return {
         'members': users,
     }

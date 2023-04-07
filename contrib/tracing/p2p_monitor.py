@@ -244,10 +244,10 @@ def render(screen, peers, cur_list_pos, scroll,
             for i, msg in enumerate(peer.last_messages):
                 if msg.inbound:
                     info_window.addstr(
-                        i + 3, 1, "{:68s}".format(f"<--- {msg.msg_type} ({msg.size} bytes) "), curses.A_NORMAL)
+                        i + 3, 1, f"{f'<--- {msg.msg_type} ({msg.size} bytes) ':68s}", curses.A_NORMAL)
                 else:
                     info_window.addstr(
-                        i + 3, 1, " {} ({} byte) --->".format(msg.msg_type, msg.size), curses.A_NORMAL)
+                        i + 3, 1, f" {msg.msg_type} ({msg.size} byte) --->", curses.A_NORMAL)
 
 
 if __name__ == "__main__":

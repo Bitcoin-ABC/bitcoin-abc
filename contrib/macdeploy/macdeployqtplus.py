@@ -57,28 +57,18 @@ class FrameworkInfo(object):
             return False
 
     def __str__(self):
-        return """ Framework name: {}
- Framework directory: {}
- Framework path: {}
- Binary name: {}
- Binary directory: {}
- Binary path: {}
- Version: {}
- Install name: {}
- Deployed install name: {}
- Source file Path: {}
- Deployed Directory (relative to bundle): {}
-""".format(self.frameworkName,
-           self.frameworkDirectory,
-           self.frameworkPath,
-           self.binaryName,
-           self.binaryDirectory,
-           self.binaryPath,
-           self.version,
-           self.installName,
-           self.deployedInstallName,
-           self.sourceFilePath,
-           self.destinationDirectory)
+        return f""" Framework name: {self.frameworkName}
+ Framework directory: {self.frameworkDirectory}
+ Framework path: {self.frameworkPath}
+ Binary name: {self.binaryName}
+ Binary directory: {self.binaryDirectory}
+ Binary path: {self.binaryPath}
+ Version: {self.version}
+ Install name: {self.installName}
+ Deployed install name: {self.deployedInstallName}
+ Source file Path: {self.sourceFilePath}
+ Deployed Directory (relative to bundle): {self.destinationDirectory}
+"""
 
     def isDylib(self):
         return self.frameworkName.endswith(".dylib")
@@ -208,8 +198,8 @@ class DeploymentInfo(object):
                 self.pluginPath = pluginPath
 
     def usesFramework(self, name: str) -> bool:
-        nameDot = "{}.".format(name)
-        libNameDot = "lib{}.".format(name)
+        nameDot = f"{name}."
+        libNameDot = f"lib{name}."
         for framework in self.deployedFrameworks:
             if framework.endswith(".framework"):
                 if framework.startswith(nameDot):
@@ -236,8 +226,7 @@ def getFrameworks(binaryPath: str, verbose: int) -> List[FrameworkInfo]:
             sys.stderr.write(o_stderr)
             sys.stderr.flush()
             raise RuntimeError(
-                "otool failed with return code {}".format(
-                    otool.returncode))
+                f"otool failed with return code {otool.returncode}")
 
     otoolLines = o_stdout.split("\n")
     otoolLines.pop(0)  # First line is the inspected binary
@@ -699,7 +688,7 @@ app_bundle = config.app_bundle[0]
 if not os.path.exists(app_bundle):
     if verbose >= 1:
         sys.stderr.write(
-            "Error: Could not find app bundle \"{}\"\n".format(app_bundle))
+            f"Error: Could not find app bundle \"{app_bundle}\"\n")
     sys.exit(1)
 
 app_bundle_name = os.path.splitext(os.path.basename(app_bundle))[0]
@@ -712,17 +701,17 @@ if config.translations_dir and config.translations_dir[0]:
     else:
         if verbose >= 1:
             sys.stderr.write(
-                "Error: Could not find translation dir \"{}\"\n".format(translations_dir))
+                f"Error: Could not find translation dir \"{translations_dir}\"\n")
         sys.exit(1)
 # ------------------------------------------------
 
 for p in config.add_resources:
     if verbose >= 3:
-        print("Checking for \"{}\"...".format(p))
+        print(f"Checking for \"{p}\"...")
     if not os.path.exists(p):
         if verbose >= 1:
             sys.stderr.write(
-                "Error: Could not find additional resource file \"{}\"\n".format(p))
+                f"Error: Could not find additional resource file \"{p}\"\n")
         sys.exit(1)
 
 # ------------------------------------------------
@@ -740,11 +729,11 @@ if len(config.fancy) == 1:
 
     p = config.fancy[0]
     if verbose >= 3:
-        print("Fancy: Loading \"{}\"...".format(p))
+        print(f"Fancy: Loading \"{p}\"...")
     if not os.path.exists(p):
         if verbose >= 1:
             sys.stderr.write(
-                "Error: Could not find fancy disk image plist at \"{}\"\n".format(p))
+                f"Error: Could not find fancy disk image plist at \"{p}\"\n")
         sys.exit(1)
 
     try:
@@ -752,7 +741,7 @@ if len(config.fancy) == 1:
     except BaseException:
         if verbose >= 1:
             sys.stderr.write(
-                "Error: Could not parse fancy disk image plist at \"{}\"\n".format(p))
+                f"Error: Could not parse fancy disk image plist at \"{p}\"\n")
         sys.exit(1)
 
     try:
@@ -779,13 +768,13 @@ if len(config.fancy) == 1:
     except BaseException:
         if verbose >= 1:
             sys.stderr.write(
-                "Error: Bad format of fancy disk image plist at \"{}\"\n".format(p))
+                f"Error: Bad format of fancy disk image plist at \"{p}\"\n")
         sys.exit(1)
 
     if "background_picture" in fancy:
         bp = fancy["background_picture"]
         if verbose >= 3:
-            print("Fancy: Resolving background picture \"{}\"...".format(bp))
+            print(f"Fancy: Resolving background picture \"{bp}\"...")
         if not os.path.exists(bp):
             bp = os.path.join(os.path.dirname(p), bp)
             if not os.path.exists(bp):
@@ -845,7 +834,7 @@ try:
             config.plugins = False
 except RuntimeError as e:
     if verbose >= 1:
-        sys.stderr.write("Error: {}\n".format(str(e)))
+        sys.stderr.write(f"Error: {str(e)}\n")
     sys.exit(1)
 
 # ------------------------------------------------
@@ -858,7 +847,7 @@ if config.plugins:
         deployPlugins(applicationBundle, deploymentInfo, config.strip, verbose)
     except RuntimeError as e:
         if verbose >= 1:
-            sys.stderr.write("Error: {}\n".format(str(e)))
+            sys.stderr.write(f"Error: {str(e)}\n")
         sys.exit(1)
 
 # ------------------------------------------------
@@ -874,16 +863,16 @@ else:
         else:
             sys.stderr.write("Error: Could not find Qt translation path\n")
             sys.exit(1)
-    add_qt_tr = ["qt_{}.qm".format(lng)
+    add_qt_tr = [f"qt_{lng}.qm"
                  for lng in config.add_qt_tr[0].split(",")]
     for lng_file in add_qt_tr:
         p = os.path.join(qt_tr_dir, lng_file)
         if verbose >= 3:
-            print("Checking for \"{}\"...".format(p))
+            print(f"Checking for \"{p}\"...")
         if not os.path.exists(p):
             if verbose >= 1:
                 sys.stderr.write(
-                    "Error: Could not find Qt translation file \"{}\"\n".format(lng_file))
+                    f"Error: Could not find Qt translation file \"{lng_file}\"\n")
                 sys.exit(1)
 
 # ------------------------------------------------
@@ -934,9 +923,9 @@ if config.sign and 'CODESIGNARGS' not in os.environ:
     print("You must set the CODESIGNARGS environment variable. Skipping signing.")
 elif config.sign:
     if verbose >= 1:
-        print("Code-signing app bundle {}".format(target))
+        print(f"Code-signing app bundle {target}")
     subprocess.check_call(
-        "codesign --force {} {}".format(os.environ['CODESIGNARGS'], target), shell=True)
+        f"codesign --force {os.environ['CODESIGNARGS']} {target}", shell=True)
 
 # ------------------------------------------------
 

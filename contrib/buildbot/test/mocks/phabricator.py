@@ -76,9 +76,9 @@ def differential_revision_search_result(total=1):
         revisionId = DEFAULT_REVISION_ID + i
         results.append({
             'id': revisionId,
-            'phid': 'PHID-DREV-{}'.format(revisionId),
+            'phid': f'PHID-DREV-{revisionId}',
             'fields': {
-                'authorPHID': 'PHID-USER-{}'.format(DEFAULT_USER_ID + i),
+                'authorPHID': f'PHID-USER-{DEFAULT_USER_ID + i}',
             }
         })
     return Result(results)

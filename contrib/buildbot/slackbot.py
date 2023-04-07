@@ -44,5 +44,5 @@ class SlackBot():
     def formatMentionByName(self, username):
         user = self.getUserByName(username)
         if user:
-            return '<@{}>'.format(user['id'])
+            return f"<@{user['id']}>"
         return None

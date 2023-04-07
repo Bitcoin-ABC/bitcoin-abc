@@ -30,7 +30,7 @@ class EndpointBuildTestCase(ABCBotFixture):
             test.mocks.teamcity.buildInfo_changes(
                 ['test-change']), buildqueue=True)
         self.teamcity.session.send.return_value = triggerBuildResponse
-        response = self.app.post('/build{}'.format(data), headers=self.headers)
+        response = self.app.post(f'/build{data}', headers=self.headers)
         self.assertEqual(response.status_code, 200)
         self.teamcity.session.send.assert_called_with(AnyWith(requests.PreparedRequest, {
             'url': 'https://teamcity.test/app/rest/buildQueue',
@@ -55,7 +55,7 @@ class EndpointBuildTestCase(ABCBotFixture):
             test.mocks.teamcity.buildInfo_changes(
                 ['test-change']), buildqueue=True)
         self.teamcity.session.send.return_value = triggerBuildResponse
-        response = self.app.post('/build{}'.format(data), headers=self.headers)
+        response = self.app.post(f'/build{data}', headers=self.headers)
         self.assertEqual(response.status_code, 200)
         self.teamcity.session.send.assert_called_with(AnyWith(requests.PreparedRequest, {
             'url': 'https://teamcity.test/app/rest/buildQueue',

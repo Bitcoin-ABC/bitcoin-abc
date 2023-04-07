@@ -307,7 +307,10 @@
             "type": "lint-python-flynt",
             "version": ">=0.78",
             "include": "(\\.py$)",
-            "exclude": "(^contrib/)"
+            "exclude": [
+                "(^contrib/gitian-builder/)",
+                "(^contrib/apple-sdk-tools/)"
+            ]
         }
     }
 }

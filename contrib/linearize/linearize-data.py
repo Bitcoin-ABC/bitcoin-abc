@@ -175,7 +175,7 @@ class BlockDataCopier:
                 self.outFname = self.settings['output_file']
             else:
                 self.outFname = os.path.join(
-                    self.settings['output'], "blk{:05d}.dat".format(self.outFn))
+                    self.settings['output'], f"blk{self.outFn:05d}.dat")
             print("Output file " + self.outFname)
             self.outF = open(self.outFname, "wb")
 
@@ -193,7 +193,7 @@ class BlockDataCopier:
                 self.blkCountIn, self.blkCountOut, len(self.blkindex), 100.0 * self.blkCountOut / len(self.blkindex)))
 
     def inFileName(self, fn):
-        return os.path.join(self.settings['input'], "blk{:05d}.dat".format(fn))
+        return os.path.join(self.settings['input'], f"blk{fn:05d}.dat")
 
     def fetchBlock(self, extent):
         '''Fetch block contents from disk given extents'''
@@ -276,7 +276,7 @@ class BlockDataCopier:
                 else:  # If no space in cache, seek forward
                     self.inF.seek(inLen, os.SEEK_CUR)
 
-        print("Done ({} blocks written)".format(self.blkCountOut))
+        print(f"Done ({self.blkCountOut} blocks written)")
 
 
 if __name__ == '__main__':

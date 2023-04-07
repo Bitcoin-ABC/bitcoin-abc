@@ -29,7 +29,7 @@ class BuildTests(unittest.TestCase):
 
         # Queue a few builds
         for i in range(10):
-            name = "build-{}".format(i)
+            name = f"build-{i}"
             build_target.queue_build(i, name)
             self.assertEqual(len(build_target.builds), i + 1)
             self.assertEqual(build_target.builds[i].status, BuildStatus.Queued)

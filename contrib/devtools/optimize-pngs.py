@@ -43,7 +43,7 @@ for folder in folders:
     for file in os.listdir(absFolder):
         extension = os.path.splitext(file)[1]
         if extension.lower() == '.png':
-            print("optimizing {}...".format(file), end=' ')
+            print(f"optimizing {file}...", end=' ')
             file_path = os.path.join(absFolder, file)
             fileMetaMap = {'file': file, 'osize': os.path.getsize(
                 file_path), 'sha256Old': file_hash(file_path)}

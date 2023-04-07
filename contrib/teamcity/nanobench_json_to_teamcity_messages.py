@@ -11,16 +11,16 @@ from teamcity.messages import TeamcityServiceMessages
 
 if len(sys.argv) != 3:
     print(
-        """
+        f"""
     Usage:
-        {} <benchmark suite name> <path to nanobench json file>
+        {sys.argv[0]} <benchmark suite name> <path to nanobench json file>
 
     Print the teamcity service messages for associating op/s benchmark result
     to the tests.
 
     Requires the teamcity-messages python library:
       pip3 install teamcity-messages
-""".format(sys.argv[0]))
+""")
     sys.exit(1)
 
 suite_name = sys.argv[1]
@@ -40,7 +40,7 @@ def testMetadata_number_message(test_name, param_name, param_value):
         type='number',
         testName=test_name,
         name=param_name,
-        value='{:.2f}'.format(param_value),
+        value=f'{param_value:.2f}',
     )
 
 
@@ -53,13 +53,13 @@ for result in json_results.get('results', []):
 
     testMetadata_number_message(
         test_name,
-        'ns/{}'.format(result['unit']),
+        f"ns/{result['unit']}",
         1e9 * result['median(elapsed)'] / result['batch'],
     )
 
     testMetadata_number_message(
         test_name,
-        '{}/s'.format(result['unit']),
+        f"{result['unit']}/s",
         result['batch'] / result['median(elapsed)'],
     )
 
@@ -71,7 +71,7 @@ for result in json_results.get('results', []):
 
     testMetadata_number_message(
         test_name,
-        'ins/{}'.format(result['unit']),
+        f"ins/{result['unit']}",
         result['median(instructions)'] / result['batch'],
     )
 
