@@ -21,7 +21,7 @@ describe('ecash-herald websocket.js', async function () {
         const { type, hash } = cashaddr.decode(wsTestAddress, true);
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient(wsTestAddress, []);
-        const telegramBot = MockTelegramBot;
+        const telegramBot = new MockTelegramBot();
         const channelId = mockChannelId;
 
         const result = await initializeWebsocket(
@@ -46,7 +46,7 @@ describe('ecash-herald websocket.js', async function () {
         const { type, hash } = cashaddr.decode(wsTestAddress, true);
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient(wsTestAddress, []);
-        const telegramBot = MockTelegramBot;
+        const telegramBot = new MockTelegramBot();
         const channelId = mockChannelId;
 
         const result = await initializeWebsocket(
