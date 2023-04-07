@@ -95,7 +95,7 @@ export const isAliasRegistered = (registeredAliases, alias) => {
             registeredAliases[i].alias.toString().toLowerCase() ===
             alias.toLowerCase()
         ) {
-            console.log(alias + ' has already been taken');
+            console.log(`Alias (${alias}) is registered`);
             return true;
         }
     }

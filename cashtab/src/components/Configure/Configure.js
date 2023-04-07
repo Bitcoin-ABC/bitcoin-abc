@@ -49,7 +49,9 @@ import {
     isValidXecAddress,
     isValidNewWalletNameLength,
     validateMnemonic,
+    isAliasFormat,
 } from 'utils/validation';
+import { isAliasRegistered } from 'utils/chronik';
 import { convertToEcashPrefix } from 'utils/cashMethods';
 import useWindowDimensions from 'hooks/useWindowDimensions';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
@@ -458,6 +460,7 @@ const Configure = ({ passLoadingStatus }) => {
         changeCashtabSettings,
         getContactListFromLocalForage,
         updateContactList,
+        cashtabCache,
     } = ContextValue;
 
     const location = useLocation();
@@ -1211,7 +1214,20 @@ const Configure = ({ passLoadingStatus }) => {
 
     const handleManualContactAddressInput = e => {
         const { value } = e.target;
-        setManualContactAddressIsValid(isValidXecAddress(value));
+        const isXecAddress = isValidXecAddress(value);
+
+        if (isXecAddress) {
+            setManualContactAddressIsValid(true);
+        } else {
+            // if not a valid XEC address, check if it's an alias
+            const isAlias = isAliasFormat(value);
+            // extract alias without the `.xec`
+            const aliasName = value.slice(0, value.length - 4);
+            const isRegistered = isAliasRegistered(cashtabCache.aliasCache.aliases, aliasName);
+            const isValidAlias = isAlias && isRegistered ? true : false;
+            setManualContactAddressIsValid(isValidAlias);
+        }
+        
         setManualContactAddress(value);
     };
 
@@ -1281,11 +1297,11 @@ const Configure = ({ passLoadingStatus }) => {
                                         manualContactAddressIsValid === null ||
                                         manualContactAddressIsValid
                                             ? ''
-                                            : 'Invalid eCash address'
+                                            : 'Invalid eCash address or alias'
                                     }
                                 >
                                     <Input
-                                        placeholder="Enter new eCash address"
+                                        placeholder="Enter new eCash address or alias"
                                         name="manualContactAddress"
                                         value={manualContactAddress}
                                         onChange={e =>

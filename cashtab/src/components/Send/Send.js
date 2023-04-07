@@ -235,6 +235,14 @@ const SendBCH = ({ passLoadingStatus }) => {
             setFormData({
                 address: location.state.contactSend,
             });
+            
+            // explicitly trigger the address validation upon navigation from contact list
+            handleAddressChange({
+                target: {
+                    name: 'address',
+                    value: location.state.contactSend,
+                },
+            })
         }
 
         // if this was routed from the Airdrop screen's Airdrop Calculator then
