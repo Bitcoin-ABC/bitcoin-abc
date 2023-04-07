@@ -75,24 +75,22 @@ module.exports = {
                       `[explorer](${config.blockExplorer}/block/${blockHash})`;
 
                 try {
-                    await telegramBot.sendMessage(
+                    return await telegramBot.sendMessage(
                         channelId,
                         tgMsg,
                         config.tgMsgOptions,
                     );
                 } catch (err) {
-                    console.log(`Error in telegramBot.send(${wsMsg})`, err);
+                    console.log(
+                        `Error in telegramBot.sendMessage(channelId=${channelId}, msg=${tgMsg}, options=${config.tgMsgOptions})`,
+                        err,
+                    );
                 }
-                break;
+                return false;
             }
-            case 'AddedToMempool':
-                console.log(`New tx: ${wsMsg.txid}`);
-                break;
-            case 'Confirmed':
-                console.log(`New confirmed tx: ${wsMsg.txid}`);
-                break;
             default:
                 console.log(`New websocket message of unknown type:`, wsMsg);
+                return false;
         }
     },
 };

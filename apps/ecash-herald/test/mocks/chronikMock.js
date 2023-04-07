@@ -18,6 +18,7 @@ module.exports = {
             self._url = `https://mocked-chronik-instance/not-a-url/`;
             self._wsUrl = `wss://mocked-chronik-instance/not-a-url/`;
             self.txHistory = txHistory;
+            self.blockDetails = {};
 
             self.mock = {};
             self.mock[type] = {};
@@ -30,9 +31,19 @@ module.exports = {
                     );
                 },
             };
-            // Return assigned mocks
+            // Return assigned script mocks
             self.script = function (type, hash) {
                 return this.mock[type][hash];
+            };
+
+            // Allow user to set expected block mock response
+            self.setBlock = function (blockhashOrHeight, blockDetails) {
+                return (self.blockDetails[blockhashOrHeight] = blockDetails);
+            };
+
+            // Return assigned block mocks
+            self.block = function (blockHashOrHeight) {
+                return self.blockDetails[blockHashOrHeight];
             };
             self.wsSubscribeCalled = false;
             self.wsWaitForOpenCalled = false;

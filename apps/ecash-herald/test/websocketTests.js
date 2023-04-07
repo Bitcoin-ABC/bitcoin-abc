@@ -4,9 +4,15 @@
 
 'use strict';
 const assert = require('assert');
+const config = require('../config');
 const cashaddr = require('ecashaddrjs');
-const { initializeWebsocket } = require('../src/websocket');
+const blocks = require('./mocks/blocks');
+const {
+    initializeWebsocket,
+    parseWebsocketMessage,
+} = require('../src/websocket');
 const { MockChronikClient } = require('./mocks/chronikMock');
+const { MockTelegramBot, mockChannelId } = require('./mocks/telegramBotMock');
 
 describe('ecash-herald websocket.js', async function () {
     it('initializeWebsocket returns expected websocket object for a p2pkh address', async function () {
@@ -15,8 +21,8 @@ describe('ecash-herald websocket.js', async function () {
         const { type, hash } = cashaddr.decode(wsTestAddress, true);
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient(wsTestAddress, []);
-        const telegramBot = null;
-        const channelId = null;
+        const telegramBot = MockTelegramBot;
+        const channelId = mockChannelId;
 
         const result = await initializeWebsocket(
             mockedChronik,
@@ -40,8 +46,8 @@ describe('ecash-herald websocket.js', async function () {
         const { type, hash } = cashaddr.decode(wsTestAddress, true);
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient(wsTestAddress, []);
-        const telegramBot = null;
-        const channelId = null;
+        const telegramBot = MockTelegramBot;
+        const channelId = mockChannelId;
 
         const result = await initializeWebsocket(
             mockedChronik,
@@ -58,5 +64,140 @@ describe('ecash-herald websocket.js', async function () {
             success: true,
             address: wsTestAddress,
         });
+    });
+    it('parseWebsocketMessage returns false for a msg other than BlockConnected', async function () {
+        const wsTestAddress =
+            'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient(wsTestAddress, []);
+
+        const blockNames = Object.keys(blocks);
+
+        const thisBlock = blocks[blockNames[0]];
+        const thisBlockHash = thisBlock.chronikData.blockInfo.hash;
+        const thisBlockChronikBlockResponse = thisBlock.chronikData;
+
+        // Tell mockedChronik what response we expect
+        mockedChronik.setBlock(thisBlockHash, thisBlockChronikBlockResponse);
+
+        const telegramBot = new MockTelegramBot();
+        const channelId = mockChannelId;
+
+        const unsupportedWebsocketMsgs = [
+            {
+                type: 'AddedToMempool',
+            },
+            {
+                type: 'Confirmed',
+            },
+            {
+                type: 'SomeUnknownType',
+            },
+        ];
+
+        for (let i = 0; i < unsupportedWebsocketMsgs.length; i += 1) {
+            const thisUnsupportedMsg = unsupportedWebsocketMsgs[i];
+            const result = await parseWebsocketMessage(
+                mockedChronik,
+                thisUnsupportedMsg,
+                telegramBot,
+                channelId,
+            );
+
+            // Check that sendMessage was not called
+            assert.strictEqual(telegramBot.messageSent, false);
+
+            assert.deepEqual(result, false);
+        }
+    });
+    it('parseWebsocketMessage creates and sends a telegram msg for all mocked blocks', async function () {
+        const wsTestAddress =
+            'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient(wsTestAddress, []);
+
+        const blockNames = Object.keys(blocks);
+        for (let i = 0; i < blockNames.length; i += 1) {
+            const thisBlock = blocks[blockNames[i]];
+            const thisBlockHash = thisBlock.chronikData.blockInfo.hash;
+            const thisBlockChronikBlockResponse = thisBlock.chronikData;
+
+            // Tell mockedChronik what response we expect
+            mockedChronik.setBlock(
+                thisBlockHash,
+                thisBlockChronikBlockResponse,
+            );
+            const thisBlockExpectedMsg = thisBlock.tgHtml;
+
+            // Mock a chronik websocket msg of correct format
+            const mockWsMsg = {
+                type: 'BlockConnected',
+                blockHash: thisBlockHash,
+            };
+            const telegramBot = new MockTelegramBot();
+            const channelId = mockChannelId;
+
+            const result = await parseWebsocketMessage(
+                mockedChronik,
+                mockWsMsg,
+                telegramBot,
+                channelId,
+            );
+
+            // Check that sendMessage was called successfully
+            assert.strictEqual(telegramBot.messageSent, true);
+
+            // Check that the correct msg info was sent
+            assert.deepEqual(result, {
+                success: true,
+                channelId,
+                msg: thisBlockExpectedMsg,
+                options: config.tgMsgOptions,
+            });
+        }
+    });
+    it('parseWebsocketMessage returns false if telegram msg fails to send', async function () {
+        const wsTestAddress =
+            'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient(wsTestAddress, []);
+
+        const blockNames = Object.keys(blocks);
+        for (let i = 0; i < blockNames.length; i += 1) {
+            const thisBlock = blocks[blockNames[i]];
+            const thisBlockHash = thisBlock.chronikData.blockInfo.hash;
+            const thisBlockChronikBlockResponse = thisBlock.chronikData;
+
+            // Tell mockedChronik what response we expect
+            mockedChronik.setBlock(
+                thisBlockHash,
+                thisBlockChronikBlockResponse,
+            );
+
+            // Mock a chronik websocket msg of correct format
+            const mockWsMsg = {
+                type: 'BlockConnected',
+                blockHash: thisBlockHash,
+            };
+            const telegramBot = new MockTelegramBot();
+            telegramBot.setExpectedError(
+                'sendMessage',
+                'Error: message failed to send',
+            );
+            const channelId = mockChannelId;
+
+            const result = await parseWebsocketMessage(
+                mockedChronik,
+                mockWsMsg,
+                telegramBot,
+                channelId,
+            );
+
+            // Check that sendMessage was called successfully
+            assert.strictEqual(telegramBot.messageSent, false);
+
+            // Check that the function returns false
+            assert.strictEqual(result, false);
+        }
     });
 });
