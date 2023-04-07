@@ -8,8 +8,41 @@ const path = require('path');
 const config = require('../config');
 const { ChronikClient } = require('chronik-client');
 const chronik = new ChronikClient(config.chronik);
-const { returnLabeledChronikBlockPromise } = require('../src/utils');
-const { parseBlock, getBlockTgMessage } = require('../src/parse');
+const { handleBlockConnected } = require('../src/events');
+
+// Mock telegram bot
+const {
+    MockTelegramBot,
+    mockChannelId,
+} = require('../test/mocks/telegramBotMock');
+const telegramBot = new MockTelegramBot();
+
+function returnHandleBlockConnectedPromise(
+    chronik,
+    telegramBot,
+    channelId,
+    blockHash,
+    returnMocks = false,
+    blockName,
+) {
+    return new Promise((resolve, reject) => {
+        handleBlockConnected(
+            chronik,
+            telegramBot,
+            channelId,
+            blockHash,
+            returnMocks,
+        ).then(
+            result => {
+                result.blockName = blockName;
+                resolve(result);
+            },
+            err => {
+                reject(err);
+            },
+        );
+    });
+}
 
 async function generateMocks() {
     let mocksDir, mocksFileName;
@@ -75,44 +108,38 @@ async function generateMocks() {
     ];
 
     // Iterate over blockhashArray making an array of promises for getting block details
-    const blockDetailsPromises = [];
+    const handleBlockConnectedPromises = [];
     for (let i = 0; i < blockArray.length; i += 1) {
         const thisBlock = blockArray[i];
         const { blockhash, blockname } = thisBlock;
-        blockDetailsPromises.push(
-            returnLabeledChronikBlockPromise(chronik, blockhash, blockname),
+        handleBlockConnectedPromises.push(
+            returnHandleBlockConnectedPromise(
+                chronik,
+                telegramBot,
+                mockChannelId,
+                blockhash,
+                true,
+                blockname,
+            ),
         );
     }
-    let blockDetails;
+
+    let blocksMock;
     try {
-        blockDetails = await Promise.all(blockDetailsPromises);
+        blocksMock = await Promise.all(handleBlockConnectedPromises);
     } catch (err) {
-        console.log(`Error determining blockDetails in generateMocks()`, err);
-    }
-
-    // Convert blockDetails array of objects to one object
-    const blocksMock = {};
-    for (let i = 0; i < blockDetails.length; i += 1) {
-        const thisBlock = blockDetails[i];
-        const { blockname, result } = thisBlock;
-        blocksMock[blockname] = { chronikData: result };
-    }
-
-    // Add parsed block results to blocksMock
-    const blockNames = Object.keys(blocksMock);
-    for (let i = 0; i < blockNames.length; i += 1) {
-        const thisBlockName = blockNames[i];
-        blocksMock[thisBlockName].parsed = parseBlock(
-            blocksMock[thisBlockName].chronikData,
-        );
-        blocksMock[thisBlockName].tgHtml = getBlockTgMessage(
-            blocksMock[thisBlockName].parsed,
+        console.log(
+            `Error in Promise.all(handleBlockConnectedPromisesResponse)`,
         );
     }
 
     let mocksWrite;
     if (process.env.OVERWRITE) {
-        mocksWrite = `module.exports=${JSON.stringify(blocksMock, null, 2)}`;
+        mocksWrite = `// Copyright (c) 2023 The Bitcoin developers\n// Distributed under the MIT software license, see the accompanying\n// file COPYING or http://www.opensource.org/licenses/mit-license.php.\n// @generated\n\n'use strict'\n\nmodule.exports=${JSON.stringify(
+            blocksMock,
+            null,
+            2,
+        )}`;
     } else {
         mocksWrite = JSON.stringify(blocksMock, null, 2);
     }

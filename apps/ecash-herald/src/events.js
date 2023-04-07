@@ -10,6 +10,7 @@ module.exports = {
         telegramBot,
         channelId,
         blockHash,
+        returnMocks = false,
     ) {
         /* BlockConnected callback
          * Get block details of blockhash from chronik
@@ -55,6 +56,12 @@ module.exports = {
         const parsedBlock = parseBlock(blockDetails);
         const tgMsg = getBlockTgMessage(parsedBlock);
 
+        // returnMocks is used in the script function generateMocks
+        // Using it as a flag here ensures the script is always using the same function
+        // as the app
+        if (returnMocks) {
+            return { blockDetails, parsedBlock, tgMsg };
+        }
         try {
             return await telegramBot.sendMessage(
                 channelId,

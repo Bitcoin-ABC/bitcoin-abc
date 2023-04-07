@@ -16,14 +16,13 @@ const {
     prepareStringForTelegramHTML,
 } = require('../src/parse');
 
-describe('ecash-telegram-bot parses chronik block data and generates expected telegram msg', function () {
+describe('parse.js functions', function () {
     it('All test blocks', function () {
-        const blockNames = Object.keys(blocks);
-        for (let i = 0; i < blockNames.length; i += 1) {
-            const thisBlock = blocks[blockNames[i]];
-            const { chronikData, parsed, tgHtml } = thisBlock;
-            assert.deepEqual(parseBlock(chronikData), parsed);
-            assert.deepEqual(getBlockTgMessage(parsed), tgHtml);
+        for (let i = 0; i < blocks.length; i += 1) {
+            const thisBlock = blocks[i];
+            const { blockDetails, parsedBlock, tgMsg } = thisBlock;
+            assert.deepEqual(parseBlock(blockDetails), parsedBlock);
+            assert.deepEqual(getBlockTgMessage(parsedBlock), tgMsg);
         }
     });
 

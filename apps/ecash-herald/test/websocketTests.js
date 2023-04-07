@@ -71,11 +71,9 @@ describe('ecash-herald websocket.js', async function () {
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient(wsTestAddress, []);
 
-        const blockNames = Object.keys(blocks);
-
-        const thisBlock = blocks[blockNames[0]];
-        const thisBlockHash = thisBlock.chronikData.blockInfo.hash;
-        const thisBlockChronikBlockResponse = thisBlock.chronikData;
+        const thisBlock = blocks[0];
+        const thisBlockHash = thisBlock.blockDetails.blockInfo.hash;
+        const thisBlockChronikBlockResponse = thisBlock.blockDetails;
 
         // Tell mockedChronik what response we expect
         mockedChronik.setBlock(thisBlockHash, thisBlockChronikBlockResponse);
@@ -116,18 +114,17 @@ describe('ecash-herald websocket.js', async function () {
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient(wsTestAddress, []);
 
-        const blockNames = Object.keys(blocks);
-        for (let i = 0; i < blockNames.length; i += 1) {
-            const thisBlock = blocks[blockNames[i]];
-            const thisBlockHash = thisBlock.chronikData.blockInfo.hash;
-            const thisBlockChronikBlockResponse = thisBlock.chronikData;
+        for (let i = 0; i < blocks.length; i += 1) {
+            const thisBlock = blocks[i];
+            const thisBlockHash = thisBlock.blockDetails.blockInfo.hash;
+            const thisBlockChronikBlockResponse = thisBlock.blockDetails;
 
             // Tell mockedChronik what response we expect
             mockedChronik.setBlock(
                 thisBlockHash,
                 thisBlockChronikBlockResponse,
             );
-            const thisBlockExpectedMsg = thisBlock.tgHtml;
+            const thisBlockExpectedMsg = thisBlock.tgMsg;
 
             // Mock a chronik websocket msg of correct format
             const mockWsMsg = {
@@ -162,11 +159,10 @@ describe('ecash-herald websocket.js', async function () {
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient(wsTestAddress, []);
 
-        const blockNames = Object.keys(blocks);
-        for (let i = 0; i < blockNames.length; i += 1) {
-            const thisBlock = blocks[blockNames[i]];
-            const thisBlockHash = thisBlock.chronikData.blockInfo.hash;
-            const thisBlockChronikBlockResponse = thisBlock.chronikData;
+        for (let i = 0; i < blocks.length; i += 1) {
+            const thisBlock = blocks[i];
+            const thisBlockHash = thisBlock.blockDetails.blockInfo.hash;
+            const thisBlockChronikBlockResponse = thisBlock.blockDetails;
 
             // Tell mockedChronik what response we expect
             mockedChronik.setBlock(

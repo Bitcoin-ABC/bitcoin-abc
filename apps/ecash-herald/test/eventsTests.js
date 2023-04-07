@@ -18,18 +18,17 @@ describe('ecash-herald events.js', async function () {
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient(wsTestAddress, []);
 
-        const blockNames = Object.keys(blocks);
-        for (let i = 0; i < blockNames.length; i += 1) {
-            const thisBlock = blocks[blockNames[i]];
-            const thisBlockHash = thisBlock.chronikData.blockInfo.hash;
-            const thisBlockChronikBlockResponse = thisBlock.chronikData;
+        for (let i = 0; i < blocks.length; i += 1) {
+            const thisBlock = blocks[i];
+            const thisBlockHash = thisBlock.blockDetails.blockInfo.hash;
+            const thisBlockChronikBlockResponse = thisBlock.blockDetails;
 
             // Tell mockedChronik what response we expect
             mockedChronik.setBlock(
                 thisBlockHash,
                 thisBlockChronikBlockResponse,
             );
-            const thisBlockExpectedMsg = thisBlock.tgHtml;
+            const thisBlockExpectedMsg = thisBlock.tgMsg;
 
             const telegramBot = new MockTelegramBot();
             const channelId = mockChannelId;
@@ -58,11 +57,9 @@ describe('ecash-herald events.js', async function () {
             'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient(wsTestAddress, []);
-
-        const blockNames = Object.keys(blocks);
-        for (let i = 0; i < blockNames.length; i += 1) {
-            const thisBlock = blocks[blockNames[i]];
-            const thisBlockHash = thisBlock.chronikData.blockInfo.hash;
+        for (let i = 0; i < blocks.length; i += 1) {
+            const thisBlock = blocks[i];
+            const thisBlockHash = thisBlock.blockDetails.blockInfo.hash;
 
             // Tell mockedChronik to give a bad response for blockdetails
             mockedChronik.setBlock(thisBlockHash, null);
@@ -98,10 +95,9 @@ describe('ecash-herald events.js', async function () {
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient(wsTestAddress, []);
 
-        const blockNames = Object.keys(blocks);
-        for (let i = 0; i < blockNames.length; i += 1) {
-            const thisBlock = blocks[blockNames[i]];
-            const thisBlockHash = thisBlock.chronikData.blockInfo.hash;
+        for (let i = 0; i < blocks.length; i += 1) {
+            const thisBlock = blocks[i];
+            const thisBlockHash = thisBlock.blockDetails.blockInfo.hash;
 
             // Tell mockedChronik to give a bad response for blockdetails
             mockedChronik.setBlock(thisBlockHash, null);
