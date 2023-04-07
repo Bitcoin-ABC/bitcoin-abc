@@ -15,26 +15,41 @@ module.exports = {
         // Construct your Telegram message in markdown
 
         // Get some info about this block
-        let blockDetails;
-        let parsedBlock;
-        let generatedTgMsg;
+        let blockDetails = false;
         try {
             blockDetails = await chronik.block(blockHash);
-            parsedBlock = parseBlock(blockDetails);
-            generatedTgMsg = getBlockTgMessage(parsedBlock);
         } catch (err) {
-            blockDetails = false;
             console.log(`Error in chronik.block(${blockHash})`, err);
         }
 
-        // Construct your Telegram message in markdown
-        const tgMsg = blockDetails
-            ? generatedTgMsg
-            : `New Block Found\n` +
-              `\n` +
-              `${blockHash}\n` +
-              `\n` +
-              `[explorer](${config.blockExplorer}/block/${blockHash})`;
+        // If you can't get blockDetails from chronik,
+        // send a Telegram msg with only the block hash
+        if (!blockDetails) {
+            // Default Telegram message if error getting block details
+            const errorTgMsg =
+                `New Block Found\n` +
+                `\n` +
+                `${blockHash}\n` +
+                `\n` +
+                `[explorer](${config.blockExplorer}/block/${blockHash})`;
+
+            try {
+                return await telegramBot.sendMessage(
+                    channelId,
+                    errorTgMsg,
+                    config.tgMsgOptions,
+                );
+            } catch (err) {
+                console.log(
+                    `Error in telegramBot.sendMessage(channelId=${channelId}, msg=${errorTgMsg}, options=${config.tgMsgOptions})`,
+                    err,
+                );
+                return false;
+            }
+        }
+
+        const parsedBlock = parseBlock(blockDetails);
+        const tgMsg = getBlockTgMessage(parsedBlock);
 
         try {
             return await telegramBot.sendMessage(
