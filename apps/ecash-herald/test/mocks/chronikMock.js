@@ -14,7 +14,17 @@ module.exports = {
             // Use self since it is not a reserved term in js
             // Can access self from inside a method and still get the class
             const self = this;
-            const { type, hash } = cashaddr.decode(address, true);
+
+            // Allow initialization with bad address to support tests
+            // TODO should construct without address, accept it as a set method
+            let decoded;
+            try {
+                decoded = cashaddr.decode(address, true);
+            } catch (err) {
+                decoded = { type: 'badType', hash: 'badHash' };
+            }
+
+            const { type, hash } = decoded;
             self._url = `https://mocked-chronik-instance/not-a-url/`;
             self._wsUrl = `wss://mocked-chronik-instance/not-a-url/`;
             self.txHistory = txHistory;
@@ -57,6 +67,7 @@ module.exports = {
                         subscribe: function (type, hash) {
                             self.wsSubscribeCalled = { type, hash };
                         },
+                        _subs: [hash],
                         // Return object for unit test parsing
                         wsResult: { success: true, address },
                     };
