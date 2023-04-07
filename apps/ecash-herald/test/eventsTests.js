@@ -81,7 +81,7 @@ describe('ecash-herald events.js', async function () {
             assert.strictEqual(telegramBot.messageSent, true);
 
             // Expect the backup msg
-            const expectedMsg = `New Block Found\n\n${thisBlockHash}\n\n[explorer](https://explorer.e.cash/block/${thisBlockHash})`;
+            const expectedMsg = `New Block Found\n\n${thisBlockHash}\n\n<a href="https://explorer.e.cash/block/${thisBlockHash}">explorer</a>`;
 
             // Check that the correct msg info was sent
             assert.deepEqual(result, {

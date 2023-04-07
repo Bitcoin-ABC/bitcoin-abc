@@ -11,8 +11,12 @@ module.exports = {
         channelId,
         blockHash,
     ) {
-        // Here is where you will send a telegram msg
-        // Construct your Telegram message in markdown
+        /* BlockConnected callback
+         * Get block details of blockhash from chronik
+         * Parse block details for information interesting in a telegram msg with parseBlock()
+         * Process parsedBlock into an HTML formatted telegram message with getBlockTgMessage()
+         * Send your Telegram msg
+         */
 
         // Get some info about this block
         let blockDetails = false;
@@ -31,7 +35,7 @@ module.exports = {
                 `\n` +
                 `${blockHash}\n` +
                 `\n` +
-                `[explorer](${config.blockExplorer}/block/${blockHash})`;
+                `<a href="${config.blockExplorer}/block/${blockHash}">explorer</a>`;
 
             try {
                 return await telegramBot.sendMessage(
