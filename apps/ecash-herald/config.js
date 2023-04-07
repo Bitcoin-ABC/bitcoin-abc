@@ -12,7 +12,7 @@ module.exports = {
         fiat: 'usd',
         precision: 8,
     },
-    ifpHash160: 'd37c4c809fe9840e7bfa77b86bd47163f6fb6c60',
+    ifpAddress: 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
     tgMsgOptions: {
         parse_mode: 'HTML',
         disable_web_page_preview: true,

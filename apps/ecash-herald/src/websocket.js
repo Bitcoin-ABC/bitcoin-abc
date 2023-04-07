@@ -4,17 +4,25 @@
 
 'use strict';
 const config = require('../config');
-const { telegramBot, channelId } = require('./telegram');
-const { ChronikClient } = require('chronik-client');
-const chronik = new ChronikClient(config.chronik);
+const cashaddr = require('ecashaddrjs');
 const { parseBlock, getBlockTgMessage } = require('./parse');
 
 module.exports = {
-    initializeWebsocket: async function () {
+    initializeWebsocket: async function (
+        chronik,
+        address,
+        telegramBot,
+        channelId,
+    ) {
         // Subscribe to chronik websocket
         const ws = chronik.ws({
             onMessage: async msg => {
-                await module.exports.parseWebsocketMessage(msg);
+                await module.exports.parseWebsocketMessage(
+                    chronik,
+                    msg,
+                    telegramBot,
+                    channelId,
+                );
             },
         });
         // Wait for WS to be connected:
@@ -22,10 +30,16 @@ module.exports = {
         console.log(`Connected to websocket`);
         // Subscribe to scripts (on Lotus, current ABC payout address):
         // Will give a message on avg every 2 minutes
-        ws.subscribe('p2pkh', config.ifpHash160);
+        const { type, hash } = cashaddr.decode(address, true);
+        ws.subscribe(type, hash);
         return ws;
     },
-    parseWebsocketMessage: async function (wsMsg) {
+    parseWebsocketMessage: async function (
+        chronik,
+        wsMsg,
+        telegramBot,
+        channelId,
+    ) {
         console.log(`New chronik websocket message`, wsMsg);
         // Determine type of tx
         const { type } = wsMsg;
