@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 'use strict';
-const { initializeWebsocket } = require('./src/chronik');
+const { initializeWebsocket } = require('./src/websocket');
 
 async function main() {
     // Initialize websocket connection
