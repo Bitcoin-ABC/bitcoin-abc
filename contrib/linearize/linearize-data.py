@@ -7,17 +7,18 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #
 
-from __future__ import print_function, division
-import struct
-import re
+from __future__ import division, print_function
+
+import datetime
+import hashlib
 import os
 import os.path
+import re
+import struct
 import sys
-import hashlib
-import datetime
 import time
-from collections import namedtuple
 from binascii import unhexlify
+from collections import namedtuple
 
 settings = {}
 

@@ -7,11 +7,11 @@ To be used in conjunction with -capturemessages.
 """
 
 import argparse
+import json
 import os
 import shutil
 import sys
 from io import BytesIO
-import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -20,8 +20,8 @@ sys.path.append(
         os.path.dirname(__file__),
         '../../test/functional'))
 
-from test_framework.messages import ser_uint256     # noqa: E402
-from test_framework.p2p import MESSAGEMAP           # noqa: E402
+from test_framework.messages import ser_uint256  # noqa: E402
+from test_framework.p2p import MESSAGEMAP  # noqa: E402
 
 TIME_SIZE = 8
 LENGTH_SIZE = 4

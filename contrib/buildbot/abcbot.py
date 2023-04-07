@@ -5,20 +5,18 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-import sys
-import os
 import argparse
 import logging
-import slack
-
+import os
+import sys
 from logging.handlers import RotatingFileHandler
 
+import server
+import slack
 from cirrus import Cirrus
 from phabricator_wrapper import PhabWrapper
 from slackbot import SlackBot
 from teamcity_wrapper import TeamCity
-
-import server
 
 # Setup global parameters
 conduit_token = os.getenv("TEAMCITY_CONDUIT_TOKEN", None)

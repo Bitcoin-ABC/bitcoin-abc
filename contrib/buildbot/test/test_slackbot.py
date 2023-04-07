@@ -4,12 +4,11 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import mock
+import test.mocks.slackbot
 import unittest
 
+import mock
 from slackbot import SlackBot
-
-import test.mocks.slackbot
 
 
 def mockSlackBot():

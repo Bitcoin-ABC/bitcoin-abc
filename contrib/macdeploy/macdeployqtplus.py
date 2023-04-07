@@ -16,16 +16,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import subprocess
-import sys
-import re
 import os
+import os.path
+import re
 import shutil
 import stat
-import os.path
+import subprocess
+import sys
 import time
-from string import Template
 from argparse import ArgumentParser
+from string import Template
 from typing import List, Optional
 
 # This is ported from the original macdeployqt with modifications

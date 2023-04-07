@@ -6,15 +6,16 @@
 
 
 import json
-import mock
-import requests
+import test.mocks.teamcity
 import unittest
+from test.abcbot_fixture import ABCBotFixture
 from unittest.mock import call
 
-from build import Build, BuildStatus
-from test.abcbot_fixture import ABCBotFixture
-import test.mocks.teamcity
+import mock
+import requests
 from testutil import AnyWith
+
+from build import Build, BuildStatus
 
 
 class buildDiffRequestQuery():

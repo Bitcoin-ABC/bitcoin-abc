@@ -4,9 +4,11 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-from build import BuildStatus
 import json
+
 import requests
+
+from build import BuildStatus
 
 BITCOIN_ABC_SECP256K1_REPO_ID = "6034374039699456"
 

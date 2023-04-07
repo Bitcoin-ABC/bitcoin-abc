@@ -5,20 +5,20 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import json
-import mock
 import os
-import server
 import shelve
-import unittest
-
-from build import BuildStatus
-from teamcity_wrapper import BuildInfo
-from test.abcbot_fixture import ABCBotFixture
 import test.mocks.teamcity
+import unittest
+from test.abcbot_fixture import ABCBotFixture
 from test.mocks.teamcity import DEFAULT_BUILD_ID
 from test.test_endpoint_build import buildRequestQuery
 from test.test_endpoint_status import statusRequestData
 
+import mock
+import server
+from teamcity_wrapper import BuildInfo
+
+from build import BuildStatus
 
 BUILD_NAME = 'build-name'
 BUILD_TYPE_ID = 'build-type-id'

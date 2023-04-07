@@ -5,21 +5,22 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import json
-import mock
-import requests
+import test.mocks.fixture
+import test.mocks.phabricator
+import test.mocks.teamcity
 import unittest
+from test.abcbot_fixture import ABCBotFixture
+from test.mocks.teamcity import DEFAULT_BUILD_ID, TEAMCITY_CI_USER
 from urllib.parse import urljoin
 
-from build import BuildStatus
+import mock
+import requests
 from phabricator_wrapper import BITCOIN_ABC_REPO
 from server import BADGE_TC_BASE
 from teamcity_wrapper import BuildInfo
 from testutil import AnyWith
-from test.abcbot_fixture import ABCBotFixture
-import test.mocks.fixture
-import test.mocks.phabricator
-import test.mocks.teamcity
-from test.mocks.teamcity import DEFAULT_BUILD_ID, TEAMCITY_CI_USER
+
+from build import BuildStatus
 
 
 class statusRequestData(test.mocks.fixture.MockData):

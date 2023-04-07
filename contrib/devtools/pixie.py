@@ -7,7 +7,7 @@ Compact, self-contained ELF implementation for bitcoin-abc security checks.
 '''
 import struct
 import types
-from typing import Dict, List, Optional, Union, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 # you can find all these values in elf.h
 EI_NIDENT = 16

@@ -5,7 +5,6 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import mock
-
 from slackbot import SlackBot
 
 

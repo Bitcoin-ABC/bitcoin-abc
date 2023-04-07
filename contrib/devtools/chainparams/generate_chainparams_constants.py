@@ -22,8 +22,8 @@ These files must consist of lines in the format
 The outputted constants should be pasted into `src/chainparamsconstants.h`.
 '''
 
-import sys
 import os
+import sys
 
 
 def process_constants(indir, file_name):

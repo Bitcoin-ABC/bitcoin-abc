@@ -5,17 +5,18 @@
 
 import argparse
 import asyncio
-from deepmerge import always_merger
 import os
-from pathlib import Path, PurePath
 import shutil
 import stat
-from string import Template
 import subprocess
 import sys
+from pathlib import Path, PurePath
+from string import Template
+
+import yaml
+from deepmerge import always_merger
 from teamcity import is_running_under_teamcity
 from teamcity.messages import TeamcityServiceMessages
-import yaml
 
 # Default timeout value in seconds. Should be overridden by the
 # configuration file.

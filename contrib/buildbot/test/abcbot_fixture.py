@@ -5,20 +5,20 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import base64
-import json
 import hashlib
 import hmac
+import json
 import os
-from pathlib import Path
-import server
 import shutil
-import unittest
-
 import test.mocks.cirrus
 import test.mocks.fixture
 import test.mocks.phabricator
 import test.mocks.slackbot
 import test.mocks.teamcity
+import unittest
+from pathlib import Path
+
+import server
 
 # Setup global parameters
 TEST_USER = "TESTUSER"

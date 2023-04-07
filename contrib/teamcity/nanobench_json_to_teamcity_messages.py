@@ -3,9 +3,10 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-from datetime import timedelta
 import json
 import sys
+from datetime import timedelta
+
 from teamcity.messages import TeamcityServiceMessages
 
 if len(sys.argv) != 3:

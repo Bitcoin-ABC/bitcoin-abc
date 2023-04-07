@@ -11,9 +11,10 @@
 # outbound P2P messages. The eBPF program submits the P2P messages to
 # this script via a BPF ring buffer.
 
-import sys
 import curses
-from curses import wrapper, panel
+import sys
+from curses import panel, wrapper
+
 from bcc import BPF, USDT
 
 # BCC: The C program to be compiled to an eBPF program (by BCC) and loaded into

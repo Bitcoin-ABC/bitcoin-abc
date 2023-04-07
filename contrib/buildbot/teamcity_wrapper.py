@@ -1,20 +1,16 @@
 #!/usr/bin/env python3
 
-from collections import UserDict
 import io
 import json
 import os
-from pprint import pprint
 import re
-import requests
 import time
-from urllib.parse import (
-    parse_qs,
-    urlencode,
-    urlsplit,
-    urlunsplit,
-)
+from collections import UserDict
+from pprint import pprint
+from urllib.parse import parse_qs, urlencode, urlsplit, urlunsplit
 from zipfile import ZipFile
+
+import requests
 
 
 class TeamcityRequestException(Exception):

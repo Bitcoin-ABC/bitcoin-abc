@@ -5,13 +5,13 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-from base64 import b64decode
 import os
+from base64 import b64decode
 
-from build import BuildStatus
 from constants import Deployment
 from phabricator import Phabricator
 
+from build import BuildStatus
 
 BUILDNAME_IGNORE_KEYWORD = "__BOTIGNORE"
 BITCOIN_ABC_PROJECT_PHID = "PHID-PROJ-z2wrchs62yicqvwlgc5r"

@@ -16,7 +16,6 @@ from typing import Optional
 
 import lief
 import pixie
-
 from utils import determine_wellknown_cmd
 
 # Debian 10 (Buster) EOL: 2024. https://wiki.debian.org/LTS

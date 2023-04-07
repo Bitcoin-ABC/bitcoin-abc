@@ -32,11 +32,11 @@ The output will be two data structures with the peers in binary format:
 These should be pasted into `src/chainparamsseeds.h`.
 '''
 
-from base64 import b32decode
-from binascii import a2b_hex
-import sys
 import os
 import re
+import sys
+from base64 import b32decode
+from binascii import a2b_hex
 
 # ipv4 in ipv6 prefix
 pchIPv4 = bytearray([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff])

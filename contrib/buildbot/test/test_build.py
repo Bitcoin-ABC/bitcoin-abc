@@ -5,8 +5,9 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-from build import BuildStatus, BuildTarget
 import unittest
+
+from build import BuildStatus, BuildTarget
 
 
 class BuildTests(unittest.TestCase):

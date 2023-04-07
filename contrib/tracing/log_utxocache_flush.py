@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-import sys
 import ctypes
+import sys
+
 from bcc import BPF, USDT
 
 """Example logging Bitcoin ABC utxo set cache flushes utilizing

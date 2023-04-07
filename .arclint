@@ -283,7 +283,10 @@
             "type": "lint-python-isort",
             "version": ">=5.6.4",
             "include": "(\\.py$)",
-            "exclude": "(^contrib/)"
+            "exclude": [
+                "(^contrib/gitian-builder/)",
+                "(^contrib/apple-sdk-tools/)"
+            ]
         },
         "rustfmt": {
             "type": "rustfmt",

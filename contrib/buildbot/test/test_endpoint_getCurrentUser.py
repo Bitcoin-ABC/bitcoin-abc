@@ -4,8 +4,8 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-from test.abcbot_fixture import ABCBotFixture, TEST_USER
 import unittest
+from test.abcbot_fixture import TEST_USER, ABCBotFixture
 
 
 class EndpointGetCurrentUserTestCase(ABCBotFixture):

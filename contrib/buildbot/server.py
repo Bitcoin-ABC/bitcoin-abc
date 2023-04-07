@@ -5,24 +5,23 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-from build import BuildStatus, BuildTarget
-from deepmerge import always_merger
-from flask import abort, Flask, request
-from functools import wraps
 import hashlib
 import hmac
 import logging
 import os
-from phabricator_wrapper import (
-    BITCOIN_ABC_PROJECT_PHID,
-)
 import re
 import shelve
-from shieldio import RasterBadge
+from functools import wraps
 from shlex import quote
-from teamcity_wrapper import TeamcityRequestException
-import yaml
 
+import yaml
+from deepmerge import always_merger
+from flask import Flask, abort, request
+from phabricator_wrapper import BITCOIN_ABC_PROJECT_PHID
+from shieldio import RasterBadge
+from teamcity_wrapper import TeamcityRequestException
+
+from build import BuildStatus, BuildTarget
 
 # Some keywords used by TeamCity and tcWebHook
 SUCCESS = "success"

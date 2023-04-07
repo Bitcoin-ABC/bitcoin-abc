@@ -7,8 +7,8 @@ Test script for symbol-check.py
 '''
 import os
 import subprocess
-from typing import List
 import unittest
+from typing import List
 
 from utils import determine_wellknown_cmd
 

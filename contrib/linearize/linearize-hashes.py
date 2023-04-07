@@ -8,16 +8,18 @@
 #
 
 from __future__ import print_function
+
 try:  # Python 3
     import http.client as httplib
 except ImportError:  # Python 2
     import httplib
-import json
-import re
+
 import base64
-import sys
+import json
 import os
 import os.path
+import re
+import sys
 
 settings = {}
 

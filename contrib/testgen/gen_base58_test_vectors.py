@@ -12,10 +12,11 @@ Usage:
 # 2012 Wladimir J. van der Laan
 # Released under MIT License
 import os
-from itertools import islice
-from base58 import b58encode_chk, b58decode_chk, b58chars
 import random
 from binascii import b2a_hex
+from itertools import islice
+
+from base58 import b58chars, b58decode_chk, b58encode_chk
 
 # key types
 PUBKEY_ADDRESS = 0
@@ -123,8 +124,8 @@ def gen_invalid_vectors():
 
 
 if __name__ == '__main__':
-    import sys
     import json
+    import sys
     iters = {'valid': gen_valid_vectors, 'invalid': gen_invalid_vectors}
     try:
         uiter = iters[sys.argv[1]]

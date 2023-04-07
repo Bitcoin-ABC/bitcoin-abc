@@ -5,14 +5,14 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import itertools
-import mock
-import unittest
-from unittest.mock import call
-
-from phabricator_wrapper import BITCOIN_ABC_PROJECT_PHID
-from test.abcbot_fixture import ABCBotFixture
 import test.mocks.phabricator
 import test.mocks.teamcity
+import unittest
+from test.abcbot_fixture import ABCBotFixture
+from unittest.mock import call
+
+import mock
+from phabricator_wrapper import BITCOIN_ABC_PROJECT_PHID
 
 
 class EndpointTriggerCITestCase(ABCBotFixture):

@@ -31,6 +31,7 @@
 # BCC prints: "Possibly lost 2 samples" on lost messages.
 
 import sys
+
 from bcc import BPF, USDT
 
 # BCC: The C program to be compiled to an eBPF program (by BCC) and loaded into

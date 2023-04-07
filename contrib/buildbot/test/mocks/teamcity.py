@@ -5,11 +5,10 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import json
+
 import mock
 import requests
-
 from teamcity_wrapper import TeamCity
-
 
 TEAMCITY_BASE_URL = 'https://teamcity.test'
 TEAMCITY_CI_USER = 'teamcity-ci-user'

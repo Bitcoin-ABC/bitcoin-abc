@@ -23,13 +23,15 @@
     https://github.com/bitcoin/bitcoin/blob/37a7fe9e440b83e2364d5498931253937abe9294/contrib/zmq/zmq_sub.py
 """
 
-import binascii
 import asyncio
-import zmq
-import zmq.asyncio
+import binascii
 import signal
 import struct
 import sys
+
+import zmq.asyncio
+
+import zmq
 
 if (sys.version_info.major, sys.version_info.minor) < (3, 6):
     print("This example only works with Python 3.6 and greater")

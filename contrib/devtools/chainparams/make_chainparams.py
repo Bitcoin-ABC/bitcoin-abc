@@ -3,12 +3,12 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-from enum import Enum
 import argparse
 import math
 import os.path
 import re
 import sys
+from enum import Enum
 
 sys.path.append('../../../test/functional/test_framework')
 from authproxy import AuthServiceProxy  # noqa: E402

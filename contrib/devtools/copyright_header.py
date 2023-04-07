@@ -4,12 +4,12 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import re
-import fnmatch
-import sys
-import subprocess
 import datetime
+import fnmatch
 import os
+import re
+import subprocess
+import sys
 
 ##########################################################################
 # file filtering
