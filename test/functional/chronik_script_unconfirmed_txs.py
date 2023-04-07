@@ -6,8 +6,6 @@
 Test Chronik's /script/:type/:payload/unconfirmed-txs endpoint.
 """
 
-import http.client
-
 from test_framework.address import (
     ADDRESS_ECREG_P2SH_OP_TRUE,
     P2SH_OP_TRUE,
@@ -18,6 +16,7 @@ from test_framework.blocktools import (
     create_coinbase,
     make_conform_to_ctor,
 )
+from test_framework.chronik.client import ChronikClient
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.p2p import P2PDataStore
 from test_framework.script import OP_RETURN, CScript
@@ -37,61 +36,39 @@ class ChronikScriptUnconfirmedTxsTest(BitcoinTestFramework):
     def run_test(self):
         import chronik_pb2 as pb
 
-        def query_script_txs(script_type, payload_hex):
-            chronik_port = self.nodes[0].chronik_port
-            client = http.client.HTTPConnection('127.0.0.1', chronik_port, timeout=4)
-            url = f'/script/{script_type}/{payload_hex}/unconfirmed-txs'
-            client.request('GET', url)
-            response = client.getresponse()
-            assert_equal(response.getheader('Content-Type'),
-                         'application/x-protobuf')
-            return response
-
-        def query_script_txs_success(*args, **kwargs):
-            response = query_script_txs(*args, **kwargs)
-            assert_equal(response.status, 200)
-            proto_tx = pb.TxHistoryPage()
-            proto_tx.ParseFromString(response.read())
-            return proto_tx
-
-        def query_script_txs_err(*args, status, **kwargs):
-            response = query_script_txs(*args, **kwargs)
-            assert_equal(response.status, status)
-            proto_error = pb.Error()
-            proto_error.ParseFromString(response.read())
-            return proto_error
-
         node = self.nodes[0]
+        chronik = ChronikClient('127.0.0.1', node.chronik_port)
+
         peer = node.add_p2p_connection(P2PDataStore())
         mocktime = 1300000000
         node.setmocktime(mocktime)
 
         assert_equal(
-            query_script_txs_err('', '', status=400).msg,
+            chronik.script('', '').unconfirmed_txs().err(400).msg,
             '400: Unknown script type: ')
         assert_equal(
-            query_script_txs_err('foo', '', status=400).msg,
+            chronik.script('foo', '', ).unconfirmed_txs().err(400).msg,
             '400: Unknown script type: foo')
         assert_equal(
-            query_script_txs_err('p2pkh', 'LILALI', status=400).msg,
+            chronik.script('p2pkh', 'LILALI').unconfirmed_txs().err(400).msg,
             "400: Invalid hex: Invalid character 'L' at position 0")
         assert_equal(
-            query_script_txs_err('other', 'LILALI', status=400).msg,
+            chronik.script('other', 'LILALI').unconfirmed_txs().err(400).msg,
             "400: Invalid hex: Invalid character 'L' at position 0")
         assert_equal(
-            query_script_txs_err('p2pkh', '', status=400).msg,
+            chronik.script('p2pkh', '', ).unconfirmed_txs().err(400).msg,
             '400: Invalid payload for P2PKH: Invalid length, ' +
             'expected 20 bytes but got 0 bytes')
         assert_equal(
-            query_script_txs_err('p2pkh', 'aA', status=400).msg,
+            chronik.script('p2pkh', 'aA').unconfirmed_txs().err(400).msg,
             '400: Invalid payload for P2PKH: Invalid length, ' +
             'expected 20 bytes but got 1 bytes')
         assert_equal(
-            query_script_txs_err('p2sh', 'aaBB', status=400).msg,
+            chronik.script('p2sh', 'aaBB').unconfirmed_txs().err(400).msg,
             '400: Invalid payload for P2SH: Invalid length, ' +
             'expected 20 bytes but got 2 bytes')
         assert_equal(
-            query_script_txs_err('p2pk', 'aaBBcc', status=400).msg,
+            chronik.script('p2pk', 'aaBBcc').unconfirmed_txs().err(400).msg,
             '400: Invalid payload for P2PK: Invalid length, ' +
             'expected one of [33, 65] but got 3 bytes')
 
@@ -102,7 +79,7 @@ class ChronikScriptUnconfirmedTxsTest(BitcoinTestFramework):
 
         # No txs in mempool for the genesis pubkey
         assert_equal(
-            query_script_txs_success('p2pk', genesis_pk),
+            chronik.script('p2pk', genesis_pk).unconfirmed_txs().ok(),
             pb.TxHistoryPage(num_pages=0, num_txs=0))
 
         script_type = 'p2sh'
@@ -113,7 +90,7 @@ class ChronikScriptUnconfirmedTxsTest(BitcoinTestFramework):
 
         # No txs in mempool for that address
         assert_equal(
-            query_script_txs_success(script_type, payload_hex),
+            chronik.script(script_type, payload_hex).unconfirmed_txs().ok(),
             pb.TxHistoryPage(num_pages=0, num_txs=0))
 
         coinvalue = 5000000000
@@ -177,7 +154,7 @@ class ChronikScriptUnconfirmedTxsTest(BitcoinTestFramework):
             return sorted(txs, key=lambda tx: (tx.time_first_seen, tx.txid[::-1]))
 
         assert_equal(
-            query_script_txs_success(script_type, payload_hex),
+            chronik.script(script_type, payload_hex).unconfirmed_txs().ok(),
             pb.TxHistoryPage(txs=sorted_txs(mempool_proto_txs),
                              num_pages=1,
                              num_txs=len(mempool_txs)))
@@ -208,7 +185,7 @@ class ChronikScriptUnconfirmedTxsTest(BitcoinTestFramework):
 
         # Only unconfirmed txs remain, conflict txs are removed
         assert_equal(
-            query_script_txs_success(script_type, payload_hex),
+            chronik.script(script_type, payload_hex).unconfirmed_txs().ok(),
             pb.TxHistoryPage(txs=sorted_txs(mempool_proto_txs[5:]),
                              num_pages=1,
                              num_txs=5))

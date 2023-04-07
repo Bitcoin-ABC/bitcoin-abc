@@ -6,8 +6,6 @@
 Test Chronik's /script/:type/:payload/confirmed-txs endpoint.
 """
 
-import http.client
-
 from test_framework.address import (
     ADDRESS_ECREG_P2SH_OP_TRUE,
     P2SH_OP_TRUE,
@@ -20,6 +18,7 @@ from test_framework.blocktools import (
     create_block,
     create_coinbase,
 )
+from test_framework.chronik.client import ChronikClient
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.p2p import P2PDataStore
 from test_framework.test_framework import BitcoinTestFramework
@@ -39,65 +38,39 @@ class ChronikScriptConfirmedTxsTest(BitcoinTestFramework):
     def run_test(self):
         import chronik_pb2 as pb
 
-        def query_script_txs(script_type, payload_hex, page=None, page_size=None):
-            chronik_port = self.nodes[0].chronik_port
-            client = http.client.HTTPConnection('127.0.0.1', chronik_port, timeout=4)
-            url = f'/script/{script_type}/{payload_hex}/confirmed-txs'
-            if page is not None:
-                url += f'?page={page}'
-            if page_size is not None:
-                url += f'&page_size={page_size}'
-            client.request('GET', url)
-            response = client.getresponse()
-            assert_equal(response.getheader('Content-Type'),
-                         'application/x-protobuf')
-            return response
-
-        def query_script_txs_success(*args, **kwargs):
-            response = query_script_txs(*args, **kwargs)
-            assert_equal(response.status, 200)
-            proto_tx = pb.TxHistoryPage()
-            proto_tx.ParseFromString(response.read())
-            return proto_tx
-
-        def query_script_txs_err(*args, status, **kwargs):
-            response = query_script_txs(*args, **kwargs)
-            assert_equal(response.status, status)
-            proto_error = pb.Error()
-            proto_error.ParseFromString(response.read())
-            return proto_error
-
         node = self.nodes[0]
+        chronik = ChronikClient('127.0.0.1', node.chronik_port)
+
         peer = node.add_p2p_connection(P2PDataStore())
         mocktime = 1300000000
         node.setmocktime(mocktime)
 
         assert_equal(
-            query_script_txs_err('', '', status=400).msg,
+            chronik.script('', '').confirmed_txs().err(400).msg,
             '400: Unknown script type: ')
         assert_equal(
-            query_script_txs_err('foo', '', status=400).msg,
+            chronik.script('foo', '').confirmed_txs().err(400).msg,
             '400: Unknown script type: foo')
         assert_equal(
-            query_script_txs_err('p2pkh', 'LILALI', status=400).msg,
+            chronik.script('p2pkh', 'LILALI').confirmed_txs().err(400).msg,
             "400: Invalid hex: Invalid character 'L' at position 0")
         assert_equal(
-            query_script_txs_err('other', 'LILALI', status=400).msg,
+            chronik.script('other', 'LILALI').confirmed_txs().err(400).msg,
             "400: Invalid hex: Invalid character 'L' at position 0")
         assert_equal(
-            query_script_txs_err('p2pkh', '', status=400).msg,
+            chronik.script('p2pkh', '').confirmed_txs().err(400).msg,
             '400: Invalid payload for P2PKH: Invalid length, ' +
             'expected 20 bytes but got 0 bytes')
         assert_equal(
-            query_script_txs_err('p2pkh', 'aA', status=400).msg,
+            chronik.script('p2pkh', 'aA').confirmed_txs().err(400).msg,
             '400: Invalid payload for P2PKH: Invalid length, ' +
             'expected 20 bytes but got 1 bytes')
         assert_equal(
-            query_script_txs_err('p2sh', 'aaBB', status=400).msg,
+            chronik.script('p2sh', 'aaBB').confirmed_txs().err(400).msg,
             '400: Invalid payload for P2SH: Invalid length, ' +
             'expected 20 bytes but got 2 bytes')
         assert_equal(
-            query_script_txs_err('p2pk', 'aaBBcc', status=400).msg,
+            chronik.script('p2pk', 'aaBBcc').confirmed_txs().err(400).msg,
             '400: Invalid payload for P2PK: Invalid length, ' +
             'expected one of [33, 65] but got 3 bytes')
 
@@ -107,28 +80,35 @@ class ChronikScriptConfirmedTxsTest(BitcoinTestFramework):
         )
 
         assert_equal(
-            query_script_txs_err(
-                'p2pk', genesis_pk, status=400, page=0, page_size=201).msg,
+            chronik.script(
+                'p2pk', genesis_pk).confirmed_txs(
+                page=0, page_size=201).err(400).msg,
             '400: Requested page size 201 is too big, maximum is 200')
         assert_equal(
-            query_script_txs_err(
-                'p2pk', genesis_pk, status=400, page=0, page_size=0).msg,
+            chronik.script(
+                'p2pk', genesis_pk).confirmed_txs(
+                page=0, page_size=0).err(400).msg,
             '400: Requested page size 0 is too small, minimum is 1')
         assert_equal(
-            query_script_txs_err(
-                'p2pk', genesis_pk, status=400, page=0, page_size=2**32).msg,
+            chronik.script(
+                'p2pk', genesis_pk).confirmed_txs(
+                page=0, page_size=2**32).err(400).msg,
             '400: Invalid param page_size: 4294967296, ' +
             'number too large to fit in target type')
         assert_equal(
-            query_script_txs_err(
-                'p2pk', genesis_pk, status=400, page=2**32, page_size=1).msg,
+            chronik.script(
+                'p2pk', genesis_pk).confirmed_txs(
+                page=2**32, page_size=1).err(400).msg,
             '400: Invalid param page: 4294967296, ' +
             'number too large to fit in target type')
 
         # Handle overflow gracefully on 32-bit
         assert_equal(
-            query_script_txs_success(
-                'p2pk', genesis_pk, page=2**32 - 1, page_size=200),
+            chronik.script(
+                'p2pk',
+                genesis_pk).confirmed_txs(
+                page=2**32 - 1,
+                page_size=200).ok(),
             pb.TxHistoryPage(num_pages=1, num_txs=1))
 
         genesis_cb_script = bytes.fromhex(f'41{genesis_pk}ac')
@@ -157,7 +137,8 @@ class ChronikScriptConfirmedTxsTest(BitcoinTestFramework):
             is_coinbase=True,
         )
 
-        genesis_db_script_history = query_script_txs_success('p2pk', genesis_pk)
+        genesis_db_script_history = chronik.script(
+            'p2pk', genesis_pk).confirmed_txs().ok()
         assert_equal(
             genesis_db_script_history,
             pb.TxHistoryPage(
@@ -174,8 +155,9 @@ class ChronikScriptConfirmedTxsTest(BitcoinTestFramework):
         def check_confirmed_txs(txs, *, page_size=25):
             pages = list(iter_chunks(txs, page_size))
             for page_num, page_txs in enumerate(pages):
-                script_history = query_script_txs_success(
-                    script_type, payload_hex, page=page_num, page_size=page_size)
+                script_history = chronik.script(
+                    script_type, payload_hex).confirmed_txs(
+                    page_num, page_size).ok()
                 for tx_idx, entry in enumerate(page_txs):
                     script_tx = script_history.txs[tx_idx]
                     if 'txid' in entry:

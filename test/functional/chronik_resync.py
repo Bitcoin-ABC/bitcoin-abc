@@ -3,12 +3,12 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import http.client
 import os
 import shutil
 
 from test_framework.address import ADDRESS_ECREG_P2SH_OP_TRUE, ADDRESS_ECREG_UNSPENDABLE
 from test_framework.blocktools import GENESIS_BLOCK_HASH
+from test_framework.chronik.client import ChronikClient
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, get_datadir_path
 
@@ -22,18 +22,8 @@ class ChronikResyncTest(BitcoinTestFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
-        import chronik_pb2 as pb
-
-        def query_block(block_height):
-            chronik_port = self.nodes[0].chronik_port
-            client = http.client.HTTPConnection('127.0.0.1', chronik_port, timeout=4)
-            client.request('GET', f'/block/{block_height}')
-            response = client.getresponse()
-            assert_equal(response.getheader('Content-Type'),
-                         'application/x-protobuf')
-            return response
-
         node = self.nodes[0]
+        chronik = ChronikClient('127.0.0.1', node.chronik_port)
 
         # Mine 100 blocks, that Chronik doesn't index
         block_hashes = (
@@ -49,14 +39,10 @@ class ChronikResyncTest(BitcoinTestFramework):
             self.restart_node(0, ['-chronik'])
 
         for i in range(0, 101):
-            response = query_block(i)
-            assert_equal(response.status, 200)
-            proto_block = pb.Block()
-            proto_block.ParseFromString(response.read())
+            proto_block = chronik.block(i).ok()
             assert_equal(proto_block.block_info.hash[::-1].hex(), block_hashes[i])
 
-        response = query_block(101)
-        assert_equal(response.status, 404)
+        chronik.block(101).err(404)
 
         self.restart_node(0, [])
 
@@ -78,14 +64,10 @@ class ChronikResyncTest(BitcoinTestFramework):
             self.restart_node(0, ['-chronik'])
 
         for i in range(0, 150):
-            response = query_block(i)
-            assert_equal(response.status, 200)
-            proto_block = pb.Block()
-            proto_block.ParseFromString(response.read())
+            proto_block = chronik.block(i).ok()
             assert_equal(proto_block.block_info.hash[::-1].hex(), block_hashes[i])
 
-        response = query_block(150)
-        assert_equal(response.status, 404)
+        chronik.block(150).err(404)
 
         # Reset node blockchain back to genesis
         # Leave Chronik untouched
@@ -113,8 +95,8 @@ class ChronikResyncTest(BitcoinTestFramework):
         # Reindexing with -chronik now works, as it wipes the Chronik data
         with node.assert_debug_log(["Wiping Chronik at "]):
             self.restart_node(0, ['-chronik', '-reindex'])
-        assert_equal(query_block(0).status, 200)
-        assert_equal(query_block(1).status, 404)
+        chronik.block(0).ok()
+        chronik.block(1).err(404)
 
         # Generate 100 blocks without chronik
         self.restart_node(0, [])
@@ -122,14 +104,14 @@ class ChronikResyncTest(BitcoinTestFramework):
 
         # Reindexing indexes 100 blocks
         self.restart_node(0, ['-chronik', '-reindex'])
-        assert_equal(query_block(100).status, 200)
+        chronik.block(100).ok()
 
         # Test -chronikreindex
         with node.assert_debug_log(["Wiping Chronik at "]):
             self.restart_node(0, ['-chronik', '-chronikreindex'])
-        assert_equal(query_block(0).status, 200)
-        assert_equal(query_block(100).status, 200)
-        assert_equal(query_block(101).status, 404)
+        chronik.block(0).ok()
+        chronik.block(100).ok()
+        chronik.block(101).err(404)
 
 
 if __name__ == '__main__':

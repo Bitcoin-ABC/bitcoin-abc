@@ -6,8 +6,6 @@
 Test Chronik's /tx endpoint.
 """
 
-import http.client
-
 from test_framework.address import (
     ADDRESS_ECREG_P2SH_OP_TRUE,
     ADDRESS_ECREG_UNSPENDABLE,
@@ -21,6 +19,7 @@ from test_framework.blocktools import (
     create_block,
     create_coinbase,
 )
+from test_framework.chronik.client import ChronikClient
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.p2p import P2PDataStore
 from test_framework.script import OP_EQUAL, OP_HASH160, CScript, hash160
@@ -40,42 +39,21 @@ class ChronikTxTest(BitcoinTestFramework):
     def run_test(self):
         import chronik_pb2 as pb
 
-        def query_tx(txid):
-            chronik_port = self.nodes[0].chronik_port
-            client = http.client.HTTPConnection('127.0.0.1', chronik_port, timeout=4)
-            client.request('GET', f'/tx/{txid}')
-            response = client.getresponse()
-            assert_equal(response.getheader('Content-Type'),
-                         'application/x-protobuf')
-            return response
-
-        def query_tx_success(txid):
-            response = query_tx(txid)
-            assert_equal(response.status, 200)
-            proto_tx = pb.Tx()
-            proto_tx.ParseFromString(response.read())
-            return proto_tx
-
-        def query_tx_err(txid, status):
-            response = query_tx(txid)
-            assert_equal(response.status, status)
-            proto_error = pb.Error()
-            proto_error.ParseFromString(response.read())
-            return proto_error
-
         node = self.nodes[0]
+        chronik = ChronikClient('127.0.0.1', node.chronik_port)
+
         peer = node.add_p2p_connection(P2PDataStore())
         node.setmocktime(1333333337)
 
-        assert_equal(query_tx_err('0', 400).msg, '400: Not a txid: 0')
-        assert_equal(query_tx_err('123', 400).msg, '400: Not a txid: 123')
-        assert_equal(query_tx_err('1234f', 400).msg, '400: Not a txid: 1234f')
-        assert_equal(query_tx_err('00' * 31, 400).msg, f'400: Not a txid: {"00"*31}')
-        assert_equal(query_tx_err('01', 400).msg, '400: Not a txid: 01')
-        assert_equal(query_tx_err('12345678901', 400).msg,
+        assert_equal(chronik.tx('0').err(400).msg, '400: Not a txid: 0')
+        assert_equal(chronik.tx('123').err(400).msg, '400: Not a txid: 123')
+        assert_equal(chronik.tx('1234f').err(400).msg, '400: Not a txid: 1234f')
+        assert_equal(chronik.tx('00' * 31).err(400).msg, f'400: Not a txid: {"00"*31}')
+        assert_equal(chronik.tx('01').err(400).msg, '400: Not a txid: 01')
+        assert_equal(chronik.tx('12345678901').err(400).msg,
                      '400: Not a txid: 12345678901')
 
-        assert_equal(query_tx_err('00' * 32, 404).msg,
+        assert_equal(chronik.tx('00' * 32).err(404).msg,
                      f'404: Transaction {"00"*32} not found in the index')
 
         genesis_tx = pb.Tx(
@@ -108,7 +86,7 @@ class ChronikTxTest(BitcoinTestFramework):
         )
 
         # Verify queried genesis tx matches
-        assert_equal(query_tx_success(GENESIS_CB_TXID), genesis_tx)
+        assert_equal(chronik.tx(GENESIS_CB_TXID).ok(), genesis_tx)
 
         coinblockhash = self.generatetoaddress(node, 1, ADDRESS_ECREG_P2SH_OP_TRUE)[0]
         coinblock = node.getblock(coinblockhash)
@@ -153,7 +131,7 @@ class ChronikTxTest(BitcoinTestFramework):
             is_coinbase=False,
         )
 
-        assert_equal(query_tx_success(txid), proto_tx)
+        assert_equal(chronik.tx(txid).ok(), proto_tx)
 
         # If we mine the block, querying will gives us all the tx details + block
         txblockhash = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[0]
@@ -164,7 +142,7 @@ class ChronikTxTest(BitcoinTestFramework):
             height=102,
             timestamp=1333333355,
         ))
-        assert_equal(query_tx_success(txid), proto_tx)
+        assert_equal(chronik.tx(txid).ok(), proto_tx)
 
         node.setmocktime(1333333338)
         tx2 = CTransaction()
@@ -202,7 +180,7 @@ class ChronikTxTest(BitcoinTestFramework):
             is_coinbase=False,
         )
 
-        assert_equal(query_tx_success(txid2), proto_tx2)
+        assert_equal(chronik.tx(txid2).ok(), proto_tx2)
 
         # Mine tx
         tx2blockhash = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[0]
@@ -211,7 +189,7 @@ class ChronikTxTest(BitcoinTestFramework):
 
         # Tx back in mempool
         self.wait_until(lambda: txid2 in node.getrawmempool())
-        assert_equal(query_tx_success(txid2), proto_tx2)
+        assert_equal(chronik.tx(txid2).ok(), proto_tx2)
 
         # Mine conflicting tx
         conflict_tx = CTransaction(tx2)
@@ -224,7 +202,7 @@ class ChronikTxTest(BitcoinTestFramework):
         block.solve()
         peer.send_blocks_and_test([block], node)
 
-        assert_equal(query_tx_err(txid2, 404).msg,
+        assert_equal(chronik.tx(txid2).err(404).msg,
                      f'404: Transaction {txid2} not found in the index')
         proto_tx2.txid = bytes.fromhex(conflict_tx.hash)[::-1]
         proto_tx2.lock_time = 13
@@ -235,7 +213,7 @@ class ChronikTxTest(BitcoinTestFramework):
             timestamp=1333333500,
         ))
 
-        assert_equal(query_tx_success(conflict_tx.hash), proto_tx2)
+        assert_equal(chronik.tx(conflict_tx.hash).ok(), proto_tx2)
 
 
 if __name__ == '__main__':
