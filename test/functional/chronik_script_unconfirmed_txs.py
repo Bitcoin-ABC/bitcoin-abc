@@ -12,6 +12,7 @@ from test_framework.address import (
     SCRIPTSIG_OP_TRUE,
 )
 from test_framework.blocktools import (
+    GENESIS_CB_PK,
     create_block,
     create_coinbase,
     make_conform_to_ctor,
@@ -72,14 +73,9 @@ class ChronikScriptUnconfirmedTxsTest(BitcoinTestFramework):
             '400: Invalid payload for P2PK: Invalid length, ' +
             'expected one of [33, 65] but got 3 bytes')
 
-        genesis_pk = (
-            '04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6'
-            'bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f'
-        )
-
         # No txs in mempool for the genesis pubkey
         assert_equal(
-            chronik.script('p2pk', genesis_pk).unconfirmed_txs().ok(),
+            chronik.script('p2pk', GENESIS_CB_PK).unconfirmed_txs().ok(),
             pb.TxHistoryPage(num_pages=0, num_txs=0))
 
         script_type = 'p2sh'

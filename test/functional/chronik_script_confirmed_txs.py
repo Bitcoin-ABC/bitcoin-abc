@@ -11,14 +11,9 @@ from test_framework.address import (
     P2SH_OP_TRUE,
     SCRIPTSIG_OP_TRUE,
 )
-from test_framework.blocktools import (
-    GENESIS_BLOCK_HASH,
-    GENESIS_CB_TXID,
-    TIME_GENESIS_BLOCK,
-    create_block,
-    create_coinbase,
-)
+from test_framework.blocktools import GENESIS_CB_PK, create_block, create_coinbase
 from test_framework.chronik.client import ChronikClient
+from test_framework.chronik.test_data import genesis_cb_tx
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.p2p import P2PDataStore
 from test_framework.test_framework import BitcoinTestFramework
@@ -74,77 +69,42 @@ class ChronikScriptConfirmedTxsTest(BitcoinTestFramework):
             '400: Invalid payload for P2PK: Invalid length, ' +
             'expected one of [33, 65] but got 3 bytes')
 
-        genesis_pk = (
-            '04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6'
-            'bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f'
-        )
-
         assert_equal(
             chronik.script(
-                'p2pk', genesis_pk).confirmed_txs(
+                'p2pk', GENESIS_CB_PK).confirmed_txs(
                 page=0, page_size=201).err(400).msg,
             '400: Requested page size 201 is too big, maximum is 200')
         assert_equal(
             chronik.script(
-                'p2pk', genesis_pk).confirmed_txs(
+                'p2pk', GENESIS_CB_PK).confirmed_txs(
                 page=0, page_size=0).err(400).msg,
             '400: Requested page size 0 is too small, minimum is 1')
         assert_equal(
             chronik.script(
-                'p2pk', genesis_pk).confirmed_txs(
+                'p2pk', GENESIS_CB_PK).confirmed_txs(
                 page=0, page_size=2**32).err(400).msg,
             '400: Invalid param page_size: 4294967296, ' +
             'number too large to fit in target type')
         assert_equal(
             chronik.script(
-                'p2pk', genesis_pk).confirmed_txs(
+                'p2pk', GENESIS_CB_PK).confirmed_txs(
                 page=2**32, page_size=1).err(400).msg,
             '400: Invalid param page: 4294967296, ' +
             'number too large to fit in target type')
 
         # Handle overflow gracefully on 32-bit
         assert_equal(
-            chronik.script(
-                'p2pk',
-                genesis_pk).confirmed_txs(
-                page=2**32 - 1,
-                page_size=200).ok(),
+            chronik.script('p2pk', GENESIS_CB_PK)
+            .confirmed_txs(page=2**32 - 1, page_size=200)
+            .ok(),
             pb.TxHistoryPage(num_pages=1, num_txs=1))
 
-        genesis_cb_script = bytes.fromhex(f'41{genesis_pk}ac')
-        genesis_tx = pb.Tx(
-            txid=bytes.fromhex(GENESIS_CB_TXID)[::-1],
-            version=1,
-            inputs=[pb.TxInput(
-                prev_out=pb.OutPoint(txid=bytes(32), out_idx=0xffffffff),
-                input_script=(
-                    b'\x04\xff\xff\x00\x1d\x01\x04EThe Times 03/Jan/2009 Chancellor '
-                    b'on brink of second bailout for banks'
-                ),
-                sequence_no=0xffffffff,
-            )],
-            outputs=[pb.TxOutput(
-                value=5000000000,
-                output_script=genesis_cb_script,
-            )],
-            lock_time=0,
-            block=pb.BlockMetadata(
-                hash=bytes.fromhex(GENESIS_BLOCK_HASH)[::-1],
-                height=0,
-                timestamp=TIME_GENESIS_BLOCK,
-            ),
-            time_first_seen=0,
-            is_coinbase=True,
-        )
-
         genesis_db_script_history = chronik.script(
-            'p2pk', genesis_pk).confirmed_txs().ok()
-        assert_equal(
-            genesis_db_script_history,
-            pb.TxHistoryPage(
-                txs=[genesis_tx],
-                num_pages=1,
-                num_txs=1))
+            'p2pk', GENESIS_CB_PK).confirmed_txs().ok()
+        assert_equal(genesis_db_script_history,
+                     pb.TxHistoryPage(txs=[genesis_cb_tx()],
+                                      num_pages=1,
+                                      num_txs=1))
 
         script_type = 'p2sh'
         payload_hex = P2SH_OP_TRUE[2:-1].hex()

@@ -12,14 +12,9 @@ from test_framework.address import (
     P2SH_OP_TRUE,
     SCRIPTSIG_OP_TRUE,
 )
-from test_framework.blocktools import (
-    GENESIS_BLOCK_HASH,
-    GENESIS_CB_TXID,
-    TIME_GENESIS_BLOCK,
-    create_block,
-    create_coinbase,
-)
+from test_framework.blocktools import GENESIS_CB_TXID, create_block, create_coinbase
 from test_framework.chronik.client import ChronikClient
+from test_framework.chronik.test_data import genesis_cb_tx
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.p2p import P2PDataStore
 from test_framework.script import OP_EQUAL, OP_HASH160, CScript, hash160
@@ -56,37 +51,8 @@ class ChronikTxTest(BitcoinTestFramework):
         assert_equal(chronik.tx('00' * 32).err(404).msg,
                      f'404: Transaction {"00"*32} not found in the index')
 
-        genesis_tx = pb.Tx(
-            txid=bytes.fromhex(GENESIS_CB_TXID)[::-1],
-            version=1,
-            inputs=[pb.TxInput(
-                prev_out=pb.OutPoint(txid=bytes(32), out_idx=0xffffffff),
-                input_script=(
-                    b'\x04\xff\xff\x00\x1d\x01\x04EThe Times 03/Jan/2009 Chancellor '
-                    b'on brink of second bailout for banks'
-                ),
-                sequence_no=0xffffffff,
-            )],
-            outputs=[pb.TxOutput(
-                value=5000000000,
-                output_script=bytes.fromhex(
-                    '4104678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61'
-                    'deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf1'
-                    '1d5fac'
-                ),
-            )],
-            lock_time=0,
-            block=pb.BlockMetadata(
-                hash=bytes.fromhex(GENESIS_BLOCK_HASH)[::-1],
-                height=0,
-                timestamp=TIME_GENESIS_BLOCK,
-            ),
-            time_first_seen=0,
-            is_coinbase=True,
-        )
-
         # Verify queried genesis tx matches
-        assert_equal(chronik.tx(GENESIS_CB_TXID).ok(), genesis_tx)
+        assert_equal(chronik.tx(GENESIS_CB_TXID).ok(), genesis_cb_tx())
 
         coinblockhash = self.generatetoaddress(node, 1, ADDRESS_ECREG_P2SH_OP_TRUE)[0]
         coinblock = node.getblock(coinblockhash)
