@@ -2,6 +2,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+/* sendTestTgMsgs.js
+ *
+ * npm run sendTestTgMsgs
+ * Send telegram messages of all tested blocks to your dev channel
+ * specified in secrets.js
+ */
+
 'use strict';
 const config = require('../config');
 const secrets = require('../secrets');
@@ -27,13 +34,12 @@ function returnTelegramBotSendMessagePromise(msg, options) {
 async function sendTestTgMsgs() {
     // Build array of promises from all block mock tg msgs
     const testTgMsgPromises = [];
-    const blockNames = Object.keys(blocks);
-    for (let i = 0; i < blockNames.length; i += 1) {
-        const thisBlock = blocks[blockNames[i]];
-        const { tgHtml } = thisBlock;
+    for (let i in blocks) {
+        const thisBlock = blocks[i];
+        const { tgMsg } = thisBlock;
 
         testTgMsgPromises.push(
-            returnTelegramBotSendMessagePromise(tgHtml, config.tgMsgOptions),
+            returnTelegramBotSendMessagePromise(tgMsg, config.tgMsgOptions),
         );
     }
 

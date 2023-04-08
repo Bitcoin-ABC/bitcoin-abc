@@ -8,7 +8,7 @@
         "coverage": "nyc mocha",
         "junit": "mocha test --reporter mocha-junit-reporter",
         "generateMocks": "node scripts/generateMocks",
-        "msgs": "node scripts/sendTestTgMsgs",
+        "sendTestTgMsgs": "node scripts/sendTestTgMsgs",
         "getCoingeckoPrices": "node scripts/getCoingeckoPrices"
     },
     "keywords": [
