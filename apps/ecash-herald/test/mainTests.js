@@ -4,7 +4,6 @@
 
 'use strict';
 const assert = require('assert');
-const cashaddr = require('ecashaddrjs');
 const config = require('../config');
 const { main } = require('../src/main');
 const { MockChronikClient } = require('./mocks/chronikMock');
@@ -12,12 +11,10 @@ const { MockTelegramBot, mockChannelId } = require('./mocks/telegramBotMock');
 
 describe('ecash-herald main.js', async function () {
     it('main() starts the app on successful websocket connection', async function () {
-        // Currently, chronik needs to subscribe to at least one address
         // even to receive BlockConnected msgs
         const wsTestAddress = config.ifpAddress;
-        const { type, hash } = cashaddr.decode(wsTestAddress, true);
         // Initialize chronik mock
-        const mockedChronik = new MockChronikClient(wsTestAddress, []);
+        const mockedChronik = new MockChronikClient();
         const telegramBot = MockTelegramBot;
         const channelId = mockChannelId;
 
@@ -26,13 +23,13 @@ describe('ecash-herald main.js', async function () {
         // Confirm websocket opened
         assert.strictEqual(mockedChronik.wsWaitForOpenCalled, true);
         // Confirm subscribe was called on expected type and hash
-        assert.deepEqual(mockedChronik.wsSubscribeCalled, { type, hash });
+        assert.deepEqual(mockedChronik.wsSubscribeCalled, true);
     });
     it('main() shuts down gracefully if there is an error initializing the websocket connection', async function () {
         // Invalid subscription address
         const wsTestAddress = config.ifpAddress.slice(5);
         // Initialize chronik mock
-        const mockedChronik = new MockChronikClient(wsTestAddress, []);
+        const mockedChronik = new MockChronikClient();
         const telegramBot = MockTelegramBot;
         const channelId = mockChannelId;
 

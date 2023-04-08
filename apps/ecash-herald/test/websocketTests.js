@@ -20,7 +20,7 @@ describe('ecash-herald websocket.js', async function () {
             'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8';
         const { type, hash } = cashaddr.decode(wsTestAddress, true);
         // Initialize chronik mock
-        const mockedChronik = new MockChronikClient(wsTestAddress, []);
+        const mockedChronik = new MockChronikClient();
         const telegramBot = new MockTelegramBot();
         const channelId = mockChannelId;
 
@@ -34,18 +34,17 @@ describe('ecash-herald websocket.js', async function () {
         // Confirm websocket opened
         assert.strictEqual(mockedChronik.wsWaitForOpenCalled, true);
         // Confirm subscribe was called on expected type and hash
-        assert.deepEqual(mockedChronik.wsSubscribeCalled, { type, hash });
-        assert.deepEqual(result.wsResult, {
-            success: true,
-            address: wsTestAddress,
-        });
+        assert.deepEqual(mockedChronik.wsSubscribeCalled, true);
+        assert.deepEqual(result._subs, [
+            { scriptType: type, scriptPayload: hash },
+        ]);
     });
     it('initializeWebsocket returns expected websocket object for a p2sh address', async function () {
         const wsTestAddress =
             'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
         const { type, hash } = cashaddr.decode(wsTestAddress, true);
         // Initialize chronik mock
-        const mockedChronik = new MockChronikClient(wsTestAddress, []);
+        const mockedChronik = new MockChronikClient();
         const telegramBot = new MockTelegramBot();
         const channelId = mockChannelId;
 
@@ -59,24 +58,24 @@ describe('ecash-herald websocket.js', async function () {
         // Confirm websocket opened
         assert.strictEqual(mockedChronik.wsWaitForOpenCalled, true);
         // Confirm subscribe was called on expected type and hash
-        assert.deepEqual(mockedChronik.wsSubscribeCalled, { type, hash });
-        assert.deepEqual(result.wsResult, {
-            success: true,
-            address: wsTestAddress,
-        });
+        assert.deepEqual(mockedChronik.wsSubscribeCalled, true);
+        assert.deepEqual(result._subs, [
+            { scriptType: type, scriptPayload: hash },
+        ]);
     });
     it('parseWebsocketMessage returns false for a msg other than BlockConnected', async function () {
-        const wsTestAddress =
-            'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
         // Initialize chronik mock
-        const mockedChronik = new MockChronikClient(wsTestAddress, []);
+        const mockedChronik = new MockChronikClient();
 
         const thisBlock = blocks[0];
         const thisBlockHash = thisBlock.blockDetails.blockInfo.hash;
         const thisBlockChronikBlockResponse = thisBlock.blockDetails;
 
-        // Tell mockedChronik what response we expect
-        mockedChronik.setBlock(thisBlockHash, thisBlockChronikBlockResponse);
+        // Tell mockedChronik what response we expect for chronik.block(thisBlockHash)
+        mockedChronik.setMock('block', {
+            input: thisBlockHash,
+            output: thisBlockChronikBlockResponse,
+        });
 
         const telegramBot = new MockTelegramBot();
         const channelId = mockChannelId;
@@ -109,21 +108,19 @@ describe('ecash-herald websocket.js', async function () {
         }
     });
     it('parseWebsocketMessage creates and sends a telegram msg for all mocked blocks', async function () {
-        const wsTestAddress =
-            'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
         // Initialize chronik mock
-        const mockedChronik = new MockChronikClient(wsTestAddress, []);
+        const mockedChronik = new MockChronikClient();
 
         for (let i = 0; i < blocks.length; i += 1) {
             const thisBlock = blocks[i];
             const thisBlockHash = thisBlock.blockDetails.blockInfo.hash;
             const thisBlockChronikBlockResponse = thisBlock.blockDetails;
 
-            // Tell mockedChronik what response we expect
-            mockedChronik.setBlock(
-                thisBlockHash,
-                thisBlockChronikBlockResponse,
-            );
+            // Tell mockedChronik what response we expect for chronik.block(thisBlockHash)
+            mockedChronik.setMock('block', {
+                input: thisBlockHash,
+                output: thisBlockChronikBlockResponse,
+            });
             const thisBlockExpectedMsg = thisBlock.tgMsg;
 
             // Mock a chronik websocket msg of correct format
@@ -154,21 +151,19 @@ describe('ecash-herald websocket.js', async function () {
         }
     });
     it('parseWebsocketMessage returns false if telegram msg fails to send', async function () {
-        const wsTestAddress =
-            'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
         // Initialize chronik mock
-        const mockedChronik = new MockChronikClient(wsTestAddress, []);
+        const mockedChronik = new MockChronikClient();
 
         for (let i = 0; i < blocks.length; i += 1) {
             const thisBlock = blocks[i];
             const thisBlockHash = thisBlock.blockDetails.blockInfo.hash;
             const thisBlockChronikBlockResponse = thisBlock.blockDetails;
 
-            // Tell mockedChronik what response we expect
-            mockedChronik.setBlock(
-                thisBlockHash,
-                thisBlockChronikBlockResponse,
-            );
+            // Tell mockedChronik what response we expect for chronik.block(thisBlockHash)
+            mockedChronik.setMock('block', {
+                input: thisBlockHash,
+                output: thisBlockChronikBlockResponse,
+            });
 
             // Mock a chronik websocket msg of correct format
             const mockWsMsg = {

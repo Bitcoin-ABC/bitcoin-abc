@@ -13,21 +13,19 @@ const { MockTelegramBot, mockChannelId } = require('./mocks/telegramBotMock');
 
 describe('ecash-herald events.js', async function () {
     it('handleBlockConnected creates and sends a telegram msg for all mocked blocks', async function () {
-        const wsTestAddress =
-            'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
         // Initialize chronik mock
-        const mockedChronik = new MockChronikClient(wsTestAddress, []);
+        const mockedChronik = new MockChronikClient();
 
         for (let i = 0; i < blocks.length; i += 1) {
             const thisBlock = blocks[i];
             const thisBlockHash = thisBlock.blockDetails.blockInfo.hash;
             const thisBlockChronikBlockResponse = thisBlock.blockDetails;
 
-            // Tell mockedChronik what response we expect
-            mockedChronik.setBlock(
-                thisBlockHash,
-                thisBlockChronikBlockResponse,
-            );
+            // Tell mockedChronik what response we expect for chronik.block(thisBlockHash)
+            mockedChronik.setMock('block', {
+                input: thisBlockHash,
+                output: thisBlockChronikBlockResponse,
+            });
             const thisBlockExpectedMsg = thisBlock.tgMsg;
 
             const telegramBot = new MockTelegramBot();
@@ -53,16 +51,17 @@ describe('ecash-herald events.js', async function () {
         }
     });
     it('handleBlockConnected sends desired backup msg if it encounters an error in message creation', async function () {
-        const wsTestAddress =
-            'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
         // Initialize chronik mock
-        const mockedChronik = new MockChronikClient(wsTestAddress, []);
+        const mockedChronik = new MockChronikClient();
         for (let i = 0; i < blocks.length; i += 1) {
             const thisBlock = blocks[i];
             const thisBlockHash = thisBlock.blockDetails.blockInfo.hash;
 
-            // Tell mockedChronik to give a bad response for blockdetails
-            mockedChronik.setBlock(thisBlockHash, null);
+            // Tell mockedChronik what response we expect for chronik.block(thisBlockHash)
+            mockedChronik.setMock('block', {
+                input: thisBlockHash,
+                output: null,
+            });
 
             const telegramBot = new MockTelegramBot();
             const channelId = mockChannelId;
@@ -98,9 +97,13 @@ describe('ecash-herald events.js', async function () {
         for (let i = 0; i < blocks.length; i += 1) {
             const thisBlock = blocks[i];
             const thisBlockHash = thisBlock.blockDetails.blockInfo.hash;
+            const thisBlockChronikBlockResponse = thisBlock.blockDetails;
 
-            // Tell mockedChronik to give a bad response for blockdetails
-            mockedChronik.setBlock(thisBlockHash, null);
+            // Tell mockedChronik what response we expect for chronik.block(thisBlockHash)
+            mockedChronik.setMock('block', {
+                input: thisBlockHash,
+                output: thisBlockChronikBlockResponse,
+            });
 
             const telegramBot = new MockTelegramBot();
             telegramBot.setExpectedError(
