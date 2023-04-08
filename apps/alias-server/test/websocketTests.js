@@ -32,19 +32,19 @@ describe('alias-server websocket.js', async function () {
 
         // Confirm websocket opened
         assert.strictEqual(mockedChronik.wsWaitForOpenCalled, true);
-        // Confirm subscribe was called on expected type and hash
-        assert.deepEqual(mockedChronik.wsSubscribeCalled, { type, hash });
-        assert.deepEqual(result.wsResult, {
-            success: true,
-            address: wsTestAddress,
-        });
+        // Confirm subscribe was called
+        assert.deepEqual(mockedChronik.wsSubscribeCalled, true);
+        // Confirm ws is subscribed to expected type and hash
+        assert.deepEqual(result._subs, [
+            { scriptType: type, scriptPayload: hash },
+        ]);
     });
     it('initializeWebsocket returns expected websocket object for a p2sh address', async function () {
         const wsTestAddress =
             'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
         const { type, hash } = cashaddr.decode(wsTestAddress, true);
         // Initialize chronik mock
-        const mockedChronik = new MockChronikClient(wsTestAddress, []);
+        const mockedChronik = new MockChronikClient();
         const db = null;
         const telegramBot = null;
         const channelId = null;
@@ -59,12 +59,12 @@ describe('alias-server websocket.js', async function () {
 
         // Confirm websocket opened
         assert.strictEqual(mockedChronik.wsWaitForOpenCalled, true);
-        // Confirm subscribe was called on expected type and hash
-        assert.deepEqual(mockedChronik.wsSubscribeCalled, { type, hash });
-        assert.deepEqual(result.wsResult, {
-            success: true,
-            address: wsTestAddress,
-        });
+        // Confirm subscribe was called
+        assert.deepEqual(mockedChronik.wsSubscribeCalled, true);
+        // Confirm ws is subscribed to expected type and hash
+        assert.deepEqual(result._subs, [
+            { scriptType: type, scriptPayload: hash },
+        ]);
     });
     it('parseWebsocketMessage correctly processes a chronik websocket BlockConnected message', async function () {
         const db = null;

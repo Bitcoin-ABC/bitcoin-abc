@@ -4,6 +4,7 @@
 
 'use strict';
 const assert = require('assert');
+const cashaddr = require('ecashaddrjs');
 const config = require('../config');
 const { getUnprocessedTxHistory } = require('../src/chronik');
 const {
@@ -21,11 +22,17 @@ describe('alias-server chronik.js', () => {
         const processedTxCount = processedTxs.length;
         const unprocessedTxs = [];
 
-        // Initialize chronik mock with full tx history of test alias address
-        const mockedChronik = new MockChronikClient(
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient();
+
+        // Set the script
+        const { type, hash } = cashaddr.decode(
             config.aliasConstants.registrationAddress,
-            allTxHistoryFromChronik,
+            true,
         );
+        mockedChronik.setScript(type, hash);
+        // Set the mock tx history
+        mockedChronik.setTxHistory(allTxHistoryFromChronik);
 
         const result = await getUnprocessedTxHistory(
             mockedChronik,
@@ -45,11 +52,16 @@ describe('alias-server chronik.js', () => {
         const unprocessedTxs = unconfirmedTxs;
         const allTxHistory = unprocessedTxs.concat(processedTxs);
 
-        // Initialize chronik mock with full tx history of test alias address
-        const mockedChronik = new MockChronikClient(
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient();
+        // Set the script
+        const { type, hash } = cashaddr.decode(
             config.aliasConstants.registrationAddress,
-            allTxHistory,
+            true,
         );
+        mockedChronik.setScript(type, hash);
+        // Set the mock tx history
+        mockedChronik.setTxHistory(allTxHistory);
 
         const result = await getUnprocessedTxHistory(
             mockedChronik,
@@ -68,10 +80,15 @@ describe('alias-server chronik.js', () => {
         const allTxHistory = unprocessedTxs.concat(processedTxs);
 
         // Initialize chronik mock with full tx history of test alias address
-        const mockedChronik = new MockChronikClient(
+        const mockedChronik = new MockChronikClient();
+        // Set the script
+        const { type, hash } = cashaddr.decode(
             config.aliasConstants.registrationAddress,
-            allTxHistory,
+            true,
         );
+        mockedChronik.setScript(type, hash);
+        // Set the mock tx history
+        mockedChronik.setTxHistory(allTxHistory);
 
         const result = await getUnprocessedTxHistory(
             mockedChronik,
