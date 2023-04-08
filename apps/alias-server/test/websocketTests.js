@@ -10,6 +10,10 @@ const {
     parseWebsocketMessage,
 } = require('../src/websocket');
 const { MockChronikClient } = require('./mocks/chronikMock');
+const { mockBlock } = require('./mocks/chronikResponses');
+const mockSecrets = require('../secrets.sample');
+const MockAdapter = require('axios-mock-adapter');
+const axios = require('axios');
 
 describe('alias-server websocket.js', async function () {
     it('initializeWebsocket returns expected websocket object for a p2pkh address', async function () {
@@ -21,7 +25,7 @@ describe('alias-server websocket.js', async function () {
         const db = null;
         const telegramBot = null;
         const channelId = null;
-        const avalancheCheckWaitInterval = 0;
+        const { avalancheRpc } = mockSecrets;
 
         const result = await initializeWebsocket(
             mockedChronik,
@@ -29,7 +33,7 @@ describe('alias-server websocket.js', async function () {
             db,
             telegramBot,
             channelId,
-            avalancheCheckWaitInterval,
+            avalancheRpc,
         );
 
         // Confirm websocket opened
@@ -50,7 +54,7 @@ describe('alias-server websocket.js', async function () {
         const db = null;
         const telegramBot = null;
         const channelId = null;
-        const avalancheCheckWaitInterval = 0;
+        const { avalancheRpc } = mockSecrets;
 
         const result = await initializeWebsocket(
             mockedChronik,
@@ -58,7 +62,7 @@ describe('alias-server websocket.js', async function () {
             db,
             telegramBot,
             channelId,
-            avalancheCheckWaitInterval,
+            avalancheRpc,
         );
 
         // Confirm websocket opened
@@ -70,13 +74,13 @@ describe('alias-server websocket.js', async function () {
             { scriptType: type, scriptPayload: hash },
         ]);
     });
-    it('parseWebsocketMessage correctly processes a chronik websocket BlockConnected message', async function () {
+    it('parseWebsocketMessage correctly processes a chronik websocket BlockConnected message if block is avalanche finalized', async function () {
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient();
         const db = null;
         const telegramBot = null;
         const channelId = null;
-        const avalancheCheckWaitInterval = 0;
+        const { avalancheRpc } = mockSecrets;
         const wsMsg = {
             type: 'BlockConnected',
             blockHash:
@@ -92,12 +96,22 @@ describe('alias-server websocket.js', async function () {
             input: wsMsg.blockHash,
             output: mockBlock,
         });
+
+        // Mock avalanche RPC call
+        // onNoMatch: 'throwException' helps to debug if mock is not being used
+        const mock = new MockAdapter(axios, { onNoMatch: 'throwException' });
+        // Mock response for rpc return of true for isfinalblock method
+        mock.onPost().reply(200, {
+            result: true,
+            error: null,
+            id: 'isfinalblock',
+        });
         const result = await parseWebsocketMessage(
             mockedChronik,
             db,
             telegramBot,
             channelId,
-            avalancheCheckWaitInterval,
+            avalancheRpc,
             wsMsg,
         );
 
@@ -105,5 +119,44 @@ describe('alias-server websocket.js', async function () {
             result,
             `Alias registrations updated to block ${wsMsg.blockHash} at height ${mockBlock.blockInfo.height}`,
         );
+    });
+    it('parseWebsocketMessage calls handleBlockConnected, which exits if block is not avalanche finalized', async function () {
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient();
+        const db = null;
+        const telegramBot = null;
+        const channelId = null;
+        const { avalancheRpc } = mockSecrets;
+        const wsMsg = {
+            type: 'BlockConnected',
+            blockHash:
+                '000000000000000015713b0407590ab1481fd7b8430f87e19cf768bec285ad55',
+        };
+
+        // Tell mockedChronik what response we expect
+        mockedChronik.setMock('block', {
+            input: wsMsg.blockHash,
+            output: mockBlock,
+        });
+
+        // Mock avalanche RPC call
+        // onNoMatch: 'throwException' helps to debug if mock is not being used
+        const mock = new MockAdapter(axios, { onNoMatch: 'throwException' });
+        // Mock response for rpc return of true for isfinalblock method
+        mock.onPost().reply(200, {
+            result: false,
+            error: null,
+            id: 'isfinalblock',
+        });
+        const result = await parseWebsocketMessage(
+            mockedChronik,
+            db,
+            telegramBot,
+            channelId,
+            avalancheRpc,
+            wsMsg,
+        );
+
+        assert.deepEqual(result, false);
     });
 });

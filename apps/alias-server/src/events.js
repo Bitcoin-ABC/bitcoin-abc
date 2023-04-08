@@ -6,6 +6,7 @@
 const config = require('../config');
 const log = require('./log');
 const { wait } = require('./utils');
+const { isFinalBlock } = require('./rpc');
 
 module.exports = {
     handleAppStartup: async function (
@@ -13,7 +14,7 @@ module.exports = {
         db,
         telegramBot,
         channelId,
-        avalancheCheckWaitInterval,
+        avalancheRpc,
     ) {
         log(`Checking for new aliases on startup`);
         // If this is app startup, get the latest tipHash and tipHeight by querying the blockchain
@@ -35,7 +36,7 @@ module.exports = {
                 db,
                 telegramBot,
                 channelId,
-                avalancheCheckWaitInterval,
+                avalancheRpc,
                 tipHash,
                 tipHeight,
             );
@@ -47,7 +48,7 @@ module.exports = {
         db,
         telegramBot,
         channelId,
-        avalancheCheckWaitInterval,
+        avalancheRpc,
         tipHash,
         tipHeight,
     ) {
@@ -90,10 +91,35 @@ module.exports = {
             }
         }
 
+        // Initialize isAvalancheFinalized as false. Only set to true if you
+        // prove it so with a node rpc call
+        let isAvalancheFinalized = false;
+
         for (let i = 0; i < config.avalancheCheckCount; i += 1) {
-            // TODO check isFinalBlock
-            wait(avalancheCheckWaitInterval);
-            // TODO if isFinalBlock, break loop
+            // Check to see if block tipHash has been finalized by avalanche
+            try {
+                isAvalancheFinalized = await isFinalBlock(
+                    avalancheRpc,
+                    tipHash,
+                );
+            } catch (err) {
+                log(`Error in isFinalBlock for ${tipHash}`, err);
+            }
+            if (isAvalancheFinalized) {
+                // If isAvalancheFinalized, stop checking
+                break;
+            }
+            wait(config.avalancheCheckWaitInterval);
+        }
+
+        if (!isAvalancheFinalized) {
+            log(
+                `Block ${tipHash} is not avalanche finalized after ${
+                    config.avalancheCheckWaitInterval *
+                    config.avalancheCheckCount
+                } ms. Exiting handleBlockConnected().`,
+            );
+            return false;
         }
 
         // TODO Get the valid aliases already in the db

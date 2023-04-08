@@ -24,12 +24,7 @@ const telegramBot = new TelegramBot(botId, {
     polling: true,
 });
 
-async function main(
-    chronik,
-    telegramBot,
-    channelId,
-    avalancheCheckWaitInterval,
-) {
+async function main(chronik, telegramBot, channelId, avalancheRpc) {
     // Initialize db connection
     const db = await initializeDb();
 
@@ -39,7 +34,7 @@ async function main(
         db,
         telegramBot,
         channelId,
-        avalancheCheckWaitInterval,
+        avalancheRpc,
     );
     if (aliasWebsocket && aliasWebsocket._subs && aliasWebsocket._subs[0]) {
         const subscribedHash160 = aliasWebsocket._subs[0].scriptPayload;
@@ -47,13 +42,7 @@ async function main(
     }
 
     // Get the latest alias information on app startup
-    await handleAppStartup(
-        chronik,
-        db,
-        telegramBot,
-        channelId,
-        avalancheCheckWaitInterval,
-    );
+    await handleAppStartup(chronik, db, telegramBot, channelId, avalancheRpc);
 
     // Set up your API endpoints
     const app = express();
@@ -81,4 +70,4 @@ async function main(
     app.listen(config.express.port);
 }
 
-main(chronik, telegramBot, channelId, config.avalancheCheckWaitInterval);
+main(chronik, telegramBot, channelId, secrets.avalancheRpc);
