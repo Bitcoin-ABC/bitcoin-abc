@@ -34,7 +34,7 @@ const testedPriceObjects = [
 
 async function printGetPricesInfo(priceInfoObj) {
     const { cryptos, fiat, precision } = priceInfoObj;
-    const priceInfo = await getCoingeckoPrices(priceInfoObj);
+    const { coingeckoPrices } = await getCoingeckoPrices(priceInfoObj);
 
     console.log(
         `Price info for ${cryptos
@@ -46,8 +46,8 @@ async function printGetPricesInfo(priceInfoObj) {
             )} in ${fiat.toUpperCase()} with ${precision}-decimal precision`,
     );
 
-    for (let i in priceInfo) {
-        const { fiat, price, ticker } = priceInfo[i];
+    for (let i in coingeckoPrices) {
+        const { fiat, price, ticker } = coingeckoPrices[i];
         const formattedPrice = formatPrice(price, fiat);
         console.log(`1 ${ticker} = ${formattedPrice} ${fiat.toUpperCase()}`);
     }

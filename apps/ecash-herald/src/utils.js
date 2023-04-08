@@ -30,7 +30,6 @@ module.exports = {
         )}&vs_currencies=${fiat}&precision=${precision.toString()}`;
         // https://api.coingecko.com/api/v3/simple/price?ids=ecash,bitcoin,ethereum&vs_currencies=usd&precision=8
         let coingeckoApiResponse;
-        let prices = false;
         try {
             coingeckoApiResponse = await axios.get(apiUrl);
             const { data } = coingeckoApiResponse;
@@ -58,7 +57,10 @@ module.exports = {
                         coingeckoPriceArray.push(thisPriceInfo);
                     }
                 }
-                return coingeckoPriceArray;
+                return {
+                    coingeckoResponse: data,
+                    coingeckoPrices: coingeckoPriceArray,
+                };
             }
             return false;
         } catch (err) {
@@ -69,9 +71,9 @@ module.exports = {
                 err,
             );
         }
-        return prices;
+        return false;
     },
-    formatPrice(price, fiatCode) {
+    formatPrice: function (price, fiatCode) {
         // Get symbol
         let fiatSymbol = config.fiatReference[fiatCode];
 

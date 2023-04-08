@@ -13,6 +13,8 @@ const {
 } = require('../src/websocket');
 const { MockChronikClient } = require('./mocks/chronikMock');
 const { MockTelegramBot, mockChannelId } = require('./mocks/telegramBotMock');
+const axios = require('axios');
+const MockAdapter = require('axios-mock-adapter');
 
 describe('ecash-herald websocket.js', async function () {
     it('initializeWebsocket returns expected websocket object for a p2pkh address', async function () {
@@ -107,7 +109,7 @@ describe('ecash-herald websocket.js', async function () {
             assert.deepEqual(result, false);
         }
     });
-    it('parseWebsocketMessage creates and sends a telegram msg for all mocked blocks', async function () {
+    it('parseWebsocketMessage creates and sends a telegram msg with prices for all mocked blocks on successful price API call', async function () {
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient();
 
@@ -130,6 +132,69 @@ describe('ecash-herald websocket.js', async function () {
             };
             const telegramBot = new MockTelegramBot();
             const channelId = mockChannelId;
+
+            // Mock coingecko price response
+            // onNoMatch: 'throwException' helps to debug if mock is not being used
+            const mock = new MockAdapter(axios, {
+                onNoMatch: 'throwException',
+            });
+
+            const mockResult = thisBlock.coingeckoResponse;
+
+            // Mock a successful API request
+            mock.onGet().reply(200, mockResult);
+
+            const result = await parseWebsocketMessage(
+                mockedChronik,
+                mockWsMsg,
+                telegramBot,
+                channelId,
+            );
+
+            // Check that sendMessage was called successfully
+            assert.strictEqual(telegramBot.messageSent, true);
+
+            // Check that the correct msg info was sent
+            assert.deepEqual(result, {
+                success: true,
+                channelId,
+                msg: thisBlockExpectedMsg,
+                options: config.tgMsgOptions,
+            });
+        }
+    });
+    it('parseWebsocketMessage creates and sends a telegram msg without prices for all mocked blocks on failed price API call', async function () {
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient();
+
+        for (let i = 0; i < blocks.length; i += 1) {
+            const thisBlock = blocks[i];
+            const thisBlockHash = thisBlock.blockDetails.blockInfo.hash;
+            const thisBlockChronikBlockResponse = thisBlock.blockDetails;
+
+            // Tell mockedChronik what response we expect for chronik.block(thisBlockHash)
+            mockedChronik.setMock('block', {
+                input: thisBlockHash,
+                output: thisBlockChronikBlockResponse,
+            });
+            const thisBlockExpectedMsg = thisBlock.tgMsgPriceFailure;
+
+            // Mock a chronik websocket msg of correct format
+            const mockWsMsg = {
+                type: 'BlockConnected',
+                blockHash: thisBlockHash,
+            };
+            const telegramBot = new MockTelegramBot();
+            const channelId = mockChannelId;
+
+            // Mock coingecko price response
+            // onNoMatch: 'throwException' helps to debug if mock is not being used
+            const mock = new MockAdapter(axios, {
+                onNoMatch: 'throwException',
+            });
+
+            // Mock a failed API request
+            mock.onGet().reply(500, { error: 'error' });
 
             const result = await parseWebsocketMessage(
                 mockedChronik,
@@ -183,9 +248,6 @@ describe('ecash-herald websocket.js', async function () {
                 telegramBot,
                 channelId,
             );
-
-            // Check that sendMessage was called successfully
-            assert.strictEqual(telegramBot.messageSent, false);
 
             // Check that the function returns false
             assert.strictEqual(result, false);

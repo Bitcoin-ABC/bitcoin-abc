@@ -4,6 +4,8 @@
 'use strict';
 const config = require('../config');
 const { parseBlock, getBlockTgMessage } = require('./parse');
+const { getCoingeckoPrices } = require('./utils');
+
 module.exports = {
     handleBlockConnected: async function (
         chronik,
@@ -54,13 +56,26 @@ module.exports = {
         }
 
         const parsedBlock = parseBlock(blockDetails);
-        const tgMsg = getBlockTgMessage(parsedBlock);
+
+        // Get price info for tg msg, if available
+        const { coingeckoResponse, coingeckoPrices } = await getCoingeckoPrices(
+            config.priceApi,
+        );
+        const tgMsg = getBlockTgMessage(parsedBlock, coingeckoPrices);
 
         // returnMocks is used in the script function generateMocks
         // Using it as a flag here ensures the script is always using the same function
         // as the app
         if (returnMocks) {
-            return { blockDetails, parsedBlock, tgMsg };
+            // Note you need coingeckoResponse so you can mock the axios response for coingecko
+            return {
+                blockDetails,
+                parsedBlock,
+                coingeckoResponse,
+                coingeckoPrices,
+                tgMsg,
+                tgMsgPriceFailure: getBlockTgMessage(parsedBlock, false),
+            };
         }
         try {
             return await telegramBot.sendMessage(

@@ -55,10 +55,10 @@ describe('ecash-telegram-bot utils.js functions', function () {
                 ticker: 'ETH',
             },
         ];
-        assert.deepEqual(
-            await getCoingeckoPrices(config.priceApi),
-            expectedCoingeckoPrices,
-        );
+        assert.deepEqual(await getCoingeckoPrices(config.priceApi), {
+            coingeckoResponse: mockResult,
+            coingeckoPrices: expectedCoingeckoPrices,
+        });
     });
     it('getCoingeckoPrices returns object of expected shape for API call of custom config', async function () {
         const apiConfig = {
@@ -102,10 +102,10 @@ describe('ecash-telegram-bot utils.js functions', function () {
                 ticker: 'SOL',
             },
         ];
-        assert.deepEqual(
-            await getCoingeckoPrices(apiConfig),
-            expectedCoingeckoPrices,
-        );
+        assert.deepEqual(await getCoingeckoPrices(apiConfig), {
+            coingeckoResponse: mockResult,
+            coingeckoPrices: expectedCoingeckoPrices,
+        });
     });
     it('getCoingeckoPrices returns false if API returns error response', async function () {
         // onNoMatch: 'throwException' helps to debug if mock is not being used

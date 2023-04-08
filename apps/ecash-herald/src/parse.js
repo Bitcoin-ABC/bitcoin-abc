@@ -4,6 +4,7 @@
 
 'use strict';
 const config = require('../config');
+const { formatPrice } = require('./utils');
 module.exports = {
     parseBlock: function (chronikBlockResponse) {
         const { blockInfo, txs } = chronikBlockResponse;
@@ -233,7 +234,7 @@ Assumptions
 
         return tgReadyString;
     },
-    getBlockTgMessage: function (parsedBlock) {
+    getBlockTgMessage: function (parsedBlock, coingeckoPrices) {
         const { hash, height, miner, numTxs, parsedTxs } = parsedBlock;
 
         // Iterate over parsedTxs to find anything newsworthy
@@ -276,6 +277,17 @@ Assumptions
                 numTxs > 1 ? `s` : ''
             } | ${miner}`,
         );
+
+        // Display prices as set in config.js
+        if (coingeckoPrices) {
+            // Iterate over prices and add a line for each price in the object
+
+            for (let i = 0; i < coingeckoPrices.length; i += 1) {
+                const { fiat, ticker, price } = coingeckoPrices[i];
+                const thisFormattedPrice = formatPrice(price, fiat);
+                tgMsg.push(`1 ${ticker} = ${thisFormattedPrice}`);
+            }
+        }
 
         // Parse and list genesis txs
         if (genesisTxCount > 0) {
