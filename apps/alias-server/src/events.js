@@ -3,10 +3,18 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 'use strict';
+const config = require('../config');
 const log = require('./log');
+const { wait } = require('./utils');
 
 module.exports = {
-    handleAppStartup: async function (chronik, db, telegramBot, channelId) {
+    handleAppStartup: async function (
+        chronik,
+        db,
+        telegramBot,
+        channelId,
+        avalancheCheckWaitInterval,
+    ) {
         log(`Checking for new aliases on startup`);
         // If this is app startup, get the latest tipHash and tipHeight by querying the blockchain
 
@@ -27,6 +35,7 @@ module.exports = {
                 db,
                 telegramBot,
                 channelId,
+                avalancheCheckWaitInterval,
                 tipHash,
                 tipHeight,
             );
@@ -38,6 +47,7 @@ module.exports = {
         db,
         telegramBot,
         channelId,
+        avalancheCheckWaitInterval,
         tipHash,
         tipHeight,
     ) {
@@ -80,7 +90,11 @@ module.exports = {
             }
         }
 
-        // TODO wait 10s before checking if this tipHash, tipHeight is avalanche finalized
+        for (let i = 0; i < config.avalancheCheckCount; i += 1) {
+            // TODO check isFinalBlock
+            wait(avalancheCheckWaitInterval);
+            // TODO if isFinalBlock, break loop
+        }
 
         // TODO Get the valid aliases already in the db
 

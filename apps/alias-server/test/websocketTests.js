@@ -21,6 +21,7 @@ describe('alias-server websocket.js', async function () {
         const db = null;
         const telegramBot = null;
         const channelId = null;
+        const avalancheCheckWaitInterval = 0;
 
         const result = await initializeWebsocket(
             mockedChronik,
@@ -28,6 +29,7 @@ describe('alias-server websocket.js', async function () {
             db,
             telegramBot,
             channelId,
+            avalancheCheckWaitInterval,
         );
 
         // Confirm websocket opened
@@ -48,6 +50,7 @@ describe('alias-server websocket.js', async function () {
         const db = null;
         const telegramBot = null;
         const channelId = null;
+        const avalancheCheckWaitInterval = 0;
 
         const result = await initializeWebsocket(
             mockedChronik,
@@ -55,6 +58,7 @@ describe('alias-server websocket.js', async function () {
             db,
             telegramBot,
             channelId,
+            avalancheCheckWaitInterval,
         );
 
         // Confirm websocket opened
@@ -72,6 +76,7 @@ describe('alias-server websocket.js', async function () {
         const db = null;
         const telegramBot = null;
         const channelId = null;
+        const avalancheCheckWaitInterval = 0;
         const wsMsg = {
             type: 'BlockConnected',
             blockHash:
@@ -92,6 +97,7 @@ describe('alias-server websocket.js', async function () {
             db,
             telegramBot,
             channelId,
+            avalancheCheckWaitInterval,
             wsMsg,
         );
 

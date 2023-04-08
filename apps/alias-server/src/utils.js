@@ -61,4 +61,7 @@ module.exports = {
         }
         return registrationOutputScript;
     },
+    wait: async function (msecs) {
+        await new Promise(resolve => setTimeout(resolve, msecs));
+    },
 };

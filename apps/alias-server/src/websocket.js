@@ -14,6 +14,7 @@ module.exports = {
         db,
         telegramBot,
         channelId,
+        avalancheCheckWaitInterval,
     ) {
         // Subscribe to chronik websocket
         const ws = chronik.ws({
@@ -23,6 +24,7 @@ module.exports = {
                     db,
                     telegramBot,
                     channelId,
+                    avalancheCheckWaitInterval,
                     msg,
                 );
             },
@@ -39,6 +41,7 @@ module.exports = {
         db,
         telegramBot,
         channelId,
+        avalancheCheckWaitInterval,
         wsMsg = { type: 'BlockConnected' },
     ) {
         log(`parseWebsocketMessage called on`, wsMsg);
@@ -57,6 +60,7 @@ module.exports = {
                     db,
                     telegramBot,
                     channelId,
+                    avalancheCheckWaitInterval,
                     wsMsg.blockHash,
                 );
             case 'AddedToMempool':

@@ -27,12 +27,14 @@ describe('alias-server events.js', async function () {
         const db = null;
         const telegramBot = null;
         const channelId = null;
+        const avalancheCheckWaitInterval = 0;
 
         const result = await handleAppStartup(
             mockedChronik,
             db,
             telegramBot,
             channelId,
+            avalancheCheckWaitInterval,
         );
 
         assert.deepEqual(
@@ -60,12 +62,14 @@ describe('alias-server events.js', async function () {
         const db = null;
         const telegramBot = null;
         const channelId = null;
+        const avalancheCheckWaitInterval = 0;
 
         const result = await handleAppStartup(
             mockedChronik,
             db,
             telegramBot,
             channelId,
+            avalancheCheckWaitInterval,
         );
 
         assert.deepEqual(result, false);
