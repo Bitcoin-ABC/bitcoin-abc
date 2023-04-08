@@ -114,7 +114,7 @@ class Peer:
 
 
 def main(bitcoind_path):
-    peers = dict()
+    peers = {}
 
     bitcoind_with_usdts = USDT(path=str(bitcoind_path))
 

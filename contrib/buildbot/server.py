@@ -201,7 +201,6 @@ def create_server(tc, phab, slackbot, cirrus,
 
                 githubUrl = 'https://github.com/{}/pull'
                 gitlabUrl = 'https://gitlab.com/{}/merge_requests'
-                supportedRepos = dict()
                 supportedRepos = {
                     'core': githubUrl.format('bitcoin/bitcoin'),
                     'core-gui': githubUrl.format('bitcoin-core/gui'),

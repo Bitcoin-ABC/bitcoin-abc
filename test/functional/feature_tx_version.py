@@ -39,7 +39,7 @@ class TxVersionTest(BitcoinTestFramework):
                             '-whitelist=127.0.0.1']]
 
     def run_test(self):
-        self.block_heights = dict()
+        self.block_heights = {}
 
         node = self.nodes[0]
         node.setmocktime(START_TIME)

@@ -35,13 +35,12 @@ class EndpointBuildDiffTestCase(ABCBotFixture):
 
         def set_build_configuration(buildConfig):
             # add some build configs that we expect to always be skipped
-            mergedConfig = dict()
-            mergedConfig.update({
+            mergedConfig = {
                 "build-skip-1": {
                     "runOnDiff": False,
                 },
                 "build-skip-2": {},
-            })
+            }
             mergedConfig.update(buildConfig)
 
             config = {

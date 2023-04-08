@@ -49,7 +49,7 @@ for t in subprocess.check_output([ninja, '-t', 'targets', 'all']).splitlines():
 
 
 def parse_ninja_query(query):
-    deps = dict()
+    deps = {}
     lines = query.splitlines()
 
     while len(lines):
@@ -92,7 +92,7 @@ def parse_ninja_query(query):
 
 def extract_deps(workset):
     # Recursively extract the dependencies of the target.
-    deps = dict()
+    deps = {}
     while len(workset) > 0:
         query = subprocess.check_output([ninja, '-t', 'query'] + list(workset))
         target_deps = parse_ninja_query(query)
@@ -136,8 +136,8 @@ base_dir = base_dir.encode()
 
 
 def rebase_deps(deps):
-    rebased = dict()
-    cache = dict()
+    rebased = {}
+    cache = {}
 
     def rebase(path):
         if path in cache:
