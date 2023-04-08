@@ -12,6 +12,8 @@ const log = require('./src/log');
 const express = require('express');
 var cors = require('cors');
 const requestIp = require('request-ip');
+const { ChronikClient } = require('chronik-client');
+const chronik = new ChronikClient(config.chronik);
 const TelegramBot = require('node-telegram-bot-api');
 
 // Fire up your Telegram bot on app startup
@@ -22,12 +24,13 @@ const telegramBot = new TelegramBot(botId, {
     polling: true,
 });
 
-async function main(telegramBot, channelId) {
+async function main(chronik, telegramBot, channelId) {
     // Initialize db connection
     const db = await initializeDb();
 
     // Initialize websocket connection
     const aliasWebsocket = await initializeWebsocket(
+        chronik,
         db,
         telegramBot,
         channelId,
@@ -38,7 +41,7 @@ async function main(telegramBot, channelId) {
     }
 
     // Get the latest alias information on app startup
-    await handleAppStartup();
+    await handleAppStartup(chronik, db, telegramBot, channelId);
 
     // Set up your API endpoints
     const app = express();
@@ -66,4 +69,4 @@ async function main(telegramBot, channelId) {
     app.listen(config.express.port);
 }
 
-main(telegramBot, channelId);
+main(chronik, telegramBot, channelId);

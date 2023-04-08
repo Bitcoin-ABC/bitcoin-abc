@@ -67,6 +67,8 @@ describe('alias-server websocket.js', async function () {
         ]);
     });
     it('parseWebsocketMessage correctly processes a chronik websocket BlockConnected message', async function () {
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient();
         const db = null;
         const telegramBot = null;
         const channelId = null;
@@ -76,6 +78,7 @@ describe('alias-server websocket.js', async function () {
                 '000000000000000015713b0407590ab1481fd7b8430f87e19cf768bec285ad55',
         };
         const result = await parseWebsocketMessage(
+            mockedChronik,
             db,
             telegramBot,
             channelId,
@@ -84,7 +87,7 @@ describe('alias-server websocket.js', async function () {
 
         assert.strictEqual(
             result,
-            `Alias registrations updated to block ${wsMsg.blockHash}`,
+            `Alias registrations updated to block ${wsMsg.blockHash} at height undefined`,
         );
     });
 });

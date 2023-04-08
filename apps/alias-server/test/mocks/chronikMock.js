@@ -18,6 +18,7 @@ module.exports = {
             // Can be set with self.setMock
             self.mockedResponses = {
                 block: {},
+                blockchainInfo: {},
                 txHistory: [],
             };
             self.mockedMethods = { p2pkh: {}, p2sh: {} };
@@ -26,6 +27,9 @@ module.exports = {
             // Return assigned block mocks
             self.block = function (blockHashOrHeight) {
                 return self.mockedResponses.block[blockHashOrHeight];
+            };
+            self.blockchainInfo = function () {
+                return self.mockedResponses.blockchainInfo;
             };
             // Return assigned script mocks
             self.script = function (type, hash) {
@@ -67,7 +71,11 @@ module.exports = {
             self.setMock = function (call, options) {
                 // e.g. ('block', {input: '', output: ''})
                 const { input, output } = options;
-                self.mockedResponses[call][input] = output;
+                if (input) {
+                    self.mockedResponses[call][input] = output;
+                } else {
+                    self.mockedResponses[call] = output;
+                }
             };
             // script calls need to be set differently
             self.setTxHistory = function (txHistory) {

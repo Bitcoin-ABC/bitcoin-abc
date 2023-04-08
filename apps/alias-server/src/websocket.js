@@ -19,6 +19,7 @@ module.exports = {
         const ws = chronik.ws({
             onMessage: async msg => {
                 await module.exports.parseWebsocketMessage(
+                    chronik,
                     db,
                     telegramBot,
                     channelId,
@@ -34,6 +35,7 @@ module.exports = {
         return ws;
     },
     parseWebsocketMessage: async function (
+        chronik,
         db,
         telegramBot,
         channelId,
@@ -51,6 +53,7 @@ module.exports = {
             case 'BlockConnected':
                 log(`New block found: ${wsMsg.blockHash}`);
                 return await handleBlockConnected(
+                    chronik,
                     db,
                     telegramBot,
                     channelId,

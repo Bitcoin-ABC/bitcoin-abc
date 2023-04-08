@@ -6,18 +6,42 @@
 const log = require('./log');
 
 module.exports = {
-    handleAppStartup: async function () {
+    handleAppStartup: async function (chronik, db, telegramBot, channelId) {
         log(`Checking for new aliases on startup`);
-
         // If this is app startup, get the latest tipHash and tipHeight by querying the blockchain
-        // TODO function params to be db, telegramBot, channelId
-        // TODO get chaintipinfo from chronik call
-        // TODO handle error in chaintipinfo chronik call
-        // TODO assign value for tipHeight on successful chaintipinfo call
-        // call handleBlockConnected on params (db, telegramBot, channelId, tipHash, tipHeight)
+
+        // Get chain tip
+        let chaintipInfo;
+        try {
+            chaintipInfo = await chronik.blockchainInfo();
+        } catch (err) {
+            log(`Error in chronik.blockchainInfo() in handleAppStartup()`, err);
+            // Server will wait until receiving ws msg to handleBlockConnected()
+            return false;
+        }
+        const { tipHash, tipHeight } = chaintipInfo;
+        // Validate for good chronik response
+        if (typeof tipHash === 'string' && typeof tipHeight === 'number') {
+            return module.exports.handleBlockConnected(
+                chronik,
+                db,
+                telegramBot,
+                channelId,
+                tipHash,
+                tipHeight,
+            );
+        }
+        return false;
     },
     // TODO handleBlockConnected will also accept an optional tipHeight param
-    handleBlockConnected: async function (db, telegramBot, channelId, tipHash) {
+    handleBlockConnected: async function (
+        chronik,
+        db,
+        telegramBot,
+        channelId,
+        tipHash,
+        tipHeight,
+    ) {
         /*
          * BlockConnected callback
          *
@@ -62,7 +86,9 @@ module.exports = {
         // TODO If you have new aliases to add to the db, add them + send a tg msg
         // TODO If not, exit loop
 
-        log(`Alias registrations updated to block ${tipHash}`);
-        return `Alias registrations updated to block ${tipHash}`;
+        log(
+            `Alias registrations updated to block ${tipHash} at height ${tipHeight}`,
+        );
+        return `Alias registrations updated to block ${tipHash} at height ${tipHeight}`;
     },
 };
