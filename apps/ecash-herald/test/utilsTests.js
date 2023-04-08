@@ -7,7 +7,11 @@ const assert = require('assert');
 const axios = require('axios');
 const MockAdapter = require('axios-mock-adapter');
 const config = require('../config');
-const { returnAddressPreview, getCoingeckoPrices } = require('../src/utils');
+const {
+    returnAddressPreview,
+    getCoingeckoPrices,
+    formatPrice,
+} = require('../src/utils');
 const { addressPreviews } = require('./mocks/templates');
 
 describe('ecash-telegram-bot utils.js functions', function () {
@@ -139,5 +143,26 @@ describe('ecash-telegram-bot utils.js functions', function () {
         mock.onGet().reply(200, mockResult);
 
         assert.deepEqual(await getCoingeckoPrices(config.priceApi), false);
+    });
+    it('formatPrice correctly formats a USD price greater than $10 and less than $100', async function () {
+        assert.strictEqual(formatPrice(10.55303, 'usd'), `$10.55`);
+    });
+    it('formatPrice correctly formats a USD price greater than $1', async function () {
+        assert.strictEqual(formatPrice(1.52303, 'usd'), `$1.52`);
+    });
+    it('formatPrice correctly formats a USD price less than $1', async function () {
+        assert.strictEqual(formatPrice(0.000035123, 'usd'), `$0.00003512`);
+    });
+    it('formatPrice correctly formats a EUR price less than €1', async function () {
+        assert.strictEqual(formatPrice(0.000035123, 'eur'), `€0.00003512`);
+    });
+    it('formatPrice correctly formats a GBP price greater than 100', async function () {
+        assert.strictEqual(formatPrice(1523.134239, 'gbp'), `£1,523`);
+    });
+    it('formatPrice correctly formats a JPY price greater than ¥100', async function () {
+        assert.strictEqual(formatPrice(100000.999923422, 'jpy'), `¥100,001`);
+    });
+    it('formatPrice omits a currency symbol if it cannot find it', async function () {
+        assert.strictEqual(formatPrice(100000.999923422, 'cad'), `100,001`);
     });
 });

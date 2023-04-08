@@ -4,6 +4,7 @@
 
 'use strict';
 const axios = require('axios');
+const config = require('../config');
 
 module.exports = {
     returnAddressPreview: function (cashAddress, sliceSize = 3) {
@@ -69,5 +70,32 @@ module.exports = {
             );
         }
         return prices;
+    },
+    formatPrice(price, fiatCode) {
+        // Get symbol
+        let fiatSymbol = config.fiatReference[fiatCode];
+
+        // If you can't find the symbol, don't show one
+        if (typeof fiatSymbol === 'undefined') {
+            fiatSymbol = '';
+        }
+
+        // No decimal points for prices greater than 100
+        if (price > 100) {
+            return `${fiatSymbol}${price.toLocaleString('en-us', {
+                maximumFractionDigits: 0,
+            })}`;
+        }
+        // 2 decimal places for prices between 1 and 100
+        if (price > 1) {
+            return `${fiatSymbol}${price.toLocaleString('en-us', {
+                maximumFractionDigits: 2,
+            })}`;
+        }
+        // All decimal places for lower prices
+        // For now, these will only be XEC prices
+        return `${fiatSymbol}${price.toLocaleString('en-us', {
+            maximumFractionDigits: 8,
+        })}`;
     },
 };

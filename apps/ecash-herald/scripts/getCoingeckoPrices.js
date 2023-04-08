@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 'use strict';
-const { getCoingeckoPrices } = require('../src/utils');
+const { getCoingeckoPrices, formatPrice } = require('../src/utils');
 const config = require('../config');
 
 const testedPriceObjects = [
@@ -48,7 +48,8 @@ async function printGetPricesInfo(priceInfoObj) {
 
     for (let i in priceInfo) {
         const { fiat, price, ticker } = priceInfo[i];
-        console.log(`1 ${ticker} = ${price} ${fiat.toUpperCase()}`);
+        const formattedPrice = formatPrice(price, fiat);
+        console.log(`1 ${ticker} = ${formattedPrice} ${fiat.toUpperCase()}`);
     }
     // New line
     console.log('');
