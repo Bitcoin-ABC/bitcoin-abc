@@ -24,7 +24,7 @@ use chronik_db::{
 use chronik_util::{log, log_chronik};
 use thiserror::Error;
 
-use crate::query::{QueryGroupHistory, QueryTxs};
+use crate::query::{QueryBlocks, QueryGroupHistory, QueryTxs};
 
 const CURRENT_INDEXER_VERSION: SchemaVersion = 5;
 
@@ -149,7 +149,8 @@ impl ChronikIndexer {
         &mut self,
         bridge: &ffi::ChronikBridge,
     ) -> Result<()> {
-        let indexer_tip = self.blocks()?.tip()?;
+        let block_reader = BlockReader::new(&self.db)?;
+        let indexer_tip = block_reader.tip()?;
         let Ok(node_tip_index) = bridge.get_chain_tip() else {
             if let Some(indexer_tip) = &indexer_tip {
                 return Err(
@@ -228,12 +229,12 @@ impl ChronikIndexer {
         );
         log!("Reverting Chronik blocks {revert_height} to {indexer_height}.\n");
         for height in (revert_height..indexer_height).rev() {
-            let db_block = self.blocks()?.by_height(height)?.ok_or(
-                BlocksBelowMissing {
+            let db_block = BlockReader::new(&self.db)?
+                .by_height(height)?
+                .ok_or(BlocksBelowMissing {
                     missing: height,
                     exists: indexer_height,
-                },
-            )?;
+                })?;
             let block_index = bridge
                 .lookup_block_index(db_block.hash.to_bytes())
                 .map_err(|_| CannotRewindChronik(db_block.hash))?;
@@ -296,9 +297,9 @@ impl ChronikIndexer {
         Ok(())
     }
 
-    /// Return [`BlockReader`] to read blocks from the DB.
-    pub fn blocks(&self) -> Result<BlockReader<'_>> {
-        BlockReader::new(&self.db)
+    /// Return [`QueryBlocks`] to read blocks from the DB.
+    pub fn blocks(&self) -> QueryBlocks<'_> {
+        QueryBlocks { db: &self.db }
     }
 
     /// Return [`QueryTxs`] to return txs from mempool/DB.

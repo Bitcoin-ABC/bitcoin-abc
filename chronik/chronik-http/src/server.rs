@@ -12,9 +12,7 @@ use axum::{
     extract::{Path, Query},
     routing, Extension, Router,
 };
-use bitcoinsuite_core::block::BlockHash;
 use bitcoinsuite_core::tx::TxId;
-use chronik_db::io::BlockHeight;
 use chronik_indexer::indexer::ChronikIndexer;
 use chronik_proto::proto;
 use hyper::server::conn::AddrIncoming;
@@ -132,28 +130,8 @@ async fn handle_block(
     Extension(indexer): Extension<ChronikIndexerRef>,
 ) -> Result<Protobuf<proto::Block>, ReportError> {
     let indexer = indexer.read().await;
-    let blocks = indexer.blocks()?;
-    let db_block = if let Ok(hash) = hash_or_height.parse::<BlockHash>() {
-        blocks.by_hash(&hash)?
-    } else {
-        let height = match hash_or_height.parse::<BlockHeight>() {
-            // disallow leading zeros
-            Ok(0) if hash_or_height.len() == 1 => 0,
-            Ok(height) if !hash_or_height.starts_with('0') => height,
-            _ => return Err(NotHashOrHeight(hash_or_height).into()),
-        };
-        blocks.by_height(height)?
-    };
-    let db_block = db_block.ok_or(BlockNotFound(hash_or_height))?;
-    Ok(Protobuf(proto::Block {
-        block_info: Some(proto::BlockInfo {
-            hash: db_block.hash.to_vec(),
-            prev_hash: db_block.prev_hash.to_vec(),
-            height: db_block.height,
-            n_bits: db_block.n_bits,
-            timestamp: db_block.timestamp,
-        }),
-    }))
+    let blocks = indexer.blocks();
+    Ok(Protobuf(blocks.by_hash_or_height(hash_or_height)?))
 }
 
 async fn handle_tx(
