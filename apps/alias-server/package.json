@@ -37,7 +37,13 @@
         "mocha": "^10.2.0",
         "mocha-junit-reporter": "^2.2.0",
         "mocha-suppress-logs": "^0.3.1",
+        "mongodb-memory-server": "^8.12.2",
         "nyc": "^15.1.0",
         "test-console": "^2.0.0"
+    },
+    "config": {
+        "mongodbMemoryServer": {
+            "version": "6.0.5"
+        }
     }
 }

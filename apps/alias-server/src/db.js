@@ -3,17 +3,15 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 'use strict';
-const { MongoClient } = require('mongodb');
 const log = require('./log');
 const config = require('../config');
 
 module.exports = {
-    initializeDb: async function () {
-        const client = new MongoClient(config.database.connectionUrl);
+    initializeDb: async function (mongoClient) {
         // Use connect method to connect to the server
-        await client.connect();
+        await mongoClient.connect();
         log('Connected successfully to MongoDB server');
-        const db = client.db(config.database.name);
+        const db = mongoClient.db(config.database.name);
         // Enforce unique aliases
         db.collection(config.database.collections.validAliases).createIndex(
             {

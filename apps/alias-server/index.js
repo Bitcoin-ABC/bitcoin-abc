@@ -14,6 +14,8 @@ var cors = require('cors');
 const requestIp = require('request-ip');
 const { ChronikClient } = require('chronik-client');
 const chronik = new ChronikClient(config.chronik);
+const { MongoClient } = require('mongodb');
+const aliasServerMongoClient = new MongoClient(config.database.connectionUrl);
 const TelegramBot = require('node-telegram-bot-api');
 
 // Fire up your Telegram bot on app startup
@@ -24,9 +26,15 @@ const telegramBot = new TelegramBot(botId, {
     polling: true,
 });
 
-async function main(chronik, telegramBot, channelId, avalancheRpc) {
+async function main(
+    mongoClient,
+    chronik,
+    telegramBot,
+    channelId,
+    avalancheRpc,
+) {
     // Initialize db connection
-    const db = await initializeDb();
+    const db = await initializeDb(mongoClient);
 
     // Initialize websocket connection
     const aliasWebsocket = await initializeWebsocket(
@@ -70,4 +78,10 @@ async function main(chronik, telegramBot, channelId, avalancheRpc) {
     app.listen(config.express.port);
 }
 
-main(chronik, telegramBot, channelId, secrets.avalancheRpc);
+main(
+    aliasServerMongoClient,
+    chronik,
+    telegramBot,
+    channelId,
+    secrets.avalancheRpc,
+);
