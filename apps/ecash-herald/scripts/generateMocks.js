@@ -2,6 +2,15 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+/* generateMocks.js
+ *
+ * npm run generateMocks
+ * - generate a timestamped mock blocks file in test/mocks/generated/
+ *
+ * npm run generateMocks true
+ * Overwrite test/mocks/blocks.js, used by unit tests
+ */
+
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -9,6 +18,13 @@ const config = require('../config');
 const { ChronikClient } = require('chronik-client');
 const chronik = new ChronikClient(config.chronik);
 const { handleBlockConnected } = require('../src/events');
+
+// Look for specified flag variable
+let overwriteMocks = false;
+if (process.argv && typeof process.argv[2] !== 'undefined') {
+    // user input if available
+    overwriteMocks = process.argv[2] === 'true';
+}
 
 // Mock telegram bot
 const {
@@ -44,9 +60,9 @@ function returnHandleBlockConnectedPromise(
     });
 }
 
-async function generateMocks() {
+async function generateMocks(overwriteMocks) {
     let mocksDir, mocksFileName;
-    if (process.env.OVERWRITE) {
+    if (overwriteMocks) {
         console.log(`Overwriting existing blocks.js mock`);
         // Directory for mocks. Relative to /scripts, ../test/mocks/
         mocksDir = path.join(__dirname, '..', 'test', 'mocks');
@@ -134,7 +150,7 @@ async function generateMocks() {
     }
 
     let mocksWrite;
-    if (process.env.OVERWRITE) {
+    if (overwriteMocks) {
         mocksWrite = `// Copyright (c) 2023 The Bitcoin developers\n// Distributed under the MIT software license, see the accompanying\n// file COPYING or http://www.opensource.org/licenses/mit-license.php.\n// @generated\n\n'use strict'\n\nmodule.exports=${JSON.stringify(
             blocksMock,
             null,
@@ -147,4 +163,4 @@ async function generateMocks() {
     fs.writeFileSync(`${mocksDir}/${mocksFileName}`, mocksWrite, 'utf-8');
 }
 
-generateMocks();
+generateMocks(overwriteMocks);

@@ -7,8 +7,7 @@
         "test": "mocha",
         "coverage": "nyc mocha",
         "junit": "mocha test --reporter mocha-junit-reporter",
-        "mocks": "node scripts/generateMocks",
-        "newmocks": "OVERWRITE=true node scripts/generateMocks",
+        "generateMocks": "node scripts/generateMocks",
         "msgs": "node scripts/sendTestTgMsgs",
         "getCoingeckoPrices": "node scripts/getCoingeckoPrices"
     },
