@@ -77,6 +77,16 @@ describe('alias-server websocket.js', async function () {
             blockHash:
                 '000000000000000015713b0407590ab1481fd7b8430f87e19cf768bec285ad55',
         };
+        const mockBlock = {
+            blockInfo: {
+                height: 786878,
+            },
+        };
+        // Tell mockedChronik what response we expect
+        mockedChronik.setMock('block', {
+            input: wsMsg.blockHash,
+            output: mockBlock,
+        });
         const result = await parseWebsocketMessage(
             mockedChronik,
             db,
@@ -87,7 +97,7 @@ describe('alias-server websocket.js', async function () {
 
         assert.strictEqual(
             result,
-            `Alias registrations updated to block ${wsMsg.blockHash} at height undefined`,
+            `Alias registrations updated to block ${wsMsg.blockHash} at height ${mockBlock.blockInfo.height}`,
         );
     });
 });

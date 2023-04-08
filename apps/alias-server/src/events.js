@@ -33,7 +33,6 @@ module.exports = {
         }
         return false;
     },
-    // TODO handleBlockConnected will also accept an optional tipHeight param
     handleBlockConnected: async function (
         chronik,
         db,
@@ -65,8 +64,23 @@ module.exports = {
          *
          */
 
-        // TODO chronik call to get tipHeight if unknown
-        // TODO handle error in chronik call to get tipHeight
+        if (typeof tipHeight === 'undefined') {
+            let blockResult;
+            try {
+                blockResult = await chronik.block(tipHash);
+                // chronik blockdetails returns the block height at the 'blockInfo.height' key
+                tipHeight = blockResult.blockInfo.height;
+            } catch (err) {
+                log(
+                    `Error in chronik.block(${tipHash} in handleBlockConnected(). Exiting function.`,
+                    err,
+                );
+                // Exit handleBlockConnected on chronik error
+                return false;
+            }
+        }
+
+        // TODO wait 10s before checking if this tipHash, tipHeight is avalanche finalized
 
         // TODO Get the valid aliases already in the db
 
