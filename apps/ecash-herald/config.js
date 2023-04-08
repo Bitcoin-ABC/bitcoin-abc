@@ -8,7 +8,11 @@ module.exports = {
     blockExplorer: 'https://explorer.e.cash',
     priceApi: {
         apiBase: 'https://api.coingecko.com/api/v3/simple/price',
-        cryptoIds: ['ecash', 'bitcoin', 'ethereum'],
+        cryptos: [
+            { coingeckoSlug: 'ecash', ticker: 'XEC' },
+            { coingeckoSlug: 'bitcoin', ticker: 'BTC' },
+            { coingeckoSlug: 'ethereum', ticker: 'ETH' },
+        ],
         fiat: 'usd',
         precision: 8,
     },

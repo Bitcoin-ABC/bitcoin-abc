@@ -10,36 +10,45 @@ const testedPriceObjects = [
     config.priceApi,
     {
         apiBase: 'https://api.coingecko.com/api/v3/simple/price',
-        cryptoIds: ['ecash', 'dogecoin', 'solana', 'monero'],
+        cryptos: [
+            { coingeckoSlug: 'ecash', ticker: 'XEC' },
+            { coingeckoSlug: 'dogecoin', ticker: 'DOGE' },
+            { coingeckoSlug: 'solana', ticker: 'SOL' },
+            { coingeckoSlug: 'monero', ticker: 'XMR' },
+        ],
         fiat: 'usd',
         precision: 8,
     },
     {
         apiBase: 'https://api.coingecko.com/api/v3/simple/price',
-        cryptoIds: ['ecash', 'dogecoin', 'solana', 'monero'],
+        cryptos: [
+            { coingeckoSlug: 'ecash', ticker: 'XEC' },
+            { coingeckoSlug: 'dogecoin', ticker: 'DOGE' },
+            { coingeckoSlug: 'solana', ticker: 'SOL' },
+            { coingeckoSlug: 'monero', ticker: 'XMR' },
+        ],
         fiat: 'eur',
         precision: 6,
     },
 ];
 
 async function printGetPricesInfo(priceInfoObj) {
-    const { cryptoIds, fiat, precision } = priceInfoObj;
+    const { cryptos, fiat, precision } = priceInfoObj;
     const priceInfo = await getCoingeckoPrices(priceInfoObj);
-    const pricesReceived = Object.keys(priceInfo);
 
     console.log(
-        `Price info for ${JSON.stringify(
-            cryptoIds,
-        )} in ${fiat.toUpperCase()} with ${precision}-decimal precision`,
+        `Price info for ${cryptos
+            .map(crypto => {
+                return crypto.ticker;
+            })
+            .join(
+                ', ',
+            )} in ${fiat.toUpperCase()} with ${precision}-decimal precision`,
     );
 
-    for (let i = 0; i < pricesReceived.length; i += 1) {
-        const thisCrypto = pricesReceived[i];
-        console.log(
-            `1 ${thisCrypto} = $${
-                priceInfo[thisCrypto][fiat]
-            } ${fiat.toUpperCase()}`,
-        );
+    for (let i in priceInfo) {
+        const { fiat, price, ticker } = priceInfo[i];
+        console.log(`1 ${ticker} = ${price} ${fiat.toUpperCase()}`);
     }
     // New line
     console.log('');

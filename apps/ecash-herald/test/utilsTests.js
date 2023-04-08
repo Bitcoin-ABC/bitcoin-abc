@@ -33,7 +33,75 @@ describe('ecash-telegram-bot utils.js functions', function () {
         // Mock a successful API request
         mock.onGet().reply(200, mockResult);
 
-        assert.deepEqual(await getCoingeckoPrices(config.priceApi), mockResult);
+        // Expected value will include ticker information
+        const expectedCoingeckoPrices = [
+            {
+                fiat: 'usd',
+                price: 0.00003113,
+                ticker: 'XEC',
+            },
+            {
+                fiat: 'usd',
+                price: 28044.64857505,
+                ticker: 'BTC',
+            },
+            {
+                fiat: 'usd',
+                price: 1900.73166438,
+                ticker: 'ETH',
+            },
+        ];
+        assert.deepEqual(
+            await getCoingeckoPrices(config.priceApi),
+            expectedCoingeckoPrices,
+        );
+    });
+    it('getCoingeckoPrices returns object of expected shape for API call of custom config', async function () {
+        const apiConfig = {
+            apiBase: 'https://api.coingecko.com/api/v3/simple/price',
+            cryptos: [
+                { coingeckoSlug: 'ecash', ticker: 'XEC' },
+                { coingeckoSlug: 'monero', ticker: 'XMR' },
+                { coingeckoSlug: 'solana', ticker: 'SOL' },
+            ],
+            fiat: 'eur',
+            precision: 8,
+        };
+
+        // onNoMatch: 'throwException' helps to debug if mock is not being used
+        const mock = new MockAdapter(axios, { onNoMatch: 'throwException' });
+
+        const mockResult = {
+            ecash: { eur: 0.00003113 },
+            monero: { eur: 107.64857505 },
+            solana: { eur: 22.73166438 },
+        };
+
+        // Mock a successful API request
+        mock.onGet().reply(200, mockResult);
+
+        // Expected value will include ticker information
+        const expectedCoingeckoPrices = [
+            {
+                fiat: 'eur',
+                price: 0.00003113,
+                ticker: 'XEC',
+            },
+            {
+                fiat: 'eur',
+                price: 107.64857505,
+                ticker: 'XMR',
+            },
+            {
+                fiat: 'eur',
+                price: 22.73166438,
+                ticker: 'SOL',
+            },
+        ];
+        assert.deepEqual(
+            await getCoingeckoPrices(apiConfig),
+            expectedCoingeckoPrices,
+        );
     });
     it('getCoingeckoPrices returns false if API returns error response', async function () {
         // onNoMatch: 'throwException' helps to debug if mock is not being used

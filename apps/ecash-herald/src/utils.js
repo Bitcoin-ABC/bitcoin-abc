@@ -15,8 +15,16 @@ module.exports = {
         )}...${unprefixedAddress.slice(-sliceSize)}`;
     },
     getCoingeckoPrices: async function (priceInfoObj) {
-        const { apiBase, cryptoIds, fiat, precision } = priceInfoObj;
-        let apiUrl = `${apiBase}?ids=${cryptoIds.join(
+        const { apiBase, cryptos, fiat, precision } = priceInfoObj;
+        let tickerReference = {};
+        let coingeckoSlugs = [];
+        for (let i = 0; i < cryptos.length; i += 1) {
+            const thisCoingeckoSlug = cryptos[i].coingeckoSlug;
+            const thisTicker = cryptos[i].ticker;
+            coingeckoSlugs.push(thisCoingeckoSlug);
+            tickerReference[thisCoingeckoSlug] = thisTicker;
+        }
+        let apiUrl = `${apiBase}?ids=${coingeckoSlugs.join(
             ',',
         )}&vs_currencies=${fiat}&precision=${precision.toString()}`;
         // https://api.coingecko.com/api/v3/simple/price?ids=ecash,bitcoin,ethereum&vs_currencies=usd&precision=8
@@ -27,19 +35,34 @@ module.exports = {
             const { data } = coingeckoApiResponse;
             // Validate for expected shape
             // For each key in `cryptoIds`, data must contain {<fiat>: <price>}
+            let coingeckoPriceArray = [];
             if (data && typeof data === 'object') {
-                for (let i = 0; i < cryptoIds.length; i += 1) {
-                    const thisCrypto = cryptoIds[i];
-                    if (!data[thisCrypto] || !data[thisCrypto][fiat]) {
+                for (let i = 0; i < coingeckoSlugs.length; i += 1) {
+                    const thisCoingeckoSlug = coingeckoSlugs[i];
+                    if (
+                        !data[thisCoingeckoSlug] ||
+                        !data[thisCoingeckoSlug][fiat]
+                    ) {
                         return false;
                     }
+                    // Create more useful output format
+                    const thisPriceInfo = {
+                        fiat,
+                        price: data[thisCoingeckoSlug][fiat],
+                        ticker: tickerReference[thisCoingeckoSlug],
+                    };
+                    if (thisPriceInfo.ticker === 'XEC') {
+                        coingeckoPriceArray.unshift(thisPriceInfo);
+                    } else {
+                        coingeckoPriceArray.push(thisPriceInfo);
+                    }
                 }
-                return data;
+                return coingeckoPriceArray;
             }
             return false;
         } catch (err) {
             console.log(
-                `Error fetching prices of ${cryptoIds.join(
+                `Error fetching prices of ${coingeckoSlugs.join(
                     ',',
                 )} from ${apiUrl}`,
                 err,
