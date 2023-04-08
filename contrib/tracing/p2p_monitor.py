@@ -14,6 +14,7 @@
 import curses
 import sys
 from curses import panel, wrapper
+from typing import List
 
 from bcc import BPF, USDT
 
@@ -88,7 +89,7 @@ class Peer:
     id = 0
     address = ""
     connection_type = ""
-    last_messages = list()
+    last_messages: List[Message] = []
 
     total_inbound_msgs = 0
     total_inbound_bytes = 0
@@ -99,7 +100,7 @@ class Peer:
         self.id = id
         self.address = address
         self.connection_type = connection_type
-        self.last_messages = list()
+        self.last_messages = []
 
     def add_message(self, message):
         self.last_messages.append(message)

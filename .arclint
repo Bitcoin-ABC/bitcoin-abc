@@ -260,7 +260,11 @@
             "type": "lint-python-mypy",
             "version": ">=0.780",
             "include": "(\\.py$)",
-            "exclude": "(^contrib/)",
+            "exclude": [
+                "(^contrib/gitian-builder/)",
+                "(^contrib/apple-sdk-tools/)",
+                "(^contrib/macdeploy/)"
+            ],
             "flags": [
                 "--ignore-missing-imports"
             ]

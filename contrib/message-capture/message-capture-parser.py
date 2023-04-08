@@ -13,7 +13,7 @@ import shutil
 import sys
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 sys.path.append(
     os.path.join(
@@ -54,10 +54,14 @@ HASH_INT_VECTORS = [
 ]
 
 
+class MessageTypeNotPrintableError(Exception):
+    pass
+
+
 class ProgressBar:
     def __init__(self, total: float):
         self.total = total
-        self.running = 0
+        self.running = 0.
 
     def set_progress(self, progress: float):
         cols = shutil.get_terminal_size()[0]
@@ -85,7 +89,7 @@ def to_jsonable(obj: Any) -> Any:
             val = getattr(obj, slot, None)
             if slot in HASH_INTS and isinstance(val, int):
                 ret[slot] = ser_uint256(val).hex()
-            elif slot in HASH_INT_VECTORS and isinstance(val[0], int):
+            elif slot in HASH_INT_VECTORS and isinstance(val, list) and isinstance(val[0], int):
                 ret[slot] = [ser_uint256(a).hex() for a in val]
             else:
                 ret[slot] = to_jsonable(val)
@@ -121,7 +125,7 @@ def process_file(path: str, messages: List[Any], recv: bool,
             length = int.from_bytes(tmp_header.read(LENGTH_SIZE), "little")
 
             # Start converting the message to a dictionary
-            msg_dict = {}
+            msg_dict: Dict[str, Union[int, str]] = {}
             msg_dict["direction"] = "recv" if recv else "sent"
             msg_dict["time"] = time
             # "size" is less readable here, but more readable in the output
@@ -135,15 +139,15 @@ def process_file(path: str, messages: List[Any], recv: bool,
                 try:
                     msgtype_tmp = msgtype.decode()
                     if not msgtype_tmp.isprintable():
-                        raise UnicodeDecodeError
+                        raise MessageTypeNotPrintableError
                     msg_dict["msgtype"] = msgtype_tmp
-                except UnicodeDecodeError:
+                except (UnicodeDecodeError, MessageTypeNotPrintableError):
                     msg_dict["msgtype"] = "UNREADABLE"
                 msg_dict["body"] = msg_ser.read().hex()
                 msg_dict["error"] = "Unrecognized message type."
                 messages.append(msg_dict)
                 print(
-                    f"WARNING - Unrecognized message type {msgtype} in {path}",
+                    f"WARNING - Unrecognized message type {msgtype!r} in {path}",
                     file=sys.stderr)
                 continue
 

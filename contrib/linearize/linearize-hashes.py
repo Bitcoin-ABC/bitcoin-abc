@@ -9,19 +9,16 @@
 
 from __future__ import print_function
 
-try:  # Python 3
-    import http.client as httplib
-except ImportError:  # Python 2
-    import httplib
-
 import base64
+import http.client as httplib
 import json
 import os
 import os.path
 import re
 import sys
+from typing import Any, Dict
 
-settings = {}
+settings: Dict[str, Any] = {}
 
 
 def hex_switchEndian(s):

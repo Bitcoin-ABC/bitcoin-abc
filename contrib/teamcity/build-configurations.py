@@ -15,7 +15,7 @@ from string import Template
 
 import yaml
 from deepmerge import always_merger
-from teamcity import is_running_under_teamcity
+from teamcity import is_running_under_teamcity  # type: ignore
 from teamcity.messages import TeamcityServiceMessages
 
 # Default timeout value in seconds. Should be overridden by the

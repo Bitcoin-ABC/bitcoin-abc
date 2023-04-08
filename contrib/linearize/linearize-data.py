@@ -19,8 +19,9 @@ import sys
 import time
 from binascii import unhexlify
 from collections import namedtuple
+from typing import Any, Dict
 
-settings = {}
+settings: Dict[str, Any] = {}
 
 
 def hex_switchEndian(s):
