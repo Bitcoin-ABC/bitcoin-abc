@@ -36,7 +36,8 @@
                 "(^contrib/apple-sdk-tools/)"
             ],
             "flags": [
-                "--ignore=E303,E305,E501,E704,W503,W504"
+                "--ignore=E303,E305,E501,E704,W503,W504",
+                "--require-plugins=flake8-comprehensions"
             ]
         },
         "lint-format-strings": {

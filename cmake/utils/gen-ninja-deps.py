@@ -150,7 +150,7 @@ def rebase_deps(deps):
         return newpath
 
     for t, s in deps.items():
-        rebased[rebase(t)] = set(rebase(d) for d in s)
+        rebased[rebase(t)] = {rebase(d) for d in s}
 
     return rebased
 
@@ -165,13 +165,13 @@ def dump(deps):
             continue
 
         str = f"{t.decode()}: \\\n  "
-        str += " \\\n  ".join(sorted(map((lambda x: x.decode()), d)))
+        str += " \\\n  ".join(sorted(x.decode() for x in d))
 
         print(str)
 
 
 # Collapse everything under the base target.
-basedeps = set() if extra_deps is None else set(d.encode() for d in extra_deps)
+basedeps = set() if extra_deps is None else {d.encode() for d in extra_deps}
 for d in deps.values():
     basedeps.update(d)
 

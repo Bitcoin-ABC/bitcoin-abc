@@ -156,8 +156,7 @@ class TestBitcoinCli(BitcoinTestFramework):
             assert_equal(set(self.nodes[0].listwallets()), set(wallets))
             cli_get_info = self.nodes[0].cli('-getinfo').send_cli()
             assert 'balance' not in cli_get_info.keys()
-            assert_equal(cli_get_info['balances'],
-                         {k: v for k, v in zip(wallets, amounts)})
+            assert_equal(cli_get_info['balances'], dict(zip(wallets, amounts)))
 
             # Unload the default wallet and re-verify.
             self.nodes[0].unloadwallet(wallets[0])
@@ -165,7 +164,7 @@ class TestBitcoinCli(BitcoinTestFramework):
             cli_get_info = self.nodes[0].cli('-getinfo').send_cli()
             assert 'balance' not in cli_get_info.keys()
             assert_equal(cli_get_info['balances'],
-                         {k: v for k, v in zip(wallets[1:], amounts[1:])})
+                         dict(zip(wallets[1:], amounts[1:])))
 
             self.log.info(
                 "Test -getinfo after unloading all wallets except a "

@@ -66,7 +66,7 @@ class WalletLabelsTest(BitcoinTestFramework):
         address_groups = node.listaddressgroupings()
         assert_equal(len(address_groups), 1)
         assert_equal(len(address_groups[0]), 2)
-        assert_equal(set([a[0] for a in address_groups[0]]), linked_addresses)
+        assert_equal({a[0] for a in address_groups[0]}, linked_addresses)
         assert_equal([a[1] for a in address_groups[0]], [0, 0])
 
         self.generate(node, 1)

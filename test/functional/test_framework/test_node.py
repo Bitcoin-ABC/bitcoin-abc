@@ -905,9 +905,9 @@ class TestNodeCLI:
         results = []
         for request in requests:
             try:
-                results.append(dict(result=request()))
+                results.append({"result": request()})
             except JSONRPCException as e:
-                results.append(dict(error=e))
+                results.append({"error": e})
         return results
 
     def send_cli(self, command=None, *args, **kwargs):
@@ -936,7 +936,7 @@ class TestNodeCLI:
                 r'error code: ([-0-9]+)\nerror message:\n(.*)', cli_stderr)
             if match:
                 code, message = match.groups()
-                raise JSONRPCException(dict(code=int(code), message=message))
+                raise JSONRPCException({"code": int(code), "message": message})
             # Ignore cli_stdout, raise with cli_stderr
             raise subprocess.CalledProcessError(
                 returncode, self.binary, output=cli_stderr)

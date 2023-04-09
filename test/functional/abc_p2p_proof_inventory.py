@@ -173,7 +173,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         assert_greater_than(self.num_nodes, 2)
 
         proofs_keys = [self.generate_proof(self.nodes[0]) for _ in self.nodes]
-        proofids = set([proof_key[1].proofid for proof_key in proofs_keys])
+        proofids = {proof_key[1].proofid for proof_key in proofs_keys}
         # generate_proof does not sync, so do it manually
         self.sync_blocks()
 

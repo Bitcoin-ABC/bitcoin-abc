@@ -90,7 +90,7 @@ class ValidationTracepointTest(BitcoinTestFramework):
         # that the handle_* functions succeeded.
         BLOCKS_EXPECTED = 2
         blocks_checked = 0
-        expected_blocks = list()
+        expected_blocks = []
 
         self.log.info("hook into the validation:block_connected tracepoint")
         ctx = USDT(pid=self.nodes[0].process.pid)

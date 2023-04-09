@@ -208,7 +208,7 @@ class ProxyTest(BitcoinTestFramework):
             self.nodes[2], [self.serv2, self.serv2, self.serv2, self.serv2], True)
         # Check that credentials as used for -proxyrandomize connections are
         # unique
-        credentials = set((x.username, x.password) for x in rv)
+        credentials = {(x.username, x.password) for x in rv}
         assert_equal(len(credentials), len(rv))
 
         if self.have_ipv6:

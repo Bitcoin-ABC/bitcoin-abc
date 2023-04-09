@@ -359,7 +359,7 @@ class CompactProofsTest(BitcoinTestFramework):
 
         expect_indices(
             list(shortid_map.values()),
-            [i for i in range(len(shortid_map))]
+            list(range(len(shortid_map)))
         )
 
         self.log.info(
@@ -495,7 +495,7 @@ class CompactProofsTest(BitcoinTestFramework):
                     avaproofs.key1,
                     proof.proofid) for proof in requester.get_proofs()]
             assert_equal(set(received_shortids),
-                         set([avaproofs.shortids[i] for i in indices]))
+                         {avaproofs.shortids[i] for i in indices})
 
         # Only the first proof
         check_received_proofs([0])

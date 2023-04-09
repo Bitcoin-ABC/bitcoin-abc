@@ -25,7 +25,7 @@ REGEX_ARG = r'(?:ForceSet|SoftSet|Get|Is)(?:Bool|Int)?Args?(?:Set)?\(\s*"(-[^"]+
 REGEX_DOC = r'AddArg\(\s*"(-[^"=]+?)(?:=|")'
 
 # list false positive unknows arguments
-SET_FALSE_POSITIVE_UNKNOWNS = set([
+SET_FALSE_POSITIVE_UNKNOWNS = {
     '-includeconf',
     '-regtest',
     '-testnet',
@@ -39,10 +39,10 @@ SET_FALSE_POSITIVE_UNKNOWNS = set([
     '-zmqpubrawtxhwm',
     '-zmqpubsequence',
     '-zmqpubsequencehwm',
-])
+}
 
 # list false positive undocumented arguments
-SET_FALSE_POSITIVE_UNDOCUMENTED = set([
+SET_FALSE_POSITIVE_UNDOCUMENTED = {
     '-help',
     '-h',
     '-avalanchepreconsensus',
@@ -57,7 +57,7 @@ SET_FALSE_POSITIVE_UNDOCUMENTED = set([
     '-replayprotectionactivationtime',
     # Remove after May 2023 upgrade
     '-wellingtonactivationtime',
-])
+}
 
 
 def main():

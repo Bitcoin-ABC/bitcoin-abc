@@ -88,7 +88,7 @@ while True:
     module = shortest_cycle[0]
     print(f"Circular dependency: {' -> '.join(shortest_cycle + [module])}")
     # And then break the dependency to avoid repeating in other cycles
-    deps[shortest_cycle[-1]] = deps[shortest_cycle[-1]] - set([module])
+    deps[shortest_cycle[-1]] = deps[shortest_cycle[-1]] - {module}
     have_cycle = True
 
 sys.exit(1 if have_cycle else 0)

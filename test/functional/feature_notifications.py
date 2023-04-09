@@ -77,8 +77,8 @@ class NotificationsTest(BitcoinTestFramework):
                 timeout=10)
 
             # directory content should equal the generated transaction hashes
-            txids_rpc = list(map(lambda t: notify_outputname(
-                self.wallet, t['txid']), self.nodes[1].listtransactions("*", block_count)))
+            txids_rpc = [notify_outputname(self.wallet, t['txid'])
+                         for t in self.nodes[1].listtransactions("*", block_count)]
             assert_equal(
                 sorted(txids_rpc), sorted(
                     os.listdir(
@@ -97,8 +97,8 @@ class NotificationsTest(BitcoinTestFramework):
                 timeout=10)
 
             # directory content should equal the generated transaction hashes
-            txids_rpc = list(map(lambda t: notify_outputname(
-                self.wallet, t['txid']), self.nodes[1].listtransactions("*", block_count)))
+            txids_rpc = [notify_outputname(self.wallet, t['txid'])
+                         for t in self.nodes[1].listtransactions("*", block_count)]
             assert_equal(
                 sorted(txids_rpc), sorted(
                     os.listdir(

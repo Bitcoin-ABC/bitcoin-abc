@@ -355,7 +355,7 @@ class UTXOCacheTracepointTest(BitcoinTestFramework):
         # that the handle_* functions succeeded.
         EXPECTED_HANDLE_FLUSH_SUCCESS = 3
         handle_flush_succeeds = 0
-        expected_flushes = list()
+        expected_flushes = []
 
         def handle_utxocache_flush(_, data, __):
             nonlocal handle_flush_succeeds

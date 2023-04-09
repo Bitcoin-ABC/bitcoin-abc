@@ -12,7 +12,7 @@ def main(input_file, output_file):
     with open(output_file, "w", encoding="utf-8") as f:
         f.write(
             f"static unsigned const char {Path(input_file).stem}_raw[] = {{\n")
-        f.write(", ".join(map(lambda x: f"0x{x:02x}", contents)))
+        f.write(", ".join(f"0x{x:02x}" for x in contents))
         f.write("\n};\n")
 
 

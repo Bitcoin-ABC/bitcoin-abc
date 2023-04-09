@@ -11,7 +11,7 @@ def main(test_name, input_file):
     print("#include <cstdint>\n")
     print("namespace json_tests {")
     print(f"static const uint8_t {test_name}[] = {{")
-    print(", ".join(map(lambda x: f"0x{x:02x}", contents)))
+    print(", ".join(f"0x{x:02x}" for x in contents))
     print("};")
     print("};")
 

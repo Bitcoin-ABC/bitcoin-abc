@@ -115,8 +115,7 @@ class MultiWalletTest(BitcoinTestFramework):
             [f'-wallet={n}' for n in wallet_names]
         self.start_node(0, extra_args)
         assert_equal(
-            sorted(map(lambda w: w['name'],
-                       self.nodes[0].listwalletdir()['wallets'])),
+            sorted(w['name'] for w in self.nodes[0].listwalletdir()['wallets']),
             [self.default_wallet_name, os.path.join('sub', 'w5'), 'w', 'w1',
              'w2', 'w3', 'w7', 'w7_symlink', 'w8'])
 
@@ -195,10 +194,10 @@ class MultiWalletTest(BitcoinTestFramework):
 
         self.restart_node(0, extra_args)
 
-        assert_equal(sorted(map(lambda w: w['name'],
-                                self.nodes[0].listwalletdir()['wallets'])),
-                     [self.default_wallet_name, os.path.join('sub', 'w5'), 'w',
-                      'w1', 'w2', 'w3', 'w7', 'w7_symlink', 'w8', 'w8_copy'])
+        assert_equal(
+            sorted(w['name'] for w in self.nodes[0].listwalletdir()['wallets']),
+            [self.default_wallet_name, os.path.join('sub', 'w5'), 'w', 'w1', 'w2',
+             'w3', 'w7', 'w7_symlink', 'w8', 'w8_copy'])
 
         wallets = [wallet(w) for w in wallet_names]
         wallet_bad = wallet("bad")
@@ -446,11 +445,10 @@ class MultiWalletTest(BitcoinTestFramework):
         assert_equal(self.nodes[0].listwallets(), ['w1'])
         assert_equal(w1.getwalletinfo()['walletname'], 'w1')
 
-        assert_equal(sorted(map(lambda w: w['name'],
-                                self.nodes[0].listwalletdir()['wallets'])),
-                     [self.default_wallet_name, os.path.join('sub', 'w5'), 'w',
-                      'w1', 'w2', 'w3', 'w7', 'w7_symlink', 'w8', 'w8_copy',
-                      'w9'])
+        assert_equal(
+            sorted(w['name'] for w in self.nodes[0].listwalletdir()['wallets']),
+            [self.default_wallet_name, os.path.join('sub', 'w5'), 'w', 'w1', 'w2',
+             'w3', 'w7', 'w7_symlink', 'w8', 'w8_copy', 'w9'])
 
         # Test backing up and restoring wallets
         self.log.info("Test wallet backup")

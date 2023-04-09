@@ -73,7 +73,7 @@ class ProofsCleanupTest(BitcoinTestFramework):
         peer_info = node.getavalanchepeerinfo()
         assert_equal(len(peer_info), 11)
         assert_equal(set(get_proof_ids(node)),
-                     set([proof.proofid for proof in proofs]))
+                     {proof.proofid for proof in proofs})
 
         self.log.info("No proof is cleaned before the timeout expires")
 
@@ -93,8 +93,10 @@ class ProofsCleanupTest(BitcoinTestFramework):
             node.setmocktime(mocktime)
 
             node.mockscheduler(AVALANCHE_CLEANUP_INTERVAL)
-            self.wait_until(lambda: set(get_proof_ids(node)) == set(
-                [proof.proofid for proof in proofs[:6]]), timeout=5)
+            self.wait_until(
+                lambda: set(get_proof_ids(node)) == {
+                    proof.proofid for proof in proofs[:6]},
+                timeout=5)
 
         self.log.info(
             "Check the proofs are cleaned on next cleanup after the nodes disconnected")

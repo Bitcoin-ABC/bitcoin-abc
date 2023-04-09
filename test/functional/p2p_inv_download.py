@@ -136,7 +136,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
         for p in self.nodes[0].p2ps:
             p.send_and_ping(msg)
 
-        outstanding_peer_index = [i for i in range(len(self.nodes[0].p2ps))]
+        outstanding_peer_index = list(range(len(self.nodes[0].p2ps)))
 
         def getdata_found(peer_index):
             p = self.nodes[0].p2ps[peer_index]
@@ -219,7 +219,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
         self.log.info(
             f"Test that we don't load peers with more than {max_getdata_in_flight} "
             "getdata requests immediately")
-        invids = [i for i in range(max_getdata_in_flight + 2)]
+        invids = list(range(max_getdata_in_flight + 2))
 
         p = self.nodes[0].p2ps[0]
 

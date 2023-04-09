@@ -61,7 +61,7 @@ class BindExtraTest(BitcoinTestFramework):
         )
         port += 2
 
-        self.extra_args = list(map(lambda e: e[0], self.expected))
+        self.extra_args = [e[0] for e in self.expected]
         self.add_nodes(self.num_nodes, self.extra_args)
         # Don't start the nodes, as some of them would collide trying to bind
         # on the same port.

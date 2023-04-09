@@ -215,7 +215,7 @@ class RawTransactionsTest(BitcoinTestFramework):
             outputs = {self.nodes[0].getnewaddress(): 1}
             rawtx = self.nodes[0].createrawtransaction(inputs, outputs)
 
-            prevtx = dict(txid=txid, scriptPubKey=pubkey, vout=3, amount=1)
+            prevtx = {"txid": txid, "scriptPubKey": pubkey, "vout": 3, "amount": 1}
             succ = self.nodes[0].signrawtransactionwithwallet(rawtx, [prevtx])
             assert succ["complete"]
 

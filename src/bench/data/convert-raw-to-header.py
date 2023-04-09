@@ -9,7 +9,7 @@ def main(test_name, input_file):
         contents = f.read()
 
     print(f"static unsigned const char {test_name}_raw[] = {{")
-    print(", ".join(map(lambda x: f"0x{x:02x}", contents)))
+    print(", ".join(f"0x{x:02x}" for x in contents))
     print("};")
 
 

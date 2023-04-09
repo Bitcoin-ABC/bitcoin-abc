@@ -31,6 +31,7 @@ import unittest
 import xml.etree.ElementTree as ET
 from collections import deque
 from queue import Empty, Queue
+from typing import Set
 
 # Formatting. Default colors to empty strings.
 BOLD, GREEN, RED, GREY = ("", ""), ("", ""), ("", ""), ("", "")
@@ -84,13 +85,13 @@ TEST_FRAMEWORK_MODULES = [
     "util",
 ]
 
-NON_SCRIPTS = [
+NON_SCRIPTS = {
     # These are python files that live in the functional tests directory, but
     # are not test scripts.
     "combine_logs.py",
     "create_cache.py",
     "test_runner.py",
-]
+}
 
 EXTRA_PRIVILEGES_TESTS = [
     # These tests can only run with extra privileges.
@@ -470,8 +471,7 @@ def run_tests(test_list, build_dir, tests_dir, junitoutput, tmpdir, num_jobs, te
     if not os.listdir(tmpdir):
         os.rmdir(tmpdir)
 
-    all_passed = all(map(
-        lambda test_result: test_result.was_successful, test_results)) and coverage_passed
+    all_passed = all(res.was_successful for res in test_results) and coverage_passed
 
     sys.exit(not all_passed)
 
@@ -695,12 +695,12 @@ class TestResult:
         return self.status != "Failed"
 
 
-def get_all_scripts_from_disk(test_dir, non_scripts):
+def get_all_scripts_from_disk(test_dir, non_scripts: Set[str]) -> Set[str]:
     """
     Return all available test script from script directory (excluding NON_SCRIPTS)
     """
-    python_files = set([t for t in os.listdir(test_dir) if t[-3:] == ".py"])
-    return list(python_files - set(non_scripts))
+    python_files = {t for t in os.listdir(test_dir) if t[-3:] == ".py"}
+    return python_files - non_scripts
 
 
 def check_script_prefixes(all_scripts):
@@ -914,8 +914,8 @@ class Timings:
         # extra privileges.
         passed_results = [
             test for test in test_results if test.status == 'Passed' and test.name not in EXTRA_PRIVILEGES_TESTS]
-        new_timings = list(map(lambda test: {'name': test.name, 'time': TimeResolution.seconds(test.time)},
-                               passed_results))
+        new_timings = [{'name': test.name, 'time': TimeResolution.seconds(test.time)}
+                       for test in passed_results]
         merged_timings = self.get_merged_timings(new_timings)
 
         with open(self.timing_file, 'w', encoding="utf8") as file:

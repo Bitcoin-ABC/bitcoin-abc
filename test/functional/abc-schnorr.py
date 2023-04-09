@@ -203,7 +203,7 @@ class SchnorrTest(BitcoinTestFramework):
         self.generate(node, 1, sync_fun=self.no_op)
         tip = self.getbestblock(node)
         # Make sure they are in the block, and mempool is now empty.
-        txhashes = set([schnorrchecksigtx.hash, ecdsachecksigtx.hash])
+        txhashes = {schnorrchecksigtx.hash, ecdsachecksigtx.hash}
         assert txhashes.issubset(tx.rehash() for tx in tip.vtx)
         assert not node.getrawmempool()
 
