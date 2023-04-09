@@ -20,7 +20,6 @@ PACKAGES=(
   devscripts
   doxygen
   dput
-  flake8
   g++-9
   g++-9-aarch64-linux-gnu
   g++-9-arm-linux-gnueabihf
@@ -144,7 +143,7 @@ pip3 install "protobuf<=3.20"
 pip3 install "lief>=0.11.4"
 
 # Up-to-date mypy, isort and flynt packages are required python linters
-pip3 install isort==5.6.4 mypy==0.780 flynt==0.78
+pip3 install isort==5.6.4 mypy==0.780 flynt==0.78 flake8==6.0.0
 echo "export PATH=\"$(python3 -m site --user-base)/bin:\$PATH\"" >> ~/.bashrc
 # shellcheck source=/dev/null
 source ~/.bashrc

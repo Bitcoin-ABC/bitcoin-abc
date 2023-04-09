@@ -198,7 +198,7 @@ def check_ELF_libraries(filename) -> bool:
     ok = True
     elf = pixie.load(filename)
     for library_name in elf.query_dyn_tags(pixie.DT_NEEDED):
-        assert(isinstance(library_name, bytes))
+        assert isinstance(library_name, bytes)
         if library_name.decode() not in ELF_ALLOWED_LIBRARIES:
             print(f'{filename}: NEEDED library {library_name.decode()} is not allowed')
             ok = False

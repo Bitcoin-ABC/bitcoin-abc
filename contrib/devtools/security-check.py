@@ -131,7 +131,7 @@ def check_ELF_separate_code(executable):
     for ph in elf.program_headers:
         if ph.p_type == pixie.PT_LOAD:
             for section in ph.sections:
-                assert(section.name not in flags_per_section)
+                assert section.name not in flags_per_section
                 flags_per_section[section.name] = ph.p_flags
     # Spot-check ELF LOAD program header flags per section
     # If these sections exist, check them against the expected R/W/E flags
