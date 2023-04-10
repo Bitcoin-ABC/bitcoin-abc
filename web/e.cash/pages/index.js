@@ -1,3 +1,8 @@
+import Layout from '../components/layout';
 export default function Home() {
-    return <div>e.Cash site v2</div>;
+    return (
+        <Layout>
+            <div>e.Cash site v2</div>
+        </Layout>
+    );
 }
