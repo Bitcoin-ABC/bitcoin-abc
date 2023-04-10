@@ -267,7 +267,9 @@
                 "(^contrib/macdeploy/)"
             ],
             "flags": [
-                "--ignore-missing-imports"
+                "--ignore-missing-imports",
+                "--install-types",
+                "--non-interactive"
             ]
         },
         "lint-python-mutable-default": {
