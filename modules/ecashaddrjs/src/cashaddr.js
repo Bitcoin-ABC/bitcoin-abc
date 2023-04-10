@@ -11,6 +11,7 @@
 
 var base32 = require('./base32');
 var bigInt = require('big-integer');
+var bs58check = require('bs58check');
 var convertBits = require('./convertBits');
 var validation = require('./validation');
 var validate = validation.validate;
@@ -131,7 +132,7 @@ function decode(address, chronikReady = false) {
 var ValidationError = validation.ValidationError;
 
 /**
- * Valid address prefixes.
+ * All valid address prefixes.
  *
  * @private
  */
@@ -144,6 +145,13 @@ var VALID_PREFIXES = [
     'bchtest',
     'bchreg',
 ];
+
+/**
+ * Valid mainnet prefixes
+ *
+ * @private
+ */
+var VALID_PREFIXES_MAINNET = ['ecash', 'bitcoincash', 'simpleledger', 'etoken'];
 
 /**
  * Checks whether a string is a valid prefix; ie., it has a single letter case
@@ -512,11 +520,41 @@ function encodeOutputScript(outputScript, prefix = 'ecash') {
     return encode(prefix, type, hash);
 }
 
+/**
+ * Converts an ecash address to legacy format
+ *
+ * @static
+ * @param {string} cashaddress a valid p2pkh or p2sh ecash address
+ * @returns {string}
+ * @throws {ValidationError}
+ */
+function toLegacy(cashaddress) {
+    const { prefix, type, hash } = decode(cashaddress);
+    const isMainnet = VALID_PREFIXES_MAINNET.includes(prefix);
+    // Get correct version byte for legacy format
+    let versionByte;
+    switch (type) {
+        case 'P2PKH':
+            versionByte = isMainnet ? 0 : 111;
+            break;
+        case 'P2SH':
+            versionByte = isMainnet ? 5 : 196;
+            break;
+        default:
+            throw new ValidationError('Unsupported address type: ' + type);
+    }
+    var buffer = Buffer.alloc(1 + hash.length);
+    buffer[0] = versionByte;
+    buffer.set(hash, 1);
+    return bs58check.encode(buffer);
+}
+
 module.exports = {
     encode: encode,
     decode: decode,
     uint8arraytoString: uint8arraytoString,
     encodeOutputScript: encodeOutputScript,
     getTypeAndHashFromOutputScript: getTypeAndHashFromOutputScript,
+    toLegacy: toLegacy,
     ValidationError: ValidationError,
 };

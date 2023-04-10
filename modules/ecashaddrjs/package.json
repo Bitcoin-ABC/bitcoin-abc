@@ -51,6 +51,7 @@
         "webpack-cli": "^5.0.1"
     },
     "dependencies": {
-        "big-integer": "1.6.36"
+        "big-integer": "1.6.36",
+        "bs58check": "^3.0.1"
     }
 }

@@ -52,6 +52,12 @@ describe('cashaddr', () => {
         'ecash:qqq3728yw0y47sqn6l2na30mcw6zm78dzq653y7pv5',
     ];
 
+    const EXPECTED_P2PKH_OUTPUTS_LEGACY = [
+        '1BpEi6DfDAUFd7GtittLSdBeYJvcoaVggu',
+        '1KXrWXciRDZUpQwQmuM1DbwsKDLYAYsVLR',
+        '16w1D5WRVKJuZUsSRzdLp9w3YGcgoxDXb',
+    ];
+
     const TEST_P2SH_OUTPUTSCRIPTS = [
         'a91476a04053bda0a88bda5177b86a15c3b29f55987387',
         'a914cb481232299cd5743151ac4b2d63ae198e7bb0a987',
@@ -64,16 +70,34 @@ describe('cashaddr', () => {
         'ecash:pqq3728yw0y47sqn6l2na30mcw6zm78dzqd3vtezhf',
     ];
 
+    const EXPECTED_P2SH_OUTPUTS_LEGACY = [
+        '3CWFddi6m4ndiGyKqzYvsFYagqDLPVMTzC',
+        '3LDsS579y7sruadqu11beEJoTjdFiFCdX4',
+        '31nwvkZwyPdgzjBJZXfDmSWsC4ZLKpYyUw',
+    ];
+
     const EXPECTED_P2PKH_OUTPUTS_TESTNET = [
         'ectest:qpm2qsznhks23z7629mms6s4cwef74vcwvmvqr33lm',
         'ectest:qr95sy3j9xwd2ap32xkykttr4cvcu7as4ysxxjl7ez',
         'ectest:qqq3728yw0y47sqn6l2na30mcw6zm78dzqul0yev09',
     ];
 
+    const EXPECTED_P2PKH_OUTPUTS_TESTNET_LEGACY = [
+        'mrLC19Je2BuWQDkWSTriGYPyQJXKkkBmCx',
+        'mz3ooahhEEzjbXR2VUKP3XACBCwF5zhQBy',
+        'mfctJGAVEWkZgfxV9zy1AjNFuXsKi2VXB8',
+    ];
+
     const EXPECTED_P2SH_OUTPUTS_TESTNET = [
         'ectest:ppm2qsznhks23z7629mms6s4cwef74vcwvvfavkjyx',
         'ectest:pr95sy3j9xwd2ap32xkykttr4cvcu7as4y8rmacazl',
         'ectest:pqq3728yw0y47sqn6l2na30mcw6zm78dzqt6jt705c',
+    ];
+
+    const EXPECTED_P2SH_OUTPUTS_TESTNET_LEGACY = [
+        '2N44ThNe8NXHyv4bsX8AoVCXquBRW94Ls7W',
+        '2NBn5Vp3BaaPD7NGPa8dUGBJ4g5qRXq92wG',
+        '2MsM9zVVyar93CWorEfH6PPW8QQmW3s1uh6',
     ];
 
     const random = new Random(MersenneTwister19937.seed(42));
@@ -476,6 +500,53 @@ describe('cashaddr', () => {
                     assert.equal(actualType, type);
                     assert.deepEqual(actualHash, hash);
                 }
+            }
+        });
+    });
+
+    describe('#toLegacy()', () => {
+        it('should fail when the version byte is invalid and cashaddr.decode throws an error', () => {
+            assert.throws(() => {
+                cashaddr.toLegacy(
+                    'ecash:zpm2qsznhks23z7629mms6s4cwef74vcwv6ddac6re',
+                );
+            }, cashaddr.ValidationError);
+        });
+        it('should fail when given input that is not a valid cashaddress', () => {
+            assert.throws(() => {
+                cashaddr.toLegacy('1BpEi6DfDAUFd7GtittLSdBeYJvcoaVggu');
+            }, cashaddr.ValidationError);
+        });
+        it('should convert mainnet p2pkh ecash addresses to expected legacy format', () => {
+            for (const index in EXPECTED_P2PKH_OUTPUTS) {
+                assert.equal(
+                    cashaddr.toLegacy(EXPECTED_P2PKH_OUTPUTS[index]),
+                    EXPECTED_P2PKH_OUTPUTS_LEGACY[index],
+                );
+            }
+        });
+        it('should convert testnet p2pkh ecash addresses to expected legacy format', () => {
+            for (const index in EXPECTED_P2PKH_OUTPUTS_TESTNET) {
+                assert.equal(
+                    cashaddr.toLegacy(EXPECTED_P2PKH_OUTPUTS_TESTNET[index]),
+                    EXPECTED_P2PKH_OUTPUTS_TESTNET_LEGACY[index],
+                );
+            }
+        });
+        it('should convert mainnet p2sh ecash addresses to expected legacy format', () => {
+            for (const index in EXPECTED_P2SH_OUTPUTS) {
+                assert.equal(
+                    cashaddr.toLegacy(EXPECTED_P2SH_OUTPUTS[index]),
+                    EXPECTED_P2SH_OUTPUTS_LEGACY[index],
+                );
+            }
+        });
+        it('should convert testnet p2sh ecash addresses to expected legacy format', () => {
+            for (const index in EXPECTED_P2SH_OUTPUTS_TESTNET) {
+                assert.equal(
+                    cashaddr.toLegacy(EXPECTED_P2SH_OUTPUTS_TESTNET[index]),
+                    EXPECTED_P2SH_OUTPUTS_TESTNET_LEGACY[index],
+                );
             }
         });
     });
