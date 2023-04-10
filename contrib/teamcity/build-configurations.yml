@@ -648,3 +648,8 @@ builds:
       JS_PROJECT_ROOT: apps/ecash-herald
     templates:
       - js-mocha
+
+  preview-e.cash:
+    docker:
+      context: web/e.cash
+      port: 3000

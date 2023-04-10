@@ -49,6 +49,14 @@ class BuildConfiguration:
             ).stdout.strip()
         )
 
+        self.project_commit = subprocess.run(
+            ['git', 'rev-parse', '--short', 'HEAD'],
+            capture_output=True,
+            check=True,
+            encoding='utf-8',
+            text=True,
+        ).stdout.strip()
+
         if not config_file.is_file():
             raise FileNotFoundError(
                 f"The configuration file does not exist {str(config_file)}"
@@ -140,8 +148,9 @@ class BuildConfiguration:
         dest.chmod(dest.stat().st_mode | stat.S_IEXEC)
 
     def create_build_steps(self, artifact_dir):
-        # There are 2 possibilities to define the build steps:
+        # There are 3 possibilities to define the build steps:
         #  - By manually defining a script to run.
+        #  - By specifying a docker configuration to build
         #  - By defining the configuration options and a list of target groups to
         #    run. The configuration step should be run once then all the targets
         #    groups. Each target group can contain 1 or more targets which
@@ -157,6 +166,68 @@ class BuildConfiguration:
                     "args": [],
                 }
             ]
+            return
+
+        # Check for a docker configuration
+        docker_config = self.config.get("docker", None)
+        if docker_config:
+            # Make sure we have at least a context
+            context = docker_config.get("context", None)
+            if context is None:
+                raise AssertionError(
+                    f"The docker configuration for build {self.name} is missing a context, aborting"
+                )
+            # Make the context path absolute
+            context = self.project_root.joinpath(context)
+            # Make sure the context is a subdir of the git repository. This
+            # prevents e.g. the use of .. as a context path.
+            if Path(self.project_root) not in Path(context).resolve().parents:
+                raise AssertionError(
+                    "The docker context should be a subdirectory of the project root"
+                )
+
+            dockerfile = docker_config.get("dockerfile", None)
+            dockerfile_args = [
+                "-f", str(self.project_root.joinpath(dockerfile))] if dockerfile else []
+
+            tag_name = "-".join([self.name, self.project_commit])
+
+            # Docker build
+            self.build_steps.append(
+                {
+                    "bin": "docker",
+                    "args": ["build"] + dockerfile_args + ["-t", tag_name, str(context)],
+                }
+            )
+
+            port = docker_config.get("port", None)
+            port_args = ["-p", f"{port}:{port}"] if port else []
+            # Docker run. This uses a timeout value to stop the container after
+            # some time. The stop signal is defined to sigterm so the app has a
+            # chance of gracefully handle the stop request, and defaults to a
+            # less subtle SIGKILL if it didn't abort after a minute.
+            self.build_steps.append(
+                {
+                    "bin": "docker",
+                    "args": ["run", "--rm", "-d", "--name", tag_name, "--stop-signal", "SIGTERM", "--stop-timeout", "60"] + port_args + [tag_name],
+                }
+            )
+
+            timeout_minutes = docker_config.get("timeout_minutes", 60)
+            # Now we need to schedule a job to stop or kill the container after
+            # the timeout expires.
+            script_file = self.build_directory.joinpath("docker_timeout.sh")
+            self.create_script_file(
+                script_file,
+                f'echo "docker stop {tag_name}" | at now +{timeout_minutes} minutes')
+
+            self.build_steps.append(
+                {
+                    "bin": str(script_file),
+                    "args": [],
+                }
+            )
+
             return
 
         # Get the cmake configuration definitions.
