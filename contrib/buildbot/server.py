@@ -450,16 +450,31 @@ def create_server(tc, phab, slackbot, cirrus,
             }
             return next_token[current_token] if current_token in next_token else "PHID-TOKN-like-1"
 
-        def is_user_allowed_to_trigger_builds(user_PHID, current_token):
+        def is_user_allowed_to_trigger_builds(
+                user_PHID, current_token, comment_builds, build_configs):
             if current_token not in [
                     "", "PHID-TOKN-coin-1", "PHID-TOKN-coin-2", "PHID-TOKN-coin-3"]:
                 return False
 
-            return all(role in phab.get_user_roles(user_PHID) for role in [
+            if not all(role in phab.get_user_roles(user_PHID) for role in [
                 "verified",
                 "approved",
                 "activated",
-            ])
+            ]):
+                return False
+
+            for build_name in comment_builds:
+                build_config = build_configs.get(build_name, None)
+                if build_config is None:
+                    # If one of the build doesn't exist, reject them all.
+                    return False
+
+                if "docker" in build_config:
+                    # If one of the build contain a docker configuration, reject
+                    # them all.
+                    return False
+
+            return True
 
         # Anti DoS filter
         #
@@ -470,6 +485,8 @@ def create_server(tc, phab, slackbot, cirrus,
         #  | AND
         #  | - The maximum number of requests for this revision has not been
         #  |   reached yet.
+        #  | AND
+        #  | - The build doesn't contain a `docker` configuration.
         #
         # The number of requests is tracked by awarding a coin token to the
         # revision each time a build request is submitted (the number of build
@@ -481,6 +498,8 @@ def create_server(tc, phab, slackbot, cirrus,
         # trigger new builds.
         abc_members = phab.get_project_members(BITCOIN_ABC_PROJECT_PHID)
         current_token = phab.get_object_token(revision_PHID)
+
+        build_configs = get_master_build_configurations()
 
         builds = []
         for comment in comments:
@@ -498,7 +517,8 @@ def create_server(tc, phab, slackbot, cirrus,
                 builds += comment_builds
                 continue
 
-            if is_user_allowed_to_trigger_builds(user, current_token):
+            if is_user_allowed_to_trigger_builds(
+                    user, current_token, comment_builds, build_configs):
                 builds += comment_builds
 
         # If there is no build provided, this request is not what we are after,

@@ -5,6 +5,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import itertools
+import json
 import test.mocks.phabricator
 import test.mocks.teamcity
 import unittest
@@ -43,10 +44,46 @@ class EndpointTriggerCITestCase(ABCBotFixture):
             }
         }])
 
+        self.phab.user.search.return_value = test.mocks.phabricator.Result([
+            {
+                "id": 1,
+                "type": "USER",
+                "phid": "PHID-AUTHORIZED-USER",
+                "fields": {
+                    "roles": [
+                        "verified",
+                        "approved",
+                        "activated",
+                    ],
+                },
+            },
+        ])
+
         # Phabricator returns the default diff ID
         self.phab.differential.diff.search.return_value = test.mocks.phabricator.Result([{
             "id": self.diff_id,
         }])
+
+        config = {
+            "builds": {
+                "build-1": {},
+                "build-11": {},
+                "build-12": {},
+                "build-13": {},
+                "build-2": {},
+                "build-21": {},
+                "build-22": {},
+                "build-23": {},
+                "build-3": {},
+                "build-31": {},
+                "build-32": {},
+                "build-33": {},
+                "build-docker": {"docker": {}},
+            },
+        }
+        self.phab.get_file_content_from_master = mock.Mock()
+        self.phab.get_file_content_from_master.return_value = json.dumps(
+            config)
 
     # Transaction webhook on diff update
     def call_endpoint(self):
@@ -253,8 +290,36 @@ class EndpointTriggerCITestCase(ABCBotFixture):
         self.teamcity.session.send.assert_not_called()
         self.assertEqual(response.status_code, 200)
 
+        # Authorized but non-ABC user, running at least one non-existent build
+        self.set_transaction_return_value(
+            [
+                # Build 4 doesn't exist
+                "@bot build-4",
+                "@bot build-4 build-11 build-12 build-13 build-2 build-3",
+                "@bot build-11 build-12 build-13 build-2 build-3 build-4",
+            ],
+            "PHID-AUTHORIZED-USER"
+        )
+        response = self.call_endpoint()
+        self.teamcity.session.send.assert_not_called()
+        self.assertEqual(response.status_code, 200)
+
+        # Authorized but non-ABC user, running at least one docker build
+        self.set_transaction_return_value(
+            [
+                "@bot build-docker",
+                "@bot build-docker build-11 build-12 build-13 build-2 build-3",
+                "@bot build-11 build-12 build-13 build-2 build-3 build-docker",
+            ],
+            "PHID-AUTHORIZED-USER"
+        )
+        response = self.call_endpoint()
+        self.teamcity.session.send.assert_not_called()
+        self.assertEqual(response.status_code, 200)
+
     def test_triggerCI_some_build_queued(self):
         def assert_teamcity_queued_builds(comments, queued_builds):
+            # Default user is an ABC member in set_transaction_return_value
             self.set_transaction_return_value(comments)
             response = self.call_endpoint()
             expected_calls = [
@@ -268,12 +333,11 @@ class EndpointTriggerCITestCase(ABCBotFixture):
                 )
                 for build_id in queued_builds
             ]
-            print(expected_calls)
             self.teamcity.trigger_build.assert_has_calls(
                 expected_calls, any_order=True)
             self.assertEqual(response.status_code, 200)
 
-        # Authorized user, 1 comment targeting the bot with 1 build
+        # ABC user, 1 comment targeting the bot with 1 build
         assert_teamcity_queued_builds(
             [
                 "@bot build-1",
@@ -283,7 +347,7 @@ class EndpointTriggerCITestCase(ABCBotFixture):
             ]
         )
 
-        # Authorized user, 1 comment targeting the bot with 3 builds
+        # ABC user, 1 comment targeting the bot with 3 builds
         assert_teamcity_queued_builds(
             [
                 "@bot build-1 build-2 build-3",
@@ -295,7 +359,7 @@ class EndpointTriggerCITestCase(ABCBotFixture):
             ]
         )
 
-        # Authorized user, 3 comments targeting the bot with 3 builds each
+        # ABC user, 3 comments targeting the bot with 3 builds each
         assert_teamcity_queued_builds(
             [
                 "@bot build-11 build-12 build-13",
@@ -309,7 +373,7 @@ class EndpointTriggerCITestCase(ABCBotFixture):
             ]
         )
 
-        # Authorized user, 1 comment targeting the bot with duplicated builds
+        # ABC user, 1 comment targeting the bot with duplicated builds
         assert_teamcity_queued_builds(
             [
                 "@bot build-1 build-2 build-1 build-3 build-2",
@@ -318,6 +382,40 @@ class EndpointTriggerCITestCase(ABCBotFixture):
                 "build-1",
                 "build-2",
                 "build-3",
+            ]
+        )
+
+        # ABC user, some comments targeting the bot with 3 builds involving docker
+        assert_teamcity_queued_builds(
+            [
+                "@bot build-docker build-1 build-2 build-3",
+            ],
+            [
+                "build-docker", "build-1", "build-2", "build-3",
+            ]
+        )
+        assert_teamcity_queued_builds(
+            [
+                "@bot build-1 build-2 build-docker build-3",
+            ],
+            [
+                "build-1", "build-2", "build-docker", "build-3",
+            ]
+        )
+        assert_teamcity_queued_builds(
+            [
+                "@bot build-1 build-2 build-3 build-docker",
+            ],
+            [
+                "build-1", "build-2", "build-3", "build-docker",
+            ]
+        )
+        assert_teamcity_queued_builds(
+            [
+                "@bot build-docker build-1 build-docker build-2 build-docker build-3 build-docker",
+            ],
+            [
+                "build-docker", "build-1", "build-2", "build-3",
             ]
         )
 
