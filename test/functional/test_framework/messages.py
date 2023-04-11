@@ -1004,8 +1004,8 @@ class AvalanchePrefilledProof:
 class AvalanchePoll:
     __slots__ = ("round", "invs")
 
-    def __init__(self, round=0, invs=None):
-        self.round = round
+    def __init__(self, avaround=0, invs=None):
+        self.round = avaround
         self.invs = invs if invs is not None else []
 
     def deserialize(self, f):
@@ -1071,8 +1071,8 @@ class AvalancheVote:
 class AvalancheResponse:
     __slots__ = ("round", "cooldown", "votes")
 
-    def __init__(self, round=0, cooldown=0, votes=None):
-        self.round = round
+    def __init__(self, avaround=0, cooldown=0, votes=None):
+        self.round = avaround
         self.cooldown = cooldown
         self.votes = votes if votes is not None else []
 

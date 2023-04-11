@@ -269,7 +269,7 @@ class PhabricatorTests(unittest.TestCase):
 
         self.phab.diffusion.browsequery = mock.Mock()
 
-        def configure_browsequery(file_path=path, hash="abcdef"):
+        def configure_browsequery(file_path=path, file_hash="abcdef"):
             self.phab.diffusion.browsequery.return_value = {
                 "paths": [
                     {
@@ -282,7 +282,7 @@ class PhabricatorTests(unittest.TestCase):
                     },
                     {
                         "fullPath": file_path,
-                        "hash": hash
+                        "hash": file_hash
                     },
                 ]
             }
@@ -388,7 +388,7 @@ class PhabricatorTests(unittest.TestCase):
             self.phab.file.download.assert_not_called()
 
         # But if the file hash changes, the file content needs to be updated...
-        configure_browsequery(hash="defghi")
+        configure_browsequery(file_hash="defghi")
         file_content = self.phab.get_file_content_from_master(path)
         assert_file_commit_and_file_searched()
         self.phab.file.download.assert_called_with(phid=file_phid)

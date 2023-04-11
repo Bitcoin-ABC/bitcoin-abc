@@ -18,9 +18,9 @@ class GetBlockFromPeerTest(BitcoinTestFramework):
         self.setup_nodes()
         # Don't connect the nodes initially
 
-    def check_for_block(self, hash):
+    def check_for_block(self, blockhash):
         try:
-            self.nodes[0].getblock(hash)
+            self.nodes[0].getblock(blockhash)
             return True
         except JSONRPCException:
             return False

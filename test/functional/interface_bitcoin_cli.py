@@ -49,15 +49,15 @@ class TestBitcoinCli(BitcoinTestFramework):
 
         self.log.info("Test -stdinrpcpass option")
         assert_equal(BLOCKS, self.nodes[0].cli(
-            f'-rpcuser={user}', '-stdinrpcpass', input=password).getblockcount())
+            f'-rpcuser={user}', '-stdinrpcpass', cli_input=password).getblockcount())
         assert_raises_process_error(1, "Incorrect rpcuser or rpcpassword", self.nodes[0].cli(
-            f'-rpcuser={user}', '-stdinrpcpass', input="foo").echo)
+            f'-rpcuser={user}', '-stdinrpcpass', cli_input="foo").echo)
 
         self.log.info("Test -stdin and -stdinrpcpass")
         assert_equal(["foo", "bar"], self.nodes[0].cli(f'-rpcuser={user}',
-                                                       '-stdin', '-stdinrpcpass', input=f"{password}\nfoo\nbar").echo())
+                                                       '-stdin', '-stdinrpcpass', cli_input=f"{password}\nfoo\nbar").echo())
         assert_raises_process_error(1, "Incorrect rpcuser or rpcpassword", self.nodes[0].cli(
-            f'-rpcuser={user}', '-stdin', '-stdinrpcpass', input="foo").echo)
+            f'-rpcuser={user}', '-stdin', '-stdinrpcpass', cli_input="foo").echo)
 
         self.log.info("Test connecting to a non-existing server")
         assert_raises_process_error(

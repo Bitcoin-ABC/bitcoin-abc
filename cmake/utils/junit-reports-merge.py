@@ -83,7 +83,7 @@ class Lock:
         self.fd = open(self.lock_file, 'w', encoding='utf-8')
         fcntl.lockf(self.fd, fcntl.LOCK_EX)
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exception_type, exception_value, traceback):
         fcntl.lockf(self.fd, fcntl.LOCK_UN)
         self.fd.close()
 

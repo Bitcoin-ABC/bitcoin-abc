@@ -111,9 +111,9 @@ def spend_tx(node, prev_tx, address):
     return spendtx
 
 
-def create_bip112special(node, input, txversion, address):
+def create_bip112special(node, txid, txversion, address):
     tx = create_transaction(
-        node, input, address, amount=Decimal("49980000"))
+        node, txid, address, amount=Decimal("49980000"))
     tx.nVersion = txversion
     tx.vout[0].scriptPubKey = CScript(
         [-1, OP_CHECKSEQUENCEVERIFY, OP_DROP, OP_TRUE])

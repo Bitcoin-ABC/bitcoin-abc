@@ -15,7 +15,7 @@ from test_framework.util import assert_equal
 
 def serialize_addrman(
     *,
-    format=1,
+    addrman_format=1,
     lowest_compatible=4,
     net_magic=b"\xfa\xbf\xb5\xda",
     bucket_key=1,
@@ -27,7 +27,7 @@ def serialize_addrman(
     tried = []
     INCOMPATIBILITY_BASE = 32
     r = net_magic
-    r += struct.pack("B", format)
+    r += struct.pack("B", addrman_format)
     r += struct.pack("B", INCOMPATIBILITY_BASE + lowest_compatible)
     r += ser_uint256(bucket_key)
     r += struct.pack("i", len_new or len(new))

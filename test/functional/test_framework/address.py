@@ -66,16 +66,16 @@ def base58_to_byte(s):
     return res[1:-4], int(res[0])
 
 
-def keyhash_to_p2pkh(hash, main=False):
-    assert (len(hash) == 20)
+def keyhash_to_p2pkh(keyhash, main=False):
+    assert (len(keyhash) == 20)
     version = 0 if main else 111
-    return byte_to_base58(hash, version)
+    return byte_to_base58(keyhash, version)
 
 
-def scripthash_to_p2sh(hash, main=False):
-    assert (len(hash) == 20)
+def scripthash_to_p2sh(scripthash, main=False):
+    assert (len(scripthash) == 20)
     version = 5 if main else 196
-    return byte_to_base58(hash, version)
+    return byte_to_base58(scripthash, version)
 
 
 def key_to_p2pkh(key, main=False):

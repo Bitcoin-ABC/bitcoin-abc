@@ -891,11 +891,11 @@ class TestNodeCLI:
         self.log = logging.getLogger('TestFramework.bitcoincli')
         self.emulator = emulator
 
-    def __call__(self, *options, input=None):
+    def __call__(self, *options, cli_input=None):
         # TestNodeCLI is callable with bitcoin-cli command-line options
         cli = TestNodeCLI(self.binary, self.datadir, self.emulator)
         cli.options = [str(o) for o in options]
-        cli.input = input
+        cli.input = cli_input
         return cli
 
     def __getattr__(self, command):
