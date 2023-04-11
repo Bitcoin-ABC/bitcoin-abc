@@ -15,12 +15,11 @@ from urllib.parse import urljoin
 
 import mock
 import requests
+from build import BuildStatus
 from phabricator_wrapper import BITCOIN_ABC_REPO
 from server import BADGE_TC_BASE
 from teamcity_wrapper import BuildInfo
 from testutil import AnyWith
-
-from build import BuildStatus
 
 
 class statusRequestData(test.mocks.fixture.MockData):
@@ -862,6 +861,50 @@ class EndpointStatusTestCase(ABCBotFixture):
                     }
                 )
             ),
+        }], objectIdentifier='789')
+
+    def test_status_preview_available(self):
+        data = statusRequestData()
+        data.buildResult = 'success'
+        data.branch = 'phabricator/diff/456'
+
+        self.teamcity.getPreviewUrl = mock.Mock()
+        self.teamcity.getPreviewUrl.return_value = "Preview is available at http://127.0.0.1:8080 for the next 10 minutes."
+
+        self.configure_build_info(
+            properties=test.mocks.teamcity.buildInfo_properties(propsList=[{
+                'name': 'env.OS_NAME',
+                'value': 'linux',
+            }]),
+        )
+
+        self.teamcity.session.send.side_effect = [
+            test.mocks.teamcity.Response(),
+            test.mocks.teamcity.Response(),
+            test.mocks.teamcity.Response(),
+        ]
+
+        self.phab.differential.revision.edit = mock.Mock()
+        self.phab.differential.diff.search.return_value = test.mocks.phabricator.Result([{
+            'id': '456',
+            'fields': {
+                'revisionPHID': '789'
+            },
+        }])
+        self.phab.differential.revision.search.return_value = test.mocks.phabricator.differential_revision_search_result()
+
+        response = self.app.post('/status', headers=self.headers, json=data)
+        self.assertEqual(response.status_code, 200)
+        build_url = self.teamcity.build_url(
+            "viewLog.html",
+            {
+                "buildTypeId": data.buildTypeId,
+                "buildId": DEFAULT_BUILD_ID,
+            }
+        )
+        self.phab.differential.revision.edit.assert_called_with(transactions=[{
+            "type": "comment",
+            "value": f"Build [[{build_url} | build-name (linux)]] passed.\nPreview is available at http://127.0.0.1:8080 for the next 10 minutes.\n",
         }], objectIdentifier='789')
 
     def test_status_revision_testsFailed(self):

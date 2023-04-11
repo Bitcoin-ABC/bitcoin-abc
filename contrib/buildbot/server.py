@@ -1051,7 +1051,17 @@ def create_server(tc, phab, slackbot, cirrus,
                 buildConfig = properties.get('env.OS_NAME', 'UNKNOWN')
             buildName = f"{buildName} ({buildConfig})"
 
-            if status == BuildStatus.Failure:
+            if status == BuildStatus.Success:
+                # Upon success, we only report if there is a website preview
+                # available.
+                preview_url_log = tc.getPreviewUrl(buildId)
+                if preview_url_log:
+                    msg = phab.createBuildStatusMessage(status, guest_url, buildName)
+                    msg += f"\n{preview_url_log}\n"
+
+                    phab.commentOnRevision(revisionPHID, msg, buildName)
+
+            elif status == BuildStatus.Failure:
                 msg = phab.createBuildStatusMessage(
                     status, guest_url, buildName)
                 # We add two newlines to break away from the (IMPORTANT)

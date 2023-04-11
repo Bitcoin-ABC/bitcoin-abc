@@ -165,6 +165,14 @@ class TeamCity():
                     ret += line.decode('utf-8')
         return ret.replace('\r\n', '\n')
 
+    def getPreviewUrl(self, buildId):
+        try:
+            return self.get_artifact(buildId, "artifacts.tar.gz!/preview_url.log")
+        except TeamcityRequestException:
+            # This is likely a 404 and the log doesn't exist.
+            pass
+        return None
+
     def getBuildProblems(self, buildId):
         endpoint = self.build_url(
             "app/rest/problemOccurrences",
