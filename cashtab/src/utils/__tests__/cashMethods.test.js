@@ -1,4 +1,6 @@
 import BigNumber from 'bignumber.js';
+import * as utxolib from '@bitgo/utxo-lib';
+import cashaddr from 'ecashaddrjs';
 import {
     fromSatoshisToXec,
     flattenContactList,
@@ -29,7 +31,6 @@ import {
     generateGenesisOpReturn,
     generateSendOpReturn,
     generateBurnOpReturn,
-    getECPairFromWIF,
     hash160ToAddress,
     getAliasRegistrationFee,
     outputScriptToAddress,
@@ -111,8 +112,6 @@ import {
     mockMultipleOutputs,
 } from '../__mocks__/mockTxBuilderData';
 import createTokenMock from '../__mocks__/createToken';
-import TransactionBuilder from 'utils/txBuilder';
-import { mockWif, mockStringifiedECPair } from '../__mocks__/mockECPair';
 
 it(`Alias byte length matches for an alias input with a single emoji`, () => {
     const aliasInput = '🙈';
@@ -253,7 +252,9 @@ it(`generateGenesisOpReturn() throws error on invalid configObj`, () => {
 it(`signUtxosByAddress() successfully returns a txBuilder object for a one to one XEC tx`, () => {
     const isOneToMany = false;
     const { destinationAddress, wallet, utxos } = sendBCHMock;
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
     const satoshisToSendInput = new BigNumber(2184);
     const feeInSatsPerByte = currency.defaultFee;
 
@@ -307,7 +308,9 @@ it(`signUtxosByAddress() successfully returns a txBuilder object for a one to on
 it(`signUtxosByAddress() successfully returns a txBuilder object for a one to many XEC tx`, () => {
     const isOneToMany = true;
     const { wallet, utxos } = sendBCHMock;
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
     let destinationAddressAndValueArray = [
         'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r48,3000',
         'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx,3000',
@@ -666,7 +669,9 @@ it('generateOpReturnScript() correctly generates an alias registration script', 
 });
 
 it(`generateTokenTxInput() returns a valid object for a valid create token tx`, async () => {
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
     const tokenId =
         '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e';
     const tokenInputObj = generateTokenTxInput(
@@ -691,7 +696,9 @@ it(`generateTokenTxInput() returns a valid object for a valid create token tx`, 
 });
 
 it(`generateTokenTxInput() returns a valid object for a valid send token tx`, async () => {
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
     const tokenId = mockSlpUtxos[0].tokenId;
 
     const tokenInputObj = generateTokenTxInput(
@@ -716,7 +723,9 @@ it(`generateTokenTxInput() returns a valid object for a valid send token tx`, as
 });
 
 it(`generateTokenTxInput() returns a valid object for a valid burn token tx`, async () => {
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
     const tokenId = mockSlpUtxos[0].tokenId;
 
     const tokenInputObj = generateTokenTxInput(
@@ -741,7 +750,9 @@ it(`generateTokenTxInput() returns a valid object for a valid burn token tx`, as
 });
 
 it(`generateTokenTxOutput() returns a valid object for a valid create token tx`, async () => {
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
     const { configObj, wallet } = createTokenMock;
     const tokenSenderCashAddress = wallet.Path1899.cashAddress;
 
@@ -760,7 +771,9 @@ it(`generateTokenTxOutput() returns a valid object for a valid create token tx`,
 });
 
 it(`generateTokenTxOutput() returns a valid object for a valid send token tx`, async () => {
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
     const { wallet } = createTokenMock;
     const tokenSenderCashAddress = wallet.Path1899.cashAddress;
     const tokenRecipientTokenAddress = wallet.Path1899.cashAddress;
@@ -782,7 +795,9 @@ it(`generateTokenTxOutput() returns a valid object for a valid send token tx`, a
 });
 
 it(`generateTokenTxOutput() returns a valid object for a valid burn token tx`, async () => {
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
     const { wallet } = createTokenMock;
     const tokenSenderCashAddress = wallet.Path1899.cashAddress;
 
@@ -805,7 +820,9 @@ it(`generateTokenTxOutput() returns a valid object for a valid burn token tx`, a
 it(`generateTxInput() returns an input object for a valid one to one XEC tx`, async () => {
     const isOneToMany = false;
     const utxos = mockNonSlpUtxos;
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
     const destinationAddressAndValueArray = null;
     const satoshisToSend = new BigNumber(2184);
     const feeInSatsPerByte = currency.defaultFee;
@@ -827,7 +844,9 @@ it(`generateTxInput() returns an input object for a valid one to one XEC tx`, as
 it(`generateTxInput() returns an input object for a valid one to many XEC tx`, async () => {
     const isOneToMany = true;
     const utxos = mockNonSlpUtxos;
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
     const destinationAddressAndValueArray = [
         'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r48,3000',
         'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx,3000',
@@ -853,7 +872,9 @@ it(`generateTxInput() returns an input object for a valid one to many XEC tx`, a
 it(`generateTxInput() throws error for a one to many XEC tx with invalid destinationAddressAndValueArray input`, async () => {
     const isOneToMany = true;
     const utxos = mockNonSlpUtxos;
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
     const destinationAddressAndValueArray = null; // invalid since isOneToMany is true
     const satoshisToSend = new BigNumber(900000);
     const feeInSatsPerByte = currency.defaultFee;
@@ -877,7 +898,9 @@ it(`generateTxInput() throws error for a one to many XEC tx with invalid destina
 it(`generateTxInput() throws error for a one to many XEC tx with invalid utxos input`, async () => {
     const isOneToMany = true;
     const utxos = null;
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
     const destinationAddressAndValueArray = [
         'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r48,3000',
         'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx,3000',
@@ -919,7 +942,9 @@ it(`generateTxOutput() returns a txBuilder instance for a valid one to one XEC t
     );
 
     const destinationAddressAndValueArray = null;
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
     const changeAddress = wallet.Path1899.cashAddress;
 
     const outputObj = generateTxOutput(
@@ -962,7 +987,9 @@ it(`generateTxOutput() returns a txBuilder instance for a valid one to many XEC 
         ); // change value
 
     const destinationAddressAndValueArray = validAddressArrayInput;
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
     const changeAddress = wallet.Path1899.cashAddress;
 
     const outputObj = generateTxOutput(
@@ -994,7 +1021,9 @@ it(`generateTxOutput() throws an error on invalid input params for a one to one 
     const txFee = new BigNumber(totalInputUtxoValue).minus(satoshisToSend);
 
     const destinationAddressAndValueArray = null;
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
     const changeAddress = wallet.Path1899.cashAddress;
 
     let thrownError;
@@ -1039,7 +1068,9 @@ it(`generateTxOutput() throws an error on invalid input params for a one to many
             ),
         ); // change value
     const destinationAddressAndValueArray = null; // invalid as this is mandatory when isOneToMany is true
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
     const changeAddress = wallet.Path1899.cashAddress;
 
     let thrownError;
@@ -1063,7 +1094,9 @@ it(`generateTxOutput() throws an error on invalid input params for a one to many
 
 it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single input and a single output`, () => {
     // txbuilder output params
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
     // Use legacy sequencing for legacy unit tests
     txBuilder.DEFAULT_SEQUENCE = 0xffffffff;
     const { wallet } = sendBCHMock;
@@ -1076,7 +1109,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single in
     // add outputs to txBuilder
     const outputAddressAndValue = mockSingleOutput.split(',');
     txBuilder.addOutput(
-        outputAddressAndValue[0], // address
+        cashaddr.toLegacy(outputAddressAndValue[0]), // address
         parseInt(fromXecToSatoshis(new BigNumber(outputAddressAndValue[1]))), // value
     );
     const rawTxHex = signAndBuildTx(mockSingleInputUtxo, txBuilder, wallet);
@@ -1087,7 +1120,9 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single in
 
 it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single input and multiple outputs`, () => {
     // txbuilder output params
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
     // Use legacy sequencing for legacy unit tests
     txBuilder.DEFAULT_SEQUENCE = 0xffffffff;
     const { wallet } = sendBCHMock;
@@ -1101,7 +1136,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single in
     for (let i = 0; i < mockMultipleOutputs.length; i++) {
         const outputAddressAndValue = mockMultipleOutputs[i].split(',');
         txBuilder.addOutput(
-            outputAddressAndValue[0], // address
+            cashaddr.toLegacy(outputAddressAndValue[0]), // address
             parseInt(
                 fromXecToSatoshis(new BigNumber(outputAddressAndValue[1])),
             ), // value
@@ -1116,7 +1151,9 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single in
 
 it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple inputs and a single output`, () => {
     // txbuilder output params
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
     // Use legacy sequencing for legacy unit tests
     txBuilder.DEFAULT_SEQUENCE = 0xffffffff;
     const { wallet } = sendBCHMock;
@@ -1130,7 +1167,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple in
     // add outputs to txBuilder
     const outputAddressAndValue = mockSingleOutput.split(',');
     txBuilder.addOutput(
-        outputAddressAndValue[0], // address
+        cashaddr.toLegacy(outputAddressAndValue[0]), // address
         parseInt(fromXecToSatoshis(new BigNumber(outputAddressAndValue[1]))), // value
     );
 
@@ -1142,7 +1179,9 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple in
 
 it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple inputs and multiple outputs`, () => {
     // txbuilder output params
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
     // Use legacy sequencing for legacy unit tests
     txBuilder.DEFAULT_SEQUENCE = 0xffffffff;
     const { wallet } = sendBCHMock;
@@ -1157,7 +1196,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple in
     for (let i = 0; i < mockMultipleOutputs.length; i++) {
         const outputAddressAndValue = mockMultipleOutputs[i].split(',');
         txBuilder.addOutput(
-            outputAddressAndValue[0], // address
+            cashaddr.toLegacy(outputAddressAndValue[0]), // address
             parseInt(
                 fromXecToSatoshis(new BigNumber(outputAddressAndValue[1])),
             ), // value
@@ -1172,7 +1211,9 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple in
 
 it(`signAndBuildTx() throws error on an empty inputUtxo param`, () => {
     // txbuilder output params
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
     const { wallet } = sendBCHMock;
     let thrownError;
     try {
@@ -1185,7 +1226,9 @@ it(`signAndBuildTx() throws error on an empty inputUtxo param`, () => {
 
 it(`signAndBuildTx() throws error on a null inputUtxo param`, () => {
     // txbuilder output params
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
     const inputUtxo = null; // invalid input param
     const { wallet } = sendBCHMock;
     let thrownError;
@@ -1632,11 +1675,6 @@ describe('Correctly executes cash utility functions', () => {
     it('calculates fee correctly for 2 P2PKH outputs', () => {
         const utxosMock = [{}, {}];
         expect(calcFee(utxosMock, 2, 1.01)).toBe(378);
-    });
-    it(`Gets correct EC Pair from WIF`, () => {
-        expect(JSON.stringify(getECPairFromWIF(mockWif))).toBe(
-            mockStringifiedECPair,
-        );
     });
     it(`Converts a hash160 to an ecash address`, () => {
         expect(

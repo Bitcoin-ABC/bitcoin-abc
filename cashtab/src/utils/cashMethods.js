@@ -9,8 +9,7 @@ import BigNumber from 'bignumber.js';
 import cashaddr from 'ecashaddrjs';
 import bs58 from 'bs58';
 import * as slpMdm from 'slp-mdm';
-import eCash from 'ecashjs-lib';
-import coininfo from 'utils/coininfo';
+import * as utxolib from '@bitgo/utxo-lib';
 
 export const getAliasByteSize = aliasInputStr => {
     if (!aliasInputStr || aliasInputStr.trim() === '') {
@@ -198,15 +197,6 @@ export const getUtxoWif = (utxo, wallet) => {
     return wif;
 };
 
-// Reference https://github.com/Permissionless-Software-Foundation/bch-js/blob/master/src/ecpair.js#L24
-// Modified for mainnet only
-export const getECPairFromWIF = wif => {
-    let xec = coininfo.bitcoincash.main;
-    const xecBitcoinJSLib = xec.toBitcoinJS();
-
-    return eCash.ECPair.fromWIF(wif, xecBitcoinJSLib);
-};
-
 export const signUtxosByAddress = (inputUtxos, wallet, txBuilder) => {
     for (let i = 0; i < inputUtxos.length; i++) {
         const utxo = inputUtxos[i];
@@ -216,13 +206,24 @@ export const signUtxosByAddress = (inputUtxos, wallet, txBuilder) => {
             .filter(acc => acc.cashAddress === utxo.address)
             .pop().fundingWif;
 
-        const utxoECPair = getECPairFromWIF(wif);
+        const utxoECPair = utxolib.ECPair.fromWIF(wif, utxolib.networks.ecash);
+
+        // set version to 2. Need to patch @bitgo/utxo-lib to correct this bug
+        // https://github.com/BitGo/BitGoJS/blob/master/modules/utxo-lib/src/bitgo/transaction.ts#L108
+        txBuilder.__TX.version = 2;
+
+        // Specify hash type
+        // This should be handled at the utxo-lib level, pending latest published version
+        const hashTypes = {
+            SIGHASH_ALL: 0x01,
+            SIGHASH_FORKID: 0x40,
+        };
 
         txBuilder.sign(
             i,
             utxoECPair,
             undefined,
-            txBuilder.hashTypes.SIGHASH_ALL,
+            hashTypes.SIGHASH_ALL | hashTypes.SIGHASH_FORKID,
             parseInt(utxo.value),
         );
     }
@@ -312,7 +313,10 @@ export const generateTokenTxOutput = (
         txBuilder.addOutput(script, 0);
 
         // add XEC dust output as fee for genesis, send or burn token output
-        txBuilder.addOutput(destinationAddress, parseInt(currency.etokenSats));
+        txBuilder.addOutput(
+            cashaddr.toLegacy(destinationAddress),
+            parseInt(currency.etokenSats),
+        );
 
         // Return any token change back to the sender for send and burn txs
         if (
@@ -321,7 +325,7 @@ export const generateTokenTxOutput = (
         ) {
             // add XEC dust output as fee
             txBuilder.addOutput(
-                tokenUtxosBeingSpent[0].address, // etoken address
+                cashaddr.toLegacy(tokenUtxosBeingSpent[0].address), // etoken address
                 parseInt(currency.etokenSats),
             );
         }
@@ -329,7 +333,7 @@ export const generateTokenTxOutput = (
         // Send xec change to own address
         if (remainderXecValue.gte(new BigNumber(currency.dustSats))) {
             txBuilder.addOutput(
-                legacyCashOriginAddress,
+                cashaddr.toLegacy(legacyCashOriginAddress),
                 parseInt(remainderXecValue),
             );
         }
@@ -607,7 +611,7 @@ export const encodeOpReturnScript = scriptChunks => {
     scriptChunks.forEach(chunk => {
         arr.push(chunk);
     });
-    return eCash.script.compile(arr);
+    return utxolib.script.compile(arr);
 };
 
 /*
@@ -737,21 +741,24 @@ export const generateTxOutput = (
                     destinationAddressAndValueArray[i].split(',')[1],
                 );
                 txBuilder.addOutput(
-                    outputAddress,
+                    cashaddr.toLegacy(outputAddress),
                     parseInt(fromXecToSatoshis(outputValue)),
                 );
             }
         } else {
             // for one to one mode, add output w/ single address and amount to send
             txBuilder.addOutput(
-                destinationAddress,
+                cashaddr.toLegacy(destinationAddress),
                 parseInt(fromXecToSatoshis(singleSendValue)),
             );
         }
 
         // if a remainder exists, return to change address as the final output
         if (remainder.gte(new BigNumber(currency.dustSats))) {
-            txBuilder.addOutput(changeAddress, parseInt(remainder));
+            txBuilder.addOutput(
+                cashaddr.toLegacy(changeAddress),
+                parseInt(remainder),
+            );
         }
     } catch (err) {
         console.log('Error in generateTxOutput(): ' + err);
@@ -762,14 +769,7 @@ export const generateTxOutput = (
 };
 
 export const signAndBuildTx = (inputUtxos, txBuilder, wallet) => {
-    if (
-        !inputUtxos ||
-        inputUtxos.length === 0 ||
-        !txBuilder ||
-        !wallet ||
-        // txBuilder.transaction.tx.ins is empty until the inputUtxos are signed
-        txBuilder.transaction.tx.outs.length === 0
-    ) {
+    if (!inputUtxos || inputUtxos.length === 0 || !txBuilder || !wallet) {
         throw new Error('Invalid buildTx parameter');
     }
 

@@ -5,6 +5,7 @@
     "dependencies": {
         "@ant-design/icons": "^4.3.0",
         "@babel/core": "^7.16.0",
+        "@bitgo/utxo-lib": "^7.7.0",
         "@pmmmwh/react-refresh-webpack-plugin": "^0.5.3",
         "@svgr/webpack": "^6.3.1",
         "@testing-library/jest-dom": "^5.16.2",
@@ -34,8 +35,7 @@
         "css-minimizer-webpack-plugin": "^3.2.0",
         "dotenv": "^10.0.0",
         "dotenv-expand": "^5.1.0",
-        "ecashaddrjs": "^1.0.1",
-        "ecashjs-lib": "^1.0.3",
+        "ecashaddrjs": "^1.3.0",
         "ecies-lite": "^1.0.7",
         "eslint": "^8.3.0",
         "eslint-config-react-app": "^7.0.0",
@@ -109,9 +109,11 @@
     },
     "browserslist": {
         "production": [
-            ">0.2%",
-            "not dead",
-            "not op_mini all"
+            "chrome >= 67",
+            "edge >= 79",
+            "firefox >= 68",
+            "opera >= 54",
+            "safari >= 14"
         ],
         "development": [
             "last 1 chrome version",
@@ -144,7 +146,7 @@
             "<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}",
             "<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}"
         ],
-        "testEnvironment": "jsdom",
+        "testEnvironment": "./config/jest/uint8array-environment",
         "transform": {
             "^.+\\.(js|jsx|mjs|cjs|ts|tsx)$": "<rootDir>/config/jest/babelTransform.js",
             "^.+\\.css$": "<rootDir>/config/jest/cssTransform.js",

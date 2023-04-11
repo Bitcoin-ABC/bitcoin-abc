@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import usePrevious from 'hooks/usePrevious';
 import useInterval from './useInterval';
 import BigNumber from 'bignumber.js';
-import eCash from 'ecashjs-lib';
-import coininfo from 'utils/coininfo';
 import {
     loadStoredWallet,
     isValidStoredWallet,
@@ -42,6 +40,7 @@ import { ChronikClient } from 'chronik-client';
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
 import * as randomBytes from 'randombytes';
+import * as utxolib from '@bitgo/utxo-lib';
 
 const useWallet = () => {
     const [chronik, setChronik] = useState(
@@ -110,19 +109,15 @@ const useWallet = () => {
 
     const deriveAccount = async ({ masterHDNode, path }) => {
         const node = masterHDNode.derivePath(path);
-        const publicKey = node.getPublicKeyBuffer().toString('hex');
-        const cashAddress = cashaddr.encode(
-            'ecash',
-            'P2PKH',
-            node.getIdentifier(),
-        );
+        const publicKey = node.publicKey.toString('hex');
+        const cashAddress = cashaddr.encode('ecash', 'P2PKH', node.identifier);
         const hash160 = toHash160(cashAddress);
 
         return {
             publicKey,
             hash160,
             cashAddress,
-            fundingWif: node.keyPair.toWIF(),
+            fundingWif: node.toWIF(),
         };
     };
 
@@ -379,9 +374,9 @@ const useWallet = () => {
         const mnemonic = wallet.mnemonic;
         const rootSeedBuffer = await bip39.mnemonicToSeed(mnemonic, '');
 
-        const masterHDNode = eCash.HDNode.fromSeedBuffer(
+        const masterHDNode = utxolib.bip32.fromSeed(
             rootSeedBuffer,
-            coininfo.bitcoincash.main.toBitcoinJS(),
+            utxolib.networks.ecash,
         );
 
         const Path245 = await deriveAccount({
@@ -443,9 +438,9 @@ const useWallet = () => {
         // Since this info is in localforage now, only get the var
         const mnemonic = wallet.mnemonic;
         const rootSeedBuffer = await bip39.mnemonicToSeed(mnemonic, '');
-        const masterHDNode = eCash.HDNode.fromSeedBuffer(
+        const masterHDNode = utxolib.bip32.fromSeed(
             rootSeedBuffer,
-            coininfo.bitcoincash.main.toBitcoinJS(),
+            utxolib.networks.ecash,
         );
 
         const Path245 = await deriveAccount({

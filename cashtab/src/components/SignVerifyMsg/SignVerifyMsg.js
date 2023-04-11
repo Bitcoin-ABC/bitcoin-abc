@@ -24,11 +24,7 @@ import {
     DestinationAddressSingleWithoutQRScan,
 } from 'components/Common/EnhancedInputs';
 const { TextArea } = Input;
-import {
-    convertToEcashPrefix,
-    getWalletState,
-    getECPairFromWIF,
-} from 'utils/cashMethods';
+import { convertToEcashPrefix, getWalletState } from 'utils/cashMethods';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { ThemedCopySolid } from 'components/Common/CustomIcons';
 import { SmartButton } from 'components/Common/PrimaryButton';
@@ -36,6 +32,7 @@ import { PlusSquareOutlined } from '@ant-design/icons';
 import { currency, parseAddressForParams } from 'components/Common/Ticker.js';
 import { isValidXecAddress, isValidEtokenAddress } from 'utils/validation';
 import xecMessage from 'xecjs-message';
+import * as utxolib from '@bitgo/utxo-lib';
 
 const Wrapper = styled.div`
     .ant-collapse {
@@ -101,9 +98,13 @@ const SignVerifyMsg = () => {
     const signMessageByPk = () => {
         try {
             // First, get required params
-            const keyPair = getECPairFromWIF(wallet.Path1899.fundingWif);
+            const keyPair = utxolib.ECPair.fromWIF(
+                wallet.Path1899.fundingWif,
+                utxolib.networks.ecash,
+            );
             // Reference https://github.com/Permissionless-Software-Foundation/bch-js/blob/master/src/bitcoincash.js#L161
-            const privKey = keyPair.d.toBuffer(32);
+            const privKey = keyPair.__D;
+
             // Now you can get the local signature
             const messageSignature = xecMessage
                 .sign(msgToSign, privKey, keyPair.compressed)

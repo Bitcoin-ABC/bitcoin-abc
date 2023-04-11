@@ -13,7 +13,7 @@ import {
     toHash160,
 } from 'utils/cashMethods';
 import ecies from 'ecies-lite';
-import TransactionBuilder from 'utils/txBuilder';
+import * as utxolib from '@bitgo/utxo-lib';
 
 const SEND_XEC_ERRORS = {
     INSUFFICIENT_FUNDS: 0,
@@ -37,7 +37,9 @@ export const createToken = async (
         }
         const utxos = wallet.state.nonSlpUtxos;
         const CREATION_ADDR = wallet.Path1899.cashAddress;
-        let txBuilder = new TransactionBuilder();
+        let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+            utxolib.networks.ecash,
+        );
 
         let tokenTxInputObj = generateTokenTxInput(
             'GENESIS',
@@ -124,7 +126,9 @@ export const sendToken = async (
     }
 
     // instance of transaction builder
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
 
     let tokenTxInputObj = generateTokenTxInput(
         'SEND',
@@ -192,7 +196,9 @@ export const burnToken = async (chronik, wallet, { tokenId, amount }) => {
     }
 
     // instance of transaction builder
-    let txBuilder = new TransactionBuilder();
+    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+        utxolib.networks.ecash,
+    );
 
     let tokenTxInputObj = generateTokenTxInput(
         'BURN',
@@ -327,7 +333,9 @@ export const registerNewAlias = async (
     registrationFee,
 ) => {
     try {
-        let txBuilder = new TransactionBuilder();
+        let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+            utxolib.networks.ecash,
+        );
 
         const satoshisToSend = fromXecToSatoshis(registrationFee);
 
@@ -444,7 +452,9 @@ export const sendXec = async (
     optionalMockPubKeyResponse = false,
 ) => {
     try {
-        let txBuilder = new TransactionBuilder();
+        let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
+            utxolib.networks.ecash,
+        );
 
         // parse the input value of XECs to send
         const value = parseXecSendValue(

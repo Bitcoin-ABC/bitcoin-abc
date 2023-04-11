@@ -1,7 +1,3 @@
-/**
- * @jest-environment ./config/jest/uint8array-environment
- */
-
 import useWallet from '../useWallet';
 import { renderHook, act } from '@testing-library/react-hooks';
 import mockLegacyWallets from '../__mocks__/mockLegacyWallets';
