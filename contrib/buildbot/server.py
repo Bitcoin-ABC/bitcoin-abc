@@ -15,13 +15,12 @@ from functools import wraps
 from shlex import quote
 
 import yaml
+from build import BuildStatus, BuildTarget
 from deepmerge import always_merger
 from flask import Flask, abort, request
 from phabricator_wrapper import BITCOIN_ABC_PROJECT_PHID
 from shieldio import RasterBadge
 from teamcity_wrapper import TeamcityRequestException
-
-from build import BuildStatus, BuildTarget
 
 # Some keywords used by TeamCity and tcWebHook
 SUCCESS = "success"
@@ -152,6 +151,35 @@ def create_server(tc, phab, slackbot, cirrus,
             abort(415, "Expected content-type is 'application/json'")
         return request.get_json()
 
+    def get_master_build_configurations():
+        # Get the configuration from master
+        config = yaml.safe_load(phab.get_file_content_from_master(
+            "contrib/teamcity/build-configurations.yml"))
+
+        # Get a list of the templates, if any
+        templates = config.get("templates", {})
+
+        # Get a list of the builds
+        build_configs = {}
+        for build_name, v in config.get('builds', {}).items():
+            # Merge the templates
+            template_config = {}
+            template_names = v.get("templates", [])
+            for template_name in template_names:
+                # Raise an error if the template does not exist
+                if template_name not in templates:
+                    raise AssertionError(
+                        f"Build {build_name} configuration inherits from "
+                        f"template {template_name}, but the template does not "
+                        "exist."
+                    )
+                always_merger.merge(
+                    template_config, templates.get(template_name))
+            # Retrieve the full build configuration by applying the templates
+            build_configs[build_name] = always_merger.merge(template_config, v)
+
+        return build_configs
+
     @app.route("/getCurrentUser", methods=['GET'])
     def getCurrentUser():
         return request.authorization.username if request.authorization else None
@@ -263,37 +291,15 @@ def create_server(tc, phab, slackbot, cirrus,
         target_phid = get_mandatory_argument('targetPHID')
         revision_id = get_mandatory_argument('revisionId')
 
-        # Get the configuration from master
-        config = yaml.safe_load(phab.get_file_content_from_master(
-            "contrib/teamcity/build-configurations.yml"))
-
         # Get the list of changed files
         changedFiles = phab.get_revision_changed_files(
             revision_id=revision_id)
 
-        # Get a list of the templates, if any
-        templates = config.get("templates", {})
+        build_configs = get_master_build_configurations()
 
         # Get a list of the builds that should run on diffs
         builds = []
-        for build_name, v in config.get('builds', {}).items():
-            # Merge the templates
-            template_config = {}
-            template_names = v.get("templates", [])
-            for template_name in template_names:
-                # Raise an error if the template does not exist
-                if template_name not in templates:
-                    raise AssertionError(
-                        "Build {} configuration inherits from template {}, but the template does not exist.".format(
-                            build_name,
-                            template_name
-                        )
-                    )
-                always_merger.merge(
-                    template_config, templates.get(template_name))
-            # Retrieve the full build configuration by applying the templates
-            build_config = always_merger.merge(template_config, v)
-
+        for build_name, build_config in build_configs.items():
             diffRegexes = build_config.get('runOnDiffRegex', None)
             if build_config.get('runOnDiff', False) or diffRegexes is not None:
                 if diffRegexes:
