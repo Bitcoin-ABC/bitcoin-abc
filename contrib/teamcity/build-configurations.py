@@ -6,6 +6,7 @@
 import argparse
 import asyncio
 import os
+import random
 import shutil
 import stat
 import subprocess
@@ -147,7 +148,7 @@ class BuildConfiguration:
             )
         dest.chmod(dest.stat().st_mode | stat.S_IEXEC)
 
-    def create_build_steps(self, artifact_dir):
+    def create_build_steps(self, artifact_dir, preview_url, ip_address):
         # There are 3 possibilities to define the build steps:
         #  - By manually defining a script to run.
         #  - By specifying a docker configuration to build
@@ -200,8 +201,9 @@ class BuildConfiguration:
                 }
             )
 
-            port = docker_config.get("port", None)
-            port_args = ["-p", f"{port}:{port}"] if port else []
+            inner_port = docker_config.get("port", None)
+            outer_port = random.randrange(41000, 42000)
+            port_args = ["-p", f"{outer_port}:{inner_port}"] if inner_port else []
             # Docker run. This uses a timeout value to stop the container after
             # some time. The stop signal is defined to sigterm so the app has a
             # chance of gracefully handle the stop request, and defaults to a
@@ -214,6 +216,18 @@ class BuildConfiguration:
             )
 
             timeout_minutes = docker_config.get("timeout_minutes", 60)
+
+            # Write the address to stdout and to the preview_url log file
+            preview_msg = f"Preview is available at http://{ip_address}:{outer_port} for the next {timeout_minutes} minutes."
+            with open(preview_url, 'w', encoding='utf-8') as f:
+                f.write(preview_msg)
+            self.build_steps.append(
+                {
+                    "bin": "echo",
+                    "args": [preview_msg],
+                }
+            )
+
             # Now we need to schedule a job to stop or kill the container after
             # the timeout expires.
             script_file = self.build_directory.joinpath("docker_timeout.sh")
@@ -368,6 +382,9 @@ class UserBuild():
             shutil.rmtree(self.configuration.build_directory)
         self.configuration.build_directory.mkdir(exist_ok=True, parents=True)
 
+        self.preview_url = build_directory.joinpath("preview_url.log")
+        self.ip_address = '127.0.0.1'
+
     def copy_artifacts(self, artifacts):
         # Make sure the artifact directory always exists. It is created before
         # the build is run (to let the build install things to it) but since we
@@ -508,6 +525,7 @@ class UserBuild():
                 str(self.configuration.junit_reports_dir.relative_to(build_directory)): "",
                 str(self.configuration.test_logs_dir.relative_to(build_directory)): "",
                 str(self.configuration.functional_test_logs.relative_to(build_directory)): "functional",
+                str(self.preview_url.relative_to(build_directory)): "",
             }
 
             self.copy_artifacts(artifacts)
@@ -520,7 +538,8 @@ class UserBuild():
             shutil.rmtree(self.artifact_dir)
         self.artifact_dir.mkdir(exist_ok=True)
 
-        self.configuration.create_build_steps(self.artifact_dir)
+        self.configuration.create_build_steps(
+            self.artifact_dir, self.preview_url, self.ip_address)
 
         return_code, message = asyncio.run(
             self.wait_for_build(
@@ -543,6 +562,10 @@ class TeamcityBuild(UserBuild):
         self.artifact_dir = Path("/results/artifacts")
 
         self.teamcity_messages = TeamcityServiceMessages()
+
+        # Only gather the public IP if we are running on a TC build agent
+        from whatismyip import whatismyip
+        self.ip_address = whatismyip()
 
     def copy_artifacts(self, artifacts):
         super().copy_artifacts(artifacts)

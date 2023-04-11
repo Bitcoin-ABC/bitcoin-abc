@@ -11,6 +11,9 @@ TEAMCITY_DIR=$(dirname "$0")
 
 # Python library for interacting with teamcity
 pip3 install teamcity-messages
+# Gather the IP address, useful for the website preview builds
+pip3 install whatismyip
+
 # Install Python dependencies for the build bot
 # Note: Path should be relative to TEAMCITY_DIR since the base image build
 # context may be different than the project root.
