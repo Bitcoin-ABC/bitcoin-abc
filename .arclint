@@ -259,7 +259,7 @@
         },
         "lint-python-mypy": {
             "type": "lint-python-mypy",
-            "version": ">=0.780",
+            "version": ">=0.910",
             "include": "(\\.py$)",
             "exclude": [
                 "(^contrib/gitian-builder/)",
