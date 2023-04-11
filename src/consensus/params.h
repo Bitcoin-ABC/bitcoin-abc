@@ -58,8 +58,6 @@ struct Params {
     int axionHeight;
     /** Block height at which the gluon activation becomes active */
     int gluonHeight;
-    /** Unix time used for MTP activation of 15 Nov 2022 12:00:00 UTC upgrade */
-    int jeffersonActivationTime;
     /** Unix time used for MTP activation of 15 May 2023 12:00:00 UTC upgrade */
     int wellingtonActivationTime;
     /** Unix time used for MTP activation of 15 Nov 2023 12:00:00 UTC upgrade */
