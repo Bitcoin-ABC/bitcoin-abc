@@ -303,7 +303,7 @@ class AvalancheTest(BitcoinTestFramework):
                 ['Misbehaving', 'peer=1', 'unexpected-ava-response']):
             # unknown voting round
             poll_node.send_avaresponse(
-                round=2**32 - 1, votes=[], privkey=poll_node.delegated_privkey)
+                avaround=2**32 - 1, votes=[], privkey=poll_node.delegated_privkey)
 
 
 if __name__ == '__main__':

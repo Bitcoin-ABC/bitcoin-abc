@@ -222,8 +222,8 @@ class NoHandshakeAvaP2PInterface(P2PInterface):
         assert self.avahello is None
         self.avahello = message
 
-    def send_avaresponse(self, round, votes, privkey):
-        response = AvalancheResponse(round, 0, votes)
+    def send_avaresponse(self, avaround, votes, privkey):
+        response = AvalancheResponse(avaround, 0, votes)
         sig = privkey.sign_schnorr(response.get_hash())
         msg = msg_tcpavaresponse()
         msg.response = TCPAvalancheResponse(response, sig)
@@ -237,12 +237,12 @@ class NoHandshakeAvaP2PInterface(P2PInterface):
         with p2p_lock:
             return self.avaresponses.pop(0)
 
-    def send_poll(self, hashes, type=MSG_BLOCK):
+    def send_poll(self, hashes, inv_type=MSG_BLOCK):
         msg = msg_avapoll()
         msg.poll.round = self.round
         self.round += 1
         for h in hashes:
-            msg.poll.invs.append(CInv(type, h))
+            msg.poll.invs.append(CInv(inv_type, h))
         self.send_message(msg)
 
     def send_proof(self, proof):
@@ -432,7 +432,7 @@ def build_msg_avaproofs(proofs: List[AvalancheProof], prefilled_proofs: Optional
     return msg
 
 
-def can_find_inv_in_poll(quorum, hash, response=AvalancheVoteError.ACCEPTED):
+def can_find_inv_in_poll(quorum, inv_hash, response=AvalancheVoteError.ACCEPTED):
     found_hash = False
     for n in quorum:
         poll = n.get_avapoll_if_available()
@@ -448,7 +448,7 @@ def can_find_inv_in_poll(quorum, hash, response=AvalancheVoteError.ACCEPTED):
             r = AvalancheVoteError.ACCEPTED
 
             # Look for what we expect
-            if inv.hash == hash:
+            if inv.hash == inv_hash:
                 r = response
                 found_hash = True
 
