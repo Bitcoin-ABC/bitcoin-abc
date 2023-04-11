@@ -55,8 +55,6 @@ templates:
   #  - JS_PROJECT_ROOT: the root directory for the js project being tested,
   #    relative to the repository top level (no trailing /).
   js-mocha:
-    runOnDiffRegex:
-      - ${JS_PROJECT_ROOT}/
     artifacts:
       coverage.tar.gz: coverage.tar.gz
     script: |
@@ -638,12 +636,16 @@ builds:
         --reporters=jest-junit
 
   alias-server-tests:
+    runOnDiffRegex:
+      - apps/alias-server/
     env:
       JS_PROJECT_ROOT: apps/alias-server
     templates:
       - js-mocha
 
   ecash-herald-tests:
+    runOnDiffRegex:
+      - apps/ecash-herald/
     env:
       JS_PROJECT_ROOT: apps/ecash-herald
     templates:
