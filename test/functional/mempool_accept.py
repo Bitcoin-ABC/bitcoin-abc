@@ -158,7 +158,7 @@ class MempoolAcceptanceTest(BitcoinTestFramework):
 
         self.log.info('A transaction with missing inputs, that never existed')
         tx = FromHex(CTransaction(), raw_tx_0)
-        tx.vin[0].prevout = COutPoint(hash=int('ff' * 32, 16), n=14)
+        tx.vin[0].prevout = COutPoint(txid=int('ff' * 32, 16), n=14)
         # skip re-signing the tx
         self.check_mempool_result(
             result_expected=[
@@ -278,7 +278,7 @@ class MempoolAcceptanceTest(BitcoinTestFramework):
 
         self.log.info('A non-coinbase transaction with coinbase-like outpoint')
         tx = FromHex(CTransaction(), raw_tx_reference)
-        tx.vin.append(CTxIn(COutPoint(hash=0, n=0xffffffff)))
+        tx.vin.append(CTxIn(COutPoint(txid=0, n=0xffffffff)))
         self.check_mempool_result(
             result_expected=[{'txid': tx.rehash(),
                               'allowed': False,

@@ -307,7 +307,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         raw_tx = node.createrawtransaction(
             inputs=[{
                 # coinbase
-                "txid": uint256_hex(utxo.hash),
+                "txid": uint256_hex(utxo.txid),
                 "vout": utxo.n
             }],
             outputs={ADDRESS_ECREG_UNSPENDABLE: 25_000_000 - 250.00},

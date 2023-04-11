@@ -152,7 +152,7 @@ class PrevoutNullInput(BadTxTemplate):
     def get_tx(self):
         tx = CTransaction()
         tx.vin.append(self.valid_txin)
-        tx.vin.append(CTxIn(COutPoint(hash=0, n=0xffffffff)))
+        tx.vin.append(CTxIn(COutPoint(txid=0, n=0xffffffff)))
         tx.vout.append(CTxOut(1, basic_p2sh))
         tx.calc_sha256()
         return tx

@@ -353,24 +353,24 @@ class CBlockLocator:
 
 
 class COutPoint:
-    __slots__ = ("hash", "n")
+    __slots__ = ("txid", "n")
 
-    def __init__(self, hash=0, n=0):
-        self.hash = hash
+    def __init__(self, txid=0, n=0):
+        self.txid = txid
         self.n = n
 
     def deserialize(self, f):
-        self.hash = deser_uint256(f)
+        self.txid = deser_uint256(f)
         self.n = struct.unpack("<I", f.read(4))[0]
 
     def serialize(self):
         r = b""
-        r += ser_uint256(self.hash)
+        r += ser_uint256(self.txid)
         r += struct.pack("<I", self.n)
         return r
 
     def __repr__(self):
-        return f"COutPoint(hash={uint256_hex(self.hash)} n={self.n})"
+        return f"COutPoint(txid={uint256_hex(self.txid)} n={self.n})"
 
 
 class CTxIn:
@@ -2291,7 +2291,7 @@ class TestFrameworkMessages(unittest.TestCase):
         self.assertEqual(len(avaproof.stakes), 1)
         self.assertEqual(avaproof.stakes[0].sig, b64decode(
             "RTTKH14iZwvj31y9WVfY3YPQXI8X6uOR8Of/3OT7Pe+tt8B5Rz6+zPiMH4zofGHkUUR7icRFlnM1/9Gq3vQpmA=="))
-        self.assertEqual(f"{avaproof.stakes[0].stake.utxo.hash:x}",
+        self.assertEqual(f"{avaproof.stakes[0].stake.utxo.txid:x}",
                          "915d9cc742b46b77c52f69eb6be16739e5ff1cd82ad4fa4ac6581d3ef29fa769"
                          )
         self.assertEqual(avaproof.stakes[0].stake.utxo.n, 567214302)

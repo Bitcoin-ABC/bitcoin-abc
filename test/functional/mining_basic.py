@@ -117,7 +117,7 @@ class MiningTest(BitcoinTestFramework):
         self.log.info(
             "getblocktemplate: Test bad input hash for coinbase transaction")
         bad_block = copy.deepcopy(block)
-        bad_block.vtx[0].vin[0].prevout.hash += 1
+        bad_block.vtx[0].vin[0].prevout.txid += 1
         bad_block.vtx[0].rehash()
         assert_template(node, bad_block, 'bad-cb-missing')
 
@@ -139,7 +139,7 @@ class MiningTest(BitcoinTestFramework):
         self.log.info("getblocktemplate: Test invalid transaction")
         bad_block = copy.deepcopy(block)
         bad_tx = copy.deepcopy(bad_block.vtx[0])
-        bad_tx.vin[0].prevout.hash = 255
+        bad_tx.vin[0].prevout.txid = 255
         bad_tx.rehash()
         bad_block.vtx.append(bad_tx)
         assert_template(node, bad_block, 'bad-txns-inputs-missingorspent')

@@ -69,7 +69,7 @@ class UTXOSetHashTest(BitcoinTestFramework):
 
             for tx in block.vtx:
                 for n, tx_out in enumerate(tx.vout):
-                    coinbase = 1 if not tx.vin[0].prevout.hash else 0
+                    coinbase = 1 if not tx.vin[0].prevout.txid else 0
 
                     data = COutPoint(int(tx.rehash(), 16), n).serialize()
                     data += struct.pack("<i", height * 2 + coinbase)
