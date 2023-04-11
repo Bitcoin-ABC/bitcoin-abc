@@ -142,6 +142,7 @@ var VALID_PREFIXES = [
     'simpleledger',
     'etoken',
     'ectest',
+    'ecregtest',
     'bchtest',
     'bchreg',
 ];
