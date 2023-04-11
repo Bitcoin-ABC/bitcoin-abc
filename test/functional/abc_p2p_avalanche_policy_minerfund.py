@@ -5,7 +5,7 @@
 """Test the resolution of miner fund changes via avalanche."""
 import random
 
-from test_framework.avatools import get_ava_p2p_interface
+from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.blocktools import create_block, create_coinbase
 from test_framework.cashaddr import decode
 from test_framework.messages import (
@@ -72,40 +72,14 @@ class AvalancheMinerFundTest(BitcoinTestFramework):
         policy_miner_fund_amount = int(
             block_reward * XEC * MINER_FUND_RATIO / 100)
 
-        def can_find_block_in_poll(hash, resp=AvalancheVoteError.ACCEPTED):
-            found_hash = False
-            for n in quorum:
-                poll = n.get_avapoll_if_available()
-
-                # That node has not received a poll
-                if poll is None:
-                    continue
-
-                # We got a poll, check for the hash and repond
-                votes = []
-                for inv in poll.invs:
-                    # Vote yes to everything
-                    r = AvalancheVoteError.ACCEPTED
-
-                    # Look for what we expect
-                    if inv.hash == hash:
-                        r = resp
-                        found_hash = True
-
-                    votes.append(AvalancheVote(r, inv.hash))
-
-                n.send_avaresponse(poll.round, votes, n.delegated_privkey)
-
-            return found_hash
-
         def has_accepted_tip(tip_expected):
             hash_tip_final = int(tip_expected, 16)
-            can_find_block_in_poll(hash_tip_final)
+            can_find_inv_in_poll(quorum, hash_tip_final)
             return node.getbestblockhash() == tip_expected
 
         def has_finalized_tip(tip_expected):
             hash_tip_final = int(tip_expected, 16)
-            can_find_block_in_poll(hash_tip_final)
+            can_find_inv_in_poll(quorum, hash_tip_final)
             return node.isfinalblock(tip_expected)
 
         def create_cb_pay_to_address(address, miner_fund_amount):
@@ -198,7 +172,7 @@ class AvalancheMinerFundTest(BitcoinTestFramework):
         reject_hash = int(reject, 16)
         with node.wait_for_debug_log(
             [f"Avalanche invalidated block {reject}".encode()],
-                chatty_callable=lambda: can_find_block_in_poll(reject_hash, AvalancheVoteError.PARKED)):
+                chatty_callable=lambda: can_find_inv_in_poll(quorum, reject_hash, AvalancheVoteError.PARKED)):
             pass
 
         # Build a block on the accepted tip and the chain continues as normal

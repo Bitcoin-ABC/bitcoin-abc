@@ -7,14 +7,9 @@ import random
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.authproxy import JSONRPCException
-from test_framework.avatools import AvaP2PInterface
+from test_framework.avatools import AvaP2PInterface, can_find_inv_in_poll
 from test_framework.blocktools import create_block, create_coinbase
-from test_framework.messages import (
-    AvalancheVote,
-    AvalancheVoteError,
-    CBlockHeader,
-    msg_headers,
-)
+from test_framework.messages import CBlockHeader, msg_headers
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error, uint256_hex
 
@@ -66,40 +61,13 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
             return node.getavalancheinfo()['ready_to_poll'] is True
         self.wait_until(is_quorum_established)
 
-        def can_find_block_in_poll(
-                blockhash, resp=AvalancheVoteError.ACCEPTED):
-            found_hash = False
-            for n in quorum:
-                poll = n.get_avapoll_if_available()
-
-                # That node has not received a poll
-                if poll is None:
-                    continue
-
-                # We got a poll, check for the hash and repond
-                votes = []
-                for inv in poll.invs:
-                    # Vote yes to everything
-                    r = AvalancheVoteError.ACCEPTED
-
-                    # Look for what we expect
-                    if inv.hash == int(blockhash, 16):
-                        r = resp
-                        found_hash = True
-
-                    votes.append(AvalancheVote(r, inv.hash))
-
-                n.send_avaresponse(poll.round, votes, n.delegated_privkey)
-
-            return found_hash
-
         blockhash = self.generate(node, 1, sync_fun=self.no_op)[0]
         cb_txid = node.getblock(blockhash)['tx'][0]
         assert not node.isfinalblock(blockhash)
         assert not node.isfinaltransaction(cb_txid, blockhash)
 
         def is_finalblock(blockhash):
-            can_find_block_in_poll(blockhash)
+            can_find_inv_in_poll(quorum, int(blockhash, 16))
             return node.isfinalblock(blockhash)
 
         with node.assert_debug_log([f"Avalanche finalized block {blockhash}"]):

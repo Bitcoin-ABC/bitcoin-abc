@@ -7,6 +7,7 @@ import time
 
 from test_framework.avatools import (
     avalanche_proof_from_hex,
+    can_find_inv_in_poll,
     create_coinbase_stakes,
     gen_proof,
     get_ava_p2p_interface,
@@ -58,32 +59,6 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         return [get_ava_p2p_interface(self, node, stake_utxo_confirmations=self.avaproof_stake_utxo_confirmations)
                 for _ in range(0, QUORUM_NODE_COUNT)]
 
-    def can_find_proof_in_poll(self, hash, response):
-        found_hash = False
-        for n in self.quorum:
-            poll = n.get_avapoll_if_available()
-
-            # That node has not received a poll
-            if poll is None:
-                continue
-
-            # We got a poll, check for the hash and repond
-            votes = []
-            for inv in poll.invs:
-                # Vote yes to everything
-                r = AvalancheProofVoteResponse.ACTIVE
-
-                # Look for what we expect
-                if inv.hash == hash:
-                    r = response
-                    found_hash = True
-
-                votes.append(AvalancheVote(r, inv.hash))
-
-            n.send_avaresponse(poll.round, votes, n.delegated_privkey)
-
-        return found_hash
-
     @staticmethod
     def send_proof(from_peer, proof_hex):
         proof = avalanche_proof_from_hex(proof_hex)
@@ -93,7 +68,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
     def send_and_check_for_polling(self, peer,
                                    proof_hex, response=AvalancheProofVoteResponse.ACTIVE):
         proofid = self.send_proof(peer, proof_hex)
-        self.wait_until(lambda: self.can_find_proof_in_poll(proofid, response))
+        self.wait_until(lambda: can_find_inv_in_poll(self.quorum, proofid, response))
 
     def build_conflicting_proof(self, node, sequence):
         return node.buildavalancheproof(
@@ -102,8 +77,8 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
     def wait_for_invalidated_proof(self, node, proofid):
         def invalidate_proof(proofid):
             self.wait_until(
-                lambda: self.can_find_proof_in_poll(
-                    proofid, response=AvalancheProofVoteResponse.REJECTED))
+                lambda: can_find_inv_in_poll(self.quorum,
+                                             proofid, response=AvalancheProofVoteResponse.REJECTED))
             return try_rpc(-8, "Proof not found",
                            node.getrawavalancheproof, uint256_hex(proofid))
 
@@ -115,8 +90,8 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
     def wait_for_finalized_proof(self, node, proofid):
         def finalize_proof(proofid):
-            self.can_find_proof_in_poll(
-                proofid, response=AvalancheProofVoteResponse.ACTIVE)
+            can_find_inv_in_poll(self.quorum,
+                                 proofid, response=AvalancheProofVoteResponse.ACTIVE)
             return node.getrawavalancheproof(
                 uint256_hex(proofid)).get("finalized", False)
 
@@ -242,8 +217,8 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.log.info("Test proof acceptance")
 
         def accept_proof(proofid):
-            self.wait_until(lambda: self.can_find_proof_in_poll(
-                proofid, response=AvalancheProofVoteResponse.ACTIVE))
+            self.wait_until(lambda: can_find_inv_in_poll(self.quorum,
+                                                         proofid, response=AvalancheProofVoteResponse.ACTIVE))
             return proofid in get_proof_ids(node)
 
         mock_time += self.conflicting_proof_cooldown
@@ -277,8 +252,8 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
         def reject_proof(proofid):
             self.wait_until(
-                lambda: self.can_find_proof_in_poll(
-                    proofid, response=AvalancheProofVoteResponse.REJECTED))
+                lambda: can_find_inv_in_poll(self.quorum,
+                                             proofid, response=AvalancheProofVoteResponse.REJECTED))
             return proofid not in get_proof_ids(node)
 
         with node.assert_debug_log(
@@ -459,8 +434,8 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
             peer, proof_seq1, response=AvalancheProofVoteResponse.UNKNOWN)
 
         def vote_until_dropped(proofid):
-            self.can_find_proof_in_poll(
-                proofid, response=AvalancheProofVoteResponse.UNKNOWN)
+            can_find_inv_in_poll(self.quorum,
+                                 proofid, response=AvalancheProofVoteResponse.UNKNOWN)
             return try_rpc(-8, "Proof not found",
                            node.getrawavalancheproof, uint256_hex(proofid))
 

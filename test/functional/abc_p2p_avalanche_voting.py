@@ -5,7 +5,7 @@
 """Test the resolution of forks via avalanche."""
 import random
 
-from test_framework.avatools import get_ava_p2p_interface
+from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.key import ECPubKey
 from test_framework.messages import AvalancheVote, AvalancheVoteError
 from test_framework.test_framework import BitcoinTestFramework
@@ -140,35 +140,9 @@ class AvalancheTest(BitcoinTestFramework):
 
         self.log.info("Trigger polling from the node...")
 
-        def can_find_block_in_poll(hash, resp=AvalancheVoteError.ACCEPTED):
-            found_hash = False
-            for n in quorum:
-                poll = n.get_avapoll_if_available()
-
-                # That node has not received a poll
-                if poll is None:
-                    continue
-
-                # We got a poll, check for the hash and repond
-                votes = []
-                for inv in poll.invs:
-                    # Vote yes to everything
-                    r = AvalancheVoteError.ACCEPTED
-
-                    # Look for what we expect
-                    if inv.hash == hash:
-                        r = resp
-                        found_hash = True
-
-                    votes.append(AvalancheVote(r, inv.hash))
-
-                n.send_avaresponse(poll.round, votes, n.delegated_privkey)
-
-            return found_hash
-
         # Now that we have a peer, we should start polling for the tip.
         hash_tip = int(node.getbestblockhash(), 16)
-        self.wait_until(lambda: can_find_block_in_poll(hash_tip))
+        self.wait_until(lambda: can_find_inv_in_poll(quorum, hash_tip))
 
         # Make sure the fork node has synced the blocks
         self.sync_blocks([node, fork_node])
@@ -193,7 +167,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         def has_accepted_tip(tip_expected):
             hash_tip_accept = int(tip_expected, 16)
-            can_find_block_in_poll(hash_tip_accept)
+            can_find_inv_in_poll(quorum, hash_tip_accept)
             return node.getbestblockhash() == tip_expected
 
         # Because everybody answers yes, the node will accept that block.
@@ -202,7 +176,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         def has_finalized_tip(tip_expected):
             hash_tip_final = int(tip_expected, 16)
-            can_find_block_in_poll(hash_tip_final)
+            can_find_inv_in_poll(quorum, hash_tip_final)
             return node.isfinalblock(tip_expected)
 
         # And continuing to answer yes finalizes the block.
@@ -218,8 +192,8 @@ class AvalancheTest(BitcoinTestFramework):
 
         def has_parked_tip(tip_park):
             hash_tip_park = int(tip_park, 16)
-            can_find_block_in_poll(
-                hash_tip_park, AvalancheVoteError.PARKED)
+            can_find_inv_in_poll(quorum,
+                                 hash_tip_park, AvalancheVoteError.PARKED)
 
             for tip in node.getchaintips():
                 if tip["hash"] == tip_park:
@@ -244,8 +218,8 @@ class AvalancheTest(BitcoinTestFramework):
         hash_tip_park = int(tip_to_park, 16)
         with node.wait_for_debug_log(
             [f"Avalanche invalidated block {tip_to_park}".encode()],
-            chatty_callable=lambda: can_find_block_in_poll(
-                hash_tip_park, AvalancheVoteError.PARKED)
+            chatty_callable=lambda: can_find_inv_in_poll(quorum,
+                                                         hash_tip_park, AvalancheVoteError.PARKED)
         ):
             pass
 

@@ -18,6 +18,8 @@ from .messages import (
     AvalancheDelegation,
     AvalancheProof,
     AvalancheResponse,
+    AvalancheVote,
+    AvalancheVoteError,
     CInv,
     CTransaction,
     FromHex,
@@ -428,3 +430,30 @@ def build_msg_avaproofs(proofs: List[AvalancheProof], prefilled_proofs: Optional
             proof.proofid) for proof in proofs]
 
     return msg
+
+
+def can_find_inv_in_poll(quorum, hash, response=AvalancheVoteError.ACCEPTED):
+    found_hash = False
+    for n in quorum:
+        poll = n.get_avapoll_if_available()
+
+        # That node has not received a poll
+        if poll is None:
+            continue
+
+        # We got a poll, check for the hash and repond
+        votes = []
+        for inv in poll.invs:
+            # Vote yes to everything
+            r = AvalancheVoteError.ACCEPTED
+
+            # Look for what we expect
+            if inv.hash == hash:
+                r = response
+                found_hash = True
+
+            votes.append(AvalancheVote(r, inv.hash))
+
+        n.send_avaresponse(poll.round, votes, n.delegated_privkey)
+
+    return found_hash
