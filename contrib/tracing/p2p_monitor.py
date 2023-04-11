@@ -96,8 +96,8 @@ class Peer:
     total_outbound_msgs = 0
     total_outbound_bytes = 0
 
-    def __init__(self, id, address, connection_type):
-        self.id = id
+    def __init__(self, peer_id, address, connection_type):
+        self.id = peer_id
         self.address = address
         self.connection_type = connection_type
         self.last_messages = []

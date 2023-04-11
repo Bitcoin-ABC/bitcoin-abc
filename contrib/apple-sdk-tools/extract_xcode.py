@@ -34,10 +34,10 @@ class io_wrapper(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.filename != '-':
             self.fh.close()
-    def write(self, bytes):
+    def write(self, b):
         if self.filename != '-':
-            return self.fh.write(bytes)
-        return self.fh.buffer.write(bytes)
+            return self.fh.write(b)
+        return self.fh.buffer.write(b)
     def read(self, size):
         if self.filename != '-':
             return self.fh.read(size)
@@ -62,13 +62,13 @@ def run():
             print("bad xar magic", file=sys.stderr)
             sys.exit(1)
 
-        bytes = infile.read(24)
-        header_size, xar_version, toc_compressed, toc_uncompressed, checksum_type = struct.unpack('>HHQQI', bytes)
+        in_bytes = infile.read(24)
+        header_size, xar_version, toc_compressed, toc_uncompressed, checksum_type = struct.unpack('>HHQQI', in_bytes)
         start_offset += header_size
         start_offset += toc_compressed
-        bytes = infile.read(toc_compressed)
+        in_bytes = infile.read(toc_compressed)
 
-        xml_toc = zlib.decompress(bytes).decode("utf-8") 
+        xml_toc = zlib.decompress(in_bytes).decode("utf-8")
 
         root = ET.fromstring(xml_toc)
 
@@ -102,28 +102,28 @@ def run():
             print("bad pbzx magic", file=sys.stderr)
             sys.exit(2)
 
-        bytes = infile.read(8)
+        in_bytes = infile.read(8)
         content_read_size += 8
-        flags, = struct.unpack('>Q', bytes)
-        bytes = infile.read(16)
+        flags, = struct.unpack('>Q', in_bytes)
+        in_bytes = infile.read(16)
         content_read_size += 16
         while (flags & 1 << 24):
-            flags, size = struct.unpack('>QQ', bytes)
-            bytes = infile.read(size)
+            flags, size = struct.unpack('>QQ', in_bytes)
+            in_bytes = infile.read(size)
             content_read_size += size
             compressed = size != 1 << 24
             if compressed:
-                if bytes[0:6] != LZMA_MAGIC:
+                if in_bytes[0:6] != LZMA_MAGIC:
                     print("bad lzma magic: ", file=sys.stderr)
                     sys.exit(3)
-                outfile.write(lzma.decompress(bytes))
+                outfile.write(lzma.decompress(in_bytes))
             else:
-                outfile.write(bytes)
+                outfile.write(in_bytes)
 
             if content_read_size == content_length:
                 break
-                
-            bytes = infile.read(16)
+
+            in_bytes = infile.read(16)
             content_read_size += 16
 
 if __name__ == '__main__':

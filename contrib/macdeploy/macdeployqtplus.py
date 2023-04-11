@@ -262,12 +262,12 @@ def changeInstallName(oldName: str, newName: str,
     runInstallNameTool("change", oldName, newName, binaryPath)
 
 
-def changeIdentification(id: str, binaryPath: str, verbose: int):
+def changeIdentification(id_name: str, binaryPath: str, verbose: int):
     if verbose >= 3:
         print("Using install_name_tool:")
         print(" change identification in", binaryPath)
-        print(" to", id)
-    runInstallNameTool("id", id, binaryPath)
+        print(" to", id_name)
+    runInstallNameTool("id", id_name, binaryPath)
 
 
 def runStrip(binaryPath: str, verbose: int):
