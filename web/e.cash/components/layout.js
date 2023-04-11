@@ -2,7 +2,7 @@ import Head from 'next/head';
 
 const Layout = ({
     metaTitle = 'eCash | Wealth Redefined',
-    metaDescription = 'Derived from one of the most trusted names in the cryptocurrency space, what was once known as BCHA is now eCash. eCash is the natural continuation of the Bitcoin Cash project. Realizing the vision of the legendary Milton Friedman, eCash follows through on key promises such as the innovative Avalanche consensus layer while also introducing concepts never before seen in a Bitcoin project such as staking, fork-free network upgrades, and subchains. Look for the ticker symbol XEC on exchanges, wallets, or price charts, and take your first step towards true financial freedom.',
+    metaDescription = 'Introducing eCash: the new battle-tested cryptocurrency forged from centuries of economic theory and over a decade of real-world crypto experience. eCash is the implementation of the tech-secured sound money envisioned by luminaries in monetary philosophy like Milton Friedman. eCash follows through on key promises such as the innovative Avalanche consensus layer while also introducing concepts never before seen in a Bitcoin project such as staking, fork-free network upgrades, and subchains. Look for the ticker symbol XEC on exchanges, wallets, or price charts, and take your first step towards true financial freedom.',
     children,
 }) => {
     return (
