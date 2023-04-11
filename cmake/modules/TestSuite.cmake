@@ -101,7 +101,6 @@ function(install_test SUITE NAME)
 	endif()
 endfunction()
 
-set(TEST_RUNNER_TEMPLATE "${CMAKE_CURRENT_LIST_DIR}/../templates/TestRunner.cmake.in")
 function(add_test_runner SUITE NAME EXECUTABLE)
 	cmake_parse_arguments(ARG "JUNIT" "" "" ${ARGN})
 
