@@ -4,6 +4,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Helpful routines for regression testing."""
 
+import enum
 import inspect
 import json
 import logging
@@ -17,7 +18,7 @@ from decimal import ROUND_DOWN, Decimal
 from functools import lru_cache
 from io import BytesIO
 from subprocess import CalledProcessError
-from typing import Callable, Dict, Literal, Optional
+from typing import Callable, Dict, Optional
 
 from . import coverage
 from .authproxy import AuthServiceProxy, JSONRPCException
@@ -291,10 +292,14 @@ def wait_until_helper(predicate, *, attempts=float('inf'),
 ############################################
 
 
+class PortName(enum.Enum):
+    P2P = 0
+    RPC = 1
+    CHRONIK = 2
+
+
 # The maximum number of nodes a single test can spawn
 MAX_NODES = 64
-# Type for the valid port names
-PortName = Literal['P2P', 'RPC', 'CHRONIK']
 # Don't assign rpc or p2p ports lower than this (for example: 18333 is the
 # default testnet port)
 PORT_MIN = int(os.getenv('TEST_RUNNER_PORT_MIN', default=20000))
@@ -304,9 +309,9 @@ PORT_RANGE = 5000
 # giving up.
 MAX_PORT_RETRY = 5
 PORT_START_MAP: Dict[PortName, int] = {
-    'P2P': 0,
-    'RPC': PORT_RANGE,
-    'CHRONIK': PORT_RANGE * 2,
+    PortName.P2P: 0,
+    PortName.RPC: PORT_RANGE,
+    PortName.CHRONIK: PORT_RANGE * 2,
 }
 
 # Globals used for incrementing ports. Initially uninitialized because they
@@ -389,15 +394,15 @@ def unique_port(port_name: PortName, n: int) -> int:
 
 
 def p2p_port(n: int) -> int:
-    return unique_port('P2P', n)
+    return unique_port(PortName.P2P, n)
 
 
 def rpc_port(n: int) -> int:
-    return unique_port('RPC', n)
+    return unique_port(PortName.RPC, n)
 
 
 def chronik_port(n: int) -> int:
-    return unique_port('CHRONIK', n)
+    return unique_port(PortName.CHRONIK, n)
 
 
 def rpc_url(datadir, chain, host, port):
