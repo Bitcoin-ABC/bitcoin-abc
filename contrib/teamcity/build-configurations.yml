@@ -663,3 +663,8 @@ builds:
     docker:
       context: web/e.cash
       port: 3000
+
+  preview-explorer:
+    docker:
+      context: web/explorer
+      port: 3035
