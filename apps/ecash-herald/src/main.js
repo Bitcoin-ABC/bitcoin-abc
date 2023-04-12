@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 'use strict';
-const { initializeWebsocket } = require('./handleChronikWs');
+const { initializeWebsocket } = require('./chronikWsHandler');
 
 module.exports = {
     main: async function (
