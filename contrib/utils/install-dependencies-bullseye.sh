@@ -148,8 +148,8 @@ echo "export PATH=\"$(python3 -m site --user-base)/bin:\$PATH\"" >> ~/.bashrc
 # shellcheck source=/dev/null
 source ~/.bashrc
 
-# Install npm v7.x and nodejs v15.x
-curl -sL https://deb.nodesource.com/setup_15.x | bash -
+# Install npm v8.x and nodejs v16.x
+curl -sL https://deb.nodesource.com/setup_16.x | bash -
 apt-get install -y nodejs
 
 # Install nyc for mocha unit test reporting
