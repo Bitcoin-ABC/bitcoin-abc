@@ -229,11 +229,23 @@ class BuildConfiguration:
             )
 
             # Now we need to schedule a job to stop or kill the container after
-            # the timeout expires.
+            # the timeout expires. We achieve this via the `at` command, but
+            # there is a catch: `at` memorize the current working directory and
+            # will execute the scheduled command from there. This is a problem
+            # for our build as the build directory might have been deleted by
+            # the time the timeout expires and the command would fail. To
+            # prevent this issue we are changing the working directory before
+            # at is called to something that we are sure will not get deleted:
+            # the user home directory.
+            #
+            # Note for developers: debugging the `at` command failures can be
+            # tricky, but the `at` command will send an email with the command
+            # stdout/stderr upon failure (not upon success by default), so the
+            # issues can be tracked by looking at the /var/mail/<user> file.
             script_file = self.build_directory.joinpath("docker_timeout.sh")
             self.create_script_file(
                 script_file,
-                f'echo "docker stop {tag_name}" | at now +{timeout_minutes} minutes')
+                f'cd "${{HOME}}" && echo "docker stop {tag_name}" | at now +{timeout_minutes} minutes')
 
             self.build_steps.append(
                 {
