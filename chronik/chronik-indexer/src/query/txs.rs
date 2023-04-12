@@ -22,8 +22,10 @@ use crate::query::make_tx_proto;
 /// Struct for querying txs from the db/mempool.
 #[derive(Debug)]
 pub struct QueryTxs<'a> {
-    db: &'a Db,
-    mempool: &'a Mempool,
+    /// Database
+    pub db: &'a Db,
+    /// Mempool
+    pub mempool: &'a Mempool,
 }
 
 /// Errors indicating something went wrong with reading txs.
@@ -45,11 +47,6 @@ pub enum QueryTxError {
 use self::QueryTxError::*;
 
 impl<'a> QueryTxs<'a> {
-    /// Create a new [`QueryTxs`].
-    pub fn new(db: &'a Db, mempool: &'a Mempool) -> Self {
-        QueryTxs { db, mempool }
-    }
-
     /// Query a tx by txid from the mempool or DB.
     pub fn tx_by_id(&self, txid: TxId) -> Result<proto::Tx> {
         let (tx, time_first_seen, is_coinbase, block) =

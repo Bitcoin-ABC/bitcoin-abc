@@ -304,7 +304,10 @@ impl ChronikIndexer {
 
     /// Return [`QueryTxs`] to return txs from mempool/DB.
     pub fn txs(&self) -> QueryTxs<'_> {
-        QueryTxs::new(&self.db, &self.mempool)
+        QueryTxs {
+            db: &self.db,
+            mempool: &self.mempool,
+        }
     }
 
     /// Return [`QueryGroupHistory`] for scripts to query the tx history of
