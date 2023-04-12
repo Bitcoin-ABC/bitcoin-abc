@@ -8,14 +8,14 @@ const cashaddr = require('ecashaddrjs');
 const {
     initializeWebsocket,
     parseWebsocketMessage,
-} = require('../src/websocket');
+} = require('../src/chronikWsHandler');
 const { MockChronikClient } = require('./mocks/chronikMock');
 const { mockBlock } = require('./mocks/chronikResponses');
 const mockSecrets = require('../secrets.sample');
 const MockAdapter = require('axios-mock-adapter');
 const axios = require('axios');
 
-describe('alias-server websocket.js', async function () {
+describe('alias-server chronikWsHandler.js', async function () {
     it('initializeWebsocket returns expected websocket object for a p2pkh address', async function () {
         const wsTestAddress =
             'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8';

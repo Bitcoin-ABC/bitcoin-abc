@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 'use strict';
 const config = require('../config');
-const { initializeWebsocket } = require('./websocket');
+const { initializeWebsocket } = require('./chronikWsHandler');
 const { handleAppStartup } = require('./events');
 const { initializeDb } = require('./db');
 const log = require('./log');

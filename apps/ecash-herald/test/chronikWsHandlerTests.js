@@ -10,13 +10,13 @@ const blocks = require('./mocks/blocks');
 const {
     initializeWebsocket,
     parseWebsocketMessage,
-} = require('../src/websocket');
+} = require('../src/chronikWsHandler');
 const { MockChronikClient } = require('./mocks/chronikMock');
 const { MockTelegramBot, mockChannelId } = require('./mocks/telegramBotMock');
 const axios = require('axios');
 const MockAdapter = require('axios-mock-adapter');
 
-describe('ecash-herald websocket.js', async function () {
+describe('ecash-herald chronikWsHandler.js', async function () {
     it('initializeWebsocket returns expected websocket object for a p2pkh address', async function () {
         const wsTestAddress =
             'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8';
