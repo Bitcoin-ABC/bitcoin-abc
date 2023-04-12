@@ -159,4 +159,83 @@ describe('alias-server chronikWsHandler.js', async function () {
 
         assert.deepEqual(result, false);
     });
+    it('If parseWebsocketMessage is called before a previous call to handleBlockConnected has completed, the next call to handleBlockConnected will not enter until the first is completed', async function () {
+        // Initialize mocks for the first call to parseWebsocketMessage
+        const mockedChronik = new MockChronikClient();
+        const db = null;
+        const telegramBot = null;
+        const channelId = null;
+        const { avalancheRpc } = mockSecrets;
+        const wsMsg = {
+            type: 'BlockConnected',
+            blockHash:
+                '000000000000000015713b0407590ab1481fd7b8430f87e19cf768bec285ad55',
+        };
+        const mockBlock = {
+            blockInfo: {
+                height: 786878,
+            },
+        };
+
+        // Tell mockedChronik what response we expect
+        mockedChronik.setMock('block', {
+            input: wsMsg.blockHash,
+            output: mockBlock,
+        });
+
+        // Mock avalanche RPC call
+        // onNoMatch: 'throwException' helps to debug if mock is not being used
+        const mock = new MockAdapter(axios, { onNoMatch: 'throwException' });
+        // Mock response for rpc return of true for isfinalblock method
+        mock.onPost().reply(200, {
+            result: true,
+            error: null,
+            id: 'isfinalblock',
+        });
+
+        // Initialize mocks for second call to parseWebsocketMessage
+        const nextMockedChronik = new MockChronikClient();
+        const nextWsMsg = {
+            type: 'BlockConnected',
+            blockHash:
+                '000000000000000001db7132241fc59ec9de423db1f5061115928d58b38f0b8f',
+        };
+        const nextMockBlock = {
+            blockInfo: {
+                height: 786879,
+            },
+        };
+        // Tell mockedChronik what response we expect
+        nextMockedChronik.setMock('block', {
+            input: nextWsMsg.blockHash,
+            output: nextMockBlock,
+        });
+        const firstCallPromise = parseWebsocketMessage(
+            mockedChronik,
+            db,
+            telegramBot,
+            channelId,
+            avalancheRpc,
+            wsMsg,
+        );
+        const secondCallPromise = parseWebsocketMessage(
+            nextMockedChronik,
+            db,
+            telegramBot,
+            channelId,
+            avalancheRpc,
+            nextWsMsg,
+        );
+
+        // Call the functions concurrently
+        const results = await Promise.all([
+            firstCallPromise,
+            secondCallPromise,
+        ]);
+
+        assert.deepEqual(results, [
+            `Alias registrations updated to block ${wsMsg.blockHash} at height ${mockBlock.blockInfo.height}`,
+            `Alias registrations updated to block ${nextWsMsg.blockHash} at height ${nextMockBlock.blockInfo.height}`,
+        ]);
+    });
 });

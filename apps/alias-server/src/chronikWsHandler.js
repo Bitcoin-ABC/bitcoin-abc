@@ -6,6 +6,8 @@
 const log = require('./log');
 const { handleBlockConnected } = require('./events');
 const cashaddr = require('ecashaddrjs');
+const AsyncLock = require('async-lock');
+const blockConnectedLock = new AsyncLock();
 
 module.exports = {
     initializeWebsocket: async function (
@@ -53,16 +55,36 @@ module.exports = {
         // We will want to look at AddedToMempool to process pending alias registrations later
 
         switch (type) {
-            case 'BlockConnected':
+            case 'BlockConnected': {
                 log(`New block found: ${wsMsg.blockHash}`);
-                return await handleBlockConnected(
-                    chronik,
-                    db,
-                    telegramBot,
-                    channelId,
-                    avalancheRpc,
-                    wsMsg.blockHash,
-                );
+
+                return blockConnectedLock
+                    .acquire('handleBlockConnected', async function () {
+                        return await handleBlockConnected(
+                            chronik,
+                            db,
+                            telegramBot,
+                            channelId,
+                            avalancheRpc,
+                            wsMsg.blockHash,
+                        );
+                    })
+                    .then(
+                        result => {
+                            // lock released with no error
+                            return result;
+                        },
+                        error => {
+                            // lock released with error thrown by handleBlockConnected()
+                            log(
+                                `Error in handleBlockConnected called by ${wsMsg.blockHash}`,
+                                error,
+                            );
+                            // TODO notify admin
+                            return false;
+                        },
+                    );
+            }
             case 'AddedToMempool':
                 log(`New tx: ${wsMsg.txid}`);
                 break;
