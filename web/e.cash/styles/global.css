@@ -40,6 +40,30 @@ body {
     font-family: 'Poppins', sans-serif;
     line-height: 1.6;
     font-size: 18px;
-    background-color: #050d27;
+    background-color: var(--darkblue);
     color: #fff;
+}
+
+:root {
+    --darkblue: #001137;
+    --blue: #0074c2;
+    --bluelight: #00abe7;
+    --pinkdark: #cd0bc3;
+    --pinklight: #ff21d0;
+    --almostblack: #050d27;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+a {
+    color: var(--blue);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+a:hover {
+    text-decoration: none;
+    color: var(--bluelight);
 }

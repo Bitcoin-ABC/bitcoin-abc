@@ -1,4 +1,5 @@
 import Head from 'next/head';
+import Nav from './navbar';
 
 const Layout = ({
     metaTitle = 'eCash | Wealth Redefined',
@@ -25,6 +26,12 @@ const Layout = ({
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta property="og:type" content="website" />
             </Head>
+            <Nav
+                announcementbar={{
+                    link: 'https://avalanche.cash/',
+                    text: 'Avalanche Consensus is live!',
+                }}
+            />
             <main>{children}</main>
         </>
     );
