@@ -550,6 +550,28 @@ function toLegacy(cashaddress) {
     return bs58check.encode(buffer);
 }
 
+/**
+ * Return true for a valid cashaddress
+ * Prefixless addresses with valid checksum are also valid
+ *
+ * @static
+ * @param {string} testedAddress a string tested for cashaddress validity
+ * @param {string} optionalPrefix cashaddr prefix
+ * @returns {bool}
+ * @throws {ValidationError}
+ */
+function isValidCashAddress(cashaddress, optionalPrefix = false) {
+    try {
+        const { prefix } = decode(cashaddress);
+        if (optionalPrefix) {
+            return prefix === optionalPrefix;
+        }
+        return true;
+    } catch (err) {
+        return false;
+    }
+}
+
 module.exports = {
     encode: encode,
     decode: decode,
@@ -557,5 +579,6 @@ module.exports = {
     encodeOutputScript: encodeOutputScript,
     getTypeAndHashFromOutputScript: getTypeAndHashFromOutputScript,
     toLegacy: toLegacy,
+    isValidCashAddress: isValidCashAddress,
     ValidationError: ValidationError,
 };

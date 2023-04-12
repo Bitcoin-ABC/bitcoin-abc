@@ -100,6 +100,18 @@ describe('cashaddr', () => {
         '2MsM9zVVyar93CWorEfH6PPW8QQmW3s1uh6',
     ];
 
+    const ALL_VALID_MAINNET_ADDRESSES = EXPECTED_P2PKH_OUTPUTS.concat(
+        EXPECTED_P2SH_OUTPUTS,
+    );
+
+    const ALL_VALID_TESTNET_ADDRESSES = EXPECTED_P2PKH_OUTPUTS_TESTNET.concat(
+        EXPECTED_P2SH_OUTPUTS_TESTNET,
+    );
+
+    const ALL_VALID_ADDRESSES = ALL_VALID_MAINNET_ADDRESSES.concat(
+        ALL_VALID_TESTNET_ADDRESSES,
+    );
+
     const random = new Random(MersenneTwister19937.seed(42));
 
     function getRandomHash(size) {
@@ -546,6 +558,93 @@ describe('cashaddr', () => {
                 assert.equal(
                     cashaddr.toLegacy(EXPECTED_P2SH_OUTPUTS_TESTNET[index]),
                     EXPECTED_P2SH_OUTPUTS_TESTNET_LEGACY[index],
+                );
+            }
+        });
+    });
+
+    describe('#isValidCashAddress()', () => {
+        it('returns false for address with invalid version byte', () => {
+            assert.equal(
+                cashaddr.isValidCashAddress(
+                    'ecash:zpm2qsznhks23z7629mms6s4cwef74vcwv6ddac6re',
+                ),
+                false,
+            );
+        });
+        it('returns false for a legacy address', () => {
+            assert.equal(
+                cashaddr.isValidCashAddress(
+                    EXPECTED_P2PKH_OUTPUTS_TESTNET_LEGACY[0],
+                ),
+                false,
+            );
+        });
+        it('returns true for mainnet and testnet p2pkh and p2sh cashaddresses', () => {
+            for (const index in ALL_VALID_ADDRESSES) {
+                assert.equal(
+                    cashaddr.isValidCashAddress(ALL_VALID_ADDRESSES[index]),
+                    true,
+                );
+            }
+        });
+        it('returns true for all mainnet and testnet p2pkh and p2sh cashaddresses if prefixless but with correct checksum', () => {
+            for (const index in ALL_VALID_ADDRESSES) {
+                const thisPrefixedAddress = ALL_VALID_ADDRESSES[index];
+                const thisPrefixlessAddrress = thisPrefixedAddress.slice(
+                    thisPrefixedAddress.indexOf(':') + 1,
+                );
+                assert.equal(
+                    cashaddr.isValidCashAddress(thisPrefixlessAddrress),
+                    true,
+                );
+            }
+        });
+        it('returns true for prefixless ecash: checksummed addresses against specified ecash: prefix type', () => {
+            for (const index in ALL_VALID_MAINNET_ADDRESSES) {
+                const thisPrefixedAddress = ALL_VALID_MAINNET_ADDRESSES[index];
+                const thisPrefixlessAddrress = thisPrefixedAddress.slice(
+                    thisPrefixedAddress.indexOf(':') + 1,
+                );
+                assert.equal(
+                    cashaddr.isValidCashAddress(
+                        thisPrefixlessAddrress,
+                        'ecash',
+                    ),
+                    true,
+                );
+            }
+        });
+        it('returns true for mainnet p2pkh and p2sh cashaddresses if ecash prefix is specified', () => {
+            for (const index in ALL_VALID_MAINNET_ADDRESSES) {
+                assert.equal(
+                    cashaddr.isValidCashAddress(
+                        ALL_VALID_MAINNET_ADDRESSES[index],
+                        'ecash',
+                    ),
+                    true,
+                );
+            }
+        });
+        it('returns true for testnet p2pkh cashaddresses if testnet prefix is specified', () => {
+            for (const index in ALL_VALID_TESTNET_ADDRESSES) {
+                assert.equal(
+                    cashaddr.isValidCashAddress(
+                        ALL_VALID_TESTNET_ADDRESSES[index],
+                        'ectest',
+                    ),
+                    true,
+                );
+            }
+        });
+        it('returns false for testnet p2pkh cashaddresses if mainnet prefix is specified', () => {
+            for (const index in ALL_VALID_TESTNET_ADDRESSES) {
+                assert.equal(
+                    cashaddr.isValidCashAddress(
+                        ALL_VALID_TESTNET_ADDRESSES[index],
+                        'ecash',
+                    ),
+                    false,
                 );
             }
         });
