@@ -201,9 +201,9 @@ class BuildConfiguration:
                 }
             )
 
-            inner_port = docker_config.get("port", None)
+            inner_port = docker_config.get("port", 80)
             outer_port = random.randrange(41000, 42000)
-            port_args = ["-p", f"{outer_port}:{inner_port}"] if inner_port else []
+            port_args = ["-p", f"{outer_port}:{inner_port}"]
             # Docker run. This uses a timeout value to stop the container after
             # some time. The stop signal is defined to sigterm so the app has a
             # chance of gracefully handle the stop request, and defaults to a
