@@ -54,6 +54,10 @@ private:
         // See BlockConnected for safety
         m_chronik->handle_block_disconnected(*block, *pindex);
     }
+
+    void BlockFinalized(const CBlockIndex *pindex) override {
+        m_chronik->handle_block_finalized(pindex->nHeight);
+    }
 };
 
 std::unique_ptr<ChronikValidationInterface> g_chronik_validation_interface;

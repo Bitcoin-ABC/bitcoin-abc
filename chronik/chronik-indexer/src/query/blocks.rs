@@ -13,11 +13,15 @@ use chronik_db::{
 use chronik_proto::proto;
 use thiserror::Error;
 
+use crate::avalanche::Avalanche;
+
 /// Struct for querying blocks from the DB.
 #[derive(Debug)]
 pub struct QueryBlocks<'a> {
     /// Db.
     pub db: &'a Db,
+    /// Avalanche.
+    pub avalanche: &'a Avalanche,
 }
 
 /// Errors indicating something went wrong with querying blocks.
@@ -63,6 +67,7 @@ impl<'a> QueryBlocks<'a> {
                 height: db_block.height,
                 n_bits: db_block.n_bits,
                 timestamp: db_block.timestamp,
+                is_final: db_block.height <= self.avalanche.height,
             }),
         })
     }

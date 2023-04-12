@@ -19,7 +19,7 @@ use chronik_proto::proto;
 use chronik_util::log;
 use thiserror::Error;
 
-use crate::query::make_tx_proto;
+use crate::{avalanche::Avalanche, query::make_tx_proto};
 
 /// Smallest allowed page size
 pub const MIN_HISTORY_PAGE_SIZE: usize = 1;
@@ -33,6 +33,8 @@ static EMPTY_MEMBER_TX_HISTORY: BTreeSet<(i64, TxId)> = BTreeSet::new();
 pub struct QueryGroupHistory<'a, G: Group> {
     /// Database
     pub db: &'a Db,
+    /// Avalanche
+    pub avalanche: &'a Avalanche,
     /// Mempool
     pub mempool: &'a Mempool,
     /// The part of the mempool we search for this group's history.
@@ -260,6 +262,7 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
                 entry.time_first_seen,
                 false,
                 None,
+                self.avalanche,
             ));
         }
 
@@ -338,6 +341,7 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
                         entry.time_first_seen,
                         false,
                         None,
+                        self.avalanche,
                     ))
                 })
                 .collect::<Result<Vec<_>>>()?,
@@ -368,6 +372,7 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
             block_tx.entry.time_first_seen,
             block_tx.entry.is_coinbase,
             Some(&block),
+            self.avalanche,
         ))
     }
 }

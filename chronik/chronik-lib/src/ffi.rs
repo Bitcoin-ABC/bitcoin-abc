@@ -44,6 +44,7 @@ mod ffi_inner {
             block: &CBlock,
             bindex: &CBlockIndex,
         );
+        fn handle_block_finalized(&self, block_height: i32);
     }
 
     unsafe extern "C++" {

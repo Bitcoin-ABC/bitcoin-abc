@@ -17,13 +17,15 @@ use chronik_db::{
 use chronik_proto::proto;
 use thiserror::Error;
 
-use crate::query::make_tx_proto;
+use crate::{avalanche::Avalanche, query::make_tx_proto};
 
 /// Struct for querying txs from the db/mempool.
 #[derive(Debug)]
 pub struct QueryTxs<'a> {
     /// Database
     pub db: &'a Db,
+    /// Avalanche
+    pub avalanche: &'a Avalanche,
     /// Mempool
     pub mempool: &'a Mempool,
 }
@@ -82,6 +84,7 @@ impl<'a> QueryTxs<'a> {
             time_first_seen,
             is_coinbase,
             block.as_ref(),
+            self.avalanche,
         ))
     }
 }

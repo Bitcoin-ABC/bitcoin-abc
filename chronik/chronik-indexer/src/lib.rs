@@ -5,6 +5,7 @@
 //! Chronik indexer, sorts all the data coming from bitcoind into Chronik's db.
 
 abc_rust_lint::lint! {
+    pub mod avalanche;
     pub mod indexer;
     pub mod query;
 }

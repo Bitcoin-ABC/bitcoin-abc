@@ -168,6 +168,15 @@ impl Chronik {
         );
     }
 
+    /// Block finalized with Avalanche
+    pub fn handle_block_finalized(&self, block_height: i32) {
+        let mut indexer = self.indexer.blocking_write();
+        ok_or_abort_node(
+            "handle_block_finalized",
+            indexer.handle_block_finalized(block_height),
+        );
+    }
+
     fn add_tx_to_mempool(
         &self,
         ptx: &ffi::CTransaction,

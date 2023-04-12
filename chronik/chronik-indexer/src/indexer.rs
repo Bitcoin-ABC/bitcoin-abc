@@ -24,7 +24,10 @@ use chronik_db::{
 use chronik_util::{log, log_chronik};
 use thiserror::Error;
 
-use crate::query::{QueryBlocks, QueryGroupHistory, QueryTxs};
+use crate::{
+    avalanche::Avalanche,
+    query::{QueryBlocks, QueryGroupHistory, QueryTxs},
+};
 
 const CURRENT_INDEXER_VERSION: SchemaVersion = 5;
 
@@ -45,6 +48,7 @@ pub struct ChronikIndexer {
     db: Db,
     mempool: Mempool,
     script_group: ScriptGroup,
+    avalanche: Avalanche,
 }
 
 /// Block to be indexed by Chronik.
@@ -141,6 +145,7 @@ impl ChronikIndexer {
             db,
             mempool,
             script_group,
+            avalanche: Avalanche::default(),
         })
     }
 
@@ -293,19 +298,33 @@ impl ChronikIndexer {
         block_writer.delete(&mut batch, &block.db_block)?;
         let first_tx_num = tx_writer.delete(&mut batch, &block.block_txs)?;
         script_history_writer.delete(&mut batch, first_tx_num, &block.txs)?;
+        self.avalanche.disconnect_block(block.db_block.height)?;
         self.db.write_batch(batch)?;
+        Ok(())
+    }
+
+    /// Block finalized with Avalanche.
+    pub fn handle_block_finalized(
+        &mut self,
+        block_height: BlockHeight,
+    ) -> Result<()> {
+        self.avalanche.finalize_block(block_height)?;
         Ok(())
     }
 
     /// Return [`QueryBlocks`] to read blocks from the DB.
     pub fn blocks(&self) -> QueryBlocks<'_> {
-        QueryBlocks { db: &self.db }
+        QueryBlocks {
+            db: &self.db,
+            avalanche: &self.avalanche,
+        }
     }
 
     /// Return [`QueryTxs`] to return txs from mempool/DB.
     pub fn txs(&self) -> QueryTxs<'_> {
         QueryTxs {
             db: &self.db,
+            avalanche: &self.avalanche,
             mempool: &self.mempool,
         }
     }
@@ -315,6 +334,7 @@ impl ChronikIndexer {
     pub fn script_history(&self) -> Result<QueryGroupHistory<'_, ScriptGroup>> {
         Ok(QueryGroupHistory {
             db: &self.db,
+            avalanche: &self.avalanche,
             mempool: &self.mempool,
             mempool_history: self.mempool.script_history(),
             group: self.script_group.clone(),

@@ -6,12 +6,15 @@ use bitcoinsuite_core::tx::Tx;
 use chronik_db::io::DbBlock;
 use chronik_proto::proto;
 
+use crate::avalanche::Avalanche;
+
 /// Make a [`proto::Tx`].
 pub fn make_tx_proto(
     tx: &Tx,
     time_first_seen: i64,
     is_coinbase: bool,
     block: Option<&DbBlock>,
+    avalanche: &Avalanche,
 ) -> proto::Tx {
     proto::Tx {
         txid: tx.txid().to_vec(),
@@ -51,6 +54,7 @@ pub fn make_tx_proto(
             hash: block.hash.to_vec(),
             height: block.height,
             timestamp: block.timestamp,
+            is_final: block.height <= avalanche.height,
         }),
         time_first_seen,
         is_coinbase,

@@ -24,6 +24,8 @@ message BlockInfo {
     uint32 n_bits = 4;
     // Timestamp field of the block
     int64 timestamp = 5;
+    // Whether the block has been finalized by Avalanche
+    bool is_final = 14;
 }
 
 // Details about a transaction
@@ -84,6 +86,8 @@ message BlockMetadata {
     bytes hash = 2;
     // nTime of the block the tx is in.
     int64 timestamp = 3;
+    // Whether the block has been finalized by Avalanche.
+    bool is_final = 4;
 }
 
 // Page with txs
