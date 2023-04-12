@@ -861,6 +861,9 @@ static RPCHelpMan sendrawtransaction() {
                 throw JSONRPCTransactionError(err, err_string);
             }
 
+            // Block to make sure wallet/indexers sync before returning
+            SyncWithValidationInterfaceQueue();
+
             return tx->GetHash().GetHex();
         },
     };

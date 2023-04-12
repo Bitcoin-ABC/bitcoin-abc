@@ -154,7 +154,6 @@ class ChronikTxTest(BitcoinTestFramework):
         node.invalidateblock(tx2blockhash)
 
         # Tx back in mempool
-        self.wait_until(lambda: txid2 in node.getrawmempool())
         assert_equal(chronik.tx(txid2).ok(), proto_tx2)
 
         # Mine conflicting tx

@@ -207,6 +207,10 @@ static UniValue generateBlocks(const Config &config,
             blockHashes.push_back(block_hash.GetHex());
         }
     }
+
+    // Block to make sure wallet/indexers sync before returning
+    SyncWithValidationInterfaceQueue();
+
     return blockHashes;
 }
 
@@ -493,6 +497,9 @@ static RPCHelpMan generateblock() {
                 block_hash.IsNull()) {
                 throw JSONRPCError(RPC_MISC_ERROR, "Failed to make block.");
             }
+
+            // Block to make sure wallet/indexers sync before returning
+            SyncWithValidationInterfaceQueue();
 
             UniValue obj(UniValue::VOBJ);
             obj.pushKV("hash", block_hash.GetHex());
@@ -1184,6 +1191,9 @@ static RPCHelpMan submitblock() {
             if (!sc->found) {
                 return "inconclusive";
             }
+
+            // Block to make sure wallet/indexers sync before returning
+            SyncWithValidationInterfaceQueue();
 
             return BIP22ValidationResult(config, sc->state);
         },

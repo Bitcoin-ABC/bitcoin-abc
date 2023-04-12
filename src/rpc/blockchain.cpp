@@ -2128,6 +2128,9 @@ static RPCHelpMan preciousblock() {
                 throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());
             }
 
+            // Block to make sure wallet/indexers sync before returning
+            SyncWithValidationInterfaceQueue();
+
             return NullUniValue;
         },
     };
@@ -2170,6 +2173,9 @@ static RPCHelpMan invalidateblock() {
             if (!state.IsValid()) {
                 throw JSONRPCError(RPC_DATABASE_ERROR, state.ToString());
             }
+
+            // Block to make sure wallet/indexers sync before returning
+            SyncWithValidationInterfaceQueue();
 
             return NullUniValue;
         },
@@ -2221,6 +2227,9 @@ RPCHelpMan parkblock() {
                 throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());
             }
 
+            // Block to make sure wallet/indexers sync before returning
+            SyncWithValidationInterfaceQueue();
+
             return NullUniValue;
         },
     };
@@ -2262,6 +2271,9 @@ static RPCHelpMan reconsiderblock() {
             if (!state.IsValid()) {
                 throw JSONRPCError(RPC_DATABASE_ERROR, state.ToString());
             }
+
+            // Block to make sure wallet/indexers sync before returning
+            SyncWithValidationInterfaceQueue();
 
             return NullUniValue;
         },
@@ -2324,6 +2336,9 @@ RPCHelpMan unparkblock() {
             if (!state.IsValid()) {
                 throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());
             }
+
+            // Block to make sure wallet/indexers sync before returning
+            SyncWithValidationInterfaceQueue();
 
             return NullUniValue;
         },
