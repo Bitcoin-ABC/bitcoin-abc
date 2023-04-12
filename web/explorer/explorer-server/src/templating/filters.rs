@@ -47,7 +47,7 @@ pub fn destination_from_script<'a>(
 
 pub fn get_script(signature_script: &[u8]) -> askama::Result<String> {
     let script = Script::from_slice(signature_script);
-    Ok(script.hex())
+    Ok(script.to_string())
 }
 
 pub fn check_is_token(slp_token: &Option<SlpToken>) -> askama::Result<bool> {
