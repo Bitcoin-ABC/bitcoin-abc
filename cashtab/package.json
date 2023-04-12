@@ -24,6 +24,7 @@
         "bignumber.js": "^9.0.0",
         "bip39": "^3.0.2",
         "bip66": "^1.1.5",
+        "bitcoinjs-message": "^2.2.0",
         "browserslist": "^4.18.1",
         "bs58": "^4.0.1",
         "buffer": "^6.0.3",
@@ -90,8 +91,7 @@
         "webpack-dev-server": "^4.6.0",
         "webpack-manifest-plugin": "^4.0.2",
         "wif": "^2.0.6",
-        "workbox-webpack-plugin": "^6.4.1",
-        "xecjs-message": "^1.0.6"
+        "workbox-webpack-plugin": "^6.4.1"
     },
     "scripts": {
         "start": "node scripts/start.js",

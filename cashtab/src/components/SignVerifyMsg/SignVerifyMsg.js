@@ -31,8 +31,9 @@ import { SmartButton } from 'components/Common/PrimaryButton';
 import { PlusSquareOutlined } from '@ant-design/icons';
 import { currency, parseAddressForParams } from 'components/Common/Ticker.js';
 import { isValidXecAddress, isValidEtokenAddress } from 'utils/validation';
-import xecMessage from 'xecjs-message';
+import xecMessage from 'bitcoinjs-message';
 import * as utxolib from '@bitgo/utxo-lib';
+import cashaddr from 'ecashaddrjs';
 
 const Wrapper = styled.div`
     .ant-collapse {
@@ -107,7 +108,12 @@ const SignVerifyMsg = () => {
 
             // Now you can get the local signature
             const messageSignature = xecMessage
-                .sign(msgToSign, privKey, keyPair.compressed)
+                .sign(
+                    msgToSign,
+                    privKey,
+                    keyPair.compressed,
+                    utxolib.networks.ecash.messagePrefix,
+                )
                 .toString('base64');
 
             setMessageSignature(messageSignature);
@@ -141,8 +147,9 @@ const SignVerifyMsg = () => {
         try {
             verification = xecMessage.verify(
                 messageVerificationMsg,
-                messageVerificationAddr,
+                cashaddr.toLegacy(messageVerificationAddr),
                 messageVerificationSig,
+                utxolib.networks.ecash.messagePrefix,
             );
         } catch (err) {
             errorNotification(
