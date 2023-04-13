@@ -15,6 +15,7 @@ use chronik_bridge::{ffi, util::expect_unique_ptr};
 use chronik_db::{
     db::{Db, WriteBatch},
     groups::{FnCompressScript, ScriptGroup, ScriptHistoryWriter},
+    index_tx::prepare_indexed_txs,
     io::{
         BlockHeight, BlockReader, BlockTxs, BlockWriter, DbBlock,
         MetadataReader, MetadataWriter, SchemaVersion, TxEntry, TxWriter,
@@ -278,7 +279,9 @@ impl ChronikIndexer {
             ScriptHistoryWriter::new(&self.db, self.script_group.clone())?;
         block_writer.insert(&mut batch, &block.db_block)?;
         let first_tx_num = tx_writer.insert(&mut batch, &block.block_txs)?;
-        script_history_writer.insert(&mut batch, first_tx_num, &block.txs)?;
+        let index_txs =
+            prepare_indexed_txs(&self.db, first_tx_num, &block.txs)?;
+        script_history_writer.insert(&mut batch, &index_txs)?;
         self.db.write_batch(batch)?;
         self.mempool
             .removed_mined_txs(block.block_txs.txs.iter().map(|tx| tx.txid));
@@ -297,7 +300,9 @@ impl ChronikIndexer {
             ScriptHistoryWriter::new(&self.db, self.script_group.clone())?;
         block_writer.delete(&mut batch, &block.db_block)?;
         let first_tx_num = tx_writer.delete(&mut batch, &block.block_txs)?;
-        script_history_writer.delete(&mut batch, first_tx_num, &block.txs)?;
+        let index_txs =
+            prepare_indexed_txs(&self.db, first_tx_num, &block.txs)?;
+        script_history_writer.delete(&mut batch, &index_txs)?;
         self.avalanche.disconnect_block(block.db_block.height)?;
         self.db.write_batch(batch)?;
         Ok(())

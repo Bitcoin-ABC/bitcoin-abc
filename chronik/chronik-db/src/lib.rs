@@ -10,6 +10,7 @@ abc_rust_lint::lint! {
     pub mod groups;
     pub mod io;
     pub mod mem;
+    pub mod index_tx;
     mod reverse_lookup;
     pub mod ser;
     #[cfg(test)]

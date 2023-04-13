@@ -5,12 +5,12 @@
 use std::{collections::HashMap, marker::PhantomData};
 
 use abc_rust_error::Result;
-use bitcoinsuite_core::tx::Tx;
 use rocksdb::WriteBatch;
 
 use crate::{
     db::{Db, CF},
     group::{Group, GroupQuery},
+    index_tx::IndexTx,
     io::TxNum,
     ser::{db_deserialize, db_serialize},
 };
@@ -123,10 +123,9 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
     pub fn insert(
         &self,
         batch: &mut WriteBatch,
-        first_tx_num: TxNum,
-        txs: &[Tx],
+        txs: &[IndexTx<'_>],
     ) -> Result<()> {
-        let grouped_txs = self.group_txs(first_tx_num, txs);
+        let grouped_txs = self.group_txs(txs);
         for (member, mut new_tx_nums) in grouped_txs {
             let member_ser: G::MemberSer<'_> = self.group.ser_member(member);
             let (mut page_num, mut last_page_tx_nums) = self
@@ -153,10 +152,9 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
     pub fn delete(
         &self,
         batch: &mut WriteBatch,
-        first_tx_num: TxNum,
-        txs: &[Tx],
+        txs: &[IndexTx<'_>],
     ) -> Result<()> {
-        let grouped_txs = self.group_txs(first_tx_num, txs);
+        let grouped_txs = self.group_txs(txs);
         for (member, removed_tx_nums) in grouped_txs {
             let member_ser: G::MemberSer<'_> = self.group.ser_member(member);
             let mut num_remaining_removes = removed_tx_nums.len();
@@ -194,24 +192,22 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
 
     fn group_txs<'tx>(
         &self,
-        first_tx_num: TxNum,
-        txs: &'tx [Tx],
+        txs: &'tx [IndexTx<'tx>],
     ) -> HashMap<G::Member<'tx>, Vec<TxNum>> {
         let mut group_tx_nums = HashMap::<G::Member<'tx>, Vec<TxNum>>::new();
-        for (tx_idx, tx) in txs.iter().enumerate() {
-            let tx_num = first_tx_num + tx_idx as u64;
+        for index_tx in txs {
             let query = GroupQuery {
-                is_coinbase: tx_idx == 0,
-                tx,
+                is_coinbase: index_tx.is_coinbase,
+                tx: index_tx.tx,
             };
             for member in self.group.members_tx(query) {
                 let tx_nums = group_tx_nums.entry(member).or_default();
                 if let Some(&last_tx_num) = tx_nums.last() {
-                    if last_tx_num == tx_num {
+                    if last_tx_num == index_tx.tx_num {
                         continue;
                     }
                 }
-                tx_nums.push(tx_num);
+                tx_nums.push(index_tx.tx_num);
             }
         }
         group_tx_nums
@@ -283,15 +279,18 @@ fn key_for_member_page(member_ser: &[u8], page_num: PageNum) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
+    use std::cell::RefCell;
+
     use abc_rust_error::Result;
     use bitcoinsuite_core::tx::Tx;
     use rocksdb::WriteBatch;
 
     use crate::{
         db::Db,
+        index_tx::prepare_indexed_txs,
         io::{
-            group_history::PageNum, GroupHistoryReader, GroupHistoryWriter,
-            TxNum,
+            group_history::PageNum, BlockTxs, GroupHistoryReader,
+            GroupHistoryWriter, TxEntry, TxNum, TxWriter,
         },
         test::{make_value_tx, ser_value, ValueGroup},
     };
@@ -302,25 +301,39 @@ mod tests {
         let tempdir = tempdir::TempDir::new("chronik-db--group_history")?;
         let mut cfs = Vec::new();
         GroupHistoryWriter::<ValueGroup>::add_cfs(&mut cfs);
+        TxWriter::add_cfs(&mut cfs);
         let db = Db::open_with_cfs(tempdir.path(), cfs)?;
+        let tx_writer = TxWriter::new(&db)?;
         let group_writer = GroupHistoryWriter::new(&db, ValueGroup)?;
         let group_reader = GroupHistoryReader::<ValueGroup>::new(&db)?;
 
-        let first_tx_num = std::cell::RefCell::new(0u64);
+        let block_height = RefCell::new(-1);
+        let txs_batch = |txs: &[Tx]| BlockTxs {
+            txs: txs
+                .iter()
+                .map(|tx| TxEntry {
+                    txid: tx.txid(),
+                    ..Default::default()
+                })
+                .collect(),
+            block_height: *block_height.borrow(),
+        };
         let connect_block = |txs: &[Tx]| -> Result<()> {
             let mut batch = WriteBatch::default();
-            let mut first_tx_num = first_tx_num.borrow_mut();
-            group_writer.insert(&mut batch, *first_tx_num, txs)?;
-            *first_tx_num += txs.len() as u64;
+            *block_height.borrow_mut() += 1;
+            let first_tx_num = tx_writer.insert(&mut batch, &txs_batch(txs))?;
+            let index_txs = prepare_indexed_txs(&db, first_tx_num, txs)?;
+            group_writer.insert(&mut batch, &index_txs)?;
             db.write_batch(batch)?;
             Ok(())
         };
         let disconnect_block = |txs: &[Tx]| -> Result<()> {
             let mut batch = WriteBatch::default();
-            let mut first_tx_num = first_tx_num.borrow_mut();
-            *first_tx_num -= txs.len() as u64;
-            group_writer.delete(&mut batch, *first_tx_num, txs)?;
+            let first_tx_num = tx_writer.delete(&mut batch, &txs_batch(txs))?;
+            let index_txs = prepare_indexed_txs(&db, first_tx_num, txs)?;
+            group_writer.delete(&mut batch, &index_txs)?;
             db.write_batch(batch)?;
+            *block_height.borrow_mut() -= 1;
             Ok(())
         };
 

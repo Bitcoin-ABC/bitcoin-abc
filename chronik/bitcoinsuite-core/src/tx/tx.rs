@@ -110,6 +110,11 @@ impl Tx {
     pub fn txid(&self) -> TxId {
         self.txid
     }
+
+    /// Like [`Tx::txid`], but as a reference.
+    pub fn txid_ref(&self) -> &TxId {
+        &self.txid
+    }
 }
 
 impl std::ops::Deref for Tx {
