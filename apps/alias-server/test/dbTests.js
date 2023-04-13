@@ -15,27 +15,35 @@ const { MongoClient } = require('mongodb');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const { testAddressAliases } = require('./mocks/aliasMocks');
 
-let mongoServer, testMongoClient;
-before(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const mongoUri = mongoServer.getUri();
-    console.log(`mongoUri`, mongoUri);
-    testMongoClient = new MongoClient(mongoUri);
-});
-
-after(async () => {
-    await testMongoClient.close();
-    await mongoServer.stop();
-});
-
 describe('alias-server db.js', async function () {
+    let mongoServer, testMongoClient;
+    before(async () => {
+        // Start mongo memory server before running this suite of unit tests
+        mongoServer = await MongoMemoryServer.create();
+        const mongoUri = mongoServer.getUri();
+        testMongoClient = new MongoClient(mongoUri);
+    });
+
+    after(async () => {
+        // Shut down mongo memory server after running this suite of unit tests
+        await testMongoClient.close();
+        await mongoServer.stop();
+    });
+
+    let testDb;
+    beforeEach(async () => {
+        // Initialize db before each unit test
+        testDb = await initializeDb(testMongoClient);
+    });
+    afterEach(async () => {
+        // Wipe the database after each unit test
+        await testDb.dropDatabase();
+    });
     it('initializeDb returns a mongo db instance of the expected schema', async function () {
-        const testDb = await initializeDb(testMongoClient);
         const { namespace } = testDb;
         assert.strictEqual(namespace, 'ecashAliases');
     });
     it('getServerState returns expected initial server state on initialized database', async function () {
-        const testDb = await initializeDb(testMongoClient);
         // Check that serverState was initialized properly
         const initialServerState = await getServerState(testDb);
         assert.deepEqual(initialServerState, {
@@ -44,7 +52,6 @@ describe('alias-server db.js', async function () {
         });
     });
     it('updateServerState modifies serverState correctly', async function () {
-        const testDb = await initializeDb(testMongoClient);
         const newServerState = {
             processedConfirmedTxs: 1,
             processedBlockheight: 700000,
@@ -62,7 +69,6 @@ describe('alias-server db.js', async function () {
         assert.strictEqual(serverStateModifiedSuccess, true);
     });
     it('updateServerState returns false if provided with improperly formatted new serverState', async function () {
-        const testDb = await initializeDb(testMongoClient);
         const newServerState = {
             // typo
             processedConfirmedTx: 1,
@@ -77,9 +83,7 @@ describe('alias-server db.js', async function () {
         assert.strictEqual(serverStateModifiedSuccess, false);
     });
     it('If serverState exists on startup, initializeDb does not overwrite it', async function () {
-        // Startup the app and initialize serverState
-        const testDb = await initializeDb(testMongoClient);
-        // Change it
+        // Change serverState
         const newServerState = {
             // typo
             processedConfirmedTxs: 1,
@@ -95,9 +99,6 @@ describe('alias-server db.js', async function () {
         assert.deepEqual(fetchedServerStateOnRestart, newServerState);
     });
     it('addAliasesToDb successfully adds new valid aliases to an empty collection', async function () {
-        // Startup the app and initialize serverState
-        const testDb = await initializeDb(testMongoClient);
-
         // newValidAliases needs to be a clone of the mock because
         // each object gets an _id field when added to the database
         const newValidAliases = JSON.parse(
@@ -110,9 +111,6 @@ describe('alias-server db.js', async function () {
 
         // Verify addedValidAliases match the added mock
         assert.deepEqual(addedValidAliases, testAddressAliases.validAliasTxs);
-
-        // Wipe db after test
-        await testDb.dropDatabase();
     });
     it('addAliasesToDb returns false if you attempt to add aliases whose txid already exists in the database', async function () {
         // Startup the app and initialize serverState
@@ -135,8 +133,5 @@ describe('alias-server db.js', async function () {
         );
         // Verify addAliasesToDb returned false on attempt to add duplicate aliases to the db
         assert.deepEqual(failedResult, false);
-
-        // Wipe db after test
-        await testDb.dropDatabase();
     });
 });
