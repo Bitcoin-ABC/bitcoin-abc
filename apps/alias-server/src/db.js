@@ -105,4 +105,37 @@ module.exports = {
             return false;
         }
     },
+    addAliasesToDb: async function (db, newValidAliases) {
+        let validAliasesAddedToDbSuccess;
+        try {
+            validAliasesAddedToDbSuccess = await db
+                .collection(config.database.collections.validAliases)
+                .insertMany(newValidAliases);
+            log(
+                `Inserted ${validAliasesAddedToDbSuccess.insertedCount} reserved aliases into ${config.database.collections.validAliases}`,
+            );
+            return true;
+        } catch (err) {
+            log(`Error in function addAliasesToDb.`, err);
+            return false;
+        }
+    },
+    getAliasesFromDb: async function (db) {
+        let validAliasesInDb;
+        try {
+            validAliasesInDb = await db
+                .collection(config.database.collections.validAliases)
+                .find()
+                .sort({ blockheight: 1 })
+                .project({ _id: 0 })
+                .toArray();
+            return validAliasesInDb;
+        } catch (err) {
+            log(
+                `Error in determining validAliasesInDb in function getValidAliasesFromDb.`,
+                err,
+            );
+            return false;
+        }
+    },
 };

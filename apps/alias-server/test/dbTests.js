@@ -7,10 +7,13 @@ const {
     initializeDb,
     getServerState,
     updateServerState,
+    addAliasesToDb,
+    getAliasesFromDb,
 } = require('../src/db');
 // Mock mongodb
 const { MongoClient } = require('mongodb');
 const { MongoMemoryServer } = require('mongodb-memory-server');
+const { testAddressAliases } = require('./mocks/aliasMocks');
 
 let mongoServer, testMongoClient;
 before(async () => {
@@ -90,5 +93,50 @@ describe('alias-server db.js', async function () {
         );
         // Verify serverState has not reverted to initial value
         assert.deepEqual(fetchedServerStateOnRestart, newServerState);
+    });
+    it('addAliasesToDb successfully adds new valid aliases to an empty collection', async function () {
+        // Startup the app and initialize serverState
+        const testDb = await initializeDb(testMongoClient);
+
+        // newValidAliases needs to be a clone of the mock because
+        // each object gets an _id field when added to the database
+        const newValidAliases = JSON.parse(
+            JSON.stringify(testAddressAliases.validAliasTxs),
+        );
+        await addAliasesToDb(testDb, newValidAliases);
+        // Get the newly added valid aliases
+        // Note we return valid aliases without the database _id field
+        const addedValidAliases = await getAliasesFromDb(testDb);
+
+        // Verify addedValidAliases match the added mock
+        assert.deepEqual(addedValidAliases, testAddressAliases.validAliasTxs);
+
+        // Wipe db after test
+        await testDb.dropDatabase();
+    });
+    it('addAliasesToDb returns false if you attempt to add aliases whose txid already exists in the database', async function () {
+        // Startup the app and initialize serverState
+        const testDb = await initializeDb(testMongoClient);
+
+        // newValidAliases needs to be a clone of the mock because
+        // each object gets an _id field when added to the database
+        const newValidAliases = JSON.parse(
+            JSON.stringify(testAddressAliases.validAliasTxs),
+        );
+        await addAliasesToDb(testDb, newValidAliases);
+
+        // Try to add three aliases that already exists in the database
+        const newValidAliasAlreadyInDb = JSON.parse(
+            JSON.stringify(testAddressAliases.validAliasTxs.slice(0, 3)),
+        );
+        const failedResult = await addAliasesToDb(
+            testDb,
+            newValidAliasAlreadyInDb,
+        );
+        // Verify addAliasesToDb returned false on attempt to add duplicate aliases to the db
+        assert.deepEqual(failedResult, false);
+
+        // Wipe db after test
+        await testDb.dropDatabase();
     });
 });
