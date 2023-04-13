@@ -170,13 +170,10 @@ module.exports = {
             const thisAliasTx = aliasesSortedByTxidAndBlockheight[i];
             const { alias, blockheight } = thisAliasTx;
 
-            // remove capitalization
-            const aliasLowerCase = alias.toLowerCase();
-
             // If you haven't seen this alias yet, it's a valid registered alias
-            if (!registeredAliases.includes(aliasLowerCase)) {
+            if (!registeredAliases.includes(alias)) {
                 // If the tx is confirmed, add this alias to the registeredAlias array
-                registeredAliases.push(aliasLowerCase);
+                registeredAliases.push(alias);
                 // If the tx is confirmed,
                 if (blockheight < 100000000) {
                     // Add thisAliasObject to the validAliasObjects array

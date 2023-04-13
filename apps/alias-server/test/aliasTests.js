@@ -157,10 +157,4 @@ describe('alias-server alias.js', function () {
             testAddressAliasesWithUnconfirmedTxs.validAliasTxs,
         );
     });
-    it('getValidAliasRegistrations recognizes case variations of a taken alias as invalid', function () {
-        assert.deepEqual(
-            getValidAliasRegistrations(aliases_fake_data.allAliasTxsMixedCases),
-            aliases_fake_data.validAliasTxsMixedCases,
-        );
-    });
 });
