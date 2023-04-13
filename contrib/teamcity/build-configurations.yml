@@ -668,3 +668,7 @@ builds:
     docker:
       context: web/explorer
       port: 3035
+
+  preview-cashtab:
+    docker:
+      context: cashtab
