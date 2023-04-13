@@ -52,7 +52,7 @@ bool LoadMempool(CTxMemPool &pool, const fs::path &load_path,
     int64_t failed = 0;
     int64_t already_there = 0;
     int64_t unbroadcast = 0;
-    auto now = NodeClock::now();
+    const auto now{NodeClock::now()};
 
     try {
         uint64_t version;
@@ -72,8 +72,13 @@ bool LoadMempool(CTxMemPool &pool, const fs::path &load_path,
             file >> nTime;
             file >> nFeeDelta;
 
+            if (opts.use_current_time) {
+                nTime = TicksSinceEpoch<std::chrono::seconds>(now);
+            }
+
             Amount amountdelta = nFeeDelta * SATOSHI;
-            if (amountdelta != Amount::zero()) {
+            if (amountdelta != Amount::zero() &&
+                opts.apply_fee_delta_priority) {
                 pool.PrioritiseTransaction(tx->GetId(), amountdelta);
             }
             if (nTime >
@@ -108,18 +113,22 @@ bool LoadMempool(CTxMemPool &pool, const fs::path &load_path,
         std::map<TxId, Amount> mapDeltas;
         file >> mapDeltas;
 
-        for (const auto &i : mapDeltas) {
-            pool.PrioritiseTransaction(i.first, i.second);
+        if (opts.apply_fee_delta_priority) {
+            for (const auto &i : mapDeltas) {
+                pool.PrioritiseTransaction(i.first, i.second);
+            }
         }
 
         std::set<TxId> unbroadcast_txids;
         file >> unbroadcast_txids;
-        unbroadcast = unbroadcast_txids.size();
-        for (const auto &txid : unbroadcast_txids) {
-            // Ensure transactions were accepted to mempool then add to
-            // unbroadcast set.
-            if (pool.get(txid) != nullptr) {
-                pool.AddUnbroadcastTx(txid);
+        if (opts.apply_unbroadcast_set) {
+            unbroadcast = unbroadcast_txids.size();
+            for (const auto &txid : unbroadcast_txids) {
+                // Ensure transactions were accepted to mempool then add to
+                // unbroadcast set.
+                if (pool.get(txid) != nullptr) {
+                    pool.AddUnbroadcastTx(txid);
+                }
             }
         }
     } catch (const std::exception &e) {
