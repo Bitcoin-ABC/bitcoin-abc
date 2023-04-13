@@ -6,6 +6,10 @@
 const log = require('./log');
 const config = require('../config');
 
+const MONGO_DB_ERRORCODES = {
+    duplicateKey: 11000,
+};
+
 module.exports = {
     initializeDb: async function (mongoClient) {
         // Use connect method to connect to the server
@@ -102,6 +106,21 @@ module.exports = {
             // If this isn't updated, the server will process too many txs next time
             // TODO Let the admin know. This won't impact parsing but will cause processing too many txs
             log(`Error in function updateServerState.`, err);
+            return false;
+        }
+    },
+    addOneAliasToDb: async function (db, newAliasTx) {
+        try {
+            await db
+                .collection(config.database.collections.validAliases)
+                .insertOne(newAliasTx);
+            return true;
+        } catch (err) {
+            // Only log some error other than duplicate key error
+            if (err && err.code !== MONGO_DB_ERRORCODES.duplicateKey) {
+                log(`Error in function addOneAliasToDb:`);
+                log(err);
+            }
             return false;
         }
     },

@@ -9,6 +9,7 @@ const config = require('../config');
 const mockSecrets = require('../secrets.sample');
 const MockAdapter = require('axios-mock-adapter');
 const axios = require('axios');
+const { testAddressAliases } = require('./mocks/aliasMocks');
 
 // Mock mongodb
 const { MongoClient } = require('mongodb');
@@ -16,22 +17,20 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 // Mock chronik
 const { MockChronikClient } = require('./mocks/chronikMock');
 
-let mongoServer, testMongoClient;
-before(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const mongoUri = mongoServer.getUri();
-    testMongoClient = new MongoClient(mongoUri);
-});
-
-after(async () => {
-    await testMongoClient.close();
-    await mongoServer.stop();
-});
-
 describe('alias-server main.js', async function () {
+    let mongoServer, testMongoClient;
+    before(async () => {
+        mongoServer = await MongoMemoryServer.create();
+        const mongoUri = mongoServer.getUri();
+        testMongoClient = new MongoClient(mongoUri);
+    });
+
+    after(async () => {
+        await testMongoClient.close();
+        await mongoServer.stop();
+    });
+
     it('main() intializes database correctly, connects to a websocket, and runs handleAppStartup() correctly', async function () {
-        // Define params
-        const mongoClient = testMongoClient;
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient();
         const mockBlockchaininfoResponse = {
@@ -46,6 +45,16 @@ describe('alias-server main.js', async function () {
             output: mockBlockchaininfoResponse,
         });
 
+        // Add tx history to mockedChronik
+        // Set the script
+        const { type, hash } = cashaddr.decode(
+            config.aliasConstants.registrationAddress,
+            true,
+        );
+        mockedChronik.setScript(type, hash);
+        // Set the mock tx history
+        mockedChronik.setTxHistory(testAddressAliases.txHistory);
+
         // Mock avalanche RPC call
         // onNoMatch: 'throwException' helps to debug if mock is not being used
         const mock = new MockAdapter(axios, { onNoMatch: 'throwException' });
@@ -55,6 +64,9 @@ describe('alias-server main.js', async function () {
             error: null,
             id: 'isfinalblock',
         });
+
+        // Define params
+        const mongoClient = testMongoClient;
         const chronik = mockedChronik;
         const address = config.aliasConstants.registrationAddress;
         const telegramBot = null;
@@ -70,7 +82,6 @@ describe('alias-server main.js', async function () {
             avalancheRpc,
             returnMocks,
         );
-        const { type, hash } = cashaddr.decode(address, true);
         // Check that the database was initialized properly
         assert.strictEqual(result.db.namespace, config.database.name);
         // Check that websocket is connected

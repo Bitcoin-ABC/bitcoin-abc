@@ -7,6 +7,7 @@ const {
     initializeDb,
     getServerState,
     updateServerState,
+    addOneAliasToDb,
     addAliasesToDb,
     getAliasesFromDb,
 } = require('../src/db');
@@ -111,6 +112,94 @@ describe('alias-server db.js', async function () {
 
         // Verify addedValidAliases match the added mock
         assert.deepEqual(addedValidAliases, testAddressAliases.validAliasTxs);
+    });
+    it('addOneAliasToDb successfully adds a new valid alias to an empty collection', async function () {
+        // newValidAliases needs to be a clone of the mock because
+        // each object gets an _id field when added to the database
+        const newValidAliases = JSON.parse(
+            JSON.stringify(testAddressAliases.validAliasTxs),
+        );
+        const aliasAddedSuccess = await addOneAliasToDb(
+            testDb,
+            newValidAliases[0],
+        );
+        // Get the newly added valid aliases
+        // Note we return valid aliases without the database _id field
+        const addedValidAliases = await getAliasesFromDb(testDb);
+
+        // Verify the function returns true on alias add success
+        assert.strictEqual(aliasAddedSuccess, true);
+        // Verify the database has the expected alias
+        assert.deepEqual(addedValidAliases, [
+            testAddressAliases.validAliasTxs[0],
+        ]);
+    });
+    it('addOneAliasToDb successfully adds a new valid alias to an existing collection', async function () {
+        // newValidAliases needs to be a clone of the mock because
+        // each object gets an _id field when added to the database
+        const newValidAliases = JSON.parse(
+            JSON.stringify(testAddressAliases.validAliasTxs),
+        );
+        // Pre-populate the aliases collection
+        await addAliasesToDb(testDb, newValidAliases);
+
+        const newMockAlias = {
+            address: 'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r48',
+            alias: 'rico',
+            txid: '3ff9c28fa07cb88c87000ef0f5ee61953d874ffade154cd3f88fd60b88ea2879',
+            blockheight: 787674,
+        };
+
+        // clone to check unit test result as _id will be added to newMockAlias
+        const newMockAliasClone = JSON.parse(JSON.stringify(newMockAlias));
+
+        // Add an alias tx that does not exist
+        const aliasAddedSuccess = await addOneAliasToDb(testDb, newMockAlias);
+        // Get the newly added valid aliases
+        // Note we return valid aliases without the database _id field
+        const addedValidAliases = await getAliasesFromDb(testDb);
+
+        // Verify the function returns true on alias add success
+        assert.strictEqual(aliasAddedSuccess, true);
+        // Verify the database has the expected alias
+        assert.deepEqual(
+            addedValidAliases,
+            testAddressAliases.validAliasTxs.concat(newMockAliasClone),
+        );
+    });
+    it('addOneAliasToDb returns false and fails to add an alias if it is already in the database', async function () {
+        // newValidAliases needs to be a clone of the mock because
+        // each object gets an _id field when added to the database
+        const newValidAliases = JSON.parse(
+            JSON.stringify(testAddressAliases.validAliasTxs),
+        );
+        // Pre-populate the aliases collection
+        await addAliasesToDb(testDb, newValidAliases);
+
+        const newMockAliasTxRegisteringExistingAlias = {
+            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
+            alias: 'foo',
+            txid: 'f41ccfbd88d228bbb695b771dd0c266b0351eda9a35aeb8c5e3cb7670e7e17cc',
+            blockheight: 776576,
+        };
+
+        // Add an alias tx that does not exist
+        const aliasAddedSuccess = await addOneAliasToDb(
+            testDb,
+            newMockAliasTxRegisteringExistingAlias,
+        );
+        // Get the newly added valid aliases
+        // Note we return valid aliases without the database _id field
+        const addedValidAliases = await getAliasesFromDb(testDb);
+
+        // Verify the function returns true on alias add success
+        assert.strictEqual(aliasAddedSuccess, false);
+        // Verify the database has the expected aliases (without the failed add)
+        assert.deepEqual(addedValidAliases, testAddressAliases.validAliasTxs);
+    });
+    it('getAliasesFromDb returns an empty array if no aliases have been added to the collection', async function () {
+        const validAliases = await getAliasesFromDb(testDb);
+        assert.deepEqual(validAliases, []);
     });
     it('addAliasesToDb returns false if you attempt to add aliases whose txid already exists in the database', async function () {
         // Startup the app and initialize serverState

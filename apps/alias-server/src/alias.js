@@ -11,6 +11,7 @@ const {
     isValidAliasString,
     getOutputScriptFromAddress,
 } = require('./utils');
+const { addOneAliasToDb } = require('./db');
 
 module.exports = {
     getAliasTxs: function (aliasTxHistory, aliasConstants) {
@@ -145,21 +146,27 @@ module.exports = {
 
         return aliasTxsSortedByTxidAndBlockheight;
     },
-    getValidAliasRegistrations: function (registeredAliases, unsortedAliasTxs) {
-        /* Function that takes an array of already-registered aliases (strings)
-         * and an arbitrary collection of alias-prefixed txs from the alias registration
-         * address.
+    registerAliases: async function (db, unsortedConfirmedAliasTxs) {
+        /* Add new valid aliases registration txs to the database. Return an array of what was added.
          *
-         * Outputs new valid alias registrations by discarding any repeated registrations
-         * as invalid.
+         * Input parameters
+         * db - the app database
+         * unsortedConfirmedAliasTxs - array, arbitrary collection of confirmed alias-prefixed txs
+         *                             at the alias registration address
          *
-         * Will get all valid alias registrations if given the full tx history and an empty array
-         * for registeredAliases
+         * Outputs
+         * - The function adds new valid alias txs to the database
+         * - An array of objects, each one a new valid alias registration tx that was added to the database
+         *
+         * Will get all valid alias registrations if given the full tx history and
+         * the database is empty
          */
 
         // Sort aliases such that the earliest aliases are the valid ones
         const aliasesSortedByTxidAndBlockheight =
-            module.exports.sortAliasTxsByTxidAndBlockheight(unsortedAliasTxs);
+            module.exports.sortAliasTxsByTxidAndBlockheight(
+                unsortedConfirmedAliasTxs,
+            );
 
         // Initialize arrays to store alias registration info
         let validAliasRegistrations = [];
@@ -168,37 +175,24 @@ module.exports = {
         // (and alphabetically first txids to last)
         for (let i = 0; i < aliasesSortedByTxidAndBlockheight.length; i += 1) {
             const thisAliasTx = aliasesSortedByTxidAndBlockheight[i];
-            const { alias, blockheight } = thisAliasTx;
 
-            // If you haven't seen this alias yet, it's a valid registered alias
-            if (!registeredAliases.includes(alias)) {
-                // If the tx is confirmed, add this alias to the registeredAlias array
-                registeredAliases.push(alias);
-                // If the tx is confirmed,
-                if (blockheight < 100000000) {
-                    // Add thisAliasObject to the validAliasObjects array
-                    validAliasRegistrations.push(thisAliasTx);
-                }
-            } else {
-                // If you've already seen it at an earlier blockheight or earlier alphabetical txid,
-                // then this is not a valid registration.
-                // Do not include it in valid registrations
+            /* If the alias isn't in the database, it's valid and should be added
+             */
 
-                // Note, we could just remove this else block. But it's useful for code readability.
-                continue;
+            // If database add is successful,
+            // add thisAliasObject to the validAliasObjects array
+            if (await addOneAliasToDb(db, thisAliasTx)) {
+                // Because thisAliasTx receives an "_id" key on being added to the db,
+                // clone it without this field to return
+                const { address, alias, blockheight, txid } = thisAliasTx;
+                validAliasRegistrations.push({
+                    address,
+                    alias,
+                    blockheight,
+                    txid,
+                });
             }
         }
         return validAliasRegistrations;
-    },
-    getAliasStringsFromValidAliasTxs: function (validAliases) {
-        /* Input
-         * validAliases, an array of alias registrations objects like those
-         * stored in the validAliases collection of the database
-         * Output
-         * an array of strings of all alias registrations
-         */
-        return validAliases.map(aliasObj => {
-            return aliasObj.alias;
-        });
     },
 };

@@ -4,6 +4,7 @@
 
 'use strict';
 const assert = require('assert');
+const config = require('../config');
 const cashaddr = require('ecashaddrjs');
 const {
     initializeWebsocket,
@@ -14,8 +15,36 @@ const { mockBlock } = require('./mocks/chronikResponses');
 const mockSecrets = require('../secrets.sample');
 const MockAdapter = require('axios-mock-adapter');
 const axios = require('axios');
+// Mock mongodb
+const { initializeDb } = require('../src/db');
+const { MongoClient } = require('mongodb');
+const { MongoMemoryServer } = require('mongodb-memory-server');
+const { testAddressAliases } = require('./mocks/aliasMocks');
 
 describe('alias-server chronikWsHandler.js', async function () {
+    let mongoServer, testMongoClient;
+    before(async () => {
+        // Start mongo memory server before running this suite of unit tests
+        mongoServer = await MongoMemoryServer.create();
+        const mongoUri = mongoServer.getUri();
+        testMongoClient = new MongoClient(mongoUri);
+    });
+
+    after(async () => {
+        // Shut down mongo memory server after running this suite of unit tests
+        await testMongoClient.close();
+        await mongoServer.stop();
+    });
+
+    let testDb;
+    beforeEach(async () => {
+        // Initialize db before each unit test
+        testDb = await initializeDb(testMongoClient);
+    });
+    afterEach(async () => {
+        // Wipe the database after each unit test
+        await testDb.dropDatabase();
+    });
     it('initializeWebsocket returns expected websocket object for a p2pkh address', async function () {
         const wsTestAddress =
             'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8';
@@ -77,7 +106,7 @@ describe('alias-server chronikWsHandler.js', async function () {
     it('parseWebsocketMessage correctly processes a chronik websocket BlockConnected message if block is avalanche finalized', async function () {
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient();
-        const db = null;
+        const db = testDb;
         const telegramBot = null;
         const channelId = null;
         const { avalancheRpc } = mockSecrets;
@@ -96,6 +125,16 @@ describe('alias-server chronikWsHandler.js', async function () {
             input: wsMsg.blockHash,
             output: mockBlock,
         });
+
+        // Add tx history to mockedChronik
+        // Set the script
+        const { type, hash } = cashaddr.decode(
+            config.aliasConstants.registrationAddress,
+            true,
+        );
+        mockedChronik.setScript(type, hash);
+        // Set the mock tx history
+        mockedChronik.setTxHistory(testAddressAliases.txHistory);
 
         // Mock avalanche RPC call
         // onNoMatch: 'throwException' helps to debug if mock is not being used
@@ -162,7 +201,7 @@ describe('alias-server chronikWsHandler.js', async function () {
     it('If parseWebsocketMessage is called before a previous call to handleBlockConnected has completed, the next call to handleBlockConnected will not enter until the first is completed', async function () {
         // Initialize mocks for the first call to parseWebsocketMessage
         const mockedChronik = new MockChronikClient();
-        const db = null;
+        const db = testDb;
         const telegramBot = null;
         const channelId = null;
         const { avalancheRpc } = mockSecrets;
@@ -182,6 +221,16 @@ describe('alias-server chronikWsHandler.js', async function () {
             input: wsMsg.blockHash,
             output: mockBlock,
         });
+
+        // Add tx history to mockedChronik
+        // Set the script
+        const { type, hash } = cashaddr.decode(
+            config.aliasConstants.registrationAddress,
+            true,
+        );
+        mockedChronik.setScript(type, hash);
+        // Set the mock tx history
+        mockedChronik.setTxHistory(testAddressAliases.txHistory);
 
         // Mock avalanche RPC call
         // onNoMatch: 'throwException' helps to debug if mock is not being used
@@ -205,11 +254,20 @@ describe('alias-server chronikWsHandler.js', async function () {
                 height: 786879,
             },
         };
+
         // Tell mockedChronik what response we expect
         nextMockedChronik.setMock('block', {
             input: nextWsMsg.blockHash,
             output: nextMockBlock,
         });
+
+        // Add tx history to nextMockedChronik
+        // Set the script
+        nextMockedChronik.setScript(type, hash);
+        // Set the mock tx history
+        // For now, assume it's the same as before, i.e. no new txs found
+        nextMockedChronik.setTxHistory(testAddressAliases.txHistory);
+
         const firstCallPromise = parseWebsocketMessage(
             mockedChronik,
             db,

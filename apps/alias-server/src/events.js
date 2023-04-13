@@ -5,8 +5,11 @@
 'use strict';
 const config = require('../config');
 const log = require('./log');
-const { wait } = require('./utils');
+const { wait, removeUnconfirmedTxsFromTxHistory } = require('./utils');
 const { isFinalBlock } = require('./rpc');
+const { getServerState, updateServerState } = require('./db');
+const { getUnprocessedTxHistory } = require('./chronik');
+const { getAliasTxs, registerAliases } = require('./alias');
 
 module.exports = {
     handleAppStartup: async function (
@@ -122,23 +125,66 @@ module.exports = {
             return false;
         }
 
-        // TODO Get the valid aliases already in the db
+        const serverState = await getServerState(db);
+        if (!serverState) {
+            // TODO notify admin
+            return false;
+        }
 
-        // TODO get server state
-        // processedConfirmedTxs - count of processed confirmed txs
-        // processedBlockheight - highest blockheight seen by the server
+        const { processedBlockheight, processedConfirmedTxs } = serverState;
 
-        // TODO get set of transactions not yet processed by the server
-        // If app startup, this is full tx history of alias registration address
+        // If serverState is, somehow, ahead of the calling block, return false
+        if (processedBlockheight >= tipHeight) {
+            // TODO notify admin
+            return false;
+        }
 
-        // TODO parse tx history for latest valid alias registrations
-        // with valid format and fee
+        const allUnprocessedTxs = await getUnprocessedTxHistory(
+            chronik,
+            config.aliasConstants.registrationAddress,
+            processedBlockheight,
+            processedConfirmedTxs,
+        );
 
-        // TODO update database with latest valid alias information
+        // Remove unconfirmed txs as these are not eligible for valid alias registrations
+        const confirmedUnprocessedTxs =
+            removeUnconfirmedTxsFromTxHistory(allUnprocessedTxs);
 
-        // TODO update server state
-        // TODO If you have new aliases to add to the db, add them + send a tg msg
-        // TODO If not, exit loop
+        // Get all potentially valid alias registrations
+        // i.e. correct fee is paid, prefix is good, everything good but not yet checked against
+        // conflicting aliases that registered earlier or have alphabetically earlier txid in
+        // same block
+        const unprocessedAliasTxs = getAliasTxs(
+            confirmedUnprocessedTxs,
+            config.aliasConstants,
+        );
+
+        // Add new valid alias txs to the database and get a list of what was added
+        await registerAliases(db, unprocessedAliasTxs);
+
+        // New processedBlockheight is the highest one seen, or the
+        // height of the first entry of the confirmedUnprocessedTxs array
+        // New processedConfirmedTxs is determined by adding the count of now-processed txs
+        const newServerState = {
+            processedBlockheight: tipHeight,
+            processedConfirmedTxs:
+                processedConfirmedTxs + confirmedUnprocessedTxs.length,
+        };
+        // Update serverState
+        const serverStateUpdated = await updateServerState(db, newServerState);
+        if (!serverStateUpdated) {
+            // Don't exit, since you've already added aliases to the db here
+            // App will run next on the old server state, so will re-process txs
+            // These can't be added to the db, so you will get errors
+            // If you get here, there is something wrong with the server that needs to be checked out
+            // TODO notify admin
+            log(
+                `serverState failed to update to new serverState`,
+                newServerState,
+            );
+        }
+
+        // TODO telegram notifications for new alias registrations
 
         log(
             `Alias registrations updated to block ${tipHash} at height ${tipHeight}`,

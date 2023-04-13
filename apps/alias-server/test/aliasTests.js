@@ -9,17 +9,36 @@ const {
     parseAliasTx,
     getAliasTxs,
     sortAliasTxsByTxidAndBlockheight,
-    getValidAliasRegistrations,
-    getAliasStringsFromValidAliasTxs,
+    registerAliases,
 } = require('../src/alias');
-const { getOutputScriptFromAddress } = require('../src/utils');
+const {
+    getOutputScriptFromAddress,
+    removeUnconfirmedTxsFromTxHistory,
+} = require('../src/utils');
 const {
     testAddressAliases,
     testAddressAliasesWithUnconfirmedTxs,
     aliases_fake_data,
 } = require('./mocks/aliasMocks');
+// Mock mongodb
+const { MongoClient } = require('mongodb');
+const { MongoMemoryServer } = require('mongodb-memory-server');
+const { initializeDb, addAliasesToDb } = require('../src/db');
 
-describe('alias-server alias.js', function () {
+describe('alias-server alias.js', async function () {
+    let mongoServer, testMongoClient;
+    before(async () => {
+        // Start mongo memory server before running this suite of unit tests
+        mongoServer = await MongoMemoryServer.create();
+        const mongoUri = mongoServer.getUri();
+        testMongoClient = new MongoClient(mongoUri);
+    });
+
+    after(async () => {
+        // Shut down mongo memory server after running this suite of unit tests
+        await testMongoClient.close();
+        await mongoServer.stop();
+    });
     it('Correctly parses a 5-character alias transaction', function () {
         const registrationOutputScript = getOutputScriptFromAddress(
             config.aliasConstants.registrationAddress,
@@ -143,57 +162,95 @@ describe('alias-server alias.js', function () {
             testAddressAliasesWithUnconfirmedTxs.allAliasTxsSortedByTxidAndBlockheight,
         );
     });
-    it('Correctly returns only valid alias registrations at test address ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8', function () {
+    it('Correctly returns only valid alias registrations at test address ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8 starting with an empty database', async function () {
+        // Initialize db before each unit test
+        let testDb = await initializeDb(testMongoClient);
+
+        // Clone unprocessedAliasTxs since the act of adding to db gives it an _id field
+        const mockAllAliasTxs = JSON.parse(
+            JSON.stringify(testAddressAliases.allAliasTxs),
+        );
+
         assert.deepEqual(
-            getValidAliasRegistrations([], testAddressAliases.allAliasTxs),
+            await registerAliases(testDb, mockAllAliasTxs),
             testAddressAliases.validAliasTxs,
         );
+
+        // Wipe the database after this unit test
+        await testDb.dropDatabase();
     });
-    it('Correctly returns only new valid alias registrations at test address ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8 given partial txHistory and list of registered aliases', function () {
+    it('Correctly returns only new valid alias registrations at test address ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8 given partial txHistory and list of registered aliases', async function () {
         // Take only txs after registration of alias 'bytesofman'
+        // Note: allAliasTxs are sorted with most recent txs first
         const unprocessedAliasTxs = testAddressAliases.allAliasTxs.slice(
+            0,
             testAddressAliases.allAliasTxs.findIndex(
                 i => i.alias === 'bytesofman',
             ),
         );
+
+        // Clone unprocessedAliasTxs since the act of adding to db gives it an _id field
+        const mockUnprocessedAliasTxs = JSON.parse(
+            JSON.stringify(unprocessedAliasTxs),
+        );
+
         // Get list of all valid alias registrations before 'bytesofman'
-        const registeredAliases = getAliasStringsFromValidAliasTxs(
-            testAddressAliases.validAliasTxs.slice(
-                0,
-                testAddressAliases.validAliasTxs.findIndex(
-                    i => i.alias === 'bytesofman',
-                ),
-            ),
+        // Note: validAliasTxs are sorted with most recent txs last
+        // Note: you want to include bytesofman here
+        const registeredAliases = testAddressAliases.validAliasTxs.slice(
+            0,
+            testAddressAliases.validAliasTxs.findIndex(
+                i => i.alias === 'bytesofman',
+            ) + 1,
         );
 
         // newlyValidAliases will be all the valid alias txs registered after 'bytesofman'
+        // Note: you do not want bytesofman in this set
         const newlyValidAliases = testAddressAliases.validAliasTxs.slice(
             testAddressAliases.validAliasTxs.findIndex(
                 i => i.alias === 'bytesofman',
-            ),
+            ) + 1,
         );
+        // Initialize db before each unit test
+        let testDb = await initializeDb(testMongoClient);
+
+        // mockRegisteredAliases needs to be a clone of the mock because
+        // each object gets an _id field when added to the database
+        const mockRegisteredAliases = JSON.parse(
+            JSON.stringify(registeredAliases),
+        );
+        // Add expected registered aliases to the db
+        await addAliasesToDb(testDb, mockRegisteredAliases);
 
         assert.deepEqual(
-            getValidAliasRegistrations(registeredAliases, unprocessedAliasTxs),
+            await registerAliases(testDb, mockUnprocessedAliasTxs),
             newlyValidAliases,
         );
+        // Wipe the database after this unit test
+        await testDb.dropDatabase();
     });
-    it('Correctly returns valid alias registrations at test address ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8 given some unconfirmed txs in history', function () {
-        assert.deepEqual(
-            getValidAliasRegistrations(
-                [],
-                testAddressAliasesWithUnconfirmedTxs.allAliasTxs,
-            ),
+    it('Correctly returns valid alias registrations at test address ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8 given some unconfirmed txs in history', async function () {
+        // Initialize db before each unit test
+        let testDb = await initializeDb(testMongoClient);
 
+        // Start with the raw tx history
+
+        // First, remove the unconfirmed txs, following the logic used in events.js
+        const confirmedUnsortedTxs = removeUnconfirmedTxsFromTxHistory(
+            testAddressAliasesWithUnconfirmedTxs.txHistory,
+        );
+        // Get the alias txs
+        const confirmedUnsortedAliasTxs = getAliasTxs(
+            confirmedUnsortedTxs,
+            config.aliasConstants,
+        );
+
+        // This tests startup condition, so add no aliases to the database
+        assert.deepEqual(
+            await registerAliases(testDb, confirmedUnsortedAliasTxs),
             testAddressAliasesWithUnconfirmedTxs.validAliasTxs,
         );
-    });
-    it('getAliasStringsFromValidAliasTxs returns an array of string of the alias object key from an array of valid alias registrations', function () {
-        assert.deepEqual(
-            getAliasStringsFromValidAliasTxs(
-                testAddressAliasesWithUnconfirmedTxs.validAliasTxs,
-            ),
-            testAddressAliasesWithUnconfirmedTxs.validAliasStrings,
-        );
+        // Wipe the database after this unit test
+        await testDb.dropDatabase();
     });
 });
