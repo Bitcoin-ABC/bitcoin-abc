@@ -35,13 +35,12 @@ namespace kernel {
 static const uint64_t MEMPOOL_DUMP_VERSION = 1;
 
 bool LoadMempool(CTxMemPool &pool, const fs::path &load_path,
-                 Chainstate &active_chainstate,
-                 FopenFn mockable_fopen_function) {
+                 Chainstate &active_chainstate, ImportMempoolOptions &&opts) {
     if (load_path.empty()) {
         return false;
     }
 
-    AutoFile file{mockable_fopen_function(load_path, "rb")};
+    AutoFile file{opts.mockable_fopen_function(load_path, "rb")};
     if (file.IsNull()) {
         LogPrintf(
             "Failed to open mempool file from disk. Continuing anyway.\n");

@@ -48,7 +48,9 @@ FUZZ_TARGET_INIT(validation_load_mempool, initialize_validation_load_mempool) {
         return fuzzed_file_provider.open();
     };
     (void)LoadMempool(pool, MempoolPath(g_setup->m_args), chainstate,
-                      fuzzed_fopen);
+                      {
+                          .mockable_fopen_function = fuzzed_fopen,
+                      });
     pool.SetLoadTried(true);
     (void)DumpMempool(pool, MempoolPath(g_setup->m_args), fuzzed_fopen, true);
 }
