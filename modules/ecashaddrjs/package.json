@@ -1,6 +1,6 @@
 {
     "name": "ecashaddrjs",
-    "version": "1.4.1",
+    "version": "1.4.6",
     "description": "eCash cashaddr address format support for Node.js and web browsers.",
     "main": "src/cashaddr.js",
     "browser": "dist/cashaddrjs.min.js",
@@ -17,7 +17,8 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+ssh://vcs@reviews.bitcoinabc.org:2221/source/bitcoin-abc.git"
+        "url": "git+https://github.com/Bitcoin-ABC/bitcoin-abc.git",
+        "directory": "modules/ecashaddrjs"
     },
     "keywords": [
         "ecash",
@@ -32,9 +33,9 @@
     "author": "Bitcoin ABC, Emilio Almansi",
     "license": "MIT",
     "bugs": {
-        "url": "https://reviews.bitcoinabc.org/"
+        "url": "https://github.com/Bitcoin-ABC/bitcoin-abc/issues"
     },
-    "homepage": "https://github.com/Bitcoin-ABC/bitcoin-abc/tree/master/modules/ecashaddrjs",
+    "homepage": "https://github.com/Bitcoin-ABC/bitcoin-abc/tree/master/modules/ecashaddrjs#readme",
     "devDependencies": {
         "@babel/cli": "^7.21.0",
         "@babel/core": "^7.21.3",
