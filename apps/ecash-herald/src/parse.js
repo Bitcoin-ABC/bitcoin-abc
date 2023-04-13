@@ -237,31 +237,44 @@ Assumptions
     getBlockTgMessage: function (parsedBlock, coingeckoPrices) {
         const { hash, height, miner, numTxs, parsedTxs } = parsedBlock;
 
-        // Iterate over parsedTxs to find anything newsworthy
-        let tokenTxCount = 0;
-        let genesisTxCount = 0;
-        let opReturnTxCount = 0;
-        const genesisInfoArray = [];
-        const opReturnInfoArray = [];
+        // Define newsworthy types of txs in parsedTxs
+        // These arrays will be used to present txs in batches by type
+        const genesisTxTgMsgLines = [];
+        const opReturnTxTgMsgLines = [];
 
+        // Iterate over parsedTxs to find anything newsworthy
         for (let i = 0; i < parsedTxs.length; i += 1) {
             const thisParsedTx = parsedTxs[i];
-            const { txid, isTokenTx, isGenesisTx, genesisInfo, opReturnInfo } =
+            const { txid, isGenesisTx, genesisInfo, opReturnInfo } =
                 thisParsedTx;
-            if (isTokenTx) {
-                tokenTxCount += 1;
-                if (isGenesisTx) {
-                    genesisTxCount += 1;
-
-                    // Add txid to genesisInfo array as tokenId
-                    const tgGenesisInfo = { ...genesisInfo, tokenId: txid };
-                    genesisInfoArray.push(tgGenesisInfo);
-                }
+            if (isGenesisTx) {
+                // The txid of a genesis tx is the tokenId
+                const tokenId = txid;
+                let { tokenTicker, tokenName, tokenDocumentUrl } = genesisInfo;
+                // Make sure tokenName does not contain telegram html escape characters
+                tokenName =
+                    module.exports.prepareStringForTelegramHTML(tokenName);
+                // Make sure tokenName does not contain telegram html escape characters
+                tokenTicker =
+                    module.exports.prepareStringForTelegramHTML(tokenTicker);
+                // Do not apply this parsing to tokenDocumentUrl, as this could change the URL
+                // If this breaks the msg, so be it
+                // Would only happen for bad URLs
+                genesisTxTgMsgLines.push(
+                    `<a href="${config.blockExplorer}/tx/${tokenId}">${tokenName}</a> (${tokenTicker}) <a href="${tokenDocumentUrl}">[doc]</a>`,
+                );
+                // This parsed tx has a tg msg line. Move on to the next one.
+                continue;
             }
             if (opReturnInfo) {
-                opReturnTxCount += 1;
-                const tgOpReturnInfo = { ...opReturnInfo, txid };
-                opReturnInfoArray.push(tgOpReturnInfo);
+                let { app, msg } = opReturnInfo;
+                // Make sure the OP_RETURN msg does not contain telegram html escape characters
+                msg = module.exports.prepareStringForTelegramHTML(msg);
+                opReturnTxTgMsgLines.push(
+                    `<a href="${config.blockExplorer}/tx/${txid}">${app}:</a> ${msg}`,
+                );
+                // This parsed tx has a tg msg line. Move on to the next one.
+                continue;
             }
         }
 
@@ -289,8 +302,8 @@ Assumptions
             }
         }
 
-        // Parse and list genesis txs
-        if (genesisTxCount > 0) {
+        // Genesis txs
+        if (genesisTxTgMsgLines.length > 0) {
             // Line break for new section
             tgMsg.push('');
 
@@ -298,47 +311,30 @@ Assumptions
             // or
             // <n> new eTokens created:
             tgMsg.push(
-                `${genesisTxCount} new eToken${
-                    tokenTxCount > 1 ? `s` : ''
+                `${genesisTxTgMsgLines.length} new eToken${
+                    genesisTxTgMsgLines.length > 1 ? `s` : ''
                 } created:`,
             );
 
-            // <tokenName> (<tokenTicker) [doc]
-            const genesisTxMsgLines = genesisInfoArray.map(genesisInfo => {
-                let { tokenId, tokenTicker, tokenName, tokenDocumentUrl } =
-                    genesisInfo;
-                tokenName =
-                    module.exports.prepareStringForTelegramHTML(tokenName);
-                tokenTicker =
-                    module.exports.prepareStringForTelegramHTML(tokenTicker);
-                return `<a href="${config.blockExplorer}/tx/${tokenId}">${tokenName}</a> (${tokenTicker}) <a href="${tokenDocumentUrl}">[doc]</a>`;
-            });
-            // Add genesisTxs to tgMsgArray
-            tgMsg = tgMsg.concat(genesisTxMsgLines);
+            tgMsg = tgMsg.concat(genesisTxTgMsgLines);
         }
 
-        // Summary of OP_RETURN txs
-        if (opReturnTxCount > 0) {
+        // OP_RETURN txs
+        if (opReturnTxTgMsgLines.length > 0) {
             // Line break for new section
             tgMsg.push('');
 
             // App txs:
             // or
             // App tx:
-            tgMsg.push(`App tx${opReturnTxCount > 1 ? `s` : ''}:`);
+            tgMsg.push(`App tx${opReturnTxTgMsgLines.length > 1 ? `s` : ''}:`);
 
             // <appName> : <parsedAppData>
             // alias: newlyregisteredalias
             // Cashtab Msg: This is a Cashtab Msg
-            const appTxMsgLines = opReturnInfoArray.map(tgOpReturnInfo => {
-                let { app, msg, txid } = tgOpReturnInfo;
-                msg = module.exports.prepareStringForTelegramHTML(msg);
-                return `<a href="${config.blockExplorer}/tx/${txid}">${app}:</a> ${msg}`;
-            });
-
-            // Add appTxs to tgMsgArray
-            tgMsg = tgMsg.concat(appTxMsgLines);
+            tgMsg = tgMsg.concat(opReturnTxTgMsgLines);
         }
+
         // Join array with newLine char, \n
         return tgMsg.join('\n');
     },
