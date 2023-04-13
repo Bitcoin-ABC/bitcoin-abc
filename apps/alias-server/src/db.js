@@ -21,7 +21,88 @@ module.exports = {
                 unique: true,
             },
         );
+        // Check if serverState collection exists
+        const serverStateExists =
+            (await db
+                .collection(config.database.collections.serverState)
+                .countDocuments()) > 0;
+
+        // If serverState collection does not exist
+        if (!serverStateExists) {
+            // Create it
+            await db.createCollection(
+                config.database.collections.serverState,
+                // serverState may only have one document
+                // 4096 is max size in bytes, required by mongo
+                // 4096 is smallest max size allowed
+                { capped: true, size: 4096, max: 1 },
+            );
+            // Initialize server with zero alias txs processed
+            await module.exports.updateServerState(db, {
+                processedConfirmedTxs: 0,
+                processedBlockheight: 0,
+            });
+            log(`Initialized serverState on app startup`);
+        }
         log(`Configured connection to database ${config.database.name}`);
         return db;
+    },
+    getServerState: async function (db) {
+        let serverStateArray;
+        try {
+            serverStateArray = await db
+                .collection(config.database.collections.serverState)
+                .find()
+                // We don't need the _id field
+                .project({ _id: 0 })
+                .next();
+            // Only 1 document in collection
+            return serverStateArray;
+        } catch (err) {
+            log(`Error in determining serverState.`, err);
+            return false;
+        }
+    },
+    updateServerState: async function (db, newServerState) {
+        try {
+            const { processedConfirmedTxs, processedBlockheight } =
+                newServerState;
+
+            if (
+                typeof processedConfirmedTxs !== 'number' ||
+                typeof processedBlockheight !== 'number'
+            ) {
+                return false;
+            }
+
+            // An empty document as a query i.e. {} will update the first
+            // document returned in the collection
+            // serverState only has one document
+            const serverStateQuery = {};
+
+            const serverStateUpdate = {
+                $set: {
+                    processedConfirmedTxs,
+                    processedBlockheight,
+                },
+            };
+            // If you are running the server for the first time and there is no
+            // serverState in the db, create it
+            const serverStateOptions = { upsert: true };
+
+            await db
+                .collection(config.database.collections.serverState)
+                .updateOne(
+                    serverStateQuery,
+                    serverStateUpdate,
+                    serverStateOptions,
+                );
+            return true;
+        } catch (err) {
+            // If this isn't updated, the server will process too many txs next time
+            // TODO Let the admin know. This won't impact parsing but will cause processing too many txs
+            log(`Error in function updateServerState.`, err);
+            return false;
+        }
     },
 };

@@ -12,6 +12,7 @@ module.exports = {
         collections: {
             validAliases: 'validAliasTxs',
             pendingAliases: 'pendingAliasTxs',
+            serverState: 'serverState',
         },
         connectionUrl: 'mongodb://localhost:27017',
     },
