@@ -719,7 +719,8 @@ static RPCHelpMan getmempoolinfo() {
             "",
             {
                 {RPCResult::Type::BOOL, "loaded",
-                 "True if the mempool is fully loaded"},
+                 "True if the initial load attempt of the persisted mempool "
+                 "finished"},
                 {RPCResult::Type::NUM, "size", "Current tx count"},
                 {RPCResult::Type::NUM, "bytes", "Sum of all transaction sizes"},
                 {RPCResult::Type::NUM, "finalized_txs_size",

@@ -486,14 +486,14 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs, ::cs_main);
 
     /**
-     * @returns true if we've made an attempt to load the mempool regardless of
-     *          whether the attempt was successful or not
+     * @returns true if an initial attempt to load the persisted mempool was
+     *     made, regardless of whether the attempt was successful or not
      */
     bool GetLoadTried() const;
 
     /**
-     * Set whether or not we've made an attempt to load the mempool (regardless
-     * of whether the attempt was successful or not)
+     * Set whether or not an initial attempt to load the persisted mempool was
+     * made (regardless of whether the attempt was successful or not)
      */
     void SetLoadTried(bool load_tried);
 
