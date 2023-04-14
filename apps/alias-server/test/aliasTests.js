@@ -148,7 +148,7 @@ describe('alias-server alias.js', function () {
             testAddressAliases.validAliasTxs,
         );
     });
-    it('Correctly returns valid alias registrations at test address ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8', function () {
+    it('Correctly returns valid alias registrations at test address ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8 given some unconfirmed txs in history', function () {
         assert.deepEqual(
             getValidAliasRegistrations(
                 testAddressAliasesWithUnconfirmedTxs.allAliasTxs,

@@ -7,7 +7,6 @@ const cashaddr = require('ecashaddrjs');
 const config = require('../config');
 const log = require('./log');
 const {
-    generateReservedAliasTxArray,
     getAliasFromHex,
     isValidAliasString,
     getOutputScriptFromAddress,
@@ -153,16 +152,7 @@ module.exports = {
 
         // Initialize arrays to store alias registration info
         let registeredAliases = [];
-        // Add reservedAliases to the registeredAliases array to make sure they cannot be valid if seen in a tx
-        registeredAliases = registeredAliases.concat(
-            config.aliasConstants.reservedAliases,
-        );
         let validAliasRegistrations = [];
-
-        // Add reservedAliasTxs to validAliasTxs
-        const reservedAliasTxs = generateReservedAliasTxArray();
-        validAliasRegistrations =
-            validAliasRegistrations.concat(reservedAliasTxs);
 
         // Iterate over sorted aliases starting from oldest registrations to newest
         // (and alphabetically first txids to last)

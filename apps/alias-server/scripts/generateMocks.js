@@ -12,11 +12,7 @@ const {
     getValidAliasRegistrations,
 } = require('../src/alias');
 const { getAllTxHistory } = require('../src/chronik');
-const {
-    generateReservedAliasTxArray,
-    getHexFromAlias,
-    getAliasBytecount,
-} = require('../src/utils');
+const { getHexFromAlias, getAliasBytecount } = require('../src/utils');
 
 const { ChronikClient } = require('chronik-client');
 const chronik = new ChronikClient(config.chronik);
@@ -75,13 +71,6 @@ async function generateMocks() {
     fs.writeFileSync(
         `${mocksDir}/validAliasTxs.json`,
         JSON.stringify(validAliasRegistrations, null, 2),
-        'utf-8',
-    );
-
-    const reservedAliasTxArray = generateReservedAliasTxArray();
-    fs.writeFileSync(
-        `${mocksDir}/reservedAliasTxArray.json`,
-        JSON.stringify(reservedAliasTxArray, null, 2),
         'utf-8',
     );
 

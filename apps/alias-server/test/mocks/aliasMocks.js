@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 'use strict';
-const reservedAliasTxs = require('./reservedAliasTxs');
 const unconfirmedAliasTxs = require('./unconfirmedAliasTxs');
 module.exports = {
     testAddressAliases: {
@@ -27515,150 +27514,6 @@ module.exports = {
         ],
         validAliasTxs: [
             {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'avalanche',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'electrum',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'electrumabc',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'bitcoin',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'bitcoinabc',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'ecash',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'ecashofficial',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'xec',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'abc',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'cashtab',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'ecashtab',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'cashtabwallet',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'xecwallet',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'gnc',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'etoken',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'token',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'cashfusion',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'coinbase',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'binance',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'ethereum',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'helpdesk',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'admin',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'support',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
-                address: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-                alias: 'official',
-                blockheight: 1,
-                txid: 'reserved',
-            },
-            {
                 address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
                 alias: 'nfs',
                 txid: '446c1c3d979deed2b81258d907343c09091bc349352005d3a5804c97c611d19b',
@@ -27774,9 +27629,21 @@ module.exports = {
             },
             {
                 address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                alias: 'abc',
+                blockheight: 775263,
+                txid: '8d754bb5ae0024814e1c35ca6aba5c780a0119c33552d84f4876275275deeca4',
+            },
+            {
+                address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                 alias: 'chicken3',
                 txid: 'a6a0a20e5c4f2245e32ab545dbf07171d46a18c9d60d741a3a81064f4b7a59d0',
                 blockheight: 775263,
+            },
+            {
+                address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                alias: 'gnc',
+                blockheight: 775263,
+                txid: 'fb065af525c4fe0cd0885602612944aef0545ea09246434bc314411f9f59637b',
             },
             {
                 address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
@@ -28479,6 +28346,12 @@ module.exports = {
                 alias: 'freedom2',
                 txid: '7026c1033aeb450ca4714a8b9de3e97ff5b8bc0555005a48562d51eb2decd716',
                 blockheight: 781597,
+            },
+            {
+                address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                alias: 'ecash',
+                blockheight: 781775,
+                txid: '38b3d818bca8d997ea96367e320b353a2f732bf0243f0b68fed5d57657b38bf3',
             },
             {
                 address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
@@ -37157,7 +37030,7 @@ module.exports = {
                 blockheight: 100000000,
             },
         ],
-        validAliasTxs: reservedAliasTxs.concat([
+        validAliasTxs: [
             {
                 address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
                 alias: 'nfs',
@@ -37274,9 +37147,21 @@ module.exports = {
             },
             {
                 address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                alias: 'abc',
+                blockheight: 775263,
+                txid: '8d754bb5ae0024814e1c35ca6aba5c780a0119c33552d84f4876275275deeca4',
+            },
+            {
+                address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                 alias: 'chicken3',
                 txid: 'a6a0a20e5c4f2245e32ab545dbf07171d46a18c9d60d741a3a81064f4b7a59d0',
                 blockheight: 775263,
+            },
+            {
+                address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                alias: 'gnc',
+                blockheight: 775263,
+                txid: 'fb065af525c4fe0cd0885602612944aef0545ea09246434bc314411f9f59637b',
             },
             {
                 address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
@@ -37734,7 +37619,7 @@ module.exports = {
                 txid: '5dbfeca8f27ec2c9e65e2e38115fff55f97df302337582cccad1e6f12a18f82c',
                 blockheight: 778612,
             },
-        ]),
+        ],
         pendingAliasTxs: [
             {
                 address: 'ecash:qz7yjv3h90en64an5gdjkf3kjxdusw585u9j5rqxcg',

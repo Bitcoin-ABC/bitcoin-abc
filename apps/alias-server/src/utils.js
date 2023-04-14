@@ -3,26 +3,9 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 'use strict';
-const config = require('../config');
 const cashaddr = require('ecashaddrjs');
 
 module.exports = {
-    generateReservedAliasTxArray: function () {
-        const reservedAliasTxs = [];
-        for (
-            let i = 0;
-            i < config.aliasConstants.reservedAliases.length;
-            i += 1
-        ) {
-            reservedAliasTxs.push({
-                address: config.aliasConstants.registrationAddress,
-                alias: config.aliasConstants.reservedAliases[i],
-                blockheight: 1,
-                txid: 'reserved',
-            });
-        }
-        return reservedAliasTxs;
-    },
     getAliasFromHex: function (aliasHex) {
         return Buffer.from(aliasHex, 'hex').toString('utf8');
     },

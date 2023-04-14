@@ -5,7 +5,6 @@
 'use strict';
 const assert = require('assert');
 const {
-    generateReservedAliasTxArray,
     getAliasFromHex,
     getHexFromAlias,
     getAliasBytecount,
@@ -13,7 +12,6 @@ const {
     removeUnconfirmedTxsFromTxHistory,
     getOutputScriptFromAddress,
 } = require('../src/utils');
-const reservedAliasTxs = require('./mocks/reservedAliasTxs');
 const unconfirmedAliasTxs = require('./mocks/unconfirmedAliasTxs');
 const {
     aliasHexConversions,
@@ -23,9 +21,6 @@ const {
 const { testAddressAliases } = require('./mocks/aliasMocks');
 
 describe('alias-server utils.js', function () {
-    it('generateReservedAliasTxArray returns an array of reserved alias txs in the correct format', function () {
-        assert.deepEqual(generateReservedAliasTxArray(), reservedAliasTxs);
-    });
     it('Hexadecimal to utf8 encoding functions work forward and backward. Byte counts match hexadecimal bytes.', function () {
         for (let i = 0; i < aliasHexConversions.length; i += 1) {
             const { alias, aliasHex, aliasByteCount } = aliasHexConversions[i];
