@@ -39,13 +39,12 @@ module.exports = {
     parseTx: function (tx) {
         /* Parse an eCash tx as returned by chronik for newsworthy information
          * returns
-         * { txid, isTokenTx, isGenesisTx, genesisInfo, opReturnInfo }
+         * { txid, isTokenTx, genesisInfo, opReturnInfo }
          */
 
         const { txid, outputs } = tx;
 
         let isTokenTx = false;
-        let isGenesisTx = false;
         let genesisInfo = false;
         let opReturnInfo = false;
 
@@ -58,7 +57,6 @@ module.exports = {
                 typeof tx.slpTxData.genesisInfo !== 'undefined' &&
                 tx.slpTxData.slpMeta.txType === 'GENESIS'
             ) {
-                isGenesisTx = true;
                 genesisInfo = tx.slpTxData.genesisInfo;
             }
         }
@@ -74,7 +72,7 @@ module.exports = {
             }
         }
 
-        return { txid, isTokenTx, isGenesisTx, genesisInfo, opReturnInfo };
+        return { txid, isTokenTx, genesisInfo, opReturnInfo };
     },
     parseOpReturn: function (outputScript) {
         // Initialize required vars
@@ -224,9 +222,8 @@ module.exports = {
         // Iterate over parsedTxs to find anything newsworthy
         for (let i = 0; i < parsedTxs.length; i += 1) {
             const thisParsedTx = parsedTxs[i];
-            const { txid, isGenesisTx, genesisInfo, opReturnInfo } =
-                thisParsedTx;
-            if (isGenesisTx) {
+            const { txid, genesisInfo, opReturnInfo } = thisParsedTx;
+            if (genesisInfo) {
                 // The txid of a genesis tx is the tokenId
                 const tokenId = txid;
                 let { tokenTicker, tokenName, tokenDocumentUrl } = genesisInfo;
