@@ -190,4 +190,15 @@ module.exports = {
         }
         return validAliasRegistrations;
     },
+    getAliasStringsFromValidAliasTxs: function (validAliases) {
+        /* Input
+         * validAliases, an array of alias registrations objects like those
+         * stored in the validAliases collection of the database
+         * Output
+         * an array of strings of all alias registrations
+         */
+        return validAliases.map(aliasObj => {
+            return aliasObj.alias;
+        });
+    },
 };

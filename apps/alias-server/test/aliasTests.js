@@ -10,6 +10,7 @@ const {
     getAliasTxs,
     sortAliasTxsByTxidAndBlockheight,
     getValidAliasRegistrations,
+    getAliasStringsFromValidAliasTxs,
 } = require('../src/alias');
 const { getOutputScriptFromAddress } = require('../src/utils');
 const {
@@ -156,16 +157,14 @@ describe('alias-server alias.js', function () {
             ),
         );
         // Get list of all valid alias registrations before 'bytesofman'
-        const registeredAliases = testAddressAliases.validAliasTxs
-            .slice(
+        const registeredAliases = getAliasStringsFromValidAliasTxs(
+            testAddressAliases.validAliasTxs.slice(
                 0,
                 testAddressAliases.validAliasTxs.findIndex(
                     i => i.alias === 'bytesofman',
                 ),
-            )
-            .map(aliasTx => {
-                return aliasTx.alias;
-            });
+            ),
+        );
 
         // newlyValidAliases will be all the valid alias txs registered after 'bytesofman'
         const newlyValidAliases = testAddressAliases.validAliasTxs.slice(
@@ -187,6 +186,14 @@ describe('alias-server alias.js', function () {
             ),
 
             testAddressAliasesWithUnconfirmedTxs.validAliasTxs,
+        );
+    });
+    it('getAliasStringsFromValidAliasTxs returns an array of string of the alias object key from an array of valid alias registrations', function () {
+        assert.deepEqual(
+            getAliasStringsFromValidAliasTxs(
+                testAddressAliasesWithUnconfirmedTxs.validAliasTxs,
+            ),
+            testAddressAliasesWithUnconfirmedTxs.validAliasStrings,
         );
     });
 });
