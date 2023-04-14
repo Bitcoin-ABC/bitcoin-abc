@@ -8,7 +8,7 @@ use bitcoinsuite_core::tx::{
 
 use crate::{
     group::{Group, GroupQuery, MemberItem},
-    io::GroupHistoryConf,
+    io::{GroupHistoryConf, GroupUtxoConf},
 };
 
 /// Index by output/input value. While useless in pactice, this makes
@@ -54,6 +54,12 @@ impl Group for ValueGroup {
         GroupHistoryConf {
             cf_name: "value_history",
             page_size: 4,
+        }
+    }
+
+    fn utxo_conf() -> GroupUtxoConf {
+        GroupUtxoConf {
+            cf_name: "value_utxo",
         }
     }
 }

@@ -1,0 +1,452 @@
+// Copyright (c) 2023 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+//! Module for [`GroupUtxoWriter`] and [`GroupUtxoReader`].
+
+use std::{
+    collections::{hash_map::Entry, HashMap},
+    marker::PhantomData,
+};
+
+use abc_rust_error::Result;
+use rocksdb::WriteBatch;
+use serde::{Deserialize, Serialize};
+use thiserror::Error;
+
+use crate::{
+    db::{Db, CF},
+    group::{Group, GroupQuery},
+    index_tx::IndexTx,
+    io::TxNum,
+    ser::{db_deserialize, db_serialize},
+};
+
+/// Configuration for group utxos reader/writers.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct GroupUtxoConf {
+    /// Column family to store the group utxos entries.
+    pub cf_name: &'static str,
+}
+
+struct GroupUtxoColumn<'a> {
+    db: &'a Db,
+    cf: &'a CF,
+}
+
+/// Outpoint in the DB, but with [`TxNum`] instead of `TxId` for the txid.
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Default,
+    Deserialize,
+    Eq,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    Serialize,
+)]
+pub struct UtxoOutpoint {
+    /// [`TxNum`] of tx of the outpoint.
+    pub tx_num: TxNum,
+    /// Output of the tx referenced by the outpoint.
+    pub out_idx: u32,
+}
+
+/// Entry in the UTXO DB for a group.
+#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+pub struct UtxoEntry {
+    /// Outpoint of the UTXO.
+    pub outpoint: UtxoOutpoint,
+
+    /// Value of the UTXO in satoshis.
+    ///
+    /// This is currently geared towards ScriptGroup, which can fully
+    /// reconstruct the UTXO without reading the full tx from the node
+    /// blockfile, using only the UTXO value.
+    ///
+    /// This may or may not be useful for other groups, but when that time
+    /// arrives, we can make this more generic by e.g. adding a `type
+    /// UtxoPayload: Deserialize + Serialize`.
+    pub value: i64,
+}
+
+/// Write UTXOs of a group to the DB.
+#[derive(Debug)]
+pub struct GroupUtxoWriter<'a, G: Group> {
+    col: GroupUtxoColumn<'a>,
+    group: G,
+}
+
+/// Read UTXOs of a group from the DB.
+#[derive(Debug)]
+pub struct GroupUtxoReader<'a, G: Group> {
+    col: GroupUtxoColumn<'a>,
+    phantom: PhantomData<G>,
+}
+
+/// Error indicating something went wrong with the tx index.
+#[derive(Debug, Error, PartialEq, Eq)]
+pub enum GroupUtxoError {
+    /// UTXO already in the DB
+    #[error(
+        "Duplicate UTXO: {0:?} has been added twice to the member's UTXOs"
+    )]
+    DuplicateUtxo(UtxoEntry),
+
+    /// UTXO already in the DB
+    #[error("UTXO doesn't exist: {0:?} is not in the member's UTXOs")]
+    UtxoDoesntExist(UtxoOutpoint),
+}
+
+use self::GroupUtxoError::*;
+
+impl<'a> GroupUtxoColumn<'a> {
+    fn new(db: &'a Db, conf: &GroupUtxoConf) -> Result<Self> {
+        let cf = db.cf(conf.cf_name)?;
+        Ok(GroupUtxoColumn { db, cf })
+    }
+}
+
+impl<'a, G: Group> GroupUtxoWriter<'a, G> {
+    /// Create a new [`GroupUtxoWriter`].
+    pub fn new(db: &'a Db, group: G) -> Result<Self> {
+        let conf = G::utxo_conf();
+        let col = GroupUtxoColumn::new(db, &conf)?;
+        Ok(GroupUtxoWriter { col, group })
+    }
+
+    /// Insert the txs of a block from the UTXOs in the DB for the group.
+    ///
+    /// Add all the UTXOs created by the outputs of the txs to the DB, remove
+    /// all the UTXOs spend by the inputs of the txs.
+    pub fn insert<'tx>(
+        &self,
+        batch: &mut WriteBatch,
+        txs: &'tx [IndexTx<'tx>],
+    ) -> Result<()> {
+        let mut updated_utxos =
+            HashMap::<G::Member<'tx>, Vec<UtxoEntry>>::new();
+        for index_tx in txs {
+            let query = GroupQuery {
+                is_coinbase: index_tx.is_coinbase,
+                tx: index_tx.tx,
+            };
+            for item in self.group.output_members(query) {
+                let entries =
+                    self.get_or_fetch(&mut updated_utxos, item.member)?;
+                let new_entry = Self::output_utxo(index_tx, item.idx);
+                Self::insert_utxo_entry(new_entry, entries)?;
+            }
+        }
+        for index_tx in txs {
+            if index_tx.is_coinbase {
+                continue;
+            }
+            let query = GroupQuery {
+                is_coinbase: index_tx.is_coinbase,
+                tx: index_tx.tx,
+            };
+            for item in self.group.input_members(query) {
+                let entries =
+                    self.get_or_fetch(&mut updated_utxos, item.member)?;
+                let delete_entry = Self::input_utxo(index_tx, item.idx);
+                Self::delete_utxo_entry(&delete_entry.outpoint, entries)?;
+            }
+        }
+        self.update_write_batch(batch, &updated_utxos)?;
+        Ok(())
+    }
+
+    /// Remove the txs of a block from the UTXOs in the DB for the group.
+    ///
+    /// Add all the UTXOs spent by the inputs of the txs and remove all the
+    /// UTXOs created by the outputs of the txs.
+    pub fn delete<'tx>(
+        &self,
+        batch: &mut WriteBatch,
+        txs: &'tx [IndexTx<'tx>],
+    ) -> Result<()> {
+        let mut updated_utxos =
+            HashMap::<G::Member<'tx>, Vec<UtxoEntry>>::new();
+        for index_tx in txs {
+            if index_tx.is_coinbase {
+                continue;
+            }
+            let query = GroupQuery {
+                is_coinbase: index_tx.is_coinbase,
+                tx: index_tx.tx,
+            };
+            for item in self.group.input_members(query) {
+                let entries =
+                    self.get_or_fetch(&mut updated_utxos, item.member)?;
+                let new_entry = Self::input_utxo(index_tx, item.idx);
+                Self::insert_utxo_entry(new_entry, entries)?;
+            }
+        }
+        for index_tx in txs {
+            let query = GroupQuery {
+                is_coinbase: index_tx.is_coinbase,
+                tx: index_tx.tx,
+            };
+            for item in self.group.output_members(query) {
+                let entries =
+                    self.get_or_fetch(&mut updated_utxos, item.member)?;
+                let delete_entry = Self::output_utxo(index_tx, item.idx);
+                Self::delete_utxo_entry(&delete_entry.outpoint, entries)?;
+            }
+        }
+        self.update_write_batch(batch, &updated_utxos)?;
+        Ok(())
+    }
+
+    #[cfg(test)]
+    pub(crate) fn add_cfs(columns: &mut Vec<rocksdb::ColumnFamilyDescriptor>) {
+        columns.push(rocksdb::ColumnFamilyDescriptor::new(
+            G::utxo_conf().cf_name,
+            rocksdb::Options::default(),
+        ));
+    }
+
+    fn output_utxo(index_tx: &IndexTx<'_>, idx: usize) -> UtxoEntry {
+        UtxoEntry {
+            outpoint: UtxoOutpoint {
+                tx_num: index_tx.tx_num,
+                out_idx: idx as u32,
+            },
+            value: index_tx.tx.outputs[idx].value,
+        }
+    }
+
+    fn input_utxo(index_tx: &IndexTx<'_>, idx: usize) -> UtxoEntry {
+        UtxoEntry {
+            outpoint: UtxoOutpoint {
+                tx_num: index_tx.input_nums[idx],
+                out_idx: index_tx.tx.inputs[idx].prev_out.out_idx,
+            },
+            value: index_tx.tx.inputs[idx]
+                .coin
+                .as_ref()
+                .map(|coin| coin.output.value)
+                .unwrap_or_default(),
+        }
+    }
+
+    fn insert_utxo_entry(
+        new_entry: UtxoEntry,
+        entries: &mut Vec<UtxoEntry>,
+    ) -> Result<()> {
+        match entries
+            .binary_search_by_key(&&new_entry.outpoint, |entry| &entry.outpoint)
+        {
+            Ok(_) => return Err(DuplicateUtxo(new_entry).into()),
+            Err(insert_idx) => entries.insert(insert_idx, new_entry),
+        }
+        Ok(())
+    }
+
+    fn delete_utxo_entry(
+        delete_outpoint: &UtxoOutpoint,
+        entries: &mut Vec<UtxoEntry>,
+    ) -> Result<()> {
+        match entries
+            .binary_search_by_key(&delete_outpoint, |entry| &entry.outpoint)
+        {
+            Ok(delete_idx) => entries.remove(delete_idx),
+            Err(_) => return Err(UtxoDoesntExist(*delete_outpoint).into()),
+        };
+        Ok(())
+    }
+
+    fn get_or_fetch<'u, 'tx>(
+        &self,
+        utxos: &'u mut HashMap<G::Member<'tx>, Vec<UtxoEntry>>,
+        member: G::Member<'tx>,
+    ) -> Result<&'u mut Vec<UtxoEntry>> {
+        match utxos.entry(member) {
+            Entry::Occupied(entry) => Ok(entry.into_mut()),
+            Entry::Vacant(entry) => {
+                let member_ser = self.group.ser_member(entry.key());
+                let db_entries =
+                    match self.col.db.get(self.col.cf, member_ser.as_ref())? {
+                        Some(data) => db_deserialize::<Vec<UtxoEntry>>(&data)?,
+                        None => vec![],
+                    };
+                Ok(entry.insert(db_entries))
+            }
+        }
+    }
+
+    fn update_write_batch(
+        &self,
+        batch: &mut WriteBatch,
+        utxos: &HashMap<G::Member<'_>, Vec<UtxoEntry>>,
+    ) -> Result<()> {
+        for (member, utxos) in utxos {
+            let member_ser = self.group.ser_member(member);
+            if utxos.is_empty() {
+                batch.delete_cf(self.col.cf, member_ser.as_ref());
+            } else {
+                batch.put_cf(
+                    self.col.cf,
+                    member_ser.as_ref(),
+                    db_serialize(&utxos)?,
+                );
+            }
+        }
+        Ok(())
+    }
+}
+
+impl<'a, G: Group> GroupUtxoReader<'a, G> {
+    /// Create a new [`GroupUtxoReader`].
+    pub fn new(db: &'a Db) -> Result<Self> {
+        let conf = G::utxo_conf();
+        let col = GroupUtxoColumn::new(db, &conf)?;
+        Ok(GroupUtxoReader {
+            col,
+            phantom: PhantomData,
+        })
+    }
+
+    /// Query the UTXOs for the given member.
+    pub fn utxos(&self, member: &[u8]) -> Result<Option<Vec<UtxoEntry>>> {
+        match self.col.db.get(self.col.cf, member)? {
+            Some(entry) => Ok(Some(db_deserialize::<Vec<UtxoEntry>>(&entry)?)),
+            None => Ok(None),
+        }
+    }
+}
+
+impl std::fmt::Debug for GroupUtxoColumn<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "GroupUtxoColumn {{ .. }}")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::cell::RefCell;
+
+    use abc_rust_error::Result;
+    use bitcoinsuite_core::tx::Tx;
+    use rocksdb::WriteBatch;
+
+    use crate::{
+        db::Db,
+        index_tx::prepare_indexed_txs,
+        io::{
+            BlockTxs, GroupUtxoReader, GroupUtxoWriter, TxEntry, TxWriter,
+            UtxoEntry, UtxoOutpoint,
+        },
+        test::{make_inputs_tx, ser_value, ValueGroup},
+    };
+
+    #[test]
+    fn test_value_group_utxos() -> Result<()> {
+        abc_rust_error::install();
+        let tempdir = tempdir::TempDir::new("chronik-db--group_history")?;
+        let mut cfs = Vec::new();
+        GroupUtxoWriter::<ValueGroup>::add_cfs(&mut cfs);
+        TxWriter::add_cfs(&mut cfs);
+        let db = Db::open_with_cfs(tempdir.path(), cfs)?;
+        let tx_writer = TxWriter::new(&db)?;
+        let group_writer = GroupUtxoWriter::new(&db, ValueGroup)?;
+        let group_reader = GroupUtxoReader::<ValueGroup>::new(&db)?;
+
+        let block_height = RefCell::new(-1);
+        let txs_batch = |txs: &[Tx]| BlockTxs {
+            txs: txs
+                .iter()
+                .map(|tx| TxEntry {
+                    txid: tx.txid(),
+                    ..Default::default()
+                })
+                .collect(),
+            block_height: *block_height.borrow(),
+        };
+        let connect_block = |txs: &[Tx]| -> Result<()> {
+            let mut batch = WriteBatch::default();
+            *block_height.borrow_mut() += 1;
+            let first_tx_num = tx_writer.insert(&mut batch, &txs_batch(txs))?;
+            let index_txs = prepare_indexed_txs(&db, first_tx_num, txs)?;
+            group_writer.insert(&mut batch, &index_txs)?;
+            db.write_batch(batch)?;
+            Ok(())
+        };
+        let disconnect_block = |txs: &[Tx]| -> Result<()> {
+            let mut batch = WriteBatch::default();
+            let first_tx_num = tx_writer.delete(&mut batch, &txs_batch(txs))?;
+            let index_txs = prepare_indexed_txs(&db, first_tx_num, txs)?;
+            group_writer.delete(&mut batch, &index_txs)?;
+            db.write_batch(batch)?;
+            *block_height.borrow_mut() -= 1;
+            Ok(())
+        };
+        let utxo = |tx_num, out_idx, value| UtxoEntry {
+            outpoint: UtxoOutpoint { tx_num, out_idx },
+            value,
+        };
+        let read_utxos = |val: i64| group_reader.utxos(&ser_value(val));
+
+        let block0 =
+            vec![make_inputs_tx(0x01, [(0x00, u32::MAX, 0xffff)], [100, 200])];
+        connect_block(&block0)?;
+        assert_eq!(read_utxos(100)?, Some(vec![utxo(0, 0, 100)]));
+        assert_eq!(read_utxos(200)?, Some(vec![utxo(0, 1, 200)]));
+
+        let block1 = vec![
+            make_inputs_tx(0x02, [(0x00, u32::MAX, 0xffff)], [200]),
+            make_inputs_tx(0x03, [(0x01, 0, 100)], [10, 20, 10]),
+            make_inputs_tx(
+                0x04,
+                [(0x03, 0, 10), (0x01, 1, 200), (0x03, 1, 20)],
+                [200],
+            ),
+        ];
+        connect_block(&block1)?;
+        assert_eq!(read_utxos(10)?, Some(vec![utxo(2, 2, 10)]));
+        assert_eq!(read_utxos(20)?, None);
+        assert_eq!(read_utxos(100)?, None);
+        assert_eq!(
+            read_utxos(200)?,
+            Some(vec![utxo(1, 0, 200), utxo(3, 0, 200)]),
+        );
+
+        disconnect_block(&block1)?;
+        assert_eq!(read_utxos(10)?, None);
+        assert_eq!(read_utxos(20)?, None);
+        assert_eq!(read_utxos(100)?, Some(vec![utxo(0, 0, 100)]));
+        assert_eq!(read_utxos(200)?, Some(vec![utxo(0, 1, 200)]));
+
+        // Reorg block
+        let block1 = vec![
+            make_inputs_tx(0x02, [(0x00, u32::MAX, 0xffff)], [200]),
+            make_inputs_tx(0x10, [(0x01, 0, 100)], [100, 200, 100]),
+            make_inputs_tx(
+                0x11,
+                [(0x10, 0, 100), (0x10, 1, 200), (0x01, 1, 200)],
+                [200],
+            ),
+            make_inputs_tx(0x12, [(0x11, 0, 200)], [200]),
+        ];
+
+        connect_block(&block1)?;
+        assert_eq!(read_utxos(100)?, Some(vec![utxo(2, 2, 100)]));
+        assert_eq!(
+            read_utxos(200)?,
+            Some(vec![utxo(1, 0, 200), utxo(4, 0, 200)]),
+        );
+
+        disconnect_block(&block1)?;
+        assert_eq!(read_utxos(100)?, Some(vec![utxo(0, 0, 100)]));
+        assert_eq!(read_utxos(200)?, Some(vec![utxo(0, 1, 200)]));
+
+        disconnect_block(&block0)?;
+        assert_eq!(read_utxos(100)?, None);
+        assert_eq!(read_utxos(200)?, None);
+
+        Ok(())
+    }
+}

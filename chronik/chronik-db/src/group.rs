@@ -6,7 +6,7 @@
 
 use bitcoinsuite_core::tx::Tx;
 
-use crate::io::GroupHistoryConf;
+use crate::io::{GroupHistoryConf, GroupUtxoConf};
 
 /// Struct giving impls of [`Group`] all the necessary data to determine the
 /// member of the group.
@@ -72,6 +72,9 @@ pub trait Group {
 
     /// The [`GroupHistoryConf`] for this group.
     fn tx_history_conf() -> GroupHistoryConf;
+
+    /// The [`GroupUtxoConf`] for this group.
+    fn utxo_conf() -> GroupUtxoConf;
 }
 
 /// Helper which returns the `G::Member`s of both inputs and outputs of the
