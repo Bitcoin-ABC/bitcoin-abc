@@ -6,3 +6,4 @@ pyyaml
 requests
 responses
 slackclient
+websocket-client

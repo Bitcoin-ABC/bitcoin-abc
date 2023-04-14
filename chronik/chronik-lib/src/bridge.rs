@@ -11,6 +11,7 @@ use std::{
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::{
+    block::BlockHash,
     script::Script,
     tx::{Tx, TxId},
 };
@@ -169,11 +170,18 @@ impl Chronik {
     }
 
     /// Block finalized with Avalanche
-    pub fn handle_block_finalized(&self, block_height: i32) {
+    pub fn handle_block_finalized(
+        &self,
+        block_height: i32,
+        block_hash: [u8; 32],
+    ) {
         let mut indexer = self.indexer.blocking_write();
         ok_or_abort_node(
             "handle_block_finalized",
-            indexer.handle_block_finalized(block_height),
+            indexer.handle_block_finalized(
+                block_height,
+                BlockHash::from(block_hash),
+            ),
         );
     }
 

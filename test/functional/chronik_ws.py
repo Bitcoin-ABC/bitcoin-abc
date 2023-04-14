@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+# Copyright (c) 2023 The Bitcoin developers
+# Distributed under the MIT software license, see the accompanying
+# file COPYING or http://www.opensource.org/licenses/mit-license.php.
+"""Test whether Chronik sends WebSocket messages correctly."""
+
+from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
+from test_framework.chronik.client import ChronikClient
+from test_framework.test_framework import BitcoinTestFramework
+from test_framework.util import assert_equal
+
+QUORUM_NODE_COUNT = 16
+
+
+class ChronikWsTest(BitcoinTestFramework):
+    def set_test_params(self):
+        self.setup_clean_chain = True
+        self.num_nodes = 1
+        self.extra_args = [
+            [
+                '-avaproofstakeutxodustthreshold=1000000',
+                '-avaproofstakeutxoconfirmations=1',
+                '-avacooldown=0',
+                '-avaminquorumstake=0',
+                '-avaminavaproofsnodecount=0',
+                '-chronik',
+                '-whitelist=noban@127.0.0.1',
+            ],
+        ]
+        self.supports_cli = False
+
+    def skip_test_if_missing_module(self):
+        self.skip_if_no_chronik()
+
+    def run_test(self):
+        import chronik_pb2 as pb
+
+        node = self.nodes[0]
+        chronik = ChronikClient('127.0.0.1', node.chronik_port)
+
+        # Build a fake quorum of nodes.
+        def get_quorum():
+            return [get_ava_p2p_interface(self, node)
+                    for _ in range(0, QUORUM_NODE_COUNT)]
+
+        def has_finalized_tip(tip_expected):
+            hash_tip_final = int(tip_expected, 16)
+            can_find_inv_in_poll(quorum, hash_tip_final)
+            return node.isfinalblock(tip_expected)
+
+        # Pick one node from the quorum for polling.
+        quorum = get_quorum()
+
+        assert node.getavalancheinfo()['ready_to_poll'] is True
+
+        tip = node.getbestblockhash()
+        self.wait_until(lambda: has_finalized_tip(tip))
+
+        ws = chronik.ws(timeout=30)
+
+        # Mine block
+        tip = self.generate(node, 1)[-1]
+        height = node.getblockcount()
+
+        # We get a CONNECTED msg
+        assert_equal(ws.recv(), pb.WsMsg(block=pb.MsgBlock(
+            msg_type=pb.CONNECTED,
+            block_hash=bytes.fromhex(tip)[::-1],
+            block_height=height,
+        )))
+
+        # After we wait, we get a FINALIZED msg
+        self.wait_until(lambda: has_finalized_tip(tip))
+        assert_equal(ws.recv(), pb.WsMsg(block=pb.MsgBlock(
+            msg_type=pb.FINALIZED,
+            block_hash=bytes.fromhex(tip)[::-1],
+            block_height=height,
+        )))
+
+        # When we invalidate, we get a DISCONNECTED msg
+        node.invalidateblock(tip)
+        assert_equal(ws.recv(), pb.WsMsg(block=pb.MsgBlock(
+            msg_type=pb.DISCONNECTED,
+            block_hash=bytes.fromhex(tip)[::-1],
+            block_height=height,
+        )))
+
+
+if __name__ == '__main__':
+    ChronikWsTest().main()

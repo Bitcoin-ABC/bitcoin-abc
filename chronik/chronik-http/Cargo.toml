@@ -22,7 +22,7 @@ chronik-util = { path = "../chronik-util" }
 async-trait = "0.1"
 
 # HTTP webapps
-axum = "0.6"
+axum = { version = "0.6", features = ["ws"] }
 
 # Async toolkit
 futures = "0.3"

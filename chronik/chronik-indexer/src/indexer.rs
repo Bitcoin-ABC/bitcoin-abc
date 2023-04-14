@@ -24,10 +24,12 @@ use chronik_db::{
 };
 use chronik_util::{log, log_chronik};
 use thiserror::Error;
+use tokio::sync::RwLock;
 
 use crate::{
     avalanche::Avalanche,
     query::{QueryBlocks, QueryGroupHistory, QueryTxs},
+    subs::{BlockMsg, BlockMsgType, Subs},
 };
 
 const CURRENT_INDEXER_VERSION: SchemaVersion = 5;
@@ -50,6 +52,7 @@ pub struct ChronikIndexer {
     mempool: Mempool,
     script_group: ScriptGroup,
     avalanche: Avalanche,
+    subs: RwLock<Subs>,
 }
 
 /// Block to be indexed by Chronik.
@@ -147,6 +150,7 @@ impl ChronikIndexer {
             mempool,
             script_group,
             avalanche: Avalanche::default(),
+            subs: RwLock::new(Subs::default()),
         })
     }
 
@@ -285,6 +289,12 @@ impl ChronikIndexer {
         self.db.write_batch(batch)?;
         self.mempool
             .removed_mined_txs(block.block_txs.txs.iter().map(|tx| tx.txid));
+        let subs = self.subs.blocking_read();
+        subs.broadcast_block_msg(BlockMsg {
+            msg_type: BlockMsgType::Connected,
+            hash: block.db_block.hash,
+            height: block.db_block.height,
+        });
         Ok(())
     }
 
@@ -305,6 +315,12 @@ impl ChronikIndexer {
         script_history_writer.delete(&mut batch, &index_txs)?;
         self.avalanche.disconnect_block(block.db_block.height)?;
         self.db.write_batch(batch)?;
+        let subs = self.subs.blocking_read();
+        subs.broadcast_block_msg(BlockMsg {
+            msg_type: BlockMsgType::Disconnected,
+            hash: block.db_block.hash,
+            height: block.db_block.height,
+        });
         Ok(())
     }
 
@@ -312,8 +328,15 @@ impl ChronikIndexer {
     pub fn handle_block_finalized(
         &mut self,
         block_height: BlockHeight,
+        block_hash: BlockHash,
     ) -> Result<()> {
         self.avalanche.finalize_block(block_height)?;
+        let subs = self.subs.blocking_read();
+        subs.broadcast_block_msg(BlockMsg {
+            msg_type: BlockMsgType::Finalized,
+            hash: block_hash,
+            height: block_height,
+        });
         Ok(())
     }
 
@@ -344,6 +367,11 @@ impl ChronikIndexer {
             mempool_history: self.mempool.script_history(),
             group: self.script_group.clone(),
         })
+    }
+
+    /// Subscribers, behind read/write lock
+    pub fn subs(&self) -> &RwLock<Subs> {
+        &self.subs
     }
 
     /// Build the ChronikBlock from the CBlockIndex

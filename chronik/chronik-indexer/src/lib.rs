@@ -8,4 +8,5 @@ abc_rust_lint::lint! {
     pub mod avalanche;
     pub mod indexer;
     pub mod query;
+    pub mod subs;
 }

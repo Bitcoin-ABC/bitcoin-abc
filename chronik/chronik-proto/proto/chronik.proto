@@ -100,6 +100,37 @@ message TxHistoryPage {
     uint32 num_txs = 3;
 }
 
+// Message coming from the WebSocket
+message WsMsg {
+    // Kind of message
+    oneof msg_type {
+        // Error, e.g. when a bad message has been sent into the WebSocket
+        Error error = 1;
+        // Block got connected, disconnected, finalized, etc.
+        MsgBlock block = 2;
+    }
+}
+
+// Block got connected, disconnected, finalized, etc.
+message MsgBlock {
+    // What happened to the block
+    BlockMsgType msg_type = 1;
+    // Hash of the block (little-endian)
+    bytes block_hash = 2;
+    // Height of the block
+    int32 block_height = 3;
+}
+
+// Type of message for the block
+enum BlockMsgType {
+    // Block connected to the blockchain
+    CONNECTED = 0;
+    // Block disconnected from the blockchain
+    DISCONNECTED = 1;
+    // Block has been finalized by Avalanche
+    FINALIZED = 2;
+}
+
 // Error message returned from our APIs.
 message Error {
     // 2, as legacy chronik uses this for the message so we're still compatible.

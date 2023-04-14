@@ -9,7 +9,8 @@ use std::{net::SocketAddr, sync::Arc};
 
 use abc_rust_error::{Result, WrapErr};
 use axum::{
-    extract::{Path, Query},
+    extract::{Path, Query, WebSocketUpgrade},
+    response::IntoResponse,
     routing, Extension, Router,
 };
 use bitcoinsuite_core::tx::TxId;
@@ -19,9 +20,13 @@ use hyper::server::conn::AddrIncoming;
 use thiserror::Error;
 use tokio::sync::RwLock;
 
-use crate::{error::ReportError, handlers, protobuf::Protobuf};
+use crate::{
+    error::ReportError, handlers, protobuf::Protobuf,
+    ws::handle_subscribe_socket,
+};
 
-type ChronikIndexerRef = Arc<RwLock<ChronikIndexer>>;
+/// Ref-counted indexer with read or write access
+pub type ChronikIndexerRef = Arc<RwLock<ChronikIndexer>>;
 
 /// Params defining what and where to serve for [`ChronikServer`].
 #[derive(Clone, Debug)]
@@ -120,6 +125,7 @@ impl ChronikServer {
                 "/script/:type/:payload/unconfirmed-txs",
                 routing::get(handle_script_unconfirmed_txs),
             )
+            .route("/ws", routing::get(handle_ws))
             .fallback(handlers::handle_not_found)
             .layer(Extension(indexer))
     }
@@ -190,4 +196,11 @@ async fn handle_script_unconfirmed_txs(
         )
         .await?,
     ))
+}
+
+async fn handle_ws(
+    ws: WebSocketUpgrade,
+    Extension(indexer): Extension<ChronikIndexerRef>,
+) -> impl IntoResponse {
+    ws.on_upgrade(|ws| handle_subscribe_socket(ws, indexer))
 }

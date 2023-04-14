@@ -6,6 +6,8 @@
 import http.client
 from typing import Union
 
+import websocket
+
 # Timespan when HTTP requests to Chronik time out
 DEFAULT_TIMEOUT = 30
 
@@ -78,6 +80,17 @@ class ChronikScriptClient:
             _pb().TxHistoryPage)
 
 
+class ChronikWs:
+    def __init__(self, ws) -> None:
+        self.ws = ws
+
+    def recv(self):
+        data = self.ws.recv()
+        ws_msg = _pb().WsMsg()
+        ws_msg.ParseFromString(data)
+        return ws_msg
+
+
 class ChronikClient:
     CONTENT_TYPE = 'application/x-protobuf'
 
@@ -119,3 +132,8 @@ class ChronikClient:
 
     def script(self, script_type: str, script_payload: str) -> ChronikScriptClient:
         return ChronikScriptClient(self, script_type, script_payload)
+
+    def ws(self, *, timeout=None) -> ChronikWs:
+        ws = websocket.WebSocket()
+        ws.connect(f'ws://{self.host}:{self.port}/ws', timeout=timeout)
+        return ChronikWs(ws)

@@ -28,35 +28,42 @@ impl From<ChronikServerError> for ReportError {
     }
 }
 
+pub(crate) fn report_status_error(
+    report: Report,
+) -> (StatusCode, proto::Error) {
+    let msg = report.to_string();
+    let (status_code, response_msg) = match parse_error_status(&msg) {
+        None => {
+            // Unknown internal error: don't expose potential
+            // vulnerabilities through HTTP, only log to node.
+            log_chronik!("{report:?}\n");
+            log!("Chronik HTTP server got an unknown error: {report:#}\n");
+            let unknown_msg = "Unknown error, contact admins".to_string();
+            (StatusCode::INTERNAL_SERVER_ERROR, unknown_msg)
+        }
+        Some(status) if status.is_server_error() => {
+            // Internal server error, but explicitly marked with "5xx: ", so
+            // we expose it through HTTP (and also log to node).
+            log_chronik!("{report:?}\n");
+            log!(
+                "Chronik HTTP server got an internal server error: \
+                 {report:#}\n"
+            );
+            (status, msg)
+        }
+        Some(status) => {
+            // "Normal" error (400, 404, etc.), expose, but don't log.
+            (status, msg)
+        }
+    };
+    let proto_response = proto::Error { msg: response_msg };
+    (status_code, proto_response)
+}
+
 impl IntoResponse for ReportError {
     fn into_response(self) -> Response {
         let ReportError(report) = self;
-        let msg = report.to_string();
-        let (code, response_msg) = match parse_error_status(&msg) {
-            None => {
-                // Unknown internal error: don't expose potential
-                // vulnerabilities through HTTP, only log to node.
-                log_chronik!("{report:?}\n");
-                log!("Chronik HTTP server got an unknown error: {report:#}\n");
-                let unknown_msg = "Unknown error, contact admins".to_string();
-                (StatusCode::INTERNAL_SERVER_ERROR, unknown_msg)
-            }
-            Some(status) if status.is_server_error() => {
-                // Internal server error, but explicitly marked with "5xx: ", so
-                // we expose it through HTTP (and also log to node).
-                log_chronik!("{report:?}\n");
-                log!(
-                    "Chronik HTTP server got an internal server error: \
-                     {report:#}\n"
-                );
-                (status, msg)
-            }
-            Some(status) => {
-                // "Normal" error (400, 404, etc.), expose, but don't log.
-                (status, msg)
-            }
-        };
-        let proto_response = proto::Error { msg: response_msg };
+        let (code, proto_response) = report_status_error(report);
         (code, Protobuf(proto_response)).into_response()
     }
 }
