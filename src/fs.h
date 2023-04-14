@@ -246,7 +246,9 @@ private:
 typedef fs::ifstream ifstream;
 typedef fs::ofstream ofstream;
 #endif // WIN32 && __GLIBCXX__
-};     // namespace fsbridge
+
+fs::path GetTempDirectoryPath();
+}; // namespace fsbridge
 
 // Disallow path operator<< formatting in tinyformat to avoid locale-dependent
 // encoding on windows.

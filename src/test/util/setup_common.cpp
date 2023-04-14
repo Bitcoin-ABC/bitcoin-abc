@@ -103,7 +103,8 @@ std::vector<const char *> fixture_extra_args{};
 
 BasicTestingSetup::BasicTestingSetup(
     const std::string &chainName, const std::vector<const char *> &extra_args)
-    : m_path_root{fs::temp_directory_path() / "test_common_" PACKAGE_NAME /
+    : m_path_root{fsbridge::GetTempDirectoryPath() /
+                  "test_common_" PACKAGE_NAME /
                   g_insecure_rand_ctx_temp_path.rand256().ToString()},
       m_args{} {
     // clang-format off

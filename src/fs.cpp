@@ -265,4 +265,17 @@ static_assert(
 #endif // __GLIBCXX__
 #endif // WIN32
 
+fs::path GetTempDirectoryPath() {
+#ifndef WIN32
+    return fs::temp_directory_path();
+#else
+    wchar_t dirPathWchars[MAX_PATH];
+    GetTempPathW(MAX_PATH, dirPathWchars);
+    std::wstring dirPathWstring(dirPathWchars);
+    return fs::PathFromString(
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>().to_bytes(
+            dirPathWstring));
+#endif
+}
+
 } // namespace fsbridge
