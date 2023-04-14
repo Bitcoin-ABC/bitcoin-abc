@@ -144,13 +144,45 @@ describe('alias-server alias.js', function () {
     });
     it('Correctly returns only valid alias registrations at test address ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8', function () {
         assert.deepEqual(
-            getValidAliasRegistrations(testAddressAliases.allAliasTxs),
+            getValidAliasRegistrations([], testAddressAliases.allAliasTxs),
             testAddressAliases.validAliasTxs,
+        );
+    });
+    it('Correctly returns only new valid alias registrations at test address ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8 given partial txHistory and list of registered aliases', function () {
+        // Take only txs after registration of alias 'bytesofman'
+        const unprocessedAliasTxs = testAddressAliases.allAliasTxs.slice(
+            testAddressAliases.allAliasTxs.findIndex(
+                i => i.alias === 'bytesofman',
+            ),
+        );
+        // Get list of all valid alias registrations before 'bytesofman'
+        const registeredAliases = testAddressAliases.validAliasTxs
+            .slice(
+                0,
+                testAddressAliases.validAliasTxs.findIndex(
+                    i => i.alias === 'bytesofman',
+                ),
+            )
+            .map(aliasTx => {
+                return aliasTx.alias;
+            });
+
+        // newlyValidAliases will be all the valid alias txs registered after 'bytesofman'
+        const newlyValidAliases = testAddressAliases.validAliasTxs.slice(
+            testAddressAliases.validAliasTxs.findIndex(
+                i => i.alias === 'bytesofman',
+            ),
+        );
+
+        assert.deepEqual(
+            getValidAliasRegistrations(registeredAliases, unprocessedAliasTxs),
+            newlyValidAliases,
         );
     });
     it('Correctly returns valid alias registrations at test address ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8 given some unconfirmed txs in history', function () {
         assert.deepEqual(
             getValidAliasRegistrations(
+                [],
                 testAddressAliasesWithUnconfirmedTxs.allAliasTxs,
             ),
 

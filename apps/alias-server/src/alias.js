@@ -145,13 +145,23 @@ module.exports = {
 
         return aliasTxsSortedByTxidAndBlockheight;
     },
-    getValidAliasRegistrations: function (unsortedAliasTxs) {
+    getValidAliasRegistrations: function (registeredAliases, unsortedAliasTxs) {
+        /* Function that takes an array of already-registered aliases (strings)
+         * and an arbitrary collection of alias-prefixed txs from the alias registration
+         * address.
+         *
+         * Outputs new valid alias registrations by discarding any repeated registrations
+         * as invalid.
+         *
+         * Will get all valid alias registrations if given the full tx history and an empty array
+         * for registeredAliases
+         */
+
         // Sort aliases such that the earliest aliases are the valid ones
         const aliasesSortedByTxidAndBlockheight =
             module.exports.sortAliasTxsByTxidAndBlockheight(unsortedAliasTxs);
 
         // Initialize arrays to store alias registration info
-        let registeredAliases = [];
         let validAliasRegistrations = [];
 
         // Iterate over sorted aliases starting from oldest registrations to newest
