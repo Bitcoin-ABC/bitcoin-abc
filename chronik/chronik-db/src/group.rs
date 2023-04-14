@@ -10,12 +10,21 @@ use crate::io::GroupHistoryConf;
 
 /// Struct giving impls of [`Group`] all the necessary data to determine the
 /// member of the group.
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct GroupQuery<'a> {
     /// Whether the tx is a coinbase tx.
     pub is_coinbase: bool,
     /// The transaction that should be grouped.
     pub tx: &'a Tx,
+}
+
+/// Item returned by `members_tx`.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct MemberItem<M> {
+    /// Index of the item in the list of inputs/outputs.
+    pub idx: usize,
+    /// Member of this item.
+    pub member: M,
 }
 
 /// Groups txs and determines which members they are.
@@ -25,7 +34,7 @@ pub struct GroupQuery<'a> {
 /// etc.
 pub trait Group {
     /// Iterator over the members found for a given [`GroupQuery`].
-    type Iter<'a>: IntoIterator<Item = Self::Member<'a>> + 'a;
+    type Iter<'a>: IntoIterator<Item = MemberItem<Self::Member<'a>>> + 'a;
 
     /// Member of a group, this is what txs will be grouped by.
     ///
@@ -44,16 +53,36 @@ pub trait Group {
     /// Note: For group history, this will be suffixed by a 4-byte page number.
     type MemberSer<'a>: AsRef<[u8]> + 'a;
 
-    /// Find the group's members in the given query's tx.
+    /// Find the group's members in the given query's tx's inputs.
     ///
     /// Note: This is allowed to return a member multiple times per query.
     ///
     /// Note: The returned iterator is allowed to borrow from the query.
-    fn members_tx<'a>(&self, query: GroupQuery<'a>) -> Self::Iter<'a>;
+    fn input_members<'a>(&self, query: GroupQuery<'a>) -> Self::Iter<'a>;
+
+    /// Find the group's members in the given query's tx's outputs.
+    ///
+    /// Note: This is allowed to return a member multiple times per query.
+    ///
+    /// Note: The returned iterator is allowed to borrow from the query.
+    fn output_members<'a>(&self, query: GroupQuery<'a>) -> Self::Iter<'a>;
 
     /// Serialize the given member.
-    fn ser_member<'a>(&self, member: Self::Member<'a>) -> Self::MemberSer<'a>;
+    fn ser_member<'a>(&self, member: &Self::Member<'a>) -> Self::MemberSer<'a>;
 
     /// The [`GroupHistoryConf`] for this group.
     fn tx_history_conf() -> GroupHistoryConf;
+}
+
+/// Helper which returns the `G::Member`s of both inputs and outputs of the
+/// group for the tx.
+pub fn tx_members_for_group<'a, G: Group>(
+    group: &G,
+    query: GroupQuery<'a>,
+) -> impl Iterator<Item = G::Member<'a>> {
+    group
+        .input_members(query)
+        .into_iter()
+        .chain(group.output_members(query))
+        .map(|item| item.member)
 }

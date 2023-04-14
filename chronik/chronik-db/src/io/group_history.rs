@@ -9,7 +9,7 @@ use rocksdb::WriteBatch;
 
 use crate::{
     db::{Db, CF},
-    group::{Group, GroupQuery},
+    group::{tx_members_for_group, Group, GroupQuery},
     index_tx::IndexTx,
     io::TxNum,
     ser::{db_deserialize, db_serialize},
@@ -127,7 +127,7 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
     ) -> Result<()> {
         let grouped_txs = self.group_txs(txs);
         for (member, mut new_tx_nums) in grouped_txs {
-            let member_ser: G::MemberSer<'_> = self.group.ser_member(member);
+            let member_ser: G::MemberSer<'_> = self.group.ser_member(&member);
             let (mut page_num, mut last_page_tx_nums) = self
                 .col
                 .get_member_last_page(member_ser.as_ref())?
@@ -156,7 +156,7 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
     ) -> Result<()> {
         let grouped_txs = self.group_txs(txs);
         for (member, removed_tx_nums) in grouped_txs {
-            let member_ser: G::MemberSer<'_> = self.group.ser_member(member);
+            let member_ser: G::MemberSer<'_> = self.group.ser_member(&member);
             let mut num_remaining_removes = removed_tx_nums.len();
             let (mut page_num, mut last_page_tx_nums) = self
                 .col
@@ -200,7 +200,7 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
                 is_coinbase: index_tx.is_coinbase,
                 tx: index_tx.tx,
             };
-            for member in self.group.members_tx(query) {
+            for member in tx_members_for_group(&self.group, query) {
                 let tx_nums = group_tx_nums.entry(member).or_default();
                 if let Some(&last_tx_num) = tx_nums.last() {
                     if last_tx_num == index_tx.tx_num {

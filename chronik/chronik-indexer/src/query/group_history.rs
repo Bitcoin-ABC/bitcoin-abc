@@ -93,7 +93,7 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
             return Err(RequestPageSizeTooBig(request_page_size).into());
         }
         let db_reader = GroupHistoryReader::<G>::new(self.db)?;
-        let member_ser = self.group.ser_member(member);
+        let member_ser = self.group.ser_member(&member);
 
         let (num_db_pages, num_db_txs) =
             db_reader.member_num_pages_and_txs(member_ser.as_ref())?;
@@ -194,7 +194,7 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
         }
 
         let db_reader = GroupHistoryReader::<G>::new(self.db)?;
-        let member_ser = self.group.ser_member(member);
+        let member_ser = self.group.ser_member(&member);
         let (_, num_db_txs) =
             db_reader.member_num_pages_and_txs(member_ser.as_ref())?;
 
@@ -328,7 +328,7 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
         &self,
         member: G::Member<'_>,
     ) -> Result<proto::TxHistoryPage> {
-        let member_ser = self.group.ser_member(member);
+        let member_ser = self.group.ser_member(&member);
         let txs = match self.mempool_history.member_history(member_ser.as_ref())
         {
             Some(mempool_txs) => mempool_txs

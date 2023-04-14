@@ -2,10 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-use bitcoinsuite_core::tx::{Coin, Tx, TxId, TxInput, TxMut, TxOutput};
+use bitcoinsuite_core::tx::{
+    Coin, OutPoint, Tx, TxId, TxInput, TxMut, TxOutput,
+};
 
 use crate::{
-    group::{Group, GroupQuery},
+    group::{Group, GroupQuery, MemberItem},
     io::GroupHistoryConf,
 };
 
@@ -14,27 +16,38 @@ use crate::{
 pub(crate) struct ValueGroup;
 
 impl Group for ValueGroup {
-    type Iter<'a> = std::vec::IntoIter<i64>;
+    type Iter<'a> = Vec<MemberItem<i64>>;
     type Member<'a> = i64;
     type MemberSer<'a> = [u8; 8];
 
-    fn members_tx(&self, query: GroupQuery<'_>) -> Self::Iter<'_> {
-        let mut values = Vec::new();
+    fn input_members(&self, query: GroupQuery<'_>) -> Self::Iter<'_> {
+        let mut inputs = Vec::new();
         if !query.is_coinbase {
-            for input in &query.tx.inputs {
+            for (idx, input) in query.tx.inputs.iter().enumerate() {
                 if let Some(coin) = &input.coin {
-                    values.push(coin.output.value);
+                    inputs.push(MemberItem {
+                        idx,
+                        member: coin.output.value,
+                    });
                 }
             }
         }
-        for output in &query.tx.outputs {
-            values.push(output.value);
-        }
-        values.into_iter()
+        inputs
     }
 
-    fn ser_member<'a>(&self, value: i64) -> Self::MemberSer<'a> {
-        ser_value(value)
+    fn output_members(&self, query: GroupQuery<'_>) -> Self::Iter<'_> {
+        let mut outputs = Vec::new();
+        for (idx, output) in query.tx.outputs.iter().enumerate() {
+            outputs.push(MemberItem {
+                idx,
+                member: output.value,
+            });
+        }
+        outputs
+    }
+
+    fn ser_member<'a>(&self, value: &i64) -> Self::MemberSer<'a> {
+        ser_value(*value)
     }
 
     fn tx_history_conf() -> GroupHistoryConf {
@@ -58,13 +71,29 @@ pub(crate) fn make_value_tx<const N: usize, const M: usize>(
     input_values: [i64; N],
     output_values: [i64; M],
 ) -> Tx {
+    make_inputs_tx(
+        txid_num,
+        input_values.map(|value| (0, 0, value)),
+        output_values,
+    )
+}
+
+pub(crate) fn make_inputs_tx<const N: usize, const M: usize>(
+    txid_num: u8,
+    input_values: [(u8, u32, i64); N],
+    output_values: [i64; M],
+) -> Tx {
     Tx::with_txid(
         TxId::from([txid_num; 32]),
         TxMut {
             version: 0,
             inputs: input_values
                 .into_iter()
-                .map(|value| TxInput {
+                .map(|(input_txid_num, out_idx, value)| TxInput {
+                    prev_out: OutPoint {
+                        txid: TxId::from([input_txid_num; 32]),
+                        out_idx,
+                    },
                     coin: Some(Coin {
                         output: TxOutput {
                             value,

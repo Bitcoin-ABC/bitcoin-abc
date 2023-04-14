@@ -6,7 +6,7 @@ use bitcoinsuite_core::script::Script;
 
 use crate::{
     db::CF_SCRIPT_HISTORY,
-    group::{Group, GroupQuery},
+    group::{Group, GroupQuery, MemberItem},
     io::{GroupHistoryConf, GroupHistoryReader, GroupHistoryWriter},
     mem::MempoolGroupHistory,
 };
@@ -28,32 +28,40 @@ pub struct ScriptGroup {
 }
 
 impl Group for ScriptGroup {
-    type Iter<'a> = std::vec::IntoIter<&'a Script>;
+    type Iter<'a> = Vec<MemberItem<&'a Script>>;
     type Member<'a> = &'a Script;
     type MemberSer<'a> = Vec<u8>;
 
-    fn members_tx<'a>(&self, query: GroupQuery<'a>) -> Self::Iter<'a> {
-        let inputs = if !query.is_coinbase {
-            query.tx.inputs.as_slice()
-        } else {
-            &[]
-        };
-        let outputs = query.tx.outputs.as_slice();
-        let mut scripts = Vec::with_capacity(inputs.len() + outputs.len());
-        for input in inputs {
+    fn input_members<'a>(&self, query: GroupQuery<'a>) -> Self::Iter<'a> {
+        if query.is_coinbase {
+            return vec![];
+        }
+        let mut input_scripts = Vec::with_capacity(query.tx.inputs.len());
+        for (idx, input) in query.tx.inputs.iter().enumerate() {
             if let Some(coin) = &input.coin {
-                scripts.push(&coin.output.script);
+                input_scripts.push(MemberItem {
+                    idx,
+                    member: &coin.output.script,
+                });
             }
         }
-        for output in outputs {
-            if !output.script.is_opreturn() {
-                scripts.push(&output.script);
-            }
-        }
-        scripts.into_iter()
+        input_scripts
     }
 
-    fn ser_member<'a>(&self, member: Self::Member<'a>) -> Self::MemberSer<'a> {
+    fn output_members<'a>(&self, query: GroupQuery<'a>) -> Self::Iter<'a> {
+        let mut output_scripts = Vec::with_capacity(query.tx.outputs.len());
+        for (idx, output) in query.tx.outputs.iter().enumerate() {
+            if !output.script.is_opreturn() {
+                output_scripts.push(MemberItem {
+                    idx,
+                    member: &output.script,
+                });
+            }
+        }
+        output_scripts
+    }
+
+    fn ser_member<'a>(&self, member: &Self::Member<'a>) -> Self::MemberSer<'a> {
         (self.fn_compress_script)(member)
     }
 
@@ -91,7 +99,7 @@ mod tests {
     };
 
     use crate::{
-        group::{Group, GroupQuery},
+        group::{tx_members_for_group, Group, GroupQuery, MemberItem},
         groups::{prefix_mock_compress, ScriptGroup},
     };
 
@@ -124,32 +132,66 @@ mod tests {
                 ..Default::default()
             },
         );
+        let make_script = |script: Vec<u8>| Script::new(script.into());
+        fn make_member_item(
+            idx: usize,
+            script: &Script,
+        ) -> MemberItem<&Script> {
+            MemberItem {
+                idx,
+                member: script,
+            }
+        }
         let query = GroupQuery {
             is_coinbase: false,
             tx: &tx,
         };
         assert_eq!(
-            script_group.members_tx(query).collect::<Vec<_>>(),
+            tx_members_for_group(&script_group, query).collect::<Vec<_>>(),
             vec![
-                &Script::new(vec![0x51].into()),
-                &Script::new(vec![0x52].into()),
-                &Script::new(vec![0x53].into()),
-                &Script::new(vec![0x51].into()),
+                &make_script(vec![0x51]),
+                &make_script(vec![0x52]),
+                &make_script(vec![0x53]),
+                &make_script(vec![0x51]),
             ],
         );
+        assert_eq!(
+            script_group.input_members(query),
+            vec![
+                make_member_item(0, &make_script(vec![0x51])),
+                make_member_item(1, &make_script(vec![0x52])),
+            ],
+        );
+        assert_eq!(
+            script_group.output_members(query),
+            vec![
+                make_member_item(0, &make_script(vec![0x53])),
+                make_member_item(1, &make_script(vec![0x51])),
+            ],
+        );
+
         let query = GroupQuery {
             is_coinbase: true,
             tx: &tx,
         };
         assert_eq!(
-            script_group.members_tx(query).collect::<Vec<_>>(),
+            tx_members_for_group(&script_group, query).collect::<Vec<_>>(),
             vec![
                 &Script::new(vec![0x53].into()),
                 &Script::new(vec![0x51].into()),
             ],
         );
+        assert_eq!(script_group.input_members(query), vec![]);
         assert_eq!(
-            script_group.ser_member(&Script::new(vec![0x53].into())),
+            script_group.output_members(query),
+            vec![
+                make_member_item(0, &make_script(vec![0x53])),
+                make_member_item(1, &make_script(vec![0x51])),
+            ],
+        );
+
+        assert_eq!(
+            script_group.ser_member(&&make_script(vec![0x53])),
             [b"COMPRESS:".as_ref(), &[0x53]].concat(),
         );
     }
