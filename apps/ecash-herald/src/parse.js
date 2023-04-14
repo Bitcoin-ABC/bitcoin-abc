@@ -37,17 +37,11 @@ module.exports = {
         return miner;
     },
     parseTx: function (tx) {
-        /*
-Parse an eCash tx as returned by chronik for interesting information
+        /* Parse an eCash tx as returned by chronik for newsworthy information
+         * returns
+         * { txid, isTokenTx, isGenesisTx, genesisInfo, opReturnInfo }
+         */
 
-Model
-{ opreturn: '', isTokenTx: true, fromAddress: '', toAddress: '', isGenesisTx: true, isCoinbaseTx: true }
-
-Assumptions
-- input[0] is the sending address
-- any input addresses are potential change addresses
-- Assume total outputs not at input addresses are "sent" amounts
-*/
         const { txid, outputs } = tx;
 
         let isTokenTx = false;
@@ -151,9 +145,9 @@ Assumptions
     },
     hexOpReturnToUtf8: function (hexStr) {
         /*
-        Accept as input an OP_RETURN hex string less the 6a prefix
-        String will have the form of 4c+bytelength+msg (? + 4c + bytelength + msg)
-        */
+         * Accept as input an OP_RETURN hex string less the 6a prefix
+         * String will have the form of 4c+bytelength+msg (? + 4c + bytelength + msg)
+         */
         let hexStrLength = hexStr.length;
         let opReturnMsgArray = [];
         for (let i = 0; hexStrLength !== 0; i++) {
