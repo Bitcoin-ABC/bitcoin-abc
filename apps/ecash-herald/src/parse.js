@@ -39,7 +39,7 @@ module.exports = {
     parseTx: function (tx) {
         /* Parse an eCash tx as returned by chronik for newsworthy information
          * returns
-         * { txid, isTokenTx, genesisInfo, opReturnInfo }
+         * { txid, genesisInfo, opReturnInfo }
          */
 
         const { txid, outputs } = tx;
@@ -72,7 +72,7 @@ module.exports = {
             }
         }
 
-        return { txid, isTokenTx, genesisInfo, opReturnInfo };
+        return { txid, genesisInfo, opReturnInfo };
     },
     parseOpReturn: function (outputScript) {
         // Initialize required vars
