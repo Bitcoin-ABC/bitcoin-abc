@@ -85,7 +85,7 @@ module.exports = {
             // For now, just history
             self.setScript = function (type, hash) {
                 self.mockedMethods[type][hash] = {
-                    history: function (pageNumber = 0, pageSize) {
+                    history: async function (pageNumber = 0, pageSize) {
                         return self.getTxHistory(
                             pageNumber,
                             pageSize,
