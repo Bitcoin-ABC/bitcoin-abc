@@ -4,6 +4,7 @@
 
 'use strict';
 const config = require('../config');
+const { prepareStringForTelegramHTML } = require('./telegram');
 const { formatPrice } = require('./utils');
 module.exports = {
     parseBlock: function (chronikBlockResponse) {
@@ -218,22 +219,6 @@ Assumptions
             return { app, msg };
         }
     },
-    prepareStringForTelegramHTML: function (string) {
-        /*
-        See "HTML Style" at https://core.telegram.org/bots/api
-
-        Replace < with &lt;
-        Replace > with &gt;
-        Replace & with &amp;
-      */
-        let tgReadyString = string;
-        // need to replace the '&' characters first
-        tgReadyString = tgReadyString.replace(/&/g, '&amp;');
-        tgReadyString = tgReadyString.replace(/</g, '&lt;');
-        tgReadyString = tgReadyString.replace(/>/g, '&gt;');
-
-        return tgReadyString;
-    },
     getBlockTgMessage: function (parsedBlock, coingeckoPrices) {
         const { hash, height, miner, numTxs, parsedTxs } = parsedBlock;
 
@@ -252,11 +237,9 @@ Assumptions
                 const tokenId = txid;
                 let { tokenTicker, tokenName, tokenDocumentUrl } = genesisInfo;
                 // Make sure tokenName does not contain telegram html escape characters
-                tokenName =
-                    module.exports.prepareStringForTelegramHTML(tokenName);
+                tokenName = prepareStringForTelegramHTML(tokenName);
                 // Make sure tokenName does not contain telegram html escape characters
-                tokenTicker =
-                    module.exports.prepareStringForTelegramHTML(tokenTicker);
+                tokenTicker = prepareStringForTelegramHTML(tokenTicker);
                 // Do not apply this parsing to tokenDocumentUrl, as this could change the URL
                 // If this breaks the msg, so be it
                 // Would only happen for bad URLs
@@ -269,7 +252,7 @@ Assumptions
             if (opReturnInfo) {
                 let { app, msg } = opReturnInfo;
                 // Make sure the OP_RETURN msg does not contain telegram html escape characters
-                msg = module.exports.prepareStringForTelegramHTML(msg);
+                msg = prepareStringForTelegramHTML(msg);
                 opReturnTxTgMsgLines.push(
                     `<a href="${config.blockExplorer}/tx/${txid}">${app}:</a> ${msg}`,
                 );

@@ -3,14 +3,22 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 'use strict';
-const secrets = require('../secrets');
-const TelegramBot = require('node-telegram-bot-api');
-
-const { botId, channelId } = secrets.prod.telegram;
-// Create a bot that uses 'polling' to fetch new updates
-const telegramBot = new TelegramBot(botId, { polling: true });
 
 module.exports = {
-    telegramBot,
-    channelId,
+    prepareStringForTelegramHTML: function (string) {
+        /*
+        See "HTML Style" at https://core.telegram.org/bots/api
+
+        Replace < with &lt;
+        Replace > with &gt;
+        Replace & with &amp;
+      */
+        let tgReadyString = string;
+        // need to replace the '&' characters first
+        tgReadyString = tgReadyString.replace(/&/g, '&amp;');
+        tgReadyString = tgReadyString.replace(/</g, '&lt;');
+        tgReadyString = tgReadyString.replace(/>/g, '&gt;');
+
+        return tgReadyString;
+    },
 };
