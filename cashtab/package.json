@@ -5,7 +5,7 @@
     "dependencies": {
         "@ant-design/icons": "^4.3.0",
         "@babel/core": "^7.16.0",
-        "@bitgo/utxo-lib": "^7.7.0",
+        "@bitgo/utxo-lib": "^8.0.0",
         "@pmmmwh/react-refresh-webpack-plugin": "^0.5.3",
         "@svgr/webpack": "^6.3.1",
         "@testing-library/jest-dom": "^5.16.2",
@@ -162,7 +162,8 @@
         ],
         "moduleNameMapper": {
             "^react-native$": "react-native-web",
-            "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy"
+            "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy",
+            "@brandonblack/musig/base_crypto": "@brandonblack/musig/lib/base_crypto"
         },
         "moduleFileExtensions": [
             "web.js",

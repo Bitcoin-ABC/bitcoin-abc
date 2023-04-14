@@ -208,10 +208,6 @@ export const signUtxosByAddress = (inputUtxos, wallet, txBuilder) => {
 
         const utxoECPair = utxolib.ECPair.fromWIF(wif, utxolib.networks.ecash);
 
-        // set version to 2. Need to patch @bitgo/utxo-lib to correct this bug
-        // https://github.com/BitGo/BitGoJS/blob/master/modules/utxo-lib/src/bitgo/transaction.ts#L108
-        txBuilder.__TX.version = 2;
-
         // Specify hash type
         // This should be handled at the utxo-lib level, pending latest published version
         const hashTypes = {
@@ -220,11 +216,11 @@ export const signUtxosByAddress = (inputUtxos, wallet, txBuilder) => {
         };
 
         txBuilder.sign(
-            i,
-            utxoECPair,
-            undefined,
-            hashTypes.SIGHASH_ALL | hashTypes.SIGHASH_FORKID,
-            parseInt(utxo.value),
+            i, // vin
+            utxoECPair, // keyPair
+            undefined, // redeemScript
+            hashTypes.SIGHASH_ALL | hashTypes.SIGHASH_FORKID, // hashType
+            parseInt(utxo.value), // value
         );
     }
 
