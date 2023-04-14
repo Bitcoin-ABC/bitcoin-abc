@@ -20,6 +20,7 @@
 #endif
 
 #include <cassert>
+#include <limits>
 #include <string>
 
 namespace fsbridge {
