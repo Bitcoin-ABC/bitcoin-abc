@@ -35,6 +35,7 @@ import {
     getAliasRegistrationFee,
     outputScriptToAddress,
     getAliasByteSize,
+    getMessageByteSize,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import { validAddressArrayInput } from '../__mocks__/mockAddressArray';
@@ -112,6 +113,30 @@ import {
     mockMultipleOutputs,
 } from '../__mocks__/mockTxBuilderData';
 import createTokenMock from '../__mocks__/createToken';
+
+it(`OP_RETURN msg byte length matches for a msg input with a single emoji`, () => {
+    const msgInput = '🙈';
+    const opReturnMsgByteLength = getMessageByteSize(msgInput);
+    expect(opReturnMsgByteLength).toStrictEqual(4);
+});
+
+it(`OP_RETURN msg byte length matches for a msg input with characters and emojis`, () => {
+    const msgInput = 'monkey🙈';
+    const opReturnMsgByteLength = getMessageByteSize(msgInput);
+    expect(opReturnMsgByteLength).toStrictEqual(10);
+});
+
+it(`OP_RETURN msg byte length matches for a msg input with special characters`, () => {
+    const msgInput = 'monkey©®ʕ•́ᴥ•̀ʔっ♡';
+    const opReturnMsgByteLength = getMessageByteSize(msgInput);
+    expect(opReturnMsgByteLength).toStrictEqual(33);
+});
+
+it(`OP_RETURN msg byte length matches for a msg input with a mixture of symbols, multilingual characters and emojis`, () => {
+    const msgInput = '🙈©冰소주';
+    const opReturnMsgByteLength = getMessageByteSize(msgInput);
+    expect(opReturnMsgByteLength).toStrictEqual(15);
+});
 
 it(`Alias byte length matches for an alias input with a single emoji`, () => {
     const aliasInput = '🙈';
@@ -685,13 +710,13 @@ it(`generateTokenTxInput() returns a valid object for a valid create token tx`, 
     );
 
     expect(tokenInputObj.inputXecUtxos).toStrictEqual(
-        [mockNonSlpUtxos[0]].concat([mockNonSlpUtxos[1]]),
+        [mockNonSlpUtxos[0]],
     );
     expect(tokenInputObj.txBuilder.toString()).toStrictEqual(
         mockCreateTokenTxBuilderObj.toString(),
     );
     expect(tokenInputObj.remainderXecValue).toStrictEqual(
-        new BigNumber(699702), // tokenInputObj.inputXecUtxos - currency.etokenSats 546 - txFee
+        new BigNumber(698999), // tokenInputObj.inputXecUtxos - currency.etokenSats 546 - txFee
     );
 });
 
@@ -836,8 +861,8 @@ it(`generateTxInput() returns an input object for a valid one to one XEC tx`, as
         feeInSatsPerByte,
     );
     expect(inputObj.txBuilder).not.toStrictEqual(null);
-    expect(inputObj.totalInputUtxoValue).toStrictEqual(new BigNumber(701000));
-    expect(inputObj.txFee).toStrictEqual(752);
+    expect(inputObj.totalInputUtxoValue).toStrictEqual(new BigNumber(700000));
+    expect(inputObj.txFee).toStrictEqual(455);
     expect(inputObj.inputUtxos.length).not.toStrictEqual(0);
 });
 
@@ -864,8 +889,8 @@ it(`generateTxInput() returns an input object for a valid one to many XEC tx`, a
         feeInSatsPerByte,
     );
     expect(inputObj.txBuilder).not.toStrictEqual(null);
-    expect(inputObj.totalInputUtxoValue).toStrictEqual(new BigNumber(1401000));
-    expect(inputObj.txFee).toStrictEqual(1186);
+    expect(inputObj.totalInputUtxoValue).toStrictEqual(new BigNumber(1400000));
+    expect(inputObj.txFee).toStrictEqual(889);
     expect(inputObj.inputUtxos.length).not.toStrictEqual(0);
 });
 
@@ -1674,7 +1699,7 @@ describe('Correctly executes cash utility functions', () => {
     });
     it('calculates fee correctly for 2 P2PKH outputs', () => {
         const utxosMock = [{}, {}];
-        expect(calcFee(utxosMock, 2, 1.01)).toBe(378);
+        expect(calcFee(utxosMock, 2, currency.defaultFee)).toBe(752);
     });
     it(`Converts a hash160 to an ecash address`, () => {
         expect(

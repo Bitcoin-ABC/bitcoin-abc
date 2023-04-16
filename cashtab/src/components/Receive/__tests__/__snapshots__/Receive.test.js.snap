@@ -2,16 +2,16 @@
 
 exports[`Wallet with BCH balances 1`] = `
 <div
-  className="sc-frDJqD dOsiYu"
+  className="sc-kvZOFW jgSApK"
 >
   <div
     className="sc-jhAzac kJIUSz"
   >
     <div
-      className="sc-cJSrbW eFiKNs"
+      className="sc-ksYbfQ lbumgR"
     >
       <h4
-        className="sc-ksYbfQ gwupkP"
+        className="sc-hmzhuo laWxZt"
       >
         MigrationTestAlpha
       </h4>
@@ -62,7 +62,7 @@ exports[`Wallet with BCH balances 1`] = `
     </div>
   </div>
   <div
-    className="sc-hmzhuo eRtqMp"
+    className="sc-frDJqD gCEYuZ"
   >
     <div
       onClick={[Function]}
@@ -165,16 +165,16 @@ exports[`Wallet with BCH balances 1`] = `
 
 exports[`Wallet with BCH balances and tokens 1`] = `
 <div
-  className="sc-frDJqD dOsiYu"
+  className="sc-kvZOFW jgSApK"
 >
   <div
     className="sc-jhAzac kJIUSz"
   >
     <div
-      className="sc-cJSrbW eFiKNs"
+      className="sc-ksYbfQ lbumgR"
     >
       <h4
-        className="sc-ksYbfQ gwupkP"
+        className="sc-hmzhuo laWxZt"
       >
         MigrationTestAlpha
       </h4>
@@ -225,7 +225,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
     </div>
   </div>
   <div
-    className="sc-hmzhuo eRtqMp"
+    className="sc-frDJqD gCEYuZ"
   >
     <div
       onClick={[Function]}
@@ -328,16 +328,16 @@ exports[`Wallet with BCH balances and tokens 1`] = `
 
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 <div
-  className="sc-frDJqD dOsiYu"
+  className="sc-kvZOFW jgSApK"
 >
   <div
     className="sc-jhAzac kJIUSz"
   >
     <div
-      className="sc-cJSrbW eFiKNs"
+      className="sc-ksYbfQ lbumgR"
     >
       <h4
-        className="sc-ksYbfQ gwupkP"
+        className="sc-hmzhuo laWxZt"
       >
         MigrationTestAlpha
       </h4>
@@ -382,7 +382,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
       className="sc-fMiknA hHCiKT"
     >
       <span
-        className="sc-cHGsZl fLODmv"
+        className="sc-TOsTZ doeNJZ"
       >
          
         0.06
@@ -393,7 +393,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
     </div>
   </div>
   <div
-    className="sc-hmzhuo eRtqMp"
+    className="sc-frDJqD gCEYuZ"
   >
     <div
       onClick={[Function]}
@@ -496,16 +496,16 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
 
 exports[`Wallet without BCH balance 1`] = `
 <div
-  className="sc-frDJqD dOsiYu"
+  className="sc-kvZOFW jgSApK"
 >
   <div
     className="sc-jhAzac kJIUSz"
   >
     <div
-      className="sc-cJSrbW eFiKNs"
+      className="sc-ksYbfQ lbumgR"
     >
       <h4
-        className="sc-ksYbfQ gwupkP"
+        className="sc-hmzhuo laWxZt"
       >
         MigrationTestAlpha
       </h4>
@@ -556,7 +556,7 @@ exports[`Wallet without BCH balance 1`] = `
     </div>
   </div>
   <div
-    className="sc-hmzhuo eRtqMp"
+    className="sc-frDJqD gCEYuZ"
   >
     <div
       onClick={[Function]}

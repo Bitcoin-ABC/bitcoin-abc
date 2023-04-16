@@ -39,8 +39,9 @@ import {
     SidePaddingCtn,
     FormLabel,
     TxLink,
+    MsgBytesizeError,
 } from 'components/Common/Atoms';
-import { getWalletState, fromSatoshisToXec, calcFee } from 'utils/cashMethods';
+import { getWalletState, fromSatoshisToXec, calcFee, getMessageByteSize } from 'utils/cashMethods';
 import { sendXec } from 'utils/transactions';
 import ApiError from 'components/Common/ApiError';
 import { formatFiatBalance, formatBalance } from 'utils/formatting';
@@ -167,6 +168,7 @@ const SendBCH = ({ passLoadingStatus }) => {
     const [queryStringText, setQueryStringText] = useState(null);
     const [sendBchAddressError, setSendBchAddressError] = useState(false);
     const [sendBchAmountError, setSendBchAmountError] = useState(false);
+    const [isMsgError, setIsMsgError] = useState(false);
     const [aliasInputAddress, setAliasInputAddress] = useState(false);
     const [selectedCurrency, setSelectedCurrency] = useState(currency.ticker);
 
@@ -602,6 +604,17 @@ const SendBCH = ({ passLoadingStatus }) => {
             [name]: value,
         }));
     };
+    
+    const handleMsgChange = e => {
+        const { value } = e.target;
+        let msgError = false;
+        const msgByteSize = getMessageByteSize(value); // 2nd param not required for unencrypted message
+        if (msgByteSize > currency.opReturn.unencryptedMsgByteLimit) {
+              msgError = `Message can not exceed ${currency.opReturn.unencryptedMsgByteLimit} bytes`;
+        }
+        setIsMsgError(msgError);
+        setOpReturnMsg(e.target.value);
+    };
 
     const onMax = async () => {
         // Clear amt error
@@ -919,6 +932,7 @@ const SendBCH = ({ passLoadingStatus }) => {
                                 apiError ||
                                 sendBchAmountError ||
                                 sendBchAddressError ||
+                                isMsgError ||
                                 priceApiError ? (
                                     <DisabledButton>Send</DisabledButton>
                                 ) : (
@@ -1008,12 +1022,12 @@ const SendBCH = ({ passLoadingStatus }) => {
                                         name="opReturnMsg"
                                         placeholder={
                                             isEncryptedOptionalOpReturnMsg
-                                                ? `(max ${currency.opReturn.encryptedMsgCharLimit} characters)`
+                                                ? `(max ${currency.opReturn.encryptedMsgCharLimit} bytes)`
                                                 : location &&
                                                   location.state &&
                                                   location.state.airdropTokenId
-                                                ? `(max ${currency.opReturn.unencryptedAirdropMsgCharLimit} characters)`
-                                                : `(max ${currency.opReturn.unencryptedMsgCharLimit} characters)`
+                                                ? `(max ${currency.opReturn.unencryptedAirdropMsgByteLimit} bytes)`
+                                                : `(max ${currency.opReturn.unencryptedMsgByteLimit} bytes)`
                                         }
                                         value={
                                             opReturnMsg
@@ -1028,20 +1042,7 @@ const SendBCH = ({ passLoadingStatus }) => {
                                                 : ''
                                         }
                                         onChange={e =>
-                                            setOpReturnMsg(e.target.value)
-                                        }
-                                        showCount
-                                        maxLength={
-                                            isEncryptedOptionalOpReturnMsg
-                                                ? currency.opReturn
-                                                      .encryptedMsgCharLimit
-                                                : location &&
-                                                  location.state &&
-                                                  location.state.airdropTokenId
-                                                ? currency.opReturn
-                                                      .unencryptedAirdropMsgCharLimit
-                                                : currency.opReturn
-                                                      .unencryptedMsgCharLimit
+                                            handleMsgChange(e)
                                         }
                                         onKeyDown={e =>
                                             e.keyCode == 13
@@ -1049,6 +1050,7 @@ const SendBCH = ({ passLoadingStatus }) => {
                                                 : ''
                                         }
                                     />
+                                    <MsgBytesizeError>{isMsgError ? isMsgError : ''}</MsgBytesizeError>
                                 </AntdFormWrapper>
                             </CustomCollapseCtn>
                             {apiError && <ApiError />}

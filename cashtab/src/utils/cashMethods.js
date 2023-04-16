@@ -11,6 +11,28 @@ import bs58 from 'bs58';
 import * as slpMdm from 'slp-mdm';
 import * as utxolib from '@bitgo/utxo-lib';
 
+export const getMessageByteSize = (msgInputStr, encryptionFlag) => {
+    if (!msgInputStr || msgInputStr.trim() === '') {
+        return 0;
+    }
+
+    // generate the OP_RETURN script
+    const opReturnData = generateOpReturnScript(
+        msgInputStr,
+        encryptionFlag, // encryption use
+        false, // airdrop use
+        null, // airdrop use
+        encryptionFlag, // encryption use
+        false, // alias registration flag
+    );
+    // extract the msg input from the OP_RETURN script and check the backend size
+    const hexString = opReturnData.toString('hex'); // convert to hex
+    const opReturnMsg = parseOpReturn(hexString)[1]; // extract the message
+    const msgInputByteSize = opReturnMsg.length / 2; // calculate the byte size
+
+    return msgInputByteSize;
+};
+
 export const getAliasByteSize = aliasInputStr => {
     if (!aliasInputStr || aliasInputStr.trim() === '') {
         return 0;
@@ -259,9 +281,10 @@ export const calcFee = (
     utxos,
     p2pkhOutputNumber = 2,
     satoshisPerByte = currency.defaultFee,
+    opReturnByteCount = 0,
 ) => {
     const byteCount = getCashtabByteCount(utxos.length, p2pkhOutputNumber);
-    const txFee = Math.ceil(satoshisPerByte * byteCount);
+    const txFee = Math.ceil(satoshisPerByte * (byteCount + opReturnByteCount));
     return txFee;
 };
 
@@ -348,6 +371,7 @@ export const generateTxInput = (
     destinationAddressAndValueArray,
     satoshisToSend,
     feeInSatsPerByte,
+    opReturnByteCount,
 ) => {
     let txInputObj = {};
     const inputUtxos = [];
@@ -378,7 +402,7 @@ export const generateTxInput = (
             txBuilder.addInput(txid, vout);
 
             inputUtxos.push(utxo);
-            txFee = calcFee(inputUtxos, txOutputs, feeInSatsPerByte);
+            txFee = calcFee(inputUtxos, txOutputs, feeInSatsPerByte, opReturnByteCount);
 
             if (totalInputUtxoValue.minus(satoshisToSend).minus(txFee).gte(0)) {
                 break;

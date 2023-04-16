@@ -2,20 +2,6 @@ export default [
     {
         height: 669639,
         tx_hash:
-            '0da6d49cf95d4603958e53360ad1e90bfccef41bfb327d6b2e8a77e242fa2d58',
-        tx_pos: 0,
-        value: '1000',
-        txid: '0da6d49cf95d4603958e53360ad1e90bfccef41bfb327d6b2e8a77e242fa2d58',
-        isValid: false,
-        address: 'bitcoincash:qphpmfj0qn7znklqhrfn5dq7qh36l3vxavu346vqcl',
-        outpoint: {
-            outIdx: 0,
-            txid: '0da6d49cf95d4603958e53360ad1e90bfccef41bfb327d6b2e8a77e242fa2d58',
-        },
-    },
-    {
-        height: 669639,
-        tx_hash:
             '39521b38cd1b6126a57a68b8adfd836020cd53b195f3b4675c58095c5c300ef8',
         tx_pos: 0,
         value: 700000,

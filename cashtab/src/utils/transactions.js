@@ -11,6 +11,7 @@ import {
     signAndBuildTx,
     getChangeAddressFromInputUtxos,
     toHash160,
+    getMessageByteSize,
 } from 'utils/cashMethods';
 import ecies from 'ecies-lite';
 import * as utxolib from '@bitgo/utxo-lib';
@@ -530,6 +531,11 @@ export const sendXec = async (
             txBuilder.addOutput(opReturnData, 0);
         }
 
+        let opReturnByteCount;
+        if (optionalOpReturnMsg) {
+            opReturnByteCount = getMessageByteSize(optionalOpReturnMsg);
+        }
+        
         // generate the tx inputs and add to txBuilder instance
         // returns the updated txBuilder, txFee, totalInputUtxoValue and inputUtxos
         let txInputObj = generateTxInput(
@@ -539,6 +545,7 @@ export const sendXec = async (
             destinationAddressAndValueArray,
             satoshisToSend,
             feeInSatsPerByte,
+            opReturnByteCount,
         );
 
         const changeAddress = getChangeAddressFromInputUtxos(

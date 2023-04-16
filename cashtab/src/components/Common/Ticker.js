@@ -106,8 +106,8 @@ export const currency = {
             aliasRegistration: '2e786563',
         },
         encryptedMsgCharLimit: 125,
-        unencryptedMsgCharLimit: 206,
-        unencryptedAirdropMsgCharLimit: 170,
+        unencryptedMsgByteLimit: 215,
+        unencryptedAirdropMsgByteLimit: 179,
     },
     settingsValidation: {
         fiatCurrency: [
