@@ -101,13 +101,14 @@ done
 
 #check hashes
 DIFF=$(diff <(sha256sum $FILES) "$TMPFILE")
+ERROR_CODE=$?
 
-if [ $? -eq 1 ]; then
+if [ ${ERROR_CODE} -eq 1 ]; then
    echo "Hashes don't match."
    echo "Offending files:"
    echo "$DIFF"|grep "^<"|awk '{print "\t"$3}'
    exit 1
-elif [ $? -gt 1 ]; then
+elif [ ${ERROR_CODE} -gt 1 ]; then
    echo "Error executing 'diff'"
    exit 2
 fi
