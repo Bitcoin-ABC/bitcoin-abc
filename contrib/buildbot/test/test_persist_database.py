@@ -16,9 +16,8 @@ from test.test_endpoint_status import statusRequestData
 
 import mock
 import server
-from teamcity_wrapper import BuildInfo
-
 from build import BuildStatus
+from teamcity_wrapper import BuildInfo
 
 BUILD_NAME = 'build-name'
 BUILD_TYPE_ID = 'build-type-id'

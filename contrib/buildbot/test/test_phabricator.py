@@ -10,9 +10,8 @@ import unittest
 from base64 import b64encode
 
 import mock
-from phabricator_wrapper import BITCOIN_ABC_PROJECT_PHID, BITCOIN_ABC_REPO
-
 from build import BuildStatus, BuildTarget
+from phabricator_wrapper import BITCOIN_ABC_PROJECT_PHID, BITCOIN_ABC_REPO
 
 
 class PhabricatorTests(unittest.TestCase):

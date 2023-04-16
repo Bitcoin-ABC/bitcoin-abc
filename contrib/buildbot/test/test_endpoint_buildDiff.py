@@ -13,9 +13,8 @@ from unittest.mock import call
 
 import mock
 import requests
-from testutil import AnyWith
-
 from build import Build, BuildStatus
+from testutil import AnyWith
 
 
 class buildDiffRequestQuery():
