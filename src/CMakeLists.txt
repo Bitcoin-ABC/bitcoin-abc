@@ -420,6 +420,7 @@ add_library(util
 	util/batchpriority.cpp
 	util/bip32.cpp
 	util/bytevectorhash.cpp
+	util/chaintype.cpp
 	util/check.cpp
 	util/hasher.cpp
 	util/exception.cpp
@@ -928,6 +929,7 @@ if(BUILD_BITCOIN_CHAINSTATE)
 		uint256.cpp
 		util/batchpriority.cpp
 		util/bytevectorhash.cpp
+		util/chaintype.cpp
 		util/check.cpp
 		util/exception.cpp
 		util/fs.cpp
