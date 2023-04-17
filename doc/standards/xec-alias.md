@@ -57,7 +57,7 @@ To be valid, an alias registration transaction must:
 
 A valid transaction registers the address at the 0 index of the tx inputs to the alias in the OP_RETURN.
 
-Invalid transactions may have the registration fee refunded to the address at the 0 index of the tx inputs.
+Invalid transactions that do not match the criteria above should be ignored by the app parsing the payment address history.
 
 ### The Registration Address
 
