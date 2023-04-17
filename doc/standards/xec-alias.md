@@ -49,10 +49,10 @@ This protocol adheres to the eCash OP_RETURN Prefix Guidelines and uses the 2E78
 To be valid, an alias registration transaction must:
 
 -   Be a valid eCash transaction with 1 confirmation
--   Include an OP_RETURN field with valid alias prefix and an alias between 1 and 21 characters in length, inclusive. Note: alias length and associated fee is determined by the number of bytes taken to store the alias in the OP_RETURN field of the registration transaction, and not the number of characters rendered by most front-ends. For example, emojis are typically 4 bytes in length and would thus be 4-character aliases, even if they may be rendered as one character.
+-   Include an OP_RETURN field with valid alias prefix and an alias between 1 and 21 bytes in length, inclusive.
+-   The alias must consist of only UTF-8 encoded numbers and lower-case letters.
 -   Pay a valid fee for the associated character length and block height
 -   Have the lowest blockheight of any other alias registration transaction for the same alias
--   Not have case-conflicts with any previously registered alias. For example, if someone registers "examplealias," then "ExampleAlias" or "EXAMPLEALIAS" may not be registered in the future.
 -   When the same alias is registered in the same block by different addresses, the valid alias will be determined by the registration with the alphabetically first txid.
 
 A valid transaction registers the address at the 0 index of the tx inputs to the alias in the OP_RETURN.
