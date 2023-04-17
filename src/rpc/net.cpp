@@ -22,6 +22,7 @@
 #include <rpc/util.h>
 #include <sync.h>
 #include <timedata.h>
+#include <util/chaintype.h>
 #include <util/strencodings.h>
 #include <util/string.h>
 #include <util/time.h>
@@ -429,8 +430,7 @@ static RPCHelpMan addconnection() {
                            "\"192.168.0.6:8333\" \"outbound-full-relay\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            if (config.GetChainParams().NetworkIDString() !=
-                CBaseChainParams::REGTEST) {
+            if (config.GetChainParams().GetChainType() != ChainType::REGTEST) {
                 throw std::runtime_error("addconnection is for regression "
                                          "testing (-regtest mode) only.");
             }

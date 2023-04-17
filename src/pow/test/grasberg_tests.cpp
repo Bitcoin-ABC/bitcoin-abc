@@ -7,6 +7,7 @@
 #include <chain.h>
 #include <chainparams.h>
 #include <test/lcg.h>
+#include <util/chaintype.h>
 
 #include <test/util/setup_common.h>
 
@@ -148,8 +149,7 @@ BOOST_AUTO_TEST_CASE(exp2_test) {
 }
 
 BOOST_AUTO_TEST_CASE(target_block_time_test) {
-    const auto chainParams =
-        CreateChainParams(*m_node.args, CBaseChainParams::MAIN);
+    const auto chainParams = CreateChainParams(*m_node.args, ChainType::MAIN);
     const auto &params = chainParams->GetConsensus();
 
     const int nHeight = 100000;
@@ -237,8 +237,7 @@ static CBlockIndex GetBlockIndex(CBlockIndex *pindexPrev, int64_t nTimeInterval,
 }
 
 BOOST_AUTO_TEST_CASE(grasberg_test) {
-    const auto chainParams =
-        CreateChainParams(*m_node.args, CBaseChainParams::MAIN);
+    const auto chainParams = CreateChainParams(*m_node.args, ChainType::MAIN);
     const auto &params = chainParams->GetConsensus();
 
     std::vector<CBlockIndex> blocks(3000);
@@ -591,7 +590,7 @@ BOOST_AUTO_TEST_CASE(grasberg_test) {
 
 BOOST_AUTO_TEST_CASE(testnet_difficulty_drop_test) {
     const auto chainParams =
-        CreateChainParams(*m_node.args, CBaseChainParams::TESTNET);
+        CreateChainParams(*m_node.args, ChainType::TESTNET);
     const auto &params = chainParams->GetConsensus();
 
     std::vector<CBlockIndex> blocks(3000);

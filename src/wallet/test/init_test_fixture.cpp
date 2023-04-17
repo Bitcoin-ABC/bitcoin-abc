@@ -7,15 +7,15 @@
 #include <chainparams.h>
 #include <common/system.h>
 #include <univalue.h>
+#include <util/chaintype.h>
 #include <util/check.h>
 #include <util/fs.h>
 
 #include <fstream>
 #include <string>
 
-InitWalletDirTestingSetup::InitWalletDirTestingSetup(
-    const std::string &chainName)
-    : BasicTestingSetup(chainName) {
+InitWalletDirTestingSetup::InitWalletDirTestingSetup(const ChainType chain_type)
+    : BasicTestingSetup(chain_type) {
     m_wallet_client = MakeWalletClient(*m_node.chain, *Assert(m_node.args));
 
     std::string sep;

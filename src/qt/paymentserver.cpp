@@ -15,6 +15,7 @@
 #include <qt/bitcoinunits.h>
 #include <qt/guiutil.h>
 #include <qt/optionsmodel.h>
+#include <util/chaintype.h>
 #include <wallet/wallet.h>
 
 #ifdef ENABLE_BIP70
@@ -98,15 +99,15 @@ static std::string ipcParseURI(const QString &arg, const CChainParams &params,
 }
 
 static bool ipcCanParseCashAddrURI(const QString &arg,
-                                   const std::string &network) {
-    auto tempChainParams = CreateChainParams(ArgsManager{}, network);
+                                   const ChainType chain_type) {
+    auto tempChainParams = CreateChainParams(ArgsManager{}, chain_type);
     std::string addr = ipcParseURI(arg, *tempChainParams, true);
     return IsValidDestinationString(addr, *tempChainParams);
 }
 
 static bool ipcCanParseLegacyURI(const QString &arg,
-                                 const std::string &network) {
-    auto tempChainParams = CreateChainParams(ArgsManager{}, network);
+                                 const ChainType chain_type) {
+    auto tempChainParams = CreateChainParams(ArgsManager{}, chain_type);
     std::string addr = ipcParseURI(arg, *tempChainParams, false);
     return IsValidDestinationString(addr, *tempChainParams);
 }
@@ -120,11 +121,10 @@ static bool ipcCanParseLegacyURI(const QString &arg,
 // message()", but "QMessageBox::"!
 //
 void PaymentServer::ipcParseCommandLine(int argc, char *argv[]) {
-    std::array<const std::string *, 3> networks = {
-        {&CBaseChainParams::MAIN, &CBaseChainParams::TESTNET,
-         &CBaseChainParams::REGTEST}};
+    std::array<const ChainType, 3> networks = {
+        {ChainType::MAIN, ChainType::TESTNET, ChainType::REGTEST}};
 
-    const std::string *chosenNetwork = nullptr;
+    const ChainType *chosenNetwork = nullptr;
 
     for (int i = 1; i < argc; i++) {
         QString arg(argv[i]);
@@ -132,17 +132,17 @@ void PaymentServer::ipcParseCommandLine(int argc, char *argv[]) {
             continue;
         }
 
-        const std::string *itemNetwork = nullptr;
+        const ChainType *itemNetwork = nullptr;
 
         // Try to parse as a URI
         for (auto net : networks) {
-            if (ipcCanParseCashAddrURI(arg, *net)) {
-                itemNetwork = net;
+            if (ipcCanParseCashAddrURI(arg, net)) {
+                itemNetwork = &net;
                 break;
             }
 
-            if (ipcCanParseLegacyURI(arg, *net)) {
-                itemNetwork = net;
+            if (ipcCanParseLegacyURI(arg, net)) {
+                itemNetwork = &net;
                 break;
             }
         }
@@ -153,8 +153,9 @@ void PaymentServer::ipcParseCommandLine(int argc, char *argv[]) {
             PaymentRequestPlus request;
             if (readPaymentRequestFromFile(arg, request)) {
                 for (auto net : networks) {
-                    if (*net == request.getDetails().network()) {
-                        itemNetwork = net;
+                    if (ChainTypeToString(net) ==
+                        request.getDetails().network()) {
+                        itemNetwork = &net;
                     }
                 }
             }
@@ -174,9 +175,9 @@ void PaymentServer::ipcParseCommandLine(int argc, char *argv[]) {
         if (chosenNetwork && chosenNetwork != itemNetwork) {
             qWarning() << "PaymentServer::ipcSendCommandLine: Payment request "
                           "from network "
-                       << QString(itemNetwork->c_str())
+                       << QString(ChainTypeToString(*itemNetwork).c_str())
                        << " does not match already chosen network "
-                       << QString(chosenNetwork->c_str());
+                       << QString(ChainTypeToString(*chosenNetwork).c_str());
             continue;
         }
 
@@ -894,7 +895,7 @@ void PaymentServer::handlePaymentACK(const QString &paymentACKMsg) {
 bool PaymentServer::verifyNetwork(
     interfaces::Node &node, const payments::PaymentDetails &requestDetails) {
     const std::string clientNetwork =
-        GetConfig().GetChainParams().NetworkIDString();
+        GetConfig().GetChainParams().GetChainTypeString();
     bool fVerified = requestDetails.network() == clientNetwork;
     if (!fVerified) {
         qWarning() << QString("PaymentServer::%1: Payment request network "

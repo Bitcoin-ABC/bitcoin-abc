@@ -15,6 +15,7 @@
 #include <primitives/transaction.h>
 #include <streams.h>
 #include <test/fuzz/fuzz.h>
+#include <util/chaintype.h>
 #include <validation.h>
 #include <version.h>
 
@@ -23,7 +24,7 @@
 #include <cassert>
 
 void initialize_transaction() {
-    SelectParams(CBaseChainParams::REGTEST);
+    SelectParams(ChainType::REGTEST);
 }
 
 FUZZ_TARGET_INIT(transaction, initialize_transaction) {
@@ -75,7 +76,7 @@ FUZZ_TARGET_INIT(transaction, initialize_transaction) {
         assert(is_standard_with_permit_bare_multisig);
     }
     std::unique_ptr<const CChainParams> params =
-        CreateChainParams(ArgsManager{}, CBaseChainParams::REGTEST);
+        CreateChainParams(ArgsManager{}, ChainType::REGTEST);
     (void)tx.GetHash();
     (void)tx.GetTotalSize();
     try {

@@ -7,6 +7,7 @@
 #include <chain.h>
 #include <chainparams.h>
 #include <config.h>
+#include <util/chaintype.h>
 
 #include <test/util/setup_common.h>
 
@@ -27,7 +28,7 @@ static CBlockIndex GetBlockIndex(CBlockIndex *pindexPrev, int64_t nTimeInterval,
 }
 
 BOOST_AUTO_TEST_CASE(daa_test) {
-    DummyConfig config(CBaseChainParams::MAIN);
+    DummyConfig config(ChainTypeToString(ChainType::MAIN));
 
     std::vector<CBlockIndex> blocks(3000);
 

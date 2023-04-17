@@ -11,6 +11,7 @@
 #include <primitives/block.h>
 #include <protocol.h>
 #include <uint256.h>
+#include <util/chaintype.h>
 #include <util/hash_type.h>
 #include <util/vector.h>
 
@@ -128,8 +129,12 @@ public:
     }
     /** Whether it is possible to mine blocks on demand (no retargeting) */
     bool MineBlocksOnDemand() const { return consensus.fPowNoRetargeting; }
-    /** Return the BIP70 network string (main, test or regtest) */
-    std::string NetworkIDString() const { return strNetworkID; }
+    /** Return the chain type string */
+    std::string GetChainTypeString() const {
+        return ChainTypeToString(m_chain_type);
+    }
+    /** Return the chain type */
+    ChainType GetChainType() const { return m_chain_type; }
     /** Return the list of hostnames to look up for DNS seeds */
     const std::vector<uint8_t> &Base58Prefix(Base58Type type) const {
         return base58Prefixes[type];
@@ -176,7 +181,7 @@ protected:
     std::vector<std::string> vSeeds;
     std::vector<uint8_t> base58Prefixes[MAX_BASE58_TYPES];
     std::string cashaddrPrefix;
-    std::string strNetworkID;
+    ChainType m_chain_type;
     CBlock genesis;
     std::vector<SeedSpec6> vFixedSeeds;
     bool fDefaultConsistencyChecks;
@@ -191,6 +196,6 @@ protected:
     GetRandomizedDNSSeeds(const CChainParams &params);
 };
 
-const CCheckpointData &CheckpointData(const std::string &chain);
+const CCheckpointData &CheckpointData(const ChainType chain);
 
 #endif // BITCOIN_KERNEL_CHAINPARAMS_H

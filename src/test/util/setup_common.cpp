@@ -46,6 +46,7 @@
 #include <timedata.h>
 #include <txdb.h>
 #include <txmempool.h>
+#include <util/chaintype.h>
 #include <util/strencodings.h>
 #include <util/thread.h>
 #include <util/threadnames.h>
@@ -95,7 +96,7 @@ std::ostream &operator<<(std::ostream &os, const ScriptError &err) {
 std::vector<const char *> fixture_extra_args{};
 
 BasicTestingSetup::BasicTestingSetup(
-    const std::string &chainName, const std::vector<const char *> &extra_args)
+    const ChainType chainType, const std::vector<const char *> &extra_args)
     : m_path_root{fsbridge::GetTempDirectoryPath() /
                   "test_common_" PACKAGE_NAME /
                   g_insecure_rand_ctx_temp_path.rand256().ToString()},
@@ -128,7 +129,7 @@ BasicTestingSetup::BasicTestingSetup(
         assert(success);
         assert(error.empty());
     }
-    SelectParams(chainName);
+    SelectParams(chainType);
     SeedInsecureRand();
     InitLogging(*m_node.args);
     AppInitParameterInteraction(config, *m_node.args);
@@ -171,8 +172,8 @@ CTxMemPool::Options MemPoolOptionsForTest(const NodeContext &node) {
 }
 
 ChainTestingSetup::ChainTestingSetup(
-    const std::string &chainName, const std::vector<const char *> &extra_args)
-    : BasicTestingSetup(chainName, extra_args) {
+    const ChainType chainType, const std::vector<const char *> &extra_args)
+    : BasicTestingSetup(chainType, extra_args) {
     const Config &config = GetConfig();
 
     // We have to run a scheduler thread to prevent ActivateBestChain
@@ -261,11 +262,11 @@ void TestingSetup::LoadVerifyActivateChainstate() {
     }
 }
 
-TestingSetup::TestingSetup(const std::string &chainName,
+TestingSetup::TestingSetup(const ChainType chainType,
                            const std::vector<const char *> &extra_args,
                            const bool coins_db_in_memory,
                            const bool block_tree_db_in_memory)
-    : ChainTestingSetup(chainName, extra_args),
+    : ChainTestingSetup(chainType, extra_args),
       m_coins_db_in_memory(coins_db_in_memory),
       m_block_tree_db_in_memory(block_tree_db_in_memory) {
     const Config &config = GetConfig();
@@ -309,9 +310,9 @@ TestingSetup::TestingSetup(const std::string &chainName,
 }
 
 TestChain100Setup::TestChain100Setup(
-    const std::string &chain_name, const std::vector<const char *> &extra_args,
+    const ChainType chain_type, const std::vector<const char *> &extra_args,
     const bool coins_db_in_memory, const bool block_tree_db_in_memory)
-    : TestingSetup{CBaseChainParams::REGTEST, extra_args, coins_db_in_memory,
+    : TestingSetup{ChainType::REGTEST, extra_args, coins_db_in_memory,
                    block_tree_db_in_memory} {
     SetMockTime(1598887952);
     constexpr std::array<uint8_t, 32> vchKey = {
@@ -652,8 +653,8 @@ CBlock getBlock13b8a() {
 }
 
 DummyConfig::DummyConfig()
-    : chainParams(CreateChainParams(ArgsManager{}, CBaseChainParams::REGTEST)) {
-}
+    : chainParams(CreateChainParams(ArgsManager{}, ChainType::REGTEST)) {}
 
 DummyConfig::DummyConfig(std::string net)
-    : chainParams(CreateChainParams(ArgsManager{}, net)) {}
+    : chainParams(
+          CreateChainParams(ArgsManager{}, ChainTypeFromString(net).value())) {}

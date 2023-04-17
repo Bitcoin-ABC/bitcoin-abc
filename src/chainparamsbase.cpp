@@ -7,12 +7,9 @@
 
 #include <common/args.h>
 #include <tinyformat.h>
+#include <util/chaintype.h>
 
 #include <cassert>
-
-const std::string CBaseChainParams::MAIN = "main";
-const std::string CBaseChainParams::TESTNET = "test";
-const std::string CBaseChainParams::REGTEST = "regtest";
 
 void SetupChainParamsBaseOptions(ArgsManager &argsman) {
     argsman.AddArg(
@@ -42,35 +39,30 @@ const CBaseChainParams &BaseParams() {
  * Port numbers for incoming Tor connections (8334, 18334, 38334, 18445) have
  * been chosen arbitrarily to keep ranges of used ports tight.
  */
-std::unique_ptr<CBaseChainParams>
-CreateBaseChainParams(const std::string &chain) {
-    if (chain == CBaseChainParams::MAIN) {
-        return std::make_unique<CBaseChainParams>(
-            "", /*rpc_port=*/8332, 8334,
-            /*chronik_port=*/8331,
-            /*chronik_electrum_port=*/50002);
+std::unique_ptr<CBaseChainParams> CreateBaseChainParams(const ChainType chain) {
+    switch (chain) {
+        case ChainType::MAIN:
+            return std::make_unique<CBaseChainParams>(
+                "", /*rpc_port=*/8332, 8334,
+                /*chronik_port=*/8331,
+                /*chronik_electrum_port=*/50002);
+        case ChainType::TESTNET:
+            return std::make_unique<CBaseChainParams>(
+                "testnet3",
+                /*rpc_port=*/18332, 18334,
+                /*chronik_port=*/18331,
+                /*chronik_electrum_port=*/60002);
+        case ChainType::REGTEST:
+            return std::make_unique<CBaseChainParams>(
+                "regtest", /*rpc_port=*/18443, 18445,
+                /*chronik_port=*/18442,
+                /*chronik_electrum_port=*/60103);
     }
-
-    if (chain == CBaseChainParams::TESTNET) {
-        return std::make_unique<CBaseChainParams>(
-            "testnet3",
-            /*rpc_port=*/18332, 18334,
-            /*chronik_port=*/18331,
-            /*chronik_electrum_port=*/60002);
-    }
-
-    if (chain == CBaseChainParams::REGTEST) {
-        return std::make_unique<CBaseChainParams>(
-            "regtest", /*rpc_port=*/18443, 18445,
-            /*chronik_port=*/18442,
-            /*chronik_electrum_port=*/60103);
-    }
-
-    throw std::runtime_error(
-        strprintf("%s: Unknown chain %s.", __func__, chain));
+    throw std::invalid_argument(
+        strprintf("%s: Invalid ChainType value", __func__));
 }
 
-void SelectBaseParams(const std::string &chain) {
+void SelectBaseParams(const ChainType chain) {
     globalChainBaseParams = CreateBaseChainParams(chain);
-    gArgs.SelectConfigNetwork(chain);
+    gArgs.SelectConfigNetwork(ChainTypeToString(chain));
 }

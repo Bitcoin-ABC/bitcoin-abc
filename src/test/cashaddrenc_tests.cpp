@@ -8,6 +8,7 @@
 #include <chainparams.h>
 #include <random.h>
 #include <uint256.h>
+#include <util/chaintype.h>
 #include <util/strencodings.h>
 
 #include <key_io.h>
@@ -21,9 +22,8 @@
 
 namespace {
 
-std::vector<std::string> GetNetworks() {
-    return {CBaseChainParams::MAIN, CBaseChainParams::TESTNET,
-            CBaseChainParams::REGTEST};
+std::vector<ChainType> GetChainTypes() {
+    return {ChainType::MAIN, ChainType::TESTNET, ChainType::REGTEST};
 }
 
 std::vector<uint8_t> insecure_GetRandomByteArray(FastRandomContext &rand,
@@ -110,7 +110,7 @@ BOOST_AUTO_TEST_CASE(encode_decode) {
                                           ScriptHash(uint160S("f00dbad"))};
 
     for (auto dst : toTest) {
-        for (auto net : GetNetworks()) {
+        for (auto net : GetChainTypes()) {
             const auto netParams = CreateChainParams(*m_node.args, net);
             std::string encoded = EncodeCashAddr(dst, *netParams);
             CTxDestination decoded = DecodeCashAddr(encoded, *netParams);
@@ -124,17 +124,17 @@ BOOST_AUTO_TEST_CASE(invalid_on_wrong_network) {
     const CTxDestination dst = PKHash(uint160S("c0ffee"));
     const CTxDestination invalidDst = CNoDestination{};
 
-    for (auto net : GetNetworks()) {
-        for (auto otherNet : GetNetworks()) {
-            if (net == otherNet) {
+    for (auto chain_type : GetChainTypes()) {
+        for (auto other_chain_type : GetChainTypes()) {
+            if (chain_type == other_chain_type) {
                 continue;
             }
 
-            const auto netParams = CreateChainParams(*m_node.args, net);
+            const auto netParams = CreateChainParams(*m_node.args, chain_type);
             std::string encoded = EncodeCashAddr(dst, *netParams);
 
             const auto otherNetParams =
-                CreateChainParams(*m_node.args, otherNet);
+                CreateChainParams(*m_node.args, other_chain_type);
             CTxDestination decoded = DecodeCashAddr(encoded, *otherNetParams);
             BOOST_CHECK(!std::holds_alternative<PKHash>(decoded));
             BOOST_CHECK(decoded == invalidDst);
@@ -144,7 +144,7 @@ BOOST_AUTO_TEST_CASE(invalid_on_wrong_network) {
 
 BOOST_AUTO_TEST_CASE(random_dst) {
     const size_t NUM_TESTS = 5000;
-    const auto params = CreateChainParams(*m_node.args, CBaseChainParams::MAIN);
+    const auto params = CreateChainParams(*m_node.args, ChainType::MAIN);
 
     for (size_t i = 0; i < NUM_TESTS; ++i) {
         uint160 hash = InsecureRand160();
@@ -183,7 +183,7 @@ BOOST_AUTO_TEST_CASE(check_padding) {
     BOOST_CHECK_EQUAL(data.size(), 34UL);
 
     const CTxDestination nodst = CNoDestination{};
-    const auto params = CreateChainParams(*m_node.args, CBaseChainParams::MAIN);
+    const auto params = CreateChainParams(*m_node.args, ChainType::MAIN);
 
     for (uint8_t i = 0; i < 32; i++) {
         data[data.size() - 1] = i;
@@ -266,7 +266,7 @@ BOOST_AUTO_TEST_CASE(check_size) {
 }
 
 BOOST_AUTO_TEST_CASE(test_encode_address) {
-    const auto params = CreateChainParams(*m_node.args, CBaseChainParams::MAIN);
+    const auto params = CreateChainParams(*m_node.args, ChainType::MAIN);
 
     std::vector<std::vector<uint8_t>> hash{
         {118, 160, 64,  83, 189, 160, 168, 139, 218, 81,

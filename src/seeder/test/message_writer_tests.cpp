@@ -7,6 +7,7 @@
 #include <protocol.h>
 #include <seeder/messagewriter.h>
 #include <streams.h>
+#include <util/chaintype.h>
 #include <version.h>
 
 #include <boost/test/unit_test.hpp>
@@ -28,7 +29,7 @@ static void CheckMessage(CDataStream &expectedMessage, std::string command,
 }
 
 BOOST_AUTO_TEST_CASE(simple_header_and_payload_message_writer_test) {
-    SelectParams(CBaseChainParams::MAIN);
+    SelectParams(ChainType::MAIN);
     int64_t now = GetTime();
     uint64_t nonce = 0;
     uint64_t serviceFlags = uint64_t(ServiceFlags(NODE_NETWORK));
@@ -56,7 +57,7 @@ BOOST_AUTO_TEST_CASE(simple_header_and_payload_message_writer_test) {
 }
 
 BOOST_AUTO_TEST_CASE(header_empty_payload_message_writer_test) {
-    SelectParams(CBaseChainParams::MAIN);
+    SelectParams(ChainType::MAIN);
     CMessageHeader verackHeader(Params().NetMagic(), NetMsgType::VERACK, 0);
     CDataStream expectedVerack(SER_NETWORK, PROTOCOL_VERSION);
     // This is an empty payload, but is still necessary for the checksum
@@ -70,7 +71,7 @@ BOOST_AUTO_TEST_CASE(header_empty_payload_message_writer_test) {
 }
 
 BOOST_AUTO_TEST_CASE(write_getheaders_message_test) {
-    SelectParams(CBaseChainParams::MAIN);
+    SelectParams(ChainType::MAIN);
     CDataStream payload(SER_NETWORK, PROTOCOL_VERSION);
     BlockHash bhash(uint256S(
         "0000000099f5509b5f36b1926bcf82b21d936ebeadee811030dfbbb7fae915d7"));

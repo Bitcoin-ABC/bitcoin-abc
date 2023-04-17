@@ -18,6 +18,7 @@
 #include <rpc/request.h>
 #include <support/events.h>
 #include <tinyformat.h>
+#include <util/chaintype.h>
 #include <util/exception.h>
 #include <util/strencodings.h>
 #include <util/string.h>
@@ -56,12 +57,9 @@ static const std::string DEFAULT_NBLOCKS = "1";
 static void SetupCliArgs(ArgsManager &argsman) {
     SetupHelpOptions(argsman);
 
-    const auto defaultBaseParams =
-        CreateBaseChainParams(CBaseChainParams::MAIN);
-    const auto testnetBaseParams =
-        CreateBaseChainParams(CBaseChainParams::TESTNET);
-    const auto regtestBaseParams =
-        CreateBaseChainParams(CBaseChainParams::REGTEST);
+    const auto defaultBaseParams = CreateBaseChainParams(ChainType::MAIN);
+    const auto testnetBaseParams = CreateBaseChainParams(ChainType::TESTNET);
+    const auto regtestBaseParams = CreateBaseChainParams(ChainType::REGTEST);
 
     SetupCurrencyUnitOptions(argsman);
     argsman.AddArg("-version", "Print version and exit", ArgsManager::ALLOW_ANY,
@@ -247,7 +245,7 @@ static int AppInitRPC(int argc, char *argv[]) {
     // Check for -chain, -testnet or -regtest parameter (BaseParams() calls are
     // only valid after this clause)
     try {
-        SelectBaseParams(gArgs.GetChainName());
+        SelectBaseParams(gArgs.GetChainType());
     } catch (const std::exception &e) {
         tfm::format(std::cerr, "Error: %s\n", e.what());
         return EXIT_FAILURE;
@@ -463,13 +461,14 @@ private:
     };
     std::vector<Peer> m_peers;
     std::string ChainToString() const {
-        if (gArgs.GetChainName() == CBaseChainParams::TESTNET) {
-            return " testnet";
+        switch (gArgs.GetChainType()) {
+            case ChainType::TESTNET:
+                return " testnet";
+            case ChainType::REGTEST:
+                return " regtest";
+            default:
+                return "";
         }
-        if (gArgs.GetChainName() == CBaseChainParams::REGTEST) {
-            return " regtest";
-        }
-        return "";
     }
     std::string PingTimeToString(double seconds) const {
         if (seconds < 0) {

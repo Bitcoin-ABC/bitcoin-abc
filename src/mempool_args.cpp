@@ -72,7 +72,7 @@ ApplyArgsManOptions(const ArgsManager &argsman, const CChainParams &chainparams,
         return strprintf(
             Untranslated(
                 "acceptnonstdtxn is not currently supported for %s chain"),
-            chainparams.NetworkIDString());
+            chainparams.GetChainTypeString());
     }
 
     return std::nullopt;

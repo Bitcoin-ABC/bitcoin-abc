@@ -4,6 +4,7 @@
 
 #include <chainparams.h>
 #include <common/system.h>
+#include <util/chaintype.h>
 
 static CCheckpointData mainNetCheckpointData = {
     .mapCheckpoints = {
@@ -146,17 +147,15 @@ static CCheckpointData regTestCheckpointData = {
                                "36012afca590b1a11466e2206")},
     }};
 
-const CCheckpointData &CheckpointData(const std::string &chain) {
-    if (chain == CBaseChainParams::MAIN) {
-        return mainNetCheckpointData;
+const CCheckpointData &CheckpointData(const ChainType chain) {
+    switch (chain) {
+        case ChainType::MAIN:
+            return mainNetCheckpointData;
+        case ChainType::TESTNET:
+            return testNetCheckpointData;
+        case ChainType::REGTEST:
+            return regTestCheckpointData;
     }
-    if (chain == CBaseChainParams::TESTNET) {
-        return testNetCheckpointData;
-    }
-    if (chain == CBaseChainParams::REGTEST) {
-        return regTestCheckpointData;
-    }
-
-    throw std::runtime_error(
-        strprintf("%s: Unknown chain %s.", __func__, chain));
+    throw std::invalid_argument(
+        strprintf("%s: Invalid ChainType value", __func__));
 }

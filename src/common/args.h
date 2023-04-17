@@ -331,7 +331,7 @@ public:
      * @return ChainType::MAIN string by default; raises runtime error if an
      * invalid combination is given.
      */
-    std::string GetChainName() const;
+    std::string GetChainTypeString() const;
 
     /**
      * Add argument

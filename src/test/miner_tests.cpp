@@ -20,6 +20,7 @@
 #include <timedata.h>
 #include <txmempool.h>
 #include <uint256.h>
+#include <util/chaintype.h>
 #include <util/strencodings.h>
 #include <util/string.h>
 #include <util/time.h>
@@ -41,7 +42,7 @@ using node::CBlockTemplateEntry;
 namespace miner_tests {
 struct MinerTestingSetup : public TestingSetup {
     MinerTestingSetup(const std::vector<const char *> &extra_args = {})
-        : TestingSetup(CBaseChainParams::MAIN, extra_args) {}
+        : TestingSetup(ChainType::MAIN, extra_args) {}
 
     void TestPackageSelection(const CChainParams &chainparams,
                               const CScript &scriptPubKey,

@@ -14,6 +14,7 @@
 #include <qt/rpcconsole.h>
 #include <rpc/server.h>
 #include <shutdown.h>
+#include <util/chaintype.h>
 #include <validation.h>
 
 #if defined(HAVE_CONFIG_H)
@@ -78,7 +79,7 @@ void AppTests::appTests() {
 
     // Create a temp data directory to backup the gui settings to
     fs::create_directories([] {
-        BasicTestingSetup test{CBaseChainParams::REGTEST};
+        BasicTestingSetup test{ChainType::REGTEST};
         return gArgs.GetDataDirNet() / "blocks";
     }());
 
@@ -87,7 +88,7 @@ void AppTests::appTests() {
     m_app.parameterSetup();
     m_app.createOptionsModel(true /* reset settings */);
     QScopedPointer<const NetworkStyle> style(
-        NetworkStyle::instantiate(Params().NetworkIDString()));
+        NetworkStyle::instantiate(Params().GetChainType()));
     m_app.setupPlatformStyle();
     m_app.createWindow(&config, style.data());
     connect(&m_app, &BitcoinApplication::windowShown, this,

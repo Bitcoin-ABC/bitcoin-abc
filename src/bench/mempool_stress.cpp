@@ -8,6 +8,7 @@
 #include <random.h>
 #include <test/util/setup_common.h>
 #include <txmempool.h>
+#include <util/chaintype.h>
 #include <validation.h>
 
 #include <vector>
@@ -94,7 +95,7 @@ static void ComplexMemPool(benchmark::Bench &bench) {
     std::vector<CTransactionRef> ordered_coins =
         CreateOrderedCoins(det_rand, childTxs, /* min_ancestors */ 1);
     const auto testing_setup =
-        MakeNoLogFileContext<const TestingSetup>(CBaseChainParams::MAIN);
+        MakeNoLogFileContext<const TestingSetup>(ChainType::MAIN);
     CTxMemPool &pool = *testing_setup.get()->m_node.mempool;
     LOCK2(cs_main, pool.cs);
     bench.run([&]() NO_THREAD_SAFETY_ANALYSIS {
@@ -109,7 +110,7 @@ static void ComplexMemPool(benchmark::Bench &bench) {
 static void MempoolCheck(benchmark::Bench &bench) {
     FastRandomContext det_rand{true};
     auto testing_setup = MakeNoLogFileContext<TestChain100Setup>(
-        CBaseChainParams::REGTEST, {"-checkmempool=1"});
+        ChainType::REGTEST, {"-checkmempool=1"});
     CTxMemPool &pool = *testing_setup.get()->m_node.mempool;
     LOCK2(cs_main, pool.cs);
     testing_setup->PopulateMempool(det_rand, 400, true);

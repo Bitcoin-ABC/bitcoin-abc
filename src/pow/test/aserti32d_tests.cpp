@@ -9,6 +9,7 @@
 #include <config.h>
 #include <consensus/activation.h>
 #include <pow/pow.h>
+#include <util/chaintype.h>
 
 #include <test/util/random.h>
 #include <test/util/setup_common.h>
@@ -57,7 +58,7 @@ static double GetASERTApproximationError(const CBlockIndex *pindexPrev,
 }
 
 BOOST_AUTO_TEST_CASE(asert_difficulty_test) {
-    DummyConfig config(CBaseChainParams::MAIN);
+    DummyConfig config(ChainTypeToString(ChainType::MAIN));
 
     std::vector<CBlockIndex> blocks(3000 + 2 * 24 * 3600);
 
@@ -369,7 +370,7 @@ static std::string StrPrintCalcArgs(const arith_uint256 refTarget,
 
 // Tests of the CalculateASERT function.
 BOOST_AUTO_TEST_CASE(calculate_asert_test) {
-    DummyConfig config(CBaseChainParams::MAIN);
+    DummyConfig config(ChainTypeToString(ChainType::MAIN));
     const Consensus::Params &params = config.GetChainParams().GetConsensus();
     const int64_t nHalfLife = params.nDAAHalfLife;
 
@@ -553,7 +554,7 @@ BOOST_AUTO_TEST_CASE(asert_activation_anchor_test) {
     // at a lower height than usual, so we don't need to waste time making a
     // 504000-long chain.
     const auto mainChainParams =
-        CreateChainParams(*m_node.args, CBaseChainParams::MAIN);
+        CreateChainParams(*m_node.args, ChainType::MAIN);
     const int asertActivationHeight = 4000;
     const ChainParamsWithCustomActivation chainParams(*mainChainParams, 2016,
                                                       asertActivationHeight);

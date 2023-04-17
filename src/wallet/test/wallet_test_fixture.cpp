@@ -6,11 +6,12 @@
 
 #include <chainparams.h>
 #include <scheduler.h>
+#include <util/chaintype.h>
 #include <validationinterface.h>
 #include <wallet/rpc/backup.h>
 
-WalletTestingSetup::WalletTestingSetup(const std::string &chainName)
-    : TestingSetup(chainName), m_wallet_client{interfaces::MakeWalletClient(
+WalletTestingSetup::WalletTestingSetup(const ChainType chainType)
+    : TestingSetup(chainType), m_wallet_client{interfaces::MakeWalletClient(
                                    *m_node.chain, *Assert(m_node.args))},
       m_wallet(m_node.chain.get(), "", CreateMockWalletDatabase()) {
     m_wallet.LoadWallet();

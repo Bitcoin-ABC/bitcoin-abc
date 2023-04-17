@@ -6,6 +6,7 @@
 
 #include <chainparams.h>
 #include <consensus/consensus.h>
+#include <util/chaintype.h>
 
 #include <test/util/setup_common.h>
 
@@ -49,13 +50,13 @@ BOOST_AUTO_TEST_CASE(chain_params) {
     GlobalConfig config;
 
     // Global config is consistent with params.
-    SelectParams(CBaseChainParams::MAIN);
+    SelectParams(ChainType::MAIN);
     BOOST_CHECK_EQUAL(&Params(), &config.GetChainParams());
 
-    SelectParams(CBaseChainParams::TESTNET);
+    SelectParams(ChainType::TESTNET);
     BOOST_CHECK_EQUAL(&Params(), &config.GetChainParams());
 
-    SelectParams(CBaseChainParams::REGTEST);
+    SelectParams(ChainType::REGTEST);
     BOOST_CHECK_EQUAL(&Params(), &config.GetChainParams());
 }
 

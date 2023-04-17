@@ -7,6 +7,7 @@
 #include <consensus/amount.h>
 #include <interfaces/chain.h>
 #include <node/context.h>
+#include <util/chaintype.h>
 #include <wallet/coinselection.h>
 #include <wallet/spend.h>
 #include <wallet/wallet.h>
@@ -36,7 +37,7 @@ static void addCoin(const Amount nValue, const CWallet &wallet,
 // either for measurements."
 // (https://github.com/bitcoin/bitcoin/issues/7883#issuecomment-224807484)
 static void CoinSelection(benchmark::Bench &bench) {
-    SelectParams(CBaseChainParams::REGTEST);
+    SelectParams(ChainType::REGTEST);
 
     NodeContext node;
     auto chain = interfaces::MakeChain(node, Params());
@@ -108,7 +109,7 @@ static Amount make_hard_case(const CWallet &wallet, int utxos,
 }
 
 static void BnBExhaustion(benchmark::Bench &bench) {
-    SelectParams(CBaseChainParams::REGTEST);
+    SelectParams(ChainType::REGTEST);
 
     NodeContext node;
     auto chain = interfaces::MakeChain(node, Params());

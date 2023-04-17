@@ -11,6 +11,7 @@
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>
 #include <test/fuzz/util.h>
+#include <util/chaintype.h>
 
 #include <cstdint>
 #include <optional>
@@ -18,7 +19,7 @@
 #include <vector>
 
 void initialize_pow() {
-    SelectParams(CBaseChainParams::MAIN);
+    SelectParams(ChainType::MAIN);
 }
 
 FUZZ_TARGET_INIT(pow, initialize_pow) {

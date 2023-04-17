@@ -14,6 +14,7 @@
 #include <qt/guiutil.h>
 #include <qt/intro.h>
 #include <qt/optionsmodel.h>
+#include <util/chaintype.h>
 #include <util/fs.h>
 #include <util/fs_helpers.h>
 
@@ -199,7 +200,7 @@ bool Intro::showIfNeeded(bool &did_show_intro, bool &prune) {
          * interface.
          */
         try {
-            SelectParams(gArgs.GetChainName());
+            SelectParams(gArgs.GetChainType());
         } catch (const std::exception &) {
             return false;
         }

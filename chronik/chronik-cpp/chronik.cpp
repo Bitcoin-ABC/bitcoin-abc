@@ -10,6 +10,7 @@
 #include <logging.h>
 #include <node/context.h>
 #include <node/ui_interface.h>
+#include <util/chaintype.h>
 #include <util/result.h>
 #include <util/time.h>
 #include <util/translation.h>
@@ -38,15 +39,15 @@ template <typename T, typename C> rust::Vec<T> ToRustVec(const C &container) {
     return vec;
 }
 
-chronik_bridge::Net ParseNet(const std::string &net_str) {
-    if (net_str == CBaseChainParams::MAIN) {
+chronik_bridge::Net ParseNet(const ChainType chain_type) {
+    if (chain_type == ChainType::MAIN) {
         return chronik_bridge::Net::Mainnet;
-    } else if (net_str == CBaseChainParams::TESTNET) {
+    } else if (chain_type == ChainType::TESTNET) {
         return chronik_bridge::Net::Testnet;
-    } else if (net_str == CBaseChainParams::REGTEST) {
+    } else if (chain_type == ChainType::REGTEST) {
         return chronik_bridge::Net::Regtest;
     }
-    throw std::runtime_error("Unknown net string");
+    throw std::runtime_error("Unknown chain type");
 }
 
 util::Result<chronik_bridge::SetupParams>
@@ -95,7 +96,7 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
     }
 
     return {{
-        .net = ParseNet(params.NetworkIDString()),
+        .net = ParseNet(params.GetChainType()),
         .datadir = args.GetDataDirBase().u8string(),
         .datadir_net = args.GetDataDirNet().u8string(),
         .hosts = ToRustVec<rust::String>(args.IsArgSet("-chronikbind")
@@ -109,7 +110,7 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
         .is_pause_allowed = is_pause_allowed,
         .enable_perf_stats = args.GetBoolArg("-chronikperfstats", false),
         .ws_ping_interval_secs =
-            params.NetworkIDString() == CBaseChainParams::REGTEST
+            params.GetChainType() == ChainType::REGTEST
                 ? uint64_t(count_seconds(WS_PING_INTERVAL_REGTEST))
                 : uint64_t(count_seconds(WS_PING_INTERVAL_DEFAULT)),
         .enable_cors = args.GetBoolArg("-chronikcors", false),

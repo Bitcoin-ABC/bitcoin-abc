@@ -11,6 +11,7 @@
 #include <currencyunit.h>
 #include <logging.h>
 #include <tinyformat.h>
+#include <util/chaintype.h>
 
 #include <cassert>
 
@@ -28,27 +29,24 @@ void ReadChainArgs(const ArgsManager &args,
     options.fastprune = args.GetBoolArg("-fastprune", false);
 }
 
-std::unique_ptr<const CChainParams>
-CreateChainParams(const ArgsManager &args, const std::string &chain) {
+std::unique_ptr<const CChainParams> CreateChainParams(const ArgsManager &args,
+                                                      const ChainType chain) {
     auto opts = CChainParams::ChainOptions{};
     ReadChainArgs(args, opts);
-    if (chain == CBaseChainParams::MAIN) {
-        return CChainParams::Main(opts);
+    switch (chain) {
+        case ChainType::MAIN:
+            return CChainParams::Main(opts);
+        case ChainType::TESTNET:
+            return CChainParams::TestNet(opts);
+        case ChainType::REGTEST: {
+            return CChainParams::RegTest(opts);
+        }
     }
-
-    if (chain == CBaseChainParams::TESTNET) {
-        return CChainParams::TestNet(opts);
-    }
-
-    if (chain == CBaseChainParams::REGTEST) {
-        return CChainParams::RegTest(opts);
-    }
-
-    throw std::runtime_error(
-        strprintf("%s: Unknown chain %s.", __func__, chain));
+    throw std::invalid_argument(
+        strprintf("%s: Invalid ChainType value", __func__));
 }
 
-void SelectParams(const std::string &network) {
-    SelectBaseParams(network);
-    globalChainParams = CreateChainParams(gArgs, network);
+void SelectParams(const ChainType chain) {
+    SelectBaseParams(chain);
+    globalChainParams = CreateChainParams(gArgs, chain);
 }

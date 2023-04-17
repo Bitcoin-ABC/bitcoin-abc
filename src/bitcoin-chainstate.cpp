@@ -28,6 +28,7 @@
 #include <scheduler.h>
 #include <script/scriptcache.h>
 #include <script/sigcache.h>
+#include <util/chaintype.h>
 #include <util/thread.h>
 #include <util/translation.h>
 #include <validation.h>
@@ -61,7 +62,7 @@ int main(int argc, char *argv[]) {
     gArgs.ForceSetArg("-datadir", abs_datadir.string());
 
     // SETUP: Misc Globals
-    SelectParams(CBaseChainParams::MAIN);
+    SelectParams(ChainType::MAIN);
 
     auto chainparams = CChainParams::Main(CChainParams::ChainOptions{});
     auto &config = const_cast<Config &>(GetConfig());

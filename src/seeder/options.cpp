@@ -77,7 +77,7 @@ int CDnsSeedOpts::ParseCommandLine(int argc, const char **argv) {
     ip_addr = argsManager->GetArg("-address", DEFAULT_LISTEN_ADDRESS);
     ipv4_proxy = argsManager->GetArg("-proxyipv4", DEFAULT_IPV4_PROXY);
     ipv6_proxy = argsManager->GetArg("-proxyipv6", DEFAULT_IPV6_PROXY);
-    SelectParams(argsManager->GetChainName());
+    SelectParams(argsManager->GetChainType());
 
     // Both IPv4 and IPv6 addresses are valid, but the listening address is
     // treated as IPv6 internally

@@ -11,6 +11,7 @@
 #include <random.h>
 #include <script/script.h>
 #include <script/standard.h>
+#include <util/chaintype.h>
 #include <util/strencodings.h>
 
 #include <test/util/setup_common.h>
@@ -69,7 +70,7 @@ void PaymentServerTests::paymentServerTests() {
     // (at least on Darwin).
     SSL_library_init();
 
-    BasicTestingSetup testing_setup(CBaseChainParams::MAIN);
+    BasicTestingSetup testing_setup(ChainType::MAIN);
     auto node = interfaces::MakeNode(&testing_setup.m_node);
     OptionsModel optionsModel;
     optionsModel.setNode(*node);

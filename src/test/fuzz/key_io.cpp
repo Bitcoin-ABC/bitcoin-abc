@@ -10,6 +10,7 @@
 #include <script/standard.h>
 
 #include <test/fuzz/fuzz.h>
+#include <util/chaintype.h>
 
 #include <cassert>
 #include <cstdint>
@@ -19,7 +20,7 @@
 void initialize_key_io() {
     static const ECCVerifyHandle verify_handle;
     ECC_Start();
-    SelectParams(CBaseChainParams::MAIN);
+    SelectParams(ChainType::MAIN);
 }
 
 FUZZ_TARGET_INIT(key_io, initialize_key_io) {

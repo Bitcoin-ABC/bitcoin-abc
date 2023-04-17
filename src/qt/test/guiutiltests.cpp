@@ -10,13 +10,14 @@
 #include <config.h>
 #include <key_io.h>
 #include <qt/guiutil.h>
+#include <util/chaintype.h>
 
 namespace {
 
 class GUIUtilTestConfig : public DummyConfig {
 public:
     GUIUtilTestConfig()
-        : DummyConfig(CBaseChainParams::MAIN), useCashAddr(true) {}
+        : DummyConfig(ChainTypeToString(ChainType::MAIN)), useCashAddr(true) {}
     void SetCashAddrEncoding(bool b) override { useCashAddr = b; }
     bool UseCashAddrEncoding() const override { return useCashAddr; }
 

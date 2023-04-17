@@ -17,6 +17,7 @@
 #include <script/signingprovider.h>
 #include <script/standard.h>
 #include <streams.h>
+#include <util/chaintype.h>
 #include <util/strencodings.h>
 
 #include <test/fuzz/fuzz.h>
@@ -30,7 +31,7 @@
 void initialize_key() {
     static const ECCVerifyHandle ecc_verify_handle;
     ECC_Start();
-    SelectParams(CBaseChainParams::REGTEST);
+    SelectParams(ChainType::REGTEST);
 }
 
 FUZZ_TARGET_INIT(key, initialize_key) {

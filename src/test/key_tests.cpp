@@ -9,6 +9,7 @@
 #include <key_io.h>
 #include <streams.h>
 #include <uint256.h>
+#include <util/chaintype.h>
 #include <util/strencodings.h>
 #include <util/string.h>
 
@@ -86,12 +87,9 @@ BOOST_AUTO_TEST_CASE(internal_test) {
 }
 
 BOOST_AUTO_TEST_CASE(encode_decode_secret_test) {
-    const auto mainParams =
-        CreateChainParams(*m_node.args, CBaseChainParams::MAIN);
-    const auto testParams =
-        CreateChainParams(*m_node.args, CBaseChainParams::TESTNET);
-    const auto regParams =
-        CreateChainParams(*m_node.args, CBaseChainParams::TESTNET);
+    const auto mainParams = CreateChainParams(*m_node.args, ChainType::MAIN);
+    const auto testParams = CreateChainParams(*m_node.args, ChainType::TESTNET);
+    const auto regParams = CreateChainParams(*m_node.args, ChainType::REGTEST);
 
     {
         // Check the mainnet base58 key

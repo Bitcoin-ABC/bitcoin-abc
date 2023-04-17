@@ -10,6 +10,7 @@
 #include <key_io.h>
 #include <script/script.h>
 #include <test/util/setup_common.h>
+#include <util/chaintype.h>
 #include <util/strencodings.h>
 
 #include <boost/test/unit_test.hpp>
@@ -25,7 +26,7 @@ BOOST_AUTO_TEST_CASE(key_io_valid_parse) {
     UniValue tests = read_json(json_tests::key_io_valid);
     CKey privkey;
     CTxDestination destination;
-    SelectParams(CBaseChainParams::MAIN);
+    SelectParams(ChainType::MAIN);
 
     for (unsigned int idx = 0; idx < tests.size(); idx++) {
         UniValue test = tests[idx];
@@ -40,7 +41,8 @@ BOOST_AUTO_TEST_CASE(key_io_valid_parse) {
             ParseHex<std::byte>(test[1].get_str())};
         const UniValue &metadata = test[2].get_obj();
         bool isPrivkey = metadata.find_value("isPrivkey").get_bool();
-        SelectParams(metadata.find_value("chain").get_str());
+        SelectParams(ChainTypeFromString(metadata.find_value("chain").get_str())
+                         .value());
         bool try_case_flip =
             metadata.find_value("tryCaseFlip").isNull()
                 ? false
@@ -108,7 +110,8 @@ BOOST_AUTO_TEST_CASE(key_io_valid_gen) {
         std::vector<uint8_t> exp_payload = ParseHex(test[1].get_str());
         const UniValue &metadata = test[2].get_obj();
         bool isPrivkey = metadata.find_value("isPrivkey").get_bool();
-        SelectParams(metadata.find_value("chain").get_str());
+        SelectParams(ChainTypeFromString(metadata.find_value("chain").get_str())
+                         .value());
         if (isPrivkey) {
             bool isCompressed = metadata.find_value("isCompressed").get_bool();
             CKey key;
@@ -126,7 +129,7 @@ BOOST_AUTO_TEST_CASE(key_io_valid_gen) {
         }
     }
 
-    SelectParams(CBaseChainParams::MAIN);
+    SelectParams(ChainType::MAIN);
 }
 
 // Goal: check that base58 parsing code is robust against a variety of corrupted
@@ -149,8 +152,7 @@ BOOST_AUTO_TEST_CASE(key_io_invalid) {
 
         // must be invalid as public and as private key
         for (const auto &chain :
-             {CBaseChainParams::MAIN, CBaseChainParams::TESTNET,
-              CBaseChainParams::REGTEST}) {
+             {ChainType::MAIN, ChainType::TESTNET, ChainType::REGTEST}) {
             SelectParams(chain);
             destination = DecodeLegacyAddr(exp_base58string, Params());
             BOOST_CHECK_MESSAGE(!IsValidDestination(destination),

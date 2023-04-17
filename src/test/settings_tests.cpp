@@ -7,6 +7,7 @@
 #include <common/system.h>
 #include <test/util/setup_common.h>
 #include <test/util/str.h>
+#include <util/chaintype.h>
 #include <util/fs.h>
 #include <util/strencodings.h>
 #include <util/string.h>
@@ -116,7 +117,7 @@ static void CheckValues(const util::Settings &settings,
                         const std::string &list_val) {
     util::SettingsValue single_value = GetSetting(
         settings, "section", "name", /*ignore_default_section_config=*/false,
-        /*ignore_nonpersistent=*/false, /*get_chain_name=*/false);
+        /*ignore_nonpersistent=*/false, /*get_chain_type=*/false);
     util::SettingsValue list_value(util::SettingsValue::VARR);
     for (const auto &item :
          GetSettingsList(settings, "section", "name",
@@ -156,7 +157,7 @@ BOOST_AUTO_TEST_CASE(NullOverride) {
                       GetSetting(settings, "section", "name",
                                  /*ignore_default_section_config=*/false,
                                  /*ignore_nonpersistent=*/false,
-                                 /*get_chain_name=*/false)
+                                 /*get_chain_type=*/false)
                           .write()
                           .c_str());
     settings.forced_settings["name"] = {};
@@ -164,7 +165,7 @@ BOOST_AUTO_TEST_CASE(NullOverride) {
                       GetSetting(settings, "section", "name",
                                  /*ignore_default_section_config=*/false,
                                  /*ignore_nonpersistent=*/false,
-                                 /*get_chain_name=*/false)
+                                 /*get_chain_type=*/false)
                           .write()
                           .c_str());
 }
@@ -214,7 +215,7 @@ BOOST_FIXTURE_TEST_CASE(Merge, MergeTestingSetup) {
         }
     }
 
-    const std::string &network = CBaseChainParams::MAIN;
+    const std::string &network = ChainTypeToString(ChainType::MAIN);
     ForEachMergeSetup([&](const ActionList &arg_actions,
                           const ActionList &conf_actions, bool force_set,
                           bool ignore_default_section_config) {
@@ -257,7 +258,7 @@ BOOST_FIXTURE_TEST_CASE(Merge, MergeTestingSetup) {
         desc += " || ";
         desc +=
             GetSetting(settings, network, name, ignore_default_section_config,
-                       /*ignore_nonpersistent=*/false, /*get_chain_name=*/false)
+                       /*ignore_nonpersistent=*/false, /*get_chain_type=*/false)
                 .write();
         desc += " |";
         for (const auto &s : GetSettingsList(settings, network, name,

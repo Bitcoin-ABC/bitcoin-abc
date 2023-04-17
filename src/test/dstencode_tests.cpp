@@ -6,6 +6,7 @@
 
 #include <chainparams.h>
 #include <config.h>
+#include <util/chaintype.h>
 
 #include <test/util/setup_common.h>
 
@@ -16,7 +17,7 @@ namespace {
 class DummyCashAddrConfig : public DummyConfig {
 public:
     DummyCashAddrConfig()
-        : DummyConfig(CBaseChainParams::MAIN), useCashAddr(false) {}
+        : DummyConfig(ChainTypeToString(ChainType::MAIN)), useCashAddr(false) {}
     void SetCashAddrEncoding(bool b) override { useCashAddr = b; }
     bool UseCashAddrEncoding() const override { return useCashAddr; }
 

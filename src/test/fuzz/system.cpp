@@ -133,7 +133,7 @@ FUZZ_TARGET(system) {
     (void)args_manager.GetArgs(s1);
     (void)args_manager.GetBoolArg(s1, b);
     try {
-        (void)args_manager.GetChainName();
+        (void)args_manager.GetChainTypeString();
     } catch (const std::runtime_error &) {
     }
     (void)args_manager.GetHelpMessage();

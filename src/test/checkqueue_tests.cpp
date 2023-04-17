@@ -6,6 +6,7 @@
 
 #include <common/args.h>
 #include <sync.h>
+#include <util/chaintype.h>
 #include <util/time.h>
 
 #include <atomic>
@@ -30,11 +31,11 @@
 struct NoLockLoggingTestingSetup : public TestingSetup {
     NoLockLoggingTestingSetup()
 #ifdef DEBUG_LOCKCONTENTION
-        : TestingSetup{CBaseChainParams::MAIN, /*extra_args=*/{
+        : TestingSetup{ChainType::MAIN, /*extra_args=*/{
                            "-debugexclude=lock"
                        }} {}
 #else
-        : TestingSetup{CBaseChainParams::MAIN} {
+        : TestingSetup{ChainType::MAIN} {
     }
 #endif
 };

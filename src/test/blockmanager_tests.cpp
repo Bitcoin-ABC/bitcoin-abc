@@ -5,6 +5,7 @@
 #include <chainparams.h>
 #include <node/blockstorage.h>
 #include <node/context.h>
+#include <util/chaintype.h>
 #include <validation.h>
 
 #include <boost/test/unit_test.hpp>
@@ -19,7 +20,7 @@ using node::MAX_BLOCKFILE_SIZE;
 BOOST_FIXTURE_TEST_SUITE(blockmanager_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(blockmanager_find_block_pos) {
-    const auto params{CreateChainParams(*m_node.args, CBaseChainParams::MAIN)};
+    const auto params{CreateChainParams(*m_node.args, ChainType::MAIN)};
     const BlockManager::Options blockman_opts{
         .chainparams = *params,
         .blocks_dir = m_args.GetBlocksDirPath(),

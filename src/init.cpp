@@ -73,6 +73,7 @@
 #include <txdb.h>
 #include <txmempool.h>
 #include <util/asmap.h>
+#include <util/chaintype.h>
 #include <util/check.h>
 #include <util/fs.h>
 #include <util/fs_helpers.h>
@@ -436,18 +437,14 @@ void SetupServerArgs(NodeContext &node) {
 
     init::AddLoggingArgs(argsman);
 
-    const auto defaultBaseParams =
-        CreateBaseChainParams(CBaseChainParams::MAIN);
-    const auto testnetBaseParams =
-        CreateBaseChainParams(CBaseChainParams::TESTNET);
-    const auto regtestBaseParams =
-        CreateBaseChainParams(CBaseChainParams::REGTEST);
-    const auto defaultChainParams =
-        CreateChainParams(argsman, CBaseChainParams::MAIN);
+    const auto defaultBaseParams = CreateBaseChainParams(ChainType::MAIN);
+    const auto testnetBaseParams = CreateBaseChainParams(ChainType::TESTNET);
+    const auto regtestBaseParams = CreateBaseChainParams(ChainType::REGTEST);
+    const auto defaultChainParams = CreateChainParams(argsman, ChainType::MAIN);
     const auto testnetChainParams =
-        CreateChainParams(argsman, CBaseChainParams::TESTNET);
+        CreateChainParams(argsman, ChainType::TESTNET);
     const auto regtestChainParams =
-        CreateChainParams(argsman, CBaseChainParams::REGTEST);
+        CreateChainParams(argsman, ChainType::REGTEST);
 
     // Hidden Options
     std::vector<std::string> hidden_args = {
@@ -1784,14 +1781,15 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
 
     // Error if network-specific options (-addnode, -connect, etc) are
     // specified in default section of config file, but not overridden
-    // on the command line or in this network's section of the config file.
-    std::string network = args.GetChainName();
+    // on the command line or in this chain's section of the config file.
+    ChainType chain = args.GetChainType();
     bilingual_str errors;
     for (const auto &arg : args.GetUnsuitableSectionOnlyArgs()) {
-        errors += strprintf(_("Config setting for %s only applied on %s "
-                              "network when in [%s] section.") +
-                                Untranslated("\n"),
-                            arg, network, network);
+        errors +=
+            strprintf(_("Config setting for %s only applied on %s "
+                        "network when in [%s] section.") +
+                          Untranslated("\n"),
+                      arg, ChainTypeToString(chain), ChainTypeToString(chain));
     }
 
     if (!errors.empty()) {

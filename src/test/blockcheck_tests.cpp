@@ -6,6 +6,7 @@
 #include <config.h>
 #include <consensus/consensus.h>
 #include <consensus/validation.h>
+#include <util/chaintype.h>
 #include <validation.h>
 
 #include <test/util/random.h>
@@ -45,7 +46,7 @@ static COutPoint InsecureRandOutPoint() {
 }
 
 BOOST_AUTO_TEST_CASE(blockfail) {
-    SelectParams(CBaseChainParams::MAIN);
+    SelectParams(ChainType::MAIN);
 
     // Set max blocksize to default in case other tests left it dirty
     GlobalConfig config;

@@ -392,7 +392,7 @@ int main(int argc, char **argv) {
         }
     }
     bool fDNS = true;
-    tfm::format(std::cout, "Using %s.\n", gArgs.GetChainName());
+    tfm::format(std::cout, "Using %s.\n", gArgs.GetChainTypeString());
     if (opts.ns.empty()) {
         tfm::format(std::cout, "No nameserver set. Not starting DNS server.\n");
         fDNS = false;

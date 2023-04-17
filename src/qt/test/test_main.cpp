@@ -18,6 +18,8 @@
 #include <qt/test/optiontests.h>
 #include <qt/test/rpcnestedtests.h>
 #include <qt/test/uritests.h>
+#include <util/chaintype.h>
+
 #ifdef ENABLE_WALLET
 #include <qt/test/addressbooktests.h>
 #ifdef ENABLE_BIP70
@@ -56,7 +58,7 @@ int main(int argc, char *argv[]) {
     // regtest params.
     //
     // All tests must use their own testing setup (if needed).
-    { BasicTestingSetup dummy{CBaseChainParams::REGTEST}; }
+    { BasicTestingSetup dummy{ChainType::REGTEST}; }
 
     NodeContext node_context;
     std::unique_ptr<interfaces::Node> node =

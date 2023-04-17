@@ -7,6 +7,7 @@
 #include <chain.h>
 #include <chainparams.h>
 #include <consensus/validation.h>
+#include <util/chaintype.h>
 #include <validation.h>
 
 #include <test/util/random.h>
@@ -45,7 +46,7 @@ static bool HasSpendableCoin(const CCoinsViewCache &view, const TxId &txid) {
 }
 
 BOOST_AUTO_TEST_CASE(connect_utxo_extblock) {
-    SelectParams(CBaseChainParams::MAIN);
+    SelectParams(ChainType::MAIN);
     const CChainParams &chainparams = Params();
 
     CBlock block;

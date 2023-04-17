@@ -10,6 +10,7 @@
 #include <rpc/mempool.h>
 #include <test/util/setup_common.h>
 #include <txmempool.h>
+#include <util/chaintype.h>
 
 #include <univalue.h>
 
@@ -23,7 +24,7 @@ static void AddTx(const CTransactionRef &tx, const Amount &fee,
 
 static void RpcMempool(benchmark::Bench &bench) {
     const TestingSetup test_setup{
-        CBaseChainParams::MAIN,
+        ChainType::MAIN,
         /* extra_args */
         {
             "-nodebuglogfile",

@@ -10,12 +10,12 @@
 #include <config.h>
 #include <qt/guiutil.h>
 #include <qt/walletmodel.h>
+#include <util/chaintype.h>
 
 #include <QUrl>
 
 void URITests::uriTestsCashAddr() {
-    const auto params =
-        CreateChainParams(ArgsManager{}, CBaseChainParams::MAIN);
+    const auto params = CreateChainParams(ArgsManager{}, ChainType::MAIN);
 
     SendCoinsRecipient rv;
     QUrl uri;
@@ -100,8 +100,7 @@ void URITests::uriTestsCashAddr() {
 }
 
 void URITests::uriTestFormatURI() {
-    const auto params =
-        CreateChainParams(ArgsManager{}, CBaseChainParams::MAIN);
+    const auto params = CreateChainParams(ArgsManager{}, ChainType::MAIN);
 
     {
         SendCoinsRecipient r;

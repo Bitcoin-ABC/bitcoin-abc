@@ -11,6 +11,7 @@
 #include <seeder/test/util.h>
 #include <serialize.h>
 #include <streams.h>
+#include <util/chaintype.h>
 #include <version.h>
 
 #include <boost/test/unit_test.hpp>
@@ -49,8 +50,8 @@ public:
 static const uint16_t SERVICE_PORT = 18444;
 
 struct SeederTestingSetup {
-    SeederTestingSetup(const std::string chain = CBaseChainParams::REGTEST) {
-        SelectParams(chain);
+    SeederTestingSetup(const ChainType chain_type = ChainType::REGTEST) {
+        SelectParams(chain_type);
         CNetAddr ip;
         ip.SetInternal("bitcoin.test");
         CService service = {ip, SERVICE_PORT};
@@ -63,7 +64,7 @@ struct SeederTestingSetup {
 };
 
 struct MainNetSeederTestingSetup : public SeederTestingSetup {
-    MainNetSeederTestingSetup() : SeederTestingSetup(CBaseChainParams::MAIN) {}
+    MainNetSeederTestingSetup() : SeederTestingSetup(ChainType::MAIN) {}
 };
 
 BOOST_FIXTURE_TEST_SUITE(p2p_messaging_tests, SeederTestingSetup)

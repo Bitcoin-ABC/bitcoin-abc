@@ -1385,7 +1385,7 @@ RPCHelpMan getblockchaininfo() {
             const int height{tip.nHeight};
 
             UniValue obj(UniValue::VOBJ);
-            obj.pushKV("chain", chainparams.NetworkIDString());
+            obj.pushKV("chain", chainparams.GetChainTypeString());
             obj.pushKV("blocks", height);
             obj.pushKV("headers", chainman.m_best_header
                                       ? chainman.m_best_header->nHeight

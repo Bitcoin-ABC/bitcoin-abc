@@ -6,6 +6,7 @@
 #include <config.h>
 #include <net.h>
 #include <protocol.h>
+#include <util/chaintype.h>
 
 #include <test/fuzz/fuzz.h>
 
@@ -15,7 +16,7 @@
 #include <vector>
 
 void initialize_p2p_transport_deserializer() {
-    SelectParams(CBaseChainParams::REGTEST);
+    SelectParams(ChainType::REGTEST);
 }
 
 FUZZ_TARGET_INIT(p2p_transport_deserializer,
