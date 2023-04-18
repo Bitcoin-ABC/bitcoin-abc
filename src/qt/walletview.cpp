@@ -33,6 +33,8 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#include <fstream>
+
 using node::AnalyzePSBT;
 using node::DEFAULT_MAX_RAW_TX_FEE_RATE;
 using node::PSBTAnalysis;
@@ -257,7 +259,7 @@ void WalletView::gotoLoadPSBT() {
                        CClientUIInterface::MSG_ERROR);
         return;
     }
-    fsbridge::ifstream in{filename.toLocal8Bit().data(), std::ios::binary};
+    std::ifstream in{filename.toLocal8Bit().data(), std::ios::binary};
     std::string dataStr(std::istreambuf_iterator<char>{in}, {});
 
     std::string error;

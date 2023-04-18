@@ -4,6 +4,7 @@
 
 #include <util/settings.h>
 
+#include <fs.h>
 #include <test/util/setup_common.h>
 #include <test/util/str.h>
 #include <util/strencodings.h>
@@ -14,6 +15,10 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <fstream>
+#include <map>
+#include <string>
+#include <system_error>
 #include <vector>
 
 inline bool operator==(const util::SettingsValue &a,
@@ -37,7 +42,7 @@ operator<<(std::ostream &os,
 }
 
 inline void WriteText(const fs::path &path, const std::string &text) {
-    fsbridge::ofstream file;
+    std::ofstream file;
     file.open(path);
     file << text;
 }

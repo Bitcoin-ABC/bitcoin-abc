@@ -22,6 +22,7 @@
 #include <cinttypes>
 #include <csignal>
 #include <cstdlib>
+#include <fstream>
 #include <functional>
 #include <pthread.h>
 
@@ -256,7 +257,7 @@ extern "C" void *ThreadDumper(void *data) {
             }
             rename("dnsseed.dat.new", "dnsseed.dat");
         }
-        fsbridge::ofstream d{"dnsseed.dump"};
+        std::ofstream d{"dnsseed.dump"};
         tfm::format(d, "# address                                        good  "
                        "lastSuccess    %%(2h)   %%(8h)   %%(1d)   %%(7d)  "
                        "%%(30d)  blocks      svcs  version\n");
@@ -278,7 +279,7 @@ extern "C" void *ThreadDumper(void *data) {
             stat[3] += rep.uptime[3];
             stat[4] += rep.uptime[4];
         }
-        fsbridge::ofstream ff{"dnsstats.log", std::ios_base::app};
+        std::ofstream ff{"dnsstats.log", std::ios_base::app};
         tfm::format(ff, "%llu %g %g %g %g %g\n", GetTime(), stat[0], stat[1],
                     stat[2], stat[3], stat[4]);
 

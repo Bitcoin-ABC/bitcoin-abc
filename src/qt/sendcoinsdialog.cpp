@@ -28,6 +28,10 @@
 
 #include <validation.h>
 
+#include <array>
+#include <fstream>
+#include <memory>
+
 #include <QScrollBar>
 #include <QSettings>
 #include <QTextDocument>
@@ -466,9 +470,8 @@ void SendCoinsDialog::on_sendButton_clicked() {
                 if (filename.isEmpty()) {
                     return;
                 }
-                fsbridge::ofstream out{filename.toLocal8Bit().data(),
-                                       fsbridge::ofstream::out |
-                                           fsbridge::ofstream::binary};
+                std::ofstream out{filename.toLocal8Bit().data(),
+                                  std::ofstream::out | std::ofstream::binary};
                 out << ssTx.str();
                 out.close();
                 Q_EMIT message(tr("PSBT saved"), "PSBT saved to disk",

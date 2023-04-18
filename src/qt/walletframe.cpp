@@ -4,6 +4,7 @@
 
 #include <qt/walletframe.h>
 
+#include <fs.h>
 #include <qt/bitcoingui.h>
 #include <qt/createwalletdialog.h>
 #include <qt/overviewpage.h>
@@ -19,6 +20,8 @@
 #include <QVBoxLayout>
 
 #include <cassert>
+#include <fstream>
+#include <string>
 
 WalletFrame::WalletFrame(const PlatformStyle *_platformStyle, BitcoinGUI *_gui)
     : QFrame(_gui), gui(_gui), platformStyle(_platformStyle),

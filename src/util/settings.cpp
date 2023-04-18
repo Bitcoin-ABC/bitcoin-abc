@@ -2,10 +2,16 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <fs.h>
 #include <util/settings.h>
 
 #include <tinyformat.h>
 #include <univalue.h>
+
+#include <fstream>
+#include <map>
+#include <string>
+#include <vector>
 
 namespace util {
 namespace {
@@ -69,7 +75,7 @@ bool ReadSettings(const fs::path &path,
         return true;
     }
 
-    fsbridge::ifstream file;
+    std::ifstream file;
     file.open(path);
     if (!file.is_open()) {
         errors.emplace_back(
@@ -120,7 +126,7 @@ bool WriteSettings(const fs::path &path,
     for (const auto &value : values) {
         out.__pushKV(value.first, value.second);
     }
-    fsbridge::ofstream file;
+    std::ofstream file;
     file.open(path);
     if (file.fail()) {
         errors.emplace_back(

@@ -27,7 +27,7 @@ void GenerateTemplateResults(
         // nothing to write, bail out
         return;
     }
-    fsbridge::ofstream fout{fs::PathFromString(filename)};
+    std::ofstream fout{fs::PathFromString(filename)};
     if (fout.is_open()) {
         ankerl::nanobench::render(tpl, benchmarkResults, fout);
     } else {

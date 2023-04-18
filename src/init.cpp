@@ -92,10 +92,13 @@
 #include <sys/stat.h>
 #endif
 #include <algorithm>
+#include <condition_variable>
 #include <cstdint>
 #include <cstdio>
+#include <fstream>
 #include <functional>
 #include <set>
+#include <string>
 #include <thread>
 #include <vector>
 
@@ -138,7 +141,7 @@ static fs::path GetPidFile(const ArgsManager &args) {
 }
 
 [[nodiscard]] static bool CreatePidFile(const ArgsManager &args) {
-    fsbridge::ofstream file{GetPidFile(args)};
+    std::ofstream file{GetPidFile(args)};
     if (file) {
 #ifdef WIN32
         tfm::format(file, "%d\n", GetCurrentProcessId());

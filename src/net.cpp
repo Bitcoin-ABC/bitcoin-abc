@@ -19,6 +19,7 @@
 #include <consensus/consensus.h>
 #include <crypto/sha256.h>
 #include <dnsseeds.h>
+#include <fs.h>
 #include <i2p.h>
 #include <netaddress.h>
 #include <netbase.h>

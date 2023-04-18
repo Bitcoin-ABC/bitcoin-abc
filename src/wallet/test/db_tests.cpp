@@ -10,7 +10,9 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <fstream>
 #include <memory>
+#include <string>
 
 BOOST_FIXTURE_TEST_SUITE(db_tests, BasicTestingSetup)
 
@@ -18,7 +20,7 @@ BOOST_AUTO_TEST_CASE(getwalletenv_file) {
     std::string test_name = "test_name.dat";
     const fs::path datadir = gArgs.GetDataDirNet();
     fs::path file_path = datadir / test_name;
-    fs::ofstream f(file_path);
+    std::ofstream f{file_path};
     f.close();
 
     std::string filename;

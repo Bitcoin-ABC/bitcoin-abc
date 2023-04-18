@@ -7,6 +7,7 @@
 #include <chain.h>
 #include <config.h>
 #include <core_io.h>
+#include <fs.h>
 #include <interfaces/chain.h>
 #include <key_io.h>
 #include <merkleblock.h>
@@ -27,8 +28,13 @@
 
 #include <boost/algorithm/string.hpp>
 
+#include <algorithm>
 #include <cstdint>
+#include <fstream>
+#include <string>
 #include <tuple>
+#include <utility>
+#include <vector>
 
 using interfaces::FoundBlock;
 
@@ -683,7 +689,7 @@ RPCHelpMan importwallet() {
 
                 EnsureWalletIsUnlocked(pwallet);
 
-                fsbridge::ifstream file;
+                std::ifstream file;
                 file.open(fs::u8path(request.params[0].get_str()),
                           std::ios::in | std::ios::ate);
                 if (!file.is_open()) {
@@ -961,7 +967,7 @@ RPCHelpMan dumpwallet() {
                                        "move it out of the way first");
             }
 
-            fsbridge::ofstream file;
+            std::ofstream file;
             file.open(filepath);
             if (!file.is_open()) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER,
@@ -2479,8 +2485,7 @@ RPCHelpMan restorewallet() {
 
             auto wallet_file = wallet_path / "wallet.dat";
 
-            fs::copy_file(backup_file, wallet_file,
-                          fs::copy_option::fail_if_exists);
+            fs::copy_file(backup_file, wallet_file, fs::copy_options::none);
 
             auto [wallet, warnings] =
                 LoadWalletHelper(context, request.params[2], wallet_name);

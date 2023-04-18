@@ -7,6 +7,9 @@
 #include <logging.h>
 #include <util/system.h>
 
+#include <exception>
+#include <fstream>
+
 fs::path GetWalletDir() {
     fs::path path;
 
@@ -36,7 +39,7 @@ bool IsBerkeleyBtree(const fs::path &path) {
 
     // A Berkeley DB Btree file has at least 4K.
     // This check also prevents opening lock files.
-    boost::system::error_code ec;
+    std::error_code ec;
     auto size = fs::file_size(path, ec);
     if (ec) {
         LogPrintf("%s: %s %s\n", __func__, ec.message(),
@@ -46,7 +49,7 @@ bool IsBerkeleyBtree(const fs::path &path) {
         return false;
     }
 
-    fsbridge::ifstream file(path, std::ios::binary);
+    std::ifstream file{path, std::ios::binary};
     if (!file.is_open()) {
         return false;
     }
@@ -68,7 +71,7 @@ std::vector<fs::path> ListWalletDir() {
     const fs::path wallet_dir = GetWalletDir();
     const size_t offset = fs::PathToString(wallet_dir).size() + 1;
     std::vector<fs::path> paths;
-    boost::system::error_code ec;
+    std::error_code ec;
 
     for (auto it = fs::recursive_directory_iterator(wallet_dir, ec);
          it != fs::recursive_directory_iterator(); it.increment(ec)) {
@@ -84,13 +87,13 @@ std::vector<fs::path> ListWalletDir() {
         const auto path_str = it->path().native().substr(offset);
         const fs::path path{path_str.begin(), path_str.end()};
 
-        if (it->status().type() == fs::directory_file &&
+        if (it->status().type() == fs::file_type::directory &&
             IsBerkeleyBtree(it->path() / "wallet.dat")) {
             // Found a directory which contains wallet.dat btree file, add it as
             // a wallet.
             paths.emplace_back(path);
-        } else if (it.level() == 0 &&
-                   it->symlink_status().type() == fs::regular_file &&
+        } else if (it.depth() == 0 &&
+                   it->symlink_status().type() == fs::file_type::regular &&
                    IsBerkeleyBtree(it->path())) {
             if (it->path().filename() == "wallet.dat") {
                 // Found top-level wallet.dat btree file, add top level

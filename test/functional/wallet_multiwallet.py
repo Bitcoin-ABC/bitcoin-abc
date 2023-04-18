@@ -8,6 +8,7 @@ Verify that a bitcoind node can load multiple wallet files
 """
 import os
 import shutil
+import sys
 import time
 from decimal import Decimal
 from threading import Thread
@@ -127,7 +128,10 @@ class MultiWalletTest(BitcoinTestFramework):
             assert_equal(os.path.isfile(wallet_file(wallet_name)), True)
 
         # should not initialize if wallet path can't be created
-        exp_stderr = "boost::filesystem::create_director"
+        exp_stderr = (
+            "filesystem error:" if sys.platform != 'win32'
+            else "create_directories:"
+        )
         self.nodes[0].assert_start_raises_init_error(
             ['-wallet=w8/bad'], exp_stderr, match=ErrorMatch.PARTIAL_REGEX)
 
