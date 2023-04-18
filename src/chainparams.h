@@ -8,7 +8,6 @@
 
 #include <kernel/chainparams.h>
 
-#include <chainparamsbase.h>
 #include <consensus/params.h>
 #include <netaddress.h>
 #include <primitives/block.h>
@@ -19,6 +18,8 @@
 #include <memory>
 #include <string>
 #include <vector>
+
+class ArgsManager;
 
 /**
  * Creates and returns a std::unique_ptr<CChainParams> of the chosen chain.

@@ -6,7 +6,6 @@
 #define BITCOIN_TEST_UTIL_SETUP_COMMON_H
 
 #include <blockindex.h>
-#include <chainparamsbase.h>
 #include <common/args.h>
 #include <config.h>
 #include <consensus/amount.h>

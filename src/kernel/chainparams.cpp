@@ -5,7 +5,6 @@
 
 #include <kernel/chainparams.h>
 
-#include <chainparamsbase.h>
 #include <chainparamsconstants.h>
 #include <chainparamsseeds.h>
 #include <consensus/amount.h>

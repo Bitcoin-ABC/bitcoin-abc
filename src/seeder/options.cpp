@@ -5,6 +5,7 @@
 #include <seeder/options.h>
 
 #include <chainparams.h>
+#include <chainparamsbase.h>
 #include <clientversion.h>
 #include <common/args.h>
 

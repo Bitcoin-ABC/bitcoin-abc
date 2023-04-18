@@ -6,6 +6,7 @@
 
 #include <chainparams.h>
 
+#include <chainparamsbase.h>
 #include <common/args.h>
 #include <consensus/merkle.h>
 #include <currencyunit.h>
