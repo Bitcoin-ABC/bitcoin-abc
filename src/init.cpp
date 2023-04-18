@@ -2151,7 +2151,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     // Warn about relative -datadir path.
     if (args.IsArgSet("-datadir") &&
-        !fs::PathFromString(args.GetArg("-datadir", "")).is_absolute()) {
+        !args.GetPathArg("-datadir").is_absolute()) {
         LogPrintf("Warning: relative datadir option '%s' specified, which will "
                   "be interpreted relative to the current working directory "
                   "'%s'. This is fragile, because if bitcoin is started in the "
