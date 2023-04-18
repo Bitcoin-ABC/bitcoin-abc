@@ -28,7 +28,7 @@ XEC aliases will be implemented in phases.
 
 Phase 1
 
--   Fully customizable aliases between 1 and 21 characters
+-   Fully customizable aliases between 1 and 21 bytes
 -   Aliases are permanently tied to their registering address
 
 Phase 2
@@ -36,28 +36,14 @@ Phase 2
 -   NFT airdrop to existing holders
 -   Tradeable aliases; aliases tied to NFT possession
 
-### Phase 1 details
+## Phase 1 details
 
-Aliases are registered by paying a registration fee to a designated registration address. The registration fee is determined by the number of characters in the alias, with shorter aliases having a higher fee. Aliases may be between 1 and 21 characters.
-
-Registration fees may change during Phase 1. This change may be enforced by verifying the correct fee against registration blockheight.
-
-Registration transactions are broadcast from the address associated with the new alias. A registration address may have many aliases. Each alias maps to one and only one address.
-
-This protocol adheres to the eCash OP_RETURN Prefix Guidelines and uses the 2E786563 protocol identifier, which must be pushed with the 0x04 opcode.
-
-To be valid, an alias registration transaction must:
-
--   Be a valid eCash transaction with 1 confirmation
--   Include an OP_RETURN field with valid alias prefix and an alias between 1 and 21 bytes in length, inclusive.
--   The alias must consist of only UTF-8 encoded numbers and lower-case letters.
--   Pay a valid fee for the associated character length and block height
--   Have the lowest blockheight of any other alias registration transaction for the same alias
--   When the same alias is registered in the same block by different addresses, the valid alias will be determined by the registration with the alphabetically first txid.
-
-A valid transaction registers the address at the 0 index of the tx inputs to the alias in the OP_RETURN.
-
-Invalid transactions that do not match the criteria above should be ignored by the app parsing the payment address history.
+Aliases are registered by creating a "Registration Transaction" with the following properties:
+1. An output paying the required amount to a designated "Registration Address", and
+2. An output with an OP_RETURN containing 3 data pushes:
+    1. A push of the 4-byte protocol identifier.
+    2. A push of a CashAddr payload. This information defines the "Alias Address".
+    3. A push of the Alias itself.
 
 ### The Registration Address
 
@@ -65,7 +51,23 @@ Registration fees are paid to a single address. This address will be polled via 
 
 The designated registration address will either be the IFP address or an address that periodically sends funds from valid registrations to the IFP address. Automatically processing hot wallet refunds for invalid transactions would not be feasible from the IFP address.
 
-### Valid Alias Inputs
+### The Registration Payment Amount
+
+The required amount to be paid to the registration address is determined by the number of bytes in the alias, with shorter aliases having a higher fee. Aliases may be between 1 and 21 bytes.
+
+This amount may change during Phase 1. This change may be enforced by verifying the correct fee against registration blockheight.
+
+### The Protocol Identifier
+
+This protocol adheres to the eCash [OP_RETURN Prefix Guideline](op_return-prefix-guideline.md) and uses the 2E786563 protocol identifier, which must be pushed with the 0x04 opcode.
+
+### The Alias Address
+
+The Alias Address is defined in a 21-byte push containing a CashAddr payload. The first byte will be the version byte indicating the type of address, and the following 20 bytes are the hash.
+
+An Alias Address may have many aliases. Each alias maps to one and only one Alias Address.
+
+### The Alias
 
 The intent of the alias feature is to get away from some of the clunkiness of addresses. One issue with addresses is that they are human unreadable and thus must always be copy pasted to ensure accuracy.
 
@@ -73,7 +75,17 @@ If one alias can be human indistinguishable from another alias, then all aliases
 
 In the initial release of this feature, aliases are limited to lowercase alphanumeric characters (a-z, 0-9) to mitigate edge cases such as zero-width spaces and language specific character similarities.
 
-### Known risks
+An alias may be between 1 and 21 bytes in length, inclusive.
+
+### Additional Validity Criteria:
+
+-   Must be a valid eCash transaction with 1 confirmation
+-   Have the lowest blockheight of any other alias registration transaction for the same alias
+-   When the same alias is registered in the same block by different addresses, the valid alias will be determined by the registration with the alphabetically first txid.
+
+Invalid transactions that do not match the criteria above should be ignored by the app parsing the payment address history.
+
+## Known risks
 
 Resolving conflicting alias registrations at the same blockheight by choosing the alphabetically first txid is arbitrary. It would be possible for someone to watch for broadcast registration transactions, send multiple transactions registering the same alias, and have a good chance of securing the alias before the original registrant.
 
@@ -83,6 +95,6 @@ The intent of Phase 1 is to determine popularity and viability of the system ove
 
 Phase 1 is rolled out using the blockchain instead of a server so that the registrations may be permanent, even if the system later becomes unmaintained.
 
-### Extensibility
+## Extensibility
 
 Permanently tying an alias to a single address is not the desired endpoint for the system. Payment codes, support for HD wallets, and other novel ways of adding additional privacy and security into the system are all desired features. Since most of the technology for these features is either unavailable or not in current use, this will not be supported in Phase 1. Lessons learned from practical implementation of Phase 1 will support extensible implementation in Phase 2.
