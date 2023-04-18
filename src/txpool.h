@@ -31,8 +31,16 @@ public:
     /** Add a new transaction to the pool */
     bool AddTx(const CTransactionRef &tx, NodeId peer);
 
+    /**
+     * Add an additional announcer to a tx if it exists. Otherwise, do nothing.
+     */
+    bool AddAnnouncer(const TxId &txid, NodeId peer);
+
     /** Check if we already have an the transaction */
     bool HaveTx(const TxId &txid) const;
+
+    /** Check if a {tx, peer} exists in the pool.*/
+    bool HaveTxFromPeer(const TxId &txid, NodeId peer) const;
 
     CTransactionRef GetTx(const TxId &txid) const;
     std::vector<CTransactionRef>
@@ -51,7 +59,9 @@ public:
     int EraseTx(const TxId &txid);
 
     /**
-     * Erase all txs announced by a peer (eg, after that peer disconnects)
+     * Maybe erase all txs announced by a peer (eg, after that peer
+     * disconnects). If a tx has been announced by another peer, don't erase,
+     * just remove this peer from the list of announcers.
      */
     void EraseForPeer(NodeId peer);
 
@@ -65,7 +75,7 @@ public:
      * Add any tx that list a particular tx as a parent into the from peer's
      * work set
      */
-    void AddChildrenToWorkSet(const CTransaction &tx);
+    void AddChildrenToWorkSet(const CTransaction &tx, FastRandomContext &rng);
 
     /** Does this peer have any work to do? */
     bool HaveTxToReconsider(NodeId peer);
@@ -91,7 +101,8 @@ public:
     /** Allows providing pool transaction information externally */
     struct PoolTx {
         CTransactionRef tx;
-        NodeId fromPeer;
+        /** Peers added with AddTx or AddAnnouncer. */
+        std::set<NodeId> announcers;
         NodeSeconds nTimeExpire;
         size_t list_pos;
     };

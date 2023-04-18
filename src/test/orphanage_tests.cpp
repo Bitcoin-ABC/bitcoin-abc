@@ -132,7 +132,7 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
         tx.vin[0].prevout = COutPoint(TxId(m_rng.rand256()), 0);
         tx.vin[0].scriptSig << OP_1;
         tx.vout.resize(1);
-        tx.vout[0].nValue = 1 * CENT;
+        tx.vout[0].nValue = i * CENT;
         tx.vout[0].scriptPubKey =
             GetScriptForDestination(PKHash(key.GetPubKey()));
 
@@ -147,7 +147,7 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
         tx.vin.resize(1);
         tx.vin[0].prevout = COutPoint(txPrev->GetId(), 0);
         tx.vout.resize(1);
-        tx.vout[0].nValue = 1 * CENT;
+        tx.vout[0].nValue = i * CENT;
         tx.vout[0].scriptPubKey =
             GetScriptForDestination(PKHash(key.GetPubKey()));
         BOOST_CHECK(SignSignature(keystore, *txPrev, tx, 0,
@@ -414,5 +414,130 @@ BOOST_AUTO_TEST_CASE(process_block) {
     // Only remaining tx is control_tx
     BOOST_CHECK_EQUAL(orphanage.Size(), 1);
     BOOST_CHECK(orphanage.HaveTx(control_tx->GetId()));
+}
+
+BOOST_AUTO_TEST_CASE(multiple_announcers) {
+    const NodeId node0{0};
+    const NodeId node1{1};
+    const NodeId node2{2};
+    size_t expected_total_count{0};
+    FastRandomContext det_rand{true};
+    TxOrphanageTest orphanage{det_rand};
+
+    // Check accounting per peer.
+    // Check that EraseForPeer works with multiple announcers.
+    {
+        auto ptx = MakeTransactionSpending({}, det_rand);
+        const auto &txid = ptx->GetId();
+        BOOST_CHECK(orphanage.AddTx(ptx, node0));
+        BOOST_CHECK(orphanage.HaveTx(txid));
+        expected_total_count += 1;
+        BOOST_CHECK_EQUAL(orphanage.Size(), expected_total_count);
+
+        // Adding again should do nothing.
+        BOOST_CHECK(!orphanage.AddTx(ptx, node0));
+        BOOST_CHECK_EQUAL(orphanage.Size(), expected_total_count);
+
+        // Adding a new announcer should not change overall accounting.
+        BOOST_CHECK(orphanage.AddAnnouncer(ptx->GetId(), node2));
+        BOOST_CHECK_EQUAL(orphanage.Size(), expected_total_count);
+
+        // If we already have this announcer, AddAnnouncer returns false.
+        BOOST_CHECK(orphanage.HaveTxFromPeer(ptx->GetId(), node2));
+        BOOST_CHECK(!orphanage.AddAnnouncer(ptx->GetId(), node2));
+
+        // Same with using AddTx for an existing tx, which is equivalent to
+        // using AddAnnouncer
+        BOOST_CHECK(!orphanage.AddTx(ptx, node1));
+        BOOST_CHECK_EQUAL(orphanage.Size(), expected_total_count);
+
+        // if EraseForPeer is called for an orphan with multiple announcers, the
+        // orphanage should only erase that peer from the announcers set.
+        orphanage.EraseForPeer(node0);
+        BOOST_CHECK(orphanage.HaveTx(ptx->GetId()));
+        BOOST_CHECK(!orphanage.HaveTxFromPeer(ptx->GetId(), node0));
+        BOOST_CHECK_EQUAL(orphanage.Size(), expected_total_count);
+
+        // EraseForPeer should delete the orphan if it's the only announcer
+        // left.
+        orphanage.EraseForPeer(node1);
+        BOOST_CHECK_EQUAL(orphanage.Size(), expected_total_count);
+        BOOST_CHECK(orphanage.HaveTx(ptx->GetId()));
+        orphanage.EraseForPeer(node2);
+        expected_total_count -= 1;
+        BOOST_CHECK_EQUAL(orphanage.Size(), expected_total_count);
+        BOOST_CHECK(!orphanage.HaveTx(ptx->GetId()));
+    }
+
+    // Check that erasure for blocks removes for all peers.
+    {
+        CBlock block;
+        auto tx_block = MakeTransactionSpending({}, det_rand);
+        block.vtx.emplace_back(tx_block);
+        BOOST_CHECK(orphanage.AddTx(tx_block, node0));
+        BOOST_CHECK(!orphanage.AddTx(tx_block, node1));
+
+        expected_total_count += 1;
+
+        BOOST_CHECK_EQUAL(orphanage.Size(), expected_total_count);
+
+        orphanage.EraseForBlock(block);
+
+        expected_total_count -= 1;
+
+        BOOST_CHECK_EQUAL(orphanage.Size(), expected_total_count);
+    }
+}
+BOOST_AUTO_TEST_CASE(peer_worksets) {
+    const NodeId node0{0};
+    const NodeId node1{1};
+    const NodeId node2{2};
+    FastRandomContext det_rand{true};
+    TxOrphanageTest orphanage{det_rand};
+    // AddChildrenToWorkSet should pick an announcer randomly
+    {
+        auto tx_missing_parent = MakeTransactionSpending({}, det_rand);
+        auto tx_orphan = MakeTransactionSpending(
+            {COutPoint{tx_missing_parent->GetId(), 0}}, det_rand);
+        const auto &orphan_txid = tx_orphan->GetId();
+
+        // All 3 peers are announcers.
+        BOOST_CHECK(orphanage.AddTx(tx_orphan, node0));
+        BOOST_CHECK(!orphanage.AddTx(tx_orphan, node1));
+        BOOST_CHECK(orphanage.AddAnnouncer(orphan_txid, node2));
+        for (NodeId node = node0; node <= node2; ++node) {
+            BOOST_CHECK(orphanage.HaveTxFromPeer(orphan_txid, node));
+        }
+
+        // Parent accepted: child is added to 1 of 3 worksets.
+        orphanage.AddChildrenToWorkSet(*tx_missing_parent, det_rand);
+        int node0_reconsider = orphanage.HaveTxToReconsider(node0);
+        int node1_reconsider = orphanage.HaveTxToReconsider(node1);
+        int node2_reconsider = orphanage.HaveTxToReconsider(node2);
+        BOOST_CHECK_EQUAL(
+            node0_reconsider + node1_reconsider + node2_reconsider, 1);
+
+        NodeId assigned_peer;
+        if (node0_reconsider) {
+            assigned_peer = node0;
+        } else if (node1_reconsider) {
+            assigned_peer = node1;
+        } else {
+            BOOST_CHECK(node2_reconsider);
+            assigned_peer = node2;
+        }
+
+        // EraseForPeer also removes that tx from the workset.
+        orphanage.EraseForPeer(assigned_peer);
+        BOOST_CHECK_EQUAL(orphanage.GetTxToReconsider(node0), nullptr);
+
+        // Delete this tx, clearing the orphanage.
+        BOOST_CHECK_EQUAL(orphanage.EraseTx(orphan_txid), 1);
+        BOOST_CHECK_EQUAL(orphanage.Size(), 0);
+        for (NodeId node = node0; node <= node2; ++node) {
+            BOOST_CHECK_EQUAL(orphanage.GetTxToReconsider(node), nullptr);
+            BOOST_CHECK(!orphanage.HaveTxFromPeer(orphan_txid, node));
+        }
+    }
 }
 BOOST_AUTO_TEST_SUITE_END()

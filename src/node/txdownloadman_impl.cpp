@@ -317,8 +317,8 @@ void TxDownloadManagerImpl::MempoolAcceptedTx(const CTransactionRef &tx) {
     // any requests for it. No-op if the tx is not in txrequest.
     m_txrequest.ForgetInvId(tx->GetId());
 
-    m_opts.m_mempool.withOrphanage([&tx](TxOrphanage &orphanage) {
-        orphanage.AddChildrenToWorkSet(*tx);
+    m_opts.m_mempool.withOrphanage([this, &tx](TxOrphanage &orphanage) {
+        orphanage.AddChildrenToWorkSet(*tx, m_rng);
         // If it came from the orphanage, remove it. No-op if the tx is not in
         // txorphanage.
         orphanage.EraseTx(tx->GetId());

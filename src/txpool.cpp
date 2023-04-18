@@ -14,7 +14,9 @@
 
 bool TxPool::AddTx(const CTransactionRef &tx, NodeId peer) {
     const TxId &txid = tx->GetId();
-    if (m_pool_txs.count(txid)) {
+    if (auto it{m_pool_txs.find(txid)}; it != m_pool_txs.end()) {
+        AddAnnouncer(txid, peer);
+        // No new tx entry was created. An announcer may have been added.
         return false;
     }
 
@@ -31,7 +33,7 @@ bool TxPool::AddTx(const CTransactionRef &tx, NodeId peer) {
 
     auto ret = m_pool_txs.emplace(
         txid,
-        PoolTx{tx, peer, Now<NodeSeconds>() + expireTime, m_txs_list.size()});
+        PoolTx{tx, {peer}, Now<NodeSeconds>() + expireTime, m_txs_list.size()});
     assert(ret.second);
     m_txs_list.push_back(ret.first);
     for (const CTxIn &txin : tx->vin) {
@@ -43,6 +45,21 @@ bool TxPool::AddTx(const CTransactionRef &tx, NodeId peer) {
              txid.ToString(), sz, m_pool_txs.size(),
              m_outpoint_to_tx_it.size());
     return true;
+}
+
+bool TxPool::AddAnnouncer(const TxId &txid, NodeId peer) {
+    const auto it = m_pool_txs.find(txid);
+    if (it != m_pool_txs.end()) {
+        Assume(!it->second.announcers.empty());
+        const auto ret = it->second.announcers.insert(peer);
+        if (ret.second) {
+            LogDebug(BCLog::TXPACKAGES,
+                     "added peer=%d as announcer of %s tx %s\n", peer, txKind,
+                     txid.ToString());
+            return true;
+        }
+    }
+    return false;
 }
 
 int TxPool::EraseTx(const TxId &txid) {
@@ -90,9 +107,15 @@ void TxPool::EraseForPeer(NodeId peer) {
     std::map<TxId, PoolTx>::iterator iter = m_pool_txs.begin();
     while (iter != m_pool_txs.end()) {
         // increment to avoid iterator becoming invalid after erasure
-        const auto &[txid, orphan] = *iter++;
-        if (orphan.fromPeer == peer) {
-            nErased += EraseTx(txid);
+        auto &[txid, pooltx] = *iter++;
+        auto pooltx_it = pooltx.announcers.find(peer);
+        if (pooltx_it != pooltx.announcers.end()) {
+            pooltx.announcers.erase(peer);
+
+            // No remaining announcers: clean up entry
+            if (pooltx.announcers.empty()) {
+                nErased += EraseTx(pooltx.tx->GetId());
+            }
         }
     }
     if (nErased > 0) {
@@ -113,7 +136,7 @@ unsigned int TxPool::LimitTxs(unsigned int max_txs, FastRandomContext &rng) {
         while (iter != m_pool_txs.end()) {
             std::map<TxId, PoolTx>::iterator maybeErase = iter++;
             if (maybeErase->second.nTimeExpire <= nNow) {
-                nErased += EraseTx(maybeErase->second.tx->GetId());
+                nErased += EraseTx(maybeErase->first);
             } else {
                 nMinExpTime =
                     std::min(maybeErase->second.nTimeExpire, nMinExpTime);
@@ -136,22 +159,38 @@ unsigned int TxPool::LimitTxs(unsigned int max_txs, FastRandomContext &rng) {
     return nEvicted;
 }
 
-void TxPool::AddChildrenToWorkSet(const CTransaction &tx) {
+void TxPool::AddChildrenToWorkSet(const CTransaction &tx,
+                                  FastRandomContext &rng) {
     for (size_t i = 0; i < tx.vout.size(); i++) {
         const auto it_by_prev =
             m_outpoint_to_tx_it.find(COutPoint(tx.GetId(), i));
         if (it_by_prev != m_outpoint_to_tx_it.end()) {
             for (const auto &elem : it_by_prev->second) {
+                // Belt and suspenders, each tx should always have at least 1
+                // announcer.
+                if (!Assume(!elem->second.announcers.empty())) {
+                    continue;
+                }
+
+                // Select a random peer to assign tx processing, reducing wasted
+                // work if the tx is still missing inputs. However, we don't
+                // want to create an issue in which the assigned peer can
+                // purposefully stop us from processing the tx by
+                // disconnecting.
+                auto announcer_iter = std::begin(elem->second.announcers);
+                std::advance(announcer_iter,
+                             rng.randrange(elem->second.announcers.size()));
+                auto announcer = *(announcer_iter);
+
                 // Get this peer's work set, emplacing an empty set if it didn't
                 // exist
                 std::set<TxId> &work_set =
-                    m_peer_work_set.try_emplace(elem->second.fromPeer)
-                        .first->second;
+                    m_peer_work_set.try_emplace(announcer).first->second;
                 // Add this tx to the work set
                 work_set.insert(elem->first);
                 LogDebug(BCLog::TXPACKAGES,
                          "added %s tx %s to peer %d workset\n", txKind,
-                         tx.GetId().ToString(), elem->second.fromPeer);
+                         tx.GetId().ToString(), announcer);
             }
         }
     }
@@ -159,6 +198,11 @@ void TxPool::AddChildrenToWorkSet(const CTransaction &tx) {
 
 bool TxPool::HaveTx(const TxId &txid) const {
     return m_pool_txs.count(txid);
+}
+
+bool TxPool::HaveTxFromPeer(const TxId &txid, NodeId peer) const {
+    auto it = m_pool_txs.find(txid);
+    return (it != m_pool_txs.end() && it->second.announcers.contains(peer));
 }
 
 CTransactionRef TxPool::GetTx(const TxId &txid) const {
@@ -266,7 +310,7 @@ TxPool::GetChildrenFromSamePeer(const CTransactionRef &parent,
             m_outpoint_to_tx_it.find(COutPoint(parent->GetId(), i));
         if (it_by_prev != m_outpoint_to_tx_it.end()) {
             for (const auto &elem : it_by_prev->second) {
-                if (elem->second.fromPeer == nodeid) {
+                if (elem->second.announcers.contains(nodeid)) {
                     iters.emplace_back(elem);
                 }
             }
@@ -309,7 +353,7 @@ TxPool::GetChildrenFromDifferentPeer(const CTransactionRef &parent,
             m_outpoint_to_tx_it.find(COutPoint(parent->GetId(), i));
         if (it_by_prev != m_outpoint_to_tx_it.end()) {
             for (const auto &elem : it_by_prev->second) {
-                if (elem->second.fromPeer != nodeid) {
+                if (!elem->second.announcers.contains(nodeid)) {
                     iters.emplace_back(elem);
                 }
             }
@@ -324,8 +368,9 @@ TxPool::GetChildrenFromDifferentPeer(const CTransactionRef &parent,
     std::vector<std::pair<CTransactionRef, NodeId>> children_found;
     children_found.reserve(iters.size());
     for (const auto &child_iter : iters) {
-        children_found.emplace_back(child_iter->second.tx,
-                                    child_iter->second.fromPeer);
+        // Use first peer in announcers list
+        auto peer = *(child_iter->second.announcers.begin());
+        children_found.emplace_back(child_iter->second.tx, peer);
     }
     return children_found;
 }
@@ -334,7 +379,7 @@ std::vector<TxPool::PoolTx> TxPool::GetPoolTransactions() const {
     std::vector<PoolTx> ret;
     ret.reserve(m_pool_txs.size());
     for (const auto &o : m_pool_txs) {
-        ret.push_back({o.second.tx, o.second.fromPeer, o.second.nTimeExpire,
+        ret.push_back({o.second.tx, o.second.announcers, o.second.nTimeExpire,
                        o.second.list_pos});
     }
     return ret;
