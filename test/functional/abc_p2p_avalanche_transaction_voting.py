@@ -78,7 +78,7 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
 
         poll_node.send_poll(tx_ids, MSG_TX)
         assert_response(
-            [AvalancheVote(AvalancheTxVoteError.UNKNOWN, id) for id in tx_ids])
+            [AvalancheVote(AvalancheTxVoteError.UNKNOWN, txid) for txid in tx_ids])
 
         self.log.info("Check the votes on valid mempool transactions")
 
@@ -89,7 +89,7 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
 
         poll_node.send_poll(tx_ids, MSG_TX)
         assert_response(
-            [AvalancheVote(AvalancheTxVoteError.ACCEPTED, id) for id in tx_ids])
+            [AvalancheVote(AvalancheTxVoteError.ACCEPTED, txid) for txid in tx_ids])
 
         self.log.info("Check the votes on recently mined transactions")
 
@@ -98,13 +98,13 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
 
         poll_node.send_poll(tx_ids, MSG_TX)
         assert_response(
-            [AvalancheVote(AvalancheTxVoteError.ACCEPTED, id) for id in tx_ids])
+            [AvalancheVote(AvalancheTxVoteError.ACCEPTED, txid) for txid in tx_ids])
 
         for _ in range(10):
             self.generate(node, 1, sync_fun=self.no_op)
             poll_node.send_poll(tx_ids, MSG_TX)
             assert_response(
-                [AvalancheVote(AvalancheTxVoteError.ACCEPTED, id) for id in tx_ids])
+                [AvalancheVote(AvalancheTxVoteError.ACCEPTED, txid) for txid in tx_ids])
 
         self.log.info("Check the votes on unknown transactions")
 
@@ -112,7 +112,7 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         poll_node.send_poll(tx_ids, MSG_TX)
 
         assert_response(
-            [AvalancheVote(AvalancheTxVoteError.UNKNOWN, id) for id in tx_ids])
+            [AvalancheVote(AvalancheTxVoteError.UNKNOWN, txid) for txid in tx_ids])
 
         self.log.info("Check the votes on invalid transactions")
 
