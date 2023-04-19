@@ -635,7 +635,7 @@ def FindAndDelete(script, sig):
 def SignatureHash(script, txTo, inIdx, hashtype):
     """Consensus-correct SignatureHash
 
-    Returns (hash, err) to precisely match the consensus-critical behavior of
+    Returns (sighash, err) to precisely match the consensus-critical behavior of
     the SIGHASH_SINGLE bug. (inIdx is *not* checked for validity)
     """
     HASH_ONE = b'\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
@@ -679,9 +679,9 @@ def SignatureHash(script, txTo, inIdx, hashtype):
     s = txtmp.serialize()
     s += struct.pack(b"<I", hashtype)
 
-    hash = hash256(s)
+    sighash = hash256(s)
 
-    return (hash, None)
+    return (sighash, None)
 
 # TODO: Allow cached hashPrevouts/hashSequence/hashOutputs to be provided.
 # Performance optimization probably not necessary for python tests, however.
