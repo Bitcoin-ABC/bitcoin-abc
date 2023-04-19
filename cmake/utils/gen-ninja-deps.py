@@ -164,10 +164,10 @@ def dump(deps):
         if len(d) == 0:
             continue
 
-        str = f"{t.decode()}: \\\n  "
-        str += " \\\n  ".join(sorted(x.decode() for x in d))
+        dump_str = f"{t.decode()}: \\\n  "
+        dump_str += " \\\n  ".join(sorted(x.decode() for x in d))
 
-        print(str)
+        print(dump_str)
 
 
 # Collapse everything under the base target.
