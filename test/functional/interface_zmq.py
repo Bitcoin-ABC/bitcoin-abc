@@ -56,7 +56,7 @@ class ZMQSubscriber:
 
     def receive_sequence(self):
         body = self._receive_from_publisher_and_check()
-        hash = body[:32].hex()
+        hash_str = body[:32].hex()
         label = chr(body[32])
         mempool_sequence = None if len(
             body) != 32 + 1 + 8 else struct.unpack("<Q", body[32 + 1:])[0]
@@ -64,7 +64,7 @@ class ZMQSubscriber:
             assert label == "A" or label == "R"
         else:
             assert label == "D" or label == "C"
-        return (hash, label, mempool_sequence)
+        return (hash_str, label, mempool_sequence)
 
 
 class ZMQTestSetupBlock:
@@ -194,9 +194,9 @@ class ZMQTest (BitcoinTestFramework):
             txid = hashtx.receive()
 
             # Should receive the coinbase raw transaction.
-            hex = rawtx.receive()
+            tx_hex = rawtx.receive()
             tx = CTransaction()
-            tx.deserialize(BytesIO(hex))
+            tx.deserialize(BytesIO(tx_hex))
             tx.calc_sha256()
             assert_equal(tx.hash, txid.hex())
 
@@ -205,10 +205,10 @@ class ZMQTest (BitcoinTestFramework):
             assert_equal(genhashes[x], hash256_reversed(block[:80]).hex())
 
             # Should receive the generated block hash.
-            hash = hashblock.receive().hex()
-            assert_equal(genhashes[x], hash)
+            blockhash = hashblock.receive().hex()
+            assert_equal(genhashes[x], blockhash)
             # The block should only have the coinbase txid.
-            assert_equal([txid.hex()], self.nodes[1].getblock(hash)["tx"])
+            assert_equal([txid.hex()], self.nodes[1].getblock(blockhash)["tx"])
 
         if self.is_wallet_compiled():
             self.log.info("Wait for tx from second node")
@@ -221,8 +221,8 @@ class ZMQTest (BitcoinTestFramework):
             assert_equal(payment_txid, txid.hex())
 
             # Should receive the broadcasted raw transaction.
-            hex = rawtx.receive()
-            assert_equal(payment_txid, hash256_reversed(hex).hex())
+            tx_hex = rawtx.receive()
+            assert_equal(payment_txid, hash256_reversed(tx_hex).hex())
 
             # Mining the block with this tx should result in second notification
             # after coinbase tx notification
