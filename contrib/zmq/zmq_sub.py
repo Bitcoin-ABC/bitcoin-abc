@@ -73,12 +73,12 @@ class ZMQHandler():
             print(f'- RAW TX ({sequence}) -')
             print(binascii.hexlify(body))
         elif topic == b"sequence":
-            hash = binascii.hexlify(body[:32])
+            item_hash = binascii.hexlify(body[:32])
             label = chr(body[32])
             mempool_sequence = (None if len(body) != 32 + 1 + 8 else
                                 struct.unpack("<Q", body[32 + 1:])[0])
             print('- SEQUENCE (' + sequence + ') -')
-            print(hash, label, mempool_sequence)
+            print(item_hash, label, mempool_sequence)
         # schedule ourselves to receive the next message
         asyncio.ensure_future(self.handle())
 
