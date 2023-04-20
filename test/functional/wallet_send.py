@@ -372,18 +372,18 @@ class WalletSendTest(BitcoinTestFramework):
         txid = res["txid"]
         # Although the wallet finishes the transaction, it can't be added to
         # the mempool yet:
-        hex = self.nodes[0].gettransaction(res["txid"])["hex"]
-        res = self.nodes[0].testmempoolaccept([hex])
+        tx_hex = self.nodes[0].gettransaction(res["txid"])["hex"]
+        res = self.nodes[0].testmempoolaccept([tx_hex])
         assert not res[0]["allowed"]
         assert_equal(res[0]["reject-reason"], "bad-txns-nonfinal")
         # It shouldn't be confirmed in the next block
         self.generate(self.nodes[0], 1)
         assert_equal(self.nodes[0].gettransaction(txid)["confirmations"], 0)
         # The mempool should allow it now:
-        res = self.nodes[0].testmempoolaccept([hex])
+        res = self.nodes[0].testmempoolaccept([tx_hex])
         assert res[0]["allowed"]
         # Don't wait for wallet to add it to the mempool:
-        res = self.nodes[0].sendrawtransaction(hex)
+        res = self.nodes[0].sendrawtransaction(tx_hex)
         self.generate(self.nodes[0], 1)
         assert_equal(self.nodes[0].gettransaction(txid)["confirmations"], 1)
 

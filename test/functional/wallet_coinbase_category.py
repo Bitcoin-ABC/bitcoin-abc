@@ -33,8 +33,8 @@ class CoinbaseCategoryTest(BitcoinTestFramework):
         # Generate one block to an address
         address = self.nodes[0].getnewaddress()
         self.generatetoaddress(self.nodes[0], 1, address)
-        hash = self.nodes[0].getbestblockhash()
-        txid = self.nodes[0].getblock(hash)["tx"][0]
+        blockhash = self.nodes[0].getbestblockhash()
+        txid = self.nodes[0].getblock(blockhash)["tx"][0]
 
         # Coinbase transaction is immature after 1 confirmation
         self.assert_category("immature", address, txid, 0)
@@ -50,7 +50,7 @@ class CoinbaseCategoryTest(BitcoinTestFramework):
         self.assert_category("generate", address, txid, 100)
 
         # Orphan block that paid to address
-        self.nodes[0].invalidateblock(hash)
+        self.nodes[0].invalidateblock(blockhash)
         # Coinbase transaction is now orphaned
         self.assert_category("orphan", address, txid, 100)
 

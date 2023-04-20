@@ -203,12 +203,12 @@ class P2PAddConnections(BitcoinTestFramework):
             f"Randomly insert outbounds of various types {iterations} times")
 
         for _ in range(iterations):
-            type = random.choice(list(remaining_outbounds))
-            if remaining_outbounds[type] <= 0:
+            conn_type = random.choice(list(remaining_outbounds))
+            if remaining_outbounds[conn_type] <= 0:
                 continue
 
-            self.add_outbounds(self.nodes[0], 1, type)
-            remaining_outbounds[type] -= 1
+            self.add_outbounds(self.nodes[0], 1, conn_type)
+            remaining_outbounds[conn_type] -= 1
 
         check_node_connections(
             node=self.nodes[0],

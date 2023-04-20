@@ -77,10 +77,10 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
         self.log.info("Check block ancestors are finalized as well")
         tip_height = node.getblockheader(blockhash)['height']
         for height in range(0, tip_height):
-            hash = node.getblockhash(height)
-            assert node.isfinalblock(hash)
-            txid = node.getblock(hash)['tx'][0]
-            assert node.isfinaltransaction(txid, hash)
+            blockhash = node.getblockhash(height)
+            assert node.isfinalblock(blockhash)
+            txid = node.getblock(blockhash)['tx'][0]
+            assert node.isfinaltransaction(txid, blockhash)
 
         if self.is_wallet_compiled():
             self.log.info("Check mempool transactions are not finalized")

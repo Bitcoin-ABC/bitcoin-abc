@@ -202,13 +202,13 @@ class RawTransactionsTest(BitcoinTestFramework):
                                                {address: 99}, {address2: 99}, {'data': '99'}]),
         )
 
-        for type in ["legacy"]:
-            addr = self.nodes[0].getnewaddress("", type)
+        for addr_type in ["legacy"]:
+            addr = self.nodes[0].getnewaddress("", addr_type)
             addrinfo = self.nodes[0].getaddressinfo(addr)
             pubkey = addrinfo["scriptPubKey"]
 
             self.log.info(
-                f'sendrawtransaction with missing prevtx info ({type})')
+                f'sendrawtransaction with missing prevtx info ({addr_type})')
 
             # Test `signrawtransactionwithwallet` invalid `prevtxs`
             inputs = [{'txid': txid, 'vout': 3, 'sequence': 1000}]
