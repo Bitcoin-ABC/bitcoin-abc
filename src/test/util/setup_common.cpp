@@ -28,6 +28,7 @@
 #include <node/context.h>
 #include <node/kernel_notifications.h>
 #include <node/miner.h>
+#include <node/peerman_args.h>
 #include <node/validation_cache_args.h>
 #include <noui.h>
 #include <pow/pow.h>
@@ -295,9 +296,11 @@ TestingSetup::TestingSetup(const std::string &chainName,
     // Deterministic randomness for tests.
     m_node.connman =
         std::make_unique<CConnman>(config, 0x1337, 0x1337, *m_node.addrman);
+    PeerManager::Options peerman_opts;
+    ApplyArgsManOptions(*m_node.args, peerman_opts);
     m_node.peerman = PeerManager::make(
         *m_node.connman, *m_node.addrman, m_node.banman.get(), *m_node.chainman,
-        *m_node.mempool, /*avalanche=*/nullptr, false);
+        *m_node.mempool, /*avalanche=*/nullptr, peerman_opts);
     {
         CConnman::Options options;
         options.m_msgproc.push_back(m_node.peerman.get());

@@ -52,6 +52,7 @@
 #include <node/kernel_notifications.h>
 #include <node/mempool_persist_args.h>
 #include <node/miner.h>
+#include <node/peerman_args.h>
 #include <node/ui_interface.h>
 #include <node/validation_cache_args.h>
 #include <policy/policy.h>
@@ -2538,11 +2539,13 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         }
     }
 
+    PeerManager::Options peerman_opts{};
+    ApplyArgsManOptions(args, peerman_opts);
+
     assert(!node.peerman);
-    node.peerman =
-        PeerManager::make(*node.connman, *node.addrman, node.banman.get(),
-                          chainman, *node.mempool, node.avalanche.get(),
-                          args.GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY));
+    node.peerman = PeerManager::make(*node.connman, *node.addrman,
+                                     node.banman.get(), chainman, *node.mempool,
+                                     node.avalanche.get(), peerman_opts);
     RegisterValidationInterface(node.peerman.get());
 
     // Encoded addresses using cashaddr instead of base58.

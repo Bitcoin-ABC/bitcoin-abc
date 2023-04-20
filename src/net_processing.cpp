@@ -296,8 +296,6 @@ static constexpr uint32_t MAX_GETCFHEADERS_SIZE = 2000;
  * to a getaddr message.
  */
 static constexpr size_t MAX_PCT_ADDR_TO_SEND = 23;
-/** The maximum number of address records permitted in an ADDR message. */
-static constexpr size_t MAX_ADDR_TO_SEND{1000};
 /**
  * The maximum rate of address records we're willing to process on average. Can
  * be bypassed using the NetPermissionFlags::Addr permission.
@@ -311,10 +309,6 @@ static constexpr double MAX_ADDR_RATE_PER_SECOND{0.1};
 static constexpr size_t MAX_ADDR_PROCESSING_TOKEN_BUCKET{MAX_ADDR_TO_SEND};
 /** The compactblocks version we support. See BIP 152. */
 static constexpr uint64_t CMPCTBLOCKS_VERSION{1};
-
-inline size_t GetMaxAddrToSend() {
-    return gArgs.GetIntArg("-maxaddrtosend", MAX_ADDR_TO_SEND);
-}
 
 // Internal stuff
 namespace {
@@ -748,8 +742,7 @@ class PeerManagerImpl final : public PeerManager {
 public:
     PeerManagerImpl(CConnman &connman, AddrMan &addrman, BanMan *banman,
                     ChainstateManager &chainman, CTxMemPool &pool,
-                    avalanche::Processor *const avalanche,
-                    bool ignore_incoming_txs);
+                    avalanche::Processor *const avalanche, Options opts);
 
     /** Overridden from CValidationInterface. */
     void BlockConnected(const std::shared_ptr<const CBlock> &pblock,
@@ -796,7 +789,7 @@ public:
                const CBlockIndex &block_index) override;
     bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) const override
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex);
-    bool IgnoresIncomingTxs() override { return m_ignore_incoming_txs; }
+    bool IgnoresIncomingTxs() override { return m_opts.ignore_incoming_txs; }
     void SendPings() override EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex);
     void RelayTransaction(const TxId &txid) override
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex);
@@ -1139,8 +1132,7 @@ private:
     /** Next time to check for stale tip */
     std::chrono::seconds m_stale_tip_check_time{0s};
 
-    /** Whether this node is running in blocks only mode */
-    const bool m_ignore_incoming_txs;
+    const Options m_opts;
 
     /**
      * Whether we've completed initial sync yet, for determining when to turn
@@ -1566,7 +1558,7 @@ void PeerManagerImpl::PushAddress(Peer &peer, const CAddress &addr,
     assert(peer.m_addr_known);
     if (addr.IsValid() && !peer.m_addr_known->contains(addr.GetKey()) &&
         IsAddrCompatible(peer, addr)) {
-        if (peer.m_addrs_to_send.size() >= GetMaxAddrToSend()) {
+        if (peer.m_addrs_to_send.size() >= m_opts.max_addr_to_send) {
             peer.m_addrs_to_send[insecure_rand.randrange(
                 peer.m_addrs_to_send.size())] = addr;
         } else {
@@ -1709,7 +1701,7 @@ void PeerManagerImpl::MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid) {
     // Never request high-bandwidth mode from peers if we're blocks-only. Our
     // mempool will not contain the transactions necessary to reconstruct the
     // compact block.
-    if (m_ignore_incoming_txs) {
+    if (m_opts.ignore_incoming_txs) {
         return;
     }
 
@@ -2011,8 +2003,8 @@ void PeerManagerImpl::PushNodeVersion(const Config &config, CNode &pnode,
             : CService();
     uint64_t your_services{addr.nServices};
 
-    const bool tx_relay = !m_ignore_incoming_txs && !pnode.IsBlockOnlyConn() &&
-                          !pnode.IsFeelerConn();
+    const bool tx_relay = !m_opts.ignore_incoming_txs &&
+                          !pnode.IsBlockOnlyConn() && !pnode.IsFeelerConn();
     m_connman.PushMessage(
         // your_services, addr_you: Together the pre-version-31402 serialization
         //     of CAddress "addrYou" (without nTime)
@@ -2233,7 +2225,8 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
                                       .Make(NetMsgType::GETAVAADDR));
                     PeerRef peer = GetPeerRef(avanodeId);
                     WITH_LOCK(peer->m_addr_token_bucket_mutex,
-                              peer->m_addr_token_bucket += GetMaxAddrToSend());
+                              peer->m_addr_token_bucket +=
+                              m_opts.max_addr_to_send);
                     return true;
                 }
                 return false;
@@ -2432,19 +2425,17 @@ bool PeerManagerImpl::GetNodeStateStats(NodeId nodeid,
 }
 
 void PeerManagerImpl::AddToCompactExtraTransactions(const CTransactionRef &tx) {
-    size_t max_extra_txn = gArgs.GetIntArg(
-        "-blockreconstructionextratxn", DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN);
-    if (max_extra_txn <= 0) {
+    if (m_opts.max_extra_txs <= 0) {
         return;
     }
 
     if (!vExtraTxnForCompact.size()) {
-        vExtraTxnForCompact.resize(max_extra_txn);
+        vExtraTxnForCompact.resize(m_opts.max_extra_txs);
     }
 
     vExtraTxnForCompact[vExtraTxnForCompactIt] =
         std::make_pair(tx->GetHash(), tx);
-    vExtraTxnForCompactIt = (vExtraTxnForCompactIt + 1) % max_extra_txn;
+    vExtraTxnForCompactIt = (vExtraTxnForCompactIt + 1) % m_opts.max_extra_txs;
 }
 
 void PeerManagerImpl::Misbehaving(Peer &peer, int howmuch,
@@ -2623,22 +2614,19 @@ PeerManagerImpl::FetchBlock(const Config &config, NodeId peer_id,
 std::unique_ptr<PeerManager>
 PeerManager::make(CConnman &connman, AddrMan &addrman, BanMan *banman,
                   ChainstateManager &chainman, CTxMemPool &pool,
-                  avalanche::Processor *const avalanche,
-                  bool ignore_incoming_txs) {
+                  avalanche::Processor *const avalanche, Options opts) {
     return std::make_unique<PeerManagerImpl>(connman, addrman, banman, chainman,
-                                             pool, avalanche,
-                                             ignore_incoming_txs);
+                                             pool, avalanche, opts);
 }
 
 PeerManagerImpl::PeerManagerImpl(CConnman &connman, AddrMan &addrman,
                                  BanMan *banman, ChainstateManager &chainman,
                                  CTxMemPool &pool,
                                  avalanche::Processor *const avalanche,
-                                 bool ignore_incoming_txs)
+                                 Options opts)
     : m_chainparams(chainman.GetParams()), m_connman(connman),
       m_addrman(addrman), m_banman(banman), m_chainman(chainman),
-      m_mempool(pool), m_avalanche(avalanche),
-      m_ignore_incoming_txs(ignore_incoming_txs) {}
+      m_mempool(pool), m_avalanche(avalanche), m_opts{opts} {}
 
 void PeerManagerImpl::StartScheduledTasks(CScheduler &scheduler) {
     // Stale tip checking and peer eviction are on two different timers, but we
@@ -3755,7 +3743,7 @@ void PeerManagerImpl::HeadersDirectFetchBlocks(const Config &config,
                          pindexLast->nHeight);
             }
             if (vGetData.size() > 0) {
-                if (!m_ignore_incoming_txs &&
+                if (!m_opts.ignore_incoming_txs &&
                     nodestate->m_provides_cmpctblocks && vGetData.size() == 1 &&
                     mapBlocksInFlight.size() == 1 &&
                     pindexLast->pprev->IsValid(BlockValidity::CHAIN)) {
@@ -4639,7 +4627,7 @@ void PeerManagerImpl::ProcessMessage(
             // addresses in response (bypassing the
             // MAX_ADDR_PROCESSING_TOKEN_BUCKET limit).
             WITH_LOCK(peer->m_addr_token_bucket_mutex,
-                      peer->m_addr_token_bucket += GetMaxAddrToSend());
+                      peer->m_addr_token_bucket += m_opts.max_addr_to_send);
         }
 
         if (!pfrom.IsInboundConn()) {
@@ -4779,7 +4767,7 @@ void PeerManagerImpl::ProcessMessage(
             return;
         }
 
-        if (vAddr.size() > GetMaxAddrToSend()) {
+        if (vAddr.size() > m_opts.max_addr_to_send) {
             Misbehaving(
                 *peer, 20,
                 strprintf("%s message size = %u", msg_type, vAddr.size()));
@@ -4925,7 +4913,8 @@ void PeerManagerImpl::ProcessMessage(
 
         // Reject tx INVs when the -blocksonly setting is enabled, or this is a
         // block-relay-only peer
-        bool reject_tx_invs{m_ignore_incoming_txs || pfrom.IsBlockOnlyConn()};
+        bool reject_tx_invs{m_opts.ignore_incoming_txs ||
+                            pfrom.IsBlockOnlyConn()};
 
         // Allow peers with relay permission to send data other than blocks
         // in blocks only mode
@@ -5331,7 +5320,7 @@ void PeerManagerImpl::ProcessMessage(
         // Stop processing the transaction early if
         // 1) We are in blocks only mode and peer has no relay permission; OR
         // 2) This peer is a block-relay-only peer
-        if ((m_ignore_incoming_txs &&
+        if ((m_opts.ignore_incoming_txs &&
              !pfrom.HasPermission(NetPermissionFlags::Relay)) ||
             pfrom.IsBlockOnlyConn()) {
             LogPrint(BCLog::NET,
@@ -5435,13 +5424,8 @@ void PeerManagerImpl::ProcessMessage(
                 // AlreadyHave, and we shouldn't request it anymore.
                 m_txrequest.ForgetInvId(tx.GetId());
 
-                // DoS prevention: do not allow m_orphanage to grow
-                // unbounded (see CVE-2012-3789)
-                unsigned int nMaxOrphanTx = (unsigned int)std::max(
-                    int64_t(0),
-                    gArgs.GetIntArg("-maxorphantx",
-                                    DEFAULT_MAX_ORPHAN_TRANSACTIONS));
-                unsigned int nEvicted = m_orphanage.LimitOrphans(nMaxOrphanTx);
+                unsigned int nEvicted =
+                    m_orphanage.LimitOrphans(m_opts.max_orphan_txs);
                 if (nEvicted > 0) {
                     LogPrint(BCLog::TXPACKAGES,
                              "orphanage overflow, removed %u tx\n", nEvicted);
@@ -6010,7 +5994,7 @@ void PeerManagerImpl::ProcessMessage(
             m_connman.PushMessage(&pfrom,
                                   msgMaker.Make(NetMsgType::GETAVAADDR));
             WITH_LOCK(peer->m_addr_token_bucket_mutex,
-                      peer->m_addr_token_bucket += GetMaxAddrToSend());
+                      peer->m_addr_token_bucket += m_opts.max_addr_to_send);
 
             if (peer->m_proof_relay &&
                 !m_chainman.ActiveChainstate().IsInitialBlockDownload()) {
@@ -6620,7 +6604,7 @@ void PeerManagerImpl::ProcessMessage(
 
         peer->m_addrs_to_send.clear();
         std::vector<CAddress> vAddr;
-        const size_t maxAddrToSend = GetMaxAddrToSend();
+        const size_t maxAddrToSend = m_opts.max_addr_to_send;
         if (pfrom.HasPermission(NetPermissionFlags::Addr)) {
             vAddr = m_connman.GetAddresses(maxAddrToSend, MAX_PCT_ADDR_TO_SEND,
                                            /* network */ std::nullopt);
@@ -6680,7 +6664,7 @@ void PeerManagerImpl::ProcessMessage(
             }
 
             avaNodes.insert(pnode);
-            if (avaNodes.size() > GetMaxAddrToSend()) {
+            if (avaNodes.size() > m_opts.max_addr_to_send) {
                 avaNodes.erase(std::prev(avaNodes.end()));
             }
         });
@@ -7068,7 +7052,7 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
            pfrom->ConnectionTypeAsString().c_str(), msg.m_type.c_str(),
            msg.m_recv.size(), msg.m_recv.data());
 
-    if (gArgs.GetBoolArg("-capturemessages", false)) {
+    if (m_opts.capture_messages) {
         CaptureMessage(pfrom->addr, msg.m_type, MakeUCharSpan(msg.m_recv),
                        /*is_incoming=*/true);
     }
@@ -7484,7 +7468,7 @@ void PeerManagerImpl::MaybeSendAddr(CNode &node, Peer &peer,
     peer.m_next_addr_send =
         GetExponentialRand(current_time, AVG_ADDRESS_BROADCAST_INTERVAL);
 
-    const size_t max_addr_to_send = GetMaxAddrToSend();
+    const size_t max_addr_to_send = m_opts.max_addr_to_send;
     if (!Assume(peer.m_addrs_to_send.size() <= max_addr_to_send)) {
         // Should be impossible since we always check size before adding to
         // m_addrs_to_send. Recover by trimming the vector.
@@ -7557,7 +7541,7 @@ void PeerManagerImpl::MaybeSendSendHeaders(CNode &node, Peer &peer) {
 
 void PeerManagerImpl::MaybeSendFeefilter(
     CNode &pto, Peer &peer, std::chrono::microseconds current_time) {
-    if (m_ignore_incoming_txs) {
+    if (m_opts.ignore_incoming_txs) {
         return;
     }
     if (pto.GetCommonVersion() < FEEFILTER_VERSION) {

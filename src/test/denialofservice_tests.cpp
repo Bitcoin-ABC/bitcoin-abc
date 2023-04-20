@@ -153,7 +153,7 @@ BOOST_AUTO_TEST_CASE(stale_tip_peer_management) {
         std::make_unique<CConnmanTest>(config, 0x1337, 0x1337, *m_node.addrman);
     auto peerLogic =
         PeerManager::make(*connman, *m_node.addrman, nullptr, *m_node.chainman,
-                          *m_node.mempool, /*avalanche=*/nullptr, false);
+                          *m_node.mempool, /*avalanche=*/nullptr, {});
 
     const Consensus::Params &consensusParams =
         config.GetChainParams().GetConsensus();
@@ -241,7 +241,7 @@ BOOST_AUTO_TEST_CASE(peer_discouragement) {
         std::make_unique<CConnman>(config, 0x1337, 0x1337, *m_node.addrman);
     auto peerLogic = PeerManager::make(*connman, *m_node.addrman, banman.get(),
                                        *m_node.chainman, *m_node.mempool,
-                                       /*avalanche=*/nullptr, false);
+                                       /*avalanche=*/nullptr, {});
 
     banman->ClearBanned();
     CAddress addr1(ip(0xa0b0c001), NODE_NONE);
@@ -298,7 +298,7 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
         std::make_unique<CConnman>(config, 0x1337, 0x1337, *m_node.addrman);
     auto peerLogic = PeerManager::make(*connman, *m_node.addrman, banman.get(),
                                        *m_node.chainman, *m_node.mempool,
-                                       /*avalanche=*/nullptr, false);
+                                       /*avalanche=*/nullptr, {});
 
     banman->ClearBanned();
     int64_t nStartTime = GetTime();

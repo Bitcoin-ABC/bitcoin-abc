@@ -671,6 +671,7 @@ add_library(server
 	node/kernel_notifications.cpp
 	node/mempool_persist_args.cpp
 	node/miner.cpp
+	node/peerman_args.cpp
 	node/psbt.cpp
 	node/transaction.cpp
 	node/ui_interface.cpp

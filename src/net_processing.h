@@ -34,6 +34,8 @@ static const bool DEFAULT_PEERBLOCKFILTERS = false;
 /** Threshold for marking a node to be discouraged, e.g. disconnected and added
  * to the discouragement filter. */
 static const int DISCOURAGEMENT_THRESHOLD{100};
+/** The maximum number of address records permitted in an ADDR message. */
+static constexpr size_t MAX_ADDR_TO_SEND{1000};
 
 struct CNodeStateStats {
     int nSyncHeight = -1;
@@ -52,10 +54,19 @@ struct CNodeStateStats {
 
 class PeerManager : public CValidationInterface, public NetEventsInterface {
 public:
+    struct Options {
+        /** Whether this node is running in -blocksonly mode */
+        bool ignore_incoming_txs{DEFAULT_BLOCKSONLY};
+        uint32_t max_orphan_txs{DEFAULT_MAX_ORPHAN_TRANSACTIONS};
+        size_t max_extra_txs{DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN};
+        bool capture_messages{false};
+        size_t max_addr_to_send{MAX_ADDR_TO_SEND};
+    };
+
     static std::unique_ptr<PeerManager>
     make(CConnman &connman, AddrMan &addrman, BanMan *banman,
          ChainstateManager &chainman, CTxMemPool &pool,
-         avalanche::Processor *const avalanche, bool ignore_incoming_txs);
+         avalanche::Processor *const avalanche, Options opts);
     virtual ~PeerManager() {}
 
     /**

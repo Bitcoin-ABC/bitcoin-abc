@@ -150,7 +150,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
 
         m_node.peerman = ::PeerManager::make(
             *m_connman, *m_node.addrman, m_node.banman.get(), *m_node.chainman,
-            *m_node.mempool, m_processor.get(), false);
+            *m_node.mempool, m_processor.get(), {});
         m_node.chain = interfaces::MakeChain(m_node, config.GetChainParams());
     }
 
