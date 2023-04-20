@@ -18,10 +18,10 @@ class SHA256:
 
 if str != bytes:
     # Python 3.x
-    def ord(c):
+    def ord(c):  # noqa: A001
         return c
 
-    def chr(n):
+    def chr(n):  # noqa: A001
         return bytes((n,))
 
 __b58chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
