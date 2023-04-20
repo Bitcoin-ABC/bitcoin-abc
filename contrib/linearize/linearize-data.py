@@ -68,10 +68,10 @@ def calc_hdr_hash(blk_hdr):
 
 
 def calc_hash_str(blk_hdr):
-    hash = calc_hdr_hash(blk_hdr)
-    hash = bufreverse(hash)
-    hash = wordreverse(hash)
-    hash_str = hash.hex()
+    blockhash = calc_hdr_hash(blk_hdr)
+    blockhash = bufreverse(blockhash)
+    blockhash = wordreverse(blockhash)
+    hash_str = blockhash.hex()
     return hash_str
 
 
@@ -103,8 +103,8 @@ def get_block_hashes(settings):
 
 def mkblockmap(blkindex):
     blkmap = {}
-    for height, hash in enumerate(blkindex):
-        blkmap[hash] = height
+    for height, blockhash in enumerate(blkindex):
+        blkmap[blockhash] = height
     return blkmap
 
 
