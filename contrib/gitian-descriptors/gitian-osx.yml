@@ -31,6 +31,7 @@ packages:
 - "python3-dev"
 - "python3-pip"
 - "python3-setuptools"
+- "xorriso"
 remotes:
 - "url": "https://github.com/Bitcoin-ABC/bitcoin-abc.git"
   "dir": "bitcoin"
@@ -47,7 +48,7 @@ script: |
   CMAKE_TOOLCHAIN_FILE[x86_64-apple-darwin18]=OSX.cmake
 
   FAKETIME_HOST_PROGS=""
-  FAKETIME_PROGS="ar ranlib date dmg genisoimage"
+  FAKETIME_PROGS="ar ranlib date dmg xorrisofs"
 
   export QT_RCC_TEST=1
   export QT_RCC_SOURCE_DATE_OVERRIDE=1
@@ -148,7 +149,8 @@ script: |
       -DENABLE_REDUCE_EXPORTS=ON \
       -DCMAKE_INSTALL_PREFIX=${INSTALLPATH} \
       -DCCACHE=OFF \
-      -DGENISOIMAGE_EXECUTABLE="${WRAP_DIR}/genisoimage"
+      -DXORRISOFS_EXECUTABLE="${WRAP_DIR}/xorrisofs" \
+      -DDMG_EXECUTABLE="${WRAP_DIR}/dmg"
 
     ninja
     ninja security-check
@@ -164,7 +166,7 @@ script: |
     cp osx_volname unsigned-app-${i}/
     cp ../contrib/macdeploy/detached-sig-apply.sh unsigned-app-${i}
     cp ../contrib/macdeploy/detached-sig-create.sh unsigned-app-${i}
-    cp ${BASEPREFIX}/${i}/native/bin/dmg ${BASEPREFIX}/${i}/native/bin/genisoimage unsigned-app-${i}
+    cp ${BASEPREFIX}/${i}/native/bin/dmg unsigned-app-${i}
     cp ${BASEPREFIX}/${i}/native/bin/${i}-codesign_allocate unsigned-app-${i}/codesign_allocate
     cp ${BASEPREFIX}/${i}/native/bin/${i}-pagestuff unsigned-app-${i}/pagestuff
     mv dist unsigned-app-${i}
@@ -173,7 +175,7 @@ script: |
     popd
 
     ninja osx-dmg
-    ${WRAP_DIR}/dmg dmg "${OSX_VOLNAME}.dmg" ${OUTDIR}/${DISTNAME}-osx-unsigned.dmg
+    mv "${OSX_VOLNAME}.dmg" ${OUTDIR}/${DISTNAME}-osx-unsigned.dmg
 
     cd installed
     find -path "*.app*" -type f -executable -exec mv {} ${DISTNAME}/bin/bitcoin-qt \;

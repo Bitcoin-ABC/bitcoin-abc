@@ -84,9 +84,10 @@ PACKAGES=(
   software-properties-common
   tar
   wget
+  wine
+  xorriso
   xvfb
   yamllint
-  wine
 )
 
 function join_by() {

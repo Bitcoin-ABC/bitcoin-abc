@@ -570,26 +570,34 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	)
 
 	if(CMAKE_CROSSCOMPILING)
-		find_program_or_fail(GENISOIMAGE_EXECUTABLE genisoimage)
+		find_program_or_fail(XORRISOFS_EXECUTABLE xorrisofs)
+		find_program_or_fail(DMG_EXECUTABLE dmg)
 
-		add_custom_target(osx-dmg
+		add_custom_target(osx-dmg-uncompressed
 			COMMAND
-				"${GENISOIMAGE_EXECUTABLE}"
-				-no-cache-inodes
+				"${XORRISOFS_EXECUTABLE}"
 				-D
 				-l
-				-probe
 				-V "${OSX_VOLNAME}"
 				-no-pad
 				-r
 				-dir-mode 0755
-				-apple
-				-o "${OSX_VOLNAME}.dmg"
+				-o "${OSX_VOLNAME}-uncompressed.dmg"
 				"${DMG_DIST}"
 			WORKING_DIRECTORY
 				"${CMAKE_BINARY_DIR}"
 		)
-		add_dependencies(osx-dmg osx-deploydir)
+		add_dependencies(osx-dmg-uncompressed osx-deploydir)
+		add_custom_target(osx-dmg
+			COMMAND
+				"${DMG_EXECUTABLE}"
+				dmg
+				"${OSX_VOLNAME}-uncompressed.dmg"
+				"${OSX_VOLNAME}.dmg"
+			WORKING_DIRECTORY
+				"${CMAKE_BINARY_DIR}"
+		)
+		add_dependencies(osx-dmg osx-dmg-uncompressed)
 	else()
 		add_custom_target(osx-dmg
 			COMMAND
