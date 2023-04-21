@@ -1,4 +1,4 @@
-# XEC Aliases
+# eCash Aliases
 
 A serverless way to register user-selected address aliases.
 
@@ -18,13 +18,13 @@ Key differences between ENS and CashAccounts:
 
 ## Approach
 
-In developing an alias system for XEC, it would be nice to preserve the simplicity (and permanence) of registration found in CashAccounts.
+In developing an alias system for eCash, it would be nice to preserve the simplicity (and permanence) of registration found in CashAccounts.
 
 Features proven popular in ENS, like fully customizable registration and market tradeability, should be implemented.
 
 ## Implementation
 
-XEC aliases will be implemented in phases.
+eCash aliases will be implemented in phases.
 
 Phase 1
 
