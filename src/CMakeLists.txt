@@ -463,7 +463,7 @@ macro(link_boost TARGET)
 	non_native_target_link_libraries(${TARGET} Boost 1.59 ${ARGN})
 endmacro()
 
-link_boost(util filesystem thread)
+link_boost(util thread)
 # Make sure boost uses std::atomic (it doesn't before 1.63)
 target_compile_definitions(util PUBLIC BOOST_SP_USE_STD_ATOMIC BOOST_AC_USE_STD_ATOMIC)
 
