@@ -113,27 +113,15 @@ def ser_string(s):
 
 
 def deser_uint256(f):
-    r = 0
-    for i in range(8):
-        t = struct.unpack("<I", f.read(4))[0]
-        r += t << (i * 32)
-    return r
+    return int.from_bytes(f.read(32), "little")
 
 
 def ser_uint256(u):
-    rs = b""
-    for _ in range(8):
-        rs += struct.pack("<I", u & 0xFFFFFFFF)
-        u >>= 32
-    return rs
+    return u.to_bytes(32, "little")
 
 
 def uint256_from_str(s):
-    r = 0
-    t = struct.unpack("<IIIIIIII", s[:32])
-    for i in range(8):
-        r += t[i] << (i * 32)
-    return r
+    return int.from_bytes(s[:32], "little")
 
 
 def uint256_from_compact(c):
