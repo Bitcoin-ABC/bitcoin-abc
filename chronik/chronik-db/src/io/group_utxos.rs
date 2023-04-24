@@ -201,7 +201,6 @@ impl<'a, G: Group> GroupUtxoWriter<'a, G> {
         Ok(())
     }
 
-    #[cfg(test)]
     pub(crate) fn add_cfs(columns: &mut Vec<rocksdb::ColumnFamilyDescriptor>) {
         columns.push(rocksdb::ColumnFamilyDescriptor::new(
             G::utxo_conf().cf_name,

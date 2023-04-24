@@ -14,7 +14,7 @@ use rocksdb::{ColumnFamilyDescriptor, IteratorMode};
 use thiserror::Error;
 
 use crate::{
-    groups::ScriptHistoryWriter,
+    groups::{ScriptHistoryWriter, ScriptUtxoWriter},
     io::{BlockWriter, MetadataWriter, SpentByWriter, TxWriter},
 };
 
@@ -75,6 +75,7 @@ impl Db {
         MetadataWriter::add_cfs(&mut cfs);
         TxWriter::add_cfs(&mut cfs);
         ScriptHistoryWriter::add_cfs(&mut cfs);
+        ScriptUtxoWriter::add_cfs(&mut cfs);
         SpentByWriter::add_cfs(&mut cfs);
         Self::open_with_cfs(path, cfs)
     }

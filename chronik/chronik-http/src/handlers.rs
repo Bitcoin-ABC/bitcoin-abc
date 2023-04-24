@@ -134,3 +134,20 @@ pub async fn handle_script_unconfirmed_txs(
     let script = script_variant.to_script();
     script_history.unconfirmed_txs(&script)
 }
+
+/// Return the UTXOs of the given script.
+/// Scripts are identified by script_type and payload.
+pub async fn handle_script_utxos(
+    script_type: &str,
+    payload: &str,
+    indexer: &ChronikIndexer,
+) -> Result<proto::ScriptUtxos> {
+    let script_variant = parse_script_variant(script_type, payload)?;
+    let script_utxos = indexer.script_utxos()?;
+    let script = script_variant.to_script();
+    let utxos = script_utxos.utxos(&script)?;
+    Ok(proto::ScriptUtxos {
+        script: script.bytecode().to_vec(),
+        utxos,
+    })
+}

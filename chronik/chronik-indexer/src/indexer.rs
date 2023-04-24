@@ -14,7 +14,9 @@ use bitcoinsuite_core::{
 use chronik_bridge::{ffi, util::expect_unique_ptr};
 use chronik_db::{
     db::{Db, WriteBatch},
-    groups::{FnCompressScript, ScriptGroup, ScriptHistoryWriter},
+    groups::{
+        FnCompressScript, ScriptGroup, ScriptHistoryWriter, ScriptUtxoWriter,
+    },
     index_tx::prepare_indexed_txs,
     io::{
         BlockHeight, BlockReader, BlockTxs, BlockWriter, DbBlock,
@@ -29,7 +31,7 @@ use tokio::sync::RwLock;
 
 use crate::{
     avalanche::Avalanche,
-    query::{QueryBlocks, QueryGroupHistory, QueryTxs},
+    query::{QueryBlocks, QueryGroupHistory, QueryGroupUtxos, QueryTxs},
     subs::{BlockMsg, BlockMsgType, Subs},
 };
 
@@ -282,12 +284,15 @@ impl ChronikIndexer {
         let tx_writer = TxWriter::new(&self.db)?;
         let script_history_writer =
             ScriptHistoryWriter::new(&self.db, self.script_group.clone())?;
+        let script_utxo_writer =
+            ScriptUtxoWriter::new(&self.db, self.script_group.clone())?;
         let spent_by_writer = SpentByWriter::new(&self.db)?;
         block_writer.insert(&mut batch, &block.db_block)?;
         let first_tx_num = tx_writer.insert(&mut batch, &block.block_txs)?;
         let index_txs =
             prepare_indexed_txs(&self.db, first_tx_num, &block.txs)?;
         script_history_writer.insert(&mut batch, &index_txs)?;
+        script_utxo_writer.insert(&mut batch, &index_txs)?;
         spent_by_writer.insert(&mut batch, &index_txs)?;
         self.db.write_batch(batch)?;
         self.mempool
@@ -311,12 +316,15 @@ impl ChronikIndexer {
         let tx_writer = TxWriter::new(&self.db)?;
         let script_history_writer =
             ScriptHistoryWriter::new(&self.db, self.script_group.clone())?;
+        let script_utxo_writer =
+            ScriptUtxoWriter::new(&self.db, self.script_group.clone())?;
         let spent_by_writer = SpentByWriter::new(&self.db)?;
         block_writer.delete(&mut batch, &block.db_block)?;
         let first_tx_num = tx_writer.delete(&mut batch, &block.block_txs)?;
         let index_txs =
             prepare_indexed_txs(&self.db, first_tx_num, &block.txs)?;
         script_history_writer.delete(&mut batch, &index_txs)?;
+        script_utxo_writer.delete(&mut batch, &index_txs)?;
         spent_by_writer.delete(&mut batch, &index_txs)?;
         self.avalanche.disconnect_block(block.db_block.height)?;
         self.db.write_batch(batch)?;
@@ -370,6 +378,17 @@ impl ChronikIndexer {
             avalanche: &self.avalanche,
             mempool: &self.mempool,
             mempool_history: self.mempool.script_history(),
+            group: self.script_group.clone(),
+        })
+    }
+
+    /// Return [`QueryGroupUtxos`] for scripts to query the utxos of scripts.
+    pub fn script_utxos(&self) -> Result<QueryGroupUtxos<'_, ScriptGroup>> {
+        Ok(QueryGroupUtxos {
+            db: &self.db,
+            avalanche: &self.avalanche,
+            mempool: &self.mempool,
+            mempool_utxos: self.mempool.script_utxos(),
             group: self.script_group.clone(),
         })
     }

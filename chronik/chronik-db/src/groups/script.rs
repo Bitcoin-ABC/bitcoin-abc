@@ -8,17 +8,24 @@ use crate::{
     db::{CF_SCRIPT_HISTORY, CF_SCRIPT_UTXO},
     group::{Group, GroupQuery, MemberItem},
     io::{
-        GroupHistoryConf, GroupHistoryReader, GroupHistoryWriter, GroupUtxoConf,
+        GroupHistoryConf, GroupHistoryReader, GroupHistoryWriter,
+        GroupUtxoConf, GroupUtxoReader, GroupUtxoWriter,
     },
-    mem::MempoolGroupHistory,
+    mem::{MempoolGroupHistory, MempoolGroupUtxos},
 };
 
 /// Index the mempool tx history of scripts
 pub type MempoolScriptHistory = MempoolGroupHistory<ScriptGroup>;
+/// Index the mempool UTXOs of scripts
+pub type MempoolScriptUtxos = MempoolGroupUtxos<ScriptGroup>;
 /// Index the tx history of script in the DB
 pub type ScriptHistoryWriter<'a> = GroupHistoryWriter<'a, ScriptGroup>;
 /// Read the tx history of scripts in the DB
 pub type ScriptHistoryReader<'a> = GroupHistoryReader<'a, ScriptGroup>;
+/// Index the UTXOs of scripts in the DB
+pub type ScriptUtxoWriter<'a> = GroupUtxoWriter<'a, ScriptGroup>;
+/// Read the UTXOs of scripts in the DB
+pub type ScriptUtxoReader<'a> = GroupUtxoReader<'a, ScriptGroup>;
 /// Function ptr to compress scripts
 pub type FnCompressScript = fn(&Script) -> Vec<u8>;
 

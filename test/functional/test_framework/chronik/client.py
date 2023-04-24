@@ -75,6 +75,11 @@ class ChronikScriptClient:
             f'/script/{self.script_type}/{self.script_payload}/unconfirmed-txs',
             pb.TxHistoryPage)
 
+    def utxos(self):
+        return self.client._request_get(
+            f'/script/{self.script_type}/{self.script_payload}/utxos',
+            pb.ScriptUtxos)
+
 
 class ChronikWs:
     def __init__(self, ws) -> None:

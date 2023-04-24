@@ -11,7 +11,7 @@ use bitcoinsuite_core::tx::{Tx, TxId};
 use thiserror::Error;
 
 use crate::{
-    groups::{MempoolScriptHistory, ScriptGroup},
+    groups::{MempoolScriptHistory, MempoolScriptUtxos, ScriptGroup},
     mem::MempoolSpentBy,
 };
 
@@ -22,6 +22,7 @@ use crate::{
 pub struct Mempool {
     txs: HashMap<TxId, MempoolTx>,
     script_history: MempoolScriptHistory,
+    script_utxos: MempoolScriptUtxos,
     spent_by: MempoolSpentBy,
 }
 
@@ -53,7 +54,8 @@ impl Mempool {
     pub fn new(script_group: ScriptGroup) -> Self {
         Mempool {
             txs: HashMap::new(),
-            script_history: MempoolScriptHistory::new(script_group),
+            script_history: MempoolScriptHistory::new(script_group.clone()),
+            script_utxos: MempoolScriptUtxos::new(script_group),
             spent_by: MempoolSpentBy::default(),
         }
     }
@@ -62,6 +64,8 @@ impl Mempool {
     pub fn insert(&mut self, mempool_tx: MempoolTx) -> Result<()> {
         let txid = mempool_tx.tx.txid();
         self.script_history.insert(&mempool_tx);
+        self.script_utxos
+            .insert(&mempool_tx, |txid| self.txs.contains_key(txid))?;
         self.spent_by.insert(&mempool_tx)?;
         if self.txs.insert(txid, mempool_tx).is_some() {
             return Err(DuplicateTx(txid).into());
@@ -76,6 +80,8 @@ impl Mempool {
             None => return Err(NoSuchMempoolTx(txid).into()),
         };
         self.script_history.remove(&mempool_tx);
+        self.script_utxos
+            .remove(&mempool_tx, |txid| self.txs.contains_key(txid))?;
         self.spent_by.remove(&mempool_tx)?;
         Ok(())
     }
@@ -88,6 +94,7 @@ impl Mempool {
         for txid in txids {
             if let Some(mempool_tx) = self.txs.remove(&txid) {
                 self.script_history.remove(&mempool_tx);
+                self.script_utxos.remove_mined(&mempool_tx);
                 self.spent_by.remove(&mempool_tx)?;
             }
         }
@@ -102,6 +109,11 @@ impl Mempool {
     /// Tx history of scripts in the mempool.
     pub fn script_history(&self) -> &MempoolScriptHistory {
         &self.script_history
+    }
+
+    /// Tx history of UTXOs in the mempool.
+    pub fn script_utxos(&self) -> &MempoolScriptUtxos {
+        &self.script_utxos
     }
 
     /// Which tx outputs have been spent by tx in the mempool.

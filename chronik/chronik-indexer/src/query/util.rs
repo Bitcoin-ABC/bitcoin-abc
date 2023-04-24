@@ -85,7 +85,7 @@ pub(crate) fn make_tx_proto(
     }
 }
 
-fn make_outpoint_proto(outpoint: &OutPoint) -> proto::OutPoint {
+pub(crate) fn make_outpoint_proto(outpoint: &OutPoint) -> proto::OutPoint {
     proto::OutPoint {
         txid: outpoint.txid.to_vec(),
         out_idx: outpoint.out_idx,

@@ -48,6 +48,20 @@ message Tx {
     bool is_coinbase = 12;
 }
 
+// UTXO of a script.
+message ScriptUtxo {
+    // txid and out_idx of the unspent output.
+    OutPoint outpoint = 1;
+    // Block height of the UTXO, or -1 if in mempool.
+    int32 block_height = 2;
+    // Whether the UTXO has been created in a coinbase tx.
+    bool is_coinbase = 3;
+    // Value of the output, in satoshis.
+    int64 value = 5;
+    // Whether the UTXO has been finalized by Avalanche.
+    bool is_final = 10;
+}
+
 // COutPoint, points to a coin being spent by an input.
 message OutPoint {
     // TxId of the tx of the output being spent.
@@ -108,6 +122,14 @@ message TxHistoryPage {
     uint32 num_pages = 2;
     // How many txs there are total
     uint32 num_txs = 3;
+}
+
+// List of UTXOs of a script
+message ScriptUtxos {
+    // The serialized script of the UTXOs
+    bytes script = 1;
+    // UTXOs of the script.
+    repeated ScriptUtxo utxos = 2;
 }
 
 // Message coming from the WebSocket
