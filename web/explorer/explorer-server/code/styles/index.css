@@ -418,7 +418,8 @@ table.dataTable thead .sorting {
 
 .hex {
     font-family: 'IBM Plex Mono', monospace;
-    word-break: break-all;
+    word-break: normal;
+    overflow-wrap: anywhere;
     text-align: left;
 }
 
