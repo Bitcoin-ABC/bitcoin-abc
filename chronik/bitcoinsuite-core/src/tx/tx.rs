@@ -63,6 +63,15 @@ pub struct OutPoint {
     pub out_idx: u32,
 }
 
+/// Points to an input spending a coin.
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct SpentBy {
+    /// TxId of the tx with the input.
+    pub txid: TxId,
+    /// Index in the inputs of the tx.
+    pub input_idx: u32,
+}
+
 /// CTxIn, spending an unspent output.
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct TxInput {
