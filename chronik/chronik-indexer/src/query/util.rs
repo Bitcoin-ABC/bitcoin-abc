@@ -5,7 +5,7 @@
 use std::collections::{hash_map::Entry, BTreeMap, HashMap};
 
 use abc_rust_error::Result;
-use bitcoinsuite_core::tx::{SpentBy, Tx, TxId};
+use bitcoinsuite_core::tx::{OutPoint, SpentBy, Tx, TxId};
 use chronik_db::io::{DbBlock, SpentByEntry, SpentByReader, TxNum, TxReader};
 use chronik_proto::proto;
 use thiserror::Error;
@@ -53,10 +53,7 @@ pub(crate) fn make_tx_proto(
                     })
                     .unwrap_or_default();
                 proto::TxInput {
-                    prev_out: Some(proto::OutPoint {
-                        txid: input.prev_out.txid.to_vec(),
-                        out_idx: input.prev_out.out_idx,
-                    }),
+                    prev_out: Some(make_outpoint_proto(&input.prev_out)),
                     input_script: input.script.to_vec(),
                     output_script,
                     value,
@@ -85,6 +82,13 @@ pub(crate) fn make_tx_proto(
         }),
         time_first_seen,
         is_coinbase,
+    }
+}
+
+fn make_outpoint_proto(outpoint: &OutPoint) -> proto::OutPoint {
+    proto::OutPoint {
+        txid: outpoint.txid.to_vec(),
+        out_idx: outpoint.out_idx,
     }
 }
 
