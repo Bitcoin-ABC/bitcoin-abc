@@ -8,10 +8,12 @@ mod blocks;
 mod group_history;
 mod group_utxos;
 mod metadata;
+mod spent_by;
 mod txs;
 
 pub use self::blocks::*;
 pub use self::group_history::*;
 pub use self::group_utxos::*;
 pub use self::metadata::*;
+pub use self::spent_by::*;
 pub use self::txs::*;

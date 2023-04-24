@@ -37,6 +37,8 @@ pub const CF_META: &str = "meta";
 pub const CF_SCRIPT_HISTORY: &str = "script_history";
 /// Column family for utxos by script.
 pub const CF_SCRIPT_UTXO: &str = "script_utxo";
+/// Column family to store which outputs have been spent by which tx inputs.
+pub const CF_SPENT_BY: &str = "spent_by";
 /// Column family for the tx data.
 pub const CF_TX: &str = "tx";
 
