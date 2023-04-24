@@ -15,7 +15,7 @@ use thiserror::Error;
 
 use crate::{
     groups::ScriptHistoryWriter,
-    io::{BlockWriter, MetadataWriter, TxWriter},
+    io::{BlockWriter, MetadataWriter, SpentByWriter, TxWriter},
 };
 
 // All column family names used by Chronik should be defined here
@@ -75,6 +75,7 @@ impl Db {
         MetadataWriter::add_cfs(&mut cfs);
         TxWriter::add_cfs(&mut cfs);
         ScriptHistoryWriter::add_cfs(&mut cfs);
+        SpentByWriter::add_cfs(&mut cfs);
         Self::open_with_cfs(path, cfs)
     }
 

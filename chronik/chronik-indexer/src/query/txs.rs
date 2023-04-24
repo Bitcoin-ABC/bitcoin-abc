@@ -9,13 +9,16 @@ use bitcoinsuite_core::tx::{Tx, TxId};
 use chronik_bridge::ffi;
 use chronik_db::{
     db::Db,
-    io::{BlockReader, TxReader},
+    io::{BlockReader, SpentByReader, TxReader},
     mem::Mempool,
 };
 use chronik_proto::proto;
 use thiserror::Error;
 
-use crate::{avalanche::Avalanche, query::make_tx_proto};
+use crate::{
+    avalanche::Avalanche,
+    query::{make_tx_proto, OutputsSpent},
+};
 
 /// Struct for querying txs from the db/mempool.
 #[derive(Debug)]
@@ -52,6 +55,9 @@ impl<'a> QueryTxs<'a> {
         match self.mempool.tx(&txid) {
             Some(tx) => Ok(make_tx_proto(
                 &tx.tx,
+                &OutputsSpent::new_mempool(
+                    self.mempool.spent_by().outputs_spent(&txid),
+                ),
                 tx.time_first_seen,
                 false,
                 None,
@@ -59,10 +65,12 @@ impl<'a> QueryTxs<'a> {
             )),
             None => {
                 let tx_reader = TxReader::new(self.db)?;
-                let block_tx =
-                    tx_reader.tx_by_txid(&txid)?.ok_or(TxNotFound(txid))?;
+                let (tx_num, block_tx) = tx_reader
+                    .tx_and_num_by_txid(&txid)?
+                    .ok_or(TxNotFound(txid))?;
                 let tx_entry = block_tx.entry;
                 let block_reader = BlockReader::new(self.db)?;
+                let spent_by_reader = SpentByReader::new(self.db)?;
                 let block = block_reader
                     .by_height(block_tx.block_height)?
                     .ok_or(DbTxHasNoBlock(txid))?;
@@ -72,8 +80,15 @@ impl<'a> QueryTxs<'a> {
                     tx_entry.undo_pos,
                 )
                 .wrap_err(ReadFailure(txid))?;
+                let outputs_spent = OutputsSpent::query(
+                    &spent_by_reader,
+                    &tx_reader,
+                    self.mempool.spent_by().outputs_spent(&txid),
+                    tx_num,
+                )?;
                 Ok(make_tx_proto(
                     &Tx::from(tx),
+                    &outputs_spent,
                     tx_entry.time_first_seen,
                     tx_entry.is_coinbase,
                     Some(&block),

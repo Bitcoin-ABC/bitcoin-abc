@@ -5,9 +5,7 @@
 use std::collections::{hash_map::Entry, HashMap};
 
 use abc_rust_error::Result;
-use rocksdb::WriteBatch;
-#[cfg(test)]
-use rocksdb::{ColumnFamilyDescriptor, Options};
+use rocksdb::{ColumnFamilyDescriptor, Options, WriteBatch};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -271,7 +269,6 @@ impl<'a> SpentByWriter<'a> {
         }
     }
 
-    #[cfg(test)]
     pub(crate) fn add_cfs(columns: &mut Vec<ColumnFamilyDescriptor>) {
         columns
             .push(ColumnFamilyDescriptor::new(CF_SPENT_BY, Options::default()));

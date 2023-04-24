@@ -12,14 +12,17 @@ use chronik_bridge::ffi;
 use chronik_db::{
     db::Db,
     group::Group,
-    io::{BlockReader, GroupHistoryReader, TxNum, TxReader},
+    io::{BlockReader, GroupHistoryReader, SpentByReader, TxNum, TxReader},
     mem::{Mempool, MempoolGroupHistory},
 };
 use chronik_proto::proto;
 use chronik_util::log;
 use thiserror::Error;
 
-use crate::{avalanche::Avalanche, query::make_tx_proto};
+use crate::{
+    avalanche::Avalanche,
+    query::{make_tx_proto, OutputsSpent},
+};
 
 /// Smallest allowed page size
 pub const MIN_HISTORY_PAGE_SIZE: usize = 1;
@@ -259,6 +262,9 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
             let entry = self.mempool.tx(txid).ok_or(MissingMempoolTx(*txid))?;
             page_txs.push(make_tx_proto(
                 &entry.tx,
+                &OutputsSpent::new_mempool(
+                    self.mempool.spent_by().outputs_spent(txid),
+                ),
                 entry.time_first_seen,
                 false,
                 None,
@@ -338,6 +344,9 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
                         self.mempool.tx(txid).ok_or(MissingMempoolTx(*txid))?;
                     Ok(make_tx_proto(
                         &entry.tx,
+                        &OutputsSpent::new_mempool(
+                            self.mempool.spent_by().outputs_spent(txid),
+                        ),
                         entry.time_first_seen,
                         false,
                         None,
@@ -357,6 +366,7 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
     fn read_block_tx(&self, tx_num: TxNum) -> Result<proto::Tx> {
         let tx_reader = TxReader::new(self.db)?;
         let block_reader = BlockReader::new(self.db)?;
+        let spent_by_reader = SpentByReader::new(self.db)?;
         let block_tx =
             tx_reader.tx_by_tx_num(tx_num)?.ok_or(MissingDbTx(tx_num))?;
         let block = block_reader
@@ -367,8 +377,15 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
             block_tx.entry.data_pos,
             block_tx.entry.undo_pos,
         )?;
+        let outputs_spent = OutputsSpent::query(
+            &spent_by_reader,
+            &tx_reader,
+            self.mempool.spent_by().outputs_spent(&block_tx.entry.txid),
+            tx_num,
+        )?;
         Ok(make_tx_proto(
             &Tx::from(tx),
+            &outputs_spent,
             block_tx.entry.time_first_seen,
             block_tx.entry.is_coinbase,
             Some(&block),

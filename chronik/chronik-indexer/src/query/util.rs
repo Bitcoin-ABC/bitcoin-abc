@@ -2,15 +2,38 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-use bitcoinsuite_core::tx::Tx;
-use chronik_db::io::DbBlock;
+use std::collections::{hash_map::Entry, BTreeMap, HashMap};
+
+use abc_rust_error::Result;
+use bitcoinsuite_core::tx::{SpentBy, Tx, TxId};
+use chronik_db::io::{DbBlock, SpentByEntry, SpentByReader, TxNum, TxReader};
 use chronik_proto::proto;
+use thiserror::Error;
 
 use crate::avalanche::Avalanche;
 
+/// Errors indicating something went wrong with reading txs.
+#[derive(Debug, Error, PartialEq)]
+pub enum QueryUtilError {
+    /// DB contains a spent-by entry whose referenced tx_num cannot be found.
+    #[error(
+        "500: Inconsistent DB: tx_num = {tx_num} has spent entry {entry:?} in \
+         the DB, but the tx cannot be not found in the index"
+    )]
+    SpendingTxNotFound {
+        /// Which tx has an output spent by an unknown tx.
+        tx_num: TxNum,
+        /// The offending entry in the DB that references an unknown tx.
+        entry: SpentByEntry,
+    },
+}
+
+use self::QueryUtilError::*;
+
 /// Make a [`proto::Tx`].
-pub fn make_tx_proto(
+pub(crate) fn make_tx_proto(
     tx: &Tx,
+    outputs_spent: &OutputsSpent<'_>,
     time_first_seen: i64,
     is_coinbase: bool,
     block: Option<&DbBlock>,
@@ -44,9 +67,13 @@ pub fn make_tx_proto(
         outputs: tx
             .outputs
             .iter()
-            .map(|output| proto::TxOutput {
+            .enumerate()
+            .map(|(output_idx, output)| proto::TxOutput {
                 value: output.value,
                 output_script: output.script.to_vec(),
+                spent_by: outputs_spent
+                    .spent_by(output_idx as u32)
+                    .map(|spent_by| make_spent_by_proto(&spent_by)),
             })
             .collect(),
         lock_time: tx.locktime,
@@ -58,5 +85,79 @@ pub fn make_tx_proto(
         }),
         time_first_seen,
         is_coinbase,
+    }
+}
+
+fn make_spent_by_proto(spent_by: &SpentBy) -> proto::SpentBy {
+    proto::SpentBy {
+        txid: spent_by.txid.to_vec(),
+        input_idx: spent_by.input_idx,
+    }
+}
+
+/// Helper struct for querying which tx outputs have been spent by DB or mempool
+/// txs.
+pub(crate) struct OutputsSpent<'a> {
+    spent_by_mempool: Option<&'a BTreeMap<u32, SpentBy>>,
+    spent_by_blocks: Vec<SpentByEntry>,
+    txid_by_num: HashMap<TxNum, TxId>,
+}
+
+impl<'a> OutputsSpent<'a> {
+    pub(crate) fn new_mempool(
+        spent_by_mempool: Option<&'a BTreeMap<u32, SpentBy>>,
+    ) -> Self {
+        OutputsSpent {
+            spent_by_mempool,
+            spent_by_blocks: vec![],
+            txid_by_num: HashMap::new(),
+        }
+    }
+
+    pub(crate) fn query(
+        spent_by_reader: &SpentByReader<'_>,
+        tx_reader: &TxReader<'_>,
+        spent_by_mempool: Option<&'a BTreeMap<u32, SpentBy>>,
+        tx_num: TxNum,
+    ) -> Result<Self> {
+        let spent_by_blocks =
+            spent_by_reader.by_tx_num(tx_num)?.unwrap_or_default();
+        let mut txid_by_num = HashMap::<TxNum, TxId>::new();
+        for spent_by in &spent_by_blocks {
+            if let Entry::Vacant(entry) = txid_by_num.entry(spent_by.tx_num) {
+                let txid = tx_reader
+                    .txid_by_tx_num(spent_by.tx_num)?
+                    .ok_or_else(|| SpendingTxNotFound {
+                        tx_num,
+                        entry: spent_by.clone(),
+                    })?;
+                entry.insert(txid);
+            }
+        }
+        Ok(OutputsSpent {
+            spent_by_mempool,
+            spent_by_blocks,
+            txid_by_num,
+        })
+    }
+
+    pub(crate) fn spent_by(&self, output_idx: u32) -> Option<SpentBy> {
+        if let Some(spent_by_mempool) = self.spent_by_mempool {
+            if let Some(outpoint) = spent_by_mempool.get(&output_idx) {
+                return Some(*outpoint);
+            }
+        }
+        let search_idx = self
+            .spent_by_blocks
+            .binary_search_by_key(&output_idx, |entry| entry.out_idx);
+        let entry = match search_idx {
+            Ok(found_idx) => &self.spent_by_blocks[found_idx],
+            Err(_) => return None,
+        };
+        let txid = self.txid_by_num.get(&entry.tx_num).unwrap();
+        Some(SpentBy {
+            txid: *txid,
+            input_idx: entry.input_idx,
+        })
     }
 }

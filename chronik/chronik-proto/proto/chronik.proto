@@ -56,6 +56,14 @@ message OutPoint {
     uint32 out_idx = 2;
 }
 
+// Points to an input spending a coin.
+message SpentBy {
+    // TxId of the tx with the input.
+    bytes txid = 1;
+    // Index in the inputs of the tx.
+    uint32 input_idx = 2;
+}
+
 // CTxIn, spends a coin.
 message TxInput {
     // Reference to the coin being spent.
@@ -76,6 +84,8 @@ message TxOutput {
     int64 value = 1;
     // scriptPubKey, script locking the output.
     bytes output_script = 2;
+    // Which tx and input spent this output, if any.
+    SpentBy spent_by = 4;
 }
 
 // Data about a block which a Tx is in.

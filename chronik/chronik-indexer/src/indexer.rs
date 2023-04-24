@@ -18,7 +18,8 @@ use chronik_db::{
     index_tx::prepare_indexed_txs,
     io::{
         BlockHeight, BlockReader, BlockTxs, BlockWriter, DbBlock,
-        MetadataReader, MetadataWriter, SchemaVersion, TxEntry, TxWriter,
+        MetadataReader, MetadataWriter, SchemaVersion, SpentByWriter, TxEntry,
+        TxWriter,
     },
     mem::{Mempool, MempoolTx},
 };
@@ -32,7 +33,7 @@ use crate::{
     subs::{BlockMsg, BlockMsgType, Subs},
 };
 
-const CURRENT_INDEXER_VERSION: SchemaVersion = 5;
+const CURRENT_INDEXER_VERSION: SchemaVersion = 6;
 
 /// Params for setting up a [`ChronikIndexer`] instance.
 #[derive(Clone)]
@@ -281,14 +282,16 @@ impl ChronikIndexer {
         let tx_writer = TxWriter::new(&self.db)?;
         let script_history_writer =
             ScriptHistoryWriter::new(&self.db, self.script_group.clone())?;
+        let spent_by_writer = SpentByWriter::new(&self.db)?;
         block_writer.insert(&mut batch, &block.db_block)?;
         let first_tx_num = tx_writer.insert(&mut batch, &block.block_txs)?;
         let index_txs =
             prepare_indexed_txs(&self.db, first_tx_num, &block.txs)?;
         script_history_writer.insert(&mut batch, &index_txs)?;
+        spent_by_writer.insert(&mut batch, &index_txs)?;
         self.db.write_batch(batch)?;
         self.mempool
-            .removed_mined_txs(block.block_txs.txs.iter().map(|tx| tx.txid));
+            .removed_mined_txs(block.block_txs.txs.iter().map(|tx| tx.txid))?;
         let subs = self.subs.blocking_read();
         subs.broadcast_block_msg(BlockMsg {
             msg_type: BlockMsgType::Connected,
@@ -308,11 +311,13 @@ impl ChronikIndexer {
         let tx_writer = TxWriter::new(&self.db)?;
         let script_history_writer =
             ScriptHistoryWriter::new(&self.db, self.script_group.clone())?;
+        let spent_by_writer = SpentByWriter::new(&self.db)?;
         block_writer.delete(&mut batch, &block.db_block)?;
         let first_tx_num = tx_writer.delete(&mut batch, &block.block_txs)?;
         let index_txs =
             prepare_indexed_txs(&self.db, first_tx_num, &block.txs)?;
         script_history_writer.delete(&mut batch, &index_txs)?;
+        spent_by_writer.delete(&mut batch, &index_txs)?;
         self.avalanche.disconnect_block(block.db_block.height)?;
         self.db.write_batch(batch)?;
         let subs = self.subs.blocking_read();

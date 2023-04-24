@@ -10,7 +10,10 @@ use abc_rust_error::Result;
 use bitcoinsuite_core::tx::{Tx, TxId};
 use thiserror::Error;
 
-use crate::groups::{MempoolScriptHistory, ScriptGroup};
+use crate::{
+    groups::{MempoolScriptHistory, ScriptGroup},
+    mem::MempoolSpentBy,
+};
 
 /// Mempool of the indexer. This stores txs from the node again, but having a
 /// copy here simplifies the implementation significantly. If this redundancy
@@ -19,6 +22,7 @@ use crate::groups::{MempoolScriptHistory, ScriptGroup};
 pub struct Mempool {
     txs: HashMap<TxId, MempoolTx>,
     script_history: MempoolScriptHistory,
+    spent_by: MempoolSpentBy,
 }
 
 /// Transaction in the mempool.
@@ -50,6 +54,7 @@ impl Mempool {
         Mempool {
             txs: HashMap::new(),
             script_history: MempoolScriptHistory::new(script_group),
+            spent_by: MempoolSpentBy::default(),
         }
     }
 
@@ -57,6 +62,7 @@ impl Mempool {
     pub fn insert(&mut self, mempool_tx: MempoolTx) -> Result<()> {
         let txid = mempool_tx.tx.txid();
         self.script_history.insert(&mempool_tx);
+        self.spent_by.insert(&mempool_tx)?;
         if self.txs.insert(txid, mempool_tx).is_some() {
             return Err(DuplicateTx(txid).into());
         }
@@ -70,16 +76,22 @@ impl Mempool {
             None => return Err(NoSuchMempoolTx(txid).into()),
         };
         self.script_history.remove(&mempool_tx);
+        self.spent_by.remove(&mempool_tx)?;
         Ok(())
     }
 
     /// Remove mined txs from the mempool.
-    pub fn removed_mined_txs(&mut self, txids: impl IntoIterator<Item = TxId>) {
+    pub fn removed_mined_txs(
+        &mut self,
+        txids: impl IntoIterator<Item = TxId>,
+    ) -> Result<()> {
         for txid in txids {
             if let Some(mempool_tx) = self.txs.remove(&txid) {
                 self.script_history.remove(&mempool_tx);
+                self.spent_by.remove(&mempool_tx)?;
             }
         }
+        Ok(())
     }
 
     /// Get a tx by [`TxId`], or [`None`], if not found.
@@ -90,5 +102,10 @@ impl Mempool {
     /// Tx history of scripts in the mempool.
     pub fn script_history(&self) -> &MempoolScriptHistory {
         &self.script_history
+    }
+
+    /// Which tx outputs have been spent by tx in the mempool.
+    pub fn spent_by(&self) -> &MempoolSpentBy {
+        &self.spent_by
     }
 }
