@@ -67,7 +67,7 @@ impl<'a> QueryBlocks<'a> {
                 height: db_block.height,
                 n_bits: db_block.n_bits,
                 timestamp: db_block.timestamp,
-                is_final: db_block.height <= self.avalanche.height,
+                is_final: self.avalanche.is_final_height(db_block.height),
             }),
         })
     }

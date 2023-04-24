@@ -89,4 +89,9 @@ impl Avalanche {
         }
         Ok(())
     }
+
+    /// Return whether the given block height has been finalized by Avalanche.
+    pub fn is_final_height(&self, block_height: BlockHeight) -> bool {
+        block_height <= self.height
+    }
 }
