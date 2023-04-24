@@ -4,8 +4,6 @@
 
 //! Module for [`QueryTxs`], to query txs from mempool/db.
 
-use std::borrow::Cow;
-
 use abc_rust_error::{Result, WrapErr};
 use bitcoinsuite_core::tx::{Tx, TxId};
 use chronik_bridge::ffi;
@@ -51,40 +49,37 @@ use self::QueryTxError::*;
 impl<'a> QueryTxs<'a> {
     /// Query a tx by txid from the mempool or DB.
     pub fn tx_by_id(&self, txid: TxId) -> Result<proto::Tx> {
-        let (tx, time_first_seen, is_coinbase, block) =
-            match self.mempool.tx(&txid) {
-                Some(tx) => {
-                    (Cow::Borrowed(&tx.tx), tx.time_first_seen, false, None)
-                }
-                None => {
-                    let tx_reader = TxReader::new(self.db)?;
-                    let block_tx =
-                        tx_reader.tx_by_txid(&txid)?.ok_or(TxNotFound(txid))?;
-                    let tx_entry = block_tx.entry;
-                    let block_reader = BlockReader::new(self.db)?;
-                    let block = block_reader
-                        .by_height(block_tx.block_height)?
-                        .ok_or(DbTxHasNoBlock(txid))?;
-                    let tx = ffi::load_tx(
-                        block.file_num,
-                        tx_entry.data_pos,
-                        tx_entry.undo_pos,
-                    )
-                    .wrap_err(ReadFailure(txid))?;
-                    (
-                        Cow::Owned(Tx::from(tx)),
-                        tx_entry.time_first_seen,
-                        tx_entry.is_coinbase,
-                        Some(block),
-                    )
-                }
-            };
-        Ok(make_tx_proto(
-            &tx,
-            time_first_seen,
-            is_coinbase,
-            block.as_ref(),
-            self.avalanche,
-        ))
+        match self.mempool.tx(&txid) {
+            Some(tx) => Ok(make_tx_proto(
+                &tx.tx,
+                tx.time_first_seen,
+                false,
+                None,
+                self.avalanche,
+            )),
+            None => {
+                let tx_reader = TxReader::new(self.db)?;
+                let block_tx =
+                    tx_reader.tx_by_txid(&txid)?.ok_or(TxNotFound(txid))?;
+                let tx_entry = block_tx.entry;
+                let block_reader = BlockReader::new(self.db)?;
+                let block = block_reader
+                    .by_height(block_tx.block_height)?
+                    .ok_or(DbTxHasNoBlock(txid))?;
+                let tx = ffi::load_tx(
+                    block.file_num,
+                    tx_entry.data_pos,
+                    tx_entry.undo_pos,
+                )
+                .wrap_err(ReadFailure(txid))?;
+                Ok(make_tx_proto(
+                    &Tx::from(tx),
+                    tx_entry.time_first_seen,
+                    tx_entry.is_coinbase,
+                    Some(&block),
+                    self.avalanche,
+                ))
+            }
+        }
     }
 }
