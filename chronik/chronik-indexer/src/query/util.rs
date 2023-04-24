@@ -78,7 +78,7 @@ pub(crate) fn make_tx_proto(
             hash: block.hash.to_vec(),
             height: block.height,
             timestamp: block.timestamp,
-            is_final: block.height <= avalanche.height,
+            is_final: avalanche.is_final_height(block.height),
         }),
         time_first_seen,
         is_coinbase,
