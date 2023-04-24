@@ -3,7 +3,6 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-from test_framework.chronik.client import ChronikClient
 from test_framework.netutil import test_ipv6_local
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
@@ -19,6 +18,8 @@ class ChronikServeTest(BitcoinTestFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
+        from test_framework.chronik.client import ChronikClient
+
         def test_host(ip, port):
             chronik = ChronikClient(ip, port)
             response = chronik._request_get('/path/does/not/exist', pb_type=None)

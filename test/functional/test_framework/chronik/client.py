@@ -6,15 +6,11 @@
 import http.client
 from typing import Union
 
+import chronik_pb2 as pb
 import websocket
 
 # Timespan when HTTP requests to Chronik time out
 DEFAULT_TIMEOUT = 30
-
-
-def _pb():
-    import chronik_pb2
-    return chronik_pb2
 
 
 class UnexpectedContentType(Exception):
@@ -66,18 +62,18 @@ class ChronikScriptClient:
         query = self._query_params(page, page_size)
         return self.client._request_get(
             f'/script/{self.script_type}/{self.script_payload}/confirmed-txs{query}',
-            _pb().TxHistoryPage)
+            pb.TxHistoryPage)
 
     def history(self, page=None, page_size=None):
         query = self._query_params(page, page_size)
         return self.client._request_get(
             f'/script/{self.script_type}/{self.script_payload}/history{query}',
-            _pb().TxHistoryPage)
+            pb.TxHistoryPage)
 
     def unconfirmed_txs(self):
         return self.client._request_get(
             f'/script/{self.script_type}/{self.script_payload}/unconfirmed-txs',
-            _pb().TxHistoryPage)
+            pb.TxHistoryPage)
 
 
 class ChronikWs:
@@ -86,7 +82,7 @@ class ChronikWs:
 
     def recv(self):
         data = self.ws.recv()
-        ws_msg = _pb().WsMsg()
+        ws_msg = pb.WsMsg()
         ws_msg.ParseFromString(data)
         return ws_msg
 
@@ -116,7 +112,7 @@ class ChronikClient:
             )
 
         if response.status != 200:
-            proto_error = _pb().Error()
+            proto_error = pb.Error()
             proto_error.ParseFromString(body)
             return ChronikResponse(response.status, error_proto=proto_error)
 
@@ -125,10 +121,10 @@ class ChronikClient:
         return ChronikResponse(response.status, ok_proto=ok_proto)
 
     def block(self, hash_or_height: Union[str, int]) -> ChronikResponse:
-        return self._request_get(f'/block/{hash_or_height}', _pb().Block)
+        return self._request_get(f'/block/{hash_or_height}', pb.Block)
 
     def tx(self, txid: str) -> ChronikResponse:
-        return self._request_get(f'/tx/{txid}', _pb().Tx)
+        return self._request_get(f'/tx/{txid}', pb.Tx)
 
     def script(self, script_type: str, script_payload: str) -> ChronikScriptClient:
         return ChronikScriptClient(self, script_type, script_payload)

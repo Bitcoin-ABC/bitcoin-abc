@@ -8,7 +8,6 @@ Test Chronik's /block endpoint.
 
 from test_framework.address import ADDRESS_ECREG_P2SH_OP_TRUE, ADDRESS_ECREG_UNSPENDABLE
 from test_framework.blocktools import GENESIS_BLOCK_HASH, TIME_GENESIS_BLOCK
-from test_framework.chronik.client import ChronikClient
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
@@ -23,7 +22,7 @@ class ChronikBlockTest(BitcoinTestFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
-        import chronik_pb2 as pb
+        from test_framework.chronik.client import ChronikClient, pb
 
         node = self.nodes[0]
         chronik = ChronikClient('127.0.0.1', node.chronik_port)

@@ -8,7 +8,6 @@ import shutil
 
 from test_framework.address import ADDRESS_ECREG_P2SH_OP_TRUE, ADDRESS_ECREG_UNSPENDABLE
 from test_framework.blocktools import GENESIS_BLOCK_HASH
-from test_framework.chronik.client import ChronikClient
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, get_datadir_path
 
@@ -22,6 +21,7 @@ class ChronikResyncTest(BitcoinTestFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
+        from test_framework.chronik.client import ChronikClient
         node = self.nodes[0]
         chronik = ChronikClient('127.0.0.1', node.chronik_port)
 

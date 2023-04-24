@@ -10,10 +10,10 @@ from test_framework.blocktools import (
     GENESIS_CB_TXID,
     TIME_GENESIS_BLOCK,
 )
+from test_framework.chronik.client import pb
 
 
 def genesis_cb_tx():
-    import chronik_pb2 as pb
     return pb.Tx(
         txid=bytes.fromhex(GENESIS_CB_TXID)[::-1],
         version=1,

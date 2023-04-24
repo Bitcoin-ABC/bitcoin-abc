@@ -10,7 +10,6 @@ from test_framework.address import (
     SCRIPTSIG_OP_TRUE,
 )
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
-from test_framework.chronik.client import ChronikClient
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.script import OP_RETURN, CScript
 from test_framework.test_framework import BitcoinTestFramework
@@ -40,6 +39,8 @@ class ChronikAvalancheTest(BitcoinTestFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
+        from test_framework.chronik.client import ChronikClient
+
         node = self.nodes[0]
         chronik = ChronikClient('127.0.0.1', node.chronik_port)
 

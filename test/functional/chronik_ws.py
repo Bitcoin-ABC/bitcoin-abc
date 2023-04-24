@@ -5,7 +5,6 @@
 """Test whether Chronik sends WebSocket messages correctly."""
 
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
-from test_framework.chronik.client import ChronikClient
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
@@ -33,7 +32,7 @@ class ChronikWsTest(BitcoinTestFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
-        import chronik_pb2 as pb
+        from test_framework.chronik.client import ChronikClient, pb
 
         node = self.nodes[0]
         chronik = ChronikClient('127.0.0.1', node.chronik_port)

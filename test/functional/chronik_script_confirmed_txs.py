@@ -12,8 +12,6 @@ from test_framework.address import (
     SCRIPTSIG_OP_TRUE,
 )
 from test_framework.blocktools import GENESIS_CB_PK, create_block, create_coinbase
-from test_framework.chronik.client import ChronikClient
-from test_framework.chronik.test_data import genesis_cb_tx
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.p2p import P2PDataStore
 from test_framework.test_framework import BitcoinTestFramework
@@ -31,7 +29,8 @@ class ChronikScriptConfirmedTxsTest(BitcoinTestFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
-        import chronik_pb2 as pb
+        from test_framework.chronik.client import ChronikClient, pb
+        from test_framework.chronik.test_data import genesis_cb_tx
 
         node = self.nodes[0]
         chronik = ChronikClient('127.0.0.1', node.chronik_port)
