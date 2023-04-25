@@ -11,6 +11,8 @@ const {
     returnAddressPreview,
     getCoingeckoPrices,
     formatPrice,
+    jsonReplacer,
+    jsonReviver,
 } = require('../src/utils');
 const { addressPreviews } = require('./mocks/templates');
 
@@ -164,5 +166,38 @@ describe('ecash-telegram-bot utils.js functions', function () {
     });
     it('formatPrice omits a currency symbol if it cannot find it', async function () {
         assert.strictEqual(formatPrice(100000.999923422, 'cad'), `100,001`);
+    });
+    it('jsonReplacer and jsonReviver can encode and decode a Map to and from JSON', async function () {
+        const map = new Map([
+            [1, 'one'],
+            [2, 'two'],
+            [3, 'three'],
+        ]);
+
+        const jsonText = JSON.stringify(map, jsonReplacer);
+        const roundTrip = JSON.parse(jsonText, jsonReviver);
+
+        assert.deepEqual(map, roundTrip);
+    });
+    it('jsonReplacer and jsonReviver can encode and decode a Set to and from JSON', async function () {
+        const set = new Set(['one', 'two', 'three']);
+
+        const jsonText = JSON.stringify(set, jsonReplacer);
+        const roundTrip = JSON.parse(jsonText, jsonReviver);
+
+        assert.deepEqual(set, roundTrip);
+    });
+    it('jsonReplacer and jsonReviver can encode and decode an object including a Set and a Map to and from JSON', async function () {
+        const map = new Map([
+            [1, 'one'],
+            [2, 'two'],
+            [3, 'three'],
+        ]);
+        const set = new Set(['one', 'two', 'three']);
+
+        const jsonText = JSON.stringify({ map, set }, jsonReplacer);
+        const roundTrip = JSON.parse(jsonText, jsonReviver);
+
+        assert.deepEqual({ map, set }, roundTrip);
     });
 });

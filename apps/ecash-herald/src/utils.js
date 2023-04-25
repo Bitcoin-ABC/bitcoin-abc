@@ -100,4 +100,30 @@ module.exports = {
             maximumFractionDigits: 8,
         })}`;
     },
+    jsonReplacer: function (key, value) {
+        if (value instanceof Map) {
+            return {
+                dataType: 'Map',
+                value: Array.from(value.entries()),
+            };
+        } else if (value instanceof Set) {
+            return {
+                dataType: 'Set',
+                value: Array.from(value.keys()),
+            };
+        } else {
+            return value;
+        }
+    },
+    jsonReviver: function (key, value) {
+        if (typeof value === 'object' && value !== null) {
+            if (value.dataType === 'Map') {
+                return new Map(value.value);
+            }
+            if (value.dataType === 'Set') {
+                return new Set(value.value);
+            }
+        }
+        return value;
+    },
 };

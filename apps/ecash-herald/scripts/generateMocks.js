@@ -18,7 +18,7 @@ const config = require('../config');
 const { ChronikClient } = require('chronik-client');
 const chronik = new ChronikClient(config.chronik);
 const { handleBlockConnected } = require('../src/events');
-
+const { jsonReplacer } = require('../src/utils');
 // Look for specified flag variable
 let overwriteMocks = false;
 if (process.argv && typeof process.argv[2] !== 'undefined') {
@@ -146,6 +146,7 @@ async function generateMocks(overwriteMocks) {
     } catch (err) {
         console.log(
             `Error in Promise.all(handleBlockConnectedPromisesResponse)`,
+            err,
         );
     }
 
@@ -153,11 +154,11 @@ async function generateMocks(overwriteMocks) {
     if (overwriteMocks) {
         mocksWrite = `// Copyright (c) 2023 The Bitcoin developers\n// Distributed under the MIT software license, see the accompanying\n// file COPYING or http://www.opensource.org/licenses/mit-license.php.\n// @generated\n\n'use strict'\n\nmodule.exports=${JSON.stringify(
             blocksMock,
-            null,
+            jsonReplacer,
             2,
         )}`;
     } else {
-        mocksWrite = JSON.stringify(blocksMock, null, 2);
+        mocksWrite = JSON.stringify(blocksMock, jsonReplacer, 2);
     }
 
     fs.writeFileSync(`${mocksDir}/${mocksFileName}`, mocksWrite, 'utf-8');

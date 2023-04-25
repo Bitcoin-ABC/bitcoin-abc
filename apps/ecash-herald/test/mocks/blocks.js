@@ -78,33 +78,33 @@ module.exports = [
         },
         coingeckoResponse: {
             bitcoin: {
-                usd: 30729.89878314,
+                usd: 29160.02775612,
             },
             ecash: {
-                usd: 0.00003239,
+                usd: 0.00002943,
             },
             ethereum: {
-                usd: 2109.65870749,
+                usd: 1894.98574958,
             },
         },
         coingeckoPrices: [
             {
                 fiat: 'usd',
-                price: 0.00003239,
+                price: 0.00002943,
                 ticker: 'XEC',
             },
             {
                 fiat: 'usd',
-                price: 30729.89878314,
+                price: 29160.02775612,
                 ticker: 'BTC',
             },
             {
                 fiat: 'usd',
-                price: 2109.65870749,
+                price: 1894.98574958,
                 ticker: 'ETH',
             },
         ],
-        tgMsg: '<a href="https://explorer.e.cash/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f">0</a> | 1 tx | unknown\n1 XEC = $0.00003239\n1 BTC = $30,730\n1 ETH = $2,110',
+        tgMsg: '<a href="https://explorer.e.cash/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f">0</a> | 1 tx | unknown\n1 XEC = $0.00002943\n1 BTC = $29,160\n1 ETH = $1,895',
         tgMsgPriceFailure:
             '<a href="https://explorer.e.cash/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f">0</a> | 1 tx | unknown',
         blockName: 'genesisBlock',
@@ -4999,6 +4999,36 @@ module.exports = [
                     txid: '00343ff64e176e514e83a3c247d0a8800641ebf1dd8c87c26b7757619fc58768',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.0049261083743843,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91419dcce67b8c86f8084069448e9c7ae04f7f97fdf88ac',
+                            '76a91418a6005abe4f13143813174a293c34d97cb3ebd788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91418a6005abe4f13143813174a293c34d97cb3ebd788ac',
+                                1000,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9142762e378fab2db2fb07706c60546600e0a25255988ac',
+                                1523544560,
+                            ],
+                            [
+                                '76a9140dae4cc4803e25420fb04e3a11ab231efbe1fb3088ac',
+                                18660017128,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '0473d97d997b61c5018205b27316b6ae660a9b7835a46166fa87e0b1b26de2dd',
@@ -5007,21 +5037,109 @@ module.exports = [
                         app: 'no app',
                         msg: '1629498127|85',
                     },
+                    satsPerByte: 1.0040322580645162,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                3356,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343938313237023835', 0]],
+                    },
                 },
                 {
                     txid: '05b4fd23fbe566b5d789f536cc41e77539e6e23e1f5ecb6d8ae67e386ba2e94b',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914d30b30f10688c5f49716659865f20427f7d1cc8988ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914ceb5764692115ce0fed552c4cf7a8aa0f955262488ac',
+                                965,
+                            ],
+                            [
+                                '76a91472496e173f2bd86ffa267cac6cbcc3a7f9c1add488ac',
+                                634455,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '05dbfb3db7f4a73de336745335f419ced31b42b2c3e05cdba4cb50e06eb16471',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 10.692708333333334,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9142be2fd325cb1b8a152d0864f0fbaef232a71df3a88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9145f972e8b3c05bbc840cc549ed8e9bc3589abbee688ac',
+                                209997947,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '074d2111cd7014c04d626cf4d96ca273234f5a7c014e5edb0e03145e53a838f2',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.2256637168141593,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914f8dc5f711519e560cd20cc98d69f17e44b7644ed88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914a92b6d3bbf75d52588c16cc8f7e66daf6f0b083888ac',
+                                735053,
+                            ],
+                            [
+                                '76a91473499c45b6769d1442c8b6c337d87e1fce1dd52a88ac',
+                                23306976,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '0d0a722a21aeca90ebb3d0954475ccb67f18c02945bc138c1f2ae6d507e3feb7',
@@ -5029,6 +5147,26 @@ module.exports = [
                     opReturnInfo: {
                         app: 'no app',
                         msg: '1629500089|91',
+                    },
+                    satsPerByte: 1.0080645161290323,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                3854,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239353030303839023931', 0]],
                     },
                 },
                 {
@@ -5038,11 +5176,52 @@ module.exports = [
                         app: 'no app',
                         msg: '1629497915|79',
                     },
+                    satsPerByte: 3.1401869158878504,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343937393135023739', 0]],
+                    },
                 },
                 {
                     txid: '0e64f62f9cb16a31cfa2188d6c9ec674c13f3d2f5320672fc45f02a8a1aba38d',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.057057057057057,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9146959abbb87c32cf59b7b30bd34f2500fd928922788ac',
+                            '76a91418a6005abe4f13143813174a293c34d97cb3ebd788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91418a6005abe4f13143813174a293c34d97cb3ebd788ac',
+                                1000,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91405e0ef2031b39b155125be85afd7a9bf27eb10c088ac',
+                                426164618,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '1205ec2b6105716eccb95f5b26c5d65d81a390ac8bacc6ee1f20aa1757015143',
@@ -5050,6 +5229,26 @@ module.exports = [
                     opReturnInfo: {
                         app: 'no app',
                         msg: '1629500647|79',
+                    },
+                    satsPerByte: 1.0080645161290323,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                2107,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239353030363437023739', 0]],
                     },
                 },
                 {
@@ -5059,6 +5258,21 @@ module.exports = [
                         app: 'no app',
                         msg: '1629499023|76',
                     },
+                    satsPerByte: 3.1401869158878504,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343939303233023736', 0]],
+                    },
                 },
                 {
                     txid: '136742fdb231e1342f790a5123f46414c3957f7d199b80ea729ecba274e3b787',
@@ -5066,6 +5280,26 @@ module.exports = [
                     opReturnInfo: {
                         app: 'no app',
                         msg: '1629497534|78',
+                    },
+                    satsPerByte: 1.0080645161290323,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                1859,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343937353334023738', 0]],
                     },
                 },
                 {
@@ -5075,16 +5309,85 @@ module.exports = [
                         app: 'no app',
                         msg: '1629498535|87',
                     },
+                    satsPerByte: 1.0121457489878543,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                2108,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343938353335023837', 0]],
+                    },
                 },
                 {
                     txid: '15461fbfdafca9999d195353f6fcbafef4769cb100585315829dafddc66c5ccc',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914eead5afae061d769d164f01e834aa655b589d8c188ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9149e5c967c3ce9b6ee3c2aaddcdfcf6564a3d0296c88ac',
+                                1192318937,
+                            ],
+                            [
+                                '76a914b9ffbdd63952517333d0d9312cf0d1bd1491aca388ac',
+                                3576130750,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '17da7f7d89c687a99b2ed270014fe79be67938d75cf6fffd5afdfa18dcf92624',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 4.177777777777778,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9144aa8aba45c20b62e35f7e070027f3be2644cd5ed88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9144aa8aba45c20b62e35f7e070027f3be2644cd5ed88ac',
+                                637662228019,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914782a0f034e37624d48440e29ac19d2e8ed5bbc6d88ac',
+                                6985000,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '2061d46821889fe8767c6fb747b87e37e3961eab46e8a7dc9098719d170fca52',
@@ -5092,6 +5395,26 @@ module.exports = [
                     opReturnInfo: {
                         app: 'no app',
                         msg: '1629500798|79',
+                    },
+                    satsPerByte: 1.008097165991903,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                1608,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239353030373938023739', 0]],
                     },
                 },
                 {
@@ -5101,6 +5424,26 @@ module.exports = [
                         app: 'no app',
                         msg: '1629497457|77',
                     },
+                    satsPerByte: 1.008097165991903,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                2109,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343937343537023737', 0]],
+                    },
                 },
                 {
                     txid: '28bfff0be82734dbfa346cda5d45fb8deeaacce6edc817bd9d6f2c6c82c203ea',
@@ -5108,6 +5451,26 @@ module.exports = [
                     opReturnInfo: {
                         app: 'no app',
                         msg: '1629498288|72',
+                    },
+                    satsPerByte: 1.0040322580645162,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                2857,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343938323838023732', 0]],
                     },
                 },
                 {
@@ -5117,6 +5480,26 @@ module.exports = [
                         app: 'no app',
                         msg: '1629499274|64',
                     },
+                    satsPerByte: 1.0080645161290323,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                3355,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343939323734023634', 0]],
+                    },
                 },
                 {
                     txid: '2fddd13d532ec44c43ee4fa68b587f15d575e73d566e7d30f6bc495a61074e42',
@@ -5124,6 +5507,26 @@ module.exports = [
                     opReturnInfo: {
                         app: 'no app',
                         msg: '1629500162|80',
+                    },
+                    satsPerByte: 1.008097165991903,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                3605,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239353030313632023830', 0]],
                     },
                 },
                 {
@@ -5133,6 +5536,26 @@ module.exports = [
                         app: 'no app',
                         msg: '1629500720|82',
                     },
+                    satsPerByte: 1.0121457489878543,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                1857,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239353030373230023832', 0]],
+                    },
                 },
                 {
                     txid: '32f7ca6768bedb81603dfd5618263f84c7cb42fa4bae4eeb2dda8a4eac0cdd4d',
@@ -5140,6 +5563,26 @@ module.exports = [
                     opReturnInfo: {
                         app: 'no app',
                         msg: '1629499774|94',
+                    },
+                    satsPerByte: 1.0040322580645162,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                1609,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343939373734023934', 0]],
                     },
                 },
                 {
@@ -5149,31 +5592,185 @@ module.exports = [
                         app: 'no app',
                         msg: '1629497610|79',
                     },
+                    satsPerByte: 1.0121457489878543,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                1609,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343937363130023739', 0]],
+                    },
                 },
                 {
                     txid: '35d7346a26f456fcb2b5dec7801964de18d15b90c68711b70742dde052cbc0d4',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 4.177777777777778,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9144aa8aba45c20b62e35f7e070027f3be2644cd5ed88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9144aa8aba45c20b62e35f7e070027f3be2644cd5ed88ac',
+                                574326549370,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9143708b83569789a1b42aa7130ce88f2cc31a0d80788ac',
+                                1000000,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '3d53a4e291acccb5af5f8f65518edf28de61e5004b21150145bd73acf6303cf3',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.0049261083743843,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914ca95f3bbf0ec6e006843cbee9e7f63db76a41e4688ac',
+                            '76a91418a6005abe4f13143813174a293c34d97cb3ebd788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91418a6005abe4f13143813174a293c34d97cb3ebd788ac',
+                                1000,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9148c3bb61750b6a39c1ee52cd22262b9fb25f419b488ac',
+                                1751934660,
+                            ],
+                            [
+                                '76a9144d961687a25c856b5a774814df155489d68429f588ac',
+                                40819954735,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '43c50a9f8bb247a389e5233ff38eb59be3df550feb3a18d0dcc967eea9b0748a',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 4.097142857142857,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9142b8bac55f18dda437bc5b099da351366a78edf6588ac',
+                            '76a914fb1284f8731b64c12d32cc4f1d4f2e9705cd24ab88ac',
+                            '76a91400689d1c30f65d138a0ff2c354ab2945b73ce9e288ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91416f44644089a10a7a600178e610cee4c54090dc388ac',
+                                100000,
+                            ],
+                            [
+                                '76a914e186d182d44b6205623196f3a57bc23eb3bc814688ac',
+                                26313707,
+                            ],
+                            [
+                                '76a9145f376b16cfebe9546c45efc2b844e0cadc556a2f88ac',
+                                11005638042,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '4b0ae95c4571709ea1634ea1b70946845a0d9e9a4c5b0f4d298feb8c8f5df026',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.0106951871657754,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
+                                107353539,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                                1532567,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '4bf5a856c75adbc50669ac3f7184958424db99da65d218d986e194d2bb8b3cdf',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 5.022421524663677,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914c3588706e189ed895a7bd745b63f41fa32a222b888ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91455836dcbb018193a3f145959a2793df7ea44084788ac',
+                                50410948,
+                            ],
+                            [
+                                'a9146e8d7ed57a02fa97ffd641bab871090374d2cd1987',
+                                50411107,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '4cf484655aa1948cfc3cd291a119806c8b2b5e0d233e44866dc0c9015b24ce1e',
@@ -5182,6 +5779,26 @@ module.exports = [
                         app: 'no app',
                         msg: '1629499360|84',
                     },
+                    satsPerByte: 1.008097165991903,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                3106,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343939333630023834', 0]],
+                    },
                 },
                 {
                     txid: '4d46bd9ba22889a496cf4d37e5f0307216c8be93885ba82fcc0d3965c63693c3',
@@ -5189,6 +5806,26 @@ module.exports = [
                     opReturnInfo: {
                         app: 'no app',
                         msg: '1629498460|71',
+                    },
+                    satsPerByte: 1.0080645161290323,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                2358,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343938343630023731', 0]],
                     },
                 },
                 {
@@ -5201,6 +5838,31 @@ module.exports = [
                         decimals: 0,
                     },
                     opReturnInfo: false,
+                    satsPerByte: 1.6446540880503144,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                                138443112,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010747454e45534953034c5656174c616d6264612056617269616e742056617269616e74731768747470733a2f2f636173687461626170702e636f6d2f4c0001004c000800000000000f4240',
+                                0,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '4f55182147356e5ccbf6c06225e817ac405a50fbe04c0f6eb5a4eb04462c7b12',
@@ -5209,16 +5871,85 @@ module.exports = [
                         app: 'no app',
                         msg: '1629500318|76',
                     },
+                    satsPerByte: 1.0121457489878543,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                3106,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239353030333138023736', 0]],
+                    },
                 },
                 {
                     txid: '500e26ccb9a73e0a3b4b2973c5b37af1ddeae23cfce41b987d1ba3e942387c54',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914a06aef4d7de4b7aeaa3cfdbf010b70112abf20be88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9142f6996d16d84251df022ca3bdd663fbc4d6e448f88ac',
+                                448748500,
+                            ],
+                            [
+                                '76a91476ac43e02962d242544fbfab36dc242caa970a8088ac',
+                                245389245,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '5200a3bf8928a7aae450aa58b550957333e0bebfa352bcc4c108e9b396a4626f',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 150.86705202312137,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914c59350458e088c589130bfd8cbadec0af16f1ea388ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914c59350458e088c589130bfd8cbadec0af16f1ea388ac',
+                                930696,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914eaf2acc70f1f42caa9c0776ee0793482a6743ce288ac',
+                                257183737,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '53c43d805bbbb9618e48cde71f5ff659fea02689f825cde823984b30443f0b30',
@@ -5227,11 +5958,60 @@ module.exports = [
                         app: 'no app',
                         msg: '1629497132|78',
                     },
+                    satsPerByte: 1.0121457489878543,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                3106,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343937313332023738', 0]],
+                    },
                 },
                 {
                     txid: '545f14c319f00273c894e02e7e4170e2f186da3e9022629f659f8f6b1e579a1c',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.123076923076923,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914a92b6d3bbf75d52588c16cc8f7e66daf6f0b083888ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914a92b6d3bbf75d52588c16cc8f7e66daf6f0b083888ac',
+                                659761,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914d30d4ea76e3289b28106de6c5a40fc08a350765788ac',
+                                74454,
+                            ],
+                            [
+                                '76a914a5e7e4407b2cc63fa45b11cdedb5ba7b5c51110b88ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '56bc3c81bb81bc92ba25acc407602207a0fdada4261f7f205d141ab34b616ce9',
@@ -5239,6 +6019,26 @@ module.exports = [
                     opReturnInfo: {
                         app: 'no app',
                         msg: '1629498060|88',
+                    },
+                    satsPerByte: 1.008097165991903,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                3605,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343938303630023838', 0]],
                     },
                 },
                 {
@@ -5248,6 +6048,26 @@ module.exports = [
                         app: 'no app',
                         msg: '1629499897|105',
                     },
+                    satsPerByte: 1.0040160642570282,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                1110,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a3136323934393938393703313035', 0]],
+                    },
                 },
                 {
                     txid: '5d4f5668277ac87f170711461f0bef8f716556b6433c39729a4d0f22a1f1a9ae',
@@ -5256,11 +6076,55 @@ module.exports = [
                         app: 'no app',
                         msg: '1629497763|75',
                     },
+                    satsPerByte: 1.0080645161290323,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                1110,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343937373633023735', 0]],
+                    },
                 },
                 {
                     txid: '5dc730eafbde4aeec06bf63995e76ecb957ac9266427e63eb23454e49b9f35c0',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 5,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914818996b7b49c9faaecfc76524372f32b0444d45a88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914a55504b5027ca5eca695d01324857d6e19e33dc188ac',
+                                2934010,
+                            ],
+                            [
+                                '76a9140e8e6e518f8578536b5d6acf16f5ace9a50888d788ac',
+                                68795544,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '63ee98065e0c2358423ccc2ceae21a00ff8ed5e132d460a463334f1368ae3936',
@@ -5268,6 +6132,26 @@ module.exports = [
                     opReturnInfo: {
                         app: 'no app',
                         msg: '1629499571|93',
+                    },
+                    satsPerByte: 1.0080645161290323,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                2356,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343939353731023933', 0]],
                     },
                 },
                 {
@@ -5277,6 +6161,26 @@ module.exports = [
                         app: 'no app',
                         msg: '1629497054|74',
                     },
+                    satsPerByte: 1.0040322580645162,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                3356,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343937303534023734', 0]],
+                    },
                 },
                 {
                     txid: '67b05c5f3cc1d1d2415aae8232254bc790fe8d1965e9b529fc3b7bae4acf818d',
@@ -5285,11 +6189,53 @@ module.exports = [
                         app: 'no app',
                         msg: '1629499185|75',
                     },
+                    satsPerByte: 1.0040322580645162,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                3605,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343939313835023735', 0]],
+                    },
                 },
                 {
                     txid: '6d88f6ad363660c11cc53d6630b6b99b2f99d0ab68b00dd06ba63636e7b15891',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.127310061601643,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9143f342e9f2c812092140b7fddb061660816c9a6f988ac',
+                            '76a9142818ef970dc40b78eb99717d55c197563c56727f88ac',
+                            '76a91416de55905b932dfe9923b69bbe712241f8a093b388ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914a520c86a08366941cd90d22e11ac1c7eefa2db3788ac',
+                                8900607564,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '6fb44256ab3b7ecdb4dd4955d94dd1f6dc1bdeee8a523651fd71e699c524af01',
@@ -5297,6 +6243,26 @@ module.exports = [
                     opReturnInfo: {
                         app: 'no app',
                         msg: '1629498375|70',
+                    },
+                    satsPerByte: 1.008097165991903,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                2608,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343938333735023730', 0]],
                     },
                 },
                 {
@@ -5306,11 +6272,55 @@ module.exports = [
                         app: 'no app',
                         msg: '1629498610|74',
                     },
+                    satsPerByte: 1.0121457489878543,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                1858,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343938363130023734', 0]],
+                    },
                 },
                 {
                     txid: '70cf40ea8427d0fa12c411434f5f753780ba986f51947f43eaa5eb1ee4c4b9d7',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9145f25ded9c7917d00c0ea119b19feb2aa672e1f0688ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914a4e6863b5341ab0ee57862b091071bd35d6d919988ac',
+                                61217461,
+                            ],
+                            [
+                                'a914962b7d0f2fdebcbdb20f81e16a04d2a9f61e4ebf87',
+                                683,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '7168c1feb93bba72b68c5ac833a9f428dcb88a9e199f53db1613bcc07a70dfec',
@@ -5319,26 +6329,148 @@ module.exports = [
                         app: 'no app',
                         msg: '1629497293|68',
                     },
+                    satsPerByte: 1.0121457489878543,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                2607,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343937323933023638', 0]],
+                    },
                 },
                 {
                     txid: '73db52181851a5a5734a21a19c9082c84f0e3827284e26d2cded7e5d2bea8363',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914768465fc85b0437dfb4425a5a3f4bf191df1d83188ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140350fe6c88d40ffa98c7ca3a9e23705c1931a33088ac',
+                                46972300,
+                            ],
+                            [
+                                '76a914871d5308de9b49306af9fd0e5105ab21f8b949a188ac',
+                                19953027475,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '74352cbc58d6e5891dcff7714575735d31b4fd3441f557a2aa5d1c4cb34d3274',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9147be8b91cc6bb04c0264c8818d230bc59fea3c7a988ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9145f25ded9c7917d00c0ea119b19feb2aa672e1f0688ac',
+                                61218367,
+                            ],
+                            [
+                                '76a91446716d8fc67e0f1969c4e5471e8ffccc0c8fa7a888ac',
+                                2383,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '7453cfad5d4ef44c4033acfcd694fff185be18fa08528ac3d33953c38dfb8d74',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 15.282651072124755,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            'a91456f2c0aa922b455aaf3a10d8f491a9f630d6e47a87',
+                            'a91482acd451e09fc38100b2e614bcfa834a6b035a8487',
+                            'a914405f51f12d609965262e9fefa5933501d07c290387',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914a37fc875816cb836bfe1c6b300982a4e52d5519d88ac',
+                                4555637900,
+                            ],
+                            [
+                                'a91463e3eb9e08088dc241000f3c14a6c20fefb385da87',
+                                2864378330,
+                            ],
+                            [
+                                'a914a5ba803e1f3220858007944c5ecde59edd6cbd4387',
+                                1432183485,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '76f684f3c861f5ba39872f322d0dd759729a74895a6b376ace563dd8db494f15',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9145499e983d7f42fe9ab2c284a75d3b9355198d36988ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9146a80c9ea046cbb6e55733f73fd394f87e51d812f88ac',
+                                18566666,
+                            ],
+                            [
+                                '76a91430fcaddd6ca826858a563fbaee5c1a8d1bb032e388ac',
+                                10923801,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '7d85c406e5a0cd75fb92388f8d875e3e7eded9584d01414f18f57793063b1e69',
@@ -5347,11 +6479,59 @@ module.exports = [
                         app: 'no app',
                         msg: '1629497209|76',
                     },
+                    satsPerByte: 1.0040322580645162,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                2857,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343937323039023736', 0]],
+                    },
                 },
                 {
                     txid: '7e4596fc927d0da2c1d4ee1290ffaf3731d873951bd2da60676848d5c8495ee8',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914768465fc85b0437dfb4425a5a3f4bf191df1d83188ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9147f808ba0b35e57c04b6a3a2565619e0cee151a3188ac',
+                                19869149653,
+                            ],
+                            [
+                                '76a91447ac7bfae677aaa68633ecd6d562ff6c5a487ffa88ac',
+                                128088300,
+                            ],
+                            [
+                                '76a91483228f38d59033141a6de9cf82b9111b6a2fe29f88ac',
+                                2761788,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '7ed7de6b7709faafca4d5f92db0af65df90852f7457284039e583554d0d6f527',
@@ -5360,16 +6540,94 @@ module.exports = [
                         app: 'no app',
                         msg: '1629499706|88',
                     },
+                    satsPerByte: 1.008097165991903,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                1858,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343939373036023838', 0]],
+                    },
                 },
                 {
                     txid: '7f6d27c7f7869d8f0a1bce28b955238b4999d176b0be5b7f8738741c67b6585f',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.0049261083743843,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9146a3073257a9d033baca112f358da0936c54d5b2688ac',
+                            '76a91418a6005abe4f13143813174a293c34d97cb3ebd788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91418a6005abe4f13143813174a293c34d97cb3ebd788ac',
+                                1000,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9142e85f5d60e9dbda17cbcc180bf7cea68fe157ac488ac',
+                                305431573,
+                            ],
+                            [
+                                '76a9140dae4cc4803e25420fb04e3a11ab231efbe1fb3088ac',
+                                28655737383,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '7f70502f4a0fe4ffc993648a440a56d048298c442e12d6e4d2cd12497357a702',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914ea6a9caec9d3b6afba1728249433773ae470480c88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914e38f57c4359b4f293d765d6a559d13e80d2752b088ac',
+                                900000,
+                            ],
+                            [
+                                '76a9148411b381b510629a044e26628a3cf75a9471f2b588ac',
+                                67331600,
+                            ],
+                            [
+                                '76a914ff9f8a5c8fd68c5a750f3b1541248909219346dd88ac',
+                                129306467,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '817c602ce380eda55eae2e64f1501499ea66e9fbffd6aee4c013f5a0e0d8bb77',
@@ -5378,41 +6636,233 @@ module.exports = [
                         app: 'no app',
                         msg: '1629497685|81',
                     },
+                    satsPerByte: 1.0040322580645162,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                1360,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343937363835023831', 0]],
+                    },
                 },
                 {
                     txid: '826ca512fdaa287c0a38ced748713ff7e9b199f3f43aedf6d49d35d9700bfb6d',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 4.156812339331619,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9143fe72122199322e0057f044e80d258b69b49ca1388ac',
+                            '76a914e186d182d44b6205623196f3a57bc23eb3bc814688ac',
+                            '76a9146a77aa9a0c4835f22d8f8250f3c642dd9dd7892988ac',
+                            '76a9144246b6cb38b573d4d16c45088b0b110c6c60177e88ac',
+                            '76a91421bbe00d2292e403d268f3211035da9c0c88696388ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9148f7a47b77075a09e3b732f72166d17f15fa2c6f988ac',
+                                3000000000,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '8692a0f9ee9217faaf60f76044adc6aec3afe7ebde1f46c52f06da4bf28b126b',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914a69716394f5558ba23b5fbd4c9ae3230dff6af1f88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91497e9a2f77c096fbcd0495ec4a62945a00115a27188ac',
+                                323762147,
+                            ],
+                            [
+                                'a914cbff64ee689883ee9d3364e67ff711c5c758c23587',
+                                4753764,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '8a459bb01fe0304d3617a11004b1651ef4f6cf7173e98894f5ded93b3f98eca4',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 4.15929203539823,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9144aa8aba45c20b62e35f7e070027f3be2644cd5ed88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9144aa8aba45c20b62e35f7e070027f3be2644cd5ed88ac',
+                                533578681646,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91458c4e3ebb311c153164fee04f36272e4298dbfa388ac',
+                                1000000,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '8ae36d52d6d053da7252f8c34284d0b1296990271e22f82acd0ef8e5daf8ebdc',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 4.15929203539823,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9144aa8aba45c20b62e35f7e070027f3be2644cd5ed88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9144aa8aba45c20b62e35f7e070027f3be2644cd5ed88ac',
+                                936473710869,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914c87015a52bc3946495d6dfdef65187ab638f68f088ac',
+                                4500000,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '8d15e3628717cca44be6838c6bedbd254650ab8cc5ed66dd1d3cc5ea6f8c9c2c',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 4.15929203539823,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9144aa8aba45c20b62e35f7e070027f3be2644cd5ed88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9144aa8aba45c20b62e35f7e070027f3be2644cd5ed88ac',
+                                559144245387,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914d7f7ea58b242c85cb6f24e2f2d90b0de9423e3df88ac',
+                                9500000,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '8dc7771f7904fd00bfbb810e6fdf35e90cfcd495f9e822db5620959d021ccb89',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 4.096774193548387,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91426857ae1ba41376b9c73b78b82a1544e205fc38b88ac',
+                            '76a91421fab828b2b38faac8691ca5fb86b5e91eedca0288ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914d5f003415713de284547889067e66664410785fc88ac',
+                                2000000000,
+                            ],
+                            [
+                                '76a91421bbe00d2292e403d268f3211035da9c0c88696388ac',
+                                119778476,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '8f595f2617777d72231772c8994cb8ec4e6c7ec3678cc77c88f7f4c799f8f752',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91443209497654d5eb648c493ac88d44ed00c488fd488ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914a341f8b2fa9bbc85619f75e62b56267a7e1c612088ac',
+                                1490,
+                            ],
+                            [
+                                '76a91424500a7d53eaff713e71c8d4fb98a426c5c746c788ac',
+                                121734563,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '9162b6dac6e0945f6438343c57d08b69e6306f4e09d94842bcc4aeca22f854be',
@@ -5421,11 +6871,60 @@ module.exports = [
                         app: 'no app',
                         msg: '1629499504|84',
                     },
+                    satsPerByte: 1.0080645161290323,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                2606,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343939353034023834', 0]],
+                    },
                 },
                 {
                     txid: '96cf034489782a60d9346e508bf9d97094293ccf51166bd49a4e1f6cb7538c04',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.1747747747747748,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914a92b6d3bbf75d52588c16cc8f7e66daf6f0b083888ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914a92b6d3bbf75d52588c16cc8f7e66daf6f0b083888ac',
+                                2457,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914f301909d95e2151251710ed08ce9a372acabb1ed88ac',
+                                14454,
+                            ],
+                            [
+                                '76a914a5e7e4407b2cc63fa45b11cdedb5ba7b5c51110b88ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '9bd8383325ec538562c92d8f28f19804d9727196fe1457aec5cace66c1d96fda',
@@ -5434,11 +6933,72 @@ module.exports = [
                         app: 'no app',
                         msg: '1629498864|64',
                     },
+                    satsPerByte: 1.0040322580645162,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                1110,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343938383634023634', 0]],
+                    },
                 },
                 {
                     txid: 'a0895e299c51d87548a63aecc49edc2db717815a32ada2c19718643f1acc99a9',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.918987341772152,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914a520c86a08366941cd90d22e11ac1c7eefa2db3788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914a520c86a08366941cd90d22e11ac1c7eefa2db3788ac',
+                                95581554590,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914a37fc875816cb836bfe1c6b300982a4e52d5519d88ac',
+                                10632335600,
+                            ],
+                            [
+                                '76a914d4c366e9b41183a4ea766ff5d796ec2fd9f413c188ac',
+                                31545242700,
+                            ],
+                            [
+                                '76a9145aa05a6a16094c5fbb3f1e02f6f7abffc8c4efa188ac',
+                                34199869800,
+                            ],
+                            [
+                                '76a9146a80c9ea046cbb6e55733f73fd394f87e51d812f88ac',
+                                14969645,
+                            ],
+                            [
+                                '76a914315e9d2cdd256f4f40ee86193dceca70bb6f37bd88ac',
+                                17335859300,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'a1974c915f3a274907be819533a3c3d4bbbcbf112d3be82970b9100641eccbf3',
@@ -5446,6 +7006,26 @@ module.exports = [
                     opReturnInfo: {
                         app: 'no app',
                         msg: '1629498773|66',
+                    },
+                    satsPerByte: 1.0121457489878543,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                1359,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343938373733023636', 0]],
                     },
                 },
                 {
@@ -5455,6 +7035,26 @@ module.exports = [
                         app: 'no app',
                         msg: '1629499955|96',
                     },
+                    satsPerByte: 1.7732793522267207,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                672,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343939393535023936', 0]],
+                    },
                 },
                 {
                     txid: 'a7064b6bed0cfcd245af8e76d5f521539152238d3f54e4cad4def3e53a0efe61',
@@ -5462,6 +7062,26 @@ module.exports = [
                     opReturnInfo: {
                         app: 'no app',
                         msg: '1629500566|71',
+                    },
+                    satsPerByte: 1.0040322580645162,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                2357,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239353030353636023731', 0]],
                     },
                 },
                 {
@@ -5471,11 +7091,55 @@ module.exports = [
                         app: 'no app',
                         msg: '1629497990|82',
                     },
+                    satsPerByte: 1.0121457489878543,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                3854,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343937393930023832', 0]],
+                    },
                 },
                 {
                     txid: 'ae01d244f951d4d1a781fc61a9df0dbd13bff47adb0a52efd05e78828d73932d',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914768465fc85b0437dfb4425a5a3f4bf191df1d83188ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914db3096a95914a6f93fe9c5039b8b8fc70202eff488ac',
+                                19994990775,
+                            ],
+                            [
+                                '76a914a2e89c04d43179eabf85a87d820d92f917a4852488ac',
+                                5009000,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'aeb6af4e6b341950c72079ec20fff64e041564ff3d28ca2da2c592f16245bc56',
@@ -5484,21 +7148,120 @@ module.exports = [
                         app: 'no app',
                         msg: '1629498205|77',
                     },
+                    satsPerByte: 1.0121457489878543,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                3106,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343938323035023737', 0]],
+                    },
                 },
                 {
                     txid: 'b0a4e83dba5e7fbbd563bde7fba6ffe12a4c177d7983714c3325b6a75b28980d',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.0517241379310345,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            'a91439ccd77c027f9a2961521ee6cc5807500f92776e87',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91454331fab3f4266011cd128e8727f76fa7c81a7e788ac',
+                                39999500,
+                            ],
+                            [
+                                'a914e2cd76c15944eb37e7638bcde2ae9ed596e22d3c87',
+                                15109907,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'b150577f2e443eebe6878f143345f3b44d0aedb182af416b90f8e90fefb8328d',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.0134099616858236,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914be35a0ceea3f1097c58ebb242d6ba513e90ea3c788ac',
+                            '76a914f3c4cc37f906c9b2cc9e890aac07bf168d40221b88ac',
+                            '76a914d980e9291303f772a97a2a947e0e72de2f0d2c9c88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91456d9c58a75548b98a048aa0c32bdbeabde1c4f8288ac',
+                                92214,
+                            ],
+                            [
+                                '76a9147c5c50055b67ffb5d3b280637471c94845f7afb588ac',
+                                15900000000,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'beb17b996dfbcea463334fca9f090dd4f5f3d514e5da7e0eedc1e599e6eb81e8',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.1274131274131274,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914a92b6d3bbf75d52588c16cc8f7e66daf6f0b083888ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914a92b6d3bbf75d52588c16cc8f7e66daf6f0b083888ac',
+                                354211,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914d30d4ea76e3289b28106de6c5a40fc08a350765788ac',
+                                74454,
+                            ],
+                            [
+                                '76a914a5e7e4407b2cc63fa45b11cdedb5ba7b5c51110b88ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'c044e68b45fa2806f5da654ff7026b25b78a92b7cceff39c19612a92af0fb86c',
@@ -5506,6 +7269,26 @@ module.exports = [
                     opReturnInfo: {
                         app: 'no app',
                         msg: '1629499836|98',
+                    },
+                    satsPerByte: 1.0040322580645162,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                1360,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343939383336023938', 0]],
                     },
                 },
                 {
@@ -5515,6 +7298,26 @@ module.exports = [
                         app: 'no app',
                         msg: '1629498688|79',
                     },
+                    satsPerByte: 1.0040322580645162,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                1609,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343938363838023739', 0]],
+                    },
                 },
                 {
                     txid: 'c4a481f1228414ede06e580dfdb7949afea20ca92b30a2e164a0d8519f43b685',
@@ -5522,6 +7325,26 @@ module.exports = [
                     opReturnInfo: {
                         app: 'no app',
                         msg: '1629497840|81',
+                    },
+                    satsPerByte: 1.7732793522267207,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                672,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343937383430023831', 0]],
                     },
                 },
                 {
@@ -5531,21 +7354,116 @@ module.exports = [
                         app: 'no app',
                         msg: '1629500240|77',
                     },
+                    satsPerByte: 1.008097165991903,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                3356,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239353030323430023737', 0]],
+                    },
                 },
                 {
                     txid: 'd84be37cbc6a429e19e6946aeaca645be5ddb908fa9193e77a097cff4d333a86',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.1415929203539823,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914a92b6d3bbf75d52588c16cc8f7e66daf6f0b083888ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914a92b6d3bbf75d52588c16cc8f7e66daf6f0b083888ac',
+                                429503,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914d30d4ea76e3289b28106de6c5a40fc08a350765788ac',
+                                230000,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'da8e9086128365532152a791dc6a647c5e33f0daee39b1cd86d2fce7f0ddb6d9',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 4.15929203539823,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9144aa8aba45c20b62e35f7e070027f3be2644cd5ed88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9144aa8aba45c20b62e35f7e070027f3be2644cd5ed88ac',
+                                402883058316,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914795aba95c9f4c71ff8910541e7287ad8c691f71788ac',
+                                97115436942,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'dadfb51c7b27b6df4c062d0f671c8eada8e88666afa84bac39b504452bc76a2b',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9142a7a9113fc75789a7c0de4c82095d43aceced71488ac',
+                            '76a914bae9d826e8fe404eed102a72d085000e552599a888ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914393c34ac3d3db0f4c47d5df3347a442098975e7988ac',
+                                5354603,
+                            ],
+                            [
+                                '76a91407d1772e6cdebc4a08350b4bcf8a30b5954ea5ec88ac',
+                                511440400,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'dbcea63c91f4b03fb4cbd50c6d187243a4dabe95ea3ed7c99219acb194a4a070',
@@ -5554,11 +7472,55 @@ module.exports = [
                         app: 'no app',
                         msg: '1629500399|75',
                     },
+                    satsPerByte: 1.0080645161290323,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                2856,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239353030333939023735', 0]],
+                    },
                 },
                 {
                     txid: 'dc222e2a8f62441be0781771cdc7aa52a0f27b819cbb082bed7095521b5e5876',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.2123893805309733,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91427855ad4f218ee49ca9ce5155434772f762c549e88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914e4d4540f7c5e1b8178d4b6e714e0cb223fe9e1de88ac',
+                                839931800,
+                            ],
+                            [
+                                '76a9142be2fd325cb1b8a152d0864f0fbaef232a71df3a88ac',
+                                210000000,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'dc237a1db441e29593cd423a8e6156084f89b975fcf7c6219bd4399120bc0515',
@@ -5566,6 +7528,26 @@ module.exports = [
                     opReturnInfo: {
                         app: 'no app',
                         msg: '1629498945|79',
+                    },
+                    satsPerByte: 1.7732793522267207,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                672,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343938393435023739', 0]],
                     },
                 },
                 {
@@ -5575,6 +7557,26 @@ module.exports = [
                         app: 'no app',
                         msg: '1629497378|72',
                     },
+                    satsPerByte: 1.0040322580645162,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                2358,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343937333738023732', 0]],
+                    },
                 },
                 {
                     txid: 'e73ac16df97c2d88db8474da8a10cace811137d719827726488239e38745769e',
@@ -5582,6 +7584,26 @@ module.exports = [
                     opReturnInfo: {
                         app: 'no app',
                         msg: '1629499638|91',
+                    },
+                    satsPerByte: 1.0040322580645162,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                2107,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343939363338023931', 0]],
                     },
                 },
                 {
@@ -5591,16 +7613,88 @@ module.exports = [
                         app: 'no app',
                         msg: '1629499432|84',
                     },
+                    satsPerByte: 1.0121457489878543,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                2856,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343939343332023834', 0]],
+                    },
                 },
                 {
                     txid: 'f0bbf184b8e3ebc8b2e153c157c0acc4535d9af4e4db0f4b9260620884cc94d7',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 5,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914b3a10ec2f4f7d42a3d0d9c60cfce8144adc4dcd488ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9149988b1d6db4a80e97fa04a26957e53810ed9a2ef88ac',
+                                50402475,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'f0ce51a1e1cd309ee9a03b134411604c10659ba576383f97306a53214068bc02',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914201e27df7cd79591ffc7bf4369ab94b83d54ea2288ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                'a914847031516ddfa29a3e2a387e9f243bc51e0253a387',
+                                413309500,
+                            ],
+                            [
+                                '76a914a2e89c04d43179eabf85a87d820d92f917a4852488ac',
+                                169481300,
+                            ],
+                            [
+                                '76a914b9ffbdd63952517333d0d9312cf0d1bd1491aca388ac',
+                                1978126230,
+                            ],
+                            [
+                                '76a9143e125a6ac03db457e8cdd3b24f41a45e177ddfcb88ac',
+                                7591109999,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'f12c38e8d9748a933db7ea36ec95c72b91b6e46641949ff08c0748743f94e27a',
@@ -5608,6 +7702,21 @@ module.exports = [
                     opReturnInfo: {
                         app: 'no app',
                         msg: '1629500022|85',
+                    },
+                    satsPerByte: 3.1401869158878504,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239353030303232023835', 0]],
                     },
                 },
                 {
@@ -5617,11 +7726,51 @@ module.exports = [
                         app: 'no app',
                         msg: '1629500482|72',
                     },
+                    satsPerByte: 1.0121457489878543,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                2606,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239353030343832023732', 0]],
+                    },
                 },
                 {
                     txid: 'fc251d54c2de4e47a0222150d0964f178ef06a4702a8e25a5d9ab285e005794a',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 5.014577259475218,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91442ec256a07b41af10e9cbe6ec2e16c0ef295a63f88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914321845fdcae8657403028a48cc686f1052c631cc88ac',
+                                2302590,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'fd8362916275878dcb45127ad8464c51cff592c1ec81fcf57fccc08313be46b8',
@@ -5630,40 +7779,60 @@ module.exports = [
                         app: 'no app',
                         msg: '1629499103|75',
                     },
+                    satsPerByte: 1.0121457489878543,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9140848ee10a336bba27c7ee90dc4a1c2407178a5b788ac',
+                                3854,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [['6a0a31363239343939313033023735', 0]],
+                    },
                 },
             ],
         },
         coingeckoResponse: {
             bitcoin: {
-                usd: 30729.89878314,
+                usd: 29160.02775612,
             },
             ecash: {
-                usd: 0.00003239,
+                usd: 0.00002943,
             },
             ethereum: {
-                usd: 2109.65870749,
+                usd: 1894.98574958,
             },
         },
         coingeckoPrices: [
             {
                 fiat: 'usd',
-                price: 0.00003239,
+                price: 0.00002943,
                 ticker: 'XEC',
             },
             {
                 fiat: 'usd',
-                price: 30729.89878314,
+                price: 29160.02775612,
                 ticker: 'BTC',
             },
             {
                 fiat: 'usd',
-                price: 2109.65870749,
+                price: 1894.98574958,
                 ticker: 'ETH',
             },
         ],
-        tgMsg: '<a href="https://explorer.e.cash/block/0000000000000000260ee4c3b4f4ddde127bc0105d685c0ef31775b612627222">700722</a> | 97 txs | unknown\n1 XEC = $0.00003239\n1 BTC = $30,730\n1 ETH = $2,110\n\n1 new eToken created:\n<a href="https://explorer.e.cash/tx/4db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c875">Lambda Variant Variants</a> (LVV) <a href="https://cashtabapp.com/">[doc]</a>\n\nApp txs:\n<a href="https://explorer.e.cash/tx/0473d97d997b61c5018205b27316b6ae660a9b7835a46166fa87e0b1b26de2dd">no app:</a> 1629498127|85\n<a href="https://explorer.e.cash/tx/0d0a722a21aeca90ebb3d0954475ccb67f18c02945bc138c1f2ae6d507e3feb7">no app:</a> 1629500089|91\n<a href="https://explorer.e.cash/tx/0d9a82afc6b2605b25f8dab8b398579c3d408dc4c25919f6827a1afa5a0f6e5a">no app:</a> 1629497915|79\n<a href="https://explorer.e.cash/tx/1205ec2b6105716eccb95f5b26c5d65d81a390ac8bacc6ee1f20aa1757015143">no app:</a> 1629500647|79\n<a href="https://explorer.e.cash/tx/134b0feae8567aa52d73975746376b785564cbc907f8ce7dfc44f90edd869145">no app:</a> 1629499023|76\n<a href="https://explorer.e.cash/tx/136742fdb231e1342f790a5123f46414c3957f7d199b80ea729ecba274e3b787">no app:</a> 1629497534|78\n<a href="https://explorer.e.cash/tx/1478f35e98cff2227a826bc93463d2813b5161929267806d49ec994088747bfa">no app:</a> 1629498535|87\n<a href="https://explorer.e.cash/tx/2061d46821889fe8767c6fb747b87e37e3961eab46e8a7dc9098719d170fca52">no app:</a> 1629500798|79\n<a href="https://explorer.e.cash/tx/26df82bc6624d8814fe23073ba1b1b8b1ddff68de955ba01fd8dbb5e2db34eb6">no app:</a> 1629497457|77\n<a href="https://explorer.e.cash/tx/28bfff0be82734dbfa346cda5d45fb8deeaacce6edc817bd9d6f2c6c82c203ea">no app:</a> 1629498288|72\n<a href="https://explorer.e.cash/tx/29e4bcf352a9524856099ae43fa25b2c67f661e0486875a35a3dc5e02466c4b5">no app:</a> 1629499274|64\n<a href="https://explorer.e.cash/tx/2fddd13d532ec44c43ee4fa68b587f15d575e73d566e7d30f6bc495a61074e42">no app:</a> 1629500162|80\n<a href="https://explorer.e.cash/tx/30cfe0f7b05197b371e050eb06642e969d037754f456f76272e98890b8ed2581">no app:</a> 1629500720|82\n<a href="https://explorer.e.cash/tx/32f7ca6768bedb81603dfd5618263f84c7cb42fa4bae4eeb2dda8a4eac0cdd4d">no app:</a> 1629499774|94\n<a href="https://explorer.e.cash/tx/3411daaf624965c7731bc169e7831d9e56075986a1639cb1dc74e1b8d9c797b9">no app:</a> 1629497610|79\n<a href="https://explorer.e.cash/tx/4cf484655aa1948cfc3cd291a119806c8b2b5e0d233e44866dc0c9015b24ce1e">no app:</a> 1629499360|84\n<a href="https://explorer.e.cash/tx/4d46bd9ba22889a496cf4d37e5f0307216c8be93885ba82fcc0d3965c63693c3">no app:</a> 1629498460|71\n<a href="https://explorer.e.cash/tx/4f55182147356e5ccbf6c06225e817ac405a50fbe04c0f6eb5a4eb04462c7b12">no app:</a> 1629500318|76\n<a href="https://explorer.e.cash/tx/53c43d805bbbb9618e48cde71f5ff659fea02689f825cde823984b30443f0b30">no app:</a> 1629497132|78\n<a href="https://explorer.e.cash/tx/56bc3c81bb81bc92ba25acc407602207a0fdada4261f7f205d141ab34b616ce9">no app:</a> 1629498060|88\n<a href="https://explorer.e.cash/tx/592f4435d3ef8e2e2f0108cffc7b727798f359bad8521a084ca668bad55512c3">no app:</a> 1629499897|105\n<a href="https://explorer.e.cash/tx/5d4f5668277ac87f170711461f0bef8f716556b6433c39729a4d0f22a1f1a9ae">no app:</a> 1629497763|75\n<a href="https://explorer.e.cash/tx/63ee98065e0c2358423ccc2ceae21a00ff8ed5e132d460a463334f1368ae3936">no app:</a> 1629499571|93\n<a href="https://explorer.e.cash/tx/64d204d6dd894e2b93ec2a9a518fb6c9fb9313098a06859b605e440884372c60">no app:</a> 1629497054|74\n<a href="https://explorer.e.cash/tx/67b05c5f3cc1d1d2415aae8232254bc790fe8d1965e9b529fc3b7bae4acf818d">no app:</a> 1629499185|75\n<a href="https://explorer.e.cash/tx/6fb44256ab3b7ecdb4dd4955d94dd1f6dc1bdeee8a523651fd71e699c524af01">no app:</a> 1629498375|70\n<a href="https://explorer.e.cash/tx/707051559904c61d0873824b9a215b93c90452724be49342554438215ba392d0">no app:</a> 1629498610|74\n<a href="https://explorer.e.cash/tx/7168c1feb93bba72b68c5ac833a9f428dcb88a9e199f53db1613bcc07a70dfec">no app:</a> 1629497293|68\n<a href="https://explorer.e.cash/tx/7d85c406e5a0cd75fb92388f8d875e3e7eded9584d01414f18f57793063b1e69">no app:</a> 1629497209|76\n<a href="https://explorer.e.cash/tx/7ed7de6b7709faafca4d5f92db0af65df90852f7457284039e583554d0d6f527">no app:</a> 1629499706|88\n<a href="https://explorer.e.cash/tx/817c602ce380eda55eae2e64f1501499ea66e9fbffd6aee4c013f5a0e0d8bb77">no app:</a> 1629497685|81\n<a href="https://explorer.e.cash/tx/9162b6dac6e0945f6438343c57d08b69e6306f4e09d94842bcc4aeca22f854be">no app:</a> 1629499504|84\n<a href="https://explorer.e.cash/tx/9bd8383325ec538562c92d8f28f19804d9727196fe1457aec5cace66c1d96fda">no app:</a> 1629498864|64\n<a href="https://explorer.e.cash/tx/a1974c915f3a274907be819533a3c3d4bbbcbf112d3be82970b9100641eccbf3">no app:</a> 1629498773|66\n<a href="https://explorer.e.cash/tx/a1e4bd0b2b151ce40efd30cdedb663e75d438cd518c52c7d3b09e8eb5e9518f8">no app:</a> 1629499955|96\n<a href="https://explorer.e.cash/tx/a7064b6bed0cfcd245af8e76d5f521539152238d3f54e4cad4def3e53a0efe61">no app:</a> 1629500566|71\n<a href="https://explorer.e.cash/tx/ad531c21ee34e502b8ebf131fa6d75faacb91eec9afca2c7e4c1c058ee88bf40">no app:</a> 1629497990|82\n<a href="https://explorer.e.cash/tx/aeb6af4e6b341950c72079ec20fff64e041564ff3d28ca2da2c592f16245bc56">no app:</a> 1629498205|77\n<a href="https://explorer.e.cash/tx/c044e68b45fa2806f5da654ff7026b25b78a92b7cceff39c19612a92af0fb86c">no app:</a> 1629499836|98\n<a href="https://explorer.e.cash/tx/c125f4fb2cf67a105eb2a75a4ecb810a7fd1f27a522868cdd27366f9bb7224c6">no app:</a> 1629498688|79\n<a href="https://explorer.e.cash/tx/c4a481f1228414ede06e580dfdb7949afea20ca92b30a2e164a0d8519f43b685">no app:</a> 1629497840|81\n<a href="https://explorer.e.cash/tx/d1a2187b8ac0a4af195d041d217396c6bdffa4410fc477b4d9c04ca0851456fe">no app:</a> 1629500240|77\n<a href="https://explorer.e.cash/tx/dbcea63c91f4b03fb4cbd50c6d187243a4dabe95ea3ed7c99219acb194a4a070">no app:</a> 1629500399|75\n<a href="https://explorer.e.cash/tx/dc237a1db441e29593cd423a8e6156084f89b975fcf7c6219bd4399120bc0515">no app:</a> 1629498945|79\n<a href="https://explorer.e.cash/tx/de56767590f1f8e5dbef4f9d89eb06e21cc39507e87f821bb12b707912a3d5dd">no app:</a> 1629497378|72\n<a href="https://explorer.e.cash/tx/e73ac16df97c2d88db8474da8a10cace811137d719827726488239e38745769e">no app:</a> 1629499638|91\n<a href="https://explorer.e.cash/tx/eee95b08153dd77e0666c230c5dcdcd73d0338ea4ca3e228761d6bec21824d0b">no app:</a> 1629499432|84\n<a href="https://explorer.e.cash/tx/f12c38e8d9748a933db7ea36ec95c72b91b6e46641949ff08c0748743f94e27a">no app:</a> 1629500022|85\n<a href="https://explorer.e.cash/tx/f8f937a56055bc876938ada58bd695397b8904217336804670cc64192cf69b03">no app:</a> 1629500482|72\n<a href="https://explorer.e.cash/tx/fd8362916275878dcb45127ad8464c51cff592c1ec81fcf57fccc08313be46b8">no app:</a> 1629499103|75',
+        tgMsg: '<a href="https://explorer.e.cash/block/0000000000000000260ee4c3b4f4ddde127bc0105d685c0ef31775b612627222">700722</a> | 97 txs | unknown\n1 XEC = $0.00002943\n1 BTC = $29,160\n1 ETH = $1,895\n\n1 new eToken created:\n<a href="https://explorer.e.cash/tx/4db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c875">Lambda Variant Variants</a> (LVV) <a href="https://cashtabapp.com/">[doc]</a>\n\nApp txs:\n<a href="https://explorer.e.cash/tx/0473d97d997b61c5018205b27316b6ae660a9b7835a46166fa87e0b1b26de2dd">no app:</a> 1629498127|85\n<a href="https://explorer.e.cash/tx/0d0a722a21aeca90ebb3d0954475ccb67f18c02945bc138c1f2ae6d507e3feb7">no app:</a> 1629500089|91\n<a href="https://explorer.e.cash/tx/0d9a82afc6b2605b25f8dab8b398579c3d408dc4c25919f6827a1afa5a0f6e5a">no app:</a> 1629497915|79\n<a href="https://explorer.e.cash/tx/1205ec2b6105716eccb95f5b26c5d65d81a390ac8bacc6ee1f20aa1757015143">no app:</a> 1629500647|79\n<a href="https://explorer.e.cash/tx/134b0feae8567aa52d73975746376b785564cbc907f8ce7dfc44f90edd869145">no app:</a> 1629499023|76\n<a href="https://explorer.e.cash/tx/136742fdb231e1342f790a5123f46414c3957f7d199b80ea729ecba274e3b787">no app:</a> 1629497534|78\n<a href="https://explorer.e.cash/tx/1478f35e98cff2227a826bc93463d2813b5161929267806d49ec994088747bfa">no app:</a> 1629498535|87\n<a href="https://explorer.e.cash/tx/2061d46821889fe8767c6fb747b87e37e3961eab46e8a7dc9098719d170fca52">no app:</a> 1629500798|79\n<a href="https://explorer.e.cash/tx/26df82bc6624d8814fe23073ba1b1b8b1ddff68de955ba01fd8dbb5e2db34eb6">no app:</a> 1629497457|77\n<a href="https://explorer.e.cash/tx/28bfff0be82734dbfa346cda5d45fb8deeaacce6edc817bd9d6f2c6c82c203ea">no app:</a> 1629498288|72\n<a href="https://explorer.e.cash/tx/29e4bcf352a9524856099ae43fa25b2c67f661e0486875a35a3dc5e02466c4b5">no app:</a> 1629499274|64\n<a href="https://explorer.e.cash/tx/2fddd13d532ec44c43ee4fa68b587f15d575e73d566e7d30f6bc495a61074e42">no app:</a> 1629500162|80\n<a href="https://explorer.e.cash/tx/30cfe0f7b05197b371e050eb06642e969d037754f456f76272e98890b8ed2581">no app:</a> 1629500720|82\n<a href="https://explorer.e.cash/tx/32f7ca6768bedb81603dfd5618263f84c7cb42fa4bae4eeb2dda8a4eac0cdd4d">no app:</a> 1629499774|94\n<a href="https://explorer.e.cash/tx/3411daaf624965c7731bc169e7831d9e56075986a1639cb1dc74e1b8d9c797b9">no app:</a> 1629497610|79\n<a href="https://explorer.e.cash/tx/4cf484655aa1948cfc3cd291a119806c8b2b5e0d233e44866dc0c9015b24ce1e">no app:</a> 1629499360|84\n<a href="https://explorer.e.cash/tx/4d46bd9ba22889a496cf4d37e5f0307216c8be93885ba82fcc0d3965c63693c3">no app:</a> 1629498460|71\n<a href="https://explorer.e.cash/tx/4f55182147356e5ccbf6c06225e817ac405a50fbe04c0f6eb5a4eb04462c7b12">no app:</a> 1629500318|76\n<a href="https://explorer.e.cash/tx/53c43d805bbbb9618e48cde71f5ff659fea02689f825cde823984b30443f0b30">no app:</a> 1629497132|78\n<a href="https://explorer.e.cash/tx/56bc3c81bb81bc92ba25acc407602207a0fdada4261f7f205d141ab34b616ce9">no app:</a> 1629498060|88\n<a href="https://explorer.e.cash/tx/592f4435d3ef8e2e2f0108cffc7b727798f359bad8521a084ca668bad55512c3">no app:</a> 1629499897|105\n<a href="https://explorer.e.cash/tx/5d4f5668277ac87f170711461f0bef8f716556b6433c39729a4d0f22a1f1a9ae">no app:</a> 1629497763|75\n<a href="https://explorer.e.cash/tx/63ee98065e0c2358423ccc2ceae21a00ff8ed5e132d460a463334f1368ae3936">no app:</a> 1629499571|93\n<a href="https://explorer.e.cash/tx/64d204d6dd894e2b93ec2a9a518fb6c9fb9313098a06859b605e440884372c60">no app:</a> 1629497054|74\n<a href="https://explorer.e.cash/tx/67b05c5f3cc1d1d2415aae8232254bc790fe8d1965e9b529fc3b7bae4acf818d">no app:</a> 1629499185|75\n<a href="https://explorer.e.cash/tx/6fb44256ab3b7ecdb4dd4955d94dd1f6dc1bdeee8a523651fd71e699c524af01">no app:</a> 1629498375|70\n<a href="https://explorer.e.cash/tx/707051559904c61d0873824b9a215b93c90452724be49342554438215ba392d0">no app:</a> 1629498610|74\n<a href="https://explorer.e.cash/tx/7168c1feb93bba72b68c5ac833a9f428dcb88a9e199f53db1613bcc07a70dfec">no app:</a> 1629497293|68\n<a href="https://explorer.e.cash/tx/7d85c406e5a0cd75fb92388f8d875e3e7eded9584d01414f18f57793063b1e69">no app:</a> 1629497209|76\n<a href="https://explorer.e.cash/tx/7ed7de6b7709faafca4d5f92db0af65df90852f7457284039e583554d0d6f527">no app:</a> 1629499706|88\n<a href="https://explorer.e.cash/tx/817c602ce380eda55eae2e64f1501499ea66e9fbffd6aee4c013f5a0e0d8bb77">no app:</a> 1629497685|81\n<a href="https://explorer.e.cash/tx/9162b6dac6e0945f6438343c57d08b69e6306f4e09d94842bcc4aeca22f854be">no app:</a> 1629499504|84\n<a href="https://explorer.e.cash/tx/9bd8383325ec538562c92d8f28f19804d9727196fe1457aec5cace66c1d96fda">no app:</a> 1629498864|64\n<a href="https://explorer.e.cash/tx/a1974c915f3a274907be819533a3c3d4bbbcbf112d3be82970b9100641eccbf3">no app:</a> 1629498773|66\n<a href="https://explorer.e.cash/tx/a1e4bd0b2b151ce40efd30cdedb663e75d438cd518c52c7d3b09e8eb5e9518f8">no app:</a> 1629499955|96\n<a href="https://explorer.e.cash/tx/a7064b6bed0cfcd245af8e76d5f521539152238d3f54e4cad4def3e53a0efe61">no app:</a> 1629500566|71\n<a href="https://explorer.e.cash/tx/ad531c21ee34e502b8ebf131fa6d75faacb91eec9afca2c7e4c1c058ee88bf40">no app:</a> 1629497990|82\n<a href="https://explorer.e.cash/tx/aeb6af4e6b341950c72079ec20fff64e041564ff3d28ca2da2c592f16245bc56">no app:</a> 1629498205|77\n<a href="https://explorer.e.cash/tx/c044e68b45fa2806f5da654ff7026b25b78a92b7cceff39c19612a92af0fb86c">no app:</a> 1629499836|98\n<a href="https://explorer.e.cash/tx/c125f4fb2cf67a105eb2a75a4ecb810a7fd1f27a522868cdd27366f9bb7224c6">no app:</a> 1629498688|79\n<a href="https://explorer.e.cash/tx/c4a481f1228414ede06e580dfdb7949afea20ca92b30a2e164a0d8519f43b685">no app:</a> 1629497840|81\n<a href="https://explorer.e.cash/tx/d1a2187b8ac0a4af195d041d217396c6bdffa4410fc477b4d9c04ca0851456fe">no app:</a> 1629500240|77\n<a href="https://explorer.e.cash/tx/dbcea63c91f4b03fb4cbd50c6d187243a4dabe95ea3ed7c99219acb194a4a070">no app:</a> 1629500399|75\n<a href="https://explorer.e.cash/tx/dc237a1db441e29593cd423a8e6156084f89b975fcf7c6219bd4399120bc0515">no app:</a> 1629498945|79\n<a href="https://explorer.e.cash/tx/de56767590f1f8e5dbef4f9d89eb06e21cc39507e87f821bb12b707912a3d5dd">no app:</a> 1629497378|72\n<a href="https://explorer.e.cash/tx/e73ac16df97c2d88db8474da8a10cace811137d719827726488239e38745769e">no app:</a> 1629499638|91\n<a href="https://explorer.e.cash/tx/eee95b08153dd77e0666c230c5dcdcd73d0338ea4ca3e228761d6bec21824d0b">no app:</a> 1629499432|84\n<a href="https://explorer.e.cash/tx/f12c38e8d9748a933db7ea36ec95c72b91b6e46641949ff08c0748743f94e27a">no app:</a> 1629500022|85\n<a href="https://explorer.e.cash/tx/f8f937a56055bc876938ada58bd695397b8904217336804670cc64192cf69b03">no app:</a> 1629500482|72\n<a href="https://explorer.e.cash/tx/fd8362916275878dcb45127ad8464c51cff592c1ec81fcf57fccc08313be46b8">no app:</a> 1629499103|75\n\n45 eCash txs:\nqqv...y7y <a href="https://explorer.e.cash/tx/00343ff64e176e514e83a3c247d0a8800641ebf1dd8c87c26b7757619fc58768">sent</a> 201,835,617 XEC to qqn...gd2 and 1 others | 1.00 sats per byte\nqrf...ldm <a href="https://explorer.e.cash/tx/05b4fd23fbe566b5d789f536cc41e77539e6e23e1f5ecb6d8ae67e386ba2e94b">sent</a> 6,354 XEC to qr8...kys and 1 others | 1.00 sats per byte\nqq4...xph <a href="https://explorer.e.cash/tx/05dbfb3db7f4a73de336745335f419ced31b42b2c3e05cdba4cb50e06eb16471">sent</a> 2,099,979 XEC to qp0...rj6 | 10.69 sats per byte\nqru...y7r <a href="https://explorer.e.cash/tx/074d2111cd7014c04d626cf4d96ca273234f5a7c014e5edb0e03145e53a838f2">sent</a> 240,420 XEC to qz5...7p8 and 1 others | 1.23 sats per byte\nqp5...pck <a href="https://explorer.e.cash/tx/0e64f62f9cb16a31cfa2188d6c9ec674c13f3d2f5320672fc45f02a8a1aba38d">sent</a> 4,261,646 XEC to qqz...cc8 | 1.06 sats per byte\nqrh...47a <a href="https://explorer.e.cash/tx/15461fbfdafca9999d195353f6fcbafef4769cb100585315829dafddc66c5ccc">sent</a> 47,684,497 XEC to qz0...c8j and 1 others | 1.00 sats per byte\nqp9...jlg <a href="https://explorer.e.cash/tx/17da7f7d89c687a99b2ed270014fe79be67938d75cf6fffd5afdfa18dcf92624">sent</a> 69,850 XEC to qpu...dtm | 4.18 sats per byte\nqp9...jlg <a href="https://explorer.e.cash/tx/35d7346a26f456fcb2b5dec7801964de18d15b90c68711b70742dde052cbc0d4">sent</a> 10,000 XEC to qqm...uqa | 4.18 sats per byte\nqr9...3zm <a href="https://explorer.e.cash/tx/3d53a4e291acccb5af5f8f65518edf28de61e5004b21150145bd73acf6303cf3">sent</a> 425,718,894 XEC to qzx...xg8 and 1 others | 1.00 sats per byte\nqq4...w64 <a href="https://explorer.e.cash/tx/43c50a9f8bb247a389e5233ff38eb59be3df550feb3a18d0dcc967eea9b0748a">sent</a> 110,320,517 XEC to qqt...q7t and 2 others | 4.10 sats per byte\nqph...72y <a href="https://explorer.e.cash/tx/4b0ae95c4571709ea1634ea1b70946845a0d9e9a4c5b0f4d298feb8c8f5df026">sent</a> 15,326 XEC to qz2...035 | 2.01 sats per byte\nqrp...rtz <a href="https://explorer.e.cash/tx/4bf5a856c75adbc50669ac3f7184958424db99da65d218d986e194d2bb8b3cdf">sent</a> 1,008,221 XEC to qp2...qa4 and 1 others | 5.02 sats per byte\nqzs...qn7 <a href="https://explorer.e.cash/tx/500e26ccb9a73e0a3b4b2973c5b37af1ddeae23cfce41b987d1ba3e942387c54">sent</a> 6,941,377 XEC to qqh...ytf and 1 others | 1.00 sats per byte\nqrz...k3d <a href="https://explorer.e.cash/tx/5200a3bf8928a7aae450aa58b550957333e0bebfa352bcc4c108e9b396a4626f">sent</a> 2,571,837 XEC to qr4...kxh | 150.87 sats per byte\nqz5...7p8 <a href="https://explorer.e.cash/tx/545f14c319f00273c894e02e7e4170e2f186da3e9022629f659f8f6b1e579a1c">sent</a> 750 XEC to qrf...py0 and 1 others | 1.12 sats per byte\nqzq...mzs <a href="https://explorer.e.cash/tx/5dc730eafbde4aeec06bf63995e76ecb957ac9266427e63eb23454e49b9f35c0">sent</a> 717,296 XEC to qzj...e2s and 1 others | 5.00 sats per byte\nqql...h03 <a href="https://explorer.e.cash/tx/6d88f6ad363660c11cc53d6630b6b99b2f99d0ab68b00dd06ba63636e7b15891">sent</a> 89,006,076 XEC to qzj...ksg | 2.13 sats per byte\nqp0...t92 <a href="https://explorer.e.cash/tx/70cf40ea8427d0fa12c411434f5f753780ba986f51947f43eaa5eb1ee4c4b9d7">sent</a> 612,181 XEC to qzj...ztx and 1 others | 1.00 sats per byte\nqpm...k9g <a href="https://explorer.e.cash/tx/73db52181851a5a5734a21a19c9082c84f0e3827284e26d2cded7e5d2bea8363">sent</a> 199,999,998 XEC to qqp...zqu and 1 others | 1.00 sats per byte\nqpa...czv <a href="https://explorer.e.cash/tx/74352cbc58d6e5891dcff7714575735d31b4fd3441f557a2aa5d1c4cb34d3274">sent</a> 612,208 XEC to qp0...t92 and 1 others | 1.00 sats per byte\nppt...gny <a href="https://explorer.e.cash/tx/7453cfad5d4ef44c4033acfcd694fff185be18fa08528ac3d33953c38dfb8d74">sent</a> 88,521,997 XEC to qz3...rj3 and 2 others | 15.28 sats per byte\nqp2...pca <a href="https://explorer.e.cash/tx/76f684f3c861f5ba39872f322d0dd759729a74895a6b376ace563dd8db494f15">sent</a> 294,905 XEC to qp4...0fg and 1 others | 1.00 sats per byte\nqpm...k9g <a href="https://explorer.e.cash/tx/7e4596fc927d0da2c1d4ee1290ffaf3731d873951bd2da60676848d5c8495ee8">sent</a> 199,999,997 XEC to qpl...eep and 2 others | 1.00 sats per byte\nqp4...yuu <a href="https://explorer.e.cash/tx/7f6d27c7f7869d8f0a1bce28b955238b4999d176b0be5b7f8738741c67b6585f">sent</a> 289,611,690 XEC to qqh...zy3 and 1 others | 1.00 sats per byte\nqr4...ffa <a href="https://explorer.e.cash/tx/7f70502f4a0fe4ffc993648a440a56d048298c442e12d6e4d2cd12497357a702">sent</a> 1,975,381 XEC to qr3...w9u and 2 others | 1.00 sats per byte\nqql...y4w <a href="https://explorer.e.cash/tx/826ca512fdaa287c0a38ced748713ff7e9b199f3f43aedf6d49d35d9700bfb6d">sent</a> 30,000,000 XEC to qz8...0fa | 4.16 sats per byte\nqzn...amg <a href="https://explorer.e.cash/tx/8692a0f9ee9217faaf60f76044adc6aec3afe7ebde1f46c52f06da4bf28b126b">sent</a> 3,285,159 XEC to qzt...rag and 1 others | 1.00 sats per byte\nqp9...jlg <a href="https://explorer.e.cash/tx/8a459bb01fe0304d3617a11004b1651ef4f6cf7173e98894f5ded93b3f98eca4">sent</a> 10,000 XEC to qpv...jap | 4.16 sats per byte\nqp9...jlg <a href="https://explorer.e.cash/tx/8ae36d52d6d053da7252f8c34284d0b1296990271e22f82acd0ef8e5daf8ebdc">sent</a> 45,000 XEC to qry...tf4 | 4.16 sats per byte\nqp9...jlg <a href="https://explorer.e.cash/tx/8d15e3628717cca44be6838c6bedbd254650ab8cc5ed66dd1d3cc5ea6f8c9c2c">sent</a> 95,000 XEC to qrt...lp5 | 4.16 sats per byte\nqqn...e9j <a href="https://explorer.e.cash/tx/8dc7771f7904fd00bfbb810e6fdf35e90cfcd495f9e822db5620959d021ccb89">sent</a> 21,197,785 XEC to qr2...rh9 and 1 others | 4.10 sats per byte\nqpp...p3l <a href="https://explorer.e.cash/tx/8f595f2617777d72231772c8994cb8ec4e6c7ec3678cc77c88f7f4c799f8f752">sent</a> 1,217,361 XEC to qz3...hef and 1 others | 1.00 sats per byte\nqz5...7p8 <a href="https://explorer.e.cash/tx/96cf034489782a60d9346e508bf9d97094293ccf51166bd49a4e1f6cb7538c04">sent</a> 150 XEC to qre...t4t and 1 others | 1.17 sats per byte\nqzj...ksg <a href="https://explorer.e.cash/tx/a0895e299c51d87548a63aecc49edc2db717815a32ada2c19718643f1acc99a9">sent</a> 937,282,770 XEC to qz3...rj3 and 4 others | 1.92 sats per byte\nqpm...k9g <a href="https://explorer.e.cash/tx/ae01d244f951d4d1a781fc61a9df0dbd13bff47adb0a52efd05e78828d73932d">sent</a> 199,999,998 XEC to qrd...vnm and 1 others | 1.00 sats per byte\npqu...4ws <a href="https://explorer.e.cash/tx/b0a4e83dba5e7fbbd563bde7fba6ffe12a4c177d7983714c3325b6a75b28980d">sent</a> 551,094 XEC to qp2...thh and 1 others | 1.05 sats per byte\nqzl...52p <a href="https://explorer.e.cash/tx/b150577f2e443eebe6878f143345f3b44d0aedb182af416b90f8e90fefb8328d">sent</a> 159,000,922 XEC to qpt...67y and 1 others | 1.01 sats per byte\nqz5...7p8 <a href="https://explorer.e.cash/tx/beb17b996dfbcea463334fca9f090dd4f5f3d514e5da7e0eedc1e599e6eb81e8">sent</a> 750 XEC to qrf...py0 and 1 others | 1.13 sats per byte\nqz5...7p8 <a href="https://explorer.e.cash/tx/d84be37cbc6a429e19e6946aeaca645be5ddb908fa9193e77a097cff4d333a86">sent</a> 2,300 XEC to qrf...py0 | 1.14 sats per byte\nqp9...jlg <a href="https://explorer.e.cash/tx/da8e9086128365532152a791dc6a647c5e33f0daee39b1cd86d2fce7f0ddb6d9">sent</a> 971,154,369 XEC to qpu...qhj | 4.16 sats per byte\nqq4...qvq <a href="https://explorer.e.cash/tx/dadfb51c7b27b6df4c062d0f671c8eada8e88666afa84bac39b504452bc76a2b">sent</a> 5,167,950 XEC to qqu...vun and 1 others | 1.00 sats per byte\nqqn...gnz <a href="https://explorer.e.cash/tx/dc222e2a8f62441be0781771cdc7aa52a0f27b819cbb082bed7095521b5e5876">sent</a> 10,499,318 XEC to qrj...eya and 1 others | 2.21 sats per byte\nqze...e3p <a href="https://explorer.e.cash/tx/f0bbf184b8e3ebc8b2e153c157c0acc4535d9af4e4db0f4b9260620884cc94d7">sent</a> 504,025 XEC to qzv...geu | 5.00 sats per byte\nqqs...7c5 <a href="https://explorer.e.cash/tx/f0ce51a1e1cd309ee9a03b134411604c10659ba576383f97306a53214068bc02">sent</a> 101,520,270 XEC to pzz...qn8 and 3 others | 1.00 sats per byte\nqpp...m7l <a href="https://explorer.e.cash/tx/fc251d54c2de4e47a0222150d0964f178ef06a4702a8e25a5d9ab285e005794a">sent</a> 23,026 XEC to qqe...fmm | 5.01 sats per byte',
         tgMsgPriceFailure:
-            '<a href="https://explorer.e.cash/block/0000000000000000260ee4c3b4f4ddde127bc0105d685c0ef31775b612627222">700722</a> | 97 txs | unknown\n\n1 new eToken created:\n<a href="https://explorer.e.cash/tx/4db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c875">Lambda Variant Variants</a> (LVV) <a href="https://cashtabapp.com/">[doc]</a>\n\nApp txs:\n<a href="https://explorer.e.cash/tx/0473d97d997b61c5018205b27316b6ae660a9b7835a46166fa87e0b1b26de2dd">no app:</a> 1629498127|85\n<a href="https://explorer.e.cash/tx/0d0a722a21aeca90ebb3d0954475ccb67f18c02945bc138c1f2ae6d507e3feb7">no app:</a> 1629500089|91\n<a href="https://explorer.e.cash/tx/0d9a82afc6b2605b25f8dab8b398579c3d408dc4c25919f6827a1afa5a0f6e5a">no app:</a> 1629497915|79\n<a href="https://explorer.e.cash/tx/1205ec2b6105716eccb95f5b26c5d65d81a390ac8bacc6ee1f20aa1757015143">no app:</a> 1629500647|79\n<a href="https://explorer.e.cash/tx/134b0feae8567aa52d73975746376b785564cbc907f8ce7dfc44f90edd869145">no app:</a> 1629499023|76\n<a href="https://explorer.e.cash/tx/136742fdb231e1342f790a5123f46414c3957f7d199b80ea729ecba274e3b787">no app:</a> 1629497534|78\n<a href="https://explorer.e.cash/tx/1478f35e98cff2227a826bc93463d2813b5161929267806d49ec994088747bfa">no app:</a> 1629498535|87\n<a href="https://explorer.e.cash/tx/2061d46821889fe8767c6fb747b87e37e3961eab46e8a7dc9098719d170fca52">no app:</a> 1629500798|79\n<a href="https://explorer.e.cash/tx/26df82bc6624d8814fe23073ba1b1b8b1ddff68de955ba01fd8dbb5e2db34eb6">no app:</a> 1629497457|77\n<a href="https://explorer.e.cash/tx/28bfff0be82734dbfa346cda5d45fb8deeaacce6edc817bd9d6f2c6c82c203ea">no app:</a> 1629498288|72\n<a href="https://explorer.e.cash/tx/29e4bcf352a9524856099ae43fa25b2c67f661e0486875a35a3dc5e02466c4b5">no app:</a> 1629499274|64\n<a href="https://explorer.e.cash/tx/2fddd13d532ec44c43ee4fa68b587f15d575e73d566e7d30f6bc495a61074e42">no app:</a> 1629500162|80\n<a href="https://explorer.e.cash/tx/30cfe0f7b05197b371e050eb06642e969d037754f456f76272e98890b8ed2581">no app:</a> 1629500720|82\n<a href="https://explorer.e.cash/tx/32f7ca6768bedb81603dfd5618263f84c7cb42fa4bae4eeb2dda8a4eac0cdd4d">no app:</a> 1629499774|94\n<a href="https://explorer.e.cash/tx/3411daaf624965c7731bc169e7831d9e56075986a1639cb1dc74e1b8d9c797b9">no app:</a> 1629497610|79\n<a href="https://explorer.e.cash/tx/4cf484655aa1948cfc3cd291a119806c8b2b5e0d233e44866dc0c9015b24ce1e">no app:</a> 1629499360|84\n<a href="https://explorer.e.cash/tx/4d46bd9ba22889a496cf4d37e5f0307216c8be93885ba82fcc0d3965c63693c3">no app:</a> 1629498460|71\n<a href="https://explorer.e.cash/tx/4f55182147356e5ccbf6c06225e817ac405a50fbe04c0f6eb5a4eb04462c7b12">no app:</a> 1629500318|76\n<a href="https://explorer.e.cash/tx/53c43d805bbbb9618e48cde71f5ff659fea02689f825cde823984b30443f0b30">no app:</a> 1629497132|78\n<a href="https://explorer.e.cash/tx/56bc3c81bb81bc92ba25acc407602207a0fdada4261f7f205d141ab34b616ce9">no app:</a> 1629498060|88\n<a href="https://explorer.e.cash/tx/592f4435d3ef8e2e2f0108cffc7b727798f359bad8521a084ca668bad55512c3">no app:</a> 1629499897|105\n<a href="https://explorer.e.cash/tx/5d4f5668277ac87f170711461f0bef8f716556b6433c39729a4d0f22a1f1a9ae">no app:</a> 1629497763|75\n<a href="https://explorer.e.cash/tx/63ee98065e0c2358423ccc2ceae21a00ff8ed5e132d460a463334f1368ae3936">no app:</a> 1629499571|93\n<a href="https://explorer.e.cash/tx/64d204d6dd894e2b93ec2a9a518fb6c9fb9313098a06859b605e440884372c60">no app:</a> 1629497054|74\n<a href="https://explorer.e.cash/tx/67b05c5f3cc1d1d2415aae8232254bc790fe8d1965e9b529fc3b7bae4acf818d">no app:</a> 1629499185|75\n<a href="https://explorer.e.cash/tx/6fb44256ab3b7ecdb4dd4955d94dd1f6dc1bdeee8a523651fd71e699c524af01">no app:</a> 1629498375|70\n<a href="https://explorer.e.cash/tx/707051559904c61d0873824b9a215b93c90452724be49342554438215ba392d0">no app:</a> 1629498610|74\n<a href="https://explorer.e.cash/tx/7168c1feb93bba72b68c5ac833a9f428dcb88a9e199f53db1613bcc07a70dfec">no app:</a> 1629497293|68\n<a href="https://explorer.e.cash/tx/7d85c406e5a0cd75fb92388f8d875e3e7eded9584d01414f18f57793063b1e69">no app:</a> 1629497209|76\n<a href="https://explorer.e.cash/tx/7ed7de6b7709faafca4d5f92db0af65df90852f7457284039e583554d0d6f527">no app:</a> 1629499706|88\n<a href="https://explorer.e.cash/tx/817c602ce380eda55eae2e64f1501499ea66e9fbffd6aee4c013f5a0e0d8bb77">no app:</a> 1629497685|81\n<a href="https://explorer.e.cash/tx/9162b6dac6e0945f6438343c57d08b69e6306f4e09d94842bcc4aeca22f854be">no app:</a> 1629499504|84\n<a href="https://explorer.e.cash/tx/9bd8383325ec538562c92d8f28f19804d9727196fe1457aec5cace66c1d96fda">no app:</a> 1629498864|64\n<a href="https://explorer.e.cash/tx/a1974c915f3a274907be819533a3c3d4bbbcbf112d3be82970b9100641eccbf3">no app:</a> 1629498773|66\n<a href="https://explorer.e.cash/tx/a1e4bd0b2b151ce40efd30cdedb663e75d438cd518c52c7d3b09e8eb5e9518f8">no app:</a> 1629499955|96\n<a href="https://explorer.e.cash/tx/a7064b6bed0cfcd245af8e76d5f521539152238d3f54e4cad4def3e53a0efe61">no app:</a> 1629500566|71\n<a href="https://explorer.e.cash/tx/ad531c21ee34e502b8ebf131fa6d75faacb91eec9afca2c7e4c1c058ee88bf40">no app:</a> 1629497990|82\n<a href="https://explorer.e.cash/tx/aeb6af4e6b341950c72079ec20fff64e041564ff3d28ca2da2c592f16245bc56">no app:</a> 1629498205|77\n<a href="https://explorer.e.cash/tx/c044e68b45fa2806f5da654ff7026b25b78a92b7cceff39c19612a92af0fb86c">no app:</a> 1629499836|98\n<a href="https://explorer.e.cash/tx/c125f4fb2cf67a105eb2a75a4ecb810a7fd1f27a522868cdd27366f9bb7224c6">no app:</a> 1629498688|79\n<a href="https://explorer.e.cash/tx/c4a481f1228414ede06e580dfdb7949afea20ca92b30a2e164a0d8519f43b685">no app:</a> 1629497840|81\n<a href="https://explorer.e.cash/tx/d1a2187b8ac0a4af195d041d217396c6bdffa4410fc477b4d9c04ca0851456fe">no app:</a> 1629500240|77\n<a href="https://explorer.e.cash/tx/dbcea63c91f4b03fb4cbd50c6d187243a4dabe95ea3ed7c99219acb194a4a070">no app:</a> 1629500399|75\n<a href="https://explorer.e.cash/tx/dc237a1db441e29593cd423a8e6156084f89b975fcf7c6219bd4399120bc0515">no app:</a> 1629498945|79\n<a href="https://explorer.e.cash/tx/de56767590f1f8e5dbef4f9d89eb06e21cc39507e87f821bb12b707912a3d5dd">no app:</a> 1629497378|72\n<a href="https://explorer.e.cash/tx/e73ac16df97c2d88db8474da8a10cace811137d719827726488239e38745769e">no app:</a> 1629499638|91\n<a href="https://explorer.e.cash/tx/eee95b08153dd77e0666c230c5dcdcd73d0338ea4ca3e228761d6bec21824d0b">no app:</a> 1629499432|84\n<a href="https://explorer.e.cash/tx/f12c38e8d9748a933db7ea36ec95c72b91b6e46641949ff08c0748743f94e27a">no app:</a> 1629500022|85\n<a href="https://explorer.e.cash/tx/f8f937a56055bc876938ada58bd695397b8904217336804670cc64192cf69b03">no app:</a> 1629500482|72\n<a href="https://explorer.e.cash/tx/fd8362916275878dcb45127ad8464c51cff592c1ec81fcf57fccc08313be46b8">no app:</a> 1629499103|75',
+            '<a href="https://explorer.e.cash/block/0000000000000000260ee4c3b4f4ddde127bc0105d685c0ef31775b612627222">700722</a> | 97 txs | unknown\n\n1 new eToken created:\n<a href="https://explorer.e.cash/tx/4db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c875">Lambda Variant Variants</a> (LVV) <a href="https://cashtabapp.com/">[doc]</a>\n\nApp txs:\n<a href="https://explorer.e.cash/tx/0473d97d997b61c5018205b27316b6ae660a9b7835a46166fa87e0b1b26de2dd">no app:</a> 1629498127|85\n<a href="https://explorer.e.cash/tx/0d0a722a21aeca90ebb3d0954475ccb67f18c02945bc138c1f2ae6d507e3feb7">no app:</a> 1629500089|91\n<a href="https://explorer.e.cash/tx/0d9a82afc6b2605b25f8dab8b398579c3d408dc4c25919f6827a1afa5a0f6e5a">no app:</a> 1629497915|79\n<a href="https://explorer.e.cash/tx/1205ec2b6105716eccb95f5b26c5d65d81a390ac8bacc6ee1f20aa1757015143">no app:</a> 1629500647|79\n<a href="https://explorer.e.cash/tx/134b0feae8567aa52d73975746376b785564cbc907f8ce7dfc44f90edd869145">no app:</a> 1629499023|76\n<a href="https://explorer.e.cash/tx/136742fdb231e1342f790a5123f46414c3957f7d199b80ea729ecba274e3b787">no app:</a> 1629497534|78\n<a href="https://explorer.e.cash/tx/1478f35e98cff2227a826bc93463d2813b5161929267806d49ec994088747bfa">no app:</a> 1629498535|87\n<a href="https://explorer.e.cash/tx/2061d46821889fe8767c6fb747b87e37e3961eab46e8a7dc9098719d170fca52">no app:</a> 1629500798|79\n<a href="https://explorer.e.cash/tx/26df82bc6624d8814fe23073ba1b1b8b1ddff68de955ba01fd8dbb5e2db34eb6">no app:</a> 1629497457|77\n<a href="https://explorer.e.cash/tx/28bfff0be82734dbfa346cda5d45fb8deeaacce6edc817bd9d6f2c6c82c203ea">no app:</a> 1629498288|72\n<a href="https://explorer.e.cash/tx/29e4bcf352a9524856099ae43fa25b2c67f661e0486875a35a3dc5e02466c4b5">no app:</a> 1629499274|64\n<a href="https://explorer.e.cash/tx/2fddd13d532ec44c43ee4fa68b587f15d575e73d566e7d30f6bc495a61074e42">no app:</a> 1629500162|80\n<a href="https://explorer.e.cash/tx/30cfe0f7b05197b371e050eb06642e969d037754f456f76272e98890b8ed2581">no app:</a> 1629500720|82\n<a href="https://explorer.e.cash/tx/32f7ca6768bedb81603dfd5618263f84c7cb42fa4bae4eeb2dda8a4eac0cdd4d">no app:</a> 1629499774|94\n<a href="https://explorer.e.cash/tx/3411daaf624965c7731bc169e7831d9e56075986a1639cb1dc74e1b8d9c797b9">no app:</a> 1629497610|79\n<a href="https://explorer.e.cash/tx/4cf484655aa1948cfc3cd291a119806c8b2b5e0d233e44866dc0c9015b24ce1e">no app:</a> 1629499360|84\n<a href="https://explorer.e.cash/tx/4d46bd9ba22889a496cf4d37e5f0307216c8be93885ba82fcc0d3965c63693c3">no app:</a> 1629498460|71\n<a href="https://explorer.e.cash/tx/4f55182147356e5ccbf6c06225e817ac405a50fbe04c0f6eb5a4eb04462c7b12">no app:</a> 1629500318|76\n<a href="https://explorer.e.cash/tx/53c43d805bbbb9618e48cde71f5ff659fea02689f825cde823984b30443f0b30">no app:</a> 1629497132|78\n<a href="https://explorer.e.cash/tx/56bc3c81bb81bc92ba25acc407602207a0fdada4261f7f205d141ab34b616ce9">no app:</a> 1629498060|88\n<a href="https://explorer.e.cash/tx/592f4435d3ef8e2e2f0108cffc7b727798f359bad8521a084ca668bad55512c3">no app:</a> 1629499897|105\n<a href="https://explorer.e.cash/tx/5d4f5668277ac87f170711461f0bef8f716556b6433c39729a4d0f22a1f1a9ae">no app:</a> 1629497763|75\n<a href="https://explorer.e.cash/tx/63ee98065e0c2358423ccc2ceae21a00ff8ed5e132d460a463334f1368ae3936">no app:</a> 1629499571|93\n<a href="https://explorer.e.cash/tx/64d204d6dd894e2b93ec2a9a518fb6c9fb9313098a06859b605e440884372c60">no app:</a> 1629497054|74\n<a href="https://explorer.e.cash/tx/67b05c5f3cc1d1d2415aae8232254bc790fe8d1965e9b529fc3b7bae4acf818d">no app:</a> 1629499185|75\n<a href="https://explorer.e.cash/tx/6fb44256ab3b7ecdb4dd4955d94dd1f6dc1bdeee8a523651fd71e699c524af01">no app:</a> 1629498375|70\n<a href="https://explorer.e.cash/tx/707051559904c61d0873824b9a215b93c90452724be49342554438215ba392d0">no app:</a> 1629498610|74\n<a href="https://explorer.e.cash/tx/7168c1feb93bba72b68c5ac833a9f428dcb88a9e199f53db1613bcc07a70dfec">no app:</a> 1629497293|68\n<a href="https://explorer.e.cash/tx/7d85c406e5a0cd75fb92388f8d875e3e7eded9584d01414f18f57793063b1e69">no app:</a> 1629497209|76\n<a href="https://explorer.e.cash/tx/7ed7de6b7709faafca4d5f92db0af65df90852f7457284039e583554d0d6f527">no app:</a> 1629499706|88\n<a href="https://explorer.e.cash/tx/817c602ce380eda55eae2e64f1501499ea66e9fbffd6aee4c013f5a0e0d8bb77">no app:</a> 1629497685|81\n<a href="https://explorer.e.cash/tx/9162b6dac6e0945f6438343c57d08b69e6306f4e09d94842bcc4aeca22f854be">no app:</a> 1629499504|84\n<a href="https://explorer.e.cash/tx/9bd8383325ec538562c92d8f28f19804d9727196fe1457aec5cace66c1d96fda">no app:</a> 1629498864|64\n<a href="https://explorer.e.cash/tx/a1974c915f3a274907be819533a3c3d4bbbcbf112d3be82970b9100641eccbf3">no app:</a> 1629498773|66\n<a href="https://explorer.e.cash/tx/a1e4bd0b2b151ce40efd30cdedb663e75d438cd518c52c7d3b09e8eb5e9518f8">no app:</a> 1629499955|96\n<a href="https://explorer.e.cash/tx/a7064b6bed0cfcd245af8e76d5f521539152238d3f54e4cad4def3e53a0efe61">no app:</a> 1629500566|71\n<a href="https://explorer.e.cash/tx/ad531c21ee34e502b8ebf131fa6d75faacb91eec9afca2c7e4c1c058ee88bf40">no app:</a> 1629497990|82\n<a href="https://explorer.e.cash/tx/aeb6af4e6b341950c72079ec20fff64e041564ff3d28ca2da2c592f16245bc56">no app:</a> 1629498205|77\n<a href="https://explorer.e.cash/tx/c044e68b45fa2806f5da654ff7026b25b78a92b7cceff39c19612a92af0fb86c">no app:</a> 1629499836|98\n<a href="https://explorer.e.cash/tx/c125f4fb2cf67a105eb2a75a4ecb810a7fd1f27a522868cdd27366f9bb7224c6">no app:</a> 1629498688|79\n<a href="https://explorer.e.cash/tx/c4a481f1228414ede06e580dfdb7949afea20ca92b30a2e164a0d8519f43b685">no app:</a> 1629497840|81\n<a href="https://explorer.e.cash/tx/d1a2187b8ac0a4af195d041d217396c6bdffa4410fc477b4d9c04ca0851456fe">no app:</a> 1629500240|77\n<a href="https://explorer.e.cash/tx/dbcea63c91f4b03fb4cbd50c6d187243a4dabe95ea3ed7c99219acb194a4a070">no app:</a> 1629500399|75\n<a href="https://explorer.e.cash/tx/dc237a1db441e29593cd423a8e6156084f89b975fcf7c6219bd4399120bc0515">no app:</a> 1629498945|79\n<a href="https://explorer.e.cash/tx/de56767590f1f8e5dbef4f9d89eb06e21cc39507e87f821bb12b707912a3d5dd">no app:</a> 1629497378|72\n<a href="https://explorer.e.cash/tx/e73ac16df97c2d88db8474da8a10cace811137d719827726488239e38745769e">no app:</a> 1629499638|91\n<a href="https://explorer.e.cash/tx/eee95b08153dd77e0666c230c5dcdcd73d0338ea4ca3e228761d6bec21824d0b">no app:</a> 1629499432|84\n<a href="https://explorer.e.cash/tx/f12c38e8d9748a933db7ea36ec95c72b91b6e46641949ff08c0748743f94e27a">no app:</a> 1629500022|85\n<a href="https://explorer.e.cash/tx/f8f937a56055bc876938ada58bd695397b8904217336804670cc64192cf69b03">no app:</a> 1629500482|72\n<a href="https://explorer.e.cash/tx/fd8362916275878dcb45127ad8464c51cff592c1ec81fcf57fccc08313be46b8">no app:</a> 1629499103|75\n\n45 eCash txs:\nqqv...y7y <a href="https://explorer.e.cash/tx/00343ff64e176e514e83a3c247d0a8800641ebf1dd8c87c26b7757619fc58768">sent</a> 201,835,617 XEC to qqn...gd2 and 1 others | 1.00 sats per byte\nqrf...ldm <a href="https://explorer.e.cash/tx/05b4fd23fbe566b5d789f536cc41e77539e6e23e1f5ecb6d8ae67e386ba2e94b">sent</a> 6,354 XEC to qr8...kys and 1 others | 1.00 sats per byte\nqq4...xph <a href="https://explorer.e.cash/tx/05dbfb3db7f4a73de336745335f419ced31b42b2c3e05cdba4cb50e06eb16471">sent</a> 2,099,979 XEC to qp0...rj6 | 10.69 sats per byte\nqru...y7r <a href="https://explorer.e.cash/tx/074d2111cd7014c04d626cf4d96ca273234f5a7c014e5edb0e03145e53a838f2">sent</a> 240,420 XEC to qz5...7p8 and 1 others | 1.23 sats per byte\nqp5...pck <a href="https://explorer.e.cash/tx/0e64f62f9cb16a31cfa2188d6c9ec674c13f3d2f5320672fc45f02a8a1aba38d">sent</a> 4,261,646 XEC to qqz...cc8 | 1.06 sats per byte\nqrh...47a <a href="https://explorer.e.cash/tx/15461fbfdafca9999d195353f6fcbafef4769cb100585315829dafddc66c5ccc">sent</a> 47,684,497 XEC to qz0...c8j and 1 others | 1.00 sats per byte\nqp9...jlg <a href="https://explorer.e.cash/tx/17da7f7d89c687a99b2ed270014fe79be67938d75cf6fffd5afdfa18dcf92624">sent</a> 69,850 XEC to qpu...dtm | 4.18 sats per byte\nqp9...jlg <a href="https://explorer.e.cash/tx/35d7346a26f456fcb2b5dec7801964de18d15b90c68711b70742dde052cbc0d4">sent</a> 10,000 XEC to qqm...uqa | 4.18 sats per byte\nqr9...3zm <a href="https://explorer.e.cash/tx/3d53a4e291acccb5af5f8f65518edf28de61e5004b21150145bd73acf6303cf3">sent</a> 425,718,894 XEC to qzx...xg8 and 1 others | 1.00 sats per byte\nqq4...w64 <a href="https://explorer.e.cash/tx/43c50a9f8bb247a389e5233ff38eb59be3df550feb3a18d0dcc967eea9b0748a">sent</a> 110,320,517 XEC to qqt...q7t and 2 others | 4.10 sats per byte\nqph...72y <a href="https://explorer.e.cash/tx/4b0ae95c4571709ea1634ea1b70946845a0d9e9a4c5b0f4d298feb8c8f5df026">sent</a> 15,326 XEC to qz2...035 | 2.01 sats per byte\nqrp...rtz <a href="https://explorer.e.cash/tx/4bf5a856c75adbc50669ac3f7184958424db99da65d218d986e194d2bb8b3cdf">sent</a> 1,008,221 XEC to qp2...qa4 and 1 others | 5.02 sats per byte\nqzs...qn7 <a href="https://explorer.e.cash/tx/500e26ccb9a73e0a3b4b2973c5b37af1ddeae23cfce41b987d1ba3e942387c54">sent</a> 6,941,377 XEC to qqh...ytf and 1 others | 1.00 sats per byte\nqrz...k3d <a href="https://explorer.e.cash/tx/5200a3bf8928a7aae450aa58b550957333e0bebfa352bcc4c108e9b396a4626f">sent</a> 2,571,837 XEC to qr4...kxh | 150.87 sats per byte\nqz5...7p8 <a href="https://explorer.e.cash/tx/545f14c319f00273c894e02e7e4170e2f186da3e9022629f659f8f6b1e579a1c">sent</a> 750 XEC to qrf...py0 and 1 others | 1.12 sats per byte\nqzq...mzs <a href="https://explorer.e.cash/tx/5dc730eafbde4aeec06bf63995e76ecb957ac9266427e63eb23454e49b9f35c0">sent</a> 717,296 XEC to qzj...e2s and 1 others | 5.00 sats per byte\nqql...h03 <a href="https://explorer.e.cash/tx/6d88f6ad363660c11cc53d6630b6b99b2f99d0ab68b00dd06ba63636e7b15891">sent</a> 89,006,076 XEC to qzj...ksg | 2.13 sats per byte\nqp0...t92 <a href="https://explorer.e.cash/tx/70cf40ea8427d0fa12c411434f5f753780ba986f51947f43eaa5eb1ee4c4b9d7">sent</a> 612,181 XEC to qzj...ztx and 1 others | 1.00 sats per byte\nqpm...k9g <a href="https://explorer.e.cash/tx/73db52181851a5a5734a21a19c9082c84f0e3827284e26d2cded7e5d2bea8363">sent</a> 199,999,998 XEC to qqp...zqu and 1 others | 1.00 sats per byte\nqpa...czv <a href="https://explorer.e.cash/tx/74352cbc58d6e5891dcff7714575735d31b4fd3441f557a2aa5d1c4cb34d3274">sent</a> 612,208 XEC to qp0...t92 and 1 others | 1.00 sats per byte\nppt...gny <a href="https://explorer.e.cash/tx/7453cfad5d4ef44c4033acfcd694fff185be18fa08528ac3d33953c38dfb8d74">sent</a> 88,521,997 XEC to qz3...rj3 and 2 others | 15.28 sats per byte\nqp2...pca <a href="https://explorer.e.cash/tx/76f684f3c861f5ba39872f322d0dd759729a74895a6b376ace563dd8db494f15">sent</a> 294,905 XEC to qp4...0fg and 1 others | 1.00 sats per byte\nqpm...k9g <a href="https://explorer.e.cash/tx/7e4596fc927d0da2c1d4ee1290ffaf3731d873951bd2da60676848d5c8495ee8">sent</a> 199,999,997 XEC to qpl...eep and 2 others | 1.00 sats per byte\nqp4...yuu <a href="https://explorer.e.cash/tx/7f6d27c7f7869d8f0a1bce28b955238b4999d176b0be5b7f8738741c67b6585f">sent</a> 289,611,690 XEC to qqh...zy3 and 1 others | 1.00 sats per byte\nqr4...ffa <a href="https://explorer.e.cash/tx/7f70502f4a0fe4ffc993648a440a56d048298c442e12d6e4d2cd12497357a702">sent</a> 1,975,381 XEC to qr3...w9u and 2 others | 1.00 sats per byte\nqql...y4w <a href="https://explorer.e.cash/tx/826ca512fdaa287c0a38ced748713ff7e9b199f3f43aedf6d49d35d9700bfb6d">sent</a> 30,000,000 XEC to qz8...0fa | 4.16 sats per byte\nqzn...amg <a href="https://explorer.e.cash/tx/8692a0f9ee9217faaf60f76044adc6aec3afe7ebde1f46c52f06da4bf28b126b">sent</a> 3,285,159 XEC to qzt...rag and 1 others | 1.00 sats per byte\nqp9...jlg <a href="https://explorer.e.cash/tx/8a459bb01fe0304d3617a11004b1651ef4f6cf7173e98894f5ded93b3f98eca4">sent</a> 10,000 XEC to qpv...jap | 4.16 sats per byte\nqp9...jlg <a href="https://explorer.e.cash/tx/8ae36d52d6d053da7252f8c34284d0b1296990271e22f82acd0ef8e5daf8ebdc">sent</a> 45,000 XEC to qry...tf4 | 4.16 sats per byte\nqp9...jlg <a href="https://explorer.e.cash/tx/8d15e3628717cca44be6838c6bedbd254650ab8cc5ed66dd1d3cc5ea6f8c9c2c">sent</a> 95,000 XEC to qrt...lp5 | 4.16 sats per byte\nqqn...e9j <a href="https://explorer.e.cash/tx/8dc7771f7904fd00bfbb810e6fdf35e90cfcd495f9e822db5620959d021ccb89">sent</a> 21,197,785 XEC to qr2...rh9 and 1 others | 4.10 sats per byte\nqpp...p3l <a href="https://explorer.e.cash/tx/8f595f2617777d72231772c8994cb8ec4e6c7ec3678cc77c88f7f4c799f8f752">sent</a> 1,217,361 XEC to qz3...hef and 1 others | 1.00 sats per byte\nqz5...7p8 <a href="https://explorer.e.cash/tx/96cf034489782a60d9346e508bf9d97094293ccf51166bd49a4e1f6cb7538c04">sent</a> 150 XEC to qre...t4t and 1 others | 1.17 sats per byte\nqzj...ksg <a href="https://explorer.e.cash/tx/a0895e299c51d87548a63aecc49edc2db717815a32ada2c19718643f1acc99a9">sent</a> 937,282,770 XEC to qz3...rj3 and 4 others | 1.92 sats per byte\nqpm...k9g <a href="https://explorer.e.cash/tx/ae01d244f951d4d1a781fc61a9df0dbd13bff47adb0a52efd05e78828d73932d">sent</a> 199,999,998 XEC to qrd...vnm and 1 others | 1.00 sats per byte\npqu...4ws <a href="https://explorer.e.cash/tx/b0a4e83dba5e7fbbd563bde7fba6ffe12a4c177d7983714c3325b6a75b28980d">sent</a> 551,094 XEC to qp2...thh and 1 others | 1.05 sats per byte\nqzl...52p <a href="https://explorer.e.cash/tx/b150577f2e443eebe6878f143345f3b44d0aedb182af416b90f8e90fefb8328d">sent</a> 159,000,922 XEC to qpt...67y and 1 others | 1.01 sats per byte\nqz5...7p8 <a href="https://explorer.e.cash/tx/beb17b996dfbcea463334fca9f090dd4f5f3d514e5da7e0eedc1e599e6eb81e8">sent</a> 750 XEC to qrf...py0 and 1 others | 1.13 sats per byte\nqz5...7p8 <a href="https://explorer.e.cash/tx/d84be37cbc6a429e19e6946aeaca645be5ddb908fa9193e77a097cff4d333a86">sent</a> 2,300 XEC to qrf...py0 | 1.14 sats per byte\nqp9...jlg <a href="https://explorer.e.cash/tx/da8e9086128365532152a791dc6a647c5e33f0daee39b1cd86d2fce7f0ddb6d9">sent</a> 971,154,369 XEC to qpu...qhj | 4.16 sats per byte\nqq4...qvq <a href="https://explorer.e.cash/tx/dadfb51c7b27b6df4c062d0f671c8eada8e88666afa84bac39b504452bc76a2b">sent</a> 5,167,950 XEC to qqu...vun and 1 others | 1.00 sats per byte\nqqn...gnz <a href="https://explorer.e.cash/tx/dc222e2a8f62441be0781771cdc7aa52a0f27b819cbb082bed7095521b5e5876">sent</a> 10,499,318 XEC to qrj...eya and 1 others | 2.21 sats per byte\nqze...e3p <a href="https://explorer.e.cash/tx/f0bbf184b8e3ebc8b2e153c157c0acc4535d9af4e4db0f4b9260620884cc94d7">sent</a> 504,025 XEC to qzv...geu | 5.00 sats per byte\nqqs...7c5 <a href="https://explorer.e.cash/tx/f0ce51a1e1cd309ee9a03b134411604c10659ba576383f97306a53214068bc02">sent</a> 101,520,270 XEC to pzz...qn8 and 3 others | 1.00 sats per byte\nqpp...m7l <a href="https://explorer.e.cash/tx/fc251d54c2de4e47a0222150d0964f178ef06a4702a8e25a5d9ab285e005794a">sent</a> 23,026 XEC to qqe...fmm | 5.01 sats per byte',
         blockName: 'etokenGenesisTx',
     },
     {
@@ -8148,6 +10317,10 @@ module.exports = [
                                 amount: '100',
                                 isMintBaton: false,
                             },
+                            spentBy: {
+                                txid: '4906f87fcdd45311033f88e6c73b97f9273f71e924b43c7dedb3883030d9f9cc',
+                                outIdx: 76,
+                            },
                         },
                     ],
                     lockTime: 0,
@@ -9414,6 +11587,10 @@ module.exports = [
                                 amount: '1999',
                                 isMintBaton: false,
                             },
+                            spentBy: {
+                                txid: '3e3f90bef444a397c2103f9e18d78f9064a0657e1d2a5cf284865daa34dfc8af',
+                                outIdx: 3,
+                            },
                         },
                         {
                             value: '546',
@@ -9631,6 +11808,10 @@ module.exports = [
                                 amount: '3600',
                                 isMintBaton: false,
                             },
+                            spentBy: {
+                                txid: '4906f87fcdd45311033f88e6c73b97f9273f71e924b43c7dedb3883030d9f9cc',
+                                outIdx: 77,
+                            },
                         },
                         {
                             value: '2606',
@@ -9762,61 +11943,371 @@ module.exports = [
                     txid: '0118031a8a27fabe5af6ad1193fa6550990ebd5ce029ac840be713e464c25e0e',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.5641025641025643,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91435d20230fcc09fe756f8680c3ae039b86fb4032d88ac',
+                            '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5080000000000000024',
+                                0,
+                            ],
+                            [
+                                '76a9144c1efd024f560e4e1aaf4b62416cd1e82fbed24f88ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '086f329794679d9f7968c218157f2999465b49ba946a7180820b7a4d12b75d6b',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.36875,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914d94bba6bfd2f5d9036452d9b6b12a254df6aab3188ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914d94bba6bfd2f5d9036452d9b6b12a254df6aab3188ac',
+                                174592,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44202c46c017466f06817ecd3ba1c76d11e2c37db21a3fd899b84d2ce7723beeba0a08000000000000019008000008fc389c6c28',
+                                0,
+                            ],
+                            [
+                                '76a914e1d5310eebf49c6a04360385d943bc74d541502088ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '0fda4cdb6a83ee85696b95553682a07a903520ba1aa0a73548687851e6e7f030',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.5641025641025643,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91435d20230fcc09fe756f8680c3ae039b86fb4032d88ac',
+                            '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5080000000000000462',
+                                0,
+                            ],
+                            [
+                                '76a9144c1efd024f560e4e1aaf4b62416cd1e82fbed24f88ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '10336f54a76f7020557074b14422dffd24bad211bbf9715684dbea1acc04864b',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.5641025641025643,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91435d20230fcc09fe756f8680c3ae039b86fb4032d88ac',
+                            '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5080000000000000200',
+                                0,
+                            ],
+                            [
+                                '76a9144c1efd024f560e4e1aaf4b62416cd1e82fbed24f88ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '114105f8f9c3636faa465e4c8517355b68c49633d47a4a84619689fa92c6950b',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.36875,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914d94bba6bfd2f5d9036452d9b6b12a254df6aab3188ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914d94bba6bfd2f5d9036452d9b6b12a254df6aab3188ac',
+                                172909,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44202c46c017466f06817ecd3ba1c76d11e2c37db21a3fd899b84d2ce7723beeba0a0800000000000002bc08000008fc389c696c',
+                                0,
+                            ],
+                            [
+                                '76a914e1d5310eebf49c6a04360385d943bc74d541502088ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '12569fb6dfdf972945b119392e2bbd9e320527ba3ab414160265caa505d11e46',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.0848214285714286,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9148c9c390cfe93386d835ef58dd936deb1d138c1b188ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91434252307266300c74b0e9b192b6042b8499d7b4b88ac',
+                                99999757,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '1f7b1bb6b028cefedfe32b56cff88f8c840b250ce1aca1c470f2727935e83d50',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.0309734513274336,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9143148b719fe8b16b92b6be8fc34155d3f7fec319188ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914aa8e9a37a0f7575b04bd7c6ddfb3611d0b475f1988ac',
+                                844560700,
+                            ],
+                            [
+                                '76a9148601eacf1714e53be19eff09aba47b06b42837b188ac',
+                                1025339067,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '2095ebd23a146fbfdd0184efb6c9766a9a5d542fb55a063df3fff1670f1bb273',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.36875,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914d94bba6bfd2f5d9036452d9b6b12a254df6aab3188ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914d94bba6bfd2f5d9036452d9b6b12a254df6aab3188ac',
+                                167860,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44202c46c017466f06817ecd3ba1c76d11e2c37db21a3fd899b84d2ce7723beeba0a0800000000000001f408000008fc389c6390',
+                                0,
+                            ],
+                            [
+                                '76a914e1d5310eebf49c6a04360385d943bc74d541502088ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '21092fb6e223e4549333b0f79a05d84b259e56e1bb5b090b5d463cbe19f1a597',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.3821989528795813,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914243512094a004f048bb060bac3f407f98c0e53f588ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9145ce138a4fc793e4517e6ebdb18ccb36353bf7fda88ac',
+                                93553,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '22836e6b6f4861d0b8f18735e6e342981e2edc0c686cdf06da892ab7d7d75512',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 10.049261083743842,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9142f2c2e426df8c0efbd9f8bc9c44aa2725dd1159588ac',
+                            '76a914c827790bcc0443c910cca58bfdd247bf85982e9288ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914c827790bcc0443c910cca58bfdd247bf85982e9288ac',
+                                1000,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91439451ccc314be3bfe2689a131c708abe4dad779288ac',
+                                2727972823,
+                            ],
+                            [
+                                '76a9148e08319427b606522315e97151e16b7ecff1811988ac',
+                                174237800,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '264a42c30ea9d82bdbf3f8c4d9b7fea006984f96aa9f561f55116684ea21d0f5',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.363825363825364,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914d94bba6bfd2f5d9036452d9b6b12a254df6aab3188ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914d94bba6bfd2f5d9036452d9b6b12a254df6aab3188ac',
+                                176275,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e4420fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa0800000000000000c80800000000389a9be6',
+                                0,
+                            ],
+                            [
+                                '76a91428cabb69be3e20707574d7a0ddc65a801b6ae59988ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '2881e1d6bed3b16b2c17428ba42610152ac1fbd21e72567f6140c312b2c6ac83',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.5641025641025643,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91435d20230fcc09fe756f8680c3ae039b86fb4032d88ac',
+                            '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e50800000000000000f2',
+                                0,
+                            ],
+                            [
+                                '76a9144c1efd024f560e4e1aaf4b62416cd1e82fbed24f88ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '28f3ec1f134dc8ea2e37a0645774fa2aa19e0bc2871b6edcc7e99cd86d77b1b6',
@@ -9825,11 +12316,65 @@ module.exports = [
                         app: 'memo',
                         msg: "Reply to memo|�V��iM�j�t[P\u001c\u000e����J\u0018_�z7�\b�k\u0005u\n|From what I'm gathering, it seems that the media went from questioning authority to doing their bidding as a collective NPC hivemind!",
                     },
+                    satsPerByte: 1,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91490f6ced5395995526cf84ea2d790f15b2a2ca8c888ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91490f6ced5395995526cf84ea2d790f15b2a2ca8c888ac',
+                                4773,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a026d0320965689bc694d816ab0745b501c0e9dc8dbe7994a185fe37a37b808dc6b05750a4c8546726f6d20776861742049276d20676174686572696e672c206974207365656d73207468617420746865206d656469612077656e742066726f6d207175657374696f6e696e6720617574686f7269747920746f20646f696e672074686569722062696464696e67206173206120636f6c6c656374697665204e504320686976656d696e6421',
+                                0,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '3d83bc3b70bd190d27c17df3585fdb693d852d654ced5c46cfdac76afb889b7f',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.373695198329854,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914d94bba6bfd2f5d9036452d9b6b12a254df6aab3188ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914d94bba6bfd2f5d9036452d9b6b12a254df6aab3188ac',
+                                166177,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44202c46c017466f06817ecd3ba1c76d11e2c37db21a3fd899b84d2ce7723beeba0a0800000000000003e808000008fc389c5fa8',
+                                0,
+                            ],
+                            [
+                                '76a914e1d5310eebf49c6a04360385d943bc74d541502088ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
@@ -9841,21 +12386,125 @@ module.exports = [
                         decimals: 0,
                     },
                     opReturnInfo: false,
+                    satsPerByte: 1.5217391304347827,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                                6231101,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010747454e45534953044245415207426561724e69701468747470733a2f2f636173687461622e636f6d2f4c0001004c0008000000000000115c',
+                                0,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '56ccc295c58381980ece3ab43a5510532d9b2e83f2959c15baa07f1aea98748d',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.002231520223152,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914cc4e6959712e401ff4bf171f2381698093f6ad0a88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914cc4e6959712e401ff4bf171f2381698093f6ad0a88ac',
+                                171256,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                                100000,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '657646f7a4e7237fca4ed8231c27d95afc8086f678244d5560be2230d920ff70',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.36875,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                                15263554,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44204db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c8750800000000000000110800000000000f41a8',
+                                0,
+                            ],
+                            [
+                                '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '72152010b53b46f74f84477c7c6b86b9fe2f2aeddfe43d49952960bf4f4de69e',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.5641025641025643,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91435d20230fcc09fe756f8680c3ae039b86fb4032d88ac',
+                            '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e508000000000001034d',
+                                0,
+                            ],
+                            [
+                                '76a9144c1efd024f560e4e1aaf4b62416cd1e82fbed24f88ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '79c5a1cec698350dd93f645fcae8d6ff3902b7cdc582839dfface3cb0c83d823',
@@ -9867,91 +12516,560 @@ module.exports = [
                         decimals: 0,
                     },
                     opReturnInfo: false,
+                    satsPerByte: 1.4967105263157894,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                                9039449,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010747454e4553495304545249420c654361736820486572616c641468747470733a2f2f636173687461622e636f6d2f4c0001004c00080000000000002710',
+                                0,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '7d53e2bf385b0dc071d1e64c50e358227a7a6832cc80b6df73d524a98e9a64f9',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.4427083333333333,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9147eb0396dae3b64c7c76d444f997f4b1731f0129688ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91479112d4121708c6bffebf97f5ca19db6ac36292d88ac',
+                                98417832,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '7df5934f7a1ac0d4fa18bff20994199756f2756db9753ac0833f09811be9eaa5',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 10.045454545454545,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91456160a07d4a5f6ac5148972ebcbd0bdc9591005688ac',
+                            '76a914c827790bcc0443c910cca58bfdd247bf85982e9288ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914c827790bcc0443c910cca58bfdd247bf85982e9288ac',
+                                1000,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914b4c8dbb337af62837401e9b21b37dc60c6339a8e88ac',
+                                573713600,
+                            ],
+                            [
+                                '76a9148e16f14e7a4beed63193cc7004522a7fe252f08088ac',
+                                668062200,
+                            ],
+                            [
+                                '76a9147ae36549f52d93496590d0bd4aab54a49536a67c88ac',
+                                1123907956,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '808ec05abe93ab44b24c1fa0d4f1771f392213ecb234c56b79d5267ece96b2a4',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.4716369529983793,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91435d20230fcc09fe756f8680c3ae039b86fb4032d88ac',
+                            '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91435d20230fcc09fe756f8680c3ae039b86fb4032d88ac',
+                                546,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5080000000000003b73080000000001174127080000000000000064',
+                                0,
+                            ],
+                            [
+                                '76a9144c1efd024f560e4e1aaf4b62416cd1e82fbed24f88ac',
+                                546,
+                            ],
+                            [
+                                '76a914dee50f576362377dd2f031453c0bb09009acaf8188ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '863417f2dc28b6f9f28fbfae9979294924b0241100bf5e51a807b4c82016c9fd',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.0044444444444445,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914231f7087937684790d1049294f3aef9cfb7b05dd88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914231f7087937684790d1049294f3aef9cfb7b05dd88ac',
+                                172040616,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914efdb674d86f09e3ae2963fa841071b92c6d9178388ac',
+                                80722796,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '8970772be0812a5b0e9d47472a7162bb8787d259f111a94b6eefcade547d4845',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.5641025641025643,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91435d20230fcc09fe756f8680c3ae039b86fb4032d88ac',
+                            '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e50800000000000000e3',
+                                0,
+                            ],
+                            [
+                                '76a9144c1efd024f560e4e1aaf4b62416cd1e82fbed24f88ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '8b03983b86dce1b76dfa2cc1254dd169e62723c708f2b57190e93e085550144b',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.5641025641025643,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91435d20230fcc09fe756f8680c3ae039b86fb4032d88ac',
+                            '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5080000000000000013',
+                                0,
+                            ],
+                            [
+                                '76a9144c1efd024f560e4e1aaf4b62416cd1e82fbed24f88ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '9ae4769c2378deec3d8be3a036430cface057600e02c3c12afdbc9b7345b82a5',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.5641025641025643,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91435d20230fcc09fe756f8680c3ae039b86fb4032d88ac',
+                            '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5080000000000017971',
+                                0,
+                            ],
+                            [
+                                '76a9144c1efd024f560e4e1aaf4b62416cd1e82fbed24f88ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '9bcc60b3d8453b42bccb23be5f19ac99a3a637af5df2855b8337bcad17d4f6da',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.36875,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                                117900,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44204db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c8750800000000000000020800000000000f41a6',
+                                0,
+                            ],
+                            [
+                                '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '9df6bc46650bce722aa2e3e06413d461441355aeb49e9cc4e0da8d0420ae8f03',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.5641025641025643,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91435d20230fcc09fe756f8680c3ae039b86fb4032d88ac',
+                            '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e50800000000000001d7',
+                                0,
+                            ],
+                            [
+                                '76a9144c1efd024f560e4e1aaf4b62416cd1e82fbed24f88ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'ac65e147971fbe61e65113b8d68fa176809220199682d2a7e46a74296e092881',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.1604938271604937,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9148acc7dcc5c019ad47caa33e61eb14c2565b8229b88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914243512094a004f048bb060bac3f407f98c0e53f588ac',
+                                95017,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'b6f643aa5a5b26bab1a51d904b23c0799f384c469cd2dd5f27bc90754664d730',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.373695198329854,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914d94bba6bfd2f5d9036452d9b6b12a254df6aab3188ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914d94bba6bfd2f5d9036452d9b6b12a254df6aab3188ac',
+                                169543,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44202c46c017466f06817ecd3ba1c76d11e2c37db21a3fd899b84d2ce7723beeba0a08000000000000012c08000008fc389c6584',
+                                0,
+                            ],
+                            [
+                                '76a914e1d5310eebf49c6a04360385d943bc74d541502088ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'c5dd423b784236e30bf149391ffebb83654b77e6d246fa1944c066e553fcf03a',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.0132743362831858,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914967068b4d0cafd57456ca4aca019985754ccd32e88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914967068b4d0cafd57456ca4aca019985754ccd32e88ac',
+                                23757,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
                 },
                 {
                     txid: 'c88eb6c181c8879707f8d950e8e06dd6158d7440ae0424e2ea0f9ed5c54c9985',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.5641025641025643,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91435d20230fcc09fe756f8680c3ae039b86fb4032d88ac',
+                            '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5080000000000002710',
+                                0,
+                            ],
+                            [
+                                '76a9144c1efd024f560e4e1aaf4b62416cd1e82fbed24f88ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'cdae3b8be1552792d7045193effa6b51646456aadca52f16bd81726cbc2f387f',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.36875,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914d94bba6bfd2f5d9036452d9b6b12a254df6aab3188ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914d94bba6bfd2f5d9036452d9b6b12a254df6aab3188ac',
+                                171226,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44202c46c017466f06817ecd3ba1c76d11e2c37db21a3fd899b84d2ce7723beeba0a0800000000000002bc08000008fc389c66b0',
+                                0,
+                            ],
+                            [
+                                '76a914e1d5310eebf49c6a04360385d943bc74d541502088ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'dec19c8c1bc7bf6b6ffc8cd629da642618cb3e3025f72d9f3d4c1905e4f2abd9',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.363825363825364,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                                17451963,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e4420b8f2a9e767a0be7b80c7e414ef2534586d4da72efddb39a4e70e501ab73375cc08000000000000000b08000000000000231d',
+                                0,
+                            ],
+                            [
+                                '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'df12658b2361a33c3a772398ad1f76000c865754e8b2a9423bca0fb1908b4e8b',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.0194902548725637,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91448739a0322e0cd048cc15c16e4097677fead6a9688ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91448739a0322e0cd048cc15c16e4097677fead6a9688ac',
+                                70780,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914271f434fa0aff8d0fc51f2e72c123104b6ee79fc88ac',
+                                200000,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'e2b11003706e934b68c563db37d2f6b4cf435ce43cdb6c77e68c93be36616c60',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.5641025641025643,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91435d20230fcc09fe756f8680c3ae039b86fb4032d88ac',
+                            '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e50800000000000000a7',
+                                0,
+                            ],
+                            [
+                                '76a9144c1efd024f560e4e1aaf4b62416cd1e82fbed24f88ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'ec659dfb1c2ea784fd3d4ec6616f738293a5be631c0f7d09258558e64b49d9e6',
@@ -9960,65 +13078,236 @@ module.exports = [
                         app: 'Alias',
                         msg: '12345',
                     },
+                    satsPerByte: 1.8495934959349594,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914243512094a004f048bb060bac3f407f98c0e53f588ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914243512094a004f048bb060bac3f407f98c0e53f588ac',
+                                94008,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            ['6a042e786563053132333435', 0],
+                            [
+                                '76a914638568e36d0b5d7d49a6e99854caa27d9772b09388ac',
+                                554,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'ed1d839b287abb65b838622d9acf64b399b1653bcf6bea503442bcaef81890c4',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.36875,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914d94bba6bfd2f5d9036452d9b6b12a254df6aab3188ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914d94bba6bfd2f5d9036452d9b6b12a254df6aab3188ac',
+                                164494,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e4420fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa0800000000000000640800000000389a9b82',
+                                0,
+                            ],
+                            [
+                                '76a91428cabb69be3e20707574d7a0ddc65a801b6ae59988ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'ef0b6ebc21f83013144cf95f527218a616add4e7238ded9aa68a3d30cdeb8702',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.0072840790842872,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            'a91454594a4a445be66bfd95f9c90ee7aec7f5cb4ef587',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e508000000000000d28e0800000000000007cf0800000000000001f3',
+                                0,
+                            ],
+                            [
+                                '76a9144c1efd024f560e4e1aaf4b62416cd1e82fbed24f88ac',
+                                546,
+                            ],
+                            [
+                                '76a91445d12108b291141bcb09aa6cc2caa1254d20128488ac',
+                                546,
+                            ],
+                            [
+                                '76a91435d20230fcc09fe756f8680c3ae039b86fb4032d88ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'f449be6418db7e2216903aaba545302c9c71f1e958cddde6eea2517719d8e6db',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.5641025641025643,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91435d20230fcc09fe756f8680c3ae039b86fb4032d88ac',
+                            '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5080000000000000065',
+                                0,
+                            ],
+                            [
+                                '76a9144c1efd024f560e4e1aaf4b62416cd1e82fbed24f88ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'fd7e9edf78e9ae34c287cb15977a5b3007d70ad016d532b071e0e96578204c08',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.030534351145038,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9144c1efd024f560e4e1aaf4b62416cd1e82fbed24f88ac',
+                            '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9144c1efd024f560e4e1aaf4b62416cd1e82fbed24f88ac',
+                                546,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5080000000000000e1008000000000000dc50080000000000028288',
+                                0,
+                            ],
+                            [
+                                '76a914dee50f576362377dd2f031453c0bb09009acaf8188ac',
+                                546,
+                            ],
+                            [
+                                'a91454594a4a445be66bfd95f9c90ee7aec7f5cb4ef587',
+                                2606,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'fe12b212d65d373a6a57451f4d03ecf3c35a8964025572c02d424890b908da37',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.5641025641025643,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91435d20230fcc09fe756f8680c3ae039b86fb4032d88ac',
+                            '76a9148b9b3ba9199d98e131b762081c0c31754fb904c288ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e50800000000000022ae',
+                                0,
+                            ],
+                            [
+                                '76a9144c1efd024f560e4e1aaf4b62416cd1e82fbed24f88ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
             ],
         },
         coingeckoResponse: {
             bitcoin: {
-                usd: 30729.89878314,
+                usd: 29160.02775612,
             },
             ecash: {
-                usd: 0.00003239,
+                usd: 0.00002943,
             },
             ethereum: {
-                usd: 2109.65870749,
+                usd: 1894.98574958,
             },
         },
         coingeckoPrices: [
             {
                 fiat: 'usd',
-                price: 0.00003239,
+                price: 0.00002943,
                 ticker: 'XEC',
             },
             {
                 fiat: 'usd',
-                price: 30729.89878314,
+                price: 29160.02775612,
                 ticker: 'BTC',
             },
             {
                 fiat: 'usd',
-                price: 2109.65870749,
+                price: 1894.98574958,
                 ticker: 'ETH',
             },
         ],
-        tgMsg: '<a href="https://explorer.e.cash/block/00000000000000001239831f90580c859ec174316e91961cf0e8cde57c0d3acb">782665</a> | 43 txs | ViaBTC\n1 XEC = $0.00003239\n1 BTC = $30,730\n1 ETH = $2,110\n\n2 new eTokens created:\n<a href="https://explorer.e.cash/tx/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109">BearNip</a> (BEAR) <a href="https://cashtab.com/">[doc]</a>\n<a href="https://explorer.e.cash/tx/79c5a1cec698350dd93f645fcae8d6ff3902b7cdc582839dfface3cb0c83d823">eCash Herald</a> (TRIB) <a href="https://cashtab.com/">[doc]</a>\n\nApp txs:\n<a href="https://explorer.e.cash/tx/28f3ec1f134dc8ea2e37a0645774fa2aa19e0bc2871b6edcc7e99cd86d77b1b6">memo:</a> Reply to memo|�V��iM�j�t[P\u001c\u000e����J\u0018_�z7�\b�k\u0005u\n|From what I\'m gathering, it seems that the media went from questioning authority to doing their bidding as a collective NPC hivemind!\n<a href="https://explorer.e.cash/tx/ec659dfb1c2ea784fd3d4ec6616f738293a5be631c0f7d09258558e64b49d9e6">Alias:</a> 12345',
+        tgMsg: '<a href="https://explorer.e.cash/block/00000000000000001239831f90580c859ec174316e91961cf0e8cde57c0d3acb">782665</a> | 43 txs | ViaBTC\n1 XEC = $0.00002943\n1 BTC = $29,160\n1 ETH = $1,895\n\n2 new eTokens created:\n<a href="https://explorer.e.cash/tx/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109">BearNip</a> (BEAR) <a href="https://cashtab.com/">[doc]</a>\n<a href="https://explorer.e.cash/tx/79c5a1cec698350dd93f645fcae8d6ff3902b7cdc582839dfface3cb0c83d823">eCash Herald</a> (TRIB) <a href="https://cashtab.com/">[doc]</a>\n\nApp txs:\n<a href="https://explorer.e.cash/tx/28f3ec1f134dc8ea2e37a0645774fa2aa19e0bc2871b6edcc7e99cd86d77b1b6">memo:</a> Reply to memo|�V��iM�j�t[P\u001c\u000e����J\u0018_�z7�\b�k\u0005u\n|From what I\'m gathering, it seems that the media went from questioning authority to doing their bidding as a collective NPC hivemind!\n<a href="https://explorer.e.cash/tx/ec659dfb1c2ea784fd3d4ec6616f738293a5be631c0f7d09258558e64b49d9e6">Alias:</a> 12345\n\n38 eCash txs:\nqq6...eq7 <a href="https://explorer.e.cash/tx/0118031a8a27fabe5af6ad1193fa6550990ebd5ce029ac840be713e464c25e0e">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqrv...ffd <a href="https://explorer.e.cash/tx/086f329794679d9f7968c218157f2999465b49ba946a7180820b7a4d12b75d6b">sent</a> 5 XEC to qrs...6k9 | 2.37 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/0fda4cdb6a83ee85696b95553682a07a903520ba1aa0a73548687851e6e7f030">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/10336f54a76f7020557074b14422dffd24bad211bbf9715684dbea1acc04864b">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqrv...ffd <a href="https://explorer.e.cash/tx/114105f8f9c3636faa465e4c8517355b68c49633d47a4a84619689fa92c6950b">sent</a> 5 XEC to qrs...6k9 | 2.37 sats per byte\nqzx...efz <a href="https://explorer.e.cash/tx/12569fb6dfdf972945b119392e2bbd9e320527ba3ab414160265caa505d11e46">sent</a> 999,998 XEC to qq6...f27 | 1.08 sats per byte\nqqc...c8e <a href="https://explorer.e.cash/tx/1f7b1bb6b028cefedfe32b56cff88f8c840b250ce1aca1c470f2727935e83d50">sent</a> 18,698,998 XEC to qz4...n9l and 1 others | 1.03 sats per byte\nqrv...ffd <a href="https://explorer.e.cash/tx/2095ebd23a146fbfdd0184efb6c9766a9a5d542fb55a063df3fff1670f1bb273">sent</a> 5 XEC to qrs...6k9 | 2.37 sats per byte\nqqj...9g4 <a href="https://explorer.e.cash/tx/21092fb6e223e4549333b0f79a05d84b259e56e1bb5b090b5d463cbe19f1a597">sent</a> 936 XEC to qpw...x5g | 2.38 sats per byte\nqqh...lpy <a href="https://explorer.e.cash/tx/22836e6b6f4861d0b8f18735e6e342981e2edc0c686cdf06da892ab7d7d75512">sent</a> 29,022,106 XEC to qqu...0av and 1 others | 10.05 sats per byte\nqrv...ffd <a href="https://explorer.e.cash/tx/264a42c30ea9d82bdbf3f8c4d9b7fea006984f96aa9f561f55116684ea21d0f5">sent</a> 5 XEC to qq5...fn0 | 2.36 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/2881e1d6bed3b16b2c17428ba42610152ac1fbd21e72567f6140c312b2c6ac83">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqrv...ffd <a href="https://explorer.e.cash/tx/3d83bc3b70bd190d27c17df3585fdb693d852d654ced5c46cfdac76afb889b7f">sent</a> 5 XEC to qrs...6k9 | 2.37 sats per byte\nqrx...4nm <a href="https://explorer.e.cash/tx/56ccc295c58381980ece3ab43a5510532d9b2e83f2959c15baa07f1aea98748d">sent</a> 1,000 XEC to qz9...jhz | 1.00 sats per byte\nqz2...035 <a href="https://explorer.e.cash/tx/657646f7a4e7237fca4ed8231c27d95afc8086f678244d5560be2230d920ff70">sent</a> 5 XEC to qp8...gg6 | 2.37 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/72152010b53b46f74f84477c7c6b86b9fe2f2aeddfe43d49952960bf4f4de69e">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqpl...4l0 <a href="https://explorer.e.cash/tx/7d53e2bf385b0dc071d1e64c50e358227a7a6832cc80b6df73d524a98e9a64f9">sent</a> 984,178 XEC to qpu...4d7 | 1.44 sats per byte\nqpt...2wg <a href="https://explorer.e.cash/tx/7df5934f7a1ac0d4fa18bff20994199756f2756db9753ac0833f09811be9eaa5">sent</a> 23,656,838 XEC to qz6...74j and 2 others | 10.05 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/808ec05abe93ab44b24c1fa0d4f1771f392213ecb234c56b79d5267ece96b2a4">sent</a> 11 XEC to qpx...kvj and 1 others | 1.47 sats per byte\nqq3...x4u <a href="https://explorer.e.cash/tx/863417f2dc28b6f9f28fbfae9979294924b0241100bf5e51a807b4c82016c9fd">sent</a> 807,228 XEC to qrh...pdm | 1.00 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/8970772be0812a5b0e9d47472a7162bb8787d259f111a94b6eefcade547d4845">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/8b03983b86dce1b76dfa2cc1254dd169e62723c708f2b57190e93e085550144b">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/9ae4769c2378deec3d8be3a036430cface057600e02c3c12afdbc9b7345b82a5">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqz2...035 <a href="https://explorer.e.cash/tx/9bcc60b3d8453b42bccb23be5f19ac99a3a637af5df2855b8337bcad17d4f6da">sent</a> 5 XEC to qp8...gg6 | 2.37 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/9df6bc46650bce722aa2e3e06413d461441355aeb49e9cc4e0da8d0420ae8f03">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqz9...m57 <a href="https://explorer.e.cash/tx/ac65e147971fbe61e65113b8d68fa176809220199682d2a7e46a74296e092881">sent</a> 950 XEC to qqj...9g4 | 2.16 sats per byte\nqrv...ffd <a href="https://explorer.e.cash/tx/b6f643aa5a5b26bab1a51d904b23c0799f384c469cd2dd5f27bc90754664d730">sent</a> 5 XEC to qrs...6k9 | 2.37 sats per byte\n1 address <a href="https://explorer.e.cash/tx/c5dd423b784236e30bf149391ffebb83654b77e6d246fa1944c066e553fcf03a">sent</a> 237.57 XEC to itself\nqq6...eq7 <a href="https://explorer.e.cash/tx/c88eb6c181c8879707f8d950e8e06dd6158d7440ae0424e2ea0f9ed5c54c9985">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqrv...ffd <a href="https://explorer.e.cash/tx/cdae3b8be1552792d7045193effa6b51646456aadca52f16bd81726cbc2f387f">sent</a> 5 XEC to qrs...6k9 | 2.37 sats per byte\nqz2...035 <a href="https://explorer.e.cash/tx/dec19c8c1bc7bf6b6ffc8cd629da642618cb3e3025f72d9f3d4c1905e4f2abd9">sent</a> 5 XEC to qp8...gg6 | 2.36 sats per byte\nqpy...6yp <a href="https://explorer.e.cash/tx/df12658b2361a33c3a772398ad1f76000c865754e8b2a9423bca0fb1908b4e8b">sent</a> 2,000 XEC to qqn...678 | 2.02 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/e2b11003706e934b68c563db37d2f6b4cf435ce43cdb6c77e68c93be36616c60">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqrv...ffd <a href="https://explorer.e.cash/tx/ed1d839b287abb65b838622d9acf64b399b1653bcf6bea503442bcaef81890c4">sent</a> 5 XEC to qq5...fn0 | 2.37 sats per byte\npp2...mza <a href="https://explorer.e.cash/tx/ef0b6ebc21f83013144cf95f527218a616add4e7238ded9aa68a3d30cdeb8702">sent</a> 16 XEC to qpx...kvj and 2 others | 1.01 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/f449be6418db7e2216903aaba545302c9c71f1e958cddde6eea2517719d8e6db">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqpx...kvj <a href="https://explorer.e.cash/tx/fd7e9edf78e9ae34c287cb15977a5b3007d70ad016d532b071e0e96578204c08">sent</a> 32 XEC to qr0...d2u and 1 others | 2.03 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/fe12b212d65d373a6a57451f4d03ecf3c35a8964025572c02d424890b908da37">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte',
         tgMsgPriceFailure:
-            '<a href="https://explorer.e.cash/block/00000000000000001239831f90580c859ec174316e91961cf0e8cde57c0d3acb">782665</a> | 43 txs | ViaBTC\n\n2 new eTokens created:\n<a href="https://explorer.e.cash/tx/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109">BearNip</a> (BEAR) <a href="https://cashtab.com/">[doc]</a>\n<a href="https://explorer.e.cash/tx/79c5a1cec698350dd93f645fcae8d6ff3902b7cdc582839dfface3cb0c83d823">eCash Herald</a> (TRIB) <a href="https://cashtab.com/">[doc]</a>\n\nApp txs:\n<a href="https://explorer.e.cash/tx/28f3ec1f134dc8ea2e37a0645774fa2aa19e0bc2871b6edcc7e99cd86d77b1b6">memo:</a> Reply to memo|�V��iM�j�t[P\u001c\u000e����J\u0018_�z7�\b�k\u0005u\n|From what I\'m gathering, it seems that the media went from questioning authority to doing their bidding as a collective NPC hivemind!\n<a href="https://explorer.e.cash/tx/ec659dfb1c2ea784fd3d4ec6616f738293a5be631c0f7d09258558e64b49d9e6">Alias:</a> 12345',
+            '<a href="https://explorer.e.cash/block/00000000000000001239831f90580c859ec174316e91961cf0e8cde57c0d3acb">782665</a> | 43 txs | ViaBTC\n\n2 new eTokens created:\n<a href="https://explorer.e.cash/tx/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109">BearNip</a> (BEAR) <a href="https://cashtab.com/">[doc]</a>\n<a href="https://explorer.e.cash/tx/79c5a1cec698350dd93f645fcae8d6ff3902b7cdc582839dfface3cb0c83d823">eCash Herald</a> (TRIB) <a href="https://cashtab.com/">[doc]</a>\n\nApp txs:\n<a href="https://explorer.e.cash/tx/28f3ec1f134dc8ea2e37a0645774fa2aa19e0bc2871b6edcc7e99cd86d77b1b6">memo:</a> Reply to memo|�V��iM�j�t[P\u001c\u000e����J\u0018_�z7�\b�k\u0005u\n|From what I\'m gathering, it seems that the media went from questioning authority to doing their bidding as a collective NPC hivemind!\n<a href="https://explorer.e.cash/tx/ec659dfb1c2ea784fd3d4ec6616f738293a5be631c0f7d09258558e64b49d9e6">Alias:</a> 12345\n\n38 eCash txs:\nqq6...eq7 <a href="https://explorer.e.cash/tx/0118031a8a27fabe5af6ad1193fa6550990ebd5ce029ac840be713e464c25e0e">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqrv...ffd <a href="https://explorer.e.cash/tx/086f329794679d9f7968c218157f2999465b49ba946a7180820b7a4d12b75d6b">sent</a> 5 XEC to qrs...6k9 | 2.37 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/0fda4cdb6a83ee85696b95553682a07a903520ba1aa0a73548687851e6e7f030">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/10336f54a76f7020557074b14422dffd24bad211bbf9715684dbea1acc04864b">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqrv...ffd <a href="https://explorer.e.cash/tx/114105f8f9c3636faa465e4c8517355b68c49633d47a4a84619689fa92c6950b">sent</a> 5 XEC to qrs...6k9 | 2.37 sats per byte\nqzx...efz <a href="https://explorer.e.cash/tx/12569fb6dfdf972945b119392e2bbd9e320527ba3ab414160265caa505d11e46">sent</a> 999,998 XEC to qq6...f27 | 1.08 sats per byte\nqqc...c8e <a href="https://explorer.e.cash/tx/1f7b1bb6b028cefedfe32b56cff88f8c840b250ce1aca1c470f2727935e83d50">sent</a> 18,698,998 XEC to qz4...n9l and 1 others | 1.03 sats per byte\nqrv...ffd <a href="https://explorer.e.cash/tx/2095ebd23a146fbfdd0184efb6c9766a9a5d542fb55a063df3fff1670f1bb273">sent</a> 5 XEC to qrs...6k9 | 2.37 sats per byte\nqqj...9g4 <a href="https://explorer.e.cash/tx/21092fb6e223e4549333b0f79a05d84b259e56e1bb5b090b5d463cbe19f1a597">sent</a> 936 XEC to qpw...x5g | 2.38 sats per byte\nqqh...lpy <a href="https://explorer.e.cash/tx/22836e6b6f4861d0b8f18735e6e342981e2edc0c686cdf06da892ab7d7d75512">sent</a> 29,022,106 XEC to qqu...0av and 1 others | 10.05 sats per byte\nqrv...ffd <a href="https://explorer.e.cash/tx/264a42c30ea9d82bdbf3f8c4d9b7fea006984f96aa9f561f55116684ea21d0f5">sent</a> 5 XEC to qq5...fn0 | 2.36 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/2881e1d6bed3b16b2c17428ba42610152ac1fbd21e72567f6140c312b2c6ac83">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqrv...ffd <a href="https://explorer.e.cash/tx/3d83bc3b70bd190d27c17df3585fdb693d852d654ced5c46cfdac76afb889b7f">sent</a> 5 XEC to qrs...6k9 | 2.37 sats per byte\nqrx...4nm <a href="https://explorer.e.cash/tx/56ccc295c58381980ece3ab43a5510532d9b2e83f2959c15baa07f1aea98748d">sent</a> 1,000 XEC to qz9...jhz | 1.00 sats per byte\nqz2...035 <a href="https://explorer.e.cash/tx/657646f7a4e7237fca4ed8231c27d95afc8086f678244d5560be2230d920ff70">sent</a> 5 XEC to qp8...gg6 | 2.37 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/72152010b53b46f74f84477c7c6b86b9fe2f2aeddfe43d49952960bf4f4de69e">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqpl...4l0 <a href="https://explorer.e.cash/tx/7d53e2bf385b0dc071d1e64c50e358227a7a6832cc80b6df73d524a98e9a64f9">sent</a> 984,178 XEC to qpu...4d7 | 1.44 sats per byte\nqpt...2wg <a href="https://explorer.e.cash/tx/7df5934f7a1ac0d4fa18bff20994199756f2756db9753ac0833f09811be9eaa5">sent</a> 23,656,838 XEC to qz6...74j and 2 others | 10.05 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/808ec05abe93ab44b24c1fa0d4f1771f392213ecb234c56b79d5267ece96b2a4">sent</a> 11 XEC to qpx...kvj and 1 others | 1.47 sats per byte\nqq3...x4u <a href="https://explorer.e.cash/tx/863417f2dc28b6f9f28fbfae9979294924b0241100bf5e51a807b4c82016c9fd">sent</a> 807,228 XEC to qrh...pdm | 1.00 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/8970772be0812a5b0e9d47472a7162bb8787d259f111a94b6eefcade547d4845">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/8b03983b86dce1b76dfa2cc1254dd169e62723c708f2b57190e93e085550144b">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/9ae4769c2378deec3d8be3a036430cface057600e02c3c12afdbc9b7345b82a5">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqz2...035 <a href="https://explorer.e.cash/tx/9bcc60b3d8453b42bccb23be5f19ac99a3a637af5df2855b8337bcad17d4f6da">sent</a> 5 XEC to qp8...gg6 | 2.37 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/9df6bc46650bce722aa2e3e06413d461441355aeb49e9cc4e0da8d0420ae8f03">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqz9...m57 <a href="https://explorer.e.cash/tx/ac65e147971fbe61e65113b8d68fa176809220199682d2a7e46a74296e092881">sent</a> 950 XEC to qqj...9g4 | 2.16 sats per byte\nqrv...ffd <a href="https://explorer.e.cash/tx/b6f643aa5a5b26bab1a51d904b23c0799f384c469cd2dd5f27bc90754664d730">sent</a> 5 XEC to qrs...6k9 | 2.37 sats per byte\n1 address <a href="https://explorer.e.cash/tx/c5dd423b784236e30bf149391ffebb83654b77e6d246fa1944c066e553fcf03a">sent</a> 237.57 XEC to itself\nqq6...eq7 <a href="https://explorer.e.cash/tx/c88eb6c181c8879707f8d950e8e06dd6158d7440ae0424e2ea0f9ed5c54c9985">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqrv...ffd <a href="https://explorer.e.cash/tx/cdae3b8be1552792d7045193effa6b51646456aadca52f16bd81726cbc2f387f">sent</a> 5 XEC to qrs...6k9 | 2.37 sats per byte\nqz2...035 <a href="https://explorer.e.cash/tx/dec19c8c1bc7bf6b6ffc8cd629da642618cb3e3025f72d9f3d4c1905e4f2abd9">sent</a> 5 XEC to qp8...gg6 | 2.36 sats per byte\nqpy...6yp <a href="https://explorer.e.cash/tx/df12658b2361a33c3a772398ad1f76000c865754e8b2a9423bca0fb1908b4e8b">sent</a> 2,000 XEC to qqn...678 | 2.02 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/e2b11003706e934b68c563db37d2f6b4cf435ce43cdb6c77e68c93be36616c60">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqrv...ffd <a href="https://explorer.e.cash/tx/ed1d839b287abb65b838622d9acf64b399b1653bcf6bea503442bcaef81890c4">sent</a> 5 XEC to qq5...fn0 | 2.37 sats per byte\npp2...mza <a href="https://explorer.e.cash/tx/ef0b6ebc21f83013144cf95f527218a616add4e7238ded9aa68a3d30cdeb8702">sent</a> 16 XEC to qpx...kvj and 2 others | 1.01 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/f449be6418db7e2216903aaba545302c9c71f1e958cddde6eea2517719d8e6db">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte\nqpx...kvj <a href="https://explorer.e.cash/tx/fd7e9edf78e9ae34c287cb15977a5b3007d70ad016d532b071e0e96578204c08">sent</a> 32 XEC to qr0...d2u and 1 others | 2.03 sats per byte\nqq6...eq7 <a href="https://explorer.e.cash/tx/fe12b212d65d373a6a57451f4d03ecf3c35a8964025572c02d424890b908da37">sent</a> 5 XEC to qpx...kvj | 2.56 sats per byte',
         blockName: 'multipleGenesis',
     },
     {
@@ -10441,55 +13730,155 @@ module.exports = [
                     txid: '0167e881fcb359cdfc82af5fc6c0821daf55f40767694eea2f23c0d42a9b1c17',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.9135514018691588,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9146d69b5cbe7c85d87628473c43620c0daa9a8102988ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9146d69b5cbe7c85d87628473c43620c0daa9a8102988ac',
+                                1092,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e50800000000002737100800000000000f3636',
+                                0,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.36875,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac',
+                                1526864,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e4420fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa08000000001dcd65000800000007e7339728',
+                                0,
+                            ],
+                            [
+                                '76a914dadf34cde9c774fdd6340cd2916a9b9c5d57cf4388ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '34cf0f2a51b80dc4c48c8dae9017af6282298f275c7823cb70d3f5b05785456c',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.096774193548387,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9146debf178121d1aac40e40183957e9f74195fb5e888ac',
+                            '76a91418a6005abe4f13143813174a293c34d97cb3ebd788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91418a6005abe4f13143813174a293c34d97cb3ebd788ac',
+                                1000,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914d71b6d842ab10517d93a10341975448f2e358a1788ac',
+                                106152387,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'ea54f221be5c17dafc852f581f0e20dea0e72d7f0b3c691b4333fc1577bf0724',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.5395348837209304,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9146d69b5cbe7c85d87628473c43620c0daa9a8102988ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c50000101044255524e207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5080000000000273710',
+                                0,
+                            ],
+                        ],
+                    },
                 },
             ],
         },
         coingeckoResponse: {
             bitcoin: {
-                usd: 30729.89878314,
+                usd: 29160.02775612,
             },
             ecash: {
-                usd: 0.00003239,
+                usd: 0.00002943,
             },
             ethereum: {
-                usd: 2109.65870749,
+                usd: 1894.98574958,
             },
         },
         coingeckoPrices: [
             {
                 fiat: 'usd',
-                price: 0.00003239,
+                price: 0.00002943,
                 ticker: 'XEC',
             },
             {
                 fiat: 'usd',
-                price: 30729.89878314,
+                price: 29160.02775612,
                 ticker: 'BTC',
             },
             {
                 fiat: 'usd',
-                price: 2109.65870749,
+                price: 1894.98574958,
                 ticker: 'ETH',
             },
         ],
-        tgMsg: '<a href="https://explorer.e.cash/block/000000000000000003a43161c1d963b1df57f639a4621f56d3dbf69d5a8d0561">782571</a> | 5 txs | ViaBTC\n1 XEC = $0.00003239\n1 BTC = $30,730\n1 ETH = $2,110',
+        tgMsg: '<a href="https://explorer.e.cash/block/000000000000000003a43161c1d963b1df57f639a4621f56d3dbf69d5a8d0561">782571</a> | 5 txs | ViaBTC\n1 XEC = $0.00002943\n1 BTC = $29,160\n1 ETH = $1,895\n\n4 eCash txs:\n1 address <a href="https://explorer.e.cash/tx/0167e881fcb359cdfc82af5fc6c0821daf55f40767694eea2f23c0d42a9b1c17">sent</a> 10.92 XEC to itself\nqqw...6v4 <a href="https://explorer.e.cash/tx/25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7">sent</a> 5 XEC to qrd...9j0 | 2.37 sats per byte\nqpk...pga <a href="https://explorer.e.cash/tx/34cf0f2a51b80dc4c48c8dae9017af6282298f275c7823cb70d3f5b05785456c">sent</a> 1,061,524 XEC to qrt...4v7 | 1.10 sats per byte\n1 address <a href="https://explorer.e.cash/tx/ea54f221be5c17dafc852f581f0e20dea0e72d7f0b3c691b4333fc1577bf0724">sent</a> 0 XEC to itself',
         tgMsgPriceFailure:
-            '<a href="https://explorer.e.cash/block/000000000000000003a43161c1d963b1df57f639a4621f56d3dbf69d5a8d0561">782571</a> | 5 txs | ViaBTC',
+            '<a href="https://explorer.e.cash/block/000000000000000003a43161c1d963b1df57f639a4621f56d3dbf69d5a8d0561">782571</a> | 5 txs | ViaBTC\n\n4 eCash txs:\n1 address <a href="https://explorer.e.cash/tx/0167e881fcb359cdfc82af5fc6c0821daf55f40767694eea2f23c0d42a9b1c17">sent</a> 10.92 XEC to itself\nqqw...6v4 <a href="https://explorer.e.cash/tx/25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7">sent</a> 5 XEC to qrd...9j0 | 2.37 sats per byte\nqpk...pga <a href="https://explorer.e.cash/tx/34cf0f2a51b80dc4c48c8dae9017af6282298f275c7823cb70d3f5b05785456c">sent</a> 1,061,524 XEC to qrt...4v7 | 1.10 sats per byte\n1 address <a href="https://explorer.e.cash/tx/ea54f221be5c17dafc852f581f0e20dea0e72d7f0b3c691b4333fc1577bf0724">sent</a> 0 XEC to itself',
         blockName: 'buxTxs',
     },
     {
@@ -10684,6 +14073,10 @@ module.exports = [
                             value: '283854294',
                             outputScript:
                                 '76a9145d00bc8ded845591d04ee8e9aff44a6c7f54f6d888ac',
+                            spentBy: {
+                                txid: '39218401f7035359bb66aa0342a612e1dd5da7158e704ad811c904bc300670ce',
+                                outIdx: 2,
+                            },
                         },
                         {
                             value: '499204',
@@ -11316,26 +14709,148 @@ module.exports = [
                     txid: '349d803afedd7802a1e545389c376fc25a1d45401c331fd27090644cbeae69a1',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.002680965147453,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9148669721c6952225fe74962fa953c163fcf8e56f288ac',
+                            '76a91425e0a068db2737cc7a8c644090ddf25ac2a4fdab88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914167099d05463b543c6086489376bd74349acccb588ac',
+                                52624000,
+                            ],
+                            [
+                                '76a914966695ab3da48a6a6f8c1cbd4588cba43ed069b488ac',
+                                415534376,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '36902d988d7e309c2131e59a1256dd950443155aa9f6929d24055971d0b105b5',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 4.177777777777778,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9144aa8aba45c20b62e35f7e070027f3be2644cd5ed88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9144aa8aba45c20b62e35f7e070027f3be2644cd5ed88ac',
+                                577021461125,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914e8aab2dca7950c166737adfc8e65aa42c83eec8e88ac',
+                                299300000,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '3d90c355be7e3aeb18d5885109a167fd2c8446ec657865ffba6577a81243f71b',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.9111111111111112,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9145c60a0e3914b4b12a419db5be6f742754e85971688ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9145d00bc8ded845591d04ee8e9aff44a6c7f54f6d888ac',
+                                283854294,
+                            ],
+                            [
+                                '76a914e0a3c5d6dc80ee3a2e084dca41a6ac9a4bf3f2e288ac',
+                                499204,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '97f3ebde1a5753b6772128d69a081fd514322fac0ab63303b9f22b0079a5aac8',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9145fe31990dfd030c83e139b03be1081f9f4ec277388ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9146f326f0a1d9cc7845c0a6df9d258cfcd555ebacd88ac',
+                                6350850481,
+                            ],
+                            [
+                                '76a9141935990188a4e088a8a25e553e5cee1fb2830c5a88ac',
+                                402049000,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '9c1bfad01aad003052441327081622df4f1430454d9e4072c8ebddd7d13cc13b',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914e7379dcc2ea8d2624407d9671103b9428fb3539188ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914202af757a027241f43724f6d0a714ce0f21396af88ac',
+                                1016460,
+                            ],
+                            [
+                                '76a91465c864970a4358f7bec58348d52d584117492f7388ac',
+                                9000,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'cd9cf4bf000b413c49d45aad382716c98d4ca2a39bc0db825bd80192962dc05d',
@@ -11343,6 +14858,31 @@ module.exports = [
                     opReturnInfo: {
                         app: 'unknown app',
                         msg: 'SWP\u0000|\u0001|\u0001|���]�𷕪��7���؉�v��\u0018�\u001b�֯�\u001d��|SELL|110.00000000000001|\u0000|�Ϩ�O���+�u������Y�(���\u000e<D=�ήX|\u0001|\u0000|2747',
+                    },
+                    satsPerByte: 1.0358744394618835,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9142dc4d47f5dc0b3c3b61541ac4a21f6dbf5218e2888ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9142dc4d47f5dc0b3c3b61541ac4a21f6dbf5218e2888ac',
+                                94382,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a045357500001010101209ef7a95decf0b795aaf9ad37908988d889ab768aac18b81b99d6af821d8fe7830453454c4c123131302e3030303030303030303030303031010020afcfa8e6824fb8aff92bfa75edd6ff9ed4fb59ba28f9bb950e3c443dcfceae58010101000432373437',
+                                0,
+                            ],
+                        ],
                     },
                 },
                 {
@@ -11352,11 +14892,77 @@ module.exports = [
                         app: 'Cashtab Msg',
                         msg: 'Sending a message transaction to test parsing in ecash telegram bot. With an emoji bc why not? 🤔',
                     },
+                    satsPerByte: 1.3304093567251463,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914bc8e7bdac39a1cd82eac73b949f816ed08039df788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914bc8e7bdac39a1cd82eac73b949f816ed08039df788ac',
+                                478607,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04007461624c6353656e64696e672061206d657373616765207472616e73616374696f6e20746f20746573742070617273696e6720696e2065636173682074656c656772616d20626f742e205769746820616e20656d6f6a6920626320776879206e6f743f20f09fa494',
+                                0,
+                            ],
+                            [
+                                '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                                3300,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'ea0a799f0e3bab448064925b3ccdb6e8ff3ef07105c6739f6eec0a4aa674e1f3',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.0005602240896359,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91496cfd61419ddf59bcbb186fc019242f794d2b91788ac',
+                            '76a914df3f9951090740a52e9dc7f571670c291d0f5e0a88ac',
+                            '76a914da3b9a7736aca7c10d50a789ac85c852ac17772188ac',
+                            '76a9148f4f978e262e72b244ecf7649f16e2372dc68d3588ac',
+                            '76a914e99591aacf48ec03b2f856bbc7047da66dd3ce5188ac',
+                            '76a914ce618c05317ef09a6777e92992ce89b4ffd93c2e88ac',
+                            '76a91402d0619aeb448aa9c6eb43385624ded0fbc4992b88ac',
+                            '76a91418ddb2d2e4606963bfe79dd8052d3541e71cab5188ac',
+                            '76a914537ac55a6de865efc23fa95afc80ef3655c1625588ac',
+                            '76a9149489f0125853406f4486ec27fba0202b226cce2288ac',
+                            '76a914610661e21278528318086d5f58fd7fc65eecfcad88ac',
+                            '76a91475ebfb9c8c5fd4f5bb9810bc31e92fc4d5cafbe188ac',
+                            '76a914e09d2e5240da3b70171efbde3f4f3f7c759b490d88ac',
+                            '76a91457771588d2e5bcb4f10f8ca006c95250f13562fa88ac',
+                            '76a9143480e7a35b40a308c259cfa70a4cdee7fa3b674988ac',
+                            '76a9146a1d12ea586f05711958e8d157dd3c97714be6e788ac',
+                            '76a9147781c15d38ca8b0159c6f92b34de7f1d16617e8d88ac',
+                            '76a914e65c2d731911d2b0b20ce04dfb8e02cd043c19a088ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914d82619bc458828e25077faeb78354658101796a688ac',
+                                1883283149,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'ec584ba3c1734a422c16ec40d598fe91f870c8d17c5f9d2b6c4e1cbaf82f7237',
@@ -11365,40 +14971,64 @@ module.exports = [
                         app: 'unknown app',
                         msg: 'SWP\u0000|\u0001|\u0001|���]�𷕪��7���؉�v��\u0018�\u001b�֯�\u001d��|SELL',
                     },
+                    satsPerByte: 1.0258064516129033,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914329652bdcc6c07fdb284accd7fa8ebb9ef34b46488ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a045357500001010101209ef7a95decf0b795aaf9ad37908988d889ab768aac18b81b99d6af821d8fe7830453454c4c',
+                                0,
+                            ],
+                            [
+                                '76a9142dc4d47f5dc0b3c3b61541ac4a21f6dbf5218e2888ac',
+                                95390,
+                            ],
+                        ],
+                    },
                 },
             ],
         },
         coingeckoResponse: {
             bitcoin: {
-                usd: 30729.89878314,
+                usd: 29160.02775612,
             },
             ecash: {
-                usd: 0.00003239,
+                usd: 0.00002943,
             },
             ethereum: {
-                usd: 2109.65870749,
+                usd: 1894.98574958,
             },
         },
         coingeckoPrices: [
             {
                 fiat: 'usd',
-                price: 0.00003239,
+                price: 0.00002943,
                 ticker: 'XEC',
             },
             {
                 fiat: 'usd',
-                price: 30729.89878314,
+                price: 29160.02775612,
                 ticker: 'BTC',
             },
             {
                 fiat: 'usd',
-                price: 2109.65870749,
+                price: 1894.98574958,
                 ticker: 'ETH',
             },
         ],
-        tgMsg: '<a href="https://explorer.e.cash/block/00000000000000000a528f0c4e4b4f214a72d9b34d84003df6150d5a4bcd0d32">782657</a> | 10 txs | ViaBTC\n1 XEC = $0.00003239\n1 BTC = $30,730\n1 ETH = $2,110\n\nApp txs:\n<a href="https://explorer.e.cash/tx/cd9cf4bf000b413c49d45aad382716c98d4ca2a39bc0db825bd80192962dc05d">unknown app:</a> SWP\u0000|\u0001|\u0001|���]�𷕪��7���؉�v��\u0018�\u001b�֯�\u001d��|SELL|110.00000000000001|\u0000|�Ϩ�O���+�u������Y�(���\u000e&lt;D=�ήX|\u0001|\u0000|2747\n<a href="https://explorer.e.cash/tx/da98b479e957e34b462025e483644c13c0a6924f04a31ab6473fe5c23babc5fa">Cashtab Msg:</a> Sending a message transaction to test parsing in ecash telegram bot. With an emoji bc why not? 🤔\n<a href="https://explorer.e.cash/tx/ec584ba3c1734a422c16ec40d598fe91f870c8d17c5f9d2b6c4e1cbaf82f7237">unknown app:</a> SWP\u0000|\u0001|\u0001|���]�𷕪��7���؉�v��\u0018�\u001b�֯�\u001d��|SELL',
+        tgMsg: '<a href="https://explorer.e.cash/block/00000000000000000a528f0c4e4b4f214a72d9b34d84003df6150d5a4bcd0d32">782657</a> | 10 txs | ViaBTC\n1 XEC = $0.00002943\n1 BTC = $29,160\n1 ETH = $1,895\n\nApp txs:\n<a href="https://explorer.e.cash/tx/cd9cf4bf000b413c49d45aad382716c98d4ca2a39bc0db825bd80192962dc05d">unknown app:</a> SWP\u0000|\u0001|\u0001|���]�𷕪��7���؉�v��\u0018�\u001b�֯�\u001d��|SELL|110.00000000000001|\u0000|�Ϩ�O���+�u������Y�(���\u000e&lt;D=�ήX|\u0001|\u0000|2747\n<a href="https://explorer.e.cash/tx/da98b479e957e34b462025e483644c13c0a6924f04a31ab6473fe5c23babc5fa">Cashtab Msg:</a> Sending a message transaction to test parsing in ecash telegram bot. With an emoji bc why not? 🤔\n<a href="https://explorer.e.cash/tx/ec584ba3c1734a422c16ec40d598fe91f870c8d17c5f9d2b6c4e1cbaf82f7237">unknown app:</a> SWP\u0000|\u0001|\u0001|���]�𷕪��7���؉�v��\u0018�\u001b�֯�\u001d��|SELL\n\n6 eCash txs:\nqzr...tfg <a href="https://explorer.e.cash/tx/349d803afedd7802a1e545389c376fc25a1d45401c331fd27090644cbeae69a1">sent</a> 4,681,584 XEC to qqt...2qc and 1 others | 1.00 sats per byte\nqp9...jlg <a href="https://explorer.e.cash/tx/36902d988d7e309c2131e59a1256dd950443155aa9f6929d24055971d0b105b5">sent</a> 2,993,000 XEC to qr5...taj | 4.18 sats per byte\nqpw...ms5 <a href="https://explorer.e.cash/tx/3d90c355be7e3aeb18d5885109a167fd2c8446ec657865ffba6577a81243f71b">sent</a> 2,843,535 XEC to qpw...f2s and 1 others | 1.91 sats per byte\nqp0...c3a <a href="https://explorer.e.cash/tx/97f3ebde1a5753b6772128d69a081fd514322fac0ab63303b9f22b0079a5aac8">sent</a> 67,528,995 XEC to qph...tg5 and 1 others | 1.00 sats per byte\nqrn...54p <a href="https://explorer.e.cash/tx/9c1bfad01aad003052441327081622df4f1430454d9e4072c8ebddd7d13cc13b">sent</a> 10,255 XEC to qqs...tsk and 1 others | 1.00 sats per byte\nqzt...zwy <a href="https://explorer.e.cash/tx/ea0a799f0e3bab448064925b3ccdb6e8ff3ef07105c6739f6eec0a4aa674e1f3">sent</a> 18,832,831 XEC to qrv...rm2 | 1.00 sats per byte',
         tgMsgPriceFailure:
-            '<a href="https://explorer.e.cash/block/00000000000000000a528f0c4e4b4f214a72d9b34d84003df6150d5a4bcd0d32">782657</a> | 10 txs | ViaBTC\n\nApp txs:\n<a href="https://explorer.e.cash/tx/cd9cf4bf000b413c49d45aad382716c98d4ca2a39bc0db825bd80192962dc05d">unknown app:</a> SWP\u0000|\u0001|\u0001|���]�𷕪��7���؉�v��\u0018�\u001b�֯�\u001d��|SELL|110.00000000000001|\u0000|�Ϩ�O���+�u������Y�(���\u000e&lt;D=�ήX|\u0001|\u0000|2747\n<a href="https://explorer.e.cash/tx/da98b479e957e34b462025e483644c13c0a6924f04a31ab6473fe5c23babc5fa">Cashtab Msg:</a> Sending a message transaction to test parsing in ecash telegram bot. With an emoji bc why not? 🤔\n<a href="https://explorer.e.cash/tx/ec584ba3c1734a422c16ec40d598fe91f870c8d17c5f9d2b6c4e1cbaf82f7237">unknown app:</a> SWP\u0000|\u0001|\u0001|���]�𷕪��7���؉�v��\u0018�\u001b�֯�\u001d��|SELL',
+            '<a href="https://explorer.e.cash/block/00000000000000000a528f0c4e4b4f214a72d9b34d84003df6150d5a4bcd0d32">782657</a> | 10 txs | ViaBTC\n\nApp txs:\n<a href="https://explorer.e.cash/tx/cd9cf4bf000b413c49d45aad382716c98d4ca2a39bc0db825bd80192962dc05d">unknown app:</a> SWP\u0000|\u0001|\u0001|���]�𷕪��7���؉�v��\u0018�\u001b�֯�\u001d��|SELL|110.00000000000001|\u0000|�Ϩ�O���+�u������Y�(���\u000e&lt;D=�ήX|\u0001|\u0000|2747\n<a href="https://explorer.e.cash/tx/da98b479e957e34b462025e483644c13c0a6924f04a31ab6473fe5c23babc5fa">Cashtab Msg:</a> Sending a message transaction to test parsing in ecash telegram bot. With an emoji bc why not? 🤔\n<a href="https://explorer.e.cash/tx/ec584ba3c1734a422c16ec40d598fe91f870c8d17c5f9d2b6c4e1cbaf82f7237">unknown app:</a> SWP\u0000|\u0001|\u0001|���]�𷕪��7���؉�v��\u0018�\u001b�֯�\u001d��|SELL\n\n6 eCash txs:\nqzr...tfg <a href="https://explorer.e.cash/tx/349d803afedd7802a1e545389c376fc25a1d45401c331fd27090644cbeae69a1">sent</a> 4,681,584 XEC to qqt...2qc and 1 others | 1.00 sats per byte\nqp9...jlg <a href="https://explorer.e.cash/tx/36902d988d7e309c2131e59a1256dd950443155aa9f6929d24055971d0b105b5">sent</a> 2,993,000 XEC to qr5...taj | 4.18 sats per byte\nqpw...ms5 <a href="https://explorer.e.cash/tx/3d90c355be7e3aeb18d5885109a167fd2c8446ec657865ffba6577a81243f71b">sent</a> 2,843,535 XEC to qpw...f2s and 1 others | 1.91 sats per byte\nqp0...c3a <a href="https://explorer.e.cash/tx/97f3ebde1a5753b6772128d69a081fd514322fac0ab63303b9f22b0079a5aac8">sent</a> 67,528,995 XEC to qph...tg5 and 1 others | 1.00 sats per byte\nqrn...54p <a href="https://explorer.e.cash/tx/9c1bfad01aad003052441327081622df4f1430454d9e4072c8ebddd7d13cc13b">sent</a> 10,255 XEC to qqs...tsk and 1 others | 1.00 sats per byte\nqzt...zwy <a href="https://explorer.e.cash/tx/ea0a799f0e3bab448064925b3ccdb6e8ff3ef07105c6739f6eec0a4aa674e1f3">sent</a> 18,832,831 XEC to qrv...rm2 | 1.00 sats per byte',
         blockName: 'cashtabMsg',
     },
     {
@@ -12998,16 +16628,90 @@ module.exports = [
                     txid: '0abf58e4fb738101d07190970a536a9fae6b303ecd0d3e7b382b4b470bd5fe2b',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.0044444444444445,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914231f7087937684790d1049294f3aef9cfb7b05dd88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914231f7087937684790d1049294f3aef9cfb7b05dd88ac',
+                                22771508,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91463e79addfc3ad33d04ce064ade02d3c8caca8afd88ac',
+                                25651049,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '0d07e0722247e4df90213755a5a90b2d1155499c98ae37062462715d45dee835',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.0727650727650728,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9141969d9250b61a67c45fe6c392ce8d5ee657e5c7988ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9141969d9250b61a67c45fe6c392ce8d5ee657e5c7988ac',
+                                84328960,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e4420036b46fcca75948dec00bdcc95533677fdccb861497c0d9d33fb7da5d21986b5080000000000001770080000000000000199',
+                                0,
+                            ],
+                            [
+                                '76a91454b92693bd9379068c033c5f98790ef89526bb2f88ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '3e486edda471d69d1a55c9a4006f3c0ba39ff452dcb06a6d85b6cc97c5703a07',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 5.008576329331047,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9148c2fb4fad7b6a5167246f9575d9eb755466a89dc88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914ba26b263830e1130d0f8eef7b04333df01c1f2ac88ac',
+                                1003862,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '425deba1bef907163aa546aca36d4bd6c0e2c1a6944fde23b2f0503a5a88cabe',
@@ -13016,11 +16720,60 @@ module.exports = [
                         app: 'Cashtab Msg',
                         msg: 'Testing a normal message but give it some <i> spice </i> because <b>why not</b>?<a href="https://cashtab.com/">Cashtab link test</a>',
                     },
+                    satsPerByte: 1.2165775401069518,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                                15257115,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04007461624c8454657374696e672061206e6f726d616c206d65737361676520627574206769766520697420736f6d65203c693e207370696365203c2f693e2062656361757365203c623e776879206e6f743c2f623e3f3c6120687265663d2268747470733a2f2f636173687461622e636f6d2f223e43617368746162206c696e6b20746573743c2f613e',
+                                0,
+                            ],
+                            [
+                                '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                                2200,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '564f79a4fd7c798ca5d4460899e0bae06ad84055ec5693885142346fa80aa841',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 5.012406947890819,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914622d5292bce6d6eb6a3e2b7bcb26a1116c2d4e0c88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914ba26b263830e1130d0f8eef7b04333df01c1f2ac88ac',
+                                2029425,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '649123ec1b2357baa4588581a83aa6aa3da7825f9d736d93f77752caa156fd26',
@@ -13029,41 +16782,278 @@ module.exports = [
                         app: 'Cashtab Msg',
                         msg: '<b>Try to hack the format</b> ${true && <i>yes</i>}',
                     },
+                    satsPerByte: 1.5582191780821917,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                                6223562,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a0400746162333c623e54727920746f206861636b2074686520666f726d61743c2f623e20247b74727565202626203c693e7965733c2f693e7d',
+                                0,
+                            ],
+                            [
+                                '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                                1100,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '804e4cb47961434546c951c718351b3c33b1e4ddfbde3a262d7a191b2b6a8c60',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914fcced6851315a91e2eb509d8177124354bfa279f88ac',
+                            '76a91481b798c38411cc74929d89eb5512882bc04662af88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91407ce29a8cdee8bf99033451311428d7172b6ced488ac',
+                                2074521,
+                            ],
+                            [
+                                '76a9140d6d15de57c5c517eaa7799c3518db6e4daa982188ac',
+                                20322018,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '86f2bc22c9d2e9545335dc759cb3274a37ab64d83eb26bc19d7938b1f08c952a',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.075,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9141069c0f04b4ca8693344e6ff778f34a6e05724ac88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9141069c0f04b4ca8693344e6ff778f34a6e05724ac88ac',
+                                67807,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e4420036b46fcca75948dec00bdcc95533677fdccb861497c0d9d33fb7da5d21986b508000000000000177008000000000000014f',
+                                0,
+                            ],
+                            [
+                                '76a91454b92693bd9379068c033c5f98790ef89526bb2f88ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '8728cc3ee8c2e6eb584f4f97bd7b4692476f418767d6815721b9806ca0c6b219',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.3821989528795813,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91463e79addfc3ad33d04ce064ade02d3c8caca8afd88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91478b505b6eaf8ac565880b2279bf43348f1330ddc88ac',
+                                25650594,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '9e89a1e464c13a10e2a0a693ac111d4f054daac13d6c22a8592c73063c93143b',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.9026548672566372,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9145c60a0e3914b4b12a419db5be6f742754e85971688ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9148e68fdd0cff91893a912c516cc1a469f6319205588ac',
+                                84785723,
+                            ],
+                            [
+                                '76a914e0a3c5d6dc80ee3a2e084dca41a6ac9a4bf3f2e288ac',
+                                120348,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'a51b843c19bde5b37f1199564f6a0ff705690ee300a228a6dd8f65fd9a876eb0',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.4355555555555557,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914f69f2444a73a6e5af5c8d03804327c3b229f454c88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914cdb7ab527af62ee68881a0bb6e42e363f72c8f7888ac',
+                                431200000,
+                            ],
+                            [
+                                '76a9142dd4d97d549061aacdb26d6493e9abea2118f4c488ac',
+                                1278764300,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'adb8f5232d92e94a8f0abb2321ff91175afc66b090bc7de40a337cc13759d637',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.2026431718061674,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91410c6a5beca4acfe75eba5762efb22507d560790588ac',
+                            '76a914958a2c0942ccd4db44837e8170906328b4bccff888ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91410c6a5beca4acfe75eba5762efb22507d560790588ac',
+                                1092,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e508000000000000114808000000000000002c08000000000000001608000000000000001f08000000000000001f08000000000000003f080000000000000008080000000000000010080000000000000008080000000000000064080000000000002936',
+                                0,
+                            ],
+                            [
+                                '76a914640de2abeaace5867f163e139d05ce9c1394ded488ac',
+                                546,
+                            ],
+                            [
+                                '76a914145dcfd9d0fd303f747f189577aeeafa40c3d3ce88ac',
+                                546,
+                            ],
+                            [
+                                '76a9141fd95bf62f6f19dfd496f09b32cf5582debb83b488ac',
+                                546,
+                            ],
+                            [
+                                '76a91494a8643a988a18125eba629737fdcdc8a1de56f288ac',
+                                546,
+                            ],
+                            [
+                                '76a914b91b48680a1536c19fde25cdd0d122d61da8abe888ac',
+                                546,
+                            ],
+                            [
+                                '76a914d6c4ec6ec1b1711fe66eb771ef33e8801bb4f7b888ac',
+                                546,
+                            ],
+                            [
+                                '76a9141beee7879f4cb427e99558199b116a2f7238e57e88ac',
+                                546,
+                            ],
+                            [
+                                '76a914be621b1aa458f726583cea23c4af515a846f05b288ac',
+                                546,
+                            ],
+                            [
+                                '76a914ae789c93c904055b1ad88b1c645645d9f045178588ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'de484cdc438bd2e4773d2a50ab951928b5c22a25f04093e57350c19d68a573d9',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.008888888888889,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914efd8c555f302c95bf32be35ace6bdd33b46b406c88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9148e1fceb7be408fa6048a4bb84d0bba852f5d328788ac',
+                                55555500,
+                            ],
+                            [
+                                '76a914fe251810d90b9e9c6be62c75b0ec48f18a5b3aa288ac',
+                                257033764,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'dfa431134fdd2569afce9e7ec873ef6231dc13d89c530d6608061f22d5a94281',
@@ -13075,50 +17065,157 @@ module.exports = [
                         decimals: 0,
                     },
                     opReturnInfo: false,
+                    satsPerByte: 1.4583333333333333,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                                9035610,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010747454e4553495303262626063c3e3c3e3c3e2268747470733a2f2f636f72652e74656c656772616d2e6f72672f626f74732f6170694c0001004c00080000000000000003',
+                                0,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'f13a8d2897f75c30657dc736f51afc4835dd4639c084ef52d2809955b458591b',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 1.198494825964252,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91410c6a5beca4acfe75eba5762efb22507d560790588ac',
+                            '76a914958a2c0942ccd4db44837e8170906328b4bccff888ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91410c6a5beca4acfe75eba5762efb22507d560790588ac',
+                                1092,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e44207e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e508000000000000114808000000000000002c08000000000000001608000000000000001f08000000000000001f08000000000000003f080000000000000008080000000000000010080000000000000008080000000000000064080000000000003b95',
+                                0,
+                            ],
+                            [
+                                '76a914640de2abeaace5867f163e139d05ce9c1394ded488ac',
+                                546,
+                            ],
+                            [
+                                '76a914145dcfd9d0fd303f747f189577aeeafa40c3d3ce88ac',
+                                546,
+                            ],
+                            [
+                                '76a9141fd95bf62f6f19dfd496f09b32cf5582debb83b488ac',
+                                546,
+                            ],
+                            [
+                                '76a91494a8643a988a18125eba629737fdcdc8a1de56f288ac',
+                                546,
+                            ],
+                            [
+                                '76a914b91b48680a1536c19fde25cdd0d122d61da8abe888ac',
+                                546,
+                            ],
+                            [
+                                '76a914d6c4ec6ec1b1711fe66eb771ef33e8801bb4f7b888ac',
+                                546,
+                            ],
+                            [
+                                '76a9141beee7879f4cb427e99558199b116a2f7238e57e88ac',
+                                546,
+                            ],
+                            [
+                                '76a914be621b1aa458f726583cea23c4af515a846f05b288ac',
+                                546,
+                            ],
+                            [
+                                '76a914ae789c93c904055b1ad88b1c645645d9f045178588ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'fb913d9c9abe7ba7c1c33fd5afb2ba048e41b75719ec607b8939e439e9e5173f',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.3821989528795813,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91478b505b6eaf8ac565880b2279bf43348f1330ddc88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a9145f48d1b7d62239617261043c5ab7411af7ed845988ac',
+                                25650139,
+                            ],
+                        ],
+                    },
                 },
             ],
         },
         coingeckoResponse: {
             bitcoin: {
-                usd: 30729.89878314,
+                usd: 29160.02775612,
             },
             ecash: {
-                usd: 0.00003239,
+                usd: 0.00002943,
             },
             ethereum: {
-                usd: 2109.65870749,
+                usd: 1894.98574958,
             },
         },
         coingeckoPrices: [
             {
                 fiat: 'usd',
-                price: 0.00003239,
+                price: 0.00002943,
                 ticker: 'XEC',
             },
             {
                 fiat: 'usd',
-                price: 30729.89878314,
+                price: 29160.02775612,
                 ticker: 'BTC',
             },
             {
                 fiat: 'usd',
-                price: 2109.65870749,
+                price: 1894.98574958,
                 ticker: 'ETH',
             },
         ],
-        tgMsg: '<a href="https://explorer.e.cash/block/0000000000000000000067d535eccdfaf5397541e948d87aa22e659d8417e497">782785</a> | 17 txs | Mining-Dutch\n1 XEC = $0.00003239\n1 BTC = $30,730\n1 ETH = $2,110\n\n1 new eToken created:\n<a href="https://explorer.e.cash/tx/dfa431134fdd2569afce9e7ec873ef6231dc13d89c530d6608061f22d5a94281">&lt;&gt;&lt;&gt;&lt;&gt;</a> (&amp;&amp;&amp;) <a href="https://core.telegram.org/bots/api">[doc]</a>\n\nApp txs:\n<a href="https://explorer.e.cash/tx/425deba1bef907163aa546aca36d4bd6c0e2c1a6944fde23b2f0503a5a88cabe">Cashtab Msg:</a> Testing a normal message but give it some &lt;i&gt; spice &lt;/i&gt; because &lt;b&gt;why not&lt;/b&gt;?&lt;a href="https://cashtab.com/"&gt;Cashtab link test&lt;/a&gt;\n<a href="https://explorer.e.cash/tx/649123ec1b2357baa4588581a83aa6aa3da7825f9d736d93f77752caa156fd26">Cashtab Msg:</a> &lt;b&gt;Try to hack the format&lt;/b&gt; ${true &amp;&amp; &lt;i&gt;yes&lt;/i&gt;}',
+        tgMsg: '<a href="https://explorer.e.cash/block/0000000000000000000067d535eccdfaf5397541e948d87aa22e659d8417e497">782785</a> | 17 txs | Mining-Dutch\n1 XEC = $0.00002943\n1 BTC = $29,160\n1 ETH = $1,895\n\n1 new eToken created:\n<a href="https://explorer.e.cash/tx/dfa431134fdd2569afce9e7ec873ef6231dc13d89c530d6608061f22d5a94281">&lt;&gt;&lt;&gt;&lt;&gt;</a> (&amp;&amp;&amp;) <a href="https://core.telegram.org/bots/api">[doc]</a>\n\nApp txs:\n<a href="https://explorer.e.cash/tx/425deba1bef907163aa546aca36d4bd6c0e2c1a6944fde23b2f0503a5a88cabe">Cashtab Msg:</a> Testing a normal message but give it some &lt;i&gt; spice &lt;/i&gt; because &lt;b&gt;why not&lt;/b&gt;?&lt;a href="https://cashtab.com/"&gt;Cashtab link test&lt;/a&gt;\n<a href="https://explorer.e.cash/tx/649123ec1b2357baa4588581a83aa6aa3da7825f9d736d93f77752caa156fd26">Cashtab Msg:</a> &lt;b&gt;Try to hack the format&lt;/b&gt; ${true &amp;&amp; &lt;i&gt;yes&lt;/i&gt;}\n\n13 eCash txs:\nqq3...x4u <a href="https://explorer.e.cash/tx/0abf58e4fb738101d07190970a536a9fae6b303ecd0d3e7b382b4b470bd5fe2b">sent</a> 256,510 XEC to qp3...scq | 1.00 sats per byte\nqqv...wwc <a href="https://explorer.e.cash/tx/0d07e0722247e4df90213755a5a90b2d1155499c98ae37062462715d45dee835">sent</a> 5 XEC to qp2...dce | 1.07 sats per byte\nqzx...vth <a href="https://explorer.e.cash/tx/3e486edda471d69d1a55c9a4006f3c0ba39ff452dcb06a6d85b6cc97c5703a07">sent</a> 10,039 XEC to qza...e7g | 5.01 sats per byte\nqp3...f6c <a href="https://explorer.e.cash/tx/564f79a4fd7c798ca5d4460899e0bae06ad84055ec5693885142346fa80aa841">sent</a> 20,294 XEC to qza...e7g | 5.01 sats per byte\nqr7...wlz <a href="https://explorer.e.cash/tx/804e4cb47961434546c951c718351b3c33b1e4ddfbde3a262d7a191b2b6a8c60">sent</a> 223,965 XEC to qqr...8y8 and 1 others | 1.00 sats per byte\nqqg...q4a <a href="https://explorer.e.cash/tx/86f2bc22c9d2e9545335dc759cb3274a37ab64d83eb26bc19d7938b1f08c952a">sent</a> 5 XEC to qp2...dce | 1.07 sats per byte\nqp3...scq <a href="https://explorer.e.cash/tx/8728cc3ee8c2e6eb584f4f97bd7b4692476f418767d6815721b9806ca0c6b219">sent</a> 256,506 XEC to qpu...ez7 | 2.38 sats per byte\nqpw...ms5 <a href="https://explorer.e.cash/tx/9e89a1e464c13a10e2a0a693ac111d4f054daac13d6c22a8592c73063c93143b">sent</a> 849,061 XEC to qz8...y4c and 1 others | 1.90 sats per byte\nqrm...f33 <a href="https://explorer.e.cash/tx/a51b843c19bde5b37f1199564f6a0ff705690ee300a228a6dd8f65fd9a876eb0">sent</a> 17,099,643 XEC to qrx...y9d and 1 others | 2.44 sats per byte\nqqg...v4e <a href="https://explorer.e.cash/tx/adb8f5232d92e94a8f0abb2321ff91175afc66b090bc7de40a337cc13759d637">sent</a> 49 XEC to qpj...yv6 and 8 others | 1.20 sats per byte\nqrh...6em <a href="https://explorer.e.cash/tx/de484cdc438bd2e4773d2a50ab951928b5c22a25f04093e57350c19d68a573d9">sent</a> 3,125,893 XEC to qz8...tu7 and 1 others | 2.01 sats per byte\nqqg...v4e <a href="https://explorer.e.cash/tx/f13a8d2897f75c30657dc736f51afc4835dd4639c084ef52d2809955b458591b">sent</a> 49 XEC to qpj...yv6 and 8 others | 1.20 sats per byte\nqpu...ez7 <a href="https://explorer.e.cash/tx/fb913d9c9abe7ba7c1c33fd5afb2ba048e41b75719ec607b8939e439e9e5173f">sent</a> 256,501 XEC to qp0...upp | 2.38 sats per byte',
         tgMsgPriceFailure:
-            '<a href="https://explorer.e.cash/block/0000000000000000000067d535eccdfaf5397541e948d87aa22e659d8417e497">782785</a> | 17 txs | Mining-Dutch\n\n1 new eToken created:\n<a href="https://explorer.e.cash/tx/dfa431134fdd2569afce9e7ec873ef6231dc13d89c530d6608061f22d5a94281">&lt;&gt;&lt;&gt;&lt;&gt;</a> (&amp;&amp;&amp;) <a href="https://core.telegram.org/bots/api">[doc]</a>\n\nApp txs:\n<a href="https://explorer.e.cash/tx/425deba1bef907163aa546aca36d4bd6c0e2c1a6944fde23b2f0503a5a88cabe">Cashtab Msg:</a> Testing a normal message but give it some &lt;i&gt; spice &lt;/i&gt; because &lt;b&gt;why not&lt;/b&gt;?&lt;a href="https://cashtab.com/"&gt;Cashtab link test&lt;/a&gt;\n<a href="https://explorer.e.cash/tx/649123ec1b2357baa4588581a83aa6aa3da7825f9d736d93f77752caa156fd26">Cashtab Msg:</a> &lt;b&gt;Try to hack the format&lt;/b&gt; ${true &amp;&amp; &lt;i&gt;yes&lt;/i&gt;}',
+            '<a href="https://explorer.e.cash/block/0000000000000000000067d535eccdfaf5397541e948d87aa22e659d8417e497">782785</a> | 17 txs | Mining-Dutch\n\n1 new eToken created:\n<a href="https://explorer.e.cash/tx/dfa431134fdd2569afce9e7ec873ef6231dc13d89c530d6608061f22d5a94281">&lt;&gt;&lt;&gt;&lt;&gt;</a> (&amp;&amp;&amp;) <a href="https://core.telegram.org/bots/api">[doc]</a>\n\nApp txs:\n<a href="https://explorer.e.cash/tx/425deba1bef907163aa546aca36d4bd6c0e2c1a6944fde23b2f0503a5a88cabe">Cashtab Msg:</a> Testing a normal message but give it some &lt;i&gt; spice &lt;/i&gt; because &lt;b&gt;why not&lt;/b&gt;?&lt;a href="https://cashtab.com/"&gt;Cashtab link test&lt;/a&gt;\n<a href="https://explorer.e.cash/tx/649123ec1b2357baa4588581a83aa6aa3da7825f9d736d93f77752caa156fd26">Cashtab Msg:</a> &lt;b&gt;Try to hack the format&lt;/b&gt; ${true &amp;&amp; &lt;i&gt;yes&lt;/i&gt;}\n\n13 eCash txs:\nqq3...x4u <a href="https://explorer.e.cash/tx/0abf58e4fb738101d07190970a536a9fae6b303ecd0d3e7b382b4b470bd5fe2b">sent</a> 256,510 XEC to qp3...scq | 1.00 sats per byte\nqqv...wwc <a href="https://explorer.e.cash/tx/0d07e0722247e4df90213755a5a90b2d1155499c98ae37062462715d45dee835">sent</a> 5 XEC to qp2...dce | 1.07 sats per byte\nqzx...vth <a href="https://explorer.e.cash/tx/3e486edda471d69d1a55c9a4006f3c0ba39ff452dcb06a6d85b6cc97c5703a07">sent</a> 10,039 XEC to qza...e7g | 5.01 sats per byte\nqp3...f6c <a href="https://explorer.e.cash/tx/564f79a4fd7c798ca5d4460899e0bae06ad84055ec5693885142346fa80aa841">sent</a> 20,294 XEC to qza...e7g | 5.01 sats per byte\nqr7...wlz <a href="https://explorer.e.cash/tx/804e4cb47961434546c951c718351b3c33b1e4ddfbde3a262d7a191b2b6a8c60">sent</a> 223,965 XEC to qqr...8y8 and 1 others | 1.00 sats per byte\nqqg...q4a <a href="https://explorer.e.cash/tx/86f2bc22c9d2e9545335dc759cb3274a37ab64d83eb26bc19d7938b1f08c952a">sent</a> 5 XEC to qp2...dce | 1.07 sats per byte\nqp3...scq <a href="https://explorer.e.cash/tx/8728cc3ee8c2e6eb584f4f97bd7b4692476f418767d6815721b9806ca0c6b219">sent</a> 256,506 XEC to qpu...ez7 | 2.38 sats per byte\nqpw...ms5 <a href="https://explorer.e.cash/tx/9e89a1e464c13a10e2a0a693ac111d4f054daac13d6c22a8592c73063c93143b">sent</a> 849,061 XEC to qz8...y4c and 1 others | 1.90 sats per byte\nqrm...f33 <a href="https://explorer.e.cash/tx/a51b843c19bde5b37f1199564f6a0ff705690ee300a228a6dd8f65fd9a876eb0">sent</a> 17,099,643 XEC to qrx...y9d and 1 others | 2.44 sats per byte\nqqg...v4e <a href="https://explorer.e.cash/tx/adb8f5232d92e94a8f0abb2321ff91175afc66b090bc7de40a337cc13759d637">sent</a> 49 XEC to qpj...yv6 and 8 others | 1.20 sats per byte\nqrh...6em <a href="https://explorer.e.cash/tx/de484cdc438bd2e4773d2a50ab951928b5c22a25f04093e57350c19d68a573d9">sent</a> 3,125,893 XEC to qz8...tu7 and 1 others | 2.01 sats per byte\nqqg...v4e <a href="https://explorer.e.cash/tx/f13a8d2897f75c30657dc736f51afc4835dd4639c084ef52d2809955b458591b">sent</a> 49 XEC to qpj...yv6 and 8 others | 1.20 sats per byte\nqpu...ez7 <a href="https://explorer.e.cash/tx/fb913d9c9abe7ba7c1c33fd5afb2ba048e41b75719ec607b8939e439e9e5173f">sent</a> 256,501 XEC to qp0...upp | 2.38 sats per byte',
         blockName: 'htmlEscapeTest',
     },
     {
@@ -13867,16 +17964,90 @@ module.exports = [
                         app: 'Cashtab Msg',
                         msg: 'Why not another one, this time with emojis 🤔',
                     },
+                    satsPerByte: 1.57439446366782,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                                9036065,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04007461622f576879206e6f7420616e6f74686572206f6e652c20746869732074696d65207769746820656d6f6a697320f09fa494',
+                                0,
+                            ],
+                            [
+                                '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                                700,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '4d6845d856e34b03ef6830313c4cc75f80daee491eee7b8d55f32cdb8c2b72e6',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 5,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914dc4038ba05a1007630e750df4060d5890e1f180788ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914ba26b263830e1130d0f8eef7b04333df01c1f2ac88ac',
+                                2135,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: '7b0802223d4376f3bca1a76c9a2deab0c18c2fc5f070d4adb65abdb18d328f08',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.019342359767892,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a9146bd9330ad46ce1e786864434039b0c15b526bc7088ac',
+                            '76a9149085c39bf75a8c4843a4f736dc687603c07365c188ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                'a91410f3ed6835b5e1a36c6e7e272a08024e45a4f3a087',
+                                456869659,
+                            ],
+                            [
+                                '76a9145da01c1ee4a0089ceb487ede31d7e68e061ac04088ac',
+                                1272,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'a2f704933049b5c5a712a9943ac2e264fbeb1354cd5f2187e31eb68a8f38aa72',
@@ -13885,26 +18056,144 @@ module.exports = [
                         app: 'Cashtab Msg',
                         msg: "Can't believe already need to test again",
                     },
+                    satsPerByte: 1.6192170818505338,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                                15259770,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04007461622843616e27742062656c6965766520616c7265616479206e65656420746f207465737420616761696e',
+                                0,
+                            ],
+                            [
+                                '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                                1100,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'ac4e0acbe7f0e0e25ef3366e2d066ebaa543c0fe8721e998d4cab03fbeb8a5a9',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 5.012406947890819,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914287a7feec5fdcae526944bb92aa484a32923614e88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914ba26b263830e1130d0f8eef7b04333df01c1f2ac88ac',
+                                1027980,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'b4fee092558400fa905336da8c0465e6be857bb6fad758825a20e90a6a12c323',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 5.022421524663677,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914a4dda233904acfd93ec8e450a52fd488210ce82a88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914ba26b263830e1130d0f8eef7b04333df01c1f2ac88ac',
+                                2944,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'c04ae7f139eb16023a70d1bb39b1ae8745667edb09833e994a5b4d48976a111d',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 2.373695198329854,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                                17447625,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04534c500001010453454e4420b9877d8f8d2364b983707df905d592f534a3ada18e52aa529a0f72fcc535abf7080000000000000002080000000000000003',
+                                0,
+                            ],
+                            [
+                                '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                                546,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'c7bfee6cb99bfd021e3d6f38f08391d111463a2872d50b6bc3c5351015707adc',
                     genesisInfo: false,
                     opReturnInfo: false,
+                    satsPerByte: 5.014619883040936,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914ec40fd5c237cb739dafa33ef8a2aa52f41ba269088ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914ba26b263830e1130d0f8eef7b04333df01c1f2ac88ac',
+                                821962,
+                            ],
+                        ],
+                    },
                 },
                 {
                     txid: 'd9915ae3c4a7ec176746d3902295c1d2cf8912db589289842c14803a67cfc9d1',
@@ -13913,40 +18202,69 @@ module.exports = [
                         app: 'Cashtab Msg',
                         msg: "Another Cashtab message to the TG bot. Making it longer to see if spacing is a problem. Is spacing a problem? Is parsing a problem? Who can tell. We will only know after this message appears (or doesn't). ",
                     },
+                    satsPerByte: 1.0178970917225951,
+                    xecSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        ],
+                    },
+                    xecChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                                113016,
+                            ],
+                        ],
+                    },
+                    xecReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '6a04007461624ccd416e6f746865722043617368746162206d65737361676520746f2074686520544720626f742e204d616b696e67206974206c6f6e67657220746f207365652069662073706163696e6720697320612070726f626c656d2e2049732073706163696e6720612070726f626c656d3f2049732070617273696e6720612070726f626c656d3f2057686f2063616e2074656c6c2e2057652077696c6c206f6e6c79206b6e6f772061667465722074686973206d657373616765206170706561727320286f7220646f65736e2774292e20',
+                                0,
+                            ],
+                            [
+                                '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                                2200,
+                            ],
+                        ],
+                    },
                 },
             ],
         },
         coingeckoResponse: {
             bitcoin: {
-                usd: 30729.89878314,
+                usd: 29160.02775612,
             },
             ecash: {
-                usd: 0.00003239,
+                usd: 0.00002943,
             },
             ethereum: {
-                usd: 2109.65870749,
+                usd: 1894.98574958,
             },
         },
         coingeckoPrices: [
             {
                 fiat: 'usd',
-                price: 0.00003239,
+                price: 0.00002943,
                 ticker: 'XEC',
             },
             {
                 fiat: 'usd',
-                price: 30729.89878314,
+                price: 29160.02775612,
                 ticker: 'BTC',
             },
             {
                 fiat: 'usd',
-                price: 2109.65870749,
+                price: 1894.98574958,
                 ticker: 'ETH',
             },
         ],
-        tgMsg: '<a href="https://explorer.e.cash/block/00000000000000000609f6bcbbf5169ae25142ad7f119b541adad5789faa28e4">782774</a> | 10 txs | ViaBTC\n1 XEC = $0.00003239\n1 BTC = $30,730\n1 ETH = $2,110\n\nApp txs:\n<a href="https://explorer.e.cash/tx/2769041aa0e069610f3050c1a7d6f20e322e216625086d1d9c1f35dd0e85fbe9">Cashtab Msg:</a> Why not another one, this time with emojis 🤔\n<a href="https://explorer.e.cash/tx/a2f704933049b5c5a712a9943ac2e264fbeb1354cd5f2187e31eb68a8f38aa72">Cashtab Msg:</a> Can\'t believe already need to test again\n<a href="https://explorer.e.cash/tx/d9915ae3c4a7ec176746d3902295c1d2cf8912db589289842c14803a67cfc9d1">Cashtab Msg:</a> Another Cashtab message to the TG bot. Making it longer to see if spacing is a problem. Is spacing a problem? Is parsing a problem? Who can tell. We will only know after this message appears (or doesn\'t). ',
+        tgMsg: '<a href="https://explorer.e.cash/block/00000000000000000609f6bcbbf5169ae25142ad7f119b541adad5789faa28e4">782774</a> | 10 txs | ViaBTC\n1 XEC = $0.00002943\n1 BTC = $29,160\n1 ETH = $1,895\n\nApp txs:\n<a href="https://explorer.e.cash/tx/2769041aa0e069610f3050c1a7d6f20e322e216625086d1d9c1f35dd0e85fbe9">Cashtab Msg:</a> Why not another one, this time with emojis 🤔\n<a href="https://explorer.e.cash/tx/a2f704933049b5c5a712a9943ac2e264fbeb1354cd5f2187e31eb68a8f38aa72">Cashtab Msg:</a> Can\'t believe already need to test again\n<a href="https://explorer.e.cash/tx/d9915ae3c4a7ec176746d3902295c1d2cf8912db589289842c14803a67cfc9d1">Cashtab Msg:</a> Another Cashtab message to the TG bot. Making it longer to see if spacing is a problem. Is spacing a problem? Is parsing a problem? Who can tell. We will only know after this message appears (or doesn\'t). \n\n6 eCash txs:\nqrw...re7 <a href="https://explorer.e.cash/tx/4d6845d856e34b03ef6830313c4cc75f80daee491eee7b8d55f32cdb8c2b72e6">sent</a> 21 XEC to qza...e7g | 5.00 sats per byte\nqp4...v8x <a href="https://explorer.e.cash/tx/7b0802223d4376f3bca1a76c9a2deab0c18c2fc5f070d4adb65abdb18d328f08">sent</a> 4,568,709 XEC to pqg...tlg and 1 others | 2.02 sats per byte\nqq5...ck4 <a href="https://explorer.e.cash/tx/ac4e0acbe7f0e0e25ef3366e2d066ebaa543c0fe8721e998d4cab03fbeb8a5a9">sent</a> 10,280 XEC to qza...e7g | 5.01 sats per byte\nqzj...u85 <a href="https://explorer.e.cash/tx/b4fee092558400fa905336da8c0465e6be857bb6fad758825a20e90a6a12c323">sent</a> 29 XEC to qza...e7g | 5.02 sats per byte\nqz2...035 <a href="https://explorer.e.cash/tx/c04ae7f139eb16023a70d1bb39b1ae8745667edb09833e994a5b4d48976a111d">sent</a> 5 XEC to qp8...gg6 | 2.37 sats per byte\nqrk...wcf <a href="https://explorer.e.cash/tx/c7bfee6cb99bfd021e3d6f38f08391d111463a2872d50b6bc3c5351015707adc">sent</a> 8,220 XEC to qza...e7g | 5.01 sats per byte',
         tgMsgPriceFailure:
-            '<a href="https://explorer.e.cash/block/00000000000000000609f6bcbbf5169ae25142ad7f119b541adad5789faa28e4">782774</a> | 10 txs | ViaBTC\n\nApp txs:\n<a href="https://explorer.e.cash/tx/2769041aa0e069610f3050c1a7d6f20e322e216625086d1d9c1f35dd0e85fbe9">Cashtab Msg:</a> Why not another one, this time with emojis 🤔\n<a href="https://explorer.e.cash/tx/a2f704933049b5c5a712a9943ac2e264fbeb1354cd5f2187e31eb68a8f38aa72">Cashtab Msg:</a> Can\'t believe already need to test again\n<a href="https://explorer.e.cash/tx/d9915ae3c4a7ec176746d3902295c1d2cf8912db589289842c14803a67cfc9d1">Cashtab Msg:</a> Another Cashtab message to the TG bot. Making it longer to see if spacing is a problem. Is spacing a problem? Is parsing a problem? Who can tell. We will only know after this message appears (or doesn\'t). ',
+            '<a href="https://explorer.e.cash/block/00000000000000000609f6bcbbf5169ae25142ad7f119b541adad5789faa28e4">782774</a> | 10 txs | ViaBTC\n\nApp txs:\n<a href="https://explorer.e.cash/tx/2769041aa0e069610f3050c1a7d6f20e322e216625086d1d9c1f35dd0e85fbe9">Cashtab Msg:</a> Why not another one, this time with emojis 🤔\n<a href="https://explorer.e.cash/tx/a2f704933049b5c5a712a9943ac2e264fbeb1354cd5f2187e31eb68a8f38aa72">Cashtab Msg:</a> Can\'t believe already need to test again\n<a href="https://explorer.e.cash/tx/d9915ae3c4a7ec176746d3902295c1d2cf8912db589289842c14803a67cfc9d1">Cashtab Msg:</a> Another Cashtab message to the TG bot. Making it longer to see if spacing is a problem. Is spacing a problem? Is parsing a problem? Who can tell. We will only know after this message appears (or doesn\'t). \n\n6 eCash txs:\nqrw...re7 <a href="https://explorer.e.cash/tx/4d6845d856e34b03ef6830313c4cc75f80daee491eee7b8d55f32cdb8c2b72e6">sent</a> 21 XEC to qza...e7g | 5.00 sats per byte\nqp4...v8x <a href="https://explorer.e.cash/tx/7b0802223d4376f3bca1a76c9a2deab0c18c2fc5f070d4adb65abdb18d328f08">sent</a> 4,568,709 XEC to pqg...tlg and 1 others | 2.02 sats per byte\nqq5...ck4 <a href="https://explorer.e.cash/tx/ac4e0acbe7f0e0e25ef3366e2d066ebaa543c0fe8721e998d4cab03fbeb8a5a9">sent</a> 10,280 XEC to qza...e7g | 5.01 sats per byte\nqzj...u85 <a href="https://explorer.e.cash/tx/b4fee092558400fa905336da8c0465e6be857bb6fad758825a20e90a6a12c323">sent</a> 29 XEC to qza...e7g | 5.02 sats per byte\nqz2...035 <a href="https://explorer.e.cash/tx/c04ae7f139eb16023a70d1bb39b1ae8745667edb09833e994a5b4d48976a111d">sent</a> 5 XEC to qp8...gg6 | 2.37 sats per byte\nqrk...wcf <a href="https://explorer.e.cash/tx/c7bfee6cb99bfd021e3d6f38f08391d111463a2872d50b6bc3c5351015707adc">sent</a> 8,220 XEC to qza...e7g | 5.01 sats per byte',
         blockName: 'cashtabMsgMulti',
     },
 ];

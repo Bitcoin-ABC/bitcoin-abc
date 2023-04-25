@@ -4,8 +4,9 @@
 
 'use strict';
 const config = require('../config');
+const cashaddr = require('ecashaddrjs');
 const { prepareStringForTelegramHTML } = require('./telegram');
-const { formatPrice } = require('./utils');
+const { formatPrice, returnAddressPreview } = require('./utils');
 module.exports = {
     parseBlock: function (chronikBlockResponse) {
         const { blockInfo, txs } = chronikBlockResponse;
@@ -42,11 +43,23 @@ module.exports = {
          * { txid, genesisInfo, opReturnInfo }
          */
 
-        const { txid, outputs } = tx;
+        const { txid, inputs, outputs, size } = tx;
 
         let isTokenTx = false;
         let genesisInfo = false;
         let opReturnInfo = false;
+
+        /* Collect xecSendInfo for all txs, since all txs are XEC sends
+         * You may later want to render xecSendInfo for tokenSends, appTxs, etc,
+         * maybe on special conditions, e.g.a token send tx that also sends a bunch of xec
+         */
+
+        // xecSend parsing variables
+        let xecSendingOutputScripts = new Set();
+        let xecReceivingOutputs = new Map();
+        let xecChangeOutputs = new Map();
+        let xecInputAmountSats = 0;
+        let xecOutputAmountSats = 0;
 
         if (tx.slpTxData !== null && typeof tx.slpTxData !== 'undefined') {
             isTokenTx = true;
@@ -60,19 +73,65 @@ module.exports = {
                 genesisInfo = tx.slpTxData.genesisInfo;
             }
         }
+        for (let i in inputs) {
+            const thisInput = inputs[i];
+            xecSendingOutputScripts.add(thisInput.outputScript);
+            xecInputAmountSats += parseInt(thisInput.value);
+        }
 
         // Iterate over outputs to check for OP_RETURN msgs
         for (let i = 0; i < outputs.length; i += 1) {
             const thisOutput = outputs[i];
-            const { value } = thisOutput;
+            const value = parseInt(thisOutput.value);
+            xecOutputAmountSats += value;
+            // If this output script is the same as one of the sendingOutputScripts
+            if (xecSendingOutputScripts.has(thisOutput.outputScript)) {
+                // Then this XEC amount is change
+
+                // Add outputScript and value to map
+                // If this outputScript is already in xecChangeOutputs, increment its value
+                xecChangeOutputs.set(
+                    thisOutput.outputScript,
+                    (xecChangeOutputs.get(thisOutput.outputScript) ?? 0) +
+                        value,
+                );
+            } else {
+                // Add an xecReceivingOutput
+
+                // Add outputScript and value to map
+                // If this outputScript is already in xecReceivingOutputs, increment its value
+                xecReceivingOutputs.set(
+                    thisOutput.outputScript,
+                    (xecReceivingOutputs.get(thisOutput.outputScript) ?? 0) +
+                        value,
+                );
+            }
             // Don't parse OP_RETURN values of etoken txs, this info is available from chronik
-            if (value === '0' && !isTokenTx) {
-                const { outputScript } = thisOutput;
-                opReturnInfo = module.exports.parseOpReturn(outputScript);
+            if (
+                thisOutput.outputScript.startsWith(
+                    config.opReturn.opReturnPrefix,
+                ) &&
+                !isTokenTx
+            ) {
+                opReturnInfo = module.exports.parseOpReturn(
+                    thisOutput.outputScript,
+                );
             }
         }
 
-        return { txid, genesisInfo, opReturnInfo };
+        // Determine tx fee
+        const txFee = xecInputAmountSats - xecOutputAmountSats;
+        const satsPerByte = txFee / size;
+
+        return {
+            txid,
+            genesisInfo,
+            opReturnInfo,
+            satsPerByte,
+            xecSendingOutputScripts,
+            xecChangeOutputs,
+            xecReceivingOutputs,
+        };
     },
     parseOpReturn: function (outputScript) {
         // Initialize required vars
@@ -218,11 +277,20 @@ module.exports = {
         // These arrays will be used to present txs in batches by type
         const genesisTxTgMsgLines = [];
         const opReturnTxTgMsgLines = [];
+        const xecSendTxTgMsgLines = [];
 
         // Iterate over parsedTxs to find anything newsworthy
         for (let i = 0; i < parsedTxs.length; i += 1) {
             const thisParsedTx = parsedTxs[i];
-            const { txid, genesisInfo, opReturnInfo } = thisParsedTx;
+            const {
+                txid,
+                genesisInfo,
+                opReturnInfo,
+                satsPerByte,
+                xecSendingOutputScripts,
+                xecChangeOutputs,
+                xecReceivingOutputs,
+            } = thisParsedTx;
             if (genesisInfo) {
                 // The txid of a genesis tx is the tokenId
                 const tokenId = txid;
@@ -250,6 +318,71 @@ module.exports = {
                 // This parsed tx has a tg msg line. Move on to the next one.
                 continue;
             }
+            // Txs not parsed above are parsed as xec send txs
+
+            /* We do the totalSatsSent calculation here in getBlockTgMsg and not above in parseTx
+             * as it is only necessary to do for rendered txs
+             */
+            let totalSatsSent = 0;
+            for (const satoshis of xecReceivingOutputs.values()) {
+                totalSatsSent += satoshis;
+            }
+            // Convert sats to XEC. Round as decimals will not be rendered in msgs.
+            const totalXecSent = parseFloat((totalSatsSent / 100).toFixed(0));
+
+            // Clone xecReceivingOutputs so that you don't modify unit test mocks
+            let xecReceivingAddressOutputs = new Map(xecReceivingOutputs);
+
+            // Throw out OP_RETURN outputs for txs parsed as XEC send txs
+            xecReceivingAddressOutputs.forEach((value, key, map) => {
+                if (key.startsWith(config.opReturn.opReturnPrefix)) {
+                    map.delete(key);
+                }
+            });
+
+            let xecSendMsg;
+            if (xecReceivingAddressOutputs.size === 0) {
+                // self send tx
+                let changeAmountSats = 0;
+                for (const satoshis of xecChangeOutputs.values()) {
+                    changeAmountSats += satoshis;
+                }
+                // Convert sats to XEC.
+                const changeAmountXec = parseFloat(changeAmountSats / 100);
+                xecSendMsg = `${xecSendingOutputScripts.size} ${
+                    xecSendingOutputScripts.size > 1 ? 'addresses' : 'address'
+                } <a href="${
+                    config.blockExplorer
+                }/tx/${txid}">sent</a> ${changeAmountXec} XEC to ${
+                    xecSendingOutputScripts.size > 1 ? 'themselves' : 'itself'
+                }`;
+            } else {
+                xecSendMsg = `${returnAddressPreview(
+                    cashaddr.encodeOutputScript(
+                        xecSendingOutputScripts.values().next().value,
+                    ),
+                )} <a href="${
+                    config.blockExplorer
+                }/tx/${txid}">sent</a> ${totalXecSent.toLocaleString('en-US', {
+                    minimumFractionDigits: 0,
+                })} XEC to ${
+                    xecReceivingAddressOutputs.keys().next().value ===
+                    xecSendingOutputScripts.values().next().value
+                        ? 'itself'
+                        : returnAddressPreview(
+                              cashaddr.encodeOutputScript(
+                                  xecReceivingAddressOutputs.keys().next()
+                                      .value,
+                              ),
+                          )
+                }${
+                    xecReceivingAddressOutputs.size > 1
+                        ? ` and ${xecReceivingAddressOutputs.size - 1} others`
+                        : ''
+                } | ${satsPerByte.toFixed(2)} sats per byte`;
+            }
+
+            xecSendTxTgMsgLines.push(xecSendMsg);
         }
 
         // Build up message as an array, with each line as an entry
@@ -307,6 +440,23 @@ module.exports = {
             // alias: newlyregisteredalias
             // Cashtab Msg: This is a Cashtab Msg
             tgMsg = tgMsg.concat(opReturnTxTgMsgLines);
+        }
+
+        // XEC txs
+        if (xecSendTxTgMsgLines.length > 0) {
+            // Line break for new section
+            tgMsg.push('');
+
+            // App txs:
+            // or
+            // App tx:
+            tgMsg.push(
+                `${xecSendTxTgMsgLines.length} eCash tx${
+                    xecSendTxTgMsgLines.length > 1 ? `s` : ''
+                }:`,
+            );
+
+            tgMsg = tgMsg.concat(xecSendTxTgMsgLines);
         }
 
         // Join array with newLine char, \n

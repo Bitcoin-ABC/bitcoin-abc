@@ -5,7 +5,9 @@
 'use strict';
 const assert = require('assert');
 const config = require('../config');
-const blocks = require('./mocks/blocks');
+const unrevivedBlocks = require('./mocks/blocks');
+const { jsonReviver } = require('../src/utils');
+const blocks = JSON.parse(JSON.stringify(unrevivedBlocks), jsonReviver);
 const memoOutputScripts = require('./mocks/memo');
 
 const {
