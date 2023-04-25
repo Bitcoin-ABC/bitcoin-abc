@@ -271,7 +271,8 @@ impl ChronikIndexer {
     /// etc. This is not called when the transaction has been mined (and thus
     /// also removed from the mempool).
     pub fn handle_tx_removed_from_mempool(&mut self, txid: TxId) -> Result<()> {
-        self.mempool.remove(txid)
+        self.mempool.remove(txid)?;
+        Ok(())
     }
 
     /// Add the block to the index.
@@ -295,8 +296,9 @@ impl ChronikIndexer {
         script_utxo_writer.insert(&mut batch, &index_txs)?;
         spent_by_writer.insert(&mut batch, &index_txs)?;
         self.db.write_batch(batch)?;
-        self.mempool
-            .removed_mined_txs(block.block_txs.txs.iter().map(|tx| tx.txid))?;
+        for tx in &block.block_txs.txs {
+            self.mempool.remove_mined(&tx.txid)?;
+        }
         let subs = self.subs.blocking_read();
         subs.broadcast_block_msg(BlockMsg {
             msg_type: BlockMsgType::Connected,

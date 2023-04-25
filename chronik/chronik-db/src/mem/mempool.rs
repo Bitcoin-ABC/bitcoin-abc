@@ -74,7 +74,7 @@ impl Mempool {
     }
 
     /// Remove tx from the mempool.
-    pub fn remove(&mut self, txid: TxId) -> Result<()> {
+    pub fn remove(&mut self, txid: TxId) -> Result<MempoolTx> {
         let mempool_tx = match self.txs.remove(&txid) {
             Some(mempool_tx) => mempool_tx,
             None => return Err(NoSuchMempoolTx(txid).into()),
@@ -83,22 +83,18 @@ impl Mempool {
         self.script_utxos
             .remove(&mempool_tx, |txid| self.txs.contains_key(txid))?;
         self.spent_by.remove(&mempool_tx)?;
-        Ok(())
+        Ok(mempool_tx)
     }
 
-    /// Remove mined txs from the mempool.
-    pub fn removed_mined_txs(
-        &mut self,
-        txids: impl IntoIterator<Item = TxId>,
-    ) -> Result<()> {
-        for txid in txids {
-            if let Some(mempool_tx) = self.txs.remove(&txid) {
-                self.script_history.remove(&mempool_tx);
-                self.script_utxos.remove_mined(&mempool_tx);
-                self.spent_by.remove(&mempool_tx)?;
-            }
+    /// Remove mined tx from the mempool.
+    pub fn remove_mined(&mut self, txid: &TxId) -> Result<Option<MempoolTx>> {
+        if let Some(mempool_tx) = self.txs.remove(txid) {
+            self.script_history.remove(&mempool_tx);
+            self.script_utxos.remove_mined(&mempool_tx);
+            self.spent_by.remove(&mempool_tx)?;
+            return Ok(Some(mempool_tx));
         }
-        Ok(())
+        Ok(None)
     }
 
     /// Get a tx by [`TxId`], or [`None`], if not found.
