@@ -217,8 +217,7 @@ OUTDIR=$(realpath "${OUTDIR}")
 # Binary Tarball Building #
 ###########################
 # CFLAGS
-HOST_CFLAGS="-O2 -g"
-HOST_CFLAGS+=$(find /gnu/store -maxdepth 1 -mindepth 1 -type d -exec echo -n " -ffile-prefix-map={}=/usr" \;)
+HOST_CFLAGS=$(find /gnu/store -maxdepth 1 -mindepth 1 -type d -exec echo -n " -ffile-prefix-map={}=/usr" \;)
 case "$HOST" in
     *linux*)  HOST_CFLAGS+=" -ffile-prefix-map=${PWD}=." ;;
     *mingw*)  HOST_CFLAGS+=" -fno-ident" ;;
@@ -234,8 +233,8 @@ esac
 
 # LDFLAGS
 case "$HOST" in
-    *linux*)  export HOST_LDFLAGS="-Wl,--as-needed -Wl,--dynamic-linker=$glibc_dynamic_linker -static-libstdc++ -Wl,-O2" ;;
-    *mingw*)  export HOST_LDFLAGS="-Wl,--no-insert-timestamp" ;;
+    *linux*)  HOST_LDFLAGS="-Wl,--as-needed -Wl,--dynamic-linker=$glibc_dynamic_linker" ;;
+    *mingw*)  HOST_LDFLAGS="-Wl,--no-insert-timestamp" ;;
 esac
 
 # Toolchain
@@ -273,6 +272,9 @@ mkdir -p "$DISTSRC"
       -DENABLE_REDUCE_EXPORTS=ON \
       -DCMAKE_INSTALL_PREFIX="${INSTALLPATH}" \
       -DCCACHE=OFF \
+      -DCMAKE_C_FLAGS="${HOST_CFLAGS}" \
+      -DCMAKE_CXX_FLAGS="${HOST_CXXFLAGS}" \
+      -DCMAKE_EXE_LINKER_FLAGS="${HOST_LDFLAGS}" \
       "${CMAKE_EXTRA_OPTIONS[@]}"
 
     # Build Bitcoin ABC
