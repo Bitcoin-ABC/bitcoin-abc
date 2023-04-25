@@ -16,7 +16,6 @@ from test_framework.blocktools import (
     create_coinbase,
     make_conform_to_ctor,
 )
-from test_framework.chronik.client import ChronikClient
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.p2p import P2PDataStore
 from test_framework.script import OP_EQUAL, OP_HASH160, CScript, hash160
@@ -35,7 +34,7 @@ class ChronikSpentByTest(BitcoinTestFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
-        import chronik_pb2 as pb
+        from test_framework.chronik.client import ChronikClient, pb
 
         node = self.nodes[0]
         node.setmocktime(1300000000)
