@@ -93,3 +93,7 @@ secrets.js
 
 # arc liberate cache file
 .phutil_module_cache
+
+# GUIX
+/output/
+/var/
