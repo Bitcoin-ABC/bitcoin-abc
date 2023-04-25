@@ -13,6 +13,7 @@ use crate::{
 
 /// Index by output/input value. While useless in pactice, this makes
 /// writing tests very convenient and showcases how Group can be used.
+#[derive(Debug, Default, Eq, PartialEq)]
 pub(crate) struct ValueGroup;
 
 impl Group for ValueGroup {
