@@ -1,0 +1,6 @@
+# packaged dependencies
+/node_modules
+
+# generated files
+/dist
+/docs
