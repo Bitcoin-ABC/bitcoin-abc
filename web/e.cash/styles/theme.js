@@ -20,7 +20,7 @@ export const ecash = {
 export const stealth = {
     colors: {
         primary: '#000',
-        primaryLight: '#00abe7',
+        primaryLight: '#a0a0a0',
         accent: '#8a8a8a',
         darkBackground: '#232324',
         contrast: '#ffffff',
