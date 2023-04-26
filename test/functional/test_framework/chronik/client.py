@@ -98,6 +98,13 @@ class ChronikWs:
         sub = pb.WsSub(is_unsub=is_unsub, blocks=pb.WsSubBlocks())
         self.send_bytes(sub.SerializeToString())
 
+    def sub_script(self, script_type: str, payload: bytes, *, is_unsub=False) -> None:
+        sub = pb.WsSub(
+            is_unsub=is_unsub,
+            script=pb.WsSubScript(script_type=script_type, payload=payload),
+        )
+        self.send_bytes(sub.SerializeToString())
+
 
 class ChronikClient:
     CONTENT_TYPE = 'application/x-protobuf'

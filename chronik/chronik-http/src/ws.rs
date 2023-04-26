@@ -4,16 +4,26 @@
 
 //! Module for [`handle_subscribe_socket`].
 
+use std::collections::HashMap;
+
 use abc_rust_error::Result;
 use axum::extract::ws::{self, WebSocket};
-use chronik_indexer::subs::{BlockMsg, BlockMsgType};
+use bitcoinsuite_core::script::ScriptVariant;
+use chronik_indexer::{
+    subs::{BlockMsg, BlockMsgType},
+    subs_group::{TxMsg, TxMsgType},
+};
 use chronik_proto::proto;
 use chronik_util::log_chronik;
+use futures::future::select_all;
 use prost::Message;
 use thiserror::Error;
 use tokio::sync::broadcast;
 
-use crate::{error::report_status_error, server::ChronikIndexerRef};
+use crate::{
+    error::report_status_error, parse::parse_script_variant,
+    server::ChronikIndexerRef,
+};
 
 /// Errors for [`ChronikServer`].
 #[derive(Debug, Eq, Error, PartialEq)]
@@ -43,18 +53,24 @@ struct WsSub {
 
 enum WsSubType {
     Blocks,
+    Script(ScriptVariant),
 }
 
 type SubRecvBlocks = Option<broadcast::Receiver<BlockMsg>>;
+type SubRecvScripts = HashMap<ScriptVariant, broadcast::Receiver<TxMsg>>;
 
 #[derive(Default)]
 struct SubRecv {
     blocks: SubRecvBlocks,
+    scripts: SubRecvScripts,
 }
 
 impl SubRecv {
     async fn recv_action(&mut self) -> Result<WsAction> {
-        Self::recv_blocks(&mut self.blocks).await
+        tokio::select! {
+            action = Self::recv_blocks(&mut self.blocks) => action,
+            action = Self::recv_scripts(&mut self.scripts) => action,
+        }
     }
 
     async fn recv_blocks(blocks: &mut SubRecvBlocks) -> Result<WsAction> {
@@ -64,9 +80,24 @@ impl SubRecv {
         }
     }
 
+    #[allow(clippy::mutable_key_type)]
+    async fn recv_scripts(scripts: &mut SubRecvScripts) -> Result<WsAction> {
+        if scripts.is_empty() {
+            futures::future::pending().await
+        } else {
+            let script_receivers = select_all(
+                scripts
+                    .values_mut()
+                    .map(|receiver| Box::pin(receiver.recv())),
+            );
+            let (script_msg, _, _) = script_receivers.await;
+            sub_script_msg_action(script_msg)
+        }
+    }
+
     async fn handle_sub(&mut self, sub: WsSub, indexer: &ChronikIndexerRef) {
         let indexer = indexer.read().await;
-        let subs = indexer.subs().read().await;
+        let mut subs = indexer.subs().write().await;
         match sub.sub_type {
             WsSubType::Blocks => {
                 if sub.is_unsub {
@@ -80,6 +111,32 @@ impl SubRecv {
                     }
                 }
             }
+            WsSubType::Script(script_variant) => {
+                let script = script_variant.to_script();
+                if sub.is_unsub {
+                    log_chronik!("WS unsubscribe from {:?}\n", script_variant);
+                    std::mem::drop(self.scripts.remove(&script_variant));
+                    subs.subs_script_mut().unsubscribe_from_member(&&script)
+                } else {
+                    log_chronik!("WS subscribe to {:?}\n", script_variant);
+                    let recv =
+                        subs.subs_script_mut().subscribe_to_member(&&script);
+                    self.scripts.insert(script_variant, recv);
+                }
+            }
+        }
+    }
+
+    async fn cleanup(self, indexer: &ChronikIndexerRef) {
+        if self.scripts.is_empty() {
+            return;
+        }
+        let indexer = indexer.read().await;
+        let mut subs = indexer.subs().write().await;
+        for (script_variant, receiver) in self.scripts {
+            std::mem::drop(receiver);
+            subs.subs_script_mut()
+                .unsubscribe_from_member(&&script_variant.to_script());
         }
     }
 }
@@ -100,6 +157,12 @@ fn sub_client_msg_action(
                 sub_type: match sub.sub_type {
                     None => return Err(MissingSubType.into()),
                     Some(SubType::Blocks(_)) => WsSubType::Blocks,
+                    Some(SubType::Script(script)) => {
+                        WsSubType::Script(parse_script_variant(
+                            &script.script_type,
+                            &script.payload,
+                        )?)
+                    }
                 },
             }))
         }
@@ -132,6 +195,28 @@ fn sub_block_msg_action(
     Ok(WsAction::Message(msg))
 }
 
+fn sub_script_msg_action(
+    script_msg: Result<TxMsg, broadcast::error::RecvError>,
+) -> Result<WsAction> {
+    use proto::{ws_msg::MsgType, TxMsgType::*};
+    let script_msg = match script_msg {
+        Ok(script_msg) => script_msg,
+        Err(_) => return Ok(WsAction::Nothing),
+    };
+    let tx_msg_type = match script_msg.msg_type {
+        TxMsgType::AddedToMempool => AddedToMempool,
+        TxMsgType::RemovedFromMempool => RemovedFromMempool,
+        TxMsgType::Confirmed => Confirmed,
+    };
+    let msg_type = Some(MsgType::Tx(proto::MsgTx {
+        msg_type: tx_msg_type as _,
+        txid: script_msg.txid.to_vec(),
+    }));
+    let msg_proto = proto::WsMsg { msg_type };
+    let msg = ws::Message::Binary(msg_proto.encode_to_vec());
+    Ok(WsAction::Message(msg))
+}
+
 /// Future for a WS connection, which will run indefinitely until the WS will be
 /// closed.
 pub async fn handle_subscribe_socket(
@@ -158,7 +243,10 @@ pub async fn handle_subscribe_socket(
         };
 
         match subscribe_action {
-            WsAction::Close => return,
+            WsAction::Close => {
+                recv.cleanup(&indexer).await;
+                return;
+            }
             WsAction::Sub(sub) => recv.handle_sub(sub, &indexer).await,
             WsAction::Message(msg) => match socket.send(msg).await {
                 Ok(()) => {}

@@ -33,6 +33,7 @@ use crate::{
     avalanche::Avalanche,
     query::{QueryBlocks, QueryGroupHistory, QueryGroupUtxos, QueryTxs},
     subs::{BlockMsg, BlockMsgType, Subs},
+    subs_group::TxMsgType,
 };
 
 const CURRENT_INDEXER_VERSION: SchemaVersion = 6;
@@ -151,9 +152,9 @@ impl ChronikIndexer {
         Ok(ChronikIndexer {
             db,
             mempool,
-            script_group,
+            script_group: script_group.clone(),
             avalanche: Avalanche::default(),
-            subs: RwLock::new(Subs::default()),
+            subs: RwLock::new(Subs::new(script_group)),
         })
     }
 
@@ -264,14 +265,21 @@ impl ChronikIndexer {
         &mut self,
         mempool_tx: MempoolTx,
     ) -> Result<()> {
-        self.mempool.insert(mempool_tx)
+        self.subs
+            .get_mut()
+            .handle_tx_event(&mempool_tx.tx, TxMsgType::AddedToMempool);
+        self.mempool.insert(mempool_tx)?;
+        Ok(())
     }
 
     /// Remove tx from the indexer's mempool, e.g. by a conflicting tx, expiry
     /// etc. This is not called when the transaction has been mined (and thus
     /// also removed from the mempool).
     pub fn handle_tx_removed_from_mempool(&mut self, txid: TxId) -> Result<()> {
-        self.mempool.remove(txid)?;
+        let mempool_tx = self.mempool.remove(txid)?;
+        self.subs
+            .get_mut()
+            .handle_tx_event(&mempool_tx.tx, TxMsgType::RemovedFromMempool);
         Ok(())
     }
 
@@ -305,6 +313,9 @@ impl ChronikIndexer {
             hash: block.db_block.hash,
             height: block.db_block.height,
         });
+        for tx in &block.txs {
+            subs.handle_tx_event(tx, TxMsgType::Confirmed);
+        }
         Ok(())
     }
 

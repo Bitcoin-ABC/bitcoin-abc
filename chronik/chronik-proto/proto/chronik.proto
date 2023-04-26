@@ -140,6 +140,8 @@ message WsSub {
     oneof sub_type {
         // Subscription to block updates
         WsSubBlocks blocks = 2;
+        // Subscription to a script
+        WsSubScript script = 3;
     }
 }
 
@@ -147,14 +149,29 @@ message WsSub {
 // disconnected or finalized.
 message WsSubBlocks {}
 
+// Subscription to a script. They will be send every time a tx spending the
+// given script or sending to the given script has been added to/removed from
+// the mempool, or confirmed in a block.
+message WsSubScript {
+    // Script type to subscribe to ("p2pkh", "p2sh", "p2pk", "other").
+    string script_type = 1;
+    // Payload for the given script type:
+    // - 20-byte hash for "p2pkh" and "p2sh"
+    // - 33-byte or 65-byte pubkey for "p2pk"
+    // - Serialized script for "other"
+    bytes payload = 2;
+}
+
 // Message coming from the WebSocket
 message WsMsg {
     // Kind of message
     oneof msg_type {
-        // Error, e.g. when a bad message has been sent into the WebSocket
+        // Error, e.g. when a bad message has been sent into the WebSocket.
         Error error = 1;
         // Block got connected, disconnected, finalized, etc.
         MsgBlock block = 2;
+        // Tx got added to/removed from the mempool, or confirmed in a block.
+        MsgTx tx = 3;
     }
 }
 
@@ -176,6 +193,24 @@ enum BlockMsgType {
     DISCONNECTED = 1;
     // Block has been finalized by Avalanche
     FINALIZED = 2;
+}
+
+// Tx got added to/removed from mempool, or confirmed in a block, etc.
+message MsgTx {
+    // What happened to the tx
+    TxMsgType msg_type = 1;
+    // Txid of the tx (little-endian)
+    bytes txid = 2;
+}
+
+// Type of message for a tx
+enum TxMsgType {
+    // Tx added to the mempool
+    ADDED_TO_MEMPOOL = 0;
+    // Tx removed from the mempool
+    REMOVED_FROM_MEMPOOL = 1;
+    // Tx confirmed in a block
+    CONFIRMED = 2;
 }
 
 // Error message returned from our APIs.

@@ -4,10 +4,12 @@
 
 //! Module containing [`Subs`].
 
-use bitcoinsuite_core::block::BlockHash;
-use chronik_db::io::BlockHeight;
+use bitcoinsuite_core::{block::BlockHash, tx::Tx};
+use chronik_db::{groups::ScriptGroup, io::BlockHeight};
 use chronik_util::log;
 use tokio::sync::broadcast;
+
+use crate::subs_group::{SubsGroup, TxMsgType};
 
 /// Block update message.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -34,15 +36,34 @@ pub enum BlockMsgType {
 const BLOCK_CHANNEL_CAPACITY: usize = 16;
 
 /// Struct for managing subscriptions to e.g. block updates.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Subs {
     subs_block: broadcast::Sender<BlockMsg>,
+    subs_script: SubsGroup<ScriptGroup>,
 }
 
 impl Subs {
+    /// Create a new [`Subs`].
+    pub fn new(script_group: ScriptGroup) -> Self {
+        Subs {
+            subs_block: broadcast::channel(BLOCK_CHANNEL_CAPACITY).0,
+            subs_script: SubsGroup::new(script_group),
+        }
+    }
+
     /// Add a subscriber to block messages.
     pub fn sub_to_block_msgs(&self) -> broadcast::Receiver<BlockMsg> {
         self.subs_block.subscribe()
+    }
+
+    /// Mutable reference to the script subscribers.
+    pub fn subs_script_mut(&mut self) -> &mut SubsGroup<ScriptGroup> {
+        &mut self.subs_script
+    }
+
+    /// Send out updates to subscribers for this tx and msg_type.
+    pub fn handle_tx_event(&mut self, tx: &Tx, msg_type: TxMsgType) {
+        self.subs_script.handle_tx_event(tx, msg_type);
     }
 
     pub(crate) fn broadcast_block_msg(&self, msg: BlockMsg) {
@@ -50,14 +71,6 @@ impl Subs {
             if let Err(err) = self.subs_block.send(msg) {
                 log!("Unexpected send error: {}\n", err);
             }
-        }
-    }
-}
-
-impl Default for Subs {
-    fn default() -> Self {
-        Subs {
-            subs_block: broadcast::channel(BLOCK_CHANNEL_CAPACITY).0,
         }
     }
 }

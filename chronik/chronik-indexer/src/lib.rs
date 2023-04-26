@@ -6,6 +6,7 @@
 
 abc_rust_lint::lint! {
     pub mod avalanche;
+    pub mod subs_group;
     pub mod indexer;
     pub mod query;
     pub mod subs;
