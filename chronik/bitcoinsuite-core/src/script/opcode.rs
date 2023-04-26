@@ -7,8 +7,15 @@
 /// A script opcode, e.g. [`OP_0`] or [`OP_TRUE`].
 ///
 /// The contained opcode doesn't have to be valid/known.
+///
+/// Effectively, this is a newtype wrapper around [`u8`]:
+/// ```
+/// # use bitcoinsuite_core::script::opcode::*;
+/// assert_eq!(Opcode(0x00), OP_0);
+/// assert_eq!(Opcode(0x51), OP_TRUE);
+/// ```
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct Opcode(u8);
+pub struct Opcode(pub u8);
 
 macro_rules! define_opcodes {
     ($(
