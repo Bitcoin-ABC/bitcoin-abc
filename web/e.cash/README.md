@@ -2,10 +2,14 @@
 
 Main website for eCash
 
+## Building the site
+
+First run `npm install`
+
 ### Develop
 
-npm run dev
+To run a local instance that dynamically updates as you make changes: `npm run dev`
 
 ### Build
 
-npm run build
+To create an optimized production build: `npm run build`
