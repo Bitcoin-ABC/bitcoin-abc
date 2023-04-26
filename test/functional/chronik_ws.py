@@ -68,7 +68,7 @@ class ChronikWsTest(BitcoinTestFramework):
 
         # We get a CONNECTED msg
         assert_equal(ws.recv(), pb.WsMsg(block=pb.MsgBlock(
-            msg_type=pb.CONNECTED,
+            msg_type=pb.BLK_CONNECTED,
             block_hash=bytes.fromhex(tip)[::-1],
             block_height=height,
         )))
@@ -76,7 +76,7 @@ class ChronikWsTest(BitcoinTestFramework):
         # After we wait, we get a FINALIZED msg
         self.wait_until(lambda: has_finalized_tip(tip))
         assert_equal(ws.recv(), pb.WsMsg(block=pb.MsgBlock(
-            msg_type=pb.FINALIZED,
+            msg_type=pb.BLK_FINALIZED,
             block_hash=bytes.fromhex(tip)[::-1],
             block_height=height,
         )))
@@ -84,7 +84,7 @@ class ChronikWsTest(BitcoinTestFramework):
         # When we invalidate, we get a DISCONNECTED msg
         node.invalidateblock(tip)
         assert_equal(ws.recv(), pb.WsMsg(block=pb.MsgBlock(
-            msg_type=pb.DISCONNECTED,
+            msg_type=pb.BLK_DISCONNECTED,
             block_hash=bytes.fromhex(tip)[::-1],
             block_height=height,
         )))

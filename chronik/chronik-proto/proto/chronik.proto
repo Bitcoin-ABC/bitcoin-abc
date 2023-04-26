@@ -188,11 +188,11 @@ message MsgBlock {
 // Type of message for the block
 enum BlockMsgType {
     // Block connected to the blockchain
-    CONNECTED = 0;
+    BLK_CONNECTED = 0;
     // Block disconnected from the blockchain
-    DISCONNECTED = 1;
+    BLK_DISCONNECTED = 1;
     // Block has been finalized by Avalanche
-    FINALIZED = 2;
+    BLK_FINALIZED = 2;
 }
 
 // Tx got added to/removed from mempool, or confirmed in a block, etc.
@@ -206,11 +206,11 @@ message MsgTx {
 // Type of message for a tx
 enum TxMsgType {
     // Tx added to the mempool
-    ADDED_TO_MEMPOOL = 0;
+    TX_ADDED_TO_MEMPOOL = 0;
     // Tx removed from the mempool
-    REMOVED_FROM_MEMPOOL = 1;
+    TX_REMOVED_FROM_MEMPOOL = 1;
     // Tx confirmed in a block
-    CONFIRMED = 2;
+    TX_CONFIRMED = 2;
 }
 
 // Error message returned from our APIs.

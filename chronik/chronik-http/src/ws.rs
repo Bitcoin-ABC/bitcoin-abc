@@ -181,9 +181,9 @@ fn sub_block_msg_action(
     use proto::{ws_msg::MsgType, BlockMsgType::*};
     let Ok(block_msg) = block_msg else { return Ok(WsAction::Nothing) };
     let block_msg_type = match block_msg.msg_type {
-        BlockMsgType::Connected => Connected,
-        BlockMsgType::Disconnected => Disconnected,
-        BlockMsgType::Finalized => Finalized,
+        BlockMsgType::Connected => BlkConnected,
+        BlockMsgType::Disconnected => BlkDisconnected,
+        BlockMsgType::Finalized => BlkFinalized,
     };
     let msg_type = Some(MsgType::Block(proto::MsgBlock {
         msg_type: block_msg_type as _,
@@ -204,9 +204,9 @@ fn sub_script_msg_action(
         Err(_) => return Ok(WsAction::Nothing),
     };
     let tx_msg_type = match script_msg.msg_type {
-        TxMsgType::AddedToMempool => AddedToMempool,
-        TxMsgType::RemovedFromMempool => RemovedFromMempool,
-        TxMsgType::Confirmed => Confirmed,
+        TxMsgType::AddedToMempool => TxAddedToMempool,
+        TxMsgType::RemovedFromMempool => TxRemovedFromMempool,
+        TxMsgType::Confirmed => TxConfirmed,
     };
     let msg_type = Some(MsgType::Tx(proto::MsgTx {
         msg_type: tx_msg_type as _,

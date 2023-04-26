@@ -72,7 +72,7 @@ class ChronikWsScriptTest(BitcoinTestFramework):
         txid = node.sendrawtransaction(tx.serialize().hex())
 
         expected_msg = pb.WsMsg(tx=pb.MsgTx(
-            msg_type=pb.ADDED_TO_MEMPOOL,
+            msg_type=pb.TX_ADDED_TO_MEMPOOL,
             txid=bytes.fromhex(txid)[::-1],
         ))
         # ws1 receives the tx msg twice, as it contains both scripts
@@ -91,7 +91,7 @@ class ChronikWsScriptTest(BitcoinTestFramework):
         txid2 = node.sendrawtransaction(tx2.serialize().hex())
 
         assert_equal(ws2.recv(), pb.WsMsg(tx=pb.MsgTx(
-            msg_type=pb.ADDED_TO_MEMPOOL,
+            msg_type=pb.TX_ADDED_TO_MEMPOOL,
             txid=bytes.fromhex(txid2)[::-1],
         )))
 
@@ -103,7 +103,7 @@ class ChronikWsScriptTest(BitcoinTestFramework):
         txid3 = node.sendrawtransaction(tx3.serialize().hex())
 
         assert_equal(ws1.recv(), pb.WsMsg(tx=pb.MsgTx(
-            msg_type=pb.ADDED_TO_MEMPOOL,
+            msg_type=pb.TX_ADDED_TO_MEMPOOL,
             txid=bytes.fromhex(txid3)[::-1],
         )))
 
@@ -131,18 +131,18 @@ class ChronikWsScriptTest(BitcoinTestFramework):
                 )))
 
         # For ws1, this sends a REMOVED_FROM_MEMPOOL for tx3, and two CONFIRMED
-        check_tx_msgs(ws1, pb.REMOVED_FROM_MEMPOOL, [tx3.hash])
-        check_tx_msgs(ws1, pb.CONFIRMED, sorted([txid, tx3_conflict.hash]))
+        check_tx_msgs(ws1, pb.TX_REMOVED_FROM_MEMPOOL, [tx3.hash])
+        check_tx_msgs(ws1, pb.TX_CONFIRMED, sorted([txid, tx3_conflict.hash]))
 
         # For ws2, this only sends the CONFIRMED msgs
-        check_tx_msgs(ws2, pb.CONFIRMED, sorted([txid, txid2]))
+        check_tx_msgs(ws2, pb.TX_CONFIRMED, sorted([txid, txid2]))
 
         # Invalidate the block again
         node.invalidateblock(block.hash)
 
         # Adds the disconnected block's txs back into the mempool
-        check_tx_msgs(ws1, pb.ADDED_TO_MEMPOOL, [txid, tx3_conflict.hash])
-        check_tx_msgs(ws2, pb.ADDED_TO_MEMPOOL, [txid, txid2])
+        check_tx_msgs(ws1, pb.TX_ADDED_TO_MEMPOOL, [txid, tx3_conflict.hash])
+        check_tx_msgs(ws2, pb.TX_ADDED_TO_MEMPOOL, [txid, txid2])
 
 
 if __name__ == '__main__':
