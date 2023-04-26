@@ -353,16 +353,18 @@ impl ChronikIndexer {
     /// Block finalized with Avalanche.
     pub fn handle_block_finalized(
         &mut self,
-        block_height: BlockHeight,
-        block_hash: BlockHash,
+        block: ChronikBlock,
     ) -> Result<()> {
-        self.avalanche.finalize_block(block_height)?;
-        let subs = self.subs.blocking_read();
+        self.avalanche.finalize_block(block.db_block.height)?;
+        let subs = self.subs.get_mut();
         subs.broadcast_block_msg(BlockMsg {
             msg_type: BlockMsgType::Finalized,
-            hash: block_hash,
-            height: block_height,
+            hash: block.db_block.hash,
+            height: block.db_block.height,
         });
+        for tx in &block.txs {
+            subs.handle_tx_event(tx, TxMsgType::Finalized);
+        }
         Ok(())
     }
 

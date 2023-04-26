@@ -11,7 +11,6 @@ use std::{
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::{
-    block::BlockHash,
     script::Script,
     tx::{Tx, TxId},
 };
@@ -170,19 +169,8 @@ impl Chronik {
     }
 
     /// Block finalized with Avalanche
-    pub fn handle_block_finalized(
-        &self,
-        block_height: i32,
-        block_hash: [u8; 32],
-    ) {
-        let mut indexer = self.indexer.blocking_write();
-        ok_or_abort_node(
-            "handle_block_finalized",
-            indexer.handle_block_finalized(
-                block_height,
-                BlockHash::from(block_hash),
-            ),
-        );
+    pub fn handle_block_finalized(&self, bindex: &ffi::CBlockIndex) {
+        ok_or_abort_node("handle_block_finalized", self.finalize_block(bindex));
     }
 
     fn add_tx_to_mempool(
@@ -231,6 +219,22 @@ impl Chronik {
         indexer.handle_block_disconnected(block)?;
         log_chronik!(
             "Chronik: block {} disconnected with {} txs\n",
+            block_hash,
+            num_txs,
+        );
+        Ok(())
+    }
+
+    fn finalize_block(&self, bindex: &ffi::CBlockIndex) -> Result<()> {
+        let block = self.bridge.load_block(bindex)?;
+        let block_ref = expect_unique_ptr("load_block", &block);
+        let mut indexer = self.indexer.blocking_write();
+        let block = indexer.make_chronik_block(block_ref, bindex)?;
+        let block_hash = block.db_block.hash.clone();
+        let num_txs = block.block_txs.txs.len();
+        indexer.handle_block_finalized(block)?;
+        log_chronik!(
+            "Chronik: block {} finalized with {} txs\n",
             block_hash,
             num_txs,
         );

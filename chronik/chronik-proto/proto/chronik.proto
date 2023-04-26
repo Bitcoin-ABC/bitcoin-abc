@@ -211,6 +211,8 @@ enum TxMsgType {
     TX_REMOVED_FROM_MEMPOOL = 1;
     // Tx confirmed in a block
     TX_CONFIRMED = 2;
+    // Tx finalized by Avalanche
+    TX_FINALIZED = 3;
 }
 
 // Error message returned from our APIs.

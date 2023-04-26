@@ -28,6 +28,8 @@ pub enum TxMsgType {
     RemovedFromMempool,
     /// Tx was confirmed in a block.
     Confirmed,
+    /// Tx was finalized by Avalanche.
+    Finalized,
 }
 
 const GROUP_CHANNEL_CAPACITY: usize = 16;

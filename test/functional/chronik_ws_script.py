@@ -9,6 +9,7 @@ from test_framework.address import (
     ADDRESS_ECREG_UNSPENDABLE,
     SCRIPTSIG_OP_TRUE,
 )
+from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.blocktools import (
     create_block,
     create_coinbase,
@@ -21,12 +22,24 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal
 
+QUORUM_NODE_COUNT = 16
+
 
 class ChronikWsScriptTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
-        self.extra_args = [['-chronik']]
+        self.extra_args = [
+            [
+                '-avaproofstakeutxodustthreshold=1000000',
+                '-avaproofstakeutxoconfirmations=1',
+                '-avacooldown=0',
+                '-avaminquorumstake=0',
+                '-avaminavaproofsnodecount=0',
+                '-chronik',
+                '-whitelist=noban@127.0.0.1',
+            ],
+        ]
         self.supports_cli = False
 
     def skip_test_if_missing_module(self):
@@ -44,6 +57,20 @@ class ChronikWsScriptTest(BitcoinTestFramework):
         coinblockhash = self.generatetoaddress(node, 1, ADDRESS_ECREG_P2SH_OP_TRUE)[0]
         coinblock = node.getblock(coinblockhash)
         cointx = coinblock['tx'][0]
+
+        # Set up Avalanche
+        def get_quorum():
+            return [get_ava_p2p_interface(self, node)
+                    for _ in range(0, QUORUM_NODE_COUNT)]
+
+        def has_finalized_tip(tip_expected):
+            hash_tip_final = int(tip_expected, 16)
+            can_find_inv_in_poll(quorum, hash_tip_final)
+            return node.isfinalblock(tip_expected)
+
+        quorum = get_quorum()
+
+        assert node.getavalancheinfo()['ready_to_poll'] is True
 
         tip = self.generatetoaddress(node, 100, ADDRESS_ECREG_UNSPENDABLE)[-1]
 
@@ -143,6 +170,20 @@ class ChronikWsScriptTest(BitcoinTestFramework):
         # Adds the disconnected block's txs back into the mempool
         check_tx_msgs(ws1, pb.TX_ADDED_TO_MEMPOOL, [txid, tx3_conflict.hash])
         check_tx_msgs(ws2, pb.TX_ADDED_TO_MEMPOOL, [txid, txid2])
+
+        # Test Avalanche finalization
+        tip = node.getbestblockhash()
+        self.wait_until(lambda: has_finalized_tip(tip))
+
+        # Mine txs in a block -> sends CONFIRMED
+        tip = self.generate(node, 1)[-1]
+        check_tx_msgs(ws1, pb.TX_CONFIRMED, sorted([txid, tx3_conflict.hash]))
+        check_tx_msgs(ws2, pb.TX_CONFIRMED, sorted([txid, txid2]))
+
+        # Wait for Avalanche finalization of block -> sends TX_FINALIZED
+        self.wait_until(lambda: has_finalized_tip(tip))
+        check_tx_msgs(ws1, pb.TX_FINALIZED, sorted([txid, tx3_conflict.hash]))
+        check_tx_msgs(ws2, pb.TX_FINALIZED, sorted([txid, txid2]))
 
 
 if __name__ == '__main__':

@@ -56,9 +56,7 @@ private:
     }
 
     void BlockFinalized(const CBlockIndex *pindex) override {
-        m_chronik->handle_block_finalized(
-            pindex->nHeight,
-            chronik::util::HashToArray(pindex->GetBlockHash()));
+        m_chronik->handle_block_finalized(*pindex);
     }
 };
 

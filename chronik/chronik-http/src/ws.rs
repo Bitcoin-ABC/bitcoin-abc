@@ -207,6 +207,7 @@ fn sub_script_msg_action(
         TxMsgType::AddedToMempool => TxAddedToMempool,
         TxMsgType::RemovedFromMempool => TxRemovedFromMempool,
         TxMsgType::Confirmed => TxConfirmed,
+        TxMsgType::Finalized => TxFinalized,
     };
     let msg_type = Some(MsgType::Tx(proto::MsgTx {
         msg_type: tx_msg_type as _,
