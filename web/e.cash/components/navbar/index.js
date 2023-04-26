@@ -1,8 +1,8 @@
-import s from './navbar.module.css';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { navitems } from '../../data/navitems';
+import { NavbarOuter, NavbarCtn } from './styles';
 
 export default function Navbar({ announcementbar }) {
     const [priceLinkText, setPriceLinkText] = useState('Buy XEC');
@@ -39,20 +39,20 @@ export default function Navbar({ announcementbar }) {
     }, []);
 
     return (
-        <div className={s.navbar_outer}>
+        <NavbarOuter>
             {announcementbar && (
                 <Link
                     href={announcementbar.link}
-                    className={s.announcementbar_ctn}
+                    className="announcementbar_ctn"
                     target="_blank"
                     rel="noreferrer"
                 >
                     {announcementbar.text}
                 </Link>
             )}
-            <div className={s.navbar_ctn}>
-                <div className={s.navbar}>
-                    <Link href="/" className={s.nav_logo}>
+            <NavbarCtn>
+                <div className="navbar">
+                    <Link href="/" className="nav_logo">
                         <Image
                             src="/images/ecash-logo.svg"
                             alt="ecash logo"
@@ -61,23 +61,23 @@ export default function Navbar({ announcementbar }) {
                     </Link>
                     <nav
                         role="navigation"
-                        className={s.navbar_links_ctn}
+                        className="navbar_links_ctn"
                         style={{ left: mobileMenu ? '0' : '-400px' }}
                     >
                         {navitems.map((navitem, index) => (
-                            <div className={s.nav_outer} key={navitem.nav_item}>
+                            <div className="nav_outer" key={navitem.nav_item}>
                                 {navitem.link ? (
                                     <Link
-                                        className={s.nav_item}
+                                        className="nav_item"
                                         href={navitem.link}
                                     >
                                         {navitem.nav_item}
-                                        <div className={s.majabar} />
+                                        <div className="majabar" />
                                     </Link>
                                 ) : (
                                     <>
                                         <div
-                                            className={s.nav_item}
+                                            className="nav_item"
                                             onClick={
                                                 windowWidth < 920
                                                     ? () =>
@@ -93,7 +93,7 @@ export default function Navbar({ announcementbar }) {
                                             {navitem.nav_item}
                                         </div>
                                         <div
-                                            className={s.nav_dropdown_ctn}
+                                            className="nav_dropdown_ctn"
                                             style={
                                                 selectedDropDownMenu ===
                                                     index && windowWidth < 920
@@ -107,9 +107,7 @@ export default function Navbar({ announcementbar }) {
                                                         key={dropdownitem.title}
                                                     >
                                                         <Link
-                                                            className={
-                                                                s.dropdown_nav_item
-                                                            }
+                                                            className="dropdown_nav_item"
                                                             href={
                                                                 dropdownitem.link
                                                             }
@@ -130,11 +128,7 @@ export default function Navbar({ announcementbar }) {
                                                                     : null
                                                             }
                                                         >
-                                                            <div
-                                                                className={
-                                                                    s.dropdown_icon_ctn
-                                                                }
-                                                            >
+                                                            <div className="dropdown_icon_ctn">
                                                                 <Image
                                                                     src={
                                                                         dropdownitem.icon
@@ -156,26 +150,26 @@ export default function Navbar({ announcementbar }) {
                             </div>
                         ))}
                     </nav>
-                    <Link href="/" className={s.pricelink_ctn}>
-                        <div className={s.righttop}></div>
-                        <div className={s.rightdown}></div>
-                        <div className={s.leftdown}></div>
-                        <div className={s.lefttop}></div>
+                    <Link href="/" className="pricelink_ctn">
+                        <div className="righttop"></div>
+                        <div className="rightdown"></div>
+                        <div className="leftdown"></div>
+                        <div className="lefttop"></div>
                         <div>{priceLinkText}</div>
                     </Link>
-                    <div className={s.menubtn_ctn_outer}>
+                    <div className="menubtn_ctn_outer">
                         <input
                             id="menu__toggle"
-                            className={s.menubtn_ctn}
+                            className="menubtn_ctn"
                             type="checkbox"
                             onClick={() => setMobileMenu(!mobileMenu)}
                         />
-                        <label className={s.menu_btn} htmlFor="menu__toggle">
+                        <label className="menu_btn" htmlFor="menu__toggle">
                             <span></span>
                         </label>
                     </div>
                 </div>
-            </div>
-        </div>
+            </NavbarCtn>
+        </NavbarOuter>
     );
 }

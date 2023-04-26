@@ -1,12 +1,12 @@
-import s from './videobackground.module.css';
+import { VideoCtn } from './styles';
 
 export default function Video({ videoname }) {
     return (
-        <div className={s.video_ctn}>
+        <VideoCtn>
             <video autoPlay loop muted poster={`/videos/${videoname}.jpg`}>
                 <source src={`/videos/${videoname}.mp4`} type="video/mp4" />
             </video>
-            <div className={s.video_gradient} />
-        </div>
+            <div className="video_gradient" />
+        </VideoCtn>
     );
 }
