@@ -23,6 +23,8 @@
 //! For the reverse index txid -> tx_num, we use `ReverseLookup`. We use a
 //! 64-bit cheap hash to make collisions rare/difficult.
 
+use std::ops::Range;
+
 use abc_rust_error::Result;
 use bitcoinsuite_core::tx::TxId;
 use rocksdb::{ColumnFamilyDescriptor, Options, WriteBatch};
@@ -380,6 +382,26 @@ impl<'a> TxReader<'a> {
         }
     }
 
+    /// Return the range of [`TxNum`]s of the block, or None if the block
+    /// doesn't exist.
+    pub fn block_tx_num_range(
+        &self,
+        block_height: BlockHeight,
+    ) -> Result<Option<Range<TxNum>>> {
+        let tx_num_start = match self.first_tx_num_by_block(block_height)? {
+            Some(tx_num) => tx_num,
+            None => return Ok(None),
+        };
+        let tx_num_end = match self.first_tx_num_by_block(block_height + 1)? {
+            Some(first_tx_num_next) => first_tx_num_next,
+            None => match self.last_tx_num()? {
+                Some(last_tx_num) => last_tx_num + 1,
+                None => return Err(NoTxsForBlock(block_height).into()),
+            },
+        };
+        Ok(Some(tx_num_start..tx_num_end))
+    }
+
     /// Read the last [`TxNum`] of the DB.
     /// This is useful when iterating over the txs of the last block.
     pub fn last_tx_num(&self) -> Result<Option<TxNum>> {
@@ -474,6 +496,7 @@ mod tests {
             txs: vec![tx1],
         };
         assert_eq!(tx_reader.last_tx_num()?, None);
+        assert_eq!(tx_reader.block_tx_num_range(0)?, None);
         {
             // insert genesis tx
             let mut batch = WriteBatch::default();
@@ -483,6 +506,7 @@ mod tests {
             assert_eq!(tx_reader.first_tx_num_by_block(0)?, Some(0));
             assert_eq!(tx_reader.first_tx_num_by_block(1)?, None);
             assert_eq!(tx_reader.last_tx_num()?, Some(0));
+            assert_eq!(tx_reader.block_tx_num_range(0)?, Some(0..1));
             assert_eq!(tx_reader.tx_by_txid(&TxId::from([0; 32]))?, None);
             assert_eq!(tx_reader.tx_num_by_txid(&TxId::from([0; 32]))?, None);
             assert_eq!(
@@ -530,6 +554,8 @@ mod tests {
             assert_eq!(tx_reader.first_tx_num_by_block(1)?, Some(1));
             assert_eq!(tx_reader.first_tx_num_by_block(2)?, None);
             assert_eq!(tx_reader.last_tx_num()?, Some(2));
+            assert_eq!(tx_reader.block_tx_num_range(0)?, Some(0..1));
+            assert_eq!(tx_reader.block_tx_num_range(1)?, Some(1..3));
             assert_eq!(tx_reader.tx_by_txid(&TxId::from([0; 32]))?, None);
             assert_eq!(tx_reader.tx_num_by_txid(&TxId::from([0; 32]))?, None);
             assert_eq!(
@@ -568,6 +594,8 @@ mod tests {
             assert_eq!(tx_reader.first_tx_num_by_block(0)?, Some(0));
             assert_eq!(tx_reader.first_tx_num_by_block(1)?, None);
             assert_eq!(tx_reader.last_tx_num()?, Some(0));
+            assert_eq!(tx_reader.block_tx_num_range(0)?, Some(0..1));
+            assert_eq!(tx_reader.block_tx_num_range(1)?, None);
             assert_eq!(tx_reader.tx_by_txid(&TxId::from([0; 32]))?, None);
             assert_eq!(
                 tx_reader.tx_by_txid(&TxId::from([1; 32]))?,
@@ -614,6 +642,9 @@ mod tests {
             assert_eq!(tx_reader.first_tx_num_by_block(0)?, Some(0));
             assert_eq!(tx_reader.first_tx_num_by_block(1)?, Some(1));
             assert_eq!(tx_reader.first_tx_num_by_block(2)?, None);
+            assert_eq!(tx_reader.block_tx_num_range(0)?, Some(0..1));
+            assert_eq!(tx_reader.block_tx_num_range(1)?, Some(1..3));
+            assert_eq!(tx_reader.block_tx_num_range(2)?, None);
             assert_eq!(
                 tx_reader.tx_by_txid(&TxId::from([1; 32]))?,
                 Some(block_tx1),
