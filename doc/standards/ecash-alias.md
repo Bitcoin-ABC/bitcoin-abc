@@ -90,6 +90,10 @@ An Alias Address may have many aliases. Each alias maps to one and only one Alia
 
 Invalid transactions that do not match the criteria above should be ignored by the app parsing the payment address history.
 
+## Recommended Usage
+
+It is recommended that user facing applications interpret the ".xec" extension to indicate an eCash Alias. For example, if a user wishes to send XEC to someone based on their Alias, they could enter the Alias with .xec extension (eg. "myalias.xec") into the "To:" field in the wallet. The wallet software would then send the XEC to the appropriate address by looking it up in the index of Aliases and the associated eCash addresses.
+
 ## Known risks
 
 Resolving conflicting alias registrations at the same blockheight by choosing the alphabetically first txid is arbitrary. It would be possible for someone to watch for broadcast registration transactions, send multiple transactions registering the same alias, and have a good chance of securing the alias before the original registrant.
