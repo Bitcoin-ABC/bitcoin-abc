@@ -91,6 +91,13 @@ class ChronikWs:
         ws_msg.ParseFromString(data)
         return ws_msg
 
+    def send_bytes(self, data: bytes) -> None:
+        self.ws.send(data, websocket.ABNF.OPCODE_BINARY)
+
+    def sub_to_blocks(self, *, is_unsub=False) -> None:
+        sub = pb.WsSub(is_unsub=is_unsub, blocks=pb.WsSubBlocks())
+        self.send_bytes(sub.SerializeToString())
+
 
 class ChronikClient:
     CONTENT_TYPE = 'application/x-protobuf'

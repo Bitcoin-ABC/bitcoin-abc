@@ -132,6 +132,21 @@ message ScriptUtxos {
     repeated ScriptUtxo utxos = 2;
 }
 
+// Subscription to WebSocket updates.
+message WsSub {
+    // Set this to `true` to unsubscribe from the event.
+    bool is_unsub = 1;
+    // What kind of updates to subscribe to.
+    oneof sub_type {
+        // Subscription to block updates
+        WsSubBlocks blocks = 2;
+    }
+}
+
+// Subscription to blocks. They will be sent any time a block got connected,
+// disconnected or finalized.
+message WsSubBlocks {}
+
 // Message coming from the WebSocket
 message WsMsg {
     // Kind of message

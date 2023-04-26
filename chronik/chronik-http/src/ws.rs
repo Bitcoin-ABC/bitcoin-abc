@@ -8,6 +8,7 @@ use abc_rust_error::Result;
 use axum::extract::ws::{self, WebSocket};
 use chronik_indexer::subs::{BlockMsg, BlockMsgType};
 use chronik_proto::proto;
+use chronik_util::log_chronik;
 use prost::Message;
 use thiserror::Error;
 use tokio::sync::broadcast;
@@ -20,14 +21,67 @@ pub enum ChronikWsError {
     /// Unexpected [`ws::Message`] type.
     #[error("Unexpected message type {0}")]
     UnexpectedMessageType(&'static str),
+
+    /// [`proto::WsSub`] must have the `sub_type` field set.
+    #[error("400: Missing sub_type in WsSub message")]
+    MissingSubType,
 }
 
 use self::ChronikWsError::*;
 
 enum WsAction {
     Close,
+    Sub(WsSub),
     Message(ws::Message),
     Nothing,
+}
+
+struct WsSub {
+    is_unsub: bool,
+    sub_type: WsSubType,
+}
+
+enum WsSubType {
+    Blocks,
+}
+
+type SubRecvBlocks = Option<broadcast::Receiver<BlockMsg>>;
+
+#[derive(Default)]
+struct SubRecv {
+    blocks: SubRecvBlocks,
+}
+
+impl SubRecv {
+    async fn recv_action(&mut self) -> Result<WsAction> {
+        Self::recv_blocks(&mut self.blocks).await
+    }
+
+    async fn recv_blocks(blocks: &mut SubRecvBlocks) -> Result<WsAction> {
+        match blocks {
+            Some(blocks) => sub_block_msg_action(blocks.recv().await),
+            None => futures::future::pending().await,
+        }
+    }
+
+    async fn handle_sub(&mut self, sub: WsSub, indexer: &ChronikIndexerRef) {
+        let indexer = indexer.read().await;
+        let subs = indexer.subs().read().await;
+        match sub.sub_type {
+            WsSubType::Blocks => {
+                if sub.is_unsub {
+                    log_chronik!("WS unsubscribe from blocks\n");
+                    self.blocks = None;
+                } else {
+                    log_chronik!("WS subscribe to blocks\n");
+                    // Silently ignore multiple subs to blocks
+                    if self.blocks.is_none() {
+                        self.blocks = Some(subs.sub_to_block_msgs());
+                    }
+                }
+            }
+        }
+    }
 }
 
 fn sub_client_msg_action(
@@ -38,7 +92,17 @@ fn sub_client_msg_action(
         None => return Ok(WsAction::Close),
     };
     match client_msg {
-        Ok(ws::Message::Binary(_)) => Ok(WsAction::Nothing),
+        Ok(ws::Message::Binary(data)) => {
+            use proto::ws_sub::SubType;
+            let sub = proto::WsSub::decode(data.as_slice())?;
+            Ok(WsAction::Sub(WsSub {
+                is_unsub: sub.is_unsub,
+                sub_type: match sub.sub_type {
+                    None => return Err(MissingSubType.into()),
+                    Some(SubType::Blocks(_)) => WsSubType::Blocks,
+                },
+            }))
+        }
         Ok(ws::Message::Text(_)) => Err(UnexpectedMessageType("Text").into()),
         Ok(ws::Message::Ping(ping)) => {
             Ok(WsAction::Message(ws::Message::Pong(ping)))
@@ -74,16 +138,12 @@ pub async fn handle_subscribe_socket(
     mut socket: WebSocket,
     indexer: ChronikIndexerRef,
 ) {
-    let mut revc_blocks = {
-        let indexer = indexer.read().await;
-        let subs = indexer.subs().read().await;
-        subs.sub_to_block_msgs()
-    };
+    let mut recv = SubRecv::default();
 
     loop {
         let sub_action = tokio::select! {
             client_msg = socket.recv() => sub_client_msg_action(client_msg),
-            block_msg = revc_blocks.recv() => sub_block_msg_action(block_msg),
+            action = recv.recv_action() => action,
         };
 
         let subscribe_action = match sub_action {
@@ -99,6 +159,7 @@ pub async fn handle_subscribe_socket(
 
         match subscribe_action {
             WsAction::Close => return,
+            WsAction::Sub(sub) => recv.handle_sub(sub, &indexer).await,
             WsAction::Message(msg) => match socket.send(msg).await {
                 Ok(()) => {}
                 Err(_) => return,

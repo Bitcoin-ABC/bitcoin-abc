@@ -299,7 +299,7 @@ impl ChronikIndexer {
         for tx in &block.block_txs.txs {
             self.mempool.remove_mined(&tx.txid)?;
         }
-        let subs = self.subs.blocking_read();
+        let subs = self.subs.get_mut();
         subs.broadcast_block_msg(BlockMsg {
             msg_type: BlockMsgType::Connected,
             hash: block.db_block.hash,
@@ -330,7 +330,7 @@ impl ChronikIndexer {
         spent_by_writer.delete(&mut batch, &index_txs)?;
         self.avalanche.disconnect_block(block.db_block.height)?;
         self.db.write_batch(batch)?;
-        let subs = self.subs.blocking_read();
+        let subs = self.subs.get_mut();
         subs.broadcast_block_msg(BlockMsg {
             msg_type: BlockMsgType::Disconnected,
             hash: block.db_block.hash,

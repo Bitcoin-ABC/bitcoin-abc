@@ -47,7 +47,11 @@ class ChronikWsTest(BitcoinTestFramework):
             can_find_inv_in_poll(quorum, hash_tip_final)
             return node.isfinalblock(tip_expected)
 
+        # Connect, but don't subscribe yet
+        ws = chronik.ws(timeout=30)
+
         # Pick one node from the quorum for polling.
+        # ws will not receive msgs because it's not subscribed to blocks yet.
         quorum = get_quorum()
 
         assert node.getavalancheinfo()['ready_to_poll'] is True
@@ -55,7 +59,8 @@ class ChronikWsTest(BitcoinTestFramework):
         tip = node.getbestblockhash()
         self.wait_until(lambda: has_finalized_tip(tip))
 
-        ws = chronik.ws(timeout=30)
+        # Now subscribe to blocks, we'll get block updates from now on
+        ws.sub_to_blocks()
 
         # Mine block
         tip = self.generate(node, 1)[-1]
