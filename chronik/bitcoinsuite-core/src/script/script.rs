@@ -6,7 +6,7 @@ use bytes::Bytes;
 
 use crate::{
     hash::{Hashed, ShaRmd160},
-    script::{opcode::*, PubKey, ScriptMut, UncompressedPubKey},
+    script::{opcode::*, PubKey, ScriptMut, ScriptOpIter, UncompressedPubKey},
 };
 
 /// A Bitcoin script.
@@ -158,6 +158,55 @@ impl Script {
             Some(&byte) => byte == OP_RETURN.number(),
             None => false,
         }
+    }
+
+    /// Iterator over the operations in this script.
+    ///
+    /// ```
+    /// # use bitcoinsuite_core::{
+    /// #     script::{opcode::*, Op, Script},
+    /// #     error::DataError,
+    /// # };
+    /// # use hex_literal::hex;
+    /// #
+    /// // Simple script
+    /// let script = Script::new(hex!("0301020387").to_vec().into());
+    /// let mut iter = script.iter_ops();
+    /// assert_eq!(
+    ///     iter.next(),
+    ///     Some(Ok(Op::Push(Opcode(3), vec![1, 2, 3].into()))),
+    /// );
+    /// assert_eq!(iter.next(), Some(Ok(Op::Code(OP_EQUAL))));
+    /// assert_eq!(iter.next(), None);
+    ///
+    /// // Complex script; has invalid op at the end
+    /// let script = hex!("6a504c021234004d01001260884cffabcd");
+    /// let script = Script::new(script.to_vec().into());
+    /// let mut iter = script.iter_ops();
+    /// assert_eq!(iter.next(), Some(Ok(Op::Code(OP_RETURN))));
+    /// assert_eq!(iter.next(), Some(Ok(Op::Code(OP_RESERVED))));
+    /// assert_eq!(
+    ///     iter.next(),
+    ///     Some(Ok(Op::Push(OP_PUSHDATA1, vec![0x12, 0x34].into()))),
+    /// );
+    /// assert_eq!(iter.next(), Some(Ok(Op::Code(OP_0))));
+    /// assert_eq!(
+    ///     iter.next(),
+    ///     Some(Ok(Op::Push(OP_PUSHDATA2, vec![0x12].into()))),
+    /// );
+    /// assert_eq!(iter.next(), Some(Ok(Op::Code(OP_16))));
+    /// assert_eq!(iter.next(), Some(Ok(Op::Code(OP_EQUALVERIFY))));
+    /// assert_eq!(
+    ///     iter.next(),
+    ///     Some(Err(DataError::InvalidLength {
+    ///         expected: 0xff,
+    ///         actual: 2
+    ///     })),
+    /// );
+    /// assert_eq!(iter.next(), None);
+    /// ```
+    pub fn iter_ops(&self) -> ScriptOpIter {
+        ScriptOpIter::new(self.0.clone())
     }
 }
 

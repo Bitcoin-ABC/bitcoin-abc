@@ -4,6 +4,8 @@
 
 //! Module for structs and definitions regarding Script.
 
+mod iter;
+mod op;
 pub mod opcode;
 mod pubkey;
 mod pubkey_variant;
@@ -13,6 +15,8 @@ mod script_mut;
 mod uncompressed_pubkey;
 mod variant;
 
+pub use self::iter::*;
+pub use self::op::*;
 pub use self::pubkey::*;
 pub use self::pubkey_variant::*;
 pub use self::script::*;
