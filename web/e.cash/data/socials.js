@@ -29,7 +29,7 @@ export const socials = [
     },
     {
         name: 'telegram',
-        link: 'https://t.me/ecash_official',
+        link: 'https://t.me/ecash',
     },
     {
         name: 'discord',
