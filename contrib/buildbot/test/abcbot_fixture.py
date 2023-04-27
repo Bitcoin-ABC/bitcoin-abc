@@ -57,7 +57,7 @@ class ABCBotFixture(unittest.TestCase):
             self.slackbot,
             self.cirrus,
             db_file_no_ext=self.db_file_no_ext,
-            jsonEncoder=test.mocks.fixture.MockJSONEncoder).test_client()
+            jsonProvider=test.mocks.fixture.MockJSONProvider).test_client()
 
     def tearDown(self):
         pass

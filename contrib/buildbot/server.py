@@ -52,14 +52,14 @@ BADGE_CIRRUS_BASE = RasterBadge(
 
 
 def create_server(tc, phab, slackbot, cirrus,
-                  db_file_no_ext=None, jsonEncoder=None):
+                  db_file_no_ext=None, jsonProvider=None):
     # Create Flask app for use as decorator
     app = Flask("abcbot")
     app.logger.setLevel(logging.INFO)
 
     # json_encoder can be overridden for testing
-    if jsonEncoder:
-        app.json_encoder = jsonEncoder
+    if jsonProvider:
+        app.json = jsonProvider(app)
 
     phab.setLogger(app.logger)
     tc.set_logger(app.logger)
