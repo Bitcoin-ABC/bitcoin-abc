@@ -310,7 +310,17 @@ if(USE_JEMALLOC)
 endif()
 
 # These flags are needed for using std::filesystem with GCC < 9.1 & Clang < 9.0
+# Since these are optional libraries they need to be placed accordingly on the
+# command line.
 add_linker_flags(-lstdc++fs -lc++fs)
+custom_check_linker_flag(LINKER_HAS_STDCXXFS "-lstdc++fs")
+if(LINKER_HAS_STDCXXFS)
+    link_libraries(stdc++fs)
+endif()
+custom_check_linker_flag(LINKER_HAS_CXXFS "-lc++fs")
+if(LINKER_HAS_CXXFS)
+    link_libraries(c++fs)
+endif()
 
 
 # Make sure that all the global compiler and linker flags are set BEFORE
