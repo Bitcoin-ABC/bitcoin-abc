@@ -178,6 +178,12 @@ const SendBCH = ({ passLoadingStatus }) => {
     // Show a confirmation modal on transactions created by populating form from web page button
     const [isModalVisible, setIsModalVisible] = useState(false);
 
+    // Airdrop transactions embed the additional tokenId (32 bytes), along with prefix (4 bytes) and two pushdata (2 bytes)// hence setting airdrop tx message limit to 38 bytes less than currency.opReturn.unencryptedMsgByteLimit
+    const pushDataByteCount = 1;
+    const prefixByteCount = 4;
+    const tokenIdByteCount = 32;
+    const localAirdropTxAddedBytes = pushDataByteCount + tokenIdByteCount + pushDataByteCount + prefixByteCount; // 38
+
     const [airdropFlag, setAirdropFlag] = useState(false);
 
     const userLocale = navigator.language;
@@ -609,8 +615,12 @@ const SendBCH = ({ passLoadingStatus }) => {
         const { value } = e.target;
         let msgError = false;
         const msgByteSize = getMessageByteSize(value); // 2nd param not required for unencrypted message
-        if (msgByteSize > currency.opReturn.unencryptedMsgByteLimit) {
-              msgError = `Message can not exceed ${currency.opReturn.unencryptedMsgByteLimit} bytes`;
+
+        const maxSize = (location &&
+                        location.state &&
+                        location.state.airdropTokenId) ? (currency.opReturn.unencryptedMsgByteLimit - localAirdropTxAddedBytes) : currency.opReturn.unencryptedMsgByteLimit
+        if (msgByteSize > maxSize) {
+              msgError = `Message can not exceed ${maxSize} bytes`;
         }
         setIsMsgError(msgError);
         setOpReturnMsg(e.target.value);
@@ -1026,7 +1036,7 @@ const SendBCH = ({ passLoadingStatus }) => {
                                                 : location &&
                                                   location.state &&
                                                   location.state.airdropTokenId
-                                                ? `(max ${currency.opReturn.unencryptedAirdropMsgByteLimit} bytes)`
+                                                ? `(max ${currency.opReturn.unencryptedMsgByteLimit - localAirdropTxAddedBytes} bytes)`
                                                 : `(max ${currency.opReturn.unencryptedMsgByteLimit} bytes)`
                                         }
                                         value={

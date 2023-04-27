@@ -106,8 +106,19 @@ export const currency = {
             aliasRegistration: '2e786563',
         },
         encryptedMsgCharLimit: 125,
+        /* The max payload per spec is 220 bytes (or 223 bytes including +1 for OP_RETURN and +2 for pushdata opcodes)
+           Within this 223 bytes, transaction building will take up 8 bytes, hence unencryptedMsgByteLimit is set to 215 bytes
+           i.e.
+            6a
+            04
+            [prefix byte]
+            [prefix byte]
+            [prefix byte]
+            [prefix byte]
+            4c [next byte is pushdata byte]
+            [pushdata byte] (d7 for 215 on a max-size Cashtab msg)
+        */
         unencryptedMsgByteLimit: 215,
-        unencryptedAirdropMsgByteLimit: 179,
     },
     settingsValidation: {
         fiatCurrency: [
