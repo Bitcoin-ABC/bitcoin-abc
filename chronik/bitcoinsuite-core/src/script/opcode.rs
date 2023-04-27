@@ -13,6 +13,8 @@
 /// # use bitcoinsuite_core::script::opcode::*;
 /// assert_eq!(Opcode(0x00), OP_0);
 /// assert_eq!(Opcode(0x51), OP_TRUE);
+/// assert_eq!(OP_0::N, 0x00);
+/// assert_eq!(OP_TRUE::N, 0x51);
 /// ```
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Opcode(pub u8);
@@ -25,6 +27,13 @@ macro_rules! define_opcodes {
         $(
             $(#[doc = $doc])*
             pub const $opcode: Opcode = Opcode($number);
+
+            #[allow(non_snake_case)]
+            $(#[doc = $doc])*
+            pub mod $opcode {
+                $(#[doc = $doc])*
+                pub const N: u8 = $number;
+            }
         )*
 
         /// Return the opcode's number using its name:
