@@ -23,14 +23,14 @@ private:
     explicit constexpr Amount(int64_t _amount) : amount(_amount) {}
 
 public:
-    constexpr Amount() : amount(0) {}
+    constexpr Amount() noexcept : amount(0) {}
     /**
      * Convenient implicit UniValue conversion operator
      */
     operator UniValue() const;
 
-    static constexpr Amount zero() { return Amount(0); }
-    static constexpr Amount satoshi() { return Amount(1); }
+    static constexpr Amount zero() noexcept { return Amount(0); }
+    static constexpr Amount satoshi() noexcept { return Amount(1); }
 
     /**
      * Implement standard operators
