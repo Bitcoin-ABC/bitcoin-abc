@@ -110,13 +110,13 @@ class AvaAddrTest(BitcoinTestFramework):
     def check_all_peers_received_getavaaddr_once(self, avapeers):
         def received_all_getavaaddr(avapeers):
             with p2p_lock:
-                return all([p.last_message.get("getavaaddr")
-                           for p in avapeers])
+                return all(p.last_message.get("getavaaddr")
+                           for p in avapeers)
         self.wait_until(lambda: received_all_getavaaddr(avapeers))
 
         with p2p_lock:
-            assert all([p.message_count.get(
-                "getavaaddr", 0) == 1 for p in avapeers])
+            assert all(p.message_count.get(
+                "getavaaddr", 0) == 1 for p in avapeers)
 
     def getavaaddr_interval_test(self):
         node = self.nodes[0]
@@ -132,8 +132,8 @@ class AvaAddrTest(BitcoinTestFramework):
         # Build some statistics to ensure some addresses will be returned
         def all_peers_received_poll():
             with p2p_lock:
-                return all([avanode.poll_received >
-                           0 for avanode in node.p2ps])
+                return all(avanode.poll_received >
+                           0 for avanode in node.p2ps)
         self.wait_until(all_peers_received_poll)
         node.mockscheduler(AVALANCHE_STATISTICS_INTERVAL)
 
@@ -214,8 +214,8 @@ class AvaAddrTest(BitcoinTestFramework):
 
         def poll_all_for_block():
             with p2p_lock:
-                return all([avanode.poll_received > (
-                    10 if avanode.is_responding else 0) for avanode in avanodes])
+                return all(avanode.poll_received > (
+                    10 if avanode.is_responding else 0) for avanode in avanodes)
         self.wait_until(poll_all_for_block)
 
         # Move the scheduler time 10 minutes forward so that so that our peers
@@ -229,10 +229,10 @@ class AvaAddrTest(BitcoinTestFramework):
         peerinfo = node.getpeerinfo()
         muted_addresses = [
             avanode.addr for avanode in avanodes if not avanode.is_responding]
-        assert all([p['availability_score'] <
-                   0 for p in peerinfo if p["addr"] in muted_addresses])
-        assert all([p['availability_score'] >
-                   0 for p in peerinfo if p["addr"] in responding_addresses])
+        assert all(p['availability_score'] < 0
+                   for p in peerinfo if p["addr"] in muted_addresses)
+        assert all(p['availability_score'] > 0
+                   for p in peerinfo if p["addr"] in responding_addresses)
         # Requester has no availability_score because it's not an avalanche
         # peer
         assert 'availability_score' not in peerinfo[-1].keys()
@@ -246,7 +246,7 @@ class AvaAddrTest(BitcoinTestFramework):
                      min(maxaddrtosend, len(responding_addresses)))
 
         # Check all the addresses belong to responding peer
-        assert all([address in responding_addresses for address in addresses])
+        assert all(address in responding_addresses for address in addresses)
 
     def getavaaddr_outbound_test(self):
         self.log.info(
@@ -277,8 +277,7 @@ class AvaAddrTest(BitcoinTestFramework):
 
         def all_peers_received_getavaaddr():
             with p2p_lock:
-                return all([p.message_count.get(
-                    "getavaaddr", 0) > 1 for p in avapeers])
+                return all(p.message_count.get("getavaaddr", 0) > 1 for p in avapeers)
         self.wait_until(all_peers_received_getavaaddr)
 
     def getavaaddr_manual_test(self):
@@ -371,8 +370,8 @@ class AvaAddrTest(BitcoinTestFramework):
 
         def wait_for_availability_score():
             peerinfo = node.getpeerinfo()
-            return all([p.get('availability_score', None) == Decimal(0)
-                       for p in peerinfo])
+            return all(p.get('availability_score', None) == Decimal(0)
+                       for p in peerinfo)
         self.wait_until(wait_for_availability_score)
 
         requester = node.add_p2p_connection(AddrReceiver())
@@ -385,7 +384,7 @@ class AvaAddrTest(BitcoinTestFramework):
         addresses = requester.get_received_addrs()
         assert_equal(len(addresses), len(avapeers))
         expected_addresses = [avapeer.addr for avapeer in avapeers]
-        assert all([address in expected_addresses for address in addresses])
+        assert all(address in expected_addresses for address in addresses)
 
         # Add more nodes so we reach the mininum quorum stake amount.
         for _ in range(4):
@@ -399,8 +398,8 @@ class AvaAddrTest(BitcoinTestFramework):
                 uint256_hex(proof.proofid)).get("finalized", False)
 
         # Wait until all proofs are finalized
-        self.wait_until(lambda: all([is_vote_finalized(p.proof)
-                        for p in node.p2ps if isinstance(p, AvaP2PInterface)]))
+        self.wait_until(lambda: all(is_vote_finalized(p.proof)
+                        for p in node.p2ps if isinstance(p, AvaP2PInterface)))
 
         # Go through several rounds of getavaaddr requests. We don't know for
         # sure how many will be sent as it depends on whether the peers

@@ -649,7 +649,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             if best_hash.count(best_hash[0]) == len(rpc_connections):
                 return
             # Check that each peer has at least one connection
-            assert (all([len(x.getpeerinfo()) for x in rpc_connections]))
+            assert (all(len(x.getpeerinfo()) for x in rpc_connections))
             time.sleep(wait)
         best_hashes = "".join(f"\n  {b!r}" for b in best_hash)
         raise AssertionError(f"Block sync timed out after {timeout}s:{best_hashes}")
@@ -671,7 +671,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                         r.syncwithvalidationinterfacequeue()
                 return
             # Check that each peer has at least one connection
-            assert (all([len(x.getpeerinfo()) for x in rpc_connections]))
+            assert (all(len(x.getpeerinfo()) for x in rpc_connections))
             time.sleep(wait)
         pool_str = "".join(f"\n  {m!r}" for m in pool)
         raise AssertionError(f"Mempool sync timed out after {timeout}s:{pool_str}")
@@ -694,7 +694,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             if nodes_proofs.count(nodes_proofs[0]) == len(rpc_connections):
                 return
             # Check that each peer has at least one connection
-            assert (all([len(x.getpeerinfo()) for x in rpc_connections]))
+            assert (all(len(x.getpeerinfo()) for x in rpc_connections))
             time.sleep(wait)
         nodes_proofs_str = "".join(f"\n  {m!r}" for m in nodes_proofs)
         raise AssertionError(

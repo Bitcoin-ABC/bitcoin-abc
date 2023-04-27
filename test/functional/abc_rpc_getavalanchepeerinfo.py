@@ -196,8 +196,8 @@ class GetAvalanchePeerInfoTest(BitcoinTestFramework):
 
         def poll_all_for_block():
             with p2p_lock:
-                return all([avanode.poll_received > (
-                    10 if avanode.is_responding else 0) for avanode in avanodes])
+                return all(avanode.poll_received > (
+                    10 if avanode.is_responding else 0) for avanode in avanodes)
         self.wait_until(poll_all_for_block)
 
         # Move the scheduler forward so that so that our peers get availability

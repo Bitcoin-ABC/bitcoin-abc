@@ -93,7 +93,7 @@ class DeprecatedRpcTest(BitcoinTestFramework):
           for _ in range(0, QUORUM_NODE_COUNT)] for node in self.nodes]
 
         self.wait_until(lambda: all(
-            [node.getavalancheinfo()['ready_to_poll'] is True for node in self.nodes]))
+            node.getavalancheinfo()['ready_to_poll'] is True for node in self.nodes))
 
         assert_raises_rpc_error(
             -5,

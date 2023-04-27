@@ -221,8 +221,8 @@ class RPCPackagesTest(BitcoinTestFramework):
         testres_multiple_ba = node.testmempoolaccept(
             rawtxs=[parent_signed["hex"], tx_child_b_hex, tx_child_a_hex])
 
-        assert all([testres["allowed"]
-                   for testres in testres_multiple_ab + testres_multiple_ba])
+        assert all(testres["allowed"]
+                   for testres in testres_multiple_ab + testres_multiple_ba)
 
         testres_single = []
         # Test accept and then submit each one individually, which should be
@@ -265,8 +265,8 @@ class RPCPackagesTest(BitcoinTestFramework):
                 random.shuffle(package_hex)
                 testres_multiple = node.testmempoolaccept(
                     rawtxs=package_hex + [child_hex])
-                assert all([testres["allowed"]
-                           for testres in testres_multiple])
+                assert all(testres["allowed"]
+                           for testres in testres_multiple)
 
             testres_single = []
             # Test accept and then submit each one individually, which should be

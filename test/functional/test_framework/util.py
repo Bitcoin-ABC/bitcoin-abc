@@ -581,7 +581,7 @@ def find_vout_for_address(node, txid, addr):
     """
     tx = node.getrawtransaction(txid, True)
     for i in range(len(tx["vout"])):
-        if any([addr == a for a in tx["vout"][i]["scriptPubKey"]["addresses"]]):
+        if any(addr == a for a in tx["vout"][i]["scriptPubKey"]["addresses"]):
             return i
     raise RuntimeError(
         f"Vout not found for address: txid={txid}, addr={addr}")

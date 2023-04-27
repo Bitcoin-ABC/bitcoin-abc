@@ -116,17 +116,17 @@ class CompactProofsTest(BitcoinTestFramework):
 
         def all_peers_received_getavaproofs():
             with p2p_lock:
-                return all([p.last_message.get("getavaproofs")
-                           for p in outbound_avapeers])
+                return all(p.last_message.get("getavaproofs")
+                           for p in outbound_avapeers)
         self.wait_until(all_peers_received_getavaproofs)
 
         with p2p_lock:
-            assert all([p.message_count.get(
-                "getavaproofs", 0) >= 1 for p in outbound_avapeers])
-            assert all([p.message_count.get(
-                "getavaproofs", 0) == 0 for p in non_avapeers])
-            assert all([p.message_count.get(
-                "getavaproofs", 0) == 0 for p in inbound_avapeers])
+            assert all(p.message_count.get(
+                "getavaproofs", 0) >= 1 for p in outbound_avapeers)
+            assert all(p.message_count.get(
+                "getavaproofs", 0) == 0 for p in non_avapeers)
+            assert all(p.message_count.get(
+                "getavaproofs", 0) == 0 for p in inbound_avapeers)
 
         self.log.info(
             "Check we send periodic getavaproofs message to some of our peers")
@@ -143,10 +143,10 @@ class CompactProofsTest(BitcoinTestFramework):
         outbounds_getavaproofs += 3
 
         with p2p_lock:
-            assert all([p.message_count.get(
-                "getavaproofs", 0) == 0 for p in non_avapeers])
-            assert all([p.message_count.get(
-                "getavaproofs", 0) == 0 for p in inbound_avapeers])
+            assert all(p.message_count.get(
+                "getavaproofs", 0) == 0 for p in non_avapeers)
+            assert all(p.message_count.get(
+                "getavaproofs", 0) == 0 for p in inbound_avapeers)
 
         self.log.info(
             "After the first avaproofs has been received, all the peers are requested periodically")
@@ -190,10 +190,10 @@ class CompactProofsTest(BitcoinTestFramework):
                          for p in outbound_avapeers]), 1)
 
             # Sanity checks
-            assert all([p.message_count.get(
-                "getavaproofs", 0) == 0 for p in non_avapeers])
-            assert all([p.message_count.get(
-                "getavaproofs", 0) == 0 for p in inbound_avapeers])
+            assert all(p.message_count.get(
+                "getavaproofs", 0) == 0 for p in non_avapeers)
+            assert all(p.message_count.get(
+                "getavaproofs", 0) == 0 for p in inbound_avapeers)
 
     def test_send_manual_getavaproofs(self):
         self.log.info(

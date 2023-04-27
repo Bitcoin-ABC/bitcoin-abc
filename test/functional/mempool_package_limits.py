@@ -82,8 +82,8 @@ class MempoolPackageLimitsTest(BitcoinTestFramework):
 
         # Clear mempool and check that the package passes now
         self.generate(node, 1)
-        assert all([res["allowed"] is True
-                    for res in node.testmempoolaccept(rawtxs=chain_hex)])
+        assert all(res["allowed"] is True
+                   for res in node.testmempoolaccept(rawtxs=chain_hex))
 
     def test_chain_limits(self):
         """Create chains from mempool and package transactions that are longer than 50,
@@ -180,8 +180,8 @@ class MempoolPackageLimitsTest(BitcoinTestFramework):
 
         # Clear mempool and check that the package passes now
         self.generate(node, 1)
-        assert all([res["allowed"] is True
-                    for res in node.testmempoolaccept(rawtxs=package_hex)])
+        assert all(res["allowed"] is True
+                   for res in node.testmempoolaccept(rawtxs=package_hex))
 
     def test_desc_count_limits_2(self):
         """Create a Package with 49 transactions in mempool and 2 transactions
@@ -258,8 +258,8 @@ class MempoolPackageLimitsTest(BitcoinTestFramework):
 
         # Clear mempool and check that the package passes now
         self.generate(node, 1)
-        assert all([res["allowed"]
-                   for res in node.testmempoolaccept(rawtxs=package_hex)])
+        assert all(res["allowed"]
+                   for res in node.testmempoolaccept(rawtxs=package_hex))
 
     def test_anc_count_limits(self):
         """Create a 'V' shaped chain with 49 transactions in the mempool and 3 in the package:
@@ -320,8 +320,8 @@ class MempoolPackageLimitsTest(BitcoinTestFramework):
 
         # Clear mempool and check that the package passes now
         self.generate(node, 1)
-        assert all([res["allowed"] is True
-                    for res in node.testmempoolaccept(rawtxs=package_hex)])
+        assert all(res["allowed"] is True
+                   for res in node.testmempoolaccept(rawtxs=package_hex))
 
     def test_anc_count_limits_2(self):
         """Create a 'Y' shaped chain with 49 transactions in the mempool and 2 in the package:
@@ -382,8 +382,8 @@ class MempoolPackageLimitsTest(BitcoinTestFramework):
 
         # Clear mempool and check that the package passes now
         self.generate(node, 1)
-        assert all([res["allowed"] is True
-                    for res in node.testmempoolaccept(rawtxs=[pc_hex, pd_hex])])
+        assert all(res["allowed"] is True
+                   for res in node.testmempoolaccept(rawtxs=[pc_hex, pd_hex]))
 
     def test_anc_count_limits_bushy(self):
         """Create a tree with 45 transactions in the mempool and 6 in the package:
@@ -439,8 +439,8 @@ class MempoolPackageLimitsTest(BitcoinTestFramework):
 
         # Clear mempool and check that the package passes now
         self.generate(node, 1)
-        assert all([res["allowed"] is True
-                    for res in node.testmempoolaccept(rawtxs=package_hex)])
+        assert all(res["allowed"] is True
+                   for res in node.testmempoolaccept(rawtxs=package_hex))
 
     def test_anc_size_limits(self):
         """Test Case with 2 independent transactions in the mempool and a parent + child in the
@@ -507,8 +507,8 @@ class MempoolPackageLimitsTest(BitcoinTestFramework):
 
         # Clear mempool and check that the package passes now
         self.generate(node, 1)
-        assert all([res["allowed"] is True
-                    for res in node.testmempoolaccept(rawtxs=[pc_hex, pd_hex])])
+        assert all(res["allowed"] is True
+                   for res in node.testmempoolaccept(rawtxs=[pc_hex, pd_hex]))
 
     def test_desc_size_limits(self):
         """Create 3 mempool transactions and 2 package transactions (25KB each):
@@ -593,8 +593,8 @@ class MempoolPackageLimitsTest(BitcoinTestFramework):
 
         # Clear mempool and check that the package passes now
         self.generate(node, 1)
-        assert all([res["allowed"] is True
-                    for res in node.testmempoolaccept(rawtxs=package_hex)])
+        assert all(res["allowed"] is True
+                   for res in node.testmempoolaccept(rawtxs=package_hex))
 
 
 if __name__ == "__main__":
