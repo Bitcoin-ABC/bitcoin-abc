@@ -286,12 +286,8 @@
         "prettier": {
             "type": "prettier",
             "version": ">=2.4.1",
-            "include": "(\\.(css|html|js|json|jsx|md|scss|ts|tsx)$)",
-            "exclude": [
-                "(^web/.*/translations/.*\\.json$)",
-                "(^modules/.*/docs/$)",
-                "(^modules/.*/dist/$)"
-            ]
+            "include": "(^web/.*\\.(css|html|js|json|jsx|md|scss|ts|tsx)$)",
+            "exclude": "(^web/.*/translations/.*\\.json$)"
         },
         "lint-python-isort": {
             "type": "lint-python-isort",
