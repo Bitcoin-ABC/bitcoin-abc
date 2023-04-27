@@ -141,7 +141,7 @@ pip3 install pytest
 # This version is compatible with Debian's "protobuf-compiler" package
 pip3 install "protobuf<=3.20"
 # For security-check.py and symbol-check.py
-pip3 install "lief>=0.11.4"
+pip3 install "lief>=0.11.5"
 # For Chronik WebSocket endpoint
 pip3 install websocket-client
 

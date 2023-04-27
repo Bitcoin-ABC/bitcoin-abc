@@ -152,6 +152,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 		# RPC, Shell, and Windows Sockets.
 		WIN32_LEAN_AND_MEAN
 	)
+
+	# We require Windows 7 (NT 6.1) or later
+	add_linker_flags(-Wl,--major-subsystem-version,6 -Wl,--minor-subsystem-version,1)
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
