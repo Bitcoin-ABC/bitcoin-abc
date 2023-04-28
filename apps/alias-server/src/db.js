@@ -53,16 +53,16 @@ module.exports = {
         return db;
     },
     getServerState: async function (db) {
-        let serverStateArray;
+        let serverState;
         try {
-            serverStateArray = await db
+            serverState = await db
                 .collection(config.database.collections.serverState)
                 .find()
                 // We don't need the _id field
                 .project({ _id: 0 })
                 .next();
             // Only 1 document in collection
-            return serverStateArray;
+            return serverState;
         } catch (err) {
             console.log(`Error in determining serverState.`, err);
             return false;
