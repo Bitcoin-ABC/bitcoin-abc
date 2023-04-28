@@ -201,7 +201,7 @@ describe('alias-server db.js', async function () {
         const validAliases = await getAliasesFromDb(testDb);
         assert.deepEqual(validAliases, []);
     });
-    it('addAliasesToDb returns false if you attempt to add aliases whose txid already exists in the database', async function () {
+    it('addAliasesToDb returns false if you attempt to add aliases whose alias already exists in the database', async function () {
         // Startup the app and initialize serverState
         const testDb = await initializeDb(testMongoClient);
 
