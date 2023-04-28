@@ -25,11 +25,9 @@ BOOST_AUTO_TEST_CASE(blockmanager_find_block_pos) {
         .blocks_dir = m_args.GetBlocksDirPath(),
     };
     BlockManager blockman{blockman_opts};
-    CChain chain{};
     // simulate adding a genesis block normally
     BOOST_CHECK_EQUAL(
-        blockman.SaveBlockToDisk(params->GenesisBlock(), 0, chain, nullptr)
-            .nPos,
+        blockman.SaveBlockToDisk(params->GenesisBlock(), 0, nullptr).nPos,
         BLOCK_SERIALIZATION_HEADER_SIZE);
     // simulate what happens during reindex
     // simulate a well-formed genesis block being found at offset 8 in the
@@ -38,7 +36,7 @@ BOOST_AUTO_TEST_CASE(blockmanager_find_block_pos) {
     // before each block in a well-formed blk file.
     FlatFilePos pos{0, BLOCK_SERIALIZATION_HEADER_SIZE};
     BOOST_CHECK_EQUAL(
-        blockman.SaveBlockToDisk(params->GenesisBlock(), 0, chain, &pos).nPos,
+        blockman.SaveBlockToDisk(params->GenesisBlock(), 0, &pos).nPos,
         BLOCK_SERIALIZATION_HEADER_SIZE);
     // now simulate what happens after reindex for the first new block processed
     // the actual block contents don't matter, just that it's a block.
@@ -49,7 +47,7 @@ BOOST_AUTO_TEST_CASE(blockmanager_find_block_pos) {
     // another 8 bytes for the second block's serialization header and we get
     // 293 + 8 = 301
     FlatFilePos actual{
-        blockman.SaveBlockToDisk(params->GenesisBlock(), 1, chain, nullptr)};
+        blockman.SaveBlockToDisk(params->GenesisBlock(), 1, nullptr)};
     BOOST_CHECK_EQUAL(
         actual.nPos,
         BLOCK_SERIALIZATION_HEADER_SIZE +
