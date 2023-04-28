@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 'use strict';
-const log = require('./log');
 const { handleBlockConnected } = require('./events');
 const cashaddr = require('ecashaddrjs');
 const AsyncLock = require('async-lock');
@@ -33,7 +32,7 @@ module.exports = {
         });
         // Wait for WS to be connected:
         await ws.waitForOpen();
-        log(`Connected to websocket`);
+        console.log(`Connected to websocket`);
         const { type, hash } = cashaddr.decode(address, true);
         ws.subscribe(type, hash);
         return ws;
@@ -46,17 +45,17 @@ module.exports = {
         avalancheRpc,
         wsMsg = { type: 'BlockConnected' },
     ) {
-        log(`parseWebsocketMessage called on`, wsMsg);
+        console.log(`parseWebsocketMessage called on`, wsMsg);
         // Determine type of tx
         const { type } = wsMsg;
-        log(`msg type: ${type}`);
+        console.log(`msg type: ${type}`);
         // type can be AddedToMempool, BlockConnected, or Confirmed
         // For now, we are only interested in "Confirmed", as only these are valid
         // We will want to look at AddedToMempool to process pending alias registrations later
 
         switch (type) {
             case 'BlockConnected': {
-                log(`New block found: ${wsMsg.blockHash}`);
+                console.log(`New block found: ${wsMsg.blockHash}`);
 
                 return blockConnectedLock
                     .acquire('handleBlockConnected', async function () {
@@ -76,7 +75,7 @@ module.exports = {
                         },
                         error => {
                             // lock released with error thrown by handleBlockConnected()
-                            log(
+                            console.log(
                                 `Error in handleBlockConnected called by ${wsMsg.blockHash}`,
                                 error,
                             );
@@ -86,13 +85,13 @@ module.exports = {
                     );
             }
             case 'AddedToMempool':
-                log(`New tx: ${wsMsg.txid}`);
+                console.log(`New tx: ${wsMsg.txid}`);
                 break;
             case 'Confirmed':
-                log(`New confirmed tx: ${wsMsg.txid}`);
+                console.log(`New confirmed tx: ${wsMsg.txid}`);
                 break;
             default:
-                log(`New websocket message of unknown type:`, wsMsg);
+                console.log(`New websocket message of unknown type:`, wsMsg);
         }
     },
 };

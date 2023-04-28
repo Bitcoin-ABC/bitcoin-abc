@@ -6,7 +6,6 @@ const config = require('../config');
 const { initializeWebsocket } = require('./chronikWsHandler');
 const { handleAppStartup } = require('./events');
 const { initializeDb } = require('./db');
-const log = require('./log');
 const express = require('express');
 var cors = require('cors');
 const requestIp = require('request-ip');
@@ -35,7 +34,7 @@ module.exports = {
         );
         if (aliasWebsocket && aliasWebsocket._subs && aliasWebsocket._subs[0]) {
             const subscribedHash160 = aliasWebsocket._subs[0].scriptPayload;
-            log(`Websocket subscribed to ${subscribedHash160}`);
+            console.log(`Websocket subscribed to ${subscribedHash160}`);
         } else {
             // Shutdown if the websocket does not connect on startup
             return false;
@@ -64,7 +63,7 @@ module.exports = {
         app.get('/aliases', async function (req, res) {
             // Get IP address from before cloudflare proxy
             const ip = req.clientIp;
-            log(`/aliases from IP: ${ip}, host ${req.headers.host}`);
+            console.log(`/aliases from IP: ${ip}, host ${req.headers.host}`);
             let aliases;
             try {
                 aliases = await db

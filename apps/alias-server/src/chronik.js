@@ -5,7 +5,6 @@
 'use strict';
 const cashaddr = require('ecashaddrjs');
 const config = require('../config');
-const log = require('./log');
 
 module.exports = {
     getTxHistoryPage: async function (chronik, type, hash, page = 0) {
@@ -17,7 +16,10 @@ module.exports = {
                 .history(page, config.txHistoryPageSize);
             return txHistoryPage;
         } catch (err) {
-            log(`Error in getTxHistoryPage(type=${type}, hash=${hash})`, err);
+            console.log(
+                `Error in getTxHistoryPage(type=${type}, hash=${hash})`,
+                err,
+            );
         }
     },
     returnGetTxHistoryPagePromise: async function (
@@ -108,7 +110,10 @@ module.exports = {
                     txHistoryPageResponsePromises,
                 );
             } catch (err) {
-                log(`Error in Promise.all(txHistoryPageResponsePromises)`, err);
+                console.log(
+                    `Error in Promise.all(txHistoryPageResponsePromises)`,
+                    err,
+                );
                 // Return false; you won't have all the tx history if this happens
                 return false;
             }
@@ -174,7 +179,10 @@ module.exports = {
                 txHistoryPageResponsePromises,
             );
         } catch (err) {
-            log(`Error in Promise.all(txHistoryPageResponsePromises)`, err);
+            console.log(
+                `Error in Promise.all(txHistoryPageResponsePromises)`,
+                err,
+            );
             // Return false; you won't have all the tx history if this happens
             return false;
         }

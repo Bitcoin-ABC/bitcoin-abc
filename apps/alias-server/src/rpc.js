@@ -4,7 +4,6 @@
 
 'use strict';
 const axios = require('axios');
-const log = require('../src/log');
 
 module.exports = {
     isFinalBlock: async function (rpcAuth, blockhash) {
@@ -50,11 +49,14 @@ module.exports = {
                 err.response.data.error
             ) {
                 // e.g. you have a good connection but asked with blockhash 'foo'
-                log(`Node error from isFinalBlock`, err.response.data.error);
+                console.log(
+                    `Node error from isFinalBlock`,
+                    err.response.data.error,
+                );
                 return false;
             }
             // Error in isFinalBlock(foo) "timeout of 3000ms exceeded"
-            log(
+            console.log(
                 `Error in isFinalBlock(${blockhash})`,
                 err && err.message ? err.message : err,
             );

@@ -5,7 +5,6 @@
 'use strict';
 const cashaddr = require('ecashaddrjs');
 const config = require('../config');
-const log = require('./log');
 const {
     getAliasFromHex,
     isValidAliasString,
@@ -110,7 +109,7 @@ module.exports = {
             parseInt(aliasFeePaidSats) <
             aliasConstants.registrationFeesSats[aliasLength]
         ) {
-            log(
+            console.log(
                 `Invalid fee. This transaction paid ${aliasFeePaidSats} sats to register ${alias}. The correct fee for an alias of ${aliasLength} characters is ${aliasConstants.registrationFeesSats[aliasLength]}`,
             );
             return false;

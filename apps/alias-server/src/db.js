@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 'use strict';
-const log = require('./log');
 const config = require('../config');
 
 const MONGO_DB_ERRORCODES = {
@@ -14,7 +13,7 @@ module.exports = {
     initializeDb: async function (mongoClient) {
         // Use connect method to connect to the server
         await mongoClient.connect();
-        log('Connected successfully to MongoDB server');
+        console.log('Connected successfully to MongoDB server');
         const db = mongoClient.db(config.database.name);
         // Enforce unique aliases
         db.collection(config.database.collections.validAliases).createIndex(
@@ -46,9 +45,9 @@ module.exports = {
                 processedConfirmedTxs: 0,
                 processedBlockheight: 0,
             });
-            log(`Initialized serverState on app startup`);
+            console.log(`Initialized serverState on app startup`);
         }
-        log(`Configured connection to database ${config.database.name}`);
+        console.log(`Configured connection to database ${config.database.name}`);
         return db;
     },
     getServerState: async function (db) {
@@ -63,7 +62,7 @@ module.exports = {
             // Only 1 document in collection
             return serverStateArray;
         } catch (err) {
-            log(`Error in determining serverState.`, err);
+            console.log(`Error in determining serverState.`, err);
             return false;
         }
     },
@@ -105,7 +104,7 @@ module.exports = {
         } catch (err) {
             // If this isn't updated, the server will process too many txs next time
             // TODO Let the admin know. This won't impact parsing but will cause processing too many txs
-            log(`Error in function updateServerState.`, err);
+            console.log(`Error in function updateServerState.`, err);
             return false;
         }
     },
@@ -118,8 +117,8 @@ module.exports = {
         } catch (err) {
             // Only log some error other than duplicate key error
             if (err && err.code !== MONGO_DB_ERRORCODES.duplicateKey) {
-                log(`Error in function addOneAliasToDb:`);
-                log(err);
+                console.log(`Error in function addOneAliasToDb:`);
+                console.log(err);
             }
             return false;
         }
@@ -130,12 +129,12 @@ module.exports = {
             validAliasesAddedToDbSuccess = await db
                 .collection(config.database.collections.validAliases)
                 .insertMany(newValidAliases);
-            log(
+            console.log(
                 `Inserted ${validAliasesAddedToDbSuccess.insertedCount} reserved aliases into ${config.database.collections.validAliases}`,
             );
             return true;
         } catch (err) {
-            log(`Error in function addAliasesToDb.`, err);
+            console.log(`Error in function addAliasesToDb.`, err);
             return false;
         }
     },
@@ -150,7 +149,7 @@ module.exports = {
                 .toArray();
             return validAliasesInDb;
         } catch (err) {
-            log(
+            console.log(
                 `Error in determining validAliasesInDb in function getValidAliasesFromDb.`,
                 err,
             );

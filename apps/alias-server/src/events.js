@@ -4,7 +4,6 @@
 
 'use strict';
 const config = require('../config');
-const log = require('./log');
 const { wait, removeUnconfirmedTxsFromTxHistory } = require('./utils');
 const { isFinalBlock } = require('./rpc');
 const { getServerState, updateServerState } = require('./db');
@@ -19,7 +18,7 @@ module.exports = {
         channelId,
         avalancheRpc,
     ) {
-        log(`Checking for new aliases on startup`);
+        console.log(`Checking for new aliases on startup`);
         // If this is app startup, get the latest tipHash and tipHeight by querying the blockchain
 
         // Get chain tip
@@ -27,7 +26,10 @@ module.exports = {
         try {
             chaintipInfo = await chronik.blockchainInfo();
         } catch (err) {
-            log(`Error in chronik.blockchainInfo() in handleAppStartup()`, err);
+            console.log(
+                `Error in chronik.blockchainInfo() in handleAppStartup()`,
+                err,
+            );
             // Server will wait until receiving ws msg to handleBlockConnected()
             return false;
         }
@@ -85,7 +87,7 @@ module.exports = {
                 // chronik blockdetails returns the block height at the 'blockInfo.height' key
                 tipHeight = blockResult.blockInfo.height;
             } catch (err) {
-                log(
+                console.log(
                     `Error in chronik.block(${tipHash} in handleBlockConnected(). Exiting function.`,
                     err,
                 );
@@ -106,7 +108,7 @@ module.exports = {
                     tipHash,
                 );
             } catch (err) {
-                log(`Error in isFinalBlock for ${tipHash}`, err);
+                console.log(`Error in isFinalBlock for ${tipHash}`, err);
             }
             if (isAvalancheFinalized) {
                 // If isAvalancheFinalized, stop checking
@@ -116,7 +118,7 @@ module.exports = {
         }
 
         if (!isAvalancheFinalized) {
-            log(
+            console.log(
                 `Block ${tipHash} is not avalanche finalized after ${
                     config.avalancheCheckWaitInterval *
                     config.avalancheCheckCount
@@ -178,7 +180,7 @@ module.exports = {
             // These can't be added to the db, so you will get errors
             // If you get here, there is something wrong with the server that needs to be checked out
             // TODO notify admin
-            log(
+            console.log(
                 `serverState failed to update to new serverState`,
                 newServerState,
             );
@@ -186,7 +188,7 @@ module.exports = {
 
         // TODO telegram notifications for new alias registrations
 
-        log(
+        console.log(
             `Alias registrations updated to block ${tipHash} at height ${tipHeight}`,
         );
         return `Alias registrations updated to block ${tipHash} at height ${tipHeight}`;
