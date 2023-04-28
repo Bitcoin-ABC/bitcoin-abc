@@ -41,7 +41,6 @@ describe('alias-server chronik.js', () => {
             processedBlockheight,
             processedTxCount,
         );
-        console.log(`mockedChronik`, mockedChronik);
 
         assert.deepEqual(result, unprocessedTxs);
     });
@@ -147,12 +146,6 @@ describe('alias-server chronik.js', () => {
             const unprocessedTxs = allTxHistoryFromChronik.slice(
                 0,
                 desiredUnprocessedTxs,
-            );
-            console.log(`processedTxs.length`, processedTxs.length);
-            console.log(`unprocessedTxs.length`, unprocessedTxs.length);
-            console.log(
-                `processedTxs.length + unprocessedTxs.length`,
-                processedTxs.length + unprocessedTxs.length,
             );
             const allTxHistory = allTxHistoryFromChronik;
 
