@@ -11,7 +11,11 @@ import bs58 from 'bs58';
 import * as slpMdm from 'slp-mdm';
 import * as utxolib from '@bitgo/utxo-lib';
 
-export const getMessageByteSize = (msgInputStr, encryptionFlag, encryptedEj) => {
+export const getMessageByteSize = (
+    msgInputStr,
+    encryptionFlag,
+    encryptedEj,
+) => {
     if (!msgInputStr || msgInputStr.trim() === '') {
         return 0;
     }
@@ -414,7 +418,12 @@ export const generateTxInput = (
             txBuilder.addInput(txid, vout);
 
             inputUtxos.push(utxo);
-            txFee = calcFee(inputUtxos, txOutputs, feeInSatsPerByte, opReturnByteCount);
+            txFee = calcFee(
+                inputUtxos,
+                txOutputs,
+                feeInSatsPerByte,
+                opReturnByteCount,
+            );
 
             if (totalInputUtxoValue.minus(satoshisToSend).minus(txFee).gte(0)) {
                 break;
@@ -646,6 +655,49 @@ export const encodeOpReturnScript = scriptChunks => {
     return utxolib.script.compile(arr);
 };
 
+/*
+ * Generates an OP_RETURN script for a version 0 alias registration tx
+ *
+ * Returns the final encoded script object ready to be added as a transaction output
+ */
+export const generateAliasOpReturnScript = (alias, address) => {
+    // Note: utxolib.script.compile(script) will add pushdata bytes for each buffer
+    // utxolib.script.compile(script) will not add pushdata bytes for raw data
+
+    // Initialize script array with OP_RETURN byte (6a) as rawdata (i.e. you want compiled result of 6a, not 016a)
+    let script = [currency.opReturn.opReturnPrefixDec];
+
+    // Push alias protocol identifier
+    script.push(
+        Buffer.from(currency.opReturn.appPrefixesHex.aliasRegistration, 'hex'), // '.xec'
+    );
+
+    // Push alias protocol tx version to stack
+    // Per spec, push this as OP_0
+    script.push(0);
+
+    // Push alias to the stack
+    script.push(Buffer.from(alias, 'utf8'));
+
+    // Get the type and hash of the address in string format
+    const { type, hash } = cashaddr.decode(address, true);
+
+    // Determine address type and corresponding address version byte
+    let addressVersionByte;
+    // Version bytes per cashaddr spec,https://github.com/bitcoincashorg/bitcoincash.org/blob/master/spec/cashaddr.md
+    if (type === 'p2pkh') {
+        addressVersionByte = '00'; // one byte 0 in hex
+    } else if (type === 'p2sh') {
+        addressVersionByte = '08'; // one byte 8 in hex
+    } else {
+        throw new Error('Unsupported address type');
+    }
+
+    // Push <addressVersionByte> and <addressPayload>
+    script.push(Buffer.from(`${addressVersionByte}${hash}`, 'hex'));
+
+    return utxolib.script.compile(script);
+};
 /*
  * Generates an OP_RETURN script to reflect the various send XEC permutations
  * involving messaging, encryption, eToken IDs and airdrop flags.
