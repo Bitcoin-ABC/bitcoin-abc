@@ -40,10 +40,11 @@ Phase 2
 
 Aliases are registered by creating a "Registration Transaction" with the following properties:
 1. An output paying the required amount to a designated "Registration Address", and
-2. An output with an OP_RETURN containing 3 data pushes:
+2. An output with an OP_RETURN containing 4 data pushes:
     1. A push of the 4-byte protocol identifier.
-    2. A push of a CashAddr payload. This information defines the "Alias Address".
-    3. A push of the Alias itself.
+    2. A push of a version number.
+    3. A push of the Alias.
+    4. A push of a CashAddr payload. This information defines the "Alias Address".
 
 ### The Registration Address
 
@@ -61,11 +62,9 @@ This amount may change during Phase 1. This change may be enforced by verifying 
 
 This protocol adheres to the eCash [OP_RETURN Prefix Guideline](op_return-prefix-guideline.md) and uses the 2E786563 protocol identifier, which must be pushed with the 0x04 opcode.
 
-### The Alias Address
+### Version Number
 
-The Alias Address is defined in a 21-byte push containing a CashAddr payload. The first byte will be the version byte indicating the type of address, and the following 20 bytes are the hash.
-
-An Alias Address may have many aliases. Each alias maps to one and only one Alias Address.
+The version is indicated using opcode OP_0 through OP_16. For Phase 1, only OP_0 is allowed. OP_1 through OP_16 are reserved for future use.
 
 ### The Alias
 
@@ -76,6 +75,12 @@ If one alias can be human indistinguishable from another alias, then all aliases
 In the initial release of this feature, aliases are limited to lowercase alphanumeric characters (a-z, 0-9) to mitigate edge cases such as zero-width spaces and language specific character similarities.
 
 An alias may be between 1 and 21 bytes in length, inclusive.
+
+### The Alias Address
+
+The Alias Address is defined in a 21-byte push containing a CashAddr payload. The first byte will be the version byte indicating the type of address, and the following 20 bytes are the hash.
+
+An Alias Address may have many aliases. Each alias maps to one and only one Alias Address.
 
 ### Additional Validity Criteria:
 
