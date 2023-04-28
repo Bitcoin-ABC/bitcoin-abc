@@ -47,7 +47,9 @@ module.exports = {
             });
             console.log(`Initialized serverState on app startup`);
         }
-        console.log(`Configured connection to database ${config.database.name}`);
+        console.log(
+            `Configured connection to database ${config.database.name}`,
+        );
         return db;
     },
     getServerState: async function (db) {
@@ -130,7 +132,7 @@ module.exports = {
                 .collection(config.database.collections.validAliases)
                 .insertMany(newValidAliases);
             console.log(
-                `Inserted ${validAliasesAddedToDbSuccess.insertedCount} reserved aliases into ${config.database.collections.validAliases}`,
+                `Inserted ${validAliasesAddedToDbSuccess.insertedCount} aliases into ${config.database.collections.validAliases}`,
             );
             return true;
         } catch (err) {
