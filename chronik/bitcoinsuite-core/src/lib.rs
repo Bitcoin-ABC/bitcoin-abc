@@ -13,5 +13,6 @@ abc_rust_lint::lint! {
     pub mod error;
     pub mod hash;
     pub mod script;
+    pub mod ser;
     pub mod tx;
 }
