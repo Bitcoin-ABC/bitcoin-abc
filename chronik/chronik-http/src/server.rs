@@ -111,6 +111,7 @@ impl ChronikServer {
 
     fn make_router(indexer: ChronikIndexerRef) -> Router {
         Router::new()
+            .route("/blockchain-info", routing::get(handle_blockchain_info))
             .route("/block/:hash_or_height", routing::get(handle_block))
             .route("/tx/:txid", routing::get(handle_tx))
             .route(
@@ -133,6 +134,14 @@ impl ChronikServer {
             .fallback(handlers::handle_not_found)
             .layer(Extension(indexer))
     }
+}
+
+async fn handle_blockchain_info(
+    Extension(indexer): Extension<ChronikIndexerRef>,
+) -> Result<Protobuf<proto::BlockchainInfo>, ReportError> {
+    let indexer = indexer.read().await;
+    let blocks = indexer.blocks();
+    Ok(Protobuf(blocks.blockchain_info()?))
 }
 
 async fn handle_block(

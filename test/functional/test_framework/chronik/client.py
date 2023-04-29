@@ -139,6 +139,9 @@ class ChronikClient:
         ok_proto.ParseFromString(body)
         return ChronikResponse(response.status, ok_proto=ok_proto)
 
+    def blockchain_info(self) -> ChronikResponse:
+        return self._request_get('/blockchain-info', pb.BlockchainInfo)
+
     def block(self, hash_or_height: Union[str, int]) -> ChronikResponse:
         return self._request_get(f'/block/{hash_or_height}', pb.Block)
 

@@ -71,4 +71,19 @@ impl<'a> QueryBlocks<'a> {
             }),
         })
     }
+
+    /// Query some info about the blockchain, e.g. the tip hash and height.
+    pub fn blockchain_info(&self) -> Result<proto::BlockchainInfo> {
+        let block_reader = BlockReader::new(self.db)?;
+        match block_reader.tip()? {
+            Some(block) => Ok(proto::BlockchainInfo {
+                tip_hash: block.hash.to_vec(),
+                tip_height: block.height,
+            }),
+            None => Ok(proto::BlockchainInfo {
+                tip_hash: vec![0; 32],
+                tip_height: -1,
+            }),
+        }
+    }
 }

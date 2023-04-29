@@ -12,6 +12,14 @@ message Block {
     BlockInfo block_info = 1;
 }
 
+// Info about the state of the blockchain.
+message BlockchainInfo {
+    // Hash (little-endian) of the current tip
+    bytes tip_hash = 1;
+    // Height of the current tip (genesis has height = 0)
+    int32 tip_height = 2;
+}
+
 // Info about a block
 message BlockInfo {
     // Hash (little-endian)
