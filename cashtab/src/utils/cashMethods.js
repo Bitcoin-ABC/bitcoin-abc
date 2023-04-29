@@ -11,20 +11,32 @@ import bs58 from 'bs58';
 import * as slpMdm from 'slp-mdm';
 import * as utxolib from '@bitgo/utxo-lib';
 
-export const getMessageByteSize = (msgInputStr, encryptionFlag) => {
+export const getMessageByteSize = (msgInputStr, encryptionFlag, encryptedEj) => {
     if (!msgInputStr || msgInputStr.trim() === '') {
         return 0;
     }
 
     // generate the OP_RETURN script
-    const opReturnData = generateOpReturnScript(
-        msgInputStr,
-        encryptionFlag, // encryption use
-        false, // airdrop use
-        null, // airdrop use
-        encryptionFlag, // encryption use
-        false, // alias registration flag
-    );
+    let opReturnData;
+    if (encryptionFlag && encryptedEj) {
+        opReturnData = generateOpReturnScript(
+            msgInputStr,
+            encryptionFlag, // encryption flag
+            false, // airdrop use
+            null, // airdrop use
+            encryptedEj, // serialized encryption data object
+            false, // alias registration flag
+        );
+    } else {
+        opReturnData = generateOpReturnScript(
+            msgInputStr,
+            encryptionFlag, // encryption use
+            false, // airdrop use
+            null, // airdrop use
+            null, // serialized encryption data object
+            false, // alias registration flag
+        );
+    }
     // extract the msg input from the OP_RETURN script and check the backend size
     const hexString = opReturnData.toString('hex'); // convert to hex
     const opReturnMsg = parseOpReturn(hexString)[1]; // extract the message

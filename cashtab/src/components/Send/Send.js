@@ -416,7 +416,7 @@ const SendBCH = ({ passLoadingStatus }) => {
             if (isEncryptedOptionalOpReturnMsg) {
                 optionalOpReturnMsg = opReturnMsg.substring(
                     0,
-                    currency.opReturn.encryptedMsgCharLimit,
+                    currency.opReturn.encryptedMsgByteLimit,
                 );
             } else {
                 optionalOpReturnMsg = opReturnMsg;
@@ -614,11 +614,12 @@ const SendBCH = ({ passLoadingStatus }) => {
     const handleMsgChange = e => {
         const { value } = e.target;
         let msgError = false;
-        const msgByteSize = getMessageByteSize(value); // 2nd param not required for unencrypted message
+        const msgByteSize = getMessageByteSize(value);
 
         const maxSize = (location &&
                         location.state &&
-                        location.state.airdropTokenId) ? (currency.opReturn.unencryptedMsgByteLimit - localAirdropTxAddedBytes) : currency.opReturn.unencryptedMsgByteLimit
+                        location.state.airdropTokenId) ? (currency.opReturn.unencryptedMsgByteLimit - localAirdropTxAddedBytes) 
+                        : isEncryptedOptionalOpReturnMsg ? currency.opReturn.encryptedMsgByteLimit : currency.opReturn.unencryptedMsgByteLimit;
         if (msgByteSize > maxSize) {
               msgError = `Message can not exceed ${maxSize} bytes`;
         }
@@ -1032,7 +1033,7 @@ const SendBCH = ({ passLoadingStatus }) => {
                                         name="opReturnMsg"
                                         placeholder={
                                             isEncryptedOptionalOpReturnMsg
-                                                ? `(max ${currency.opReturn.encryptedMsgCharLimit} bytes)`
+                                                ? `(max ${currency.opReturn.encryptedMsgByteLimit} bytes)`
                                                 : location &&
                                                   location.state &&
                                                   location.state.airdropTokenId
@@ -1045,7 +1046,7 @@ const SendBCH = ({ passLoadingStatus }) => {
                                                     ? opReturnMsg.substring(
                                                           0,
                                                           currency.opReturn
-                                                              .encryptedMsgCharLimit +
+                                                              .encryptedMsgByteLimit +
                                                               1,
                                                       )
                                                     : opReturnMsg

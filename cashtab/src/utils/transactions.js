@@ -533,7 +533,7 @@ export const sendXec = async (
 
         let opReturnByteCount;
         if (optionalOpReturnMsg) {
-            opReturnByteCount = getMessageByteSize(optionalOpReturnMsg);
+            opReturnByteCount = getMessageByteSize(optionalOpReturnMsg, encryptionFlag, encryptedEj);
         }
         
         // generate the tx inputs and add to txBuilder instance

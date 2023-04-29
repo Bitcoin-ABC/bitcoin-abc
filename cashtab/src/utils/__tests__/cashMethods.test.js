@@ -114,6 +114,34 @@ import {
 } from '../__mocks__/mockTxBuilderData';
 import createTokenMock from '../__mocks__/createToken';
 
+it(`OP_RETURN msg byte length matches for an encrypted msg input with a single emoji`, () => {
+    const msgInput = '🙈';
+    const encryptedEjMock = {"type":"Buffer","data":[2,241,30,211,127,184,181,145,219,158,127,99,178,221,90,234,194,108,152,147,60,77,74,176,112,249,23,170,186,204,20,209,135,98,156,215,47,144,123,71,111,123,199,26,89,67,76,135,250,112,226,74,182,186,79,52,15,88,214,142,141,145,103,89,66,158,107,191,144,255,139,65,21,141,128,61,33,172,31,246,145,72,62,161,173,23,249,4,79,245,183,202,115,140,0,83,42]};
+    const opReturnMsgByteLength = getMessageByteSize(msgInput, true, encryptedEjMock);
+    expect(opReturnMsgByteLength).toStrictEqual(97);
+});
+
+it(`OP_RETURN msg byte length matches for an encrypted msg input with characters and emojis`, () => {
+    const msgInput = 'monkey🙈';
+    const encryptedEjMock = {"type":"Buffer","data":[2,74,145,240,12,210,143,66,224,155,246,106,238,186,167,192,123,39,44,165,231,97,166,149,93,121,10,107,45,12,235,45,158,251,183,245,6,206,9,153,146,208,40,156,106,3,140,137,68,126,240,70,87,131,54,91,115,164,223,109,199,173,127,106,94,82,200,83,77,157,55,195,16,17,99,1,148,226,150,243,120,133,80,17,226,109,17,154,226,59,203,36,203,230,236,12,104]};
+    const opReturnMsgByteLength = getMessageByteSize(msgInput, true, encryptedEjMock);
+    expect(opReturnMsgByteLength).toStrictEqual(97);
+});
+
+it(`OP_RETURN msg byte length matches for an encrypted msg input with special characters`, () => {
+    const msgInput = 'monkey©®ʕ•́ᴥ•̀ʔっ♡';
+    const encryptedEjMock = {"type":"Buffer","data":[2,137,237,42,23,72,146,79,69,190,11,115,20,173,218,99,121,188,45,14,219,135,46,91,165,121,166,149,100,140,231,143,38,1,169,226,26,136,124,82,59,223,210,65,50,241,86,155,225,85,167,213,235,24,143,118,136,87,38,161,153,18,110,198,168,196,77,250,255,2,132,13,44,44,220,93,61,73,89,160,16,247,115,174,238,80,102,26,158,44,28,173,174,3,120,130,221,220,147,143,252,137,109,143,28,106,73,253,145,161,118,109,54,95,13,137,214,253,11,238,115,89,84,241,227,103,78,246,22]};
+    const opReturnMsgByteLength = getMessageByteSize(msgInput, true, encryptedEjMock);
+    expect(opReturnMsgByteLength).toStrictEqual(129);
+});
+
+it(`OP_RETURN msg byte length matches for an encrypted msg input with a mixture of symbols, multilingual characters and emojis`, () => {
+    const msgInput = '🙈©冰소주';
+    const encryptedEjMock = {"type":"Buffer","data":[3,237,190,133,5,192,187,247,209,218,154,239,194,148,24,151,26,150,97,190,245,27,226,249,75,203,36,128,170,209,250,181,239,253,242,53,181,198,37,123,236,120,192,179,194,103,119,70,108,242,144,120,52,205,123,158,244,27,127,232,106,215,201,88,22,146,129,6,35,160,147,198,131,236,202,200,137,39,80,241,168,158,211,113,123,76,89,81,82,250,220,162,226,63,154,76,23]};
+    const opReturnMsgByteLength = getMessageByteSize(msgInput, true, encryptedEjMock);
+    expect(opReturnMsgByteLength).toStrictEqual(97);
+});
+
 it(`OP_RETURN msg byte length matches for a msg input with a single emoji`, () => {
     const msgInput = '🙈';
     const opReturnMsgByteLength = getMessageByteSize(msgInput);
