@@ -29,7 +29,7 @@ describe('ecash-herald events.js', async function () {
                 input: thisBlockHash,
                 output: thisBlockChronikBlockResponse,
             });
-            const thisBlockExpectedMsg = thisBlock.tgMsg;
+            const thisBlockExpectedMsgs = thisBlock.blockSummaryTgMsgs;
 
             const telegramBot = new MockTelegramBot();
             const channelId = mockChannelId;
@@ -55,13 +55,19 @@ describe('ecash-herald events.js', async function () {
             // Check that sendMessage was called successfully
             assert.strictEqual(telegramBot.messageSent, true);
 
+            // Build expected array of successful msg returns
+            let msgSuccessArray = [];
+            for (let i = 0; i < thisBlockExpectedMsgs.length; i += 1) {
+                msgSuccessArray.push({
+                    success: true,
+                    channelId,
+                    msg: thisBlockExpectedMsgs[i],
+                    options: config.tgMsgOptions,
+                });
+            }
+
             // Check that the correct msg info was sent
-            assert.deepEqual(result, {
-                success: true,
-                channelId,
-                msg: thisBlockExpectedMsg,
-                options: config.tgMsgOptions,
-            });
+            assert.deepEqual(result, msgSuccessArray);
         }
     });
     it('handleBlockConnected creates and sends a telegram msg without price info for all mocked blocks if api call fails', async function () {
@@ -78,7 +84,8 @@ describe('ecash-herald events.js', async function () {
                 input: thisBlockHash,
                 output: thisBlockChronikBlockResponse,
             });
-            const thisBlockExpectedMsg = thisBlock.tgMsgPriceFailure;
+            const thisBlockExpectedMsgs =
+                thisBlock.blockSummaryTgMsgsPriceFailure;
 
             const telegramBot = new MockTelegramBot();
             const channelId = mockChannelId;
@@ -102,13 +109,19 @@ describe('ecash-herald events.js', async function () {
             // Check that sendMessage was called successfully
             assert.strictEqual(telegramBot.messageSent, true);
 
+            // Build expected array of successful msg returns
+            let msgSuccessArray = [];
+            for (let i = 0; i < thisBlockExpectedMsgs.length; i += 1) {
+                msgSuccessArray.push({
+                    success: true,
+                    channelId,
+                    msg: thisBlockExpectedMsgs[i],
+                    options: config.tgMsgOptions,
+                });
+            }
+
             // Check that the correct msg info was sent
-            assert.deepEqual(result, {
-                success: true,
-                channelId,
-                msg: thisBlockExpectedMsg,
-                options: config.tgMsgOptions,
-            });
+            assert.deepEqual(result, msgSuccessArray);
         }
     });
     it('handleBlockConnected sends desired backup msg if it encounters an error in message creation', async function () {

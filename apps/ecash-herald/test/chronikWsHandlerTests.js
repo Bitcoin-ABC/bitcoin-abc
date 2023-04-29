@@ -123,7 +123,7 @@ describe('ecash-herald chronikWsHandler.js', async function () {
                 input: thisBlockHash,
                 output: thisBlockChronikBlockResponse,
             });
-            const thisBlockExpectedMsg = thisBlock.tgMsg;
+            const thisBlockExpectedMsgs = thisBlock.blockSummaryTgMsgs;
 
             // Mock a chronik websocket msg of correct format
             const mockWsMsg = {
@@ -151,16 +151,19 @@ describe('ecash-herald chronikWsHandler.js', async function () {
                 channelId,
             );
 
-            // Check that sendMessage was called successfully
-            assert.strictEqual(telegramBot.messageSent, true);
+            // Build expected array of successful msg returns
+            let msgSuccessArray = [];
+            for (let i = 0; i < thisBlockExpectedMsgs.length; i += 1) {
+                msgSuccessArray.push({
+                    success: true,
+                    channelId,
+                    msg: thisBlockExpectedMsgs[i],
+                    options: config.tgMsgOptions,
+                });
+            }
 
             // Check that the correct msg info was sent
-            assert.deepEqual(result, {
-                success: true,
-                channelId,
-                msg: thisBlockExpectedMsg,
-                options: config.tgMsgOptions,
-            });
+            assert.deepEqual(result, msgSuccessArray);
         }
     });
     it('parseWebsocketMessage creates and sends a telegram msg without prices for all mocked blocks on failed price API call', async function () {
@@ -177,7 +180,8 @@ describe('ecash-herald chronikWsHandler.js', async function () {
                 input: thisBlockHash,
                 output: thisBlockChronikBlockResponse,
             });
-            const thisBlockExpectedMsg = thisBlock.tgMsgPriceFailure;
+            const thisBlockExpectedMsgs =
+                thisBlock.blockSummaryTgMsgsPriceFailure;
 
             // Mock a chronik websocket msg of correct format
             const mockWsMsg = {
@@ -203,16 +207,22 @@ describe('ecash-herald chronikWsHandler.js', async function () {
                 channelId,
             );
 
+            // Build expected array of successful msg returns
+            let msgSuccessArray = [];
+            for (let i = 0; i < thisBlockExpectedMsgs.length; i += 1) {
+                msgSuccessArray.push({
+                    success: true,
+                    channelId,
+                    msg: thisBlockExpectedMsgs[i],
+                    options: config.tgMsgOptions,
+                });
+            }
+
             // Check that sendMessage was called successfully
             assert.strictEqual(telegramBot.messageSent, true);
 
             // Check that the correct msg info was sent
-            assert.deepEqual(result, {
-                success: true,
-                channelId,
-                msg: thisBlockExpectedMsg,
-                options: config.tgMsgOptions,
-            });
+            assert.deepEqual(result, msgSuccessArray);
         }
     });
     it('parseWebsocketMessage returns false if telegram msg fails to send', async function () {

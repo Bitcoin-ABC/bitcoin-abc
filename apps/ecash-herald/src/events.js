@@ -5,6 +5,7 @@
 const config = require('../config');
 const { parseBlock, getBlockTgMessage } = require('./parse');
 const { getCoingeckoPrices } = require('./utils');
+const { sendBlockSummary } = require('./telegram');
 
 module.exports = {
     handleBlockConnected: async function (
@@ -61,7 +62,10 @@ module.exports = {
         const { coingeckoResponse, coingeckoPrices } = await getCoingeckoPrices(
             config.priceApi,
         );
-        const tgMsg = getBlockTgMessage(parsedBlock, coingeckoPrices);
+        const blockSummaryTgMsgs = getBlockTgMessage(
+            parsedBlock,
+            coingeckoPrices,
+        );
 
         // returnMocks is used in the script function generateMocks
         // Using it as a flag here ensures the script is always using the same function
@@ -73,22 +77,19 @@ module.exports = {
                 parsedBlock,
                 coingeckoResponse,
                 coingeckoPrices,
-                tgMsg,
-                tgMsgPriceFailure: getBlockTgMessage(parsedBlock, false),
+                blockSummaryTgMsgs,
+                blockSummaryTgMsgsPriceFailure: getBlockTgMessage(
+                    parsedBlock,
+                    false,
+                ),
             };
         }
-        try {
-            return await telegramBot.sendMessage(
-                channelId,
-                tgMsg,
-                config.tgMsgOptions,
-            );
-        } catch (err) {
-            console.log(
-                `Error in telegramBot.sendMessage(channelId=${channelId}, msg=${tgMsg}, options=${config.tgMsgOptions})`,
-                err,
-            );
-        }
-        return false;
+
+        // Broadcast block summary telegram message(s)
+        return await sendBlockSummary(
+            blockSummaryTgMsgs,
+            telegramBot,
+            channelId,
+        );
     },
 };

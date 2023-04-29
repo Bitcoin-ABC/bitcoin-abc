@@ -10,7 +10,7 @@
  */
 
 'use strict';
-const config = require('../config');
+const { sendBlockSummary } = require('../src/telegram');
 const secrets = require('../secrets');
 const TelegramBot = require('node-telegram-bot-api');
 const { dev } = secrets;
@@ -19,9 +19,9 @@ const { botId, channelId } = dev.telegram;
 const telegramBotDev = new TelegramBot(botId, { polling: true });
 
 const blocks = require('../test/mocks/blocks');
-function returnTelegramBotSendMessagePromise(msg, options) {
+function returnSendBlockSummaryPromise(tgMsgStrings, telegramBot, channelId) {
     return new Promise((resolve, reject) => {
-        telegramBotDev.sendMessage(channelId, msg, options).then(
+        sendBlockSummary(tgMsgStrings, telegramBot, channelId).then(
             result => {
                 resolve(result);
             },
@@ -36,10 +36,14 @@ async function sendTestTgMsgs() {
     const testTgMsgPromises = [];
     for (let i in blocks) {
         const thisBlock = blocks[i];
-        const { tgMsg } = thisBlock;
+        const { blockSummaryTgMsgs } = thisBlock;
 
         testTgMsgPromises.push(
-            returnTelegramBotSendMessagePromise(tgMsg, config.tgMsgOptions),
+            returnSendBlockSummaryPromise(
+                blockSummaryTgMsgs,
+                telegramBotDev,
+                channelId,
+            ),
         );
     }
 
@@ -49,7 +53,7 @@ async function sendTestTgMsgs() {
         testTgMsgsSuccess = await Promise.all(testTgMsgPromises);
         console.log(
             '\x1b[32m%s\x1b[0m',
-            `✔ Sent ${testTgMsgsSuccess.length} telegram messages to ${testTgMsgsSuccess[0].chat.title}`,
+            `✔ Sent ${testTgMsgsSuccess.length} telegram messages to ${testTgMsgsSuccess[0][0].chat.title}`,
         );
 
         // Exit in success condition

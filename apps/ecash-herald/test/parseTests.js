@@ -20,12 +20,16 @@ describe('parse.js functions', function () {
     it('All test blocks', function () {
         for (let i = 0; i < blocks.length; i += 1) {
             const thisBlock = blocks[i];
-            const { blockDetails, parsedBlock, coingeckoPrices, tgMsg } =
-                thisBlock;
+            const {
+                blockDetails,
+                parsedBlock,
+                coingeckoPrices,
+                blockSummaryTgMsgs,
+            } = thisBlock;
             assert.deepEqual(parseBlock(blockDetails), parsedBlock);
             assert.deepEqual(
                 getBlockTgMessage(parsedBlock, coingeckoPrices),
-                tgMsg,
+                blockSummaryTgMsgs,
             );
         }
     });

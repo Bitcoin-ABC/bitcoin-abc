@@ -5,7 +5,10 @@
 'use strict';
 const config = require('../config');
 const cashaddr = require('ecashaddrjs');
-const { prepareStringForTelegramHTML } = require('./telegram');
+const {
+    prepareStringForTelegramHTML,
+    splitOverflowTgMsg,
+} = require('./telegram');
 const { formatPrice, returnAddressPreview } = require('./utils');
 module.exports = {
     parseBlock: function (chronikBlockResponse) {
@@ -459,7 +462,6 @@ module.exports = {
             tgMsg = tgMsg.concat(xecSendTxTgMsgLines);
         }
 
-        // Join array with newLine char, \n
-        return tgMsg.join('\n');
+        return splitOverflowTgMsg(tgMsg);
     },
 };
