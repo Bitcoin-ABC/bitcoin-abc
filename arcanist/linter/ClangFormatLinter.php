@@ -38,11 +38,13 @@ final class ClangFormatLinter extends ArcanistExternalLinter {
     list($stdout) = execx('%C -version', $this->getExecutableCommand());
 
     $matches = array();
-    $regex = '/^clang-format version (?P<version>\d+\.\d+)\./';
+    $regex = '/clang-format version (?P<version>\d+\.\d+)\./';
     if (preg_match($regex, $stdout, $matches)) {
       $version = $matches['version'];
     } else {
-      return false;
+      throw new Exception(pht('Unable to read clang-format version. Please '.
+                              'make sure clang-format version 12.x is '.
+                              'installed and in the PATH.'));
     }
 
     /*

@@ -1246,8 +1246,9 @@ void BitcoinGUI::message(const QString &title, QString message,
     if (style & CClientUIInterface::MODAL) {
         // Check for buttons, use OK as default, if none was supplied
         QMessageBox::StandardButton buttons;
-        if (!(buttons = (QMessageBox::StandardButton)(
-                  style & CClientUIInterface::BTN_MASK))) {
+        if (!(buttons =
+                  (QMessageBox::StandardButton)(style & CClientUIInterface::
+                                                            BTN_MASK))) {
             buttons = QMessageBox::Ok;
         }
 

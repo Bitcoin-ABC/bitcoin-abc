@@ -31,7 +31,8 @@ struct NoLockLoggingTestingSetup : public TestingSetup {
 #ifdef DEBUG_LOCKCONTENTION
         : TestingSetup{CBaseChainParams::MAIN, /*extra_args=*/{
                            "-debugexclude=lock"
-                       }} {}
+                       }} {
+    }
 #else
         : TestingSetup{CBaseChainParams::MAIN} {
     }
