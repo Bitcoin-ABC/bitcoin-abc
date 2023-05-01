@@ -3495,6 +3495,7 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
     CBlockIndex *pindexMostWork = nullptr;
     CBlockIndex *pindexNewTip = nullptr;
     int nStopAtHeight = gArgs.GetIntArg("-stopatheight", DEFAULT_STOPATHEIGHT);
+    bool exited_ibd{false};
     do {
         // Block until the validation queue drains. This should largely
         // never happen in normal operation, however may happen during
@@ -3515,6 +3516,7 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
             // Lock transaction pool for at least as long as it takes for
             // updateMempoolForReorg to be executed if needed
             LOCK(MempoolMutex());
+            const bool was_in_ibd = m_chainman.IsInitialBlockDownload();
             CBlockIndex *starting_tip = m_chain.Tip();
             do {
                 // We absolutely may not unlock cs_main until we've made forward
@@ -3576,7 +3578,12 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
 
             if (blocks_connected) {
                 const CBlockIndex *pindexFork = m_chain.FindFork(starting_tip);
-                bool fInitialDownload = m_chainman.IsInitialBlockDownload();
+                bool still_in_ibd = m_chainman.IsInitialBlockDownload();
+
+                if (was_in_ibd && !still_in_ibd) {
+                    // Active chainstate has exited IBD
+                    exited_ibd = true;
+                }
 
                 // Notify external listeners about the new tip.
                 // Enqueue while holding cs_main to ensure that UpdatedBlockTip
@@ -3584,12 +3591,11 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
                 if (pindexFork != pindexNewTip) {
                     // Notify ValidationInterface subscribers
                     GetMainSignals().UpdatedBlockTip(pindexNewTip, pindexFork,
-                                                     fInitialDownload);
+                                                     still_in_ibd);
 
                     // Always notify the UI if a new block tip was connected
                     m_chainman.GetNotifications().blockTip(
-                        GetSynchronizationState(fInitialDownload),
-                        *pindexNewTip);
+                        GetSynchronizationState(still_in_ibd), *pindexNewTip);
                 }
             }
         }
@@ -3626,6 +3632,14 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
         if (nStopAtHeight && pindexNewTip &&
             pindexNewTip->nHeight >= nStopAtHeight) {
             StartShutdown();
+        }
+
+        if (exited_ibd) {
+            // If a background chainstate is in use, we may need to rebalance
+            // our allocation of caches once a chainstate exits initial block
+            // download.
+            LOCK(::cs_main);
+            m_chainman.MaybeRebalanceCaches();
         }
 
         if (WITH_LOCK(::cs_main, return m_disabled)) {
