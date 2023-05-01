@@ -8,12 +8,14 @@ use abc_rust_error::Result;
 use bitcoinsuite_core::block::BlockHash;
 use chronik_db::{
     db::Db,
-    io::{BlockHeight, BlockReader},
+    io::{BlockHeight, BlockReader, DbBlock},
 };
 use chronik_proto::proto;
 use thiserror::Error;
 
 use crate::avalanche::Avalanche;
+
+const MAX_BLOCKS_PAGE_SIZE: usize = 500;
 
 /// Struct for querying blocks from the DB.
 #[derive(Debug)]
@@ -34,6 +36,21 @@ pub enum QueryBlockError {
     /// Block not found in DB
     #[error("404: Block not found: {0}")]
     BlockNotFound(String),
+
+    /// Invalid block start height
+    #[error("400: Invalid block start height: {0}")]
+    InvalidStartHeight(BlockHeight),
+
+    /// Invalid block end height
+    #[error("400: Invalid block end height: {0}")]
+    InvalidEndHeight(BlockHeight),
+
+    /// Blocks page size too large
+    #[error(
+        "400: Blocks page size too large, may not be above {} but got {0}",
+        MAX_BLOCKS_PAGE_SIZE
+    )]
+    BlocksPageSizeTooLarge(usize),
 }
 
 use self::QueryBlockError::*;
@@ -61,15 +78,37 @@ impl<'a> QueryBlocks<'a> {
         };
         let db_block = db_block.ok_or(BlockNotFound(hash_or_height))?;
         Ok(proto::Block {
-            block_info: Some(proto::BlockInfo {
-                hash: db_block.hash.to_vec(),
-                prev_hash: db_block.prev_hash.to_vec(),
-                height: db_block.height,
-                n_bits: db_block.n_bits,
-                timestamp: db_block.timestamp,
-                is_final: self.avalanche.is_final_height(db_block.height),
-            }),
+            block_info: Some(self.make_block_info_proto(&db_block)),
         })
+    }
+
+    /// Query blocks by a range of heights. Start and end height are inclusive.
+    pub fn by_range(
+        &self,
+        start_height: BlockHeight,
+        end_height: BlockHeight,
+    ) -> Result<proto::Blocks> {
+        if start_height < 0 {
+            return Err(InvalidStartHeight(start_height).into());
+        }
+        if end_height < start_height {
+            return Err(InvalidEndHeight(end_height).into());
+        }
+        let num_blocks = end_height as usize - start_height as usize + 1;
+        if num_blocks > MAX_BLOCKS_PAGE_SIZE {
+            return Err(BlocksPageSizeTooLarge(num_blocks).into());
+        }
+        let block_reader = BlockReader::new(self.db)?;
+        let mut blocks = Vec::with_capacity(num_blocks);
+        for block_height in start_height..=end_height {
+            let block = block_reader.by_height(block_height)?;
+            let block = match block {
+                Some(block) => block,
+                None => break,
+            };
+            blocks.push(self.make_block_info_proto(&block));
+        }
+        Ok(proto::Blocks { blocks })
     }
 
     /// Query some info about the blockchain, e.g. the tip hash and height.
@@ -84,6 +123,17 @@ impl<'a> QueryBlocks<'a> {
                 tip_hash: vec![0; 32],
                 tip_height: -1,
             }),
+        }
+    }
+
+    fn make_block_info_proto(&self, db_block: &DbBlock) -> proto::BlockInfo {
+        proto::BlockInfo {
+            hash: db_block.hash.to_vec(),
+            prev_hash: db_block.prev_hash.to_vec(),
+            height: db_block.height,
+            n_bits: db_block.n_bits,
+            timestamp: db_block.timestamp,
+            is_final: self.avalanche.is_final_height(db_block.height),
         }
     }
 }

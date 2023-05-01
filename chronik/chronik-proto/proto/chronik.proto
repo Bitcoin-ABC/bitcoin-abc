@@ -12,6 +12,12 @@ message Block {
     BlockInfo block_info = 1;
 }
 
+// Range of blocks
+message Blocks {
+    // Queried blocks
+    repeated BlockInfo blocks = 1;
+}
+
 // Info about the state of the blockchain.
 message BlockchainInfo {
     // Hash (little-endian) of the current tip

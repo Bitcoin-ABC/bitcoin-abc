@@ -113,6 +113,7 @@ impl ChronikServer {
         Router::new()
             .route("/blockchain-info", routing::get(handle_blockchain_info))
             .route("/block/:hash_or_height", routing::get(handle_block))
+            .route("/blocks/:start/:end", routing::get(handle_block_range))
             .route("/tx/:txid", routing::get(handle_tx))
             .route(
                 "/script/:type/:payload/confirmed-txs",
@@ -142,6 +143,15 @@ async fn handle_blockchain_info(
     let indexer = indexer.read().await;
     let blocks = indexer.blocks();
     Ok(Protobuf(blocks.blockchain_info()?))
+}
+
+async fn handle_block_range(
+    Path((start_height, end_height)): Path<(i32, i32)>,
+    Extension(indexer): Extension<ChronikIndexerRef>,
+) -> Result<Protobuf<proto::Blocks>, ReportError> {
+    let indexer = indexer.read().await;
+    let blocks = indexer.blocks();
+    Ok(Protobuf(blocks.by_range(start_height, end_height)?))
 }
 
 async fn handle_block(

@@ -145,6 +145,9 @@ class ChronikClient:
     def block(self, hash_or_height: Union[str, int]) -> ChronikResponse:
         return self._request_get(f'/block/{hash_or_height}', pb.Block)
 
+    def blocks(self, start_height: int, end_height: int) -> ChronikResponse:
+        return self._request_get(f'/blocks/{start_height}/{end_height}', pb.Blocks)
+
     def tx(self, txid: str) -> ChronikResponse:
         return self._request_get(f'/tx/{txid}', pb.Tx)
 
