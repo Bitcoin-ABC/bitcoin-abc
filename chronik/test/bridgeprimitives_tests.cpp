@@ -12,6 +12,7 @@
 #include <chronik-cpp/util/hash.h>
 #include <config.h>
 #include <node/blockstorage.h>
+#include <streams.h>
 #include <undo.h>
 #include <util/strencodings.h>
 #include <validation.h>
@@ -162,6 +163,12 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_genesis, TestChain100Setup) {
                                           bridgedGenesisTx.data_pos,
                                           bridgedGenesisTx.undo_pos),
                   bridgedGenesisTx.tx);
+
+    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+    ss << genesisBlock.vtx[0];
+    BOOST_CHECK_EQUAL(HexStr(ss), HexStr(chronik_bridge::load_raw_tx(
+                                      bridgedGenesisBlock.file_num,
+                                      bridgedGenesisTx.data_pos)));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_bridge_detailled, TestChain100Setup) {
@@ -304,6 +311,14 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_detailled, TestChain100Setup) {
                                               bridgedTx.data_pos,
                                               bridgedTx.undo_pos),
                       bridgedTx.tx);
+    }
+
+    for (size_t i = 0; i < testBlock.vtx.size(); ++i) {
+        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+        ss << testBlock.vtx[i];
+        BOOST_CHECK_EQUAL(HexStr(ss), HexStr(chronik_bridge::load_raw_tx(
+                                          bridgedTestBlock.file_num,
+                                          bridgedTestBlock.txs[i].data_pos)));
     }
 }
 

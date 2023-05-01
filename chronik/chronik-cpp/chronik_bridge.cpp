@@ -253,6 +253,16 @@ Tx load_tx(uint32_t file_num, uint32_t data_pos, uint32_t undo_pos) {
     return BridgeTx(isCoinbase, CTransaction(std::move(tx)), txundo.vprevout);
 }
 
+rust::Vec<uint8_t> load_raw_tx(uint32_t file_num, uint32_t data_pos) {
+    CMutableTransaction tx;
+    if (!node::ReadTxFromDisk(tx, FlatFilePos(file_num, data_pos))) {
+        throw std::runtime_error("Reading tx data from disk failed");
+    }
+    CDataStream raw_tx{SER_NETWORK, PROTOCOL_VERSION};
+    raw_tx << tx;
+    return chronik::util::ToRustVec<uint8_t>(raw_tx);
+}
+
 BlockInfo get_block_info(const CBlockIndex &bindex) {
     return {
         .hash = chronik::util::HashToArray(bindex.GetBlockHash()),

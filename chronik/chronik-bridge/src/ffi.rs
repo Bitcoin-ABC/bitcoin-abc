@@ -215,6 +215,9 @@ mod ffi_inner {
         /// bridged Tx, containing spent coins etc.
         fn load_tx(file_num: u32, data_pos: u32, undo_pos: u32) -> Result<Tx>;
 
+        /// Load the CTransaction from disk and serialize it.
+        fn load_raw_tx(file_num: u32, data_pos: u32) -> Result<Vec<u8>>;
+
         /// Get a BlockInfo for this CBlockIndex.
         fn get_block_info(block_index: &CBlockIndex) -> BlockInfo;
 

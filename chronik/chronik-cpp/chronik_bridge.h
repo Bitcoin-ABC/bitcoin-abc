@@ -71,6 +71,7 @@ std::unique_ptr<ChronikBridge> make_bridge(const Config &config,
 Block bridge_block(const CBlock &block, const CBlockIndex &bindex);
 
 Tx load_tx(uint32_t file_num, uint32_t data_pos, uint32_t undo_pos);
+rust::Vec<uint8_t> load_raw_tx(uint32_t file_num, uint32_t data_pos);
 
 BlockInfo get_block_info(const CBlockIndex &index);
 
