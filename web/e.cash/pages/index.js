@@ -4,7 +4,8 @@ import Layout from '/components/layout';
 import VideoBackground from '/components/videobackground';
 import GlitchText from '/components/glitch-text';
 import { socials } from '/data/socials';
-import { Hero } from '/styles/pages/homepage';
+import { Hero, ButtonCtn } from '/styles/pages/homepage';
+import Button from '/components/button';
 
 export default function Home() {
     return (
@@ -22,6 +23,14 @@ export default function Home() {
                         Experience the revolutionary new money powered by
                         Avalanche.
                     </p>
+                    <ButtonCtn>
+                        <Button
+                            text="Avalanche Consensus"
+                            link="https://avalanche.cash/"
+                            color="white"
+                            glow
+                        />
+                    </ButtonCtn>
                     <div className="social-ctn">
                         {socials.map(social => (
                             <Link
