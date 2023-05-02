@@ -18,7 +18,6 @@ export const Hero = styled.div`
         bottom: 30px;
         left: 20px;
         right: 0;
-        width: 100%;
         margin: auto;
         max-width: 1400px;
     }
