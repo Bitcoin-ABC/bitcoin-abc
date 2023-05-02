@@ -11,6 +11,7 @@ export const ecash = {
     },
     filters: {
         grayscale: null,
+        videospeed: 1,
     },
     breakpoint: {
         medium: '@media (max-width: 920px)',
@@ -31,6 +32,7 @@ export const stealth = {
     },
     filters: {
         grayscale: 'filter: grayscale(100%);',
+        videospeed: 0.4,
     },
     breakpoint: {
         medium: '@media (max-width: 920px)',
