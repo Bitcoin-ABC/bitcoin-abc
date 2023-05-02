@@ -5,8 +5,6 @@ export LC_ALL=C
 set -euo pipefail
 
 DEFAULT_DISTROS=()
-# Bionic: Ubuntu 18.04 LTS
-DEFAULT_DISTROS+=("bionic")
 # Focal: Ubuntu 20.04 LTS
 DEFAULT_DISTROS+=("focal")
 # Jammy: Ubuntu 22.04 LTS
