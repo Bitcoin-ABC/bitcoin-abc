@@ -1223,11 +1223,14 @@ const Configure = ({ passLoadingStatus }) => {
             const isAlias = isAliasFormat(value);
             // extract alias without the `.xec`
             const aliasName = value.slice(0, value.length - 4);
-            const isRegistered = isAliasRegistered(cashtabCache.aliasCache.aliases, aliasName);
+            const isRegistered = isAliasRegistered(
+                cashtabCache.aliasCache.aliases,
+                aliasName,
+            );
             const isValidAlias = isAlias && isRegistered ? true : false;
             setManualContactAddressIsValid(isValidAlias);
         }
-        
+
         setManualContactAddress(value);
     };
 

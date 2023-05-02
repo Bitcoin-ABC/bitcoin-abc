@@ -533,9 +533,13 @@ export const sendXec = async (
 
         let opReturnByteCount;
         if (optionalOpReturnMsg) {
-            opReturnByteCount = getMessageByteSize(optionalOpReturnMsg, encryptionFlag, encryptedEj);
+            opReturnByteCount = getMessageByteSize(
+                optionalOpReturnMsg,
+                encryptionFlag,
+                encryptedEj,
+            );
         }
-        
+
         // generate the tx inputs and add to txBuilder instance
         // returns the updated txBuilder, txFee, totalInputUtxoValue and inputUtxos
         let txInputObj = generateTxInput(

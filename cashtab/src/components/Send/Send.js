@@ -41,7 +41,12 @@ import {
     TxLink,
     MsgBytesizeError,
 } from 'components/Common/Atoms';
-import { getWalletState, fromSatoshisToXec, calcFee, getMessageByteSize } from 'utils/cashMethods';
+import {
+    getWalletState,
+    fromSatoshisToXec,
+    calcFee,
+    getMessageByteSize,
+} from 'utils/cashMethods';
 import { sendXec } from 'utils/transactions';
 import ApiError from 'components/Common/ApiError';
 import { formatFiatBalance, formatBalance } from 'utils/formatting';
@@ -182,7 +187,11 @@ const SendBCH = ({ passLoadingStatus }) => {
     const pushDataByteCount = 1;
     const prefixByteCount = 4;
     const tokenIdByteCount = 32;
-    const localAirdropTxAddedBytes = pushDataByteCount + tokenIdByteCount + pushDataByteCount + prefixByteCount; // 38
+    const localAirdropTxAddedBytes =
+        pushDataByteCount +
+        tokenIdByteCount +
+        pushDataByteCount +
+        prefixByteCount; // 38
 
     const [airdropFlag, setAirdropFlag] = useState(false);
 
@@ -243,14 +252,14 @@ const SendBCH = ({ passLoadingStatus }) => {
             setFormData({
                 address: location.state.contactSend,
             });
-            
+
             // explicitly trigger the address validation upon navigation from contact list
             handleAddressChange({
                 target: {
                     name: 'address',
                     value: location.state.contactSend,
                 },
-            })
+            });
         }
 
         // if this was routed from the Airdrop screen's Airdrop Calculator then
@@ -610,18 +619,21 @@ const SendBCH = ({ passLoadingStatus }) => {
             [name]: value,
         }));
     };
-    
+
     const handleMsgChange = e => {
         const { value } = e.target;
         let msgError = false;
         const msgByteSize = getMessageByteSize(value);
 
-        const maxSize = (location &&
-                        location.state &&
-                        location.state.airdropTokenId) ? (currency.opReturn.unencryptedMsgByteLimit - localAirdropTxAddedBytes) 
-                        : isEncryptedOptionalOpReturnMsg ? currency.opReturn.encryptedMsgByteLimit : currency.opReturn.unencryptedMsgByteLimit;
+        const maxSize =
+            location && location.state && location.state.airdropTokenId
+                ? currency.opReturn.unencryptedMsgByteLimit -
+                  localAirdropTxAddedBytes
+                : isEncryptedOptionalOpReturnMsg
+                ? currency.opReturn.encryptedMsgByteLimit
+                : currency.opReturn.unencryptedMsgByteLimit;
         if (msgByteSize > maxSize) {
-              msgError = `Message can not exceed ${maxSize} bytes`;
+            msgError = `Message can not exceed ${maxSize} bytes`;
         }
         setIsMsgError(msgError);
         setOpReturnMsg(e.target.value);
@@ -1037,7 +1049,11 @@ const SendBCH = ({ passLoadingStatus }) => {
                                                 : location &&
                                                   location.state &&
                                                   location.state.airdropTokenId
-                                                ? `(max ${currency.opReturn.unencryptedMsgByteLimit - localAirdropTxAddedBytes} bytes)`
+                                                ? `(max ${
+                                                      currency.opReturn
+                                                          .unencryptedMsgByteLimit -
+                                                      localAirdropTxAddedBytes
+                                                  } bytes)`
                                                 : `(max ${currency.opReturn.unencryptedMsgByteLimit} bytes)`
                                         }
                                         value={
@@ -1052,16 +1068,16 @@ const SendBCH = ({ passLoadingStatus }) => {
                                                     : opReturnMsg
                                                 : ''
                                         }
-                                        onChange={e =>
-                                            handleMsgChange(e)
-                                        }
+                                        onChange={e => handleMsgChange(e)}
                                         onKeyDown={e =>
                                             e.keyCode == 13
                                                 ? e.preventDefault()
                                                 : ''
                                         }
                                     />
-                                    <MsgBytesizeError>{isMsgError ? isMsgError : ''}</MsgBytesizeError>
+                                    <MsgBytesizeError>
+                                        {isMsgError ? isMsgError : ''}
+                                    </MsgBytesizeError>
                                 </AntdFormWrapper>
                             </CustomCollapseCtn>
                             {apiError && <ApiError />}

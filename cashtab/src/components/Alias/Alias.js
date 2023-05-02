@@ -306,7 +306,9 @@ const Alias = ({ passLoadingStatus }) => {
                 onCancel={handleCancel}
             >
                 <p>
-                    {`Are you sure you want to register the alias '${formData.aliasName}' for ${fromSatoshisToXec(aliasFee)} XECs?`}
+                    {`Are you sure you want to register the alias '${
+                        formData.aliasName
+                    }' for ${fromSatoshisToXec(aliasFee)} XECs?`}
                 </p>
             </Modal>
             <WalletInfoCtn>
@@ -380,7 +382,9 @@ const Alias = ({ passLoadingStatus }) => {
                                     <Form.Item>
                                         <SmartButton
                                             disabled={!isValidAliasInput}
-                                            onClick={() => setIsModalVisible(true)}
+                                            onClick={() =>
+                                                setIsModalVisible(true)
+                                            }
                                         >
                                             Register Alias
                                         </SmartButton>
