@@ -43,7 +43,6 @@ case $1 in
   -h|--help)
     help_message
     exit 0
-    shift # shift past argument
     ;;
   -o|--remote)
     REMOTE="$2"
@@ -64,7 +63,6 @@ case $1 in
     echo "Unknown argument: $1"
     help_message
     exit 1
-    shift # shift past argument
     ;;
 esac
 done
@@ -89,6 +87,7 @@ git pull "${REMOTE}" "${BRANCH}"
 
 (
   # If arc fails, there may be a dangling branch. Clean it up before exiting.
+  # shellcheck disable=SC2317
   cleanup() {
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
     git checkout "${BRANCH}"
