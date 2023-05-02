@@ -2,7 +2,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-use crate::{script::Script, tx::TxId};
+use crate::{
+    script::Script,
+    ser::{BitcoinSer, BitcoinSerializer},
+    tx::TxId,
+};
 
 /// CTransaction, a Bitcoin transaction.
 ///
@@ -131,5 +135,117 @@ impl std::ops::Deref for Tx {
 
     fn deref(&self) -> &Self::Target {
         &self.tx
+    }
+}
+
+impl BitcoinSer for TxMut {
+    fn ser_to<S: BitcoinSerializer>(&self, bytes: &mut S) {
+        self.version.ser_to(bytes);
+        self.inputs.ser_to(bytes);
+        self.outputs.ser_to(bytes);
+        self.locktime.ser_to(bytes);
+    }
+}
+
+impl BitcoinSer for Tx {
+    fn ser_to<S: BitcoinSerializer>(&self, bytes: &mut S) {
+        TxMut::ser_to(self, bytes)
+    }
+}
+
+impl BitcoinSer for OutPoint {
+    fn ser_to<S: BitcoinSerializer>(&self, bytes: &mut S) {
+        self.txid.ser_to(bytes);
+        self.out_idx.ser_to(bytes);
+    }
+}
+
+impl BitcoinSer for TxInput {
+    fn ser_to<S: BitcoinSerializer>(&self, bytes: &mut S) {
+        self.prev_out.ser_to(bytes);
+        self.script.ser_to(bytes);
+        self.sequence.ser_to(bytes);
+    }
+}
+
+impl BitcoinSer for TxOutput {
+    fn ser_to<S: BitcoinSerializer>(&self, bytes: &mut S) {
+        self.value.ser_to(bytes);
+        self.script.ser_to(bytes);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        script::Script,
+        ser::BitcoinSer,
+        tx::{OutPoint, Tx, TxId, TxInput, TxMut, TxOutput},
+    };
+
+    fn verify_ser(tx: TxMut, ser: &[u8]) {
+        assert_eq!(tx.ser().as_ref(), ser);
+        assert_eq!(tx.ser_len(), ser.len());
+        let tx = Tx::with_txid(TxId::from([12; 32]), tx);
+        assert_eq!(tx.ser().as_ref(), ser);
+        assert_eq!(tx.ser_len(), ser.len());
+    }
+
+    #[test]
+    fn test_ser_tx() -> Result<(), hex::FromHexError> {
+        verify_ser(TxMut::default(), &[0; 10]);
+        verify_ser(
+            TxMut {
+                version: 0x12345678,
+                inputs: vec![],
+                outputs: vec![],
+                locktime: 0x9abcdef1,
+            },
+            &hex::decode("785634120000f1debc9a")?,
+        );
+        let genesis_tx = TxMut {
+            version: 1,
+            inputs: vec![TxInput {
+                prev_out: OutPoint {
+                    txid: TxId::from([0; 32]),
+                    out_idx: 0xffff_ffff,
+                },
+                script: Script::new(
+                    hex::decode(
+                        "04ffff001d0104455468652054696d65732030332f4a616e2f3230\
+                         3039204368616e63656c6c6f72206f6e206272696e6b206f662073\
+                         65636f6e64206261696c6f757420666f722062616e6b73",
+                    )?
+                    .into(),
+                ),
+                sequence: 0xffff_ffff,
+                coin: None,
+            }],
+            outputs: vec![TxOutput {
+                value: 5000000000,
+                script: Script::new(
+                    hex::decode(
+                        "4104678afdb0fe5548271967f1a67130b7105cd6a828e03909a679\
+                         62e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7\
+                         ba0b8d578a4c702b6bf11d5fac",
+                    )?
+                    .into(),
+                ),
+            }],
+            locktime: 0,
+        };
+        verify_ser(
+            genesis_tx,
+            &hex::decode(
+                "01000000010000000000000000000000000000000000000000000000000000\
+                 000000000000ffffffff4d04ffff001d0104455468652054696d6573203033\
+                 2f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f\
+                 66207365636f6e64206261696c6f757420666f722062616e6b73ffffffff01\
+                 00f2052a01000000434104678afdb0fe5548271967f1a67130b7105cd6a828\
+                 e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384d\
+                 f7ba0b8d578a4c702b6bf11d5fac00000000"
+            )?,
+        );
+        Ok(())
     }
 }

@@ -7,6 +7,7 @@ use bytes::Bytes;
 use crate::{
     hash::{Hashed, ShaRmd160},
     script::{opcode::*, PubKey, ScriptMut, ScriptOpIter, UncompressedPubKey},
+    ser::{BitcoinSer, BitcoinSerializer},
 };
 
 /// A Bitcoin script.
@@ -213,5 +214,36 @@ impl Script {
 impl AsRef<[u8]> for Script {
     fn as_ref(&self) -> &[u8] {
         self.0.as_ref()
+    }
+}
+
+impl BitcoinSer for Script {
+    fn ser_to<S: BitcoinSerializer>(&self, bytes: &mut S) {
+        self.0.ser_to(bytes)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{script::Script, ser::BitcoinSer};
+
+    fn verify_ser(a: Script, b: &[u8]) {
+        assert_eq!(a.ser().as_ref(), b);
+        assert_eq!(a.ser_len(), b.len());
+    }
+
+    #[test]
+    fn test_ser_script() {
+        verify_ser(Script::default(), &[0x00]);
+        verify_ser(Script::new(vec![0x51].into()), &[0x01, 0x51]);
+        verify_ser(Script::new(vec![0x51, 0x52].into()), &[0x02, 0x51, 0x52]);
+        verify_ser(
+            Script::new(vec![4; 0xfd].into()),
+            &[[0xfd, 0xfd, 0].as_ref(), &[4; 0xfd]].concat(),
+        );
+        verify_ser(
+            Script::new(vec![5; 0x10000].into()),
+            &[[0xfe, 0, 0, 1, 0].as_ref(), &vec![5; 0x10000]].concat(),
+        );
     }
 }

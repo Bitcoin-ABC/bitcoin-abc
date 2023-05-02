@@ -5,6 +5,7 @@
 use crate::{
     error::DataError,
     hash::{Hashed, Sha256d},
+    ser::{BitcoinSer, BitcoinSerializer},
 };
 
 /// Wraps a tx ID's [`Sha256d`], to avoid mixing different kinds of hashes.
@@ -103,6 +104,12 @@ impl From<Sha256d> for TxId {
 impl AsRef<[u8]> for TxId {
     fn as_ref(&self) -> &[u8] {
         self.0.as_ref()
+    }
+}
+
+impl BitcoinSer for TxId {
+    fn ser_to<S: BitcoinSerializer>(&self, bytes: &mut S) {
+        bytes.put(self.as_bytes())
     }
 }
 
