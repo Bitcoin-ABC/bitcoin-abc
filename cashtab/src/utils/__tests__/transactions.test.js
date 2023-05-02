@@ -1,5 +1,10 @@
 /* eslint-disable no-native-reassign */
 import sendBCHMock from '../__mocks__/sendBCH';
+import {
+    aliasRegisteringWallet,
+    aliasRegisteringWalletAfterTx,
+    aliasRegisteringWalletAfterTwoTxs,
+} from '../__mocks__/registerNewAliasMocks';
 import createTokenMock from '../__mocks__/createToken';
 import { burnTokenWallet } from '../__mocks__/burnToken';
 import { currency } from '../../components/Common/Ticker';
@@ -11,6 +16,7 @@ import {
     burnToken,
     createToken,
     getRecipientPublicKey,
+    registerNewAlias,
 } from 'utils/transactions';
 
 describe('Cashtab transaction broadcasting functions', () => {
@@ -97,6 +103,89 @@ describe('Cashtab transaction broadcasting functions', () => {
                 addressAndValueArray,
             ),
         ).toBe(`${currency.blockExplorerUrl}/tx/${expectedTxId}`);
+    });
+
+    it('Broadcasts a v0 alias registration tx for an 8-byte alias to a p2pkh address', async () => {
+        const chronik = new ChronikClient(
+            'https://FakeChronikUrlToEnsureMocksOnly.com',
+        );
+
+        const mockTxid =
+            '1272c4a9bf5829c9dba1efb252e753ed20e3cdd49b6e75a778befc7a87eaf7d0';
+
+        chronik.broadcastTx = jest.fn().mockResolvedValue({ txid: mockTxid });
+
+        const expectedResult = {
+            explorerLink:
+                'https://explorer.e.cash/tx/1272c4a9bf5829c9dba1efb252e753ed20e3cdd49b6e75a778befc7a87eaf7d0',
+            rawTxHex:
+                '0200000001049c2df49978e91fbd28e7827c2cee71c1d56c7743706b7f959dc090ba649e87000000006b483045022100dd79c2a3e8773e7d4963ad3f6f03b54aca569e8e383c5cdc285afa601ee50829022058dfcdc905ec8f45d7418644ccfdf45cd8db41aade2d57d455c50e1a181cf7bb4121036ea648569566fa0843b914f67e54ebcfa6921208acd6408d2881488809403ac6ffffffff030000000000000000266a042e78656300086e65777465737431150020edc8389101aed204b9c17b7d64a00ead0e8cfc27020000000000001976a914638568e36d0b5d7d49a6e99854caa27d9772b09388ac92929800000000001976a91420edc8389101aed204b9c17b7d64a00ead0e8cfc88ac00000000',
+            txid: '1272c4a9bf5829c9dba1efb252e753ed20e3cdd49b6e75a778befc7a87eaf7d0',
+        };
+        expect(
+            await registerNewAlias(
+                chronik,
+                aliasRegisteringWallet,
+                currency.defaultFee,
+                'newtest1',
+                'ecash:qqswmjpcjyq6a5syh8qhklty5q826r5vlsh7a7uqtq',
+                551,
+            ),
+        ).toStrictEqual(expectedResult);
+    });
+    it('Broadcasts a v0 alias registration tx for a 21-byte alias to a p2pkh address', async () => {
+        const chronik = new ChronikClient(
+            'https://FakeChronikUrlToEnsureMocksOnly.com',
+        );
+
+        const mockTxid =
+            '912582a1dc11b568f14f8ebae15cbb0ce53bdb973e137e7dc7c9b261327e6cab';
+
+        chronik.broadcastTx = jest.fn().mockResolvedValue({ txid: mockTxid });
+
+        const expectedResult = {
+            explorerLink: `${currency.blockExplorerUrl}/tx/${mockTxid}`,
+            txid: mockTxid,
+            rawTxHex:
+                '0200000001d0f7ea877afcbe78a7756e9bd4cde320ed53e752b2efa1dbc92958bfa9c47212020000006a47304402205cf1941bd0ed8c49319189973feebd14e8d7faf6c5a3cdc6c16f676bd62c63ac022068c10726326e37f960433a92894609f7f0b65946d8104038110e2104d973c8e24121036ea648569566fa0843b914f67e54ebcfa6921208acd6408d2881488809403ac6ffffffff030000000000000000336a042e78656300157477656e74796f6e6562797465616c696173726567150020edc8389101aed204b9c17b7d64a00ead0e8cfc27020000000000001976a914638568e36d0b5d7d49a6e99854caa27d9772b09388aca48e9800000000001976a91420edc8389101aed204b9c17b7d64a00ead0e8cfc88ac00000000',
+        };
+        expect(
+            await registerNewAlias(
+                chronik,
+                aliasRegisteringWalletAfterTx,
+                currency.defaultFee,
+                'twentyonebytealiasreg',
+                'ecash:qqswmjpcjyq6a5syh8qhklty5q826r5vlsh7a7uqtq',
+                551,
+            ),
+        ).toStrictEqual(expectedResult);
+    });
+    it('Broadcasts a v0 alias registration tx for a 16-byte alias to a p2pkh address', async () => {
+        const chronik = new ChronikClient(
+            'https://FakeChronikUrlToEnsureMocksOnly.com',
+        );
+
+        const mockTxid =
+            '8783d7064ce22e8390c9fa94ef9a4d5bb0184e401ef5a9fbf60b68294e275c80';
+
+        chronik.broadcastTx = jest.fn().mockResolvedValue({ txid: mockTxid });
+
+        const expectedResult = {
+            explorerLink: `${currency.blockExplorerUrl}/tx/${mockTxid}`,
+            txid: mockTxid,
+            rawTxHex:
+                '0200000001ab6c7e3261b2c9c77d7e133e97db3be50cbb5ce1ba8e4ff168b511dca1822591020000006b483045022100d0bd27e798ac38de8b4c654c6670386c68d8bfac4bf5fe26a185d8250bd7ae7e02206acfe247b95ee9879080e6e413d7f28734aa498046e7363a638a537fc657c50e4121036ea648569566fa0843b914f67e54ebcfa6921208acd6408d2881488809403ac6ffffffff0300000000000000002e6a042e78656300107768796e6f7474687265657465737473150020edc8389101aed204b9c17b7d64a00ead0e8cfc27020000000000001976a914638568e36d0b5d7d49a6e99854caa27d9772b09388acb68a9800000000001976a91420edc8389101aed204b9c17b7d64a00ead0e8cfc88ac00000000',
+        };
+        expect(
+            await registerNewAlias(
+                chronik,
+                aliasRegisteringWalletAfterTwoTxs,
+                currency.defaultFee,
+                'whynotthreetests',
+                'ecash:qqswmjpcjyq6a5syh8qhklty5q826r5vlsh7a7uqtq',
+                551,
+            ),
+        ).toStrictEqual(expectedResult);
     });
 
     it(`Throws error if called trying to send one base unit ${currency.ticker} more than available in utxo set`, async () => {

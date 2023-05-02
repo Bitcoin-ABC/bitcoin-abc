@@ -68,9 +68,10 @@ const Alias = ({ passLoadingStatus }) => {
         isAliasServerOnline,
     } = ContextValue;
     const walletState = getWalletState(wallet);
-    const { balances, nonSlpUtxos } = walletState;
+    const { balances } = walletState;
     const [formData, setFormData] = useState({
         aliasName: '',
+        aliasAddress: '',
     });
     const [isValidAliasInput, setIsValidAliasInput] = useState(false); // tracks whether to activate the registration button
     const [aliasValidationError, setAliasValidationError] = useState(false);
@@ -96,6 +97,13 @@ const Alias = ({ passLoadingStatus }) => {
             return;
         }
         passLoadingStatus(true);
+
+        // Set address of active wallet to default alias registration address
+        // Use formdata approach as we will later add a form field for aliasAddress
+        setFormData(formData => ({
+            ...formData,
+            aliasAddress: wallet.Path1899.cashAddress,
+        }));
 
         // check whether the address is attached to an onchain alias on page load
         const walletHasAlias = isAddressRegistered(
@@ -151,6 +159,7 @@ const Alias = ({ passLoadingStatus }) => {
 
         // note: input already validated via handleAliasNameInput()
         const aliasInput = formData.aliasName;
+        const aliasAddress = formData.aliasAddress;
 
         // check if the user is trying to essentially register chicken.xec.xec
         const doubleExtensionInput = isAliasFormat(aliasInput);
@@ -184,16 +193,16 @@ const Alias = ({ passLoadingStatus }) => {
                 `Alias ${aliasInput} is available. Broadcasting registration transaction.`,
             );
             try {
-                const link = await registerNewAlias(
+                const result = await registerNewAlias(
                     chronik,
                     wallet,
-                    nonSlpUtxos,
                     currency.defaultFee,
                     aliasInput,
-                    fromSatoshisToXec(registrationFee),
+                    aliasAddress,
+                    registrationFee,
                 );
 
-                registerAliasNotification(link, aliasInput);
+                registerAliasNotification(result.explorerLink, aliasInput);
 
                 // allow alias server to process the pending alias
                 const delay = ms => new Promise(res => setTimeout(res, ms));

@@ -12,6 +12,8 @@ import {
     getChangeAddressFromInputUtxos,
     toHash160,
     getMessageByteSize,
+    generateAliasOpReturnScript,
+    fromSatoshisToXec,
 } from 'utils/cashMethods';
 import ecies from 'ecies-lite';
 import * as utxolib from '@bitgo/utxo-lib';
@@ -328,72 +330,60 @@ export const getRecipientPublicKey = async (
 export const registerNewAlias = async (
     chronik,
     wallet,
-    utxos,
     feeInSatsPerByte,
     aliasName,
-    registrationFee,
+    aliasAddress,
+    registrationFeeSats,
 ) => {
     try {
+        // Instantiate new txBuilder
         let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
             utxolib.networks.ecash,
         );
 
-        const satoshisToSend = fromXecToSatoshis(registrationFee);
+        // Create this transaction with nonSlpUtxos
+        const utxos = wallet.state.nonSlpUtxos;
 
-        // Throw validation error if fromXecToSatoshis returns false
-        if (!satoshisToSend) {
-            throw new Error(`Invalid alias registration fee`);
-        }
+        // Build opReturnData for alias tx per spec
+        const opReturnData = generateAliasOpReturnScript(
+            aliasName,
+            aliasAddress,
+        );
 
-        // Start of building the OP_RETURN output.
-        // only build the OP_RETURN output if the user supplied it
-        if (
-            aliasName &&
-            typeof aliasName !== 'undefined' &&
-            aliasName.trim() !== ''
-        ) {
-            const opReturnData = generateOpReturnScript(
-                aliasName,
-                false, // encryption use
-                false, // airdrop use
-                null, // airdrop use
-                null, // encrypted use
-                true, // alias registration flag
-            );
-            txBuilder.addOutput(opReturnData, 0);
-        }
+        // Add opReturn as output with 0 satoshis of XEC spent
+        txBuilder.addOutput(opReturnData, 0);
 
         // generate the tx inputs and add to txBuilder instance
         // returns the updated txBuilder, txFee, totalInputUtxoValue and inputUtxos
+        // Note that txBuilder is intentionally modified by this call
         let txInputObj = generateTxInput(
-            false, // not one to many
+            false, // not a one to many tx
             utxos,
             txBuilder,
-            null, // one to many array
-            satoshisToSend,
+            null, // no one-to-many array
+            registrationFeeSats,
             feeInSatsPerByte,
         );
 
+        // Get the change address
         const changeAddress = getChangeAddressFromInputUtxos(
             txInputObj.inputUtxos,
             wallet,
         );
-        txBuilder = txInputObj.txBuilder; // update the local txBuilder with the generated tx inputs
 
         // generate the tx outputs and add to txBuilder instance
         // returns the updated txBuilder
-        const txOutputObj = generateTxOutput(
-            false, // not one to many
-            registrationFee,
-            satoshisToSend,
+        txBuilder = generateTxOutput(
+            false, // not a one-to-many tx
+            fromSatoshisToXec(registrationFeeSats), // TODO fix this oversight param req in generateTxOutput
+            registrationFeeSats,
             txInputObj.totalInputUtxoValue,
             currency.aliasSettings.aliasPaymentAddress,
-            null, // one to many address array
+            null, // no one-to-many address array
             changeAddress,
             txInputObj.txFee,
             txBuilder,
         );
-        txBuilder = txOutputObj; // update the local txBuilder with the generated tx outputs
 
         // sign the collated inputUtxos and build the raw tx hex
         // returns the raw tx hex string
@@ -417,8 +407,9 @@ export const registerNewAlias = async (
             throw err;
         }
 
+        const explorerLink = `${currency.blockExplorerUrl}/tx/${broadcastResponse.txid}`;
         // return the explorer link for the broadcasted tx
-        return `${currency.blockExplorerUrl}/tx/${broadcastResponse.txid}`;
+        return { explorerLink, txid: broadcastResponse.txid, rawTxHex };
     } catch (err) {
         if (err.error === 'insufficient priority (code 66)') {
             err.code = SEND_XEC_ERRORS.INSUFFICIENT_PRIORITY;
