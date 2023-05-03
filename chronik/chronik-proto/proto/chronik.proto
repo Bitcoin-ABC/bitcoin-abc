@@ -146,6 +146,12 @@ message ScriptUtxos {
     repeated ScriptUtxo utxos = 2;
 }
 
+// Raw serialized tx.
+message RawTx {
+    // Bytes of the serialized tx.
+    bytes raw_tx = 1;
+}
+
 // Subscription to WebSocket updates.
 message WsSub {
     // Set this to `true` to unsubscribe from the event.

@@ -151,6 +151,9 @@ class ChronikClient:
     def tx(self, txid: str) -> ChronikResponse:
         return self._request_get(f'/tx/{txid}', pb.Tx)
 
+    def raw_tx(self, txid: str) -> bytes:
+        return self._request_get(f'/raw-tx/{txid}', pb.RawTx)
+
     def script(self, script_type: str, script_payload: str) -> ChronikScriptClient:
         return ChronikScriptClient(self, script_type, script_payload)
 

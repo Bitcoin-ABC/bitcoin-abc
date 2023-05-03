@@ -115,6 +115,7 @@ impl ChronikServer {
             .route("/block/:hash_or_height", routing::get(handle_block))
             .route("/blocks/:start/:end", routing::get(handle_block_range))
             .route("/tx/:txid", routing::get(handle_tx))
+            .route("/raw-tx/:txid", routing::get(handle_raw_tx))
             .route(
                 "/script/:type/:payload/confirmed-txs",
                 routing::get(handle_script_confirmed_txs),
@@ -170,6 +171,15 @@ async fn handle_tx(
     let indexer = indexer.read().await;
     let txid = txid.parse::<TxId>().wrap_err(NotTxId(txid))?;
     Ok(Protobuf(indexer.txs().tx_by_id(txid)?))
+}
+
+async fn handle_raw_tx(
+    Path(txid): Path<String>,
+    Extension(indexer): Extension<ChronikIndexerRef>,
+) -> Result<Protobuf<proto::RawTx>, ReportError> {
+    let indexer = indexer.read().await;
+    let txid = txid.parse::<TxId>().wrap_err(NotTxId(txid))?;
+    Ok(Protobuf(indexer.txs().raw_tx_by_id(&txid)?))
 }
 
 async fn handle_script_confirmed_txs(

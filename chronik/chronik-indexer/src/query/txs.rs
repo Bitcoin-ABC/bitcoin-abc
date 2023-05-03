@@ -5,7 +5,10 @@
 //! Module for [`QueryTxs`], to query txs from mempool/db.
 
 use abc_rust_error::{Result, WrapErr};
-use bitcoinsuite_core::tx::{Tx, TxId};
+use bitcoinsuite_core::{
+    ser::BitcoinSer,
+    tx::{Tx, TxId},
+};
 use chronik_bridge::ffi;
 use chronik_db::{
     db::Db,
@@ -96,5 +99,27 @@ impl<'a> QueryTxs<'a> {
                 ))
             }
         }
+    }
+
+    /// Query the raw serialized tx by txid.
+    ///
+    /// Serializes the tx if it's in the mempool, or reads the tx data from the
+    /// node's storage otherwise.
+    pub fn raw_tx_by_id(&self, txid: &TxId) -> Result<proto::RawTx> {
+        let raw_tx = match self.mempool.tx(txid) {
+            Some(mempool_tx) => mempool_tx.tx.ser().to_vec(),
+            None => {
+                let tx_reader = TxReader::new(self.db)?;
+                let block_reader = BlockReader::new(self.db)?;
+                let block_tx =
+                    tx_reader.tx_by_txid(txid)?.ok_or(TxNotFound(*txid))?;
+                let block = block_reader
+                    .by_height(block_tx.block_height)?
+                    .ok_or(DbTxHasNoBlock(*txid))?;
+                ffi::load_raw_tx(block.file_num, block_tx.entry.data_pos)
+                    .wrap_err(ReadFailure(*txid))?
+            }
+        };
+        Ok(proto::RawTx { raw_tx })
     }
 }
