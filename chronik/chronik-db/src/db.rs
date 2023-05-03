@@ -24,6 +24,8 @@ pub const CF_BLK: &str = "blk";
 /// Column family for the first tx_num of the block. Used to get a list of the
 /// txs of the block.
 pub const CF_BLK_BY_FIRST_TX: &str = "blk_by_first_tx";
+/// Column family for stats about blocks.
+pub const CF_BLK_STATS: &str = "blk_stats";
 /// Column family for the block height of the first tx_num of that block. Used
 /// to get the block height of a tx.
 pub const CF_FIRST_TX_BY_BLK: &str = "first_tx_by_blk";

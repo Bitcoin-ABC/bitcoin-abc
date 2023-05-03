@@ -4,6 +4,7 @@
 
 //! Module containing readers and writers for the database used by Chronik.
 
+mod block_stats;
 mod blocks;
 mod group_history;
 mod group_utxos;
@@ -11,6 +12,7 @@ mod metadata;
 mod spent_by;
 mod txs;
 
+pub use self::block_stats::*;
 pub use self::blocks::*;
 pub use self::group_history::*;
 pub use self::group_utxos::*;
