@@ -149,6 +149,7 @@ chronik_bridge::Block BridgeBlock(const CBlock &block,
             .file_num = uint32_t(bindex.nFile),
             .data_pos = bindex.nDataPos,
             .undo_pos = bindex.nUndoPos,
+            .size = bindex.nSize,
             .txs = bridged_txs};
 }
 

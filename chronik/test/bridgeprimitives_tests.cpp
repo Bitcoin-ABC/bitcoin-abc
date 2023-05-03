@@ -64,6 +64,7 @@ void CheckBlocksEqual(const chronik_bridge::Block &left,
     BOOST_CHECK_EQUAL(left.file_num, right.file_num);
     BOOST_CHECK_EQUAL(left.data_pos, right.data_pos);
     BOOST_CHECK_EQUAL(left.undo_pos, right.undo_pos);
+    BOOST_CHECK_EQUAL(left.size, right.size);
 
     BOOST_CHECK_EQUAL(left.txs.size(), right.txs.size());
     for (size_t txIdx = 0; txIdx < left.txs.size(); ++txIdx) {
@@ -144,6 +145,7 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_genesis, TestChain100Setup) {
         .file_num = 0,
         .data_pos = 8, // 8 magic bytes in block file
         .undo_pos = 0, // genesis has no undo data
+        .size = 285,
         .txs = {{
             .tx = expectedGenesisTx,
             .data_pos = 89, // +80 header +1 compact size
@@ -296,6 +298,7 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_detailled, TestChain100Setup) {
         .file_num = 0,
         .data_pos = 39948,
         .undo_pos = 8249,
+        .size = 578,
         .txs = {
             {.tx = expectedTestTx0, .data_pos = 40029, .undo_pos = 0},
             {.tx = expectedTestTx1, .data_pos = 40129, .undo_pos = 8250},

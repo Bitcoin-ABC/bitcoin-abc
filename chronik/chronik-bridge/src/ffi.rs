@@ -52,6 +52,8 @@ mod ffi_inner {
         pub data_pos: u32,
         /// Position of the undo data within the undo file.
         pub undo_pos: u32,
+        /// Serialized size of the block
+        pub size: u64,
         /// Txs of this block, including positions within the block/undo files.
         pub txs: Vec<BlockTx>,
     }
