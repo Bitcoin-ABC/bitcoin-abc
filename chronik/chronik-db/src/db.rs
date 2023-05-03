@@ -15,7 +15,9 @@ use thiserror::Error;
 
 use crate::{
     groups::{ScriptHistoryWriter, ScriptUtxoWriter},
-    io::{BlockWriter, MetadataWriter, SpentByWriter, TxWriter},
+    io::{
+        BlockStatsWriter, BlockWriter, MetadataWriter, SpentByWriter, TxWriter,
+    },
 };
 
 // All column family names used by Chronik should be defined here
@@ -74,6 +76,7 @@ impl Db {
     pub fn open(path: impl AsRef<Path>) -> Result<Self> {
         let mut cfs = Vec::new();
         BlockWriter::add_cfs(&mut cfs);
+        BlockStatsWriter::add_cfs(&mut cfs);
         MetadataWriter::add_cfs(&mut cfs);
         TxWriter::add_cfs(&mut cfs);
         ScriptHistoryWriter::add_cfs(&mut cfs);

@@ -40,6 +40,22 @@ message BlockInfo {
     int64 timestamp = 5;
     // Whether the block has been finalized by Avalanche
     bool is_final = 14;
+    // Block size of this block in bytes (including headers etc.)
+    uint64 block_size = 6;
+    // Number of txs in this block
+    uint64 num_txs = 7;
+    // Total number of tx inputs in block (including coinbase)
+    uint64 num_inputs = 8;
+    // Total number of tx output in block (including coinbase)
+    uint64 num_outputs = 9;
+    // Total number of satoshis spent by tx inputs
+    int64 sum_input_sats = 10;
+    // Block reward for this block
+    int64 sum_coinbase_output_sats = 11;
+    // Total number of satoshis in non-coinbase tx outputs
+    int64 sum_normal_output_sats = 12;
+    // Total number of satoshis burned using OP_RETURN
+    int64 sum_burned_sats = 13;
 }
 
 // Details about a transaction

@@ -19,9 +19,9 @@ use chronik_db::{
     },
     index_tx::prepare_indexed_txs,
     io::{
-        BlockHeight, BlockReader, BlockTxs, BlockWriter, DbBlock,
-        MetadataReader, MetadataWriter, SchemaVersion, SpentByWriter, TxEntry,
-        TxWriter,
+        BlockHeight, BlockReader, BlockStatsWriter, BlockTxs, BlockWriter,
+        DbBlock, MetadataReader, MetadataWriter, SchemaVersion, SpentByWriter,
+        TxEntry, TxWriter,
     },
     mem::{Mempool, MempoolTx},
 };
@@ -36,7 +36,7 @@ use crate::{
     subs_group::TxMsgType,
 };
 
-const CURRENT_INDEXER_VERSION: SchemaVersion = 6;
+const CURRENT_INDEXER_VERSION: SchemaVersion = 7;
 
 /// Params for setting up a [`ChronikIndexer`] instance.
 #[derive(Clone)]
@@ -66,6 +66,8 @@ pub struct ChronikBlock {
     pub db_block: DbBlock,
     /// Txs in the block, with locations of where they are stored on disk.
     pub block_txs: BlockTxs,
+    /// Block size in bytes.
+    pub size: u64,
     /// Txs in the block, with inputs/outputs so we can group them.
     pub txs: Vec<Tx>,
 }
@@ -288,9 +290,11 @@ impl ChronikIndexer {
         &mut self,
         block: ChronikBlock,
     ) -> Result<()> {
+        let height = block.db_block.height;
         let mut batch = WriteBatch::default();
         let block_writer = BlockWriter::new(&self.db)?;
         let tx_writer = TxWriter::new(&self.db)?;
+        let block_stats_writer = BlockStatsWriter::new(&self.db)?;
         let script_history_writer =
             ScriptHistoryWriter::new(&self.db, self.script_group.clone())?;
         let script_utxo_writer =
@@ -300,6 +304,8 @@ impl ChronikIndexer {
         let first_tx_num = tx_writer.insert(&mut batch, &block.block_txs)?;
         let index_txs =
             prepare_indexed_txs(&self.db, first_tx_num, &block.txs)?;
+        block_stats_writer
+            .insert(&mut batch, height, block.size, &index_txs)?;
         script_history_writer.insert(&mut batch, &index_txs)?;
         script_utxo_writer.insert(&mut batch, &index_txs)?;
         spent_by_writer.insert(&mut batch, &index_txs)?;
@@ -327,6 +333,7 @@ impl ChronikIndexer {
         let mut batch = WriteBatch::default();
         let block_writer = BlockWriter::new(&self.db)?;
         let tx_writer = TxWriter::new(&self.db)?;
+        let block_stats_writer = BlockStatsWriter::new(&self.db)?;
         let script_history_writer =
             ScriptHistoryWriter::new(&self.db, self.script_group.clone())?;
         let script_utxo_writer =
@@ -336,6 +343,7 @@ impl ChronikIndexer {
         let first_tx_num = tx_writer.delete(&mut batch, &block.block_txs)?;
         let index_txs =
             prepare_indexed_txs(&self.db, first_tx_num, &block.txs)?;
+        block_stats_writer.delete(&mut batch, block.db_block.height);
         script_history_writer.delete(&mut batch, &index_txs)?;
         script_utxo_writer.delete(&mut batch, &index_txs)?;
         spent_by_writer.delete(&mut batch, &index_txs)?;
@@ -457,6 +465,7 @@ impl ChronikIndexer {
         Ok(ChronikBlock {
             db_block,
             block_txs,
+            size: block.size,
             txs,
         })
     }
@@ -561,6 +570,7 @@ mod tests {
                 block_height: 0,
                 txs: vec![],
             },
+            size: 285,
             txs: vec![],
         };
 

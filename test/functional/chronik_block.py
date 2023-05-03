@@ -35,6 +35,14 @@ class ChronikBlockTest(BitcoinTestFramework):
                 height=0,
                 n_bits=0x207fffff,
                 timestamp=TIME_GENESIS_BLOCK,
+                block_size=285,
+                num_txs=1,
+                num_inputs=1,
+                num_outputs=1,
+                sum_input_sats=0,
+                sum_coinbase_output_sats=5000000000,
+                sum_normal_output_sats=0,
+                sum_burned_sats=0,
             ),
         )
 
@@ -73,6 +81,14 @@ class ChronikBlockTest(BitcoinTestFramework):
                     height=i,
                     n_bits=0x207fffff,
                     timestamp=proto_block.block_info.timestamp,
+                    block_size=181,
+                    num_txs=1,
+                    num_inputs=1,
+                    num_outputs=1,
+                    sum_input_sats=0,
+                    sum_coinbase_output_sats=5000000000,
+                    sum_normal_output_sats=0,
+                    sum_burned_sats=0,
                 ),
             ))
             assert_equal(proto_block, chronik.block(block_hashes[i]).ok())
@@ -102,6 +118,14 @@ class ChronikBlockTest(BitcoinTestFramework):
                 height=50,
                 n_bits=0x207fffff,
                 timestamp=proto_block.block_info.timestamp,
+                block_size=181,
+                num_txs=1,
+                num_inputs=1,
+                num_outputs=1,
+                sum_input_sats=0,
+                sum_coinbase_output_sats=5000000000,
+                sum_normal_output_sats=0,
+                sum_burned_sats=0,
             ),
         ))
         assert_equal(chronik.block(fork_hash).ok(), proto_block)

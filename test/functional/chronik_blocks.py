@@ -48,6 +48,14 @@ class ChronikBlockRangeTest(BitcoinTestFramework):
             height=0,
             n_bits=0x207fffff,
             timestamp=TIME_GENESIS_BLOCK,
+            block_size=285,
+            num_txs=1,
+            num_inputs=1,
+            num_outputs=1,
+            sum_input_sats=0,
+            sum_coinbase_output_sats=5000000000,
+            sum_normal_output_sats=0,
+            sum_burned_sats=0,
         )
         assert_equal(chronik.blocks(0, 100).ok(), pb.Blocks(blocks=[genesis_info]))
         assert_equal(chronik.blocks(0, 0).ok(), pb.Blocks(blocks=[genesis_info]))
@@ -68,6 +76,14 @@ class ChronikBlockRangeTest(BitcoinTestFramework):
                     height=height,
                     n_bits=0x207fffff,
                     timestamp=1300000003,
+                    block_size=181,
+                    num_txs=1,
+                    num_inputs=1,
+                    num_outputs=1,
+                    sum_input_sats=0,
+                    sum_coinbase_output_sats=5000000000,
+                    sum_normal_output_sats=0,
+                    sum_burned_sats=0,
                 )
                 for height in range(8, 13)
             ]),

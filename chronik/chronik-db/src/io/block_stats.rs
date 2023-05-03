@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 use abc_rust_error::Result;
-#[cfg(test)]
 use rocksdb::ColumnFamilyDescriptor;
 use serde::{Deserialize, Serialize};
 
@@ -132,7 +131,6 @@ impl<'a> BlockStatsWriter<'a> {
         batch.delete_cf(self.col.cf, bh_to_bytes(block_height));
     }
 
-    #[cfg(test)]
     pub(crate) fn add_cfs(columns: &mut Vec<ColumnFamilyDescriptor>) {
         columns.push(ColumnFamilyDescriptor::new(
             CF_BLK_STATS,
