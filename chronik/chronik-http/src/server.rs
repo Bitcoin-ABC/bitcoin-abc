@@ -113,6 +113,7 @@ impl ChronikServer {
         Router::new()
             .route("/blockchain-info", routing::get(handle_blockchain_info))
             .route("/block/:hash_or_height", routing::get(handle_block))
+            .route("/block-txs/:hash_or_height", routing::get(handle_block_txs))
             .route("/blocks/:start/:end", routing::get(handle_block_range))
             .route("/tx/:txid", routing::get(handle_tx))
             .route("/raw-tx/:txid", routing::get(handle_raw_tx))
@@ -162,6 +163,18 @@ async fn handle_block(
     let indexer = indexer.read().await;
     let blocks = indexer.blocks();
     Ok(Protobuf(blocks.by_hash_or_height(hash_or_height)?))
+}
+
+async fn handle_block_txs(
+    Path(hash_or_height): Path<String>,
+    Query(query_params): Query<HashMap<String, String>>,
+    Extension(indexer): Extension<ChronikIndexerRef>,
+) -> Result<Protobuf<proto::TxHistoryPage>, ReportError> {
+    let indexer = indexer.read().await;
+    Ok(Protobuf(
+        handlers::handle_block_txs(hash_or_height, &query_params, &indexer)
+            .await?,
+    ))
 }
 
 async fn handle_tx(

@@ -51,6 +51,18 @@ pub async fn handle_not_found(uri: Uri) -> Result<(), ReportError> {
     Err(Report::from(RouteNotFound(uri)).into())
 }
 
+/// Return a page of the txs of a block.
+pub async fn handle_block_txs(
+    hash_or_height: String,
+    query_params: &HashMap<String, String>,
+    indexer: &ChronikIndexer,
+) -> Result<proto::TxHistoryPage> {
+    let blocks = indexer.blocks();
+    let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
+    let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
+    blocks.block_txs(hash_or_height, page_num as usize, page_size as usize)
+}
+
 /// Return a page of the confirmed txs of the given script.
 /// Scripts are identified by script_type and payload.
 pub async fn handle_script_confirmed_txs(

@@ -4,17 +4,34 @@
 
 //! Module for [`QueryBlocks`], to query blocks.
 
-use abc_rust_error::Result;
+use abc_rust_error::{Result, WrapErr};
+use bitcoinsuite_core::{
+    block::BlockHash,
+    tx::{Tx, TxId},
+};
+use chronik_bridge::ffi;
 use chronik_db::{
     db::Db,
-    io::{BlockHeight, BlockReader, BlockStats, BlockStatsReader, DbBlock},
+    io::{
+        BlockHeight, BlockReader, BlockStats, BlockStatsReader, DbBlock,
+        SpentByReader, TxNum, TxReader,
+    },
+    mem::Mempool,
 };
 use chronik_proto::proto;
 use thiserror::Error;
 
-use crate::{avalanche::Avalanche, query::HashOrHeight};
+use crate::{
+    avalanche::Avalanche,
+    query::{make_tx_proto, HashOrHeight, OutputsSpent},
+};
 
 const MAX_BLOCKS_PAGE_SIZE: usize = 500;
+
+/// Smallest allowed page size
+pub const MIN_BLOCK_TXS_PAGE_SIZE: usize = 1;
+/// Largest allowed page size
+pub const MAX_BLOCK_TXS_PAGE_SIZE: usize = 200;
 
 /// Struct for querying blocks from the DB.
 #[derive(Debug)]
@@ -23,6 +40,8 @@ pub struct QueryBlocks<'a> {
     pub db: &'a Db,
     /// Avalanche.
     pub avalanche: &'a Avalanche,
+    /// Mempool
+    pub mempool: &'a Mempool,
 }
 
 /// Errors indicating something went wrong with querying blocks.
@@ -50,6 +69,32 @@ pub enum QueryBlockError {
     /// DB is missing block stats
     #[error("500: Inconsistent DB: Missing block stats for height {0}")]
     MissingBlockStats(BlockHeight),
+
+    /// Block has no txs
+    #[error("500: Inconsistent DB: Block {0} has no txs")]
+    BlockHasNoTx(BlockHeight),
+
+    /// Block has tx_num that doesn't exist
+    #[error("500: Inconsistent DB: block {0} has missing tx_num {1}")]
+    BlockHasMissingTx(BlockHash, TxNum),
+
+    /// Can only request page sizes below a certain maximum.
+    #[error(
+        "400: Requested block tx page size {0} is too big, maximum is {}",
+        MAX_BLOCK_TXS_PAGE_SIZE
+    )]
+    RequestPageSizeTooBig(usize),
+
+    /// Can only request page sizes above a certain minimum.
+    #[error(
+        "400: Requested block tx page size {0} is too small, minimum is {}",
+        MIN_BLOCK_TXS_PAGE_SIZE
+    )]
+    RequestPageSizeTooSmall(usize),
+
+    /// Reading failed, likely corrupted block data
+    #[error("500: Reading {0} failed")]
+    ReadFailure(TxId),
 }
 
 use self::QueryBlockError::*;
@@ -111,6 +156,74 @@ impl<'a> QueryBlocks<'a> {
             blocks.push(self.make_block_info_proto(&block, &block_stats));
         }
         Ok(proto::Blocks { blocks })
+    }
+
+    /// Query the txs of a block, paginated.
+    pub fn block_txs(
+        &self,
+        hash_or_height: String,
+        request_page_num: usize,
+        request_page_size: usize,
+    ) -> Result<proto::TxHistoryPage> {
+        if request_page_size < MIN_BLOCK_TXS_PAGE_SIZE {
+            return Err(RequestPageSizeTooSmall(request_page_size).into());
+        }
+        if request_page_size > MAX_BLOCK_TXS_PAGE_SIZE {
+            return Err(RequestPageSizeTooBig(request_page_size).into());
+        }
+        let block_reader = BlockReader::new(self.db)?;
+        let tx_reader = TxReader::new(self.db)?;
+        let spent_by_reader = SpentByReader::new(self.db)?;
+        let db_block = match hash_or_height.parse::<HashOrHeight>()? {
+            HashOrHeight::Hash(hash) => block_reader.by_hash(&hash)?,
+            HashOrHeight::Height(height) => block_reader.by_height(height)?,
+        };
+        let db_block = db_block.ok_or(BlockNotFound(hash_or_height))?;
+        let tx_range = tx_reader
+            .block_tx_num_range(db_block.height)?
+            .ok_or(BlockHasNoTx(db_block.height))?;
+        let tx_offset =
+            request_page_num.saturating_mul(request_page_size) as u64;
+        let page_tx_num_start =
+            tx_range.start.saturating_add(tx_offset).min(tx_range.end);
+        let page_tx_num_end = page_tx_num_start
+            .saturating_add(request_page_size as u64)
+            .min(tx_range.end);
+        let num_page_txs = (page_tx_num_end - page_tx_num_start) as usize;
+        let mut txs = Vec::with_capacity(num_page_txs);
+        for tx_num in page_tx_num_start..page_tx_num_end {
+            let db_tx = tx_reader
+                .tx_by_tx_num(tx_num)?
+                .ok_or(BlockHasMissingTx(db_block.hash.clone(), tx_num))?;
+            let tx = ffi::load_tx(
+                db_block.file_num,
+                db_tx.entry.data_pos,
+                db_tx.entry.undo_pos,
+            )
+            .wrap_err(ReadFailure(db_tx.entry.txid))?;
+            let outputs_spent = OutputsSpent::query(
+                &spent_by_reader,
+                &tx_reader,
+                self.mempool.spent_by().outputs_spent(&db_tx.entry.txid),
+                tx_num,
+            )?;
+            txs.push(make_tx_proto(
+                &Tx::from(tx),
+                &outputs_spent,
+                db_tx.entry.time_first_seen,
+                db_tx.entry.is_coinbase,
+                Some(&db_block),
+                self.avalanche,
+            ));
+        }
+        let total_num_txs = (tx_range.end - tx_range.start) as usize;
+        let total_num_pages =
+            (total_num_txs + request_page_size - 1) / request_page_size;
+        Ok(proto::TxHistoryPage {
+            txs,
+            num_pages: total_num_pages as u32,
+            num_txs: total_num_txs as u32,
+        })
     }
 
     /// Query some info about the blockchain, e.g. the tip hash and height.

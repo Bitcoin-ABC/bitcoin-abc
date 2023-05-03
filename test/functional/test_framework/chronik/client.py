@@ -48,24 +48,14 @@ class ChronikScriptClient:
         self.script_type = script_type
         self.script_payload = script_payload
 
-    def _query_params(self, page=None, page_size=None) -> str:
-        if page is not None and page_size is not None:
-            return f'?page={page}&page_size={page_size}'
-        elif page is not None:
-            return f'?page={page}'
-        elif page_size is not None:
-            return f'?page_size={page_size}'
-        else:
-            return ''
-
     def confirmed_txs(self, page=None, page_size=None):
-        query = self._query_params(page, page_size)
+        query = _page_query_params(page, page_size)
         return self.client._request_get(
             f'/script/{self.script_type}/{self.script_payload}/confirmed-txs{query}',
             pb.TxHistoryPage)
 
     def history(self, page=None, page_size=None):
-        query = self._query_params(page, page_size)
+        query = _page_query_params(page, page_size)
         return self.client._request_get(
             f'/script/{self.script_type}/{self.script_payload}/history{query}',
             pb.TxHistoryPage)
@@ -145,6 +135,12 @@ class ChronikClient:
     def block(self, hash_or_height: Union[str, int]) -> ChronikResponse:
         return self._request_get(f'/block/{hash_or_height}', pb.Block)
 
+    def block_txs(self, hash_or_height: Union[str, int],
+                  page=None, page_size=None) -> ChronikResponse:
+        query = _page_query_params(page, page_size)
+        return self._request_get(
+            f'/block-txs/{hash_or_height}{query}', pb.TxHistoryPage)
+
     def blocks(self, start_height: int, end_height: int) -> ChronikResponse:
         return self._request_get(f'/blocks/{start_height}/{end_height}', pb.Blocks)
 
@@ -161,3 +157,14 @@ class ChronikClient:
         ws = websocket.WebSocket()
         ws.connect(f'ws://{self.host}:{self.port}/ws', timeout=timeout)
         return ChronikWs(ws)
+
+
+def _page_query_params(page=None, page_size=None) -> str:
+    if page is not None and page_size is not None:
+        return f'?page={page}&page_size={page_size}'
+    elif page is not None:
+        return f'?page={page}'
+    elif page_size is not None:
+        return f'?page_size={page_size}'
+    else:
+        return ''

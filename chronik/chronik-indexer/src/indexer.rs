@@ -381,6 +381,7 @@ impl ChronikIndexer {
         QueryBlocks {
             db: &self.db,
             avalanche: &self.avalanche,
+            mempool: &self.mempool,
         }
     }
 
