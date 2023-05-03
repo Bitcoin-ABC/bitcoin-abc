@@ -22,6 +22,7 @@ module.exports = {
             self.mockedResponses = {
                 block: {},
                 txHistory: [],
+                tx: {},
             };
             self.mockedMethods = { p2pkh: {}, p2sh: {} };
 
@@ -29,6 +30,15 @@ module.exports = {
             // Return assigned block mocks
             self.block = function (blockHashOrHeight) {
                 return self.mockedResponses.block[blockHashOrHeight];
+            };
+            // Return assigned tx mocks
+            self.tx = async function (txid) {
+                const mockedTxResponse = self.mockedResponses.tx[txid];
+                // If the user set this response to be an error, throw it
+                if (mockedTxResponse instanceof Error) {
+                    throw mockedTxResponse;
+                }
+                return self.mockedResponses.tx[txid];
             };
             // Return assigned script mocks
             self.script = function (type, hash) {
@@ -69,6 +79,7 @@ module.exports = {
             // Allow user to set expected chronik call response
             self.setMock = function (call, options) {
                 // e.g. ('block', {input: '', output: ''})
+                // e.g. ('tx', {input: <txid>, output: {<expectedObj>}})
                 const { input, output } = options;
                 self.mockedResponses[call][input] = output;
             };

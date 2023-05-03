@@ -6,6 +6,7 @@ const config = require('../config');
 const { parseBlock, getBlockTgMessage } = require('./parse');
 const { getCoingeckoPrices } = require('./utils');
 const { sendBlockSummary } = require('./telegram');
+const { getTokenInfoMap } = require('./chronik');
 
 module.exports = {
     handleBlockConnected: async function (
@@ -58,6 +59,11 @@ module.exports = {
 
         const parsedBlock = parseBlock(blockDetails);
 
+        // Get token genesis info for token IDs in this block
+        const { tokenIds } = parsedBlock;
+
+        const tokenInfoMap = await getTokenInfoMap(chronik, tokenIds);
+
         // Get price info for tg msg, if available
         const { coingeckoResponse, coingeckoPrices } = await getCoingeckoPrices(
             config.priceApi,
@@ -65,6 +71,7 @@ module.exports = {
         const blockSummaryTgMsgs = getBlockTgMessage(
             parsedBlock,
             coingeckoPrices,
+            tokenInfoMap,
         );
 
         // returnMocks is used in the script function generateMocks
@@ -77,10 +84,12 @@ module.exports = {
                 parsedBlock,
                 coingeckoResponse,
                 coingeckoPrices,
+                tokenInfoMap,
                 blockSummaryTgMsgs,
-                blockSummaryTgMsgsPriceFailure: getBlockTgMessage(
+                blockSummaryTgMsgsApiFailure: getBlockTgMessage(
                     parsedBlock,
-                    false,
+                    false, // failed coingecko price lookup
+                    false, // failed chronik token ID lookup
                 ),
             };
         }

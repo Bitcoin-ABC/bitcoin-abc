@@ -12,8 +12,8 @@ const {
 const { telegramHtmlStrings } = require('./mocks/templates');
 const {
     overflowMsg,
-    overflowMsgSplit,
     overflowMsgTwo,
+    overflowMsgSplit,
     overflowMsgSplitTwo,
     overflowMsgSuccess,
     nonOverflowMsg,
@@ -89,10 +89,10 @@ describe('ecash-herald telegram.js functions', function () {
             const thisBlock = blocks[i];
             const { blockSummaryTgMsgs } = thisBlock;
             for (let j = 0; j < blockSummaryTgMsgs.length; j += 1) {
-                console.log(blockSummaryTgMsgs[j].length);
                 assert.strictEqual(
                     blockSummaryTgMsgs[j].length <= TG_MSG_MAX_LENGTH,
                     true,
+                    `Message is too long: ${blockSummaryTgMsgs[j].length} > ${TG_MSG_MAX_LENGTH}`,
                 );
             }
         }

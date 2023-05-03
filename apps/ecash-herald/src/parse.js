@@ -5,6 +5,7 @@
 'use strict';
 const config = require('../config');
 const cashaddr = require('ecashaddrjs');
+const BigNumber = require('bignumber.js');
 const {
     prepareStringForTelegramHTML,
     splitOverflowTgMsg,
@@ -25,7 +26,17 @@ module.exports = {
         for (let i = 1; i < txs.length; i += 1) {
             parsedTxs.push(module.exports.parseTx(txs[i]));
         }
-        return { hash, height, miner, numTxs, parsedTxs };
+
+        // Collect token info needed to parse token send txs
+        const tokenIds = new Set(); // we only need each tokenId once
+        for (let i = 0; i < parsedTxs.length; i += 1) {
+            const thisParsedTx = parsedTxs[i];
+            if (thisParsedTx.tokenSendInfo) {
+                tokenIds.add(thisParsedTx.tokenSendInfo.tokenId);
+            }
+        }
+
+        return { hash, height, miner, numTxs, parsedTxs, tokenIds };
     },
     getMinerFromCoinbase: function (coinbaseHexString) {
         const knownMiners = config.knownMiners;
@@ -52,6 +63,23 @@ module.exports = {
         let genesisInfo = false;
         let opReturnInfo = false;
 
+        /* Token send parsing info
+         *
+         * Note that token send amounts received from chronik do not account for
+         * token decimals. Decimalized amounts require token genesisInfo
+         * decimals param to calculate
+         */
+
+        /* tokenSendInfo
+         * `false` for txs that are not etoken send txs
+         * an object containing info about the token send for token send txs
+         */
+        let tokenSendInfo = false;
+        let tokenSendingOutputScripts = new Set();
+        let tokenReceivingOutputs = new Map();
+        let tokenChangeOutputs = new Map();
+        let undecimalizedTokenInputAmount = new BigNumber(0);
+
         /* Collect xecSendInfo for all txs, since all txs are XEC sends
          * You may later want to render xecSendInfo for tokenSends, appTxs, etc,
          * maybe on special conditions, e.g.a token send tx that also sends a bunch of xec
@@ -66,6 +94,7 @@ module.exports = {
 
         if (tx.slpTxData !== null && typeof tx.slpTxData !== 'undefined') {
             isTokenTx = true;
+            // Determine if this is an etoken genesis tx
             if (
                 tx.slpTxData.slpMeta !== null &&
                 typeof tx.slpTxData.slpMeta !== 'undefined' &&
@@ -75,11 +104,30 @@ module.exports = {
             ) {
                 genesisInfo = tx.slpTxData.genesisInfo;
             }
+            // Determine if this is an etoken send tx
+            if (
+                tx.slpTxData.slpMeta !== null &&
+                typeof tx.slpTxData.slpMeta !== 'undefined' &&
+                tx.slpTxData.slpMeta.txType === 'SEND'
+            ) {
+                // Initialize tokenSendInfo as an object with the sent tokenId
+                tokenSendInfo = { tokenId: tx.slpTxData.slpMeta.tokenId };
+            }
         }
         for (let i in inputs) {
             const thisInput = inputs[i];
             xecSendingOutputScripts.add(thisInput.outputScript);
             xecInputAmountSats += parseInt(thisInput.value);
+            // The input that sent the token utxos will have key 'slpToken'
+            if (typeof thisInput.slpToken !== 'undefined') {
+                // Add amount to undecimalizedTokenInputAmount
+                undecimalizedTokenInputAmount =
+                    undecimalizedTokenInputAmount.plus(
+                        thisInput.slpToken.amount,
+                    );
+                // Collect the input outputScripts to identify change output
+                tokenSendingOutputScripts.add(thisInput.outputScript);
+            }
         }
 
         // Iterate over outputs to check for OP_RETURN msgs
@@ -120,11 +168,48 @@ module.exports = {
                     thisOutput.outputScript,
                 );
             }
+            // For etoken send txs, parse outputs for tokenSendInfo object
+            if (typeof thisOutput.slpToken !== 'undefined') {
+                // Check output script to confirm does not match tokenSendingOutputScript
+                if (tokenSendingOutputScripts.has(thisOutput.outputScript)) {
+                    // change
+                    tokenChangeOutputs.set(
+                        thisOutput.outputScript,
+                        (
+                            tokenChangeOutputs.get(thisOutput.outputScript) ??
+                            new BigNumber(0)
+                        ).plus(thisOutput.slpToken.amount),
+                    );
+                } else {
+                    /* This is the sent token qty
+                     *
+                     * Add outputScript and undecimalizedTokenReceivedAmount to map
+                     * If this outputScript is already in tokenReceivingOutputs, increment undecimalizedTokenReceivedAmount
+                     * note that thisOutput.slpToken.amount is a string so you do not want to add it
+                     * BigNumber library is required for token calculations
+                     */
+                    tokenReceivingOutputs.set(
+                        thisOutput.outputScript,
+                        (
+                            tokenReceivingOutputs.get(
+                                thisOutput.outputScript,
+                            ) ?? new BigNumber(0)
+                        ).plus(thisOutput.slpToken.amount),
+                    );
+                }
+            }
         }
 
         // Determine tx fee
         const txFee = xecInputAmountSats - xecOutputAmountSats;
         const satsPerByte = txFee / size;
+
+        // If this is a token send tx, return token send parsing info and not 'false' for tokenSendInfo
+        if (tokenSendInfo) {
+            tokenSendInfo.tokenChangeOutputs = tokenChangeOutputs;
+            tokenSendInfo.tokenReceivingOutputs = tokenReceivingOutputs;
+            tokenSendInfo.tokenSendingOutputScripts = tokenSendingOutputScripts;
+        }
 
         return {
             txid,
@@ -134,6 +219,7 @@ module.exports = {
             xecSendingOutputScripts,
             xecChangeOutputs,
             xecReceivingOutputs,
+            tokenSendInfo,
         };
     },
     parseOpReturn: function (outputScript) {
@@ -273,12 +359,13 @@ module.exports = {
             return { app, msg };
         }
     },
-    getBlockTgMessage: function (parsedBlock, coingeckoPrices) {
+    getBlockTgMessage: function (parsedBlock, coingeckoPrices, tokenInfoMap) {
         const { hash, height, miner, numTxs, parsedTxs } = parsedBlock;
 
         // Define newsworthy types of txs in parsedTxs
         // These arrays will be used to present txs in batches by type
         const genesisTxTgMsgLines = [];
+        const tokenSendTxTgMsgLines = [];
         const opReturnTxTgMsgLines = [];
         const xecSendTxTgMsgLines = [];
 
@@ -293,6 +380,7 @@ module.exports = {
                 xecSendingOutputScripts,
                 xecChangeOutputs,
                 xecReceivingOutputs,
+                tokenSendInfo,
             } = thisParsedTx;
             if (genesisInfo) {
                 // The txid of a genesis tx is the tokenId
@@ -318,6 +406,105 @@ module.exports = {
                 opReturnTxTgMsgLines.push(
                     `<a href="${config.blockExplorer}/tx/${txid}">${app}:</a> ${msg}`,
                 );
+                // This parsed tx has a tg msg line. Move on to the next one.
+                continue;
+            }
+            // Only parse tokenSendInfo txs if you successfuly got tokenMapInfo from chronik
+            if (tokenSendInfo && tokenInfoMap) {
+                let {
+                    tokenId,
+                    tokenSendingOutputScripts,
+                    tokenChangeOutputs,
+                    tokenReceivingOutputs,
+                } = tokenSendInfo;
+
+                // Get token info from tokenInfoMap
+                const thisTokenInfo = tokenInfoMap.get(tokenId);
+
+                let { tokenTicker, tokenName, decimals } = thisTokenInfo;
+                // Note: tokenDocumentUrl and tokenDocumentHash are also available from thisTokenInfo
+
+                // Make sure tokenName does not contain telegram html escape characters
+                tokenName = prepareStringForTelegramHTML(tokenName);
+                // Make sure tokenName does not contain telegram html escape characters
+                tokenTicker = prepareStringForTelegramHTML(tokenTicker);
+
+                // Initialize tokenSendMsg
+                let tokenSendMsg;
+
+                // Parse token self-send txs
+                if (tokenReceivingOutputs.size === 0) {
+                    // self send tx
+                    let undecimalizedTokenChangeAmount = new BigNumber(0);
+                    for (const tokenChangeAmount of tokenChangeOutputs.values()) {
+                        undecimalizedTokenChangeAmount =
+                            undecimalizedTokenChangeAmount.plus(
+                                tokenChangeAmount,
+                            );
+                    }
+                    // Calculate true tokenChangeAmount using decimals
+                    // Use decimals to calculate the sent amount as string
+                    const decimalizedTokenChangeAmount = new BigNumber(
+                        undecimalizedTokenChangeAmount,
+                    )
+                        .shiftedBy(-1 * decimals)
+                        .toString();
+
+                    // Self send tokenSendMsg
+                    tokenSendMsg = `${tokenSendingOutputScripts.size} ${
+                        tokenSendingOutputScripts.size > 1
+                            ? 'addresses'
+                            : 'address'
+                    } <a href="${
+                        config.blockExplorer
+                    }/tx/${txid}">sent</a> ${decimalizedTokenChangeAmount} <a href="${
+                        config.blockExplorer
+                    }/tx/${tokenId}">${tokenTicker}</a> to ${
+                        tokenSendingOutputScripts.size > 1
+                            ? 'themselves'
+                            : 'itself'
+                    }`;
+                } else {
+                    // Normal token send tx
+                    let undecimalizedTokenReceivedAmount = new BigNumber(0);
+                    for (const tokenReceivedAmount of tokenReceivingOutputs.values()) {
+                        undecimalizedTokenReceivedAmount =
+                            undecimalizedTokenReceivedAmount.plus(
+                                tokenReceivedAmount,
+                            );
+                    }
+                    // Calculate true tokenReceivedAmount using decimals
+                    // Use decimals to calculate the received amount as string
+                    const decimalizedTokenReceivedAmount = new BigNumber(
+                        undecimalizedTokenReceivedAmount,
+                    )
+                        .shiftedBy(-1 * decimals)
+                        .toString();
+                    tokenSendMsg = `${returnAddressPreview(
+                        cashaddr.encodeOutputScript(
+                            tokenSendingOutputScripts.values().next().value,
+                        ),
+                    )} <a href="${
+                        config.blockExplorer
+                    }/tx/${txid}">sent</a> ${decimalizedTokenReceivedAmount.toLocaleString(
+                        'en-US',
+                        {
+                            minimumFractionDigits: decimals,
+                        },
+                    )} <a href="${
+                        config.blockExplorer
+                    }/tx/${tokenId}">${tokenTicker}</a> to ${returnAddressPreview(
+                        cashaddr.encodeOutputScript(
+                            tokenReceivingOutputs.keys().next().value,
+                        ),
+                    )}${
+                        tokenReceivingOutputs.size > 1
+                            ? ` and ${tokenReceivingOutputs.size - 1} others`
+                            : ''
+                    }`;
+                }
+
+                tokenSendTxTgMsgLines.push(tokenSendMsg);
                 // This parsed tx has a tg msg line. Move on to the next one.
                 continue;
             }
@@ -427,6 +614,23 @@ module.exports = {
             );
 
             tgMsg = tgMsg.concat(genesisTxTgMsgLines);
+        }
+
+        // eToken Send txs
+        if (tokenSendTxTgMsgLines.length > 0) {
+            // Line break for new section
+            tgMsg.push('');
+
+            // 1 eToken send tx:
+            // or
+            // <n> eToken send txs:
+            tgMsg.push(
+                `${tokenSendTxTgMsgLines.length} eToken send tx${
+                    tokenSendTxTgMsgLines.length > 1 ? `s` : ''
+                }`,
+            );
+
+            tgMsg = tgMsg.concat(tokenSendTxTgMsgLines);
         }
 
         // OP_RETURN txs

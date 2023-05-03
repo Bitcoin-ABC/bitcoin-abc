@@ -5,6 +5,7 @@
 'use strict';
 const axios = require('axios');
 const config = require('../config');
+const BigNumber = require('bignumber.js');
 
 module.exports = {
     returnAddressPreview: function (cashAddress, sliceSize = 3) {
@@ -102,9 +103,32 @@ module.exports = {
     },
     jsonReplacer: function (key, value) {
         if (value instanceof Map) {
+            const keyValueArray = Array.from(value.entries());
+
+            for (let i = 0; i < keyValueArray.length; i += 1) {
+                const thisKeyValue = keyValueArray[i]; // [key, value]
+                // If this is not an empty map
+                if (typeof thisKeyValue !== 'undefined') {
+                    // Note: this value is an array of length 2
+                    // [key, value]
+                    // Check if value is a big number
+                    if (thisKeyValue[1] instanceof BigNumber) {
+                        // Replace it
+                        thisKeyValue[1] = {
+                            // Note, if you use dataType: 'BigNumber', it will not work
+                            // This must be reserved
+                            // Use a term that is definitely not reserved but also recognizable as
+                            // "the dev means BigNumber here"
+                            dataType: 'BigNumberReplacer',
+                            value: thisKeyValue[1].toString(),
+                        };
+                    }
+                }
+            }
+
             return {
                 dataType: 'Map',
-                value: Array.from(value.entries()),
+                value: keyValueArray,
             };
         } else if (value instanceof Set) {
             return {
@@ -118,6 +142,33 @@ module.exports = {
     jsonReviver: function (key, value) {
         if (typeof value === 'object' && value !== null) {
             if (value.dataType === 'Map') {
+                // If the map is not empty
+                if (typeof value.value[0] !== 'undefined') {
+                    /* value.value is an array of keyValue arrays
+                     * e.g.
+                     * [
+                     *  [key1, value1],
+                     *  [key2, value2],
+                     *  [key3, value3],
+                     * ]
+                     */
+                    // Iterate over each keyValue of the map
+                    for (let i = 0; i < value.value.length; i += 1) {
+                        const thisKeyValuePair = value.value[i]; // [key, value]
+                        let thisValue = thisKeyValuePair[1];
+                        if (
+                            thisValue &&
+                            thisValue.dataType === 'BigNumberReplacer'
+                        ) {
+                            // If this is saved BigNumber, replace it with an actual BigNumber
+                            // note, you can't use thisValue = new BigNumber(thisValue.value)
+                            // Need to use this specific array entry
+                            value.value[i][1] = new BigNumber(
+                                value.value[i][1].value,
+                            );
+                        }
+                    }
+                }
                 return new Map(value.value);
             }
             if (value.dataType === 'Set') {
@@ -125,5 +176,32 @@ module.exports = {
             }
         }
         return value;
+    },
+    returnChronikTokenInfoPromise: function (chronik, tokenId, tokenInfoMap) {
+        /* returnChronikTokenInfoPromise
+         *
+         * For best performance, we want to use Promise.all() to make several
+         * chronik API calls at the same time
+         *
+         * This function returns a promise to ask chronik for token genesis info
+         * and add this info to a map
+         */
+        return new Promise((resolve, reject) => {
+            chronik.tx(tokenId).then(
+                txDetails => {
+                    console.assert(
+                        typeof txDetails.slpTxData.genesisInfo !== 'undefined',
+                        `Error: no genesisInfo object for ${tokenId}`,
+                    );
+                    // Note: txDetails.slpTxData.genesisInfo only exists for token genesis txs
+                    const genesisInfo = txDetails.slpTxData.genesisInfo;
+                    tokenInfoMap.set(tokenId, genesisInfo);
+                    resolve(true);
+                },
+                err => {
+                    reject(err);
+                },
+            );
+        });
     },
 };

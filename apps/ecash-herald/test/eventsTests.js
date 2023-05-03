@@ -5,7 +5,9 @@
 'use strict';
 const assert = require('assert');
 const config = require('../config');
-const blocks = require('./mocks/blocks');
+const unrevivedBlocks = require('./mocks/blocks');
+const { jsonReviver } = require('../src/utils');
+const blocks = JSON.parse(JSON.stringify(unrevivedBlocks), jsonReviver);
 
 const { handleBlockConnected } = require('../src/events');
 const { MockChronikClient } = require('./mocks/chronikMock');
@@ -15,11 +17,10 @@ const axios = require('axios');
 const MockAdapter = require('axios-mock-adapter');
 
 describe('ecash-herald events.js', async function () {
-    it('handleBlockConnected creates and sends a telegram msg with price info for all mocked blocks if api call succeeds', async function () {
-        // Initialize chronik mock
-        const mockedChronik = new MockChronikClient();
-
+    it('handleBlockConnected creates and sends a telegram msg with price and token send info for all mocked blocks if api call succeeds', async function () {
         for (let i = 0; i < blocks.length; i += 1) {
+            // Initialize new chronik mock for each block
+            const mockedChronik = new MockChronikClient();
             const thisBlock = blocks[i];
             const thisBlockHash = thisBlock.blockDetails.blockInfo.hash;
             const thisBlockChronikBlockResponse = thisBlock.blockDetails;
@@ -29,6 +30,26 @@ describe('ecash-herald events.js', async function () {
                 input: thisBlockHash,
                 output: thisBlockChronikBlockResponse,
             });
+
+            // Tell mockedChronik what response we expect for chronik.tx
+            const { parsedBlock, tokenInfoMap } = thisBlock;
+            const { tokenIds } = parsedBlock;
+            // Will only have chronik call if the set is not empty
+            if (tokenIds.size > 0) {
+                // Instead of saving all the chronik responses as mocks, which would be very large
+                // Just set them as mocks based on tokenInfoMap, which contains the info we need
+                tokenIds.forEach(tokenId => {
+                    mockedChronik.setMock('tx', {
+                        input: tokenId,
+                        output: {
+                            slpTxData: {
+                                genesisInfo: tokenInfoMap.get(tokenId),
+                            },
+                        },
+                    });
+                });
+            }
+
             const thisBlockExpectedMsgs = thisBlock.blockSummaryTgMsgs;
 
             const telegramBot = new MockTelegramBot();
@@ -70,22 +91,50 @@ describe('ecash-herald events.js', async function () {
             assert.deepEqual(result, msgSuccessArray);
         }
     });
-    it('handleBlockConnected creates and sends a telegram msg without price info for all mocked blocks if api call fails', async function () {
-        // Initialize chronik mock
-        const mockedChronik = new MockChronikClient();
-
+    it('handleBlockConnected creates and sends a telegram msg without price or token info for all mocked blocks if api calls fail', async function () {
         for (let i = 0; i < blocks.length; i += 1) {
             const thisBlock = blocks[i];
             const thisBlockHash = thisBlock.blockDetails.blockInfo.hash;
             const thisBlockChronikBlockResponse = thisBlock.blockDetails;
+
+            // Initialize chronik mock for each block
+            const mockedChronik = new MockChronikClient();
 
             // Tell mockedChronik what response we expect for chronik.block(thisBlockHash)
             mockedChronik.setMock('block', {
                 input: thisBlockHash,
                 output: thisBlockChronikBlockResponse,
             });
+            // Tell mockedChronik what response we expect for chronik.tx
+            const { parsedBlock, tokenInfoMap } = thisBlock;
+            const { tokenIds } = parsedBlock;
+            // Will only have chronik call if the set is not empty
+            if (tokenIds.size > 0) {
+                // Instead of saving all the chronik responses as mocks, which would be very large
+                // Just set them as mocks based on tokenInfoMap, which contains the info we need
+                let index = 0;
+                tokenIds.forEach(tokenId => {
+                    // If this is the first one, set an error response
+                    if (index === 0) {
+                        mockedChronik.setMock('tx', {
+                            input: tokenId,
+                            output: new Error('some error'),
+                        });
+                    } else {
+                        index += 1;
+                        mockedChronik.setMock('tx', {
+                            input: tokenId,
+                            output: {
+                                slpTxData: {
+                                    genesisInfo: tokenInfoMap.get(tokenId),
+                                },
+                            },
+                        });
+                    }
+                });
+            }
             const thisBlockExpectedMsgs =
-                thisBlock.blockSummaryTgMsgsPriceFailure;
+                thisBlock.blockSummaryTgMsgsApiFailure;
 
             const telegramBot = new MockTelegramBot();
             const channelId = mockChannelId;
@@ -125,9 +174,9 @@ describe('ecash-herald events.js', async function () {
         }
     });
     it('handleBlockConnected sends desired backup msg if it encounters an error in message creation', async function () {
-        // Initialize chronik mock
-        const mockedChronik = new MockChronikClient();
         for (let i = 0; i < blocks.length; i += 1) {
+            // Initialize new chronik mock for each block
+            const mockedChronik = new MockChronikClient();
             const thisBlock = blocks[i];
             const thisBlockHash = thisBlock.blockDetails.blockInfo.hash;
 
@@ -165,10 +214,11 @@ describe('ecash-herald events.js', async function () {
     it('handleBlockConnected returns false if it encounters an error in telegram bot sendMessage routine', async function () {
         const wsTestAddress =
             'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
-        // Initialize chronik mock
-        const mockedChronik = new MockChronikClient(wsTestAddress, []);
 
         for (let i = 0; i < blocks.length; i += 1) {
+            // Initialize new chronik mock for each block
+            const mockedChronik = new MockChronikClient(wsTestAddress, []);
+
             const thisBlock = blocks[i];
             const thisBlockHash = thisBlock.blockDetails.blockInfo.hash;
             const thisBlockChronikBlockResponse = thisBlock.blockDetails;
@@ -178,6 +228,35 @@ describe('ecash-herald events.js', async function () {
                 input: thisBlockHash,
                 output: thisBlockChronikBlockResponse,
             });
+
+            // Tell mockedChronik what response we expect for chronik.tx
+            const { parsedBlock, tokenInfoMap } = thisBlock;
+            const { tokenIds } = parsedBlock;
+            // Will only have chronik call if the set is not empty
+            if (tokenIds.size > 0) {
+                // Instead of saving all the chronik responses as mocks, which would be very large
+                // Just set them as mocks based on tokenInfoMap, which contains the info we need
+                let index = 0;
+                tokenIds.forEach(tokenId => {
+                    // If this is the first one, set an error response
+                    if (index === 0) {
+                        mockedChronik.setMock('tx', {
+                            input: tokenId,
+                            output: new Error('some error'),
+                        });
+                    } else {
+                        index += 1;
+                        mockedChronik.setMock('tx', {
+                            input: tokenId,
+                            output: {
+                                slpTxData: {
+                                    genesisInfo: tokenInfoMap.get(tokenId),
+                                },
+                            },
+                        });
+                    }
+                });
+            }
 
             const telegramBot = new MockTelegramBot();
             telegramBot.setExpectedError(

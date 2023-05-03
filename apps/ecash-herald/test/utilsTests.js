@@ -4,6 +4,7 @@
 
 'use strict';
 const assert = require('assert');
+const BigNumber = require('bignumber.js');
 const axios = require('axios');
 const MockAdapter = require('axios-mock-adapter');
 const config = require('../config');
@@ -178,6 +179,23 @@ describe('ecash-telegram-bot utils.js functions', function () {
         const roundTrip = JSON.parse(jsonText, jsonReviver);
 
         assert.deepEqual(map, roundTrip);
+    });
+    it('jsonReplacer and jsonReviver can encode and decode Map containing a BigNumber', async function () {
+        const bigNumberMap = new Map([
+            [
+                '76a9144c1efd024f560e4e1aaf4b62416cd1e82fbed24f88ac',
+                new BigNumber(36),
+            ],
+            [
+                '76a9144c1efd024f560e4e1aaf4b62416cd1e82fbed24f88ac',
+                new BigNumber(72),
+            ],
+        ]);
+
+        const jsonText = JSON.stringify(bigNumberMap, jsonReplacer);
+        const roundTrip = JSON.parse(jsonText, jsonReviver);
+
+        assert.deepEqual(bigNumberMap, roundTrip);
     });
     it('jsonReplacer and jsonReviver can encode and decode a Set to and from JSON', async function () {
         const set = new Set(['one', 'two', 'three']);

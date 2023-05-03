@@ -6,7 +6,9 @@
 const assert = require('assert');
 const config = require('../config');
 const cashaddr = require('ecashaddrjs');
-const blocks = require('./mocks/blocks');
+const unrevivedBlocks = require('./mocks/blocks');
+const { jsonReviver } = require('../src/utils');
+const blocks = JSON.parse(JSON.stringify(unrevivedBlocks), jsonReviver);
 const {
     initializeWebsocket,
     parseWebsocketMessage,
@@ -109,11 +111,11 @@ describe('ecash-herald chronikWsHandler.js', async function () {
             assert.deepEqual(result, false);
         }
     });
-    it('parseWebsocketMessage creates and sends a telegram msg with prices for all mocked blocks on successful price API call', async function () {
-        // Initialize chronik mock
-        const mockedChronik = new MockChronikClient();
-
+    it('parseWebsocketMessage creates and sends a telegram msg with prices and token send info for all mocked blocks on successful API calls', async function () {
         for (let i = 0; i < blocks.length; i += 1) {
+            // Initialize new chronik mock for each block
+            const mockedChronik = new MockChronikClient();
+
             const thisBlock = blocks[i];
             const thisBlockHash = thisBlock.blockDetails.blockInfo.hash;
             const thisBlockChronikBlockResponse = thisBlock.blockDetails;
@@ -123,6 +125,24 @@ describe('ecash-herald chronikWsHandler.js', async function () {
                 input: thisBlockHash,
                 output: thisBlockChronikBlockResponse,
             });
+            // Tell mockedChronik what response we expect for chronik.tx
+            const { parsedBlock, tokenInfoMap } = thisBlock;
+            const { tokenIds } = parsedBlock;
+            // Will only have chronik call if the set is not empty
+            if (tokenIds.size > 0) {
+                // Instead of saving all the chronik responses as mocks, which would be very large
+                // Just set them as mocks based on tokenInfoMap, which contains the info we need
+                tokenIds.forEach(tokenId => {
+                    mockedChronik.setMock('tx', {
+                        input: tokenId,
+                        output: {
+                            slpTxData: {
+                                genesisInfo: tokenInfoMap.get(tokenId),
+                            },
+                        },
+                    });
+                });
+            }
             const thisBlockExpectedMsgs = thisBlock.blockSummaryTgMsgs;
 
             // Mock a chronik websocket msg of correct format
@@ -166,11 +186,10 @@ describe('ecash-herald chronikWsHandler.js', async function () {
             assert.deepEqual(result, msgSuccessArray);
         }
     });
-    it('parseWebsocketMessage creates and sends a telegram msg without prices for all mocked blocks on failed price API call', async function () {
-        // Initialize chronik mock
-        const mockedChronik = new MockChronikClient();
-
+    it('parseWebsocketMessage creates and sends a telegram msg without prices or token send info for all mocked blocks on failed API calls', async function () {
         for (let i = 0; i < blocks.length; i += 1) {
+            // Initialize new chronik mock for each block
+            const mockedChronik = new MockChronikClient();
             const thisBlock = blocks[i];
             const thisBlockHash = thisBlock.blockDetails.blockInfo.hash;
             const thisBlockChronikBlockResponse = thisBlock.blockDetails;
@@ -179,9 +198,36 @@ describe('ecash-herald chronikWsHandler.js', async function () {
             mockedChronik.setMock('block', {
                 input: thisBlockHash,
                 output: thisBlockChronikBlockResponse,
-            });
+            }); // Tell mockedChronik what response we expect for chronik.tx
+            const { parsedBlock, tokenInfoMap } = thisBlock;
+            const { tokenIds } = parsedBlock;
+            // Will only have chronik call if the set is not empty
+            if (tokenIds.size > 0) {
+                // Instead of saving all the chronik responses as mocks, which would be very large
+                // Just set them as mocks based on tokenInfoMap, which contains the info we need
+                let index = 0;
+                tokenIds.forEach(tokenId => {
+                    // If this is the first one, set an error response
+                    if (index === 0) {
+                        mockedChronik.setMock('tx', {
+                            input: tokenId,
+                            output: new Error('some error'),
+                        });
+                    } else {
+                        index += 1;
+                        mockedChronik.setMock('tx', {
+                            input: tokenId,
+                            output: {
+                                slpTxData: {
+                                    genesisInfo: tokenInfoMap.get(tokenId),
+                                },
+                            },
+                        });
+                    }
+                });
+            }
             const thisBlockExpectedMsgs =
-                thisBlock.blockSummaryTgMsgsPriceFailure;
+                thisBlock.blockSummaryTgMsgsApiFailure;
 
             // Mock a chronik websocket msg of correct format
             const mockWsMsg = {
@@ -226,10 +272,10 @@ describe('ecash-herald chronikWsHandler.js', async function () {
         }
     });
     it('parseWebsocketMessage returns false if telegram msg fails to send', async function () {
-        // Initialize chronik mock
-        const mockedChronik = new MockChronikClient();
-
         for (let i = 0; i < blocks.length; i += 1) {
+            // Initialize new chronik mock for each block
+            const mockedChronik = new MockChronikClient();
+
             const thisBlock = blocks[i];
             const thisBlockHash = thisBlock.blockDetails.blockInfo.hash;
             const thisBlockChronikBlockResponse = thisBlock.blockDetails;
@@ -239,6 +285,35 @@ describe('ecash-herald chronikWsHandler.js', async function () {
                 input: thisBlockHash,
                 output: thisBlockChronikBlockResponse,
             });
+
+            // Tell mockedChronik what response we expect for chronik.tx
+            const { parsedBlock, tokenInfoMap } = thisBlock;
+            const { tokenIds } = parsedBlock;
+            // Will only have chronik call if the set is not empty
+            if (tokenIds.size > 0) {
+                // Instead of saving all the chronik responses as mocks, which would be very large
+                // Just set them as mocks based on tokenInfoMap, which contains the info we need
+                let index = 0;
+                tokenIds.forEach(tokenId => {
+                    // If this is the first one, set an error response
+                    if (index === 0) {
+                        mockedChronik.setMock('tx', {
+                            input: tokenId,
+                            output: new Error('some error'),
+                        });
+                    } else {
+                        index += 1;
+                        mockedChronik.setMock('tx', {
+                            input: tokenId,
+                            output: {
+                                slpTxData: {
+                                    genesisInfo: tokenInfoMap.get(tokenId),
+                                },
+                            },
+                        });
+                    }
+                });
+            }
 
             // Mock a chronik websocket msg of correct format
             const mockWsMsg = {
