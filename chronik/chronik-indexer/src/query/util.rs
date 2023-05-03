@@ -2,14 +2,20 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-use std::collections::{hash_map::Entry, BTreeMap, HashMap};
+use std::{
+    collections::{hash_map::Entry, BTreeMap, HashMap},
+    str::FromStr,
+};
 
-use abc_rust_error::Result;
+use abc_rust_error::{Report, Result};
 use bitcoinsuite_core::{
+    block::BlockHash,
     ser::BitcoinSer,
     tx::{OutPoint, SpentBy, Tx, TxId},
 };
-use chronik_db::io::{DbBlock, SpentByEntry, SpentByReader, TxNum, TxReader};
+use chronik_db::io::{
+    BlockHeight, DbBlock, SpentByEntry, SpentByReader, TxNum, TxReader,
+};
 use chronik_proto::proto;
 use thiserror::Error;
 
@@ -29,6 +35,10 @@ pub enum QueryUtilError {
         /// The offending entry in the DB that references an unknown tx.
         entry: SpentByEntry,
     },
+
+    /// Query is neither a hex hash nor an integer string
+    #[error("400: Not a hash or height: {0}")]
+    NotHashOrHeight(String),
 }
 
 use self::QueryUtilError::*;
@@ -100,6 +110,33 @@ fn make_spent_by_proto(spent_by: &SpentBy) -> proto::SpentBy {
     proto::SpentBy {
         txid: spent_by.txid.to_vec(),
         input_idx: spent_by.input_idx,
+    }
+}
+
+pub(crate) enum HashOrHeight {
+    Hash(BlockHash),
+    Height(BlockHeight),
+}
+
+impl FromStr for HashOrHeight {
+    type Err = Report;
+
+    fn from_str(hash_or_height: &str) -> Result<Self> {
+        if let Ok(hash) = hash_or_height.parse::<BlockHash>() {
+            Ok(HashOrHeight::Hash(hash))
+        } else {
+            let height = match hash_or_height.parse::<BlockHeight>() {
+                // disallow leading zeros
+                Ok(0) if hash_or_height.len() == 1 => 0,
+                Ok(height) if !hash_or_height.starts_with('0') => height,
+                _ => {
+                    return Err(
+                        NotHashOrHeight(hash_or_height.to_string()).into()
+                    );
+                }
+            };
+            Ok(HashOrHeight::Height(height))
+        }
     }
 }
 
