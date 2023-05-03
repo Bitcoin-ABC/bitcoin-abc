@@ -5,7 +5,10 @@
 use std::collections::{hash_map::Entry, BTreeMap, HashMap};
 
 use abc_rust_error::Result;
-use bitcoinsuite_core::tx::{OutPoint, SpentBy, Tx, TxId};
+use bitcoinsuite_core::{
+    ser::BitcoinSer,
+    tx::{OutPoint, SpentBy, Tx, TxId},
+};
 use chronik_db::io::{DbBlock, SpentByEntry, SpentByReader, TxNum, TxReader};
 use chronik_proto::proto;
 use thiserror::Error;
@@ -81,6 +84,7 @@ pub(crate) fn make_tx_proto(
             is_final: avalanche.is_final_height(block.height),
         }),
         time_first_seen,
+        size: tx.ser_len() as u32,
         is_coinbase,
     }
 }

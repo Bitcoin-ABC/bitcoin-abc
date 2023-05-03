@@ -142,6 +142,7 @@ class ChronikScriptUnconfirmedTxsTest(BitcoinTestFramework):
                     ),
                 ],
                 lock_time=1,
+                size=len(tx.serialize()),
                 time_first_seen=time_first_seen,
             ))
 

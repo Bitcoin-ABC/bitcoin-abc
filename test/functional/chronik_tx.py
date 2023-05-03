@@ -94,6 +94,7 @@ class ChronikTxTest(BitcoinTestFramework):
             lock_time=1234567890,
             block=None,
             time_first_seen=1333333337,
+            size=len(tx.serialize()),
             is_coinbase=False,
         )
 
@@ -143,6 +144,7 @@ class ChronikTxTest(BitcoinTestFramework):
             lock_time=12,
             block=None,
             time_first_seen=1333333338,
+            size=len(tx2.serialize()),
             is_coinbase=False,
         )
 

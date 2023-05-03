@@ -33,5 +33,6 @@ def genesis_cb_tx():
             timestamp=TIME_GENESIS_BLOCK,
         ),
         time_first_seen=0,
+        size=204,
         is_coinbase=True,
     )

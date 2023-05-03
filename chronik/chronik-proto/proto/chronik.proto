@@ -74,6 +74,8 @@ message Tx {
     BlockMetadata block = 8;
     // Time this tx has first been added to the mempool, or 0 if unknown
     int64 time_first_seen = 9;
+    // Serialized size of the tx
+    uint32 size = 11;
     // Whether this tx is a coinbase tx
     bool is_coinbase = 12;
 }
