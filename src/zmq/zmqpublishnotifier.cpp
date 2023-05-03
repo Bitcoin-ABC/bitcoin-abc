@@ -23,8 +23,6 @@
 #include <string>
 #include <utility>
 
-using node::ReadBlockFromDisk;
-
 static std::multimap<std::string, CZMQAbstractPublishNotifier *>
     mapPublishNotifiers;
 
@@ -212,11 +210,9 @@ bool CZMQPublishRawBlockNotifier::NotifyBlock(const CBlockIndex *pindex) {
     LogPrint(BCLog::ZMQ, "zmq: Publish rawblock %s to %s\n",
              pindex->GetBlockHash().GetHex(), this->address);
 
-    const Config &config = GetConfig();
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());
     CBlock block;
-    if (!ReadBlockFromDisk(block, pindex,
-                           config.GetChainParams().GetConsensus())) {
+    if (!m_get_block_by_index(block, *pindex)) {
         zmqError("Can't read block from disk");
         return false;
     }

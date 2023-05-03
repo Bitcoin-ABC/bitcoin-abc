@@ -5,6 +5,7 @@
 #ifndef BITCOIN_ZMQ_ZMQABSTRACTNOTIFIER_H
 #define BITCOIN_ZMQ_ZMQABSTRACTNOTIFIER_H
 
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -12,7 +13,8 @@ class CBlockIndex;
 class CTransaction;
 class CZMQAbstractNotifier;
 
-using CZMQNotifierFactory = std::unique_ptr<CZMQAbstractNotifier> (*)();
+using CZMQNotifierFactory =
+    std::function<std::unique_ptr<CZMQAbstractNotifier>()>;
 
 class CZMQAbstractNotifier {
 public:
