@@ -269,8 +269,8 @@ class ConfArgsTest(BitcoinTestFramework):
                 "Loaded 0 addresses from peers.dat",
                 "DNS seeding disabled",
                 (
-                    "Adding fixed seeds as -dnsseed=0, -addnode is not provided and all"
-                    " -seednode(s) attempted\n"
+                    "Adding fixed seeds as -dnsseed=0 and neither -addnode nor "
+                    "-seednode are provided\n"
                 ),
             ],
             timeout=10,

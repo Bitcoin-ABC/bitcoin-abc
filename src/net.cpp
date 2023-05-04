@@ -1666,6 +1666,7 @@ void CConnman::ThreadOpenConnections(
         GetExponentialRand(start, EXTRA_BLOCK_RELAY_ONLY_PEER_INTERVAL);
     const bool dnsseed = gArgs.GetBoolArg("-dnsseed", DEFAULT_DNSSEED);
     bool add_fixed_seeds = gArgs.GetBoolArg("-fixedseeds", DEFAULT_FIXEDSEEDS);
+    const bool use_seednodes{gArgs.IsArgSet("-seednode")};
 
     if (!add_fixed_seeds) {
         LogPrintf("Fixed seeds are disabled\n");
@@ -1698,16 +1699,13 @@ void CConnman::ThreadOpenConnections(
                 add_fixed_seeds_now = true;
                 LogPrintf("Adding fixed seeds as 60 seconds have passed and "
                           "addrman is empty\n");
-            }
-
-            // Checking !dnsseed is cheaper before locking 2 mutexes.
-            if (!add_fixed_seeds_now && !dnsseed) {
-                LOCK2(m_addr_fetches_mutex, m_added_nodes_mutex);
-                if (m_addr_fetches.empty() && m_added_nodes.empty()) {
+            } else if (!dnsseed && !use_seednodes) {
+                // Lock the mutex after performing the above cheap checks.
+                LOCK(m_added_nodes_mutex);
+                if (m_added_nodes.empty()) {
                     add_fixed_seeds_now = true;
-                    LogPrintf(
-                        "Adding fixed seeds as -dnsseed=0, -addnode is not "
-                        "provided and all -seednode(s) attempted\n");
+                    LogPrintf("Adding fixed seeds as -dnsseed=0 and neither "
+                              "-addnode nor -seednode are provided\n");
                 }
             }
 
