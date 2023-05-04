@@ -22,6 +22,7 @@ class Config;
 
 static constexpr bool DEFAULT_CHECKPOINTS_ENABLED{true};
 static constexpr auto DEFAULT_MAX_TIP_AGE{24h};
+static constexpr int DEFAULT_STOPATHEIGHT{0};
 static constexpr bool DEFAULT_STORE_RECENT_HEADERS_TIME{false};
 static constexpr bool DEFAULT_PARK_DEEP_REORG{true};
 
@@ -54,6 +55,7 @@ struct ChainstateManagerOpts {
     DBOptions coins_db{};
     CoinsViewOptions coins_view{};
     Notifications &notifications;
+    int stop_at_height{DEFAULT_STOPATHEIGHT};
 
     //! If set, store and load the last few block headers reception time to
     //! speed up RTT bootstraping

@@ -88,8 +88,6 @@ static const int DEFAULT_SCRIPTCHECK_THREADS = 0;
 
 static const bool DEFAULT_PEERBLOOMFILTERS = true;
 
-/** Default for -stopatheight */
-static const int DEFAULT_STOPATHEIGHT = 0;
 /**
  * Block files containing a block-height within MIN_BLOCKS_TO_KEEP of
  * ActiveChain().Tip() will not be pruned.
@@ -1259,7 +1257,8 @@ public:
     }
     kernel::Notifications &GetNotifications() const {
         return m_options.notifications;
-    };
+    }
+    int StopAtHeight() const { return m_options.stop_at_height; }
 
     /**
      * Make various assertions about the state of the block index.

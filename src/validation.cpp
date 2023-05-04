@@ -3504,7 +3504,6 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
 
     CBlockIndex *pindexMostWork = nullptr;
     CBlockIndex *pindexNewTip = nullptr;
-    int nStopAtHeight = gArgs.GetIntArg("-stopatheight", DEFAULT_STOPATHEIGHT);
     bool exited_ibd{false};
     do {
         // Block until the validation queue drains. This should largely
@@ -3643,8 +3642,8 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
             return true;
         }
 
-        if (nStopAtHeight && pindexNewTip &&
-            pindexNewTip->nHeight >= nStopAtHeight) {
+        if (m_chainman.StopAtHeight() && pindexNewTip &&
+            pindexNewTip->nHeight >= m_chainman.StopAtHeight()) {
             StartShutdown();
         }
 

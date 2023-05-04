@@ -49,6 +49,10 @@ ApplyArgsManOptions(const ArgsManager &args, ChainstateManager::Options &opts) {
         opts.max_tip_age = std::chrono::seconds{*value};
     }
 
+    if (auto value{args.GetIntArg("-stopatheight")}) {
+        opts.stop_at_height = *value;
+    }
+
     ReadDatabaseArgs(args, opts.block_tree_db);
     ReadDatabaseArgs(args, opts.coins_db);
     ReadCoinsViewArgs(args, opts.coins_view);
