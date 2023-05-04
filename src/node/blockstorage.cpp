@@ -703,16 +703,16 @@ static bool WriteBlockToDisk(const CBlock &block, FlatFilePos &pos,
 
 bool BlockManager::WriteUndoDataForBlock(const CBlockUndo &blockundo,
                                          BlockValidationState &state,
-                                         CBlockIndex *pindex) {
+                                         CBlockIndex &block) {
     AssertLockHeld(::cs_main);
     // Write undo information to disk
-    if (pindex->GetUndoPos().IsNull()) {
+    if (block.GetUndoPos().IsNull()) {
         FlatFilePos _pos;
-        if (!FindUndoPos(state, pindex->nFile, _pos,
+        if (!FindUndoPos(state, block.nFile, _pos,
                          ::GetSerializeSize(blockundo, CLIENT_VERSION) + 40)) {
             return error("ConnectBlock(): FindUndoPos failed");
         }
-        if (!UndoWriteToDisk(blockundo, _pos, pindex->pprev->GetBlockHash(),
+        if (!UndoWriteToDisk(blockundo, _pos, block.pprev->GetBlockHash(),
                              GetParams().DiskMagic())) {
             return AbortNode(state, "Failed to write undo data");
         }
@@ -724,15 +724,15 @@ bool BlockManager::WriteUndoDataForBlock(const CBlockUndo &blockundo,
         // block writes (usually when a synced up node is getting newly mined
         // blocks) -- this case is caught in the FindBlockPos function
         if (_pos.nFile < m_last_blockfile &&
-            static_cast<uint32_t>(pindex->nHeight) ==
+            static_cast<uint32_t>(block.nHeight) ==
                 m_blockfile_info[_pos.nFile].nHeightLast) {
             FlushUndoFile(_pos.nFile, true);
         }
 
         // update nUndoPos in block index
-        pindex->nUndoPos = _pos.nPos;
-        pindex->nStatus = pindex->nStatus.withUndo();
-        m_dirty_blockindex.insert(pindex);
+        block.nUndoPos = _pos.nPos;
+        block.nStatus = block.nStatus.withUndo();
+        m_dirty_blockindex.insert(&block);
     }
 
     return true;

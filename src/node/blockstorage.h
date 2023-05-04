@@ -184,7 +184,7 @@ public:
     CBlockFileInfo *GetBlockFileInfo(size_t n);
 
     bool WriteUndoDataForBlock(const CBlockUndo &blockundo,
-                               BlockValidationState &state, CBlockIndex *pindex)
+                               BlockValidationState &state, CBlockIndex &block)
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
     /**

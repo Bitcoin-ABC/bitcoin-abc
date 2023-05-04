@@ -2094,7 +2094,7 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
         return true;
     }
 
-    if (!m_blockman.WriteUndoDataForBlock(blockundo, state, pindex)) {
+    if (!m_blockman.WriteUndoDataForBlock(blockundo, state, *pindex)) {
         return false;
     }
 
