@@ -1215,10 +1215,6 @@ private:
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     friend Chainstate;
 
-    //! Returns nullptr if no snapshot has been loaded.
-    const CBlockIndex *GetSnapshotBaseBlock() const
-        EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
-
     //! Return the height of the base block of the snapshot in use, if one
     //! exists, else nullopt.
     std::optional<int> GetSnapshotBaseHeight() const
@@ -1387,6 +1383,10 @@ public:
             [](bilingual_str msg) { AbortNode(msg.original, msg); })
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
+    //! Returns nullptr if no snapshot has been loaded.
+    const CBlockIndex *GetSnapshotBaseBlock() const
+        EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+
     //! The most-work chain.
     Chainstate &ActiveChainstate() const;
     CChain &ActiveChain() const EXCLUSIVE_LOCKS_REQUIRED(GetMutex()) {
@@ -1397,6 +1397,19 @@ public:
     }
     CBlockIndex *ActiveTip() const EXCLUSIVE_LOCKS_REQUIRED(GetMutex()) {
         return ActiveChain().Tip();
+    }
+
+    //! The state of a background sync (for net processing)
+    bool BackgroundSyncInProgress() const EXCLUSIVE_LOCKS_REQUIRED(GetMutex()) {
+        return IsUsable(m_snapshot_chainstate.get()) &&
+               IsUsable(m_ibd_chainstate.get());
+    }
+
+    //! The tip of the background sync chain
+    const CBlockIndex *GetBackgroundSyncTip() const
+        EXCLUSIVE_LOCKS_REQUIRED(GetMutex()) {
+        return BackgroundSyncInProgress() ? m_ibd_chainstate->m_chain.Tip()
+                                          : nullptr;
     }
 
     node::BlockMap &BlockIndex() EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {

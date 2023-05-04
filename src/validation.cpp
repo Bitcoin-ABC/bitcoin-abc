@@ -4937,6 +4937,15 @@ bool ChainstateManager::ProcessNewBlock(
                      state.ToString());
     }
 
+    Chainstate *bg_chain{WITH_LOCK(cs_main, return BackgroundSyncInProgress()
+                                                       ? m_ibd_chainstate.get()
+                                                       : nullptr)};
+    BlockValidationState bg_state;
+    if (bg_chain && !bg_chain->ActivateBestChain(bg_state, block)) {
+        return error("%s: [background] ActivateBestChain failed (%s)", __func__,
+                     bg_state.ToString());
+    }
+
     return true;
 }
 
