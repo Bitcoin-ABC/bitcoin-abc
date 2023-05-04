@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import Neoncity from '/public/images/neon-city.png';
 
 export const Hero = styled.div`
     width: 100%;
@@ -118,4 +119,35 @@ export const HeroImage = styled.div`
             transform: translateY(0);
         }
     }
+`;
+
+export const StoryAndWhySection = styled.div`
+    background-image: url('/images/neon-city.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 100%;
+    padding: 200px 0 400px;
+    position: relative;
+    ${props => props.theme.filters.grayscale};
+`;
+
+export const Overlay = styled.div`
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    background-image: linear-gradient(180deg, #000, rgba(39, 52, 152, 0.57));
+`;
+
+export const GradientSpacer = styled.div`
+    height: 100px;
+    width: 100%;
+    background-image: linear-gradient(
+        180deg,
+        ${props => props.theme.colors.darkBlue},
+        ${props => props.theme.colors.black}
+    );
 `;

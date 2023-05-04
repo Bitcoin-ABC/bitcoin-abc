@@ -4,8 +4,16 @@ import Layout from '/components/layout';
 import VideoBackground from '/components/videobackground';
 import GlitchText from '/components/glitch-text';
 import { socials } from '/data/socials';
-import { Hero, ButtonCtn, HeroImage } from '/styles/pages/homepage';
+import {
+    Hero,
+    ButtonCtn,
+    HeroImage,
+    GradientSpacer,
+    StoryAndWhySection,
+    Overlay,
+} from '/styles/pages/homepage';
 import Button from '/components/button';
+import H2 from '/components/h2';
 import Hand from '/public/images/hand.png';
 
 export default function Home() {
@@ -54,6 +62,13 @@ export default function Home() {
                     </div>
                 </div>
             </Hero>
+            <GradientSpacer />
+            <StoryAndWhySection>
+                <Overlay />
+                <div className="container">
+                    <H2 subtext="The eCash Story" text="GET STARTED" />
+                </div>
+            </StoryAndWhySection>
         </Layout>
     );
 }
