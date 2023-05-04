@@ -568,10 +568,9 @@ inspecting signatures in Mach-O binaries.")
               (file-name (git-file-name "glibc" "c9e58ae23402eb82877de90fd8a18519c086ed87"))
               (sha256
                (base32
+
                 "0wm0if2n4z48kpn85va6yb4iac34crds2f55ddpz1hykx6jp1pb6"))
-              (patches (search-our-patches "glibc-ldd-x86_64.patch"
-                                           "glibc-versioned-locpath.patch"
-                                           "glibc-2.28-fcommon.patch"
+              (patches (search-our-patches "glibc-2.28-fcommon.patch"
                                            "glibc-2.28-guix-prefix.patch"))))))
 
 (packages->manifest
