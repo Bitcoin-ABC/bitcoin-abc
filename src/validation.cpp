@@ -20,7 +20,6 @@
 #include <chainparams.h>
 #include <checkpoints.h>
 #include <checkqueue.h>
-#include <common/args.h>
 #include <config.h>
 #include <consensus/activation.h>
 #include <consensus/amount.h>
@@ -2634,7 +2633,7 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
             // Write blocks, block index and best chain related state to disk.
             if (should_write) {
                 // Ensure we can write block index
-                if (!CheckDiskSpace(gArgs.GetBlocksDirPath())) {
+                if (!CheckDiskSpace(m_blockman.m_opts.blocks_dir)) {
                     return AbortNode(state, "Disk space is too low!",
                                      _("Disk space is too low!"));
                 }
@@ -2687,7 +2686,7 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
                     // tables). This is already an overestimation, as most will
                     // delete an existing entry or overwrite one. Still, use a
                     // conservative safety factor of 2.
-                    if (!CheckDiskSpace(gArgs.GetDataDirNet(),
+                    if (!CheckDiskSpace(m_chainman.m_options.datadir,
                                         48 * 2 * 2 *
                                             CoinsTip().GetCacheSize())) {
                         return AbortNode(state, "Disk space is too low!",
