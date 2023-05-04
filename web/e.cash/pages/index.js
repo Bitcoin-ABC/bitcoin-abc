@@ -4,8 +4,9 @@ import Layout from '/components/layout';
 import VideoBackground from '/components/videobackground';
 import GlitchText from '/components/glitch-text';
 import { socials } from '/data/socials';
-import { Hero, ButtonCtn } from '/styles/pages/homepage';
+import { Hero, ButtonCtn, HeroImage } from '/styles/pages/homepage';
 import Button from '/components/button';
+import Hand from '/public/images/hand.png';
 
 export default function Home() {
     return (
@@ -23,6 +24,9 @@ export default function Home() {
                         Experience the revolutionary new money powered by
                         Avalanche.
                     </p>
+                    <HeroImage>
+                        <Image src={Hand} alt="eCash" fill />
+                    </HeroImage>
                     <ButtonCtn>
                         <Button
                             text="Avalanche Consensus"
