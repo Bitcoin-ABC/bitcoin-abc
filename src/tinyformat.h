@@ -143,6 +143,7 @@ namespace tfm = tinyformat;
 //------------------------------------------------------------------------------
 // Implementation details.
 #include <algorithm>
+#include <cstdint>
 #include <iostream>
 #include <sstream>
 #include <stdexcept> // Added for Bitcoin
