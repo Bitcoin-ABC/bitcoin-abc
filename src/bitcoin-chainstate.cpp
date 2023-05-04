@@ -89,7 +89,10 @@ int main(int argc, char *argv[]) {
         .config = config,
         .adjusted_time_callback = NodeClock::now,
     };
-    ChainstateManager chainman{chainman_opts, {}};
+    const node::BlockManager::Options blockman_opts{
+        .chainparams = chainman_opts.config.GetChainParams(),
+    };
+    ChainstateManager chainman{chainman_opts, blockman_opts};
 
     node::CacheSizes cache_sizes;
     cache_sizes.block_tree_db = 2 << 20;

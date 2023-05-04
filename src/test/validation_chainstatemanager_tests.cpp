@@ -400,11 +400,14 @@ struct SnapshotTestSetup : TestChain100Setup {
                 .config = ::GetConfig(),
                 .adjusted_time_callback = GetAdjustedTime,
             };
+            node::BlockManager::Options blockman_opts{
+                .chainparams = chainman_opts.config.GetChainParams(),
+            };
             // For robustness, ensure the old manager is destroyed before
             // creating a new one.
             m_node.chainman.reset();
             m_node.chainman = std::make_unique<ChainstateManager>(
-                chainman_opts, node::BlockManager::Options{});
+                chainman_opts, blockman_opts);
         }
         return *Assert(m_node.chainman);
     }

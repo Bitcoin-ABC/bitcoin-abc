@@ -239,11 +239,13 @@ CBlockIndex *BlockManager::InsertBlockIndex(const BlockHash &hash) {
     return pindex;
 }
 
-bool BlockManager::LoadBlockIndex(const Consensus::Params &params) {
+bool BlockManager::LoadBlockIndex() {
     AssertLockHeld(cs_main);
     if (!m_block_tree_db->LoadBlockIndexGuts(
-            params, [this](const BlockHash &hash) EXCLUSIVE_LOCKS_REQUIRED(
-                        cs_main) { return this->InsertBlockIndex(hash); })) {
+            GetConsensus(),
+            [this](const BlockHash &hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+                return this->InsertBlockIndex(hash);
+            })) {
         return false;
     }
 
@@ -309,8 +311,8 @@ bool BlockManager::WriteBlockIndexDB() {
     return true;
 }
 
-bool BlockManager::LoadBlockIndexDB(const Consensus::Params &consensus_params) {
-    if (!LoadBlockIndex(consensus_params)) {
+bool BlockManager::LoadBlockIndexDB() {
+    if (!LoadBlockIndex()) {
         return false;
     }
 
@@ -701,8 +703,7 @@ static bool WriteBlockToDisk(const CBlock &block, FlatFilePos &pos,
 
 bool BlockManager::WriteUndoDataForBlock(const CBlockUndo &blockundo,
                                          BlockValidationState &state,
-                                         CBlockIndex *pindex,
-                                         const CChainParams &chainparams) {
+                                         CBlockIndex *pindex) {
     AssertLockHeld(::cs_main);
     // Write undo information to disk
     if (pindex->GetUndoPos().IsNull()) {
@@ -712,7 +713,7 @@ bool BlockManager::WriteUndoDataForBlock(const CBlockUndo &blockundo,
             return error("ConnectBlock(): FindUndoPos failed");
         }
         if (!UndoWriteToDisk(blockundo, _pos, pindex->pprev->GetBlockHash(),
-                             chainparams.DiskMagic())) {
+                             GetParams().DiskMagic())) {
             return AbortNode(state, "Failed to write undo data");
         }
         // rev files are written in block height order, whereas blk files are
@@ -823,7 +824,6 @@ bool ReadTxUndoFromDisk(CTxUndo &tx_undo, const FlatFilePos &pos) {
 
 FlatFilePos BlockManager::SaveBlockToDisk(const CBlock &block, int nHeight,
                                           CChain &active_chain,
-                                          const CChainParams &chainparams,
                                           const FlatFilePos *dbp) {
     unsigned int nBlockSize = ::GetSerializeSize(block, CLIENT_VERSION);
     FlatFilePos blockPos;
@@ -846,7 +846,7 @@ FlatFilePos BlockManager::SaveBlockToDisk(const CBlock &block, int nHeight,
         return FlatFilePos();
     }
     if (!position_known) {
-        if (!WriteBlockToDisk(block, blockPos, chainparams.DiskMagic())) {
+        if (!WriteBlockToDisk(block, blockPos, GetParams().DiskMagic())) {
             AbortNode("Failed to write block");
             return FlatFilePos();
         }
