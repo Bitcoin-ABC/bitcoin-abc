@@ -11,6 +11,8 @@ import {
     GradientSpacer,
     StoryAndWhySection,
     Overlay,
+    StorySection,
+    YouTubeVideo,
 } from '/styles/pages/homepage';
 import Button from '/components/button';
 import H2 from '/components/h2';
@@ -66,7 +68,32 @@ export default function Home() {
             <StoryAndWhySection>
                 <Overlay />
                 <div className="container">
-                    <H2 subtext="The eCash Story" text="GET STARTED" />
+                    <StorySection>
+                        <div>
+                            <H2 subtext="The eCash Story" text="GET STARTED" />
+                            <p>
+                                Introducing eCash: the new battle-tested
+                                cryptocurrency forged from centuries of economic
+                                theory and over a decade of real-world crypto
+                                experience. eCash is the implementation of the
+                                tech-secured sound money envisioned by
+                                luminaries in monetary philosophy like Milton
+                                Friedman.
+                            </p>
+                        </div>
+                        <div>
+                            <YouTubeVideo>
+                                <div>
+                                    <iframe
+                                        src="https://www.youtube.com/embed/2kR6Bx0Y2TE?rel=1&amp;controls=0&amp;autoplay=0&amp;mute=0&amp;start=0"
+                                        allow="autoplay; encrypted-media"
+                                        allowFullScreen
+                                        title="eCash - Future Technology"
+                                    ></iframe>
+                                </div>
+                            </YouTubeVideo>
+                        </div>
+                    </StorySection>
                 </div>
             </StoryAndWhySection>
         </Layout>

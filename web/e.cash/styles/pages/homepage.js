@@ -151,3 +151,100 @@ export const GradientSpacer = styled.div`
         ${props => props.theme.colors.black}
     );
 `;
+
+export const StorySection = styled.div`
+    display: flex;
+    gap: 30px;
+    position: relative;
+
+    > :first-child {
+        width: 45%;
+    }
+
+    > :last-child {
+        width: 55%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    ${props => props.theme.breakpoint.medium} {
+        flex-direction: column;
+
+        > :first-child,
+        > :last-child {
+            width: 100%;
+        }
+
+        > :last-child {
+            margin-top: 30px;
+        }
+    }
+`;
+
+export const YouTubeVideo = styled.div`
+    clip-path: polygon(
+        23% 0,
+        26% 0,
+        95% 0,
+        98% 5%,
+        98% 33%,
+        100% 36%,
+        100% 97%,
+        81% 97%,
+        78% 100%,
+        15% 100%,
+        0 74%,
+        0 0
+    );
+    position: relative;
+    z-index: 2;
+    overflow: hidden;
+    width: 100%;
+    padding: 4px;
+    background-color: #00abe7;
+    background-image: -webkit-gradient(
+        linear,
+        left top,
+        left bottom,
+        from(#273498),
+        color-stop(53%, #0074c2),
+        to(#00abe7)
+    );
+    background-image: linear-gradient(180deg, #273498, #0074c2 53%, #00abe7);
+    -webkit-transform: translate(0, -30px) rotate(-3deg);
+    -ms-transform: translate(0, -30px) rotate(-3deg);
+    transform: translate(0, -30px) rotate(-3deg);
+    filter: drop-shadow(
+        10px 8px 14px hsla(221.45454545454544, 100%, 7.33%, 0.94)
+    );
+
+    > :first-child {
+        clip-path: polygon(
+            23% 0,
+            26% 0,
+            95% 0,
+            98% 5%,
+            98% 33%,
+            100% 36%,
+            100% 97%,
+            81% 97%,
+            78% 100%,
+            15% 100%,
+            0 74%,
+            0 0
+        );
+        position: relative;
+        padding-top: 56.25%;
+    }
+
+    iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border: 0px;
+    }
+`;

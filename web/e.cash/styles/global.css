@@ -42,6 +42,7 @@ body {
     font-size: 18px;
     background-color: #001137;
     color: #fff;
+    overflow-x: hidden;
 }
 
 * {
@@ -55,6 +56,13 @@ a {
 
 a:hover {
     text-decoration: none;
+}
+
+p {
+    margin: 0;
+    font-size: 18px;
+    line-height: 1.8em;
+    margin-bottom: 30px;
 }
 
 .container {
