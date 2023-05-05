@@ -6556,6 +6556,12 @@ bool ChainstateManager::ActivateSnapshot(AutoFile &coins_file,
         const bool chaintip_loaded = m_snapshot_chainstate->LoadChainTip();
         assert(chaintip_loaded);
 
+        // Transfer possession of the mempool to the snapshot chainstate.
+        // Mempool is empty at this point because we're still in IBD.
+        Assert(m_active_chainstate->m_mempool->size() == 0);
+        Assert(!m_snapshot_chainstate->m_mempool);
+        m_snapshot_chainstate->m_mempool = m_active_chainstate->m_mempool;
+        m_active_chainstate->m_mempool = nullptr;
         m_active_chainstate = m_snapshot_chainstate.get();
         m_blockman.m_snapshot_height = this->GetSnapshotBaseHeight();
 
@@ -7040,18 +7046,23 @@ bool ChainstateManager::DetectSnapshotChainstate(CTxMemPool *mempool) {
     LogPrintf("[snapshot] detected active snapshot chainstate (%s) - loading\n",
               fs::PathToString(*path));
 
-    this->ActivateExistingSnapshot(mempool, *base_blockhash);
+    this->ActivateExistingSnapshot(*base_blockhash);
     return true;
 }
 
 Chainstate &
-ChainstateManager::ActivateExistingSnapshot(CTxMemPool *mempool,
-                                            BlockHash base_blockhash) {
+ChainstateManager::ActivateExistingSnapshot(BlockHash base_blockhash) {
     assert(!m_snapshot_chainstate);
-    m_snapshot_chainstate = std::make_unique<Chainstate>(mempool, m_blockman,
+    m_snapshot_chainstate = std::make_unique<Chainstate>(nullptr, m_blockman,
                                                          *this, base_blockhash);
     LogPrintf("[snapshot] switching active chainstate to %s\n",
               m_snapshot_chainstate->ToString());
+
+    // Mempool is empty at this point because we're still in IBD.
+    Assert(m_active_chainstate->m_mempool->size() == 0);
+    Assert(!m_snapshot_chainstate->m_mempool);
+    m_snapshot_chainstate->m_mempool = m_active_chainstate->m_mempool;
+    m_active_chainstate->m_mempool = nullptr;
     m_active_chainstate = m_snapshot_chainstate.get();
     return *m_snapshot_chainstate;
 }
@@ -7106,7 +7117,8 @@ bool ChainstateManager::DeleteSnapshotChainstate() {
     Assert(m_snapshot_chainstate);
     Assert(m_ibd_chainstate);
 
-    fs::path snapshot_datadir = GetSnapshotCoinsDBPath(*m_snapshot_chainstate);
+    fs::path snapshot_datadir =
+        Assert(node::FindSnapshotChainstateDir()).value();
     if (!DeleteCoinsDBFromDisk(snapshot_datadir, /*is_snapshot=*/true)) {
         LogPrintf("Deletion of %s failed. Please remove it manually to "
                   "continue reindexing.\n",
@@ -7114,6 +7126,7 @@ bool ChainstateManager::DeleteSnapshotChainstate() {
         return false;
     }
     m_active_chainstate = m_ibd_chainstate.get();
+    m_active_chainstate->m_mempool = m_snapshot_chainstate->m_mempool;
     m_snapshot_chainstate.reset();
     return true;
 }
