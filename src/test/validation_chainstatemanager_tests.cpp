@@ -497,6 +497,8 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_loadblockindex, TestChain100Setup) {
             index->nStatus = BlockStatus()
                                  .withValidity(BlockValidity::TREE)
                                  .withAssumedValid();
+            index->nTx = 0;
+            index->nChainTx = 0;
         }
 
         ++num_indexes;

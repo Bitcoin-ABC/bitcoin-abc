@@ -244,7 +244,8 @@ CBlockIndex *BlockManager::InsertBlockIndex(const BlockHash &hash) {
     return pindex;
 }
 
-bool BlockManager::LoadBlockIndex() {
+bool BlockManager::LoadBlockIndex(
+    const std::optional<BlockHash> &snapshot_blockhash) {
     AssertLockHeld(cs_main);
     if (!m_block_tree_db->LoadBlockIndexGuts(
             GetConsensus(),
@@ -252,6 +253,21 @@ bool BlockManager::LoadBlockIndex() {
                 return this->InsertBlockIndex(hash);
             })) {
         return false;
+    }
+
+    int snapshot_height = -1;
+    if (snapshot_blockhash) {
+        const AssumeutxoData au_data =
+            *Assert(GetParams().AssumeutxoForBlockhash(*snapshot_blockhash));
+        snapshot_height = au_data.height;
+        CBlockIndex *base{LookupBlockIndex(*snapshot_blockhash)};
+
+        // Since nChainTx (responsible for estimated progress) isn't persisted
+        // to disk, we must bootstrap the value for assumedvalid chainstates
+        // from the hardcoded assumeutxo chainparams.
+        base->nChainTx = au_data.nChainTx;
+        LogPrintf("[snapshot] set nChainTx=%d for %s\n", au_data.nChainTx,
+                  snapshot_blockhash->ToString());
     }
 
     // Calculate nChainWork
@@ -274,7 +290,12 @@ bool BlockManager::LoadBlockIndex() {
         // basis of snapshot load (see PopulateAndValidateSnapshot()).
         // Pruned nodes may have deleted the block.
         if (pindex->nTx > 0) {
-            if (!pindex->UpdateChainStats() && pindex->pprev) {
+            if (snapshot_blockhash && pindex->nHeight == snapshot_height &&
+                pindex->GetBlockHash() == *snapshot_blockhash) {
+                Assert(pindex->pprev);
+                // Should have been set above; don't disturb it with code below.
+                Assert(pindex->nChainTx > 0);
+            } else if (!pindex->UpdateChainStats() && pindex->pprev) {
                 m_blocks_unlinked.insert(std::make_pair(pindex->pprev, pindex));
                 pindex->ResetChainStats();
             }
@@ -317,8 +338,9 @@ bool BlockManager::WriteBlockIndexDB() {
     return true;
 }
 
-bool BlockManager::LoadBlockIndexDB() {
-    if (!LoadBlockIndex()) {
+bool BlockManager::LoadBlockIndexDB(
+    const std::optional<BlockHash> &snapshot_blockhash) {
+    if (!LoadBlockIndex(snapshot_blockhash)) {
         return false;
     }
 

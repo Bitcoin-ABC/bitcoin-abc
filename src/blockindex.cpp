@@ -3,7 +3,9 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <blockindex.h>
+#include <logging.h>
 #include <tinyformat.h>
+#include <util/check.h>
 
 /**
  * Turn the lowest '1' bit in the binary representation of a number into a '0'.
@@ -36,23 +38,42 @@ void CBlockIndex::ResetChainStats() {
     nChainSize = 0;
 }
 
-void CBlockIndex::MaybeResetChainStats() {
-    // For now, we unconditionally reset the stats.
-    // In a following change, this will be done only if the value is not
-    // already set and correct and the block is not the assumeutxo snapshot
-    // base.
-    ResetChainStats();
+void CBlockIndex::MaybeResetChainStats(bool is_snapshot_base_block) {
+    // Typically nChainTx will be 0 at this point, but it can be nonzero if this
+    // is a pruned block which is being downloaded again, or if this is an
+    // assumeutxo snapshot block which has a hardcoded nChainTx value from the
+    // snapshot metadata. If the pindex is not the snapshot block and the
+    // nChainTx value is not zero, assert that value is actually correct.
+    unsigned int correct_value = nTx + (pprev ? pprev->nChainTx : 0);
+    if (!Assume(nChainTx == 0 || nChainTx == correct_value ||
+                is_snapshot_base_block)) {
+        LogPrintf("Internal bug detected: block %d has unexpected nChainTx %i "
+                  "that should be %i. Please report this issue here: %s\n",
+                  nHeight, nChainTx, correct_value, PACKAGE_BUGREPORT);
+        ResetChainStats();
+    }
 }
 
 bool CBlockIndex::UpdateChainStats() {
+    unsigned int correct_value = nTx + (pprev ? pprev->nChainTx : 0);
+    // Before setting nChainTx, assert that it is 0 or already set to
+    // the correct value. This assert will fail after receiving the
+    // assumeutxo snapshot block if assumeutxo snapshot metadata has an
+    // incorrect hardcoded AssumeutxoData::nChainTx value.
+    if (!Assume(nChainTx == 0 || nChainTx == correct_value)) {
+        LogPrintf("Internal bug detected: block %d has unexpected nChainTx %i "
+                  "that should be %i. Please report this issue here: %s\n",
+                  nHeight, nChainTx, correct_value, PACKAGE_BUGREPORT);
+    }
+
     if (pprev == nullptr) {
-        nChainTx = nTx;
+        nChainTx = correct_value;
         nChainSize = nSize;
         return true;
     }
 
     if (pprev->nChainTx > 0) {
-        nChainTx = pprev->nChainTx + nTx;
+        nChainTx = correct_value;
         nChainSize = pprev->nChainSize + nSize;
         return true;
     }

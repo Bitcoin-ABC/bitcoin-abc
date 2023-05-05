@@ -28,21 +28,25 @@ enum class BlockValidity : uint32_t {
      * Only first tx is coinbase, 2 <= coinbase input script length <= 100,
      * transactions valid, no duplicate txids, size, merkle root.
      * Implies all parents are at least TREE but not necessarily TRANSACTIONS.
-     * When all parent blocks also have TRANSACTIONS, CBlockIndex::nChainTx and
-     * CBlockIndex::nChainSize will be set.
+     *
+     * If a block's validity is at least VALID_TRANSACTIONS, CBlockIndex::nTx
+     * will be set. If a block and all previous blocks back to the genesis
+     * block or an assumeutxo snapshot block are at least VALID_TRANSACTIONS,
+     * CBlockIndex::nChainTx will be set.
      */
     TRANSACTIONS = 3,
 
     /**
      * Outputs do not overspend inputs, no double spends, coinbase output ok, no
      * immature coinbase spends, BIP30.
-     * Implies all parents are at least CHAIN, or are ASSUMED_VALID.
+     * Implies all previous blocks back to the genesis block or an assumeutxo
+     * snapshot block are at least VALID_CHAIN.
      */
     CHAIN = 4,
 
     /**
-     * Scripts & signatures ok. Implies all parents are either at least SCRIPTS,
-     * or are ASSUMED_VALID.
+     * Scripts & signatures ok. Implies all previous blocks back to the genesis
+     * block or an assumeutxo snapshot block are at least VALID_SCRIPTS.
      */
     SCRIPTS = 5,
 };
