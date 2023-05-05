@@ -63,7 +63,10 @@ module.exports = {
                 );
                 // Reset sliceStartIndex and thisTgMsgStringLength for the next message
                 sliceStartIndex = sliceEndIndex;
-                thisTgMsgStringLength = 0;
+
+                // Reset thisTgMsgStringLength to thisLine.length + 2;
+                // The line of the current index will go into the next batched slice
+                thisTgMsgStringLength = thisLine.length + 2;
             }
         }
 

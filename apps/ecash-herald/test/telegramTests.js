@@ -13,6 +13,8 @@ const { telegramHtmlStrings } = require('./mocks/templates');
 const {
     overflowMsg,
     overflowMsgSplit,
+    overflowMsgTwo,
+    overflowMsgSplitTwo,
     overflowMsgSuccess,
     nonOverflowMsg,
     nonOverflowMsgSuccess,
@@ -34,6 +36,12 @@ describe('ecash-herald telegram.js functions', function () {
     });
     it(`Given a block summary string array longer than 4096 characters, splitOverflowTgMsg returns an array of strings each shorter than 4096 characters`, function () {
         assert.deepEqual(splitOverflowTgMsg(overflowMsg), overflowMsgSplit);
+    });
+    it(`Given a block summary string array longer than 4096 characters and with the first line of a split msg long enough to overflow without D13854 bugfix, splitOverflowTgMsg returns an array of strings each shorter than 4096 characters`, function () {
+        assert.deepEqual(
+            splitOverflowTgMsg(overflowMsgTwo),
+            overflowMsgSplitTwo,
+        );
     });
     it(`Given a block summary string array shorter than 4096 characters, splitOverflowTgMsg returns an array of a single string shorter than 4096 characters`, function () {
         assert.deepEqual(splitOverflowTgMsg(nonOverflowMsg), nonOverflowMsg);
