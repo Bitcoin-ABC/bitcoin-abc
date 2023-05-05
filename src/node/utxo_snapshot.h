@@ -29,8 +29,7 @@ public:
     uint64_t m_coins_count = 0;
 
     SnapshotMetadata() {}
-    SnapshotMetadata(const BlockHash &base_blockhash, uint64_t coins_count,
-                     uint64_t nchaintx)
+    SnapshotMetadata(const BlockHash &base_blockhash, uint64_t coins_count)
         : m_base_blockhash(base_blockhash), m_coins_count(coins_count) {}
 
     SERIALIZE_METHODS(SnapshotMetadata, obj) {

@@ -97,13 +97,17 @@ static bool CreateAndActivateUTXOSnapshot(TestingSetup *fixture,
             // these blocks instead
             CBlockIndex *pindex = orig_tip;
             while (pindex && pindex != chain.m_chain.Tip()) {
+                // Remove all data and validity flags by just setting
+                // BLOCK_VALID_TREE. Also reset transaction counts and sequence
+                // ids that are set when blocks are received, to make test setup
+                // more realistic and satisfy consistency checks in
+                // CheckBlockIndex().
+                assert(pindex->IsValid(BlockValidity::TREE));
                 pindex->nStatus =
-                    pindex->nStatus.withData(false).withUndo(false);
-                // We have to set the ASSUMED_VALID flag, because otherwise it
-                // would not be possible to have a block index entry without
-                // HAVE_DATA and with nTx > 0 (since we aren't setting the
-                // pruned flag); see CheckBlockIndex().
-                pindex->nStatus = pindex->nStatus.withAssumedValid();
+                    BlockStatus().withValidity(BlockValidity::TREE);
+                pindex->nTx = 0;
+                pindex->nChainTx = 0;
+                pindex->nSequenceId = 0;
                 pindex = pindex->pprev;
             }
         }

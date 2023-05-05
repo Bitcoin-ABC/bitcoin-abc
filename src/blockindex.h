@@ -50,13 +50,8 @@ public:
     //! chain up to and including this block
     arith_uint256 nChainWork{};
 
-    //! Number of transactions in this block.
-    //! Note: in a potential headers-first mode, this number cannot be relied
-    //! upon
-    //! Note: this value is faked during UTXO snapshot load to ensure that
-    //! LoadBlockIndex() will load index entries for blocks that we lack data
-    //! for.
-    //! @sa ActivateSnapshot
+    //! Number of transactions in this block. This will be nonzero if the block
+    //! reached the VALID_TRANSACTIONS level, and zero otherwise.
     unsigned int nTx{0};
 
     //! Size of this block.
@@ -66,14 +61,10 @@ public:
 
     //! (memory only) Number of transactions in the chain up to and including
     //! this block.
-    //! This value will be non-zero only if and only if transactions for this
-    //! block and all its parents are available. Change to 64-bit type when
-    //! necessary; won't happen before 2030
-    //!
-    //! Note: this value is faked during use of a UTXO snapshot because we don't
-    //! have the underlying block data available during snapshot load.
-    //! @sa AssumeutxoData
-    //! @sa ActivateSnapshot
+    //! This value will be non-zero if this block and all previous blocks back
+    //! to the genesis block or an assumeutxo snapshot block have reached the
+    //! VALID_TRANSACTIONS level.
+    //! Change to 64-bit type when necessary; won't happen before 2030
     unsigned int nChainTx{0};
 
     //! Verification status of this block. See enum BlockStatus
@@ -152,9 +143,11 @@ public:
     void ResetChainStats();
 
     /**
-     * Reset chain tx stats conditionally.
+     * Reset chain tx stats and log a warning if the block is not the snapshot
+     * block, and the nChainTx value is not zero or the correct value.
+     * Don't modify the value otherwise.
      */
-    void MaybeResetChainStats();
+    void MaybeResetChainStats(bool is_snapshot_base_block);
 
     /**
      * Update chain tx stats and return True if this block is the genesis block
@@ -164,17 +157,18 @@ public:
     bool UpdateChainStats();
 
     /**
-     * Check whether this block's and all previous blocks' transactions have
-     * been downloaded (and stored to disk) at some point.
+     * Check whether this block and all previous blocks back to the genesis
+     * block or an assumeutxo snapshot block have reached VALID_TRANSACTIONS
+     * and had transactions downloaded (and stored to disk) at some point.
      *
      * Does not imply the transactions are consensus-valid (ConnectTip might
-     * fail) Does not imply the transactions are still stored on disk.
+     * fail)
+     * Does not imply the transactions are still stored on disk.
      * (IsBlockPruned might return true)
      *
      * Note that this will be true for the snapshot base block, if one is
-     * loaded (and all subsequent assumed-valid blocks) since its nChainTx
-     * value will have been set manually based on the related AssumeutxoData
-     * entry.
+     * loaded, since its nChainTx value will have been set manually based on
+     * the related AssumeutxoData entry.
      */
     bool HaveNumChainTxs() const { return GetChainTxCount() != 0; }
 
