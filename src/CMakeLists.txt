@@ -423,6 +423,7 @@ add_library(util
 	threadinterrupt.cpp
 	uint256.cpp
 	util/asmap.cpp
+	util/batchpriority.cpp
 	util/bip32.cpp
 	util/bytevectorhash.cpp
 	util/check.cpp
@@ -922,6 +923,7 @@ if(BUILD_BITCOIN_CHAINSTATE)
 		txdb.cpp
 		txmempool.cpp
 		uint256.cpp
+		util/batchpriority.cpp
 		util/bytevectorhash.cpp
 		util/check.cpp
 		util/exception.cpp
@@ -933,7 +935,6 @@ if(BUILD_BITCOIN_CHAINSTATE)
 		util/settings.cpp
 		util/strencodings.cpp
 		util/string.cpp
-		util/system.cpp
 		util/thread.cpp
 		util/threadnames.cpp
 		util/time.cpp

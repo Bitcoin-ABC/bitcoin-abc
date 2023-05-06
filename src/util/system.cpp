@@ -16,13 +16,7 @@
 #include <string>
 #include <thread>
 
-#if (defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__))
-#include <pthread.h>
-#include <pthread_np.h>
-#endif
-
 #ifndef WIN32
-#include <sched.h>
 #include <sys/stat.h>
 #else
 #ifdef _MSC_VER
@@ -126,14 +120,4 @@ std::string CopyrightHolders(const std::string &strPrefix) {
 // Obtain the application startup time (used for uptime calculation)
 int64_t GetStartupTime() {
     return nStartupTime;
-}
-
-void ScheduleBatchPriority() {
-#ifdef SCHED_BATCH
-    const static sched_param param{};
-    const int rc = pthread_setschedparam(pthread_self(), SCHED_BATCH, &param);
-    if (rc != 0) {
-        LogPrintf("Failed to pthread_setschedparam: %s\n", strerror(rc));
-    }
-#endif
 }

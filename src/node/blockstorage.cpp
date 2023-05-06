@@ -18,6 +18,7 @@
 #include <shutdown.h>
 #include <streams.h>
 #include <undo.h>
+#include <util/batchpriority.h>
 #include <util/fs.h>
 #include <util/system.h>
 #include <validation.h>
