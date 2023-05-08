@@ -8,8 +8,12 @@ import {
     SidePaddingCtn,
     WalletInfoCtn,
 } from 'components/Common/Atoms';
-import { DestinationAddressSingle } from 'components/Common/EnhancedInputs';
-import { AntdFormWrapper } from 'components/Common/EnhancedInputs';
+import {
+    AntdFormWrapper,
+    AliasInput,
+    AliasAddressInput,
+    CashtabCheckbox,
+} from 'components/Common/EnhancedInputs';
 import { Form, Modal } from 'antd';
 import { SmartButton } from 'components/Common/PrimaryButton';
 import BalanceHeader from 'components/Common/BalanceHeader';
@@ -32,6 +36,12 @@ import {
 } from 'components/Common/Notifications';
 import { isAliasFormat, isValidAliasString } from 'utils/validation';
 import { getPendingAliases } from 'utils/aliasUtils';
+import cashaddr from 'ecashaddrjs';
+
+export const CheckboxContainer = styled.div`
+    text-align: left;
+    margin-bottom: 12px;
+`;
 
 export const NamespaceCtn = styled.div`
     width: 100%;
@@ -73,8 +83,13 @@ const Alias = ({ passLoadingStatus }) => {
         aliasName: '',
         aliasAddress: '',
     });
+    const [useThisAddressChecked, setUseThisAddressChecked] = useState(false);
     const [isValidAliasInput, setIsValidAliasInput] = useState(false); // tracks whether to activate the registration button
+    const [isValidAliasAddressInput, setIsValidAliasAddressInput] =
+        useState(false); // tracks whether to activate the registration button
     const [aliasValidationError, setAliasValidationError] = useState(false);
+    const [aliasAddressValidationError, setAliasAddressValidationError] =
+        useState(false);
     const [activeWalletAliases, setActiveWalletAliases] = useState([]); // stores the list of aliases registered to this active wallet
     const [aliasLength, setAliasLength] = useState(false); // real time tracking of alias char length
     const [aliasFee, setAliasFee] = useState(false); // real time tracking of alias registration fee
@@ -98,12 +113,10 @@ const Alias = ({ passLoadingStatus }) => {
         }
         passLoadingStatus(true);
 
-        // Set address of active wallet to default alias registration address
-        // Use formdata approach as we will later add a form field for aliasAddress
-        setFormData(formData => ({
-            ...formData,
-            aliasAddress: wallet.Path1899.cashAddress,
-        }));
+        // Default to registering the user's active wallet
+        // Must be called in this useEffect to ensure that wallet is loaded
+        // Call with this function to ensure that checkbox state and checkbox are updated
+        handleDefaultAddressCheckboxChange({ target: { checked: true } });
 
         // check whether the address is attached to an onchain alias on page load
         const walletHasAlias = isAddressRegistered(
@@ -287,6 +300,82 @@ const Alias = ({ passLoadingStatus }) => {
         }));
     };
 
+    const handleDefaultAddressCheckboxChange = e => {
+        /* handleDefaultAddressCheckboxChange
+         *
+         * Function to handle user action of checking or unchecking the
+         * checkbox on this page labeled 'Register active wallet address'
+         *
+         * May be called programmatically by mocking the usual js event
+         * of a user checking the box
+         *
+         * If the box is checked, set formData for aliasAddress to the active wallet's address
+         * If the box is unchecked, clear formData for aliasAddress
+         */
+        const checked = e.target.checked;
+        setUseThisAddressChecked(checked);
+        if (checked) {
+            // Set address of active wallet to default alias registration address
+            handleAliasAddressInput({
+                target: {
+                    name: 'aliasAddress',
+                    value: wallet.Path1899.cashAddress,
+                },
+            });
+        } else {
+            // Clear the form if the user unchecks
+            handleAliasAddressInput({
+                target: {
+                    name: 'aliasAddress',
+                    value: '',
+                },
+            });
+        }
+    };
+
+    const handleAliasAddressInput = e => {
+        /* handleAliasAddressInput
+         *
+         * Function called to handle any changes to the aliasAddress input form
+         *
+         * May be called programmatically by mocking the usual js event
+         * of a user updating the addressName input field
+         */
+        let { name, value } = e.target;
+
+        // remove any whitespaces
+        value = value.trim();
+
+        // Validate
+        let decoded;
+        let isValidAddress = false;
+        try {
+            decoded = cashaddr.decode(value, true);
+            const { hash } = decoded;
+            // We only support 20-byte payloads
+            isValidAddress = hash.length === 40;
+        } catch (err) {
+            // Invalid cashaddress
+            // Log to console for user support
+            console.log(`Invalid address`, err);
+        }
+
+        if (isValidAddress) {
+            setIsValidAliasAddressInput(true);
+            setAliasAddressValidationError(false);
+        } else {
+            setAliasAddressValidationError(
+                'Invalid alias registration address.',
+            );
+            setIsValidAliasAddressInput(false);
+        }
+
+        setFormData(p => ({
+            ...p,
+            [name]: value,
+        }));
+    };
+
     function handleAliasRegistrationError(errorObj) {
         // Set loading to false here as well, as balance may not change depending on where error occured in try loop
         passLoadingStatus(false);
@@ -363,7 +452,7 @@ const Alias = ({ passLoadingStatus }) => {
                                     }}
                                 >
                                     <Form.Item>
-                                        <DestinationAddressSingle
+                                        <AliasInput
                                             validateStatus={
                                                 isValidAliasInput ? '' : 'error'
                                             }
@@ -382,6 +471,43 @@ const Alias = ({ passLoadingStatus }) => {
                                                 required: true,
                                             }}
                                         />
+                                        <CheckboxContainer>
+                                            <CashtabCheckbox
+                                                checked={useThisAddressChecked}
+                                                onChange={
+                                                    handleDefaultAddressCheckboxChange
+                                                }
+                                            >
+                                                Register active wallet address
+                                            </CashtabCheckbox>
+                                        </CheckboxContainer>
+                                        {!useThisAddressChecked && (
+                                            <AliasAddressInput
+                                                validateStatus={
+                                                    isValidAliasAddressInput
+                                                        ? ''
+                                                        : 'error'
+                                                }
+                                                help={
+                                                    aliasAddressValidationError
+                                                        ? aliasAddressValidationError
+                                                        : ''
+                                                }
+                                                inputProps={{
+                                                    placeholder:
+                                                        'Enter address for this alias',
+                                                    value: formData.aliasAddress,
+                                                    disabled:
+                                                        useThisAddressChecked,
+                                                    name: 'aliasAddress',
+                                                    onChange: e =>
+                                                        handleAliasAddressInput(
+                                                            e,
+                                                        ),
+                                                    required: true,
+                                                }}
+                                            />
+                                        )}
                                         {aliasLength &&
                                             aliasFee &&
                                             `Registration fee for this ${aliasLength} byte Alias is ${fromSatoshisToXec(
@@ -390,7 +516,10 @@ const Alias = ({ passLoadingStatus }) => {
                                     </Form.Item>
                                     <Form.Item>
                                         <SmartButton
-                                            disabled={!isValidAliasInput}
+                                            disabled={
+                                                !isValidAliasInput ||
+                                                !isValidAliasAddressInput
+                                            }
                                             onClick={() =>
                                                 setIsModalVisible(true)
                                             }

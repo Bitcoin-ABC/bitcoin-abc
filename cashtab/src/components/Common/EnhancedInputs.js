@@ -1,9 +1,10 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import { Form, Input, Select } from 'antd';
+import { Form, Input, Select, Checkbox } from 'antd';
 import {
     ThemedDollarOutlined,
     ThemedWalletOutlined,
+    ThemedAliasOutlined,
 } from 'components/Common/CustomIcons';
 import styled, { css } from 'styled-components';
 import ScanQRCode from './ScanQRCode';
@@ -149,6 +150,16 @@ export const InputNumberAddonText = styled.span`
       cursor: not-allowed;
       `
             : `cursor: pointer;`}
+`;
+
+export const CashtabCheckbox = styled(Checkbox)`
+    .ant-checkbox-checked .ant-checkbox-inner {
+        background-color: ${props => props.theme.eCashBlue} !important;
+        border-color: ${props => props.theme.eCashBlue} !important;
+    }
+    .ant-checkbox + span {
+        color: ${props => props.theme.forms.text} !important;
+    }
 `;
 
 export const SendBchInput = ({
@@ -346,6 +357,42 @@ export const DestinationAddressSingleWithoutQRScan = ({
 };
 
 DestinationAddressSingleWithoutQRScan.propTypes = {
+    inputProps: PropTypes.object,
+};
+
+export const AliasInput = ({ inputProps, ...otherProps }) => {
+    return (
+        <AntdFormWrapper>
+            <Form.Item {...otherProps}>
+                <Input
+                    prefix={<ThemedAliasOutlined />}
+                    autoComplete="off"
+                    {...inputProps}
+                />
+            </Form.Item>
+        </AntdFormWrapper>
+    );
+};
+
+AliasInput.propTypes = {
+    inputProps: PropTypes.object,
+};
+
+export const AliasAddressInput = ({ inputProps, ...otherProps }) => {
+    return (
+        <AntdFormWrapper>
+            <Form.Item {...otherProps}>
+                <Input
+                    prefix={<ThemedWalletOutlined />}
+                    autoComplete="off"
+                    {...inputProps}
+                />
+            </Form.Item>
+        </AntdFormWrapper>
+    );
+};
+
+AliasAddressInput.propTypes = {
     inputProps: PropTypes.object,
 };
 

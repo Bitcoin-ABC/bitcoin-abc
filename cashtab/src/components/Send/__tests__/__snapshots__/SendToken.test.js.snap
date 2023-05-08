@@ -4,10 +4,10 @@ exports[`Wallet with BCH balances and tokens 1`] = `null`;
 
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 <div
-  className="sc-jAaTju dkllRF"
+  className="sc-gPEVay dOhwxg"
 >
   <div
-    className="sc-jlyJG bMQkuN"
+    className="sc-csuQGl fFnofI"
   >
     6.001000000
      
@@ -33,7 +33,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         }
       >
         <div
-          className="sc-hSdWYo ftBlXh"
+          className="sc-eHgmQL jlnegu"
         >
           <div
             className="ant-form-item ant-form-item-with-help"
@@ -112,7 +112,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                           className="ant-input-group-addon"
                         >
                           <span
-                            className="sc-kEYyzF eQAIRP"
+                            className="sc-kkGfuU cRGTNd"
                             onClick={[Function]}
                           >
                             <span
@@ -145,10 +145,10 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
           </div>
         </div>
         <div
-          className="sc-fMiknA duHmvL"
+          className="sc-eqIVtm khwohh"
         >
           <a
-            className="sc-cMljjf fRdeGb"
+            className="sc-jDwBTQ dGROed"
             href="https://explorer.e.cash/address/false"
             rel="noreferrer"
             target="_blank"
@@ -156,7 +156,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
         <br />
         <div
-          className="sc-hSdWYo ftBlXh"
+          className="sc-eHgmQL jlnegu"
         >
           <div
             className="ant-form-item ant-form-item-with-help"
@@ -216,7 +216,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                           className="ant-input-group-addon"
                         >
                           <span
-                            className="sc-eHgmQL Rlngw"
+                            className="sc-cvbbAY losWJH"
                             disabled={false}
                             onClick={[Function]}
                           >
@@ -239,7 +239,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
           }
         >
           <button
-            className="sc-ckVGcZ hUbpO"
+            className="sc-jKJlTe jWeghZ"
             onClick={[Function]}
           >
             Send 

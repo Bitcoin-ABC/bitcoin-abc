@@ -1,11 +1,11 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://goo.gl/fbAQLP @generated
 
 exports[`Wallet with BCH balances and tokens 1`] = `
 <div
-  className="sc-hMqMXs kjfrok"
+  className="sc-kEYyzF gZfJyA"
 >
   <div
-    className="sc-dNLxif ctsMLm"
+    className="sc-uJMKN fnBvxX"
   >
     <h2>
       <span
@@ -72,7 +72,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </div>
     </div>
     <div
-      className="sc-jqCOkK czKThr"
+      className="sc-bbmXgH cQnDDW"
     />
     <h2>
       <span
@@ -97,7 +97,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
        Manage Wallets
     </h2>
     <button
-      className="sc-dVhcbM jCJqeW"
+      className="sc-fAjcbJ cYOTVm"
       onClick={[Function]}
     >
       <span
@@ -125,7 +125,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
        New Wallet
     </button>
     <button
-      className="sc-eqIVtm kycbSZ"
+      className="sc-caSCKo bhoqTa"
       onClick={[Function]}
     >
       <span
@@ -159,7 +159,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
         style={Object {}}
       >
         <div
-          className="ant-collapse ant-collapse-icon-position-start sc-gPEVay yMTdW"
+          className="ant-collapse ant-collapse-icon-position-start sc-iRbamj bmUgOm"
           role={null}
           style={
             Object {
@@ -215,7 +215,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </div>
     </div>
     <div
-      className="sc-jqCOkK czKThr"
+      className="sc-bbmXgH cQnDDW"
     />
     <h2>
       <span
@@ -240,7 +240,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
        Fiat Currency
     </h2>
     <div
-      className="sc-jhAzac eQrsHM"
+      className="sc-fBuWsC iCHega"
     >
       <div
         className="ant-select select-after ant-select-single ant-select-show-arrow"
@@ -333,7 +333,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </div>
     </div>
     <div
-      className="sc-jqCOkK czKThr"
+      className="sc-bbmXgH cQnDDW"
     />
     <h2>
       <span
@@ -358,7 +358,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-gGBfsJ jktJPW"
+      className="sc-fYxtnH PqgPh"
     >
       <div
         className="SendConfirm"
@@ -421,7 +421,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </button>
     </div>
     <div
-      className="sc-gGBfsJ jktJPW"
+      className="sc-fYxtnH PqgPh"
     >
       <div
         className="ShowMessages"
@@ -489,10 +489,10 @@ exports[`Wallet with BCH balances and tokens 1`] = `
 
 exports[`Without wallet defined 1`] = `
 <div
-  className="sc-hMqMXs kjfrok"
+  className="sc-kEYyzF gZfJyA"
 >
   <div
-    className="sc-dNLxif ctsMLm"
+    className="sc-uJMKN fnBvxX"
   >
     <h2>
       <span
@@ -559,7 +559,7 @@ exports[`Without wallet defined 1`] = `
       </div>
     </div>
     <div
-      className="sc-jqCOkK czKThr"
+      className="sc-bbmXgH cQnDDW"
     />
     <h2>
       <span
@@ -584,7 +584,7 @@ exports[`Without wallet defined 1`] = `
        Manage Wallets
     </h2>
     <button
-      className="sc-dVhcbM jCJqeW"
+      className="sc-fAjcbJ cYOTVm"
       onClick={[Function]}
     >
       <span
@@ -612,7 +612,7 @@ exports[`Without wallet defined 1`] = `
        New Wallet
     </button>
     <button
-      className="sc-eqIVtm kycbSZ"
+      className="sc-caSCKo bhoqTa"
       onClick={[Function]}
     >
       <span
@@ -646,7 +646,7 @@ exports[`Without wallet defined 1`] = `
         style={Object {}}
       >
         <div
-          className="ant-collapse ant-collapse-icon-position-start sc-gPEVay yMTdW"
+          className="ant-collapse ant-collapse-icon-position-start sc-iRbamj bmUgOm"
           role={null}
           style={
             Object {
@@ -702,7 +702,7 @@ exports[`Without wallet defined 1`] = `
       </div>
     </div>
     <div
-      className="sc-jqCOkK czKThr"
+      className="sc-bbmXgH cQnDDW"
     />
     <h2>
       <span
@@ -727,7 +727,7 @@ exports[`Without wallet defined 1`] = `
        Fiat Currency
     </h2>
     <div
-      className="sc-jhAzac eQrsHM"
+      className="sc-fBuWsC iCHega"
     >
       <div
         className="ant-select select-after ant-select-single ant-select-show-arrow"
@@ -820,7 +820,7 @@ exports[`Without wallet defined 1`] = `
       </div>
     </div>
     <div
-      className="sc-jqCOkK czKThr"
+      className="sc-bbmXgH cQnDDW"
     />
     <h2>
       <span
@@ -845,7 +845,7 @@ exports[`Without wallet defined 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-gGBfsJ jktJPW"
+      className="sc-fYxtnH PqgPh"
     >
       <div
         className="SendConfirm"
@@ -908,7 +908,7 @@ exports[`Without wallet defined 1`] = `
       </button>
     </div>
     <div
-      className="sc-gGBfsJ jktJPW"
+      className="sc-fYxtnH PqgPh"
     >
       <div
         className="ShowMessages"

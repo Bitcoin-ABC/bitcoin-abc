@@ -165,6 +165,11 @@ export const ThemedUserProfileIcon = styled(User)`
     height: 33px;
     width: 30px;
 `;
+export const ThemedAliasOutlined = styled(User)`
+    fill: ${props => props.theme.icons.outlined} !important;
+    height: 12px;
+    width: 12px;
+`;
 
 export const LoadingBlock = styled.div`
     width: 100%;
