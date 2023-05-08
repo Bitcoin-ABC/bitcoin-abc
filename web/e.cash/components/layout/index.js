@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import Nav from './navbar';
+import Nav from '/components/navbar';
 
 const Layout = ({
     metaTitle = 'eCash | Wealth Redefined',

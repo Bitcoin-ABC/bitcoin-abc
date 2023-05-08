@@ -1,17 +1,8 @@
 import { useState } from 'react';
-import '../styles/global.css';
-import styled, { ThemeProvider } from 'styled-components';
-import { ecash, stealth } from '../styles/theme';
-
-const ThemeSwitch = styled.div`
-    position: fixed;
-    bottom: 30px;
-    width: 40px;
-    height: 40px;
-    z-index: 9999;
-    background: rgba(255, 255, 255, 0.1);
-    right: 30px;
-`;
+import { ThemeProvider } from 'styled-components';
+import { ecash, stealth } from '/styles/theme';
+import GlobalCSS from '/styles/global';
+import { ThemeSwitch } from '/components/atoms';
 
 export default function App({ Component, pageProps }) {
     const [theme, setTheme] = useState(ecash);
@@ -22,6 +13,7 @@ export default function App({ Component, pageProps }) {
 
     return (
         <ThemeProvider theme={theme}>
+            <GlobalCSS />
             <Component {...pageProps} />
             <ThemeSwitch onClick={HandleThemeChange} />
         </ThemeProvider>

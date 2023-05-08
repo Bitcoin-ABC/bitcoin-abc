@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Layout from '/components/layout';
 import VideoBackground from '/components/videobackground';
 import GlitchText from '/components/glitch-text';
+import { Container } from '/components/atoms';
 import { socials } from '/data/socials';
 import {
     Hero,
@@ -23,7 +24,7 @@ export default function Home() {
         <Layout>
             <VideoBackground videoname="purple-abstract" />
             <Hero>
-                <div className="container">
+                <Container>
                     <h1>
                         <span>WEALTH</span>
                         <GlitchText text="REDEFINED" />
@@ -62,12 +63,12 @@ export default function Home() {
                             </Link>
                         ))}
                     </div>
-                </div>
+                </Container>
             </Hero>
             <GradientSpacer />
             <StoryAndWhySection>
                 <Overlay />
-                <div className="container">
+                <Container>
                     <StorySection>
                         <div>
                             <H2 subtext="The eCash Story" text="GET STARTED" />
@@ -94,7 +95,7 @@ export default function Home() {
                             </YouTubeVideo>
                         </div>
                     </StorySection>
-                </div>
+                </Container>
             </StoryAndWhySection>
         </Layout>
     );
