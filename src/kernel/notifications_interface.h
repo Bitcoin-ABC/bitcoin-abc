@@ -6,6 +6,7 @@
 #define BITCOIN_KERNEL_NOTIFICATIONS_INTERFACE_H
 
 #include <cstdint>
+#include <string>
 
 class CBlockIndex;
 enum class SynchronizationState;
@@ -26,6 +27,7 @@ public:
                            int64_t timestamp, bool presync) {}
     virtual void progress(const bilingual_str &title, int progress_percent,
                           bool resume_possible) {}
+    virtual void warning(const std::string &warning) {}
 };
 } // namespace kernel
 

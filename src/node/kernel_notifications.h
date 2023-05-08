@@ -23,6 +23,8 @@ public:
 
     void progress(const bilingual_str &title, int progress_percent,
                   bool resume_possible) override;
+
+    void warning(const std::string &warning) override;
 };
 } // namespace node
 

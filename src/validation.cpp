@@ -33,7 +33,6 @@
 #include <logging/timer.h>
 #include <minerfund.h>
 #include <node/blockstorage.h>
-#include <node/ui_interface.h>
 #include <node/utxo_snapshot.h>
 #include <policy/block/minerfund.h>
 #include <policy/block/preconsensus.h>
@@ -1221,28 +1220,6 @@ bool Chainstate::IsInitialBlockDownload() const {
     return false;
 }
 
-static void AlertNotify(const std::string &strMessage) {
-    uiInterface.NotifyAlertChanged();
-#if defined(HAVE_SYSTEM)
-    std::string strCmd = gArgs.GetArg("-alertnotify", "");
-    if (strCmd.empty()) {
-        return;
-    }
-
-    // Alert text should be plain ascii coming from a trusted source, but to be
-    // safe we first strip anything not in safeChars, then add single quotes
-    // around the whole string before passing it to the shell:
-    std::string singleQuote("'");
-    std::string safeStatus = SanitizeString(strMessage);
-    safeStatus = singleQuote + safeStatus + singleQuote;
-    ReplaceAll(strCmd, "%s", safeStatus);
-
-    std::thread t(runCommand, strCmd);
-    // thread runs free
-    t.detach();
-#endif
-}
-
 void Chainstate::CheckForkWarningConditions() {
     AssertLockHeld(cs_main);
 
@@ -1269,7 +1246,7 @@ void Chainstate::CheckForkWarningConditions() {
                 std::string("'Warning: Large-work fork detected, forking after "
                             "block ") +
                 m_best_fork_base->phashBlock->ToString() + std::string("'");
-            AlertNotify(warning);
+            m_chainman.GetNotifications().warning(warning);
         }
 
         if (m_best_fork_tip && m_best_fork_base) {

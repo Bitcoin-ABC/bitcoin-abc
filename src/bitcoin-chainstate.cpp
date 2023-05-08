@@ -108,6 +108,9 @@ int main(int argc, char *argv[]) {
                       << progress_percent << ", " << resume_possible
                       << std::endl;
         }
+        void warning(const std::string &warning) override {
+            std::cout << "Warning: " << warning << std::endl;
+        }
     };
     auto notifications = std::make_unique<KernelNotifications>();
 
