@@ -1673,7 +1673,7 @@ impl Node {
     pub fn ok_or_abort<T>(&self, func_name: &str, result: Result<T>) {
         if let Err(report) = result {
             log_chronik!("{report:?}\n");
-            self.bridge.abort_node(
+            self.bridge.fatal_error(
                 &format!("ERROR Chronik in {func_name}"),
                 &format!("{report:#}"),
             );

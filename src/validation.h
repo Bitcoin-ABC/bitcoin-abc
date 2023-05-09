@@ -171,8 +171,9 @@ void StopScriptCheckWorkerThreads();
 
 Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams);
 
-bool AbortNode(BlockValidationState &state, const std::string &strMessage,
-               const bilingual_str &userMessage = bilingual_str{});
+bool FatalError(kernel::Notifications &notifications,
+                BlockValidationState &state, const std::string &strMessage,
+                const bilingual_str &userMessage = {});
 
 /**
  * Guess verification progress (as a fraction between 0.0=genesis and
@@ -1425,9 +1426,7 @@ public:
     //! If the coins match (expected), then mark the validation chainstate for
     //! deletion and continue using the snapshot chainstate as active.
     //! Otherwise, revert to using the ibd chainstate and shutdown.
-    SnapshotCompletionResult MaybeCompleteSnapshotValidation(
-        std::function<void(bilingual_str)> shutdown_fnc =
-            [](bilingual_str msg) { AbortNode(msg.original, msg); })
+    SnapshotCompletionResult MaybeCompleteSnapshotValidation()
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
     //! Returns nullptr if no snapshot has been loaded.

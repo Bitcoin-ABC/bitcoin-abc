@@ -310,7 +310,7 @@ mod ffi_inner {
 
         /// Calls `AbortNode` from shutdown.h to gracefully shut down the node
         /// when an unrecoverable error occured.
-        fn abort_node(self: &ChronikBridge, msg: &str, user_msg: &str);
+        fn fatal_error(self: &ChronikBridge, msg: &str, user_msg: &str);
 
         /// Returns true if a shutdown is requested, false otherwise.
         /// See `ShutdownRequested` in `shutdown.h`.

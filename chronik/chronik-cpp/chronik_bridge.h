@@ -96,7 +96,7 @@ public:
     std::array<uint8_t, 32> broadcast_tx(rust::Slice<const uint8_t> raw_tx,
                                          int64_t max_fee) const;
 
-    void abort_node(const rust::Str msg, const rust::Str user_msg) const;
+    void fatal_error(const rust::Str msg, const rust::Str user_msg) const;
 
     bool shutdown_requested() const;
 

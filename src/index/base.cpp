@@ -9,6 +9,7 @@
 #include <index/base.h>
 #include <interfaces/chain.h>
 #include <logging.h>
+#include <node/abort.h>
 #include <node/blockstorage.h>
 #include <node/context.h>
 #include <node/database_args.h>
@@ -30,8 +31,9 @@ constexpr int64_t SYNC_LOG_INTERVAL = 30;           // secon
 constexpr int64_t SYNC_LOCATOR_WRITE_INTERVAL = 30; // seconds
 
 template <typename... Args>
-static void FatalErrorf(const char *fmt, const Args &...args) {
-    AbortNode(tfm::format(fmt, args...));
+void BaseIndex::FatalErrorf(const char *fmt, const Args &...args) {
+    auto message = tfm::format(fmt, args...);
+    node::AbortNode(m_chain->context()->exit_status, message);
 }
 
 CBlockLocator GetLocator(interfaces::Chain &chain,

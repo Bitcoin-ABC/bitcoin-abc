@@ -165,7 +165,8 @@ ChainTestingSetup::ChainTestingSetup(
     m_node.mempool =
         std::make_unique<CTxMemPool>(config, MemPoolOptionsForTest(m_node));
 
-    m_node.notifications = std::make_unique<KernelNotifications>();
+    m_node.notifications =
+        std::make_unique<KernelNotifications>(m_node.exit_status);
 
     ChainstateManager::Options chainman_opts{
         .config = config,

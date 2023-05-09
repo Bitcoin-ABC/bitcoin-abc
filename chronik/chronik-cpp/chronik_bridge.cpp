@@ -393,9 +393,10 @@ ChronikBridge::broadcast_tx(rust::Slice<const uint8_t> raw_tx,
     return chronik::util::HashToArray(tx_ref->GetId());
 }
 
-void ChronikBridge::abort_node(const rust::Str msg,
-                               const rust::Str user_msg) const {
-    AbortNode(std::string(msg), Untranslated(std::string(user_msg)));
+void ChronikBridge::fatal_error(const rust::Str msg,
+                                const rust::Str user_msg) const {
+    m_node.chainman->GetNotifications().fatalError(
+        std::string(msg), Untranslated(std::string(user_msg)));
 }
 
 bool ChronikBridge::shutdown_requested() const {

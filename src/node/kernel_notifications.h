@@ -7,6 +7,7 @@
 
 #include <kernel/notifications_interface.h>
 
+#include <atomic>
 #include <cstdint>
 
 class CBlockIndex;
@@ -16,6 +17,9 @@ struct bilingual_str;
 namespace node {
 class KernelNotifications : public kernel::Notifications {
 public:
+    KernelNotifications(std::atomic<int> &exit_status)
+        : m_exit_status{exit_status} {}
+
     void blockTip(SynchronizationState state, CBlockIndex &index) override;
 
     void headerTip(SynchronizationState state, int64_t height,
@@ -27,6 +31,15 @@ public:
     void warning(const std::string &warning) override;
 
     void flushError(const std::string &debug_message) override;
+
+    void fatalError(const std::string &debug_message,
+                    const bilingual_str &user_message = {}) override;
+
+    //! Useful for tests, can be set to false to avoid shutdown on fatal error.
+    bool m_shutdown_on_fatal_error{true};
+
+private:
+    std::atomic<int> &m_exit_status;
 };
 } // namespace node
 
