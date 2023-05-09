@@ -1372,8 +1372,12 @@ private:
      * Remove this block from our tracked requested blocks. Called if:
      *  - the block has been received from a peer
      *  - the request for the block has timed out
+     * If "from_peer" is specified, then only remove the block if it is in
+     * flight from that peer (to avoid one peer's network traffic from
+     * affecting another's state).
      */
-    void RemoveBlockRequest(const BlockHash &hash)
+    void RemoveBlockRequest(const BlockHash &hash,
+                            std::optional<NodeId> from_peer)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     /**
@@ -1701,7 +1705,8 @@ bool PeerManagerImpl::IsBlockRequested(const BlockHash &hash) {
     return mapBlocksInFlight.find(hash) != mapBlocksInFlight.end();
 }
 
-void PeerManagerImpl::RemoveBlockRequest(const BlockHash &hash) {
+void PeerManagerImpl::RemoveBlockRequest(const BlockHash &hash,
+                                         std::optional<NodeId> from_peer) {
     auto it = mapBlocksInFlight.find(hash);
 
     if (it == mapBlocksInFlight.end()) {
@@ -1710,6 +1715,12 @@ void PeerManagerImpl::RemoveBlockRequest(const BlockHash &hash) {
     }
 
     auto [node_id, list_it] = it->second;
+
+    if (from_peer && node_id != *from_peer) {
+        // Block was requested by us from another peer
+        return;
+    }
+
     CNodeState *state = State(node_id);
     assert(state != nullptr);
 
@@ -1751,7 +1762,7 @@ bool PeerManagerImpl::BlockRequested(const Config &config, NodeId nodeid,
     }
 
     // Make sure it's not listed somewhere already.
-    RemoveBlockRequest(hash);
+    RemoveBlockRequest(hash, std::nullopt);
 
     std::list<QueuedBlock>::iterator it = state->vBlocksInFlight.insert(
         state->vBlocksInFlight.end(),
@@ -4683,6 +4694,11 @@ void PeerManagerImpl::ProcessBlock(const Config &config, CNode &node,
                                &new_block, m_avalanche);
     if (new_block) {
         node.m_last_block_time = GetTime<std::chrono::seconds>();
+        // In case this block came from a different peer than we requested
+        // from, we can erase the block request now anyway (as we just stored
+        // this block to disk).
+        LOCK(cs_main);
+        RemoveBlockRequest(block->GetHash(), std::nullopt);
     } else {
         LOCK(cs_main);
         mapBlockSource.erase(block->GetHash());
@@ -6016,7 +6032,8 @@ void PeerManagerImpl::ProcessMessage(
                     if (status == READ_STATUS_INVALID) {
                         // Reset in-flight state in case Misbehaving does not
                         // result in a disconnect
-                        RemoveBlockRequest(pindex->GetBlockHash());
+                        RemoveBlockRequest(pindex->GetBlockHash(),
+                                           pfrom.GetId());
                         Misbehaving(*peer, 100, "invalid compact block");
                         return;
                     } else if (status == READ_STATUS_FAILED) {
@@ -6126,7 +6143,7 @@ void PeerManagerImpl::ProcessMessage(
                 // some other peer. We do this after calling. ProcessNewBlock so
                 // that a malleated cmpctblock announcement can't be used to
                 // interfere with block relay.
-                RemoveBlockRequest(pblock->GetHash());
+                RemoveBlockRequest(pblock->GetHash(), std::nullopt);
             }
         }
         return;
@@ -6168,7 +6185,7 @@ void PeerManagerImpl::ProcessMessage(
             if (status == READ_STATUS_INVALID) {
                 // Reset in-flight state in case of Misbehaving does not
                 // result in a disconnect.
-                RemoveBlockRequest(resp.blockhash);
+                RemoveBlockRequest(resp.blockhash, pfrom.GetId());
                 Misbehaving(
                     *peer, 100,
                     "invalid compact block/non-matching block transactions");
@@ -6199,7 +6216,7 @@ void PeerManagerImpl::ProcessMessage(
                 // updated, etc.
 
                 // it is now an empty pointer
-                RemoveBlockRequest(resp.blockhash);
+                RemoveBlockRequest(resp.blockhash, pfrom.GetId());
                 fBlockRead = true;
                 // mapBlockSource is used for potentially punishing peers and
                 // updating which peers send us compact blocks, so the race
@@ -6310,7 +6327,7 @@ void PeerManagerImpl::ProcessMessage(
             // Always process the block if we requested it, since we may
             // need it even when it's not a candidate for a new best tip.
             forceProcessing = IsBlockRequested(hash);
-            RemoveBlockRequest(hash);
+            RemoveBlockRequest(hash, pfrom.GetId());
             // mapBlockSource is only used for punishing peers and setting
             // which peers send us compact blocks, so the race between here and
             // cs_main in ProcessNewBlock is fine.
