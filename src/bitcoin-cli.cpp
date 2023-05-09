@@ -875,7 +875,7 @@ ConnectAndCallRPC(BaseRequestHandler *rh, const std::string &strMethod,
         try {
             response = CallRPC(rh, strMethod, args, rpcwallet);
             if (fWait) {
-                const UniValue &error = find_value(response, "error");
+                const UniValue &error = response.find_value("error");
                 if (!error.isNull() &&
                     error["code"].get_int() == RPC_IN_WARMUP) {
                     throw CConnectionFailed("server in warmup");
@@ -908,8 +908,8 @@ static void ParseResult(const UniValue &result, std::string &strPrint) {
 static void ParseError(const UniValue &error, std::string &strPrint,
                        int &nRet) {
     if (error.isObject()) {
-        const UniValue &err_code = find_value(error, "code");
-        const UniValue &err_msg = find_value(error, "message");
+        const UniValue &err_code = error.find_value("code");
+        const UniValue &err_msg = error.find_value("message");
         if (!err_code.isNull()) {
             strPrint = "error code: " + err_code.getValStr() + "\n";
         }
@@ -939,10 +939,10 @@ static void GetWalletBalances(UniValue &result) {
     DefaultRequestHandler rh;
     const UniValue listwallets =
         ConnectAndCallRPC(&rh, "listwallets", /* args=*/{});
-    if (!find_value(listwallets, "error").isNull()) {
+    if (!listwallets.find_value("error").isNull()) {
         return;
     }
-    const UniValue &wallets = find_value(listwallets, "result");
+    const UniValue &wallets = listwallets.find_value("result");
     if (wallets.size() <= 1) {
         return;
     }
@@ -953,7 +953,7 @@ static void GetWalletBalances(UniValue &result) {
         const UniValue getbalances =
             ConnectAndCallRPC(&rh, "getbalances", /* args=*/{}, wallet_name);
         const UniValue &balance =
-            find_value(getbalances, "result")["mine"]["trusted"];
+            getbalances.find_value("result")["mine"]["trusted"];
         balances.pushKV(wallet_name, balance);
     }
     result.pushKV("balances", balances);
@@ -1060,10 +1060,10 @@ static int CommandLineRPC(int argc, char *argv[]) {
             rh.reset(new GetinfoRequestHandler());
         } else if (gArgs.GetBoolArg("-generate", false)) {
             const UniValue getnewaddress{GetNewAddress()};
-            const UniValue &error{find_value(getnewaddress, "error")};
+            const UniValue &error{getnewaddress.find_value("error")};
             if (error.isNull()) {
                 SetGenerateToAddressArgs(
-                    find_value(getnewaddress, "result").get_str(), args);
+                    getnewaddress.find_value("result").get_str(), args);
                 rh.reset(new GenerateToAddressRequestHandler());
             } else {
                 ParseError(error, strPrint, nRet);
@@ -1091,8 +1091,8 @@ static int CommandLineRPC(int argc, char *argv[]) {
                 ConnectAndCallRPC(rh.get(), method, args, wallet_name);
 
             // Parse reply
-            UniValue result = find_value(reply, "result");
-            const UniValue &error = find_value(reply, "error");
+            UniValue result = reply.find_value("result");
+            const UniValue &error = reply.find_value("error");
             if (error.isNull()) {
                 if (gArgs.IsArgSet("-getinfo") &&
                     !gArgs.IsArgSet("-rpcwallet")) {

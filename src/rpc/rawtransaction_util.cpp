@@ -58,7 +58,7 @@ CMutableTransaction ConstructTransaction(const CChainParams &params,
 
         TxId txid(ParseHashO(o, "txid"));
 
-        const UniValue &vout_v = find_value(o, "vout");
+        const UniValue &vout_v = o.find_value("vout");
         if (vout_v.isNull()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "Invalid parameter, missing vout key");
@@ -80,7 +80,7 @@ CMutableTransaction ConstructTransaction(const CChainParams &params,
                              : std::numeric_limits<uint32_t>::max());
 
         // Set the sequence number if passed in the parameters object.
-        const UniValue &sequenceObj = find_value(o, "sequence");
+        const UniValue &sequenceObj = o.find_value("sequence");
         if (sequenceObj.isNum()) {
             int64_t seqNr64 = sequenceObj.get_int64();
             if (seqNr64 < 0 || seqNr64 > std::numeric_limits<uint32_t>::max()) {
@@ -200,7 +200,7 @@ void ParsePrevouts(const UniValue &prevTxsUnival,
 
             TxId txid(ParseHashO(prevOut, "txid"));
 
-            int nOut = find_value(prevOut, "vout").get_int();
+            int nOut = prevOut.find_value("vout").get_int();
             if (nOut < 0) {
                 throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
                                    "vout cannot be negative");
@@ -226,7 +226,7 @@ void ParsePrevouts(const UniValue &prevTxsUnival,
                 txout.nValue = MAX_MONEY;
                 if (prevOut.exists("amount")) {
                     txout.nValue =
-                        AmountFromValue(find_value(prevOut, "amount"));
+                        AmountFromValue(prevOut.find_value("amount"));
                 } else {
                     // amount param is required in replay-protected txs.
                     // Note that we must check for its presence here rather
@@ -249,7 +249,7 @@ void ParsePrevouts(const UniValue &prevTxsUnival,
                     prevOut, {
                                  {"redeemScript", UniValueType(UniValue::VSTR)},
                              });
-                UniValue v = find_value(prevOut, "redeemScript");
+                const UniValue &v{prevOut.find_value("redeemScript")};
                 if (!v.isNull()) {
                     std::vector<uint8_t> rsData(ParseHexV(v, "redeemScript"));
                     CScript redeemScript(rsData.begin(), rsData.end());

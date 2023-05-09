@@ -297,13 +297,13 @@ static RPCHelpMan buildavalancheproof() {
                         {"privatekey", UniValue::VSTR},
                     });
 
-                int nOut = find_value(stake, "vout").get_int();
+                int nOut = stake.find_value("vout").get_int();
                 if (nOut < 0) {
                     throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
                                        "vout cannot be negative");
                 }
 
-                const int height = find_value(stake, "height").get_int();
+                const int height = stake.find_value("height").get_int();
                 if (height < 1) {
                     throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
                                        "height must be positive");
@@ -317,13 +317,13 @@ static RPCHelpMan buildavalancheproof() {
                 }
 
                 const Amount amount =
-                    AmountFromValue(find_value(stake, "amount"));
+                    AmountFromValue(stake.find_value("amount"));
 
-                const UniValue &iscbparam = find_value(stake, "iscoinbase");
+                const UniValue &iscbparam = stake.find_value("iscoinbase");
                 const bool iscoinbase =
                     iscbparam.isNull() ? false : iscbparam.get_bool();
                 CKey key =
-                    DecodeSecret(find_value(stake, "privatekey").get_str());
+                    DecodeSecret(stake.find_value("privatekey").get_str());
 
                 if (!key.IsValid()) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER,

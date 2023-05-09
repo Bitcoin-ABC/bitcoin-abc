@@ -536,7 +536,7 @@ static RPCHelpMan decodescript() {
             ScriptPubKeyToUniv(script, r, /* fIncludeHex */ false);
 
             UniValue type;
-            type = find_value(r, "type");
+            type = r.find_value("type");
 
             if (type.isStr() && type.get_str() != "scripthash") {
                 // P2SH cannot be wrapped in a P2SH. If this script is already a
