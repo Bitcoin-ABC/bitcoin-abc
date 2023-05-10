@@ -14,12 +14,10 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_greater_than_or_equal
 
 
-def expect_http_status(expected_http_status, expected_rpc_code,
-                       fcn, *args):
+def expect_http_status(expected_http_status, expected_rpc_code, fcn, *args):
     try:
         fcn(*args)
-        raise AssertionError(
-            f"Expected RPC error {expected_rpc_code}, got none")
+        raise AssertionError(f"Expected RPC error {expected_rpc_code}, got none")
     except JSONRPCException as exc:
         assert_equal(exc.error["code"], expected_rpc_code)
         assert_equal(exc.http_status, expected_http_status)
@@ -29,7 +27,7 @@ def test_work_queue_getrpcinfo(node, error_queue, stop_queue):
     got_error = False
     while not got_error and stop_queue.empty():
         try:
-            node.cli('getrpcinfo').send_cli()
+            node.cli("getrpcinfo").send_cli()
         except subprocess.CalledProcessError as e:
             error_queue.put(e.output)
             got_error = True
@@ -45,43 +43,43 @@ class RPCInterfaceTest(BitcoinTestFramework):
         self.log.info("Testing getrpcinfo...")
 
         info = self.nodes[0].getrpcinfo()
-        assert_equal(len(info['active_commands']), 1)
+        assert_equal(len(info["active_commands"]), 1)
 
-        command = info['active_commands'][0]
-        assert_equal(command['method'], 'getrpcinfo')
-        assert_greater_than_or_equal(command['duration'], 0)
+        command = info["active_commands"][0]
+        assert_equal(command["method"], "getrpcinfo")
+        assert_greater_than_or_equal(command["duration"], 0)
         assert_equal(
-            info['logpath'],
-            os.path.join(
-                self.nodes[0].datadir,
-                self.chain,
-                'debug.log'))
+            info["logpath"],
+            os.path.join(self.nodes[0].datadir, self.chain, "debug.log"),
+        )
 
     def test_batch_request(self):
         self.log.info("Testing basic JSON-RPC batch request...")
 
-        results = self.nodes[0].batch([
-            # A basic request that will work fine.
-            {"method": "getblockcount", "id": 1},
-            # Request that will fail.  The whole batch request should still
-            # work fine.
-            {"method": "invalidmethod", "id": 2},
-            # Another call that should succeed.
-            {"method": "getblockhash", "id": 3, "params": [0]},
-        ])
+        results = self.nodes[0].batch(
+            [
+                # A basic request that will work fine.
+                {"method": "getblockcount", "id": 1},
+                # Request that will fail.  The whole batch request should still
+                # work fine.
+                {"method": "invalidmethod", "id": 2},
+                # Another call that should succeed.
+                {"method": "getblockhash", "id": 3, "params": [0]},
+            ]
+        )
 
         result_by_id = {}
         for res in results:
             result_by_id[res["id"]] = res
 
-        assert_equal(result_by_id[1]['error'], None)
-        assert_equal(result_by_id[1]['result'], 0)
+        assert_equal(result_by_id[1]["error"], None)
+        assert_equal(result_by_id[1]["result"], 0)
 
-        assert_equal(result_by_id[2]['error']['code'], -32601)
-        assert_equal(result_by_id[2]['result'], None)
+        assert_equal(result_by_id[2]["error"]["code"], -32601)
+        assert_equal(result_by_id[2]["result"], None)
 
-        assert_equal(result_by_id[3]['error'], None)
-        assert result_by_id[3]['result'] is not None
+        assert_equal(result_by_id[3]["error"], None)
+        assert result_by_id[3]["result"] is not None
 
     def test_http_status_codes(self):
         self.log.info("Testing HTTP status codes for JSON-RPC requests...")
@@ -91,19 +89,19 @@ class RPCInterfaceTest(BitcoinTestFramework):
 
     def test_work_queue_exceeded(self):
         if not self.is_cli_compiled():
-            self.log.info(
-                "Skipping test_work_queue_exceeded (CLI not compiled)")
+            self.log.info("Skipping test_work_queue_exceeded (CLI not compiled)")
             return
 
         self.log.info("Testing work queue exceeded...")
-        self.restart_node(0, ['-rpcworkqueue=1', '-rpcthreads=1'])
+        self.restart_node(0, ["-rpcworkqueue=1", "-rpcthreads=1"])
         processes = []
         error_queue = multiprocessing.Queue()
         stop_queue = multiprocessing.Queue()
         for _ in range(3):
             p = multiprocessing.Process(
                 target=test_work_queue_getrpcinfo,
-                args=(self.nodes[0], error_queue, stop_queue))
+                args=(self.nodes[0], error_queue, stop_queue),
+            )
             p.start()
             processes.append(p)
 
@@ -114,8 +112,8 @@ class RPCInterfaceTest(BitcoinTestFramework):
             p.join()
         while not error_queue.empty():
             assert_equal(
-                error_queue.get(),
-                'error: Server response: Work queue depth exceeded\n')
+                error_queue.get(), "error: Server response: Work queue depth exceeded\n"
+            )
 
     def run_test(self):
         self.test_getrpcinfo()
@@ -124,7 +122,7 @@ class RPCInterfaceTest(BitcoinTestFramework):
         self.test_work_queue_exceeded()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Setting the multiprocessing start method to "spawn" causes the test to fail
     # on all platforms. Not setting it causes a failure on Mac OS, because it defaults
     # to spawn (for python 3.8+).

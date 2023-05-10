@@ -101,15 +101,20 @@ class NetTracepointTest(BitcoinTestFramework):
             ]
 
             def __repr__(self):
-                return f"P2PMessage(peer={self.peer_id}, addr={self.peer_addr.decode('utf-8')}, conn_type={self.peer_conn_type.decode('utf-8')}, msg_type={self.msg_type.decode('utf-8')}, msg_size={self.msg_size})"
+                return (
+                    f"P2PMessage(peer={self.peer_id},"
+                    f" addr={self.peer_addr.decode('utf-8')},"
+                    f" conn_type={self.peer_conn_type.decode('utf-8')},"
+                    f" msg_type={self.msg_type.decode('utf-8')},"
+                    f" msg_size={self.msg_size})"
+                )
 
         self.log.info(
-            "hook into the net:inbound_message and net:outbound_message tracepoints")
+            "hook into the net:inbound_message and net:outbound_message tracepoints"
+        )
         ctx = USDT(pid=self.nodes[0].process.pid)
-        ctx.enable_probe(probe="net:inbound_message",
-                         fn_name="trace_inbound_message")
-        ctx.enable_probe(probe="net:outbound_message",
-                         fn_name="trace_outbound_message")
+        ctx.enable_probe(probe="net:inbound_message", fn_name="trace_inbound_message")
+        ctx.enable_probe(probe="net:outbound_message", fn_name="trace_outbound_message")
         bpf = BPF(text=net_tracepoints_program, usdt_contexts=[ctx], debug=0)
 
         # The handle_* function is a ctypes callback function called from C. When
@@ -124,14 +129,17 @@ class NetTracepointTest(BitcoinTestFramework):
             nonlocal checked_inbound_version_msg, checked_outbound_version_msg
             if event.msg_type.decode("utf-8") == "version":
                 self.log.info(
-                    f"check_p2p_message(): {'inbound' if inbound else 'outbound'} {event}")
+                    "check_p2p_message():"
+                    f" {'inbound' if inbound else 'outbound'} {event}"
+                )
                 peer = self.nodes[0].getpeerinfo()[0]
                 msg = msg_version()
-                msg.deserialize(BytesIO(bytes(event.msg[:event.msg_size])))
+                msg.deserialize(BytesIO(bytes(event.msg[: event.msg_size])))
                 assert_equal(peer["id"], event.peer_id, peer["id"])
                 assert_equal(peer["addr"], event.peer_addr.decode("utf-8"))
-                assert_equal(peer["connection_type"],
-                             event.peer_conn_type.decode("utf-8"))
+                assert_equal(
+                    peer["connection_type"], event.peer_conn_type.decode("utf-8")
+                )
                 if inbound:
                     checked_inbound_version_msg += 1
                 else:
@@ -153,15 +161,12 @@ class NetTracepointTest(BitcoinTestFramework):
         self.nodes[0].add_p2p_connection(test_node)
         bpf.perf_buffer_poll(timeout=200)
 
-        self.log.info(
-            "check that we got both an inbound and outbound version message")
-        assert_equal(EXPECTED_INOUTBOUND_VERSION_MSG,
-                     checked_inbound_version_msg)
-        assert_equal(EXPECTED_INOUTBOUND_VERSION_MSG,
-                     checked_outbound_version_msg)
+        self.log.info("check that we got both an inbound and outbound version message")
+        assert_equal(EXPECTED_INOUTBOUND_VERSION_MSG, checked_inbound_version_msg)
+        assert_equal(EXPECTED_INOUTBOUND_VERSION_MSG, checked_outbound_version_msg)
 
         bpf.cleanup()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     NetTracepointTest().main()

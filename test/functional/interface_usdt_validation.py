@@ -94,10 +94,10 @@ class ValidationTracepointTest(BitcoinTestFramework):
 
         self.log.info("hook into the validation:block_connected tracepoint")
         ctx = USDT(pid=self.nodes[0].process.pid)
-        ctx.enable_probe(probe="validation:block_connected",
-                         fn_name="trace_block_connected")
-        bpf = BPF(text=validation_blockconnected_program,
-                  usdt_contexts=[ctx], debug=0)
+        ctx.enable_probe(
+            probe="validation:block_connected", fn_name="trace_block_connected"
+        )
+        bpf = BPF(text=validation_blockconnected_program, usdt_contexts=[ctx], debug=0)
 
         def handle_blockconnected(_, data, __):
             nonlocal expected_blocks, blocks_checked
@@ -115,12 +115,12 @@ class ValidationTracepointTest(BitcoinTestFramework):
 
             blocks_checked += 1
 
-        bpf["block_connected"].open_perf_buffer(
-            handle_blockconnected)
+        bpf["block_connected"].open_perf_buffer(handle_blockconnected)
 
         self.log.info(f"mine {BLOCKS_EXPECTED} blocks")
         block_hashes = self.generatetoaddress(
-            self.nodes[0], BLOCKS_EXPECTED, ADDRESS_ECREG_UNSPENDABLE)
+            self.nodes[0], BLOCKS_EXPECTED, ADDRESS_ECREG_UNSPENDABLE
+        )
         for block_hash in block_hashes:
             expected_blocks.append(self.nodes[0].getblock(block_hash, 2))
 
@@ -132,5 +132,5 @@ class ValidationTracepointTest(BitcoinTestFramework):
         assert_equal(0, len(expected_blocks))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ValidationTracepointTest().main()

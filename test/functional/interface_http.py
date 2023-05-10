@@ -11,7 +11,7 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, str_to_b64str
 
 
-class HTTPBasicsTest (BitcoinTestFramework):
+class HTTPBasicsTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 3
         self.supports_cli = False
@@ -21,7 +21,6 @@ class HTTPBasicsTest (BitcoinTestFramework):
         self.setup_nodes()
 
     def run_test(self):
-
         #
         # lowlevel check for http persistent connection #
         #
@@ -31,14 +30,14 @@ class HTTPBasicsTest (BitcoinTestFramework):
 
         conn = http.client.HTTPConnection(url.hostname, url.port)
         conn.connect()
-        conn.request('POST', '/', '{"method": "getbestblockhash"}', headers)
+        conn.request("POST", "/", '{"method": "getbestblockhash"}', headers)
         out1 = conn.getresponse().read()
         assert b'"error":null' in out1
         assert conn.sock is not None
         # according to http/1.1 connection must still be open!
 
         # send 2nd request without closing connection
-        conn.request('POST', '/', '{"method": "getchaintips"}', headers)
+        conn.request("POST", "/", '{"method": "getchaintips"}', headers)
         out1 = conn.getresponse().read()
         assert b'"error":null' in out1
         # must also response with a correct json-rpc message
@@ -48,19 +47,21 @@ class HTTPBasicsTest (BitcoinTestFramework):
 
         # same should be if we add keep-alive because this should be the std.
         # behaviour
-        headers = {"Authorization": "Basic " +
-                   str_to_b64str(authpair), "Connection": "keep-alive"}
+        headers = {
+            "Authorization": "Basic " + str_to_b64str(authpair),
+            "Connection": "keep-alive",
+        }
 
         conn = http.client.HTTPConnection(url.hostname, url.port)
         conn.connect()
-        conn.request('POST', '/', '{"method": "getbestblockhash"}', headers)
+        conn.request("POST", "/", '{"method": "getbestblockhash"}', headers)
         out1 = conn.getresponse().read()
         assert b'"error":null' in out1
         assert conn.sock is not None
         # according to http/1.1 connection must still be open!
 
         # send 2nd request without closing connection
-        conn.request('POST', '/', '{"method": "getchaintips"}', headers)
+        conn.request("POST", "/", '{"method": "getchaintips"}', headers)
         out1 = conn.getresponse().read()
         assert b'"error":null' in out1
         # must also response with a correct json-rpc message
@@ -69,12 +70,14 @@ class HTTPBasicsTest (BitcoinTestFramework):
         conn.close()
 
         # now do the same with "Connection: close"
-        headers = {"Authorization": "Basic " +
-                   str_to_b64str(authpair), "Connection": "close"}
+        headers = {
+            "Authorization": "Basic " + str_to_b64str(authpair),
+            "Connection": "close",
+        }
 
         conn = http.client.HTTPConnection(url.hostname, url.port)
         conn.connect()
-        conn.request('POST', '/', '{"method": "getbestblockhash"}', headers)
+        conn.request("POST", "/", '{"method": "getbestblockhash"}', headers)
         out1 = conn.getresponse().read()
         assert b'"error":null' in out1
         assert conn.sock is None
@@ -87,7 +90,7 @@ class HTTPBasicsTest (BitcoinTestFramework):
 
         conn = http.client.HTTPConnection(urlNode1.hostname, urlNode1.port)
         conn.connect()
-        conn.request('POST', '/', '{"method": "getbestblockhash"}', headers)
+        conn.request("POST", "/", '{"method": "getbestblockhash"}', headers)
         out1 = conn.getresponse().read()
         assert b'"error":null' in out1
 
@@ -99,7 +102,7 @@ class HTTPBasicsTest (BitcoinTestFramework):
 
         conn = http.client.HTTPConnection(urlNode2.hostname, urlNode2.port)
         conn.connect()
-        conn.request('POST', '/', '{"method": "getbestblockhash"}', headers)
+        conn.request("POST", "/", '{"method": "getbestblockhash"}', headers)
         out1 = conn.getresponse().read()
         assert b'"error":null' in out1
         assert conn.sock is not None
@@ -109,13 +112,13 @@ class HTTPBasicsTest (BitcoinTestFramework):
         # Check excessive request size
         conn = http.client.HTTPConnection(urlNode2.hostname, urlNode2.port)
         conn.connect()
-        conn.request('GET', f"/{'x' * 1000}", '', headers)
+        conn.request("GET", f"/{'x' * 1000}", "", headers)
         out1 = conn.getresponse()
         assert_equal(out1.status, http.client.NOT_FOUND)
 
         conn = http.client.HTTPConnection(urlNode2.hostname, urlNode2.port)
         conn.connect()
-        conn.request('GET', f"/{'x' * 10000}", '', headers)
+        conn.request("GET", f"/{'x' * 10000}", "", headers)
         out1 = conn.getresponse()
         assert_equal(out1.status, http.client.BAD_REQUEST)
 
@@ -125,49 +128,51 @@ class HTTPBasicsTest (BitcoinTestFramework):
         conn = http.client.HTTPConnection(url.hostname, url.port)
         conn.connect()
         authpair = f"{url.username}:{url.password}"
-        headers = {"Authorization": f"Basic {str_to_b64str(authpair)}",
-                   "Origin": origin}
-        conn.request('POST', '/', '{"method": "getbestblockhash"}', headers)
+        headers = {
+            "Authorization": f"Basic {str_to_b64str(authpair)}",
+            "Origin": origin,
+        }
+        conn.request("POST", "/", '{"method": "getbestblockhash"}', headers)
         out1 = conn.getresponse()
         assert_equal(out1.status, http.client.OK)
         assert_equal(out1.headers["Access-Control-Allow-Origin"], origin)
         assert_equal(out1.headers["Access-Control-Allow-Credentials"], "true")
-        assert_equal(out1.headers["Access-Control-Expose-Headers"],
-                     "WWW-Authenticate")
+        assert_equal(out1.headers["Access-Control-Expose-Headers"], "WWW-Authenticate")
         assert b'"error":null' in out1.read()
 
         # Check Pre-flight CORS request
-        corsheaders = {"Origin": origin,
-                       "Access-Control-Request-Method": "POST"}
-        conn.request('OPTIONS', '/', None, corsheaders)
+        corsheaders = {"Origin": origin, "Access-Control-Request-Method": "POST"}
+        conn.request("OPTIONS", "/", None, corsheaders)
         out1 = conn.getresponse()
         assert_equal(out1.status, http.client.OK)
         assert_equal(out1.headers["Access-Control-Allow-Origin"], origin)
         assert_equal(out1.headers["Access-Control-Allow-Credentials"], "true")
         assert_equal(out1.headers["Access-Control-Allow-Methods"], "POST")
-        assert_equal(out1.headers["Access-Control-Allow-Headers"],
-                     "authorization,content-type")
-        assert_equal(b'', out1.read())
+        assert_equal(
+            out1.headers["Access-Control-Allow-Headers"], "authorization,content-type"
+        )
+        assert_equal(b"", out1.read())
 
         # Check Standard CORS request to node without CORS, expected failure
         conn = http.client.HTTPConnection(urlNode2.hostname, urlNode2.port)
         conn.connect()
         authpair = f"{url.username}:{url.password}"
-        headers = {"Authorization": f"Basic {str_to_b64str(authpair)}",
-                   "Origin": origin}
-        conn.request('POST', '/', '{"method": "getbestblockhash"}', headers)
+        headers = {
+            "Authorization": f"Basic {str_to_b64str(authpair)}",
+            "Origin": origin,
+        }
+        conn.request("POST", "/", '{"method": "getbestblockhash"}', headers)
         out1 = conn.getresponse()
         assert_equal(out1.status, http.client.UNAUTHORIZED)
-        assert_equal(b'', out1.read())
+        assert_equal(b"", out1.read())
 
         # Check Pre-flight CORS request to node without CORS, expected failure
-        corsheaders = {"Origin": origin,
-                       "Access-Control-Request-Method": "POST"}
-        conn.request('OPTIONS', '/', None, corsheaders)
+        corsheaders = {"Origin": origin, "Access-Control-Request-Method": "POST"}
+        conn.request("OPTIONS", "/", None, corsheaders)
         out1 = conn.getresponse()
         assert_equal(out1.status, http.client.METHOD_NOT_ALLOWED)
-        assert_equal(b'JSONRPC server handles only POST requests', out1.read())
+        assert_equal(b"JSONRPC server handles only POST requests", out1.read())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     HTTPBasicsTest().main()
