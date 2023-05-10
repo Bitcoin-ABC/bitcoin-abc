@@ -649,4 +649,43 @@ describe('cashaddr', () => {
             }
         });
     });
+    describe('#getOutputScriptFromAddress()', () => {
+        it('should get outputScripts from address on mainnet correctly', () => {
+            for (const index in EXPECTED_P2PKH_OUTPUTS) {
+                assert.equal(
+                    cashaddr.getOutputScriptFromAddress(
+                        EXPECTED_P2PKH_OUTPUTS[index],
+                    ),
+                    TEST_P2PKH_OUTPUTSCRIPTS[index],
+                );
+                assert.equal(
+                    cashaddr.getOutputScriptFromAddress(
+                        EXPECTED_P2SH_OUTPUTS[index],
+                    ),
+                    TEST_P2SH_OUTPUTSCRIPTS[index],
+                );
+            }
+        });
+        it('should get outputScripts from testnet addresses correctly', () => {
+            for (const index in TEST_HASHES) {
+                assert.equal(
+                    cashaddr.getOutputScriptFromAddress(
+                        EXPECTED_P2PKH_OUTPUTS_TESTNET[index],
+                    ),
+                    TEST_P2PKH_OUTPUTSCRIPTS[index],
+                );
+                assert.equal(
+                    cashaddr.getOutputScriptFromAddress(
+                        EXPECTED_P2SH_OUTPUTS_TESTNET[index],
+                    ),
+                    TEST_P2SH_OUTPUTSCRIPTS[index],
+                );
+            }
+        });
+        it('should fail on invalid addresses', () => {
+            assert.throws(() => {
+                cashaddr.getOutputScriptFromAddress('notAnAddress');
+            }, cashaddr.ValidationError);
+        });
+    });
 });

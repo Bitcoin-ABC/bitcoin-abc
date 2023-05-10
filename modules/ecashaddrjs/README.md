@@ -37,6 +37,19 @@ console.log(ecashaddr.encode('ecash', type, hash));
 console.log(ecashaddr.isValidCashAddress(bitcoincashAddress)); // true
 console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'bitcoincash'); // true
 console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // false
+// getOutputScriptFromAddress
+// p2pkh
+console.log(
+    ecashaddr.getOutputScriptFromAddress(
+        'ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr',
+    ),
+); // 76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac
+// p2sh
+console.log(
+    ecashaddr.getOutputScriptFromAddress(
+        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+    ),
+); // a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087
 ```
 
 ### Working with chronik-client in Node.js
@@ -134,4 +147,5 @@ https://jsfiddle.net/zghd6c2y/
 1.2.0 - Support lowercase input and output of address types, support encoding outputScript to address, support getting type and hash from an outputScript with new exported function `getTypeAndHashFromOutputScript`\
 1.3.0 - Add `toLegacy` function to convert cashaddress format to legacy address\
 1.4.0 - Add `isValidCashAddress` function to validate cash addresses by prefix\
-1.4.1-6 - Fix repo README link for npmjs page
+1.4.1-6 - Fix repo README link for npmjs page\
+1.5.0 - Add `getOutputScriptFromAddress` function to get outputScript from address

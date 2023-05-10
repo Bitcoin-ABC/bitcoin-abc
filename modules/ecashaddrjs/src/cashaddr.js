@@ -572,6 +572,26 @@ function isValidCashAddress(cashaddress, optionalPrefix = false) {
     }
 }
 
+/**
+ * Return true for a valid cashaddress
+ * Prefixless addresses with valid checksum are also valid
+ *
+ * @static
+ * @param {string} address a valid p2pkh or p2sh cash address
+ * @returns {string} the outputScript associated with this address and type
+ * @throws {ValidationError} if decode fails
+ */
+function getOutputScriptFromAddress(address) {
+    const { type, hash } = decode(address, true);
+    let registrationOutputScript;
+    if (type === 'p2pkh') {
+        registrationOutputScript = `76a914${hash}88ac`;
+    } else {
+        registrationOutputScript = `a914${hash}87`;
+    }
+    return registrationOutputScript;
+}
+
 module.exports = {
     encode: encode,
     decode: decode,
@@ -580,5 +600,6 @@ module.exports = {
     getTypeAndHashFromOutputScript: getTypeAndHashFromOutputScript,
     toLegacy: toLegacy,
     isValidCashAddress: isValidCashAddress,
+    getOutputScriptFromAddress: getOutputScriptFromAddress,
     ValidationError: ValidationError,
 };
