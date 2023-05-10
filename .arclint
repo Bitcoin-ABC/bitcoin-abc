@@ -23,7 +23,7 @@
             "exclude": [
                 "(^contrib/gitian-builder/)",
                 "(^contrib/apple-sdk-tools/)",
-                "(^test/functional/.*\\.py$)"
+                "(^test/functional/)"
             ],
             "flags": [
                 "--aggressive",
@@ -35,7 +35,7 @@
             "type": "black",
             "version": ">=23.0.0",
             "include": [
-                "(^test/functional/.*\\.py$)"
+                "(^test/functional/)"
             ],
             "flags": [
                 "--preview"

@@ -49,21 +49,21 @@ MAX_PROTOCOL_MESSAGE_LENGTH = 2 * 1024 * 1024
 MAX_HEADERS_RESULTS = 2000  # Number of headers sent in one getheaders result
 MAX_INV_SIZE = 50000  # Maximum number of entries in an 'inv' protocol message
 
-NODE_NETWORK = (1 << 0)
-NODE_GETUTXO = (1 << 1)
-NODE_BLOOM = (1 << 2)
+NODE_NETWORK = 1 << 0
+NODE_GETUTXO = 1 << 1
+NODE_BLOOM = 1 << 2
 # NODE_WITNESS = (1 << 3)
 # NODE_XTHIN = (1 << 4) # removed in v0.22.12
-NODE_COMPACT_FILTERS = (1 << 6)
-NODE_NETWORK_LIMITED = (1 << 10)
-NODE_AVALANCHE = (1 << 24)
+NODE_COMPACT_FILTERS = 1 << 6
+NODE_NETWORK_LIMITED = 1 << 10
+NODE_AVALANCHE = 1 << 24
 
 MSG_TX = 1
 MSG_BLOCK = 2
 MSG_FILTERED_BLOCK = 3
 MSG_CMPCT_BLOCK = 4
-MSG_AVA_PROOF = 0x1f000001
-MSG_TYPE_MASK = 0xffffffff >> 2
+MSG_AVA_PROOF = 0x1F000001
+MSG_TYPE_MASK = 0xFFFFFFFF >> 2
 
 FILTER_TYPE_BASIC = 0
 
@@ -71,7 +71,7 @@ FILTER_TYPE_BASIC = 0
 
 
 def sha256(s):
-    return hashlib.new('sha256', s).digest()
+    return hashlib.new("sha256", s).digest()
 
 
 def hash256(s):
@@ -214,19 +214,16 @@ def ToHex(obj):
 
 # Objects that map to bitcoind objects, which can be serialized/deserialized
 
+
 class CAddress:
     __slots__ = ("net", "ip", "nServices", "port", "time")
 
     # see https://github.com/bitcoin/bips/blob/master/bip-0155.mediawiki
     NET_IPV4 = 1
 
-    ADDRV2_NET_NAME = {
-        NET_IPV4: "IPv4"
-    }
+    ADDRV2_NET_NAME = {NET_IPV4: "IPv4"}
 
-    ADDRV2_ADDRESS_LENGTH = {
-        NET_IPV4: 4
-    }
+    ADDRV2_ADDRESS_LENGTH = {NET_IPV4: 4}
 
     def __init__(self):
         self.time = 0
@@ -326,8 +323,11 @@ class CInv:
         return f"CInv(type={self.typemap[self.type]} hash={uint256_hex(self.hash)})"
 
     def __eq__(self, other):
-        return isinstance(
-            other, CInv) and self.hash == other.hash and self.type == other.type
+        return (
+            isinstance(other, CInv)
+            and self.hash == other.hash
+            and self.type == other.type
+        )
 
 
 class CBlockLocator:
@@ -501,8 +501,16 @@ class CTransaction:
 
 
 class CBlockHeader:
-    __slots__ = ("hash", "hashMerkleRoot", "hashPrevBlock", "nBits", "nNonce",
-                 "nTime", "nVersion", "sha256")
+    __slots__ = (
+        "hash",
+        "hashMerkleRoot",
+        "hashPrevBlock",
+        "nBits",
+        "nNonce",
+        "nTime",
+        "nVersion",
+        "sha256",
+    )
 
     def __init__(self, header=None):
         if header is None:
@@ -665,8 +673,14 @@ class PrefilledTransaction:
 
 # This is what we send on the wire, in a cmpctblock message.
 class P2PHeaderAndShortIDs:
-    __slots__ = ("header", "nonce", "prefilled_txn", "prefilled_txn_length",
-                 "shortids", "shortids_length")
+    __slots__ = (
+        "header",
+        "nonce",
+        "prefilled_txn",
+        "prefilled_txn_length",
+        "shortids",
+        "shortids_length",
+    )
 
     def __init__(self):
         self.header = CBlockHeader()
@@ -683,8 +697,7 @@ class P2PHeaderAndShortIDs:
         for _ in range(self.shortids_length):
             # shortids are defined to be 6 bytes in the spec, so append
             # two zero bytes and read it in as an 8-byte number
-            self.shortids.append(
-                struct.unpack("<Q", f.read(6) + b'\x00\x00')[0])
+            self.shortids.append(struct.unpack("<Q", f.read(6) + b"\x00\x00")[0])
         self.prefilled_txn = deser_vector(f, PrefilledTransaction)
         self.prefilled_txn_length = len(self.prefilled_txn)
 
@@ -712,7 +725,7 @@ def calculate_shortid(k0, k1, tx_hash):
     """Calculate the BIP 152-compact blocks shortid for a given
     transaction hash"""
     expected_shortid = siphash256(k0, k1, tx_hash)
-    expected_shortid &= 0x0000ffffffffffff
+    expected_shortid &= 0x0000FFFFFFFFFFFF
     return expected_shortid
 
 
@@ -734,7 +747,8 @@ class HeaderAndShortIDs:
             last_index = -1
             for x in p2pheaders_and_shortids.prefilled_txn:
                 self.prefilled_txn.append(
-                    PrefilledTransaction(x.index + last_index + 1, x.tx))
+                    PrefilledTransaction(x.index + last_index + 1, x.tx)
+                )
                 last_index = self.prefilled_txn[-1].index
 
     def to_p2p(self):
@@ -748,7 +762,8 @@ class HeaderAndShortIDs:
         last_index = -1
         for x in self.prefilled_txn:
             ret.prefilled_txn.append(
-                PrefilledTransaction(x.index - last_index - 1, x.tx))
+                PrefilledTransaction(x.index - last_index - 1, x.tx)
+            )
             last_index = x.index
         return ret
 
@@ -766,8 +781,9 @@ class HeaderAndShortIDs:
             prefill_list = [0]
         self.header = CBlockHeader(block)
         self.nonce = nonce
-        self.prefilled_txn = [PrefilledTransaction(i, block.vtx[i])
-                              for i in prefill_list]
+        self.prefilled_txn = [
+            PrefilledTransaction(i, block.vtx[i]) for i in prefill_list
+        ]
         self.shortids = []
         [k0, k1] = self.get_siphash_keys()
         for i in range(len(block.vtx)):
@@ -853,8 +869,7 @@ class BlockTransactions:
 class AvalancheStake:
     __slots__ = ("utxo", "amount", "height", "pubkey", "is_coinbase")
 
-    def __init__(self, utxo=None, amount=0, height=0,
-                 pubkey=b"", is_coinbase=False):
+    def __init__(self, utxo=None, amount=0, height=0, pubkey=b"", is_coinbase=False):
         self.utxo: COutPoint = utxo or COutPoint()
         self.amount: int = amount
         """Amount in satoshis (int64)"""
@@ -877,16 +892,18 @@ class AvalancheStake:
     def serialize(self) -> bytes:
         r = self.utxo.serialize()
         height_ser = self.height << 1 | int(self.is_coinbase)
-        r += struct.pack('<q', self.amount)
-        r += struct.pack('<I', height_ser)
+        r += struct.pack("<q", self.amount)
+        r += struct.pack("<I", height_ser)
         r += ser_compact_size(len(self.pubkey))
         r += self.pubkey
         return r
 
     def __repr__(self):
-        return f"AvalancheStake(utxo={self.utxo}, amount={self.amount}," \
-               f" height={self.height}, " \
-               f"pubkey={self.pubkey.hex()})"
+        return (
+            f"AvalancheStake(utxo={self.utxo}, amount={self.amount},"
+            f" height={self.height}, "
+            f"pubkey={self.pubkey.hex()})"
+        )
 
 
 class AvalancheSignedStake:
@@ -915,16 +932,25 @@ class AvalancheProof:
         "payout_script",
         "signature",
         "limited_proofid",
-        "proofid")
+        "proofid",
+    )
 
-    def __init__(self, sequence=0, expiration=0,
-                 master=b"", signed_stakes=None, payout_script=b"", signature=b""):
+    def __init__(
+        self,
+        sequence=0,
+        expiration=0,
+        master=b"",
+        signed_stakes=None,
+        payout_script=b"",
+        signature=b"",
+    ):
         self.sequence: int = sequence
         self.expiration: int = expiration
         self.master: bytes = master
 
         self.stakes: List[AvalancheSignedStake] = signed_stakes or [
-            AvalancheSignedStake()]
+            AvalancheSignedStake()
+        ]
 
         self.payout_script = payout_script
         self.signature = signature
@@ -970,14 +996,16 @@ class AvalancheProof:
         return r
 
     def __repr__(self):
-        return f"AvalancheProof(proofid={uint256_hex(self.proofid)}, " \
-               f"limited_proofid={uint256_hex(self.limited_proofid)}, " \
-               f"sequence={self.sequence}, " \
-               f"expiration={self.expiration}, " \
-               f"master={self.master.hex()}, " \
-               f"payout_script={self.payout_script.hex()}, " \
-               f"signature={b64encode(self.signature)}, " \
-               f"stakes={self.stakes})"
+        return (
+            f"AvalancheProof(proofid={uint256_hex(self.proofid)}, "
+            f"limited_proofid={uint256_hex(self.limited_proofid)}, "
+            f"sequence={self.sequence}, "
+            f"expiration={self.expiration}, "
+            f"master={self.master.hex()}, "
+            f"payout_script={self.payout_script.hex()}, "
+            f"signature={b64encode(self.signature)}, "
+            f"stakes={self.stakes})"
+        )
 
 
 class AvalanchePrefilledProof:
@@ -1143,16 +1171,16 @@ class AvalancheDelegationLevel:
 class AvalancheDelegation:
     __slots__ = ("limited_proofid", "proof_master", "proofid", "levels")
 
-    def __init__(self, limited_proofid=0,
-                 proof_master=b"", levels=None):
+    def __init__(self, limited_proofid=0, proof_master=b"", levels=None):
         self.limited_proofid: int = limited_proofid
         self.proof_master: bytes = proof_master
         self.levels: List[AvalancheDelegationLevel] = levels or []
         self.proofid: int = self.compute_proofid()
 
     def compute_proofid(self) -> int:
-        return uint256_from_str(hash256(
-            ser_uint256(self.limited_proofid) + ser_string(self.proof_master)))
+        return uint256_from_str(
+            hash256(ser_uint256(self.limited_proofid) + ser_string(self.proof_master))
+        )
 
     def deserialize(self, f):
         self.limited_proofid = deser_uint256(f)
@@ -1169,11 +1197,13 @@ class AvalancheDelegation:
         return r
 
     def __repr__(self):
-        return f"AvalancheDelegation(" \
-               f"limitedProofId={uint256_hex(self.limited_proofid)}, " \
-               f"proofMaster={self.proof_master.hex()}, " \
-               f"proofid={uint256_hex(self.proofid)}, " \
-               f"levels={self.levels})"
+        return (
+            "AvalancheDelegation("
+            f"limitedProofId={uint256_hex(self.limited_proofid)}, "
+            f"proofMaster={self.proof_master.hex()}, "
+            f"proofid={uint256_hex(self.proofid)}, "
+            f"levels={self.levels})"
+        )
 
     def getid(self):
         h = ser_uint256(self.proofid)
@@ -1267,9 +1297,20 @@ class CMerkleBlock:
 
 # Objects that correspond to messages on the wire
 
+
 class msg_version:
-    __slots__ = ("addrFrom", "addrTo", "nNonce", "relay", "nServices",
-                 "nStartingHeight", "nTime", "nVersion", "strSubVer", "nExtraEntropy")
+    __slots__ = (
+        "addrFrom",
+        "addrTo",
+        "nNonce",
+        "relay",
+        "nServices",
+        "nStartingHeight",
+        "nTime",
+        "nVersion",
+        "strSubVer",
+        "nExtraEntropy",
+    )
     msgtype = b"version"
 
     def __init__(self):
@@ -1279,7 +1320,7 @@ class msg_version:
         self.addrTo = CAddress()
         self.addrFrom = CAddress()
         self.nNonce = random.getrandbits(64)
-        self.strSubVer = ''
+        self.strSubVer = ""
         self.nStartingHeight = -1
         self.relay = 0
         self.nExtraEntropy = random.getrandbits(64)
@@ -1294,7 +1335,7 @@ class msg_version:
         self.addrFrom = CAddress()
         self.addrFrom.deserialize(f, with_time=False)
         self.nNonce = struct.unpack("<Q", f.read(8))[0]
-        self.strSubVer = deser_string(f).decode('utf-8')
+        self.strSubVer = deser_string(f).decode("utf-8")
 
         self.nStartingHeight = struct.unpack("<i", f.read(4))[0]
 
@@ -1310,7 +1351,7 @@ class msg_version:
         r += self.addrTo.serialize(with_time=False)
         r += self.addrFrom.serialize(with_time=False)
         r += struct.pack("<Q", self.nNonce)
-        r += ser_string(self.strSubVer.encode('utf-8'))
+        r += ser_string(self.strSubVer.encode("utf-8"))
         r += struct.pack("<i", self.nStartingHeight)
         r += struct.pack("<b", self.relay)
         r += struct.pack("<Q", self.nExtraEntropy)
@@ -1318,11 +1359,11 @@ class msg_version:
 
     def __repr__(self):
         return (
-            f'msg_version(nVersion={self.nVersion} nServices={self.nServices} '
-            f'nTime={self.nTime} addrTo={self.addrTo!r} addrFrom={self.addrFrom!r} '
-            f'nNonce=0x{self.nNonce:016X} strSubVer={self.strSubVer} '
-            f'nStartingHeight={self.nStartingHeight} relay={self.relay} '
-            f'nExtraEntropy={self.nExtraEntropy})'
+            f"msg_version(nVersion={self.nVersion} nServices={self.nServices} "
+            f"nTime={self.nTime} addrTo={self.addrTo!r} addrFrom={self.addrFrom!r} "
+            f"nNonce=0x{self.nNonce:016X} strSubVer={self.strSubVer} "
+            f"nStartingHeight={self.nStartingHeight} relay={self.relay} "
+            f"nExtraEntropy={self.nExtraEntropy})"
         )
 
 
@@ -1497,7 +1538,7 @@ class msg_block:
 # for cases where a user needs tighter control over what is sent over the wire
 # note that the user must supply the name of the msgtype, and the data
 class msg_generic:
-    __slots__ = ("data")
+    __slots__ = "data"
 
     def __init__(self, msgtype, data=None):
         self.msgtype = msgtype
@@ -1583,7 +1624,7 @@ class msg_mempool:
 
 
 class msg_notfound:
-    __slots__ = ("vec", )
+    __slots__ = ("vec",)
     msgtype = b"notfound"
 
     def __init__(self, vec=None):
@@ -1621,7 +1662,10 @@ class msg_sendheaders:
 # vector of hashes
 # hash_stop (hash of last desired block header, 0 to get as many as possible)
 class msg_getheaders:
-    __slots__ = ("hashstop", "locator",)
+    __slots__ = (
+        "hashstop",
+        "locator",
+    )
     msgtype = b"getheaders"
 
     def __init__(self):
@@ -1693,7 +1737,7 @@ class msg_filterload:
     __slots__ = ("data", "nHashFuncs", "nTweak", "nFlags")
     msgtype = b"filterload"
 
-    def __init__(self, data=b'00', nHashFuncs=0, nTweak=0, nFlags=0):
+    def __init__(self, data=b"00", nHashFuncs=0, nTweak=0, nFlags=0):
         self.data = data
         self.nHashFuncs = nHashFuncs
         self.nTweak = nTweak
@@ -1721,7 +1765,7 @@ class msg_filterload:
 
 
 class msg_filteradd:
-    __slots__ = ("data")
+    __slots__ = "data"
     msgtype = b"filteradd"
 
     def __init__(self, data):
@@ -1944,8 +1988,7 @@ class msg_cfheaders:
     __slots__ = ("filter_type", "stop_hash", "prev_header", "hashes")
     msgtype = b"cfheaders"
 
-    def __init__(self, filter_type=None, stop_hash=None,
-                 prev_header=None, hashes=None):
+    def __init__(self, filter_type=None, stop_hash=None, prev_header=None, hashes=None):
         self.filter_type = filter_type
         self.stop_hash = stop_hash
         self.prev_header = prev_header
@@ -2171,8 +2214,7 @@ class msg_avaproofs:
         for _ in range(shortids_length):
             # shortids are defined to be 6 bytes in the spec, so append
             # two zero bytes and read it in as an 8-byte number
-            self.shortids.append(
-                struct.unpack("<Q", f.read(6) + b'\x00\x00')[0])
+            self.shortids.append(struct.unpack("<Q", f.read(6) + b"\x00\x00")[0])
 
         # The indices are differentially encoded
         self.prefilled_proofs = deser_vector(f, AvalanchePrefilledProof)
@@ -2191,14 +2233,15 @@ class msg_avaproofs:
             r += struct.pack("<Q", shortid)[0:6]
 
         r += ser_compact_size(len(self.prefilled_proofs))
-        if (len(self.prefilled_proofs) < 1):
+        if len(self.prefilled_proofs) < 1:
             return r
 
         # The indices are differentially encoded
         r += self.prefilled_proofs[0].serialize()
         for i in range(len(self.prefilled_proofs[1:])):
             r += ser_compact_size(
-                self.prefilled_proofs[i + 1].index - self.prefilled_proofs[i].index - 1)
+                self.prefilled_proofs[i + 1].index - self.prefilled_proofs[i].index - 1
+            )
             r += self.prefilled_proofs[i].proof.serialize()
 
         return r
@@ -2213,7 +2256,7 @@ class msg_avaproofs:
 
 
 class msg_avaproofsreq:
-    __slots__ = ("indices")
+    __slots__ = "indices"
     msgtype = b"avaproofsreq"
 
     def __init__(self):
@@ -2232,7 +2275,7 @@ class msg_avaproofsreq:
         r = b""
         r += ser_compact_size(len(self.indices))
 
-        if (len(self.indices) < 1):
+        if len(self.indices) < 1:
             return r
 
         # The indices are differentially encoded
@@ -2273,34 +2316,53 @@ class TestFrameworkMessages(unittest.TestCase):
 
         self.assertEqual(
             uint256_hex(avaproof.proofid),
-            "455f34eb8a00b0799630071c0728481bdb1653035b1484ac33e974aa4ae7db6d"
+            "455f34eb8a00b0799630071c0728481bdb1653035b1484ac33e974aa4ae7db6d",
         )
         self.assertEqual(avaproof.sequence, 6296457553413371353)
         self.assertEqual(avaproof.expiration, -4129334692075929194)
-        self.assertEqual(avaproof.master, bytes.fromhex(
-            "023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3"
-        ))
+        self.assertEqual(
+            avaproof.master,
+            bytes.fromhex(
+                "023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3"
+            ),
+        )
         # P2PK to master pubkey
         # We can't use a CScript() here because it would cause a circular
         # import
-        self.assertEqual(avaproof.payout_script, bytes.fromhex(
-            "21023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3ac"))
-        self.assertEqual(avaproof.signature, b64decode(
-            "ewt4ZSAPYwUv+YC5P5ZfOY3aBJF9QR3UbjwAml/vNWYfrCh3m2oidgwAAE9d332YZcf+rX5KhAuUeTlZAmFkDw=="))
+        self.assertEqual(
+            avaproof.payout_script,
+            bytes.fromhex(
+                "21023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3ac"
+            ),
+        )
+        self.assertEqual(
+            avaproof.signature,
+            b64decode(
+                "ewt4ZSAPYwUv+YC5P5ZfOY3aBJF9QR3UbjwAml/vNWYfrCh3m2oidgwAAE9d332YZcf+rX5KhAuUeTlZAmFkDw=="
+            ),
+        )
 
         self.assertEqual(len(avaproof.stakes), 1)
-        self.assertEqual(avaproof.stakes[0].sig, b64decode(
-            "RTTKH14iZwvj31y9WVfY3YPQXI8X6uOR8Of/3OT7Pe+tt8B5Rz6+zPiMH4zofGHkUUR7icRFlnM1/9Gq3vQpmA=="))
-        self.assertEqual(f"{avaproof.stakes[0].stake.utxo.txid:x}",
-                         "915d9cc742b46b77c52f69eb6be16739e5ff1cd82ad4fa4ac6581d3ef29fa769"
-                         )
+        self.assertEqual(
+            avaproof.stakes[0].sig,
+            b64decode(
+                "RTTKH14iZwvj31y9WVfY3YPQXI8X6uOR8Of/3OT7Pe+tt8B5Rz6+zPiMH4zofGHkUUR7icRFlnM1/9Gq3vQpmA=="
+            ),
+        )
+        self.assertEqual(
+            f"{avaproof.stakes[0].stake.utxo.txid:x}",
+            "915d9cc742b46b77c52f69eb6be16739e5ff1cd82ad4fa4ac6581d3ef29fa769",
+        )
         self.assertEqual(avaproof.stakes[0].stake.utxo.n, 567214302)
         self.assertEqual(avaproof.stakes[0].stake.amount, 444638638000000)
         self.assertEqual(avaproof.stakes[0].stake.height, 1370779804)
         self.assertEqual(avaproof.stakes[0].stake.is_coinbase, False)
-        self.assertEqual(avaproof.stakes[0].stake.pubkey, bytes.fromhex(
-            "02449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680"
-        ))
+        self.assertEqual(
+            avaproof.stakes[0].stake.pubkey,
+            bytes.fromhex(
+                "02449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680"
+            ),
+        )
 
         msg_proof = msg_avaproof()
         msg_proof.proof = avaproof

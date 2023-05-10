@@ -178,24 +178,25 @@ class P2PConnection(asyncio.Protocol):
         self.peer_connect_helper(dstaddr, dstport, net, timeout_factor)
 
         loop = NetworkThread.network_event_loop
-        logger.debug(
-            f'Connecting to Bitcoin ABC Node: {self.dstaddr}:{self.dstport}')
+        logger.debug(f"Connecting to Bitcoin ABC Node: {self.dstaddr}:{self.dstport}")
         coroutine = loop.create_connection(
-            lambda: self, host=self.dstaddr, port=self.dstport)
+            lambda: self, host=self.dstaddr, port=self.dstport
+        )
         return lambda: loop.call_soon_threadsafe(loop.create_task, coroutine)
 
     def peer_accept_connection(
-            self, connect_id, connect_cb=lambda: None, *, net, timeout_factor):
-        self.peer_connect_helper('0', 0, net, timeout_factor)
+        self, connect_id, connect_cb=lambda: None, *, net, timeout_factor
+    ):
+        self.peer_connect_helper("0", 0, net, timeout_factor)
 
-        logger.debug(
-            f'Listening for Bitcoin ABC Node with id: {connect_id}')
+        logger.debug(f"Listening for Bitcoin ABC Node with id: {connect_id}")
         return lambda: NetworkThread.listen(self, connect_cb, idx=connect_id)
 
     def peer_disconnect(self):
         # Connection could have already been closed by other end.
         NetworkThread.network_event_loop.call_soon_threadsafe(
-            lambda: self._transport and self._transport.abort())
+            lambda: self._transport and self._transport.abort()
+        )
 
     # Connection and disconnection methods
 
@@ -217,7 +218,8 @@ class P2PConnection(asyncio.Protocol):
         """asyncio callback when a connection is closed."""
         if exc:
             logger.warning(
-                f"Connection lost to {self.dstaddr}:{self.dstport} due to {exc}")
+                f"Connection lost to {self.dstaddr}:{self.dstport} due to {exc}"
+            )
         else:
             logger.debug(f"Closed connection to: {self.dstaddr}:{self.dstport}")
         self._transport = None
@@ -250,32 +252,33 @@ class P2PConnection(asyncio.Protocol):
                     return None
                 if self.recvbuf[:4] != self.magic_bytes:
                     raise ValueError(
-                        f"magic bytes mismatch: "
-                        f"{self.magic_bytes!r} != {self.recvbuf!r}")
+                        "magic bytes mismatch: "
+                        f"{self.magic_bytes!r} != {self.recvbuf!r}"
+                    )
                 if len(self.recvbuf) < 4 + 12 + 4 + 4:
                     return None
-                msgtype = self.recvbuf[4:4 + 12].split(b"\x00", 1)[0]
-                msglen = struct.unpack(
-                    "<i", self.recvbuf[4 + 12:4 + 12 + 4])[0]
-                checksum = self.recvbuf[4 + 12 + 4:4 + 12 + 4 + 4]
+                msgtype = self.recvbuf[4 : 4 + 12].split(b"\x00", 1)[0]
+                msglen = struct.unpack("<i", self.recvbuf[4 + 12 : 4 + 12 + 4])[0]
+                checksum = self.recvbuf[4 + 12 + 4 : 4 + 12 + 4 + 4]
                 if len(self.recvbuf) < 4 + 12 + 4 + 4 + msglen:
                     return None
-                msg = self.recvbuf[4 + 12 + 4 + 4:4 + 12 + 4 + 4 + msglen]
+                msg = self.recvbuf[4 + 12 + 4 + 4 : 4 + 12 + 4 + 4 + msglen]
                 h = sha256(sha256(msg))
                 if checksum != h[:4]:
                     raise ValueError(f"got bad checksum {repr(self.recvbuf)}")
-                self.recvbuf = self.recvbuf[4 + 12 + 4 + 4 + msglen:]
+                self.recvbuf = self.recvbuf[4 + 12 + 4 + 4 + msglen :]
                 if msgtype not in MESSAGEMAP:
                     raise ValueError(
                         f"Received unknown msgtype from {self.dstaddr}:{self.dstport}:"
-                        f" '{msgtype}' {msg!r}")
+                        f" '{msgtype}' {msg!r}"
+                    )
                 f = BytesIO(msg)
                 m = MESSAGEMAP[msgtype]()
                 m.deserialize(f)
                 self._log_message("receive", m)
                 return m
         except Exception as e:
-            logger.exception('Error reading message:', repr(e))
+            logger.exception("Error reading message:", repr(e))
             raise
 
     def on_message(self, message):
@@ -290,7 +293,7 @@ class P2PConnection(asyncio.Protocol):
         This method takes a P2P payload, builds the P2P header and adds
         the message to the send buffer to be sent over the socket."""
         if not self.is_connected:
-            raise IOError('Not connected')
+            raise IOError("Not connected")
         tmsg = self.build_message(message)
         self._log_message("send", message)
         return self.send_raw_message(tmsg)
@@ -301,7 +304,7 @@ class P2PConnection(asyncio.Protocol):
         This method adds a raw message to the send buffer to be sent over the
         socket."""
         if not self.is_connected:
-            raise IOError('Not connected')
+            raise IOError("Not connected")
 
         def maybe_write():
             if not self._transport:
@@ -309,6 +312,7 @@ class P2PConnection(asyncio.Protocol):
             if self._transport.is_closing():
                 return
             self._transport.write(raw_message_bytes)
+
         NetworkThread.network_event_loop.call_soon_threadsafe(maybe_write)
 
     # Class utility methods
@@ -384,8 +388,7 @@ class P2PInterface(P2PConnection):
         # Will be sent in connection_made callback
         self.on_connection_send_msg = vt
 
-    def peer_connect(self, *args, services=P2P_SERVICES,
-                     send_version=True, **kwargs):
+    def peer_connect(self, *args, services=P2P_SERVICES, send_version=True, **kwargs):
         create_conn = super().peer_connect(*args, **kwargs)
 
         if send_version:
@@ -408,7 +411,7 @@ class P2PInterface(P2PConnection):
         and the most recent message of each type."""
         with p2p_lock:
             try:
-                msgtype = message.msgtype.decode('ascii')
+                msgtype = message.msgtype.decode("ascii")
                 self.message_count[msgtype] += 1
                 self.last_message[msgtype] = message
                 getattr(self, f"on_{msgtype}")(message)
@@ -425,73 +428,107 @@ class P2PInterface(P2PConnection):
     def on_close(self):
         pass
 
-    def on_addr(self, message): pass
+    def on_addr(self, message):
+        pass
 
-    def on_addrv2(self, message): pass
+    def on_addrv2(self, message):
+        pass
 
-    def on_avapoll(self, message): pass
+    def on_avapoll(self, message):
+        pass
 
-    def on_avaproof(self, message): pass
+    def on_avaproof(self, message):
+        pass
 
-    def on_avaproofs(self, message): pass
+    def on_avaproofs(self, message):
+        pass
 
-    def on_avaproofsreq(self, message): pass
+    def on_avaproofsreq(self, message):
+        pass
 
-    def on_avaresponse(self, message): pass
+    def on_avaresponse(self, message):
+        pass
 
-    def on_avahello(self, message): pass
+    def on_avahello(self, message):
+        pass
 
-    def on_block(self, message): pass
+    def on_block(self, message):
+        pass
 
-    def on_blocktxn(self, message): pass
+    def on_blocktxn(self, message):
+        pass
 
-    def on_cfcheckpt(self, message): pass
+    def on_cfcheckpt(self, message):
+        pass
 
-    def on_cfheaders(self, message): pass
+    def on_cfheaders(self, message):
+        pass
 
-    def on_cfilter(self, message): pass
+    def on_cfilter(self, message):
+        pass
 
-    def on_cmpctblock(self, message): pass
+    def on_cmpctblock(self, message):
+        pass
 
-    def on_feefilter(self, message): pass
+    def on_feefilter(self, message):
+        pass
 
-    def on_filteradd(self, message): pass
+    def on_filteradd(self, message):
+        pass
 
-    def on_filterclear(self, message): pass
+    def on_filterclear(self, message):
+        pass
 
-    def on_filterload(self, message): pass
+    def on_filterload(self, message):
+        pass
 
-    def on_getaddr(self, message): pass
+    def on_getaddr(self, message):
+        pass
 
-    def on_getavaaddr(self, message): pass
+    def on_getavaaddr(self, message):
+        pass
 
-    def on_getavaproofs(self, message): pass
+    def on_getavaproofs(self, message):
+        pass
 
-    def on_getblocks(self, message): pass
+    def on_getblocks(self, message):
+        pass
 
-    def on_getblocktxn(self, message): pass
+    def on_getblocktxn(self, message):
+        pass
 
-    def on_getdata(self, message): pass
+    def on_getdata(self, message):
+        pass
 
-    def on_getheaders(self, message): pass
+    def on_getheaders(self, message):
+        pass
 
-    def on_headers(self, message): pass
+    def on_headers(self, message):
+        pass
 
-    def on_mempool(self, message): pass
+    def on_mempool(self, message):
+        pass
 
-    def on_merkleblock(self, message): pass
+    def on_merkleblock(self, message):
+        pass
 
-    def on_notfound(self, message): pass
+    def on_notfound(self, message):
+        pass
 
-    def on_pong(self, message): pass
+    def on_pong(self, message):
+        pass
 
-    def on_sendaddrv2(self, message): pass
+    def on_sendaddrv2(self, message):
+        pass
 
-    def on_sendcmpct(self, message): pass
+    def on_sendcmpct(self, message):
+        pass
 
-    def on_sendheaders(self, message): pass
+    def on_sendheaders(self, message):
+        pass
 
-    def on_tx(self, message): pass
+    def on_tx(self, message):
+        pass
 
     def on_inv(self, message):
         want = msg_getdata()
@@ -508,9 +545,10 @@ class P2PInterface(P2PConnection):
         pass
 
     def on_version(self, message):
-        assert message.nVersion >= MIN_P2P_VERSION_SUPPORTED, \
-            f"Version {message.nVersion} received. Test framework only supports " \
+        assert message.nVersion >= MIN_P2P_VERSION_SUPPORTED, (
+            f"Version {message.nVersion} received. Test framework only supports "
             f"versions greater than {MIN_P2P_VERSION_SUPPORTED}"
+        )
         self.send_message(msg_verack())
         if self.support_addrv2:
             self.send_message(msg_sendaddrv2())
@@ -519,44 +557,53 @@ class P2PInterface(P2PConnection):
 
     # Connection helper methods
 
-    def wait_until(self, test_function_in, *, timeout=60,
-                   check_connected=True):
+    def wait_until(self, test_function_in, *, timeout=60, check_connected=True):
         def test_function():
             if check_connected:
                 assert self.is_connected
             return test_function_in()
 
-        wait_until_helper(test_function, timeout=timeout, lock=p2p_lock,
-                          timeout_factor=self.timeout_factor)
+        wait_until_helper(
+            test_function,
+            timeout=timeout,
+            lock=p2p_lock,
+            timeout_factor=self.timeout_factor,
+        )
 
     def wait_for_connect(self, timeout=60):
-        def test_function(): return self.is_connected
+        def test_function():
+            return self.is_connected
+
         self.wait_until(test_function, timeout=timeout, check_connected=False)
 
     def wait_for_disconnect(self, timeout=60):
-        def test_function(): return not self.is_connected
+        def test_function():
+            return not self.is_connected
+
         self.wait_until(test_function, timeout=timeout, check_connected=False)
 
     # Message receiving helper methods
 
     def wait_for_tx(self, txid, timeout=60):
         def test_function():
-            if not self.last_message.get('tx'):
+            if not self.last_message.get("tx"):
                 return False
-            return self.last_message['tx'].tx.rehash() == txid
+            return self.last_message["tx"].tx.rehash() == txid
 
         self.wait_until(test_function, timeout=timeout)
 
     def wait_for_block(self, blockhash, timeout=60):
         def test_function():
-            return self.last_message.get(
-                "block") and self.last_message["block"].block.rehash() == blockhash
+            return (
+                self.last_message.get("block")
+                and self.last_message["block"].block.rehash() == blockhash
+            )
 
         self.wait_until(test_function, timeout=timeout)
 
     def wait_for_header(self, blockhash, timeout=60):
         def test_function():
-            last_headers = self.last_message.get('headers')
+            last_headers = self.last_message.get("headers")
             if not last_headers:
                 return False
             return last_headers.headers[0].rehash() == int(blockhash, 16)
@@ -565,7 +612,7 @@ class P2PInterface(P2PConnection):
 
     def wait_for_merkleblock(self, blockhash, timeout=60):
         def test_function():
-            last_filtered_block = self.last_message.get('merkleblock')
+            last_filtered_block = self.last_message.get("merkleblock")
             if not last_filtered_block:
                 return False
             return last_filtered_block.merkleblock.header.rehash() == int(blockhash, 16)
@@ -576,6 +623,7 @@ class P2PInterface(P2PConnection):
         """Waits for a getdata message.
 
         The object hashes in the inventory vector must match the provided hash_list."""
+
         def test_function():
             last_data = self.last_message.get("getdata")
             if not last_data:
@@ -591,6 +639,7 @@ class P2PInterface(P2PConnection):
         value must be explicitly cleared before calling this method, or this will return
         immediately with success. TODO: change this method to take a hash value and only
         return true if the correct block header has been requested."""
+
         def test_function():
             return self.last_message.get("getheaders")
 
@@ -600,12 +649,15 @@ class P2PInterface(P2PConnection):
         """Waits for an INV message and checks that the first inv object in the message was as expected."""
         if len(expected_inv) > 1:
             raise NotImplementedError(
-                "wait_for_inv() will only verify the first inv object")
+                "wait_for_inv() will only verify the first inv object"
+            )
 
         def test_function():
-            return self.last_message.get("inv") and \
-                self.last_message["inv"].inv[0].type == expected_inv[0].type and \
-                self.last_message["inv"].inv[0].hash == expected_inv[0].hash
+            return (
+                self.last_message.get("inv")
+                and self.last_message["inv"].inv[0].type == expected_inv[0].type
+                and self.last_message["inv"].inv[0].hash == expected_inv[0].hash
+            )
 
         self.wait_until(test_function, timeout=timeout)
 
@@ -634,8 +686,10 @@ class P2PInterface(P2PConnection):
         self.send_message(msg_ping(nonce=self.ping_counter))
 
         def test_function():
-            return self.last_message.get(
-                "pong") and self.last_message["pong"].nonce == self.ping_counter
+            return (
+                self.last_message.get("pong")
+                and self.last_message["pong"].nonce == self.ping_counter
+            )
 
         self.wait_until(test_function, timeout=timeout)
         self.ping_counter += 1
@@ -668,10 +722,10 @@ class NetworkThread(threading.Thread):
 
     def close(self, timeout=10):
         """Close the connections and network event loop."""
-        self.network_event_loop.call_soon_threadsafe(
-            self.network_event_loop.stop)
-        wait_until_helper(lambda: not self.network_event_loop.is_running(),
-                          timeout=timeout)
+        self.network_event_loop.call_soon_threadsafe(self.network_event_loop.stop)
+        wait_until_helper(
+            lambda: not self.network_event_loop.is_running(), timeout=timeout
+        )
         self.network_event_loop.close()
         self.join(timeout)
         # Safe to remove event loop.
@@ -679,7 +733,7 @@ class NetworkThread(threading.Thread):
 
     @classmethod
     def listen(cls, p2p, callback, port=None, addr=None, idx=1):
-        """ Ensure a listening server is running on the given port, and run the
+        """Ensure a listening server is running on the given port, and run the
         protocol specified by `p2p` on the next connection to it. Once ready
         for connections, call `callback`."""
 
@@ -687,11 +741,12 @@ class NetworkThread(threading.Thread):
             assert 0 < idx <= MAX_NODES
             port = p2p_port(MAX_NODES - idx)
         if addr is None:
-            addr = '127.0.0.1'
+            addr = "127.0.0.1"
 
         coroutine = cls.create_listen_server(addr, port, callback, p2p)
         cls.network_event_loop.call_soon_threadsafe(
-            cls.network_event_loop.create_task, coroutine)
+            cls.network_event_loop.create_task, coroutine
+        )
 
     @classmethod
     async def create_listen_server(cls, addr, port, callback, proto):
@@ -712,9 +767,10 @@ class NetworkThread(threading.Thread):
             # connections, we can accomplish this by providing different
             # `proto` functions
 
-            listener = await cls.network_event_loop.create_server(peer_protocol, addr, port)
-            logger.debug(
-                f"Listening server on {addr}:{port} should be started")
+            listener = await cls.network_event_loop.create_server(
+                peer_protocol, addr, port
+            )
+            logger.debug(f"Listening server on {addr}:{port} should be started")
             cls.listeners[(addr, port)] = listener
 
         cls.protos[(addr, port)] = proto
@@ -724,13 +780,14 @@ class NetworkThread(threading.Thread):
 class P2PDataStore(P2PInterface):
     """A P2P data store class.
 
-    Keeps a block and transaction store and responds correctly to getdata and getheaders requests."""
+    Keeps a block and transaction store and responds correctly to getdata and getheaders requests.
+    """
 
     def __init__(self):
         super().__init__()
         # store of blocks. key is block hash, value is a CBlock object
         self.block_store = {}
-        self.last_block_hash = ''
+        self.last_block_hash = ""
         # store of txs. key is txid, value is a CTransaction object
         self.tx_store = {}
         self.getdata_requests = []
@@ -739,13 +796,16 @@ class P2PDataStore(P2PInterface):
         """Check for the tx/block in our stores and if found, reply with an inv message."""
         for inv in message.inv:
             self.getdata_requests.append(inv.hash)
-            if (inv.type & MSG_TYPE_MASK) == MSG_TX and inv.hash in self.tx_store.keys():
+            if (
+                inv.type & MSG_TYPE_MASK
+            ) == MSG_TX and inv.hash in self.tx_store.keys():
                 self.send_message(msg_tx(self.tx_store[inv.hash]))
-            elif (inv.type & MSG_TYPE_MASK) == MSG_BLOCK and inv.hash in self.block_store.keys():
+            elif (
+                inv.type & MSG_TYPE_MASK
+            ) == MSG_BLOCK and inv.hash in self.block_store.keys():
                 self.send_message(msg_block(self.block_store[inv.hash]))
             else:
-                logger.debug(
-                    f'getdata message type {hex(inv.type)} received.')
+                logger.debug(f"getdata message type {hex(inv.type)} received.")
 
     def on_getheaders(self, message):
         """Search back through our block store for the locator, and reply with a headers message if found."""
@@ -762,36 +822,45 @@ class P2PDataStore(P2PInterface):
             # as we go.
             prev_block_hash = headers_list[-1].hashPrevBlock
             if prev_block_hash in self.block_store:
-                prev_block_header = CBlockHeader(
-                    self.block_store[prev_block_hash])
+                prev_block_header = CBlockHeader(self.block_store[prev_block_hash])
                 headers_list.append(prev_block_header)
                 if prev_block_header.sha256 == hash_stop:
                     # if this is the hashstop header, stop here
                     break
             else:
                 logger.debug(
-                    f'block hash {hex(prev_block_hash)} not found in block store')
+                    f"block hash {hex(prev_block_hash)} not found in block store"
+                )
                 break
 
         # Truncate the list if there are too many headers
-        headers_list = headers_list[:-MAX_HEADERS_RESULTS - 1:-1]
+        headers_list = headers_list[: -MAX_HEADERS_RESULTS - 1 : -1]
         response = msg_headers(headers_list)
 
         if response is not None:
             self.send_message(response)
 
-    def send_blocks_and_test(self, blocks, node, *, success=True, force_send=False,
-                             reject_reason=None, expect_disconnect=False, timeout=60):
+    def send_blocks_and_test(
+        self,
+        blocks,
+        node,
+        *,
+        success=True,
+        force_send=False,
+        reject_reason=None,
+        expect_disconnect=False,
+        timeout=60,
+    ):
         """Send blocks to test node and test whether the tip advances.
 
-         - add all blocks to our block_store
-         - send a headers message for the final block
-         - the on_getheaders handler will ensure that any getheaders are responded to
-         - if force_send is False: wait for getdata for each of the blocks. The on_getdata handler will
-           ensure that any getdata messages are responded to. Otherwise send the full block unsolicited.
-         - if success is True: assert that the node's tip advances to the most recent block
-         - if success is False: assert that the node's tip doesn't advance
-         - if reject_reason is set: assert that the correct reject message is logged"""
+        - add all blocks to our block_store
+        - send a headers message for the final block
+        - the on_getheaders handler will ensure that any getheaders are responded to
+        - if force_send is False: wait for getdata for each of the blocks. The on_getdata handler will
+          ensure that any getdata messages are responded to. Otherwise send the full block unsolicited.
+        - if success is True: assert that the node's tip advances to the most recent block
+        - if success is False: assert that the node's tip doesn't advance
+        - if reject_reason is set: assert that the correct reject message is logged"""
 
         with p2p_lock:
             for block in blocks:
@@ -805,7 +874,8 @@ class P2PDataStore(P2PInterface):
 
             else:
                 self.send_message(
-                    msg_headers([CBlockHeader(block) for block in blocks]))
+                    msg_headers([CBlockHeader(block) for block in blocks])
+                )
                 self.wait_until(
                     lambda: blocks[-1].sha256 in self.getdata_requests,
                     timeout=timeout,
@@ -818,8 +888,9 @@ class P2PDataStore(P2PInterface):
                 self.sync_with_ping(timeout=timeout)
 
             if success:
-                self.wait_until(lambda: node.getbestblockhash() ==
-                                blocks[-1].hash, timeout=timeout)
+                self.wait_until(
+                    lambda: node.getbestblockhash() == blocks[-1].hash, timeout=timeout
+                )
             else:
                 assert node.getbestblockhash() != blocks[-1].hash
 
@@ -829,15 +900,16 @@ class P2PDataStore(P2PInterface):
         else:
             test()
 
-    def send_txs_and_test(self, txs, node, *, success=True,
-                          expect_disconnect=False, reject_reason=None):
+    def send_txs_and_test(
+        self, txs, node, *, success=True, expect_disconnect=False, reject_reason=None
+    ):
         """Send txs to test node and test whether they're accepted to the mempool.
 
-         - add all txs to our tx_store
-         - send tx messages for all txs
-         - if success is True/False: assert that the txs are/are not accepted to the mempool
-         - if expect_disconnect is True: Skip the sync with ping
-         - if reject_reason is set: assert that the correct reject message is logged."""
+        - add all txs to our tx_store
+        - send tx messages for all txs
+        - if success is True/False: assert that the txs are/are not accepted to the mempool
+        - if expect_disconnect is True: Skip the sync with ping
+        - if reject_reason is set: assert that the correct reject message is logged."""
 
         with p2p_lock:
             for tx in txs:
@@ -896,6 +968,7 @@ class P2PTxInvStore(P2PInterface):
         # Wait until invs have been received (and getdatas sent) for each txid.
         self.wait_until(
             lambda: set(self.tx_invs_received.keys()) == {int(tx, 16) for tx in txns},
-            timeout=timeout)
+            timeout=timeout,
+        )
         # Flush messages and wait for the getdatas to be processed
         self.sync_with_ping()

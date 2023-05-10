@@ -6,6 +6,7 @@
 
 import unittest
 
+# fmt: off
 # Message schedule indexes for the left path.
 ML = [
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
@@ -41,12 +42,13 @@ RR = [
     15, 5, 8, 11, 14, 14, 6, 14, 6, 9, 12, 9, 12, 5, 15, 8,
     8, 5, 12, 9, 12, 5, 14, 6, 8, 13, 6, 5, 15, 13, 11, 11
 ]
+# fmt: on
 
 # K constants for the left path.
-KL = [0, 0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xa953fd4e]
+KL = [0, 0x5A827999, 0x6ED9EBA1, 0x8F1BBCDC, 0xA953FD4E]
 
 # K constants for the right path.
-KR = [0x50a28be6, 0x5c4dd124, 0x6d703ef3, 0x7a6d76e9, 0]
+KR = [0x50A28BE6, 0x5C4DD124, 0x6D703EF3, 0x7A6D76E9, 0]
 
 
 def fi(x, y, z, i):
@@ -67,7 +69,7 @@ def fi(x, y, z, i):
 
 def rol(x, i):
     """Rotate the bottom 32 bits of x left by i bits."""
-    return ((x << i) | ((x & 0xffffffff) >> (32 - i))) & 0xffffffff
+    return ((x << i) | ((x & 0xFFFFFFFF) >> (32 - i))) & 0xFFFFFFFF
 
 
 def compress(h0, h1, h2, h3, h4, block):
@@ -77,7 +79,7 @@ def compress(h0, h1, h2, h3, h4, block):
     # Right path variables.
     ar, br, cr, dr, er = h0, h1, h2, h3, h4
     # Message variables.
-    x = [int.from_bytes(block[4 * i:4 * (i + 1)], 'little') for i in range(16)]
+    x = [int.from_bytes(block[4 * i : 4 * (i + 1)], "little") for i in range(16)]
 
     # Iterate over the 80 rounds of the compression.
     for j in range(80):
@@ -96,18 +98,18 @@ def compress(h0, h1, h2, h3, h4, block):
 def ripemd160(data: bytes) -> bytes:
     """Compute the RIPEMD-160 hash of data."""
     # Initialize state.
-    state = (0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0)
+    state = (0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0)
     # Process full 64-byte blocks in the input.
     for b in range(len(data) >> 6):
-        state = compress(*state, data[64 * b:64 * (b + 1)])
+        state = compress(*state, data[64 * b : 64 * (b + 1)])
     # Construct final blocks (with padding and size).
     pad = b"\x80" + b"\x00" * ((119 - len(data)) & 63)
-    fin = data[len(data) & ~63:] + pad + (8 * len(data)).to_bytes(8, 'little')
+    fin = data[len(data) & ~63 :] + pad + (8 * len(data)).to_bytes(8, "little")
     # Process final blocks.
     for b in range(len(fin) >> 6):
-        state = compress(*state, fin[64 * b:64 * (b + 1)])
+        state = compress(*state, fin[64 * b : 64 * (b + 1)])
     # Produce output.
-    return b"".join((h & 0xffffffff).to_bytes(4, 'little') for h in state)
+    return b"".join((h & 0xFFFFFFFF).to_bytes(4, "little") for h in state)
 
 
 class TestFrameworkKey(unittest.TestCase):
@@ -119,13 +121,16 @@ class TestFrameworkKey(unittest.TestCase):
             (b"a", "0bdc9d2d256b3ee9daae347be6f4dc835a467ffe"),
             (b"abc", "8eb208f7e05d987a9b044a8e98c6b087f15a0bfc"),
             (b"message digest", "5d0689ef49d2fae572b881b123a85ffa21595f36"),
-            (b"abcdefghijklmnopqrstuvwxyz",
-                "f71c27109c692c1b56bbdceb5b9d2865b3708dbc"),
-            (b"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
-                "12a053384a9c0c88e405a06c27dcf49ada62eb2b"),
-            (b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
-                "b0e20b6e3116640286ed3a87a5713079b21f5189"),
+            (b"abcdefghijklmnopqrstuvwxyz", "f71c27109c692c1b56bbdceb5b9d2865b3708dbc"),
+            (
+                b"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
+                "12a053384a9c0c88e405a06c27dcf49ada62eb2b",
+            ),
+            (
+                b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+                "b0e20b6e3116640286ed3a87a5713079b21f5189",
+            ),
             (b"1234567890" * 8, "9b752e45573d4b39f4dbd3323cab82bf63326bfb"),
-            (b"a" * 1000000, "52783243c1697bdbe16d37f97f68f08325dc1528")
+            (b"a" * 1000000, "52783243c1697bdbe16d37f97f68f08325dc1528"),
         ]:
             self.assertEqual(ripemd160(msg).hex(), hexout)

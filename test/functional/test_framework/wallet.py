@@ -49,8 +49,8 @@ class MiniWallet:
         self._utxos = []
         self._address = ADDRESS_ECREG_P2SH_OP_TRUE
         self._scriptPubKey = bytes.fromhex(
-            self._test_node.validateaddress(
-                self._address)['scriptPubKey'])
+            self._test_node.validateaddress(self._address)["scriptPubKey"]
+        )
 
     def _create_utxo(self, *, txid, vout, value, height):
         return {"txid": txid, "vout": vout, "value": value, "height": height}
@@ -59,15 +59,18 @@ class MiniWallet:
         """Drop all utxos and rescan the utxo set"""
         self._utxos = []
         res = self._test_node.scantxoutset(
-            action="start", scanobjects=[f'raw({self._scriptPubKey.hex()})'])
-        assert_equal(True, res['success'])
-        for utxo in res['unspents']:
+            action="start", scanobjects=[f"raw({self._scriptPubKey.hex()})"]
+        )
+        assert_equal(True, res["success"])
+        for utxo in res["unspents"]:
             self._utxos.append(
                 self._create_utxo(
                     txid=utxo["txid"],
                     vout=utxo["vout"],
                     value=utxo["amount"],
-                    height=utxo["height"]))
+                    height=utxo["height"],
+                )
+            )
 
     def scan_tx(self, tx):
         """Scan the tx and adjust the internal list of owned utxos"""
@@ -80,19 +83,19 @@ class MiniWallet:
                 self.get_utxo(txid=spent["txid"], vout=spent["vout"])
             except StopIteration:
                 pass
-        for out in tx['vout']:
-            if out['scriptPubKey']['hex'] == self._scriptPubKey.hex():
+        for out in tx["vout"]:
+            if out["scriptPubKey"]["hex"] == self._scriptPubKey.hex():
                 self._utxos.append(
                     self._create_utxo(
-                        txid=tx["txid"],
-                        vout=out["n"],
-                        value=out["value"],
-                        height=0))
+                        txid=tx["txid"], vout=out["n"], value=out["value"], height=0
+                    )
+                )
 
     def generate(self, num_blocks, **kwargs):
         """Generate blocks with coinbase outputs to the internal address, and call rescan_utxos"""
         blocks = self._test_node.generatetodescriptor(
-            num_blocks, f'raw({self._scriptPubKey.hex()})', **kwargs)
+            num_blocks, f"raw({self._scriptPubKey.hex()})", **kwargs
+        )
         # Calling rescan_utxos here makes sure that after a generate the utxo
         # set is in a clean state. For example, the wallet will update
         # - if the caller consumed utxos, but never used them
@@ -106,7 +109,7 @@ class MiniWallet:
     def get_scriptPubKey(self):
         return self._scriptPubKey
 
-    def get_utxo(self, *, txid: str = '', vout: Optional[int] = None):
+    def get_utxo(self, *, txid: str = "", vout: Optional[int] = None):
         """
         Returns a utxo and marks it as spent (pops it from the internal list)
 
@@ -114,18 +117,14 @@ class MiniWallet:
         txid: get the first utxo we find from a specific transaction
         """
         # Put the largest utxo last
-        self._utxos = sorted(
-            self._utxos, key=lambda k: (
-                k['value'], -k['height']))
+        self._utxos = sorted(self._utxos, key=lambda k: (k["value"], -k["height"]))
         if txid:
-            utxo_filter: Any = filter(
-                lambda utxo: txid == utxo['txid'], self._utxos)
+            utxo_filter: Any = filter(lambda utxo: txid == utxo["txid"], self._utxos)
         else:
             # By default the largest utxo
             utxo_filter = reversed(self._utxos)
         if vout is not None:
-            utxo_filter = filter(
-                lambda utxo: vout == utxo['vout'], utxo_filter)
+            utxo_filter = filter(lambda utxo: vout == utxo["vout"], utxo_filter)
         index = self._utxos.index(next(utxo_filter))
 
         return self._utxos.pop(index)
@@ -133,9 +132,7 @@ class MiniWallet:
     def send_self_transfer(self, **kwargs):
         """Create and send a tx with the specified fee_rate. Fee may be exact or at most one satoshi higher than needed."""
         tx = self.create_self_transfer(**kwargs)
-        self.sendrawtransaction(
-            from_node=kwargs['from_node'],
-            tx_hex=tx['hex'])
+        self.sendrawtransaction(from_node=kwargs["from_node"], tx_hex=tx["hex"])
         return tx
 
     def send_to(self, *, from_node, scriptPubKey, amount, fee=1000):
@@ -151,28 +148,29 @@ class MiniWallet:
         tx = self.create_self_transfer(from_node=from_node, fee_rate=0)["tx"]
         assert_greater_than_or_equal(tx.vout[0].nValue, amount + fee)
         # change output -> MiniWallet
-        tx.vout[0].nValue -= (amount + fee)
+        tx.vout[0].nValue -= amount + fee
         # arbitrary output -> to be returned
         tx.vout.append(CTxOut(amount, scriptPubKey))
-        txid = self.sendrawtransaction(
-            from_node=from_node,
-            tx_hex=tx.serialize().hex())
+        txid = self.sendrawtransaction(from_node=from_node, tx_hex=tx.serialize().hex())
         return txid, len(tx.vout) - 1
 
-    def create_self_transfer(self, *, fee_rate=Decimal("3000.00"),
-                             from_node, utxo_to_spend=None, locktime=0):
+    def create_self_transfer(
+        self, *, fee_rate=Decimal("3000.00"), from_node, utxo_to_spend=None, locktime=0
+    ):
         """Create and return a tx with the specified fee_rate. Fee may be exact or at most one satoshi higher than needed."""
         utxo_to_spend = utxo_to_spend or self.get_utxo()
 
         # The size will be enforced by pad_tx()
         size = 100
         send_value = satoshi_round(
-            utxo_to_spend['value'] - fee_rate * (Decimal(size) / 1000))
+            utxo_to_spend["value"] - fee_rate * (Decimal(size) / 1000)
+        )
         assert send_value > 0
 
         tx = CTransaction()
-        tx.vin = [CTxIn(COutPoint(int(utxo_to_spend['txid'], 16),
-                                  utxo_to_spend['vout']))]
+        tx.vin = [
+            CTxIn(COutPoint(int(utxo_to_spend["txid"], 16), utxo_to_spend["vout"]))
+        ]
         tx.vout = [CTxOut(int(send_value * XEC), self._scriptPubKey)]
         tx.nLockTime = locktime
         tx.vin[0].scriptSig = SCRIPTSIG_OP_TRUE
@@ -181,10 +179,10 @@ class MiniWallet:
 
         assert_equal(len(tx.serialize()), size)
         new_utxo = self._create_utxo(
-            txid=tx.rehash(), vout=0, value=send_value, height=0)
+            txid=tx.rehash(), vout=0, value=send_value, height=0
+        )
 
-        return {"txid": new_utxo["txid"],
-                "hex": tx_hex, "tx": tx, "new_utxo": new_utxo}
+        return {"txid": new_utxo["txid"], "hex": tx_hex, "tx": tx, "new_utxo": new_utxo}
 
     def sendrawtransaction(self, *, from_node, tx_hex):
         txid = from_node.sendrawtransaction(tx_hex)
@@ -194,14 +192,15 @@ class MiniWallet:
 
 def getnewdestination():
     """Generate a random destination and return the corresponding public key,
-       scriptPubKey and address. Can be used when a random destination is
-       needed, but no compiled wallet is available (e.g. as replacement to the
-       getnewaddress/getaddressinfo RPCs)."""
+    scriptPubKey and address. Can be used when a random destination is
+    needed, but no compiled wallet is available (e.g. as replacement to the
+    getnewaddress/getaddressinfo RPCs)."""
     key = ECKey()
     key.generate()
     pubkey = key.get_pubkey().get_bytes()
     scriptpubkey = CScript(
-        [OP_DUP, OP_HASH160, hash160(pubkey), OP_EQUALVERIFY, OP_CHECKSIG])
+        [OP_DUP, OP_HASH160, hash160(pubkey), OP_EQUALVERIFY, OP_CHECKSIG]
+    )
     return pubkey, scriptpubkey, key_to_p2pkh(pubkey)
 
 
@@ -209,8 +208,7 @@ def address_to_scriptpubkey(address):
     """Converts a given address to the corresponding output script (scriptPubKey)."""
     payload, version = base58_to_byte(address)
     if version == 111:  # testnet pubkey hash
-        return CScript([OP_DUP, OP_HASH160, payload,
-                       OP_EQUALVERIFY, OP_CHECKSIG])
+        return CScript([OP_DUP, OP_HASH160, payload, OP_EQUALVERIFY, OP_CHECKSIG])
     elif version == 196:  # testnet script hash
         return CScript([OP_HASH160, payload, OP_EQUAL])
     # TODO: also support other address formats
@@ -218,8 +216,16 @@ def address_to_scriptpubkey(address):
         assert False
 
 
-def make_chain(node, address, privkeys, parent_txid, parent_value, n=0,
-               parent_locking_script=None, fee=DEFAULT_FEE):
+def make_chain(
+    node,
+    address,
+    privkeys,
+    parent_txid,
+    parent_value,
+    n=0,
+    parent_locking_script=None,
+    fee=DEFAULT_FEE,
+):
     """Build a transaction that spends parent_txid.vout[n] and produces one
     output with amount = parent_value with a fee deducted.
     Return tuple (CTransaction object, raw hex, nValue, scriptPubKey of the
@@ -229,21 +235,29 @@ def make_chain(node, address, privkeys, parent_txid, parent_value, n=0,
     my_value = parent_value - fee
     outputs = {address: my_value}
     rawtx = node.createrawtransaction(inputs, outputs)
-    prevtxs = [{
-        "txid": parent_txid,
-        "vout": n,
-        "scriptPubKey": parent_locking_script,
-        "amount": parent_value,
-    }] if parent_locking_script else None
+    prevtxs = (
+        [
+            {
+                "txid": parent_txid,
+                "vout": n,
+                "scriptPubKey": parent_locking_script,
+                "amount": parent_value,
+            }
+        ]
+        if parent_locking_script
+        else None
+    )
     signedtx = node.signrawtransactionwithkey(
-        hexstring=rawtx, privkeys=privkeys, prevtxs=prevtxs)
+        hexstring=rawtx, privkeys=privkeys, prevtxs=prevtxs
+    )
     assert signedtx["complete"]
     tx = FromHex(CTransaction(), signedtx["hex"])
     return (tx, signedtx["hex"], my_value, tx.vout[0].scriptPubKey.hex())
 
 
-def create_child_with_parents(node, address, privkeys, parents_tx, values,
-                              locking_scripts, fee=DEFAULT_FEE):
+def create_child_with_parents(
+    node, address, privkeys, parents_tx, values, locking_scripts, fee=DEFAULT_FEE
+):
     """Creates a transaction that spends the first output of each parent in parents_tx."""
     num_parents = len(parents_tx)
     total_value = sum(values)
@@ -253,10 +267,16 @@ def create_child_with_parents(node, address, privkeys, parents_tx, values,
     prevtxs = []
     for i in range(num_parents):
         prevtxs.append(
-            {"txid": parents_tx[i].get_id(), "vout": 0,
-             "scriptPubKey": locking_scripts[i], "amount": values[i]})
+            {
+                "txid": parents_tx[i].get_id(),
+                "vout": 0,
+                "scriptPubKey": locking_scripts[i],
+                "amount": values[i],
+            }
+        )
     signedtx_child = node.signrawtransactionwithkey(
-        hexstring=rawtx_child, privkeys=privkeys, prevtxs=prevtxs)
+        hexstring=rawtx_child, privkeys=privkeys, prevtxs=prevtxs
+    )
     assert signedtx_child["complete"]
     return signedtx_child["hex"]
 
@@ -274,7 +294,8 @@ def create_raw_chain(node, first_coin, address, privkeys, chain_length=50):
 
     for _ in range(chain_length):
         (tx, txhex, value, parent_locking_script) = make_chain(
-            node, address, privkeys, txid, value, 0, parent_locking_script)
+            node, address, privkeys, txid, value, 0, parent_locking_script
+        )
         txid = tx.get_id()
         chain_hex.append(txhex)
         chain_txns.append(tx)
@@ -283,7 +304,7 @@ def create_raw_chain(node, first_coin, address, privkeys, chain_length=50):
 
 
 def bulk_transaction(
-        tx: CTransaction, node, target_size: int, privkeys=None, prevtxs=None
+    tx: CTransaction, node, target_size: int, privkeys=None, prevtxs=None
 ) -> CTransaction:
     """Return a padded and signed transaction. The original transaction is left
     unaltered.
@@ -294,8 +315,7 @@ def bulk_transaction(
     pad_tx(tx_heavy, target_size)
     assert_greater_than_or_equal(tx_heavy.billable_size(), target_size)
     if privkeys is not None:
-        signed_tx = node.signrawtransactionwithkey(
-            ToHex(tx_heavy), privkeys, prevtxs)
+        signed_tx = node.signrawtransactionwithkey(ToHex(tx_heavy), privkeys, prevtxs)
         return FromHex(CTransaction(), signed_tx["hex"])
     # OP_TRUE
     tx_heavy.vin[0].scriptSig = SCRIPTSIG_OP_TRUE

@@ -49,10 +49,8 @@ def avalanche_proof_from_hex(proof_hex: str) -> AvalancheProof:
 
 
 def create_coinbase_stakes(
-        node: TestNode,
-        blockhashes: List[str],
-        priv_key: str,
-        amount: Optional[str] = None) -> List[Dict[str, Any]]:
+    node: TestNode, blockhashes: List[str], priv_key: str, amount: Optional[str] = None
+) -> List[Dict[str, Any]]:
     """Returns a list of dictionaries representing stakes, in a format
     compatible with the buildavalancheproof RPC, using only coinbase
     transactions.
@@ -67,38 +65,43 @@ def create_coinbase_stakes(
     blocks = [node.getblock(h, 2) for h in blockhashes]
     coinbases = [
         {
-            'height': b['height'],
-            'txid': b['tx'][0]['txid'],
-            'n': 0,
-            'value': b['tx'][0]['vout'][0]['value'],
-        } for b in blocks
+            "height": b["height"],
+            "txid": b["tx"][0]["txid"],
+            "n": 0,
+            "value": b["tx"][0]["vout"][0]["value"],
+        }
+        for b in blocks
     ]
 
-    return [{
-        'txid': coinbase['txid'],
-        'vout': coinbase['n'],
-        'amount': amount or coinbase['value'],
-        'height': coinbase['height'],
-        'iscoinbase': True,
-        'privatekey': priv_key,
-    } for coinbase in coinbases]
+    return [
+        {
+            "txid": coinbase["txid"],
+            "vout": coinbase["n"],
+            "amount": amount or coinbase["value"],
+            "height": coinbase["height"],
+            "iscoinbase": True,
+            "privatekey": priv_key,
+        }
+        for coinbase in coinbases
+    ]
 
 
 def get_utxos_in_blocks(node: TestNode, blockhashes: List[str]) -> List[Dict]:
-    """Return all UTXOs in the specified list of blocks.
-    """
+    """Return all UTXOs in the specified list of blocks."""
     utxos = filter(
         lambda u: node.gettransaction(u["txid"])["blockhash"] in blockhashes,
-        node.listunspent())
+        node.listunspent(),
+    )
     return list(utxos)
 
 
 def create_stakes(
-        test_framework: 'BitcoinTestFramework',
-        node: TestNode,
-        blockhashes: List[str],
-        count: int,
-        sync_fun=None,) -> List[Dict[str, Any]]:
+    test_framework: "BitcoinTestFramework",
+    node: TestNode,
+    blockhashes: List[str],
+    count: int,
+    sync_fun=None,
+) -> List[Dict[str, Any]]:
     """
     Create a list of stakes by splitting existing UTXOs from a specified list
     of blocks into 10 new coins.
@@ -119,8 +122,7 @@ def create_stakes(
 
     for u in utxos:
         inputs = [{"txid": u["txid"], "vout": u["vout"]}]
-        outputs = {
-            addr: satoshi_round(u['amount'] / 10) for addr in addresses}
+        outputs = {addr: satoshi_round(u["amount"] / 10) for addr in addresses}
         raw_tx = node.createrawtransaction(inputs, outputs)
         ctx = FromHex(CTransaction(), raw_tx)
         ctx.vout[0].nValue -= node.calculate_fee(ctx)
@@ -129,9 +131,10 @@ def create_stakes(
 
     # confirm the transactions
     new_blocks = []
-    while node.getmempoolinfo()['size'] > 0:
+    while node.getmempoolinfo()["size"] > 0:
         new_blocks += test_framework.generate(
-            node, 1, sync_fun=test_framework.no_op if sync_fun is None else sync_fun)
+            node, 1, sync_fun=test_framework.no_op if sync_fun is None else sync_fun
+        )
 
     utxos = get_utxos_in_blocks(node, new_blocks)
     stakes = []
@@ -141,20 +144,22 @@ def create_stakes(
         blockhash = node.gettransaction(utxo["txid"])["blockhash"]
         if blockhash not in heights:
             heights[blockhash] = node.getblock(blockhash, 1)["height"]
-        stakes.append({
-            'txid': utxo['txid'],
-            'vout': utxo['vout'],
-            'amount': utxo['amount'],
-            'iscoinbase': utxo['label'] == "coinbase",
-            'height': heights[blockhash],
-            'privatekey': private_keys[utxo["address"]],
-        })
+        stakes.append(
+            {
+                "txid": utxo["txid"],
+                "vout": utxo["vout"],
+                "amount": utxo["amount"],
+                "iscoinbase": utxo["label"] == "coinbase",
+                "height": heights[blockhash],
+                "privatekey": private_keys[utxo["address"]],
+            }
+        )
 
     return stakes
 
 
 def get_proof_ids(node):
-    return [int(peer['proofid'], 16) for peer in node.getavalanchepeerinfo()]
+    return [int(peer["proofid"], 16) for peer in node.getavalanchepeerinfo()]
 
 
 def wait_for_proof(node, proofid_hex, expect_status="boundToPeer", timeout=60):
@@ -172,6 +177,7 @@ def wait_for_proof(node, proofid_hex, expect_status="boundToPeer", timeout=60):
             return True
         except JSONRPCException:
             return False
+
     wait_until_helper(proof_found, timeout=timeout)
     assert ret.get(expect_status, False) is True
 
@@ -230,9 +236,7 @@ class NoHandshakeAvaP2PInterface(P2PInterface):
         self.send_message(msg)
 
     def wait_for_avaresponse(self, timeout=5):
-        self.wait_until(
-            lambda: len(self.avaresponses) > 0,
-            timeout=timeout)
+        self.wait_until(lambda: len(self.avaresponses) > 0, timeout=timeout)
 
         with p2p_lock:
             return self.avaresponses.pop(0)
@@ -255,19 +259,24 @@ class NoHandshakeAvaP2PInterface(P2PInterface):
             return self.avapolls.pop(0) if len(self.avapolls) > 0 else None
 
     def wait_for_avahello(self, timeout=5):
-        self.wait_until(
-            lambda: self.avahello is not None,
-            timeout=timeout)
+        self.wait_until(lambda: self.avahello is not None, timeout=timeout)
 
         with p2p_lock:
             return self.avahello
 
-    def build_avahello(self, delegation: AvalancheDelegation,
-                       delegated_privkey: ECKey) -> msg_avahello:
+    def build_avahello(
+        self, delegation: AvalancheDelegation, delegated_privkey: ECKey
+    ) -> msg_avahello:
         local_sighash = hash256(
-            delegation.getid() +
-            struct.pack("<QQQQ", self.local_nonce, self.remote_nonce,
-                        self.local_extra_entropy, self.remote_extra_entropy))
+            delegation.getid()
+            + struct.pack(
+                "<QQQQ",
+                self.local_nonce,
+                self.remote_nonce,
+                self.local_extra_entropy,
+                self.remote_extra_entropy,
+            )
+        )
 
         msg = msg_avahello()
         msg.hello.delegation = delegation
@@ -291,9 +300,11 @@ class NoHandshakeAvaP2PInterface(P2PInterface):
 class AvaP2PInterface(NoHandshakeAvaP2PInterface):
     def __init__(self, test_framework=None, node=None):
         if (test_framework is not None and node is None) or (
-                node is not None and test_framework is None):
+            node is not None and test_framework is None
+        ):
             raise AssertionError(
-                "test_framework and node should both be either set or None")
+                "test_framework and node should both be either set or None"
+            )
 
         super().__init__()
 
@@ -320,14 +331,15 @@ class AvaP2PInterface(NoHandshakeAvaP2PInterface):
 
         avahello = msg_avahello()
         if self.delegation is not None:
-            avahello = self.build_avahello(
-                self.delegation, self.delegated_privkey)
+            avahello = self.build_avahello(self.delegation, self.delegated_privkey)
         elif self.proof is not None:
             avahello = self.build_avahello(
                 AvalancheDelegation(
                     self.proof.limited_proofid,
-                    self.master_privkey.get_pubkey().get_bytes()),
-                self.master_privkey)
+                    self.master_privkey.get_pubkey().get_bytes(),
+                ),
+                self.master_privkey,
+            )
 
         self.send_message(avahello)
 
@@ -336,7 +348,11 @@ class AvaP2PInterface(NoHandshakeAvaP2PInterface):
 
         not_found = []
         for inv in message.inv:
-            if inv.type == MSG_AVA_PROOF and self.proof is not None and inv.hash == self.proof.proofid:
+            if (
+                inv.type == MSG_AVA_PROOF
+                and self.proof is not None
+                and inv.hash == self.proof.proofid
+            ):
                 self.send_avaproof(self.proof)
             else:
                 not_found.append(inv)
@@ -346,28 +362,27 @@ class AvaP2PInterface(NoHandshakeAvaP2PInterface):
 
 
 def get_ava_p2p_interface_no_handshake(
-        node: TestNode,
-        services=NODE_NETWORK | NODE_AVALANCHE) -> NoHandshakeAvaP2PInterface:
+    node: TestNode, services=NODE_NETWORK | NODE_AVALANCHE
+) -> NoHandshakeAvaP2PInterface:
     """Build and return a NoHandshakeAvaP2PInterface connected to the specified
     TestNode.
     """
     n = NoHandshakeAvaP2PInterface()
-    node.add_p2p_connection(
-        n, services=services)
+    node.add_p2p_connection(n, services=services)
     n.wait_for_verack()
-    n.nodeid = node.getpeerinfo()[-1]['id']
+    n.nodeid = node.getpeerinfo()[-1]["id"]
 
     return n
 
 
 def get_ava_p2p_interface(
-        test_framework: 'BitcoinTestFramework',
-        node: TestNode,
-        services=NODE_NETWORK | NODE_AVALANCHE,
-        stake_utxo_confirmations=1,
-        sync_fun=None,) -> AvaP2PInterface:
-    """Build and return an AvaP2PInterface connected to the specified TestNode.
-    """
+    test_framework: "BitcoinTestFramework",
+    node: TestNode,
+    services=NODE_NETWORK | NODE_AVALANCHE,
+    stake_utxo_confirmations=1,
+    sync_fun=None,
+) -> AvaP2PInterface:
+    """Build and return an AvaP2PInterface connected to the specified TestNode."""
     n = AvaP2PInterface(test_framework, node)
 
     # Make sure the proof utxos are mature
@@ -375,18 +390,19 @@ def get_ava_p2p_interface(
         test_framework.generate(
             node,
             stake_utxo_confirmations - 1,
-            sync_fun=test_framework.no_op if sync_fun is None else sync_fun)
+            sync_fun=test_framework.no_op if sync_fun is None else sync_fun,
+        )
 
     assert node.verifyavalancheproof(n.proof.serialize().hex())
 
     proofid_hex = uint256_hex(n.proof.proofid)
     node.add_p2p_connection(n, services=services)
-    n.nodeid = node.getpeerinfo()[-1]['id']
+    n.nodeid = node.getpeerinfo()[-1]["id"]
 
     def avapeer_connected():
         node_list = []
         try:
-            node_list = node.getavalanchepeerinfo(proofid_hex)[0]['node_list']
+            node_list = node.getavalanchepeerinfo(proofid_hex)[0]["node_list"]
         except BaseException:
             pass
 
@@ -401,21 +417,27 @@ def gen_proof(test_framework, node, coinbase_utxos=1, expiry=0, sync_fun=None):
     blockhashes = test_framework.generate(
         node,
         coinbase_utxos,
-        sync_fun=test_framework.no_op if sync_fun is None else sync_fun)
+        sync_fun=test_framework.no_op if sync_fun is None else sync_fun,
+    )
 
     privkey = ECKey()
     privkey.generate()
 
     stakes = create_coinbase_stakes(
-        node, blockhashes, node.get_deterministic_priv_key().key)
+        node, blockhashes, node.get_deterministic_priv_key().key
+    )
     proof_hex = node.buildavalancheproof(
-        42, expiry, bytes_to_wif(privkey.get_bytes()), stakes)
+        42, expiry, bytes_to_wif(privkey.get_bytes()), stakes
+    )
 
     return privkey, avalanche_proof_from_hex(proof_hex)
 
 
-def build_msg_avaproofs(proofs: List[AvalancheProof], prefilled_proofs: Optional[List[AvalancheProof]]
-                        = None, key_pair: Optional[List[int]] = None) -> msg_avaproofs:
+def build_msg_avaproofs(
+    proofs: List[AvalancheProof],
+    prefilled_proofs: Optional[List[AvalancheProof]] = None,
+    key_pair: Optional[List[int]] = None,
+) -> msg_avaproofs:
     if key_pair is None:
         key_pair = [random.randint(0, 2**64 - 1)] * 2
 
@@ -424,10 +446,8 @@ def build_msg_avaproofs(proofs: List[AvalancheProof], prefilled_proofs: Optional
     msg.key1 = key_pair[1]
     msg.prefilled_proofs = prefilled_proofs or []
     msg.shortids = [
-        calculate_shortid(
-            msg.key0,
-            msg.key1,
-            proof.proofid) for proof in proofs]
+        calculate_shortid(msg.key0, msg.key1, proof.proofid) for proof in proofs
+    ]
 
     return msg
 

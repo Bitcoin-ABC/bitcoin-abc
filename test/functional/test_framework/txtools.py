@@ -16,7 +16,7 @@ def get_random_bytes(size: int) -> bytes:
         return random.randbytes(size)  # type: ignore[attr-defined]
     # slower workaround
     if not size:
-        return b''
+        return b""
     return bytes.fromhex(f"{random.randrange(2**(8*size)):0{2*size}x}")
 
 
@@ -48,9 +48,9 @@ def pad_tx(tx: CTransaction, pad_to_size: int = MIN_TX_SIZE):
         data_size = required_padding - VOUT_VALUE_SIZE - 3
         was_op_pushdata1_used = True
 
-        if data_size <= 0x4c:
+        if data_size <= 0x4C:
             was_op_pushdata1_used = False
-            if data_size == 0x4c:
+            if data_size == 0x4C:
                 # Adding one more byte to the data causes two more bytes to be
                 # added to the tx size, because of the need for OP_PUSHDATA1.
                 # So remove 10 bytes to add an empty OP_RETURN vout instead in
@@ -72,9 +72,7 @@ def pad_tx(tx: CTransaction, pad_to_size: int = MIN_TX_SIZE):
 
         required_padding -= data_size + VOUT_VALUE_SIZE + 3
 
-        tx.vout.append(
-            CTxOut(0, CScript([OP_RETURN, get_random_bytes(data_size)]))
-        )
+        tx.vout.append(CTxOut(0, CScript([OP_RETURN, get_random_bytes(data_size)])))
 
     tx.rehash()
 
@@ -103,8 +101,8 @@ class TestFrameworkScript(unittest.TestCase):
 
         def test_size(requested_size, expected_size):
             self.assertEqual(
-                rawtx_length(pad_raw_tx(raw_tx, requested_size)),
-                expected_size)
+                rawtx_length(pad_raw_tx(raw_tx, requested_size)), expected_size
+            )
 
         self.assertEqual(rawtx_length(raw_tx), 85)
 
@@ -117,10 +115,8 @@ class TestFrameworkScript(unittest.TestCase):
         # because a VOUT with an empty OP_RETURN is the minimum data we can
         # add.
         for size in [86, 87, 88, 89, 90, 91, 92, 93, 94]:
-            test_size(requested_size=size,
-                      expected_size=95)
+            test_size(requested_size=size, expected_size=95)
 
         # After that, the size is exactly as expected.
         for size in range(95, 1000):
-            test_size(requested_size=size,
-                      expected_size=size)
+            test_size(requested_size=size, expected_size=size)

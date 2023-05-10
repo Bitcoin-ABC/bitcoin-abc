@@ -14,7 +14,7 @@ def rot32(v, bits):
     """Rotate the 32-bit value v left by bits bits."""
     # Make sure the term below does not throw an exception
     bits %= 32
-    return ((v << bits) & 0xffffffff) | (v >> (32 - bits))
+    return ((v << bits) & 0xFFFFFFFF) | (v >> (32 - bits))
 
 
 def chacha20_doubleround(s):
@@ -23,23 +23,25 @@ def chacha20_doubleround(s):
     See https://cr.yp.to/chacha/chacha-20080128.pdf and
     https://tools.ietf.org/html/rfc8439
     """
-    QUARTER_ROUNDS = [(0, 4, 8, 12),
-                      (1, 5, 9, 13),
-                      (2, 6, 10, 14),
-                      (3, 7, 11, 15),
-                      (0, 5, 10, 15),
-                      (1, 6, 11, 12),
-                      (2, 7, 8, 13),
-                      (3, 4, 9, 14)]
+    QUARTER_ROUNDS = [
+        (0, 4, 8, 12),
+        (1, 5, 9, 13),
+        (2, 6, 10, 14),
+        (3, 7, 11, 15),
+        (0, 5, 10, 15),
+        (1, 6, 11, 12),
+        (2, 7, 8, 13),
+        (3, 4, 9, 14),
+    ]
 
     for a, b, c, d in QUARTER_ROUNDS:
-        s[a] = (s[a] + s[b]) & 0xffffffff
+        s[a] = (s[a] + s[b]) & 0xFFFFFFFF
         s[d] = rot32(s[d] ^ s[a], 16)
-        s[c] = (s[c] + s[d]) & 0xffffffff
+        s[c] = (s[c] + s[d]) & 0xFFFFFFFF
         s[b] = rot32(s[b] ^ s[c], 12)
-        s[a] = (s[a] + s[b]) & 0xffffffff
+        s[a] = (s[a] + s[b]) & 0xFFFFFFFF
         s[d] = rot32(s[d] ^ s[a], 8)
-        s[c] = (s[c] + s[d]) & 0xffffffff
+        s[c] = (s[c] + s[d]) & 0xFFFFFFFF
         s[b] = rot32(s[b] ^ s[c], 7)
 
 
@@ -47,11 +49,11 @@ def chacha20_32_to_384(key32):
     """Specialized ChaCha20 implementation with 32-byte key, 0 IV,
     384-byte output."""
     # See RFC 8439 section 2.3 for chacha20 parameters
-    CONSTANTS = [0x61707865, 0x3320646e, 0x79622d32, 0x6b206574]
+    CONSTANTS = [0x61707865, 0x3320646E, 0x79622D32, 0x6B206574]
 
     key_bytes = [0] * 8
     for i in range(8):
-        key_bytes[i] = int.from_bytes(key32[(4 * i):(4 * (i + 1))], 'little')
+        key_bytes[i] = int.from_bytes(key32[(4 * i) : (4 * (i + 1))], "little")
 
     INITIALIZATION_VECTOR = [0] * 4
     init = CONSTANTS + key_bytes + INITIALIZATION_VECTOR
@@ -62,7 +64,7 @@ def chacha20_32_to_384(key32):
         for _ in range(10):
             chacha20_doubleround(s)
         for i in range(16):
-            out.extend(((s[i] + init[i]) & 0xffffffff).to_bytes(4, 'little'))
+            out.extend(((s[i] + init[i]) & 0xFFFFFFFF).to_bytes(4, "little"))
     return bytes(out)
 
 
@@ -70,7 +72,7 @@ def data_to_num3072(data):
     """Hash a 32-byte array data to a 3072-bit number using 6 Chacha20
     operations."""
     bytes384 = chacha20_32_to_384(data)
-    return int.from_bytes(bytes384, 'little')
+    return int.from_bytes(bytes384, "little")
 
 
 class MuHash3072:
@@ -90,34 +92,33 @@ class MuHash3072:
     def insert(self, data):
         """Insert a byte array data in the set."""
         data_hash = hashlib.sha256(data).digest()
-        self.numerator = (
-            self.numerator * data_to_num3072(data_hash)) % self.MODULUS
+        self.numerator = (self.numerator * data_to_num3072(data_hash)) % self.MODULUS
 
     def remove(self, data):
         """Remove a byte array from the set."""
         data_hash = hashlib.sha256(data).digest()
         self.denominator = (
-            self.denominator * data_to_num3072(data_hash)) % self.MODULUS
+            self.denominator * data_to_num3072(data_hash)
+        ) % self.MODULUS
 
     def digest(self):
         """Extract the final hash. Does not modify this object."""
-        val = (self.numerator *
-               modinv(self.denominator, self.MODULUS)) % self.MODULUS
-        bytes384 = val.to_bytes(384, 'little')
+        val = (self.numerator * modinv(self.denominator, self.MODULUS)) % self.MODULUS
+        bytes384 = val.to_bytes(384, "little")
         return hashlib.sha256(bytes384).digest()
 
 
 class TestFrameworkMuhash(unittest.TestCase):
     def test_muhash(self):
         muhash = MuHash3072()
-        muhash.insert(b'\x00' * 32)
-        muhash.insert((b'\x01' + b'\x00' * 31))
-        muhash.remove((b'\x02' + b'\x00' * 31))
+        muhash.insert(b"\x00" * 32)
+        muhash.insert((b"\x01" + b"\x00" * 31))
+        muhash.remove((b"\x02" + b"\x00" * 31))
         finalized = muhash.digest()
         # This mirrors the result in the C++ MuHash3072 unit test
         self.assertEqual(
             finalized[::-1].hex(),
-            "10d312b100cbd32ada024a6646e40d3482fcff103668d2625f10002a607d5863"
+            "10d312b100cbd32ada024a6646e40d3482fcff103668d2625f10002a607d5863",
         )
 
     def test_chacha20(self):
@@ -129,7 +130,9 @@ class TestFrameworkMuhash(unittest.TestCase):
         # vectors.
         chacha_check(
             [0] * 32,
-            "76b8e0ada0f13d90405d6ae55386bd28bdd219b8a08ded1aa836efcc8b770dc7da41597c5157488d7724e03fb8d84a376a43b8f41518a11cc387b669b2ee6586")
+            "76b8e0ada0f13d90405d6ae55386bd28bdd219b8a08ded1aa836efcc8b770dc7da41597c5157488d7724e03fb8d84a376a43b8f41518a11cc387b669b2ee6586",
+        )
         chacha_check(
             [0] * 31 + [1],
-            "4540f05a9f1fb296d7736e7b208e3c96eb4fe1834688d2604f450952ed432d41bbe2a0b6ea7566d2a5d1e7e20d42af2c53d792b1c43fea817e9ad275ae546963")
+            "4540f05a9f1fb296d7736e7b208e3c96eb4fe1834688d2604f450952ed432d41bbe2a0b6ea7566d2a5d1e7e20d42af2c53d792b1c43fea817e9ad275ae546963",
+        )
