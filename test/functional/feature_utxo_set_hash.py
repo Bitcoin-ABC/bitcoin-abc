@@ -27,11 +27,13 @@ class UTXOSetHashTest(BitcoinTestFramework):
         # These depend on the setup_clean_chain option, the chain loaded from
         # the cache
         assert_equal(
-            self.nodes[0].gettxoutsetinfo()['hash_serialized'],
-            "b32ec1dda5a53cd025b95387aad344a801825fe46a60ff952ce26528f01d3be8")
+            self.nodes[0].gettxoutsetinfo()["hash_serialized"],
+            "b32ec1dda5a53cd025b95387aad344a801825fe46a60ff952ce26528f01d3be8",
+        )
         assert_equal(
-            self.nodes[0].gettxoutsetinfo("muhash")['muhash'],
-            "dd5ad2a105c2d29495f577245c357409002329b9f4d6182c0af3dc2f462555c8")
+            self.nodes[0].gettxoutsetinfo("muhash")["muhash"],
+            "dd5ad2a105c2d29495f577245c357409002329b9f4d6182c0af3dc2f462555c8",
+        )
 
     def test_muhash_implementation(self):
         self.log.info("Test MuHash implementation consistency")
@@ -42,21 +44,20 @@ class UTXOSetHashTest(BitcoinTestFramework):
         # coinbase
         block_hashes = self.generate(node, 100)
         blocks = [
-            FromHex(CBlock(), node.getblock(block, False)) for block in block_hashes]
+            FromHex(CBlock(), node.getblock(block, False)) for block in block_hashes
+        ]
         spending = blocks.pop(0)
 
         # Create a spending transaction and mine a block which includes it
         tx = create_transaction(
-            node, spending.vtx[0].rehash(), node.getnewaddress(),
-            amount=49_000_000)
-        txid = node.sendrawtransaction(
-            hexstring=tx.serialize().hex(), maxfeerate=0)
+            node, spending.vtx[0].rehash(), node.getnewaddress(), amount=49_000_000
+        )
+        txid = node.sendrawtransaction(hexstring=tx.serialize().hex(), maxfeerate=0)
 
-        tx_block = self.generateblock(node,
-                                      output=node.getnewaddress(),
-                                      transactions=[txid])
-        blocks.append(
-            FromHex(CBlock(), node.getblock(tx_block['hash'], False)))
+        tx_block = self.generateblock(
+            node, output=node.getnewaddress(), transactions=[txid]
+        )
+        blocks.append(FromHex(CBlock(), node.getblock(tx_block["hash"], False)))
 
         # Serialize the outputs that should be in the UTXO set and add them to
         # a MuHash object
@@ -78,7 +79,7 @@ class UTXOSetHashTest(BitcoinTestFramework):
                     muhash.insert(data)
 
         finalized = muhash.digest()
-        node_muhash = node.gettxoutsetinfo("muhash")['muhash']
+        node_muhash = node.gettxoutsetinfo("muhash")["muhash"]
 
         assert_equal(finalized[::-1].hex(), node_muhash)
 
@@ -87,5 +88,5 @@ class UTXOSetHashTest(BitcoinTestFramework):
         self.test_muhash_implementation()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     UTXOSetHashTest().main()

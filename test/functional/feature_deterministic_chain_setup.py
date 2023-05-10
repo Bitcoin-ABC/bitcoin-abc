@@ -21,16 +21,16 @@ def get_coinbase_scriptsig(height: int) -> bytes:
     else:
         bip34_coinbase_height = CScriptNum.encode(CScriptNum(height))
     extra_nonce = CScriptNum.encode(CScriptNum(1))
-    excessive_blocksize_sig = CScriptOp.encode_op_pushdata(b'/EB32.0/')
+    excessive_blocksize_sig = CScriptOp.encode_op_pushdata(b"/EB32.0/")
     return bip34_coinbase_height + extra_nonce + excessive_blocksize_sig
 
 
 def get_coinbase(height: int, pubkey: bytes) -> CTransaction:
     coinbase = CTransaction()
     coinbase.nVersion = 2
-    coinbase.vin.append(CTxIn(COutPoint(0, 0xffffffff),
-                              get_coinbase_scriptsig(height),
-                              0xffffffff))
+    coinbase.vin.append(
+        CTxIn(COutPoint(0, 0xFFFFFFFF), get_coinbase_scriptsig(height), 0xFFFFFFFF)
+    )
     coinbaseoutput = CTxOut()
     coinbaseoutput.nValue = 50 * COIN
     regtest_halvings = int(height / 150)
@@ -41,14 +41,15 @@ def get_coinbase(height: int, pubkey: bytes) -> CTransaction:
     return coinbase
 
 
-def get_empty_block(height: int, base_block_hash: str, block_time: int,
-                    coinbase_pubkey: bytes) -> CBlock:
+def get_empty_block(
+    height: int, base_block_hash: str, block_time: int, coinbase_pubkey: bytes
+) -> CBlock:
     block = CBlock()
     block.nVersion = 0x20000000
     block.nTime = block_time
     block.hashPrevBlock = int(base_block_hash, 16)
     # difficulty retargeting is disabled in REGTEST chainparams
-    block.nBits = 0x207fffff
+    block.nBits = 0x207FFFFF
     block.vtx.append(get_coinbase(height, coinbase_pubkey))
     block.hashMerkleRoot = block.calc_merkle_root()
     block.solve()
@@ -77,32 +78,35 @@ class DeterministicChainSetupTest(BitcoinTestFramework):
             nonlocal chain_height
             nonlocal mock_time
             for _ in range(num_blocks):
-                block = get_empty_block(chain_height, tip, mock_time,
-                                        coinbase_pubkey)
+                block = get_empty_block(chain_height, tip, mock_time, coinbase_pubkey)
                 assert node.submitblock(block.serialize().hex()) is None
 
                 tip = node.getbestblockhash()
                 chain_height += 1
                 mock_time += 1
 
-        self.log.info(
-            "Reproduce the assertion in the TestChain100Setup constructor.")
+        self.log.info("Reproduce the assertion in the TestChain100Setup constructor.")
         mine_blocks(100)
-        assert_equal(tip,
-                     "7487ae41496da318b430ad04cc5039507a9365bdb26275d79b3fc148c6eea1e9")
+        assert_equal(
+            tip, "7487ae41496da318b430ad04cc5039507a9365bdb26275d79b3fc148c6eea1e9"
+        )
 
         self.log.info("Check m_assumeutxo_data at height 110.")
         mine_blocks(10)
         assert_equal(node.getblockchaininfo()["blocks"], 110)
-        assert_equal(node.gettxoutsetinfo()["hash_serialized"],
-                     "ff755939f6fd81bf966e2f347f5d3660d6239334050eb557a6f005d7d8184ea9")
+        assert_equal(
+            node.gettxoutsetinfo()["hash_serialized"],
+            "ff755939f6fd81bf966e2f347f5d3660d6239334050eb557a6f005d7d8184ea9",
+        )
 
         self.log.info("Check m_assumeutxo_data at height 210.")
         mine_blocks(100)
         assert_equal(node.getblockchaininfo()["blocks"], 210)
-        assert_equal(node.gettxoutsetinfo()["hash_serialized"],
-                     "d6089fa8d2100926326cacdd452231e30bb4e64f07aa5bfec96e055ac2a9a87a")
+        assert_equal(
+            node.gettxoutsetinfo()["hash_serialized"],
+            "d6089fa8d2100926326cacdd452231e30bb4e64f07aa5bfec96e055ac2a9a87a",
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     DeterministicChainSetupTest().main()

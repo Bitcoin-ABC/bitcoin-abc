@@ -40,10 +40,12 @@ class MaxUploadTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 1
         # Start a node with maxuploadtarget of 200 MB (/24h)
-        self.extra_args = [[
-            "-maxuploadtarget=200",
-            "-acceptnonstdtxn=1",
-        ]]
+        self.extra_args = [
+            [
+                "-maxuploadtarget=200",
+                "-acceptnonstdtxn=1",
+            ]
+        ]
         self.supports_cli = False
 
         # Cache for utxos, as the listunspent may take a long time later in the
@@ -76,7 +78,7 @@ class MaxUploadTest(BitcoinTestFramework):
 
         # Store the hash; we'll request this later
         big_old_block = self.nodes[0].getbestblockhash()
-        old_block_size = self.nodes[0].getblock(big_old_block, True)['size']
+        old_block_size = self.nodes[0].getblock(big_old_block, True)["size"]
         big_old_block = int(big_old_block, 16)
 
         # Advance to two days ago
@@ -113,8 +115,7 @@ class MaxUploadTest(BitcoinTestFramework):
             p2p_conns[0].send_message(getdata_request)
         p2p_conns[0].wait_for_disconnect()
         assert_equal(len(self.nodes[0].getpeerinfo()), 2)
-        self.log.info(
-            "Peer 0 disconnected after downloading old block too many times")
+        self.log.info("Peer 0 disconnected after downloading old block too many times")
 
         # Requesting the current block on p2p_conns[1] should succeed indefinitely,
         # even when over the max upload target.
@@ -148,10 +149,17 @@ class MaxUploadTest(BitcoinTestFramework):
 
         self.nodes[0].disconnect_p2ps()
 
-        self.log.info("Restarting node 0 with download permission"
-                      " and 1MB maxuploadtarget")
-        self.restart_node(0, ["-whitelist=download@127.0.0.1",
-                              "-maxuploadtarget=1", "-blockmaxsize=999000"])
+        self.log.info(
+            "Restarting node 0 with download permission and 1MB maxuploadtarget"
+        )
+        self.restart_node(
+            0,
+            [
+                "-whitelist=download@127.0.0.1",
+                "-maxuploadtarget=1",
+                "-blockmaxsize=999000",
+            ],
+        )
 
         # Reconnect to self.nodes[0]
         peer = self.nodes[0].add_p2p_connection(TestP2PConn())
@@ -160,19 +168,20 @@ class MaxUploadTest(BitcoinTestFramework):
         getdata_request.inv = [CInv(MSG_BLOCK, big_new_block)]
         for i in range(20):
             peer.send_and_ping(getdata_request)
-            assert_equal(
-                peer.block_receive_map[big_new_block], i + 1)
+            assert_equal(peer.block_receive_map[big_new_block], i + 1)
 
         getdata_request.inv = [CInv(MSG_BLOCK, big_old_block)]
         peer.send_and_ping(getdata_request)
 
         self.log.info(
-            "Peer still connected after trying to download old block (download permission)")
+            "Peer still connected after trying to download old block (download"
+            " permission)"
+        )
         peer_info = self.nodes[0].getpeerinfo()
         # node is still connected
         assert_equal(len(peer_info), 1)
-        assert_equal(peer_info[0]['permissions'], ['download'])
+        assert_equal(peer_info[0]["permissions"], ["download"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     MaxUploadTest().main()

@@ -28,7 +28,8 @@ class AnchorsTest(BitcoinTestFramework):
         assert not os.path.exists(node_anchors_path)
 
         self.log.info(
-            f"Add {BLOCK_RELAY_CONNECTIONS} block-relay-only connections to node")
+            f"Add {BLOCK_RELAY_CONNECTIONS} block-relay-only connections to node"
+        )
         for i in range(BLOCK_RELAY_CONNECTIONS):
             self.log.debug(f"block-relay-only: {i}")
             self.nodes[0].add_outbound_p2p_connection(
@@ -76,8 +77,7 @@ class AnchorsTest(BitcoinTestFramework):
         self.log.info("Start node")
         self.start_node(0)
 
-        self.log.info(
-            "When node starts, check if anchors.dat doesn't exist anymore")
+        self.log.info("When node starts, check if anchors.dat doesn't exist anymore")
         assert not os.path.exists(node_anchors_path)
 
 

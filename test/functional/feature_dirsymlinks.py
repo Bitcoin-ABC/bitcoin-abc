@@ -19,7 +19,7 @@ def rename_and_link(*, from_name, to_name):
 
 class SymlinkTest(BitcoinTestFramework):
     def skip_test_if_missing_module(self):
-        if sys.platform == 'win32':
+        if sys.platform == "win32":
             raise SkipTest("Symlinks test skipped on Windows")
 
     def set_test_params(self):
@@ -30,15 +30,15 @@ class SymlinkTest(BitcoinTestFramework):
 
         rename_and_link(
             from_name=os.path.join(self.nodes[0].datadir, self.chain, "blocks"),
-            to_name=os.path.join(self.nodes[0].datadir, self.chain, "newblocks")
+            to_name=os.path.join(self.nodes[0].datadir, self.chain, "newblocks"),
         )
         rename_and_link(
             from_name=os.path.join(self.nodes[0].datadir, self.chain, "chainstate"),
-            to_name=os.path.join(self.nodes[0].datadir, self.chain, "newchainstate")
+            to_name=os.path.join(self.nodes[0].datadir, self.chain, "newchainstate"),
         )
 
         self.start_node(0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     SymlinkTest().main()

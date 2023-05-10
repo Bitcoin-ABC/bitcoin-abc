@@ -37,28 +37,27 @@ class HelpTest(BitcoinTestFramework):
 
     def run_test(self):
         self.log.info("Start bitcoin with -h for help text")
-        self.nodes[0].start(extra_args=['-h'])
+        self.nodes[0].start(extra_args=["-h"])
         # Node should exit immediately and output help to stdout.
         output, _ = self.get_node_output(ret_code_expected=0)
-        assert b'Options' in output
+        assert b"Options" in output
         self.log.info(f"Help text received: {output[0:60]} (...)")
 
         self.log.info("Start bitcoin with -version for version information")
-        self.nodes[0].start(extra_args=['-version'])
+        self.nodes[0].start(extra_args=["-version"])
         # Node should exit immediately and output version to stdout.
         output, _ = self.get_node_output(ret_code_expected=0)
-        assert b'version' in output
+        assert b"version" in output
         self.log.info(f"Version text received: {output[0:60]} (...)")
 
         # Test that arguments not in the help results in an error
-        self.log.info(
-            "Start bitcoind with -fakearg to make sure it does not start")
-        self.nodes[0].start(extra_args=['-fakearg'])
+        self.log.info("Start bitcoind with -fakearg to make sure it does not start")
+        self.nodes[0].start(extra_args=["-fakearg"])
         # Node should exit immediately and output an error to stderr
         _, output = self.get_node_output(ret_code_expected=1)
-        assert b'Error parsing command line arguments' in output
+        assert b"Error parsing command line arguments" in output
         self.log.info(f"Error message received: {output[0:60]} (...)")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     HelpTest().main()

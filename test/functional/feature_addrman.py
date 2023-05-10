@@ -51,17 +51,17 @@ class AddrmanTest(BitcoinTestFramework):
         self.num_nodes = 1
 
     def run_test(self):
-        peers_dat = os.path.join(
-            self.nodes[0].datadir,
-            self.chain,
-            "peers.dat")
+        peers_dat = os.path.join(self.nodes[0].datadir, self.chain, "peers.dat")
 
-        def init_error(reason): return (
-            f"Error: Invalid or corrupt peers.dat \\({reason}\\). If you believe this "
-            f"is a bug, please report it to {self.config['environment']['PACKAGE_BUGREPORT']}. "
-            f'As a workaround, you can move the file \\("{peers_dat}"\\) out of the way \\(rename, '
-            "move, or delete\\) to have a new one created on the next start."
-        )
+        def init_error(reason):
+            return (
+                f"Error: Invalid or corrupt peers.dat \\({reason}\\). If you believe"
+                " this is a bug, please report it to"
+                f" {self.config['environment']['PACKAGE_BUGREPORT']}. As a workaround,"
+                f' you can move the file \\("{peers_dat}"\\) out of the way'
+                " \\(rename, move, or delete\\) to have a new one created on the next"
+                " start."
+            )
 
         self.log.info("Check that mocked addrman is valid")
         self.stop_node(0)
@@ -71,7 +71,8 @@ class AddrmanTest(BitcoinTestFramework):
         assert_equal(self.nodes[0].getnodeaddresses(), [])
 
         self.log.info(
-            "Check that addrman with negative lowest_compatible cannot be read")
+            "Check that addrman with negative lowest_compatible cannot be read"
+        )
         self.stop_node(0)
         write_addrman(peers_dat, lowest_compatible=-32)
         self.nodes[0].assert_start_raises_init_error(
@@ -82,14 +83,18 @@ class AddrmanTest(BitcoinTestFramework):
             match=ErrorMatch.FULL_REGEX,
         )
 
-        self.log.info(
-            "Check that addrman from future is overwritten with new addrman")
+        self.log.info("Check that addrman from future is overwritten with new addrman")
         self.stop_node(0)
         write_addrman(peers_dat, lowest_compatible=111)
         assert_equal(os.path.exists(f"{peers_dat}.bak"), False)
-        with self.nodes[0].assert_debug_log([
-                f'Creating new peers.dat because the file version was not compatible ("{peers_dat}"). Original backed up to peers.dat.bak',
-        ]):
+        with self.nodes[0].assert_debug_log(
+            [
+                (
+                    "Creating new peers.dat because the file version was not"
+                    f' compatible ("{peers_dat}"). Original backed up to peers.dat.bak'
+                ),
+            ]
+        ):
             self.start_node(0)
         assert_equal(self.nodes[0].getnodeaddresses(), [])
         assert_equal(os.path.exists(f"{peers_dat}.bak"), True)
@@ -124,7 +129,9 @@ class AddrmanTest(BitcoinTestFramework):
         write_addrman(peers_dat, len_tried=-1)
         self.nodes[0].assert_start_raises_init_error(
             expected_msg=init_error(
-                "Corrupt AddrMan serialization: nTried=-1, should be in \\[0, 16384\\]:.*"),
+                "Corrupt AddrMan serialization: nTried=-1, should be in \\[0,"
+                " 16384\\]:.*"
+            ),
             match=ErrorMatch.FULL_REGEX,
         )
 
@@ -133,26 +140,29 @@ class AddrmanTest(BitcoinTestFramework):
         write_addrman(peers_dat, len_new=-1)
         self.nodes[0].assert_start_raises_init_error(
             expected_msg=init_error(
-                "Corrupt AddrMan serialization: nNew=-1, should be in \\[0, 65536\\]:.*"),
+                "Corrupt AddrMan serialization: nNew=-1, should be in \\[0, 65536\\]:.*"
+            ),
             match=ErrorMatch.FULL_REGEX,
         )
 
-        self.log.info(
-            "Check that corrupt addrman cannot be read (failed check)")
+        self.log.info("Check that corrupt addrman cannot be read (failed check)")
         self.stop_node(0)
         write_addrman(peers_dat, bucket_key=0)
         self.nodes[0].assert_start_raises_init_error(
             expected_msg=init_error(
-                "Corrupt data. Consistency check failed with code -16: .*"),
+                "Corrupt data. Consistency check failed with code -16: .*"
+            ),
             match=ErrorMatch.FULL_REGEX,
         )
 
         self.log.info("Check that missing addrman is recreated")
         self.stop_node(0)
         os.remove(peers_dat)
-        with self.nodes[0].assert_debug_log([
+        with self.nodes[0].assert_debug_log(
+            [
                 f'Creating peers.dat because the file was not found ("{peers_dat}")',
-        ]):
+            ]
+        ):
             self.start_node(0)
         assert_equal(self.nodes[0].getnodeaddresses(), [])
 

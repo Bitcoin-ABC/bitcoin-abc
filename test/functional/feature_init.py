@@ -32,7 +32,7 @@ class InitStressTest(BitcoinTestFramework):
         # and other approaches (like below) don't work:
         #
         #   os.kill(node.process.pid, signal.CTRL_C_EVENT)
-        if os.name == 'nt':
+        if os.name == "nt":
             raise SkipTest("can't SIGTERM on Windows")
 
         self.stop_node(0)
@@ -49,53 +49,52 @@ class InitStressTest(BitcoinTestFramework):
             assert_equal(200, node.getblockcount())
 
         lines_to_terminate_after = [
-            b'Validating signatures for all blocks',
-            b'scheduler thread start',
-            b'Starting HTTP server',
-            b'Loading P2P addresses',
-            b'Loading banlist',
-            b'Loading block index',
-            b'Switching active chainstate',
-            b'Checking all blk files are present',
-            b'Loaded best chain:',
-            b'init message: Verifying blocks',
-            b'init message: Starting network threads',
-            b'net thread start',
-            b'addcon thread start',
-            b'loadblk thread start',
-            b'txindex thread start',
-            b'block filter index thread start',
-            b'coinstatsindex thread start',
-            b'msghand thread start',
-            b'net thread start',
-            b'addcon thread start',
+            b"Validating signatures for all blocks",
+            b"scheduler thread start",
+            b"Starting HTTP server",
+            b"Loading P2P addresses",
+            b"Loading banlist",
+            b"Loading block index",
+            b"Switching active chainstate",
+            b"Checking all blk files are present",
+            b"Loaded best chain:",
+            b"init message: Verifying blocks",
+            b"init message: Starting network threads",
+            b"net thread start",
+            b"addcon thread start",
+            b"loadblk thread start",
+            b"txindex thread start",
+            b"block filter index thread start",
+            b"coinstatsindex thread start",
+            b"msghand thread start",
+            b"net thread start",
+            b"addcon thread start",
         ]
         if self.is_wallet_compiled():
-            lines_to_terminate_after.append(b'Verifying wallet')
+            lines_to_terminate_after.append(b"Verifying wallet")
 
         for terminate_line in lines_to_terminate_after:
-            self.log.info(
-                f"Starting node and will exit after line {terminate_line}")
+            self.log.info(f"Starting node and will exit after line {terminate_line}")
             with node.wait_for_debug_log([terminate_line]):
                 node.start(
                     extra_args=[
-                        '-txindex=1',
-                        '-blockfilterindex=1',
-                        '-coinstatsindex=1',
-                    ])
+                        "-txindex=1",
+                        "-blockfilterindex=1",
+                        "-coinstatsindex=1",
+                    ]
+                )
             self.log.debug("Terminating node after terminate line was found")
             sigterm_node()
 
         check_clean_start()
         self.stop_node(0)
 
-        self.log.info(
-            "Test startup errors after removing certain essential files")
+        self.log.info("Test startup errors after removing certain essential files")
 
         files_to_disturb = {
-            'blocks/index/*.ldb': 'Error opening block database.',
-            'chainstate/*.ldb': 'Error opening block database.',
-            'blocks/blk*.dat': 'Error loading block database.',
+            "blocks/index/*.ldb": "Error opening block database.",
+            "chainstate/*.ldb": "Error opening block database.",
+            "blocks/blk*.dat": "Error loading block database.",
         }
 
         for file_patt, err_fragment in files_to_disturb.items():
@@ -119,9 +118,9 @@ class InitStressTest(BitcoinTestFramework):
 
             node.assert_start_raises_init_error(
                 extra_args=[
-                    '-txindex=1',
-                    '-blockfilterindex=1',
-                    '-coinstatsindex=1',
+                    "-txindex=1",
+                    "-blockfilterindex=1",
+                    "-coinstatsindex=1",
                 ],
                 expected_msg=err_fragment,
                 match=ErrorMatch.PARTIAL_REGEX,
@@ -129,13 +128,12 @@ class InitStressTest(BitcoinTestFramework):
 
             for target_file in target_files:
                 bak_path = f"{target_file}.bak"
-                self.log.debug(
-                    f"Restoring file from {bak_path} and restarting")
+                self.log.debug(f"Restoring file from {bak_path} and restarting")
                 Path(bak_path).rename(target_file)
 
             check_clean_start()
             self.stop_node(0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     InitStressTest().main()

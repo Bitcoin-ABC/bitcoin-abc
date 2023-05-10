@@ -25,7 +25,7 @@ class BindExtraTest(BitcoinTestFramework):
     def setup_network(self):
         # Due to OS-specific network stats queries, we only run on Linux.
         self.log.info("Checking for Linux")
-        if not sys.platform.startswith('linux'):
+        if not sys.platform.startswith("linux"):
             raise SkipTest("This test can only be run on Linux.")
 
         loopback_ipv4 = addr_to_hex("127.0.0.1")
@@ -39,19 +39,15 @@ class BindExtraTest(BitcoinTestFramework):
         # Node0, no normal -bind=... with -bind=...=onion, thus only the tor
         # target.
         self.expected.append(
-            [
-                [f"-bind=127.0.0.1:{port}=onion"],
-                [(loopback_ipv4, port)]
-            ],
+            [[f"-bind=127.0.0.1:{port}=onion"], [(loopback_ipv4, port)]],
         )
         port += 1
 
         # Node1, both -bind=... and -bind=...=onion.
         self.expected.append(
             [
-                [f"-bind=127.0.0.1:{port}",
-                 f"-bind=127.0.0.1:{port + 1}=onion"],
-                [(loopback_ipv4, port), (loopback_ipv4, port + 1)]
+                [f"-bind=127.0.0.1:{port}", f"-bind=127.0.0.1:{port + 1}=onion"],
+                [(loopback_ipv4, port), (loopback_ipv4, port + 1)],
             ],
         )
         port += 2
@@ -72,11 +68,7 @@ class BindExtraTest(BitcoinTestFramework):
             # possible to bind on "::". This makes it unpredictable whether to expect
             # that bitcoind has bound on "::1" (for RPC) and "::" (for P2P).
             ipv6_addr_len_bytes = 32
-            binds = set(
-                filter(
-                    lambda e: len(
-                        e[0]) != ipv6_addr_len_bytes,
-                    binds))
+            binds = set(filter(lambda e: len(e[0]) != ipv6_addr_len_bytes, binds))
             # Remove RPC ports. They are not relevant for this test.
             binds = set(filter(lambda e: e[1] != rpc_port(i), binds))
             assert_equal(binds, set(self.expected[i][1]))
@@ -84,5 +76,5 @@ class BindExtraTest(BitcoinTestFramework):
             self.log.info(f"Stopped node {i}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     BindExtraTest().main()

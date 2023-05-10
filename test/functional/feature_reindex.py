@@ -14,18 +14,17 @@ from test_framework.util import assert_equal
 
 
 class ReindexTest(BitcoinTestFramework):
-
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
 
     def reindex(self, justchainstate=False):
-        self.generatetoaddress(self.nodes[0],
-                               3, self.nodes[0].get_deterministic_priv_key().address)
+        self.generatetoaddress(
+            self.nodes[0], 3, self.nodes[0].get_deterministic_priv_key().address
+        )
         blockcount = self.nodes[0].getblockcount()
         self.stop_nodes()
-        extra_args = [
-            ["-reindex-chainstate" if justchainstate else "-reindex"]]
+        extra_args = [["-reindex-chainstate" if justchainstate else "-reindex"]]
         self.start_nodes(extra_args)
         # start_node is blocking on reindex
         assert_equal(self.nodes[0].getblockcount(), blockcount)
@@ -38,5 +37,5 @@ class ReindexTest(BitcoinTestFramework):
         self.reindex(True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ReindexTest().main()

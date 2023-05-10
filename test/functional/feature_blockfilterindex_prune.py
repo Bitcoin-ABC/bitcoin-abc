@@ -18,22 +18,21 @@ class FeatureBlockfilterindexPruneTest(BitcoinTestFramework):
 
     def sync_index(self, height):
         expected = {
-            'basic block filter index': {
-                'synced': True,
-                'best_block_height': height
-            }
+            "basic block filter index": {"synced": True, "best_block_height": height}
         }
         self.wait_until(lambda: self.nodes[0].getindexinfo() == expected)
 
     def run_test(self):
         node = self.nodes[0]
 
-        self.log.info("check if we can access a blockfilter when pruning is "
-                      "enabled but no blocks are actually pruned")
+        self.log.info(
+            "check if we can access a blockfilter when pruning is "
+            "enabled but no blocks are actually pruned"
+        )
         self.sync_index(200)
         assert_greater_than(
-            len(node.getblockfilter(node.getbestblockhash())['filter']),
-            0)
+            len(node.getblockfilter(node.getbestblockhash())["filter"]), 0
+        )
         self.generate(node, 500)
         self.sync_index(height=700)
 
@@ -47,17 +46,16 @@ class FeatureBlockfilterindexPruneTest(BitcoinTestFramework):
         # transactions for core.
         assert_equal(pruneheight, 346)
 
-        self.log.info("check if we can access the tips blockfilter when we have"
-                      " pruned some blocks")
+        self.log.info(
+            "check if we can access the tips blockfilter when we have"
+            " pruned some blocks"
+        )
         assert_greater_than(
-            len(node.getblockfilter(node.getbestblockhash())['filter']),
-            0)
+            len(node.getblockfilter(node.getbestblockhash())["filter"]), 0
+        )
 
-        self.log.info("check if we can access the blockfilter of a pruned "
-                      "block")
-        assert_greater_than(
-            len(node.getblockfilter(node.getblockhash(2))['filter']),
-            0)
+        self.log.info("check if we can access the blockfilter of a pruned block")
+        assert_greater_than(len(node.getblockfilter(node.getblockhash(2))["filter"]), 0)
 
         # mine and sync index up to a height that will later be the pruneheight
         self.generate(node, 338)
@@ -69,44 +67,57 @@ class FeatureBlockfilterindexPruneTest(BitcoinTestFramework):
 
         self.log.info("make sure accessing the blockfilters throws an error")
         assert_raises_rpc_error(
-            -1, "Index is not enabled for filtertype basic",
-            node.getblockfilter, node.getblockhash(2))
+            -1,
+            "Index is not enabled for filtertype basic",
+            node.getblockfilter,
+            node.getblockhash(2),
+        )
         self.generate(node, 462)
 
-        self.log.info("prune exactly up to the blockfilterindexes best block "
-                      "while blockfilters are disabled")
+        self.log.info(
+            "prune exactly up to the blockfilterindexes best block "
+            "while blockfilters are disabled"
+        )
         pruneheight_2 = self.nodes[0].pruneblockchain(1040)
         assert_equal(pruneheight_2, 1038)
         self.restart_node(
-            0, extra_args=["-fastprune", "-prune=1", "-blockfilterindex=1"])
-        self.log.info("make sure that we can continue with the partially synced"
-                      " index after having pruned up to the index height")
+            0, extra_args=["-fastprune", "-prune=1", "-blockfilterindex=1"]
+        )
+        self.log.info(
+            "make sure that we can continue with the partially synced"
+            " index after having pruned up to the index height"
+        )
         self.sync_index(height=1500)
 
-        self.log.info("prune below the blockfilterindexes best block while "
-                      "blockfilters are disabled")
-        self.restart_node(
-            0,
-            extra_args=["-fastprune", "-prune=1"])
+        self.log.info(
+            "prune below the blockfilterindexes best block while "
+            "blockfilters are disabled"
+        )
+        self.restart_node(0, extra_args=["-fastprune", "-prune=1"])
         self.generate(node, 1000)
         pruneheight_3 = self.nodes[0].pruneblockchain(2000)
         assert_greater_than(pruneheight_3, pruneheight_2)
         self.stop_node(0)
 
-        self.log.info("make sure we get an init error when starting the node "
-                      "again with block filters")
+        self.log.info(
+            "make sure we get an init error when starting the node "
+            "again with block filters"
+        )
         with node.assert_debug_log(
-            ["basic block filter index best block of the index goes beyond "
-             "pruned data. Please disable the index or reindex (which will "
-             "download the whole blockchain again)"]):
+            [
+                "basic block filter index best block of the index goes beyond "
+                "pruned data. Please disable the index or reindex (which will "
+                "download the whole blockchain again)"
+            ]
+        ):
             node.assert_start_raises_init_error(
-                extra_args=["-fastprune", "-prune=1", "-blockfilterindex=1"])
+                extra_args=["-fastprune", "-prune=1", "-blockfilterindex=1"]
+            )
         self.log.info("make sure the node starts again with the -reindex arg")
         self.start_node(
-            0,
-            extra_args=["-fastprune", "-prune=1", "-blockfilterindex",
-                        "-reindex"])
+            0, extra_args=["-fastprune", "-prune=1", "-blockfilterindex", "-reindex"]
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     FeatureBlockfilterindexPruneTest().main()

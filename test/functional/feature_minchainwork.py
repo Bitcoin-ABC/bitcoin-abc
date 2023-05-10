@@ -28,8 +28,7 @@ class MinimumChainWorkTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 3
-        self.extra_args = [[], ["-minimumchainwork=0x65"],
-                           ["-minimumchainwork=0x65"]]
+        self.extra_args = [[], ["-minimumchainwork=0x65"], ["-minimumchainwork=0x65"]]
         self.node_min_work = [0, 101, 101]
 
     def setup_network(self):
@@ -47,21 +46,23 @@ class MinimumChainWorkTest(BitcoinTestFramework):
         # minchainwork is exceeded
         starting_chain_work = REGTEST_WORK_PER_BLOCK  # Genesis block's work
         self.log.info(
-            f"Testing relay across node 1 (minChainWork = {self.node_min_work[1]})")
+            f"Testing relay across node 1 (minChainWork = {self.node_min_work[1]})"
+        )
 
         starting_blockcount = self.nodes[2].getblockcount()
 
         num_blocks_to_generate = int(
-            (self.node_min_work[1] - starting_chain_work) / REGTEST_WORK_PER_BLOCK)
+            (self.node_min_work[1] - starting_chain_work) / REGTEST_WORK_PER_BLOCK
+        )
         self.log.info(f"Generating {num_blocks_to_generate} blocks on node0")
         hashes = self.generate(
-            self.nodes[0],
-            num_blocks_to_generate,
-            sync_fun=self.no_op)
+            self.nodes[0], num_blocks_to_generate, sync_fun=self.no_op
+        )
 
         self.log.info(
             "Node0 current chain work: "
-            f"{self.nodes[0].getblockheader(hashes[-1])['chainwork']}")
+            f"{self.nodes[0].getblockheader(hashes[-1])['chainwork']}"
+        )
 
         # Sleep a few seconds and verify that node2 didn't get any new blocks
         # or headers.  We sleep, rather than sync_blocks(node0, node1) because
@@ -74,10 +75,9 @@ class MinimumChainWorkTest(BitcoinTestFramework):
         # Node2 shouldn't have any new headers yet, because node1 should not
         # have relayed anything.
         assert_equal(len(self.nodes[2].getchaintips()), 1)
-        assert_equal(self.nodes[2].getchaintips()[0]['height'], 0)
+        assert_equal(self.nodes[2].getchaintips()[0]["height"], 0)
 
-        assert self.nodes[1].getbestblockhash(
-        ) != self.nodes[0].getbestblockhash()
+        assert self.nodes[1].getbestblockhash() != self.nodes[0].getbestblockhash()
         assert_equal(self.nodes[2].getblockcount(), starting_blockcount)
 
         self.log.info("Generating one more block")
@@ -95,5 +95,5 @@ class MinimumChainWorkTest(BitcoinTestFramework):
         self.log.info(f"Blockcounts: {[n.getblockcount() for n in self.nodes]}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     MinimumChainWorkTest().main()

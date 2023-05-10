@@ -24,7 +24,7 @@ from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal, assert_greater_than_or_equal
 
 OK_VERSIONS = [1, 2]
-BAD_VERSIONS = [-0x80000000, -0x7fffffff, -2, -1, 0, 3, 7, 0x100, 0x7fffffff]
+BAD_VERSIONS = [-0x80000000, -0x7FFFFFFF, -2, -1, 0, 3, 7, 0x100, 0x7FFFFFFF]
 
 START_TIME = 1_900_000_000
 ACTIVATION_TIME = 2_000_000_000
@@ -34,9 +34,13 @@ class TxVersionTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.setup_clean_chain = True
-        self.extra_args = [[f'-wellingtonactivationtime={ACTIVATION_TIME}',
-                            '-acceptnonstdtxn=0',
-                            '-whitelist=127.0.0.1']]
+        self.extra_args = [
+            [
+                f"-wellingtonactivationtime={ACTIVATION_TIME}",
+                "-acceptnonstdtxn=0",
+                "-whitelist=127.0.0.1",
+            ]
+        ]
 
     def run_test(self):
         self.block_heights = {}
@@ -71,10 +75,8 @@ class TxVersionTest(BitcoinTestFramework):
                 tx = self.make_tx(spendable_tx, nVersion=bad_version)
                 bad_version_txs.append(tx)
                 peer.send_txs_and_test(
-                    [tx],
-                    node,
-                    success=False,
-                    reject_reason="was not accepted: version")
+                    [tx], node, success=False, reject_reason="was not accepted: version"
+                )
             return bad_version_txs
 
         self.log.info("These are always OK for the mempool")
@@ -84,25 +86,24 @@ class TxVersionTest(BitcoinTestFramework):
         bad_version_txs = test_mempool_rejects_bad_versions()
 
         self.log.info(
-            "Before Wellington, we CAN mine blocks with txs with bad versions")
+            "Before Wellington, we CAN mine blocks with txs with bad versions"
+        )
         block = self.make_block(blocks[-1], txs=bad_version_txs)
         peer.send_blocks_and_test([block], node, success=True)
         blocks.append(block)
 
         self.log.info(
-            "Before Wellington, we CAN mine blocks with a coinbase with a bad "
-            "version")
+            "Before Wellington, we CAN mine blocks with a coinbase with a bad version"
+        )
         for bad_version in BAD_VERSIONS:
             block = self.make_block(blocks[-1], coinbase_version=bad_version)
             peer.send_blocks_and_test([block], node, success=True)
             blocks.append(block)
 
-        self.log.info(
-            "Activate Wellington, mine 6 blocks starting at ACTIVATION_TIME")
+        self.log.info("Activate Wellington, mine 6 blocks starting at ACTIVATION_TIME")
         node.setmocktime(ACTIVATION_TIME)
         for offset in range(0, 6):
-            block = self.make_block(
-                blocks[-1], nTime=ACTIVATION_TIME + offset)
+            block = self.make_block(blocks[-1], nTime=ACTIVATION_TIME + offset)
             peer.send_blocks_and_test([block], node, success=True)
             blocks.append(block)
 
@@ -117,40 +118,44 @@ class TxVersionTest(BitcoinTestFramework):
         bad_version_txs = test_mempool_rejects_bad_versions()
 
         self.log.info(
-            "After activation, we CANNOT mine blocks with txs with bad "
-            "versions anymore")
+            "After activation, we CANNOT mine blocks with txs with bad versions anymore"
+        )
         for bad_tx in bad_version_txs:
             block = self.make_block(blocks[-1], txs=[bad_tx])
             peer.send_blocks_and_test(
-                [block],
-                node,
-                success=False,
-                reject_reason="bad-txns-version")
+                [block], node, success=False, reject_reason="bad-txns-version"
+            )
 
         self.log.info(
             "After activation, we CANNOT mine blocks with a coinbase with a "
-            "bad version anymore")
+            "bad version anymore"
+        )
         for bad_version in BAD_VERSIONS:
             block = self.make_block(blocks[-1], coinbase_version=bad_version)
             peer.send_blocks_and_test(
-                [block],
-                node,
-                success=False,
-                reject_reason="bad-txns-version")
+                [block], node, success=False, reject_reason="bad-txns-version"
+            )
 
     def make_tx(self, spend_tx, nVersion):
         value = spend_tx.vout[0].nValue - 1000
         assert_greater_than_or_equal(value, 546)
         tx = create_tx_with_script(
-            spend_tx, 0, amount=value, script_pub_key=P2SH_OP_TRUE)
+            spend_tx, 0, amount=value, script_pub_key=P2SH_OP_TRUE
+        )
         tx.nVersion = nVersion
         tx.vin[0].scriptSig = SCRIPTSIG_OP_TRUE
         pad_tx(tx)
         tx.rehash()
         return tx
 
-    def make_block(self, prev_block: CBlock, *, nTime: Optional[int] = None,
-                   coinbase_version=None, txs=None) -> CBlock:
+    def make_block(
+        self,
+        prev_block: CBlock,
+        *,
+        nTime: Optional[int] = None,
+        coinbase_version=None,
+        txs=None,
+    ) -> CBlock:
         if prev_block.sha256 is None:
             prev_block.rehash()
         assert prev_block.sha256 is not None
@@ -173,5 +178,5 @@ class TxVersionTest(BitcoinTestFramework):
         return block
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     TxVersionTest().main()

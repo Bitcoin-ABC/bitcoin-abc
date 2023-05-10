@@ -18,27 +18,30 @@ class BlocksdirTest(BitcoinTestFramework):
 
     def run_test(self):
         self.stop_node(0)
-        assert os.path.isdir(os.path.join(
-            self.nodes[0].datadir, self.chain, "blocks"))
+        assert os.path.isdir(os.path.join(self.nodes[0].datadir, self.chain, "blocks"))
         assert not os.path.isdir(os.path.join(self.nodes[0].datadir, "blocks"))
         shutil.rmtree(self.nodes[0].datadir)
         initialize_datadir(self.options.tmpdir, 0, self.chain)
         self.log.info("Starting with nonexistent blocksdir ...")
-        blocksdir_path = os.path.join(self.options.tmpdir, 'blocksdir')
+        blocksdir_path = os.path.join(self.options.tmpdir, "blocksdir")
         self.nodes[0].assert_start_raises_init_error(
             [f"-blocksdir={blocksdir_path}"],
-            f'Error: Specified blocks directory "{blocksdir_path}" does not exist.')
+            f'Error: Specified blocks directory "{blocksdir_path}" does not exist.',
+        )
         os.mkdir(blocksdir_path)
         self.log.info("Starting with existing blocksdir ...")
         self.start_node(0, [f"-blocksdir={blocksdir_path}"])
         self.log.info("mining blocks..")
-        self.generatetoaddress(self.nodes[0],
-                               10, self.nodes[0].get_deterministic_priv_key().address)
-        assert os.path.isfile(os.path.join(
-            blocksdir_path, self.chain, "blocks", "blk00000.dat"))
-        assert os.path.isdir(os.path.join(
-            self.nodes[0].datadir, self.chain, "blocks", "index"))
+        self.generatetoaddress(
+            self.nodes[0], 10, self.nodes[0].get_deterministic_priv_key().address
+        )
+        assert os.path.isfile(
+            os.path.join(blocksdir_path, self.chain, "blocks", "blk00000.dat")
+        )
+        assert os.path.isdir(
+            os.path.join(self.nodes[0].datadir, self.chain, "blocks", "index")
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     BlocksdirTest().main()
