@@ -52,8 +52,9 @@ class AbcMiningRPCTest(BitcoinTestFramework):
             expected = {
                 **expected,
                 **{
-                    "sigchecklimit": DEFAULT_MAX_BLOCK_SIZE
-                    // BLOCK_MAXBYTES_MAXSIGCHECKS_RATIO,
+                    "sigchecklimit": (
+                        DEFAULT_MAX_BLOCK_SIZE // BLOCK_MAXBYTES_MAXSIGCHECKS_RATIO
+                    ),
                 },
             }
 

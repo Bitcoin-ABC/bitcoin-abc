@@ -38,7 +38,7 @@
                 "(^test/functional/(abc|chronik).*\\.py$)"
             ],
             "flags": [
-                "--experimental-string-processing"
+                "--preview"
             ]
         },
         "flake8": {
