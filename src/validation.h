@@ -1247,6 +1247,9 @@ public:
     const BlockHash &AssumedValidBlock() const {
         return *Assert(m_options.assumed_valid_block);
     }
+    kernel::Notifications &GetNotifications() const {
+        return m_options.notifications;
+    };
 
     /**
      * Alias for ::cs_main.

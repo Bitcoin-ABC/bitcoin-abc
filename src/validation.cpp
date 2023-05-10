@@ -3273,9 +3273,9 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
                                                      fInitialDownload);
 
                     // Always notify the UI if a new block tip was connected
-                    uiInterface.NotifyBlockTip(
+                    m_chainman.GetNotifications().blockTip(
                         GetSynchronizationState(fInitialDownload),
-                        pindexNewTip);
+                        *pindexNewTip);
                 }
             }
         }
@@ -3592,9 +3592,9 @@ bool Chainstate::UnwindBlock(BlockValidationState &state, CBlockIndex *pindex,
 
     // Only notify about a new block tip if the active chain was modified.
     if (pindex_was_in_chain) {
-        uiInterface.NotifyBlockTip(
+        m_chainman.GetNotifications().blockTip(
             GetSynchronizationState(IsInitialBlockDownload()),
-            to_mark_failed_or_parked->pprev);
+            *to_mark_failed_or_parked->pprev);
     }
     return true;
 }

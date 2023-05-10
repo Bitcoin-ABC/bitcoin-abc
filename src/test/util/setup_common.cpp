@@ -25,6 +25,7 @@
 #include <node/chainstate.h>
 #include <node/chainstatemanager_args.h>
 #include <node/context.h>
+#include <node/kernel_notifications.h>
 #include <node/miner.h>
 #include <node/validation_cache_args.h>
 #include <noui.h>
@@ -66,6 +67,7 @@ using node::BlockAssembler;
 using node::BlockManager;
 using node::CalculateCacheSizes;
 using node::fReindex;
+using node::KernelNotifications;
 using node::LoadChainstate;
 using node::NodeContext;
 using node::VerifyLoadedChainstate;
@@ -186,11 +188,14 @@ ChainTestingSetup::ChainTestingSetup(
 
     m_cache_sizes = CalculateCacheSizes(m_args);
 
+    m_node.notifications = std::make_unique<KernelNotifications>();
+
     ChainstateManager::Options chainman_opts{
         .config = config,
         .datadir = m_args.GetDataDirNet(),
         .adjusted_time_callback = GetAdjustedTime,
         .check_block_index = true,
+        .notifications = *m_node.notifications,
     };
     ApplyArgsManOptions(*m_node.args, chainman_opts);
     const BlockManager::Options blockman_opts{

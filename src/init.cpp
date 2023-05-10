@@ -49,6 +49,7 @@
 #include <node/chainstate.h>
 #include <node/chainstatemanager_args.h>
 #include <node/context.h>
+#include <node/kernel_notifications.h>
 #include <node/mempool_persist_args.h>
 #include <node/miner.h>
 #include <node/ui_interface.h>
@@ -121,6 +122,7 @@ using node::CacheSizes;
 using node::CalculateCacheSizes;
 using node::DEFAULT_PERSIST_MEMPOOL;
 using node::fReindex;
+using node::KernelNotifications;
 using node::LoadChainstate;
 using node::MempoolPath;
 using node::NodeContext;
@@ -1985,9 +1987,11 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
 
     // Also report errors from parsing before daemonization
     {
+        KernelNotifications notifications{};
         ChainstateManager::Options chainman_opts_dummy{
             .config = config,
             .datadir = args.GetDataDirNet(),
+            .notifications = notifications,
         };
         if (const auto error{ApplyArgsManOptions(args, chainman_opts_dummy)}) {
             return InitError(*error);
@@ -2371,6 +2375,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     // Step 7: load block chain
 
+    node.notifications = std::make_unique<KernelNotifications>();
     fReindex = args.GetBoolArg("-reindex", false);
     bool fReindexChainState = args.GetBoolArg("-reindex-chainstate", false);
 
@@ -2378,6 +2383,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         .config = config,
         .datadir = args.GetDataDirNet(),
         .adjusted_time_callback = GetAdjustedTime,
+        .notifications = *node.notifications,
     };
     // no error can happen, already checked in AppInitParameterInteraction
     Assert(!ApplyArgsManOptions(args, chainman_opts));
