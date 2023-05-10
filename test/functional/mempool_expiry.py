@@ -37,7 +37,7 @@ class MempoolExpiryTest(BitcoinTestFramework):
         self.generate(node, 100)
 
         # Send a parent transaction that will expire.
-        parent_txid = self.wallet.send_self_transfer(from_node=node)['txid']
+        parent_txid = self.wallet.send_self_transfer(from_node=node)["txid"]
         parent_utxo = self.wallet.get_utxo(txid=parent_txid)
         independent_utxo = self.wallet.get_utxo()
 
@@ -48,7 +48,7 @@ class MempoolExpiryTest(BitcoinTestFramework):
         trigger_utxo2 = self.wallet.get_utxo()
 
         # Set the mocktime to the arrival time of the parent transaction.
-        entry_time = node.getmempoolentry(parent_txid)['time']
+        entry_time = node.getmempoolentry(parent_txid)["time"]
         node.setmocktime(entry_time)
 
         # Let half of the timeout elapse and broadcast the child transaction
@@ -56,17 +56,18 @@ class MempoolExpiryTest(BitcoinTestFramework):
         half_expiry_time = entry_time + int(60 * 60 * timeout / 2)
         node.setmocktime(half_expiry_time)
         child_txid = self.wallet.send_self_transfer(
-            from_node=node, utxo_to_spend=parent_utxo)['txid']
-        assert_equal(
-            parent_txid,
-            node.getmempoolentry(child_txid)['depends'][0])
+            from_node=node, utxo_to_spend=parent_utxo
+        )["txid"]
+        assert_equal(parent_txid, node.getmempoolentry(child_txid)["depends"][0])
         self.log.info(
-            'Broadcast child transaction after '
-            f'{timedelta(seconds=half_expiry_time - entry_time)} hours.')
+            "Broadcast child transaction after "
+            f"{timedelta(seconds=half_expiry_time - entry_time)} hours."
+        )
 
         # Broadcast another (independent) transaction.
         independent_txid = self.wallet.send_self_transfer(
-            from_node=node, utxo_to_spend=independent_utxo)['txid']
+            from_node=node, utxo_to_spend=independent_utxo
+        )["txid"]
 
         # Let most of the timeout elapse and check that the parent tx is still
         # in the mempool.
@@ -74,12 +75,12 @@ class MempoolExpiryTest(BitcoinTestFramework):
         node.setmocktime(nearly_expiry_time)
         # Broadcast a transaction as the expiry of transactions in the mempool
         # is only checked when a new transaction is added to the mempool.
-        self.wallet.send_self_transfer(
-            from_node=node, utxo_to_spend=trigger_utxo1)
+        self.wallet.send_self_transfer(from_node=node, utxo_to_spend=trigger_utxo1)
         self.log.info(
-            'Test parent tx not expired after '
-            f'{timedelta(seconds=nearly_expiry_time - entry_time)} hours.')
-        assert_equal(entry_time, node.getmempoolentry(parent_txid)['time'])
+            "Test parent tx not expired after "
+            f"{timedelta(seconds=nearly_expiry_time - entry_time)} hours."
+        )
+        assert_equal(entry_time, node.getmempoolentry(parent_txid)["time"])
 
         # Transaction should be evicted from the mempool after the expiry time
         # has passed.
@@ -87,39 +88,40 @@ class MempoolExpiryTest(BitcoinTestFramework):
         node.setmocktime(expiry_time)
         # Again, broadcast a transaction so the expiry of transactions in the
         # mempool is checked.
-        self.wallet.send_self_transfer(
-            from_node=node, utxo_to_spend=trigger_utxo2)
+        self.wallet.send_self_transfer(from_node=node, utxo_to_spend=trigger_utxo2)
         self.log.info(
-            'Test parent tx expiry after '
-            f'{timedelta(seconds=expiry_time - entry_time)} hours.')
-        assert_raises_rpc_error(-5, 'Transaction not in mempool',
-                                node.getmempoolentry, parent_txid)
+            "Test parent tx expiry after "
+            f"{timedelta(seconds=expiry_time - entry_time)} hours."
+        )
+        assert_raises_rpc_error(
+            -5, "Transaction not in mempool", node.getmempoolentry, parent_txid
+        )
 
         # The child transaction should be removed from the mempool as well.
-        self.log.info('Test child tx is evicted as well.')
-        assert_raises_rpc_error(-5, 'Transaction not in mempool',
-                                node.getmempoolentry, child_txid)
+        self.log.info("Test child tx is evicted as well.")
+        assert_raises_rpc_error(
+            -5, "Transaction not in mempool", node.getmempoolentry, child_txid
+        )
 
         # Check that the independent tx is still in the mempool.
         self.log.info(
-            f'Test the independent tx not expired after '
-            f'{timedelta(seconds=expiry_time - half_expiry_time)} hours.')
-        assert_equal(
-            half_expiry_time,
-            node.getmempoolentry(independent_txid)['time'])
+            "Test the independent tx not expired after "
+            f"{timedelta(seconds=expiry_time - half_expiry_time)} hours."
+        )
+        assert_equal(half_expiry_time, node.getmempoolentry(independent_txid)["time"])
 
     def run_test(self):
         self.log.info(
-            'Test default mempool expiry timeout of '
-            f'{DEFAULT_MEMPOOL_EXPIRY} hours.')
+            f"Test default mempool expiry timeout of {DEFAULT_MEMPOOL_EXPIRY} hours."
+        )
         self.test_transaction_expiry(DEFAULT_MEMPOOL_EXPIRY)
 
         self.log.info(
-            f'Test custom mempool expiry timeout of {CUSTOM_MEMPOOL_EXPIRY} hours.')
-        self.restart_node(
-            0, [f'-mempoolexpiry={CUSTOM_MEMPOOL_EXPIRY}'])
+            f"Test custom mempool expiry timeout of {CUSTOM_MEMPOOL_EXPIRY} hours."
+        )
+        self.restart_node(0, [f"-mempoolexpiry={CUSTOM_MEMPOOL_EXPIRY}"])
         self.test_transaction_expiry(CUSTOM_MEMPOOL_EXPIRY)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     MempoolExpiryTest().main()

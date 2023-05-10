@@ -29,7 +29,8 @@ class MempoolUnbroadcastTest(BitcoinTestFramework):
 
     def test_broadcast(self):
         self.log.info(
-            "Test that mempool reattempts delivery of locally submitted transaction")
+            "Test that mempool reattempts delivery of locally submitted transaction"
+        )
         node = self.nodes[0]
 
         min_relay_fee = node.getnetworkinfo()["relayfee"]
@@ -56,10 +57,10 @@ class MempoolUnbroadcastTest(BitcoinTestFramework):
 
         # check transactions are in unbroadcast using rpc
         mempoolinfo = self.nodes[0].getmempoolinfo()
-        assert_equal(mempoolinfo['unbroadcastcount'], 2)
+        assert_equal(mempoolinfo["unbroadcastcount"], 2)
         mempool = self.nodes[0].getrawmempool(True)
         for tx in mempool:
-            assert_equal(mempool[tx]['unbroadcast'], True)
+            assert_equal(mempool[tx]["unbroadcast"], True)
 
         # check that second node doesn't have these two txns
         mempool = self.nodes[1].getrawmempool()
@@ -83,10 +84,11 @@ class MempoolUnbroadcastTest(BitcoinTestFramework):
         # check that transactions are no longer in first node's unbroadcast set
         mempool = self.nodes[0].getrawmempool(True)
         for tx in mempool:
-            assert_equal(mempool[tx]['unbroadcast'], False)
+            assert_equal(mempool[tx]["unbroadcast"], False)
 
         self.log.info(
-            "Add another connection & ensure transactions aren't broadcast again")
+            "Add another connection & ensure transactions aren't broadcast again"
+        )
 
         conn = node.add_p2p_connection(P2PTxInvStore())
         node.mockscheduler(MAX_INITIAL_BROADCAST_DELAY)
@@ -98,15 +100,19 @@ class MempoolUnbroadcastTest(BitcoinTestFramework):
         node.disconnect_p2ps()
 
         self.log.info(
-            "Rebroadcast transaction and ensure it is not added to unbroadcast set when already in mempool")
+            "Rebroadcast transaction and ensure it is not added to unbroadcast set when"
+            " already in mempool"
+        )
         rpc_tx_hsh = node.sendrawtransaction(txFS["hex"])
         mempool = node.getrawmempool(True)
         assert rpc_tx_hsh in mempool
-        assert not mempool[rpc_tx_hsh]['unbroadcast']
+        assert not mempool[rpc_tx_hsh]["unbroadcast"]
 
     def test_txn_removal(self):
         self.log.info(
-            "Test that transactions removed from mempool are removed from unbroadcast set")
+            "Test that transactions removed from mempool are removed from"
+            " unbroadcast set"
+        )
         node = self.nodes[0]
 
         # since the node doesn't have any connections, it will not receive

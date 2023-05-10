@@ -61,36 +61,40 @@ class MempoolPersistTest(BitcoinTestFramework):
         tx_creation_time_lower = int(time.time())
         for _ in range(5):
             last_txid = self.nodes[2].sendtoaddress(
-                self.nodes[2].getnewaddress(), Decimal("10"))
+                self.nodes[2].getnewaddress(), Decimal("10")
+            )
         node2_balance = self.nodes[2].getbalance()
         self.sync_all()
         tx_creation_time_higher = int(time.time())
 
         self.log.debug(
-            "Verify that node0 and node1 have 5 transactions in their mempools")
+            "Verify that node0 and node1 have 5 transactions in their mempools"
+        )
         assert_equal(len(self.nodes[0].getrawmempool()), 5)
         assert_equal(len(self.nodes[1].getrawmempool()), 5)
 
-        total_fee_old = self.nodes[0].getmempoolinfo()['total_fee']
+        total_fee_old = self.nodes[0].getmempoolinfo()["total_fee"]
 
         self.log.debug("Prioritize a transaction on node0")
-        fees = self.nodes[0].getmempoolentry(txid=last_txid)['fees']
-        assert_equal(fees['base'], fees['modified'])
+        fees = self.nodes[0].getmempoolentry(txid=last_txid)["fees"]
+        assert_equal(fees["base"], fees["modified"])
         self.nodes[0].prioritisetransaction(txid=last_txid, fee_delta=1000)
-        fees = self.nodes[0].getmempoolentry(txid=last_txid)['fees']
-        assert_equal(fees['base'] + Decimal('10.0'), fees['modified'])
+        fees = self.nodes[0].getmempoolentry(txid=last_txid)["fees"]
+        assert_equal(fees["base"] + Decimal("10.0"), fees["modified"])
 
         self.log.info(
-            'Check the total base fee is unchanged after prioritisetransaction')
+            "Check the total base fee is unchanged after prioritisetransaction"
+        )
+        assert_equal(total_fee_old, self.nodes[0].getmempoolinfo()["total_fee"])
         assert_equal(
             total_fee_old,
-            self.nodes[0].getmempoolinfo()['total_fee'])
-        assert_equal(total_fee_old,
-                     sum(v['fees']['base'] for k, v
-                         in self.nodes[0].getrawmempool(verbose=True).items()))
+            sum(
+                v["fees"]["base"]
+                for k, v in self.nodes[0].getrawmempool(verbose=True).items()
+            ),
+        )
 
-        tx_creation_time = self.nodes[0].getmempoolentry(txid=last_txid)[
-            'time']
+        tx_creation_time = self.nodes[0].getmempoolentry(txid=last_txid)["time"]
         assert_greater_than_or_equal(tx_creation_time, tx_creation_time_lower)
         assert_greater_than_or_equal(tx_creation_time_higher, tx_creation_time)
 
@@ -98,14 +102,15 @@ class MempoolPersistTest(BitcoinTestFramework):
         self.disconnect_nodes(0, 1)
         assert len(self.nodes[0].getpeerinfo()) == 0
         assert len(self.nodes[0].p2ps) == 0
-        self.nodes[0].sendtoaddress(
-            self.nodes[2].getnewaddress(), Decimal("12000000"))
+        self.nodes[0].sendtoaddress(self.nodes[2].getnewaddress(), Decimal("12000000"))
         self.connect_nodes(0, 2)
 
-        self.log.debug("Stop-start the nodes. Verify that node0 has the "
-                       "transactions in its mempool and node1 does not. "
-                       "Verify that node2 calculates its balance correctly "
-                       "after loading wallet transactions.")
+        self.log.debug(
+            "Stop-start the nodes. Verify that node0 has the "
+            "transactions in its mempool and node1 does not. "
+            "Verify that node2 calculates its balance correctly "
+            "after loading wallet transactions."
+        )
         self.stop_nodes()
         # Give this one a head-start, so we can be "extra-sure" that it didn't
         # load anything later
@@ -122,15 +127,14 @@ class MempoolPersistTest(BitcoinTestFramework):
         # probably notice by now:
         assert_equal(len(self.nodes[1].getrawmempool()), 0)
 
-        self.log.debug('Verify prioritization is loaded correctly')
-        fees = self.nodes[0].getmempoolentry(txid=last_txid)['fees']
-        assert_equal(fees['base'] + Decimal('10.00'), fees['modified'])
+        self.log.debug("Verify prioritization is loaded correctly")
+        fees = self.nodes[0].getmempoolentry(txid=last_txid)["fees"]
+        assert_equal(fees["base"] + Decimal("10.00"), fees["modified"])
 
-        self.log.debug('Verify time is loaded correctly')
+        self.log.debug("Verify time is loaded correctly")
         assert_equal(
-            tx_creation_time,
-            self.nodes[0].getmempoolentry(
-                txid=last_txid)['time'])
+            tx_creation_time, self.nodes[0].getmempoolentry(txid=last_txid)["time"]
+        )
 
         # Verify accounting of mempool transactions after restart is correct
         # Flush mempool to wallet
@@ -140,32 +144,37 @@ class MempoolPersistTest(BitcoinTestFramework):
         # start node0 with wallet disabled so wallet transactions don't get
         # resubmitted
         self.log.debug(
-            "Stop-start node0 with -persistmempool=0. Verify that it doesn't load its mempool.dat file.")
+            "Stop-start node0 with -persistmempool=0. Verify that it doesn't load its"
+            " mempool.dat file."
+        )
         self.stop_nodes()
         self.start_node(0, extra_args=["-persistmempool=0", "-disablewallet"])
         assert self.nodes[0].getmempoolinfo()["loaded"]
         assert_equal(len(self.nodes[0].getrawmempool()), 0)
 
         self.log.debug(
-            "Stop-start node0. Verify that it has the transactions in its mempool.")
+            "Stop-start node0. Verify that it has the transactions in its mempool."
+        )
         self.stop_nodes()
         self.start_node(0)
         assert self.nodes[0].getmempoolinfo()["loaded"]
         assert_equal(len(self.nodes[0].getrawmempool()), 6)
 
-        mempooldat0 = os.path.join(
-            self.nodes[0].datadir, self.chain, 'mempool.dat')
-        mempooldat1 = os.path.join(
-            self.nodes[1].datadir, self.chain, 'mempool.dat')
+        mempooldat0 = os.path.join(self.nodes[0].datadir, self.chain, "mempool.dat")
+        mempooldat1 = os.path.join(self.nodes[1].datadir, self.chain, "mempool.dat")
         self.log.debug(
-            "Remove the mempool.dat file. Verify that savemempool to disk via RPC re-creates it")
+            "Remove the mempool.dat file. Verify that savemempool to disk via RPC"
+            " re-creates it"
+        )
         os.remove(mempooldat0)
         result0 = self.nodes[0].savemempool()
         assert os.path.isfile(mempooldat0)
-        assert_equal(result0['filename'], mempooldat0)
+        assert_equal(result0["filename"], mempooldat0)
 
         self.log.debug(
-            "Stop nodes, make node1 use mempool.dat from node0. Verify it has 6 transactions")
+            "Stop nodes, make node1 use mempool.dat from node0. Verify it has 6"
+            " transactions"
+        )
         os.rename(mempooldat0, mempooldat1)
         self.stop_nodes()
         self.start_node(1, extra_args=["-persistmempool"])
@@ -173,14 +182,17 @@ class MempoolPersistTest(BitcoinTestFramework):
         assert_equal(len(self.nodes[1].getrawmempool()), 6)
 
         self.log.debug(
-            "Prevent bitcoind from writing mempool.dat to disk. Verify that `savemempool` fails")
+            "Prevent bitcoind from writing mempool.dat to disk. Verify that"
+            " `savemempool` fails"
+        )
         # to test the exception we are creating a tmp folder called mempool.dat.new
         # which is an implementation detail that could change and break this
         # test
         mempooldotnew1 = f"{mempooldat1}.new"
         os.mkdir(mempooldotnew1)
-        assert_raises_rpc_error(-1, "Unable to dump mempool to disk",
-                                self.nodes[1].savemempool)
+        assert_raises_rpc_error(
+            -1, "Unable to dump mempool to disk", self.nodes[1].savemempool
+        )
         os.rmdir(mempooldotnew1)
 
         self.test_persist_unbroadcast()
@@ -209,5 +221,5 @@ class MempoolPersistTest(BitcoinTestFramework):
         self.wait_until(lambda: len(conn.get_invs()) == 1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     MempoolPersistTest().main()

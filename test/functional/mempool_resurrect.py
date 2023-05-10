@@ -34,12 +34,12 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
         # ... make sure all the transactions are confirmed again
         blocks = []
         spends1_ids = [
-            wallet.send_self_transfer(
-                from_node=node)['txid'] for _ in range(3)]
+            wallet.send_self_transfer(from_node=node)["txid"] for _ in range(3)
+        ]
         blocks.extend(self.generate(node, 1))
         spends2_ids = [
-            wallet.send_self_transfer(
-                from_node=node)['txid'] for _ in range(3)]
+            wallet.send_self_transfer(from_node=node)["txid"] for _ in range(3)
+        ]
         blocks.extend(self.generate(node, 1))
 
         spends_ids = set(spends1_ids + spends2_ids)
@@ -47,10 +47,8 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
         # mempool should be empty, all txns confirmed
         assert_equal(set(node.getrawmempool()), set())
         confirmed_txns = set(
-            node.getblock(
-                blocks[0])['tx'] +
-            node.getblock(
-                blocks[1])['tx'])
+            node.getblock(blocks[0])["tx"] + node.getblock(blocks[1])["tx"]
+        )
         # Checks that all spend txns are contained in the mined blocks
         assert spends_ids < confirmed_txns
 
@@ -64,9 +62,9 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
         blocks = self.generate(node, 1)
         # mempool should be empty, all txns confirmed
         assert_equal(set(node.getrawmempool()), set())
-        confirmed_txns = set(node.getblock(blocks[0])['tx'])
+        confirmed_txns = set(node.getblock(blocks[0])["tx"])
         assert spends_ids < confirmed_txns
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     MempoolCoinbaseTest().main()

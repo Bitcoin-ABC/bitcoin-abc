@@ -27,37 +27,45 @@ class ToolWalletTest(BitcoinTestFramework):
         self.skip_if_no_wallet_tool()
 
     def bitcoin_wallet_process(self, *args):
-        binary = self.config["environment"]["BUILDDIR"] + \
-            '/src/bitcoin-wallet' + self.config["environment"]["EXEEXT"]
-        args = [f'-datadir={self.nodes[0].datadir}',
-                f'-chain={self.chain}'] + list(args)
+        binary = (
+            self.config["environment"]["BUILDDIR"]
+            + "/src/bitcoin-wallet"
+            + self.config["environment"]["EXEEXT"]
+        )
+        args = [f"-datadir={self.nodes[0].datadir}", f"-chain={self.chain}"] + list(
+            args
+        )
 
         command_line = [binary] + args
         if self.config["environment"]["EMULATOR"]:
-            command_line = [
-                self.config["environment"]["EMULATOR"]] + command_line
+            command_line = [self.config["environment"]["EMULATOR"]] + command_line
 
-        return subprocess.Popen(command_line, stdin=subprocess.PIPE,
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+        return subprocess.Popen(
+            command_line,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True,
+        )
 
     def assert_raises_tool_error(self, error, *args):
         p = self.bitcoin_wallet_process(*args)
         stdout, stderr = p.communicate()
         assert_equal(p.poll(), 1)
-        assert_equal(stdout, '')
+        assert_equal(stdout, "")
         assert_equal(stderr.strip(), error)
 
     def assert_tool_output(self, output, *args):
         p = self.bitcoin_wallet_process(*args)
         stdout, stderr = p.communicate()
-        assert_equal(stderr, '')
+        assert_equal(stderr, "")
         assert_equal(stdout, output)
         assert_equal(p.poll(), 0)
 
     def wallet_shasum(self):
         h = hashlib.sha1()
         mv = memoryview(bytearray(BUFFER_SIZE))
-        with open(self.wallet_path, 'rb', buffering=0) as f:
+        with open(self.wallet_path, "rb", buffering=0) as f:
             for n in iter(lambda: f.readinto(mv), 0):
                 h.update(mv[:n])
         return h.hexdigest()
@@ -69,38 +77,46 @@ class ToolWalletTest(BitcoinTestFramework):
         return oct(os.lstat(self.wallet_path).st_mode)[-3:]
 
     def log_wallet_timestamp_comparison(self, old, new):
-        result = 'unchanged' if new == old else 'increased!'
-        self.log.debug(f'Wallet file timestamp {result}')
+        result = "unchanged" if new == old else "increased!"
+        self.log.debug(f"Wallet file timestamp {result}")
 
     def test_invalid_tool_commands_and_args(self):
         self.log.info(
-            'Testing that various invalid commands raise with specific error messages')
-        self.assert_raises_tool_error('Invalid command: foo', 'foo')
+            "Testing that various invalid commands raise with specific error messages"
+        )
+        self.assert_raises_tool_error("Invalid command: foo", "foo")
         # `bitcoin-wallet help` raises an error. Use `bitcoin-wallet -help`.
-        self.assert_raises_tool_error('Invalid command: help', 'help')
+        self.assert_raises_tool_error("Invalid command: help", "help")
         self.assert_raises_tool_error(
-            'Error: two methods provided (info and create). Only one method should be provided.',
-            'info',
-            'create')
+            (
+                "Error: two methods provided (info and create). Only one method should"
+                " be provided."
+            ),
+            "info",
+            "create",
+        )
         self.assert_raises_tool_error(
-            'Error parsing command line arguments: Invalid parameter -foo', '-foo')
-        locked_dir = os.path.join(self.options.tmpdir, "node0", "regtest",
-                                  "wallets")
+            "Error parsing command line arguments: Invalid parameter -foo", "-foo"
+        )
+        locked_dir = os.path.join(self.options.tmpdir, "node0", "regtest", "wallets")
         self.assert_raises_tool_error(
             f'Error initializing wallet database environment "{locked_dir}"!',
             f"-wallet={self.default_wallet_name}",
-            'info',
+            "info",
         )
-        path = os.path.join(self.options.tmpdir, "node0", "regtest",
-                            "wallets", "nonexistent.dat")
+        path = os.path.join(
+            self.options.tmpdir, "node0", "regtest", "wallets", "nonexistent.dat"
+        )
         self.assert_raises_tool_error(
             f"Failed to load database path '{path}'. Path does not exist.",
-            '-wallet=nonexistent.dat', 'info')
+            "-wallet=nonexistent.dat",
+            "info",
+        )
 
     def test_tool_wallet_info(self):
         # Stop the node to close the wallet to call the info command.
         self.stop_node(0)
-        self.log.info('Calling wallet tool info, testing output')
+        self.log.info("Calling wallet tool info, testing output")
         #
         # TODO: Wallet tool info should work with wallet file permissions set to
         # read-only without raising:
@@ -112,9 +128,9 @@ class ToolWalletTest(BitcoinTestFramework):
         # assert self.wallet_permissions() in ['400', '666'] # Sanity check. 666 because Appveyor.
         # shasum_before = self.wallet_shasum()
         timestamp_before = self.wallet_timestamp()
-        self.log.debug(
-            f'Wallet file timestamp before calling info: {timestamp_before}')
-        out = textwrap.dedent('''\
+        self.log.debug(f"Wallet file timestamp before calling info: {timestamp_before}")
+        out = textwrap.dedent(
+            """\
             Wallet info
             ===========
             Encrypted: no
@@ -122,20 +138,16 @@ class ToolWalletTest(BitcoinTestFramework):
             Keypool Size: 2
             Transactions: 0
             Address Book: 1
-        ''')
-        self.assert_tool_output(
-            out,
-            f"-wallet={self.default_wallet_name}",
-            'info')
+        """
+        )
+        self.assert_tool_output(out, f"-wallet={self.default_wallet_name}", "info")
         timestamp_after = self.wallet_timestamp()
-        self.log.debug(
-            f'Wallet file timestamp after calling info: {timestamp_after}')
+        self.log.debug(f"Wallet file timestamp after calling info: {timestamp_after}")
         self.log_wallet_timestamp_comparison(timestamp_before, timestamp_after)
-        self.log.debug(
-            'Setting wallet file permissions back to 600 (read/write)')
+        self.log.debug("Setting wallet file permissions back to 600 (read/write)")
         os.chmod(self.wallet_path, stat.S_IRUSR | stat.S_IWUSR)
         # Sanity check. 666 because Appveyor.
-        assert self.wallet_permissions() in ['600', '666']
+        assert self.wallet_permissions() in ["600", "666"]
         #
         # TODO: Wallet tool info should not write to the wallet file.
         # The following lines should be uncommented and the tests still succeed:
@@ -151,17 +163,18 @@ class ToolWalletTest(BitcoinTestFramework):
         output changes accordingly.
         """
         self.start_node(0)
-        self.log.info('Generating transaction to mutate wallet')
+        self.log.info("Generating transaction to mutate wallet")
         self.generate(self.nodes[0], 1)
         self.stop_node(0)
 
         self.log.info(
-            'Calling wallet tool info after generating a transaction, testing output')
+            "Calling wallet tool info after generating a transaction, testing output"
+        )
         shasum_before = self.wallet_shasum()
         timestamp_before = self.wallet_timestamp()
-        self.log.debug(
-            f'Wallet file timestamp before calling info: {timestamp_before}')
-        out = textwrap.dedent('''\
+        self.log.debug(f"Wallet file timestamp before calling info: {timestamp_before}")
+        out = textwrap.dedent(
+            """\
             Wallet info
             ===========
             Encrypted: no
@@ -169,31 +182,31 @@ class ToolWalletTest(BitcoinTestFramework):
             Keypool Size: 2
             Transactions: 1
             Address Book: 1
-        ''')
-        self.assert_tool_output(
-            out,
-            f"-wallet={self.default_wallet_name}",
-            'info')
+        """
+        )
+        self.assert_tool_output(out, f"-wallet={self.default_wallet_name}", "info")
         shasum_after = self.wallet_shasum()
         timestamp_after = self.wallet_timestamp()
-        self.log.debug(
-            f'Wallet file timestamp after calling info: {timestamp_after}')
+        self.log.debug(f"Wallet file timestamp after calling info: {timestamp_after}")
         self.log_wallet_timestamp_comparison(timestamp_before, timestamp_after)
         #
         # TODO: Wallet tool info should not write to the wallet file.
         # This assertion should be uncommented and succeed:
         # assert_equal(timestamp_before, timestamp_after)
         assert_equal(shasum_before, shasum_after)
-        self.log.debug('Wallet file shasum unchanged\n')
+        self.log.debug("Wallet file shasum unchanged\n")
 
     def test_tool_wallet_create_on_existing_wallet(self):
         self.log.info(
-            'Calling wallet tool create on an existing wallet, testing output')
+            "Calling wallet tool create on an existing wallet, testing output"
+        )
         shasum_before = self.wallet_shasum()
         timestamp_before = self.wallet_timestamp()
         self.log.debug(
-            f'Wallet file timestamp before calling create: {timestamp_before}')
-        out = textwrap.dedent('''\
+            f"Wallet file timestamp before calling create: {timestamp_before}"
+        )
+        out = textwrap.dedent(
+            """\
             Topping up keypool...
             Wallet info
             ===========
@@ -202,61 +215,64 @@ class ToolWalletTest(BitcoinTestFramework):
             Keypool Size: 2000
             Transactions: 0
             Address Book: 0
-        ''')
-        self.assert_tool_output(out, '-wallet=foo', 'create')
+        """
+        )
+        self.assert_tool_output(out, "-wallet=foo", "create")
         shasum_after = self.wallet_shasum()
         timestamp_after = self.wallet_timestamp()
-        self.log.debug(
-            f'Wallet file timestamp after calling create: {timestamp_after}')
+        self.log.debug(f"Wallet file timestamp after calling create: {timestamp_after}")
         self.log_wallet_timestamp_comparison(timestamp_before, timestamp_after)
         assert_equal(timestamp_before, timestamp_after)
         assert_equal(shasum_before, shasum_after)
-        self.log.debug('Wallet file shasum unchanged\n')
+        self.log.debug("Wallet file shasum unchanged\n")
 
     def test_getwalletinfo_on_different_wallet(self):
-        self.log.info('Starting node with arg -wallet=foo')
-        self.start_node(0, ['-nowallet', '-wallet=foo'])
+        self.log.info("Starting node with arg -wallet=foo")
+        self.start_node(0, ["-nowallet", "-wallet=foo"])
 
         self.log.info(
-            'Calling getwalletinfo on a different wallet ("foo"), testing output')
+            'Calling getwalletinfo on a different wallet ("foo"), testing output'
+        )
         shasum_before = self.wallet_shasum()
         timestamp_before = self.wallet_timestamp()
         self.log.debug(
-            f'Wallet file timestamp before calling getwalletinfo: {timestamp_before}')
+            f"Wallet file timestamp before calling getwalletinfo: {timestamp_before}"
+        )
         out = self.nodes[0].getwalletinfo()
         self.stop_node(0)
 
         shasum_after = self.wallet_shasum()
         timestamp_after = self.wallet_timestamp()
         self.log.debug(
-            f'Wallet file timestamp after calling getwalletinfo: {timestamp_after}')
+            f"Wallet file timestamp after calling getwalletinfo: {timestamp_after}"
+        )
 
-        assert_equal(0, out['txcount'])
-        assert_equal(1000, out['keypoolsize'])
-        assert_equal(1000, out['keypoolsize_hd_internal'])
-        assert_equal(True, 'hdseedid' in out)
+        assert_equal(0, out["txcount"])
+        assert_equal(1000, out["keypoolsize"])
+        assert_equal(1000, out["keypoolsize_hd_internal"])
+        assert_equal(True, "hdseedid" in out)
 
         self.log_wallet_timestamp_comparison(timestamp_before, timestamp_after)
         assert_equal(timestamp_before, timestamp_after)
         assert_equal(shasum_after, shasum_before)
-        self.log.debug('Wallet file shasum unchanged\n')
+        self.log.debug("Wallet file shasum unchanged\n")
 
     def test_salvage(self):
         # TODO: Check salvage actually salvages and doesn't break things.
         # https://github.com/bitcoin/bitcoin/issues/7463
-        self.log.info('Check salvage')
-        self.start_node(0, ['-wallet=salvage'])
+        self.log.info("Check salvage")
+        self.start_node(0, ["-wallet=salvage"])
         self.stop_node(0)
 
-        self.assert_tool_output('', '-wallet=salvage', 'salvage')
+        self.assert_tool_output("", "-wallet=salvage", "salvage")
 
     def run_test(self):
         self.wallet_path = os.path.join(
             self.nodes[0].datadir,
             self.chain,
-            'wallets',
+            "wallets",
             self.default_wallet_name,
-            self.wallet_data_filename
+            self.wallet_data_filename,
         )
         self.test_invalid_tool_commands_and_args()
         # Warning: The following tests are order-dependent.
@@ -271,5 +287,5 @@ class ToolWalletTest(BitcoinTestFramework):
             self.test_salvage()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ToolWalletTest().main()
