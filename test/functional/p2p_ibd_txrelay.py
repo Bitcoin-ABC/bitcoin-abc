@@ -23,24 +23,29 @@ class P2PIBDTxRelayTest(BitcoinTestFramework):
         ]
 
     def run_test(self):
-        self.log.info(
-            "Check that nodes set minfilter to MAX_MONEY while still in IBD")
+        self.log.info("Check that nodes set minfilter to MAX_MONEY while still in IBD")
         for node in self.nodes:
-            assert node.getblockchaininfo()['initialblockdownload']
-            self.wait_until(lambda: all(peer['minfeefilter'] == MAX_FEE_FILTER
-                                        for peer in node.getpeerinfo()))
+            assert node.getblockchaininfo()["initialblockdownload"]
+            self.wait_until(
+                lambda: all(
+                    peer["minfeefilter"] == MAX_FEE_FILTER
+                    for peer in node.getpeerinfo()
+                )
+            )
 
         # Come out of IBD by generating a block
         self.generate(self.nodes[0], 1)
 
-        self.log.info(
-            "Check that nodes reset minfilter after coming out of IBD")
+        self.log.info("Check that nodes reset minfilter after coming out of IBD")
         for node in self.nodes:
-            assert not node.getblockchaininfo()['initialblockdownload']
+            assert not node.getblockchaininfo()["initialblockdownload"]
             self.wait_until(
-                lambda: all(peer['minfeefilter'] == NORMAL_FEE_FILTER
-                            for peer in node.getpeerinfo()))
+                lambda: all(
+                    peer["minfeefilter"] == NORMAL_FEE_FILTER
+                    for peer in node.getpeerinfo()
+                )
+            )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     P2PIBDTxRelayTest().main()

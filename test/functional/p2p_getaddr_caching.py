@@ -17,7 +17,6 @@ MAX_PCT_ADDR_TO_SEND = 23
 
 
 class AddrReceiver(P2PInterface):
-
     def __init__(self):
         super().__init__()
         self.received_addrs = None
@@ -43,7 +42,7 @@ class AddrTest(BitcoinTestFramework):
         #  - core#25333
 
     def run_test(self):
-        self.log.info('Fill peer AddrMan with a lot of records')
+        self.log.info("Fill peer AddrMan with a lot of records")
         for i in range(10000):
             first_octet = i >> 8
             second_octet = i % 256
@@ -54,10 +53,11 @@ class AddrTest(BitcoinTestFramework):
         # response later because only a fraction of all known addresses
         # can be cached and returned.
         assert len(self.nodes[0].getnodeaddresses(0)) > int(
-            MAX_ADDR_TO_SEND / (MAX_PCT_ADDR_TO_SEND / 100))
+            MAX_ADDR_TO_SEND / (MAX_PCT_ADDR_TO_SEND / 100)
+        )
 
         responses = []
-        self.log.info('Send many addr requests within short time to receive')
+        self.log.info("Send many addr requests within short time to receive")
 
         N = 5
         cur_mock_time = int(time.time())
@@ -76,7 +76,7 @@ class AddrTest(BitcoinTestFramework):
         cur_mock_time += 3 * 24 * 60 * 60
         self.nodes[0].setmocktime(cur_mock_time)
 
-        self.log.info('After time passed, see a new response to addr request')
+        self.log.info("After time passed, see a new response to addr request")
         last_addr_receiver = self.nodes[0].add_p2p_connection(AddrReceiver())
         last_addr_receiver.send_and_ping(msg_getaddr())
         # Trigger response
@@ -84,9 +84,8 @@ class AddrTest(BitcoinTestFramework):
         self.nodes[0].setmocktime(cur_mock_time)
         last_addr_receiver.wait_until(last_addr_receiver.addr_received)
         # new response is different
-        assert (set(responses[0]) != set(
-            last_addr_receiver.get_received_addrs()))
+        assert set(responses[0]) != set(last_addr_receiver.get_received_addrs())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     AddrTest().main()

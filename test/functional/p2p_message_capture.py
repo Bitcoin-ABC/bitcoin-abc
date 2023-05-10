@@ -37,10 +37,9 @@ def mini_parser(dat_file):
 
     We're ignoring these because they're simply too brittle to test here.
     """
-    with open(dat_file, 'rb') as f_in:
+    with open(dat_file, "rb") as f_in:
         # This should have at least one message in it
-        assert os.fstat(f_in.fileno()).st_size >= TIME_SIZE + \
-            LENGTH_SIZE + MSGTYPE_SIZE
+        assert os.fstat(f_in.fileno()).st_size >= TIME_SIZE + LENGTH_SIZE + MSGTYPE_SIZE
         while True:
             tmp_header_raw = f_in.read(TIME_SIZE + LENGTH_SIZE + MSGTYPE_SIZE)
             if not tmp_header_raw:
@@ -48,8 +47,8 @@ def mini_parser(dat_file):
             tmp_header = BytesIO(tmp_header_raw)
             int.from_bytes(tmp_header.read(TIME_SIZE), "little")
             raw_msgtype = tmp_header.read(MSGTYPE_SIZE)
-            msgtype = raw_msgtype.split(b'\x00', 1)[0]
-            remainder = raw_msgtype.split(b'\x00', 1)[1]
+            msgtype = raw_msgtype.split(b"\x00", 1)[0]
+            remainder = raw_msgtype.split(b"\x00", 1)[1]
             assert len(msgtype) > 0
             assert msgtype in MESSAGEMAP
             assert len(remainder) == 0 or not remainder.decode().isprintable()
@@ -65,9 +64,7 @@ class MessageCaptureTest(BitcoinTestFramework):
         self.setup_clean_chain = True
 
     def run_test(self):
-        capturedir = os.path.join(
-            self.nodes[0].datadir,
-            "regtest/message_capture")
+        capturedir = os.path.join(self.nodes[0].datadir, "regtest/message_capture")
         # Connect a node so that the handshake occurs
         self.nodes[0].add_p2p_connection(P2PDataStore())
         self.nodes[0].disconnect_p2ps()
@@ -77,5 +74,5 @@ class MessageCaptureTest(BitcoinTestFramework):
         mini_parser(sent_file)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     MessageCaptureTest().main()

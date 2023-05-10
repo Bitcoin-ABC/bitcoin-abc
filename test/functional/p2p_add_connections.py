@@ -35,9 +35,9 @@ class P2PAddConnections(BitcoinTestFramework):
         self.extra_args = [
             [
                 "-avaproofstakeutxoconfirmations=1",
-                f"-maxavalancheoutbound={MAX_AVALANCHE_OUTBOUND_CONNECTIONS}"
+                f"-maxavalancheoutbound={MAX_AVALANCHE_OUTBOUND_CONNECTIONS}",
             ],
-            []
+            [],
         ]
 
     def setup_network(self):
@@ -51,7 +51,8 @@ class P2PAddConnections(BitcoinTestFramework):
 
         for _ in range(quantity):
             self.log.debug(
-                f"Node {node.index}, {conn_type}: {self.p2p_idx[node.index]}")
+                f"Node {node.index}, {conn_type}: {self.p2p_idx[node.index]}"
+            )
             node.add_outbound_p2p_connection(
                 P2PInterface(),
                 p2p_idx=self.p2p_idx[node.index],
@@ -61,30 +62,29 @@ class P2PAddConnections(BitcoinTestFramework):
             self.p2p_idx[node.index] += 1
 
     def simple_test(self):
-        self.log.info(
-            "Connect to various outbound peers in a predetermined way")
+        self.log.info("Connect to various outbound peers in a predetermined way")
         self.p2p_idx = [0] * self.num_nodes
 
-        self.log.info(
-            f"Add {MAX_OUTBOUND_FULL_RELAY_CONNECTIONS} outbounds to node 0")
+        self.log.info(f"Add {MAX_OUTBOUND_FULL_RELAY_CONNECTIONS} outbounds to node 0")
         self.add_outbounds(
-            self.nodes[0],
-            MAX_OUTBOUND_FULL_RELAY_CONNECTIONS,
-            "outbound-full-relay")
+            self.nodes[0], MAX_OUTBOUND_FULL_RELAY_CONNECTIONS, "outbound-full-relay"
+        )
 
         self.log.info(
-            f"Add {MAX_BLOCK_RELAY_ONLY_CONNECTIONS} block-relay-only connections to node 0")
+            f"Add {MAX_BLOCK_RELAY_ONLY_CONNECTIONS} block-relay-only connections to"
+            " node 0"
+        )
         self.add_outbounds(
-            self.nodes[0],
-            MAX_BLOCK_RELAY_ONLY_CONNECTIONS,
-            "block-relay-only")
+            self.nodes[0], MAX_BLOCK_RELAY_ONLY_CONNECTIONS, "block-relay-only"
+        )
 
         self.log.info(
-            f"Add {MAX_BLOCK_RELAY_ONLY_CONNECTIONS} block-relay-only connections to node 1")
+            f"Add {MAX_BLOCK_RELAY_ONLY_CONNECTIONS} block-relay-only connections to"
+            " node 1"
+        )
         self.add_outbounds(
-            self.nodes[1],
-            MAX_BLOCK_RELAY_ONLY_CONNECTIONS,
-            "block-relay-only")
+            self.nodes[1], MAX_BLOCK_RELAY_ONLY_CONNECTIONS, "block-relay-only"
+        )
 
         self.log.info("Add 5 inbound connections to node 1")
         for i in range(5):
@@ -98,73 +98,74 @@ class P2PAddConnections(BitcoinTestFramework):
         check_node_connections(
             node=self.nodes[0],
             num_in=0,
-            num_out=MAX_OUTBOUND_FULL_RELAY_CONNECTIONS + MAX_BLOCK_RELAY_ONLY_CONNECTIONS)
+            num_out=MAX_OUTBOUND_FULL_RELAY_CONNECTIONS
+            + MAX_BLOCK_RELAY_ONLY_CONNECTIONS,
+        )
         check_node_connections(
-            node=self.nodes[1],
-            num_in=5,
-            num_out=4 + MAX_BLOCK_RELAY_ONLY_CONNECTIONS)
+            node=self.nodes[1], num_in=5, num_out=4 + MAX_BLOCK_RELAY_ONLY_CONNECTIONS
+        )
 
         self.log.info("Disconnect p2p connections & try to re-open")
         self.nodes[0].disconnect_p2ps()
         self.p2p_idx[0] = 0
         check_node_connections(node=self.nodes[0], num_in=0, num_out=0)
 
-        self.log.info(
-            f"Add {MAX_OUTBOUND_FULL_RELAY_CONNECTIONS} outbounds to node 0")
+        self.log.info(f"Add {MAX_OUTBOUND_FULL_RELAY_CONNECTIONS} outbounds to node 0")
         self.add_outbounds(
-            self.nodes[0],
-            MAX_OUTBOUND_FULL_RELAY_CONNECTIONS,
-            "outbound-full-relay")
+            self.nodes[0], MAX_OUTBOUND_FULL_RELAY_CONNECTIONS, "outbound-full-relay"
+        )
         check_node_connections(
-            node=self.nodes[0],
-            num_in=0,
-            num_out=MAX_OUTBOUND_FULL_RELAY_CONNECTIONS)
+            node=self.nodes[0], num_in=0, num_out=MAX_OUTBOUND_FULL_RELAY_CONNECTIONS
+        )
 
         self.log.info(
-            f"Add {MAX_BLOCK_RELAY_ONLY_CONNECTIONS} block-relay-only connections to node 0")
+            f"Add {MAX_BLOCK_RELAY_ONLY_CONNECTIONS} block-relay-only connections to"
+            " node 0"
+        )
         self.add_outbounds(
-            self.nodes[0],
-            MAX_BLOCK_RELAY_ONLY_CONNECTIONS,
-            "block-relay-only")
+            self.nodes[0], MAX_BLOCK_RELAY_ONLY_CONNECTIONS, "block-relay-only"
+        )
         check_node_connections(
             node=self.nodes[0],
             num_in=0,
-            num_out=MAX_OUTBOUND_FULL_RELAY_CONNECTIONS + MAX_BLOCK_RELAY_ONLY_CONNECTIONS)
+            num_out=MAX_OUTBOUND_FULL_RELAY_CONNECTIONS
+            + MAX_BLOCK_RELAY_ONLY_CONNECTIONS,
+        )
 
         self.log.info("Restart node 0 and try to reconnect to p2ps")
         self.restart_node(0)
         self.p2p_idx[0] = 0
 
-        self.log.info(
-            f"Add {MAX_OUTBOUND_FULL_RELAY_CONNECTIONS} outbounds to node 0")
+        self.log.info(f"Add {MAX_OUTBOUND_FULL_RELAY_CONNECTIONS} outbounds to node 0")
         self.add_outbounds(
-            self.nodes[0],
-            MAX_OUTBOUND_FULL_RELAY_CONNECTIONS,
-            "outbound-full-relay")
+            self.nodes[0], MAX_OUTBOUND_FULL_RELAY_CONNECTIONS, "outbound-full-relay"
+        )
+        check_node_connections(
+            node=self.nodes[0], num_in=0, num_out=MAX_OUTBOUND_FULL_RELAY_CONNECTIONS
+        )
+
+        self.log.info(
+            f"Add {MAX_BLOCK_RELAY_ONLY_CONNECTIONS} block-relay-only connections to"
+            " node 0"
+        )
+        self.add_outbounds(
+            self.nodes[0], MAX_BLOCK_RELAY_ONLY_CONNECTIONS, "block-relay-only"
+        )
         check_node_connections(
             node=self.nodes[0],
             num_in=0,
-            num_out=MAX_OUTBOUND_FULL_RELAY_CONNECTIONS)
-
-        self.log.info(
-            f"Add {MAX_BLOCK_RELAY_ONLY_CONNECTIONS} block-relay-only connections to node 0")
-        self.add_outbounds(
-            self.nodes[0],
-            MAX_BLOCK_RELAY_ONLY_CONNECTIONS,
-            "block-relay-only")
-        check_node_connections(
-            node=self.nodes[0],
-            num_in=0,
-            num_out=MAX_OUTBOUND_FULL_RELAY_CONNECTIONS + MAX_BLOCK_RELAY_ONLY_CONNECTIONS)
+            num_out=MAX_OUTBOUND_FULL_RELAY_CONNECTIONS
+            + MAX_BLOCK_RELAY_ONLY_CONNECTIONS,
+        )
 
         check_node_connections(
-            node=self.nodes[1],
-            num_in=5,
-            num_out=4 + MAX_BLOCK_RELAY_ONLY_CONNECTIONS)
+            node=self.nodes[1], num_in=5, num_out=4 + MAX_BLOCK_RELAY_ONLY_CONNECTIONS
+        )
 
         self.log.info("Add 1 feeler connection to node 0")
         feeler_conn = self.nodes[0].add_outbound_p2p_connection(
-            P2PFeelerReceiver(), p2p_idx=self.p2p_idx[0], connection_type="feeler")
+            P2PFeelerReceiver(), p2p_idx=self.p2p_idx[0], connection_type="feeler"
+        )
 
         # Feeler connection is closed
         assert not feeler_conn.is_connected
@@ -176,15 +177,15 @@ class P2PAddConnections(BitcoinTestFramework):
 
         self.log.info("Connecting avalanche outbounds")
         self.add_outbounds(
-            self.nodes[0],
-            MAX_AVALANCHE_OUTBOUND_CONNECTIONS,
-            "avalanche")
+            self.nodes[0], MAX_AVALANCHE_OUTBOUND_CONNECTIONS, "avalanche"
+        )
         check_node_connections(
             node=self.nodes[0],
             num_in=0,
-            num_out=MAX_OUTBOUND_FULL_RELAY_CONNECTIONS +
-            MAX_BLOCK_RELAY_ONLY_CONNECTIONS +
-            MAX_AVALANCHE_OUTBOUND_CONNECTIONS)
+            num_out=MAX_OUTBOUND_FULL_RELAY_CONNECTIONS
+            + MAX_BLOCK_RELAY_ONLY_CONNECTIONS
+            + MAX_AVALANCHE_OUTBOUND_CONNECTIONS,
+        )
 
     def random_test(self):
         for node in self.nodes:
@@ -199,8 +200,7 @@ class P2PAddConnections(BitcoinTestFramework):
         max_outbounds = sum(remaining_outbounds.values())
 
         iterations = random.randint(1, 5 * max_outbounds)
-        self.log.info(
-            f"Randomly insert outbounds of various types {iterations} times")
+        self.log.info(f"Randomly insert outbounds of various types {iterations} times")
 
         for _ in range(iterations):
             conn_type = random.choice(list(remaining_outbounds))
@@ -213,12 +213,13 @@ class P2PAddConnections(BitcoinTestFramework):
         check_node_connections(
             node=self.nodes[0],
             num_in=0,
-            num_out=max_outbounds - sum(remaining_outbounds.values()))
+            num_out=max_outbounds - sum(remaining_outbounds.values()),
+        )
 
     def run_test(self):
         self.simple_test()
         self.random_test()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     P2PAddConnections().main()

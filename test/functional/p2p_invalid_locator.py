@@ -18,33 +18,37 @@ class InvalidLocatorTest(BitcoinTestFramework):
         # Convenience reference to the node
         node = self.nodes[0]
         # Get node out of IBD
-        self.generatetoaddress(
-            node, 1, node.get_deterministic_priv_key().address)
+        self.generatetoaddress(node, 1, node.get_deterministic_priv_key().address)
 
-        self.log.info('Test max locator size')
+        self.log.info("Test max locator size")
         block_count = node.getblockcount()
         for msg in [msg_getheaders(), msg_getblocks()]:
             self.log.info(
-                f'Wait for disconnect when sending {MAX_LOCATOR_SZ + 1} hashes in '
-                f'locator')
+                f"Wait for disconnect when sending {MAX_LOCATOR_SZ + 1} hashes in "
+                "locator"
+            )
             exceed_max_peer = node.add_p2p_connection(P2PInterface())
-            msg.locator.vHave = [int(node.getblockhash(
-                i - 1), 16) for i in range(block_count, block_count - (MAX_LOCATOR_SZ + 1), -1)]
+            msg.locator.vHave = [
+                int(node.getblockhash(i - 1), 16)
+                for i in range(block_count, block_count - (MAX_LOCATOR_SZ + 1), -1)
+            ]
             exceed_max_peer.send_message(msg)
             exceed_max_peer.wait_for_disconnect()
 
             self.log.info(
-                f'Wait for response when sending {MAX_LOCATOR_SZ} hashes in locator')
+                f"Wait for response when sending {MAX_LOCATOR_SZ} hashes in locator"
+            )
             within_max_peer = node.add_p2p_connection(P2PInterface())
-            msg.locator.vHave = [int(node.getblockhash(
-                i - 1), 16) for i in range(block_count, block_count - (MAX_LOCATOR_SZ), -1)]
+            msg.locator.vHave = [
+                int(node.getblockhash(i - 1), 16)
+                for i in range(block_count, block_count - (MAX_LOCATOR_SZ), -1)
+            ]
             within_max_peer.send_message(msg)
             if isinstance(msg, msg_getheaders):
                 within_max_peer.wait_for_header(node.getbestblockhash())
             else:
-                within_max_peer.wait_for_block(
-                    int(node.getbestblockhash(), 16))
+                within_max_peer.wait_for_block(int(node.getbestblockhash(), 16))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     InvalidLocatorTest().main()

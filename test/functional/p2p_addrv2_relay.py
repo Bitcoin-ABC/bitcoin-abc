@@ -45,24 +45,27 @@ class AddrTest(BitcoinTestFramework):
         self.extra_args = [["-whitelist=addr@127.0.0.1"]]
 
     def run_test(self):
-        self.log.info('Create connection that sends addrv2 messages')
+        self.log.info("Create connection that sends addrv2 messages")
         addr_source = self.nodes[0].add_p2p_connection(P2PInterface())
         msg = msg_addrv2()
 
-        self.log.info('Send too-large addrv2 message')
+        self.log.info("Send too-large addrv2 message")
         msg.addrs = ADDRS * 101
-        with self.nodes[0].assert_debug_log(['addrv2 message size = 1010']):
+        with self.nodes[0].assert_debug_log(["addrv2 message size = 1010"]):
             addr_source.send_and_ping(msg)
 
         self.log.info(
-            'Check that addrv2 message content is relayed and added to addrman')
+            "Check that addrv2 message content is relayed and added to addrman"
+        )
         addr_receiver = self.nodes[0].add_p2p_connection(AddrReceiver())
         msg.addrs = ADDRS
-        with self.nodes[0].assert_debug_log([
-                'Added 10 addresses from 127.0.0.1: 0 tried',
-                'received: addrv2 (131 bytes) peer=0',
-                'sending addrv2 (131 bytes) peer=1',
-        ]):
+        with self.nodes[0].assert_debug_log(
+            [
+                "Added 10 addresses from 127.0.0.1: 0 tried",
+                "received: addrv2 (131 bytes) peer=0",
+                "sending addrv2 (131 bytes) peer=1",
+            ]
+        ):
             addr_source.send_and_ping(msg)
             self.nodes[0].setmocktime(int(time.time()) + 30 * 60)
             addr_receiver.wait_for_addrv2()
@@ -70,5 +73,5 @@ class AddrTest(BitcoinTestFramework):
         assert addr_receiver.addrv2_received_and_checked
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     AddrTest().main()

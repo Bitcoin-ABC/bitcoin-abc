@@ -18,7 +18,7 @@ class CompactBlocksConnectionTest(BitcoinTestFramework):
     def peer_info(self, from_node, to_node):
         """Query from_node for its getpeerinfo about to_node."""
         for peerinfo in self.nodes[from_node].getpeerinfo():
-            if f"testnode-{to_node}" in peerinfo['subver']:
+            if f"testnode-{to_node}" in peerinfo["subver"]:
                 return peerinfo
         return None
 
@@ -33,8 +33,8 @@ class CompactBlocksConnectionTest(BitcoinTestFramework):
         self.connect_nodes(peer, 0)
         self.generate(self.nodes[0], 1, sync_fun=self.sync_blocks)
         self.disconnect_nodes(peer, 0)
-        status_to = [self.peer_info(1, i)['bip152_hb_to'] for i in range(2, 6)]
-        status_from = [self.peer_info(i, 1)['bip152_hb_from'] for i in range(2, 6)]
+        status_to = [self.peer_info(1, i)["bip152_hb_to"] for i in range(2, 6)]
+        status_from = [self.peer_info(i, 1)["bip152_hb_from"] for i in range(2, 6)]
         assert_equal(status_to, status_from)
         return status_to
 
@@ -92,5 +92,5 @@ class CompactBlocksConnectionTest(BitcoinTestFramework):
         assert_equal(status, [False, True, True, True])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     CompactBlocksConnectionTest().main()

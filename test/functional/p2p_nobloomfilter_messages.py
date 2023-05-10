@@ -36,22 +36,20 @@ class P2PNoBloomFilterMessages(BitcoinTestFramework):
         assert_equal(self.nodes[0].getconnectioncount(), 0)
 
     def run_test(self):
-        self.log.info(
-            "Test that peer is disconnected if it sends mempool message")
+        self.log.info("Test that peer is disconnected if it sends mempool message")
         self.test_message_causes_disconnect(msg_mempool())
 
-        self.log.info(
-            "Test that peer is disconnected if it sends filterload message")
+        self.log.info("Test that peer is disconnected if it sends filterload message")
         self.test_message_causes_disconnect(msg_filterload())
 
-        self.log.info(
-            "Test that peer is disconnected if it sends filteradd message")
-        self.test_message_causes_disconnect(msg_filteradd(data=b'\xcc'))
+        self.log.info("Test that peer is disconnected if it sends filteradd message")
+        self.test_message_causes_disconnect(msg_filteradd(data=b"\xcc"))
 
         self.log.info(
-            "Test that peer is disconnected if it sends a filterclear message")
+            "Test that peer is disconnected if it sends a filterclear message"
+        )
         self.test_message_causes_disconnect(msg_filterclear())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     P2PNoBloomFilterMessages().main()

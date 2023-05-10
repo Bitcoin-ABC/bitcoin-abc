@@ -50,11 +50,14 @@ class TimeoutsTest(BitcoinTestFramework):
 
         # Setup the p2p connections
         no_verack_node = self.nodes[0].add_p2p_connection(
-            TestP2PConn(), wait_for_verack=False)
+            TestP2PConn(), wait_for_verack=False
+        )
         no_version_node = self.nodes[0].add_p2p_connection(
-            TestP2PConn(), send_version=False, wait_for_verack=False)
+            TestP2PConn(), send_version=False, wait_for_verack=False
+        )
         no_send_node = self.nodes[0].add_p2p_connection(
-            TestP2PConn(), send_version=False, wait_for_verack=False)
+            TestP2PConn(), send_version=False, wait_for_verack=False
+        )
 
         # Wait until we got the verack in response to the version. Though, don't wait for the other node to receive the
         # verack, since we never sent one
@@ -93,5 +96,5 @@ class TimeoutsTest(BitcoinTestFramework):
             no_send_node.wait_for_disconnect(timeout=1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     TimeoutsTest().main()

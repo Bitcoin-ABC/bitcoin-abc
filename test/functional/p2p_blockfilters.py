@@ -63,8 +63,7 @@ class CompactFiltersTest(BitcoinTestFramework):
         # Stale blocks by disconnecting nodes 0 & 1, mining, then reconnecting
         self.disconnect_nodes(0, 1)
 
-        stale_block_hash = self.generate(
-            self.nodes[0], 1, sync_fun=self.no_op)[0]
+        stale_block_hash = self.generate(self.nodes[0], 1, sync_fun=self.no_op)[0]
         self.nodes[0].syncwithvalidationinterfacequeue()
         assert_equal(self.nodes[0].getblockcount(), 1000)
 
@@ -76,12 +75,16 @@ class CompactFiltersTest(BitcoinTestFramework):
         assert peer_1.nServices & NODE_COMPACT_FILTERS == 0
 
         # Check that the localservices is as expected.
-        assert int(
-            self.nodes[0].getnetworkinfo()['localservices'],
-            16) & NODE_COMPACT_FILTERS != 0
-        assert int(
-            self.nodes[1].getnetworkinfo()['localservices'],
-            16) & NODE_COMPACT_FILTERS == 0
+        assert (
+            int(self.nodes[0].getnetworkinfo()["localservices"], 16)
+            & NODE_COMPACT_FILTERS
+            != 0
+        )
+        assert (
+            int(self.nodes[1].getnetworkinfo()["localservices"], 16)
+            & NODE_COMPACT_FILTERS
+            == 0
+        )
 
         self.log.info("get cfcheckpt on chain to be re-orged out.")
         request = msg_getcfcheckpt(
@@ -89,7 +92,7 @@ class CompactFiltersTest(BitcoinTestFramework):
             stop_hash=int(stale_block_hash, 16),
         )
         peer_0.send_and_ping(message=request)
-        response = peer_0.last_message['cfcheckpt']
+        response = peer_0.last_message["cfcheckpt"]
         assert_equal(response.filter_type, request.filter_type)
         assert_equal(response.stop_hash, request.stop_hash)
         assert_equal(len(response.headers), 1)
@@ -109,14 +112,14 @@ class CompactFiltersTest(BitcoinTestFramework):
             stop_hash=int(tip_hash, 16),
         )
         peer_0.send_and_ping(request)
-        response = peer_0.last_message['cfcheckpt']
+        response = peer_0.last_message["cfcheckpt"]
         assert_equal(response.filter_type, request.filter_type)
         assert_equal(response.stop_hash, request.stop_hash)
 
-        main_cfcheckpt = self.nodes[0].getblockfilter(
-            main_block_hash, 'basic')['header']
-        tip_cfcheckpt = self.nodes[0].getblockfilter(tip_hash, 'basic')[
-            'header']
+        main_cfcheckpt = self.nodes[0].getblockfilter(main_block_hash, "basic")[
+            "header"
+        ]
+        tip_cfcheckpt = self.nodes[0].getblockfilter(tip_hash, "basic")["header"]
         assert_equal(
             response.headers,
             [int(header, 16) for header in (main_cfcheckpt, tip_cfcheckpt)],
@@ -128,13 +131,14 @@ class CompactFiltersTest(BitcoinTestFramework):
             stop_hash=int(stale_block_hash, 16),
         )
         peer_0.send_and_ping(request)
-        response = peer_0.last_message['cfcheckpt']
+        response = peer_0.last_message["cfcheckpt"]
 
-        stale_cfcheckpt = self.nodes[0].getblockfilter(
-            stale_block_hash, 'basic')['header']
+        stale_cfcheckpt = self.nodes[0].getblockfilter(stale_block_hash, "basic")[
+            "header"
+        ]
         assert_equal(
             response.headers,
-            [int(header, 16) for header in (stale_cfcheckpt, )],
+            [int(header, 16) for header in (stale_cfcheckpt,)],
         )
 
         self.log.info("Check that peers can fetch cfheaders on active chain.")
@@ -144,7 +148,7 @@ class CompactFiltersTest(BitcoinTestFramework):
             stop_hash=int(main_block_hash, 16),
         )
         peer_0.send_and_ping(request)
-        response = peer_0.last_message['cfheaders']
+        response = peer_0.last_message["cfheaders"]
         main_cfhashes = response.hashes
         assert_equal(len(main_cfhashes), 1000)
         assert_equal(
@@ -159,7 +163,7 @@ class CompactFiltersTest(BitcoinTestFramework):
             stop_hash=int(stale_block_hash, 16),
         )
         peer_0.send_and_ping(request)
-        response = peer_0.last_message['cfheaders']
+        response = peer_0.last_message["cfheaders"]
         stale_cfhashes = response.hashes
         assert_equal(len(stale_cfhashes), 1000)
         assert_equal(
@@ -179,8 +183,7 @@ class CompactFiltersTest(BitcoinTestFramework):
         assert_equal(len(response), 10)
 
         self.log.info("Check that cfilter responses are correct.")
-        for cfilter, cfhash, height in zip(
-                response, main_cfhashes, range(1, 11)):
+        for cfilter, cfhash, height in zip(response, main_cfhashes, range(1, 11)):
             block_hash = self.nodes[0].getblockhash(height)
             assert_equal(cfilter.filter_type, FILTER_TYPE_BASIC)
             assert_equal(cfilter.block_hash, int(block_hash, 16))
@@ -204,7 +207,8 @@ class CompactFiltersTest(BitcoinTestFramework):
         assert_equal(computed_cfhash, stale_cfhashes[999])
 
         self.log.info(
-            "Requests to node 1 without NODE_COMPACT_FILTERS results in disconnection.")
+            "Requests to node 1 without NODE_COMPACT_FILTERS results in disconnection."
+        )
         requests = [
             msg_getcfcheckpt(
                 filter_type=FILTER_TYPE_BASIC,
@@ -265,5 +269,5 @@ def compute_last_header(prev_header, hashes):
     return uint256_from_str(header)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     CompactFiltersTest().main()

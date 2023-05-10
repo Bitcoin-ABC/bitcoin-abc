@@ -35,31 +35,32 @@ class P2PLeakTxTest(BitcoinTestFramework):
         MAX_REPEATS = 100
         self.log.info(f"Running test up to {MAX_REPEATS} times.")
         for i in range(MAX_REPEATS):
-            self.log.info(f'Run repeat {i + 1}')
-            txid = miniwallet.send_self_transfer(from_node=gen_node)['txid']
+            self.log.info(f"Run repeat {i + 1}")
+            txid = miniwallet.send_self_transfer(from_node=gen_node)["txid"]
 
             want_tx = msg_getdata()
             want_tx.inv.append(CInv(t=MSG_TX, h=int(txid, 16)))
             with p2p_lock:
-                inbound_peer.last_message.pop('notfound', None)
+                inbound_peer.last_message.pop("notfound", None)
             inbound_peer.send_and_ping(want_tx)
 
-            if inbound_peer.last_message.get('notfound'):
-                self.log.debug(
-                    f'tx {txid} was not yet announced to us.')
-                self.log.debug(
-                    "node has responded with a notfound message. End test.")
+            if inbound_peer.last_message.get("notfound"):
+                self.log.debug(f"tx {txid} was not yet announced to us.")
+                self.log.debug("node has responded with a notfound message. End test.")
                 assert_equal(
-                    inbound_peer.last_message['notfound'].vec[0].hash, int(txid, 16))
+                    inbound_peer.last_message["notfound"].vec[0].hash, int(txid, 16)
+                )
                 with p2p_lock:
-                    inbound_peer.last_message.pop('notfound')
+                    inbound_peer.last_message.pop("notfound")
                 break
             else:
                 self.log.debug(
-                    f'tx {txid} was already announced to us. Try test again.')
+                    f"tx {txid} was already announced to us. Try test again."
+                )
                 assert int(txid, 16) in [
-                    inv.hash for inv in inbound_peer.last_message['inv'].inv]
+                    inv.hash for inv in inbound_peer.last_message["inv"].inv
+                ]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     P2PLeakTxTest().main()

@@ -41,8 +41,9 @@ class AddrReceiver(P2PInterface):
                 assert_equal(addr.nServices, NODE_NETWORK)
                 if not 8333 <= addr.port < 8343:
                     raise AssertionError(
-                        f"Invalid addr.port of {addr.port} (8333-8342 expected)")
-                assert addr.ip.startswith('123.123.123.')
+                        f"Invalid addr.port of {addr.port} (8333-8342 expected)"
+                    )
+                assert addr.ip.startswith("123.123.123.")
 
     def on_getaddr(self, message):
         # When the node sends us a getaddr, it increments the addr relay tokens
@@ -65,11 +66,11 @@ class AddrReceiver(P2PInterface):
 
     def on_version(self, message):
         self.send_message(msg_verack())
-        if (self.send_getaddr):
+        if self.send_getaddr:
             self.send_message(msg_getaddr())
 
     def getaddr_received(self):
-        return self.message_count['getaddr'] > 0
+        return self.message_count["getaddr"] > 0
 
 
 class AddrTest(BitcoinTestFramework):
@@ -131,27 +132,25 @@ class AddrTest(BitcoinTestFramework):
             peer.sync_send_with_ping()
 
     def oversized_addr_test(self):
-        self.log.info('Send an addr message that is too large')
+        self.log.info("Send an addr message that is too large")
         addr_source = self.nodes[0].add_p2p_connection(P2PInterface())
 
         msg = self.setup_addr_msg(1010)
-        with self.nodes[0].assert_debug_log(['addr message size = 1010']):
+        with self.nodes[0].assert_debug_log(["addr message size = 1010"]):
             addr_source.send_and_ping(msg)
 
         self.nodes[0].disconnect_p2ps()
 
     def relay_tests(self):
-        self.log.info('Test address relay')
-        self.log.info(
-            'Check that addr message content is relayed and added to addrman')
+        self.log.info("Test address relay")
+        self.log.info("Check that addr message content is relayed and added to addrman")
         addr_source = self.nodes[0].add_p2p_connection(P2PInterface())
         num_receivers = 7
         receivers = []
         for _ in range(num_receivers):
             receivers.append(
-                self.nodes[0].add_p2p_connection(
-                    AddrReceiver(
-                        test_addr_contents=True)))
+                self.nodes[0].add_p2p_connection(AddrReceiver(test_addr_contents=True))
+            )
 
         # Keep this with length <= 10. Addresses from larger messages are not
         # relayed.
@@ -159,8 +158,8 @@ class AddrTest(BitcoinTestFramework):
         msg = self.setup_addr_msg(num_ipv4_addrs)
         with self.nodes[0].assert_debug_log(
             [
-                f'Added {num_ipv4_addrs} addresses from 127.0.0.1: 0 tried',
-                'received: addr (301 bytes) peer=1',
+                f"Added {num_ipv4_addrs} addresses from 127.0.0.1: 0 tried",
+                "received: addr (301 bytes) peer=1",
             ]
         ):
             self.send_addr_msg(addr_source, msg, receivers)
@@ -170,22 +169,23 @@ class AddrTest(BitcoinTestFramework):
         # Every IPv4 address must be relayed to two peers, other than the
         # originating node (addr_source).
         ipv4_branching_factor = 2
-        assert_equal(
-            total_ipv4_received,
-            num_ipv4_addrs *
-            ipv4_branching_factor)
+        assert_equal(total_ipv4_received, num_ipv4_addrs * ipv4_branching_factor)
 
         self.nodes[0].disconnect_p2ps()
 
-        self.log.info('Check relay of addresses received from outbound peers')
+        self.log.info("Check relay of addresses received from outbound peers")
         inbound_peer = self.nodes[0].add_p2p_connection(
-            AddrReceiver(test_addr_contents=True, send_getaddr=False))
+            AddrReceiver(test_addr_contents=True, send_getaddr=False)
+        )
         full_outbound_peer = self.nodes[0].add_outbound_p2p_connection(
-            AddrReceiver(), p2p_idx=0, connection_type="outbound-full-relay")
+            AddrReceiver(), p2p_idx=0, connection_type="outbound-full-relay"
+        )
         msg = self.setup_addr_msg(2)
         self.send_addr_msg(full_outbound_peer, msg, [inbound_peer])
         self.log.info(
-            'Check that the first addr message received from an outbound peer is not relayed')
+            "Check that the first addr message received from an outbound peer is not"
+            " relayed"
+        )
         # Currently, there is a flag that prevents the first addr message
         # received from a new outbound peer to be relayed to others. Originally
         # meant to prevent large GETADDR responses from being relayed, it now
@@ -198,48 +198,52 @@ class AddrTest(BitcoinTestFramework):
         inbound_peer.send_and_ping(msg_addr())
 
         self.log.info(
-            'Check that subsequent addr messages sent from an outbound peer are relayed')
+            "Check that subsequent addr messages sent from an outbound peer are relayed"
+        )
         msg2 = self.setup_addr_msg(2)
         self.send_addr_msg(full_outbound_peer, msg2, [inbound_peer])
         assert_equal(inbound_peer.num_ipv4_received, 2)
 
-        self.log.info('Check address relay to outbound peers')
+        self.log.info("Check address relay to outbound peers")
         block_relay_peer = self.nodes[0].add_outbound_p2p_connection(
-            AddrReceiver(), p2p_idx=1, connection_type="block-relay-only")
+            AddrReceiver(), p2p_idx=1, connection_type="block-relay-only"
+        )
         msg3 = self.setup_addr_msg(2)
-        self.send_addr_msg(
-            inbound_peer, msg3,
-            [full_outbound_peer, block_relay_peer])
+        self.send_addr_msg(inbound_peer, msg3, [full_outbound_peer, block_relay_peer])
 
-        self.log.info(
-            'Check that addresses are relayed to full outbound peers')
+        self.log.info("Check that addresses are relayed to full outbound peers")
         assert_equal(full_outbound_peer.num_ipv4_received, 2)
         self.log.info(
-            'Check that addresses are not relayed to block-relay-only outbound peers')
+            "Check that addresses are not relayed to block-relay-only outbound peers"
+        )
         assert_equal(block_relay_peer.num_ipv4_received, 0)
 
         self.nodes[0].disconnect_p2ps()
 
     def sum_addr_messages(self, msgs_dict):
-        return sum(bytes_received for (msg, bytes_received)
-                   in msgs_dict.items() if msg in ['addr', 'addrv2', 'getaddr'])
+        return sum(
+            bytes_received
+            for (msg, bytes_received) in msgs_dict.items()
+            if msg in ["addr", "addrv2", "getaddr"]
+        )
 
     def inbound_blackhole_tests(self):
         self.log.info(
-            'Check that we only relay addresses to inbound peers who have previously sent us addr related messages')
+            "Check that we only relay addresses to inbound peers who have previously"
+            " sent us addr related messages"
+        )
 
         addr_source = self.nodes[0].add_p2p_connection(P2PInterface())
         receiver_peer = self.nodes[0].add_p2p_connection(AddrReceiver())
         blackhole_peer = self.nodes[0].add_p2p_connection(
-            AddrReceiver(send_getaddr=False))
+            AddrReceiver(send_getaddr=False)
+        )
         initial_addrs_received = receiver_peer.num_ipv4_received
 
         peerinfo = self.nodes[0].getpeerinfo()
-        assert_equal(peerinfo[0]['addr_relay_enabled'], True)  # addr_source
-        assert_equal(peerinfo[1]['addr_relay_enabled'], True)  # receiver_peer
-        assert_equal(
-            peerinfo[2]['addr_relay_enabled'],
-            False)  # blackhole_peer
+        assert_equal(peerinfo[0]["addr_relay_enabled"], True)  # addr_source
+        assert_equal(peerinfo[1]["addr_relay_enabled"], True)  # receiver_peer
+        assert_equal(peerinfo[2]["addr_relay_enabled"], False)  # blackhole_peer
 
         # addr_source sends 2 addresses to node0
         msg = self.setup_addr_msg(2)
@@ -252,34 +256,26 @@ class AddrTest(BitcoinTestFramework):
         peerinfo = self.nodes[0].getpeerinfo()
 
         # Confirm node received addr-related messages from receiver peer
-        assert_greater_than(
-            self.sum_addr_messages(
-                peerinfo[1]['bytesrecv_per_msg']), 0)
+        assert_greater_than(self.sum_addr_messages(peerinfo[1]["bytesrecv_per_msg"]), 0)
         # And that peer received addresses
-        assert_equal(
-            receiver_peer.num_ipv4_received -
-            initial_addrs_received,
-            2)
+        assert_equal(receiver_peer.num_ipv4_received - initial_addrs_received, 2)
 
         # Confirm node has not received addr-related messages from blackhole
         # peer
-        assert_equal(
-            self.sum_addr_messages(
-                peerinfo[2]['bytesrecv_per_msg']), 0)
+        assert_equal(self.sum_addr_messages(peerinfo[2]["bytesrecv_per_msg"]), 0)
         # And that peer did not receive addresses
         assert_equal(blackhole_peer.num_ipv4_received, 0)
 
         self.log.info(
-            "After blackhole peer sends addr message, it becomes eligible for addr gossip")
+            "After blackhole peer sends addr message, it becomes eligible for addr"
+            " gossip"
+        )
         blackhole_peer.send_and_ping(msg_addr())
 
         # Confirm node has now received addr-related messages from blackhole
         # peer
-        assert_greater_than(
-            self.sum_addr_messages(
-                peerinfo[1]['bytesrecv_per_msg']), 0)
-        assert_equal(self.nodes[0].getpeerinfo()[2]
-                     ['addr_relay_enabled'], True)
+        assert_greater_than(self.sum_addr_messages(peerinfo[1]["bytesrecv_per_msg"]), 0)
+        assert_equal(self.nodes[0].getpeerinfo()[2]["addr_relay_enabled"], True)
 
         msg = self.setup_addr_msg(2)
         self.send_addr_msg(addr_source, msg, [receiver_peer, blackhole_peer])
@@ -296,25 +292,31 @@ class AddrTest(BitcoinTestFramework):
         # in response until enough time has passed or the node is restarted.
         self.restart_node(0)
 
-        self.log.info('Test getaddr behavior')
+        self.log.info("Test getaddr behavior")
         self.log.info(
-            'Check that we send a getaddr message upon connecting to an outbound-full-relay peer')
+            "Check that we send a getaddr message upon connecting to an"
+            " outbound-full-relay peer"
+        )
         full_outbound_peer = self.nodes[0].add_outbound_p2p_connection(
-            AddrReceiver(), p2p_idx=0, connection_type="outbound-full-relay")
+            AddrReceiver(), p2p_idx=0, connection_type="outbound-full-relay"
+        )
         full_outbound_peer.sync_with_ping()
         assert full_outbound_peer.getaddr_received()
 
         self.log.info(
-            'Check that we do not send a getaddr message upon connecting to a block-relay-only peer')
+            "Check that we do not send a getaddr message upon connecting to a"
+            " block-relay-only peer"
+        )
         block_relay_peer = self.nodes[0].add_outbound_p2p_connection(
-            AddrReceiver(), p2p_idx=1, connection_type="block-relay-only")
+            AddrReceiver(), p2p_idx=1, connection_type="block-relay-only"
+        )
         block_relay_peer.sync_with_ping()
         assert_equal(block_relay_peer.getaddr_received(), False)
 
-        self.log.info(
-            'Check that we answer getaddr messages only from inbound peers')
+        self.log.info("Check that we answer getaddr messages only from inbound peers")
         inbound_peer = self.nodes[0].add_p2p_connection(
-            AddrReceiver(send_getaddr=False))
+            AddrReceiver(send_getaddr=False)
+        )
         inbound_peer.sync_with_ping()
 
         # Add some addresses to addrman
@@ -339,17 +341,18 @@ class AddrTest(BitcoinTestFramework):
         self.nodes[0].disconnect_p2ps()
 
     def blocksonly_mode_tests(self):
-        self.log.info('Test addr relay in -blocksonly mode')
+        self.log.info("Test addr relay in -blocksonly mode")
         self.restart_node(0, ["-blocksonly", "-whitelist=addr@127.0.0.1"])
         self.mocktime = int(time.time())
 
-        self.log.info('Check that we send getaddr messages')
+        self.log.info("Check that we send getaddr messages")
         full_outbound_peer = self.nodes[0].add_outbound_p2p_connection(
-            AddrReceiver(), p2p_idx=0, connection_type="outbound-full-relay")
+            AddrReceiver(), p2p_idx=0, connection_type="outbound-full-relay"
+        )
         full_outbound_peer.sync_with_ping()
         assert full_outbound_peer.getaddr_received()
 
-        self.log.info('Check that we relay address messages')
+        self.log.info("Check that we relay address messages")
         addr_source = self.nodes[0].add_p2p_connection(P2PInterface())
         msg = self.setup_addr_msg(2)
         self.send_addr_msg(addr_source, msg, [full_outbound_peer])
@@ -357,18 +360,21 @@ class AddrTest(BitcoinTestFramework):
 
         self.nodes[0].disconnect_p2ps()
 
-    def send_addrs_and_test_rate_limiting(self, peer, no_relay, *, new_addrs,
-                                          total_addrs):
+    def send_addrs_and_test_rate_limiting(
+        self, peer, no_relay, *, new_addrs, total_addrs
+    ):
         """Send an addr message and check that the number of addresses processed
-         and rate-limited is as expected
+        and rate-limited is as expected
         """
         peer.send_and_ping(self.setup_rand_addr_msg(new_addrs))
 
         peerinfo = self.nodes[0].getpeerinfo()[0]
-        addrs_processed = peerinfo['addr_processed']
-        addrs_rate_limited = peerinfo['addr_rate_limited']
-        self.log.debug(f"addrs_processed = {addrs_processed}, "
-                       f"addrs_rate_limited = {addrs_rate_limited}")
+        addrs_processed = peerinfo["addr_processed"]
+        addrs_rate_limited = peerinfo["addr_rate_limited"]
+        self.log.debug(
+            f"addrs_processed = {addrs_processed}, "
+            f"addrs_rate_limited = {addrs_rate_limited}"
+        )
 
         if no_relay:
             assert_equal(addrs_processed, 0)
@@ -385,31 +391,36 @@ class AddrTest(BitcoinTestFramework):
         for conn_type, no_relay in [
             ("outbound-full-relay", False),
             ("block-relay-only", True),
-            ("inbound", False)
+            ("inbound", False),
         ]:
             self.log.info(
-                f'Test rate limiting of addr processing for {conn_type} peers')
+                f"Test rate limiting of addr processing for {conn_type} peers"
+            )
             if conn_type == "inbound":
                 peer = self.nodes[0].add_p2p_connection(AddrReceiver())
             else:
                 peer = self.nodes[0].add_outbound_p2p_connection(
-                    AddrReceiver(), p2p_idx=0, connection_type=conn_type)
+                    AddrReceiver(), p2p_idx=0, connection_type=conn_type
+                )
 
             # Send 600 addresses. For all but the block-relay-only peer this
             # should result in addresses being processed.
             self.send_addrs_and_test_rate_limiting(
-                peer, no_relay, new_addrs=600, total_addrs=600)
+                peer, no_relay, new_addrs=600, total_addrs=600
+            )
 
             # Send 600 more addresses. For the outbound-full-relay peer (which
             # we send a GETADDR, and thus will process up to 1001 incoming
             # addresses), this means more addresses will be processed.
             self.send_addrs_and_test_rate_limiting(
-                peer, no_relay, new_addrs=600, total_addrs=1200)
+                peer, no_relay, new_addrs=600, total_addrs=1200
+            )
 
             # Send 10 more. As we reached the processing limit for all nodes,
             # no more addresses should be procesesd.
             self.send_addrs_and_test_rate_limiting(
-                peer, no_relay, new_addrs=10, total_addrs=1210)
+                peer, no_relay, new_addrs=10, total_addrs=1210
+            )
 
             # Advance the time by 100 seconds, permitting the processing of 10
             # more addresses.
@@ -419,7 +430,8 @@ class AddrTest(BitcoinTestFramework):
             peer.increment_tokens(10)
 
             self.send_addrs_and_test_rate_limiting(
-                peer, no_relay, new_addrs=200, total_addrs=1410)
+                peer, no_relay, new_addrs=200, total_addrs=1410
+            )
 
             # Advance the time by 1000 seconds, permitting the processing of 100
             # more addresses.
@@ -429,10 +441,11 @@ class AddrTest(BitcoinTestFramework):
             peer.increment_tokens(100)
 
             self.send_addrs_and_test_rate_limiting(
-                peer, no_relay, new_addrs=200, total_addrs=1610)
+                peer, no_relay, new_addrs=200, total_addrs=1610
+            )
 
             self.nodes[0].disconnect_p2ps()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     AddrTest().main()
