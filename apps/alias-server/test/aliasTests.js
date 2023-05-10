@@ -4,6 +4,7 @@
 
 'use strict';
 const assert = require('assert');
+const cashaddr = require('ecashaddrjs');
 const config = require('../config');
 const {
     parseAliasTx,
@@ -11,10 +12,7 @@ const {
     sortAliasTxsByTxidAndBlockheight,
     registerAliases,
 } = require('../src/alias');
-const {
-    getOutputScriptFromAddress,
-    removeUnconfirmedTxsFromTxHistory,
-} = require('../src/utils');
+const { removeUnconfirmedTxsFromTxHistory } = require('../src/utils');
 const {
     testAddressAliases,
     testAddressAliasesWithUnconfirmedTxs,
@@ -40,7 +38,7 @@ describe('alias-server alias.js', async function () {
         await mongoServer.stop();
     });
     it('Correctly parses a 5-character alias transaction', function () {
-        const registrationOutputScript = getOutputScriptFromAddress(
+        const registrationOutputScript = cashaddr.getOutputScriptFromAddress(
             config.aliasConstants.registrationAddress,
         );
         assert.deepEqual(
@@ -65,7 +63,7 @@ describe('alias-server alias.js', async function () {
         );
     });
     it('Correctly parses a 6-character alias transaction', function () {
-        const registrationOutputScript = getOutputScriptFromAddress(
+        const registrationOutputScript = cashaddr.getOutputScriptFromAddress(
             config.aliasConstants.registrationAddress,
         );
         assert.deepEqual(
@@ -90,7 +88,7 @@ describe('alias-server alias.js', async function () {
         );
     });
     it('Returns false for an eToken transaction', function () {
-        const registrationOutputScript = getOutputScriptFromAddress(
+        const registrationOutputScript = cashaddr.getOutputScriptFromAddress(
             config.aliasConstants.registrationAddress,
         );
         assert.deepEqual(
@@ -109,7 +107,7 @@ describe('alias-server alias.js', async function () {
         );
     });
     it('Returns false for a standard tx without an OP_RETURN', function () {
-        const registrationOutputScript = getOutputScriptFromAddress(
+        const registrationOutputScript = cashaddr.getOutputScriptFromAddress(
             config.aliasConstants.registrationAddress,
         );
         assert.deepEqual(

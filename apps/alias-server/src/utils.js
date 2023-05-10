@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 'use strict';
-const cashaddr = require('ecashaddrjs');
 
 module.exports = {
     getAliasFromHex: function (aliasHex) {
@@ -33,16 +32,6 @@ module.exports = {
             }
         }
         return confirmedTxHistory;
-    },
-    getOutputScriptFromAddress: function (address) {
-        const { type, hash } = cashaddr.decode(address, true);
-        let registrationOutputScript;
-        if (type === 'p2pkh') {
-            registrationOutputScript = `76a914${hash}88ac`;
-        } else {
-            registrationOutputScript = `a914${hash}87`;
-        }
-        return registrationOutputScript;
     },
     wait: async function (msecs) {
         await new Promise(resolve => setTimeout(resolve, msecs));

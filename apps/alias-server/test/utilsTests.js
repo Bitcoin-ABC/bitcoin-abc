@@ -10,7 +10,6 @@ const {
     getAliasBytecount,
     isValidAliasString,
     removeUnconfirmedTxsFromTxHistory,
-    getOutputScriptFromAddress,
 } = require('../src/utils');
 const unconfirmedAliasTxs = require('./mocks/unconfirmedAliasTxs');
 const {
@@ -47,23 +46,6 @@ describe('alias-server utils.js', function () {
                 unconfirmedAliasTxs.concat(testAddressAliases.txHistory),
             ),
             testAddressAliases.txHistory,
-        );
-    });
-    // getOutputScriptFromAddress
-    it('Returns expected outputScript for a p2pkh address', function () {
-        assert.strictEqual(
-            getOutputScriptFromAddress(
-                'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-            ),
-            '76a914638568e36d0b5d7d49a6e99854caa27d9772b09388ac',
-        );
-    });
-    it('Returns expected outputScript for a p2sh address', function () {
-        assert.strictEqual(
-            getOutputScriptFromAddress(
-                'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
-            ),
-            'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
         );
     });
 });

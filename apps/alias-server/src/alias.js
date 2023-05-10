@@ -5,11 +5,7 @@
 'use strict';
 const cashaddr = require('ecashaddrjs');
 const config = require('../config');
-const {
-    getAliasFromHex,
-    isValidAliasString,
-    getOutputScriptFromAddress,
-} = require('./utils');
+const { getAliasFromHex, isValidAliasString } = require('./utils');
 const { addOneAliasToDb } = require('./db');
 
 module.exports = {
@@ -19,7 +15,7 @@ module.exports = {
         // Get expected output script match for parseAliasTx
         // Do it here and not in parseAliasTx so that you don't do it for every single tx
         // Will all be the same for a given set of tx history
-        const registrationOutputScript = getOutputScriptFromAddress(
+        const registrationOutputScript = cashaddr.getOutputScriptFromAddress(
             aliasConstants.registrationAddress,
         );
 
