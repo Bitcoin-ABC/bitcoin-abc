@@ -31,6 +31,7 @@
 #include <validation.h>
 #include <validationinterface.h>
 
+#include <cstdint>
 #include <filesystem>
 #include <functional>
 #include <iosfwd>
@@ -94,6 +95,11 @@ int main(int argc, char *argv[]) {
     public:
         void blockTip(SynchronizationState, CBlockIndex &) override {
             std::cout << "Block tip changed" << std::endl;
+        }
+        void headerTip(SynchronizationState, int64_t height, int64_t timestamp,
+                       bool presync) override {
+            std::cout << "Header tip changed: " << height << ", " << timestamp
+                      << ", " << presync << std::endl;
         }
     };
     auto notifications = std::make_unique<KernelNotifications>();
