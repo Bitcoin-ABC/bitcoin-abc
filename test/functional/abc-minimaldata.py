@@ -34,18 +34,19 @@ from test_framework.txtools import pad_tx
 from test_framework.util import assert_raises_rpc_error
 
 # Minimal push violations in mempool are rejected with a bannable error.
-MINIMALPUSH_ERROR = 'mandatory-script-verify-flag-failed (Data push larger than necessary)'
+MINIMALPUSH_ERROR = (
+    "mandatory-script-verify-flag-failed (Data push larger than necessary)"
+)
 
 # Blocks with invalid scripts give this error:
-BADINPUTS_ERROR = 'blk-bad-inputs'
+BADINPUTS_ERROR = "blk-bad-inputs"
 
 
 class MinimaldataTest(BitcoinTestFramework):
-
     def set_test_params(self):
         self.num_nodes = 1
         self.block_heights = {}
-        self.extra_args = [['-acceptnonstdtxn=1']]
+        self.extra_args = [["-acceptnonstdtxn=1"]]
 
     def reconnect_p2p(self):
         """Tear down and bootstrap the P2P connection to the node.
@@ -72,8 +73,7 @@ class MinimaldataTest(BitcoinTestFramework):
         block_height = self.block_heights[parent.sha256] + 1
         block_time = (parent.nTime + 1) if nTime is None else nTime
 
-        block = create_block(
-            parent.sha256, create_coinbase(block_height), block_time)
+        block = create_block(parent.sha256, create_coinbase(block_height), block_time)
         block.vtx.extend(transactions)
         make_conform_to_ctor(block)
         block.hashMerkleRoot = block.calc_merkle_root()
@@ -86,7 +86,12 @@ class MinimaldataTest(BitcoinTestFramework):
 
         (Can't actually get banned, since bitcoind won't ban local peers.)"""
         self.nodes[0].p2ps[0].send_txs_and_test(
-            [tx], self.nodes[0], success=False, expect_disconnect=True, reject_reason=reject_reason)
+            [tx],
+            self.nodes[0],
+            success=False,
+            expect_disconnect=True,
+            reject_reason=reject_reason,
+        )
         self.reconnect_p2p()
 
     def check_for_ban_on_rejected_block(self, block, reject_reason=None):
@@ -94,11 +99,16 @@ class MinimaldataTest(BitcoinTestFramework):
 
         (Can't actually get banned, since bitcoind won't ban local peers.)"""
         self.nodes[0].p2ps[0].send_blocks_and_test(
-            [block], self.nodes[0], success=False, reject_reason=reject_reason, expect_disconnect=True)
+            [block],
+            self.nodes[0],
+            success=False,
+            reject_reason=reject_reason,
+            expect_disconnect=True,
+        )
         self.reconnect_p2p()
 
     def run_test(self):
-        node, = self.nodes
+        (node,) = self.nodes
 
         self.nodes[0].add_p2p_connection(P2PDataStore())
 
@@ -129,20 +139,18 @@ class MinimaldataTest(BitcoinTestFramework):
 
             # Fund transaction
             txfund = create_tx_with_script(
-                spendfrom, 0, b'', amount=value, script_pub_key=script)
+                spendfrom, 0, b"", amount=value, script_pub_key=script
+            )
             txfund.rehash()
             fundings.append(txfund)
 
             # Spend transaction
             txspend = CTransaction()
-            txspend.vout.append(
-                CTxOut(value - 1000, CScript([OP_TRUE])))
-            txspend.vin.append(
-                CTxIn(COutPoint(txfund.sha256, 0), b''))
+            txspend.vout.append(CTxOut(value - 1000, CScript([OP_TRUE])))
+            txspend.vin.append(CTxIn(COutPoint(txfund.sha256, 0), b""))
 
             # Sign the transaction
-            txspend.vin[0].scriptSig = CScript(
-                b'\x01\x01\x51')  # PUSH1(0x01) OP_1
+            txspend.vin[0].scriptSig = CScript(b"\x01\x01\x51")  # PUSH1(0x01) OP_1
             pad_tx(txspend)
             txspend.rehash()
 
@@ -156,18 +164,18 @@ class MinimaldataTest(BitcoinTestFramework):
 
         self.log.info("Trying to mine a minimaldata violation.")
         self.check_for_ban_on_rejected_block(
-            self.build_block(tip, [nonminimaltx]), BADINPUTS_ERROR)
-        self.log.info(
-            "If we try to submit it by mempool or RPC we are banned")
-        assert_raises_rpc_error(-26, MINIMALPUSH_ERROR,
-                                node.sendrawtransaction, ToHex(nonminimaltx))
-        self.check_for_ban_on_rejected_tx(
-            nonminimaltx, MINIMALPUSH_ERROR)
+            self.build_block(tip, [nonminimaltx]), BADINPUTS_ERROR
+        )
+        self.log.info("If we try to submit it by mempool or RPC we are banned")
+        assert_raises_rpc_error(
+            -26, MINIMALPUSH_ERROR, node.sendrawtransaction, ToHex(nonminimaltx)
+        )
+        self.check_for_ban_on_rejected_tx(nonminimaltx, MINIMALPUSH_ERROR)
 
         self.log.info("Mine a normal block")
         tip = self.build_block(tip)
         node.p2ps[0].send_blocks_and_test([tip], node)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     MinimaldataTest().main()

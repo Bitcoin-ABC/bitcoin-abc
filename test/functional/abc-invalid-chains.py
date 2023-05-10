@@ -18,10 +18,12 @@ class InvalidChainsTest(BitcoinTestFramework):
         self.tip = None
         self.blocks = {}
         self.block_heights = {}
-        self.extra_args = [[
-            "-whitelist=noban@127.0.0.1",
-            "-automaticunparking=1",
-        ]]
+        self.extra_args = [
+            [
+                "-whitelist=noban@127.0.0.1",
+                "-automaticunparking=1",
+            ]
+        ]
 
     def next_block(self, number):
         if self.tip is None:
@@ -81,11 +83,21 @@ class InvalidChainsTest(BitcoinTestFramework):
         # Mining on top of blocks 1 or 2 is rejected
         self.set_tip(1)
         peer.send_blocks_and_test(
-            [block(11)], node, success=False, force_send=True, reject_reason='bad-prevblk')
+            [block(11)],
+            node,
+            success=False,
+            force_send=True,
+            reject_reason="bad-prevblk",
+        )
 
         self.set_tip(2)
         peer.send_blocks_and_test(
-            [block(21)], node, success=False, force_send=True, reject_reason='bad-prevblk')
+            [block(21)],
+            node,
+            success=False,
+            force_send=True,
+            reject_reason="bad-prevblk",
+        )
 
         # Reconsider block 2 to remove invalid status from *both* 1 and 2
         # The goal is to test that block 1 is not retaining any internal state
@@ -109,8 +121,10 @@ class InvalidChainsTest(BitcoinTestFramework):
 
         # Sanity checks
         assert_equal(self.blocks[24].hash, node.getbestblockhash())
-        assert any(self.blocks[221].hash == chaintip["hash"]
-                   for chaintip in node.getchaintips())
+        assert any(
+            self.blocks[221].hash == chaintip["hash"]
+            for chaintip in node.getchaintips()
+        )
 
         # Invalidating the block 2 chain should reject new blocks on that chain
         node.invalidateblock(self.blocks[2].hash)
@@ -119,7 +133,12 @@ class InvalidChainsTest(BitcoinTestFramework):
         # Mining on the block 2 chain should be rejected
         self.set_tip(24)
         peer.send_blocks_and_test(
-            [block(25)], node, success=False, force_send=True, reject_reason='bad-prevblk')
+            [block(25)],
+            node,
+            success=False,
+            force_send=True,
+            reject_reason="bad-prevblk",
+        )
 
         # Continued mining on the block 1 chain is still ok
         self.set_tip(13)
@@ -129,15 +148,21 @@ class InvalidChainsTest(BitcoinTestFramework):
         # which is now invalid, should also be rejected.
         self.set_tip(221)
         peer.send_blocks_and_test(
-            [block(222)], node, success=False, force_send=True, reject_reason='bad-prevblk')
+            [block(222)],
+            node,
+            success=False,
+            force_send=True,
+            reject_reason="bad-prevblk",
+        )
 
         self.log.info(
-            "Make sure that reconsidering a block behaves correctly when cousin chains (neither ancestors nor descendants) become available as a result")
+            "Make sure that reconsidering a block behaves correctly when cousin chains"
+            " (neither ancestors nor descendants) become available as a result"
+        )
 
         # Reorg out 14 with four blocks.
         self.set_tip(13)
-        peer.send_blocks_and_test(
-            [block(15), block(16), block(17), block(18)], node)
+        peer.send_blocks_and_test([block(15), block(16), block(17), block(18)], node)
 
         # Invalidate 17 (so 18 now has failed parent)
         node.invalidateblock(self.blocks[17].hash)
@@ -155,5 +180,5 @@ class InvalidChainsTest(BitcoinTestFramework):
         assert_equal(self.blocks[16].hash, node.getbestblockhash())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     InvalidChainsTest().main()

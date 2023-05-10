@@ -19,7 +19,9 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_greater_than
 
 MAX_GENERATED_BLOCK_SIZE_ERROR = (
-    'Max generated block size (blockmaxsize) cannot exceed the excessive block size (excessiveblocksize)')
+    "Max generated block size (blockmaxsize) cannot exceed the excessive block size"
+    " (excessiveblocksize)"
+)
 
 MAX_PCT_ADDR_TO_SEND = 23
 
@@ -36,8 +38,7 @@ class AddrCounter(P2PInterface):
         return self.addr_count > 0
 
 
-class ABC_CmdLine_Test (BitcoinTestFramework):
-
+class ABC_CmdLine_Test(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
 
@@ -45,15 +46,17 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
         node = self.nodes[0]
         self.restart_node(0, extra_args=[f"-maxaddrtosend={max_addr_to_send}"])
 
-        self.log.info(f'Testing -maxaddrtosend={max_addr_to_send}')
+        self.log.info(f"Testing -maxaddrtosend={max_addr_to_send}")
 
         # Fill addrman with enough entries
         for i in range(10000):
             addr = f"{(i >> 8) % 256}.{i % 256}.1.1"
             node.addpeeraddress(addr, 8333)
 
-        assert_greater_than(len(node.getnodeaddresses(0)),
-                            int(max_addr_to_send / (MAX_PCT_ADDR_TO_SEND / 100)))
+        assert_greater_than(
+            len(node.getnodeaddresses(0)),
+            int(max_addr_to_send / (MAX_PCT_ADDR_TO_SEND / 100)),
+        )
 
         mock_time = int(time.time())
 
@@ -67,15 +70,15 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
         assert_equal(peer.addr_count, max_addr_to_send)
 
     def check_excessive(self, expected_value):
-        'Check that the excessiveBlockSize is as expected'
+        """Check that the excessiveBlockSize is as expected"""
         getsize = self.nodes[0].getexcessiveblock()
-        ebs = getsize['excessiveBlockSize']
+        ebs = getsize["excessiveBlockSize"]
         assert_equal(ebs, expected_value)
 
     def check_subversion(self, pattern_str):
-        'Check that the subversion is set as expected'
+        """Check that the subversion is set as expected"""
         netinfo = self.nodes[0].getnetworkinfo()
-        subversion = netinfo['subversion']
+        subversion = netinfo["subversion"]
         pattern = re.compile(pattern_str)
         assert pattern.match(subversion)
 
@@ -83,7 +86,8 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
         self.log.info("Testing -excessiveblocksize")
 
         self.log.info(
-            f"  Set to twice the default, i.e. {2 * LEGACY_MAX_BLOCK_SIZE} bytes")
+            f"  Set to twice the default, i.e. {2 * LEGACY_MAX_BLOCK_SIZE} bytes"
+        )
         self.stop_node(0)
         self.start_node(0, [f"-excessiveblocksize={2 * LEGACY_MAX_BLOCK_SIZE}"])
         self.check_excessive(2 * LEGACY_MAX_BLOCK_SIZE)
@@ -92,24 +96,34 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
 
         self.log.info(
             "  Attempt to set below legacy limit of 1MB - try "
-            f"{LEGACY_MAX_BLOCK_SIZE} bytes")
+            f"{LEGACY_MAX_BLOCK_SIZE} bytes"
+        )
         self.stop_node(0)
         self.nodes[0].assert_start_raises_init_error(
             [f"-excessiveblocksize={LEGACY_MAX_BLOCK_SIZE}"],
-            'Error: Excessive block size must be > 1,000,000 bytes (1MB)')
+            "Error: Excessive block size must be > 1,000,000 bytes (1MB)",
+        )
         self.nodes[0].assert_start_raises_init_error(
             ["-excessiveblocksize=0"],
-            'Error: Excessive block size must be > 1,000,000 bytes (1MB)')
+            "Error: Excessive block size must be > 1,000,000 bytes (1MB)",
+        )
         self.nodes[0].assert_start_raises_init_error(
             ["-excessiveblocksize=-1"],
-            'Error: Excessive block size must be > 1,000,000 bytes (1MB)')
+            "Error: Excessive block size must be > 1,000,000 bytes (1MB)",
+        )
         self.log.info("  Attempt to set below blockmaxsize (mining limit)")
         self.nodes[0].assert_start_raises_init_error(
-            ['-blockmaxsize=1500000', '-excessiveblocksize=1300000'], f"Error: {MAX_GENERATED_BLOCK_SIZE_ERROR}")
+            ["-blockmaxsize=1500000", "-excessiveblocksize=1300000"],
+            f"Error: {MAX_GENERATED_BLOCK_SIZE_ERROR}",
+        )
         self.nodes[0].assert_start_raises_init_error(
-            ['-blockmaxsize=0'], 'Error: Max generated block size must be greater than 0')
+            ["-blockmaxsize=0"],
+            "Error: Max generated block size must be greater than 0",
+        )
         self.nodes[0].assert_start_raises_init_error(
-            ['-blockmaxsize=-1'], 'Error: Max generated block size must be greater than 0')
+            ["-blockmaxsize=-1"],
+            "Error: Max generated block size must be greater than 0",
+        )
 
         # Make sure we leave the test with a node running as this is what thee
         # framework expects.
@@ -124,5 +138,5 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
         self.excessiveblocksize_test()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ABC_CmdLine_Test().main()

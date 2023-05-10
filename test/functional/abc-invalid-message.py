@@ -30,8 +30,7 @@ def msg_bad_checksum(connection, original_message):
 
 
 class BadVersionP2PInterface(P2PInterface):
-    def peer_connect(self, *args, services=NODE_NETWORK,
-                     send_version=False, **kwargs):
+    def peer_connect(self, *args, services=NODE_NETWORK, send_version=False, **kwargs):
         self.services = services
         return super().peer_connect(*args, send_version=send_version, **kwargs)
 
@@ -59,15 +58,15 @@ class InvalidMessageTest(BitcoinTestFramework):
         # check happened, causing the test to fail.
         bad_interface = BadVersionP2PInterface()
         self.nodes[0].add_p2p_connection(
-            bad_interface, send_version=False, wait_for_verack=False)
+            bad_interface, send_version=False, wait_for_verack=False
+        )
 
         # Also connect to a node with a valid version message
         interface = P2PInterface()
         # Node with valid version message should connect successfully
         connection = self.nodes[1].add_p2p_connection(interface)
 
-        self.log.info(
-            "Send an invalid version message and check we get banned")
+        self.log.info("Send an invalid version message and check we get banned")
         bad_interface.send_version()
         bad_interface.wait_for_disconnect()
 
@@ -79,6 +78,7 @@ class InvalidMessageTest(BitcoinTestFramework):
                 if not interface.last_message.get("pong"):
                     return False
                 return interface.last_message["pong"].nonce == interface.ping_counter
+
             interface.wait_until(check_ping)
             interface.ping_counter += 1
 
@@ -95,5 +95,5 @@ class InvalidMessageTest(BitcoinTestFramework):
         interface.wait_for_disconnect()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     InvalidMessageTest().main()

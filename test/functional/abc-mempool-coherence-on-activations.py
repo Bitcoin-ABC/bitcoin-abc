@@ -50,7 +50,10 @@ EXTRA_ARG = f"-replayprotectionactivationtime={ACTIVATION_TIME}"
 FIRST_BLOCK_TIME = ACTIVATION_TIME - 86400
 
 # Expected RPC error when trying to send an activation specific spend txn.
-RPC_EXPECTED_ERROR = "mandatory-script-verify-flag-failed (Signature must be zero for failed CHECK(MULTI)SIG operation)"
+RPC_EXPECTED_ERROR = (
+    "mandatory-script-verify-flag-failed (Signature must be zero for failed"
+    " CHECK(MULTI)SIG operation)"
+)
 
 
 def create_fund_and_activation_specific_spending_tx(spend, pre_fork_only):
@@ -71,23 +74,24 @@ def create_fund_and_activation_specific_spending_tx(spend, pre_fork_only):
     # Fund transaction
     script = CScript([public_key, OP_CHECKSIG])
     txfund = create_tx_with_script(
-        spend.tx, spend.n, b'', amount=50 * COIN, script_pub_key=script)
+        spend.tx, spend.n, b"", amount=50 * COIN, script_pub_key=script
+    )
     txfund.rehash()
 
     # Activation specific spending tx
     txspend = CTransaction()
     txspend.vout.append(CTxOut(50 * COIN - 1000, CScript([OP_TRUE])))
-    txspend.vin.append(CTxIn(COutPoint(txfund.sha256, 0), b''))
+    txspend.vin.append(CTxIn(COutPoint(txfund.sha256, 0), b""))
 
     # Sign the transaction
     # Use forkvalues that create pre-fork-only or post-fork-only
     # transactions.
-    forkvalue = 0 if pre_fork_only else 0xffdead
+    forkvalue = 0 if pre_fork_only else 0xFFDEAD
     sighashtype = (forkvalue << 8) | SIGHASH_ALL | SIGHASH_FORKID
-    sighash = SignatureHashForkId(
-        script, txspend, 0, sighashtype, 50 * COIN)
-    sig = private_key.sign_ecdsa(sighash) + \
-        bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))
+    sighash = SignatureHashForkId(script, txspend, 0, sighashtype, 50 * COIN)
+    sig = private_key.sign_ecdsa(sighash) + bytes(
+        bytearray([SIGHASH_ALL | SIGHASH_FORKID])
+    )
     txspend.vin[0].scriptSig = CScript([sig])
     txspend.rehash()
 
@@ -95,39 +99,37 @@ def create_fund_and_activation_specific_spending_tx(spend, pre_fork_only):
 
 
 def create_fund_and_pre_fork_only_tx(spend):
-    return create_fund_and_activation_specific_spending_tx(
-        spend, pre_fork_only=True)
+    return create_fund_and_activation_specific_spending_tx(spend, pre_fork_only=True)
 
 
 def create_fund_and_post_fork_only_tx(spend):
-    return create_fund_and_activation_specific_spending_tx(
-        spend, pre_fork_only=False)
+    return create_fund_and_activation_specific_spending_tx(spend, pre_fork_only=False)
 
 
 # ---Mempool coherence on activations test---
 
 
 class PreviousSpendableOutput(object):
-
     def __init__(self, tx=CTransaction(), n=-1):
         self.tx = tx
         self.n = n
 
 
 class MempoolCoherenceOnActivationsTest(BitcoinTestFramework):
-
     def set_test_params(self):
         self.num_nodes = 1
         self.setup_clean_chain = True
         self.block_heights = {}
         self.tip = None
         self.blocks = {}
-        self.extra_args = [[
-            '-whitelist=noban@127.0.0.1',
-            EXTRA_ARG,
-            '-acceptnonstdtxn=1',
-            '-automaticunparking=1',
-        ]]
+        self.extra_args = [
+            [
+                "-whitelist=noban@127.0.0.1",
+                EXTRA_ARG,
+                "-acceptnonstdtxn=1",
+                "-automaticunparking=1",
+            ]
+        ]
 
     def next_block(self, number):
         if self.tip is None:
@@ -178,8 +180,7 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework):
             # Update the internal state just like in next_block
             self.tip = block
             if block.sha256 != old_sha256:
-                self.block_heights[
-                    block.sha256] = self.block_heights[old_sha256]
+                self.block_heights[block.sha256] = self.block_heights[old_sha256]
                 del self.block_heights[old_sha256]
             self.blocks[block_number] = block
             return block
@@ -198,7 +199,12 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework):
         # spendable output for further chaining.
         def create_always_valid_chained_tx(spend):
             tx = create_tx_with_script(
-                spend.tx, spend.n, b'', amount=spend.tx.vout[0].nValue - 1000, script_pub_key=CScript([OP_TRUE]))
+                spend.tx,
+                spend.n,
+                b"",
+                amount=spend.tx.vout[0].nValue - 1000,
+                script_pub_key=CScript([OP_TRUE]),
+            )
             tx.rehash()
             return tx, PreviousSpendableOutput(tx, 0)
 
@@ -243,9 +249,7 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework):
             peer.send_blocks_and_test([block(5200 + i)], node)
 
         # Check we are just before the activation time
-        assert_equal(
-            node.getblockchaininfo()['mediantime'],
-            ACTIVATION_TIME - 1)
+        assert_equal(node.getblockchaininfo()["mediantime"], ACTIVATION_TIME - 1)
 
         # We are just before the fork. Pre-fork-only and always-valid chained
         # txns (tx_chain0, tx_chain1) are valid, post-fork-only txns are
@@ -254,13 +258,16 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework):
         send_transaction_to_mempool(tx_pre1)
         tx_chain0, last_chained_output = create_always_valid_chained_tx(out[4])
         tx_chain1, last_chained_output = create_always_valid_chained_tx(
-            last_chained_output)
+            last_chained_output
+        )
         send_transaction_to_mempool(tx_chain0)
         send_transaction_to_mempool(tx_chain1)
-        assert_raises_rpc_error(-26, RPC_EXPECTED_ERROR,
-                                node.sendrawtransaction, ToHex(tx_post0))
-        assert_raises_rpc_error(-26, RPC_EXPECTED_ERROR,
-                                node.sendrawtransaction, ToHex(tx_post1))
+        assert_raises_rpc_error(
+            -26, RPC_EXPECTED_ERROR, node.sendrawtransaction, ToHex(tx_post0)
+        )
+        assert_raises_rpc_error(
+            -26, RPC_EXPECTED_ERROR, node.sendrawtransaction, ToHex(tx_post1)
+        )
         check_mempool_equal([tx_chain0, tx_chain1, tx_pre0, tx_pre1])
 
         # Activate the fork. Mine the 1st always-valid chained txn and a
@@ -271,8 +278,7 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework):
         forkblockid = node.getbestblockhash()
 
         # Check we just activated the fork
-        assert_equal(node.getblockheader(forkblockid)['mediantime'],
-                     ACTIVATION_TIME)
+        assert_equal(node.getblockheader(forkblockid)["mediantime"], ACTIVATION_TIME)
 
         # Check mempool coherence when activating the fork. Pre-fork-only txns
         # were evicted from the mempool, while always-valid txns remain.
@@ -285,8 +291,9 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework):
         send_transaction_to_mempool(tx_post1)
         tx_chain2, _ = create_always_valid_chained_tx(last_chained_output)
         send_transaction_to_mempool(tx_chain2)
-        assert_raises_rpc_error(-26, RPC_EXPECTED_ERROR,
-                                node.sendrawtransaction, ToHex(tx_pre1))
+        assert_raises_rpc_error(
+            -26, RPC_EXPECTED_ERROR, node.sendrawtransaction, ToHex(tx_pre1)
+        )
         check_mempool_equal([tx_chain1, tx_chain2, tx_post0, tx_post1])
 
         # Mine the 2nd always-valid chained txn and a post-fork-only txn.
@@ -353,17 +360,14 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework):
         # Perform the reorg
         peer.send_blocks_and_test(reorg_blocks, node)
         # reorg finishes after the fork
-        assert_equal(
-            node.getblockchaininfo()['mediantime'],
-            ACTIVATION_TIME + 2)
+        assert_equal(node.getblockchaininfo()["mediantime"], ACTIVATION_TIME + 2)
         # In old mempool: tx_chain2, tx_post1
         # Recovered from blocks: tx_chain0, tx_chain1, tx_post0
         # Lost from blocks: tx_pre0
         # Retained from old mempool: tx_chain2, tx_post1
         # Evicted from old mempool: NONE
-        check_mempool_equal(
-            [tx_chain0, tx_chain1, tx_chain2, tx_post0, tx_post1])
+        check_mempool_equal([tx_chain0, tx_chain1, tx_chain2, tx_post0, tx_post1])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     MempoolCoherenceOnActivationsTest().main()

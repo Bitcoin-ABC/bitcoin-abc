@@ -33,21 +33,24 @@ from test_framework.util import assert_raises_rpc_error
 TEST_TIME = int(time.time())
 
 # Error due to non clean stack
-CLEANSTACK_ERROR = 'non-mandatory-script-verify-flag (Stack size must be exactly one after execution)'
+CLEANSTACK_ERROR = (
+    "non-mandatory-script-verify-flag (Stack size must be exactly one after execution)"
+)
 RPC_CLEANSTACK_ERROR = CLEANSTACK_ERROR
-EVAL_FALSE_ERROR = 'non-mandatory-script-verify-flag (Script evaluated without error but finished with a false/empty top stack elem'
+EVAL_FALSE_ERROR = (
+    "non-mandatory-script-verify-flag (Script evaluated without error but finished with"
+    " a false/empty top stack elem"
+)
 RPC_EVAL_FALSE_ERROR = f"{EVAL_FALSE_ERROR}ent)"
 
 
 class PreviousSpendableOutput(object):
-
     def __init__(self, tx=CTransaction(), n=-1):
         self.tx = tx
         self.n = n
 
 
 class SegwitRecoveryTest(BitcoinTestFramework):
-
     def set_test_params(self):
         self.num_nodes = 2
         self.setup_clean_chain = True
@@ -67,9 +70,10 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         # that segwit spending txn are not resulting in bans, node_nonstd
         # doesn't get banned when forwarding this kind of transactions to
         # node_std.
-        self.extra_args = [['-whitelist=noban@127.0.0.1',
-                            "-acceptnonstdtxn"],
-                           ["-acceptnonstdtxn=0"]]
+        self.extra_args = [
+            ["-whitelist=noban@127.0.0.1", "-acceptnonstdtxn"],
+            ["-acceptnonstdtxn=0"],
+        ]
 
     def make_block(self, base_block: Optional[CBlock]) -> CBlock:
         """
@@ -105,8 +109,7 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         peer_std = node_std.add_p2p_connection(P2PDataStore())
 
         # adds transactions to the block and updates state
-        def update_block(block: CBlock,
-                         new_transactions: Sequence[CTransaction]):
+        def update_block(block: CBlock, new_transactions: Sequence[CTransaction]):
             block.vtx.extend(new_transactions)
             make_conform_to_ctor(block)
             block.hashMerkleRoot = block.calc_merkle_root()
@@ -120,14 +123,16 @@ class SegwitRecoveryTest(BitcoinTestFramework):
                 # Spending from a P2SH-P2WPKH coin,
                 #   txhash:a45698363249312f8d3d93676aa714be59b0bd758e62fa054fb1ea6218480691
                 redeem_script0 = bytearray.fromhex(
-                    '0014fcf9969ce1c98a135ed293719721fb69f0b686cb')
+                    "0014fcf9969ce1c98a135ed293719721fb69f0b686cb"
+                )
                 # Spending from a P2SH-P2WSH coin,
                 #   txhash:6b536caf727ccd02c395a1d00b752098ec96e8ec46c96bee8582be6b5060fa2f
                 redeem_script1 = bytearray.fromhex(
-                    '0020fc8b08ed636cb23afcb425ff260b3abd03380a2333b54cfa5d51ac52d803baf4')
+                    "0020fc8b08ed636cb23afcb425ff260b3abd03380a2333b54cfa5d51ac52d803baf4"
+                )
             else:
-                redeem_script0 = bytearray.fromhex('51020000')
-                redeem_script1 = bytearray.fromhex('53020080')
+                redeem_script0 = bytearray.fromhex("51020000")
+                redeem_script1 = bytearray.fromhex("53020080")
             redeem_scripts = [redeem_script0, redeem_script1]
 
             # Fund transaction to segwit addresses
@@ -136,7 +141,10 @@ class SegwitRecoveryTest(BitcoinTestFramework):
             amount = (50 * COIN - 1000) // len(redeem_scripts)
             for redeem_script in redeem_scripts:
                 txfund.vout.append(
-                    CTxOut(amount, CScript([OP_HASH160, hash160(redeem_script), OP_EQUAL])))
+                    CTxOut(
+                        amount, CScript([OP_HASH160, hash160(redeem_script), OP_EQUAL])
+                    )
+                )
             txfund.rehash()
 
             # Segwit spending transaction
@@ -148,9 +156,14 @@ class SegwitRecoveryTest(BitcoinTestFramework):
             txspend = CTransaction()
             for i in range(len(redeem_scripts)):
                 txspend.vin.append(
-                    CTxIn(COutPoint(txfund.sha256, i), CScript([redeem_scripts[i]])))
-            txspend.vout = [CTxOut(50 * COIN - 2000,
-                                   CScript([OP_HASH160, hash160(CScript([OP_TRUE])), OP_EQUAL]))]
+                    CTxIn(COutPoint(txfund.sha256, i), CScript([redeem_scripts[i]]))
+                )
+            txspend.vout = [
+                CTxOut(
+                    50 * COIN - 2000,
+                    CScript([OP_HASH160, hash160(CScript([OP_TRUE])), OP_EQUAL]),
+                )
+            ]
             txspend.rehash()
 
             return txfund, txspend
@@ -171,13 +184,11 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         # collect spendable outputs now to avoid cluttering the code later on
         out = []
         for _ in range(100):
-            out.append(
-                PreviousSpendableOutput(spendable_outputs.pop(0).vtx[0], 0))
+            out.append(PreviousSpendableOutput(spendable_outputs.pop(0).vtx[0], 0))
 
         # Create segwit funding and spending transactions
         txfund, txspend = create_segwit_fund_and_spend_tx(out[0])
-        txfund_case0, txspend_case0 = create_segwit_fund_and_spend_tx(
-            out[1], True)
+        txfund_case0, txspend_case0 = create_segwit_fund_and_spend_tx(out[1], True)
 
         # Mine txfund, as it can't go into node_std mempool because it's
         # nonstandard.
@@ -190,25 +201,36 @@ class SegwitRecoveryTest(BitcoinTestFramework):
 
         # Check that upgraded nodes checking for standardness are not banning
         # nodes sending segwit spending txns.
-        peer_nonstd.send_txs_and_test([txspend], node_nonstd, success=False,
-                                      reject_reason=CLEANSTACK_ERROR)
-        peer_nonstd.send_txs_and_test([txspend_case0], node_nonstd, success=False,
-                                      reject_reason=EVAL_FALSE_ERROR)
-        peer_std.send_txs_and_test([txspend], node_std, success=False,
-                                   reject_reason=CLEANSTACK_ERROR)
-        peer_std.send_txs_and_test([txspend_case0], node_std, success=False,
-                                   reject_reason=EVAL_FALSE_ERROR)
+        peer_nonstd.send_txs_and_test(
+            [txspend], node_nonstd, success=False, reject_reason=CLEANSTACK_ERROR
+        )
+        peer_nonstd.send_txs_and_test(
+            [txspend_case0], node_nonstd, success=False, reject_reason=EVAL_FALSE_ERROR
+        )
+        peer_std.send_txs_and_test(
+            [txspend], node_std, success=False, reject_reason=CLEANSTACK_ERROR
+        )
+        peer_std.send_txs_and_test(
+            [txspend_case0], node_std, success=False, reject_reason=EVAL_FALSE_ERROR
+        )
 
         # Segwit recovery txns are never accepted into the mempool,
         # as they are included in standard flags.
-        assert_raises_rpc_error(-26, RPC_CLEANSTACK_ERROR,
-                                node_nonstd.sendrawtransaction, ToHex(txspend))
-        assert_raises_rpc_error(-26, RPC_EVAL_FALSE_ERROR,
-                                node_nonstd.sendrawtransaction, ToHex(txspend_case0))
-        assert_raises_rpc_error(-26, RPC_CLEANSTACK_ERROR,
-                                node_std.sendrawtransaction, ToHex(txspend))
-        assert_raises_rpc_error(-26, RPC_EVAL_FALSE_ERROR,
-                                node_std.sendrawtransaction, ToHex(txspend_case0))
+        assert_raises_rpc_error(
+            -26, RPC_CLEANSTACK_ERROR, node_nonstd.sendrawtransaction, ToHex(txspend)
+        )
+        assert_raises_rpc_error(
+            -26,
+            RPC_EVAL_FALSE_ERROR,
+            node_nonstd.sendrawtransaction,
+            ToHex(txspend_case0),
+        )
+        assert_raises_rpc_error(
+            -26, RPC_CLEANSTACK_ERROR, node_std.sendrawtransaction, ToHex(txspend)
+        )
+        assert_raises_rpc_error(
+            -26, RPC_EVAL_FALSE_ERROR, node_std.sendrawtransaction, ToHex(txspend_case0)
+        )
 
         # Blocks containing segwit spending txns are accepted in both nodes.
         block = self.make_block(block)
@@ -217,5 +239,5 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         self.sync_blocks()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     SegwitRecoveryTest().main()

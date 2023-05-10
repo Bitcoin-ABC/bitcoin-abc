@@ -22,12 +22,23 @@
             "include": "(\\.py$)",
             "exclude": [
                 "(^contrib/gitian-builder/)",
-                "(^contrib/apple-sdk-tools/)"
+                "(^contrib/apple-sdk-tools/)",
+                "(^test/functional/abc-.*\\.py$)"
             ],
             "flags": [
                 "--aggressive",
                 "--ignore=W503,W504",
                 "--max-line-length=88"
+            ]
+        },
+        "black": {
+            "type": "black",
+            "version": ">=23.0.0",
+            "include": [
+                "(^test/functional/abc-.*\\.py$)"
+            ],
+            "flags": [
+                "--experimental-string-processing"
             ]
         },
         "flake8": {
@@ -39,7 +50,7 @@
                 "(^contrib/apple-sdk-tools/)"
             ],
             "flags": [
-                "--ignore=A003,E303,E305,E501,E704,W503,W504",
+                "--ignore=A003,E203,E303,E305,E501,E704,W503,W504",
                 "--require-plugins=flake8-comprehensions,flake8-builtins"
             ]
         },

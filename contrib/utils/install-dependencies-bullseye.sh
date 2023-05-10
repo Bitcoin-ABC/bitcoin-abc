@@ -145,8 +145,8 @@ pip3 install "lief>=0.11.5"
 # For Chronik WebSocket endpoint
 pip3 install websocket-client
 
-# Up-to-date mypy, isort and flynt packages are required python linters
-pip3 install isort==5.6.4 mypy==0.910 flynt==0.78 flake8==6.0.0
+# Required python linters
+pip3 install black==23.3.0 isort==5.6.4 mypy==0.910 flynt==0.78 flake8==6.0.0
 echo "export PATH=\"$(python3 -m site --user-base)/bin:\$PATH\"" >> ~/.bashrc
 # shellcheck source=/dev/null
 source ~/.bashrc

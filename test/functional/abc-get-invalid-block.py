@@ -52,24 +52,39 @@ class GetInvalidBlockTest(BitcoinTestFramework):
                 peer.send_message(msg)
                 peer.sync_with_ping()
 
-            with node.assert_debug_log(expected_msgs=["ignoring request from peer=0 for old block that isn't in the main chain"]):
+            with node.assert_debug_log(
+                expected_msgs=[
+                    "ignoring request from peer=0 for old block that isn't in the main"
+                    " chain"
+                ]
+            ):
                 msg = msg_getdata()
                 msg.inv.append(CInv(MSG_BLOCK, block_hash))
                 peer.send_message(msg)
                 peer.sync_with_ping()
 
-            with node.assert_debug_log(expected_msgs=["ignoring request from peer=0 for old block that isn't in the main chain"]):
+            with node.assert_debug_log(
+                expected_msgs=[
+                    "ignoring request from peer=0 for old block that isn't in the main"
+                    " chain"
+                ]
+            ):
                 msg = msg_getdata()
                 msg.inv.append(CInv(MSG_CMPCT_BLOCK, block_hash))
                 peer.send_message(msg)
                 peer.sync_with_ping()
 
-            with node.assert_debug_log(expected_msgs=["ignoring request from peer=0 for old block header that isn't in the main chain"]):
+            with node.assert_debug_log(
+                expected_msgs=[
+                    "ignoring request from peer=0 for old block header that isn't in"
+                    " the main chain"
+                ]
+            ):
                 msg = msg_getheaders()
                 msg.hashstop = block_hash
                 peer.send_message(msg)
                 peer.sync_with_ping()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     GetInvalidBlockTest().main()

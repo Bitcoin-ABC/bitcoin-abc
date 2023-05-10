@@ -24,21 +24,19 @@ from test_framework.util import assert_equal
 
 
 class PreviousSpendableOutput:
-
     def __init__(self, tx=CTransaction(), n=-1):
         self.tx = tx
         self.n = n  # the output we're spending
 
 
 class TransactionOrderingTest(BitcoinTestFramework):
-
     def set_test_params(self):
         self.num_nodes = 1
         self.setup_clean_chain = True
         self.block_heights = {}
         self.tip = None
         self.blocks = {}
-        self.extra_args = [['-whitelist=noban@127.0.0.1']]
+        self.extra_args = [["-whitelist=noban@127.0.0.1"]]
 
     def add_transactions_to_block(self, block, tx_list):
         [tx.rehash() for tx in tx_list]
@@ -179,8 +177,12 @@ class TransactionOrderingTest(BitcoinTestFramework):
         peer.send_blocks_and_test([block(5556)], node)
 
         # Block with regular ordering are now rejected.
-        peer.send_blocks_and_test([block(
-            5557, out[17], tx_count=16)], node, success=False, reject_reason='tx-ordering')
+        peer.send_blocks_and_test(
+            [block(5557, out[17], tx_count=16)],
+            node,
+            success=False,
+            reject_reason="tx-ordering",
+        )
 
         # Rewind bad block.
         self.set_tip(5556)
@@ -199,11 +201,13 @@ class TransactionOrderingTest(BitcoinTestFramework):
         # Generate a block with a duplicated transaction.
         double_tx_block = ordered_block(4447, out[19])
         assert_equal(len(double_tx_block.vtx), 16)
-        double_tx_block.vtx = double_tx_block.vtx[:8] + \
-            [double_tx_block.vtx[8]] + double_tx_block.vtx[8:]
+        double_tx_block.vtx = (
+            double_tx_block.vtx[:8] + [double_tx_block.vtx[8]] + double_tx_block.vtx[8:]
+        )
         update_block(4447)
         peer.send_blocks_and_test(
-            [self.tip], node, success=False, reject_reason='bad-txns-duplicate')
+            [self.tip], node, success=False, reject_reason="bad-txns-duplicate"
+        )
 
         # Rewind bad block.
         self.set_tip(4446)
@@ -215,12 +219,14 @@ class TransactionOrderingTest(BitcoinTestFramework):
         replay_tx_block = ordered_block(4449, out[21])
         assert_equal(len(replay_tx_block.vtx), 16)
         replay_tx_block.vtx.append(proper_block.vtx[5])
-        replay_tx_block.vtx = [replay_tx_block.vtx[0]] + \
-            sorted(replay_tx_block.vtx[1:], key=lambda tx: tx.get_id())
+        replay_tx_block.vtx = [replay_tx_block.vtx[0]] + sorted(
+            replay_tx_block.vtx[1:], key=lambda tx: tx.get_id()
+        )
         update_block(4449)
         peer.send_blocks_and_test(
-            [self.tip], node, success=False, reject_reason='bad-txns-BIP30')
+            [self.tip], node, success=False, reject_reason="bad-txns-BIP30"
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     TransactionOrderingTest().main()

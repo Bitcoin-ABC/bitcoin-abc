@@ -33,8 +33,7 @@ class SyncChainTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         # Setting minimumchainwork makes sure we test IBD as well as post-IBD
-        self.extra_args = [
-            [f"-minimumchainwork={202 + 2 * NUM_IBD_BLOCKS:#x}"]]
+        self.extra_args = [[f"-minimumchainwork={202 + 2 * NUM_IBD_BLOCKS:#x}"]]
 
     def run_test(self):
         node0 = self.nodes[0]
@@ -42,7 +41,7 @@ class SyncChainTest(BitcoinTestFramework):
 
         tip = int(node0.getbestblockhash(), 16)
         height = node0.getblockcount() + 1
-        time = node0.getblock(node0.getbestblockhash())['time'] + 1
+        time = node0.getblock(node0.getbestblockhash())["time"] + 1
 
         blocks = []
         for _ in range(NUM_IBD_BLOCKS * 2):
@@ -64,8 +63,9 @@ class SyncChainTest(BitcoinTestFramework):
         # The node should eventually, completely sync without getting stuck
         def node_synced():
             return node0.getbestblockhash() == blocks[-1].hash
+
         self.wait_until(node_synced)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     SyncChainTest().main()

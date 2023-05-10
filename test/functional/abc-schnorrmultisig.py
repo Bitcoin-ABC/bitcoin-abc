@@ -45,18 +45,23 @@ from test_framework.util import assert_equal, assert_raises_rpc_error
 
 # ECDSA checkmultisig with non-null dummy are invalid since the new mode
 # refuses ECDSA.
-ECDSA_NULLDUMMY_ERROR = 'mandatory-script-verify-flag-failed (Only Schnorr signatures allowed in this operation)'
+ECDSA_NULLDUMMY_ERROR = (
+    "mandatory-script-verify-flag-failed (Only Schnorr signatures allowed in this"
+    " operation)"
+)
 
 # A mandatory (bannable) error occurs when people pass Schnorr signatures into
 # legacy OP_CHECKMULTISIG.
-SCHNORR_LEGACY_MULTISIG_ERROR = 'mandatory-script-verify-flag-failed (Signature cannot be 65 bytes in CHECKMULTISIG)'
+SCHNORR_LEGACY_MULTISIG_ERROR = (
+    "mandatory-script-verify-flag-failed (Signature cannot be 65 bytes in"
+    " CHECKMULTISIG)"
+)
 
 # Blocks with invalid scripts give this error:
-BADINPUTS_ERROR = 'blk-bad-inputs'
+BADINPUTS_ERROR = "blk-bad-inputs"
 
 
 class SchnorrMultisigTest(BitcoinTestFramework):
-
     def set_test_params(self):
         self.num_nodes = 1
         self.block_heights = {}
@@ -87,8 +92,7 @@ class SchnorrMultisigTest(BitcoinTestFramework):
         block_height = self.block_heights[parent.sha256] + 1
         block_time = (parent.nTime + 1) if nTime is None else nTime
 
-        block = create_block(
-            parent.sha256, create_coinbase(block_height), block_time)
+        block = create_block(parent.sha256, create_coinbase(block_height), block_time)
         block.vtx.extend(transactions)
         make_conform_to_ctor(block)
         block.hashMerkleRoot = block.calc_merkle_root()
@@ -101,7 +105,12 @@ class SchnorrMultisigTest(BitcoinTestFramework):
 
         (Can't actually get banned, since bitcoind won't ban local peers.)"""
         self.nodes[0].p2ps[0].send_txs_and_test(
-            [tx], self.nodes[0], success=False, expect_disconnect=True, reject_reason=reject_reason)
+            [tx],
+            self.nodes[0],
+            success=False,
+            expect_disconnect=True,
+            reject_reason=reject_reason,
+        )
         self.reconnect_p2p()
 
     def check_for_ban_on_rejected_block(self, block, reject_reason=None):
@@ -109,11 +118,16 @@ class SchnorrMultisigTest(BitcoinTestFramework):
 
         (Can't actually get banned, since bitcoind won't ban local peers.)"""
         self.nodes[0].p2ps[0].send_blocks_and_test(
-            [block], self.nodes[0], success=False, reject_reason=reject_reason, expect_disconnect=True)
+            [block],
+            self.nodes[0],
+            success=False,
+            reject_reason=reject_reason,
+            expect_disconnect=True,
+        )
         self.reconnect_p2p()
 
     def run_test(self):
-        node, = self.nodes
+        (node,) = self.nodes
 
         self.nodes[0].add_p2p_connection(P2PDataStore())
 
@@ -141,7 +155,7 @@ class SchnorrMultisigTest(BitcoinTestFramework):
         # get uncompressed public key serialization
         public_key = private_key.get_pubkey().get_bytes()
 
-        def create_fund_and_spend_tx(dummy=OP_0, sigtype='ecdsa'):
+        def create_fund_and_spend_tx(dummy=OP_0, sigtype="ecdsa"):
             spendfrom = spendable_outputs.pop()
 
             script = CScript([OP_1, public_key, OP_1, OP_CHECKMULTISIG])
@@ -150,25 +164,23 @@ class SchnorrMultisigTest(BitcoinTestFramework):
 
             # Fund transaction
             txfund = create_tx_with_script(
-                spendfrom, 0, b'', amount=value, script_pub_key=script)
+                spendfrom, 0, b"", amount=value, script_pub_key=script
+            )
             txfund.rehash()
             fundings.append(txfund)
 
             # Spend transaction
             txspend = CTransaction()
-            txspend.vout.append(
-                CTxOut(value - 1000, CScript([OP_TRUE])))
-            txspend.vin.append(
-                CTxIn(COutPoint(txfund.sha256, 0), b''))
+            txspend.vout.append(CTxOut(value - 1000, CScript([OP_TRUE])))
+            txspend.vin.append(CTxIn(COutPoint(txfund.sha256, 0), b""))
 
             # Sign the transaction
             sighashtype = SIGHASH_ALL | SIGHASH_FORKID
-            hashbyte = bytes([sighashtype & 0xff])
-            sighash = SignatureHashForkId(
-                script, txspend, 0, sighashtype, value)
-            if sigtype == 'schnorr':
+            hashbyte = bytes([sighashtype & 0xFF])
+            sighash = SignatureHashForkId(script, txspend, 0, sighashtype, value)
+            if sigtype == "schnorr":
                 txsig = private_key.sign_schnorr(sighash) + hashbyte
-            elif sigtype == 'ecdsa':
+            elif sigtype == "ecdsa":
                 txsig = private_key.sign_ecdsa(sighash) + hashbyte
             txspend.vin[0].scriptSig = CScript([dummy, txsig])
             txspend.rehash()
@@ -176,16 +188,16 @@ class SchnorrMultisigTest(BitcoinTestFramework):
             return txspend
 
         # This is valid.
-        ecdsa0tx = create_fund_and_spend_tx(OP_0, 'ecdsa')
+        ecdsa0tx = create_fund_and_spend_tx(OP_0, "ecdsa")
 
         # This is invalid.
-        ecdsa1tx = create_fund_and_spend_tx(OP_1, 'ecdsa')
+        ecdsa1tx = create_fund_and_spend_tx(OP_1, "ecdsa")
 
         # This is invalid.
-        schnorr0tx = create_fund_and_spend_tx(OP_0, 'schnorr')
+        schnorr0tx = create_fund_and_spend_tx(OP_0, "schnorr")
 
         # This is valid.
-        schnorr1tx = create_fund_and_spend_tx(OP_1, 'schnorr')
+        schnorr1tx = create_fund_and_spend_tx(OP_1, "schnorr")
 
         tip = self.build_block(tip, fundings)
         node.p2ps[0].send_blocks_and_test([tip], node)
@@ -196,36 +208,34 @@ class SchnorrMultisigTest(BitcoinTestFramework):
 
         self.log.info("Trying to mine a non-null-dummy ECDSA.")
         self.check_for_ban_on_rejected_block(
-            self.build_block(tip, [ecdsa1tx]), BADINPUTS_ERROR)
+            self.build_block(tip, [ecdsa1tx]), BADINPUTS_ERROR
+        )
         self.log.info(
-            "If we try to submit it by mempool or RPC, it is rejected and we are banned")
-        assert_raises_rpc_error(-26, ECDSA_NULLDUMMY_ERROR,
-                                node.sendrawtransaction, ToHex(ecdsa1tx))
-        self.check_for_ban_on_rejected_tx(
-            ecdsa1tx, ECDSA_NULLDUMMY_ERROR)
+            "If we try to submit it by mempool or RPC, it is rejected and we are banned"
+        )
+        assert_raises_rpc_error(
+            -26, ECDSA_NULLDUMMY_ERROR, node.sendrawtransaction, ToHex(ecdsa1tx)
+        )
+        self.check_for_ban_on_rejected_tx(ecdsa1tx, ECDSA_NULLDUMMY_ERROR)
 
-        self.log.info(
-            "Submitting a Schnorr-multisig via net, and mining it in a block")
+        self.log.info("Submitting a Schnorr-multisig via net, and mining it in a block")
         node.p2ps[0].send_txs_and_test([schnorr1tx], node)
-        assert_equal(set(node.getrawmempool()), {
-                     ecdsa0tx.hash, schnorr1tx.hash})
+        assert_equal(set(node.getrawmempool()), {ecdsa0tx.hash, schnorr1tx.hash})
         tip = self.build_block(tip, [schnorr1tx])
         node.p2ps[0].send_blocks_and_test([tip], node)
 
-        self.log.info(
-            "That legacy ECDSA multisig is still in mempool, let's mine it")
+        self.log.info("That legacy ECDSA multisig is still in mempool, let's mine it")
         assert_equal(node.getrawmempool(), [ecdsa0tx.hash])
         tip = self.build_block(tip, [ecdsa0tx])
         node.p2ps[0].send_blocks_and_test([tip], node)
         assert_equal(node.getrawmempool(), [])
 
-        self.log.info(
-            "Trying Schnorr in legacy multisig is invalid and banworthy.")
-        self.check_for_ban_on_rejected_tx(
-            schnorr0tx, SCHNORR_LEGACY_MULTISIG_ERROR)
+        self.log.info("Trying Schnorr in legacy multisig is invalid and banworthy.")
+        self.check_for_ban_on_rejected_tx(schnorr0tx, SCHNORR_LEGACY_MULTISIG_ERROR)
         self.check_for_ban_on_rejected_block(
-            self.build_block(tip, [schnorr0tx]), BADINPUTS_ERROR)
+            self.build_block(tip, [schnorr0tx]), BADINPUTS_ERROR
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     SchnorrMultisigTest().main()

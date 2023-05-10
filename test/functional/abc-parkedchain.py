@@ -19,7 +19,7 @@ class ParkedChainTest(BitcoinTestFramework):
             ],
             [
                 "-automaticunparking=1",
-            ]
+            ],
         ]
 
     def skip_test_if_missing_module(self):
@@ -39,6 +39,7 @@ class ParkedChainTest(BitcoinTestFramework):
         def wait_for_tip(node, tip):
             def check_tip():
                 return node.getbestblockhash() == tip
+
             self.wait_until(check_tip)
 
         node = self.nodes[0]
@@ -154,27 +155,27 @@ class ParkedChainTest(BitcoinTestFramework):
                         assert tip["status"] != "active"
                         return tip["status"] == "parked"
                 return False
+
             self.wait_until(check_block)
 
         def check_reorg_protection(depth, extra_blocks):
-            self.log.info(
-                f"Test deep reorg parking, {depth} block deep")
+            self.log.info(f"Test deep reorg parking, {depth} block deep")
 
             # Invalidate the tip on node 0, so it doesn't follow node 1.
             node.invalidateblock(node.getbestblockhash())
             # Mine block to create a fork of proper depth
-            self.generatetoaddress(parking_node,
-                                   nblocks=depth - 1,
-                                   address=parking_node.getnewaddress(
-                                       label='coinbase'),
-                                   sync_fun=self.no_op,
-                                   )
-            self.generatetoaddress(node,
-                                   nblocks=depth,
-                                   address=node.getnewaddress(
-                                       label='coinbase'),
-                                   sync_fun=self.no_op,
-                                   )
+            self.generatetoaddress(
+                parking_node,
+                nblocks=depth - 1,
+                address=parking_node.getnewaddress(label="coinbase"),
+                sync_fun=self.no_op,
+            )
+            self.generatetoaddress(
+                node,
+                nblocks=depth,
+                address=node.getnewaddress(label="coinbase"),
+                sync_fun=self.no_op,
+            )
             # extra block should now find themselves parked
             for _ in range(extra_blocks):
                 self.generate(node, 1, sync_fun=self.no_op)
@@ -197,16 +198,18 @@ class ParkedChainTest(BitcoinTestFramework):
             check_reorg_protection(3, 1)
 
         self.log.info(
-            "Accepting many blocks at once (possibly out of order) should not park if there is no reorg.")
+            "Accepting many blocks at once (possibly out of order) should not park if"
+            " there is no reorg."
+        )
         # rewind one block to make a reorg that is shallow.
         node.invalidateblock(parking_node.getbestblockhash())
         # generate a ton of blocks at once.
         try:
             with parking_node.assert_debug_log(["Park block"]):
                 # Also waits for chain sync
-                self.generatetoaddress(node,
-                                       nblocks=20,
-                                       address=node.getnewaddress(label='coinbase'))
+                self.generatetoaddress(
+                    node, nblocks=20, address=node.getnewaddress(label="coinbase")
+                )
         except AssertionError as exc:
             # good, we want an absence of "Park block" messages
             assert "does not partially match log" in exc.args[0]
@@ -217,11 +220,12 @@ class ParkedChainTest(BitcoinTestFramework):
         # Set up parking node height = fork + 4, node height = fork + 5
         node.invalidateblock(node.getbestblockhash())
         self.generate(parking_node, 3, sync_fun=self.no_op)
-        self.generatetoaddress(node,
-                               nblocks=5,
-                               address=node.getnewaddress(label='coinbase'),
-                               sync_fun=self.no_op,
-                               )
+        self.generatetoaddress(
+            node,
+            nblocks=5,
+            address=node.getnewaddress(label="coinbase"),
+            sync_fun=self.no_op,
+        )
         wait_for_parked_block(node.getbestblockhash())
         # Restart the parking node without parkdeepreorg.
         self.restart_node(1, self.extra_args[1] + ["-parkdeepreorg=0"])
@@ -241,5 +245,5 @@ class ParkedChainTest(BitcoinTestFramework):
         # Parking node is no longer parking.
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ParkedChainTest().main()
