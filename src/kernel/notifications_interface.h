@@ -9,6 +9,7 @@
 
 class CBlockIndex;
 enum class SynchronizationState;
+struct bilingual_str;
 
 namespace kernel {
 
@@ -23,6 +24,8 @@ public:
     virtual void blockTip(SynchronizationState state, CBlockIndex &index) {}
     virtual void headerTip(SynchronizationState state, int64_t height,
                            int64_t timestamp, bool presync) {}
+    virtual void progress(const bilingual_str &title, int progress_percent,
+                          bool resume_possible) {}
 };
 } // namespace kernel
 

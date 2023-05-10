@@ -1276,9 +1276,10 @@ static RPCHelpMan verifychain() {
             LOCK(cs_main);
 
             Chainstate &active_chainstate = chainman.ActiveChainstate();
-            return CVerifyDB().VerifyDB(
-                       active_chainstate, active_chainstate.CoinsTip(),
-                       check_level, check_depth) == VerifyDBResult::SUCCESS;
+            return CVerifyDB(chainman.GetNotifications())
+                       .VerifyDB(active_chainstate,
+                                 active_chainstate.CoinsTip(), check_level,
+                                 check_depth) == VerifyDBResult::SUCCESS;
         },
     };
 }

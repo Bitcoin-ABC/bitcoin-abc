@@ -28,6 +28,7 @@
 #include <script/scriptcache.h>
 #include <script/sigcache.h>
 #include <util/thread.h>
+#include <util/translation.h>
 #include <validation.h>
 #include <validationinterface.h>
 
@@ -100,6 +101,12 @@ int main(int argc, char *argv[]) {
                        bool presync) override {
             std::cout << "Header tip changed: " << height << ", " << timestamp
                       << ", " << presync << std::endl;
+        }
+        void progress(const bilingual_str &title, int progress_percent,
+                      bool resume_possible) override {
+            std::cout << "Progress: " << title.original << ", "
+                      << progress_percent << ", " << resume_possible
+                      << std::endl;
         }
     };
     auto notifications = std::make_unique<KernelNotifications>();

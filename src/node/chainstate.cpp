@@ -283,8 +283,9 @@ VerifyLoadedChainstate(ChainstateManager &chainman,
             }
 
             VerifyDBResult result =
-                CVerifyDB().VerifyDB(*chainstate, chainstate->CoinsDB(),
-                                     options.check_level, options.check_blocks);
+                CVerifyDB(chainman.GetNotifications())
+                    .VerifyDB(*chainstate, chainstate->CoinsDB(),
+                              options.check_level, options.check_blocks);
             switch (result) {
                 case VerifyDBResult::SUCCESS:
                 case VerifyDBResult::SKIPPED_MISSING_BLOCKS:

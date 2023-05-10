@@ -550,9 +550,14 @@ enum class VerifyDBResult {
  * databases.
  */
 class CVerifyDB {
+private:
+    kernel::Notifications &m_notifications;
+
 public:
     CVerifyDB();
 
+public:
+    explicit CVerifyDB(kernel::Notifications &notifications);
     ~CVerifyDB();
 
     [[nodiscard]] VerifyDBResult VerifyDB(Chainstate &chainstate,
