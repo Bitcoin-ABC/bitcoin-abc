@@ -47,8 +47,11 @@ class ResendWalletTransactionsTest(BitcoinTestFramework):
         # extra minute to be sure.
         block_time = int(time.time()) + 6 * 60
         node.setmocktime(block_time)
-        block = create_block(int(node.getbestblockhash(), 16), create_coinbase(
-            node.getblockcount() + 1), block_time)
+        block = create_block(
+            int(node.getbestblockhash(), 16),
+            create_coinbase(node.getblockcount() + 1),
+            block_time,
+        )
         block.rehash()
         block.solve()
         node.submitblock(ToHex(block))
@@ -70,7 +73,9 @@ class ResendWalletTransactionsTest(BitcoinTestFramework):
         self.log.info("Bump time & check that transaction is rebroadcast")
         # Transaction should be rebroadcast approximately 24 hours in the future,
         # but can range from 12-36. So bump 36 hours to be sure.
-        with node.assert_debug_log(['ResendWalletTransactions: resubmit 1 unconfirmed transactions']):
+        with node.assert_debug_log(
+            ["ResendWalletTransactions: resubmit 1 unconfirmed transactions"]
+        ):
             node.setmocktime(now + 36 * 60 * 60)
             # Tell scheduler to call MaybeResendWalletTxn now.
             node.mockscheduler(1)
@@ -79,5 +84,5 @@ class ResendWalletTransactionsTest(BitcoinTestFramework):
         peer_second.wait_for_broadcast([txid])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ResendWalletTransactionsTest().main()

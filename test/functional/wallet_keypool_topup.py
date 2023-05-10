@@ -21,15 +21,19 @@ class KeypoolRestoreTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 2
-        self.extra_args = [[], ['-keypool=100']]
+        self.extra_args = [[], ["-keypool=100"]]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
 
     def run_test(self):
         wallet_path = os.path.join(
-            self.nodes[1].datadir, self.chain, "wallets",
-            self.default_wallet_name, self.wallet_data_filename)
+            self.nodes[1].datadir,
+            self.chain,
+            "wallets",
+            self.default_wallet_name,
+            self.wallet_data_filename,
+        )
         wallet_backup_path = os.path.join(self.nodes[1].datadir, "wallet.bak")
         self.generate(self.nodes[0], 101)
 
@@ -60,20 +64,23 @@ class KeypoolRestoreTest(BitcoinTestFramework):
 
         self.log.info("Verify keypool is restored and balance is correct")
         assert_equal(self.nodes[1].getbalance(), 15000000)
-        assert_equal(self.nodes[1].listtransactions()
-                     [0]['category'], "receive")
+        assert_equal(self.nodes[1].listtransactions()[0]["category"], "receive")
         # Check that we have marked all keys up to the used keypool key as used
         if self.options.descriptors:
             assert_equal(
-                self.nodes[1].getaddressinfo(
-                    self.nodes[1].getnewaddress())['hdkeypath'],
-                "m/44'/1'/0'/0/110")
+                self.nodes[1].getaddressinfo(self.nodes[1].getnewaddress())[
+                    "hdkeypath"
+                ],
+                "m/44'/1'/0'/0/110",
+            )
         else:
             assert_equal(
-                self.nodes[1].getaddressinfo(
-                    self.nodes[1].getnewaddress())['hdkeypath'],
-                "m/0'/0'/110'")
+                self.nodes[1].getaddressinfo(self.nodes[1].getnewaddress())[
+                    "hdkeypath"
+                ],
+                "m/0'/0'/110'",
+            )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     KeypoolRestoreTest().main()
