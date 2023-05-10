@@ -20,7 +20,8 @@ class InvalidateTest(BitcoinTestFramework):
 
     def run_test(self):
         self.log.info(
-            "Make sure we repopulate setBlockIndexCandidates after InvalidateBlock:")
+            "Make sure we repopulate setBlockIndexCandidates after InvalidateBlock:"
+        )
         self.log.info("Mine 4 blocks on Node 0")
         self.generate(self.nodes[0], 4, sync_fun=self.no_op)
         assert_equal(self.nodes[0].getblockcount(), 4)
@@ -37,7 +38,9 @@ class InvalidateTest(BitcoinTestFramework):
         badhash = self.nodes[1].getblockhash(2)
 
         self.log.info(
-            "Invalidate block 2 on node 0 and verify we reorg to node 0's original chain")
+            "Invalidate block 2 on node 0 and verify we reorg to node 0's original"
+            " chain"
+        )
         self.nodes[0].invalidateblock(badhash)
         assert_equal(self.nodes[0].getblockcount(), 4)
         assert_equal(self.nodes[0].getbestblockhash(), besthash_n0)
@@ -61,8 +64,9 @@ class InvalidateTest(BitcoinTestFramework):
         self.wait_until(lambda: self.nodes[1].getblockcount() == 4, timeout=5)
 
         self.log.info("Verify that we reconsider all ancestors as well")
-        blocks = self.generatetodescriptor(self.nodes[1],
-                                           10, ADDRESS_ECREG_UNSPENDABLE_DESCRIPTOR, sync_fun=self.no_op)
+        blocks = self.generatetodescriptor(
+            self.nodes[1], 10, ADDRESS_ECREG_UNSPENDABLE_DESCRIPTOR, sync_fun=self.no_op
+        )
         assert_equal(self.nodes[1].getbestblockhash(), blocks[-1])
         # Invalidate the two blocks at the tip
         self.nodes[1].invalidateblock(blocks[-1])
@@ -74,8 +78,9 @@ class InvalidateTest(BitcoinTestFramework):
         assert_equal(self.nodes[1].getbestblockhash(), blocks[-1])
 
         self.log.info("Verify that we reconsider all descendants")
-        blocks = self.generatetodescriptor(self.nodes[1],
-                                           10, ADDRESS_ECREG_UNSPENDABLE_DESCRIPTOR, sync_fun=self.no_op)
+        blocks = self.generatetodescriptor(
+            self.nodes[1], 10, ADDRESS_ECREG_UNSPENDABLE_DESCRIPTOR, sync_fun=self.no_op
+        )
         assert_equal(self.nodes[1].getbestblockhash(), blocks[-1])
         # Invalidate the two blocks at the tip
         self.nodes[1].invalidateblock(blocks[-2])
@@ -87,5 +92,5 @@ class InvalidateTest(BitcoinTestFramework):
         assert_equal(self.nodes[1].getbestblockhash(), blocks[-1])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     InvalidateTest().main()

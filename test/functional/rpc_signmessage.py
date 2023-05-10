@@ -17,29 +17,27 @@ class SignMessagesTest(BitcoinTestFramework):
         self.skip_if_no_wallet()
 
     def run_test(self):
-        message = 'This is just a test message'
+        message = "This is just a test message"
 
-        self.log.info('test signing with priv_key')
-        priv_key = 'cUeKHd5orzT3mz8P9pxyREHfsWtVfgsfDjiZZBcjUBAaGk1BTj7N'
-        address = 'mpLQjfK79b7CCV4VMJWEWAj5Mpx8Up5zxB'
-        expected_signature = 'H/+xpIcWFrFLpyHC44kZSSuUqfv6T9CHzCIw/tsetxO0UYjIHvnvA891Hm7Ho3tTMRNYS2xf+lozdASttZc8L+8='
+        self.log.info("test signing with priv_key")
+        priv_key = "cUeKHd5orzT3mz8P9pxyREHfsWtVfgsfDjiZZBcjUBAaGk1BTj7N"
+        address = "mpLQjfK79b7CCV4VMJWEWAj5Mpx8Up5zxB"
+        expected_signature = "H/+xpIcWFrFLpyHC44kZSSuUqfv6T9CHzCIw/tsetxO0UYjIHvnvA891Hm7Ho3tTMRNYS2xf+lozdASttZc8L+8="
         signature = self.nodes[0].signmessagewithprivkey(priv_key, message)
         assert_equal(expected_signature, signature)
         assert self.nodes[0].verifymessage(address, signature, message)
 
-        self.log.info('test signing with an address with wallet')
+        self.log.info("test signing with an address with wallet")
         address = self.nodes[0].getnewaddress()
         signature = self.nodes[0].signmessage(address, message)
         assert self.nodes[0].verifymessage(address, signature, message)
 
-        self.log.info('test verifying with another address should not work')
+        self.log.info("test verifying with another address should not work")
         other_address = self.nodes[0].getnewaddress()
         other_signature = self.nodes[0].signmessage(other_address, message)
-        assert not self.nodes[0].verifymessage(
-            other_address, signature, message)
-        assert not self.nodes[0].verifymessage(
-            address, other_signature, message)
+        assert not self.nodes[0].verifymessage(other_address, signature, message)
+        assert not self.nodes[0].verifymessage(address, other_signature, message)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     SignMessagesTest().main()

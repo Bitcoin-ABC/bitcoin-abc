@@ -39,17 +39,12 @@ class GetBlockFromPeerTest(BitcoinTestFramework):
         self.connect_nodes(0, 1)
         self.sync_blocks()
 
-        self.log.info(
-            "Node 0 should only have the header for node 1's block 3")
-        x = next(
-            filter(
-                lambda x: x['hash'] == short_tip,
-                self.nodes[0].getchaintips()))
-        assert_equal(x['status'], "headers-only")
-        assert_raises_rpc_error(-1,
-                                "Block not found on disk",
-                                self.nodes[0].getblock,
-                                short_tip)
+        self.log.info("Node 0 should only have the header for node 1's block 3")
+        x = next(filter(lambda x: x["hash"] == short_tip, self.nodes[0].getchaintips()))
+        assert_equal(x["status"], "headers-only")
+        assert_raises_rpc_error(
+            -1, "Block not found on disk", self.nodes[0].getblock, short_tip
+        )
 
         self.log.info("Fetch block from node 1")
         peers = self.nodes[0].getpeerinfo()
@@ -57,25 +52,27 @@ class GetBlockFromPeerTest(BitcoinTestFramework):
         peer_0_peer_1_id = peers[0]["id"]
 
         self.log.info("Arguments must be sensible")
-        assert_raises_rpc_error(-8,
-                                "hash must be of length 64 (not 4, for '1234')",
-                                self.nodes[0].getblockfrompeer,
-                                "1234",
-                                0)
+        assert_raises_rpc_error(
+            -8,
+            "hash must be of length 64 (not 4, for '1234')",
+            self.nodes[0].getblockfrompeer,
+            "1234",
+            0,
+        )
 
         self.log.info("We must already have the header")
-        assert_raises_rpc_error(-1,
-                                "Block header missing",
-                                self.nodes[0].getblockfrompeer,
-                                "00" * 32,
-                                0)
+        assert_raises_rpc_error(
+            -1, "Block header missing", self.nodes[0].getblockfrompeer, "00" * 32, 0
+        )
 
         self.log.info("Non-existent peer generates error")
-        assert_raises_rpc_error(-1,
-                                "Peer does not exist",
-                                self.nodes[0].getblockfrompeer,
-                                short_tip,
-                                peer_0_peer_1_id + 1)
+        assert_raises_rpc_error(
+            -1,
+            "Peer does not exist",
+            self.nodes[0].getblockfrompeer,
+            short_tip,
+            peer_0_peer_1_id + 1,
+        )
 
         self.log.info("Successful fetch")
         result = self.nodes[0].getblockfrompeer(short_tip, peer_0_peer_1_id)
@@ -83,12 +80,14 @@ class GetBlockFromPeerTest(BitcoinTestFramework):
         assert_equal(result, {})
 
         self.log.info("Don't fetch blocks we already have")
-        assert_raises_rpc_error(-1,
-                                "Block already downloaded",
-                                self.nodes[0].getblockfrompeer,
-                                short_tip,
-                                peer_0_peer_1_id)
+        assert_raises_rpc_error(
+            -1,
+            "Block already downloaded",
+            self.nodes[0].getblockfrompeer,
+            short_tip,
+            peer_0_peer_1_id,
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     GetBlockFromPeerTest().main()

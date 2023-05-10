@@ -36,36 +36,39 @@ class RPCBindTest(BitcoinTestFramework):
     def add_options(self, parser):
         parser.add_argument(
             "--ipv4",
-            action='store_true',
+            action="store_true",
             dest="run_ipv4",
             help="Run ipv4 tests only",
-            default=False)
+            default=False,
+        )
         parser.add_argument(
             "--ipv6",
-            action='store_true',
+            action="store_true",
             dest="run_ipv6",
             help="Run ipv6 tests only",
-            default=False)
+            default=False,
+        )
         parser.add_argument(
             "--nonloopback",
-            action='store_true',
+            action="store_true",
             dest="run_nonloopback",
             help="Run non-loopback tests only",
-            default=False)
+            default=False,
+        )
 
     def run_bind_test(self, allow_ips, connect_to, addresses, expected):
-        '''
+        """
         Start a node with requested rpcallowip and rpcbind parameters,
         then try to connect, and check if the set of bound addresses
         matches the expected set.
-        '''
+        """
         self.log.info(f"Bind test for {str(addresses)}")
         expected = [(addr_to_hex(addr), port) for (addr, port) in expected]
-        base_args = ['-disablewallet', '-nolisten']
+        base_args = ["-disablewallet", "-nolisten"]
         if allow_ips:
             base_args += [f"-rpcallowip={x}" for x in allow_ips]
         binds = [f"-rpcbind={addr}" for addr in addresses]
-        parts = connect_to.split(':')
+        parts = connect_to.split(":")
         if len(parts) == 2:
             self.nodes[0].host = parts[0]
             self.nodes[0].rpc_port = parts[1]
@@ -78,16 +81,17 @@ class RPCBindTest(BitcoinTestFramework):
         self.stop_nodes()
 
     def run_allowip_test(self, allow_ips, rpchost, rpcport):
-        '''
+        """
         Start a node with rpcallow IP, and request getnetworkinfo
         at a non-localhost IP.
-        '''
+        """
         self.log.info(f"Allow IP test for {rpchost}:{rpcport}")
         node_args = (
-            ['-disablewallet', '-nolisten'] +
-            [f"-rpcallowip={x}" for x in allow_ips] +
+            ["-disablewallet", "-nolisten"]
+            + [f"-rpcallowip={x}" for x in allow_ips]
+            +
             # Bind to localhost as well so start_nodes doesn't hang
-            [f"-rpcbind={addr}" for addr in ['127.0.0.1', f"{rpchost}:{rpcport}"]]
+            [f"-rpcbind={addr}" for addr in ["127.0.0.1", f"{rpchost}:{rpcport}"]]
         )
         self.nodes[0].host = None
         self.start_nodes([node_args])
@@ -100,13 +104,22 @@ class RPCBindTest(BitcoinTestFramework):
     def run_test(self):
         # due to OS-specific network stats queries, this test works only on
         # Linux
-        if sum([self.options.run_ipv4, self.options.run_ipv6,
-                self.options.run_nonloopback]) > 1:
+        if (
+            sum(
+                [
+                    self.options.run_ipv4,
+                    self.options.run_ipv6,
+                    self.options.run_nonloopback,
+                ]
+            )
+            > 1
+        ):
             raise AssertionError(
-                "Only one of --ipv4, --ipv6 and --nonloopback can be set")
+                "Only one of --ipv4, --ipv6 and --nonloopback can be set"
+            )
 
         self.log.info("Check for linux")
-        if not sys.platform.startswith('linux'):
+        if not sys.platform.startswith("linux"):
             raise SkipTest("This test can only be run on linux.")
 
         # WSL in currently not supported (refer to
@@ -114,20 +127,20 @@ class RPCBindTest(BitcoinTestFramework):
         # This condition should be removed once netstat support is provided by
         # Microsoft.
         if "microsoft" in uname().version.lower():
-            raise SkipTest(
-                "Running this test on WSL is currently not supported")
+            raise SkipTest("Running this test on WSL is currently not supported")
 
         self.log.info("Check for ipv6")
         have_ipv6 = test_ipv6_local()
         if not have_ipv6 and not (
-                self.options.run_ipv4 or self.options.run_nonloopback):
+            self.options.run_ipv4 or self.options.run_nonloopback
+        ):
             raise SkipTest("This test requires ipv6 support.")
 
         self.log.info("Check for non-loopback interface")
         self.non_loopback_ip = None
 
         for name, ip in all_interfaces():
-            if ip != '127.0.0.1':
+            if ip != "127.0.0.1":
                 self.non_loopback_ip = ip
                 break
         if self.non_loopback_ip is None and self.options.run_nonloopback:
@@ -143,47 +156,77 @@ class RPCBindTest(BitcoinTestFramework):
     def _run_loopback_tests(self):
         if self.options.run_ipv4:
             # check only IPv4 localhost (explicit)
-            self.run_bind_test(['127.0.0.1'], '127.0.0.1', ['127.0.0.1'],
-                               [('127.0.0.1', self.defaultport)])
+            self.run_bind_test(
+                ["127.0.0.1"],
+                "127.0.0.1",
+                ["127.0.0.1"],
+                [("127.0.0.1", self.defaultport)],
+            )
             # check only IPv4 localhost (explicit) with alternative port
-            self.run_bind_test(['127.0.0.1'], '127.0.0.1:32171', ['127.0.0.1:32171'],
-                               [('127.0.0.1', 32171)])
+            self.run_bind_test(
+                ["127.0.0.1"],
+                "127.0.0.1:32171",
+                ["127.0.0.1:32171"],
+                [("127.0.0.1", 32171)],
+            )
             # check only IPv4 localhost (explicit) with multiple alternative
             # ports on same host
-            self.run_bind_test(['127.0.0.1'], '127.0.0.1:32171', ['127.0.0.1:32171', '127.0.0.1:32172'],
-                               [('127.0.0.1', 32171), ('127.0.0.1', 32172)])
+            self.run_bind_test(
+                ["127.0.0.1"],
+                "127.0.0.1:32171",
+                ["127.0.0.1:32171", "127.0.0.1:32172"],
+                [("127.0.0.1", 32171), ("127.0.0.1", 32172)],
+            )
         else:
             # check default without rpcallowip (IPv4 and IPv6 localhost)
-            self.run_bind_test(None, '127.0.0.1', [],
-                               [('127.0.0.1', self.defaultport), ('::1', self.defaultport)])
+            self.run_bind_test(
+                None,
+                "127.0.0.1",
+                [],
+                [("127.0.0.1", self.defaultport), ("::1", self.defaultport)],
+            )
             # check default with rpcallowip (IPv4 and IPv6 localhost)
             self.run_bind_test(
-                ['127.0.0.1'], '127.0.0.1', [], [
-                    ('127.0.0.1', self.defaultport), ('::1', self.defaultport)])
+                ["127.0.0.1"],
+                "127.0.0.1",
+                [],
+                [("127.0.0.1", self.defaultport), ("::1", self.defaultport)],
+            )
             # check only IPv6 localhost (explicit)
-            self.run_bind_test(['[::1]'], '[::1]', ['[::1]'],
-                               [('::1', self.defaultport)])
+            self.run_bind_test(
+                ["[::1]"], "[::1]", ["[::1]"], [("::1", self.defaultport)]
+            )
             # check both IPv4 and IPv6 localhost (explicit)
-            self.run_bind_test(['127.0.0.1'], '127.0.0.1', ['127.0.0.1', '[::1]'],
-                               [('127.0.0.1', self.defaultport), ('::1', self.defaultport)])
+            self.run_bind_test(
+                ["127.0.0.1"],
+                "127.0.0.1",
+                ["127.0.0.1", "[::1]"],
+                [("127.0.0.1", self.defaultport), ("::1", self.defaultport)],
+            )
 
     def _run_nonloopback_tests(self):
-        self.log.info(
-            f"Using interface {self.non_loopback_ip} for testing")
+        self.log.info(f"Using interface {self.non_loopback_ip} for testing")
         # check only non-loopback interface
-        self.run_bind_test([self.non_loopback_ip], self.non_loopback_ip, [self.non_loopback_ip],
-                           [(self.non_loopback_ip, self.defaultport)])
+        self.run_bind_test(
+            [self.non_loopback_ip],
+            self.non_loopback_ip,
+            [self.non_loopback_ip],
+            [(self.non_loopback_ip, self.defaultport)],
+        )
 
         # Check that with invalid rpcallowip, we are denied
-        self.run_allowip_test([self.non_loopback_ip],
-                              self.non_loopback_ip, self.defaultport)
-        assert_raises_rpc_error(-342,
-                                "non-JSON HTTP response with '403 Forbidden' from server",
-                                self.run_allowip_test,
-                                ['1.1.1.1'],
-                                self.non_loopback_ip,
-                                self.defaultport)
+        self.run_allowip_test(
+            [self.non_loopback_ip], self.non_loopback_ip, self.defaultport
+        )
+        assert_raises_rpc_error(
+            -342,
+            "non-JSON HTTP response with '403 Forbidden' from server",
+            self.run_allowip_test,
+            ["1.1.1.1"],
+            self.non_loopback_ip,
+            self.defaultport,
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     RPCBindTest().main()

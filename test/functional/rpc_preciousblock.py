@@ -17,12 +17,11 @@ def unidirectional_node_sync_via_rpc(node_src, node_dest):
             break
         except Exception:
             blocks_to_copy.append(blockhash)
-            blockhash = node_src.getblockheader(
-                blockhash, True)['previousblockhash']
+            blockhash = node_src.getblockheader(blockhash, True)["previousblockhash"]
     blocks_to_copy.reverse()
     for blockhash in blocks_to_copy:
         blockdata = node_src.getblock(blockhash, False)
-        assert node_dest.submitblock(blockdata) in (None, 'inconclusive')
+        assert node_dest.submitblock(blockdata) in (None, "inconclusive")
 
 
 def node_sync_via_rpc(nodes):
@@ -37,16 +36,18 @@ class PreciousTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 3
-        self.extra_args = [["-noparkdeepreorg"],
-                           ["-noparkdeepreorg"], ["-noparkdeepreorg"]]
+        self.extra_args = [
+            ["-noparkdeepreorg"],
+            ["-noparkdeepreorg"],
+            ["-noparkdeepreorg"],
+        ]
         self.supports_cli = False
 
     def setup_network(self):
         self.setup_nodes()
 
     def run_test(self):
-        self.log.info(
-            "Ensure submitblock can in principle reorg to a competing chain")
+        self.log.info("Ensure submitblock can in principle reorg to a competing chain")
         self.generate(self.nodes[0], 1, sync_fun=self.no_op)
         assert_equal(self.nodes[0].getblockcount(), 1)
         hashZ = self.generate(self.nodes[1], 2, sync_fun=self.no_op)[-1]
@@ -88,8 +89,7 @@ class PreciousTest(BitcoinTestFramework):
         self.log.info("Make Node1 prefer block C again")
         self.nodes[1].preciousblock(hashC)
         assert_equal(self.nodes[1].getbestblockhash(), hashC)
-        self.log.info(
-            "Mine another block (E-F-G-)H on Node 0 and reorg Node 1")
+        self.log.info("Mine another block (E-F-G-)H on Node 0 and reorg Node 1")
         self.generate(self.nodes[0], 1, sync_fun=self.no_op)
         assert_equal(self.nodes[0].getblockcount(), 6)
         self.sync_blocks(self.nodes[0:2])
@@ -117,5 +117,5 @@ class PreciousTest(BitcoinTestFramework):
         assert_equal(self.nodes[2].getbestblockhash(), hashH)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     PreciousTest().main()

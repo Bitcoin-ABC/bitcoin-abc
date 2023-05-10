@@ -37,7 +37,8 @@ def assert_net_servicesnames(servicesflag, servicenames):
     servicesflag_generated = 0
     for servicename in servicenames:
         servicesflag_generated |= getattr(
-            test_framework.messages, f"NODE_{servicename}")
+            test_framework.messages, f"NODE_{servicename}"
+        )
     assert servicesflag_generated == servicesflag
 
 
@@ -45,12 +46,18 @@ class NetTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 2
-        self.extra_args = [["-avaproofstakeutxodustthreshold=1000000",
-                            "-avaproofstakeutxoconfirmations=1",
-                            "-minrelaytxfee=10"],
-                           ["-avaproofstakeutxodustthreshold=1000000",
-                            "-avaproofstakeutxoconfirmations=1",
-                            "-minrelaytxfee=5"]]
+        self.extra_args = [
+            [
+                "-avaproofstakeutxodustthreshold=1000000",
+                "-avaproofstakeutxoconfirmations=1",
+                "-minrelaytxfee=10",
+            ],
+            [
+                "-avaproofstakeutxodustthreshold=1000000",
+                "-avaproofstakeutxoconfirmations=1",
+                "-minrelaytxfee=5",
+            ],
+        ]
         self.supports_cli = False
 
     def run_test(self):
@@ -84,101 +91,110 @@ class NetTest(BitcoinTestFramework):
         peer_info_before = self.nodes[0].getpeerinfo()
         self.nodes[0].ping()
         self.wait_until(
-            lambda:
-                self.nodes[0].getnettotals()['totalbytessent']
-                >= net_totals_before['totalbytessent'] + 32 * 2,
-            timeout=10)
+            lambda: self.nodes[0].getnettotals()["totalbytessent"]
+            >= net_totals_before["totalbytessent"] + 32 * 2,
+            timeout=10,
+        )
         self.wait_until(
-            lambda:
-                self.nodes[0].getnettotals()['totalbytesrecv']
-                >= net_totals_before['totalbytesrecv'] + 32 * 2,
-            timeout=10)
+            lambda: self.nodes[0].getnettotals()["totalbytesrecv"]
+            >= net_totals_before["totalbytesrecv"] + 32 * 2,
+            timeout=10,
+        )
 
         for peer_before in peer_info_before:
+
             def peer_after():
                 return next(
-                    p for p in self.nodes[0].getpeerinfo()
-                    if p['id'] == peer_before['id']
+                    p
+                    for p in self.nodes[0].getpeerinfo()
+                    if p["id"] == peer_before["id"]
                 )
+
             self.wait_until(
-                lambda:
-                    peer_after()['bytesrecv_per_msg'].get('pong', 0)
-                    >= peer_before['bytesrecv_per_msg'].get('pong', 0) + 32,
-                timeout=10
+                lambda: peer_after()["bytesrecv_per_msg"].get("pong", 0)
+                >= peer_before["bytesrecv_per_msg"].get("pong", 0) + 32,
+                timeout=10,
             )
             self.wait_until(
-                lambda:
-                    peer_after()['bytessent_per_msg'].get('ping', 0)
-                    >= peer_before['bytessent_per_msg'].get('ping', 0) + 32,
-                timeout=10)
+                lambda: peer_after()["bytessent_per_msg"].get("ping", 0)
+                >= peer_before["bytessent_per_msg"].get("ping", 0) + 32,
+                timeout=10,
+            )
 
     def test_getnetworkinfo(self):
         self.log.info("Test getnetworkinfo")
         info = self.nodes[0].getnetworkinfo()
-        assert_equal(info['networkactive'], True)
-        assert_equal(info['connections'], 2)
-        assert_equal(info['connections_in'], 1)
-        assert_equal(info['connections_out'], 1)
+        assert_equal(info["networkactive"], True)
+        assert_equal(info["connections"], 2)
+        assert_equal(info["connections_in"], 1)
+        assert_equal(info["connections_out"], 1)
 
-        with self.nodes[0].assert_debug_log(expected_msgs=['SetNetworkActive: false\n']):
+        with self.nodes[0].assert_debug_log(
+            expected_msgs=["SetNetworkActive: false\n"]
+        ):
             self.nodes[0].setnetworkactive(state=False)
-        assert_equal(self.nodes[0].getnetworkinfo()['networkactive'], False)
+        assert_equal(self.nodes[0].getnetworkinfo()["networkactive"], False)
         # Wait a bit for all sockets to close
-        self.wait_until(lambda: self.nodes[0].getnetworkinfo()[
-            'connections'] == 0, timeout=3)
+        self.wait_until(
+            lambda: self.nodes[0].getnetworkinfo()["connections"] == 0, timeout=3
+        )
 
-        with self.nodes[0].assert_debug_log(expected_msgs=['SetNetworkActive: true\n']):
+        with self.nodes[0].assert_debug_log(expected_msgs=["SetNetworkActive: true\n"]):
             self.nodes[0].setnetworkactive(state=True)
         # Connect nodes both ways.
         self.connect_nodes(0, 1)
         self.connect_nodes(1, 0)
 
         info = self.nodes[0].getnetworkinfo()
-        assert_equal(info['networkactive'], True)
-        assert_equal(info['connections'], 2)
-        assert_equal(info['connections_in'], 1)
-        assert_equal(info['connections_out'], 1)
+        assert_equal(info["networkactive"], True)
+        assert_equal(info["connections"], 2)
+        assert_equal(info["connections_in"], 1)
+        assert_equal(info["connections_out"], 1)
 
         # check the `servicesnames` field
         network_info = [node.getnetworkinfo() for node in self.nodes]
         for info in network_info:
-            assert_net_servicesnames(int(info["localservices"], 0x10),
-                                     info["localservicesnames"])
+            assert_net_servicesnames(
+                int(info["localservices"], 0x10), info["localservicesnames"]
+            )
 
         # Check dynamically generated networks list in getnetworkinfo help
         # output.
-        assert (
-            "(ipv4, ipv6, onion, i2p)" in self.nodes[0].help("getnetworkinfo")
-        )
+        assert "(ipv4, ipv6, onion, i2p)" in self.nodes[0].help("getnetworkinfo")
 
     def test_getaddednodeinfo(self):
         self.log.info("Test getaddednodeinfo")
         assert_equal(self.nodes[0].getaddednodeinfo(), [])
         # add a node (node2) to node0
         ip_port = f"127.0.0.1:{p2p_port(2)}"
-        self.nodes[0].addnode(node=ip_port, command='add')
+        self.nodes[0].addnode(node=ip_port, command="add")
         # check that the node has indeed been added
         added_nodes = self.nodes[0].getaddednodeinfo(ip_port)
         assert_equal(len(added_nodes), 1)
-        assert_equal(added_nodes[0]['addednode'], ip_port)
+        assert_equal(added_nodes[0]["addednode"], ip_port)
         # check that node cannot be added again
-        assert_raises_rpc_error(-23,
-                                "Node already added",
-                                self.nodes[0].addnode,
-                                node=ip_port,
-                                command='add')
+        assert_raises_rpc_error(
+            -23,
+            "Node already added",
+            self.nodes[0].addnode,
+            node=ip_port,
+            command="add",
+        )
         # check that node can be removed
-        self.nodes[0].addnode(node=ip_port, command='remove')
+        self.nodes[0].addnode(node=ip_port, command="remove")
         assert_equal(self.nodes[0].getaddednodeinfo(), [])
         # check that trying to remove the node again returns an error
-        assert_raises_rpc_error(-24,
-                                "Node could not be removed",
-                                self.nodes[0].addnode,
-                                node=ip_port,
-                                command='remove')
+        assert_raises_rpc_error(
+            -24,
+            "Node could not be removed",
+            self.nodes[0].addnode,
+            node=ip_port,
+            command="remove",
+        )
         # check that a non-existent node returns an error
-        assert_raises_rpc_error(-24, "Node has not been added",
-                                self.nodes[0].getaddednodeinfo, '1.1.1.1')
+        assert_raises_rpc_error(
+            -24, "Node has not been added", self.nodes[0].getaddednodeinfo, "1.1.1.1"
+        )
 
     def test_getpeerinfo(self):
         self.log.info("Test getpeerinfo")
@@ -190,59 +206,66 @@ class NetTest(BitcoinTestFramework):
         self.sync_all()
 
         stake = create_coinbase_stakes(
-            self.nodes[1], [tip], self.nodes[1].get_deterministic_priv_key().key)
+            self.nodes[1], [tip], self.nodes[1].get_deterministic_priv_key().key
+        )
         privkey = ECKey()
         privkey.generate()
         proof = self.nodes[1].buildavalancheproof(
-            42, 2000000000, bytes_to_wif(privkey.get_bytes()), stake)
+            42, 2000000000, bytes_to_wif(privkey.get_bytes()), stake
+        )
         self.nodes[1].sendavalancheproof(proof)
         self.sync_proofs()
 
         time_now = int(time.time())
         peer_info = [x.getpeerinfo() for x in self.nodes]
         # Verify last_block, last_transaction and last_proof keys/values.
-        for node, peer, field in product(range(self.num_nodes), range(2), [
-                                         'last_block', 'last_transaction', 'last_proof']):
+        for node, peer, field in product(
+            range(self.num_nodes),
+            range(2),
+            ["last_block", "last_transaction", "last_proof"],
+        ):
             assert field in peer_info[node][peer].keys()
             if peer_info[node][peer][field] != 0:
                 assert_approx(peer_info[node][peer][field], time_now, vspan=60)
         # check both sides of bidirectional connection between nodes
         # the address bound to on one side will be the source address for the
         # other node
-        assert_equal(peer_info[0][0]['addrbind'], peer_info[1][0]['addr'])
-        assert_equal(peer_info[1][0]['addrbind'], peer_info[0][0]['addr'])
-        assert_equal(peer_info[0][0]['minfeefilter'], Decimal("5.00"))
-        assert_equal(peer_info[1][0]['minfeefilter'], Decimal("10.00"))
+        assert_equal(peer_info[0][0]["addrbind"], peer_info[1][0]["addr"])
+        assert_equal(peer_info[1][0]["addrbind"], peer_info[0][0]["addr"])
+        assert_equal(peer_info[0][0]["minfeefilter"], Decimal("5.00"))
+        assert_equal(peer_info[1][0]["minfeefilter"], Decimal("10.00"))
         # check the `servicesnames` field
         for info in peer_info:
-            assert_net_servicesnames(int(info[0]["services"], 0x10),
-                                     info[0]["servicesnames"])
+            assert_net_servicesnames(
+                int(info[0]["services"], 0x10), info[0]["servicesnames"]
+            )
 
-        assert_equal(peer_info[0][0]['connection_type'], 'inbound')
-        assert_equal(peer_info[0][1]['connection_type'], 'manual')
+        assert_equal(peer_info[0][0]["connection_type"], "inbound")
+        assert_equal(peer_info[0][1]["connection_type"], "manual")
 
-        assert_equal(peer_info[1][0]['connection_type'], 'manual')
-        assert_equal(peer_info[1][1]['connection_type'], 'inbound')
+        assert_equal(peer_info[1][0]["connection_type"], "manual")
+        assert_equal(peer_info[1][1]["connection_type"], "inbound")
 
         # Check dynamically generated networks list in getpeerinfo help output.
-        assert (
-            "(ipv4, ipv6, onion, i2p, not_publicly_routable)" in
-            self.nodes[0].help("getpeerinfo")
+        assert "(ipv4, ipv6, onion, i2p, not_publicly_routable)" in self.nodes[0].help(
+            "getpeerinfo"
         )
 
         # Node state fields
-        for node, peer, field in product(range(self.num_nodes), range(2),
-                                         ['startingheight', 'synced_headers', 'synced_blocks', 'inflight']):
+        for node, peer, field in product(
+            range(self.num_nodes),
+            range(2),
+            ["startingheight", "synced_headers", "synced_blocks", "inflight"],
+        ):
             assert field in peer_info[node][peer].keys()
 
     def test_service_flags(self):
         self.log.info("Test service flags")
-        self.nodes[0].add_p2p_connection(
-            P2PInterface(), services=(
-                1 << 5) | (
-                1 << 63))
-        assert_equal(['UNKNOWN[2^5]', 'UNKNOWN[2^63]'],
-                     self.nodes[0].getpeerinfo()[-1]['servicesnames'])
+        self.nodes[0].add_p2p_connection(P2PInterface(), services=(1 << 5) | (1 << 63))
+        assert_equal(
+            ["UNKNOWN[2^5]", "UNKNOWN[2^63]"],
+            self.nodes[0].getpeerinfo()[-1]["servicesnames"],
+        )
         self.nodes[0].disconnect_p2ps()
 
     def test_getnodeaddresses(self):
@@ -268,8 +291,7 @@ class NetTest(BitcoinTestFramework):
         # default count is 1
         assert_equal(len(self.nodes[0].getnodeaddresses()), 1)
         assert_equal(len(self.nodes[0].getnodeaddresses(count=2)), 2)
-        assert_equal(
-            len(self.nodes[0].getnodeaddresses(network="ipv4", count=8)), 8)
+        assert_equal(len(self.nodes[0].getnodeaddresses(network="ipv4", count=8)), 8)
 
         # Maximum possible addresses in AddrMan is 10000. The actual number will
         # usually be less due to bucket and bucket position collisions.
@@ -296,10 +318,12 @@ class NetTest(BitcoinTestFramework):
             assert_equal(self.nodes[0].getnodeaddresses(0, network), [])
 
         # Test invalid arguments.
-        assert_raises_rpc_error(-8, "Address count out of range",
-                                self.nodes[0].getnodeaddresses, -1)
-        assert_raises_rpc_error(-8, "Network not recognized: Foo",
-                                self.nodes[0].getnodeaddresses, 1, "Foo")
+        assert_raises_rpc_error(
+            -8, "Address count out of range", self.nodes[0].getnodeaddresses, -1
+        )
+        assert_raises_rpc_error(
+            -8, "Network not recognized: Foo", self.nodes[0].getnodeaddresses, 1, "Foo"
+        )
 
     def test_addpeeraddress(self):
         """RPC addpeeraddress sets the source address equal to the destination address.
@@ -321,19 +345,17 @@ class NetTest(BitcoinTestFramework):
         assert "addpeerinfo" in node.help("addpeerinfo")
 
         self.log.debug("Test that adding an empty address fails")
-        assert_equal(
-            node.addpeeraddress(
-                address="", port=8333), {
-                "success": False})
+        assert_equal(node.addpeeraddress(address="", port=8333), {"success": False})
         assert_equal(node.getnodeaddresses(count=0), [])
 
-        self.log.debug(
-            "Test that adding a valid address to the tried table succeeds")
+        self.log.debug("Test that adding a valid address to the tried table succeeds")
         assert_equal(
-            node.addpeeraddress(
-                address="1.2.3.4", tried=True, port=8333), {
-                "success": True})
-        with node.assert_debug_log(expected_msgs=["CheckAddrman: new 0, tried 1, total 1 started"]):
+            node.addpeeraddress(address="1.2.3.4", tried=True, port=8333),
+            {"success": True},
+        )
+        with node.assert_debug_log(
+            expected_msgs=["CheckAddrman: new 0, tried 1, total 1 started"]
+        ):
             # getnodeaddresses re-runs the addrman checks
             addrs = node.getnodeaddresses(count=0)
             assert_equal(len(addrs), 1)
@@ -341,25 +363,29 @@ class NetTest(BitcoinTestFramework):
             assert_equal(addrs[0]["port"], 8333)
 
         self.log.debug(
-            "Test that adding an already-present tried address to the new and tried tables fails")
+            "Test that adding an already-present tried address to the new and tried"
+            " tables fails"
+        )
         for value in [True, False]:
             assert_equal(
-                node.addpeeraddress(
-                    address="1.2.3.4", tried=value, port=8333), {
-                    "success": False})
+                node.addpeeraddress(address="1.2.3.4", tried=value, port=8333),
+                {"success": False},
+            )
         assert_equal(len(node.getnodeaddresses(count=0)), 1)
 
         self.log.debug(
-            "Test that adding a second address, this time to the new table, succeeds")
+            "Test that adding a second address, this time to the new table, succeeds"
+        )
         assert_equal(
-            node.addpeeraddress(
-                address="2.0.0.0", port=8333), {
-                "success": True})
-        with node.assert_debug_log(expected_msgs=["CheckAddrman: new 1, tried 1, total 2 started"]):
+            node.addpeeraddress(address="2.0.0.0", port=8333), {"success": True}
+        )
+        with node.assert_debug_log(
+            expected_msgs=["CheckAddrman: new 1, tried 1, total 2 started"]
+        ):
             # getnodeaddresses re-runs the addrman checks
             addrs = node.getnodeaddresses(count=0)
             assert_equal(len(addrs), 2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     NetTest().main()
