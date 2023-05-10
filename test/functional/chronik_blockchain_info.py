@@ -16,7 +16,7 @@ class ChronikBlockchainInfoTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
-        self.extra_args = [['-chronik']]
+        self.extra_args = [["-chronik"]]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_chronik()
@@ -25,27 +25,36 @@ class ChronikBlockchainInfoTest(BitcoinTestFramework):
         from test_framework.chronik.client import ChronikClient, pb
 
         node = self.nodes[0]
-        chronik = ChronikClient('127.0.0.1', node.chronik_port)
+        chronik = ChronikClient("127.0.0.1", node.chronik_port)
 
-        assert_equal(chronik.blockchain_info().ok(), pb.BlockchainInfo(
-            tip_hash=bytes.fromhex(GENESIS_BLOCK_HASH)[::-1],
-            tip_height=0,
-        ))
+        assert_equal(
+            chronik.blockchain_info().ok(),
+            pb.BlockchainInfo(
+                tip_hash=bytes.fromhex(GENESIS_BLOCK_HASH)[::-1],
+                tip_height=0,
+            ),
+        )
 
         block_hashes = self.generatetoaddress(node, 12, ADDRESS_ECREG_UNSPENDABLE)
 
-        assert_equal(chronik.blockchain_info().ok(), pb.BlockchainInfo(
-            tip_hash=bytes.fromhex(block_hashes[11])[::-1],
-            tip_height=12,
-        ))
+        assert_equal(
+            chronik.blockchain_info().ok(),
+            pb.BlockchainInfo(
+                tip_hash=bytes.fromhex(block_hashes[11])[::-1],
+                tip_height=12,
+            ),
+        )
 
         node.invalidateblock(block_hashes[6])
 
-        assert_equal(chronik.blockchain_info().ok(), pb.BlockchainInfo(
-            tip_hash=bytes.fromhex(block_hashes[5])[::-1],
-            tip_height=6,
-        ))
+        assert_equal(
+            chronik.blockchain_info().ok(),
+            pb.BlockchainInfo(
+                tip_hash=bytes.fromhex(block_hashes[5])[::-1],
+                tip_height=6,
+            ),
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ChronikBlockchainInfoTest().main()

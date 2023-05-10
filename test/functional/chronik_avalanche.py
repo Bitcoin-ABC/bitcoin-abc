@@ -24,13 +24,13 @@ class ChronikAvalancheTest(BitcoinTestFramework):
         self.num_nodes = 1
         self.extra_args = [
             [
-                '-avaproofstakeutxodustthreshold=1000000',
-                '-avaproofstakeutxoconfirmations=1',
-                '-avacooldown=0',
-                '-avaminquorumstake=0',
-                '-avaminavaproofsnodecount=0',
-                '-chronik',
-                '-whitelist=noban@127.0.0.1',
+                "-avaproofstakeutxodustthreshold=1000000",
+                "-avaproofstakeutxoconfirmations=1",
+                "-avacooldown=0",
+                "-avaminquorumstake=0",
+                "-avaminavaproofsnodecount=0",
+                "-chronik",
+                "-whitelist=noban@127.0.0.1",
             ],
         ]
         self.supports_cli = False
@@ -43,12 +43,13 @@ class ChronikAvalancheTest(BitcoinTestFramework):
         from test_framework.chronik.client import ChronikClient
 
         node = self.nodes[0]
-        chronik = ChronikClient('127.0.0.1', node.chronik_port)
+        chronik = ChronikClient("127.0.0.1", node.chronik_port)
 
         # Build a fake quorum of nodes.
         def get_quorum():
-            return [get_ava_p2p_interface(self, node)
-                    for _ in range(0, QUORUM_NODE_COUNT)]
+            return [
+                get_ava_p2p_interface(self, node) for _ in range(0, QUORUM_NODE_COUNT)
+            ]
 
         def has_finalized_tip(tip_expected):
             hash_tip_final = int(tip_expected, 16)
@@ -58,7 +59,7 @@ class ChronikAvalancheTest(BitcoinTestFramework):
         # Generate us a coin
         coinblockhash = self.generatetoaddress(node, 1, ADDRESS_ECREG_P2SH_OP_TRUE)[0]
         coinblock = node.getblock(coinblockhash)
-        cointx = coinblock['tx'][0]
+        cointx = coinblock["tx"][0]
 
         # Mature coin
         self.generatetoaddress(node, 100, ADDRESS_ECREG_UNSPENDABLE)
@@ -66,17 +67,24 @@ class ChronikAvalancheTest(BitcoinTestFramework):
         # Pick one node from the quorum for polling.
         quorum = get_quorum()
 
-        assert node.getavalancheinfo()['ready_to_poll'] is True
+        assert node.getavalancheinfo()["ready_to_poll"] is True
 
         # Build tx to finalize in a block
         coinvalue = 5000000000
         tx = CTransaction()
         tx.nVersion = 2
-        tx.vin = [CTxIn(outpoint=COutPoint(int(cointx, 16), 0),
-                        scriptSig=SCRIPTSIG_OP_TRUE,
-                        nSequence=0xffffffff)]
-        tx.vout = [CTxOut(nValue=coinvalue - 10000,
-                          scriptPubKey=CScript([OP_RETURN, bytes(100)]))]
+        tx.vin = [
+            CTxIn(
+                outpoint=COutPoint(int(cointx, 16), 0),
+                scriptSig=SCRIPTSIG_OP_TRUE,
+                nSequence=0xFFFFFFFF,
+            )
+        ]
+        tx.vout = [
+            CTxOut(
+                nValue=coinvalue - 10000, scriptPubKey=CScript([OP_RETURN, bytes(100)])
+            )
+        ]
 
         # Add to mempool
         txid = node.sendrawtransaction(tx.serialize().hex())
@@ -97,7 +105,7 @@ class ChronikAvalancheTest(BitcoinTestFramework):
         assert_equal(chronik.tx(txid).ok().block.is_final, True)
 
         # Restarting "wipes" the finalization status of blocks...
-        self.restart_node(0, self.extra_args[0] + ['-chronikreindex'])
+        self.restart_node(0, self.extra_args[0] + ["-chronikreindex"])
         assert_equal(chronik.block(tip).ok().block_info.is_final, False)
         assert_equal(chronik.tx(txid).ok().block.is_final, False)
 
@@ -130,5 +138,5 @@ class ChronikAvalancheTest(BitcoinTestFramework):
             assert_equal(chronik.block(block_hash).ok().block_info.is_final, True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ChronikAvalancheTest().main()

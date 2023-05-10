@@ -29,7 +29,7 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
-        self.extra_args = [['-chronik']]
+        self.extra_args = [["-chronik"]]
         self.rpc_timeout = 240
 
     def skip_test_if_missing_module(self):
@@ -41,35 +41,44 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
 
         node = self.nodes[0]
         node.setmocktime(1300000000)
-        chronik = ChronikClient('127.0.0.1', node.chronik_port)
+        chronik = ChronikClient("127.0.0.1", node.chronik_port)
 
         peer = node.add_p2p_connection(P2PDataStore())
 
         # Not a valid hash or height
-        assert_equal(chronik.block_txs('1234f').err(400).msg,
-                     '400: Not a hash or height: 1234f')
-        assert_equal(chronik.block_txs('00' * 31).err(400).msg,
-                     f'400: Not a hash or height: {"00"*31}')
         assert_equal(
-            chronik.block_txs('01').err(400).msg,
-            '400: Not a hash or height: 01')
-        assert_equal(chronik.block_txs('12345678901').err(400).msg,
-                     '400: Not a hash or height: 12345678901')
+            chronik.block_txs("1234f").err(400).msg, "400: Not a hash or height: 1234f"
+        )
+        assert_equal(
+            chronik.block_txs("00" * 31).err(400).msg,
+            f'400: Not a hash or height: {"00"*31}',
+        )
+        assert_equal(
+            chronik.block_txs("01").err(400).msg, "400: Not a hash or height: 01"
+        )
+        assert_equal(
+            chronik.block_txs("12345678901").err(400).msg,
+            "400: Not a hash or height: 12345678901",
+        )
 
         assert_equal(
-            chronik.block_txs('00' * 32, page=0, page_size=201).err(400).msg,
-            '400: Requested block tx page size 201 is too big, maximum is 200')
+            chronik.block_txs("00" * 32, page=0, page_size=201).err(400).msg,
+            "400: Requested block tx page size 201 is too big, maximum is 200",
+        )
         assert_equal(
-            chronik.block_txs('00' * 32, page=0, page_size=0).err(400).msg,
-            '400: Requested block tx page size 0 is too small, minimum is 1')
+            chronik.block_txs("00" * 32, page=0, page_size=0).err(400).msg,
+            "400: Requested block tx page size 0 is too small, minimum is 1",
+        )
         assert_equal(
-            chronik.block_txs('00' * 32, page=0, page_size=2**32).err(400).msg,
-            '400: Invalid param page_size: 4294967296, ' +
-            'number too large to fit in target type')
+            chronik.block_txs("00" * 32, page=0, page_size=2**32).err(400).msg,
+            "400: Invalid param page_size: 4294967296, "
+            + "number too large to fit in target type",
+        )
         assert_equal(
-            chronik.block_txs('00' * 32, page=2**32, page_size=1).err(400).msg,
-            '400: Invalid param page: 4294967296, ' +
-            'number too large to fit in target type')
+            chronik.block_txs("00" * 32, page=2**32, page_size=1).err(400).msg,
+            "400: Invalid param page: 4294967296, "
+            + "number too large to fit in target type",
+        )
 
         assert_equal(
             chronik.block_txs(GENESIS_BLOCK_HASH, page=2**32 - 1, page_size=200).ok(),
@@ -87,34 +96,34 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
 
         coinblockhash = self.generatetoaddress(node, 1, ADDRESS_ECREG_P2SH_OP_TRUE)[0]
         coinblock = node.getblock(coinblockhash)
-        cointx = coinblock['tx'][0]
+        cointx = coinblock["tx"][0]
 
         tip = self.generatetoaddress(node, 100, ADDRESS_ECREG_UNSPENDABLE)[-1]
 
         coinvalue = 5000000000
         tx1 = CTransaction()
-        tx1.vin = [CTxIn(outpoint=COutPoint(int(cointx, 16), 0),
-                         scriptSig=SCRIPTSIG_OP_TRUE)]
+        tx1.vin = [
+            CTxIn(outpoint=COutPoint(int(cointx, 16), 0), scriptSig=SCRIPTSIG_OP_TRUE)
+        ]
         tx1.vout = [
             CTxOut(coinvalue - 10000, P2SH_OP_TRUE),
-            CTxOut(1000, CScript([OP_RETURN, b'test'])),
+            CTxOut(1000, CScript([OP_RETURN, b"test"])),
         ]
         tx1.rehash()
 
         tx2 = CTransaction()
-        tx2.vin = [CTxIn(outpoint=COutPoint(int(tx1.hash, 16), 0),
-                         scriptSig=SCRIPTSIG_OP_TRUE)]
+        tx2.vin = [
+            CTxIn(outpoint=COutPoint(int(tx1.hash, 16), 0), scriptSig=SCRIPTSIG_OP_TRUE)
+        ]
         tx2.vout = [
-            CTxOut(3000, CScript([OP_RETURN, b'test'])),
+            CTxOut(3000, CScript([OP_RETURN, b"test"])),
             CTxOut(coinvalue - 20000, P2SH_OP_TRUE),
         ]
         tx2.rehash()
 
-        tx_coinbase = create_coinbase(102, b'\x03' * 33)
+        tx_coinbase = create_coinbase(102, b"\x03" * 33)
 
-        block = create_block(int(tip, 16),
-                             tx_coinbase,
-                             1300000500)
+        block = create_block(int(tip, 16), tx_coinbase, 1300000500)
         block.vtx += [tx1, tx2]
         make_conform_to_ctor(block)
         block.hashMerkleRoot = block.calc_merkle_root()
@@ -132,9 +141,9 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
             version=1,
             inputs=[
                 pb.TxInput(
-                    prev_out=pb.OutPoint(txid=bytes(32), out_idx=0xffffffff),
+                    prev_out=pb.OutPoint(txid=bytes(32), out_idx=0xFFFFFFFF),
                     input_script=bytes(tx_coinbase.vin[0].scriptSig),
-                    sequence_no=0xffffffff,
+                    sequence_no=0xFFFFFFFF,
                 ),
             ],
             outputs=[
@@ -175,7 +184,7 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
                 ),
                 pb.TxOutput(
                     value=1000,
-                    output_script=bytes(CScript([OP_RETURN, b'test'])),
+                    output_script=bytes(CScript([OP_RETURN, b"test"])),
                 ),
             ],
             lock_time=0,
@@ -198,7 +207,7 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
             outputs=[
                 pb.TxOutput(
                     value=3000,
-                    output_script=bytes(CScript([OP_RETURN, b'test'])),
+                    output_script=bytes(CScript([OP_RETURN, b"test"])),
                 ),
                 pb.TxOutput(
                     value=coinvalue - 20000,
@@ -211,7 +220,8 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
         )
 
         sorted_tx1, sorted_tx2 = sorted(
-            [proto_tx1, proto_tx2], key=lambda tx: tx.txid[::-1])
+            [proto_tx1, proto_tx2], key=lambda tx: tx.txid[::-1]
+        )
 
         for page, tx in enumerate([proto_coinbase_tx, sorted_tx1, sorted_tx2]):
             assert_equal(
@@ -253,5 +263,5 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
         chronik.block_txs(block.hash).err(404)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ChronikBlockTxsTest().main()

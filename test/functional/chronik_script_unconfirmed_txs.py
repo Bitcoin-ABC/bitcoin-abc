@@ -28,7 +28,7 @@ class ChronikScriptUnconfirmedTxsTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
-        self.extra_args = [['-chronik']]
+        self.extra_args = [["-chronik"]]
         self.rpc_timeout = 240
 
     def skip_test_if_missing_module(self):
@@ -38,47 +38,68 @@ class ChronikScriptUnconfirmedTxsTest(BitcoinTestFramework):
         from test_framework.chronik.client import ChronikClient, pb
 
         node = self.nodes[0]
-        chronik = ChronikClient('127.0.0.1', node.chronik_port)
+        chronik = ChronikClient("127.0.0.1", node.chronik_port)
 
         peer = node.add_p2p_connection(P2PDataStore())
         mocktime = 1300000000
         node.setmocktime(mocktime)
 
         assert_equal(
-            chronik.script('', '').unconfirmed_txs().err(400).msg,
-            '400: Unknown script type: ')
+            chronik.script("", "").unconfirmed_txs().err(400).msg,
+            "400: Unknown script type: ",
+        )
         assert_equal(
-            chronik.script('foo', '', ).unconfirmed_txs().err(400).msg,
-            '400: Unknown script type: foo')
+            chronik.script(
+                "foo",
+                "",
+            )
+            .unconfirmed_txs()
+            .err(400)
+            .msg,
+            "400: Unknown script type: foo",
+        )
         assert_equal(
-            chronik.script('p2pkh', 'LILALI').unconfirmed_txs().err(400).msg,
-            "400: Invalid hex: Invalid character 'L' at position 0")
+            chronik.script("p2pkh", "LILALI").unconfirmed_txs().err(400).msg,
+            "400: Invalid hex: Invalid character 'L' at position 0",
+        )
         assert_equal(
-            chronik.script('other', 'LILALI').unconfirmed_txs().err(400).msg,
-            "400: Invalid hex: Invalid character 'L' at position 0")
+            chronik.script("other", "LILALI").unconfirmed_txs().err(400).msg,
+            "400: Invalid hex: Invalid character 'L' at position 0",
+        )
         assert_equal(
-            chronik.script('p2pkh', '', ).unconfirmed_txs().err(400).msg,
-            '400: Invalid payload for P2PKH: Invalid length, ' +
-            'expected 20 bytes but got 0 bytes')
+            chronik.script(
+                "p2pkh",
+                "",
+            )
+            .unconfirmed_txs()
+            .err(400)
+            .msg,
+            "400: Invalid payload for P2PKH: Invalid length, "
+            + "expected 20 bytes but got 0 bytes",
+        )
         assert_equal(
-            chronik.script('p2pkh', 'aA').unconfirmed_txs().err(400).msg,
-            '400: Invalid payload for P2PKH: Invalid length, ' +
-            'expected 20 bytes but got 1 bytes')
+            chronik.script("p2pkh", "aA").unconfirmed_txs().err(400).msg,
+            "400: Invalid payload for P2PKH: Invalid length, "
+            + "expected 20 bytes but got 1 bytes",
+        )
         assert_equal(
-            chronik.script('p2sh', 'aaBB').unconfirmed_txs().err(400).msg,
-            '400: Invalid payload for P2SH: Invalid length, ' +
-            'expected 20 bytes but got 2 bytes')
+            chronik.script("p2sh", "aaBB").unconfirmed_txs().err(400).msg,
+            "400: Invalid payload for P2SH: Invalid length, "
+            + "expected 20 bytes but got 2 bytes",
+        )
         assert_equal(
-            chronik.script('p2pk', 'aaBBcc').unconfirmed_txs().err(400).msg,
-            '400: Invalid payload for P2PK: Invalid length, ' +
-            'expected one of [33, 65] but got 3 bytes')
+            chronik.script("p2pk", "aaBBcc").unconfirmed_txs().err(400).msg,
+            "400: Invalid payload for P2PK: Invalid length, "
+            + "expected one of [33, 65] but got 3 bytes",
+        )
 
         # No txs in mempool for the genesis pubkey
         assert_equal(
-            chronik.script('p2pk', GENESIS_CB_PK).unconfirmed_txs().ok(),
-            pb.TxHistoryPage(num_pages=0, num_txs=0))
+            chronik.script("p2pk", GENESIS_CB_PK).unconfirmed_txs().ok(),
+            pb.TxHistoryPage(num_pages=0, num_txs=0),
+        )
 
-        script_type = 'p2sh'
+        script_type = "p2sh"
         payload_hex = P2SH_OP_TRUE[2:-1].hex()
 
         # Generate 110 blocks to some address
@@ -87,13 +108,14 @@ class ChronikScriptUnconfirmedTxsTest(BitcoinTestFramework):
         # No txs in mempool for that address
         assert_equal(
             chronik.script(script_type, payload_hex).unconfirmed_txs().ok(),
-            pb.TxHistoryPage(num_pages=0, num_txs=0))
+            pb.TxHistoryPage(num_pages=0, num_txs=0),
+        )
 
         coinvalue = 5000000000
         cointxids = []
         for coinblockhash in blockhashes[:10]:
             coinblock = node.getblock(coinblockhash)
-            cointxids.append(coinblock['tx'][0])
+            cointxids.append(coinblock["tx"][0])
 
         mempool_txs = []
         mempool_proto_txs = []
@@ -106,9 +128,13 @@ class ChronikScriptUnconfirmedTxsTest(BitcoinTestFramework):
 
             tx = CTransaction()
             tx.nVersion = 1
-            tx.vin = [CTxIn(outpoint=COutPoint(int(cointxid, 16), 0),
-                            scriptSig=SCRIPTSIG_OP_TRUE,
-                            nSequence=0xffffffff)]
+            tx.vin = [
+                CTxIn(
+                    outpoint=COutPoint(int(cointxid, 16), 0),
+                    scriptSig=SCRIPTSIG_OP_TRUE,
+                    nSequence=0xFFFFFFFF,
+                )
+            ]
             tx.vout = [
                 CTxOut(coinvalue - 1000, P2SH_OP_TRUE),
                 CTxOut(0, pad_script),
@@ -118,33 +144,37 @@ class ChronikScriptUnconfirmedTxsTest(BitcoinTestFramework):
             node.setmocktime(time_first_seen)
             txid = node.sendrawtransaction(tx.serialize().hex())
             mempool_txs.append(tx)
-            mempool_proto_txs.append(pb.Tx(
-                txid=bytes.fromhex(txid)[::-1],
-                version=1,
-                inputs=[pb.TxInput(
-                    prev_out=pb.OutPoint(
-                        txid=bytes.fromhex(cointxid)[::-1],
-                        out_idx=0,
-                    ),
-                    input_script=bytes(SCRIPTSIG_OP_TRUE),
-                    output_script=bytes(P2SH_OP_TRUE),
-                    value=coinvalue,
-                    sequence_no=0xffffffff,
-                )],
-                outputs=[
-                    pb.TxOutput(
-                        value=coinvalue - 1000,
-                        output_script=bytes(P2SH_OP_TRUE),
-                    ),
-                    pb.TxOutput(
-                        value=0,
-                        output_script=bytes(pad_script),
-                    ),
-                ],
-                lock_time=1,
-                size=len(tx.serialize()),
-                time_first_seen=time_first_seen,
-            ))
+            mempool_proto_txs.append(
+                pb.Tx(
+                    txid=bytes.fromhex(txid)[::-1],
+                    version=1,
+                    inputs=[
+                        pb.TxInput(
+                            prev_out=pb.OutPoint(
+                                txid=bytes.fromhex(cointxid)[::-1],
+                                out_idx=0,
+                            ),
+                            input_script=bytes(SCRIPTSIG_OP_TRUE),
+                            output_script=bytes(P2SH_OP_TRUE),
+                            value=coinvalue,
+                            sequence_no=0xFFFFFFFF,
+                        )
+                    ],
+                    outputs=[
+                        pb.TxOutput(
+                            value=coinvalue - 1000,
+                            output_script=bytes(P2SH_OP_TRUE),
+                        ),
+                        pb.TxOutput(
+                            value=0,
+                            output_script=bytes(pad_script),
+                        ),
+                    ],
+                    lock_time=1,
+                    size=len(tx.serialize()),
+                    time_first_seen=time_first_seen,
+                )
+            )
 
         # Sort txs by time_first_seen and then by txid
         def sorted_txs(txs):
@@ -152,15 +182,17 @@ class ChronikScriptUnconfirmedTxsTest(BitcoinTestFramework):
 
         assert_equal(
             chronik.script(script_type, payload_hex).unconfirmed_txs().ok(),
-            pb.TxHistoryPage(txs=sorted_txs(mempool_proto_txs),
-                             num_pages=1,
-                             num_txs=len(mempool_txs)))
+            pb.TxHistoryPage(
+                txs=sorted_txs(mempool_proto_txs), num_pages=1, num_txs=len(mempool_txs)
+            ),
+        )
 
         # Mine 5 transactions, with 2 conflicts, leave 5 others unconfirmed
         mine_txs = mempool_txs[:3]
         mine_proto_txs = mempool_proto_txs[:3]
         for conflict_tx, conflict_proto_tx in zip(
-                mempool_txs[3:5], mempool_proto_txs[3:5]):
+            mempool_txs[3:5], mempool_proto_txs[3:5]
+        ):
             conflict_tx.nLockTime = 2
             conflict_tx.rehash()
             mine_txs.append(conflict_tx)
@@ -172,8 +204,7 @@ class ChronikScriptUnconfirmedTxsTest(BitcoinTestFramework):
         coinbase_tx = create_coinbase(height)
         coinbase_tx.vout[0].scriptPubKey = P2SH_OP_TRUE
         coinbase_tx.rehash()
-        block = create_block(int(blockhashes[-1], 16), coinbase_tx,
-                             mocktime + 1100)
+        block = create_block(int(blockhashes[-1], 16), coinbase_tx, mocktime + 1100)
         block.vtx += mine_txs
         make_conform_to_ctor(block)
         block.hashMerkleRoot = block.calc_merkle_root()
@@ -183,10 +214,11 @@ class ChronikScriptUnconfirmedTxsTest(BitcoinTestFramework):
         # Only unconfirmed txs remain, conflict txs are removed
         assert_equal(
             chronik.script(script_type, payload_hex).unconfirmed_txs().ok(),
-            pb.TxHistoryPage(txs=sorted_txs(mempool_proto_txs[5:]),
-                             num_pages=1,
-                             num_txs=5))
+            pb.TxHistoryPage(
+                txs=sorted_txs(mempool_proto_txs[5:]), num_pages=1, num_txs=5
+            ),
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ChronikScriptUnconfirmedTxsTest().main()

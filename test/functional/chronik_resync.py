@@ -23,21 +23,23 @@ class ChronikResyncTest(BitcoinTestFramework):
 
     def run_test(self):
         from test_framework.chronik.client import ChronikClient
+
         node = self.nodes[0]
-        chronik = ChronikClient('127.0.0.1', node.chronik_port)
+        chronik = ChronikClient("127.0.0.1", node.chronik_port)
 
         # Mine 100 blocks, that Chronik doesn't index
-        block_hashes = (
-            [GENESIS_BLOCK_HASH] +
-            self.generatetoaddress(node, 100, ADDRESS_ECREG_P2SH_OP_TRUE)
+        block_hashes = [GENESIS_BLOCK_HASH] + self.generatetoaddress(
+            node, 100, ADDRESS_ECREG_P2SH_OP_TRUE
         )
 
         # Restart with Chronik: syncs blocks from genesis
-        with node.assert_debug_log([
-            f"Chronik database empty, syncing to block {block_hashes[100]} " +
-            "at height 100.",
-        ]):
-            self.restart_node(0, ['-chronik'])
+        with node.assert_debug_log(
+            [
+                f"Chronik database empty, syncing to block {block_hashes[100]} "
+                + "at height 100.",
+            ]
+        ):
+            self.restart_node(0, ["-chronik"])
 
         for i in range(0, 101):
             proto_block = chronik.block(i).ok()
@@ -51,18 +53,19 @@ class ChronikResyncTest(BitcoinTestFramework):
         node.invalidateblock(block_hashes[50])
         chronik_hash = block_hashes[100]
         del block_hashes[50:]
-        block_hashes += (
-            self.generatetoaddress(node, 100, ADDRESS_ECREG_UNSPENDABLE)
-        )
+        block_hashes += self.generatetoaddress(node, 100, ADDRESS_ECREG_UNSPENDABLE)
 
         # Restart with Chronik: Undoes last 50 blocks, then adds node's next 100
-        with node.assert_debug_log([
-            f"Node and Chronik diverged, node is on block {block_hashes[149]} " +
-            f"at height 149, and Chronik is on block {chronik_hash} at height 100.",
-            f"The last common block is {block_hashes[49]} at height 49.",
-            "Reverting Chronik blocks 50 to 100",
-        ]):
-            self.restart_node(0, ['-chronik'])
+        with node.assert_debug_log(
+            [
+                f"Node and Chronik diverged, node is on block {block_hashes[149]} "
+                + f"at height 149, and Chronik is on block {chronik_hash} at height"
+                " 100.",
+                f"The last common block is {block_hashes[49]} at height 49.",
+                "Reverting Chronik blocks 50 to 100",
+            ]
+        ):
+            self.restart_node(0, ["-chronik"])
 
         for i in range(0, 150):
             proto_block = chronik.block(i).ok()
@@ -74,20 +77,20 @@ class ChronikResyncTest(BitcoinTestFramework):
         # Leave Chronik untouched
         node.stop_node()
         datadir = get_datadir_path(self.options.tmpdir, 0)
-        shutil.rmtree(os.path.join(datadir, self.chain, 'blocks'))
-        shutil.rmtree(os.path.join(datadir, self.chain, 'chainstate'))
+        shutil.rmtree(os.path.join(datadir, self.chain, "blocks"))
+        shutil.rmtree(os.path.join(datadir, self.chain, "chainstate"))
 
         # Chronik cannot sync because the node doesn't have the old blocks anymore
         # It needs the node's block data to undo the stale blocks.
         init_error_msg = (
-            f"Error: Cannot rewind Chronik, it contains block {block_hashes[149]} " +
-            "that the node doesn't have. You may need to use -reindex/" +
-            "-chronikreindex, or delete indexes/chronik and restart"
+            f"Error: Cannot rewind Chronik, it contains block {block_hashes[149]} "
+            + "that the node doesn't have. You may need to use -reindex/"
+            + "-chronikreindex, or delete indexes/chronik and restart"
         )
         node.assert_start_raises_init_error(["-chronik"], init_error_msg)
 
         # Reindexing results in the same error (different code path)
-        self.restart_node(0, ['-reindex'])
+        self.restart_node(0, ["-reindex"])
         assert_equal(node.getbestblockhash(), GENESIS_BLOCK_HASH)
 
         node.stop_node()
@@ -95,7 +98,7 @@ class ChronikResyncTest(BitcoinTestFramework):
 
         # Reindexing with -chronik now works, as it wipes the Chronik data
         with node.assert_debug_log(["Wiping Chronik at "]):
-            self.restart_node(0, ['-chronik', '-reindex'])
+            self.restart_node(0, ["-chronik", "-reindex"])
         chronik.block(0).ok()
         chronik.block(1).err(404)
 
@@ -104,16 +107,16 @@ class ChronikResyncTest(BitcoinTestFramework):
         self.generatetoaddress(node, 100, ADDRESS_ECREG_P2SH_OP_TRUE)
 
         # Reindexing indexes 100 blocks
-        self.restart_node(0, ['-chronik', '-reindex'])
+        self.restart_node(0, ["-chronik", "-reindex"])
         chronik.block(100).ok()
 
         # Test -chronikreindex
         with node.assert_debug_log(["Wiping Chronik at "]):
-            self.restart_node(0, ['-chronik', '-chronikreindex'])
+            self.restart_node(0, ["-chronik", "-chronikreindex"])
         chronik.block(0).ok()
         chronik.block(100).ok()
         chronik.block(101).err(404)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ChronikResyncTest().main()

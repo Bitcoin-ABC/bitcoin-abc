@@ -17,13 +17,13 @@ class ChronikWsTest(BitcoinTestFramework):
         self.num_nodes = 1
         self.extra_args = [
             [
-                '-avaproofstakeutxodustthreshold=1000000',
-                '-avaproofstakeutxoconfirmations=1',
-                '-avacooldown=0',
-                '-avaminquorumstake=0',
-                '-avaminavaproofsnodecount=0',
-                '-chronik',
-                '-whitelist=noban@127.0.0.1',
+                "-avaproofstakeutxodustthreshold=1000000",
+                "-avaproofstakeutxoconfirmations=1",
+                "-avacooldown=0",
+                "-avaminquorumstake=0",
+                "-avaminavaproofsnodecount=0",
+                "-chronik",
+                "-whitelist=noban@127.0.0.1",
             ],
         ]
         self.supports_cli = False
@@ -35,12 +35,13 @@ class ChronikWsTest(BitcoinTestFramework):
         from test_framework.chronik.client import ChronikClient, pb
 
         node = self.nodes[0]
-        chronik = ChronikClient('127.0.0.1', node.chronik_port)
+        chronik = ChronikClient("127.0.0.1", node.chronik_port)
 
         # Build a fake quorum of nodes.
         def get_quorum():
-            return [get_ava_p2p_interface(self, node)
-                    for _ in range(0, QUORUM_NODE_COUNT)]
+            return [
+                get_ava_p2p_interface(self, node) for _ in range(0, QUORUM_NODE_COUNT)
+            ]
 
         def has_finalized_tip(tip_expected):
             hash_tip_final = int(tip_expected, 16)
@@ -54,7 +55,7 @@ class ChronikWsTest(BitcoinTestFramework):
         # ws will not receive msgs because it's not subscribed to blocks yet.
         quorum = get_quorum()
 
-        assert node.getavalancheinfo()['ready_to_poll'] is True
+        assert node.getavalancheinfo()["ready_to_poll"] is True
 
         tip = node.getbestblockhash()
         self.wait_until(lambda: has_finalized_tip(tip))
@@ -67,28 +68,43 @@ class ChronikWsTest(BitcoinTestFramework):
         height = node.getblockcount()
 
         # We get a CONNECTED msg
-        assert_equal(ws.recv(), pb.WsMsg(block=pb.MsgBlock(
-            msg_type=pb.BLK_CONNECTED,
-            block_hash=bytes.fromhex(tip)[::-1],
-            block_height=height,
-        )))
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                block=pb.MsgBlock(
+                    msg_type=pb.BLK_CONNECTED,
+                    block_hash=bytes.fromhex(tip)[::-1],
+                    block_height=height,
+                )
+            ),
+        )
 
         # After we wait, we get a FINALIZED msg
         self.wait_until(lambda: has_finalized_tip(tip))
-        assert_equal(ws.recv(), pb.WsMsg(block=pb.MsgBlock(
-            msg_type=pb.BLK_FINALIZED,
-            block_hash=bytes.fromhex(tip)[::-1],
-            block_height=height,
-        )))
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                block=pb.MsgBlock(
+                    msg_type=pb.BLK_FINALIZED,
+                    block_hash=bytes.fromhex(tip)[::-1],
+                    block_height=height,
+                )
+            ),
+        )
 
         # When we invalidate, we get a DISCONNECTED msg
         node.invalidateblock(tip)
-        assert_equal(ws.recv(), pb.WsMsg(block=pb.MsgBlock(
-            msg_type=pb.BLK_DISCONNECTED,
-            block_hash=bytes.fromhex(tip)[::-1],
-            block_height=height,
-        )))
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                block=pb.MsgBlock(
+                    msg_type=pb.BLK_DISCONNECTED,
+                    block_hash=bytes.fromhex(tip)[::-1],
+                    block_height=height,
+                )
+            ),
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ChronikWsTest().main()

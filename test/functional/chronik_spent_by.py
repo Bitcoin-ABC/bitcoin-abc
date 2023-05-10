@@ -28,7 +28,7 @@ class ChronikSpentByTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
-        self.extra_args = [['-chronik']]
+        self.extra_args = [["-chronik"]]
         self.rpc_timeout = 240
 
     def skip_test_if_missing_module(self):
@@ -39,13 +39,13 @@ class ChronikSpentByTest(BitcoinTestFramework):
 
         node = self.nodes[0]
         node.setmocktime(1300000000)
-        chronik = ChronikClient('127.0.0.1', node.chronik_port)
+        chronik = ChronikClient("127.0.0.1", node.chronik_port)
 
         peer = node.add_p2p_connection(P2PDataStore())
 
         coinblockhash = self.generatetoaddress(node, 1, ADDRESS_ECREG_P2SH_OP_TRUE)[0]
         coinblock = node.getblock(coinblockhash)
-        cointx = coinblock['tx'][0]
+        cointx = coinblock["tx"][0]
 
         tip = self.generatetoaddress(node, 100, ADDRESS_ECREG_UNSPENDABLE)[-1]
 
@@ -53,13 +53,17 @@ class ChronikSpentByTest(BitcoinTestFramework):
         send_values = [coinvalue - 10000, 1000, 1000, 1000]
         send_redeem_scripts = [bytes([i + 0x52]) for i in range(len(send_values))]
         send_script_hashes = [hash160(script) for script in send_redeem_scripts]
-        send_scripts = [CScript([OP_HASH160, script_hash, OP_EQUAL])
-                        for script_hash in send_script_hashes]
+        send_scripts = [
+            CScript([OP_HASH160, script_hash, OP_EQUAL])
+            for script_hash in send_script_hashes
+        ]
         tx = CTransaction()
-        tx.vin = [CTxIn(outpoint=COutPoint(int(cointx, 16), 0),
-                        scriptSig=SCRIPTSIG_OP_TRUE)]
-        tx.vout = [CTxOut(value, script)
-                   for (value, script) in zip(send_values, send_scripts)]
+        tx.vin = [
+            CTxIn(outpoint=COutPoint(int(cointx, 16), 0), scriptSig=SCRIPTSIG_OP_TRUE)
+        ]
+        tx.vout = [
+            CTxOut(value, script) for (value, script) in zip(send_values, send_scripts)
+        ]
         tx.rehash()
 
         # Submit tx to mempool
@@ -77,7 +81,7 @@ class ChronikSpentByTest(BitcoinTestFramework):
                 expected_outpoints,
             )
             for script_hash in send_script_hashes:
-                chronik_script = chronik.script('p2sh', script_hash.hex())
+                chronik_script = chronik.script("p2sh", script_hash.hex())
                 if has_been_mined:
                     txs = chronik_script.confirmed_txs().ok()
                 else:
@@ -94,9 +98,13 @@ class ChronikSpentByTest(BitcoinTestFramework):
 
         # Add tx that spends the middle two outputs to mempool
         tx2 = CTransaction()
-        tx2.vin = [CTxIn(outpoint=COutPoint(int(txid, 16), i + 1),
-                         scriptSig=CScript([redeem_script]))
-                   for i, redeem_script in enumerate(send_redeem_scripts[1:3])]
+        tx2.vin = [
+            CTxIn(
+                outpoint=COutPoint(int(txid, 16), i + 1),
+                scriptSig=CScript([redeem_script]),
+            )
+            for i, redeem_script in enumerate(send_redeem_scripts[1:3])
+        ]
         pad_tx(tx2)
         txid2 = node.sendrawtransaction(tx2.serialize().hex())
 
@@ -114,8 +122,12 @@ class ChronikSpentByTest(BitcoinTestFramework):
 
         # Add tx that also spends the last output to the mempool
         tx3 = CTransaction()
-        tx3.vin = [CTxIn(outpoint=COutPoint(int(txid, 16), 3),
-                         scriptSig=CScript([send_redeem_scripts[3]]))]
+        tx3.vin = [
+            CTxIn(
+                outpoint=COutPoint(int(txid, 16), 3),
+                scriptSig=CScript([send_redeem_scripts[3]]),
+            )
+        ]
         pad_tx(tx3)
         txid3 = node.sendrawtransaction(tx3.serialize().hex())
 
@@ -146,9 +158,9 @@ class ChronikSpentByTest(BitcoinTestFramework):
         tx3_conflict.rehash()
 
         # Block mines tx, tx2 and tx3_conflict
-        block = create_block(int(tip, 16),
-                             create_coinbase(101, b'\x03' * 33),
-                             1300000500)
+        block = create_block(
+            int(tip, 16), create_coinbase(101, b"\x03" * 33), 1300000500
+        )
         block.vtx += [tx, tx2, tx3_conflict]
         make_conform_to_ctor(block)
         block.hashMerkleRoot = block.calc_merkle_root()
@@ -164,5 +176,5 @@ class ChronikSpentByTest(BitcoinTestFramework):
         check_outputs_spent(conflict_spent, has_been_mined=True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ChronikSpentByTest().main()

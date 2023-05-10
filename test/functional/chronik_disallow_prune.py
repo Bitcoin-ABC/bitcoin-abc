@@ -21,8 +21,9 @@ class ChronikDisallowPruneTest(BitcoinTestFramework):
         self.nodes[0].stop_node()
         self.nodes[0].assert_start_raises_init_error(
             ["-chronik", "-prune=1000"],
-            "Error: Prune mode is incompatible with -chronik.")
+            "Error: Prune mode is incompatible with -chronik.",
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ChronikDisallowPruneTest().main()
