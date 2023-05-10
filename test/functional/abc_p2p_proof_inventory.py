@@ -55,12 +55,14 @@ class ProofInvStoreP2PInterface(P2PInterface):
 class ProofInventoryTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 5
-        self.extra_args = [[
-            '-avaproofstakeutxodustthreshold=1000000',
-            '-avaproofstakeutxoconfirmations=2',
-            '-avacooldown=0',
-            '-whitelist=noban@127.0.0.1',
-        ]] * self.num_nodes
+        self.extra_args = [
+            [
+                "-avaproofstakeutxodustthreshold=1000000",
+                "-avaproofstakeutxoconfirmations=2",
+                "-avacooldown=0",
+                "-whitelist=noban@127.0.0.1",
+            ]
+        ] * self.num_nodes
 
     def generate_proof(self, node, mature=True):
         privkey, proof = gen_proof(self, node)
@@ -138,18 +140,22 @@ class ProofInventoryTest(BitcoinTestFramework):
 
         privkey = node.get_deterministic_priv_key().key
         missing_stake = node.buildavalancheproof(
-            1, 0, privkey, [{
-                'txid': '0' * 64,
-                'vout': 0,
-                'amount': 10000000,
-                'height': 42,
-                'iscoinbase': False,
-                'privatekey': privkey,
-            }]
+            1,
+            0,
+            privkey,
+            [
+                {
+                    "txid": "0" * 64,
+                    "vout": 0,
+                    "amount": 10000000,
+                    "height": 42,
+                    "iscoinbase": False,
+                    "privatekey": privkey,
+                }
+            ],
         )
 
-        self.restart_node(
-            0, ['-avaproofstakeutxodustthreshold=1000000'])
+        self.restart_node(0, ["-avaproofstakeutxodustthreshold=1000000"])
 
         peer = node.add_p2p_connection(P2PInterface())
         msg = msg_avaproof()
@@ -161,10 +167,12 @@ class ProofInventoryTest(BitcoinTestFramework):
             peer.sync_with_ping()
 
         msg.proof = bad_proof
-        with node.assert_debug_log([
-            'Misbehaving',
-            'invalid-proof',
-        ]):
+        with node.assert_debug_log(
+            [
+                "Misbehaving",
+                "invalid-proof",
+            ]
+        ):
             peer.send_message(msg)
             peer.wait_for_disconnect()
 
@@ -180,22 +188,30 @@ class ProofInventoryTest(BitcoinTestFramework):
         def restart_nodes_with_proof(nodes, extra_args=None):
             for node in nodes:
                 privkey, proof = proofs_keys[node.index]
-                self.restart_node(node.index, self.extra_args[node.index] + [
-                    f"-avaproof={proof.serialize().hex()}",
-                    f"-avamasterkey={bytes_to_wif(privkey.get_bytes())}"
-                ] + (extra_args or []))
+                self.restart_node(
+                    node.index,
+                    self.extra_args[node.index]
+                    + [
+                        f"-avaproof={proof.serialize().hex()}",
+                        f"-avamasterkey={bytes_to_wif(privkey.get_bytes())}",
+                    ]
+                    + (extra_args or []),
+                )
 
         restart_nodes_with_proof(self.nodes[:-1])
 
-        chainwork = int(self.nodes[-1].getblockchaininfo()['chainwork'], 16)
+        chainwork = int(self.nodes[-1].getblockchaininfo()["chainwork"], 16)
         restart_nodes_with_proof(
-            self.nodes[-1:], extra_args=[f'-minimumchainwork={chainwork + 100:#x}'])
+            self.nodes[-1:], extra_args=[f"-minimumchainwork={chainwork + 100:#x}"]
+        )
 
         # Add an inbound so the node proof can be registered and advertised
         [node.add_p2p_connection(P2PInterface()) for node in self.nodes]
 
-        [[self.connect_nodes(node.index, j)
-          for j in range(node.index)] for node in self.nodes]
+        [
+            [self.connect_nodes(node.index, j) for j in range(node.index)]
+            for node in self.nodes
+        ]
 
         # Connect a block to make the proofs added to our pool
         self.generate(self.nodes[0], 1, sync_fun=self.sync_blocks)
@@ -205,7 +221,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         for node in self.nodes[:-1]:
             assert_equal(set(get_proof_ids(node)), proofids)
 
-        assert self.nodes[-1].getblockchaininfo()['initialblockdownload']
+        assert self.nodes[-1].getblockchaininfo()["initialblockdownload"]
         self.log.info("Except the node that has not completed IBD")
         assert_equal(len(get_proof_ids(self.nodes[-1])), 1)
 
@@ -217,20 +233,21 @@ class ProofInventoryTest(BitcoinTestFramework):
         peer.send_avaproof(proof)
         peer.sync_send_with_ping()
         with p2p_lock:
-            assert_equal(peer.message_count.get('getdata', 0), 0)
+            assert_equal(peer.message_count.get("getdata", 0), 0)
 
         # Leave the nodes in good shape for the next tests
         restart_nodes_with_proof(self.nodes)
-        [[self.connect_nodes(node.index, j)
-          for j in range(node.index)] for node in self.nodes]
+        [
+            [self.connect_nodes(node.index, j) for j in range(node.index)]
+            for node in self.nodes
+        ]
 
     def test_manually_sent_proof(self):
         node0 = self.nodes[0]
 
         _, proof = self.generate_proof(node0)
 
-        self.log.info(
-            "Send a proof via RPC and check all the nodes download it")
+        self.log.info("Send a proof via RPC and check all the nodes download it")
         node0.sendavalancheproof(proof.serialize().hex())
         self.sync_proofs()
 
@@ -262,8 +279,11 @@ class ProofInventoryTest(BitcoinTestFramework):
 
         def proof_inv_received(peers):
             with p2p_lock:
-                return all(p.last_message.get(
-                    "inv") and p.last_message["inv"].inv[-1].hash == proof.proofid for p in peers)
+                return all(
+                    p.last_message.get("inv")
+                    and p.last_message["inv"].inv[-1].hash == proof.proofid
+                    for p in peers
+                )
 
         self.wait_until(lambda: proof_inv_received(peers))
 
@@ -287,8 +307,7 @@ class ProofInventoryTest(BitcoinTestFramework):
 
         assert not proof_inv_received(peers)
 
-        self.log.info(
-            "Proofs that become invalid should no longer be broadcasted")
+        self.log.info("Proofs that become invalid should no longer be broadcasted")
 
         # Restart and add connect a new set of peers
         self.restart_node(0)
@@ -305,18 +324,20 @@ class ProofInventoryTest(BitcoinTestFramework):
         self.generate(node, 100, sync_fun=self.no_op)
         utxo = proof.stakes[0].stake.utxo
         raw_tx = node.createrawtransaction(
-            inputs=[{
-                # coinbase
-                "txid": uint256_hex(utxo.txid),
-                "vout": utxo.n
-            }],
+            inputs=[
+                {
+                    # coinbase
+                    "txid": uint256_hex(utxo.txid),
+                    "vout": utxo.n,
+                }
+            ],
             outputs={ADDRESS_ECREG_UNSPENDABLE: 25_000_000 - 250.00},
         )
         signed_tx = node.signrawtransactionwithkey(
             hexstring=raw_tx,
             privkeys=[node.get_deterministic_priv_key().key],
         )
-        node.sendrawtransaction(signed_tx['hex'])
+        node.sendrawtransaction(signed_tx["hex"])
 
         # Mine the tx in a block
         self.generate(node, 1, sync_fun=self.no_op)
@@ -324,13 +345,13 @@ class ProofInventoryTest(BitcoinTestFramework):
         # Wait for the proof to be invalidated
         def check_proof_not_found(proofid):
             try:
-                assert_raises_rpc_error(-8,
-                                        "Proof not found",
-                                        node.getrawavalancheproof,
-                                        proofid)
+                assert_raises_rpc_error(
+                    -8, "Proof not found", node.getrawavalancheproof, proofid
+                )
                 return True
             except BaseException:
                 return False
+
         self.wait_until(lambda: check_proof_not_found(proofid_hex))
 
         # It should no longer be broadcasted
@@ -351,5 +372,5 @@ class ProofInventoryTest(BitcoinTestFramework):
         self.test_ban_invalid_proof()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ProofInventoryTest().main()

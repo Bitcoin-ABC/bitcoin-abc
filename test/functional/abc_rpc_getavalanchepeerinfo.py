@@ -52,10 +52,13 @@ class AllYesAvaP2PInterface(MutedAvaP2PInterface):
 
     def on_avapoll(self, message):
         self.send_avaresponse(
-            message.poll.round, [
-                AvalancheVote(
-                    AvalancheVoteError.ACCEPTED, inv.hash) for inv in message.poll.invs],
-            self.master_privkey if self.delegation is None else self.delegated_privkey)
+            message.poll.round,
+            [
+                AvalancheVote(AvalancheVoteError.ACCEPTED, inv.hash)
+                for inv in message.poll.invs
+            ],
+            self.master_privkey if self.delegation is None else self.delegated_privkey,
+        )
         super().on_avapoll(message)
 
 
@@ -63,21 +66,25 @@ class GetAvalanchePeerInfoTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
-        self.extra_args = [['-avaproofstakeutxodustthreshold=1000000',
-                            '-avaproofstakeutxoconfirmations=1',
-                            '-avacooldown=0']]
+        self.extra_args = [
+            [
+                "-avaproofstakeutxodustthreshold=1000000",
+                "-avaproofstakeutxoconfirmations=1",
+                "-avacooldown=0",
+            ]
+        ]
 
     def test_proofs_and_nodecounts(self):
         node = self.nodes[0]
         peercount = 5
         nodecount = 10
 
-        self.log.info(
-            f"Generating {peercount} peers with {nodecount} nodes each")
+        self.log.info(f"Generating {peercount} peers with {nodecount} nodes each")
 
         addrkey0 = node.get_deterministic_priv_key()
         blockhashes = self.generatetoaddress(
-            node, peercount, addrkey0.address, sync_fun=self.no_op)
+            node, peercount, addrkey0.address, sync_fun=self.no_op
+        )
         # Use the first coinbase to create a stake
         stakes = create_coinbase_stakes(node, blockhashes, addrkey0.key)
 
@@ -89,31 +96,32 @@ class GetAvalanchePeerInfoTest(BitcoinTestFramework):
             proof_sequence = 11
             proof_expiration = 0
             proof = node.buildavalancheproof(
-                proof_sequence, proof_expiration, bytes_to_wif(
-                    privkey.get_bytes()),
-                [stake])
+                proof_sequence,
+                proof_expiration,
+                bytes_to_wif(privkey.get_bytes()),
+                [stake],
+            )
             return (pubkey.get_bytes().hex(), proof)
 
         # Create peercount * nodecount node array
-        nodes = [[get_ava_p2p_interface_no_handshake(node) for _ in range(
-            nodecount)] for _ in range(peercount)]
+        nodes = [
+            [get_ava_p2p_interface_no_handshake(node) for _ in range(nodecount)]
+            for _ in range(peercount)
+        ]
 
         # Add peercount peers and bind all the nodes to each
         proofs = []
         for i in range(peercount):
             pubkey_hex, proof = getProof(stakes[i])
             proofs.append(proof)
-            [node.addavalanchenode(n.nodeid, pubkey_hex, proof)
-             for n in nodes[i]]
+            [node.addavalanchenode(n.nodeid, pubkey_hex, proof) for n in nodes[i]]
 
         self.log.info("Testing getavalanchepeerinfo...")
         avapeerinfo = node.getavalanchepeerinfo()
 
         assert_equal(len(avapeerinfo), peercount)
         for i, peer in enumerate(avapeerinfo):
-            proofid_hex = uint256_hex(
-                avalanche_proof_from_hex(
-                    proofs[i]).proofid)
+            proofid_hex = uint256_hex(avalanche_proof_from_hex(proofs[i]).proofid)
             assert_equal(peer["avalanche_peerid"], i)
             assert_equal(peer["availability_score"], 0.0)
             assert_equal(peer["proofid"], proofid_hex)
@@ -123,21 +131,25 @@ class GetAvalanchePeerInfoTest(BitcoinTestFramework):
 
         self.log.info("Testing with a specified proofid")
 
-        assert_raises_rpc_error(-8, "Proofid not found",
-                                node.getavalanchepeerinfo, proofid="0" * 64)
+        assert_raises_rpc_error(
+            -8, "Proofid not found", node.getavalanchepeerinfo, proofid="0" * 64
+        )
 
         target_proof = choice(proofs)
         target_proofid = avalanche_proof_from_hex(target_proof).proofid
-        avapeerinfo = node.getavalanchepeerinfo(
-            proofid=uint256_hex(target_proofid))
+        avapeerinfo = node.getavalanchepeerinfo(proofid=uint256_hex(target_proofid))
         assert_equal(len(avapeerinfo), 1)
         assert_equal(avapeerinfo[0]["proof"], target_proof)
 
     def test_peer_availability_scores(self):
-        self.restart_node(0, extra_args=self.extra_args[0] + [
-            '-avaminquorumstake=0',
-            '-avaminavaproofsnodecount=0',
-        ])
+        self.restart_node(
+            0,
+            extra_args=self.extra_args[0]
+            + [
+                "-avaminquorumstake=0",
+                "-avaminavaproofsnodecount=0",
+            ],
+        )
         node = self.nodes[0]
 
         # Setup node interfaces, some responsive and some not
@@ -172,7 +184,8 @@ class GetAvalanchePeerInfoTest(BitcoinTestFramework):
                     avanode,
                     p2p_idx=p2p_idx,
                     connection_type="avalanche",
-                    services=NODE_NETWORK | NODE_AVALANCHE)
+                    services=NODE_NETWORK | NODE_AVALANCHE,
+                )
                 p2p_idx += 1
 
         assert_equal(len(avanodes), num_proof * num_avanode)
@@ -183,7 +196,7 @@ class GetAvalanchePeerInfoTest(BitcoinTestFramework):
                 return False
 
             for avapeer in avapeers:
-                if avapeer['nodecount'] != num_avanode:
+                if avapeer["nodecount"] != num_avanode:
                     return False
 
             return True
@@ -196,8 +209,11 @@ class GetAvalanchePeerInfoTest(BitcoinTestFramework):
 
         def poll_all_for_block():
             with p2p_lock:
-                return all(avanode.poll_received > (
-                    10 if avanode.is_responding else 0) for avanode in avanodes)
+                return all(
+                    avanode.poll_received > (10 if avanode.is_responding else 0)
+                    for avanode in avanodes
+                )
+
         self.wait_until(poll_all_for_block)
 
         # Move the scheduler forward so that so that our peers get availability
@@ -210,8 +226,8 @@ class GetAvalanchePeerInfoTest(BitcoinTestFramework):
             # Get availability scores for each peer
             scores = {}
             for peerinfo in peerinfos:
-                p = avaproofids.index(peerinfo['proofid'])
-                scores[p] = peerinfo['availability_score']
+                p = avaproofids.index(peerinfo["proofid"])
+                scores[p] = peerinfo["availability_score"]
 
                 # Wait until scores have been computed
                 if scores[p] == 0.0:
@@ -235,5 +251,5 @@ class GetAvalanchePeerInfoTest(BitcoinTestFramework):
         self.test_peer_availability_scores()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     GetAvalanchePeerInfoTest().main()

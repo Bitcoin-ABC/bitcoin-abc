@@ -36,7 +36,6 @@ from test_framework.util import assert_equal
 
 
 class PreviousSpendableOutput:
-
     def __init__(self, tx=CTransaction(), n=-1):
         self.tx = tx
         # the output we're spending
@@ -44,7 +43,6 @@ class PreviousSpendableOutput:
 
 
 class FullBlockTest(BitcoinTestFramework):
-
     def set_test_params(self):
         self.num_nodes = 1
         self.setup_clean_chain = True
@@ -52,8 +50,12 @@ class FullBlockTest(BitcoinTestFramework):
         self.tip = None
         self.blocks = {}
         self.excessive_block_size = 100 * ONE_MEGABYTE
-        self.extra_args = [['-whitelist=noban@127.0.0.1',
-                            f"-excessiveblocksize={self.excessive_block_size}"]]
+        self.extra_args = [
+            [
+                "-whitelist=noban@127.0.0.1",
+                f"-excessiveblocksize={self.excessive_block_size}",
+            ]
+        ]
         self.supports_cli = False
         # The default timeout is not enough when submitting large blocks with
         # TSAN enabled
@@ -63,8 +65,7 @@ class FullBlockTest(BitcoinTestFramework):
         [tx.rehash() for tx in tx_list]
         block.vtx.extend(tx_list)
 
-    def next_block(self, number, spend=None,
-                   script=CScript([OP_TRUE]), block_size=0):
+    def next_block(self, number, spend=None, script=CScript([OP_TRUE]), block_size=0):
         if self.tip is None:
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1
@@ -113,8 +114,7 @@ class FullBlockTest(BitcoinTestFramework):
 
             # Put some random data into the first transaction of the chain to
             # randomize ids.
-            tx.vout.append(
-                CTxOut(0, CScript([random.randint(0, 256), OP_RETURN])))
+            tx.vout.append(CTxOut(0, CScript([random.randint(0, 256), OP_RETURN])))
 
             # Add the transaction to the block
             self.add_transactions_to_block(block, [tx])
@@ -143,7 +143,7 @@ class FullBlockTest(BitcoinTestFramework):
                     else:
                         script_length = 500000
                 script_pad_len = script_length
-                script_output = CScript([b'\x00' * script_pad_len])
+                script_output = CScript([b"\x00" * script_pad_len])
                 tx.vout.append(CTxOut(0, script_output))
 
                 # Add the tx to the list of transactions to be included
@@ -218,7 +218,8 @@ class FullBlockTest(BitcoinTestFramework):
         # Reject oversized blocks with bad-blk-length error
         block(18, spend=out[17], block_size=self.excessive_block_size + 1)
         peer.send_blocks_and_test(
-            [self.tip], node, success=False, reject_reason='bad-blk-length', timeout=360)
+            [self.tip], node, success=False, reject_reason="bad-blk-length", timeout=360
+        )
 
         # Disconnect all the peers now so our node doesn't try to relay the next
         # large block, which could cause a timeout during the test shutdown.
@@ -228,10 +229,9 @@ class FullBlockTest(BitcoinTestFramework):
         self.tip = self.blocks[17]
 
         # Submit a very large block via RPC
-        large_block = block(
-            33, spend=out[17], block_size=self.excessive_block_size)
+        large_block = block(33, spend=out[17], block_size=self.excessive_block_size)
         assert_equal(node.submitblock(ToHex(large_block)), None)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     FullBlockTest().main()

@@ -28,16 +28,18 @@ QUORUM_NODE_COUNT = 16
 class AvalancheTransactionVotingTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
-        self.extra_args = [[
-            '-avalanchepreconsensus=1',
-            '-avacooldown=0',
-            '-avaproofstakeutxoconfirmations=1',
-            # Low enough for coinbase transactions to be staked in valid proofs
-            '-avaproofstakeutxodustthreshold=1000000',
-            '-avaminquorumstake=0',
-            '-avaminavaproofsnodecount=0',
-            '-whitelist=noban@127.0.0.1',
-        ]]
+        self.extra_args = [
+            [
+                "-avalanchepreconsensus=1",
+                "-avacooldown=0",
+                "-avaproofstakeutxoconfirmations=1",
+                # Low enough for coinbase transactions to be staked in valid proofs
+                "-avaproofstakeutxodustthreshold=1000000",
+                "-avaminquorumstake=0",
+                "-avaminavaproofsnodecount=0",
+                "-whitelist=noban@127.0.0.1",
+            ]
+        ]
 
     def run_test(self):
         node = self.nodes[0]
@@ -68,43 +70,50 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         # Mature the coinbases
         self.generate(node, 100, sync_fun=self.no_op)
 
-        assert_equal(node.getmempoolinfo()['size'], 0)
-        tx_ids = [int(wallet.send_self_transfer(from_node=node)
-                      ['txid'], 16) for _ in range(num_txs)]
-        assert_equal(node.getmempoolinfo()['size'], num_txs)
+        assert_equal(node.getmempoolinfo()["size"], 0)
+        tx_ids = [
+            int(wallet.send_self_transfer(from_node=node)["txid"], 16)
+            for _ in range(num_txs)
+        ]
+        assert_equal(node.getmempoolinfo()["size"], num_txs)
 
-        self.log.info(
-            "Check the votes are unknown while the quorum is not established")
+        self.log.info("Check the votes are unknown while the quorum is not established")
 
         poll_node.send_poll(tx_ids, MSG_TX)
         assert_response(
-            [AvalancheVote(AvalancheTxVoteError.UNKNOWN, txid) for txid in tx_ids])
+            [AvalancheVote(AvalancheTxVoteError.UNKNOWN, txid) for txid in tx_ids]
+        )
 
         self.log.info("Check the votes on valid mempool transactions")
 
         def get_quorum():
-            return [get_ava_p2p_interface(self, node)
-                    for _ in range(0, QUORUM_NODE_COUNT)]
+            return [
+                get_ava_p2p_interface(self, node) for _ in range(0, QUORUM_NODE_COUNT)
+            ]
+
         _ = get_quorum()
 
         poll_node.send_poll(tx_ids, MSG_TX)
         assert_response(
-            [AvalancheVote(AvalancheTxVoteError.ACCEPTED, txid) for txid in tx_ids])
+            [AvalancheVote(AvalancheTxVoteError.ACCEPTED, txid) for txid in tx_ids]
+        )
 
         self.log.info("Check the votes on recently mined transactions")
 
         self.generate(node, 1, sync_fun=self.no_op)
-        assert_equal(node.getmempoolinfo()['size'], 0)
+        assert_equal(node.getmempoolinfo()["size"], 0)
 
         poll_node.send_poll(tx_ids, MSG_TX)
         assert_response(
-            [AvalancheVote(AvalancheTxVoteError.ACCEPTED, txid) for txid in tx_ids])
+            [AvalancheVote(AvalancheTxVoteError.ACCEPTED, txid) for txid in tx_ids]
+        )
 
         for _ in range(10):
             self.generate(node, 1, sync_fun=self.no_op)
             poll_node.send_poll(tx_ids, MSG_TX)
             assert_response(
-                [AvalancheVote(AvalancheTxVoteError.ACCEPTED, txid) for txid in tx_ids])
+                [AvalancheVote(AvalancheTxVoteError.ACCEPTED, txid) for txid in tx_ids]
+            )
 
         self.log.info("Check the votes on unknown transactions")
 
@@ -112,7 +121,8 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         poll_node.send_poll(tx_ids, MSG_TX)
 
         assert_response(
-            [AvalancheVote(AvalancheTxVoteError.UNKNOWN, txid) for txid in tx_ids])
+            [AvalancheVote(AvalancheTxVoteError.UNKNOWN, txid) for txid in tx_ids]
+        )
 
         self.log.info("Check the votes on invalid transactions")
 
@@ -124,18 +134,15 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
             poll_node.send_message(msg_tx(invalid_tx))
 
         poll_node.send_poll([invalid_txid], MSG_TX)
-        assert_response(
-            [AvalancheVote(AvalancheTxVoteError.INVALID, invalid_txid)])
+        assert_response([AvalancheVote(AvalancheTxVoteError.INVALID, invalid_txid)])
 
         self.log.info("Check the votes on orphan transactions")
 
         orphan_tx = CTransaction()
-        orphan_tx.vin.append(
-            CTxIn(outpoint=COutPoint(random.randint(0, 2**256), 0)))
+        orphan_tx.vin.append(CTxIn(outpoint=COutPoint(random.randint(0, 2**256), 0)))
         orphan_tx.vout = [
-            CTxOut(
-                nValue=1_000_000,
-                scriptPubKey=wallet.get_scriptPubKey())]
+            CTxOut(nValue=1_000_000, scriptPubKey=wallet.get_scriptPubKey())
+        ]
         pad_tx(orphan_tx)
         orphan_txid = int(orphan_tx.get_id(), 16)
 
@@ -143,9 +150,8 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
             poll_node.send_message(msg_tx(orphan_tx))
 
         poll_node.send_poll([orphan_txid], MSG_TX)
-        assert_response(
-            [AvalancheVote(AvalancheTxVoteError.ORPHAN, orphan_txid)])
+        assert_response([AvalancheVote(AvalancheTxVoteError.ORPHAN, orphan_txid)])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     AvalancheTransactionVotingTest().main()

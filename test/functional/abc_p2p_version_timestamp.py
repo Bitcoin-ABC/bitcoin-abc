@@ -23,8 +23,7 @@ class ModifiedVersionTimestampP2PInterface(P2PInterface):
         super().__init__()
         self.versionTimestamp = timestamp
 
-    def peer_connect(self, *args, services=NODE_NETWORK,
-                     send_version=False, **kwargs):
+    def peer_connect(self, *args, services=NODE_NETWORK, send_version=False, **kwargs):
         create_conn = super().peer_connect(*args, send_version=send_version, **kwargs)
 
         # Send version message with invalid timestamp
@@ -60,41 +59,56 @@ class VersionTimestampTest(BitcoinTestFramework):
 
         self.log.info("Check some invalid timestamp in the version message")
         with self.nodes[0].assert_debug_log(
-                expected_msgs=["Added connection peer=0",
-                               "Ignoring invalid timestamp in version message"]):
+            expected_msgs=[
+                "Added connection peer=0",
+                "Ignoring invalid timestamp in version message",
+            ]
+        ):
             self.nodes[0].add_p2p_connection(
                 ModifiedVersionTimestampP2PInterface(-9223372036854775807),
-                send_version=False)
+                send_version=False,
+            )
 
         self.log.info("Check invalid side of the timestamp boundary")
         with self.nodes[0].assert_debug_log(
-                expected_msgs=["Added connection peer=1",
-                               "Ignoring invalid timestamp in version message"]):
+            expected_msgs=[
+                "Added connection peer=1",
+                "Ignoring invalid timestamp in version message",
+            ]
+        ):
             self.nodes[0].add_p2p_connection(
                 ModifiedVersionTimestampP2PInterface(TIME_GENESIS_BLOCK - 1),
-                send_version=False)
+                send_version=False,
+            )
 
         self.log.info("Check valid side of the timestamp boundary (genesis timestamp)")
         # Outbound connection: the timestamp is used for our adjusted time
         self.nodes[1].setmocktime(TIME_GENESIS_BLOCK)
         with self.nodes[0].assert_debug_log(
-                expected_msgs=["Added connection peer=2", "added time data"],
-                unexpected_msgs=["Ignoring invalid timestamp in version message"]):
+            expected_msgs=["Added connection peer=2", "added time data"],
+            unexpected_msgs=["Ignoring invalid timestamp in version message"],
+        ):
             self.connect_nodes(0, 1)
 
         # This check verifies that the mocktime was indeed used in the VERSION message
-        assert_equal(self.nodes[0].getpeerinfo()[2]["timeoffset"],
-                     TIME_GENESIS_BLOCK - NODE0_TIME)
+        assert_equal(
+            self.nodes[0].getpeerinfo()[2]["timeoffset"],
+            TIME_GENESIS_BLOCK - NODE0_TIME,
+        )
 
         # Inbound connection: the timestamp is ignored
         with self.nodes[0].assert_debug_log(
-                expected_msgs=["Added connection peer=3"],
-                unexpected_msgs=["Ignoring invalid timestamp in version message",
-                                 "added time data"]):
+            expected_msgs=["Added connection peer=3"],
+            unexpected_msgs=[
+                "Ignoring invalid timestamp in version message",
+                "added time data",
+            ],
+        ):
             self.nodes[0].add_p2p_connection(
                 ModifiedVersionTimestampP2PInterface(TIME_GENESIS_BLOCK),
-                send_version=False)
+                send_version=False,
+            )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     VersionTimestampTest().main()

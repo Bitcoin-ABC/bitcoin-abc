@@ -39,7 +39,6 @@ from test_framework.util import assert_equal
 
 
 class PreviousSpendableOutput:
-
     def __init__(self, tx=CTransaction(), n=-1):
         self.tx = tx
         # the output we're spending
@@ -48,7 +47,6 @@ class PreviousSpendableOutput:
 
 # TestP2PConn: A peer we use to send messages to bitcoind, and store responses.
 class TestP2PConn(P2PInterface):
-
     def __init__(self):
         self.last_sendcmpct = None
         self.last_cmpctblock = None
@@ -78,7 +76,6 @@ class TestP2PConn(P2PInterface):
 
 
 class FullBlockTest(BitcoinTestFramework):
-
     def set_test_params(self):
         self.num_nodes = 1
         self.setup_clean_chain = True
@@ -86,14 +83,18 @@ class FullBlockTest(BitcoinTestFramework):
         self.tip = None
         self.blocks = {}
         self.excessive_block_size = 16 * ONE_MEGABYTE
-        self.extra_args = [['-whitelist=noban@127.0.0.1',
-                            '-limitancestorcount=999999',
-                            '-limitancestorsize=999999',
-                            '-limitdescendantcount=999999',
-                            '-limitdescendantsize=999999',
-                            '-maxmempool=99999',
-                            f'-excessiveblocksize={self.excessive_block_size}',
-                            '-acceptnonstdtxn=1']]
+        self.extra_args = [
+            [
+                "-whitelist=noban@127.0.0.1",
+                "-limitancestorcount=999999",
+                "-limitancestorsize=999999",
+                "-limitdescendantcount=999999",
+                "-limitdescendantsize=999999",
+                "-maxmempool=99999",
+                f"-excessiveblocksize={self.excessive_block_size}",
+                "-acceptnonstdtxn=1",
+            ]
+        ]
         # UBSAN will cause this test to timeout without this.
         self.rpc_timeout = 180
 
@@ -101,8 +102,9 @@ class FullBlockTest(BitcoinTestFramework):
         [tx.rehash() for tx in tx_list]
         block.vtx.extend(tx_list)
 
-    def next_block(self, number, spend=None, script=CScript(
-            [OP_TRUE]), block_size=0, extra_txns=0):
+    def next_block(
+        self, number, spend=None, script=CScript([OP_TRUE]), block_size=0, extra_txns=0
+    ):
         if self.tip is None:
             base_block_hash = self.genesis_hash
             block_time = int(time.time()) + 1
@@ -151,8 +153,7 @@ class FullBlockTest(BitcoinTestFramework):
 
             # Put some random data into the first transaction of the chain to
             # randomize ids.
-            tx.vout.append(
-                CTxOut(0, CScript([random.randint(0, 256), OP_RETURN])))
+            tx.vout.append(CTxOut(0, CScript([random.randint(0, 256), OP_RETURN])))
 
             # Add the transaction to the block
             self.add_transactions_to_block(block, [tx])
@@ -259,14 +260,16 @@ class FullBlockTest(BitcoinTestFramework):
         # Check that compact block also work for big blocks
         # Wait for SENDCMPCT
         def received_sendcmpct():
-            return (test_p2p.last_sendcmpct is not None)
+            return test_p2p.last_sendcmpct is not None
+
         self.wait_until(received_sendcmpct, timeout=30)
 
         test_p2p.send_and_ping(msg_sendcmpct(announce=True, version=1))
 
         # Exchange headers
         def received_getheaders():
-            return (test_p2p.last_getheaders is not None)
+            return test_p2p.last_getheaders is not None
+
         self.wait_until(received_getheaders, timeout=30)
 
         # Return the favor
@@ -274,7 +277,8 @@ class FullBlockTest(BitcoinTestFramework):
 
         # Wait for the header list
         def received_headers():
-            return (test_p2p.last_headers is not None)
+            return test_p2p.last_headers is not None
+
         self.wait_until(received_headers, timeout=30)
 
         # It's like we know about the same headers !
@@ -286,7 +290,8 @@ class FullBlockTest(BitcoinTestFramework):
 
         # Checks the node to forward it via compact block
         def received_block():
-            return (test_p2p.last_cmpctblock is not None)
+            return test_p2p.last_cmpctblock is not None
+
         self.wait_until(received_block, timeout=30)
 
         # Was it our block ?
@@ -296,8 +301,12 @@ class FullBlockTest(BitcoinTestFramework):
 
         # Send a large block with numerous transactions.
         test_p2p.clear_block_data()
-        b2 = block(2, spend=out[1], extra_txns=70000,
-                   block_size=self.excessive_block_size - 1000)
+        b2 = block(
+            2,
+            spend=out[1],
+            extra_txns=70000,
+            block_size=self.excessive_block_size - 1000,
+        )
         default_p2p.send_blocks_and_test([self.tip], node)
 
         # Checks the node forwards it via compact block
@@ -332,5 +341,5 @@ class FullBlockTest(BitcoinTestFramework):
         assert int(node.getbestblockhash(), 16) == b2.sha256
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     FullBlockTest().main()

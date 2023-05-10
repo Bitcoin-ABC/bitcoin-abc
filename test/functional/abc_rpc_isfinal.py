@@ -22,11 +22,11 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
         self.num_nodes = 1
         self.extra_args = [
             [
-                '-avaproofstakeutxodustthreshold=1000000',
-                '-avaproofstakeutxoconfirmations=1',
-                '-avacooldown=0',
-                '-avaminquorumstake=0',
-                '-avaminavaproofsnodecount=0',
+                "-avaproofstakeutxodustthreshold=1000000",
+                "-avaproofstakeutxoconfirmations=1",
+                "-avacooldown=0",
+                "-avaminquorumstake=0",
+                "-avaminavaproofsnodecount=0",
             ]
         ]
 
@@ -45,24 +45,27 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
             -1,
             "Avalanche is not ready to poll yet.",
             self.nodes[0].isfinaltransaction,
-            node.getblock(tip)['tx'][0],
+            node.getblock(tip)["tx"][0],
             tip,
         )
 
         # Build a fake quorum of nodes.
         def get_quorum():
-            return [node.add_p2p_connection(AvaP2PInterface(self, node))
-                    for _ in range(0, QUORUM_NODE_COUNT)]
+            return [
+                node.add_p2p_connection(AvaP2PInterface(self, node))
+                for _ in range(0, QUORUM_NODE_COUNT)
+            ]
 
         # Pick one node from the quorum for polling.
         quorum = get_quorum()
 
         def is_quorum_established():
-            return node.getavalancheinfo()['ready_to_poll'] is True
+            return node.getavalancheinfo()["ready_to_poll"] is True
+
         self.wait_until(is_quorum_established)
 
         blockhash = self.generate(node, 1, sync_fun=self.no_op)[0]
-        cb_txid = node.getblock(blockhash)['tx'][0]
+        cb_txid = node.getblock(blockhash)["tx"][0]
         assert not node.isfinalblock(blockhash)
         assert not node.isfinaltransaction(cb_txid, blockhash)
 
@@ -75,19 +78,18 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
         assert node.isfinaltransaction(cb_txid, blockhash)
 
         self.log.info("Check block ancestors are finalized as well")
-        tip_height = node.getblockheader(blockhash)['height']
+        tip_height = node.getblockheader(blockhash)["height"]
         for height in range(0, tip_height):
             blockhash = node.getblockhash(height)
             assert node.isfinalblock(blockhash)
-            txid = node.getblock(blockhash)['tx'][0]
+            txid = node.getblock(blockhash)["tx"][0]
             assert node.isfinaltransaction(txid, blockhash)
 
         if self.is_wallet_compiled():
             self.log.info("Check mempool transactions are not finalized")
             # Mature some utxos
             tip = self.generate(node, 100, sync_fun=self.no_op)[-1]
-            wallet_txid = node.sendtoaddress(
-                ADDRESS_ECREG_UNSPENDABLE, 1_000_000)
+            wallet_txid = node.sendtoaddress(ADDRESS_ECREG_UNSPENDABLE, 1_000_000)
             assert wallet_txid in node.getrawmempool()
             assert_raises_rpc_error(
                 -5,
@@ -98,7 +100,8 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
             )
 
             self.log.info(
-                "A transaction is only finalized if the containing block is finalized")
+                "A transaction is only finalized if the containing block is finalized"
+            )
             tip = self.generate(node, 1, sync_fun=self.no_op)[0]
             assert wallet_txid not in node.getrawmempool()
             assert not node.isfinaltransaction(wallet_txid, tip)
@@ -108,14 +111,16 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
             # Needs -txindex
             assert_raises_rpc_error(
                 -5,
-                "No such transaction. Use -txindex or provide a block hash to enable blockchain transaction queries.",
+                (
+                    "No such transaction. Use -txindex or provide a block hash to"
+                    " enable blockchain transaction queries."
+                ),
                 node.isfinaltransaction,
                 wallet_txid,
             )
 
-            self.log.info(
-                "Repeat with -txindex so we don't need the blockhash")
-            self.restart_node(0, self.extra_args[0] + ['-txindex'])
+            self.log.info("Repeat with -txindex so we don't need the blockhash")
+            self.restart_node(0, self.extra_args[0] + ["-txindex"])
             quorum = get_quorum()
             self.wait_until(is_quorum_established)
 
@@ -126,29 +131,33 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
                     uint256_hex(random.randint(0, 2**256 - 1)),
                 )
             except JSONRPCException as e:
-                assert_equal(e.error['code'], -5)
+                assert_equal(e.error["code"], -5)
 
-                if e.error['message'] == "No such mempool or blockchain transaction.":
+                if e.error["message"] == "No such mempool or blockchain transaction.":
                     # If we got a regular  "not found" error, the txindex should
                     # have synced.
-                    assert node.getindexinfo()['txindex']['synced'] is True
+                    assert node.getindexinfo()["txindex"]["synced"] is True
                 else:
                     # Otherwise we might have successfully raised before the
                     # indexer completed. Checking the status now is useless as
                     # the indexer might have completed the synchronization in
                     # the meantime and the status is no longer relevant.
-                    assert e.error['message'] == "No such transaction. Blockchain transactions are still in the process of being indexed."
+                    assert (
+                        e.error["message"]
+                        == "No such transaction. Blockchain transactions are still in"
+                        " the process of being indexed."
+                    )
             else:
-                assert False, "The isfinaltransaction RPC call did not throw as expected."
+                assert (
+                    False
+                ), "The isfinaltransaction RPC call did not throw as expected."
 
-            self.wait_until(lambda: node.getindexinfo()[
-                            'txindex']['synced'] is True)
+            self.wait_until(lambda: node.getindexinfo()["txindex"]["synced"] is True)
 
             self.wait_until(lambda: is_finalblock(tip))
             assert node.isfinaltransaction(wallet_txid)
 
-            wallet_txid = node.sendtoaddress(
-                ADDRESS_ECREG_UNSPENDABLE, 1_000_000)
+            wallet_txid = node.sendtoaddress(ADDRESS_ECREG_UNSPENDABLE, 1_000_000)
             assert wallet_txid in node.getrawmempool()
             assert not node.isfinaltransaction(wallet_txid)
 
@@ -177,7 +186,7 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
 
         tip = node.getbestblockhash()
         height = node.getblockcount() + 1
-        time = node.getblock(tip)['time'] + 1
+        time = node.getblock(tip)["time"] + 1
         block = create_block(int(tip, 16), create_coinbase(height), time)
         block.solve()
 
@@ -186,7 +195,7 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
         msg.headers = [CBlockHeader(block)]
         peer.send_message(msg)
 
-        self.wait_until(lambda: node.getchaintips()[0]['height'] == height)
+        self.wait_until(lambda: node.getchaintips()[0]["height"] == height)
         assert_raises_rpc_error(
             -1,
             "Block data not downloaded yet.",
@@ -196,5 +205,5 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
         )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     AvalancheIsFinalTest().main()

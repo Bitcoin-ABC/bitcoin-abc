@@ -50,20 +50,22 @@ def add_interface_node(test_node) -> str:
     n = P2PInterface()
     test_node.add_p2p_connection(n)
     n.wait_for_verack()
-    return test_node.getpeerinfo()[-1]['id']
+    return test_node.getpeerinfo()[-1]["id"]
 
 
 class AvalancheProofTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 2
-        self.extra_args = [[
-            f'-avaproofstakeutxodustthreshold={PROOF_DUST_THRESHOLD}',
-            '-avaproofstakeutxoconfirmations=1',
-            '-avalancheconflictingproofcooldown=0',
-            '-avacooldown=0',
-            '-whitelist=noban@127.0.0.1',
-        ]] * self.num_nodes
+        self.extra_args = [
+            [
+                f"-avaproofstakeutxodustthreshold={PROOF_DUST_THRESHOLD}",
+                "-avaproofstakeutxoconfirmations=1",
+                "-avalancheconflictingproofcooldown=0",
+                "-avacooldown=0",
+                "-whitelist=noban@127.0.0.1",
+            ]
+        ] * self.num_nodes
         self.supports_cli = False
         self.rpc_timeout = 120
 
@@ -78,19 +80,23 @@ class AvalancheProofTest(BitcoinTestFramework):
         # LUT from test_node.py
         def legacy_to_ecash_p2pkh(legacy):
             payload, _ = base58_to_byte(legacy)
-            return encode_full('ecregtest', PUBKEY_TYPE, payload)
+            return encode_full("ecregtest", PUBKEY_TYPE, payload)
 
         addrkey0 = node.get_deterministic_priv_key()
         node_ecash_addr = legacy_to_ecash_p2pkh(addrkey0.address)
 
         blockhashes = self.generatetoaddress(
-            node, 100, node_ecash_addr, sync_fun=self.no_op)
+            node, 100, node_ecash_addr, sync_fun=self.no_op
+        )
 
-        self.log.info(
-            "Make build a valid proof and restart the node to use it")
+        self.log.info("Make build a valid proof and restart the node to use it")
         privkey = ECKey()
-        privkey.set(bytes.fromhex(
-            "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747"), True)
+        privkey.set(
+            bytes.fromhex(
+                "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747"
+            ),
+            True,
+        )
         wif_privkey = bytes_to_wif(privkey.get_bytes())
 
         def get_hex_pubkey(privkey):
@@ -101,33 +107,45 @@ class AvalancheProofTest(BitcoinTestFramework):
         proof_expiration = 0
         stakes = create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key)
         proof = node.buildavalancheproof(
-            proof_sequence, proof_expiration, wif_privkey, stakes, ADDRESS_ECREG_UNSPENDABLE)
+            proof_sequence,
+            proof_expiration,
+            wif_privkey,
+            stakes,
+            ADDRESS_ECREG_UNSPENDABLE,
+        )
 
         self.log.info("Test decodeavalancheproof RPC")
 
         # Invalid hex (odd number of hex digits)
-        assert_raises_rpc_error(-22, "Proof must be an hexadecimal string",
-                                node.decodeavalancheproof, proof[:-1])
+        assert_raises_rpc_error(
+            -22,
+            "Proof must be an hexadecimal string",
+            node.decodeavalancheproof,
+            proof[:-1],
+        )
         # Valid hex but invalid proof
-        assert_raises_rpc_error(-22, "Proof has invalid format",
-                                node.decodeavalancheproof, proof[:-2])
+        assert_raises_rpc_error(
+            -22, "Proof has invalid format", node.decodeavalancheproof, proof[:-2]
+        )
 
         decoded_proof = node.decodeavalancheproof(proof)
 
-        assert_equal(
-            decoded_proof["sequence"],
-            proof_sequence)
-        assert_equal(
-            decoded_proof["expiration"],
-            proof_expiration)
+        assert_equal(decoded_proof["sequence"], proof_sequence)
+        assert_equal(decoded_proof["expiration"], proof_expiration)
         assert_equal(decoded_proof["master"], proof_master)
-        assert_equal(decoded_proof["payoutscript"], {
-            "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG",
-            "hex": "76a914000000000000000000000000000000000000000088ac",
-            "reqSigs": 1,
-            "type": "pubkeyhash",
-            "addresses": [ADDRESS_ECREG_UNSPENDABLE],
-        })
+        assert_equal(
+            decoded_proof["payoutscript"],
+            {
+                "asm": (
+                    "OP_DUP OP_HASH160 0000000000000000000000000000000000000000"
+                    " OP_EQUALVERIFY OP_CHECKSIG"
+                ),
+                "hex": "76a914000000000000000000000000000000000000000088ac",
+                "reqSigs": 1,
+                "type": "pubkeyhash",
+                "addresses": [ADDRESS_ECREG_UNSPENDABLE],
+            },
+        )
 
         proofobj = FromHex(AvalancheProof(), proof)
         limited_id_hex = uint256_hex(proofobj.limited_proofid)
@@ -135,46 +153,35 @@ class AvalancheProofTest(BitcoinTestFramework):
 
         assert_equal(
             decoded_proof["signature"],
-            base64.b64encode(proofobj.signature).decode("ascii"))
-        assert_equal(
-            decoded_proof["proofid"],
-            uint256_hex(proofobj.proofid))
-        assert_equal(
-            decoded_proof["limitedid"],
-            uint256_hex(proofobj.limited_proofid))
-        assert_equal(
-            decoded_proof["staked_amount"],
-            Decimal('50000000.00'))
-        assert_equal(
-            decoded_proof["score"],
-            5000)
-        assert_equal(
-            decoded_proof["stakes"][0]["txid"],
-            stakes[0]["txid"])
-        assert_equal(
-            decoded_proof["stakes"][0]["vout"],
-            stakes[0]["vout"])
-        assert_equal(
-            decoded_proof["stakes"][0]["height"],
-            stakes[0]["height"])
-        assert_equal(
-            decoded_proof["stakes"][0]["iscoinbase"],
-            stakes[0]["iscoinbase"])
-        assert_equal(
-            decoded_proof["stakes"][0]["address"],
-            node_ecash_addr)
+            base64.b64encode(proofobj.signature).decode("ascii"),
+        )
+        assert_equal(decoded_proof["proofid"], uint256_hex(proofobj.proofid))
+        assert_equal(decoded_proof["limitedid"], uint256_hex(proofobj.limited_proofid))
+        assert_equal(decoded_proof["staked_amount"], Decimal("50000000.00"))
+        assert_equal(decoded_proof["score"], 5000)
+        assert_equal(decoded_proof["stakes"][0]["txid"], stakes[0]["txid"])
+        assert_equal(decoded_proof["stakes"][0]["vout"], stakes[0]["vout"])
+        assert_equal(decoded_proof["stakes"][0]["height"], stakes[0]["height"])
+        assert_equal(decoded_proof["stakes"][0]["iscoinbase"], stakes[0]["iscoinbase"])
+        assert_equal(decoded_proof["stakes"][0]["address"], node_ecash_addr)
         assert_equal(
             decoded_proof["stakes"][0]["signature"],
-            base64.b64encode(proofobj.stakes[0].sig).decode("ascii"))
+            base64.b64encode(proofobj.stakes[0].sig).decode("ascii"),
+        )
 
         # Restart the node with this proof
-        self.restart_node(0, self.extra_args[0] + [
-            f"-avaproof={proof}",
-            "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
-        ])
+        self.restart_node(
+            0,
+            self.extra_args[0]
+            + [
+                f"-avaproof={proof}",
+                "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
+            ],
+        )
 
         self.log.info(
-            "The proof is registered at first chaintip update if we have inbounds")
+            "The proof is registered at first chaintip update if we have inbounds"
+        )
         assert_equal(len(node.getavalanchepeerinfo()), 0)
         self.generate(node, 1, sync_fun=self.no_op)
         node.syncwithvalidationinterfacequeue()
@@ -191,11 +198,15 @@ class AvalancheProofTest(BitcoinTestFramework):
         self.log.info("Start a node with an immature proof")
 
         stake_age = node.getblockcount() + 2
-        self.restart_node(1, self.extra_args[0] + [
-            f"-avaproofstakeutxoconfirmations={stake_age}",
-            f"-avaproof={proof}",
-            "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
-        ])
+        self.restart_node(
+            1,
+            self.extra_args[0]
+            + [
+                f"-avaproofstakeutxoconfirmations={stake_age}",
+                f"-avaproof={proof}",
+                "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
+            ],
+        )
 
         self.connect_nodes(1, node.index)
         self.sync_blocks()
@@ -208,11 +219,12 @@ class AvalancheProofTest(BitcoinTestFramework):
 
         # Mine another block to make the proof mature
         self.generate(self.nodes[1], 1, sync_fun=self.no_op)
-        self.wait_until(lambda: self.nodes[1].getrawavalancheproof(
-            proofid_hex)["boundToPeer"] is True)
+        self.wait_until(
+            lambda: self.nodes[1].getrawavalancheproof(proofid_hex)["boundToPeer"]
+            is True
+        )
 
-        self.log.info(
-            "Generate delegations for the proof, verify and decode them")
+        self.log.info("Generate delegations for the proof, verify and decode them")
 
         # Stack up a few delegation levels
         def gen_privkey():
@@ -235,15 +247,15 @@ class AvalancheProofTest(BitcoinTestFramework):
             assert node.verifyavalanchedelegation(delegation)
 
             dg_info = node.decodeavalanchedelegation(delegation)
-            assert_equal(dg_info['pubkey'], delegated_pubkey)
-            assert_equal(dg_info['proofmaster'], proof_master)
-            assert 'delegationid' in dg_info.keys()
-            assert_equal(dg_info['limitedid'], limited_id_hex)
-            assert_equal(dg_info['proofid'], proofid_hex)
-            assert_equal(dg_info['depth'], i + 1)
-            assert_equal(len(dg_info['levels']), dg_info['depth'])
-            assert_equal(dg_info['levels'][-1]['pubkey'], delegated_pubkey)
-            assert 'signature' in dg_info['levels'][-1]
+            assert_equal(dg_info["pubkey"], delegated_pubkey)
+            assert_equal(dg_info["proofmaster"], proof_master)
+            assert "delegationid" in dg_info.keys()
+            assert_equal(dg_info["limitedid"], limited_id_hex)
+            assert_equal(dg_info["proofid"], proofid_hex)
+            assert_equal(dg_info["depth"], i + 1)
+            assert_equal(len(dg_info["levels"]), dg_info["depth"])
+            assert_equal(dg_info["levels"][-1]["pubkey"], delegated_pubkey)
+            assert "signature" in dg_info["levels"][-1]
 
             delegator_privkey = delegated_privkey
 
@@ -256,93 +268,123 @@ class AvalancheProofTest(BitcoinTestFramework):
             delegation,
         )
 
-        assert_raises_rpc_error(-8,
-                                "too-many-levels",
-                                node.verifyavalanchedelegation,
-                                too_many_levels_delegation)
+        assert_raises_rpc_error(
+            -8,
+            "too-many-levels",
+            node.verifyavalanchedelegation,
+            too_many_levels_delegation,
+        )
 
         random_privkey = gen_privkey()
         random_pubkey = get_hex_pubkey(random_privkey)
 
         # Invalid proof
-        no_stake = node.buildavalancheproof(proof_sequence, proof_expiration,
-                                            wif_privkey, [])
+        no_stake = node.buildavalancheproof(
+            proof_sequence, proof_expiration, wif_privkey, []
+        )
 
         # Invalid privkey
-        assert_raises_rpc_error(-5, "The private key is invalid",
-                                node.delegateavalancheproof,
-                                limited_id_hex,
-                                bytes_to_wif(bytes(32)),
-                                random_pubkey,
-                                )
+        assert_raises_rpc_error(
+            -5,
+            "The private key is invalid",
+            node.delegateavalancheproof,
+            limited_id_hex,
+            bytes_to_wif(bytes(32)),
+            random_pubkey,
+        )
 
         # Invalid delegation
         bad_dg = AvalancheDelegation()
-        assert_raises_rpc_error(-8, "The delegation does not match the proof",
-                                node.delegateavalancheproof,
-                                limited_id_hex,
-                                bytes_to_wif(privkey.get_bytes()),
-                                random_pubkey,
-                                bad_dg.serialize().hex(),
-                                )
+        assert_raises_rpc_error(
+            -8,
+            "The delegation does not match the proof",
+            node.delegateavalancheproof,
+            limited_id_hex,
+            bytes_to_wif(privkey.get_bytes()),
+            random_pubkey,
+            bad_dg.serialize().hex(),
+        )
 
         # Still invalid, but with a matching proofid
         bad_dg.limited_proofid = proofobj.limited_proofid
         bad_dg.proof_master = proofobj.master
         bad_dg.levels = [AvalancheDelegationLevel()]
-        assert_raises_rpc_error(-8, "The delegation is invalid",
-                                node.delegateavalancheproof,
-                                limited_id_hex,
-                                bytes_to_wif(privkey.get_bytes()),
-                                random_pubkey,
-                                bad_dg.serialize().hex(),
-                                )
+        assert_raises_rpc_error(
+            -8,
+            "The delegation is invalid",
+            node.delegateavalancheproof,
+            limited_id_hex,
+            bytes_to_wif(privkey.get_bytes()),
+            random_pubkey,
+            bad_dg.serialize().hex(),
+        )
 
         # Wrong privkey, match the proof but does not match the delegation
-        assert_raises_rpc_error(-5, "The private key does not match the delegation",
-                                node.delegateavalancheproof,
-                                limited_id_hex,
-                                bytes_to_wif(privkey.get_bytes()),
-                                random_pubkey,
-                                delegation,
-                                )
+        assert_raises_rpc_error(
+            -5,
+            "The private key does not match the delegation",
+            node.delegateavalancheproof,
+            limited_id_hex,
+            bytes_to_wif(privkey.get_bytes()),
+            random_pubkey,
+            delegation,
+        )
 
         # Delegation not hex
-        assert_raises_rpc_error(-22, "Delegation must be an hexadecimal string.",
-                                node.delegateavalancheproof,
-                                limited_id_hex,
-                                bytes_to_wif(privkey.get_bytes()),
-                                random_pubkey,
-                                "f00",
-                                )
+        assert_raises_rpc_error(
+            -22,
+            "Delegation must be an hexadecimal string.",
+            node.delegateavalancheproof,
+            limited_id_hex,
+            bytes_to_wif(privkey.get_bytes()),
+            random_pubkey,
+            "f00",
+        )
         # Delegation is hex but ill-formed
-        assert_raises_rpc_error(-22, "Delegation has invalid format",
-                                node.delegateavalancheproof,
-                                limited_id_hex,
-                                bytes_to_wif(privkey.get_bytes()),
-                                random_pubkey,
-                                "dead",
-                                )
+        assert_raises_rpc_error(
+            -22,
+            "Delegation has invalid format",
+            node.delegateavalancheproof,
+            limited_id_hex,
+            bytes_to_wif(privkey.get_bytes()),
+            random_pubkey,
+            "dead",
+        )
 
         # Test invalid proofs
         dust = node.buildavalancheproof(
-            proof_sequence, proof_expiration, wif_privkey,
-            create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key, amount="0"))
+            proof_sequence,
+            proof_expiration,
+            wif_privkey,
+            create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key, amount="0"),
+        )
 
         dust2 = node.buildavalancheproof(
-            proof_sequence, proof_expiration, wif_privkey,
-            create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key,
-                                   amount=f"{PROOF_DUST_THRESHOLD * 0.9999:.2f}"))
+            proof_sequence,
+            proof_expiration,
+            wif_privkey,
+            create_coinbase_stakes(
+                node,
+                [blockhashes[0]],
+                addrkey0.key,
+                amount=f"{PROOF_DUST_THRESHOLD * 0.9999:.2f}",
+            ),
+        )
 
         missing_stake = node.buildavalancheproof(
-            proof_sequence, proof_expiration, wif_privkey, [{
-                'txid': '0' * 64,
-                'vout': 0,
-                'amount': 10000000,
-                'height': 42,
-                'iscoinbase': False,
-                'privatekey': addrkey0.key,
-            }]
+            proof_sequence,
+            proof_expiration,
+            wif_privkey,
+            [
+                {
+                    "txid": "0" * 64,
+                    "vout": 0,
+                    "amount": 10000000,
+                    "height": 42,
+                    "iscoinbase": False,
+                    "privatekey": addrkey0.key,
+                }
+            ],
         )
 
         # The hardcoded proofs are extracted from proof_tests.cpp
@@ -394,44 +436,48 @@ class AvalancheProofTest(BitcoinTestFramework):
         )
 
         expired = node.buildavalancheproof(
-            proof_sequence, 1, wif_privkey,
-            create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key))
+            proof_sequence,
+            1,
+            wif_privkey,
+            create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key),
+        )
 
-        self.log.info(
-            "Check the verifyavalancheproof and sendavalancheproof RPCs")
+        self.log.info("Check the verifyavalancheproof and sendavalancheproof RPCs")
 
         if self.is_wallet_compiled():
-            self.log.info(
-                "Check a proof with the maximum number of UTXO is valid")
+            self.log.info("Check a proof with the maximum number of UTXO is valid")
             new_blocks = self.generate(
-                node, AVALANCHE_MAX_PROOF_STAKES // 10 + 1, sync_fun=self.no_op)
+                node, AVALANCHE_MAX_PROOF_STAKES // 10 + 1, sync_fun=self.no_op
+            )
             # confirm the coinbase UTXOs
             self.generate(node, 101, sync_fun=self.no_op)
             too_many_stakes = create_stakes(
-                self, node, new_blocks, AVALANCHE_MAX_PROOF_STAKES + 1)
+                self, node, new_blocks, AVALANCHE_MAX_PROOF_STAKES + 1
+            )
             # Make the newly split UTXOs mature
             self.generate(node, stake_age, sync_fun=self.no_op)
 
             maximum_stakes = too_many_stakes[:-1]
             good_proof = node.buildavalancheproof(
-                proof_sequence, proof_expiration,
-                wif_privkey, maximum_stakes)
+                proof_sequence, proof_expiration, wif_privkey, maximum_stakes
+            )
 
             too_many_utxos = node.buildavalancheproof(
-                proof_sequence, proof_expiration,
-                wif_privkey, too_many_stakes)
+                proof_sequence, proof_expiration, wif_privkey, too_many_stakes
+            )
 
             assert node.verifyavalancheproof(good_proof)
 
         for rpc in [node.verifyavalancheproof, node.sendavalancheproof]:
-            assert_raises_rpc_error(-22, "Proof must be an hexadecimal string",
-                                    rpc, "f00")
-            assert_raises_rpc_error(-22, "Proof has invalid format",
-                                    rpc, "f00d")
+            assert_raises_rpc_error(
+                -22, "Proof must be an hexadecimal string", rpc, "f00"
+            )
+            assert_raises_rpc_error(-22, "Proof has invalid format", rpc, "f00d")
 
             def check_rpc_failure(proof, message):
-                assert_raises_rpc_error(-8, f"The proof is invalid: {message}",
-                                        rpc, proof)
+                assert_raises_rpc_error(
+                    -8, f"The proof is invalid: {message}", rpc, proof
+                )
 
             check_rpc_failure(no_stake, "no-stake")
             check_rpc_failure(dust, "amount-below-dust-threshold")
@@ -444,16 +490,22 @@ class AvalancheProofTest(BitcoinTestFramework):
                 check_rpc_failure(too_many_utxos, "too-many-utxos")
 
         conflicting_utxo = node.buildavalancheproof(
-            proof_sequence - 1, proof_expiration, wif_privkey, stakes)
-        assert_raises_rpc_error(-8, "conflicting-utxos",
-                                    node.sendavalancheproof, conflicting_utxo)
+            proof_sequence - 1, proof_expiration, wif_privkey, stakes
+        )
+        assert_raises_rpc_error(
+            -8, "conflicting-utxos", node.sendavalancheproof, conflicting_utxo
+        )
 
         # Clear the proof pool
         stake_age = node.getblockcount()
-        self.restart_node(0, self.extra_args[0] + [
-            f"-avaproofstakeutxoconfirmations={stake_age}",
-            '-avalancheconflictingproofcooldown=0'
-        ])
+        self.restart_node(
+            0,
+            self.extra_args[0]
+            + [
+                f"-avaproofstakeutxoconfirmations={stake_age}",
+                "-avalancheconflictingproofcooldown=0",
+            ],
+        )
 
         # Good proof
         assert node.verifyavalancheproof(proof)
@@ -466,41 +518,43 @@ class AvalancheProofTest(BitcoinTestFramework):
 
         def inv_found():
             with p2p_lock:
-                return peer.last_message.get(
-                    "inv") and peer.last_message["inv"].inv[-1].hash == proofid
+                return (
+                    peer.last_message.get("inv")
+                    and peer.last_message["inv"].inv[-1].hash == proofid
+                )
+
         self.wait_until(inv_found)
 
         self.log.info("Check the getrawproof RPC")
 
         raw_proof = node.getrawavalancheproof(uint256_hex(proofid))
-        assert_equal(raw_proof['proof'], proof)
-        assert_equal(raw_proof['immature'], False)
-        assert_equal(raw_proof['boundToPeer'], True)
-        assert_equal(raw_proof['conflicting'], False)
-        assert_equal(raw_proof['finalized'], False)
+        assert_equal(raw_proof["proof"], proof)
+        assert_equal(raw_proof["immature"], False)
+        assert_equal(raw_proof["boundToPeer"], True)
+        assert_equal(raw_proof["conflicting"], False)
+        assert_equal(raw_proof["finalized"], False)
 
-        assert_raises_rpc_error(-8, "Proof not found",
-                                node.getrawavalancheproof, '0' * 64)
+        assert_raises_rpc_error(
+            -8, "Proof not found", node.getrawavalancheproof, "0" * 64
+        )
 
         conflicting_proof = node.buildavalancheproof(
-            proof_sequence - 1, proof_expiration, wif_privkey, stakes)
+            proof_sequence - 1, proof_expiration, wif_privkey, stakes
+        )
         conflicting_proofobj = avalanche_proof_from_hex(conflicting_proof)
         conflicting_proofid_hex = uint256_hex(conflicting_proofobj.proofid)
 
         msg = msg_avaproof()
         msg.proof = conflicting_proofobj
         peer.send_message(msg)
-        wait_for_proof(
-            node,
-            conflicting_proofid_hex,
-            expect_status="conflicting")
+        wait_for_proof(node, conflicting_proofid_hex, expect_status="conflicting")
 
         raw_proof = node.getrawavalancheproof(conflicting_proofid_hex)
-        assert_equal(raw_proof['proof'], conflicting_proof)
-        assert_equal(raw_proof['immature'], False)
-        assert_equal(raw_proof['boundToPeer'], False)
-        assert_equal(raw_proof['conflicting'], True)
-        assert_equal(raw_proof['finalized'], False)
+        assert_equal(raw_proof["proof"], conflicting_proof)
+        assert_equal(raw_proof["immature"], False)
+        assert_equal(raw_proof["boundToPeer"], False)
+        assert_equal(raw_proof["conflicting"], True)
+        assert_equal(raw_proof["finalized"], False)
 
         # Make the proof immature by switching to a shorter chain
         node.invalidateblock(node.getbestblockhash())
@@ -508,10 +562,7 @@ class AvalancheProofTest(BitcoinTestFramework):
         # called unless new chainwork needs evaluating, so invalidate another
         # block and then mine a new one.
         node.invalidateblock(node.getbestblockhash())
-        node.setmocktime(
-            node.getblock(
-                node.getbestblockhash())['mediantime'] +
-            100)
+        node.setmocktime(node.getblock(node.getbestblockhash())["mediantime"] + 100)
         self.generate(node, 1, sync_fun=self.no_op)
 
         # Wait until UpdatedBlockTip has been called so we know the proof
@@ -519,32 +570,37 @@ class AvalancheProofTest(BitcoinTestFramework):
         node.syncwithvalidationinterfacequeue()
 
         raw_proof = node.getrawavalancheproof(uint256_hex(proofid))
-        assert_equal(raw_proof['proof'], proof)
-        assert_equal(raw_proof['immature'], True)
-        assert_equal(raw_proof['boundToPeer'], False)
-        assert_equal(raw_proof['conflicting'], False)
-        assert_equal(raw_proof['finalized'], False)
+        assert_equal(raw_proof["proof"], proof)
+        assert_equal(raw_proof["immature"], True)
+        assert_equal(raw_proof["boundToPeer"], False)
+        assert_equal(raw_proof["conflicting"], False)
+        assert_equal(raw_proof["finalized"], False)
 
         self.log.info("Bad proof should be rejected at startup")
 
         self.stop_node(0)
 
         node.assert_start_raises_init_error(
-            self.extra_args[0] + [
+            self.extra_args[0]
+            + [
                 "-avasessionkey=0",
             ],
             expected_msg="Error: The avalanche session key is invalid.",
         )
 
         node.assert_start_raises_init_error(
-            self.extra_args[0] + [
+            self.extra_args[0]
+            + [
                 f"-avaproof={proof}",
             ],
-            expected_msg="Error: The avalanche master key is missing for the avalanche proof.",
+            expected_msg=(
+                "Error: The avalanche master key is missing for the avalanche proof."
+            ),
         )
 
         node.assert_start_raises_init_error(
-            self.extra_args[0] + [
+            self.extra_args[0]
+            + [
                 f"-avaproof={proof}",
                 "-avamasterkey=0",
             ],
@@ -553,29 +609,30 @@ class AvalancheProofTest(BitcoinTestFramework):
 
         def check_proof_init_error(proof, message):
             node.assert_start_raises_init_error(
-                self.extra_args[0] + [
+                self.extra_args[0]
+                + [
                     f"-avaproof={proof}",
                     "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
                 ],
                 expected_msg=f"Error: {message}",
             )
 
-        check_proof_init_error(no_stake,
-                               "The avalanche proof has no stake.")
-        check_proof_init_error(dust,
-                               "The avalanche proof stake is too low.")
-        check_proof_init_error(dust2,
-                               "The avalanche proof stake is too low.")
-        check_proof_init_error(duplicate_stake,
-                               "The avalanche proof has duplicated stake.")
-        check_proof_init_error(bad_sig,
-                               "The avalanche proof has invalid stake signatures.")
+        check_proof_init_error(no_stake, "The avalanche proof has no stake.")
+        check_proof_init_error(dust, "The avalanche proof stake is too low.")
+        check_proof_init_error(dust2, "The avalanche proof stake is too low.")
+        check_proof_init_error(
+            duplicate_stake, "The avalanche proof has duplicated stake."
+        )
+        check_proof_init_error(
+            bad_sig, "The avalanche proof has invalid stake signatures."
+        )
         if self.is_wallet_compiled():
             # The too many utxos case creates a proof which is that large that it
             # cannot fit on the command line
             append_config(node.datadir, [f"avaproof={too_many_utxos}"])
             node.assert_start_raises_init_error(
-                self.extra_args[0] + [
+                self.extra_args[0]
+                + [
                     "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
                 ],
                 expected_msg="Error: The avalanche proof has too many utxos.",
@@ -586,7 +643,8 @@ class AvalancheProofTest(BitcoinTestFramework):
         random_privkey = ECKey()
         random_privkey.generate()
         node.assert_start_raises_init_error(
-            self.extra_args[0] + [
+            self.extra_args[0]
+            + [
                 f"-avaproof={proof}",
                 f"-avamasterkey={bytes_to_wif(random_privkey.get_bytes())}",
             ],
@@ -597,7 +655,8 @@ class AvalancheProofTest(BitcoinTestFramework):
 
         def check_delegation_init_error(delegation, message):
             node.assert_start_raises_init_error(
-                self.extra_args[0] + [
+                self.extra_args[0]
+                + [
                     f"-avadelegation={delegation}",
                     f"-avaproof={proof}",
                     f"-avamasterkey={bytes_to_wif(delegated_privkey.get_bytes())}",
@@ -609,43 +668,55 @@ class AvalancheProofTest(BitcoinTestFramework):
 
         check_delegation_init_error(
             AvalancheDelegation().serialize().hex(),
-            "The delegation does not match the proof.")
+            "The delegation does not match the proof.",
+        )
 
         bad_level_sig = FromHex(AvalancheDelegation(), delegation)
         # Tweak some key to cause the signature to mismatch
         bad_level_sig.levels[-2].pubkey = bytes.fromhex(proof_master)
-        check_delegation_init_error(bad_level_sig.serialize().hex(),
-                                    "The avalanche delegation has invalid signatures.")
+        check_delegation_init_error(
+            bad_level_sig.serialize().hex(),
+            "The avalanche delegation has invalid signatures.",
+        )
 
         node.assert_start_raises_init_error(
-            self.extra_args[0] + [
+            self.extra_args[0]
+            + [
                 f"-avadelegation={delegation}",
                 f"-avaproof={proof}",
                 f"-avamasterkey={bytes_to_wif(random_privkey.get_bytes())}",
             ],
-            expected_msg="Error: The master key does not match the delegation public key.",
+            expected_msg=(
+                "Error: The master key does not match the delegation public key."
+            ),
         )
 
         # The node stacks another delegation level at startup
         node.assert_start_raises_init_error(
-            self.extra_args[0] + [
+            self.extra_args[0]
+            + [
                 f"-avadelegation={delegation}",
                 f"-avaproof={proof}",
                 f"-avamasterkey={bytes_to_wif(delegated_privkey.get_bytes())}",
             ],
-            expected_msg="Error: The avalanche delegation has too many delegation levels.",
+            expected_msg=(
+                "Error: The avalanche delegation has too many delegation levels."
+            ),
         )
 
         node.assert_start_raises_init_error(
-            self.extra_args[0] + [
+            self.extra_args[0]
+            + [
                 f"-avadelegation={too_many_levels_delegation}",
                 f"-avaproof={proof}",
                 f"-avamasterkey={bytes_to_wif(too_many_levels_privkey.get_bytes())}",
                 f"-avasessionkey={bytes_to_wif(too_many_levels_privkey.get_bytes())}",
             ],
-            expected_msg="Error: The avalanche delegation has too many delegation levels.",
+            expected_msg=(
+                "Error: The avalanche delegation has too many delegation levels."
+            ),
         )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     AvalancheProofTest().main()

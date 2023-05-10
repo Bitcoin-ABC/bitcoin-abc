@@ -29,22 +29,28 @@ AVALANCHE_DANGLING_PROOF_TIMEOUT = 15 * 60
 class ProofsCleanupTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
-        self.extra_args = [[
-            '-avaproofstakeutxodustthreshold=1000000',
-            '-avaproofstakeutxoconfirmations=1',
-            # Get rid of the getdata delay penalty for inbounds
-            '-whitelist=noban@127.0.0.1',
-        ]] * self.num_nodes
+        self.extra_args = [
+            [
+                "-avaproofstakeutxodustthreshold=1000000",
+                "-avaproofstakeutxoconfirmations=1",
+                # Get rid of the getdata delay penalty for inbounds
+                "-whitelist=noban@127.0.0.1",
+            ]
+        ] * self.num_nodes
 
     def run_test(self):
         node = self.nodes[0]
 
         master_key, local_proof = gen_proof(self, node)
 
-        self.restart_node(0, self.extra_args[0] + [
-            f"-avaproof={local_proof.serialize().hex()}",
-            f"-avamasterkey={bytes_to_wif(master_key.get_bytes())}",
-        ])
+        self.restart_node(
+            0,
+            self.extra_args[0]
+            + [
+                f"-avaproof={local_proof.serialize().hex()}",
+                f"-avamasterkey={bytes_to_wif(master_key.get_bytes())}",
+            ],
+        )
         # Add an inbound so the node proof can be registered and advertised
         node.add_p2p_connection(P2PInterface())
 
@@ -72,8 +78,7 @@ class ProofsCleanupTest(BitcoinTestFramework):
 
         peer_info = node.getavalanchepeerinfo()
         assert_equal(len(peer_info), 11)
-        assert_equal(set(get_proof_ids(node)),
-                     {proof.proofid for proof in proofs})
+        assert_equal(set(get_proof_ids(node)), {proof.proofid for proof in proofs})
 
         self.log.info("No proof is cleaned before the timeout expires")
 
@@ -87,19 +92,27 @@ class ProofsCleanupTest(BitcoinTestFramework):
 
         # Run the cleanup, the proofs with no node are cleaned excepted our
         # local proof
-        with node.assert_debug_log([f"Proof dropped for dangling too long (no connected node): {uint256_hex(p.proofid)}" for p in proofs[6:]]):
+        with node.assert_debug_log(
+            [
+                "Proof dropped for dangling too long (no connected node):"
+                f" {uint256_hex(p.proofid)}"
+                for p in proofs[6:]
+            ]
+        ):
             # Expire the dangling proof timeout
             mocktime += 1
             node.setmocktime(mocktime)
 
             node.mockscheduler(AVALANCHE_CLEANUP_INTERVAL)
             self.wait_until(
-                lambda: set(get_proof_ids(node)) == {
-                    proof.proofid for proof in proofs[:6]},
-                timeout=5)
+                lambda: set(get_proof_ids(node))
+                == {proof.proofid for proof in proofs[:6]},
+                timeout=5,
+            )
 
         self.log.info(
-            "Check the proofs are cleaned on next cleanup after the nodes disconnected")
+            "Check the proofs are cleaned on next cleanup after the nodes disconnected"
+        )
 
         for peer in peers:
             peer.peer_disconnect()
@@ -114,8 +127,9 @@ class ProofsCleanupTest(BitcoinTestFramework):
         for proof in proofs[1:]:
             with node.assert_debug_log(["dangling-proof"]):
                 sender.send_avaproof(proof)
-            assert_raises_rpc_error(-8, "dangling-proof",
-                                    node.sendavalancheproof, proof.serialize().hex())
+            assert_raises_rpc_error(
+                -8, "dangling-proof", node.sendavalancheproof, proof.serialize().hex()
+            )
 
         assert_equal(get_proof_ids(node), [local_proof.proofid])
 
@@ -125,12 +139,14 @@ class ProofsCleanupTest(BitcoinTestFramework):
         assert_equal(len(node.p2ps), 0)
 
         avanode = get_ava_p2p_interface(self, node)
-        avanode.wait_until(lambda: avanode.last_message.get(
-            "getdata") and avanode.last_message["getdata"].inv[-1].hash == avanode.proof.proofid)
+        avanode.wait_until(
+            lambda: avanode.last_message.get("getdata")
+            and avanode.last_message["getdata"].inv[-1].hash == avanode.proof.proofid
+        )
 
         avanode.send_avaproof(avanode.proof)
         self.wait_until(lambda: avanode.proof.proofid in get_proof_ids(node))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ProofsCleanupTest().main()

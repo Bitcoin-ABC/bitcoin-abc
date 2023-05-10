@@ -21,7 +21,6 @@ BLOCKSIZE_TOO_LOW = (
 
 
 class ExcessiveBlockSizeRPCTest(BitcoinTestFramework):
-
     def set_test_params(self):
         self.num_nodes = 1
         self.tip = None
@@ -31,7 +30,7 @@ class ExcessiveBlockSizeRPCTest(BitcoinTestFramework):
     def check_subversion(self, pattern_str):
         # Check that the subversion is set as expected
         netinfo = self.nodes[0].getnetworkinfo()
-        subversion = netinfo['subversion']
+        subversion = netinfo["subversion"]
         pattern = re.compile(pattern_str)
         assert pattern.match(subversion)
 
@@ -40,25 +39,24 @@ class ExcessiveBlockSizeRPCTest(BitcoinTestFramework):
 
         # Check that we start with DEFAULT_MAX_BLOCK_SIZE
         getsize = node.getexcessiveblock()
-        ebs = getsize['excessiveBlockSize']
+        ebs = getsize["excessiveBlockSize"]
         assert_equal(ebs, DEFAULT_MAX_BLOCK_SIZE)
 
         def setexcessiveblock(block_size):
             self.restart_node(
-                0,
-                self.extra_args[0] +
-                [f"-excessiveblocksize={block_size}"])
+                0, self.extra_args[0] + [f"-excessiveblocksize={block_size}"]
+            )
 
         # Check that setting to legacy size is ok
         setexcessiveblock(LEGACY_MAX_BLOCK_SIZE + 1)
         getsize = node.getexcessiveblock()
-        ebs = getsize['excessiveBlockSize']
+        ebs = getsize["excessiveBlockSize"]
         assert_equal(ebs, LEGACY_MAX_BLOCK_SIZE + 1)
 
         # Check setting to 2MB
         setexcessiveblock(2 * ONE_MEGABYTE)
         getsize = node.getexcessiveblock()
-        ebs = getsize['excessiveBlockSize']
+        ebs = getsize["excessiveBlockSize"]
         assert_equal(ebs, 2 * ONE_MEGABYTE)
         # Check for EB correctness in the subver string
         self.check_subversion(r"/Bitcoin ABC:.*\(EB2\.0; .*\)/")
@@ -66,7 +64,7 @@ class ExcessiveBlockSizeRPCTest(BitcoinTestFramework):
         # Check setting to 13MB
         setexcessiveblock(13 * ONE_MEGABYTE)
         getsize = node.getexcessiveblock()
-        ebs = getsize['excessiveBlockSize']
+        ebs = getsize["excessiveBlockSize"]
         assert_equal(ebs, 13 * ONE_MEGABYTE)
         # Check for EB correctness in the subver string
         self.check_subversion(r"/Bitcoin ABC:.*\(EB13\.0; .*\)/")
@@ -74,7 +72,7 @@ class ExcessiveBlockSizeRPCTest(BitcoinTestFramework):
         # Check setting to 13.14MB
         setexcessiveblock(13140000)
         getsize = node.getexcessiveblock()
-        ebs = getsize['excessiveBlockSize']
+        ebs = getsize["excessiveBlockSize"]
         assert_equal(ebs, 13.14 * ONE_MEGABYTE)
         # check for EB correctness in the subver string
         self.check_subversion(r"/Bitcoin ABC:.*\(EB13\.1; .*\)/")
@@ -83,5 +81,5 @@ class ExcessiveBlockSizeRPCTest(BitcoinTestFramework):
         self.test_excessiveblock()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ExcessiveBlockSizeRPCTest().main()

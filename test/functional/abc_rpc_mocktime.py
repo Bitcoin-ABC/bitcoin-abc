@@ -18,12 +18,16 @@ class MocktimeTest(BitcoinTestFramework):
     def run_test(self):
         self.nodes[0].setmocktime(9223372036854775807)
         self.nodes[0].setmocktime(0)
-        assert_raises_rpc_error(-8, "Mocktime can not be negative: -1.",
-                                self.nodes[0].setmocktime, -1)
         assert_raises_rpc_error(
-            -8, "Mocktime can not be negative: -9223372036854775808.",
-            self.nodes[0].setmocktime, -9223372036854775808)
+            -8, "Mocktime can not be negative: -1.", self.nodes[0].setmocktime, -1
+        )
+        assert_raises_rpc_error(
+            -8,
+            "Mocktime can not be negative: -9223372036854775808.",
+            self.nodes[0].setmocktime,
+            -9223372036854775808,
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     MocktimeTest().main()

@@ -23,15 +23,17 @@ class GetAvalancheProofsTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.conflicting_proof_cooldown = 100
-        self.extra_args = [[
-            f'-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}',
-            '-avaproofstakeutxoconfirmations=2',
-            '-avacooldown=0',
-            '-avaminquorumstake=250000000',
-            '-avaminquorumconnectedstakeratio=0.9',
-            '-avaproofstakeutxodustthreshold=1000000',
-            '-avaminavaproofsnodecount=0',
-        ]]
+        self.extra_args = [
+            [
+                f"-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}",
+                "-avaproofstakeutxoconfirmations=2",
+                "-avacooldown=0",
+                "-avaminquorumstake=250000000",
+                "-avaminquorumconnectedstakeratio=0.9",
+                "-avaproofstakeutxodustthreshold=1000000",
+                "-avaminavaproofsnodecount=0",
+            ]
+        ]
 
     def run_test(self):
         node = self.nodes[0]
@@ -51,36 +53,46 @@ class GetAvalancheProofsTest(BitcoinTestFramework):
 
         self.log.info("The test node has no proof")
 
-        assert avalancheproofs_equals({
-            "valid": [],
-            "conflicting": [],
-            "immature": [],
-        })
+        assert avalancheproofs_equals(
+            {
+                "valid": [],
+                "conflicting": [],
+                "immature": [],
+            }
+        )
 
         self.log.info("The test node has a proof")
 
-        self.restart_node(0, self.extra_args[0] + [
-            f'-avaproof={proof.serialize().hex()}',
-            f'-avamasterkey={bytes_to_wif(privkey.get_bytes())}'
-        ])
+        self.restart_node(
+            0,
+            self.extra_args[0]
+            + [
+                f"-avaproof={proof.serialize().hex()}",
+                f"-avamasterkey={bytes_to_wif(privkey.get_bytes())}",
+            ],
+        )
 
         # Before local proof is validated
-        assert avalancheproofs_equals({
-            "valid": [],
-            "conflicting": [],
-            "immature": [],
-        })
+        assert avalancheproofs_equals(
+            {
+                "valid": [],
+                "conflicting": [],
+                "immature": [],
+            }
+        )
 
         # Add an inbound so the node proof can be registered and advertised
         node.add_p2p_connection(P2PInterface())
         # Mine a block to trigger proof validation
         self.generate(node, 1, sync_fun=self.no_op)
         self.wait_until(
-            lambda: avalancheproofs_equals({
-                "valid": [uint256_hex(proof.proofid)],
-                "conflicting": [],
-                "immature": [],
-            })
+            lambda: avalancheproofs_equals(
+                {
+                    "valid": [uint256_hex(proof.proofid)],
+                    "conflicting": [],
+                    "immature": [],
+                }
+            )
         )
 
         self.log.info("Connect a bunch of peers and nodes")
@@ -100,9 +112,11 @@ class GetAvalancheProofsTest(BitcoinTestFramework):
 
             # For each proof, also make a conflicting one
             stakes = create_coinbase_stakes(
-                node, [node.getbestblockhash()], node.get_deterministic_priv_key().key)
+                node, [node.getbestblockhash()], node.get_deterministic_priv_key().key
+            )
             conflicting_proof_hex = node.buildavalancheproof(
-                10, 0, bytes_to_wif(_privkey.get_bytes()), stakes)
+                10, 0, bytes_to_wif(_privkey.get_bytes()), stakes
+            )
             conflicting_proof = avalanche_proof_from_hex(conflicting_proof_hex)
             conflicting_proofs.append(conflicting_proof)
 
@@ -127,14 +141,16 @@ class GetAvalancheProofsTest(BitcoinTestFramework):
         n.send_avaproof(immature_proof)
 
         self.wait_until(
-            lambda: avalancheproofs_equals({
-                "valid": [uint256_hex(p.proofid) for p in proofs],
-                "conflicting": [uint256_hex(p.proofid) for p in conflicting_proofs],
-                "immature": [uint256_hex(immature_proof.proofid)],
-            })
+            lambda: avalancheproofs_equals(
+                {
+                    "valid": [uint256_hex(p.proofid) for p in proofs],
+                    "conflicting": [uint256_hex(p.proofid) for p in conflicting_proofs],
+                    "immature": [uint256_hex(immature_proof.proofid)],
+                }
+            )
         )
 
-        assert_equal(node.getavalancheinfo()['ready_to_poll'], True)
+        assert_equal(node.getavalancheinfo()["ready_to_poll"], True)
 
         self.log.info("Finalize the proofs for some peers")
 
@@ -162,20 +178,34 @@ class GetAvalancheProofsTest(BitcoinTestFramework):
 
             # Check if all proofs are finalized or invalidated
             return all(
-                [node.getrawavalancheproof(uint256_hex(p.proofid)).get("finalized", False) for p in proofs] +
-                [try_rpc(-8, "Proof not found", node.getrawavalancheproof,
-                         uint256_hex(c.proofid)) for c in conflicting_proofs]
+                [
+                    node.getrawavalancheproof(uint256_hex(p.proofid)).get(
+                        "finalized", False
+                    )
+                    for p in proofs
+                ]
+                + [
+                    try_rpc(
+                        -8,
+                        "Proof not found",
+                        node.getrawavalancheproof,
+                        uint256_hex(c.proofid),
+                    )
+                    for c in conflicting_proofs
+                ]
             )
 
         # Vote until all the proofs have finalized (including ours)
         self.wait_until(lambda: vote_for_all_proofs())
 
         self.wait_until(
-            lambda: avalancheproofs_equals({
-                "valid": [uint256_hex(p.proofid) for p in proofs],
-                "conflicting": [],
-                "immature": [uint256_hex(immature_proof.proofid)],
-            })
+            lambda: avalancheproofs_equals(
+                {
+                    "valid": [uint256_hex(p.proofid) for p in proofs],
+                    "conflicting": [],
+                    "immature": [uint256_hex(immature_proof.proofid)],
+                }
+            )
         )
 
         # Make the immature proof mature
@@ -183,13 +213,15 @@ class GetAvalancheProofsTest(BitcoinTestFramework):
         proofs.append(immature_proof)
 
         self.wait_until(
-            lambda: avalancheproofs_equals({
-                "valid": [uint256_hex(p.proofid) for p in proofs],
-                "conflicting": [],
-                "immature": [],
-            })
+            lambda: avalancheproofs_equals(
+                {
+                    "valid": [uint256_hex(p.proofid) for p in proofs],
+                    "conflicting": [],
+                    "immature": [],
+                }
+            )
         )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     GetAvalancheProofsTest().main()

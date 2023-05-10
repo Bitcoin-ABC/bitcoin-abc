@@ -52,11 +52,13 @@ class ProofStoreP2PInterface(AvaP2PInterface):
 class CompactProofsTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
-        self.extra_args = [[
-            '-avaproofstakeutxodustthreshold=1000000',
-            '-avaproofstakeutxoconfirmations=1',
-            '-avacooldown=0',
-        ]] * self.num_nodes
+        self.extra_args = [
+            [
+                "-avaproofstakeutxodustthreshold=1000000",
+                "-avaproofstakeutxoconfirmations=1",
+                "-avacooldown=0",
+            ]
+        ] * self.num_nodes
 
     def setup_network(self):
         # Don't connect the nodes
@@ -69,7 +71,8 @@ class CompactProofsTest(BitcoinTestFramework):
 
     def test_send_outbound_getavaproofs(self):
         self.log.info(
-            "Check we send a getavaproofs message to our avalanche outbound peers")
+            "Check we send a getavaproofs message to our avalanche outbound peers"
+        )
         node = self.nodes[0]
 
         p2p_idx = 0
@@ -86,8 +89,8 @@ class CompactProofsTest(BitcoinTestFramework):
             p2p_idx += 1
 
         inbound_avapeers = [
-            node.add_p2p_connection(
-                NoHandshakeAvaP2PInterface()) for _ in range(4)]
+            node.add_p2p_connection(NoHandshakeAvaP2PInterface()) for _ in range(4)
+        ]
 
         outbound_avapeers = []
         # With a proof and the service bit set
@@ -116,40 +119,52 @@ class CompactProofsTest(BitcoinTestFramework):
 
         def all_peers_received_getavaproofs():
             with p2p_lock:
-                return all(p.last_message.get("getavaproofs")
-                           for p in outbound_avapeers)
+                return all(
+                    p.last_message.get("getavaproofs") for p in outbound_avapeers
+                )
+
         self.wait_until(all_peers_received_getavaproofs)
 
         with p2p_lock:
-            assert all(p.message_count.get(
-                "getavaproofs", 0) >= 1 for p in outbound_avapeers)
-            assert all(p.message_count.get(
-                "getavaproofs", 0) == 0 for p in non_avapeers)
-            assert all(p.message_count.get(
-                "getavaproofs", 0) == 0 for p in inbound_avapeers)
+            assert all(
+                p.message_count.get("getavaproofs", 0) >= 1 for p in outbound_avapeers
+            )
+            assert all(
+                p.message_count.get("getavaproofs", 0) == 0 for p in non_avapeers
+            )
+            assert all(
+                p.message_count.get("getavaproofs", 0) == 0 for p in inbound_avapeers
+            )
 
         self.log.info(
-            "Check we send periodic getavaproofs message to some of our peers")
+            "Check we send periodic getavaproofs message to some of our peers"
+        )
 
         def count_outbounds_getavaproofs():
             with p2p_lock:
-                return sum([p.message_count.get("getavaproofs", 0)
-                            for p in outbound_avapeers])
+                return sum(
+                    [p.message_count.get("getavaproofs", 0) for p in outbound_avapeers]
+                )
 
         outbounds_getavaproofs = count_outbounds_getavaproofs()
         node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
-        self.wait_until(lambda: count_outbounds_getavaproofs()
-                        == outbounds_getavaproofs + 3)
+        self.wait_until(
+            lambda: count_outbounds_getavaproofs() == outbounds_getavaproofs + 3
+        )
         outbounds_getavaproofs += 3
 
         with p2p_lock:
-            assert all(p.message_count.get(
-                "getavaproofs", 0) == 0 for p in non_avapeers)
-            assert all(p.message_count.get(
-                "getavaproofs", 0) == 0 for p in inbound_avapeers)
+            assert all(
+                p.message_count.get("getavaproofs", 0) == 0 for p in non_avapeers
+            )
+            assert all(
+                p.message_count.get("getavaproofs", 0) == 0 for p in inbound_avapeers
+            )
 
         self.log.info(
-            "After the first avaproofs has been received, all the peers are requested periodically")
+            "After the first avaproofs has been received, all the peers are requested"
+            " periodically"
+        )
 
         responding_outbound_avapeer = AvaP2PInterface(self, node)
         node.add_outbound_p2p_connection(
@@ -173,8 +188,10 @@ class CompactProofsTest(BitcoinTestFramework):
         outbounds_getavaproofs = count_outbounds_getavaproofs()
         num_outbound_avapeers = len(outbound_avapeers)
         node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
-        self.wait_until(lambda: count_outbounds_getavaproofs()
-                        == outbounds_getavaproofs + num_outbound_avapeers)
+        self.wait_until(
+            lambda: count_outbounds_getavaproofs()
+            == outbounds_getavaproofs + num_outbound_avapeers
+        )
         outbounds_getavaproofs += num_outbound_avapeers
 
         self.log.info("Empty avaproofs will not trigger any request")
@@ -184,20 +201,28 @@ class CompactProofsTest(BitcoinTestFramework):
         with p2p_lock:
             # Only this peer actually sent a proof
             assert_equal(
-                responding_outbound_avapeer.message_count.get(
-                    "avaproofsreq", 0), 1)
-            assert_equal(sum([p.message_count.get("avaproofsreq", 0)
-                         for p in outbound_avapeers]), 1)
+                responding_outbound_avapeer.message_count.get("avaproofsreq", 0), 1
+            )
+            assert_equal(
+                sum(
+                    [p.message_count.get("avaproofsreq", 0) for p in outbound_avapeers]
+                ),
+                1,
+            )
 
             # Sanity checks
-            assert all(p.message_count.get(
-                "getavaproofs", 0) == 0 for p in non_avapeers)
-            assert all(p.message_count.get(
-                "getavaproofs", 0) == 0 for p in inbound_avapeers)
+            assert all(
+                p.message_count.get("getavaproofs", 0) == 0 for p in non_avapeers
+            )
+            assert all(
+                p.message_count.get("getavaproofs", 0) == 0 for p in inbound_avapeers
+            )
 
     def test_send_manual_getavaproofs(self):
         self.log.info(
-            "Check we send a getavaproofs message to our manually connected peers that support avalanche")
+            "Check we send a getavaproofs message to our manually connected peers that"
+            " support avalanche"
+        )
         node = self.nodes[0]
 
         # Get rid of previously connected nodes
@@ -205,8 +230,7 @@ class CompactProofsTest(BitcoinTestFramework):
 
         def added_node_connected(ip_port):
             added_node_info = node.getaddednodeinfo(ip_port)
-            return len(
-                added_node_info) == 1 and added_node_info[0]['connected']
+            return len(added_node_info) == 1 and added_node_info[0]["connected"]
 
         def connect_callback(address, port):
             self.log.debug(f"Connecting to {address}:{port}")
@@ -225,8 +249,8 @@ class CompactProofsTest(BitcoinTestFramework):
         node.addnode(node=ip_port, command="add")
         self.wait_until(lambda: added_node_connected(ip_port))
 
-        assert_equal(node.getpeerinfo()[-1]['addr'], ip_port)
-        assert_equal(node.getpeerinfo()[-1]['connection_type'], 'manual')
+        assert_equal(node.getpeerinfo()[-1]["addr"], ip_port)
+        assert_equal(node.getpeerinfo()[-1]["connection_type"], "manual")
 
         # Make sure p.is_connected is set, otherwise the last_message check
         # below will assert.
@@ -267,10 +291,9 @@ class CompactProofsTest(BitcoinTestFramework):
 
         avaproofs = self.received_avaproofs(receiving_peer)
         expected_shortids = [
-            calculate_shortid(
-                avaproofs.key0,
-                avaproofs.key1,
-                proofid) for proofid in sorted(proofids)]
+            calculate_shortid(avaproofs.key0, avaproofs.key1, proofid)
+            for proofid in sorted(proofids)
+        ]
         assert_equal(expected_shortids, avaproofs.shortids)
 
         # Don't expect any prefilled proof for now
@@ -278,7 +301,9 @@ class CompactProofsTest(BitcoinTestFramework):
 
     def test_request_missing_proofs(self):
         self.log.info(
-            "Check the node requests the missing proofs after receiving an avaproofs message")
+            "Check the node requests the missing proofs after receiving an avaproofs"
+            " message"
+        )
 
         node = self.nodes[0]
 
@@ -299,9 +324,7 @@ class CompactProofsTest(BitcoinTestFramework):
 
         spam_peer = get_ava_p2p_interface(self, node)
 
-        msg = build_msg_avaproofs(
-            proofs, prefilled_proofs=[], key_pair=[
-                key0, key1])
+        msg = build_msg_avaproofs(proofs, prefilled_proofs=[], key_pair=[key0, key1])
 
         with node.assert_debug_log(["Ignoring unsollicited avaproofs"]):
             spam_peer.send_message(msg)
@@ -332,8 +355,8 @@ class CompactProofsTest(BitcoinTestFramework):
             nonlocal p2p_idx
 
             msg = build_msg_avaproofs(
-                [], prefilled_proofs=prefilled_proofs, key_pair=[
-                    key0, key1])
+                [], prefilled_proofs=prefilled_proofs, key_pair=[key0, key1]
+            )
             msg.shortids = shortids
 
             peer = add_avalanche_p2p_outbound()
@@ -354,28 +377,23 @@ class CompactProofsTest(BitcoinTestFramework):
         with p2p_lock:
             assert_equal(sender.message_count.get("avaproofsreq", 0), 0)
 
-        self.log.info(
-            "Check the node requests all the proofs if it known none")
+        self.log.info("Check the node requests all the proofs if it known none")
 
-        expect_indices(
-            list(shortid_map.values()),
-            list(range(len(shortid_map)))
-        )
+        expect_indices(list(shortid_map.values()), list(range(len(shortid_map))))
 
-        self.log.info(
-            "Check the node requests only the missing proofs")
+        self.log.info("Check the node requests only the missing proofs")
 
         known_proofids = []
         for proof in proofs[:5]:
             node.sendavalancheproof(proof.serialize().hex())
             known_proofids.append(proof.proofid)
 
-        expected_indices = [i for i, proofid in enumerate(
-            shortid_map) if proofid not in known_proofids]
+        expected_indices = [
+            i for i, proofid in enumerate(shortid_map) if proofid not in known_proofids
+        ]
         expect_indices(list(shortid_map.values()), expected_indices)
 
-        self.log.info(
-            "Check the node don't request prefilled proofs")
+        self.log.info("Check the node don't request prefilled proofs")
 
         # Get the indices for a couple of proofs
         indice_proof5 = list(shortid_map.keys()).index(proofids[5])
@@ -385,20 +403,22 @@ class CompactProofsTest(BitcoinTestFramework):
             AvalanchePrefilledProof(indice_proof6, proofs[6]),
         ]
         prefilled_proofs = sorted(
-            prefilled_proofs,
-            key=lambda prefilled_proof: prefilled_proof.index)
-        remaining_shortids = [shortid for proofid, shortid in shortid_map.items(
-        ) if proofid not in proofids[5:7]]
+            prefilled_proofs, key=lambda prefilled_proof: prefilled_proof.index
+        )
+        remaining_shortids = [
+            shortid
+            for proofid, shortid in shortid_map.items()
+            if proofid not in proofids[5:7]
+        ]
         known_proofids.extend(proofids[5:7])
-        expected_indices = [i for i, proofid in enumerate(
-            shortid_map) if proofid not in known_proofids]
+        expected_indices = [
+            i for i, proofid in enumerate(shortid_map) if proofid not in known_proofids
+        ]
         expect_indices(
-            remaining_shortids,
-            expected_indices,
-            prefilled_proofs=prefilled_proofs)
+            remaining_shortids, expected_indices, prefilled_proofs=prefilled_proofs
+        )
 
-        self.log.info(
-            "Check the node requests no proof if it knows all of them")
+        self.log.info("Check the node requests no proof if it knows all of them")
 
         for proof in proofs[5:]:
             node.sendavalancheproof(proof.serialize().hex())
@@ -410,10 +430,13 @@ class CompactProofsTest(BitcoinTestFramework):
 
         bad_peer = add_avalanche_p2p_outbound()
 
-        msg = build_msg_avaproofs([], prefilled_proofs=[
-            AvalanchePrefilledProof(
-                len(shortid_map) + 1,
-                gen_proof(self, node)[1])], key_pair=[key0, key1])
+        msg = build_msg_avaproofs(
+            [],
+            prefilled_proofs=[
+                AvalanchePrefilledProof(len(shortid_map) + 1, gen_proof(self, node)[1])
+            ],
+            key_pair=[key0, key1],
+        )
         msg.shortids = list(shortid_map.values())
 
         with node.assert_debug_log(["Misbehaving", "avaproofs-bad-indexes"]):
@@ -427,9 +450,13 @@ class CompactProofsTest(BitcoinTestFramework):
 
         bad_peer = add_avalanche_p2p_outbound()
 
-        msg = build_msg_avaproofs([], prefilled_proofs=[
-            AvalanchePrefilledProof(len(shortid_map), no_stake),
-        ], key_pair=[key0, key1])
+        msg = build_msg_avaproofs(
+            [],
+            prefilled_proofs=[
+                AvalanchePrefilledProof(len(shortid_map), no_stake),
+            ],
+            key_pair=[key0, key1],
+        )
         msg.shortids = list(shortid_map.values())
 
         with node.assert_debug_log(["Misbehaving", "invalid-proof"]):
@@ -484,18 +511,16 @@ class CompactProofsTest(BitcoinTestFramework):
             requester.send_message(req)
 
             # Check we got the expected number of proofs
-            self.wait_until(
-                lambda: len(
-                    requester.get_proofs()) == len(indices))
+            self.wait_until(lambda: len(requester.get_proofs()) == len(indices))
 
             # Check we got the expected proofs
             received_shortids = [
-                calculate_shortid(
-                    avaproofs.key0,
-                    avaproofs.key1,
-                    proof.proofid) for proof in requester.get_proofs()]
-            assert_equal(set(received_shortids),
-                         {avaproofs.shortids[i] for i in indices})
+                calculate_shortid(avaproofs.key0, avaproofs.key1, proof.proofid)
+                for proof in requester.get_proofs()
+            ]
+            assert_equal(
+                set(received_shortids), {avaproofs.shortids[i] for i in indices}
+            )
 
         # Only the first proof
         check_received_proofs([0])
@@ -513,7 +538,9 @@ class CompactProofsTest(BitcoinTestFramework):
         check_received_proofs(range(numof_proof))
 
         self.log.info(
-            "Check the node will not send the proofs if not requested before the timeout elapsed")
+            "Check the node will not send the proofs if not requested before the"
+            " timeout elapsed"
+        )
 
         # Disconnect the peers
         for peer in node.p2ps:
@@ -530,10 +557,9 @@ class CompactProofsTest(BitcoinTestFramework):
             connection_type="avalanche",
             services=NODE_NETWORK | NODE_AVALANCHE,
         )
-        slow_peer.wait_until(
-            lambda: slow_peer.last_message.get("getavaproofs"))
+        slow_peer.wait_until(lambda: slow_peer.last_message.get("getavaproofs"))
 
-        slow_peer.nodeid = node.getpeerinfo()[-1]['id']
+        slow_peer.nodeid = node.getpeerinfo()[-1]["id"]
         _ = request_proofs(slow_peer)
 
         # Elapse the timeout
@@ -545,8 +571,7 @@ class CompactProofsTest(BitcoinTestFramework):
         # Periodic compact proofs requests are sent in the same loop than the
         # cleanup, so when such a request is made we are sure the cleanup did
         # happen.
-        slow_peer.wait_until(
-            lambda: slow_peer.message_count.get("getavaproofs") > 1)
+        slow_peer.wait_until(lambda: slow_peer.message_count.get("getavaproofs") > 1)
 
         req = msg_avaproofsreq()
         req.indices = range(numof_proof)
@@ -557,7 +582,8 @@ class CompactProofsTest(BitcoinTestFramework):
 
     def test_compact_proofs_download_on_connect(self):
         self.log.info(
-            "Check the node get compact proofs upon avalanche outbound discovery")
+            "Check the node get compact proofs upon avalanche outbound discovery"
+        )
 
         requestee = self.nodes[0]
         requester = self.nodes[1]
@@ -576,22 +602,20 @@ class CompactProofsTest(BitcoinTestFramework):
         self.start_node(1)
         self.connect_nodes(0, 1)
         self.wait_until(
-            lambda: all(
-                proof.proofid in proofids for proof in get_proof_ids(requester)))
+            lambda: all(proof.proofid in proofids for proof in get_proof_ids(requester))
+        )
 
     def test_no_compactproofs_during_ibs(self):
-        self.log.info(
-            "Check the node don't request compact proofs during IBD")
+        self.log.info("Check the node don't request compact proofs during IBD")
 
         node = self.nodes[0]
 
-        chainwork = int(node.getblockchaininfo()['chainwork'], 16)
+        chainwork = int(node.getblockchaininfo()["chainwork"], 16)
         self.restart_node(
-            0,
-            extra_args=self.extra_args[0] +
-            [f'-minimumchainwork={chainwork + 2:#x}'])
+            0, extra_args=self.extra_args[0] + [f"-minimumchainwork={chainwork + 2:#x}"]
+        )
 
-        assert node.getblockchaininfo()['initialblockdownload']
+        assert node.getblockchaininfo()["initialblockdownload"]
 
         peer = P2PInterface()
         node.add_outbound_p2p_connection(
@@ -615,28 +639,31 @@ class CompactProofsTest(BitcoinTestFramework):
 
     def test_send_inbound_getavaproofs_until_quorum_is_established(self):
         self.log.info(
-            "Check we also request the inbounds until the quorum is established")
+            "Check we also request the inbounds until the quorum is established"
+        )
 
         node = self.nodes[0]
 
         self.restart_node(
             0,
-            extra_args=self.extra_args[0] +
-            ['-avaminquorumstake=1000000', '-avaminavaproofsnodecount=0'])
+            extra_args=self.extra_args[0]
+            + ["-avaminquorumstake=1000000", "-avaminavaproofsnodecount=0"],
+        )
 
-        assert_equal(node.getavalancheinfo()['ready_to_poll'], False)
+        assert_equal(node.getavalancheinfo()["ready_to_poll"], False)
 
         outbound = AvaP2PInterface()
         node.add_outbound_p2p_connection(outbound, p2p_idx=0)
 
         inbound = AvaP2PInterface()
         node.add_p2p_connection(inbound)
-        inbound.nodeid = node.getpeerinfo()[-1]['id']
+        inbound.nodeid = node.getpeerinfo()[-1]["id"]
 
         def count_getavaproofs(peers):
             with p2p_lock:
-                return sum([peer.message_count.get("getavaproofs", 0)
-                           for peer in peers])
+                return sum(
+                    [peer.message_count.get("getavaproofs", 0) for peer in peers]
+                )
 
         # Upon connection only the outbound gets a compact proofs message
         assert_equal(count_getavaproofs([inbound]), 0)
@@ -646,15 +673,15 @@ class CompactProofsTest(BitcoinTestFramework):
         current_total = count_getavaproofs([inbound, outbound])
         while count_getavaproofs([inbound]) == 0:
             node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
-            self.wait_until(lambda: count_getavaproofs(
-                [inbound, outbound]) > current_total)
+            self.wait_until(
+                lambda: count_getavaproofs([inbound, outbound]) > current_total
+            )
             current_total = count_getavaproofs([inbound, outbound])
 
         # Connect the minimum amount of stake and nodes
         for _ in range(8):
             node.add_p2p_connection(AvaP2PInterface(self, node))
-        self.wait_until(lambda: node.getavalancheinfo()
-                        ['ready_to_poll'] is True)
+        self.wait_until(lambda: node.getavalancheinfo()["ready_to_poll"] is True)
 
         # From now only the outbound is requested
         count_inbound = count_getavaproofs([inbound])
@@ -680,5 +707,5 @@ class CompactProofsTest(BitcoinTestFramework):
         self.test_send_inbound_getavaproofs_until_quorum_is_established()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     CompactProofsTest().main()

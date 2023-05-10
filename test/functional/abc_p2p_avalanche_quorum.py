@@ -29,21 +29,24 @@ class AvalancheQuorumTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 3
         self.min_avaproofs_node_count = 8
-        self.extra_args = [[
-            '-avaproofstakeutxodustthreshold=1000000',
-            '-avaproofstakeutxoconfirmations=1',
-            '-avacooldown=0',
-            '-avatimeout=0',
-            '-avaminquorumstake=150000000',
-            '-avaminquorumconnectedstakeratio=0.8',
-            '-minimumchainwork=0',
-        ]] * self.num_nodes
-        self.extra_args[0] = self.extra_args[0] + \
-            ['-avaminavaproofsnodecount=0']
-        self.extra_args[1] = self.extra_args[1] + \
-            [f'-avaminavaproofsnodecount={self.min_avaproofs_node_count}']
-        self.extra_args[2] = self.extra_args[2] + \
-            [f'-avaminavaproofsnodecount={self.min_avaproofs_node_count}']
+        self.extra_args = [
+            [
+                "-avaproofstakeutxodustthreshold=1000000",
+                "-avaproofstakeutxoconfirmations=1",
+                "-avacooldown=0",
+                "-avatimeout=0",
+                "-avaminquorumstake=150000000",
+                "-avaminquorumconnectedstakeratio=0.8",
+                "-minimumchainwork=0",
+            ]
+        ] * self.num_nodes
+        self.extra_args[0] = self.extra_args[0] + ["-avaminavaproofsnodecount=0"]
+        self.extra_args[1] = self.extra_args[1] + [
+            f"-avaminavaproofsnodecount={self.min_avaproofs_node_count}"
+        ]
+        self.extra_args[2] = self.extra_args[2] + [
+            f"-avaminavaproofsnodecount={self.min_avaproofs_node_count}"
+        ]
 
     def run_test(self):
         # Initially all nodes start with 8 nodes attached to a single proof
@@ -63,7 +66,7 @@ class AvalancheQuorumTest(BitcoinTestFramework):
         peers = []
         for i in range(0, self.min_avaproofs_node_count + 1):
             key, proof = gen_proof(self, self.nodes[0])
-            peers.append({'key': key, 'proof': proof})
+            peers.append({"key": key, "proof": proof})
 
         # Let the nodes known about all the blocks then disconnect them so we're
         # sure they won't exchange proofs when we start connecting peers.
@@ -72,16 +75,14 @@ class AvalancheQuorumTest(BitcoinTestFramework):
 
         # Restart node 2 to apply the minimum chainwork and make sure it's still
         # in IBD state.
-        chainwork = int(self.nodes[2].getblockchaininfo()['chainwork'], 16)
+        chainwork = int(self.nodes[2].getblockchaininfo()["chainwork"], 16)
         self.restart_node(
-            2,
-            extra_args=self.extra_args[2] +
-            [f'-minimumchainwork={chainwork + 2:#x}'])
-        assert self.nodes[2].getblockchaininfo()['initialblockdownload']
+            2, extra_args=self.extra_args[2] + [f"-minimumchainwork={chainwork + 2:#x}"]
+        )
+        assert self.nodes[2].getblockchaininfo()["initialblockdownload"]
 
         # Build polling nodes
-        pollers = [get_ava_p2p_interface_no_handshake(
-            node) for node in self.nodes]
+        pollers = [get_ava_p2p_interface_no_handshake(node) for node in self.nodes]
 
         def poll_and_assert_response(node, expected):
             pubkey = ECPubKey()
@@ -109,8 +110,8 @@ class AvalancheQuorumTest(BitcoinTestFramework):
             nonlocal p2p_idx
 
             avapeer = AvaP2PInterface()
-            avapeer.proof = peer['proof']
-            avapeer.master_privkey = peer['key']
+            avapeer.proof = peer["proof"]
+            avapeer.master_privkey = peer["key"]
             node.add_outbound_p2p_connection(
                 avapeer,
                 p2p_idx=p2p_idx,
@@ -118,90 +119,97 @@ class AvalancheQuorumTest(BitcoinTestFramework):
                 services=NODE_NETWORK | NODE_AVALANCHE,
             )
             p2p_idx += 1
-            avapeer.nodeid = node.getpeerinfo()[-1]['id']
+            avapeer.nodeid = node.getpeerinfo()[-1]["id"]
 
-            peer['node'] = avapeer
+            peer["node"] = avapeer
 
             # There is no compact proof request if the node is in IBD state
-            if not node.getblockchaininfo()['initialblockdownload']:
-                avapeer.wait_until(
-                    lambda: avapeer.last_message.get("getavaproofs"))
+            if not node.getblockchaininfo()["initialblockdownload"]:
+                avapeer.wait_until(lambda: avapeer.last_message.get("getavaproofs"))
 
                 if empty_avaproof:
                     avapeer.send_message(build_msg_avaproofs([]))
                     avapeer.sync_send_with_ping()
                     with p2p_lock:
-                        assert_equal(
-                            avapeer.message_count.get(
-                                "avaproofsreq", 0), 0)
+                        assert_equal(avapeer.message_count.get("avaproofsreq", 0), 0)
                 else:
-                    avapeer.send_and_ping(build_msg_avaproofs([peer['proof']]))
-                    avapeer.wait_until(
-                        lambda: avapeer.last_message.get("avaproofsreq"))
+                    avapeer.send_and_ping(build_msg_avaproofs([peer["proof"]]))
+                    avapeer.wait_until(lambda: avapeer.last_message.get("avaproofsreq"))
 
             return avapeer
 
-        def add_avapeer_and_check_status(
-                peer, expected_status, empty_avaproof=False):
+        def add_avapeer_and_check_status(peer, expected_status, empty_avaproof=False):
             for i, node in enumerate(self.nodes):
                 get_ava_outbound(node, peer, empty_avaproof)
                 poll_and_assert_response(node, expected_status[i])
 
         # Start polling. The response should be UNKNOWN because there's not
         # enough stake
-        [poll_and_assert_response(node, AvalancheVoteError.UNKNOWN)
-         for node in self.nodes]
+        [
+            poll_and_assert_response(node, AvalancheVoteError.UNKNOWN)
+            for node in self.nodes
+        ]
 
         # Create one peer with half the remaining missing stake and add one
         # node
         add_avapeer_and_check_status(
-            peers[0], [
+            peers[0],
+            [
                 AvalancheVoteError.UNKNOWN,
                 AvalancheVoteError.UNKNOWN,
                 AvalancheVoteError.UNKNOWN,
-            ])
+            ],
+        )
 
         # Create a second peer with the other half and add one node.
         # This is enough for node0 but not node1
         add_avapeer_and_check_status(
-            peers[1], [
+            peers[1],
+            [
                 AvalancheVoteError.ACCEPTED,
                 AvalancheVoteError.UNKNOWN,
                 AvalancheVoteError.UNKNOWN,
-            ])
+            ],
+        )
 
         # Add more peers for triggering the avaproofs messaging
         for i in range(2, self.min_avaproofs_node_count - 1):
             add_avapeer_and_check_status(
-                peers[i], [
+                peers[i],
+                [
                     AvalancheVoteError.ACCEPTED,
                     AvalancheVoteError.UNKNOWN,
                     AvalancheVoteError.UNKNOWN,
-                ])
+                ],
+            )
 
         add_avapeer_and_check_status(
-            peers[self.min_avaproofs_node_count - 1], [
+            peers[self.min_avaproofs_node_count - 1],
+            [
                 AvalancheVoteError.ACCEPTED,
                 AvalancheVoteError.ACCEPTED,
                 AvalancheVoteError.UNKNOWN,
-            ])
+            ],
+        )
 
         # The proofs are not requested during IBD, so node 2 has no proof yet.
         assert_equal(len(get_proof_ids(self.nodes[2])), 0)
         # And all the nodes are pending
         assert_equal(
-            self.nodes[2].getavalancheinfo()['network']['pending_node_count'],
-            self.min_avaproofs_node_count)
+            self.nodes[2].getavalancheinfo()["network"]["pending_node_count"],
+            self.min_avaproofs_node_count,
+        )
 
         self.generate(self.nodes[2], 1, sync_fun=self.no_op)
-        assert not self.nodes[2].getblockchaininfo()['initialblockdownload']
+        assert not self.nodes[2].getblockchaininfo()["initialblockdownload"]
 
         # Connect the pending nodes so the next compact proofs requests can get
         # accounted for
         for i in range(self.min_avaproofs_node_count):
-            node.sendavalancheproof(peers[i]['proof'].serialize().hex())
-        assert_equal(self.nodes[2].getavalancheinfo()[
-                     'network']['pending_node_count'], 0)
+            node.sendavalancheproof(peers[i]["proof"].serialize().hex())
+        assert_equal(
+            self.nodes[2].getavalancheinfo()["network"]["pending_node_count"], 0
+        )
 
         # The avaproofs message are not accounted during IBD, so this is not
         # enough.
@@ -211,27 +219,34 @@ class AvalancheQuorumTest(BitcoinTestFramework):
         # of IBD.
         for i in range(self.min_avaproofs_node_count - 1):
             add_avapeer_and_check_status(
-                peers[i], [
+                peers[i],
+                [
                     AvalancheVoteError.ACCEPTED,
                     AvalancheVoteError.ACCEPTED,
                     AvalancheVoteError.UNKNOWN,
-                ])
+                ],
+            )
 
         # The messages is not accounted when there is no shortid
         add_avapeer_and_check_status(
-            peers[self.min_avaproofs_node_count - 1], [
+            peers[self.min_avaproofs_node_count - 1],
+            [
                 AvalancheVoteError.ACCEPTED,
                 AvalancheVoteError.ACCEPTED,
                 AvalancheVoteError.UNKNOWN,
-            ], empty_avaproof=True)
+            ],
+            empty_avaproof=True,
+        )
 
         # The messages are accounted and the node quorum finally valid
         add_avapeer_and_check_status(
-            peers[self.min_avaproofs_node_count], [
+            peers[self.min_avaproofs_node_count],
+            [
                 AvalancheVoteError.ACCEPTED,
                 AvalancheVoteError.ACCEPTED,
                 AvalancheVoteError.ACCEPTED,
-            ])
+            ],
+        )
 
         # Unless there is not enough nodes to poll
         for node in self.nodes:
@@ -248,5 +263,5 @@ class AvalancheQuorumTest(BitcoinTestFramework):
             poll_and_assert_response(node, AvalancheVoteError.ACCEPTED)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     AvalancheQuorumTest().main()

@@ -40,24 +40,30 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.peer_replacement_cooldown = 2000
         self.extra_args = [
             [
-                '-avaproofstakeutxodustthreshold=1000000',
-                f'-avaproofstakeutxoconfirmations={self.avaproof_stake_utxo_confirmations}',
-                f'-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}',
-                f'-avalanchepeerreplacementcooldown={self.peer_replacement_cooldown}',
-                '-avacooldown=0',
-                '-avastalevotethreshold=140',
-                '-avastalevotefactor=1',
-                '-avaminquorumstake=0',
-                '-avaminavaproofsnodecount=0',
-                '-whitelist=noban@127.0.0.1',
+                "-avaproofstakeutxodustthreshold=1000000",
+                f"-avaproofstakeutxoconfirmations={self.avaproof_stake_utxo_confirmations}",
+                f"-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}",
+                f"-avalanchepeerreplacementcooldown={self.peer_replacement_cooldown}",
+                "-avacooldown=0",
+                "-avastalevotethreshold=140",
+                "-avastalevotefactor=1",
+                "-avaminquorumstake=0",
+                "-avaminavaproofsnodecount=0",
+                "-whitelist=noban@127.0.0.1",
             ],
         ]
         self.supports_cli = False
 
     # Build a fake quorum of nodes.
     def get_quorum(self, node):
-        return [get_ava_p2p_interface(self, node, stake_utxo_confirmations=self.avaproof_stake_utxo_confirmations)
-                for _ in range(0, QUORUM_NODE_COUNT)]
+        return [
+            get_ava_p2p_interface(
+                self,
+                node,
+                stake_utxo_confirmations=self.avaproof_stake_utxo_confirmations,
+            )
+            for _ in range(0, QUORUM_NODE_COUNT)
+        ]
 
     @staticmethod
     def send_proof(from_peer, proof_hex):
@@ -65,37 +71,46 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         from_peer.send_avaproof(proof)
         return proof.proofid
 
-    def send_and_check_for_polling(self, peer,
-                                   proof_hex, response=AvalancheProofVoteResponse.ACTIVE):
+    def send_and_check_for_polling(
+        self, peer, proof_hex, response=AvalancheProofVoteResponse.ACTIVE
+    ):
         proofid = self.send_proof(peer, proof_hex)
         self.wait_until(lambda: can_find_inv_in_poll(self.quorum, proofid, response))
 
     def build_conflicting_proof(self, node, sequence):
         return node.buildavalancheproof(
-            sequence, 0, self.privkey_wif, self.conflicting_stakes)
+            sequence, 0, self.privkey_wif, self.conflicting_stakes
+        )
 
     def wait_for_invalidated_proof(self, node, proofid):
         def invalidate_proof(proofid):
             self.wait_until(
-                lambda: can_find_inv_in_poll(self.quorum,
-                                             proofid, response=AvalancheProofVoteResponse.REJECTED))
-            return try_rpc(-8, "Proof not found",
-                           node.getrawavalancheproof, uint256_hex(proofid))
+                lambda: can_find_inv_in_poll(
+                    self.quorum, proofid, response=AvalancheProofVoteResponse.REJECTED
+                )
+            )
+            return try_rpc(
+                -8, "Proof not found", node.getrawavalancheproof, uint256_hex(proofid)
+            )
 
         with node.assert_debug_log(
             [f"Avalanche invalidated proof {uint256_hex(proofid)}"],
-            ["Failed to reject proof"]
+            ["Failed to reject proof"],
         ):
             self.wait_until(lambda: invalidate_proof(proofid))
 
     def wait_for_finalized_proof(self, node, proofid):
         def finalize_proof(proofid):
-            can_find_inv_in_poll(self.quorum,
-                                 proofid, response=AvalancheProofVoteResponse.ACTIVE)
-            return node.getrawavalancheproof(
-                uint256_hex(proofid)).get("finalized", False)
+            can_find_inv_in_poll(
+                self.quorum, proofid, response=AvalancheProofVoteResponse.ACTIVE
+            )
+            return node.getrawavalancheproof(uint256_hex(proofid)).get(
+                "finalized", False
+            )
 
-        with node.assert_debug_log([f"Avalanche finalized proof {uint256_hex(proofid)}"]):
+        with node.assert_debug_log(
+            [f"Avalanche finalized proof {uint256_hex(proofid)}"]
+        ):
             self.wait_until(lambda: finalize_proof(proofid))
 
     def run_test(self):
@@ -109,9 +124,11 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
         addrkey0 = node.get_deterministic_priv_key()
         blockhash = self.generatetoaddress(
-            node, 9, addrkey0.address, sync_fun=self.no_op)
+            node, 9, addrkey0.address, sync_fun=self.no_op
+        )
         self.conflicting_stakes = create_coinbase_stakes(
-            node, blockhash[5:9], addrkey0.key)
+            node, blockhash[5:9], addrkey0.key
+        )
 
         self.poll_tests(node)
         self.update_tests(node)
@@ -122,9 +139,8 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
     def poll_tests(self, node):
         # Disable the peer replacement cooldown for this test
         self.restart_node(
-            0,
-            extra_args=self.extra_args[0] +
-            ['-avalanchepeerreplacementcooldown=0'])
+            0, extra_args=self.extra_args[0] + ["-avalanchepeerreplacementcooldown=0"]
+        )
         self.quorum = self.get_quorum(node)
 
         proof_seq10 = self.build_conflicting_proof(node, 10)
@@ -132,9 +148,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         proof_seq30 = self.build_conflicting_proof(node, 30)
         proof_seq40 = self.build_conflicting_proof(node, 40)
 
-        no_stake = node.buildavalancheproof(
-            200, 2000000000, self.privkey_wif, []
-        )
+        no_stake = node.buildavalancheproof(200, 2000000000, self.privkey_wif, [])
 
         # Get the key so we can verify signatures.
         avakey = ECPubKey()
@@ -154,28 +168,39 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.wait_for_finalized_proof(node, proofid_seq30)
 
         self.log.info(
-            "Check we don't poll for subsequent proofs if the cooldown is not elapsed, proof not the favorite")
-        with node.assert_debug_log(["Not polling the avalanche proof (cooldown-not-elapsed)"]):
+            "Check we don't poll for subsequent proofs if the cooldown is not elapsed,"
+            " proof not the favorite"
+        )
+        with node.assert_debug_log(
+            ["Not polling the avalanche proof (cooldown-not-elapsed)"]
+        ):
             peer.send_avaproof(avalanche_proof_from_hex(proof_seq20))
 
         self.log.info(
-            "Check we don't poll for subsequent proofs if the cooldown is not elapsed, proof is the favorite")
-        with node.assert_debug_log(["Not polling the avalanche proof (cooldown-not-elapsed)"]):
+            "Check we don't poll for subsequent proofs if the cooldown is not elapsed,"
+            " proof is the favorite"
+        )
+        with node.assert_debug_log(
+            ["Not polling the avalanche proof (cooldown-not-elapsed)"]
+        ):
             peer.send_avaproof(avalanche_proof_from_hex(proof_seq40))
 
         self.log.info(
-            "Check we poll for conflicting proof if the proof is not the favorite")
+            "Check we poll for conflicting proof if the proof is not the favorite"
+        )
         mock_time += self.conflicting_proof_cooldown
         node.setmocktime(mock_time)
         self.send_and_check_for_polling(
-            peer, proof_seq20, response=AvalancheProofVoteResponse.REJECTED)
+            peer, proof_seq20, response=AvalancheProofVoteResponse.REJECTED
+        )
 
         # Continue to vote until the proof is invalidated
         proofid_seq20 = avalanche_proof_from_hex(proof_seq20).proofid
         self.wait_for_invalidated_proof(node, proofid_seq20)
 
         self.log.info(
-            "Check we poll for conflicting proof if the proof is the favorite")
+            "Check we poll for conflicting proof if the proof is the favorite"
+        )
         mock_time += self.conflicting_proof_cooldown
         node.setmocktime(mock_time)
         self.send_and_check_for_polling(peer, proof_seq40)
@@ -184,7 +209,9 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         node.setmocktime(mock_time)
 
         self.log.info("Check we don't poll for proofs that get rejected")
-        with node.assert_debug_log(["Not polling the avalanche proof (rejected-proof)"]):
+        with node.assert_debug_log(
+            ["Not polling the avalanche proof (rejected-proof)"]
+        ):
             peer.send_avaproof(avalanche_proof_from_hex(proof_seq10))
 
         self.log.info("Check we don't poll for invalid proofs and get banned")
@@ -217,8 +244,11 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.log.info("Test proof acceptance")
 
         def accept_proof(proofid):
-            self.wait_until(lambda: can_find_inv_in_poll(self.quorum,
-                                                         proofid, response=AvalancheProofVoteResponse.ACTIVE))
+            self.wait_until(
+                lambda: can_find_inv_in_poll(
+                    self.quorum, proofid, response=AvalancheProofVoteResponse.ACTIVE
+                )
+            )
             return proofid in get_proof_ids(node)
 
         mock_time += self.conflicting_proof_cooldown
@@ -238,7 +268,9 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         mock_time += self.conflicting_proof_cooldown
         node.setmocktime(mock_time)
 
-        with node.assert_debug_log(["Not polling the avalanche proof (cooldown-not-elapsed)"]):
+        with node.assert_debug_log(
+            ["Not polling the avalanche proof (cooldown-not-elapsed)"]
+        ):
             self.send_proof(peer, proof_seq50)
 
         mock_time += self.peer_replacement_cooldown
@@ -252,13 +284,15 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
         def reject_proof(proofid):
             self.wait_until(
-                lambda: can_find_inv_in_poll(self.quorum,
-                                             proofid, response=AvalancheProofVoteResponse.REJECTED))
+                lambda: can_find_inv_in_poll(
+                    self.quorum, proofid, response=AvalancheProofVoteResponse.REJECTED
+                )
+            )
             return proofid not in get_proof_ids(node)
 
         with node.assert_debug_log(
             [f"Avalanche rejected proof {uint256_hex(proofid_seq50)}"],
-            ["Failed to reject proof"]
+            ["Failed to reject proof"],
         ):
             self.wait_until(lambda: reject_proof(proofid_seq50))
 
@@ -273,39 +307,47 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         for i in range(5):
             with node.assert_debug_log(["received: avaproof"]):
                 self.send_proof(peer, proof_seq50)
-            assert_raises_rpc_error(-8,
-                                    "Proof not found",
-                                    node.getrawavalancheproof,
-                                    uint256_hex(proofid_seq50))
+            assert_raises_rpc_error(
+                -8,
+                "Proof not found",
+                node.getrawavalancheproof,
+                uint256_hex(proofid_seq50),
+            )
 
         node.setmocktime(0)
 
     def vote_tests(self, node):
         self.avaproof_stake_utxo_confirmations = 2
-        self.restart_node(0, extra_args=['-avaproofstakeutxodustthreshold=1000000',
-                                         f'-avaproofstakeutxoconfirmations={self.avaproof_stake_utxo_confirmations}',
-                                         '-avacooldown=0',
-                                         '-avalancheconflictingproofcooldown=0',
-                                         '-avaminquorumstake=0',
-                                         '-avaminavaproofsnodecount=0',
-                                         '-whitelist=noban@127.0.0.1', ])
+        self.restart_node(
+            0,
+            extra_args=[
+                "-avaproofstakeutxodustthreshold=1000000",
+                f"-avaproofstakeutxoconfirmations={self.avaproof_stake_utxo_confirmations}",
+                "-avacooldown=0",
+                "-avalancheconflictingproofcooldown=0",
+                "-avaminquorumstake=0",
+                "-avaminavaproofsnodecount=0",
+                "-whitelist=noban@127.0.0.1",
+            ],
+        )
 
         self.get_quorum(node)
         ava_node = get_ava_p2p_interface(
-            self, node, stake_utxo_confirmations=self.avaproof_stake_utxo_confirmations)
+            self, node, stake_utxo_confirmations=self.avaproof_stake_utxo_confirmations
+        )
 
         # Generate coinbases to use for stakes
         stakes_key = node.get_deterministic_priv_key()
         blocks = self.generatetoaddress(
-            node, 4, stakes_key.address, sync_fun=self.no_op)
+            node, 4, stakes_key.address, sync_fun=self.no_op
+        )
 
         # Get the ava key so we can verify signatures.
         ava_key = ECPubKey()
         ava_key.set(bytes.fromhex(node.getavalanchekey()))
 
         def create_proof(stakes, sequence=10):
-            proof = node.buildavalancheproof(
-                sequence, 0, self.privkey_wif, stakes)
+            proof = node.buildavalancheproof(sequence, 0, self.privkey_wif, stakes)
             proof_id = avalanche_proof_from_hex(proof).proofid
             return proof, proof_id
 
@@ -322,13 +364,12 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         proof_2, proof_2_id = create_proof(stakes_2)
 
         # proof_3 conflicts with proof_0 and proof_1, but has a lower sequence
-        stakes_3 = create_coinbase_stakes(
-            node, [blocks[0], blocks[1]], stakes_key.key)
+        stakes_3 = create_coinbase_stakes(node, [blocks[0], blocks[1]], stakes_key.key)
         proof_3, proof_3_id = create_proof(stakes_3, sequence=1)
 
         # proof_4 is invalid and should be rejected
         stakes_4 = create_coinbase_stakes(node, [blocks[2]], stakes_key.key)
-        stakes_4[0]['amount'] -= 100000
+        stakes_4[0]["amount"] -= 100000
         proof_4, proof_4_id = create_proof(stakes_4)
 
         # Create a helper to issue a poll and validate the responses
@@ -337,7 +378,8 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
             self.log.info("Trigger polling from the node...")
             ava_node.send_poll(
                 [proof_0_id, proof_1_id, proof_2_id, proof_3_id, proof_4_id],
-                MSG_AVA_PROOF)
+                MSG_AVA_PROOF,
+            )
             response = ava_node.wait_for_avaresponse()
             r = response.response
 
@@ -351,60 +393,79 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
                 assert_equal(repr(votes[i]), repr(expected[i]))
 
         # Check that all proofs start unknown
-        poll_assert_response([
-            AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_0_id),
-            AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_1_id),
-            AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_2_id),
-            AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_3_id),
-            AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_4_id)])
+        poll_assert_response(
+            [
+                AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_0_id),
+                AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_1_id),
+                AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_2_id),
+                AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_3_id),
+                AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_4_id),
+            ]
+        )
 
         # Send the first proof. Nodes should now respond that it's accepted
         node.sendavalancheproof(proof_0)
-        poll_assert_response([
-            AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_0_id),
-            AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_1_id),
-            AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_2_id),
-            AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_3_id),
-            AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_4_id)])
+        poll_assert_response(
+            [
+                AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_0_id),
+                AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_1_id),
+                AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_2_id),
+                AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_3_id),
+                AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_4_id),
+            ]
+        )
 
         # Send and check the 2nd proof. Nodes should now respond that it's
         # accepted
         node.sendavalancheproof(proof_1)
-        poll_assert_response([
-            AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_0_id),
-            AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_1_id),
-            AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_2_id),
-            AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_3_id),
-            AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_4_id)])
+        poll_assert_response(
+            [
+                AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_0_id),
+                AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_1_id),
+                AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_2_id),
+                AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_3_id),
+                AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_4_id),
+            ]
+        )
 
         # The next proof should be rejected/put in the immature pool
         ava_node.send_proof(avalanche_proof_from_hex(proof_2))
-        poll_assert_response([
-            AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_0_id),
-            AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_1_id),
-            AvalancheVote(AvalancheProofVoteResponse.IMMATURE, proof_2_id),
-            AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_3_id),
-            AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_4_id)])
+        poll_assert_response(
+            [
+                AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_0_id),
+                AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_1_id),
+                AvalancheVote(AvalancheProofVoteResponse.IMMATURE, proof_2_id),
+                AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_3_id),
+                AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_4_id),
+            ]
+        )
 
         # The next proof should be rejected and marked as a conflicting proof
-        assert_raises_rpc_error(-8, "conflicting-utxos",
-                                node.sendavalancheproof, proof_3)
-        poll_assert_response([
-            AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_0_id),
-            AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_1_id),
-            AvalancheVote(AvalancheProofVoteResponse.IMMATURE, proof_2_id),
-            AvalancheVote(AvalancheProofVoteResponse.CONFLICT, proof_3_id),
-            AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_4_id)])
+        assert_raises_rpc_error(
+            -8, "conflicting-utxos", node.sendavalancheproof, proof_3
+        )
+        poll_assert_response(
+            [
+                AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_0_id),
+                AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_1_id),
+                AvalancheVote(AvalancheProofVoteResponse.IMMATURE, proof_2_id),
+                AvalancheVote(AvalancheProofVoteResponse.CONFLICT, proof_3_id),
+                AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_4_id),
+            ]
+        )
 
         # The final proof should be permanently rejected for being completely
         # invalid
         ava_node.send_proof(avalanche_proof_from_hex(proof_4))
-        poll_assert_response([
-            AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_0_id),
-            AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_1_id),
-            AvalancheVote(AvalancheProofVoteResponse.IMMATURE, proof_2_id),
-            AvalancheVote(AvalancheProofVoteResponse.CONFLICT, proof_3_id),
-            AvalancheVote(AvalancheProofVoteResponse.REJECTED, proof_4_id)])
+        poll_assert_response(
+            [
+                AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_0_id),
+                AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_1_id),
+                AvalancheVote(AvalancheProofVoteResponse.IMMATURE, proof_2_id),
+                AvalancheVote(AvalancheProofVoteResponse.CONFLICT, proof_3_id),
+                AvalancheVote(AvalancheProofVoteResponse.REJECTED, proof_4_id),
+            ]
+        )
 
     def stale_proof_tests(self, node):
         # Restart the node to get rid of in-flight requests
@@ -431,15 +492,20 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         node.setmocktime(mock_time)
 
         self.send_and_check_for_polling(
-            peer, proof_seq1, response=AvalancheProofVoteResponse.UNKNOWN)
+            peer, proof_seq1, response=AvalancheProofVoteResponse.UNKNOWN
+        )
 
         def vote_until_dropped(proofid):
-            can_find_inv_in_poll(self.quorum,
-                                 proofid, response=AvalancheProofVoteResponse.UNKNOWN)
-            return try_rpc(-8, "Proof not found",
-                           node.getrawavalancheproof, uint256_hex(proofid))
+            can_find_inv_in_poll(
+                self.quorum, proofid, response=AvalancheProofVoteResponse.UNKNOWN
+            )
+            return try_rpc(
+                -8, "Proof not found", node.getrawavalancheproof, uint256_hex(proofid)
+            )
 
-        with node.assert_debug_log([f"Avalanche stalled proof {uint256_hex(proofid_seq1)}"]):
+        with node.assert_debug_log(
+            [f"Avalanche stalled proof {uint256_hex(proofid_seq1)}"]
+        ):
             self.wait_until(lambda: vote_until_dropped(proofid_seq1))
 
         # Verify that proof_seq2 was not replaced
@@ -449,34 +515,43 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         # When polled, peer responds with expected votes for both proofs
         peer.send_poll([proofid_seq1, proofid_seq2], MSG_AVA_PROOF)
         response = peer.wait_for_avaresponse()
-        assert repr(response.response.votes) == repr([
-            AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proofid_seq1),
-            AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proofid_seq2)])
+        assert repr(response.response.votes) == repr(
+            [
+                AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proofid_seq1),
+                AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proofid_seq2),
+            ]
+        )
 
         node.setmocktime(0)
 
     def maturity_poll_tests(self, node):
         # Restart the node with appropriate flags for this test
         self.avaproof_stake_utxo_confirmations = 2
-        self.restart_node(0, extra_args=[
-            '-avaproofstakeutxodustthreshold=1000000',
-            f'-avaproofstakeutxoconfirmations={self.avaproof_stake_utxo_confirmations}',
-            '-avalancheconflictingproofcooldown=0',
-            '-avacooldown=0',
-            '-avaminquorumstake=0',
-            '-avaminavaproofsnodecount=0',
-            '-whitelist=noban@127.0.0.1',
-        ])
+        self.restart_node(
+            0,
+            extra_args=[
+                "-avaproofstakeutxodustthreshold=1000000",
+                f"-avaproofstakeutxoconfirmations={self.avaproof_stake_utxo_confirmations}",
+                "-avalancheconflictingproofcooldown=0",
+                "-avacooldown=0",
+                "-avaminquorumstake=0",
+                "-avaminavaproofsnodecount=0",
+                "-whitelist=noban@127.0.0.1",
+            ],
+        )
 
         self.quorum = self.get_quorum(node)
         peer = get_ava_p2p_interface(
-            self, node, stake_utxo_confirmations=self.avaproof_stake_utxo_confirmations)
+            self, node, stake_utxo_confirmations=self.avaproof_stake_utxo_confirmations
+        )
 
         _, immature_proof = gen_proof(self, node)
 
         self.log.info("Immature proofs are not polled")
 
-        with node.assert_debug_log(["Not polling the avalanche proof (immature-proof)"]):
+        with node.assert_debug_log(
+            ["Not polling the avalanche proof (immature-proof)"]
+        ):
             peer.send_avaproof(immature_proof)
 
         self.log.info("Newly mature proofs are polled")
@@ -485,5 +560,5 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.send_and_check_for_polling(peer, immature_proof.serialize().hex())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     AvalancheProofVotingTest().main()

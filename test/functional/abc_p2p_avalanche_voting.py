@@ -29,21 +29,21 @@ class AvalancheTest(BitcoinTestFramework):
         self.num_nodes = 2
         self.extra_args = [
             [
-                '-avaproofstakeutxodustthreshold=1000000',
-                '-avaproofstakeutxoconfirmations=1',
-                '-avacooldown=0',
-                '-avaminquorumstake=0',
-                '-avaminavaproofsnodecount=0',
-                '-whitelist=noban@127.0.0.1',
+                "-avaproofstakeutxodustthreshold=1000000",
+                "-avaproofstakeutxoconfirmations=1",
+                "-avacooldown=0",
+                "-avaminquorumstake=0",
+                "-avaminavaproofsnodecount=0",
+                "-whitelist=noban@127.0.0.1",
             ],
             [
-                '-avaproofstakeutxodustthreshold=1000000',
-                '-avaproofstakeutxoconfirmations=1',
-                '-avacooldown=0',
-                '-avaminquorumstake=0',
-                '-avaminavaproofsnodecount=0',
-                '-noparkdeepreorg',
-                '-whitelist=noban@127.0.0.1',
+                "-avaproofstakeutxodustthreshold=1000000",
+                "-avaproofstakeutxoconfirmations=1",
+                "-avacooldown=0",
+                "-avaminquorumstake=0",
+                "-avaminavaproofsnodecount=0",
+                "-noparkdeepreorg",
+                "-whitelist=noban@127.0.0.1",
             ],
         ]
         self.supports_cli = False
@@ -54,14 +54,15 @@ class AvalancheTest(BitcoinTestFramework):
 
         # Build a fake quorum of nodes.
         def get_quorum():
-            return [get_ava_p2p_interface(self, node)
-                    for _ in range(0, QUORUM_NODE_COUNT)]
+            return [
+                get_ava_p2p_interface(self, node) for _ in range(0, QUORUM_NODE_COUNT)
+            ]
 
         # Pick one node from the quorum for polling.
         quorum = get_quorum()
         poll_node = quorum[0]
 
-        assert node.getavalancheinfo()['ready_to_poll'] is True
+        assert node.getavalancheinfo()["ready_to_poll"] is True
 
         # Generate many block and poll for them.
         self.generate(node, 100 - node.getblockcount())
@@ -89,8 +90,7 @@ class AvalancheTest(BitcoinTestFramework):
             for i in range(0, len(votes)):
                 assert_equal(repr(votes[i]), repr(expected[i]))
 
-        assert_response(
-            [AvalancheVote(AvalancheVoteError.ACCEPTED, best_block_hash)])
+        assert_response([AvalancheVote(AvalancheVoteError.ACCEPTED, best_block_hash)])
 
         self.log.info("Poll for a selection of blocks...")
         various_block_hashes = [
@@ -105,11 +105,14 @@ class AvalancheTest(BitcoinTestFramework):
         ]
 
         poll_node.send_poll(various_block_hashes)
-        assert_response([AvalancheVote(AvalancheVoteError.ACCEPTED, h)
-                         for h in various_block_hashes])
+        assert_response(
+            [
+                AvalancheVote(AvalancheVoteError.ACCEPTED, h)
+                for h in various_block_hashes
+            ]
+        )
 
-        self.log.info(
-            "Poll for a selection of blocks, but some are now invalid...")
+        self.log.info("Poll for a selection of blocks, but some are now invalid...")
         invalidated_block = node.getblockhash(76)
         node.invalidateblock(invalidated_block)
         # We need to send the coin to a new address in order to make sure we do
@@ -118,8 +121,16 @@ class AvalancheTest(BitcoinTestFramework):
         node.reconsiderblock(invalidated_block)
 
         poll_node.send_poll(various_block_hashes)
-        assert_response([AvalancheVote(AvalancheVoteError.ACCEPTED, h) for h in various_block_hashes[:5]] +
-                        [AvalancheVote(AvalancheVoteError.FORK, h) for h in various_block_hashes[-3:]])
+        assert_response(
+            [
+                AvalancheVote(AvalancheVoteError.ACCEPTED, h)
+                for h in various_block_hashes[:5]
+            ]
+            + [
+                AvalancheVote(AvalancheVoteError.FORK, h)
+                for h in various_block_hashes[-3:]
+            ]
+        )
 
         self.log.info("Poll for unknown blocks...")
         various_block_hashes = [
@@ -134,9 +145,20 @@ class AvalancheTest(BitcoinTestFramework):
             random.randrange(1 << 255, (1 << 256) - 1),
         ]
         poll_node.send_poll(various_block_hashes)
-        assert_response([AvalancheVote(AvalancheVoteError.ACCEPTED, h) for h in various_block_hashes[:3]] +
-                        [AvalancheVote(AvalancheVoteError.FORK, h) for h in various_block_hashes[3:6]] +
-                        [AvalancheVote(AvalancheVoteError.UNKNOWN, h) for h in various_block_hashes[-3:]])
+        assert_response(
+            [
+                AvalancheVote(AvalancheVoteError.ACCEPTED, h)
+                for h in various_block_hashes[:3]
+            ]
+            + [
+                AvalancheVote(AvalancheVoteError.FORK, h)
+                for h in various_block_hashes[3:6]
+            ]
+            + [
+                AvalancheVote(AvalancheVoteError.UNKNOWN, h)
+                for h in various_block_hashes[-3:]
+            ]
+        )
 
         self.log.info("Trigger polling from the node...")
 
@@ -192,8 +214,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         def has_parked_tip(tip_park):
             hash_tip_park = int(tip_park, 16)
-            can_find_inv_in_poll(quorum,
-                                 hash_tip_park, AvalancheVoteError.PARKED)
+            can_find_inv_in_poll(quorum, hash_tip_park, AvalancheVoteError.PARKED)
 
             for tip in node.getchaintips():
                 if tip["hash"] == tip_park:
@@ -218,8 +239,9 @@ class AvalancheTest(BitcoinTestFramework):
         hash_tip_park = int(tip_to_park, 16)
         with node.wait_for_debug_log(
             [f"Avalanche invalidated block {tip_to_park}".encode()],
-            chatty_callable=lambda: can_find_inv_in_poll(quorum,
-                                                         hash_tip_park, AvalancheVoteError.PARKED)
+            chatty_callable=lambda: can_find_inv_in_poll(
+                quorum, hash_tip_park, AvalancheVoteError.PARKED
+            ),
         ):
             pass
 
@@ -254,8 +276,7 @@ class AvalancheTest(BitcoinTestFramework):
         fork_node.invalidateblock(chain_head)
         # We need to send the coin to a new address in order to make sure we do
         # not regenerate the same block.
-        blocks = self.generatetoaddress(
-            fork_node, 1, ADDRS[1], sync_fun=self.no_op)
+        blocks = self.generatetoaddress(fork_node, 1, ADDRS[1], sync_fun=self.no_op)
         chain_head = blocks[0]
         fork_tip = blocks[0]
 
@@ -267,6 +288,7 @@ class AvalancheTest(BitcoinTestFramework):
                     assert tip["status"] != "active"
                     return tip["status"] == "valid-headers"
             return False
+
         self.wait_until(lambda: valid_headers_block(fork_tip))
 
         # sanity check
@@ -283,7 +305,8 @@ class AvalancheTest(BitcoinTestFramework):
             # We need to send the coin to a new address in order to make sure we do
             # not regenerate the same block.
             blocks = self.generatetoaddress(
-                fork_node, numblocks, ADDRS[numblocks], sync_fun=self.no_op)
+                fork_node, numblocks, ADDRS[numblocks], sync_fun=self.no_op
+            )
             chain_head = blocks[0]
             fork_tip = blocks[-1]
 
@@ -294,17 +317,17 @@ class AvalancheTest(BitcoinTestFramework):
             # sanity check
             hash_to_find = int(fork_tip, 16)
             poll_node.send_poll([hash_to_find])
-            assert_response(
-                [AvalancheVote(AvalancheVoteError.PARKED, hash_to_find)])
+            assert_response([AvalancheVote(AvalancheVoteError.PARKED, hash_to_find)])
 
-        self.log.info(
-            "Check the node is discouraging unexpected avaresponses.")
+        self.log.info("Check the node is discouraging unexpected avaresponses.")
         with node.assert_debug_log(
-                ['Misbehaving', 'peer=1', 'unexpected-ava-response']):
+            ["Misbehaving", "peer=1", "unexpected-ava-response"]
+        ):
             # unknown voting round
             poll_node.send_avaresponse(
-                avaround=2**32 - 1, votes=[], privkey=poll_node.delegated_privkey)
+                avaround=2**32 - 1, votes=[], privkey=poll_node.delegated_privkey
+            )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     AvalancheTest().main()
