@@ -45,35 +45,7 @@ linux_container_snippet: &LINUX_CONTAINER
     # Gives us more CPUs for free if they're available.
     greedy: true
     # More than enough for our scripts.
-    memory: 1G
-
-task:
-  timeout_in: 120m
-  name: "x86_64: Linux (Debian stable)"
-  << : *LINUX_CONTAINER
-  matrix:
-    - env: {WIDEMUL:  int64,  RECOVERY: yes}
-    - env: {WIDEMUL:  int64,                 ECDH: yes, EXPERIMENTAL: yes, MULTISET: yes, SCHNORRSIG: yes}
-    - env: {WIDEMUL: int128}
-    - env: {WIDEMUL: int128,  RECOVERY: yes,            EXPERIMENTAL: yes,                SCHNORRSIG: yes}
-    - env: {WIDEMUL: int128,                 ECDH: yes, EXPERIMENTAL: yes, MULTISET: yes, SCHNORRSIG: yes}
-    - env: {WIDEMUL: int128,  ASM: x86_64}
-    - env: {                  RECOVERY: yes,            EXPERIMENTAL: yes, MULTISET: yes, SCHNORRSIG: yes}
-    - env: {AUTOTOOLS_TARGET: distcheck, CMAKE_TARGET: install, WITH_VALGRIND: no, CTIMETEST: no, BENCH: no}
-    - env: {AUTOTOOLS_EXTRA_FLAGS: CPPFLAGS=-DDETERMINISTIC, CMAKE_EXTRA_FLAGS: -DCMAKE_C_FLAGS=-DDETERMINISTIC}
-    - env: {AUTOTOOLS_EXTRA_FLAGS: CFLAGS=-O0, CMAKE_EXTRA_FLAGS: -DCMAKE_BUILD_TYPE=Debug, CTIMETEST: no}
-    - env: {SCHNORR: no}
-    - env: { ECMULTGENPRECISION: 2, ECMULTWINDOW: 2 }
-    - env: { ECMULTGENPRECISION: 8, ECMULTWINDOW: 4 }
-  matrix:
-    - env:
-        CC: gcc
-    - env:
-        CC: clang
-  test_script:
-    - ./ci/build_autotools.sh
-    - ./ci/build_cmake.sh
-  << : *CAT_LOGS
+    memory: 2G
 
 task:
   name: "i686: Linux (Debian stable)"

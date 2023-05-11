@@ -133,7 +133,7 @@ void test_schnorrsig_api(void) {
     secp256k1_context *vrfy = secp256k1_context_create(SECP256K1_CONTEXT_VERIFY);
     secp256k1_context *both = secp256k1_context_create(SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY);
     secp256k1_context *sttc = secp256k1_context_clone(secp256k1_context_no_precomp);
-    int ecount;
+    int ecount = 0;
 
     secp256k1_context_set_error_callback(none, counting_illegal_callback_fn, &ecount);
     secp256k1_context_set_error_callback(sign, counting_illegal_callback_fn, &ecount);
