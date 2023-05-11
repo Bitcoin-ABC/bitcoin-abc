@@ -17,12 +17,14 @@ class TestRPCAuth(unittest.TestCase):
     def setUp(self):
         config = configparser.ConfigParser()
         config_path = os.path.abspath(
-            os.path.join(os.sep, os.path.abspath(os.path.dirname(__file__)),
-                         "../config.ini"))
+            os.path.join(
+                os.sep, os.path.abspath(os.path.dirname(__file__)), "../config.ini"
+            )
+        )
         with open(config_path, encoding="utf8") as config_file:
             config.read_file(config_file)
-        sys.path.insert(0, os.path.dirname(config['environment']['RPCAUTH']))
-        self.rpcauth = importlib.import_module('rpcauth')
+        sys.path.insert(0, os.path.dirname(config["environment"]["RPCAUTH"]))
+        self.rpcauth = importlib.import_module("rpcauth")
 
     def test_generate_salt(self):
         for i in range(16, 32 + 1):
@@ -31,7 +33,8 @@ class TestRPCAuth(unittest.TestCase):
     def test_generate_password(self):
         password = self.rpcauth.generate_password()
         expected_password = base64.urlsafe_b64encode(
-            base64.urlsafe_b64decode(password)).decode('utf-8')
+            base64.urlsafe_b64decode(password)
+        ).decode("utf-8")
         self.assertEqual(expected_password, password)
 
     def test_check_password_hmac(self):
@@ -39,12 +42,11 @@ class TestRPCAuth(unittest.TestCase):
         password = self.rpcauth.generate_password()
         password_hmac = self.rpcauth.password_to_hmac(salt, password)
 
-        m = hmac.new(bytearray(salt, 'utf-8'),
-                     bytearray(password, 'utf-8'), 'SHA256')
+        m = hmac.new(bytearray(salt, "utf-8"), bytearray(password, "utf-8"), "SHA256")
         expected_password_hmac = m.hexdigest()
 
         self.assertEqual(expected_password_hmac, password_hmac)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

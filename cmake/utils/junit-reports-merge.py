@@ -14,7 +14,7 @@ class TestSuite:
     def __init__(self, name, report_dir):
         self.name = name
         self.test_cases = {}
-        self.report_file = os.path.join(report_dir, f'{self.name}.xml')
+        self.report_file = os.path.join(report_dir, f"{self.name}.xml")
 
     def add_test_case(self, test_case):
         self.test_cases[test_case.test_id] = test_case
@@ -24,20 +24,20 @@ class TestSuite:
 
     def dump(self):
         # Calculate test suite duration as the sum of all test case duraration
-        duration = round(sum([
-            float(t.node.get('time', 0.0)) for t in self.test_cases.values()
-        ]), 3)
+        duration = round(
+            sum([float(t.node.get("time", 0.0)) for t in self.test_cases.values()]), 3
+        )
 
         test_suite = ET.Element(
-            'testsuite',
+            "testsuite",
             {
-                'name': self.name,
-                'id': '0',
-                'timestamp': datetime.datetime.now().isoformat('T'),
-                'time': str(duration),
-                'tests': str(len(self.test_cases)),
-                'failures': str(len(self.get_failed_tests())),
-            }
+                "name": self.name,
+                "id": "0",
+                "timestamp": datetime.datetime.now().isoformat("T"),
+                "time": str(duration),
+                "tests": str(len(self.test_cases)),
+                "failures": str(len(self.get_failed_tests())),
+            },
         )
 
         for test_case in self.test_cases.values():
@@ -47,7 +47,7 @@ class TestSuite:
         os.makedirs(report_dir, exist_ok=True)
         ET.ElementTree(test_suite).write(
             self.report_file,
-            'UTF-8',
+            "UTF-8",
             xml_declaration=True,
         )
 
@@ -55,20 +55,20 @@ class TestSuite:
         tree = ET.parse(self.report_file)
 
         xml_root = tree.getroot()
-        assert xml_root.tag == 'testsuite'
-        assert self.name == xml_root.get('name')
+        assert xml_root.tag == "testsuite"
+        assert self.name == xml_root.get("name")
 
-        for test_case in xml_root.findall('testcase'):
+        for test_case in xml_root.findall("testcase"):
             self.add_test_case(TestCase(test_case))
 
 
 class TestCase:
     def __init__(self, node):
         self.node = node
-        self.test_success = self.node.find('failure') is None
+        self.test_success = self.node.find("failure") is None
 
     def __getattr__(self, attribute):
-        if attribute == 'test_id':
+        if attribute == "test_id":
             return f"{self.classname}/{self.name}"
 
         return self.node.attrib[attribute]
@@ -76,11 +76,11 @@ class TestCase:
 
 class Lock:
     def __init__(self, suite, lock_dir):
-        self.lock_file = os.path.join(lock_dir, f'{suite}.lock')
+        self.lock_file = os.path.join(lock_dir, f"{suite}.lock")
 
     def __enter__(self):
         os.makedirs(os.path.dirname(self.lock_file), exist_ok=True)
-        self.fd = open(self.lock_file, 'w', encoding='utf-8')
+        self.fd = open(self.lock_file, "w", encoding="utf-8")
         fcntl.lockf(self.fd, fcntl.LOCK_EX)
 
     def __exit__(self, exception_type, exception_value, traceback):
@@ -89,7 +89,7 @@ class Lock:
 
 
 def main(report_dir, lock_dir, suite, test):
-    junit = f'{suite}-{test}.xml'
+    junit = f"{suite}-{test}.xml"
     if not os.path.isfile(junit):
         return 0
 
@@ -98,11 +98,10 @@ def main(report_dir, lock_dir, suite, test):
     # Junit root can be a single test suite or multiple test suites. The
     # later case is unsupported.
     xml_root = tree.getroot()
-    if xml_root.tag != 'testsuite':
-        raise AssertionError(
-            "The parser only supports a single test suite per report")
+    if xml_root.tag != "testsuite":
+        raise AssertionError("The parser only supports a single test suite per report")
 
-    test_suite_name = xml_root.get('name')
+    test_suite_name = xml_root.get("name")
 
     lock = Lock(suite, lock_dir)
     with lock:
@@ -111,7 +110,7 @@ def main(report_dir, lock_dir, suite, test):
             test_suite.load()
 
         for child in xml_root:
-            if child.tag != 'testcase' or (child.find('skipped') is not None):
+            if child.tag != "testcase" or (child.find("skipped") is not None):
                 continue
 
             test_suite.add_test_case(TestCase(child))
@@ -119,8 +118,7 @@ def main(report_dir, lock_dir, suite, test):
         test_suite.dump()
 
     sys.exit(
-        1 if test in [case.classname for case in test_suite.get_failed_tests()]
-        else 0
+        1 if test in [case.classname for case in test_suite.get_failed_tests()] else 0
     )
 
 

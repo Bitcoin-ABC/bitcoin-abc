@@ -18,36 +18,40 @@ def generate_salt(size):
 
 def generate_password():
     """Create 32 byte b64 password"""
-    return urlsafe_b64encode(urandom(32)).decode('utf-8')
+    return urlsafe_b64encode(urandom(32)).decode("utf-8")
 
 
 def password_to_hmac(salt, password):
-    m = hmac.new(bytearray(salt, 'utf-8'),
-                 bytearray(password, 'utf-8'), 'SHA256')
+    m = hmac.new(bytearray(salt, "utf-8"), bytearray(password, "utf-8"), "SHA256")
     return m.hexdigest()
 
 
 def main():
-    parser = ArgumentParser(
-        description='Create login credentials for a JSON-RPC user')
-    parser.add_argument('username', help='the username for authentication')
+    parser = ArgumentParser(description="Create login credentials for a JSON-RPC user")
+    parser.add_argument("username", help="the username for authentication")
     parser.add_argument(
-        'password', help='leave empty to generate a random password or specify "-" to prompt for password', nargs='?')
+        "password",
+        help=(
+            'leave empty to generate a random password or specify "-" to prompt for'
+            " password"
+        ),
+        nargs="?",
+    )
     args = parser.parse_args()
 
     if not args.password:
         args.password = generate_password()
-    elif args.password == '-':
+    elif args.password == "-":
         args.password = getpass()
 
     # Create 16 byte hex salt
     salt = generate_salt(16)
     password_hmac = password_to_hmac(salt, args.password)
 
-    print('String to be appended to bitcoin.conf:')
-    print(f'rpcauth={args.username}:{salt}${password_hmac}')
-    print(f'Your password:\n{args.password}')
+    print("String to be appended to bitcoin.conf:")
+    print(f"rpcauth={args.username}:{salt}${password_hmac}")
+    print(f"Your password:\n{args.password}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

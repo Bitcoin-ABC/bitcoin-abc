@@ -16,21 +16,39 @@ import sys
 FALSE_POSITIVES = [
     ("src/dbwrapper.cpp", "vsnprintf(p, limit - p, format, backup_ap)"),
     ("src/index/base.cpp", "FatalError(const char *fmt, const Args &...args)"),
-    ("src/netbase.cpp", "LogConnectFailure(bool manual_connection, const char *fmt, const Args &...args)"),
-    ("src/util/system.cpp",
-     "strprintf(_(COPYRIGHT_HOLDERS).translated, COPYRIGHT_HOLDERS_SUBSTITUTION)"),
-    ("src/validationinterface.cpp",
-     "LogPrint(BCLog::VALIDATION, fmt \"\\n\", __VA_ARGS__)"),
+    (
+        "src/netbase.cpp",
+        (
+            "LogConnectFailure(bool manual_connection, const char *fmt, const Args"
+            " &...args)"
+        ),
+    ),
+    (
+        "src/util/system.cpp",
+        "strprintf(_(COPYRIGHT_HOLDERS).translated, COPYRIGHT_HOLDERS_SUBSTITUTION)",
+    ),
+    (
+        "src/validationinterface.cpp",
+        'LogPrint(BCLog::VALIDATION, fmt "\\n", __VA_ARGS__)',
+    ),
     ("src/tinyformat.h", "printf(const char *fmt, const Args &...args)"),
     ("src/tinyformat.h", "printf(const char *fmt, TINYFORMAT_VARARGS(n))"),
-    ("src/wallet/wallet.h",
-     "LogPrintf((\"%s \" + fmt).c_str(), GetDisplayName(), parameters...)"),
-    ("src/wallet/scriptpubkeyman.h",
-     "WalletLogPrintf(std::string fmt, Params... parameters)"),
-    ("src/wallet/scriptpubkeyman.h",
-     "LogPrintf((\"%s \" + fmt).c_str(), m_storage.GetDisplayName(), parameters...)"),
-    ("src/wallet/scriptpubkeyman.h",
-     "WalletLogPrintf(const std::string& fmt, const Params&... parameters)"),
+    (
+        "src/wallet/wallet.h",
+        'LogPrintf(("%s " + fmt).c_str(), GetDisplayName(), parameters...)',
+    ),
+    (
+        "src/wallet/scriptpubkeyman.h",
+        "WalletLogPrintf(std::string fmt, Params... parameters)",
+    ),
+    (
+        "src/wallet/scriptpubkeyman.h",
+        'LogPrintf(("%s " + fmt).c_str(), m_storage.GetDisplayName(), parameters...)',
+    ),
+    (
+        "src/wallet/scriptpubkeyman.h",
+        "WalletLogPrintf(const std::string& fmt, const Params&... parameters)",
+    ),
 ]
 
 FUNCTION_NAMES_AND_NUMBER_OF_LEADING_ARGUMENTS = [
@@ -66,13 +84,19 @@ def parse_function_calls(function_name, source_code):
     >>> len(parse_function_calls("foo", "#define FOO foo();"))
     0
     """
-    assert isinstance(function_name, str) and isinstance(
-        source_code, str) and function_name
-    lines = [re.sub("// .*", " ", line).strip()
-             for line in source_code.split("\n")
-             if not line.strip().startswith("#")]
+    assert (
+        isinstance(function_name, str)
+        and isinstance(source_code, str)
+        and function_name
+    )
+    lines = [
+        re.sub("// .*", " ", line).strip()
+        for line in source_code.split("\n")
+        if not line.strip().startswith("#")
+    ]
     return re.findall(
-        r"[^a-zA-Z_](?=({}\(.*).*)".format(function_name), f" {' '.join(lines)}")
+        r"[^a-zA-Z_](?=({}\(.*).*)".format(function_name), f" {' '.join(lines)}"
+    )
 
 
 def normalize(s):
@@ -93,7 +117,7 @@ def normalize(s):
 ESCAPE_MAP = {
     r"\n": "[escaped-newline]",
     r"\t": "[escaped-tab]",
-    r'\"': "[escaped-quote]",
+    r"\"": "[escaped-quote]",
 }
 
 
@@ -180,20 +204,23 @@ def parse_function_call_and_arguments(function_name, function_call):
     >>> parse_function_call_and_arguments("strprintf", 'strprintf("%s (%d)", foo>foo<1,2>(1,2),err)');
     ['strprintf(', '"%s (%d)",', ' foo>foo<1,2>(1,2),', 'err', ')']
     """
-    assert isinstance(function_name, str) and isinstance(
-        function_call, str) and function_name
+    assert (
+        isinstance(function_name, str)
+        and isinstance(function_call, str)
+        and function_name
+    )
     remaining = normalize(escape(function_call))
     expected_function_call = f"{function_name}("
     assert remaining.startswith(expected_function_call)
     parts = [expected_function_call]
-    remaining = remaining[len(expected_function_call):]
+    remaining = remaining[len(expected_function_call) :]
     open_parentheses = 1
     open_template_arguments = 0
     in_string = False
     parts.append("")
     for i, char in enumerate(remaining):
         parts.append(parts.pop() + char)
-        if char == "\"":
+        if char == '"':
             in_string = not in_string
             continue
         if in_string:
@@ -211,12 +238,19 @@ def parse_function_call_and_arguments(function_name, function_call):
             break
         prev_char = remaining[i - 1] if i - 1 >= 0 else None
         next_char = remaining[i + 1] if i + 1 <= len(remaining) - 1 else None
-        if (char == "<" and next_char not in [" ", "<", "="]
-                and prev_char not in [" ", "<"]):
+        if (
+            char == "<"
+            and next_char not in [" ", "<", "="]
+            and prev_char not in [" ", "<"]
+        ):
             open_template_arguments += 1
             continue
-        if (char == ">" and next_char not in [" ", ">", "="] and
-                prev_char not in [" ", ">"] and open_template_arguments > 0):
+        if (
+            char == ">"
+            and next_char not in [" ", ">", "="]
+            and prev_char not in [" ", ">"]
+            and open_template_arguments > 0
+        ):
             open_template_arguments -= 1
         if open_template_arguments > 0:
             continue
@@ -249,7 +283,7 @@ def parse_string_content(argument):
     string_content = ""
     in_string = False
     for char in normalize(escape(argument)):
-        if char == "\"":
+        if char == '"':
             in_string = not in_string
         elif in_string:
             string_content += char
@@ -293,7 +327,7 @@ def count_format_specifiers(format_string):
 
 
 def main(args_in):
-    """ Return a string output with information on string format errors
+    """Return a string output with information on string format errors
 
     >>> main(["test/lint/lint-format-strings-tests.txt"])
     test/lint/lint-format-strings-tests.txt: Expected 1 argument(s) after format string but found 2 argument(s): printf("%d", 1, 2)
@@ -310,34 +344,54 @@ def main(args_in):
     test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 1 argument(s) after format string but found 0 argument(s): snprintf(skip1, skip2, "%d")
     test/lint/lint-format-strings-tests-skip-arguments.txt: Could not parse function call string "snprintf(...)": snprintf(skip1, "%d")
     """
-    parser = argparse.ArgumentParser(description="This program checks that the number of arguments passed "
-                                     "to a variadic format string function matches the number of format "
-                                     "specifiers in the format string.")
-    parser.add_argument("file", type=argparse.FileType(
-        "r", encoding="utf-8"), nargs="*", help="C++ source code file (e.g. foo.cpp)")
+    parser = argparse.ArgumentParser(
+        description=(
+            "This program checks that the number of arguments passed "
+            "to a variadic format string function matches the number of format "
+            "specifiers in the format string."
+        )
+    )
+    parser.add_argument(
+        "file",
+        type=argparse.FileType("r", encoding="utf-8"),
+        nargs="*",
+        help="C++ source code file (e.g. foo.cpp)",
+    )
     args = parser.parse_args(args_in)
 
     for f in args.file:
         file_content = f.read()
-        for (function_name,
-             skip_arguments) in FUNCTION_NAMES_AND_NUMBER_OF_LEADING_ARGUMENTS:
-            for function_call_str in parse_function_calls(
-                    function_name, file_content):
+        for (
+            function_name,
+            skip_arguments,
+        ) in FUNCTION_NAMES_AND_NUMBER_OF_LEADING_ARGUMENTS:
+            for function_call_str in parse_function_calls(function_name, file_content):
                 parts = parse_function_call_and_arguments(
-                    function_name, function_call_str)
+                    function_name, function_call_str
+                )
                 relevant_function_call_str = unescape("".join(parts))[:512]
                 if (f.name, relevant_function_call_str) in FALSE_POSITIVES:
                     continue
                 if len(parts) < 3 + skip_arguments:
-                    print("{}: Could not parse function call string \"{}(...)\": {}".format(
-                        f.name, function_name, relevant_function_call_str))
+                    print(
+                        '{}: Could not parse function call string "{}(...)": {}'.format(
+                            f.name, function_name, relevant_function_call_str
+                        )
+                    )
                     continue
                 argument_count = len(parts) - 3 - skip_arguments
                 format_str = parse_string_content(parts[1 + skip_arguments])
                 format_specifier_count = count_format_specifiers(format_str)
                 if format_specifier_count != argument_count:
-                    print("{}: Expected {} argument(s) after format string but found {} argument(s): {}".format(
-                        f.name, format_specifier_count, argument_count, relevant_function_call_str))
+                    print(
+                        "{}: Expected {} argument(s) after format string but found {}"
+                        " argument(s): {}".format(
+                            f.name,
+                            format_specifier_count,
+                            argument_count,
+                            relevant_function_call_str,
+                        )
+                    )
                     continue
 
 

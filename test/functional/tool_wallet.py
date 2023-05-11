@@ -129,8 +129,7 @@ class ToolWalletTest(BitcoinTestFramework):
         # shasum_before = self.wallet_shasum()
         timestamp_before = self.wallet_timestamp()
         self.log.debug(f"Wallet file timestamp before calling info: {timestamp_before}")
-        out = textwrap.dedent(
-            """\
+        out = textwrap.dedent("""\
             Wallet info
             ===========
             Encrypted: no
@@ -138,8 +137,7 @@ class ToolWalletTest(BitcoinTestFramework):
             Keypool Size: 2
             Transactions: 0
             Address Book: 1
-        """
-        )
+        """)
         self.assert_tool_output(out, f"-wallet={self.default_wallet_name}", "info")
         timestamp_after = self.wallet_timestamp()
         self.log.debug(f"Wallet file timestamp after calling info: {timestamp_after}")
@@ -173,8 +171,7 @@ class ToolWalletTest(BitcoinTestFramework):
         shasum_before = self.wallet_shasum()
         timestamp_before = self.wallet_timestamp()
         self.log.debug(f"Wallet file timestamp before calling info: {timestamp_before}")
-        out = textwrap.dedent(
-            """\
+        out = textwrap.dedent("""\
             Wallet info
             ===========
             Encrypted: no
@@ -182,8 +179,7 @@ class ToolWalletTest(BitcoinTestFramework):
             Keypool Size: 2
             Transactions: 1
             Address Book: 1
-        """
-        )
+        """)
         self.assert_tool_output(out, f"-wallet={self.default_wallet_name}", "info")
         shasum_after = self.wallet_shasum()
         timestamp_after = self.wallet_timestamp()
@@ -205,8 +201,7 @@ class ToolWalletTest(BitcoinTestFramework):
         self.log.debug(
             f"Wallet file timestamp before calling create: {timestamp_before}"
         )
-        out = textwrap.dedent(
-            """\
+        out = textwrap.dedent("""\
             Topping up keypool...
             Wallet info
             ===========
@@ -215,8 +210,7 @@ class ToolWalletTest(BitcoinTestFramework):
             Keypool Size: 2000
             Transactions: 0
             Address Book: 0
-        """
-        )
+        """)
         self.assert_tool_output(out, "-wallet=foo", "create")
         shasum_after = self.wallet_shasum()
         timestamp_after = self.wallet_timestamp()

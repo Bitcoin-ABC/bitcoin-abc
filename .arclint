@@ -19,11 +19,10 @@
         "autopep8": {
             "type": "autopep8",
             "version": ">=1.3.4",
-            "include": "(\\.py$)",
+            "include": "(^contrib/.*\\.py$)",
             "exclude": [
                 "(^contrib/gitian-builder/)",
-                "(^contrib/apple-sdk-tools/)",
-                "(^test/functional/)"
+                "(^contrib/apple-sdk-tools/)"
             ],
             "flags": [
                 "--aggressive",
@@ -34,8 +33,11 @@
         "black": {
             "type": "black",
             "version": ">=23.0.0",
-            "include": [
-                "(^test/functional/)"
+            "include": "(\\.py$)",
+            "exclude": [
+                "(^contrib/gitian-builder/)",
+                "(^contrib/apple-sdk-tools/)",
+                "(^contrib/)"
             ],
             "flags": [
                 "--preview"

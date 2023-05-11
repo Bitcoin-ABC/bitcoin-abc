@@ -4,21 +4,21 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-'''
+"""
 This checks if all command line args are documented.
 Return value is 0 to indicate no error.
 
 Author: @MarcoFalke
-'''
+"""
 
 import glob
 import re
 from pprint import PrettyPrinter
 from subprocess import check_output
 
-TOP_LEVEL = 'git rev-parse --show-toplevel'
-FOLDERS_SRC = ['/src/**/', '/chronik/**/']
-FOLDERS_TEST = ['/src/**/test/', '/chronik/test/**/']
+TOP_LEVEL = "git rev-parse --show-toplevel"
+FOLDERS_SRC = ["/src/**/", "/chronik/**/"]
+FOLDERS_TEST = ["/src/**/test/", "/chronik/test/**/"]
 
 EXTENSIONS = ["*.c", "*.h", "*.cpp", "*.cc", "*.hpp"]
 REGEX_ARG = r'(?:ForceSet|SoftSet|Get|Is)(?:Bool|Int)?Args?(?:Set)?\(\s*"(-[^"]+)"'
@@ -26,61 +26,61 @@ REGEX_DOC = r'AddArg\(\s*"(-[^"=]+?)(?:=|")'
 
 # list false positive unknows arguments
 SET_FALSE_POSITIVE_UNKNOWNS = {
-    '-includeconf',
-    '-regtest',
-    '-testnet',
-    '-zmqpubhashblock',
-    '-zmqpubhashtx',
-    '-zmqpubrawblock',
-    '-zmqpubrawtx',
-    '-zmqpubhashblockhwm',
-    '-zmqpubhashtxhwm',
-    '-zmqpubrawblockhwm',
-    '-zmqpubrawtxhwm',
-    '-zmqpubsequence',
-    '-zmqpubsequencehwm',
+    "-includeconf",
+    "-regtest",
+    "-testnet",
+    "-zmqpubhashblock",
+    "-zmqpubhashtx",
+    "-zmqpubrawblock",
+    "-zmqpubrawtx",
+    "-zmqpubhashblockhwm",
+    "-zmqpubhashtxhwm",
+    "-zmqpubrawblockhwm",
+    "-zmqpubrawtxhwm",
+    "-zmqpubsequence",
+    "-zmqpubsequencehwm",
 }
 
 # list false positive undocumented arguments
 SET_FALSE_POSITIVE_UNDOCUMENTED = {
-    '-help',
-    '-h',
-    '-avalanchepreconsensus',
-    '-dbcrashratio',
-    '-enableminerfund',
-    '-forcecompactdb',
-    '-maxaddrtosend',
-    '-parkdeepreorg',
-    '-automaticunparking',
+    "-help",
+    "-h",
+    "-avalanchepreconsensus",
+    "-dbcrashratio",
+    "-enableminerfund",
+    "-forcecompactdb",
+    "-maxaddrtosend",
+    "-parkdeepreorg",
+    "-automaticunparking",
     # Removed arguments that now just print a helpful error message
-    '-zapwallettxes',
-    '-replayprotectionactivationtime',
+    "-zapwallettxes",
+    "-replayprotectionactivationtime",
     # Remove after May 2023 upgrade
-    '-wellingtonactivationtime',
+    "-wellingtonactivationtime",
 }
 
 
 def main():
-    top_level = check_output(TOP_LEVEL, shell=True,
-                             universal_newlines=True, encoding='utf8').strip()
+    top_level = check_output(
+        TOP_LEVEL, shell=True, universal_newlines=True, encoding="utf8"
+    ).strip()
     source_files = []
     test_files = []
 
     for extension in EXTENSIONS:
         for folder_src in FOLDERS_SRC:
-            source_files += glob.glob(top_level +
-                                      folder_src + extension, recursive=True)
+            source_files += glob.glob(
+                top_level + folder_src + extension, recursive=True
+            )
         for folder_test in FOLDERS_TEST:
-            test_files += glob.glob(top_level +
-                                    folder_test +
-                                    extension, recursive=True)
+            test_files += glob.glob(top_level + folder_test + extension, recursive=True)
 
     files = set(source_files) - set(test_files)
 
     args_used = set()
     args_docd = set()
     for file in files:
-        with open(file, 'r', encoding='utf-8') as f:
+        with open(file, "r", encoding="utf-8") as f:
             content = f.read()
             args_used |= set(re.findall(re.compile(REGEX_ARG), content))
             args_docd |= set(re.findall(re.compile(REGEX_DOC), content))

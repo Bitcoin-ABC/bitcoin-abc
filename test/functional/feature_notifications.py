@@ -64,9 +64,11 @@ class NotificationsTest(BitcoinTestFramework):
         blocks = self.generatetoaddress(
             self.nodes[1],
             block_count,
-            self.nodes[1].getnewaddress()
-            if self.is_wallet_compiled()
-            else ADDRESS_ECREG_UNSPENDABLE,
+            (
+                self.nodes[1].getnewaddress()
+                if self.is_wallet_compiled()
+                else ADDRESS_ECREG_UNSPENDABLE
+            ),
         )
 
         # wait at most 10 seconds for expected number of files before reading
