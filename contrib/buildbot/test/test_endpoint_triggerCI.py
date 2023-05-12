@@ -29,40 +29,48 @@ class EndpointTriggerCITestCase(ABCBotFixture):
         self.phab.phid = self.user_PHID
 
         # The current user is an ABC member
-        self.phab.project.search.return_value = test.mocks.phabricator.Result([{
-            "id": 1,
-            "type": "PROJ",
-            "phid": BITCOIN_ABC_PROJECT_PHID,
-            "attachments": {
-                "members": {
-                    "members": [
-                        {
-                            "phid": self.user_PHID
-                        },
-                    ]
+        self.phab.project.search.return_value = test.mocks.phabricator.Result(
+            [
+                {
+                    "id": 1,
+                    "type": "PROJ",
+                    "phid": BITCOIN_ABC_PROJECT_PHID,
+                    "attachments": {
+                        "members": {
+                            "members": [
+                                {"phid": self.user_PHID},
+                            ]
+                        }
+                    },
                 }
-            }
-        }])
+            ]
+        )
 
-        self.phab.user.search.return_value = test.mocks.phabricator.Result([
-            {
-                "id": 1,
-                "type": "USER",
-                "phid": "PHID-AUTHORIZED-USER",
-                "fields": {
-                    "roles": [
-                        "verified",
-                        "approved",
-                        "activated",
-                    ],
+        self.phab.user.search.return_value = test.mocks.phabricator.Result(
+            [
+                {
+                    "id": 1,
+                    "type": "USER",
+                    "phid": "PHID-AUTHORIZED-USER",
+                    "fields": {
+                        "roles": [
+                            "verified",
+                            "approved",
+                            "activated",
+                        ],
+                    },
                 },
-            },
-        ])
+            ]
+        )
 
         # Phabricator returns the default diff ID
-        self.phab.differential.diff.search.return_value = test.mocks.phabricator.Result([{
-            "id": self.diff_id,
-        }])
+        self.phab.differential.diff.search.return_value = test.mocks.phabricator.Result(
+            [
+                {
+                    "id": self.diff_id,
+                }
+            ]
+        )
 
         config = {
             "builds": {
@@ -82,8 +90,7 @@ class EndpointTriggerCITestCase(ABCBotFixture):
             },
         }
         self.phab.get_file_content_from_master = mock.Mock()
-        self.phab.get_file_content_from_master.return_value = json.dumps(
-            config)
+        self.phab.get_file_content_from_master.return_value = json.dumps(config)
 
     # Transaction webhook on diff update
     def call_endpoint(self):
@@ -92,24 +99,18 @@ class EndpointTriggerCITestCase(ABCBotFixture):
                 "phid": self.revision_PHID,
                 "type": "DREV",
             },
-            "transactions": [
-                {
-                    "phid": self.transaction_PHID
-                }
-            ]
+            "transactions": [{"phid": self.transaction_PHID}],
         }
 
         response = self.post_json_with_hmac(
-            '/triggerCI',
-            self.headers,
-            webhook_transaction
+            "/triggerCI", self.headers, webhook_transaction
         )
 
         self.phab.transaction.search.assert_called_with(
             objectIdentifier=self.revision_PHID,
             constraints={
                 "phids": [self.transaction_PHID],
-            }
+            },
         )
 
         return response
@@ -127,103 +128,109 @@ class EndpointTriggerCITestCase(ABCBotFixture):
                 "dateCreated": i,
                 "dateModified": i,
                 "removed": False,
-                "content": {
-                    "raw": comment
-                }
+                "content": {"raw": comment},
             }
             for i, comment in enumerate(comments)
         ]
-        self.phab.transaction.search.return_value = test.mocks.phabricator.Result([{
-            "id": 42,
-            "phid": self.transaction_PHID,
-            "type": "comment",
-            "authorPHID": "PHID-USER-foobar",
-            "objectPHID": self.revision_PHID,
-            "dateCreated": 0,
-            "dateModified": 0,
-            "groupID": "abcdef",
-            "comments": comments_data,
-            "fields": {}
-        }])
+        self.phab.transaction.search.return_value = test.mocks.phabricator.Result(
+            [
+                {
+                    "id": 42,
+                    "phid": self.transaction_PHID,
+                    "type": "comment",
+                    "authorPHID": "PHID-USER-foobar",
+                    "objectPHID": self.revision_PHID,
+                    "dateCreated": 0,
+                    "dateModified": 0,
+                    "groupID": "abcdef",
+                    "comments": comments_data,
+                    "fields": {},
+                }
+            ]
+        )
 
     def test_triggerCI_invalid_json(self):
         # Not a json content
         response = self.post_data_with_hmac(
-            '/triggerCI',
-            self.headers,
-            "not: a valid json"
+            "/triggerCI", self.headers, "not: a valid json"
         )
         self.assertEqual(response.status_code, 415)
 
         # Missing object
         response = self.post_json_with_hmac(
-            '/triggerCI',
+            "/triggerCI",
             self.headers,
             {
-                "transactions": [{
-                    "phid": self.revision_PHID,
-                }]
-            }
+                "transactions": [
+                    {
+                        "phid": self.revision_PHID,
+                    }
+                ]
+            },
         )
         self.assertEqual(response.status_code, 400)
 
         # Missing transaction
         response = self.post_json_with_hmac(
-            '/triggerCI',
-            self.headers,
-            {"object": "dummy"}
+            "/triggerCI", self.headers, {"object": "dummy"}
         )
         self.assertEqual(response.status_code, 400)
 
         # Missing object type
         response = self.post_json_with_hmac(
-            '/triggerCI',
+            "/triggerCI",
             self.headers,
             {
                 "object": {
                     "phid": self.revision_PHID,
                 },
-                "transactions": [{
-                    "phid": self.revision_PHID,
-                }],
-            }
+                "transactions": [
+                    {
+                        "phid": self.revision_PHID,
+                    }
+                ],
+            },
         )
         self.assertEqual(response.status_code, 400)
 
         # Missing object phid
         response = self.post_json_with_hmac(
-            '/triggerCI',
+            "/triggerCI",
             self.headers,
             {
                 "object": {
                     "type": "DREV",
                 },
-                "transactions": [{
-                    "phid": self.revision_PHID,
-                }]
-            }
+                "transactions": [
+                    {
+                        "phid": self.revision_PHID,
+                    }
+                ],
+            },
         )
         self.assertEqual(response.status_code, 400)
 
         # Wrong object type
         response = self.post_json_with_hmac(
-            '/triggerCI',
+            "/triggerCI",
             self.headers,
             {
                 "object": {
                     "phid": "PHID-TASK-123456",
                     "type": "TASK",
                 },
-                "transactions": [{
-                    "phid": self.revision_PHID,
-                }]
-            }
+                "transactions": [
+                    {
+                        "phid": self.revision_PHID,
+                    }
+                ],
+            },
         )
         self.assertEqual(response.status_code, 200)
 
         # Empty transactions
         response = self.post_json_with_hmac(
-            '/triggerCI',
+            "/triggerCI",
             self.headers,
             {
                 "object": {
@@ -231,7 +238,7 @@ class EndpointTriggerCITestCase(ABCBotFixture):
                     "type": "TASK",
                 },
                 "transactions": [],
-            }
+            },
         )
         self.assertEqual(response.status_code, 200)
 
@@ -250,28 +257,34 @@ class EndpointTriggerCITestCase(ABCBotFixture):
                 self.assertEqual(response.status_code, 200)
 
         # Any user, 1 comment not targeting the bot
-        test_no_build_user_independent([
-            "This is a benign comment",
-        ])
+        test_no_build_user_independent(
+            [
+                "This is a benign comment",
+            ]
+        )
 
         # Any user, 3 comments not targeting the bot
-        test_no_build_user_independent([
-            "Useless comment 1",
-            "Useless @bot comment 2",
-            "Useless comment @bot 3",
-        ])
+        test_no_build_user_independent(
+            [
+                "Useless comment 1",
+                "Useless @bot comment 2",
+                "Useless comment @bot 3",
+            ]
+        )
 
         # Any user, 1 comment targeting the bot but no build
-        test_no_build_user_independent([
-            "@bot",
-        ])
+        test_no_build_user_independent(
+            [
+                "@bot",
+            ]
+        )
 
         # Unauthorized user, 1 comment targeting the bot with 1 build
         self.set_transaction_return_value(
             [
                 "@bot build-1",
             ],
-            "PHID-USER-nonabc"
+            "PHID-USER-nonabc",
         )
         response = self.call_endpoint()
         self.teamcity.session.send.assert_not_called()
@@ -284,7 +297,7 @@ class EndpointTriggerCITestCase(ABCBotFixture):
                 "@bot build-21 build-22 build-23",
                 "@bot build-31 build-32 build-33",
             ],
-            "PHID-USER-nonabc"
+            "PHID-USER-nonabc",
         )
         response = self.call_endpoint()
         self.teamcity.session.send.assert_not_called()
@@ -298,7 +311,7 @@ class EndpointTriggerCITestCase(ABCBotFixture):
                 "@bot build-4 build-11 build-12 build-13 build-2 build-3",
                 "@bot build-11 build-12 build-13 build-2 build-3 build-4",
             ],
-            "PHID-AUTHORIZED-USER"
+            "PHID-AUTHORIZED-USER",
         )
         response = self.call_endpoint()
         self.teamcity.session.send.assert_not_called()
@@ -311,7 +324,7 @@ class EndpointTriggerCITestCase(ABCBotFixture):
                 "@bot build-docker build-11 build-12 build-13 build-2 build-3",
                 "@bot build-11 build-12 build-13 build-2 build-3 build-docker",
             ],
-            "PHID-AUTHORIZED-USER"
+            "PHID-AUTHORIZED-USER",
         )
         response = self.call_endpoint()
         self.teamcity.session.send.assert_not_called()
@@ -326,15 +339,16 @@ class EndpointTriggerCITestCase(ABCBotFixture):
                 call(
                     "BitcoinABC_BitcoinAbcStaging",
                     f"refs/tags/phabricator/diff/{self.diff_id}",
-                    properties=[{
-                        'name': 'env.ABC_BUILD_NAME',
-                        'value': build_id,
-                    }]
+                    properties=[
+                        {
+                            "name": "env.ABC_BUILD_NAME",
+                            "value": build_id,
+                        }
+                    ],
                 )
                 for build_id in queued_builds
             ]
-            self.teamcity.trigger_build.assert_has_calls(
-                expected_calls, any_order=True)
+            self.teamcity.trigger_build.assert_has_calls(expected_calls, any_order=True)
             self.assertEqual(response.status_code, 200)
 
         # ABC user, 1 comment targeting the bot with 1 build
@@ -344,7 +358,7 @@ class EndpointTriggerCITestCase(ABCBotFixture):
             ],
             [
                 "build-1",
-            ]
+            ],
         )
 
         # ABC user, 1 comment targeting the bot with 3 builds
@@ -356,7 +370,7 @@ class EndpointTriggerCITestCase(ABCBotFixture):
                 "build-1",
                 "build-2",
                 "build-3",
-            ]
+            ],
         )
 
         # ABC user, 3 comments targeting the bot with 3 builds each
@@ -367,10 +381,16 @@ class EndpointTriggerCITestCase(ABCBotFixture):
                 "@bot build-31 build-32 build-33",
             ],
             [
-                "build-11", "build-12", "build-13",
-                "build-21", "build-22", "build-23",
-                "build-31", "build-32", "build-33",
-            ]
+                "build-11",
+                "build-12",
+                "build-13",
+                "build-21",
+                "build-22",
+                "build-23",
+                "build-31",
+                "build-32",
+                "build-33",
+            ],
         )
 
         # ABC user, 1 comment targeting the bot with duplicated builds
@@ -382,7 +402,7 @@ class EndpointTriggerCITestCase(ABCBotFixture):
                 "build-1",
                 "build-2",
                 "build-3",
-            ]
+            ],
         )
 
         # ABC user, some comments targeting the bot with 3 builds involving docker
@@ -391,32 +411,47 @@ class EndpointTriggerCITestCase(ABCBotFixture):
                 "@bot build-docker build-1 build-2 build-3",
             ],
             [
-                "build-docker", "build-1", "build-2", "build-3",
-            ]
+                "build-docker",
+                "build-1",
+                "build-2",
+                "build-3",
+            ],
         )
         assert_teamcity_queued_builds(
             [
                 "@bot build-1 build-2 build-docker build-3",
             ],
             [
-                "build-1", "build-2", "build-docker", "build-3",
-            ]
+                "build-1",
+                "build-2",
+                "build-docker",
+                "build-3",
+            ],
         )
         assert_teamcity_queued_builds(
             [
                 "@bot build-1 build-2 build-3 build-docker",
             ],
             [
-                "build-1", "build-2", "build-3", "build-docker",
-            ]
+                "build-1",
+                "build-2",
+                "build-3",
+                "build-docker",
+            ],
         )
         assert_teamcity_queued_builds(
             [
-                "@bot build-docker build-1 build-docker build-2 build-docker build-3 build-docker",
+                (
+                    "@bot build-docker build-1 build-docker build-2 build-docker"
+                    " build-3 build-docker"
+                ),
             ],
             [
-                "build-docker", "build-1", "build-2", "build-3",
-            ]
+                "build-docker",
+                "build-1",
+                "build-2",
+                "build-3",
+            ],
         )
 
     def test_triggerCI_check_user_roles(self):
@@ -438,24 +473,28 @@ class EndpointTriggerCITestCase(ABCBotFixture):
                 self.teamcity.trigger_build.assert_called_once_with(
                     "BitcoinABC_BitcoinAbcStaging",
                     f"refs/tags/phabricator/diff/{self.diff_id}",
-                    properties=[{
-                        'name': 'env.ABC_BUILD_NAME',
-                        'value': "build-1",
-                    }]
+                    properties=[
+                        {
+                            "name": "env.ABC_BUILD_NAME",
+                            "value": "build-1",
+                        }
+                    ],
                 )
             self.assertEqual(response.status_code, 200)
 
         def set_user_roles(roles):
-            self.phab.user.search.return_value = test.mocks.phabricator.Result([
-                {
-                    "id": 1,
-                    "type": "USER",
-                    "phid": user_PHID,
-                    "fields": {
-                        "roles": roles,
+            self.phab.user.search.return_value = test.mocks.phabricator.Result(
+                [
+                    {
+                        "id": 1,
+                        "type": "USER",
+                        "phid": user_PHID,
+                        "fields": {
+                            "roles": roles,
+                        },
                     },
-                },
-            ])
+                ]
+            )
 
         roles = [
             "verified",
@@ -532,5 +571,5 @@ class EndpointTriggerCITestCase(ABCBotFixture):
             self.phab.token.give.reset_mock()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

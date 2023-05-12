@@ -23,20 +23,19 @@ conduit_token = os.getenv("TEAMCITY_CONDUIT_TOKEN", None)
 db_file_no_ext = os.getenv("DATABASE_FILE_NO_EXT", None)
 tc_user = os.getenv("TEAMCITY_USERNAME", None)
 tc_pass = os.getenv("TEAMCITY_PASSWORD", None)
-phabricatorUrl = os.getenv(
-    "PHABRICATOR_URL", "https://reviews.bitcoinabc.org/api/")
-slack_token = os.getenv('SLACK_BOT_TOKEN', None)
+phabricatorUrl = os.getenv("PHABRICATOR_URL", "https://reviews.bitcoinabc.org/api/")
+slack_token = os.getenv("SLACK_BOT_TOKEN", None)
 
-tc = TeamCity('https://build.bitcoinabc.org', tc_user, tc_pass)
+tc = TeamCity("https://build.bitcoinabc.org", tc_user, tc_pass)
 phab = PhabWrapper(host=phabricatorUrl, token=conduit_token)
 phab.update_interfaces()
 slack_channels = {
     #  #dev
-    'dev': 'C62NSDC6N',
+    "dev": "C62NSDC6N",
     #  #abcbot-testing
-    'test': 'CQMSVCY66',
+    "test": "CQMSVCY66",
     #  #infra-support
-    'infra': 'G016CFAV8KS',
+    "infra": "G016CFAV8KS",
 }
 slackbot = SlackBot(slack.WebClient, slack_token, slack_channels)
 cirrus = Cirrus()
@@ -44,24 +43,29 @@ cirrus = Cirrus()
 
 def main(args):
     parser = argparse.ArgumentParser(
-        description='Continuous integration build bot service.')
+        description="Continuous integration build bot service."
+    )
     parser.add_argument(
-        '-p', '--port', help='port for server to start', type=int, default=8080)
+        "-p", "--port", help="port for server to start", type=int, default=8080
+    )
     parser.add_argument(
-        '-l', '--log-file', help='log file to dump requests payload', type=str, default='log.log')
+        "-l",
+        "--log-file",
+        help="log file to dump requests payload",
+        type=str,
+        default="log.log",
+    )
     args = parser.parse_args()
     port = args.port
     log_file = args.log_file
 
     app = server.create_server(
-        tc,
-        phab,
-        slackbot,
-        cirrus,
-        db_file_no_ext=db_file_no_ext)
+        tc, phab, slackbot, cirrus, db_file_no_ext=db_file_no_ext
+    )
 
     formater = logging.Formatter(
-        '[%(asctime)s] %(levelname)s in %(module)s: %(message)s')
+        "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
+    )
     fileHandler = RotatingFileHandler(log_file, maxBytes=10000, backupCount=1)
     fileHandler.setFormatter(formater)
     app.logger.addHandler(fileHandler)

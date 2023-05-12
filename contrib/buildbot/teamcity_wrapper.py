@@ -20,34 +20,39 @@ class TeamcityRequestException(Exception):
 class BuildInfo(UserDict):
     @staticmethod
     def fromSingleBuildResponse(json_content):
-        return BuildInfo(json_content['build'][0])
+        return BuildInfo(json_content["build"][0])
 
     def getCommits(self):
-        return [change['version'] for change in self.data['changes']
-                ['change']] if 'changes' in (self.data or {}) else None
+        return (
+            [change["version"] for change in self.data["changes"]["change"]]
+            if "changes" in (self.data or {})
+            else None
+        )
 
     def getProperties(self):
         propsList = []
-        if 'properties' in (self.data or {}):
-            propsList = self.data['properties']['property']
+        if "properties" in (self.data or {}):
+            propsList = self.data["properties"]["property"]
 
         # Transform list of properties [{'name': name, 'value': value}, ...] into a
         # dict {name: value, ...} since we only care about the property values.
         properties = {}
         for prop in propsList:
-            properties[prop['name']] = prop['value']
+            properties[prop["name"]] = prop["value"]
 
         return properties if properties else None
 
 
-class TeamCity():
+class TeamCity:
     def __init__(self, base_url, username, password):
         self.session = requests.Session()
         self.base_url = base_url
         self.auth = (username, password)
         self.logger = None
         self.mockTime = None
-        with open(os.path.join(os.path.dirname(__file__), 'ignore-logs.txt'), 'rb') as ignoreList:
+        with open(
+            os.path.join(os.path.dirname(__file__), "ignore-logs.txt"), "rb"
+        ) as ignoreList:
             self.ignoreList = ignoreList.readlines()
 
     def set_logger(self, logger):
@@ -74,11 +79,12 @@ class TeamCity():
             if self.logger:
                 self.logger.info(
                     "Request:\n{}\n\nResponse:\n{}".format(
-                        pprint(
-                            vars(request)), pprint(
-                            vars(response))))
+                        pprint(vars(request)), pprint(vars(response))
+                    )
+                )
             raise TeamcityRequestException(
-                f"Unexpected Teamcity API error! Status code: {response.status_code}")
+                f"Unexpected Teamcity API error! Status code: {response.status_code}"
+            )
 
         content = response.content
         if expectJson:
@@ -97,21 +103,21 @@ class TeamCity():
             properties = []
 
         if PHID is not None:
-            properties.append({
-                'name': 'env.harborMasterTargetPHID',
-                'value': PHID,
-            })
+            properties.append(
+                {
+                    "name": "env.harborMasterTargetPHID",
+                    "value": PHID,
+                }
+            )
 
         build = {
-            'branchName': ref,
-            'buildType': {
-                'id': buildTypeId
+            "branchName": ref,
+            "buildType": {"id": buildTypeId},
+            "properties": {
+                "property": properties,
             },
-            'properties': {
-                'property': properties,
-            }
         }
-        req = self._request('POST', endpoint, json.dumps(build))
+        req = self._request("POST", endpoint, json.dumps(build))
         return self.getResponse(req)
 
     def get_artifact(self, buildId, path):
@@ -119,17 +125,16 @@ class TeamCity():
             f"app/rest/builds/id:{buildId}/artifacts/content/{path}"
         )
 
-        req = self._request('GET', endpoint)
+        req = self._request("GET", endpoint)
         content = self.getResponse(req, expectJson=False)
 
         if not content:
             return None
 
-        return content.decode('utf-8')
+        return content.decode("utf-8")
 
     def get_coverage_summary(self, buildId):
-        return self.get_artifact(
-            buildId, "coverage.tar.gz!/coverage-summary.txt")
+        return self.get_artifact(buildId, "coverage.tar.gz!/coverage-summary.txt")
 
     def get_clean_build_log(self, buildId):
         return self.get_artifact(buildId, "artifacts.tar.gz!/build.clean.log")
@@ -151,9 +156,9 @@ class TeamCity():
             {
                 "buildId": buildId,
                 "archived": "true",
-            }
+            },
         )
-        req = self._request('GET', endpoint)
+        req = self._request("GET", endpoint)
         content = self.getResponse(req, expectJson=False)
         ret = ""
         if not content:
@@ -162,8 +167,8 @@ class TeamCity():
             z = ZipFile(io.BytesIO(content))
             for filename in z.namelist():
                 for line in z.open(filename).readlines():
-                    ret += line.decode('utf-8')
-        return ret.replace('\r\n', '\n')
+                    ret += line.decode("utf-8")
+        return ret.replace("\r\n", "\n")
 
     def getPreviewUrl(self, buildId):
         try:
@@ -179,18 +184,18 @@ class TeamCity():
             {
                 "locator": f"build:(id:{buildId})",
                 "fields": "problemOccurrence(id,details)",
-            }
+            },
         )
-        req = self._request('GET', endpoint)
+        req = self._request("GET", endpoint)
         content = self.getResponse(req)
-        if 'problemOccurrence' in (content or {}):
-            buildFailures = content['problemOccurrence']
+        if "problemOccurrence" in (content or {}):
+            buildFailures = content["problemOccurrence"]
             for failure in buildFailures:
                 # Note: Unlike test failures, build "problems" do not have
                 # a well-defined focus line in the build log. For now, we
                 # link to the footer to automatically scroll to the bottom
                 # of the log where failures tend to be.
-                failure['logUrl'] = self.build_url(
+                failure["logUrl"] = self.build_url(
                     "viewLog.html",
                     {
                         "tab": "buildLog",
@@ -199,7 +204,7 @@ class TeamCity():
                         "expand": "all",
                         "buildId": buildId,
                     },
-                    "footer"
+                    "footer",
                 )
             return buildFailures
         return []
@@ -210,12 +215,12 @@ class TeamCity():
             {
                 "locator": f"build:(id:{buildId}),status:FAILURE",
                 "fields": "testOccurrence(id,details,name)",
-            }
+            },
         )
-        req = self._request('GET', endpoint)
+        req = self._request("GET", endpoint)
         content = self.getResponse(req)
-        if 'testOccurrence' in (content or {}):
-            testFailures = content['testOccurrence']
+        if "testOccurrence" in (content or {}):
+            testFailures = content["testOccurrence"]
             for failure in testFailures:
                 params = {
                     "tab": "buildLog",
@@ -225,14 +230,11 @@ class TeamCity():
                     "buildId": buildId,
                 }
 
-                match = re.search(r'id:(\d+)', failure['id'])
+                match = re.search(r"id:(\d+)", failure["id"])
                 if match:
-                    params['_focus'] = match.group(1)
+                    params["_focus"] = match.group(1)
 
-                failure['logUrl'] = self.build_url(
-                    "viewLog.html",
-                    params
-                )
+                failure["logUrl"] = self.build_url("viewLog.html", params)
 
             return testFailures
 
@@ -240,23 +242,20 @@ class TeamCity():
 
     def getBuildChangeDetails(self, changeId):
         endpoint = self.build_url(f"app/rest/changes/{changeId}")
-        req = self._request('GET', endpoint)
+        req = self._request("GET", endpoint)
         return self.getResponse(req) or {}
 
     def getBuildChanges(self, buildId):
         endpoint = self.build_url(
             "app/rest/changes",
-            {
-                "locator": f"build:(id:{buildId})",
-                "fields": "change(id)"
-            }
+            {"locator": f"build:(id:{buildId})", "fields": "change(id)"},
         )
-        req = self._request('GET', endpoint)
+        req = self._request("GET", endpoint)
         content = self.getResponse(req)
-        if 'change' in (content or {}):
-            changes = content['change']
+        if "change" in (content or {}):
+            changes = content["change"]
             for i, change in enumerate(changes):
-                changes[i] = self.getBuildChangeDetails(change['id'])
+                changes[i] = self.getBuildChangeDetails(change["id"])
             return changes
         return []
 
@@ -268,25 +267,25 @@ class TeamCity():
                 # Note: Wildcard does not match recursively, so if you need data
                 # from a sub-field, be sure to include it in the list.
                 "fields": "build(*,changes(*),properties(*),triggered(*))",
-            }
+            },
         )
-        req = self._request('GET', endpoint)
+        req = self._request("GET", endpoint)
         content = self.getResponse(req)
-        if 'build' in (content or {}):
+        if "build" in (content or {}):
             return BuildInfo.fromSingleBuildResponse(content)
 
         return BuildInfo()
 
     def checkBuildIsAutomated(self, buildInfo):
-        trigger = buildInfo['triggered']
+        trigger = buildInfo["triggered"]
 
         # Ignore builds by non-bot users, as these builds may be triggered for
         # any reason with various unknown configs
-        return trigger['type'] != 'user' or trigger['user']['username'] == self.auth[0]
+        return trigger["type"] != "user" or trigger["user"]["username"] == self.auth[0]
 
     def checkBuildIsScheduled(self, buildInfo):
-        trigger = buildInfo['triggered']
-        return trigger['type'] == 'schedule'
+        trigger = buildInfo["triggered"]
+        return trigger["type"] == "schedule"
 
     # For all nested build configurations under a project, fetch the latest
     # build failures.
@@ -296,34 +295,34 @@ class TeamCity():
             {
                 "locator": f"currentlyFailing:true,affectedProject:(id:{projectId})",
                 "fields": "problemOccurrence(*)",
-            }
+            },
         )
-        buildReq = self._request('GET', buildEndpoint)
+        buildReq = self._request("GET", buildEndpoint)
         buildContent = self.getResponse(buildReq)
 
         buildFailures = []
-        if 'problemOccurrence' in (buildContent or {}):
-            buildFailures = buildContent['problemOccurrence']
+        if "problemOccurrence" in (buildContent or {}):
+            buildFailures = buildContent["problemOccurrence"]
 
         testEndpoint = self.build_url(
             "app/rest/testOccurrences",
             {
                 "locator": f"currentlyFailing:true,affectedProject:(id:{projectId})",
                 "fields": "testOccurrence(*)",
-            }
+            },
         )
-        testReq = self._request('GET', testEndpoint)
+        testReq = self._request("GET", testEndpoint)
         testContent = self.getResponse(testReq)
 
         testFailures = []
-        if 'testOccurrence' in (testContent or {}):
-            testFailures = testContent['testOccurrence']
+        if "testOccurrence" in (testContent or {}):
+            testFailures = testContent["testOccurrence"]
 
         return (buildFailures, testFailures)
 
     def getLatestCompletedBuild(self, buildType, build_fields=None):
         if not build_fields:
-            build_fields = ['id']
+            build_fields = ["id"]
 
         endpoint = self.build_url(
             "app/rest/builds",
@@ -331,12 +330,12 @@ class TeamCity():
                 "locator": f"buildType:{buildType}",
                 "fields": f"build({','.join(build_fields)})",
                 "count": 1,
-            }
+            },
         )
-        req = self._request('GET', endpoint)
+        req = self._request("GET", endpoint)
         content = self.getResponse(req)
 
-        builds = content.get('build', [])
+        builds = content.get("build", [])
 
         # There might be no build completed yet, in this case return None
         if not builds:
@@ -351,7 +350,7 @@ class TeamCity():
         return builds[0]
 
     def formatTime(self, seconds):
-        return time.strftime('%Y%m%dT%H%M%S%z', time.gmtime(seconds))
+        return time.strftime("%Y%m%dT%H%M%S%z", time.gmtime(seconds))
 
     # The returned count is the number of groups of back-to-back failures, not
     # the number of individual failures
@@ -360,16 +359,23 @@ class TeamCity():
         endpoint = self.build_url(
             "app/rest/builds",
             {
-                "locator": f"buildType:{buildType},sinceDate:{self.formatTime(sinceTime)}",
+                "locator": (
+                    f"buildType:{buildType},sinceDate:{self.formatTime(sinceTime)}"
+                ),
                 "fields": "build",
-            }
+            },
         )
-        req = self._request('GET', endpoint)
+        req = self._request("GET", endpoint)
         content = self.getResponse(req)
-        if 'build' in (content or {}):
-            builds = [{'status': 'SUCCESS'}] + content['build']
-            return sum([(builds[i - 1]['status'], builds[i]['status'])
-                        == ('SUCCESS', 'FAILURE') for i in range(1, len(builds))])
+        if "build" in (content or {}):
+            builds = [{"status": "SUCCESS"}] + content["build"]
+            return sum(
+                [
+                    (builds[i - 1]["status"], builds[i]["status"])
+                    == ("SUCCESS", "FAILURE")
+                    for i in range(1, len(builds))
+                ]
+            )
         return 0
 
     # For each of the given build name from the configuration file, associate the
@@ -383,9 +389,9 @@ class TeamCity():
             {
                 "locator": f"affectedProject:{project_id}",
                 "fields": "buildType(project(id,name),id,name,parameters($locator(name:env.ABC_BUILD_NAME),property))",
-            }
+            },
         )
-        req = self._request('GET', endpoint)
+        req = self._request("GET", endpoint)
         content = self.getResponse(req)
 
         # Example of output:
@@ -425,24 +431,26 @@ class TeamCity():
         #  ]
 
         associated_config = {}
-        for build_type in content.get('buildType', {}):
-            if 'parameters' not in build_type:
+        for build_type in content.get("buildType", {}):
+            if "parameters" not in build_type:
                 continue
 
-            properties = build_type['parameters'].get('property', [])
+            properties = build_type["parameters"].get("property", [])
             for build_property in properties:
                 # Because of our filter, the only possible property is the one we
                 # are after. Looking at the value is enough.
-                config_name = build_property.get('value', None)
+                config_name = build_property.get("value", None)
                 if config_name in config_names:
-                    associated_config.update({
-                        config_name: {
-                            "teamcity_build_type_id": build_type['id'],
-                            "teamcity_build_name": build_type['name'],
-                            "teamcity_project_id": build_type['project']['id'],
-                            "teamcity_project_name": build_type['project']['name'],
+                    associated_config.update(
+                        {
+                            config_name: {
+                                "teamcity_build_type_id": build_type["id"],
+                                "teamcity_build_name": build_type["name"],
+                                "teamcity_project_id": build_type["project"]["id"],
+                                "teamcity_project_name": build_type["project"]["name"],
+                            }
                         }
-                    })
+                    )
 
         return associated_config
 
@@ -456,42 +464,32 @@ class TeamCity():
             params["guest"] = 1
 
         scheme, netloc = urlsplit(self.base_url)[0:2]
-        return urlunsplit((
-            scheme,
-            netloc,
-            path,
-            urlencode(params, doseq=True),
-            fragment
-        ))
+        return urlunsplit(
+            (scheme, netloc, path, urlencode(params, doseq=True), fragment)
+        )
 
     def convert_to_guest_url(self, url):
         parsed_url = urlsplit(url)
 
         # Don't touch unrelated URLs.
         parsed_base_url = urlsplit(self.base_url)
-        if parsed_base_url.scheme != parsed_url.scheme or parsed_base_url.netloc != parsed_url.netloc:
+        if (
+            parsed_base_url.scheme != parsed_url.scheme
+            or parsed_base_url.netloc != parsed_url.netloc
+        ):
             return url
 
         return self.build_url(
-            parsed_url.path,
-            parse_qs(parsed_url.query),
-            parsed_url.fragment
+            parsed_url.path, parse_qs(parsed_url.query), parsed_url.fragment
         )
 
     def _request(self, verb, url, data=None, headers=None):
         if self.logger:
-            self.logger.info(f'{verb}: {url}')
+            self.logger.info(f"{verb}: {url}")
 
         if headers is None:
-            headers = {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        req = requests.Request(
-            verb,
-            url,
-            auth=self.auth,
-            headers=headers)
+            headers = {"Accept": "application/json", "Content-Type": "application/json"}
+        req = requests.Request(verb, url, auth=self.auth, headers=headers)
         req.data = data
 
         return req

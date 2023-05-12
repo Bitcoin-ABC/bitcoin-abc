@@ -10,9 +10,9 @@ from test.abcbot_fixture import TEST_USER, ABCBotFixture
 
 class EndpointGetCurrentUserTestCase(ABCBotFixture):
     def test_currentUser(self):
-        rv = self.app.get('/getCurrentUser', headers=self.headers)
+        rv = self.app.get("/getCurrentUser", headers=self.headers)
         self.assertEqual(rv.data, TEST_USER.encode())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -10,17 +10,14 @@ import mock
 import requests
 from teamcity_wrapper import TeamCity
 
-TEAMCITY_BASE_URL = 'https://teamcity.test'
-TEAMCITY_CI_USER = 'teamcity-ci-user'
+TEAMCITY_BASE_URL = "https://teamcity.test"
+TEAMCITY_CI_USER = "teamcity-ci-user"
 
 DEFAULT_BUILD_ID = 123456
 
 
 def instance():
-    teamcity = TeamCity(
-        TEAMCITY_BASE_URL,
-        TEAMCITY_CI_USER,
-        "teamcity-users-password")
+    teamcity = TeamCity(TEAMCITY_BASE_URL, TEAMCITY_CI_USER, "teamcity-users-password")
     teamcity.session = mock.Mock()
     teamcity.session.send.return_value = mock.Mock()
     teamcity.session.send.return_value.status_code = requests.codes.ok
@@ -36,11 +33,11 @@ class Response:
 def buildInfo_changes(commits=None):
     changes = []
     for commit in commits or []:
-        changes.append({'version': commit})
+        changes.append({"version": commit})
 
     return {
-        'count': len(changes),
-        'change': changes,
+        "count": len(changes),
+        "change": changes,
     }
 
 
@@ -49,29 +46,29 @@ def buildInfo_properties(propsList=None):
         propsList = []
 
     return {
-        'count': len(propsList),
-        'property': propsList,
+        "count": len(propsList),
+        "property": propsList,
     }
 
 
-def buildInfo_triggered(triggerType='vcs', username='test-username'):
+def buildInfo_triggered(triggerType="vcs", username="test-username"):
     triggered = {
-        'type': triggerType,
+        "type": triggerType,
     }
 
-    if triggerType == 'user':
-        triggered['user'] = {
-            'username': username,
+    if triggerType == "user":
+        triggered["user"] = {
+            "username": username,
         }
 
     return triggered
 
 
-def buildInfo(changes=None, properties=None, triggered=None,
-              build_id=None, buildqueue=False):
+def buildInfo(
+    changes=None, properties=None, triggered=None, build_id=None, buildqueue=False
+):
     if not changes:
-        changes = buildInfo_changes(
-            ['deadbeef00000111222333444555666777888000'])
+        changes = buildInfo_changes(["deadbeef00000111222333444555666777888000"])
 
     if not triggered:
         triggered = buildInfo_triggered()
@@ -86,31 +83,33 @@ def buildInfo(changes=None, properties=None, triggered=None,
     # element, but if we are mocking the buildqueue endpoint, it should not be
     # there.
     output = {
-        'id': build_id,
-        'changes': changes,
-        'triggered': triggered,
-        'properties': properties,
+        "id": build_id,
+        "changes": changes,
+        "triggered": triggered,
+        "properties": properties,
     }
 
     if not buildqueue:
-        output = {'build': [output]}
+        output = {"build": [output]}
 
     return Response(json.dumps(output))
 
 
 def buildInfo_automatedBuild():
-    return buildInfo(triggered=buildInfo_triggered(
-        triggerType='user', username=TEAMCITY_CI_USER))
+    return buildInfo(
+        triggered=buildInfo_triggered(triggerType="user", username=TEAMCITY_CI_USER)
+    )
 
 
-def buildInfo_userBuild(username='test-username'):
-    return buildInfo(triggered=buildInfo_triggered(
-        triggerType='user', username=username))
+def buildInfo_userBuild(username="test-username"):
+    return buildInfo(
+        triggered=buildInfo_triggered(triggerType="user", username=username)
+    )
 
 
 def buildInfo_scheduledBuild():
-    return buildInfo(triggered=buildInfo_triggered(triggerType='schedule'))
+    return buildInfo(triggered=buildInfo_triggered(triggerType="schedule"))
 
 
 def buildInfo_vcsCheckinBuild():
-    return buildInfo(triggered=buildInfo_triggered(triggerType='vcs'))
+    return buildInfo(triggered=buildInfo_triggered(triggerType="vcs"))

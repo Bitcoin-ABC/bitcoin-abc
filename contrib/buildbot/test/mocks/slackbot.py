@@ -10,23 +10,23 @@ from slackbot import SlackBot
 
 def instance():
     channels = {
-        'dev': '#test-dev-channel',
-        'infra': '#infra-support-channel',
+        "dev": "#test-dev-channel",
+        "infra": "#infra-support-channel",
     }
-    slackbot = SlackBot(mock.Mock, 'slack-token', channels)
+    slackbot = SlackBot(mock.Mock, "slack-token", channels)
     return slackbot
 
 
 DEFAULT_USER_NUM = 1000
-DEFAULT_USER_ID = f'U{DEFAULT_USER_NUM}'
+DEFAULT_USER_ID = f"U{DEFAULT_USER_NUM}"
 
 
 def userProfile(attributes=None):
     profile = {
-        'real_name': 'Real Name',
-        'real_name_normalized': 'Real Name Normalized',
-        'display_name': 'Display Name',
-        'display_name_normalized': 'Display Name Normalized',
+        "real_name": "Real Name",
+        "real_name_normalized": "Real Name Normalized",
+        "display_name": "Display Name",
+        "display_name_normalized": "Display Name Normalized",
     }
     if attributes:
         profile = {**profile, **attributes}
@@ -35,21 +35,21 @@ def userProfile(attributes=None):
 
 def user(userId=DEFAULT_USER_ID, profile=None):
     # Slack userIds always begin with a 'U' character
-    assert userId[0] == 'U'
+    assert userId[0] == "U"
 
     if profile is None:
         profile = userProfile()
 
     return {
-        'id': userId,
-        'profile': profile,
+        "id": userId,
+        "profile": profile,
     }
 
 
 def users_list(total=1, initialUsers=None):
     users = initialUsers if initialUsers is not None else []
     for i in range(len(users), total):
-        users.append(user(f'U{DEFAULT_USER_NUM + i}'))
+        users.append(user(f"U{DEFAULT_USER_NUM + i}"))
     return {
-        'members': users,
+        "members": users,
     }

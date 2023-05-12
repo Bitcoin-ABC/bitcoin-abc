@@ -15,6 +15,7 @@ from flask.json.provider import JSONProvider
 class MockData:
     pass
 
+
 # TODO: When Python3.7 becomes the minimum version, remove MockJSONEncoder and
 # MockData base class.  Decorate data classes with @dataclass from package
 # 'dataclasses' instead.

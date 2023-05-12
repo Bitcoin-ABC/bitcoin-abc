@@ -16,24 +16,13 @@
                 "(^src/bench/nanobench.h$)"
             ]
         },
-        "autopep8": {
-            "type": "autopep8",
-            "version": ">=1.3.4",
-            "include": "(^contrib/(buildbot)/.*\\.py$)",
-            "flags": [
-                "--aggressive",
-                "--ignore=W503,W504",
-                "--max-line-length=88"
-            ]
-        },
         "black": {
             "type": "black",
             "version": ">=23.0.0",
             "include": "(\\.py$)",
             "exclude": [
                 "(^contrib/gitian-builder/)",
-                "(^contrib/apple-sdk-tools/)",
-                "(^contrib/buildbot/)"
+                "(^contrib/apple-sdk-tools/)"
             ],
             "flags": [
                 "--preview"
