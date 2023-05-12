@@ -72,7 +72,8 @@ int trace_outbound_message(struct pt_regs *ctx) {
 
 
 class Message:
-    """ A P2P network message. """
+    """A P2P network message."""
+
     msg_type = ""
     size = 0
     data = bytes()
@@ -85,7 +86,8 @@ class Message:
 
 
 class Peer:
-    """ A P2P network peer. """
+    """A P2P network peer."""
+
     id = 0
     address = ""
     connection_type = ""
@@ -122,36 +124,46 @@ def main(bitcoind_path):
     # attaching the trace functions defined in the BPF program to the
     # tracepoints
     bitcoind_with_usdts.enable_probe(
-        probe="inbound_message", fn_name="trace_inbound_message")
+        probe="inbound_message", fn_name="trace_inbound_message"
+    )
     bitcoind_with_usdts.enable_probe(
-        probe="outbound_message", fn_name="trace_outbound_message")
+        probe="outbound_message", fn_name="trace_outbound_message"
+    )
     bpf = BPF(text=program, usdt_contexts=[bitcoind_with_usdts])
 
     # BCC: perf buffer handle function for inbound_messages
     def handle_inbound(_, data, size):
-        """ Inbound message handler.
+        """Inbound message handler.
 
         Called each time a message is submitted to the inbound_messages BPF table."""
         event = bpf["inbound_messages"].event(data)
         if event.peer_id not in peers:
-            peer = Peer(event.peer_id, event.peer_addr.decode(
-                "utf-8"), event.peer_conn_type.decode("utf-8"))
+            peer = Peer(
+                event.peer_id,
+                event.peer_addr.decode("utf-8"),
+                event.peer_conn_type.decode("utf-8"),
+            )
             peers[peer.id] = peer
         peers[event.peer_id].add_message(
-            Message(event.msg_type.decode("utf-8"), event.msg_size, True))
+            Message(event.msg_type.decode("utf-8"), event.msg_size, True)
+        )
 
     # BCC: perf buffer handle function for outbound_messages
     def handle_outbound(_, data, size):
-        """ Outbound message handler.
+        """Outbound message handler.
 
         Called each time a message is submitted to the outbound_messages BPF table."""
         event = bpf["outbound_messages"].event(data)
         if event.peer_id not in peers:
-            peer = Peer(event.peer_id, event.peer_addr.decode(
-                "utf-8"), event.peer_conn_type.decode("utf-8"))
+            peer = Peer(
+                event.peer_id,
+                event.peer_addr.decode("utf-8"),
+                event.peer_conn_type.decode("utf-8"),
+            )
             peers[peer.id] = peer
         peers[event.peer_id].add_message(
-            Message(event.msg_type.decode("utf-8"), event.msg_size, False))
+            Message(event.msg_type.decode("utf-8"), event.msg_size, False)
+        )
 
     # BCC: add handlers to the inbound and outbound perf buffers
     bpf["inbound_messages"].open_perf_buffer(handle_inbound)
@@ -165,8 +177,9 @@ def loop(screen, bpf, peers):
     cur_list_pos = 0
     win = curses.newwin(30, 70, 2, 7)
     win.erase()
-    win.border(ord("|"), ord("|"), ord("-"), ord("-"),
-               ord("-"), ord("-"), ord("-"), ord("-"))
+    win.border(
+        ord("|"), ord("|"), ord("-"), ord("-"), ord("-"), ord("-"), ord("-"), ord("-")
+    )
     info_panel = panel.new_panel(win)
     info_panel.hide()
 
@@ -179,76 +192,117 @@ def loop(screen, bpf, peers):
             bpf.perf_buffer_poll(timeout=50)
 
             ch = screen.getch()
-            if (ch == curses.KEY_DOWN or ch == ord("j")) and cur_list_pos < len(
-                    peers.keys()) - 1 and info_panel.hidden():
+            if (
+                (ch == curses.KEY_DOWN or ch == ord("j"))
+                and cur_list_pos < len(peers.keys()) - 1
+                and info_panel.hidden()
+            ):
                 cur_list_pos += 1
                 if cur_list_pos >= ROWS_AVALIABLE_FOR_LIST:
                     scroll += 1
-            if ((ch == curses.KEY_UP or ch == ord("k"))
-                    and cur_list_pos > 0 and info_panel.hidden()):
+            if (
+                (ch == curses.KEY_UP or ch == ord("k"))
+                and cur_list_pos > 0
+                and info_panel.hidden()
+            ):
                 cur_list_pos -= 1
                 if scroll > 0:
                     scroll -= 1
-            if ch == ord('\n') or ch == ord(' '):
+            if ch == ord("\n") or ch == ord(" "):
                 if info_panel.hidden():
                     info_panel.show()
                 else:
                     info_panel.hide()
             screen.erase()
             render(
-                screen,
-                peers,
-                cur_list_pos,
-                scroll,
-                ROWS_AVALIABLE_FOR_LIST,
-                info_panel)
+                screen, peers, cur_list_pos, scroll, ROWS_AVALIABLE_FOR_LIST, info_panel
+            )
             curses.panel.update_panels()
             screen.refresh()
         except KeyboardInterrupt:
             exit()
 
 
-def render(screen, peers, cur_list_pos, scroll,
-           ROWS_AVALIABLE_FOR_LIST, info_panel):
-    """ renders the list of peers and details panel
+def render(screen, peers, cur_list_pos, scroll, ROWS_AVALIABLE_FOR_LIST, info_panel):
+    """renders the list of peers and details panel
 
     This code is unrelated to USDT, BCC and BPF.
     """
     header_format = "%6s  %-20s  %-20s  %-22s  %-67s"
     row_format = "%6s  %-5d %9d byte  %-5d %9d byte  %-22s  %-67s"
 
-    screen.addstr(0, 1, (" P2P Message Monitor "), curses.A_REVERSE)
+    screen.addstr(0, 1, " P2P Message Monitor ", curses.A_REVERSE)
     screen.addstr(
-        1, 0, (" Navigate with UP/DOWN or J/K and select a peer with ENTER or SPACE to see individual P2P messages"), curses.A_NORMAL)
-    screen.addstr(3, 0,
-                  header_format % ("PEER", "OUTBOUND", "INBOUND", "TYPE", "ADDR"), curses.A_BOLD | curses.A_UNDERLINE)
-    peer_list = sorted(peers.keys())[scroll:ROWS_AVALIABLE_FOR_LIST + scroll]
+        1,
+        0,
+        (
+            " Navigate with UP/DOWN or J/K and select a peer with ENTER or SPACE to see"
+            " individual P2P messages"
+        ),
+        curses.A_NORMAL,
+    )
+    screen.addstr(
+        3,
+        0,
+        header_format % ("PEER", "OUTBOUND", "INBOUND", "TYPE", "ADDR"),
+        curses.A_BOLD | curses.A_UNDERLINE,
+    )
+    peer_list = sorted(peers.keys())[scroll : ROWS_AVALIABLE_FOR_LIST + scroll]
     for i, peer_id in enumerate(peer_list):
         peer = peers[peer_id]
-        screen.addstr(i + 4, 0,
-                      row_format % (peer.id, peer.total_outbound_msgs, peer.total_outbound_bytes,
-                                    peer.total_inbound_msgs, peer.total_inbound_bytes,
-                                    peer.connection_type, peer.address),
-                      curses.A_REVERSE if i + scroll == cur_list_pos else curses.A_NORMAL)
+        screen.addstr(
+            i + 4,
+            0,
+            row_format
+            % (
+                peer.id,
+                peer.total_outbound_msgs,
+                peer.total_outbound_bytes,
+                peer.total_inbound_msgs,
+                peer.total_inbound_bytes,
+                peer.connection_type,
+                peer.address,
+            ),
+            curses.A_REVERSE if i + scroll == cur_list_pos else curses.A_NORMAL,
+        )
         if i + scroll == cur_list_pos:
             info_window = info_panel.window()
             info_window.erase()
             info_window.border(
-                ord("|"), ord("|"), ord("-"), ord("-"),
-                ord("-"), ord("-"), ord("-"), ord("-"))
+                ord("|"),
+                ord("|"),
+                ord("-"),
+                ord("-"),
+                ord("-"),
+                ord("-"),
+                ord("-"),
+                ord("-"),
+            )
 
             info_window.addstr(
-                1, 1, f"PEER {peer.id} ({peer.address})".center(68), curses.A_REVERSE | curses.A_BOLD)
+                1,
+                1,
+                f"PEER {peer.id} ({peer.address})".center(68),
+                curses.A_REVERSE | curses.A_BOLD,
+            )
             info_window.addstr(
-                2, 1, f" OUR NODE{peer.connection_type:^54}PEER ",
-                curses.A_BOLD)
+                2, 1, f" OUR NODE{peer.connection_type:^54}PEER ", curses.A_BOLD
+            )
             for i, msg in enumerate(peer.last_messages):
                 if msg.inbound:
                     info_window.addstr(
-                        i + 3, 1, f"{f'<--- {msg.msg_type} ({msg.size} bytes) ':68s}", curses.A_NORMAL)
+                        i + 3,
+                        1,
+                        f"{f'<--- {msg.msg_type} ({msg.size} bytes) ':68s}",
+                        curses.A_NORMAL,
+                    )
                 else:
                     info_window.addstr(
-                        i + 3, 1, f" {msg.msg_type} ({msg.size} byte) --->", curses.A_NORMAL)
+                        i + 3,
+                        1,
+                        f" {msg.msg_type} ({msg.size} byte) --->",
+                        curses.A_NORMAL,
+                    )
 
 
 if __name__ == "__main__":

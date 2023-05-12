@@ -19,11 +19,7 @@
         "autopep8": {
             "type": "autopep8",
             "version": ">=1.3.4",
-            "include": "(^contrib/.*\\.py$)",
-            "exclude": [
-                "(^contrib/gitian-builder/)",
-                "(^contrib/apple-sdk-tools/)"
-            ],
+            "include": "(^contrib/(buildbot|devtools)/.*\\.py$)",
             "flags": [
                 "--aggressive",
                 "--ignore=W503,W504",
@@ -37,7 +33,8 @@
             "exclude": [
                 "(^contrib/gitian-builder/)",
                 "(^contrib/apple-sdk-tools/)",
-                "(^contrib/)"
+                "(^contrib/devtools/)",
+                "(^contrib/buildbot/)"
             ],
             "flags": [
                 "--preview"

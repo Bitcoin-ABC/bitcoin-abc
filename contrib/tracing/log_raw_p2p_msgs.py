@@ -118,17 +118,20 @@ int trace_outbound_message(struct pt_regs *ctx) {
 def print_message(event, inbound):
     print(
         "{} {} msg '{}' from peer {} ({}, {}) with {} bytes: {}".format(
-            "Warning: incomplete message (only {} out of {} bytes)!".format(
-                len(event.msg),
-                event.msg_size
-            ) if len(event.msg) < event.msg_size else "",
+            (
+                "Warning: incomplete message (only {} out of {} bytes)!".format(
+                    len(event.msg), event.msg_size
+                )
+                if len(event.msg) < event.msg_size
+                else ""
+            ),
             "inbound" if inbound else "outbound",
             event.msg_type.decode("utf-8"),
             event.peer_id,
             event.peer_conn_type.decode("utf-8"),
             event.peer_addr.decode("utf-8"),
             event.msg_size,
-            bytes(event.msg[:event.msg_size]).hex(),
+            bytes(event.msg[: event.msg_size]).hex(),
         )
     )
 
@@ -139,14 +142,16 @@ def main(bitcoind_path):
     # attaching the trace functions defined in the BPF program to the
     # tracepoints
     bitcoind_with_usdts.enable_probe(
-        probe="inbound_message", fn_name="trace_inbound_message")
+        probe="inbound_message", fn_name="trace_inbound_message"
+    )
     bitcoind_with_usdts.enable_probe(
-        probe="outbound_message", fn_name="trace_outbound_message")
+        probe="outbound_message", fn_name="trace_outbound_message"
+    )
     bpf = BPF(text=program, usdt_contexts=[bitcoind_with_usdts])
 
     # BCC: perf buffer handle function for inbound_messages
     def handle_inbound(_, data, size):
-        """ Inbound message handler.
+        """Inbound message handler.
 
         Called each time a message is submitted to the inbound_messages BPF table."""
 
@@ -156,7 +161,7 @@ def main(bitcoind_path):
     # BCC: perf buffer handle function for outbound_messages
 
     def handle_outbound(_, data, size):
-        """ Outbound message handler.
+        """Outbound message handler.
 
         Called each time a message is submitted to the outbound_messages BPF table."""
 
