@@ -72,7 +72,6 @@ PACKAGES=(
   pkg-config
   protobuf-compiler
   python3
-  python3-autopep8
   python3-pip
   python3-setuptools
   python3-yaml
