@@ -14,15 +14,18 @@ set -euxo pipefail
 echo "Running smoke tests..."
 
 # Lint checks
-LINT_OUTPUT=$(arc lint --never-apply-patches)
-LINT_EXIT_CODE=$?
-# If there is more than one line of output, then lint advice lines are likely present.
-# We treat these as errors since they appear as such during review anyway.
-LINT_NUM_LINES=$(echo ${LINT_OUTPUT} | wc -l)
-if [ "${LINT_EXIT_CODE}" -ne 0 ] || [ "${LINT_NUM_LINES}" -gt 1 ]; then
-  echo "Error: There are lint issues."
-  exit 1
-fi
+### Temporarly disabled until all the agents are updated to a recent enough
+### arcanist version where ArcanistExternalLinter::buildFutures() is not marked
+### as final.
+# LINT_OUTPUT=$(arc lint --never-apply-patches)
+# LINT_EXIT_CODE=$?
+# # If there is more than one line of output, then lint advice lines are likely present.
+# # We treat these as errors since they appear as such during review anyway.
+# LINT_NUM_LINES=$(echo ${LINT_OUTPUT} | wc -l)
+# if [ "${LINT_EXIT_CODE}" -ne 0 ] || [ "${LINT_NUM_LINES}" -gt 1 ]; then
+#   echo "Error: There are lint issues."
+#   exit 1
+# fi
 
 # Unit and functional test coverage
 TOPLEVEL=$(git rev-parse --show-toplevel)
