@@ -4,12 +4,21 @@
     "scripts": {
         "dev": "next dev",
         "build": "next build",
-        "start": "next start"
+        "start": "next start",
+        "test": "jest --watch"
     },
     "dependencies": {
         "next": "latest",
         "react": "18.2.0",
         "react-dom": "18.2.0",
         "styled-components": "^5.3.10"
+    },
+    "devDependencies": {
+        "@testing-library/jest-dom": "^5.16.5",
+        "@testing-library/react": "^14.0.0",
+        "babel-jest": "^29.5.0",
+        "identity-obj-proxy": "^3.0.0",
+        "jest": "^29.5.0",
+        "jest-environment-jsdom": "^29.5.0"
     }
 }

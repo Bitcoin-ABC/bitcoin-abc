@@ -14,10 +14,13 @@ import {
     Overlay,
     StorySection,
     YouTubeVideo,
+    PixelBorder,
+    RoadmpaSection,
 } from '/styles/pages/homepage';
 import Button from '/components/button';
 import H2 from '/components/h2';
 import Hand from '/public/images/hand.png';
+import Roadmap from '/components/roadmap';
 
 export default function Home() {
     return (
@@ -97,6 +100,13 @@ export default function Home() {
                     </StorySection>
                 </Container>
             </StoryAndWhySection>
+            <PixelBorder />
+            <RoadmpaSection>
+                <Container>
+                    <H2 subtext="Now & Future" text="ROADMAP" />
+                    <Roadmap />
+                </Container>
+            </RoadmpaSection>
         </Layout>
     );
 }

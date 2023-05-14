@@ -248,3 +248,24 @@ export const YouTubeVideo = styled.div`
         border: 0px;
     }
 `;
+
+export const PixelBorder = styled.div`
+    width: 100%;
+    position: relative;
+    margin-top: -120px;
+    height: 120px;
+    z-index: 99;
+    background-position: 50% 100%, 0 0;
+    background-size: auto, auto;
+    background-repeat: repeat-x;
+    background-image: url('/images/pixel-border.svg'),
+        linear-gradient(180deg, transparent 79%, rgba(0, 0, 0, 0.67) 97%, #000);
+`;
+
+export const RoadmpaSection = styled.div`
+    width: 100%;
+    text-align: center;
+    background-color: ${props => props.theme.colors.black};
+    padding: 120px 0;
+    position: relative;
+`;

@@ -35,7 +35,7 @@ export default createGlobalStyle`
             url(../public/fonts/Montserrat-Bold.ttf) format('truetype');
         font-weight: 700;
     }
-
+    
     html,
     body {
         padding: 0;
@@ -45,7 +45,10 @@ export default createGlobalStyle`
         font-size: 18px;
         background-color: ${props => props.theme.colors.darkBlue};
         color: ${props => props.theme.colors.contrast};
-        overflow-x: hidden;
+        ${props => props.theme.breakpoint.medium} {
+            overflow-x: hidden;
+        }
+       
     }
 
     ::-webkit-scrollbar {

@@ -10,6 +10,18 @@ export const ecash = {
         videocover:
             'linear-gradient(9deg,#001137 18%,transparent 91%),linear-gradient(180deg,rgba(0, 0, 0, 0.46),rgba(0, 0, 0, 0.46))',
     },
+    roadmap: {
+        sectionHeader: '#00abe7',
+        complete: '#ffffff',
+        underway: '#ff21d0',
+        planning: '#00abe7',
+        whiteIcon:
+            'invert(100%) sepia(1%) saturate(0%) hue-rotate(56deg) brightness(106%) contrast(100%)',
+        primaryIcon:
+            'invert(59%) sepia(96%) saturate(2939%) hue-rotate(159deg) brightness(94%) contrast(101%)',
+        accentIcon:
+            'invert(52%) sepia(100%) saturate(6184%) hue-rotate(295deg) brightness(100%) contrast(109%)',
+    },
     filters: {
         grayscale: null,
         videospeed: 1,
@@ -30,6 +42,18 @@ export const stealth = {
         darkBlue: '#181818',
         videocover:
             'linear-gradient(9deg,#181818 18%,transparent 91%),linear-gradient(180deg,rgba(0, 0, 0, 0.46),rgba(0, 0, 0, 0.46))',
+    },
+    roadmap: {
+        sectionHeader: '#ffffff',
+        complete: '#01ff85',
+        underway: '#e9fe01',
+        planning: '#ffffff',
+        whiteIcon:
+            'invert(82%) sepia(11%) saturate(7038%) hue-rotate(89deg) brightness(104%) contrast(100%)',
+        primaryIcon:
+            'invert(100%) sepia(1%) saturate(0%) hue-rotate(56deg) brightness(106%) contrast(100%)',
+        accentIcon:
+            'invert(82%) sepia(98%) saturate(2292%) hue-rotate(8deg) brightness(102%) contrast(104%)',
     },
     filters: {
         grayscale: 'filter: grayscale(100%);',

@@ -2,3 +2,4 @@
 /.next
 /build
 .DS_Store
+coverage/
