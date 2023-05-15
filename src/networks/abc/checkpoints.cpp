@@ -73,6 +73,9 @@ static CCheckpointData mainNetCheckpointData = {
         // Jefferson activation.
         {766195, BlockHash::fromHex("0000000000000000102bc94853715b9ade9610eb31"
                                     "b4ed7d955529b76d24e094")},
+        // Wellington activation.
+        {792118, BlockHash::fromHex("00000000000000000b360176b8456de45b662fce6d"
+                                    "557c6238dec17362d197f3")},
     }};
 
 static CCheckpointData testNetCheckpointData = {
@@ -114,6 +117,9 @@ static CCheckpointData testNetCheckpointData = {
         // Jefferson activation.
         {1530063, BlockHash::fromHex("00000000013102d35674688b5fd478c3a048660d6"
                                      "fea862401734a4b914132bf")},
+        // Wellington activation.
+        {1556121, BlockHash::fromHex("000000000eb806d6dbc9a200a9d533c7a11fc7d45"
+                                     "ab67a3c8440cc1b5c4e741f")},
     }};
 
 static CCheckpointData regTestCheckpointData = {
