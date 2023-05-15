@@ -4,35 +4,35 @@ export default createGlobalStyle`
     @font-face {
         font-family: 'Poppins';
         src: local('Poppins'),
-            url(../public/fonts/Poppins-Regular.ttf) format('truetype');
+            url(/fonts/Poppins-Regular.ttf) format('truetype');
         font-weight: normal;
     }
 
     @font-face {
         font-family: 'Poppins';
         src: local('Poppins'),
-            url(../public/fonts/Poppins-Medium.ttf) format('truetype');
+            url(/fonts/Poppins-Medium.ttf) format('truetype');
         font-weight: 500;
     }
 
     @font-face {
         font-family: 'Poppins';
         src: local('Poppins'),
-            url(../public/fonts/Poppins-Bold.ttf) format('truetype');
+            url(/fonts/Poppins-Bold.ttf) format('truetype');
         font-weight: 700;
     }
 
     @font-face {
         font-family: 'Montserrat';
         src: local('Montserrat'),
-            url(../public/fonts/Montserrat-Regular.ttf) format('truetype');
+            url(/fonts/Montserrat-Regular.ttf) format('truetype');
         font-weight: normal;
     }
 
     @font-face {
         font-family: 'Montserrat';
         src: local('Montserrat'),
-            url(../public/fonts/Montserrat-Bold.ttf) format('truetype');
+            url(/fonts/Montserrat-Bold.ttf) format('truetype');
         font-weight: 700;
     }
     
