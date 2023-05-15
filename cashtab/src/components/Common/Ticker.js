@@ -12,7 +12,6 @@ export const currency = {
         aliasEnabled: false,
         // change to multisig prior to landing in prod
         aliasPaymentAddress: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
-        aliasPaymentHash160: '638568e36d0b5d7d49a6e99854caa27d9772b093', // hash160 of currency.aliasSettings.aliasPaymentAddress
         // nominal pricing tiers for testing only - to be used as 'aliasRegistrationFeeInSats.oneByte'
         aliasRegistrationFeeInSats: {
             oneByte: 558,
