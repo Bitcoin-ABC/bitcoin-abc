@@ -9,9 +9,15 @@ export default function Navbar({ announcementbar }) {
     const [mobileMenu, setMobileMenu] = useState(false);
     const [selectedDropDownMenu, setSelectedDropDownMenu] = useState(-1);
     const [windowWidth, setWindowWidth] = useState('');
+    const [windowHeight, setWindowHeight] = useState(0);
+    const [navBackground, setNavBackground] = useState(false);
 
     const handleResize = () => {
         setWindowWidth(window.innerWidth);
+    };
+
+    const handleScroll = () => {
+        setWindowHeight(window.scrollY);
     };
 
     const getPrice = () => {
@@ -28,18 +34,30 @@ export default function Navbar({ announcementbar }) {
     useEffect(() => {
         // set the window width so logic for mobile or desktop menus is applied correctly
         setWindowWidth(window.innerWidth);
-        // add event listeners for resize so we can update the screen width
+        // add event listener for resize so we can update the screen width
         window.addEventListener('resize', handleResize);
+        // add event listerner for scroll so we can change the nav background on scroll
+        window.addEventListener('scroll', handleScroll);
         // get XEC price
         getPrice();
-        // remove the event listener after mount to avoid memory leak
+        // remove the event listeners after mount to avoid memory leak
         return () => {
             window.removeEventListener('resize', handleResize);
+            window.removeEventListener('scroll', handleScroll);
         };
     }, []);
 
+    useEffect(() => {
+        // change the navBackground state based when windowHeight changes
+        if (windowHeight >= 100) {
+            setNavBackground(true);
+        } else {
+            setNavBackground(false);
+        }
+    }, [windowHeight]);
+
     return (
-        <NavbarOuter>
+        <NavbarOuter navBackground={navBackground}>
             {announcementbar && (
                 <Link
                     href={announcementbar.link}
@@ -50,7 +68,7 @@ export default function Navbar({ announcementbar }) {
                     {announcementbar.text}
                 </Link>
             )}
-            <NavbarCtn>
+            <NavbarCtn navBackground={navBackground}>
                 <div className="navbar">
                     <Link href="/" className="nav_logo">
                         <Image

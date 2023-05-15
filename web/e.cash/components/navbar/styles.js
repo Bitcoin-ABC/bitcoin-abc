@@ -21,6 +21,7 @@ export const NavbarOuter = styled.div`
         align-items: center;
         justify-content: center;
         transition: all 200ms ease-in-out;
+        margin-top: ${props => (props.navBackground ? '-34px' : '0')};
         &:hover {
             background-color: ${props => props.theme.colors.accent};
             color: ${props => props.theme.colors.contrast};
@@ -30,7 +31,10 @@ export const NavbarOuter = styled.div`
 
 export const NavbarCtn = styled.div`
     width: 100%;
-    background-color: rgba(0, 0, 0, 0);
+    background-color: ${props =>
+        props.navBackground
+            ? props.theme.colors.navbarBackground
+            : 'transparent'};
     position: relative;
     padding: 0 24px;
 
@@ -77,16 +81,17 @@ export const NavbarCtn = styled.div`
             font-weight: 500;
             letter-spacing: 1px;
             position: relative;
-            padding: 36px 20px;
             transition: all 200ms ease-in-out;
             cursor: pointer;
+            padding: ${props =>
+                props.navBackground ? '28px 20px' : '36px 20px'};
         }
     }
 
     .nav_dropdown_ctn {
         position: absolute;
         flex-direction: column;
-        top: 90px;
+        top: ${props => (props.navBackground ? '80px' : '90px')};
         left: 0;
         width: 300px;
         z-index: 99;

@@ -9,6 +9,7 @@ export const ecash = {
         darkBlue: '#001137',
         videocover:
             'linear-gradient(9deg,#001137 18%,transparent 91%),linear-gradient(180deg,rgba(0, 0, 0, 0.46),rgba(0, 0, 0, 0.46))',
+        navbarBackground: 'rgba(0, 0, 0, 0.65)',
     },
     roadmap: {
         sectionHeader: '#00abe7',
@@ -42,6 +43,7 @@ export const stealth = {
         darkBlue: '#181818',
         videocover:
             'linear-gradient(9deg,#181818 18%,transparent 91%),linear-gradient(180deg,rgba(0, 0, 0, 0.46),rgba(0, 0, 0, 0.46))',
+        navbarBackground: 'rgba(0, 0, 0, 0.65)',
     },
     roadmap: {
         sectionHeader: '#ffffff',
