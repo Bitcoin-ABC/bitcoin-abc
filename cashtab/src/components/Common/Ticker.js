@@ -53,7 +53,6 @@ export const currency = {
             'official',
         ],
     },
-    chronikTxsPerPage: 25, // number of txs per page retrieved via chronik.script.history()
     coingeckoId: 'ecash',
     defaultFee: 2.01,
     dustSats: 550,
