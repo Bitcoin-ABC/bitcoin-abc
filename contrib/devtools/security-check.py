@@ -224,6 +224,7 @@ BASE_MACHO = [
     ("NX", check_NX),
     ("Canary", check_MACHO_Canary),
     ("CONTROL_FLOW", check_MACHO_control_flow),
+    # NOTE: Don't introduce the LAZY_BINDINGS check, it's been removed in core#27676
 ]
 
 CHECKS = {

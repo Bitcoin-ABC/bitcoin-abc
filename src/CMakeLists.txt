@@ -223,6 +223,10 @@ if(ENABLE_HARDENING)
 		# MinGw provides its own libssp for stack smashing protection
 		link_libraries(ssp)
 	endif()
+
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		add_linker_flags(-Wl,-fixup_chains)
+	endif()
 endif()
 
 if(ENABLE_PROFILING MATCHES "gprof")

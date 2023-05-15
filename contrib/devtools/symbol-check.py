@@ -245,7 +245,7 @@ def check_MACHO_libraries(binary) -> bool:
 
 
 def check_MACHO_min_os(binary) -> bool:
-    return binary.build_version.minos == [10, 15, 0]
+    return binary.build_version.minos == [11, 0, 0]
 
 
 def check_MACHO_sdk(binary) -> bool:

@@ -208,7 +208,7 @@ class TestSymbolChecks(unittest.TestCase):
                 cc,
                 source,
                 executable,
-                ["-Wl,-platform_version", "-Wl,macos", "-Wl,10.15", "-Wl,11.4"],
+                ["-Wl,-platform_version", "-Wl,macos", "-Wl,11.0", "-Wl,11.4"],
             ),
             (1, f"{executable}: failed SDK"),
         )
