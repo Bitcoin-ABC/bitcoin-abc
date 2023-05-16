@@ -410,14 +410,34 @@ bool BlockManager::IsBlockPruned(const CBlockIndex *pblockindex) {
 }
 
 const CBlockIndex *
-BlockManager::GetFirstStoredBlock(const CBlockIndex &start_block) {
+BlockManager::GetFirstStoredBlock(const CBlockIndex &upper_block,
+                                  const CBlockIndex *lower_block) {
     AssertLockHeld(::cs_main);
-    const CBlockIndex *last_block = &start_block;
+    const CBlockIndex *last_block = &upper_block;
+    // 'upper_block' must have data
     assert(last_block->nStatus.hasData());
     while (last_block->pprev && (last_block->pprev->nStatus.hasData())) {
+        if (lower_block) {
+            // Return if we reached the lower_block
+            if (last_block == lower_block) {
+                return lower_block;
+            }
+            // if range was surpassed, means that 'lower_block' is not part of
+            // the 'upper_block' chain and so far this is not allowed.
+            assert(last_block->nHeight >= lower_block->nHeight);
+        }
         last_block = last_block->pprev;
     }
+    assert(last_block != nullptr);
     return last_block;
+}
+
+bool BlockManager::CheckBlockDataAvailability(const CBlockIndex &upper_block,
+                                              const CBlockIndex &lower_block) {
+    if (!(upper_block.nStatus.hasData())) {
+        return false;
+    }
+    return GetFirstStoredBlock(upper_block, &lower_block) == &lower_block;
 }
 
 // If we're using -prune with -reindex, then delete block files that will be

@@ -9,11 +9,12 @@
 #include <unordered_map>
 #include <vector>
 
+#include <attributes.h>
 #include <chain.h>
 #include <chainparams.h>
 #include <kernel/blockmanager_opts.h>
 #include <kernel/cs_main.h>
-#include <protocol.h> // For CMessageHeader::MessageStartChars
+#include <protocol.h>
 #include <sync.h>
 #include <txdb.h>
 #include <util/fs.h>
@@ -268,10 +269,20 @@ public:
     const CBlockIndex *GetLastCheckpoint(const CCheckpointData &data)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
+    //! Check if all blocks in the [upper_block, lower_block] range have data
+    //! available. The caller is responsible for ensuring that lower_block is an
+    //! ancestor of upper_block (part of the same chain).
+    bool
+    CheckBlockDataAvailability(const CBlockIndex &upper_block LIFETIMEBOUND,
+                               const CBlockIndex &lower_block LIFETIMEBOUND)
+        EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+
     //! Find the first stored ancestor of start_block immediately after the last
     //! pruned ancestor. Return value will never be null. Caller is responsible
     //! for ensuring that start_block has data.
-    const CBlockIndex *GetFirstStoredBlock(const CBlockIndex &start_block)
+    const CBlockIndex *
+    GetFirstStoredBlock(const CBlockIndex &start_block LIFETIMEBOUND,
+                        const CBlockIndex *lower_block = nullptr)
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
     /** True if any block files have ever been pruned. */
