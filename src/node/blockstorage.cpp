@@ -926,6 +926,12 @@ void ThreadImport(const Config &config, ChainstateManager &chainman,
                           hash.GetHex());
                 chainman.ActiveChainstate().ResetBlockFailureFlags(pblockindex);
             }
+
+            if (pblockindex && pblockindex->nStatus.isOnParkedChain()) {
+                LogPrintf("Unparking checkpointed block %s ...\n",
+                          hash.GetHex());
+                chainman.ActiveChainstate().UnparkBlockAndChildren(pblockindex);
+            }
         }
 
         // scan for better chains in the block chain database, that are not yet
