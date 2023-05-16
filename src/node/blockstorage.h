@@ -52,7 +52,6 @@ static constexpr size_t BLOCK_SERIALIZATION_HEADER_SIZE =
     CMessageHeader::MESSAGE_START_SIZE + sizeof(unsigned int);
 
 extern std::atomic_bool fReindex;
-extern std::atomic_bool g_indexes_ready_to_sync;
 
 // Because validation code takes pointers to the map's CBlockIndex objects, if
 // we ever switch to another associative container, we need to either use a

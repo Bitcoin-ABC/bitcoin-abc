@@ -124,7 +124,6 @@ using node::CacheSizes;
 using node::CalculateCacheSizes;
 using node::DEFAULT_PERSIST_MEMPOOL;
 using node::fReindex;
-using node::g_indexes_ready_to_sync;
 using node::ImportBlocks;
 using node::KernelNotifications;
 using node::LoadChainstate;
@@ -2634,11 +2633,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     // Step 8: load indexers
 
-    // If reindex-chainstate was specified, delay syncing indexes until
-    // ImportBlocks has reindexed the chain
-    if (!fReindexChainState) {
-        g_indexes_ready_to_sync = true;
-    }
     if (args.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
         auto result{
             WITH_LOCK(cs_main, return CheckLegacyTxindex(*Assert(
@@ -3045,6 +3039,59 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 }
 
 bool StartIndexBackgroundSync(NodeContext &node) {
+    // Find the oldest block among all indexes.
+    // This block is used to verify that we have the required blocks' data
+    // stored on disk, starting from that point up to the current tip.
+    // indexes_start_block='nullptr' means "start from height 0".
+    std::optional<const CBlockIndex *> indexes_start_block;
+    std::string older_index_name;
+
+    ChainstateManager &chainman = *Assert(node.chainman);
+    for (auto index : node.indexes) {
+        const IndexSummary &summary = index->GetSummary();
+        if (summary.synced) {
+            continue;
+        }
+
+        // Get the last common block between the index best block and the active
+        // chain
+        LOCK(::cs_main);
+        const CChain &active_chain = chainman.ActiveChain();
+        const CBlockIndex *pindex = chainman.m_blockman.LookupBlockIndex(
+            BlockHash{summary.best_block_hash});
+        if (!active_chain.Contains(pindex)) {
+            pindex = active_chain.FindFork(pindex);
+        }
+
+        if (!indexes_start_block || !pindex ||
+            pindex->nHeight < indexes_start_block.value()->nHeight) {
+            indexes_start_block = pindex;
+            older_index_name = summary.name;
+            if (!pindex) {
+                // Starting from genesis so no need to look for earlier block.
+                break;
+            }
+        }
+    };
+
+    // Verify all blocks needed to sync to current tip are present.
+    if (indexes_start_block) {
+        LOCK(::cs_main);
+        const CBlockIndex *start_block = *indexes_start_block;
+        if (!start_block) {
+            start_block = chainman.ActiveChain().Genesis();
+        }
+        if (!chainman.m_blockman.CheckBlockDataAvailability(
+                *chainman.ActiveChain().Tip(), *Assert(start_block))) {
+            return InitError(strprintf(
+                Untranslated("%s best block of the index goes beyond pruned "
+                             "data. Please disable the index or reindex (which "
+                             "will download the whole blockchain again)"),
+                older_index_name));
+        }
+    }
+
+    // Start threads
     for (auto index : node.indexes) {
         if (!index->StartBackgroundSync()) {
             return false;

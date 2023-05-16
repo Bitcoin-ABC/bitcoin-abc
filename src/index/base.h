@@ -20,6 +20,7 @@ struct IndexSummary {
     std::string name;
     bool synced{false};
     int best_block_height{0};
+    BlockHash best_block_hash{};
 };
 
 /**
