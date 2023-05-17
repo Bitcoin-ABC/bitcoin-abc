@@ -7,6 +7,7 @@
 #include <consensus/amount.h>
 #include <feerate.h>
 #include <logging.h>
+#include <util/insert.h>
 #include <util/moneystr.h>
 #include <util/system.h>
 
