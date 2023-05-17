@@ -1344,8 +1344,9 @@ void Chainstate::CheckForkWarningConditions() {
     }
 
     // If our best fork is no longer within 72 blocks (+/- 12 hours if no one
-    // mines it) of our head, drop it
-    if (m_best_fork_tip && m_chain.Height() - m_best_fork_tip->nHeight >= 72) {
+    // mines it) of our head, or if it is back on the active chain, drop it
+    if (m_best_fork_tip && (m_chain.Height() - m_best_fork_tip->nHeight >= 72 ||
+                            m_chain.Contains(m_best_fork_tip))) {
         m_best_fork_tip = nullptr;
     }
 

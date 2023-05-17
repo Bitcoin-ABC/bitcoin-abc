@@ -52,17 +52,31 @@ class ParkedChainTest(BitcoinTestFramework):
         block_to_park = node.getbestblockhash()
         self.generate(node, 10)
         parked_tip = node.getbestblockhash()
+        parked_height = node.getblockcount()
 
         # Let's park the chain.
         assert parked_tip != tip
         assert block_to_park != tip
         assert block_to_park != parked_tip
-        node.parkblock(block_to_park)
+        with node.assert_debug_log(
+            [
+                "Warning: Large fork found",
+                f"lasting to height {parked_height} ({parked_tip})",
+            ]
+        ):
+            node.parkblock(block_to_park)
         assert_equal(node.getbestblockhash(), tip)
 
         # When the chain is unparked, the node reorg into its original chain.
         node.unparkblock(parked_tip)
         assert_equal(node.getbestblockhash(), parked_tip)
+
+        # The "Warning: Large fork found" is no longer printed on new blocks
+        with node.assert_debug_log(
+            expected_msgs=["UpdateTip: new best=", f" height={parked_height + 1}"],
+            unexpected_msgs=["Warning: Large fork found"],
+        ):
+            self.generate(node, 1)
 
         # Parking and then unparking a block should not change its validity,
         # and invaliding and reconsidering a block should not change its
