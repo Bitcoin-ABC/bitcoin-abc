@@ -22,10 +22,10 @@
 #include <scheduler.h>
 #include <script/descriptor.h>
 #include <timedata.h>
+#include <util/any.h>
 #include <util/check.h>
 #include <util/message.h> // For MessageSign(), MessageVerify()
 #include <util/strencodings.h>
-#include <util/system.h>
 #include <util/time.h>
 
 #include <univalue.h>

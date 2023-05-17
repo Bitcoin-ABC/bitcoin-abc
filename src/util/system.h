@@ -13,7 +13,6 @@
 #include <compat.h>
 #include <compat/assumptions.h>
 
-#include <any>
 #include <cstdint>
 #include <set>
 #include <string>
@@ -38,19 +37,5 @@ void runCommand(const std::string &strCommand);
 int GetNumCores();
 
 std::string CopyrightHolders(const std::string &strPrefix);
-
-namespace util {
-
-/**
- * Helper function to access the contained object of a std::any instance.
- * Returns a pointer to the object if passed instance has a value and the type
- * matches, nullptr otherwise.
- */
-template <typename T> T *AnyPtr(const std::any &any) noexcept {
-    T *const *ptr = std::any_cast<T *>(&any);
-    return ptr ? *ptr : nullptr;
-}
-
-} // namespace util
 
 #endif // BITCOIN_UTIL_SYSTEM_H
