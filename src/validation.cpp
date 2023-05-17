@@ -56,6 +56,7 @@
 #include <util/check.h>
 #include <util/fs.h>
 #include <util/fs_helpers.h>
+#include <util/signalinterrupt.h>
 #include <util/strencodings.h>
 #include <util/string.h>
 #include <util/time.h>
@@ -3745,12 +3746,12 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
             break;
         }
 
-        // We check shutdown only after giving ActivateBestChainStep a chance to
-        // run once so that we never shutdown before connecting the genesis
+        // We check interrupt only after giving ActivateBestChainStep a chance
+        // to run once so that we never interrupt before connecting the genesis
         // block during LoadChainTip(). Previously this caused an assert()
-        // failure during shutdown in such cases as the UTXO DB flushing checks
+        // failure during interrupt in such cases as the UTXO DB flushing checks
         // that the best block hash is non-null.
-        if (ShutdownRequested()) {
+        if (m_chainman.m_interrupt) {
             break;
         }
     } while (pindexNewTip != pindexMostWork);
@@ -3891,7 +3892,7 @@ bool Chainstate::UnwindBlock(BlockValidationState &state, CBlockIndex *pindex,
 
         // Disconnect (descendants of) pindex, and mark them invalid.
         while (true) {
-            if (ShutdownRequested()) {
+            if (m_chainman.m_interrupt) {
                 break;
             }
 
@@ -5208,7 +5209,7 @@ void Chainstate::LoadMempool(const fs::path &load_path,
         return;
     }
     ::LoadMempool(*m_mempool, load_path, *this, mockable_fopen_function);
-    m_mempool->SetLoadTried(!ShutdownRequested());
+    m_mempool->SetLoadTried(!m_chainman.m_interrupt);
 }
 
 bool Chainstate::LoadChainTip() {
@@ -5375,7 +5376,7 @@ VerifyDBResult CVerifyDB::VerifyDB(Chainstate &chainstate,
             }
         }
 
-        if (ShutdownRequested()) {
+        if (chainstate.m_chainman.m_interrupt) {
             return VerifyDBResult::INTERRUPTED;
         }
     }
@@ -5425,7 +5426,7 @@ VerifyDBResult CVerifyDB::VerifyDB(Chainstate &chainstate,
                           state.ToString());
                 return VerifyDBResult::CORRUPTED_BLOCK_DB;
             }
-            if (ShutdownRequested()) {
+            if (chainstate.m_chainman.m_interrupt) {
                 return VerifyDBResult::INTERRUPTED;
             }
         }
@@ -5720,7 +5721,7 @@ bool ChainstateManager::LoadBlockIndex() {
                   CBlockIndexHeightOnlyComparator());
 
         for (CBlockIndex *pindex : vSortedByHeight) {
-            if (ShutdownRequested()) {
+            if (m_interrupt) {
                 return false;
             }
             // If we have an assumeutxo-based chainstate, then the snapshot
@@ -5821,7 +5822,7 @@ void ChainstateManager::LoadExternalBlockFile(
         // wrong, such as a block fails to deserialize.
         uint64_t nRewind = blkdat.GetPos();
         while (!blkdat.eof()) {
-            if (ShutdownRequested()) {
+            if (m_interrupt) {
                 return;
             }
 
@@ -6796,8 +6797,8 @@ struct StopHashingException : public std::exception {
     }
 };
 
-static void SnapshotUTXOHashBreakpoint() {
-    if (ShutdownRequested()) {
+static void SnapshotUTXOHashBreakpoint(const util::SignalInterrupt &interrupt) {
+    if (interrupt) {
         throw StopHashingException();
     }
 }
@@ -6905,7 +6906,7 @@ bool ChainstateManager::PopulateAndValidateSnapshot(
                 // If our average Coin size is roughly 41 bytes, checking every
                 // 120,000 coins means <5MB of memory imprecision.
                 if (coins_processed % 120000 == 0) {
-                    if (ShutdownRequested()) {
+                    if (m_interrupt) {
                         return false;
                     }
 
@@ -6975,9 +6976,11 @@ bool ChainstateManager::PopulateAndValidateSnapshot(
     std::optional<CCoinsStats> maybe_stats;
 
     try {
-        maybe_stats = ComputeUTXOStats(CoinStatsHashType::HASH_SERIALIZED,
-                                       snapshot_coinsdb, m_blockman,
-                                       SnapshotUTXOHashBreakpoint);
+        maybe_stats = ComputeUTXOStats(
+            CoinStatsHashType::HASH_SERIALIZED, snapshot_coinsdb, m_blockman,
+            [&interrupt = m_interrupt] {
+                SnapshotUTXOHashBreakpoint(interrupt);
+            });
     } catch (StopHashingException const &) {
         return false;
     }
@@ -7144,7 +7147,9 @@ SnapshotCompletionResult ChainstateManager::MaybeCompleteSnapshotValidation(
     try {
         maybe_ibd_stats =
             ComputeUTXOStats(CoinStatsHashType::HASH_SERIALIZED, &ibd_coins_db,
-                             m_blockman, SnapshotUTXOHashBreakpoint);
+                             m_blockman, [&interrupt = m_interrupt] {
+                                 SnapshotUTXOHashBreakpoint(interrupt);
+                             });
     } catch (StopHashingException const &) {
         return SnapshotCompletionResult::STATS_FAILED;
     }
@@ -7269,9 +7274,10 @@ static ChainstateManager::Options &&Flatten(ChainstateManager::Options &&opts) {
 }
 
 ChainstateManager::ChainstateManager(
-    Options options, node::BlockManager::Options blockman_options)
-    : m_options{Flatten(std::move(options))},
-      m_blockman{std::move(blockman_options)},
+    const util::SignalInterrupt &interrupt, Options options,
+    node::BlockManager::Options blockman_options)
+    : m_interrupt{interrupt}, m_options{Flatten(std::move(options))},
+      m_blockman{interrupt, std::move(blockman_options)},
       m_validation_cache{m_options.script_execution_cache_bytes,
                          m_options.signature_cache_bytes} {}
 

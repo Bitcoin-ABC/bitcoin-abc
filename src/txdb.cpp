@@ -10,7 +10,7 @@
 #include <logging.h>
 #include <pow/pow.h>
 #include <random.h>
-#include <shutdown.h>
+#include <util/signalinterrupt.h>
 #include <util/translation.h>
 #include <util/vector.h>
 #include <version.h>
@@ -300,7 +300,8 @@ bool CBlockTreeDB::ReadFlag(const std::string &name, bool &fValue) {
 
 bool CBlockTreeDB::LoadBlockIndexGuts(
     const Consensus::Params &params,
-    std::function<CBlockIndex *(const BlockHash &)> insertBlockIndex) {
+    std::function<CBlockIndex *(const BlockHash &)> insertBlockIndex,
+    const util::SignalInterrupt &interrupt) {
     AssertLockHeld(::cs_main);
     std::unique_ptr<CDBIterator> pcursor(NewIterator());
 
@@ -319,7 +320,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts(
 
     // Load m_block_index
     while (pcursor->Valid()) {
-        if (ShutdownRequested()) {
+        if (interrupt) {
             return false;
         }
         std::pair<uint8_t, uint256> key;

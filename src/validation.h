@@ -79,6 +79,9 @@ struct Params;
 namespace avalanche {
 class Processor;
 } // namespace avalanche
+namespace util {
+class SignalInterrupt;
+} // namespace util
 
 #define MIN_TRANSACTION_SIZE                                                   \
     (::GetSerializeSize(CTransaction(), PROTOCOL_VERSION))
@@ -1262,7 +1265,8 @@ private:
 public:
     using Options = kernel::ChainstateManagerOpts;
 
-    explicit ChainstateManager(Options options,
+    explicit ChainstateManager(const util::SignalInterrupt &interrupt,
+                               Options options,
                                node::BlockManager::Options blockman_options);
 
     //! Function to restart active indexes; set dynamically to avoid a circular
@@ -1314,6 +1318,7 @@ public:
         return ::cs_main;
     }
 
+    const util::SignalInterrupt &m_interrupt;
     const Options m_options;
     std::thread m_thread_load;
     //! A single BlockManager instance is shared across each constructed

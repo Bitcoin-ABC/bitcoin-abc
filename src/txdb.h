@@ -31,6 +31,9 @@ class COutPoint;
 namespace Consensus {
 struct Params;
 };
+namespace util {
+class SignalInterrupt;
+} // namespace util
 
 //! -dbbatchsize default (bytes)
 static constexpr int64_t DEFAULT_DB_BATCH_SIZE = 16 << 20;
@@ -110,7 +113,8 @@ public:
     bool ReadFlag(const std::string &name, bool &fValue);
     bool LoadBlockIndexGuts(
         const Consensus::Params &params,
-        std::function<CBlockIndex *(const BlockHash &)> insertBlockIndex)
+        std::function<CBlockIndex *(const BlockHash &)> insertBlockIndex,
+        const util::SignalInterrupt &interrupt)
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
     ;
 

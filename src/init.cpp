@@ -2550,8 +2550,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     for (bool fLoaded = false; !fLoaded && !ShutdownRequested();) {
         node.mempool = std::make_unique<CTxMemPool>(config, mempool_opts);
 
-        node.chainman =
-            std::make_unique<ChainstateManager>(chainman_opts, blockman_opts);
+        node.chainman = std::make_unique<ChainstateManager>(
+            node.kernel->interrupt, chainman_opts, blockman_opts);
         ChainstateManager &chainman = *node.chainman;
 
         // This is defined and set here instead of inline in validation.h to

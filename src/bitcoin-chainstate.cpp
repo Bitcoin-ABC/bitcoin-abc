@@ -130,7 +130,8 @@ int main(int argc, char *argv[]) {
         .chainparams = chainman_opts.config.GetChainParams(),
         .blocks_dir = gArgs.GetBlocksDirPath(),
     };
-    ChainstateManager chainman{chainman_opts, blockman_opts};
+    ChainstateManager chainman{kernel_context.interrupt, chainman_opts,
+                               blockman_opts};
 
     kernel::CacheSizes cache_sizes{DEFAULT_KERNEL_CACHE};
     node::ChainstateLoadOptions options;
