@@ -2674,11 +2674,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         }
     }
 
-    // Now that all indexes are loaded, start them
-    if (!StartIndexBackgroundSync(node)) {
-        return false;
-    }
-
 #if ENABLE_CHRONIK
     if (args.GetBoolArg("-chronik", DEFAULT_CHRONIK)) {
         const bool fReindexChronik =
@@ -2763,10 +2758,21 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
 
     avalanche::Processor *const avalanche = node.avalanche.get();
-    chainman.m_thread_load =
-        std::thread(&util::TraceThread, "initload", [=, &chainman, &args] {
+    chainman.m_thread_load = std::thread(
+        &util::TraceThread, "initload", [=, &chainman, &args, &node] {
             // Import blocks
             ImportBlocks(chainman, avalanche, vImportFiles);
+            // Start indexes initial sync
+            if (!StartIndexBackgroundSync(node)) {
+                bilingual_str err_str =
+                    _("Failed to start indexes, shutting down..");
+                AbortNode(err_str.original, err_str);
+                // TODO: replace AbortNode call with following line after
+                //   backporting core#27861
+                // chainman.GetNotifications().fatalError(err_str.original,
+                //                                        err_str);
+                return;
+            }
             // Load mempool from disk
             chainman.ActiveChainstate().LoadMempool(
                 ShouldPersistMempool(args) ? MempoolPath(args) : fs::path{});

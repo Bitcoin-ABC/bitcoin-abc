@@ -172,14 +172,6 @@ static const CBlockIndex *NextSyncBlock(const CBlockIndex *pindex_prev,
 }
 
 void BaseIndex::ThreadSync() {
-    // Wait for a possible reindex-chainstate to finish until continuing
-    // with the index sync
-    while (!g_indexes_ready_to_sync) {
-        if (!m_interrupt.sleep_for(std::chrono::milliseconds(500))) {
-            return;
-        }
-    }
-
     const CBlockIndex *pindex = m_best_block_index.load();
     if (!m_synced) {
         int64_t last_log_time = 0;
