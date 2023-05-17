@@ -814,7 +814,7 @@ def get_all_scripts_from_disk(test_dir, non_scripts: Set[str]) -> Set[str]:
 def check_script_prefixes(all_scripts):
     """Check that no more than `EXPECTED_VIOLATION_COUNT` of the
     test scripts don't start with one of the allowed name prefixes."""
-    EXPECTED_VIOLATION_COUNT = 14
+    EXPECTED_VIOLATION_COUNT = 13
 
     # LEEWAY is provided as a transition measure, so that pull-requests
     # that introduce new tests that don't conform with the naming
