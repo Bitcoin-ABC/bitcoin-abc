@@ -60,11 +60,9 @@
 #include <numeric>
 #include <typeinfo>
 
-/** How long to cache transactions in mapRelay for normal relay */
-static constexpr auto RELAY_TX_CACHE_TIME = 15min;
 /**
  * How long a transaction has to be in the mempool before it can
- * unconditionally be relayed (even when not in mapRelay).
+ * unconditionally be relayed.
  */
 static constexpr auto UNCONDITIONAL_RELAY_DELAY = 2min;
 /**
@@ -1328,6 +1326,8 @@ private:
     std::shared_ptr<const CBlockHeaderAndShortTxIDs>
         m_most_recent_compact_block GUARDED_BY(m_most_recent_block_mutex);
     BlockHash m_most_recent_block_hash GUARDED_BY(m_most_recent_block_mutex);
+    std::unique_ptr<const std::map<TxId, CTransactionRef>>
+        m_most_recent_block_txs GUARDED_BY(m_most_recent_block_mutex);
 
     // Data about the low-work headers synchronization, aggregated from all
     // peers' HeadersSyncStates.
@@ -1459,7 +1459,8 @@ private:
                                      const std::chrono::seconds mempool_req,
                                      const std::chrono::seconds now)
         LOCKS_EXCLUDED(cs_main)
-            EXCLUSIVE_LOCKS_REQUIRED(NetEventsInterface::g_msgproc_mutex);
+            EXCLUSIVE_LOCKS_REQUIRED(!m_most_recent_block_mutex,
+                                     NetEventsInterface::g_msgproc_mutex);
 
     void ProcessGetData(const Config &config, CNode &pfrom, Peer &peer,
                         const std::atomic<bool> &interruptMsgProc)
@@ -1472,17 +1473,6 @@ private:
     void ProcessBlock(const Config &config, CNode &node,
                       const std::shared_ptr<const CBlock> &block,
                       bool force_processing, bool min_pow_checked);
-
-    /** Relay map. */
-    typedef std::map<TxId, CTransactionRef> MapRelay;
-    MapRelay mapRelay GUARDED_BY(cs_main);
-
-    /**
-     * Expiration-time ordered list of (expire time, relay map entry) pairs,
-     * protected by cs_main).
-     */
-    std::deque<std::pair<std::chrono::microseconds, MapRelay::iterator>>
-        g_relay_expiration GUARDED_BY(cs_main);
 
     /**
      * When a peer sends us a valid block, instruct it to announce blocks to us
@@ -2943,10 +2933,17 @@ void PeerManagerImpl::NewPoWValidBlock(
         })};
 
     {
+        auto most_recent_block_txs =
+            std::make_unique<std::map<TxId, CTransactionRef>>();
+        for (const auto &tx : pblock->vtx) {
+            most_recent_block_txs->emplace(tx->GetId(), tx);
+        }
+
         LOCK(m_most_recent_block_mutex);
         m_most_recent_block_hash = hashBlock;
         m_most_recent_block = pblock;
         m_most_recent_compact_block = pcmpctblock;
+        m_most_recent_block_txs = std::move(most_recent_block_txs);
     }
 
     m_connman.ForEachNode(
@@ -3448,17 +3445,21 @@ PeerManagerImpl::FindTxForGetData(const Peer &peer, const TxId &txid,
     {
         LOCK(cs_main);
 
-        // Otherwise, the transaction must have been announced recently.
-        if (Assume(peer.GetTxRelay())
-                ->m_recently_announced_invs.contains(txid)) {
-            // If it was, it can be relayed from either the mempool...
-            if (txinfo.tx) {
-                return std::move(txinfo.tx);
-            }
-            // ... or the relay pool.
-            auto mi = mapRelay.find(txid);
-            if (mi != mapRelay.end()) {
-                return mi->second;
+        // Otherwise, the transaction might have been announced recently.
+        bool recent =
+            Assume(peer.GetTxRelay())->m_recently_announced_invs.contains(txid);
+        if (recent && txinfo.tx) {
+            return std::move(txinfo.tx);
+        }
+
+        // Or it might be from the most recent block
+        {
+            LOCK(m_most_recent_block_mutex);
+            if (m_most_recent_block_txs != nullptr) {
+                auto it = m_most_recent_block_txs->find(txid);
+                if (it != m_most_recent_block_txs->end()) {
+                    return it->second;
+                }
             }
         }
     }
@@ -8922,22 +8923,6 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                     tx_relay->m_recently_announced_invs.insert(txid);
                     addInvAndMaybeFlush(MSG_TX, txid);
                     nRelayedTransactions++;
-                    {
-                        // Expire old relay messages
-                        while (!g_relay_expiration.empty() &&
-                               g_relay_expiration.front().first <
-                                   current_time) {
-                            mapRelay.erase(g_relay_expiration.front().second);
-                            g_relay_expiration.pop_front();
-                        }
-
-                        auto ret = mapRelay.insert(
-                            std::make_pair(txid, std::move(txinfo.tx)));
-                        if (ret.second) {
-                            g_relay_expiration.push_back(std::make_pair(
-                                current_time + RELAY_TX_CACHE_TIME, ret.first));
-                        }
-                    }
                     tx_relay->m_tx_inventory_known_filter.insert(txid);
                 }
             }
