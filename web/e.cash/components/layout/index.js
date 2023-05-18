@@ -1,5 +1,6 @@
 import Head from 'next/head';
 import Nav from '/components/navbar';
+import Footer from '/components/footer';
 
 const Layout = ({
     metaTitle = 'eCash | Wealth Redefined',
@@ -33,6 +34,7 @@ const Layout = ({
                 }}
             />
             <main>{children}</main>
+            <Footer />
         </>
     );
 };
