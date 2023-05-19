@@ -18,6 +18,10 @@ export const StyledH2 = styled.h2`
     position: relative;
     margin-bottom: 70px;
     display: inline-block;
+    ${props => props.theme.breakpoint.medium} {
+        font-size: 40px;
+        margin-bottom: 60px;
+    }
 `;
 
 export const H2Image = styled.div`
@@ -27,4 +31,9 @@ export const H2Image = styled.div`
     top: 40px;
     left: 0;
     ${props => props.theme.filters.grayscale};
+    ${props => props.theme.breakpoint.medium} {
+        width: 300px;
+        height: 47px;
+        top: 27px;
+    }
 `;

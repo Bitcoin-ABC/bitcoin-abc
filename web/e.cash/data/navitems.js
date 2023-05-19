@@ -1,5 +1,15 @@
 export const navitems = [
     {
+        nav_item: 'About',
+        dropdown_items: [
+            {
+                title: 'Wealth Redefined',
+                link: '/wealth-redefined',
+                icon: '/images/hand-diamond-icon.svg',
+            },
+        ],
+    },
+    {
         nav_item: 'Technology',
         dropdown_items: [
             {
