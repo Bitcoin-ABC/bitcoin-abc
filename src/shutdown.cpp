@@ -8,6 +8,7 @@
 #include <config/bitcoin-config.h>
 #include <logging.h>
 #include <node/ui_interface.h>
+#include <util/check.h>
 #include <util/tokenpipe.h>
 #include <warnings.h>
 
@@ -17,6 +18,8 @@
 #include <condition_variable>
 #endif
 
+static std::atomic<int> *g_exit_status{nullptr};
+
 bool AbortNode(const std::string &strMessage, bilingual_str user_message) {
     SetMiscWarning(Untranslated(strMessage));
     LogPrintf("*** %s\n", strMessage);
@@ -25,6 +28,7 @@ bool AbortNode(const std::string &strMessage, bilingual_str user_message) {
             _("A fatal internal error occurred, see debug.log for details");
     }
     InitError(user_message);
+    Assert(g_exit_status)->store(EXIT_FAILURE);
     StartShutdown();
     return false;
 }
@@ -40,7 +44,8 @@ static TokenPipeEnd g_shutdown_r;
 static TokenPipeEnd g_shutdown_w;
 #endif
 
-bool InitShutdownState() {
+bool InitShutdownState(std::atomic<int> &exit_status) {
+    g_exit_status = &exit_status;
 #ifndef WIN32
     std::optional<TokenPipe> pipe = TokenPipe::Make();
     if (!pipe) {

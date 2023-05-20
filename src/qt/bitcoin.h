@@ -85,9 +85,6 @@ public:
     void requestInitialize(Config &config, RPCServer &rpcServer,
                            HTTPRPCRequestProcessor &httpRPCRequestProcessor);
 
-    /// Get process return value
-    int getReturnValue() const { return returnValue; }
-
     /// Get window identifier of QMainWindow (BitcoinGUI)
     WId getMainWinId() const;
 
@@ -129,7 +126,6 @@ private:
     PaymentServer *paymentServer{nullptr};
     WalletController *m_wallet_controller{nullptr};
 #endif
-    int returnValue;
     const PlatformStyle *platformStyle;
     std::unique_ptr<QWidget> shutdownWindow;
     SplashScreen *m_splash = nullptr;

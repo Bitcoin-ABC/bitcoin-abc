@@ -8,6 +8,8 @@
 
 #include <util/translation.h> // For bilingual_str
 
+#include <atomic>
+
 /** Abort with a message */
 bool AbortNode(const std::string &strMessage,
                bilingual_str user_message = bilingual_str{});
@@ -17,7 +19,7 @@ bool AbortNode(const std::string &strMessage,
  * StartShutdown(), AbortShutdown() or WaitForShutdown().
  * Calling ShutdownRequested() is always safe.
  */
-bool InitShutdownState();
+bool InitShutdownState(std::atomic<int> &exit_status);
 
 /** Request shutdown of the application. */
 void StartShutdown();

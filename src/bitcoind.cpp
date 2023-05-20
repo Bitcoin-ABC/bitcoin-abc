@@ -128,7 +128,7 @@ int fork_daemon(bool nochdir, bool noclose, TokenPipeEnd &endpoint) {
 //
 // Start
 //
-static bool AppInit(int argc, char *argv[]) {
+static bool AppInit(NodeContext &node, int argc, char *argv[]) {
     // FIXME: Ideally, we'd like to build the config here, but that's currently
     // not possible as the whole application has too many global state. However,
     // this is a first step.
@@ -136,7 +136,6 @@ static bool AppInit(int argc, char *argv[]) {
 
     RPCServer rpcServer;
 
-    NodeContext node;
     std::any context{&node};
 
     HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer, context);
@@ -213,7 +212,7 @@ static bool AppInit(int argc, char *argv[]) {
         // Set this early so that parameter interactions go to console
         InitLogging(args);
         InitParameterInteraction(args);
-        if (!AppInitBasicSetup(args)) {
+        if (!AppInitBasicSetup(args, node.exit_status)) {
             // InitError will have been called with detailed error, which ends
             // up on console
             return false;
@@ -294,6 +293,8 @@ static bool AppInit(int argc, char *argv[]) {
 #endif
     if (fRet) {
         WaitForShutdown();
+    } else {
+        node.exit_status = EXIT_FAILURE;
     }
     Interrupt(node);
     Shutdown(node);
@@ -306,10 +307,12 @@ int main(int argc, char *argv[]) {
     common::WinCmdLineArgs winArgs;
     std::tie(argc, argv) = winArgs.get();
 #endif
+    NodeContext node;
+
     SetupEnvironment();
 
     // Connect bitcoind signal handlers
     noui_connect();
 
-    return (AppInit(argc, argv) ? EXIT_SUCCESS : EXIT_FAILURE);
+    return (AppInit(node, argc, argv) ? node.exit_status.load() : EXIT_FAILURE);
 }

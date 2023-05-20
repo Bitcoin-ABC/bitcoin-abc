@@ -281,7 +281,7 @@ static const char *qt_argv = "bitcoin-qt";
 BitcoinApplication::BitcoinApplication()
     : QApplication(qt_argc, const_cast<char **>(&qt_argv)), coreThread(nullptr),
       optionsModel(nullptr), clientModel(nullptr), window(nullptr),
-      pollShutdownTimer(nullptr), returnValue(0), platformStyle(nullptr) {
+      pollShutdownTimer(nullptr), platformStyle(nullptr) {
     // Qt runs setlocale(LC_ALL, "") on initialization.
     RegisterMetaTypes();
     setQuitOnLastWindowClosed(false);
@@ -487,7 +487,6 @@ void BitcoinApplication::requestShutdown() {
 void BitcoinApplication::initializeResult(
     bool success, interfaces::BlockAndHeaderTipInfo tip_info) {
     qDebug() << __func__ << ": Initialization result: " << success;
-    returnValue = success ? EXIT_SUCCESS : EXIT_FAILURE;
     if (!success) {
         // Make sure splash screen doesn't stick around during shutdown.
         Q_EMIT splashFinished();
@@ -819,7 +818,6 @@ int GuiMain(int argc, char *argv[]) {
             (HWND)app.getMainWinId());
 #endif
         app.exec();
-        return app.getReturnValue();
     } catch (const std::exception &e) {
         PrintExceptionContinue(&e, "Runaway exception");
         app.handleRunawayException(
@@ -829,5 +827,5 @@ int GuiMain(int argc, char *argv[]) {
         app.handleRunawayException(
             QString::fromStdString(app.node().getWarnings().translated));
     }
-    return EXIT_FAILURE;
+    return app.node().getExitStatus();
 }

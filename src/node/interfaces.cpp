@@ -75,8 +75,11 @@ namespace {
             InitParameterInteraction(*Assert(m_context->args));
         }
         bilingual_str getWarnings() override { return GetWarnings(true); }
+        int getExitStatus() override {
+            return Assert(m_context)->exit_status.load();
+        }
         bool baseInitialize(Config &config) override {
-            if (!AppInitBasicSetup(gArgs)) {
+            if (!AppInitBasicSetup(gArgs, Assert(context())->exit_status)) {
                 return false;
             }
             if (!AppInitParameterInteraction(config, gArgs)) {
@@ -100,8 +103,13 @@ namespace {
         bool appInitMain(Config &config, RPCServer &rpcServer,
                          HTTPRPCRequestProcessor &httpRPCRequestProcessor,
                          interfaces::BlockAndHeaderTipInfo *tip_info) override {
-            return AppInitMain(config, rpcServer, httpRPCRequestProcessor,
-                               *m_context, tip_info);
+            if (AppInitMain(config, rpcServer, httpRPCRequestProcessor,
+                            *m_context, tip_info)) {
+                return true;
+            }
+            // Error during initialization, set exit status before continue
+            m_context->exit_status.store(EXIT_FAILURE);
+            return false;
         }
         void appShutdown() override {
             Interrupt(*m_context);

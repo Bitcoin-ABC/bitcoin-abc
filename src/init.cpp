@@ -1775,7 +1775,7 @@ std::set<BlockFilterType> g_enabled_filter_types;
     std::terminate();
 };
 
-bool AppInitBasicSetup(const ArgsManager &args) {
+bool AppInitBasicSetup(const ArgsManager &args, std::atomic<int> &exit_status) {
 // Step 1: setup
 #ifdef _MSC_VER
     // Turn off Microsoft heap dump noise
@@ -1789,7 +1789,7 @@ bool AppInitBasicSetup(const ArgsManager &args) {
     // Enable Data Execution Prevention (DEP)
     SetProcessDEPPolicy(PROCESS_DEP_ENABLE);
 #endif
-    if (!InitShutdownState()) {
+    if (!InitShutdownState(exit_status)) {
         return InitError(
             Untranslated("Initializing wait-for-shutdown state failed."));
     }
