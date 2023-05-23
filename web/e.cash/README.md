@@ -4,7 +4,7 @@ Main website for eCash
 
 ## Building the site
 
-First run `npm install`
+First run `npm ci`
 
 ### Develop
 
