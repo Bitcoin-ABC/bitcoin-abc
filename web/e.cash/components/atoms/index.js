@@ -1,3 +1,3 @@
-import { Container, ThemeSwitch } from './styles';
+import { Container, ThemeSwitch, CenterImage, GradientSpacer } from './styles';
 
-export { Container, ThemeSwitch };
+export { Container, ThemeSwitch, CenterImage, GradientSpacer };

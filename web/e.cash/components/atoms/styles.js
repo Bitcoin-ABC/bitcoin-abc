@@ -2,8 +2,8 @@ import styled from 'styled-components';
 
 export const Container = styled.div`
     width: 100%;
+    max-width: ${props => (props.narrow ? '900px' : '1500px')};
     margin: auto;
-    max-width: 1500px;
     padding: 0 50px;
 
     ${props => props.theme.breakpoint.medium} {
@@ -19,4 +19,30 @@ export const ThemeSwitch = styled.div`
     z-index: 9999;
     background: rgba(255, 255, 255, 0.1);
     right: 30px;
+`;
+
+export const CenterImage = styled.div`
+    position: relative;
+    width: 100%;
+    height: ${props => props.height};
+    ${props => props.theme.filters.grayscale}
+
+    img {
+        object-fit: contain;
+    }
+
+    ${props => props.theme.breakpoint.medium} {
+        height: calc(${props => props.height} / 2);
+    }
+`;
+
+export const GradientSpacer = styled.div`
+    height: 100px;
+    width: 100%;
+    background-image: linear-gradient(
+        180deg,
+        ${props => props.theme.colors.darkBlue},
+        ${props => props.theme.colors.darkBackground}
+    );
+    margin-bottom: 80px;
 `;

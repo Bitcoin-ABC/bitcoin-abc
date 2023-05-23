@@ -43,7 +43,7 @@ export default createGlobalStyle`
         font-family: 'Poppins', sans-serif;
         line-height: 1.6;
         font-size: 18px;
-        background-color: ${props => props.theme.colors.darkBlue};
+        background-color: ${props => props.theme.colors.darkBackground};
         color: ${props => props.theme.colors.contrast};
         ${props => props.theme.breakpoint.medium} {
             overflow-x: hidden;
@@ -76,10 +76,12 @@ export default createGlobalStyle`
     a {
         text-decoration: none;
         cursor: pointer;
+        color: ${props => props.theme.colors.primary};
     }
 
     a:hover {
         text-decoration: none;
+        color: ${props => props.theme.colors.primaryLight}
     }
 
     p {
