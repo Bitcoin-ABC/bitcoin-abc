@@ -217,11 +217,19 @@ class MiniWallet:
         """
         # Put the largest utxo last
         self._utxos = sorted(self._utxos, key=lambda k: (k["value"], -k["height"]))
+        blocks_height = self._test_node.getblockchaininfo()["blocks"]
+        mature_coins = list(
+            filter(
+                lambda utxo: not utxo["coinbase"]
+                or COINBASE_MATURITY - 1 <= blocks_height - utxo["height"],
+                self._utxos,
+            )
+        )
         if txid:
             utxo_filter: Any = filter(lambda utxo: txid == utxo["txid"], self._utxos)
         else:
             # By default the largest utxo
-            utxo_filter = reversed(self._utxos)
+            utxo_filter = reversed(mature_coins)
         if vout is not None:
             utxo_filter = filter(lambda utxo: vout == utxo["vout"], utxo_filter)
         if confirmed_only:
@@ -242,9 +250,10 @@ class MiniWallet:
     ):
         """Returns the list of all utxos and optionally mark them as spent"""
         if not include_immature_coinbase:
+            blocks_height = self._test_node.getblockchaininfo()["blocks"]
             utxo_filter = filter(
                 lambda utxo: not utxo["coinbase"]
-                or COINBASE_MATURITY <= utxo["confirmations"],
+                or COINBASE_MATURITY - 1 <= blocks_height - utxo["height"],
                 self._utxos,
             )
         else:
