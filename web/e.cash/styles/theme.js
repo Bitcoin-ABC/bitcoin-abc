@@ -10,6 +10,9 @@ export const ecash = {
         videocover:
             'linear-gradient(9deg,#001137 18%,transparent 91%),linear-gradient(180deg,rgba(0, 0, 0, 0.46),rgba(0, 0, 0, 0.46))',
         navbarBackground: 'rgba(0, 0, 0, 0.65)',
+        coretechBackground: 'rgba(0, 17, 55, 0.2)',
+        coretechShadow1: 'rgba(0, 0, 0, 0.63)',
+        coretechShadow2: 'rgba(0, 171, 231, 0.86)',
     },
     roadmap: {
         sectionHeader: '#00abe7',
@@ -45,6 +48,9 @@ export const stealth = {
         videocover:
             'linear-gradient(9deg,#181818 18%,transparent 91%),linear-gradient(180deg,rgba(0, 0, 0, 0.46),rgba(0, 0, 0, 0.46))',
         navbarBackground: 'rgba(0, 0, 0, 0.65)',
+        coretechBackground: 'rgba(0, 0, 0, 0.5)',
+        coretechShadow1: 'rgba(0, 0, 0, 0.63)',
+        coretechShadow2: 'rgba(255, 255, 255, 0.86)',
     },
     roadmap: {
         sectionHeader: '#ffffff',

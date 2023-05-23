@@ -7,6 +7,11 @@ export const navitems = [
                 link: '/wealth-redefined',
                 icon: '/images/hand-diamond-icon.svg',
             },
+            {
+                title: 'Core Tech',
+                link: '/core-tech',
+                icon: '/images/cube-icon.svg',
+            },
         ],
     },
     {

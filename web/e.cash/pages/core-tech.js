@@ -1,0 +1,191 @@
+import Layout from '/components/layout';
+import SubPageHero from '/components/sub-page-hero';
+import H3 from '/components/h3';
+import Button from '/components/button';
+import { Container, GradientSpacer } from '/components/atoms';
+import fist from '/public/animations/fist.json';
+import avalanche from '/public/animations/avalanche.json';
+import staking from '/public/animations/staking.json';
+import govern from '/public/animations/govern.json';
+import etoken from '/public/animations/etoken.json';
+import calculate from '/public/animations/calculate.json';
+import cashfusion from '/public/animations/cashfusion.json';
+import AnimateImage from '/components/animate-image';
+import {
+    TextImageBlockCtn,
+    LeftTopArrow,
+    LeftDownArrow,
+    RightTopArrow,
+    RightDownArrow,
+    TextCtn,
+    ImageCtn,
+    ButtonRow,
+    Blob,
+    ContentCtn,
+} from '/styles/pages/core-tech.js';
+
+export default function CoreTech() {
+    const TextImageBlock = ({ title, image, reverse, speed, children }) => {
+        return (
+            <TextImageBlockCtn>
+                <LeftTopArrow />
+                <LeftDownArrow />
+                <RightTopArrow />
+                <RightDownArrow />
+                <TextCtn>
+                    <H3 text={title} />
+                    {children}
+                </TextCtn>
+                <ImageCtn>
+                    <AnimateImage
+                        image={image}
+                        reverse={reverse}
+                        speed={speed}
+                    />
+                </ImageCtn>
+            </TextImageBlockCtn>
+        );
+    };
+
+    return (
+        <Layout
+            metaTitle="Core Tech"
+            metaDescription="Welcome to the next generation of crypto investments. eCash opens the door to possibilities previously unattainable by combining the core tech behind Bitcoin’s success - the same fixed supply, halving schedule, and genesis block - with the latest Proof of Stake consensus & protocol governance. eCash is the continuation of the Bitcoin Cash project and continues to be developed by Bitcoin ABC, the team who started it back in 2017."
+        >
+            <SubPageHero
+                image={fist}
+                h2subtext="Core Tech"
+                h2text="The power of eCash"
+                imagespeed="0"
+            >
+                <p>
+                    Welcome to the next generation of crypto investments. eCash
+                    opens the door to possibilities previously unattainable by
+                    combining the core tech behind Bitcoin’s success - the same
+                    fixed supply, halving schedule, and genesis block - with the
+                    latest Proof of Stake consensus & protocol governance.
+                </p>
+                <p>
+                    eCash is the continuation of the Bitcoin Cash project and
+                    continues to be developed by Bitcoin ABC, the team who
+                    started it back in 2017.
+                </p>
+            </SubPageHero>
+            <GradientSpacer />
+            <ContentCtn>
+                <Blob left="0" top="5%" />
+                <Blob left="30%" top="30%" />
+                <Blob left="60%" top="60%" />
+                <Blob left="0" top="90%" />
+                <Container>
+                    <TextImageBlock title="AVALANCHE" image={avalanche} reverse>
+                        <p>
+                            Avalanche is a revolutionary consensus algorithm
+                            that enables instant transactions, enhanced
+                            security, and fork-free upgrades. Other bitcoin
+                            competitors (like Bitcoin Cash) lost significant
+                            value from contentious (and seemingly endless)
+                            forks.
+                        </p>
+                        <ButtonRow>
+                            <Button
+                                text="Avalanche"
+                                link="https://avalanche.cash/"
+                                corner="bottomRight"
+                                color="white"
+                            />
+                            <Button
+                                text="Whitepaper"
+                                link="https://ipfs.io/ipfs/QmUy4jh5mGNZvLkjies1RWM4YuvJh5o2FYopNPVYwrRVGV"
+                                corner="bottomRight"
+                                color="accent"
+                            />
+                        </ButtonRow>
+                    </TextImageBlock>
+
+                    <TextImageBlock
+                        title="STAKING"
+                        image={staking}
+                        reverse
+                        speed={0.6}
+                    >
+                        <p>
+                            eCash is a technical solution to a political
+                            problem: what's the best money? Monetary ecosystems
+                            have many important stakeholders. Proof of work
+                            mining has extensive empirical history and ensures
+                            that some stakeholders are incentivized to continue
+                            supporting the network.
+                        </p>
+                        <p>
+                            Recent crypto developments have also proven the
+                            value of holder-based staking. Because the focus of
+                            eCash is on building the best money possible, rather
+                            than building a Twitter religion, every technically
+                            feasible solution is on the table. Avalanche staking
+                            will be a critical part of eCash governance and user
+                            incentivization.
+                        </p>
+                    </TextImageBlock>
+
+                    <TextImageBlock title="GOVERNANCE" image={govern}>
+                        <p>
+                            Protocol revenue is continually reinvested back into
+                            the eCash ecosystem to fund key infrastructure and
+                            ecosystem growth initiatives, with funding approvals
+                            guided by the Global Network Council (GNC).
+                        </p>
+                    </TextImageBlock>
+
+                    <TextImageBlock title="ETOKENS" image={etoken} speed={0.8}>
+                        <p>
+                            eCash supports tokens that anyone can create and
+                            trade. Instantly create your own token with your own
+                            name, supply, decimal places, and icon -- all for
+                            the low cost and high speed of a single eCash
+                            transaction (much less than $0.01).
+                        </p>
+                    </TextImageBlock>
+
+                    <TextImageBlock
+                        title="SMALL, CONVENIENT DENOMINATION (BITS)"
+                        image={calculate}
+                    >
+                        <p>
+                            No other money has 8 decimal places. Why should
+                            eCash? Cryptocurrencies with a lower unit price also
+                            enjoy higher bull market appreciation. Because the
+                            eCash team is incentivized to ensure the highest
+                            currency valuation possible, this change was a
+                            no-brainer.
+                        </p>
+                    </TextImageBlock>
+
+                    <TextImageBlock title="CASHFUSION" image={cashfusion}>
+                        <p>
+                            You can't always say what you think anymore. More
+                            and more, Big Tech controls what you can see and
+                            say. On the internet, privacy is the only way to
+                            defend your individual freedom.
+                        </p>
+                        <p>
+                            eCash is built by early Bitcoin developers who have
+                            been working to solve the problem of internet and
+                            financial privacy long before Satoshi's whitepaper.
+                            Unfortunately, data analytics and tracking
+                            technology have advanced while Bitcoin privacy tech
+                            has remained stagnant.
+                        </p>
+                        <p>
+                            Privacy is fundamental to sound money. This is why
+                            eCash supports the CashFusion protocol. CashFusion
+                            offers anonymity comparable to the top privacy coins
+                            while maintaining an auditable supply cap. It can be
+                            turned on or off at any time within Electrum ABC.
+                        </p>
+                    </TextImageBlock>
+                </Container>
+            </ContentCtn>
+        </Layout>
+    );
+}
