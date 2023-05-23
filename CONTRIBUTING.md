@@ -78,6 +78,7 @@ Here are some handy links for development practices aligned with Bitcoin ABC:
 - [Trunk Based Development](https://trunkbaseddevelopment.com/)
 - [Step-by-step: Programming incrementally](https://www.gamedeveloper.com/programming/step-by-step-programming-incrementally)
 - [Semantic Compression](https://caseymuratori.com/blog_0015)
+- [Elon Musk's 5-Step Process](https://youtu.be/t705r8ICkRw?t=806)
 
 Getting set up with the Bitcoin ABC Repository
 ----------------------------------------------
