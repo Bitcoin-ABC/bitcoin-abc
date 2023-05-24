@@ -78,6 +78,14 @@ BOOST_FIXTURE_TEST_CASE(chainstate_update_tip, TestChain100Setup) {
     // After adding some blocks to the tip, best block should have changed.
     BOOST_CHECK(::g_best_block != curr_tip);
 
+    // Grab block 1 from disk; we'll add it to the background chain later.
+    std::shared_ptr<CBlock> pblockone = std::make_shared<CBlock>();
+    {
+        LOCK(::cs_main);
+        chainman.m_blockman.ReadBlockFromDisk(*pblockone,
+                                              *chainman.ActiveChain()[1]);
+    }
+
     BOOST_REQUIRE(CreateAndActivateUTXOSnapshot(this, NoMalleation,
                                                 /*reset_chainstate=*/true));
 
@@ -107,13 +115,7 @@ BOOST_FIXTURE_TEST_CASE(chainstate_update_tip, TestChain100Setup) {
         assert(false);
     }()};
 
-    // Create a block to append to the validation chain.
-    std::vector<CMutableTransaction> noTxns;
-    CScript scriptPubKey = CScript() << ToByteVector(coinbaseKey.GetPubKey())
-                                     << OP_CHECKSIG;
-    CBlock validation_block =
-        this->CreateBlock(noTxns, scriptPubKey, background_cs);
-    auto pblock = std::make_shared<const CBlock>(validation_block);
+    // Append the first block to the background chain.
     BlockValidationState state;
     bool newblock = false;
 
@@ -124,19 +126,19 @@ BOOST_FIXTURE_TEST_CASE(chainstate_update_tip, TestChain100Setup) {
         LOCK(::cs_main);
         BlockValidationOptions options{config};
         bool checked = CheckBlock(
-            *pblock, state, config.GetChainParams().GetConsensus(), options);
+            *pblockone, state, config.GetChainParams().GetConsensus(), options);
         BOOST_CHECK(checked);
-        bool accepted =
-            chainman.AcceptBlock(pblock, state, true, nullptr, &newblock, true);
+        bool accepted = chainman.AcceptBlock(pblockone, state, true, nullptr,
+                                             &newblock, true);
         BOOST_CHECK(accepted);
     }
 
     // UpdateTip is called here
-    bool block_added = background_cs.ActivateBestChain(state, pblock);
+    bool block_added = background_cs.ActivateBestChain(state, pblockone);
 
     // Ensure tip is as expected
     BOOST_CHECK_EQUAL(background_cs.m_chain.Tip()->GetBlockHash(),
-                      validation_block.GetHash());
+                      pblockone->GetHash());
 
     // g_best_block should be unchanged after adding a block to the background
     // validation chain.
