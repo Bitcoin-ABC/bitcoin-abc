@@ -12,6 +12,11 @@ export const navitems = [
                 link: '/core-tech',
                 icon: '/images/cube-icon.svg',
             },
+            {
+                title: 'eCash Brand',
+                link: '/ecash-brand',
+                icon: '/images/dna-icon.svg',
+            },
         ],
     },
     {
