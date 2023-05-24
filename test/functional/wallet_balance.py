@@ -10,8 +10,6 @@ from test_framework.address import ADDRESS_ECREG_UNSPENDABLE as ADDRESS_WATCHONL
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
 
-FAR_IN_THE_FUTURE = 2000000000
-
 
 def create_transactions(node, address, amt, fees):
     # Create and sign raw transactions from node to address for amt.
@@ -48,19 +46,8 @@ class WalletTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
         self.setup_clean_chain = True
-        self.extra_args = [
-            # Limit mempool descendants as a hack to have wallet txs rejected
-            # from the mempool. This will no longer work after wellington, so
-            # move the activation in the future for this test.
-            [
-                "-limitdescendantcount=3",
-                f"-wellingtonactivationtime={FAR_IN_THE_FUTURE}",
-            ],
-            [],
-        ]
         # whitelist peers to speed up tx relay / mempool sync
-        for args in self.extra_args:
-            args.append("-whitelist=noban@127.0.0.1")
+        self.extra_args = [["-whitelist=noban@127.0.0.1"]] * self.num_nodes
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -298,11 +285,10 @@ class WalletTest(BitcoinTestFramework):
         after = self.nodes[1].getbalances()["mine"]["untrusted_pending"]
         assert_equal(before + Decimal("100000"), after)
 
-        # Create 3 more wallet txs, where the last is not accepted to the
-        # mempool because it is the third descendant of the tx above
-        for _ in range(3):
-            # Set amount high enough such that all coins are spent by each tx
-            txid = self.nodes[0].sendtoaddress(self.nodes[0].getnewaddress(), 99000000)
+        # Create a wallet txs which is not added to the mempool
+        txid = self.nodes[0].createwallettransaction(
+            self.nodes[0].getnewaddress(), 99000000
+        )
 
         self.log.info("Check that wallet txs not in the mempool are untrusted")
         assert txid not in self.nodes[0].getrawmempool()
@@ -328,14 +314,9 @@ class WalletTest(BitcoinTestFramework):
         block_reorg = self.generatetoaddress(self.nodes[1], 1, ADDRESS_WATCHONLY)[0]
         assert_equal(self.nodes[0].getbalance(minconf=0), total_amount)
 
-        self.log.info("Put txs back into mempool of node 1 (not node 0)")
+        self.log.info("Put txs back into the mempool of nodes")
         self.nodes[0].invalidateblock(block_reorg)
         self.nodes[1].invalidateblock(block_reorg)
-        # wallet txs not in the mempool are untrusted
-        assert_equal(self.nodes[0].getbalance(minconf=0), 0)
-        self.generatetoaddress(self.nodes[0], 1, ADDRESS_WATCHONLY, sync_fun=self.no_op)
-        # wallet txs not in the mempool are untrusted
-        assert_equal(self.nodes[0].getbalance(minconf=0), 0)
 
         # Now confirm tx_orig
         self.restart_node(1, ["-persistmempool=0"])

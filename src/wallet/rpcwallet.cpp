@@ -289,7 +289,8 @@ void ParseRecipients(const UniValue &address_amounts,
 }
 
 UniValue SendMoney(CWallet *const pwallet, const CCoinControl &coin_control,
-                   std::vector<CRecipient> &recipients, mapValue_t map_value) {
+                   std::vector<CRecipient> &recipients, mapValue_t map_value,
+                   bool broadcast = true) {
     EnsureWalletIsUnlocked(pwallet);
 
     // Shuffle recipient list
@@ -307,7 +308,8 @@ UniValue SendMoney(CWallet *const pwallet, const CCoinControl &coin_control,
     if (!fCreated) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, error.original);
     }
-    pwallet->CommitTransaction(tx, std::move(map_value), {} /* orderForm */);
+    pwallet->CommitTransaction(tx, std::move(map_value), {} /* orderForm */,
+                               broadcast);
     return tx->GetId().GetHex();
 }
 
@@ -4882,6 +4884,56 @@ static RPCHelpMan upgradewallet() {
 
 RPCHelpMan signmessage();
 
+static RPCHelpMan createwallettransaction() {
+    return RPCHelpMan{
+        "createwallettransaction",
+        "Create a transaction sending an amount to a given address.\n" +
+            HELP_REQUIRING_PASSPHRASE,
+        {
+            {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
+             "The bitcoin address to send to."},
+            {"amount", RPCArg::Type::AMOUNT, RPCArg::Optional::NO,
+             "The amount in " + Currency::get().ticker + " to send. eg 0.1"},
+        },
+        RPCResult{RPCResult::Type::STR_HEX, "txid", "The transaction id."},
+        RPCExamples{
+            HelpExampleCli("createwallettransaction",
+                           "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 100000") +
+            HelpExampleRpc("createwallettransaction",
+                           "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 100000")},
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            std::shared_ptr<CWallet> const wallet =
+                GetWalletForJSONRPCRequest(request);
+            if (!wallet) {
+                return NullUniValue;
+            }
+            CWallet *const pwallet = wallet.get();
+
+            // Make sure the results are valid at least up to the most recent
+            // block the user could have gotten from another RPC command prior
+            // to now
+            pwallet->BlockUntilSyncedToCurrentChain();
+
+            LOCK(pwallet->cs_wallet);
+
+            EnsureWalletIsUnlocked(pwallet);
+
+            UniValue address_amounts(UniValue::VOBJ);
+            const std::string address = request.params[0].get_str();
+            address_amounts.pushKV(address, request.params[1]);
+            UniValue subtractFeeFromAmount(UniValue::VARR);
+
+            std::vector<CRecipient> recipients;
+            ParseRecipients(address_amounts, subtractFeeFromAmount, recipients,
+                            wallet->GetChainParams());
+
+            CCoinControl coin_control;
+            return SendMoney(pwallet, coin_control, recipients, {}, false);
+        },
+    };
+}
+
 Span<const CRPCCommand> GetWalletRPCCommands() {
     // clang-format off
     static const CRPCCommand commands[] = {
@@ -4929,6 +4981,8 @@ Span<const CRPCCommand> GetWalletRPCCommands() {
         { "wallet",             upgradewallet,                 },
         { "wallet",             walletcreatefundedpsbt,        },
         { "wallet",             walletprocesspsbt,             },
+        // For testing purpose
+        { "hidden",             createwallettransaction,       },
     };
     // clang-format on
 

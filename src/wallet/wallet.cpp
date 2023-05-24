@@ -2120,7 +2120,8 @@ CWallet::TransactionChangeType(const std::optional<OutputType> &change_type,
 
 void CWallet::CommitTransaction(
     CTransactionRef tx, mapValue_t mapValue,
-    std::vector<std::pair<std::string, std::string>> orderForm) {
+    std::vector<std::pair<std::string, std::string>> orderForm,
+    bool broadcast) {
     LOCK(cs_wallet);
 
     WalletLogPrintfToBeContinued("CommitTransaction:\n%s", tx->ToString());
@@ -2148,8 +2149,9 @@ void CWallet::CommitTransaction(
     // fInMempool flag is cached properly
     CWalletTx &wtx = mapWallet.at(tx->GetId());
 
-    if (!fBroadcastTransactions) {
-        // Don't submit tx to the mempool
+    if (!broadcast || !fBroadcastTransactions) {
+        // Don't submit tx to the mempool if the flag is unset for this single
+        // transaction, or if the wallet doesn't broadcast transactions at all.
         return;
     }
 

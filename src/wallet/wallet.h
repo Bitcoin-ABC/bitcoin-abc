@@ -669,18 +669,20 @@ public:
              bool sign = true, bool bip32derivs = true) const;
 
     /**
-     * Submit the transaction to the node's mempool and then relay to peers.
-     * Should be called after CreateTransaction unless you want to abort
-     * broadcasting the transaction.
+     * Add the transaction to the wallet and maybe attempt to broadcast it.
+     * Should be called after CreateTransaction. The broadcast flag can be set
+     * to false if you want to abort broadcasting the transaction.
      *
      * @param[in] tx The transaction to be broadcast.
      * @param[in] mapValue key-values to be set on the transaction.
      * @param[in] orderForm BIP 70 / BIP 21 order form details to be set on the
      * transaction.
+     * @param[in] broadcast Whether to broadcast this transaction.
      */
     void CommitTransaction(
         CTransactionRef tx, mapValue_t mapValue,
-        std::vector<std::pair<std::string, std::string>> orderForm);
+        std::vector<std::pair<std::string, std::string>> orderForm,
+        bool broadcast = true);
 
     /**
      * Pass this transaction to node for mempool insertion and relay to peers
