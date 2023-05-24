@@ -4,6 +4,8 @@
 
 'use strict';
 const config = require('../config');
+const opReturn = require('../constants/op_return');
+const knownMiners = require('../constants/miners');
 const cashaddr = require('ecashaddrjs');
 const BigNumber = require('bignumber.js');
 const {
@@ -39,7 +41,6 @@ module.exports = {
         return { hash, height, miner, numTxs, parsedTxs, tokenIds };
     },
     getMinerFromCoinbase: function (coinbaseHexString) {
-        const knownMiners = config.knownMiners;
         let miner = 'unknown';
         // Iterate over known miners to find a match
         for (let i = 0; i < knownMiners.length; i += 1) {
@@ -159,9 +160,7 @@ module.exports = {
             }
             // Don't parse OP_RETURN values of etoken txs, this info is available from chronik
             if (
-                thisOutput.outputScript.startsWith(
-                    config.opReturn.opReturnPrefix,
-                ) &&
+                thisOutput.outputScript.startsWith(opReturn.opReturnPrefix) &&
                 !isTokenTx
             ) {
                 opReturnInfo = module.exports.parseOpReturn(
@@ -228,16 +227,14 @@ module.exports = {
         let msg;
 
         // Determine if this is an OP_RETURN field
-        const isOpReturn =
-            outputScript.slice(0, 2) === config.opReturn.opReturnPrefix;
+        const isOpReturn = outputScript.slice(0, 2) === opReturn.opReturnPrefix;
         if (!isOpReturn) {
             return false;
         }
 
         // Determine if this is a memo tx
         // Memo txs have a shorter prefix and require special processing
-        const isMemoTx =
-            outputScript.slice(2, 6) === config.opReturn.memo.prefix;
+        const isMemoTx = outputScript.slice(2, 6) === opReturn.memo.prefix;
         if (isMemoTx) {
             // memo txs require special processing
             // Send the unprocessed remainder of the string to a specialized function
@@ -247,13 +244,12 @@ module.exports = {
         // Parse for app prefix
         // See https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/web/standards/op_return-prefix-guideline.md
         const hasAppPrefix =
-            outputScript.slice(2, 4) ===
-            config.opReturn.opReturnAppPrefixLength;
+            outputScript.slice(2, 4) === opReturn.opReturnAppPrefixLength;
 
         if (hasAppPrefix) {
             const appPrefix = outputScript.slice(4, 12);
-            if (Object.keys(config.opReturn.appPrefixes).includes(appPrefix)) {
-                app = config.opReturn.appPrefixes[appPrefix];
+            if (Object.keys(opReturn.appPrefixes).includes(appPrefix)) {
+                app = opReturn.appPrefixes[appPrefix];
             } else {
                 app = 'unknown app';
             }
@@ -300,7 +296,7 @@ module.exports = {
             // Check first byte for the message length or 4c + message length
             let byteValue = hexStr.slice(0, 2);
             let msgByteSize = 0;
-            if (byteValue === config.opReturn.opPushDataOne) {
+            if (byteValue === opReturn.opPushDataOne) {
                 // If this byte is 4c, then the next byte is the message byte size.
                 // Retrieve the message byte size and convert from hex to decimal
                 msgByteSize = parseInt(hexStr.substring(2, 4), 16);
@@ -333,7 +329,7 @@ module.exports = {
         // Remove the memo prefix, already processed
         memoHexStr = memoHexStr.slice(6);
         // At the beginning of this function, we have already popped off '0d6d'
-        let app = config.opReturn.memo.app;
+        let app = opReturn.memo.app;
         let msg = '';
         for (let i = 0; memoHexStr !== 0; i++) {
             // Get the memo action code
@@ -345,14 +341,14 @@ module.exports = {
                 case '01' || '02' || '05' || '0a' || '0c' || '0d' || '0e':
                     // Action codes where the entire string may be parsed to utf8
                     msg += `${
-                        config.opReturn.memo[actionCode]
+                        opReturn.memo[actionCode]
                     }|${module.exports.hexOpReturnToUtf8(memoHexStr)}`;
                     break;
                 default:
                     // parse the rest of the string like a normal op_return utf8 string
                     msg += `${
-                        Object.keys(config.opReturn.memo).includes(actionCode)
-                            ? config.opReturn.memo[actionCode]
+                        Object.keys(opReturn.memo).includes(actionCode)
+                            ? opReturn.memo[actionCode]
                             : ''
                     }|${module.exports.hexOpReturnToUtf8(memoHexStr)}`;
             }
@@ -525,7 +521,7 @@ module.exports = {
 
             // Throw out OP_RETURN outputs for txs parsed as XEC send txs
             xecReceivingAddressOutputs.forEach((value, key, map) => {
-                if (key.startsWith(config.opReturn.opReturnPrefix)) {
+                if (key.startsWith(opReturn.opReturnPrefix)) {
                     map.delete(key);
                 }
             });

@@ -4,7 +4,7 @@
 
 'use strict';
 const assert = require('assert');
-const config = require('../config');
+const opReturn = require('../constants/op_return');
 const unrevivedBlocks = require('./mocks/blocks');
 const { jsonReviver } = require('../src/utils');
 const blocks = JSON.parse(JSON.stringify(unrevivedBlocks), jsonReviver);
@@ -36,7 +36,7 @@ describe('parse.js functions', function () {
     });
     it(`parseMemoOutputScript correctly parses all tested memo actions in memo.js`, function () {
         memoOutputScripts.map(memoTestObj => {
-            const app = config.opReturn.memo.app;
+            const app = opReturn.memo.app;
             const { outputScript, parsed } = memoTestObj;
             assert.deepEqual(parseMemoOutputScript(outputScript), {
                 app,
