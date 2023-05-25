@@ -28,12 +28,12 @@ export const H2Image = styled.div`
     width: 380px;
     height: 60px;
     position: absolute;
-    top: 40px;
+    bottom: -40px;
     left: 0;
     ${props => props.theme.filters.grayscale};
     ${props => props.theme.breakpoint.medium} {
         width: 300px;
         height: 47px;
-        top: 27px;
+        bottom: -27px;
     }
 `;
