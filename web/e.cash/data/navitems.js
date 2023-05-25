@@ -13,6 +13,11 @@ export const navitems = [
                 icon: '/images/cube-icon.svg',
             },
             {
+                title: 'FAQ',
+                link: '/faq',
+                icon: '/images/hands-logo-icon.svg',
+            },
+            {
                 title: 'eCash Brand',
                 link: '/ecash-brand',
                 icon: '/images/dna-icon.svg',
