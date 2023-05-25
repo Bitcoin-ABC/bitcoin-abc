@@ -5,7 +5,9 @@
 #ifndef BITCOIN_UTIL_VECTOR_H
 #define BITCOIN_UTIL_VECTOR_H
 
+#include <functional>
 #include <initializer_list>
+#include <optional>
 #include <type_traits>
 #include <vector>
 
@@ -44,6 +46,16 @@ template <typename V> inline V Cat(V v1, const V &v2) {
         v1.push_back(arg);
     }
     return v1;
+}
+
+template <typename V, typename L>
+inline std::optional<V> FindFirst(const std::vector<V> &vec, const L fnc) {
+    for (const auto &el : vec) {
+        if (fnc(el)) {
+            return el;
+        }
+    }
+    return std::nullopt;
 }
 
 #endif // BITCOIN_UTIL_VECTOR_H

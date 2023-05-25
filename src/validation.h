@@ -1621,14 +1621,4 @@ bool DeploymentActiveAt(const CBlockIndex &index,
     return DeploymentActiveAt(index, chainman.GetConsensus(), dep);
 }
 
-/**
- * Return the expected assumeutxo value for a given height, if one exists.
- *
- * @param[in] height Get the assumeutxo value for this height.
- *
- * @returns empty if no assumeutxo configuration exists for the given height.
- */
-const AssumeutxoData *ExpectedAssumeutxo(const int height,
-                                         const CChainParams &params);
-
 #endif // BITCOIN_VALIDATION_H

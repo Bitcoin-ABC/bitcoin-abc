@@ -12,6 +12,7 @@
 #include <protocol.h>
 #include <uint256.h>
 #include <util/hash_type.h>
+#include <util/vector.h>
 
 #include <cstdint>
 #include <iterator>
@@ -44,8 +45,10 @@ struct AssumeutxoHash : public BaseHash<uint256> {
  * are recognized as valid.
  */
 struct AssumeutxoData {
+    int height;
+
     //! The expected hash of the deserialized UTXO set.
-    const AssumeutxoHash hash_serialized;
+    AssumeutxoHash hash_serialized;
 
     //! Used to populate the nChainTx value, which is used during
     //! BlockManager::LoadBlockIndex().
@@ -53,10 +56,12 @@ struct AssumeutxoData {
     //! We need to hardcode the value here because this is computed cumulatively
     //! using block data, which we do not necessarily have at the time of
     //! snapshot load.
-    const unsigned int nChainTx;
-};
+    unsigned int nChainTx;
 
-using MapAssumeutxo = std::map<int, const AssumeutxoData>;
+    //! The hash of the base block for this snapshot. Used to refer to
+    //! assumeutxo data prior to having a loaded blockindex.
+    BlockHash blockhash;
+};
 
 /**
  * Holds various statistics on transactions within a chain. Used to estimate
@@ -133,9 +138,16 @@ public:
     const std::vector<SeedSpec6> &FixedSeeds() const { return vFixedSeeds; }
     const CCheckpointData &Checkpoints() const { return checkpointData; }
 
-    //! Get allowed assumeutxo configuration.
-    //! @see ChainstateManager
-    const MapAssumeutxo &Assumeutxo() const { return m_assumeutxo_data; }
+    std::optional<AssumeutxoData> AssumeutxoForHeight(int height) const {
+        return FindFirst(m_assumeutxo_data,
+                         [&](const auto &d) { return d.height == height; });
+    }
+    std::optional<AssumeutxoData>
+    AssumeutxoForBlockhash(const BlockHash &blockhash) const {
+        return FindFirst(m_assumeutxo_data, [&](const auto &d) {
+            return d.blockhash == blockhash;
+        });
+    }
 
     const ChainTxData &TxData() const { return chainTxData; }
 
@@ -172,7 +184,7 @@ protected:
     bool m_is_test_chain;
     bool m_is_mockable_chain;
     CCheckpointData checkpointData;
-    MapAssumeutxo m_assumeutxo_data;
+    std::vector<AssumeutxoData> m_assumeutxo_data;
     ChainTxData chainTxData;
 
     friend const std::vector<std::string>

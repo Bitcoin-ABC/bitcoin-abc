@@ -143,21 +143,22 @@ BOOST_AUTO_TEST_CASE(test_assumeutxo) {
     std::vector<int> bad_heights{0, 100, 111, 115, 209, 211};
 
     for (auto empty : bad_heights) {
-        const auto out = ExpectedAssumeutxo(empty, *params);
+        const auto out = params->AssumeutxoForHeight(empty);
         BOOST_CHECK(!out);
     }
 
-    const auto out110 = *ExpectedAssumeutxo(110, *params);
+    const auto out110 = *params->AssumeutxoForHeight(110);
     BOOST_CHECK_EQUAL(
         out110.hash_serialized.ToString(),
         "d754ca97ef24c5132f8d2147c19310b7a6bd136766430304735a73372fe36213");
     BOOST_CHECK_EQUAL(out110.nChainTx, (unsigned int)110);
 
-    const auto out210 = *ExpectedAssumeutxo(210, *params);
+    const auto out110_2 = *params->AssumeutxoForBlockhash(BlockHash{uint256S(
+        "0x47cfb2b77860d250060e78d3248bb050928765453cbcbdbc121e3c48b99a376c")});
     BOOST_CHECK_EQUAL(
-        out210.hash_serialized.ToString(),
-        "73b4bc8dd69649c6e9ede39b156713109bf044d2466661a3fe8a8b91ba601849");
-    BOOST_CHECK_EQUAL(out210.nChainTx, (unsigned int)210);
+        out110_2.hash_serialized.ToString(),
+        "d754ca97ef24c5132f8d2147c19310b7a6bd136766430304735a73372fe36213");
+    BOOST_CHECK_EQUAL(out110_2.nChainTx, 110U);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

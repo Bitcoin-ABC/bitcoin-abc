@@ -302,12 +302,12 @@ struct SnapshotTestSetup : TestChain100Setup {
             BOOST_CHECK(!chainman.ActiveChain().Genesis()->IsAssumedValid());
         }
 
-        const AssumeutxoData &au_data =
-            *ExpectedAssumeutxo(snapshot_height, chainman.GetParams());
+        const auto &au_data =
+            chainman.GetParams().AssumeutxoForHeight(snapshot_height);
         const CBlockIndex *tip =
             WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip());
 
-        BOOST_CHECK_EQUAL(tip->nChainTx, au_data.nChainTx);
+        BOOST_CHECK_EQUAL(tip->nChainTx, au_data->nChainTx);
 
         // To be checked against later when we try loading a subsequent
         // snapshot.
