@@ -3,6 +3,7 @@ export const ecash = {
         primary: '#0074c2',
         primaryLight: '#00abe7',
         accent: '#ff21d0',
+        accentDark: '#CD0BC3',
         darkBackground: '#050d27',
         contrast: '#ffffff',
         black: '#000',
@@ -13,6 +14,7 @@ export const ecash = {
         coretechBackground: 'rgba(0, 17, 55, 0.2)',
         coretechShadow1: 'rgba(0, 0, 0, 0.63)',
         coretechShadow2: 'rgba(0, 171, 231, 0.86)',
+        colorSwatchBackground: 'rgba(255,255,255, 0.2)',
     },
     roadmap: {
         sectionHeader: '#00abe7',
@@ -41,6 +43,7 @@ export const stealth = {
         primary: '#7f7f7f',
         primaryLight: '#a0a0a0',
         accent: '#8a8a8a',
+        accentDark: '#797878',
         darkBackground: '#232324',
         contrast: '#ffffff',
         black: '#000',
@@ -51,6 +54,7 @@ export const stealth = {
         coretechBackground: 'rgba(0, 0, 0, 0.5)',
         coretechShadow1: 'rgba(0, 0, 0, 0.63)',
         coretechShadow2: 'rgba(255, 255, 255, 0.86)',
+        colorSwatchBackground: 'rgba(255,255,255, 0.2)',
     },
     roadmap: {
         sectionHeader: '#ffffff',
