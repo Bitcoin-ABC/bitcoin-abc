@@ -5090,7 +5090,7 @@ VerifyDBResult CVerifyDB::VerifyDB(Chainstate &chainstate,
     bool skipped_l3_checks{false};
     LogPrintf("Verification progress: 0%%\n");
 
-    const bool is_snapshot_cs{!chainstate.m_from_snapshot_blockhash};
+    const bool is_snapshot_cs{chainstate.m_from_snapshot_blockhash};
 
     for (pindex = chainstate.m_chain.Tip(); pindex && pindex->pprev;
          pindex = pindex->pprev) {
