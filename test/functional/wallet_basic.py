@@ -16,12 +16,8 @@ from test_framework.util import (
 )
 from test_framework.wallet_util import test_address
 
-FAR_IN_THE_FUTURE = 2000000000
-
 
 class WalletTest(BitcoinTestFramework):
-    WELLINGTON_FAR_FUTURE = f"-wellingtonactivationtime={int(9e9)}"
-
     def set_test_params(self):
         self.num_nodes = 4
         self.setup_clean_chain = True
@@ -29,10 +25,6 @@ class WalletTest(BitcoinTestFramework):
             [
                 "-acceptnonstdtxn=1",
                 "-whitelist=noban@127.0.0.1",
-                # This test tests mempool ancestor chain limits, which are no
-                # longer enforced after wellington, so we need to force
-                # wellington to activate in the distant future
-                f"-wellingtonactivationtime={FAR_IN_THE_FUTURE}",
             ],
         ] * self.num_nodes
         self.supports_cli = False
@@ -608,82 +600,6 @@ class WalletTest(BitcoinTestFramework):
         assert_equal(len(coinbase_tx_1["transactions"]), 1)
         assert_equal(coinbase_tx_1["transactions"][0]["blockhash"], blocks[1])
         assert_equal(len(self.nodes[0].listsinceblock(blocks[1])["transactions"]), 0)
-
-        # ==Check that wallet prefers to use coins that don't exceed mempool li
-
-        # Get all non-zero utxos together
-        chain_addrs = [self.nodes[0].getnewaddress(), self.nodes[0].getnewaddress()]
-        singletxid = self.nodes[0].sendtoaddress(
-            chain_addrs[0], self.nodes[0].getbalance(), "", "", True
-        )
-        self.generate(self.nodes[0], 1, sync_fun=self.no_op)
-        node0_balance = self.nodes[0].getbalance()
-        # Split into two chains
-        rawtx = self.nodes[0].createrawtransaction(
-            [{"txid": singletxid, "vout": 0}],
-            {
-                chain_addrs[0]: node0_balance / 2 - Decimal("10000"),
-                chain_addrs[1]: node0_balance / 2 - Decimal("10000"),
-            },
-        )
-        signedtx = self.nodes[0].signrawtransactionwithwallet(rawtx)
-        singletxid = self.nodes[0].sendrawtransaction(
-            hexstring=signedtx["hex"], maxfeerate=0
-        )
-        self.generate(self.nodes[0], 1, sync_fun=self.no_op)
-
-        # Make a long chain of unconfirmed payments without hitting mempool limit
-        # Each tx we make leaves only one output of change on a chain 1 longer
-        # Since the amount to send is always much less than the outputs, we only ever need one output
-        # So we should be able to generate exactly chainlimit txs for each
-        # original output
-        sending_addr = self.nodes[1].getnewaddress()
-        txid_list = []
-        for _ in range(chainlimit * 2):
-            txid_list.append(
-                self.nodes[0].sendtoaddress(sending_addr, Decimal("10000"))
-            )
-        assert_equal(self.nodes[0].getmempoolinfo()["size"], chainlimit * 2)
-        assert_equal(len(txid_list), chainlimit * 2)
-
-        # Without walletrejectlongchains, we will still generate a txid
-        # The tx will be stored in the wallet but not accepted to the mempool
-        extra_txid = self.nodes[0].sendtoaddress(sending_addr, Decimal("10000"))
-        assert extra_txid not in self.nodes[0].getrawmempool()
-        assert extra_txid in [tx["txid"] for tx in self.nodes[0].listtransactions()]
-        self.nodes[0].abandontransaction(extra_txid)
-        total_txs = len(self.nodes[0].listtransactions("*", 99999))
-
-        # Try with walletrejectlongchains
-        # Double chain limit but require combining inputs, so we pass
-        # SelectCoinsMinConf
-        self.stop_node(0)
-        self.start_node(
-            0,
-            self.extra_args[0]
-            + ["-walletrejectlongchains", f"-limitancestorcount={str(2 * chainlimit)}"],
-        )
-
-        # wait until the wallet has submitted all transactions to the mempool
-        self.wait_until(lambda: len(self.nodes[0].getrawmempool()) == chainlimit * 2)
-
-        # Prevent potential race condition when calling wallet RPCs right after
-        # restart
-        self.nodes[0].syncwithvalidationinterfacequeue()
-
-        node0_balance = self.nodes[0].getbalance()
-        # With walletrejectlongchains we will not create the tx and store it in
-        # our wallet.
-        assert_raises_rpc_error(
-            -6,
-            "Transaction has too long of a mempool chain",
-            self.nodes[0].sendtoaddress,
-            sending_addr,
-            node0_balance - Decimal("10000"),
-        )
-
-        # Verify nothing new in wallet
-        assert_equal(total_txs, len(self.nodes[0].listtransactions("*", 99999)))
 
         # Test getaddressinfo on external address. Note that these addresses
         # are taken from disablewallet.py

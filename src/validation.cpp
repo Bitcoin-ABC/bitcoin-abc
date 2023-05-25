@@ -704,19 +704,6 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
             strprintf("%d < %d", ws.m_modified_fees, mempoolRejectFee));
     }
 
-    // Remove after wellington
-    if (!m_pool.wellingtonLatched) {
-        // Calculate in-mempool ancestors, up to a limit.
-        std::string errString;
-        if (!m_pool.CalculateMemPoolAncestors(
-                *entry, ws.m_ancestors, m_limit_ancestors,
-                m_limit_ancestor_size, m_limit_descendants,
-                m_limit_descendant_size, errString)) {
-            return state.Invalid(TxValidationResult::TX_MEMPOOL_POLICY,
-                                 "too-long-mempool-chain", errString);
-        }
-    }
-
     return true;
 }
 
@@ -916,15 +903,6 @@ MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
     const Consensus::Params &consensusParams =
         args.m_config.GetChainParams().GetConsensus();
     const CBlockIndex *tip = m_active_chainstate.m_chain.Tip();
-
-    // After wellington we will stop computing the ancestors and descendant
-    // limits, and stop enforcing them. Because the mempool has no idea what the
-    // current tip is (and it should not), we will use an activation latch so it
-    // knows when the statistics can be skipped. This also makes an hypothetical
-    // reorg event easier to handle.
-    // Note that |= operator is not defined for atomic bool !
-    m_pool.wellingtonLatched =
-        m_pool.wellingtonLatched || IsWellingtonEnabled(consensusParams, tip);
 
     Workspace ws(ptx, GetNextBlockScriptFlags(consensusParams, tip));
 

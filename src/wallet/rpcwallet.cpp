@@ -3251,22 +3251,6 @@ static RPCHelpMan listunspent() {
                 entry.pushKV("scriptPubKey", HexStr(scriptPubKey));
                 entry.pushKV("amount", out.tx->tx->vout[out.i].nValue);
                 entry.pushKV("confirmations", out.nDepth);
-
-                // Deprecated in v0.27.0
-                if (!out.nDepth &&
-                    IsDeprecatedRPCEnabled(gArgs,
-                                           "mempool_ancestors_descendants")) {
-                    size_t ancestor_count, descendant_count, ancestor_size;
-                    Amount ancestor_fees;
-                    pwallet->chain().getTransactionAncestry(
-                        out.tx->GetId(), ancestor_count, descendant_count,
-                        &ancestor_size, &ancestor_fees);
-                    if (ancestor_count) {
-                        entry.pushKV("ancestorcount", uint64_t(ancestor_count));
-                        entry.pushKV("ancestorsize", uint64_t(ancestor_size));
-                        entry.pushKV("ancestorfees", ancestor_fees);
-                    }
-                }
                 entry.pushKV("spendable", out.fSpendable);
                 entry.pushKV("solvable", out.fSolvable);
                 if (out.fSolvable) {

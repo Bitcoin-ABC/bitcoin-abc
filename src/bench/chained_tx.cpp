@@ -131,21 +131,11 @@ static std::vector<CTransactionRef> twoInOneOutTree(const Config &config,
 static void benchATMP(const Config &config, node::NodeContext &node,
                       benchmark::Bench &bench,
                       const std::vector<CTransactionRef> chainedTxs) {
-    // ATMP uses gArgs, so we oblige
-    gArgs.ForceSetArg("-limitdescendantcount", ToString(chainedTxs.size()));
-    gArgs.ForceSetArg("-limitancestorcount", ToString(chainedTxs.size()));
-    gArgs.ForceSetArg("-limitancestorsize", ToString(chainedTxs.size() * 1000));
-    gArgs.ForceSetArg("-limitdescendantsize",
-                      ToString(chainedTxs.size() * 1000));
-
     auto chainman = Assert(node.chainman.get());
     Chainstate &activeChainState = chainman->ActiveChainstate();
 
     CTxMemPool &mempool{*Assert(activeChainState.GetMempool())};
     assert(mempool.size() == 0);
-
-    // test with wellington latched (faster)
-    const bool wellingtonBefore = mempool.wellingtonLatched.exchange(true);
 
     bench.run([&] {
         LOCK(::cs_main);
@@ -158,14 +148,6 @@ static void benchATMP(const Config &config, node::NodeContext &node,
         }
         mempool.clear();
     });
-
-    // restore state
-    mempool.wellingtonLatched = wellingtonBefore;
-
-    gArgs.ClearForcedArg("-limitdescendantcount");
-    gArgs.ClearForcedArg("-limitancestorcount");
-    gArgs.ClearForcedArg("-limitancestorsize");
-    gArgs.ClearForcedArg("-limitdescendantsize");
 }
 
 /// Run benchmark that reorganizes blocks with one-input-one-output transaction
@@ -195,9 +177,6 @@ static void benchReorg(const Config &config, node::NodeContext &node,
     CTxMemPool &mempool{*Assert(activeChainState.GetMempool())};
     assert(mempool.size() == 0);
 
-    // test with wellington latched (faster)
-    const bool wellingtonBefore = mempool.wellingtonLatched.exchange(true);
-
     // Build blocks
     TestMemPoolEntryHelper entry;
     entry.nFee = 1337 * SATOSHI;
@@ -224,14 +203,6 @@ static void benchReorg(const Config &config, node::NodeContext &node,
         }
     }
     CBlockIndex *mostWorkTip = activeChainState.m_chain.Tip();
-
-    // `AcceptToMemoryPool` is used during re-org, so we need to ajust its
-    // limits.
-    gArgs.ForceSetArg("-limitdescendantcount", ToString(chainSizePerBlock));
-    gArgs.ForceSetArg("-limitancestorcount", ToString(chainSizePerBlock));
-    gArgs.ForceSetArg("-limitancestorsize", ToString(chainSizePerBlock * 1000));
-    gArgs.ForceSetArg("-limitdescendantsize",
-                      ToString(chainSizePerBlock * 1000));
 
     bench.run([&] {
         BlockValidationState state;
@@ -265,14 +236,6 @@ static void benchReorg(const Config &config, node::NodeContext &node,
         assert(activeChainState.m_chain.Tip() == mostWorkTip);
         assert(mempool.size() == 0);
     });
-
-    // restore state
-    mempool.wellingtonLatched = wellingtonBefore;
-
-    gArgs.ClearForcedArg("-limitdescendantcount");
-    gArgs.ClearForcedArg("-limitancestorcount");
-    gArgs.ClearForcedArg("-limitancestorsize");
-    gArgs.ClearForcedArg("-limitdescendantsize");
 }
 
 static void
@@ -285,9 +248,6 @@ benchGenerateNewBlock(const Config &config, node::NodeContext &node,
     auto chainman = Assert(node.chainman.get());
     Chainstate &activeChainState = chainman->ActiveChainstate();
     CTxMemPool &mempool{*Assert(activeChainState.GetMempool())};
-
-    // test with wellington latched (faster)
-    const bool wellingtonBefore = mempool.wellingtonLatched.exchange(true);
 
     // Fill mempool
     size_t txCount = 0;
@@ -313,9 +273,6 @@ benchGenerateNewBlock(const Config &config, node::NodeContext &node,
         // +1 for coinbase
         assert(blocktemplate->block.vtx.size() == txCount + 1);
     });
-
-    // restore state
-    mempool.wellingtonLatched = wellingtonBefore;
 }
 
 static void
@@ -334,8 +291,6 @@ benchEviction(const Config &, benchmark::Bench &bench,
          ++i) {
         pools.emplace_back();
         CTxMemPool &pool = pools.back();
-        // test with wellington latched (faster)
-        pool.wellingtonLatched = true;
         TestMemPoolEntryHelper entry;
         // Fill mempool
         size_t txCount = 0;

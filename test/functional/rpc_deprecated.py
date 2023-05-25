@@ -42,12 +42,6 @@ class DeprecatedRpcTest(BitcoinTestFramework):
                 "-deprecatedrpc=isfinaltransaction_noerror",
                 "-deprecatedrpc=getblocktemplate_sigops",
                 "-deprecatedrpc=softforks",
-                # This test checks for the presence of the ancestor count in
-                # the listunspent output. However this is only displayed if the
-                # count is non-null, which will no longer be the case after
-                # wellington activation.
-                f"-wellingtonactivationtime={FAR_IN_THE_FUTURE}",
-                "-deprecatedrpc=mempool_ancestors_descendants",
             ],
         ]
 
@@ -160,24 +154,6 @@ class DeprecatedRpcTest(BitcoinTestFramework):
         assert "softforks" not in self.nodes[0].getblockchaininfo()
         res = self.nodes[1].getblockchaininfo()
         assert_equal(res["softforks"], {})
-
-        txid = self.nodes[0].sendtoaddress(
-            self.nodes[0].get_deterministic_priv_key().address, 1000000
-        )
-        assert txid in self.nodes[0].getrawmempool()
-        utxo = self.nodes[0].listunspent(minconf=0, maxconf=0)[0]
-        assert "ancestorcount" not in utxo
-        assert "ancestorsize" not in utxo
-        assert "ancestorfees" not in utxo
-
-        txid = self.nodes[1].sendtoaddress(
-            self.nodes[1].get_deterministic_priv_key().address, 1000000
-        )
-        assert txid in self.nodes[1].getrawmempool()
-        utxo = self.nodes[1].listunspent(minconf=0, maxconf=0)[0]
-        assert "ancestorcount" in utxo
-        assert "ancestorsize" in utxo
-        assert "ancestorfees" in utxo
 
 
 if __name__ == "__main__":

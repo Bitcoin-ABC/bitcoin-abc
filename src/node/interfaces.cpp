@@ -623,17 +623,6 @@ namespace {
             // to know about.
             return err == TransactionError::OK;
         }
-        void getTransactionAncestry(const TxId &txid, size_t &ancestors,
-                                    size_t &descendants, size_t *ancestorsize,
-                                    Amount *ancestorfees) override {
-            ancestors = descendants = 0;
-            // After wellington this stat will no longer exist
-            if (!m_node.mempool || m_node.mempool->wellingtonLatched) {
-                return;
-            }
-            m_node.mempool->GetTransactionAncestry(txid, ancestors, descendants,
-                                                   ancestorsize, ancestorfees);
-        }
         void getPackageLimits(size_t &limit_ancestor_count,
                               size_t &limit_descendant_count) override {
             limit_ancestor_count = size_t(
@@ -642,33 +631,6 @@ namespace {
             limit_descendant_count = size_t(std::max<int64_t>(
                 1, gArgs.GetIntArg("-limitdescendantcount",
                                    DEFAULT_DESCENDANT_LIMIT)));
-        }
-        bool checkChainLimits(const CTransactionRef &tx) override {
-            // After wellington this limitation will no longer exist
-            if (!m_node.mempool || m_node.mempool->wellingtonLatched) {
-                return true;
-            }
-            LockPoints lp;
-            CTxMemPoolEntry entry(tx, Amount(), 0, 0, false, 0, lp);
-            CTxMemPool::setEntries ancestors;
-            auto limit_ancestor_count =
-                gArgs.GetIntArg("-limitancestorcount", DEFAULT_ANCESTOR_LIMIT);
-            auto limit_ancestor_size =
-                gArgs.GetIntArg("-limitancestorsize",
-                                DEFAULT_ANCESTOR_SIZE_LIMIT) *
-                1000;
-            auto limit_descendant_count = gArgs.GetIntArg(
-                "-limitdescendantcount", DEFAULT_DESCENDANT_LIMIT);
-            auto limit_descendant_size =
-                gArgs.GetIntArg("-limitdescendantsize",
-                                DEFAULT_DESCENDANT_SIZE_LIMIT) *
-                1000;
-            std::string unused_error_string;
-            LOCK(m_node.mempool->cs);
-            return m_node.mempool->CalculateMemPoolAncestors(
-                entry, ancestors, limit_ancestor_count, limit_ancestor_size,
-                limit_descendant_count, limit_descendant_size,
-                unused_error_string);
         }
         CFeeRate estimateFee() const override {
             if (!m_node.mempool) {

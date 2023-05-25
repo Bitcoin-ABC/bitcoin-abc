@@ -444,10 +444,6 @@ public:
     using txiter = indexed_transaction_set::nth_index<0>::type::const_iterator;
     typedef std::set<txiter, CompareIteratorById> setEntries;
 
-    /// Remove after wellington activates as this will be inaccurate
-    uint64_t CalculateDescendantMaximum(txiter entry) const
-        EXCLUSIVE_LOCKS_REQUIRED(cs);
-
 private:
     void UpdateParent(txiter entry, txiter parent, bool add)
         EXCLUSIVE_LOCKS_REQUIRED(cs);
@@ -481,15 +477,6 @@ private:
 public:
     indirectmap<COutPoint, const CTransaction *> mapNextTx GUARDED_BY(cs);
     std::map<TxId, Amount> mapDeltas GUARDED_BY(cs);
-
-    /**
-     * Wellington activation latch. This is latched permanently to true in
-     * AcceptToMemoryPool the first time a tx arrives and
-     * IsWellingtonActivated() returns true. This should be removed after
-     * wellington is checkpointed and its mempool-accept/relay rules become
-     * retroactively permanent.
-     */
-    std::atomic<bool> wellingtonLatched{false};
 
     /**
      * Create a new CTxMemPool.
@@ -666,23 +653,6 @@ public:
                    std::chrono::seconds age)
         EXCLUSIVE_LOCKS_REQUIRED(cs, ::cs_main);
 
-    /**
-     * Calculate the ancestor and descendant count for the given transaction.
-     * The counts include the transaction itself.
-     * When ancestors is non-zero (ie, the transaction itself is in the
-     * mempool), ancestorsize and ancestorfees will also be set to the
-     * appropriate values.
-     *
-     * NOTE: Since we are removing the unconf. ancestor limits after wellington,
-     *       this function's existence is a potential DoS. It should not be
-     *       called after wellington since it relies on calculating quadratic
-     *       stats.
-     */
-    void GetTransactionAncestry(const TxId &txid, size_t &ancestors,
-                                size_t &descendants,
-                                size_t *ancestorsize = nullptr,
-                                Amount *ancestorfees = nullptr) const;
-
     /** @returns true if the mempool is fully loaded */
     bool IsLoaded() const;
 
@@ -758,10 +728,7 @@ private:
     /**
      * Update parents of `it` to add/remove it as a child transaction.
      */
-    void UpdateParentsOf(
-        bool add, txiter it,
-        const setEntries *setAncestors = nullptr /* only used pre-wellington */)
-        EXCLUSIVE_LOCKS_REQUIRED(cs);
+    void UpdateParentsOf(bool add, txiter it) EXCLUSIVE_LOCKS_REQUIRED(cs);
     /**
      * For each transaction being removed, update ancestors and any direct
      * children. If updateDescendants is true, then also update in-mempool

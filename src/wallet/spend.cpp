@@ -314,9 +314,7 @@ std::vector<OutputGroup> GroupOutputs(const CWallet &wallet,
             // deprecated -- after wellington activation these 2 stats should
             // always just be 0 since these stat becomes irrelevant at that
             // point
-            size_t ancestors, descendants;
-            wallet.chain().getTransactionAncestry(output.tx->GetId(), ancestors,
-                                                  descendants);
+            size_t ancestors = 0, descendants = 0;
 
             if (!single_coin &&
                 ExtractDestination(output.tx->tx->vout[output.i].scriptPubKey,
@@ -946,16 +944,6 @@ static bool CreateTransactionInternal(
     if (nFeeRet > wallet.m_default_max_tx_fee) {
         error = TransactionErrorString(TransactionError::MAX_FEE_EXCEEDED);
         return false;
-    }
-
-    // After wellington this option will no longer exist
-    if (gArgs.GetBoolArg("-walletrejectlongchains",
-                         DEFAULT_WALLET_REJECT_LONG_CHAINS)) {
-        // Lastly, ensure this tx will pass the mempool's chain limits
-        if (!wallet.chain().checkChainLimits(tx)) {
-            error = _("Transaction has too long of a mempool chain");
-            return false;
-        }
     }
 
     // Before we return success, we assume any change key will be used to

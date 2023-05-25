@@ -17,16 +17,7 @@ from test_framework.util import assert_equal
 class MempoolUpdateFromBlockTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
-        self.limit_ancestor_descendant_count = 60
-        self.extra_args = [
-            [
-                "-limitdescendantsize=5000",
-                "-limitancestorsize=5000",
-                f"-limitancestorcount={self.limit_ancestor_descendant_count}",
-                f"-limitdescendantcount={self.limit_ancestor_descendant_count}",
-                "-deprecatedrpc=mempool_ancestors_descendants",
-            ],
-        ]
+        self.ancestor_descendant_count = 60
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -143,28 +134,16 @@ class MempoolUpdateFromBlockTest(BitcoinTestFramework):
                     f"the mempool in {end - start} seconds."
                 )
 
-        self.log.info(
-            "Checking descendants/ancestors properties of all of the"
-            " in-mempool transactions..."
-        )
-        for k, tx in enumerate(tx_id):
-            self.log.debug(f"Check transaction #{k}.")
-            entry = self.nodes[0].getmempoolentry(tx)
-            assert_equal(entry["descendantcount"], size - k)
-            assert_equal(entry["descendantsize"], sum(tx_size[k:size]))
-            assert_equal(entry["ancestorcount"], k + 1)
-            assert_equal(entry["ancestorsize"], sum(tx_size[0 : (k + 1)]))
-
     def run_test(self):
         # Mine the transactions in batches so we get reorg_depth blocks
         # reorg'ed
         reorg_depth = 4
         self.transaction_graph_test(
-            size=self.limit_ancestor_descendant_count,
+            size=self.ancestor_descendant_count,
             n_tx_to_mine=range(
                 0,
-                self.limit_ancestor_descendant_count,
-                self.limit_ancestor_descendant_count // reorg_depth,
+                self.ancestor_descendant_count,
+                self.ancestor_descendant_count // reorg_depth,
             ),
         )
 
