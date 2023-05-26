@@ -263,5 +263,16 @@ check_cxx_source_compiles("
 	}
 " STRERROR_R_CHAR_P)
 
+# Check for UNIX sockets
+check_cxx_source_compiles("
+    #include <sys/socket.h>
+    #include <sys/un.h>
+	int main() {
+		struct sockaddr_un addr;
+        addr.sun_family = AF_UNIX;
+        return 0;
+	}
+" HAVE_SOCKADDR_UN)
+
 # Generate the config
 configure_file(bitcoin-config.h.cmake.in bitcoin-config.h ESCAPE_QUOTES)

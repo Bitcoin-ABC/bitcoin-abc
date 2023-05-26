@@ -14,3 +14,5 @@ Bitcoin ABC version 0.32.12 is now available from:
 - Ports specified in `-port` and `-rpcport` options are now validated at
   startup. Values that previously worked and were considered valid can now
   result in errors.
+- UNIX domain sockets can now be used for proxy connections. Set `-onion` or `-proxy`
+  to the local socket path with the prefix `unix:` (e.g. `-onion=unix:/home/me/torsocket`).

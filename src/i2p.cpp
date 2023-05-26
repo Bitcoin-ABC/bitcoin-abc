@@ -113,11 +113,11 @@ static CNetAddr DestB64ToAddr(const std::string &dest) {
 namespace sam {
 
     Session::Session(const fs::path &private_key_file,
-                     const CService &control_host, CThreadInterrupt *interrupt)
+                     const Proxy &control_host, CThreadInterrupt *interrupt)
         : m_private_key_file{private_key_file}, m_control_host{control_host},
           m_interrupt{interrupt}, m_transient{false} {}
 
-    Session::Session(const CService &control_host, CThreadInterrupt *interrupt)
+    Session::Session(const Proxy &control_host, CThreadInterrupt *interrupt)
         : m_control_host{control_host}, m_interrupt{interrupt},
           m_transient{true} {}
 
@@ -287,16 +287,11 @@ namespace sam {
     }
 
     std::unique_ptr<Sock> Session::Hello() const {
-        auto sock = CreateSock(m_control_host);
+        auto sock = m_control_host.Connect();
 
         if (!sock) {
-            throw std::runtime_error("Cannot create socket");
-        }
-
-        if (!ConnectSocketDirectly(m_control_host, *sock, nConnectTimeout,
-                                   true)) {
-            throw std::runtime_error(strprintf(
-                "Cannot connect to %s", m_control_host.ToStringAddrPort()));
+            throw std::runtime_error(
+                strprintf("Cannot connect to %s", m_control_host.ToString()));
         }
 
         SendRequestAndGetReply(*sock, "HELLO VERSION MIN=3.1 MAX=3.1");
@@ -369,7 +364,7 @@ namespace sam {
 
         LogPrintLevel(BCLog::I2P, BCLog::Level::Info,
                       "Creating %s SAM session %s with %s\n", session_type,
-                      session_id, m_control_host.ToStringAddrPort());
+                      session_id, m_control_host.ToString());
 
         auto sock = Hello();
 

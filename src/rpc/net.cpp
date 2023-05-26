@@ -687,9 +687,9 @@ static UniValue GetNetworksInfo() {
         obj.pushKV("name", GetNetworkName(network));
         obj.pushKV("limited", !IsReachable(network));
         obj.pushKV("reachable", IsReachable(network));
-        obj.pushKV("proxy", proxy.IsValid() ? proxy.proxy.ToStringAddrPort()
-                                            : std::string());
-        obj.pushKV("proxy_randomize_credentials", proxy.randomize_credentials);
+        obj.pushKV("proxy", proxy.IsValid() ? proxy.ToString() : std::string());
+        obj.pushKV("proxy_randomize_credentials",
+                   proxy.m_randomize_credentials);
         networks.push_back(std::move(obj));
     }
     return networks;

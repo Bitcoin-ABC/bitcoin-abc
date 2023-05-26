@@ -246,36 +246,23 @@ CSeederNode::CSeederNode(const CService &ip, std::vector<CAddress> *vAddrIn)
 bool CSeederNode::Run() {
     // FIXME: This logic is duplicated with CConnman::ConnectNode for no
     // good reason.
-    bool connected = false;
     Proxy proxy;
 
     if (you.IsValid()) {
         bool proxyConnectionFailed = false;
 
         if (GetProxy(you.GetNetwork(), proxy)) {
-            sock = CreateSock(proxy.proxy);
-            if (!sock) {
-                return false;
-            }
-            connected = ConnectThroughProxy(
-                proxy, you.ToStringAddr(), you.GetPort(), *sock,
-                nConnectTimeout, proxyConnectionFailed);
+            sock = ConnectThroughProxy(proxy, you.ToStringAddr(), you.GetPort(),
+                                       proxyConnectionFailed);
         } else {
             // no proxy needed (none set for target network)
-            sock = CreateSock(you);
-            if (!sock) {
-                return false;
-            }
-            // no proxy needed (none set for target network)
-            connected =
-                ConnectSocketDirectly(you, *sock, nConnectTimeout, false);
+            sock = ConnectDirectly(you, false);
         }
     }
 
-    if (!connected) {
+    if (!sock) {
         // tfm::format(std::cout, "Cannot connect to %s\n",
         // ToString(you));
-        sock.reset();
         return false;
     }
 

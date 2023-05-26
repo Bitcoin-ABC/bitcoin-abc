@@ -7,6 +7,7 @@
 
 #include <compat/compat.h>
 #include <netaddress.h>
+#include <netbase.h>
 #include <sync.h>
 #include <util/fs.h>
 #include <util/sock.h>
@@ -70,7 +71,7 @@ namespace sam {
          * saved, so it must not be destroyed earlier than this `Session`
          * object.
          */
-        Session(const fs::path &private_key_file, const CService &control_host,
+        Session(const fs::path &private_key_file, const Proxy &control_host,
                 CThreadInterrupt *interrupt);
 
         /**
@@ -86,7 +87,7 @@ namespace sam {
          * saved, so it must not be destroyed earlier than this `Session`
          * object.
          */
-        Session(const CService &control_host, CThreadInterrupt *interrupt);
+        Session(const Proxy &control_host, CThreadInterrupt *interrupt);
 
         /**
          * Destroy the session, closing the internally used sockets. The sockets
@@ -243,9 +244,9 @@ namespace sam {
         const fs::path m_private_key_file;
 
         /**
-         * The host and port of the SAM control service.
+         * The SAM control service proxy.
          */
-        const CService m_control_host;
+        const Proxy m_control_host;
 
         /**
          * Cease network activity when this is signaled.

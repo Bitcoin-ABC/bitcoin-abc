@@ -918,12 +918,20 @@ void SetupServerArgs(NodeContext &node) {
                   "backward by this amount. (default: %u seconds)",
                   DEFAULT_MAX_TIME_ADJUSTMENT),
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+#if HAVE_SOCKADDR_UN
+    argsman.AddArg("-onion=<ip:port|path>",
+                   "Use separate SOCKS5 proxy to reach peers via Tor onion "
+                   "services, set -noonion to disable (default: -proxy). May "
+                   "be a local file path prefixed with 'unix:'.",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+#else
     argsman.AddArg(
         "-onion=<ip:port>",
         strprintf("Use separate SOCKS5 proxy to reach peers via Tor "
                   "onion services, set -noonion to disable (default: %s)",
                   "-proxy"),
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+#endif
     argsman.AddArg("-i2psam=<ip:port>",
                    "I2P SAM proxy to reach I2P peers and accept I2P "
                    "connections (default: none)",
@@ -975,11 +983,20 @@ void SetupServerArgs(NodeContext &node) {
                              regtestChainParams->GetDefaultPort()),
                    ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
                    OptionsCategory::CONNECTION);
+#if HAVE_SOCKADDR_UN
+    argsman.AddArg("-proxy=<ip:port|path>",
+                   "Connect through SOCKS5 proxy, set -noproxy to disable "
+                   "(default: disabled). May be a local file path prefixed "
+                   "with 'unix:' if the proxy supports it.",
+                   ArgsManager::ALLOW_ANY | ArgsManager::DISALLOW_ELISION,
+                   OptionsCategory::CONNECTION);
+#else
     argsman.AddArg("-proxy=<ip:port>",
                    "Connect through SOCKS5 proxy, set -noproxy to disable "
                    "(default: disabled)",
                    ArgsManager::ALLOW_ANY | ArgsManager::DISALLOW_ELISION,
                    OptionsCategory::CONNECTION);
+#endif
     argsman.AddArg(
         "-proxyrandomize",
         strprintf("Randomize credentials for every proxy connection. "
@@ -2378,7 +2395,17 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             std::string host_out;
             uint16_t port_out{0};
             if (!SplitHostPort(socket_addr, port_out, host_out)) {
+#if HAVE_SOCKADDR_UN
+                // Allow unix domain sockets for -proxy and -onion e.g.
+                // unix:/some/file/path
+                if ((port_option != "-proxy" && port_option != "-onion") ||
+                    socket_addr.find(ADDR_PREFIX_UNIX) != 0) {
+                    return InitError(
+                        InvalidPortErrMsg(port_option, socket_addr));
+                }
+#else
                 return InitError(InvalidPortErrMsg(port_option, socket_addr));
+#endif
             }
         }
     }
@@ -2456,14 +2483,20 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // a proxy, this is the default
     std::string proxyArg = args.GetArg("-proxy", "");
     if (proxyArg != "" && proxyArg != "0") {
-        const std::optional<CService> proxyAddr{
-            Lookup(proxyArg, 9050, fNameLookup)};
-        if (!proxyAddr.has_value()) {
-            return InitError(strprintf(
-                _("Invalid -proxy address or hostname: '%s'"), proxyArg));
+        Proxy addrProxy;
+        if (IsUnixSocketPath(proxyArg)) {
+            addrProxy = Proxy(proxyArg, proxyRandomize);
+        } else {
+            const std::optional<CService> proxyAddr{
+                Lookup(proxyArg, 9050, fNameLookup)};
+            if (!proxyAddr.has_value()) {
+                return InitError(strprintf(
+                    _("Invalid -proxy address or hostname: '%s'"), proxyArg));
+            }
+
+            addrProxy = Proxy(proxyAddr.value(), proxyRandomize);
         }
 
-        Proxy addrProxy = Proxy(proxyAddr.value(), proxyRandomize);
         if (!addrProxy.IsValid()) {
             return InitError(strprintf(
                 _("Invalid -proxy address or hostname: '%s'"), proxyArg));
@@ -2495,13 +2528,19 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                                    "forbidden: -onion=0"));
             }
         } else {
-            const std::optional<CService> addr{
-                Lookup(onionArg, 9050, fNameLookup)};
-            if (!addr.has_value() || !addr->IsValid()) {
-                return InitError(strprintf(
-                    _("Invalid -onion address or hostname: '%s'"), onionArg));
+            if (IsUnixSocketPath(onionArg)) {
+                onion_proxy = Proxy(onionArg, proxyRandomize);
+            } else {
+                const std::optional<CService> addr{
+                    Lookup(onionArg, 9050, fNameLookup)};
+                if (!addr.has_value() || !addr->IsValid()) {
+                    return InitError(
+                        strprintf(_("Invalid -onion address or hostname: '%s'"),
+                                  onionArg));
+                }
+
+                onion_proxy = Proxy(addr.value(), proxyRandomize);
             }
-            onion_proxy = Proxy{addr.value(), proxyRandomize};
         }
     }
 

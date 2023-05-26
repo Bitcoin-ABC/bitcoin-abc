@@ -25,14 +25,16 @@ BOOST_AUTO_TEST_CASE(unlimited_recv) {
     auto CreateSockOrig = CreateSock;
 
     // Mock CreateSock() to create MockSock.
-    CreateSock = [](const CService &) {
+    CreateSock = [](const sa_family_t &) {
         return std::make_unique<StaticContentsSock>(
             std::string(i2p::sam::MAX_MSG_SIZE + 1, 'a'));
     };
 
     CThreadInterrupt interrupt;
+    const std::optional<CService> addr{Lookup("127.0.0.1", 9000, false)};
+    const Proxy sam_proxy(addr.value(), false);
     i2p::sam::Session session(gArgs.GetDataDirNet() / "test_i2p_private_key",
-                              CService{}, &interrupt);
+                              sam_proxy, &interrupt);
 
     {
         ASSERT_DEBUG_LOG("Creating persistent SAM session");
