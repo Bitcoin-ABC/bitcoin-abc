@@ -7,6 +7,7 @@
 """
 
 import argparse
+import os.path
 import sys
 import struct
 import zlib
@@ -53,6 +54,10 @@ def run():
     parser.add_argument('outfile', nargs='?', default="-")
 
     args = parser.parse_args()
+
+    if os.path.exists(args.outfile):
+        print(f"Error: Output file {args.outfile} already exists.", file=sys.stderr)
+        sys.exit(1)
 
     with io_wrapper(args.file, "rb") as infile, io_wrapper(args.outfile, "wb") as outfile:
 
