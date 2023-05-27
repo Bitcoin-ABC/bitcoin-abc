@@ -5,6 +5,7 @@
 use bytes::Bytes;
 
 use crate::{
+    error::DataError,
     hash::{Hashed, ShaRmd160},
     script::{opcode::*, PubKey, ScriptMut, ScriptOpIter, UncompressedPubKey},
     ser::{BitcoinSer, BitcoinSerializer},
@@ -221,15 +222,23 @@ impl BitcoinSer for Script {
     fn ser_to<S: BitcoinSerializer>(&self, bytes: &mut S) {
         self.0.ser_to(bytes)
     }
+
+    fn deser(data: &mut Bytes) -> Result<Self, DataError> {
+        Ok(Script(Bytes::deser(data)?))
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use bytes::Bytes;
+
     use crate::{script::Script, ser::BitcoinSer};
 
     fn verify_ser(a: Script, b: &[u8]) {
         assert_eq!(a.ser().as_ref(), b);
         assert_eq!(a.ser_len(), b.len());
+        let mut bytes = Bytes::copy_from_slice(b);
+        assert_eq!(a, Script::deser(&mut bytes).unwrap());
     }
 
     #[test]

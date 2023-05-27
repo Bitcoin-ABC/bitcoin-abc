@@ -6,6 +6,11 @@
 
 use bytes::{Bytes, BytesMut};
 
+use crate::{
+    bytes::{read_array, read_bytes},
+    error::DataError,
+};
+
 /// Serializer for implementors of [`BitcoinSer`].
 pub trait BitcoinSerializer {
     /// Serialize the given slice of data.
@@ -13,7 +18,7 @@ pub trait BitcoinSerializer {
 }
 
 /// Trait for serializing data using the serialization Bitcoin is using.
-pub trait BitcoinSer {
+pub trait BitcoinSer: Sized {
     /// Serialize to the given serializer
     fn ser_to<S: BitcoinSerializer>(&self, bytes: &mut S);
 
@@ -31,6 +36,9 @@ pub trait BitcoinSer {
         self.ser_to(&mut len);
         len
     }
+
+    /// Deserialize the given bytes to `Self`
+    fn deser(data: &mut Bytes) -> Result<Self, DataError>;
 }
 
 impl BitcoinSerializer for BytesMut {
@@ -51,11 +59,20 @@ impl BitcoinSer for Bytes {
         write_compact_size(bytes, self.len() as u64);
         bytes.put(self.as_ref());
     }
+
+    fn deser(data: &mut Bytes) -> Result<Self, DataError> {
+        let size = read_compact_size(data)?;
+        read_bytes(data, size as usize)
+    }
 }
 
 impl<const N: usize> BitcoinSer for [u8; N] {
     fn ser_to<S: BitcoinSerializer>(&self, bytes: &mut S) {
         bytes.put(self.as_ref());
+    }
+
+    fn deser(data: &mut Bytes) -> Result<Self, DataError> {
+        read_array::<N>(data)
     }
 }
 
@@ -66,11 +83,24 @@ impl<T: BitcoinSer> BitcoinSer for Vec<T> {
             part.ser_to(bytes);
         }
     }
+
+    fn deser(data: &mut Bytes) -> Result<Self, DataError> {
+        let size = read_compact_size(data)? as usize;
+        let mut entries = Vec::with_capacity(size.min(0x10000));
+        for _ in 0..size {
+            entries.push(T::deser(data)?);
+        }
+        Ok(entries)
+    }
 }
 
 impl BitcoinSer for bool {
     fn ser_to<S: BitcoinSerializer>(&self, bytes: &mut S) {
         bytes.put(&[*self as u8]);
+    }
+
+    fn deser(data: &mut Bytes) -> Result<Self, DataError> {
+        Ok(read_array::<1>(data)?[0] != 0)
     }
 }
 
@@ -80,6 +110,11 @@ macro_rules! integer_impls {
             impl BitcoinSer for $T {
                 fn ser_to<S: BitcoinSerializer>(&self, bytes: &mut S) {
                     bytes.put(&self.to_le_bytes())
+                }
+
+                fn deser(data: &mut Bytes) -> Result<Self, DataError> {
+                    let value = $T::from_le_bytes(read_array::<$SIZE>(data)?);
+                    Ok(value)
                 }
             }
         )+
@@ -108,15 +143,29 @@ fn write_compact_size<S: BitcoinSerializer>(bytes: &mut S, size: u64) {
     }
 }
 
+fn read_compact_size(bytes: &mut Bytes) -> Result<u64, DataError> {
+    let first_byte = read_array::<1>(bytes)?[0];
+    match first_byte {
+        0..=0xfc => Ok(first_byte as u64),
+        0xfd => Ok(u16::from_le_bytes(read_array::<2>(bytes)?) as u64),
+        0xfe => Ok(u32::from_le_bytes(read_array::<4>(bytes)?) as u64),
+        0xff => Ok(u64::from_le_bytes(read_array::<8>(bytes)?)),
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use std::fmt::Debug;
+
     use bytes::Bytes;
 
     use crate::ser::BitcoinSer;
 
-    fn verify_ser<T: BitcoinSer>(a: T, b: &[u8]) {
+    fn verify_ser<T: BitcoinSer + Debug + PartialEq>(a: T, b: &[u8]) {
         assert_eq!(a.ser().as_ref(), b);
         assert_eq!(a.ser_len(), b.len());
+        let mut bytes = Bytes::copy_from_slice(b);
+        assert_eq!(a, T::deser(&mut bytes).unwrap());
     }
 
     #[test]

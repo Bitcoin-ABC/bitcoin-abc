@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 use crate::{
+    bytes::read_array,
     error::DataError,
     hash::{Hashed, Sha256d},
     ser::{BitcoinSer, BitcoinSerializer},
@@ -128,6 +129,10 @@ impl AsRef<[u8]> for TxId {
 impl BitcoinSer for TxId {
     fn ser_to<S: BitcoinSerializer>(&self, bytes: &mut S) {
         bytes.put(self.as_bytes())
+    }
+
+    fn deser(data: &mut bytes::Bytes) -> Result<Self, DataError> {
+        Ok(TxId(Sha256d(read_array(data)?)))
     }
 }
 
