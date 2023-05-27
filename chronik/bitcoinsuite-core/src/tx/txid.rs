@@ -6,6 +6,7 @@ use crate::{
     error::DataError,
     hash::{Hashed, Sha256d},
     ser::{BitcoinSer, BitcoinSerializer},
+    tx::TxMut,
 };
 
 /// Wraps a tx ID's [`Sha256d`], to avoid mixing different kinds of hashes.
@@ -27,6 +28,23 @@ impl std::fmt::Display for TxId {
 }
 
 impl TxId {
+    /// Return the [`TxId`] for the given [`TxMut`] (or `Tx`).
+    ///
+    /// This is done by hashing the serialized tx using [`Sha256d`].
+    ///
+    /// ```
+    /// # use bitcoinsuite_core::tx::{Tx, TxId, TxMut};
+    /// let zero_tx_hash =
+    ///     "f702453dd03b0f055e5437d76128141803984fb10acb85fc3b2184fae2f3fa78"
+    ///         .parse::<TxId>()
+    ///         .unwrap();
+    /// assert_eq!(TxId::from_tx(&TxMut::default()), zero_tx_hash);
+    /// assert_eq!(TxId::from_tx(&Tx::default()), zero_tx_hash);
+    /// ```
+    pub fn from_tx(tx: &TxMut) -> Self {
+        TxId(Sha256d::digest(tx.ser()))
+    }
+
     /// Returns the txid bytes in little-endian byte order.
     ///
     /// ```
