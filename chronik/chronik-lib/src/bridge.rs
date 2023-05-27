@@ -72,6 +72,10 @@ fn try_setup_chronik(
         fn_compress_script: compress_script,
     })?;
     indexer.resync_indexer(bridge_ref)?;
+    if chronik_bridge::ffi::shutdown_requested() {
+        // Don't setup Chronik if the user requested shutdown during resync
+        return Ok(());
+    }
     let indexer = Arc::new(RwLock::new(indexer));
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .enable_all()

@@ -242,5 +242,9 @@ mod ffi_inner {
         /// Calls `AbortNode` from shutdown.h to gracefully shut down the node
         /// when an unrecoverable error occured.
         fn abort_node(msg: &str, user_msg: &str);
+
+        /// Returns true if a shutdown is requested, false otherwise.
+        /// See `ShutdownRequested` in `shutdown.h`.
+        fn shutdown_requested() -> bool;
     }
 }

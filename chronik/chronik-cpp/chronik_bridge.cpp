@@ -304,4 +304,8 @@ void abort_node(const rust::Str msg, const rust::Str user_msg) {
     AbortNode(std::string(msg), Untranslated(std::string(user_msg)));
 }
 
+bool shutdown_requested() {
+    return ShutdownRequested();
+}
+
 } // namespace chronik_bridge

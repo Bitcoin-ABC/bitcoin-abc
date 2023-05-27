@@ -202,6 +202,10 @@ impl ChronikIndexer {
         };
         let tip_height = node_tip_info.height;
         for height in fork_height + 1..=tip_height {
+            if ffi::shutdown_requested() {
+                log!("Stopped re-sync adding blocks\n");
+                return Ok(());
+            }
             let block_index = ffi::get_block_ancestor(node_tip_index, height)?;
             let ffi_block = bridge.load_block(block_index)?;
             let ffi_block = expect_unique_ptr("load_block", &ffi_block);
@@ -245,6 +249,11 @@ impl ChronikIndexer {
         );
         log!("Reverting Chronik blocks {revert_height} to {indexer_height}.\n");
         for height in (revert_height..indexer_height).rev() {
+            if ffi::shutdown_requested() {
+                log!("Stopped re-sync rewinding blocks\n");
+                // return MAX here so we don't add any blocks
+                return Ok(BlockHeight::MAX);
+            }
             let db_block = BlockReader::new(&self.db)?
                 .by_height(height)?
                 .ok_or(BlocksBelowMissing {
