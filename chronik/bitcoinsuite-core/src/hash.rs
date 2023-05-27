@@ -7,6 +7,8 @@
 
 use std::{cmp::Ordering, fmt::Debug, hash::Hash};
 
+use sha2::Digest;
+
 use crate::error::DataError;
 
 /// Trait for structs containing the result of a cryptographic hash function,
@@ -67,6 +69,33 @@ where
     /// let array: <ShaRmd160 as Hashed>::Array = [0; 20];
     /// ```
     type Array: AsRef<[u8]> + AsMut<[u8]> + Clone + Default;
+
+    /// Compute the hash function and return the hash as a `Self`.
+    ///
+    /// ```
+    /// # use bitcoinsuite_core::hash::{
+    /// #     Hashed, Ripemd160, Sha256, Sha256d, ShaRmd160,
+    /// # };
+    /// # use hex_literal::hex;
+    /// let sha256_empty = Sha256(hex!(
+    ///     "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    /// ));
+    /// assert_eq!(Sha256::digest([]), sha256_empty);
+    ///
+    /// let ripemd160_empty =
+    ///     Ripemd160(hex!("9c1185a5c5e9fc54612808977ee8f548b2258d31"));
+    /// assert_eq!(Ripemd160::digest([]), ripemd160_empty);
+    ///
+    /// let sha256d_empty = Sha256d(hex!(
+    ///     "5df6e0e2761359d30a8275058e299fcc0381534545f55cf43e41983f5d4c9456"
+    /// ));
+    /// assert_eq!(Sha256d::digest([]), sha256d_empty);
+    ///
+    /// let sharmd160_empty =
+    ///     ShaRmd160(hex!("b472a266d0bd89c13706a4132ccfb16f7c3b9fcb"));
+    /// assert_eq!(ShaRmd160::digest([]), sharmd160_empty);
+    /// ```
+    fn digest(data: impl AsRef<[u8]>) -> Self;
 
     /// Create hash from a little-endian array.
     ///
@@ -327,6 +356,8 @@ macro_rules! hash_algo {
     (
         $(#[$attrs:meta])*
         pub struct $ALGO_NAME: ident(pub [u8; $SIZE: literal]);
+
+        $($item_impls:item)*
     ) => {
         $(#[$attrs])*
         #[derive(Clone, Copy, Default, Eq, Hash, PartialEq)]
@@ -335,6 +366,8 @@ macro_rules! hash_algo {
         impl Hashed for $ALGO_NAME {
             const SIZE: usize = $SIZE;
             type Array = [u8; $SIZE];
+
+            $($item_impls)*
 
             fn from_le_bytes(array: Self::Array) -> Self {
                 $ALGO_NAME(array)
@@ -394,6 +427,10 @@ hash_algo! {
     /// Occasionally used in Bitcoin, generally [`Sha256d`] is used more often,
     /// especially for block hashes, tx hashes etc.
     pub struct Sha256(pub [u8; 32]);
+
+    fn digest(data: impl AsRef<[u8]>) -> Self {
+        Sha256(sha2::Sha256::digest(data).into())
+    }
 }
 
 hash_algo! {
@@ -403,6 +440,10 @@ hash_algo! {
     /// Most commonly used hash in Bitcoin, especially for block hashes, tx
     /// hashes and txids.
     pub struct Sha256d(pub [u8; 32]);
+
+    fn digest(data: impl AsRef<[u8]>) -> Self {
+        Sha256d(sha2::Sha256::digest(sha2::Sha256::digest(data)).into())
+    }
 }
 
 hash_algo! {
@@ -412,6 +453,10 @@ hash_algo! {
     /// Rarely used directly in Bitcoin, generally a combination of SHA-256 and
     /// RIPEMD-160 is used more often (see [`ShaRmd160`]).
     pub struct Ripemd160(pub [u8; 20]);
+
+    fn digest(data: impl AsRef<[u8]>) -> Self {
+        Ripemd160(ripemd::Ripemd160::digest(data).into())
+    }
 }
 
 hash_algo! {
@@ -421,6 +466,10 @@ hash_algo! {
     /// Bitcoin uses public keys hashed by SHA-256 followed by RIPEMD-160 to
     /// generate addresses.
     pub struct ShaRmd160(pub [u8; 20]);
+
+    fn digest(data: impl AsRef<[u8]>) -> Self {
+        ShaRmd160(ripemd::Ripemd160::digest(sha2::Sha256::digest(data)).into())
+    }
 }
 
 #[cfg(test)]
