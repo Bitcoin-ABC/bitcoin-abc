@@ -72,9 +72,11 @@ void StartChronikValidationInterface(
 }
 
 void StopChronikValidationInterface() {
-    g_chronik_validation_interface->Unregister();
-    // Reset so the Box is dropped and all handles are released.
-    g_chronik_validation_interface.reset();
+    if (g_chronik_validation_interface) {
+        g_chronik_validation_interface->Unregister();
+        // Reset so the Box is dropped and all handles are released.
+        g_chronik_validation_interface.reset();
+    }
 }
 
 } // namespace chronik

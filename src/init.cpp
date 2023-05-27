@@ -250,10 +250,6 @@ void Shutdown(NodeContext &node) {
         node.connman->Stop();
     }
 
-#if ENABLE_CHRONIK
-    chronik::Stop();
-#endif
-
     StopTorControl();
 
     // After everything has been shut down, but before things get flushed, stop
@@ -295,6 +291,10 @@ void Shutdown(NodeContext &node) {
     // After there are no more peers/RPC left to give us new data which may
     // generate CValidationInterface callbacks, flush them...
     GetMainSignals().FlushBackgroundCallbacks();
+
+#if ENABLE_CHRONIK
+    chronik::Stop();
+#endif
 
     // Stop and delete all indexes only after flushing background callbacks.
     if (g_txindex) {
