@@ -211,6 +211,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "bitcoinsuite-slp"
+version = "0.1.0"
+dependencies = [
+ "abc-rust-lint",
+ "bitcoinsuite-core",
+ "bytes",
+ "hex",
+ "pretty_assertions",
+ "thiserror",
+]
+
+[[package]]
 name = "bitfield"
 version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"

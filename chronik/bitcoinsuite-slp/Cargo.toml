@@ -1,0 +1,26 @@
+# Copyright (c) 2023 The Bitcoin developers
+
+[package]
+name = "bitcoinsuite-slp"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.61.0"
+license = "MIT"
+
+[dependencies]
+abc-rust-lint = { path = "../abc-rust-lint" }
+
+bitcoinsuite-core = { path = "../bitcoinsuite-core" }
+
+# Efficient byte strings, with ref counted substrings
+bytes = "1.4"
+
+# En-/decode byte strings from/to hex
+hex = "0.4"
+
+# Derive error enums
+thiserror = "1.0"
+
+[dev-dependencies]
+# Colorful diffs for assertions
+pretty_assertions = "1.0"
