@@ -15,6 +15,7 @@ packages:
 - "bison"
 - "bsdmainutils"
 - "ca-certificates"
+- "clang"
 - "cmake"
 - "curl"
 - "faketime"
@@ -32,6 +33,7 @@ packages:
 - "libtool"
 - "ninja-build"
 - "pkg-config"
+- "protobuf-compiler"
 - "python3"
 - "python3-pip"
 remotes:
@@ -167,6 +169,38 @@ script: |
   popd
 
   ORIGPATH="$PATH"
+
+  # Install chronik dependencies
+  # Rust
+  curl -sSf https://static.rust-lang.org/rustup/archive/1.26.0/x86_64-unknown-linux-gnu/rustup-init -o rustup-init
+  echo "0b2f6c8f85a3d02fde2efc0ced4657869d73fccfce59defb4e8d29233116e6db rustup-init" | sha256sum -c
+  chmod +x rustup-init
+  ./rustup-init -y --default-toolchain=1.67.1
+  # Cleanup
+  rm -f rustup-init
+
+  # Corrosion
+  curl -sSfL https://api.github.com/repos/corrosion-rs/corrosion/tarball/v0.3.0 -o corrosion.tar.gz
+  echo "3b9a48737264add649983df26c83f3285ce17e20d86194c7756689a0d8470267 corrosion.tar.gz" | sha256sum -c
+  tar xzf corrosion.tar.gz
+  CORROSION_SRC_FOLDER="${PWD}/corrosion-rs-corrosion-b764a9f"
+  CORROSION_BUILD_FOLDER="${CORROSION_SRC_FOLDER}-build"
+  CORROSION_INSTALL_FOLDER="${PWD}-install"
+  cmake -S"${CORROSION_SRC_FOLDER}" -B"${CORROSION_BUILD_FOLDER}" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="${CORROSION_INSTALL_FOLDER}"
+  cmake --build "${CORROSION_BUILD_FOLDER}" --config Release
+  cmake --install "${CORROSION_BUILD_FOLDER}" --config Release
+  # Cleanup
+  rm -f corrosion.tar.gz
+  rm -rf "${CORROSION_BUILD_FOLDER}"
+
+  # Extend the hosts to include an experimental chronik build.
+  # Despite not being a new host per se, it makes it easy to reuse the same code
+  # and prevent errors.
+  # TODO Remove after chronik is made part of the main release.
+  HOSTS+=(x86_64-linux-gnu-chronik-experimental)
+  CMAKE_TOOLCHAIN_FILE[x86_64-linux-gnu-chronik-experimental]=Linux64.cmake
+  CMAKE_EXTRA_OPTIONS[x86_64-linux-gnu-chronik-experimental]="-DBUILD_BITCOIN_CHRONIK=ON -DCorrosion_DIR=${CORROSION_INSTALL_FOLDER}/lib/cmake/Corrosion"
+
   # Extract the release tarball into a dir for each host and build
   for i in ${HOSTS[@]}; do
     export PATH=${BASEPREFIX}/${i}/native/bin:${ORIGPATH}
@@ -189,7 +223,12 @@ script: |
 
     ninja
     ninja security-check
-    ninja symbol-check
+
+    # TODO Rust pulls several symbols from GLIBC 2.30, this needs to be fixed.
+    # Since it is still in an experimental state, ignore for now.
+    if [[ "${i}" != *"chronik-experimental" ]]; then
+      ninja symbol-check
+    fi
 
     ninja install-debug
 
