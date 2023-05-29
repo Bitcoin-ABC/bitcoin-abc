@@ -48,7 +48,7 @@ script: |
   CMAKE_TOOLCHAIN_FILE[x86_64-apple-darwin19]=OSX.cmake
 
   FAKETIME_HOST_PROGS=""
-  FAKETIME_PROGS="ar ranlib date dmg xorrisofs"
+  FAKETIME_PROGS="ar ranlib date xorrisofs"
 
   export TZ="UTC"
   export BUILD_DIR=`pwd`
@@ -147,8 +147,7 @@ script: |
       -DENABLE_REDUCE_EXPORTS=ON \
       -DCMAKE_INSTALL_PREFIX=${INSTALLPATH} \
       -DCCACHE=OFF \
-      -DXORRISOFS_EXECUTABLE="${WRAP_DIR}/xorrisofs" \
-      -DDMG_EXECUTABLE="${WRAP_DIR}/dmg"
+      -DXORRISOFS_EXECUTABLE="${WRAP_DIR}/xorrisofs"
 
     ninja
     ninja security-check
@@ -164,7 +163,6 @@ script: |
     cp osx_volname unsigned-app-${i}/
     cp ../contrib/macdeploy/detached-sig-apply.sh unsigned-app-${i}
     cp ../contrib/macdeploy/detached-sig-create.sh unsigned-app-${i}
-    cp ${BASEPREFIX}/${i}/native/bin/dmg unsigned-app-${i}
     cp ${BASEPREFIX}/${i}/native/bin/${i}-codesign_allocate unsigned-app-${i}/codesign_allocate
     cp ${BASEPREFIX}/${i}/native/bin/${i}-pagestuff unsigned-app-${i}/pagestuff
     mv dist unsigned-app-${i}
