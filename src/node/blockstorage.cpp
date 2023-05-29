@@ -1175,9 +1175,8 @@ void ImportBlocks(ChainstateManager &chainman,
              WITH_LOCK(::cs_main, return chainman.GetAll())) {
             BlockValidationState state;
             if (!chainstate->ActivateBestChain(state, nullptr, avalanche)) {
-                LogPrintf("Failed to connect best block (%s)\n",
-                          state.ToString());
-                StartShutdown();
+                AbortNode(strprintf("Failed to connect best block (%s)",
+                                    state.ToString()));
                 return;
             }
         }
