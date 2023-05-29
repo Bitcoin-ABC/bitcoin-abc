@@ -509,8 +509,6 @@ bool SelectCoins(const CWallet &wallet,
     size_t max_ancestors{0};
     size_t max_descendants{0};
     wallet.chain().getPackageLimits(max_ancestors, max_descendants);
-    bool fRejectLongChains = gArgs.GetBoolArg(
-        "-walletrejectlongchains", DEFAULT_WALLET_REJECT_LONG_CHAINS);
 
     // form groups from remaining coins; note that preset coins will not
     // automatically have their associated (same address) coins included
@@ -557,7 +555,7 @@ bool SelectCoins(const CWallet &wallet,
                                                   max_descendants - 1),
                             groups, setCoinsRet, nValueRet,
                             coin_selection_params, bnb_used)) ||
-        (wallet.m_spend_zero_conf_change && !fRejectLongChains &&
+        (wallet.m_spend_zero_conf_change &&
          SelectCoinsMinConf(
              wallet, value_to_select,
              CoinEligibilityFilter(0, 1, std::numeric_limits<uint64_t>::max()),

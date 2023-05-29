@@ -13,18 +13,26 @@ namespace Consensus {
 struct Params;
 }
 
-/** Default for -limitancestorcount, max number of in-mempool ancestors */
+/**
+ * Default for -limitancestorcount, max number of in-mempool ancestors.
+ * FIXME: Should be removed, it is no longer relevant since wellington.
+ */
 static constexpr unsigned int DEFAULT_ANCESTOR_LIMIT = 50;
 /**
  * Default for -limitancestorsize, maximum kilobytes of tx + all in-mempool
  * ancestors.
+ * FIXME: Should be removed, it is no longer relevant since wellington.
  */
 static constexpr unsigned int DEFAULT_ANCESTOR_SIZE_LIMIT = 101;
-/** Default for -limitdescendantcount, max number of in-mempool descendants */
+/**
+ * Default for -limitdescendantcount, max number of in-mempool descendants
+ * FIXME: Should be removed, it is no longer relevant since wellington.
+ */
 static constexpr unsigned int DEFAULT_DESCENDANT_LIMIT = 50;
 /**
  * Default for -limitdescendantsize, maximum kilobytes of in-mempool
  * descendants.
+ * FIXME: Should be removed, it is no longer relevant since wellington.
  */
 static const unsigned int DEFAULT_DESCENDANT_SIZE_LIMIT = 101;
 

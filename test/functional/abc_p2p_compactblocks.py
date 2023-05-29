@@ -86,10 +86,6 @@ class FullBlockTest(BitcoinTestFramework):
         self.extra_args = [
             [
                 "-whitelist=noban@127.0.0.1",
-                "-limitancestorcount=999999",
-                "-limitancestorsize=999999",
-                "-limitdescendantcount=999999",
-                "-limitdescendantsize=999999",
                 "-maxmempool=99999",
                 f"-excessiveblocksize={self.excessive_block_size}",
                 "-acceptnonstdtxn=1",

@@ -625,12 +625,8 @@ namespace {
         }
         void getPackageLimits(size_t &limit_ancestor_count,
                               size_t &limit_descendant_count) override {
-            limit_ancestor_count = size_t(
-                std::max<int64_t>(1, gArgs.GetIntArg("-limitancestorcount",
-                                                     DEFAULT_ANCESTOR_LIMIT)));
-            limit_descendant_count = size_t(std::max<int64_t>(
-                1, gArgs.GetIntArg("-limitdescendantcount",
-                                   DEFAULT_DESCENDANT_LIMIT)));
+            limit_ancestor_count = size_t(DEFAULT_ANCESTOR_LIMIT);
+            limit_descendant_count = size_t(DEFAULT_DESCENDANT_LIMIT);
         }
         CFeeRate estimateFee() const override {
             if (!m_node.mempool) {

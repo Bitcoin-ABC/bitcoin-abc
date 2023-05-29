@@ -572,20 +572,13 @@ class WalletTest(BitcoinTestFramework):
             "-rescan",
             "-reindex",
         ]
-        chainlimit = 6
         for m in maintenance:
             self.log.info(f"check {m}")
             self.stop_nodes()
             # set lower ancestor limit for later
-            self.start_node(
-                0, self.extra_args[0] + [m, f"-limitancestorcount={str(chainlimit)}"]
-            )
-            self.start_node(
-                1, self.extra_args[1] + [m, f"-limitancestorcount={str(chainlimit)}"]
-            )
-            self.start_node(
-                2, self.extra_args[2] + [m, f"-limitancestorcount={str(chainlimit)}"]
-            )
+            self.start_node(0, self.extra_args[0] + [m])
+            self.start_node(1, self.extra_args[1] + [m])
+            self.start_node(2, self.extra_args[2] + [m])
             if m == "-reindex":
                 # reindex will leave rpc warm up "early"; Wait for it to finish
                 self.wait_until(

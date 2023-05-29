@@ -1033,43 +1033,6 @@ void SetupServerArgs(NodeContext &node) {
                              DEFAULT_STOPATHEIGHT),
                    ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
                    OptionsCategory::DEBUG_TEST);
-    // TODO Remove after wellington activation
-    argsman.AddArg(
-        "-limitancestorcount=<n>",
-        strprintf("DEPRECATED: Do not accept transactions if number of "
-                  "in-mempool ancestors is <n> or more (default: %u). This is "
-                  "no longer evaluated after the May 15th 2023 eCash network "
-                  "upgrade.",
-                  DEFAULT_ANCESTOR_LIMIT),
-        ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-        OptionsCategory::DEBUG_TEST);
-    argsman.AddArg(
-        "-limitancestorsize=<n>",
-        strprintf("DEPRECATED: Do not accept transactions whose size with all "
-                  "in-mempool ancestors exceeds <n> kilobytes (default: %u). "
-                  "This is no longer evaluated after the May 15th 2023 eCash "
-                  "network upgrade.",
-                  DEFAULT_ANCESTOR_SIZE_LIMIT),
-        ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-        OptionsCategory::DEBUG_TEST);
-    argsman.AddArg(
-        "-limitdescendantcount=<n>",
-        strprintf("DEPRECATED: Do not accept transactions if any ancestor "
-                  "would have <n> or more in-mempool descendants (default: %u)"
-                  ". This is no longer evaluated after the May 15th 2023 eCash "
-                  "network upgrade.",
-                  DEFAULT_DESCENDANT_LIMIT),
-        ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-        OptionsCategory::DEBUG_TEST);
-    argsman.AddArg(
-        "-limitdescendantsize=<n>",
-        strprintf("DEPRECATED: Do not accept transactions if any ancestor "
-                  "would have more than <n> kilobytes of in-mempool "
-                  "descendants (default: %u). This is no longer evaluated "
-                  "after the May 15th 2023 eCash network upgrade.",
-                  DEFAULT_DESCENDANT_SIZE_LIMIT),
-        ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-        OptionsCategory::DEBUG_TEST);
     argsman.AddArg("-addrmantest", "Allows to test address relay on localhost",
                    ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
                    OptionsCategory::DEBUG_TEST);
@@ -1883,10 +1846,10 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
     // mempool limits
     int64_t nMempoolSizeMax =
         args.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
-    int64_t nMempoolSizeMin =
-        args.GetIntArg("-limitdescendantsize", DEFAULT_DESCENDANT_SIZE_LIMIT) *
-        1000 * 40;
-    if (nMempoolSizeMax < 0 || nMempoolSizeMax < nMempoolSizeMin) {
+    // FIXME: this limit is no longer relevant after wellington activation
+    int64_t nMempoolSizeMin = DEFAULT_DESCENDANT_SIZE_LIMIT * 1000 * 40;
+    if (nMempoolSizeMax < 0 ||
+        (!chainparams.IsTestChain() && nMempoolSizeMax < nMempoolSizeMin)) {
         return InitError(strprintf(_("-maxmempool must be at least %d MB"),
                                    std::ceil(nMempoolSizeMin / 1000000.0)));
     }

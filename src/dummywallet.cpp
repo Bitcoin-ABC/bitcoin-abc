@@ -33,7 +33,7 @@ void DummyWalletInit::AddWalletOptions(ArgsManager &argsman) const {
         "-upgradewallet", "-wallet=<path>", "-walletbroadcast",
         "-walletdir=<dir>", "-walletnotify=<cmd>",
         // Wallet debug options
-        "-dblogsize=<n>", "-flushwallet", "-privdb", "-walletrejectlongchains"};
+        "-dblogsize=<n>", "-flushwallet", "-privdb"};
     argsman.AddHiddenArgs(opts);
 }
 
