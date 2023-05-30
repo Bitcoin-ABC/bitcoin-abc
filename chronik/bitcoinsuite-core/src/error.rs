@@ -7,7 +7,7 @@
 use thiserror::Error;
 
 /// Errors indicating some data doesn't map to some object.
-#[derive(Debug, Error, PartialEq)]
+#[derive(Clone, Debug, Error, PartialEq)]
 pub enum DataError {
     /// Expect a fixed length which was not met.
     #[error(
