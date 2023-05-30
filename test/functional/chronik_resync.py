@@ -117,6 +117,13 @@ class ChronikResyncTest(BitcoinTestFramework):
         chronik.block(100).ok()
         chronik.block(101).err(404)
 
+        # Simply restarting the node fully synced doesn't log any divergence
+        with node.assert_debug_log(
+            ["Chronik completed re-syncing with the node"],
+            unexpected_msgs=["Node and Chronik diverged"],
+        ):
+            self.restart_node(0, ["-chronik"])
+
 
 if __name__ == "__main__":
     ChronikResyncTest().main()

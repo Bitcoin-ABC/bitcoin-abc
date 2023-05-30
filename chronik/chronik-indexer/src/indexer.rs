@@ -178,8 +178,8 @@ impl ChronikIndexer {
         let node_tip_info = ffi::get_block_info(node_tip_index);
         let node_height = node_tip_info.height;
         let node_tip_hash = BlockHash::from(node_tip_info.hash);
-        let fork_height = match indexer_tip {
-            Some(tip) => {
+        let start_height = match indexer_tip {
+            Some(tip) if tip.hash != node_tip_hash => {
                 let indexer_tip_hash = tip.hash.clone();
                 let indexer_height = tip.height;
                 log!(
@@ -192,6 +192,7 @@ impl ChronikIndexer {
                     .map_err(|_| CannotRewindChronik(tip.hash.clone()))?;
                 self.rewind_indexer(bridge, indexer_tip_index, &tip)?
             }
+            Some(tip) => tip.height,
             None => {
                 log!(
                     "Chronik database empty, syncing to block {node_tip_hash} \
@@ -201,7 +202,7 @@ impl ChronikIndexer {
             }
         };
         let tip_height = node_tip_info.height;
-        for height in fork_height + 1..=tip_height {
+        for height in start_height + 1..=tip_height {
             if ffi::shutdown_requested() {
                 log!("Stopped re-sync adding blocks\n");
                 return Ok(());
