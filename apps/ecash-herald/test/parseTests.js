@@ -6,12 +6,16 @@
 const assert = require('assert');
 const opReturn = require('../constants/op_return');
 const unrevivedBlocks = require('./mocks/blocks');
+const minersJson = require('../constants/miners');
+const minerTestFixtures = require('./fixtures/miners');
 const { jsonReviver } = require('../src/utils');
 const blocks = JSON.parse(JSON.stringify(unrevivedBlocks), jsonReviver);
+const miners = JSON.parse(JSON.stringify(minersJson), jsonReviver);
 const memoOutputScripts = require('./mocks/memo');
 
 const {
     parseBlock,
+    getMinerFromCoinbaseTx,
     parseMemoOutputScript,
     getBlockTgMessage,
 } = require('../src/parse');
@@ -43,5 +47,21 @@ describe('parse.js functions', function () {
                 msg: parsed,
             });
         });
+    });
+    it('getMinerFromCoinbaseTx parses miner for all test vectors', function () {
+        for (let i = 0; i < minerTestFixtures.length; i += 1) {
+            const { parsed, coinbaseHex, payoutOutputScript } =
+                minerTestFixtures[i];
+            // Minimally mock the coinbase tx
+            const thisCoinbaseTx = {
+                inputs: [{ inputScript: coinbaseHex }],
+                outputs: [{ outputScript: payoutOutputScript }],
+            };
+
+            assert.strictEqual(
+                getMinerFromCoinbaseTx(thisCoinbaseTx, miners),
+                parsed,
+            );
+        }
     });
 });

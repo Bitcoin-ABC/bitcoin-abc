@@ -5,7 +5,9 @@
 'use strict';
 const config = require('../config');
 const opReturn = require('../constants/op_return');
-const knownMiners = require('../constants/miners');
+const knownMinersJson = require('../constants/miners');
+const { jsonReviver } = require('../src/utils');
+const miners = JSON.parse(JSON.stringify(knownMinersJson), jsonReviver);
 const cashaddr = require('ecashaddrjs');
 const BigNumber = require('bignumber.js');
 const {
@@ -20,8 +22,8 @@ module.exports = {
         const { height, numTxs } = blockInfo;
 
         // Parse coinbase string
-        const coinbaseScript = txs[0].inputs[0].inputScript;
-        const miner = module.exports.getMinerFromCoinbase(coinbaseScript);
+        const coinbaseTx = txs[0];
+        const miner = module.exports.getMinerFromCoinbaseTx(coinbaseTx, miners);
 
         // Start with i=1 to skip Coinbase tx
         const parsedTxs = [];
@@ -40,17 +42,93 @@ module.exports = {
 
         return { hash, height, miner, numTxs, parsedTxs, tokenIds };
     },
-    getMinerFromCoinbase: function (coinbaseHexString) {
-        let miner = 'unknown';
-        // Iterate over known miners to find a match
-        for (let i = 0; i < knownMiners.length; i += 1) {
-            const testedMiner = knownMiners[i];
-            const { coinbaseScript } = testedMiner;
-            if (coinbaseHexString.includes(coinbaseScript)) {
-                miner = testedMiner.miner;
+    getMinerFromCoinbaseTx: function (coinbaseTx, knownMiners) {
+        // get coinbase inputScript
+        const testedCoinbaseScript = coinbaseTx.inputs[0].inputScript;
+
+        // When you find the miner, minerInfo will come from knownMiners
+        let minerInfo = false;
+
+        // First, check outputScripts for a known miner
+        const { outputs } = coinbaseTx;
+        for (let i = 0; i < outputs.length; i += 1) {
+            const thisOutputScript = outputs[i].outputScript;
+            if (knownMiners.has(thisOutputScript)) {
+                minerInfo = knownMiners.get(thisOutputScript);
+                break;
             }
         }
-        return miner;
+
+        if (!minerInfo) {
+            // If you still haven't found minerInfo, test by known pattern of coinbase script
+            // Possibly a known miner is using a new address
+            knownMiners.forEach(knownMinerInfo => {
+                const { coinbaseHexFragment } = knownMinerInfo;
+                if (testedCoinbaseScript.includes(coinbaseHexFragment)) {
+                    minerInfo = knownMinerInfo;
+                }
+            });
+        }
+
+        // At this point, if you haven't found the miner, you won't
+        if (!minerInfo) {
+            return 'unknown';
+        }
+
+        // If you have found the miner, parse coinbase hex for additional info
+        switch (minerInfo.miner) {
+            // This is available for ViaBTC and CK Pool
+            // Use a switch statement to easily support adding future miners
+            case 'ViaBTC':
+            // Intentional fall-through so ViaBTC and CKPool have same parsing
+            // es-lint ignore no-fallthrough
+            case 'CK Pool': {
+                /* For ViaBTC, the interesting info is between '/' characters
+                 * i.e. /Mined by 260786/
+                 * In ascii, these are encoded with '2f'
+                 */
+                const infoHexParts = testedCoinbaseScript.split('2f');
+
+                // Because the characters before and after the info we are looking for could also
+                // contain '2f', we need to find the right part
+
+                // The right part is the one that comes immediately after coinbaseHexFragment
+                let infoAscii = '';
+                for (let i = 0; i < infoHexParts.length; i += 1) {
+                    if (
+                        infoHexParts[i].includes(minerInfo.coinbaseHexFragment)
+                    ) {
+                        // We want the next one, if it exists
+                        if (i + 1 < infoHexParts.length) {
+                            infoAscii = Buffer.from(
+                                infoHexParts[i + 1],
+                                'hex',
+                            ).toString('ascii');
+                        }
+                        break;
+                    }
+                }
+
+                if (infoAscii === 'mined by IceBerg') {
+                    // CK Pool, mined by IceBerg
+                    // If this is IceBerg, identify uniquely
+                    // Iceberg is probably a solo miner using CK Pool software
+                    return `IceBerg`;
+                }
+
+                // Return your improved 'miner' info
+                // ViaBTC, Mined by 260786
+                if (infoAscii.length === 0) {
+                    // If you did not find anything interesting, just return the miner
+                    return minerInfo.miner;
+                }
+                return `${minerInfo.miner}, ${infoAscii}`;
+            }
+            default: {
+                // Unless the miner has specific parsing rules defined above, no additional info is available
+                return minerInfo.miner;
+            }
+        }
     },
     parseTx: function (tx) {
         /* Parse an eCash tx as returned by chronik for newsworthy information
