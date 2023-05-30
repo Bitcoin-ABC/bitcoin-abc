@@ -77,7 +77,7 @@ done
 
 # If cross building for OSX, the python library needs to be added to the python
 # library path.
-export PYTHONPATH="${TOPLEVEL}/depends/x86_64-apple-darwin19/native/lib/python3/dist-packages:${PYTHONPATH:-}"
+export PYTHONPATH="${TOPLEVEL}/depends/x86_64-apple-darwin/native/lib/python3/dist-packages:${PYTHONPATH:-}"
 
 cmake -GNinja "${TOPLEVEL}" "${CMAKE_FLAGS[@]}"
 

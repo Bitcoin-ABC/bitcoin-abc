@@ -368,7 +368,7 @@ builds:
         - install-secp256k1
         - install-tests
     post_build: |
-      export PYTHONPATH="${TOPLEVEL}/depends/x86_64-apple-darwin19/native/lib/python3/dist-packages:${PYTHONPATH:-}"
+      export PYTHONPATH="${TOPLEVEL}/depends/x86_64-apple-darwin/native/lib/python3/dist-packages:${PYTHONPATH:-}"
       ninja osx-dmg
     timeout: 3600
     artifacts:
