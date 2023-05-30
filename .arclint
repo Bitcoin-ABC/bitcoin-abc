@@ -91,6 +91,7 @@
                 "(^contrib/gitian-builder/)",
                 "(^src/(qt/locale|secp256k1|univalue|leveldb)/)",
                 "(^test/lint/dictionary/)",
+                "(^web/e.cash/public/animations/)",
                 "(package-lock.json)"
             ],
             "spelling.dictionaries": [
@@ -174,7 +175,7 @@
         },
         "lint-bash-shebang": {
             "type": "lint-bash-shebang",
-            "include": "(\\.sh$)",
+            "include": "(\\.(sh|bash)$)",
             "exclude": [
                 "(^contrib/gitian-builder/)"
             ]
@@ -186,7 +187,7 @@
                 "--external-sources",
                 "--source-path=SCRIPTDIR"
             ],
-            "include": "(\\.sh$)",
+            "include": "(\\.(sh|bash)$)",
             "exclude": [
                 "(^contrib/gitian-builder/)",
                 "(^src/(secp256k1|univalue)/)"
@@ -194,7 +195,7 @@
         },
         "lint-shell-locale": {
             "type": "lint-shell-locale",
-            "include": "(\\.sh$)",
+            "include": "(\\.(sh|bash)$)",
             "exclude": [
                 "(^contrib/gitian-builder/)",
                 "(^src/(secp256k1|univalue)/)",
@@ -288,7 +289,10 @@
                 "(^cashtab/.*\\.(css|html|js|json|jsx|md|scss|ts|tsx)$)",
                 "(^web/.*\\.(css|html|js|json|jsx|md|scss|ts|tsx)$)"
             ],
-            "exclude": "(^web/.*/translations/.*\\.json$)"
+            "exclude": [
+                "(^web/.*/translations/.*\\.json$)",
+                "(^web/e.cash/public/animations/)"
+            ]
         },
         "lint-python-isort": {
             "type": "lint-python-isort",

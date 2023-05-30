@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+export LC_ALL=C.UTF-8
+
 # Based on realpath.sh written by Michael Kropat
 # Found at: https://github.com/mkropat/sh-realpath/blob/65512368b8155b176b67122aa395ac580d9acc5b/realpath.sh
 

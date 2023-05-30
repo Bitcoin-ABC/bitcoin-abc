@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+export LC_ALL=C.UTF-8
+
 git_root() {
     git rev-parse --show-toplevel 2> /dev/null
 }
