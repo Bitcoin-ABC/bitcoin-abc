@@ -37,7 +37,6 @@ PACKAGES=(
   graphviz
   gperf
   help2man
-  imagemagick
   jq
   lcov
   less
@@ -57,10 +56,8 @@ PACKAGES=(
   libqt5core5a
   libqt5dbus5
   libqt5gui5
-  librsvg2-bin
   libsqlite3-dev
   libssl-dev
-  libtiff-tools
   libtinfo5
   libtool
   libzmq3-dev

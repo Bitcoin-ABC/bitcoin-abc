@@ -59,7 +59,6 @@ src/qt/bitcoin-qt.includes
 Makefile
 bitcoin-qt
 Bitcoin-Qt.app
-background.tiff*
 
 # Resources cpp
 qrc_*.cpp
