@@ -19,7 +19,7 @@ bool AbortNode(const std::string &strMessage,
  * StartShutdown(), AbortShutdown() or WaitForShutdown().
  * Calling ShutdownRequested() is always safe.
  */
-bool InitShutdownState(std::atomic<int> &exit_status);
+void InitShutdownState(std::atomic<int> &exit_status);
 
 /** Request shutdown of the application. */
 void StartShutdown();

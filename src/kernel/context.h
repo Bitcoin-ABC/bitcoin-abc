@@ -5,6 +5,8 @@
 #ifndef BITCOIN_KERNEL_CONTEXT_H
 #define BITCOIN_KERNEL_CONTEXT_H
 
+#include <util/signalinterrupt.h>
+
 #include <memory>
 
 class ECCVerifyHandle;
@@ -20,12 +22,25 @@ namespace kernel {
 struct Context {
     std::unique_ptr<ECCVerifyHandle> ecc_verify_handle;
 
+    //! Interrupt object that can be used to stop long-running kernel
+    //! operations.
+    util::SignalInterrupt interrupt;
+
     //! Declare default constructor and destructor that are not inline, so code
     //! instantiating the kernel::Context struct doesn't need to #include class
     //! definitions for all the unique_ptr members.
     Context();
     ~Context();
 };
+
+//! Global pointer to kernel::Context for legacy code. New code should avoid
+//! using this, and require state it needs to be passed to it directly.
+//!
+//! Having this pointer is useful because it allows state be moved out of global
+//! variables into the kernel::Context struct before all global references to
+//! that state are removed. This allows the global references to be removed
+//! incrementally, instead of all at once.
+extern Context *g_context;
 } // namespace kernel
 
 #endif // BITCOIN_KERNEL_CONTEXT_H

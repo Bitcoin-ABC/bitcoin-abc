@@ -1799,10 +1799,7 @@ bool AppInitBasicSetup(const ArgsManager &args, std::atomic<int> &exit_status) {
     // Enable Data Execution Prevention (DEP)
     SetProcessDEPPolicy(PROCESS_DEP_ENABLE);
 #endif
-    if (!InitShutdownState(exit_status)) {
-        return InitError(
-            Untranslated("Initializing wait-for-shutdown state failed."));
-    }
+    InitShutdownState(exit_status);
 
     if (!SetupNetworking()) {
         return InitError(Untranslated("Initializing networking failed"));

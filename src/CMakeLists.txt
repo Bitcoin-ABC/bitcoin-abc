@@ -435,6 +435,7 @@ add_library(util
 	util/moneystr.cpp
 	util/readwritefile.cpp
 	util/settings.cpp
+	util/signalinterrupt.cpp
 	util/string.cpp
 	util/sock.cpp
 	util/spanparsing.cpp
@@ -945,6 +946,7 @@ if(BUILD_CHAINSTATE)
 		util/hasher.cpp
 		util/moneystr.cpp
 		util/settings.cpp
+		util/signalinterrupt.cpp
 		util/strencodings.cpp
 		util/string.cpp
 		util/syserror.cpp
