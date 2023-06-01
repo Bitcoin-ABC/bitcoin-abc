@@ -30,16 +30,13 @@ def clean_files(source, executable):
 
 
 def call_security_check(cc, source, executable, options):
-    subprocess.check_call([*cc, source, "-o", executable] + options)
-    p = subprocess.Popen(
-        ["./security-check.py", executable],
+    subprocess.run([*cc, source, "-o", executable] + options, check=True)
+    p = subprocess.run(
+        ["./contrib/devtools/security-check.py", executable],
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        stdin=subprocess.PIPE,
         universal_newlines=True,
     )
-    (stdout, stderr) = p.communicate()
-    return (p.returncode, stdout.rstrip())
+    return p.returncode, p.stdout.rstrip()
 
 
 class TestSecurityChecks(unittest.TestCase):
@@ -163,13 +160,18 @@ class TestSecurityChecks(unittest.TestCase):
                 executable,
                 [
                     "-Wl,--no-nxcompat",
+                    "-Wl,--disable-reloc-section",
                     "-Wl,--no-dynamicbase",
                     "-Wl,--no-high-entropy-va",
                     "-no-pie",
                     "-fno-PIE",
                 ],
             ),
-            (1, executable + ": failed DYNAMIC_BASE HIGH_ENTROPY_VA NX RELOC_SECTION"),
+            (
+                1,
+                executable
+                + ": failed PIE DYNAMIC_BASE HIGH_ENTROPY_VA NX RELOC_SECTION",
+            ),
         )
         self.assertEqual(
             call_security_check(
@@ -178,13 +180,14 @@ class TestSecurityChecks(unittest.TestCase):
                 executable,
                 [
                     "-Wl,--nxcompat",
+                    "-Wl,--disable-reloc-section",
                     "-Wl,--no-dynamicbase",
                     "-Wl,--no-high-entropy-va",
                     "-no-pie",
                     "-fno-PIE",
                 ],
             ),
-            (1, executable + ": failed DYNAMIC_BASE HIGH_ENTROPY_VA RELOC_SECTION"),
+            (1, executable + ": failed PIE DYNAMIC_BASE HIGH_ENTROPY_VA RELOC_SECTION"),
         )
         self.assertEqual(
             call_security_check(
@@ -193,13 +196,14 @@ class TestSecurityChecks(unittest.TestCase):
                 executable,
                 [
                     "-Wl,--nxcompat",
-                    "-Wl,--dynamicbase",
+                    "-Wl,--enable-reloc-section",
+                    "-Wl,--no-dynamicbase",
                     "-Wl,--no-high-entropy-va",
                     "-no-pie",
                     "-fno-PIE",
                 ],
             ),
-            (1, executable + ": failed HIGH_ENTROPY_VA RELOC_SECTION"),
+            (1, executable + ": failed PIE DYNAMIC_BASE HIGH_ENTROPY_VA"),
         )
         self.assertEqual(
             call_security_check(
@@ -208,13 +212,15 @@ class TestSecurityChecks(unittest.TestCase):
                 executable,
                 [
                     "-Wl,--nxcompat",
-                    "-Wl,--dynamicbase",
-                    "-Wl,--high-entropy-va",
-                    "-no-pie",
-                    "-fno-PIE",
+                    "-Wl,--enable-reloc-section",
+                    "-Wl,--no-dynamicbase",
+                    "-Wl,--no-high-entropy-va",
+                    # -pie -fPIE does nothing unless --dynamicbase is also supplied
+                    "-pie",
+                    "-fPIE",
                 ],
             ),
-            (1, executable + ": failed RELOC_SECTION"),
+            (1, executable + ": failed PIE DYNAMIC_BASE HIGH_ENTROPY_VA"),
         )
         self.assertEqual(
             call_security_check(
@@ -223,6 +229,23 @@ class TestSecurityChecks(unittest.TestCase):
                 executable,
                 [
                     "-Wl,--nxcompat",
+                    "-Wl,--enable-reloc-section",
+                    "-Wl,--dynamicbase",
+                    "-Wl,--no-high-entropy-va",
+                    "-pie",
+                    "-fPIE",
+                ],
+            ),
+            (1, executable + ": failed HIGH_ENTROPY_VA"),
+        )
+        self.assertEqual(
+            call_security_check(
+                cc,
+                source,
+                executable,
+                [
+                    "-Wl,--nxcompat",
+                    "-Wl,--enable-reloc-section",
                     "-Wl,--dynamicbase",
                     "-Wl,--high-entropy-va",
                     "-pie",
@@ -285,7 +308,10 @@ class TestSecurityChecks(unittest.TestCase):
         )
         self.assertEqual(
             call_security_check(
-                cc, source, executable, ["-Wl,-pie", "-fstack-protector-all"]
+                cc,
+                source,
+                executable,
+                ["-Wl,-pie", "-fstack-protector-all"],
             ),
             (0, ""),
         )
