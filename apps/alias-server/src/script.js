@@ -22,7 +22,6 @@ module.exports = {
          * 2. remainingHex must have a value that is a string
          * 3. The length of remainingHex must be even, i.e. divisible by bytes
          */
-        console.log(`typeof stack.remainingHex`, typeof stack.remainingHex);
         if (
             typeof stack !== 'object' ||
             typeof stack.remainingHex !== 'string'
