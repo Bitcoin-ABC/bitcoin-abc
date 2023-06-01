@@ -194,7 +194,7 @@ BOOST_AUTO_TEST_CASE(hashverifier_tests) {
     BOOST_CHECK_EQUAL(dummy.GetValue(), 0x23);
 
     CHashWriter h0(SER_DISK, CLIENT_VERSION);
-    h0 << CDataStream(data, SER_DISK, CLIENT_VERSION);
+    h0.write(MakeByteSpan(data));
     BOOST_CHECK(h0.GetHash() == checksum);
 
     CHashWriter h1(SER_DISK, CLIENT_VERSION);
