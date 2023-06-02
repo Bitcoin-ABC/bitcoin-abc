@@ -31,7 +31,6 @@
 #include <node/ui_interface.h>
 #include <node/utxo_snapshot.h>
 #include <policy/block/minerfund.h>
-#include <policy/mempool.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
 #include <pow/pow.h>

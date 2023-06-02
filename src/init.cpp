@@ -45,7 +45,6 @@
 #include <node/context.h>
 #include <node/miner.h>
 #include <node/ui_interface.h>
-#include <policy/mempool.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
 #include <rpc/blockchain.h>
@@ -1846,8 +1845,11 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
     // mempool limits
     int64_t nMempoolSizeMax =
         args.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
-    // FIXME: this limit is no longer relevant after wellington activation
-    int64_t nMempoolSizeMin = DEFAULT_DESCENDANT_SIZE_LIMIT * 1000 * 40;
+    // FIXME: this legacy limit comes from the DEFAULT_DESCENDANT_SIZE_LIMIT
+    // (101) that was enforced before the wellington activation. While it's
+    // still a good idea to have some minimum mempool size, using this value as
+    // a threshold is no longer relevant.
+    int64_t nMempoolSizeMin = 101 * 1000 * 40;
     if (nMempoolSizeMax < 0 ||
         (!chainparams.IsTestChain() && nMempoolSizeMax < nMempoolSizeMin)) {
         return InitError(strprintf(_("-maxmempool must be at least %d MB"),

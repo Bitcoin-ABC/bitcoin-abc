@@ -205,12 +205,6 @@ public:
                                       const Amount &max_tx_fee, bool relay,
                                       std::string &err_string) = 0;
 
-    //! Get the node's package limits.
-    //! Currently only returns the ancestor and descendant count limits, but
-    //! could be enhanced to return more policy settings.
-    virtual void getPackageLimits(size_t &limit_ancestor_count,
-                                  size_t &limit_descendant_count) = 0;
-
     //! Estimate fee
     virtual CFeeRate estimateFee() const = 0;
 

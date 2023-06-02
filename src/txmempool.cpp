@@ -14,7 +14,6 @@
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
 #include <policy/fees.h>
-#include <policy/mempool.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
 #include <reverse_iterator.h>

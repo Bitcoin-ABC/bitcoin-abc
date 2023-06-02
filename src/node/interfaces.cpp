@@ -22,7 +22,6 @@
 #include <node/context.h>
 #include <node/transaction.h>
 #include <node/ui_interface.h>
-#include <policy/mempool.h>
 #include <policy/settings.h>
 #include <primitives/block.h>
 #include <primitives/transaction.h>
@@ -622,11 +621,6 @@ namespace {
             // return other non-mempool failures that Chain clients do not need
             // to know about.
             return err == TransactionError::OK;
-        }
-        void getPackageLimits(size_t &limit_ancestor_count,
-                              size_t &limit_descendant_count) override {
-            limit_ancestor_count = size_t(DEFAULT_ANCESTOR_LIMIT);
-            limit_descendant_count = size_t(DEFAULT_DESCENDANT_LIMIT);
         }
         CFeeRate estimateFee() const override {
             if (!m_node.mempool) {

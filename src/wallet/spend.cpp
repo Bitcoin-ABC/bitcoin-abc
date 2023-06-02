@@ -508,7 +508,6 @@ bool SelectCoins(const CWallet &wallet,
     // limitation becomes irrelevant.
     size_t max_ancestors{0};
     size_t max_descendants{0};
-    wallet.chain().getPackageLimits(max_ancestors, max_descendants);
 
     // form groups from remaining coins; note that preset coins will not
     // automatically have their associated (same address) coins included

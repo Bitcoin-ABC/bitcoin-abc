@@ -15,7 +15,6 @@
 #include <interfaces/wallet.h>
 #include <key.h>
 #include <key_io.h>
-#include <policy/mempool.h>
 #include <policy/policy.h>
 #include <primitives/transaction.h>
 #include <random.h>
