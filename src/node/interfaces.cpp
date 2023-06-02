@@ -600,14 +600,6 @@ namespace {
             }
             return false;
         }
-        bool hasDescendantsInMempool(const TxId &txid) override {
-            if (!m_node.mempool) {
-                return false;
-            }
-            LOCK(m_node.mempool->cs);
-            auto it = m_node.mempool->GetIter(txid);
-            return it && (*it)->GetCountWithDescendants() > 1;
-        }
         bool broadcastTransaction(const Config &config,
                                   const CTransactionRef &tx,
                                   const Amount &max_tx_fee, bool relay,

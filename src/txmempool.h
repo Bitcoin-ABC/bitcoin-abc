@@ -79,10 +79,6 @@ struct CompareIteratorById {
  * CTxMemPoolEntry stores data about the corresponding transaction, as well as
  * data about all in-mempool transactions that depend on the transaction
  * ("descendant" transactions).
- *
- * When a new entry is added to the mempool, we update the descendant state
- * (nCountWithDescendants, nSizeWithDescendants, and nModFeesWithDescendants)
- * for all ancestors of the newly added transaction.
  */
 
 class CTxMemPoolEntry {
@@ -119,25 +115,6 @@ private:
     //! Track the height and time at which tx was final
     LockPoints lockPoints;
 
-    // NOTE:
-    // The below members will stop being updated after Wellington activation,
-    // and should be removed in the release after Wellington is checkpointed.
-    //
-    // Information about descendants of this transaction that are in the
-    // mempool; if we remove this transaction we must remove all of these
-    // descendants as well.
-    //! number of descendant transactions
-    uint64_t nCountWithDescendants{1};
-    //! ... and size
-    uint64_t nSizeWithDescendants;
-    //! ... and sichecks
-    int64_t nSigChecksWithDescendants;
-
-    // Analogous statistics for ancestor transactions
-    uint64_t nCountWithAncestors{1};
-    uint64_t nSizeWithAncestors;
-    int64_t nSigChecksWithAncestors;
-
 public:
     CTxMemPoolEntry(const CTransactionRef &_tx, const Amount fee, int64_t time,
                     unsigned int entry_height, bool spends_coinbase,
@@ -169,21 +146,7 @@ public:
     // Update the LockPoints after a reorg
     void UpdateLockPoints(const LockPoints &lp);
 
-    uint64_t GetCountWithDescendants() const { return nCountWithDescendants; }
-    uint64_t GetSizeWithDescendants() const { return nSizeWithDescendants; }
-    uint64_t GetVirtualSizeWithDescendants() const;
-    int64_t GetSigChecksWithDescendants() const {
-        return nSigChecksWithDescendants;
-    }
-
     bool GetSpendsCoinbase() const { return spendsCoinbase; }
-
-    uint64_t GetCountWithAncestors() const { return nCountWithAncestors; }
-    uint64_t GetSizeWithAncestors() const { return nSizeWithAncestors; }
-    uint64_t GetVirtualSizeWithAncestors() const;
-    int64_t GetSigChecksWithAncestors() const {
-        return nSigChecksWithAncestors;
-    }
 
     const Parents &GetMemPoolParentsConst() const { return m_parents; }
     const Children &GetMemPoolChildrenConst() const { return m_children; }
