@@ -458,20 +458,12 @@ private:
 
     /**
      * Helper function to calculate all in-mempool ancestors of staged_ancestors
-     * and apply ancestor and descendant limits (including staged_ancestors
-     * themselves, entry_size and entry_count).
-     * param@[in]   entry_size          Virtual size to include in the limits.
-     * param@[in]   entry_count         How many entries to include in the
-     *                                  limits.
      * param@[in]   staged_ancestors    Should contain entries in the mempool.
      * param@[out]  setAncestors        Will be populated with all mempool
      *                                  ancestors.
      */
-    bool CalculateAncestorsAndCheckLimits(
-        size_t entry_size, size_t entry_count, setEntries &setAncestors,
-        CTxMemPoolEntry::Parents &staged_ancestors, uint64_t limitAncestorCount,
-        uint64_t limitAncestorSize, uint64_t limitDescendantCount,
-        uint64_t limitDescendantSize, std::string &errString) const
+    bool CalculateAncestors(setEntries &setAncestors,
+                            CTxMemPoolEntry::Parents &staged_ancestors) const
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
 public:
@@ -570,20 +562,13 @@ public:
     /**
      * Try to calculate all in-mempool ancestors of entry.
      *  (these are all calculated including the tx itself)
-     *  limitAncestorCount = max number of ancestors
-     *  limitAncestorSize = max size of ancestors
-     *  limitDescendantCount = max number of descendants any ancestor can have
-     *  limitDescendantSize = max size of descendants any ancestor can have
-     *  errString = populated with error reason if any limits are hit
      * fSearchForParents = whether to search a tx's vin for in-mempool parents,
      * or look up parents from m_parents. Must be true for entries not in the
      * mempool
      */
-    bool CalculateMemPoolAncestors(
-        const CTxMemPoolEntry &entry, setEntries &setAncestors,
-        uint64_t limitAncestorCount, uint64_t limitAncestorSize,
-        uint64_t limitDescendantCount, uint64_t limitDescendantSize,
-        std::string &errString, bool fSearchForParents = true) const
+    bool CalculateMemPoolAncestors(const CTxMemPoolEntry &entry,
+                                   setEntries &setAncestors,
+                                   bool fSearchForParents = true) const
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /**

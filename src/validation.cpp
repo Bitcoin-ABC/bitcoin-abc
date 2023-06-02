@@ -297,11 +297,7 @@ public:
     MemPoolAccept(CTxMemPool &mempool, Chainstate &active_chainstate)
         : m_pool(mempool), m_view(&m_dummy),
           m_viewmempool(&active_chainstate.CoinsTip(), m_pool),
-          m_active_chainstate(active_chainstate),
-          m_limit_ancestors(DEFAULT_ANCESTOR_LIMIT),
-          m_limit_ancestor_size(DEFAULT_ANCESTOR_SIZE_LIMIT * 1000),
-          m_limit_descendants(DEFAULT_DESCENDANT_LIMIT),
-          m_limit_descendant_size(DEFAULT_DESCENDANT_SIZE_LIMIT * 1000) {}
+          m_active_chainstate(active_chainstate) {}
 
     // We put the arguments we're handed into a struct, so we can pass them
     // around easier.
@@ -488,14 +484,6 @@ private:
     CCoinsView m_dummy;
 
     Chainstate &m_active_chainstate;
-
-    // The package limits in effect at the time of invocation.
-    const size_t m_limit_ancestors;
-    const size_t m_limit_ancestor_size;
-    // These may be modified while evaluating a transaction (eg to account for
-    // in-mempool conflicts; see below).
-    size_t m_limit_descendants;
-    size_t m_limit_descendant_size;
 };
 
 bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
@@ -799,10 +787,7 @@ bool MemPoolAccept::SubmitPackage(
         // changed since the last calculation done in PreChecks, since package
         // ancestors have already been submitted.
         std::string unused_err_string;
-        if (!m_pool.CalculateMemPoolAncestors(
-                *ws.m_entry, ws.m_ancestors, m_limit_ancestors,
-                m_limit_ancestor_size, m_limit_descendants,
-                m_limit_descendant_size, unused_err_string)) {
+        if (!m_pool.CalculateMemPoolAncestors(*ws.m_entry, ws.m_ancestors)) {
             results.emplace(ws.m_ptx->GetId(),
                             MempoolAcceptResult::Failure(ws.m_state));
             all_submitted = Assume(false);
