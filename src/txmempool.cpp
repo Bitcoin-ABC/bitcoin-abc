@@ -29,44 +29,6 @@
 #include <cmath>
 #include <limits>
 
-// Helpers for modifying CTxMemPool::mapTx, which is a boost multi_index.
-// Remove after Wellington
-struct update_descendant_state {
-    update_descendant_state(int64_t _modifySize, Amount _modifyFee,
-                            int64_t _modifyCount, int64_t _modifySigChecks)
-        : modifySize(_modifySize), modifyFee(_modifyFee),
-          modifyCount(_modifyCount), modifySigChecks(_modifySigChecks) {}
-
-    void operator()(CTxMemPoolEntry &e) {
-        e.UpdateDescendantState(modifySize, modifyFee, modifyCount,
-                                modifySigChecks);
-    }
-
-private:
-    int64_t modifySize;
-    Amount modifyFee;
-    int64_t modifyCount;
-    int64_t modifySigChecks;
-};
-
-struct update_ancestor_state {
-    update_ancestor_state(int64_t _modifySize, Amount _modifyFee,
-                          int64_t _modifyCount, int64_t _modifySigChecks)
-        : modifySize(_modifySize), modifyFee(_modifyFee),
-          modifyCount(_modifyCount), modifySigChecks(_modifySigChecks) {}
-
-    void operator()(CTxMemPoolEntry &e) {
-        e.UpdateAncestorState(modifySize, modifyFee, modifyCount,
-                              modifySigChecks);
-    }
-
-private:
-    int64_t modifySize;
-    Amount modifyFee;
-    int64_t modifyCount;
-    int64_t modifySigChecks;
-};
-
 bool TestLockPointValidity(const CChain &active_chain, const LockPoints &lp) {
     AssertLockHeld(cs_main);
     // If there are relative lock times then the maxInputBlock will be set
@@ -208,31 +170,6 @@ void CTxMemPool::UpdateForRemoveFromMempool(const setEntries &entriesToRemove,
     for (txiter removeIt : entriesToRemove) {
         UpdateChildrenForRemoval(removeIt);
     }
-}
-
-void CTxMemPoolEntry::UpdateDescendantState(int64_t modifySize,
-                                            Amount modifyFee,
-                                            int64_t modifyCount,
-                                            int64_t modifySigChecks) {
-    nSizeWithDescendants += modifySize;
-    assert(int64_t(nSizeWithDescendants) > 0);
-    nModFeesWithDescendants += modifyFee;
-    nCountWithDescendants += modifyCount;
-    assert(int64_t(nCountWithDescendants) > 0);
-    nSigChecksWithDescendants += modifySigChecks;
-    assert(nSigChecksWithDescendants >= 0);
-}
-
-void CTxMemPoolEntry::UpdateAncestorState(int64_t modifySize, Amount modifyFee,
-                                          int64_t modifyCount,
-                                          int64_t modifySigChecks) {
-    nSizeWithAncestors += modifySize;
-    assert(int64_t(nSizeWithAncestors) > 0);
-    nModFeesWithAncestors += modifyFee;
-    nCountWithAncestors += modifyCount;
-    assert(int64_t(nCountWithAncestors) > 0);
-    nSigChecksWithAncestors += modifySigChecks;
-    assert(nSigChecksWithAncestors >= 0);
 }
 
 CTxMemPool::CTxMemPool(int check_ratio) : m_check_ratio(check_ratio) {

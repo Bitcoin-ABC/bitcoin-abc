@@ -167,13 +167,6 @@ public:
     size_t DynamicMemoryUsage() const { return nUsageSize; }
     const LockPoints &GetLockPoints() const { return lockPoints; }
 
-    // Adjusts the descendant state. -- To be removed after Wellington
-    void UpdateDescendantState(int64_t modifySize, Amount modifyFee,
-                               int64_t modifyCount, int64_t modifySigChecks);
-    // Adjusts the ancestor state -- To be removed after Wellington
-    void UpdateAncestorState(int64_t modifySize, Amount modifyFee,
-                             int64_t modifyCount, int64_t modifySigChecks);
-
     // Updates the fee delta used for mining priority score, and the
     // modified fees with descendants.
     void UpdateFeeDelta(Amount feeDelta);
