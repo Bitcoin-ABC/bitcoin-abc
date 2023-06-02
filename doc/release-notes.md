@@ -4,4 +4,7 @@ Bitcoin ABC version 0.27.7 is now available from:
 
   <https://download.bitcoinabc.org/0.27.7/>
 
-This is a maintenance release with no user-visible change.
+This release includes the following features and fixes:
+ - The `fees.ancestor` and `fees.descendant` fields from the `getrawmempool`,
+   `getmempoolentry`, `getmempoolancestors` and `getmempooldescendants` were
+   deprecated since v0.27.0 and have been completely removed.

@@ -130,15 +130,12 @@ private:
     uint64_t nCountWithDescendants{1};
     //! ... and size
     uint64_t nSizeWithDescendants;
-    //! ... and total fees (all including us)
-    Amount nModFeesWithDescendants;
     //! ... and sichecks
     int64_t nSigChecksWithDescendants;
 
     // Analogous statistics for ancestor transactions
     uint64_t nCountWithAncestors{1};
     uint64_t nSizeWithAncestors;
-    Amount nModFeesWithAncestors;
     int64_t nSigChecksWithAncestors;
 
 public:
@@ -167,8 +164,7 @@ public:
     size_t DynamicMemoryUsage() const { return nUsageSize; }
     const LockPoints &GetLockPoints() const { return lockPoints; }
 
-    // Updates the fee delta used for mining priority score, and the
-    // modified fees with descendants.
+    // Updates the fee delta used for mining priority score
     void UpdateFeeDelta(Amount feeDelta);
     // Update the LockPoints after a reorg
     void UpdateLockPoints(const LockPoints &lp);
@@ -176,7 +172,6 @@ public:
     uint64_t GetCountWithDescendants() const { return nCountWithDescendants; }
     uint64_t GetSizeWithDescendants() const { return nSizeWithDescendants; }
     uint64_t GetVirtualSizeWithDescendants() const;
-    Amount GetModFeesWithDescendants() const { return nModFeesWithDescendants; }
     int64_t GetSigChecksWithDescendants() const {
         return nSigChecksWithDescendants;
     }
@@ -186,7 +181,6 @@ public:
     uint64_t GetCountWithAncestors() const { return nCountWithAncestors; }
     uint64_t GetSizeWithAncestors() const { return nSizeWithAncestors; }
     uint64_t GetVirtualSizeWithAncestors() const;
-    Amount GetModFeesWithAncestors() const { return nModFeesWithAncestors; }
     int64_t GetSigChecksWithAncestors() const {
         return nSigChecksWithAncestors;
     }

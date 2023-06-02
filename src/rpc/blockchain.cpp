@@ -498,22 +498,6 @@ static std::vector<RPCResult> MempoolEntryDescription() {
                               "transaction fee with fee deltas used for "
                               "mining priority in " +
                                   ticker},
-                    RPCResult{
-                        RPCResult::Type::STR_AMOUNT, "ancestor",
-                        "DEPRECATED: modified fees (see above) of in-mempool "
-                        "ancestors (including this one) in " +
-                            ticker +
-                            ". Only displayed if the "
-                            "-deprecatedrpc=mempool_ancestors_descendants "
-                            "option is set"},
-                    RPCResult{
-                        RPCResult::Type::STR_AMOUNT, "descendant",
-                        "DEPRECATED: modified fees (see above) of in-mempool "
-                        "descendants (including this one) in " +
-                            ticker +
-                            ". Only displayed if the "
-                            "-deprecatedrpc=mempool_ancestors_descendants "
-                            "option is set"},
                 }},
             RPCResult{
                 RPCResult::Type::ARR,
@@ -581,10 +565,6 @@ static void entryToJSON(const CTxMemPool &pool, UniValue &info,
     UniValue fees(UniValue::VOBJ);
     fees.pushKV("base", e.GetFee());
     fees.pushKV("modified", e.GetModifiedFee());
-    if (deprecated_ancestors_descendants) {
-        fees.pushKV("ancestor", e.GetModFeesWithAncestors());
-        fees.pushKV("descendant", e.GetModFeesWithDescendants());
-    }
     info.pushKV("fees", fees);
 
     info.pushKV("size", (int)e.GetTxSize());

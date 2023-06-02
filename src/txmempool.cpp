@@ -55,8 +55,7 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx, const Amount fee,
       nTxSize(tx->GetTotalSize()), nUsageSize{RecursiveDynamicUsage(tx)},
       nTime(time), entryHeight{entry_height}, spendsCoinbase(spends_coinbase),
       sigChecks(_sigChecks), lockPoints(lp), nSizeWithDescendants{GetTxSize()},
-      nModFeesWithDescendants{nFee}, nSigChecksWithDescendants{sigChecks},
-      nSizeWithAncestors{GetTxSize()}, nModFeesWithAncestors{nFee},
+      nSigChecksWithDescendants{sigChecks}, nSizeWithAncestors{GetTxSize()},
       nSigChecksWithAncestors{sigChecks} {}
 
 size_t CTxMemPoolEntry::GetTxVirtualSize() const {
@@ -80,9 +79,6 @@ uint64_t CTxMemPoolEntry::GetVirtualSizeWithAncestors() const {
 }
 
 void CTxMemPoolEntry::UpdateFeeDelta(Amount newFeeDelta) {
-    // Remove after wellington; this stat is unused after wellington
-    nModFeesWithDescendants += newFeeDelta - feeDelta;
-    nModFeesWithAncestors += newFeeDelta - feeDelta;
     feeDelta = newFeeDelta;
 }
 
