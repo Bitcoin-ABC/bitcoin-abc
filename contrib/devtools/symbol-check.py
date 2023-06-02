@@ -23,18 +23,13 @@ from utils import determine_wellknown_cmd
 # - libgcc version 8.3.0 (https://packages.debian.org/search?suite=buster&arch=any&searchon=names&keywords=libgcc1)
 # - libc version 2.28 (https://packages.debian.org/search?suite=buster&arch=any&searchon=names&keywords=libc6)
 #
-# Ubuntu 18.04 (Bionic) EOL: 2028. https://wiki.ubuntu.com/ReleaseTeam
-#
-# - libgcc version 8.4.0 (https://packages.ubuntu.com/bionic/libgcc1)
-# - libc version 2.27 (https://packages.ubuntu.com/bionic/libc6)
-#
 # CentOS Stream 8 EOL: 2024. https://wiki.centos.org/About/Product
 #
 # - libgcc version 8.5.0 (http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/Packages/)
 # - libc version 2.28 (http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/Packages/)
 #
 # See https://gcc.gnu.org/onlinedocs/libstdc++/manual/abi.html for more info.
-MAX_VERSIONS = {"GCC": (8, 3, 0), "GLIBC": (2, 27), "LIBATOMIC": (1, 0)}
+MAX_VERSIONS = {"GCC": (8, 3, 0), "GLIBC": (2, 28), "LIBATOMIC": (1, 0)}
 # See here for a description of _IO_stdin_used:
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=634261#109
 
