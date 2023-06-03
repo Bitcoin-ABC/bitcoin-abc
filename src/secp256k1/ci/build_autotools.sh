@@ -34,8 +34,7 @@ print_environment
 # This speeds up jobs with many invocations of wine (e.g., ./configure with MSVC) tremendously.
 case "$WRAPPER_CMD" in
     *wine*)
-        # This is apparently only reliable when we run a dummy command such as "hh.exe" afterwards.
-        wineserver -p && wine hh.exe
+        wineserver -p
         ;;
 esac
 
