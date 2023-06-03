@@ -143,10 +143,10 @@ index ead030d..0c0e314 100644
  
    if (category == LC_ALL)
 diff --git a/string/Makefile b/string/Makefile
-index 8424a61..f925503 100644
+index aa2da9ca72..f273c2611d 100644
 --- a/string/Makefile
 +++ b/string/Makefile
-@@ -38,7 +38,7 @@ routines	:= strcat strchr strcmp strcoll strcpy strcspn		\
+@@ -40,7 +40,7 @@ routines	:= strcat strchr strcmp strcoll strcpy strcspn		\
  		   swab strfry memfrob memmem rawmemchr strchrnul	\
  		   $(addprefix argz-,append count create ctsep next	\
  				     delete extract insert stringify	\
@@ -218,10 +218,10 @@ index 0000000..505b0f2
 +}
 +weak_alias (__argz_suffix_entries, argz_suffix_entries)
 diff --git a/string/argz.h b/string/argz.h
-index bb62a31..d276a35 100644
+index 9c496f5ef5..1010a439d8 100644
 --- a/string/argz.h
 +++ b/string/argz.h
-@@ -134,6 +134,16 @@ extern error_t argz_replace (char **__restrict __argz,
+@@ -108,6 +108,16 @@ extern error_t argz_replace (char **__restrict __argz,
  			     const char *__restrict __str,
  			     const char *__restrict __with,
  			     unsigned int *__restrict __replace_count);

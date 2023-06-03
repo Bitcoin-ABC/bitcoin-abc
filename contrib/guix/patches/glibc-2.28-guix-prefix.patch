@@ -9,7 +9,7 @@ when we being using newer versions of glibc.
 
 --- a/Makeconfig
 +++ b/Makeconfig
-@@ -992,6 +992,10 @@ object-suffixes :=
+@@ -998,6 +998,10 @@ object-suffixes :=
  CPPFLAGS-.o = $(pic-default)
  # libc.a must be compiled with -fPIE/-fpie for static PIE.
  CFLAGS-.o = $(filter %frame-pointer,$(+cflags)) $(pie-default)

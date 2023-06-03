@@ -21,7 +21,7 @@ diff --git a/Makeconfig b/Makeconfig
 index 86a71e5802..aa2166be60 100644
 --- a/Makeconfig
 +++ b/Makeconfig
-@@ -896,7 +896,7 @@ ifeq	"$(strip $(+cflags))" ""
+@@ -901,7 +901,7 @@ ifeq	"$(strip $(+cflags))" ""
  endif	# $(+cflags) == ""
  
  +cflags += $(cflags-cpu) $(+gccwarn) $(+merge-constants) $(+math-flags) \
