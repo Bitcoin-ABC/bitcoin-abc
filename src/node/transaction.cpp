@@ -34,7 +34,7 @@ static TransactionError HandleATMPError(const TxValidationState &state,
     }
 }
 
-TransactionError BroadcastTransaction(NodeContext &node, const Config &config,
+TransactionError BroadcastTransaction(const NodeContext &node,
                                       const CTransactionRef tx,
                                       std::string &err_string,
                                       const Amount max_tx_fee, bool relay,

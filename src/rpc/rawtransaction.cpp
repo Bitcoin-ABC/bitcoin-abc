@@ -855,7 +855,7 @@ static RPCHelpMan sendrawtransaction() {
             AssertLockNotHeld(cs_main);
             NodeContext &node = EnsureAnyNodeContext(request.context);
             const TransactionError err = BroadcastTransaction(
-                node, config, tx, err_string, max_raw_tx_fee, /*relay*/ true,
+                node, tx, err_string, max_raw_tx_fee, /*relay*/ true,
                 /*wait_callback*/ true);
             if (err != TransactionError::OK) {
                 throw JSONRPCTransactionError(err, err_string);

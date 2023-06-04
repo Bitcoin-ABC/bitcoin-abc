@@ -310,7 +310,7 @@ void WalletView::gotoLoadPSBT() {
                 CTransactionRef tx = MakeTransactionRef(mtx);
 
                 TransactionError result = BroadcastTransaction(
-                    *clientModel->node().context(), GetConfig(), tx, err_string,
+                    *clientModel->node().context(), tx, err_string,
                     DEFAULT_MAX_RAW_TX_FEE_RATE.GetFeePerK(), /* relay */ true,
                     /* wait_callback */ false);
                 if (result == TransactionError::OK) {
