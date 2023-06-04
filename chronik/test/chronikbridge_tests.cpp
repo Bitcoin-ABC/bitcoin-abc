@@ -160,4 +160,74 @@ BOOST_FIXTURE_TEST_CASE(test_get_block_info, TestChain100Setup) {
     BOOST_CHECK(chronik_bridge::get_block_info(tip) == expected_tip_info);
 }
 
+BOOST_FIXTURE_TEST_CASE(test_bridge_broadcast_tx, TestChain100Setup) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    const CChainParams &params = GetConfig().GetChainParams();
+    const chronik_bridge::ChronikBridge bridge(params.GetConsensus(), m_node);
+
+    CScript anyoneScript = CScript() << OP_1;
+    CScript anyoneP2sh = GetScriptForDestination(ScriptHash(anyoneScript));
+    CBlock coinsBlock =
+        CreateAndProcessBlock({}, anyoneP2sh, &chainman.ActiveChainstate());
+    mineBlocks(100);
+
+    const CTransactionRef coinTx = coinsBlock.vtx[0];
+
+    CScript scriptPad = CScript() << OP_RETURN << std::vector<uint8_t>(100);
+    CMutableTransaction tx;
+    tx.vin = {CTxIn(coinTx->GetId(), 0)};
+    tx.vout = {
+        CTxOut(coinTx->vout[0].nValue - 10000 * SATOSHI, scriptPad),
+    };
+
+    {
+        // Failed broadcast: mempool rejected tx
+        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+        ss << tx;
+        rust::Slice<const uint8_t> raw_tx{(const uint8_t *)ss.data(),
+                                          ss.size()};
+        BOOST_CHECK_EXCEPTION(
+            bridge.broadcast_tx(raw_tx, 10000), std::runtime_error,
+            [](const std::runtime_error &ex) {
+                BOOST_CHECK_EQUAL(
+                    ex.what(), "Transaction rejected by mempool: "
+                               "mandatory-script-verify-flag-failed (Operation "
+                               "not valid with the current stack size)");
+                return true;
+            });
+    }
+
+    tx.vin[0].scriptSig =
+        CScript() << std::vector(anyoneScript.begin(), anyoneScript.end());
+
+    {
+        // Failed broadcast from excessive fee (10000 > 9999).
+        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+        ss << tx;
+        rust::Slice<const uint8_t> raw_tx{(const uint8_t *)ss.data(),
+                                          ss.size()};
+        BOOST_CHECK_EXCEPTION(
+            bridge.broadcast_tx(raw_tx, 9999), std::runtime_error,
+            [](const std::runtime_error &ex) {
+                BOOST_CHECK_EQUAL(ex.what(),
+                                  "Fee exceeds maximum configured by user "
+                                  "(e.g. -maxtxfee, maxfeerate)");
+                return true;
+            });
+    }
+
+    {
+        // Successful broadcast
+        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+        ss << tx;
+        rust::Slice<const uint8_t> raw_tx{(const uint8_t *)ss.data(),
+                                          ss.size()};
+        BOOST_CHECK_EQUAL(HexStr(bridge.broadcast_tx(raw_tx, 10000)),
+                          HexStr(chronik::util::HashToArray(tx.GetId())));
+        // Broadcast again simply returns the hash (fee check skipped here)
+        BOOST_CHECK_EQUAL(HexStr(bridge.broadcast_tx(raw_tx, 9999)),
+                          HexStr(chronik::util::HashToArray(tx.GetId())));
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

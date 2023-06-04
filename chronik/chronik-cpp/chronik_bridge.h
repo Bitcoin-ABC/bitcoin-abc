@@ -63,6 +63,9 @@ public:
     Tx bridge_tx(const CTransaction &tx) const;
 
     const CBlockIndex &find_fork(const CBlockIndex &index) const;
+
+    std::array<uint8_t, 32> broadcast_tx(rust::Slice<const uint8_t> raw_tx,
+                                         int64_t max_fee) const;
 };
 
 std::unique_ptr<ChronikBridge> make_bridge(const Config &config,

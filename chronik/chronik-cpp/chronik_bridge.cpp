@@ -14,10 +14,12 @@
 #include <node/blockstorage.h>
 #include <node/coin.h>
 #include <node/context.h>
+#include <node/transaction.h>
 #include <node/ui_interface.h>
 #include <shutdown.h>
 #include <streams.h>
 #include <undo.h>
+#include <util/error.h>
 #include <validation.h>
 
 chronik_bridge::OutPoint BridgeOutPoint(const COutPoint &outpoint) {
@@ -225,6 +227,30 @@ const CBlockIndex &ChronikBridge::find_fork(const CBlockIndex &index) const {
         throw block_index_not_found();
     }
     return *fork;
+}
+
+std::array<uint8_t, 32>
+ChronikBridge::broadcast_tx(rust::Slice<const uint8_t> raw_tx,
+                            int64_t max_fee) const {
+    std::vector<uint8_t> vec = chronik::util::FromRustSlice(raw_tx);
+    CDataStream stream{vec, SER_NETWORK, PROTOCOL_VERSION};
+    CMutableTransaction tx;
+    stream >> tx;
+    CTransactionRef tx_ref = MakeTransactionRef(tx);
+    std::string err_str;
+    TransactionError error = node::BroadcastTransaction(
+        m_node, tx_ref, err_str, max_fee * Amount::satoshi(), /*relay=*/true,
+        /*wait_callback=*/false);
+    if (error != TransactionError::OK) {
+        bilingual_str txErrorMsg = TransactionErrorString(error);
+        if (err_str.empty()) {
+            throw std::runtime_error(txErrorMsg.original.c_str());
+        } else {
+            std::string msg = strprintf("%s: %s", txErrorMsg.original, err_str);
+            throw std::runtime_error(msg.c_str());
+        }
+    }
+    return chronik::util::HashToArray(tx_ref->GetId());
 }
 
 std::unique_ptr<ChronikBridge> make_bridge(const Config &config,

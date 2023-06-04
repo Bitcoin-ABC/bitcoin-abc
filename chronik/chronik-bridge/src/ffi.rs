@@ -207,6 +207,16 @@ mod ffi_inner {
             block_index: &CBlockIndex,
         ) -> Result<&CBlockIndex>;
 
+        /// Add the given tx to the mempool, and if that succeeds, broadcast it
+        /// to all our peers.
+        /// Also check the actual tx fee doesn't exceed max_fee.
+        /// Note max_fee is absolute, not a fee rate (as in sendrawtransaction).
+        fn broadcast_tx(
+            self: &ChronikBridge,
+            raw_tx: &[u8],
+            max_fee: i64,
+        ) -> Result<[u8; 32]>;
+
         /// Bridge bitcoind's classes to the shared struct [`Block`].
         fn bridge_block(
             block: &CBlock,
