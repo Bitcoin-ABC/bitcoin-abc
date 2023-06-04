@@ -77,30 +77,35 @@ class ChronikBlockTest(BitcoinTestFramework):
             node, 100, ADDRESS_ECREG_P2SH_OP_TRUE
         )
 
+        expected_proto_blocks = []
         for i in range(1, 101):
             proto_block = chronik.block(i).ok()
-            assert_equal(
-                proto_block,
-                pb.Block(
-                    block_info=pb.BlockInfo(
-                        hash=bytes.fromhex(block_hashes[i])[::-1],
-                        prev_hash=bytes.fromhex(block_hashes[i - 1])[::-1],
-                        height=i,
-                        n_bits=0x207FFFFF,
-                        timestamp=proto_block.block_info.timestamp,
-                        block_size=181,
-                        num_txs=1,
-                        num_inputs=1,
-                        num_outputs=1,
-                        sum_input_sats=0,
-                        sum_coinbase_output_sats=5000000000,
-                        sum_normal_output_sats=0,
-                        sum_burned_sats=0,
-                    ),
+            expected_proto = pb.Block(
+                block_info=pb.BlockInfo(
+                    hash=bytes.fromhex(block_hashes[i])[::-1],
+                    prev_hash=bytes.fromhex(block_hashes[i - 1])[::-1],
+                    height=i,
+                    n_bits=0x207FFFFF,
+                    timestamp=proto_block.block_info.timestamp,
+                    block_size=181,
+                    num_txs=1,
+                    num_inputs=1,
+                    num_outputs=1,
+                    sum_input_sats=0,
+                    sum_coinbase_output_sats=5000000000,
+                    sum_normal_output_sats=0,
+                    sum_burned_sats=0,
                 ),
             )
+            expected_proto_blocks.append(expected_proto)
+            assert_equal(proto_block, expected_proto)
             assert_equal(proto_block, chronik.block(block_hashes[i]).ok())
             block_hashes.append(proto_block.block_info.hash)
+
+        # Using -chronikreindex results in the same data
+        self.restart_node(0, ["-chronik", "-chronikreindex"])
+        for i in range(1, 101):
+            assert_equal(chronik.block(i).ok(), expected_proto_blocks[i - 1])
 
         # Invalidate in the middle of the chain
         node.invalidateblock(block_hashes[50])
