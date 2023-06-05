@@ -42,6 +42,9 @@ called_from_lib:libdb_cxx
 thread:src/leveldb/*
 race:epoll_ctl
 
+# Race in headers only Boost Test
+race:std::__1::ios_base::flags
+
 # Intermittent issues
 # -------------------
 #

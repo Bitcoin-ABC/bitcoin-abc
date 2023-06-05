@@ -17,7 +17,7 @@ Features:
 REQUIREMENTS
 ------------
 
-    sudo apt-get install build-essential libboost-all-dev libssl-dev
+    sudo apt-get install build-essential libboost-dev libssl-dev
 
 USAGE
 -----

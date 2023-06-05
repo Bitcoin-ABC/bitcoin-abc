@@ -461,8 +461,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 	find_library(WS2_32_LIBRARY NAMES ws2_32)
 	target_link_libraries(util ${WS2_32_LIBRARY})
-
-	target_compile_definitions(util PUBLIC BOOST_THREAD_USE_LIB)
 endif()
 
 target_link_libraries(util univalue crypto)
@@ -472,12 +470,6 @@ macro(link_event TARGET)
 endmacro()
 
 link_event(util event)
-
-macro(link_boost TARGET)
-	non_native_target_link_libraries(${TARGET} Boost 1.64 ${ARGN})
-endmacro()
-
-link_boost(util headers)
 
 function(add_network_sources NETWORK_SOURCES)
 	set(NETWORK_DIR abc)

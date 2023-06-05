@@ -41,7 +41,7 @@ PACKAGES=(
   lcov
   less
   lib32stdc++-10-dev
-  libboost-all-dev
+  libboost-dev
   libbz2-dev
   libc6-dev:i386
   libcap-dev

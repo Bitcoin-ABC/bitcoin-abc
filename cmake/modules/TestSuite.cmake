@@ -197,29 +197,4 @@ function(add_boost_unit_tests_to_suite SUITE NAME)
 			APPEND PROPERTY UNIT_TESTS ${_test_name}
 		)
 	endforeach()
-
-	# We don't want to add a dependency to the host system boost during cross
-	# compilation. If this is a native build, we still create the executable to
-	# let cmake know the target exists but we don't add the boost dependency.
-	is_native_build(IS_NATIVE_BUILD)
-	if(IS_NATIVE_BUILD)
-		return()
-	endif()
-
-	find_package(Boost 1.64 REQUIRED unit_test_framework)
-	target_link_libraries(${NAME} Boost::unit_test_framework)
-
-	# We need to detect if the BOOST_TEST_DYN_LINK flag is required
-	include(CheckCXXSourceCompiles)
-	set(CMAKE_REQUIRED_LIBRARIES Boost::unit_test_framework)
-
-	check_cxx_source_compiles("
-		#define BOOST_TEST_DYN_LINK
-		#define BOOST_TEST_MAIN
-		#include <boost/test/unit_test.hpp>
-	" BOOST_REQUIRES_TEST_DYN_LINK)
-
-	if(BOOST_REQUIRES_TEST_DYN_LINK)
-		target_compile_definitions(${NAME} PRIVATE BOOST_TEST_DYN_LINK)
-	endif()
 endfunction(add_boost_unit_tests_to_suite)

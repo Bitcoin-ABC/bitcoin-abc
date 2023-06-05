@@ -3,4 +3,4 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #define BOOST_TEST_MODULE Avalanche Test Suite
-#include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
