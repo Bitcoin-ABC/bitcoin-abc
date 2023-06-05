@@ -474,12 +474,10 @@ endmacro()
 link_event(util event)
 
 macro(link_boost TARGET)
-	non_native_target_link_libraries(${TARGET} Boost 1.59 ${ARGN})
+	non_native_target_link_libraries(${TARGET} Boost 1.64 ${ARGN})
 endmacro()
 
 link_boost(util headers)
-# Make sure boost uses std::atomic (it doesn't before 1.63)
-target_compile_definitions(util PUBLIC BOOST_SP_USE_STD_ATOMIC BOOST_AC_USE_STD_ATOMIC)
 
 function(add_network_sources NETWORK_SOURCES)
 	set(NETWORK_DIR abc)

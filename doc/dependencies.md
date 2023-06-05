@@ -6,7 +6,7 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | Dependency | Version used | Minimum required | CVEs | Shared | [Bundled Qt library](https://doc.qt.io/qt-5/configure-options.html) |
 | --- | --- | --- | --- | --- | --- |
 | Berkeley DB | [5.3.28](http://www.oracle.com/technetwork/database/database-technologies/berkeleydb/downloads/index.html) | 5.3 | No |  |  |
-| Boost | [1.81.0](https://www.boost.org/users/download/) | 1.59.0 | No |  |  |
+| Boost | [1.81.0](https://www.boost.org/users/download/) | 1.64.0 | No |  |  |
 | Clang |  | [5](https://releases.llvm.org/download.html) (C++17 support) |  |  |  |
 | CMake |  | [3.16](https://cmake.org/download/) |  |  |  |
 | fontconfig | [2.12.6](https://www.freedesktop.org/software/fontconfig/release/) |  | No | Yes |  |
