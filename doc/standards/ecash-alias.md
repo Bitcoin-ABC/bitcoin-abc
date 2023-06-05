@@ -42,16 +42,16 @@ Aliases are registered by creating a "Registration Transaction" with the followi
 
 1. An output paying the required amount to a designated "Registration Address", and
 2. An output with an OP_RETURN containing 4 data pushes:
-    1. A push of the 4-byte protocol identifier.
-    2. A push of a version number.
-    3. A push of the Alias.
-    4. A push of a CashAddr payload. This information defines the "Alias Address".
+    1. A push of the 4-byte protocol identifier. Must be pushed with `04`.
+    2. A push of a version number. Must be pushed as `OP_0`.
+    3. A push of the Alias. Must be pushed with `0x01-0x15`.
+    4. A push of a CashAddr payload. This information defines the "Alias Address". Must be pushed with `15`
 
 ### The Registration Address
 
-Registration fees are paid to a single address. This address will be polled via the chronik client for its transaction history, whereby incoming txs are parsed for valid registration txs. Since the transaction history of this address cannot change, wallets supporting this alias system may cache valid aliases up to a known blockheight to minimize on-chain polling.
+Registration fees are paid to a single address. This address is polled via the chronik client for its transaction history, whereby incoming txs are parsed for valid registration txs. Since the transaction history of this address cannot change, wallets supporting this alias system may cache valid aliases up to a known blockheight to minimize on-chain polling.
 
-The designated registration address will either be the IFP address or an address that periodically sends funds from valid registrations to the IFP address. Automatically processing hot wallet refunds for invalid transactions would not be feasible from the IFP address.
+The designated registration address is the IFP address.
 
 ### The Registration Payment Amount
 
@@ -79,15 +79,19 @@ An alias may be between 1 and 21 bytes in length, inclusive.
 
 ### The Alias Address
 
-The Alias Address is defined in a 21-byte push containing a CashAddr payload. The first byte will be the version byte indicating the type of address, and the following 20 bytes are the hash.
+The Alias Address is defined in a 21-byte push containing a CashAddr payload. The first byte is the version byte indicating the type of address, and the following 20 bytes are the hash.
 
 An Alias Address may have many aliases. Each alias maps to one and only one Alias Address.
 
 ### Additional Validity Criteria:
 
--   Must be a valid eCash transaction with 1 confirmation
+-   Must be a valid, finalized eCash transaction with 1 confirmation
 -   Have the lowest blockheight of any other alias registration transaction for the same alias
--   When the same alias is registered in the same block by different addresses, the valid alias will be determined by the registration with the alphabetically first txid.
+-   When the same alias is registered in the same block by different addresses, the valid alias is the registration with the alphabetically first txid.
+-   For the case of an alias registration transaction with more than one alias registration OP_RETURN outputs:
+
+1. If the registration fee covers the total required fee for all registered aliases, they are all valid. If not, none are valid.
+2. If such a tx attempts to register the same alias multiple times, none of the registrations are valid
 
 Invalid transactions that do not match the criteria above should be ignored by the app parsing the payment address history.
 
