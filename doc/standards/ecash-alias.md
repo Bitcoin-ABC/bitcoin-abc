@@ -39,6 +39,7 @@ Phase 2
 ## Phase 1 details
 
 Aliases are registered by creating a "Registration Transaction" with the following properties:
+
 1. An output paying the required amount to a designated "Registration Address", and
 2. An output with an OP_RETURN containing 4 data pushes:
     1. A push of the 4-byte protocol identifier.

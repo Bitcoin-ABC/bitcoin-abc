@@ -15,6 +15,7 @@ CashAddr is a base32 encoded format using BCH[[2]](#bch) codes as checksum and t
 ## Specification
 
 The address is composed of
+
 1. A prefix indicating the network on which this address is valid.
 2. A separator, always `:`
 3. A base32 encoded payload indicating the destination of the address and containing a checksum.
@@ -31,14 +32,15 @@ When presented to users, the prefix may be omitted as it is part of the checksum
 
 The payload is a base32 encoded stream of data.
 
-|     | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
-| --: | - | - | - | - | - | - | - | - |
-|  +0 | q | p | z | r | y | 9 | x | 8 |
-|  +8 | g | f | 2 | t | v | d | w | 0 |
-| +16 | s | 3 | j | n | 5 | 4 | k | h |
-| +24 | c | e | 6 | m | u | a | 7 | l |
+|     | 0   | 1   | 2   | 3   | 4   | 5   | 6   | 7   |
+| --: | --- | --- | --- | --- | --- | --- | --- | --- |
+|  +0 | q   | p   | z   | r   | y   | 9   | x   | 8   |
+|  +8 | g   | f   | 2   | t   | v   | d   | w   | 0   |
+| +16 | s   | 3   | j   | n   | 5   | 4   | k   | h   |
+| +24 | c   | e   | 6   | m   | u   | a   | 7   | l   |
 
 The payload is composed of 3 elements:
+
 1. A version byte indicating the type of address.
 2. A hash.
 3. A 40 bits checksum.
@@ -60,10 +62,10 @@ The version byte's most signficant bit is reserved and must be 0. The 4 next bit
 
 Encoding the size of the hash in the version field ensure that it is possible to check that the length of the address is correct.
 
-| Type bits |      Meaning      | Version byte value |
-| --------: | :---------------: | -----------------: |
-|         0 |       P2KH        |                  0 |
-|         1 |       P2SH        |                  8 |
+| Type bits | Meaning | Version byte value |
+| --------: | :-----: | -----------------: |
+|         0 |  P2KH   |                  0 |
+|         1 |  P2SH   |                  8 |
 
 Further types will be added as new features are added.
 
@@ -77,7 +79,7 @@ The checksum is a 40 bits BCH codes defined over GF(2^5). It ensures the detecti
 
 The checksum is computed per the code below:
 
-````cpp
+```cpp
 uint64_t PolyMod(const data &v) {
     uint64_t c = 1;
     for (uint8_t d : v) {
@@ -93,9 +95,10 @@ uint64_t PolyMod(const data &v) {
 
     return c ^ 1;
 }
-````
+```
 
 The checksum is calculated over the following data (list of integers in range 0-31):
+
 1. The lower 5 bits of each character of the prefix. - e.g. "bit..." becomes 2,9,20,...
 2. A zero for the separator (5 zero bits).
 3. The payload by chunks of 5 bits. If necessary, the payload is padded to the right with zero bits to complete any unfinished chunk at the end.
@@ -106,17 +109,19 @@ The payload and the checksum are then encoded according to the base32 character 
 
 To verify a base32-formatted address, it is split at the colon ":" into prefix and payload.
 Input data (list of integers) for PolyMod function is assembled from these parts:
+
 1. The lower 5 bits of each characters of the prefix.
 2. A zero for the separator (5 zero bits).
 3. Each base32 char of the payload mapped to it's respective number.
-If PolyMod returns non-zero, then the address was broken.
+   If PolyMod returns non-zero, then the address was broken.
 
 The following addresses can be used as test vector for checksum computation:
- - prefix:x64nx6hz
- - p:gpf8m4h7
- - ecash:qpzry9x8gf2tvdw0s3jn54khce6mua7llmm0t7vm
- - ectest:testnetaddresn2v3lpw7
- - ecregtest:5y5555555555555555555555555555555555555555555g3gfll4x
+
+-   prefix:x64nx6hz
+-   p:gpf8m4h7
+-   ecash:qpzry9x8gf2tvdw0s3jn54khce6mua7llmm0t7vm
+-   ectest:testnetaddresn2v3lpw7
+-   ecregtest:5y5555555555555555555555555555555555555555555g3gfll4x
 
 NB: These addresses do not have valid payload on purpose.
 
@@ -149,43 +154,42 @@ The following addresses are given in the legacy and new format.
 
 ## Larger Test Vectors
 
-This table defines test vectors for various payloads of sizes 160-512 bits with various prefixes.   These test vectors aren't given in legacy address format because the legacy format is limited to payloads of 160 bits.
+This table defines test vectors for various payloads of sizes 160-512 bits with various prefixes. These test vectors aren't given in legacy address format because the legacy format is limited to payloads of 160 bits.
 
-
-| Payload Size (bytes) | Type | CashAddr | Payload (hex) |
-|:---------------------|:-----|:---------|:--------------|
-|20|0|ecash:qr6m7j9njldwwzlg9v7v53unlr4jkmx6eyx54vzvwa|F5BF48B397DAE70BE82B3CCA4793F8EB2B6CDAC9|
-|20|1|ectest:pr6m7j9njldwwzlg9v7v53unlr4jkmx6eyh6krzzk3|F5BF48B397DAE70BE82B3CCA4793F8EB2B6CDAC9|
-|20|1|pref:pr6m7j9njldwwzlg9v7v53unlr4jkmx6ey65nvtks5|F5BF48B397DAE70BE82B3CCA4793F8EB2B6CDAC9|
-|20|15|prefix:0r6m7j9njldwwzlg9v7v53unlr4jkmx6ey3qnjwsrf|F5BF48B397DAE70BE82B3CCA4793F8EB2B6CDAC9|
-|24|0|ecash:q9adhakpwzztepkpwp5z0dq62m6u5v5xtyj7j3h24pj4gqrx|7ADBF6C17084BC86C1706827B41A56F5CA32865925E946EA|
-|24|1|ectest:p9adhakpwzztepkpwp5z0dq62m6u5v5xtyj7j3h2yht5cqqt|7ADBF6C17084BC86C1706827B41A56F5CA32865925E946EA|
-|24|1|pref:p9adhakpwzztepkpwp5z0dq62m6u5v5xtyj7j3h2khlwwk5v|7ADBF6C17084BC86C1706827B41A56F5CA32865925E946EA|
-|24|15|prefix:09adhakpwzztepkpwp5z0dq62m6u5v5xtyj7j3h2p29kc2lp|7ADBF6C17084BC86C1706827B41A56F5CA32865925E946EA|
-|28|0|ecash:qgagf7w02x4wnz3mkwnchut2vxphjzccwxgjvvjmlsxqwkcplvqjxnq|3A84F9CF51AAE98A3BB3A78BF16A6183790B18719126325BFC0C075B|
-|28|1|ectest:pgagf7w02x4wnz3mkwnchut2vxphjzccwxgjvvjmlsxqwkc8dqmejns|3A84F9CF51AAE98A3BB3A78BF16A6183790B18719126325BFC0C075B|
-|28|1|pref:pgagf7w02x4wnz3mkwnchut2vxphjzccwxgjvvjmlsxqwkcrsr6gzkn|3A84F9CF51AAE98A3BB3A78BF16A6183790B18719126325BFC0C075B|
-|28|15|prefix:0gagf7w02x4wnz3mkwnchut2vxphjzccwxgjvvjmlsxqwkc5djw8s9g|3A84F9CF51AAE98A3BB3A78BF16A6183790B18719126325BFC0C075B|
-|32|0|ecash:qvch8mmxy0rtfrlarg7ucrxxfzds5pamg73h7370aa87d80gyhqxqwwcjq6wn|3173EF6623C6B48FFD1A3DCC0CC6489B0A07BB47A37F47CFEF4FE69DE825C060|
-|32|1|ectest:pvch8mmxy0rtfrlarg7ucrxxfzds5pamg73h7370aa87d80gyhqxqvutqznvr|3173EF6623C6B48FFD1A3DCC0CC6489B0A07BB47A37F47CFEF4FE69DE825C060|
-|32|1|pref:pvch8mmxy0rtfrlarg7ucrxxfzds5pamg73h7370aa87d80gyhqxq4k9m7qf9|3173EF6623C6B48FFD1A3DCC0CC6489B0A07BB47A37F47CFEF4FE69DE825C060|
-|32|15|prefix:0vch8mmxy0rtfrlarg7ucrxxfzds5pamg73h7370aa87d80gyhqxqsh6jgp6w|3173EF6623C6B48FFD1A3DCC0CC6489B0A07BB47A37F47CFEF4FE69DE825C060|
-|40|0|ecash:qnq8zwpj8cq05n7pytfmskuk9r4gzzel8qtsvwz79zdskftrzxtar994cgutavfklvv46vrney|C07138323E00FA4FC122D3B85B9628EA810B3F381706385E289B0B25631197D194B5C238BEB136FB|
-|40|1|ectest:pnq8zwpj8cq05n7pytfmskuk9r4gzzel8qtsvwz79zdskftrzxtar994cgutavfklvxysxrq4s|C07138323E00FA4FC122D3B85B9628EA810B3F381706385E289B0B25631197D194B5C238BEB136FB|
-|40|1|pref:pnq8zwpj8cq05n7pytfmskuk9r4gzzel8qtsvwz79zdskftrzxtar994cgutavfklv0vx5z0w3|C07138323E00FA4FC122D3B85B9628EA810B3F381706385E289B0B25631197D194B5C238BEB136FB|
-|40|15|prefix:0nq8zwpj8cq05n7pytfmskuk9r4gzzel8qtsvwz79zdskftrzxtar994cgutavfklvwsvctzqy|C07138323E00FA4FC122D3B85B9628EA810B3F381706385E289B0B25631197D194B5C238BEB136FB|
-|48|0|ecash:qh3krj5607v3qlqh5c3wq3lrw3wnuxw0sp8dv0zugrrt5a3kj6ucysfz8kxwv2k53krr7n933jfsunqmqjjtpwr|E361CA9A7F99107C17A622E047E3745D3E19CF804ED63C5C40C6BA763696B98241223D8CE62AD48D863F4CB18C930E4C|
-|48|1|ectest:ph3krj5607v3qlqh5c3wq3lrw3wnuxw0sp8dv0zugrrt5a3kj6ucysfz8kxwv2k53krr7n933jfsunqy7wvdl6p|E361CA9A7F99107C17A622E047E3745D3E19CF804ED63C5C40C6BA763696B98241223D8CE62AD48D863F4CB18C930E4C|
-|48|1|pref:ph3krj5607v3qlqh5c3wq3lrw3wnuxw0sp8dv0zugrrt5a3kj6ucysfz8kxwv2k53krr7n933jfsunqjntdfcwg|E361CA9A7F99107C17A622E047E3745D3E19CF804ED63C5C40C6BA763696B98241223D8CE62AD48D863F4CB18C930E4C|
-|48|15|prefix:0h3krj5607v3qlqh5c3wq3lrw3wnuxw0sp8dv0zugrrt5a3kj6ucysfz8kxwv2k53krr7n933jfsunqakcssnmn|E361CA9A7F99107C17A622E047E3745D3E19CF804ED63C5C40C6BA763696B98241223D8CE62AD48D863F4CB18C930E4C|
-|56|0|ecash:qmvl5lzvdm6km38lgga64ek5jhdl7e3aqd9895wu04fvhlnare5937w4ywkq57juxsrhvw8ym5d8qx7sz7zz0zvcypqsexktekqd|D9FA7C4C6EF56DC4FF423BAAE6D495DBFF663D034A72D1DC7D52CBFE7D1E6858F9D523AC0A7A5C34077638E4DD1A701BD017842789982041|
-|56|1|ectest:pmvl5lzvdm6km38lgga64ek5jhdl7e3aqd9895wu04fvhlnare5937w4ywkq57juxsrhvw8ym5d8qx7sz7zz0zvcypqsd03rgsn0|D9FA7C4C6EF56DC4FF423BAAE6D495DBFF663D034A72D1DC7D52CBFE7D1E6858F9D523AC0A7A5C34077638E4DD1A701BD017842789982041|
-|56|1|pref:pmvl5lzvdm6km38lgga64ek5jhdl7e3aqd9895wu04fvhlnare5937w4ywkq57juxsrhvw8ym5d8qx7sz7zz0zvcypqsammyqffl|D9FA7C4C6EF56DC4FF423BAAE6D495DBFF663D034A72D1DC7D52CBFE7D1E6858F9D523AC0A7A5C34077638E4DD1A701BD017842789982041|
-|56|15|prefix:0mvl5lzvdm6km38lgga64ek5jhdl7e3aqd9895wu04fvhlnare5937w4ywkq57juxsrhvw8ym5d8qx7sz7zz0zvcypqsgjrqpnw8|D9FA7C4C6EF56DC4FF423BAAE6D495DBFF663D034A72D1DC7D52CBFE7D1E6858F9D523AC0A7A5C34077638E4DD1A701BD017842789982041|
-|64|0|ecash:qlg0x333p4238k0qrc5ej7rzfw5g8e4a4r6vvzyrcy8j3s5k0en7calvclhw46hudk5flttj6ydvjc0pv3nchp52amk97tqa5zygg96m37thkp20|D0F346310D5513D9E01E299978624BA883E6BDA8F4C60883C10F28C2967E67EC77ECC7EEEAEAFC6DA89FAD72D11AC961E164678B868AEEEC5F2C1DA08884175B|
-|64|1|ectest:plg0x333p4238k0qrc5ej7rzfw5g8e4a4r6vvzyrcy8j3s5k0en7calvclhw46hudk5flttj6ydvjc0pv3nchp52amk97tqa5zygg96mjjad5wtw|D0F346310D5513D9E01E299978624BA883E6BDA8F4C60883C10F28C2967E67EC77ECC7EEEAEAFC6DA89FAD72D11AC961E164678B868AEEEC5F2C1DA08884175B|
-|64|1|pref:plg0x333p4238k0qrc5ej7rzfw5g8e4a4r6vvzyrcy8j3s5k0en7calvclhw46hudk5flttj6ydvjc0pv3nchp52amk97tqa5zygg96mg7pj3lh8|D0F346310D5513D9E01E299978624BA883E6BDA8F4C60883C10F28C2967E67EC77ECC7EEEAEAFC6DA89FAD72D11AC961E164678B868AEEEC5F2C1DA08884175B|
-|64|15|prefix:0lg0x333p4238k0qrc5ej7rzfw5g8e4a4r6vvzyrcy8j3s5k0en7calvclhw46hudk5flttj6ydvjc0pv3nchp52amk97tqa5zygg96ms92w6845|D0F346310D5513D9E01E299978624BA883E6BDA8F4C60883C10F28C2967E67EC77ECC7EEEAEAFC6DA89FAD72D11AC961E164678B868AEEEC5F2C1DA08884175B|
+| Payload Size (bytes) | Type | CashAddr                                                                                                                | Payload (hex)                                                                                                                    |
+| :------------------- | :--- | :---------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------- |
+| 20                   | 0    | ecash:qr6m7j9njldwwzlg9v7v53unlr4jkmx6eyx54vzvwa                                                                        | F5BF48B397DAE70BE82B3CCA4793F8EB2B6CDAC9                                                                                         |
+| 20                   | 1    | ectest:pr6m7j9njldwwzlg9v7v53unlr4jkmx6eyh6krzzk3                                                                       | F5BF48B397DAE70BE82B3CCA4793F8EB2B6CDAC9                                                                                         |
+| 20                   | 1    | pref:pr6m7j9njldwwzlg9v7v53unlr4jkmx6ey65nvtks5                                                                         | F5BF48B397DAE70BE82B3CCA4793F8EB2B6CDAC9                                                                                         |
+| 20                   | 15   | prefix:0r6m7j9njldwwzlg9v7v53unlr4jkmx6ey3qnjwsrf                                                                       | F5BF48B397DAE70BE82B3CCA4793F8EB2B6CDAC9                                                                                         |
+| 24                   | 0    | ecash:q9adhakpwzztepkpwp5z0dq62m6u5v5xtyj7j3h24pj4gqrx                                                                  | 7ADBF6C17084BC86C1706827B41A56F5CA32865925E946EA                                                                                 |
+| 24                   | 1    | ectest:p9adhakpwzztepkpwp5z0dq62m6u5v5xtyj7j3h2yht5cqqt                                                                 | 7ADBF6C17084BC86C1706827B41A56F5CA32865925E946EA                                                                                 |
+| 24                   | 1    | pref:p9adhakpwzztepkpwp5z0dq62m6u5v5xtyj7j3h2khlwwk5v                                                                   | 7ADBF6C17084BC86C1706827B41A56F5CA32865925E946EA                                                                                 |
+| 24                   | 15   | prefix:09adhakpwzztepkpwp5z0dq62m6u5v5xtyj7j3h2p29kc2lp                                                                 | 7ADBF6C17084BC86C1706827B41A56F5CA32865925E946EA                                                                                 |
+| 28                   | 0    | ecash:qgagf7w02x4wnz3mkwnchut2vxphjzccwxgjvvjmlsxqwkcplvqjxnq                                                           | 3A84F9CF51AAE98A3BB3A78BF16A6183790B18719126325BFC0C075B                                                                         |
+| 28                   | 1    | ectest:pgagf7w02x4wnz3mkwnchut2vxphjzccwxgjvvjmlsxqwkc8dqmejns                                                          | 3A84F9CF51AAE98A3BB3A78BF16A6183790B18719126325BFC0C075B                                                                         |
+| 28                   | 1    | pref:pgagf7w02x4wnz3mkwnchut2vxphjzccwxgjvvjmlsxqwkcrsr6gzkn                                                            | 3A84F9CF51AAE98A3BB3A78BF16A6183790B18719126325BFC0C075B                                                                         |
+| 28                   | 15   | prefix:0gagf7w02x4wnz3mkwnchut2vxphjzccwxgjvvjmlsxqwkc5djw8s9g                                                          | 3A84F9CF51AAE98A3BB3A78BF16A6183790B18719126325BFC0C075B                                                                         |
+| 32                   | 0    | ecash:qvch8mmxy0rtfrlarg7ucrxxfzds5pamg73h7370aa87d80gyhqxqwwcjq6wn                                                     | 3173EF6623C6B48FFD1A3DCC0CC6489B0A07BB47A37F47CFEF4FE69DE825C060                                                                 |
+| 32                   | 1    | ectest:pvch8mmxy0rtfrlarg7ucrxxfzds5pamg73h7370aa87d80gyhqxqvutqznvr                                                    | 3173EF6623C6B48FFD1A3DCC0CC6489B0A07BB47A37F47CFEF4FE69DE825C060                                                                 |
+| 32                   | 1    | pref:pvch8mmxy0rtfrlarg7ucrxxfzds5pamg73h7370aa87d80gyhqxq4k9m7qf9                                                      | 3173EF6623C6B48FFD1A3DCC0CC6489B0A07BB47A37F47CFEF4FE69DE825C060                                                                 |
+| 32                   | 15   | prefix:0vch8mmxy0rtfrlarg7ucrxxfzds5pamg73h7370aa87d80gyhqxqsh6jgp6w                                                    | 3173EF6623C6B48FFD1A3DCC0CC6489B0A07BB47A37F47CFEF4FE69DE825C060                                                                 |
+| 40                   | 0    | ecash:qnq8zwpj8cq05n7pytfmskuk9r4gzzel8qtsvwz79zdskftrzxtar994cgutavfklvv46vrney                                        | C07138323E00FA4FC122D3B85B9628EA810B3F381706385E289B0B25631197D194B5C238BEB136FB                                                 |
+| 40                   | 1    | ectest:pnq8zwpj8cq05n7pytfmskuk9r4gzzel8qtsvwz79zdskftrzxtar994cgutavfklvxysxrq4s                                       | C07138323E00FA4FC122D3B85B9628EA810B3F381706385E289B0B25631197D194B5C238BEB136FB                                                 |
+| 40                   | 1    | pref:pnq8zwpj8cq05n7pytfmskuk9r4gzzel8qtsvwz79zdskftrzxtar994cgutavfklv0vx5z0w3                                         | C07138323E00FA4FC122D3B85B9628EA810B3F381706385E289B0B25631197D194B5C238BEB136FB                                                 |
+| 40                   | 15   | prefix:0nq8zwpj8cq05n7pytfmskuk9r4gzzel8qtsvwz79zdskftrzxtar994cgutavfklvwsvctzqy                                       | C07138323E00FA4FC122D3B85B9628EA810B3F381706385E289B0B25631197D194B5C238BEB136FB                                                 |
+| 48                   | 0    | ecash:qh3krj5607v3qlqh5c3wq3lrw3wnuxw0sp8dv0zugrrt5a3kj6ucysfz8kxwv2k53krr7n933jfsunqmqjjtpwr                           | E361CA9A7F99107C17A622E047E3745D3E19CF804ED63C5C40C6BA763696B98241223D8CE62AD48D863F4CB18C930E4C                                 |
+| 48                   | 1    | ectest:ph3krj5607v3qlqh5c3wq3lrw3wnuxw0sp8dv0zugrrt5a3kj6ucysfz8kxwv2k53krr7n933jfsunqy7wvdl6p                          | E361CA9A7F99107C17A622E047E3745D3E19CF804ED63C5C40C6BA763696B98241223D8CE62AD48D863F4CB18C930E4C                                 |
+| 48                   | 1    | pref:ph3krj5607v3qlqh5c3wq3lrw3wnuxw0sp8dv0zugrrt5a3kj6ucysfz8kxwv2k53krr7n933jfsunqjntdfcwg                            | E361CA9A7F99107C17A622E047E3745D3E19CF804ED63C5C40C6BA763696B98241223D8CE62AD48D863F4CB18C930E4C                                 |
+| 48                   | 15   | prefix:0h3krj5607v3qlqh5c3wq3lrw3wnuxw0sp8dv0zugrrt5a3kj6ucysfz8kxwv2k53krr7n933jfsunqakcssnmn                          | E361CA9A7F99107C17A622E047E3745D3E19CF804ED63C5C40C6BA763696B98241223D8CE62AD48D863F4CB18C930E4C                                 |
+| 56                   | 0    | ecash:qmvl5lzvdm6km38lgga64ek5jhdl7e3aqd9895wu04fvhlnare5937w4ywkq57juxsrhvw8ym5d8qx7sz7zz0zvcypqsexktekqd              | D9FA7C4C6EF56DC4FF423BAAE6D495DBFF663D034A72D1DC7D52CBFE7D1E6858F9D523AC0A7A5C34077638E4DD1A701BD017842789982041                 |
+| 56                   | 1    | ectest:pmvl5lzvdm6km38lgga64ek5jhdl7e3aqd9895wu04fvhlnare5937w4ywkq57juxsrhvw8ym5d8qx7sz7zz0zvcypqsd03rgsn0             | D9FA7C4C6EF56DC4FF423BAAE6D495DBFF663D034A72D1DC7D52CBFE7D1E6858F9D523AC0A7A5C34077638E4DD1A701BD017842789982041                 |
+| 56                   | 1    | pref:pmvl5lzvdm6km38lgga64ek5jhdl7e3aqd9895wu04fvhlnare5937w4ywkq57juxsrhvw8ym5d8qx7sz7zz0zvcypqsammyqffl               | D9FA7C4C6EF56DC4FF423BAAE6D495DBFF663D034A72D1DC7D52CBFE7D1E6858F9D523AC0A7A5C34077638E4DD1A701BD017842789982041                 |
+| 56                   | 15   | prefix:0mvl5lzvdm6km38lgga64ek5jhdl7e3aqd9895wu04fvhlnare5937w4ywkq57juxsrhvw8ym5d8qx7sz7zz0zvcypqsgjrqpnw8             | D9FA7C4C6EF56DC4FF423BAAE6D495DBFF663D034A72D1DC7D52CBFE7D1E6858F9D523AC0A7A5C34077638E4DD1A701BD017842789982041                 |
+| 64                   | 0    | ecash:qlg0x333p4238k0qrc5ej7rzfw5g8e4a4r6vvzyrcy8j3s5k0en7calvclhw46hudk5flttj6ydvjc0pv3nchp52amk97tqa5zygg96m37thkp20  | D0F346310D5513D9E01E299978624BA883E6BDA8F4C60883C10F28C2967E67EC77ECC7EEEAEAFC6DA89FAD72D11AC961E164678B868AEEEC5F2C1DA08884175B |
+| 64                   | 1    | ectest:plg0x333p4238k0qrc5ej7rzfw5g8e4a4r6vvzyrcy8j3s5k0en7calvclhw46hudk5flttj6ydvjc0pv3nchp52amk97tqa5zygg96mjjad5wtw | D0F346310D5513D9E01E299978624BA883E6BDA8F4C60883C10F28C2967E67EC77ECC7EEEAEAFC6DA89FAD72D11AC961E164678B868AEEEC5F2C1DA08884175B |
+| 64                   | 1    | pref:plg0x333p4238k0qrc5ej7rzfw5g8e4a4r6vvzyrcy8j3s5k0en7calvclhw46hudk5flttj6ydvjc0pv3nchp52amk97tqa5zygg96mg7pj3lh8   | D0F346310D5513D9E01E299978624BA883E6BDA8F4C60883C10F28C2967E67EC77ECC7EEEAEAFC6DA89FAD72D11AC961E164678B868AEEEC5F2C1DA08884175B |
+| 64                   | 15   | prefix:0lg0x333p4238k0qrc5ej7rzfw5g8e4a4r6vvzyrcy8j3s5k0en7calvclhw46hudk5flttj6ydvjc0pv3nchp52amk97tqa5zygg96ms92w6845 | D0F346310D5513D9E01E299978624BA883E6BDA8F4C60883C10F28C2967E67EC77ECC7EEEAEAFC6DA89FAD72D11AC961E164678B868AEEEC5F2C1DA08884175B |
 
 ## References
 
@@ -196,4 +200,3 @@ This table defines test vectors for various payloads of sizes 160-512 bits with 
 <a name="bip173">[3]</a> https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki
 
 <a name="alphanumqr">[4]</a> http://www.thonky.com/qr-code-tutorial/alphanumeric-mode-encoding
-
