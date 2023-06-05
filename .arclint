@@ -286,7 +286,10 @@
             "type": "prettier",
             "version": ">=2.6.0",
             "include": [
+                "(^apps/.*\\.(css|html|js|json|jsx|md|scss|ts|tsx)$)",
+                "(^doc/standards/.*\\.(css|html|js|json|jsx|md|scss|ts|tsx)$)",
                 "(^cashtab/.*\\.(css|html|js|json|jsx|md|scss|ts|tsx)$)",
+                "(^modules/.*\\.(css|html|js|json|jsx|md|scss|ts|tsx)$)",
                 "(^web/.*\\.(css|html|js|json|jsx|md|scss|ts|tsx)$)"
             ],
             "exclude": [
