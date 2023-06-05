@@ -2,5 +2,5 @@
 
 module.exports = {
     require: 'mocha-suppress-logs',
-     "timeout": 15000
+    timeout: 15000,
 };
