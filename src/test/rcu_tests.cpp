@@ -290,8 +290,8 @@ BOOST_AUTO_TEST_CASE(rcuptr_operator_test) {
     auto altptr = RCUPtr<RCURefTestItem>::make([] {});
 
     // Check various operators.
-    BOOST_CHECK_EQUAL(gptr.get(), NULLPTR(RCURefTestItem));
-    BOOST_CHECK_EQUAL(gptr, NULLPTR(RCURefTestItem));
+    BOOST_CHECK_EQUAL(gptr.get(), nullptr);
+    BOOST_CHECK_EQUAL(gptr, nullptr);
     BOOST_CHECK(!gptr);
 
     auto copyptr = gptr;
@@ -301,7 +301,7 @@ BOOST_AUTO_TEST_CASE(rcuptr_operator_test) {
     BOOST_CHECK(gptr != altptr);
 
     gptr = RCUPtr<RCURefTestItem>::acquire(ptr);
-    BOOST_CHECK_EQUAL(ptr, NULLPTR(RCURefTestItem));
+    BOOST_CHECK_EQUAL(ptr, nullptr);
 
     BOOST_CHECK_EQUAL(gptr.get(), oldPtr);
     BOOST_CHECK_EQUAL(&*gptr, oldPtr);
@@ -405,17 +405,17 @@ BOOST_AUTO_TEST_CASE(move_rcuptr_test) {
 
     rcuptr1 = RCUPtr<RCURefMoveTestItem>::acquire(ptr);
     BOOST_CHECK_EQUAL(rcuptr1, ptrCopy);
-    BOOST_CHECK_EQUAL(ptr, NULLPTR(RCURefMoveTestItem));
+    BOOST_CHECK_EQUAL(ptr, nullptr);
 
     ptr = rcuptr1.release();
-    BOOST_CHECK_EQUAL(rcuptr1, NULLPTR(RCURefMoveTestItem));
+    BOOST_CHECK_EQUAL(rcuptr1, nullptr);
     BOOST_CHECK_EQUAL(ptr, ptrCopy);
 
     RCULock::synchronize();
     BOOST_CHECK(!isDestroyed);
 
     RCUPtr<RCURefMoveTestItem>::acquire(ptr);
-    BOOST_CHECK_EQUAL(ptr, NULLPTR(RCURefMoveTestItem));
+    BOOST_CHECK_EQUAL(ptr, nullptr);
     BOOST_CHECK(!isDestroyed);
     RCULock::synchronize();
     BOOST_CHECK(isDestroyed);

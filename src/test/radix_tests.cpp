@@ -134,21 +134,21 @@ template <typename E> void testGet() {
     auto keyThree = three->getId();
 
     // There are no elements in the tree so far.
-    BOOST_CHECK_EQUAL(mytree.get(keyOne), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(keyOne), nullptr);
 
     // Insert an element into the tree and check it is there.
     BOOST_CHECK(mytree.insert(one));
     BOOST_CHECK_EQUAL(mytree.get(keyOne), one);
 
     // Let's insert more elements and check they are recovered properly.
-    BOOST_CHECK_EQUAL(mytree.get(keyZero), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(keyZero), nullptr);
     BOOST_CHECK(mytree.insert(zero));
     BOOST_CHECK_EQUAL(mytree.get(keyZero), zero);
     BOOST_CHECK_EQUAL(mytree.get(keyOne), one);
 
     // More elements.
-    BOOST_CHECK_EQUAL(mytree.get(keyTwo), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(keyThree), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(keyTwo), nullptr);
+    BOOST_CHECK_EQUAL(mytree.get(keyThree), nullptr);
     BOOST_CHECK(mytree.insert(two));
     BOOST_CHECK(mytree.insert(three));
 
@@ -163,10 +163,10 @@ template <typename E> void testGet() {
     auto minustwo = RCUPtr<E>::make(E::MinusTwo());
 
     // Check that they are not in the tree.
-    BOOST_CHECK_EQUAL(mytree.get(E::SignedMax()), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(E::SignedMin()), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(E::MinusOne()), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(E::MinusTwo()), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(E::SignedMax()), nullptr);
+    BOOST_CHECK_EQUAL(mytree.get(E::SignedMin()), nullptr);
+    BOOST_CHECK_EQUAL(mytree.get(E::MinusOne()), nullptr);
+    BOOST_CHECK_EQUAL(mytree.get(E::MinusTwo()), nullptr);
 
     // Insert into the tree.
     BOOST_CHECK(mytree.insert(maxsigned));
@@ -213,7 +213,7 @@ template <typename E> void testRemove() {
     // Insert an element into the tree and check you can remove it.
     BOOST_CHECK(mytree.insert(one));
     BOOST_CHECK(mytree.remove(keyOne));
-    BOOST_CHECK_EQUAL(mytree.get(keyOne), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(keyOne), nullptr);
 
     // Insert several elements and remove them.
     BOOST_CHECK(mytree.insert(zero));
@@ -226,10 +226,10 @@ template <typename E> void testRemove() {
     BOOST_CHECK(mytree.remove(keyTwo));
     BOOST_CHECK(mytree.remove(keyThree));
 
-    BOOST_CHECK_EQUAL(mytree.get(keyZero), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(keyOne), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(keyTwo), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(keyThree), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(keyZero), nullptr);
+    BOOST_CHECK_EQUAL(mytree.get(keyOne), nullptr);
+    BOOST_CHECK_EQUAL(mytree.get(keyTwo), nullptr);
+    BOOST_CHECK_EQUAL(mytree.get(keyThree), nullptr);
 
     // Once the elements are removed, removing them again returns false.
     BOOST_CHECK(!mytree.remove(keyZero));
@@ -263,14 +263,14 @@ template <typename E> void testRemove() {
     BOOST_CHECK(mytree.remove(E::MinusOne()));
     BOOST_CHECK(mytree.remove(E::MinusTwo()));
 
-    BOOST_CHECK_EQUAL(mytree.get(keyZero), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(keyOne), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(keyTwo), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(keyThree), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(E::SignedMax()), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(E::SignedMin()), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(E::MinusOne()), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(E::MinusTwo()), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(keyZero), nullptr);
+    BOOST_CHECK_EQUAL(mytree.get(keyOne), nullptr);
+    BOOST_CHECK_EQUAL(mytree.get(keyTwo), nullptr);
+    BOOST_CHECK_EQUAL(mytree.get(keyThree), nullptr);
+    BOOST_CHECK_EQUAL(mytree.get(E::SignedMax()), nullptr);
+    BOOST_CHECK_EQUAL(mytree.get(E::SignedMin()), nullptr);
+    BOOST_CHECK_EQUAL(mytree.get(E::MinusOne()), nullptr);
+    BOOST_CHECK_EQUAL(mytree.get(E::MinusTwo()), nullptr);
 }
 
 BOOST_AUTO_TEST_CASE(remove_test) {
