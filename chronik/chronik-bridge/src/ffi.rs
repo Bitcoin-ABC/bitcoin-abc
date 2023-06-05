@@ -258,3 +258,19 @@ mod ffi_inner {
         fn shutdown_requested() -> bool;
     }
 }
+
+/// SAFETY: All fields of ChronikBridge (const Consensus::Params &, const
+/// node::NodeContext &) can be moved betweed threads safely.
+#[allow(unsafe_code)]
+unsafe impl Send for ChronikBridge {}
+
+/// SAFETY: All fields of ChronikBridge (const Consensus::Params &, const
+/// node::NodeContext &) can be accessed from different threads safely.
+#[allow(unsafe_code)]
+unsafe impl Sync for ChronikBridge {}
+
+impl std::fmt::Debug for ChronikBridge {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ChronikBridge").finish_non_exhaustive()
+    }
+}

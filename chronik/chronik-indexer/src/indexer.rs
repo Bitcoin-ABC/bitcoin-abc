@@ -59,6 +59,13 @@ pub struct ChronikIndexer {
     subs: RwLock<Subs>,
 }
 
+/// Access to the bitcoind node.
+#[derive(Debug)]
+pub struct Node {
+    /// FFI bridge to the node.
+    pub bridge: cxx::UniquePtr<ffi::ChronikBridge>,
+}
+
 /// Block to be indexed by Chronik.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct ChronikBlock {

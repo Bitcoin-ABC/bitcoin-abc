@@ -18,6 +18,9 @@ chronik-db = { path = "../chronik-db" }
 chronik-proto = { path = "../chronik-proto" }
 chronik-util = { path = "../chronik-util" }
 
+# Bridge to C++
+cxx = "1.0"
+
 # Protobuf en-/decoding
 prost = "0.11"
 

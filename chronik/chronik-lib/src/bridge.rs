@@ -17,7 +17,7 @@ use bitcoinsuite_core::{
 use chronik_bridge::{ffi::init_error, util::expect_unique_ptr};
 use chronik_db::mem::MempoolTx;
 use chronik_http::server::{ChronikServer, ChronikServerParams};
-use chronik_indexer::indexer::{ChronikIndexer, ChronikIndexerParams};
+use chronik_indexer::indexer::{ChronikIndexer, ChronikIndexerParams, Node};
 use chronik_util::{log, log_chronik};
 use thiserror::Error;
 use tokio::sync::RwLock;
@@ -55,7 +55,7 @@ pub fn setup_chronik(
 fn try_setup_chronik(
     params: ffi::SetupParams,
     config: &ffi::Config,
-    node: &ffi::NodeContext,
+    node_context: &ffi::NodeContext,
 ) -> Result<()> {
     abc_rust_error::install();
     let hosts = params
@@ -64,7 +64,7 @@ fn try_setup_chronik(
         .map(|host| parse_socket_addr(host, params.default_port))
         .collect::<Result<Vec<_>>>()?;
     log!("Starting Chronik bound to {:?}\n", hosts);
-    let bridge = chronik_bridge::ffi::make_bridge(config, node);
+    let bridge = chronik_bridge::ffi::make_bridge(config, node_context);
     let bridge_ref = expect_unique_ptr("make_bridge", &bridge);
     let mut indexer = ChronikIndexer::setup(ChronikIndexerParams {
         datadir_net: params.datadir_net.into(),
@@ -77,25 +77,31 @@ fn try_setup_chronik(
         return Ok(());
     }
     let indexer = Arc::new(RwLock::new(indexer));
+    let node = Arc::new(Node { bridge });
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()?;
     let server = runtime.block_on({
         let indexer = Arc::clone(&indexer);
+        let node = Arc::clone(&node);
         async move {
             // try_bind requires a Runtime
-            ChronikServer::setup(ChronikServerParams { hosts, indexer })
+            ChronikServer::setup(ChronikServerParams {
+                hosts,
+                indexer,
+                node,
+            })
         }
     })?;
     runtime.spawn(async move {
         ok_or_abort_node("ChronikServer::serve", server.serve().await);
     });
     let chronik = Box::new(Chronik {
-        bridge: Arc::new(bridge),
+        node: Arc::clone(&node),
         indexer,
         _runtime: runtime,
     });
-    StartChronikValidationInterface(node, chronik);
+    StartChronikValidationInterface(node_context, chronik);
     Ok(())
 }
 
@@ -117,7 +123,7 @@ fn compress_script(script: &Script) -> Vec<u8> {
 /// This makes it so when this struct is dropped, all handles are relased
 /// cleanly.
 pub struct Chronik {
-    bridge: Arc<cxx::UniquePtr<ffi::ChronikBridge>>,
+    node: Arc<Node>,
     indexer: Arc<RwLock<ChronikIndexer>>,
     // Having this here ensures HTTP server, outstanding requests etc. will get
     // stopped when `Chronik` is dropped.
@@ -183,7 +189,7 @@ impl Chronik {
         time_first_seen: i64,
     ) -> Result<()> {
         let mut indexer = self.indexer.blocking_write();
-        let tx = self.bridge.bridge_tx(ptx)?;
+        let tx = self.node.bridge.bridge_tx(ptx)?;
         let txid = TxId::from(tx.txid);
         indexer.handle_tx_added_to_mempool(MempoolTx {
             tx: Tx::from(tx),
@@ -230,7 +236,7 @@ impl Chronik {
     }
 
     fn finalize_block(&self, bindex: &ffi::CBlockIndex) -> Result<()> {
-        let block = self.bridge.load_block(bindex)?;
+        let block = self.node.bridge.load_block(bindex)?;
         let block_ref = expect_unique_ptr("load_block", &block);
         let mut indexer = self.indexer.blocking_write();
         let block = indexer.make_chronik_block(block_ref, bindex)?;

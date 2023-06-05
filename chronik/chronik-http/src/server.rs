@@ -14,7 +14,7 @@ use axum::{
     routing, Extension, Router,
 };
 use bitcoinsuite_core::tx::TxId;
-use chronik_indexer::indexer::ChronikIndexer;
+use chronik_indexer::indexer::{ChronikIndexer, Node};
 use chronik_proto::proto;
 use hyper::server::conn::AddrIncoming;
 use thiserror::Error;
@@ -27,6 +27,8 @@ use crate::{
 
 /// Ref-counted indexer with read or write access
 pub type ChronikIndexerRef = Arc<RwLock<ChronikIndexer>>;
+/// Ref-counted access to the bitcoind node
+pub type NodeRef = Arc<Node>;
 
 /// Params defining what and where to serve for [`ChronikServer`].
 #[derive(Clone, Debug)]
@@ -35,6 +37,8 @@ pub struct ChronikServerParams {
     pub hosts: Vec<SocketAddr>,
     /// Indexer to read data from
     pub indexer: ChronikIndexerRef,
+    /// Access to the bitcoind node
+    pub node: NodeRef,
 }
 
 /// Chronik HTTP server, holding all the data/handles required to serve an
@@ -43,6 +47,7 @@ pub struct ChronikServerParams {
 pub struct ChronikServer {
     server_builders: Vec<hyper::server::Builder<AddrIncoming>>,
     indexer: ChronikIndexerRef,
+    node: NodeRef,
 }
 
 /// Errors for [`ChronikServer`].
@@ -86,12 +91,13 @@ impl ChronikServer {
         Ok(ChronikServer {
             server_builders,
             indexer: params.indexer,
+            node: params.node,
         })
     }
 
     /// Serve a Chronik HTTP endpoint with the given parameters.
     pub async fn serve(self) -> Result<()> {
-        let app = Self::make_router(self.indexer);
+        let app = Self::make_router(self.indexer, self.node);
         let servers = self
             .server_builders
             .into_iter()
@@ -109,7 +115,7 @@ impl ChronikServer {
         Ok(())
     }
 
-    fn make_router(indexer: ChronikIndexerRef) -> Router {
+    fn make_router(indexer: ChronikIndexerRef, node: NodeRef) -> Router {
         Router::new()
             .route("/blockchain-info", routing::get(handle_blockchain_info))
             .route("/block/:hash_or_height", routing::get(handle_block))
@@ -136,6 +142,7 @@ impl ChronikServer {
             .route("/ws", routing::get(handle_ws))
             .fallback(handlers::handle_not_found)
             .layer(Extension(indexer))
+            .layer(Extension(node))
     }
 }
 

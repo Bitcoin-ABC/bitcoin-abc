@@ -350,6 +350,7 @@ dependencies = [
  "chronik-db",
  "chronik-proto",
  "chronik-util",
+ "cxx",
  "pretty_assertions",
  "prost",
  "prost-build",
