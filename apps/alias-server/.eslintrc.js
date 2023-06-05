@@ -16,9 +16,18 @@ module.exports = {
     parserOptions: {
         ecmaVersion: 'latest',
     },
-    plugins: ["header"],
+    plugins: ['header'],
     rules: {
-        strict: 'error',
-        "header/header": [2, "line", [' Copyright (c) 2023 The Bitcoin developers', ' Distributed under the MIT software license, see the accompanying', ' file COPYING or http://www.opensource.org/licenses/mit-license.php.'], 1]
+        'strict': 'error',
+        'header/header': [
+            2,
+            'line',
+            [
+                ' Copyright (c) 2023 The Bitcoin developers',
+                ' Distributed under the MIT software license, see the accompanying',
+                ' file COPYING or http://www.opensource.org/licenses/mit-license.php.',
+            ],
+            1,
+        ],
     },
 };
