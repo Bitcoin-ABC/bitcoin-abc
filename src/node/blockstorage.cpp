@@ -944,7 +944,7 @@ void ThreadImport(ChainstateManager &chainman,
                 }
                 LogPrintf("Reindexing block file blk%05u.dat...\n",
                           (unsigned int)nFile);
-                chainman.ActiveChainstate().LoadExternalBlockFile(
+                chainman.LoadExternalBlockFile(
                     file, &pos, &blocks_with_unknown_parent, avalanche);
                 if (ShutdownRequested()) {
                     LogPrintf("Shutdown requested. Exit %s\n", __func__);
@@ -968,7 +968,7 @@ void ThreadImport(ChainstateManager &chainman,
             if (file) {
                 LogPrintf("Importing blocks file %s...\n",
                           fs::PathToString(path));
-                chainman.ActiveChainstate().LoadExternalBlockFile(
+                chainman.LoadExternalBlockFile(
                     file, /*dbp=*/nullptr,
                     /*blocks_with_unknown_parent=*/nullptr, avalanche);
                 if (ShutdownRequested()) {

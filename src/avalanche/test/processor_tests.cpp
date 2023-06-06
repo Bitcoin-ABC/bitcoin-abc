@@ -2068,10 +2068,10 @@ BOOST_AUTO_TEST_CASE(block_reconcile_initial_vote) {
     CBlockIndex *blockindex;
     {
         LOCK(cs_main);
-        BOOST_CHECK(chainstate.AcceptBlock(block, state,
-                                           /*fRequested=*/true, /*dbp=*/nullptr,
-                                           /*fNewBlock=*/nullptr,
-                                           /*min_pow_checked=*/true));
+        BOOST_CHECK(chainman->AcceptBlock(block, state,
+                                          /*fRequested=*/true, /*dbp=*/nullptr,
+                                          /*fNewBlock=*/nullptr,
+                                          /*min_pow_checked=*/true));
 
         blockindex = chainman->m_blockman.LookupBlockIndex(blockhash);
         BOOST_CHECK(blockindex);

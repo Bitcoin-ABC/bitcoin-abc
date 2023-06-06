@@ -126,10 +126,11 @@ BOOST_FIXTURE_TEST_CASE(chainstate_update_tip, TestChain100Setup) {
         bool checked = CheckBlock(
             *pblock, state, config.GetChainParams().GetConsensus(), options);
         BOOST_CHECK(checked);
-        bool accepted = background_cs.AcceptBlock(pblock, state, true, nullptr,
-                                                  &newblock, true);
+        bool accepted =
+            chainman.AcceptBlock(pblock, state, true, nullptr, &newblock, true);
         BOOST_CHECK(accepted);
     }
+
     // UpdateTip is called here
     bool block_added = background_cs.ActivateBestChain(state, pblock);
 

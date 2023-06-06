@@ -4081,9 +4081,9 @@ bool Chainstate::IsBlockAvalancheFinalized(const CBlockIndex *pindex) const {
  * Mark a block as having its data received and checked (up to
  * BLOCK_VALID_TRANSACTIONS).
  */
-void Chainstate::ReceivedBlockTransactions(const CBlock &block,
-                                           CBlockIndex *pindexNew,
-                                           const FlatFilePos &pos) {
+void ChainstateManager::ReceivedBlockTransactions(const CBlock &block,
+                                                  CBlockIndex *pindexNew,
+                                                  const FlatFilePos &pos) {
     pindexNew->nTx = block.vtx.size();
     pindexNew->nSize = ::GetSerializeSize(block, PROTOCOL_VERSION);
     pindexNew->nFile = pos.nFile;
@@ -4111,10 +4111,11 @@ void Chainstate::ReceivedBlockTransactions(const CBlock &block,
                 // its content. However, a sequence id may have been set
                 // manually, for instance via PreciousBlock, in which case, we
                 // don't need to assign one.
-                pindex->nSequenceId = m_chainman.nBlockSequenceId++;
+                pindex->nSequenceId = nBlockSequenceId++;
             }
-
-            TryAddBlockIndexCandidate(pindex);
+            for (Chainstate *c : GetAll()) {
+                c->TryAddBlockIndexCandidate(pindex);
+            }
 
             std::pair<std::multimap<CBlockIndex *, CBlockIndex *>::iterator,
                       std::multimap<CBlockIndex *, CBlockIndex *>::iterator>
@@ -4693,22 +4694,10 @@ void ChainstateManager::ReportHeadersPresync(const arith_uint256 &work,
     }
 }
 
-/**
- * Store a block on disk.
- *
- * @param[in,out] pblock     The block we want to accept.
- * @param[in]     fRequested A boolean to indicate if this block was requested
- *                           from our peers.
- * @param[in]     dbp        If non-null, the disk position of the block.
- * @param[in,out] fNewBlock  True if block was first received via this call.
- * @param[in]     min_pow_checked  True if proof-of-work anti-DoS checks have
- *                                 been done by caller for headers chain
- * @return True if the block is accepted as a valid block and written to disk.
- */
-bool Chainstate::AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
-                             BlockValidationState &state, bool fRequested,
-                             const FlatFilePos *dbp, bool *fNewBlock,
-                             bool min_pow_checked) {
+bool ChainstateManager::AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
+                                    BlockValidationState &state,
+                                    bool fRequested, const FlatFilePos *dbp,
+                                    bool *fNewBlock, bool min_pow_checked) {
     AssertLockHeld(cs_main);
 
     const CBlock &block = *pblock;
@@ -4719,16 +4708,17 @@ bool Chainstate::AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
     CBlockIndex *pindex = nullptr;
 
     bool accepted_header{
-        m_chainman.AcceptBlockHeader(block, state, &pindex, min_pow_checked)};
-    CheckBlockIndex();
+        AcceptBlockHeader(block, state, &pindex, min_pow_checked)};
+    ActiveChainstate().CheckBlockIndex();
 
     if (!accepted_header) {
         return false;
     }
 
-    // Try to process all requested blocks that we don't have, but only
-    // process an unrequested block if it's new and has enough work to
-    // advance our tip, and isn't too many blocks ahead.
+    // Check all requested blocks that we do not already have for validity and
+    // save them to disk. Skip processing of unrequested blocks as an anti-DoS
+    // measure, unless the blocks have more work than the active chain tip, and
+    // aren't too far ahead of it, so are likely to be attached soon.
     bool fAlreadyHave = pindex->nStatus.hasData();
 
     // TODO: deal better with return value and error conditions for duplicate
@@ -4742,22 +4732,21 @@ bool Chainstate::AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
     // tie-breaker, attempting to pick the more honestly-mined block.
     int64_t newBlockTimeDiff = std::llabs(pindex->GetReceivedTimeDiff());
     int64_t chainTipTimeDiff =
-        m_chain.Tip() ? std::llabs(m_chain.Tip()->GetReceivedTimeDiff()) : 0;
+        ActiveTip() ? std::llabs(ActiveTip()->GetReceivedTimeDiff()) : 0;
 
     bool isSameHeight =
-        m_chain.Tip() && (pindex->nChainWork == m_chain.Tip()->nChainWork);
+        ActiveTip() && (pindex->nChainWork == ActiveTip()->nChainWork);
     if (isSameHeight) {
         LogPrintf("Chain tip timestamp-to-received-time difference: hash=%s, "
                   "diff=%d\n",
-                  m_chain.Tip()->GetBlockHash().ToString(), chainTipTimeDiff);
+                  ActiveTip()->GetBlockHash().ToString(), chainTipTimeDiff);
         LogPrintf("New block timestamp-to-received-time difference: hash=%s, "
                   "diff=%d\n",
                   pindex->GetBlockHash().ToString(), newBlockTimeDiff);
     }
 
     bool fHasMoreOrSameWork =
-        (m_chain.Tip() ? pindex->nChainWork >= m_chain.Tip()->nChainWork
-                       : true);
+        (ActiveTip() ? pindex->nChainWork >= ActiveTip()->nChainWork : true);
 
     // Blocks that are too out-of-order needlessly limit the effectiveness of
     // pruning, because pruning will not delete block files that contain any
@@ -4765,7 +4754,7 @@ bool Chainstate::AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
     // regardless of whether pruning is enabled; it should generally be safe to
     // not process unrequested blocks.
     bool fTooFarAhead{pindex->nHeight >
-                      m_chain.Height() + int(MIN_BLOCKS_TO_KEEP)};
+                      ActiveHeight() + int(MIN_BLOCKS_TO_KEEP)};
 
     // TODO: Decouple this function from the block download logic by removing
     // fRequested
@@ -4795,17 +4784,15 @@ bool Chainstate::AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
         // If our tip is behind, a peer could try to send us
         // low-work blocks on a fake chain that we would never
         // request; don't process these.
-        if (pindex->nChainWork < m_chainman.MinimumChainWork()) {
+        if (pindex->nChainWork < MinimumChainWork()) {
             return true;
         }
     }
 
-    const CChainParams &params{m_chainman.GetParams()};
-    const Consensus::Params &consensusParams = params.GetConsensus();
-
-    if (!CheckBlock(block, state, consensusParams,
-                    BlockValidationOptions(m_chainman.GetConfig())) ||
-        !ContextualCheckBlock(block, state, m_chainman, pindex->pprev)) {
+    if (!CheckBlock(block, state,
+                    m_options.config.GetChainParams().GetConsensus(),
+                    BlockValidationOptions(m_options.config)) ||
+        !ContextualCheckBlock(block, state, *this, pindex->pprev)) {
         if (state.IsInvalid() &&
             state.GetResult() != BlockValidationResult::BLOCK_MUTATED) {
             pindex->nStatus = pindex->nStatus.withFailed();
@@ -4823,8 +4810,8 @@ bool Chainstate::AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
     // last minute so we can make sure everything is ready to be reorged if
     // needed.
     if (gArgs.GetBoolArg("-parkdeepreorg", true)) {
-        const CBlockIndex *pindexFork = m_chain.FindFork(pindex);
-        if (pindexFork && pindexFork->nHeight + 1 < m_chain.Height()) {
+        const CBlockIndex *pindexFork = ActiveChain().FindFork(pindex);
+        if (pindexFork && pindexFork->nHeight + 1 < ActiveHeight()) {
             LogPrintf("Park block %s as it would cause a deep reorg.\n",
                       pindex->GetBlockHash().ToString());
             pindex->nStatus = pindex->nStatus.withParked();
@@ -4835,7 +4822,8 @@ bool Chainstate::AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
     // Header is valid/has work and the merkle tree is good.
     // Relay now, but if it does not build on our best tip, let the
     // SendMessages loop relay it.
-    if (!IsInitialBlockDownload() && m_chain.Tip() == pindex->pprev) {
+    if (!ActiveChainstate().IsInitialBlockDownload() &&
+        ActiveTip() == pindex->pprev) {
         GetMainSignals().NewPoWValidBlock(pindex, pblock);
     }
 
@@ -4857,9 +4845,16 @@ bool Chainstate::AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
         return AbortNode(state, std::string("System error: ") + e.what());
     }
 
-    FlushStateToDisk(state, FlushStateMode::NONE);
+    // TODO: FlushStateToDisk() handles flushing of both block and chainstate
+    // data, so we should move this to ChainstateManager so that we can be more
+    // intelligent about how we flush.
+    // For now, since FlushStateMode::NONE is used, all that can happen is that
+    // the block files may be pruned, so we can just call this on one
+    // chainstate (particularly if we haven't implemented pruning with
+    // background validation yet).
+    ActiveChainstate().FlushStateToDisk(state, FlushStateMode::NONE);
 
-    CheckBlockIndex();
+    ActiveChainstate().CheckBlockIndex();
 
     return true;
 }
@@ -4895,9 +4890,8 @@ bool ChainstateManager::ProcessNewBlock(
                               BlockValidationOptions(this->GetConfig()));
         if (ret) {
             // Store to disk
-            ret = ActiveChainstate().AcceptBlock(block, state, force_processing,
-                                                 nullptr, new_block,
-                                                 min_pow_checked);
+            ret = AcceptBlock(block, state, force_processing, nullptr,
+                              new_block, min_pow_checked);
         }
 
         if (!ret) {
@@ -5631,7 +5625,7 @@ bool Chainstate::LoadGenesisBlock() {
         }
         CBlockIndex *pindex =
             m_blockman.AddToBlockIndex(block, m_chainman.m_best_header);
-        ReceivedBlockTransactions(block, pindex, blockPos);
+        m_chainman.ReceivedBlockTransactions(block, pindex, blockPos);
     } catch (const std::runtime_error &e) {
         return error("%s: failed to write genesis block: %s", __func__,
                      e.what());
@@ -5640,17 +5634,15 @@ bool Chainstate::LoadGenesisBlock() {
     return true;
 }
 
-void Chainstate::LoadExternalBlockFile(
+void ChainstateManager::LoadExternalBlockFile(
     FILE *fileIn, FlatFilePos *dbp,
     std::multimap<BlockHash, FlatFilePos> *blocks_with_unknown_parent,
     avalanche::Processor *const avalanche) {
-    AssertLockNotHeld(m_chainstate_mutex);
-
     // Either both should be specified (-reindex), or neither (-loadblock).
     assert(!dbp == !blocks_with_unknown_parent);
 
     int64_t nStart = GetTimeMillis();
-    const CChainParams &params{m_chainman.GetParams()};
+    const CChainParams &params{GetParams()};
 
     int nLoaded = 0;
     try {
@@ -5764,8 +5756,15 @@ void Chainstate::LoadExternalBlockFile(
                 // Activate the genesis block so normal node progress can
                 // continue
                 if (hash == params.GetConsensus().hashGenesisBlock) {
-                    BlockValidationState state;
-                    if (!ActivateBestChain(state, nullptr, avalanche)) {
+                    bool genesis_activation_failure = false;
+                    for (auto c : GetAll()) {
+                        BlockValidationState state;
+                        if (!c->ActivateBestChain(state, nullptr, avalanche)) {
+                            genesis_activation_failure = true;
+                            break;
+                        }
+                    }
+                    if (genesis_activation_failure) {
                         break;
                     }
                 }
@@ -5779,16 +5778,23 @@ void Chainstate::LoadExternalBlockFile(
                     // files are loaded. ActivateBestChain can be called by
                     // concurrent network message processing, but that is not
                     // reliable for the purpose of pruning while importing.
-                    BlockValidationState state;
-                    if (!ActivateBestChain(state, pblock, avalanche)) {
-                        LogPrint(BCLog::REINDEX,
-                                 "failed to activate chain (%s)\n",
-                                 state.ToString());
+                    bool activation_failure = false;
+                    for (auto c : GetAll()) {
+                        BlockValidationState state;
+                        if (!c->ActivateBestChain(state, pblock, avalanche)) {
+                            LogPrint(BCLog::REINDEX,
+                                     "failed to activate chain (%s)\n",
+                                     state.ToString());
+                            activation_failure = true;
+                            break;
+                        }
+                    }
+                    if (activation_failure) {
                         break;
                     }
                 }
 
-                NotifyHeaderTip(*this);
+                NotifyHeaderTip(ActiveChainstate());
 
                 if (!blocks_with_unknown_parent) {
                     continue;
@@ -5824,7 +5830,7 @@ void Chainstate::LoadExternalBlockFile(
                         }
                         range.first++;
                         blocks_with_unknown_parent->erase(it);
-                        NotifyHeaderTip(*this);
+                        NotifyHeaderTip(ActiveChainstate());
                     }
                 }
             } catch (const std::exception &e) {
