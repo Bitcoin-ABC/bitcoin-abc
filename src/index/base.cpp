@@ -31,11 +31,7 @@ constexpr int64_t SYNC_LOCATOR_WRITE_INTERVAL = 30; // seconds
 
 template <typename... Args>
 static void FatalError(const char *fmt, const Args &...args) {
-    std::string strMessage = tfm::format(fmt, args...);
-    SetMiscWarning(Untranslated(strMessage));
-    LogPrintf("*** %s\n", strMessage);
-    InitError(_("A fatal internal error occurred, see debug.log for details"));
-    StartShutdown();
+    AbortNode(tfm::format(fmt, args...));
 }
 
 CBlockLocator GetLocator(interfaces::Chain &chain,
