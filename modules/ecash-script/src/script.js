@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 'use strict';
 const opReturn = require('../constants/op_return');
+const { swapEndianness } = require('./utils');
 
 /**
  * consume
@@ -94,7 +95,7 @@ function consumeNextPush(stack) {
         pushdata = module.exports.consume(clonedStack, 2);
 
         // Convert to big-endian so JS parseInt can get the value
-        pushdata = pushdata.slice(2, 4) + pushdata.slice(0, 2);
+        pushdata = swapEndianness(pushdata);
 
         // Convert to int
         pushdata = parseInt(pushdata, 16);
@@ -106,11 +107,7 @@ function consumeNextPush(stack) {
         pushdata = module.exports.consume(clonedStack, 4);
 
         // Convert to big-endian so JS parseInt can get the value
-        pushdata =
-            pushdata.slice(6, 8) +
-            pushdata.slice(4, 6) +
-            pushdata.slice(2, 4) +
-            pushdata.slice(0, 2);
+        pushdata = swapEndianness(pushdata);
 
         // Convert to int
         pushdata = parseInt(pushdata, 16);

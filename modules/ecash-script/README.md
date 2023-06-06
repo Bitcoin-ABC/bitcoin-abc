@@ -26,4 +26,17 @@ consumeNextPush({remainingHex:'042e786563'})
 // 2e786563
 ```
 
-See `test/script.js` for additional examples.
+`swapEndianness`
+Convert a string of hex bytes in little-endian order (e.g. one found after OP_PUSHDATA2 or OP_PUSHDATA4) to a string of hex bytes in big-endian order or vice-versa.
+
+```
+swapEndianness('44332211')
+// 11223344
+```
+
+See `test/` for additional usage examples.
+
+### Change log
+
+1.0.0 Initial support for OP_RETURN parsing with functions `consume` and `consumeNextPush`
+1.1.0 New functions `swapEndianness` and `isHexString`

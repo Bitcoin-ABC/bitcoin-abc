@@ -1,6 +1,6 @@
 {
     "name": "ecash-script",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Parse script for eCash (XEC)",
     "main": "index.js",
     "scripts": {
@@ -29,6 +29,7 @@
         "eslint": "^8.42.0",
         "eslint-plugin-header": "^3.1.1",
         "mocha-junit-reporter": "^2.2.0",
-        "mocha-suppress-logs": "^0.3.1"
+        "mocha-suppress-logs": "^0.3.1",
+        "random-js": "^2.1.0"
     }
 }

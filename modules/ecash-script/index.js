@@ -3,4 +3,5 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 'use strict';
 const { consume, consumeNextPush } = require('./src/script');
-module.exports = { consume, consumeNextPush };
+const { isHexString, swapEndianness } = require('./src/utils');
+module.exports = { consume, consumeNextPush, isHexString, swapEndianness };
