@@ -73,6 +73,8 @@ static bool CreateAndActivateUTXOSnapshot(TestingSetup *fixture,
             // This is a stripped-down version of node::LoadChainstate which
             // preserves the block index.
             LOCK(::cs_main);
+            CBlockIndex *orig_tip =
+                node.chainman->ActiveChainstate().m_chain.Tip();
             BlockHash gen_hash{
                 node.chainman->ActiveChainstate().m_chain[0]->GetBlockHash()};
             node.chainman->ResetChainstates();
@@ -88,15 +90,26 @@ static bool CreateAndActivateUTXOSnapshot(TestingSetup *fixture,
                 node.chainman->m_blockman.LookupBlockIndex(gen_hash));
             chain.LoadChainTip();
             node.chainman->MaybeRebalanceCaches();
+
+            // Reset the HAVE_DATA flags below the snapshot height, simulating
+            // never-having-downloaded them in the first place.
+            // TODO: perhaps we could improve this by using pruning to delete
+            // these blocks instead
+            CBlockIndex *pindex = orig_tip;
+            while (pindex && pindex != chain.m_chain.Tip()) {
+                pindex->nStatus =
+                    pindex->nStatus.withData(false).withUndo(false);
+                // We have to set the ASSUMED_VALID flag, because otherwise it
+                // would not be possible to have a block index entry without
+                // HAVE_DATA and with nTx > 0 (since we aren't setting the
+                // pruned flag); see CheckBlockIndex().
+                pindex->nStatus = pindex->nStatus.withAssumedValid();
+                pindex = pindex->pprev;
+            }
         }
         BlockValidationState state;
-        // Skip checking the block index when calling ActivateBestChain, because
-        // as of D4717 CheckBlockIndex is called more aggressively and would not
-        // support resetting the chainstate while preserving the block index.
-        // We call CheckBlockIndex() explicitly below, after ActivateSnapshot.
         if (!node.chainman->ActiveChainstate().ActivateBestChain(
-                state, /*pblock=*/nullptr, /*avalanche=*/nullptr,
-                /*skip_checkblockindex=*/true)) {
+                state, /*pblock=*/nullptr)) {
             throw std::runtime_error(
                 strprintf("ActivateBestChain failed. (%s)", state.ToString()));
         }
@@ -104,10 +117,8 @@ static bool CreateAndActivateUTXOSnapshot(TestingSetup *fixture,
                               return node.chainman->ActiveHeight()));
     }
 
-    bool ret = node.chainman->ActivateSnapshot(auto_infile, metadata,
-                                               in_memory_chainstate);
-    node.chainman->ActiveChainstate().CheckBlockIndex();
-    return ret;
+    return node.chainman->ActivateSnapshot(auto_infile, metadata,
+                                           in_memory_chainstate);
 }
 
 #endif // BITCOIN_TEST_UTIL_CHAINSTATE_H

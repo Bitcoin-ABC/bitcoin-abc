@@ -937,18 +937,11 @@ public:
      * block of the snapshot, its execution will take *MINUTES* while it hashes
      * the background UTXO set to verify the assumeutxo value the snapshot was
      * activated with. `cs_main` will be held during this time.
-     *
-     * @param[in] skip_checkblockindex (optional)
-     *     If true, skip calling CheckBlockIndex even if -checkblockindex is
-     *     true. If false (default behavior), respect the -checkblockindex arg.
-     *     This is used in tests when we need to skip the checks only
-     *     temporarily, and resume normal behavior later.
      * @returns true unless a system error occurred
      */
     bool ActivateBestChain(BlockValidationState &state,
                            std::shared_ptr<const CBlock> pblock = nullptr,
-                           avalanche::Processor *const avalanche = nullptr,
-                           bool skip_checkblockindex = false)
+                           avalanche::Processor *const avalanche = nullptr)
         EXCLUSIVE_LOCKS_REQUIRED(!m_chainstate_mutex,
                                  !cs_avalancheFinalizedBlockIndex)
             LOCKS_EXCLUDED(cs_main);
