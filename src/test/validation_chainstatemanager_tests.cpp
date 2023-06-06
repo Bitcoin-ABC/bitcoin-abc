@@ -445,9 +445,13 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_loadblockindex, TestChain100Setup) {
         WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip())};
 
     auto reload_all_block_indexes = [&]() {
+        // For completeness, we also reset the block sequence counters to
+        // ensure that no state which affects the ranking of tip-candidates is
+        // retained (even though this isn't strictly necessary).
+        WITH_LOCK(::cs_main, return chainman.ResetBlockSequenceCounters());
         for (Chainstate *cs : chainman.GetAll()) {
             LOCK(::cs_main);
-            cs->UnloadBlockIndex();
+            cs->ClearBlockIndexCandidates();
             BOOST_CHECK(cs->setBlockIndexCandidates.empty());
         }
 

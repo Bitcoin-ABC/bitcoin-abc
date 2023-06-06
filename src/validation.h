@@ -705,17 +705,6 @@ protected:
     Mutex m_chainstate_mutex;
 
     /**
-     * Every received block is assigned a unique and increasing identifier, so
-     * we know which one to give priority in case of a fork.
-     * Blocks loaded from disk are assigned id 0, so start the counter at 1.
-     */
-    std::atomic<int32_t> nBlockSequenceId{1};
-    /** Decreasing counter (used by subsequent preciousblock calls). */
-    int32_t nBlockReverseSequenceId = -1;
-    /** chainwork for the last block that preciousblock has been applied to. */
-    arith_uint256 nLastPreciousChainwork = 0;
-
-    /**
      * Whether this chainstate is undergoing initial block download.
      *
      * Mutable because we need to be able to mark IsInitialBlockDownload()
@@ -1055,7 +1044,7 @@ public:
 
     void PruneBlockIndexCandidates();
 
-    void UnloadBlockIndex() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    void ClearBlockIndexCandidates() EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
     /**
      * Check whether we are doing an initial block download (synchronizing from
@@ -1349,6 +1338,26 @@ public:
     //! A single BlockManager instance is shared across each constructed
     //! chainstate to avoid duplicating block metadata.
     node::BlockManager m_blockman;
+
+    /**
+     * Every received block is assigned a unique and increasing identifier, so
+     * we know which one to give priority in case of a fork.
+     * Blocks loaded from disk are assigned id 0, so start the counter at 1.
+     */
+    std::atomic<int32_t> nBlockSequenceId{1};
+
+    /** Decreasing counter (used by subsequent preciousblock calls). */
+    int32_t nBlockReverseSequenceId = -1;
+    /** chainwork for the last block that preciousblock has been applied to. */
+    arith_uint256 nLastPreciousChainwork = 0;
+
+    // Reset the memory-only sequence counters we use to track block arrival
+    // (used by tests to reset state)
+    void ResetBlockSequenceCounters() EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
+        AssertLockHeld(::cs_main);
+        nBlockSequenceId = 1;
+        nBlockReverseSequenceId = -1;
+    }
 
     /**
      * In order to efficiently track invalidity of headers, we keep the set of

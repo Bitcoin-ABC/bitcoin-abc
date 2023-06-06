@@ -3647,19 +3647,20 @@ bool Chainstate::PreciousBlock(BlockValidationState &state, CBlockIndex *pindex,
             return true;
         }
 
-        if (m_chain.Tip()->nChainWork > nLastPreciousChainwork) {
+        if (m_chain.Tip()->nChainWork > m_chainman.nLastPreciousChainwork) {
             // The chain has been extended since the last call, reset the
             // counter.
-            nBlockReverseSequenceId = -1;
+            m_chainman.nBlockReverseSequenceId = -1;
         }
 
-        nLastPreciousChainwork = m_chain.Tip()->nChainWork;
+        m_chainman.nLastPreciousChainwork = m_chain.Tip()->nChainWork;
         setBlockIndexCandidates.erase(pindex);
-        pindex->nSequenceId = nBlockReverseSequenceId;
-        if (nBlockReverseSequenceId > std::numeric_limits<int32_t>::min()) {
+        pindex->nSequenceId = m_chainman.nBlockReverseSequenceId;
+        if (m_chainman.nBlockReverseSequenceId >
+            std::numeric_limits<int32_t>::min()) {
             // We can't keep reducing the counter if somebody really wants to
             // call preciousblock 2**31-1 times on the same set of tips...
-            nBlockReverseSequenceId--;
+            m_chainman.nBlockReverseSequenceId--;
         }
 
         // In case this was parked, unpark it.
@@ -4103,7 +4104,7 @@ void Chainstate::ReceivedBlockTransactions(const CBlock &block,
                 // its content. However, a sequence id may have been set
                 // manually, for instance via PreciousBlock, in which case, we
                 // don't need to assign one.
-                pindex->nSequenceId = nBlockSequenceId++;
+                pindex->nSequenceId = m_chainman.nBlockSequenceId++;
             }
 
             if (m_chain.Tip() == nullptr ||
@@ -5359,9 +5360,8 @@ bool Chainstate::ReplayBlocks() {
 
 // May NOT be used after any connections are up as much of the peer-processing
 // logic assumes a consistent block index state
-void Chainstate::UnloadBlockIndex() {
+void Chainstate::ClearBlockIndexCandidates() {
     AssertLockHeld(::cs_main);
-    nBlockSequenceId = 1;
     m_best_fork_tip = nullptr;
     m_best_fork_base = nullptr;
     setBlockIndexCandidates.clear();
