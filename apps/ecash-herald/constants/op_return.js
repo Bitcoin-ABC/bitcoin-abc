@@ -15,8 +15,11 @@ module.exports = {
         '00746162': 'Cashtab Msg',
         '2e786563': 'Alias',
     },
+    knownApps: {
+        cashtabMsg: { prefix: '00746162', app: 'Cashtab Msg' },
+    },
     memo: {
-        'prefix': '026d',
+        'prefix': '6d',
         'app': 'memo',
         '01': 'Set name',
         '02': 'Post memo',

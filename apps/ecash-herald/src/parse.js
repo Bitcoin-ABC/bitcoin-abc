@@ -5,6 +5,7 @@
 'use strict';
 const config = require('../config');
 const opReturn = require('../constants/op_return');
+const { consumeNextPush } = require('ecash-script');
 const knownMinersJson = require('../constants/miners');
 const { jsonReviver } = require('../src/utils');
 const miners = JSON.parse(JSON.stringify(knownMinersJson), jsonReviver);
@@ -242,7 +243,7 @@ module.exports = {
                 !isTokenTx
             ) {
                 opReturnInfo = module.exports.parseOpReturn(
-                    thisOutput.outputScript,
+                    thisOutput.outputScript.slice(2),
                 );
             }
             // For etoken send txs, parse outputs for tokenSendInfo object
@@ -299,66 +300,57 @@ module.exports = {
             tokenSendInfo,
         };
     },
-    parseOpReturn: function (outputScript) {
+    /**
+     *
+     * @param {string} opReturnHex an OP_RETURN outputScript with '6a' removed
+     * @returns {object} {app, msg} an object with app and msg params used to generate msg
+     */
+    parseOpReturn: function (opReturnHex) {
         // Initialize required vars
         let app;
         let msg;
 
-        // Determine if this is an OP_RETURN field
-        const isOpReturn = outputScript.slice(0, 2) === opReturn.opReturnPrefix;
-        if (!isOpReturn) {
-            return false;
+        // Get array of pushes
+        let stack = { remainingHex: opReturnHex };
+        let stackArray = [];
+        while (stack.remainingHex.length > 0) {
+            stackArray.push(consumeNextPush(stack));
         }
 
-        // Determine if this is a memo tx
-        // Memo txs have a shorter prefix and require special processing
-        const isMemoTx = outputScript.slice(2, 6) === opReturn.memo.prefix;
-        if (isMemoTx) {
-            // memo txs require special processing
-            // Send the unprocessed remainder of the string to a specialized function
-            return module.exports.parseMemoOutputScript(outputScript);
+        // Get the protocolIdentifier, the first push
+        const protocolIdentifier = stackArray[0];
+
+        // Test for memo
+        // Memo prefixes are special in that they are two bytes instead of the usual four
+        // Also, memo has many prefixes, in that the action is also encoded in these two bytes
+        if (
+            protocolIdentifier.startsWith(opReturn.memo.prefix) &&
+            protocolIdentifier.length === 4
+        ) {
+            // If the protocol identifier is two bytes long (4 characters), parse for memo tx
+            // For now, send the same info to this function that it currently parses
+            // TODO parseMemoOutputScript needs to be refactored to use ecash-script
+            return module.exports.parseMemoOutputScript(opReturnHex.slice(2));
         }
 
-        // Parse for app prefix
-        // See https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/web/standards/op_return-prefix-guideline.md
-        const hasAppPrefix =
-            outputScript.slice(2, 4) === opReturn.opReturnAppPrefixLength;
-
-        if (hasAppPrefix) {
-            const appPrefix = outputScript.slice(4, 12);
-            if (Object.keys(opReturn.appPrefixes).includes(appPrefix)) {
-                app = opReturn.appPrefixes[appPrefix];
-            } else {
-                app = 'unknown app';
+        // Test for other known apps with known msg processing methods
+        switch (protocolIdentifier) {
+            case opReturn.knownApps.cashtabMsg.prefix: {
+                app = opReturn.knownApps.cashtabMsg.app;
+                // For a Cashtab msg, the next push on the stack is the Cashtab msg
+                // Cashtab msgs use utf8 encoding
+                msg = Buffer.from(stackArray[1], 'hex').toString('utf8');
+                break;
             }
-            switch (app) {
-                case 'Cashtab Msg':
-                    // For a Cashtab msg, the rest of the string will be parsed as an OP_RETURN msg
-                    msg = module.exports.hexOpReturnToUtf8(
-                        outputScript.slice(12),
-                    );
-                    break;
-                case 'Alias':
-                    // For an Alias Registration, the rest of the string will be parsed as an OP_RETURN msg
-                    msg = module.exports.hexOpReturnToUtf8(
-                        outputScript.slice(12),
-                    );
-                    break;
-                case 'unknown':
-                    // Parse the whole string less the 6a prefix, so we can see the unknown app prefix
-                    msg = module.exports.hexOpReturnToUtf8(
-                        outputScript.slice(2),
-                    );
-                    break;
-                default:
-                    // Parse the whole string less the 6a prefix, so we can see the unknown app prefix
-                    msg = module.exports.hexOpReturnToUtf8(
-                        outputScript.slice(2),
-                    );
+            default: {
+                /**
+                 * If you don't recognize protocolIdentifier, just translate with ASCII
+                 * Will be easy to spot these msgs in the bot and add special parsing rules                 *
+                 */
+                app = 'unknown';
+                msg = Buffer.from(stackArray.join(''), 'hex').toString('ascii');
+                break;
             }
-        } else {
-            app = 'no app';
-            msg = module.exports.hexOpReturnToUtf8(outputScript.slice(2));
         }
 
         return { app, msg };
