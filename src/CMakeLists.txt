@@ -471,6 +471,12 @@ endmacro()
 
 link_event(util event)
 
+macro(link_boost_headers_only TARGET)
+	non_native_target_link_headers_only(${TARGET} Boost 1.64 ${ARGN})
+endmacro()
+
+link_boost_headers_only(util headers)
+
 function(add_network_sources NETWORK_SOURCES)
 	set(NETWORK_DIR abc)
 
