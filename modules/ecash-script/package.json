@@ -4,7 +4,9 @@
     "description": "Parse script for eCash (XEC)",
     "main": "index.js",
     "scripts": {
-        "test": "mocha"
+        "test": "mocha",
+        "coverage": "nyc mocha",
+        "junit": "mocha test --reporter mocha-junit-reporter"
     },
     "repository": {
         "type": "git",
@@ -30,6 +32,7 @@
         "eslint-plugin-header": "^3.1.1",
         "mocha-junit-reporter": "^2.2.0",
         "mocha-suppress-logs": "^0.3.1",
+        "nyc": "^15.1.0",
         "random-js": "^2.1.0"
     }
 }

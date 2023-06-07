@@ -659,6 +659,14 @@ builds:
     templates:
       - js-mocha
 
+  ecash-script-tests:
+    runOnDiffRegex:
+      - modules/ecash-script/
+    env:
+      JS_PROJECT_ROOT: modules/ecash-script
+    templates:
+      - js-mocha
+
   preview-e.cash:
     docker:
       context: web/e.cash

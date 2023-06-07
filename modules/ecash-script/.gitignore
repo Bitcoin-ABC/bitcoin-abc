@@ -1,0 +1,8 @@
+# Dependency directories
+node_modules/
+
+# nyc test coverage
+.nyc_output
+
+# npm run junit artifact
+test-results.xml
