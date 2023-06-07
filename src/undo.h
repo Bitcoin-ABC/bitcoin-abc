@@ -85,15 +85,15 @@ public:
  * @param out The out point that corresponds to the tx input.
  * @return A DisconnectResult
  */
-DisconnectResult UndoCoinSpend(const Coin &undo, CCoinsViewCache &view,
+DisconnectResult UndoCoinSpend(Coin &&undo, CCoinsViewCache &view,
                                const COutPoint &out);
 
 /**
  * Undo a block from the block and the undoblock data.
  * See DisconnectBlock for more details.
  */
-DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
-                                const CBlock &block, const CBlockIndex *pindex,
+DisconnectResult ApplyBlockUndo(CBlockUndo &&blockUndo, const CBlock &block,
+                                const CBlockIndex *pindex,
                                 CCoinsViewCache &coins);
 
 #endif // BITCOIN_UNDO_H

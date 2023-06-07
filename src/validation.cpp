@@ -1526,7 +1526,7 @@ bool AbortNode(BlockValidationState &state, const std::string &strMessage,
 }
 
 /** Restore the UTXO in a Coin at a given COutPoint. */
-DisconnectResult UndoCoinSpend(const Coin &undo, CCoinsViewCache &view,
+DisconnectResult UndoCoinSpend(Coin &&undo, CCoinsViewCache &view,
                                const COutPoint &out) {
     bool fClean = true;
 
@@ -1577,11 +1577,11 @@ DisconnectResult Chainstate::DisconnectBlock(const CBlock &block,
         return DisconnectResult::FAILED;
     }
 
-    return ApplyBlockUndo(blockUndo, block, pindex, view);
+    return ApplyBlockUndo(std::move(blockUndo), block, pindex, view);
 }
 
-DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
-                                const CBlock &block, const CBlockIndex *pindex,
+DisconnectResult ApplyBlockUndo(CBlockUndo &&blockUndo, const CBlock &block,
+                                const CBlockIndex *pindex,
                                 CCoinsViewCache &view) {
     bool fClean = true;
 
@@ -1593,7 +1593,7 @@ DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
     // First, restore inputs.
     for (size_t i = 1; i < block.vtx.size(); i++) {
         const CTransaction &tx = *(block.vtx[i]);
-        const CTxUndo &txundo = blockUndo.vtxundo[i - 1];
+        CTxUndo &txundo = blockUndo.vtxundo[i - 1];
         if (txundo.vprevout.size() != tx.vin.size()) {
             error("DisconnectBlock(): transaction and undo data inconsistent");
             return DisconnectResult::FAILED;
@@ -1601,13 +1601,14 @@ DisconnectResult ApplyBlockUndo(const CBlockUndo &blockUndo,
 
         for (size_t j = 0; j < tx.vin.size(); j++) {
             const COutPoint &out = tx.vin[j].prevout;
-            const Coin &undo = txundo.vprevout[j];
-            DisconnectResult res = UndoCoinSpend(undo, view, out);
+            DisconnectResult res =
+                UndoCoinSpend(std::move(txundo.vprevout[j]), view, out);
             if (res == DisconnectResult::FAILED) {
                 return DisconnectResult::FAILED;
             }
             fClean = fClean && res != DisconnectResult::UNCLEAN;
         }
+        // At this point, all of txundo.vprevout should have been moved out.
     }
 
     // Second, revert created outputs.

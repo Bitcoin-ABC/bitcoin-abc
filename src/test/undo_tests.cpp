@@ -32,11 +32,11 @@ static void UpdateUTXOSet(const CBlock &block, CCoinsViewCache &view,
 }
 
 static void UndoBlock(const CBlock &block, CCoinsViewCache &view,
-                      const CBlockUndo &blockUndo,
-                      const CChainParams &chainparams, uint32_t nHeight) {
+                      CBlockUndo &&blockUndo, const CChainParams &chainparams,
+                      uint32_t nHeight) {
     CBlockIndex pindex;
     pindex.nHeight = nHeight;
-    ApplyBlockUndo(blockUndo, block, &pindex, view);
+    ApplyBlockUndo(std::move(blockUndo), block, &pindex, view);
 }
 
 static bool HasSpendableCoin(const CCoinsViewCache &view, const TxId &txid) {
@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(connect_utxo_extblock) {
     BOOST_CHECK(HasSpendableCoin(view, tx0.GetId()));
     BOOST_CHECK(!HasSpendableCoin(view, prevTx0.GetId()));
 
-    UndoBlock(block, view, blockundo, chainparams, 123456);
+    UndoBlock(block, view, std::move(blockundo), chainparams, 123456);
 
     BOOST_CHECK(view.GetBestBlock() == block.hashPrevBlock);
     BOOST_CHECK(!HasSpendableCoin(view, coinbaseTx.GetId()));
