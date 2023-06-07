@@ -45,6 +45,10 @@ export const navitems = [
         ],
     },
     {
+        nav_item: 'Get eCash',
+        link: '/get-ecash',
+    },
+    {
         nav_item: 'More',
         dropdown_items: [
             {
