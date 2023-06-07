@@ -131,7 +131,7 @@ describe('script.js', function () {
             '6a042e78656300154361706974616c4c6574746572735f416e645f2b21150076458db0ed96fe9863fc1ccec9fa2cfab884b0f6',
         );
     });
-    it('consumeNextPush parses a valid alias registration OP_RETURN stack for all valid pushdata types', function () {
+    it('consumeNextPush returns expected pushdata for an OP_RETURN stack', function () {
         const expectedPushes = [
             '2e786563', // .xec
             '00', // version 0
@@ -170,28 +170,43 @@ describe('script.js', function () {
                 remainingHex: `${thesePushdatas[0]}${expectedPushes[0]}${thesePushdatas[1]}${expectedPushes[1]}${thesePushdatas[2]}${expectedPushes[2]}${thesePushdatas[3]}${expectedPushes[3]}`,
             };
             // First push, prefix
-            assert.strictEqual(consumeNextPush(testStack), expectedPushes[0]);
+            assert.deepEqual(consumeNextPush(testStack), {
+                data: expectedPushes[0],
+                pushedWith: thesePushdatas[0],
+            });
             // Stack is modified so that push is removed
             assert.deepEqual(testStack, {
                 remainingHex: `${thesePushdatas[1]}${expectedPushes[1]}${thesePushdatas[2]}${expectedPushes[2]}${thesePushdatas[3]}${expectedPushes[3]}`,
             });
 
             // Second push, alias registration tx version number
-            assert.strictEqual(consumeNextPush(testStack), expectedPushes[1]);
+            assert.deepEqual(consumeNextPush(testStack), {
+                data: expectedPushes[1],
+                pushedWith:
+                    thesePushdatas[1] === ''
+                        ? expectedPushes[1]
+                        : thesePushdatas[1],
+            });
             // Stack is modified so that push is removed
             assert.deepEqual(testStack, {
                 remainingHex: `${thesePushdatas[2]}${expectedPushes[2]}${thesePushdatas[3]}${expectedPushes[3]}`,
             });
 
             // Third push, alias
-            assert.strictEqual(consumeNextPush(testStack), expectedPushes[2]);
+            assert.deepEqual(consumeNextPush(testStack), {
+                data: expectedPushes[2],
+                pushedWith: thesePushdatas[2],
+            });
             // Stack is modified so that push is removed
             assert.deepEqual(testStack, {
                 remainingHex: `${thesePushdatas[3]}${expectedPushes[3]}`,
             });
 
             // Fourth push, <addressType><addressHash>
-            assert.strictEqual(consumeNextPush(testStack), expectedPushes[3]);
+            assert.deepEqual(consumeNextPush(testStack), {
+                data: expectedPushes[3],
+                pushedWith: thesePushdatas[3],
+            });
             // Stack is modified so that push is removed
             assert.deepEqual(testStack, {
                 remainingHex: '',
@@ -246,7 +261,7 @@ describe('script.js', function () {
                 '4e040404042e78656300154361706974616c4c6574746572735f416e645f2b21150076458db0ed96fe9863fc1ccec9fa2cfab884b0f6',
         });
     });
-    it('consumeNextPush returns all one byte pushes', function () {
+    it('consumeNextPush returns all one byte pushes and empty string for associated pushdata', function () {
         for (let i = 0; i < opReturn.oneByteStackAdds.length; i += 1) {
             const testHexString = opReturn.oneByteStackAdds[i];
             const stack = { remainingHex: testHexString };
@@ -254,7 +269,10 @@ describe('script.js', function () {
             const firstPush = consumeNextPush(stack); // alias registration prefix
 
             // consumeNextPush returns the push of testHexString
-            assert.strictEqual(firstPush, opReturn.oneByteStackAdds[i]);
+            assert.deepEqual(firstPush, {
+                data: opReturn.oneByteStackAdds[i],
+                pushedWith: opReturn.oneByteStackAdds[i],
+            });
             // Verify stack has been modified in place
             assert.deepEqual(stack, {
                 remainingHex: '',

@@ -23,7 +23,7 @@ Provide the next push from a given OP_RETURN stack. Stack must be provided with 
 
 ```
 consumeNextPush({remainingHex:'042e786563'})
-// 2e786563
+// {data: 2e786563, pushedWith: '04'}
 ```
 
 `swapEndianness`
@@ -40,3 +40,4 @@ See `test/` for additional usage examples.
 
 1.0.0 Initial support for OP_RETURN parsing with functions `consume` and `consumeNextPush`
 1.1.0 New functions `swapEndianness` and `isHexString`
+2.0.0 Modify `consumeNextPush` to return object `{data, pushedWith}` instead of string `data`
