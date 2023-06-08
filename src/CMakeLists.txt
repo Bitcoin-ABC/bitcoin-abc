@@ -190,6 +190,12 @@ if(ENABLE_HARDENING)
 	# Enable control-flow enforcement
 	add_cxx_compiler_flags(-fcf-protection=full)
 
+	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		# stack-clash-protection does not work properly when building for Windows.
+		# See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90458
+		add_cxx_compiler_flags(-fstack-clash-protection)
+	endif()
+
 	# Enable some buffer overflow checking, except in -O0 builds which
 	# do not support them
 	add_compiler_flags(-U_FORTIFY_SOURCE)
