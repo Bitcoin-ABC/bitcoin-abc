@@ -109,6 +109,18 @@ def check_ELF_separate_code(binary):
     return True
 
 
+def check_ELF_control_flow(binary) -> bool:
+    """
+    Check for control flow instrumentation
+    """
+    main = binary.get_function_address("main")
+    content = binary.get_content_from_virtual_address(
+        main, 4, lief.Binary.VA_TYPES.AUTO
+    )
+
+    return content == [243, 15, 30, 250]  # endbr64
+
+
 def check_PE_DYNAMIC_BASE(binary) -> bool:
     """PIE: DllCharacteristics bit 0x40 signifies dynamicbase (ASLR)"""
     return (
@@ -132,6 +144,22 @@ def check_PE_HIGH_ENTROPY_VA(binary) -> bool:
 def check_PE_RELOC_SECTION(binary) -> bool:
     """Check for a reloc section. This is required for functional ASLR."""
     return binary.has_relocations
+
+
+def check_PE_control_flow(binary) -> bool:
+    """
+    Check for control flow instrumentation
+    """
+    main = binary.get_symbol("main").value
+
+    section_addr = binary.section_from_rva(main).virtual_address
+    virtual_address = binary.optional_header.imagebase + section_addr + main
+
+    content = binary.get_content_from_virtual_address(
+        virtual_address, 4, lief.Binary.VA_TYPES.VA
+    )
+
+    return content == [243, 15, 30, 250]  # endbr64
 
 
 def check_MACHO_NOUNDEFS(binary) -> bool:
@@ -163,6 +191,16 @@ def check_NX(binary) -> bool:
     return binary.has_nx
 
 
+def check_MACHO_control_flow(binary) -> bool:
+    """
+    Check for control flow instrumentation
+    """
+    content = binary.get_content_from_virtual_address(
+        binary.entrypoint, 4, lief.Binary.VA_TYPES.AUTO
+    )
+    return content == [243, 15, 30, 250]  # endbr64
+
+
 BASE_ELF = [
     ("PIE", check_PIE),
     ("NX", check_NX),
@@ -177,6 +215,7 @@ BASE_PE = [
     ("HIGH_ENTROPY_VA", check_PE_HIGH_ENTROPY_VA),
     ("NX", check_NX),
     ("RELOC_SECTION", check_PE_RELOC_SECTION),
+    ("CONTROL_FLOW", check_PE_control_flow),
 ]
 
 BASE_MACHO = [
@@ -184,11 +223,12 @@ BASE_MACHO = [
     ("NOUNDEFS", check_MACHO_NOUNDEFS),
     ("NX", check_NX),
     ("Canary", check_MACHO_Canary),
+    ("CONTROL_FLOW", check_MACHO_control_flow),
 ]
 
 CHECKS = {
     lief.EXE_FORMATS.ELF: {
-        lief.ARCHITECTURES.X86: BASE_ELF,
+        lief.ARCHITECTURES.X86: BASE_ELF + [("CONTROL_FLOW", check_ELF_control_flow)],
         lief.ARCHITECTURES.ARM: BASE_ELF,
         lief.ARCHITECTURES.ARM64: BASE_ELF,
     },

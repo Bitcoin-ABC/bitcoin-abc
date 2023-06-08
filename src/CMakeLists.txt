@@ -187,6 +187,9 @@ if(ENABLE_HARDENING)
 	# Enable stack protection
 	add_cxx_compiler_flags(-fstack-protector-all -Wstack-protector)
 
+	# Enable control-flow enforcement
+	add_cxx_compiler_flags(-fcf-protection=full)
+
 	# Enable some buffer overflow checking, except in -O0 builds which
 	# do not support them
 	add_compiler_flags(-U_FORTIFY_SOURCE)
