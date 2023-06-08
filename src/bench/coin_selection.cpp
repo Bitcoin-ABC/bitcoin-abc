@@ -59,7 +59,7 @@ static void CoinSelection(benchmark::Bench &bench) {
                            true /* safe */);
     }
 
-    const CoinEligibilityFilter filter_standard(1, 6, 0);
+    const CoinEligibilityFilter filter_standard(1, 6);
     const CoinSelectionParams coin_selection_params(
         true, 34, 148, CFeeRate(Amount::zero()), 0, false);
     bench.run([&] {
@@ -88,7 +88,7 @@ static void add_coin(const CWallet &wallet, const Amount nValue, int nInput,
     set.emplace_back();
     set.back().Insert(
         COutput(wallet, *wtx, nInput, 0, true, true, true).GetInputCoin(), 0,
-        true, 0, 0, false);
+        true, false);
     wtxn.emplace_back(std::move(wtx));
 }
 

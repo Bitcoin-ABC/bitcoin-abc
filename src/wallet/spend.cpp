@@ -313,18 +313,13 @@ GroupOutputs(const CWallet &wallet, const std::vector<COutput> &outputs,
                 continue;
             }
 
-            // deprecated -- after wellington activation these 2 stats should
-            // always just be 0 since these stat becomes irrelevant at that
-            // point
-            size_t ancestors = 0, descendants = 0;
-
             CInputCoin input_coin = output.GetInputCoin();
 
             // Make an OutputGroup containing just this output
             OutputGroup group{effective_feerate, long_term_feerate};
             group.Insert(input_coin, output.nDepth,
                          CachedTxIsFromMe(wallet, *output.tx, ISMINE_ALL),
-                         ancestors, descendants, positive_only);
+                         positive_only);
 
             // Check the OutputGroup's eligibility. Only add the eligible ones.
             if (positive_only && group.effective_value <= Amount::zero()) {
@@ -355,11 +350,6 @@ GroupOutputs(const CWallet &wallet, const std::vector<COutput> &outputs,
             continue;
         }
 
-        // deprecated -- after wellington activation these 2 stats should
-        // always just be 0 since these stat becomes irrelevant at that
-        // point
-        size_t ancestors = 0, descendants = 0;
-
         CInputCoin input_coin = output.GetInputCoin();
         CScript spk = input_coin.txout.scriptPubKey;
 
@@ -389,7 +379,7 @@ GroupOutputs(const CWallet &wallet, const std::vector<COutput> &outputs,
         // Add the input_coin to group
         group->Insert(input_coin, output.nDepth,
                       CachedTxIsFromMe(wallet, *output.tx, ISMINE_ALL),
-                      ancestors, descendants, positive_only);
+                      positive_only);
     }
 
     // Now we go through the entire map and pull out the OutputGroups
@@ -551,11 +541,6 @@ bool SelectCoins(const CWallet &wallet,
         }
     }
 
-    // Note: after wellington the ancestor stats will always be 0, since this
-    // limitation becomes irrelevant.
-    size_t max_ancestors{0};
-    size_t max_descendants{0};
-
     // form groups from remaining coins; note that preset coins will not
     // automatically have their associated (same address) coins included
     if (coin_control.m_avoid_partial_spends &&
@@ -569,42 +554,34 @@ bool SelectCoins(const CWallet &wallet,
 
     bool res =
         value_to_select <= Amount::zero() ||
-        SelectCoinsMinConf(wallet, value_to_select,
-                           CoinEligibilityFilter(1, 6, 0), vCoins, setCoinsRet,
-                           nValueRet, coin_selection_params, bnb_used) ||
-        SelectCoinsMinConf(wallet, value_to_select,
-                           CoinEligibilityFilter(1, 1, 0), vCoins, setCoinsRet,
-                           nValueRet, coin_selection_params, bnb_used) ||
+        SelectCoinsMinConf(wallet, value_to_select, CoinEligibilityFilter(1, 6),
+                           vCoins, setCoinsRet, nValueRet,
+                           coin_selection_params, bnb_used) ||
+        SelectCoinsMinConf(wallet, value_to_select, CoinEligibilityFilter(1, 1),
+                           vCoins, setCoinsRet, nValueRet,
+                           coin_selection_params, bnb_used) ||
         (wallet.m_spend_zero_conf_change &&
          SelectCoinsMinConf(wallet, value_to_select,
-                            CoinEligibilityFilter(0, 1, 2), vCoins, setCoinsRet,
+                            CoinEligibilityFilter(0, 1), vCoins, setCoinsRet,
+                            nValueRet, coin_selection_params, bnb_used)) ||
+        (wallet.m_spend_zero_conf_change &&
+         SelectCoinsMinConf(wallet, value_to_select,
+                            CoinEligibilityFilter(0, 1), vCoins, setCoinsRet,
+                            nValueRet, coin_selection_params, bnb_used)) ||
+        (wallet.m_spend_zero_conf_change &&
+         SelectCoinsMinConf(wallet, value_to_select,
+                            CoinEligibilityFilter(0, 1), vCoins, setCoinsRet,
                             nValueRet, coin_selection_params, bnb_used)) ||
         (wallet.m_spend_zero_conf_change &&
          SelectCoinsMinConf(
              wallet, value_to_select,
-             CoinEligibilityFilter(0, 1, std::min((size_t)4, max_ancestors / 3),
-                                   std::min((size_t)4, max_descendants / 3)),
-             vCoins, setCoinsRet, nValueRet, coin_selection_params,
-             bnb_used)) ||
-        (wallet.m_spend_zero_conf_change &&
-         SelectCoinsMinConf(wallet, value_to_select,
-                            CoinEligibilityFilter(0, 1, max_ancestors / 2,
-                                                  max_descendants / 2),
-                            vCoins, setCoinsRet, nValueRet,
-                            coin_selection_params, bnb_used)) ||
-        (wallet.m_spend_zero_conf_change &&
-         SelectCoinsMinConf(
-             wallet, value_to_select,
-             CoinEligibilityFilter(0, 1, max_ancestors - 1, max_descendants - 1,
-                                   /*include_partial_groups=*/true),
+             CoinEligibilityFilter(0, 1, /*include_partial_groups=*/true),
              vCoins, setCoinsRet, nValueRet, coin_selection_params,
              bnb_used)) ||
         (wallet.m_spend_zero_conf_change &&
          SelectCoinsMinConf(
              wallet, value_to_select,
-             CoinEligibilityFilter(0, 1, std::numeric_limits<uint64_t>::max(),
-                                   std::numeric_limits<uint64_t>::max(),
-                                   /*include_partial_groups=*/true),
+             CoinEligibilityFilter(0, 1, /*include_partial_groups=*/true),
              vCoins, setCoinsRet, nValueRet, coin_selection_params, bnb_used));
 
     // Because SelectCoinsMinConf clears the setCoinsRet, we now add the

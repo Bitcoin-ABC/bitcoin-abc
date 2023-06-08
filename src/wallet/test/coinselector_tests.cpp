@@ -37,9 +37,9 @@ static std::vector<COutput> vCoins;
 static node::NodeContext testNode;
 static Amount balance = Amount::zero();
 
-CoinEligibilityFilter filter_standard(1, 6, 0);
-CoinEligibilityFilter filter_confirmed(1, 1, 0);
-CoinEligibilityFilter filter_standard_extra(6, 6, 0);
+CoinEligibilityFilter filter_standard(1, 6);
+CoinEligibilityFilter filter_confirmed(1, 1);
+CoinEligibilityFilter filter_standard_extra(6, 6);
 CoinSelectionParams coin_selection_params(false, 0, 0, CFeeRate(Amount::zero()),
                                           0, false);
 
@@ -121,7 +121,7 @@ GroupCoins(const std::vector<CInputCoin> &coins) {
     static_groups.clear();
     for (auto &coin : coins) {
         static_groups.emplace_back();
-        static_groups.back().Insert(coin, 0, true, 0, 0, false);
+        static_groups.back().Insert(coin, 0, true, false);
     }
     return static_groups;
 }
@@ -137,8 +137,8 @@ inline std::vector<OutputGroup> &GroupCoins(const std::vector<COutput> &coins) {
             coin.tx->m_amounts[CWalletTx::DEBIT].m_value[ISMINE_SPENDABLE] ==
                 SATOSHI;
         static_groups.emplace_back();
-        static_groups.back().Insert(coin.GetInputCoin(), coin.nDepth, is_me, 0,
-                                    0, false);
+        static_groups.back().Insert(coin.GetInputCoin(), coin.nDepth, is_me,
+                                    false);
     }
     return static_groups;
 }

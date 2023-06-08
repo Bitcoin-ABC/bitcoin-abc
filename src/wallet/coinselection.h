@@ -62,25 +62,15 @@ public:
 struct CoinEligibilityFilter {
     const int conf_mine;
     const int conf_theirs;
-    const uint64_t max_ancestors;
-    const uint64_t max_descendants;
     /// Include partial destination groups when avoid_reuse and there are full
     /// groups
     const bool m_include_partial_groups{false};
 
+    CoinEligibilityFilter(int conf_mine_, int conf_theirs_)
+        : conf_mine(conf_mine_), conf_theirs(conf_theirs_) {}
     CoinEligibilityFilter(int conf_mine_, int conf_theirs_,
-                          uint64_t max_ancestors_)
-        : conf_mine(conf_mine_), conf_theirs(conf_theirs_),
-          max_ancestors(max_ancestors_), max_descendants(max_ancestors_) {}
-    CoinEligibilityFilter(int conf_mine_, int conf_theirs_,
-                          uint64_t max_ancestors_, uint64_t max_descendants_)
-        : conf_mine(conf_mine_), conf_theirs(conf_theirs_),
-          max_ancestors(max_ancestors_), max_descendants(max_descendants_) {}
-    CoinEligibilityFilter(int conf_mine_, int conf_theirs_,
-                          uint64_t max_ancestors_, uint64_t max_descendants_,
                           bool include_partial_groups)
         : conf_mine(conf_mine_), conf_theirs(conf_theirs_),
-          max_ancestors(max_ancestors_), max_descendants(max_descendants_),
           m_include_partial_groups(include_partial_groups) {}
 };
 
@@ -89,8 +79,6 @@ struct OutputGroup {
     bool m_from_me{true};
     Amount m_value = Amount::zero();
     int m_depth{999};
-    size_t m_ancestors{0};   ///< deprecated after wellington activation
-    size_t m_descendants{0}; ///< deprecated after wellington activation
     Amount effective_value = Amount::zero();
     Amount fee = Amount::zero();
     CFeeRate m_effective_feerate{Amount::zero()};
@@ -104,7 +92,7 @@ struct OutputGroup {
           m_long_term_feerate(long_term_feerate) {}
 
     void Insert(const CInputCoin &output, int depth, bool from_me,
-                size_t ancestors, size_t descendants, bool positive_only);
+                bool positive_only);
     bool
     EligibleForSpending(const CoinEligibilityFilter &eligibility_filter) const;
 };
