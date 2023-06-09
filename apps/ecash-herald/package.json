@@ -9,7 +9,8 @@
         "junit": "mocha test --reporter mocha-junit-reporter",
         "generateMocks": "node scripts/generateMocks",
         "sendTestTgMsgs": "node scripts/sendTestTgMsgs",
-        "getCoingeckoPrices": "node scripts/getCoingeckoPrices"
+        "getCoingeckoPrices": "node scripts/getCoingeckoPrices",
+        "sendMsgByBlock": "node scripts/sendMsgByBlock"
     },
     "keywords": [
         "ecash",
