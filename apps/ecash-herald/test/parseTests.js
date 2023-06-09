@@ -12,6 +12,7 @@ const { jsonReviver } = require('../src/utils');
 const blocks = JSON.parse(JSON.stringify(unrevivedBlocks), jsonReviver);
 const miners = JSON.parse(JSON.stringify(minersJson), jsonReviver);
 const memoOutputScripts = require('./mocks/memo');
+const { consumeNextPush } = require('ecash-script');
 
 const {
     parseBlock,
@@ -40,11 +41,16 @@ describe('parse.js functions', function () {
     });
     it(`parseMemoOutputScript correctly parses all tested memo actions in memo.js`, function () {
         memoOutputScripts.map(memoTestObj => {
-            const app = opReturn.memo.app;
-            const { outputScript, parsed } = memoTestObj;
-            assert.deepEqual(parseMemoOutputScript(outputScript), {
-                app,
-                msg: parsed,
+            const { outputScript, msg } = memoTestObj;
+            // Get array of pushes
+            let stack = { remainingHex: outputScript.slice(2) };
+            let stackArray = [];
+            while (stack.remainingHex.length > 0) {
+                stackArray.push(consumeNextPush(stack));
+            }
+            assert.deepEqual(parseMemoOutputScript(stackArray), {
+                app: opReturn.memo.app,
+                msg,
             });
         });
     });
