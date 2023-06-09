@@ -403,8 +403,6 @@ private:
             : m_ptx(ptx),
               m_next_block_script_verify_flags(next_block_script_verify_flags) {
         }
-        /** All mempool ancestors of this transaction. */
-        CTxMemPool::setEntries m_ancestors;
         /**
          * Mempool entry constructed for this transaction.
          * Constructed in PreChecks() but not inserted into the mempool until
@@ -735,7 +733,7 @@ bool MemPoolAccept::Finalize(const ATMPArgs &args, Workspace &ws) {
     std::unique_ptr<CTxMemPoolEntry> &entry = ws.m_entry;
 
     // Store transaction in memory.
-    m_pool.addUnchecked(*entry, ws.m_ancestors);
+    m_pool.addUnchecked(*entry);
 
     // Trim mempool and check if tx was trimmed.
     // If we are validating a package, don't trim here because we could evict a
@@ -782,15 +780,6 @@ bool MemPoolAccept::SubmitPackage(
             all_submitted = Assume(false);
         }
 
-        // Re-calculate mempool ancestors to call addUnchecked(). They may have
-        // changed since the last calculation done in PreChecks, since package
-        // ancestors have already been submitted.
-        std::string unused_err_string;
-        if (!m_pool.CalculateMemPoolAncestors(*ws.m_entry, ws.m_ancestors)) {
-            results.emplace(ws.m_ptx->GetId(),
-                            MempoolAcceptResult::Failure(ws.m_state));
-            all_submitted = Assume(false);
-        }
         // If we call LimitMempoolSize() for each individual Finalize(), the
         // mempool will not take the transaction's descendant feerate into
         // account because it hasn't seen them yet. Also, we risk evicting a

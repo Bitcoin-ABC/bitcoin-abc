@@ -295,12 +295,6 @@ enum class MemPoolRemovalReason {
  * index (GetEntryId).  As such, we always dump mempool tx's into a disconnect
  * pool on reorg, and simply add them one by one, along with tx's from
  * disconnected blocks, when the reorg is complete.
- *
- * Computational limits:
- *
- * Updating all in-mempool ancestors of a newly added transaction before
- * wellington activates can be slow. After wellington, no bound exists on how
- * many in-mempool ancestors there may be.
  */
 class CTxMemPool {
 private:
@@ -443,16 +437,7 @@ public:
 
     // addUnchecked must update state for all parents of a given transaction,
     // updating child links as necessary.
-    // Pre-wellington: automatically calculates setAncestors, calls
-    // addUnchecked(entry, setAncestors)
-    // Post-wellington: identical to just calling addUnchecked(entry, {})
-    // These 2 overloads should be collapsed down into 1 post-wellington (just a
-    // single-argument version).
     void addUnchecked(const CTxMemPoolEntry &entry)
-        EXCLUSIVE_LOCKS_REQUIRED(cs, cs_main);
-    void
-    addUnchecked(const CTxMemPoolEntry &entry,
-                 const setEntries &setAncestors /* only used pre-wellington */)
         EXCLUSIVE_LOCKS_REQUIRED(cs, cs_main);
 
     void removeRecursive(const CTransaction &tx, MemPoolRemovalReason reason)
@@ -501,13 +486,10 @@ public:
     /**
      * Remove a set of transactions from the mempool. If a transaction is in
      * this set, then all in-mempool descendants must also be in the set, unless
-     * this transaction is being removed for being in a block. Set
-     * updateDescendants to true when removing a tx that was in a block, so that
-     * any in-mempool descendants have their ancestor state updated (only
-     * evaluated before wellington activation).
+     * this transaction is being removed for being in a block.
      */
-    void RemoveStaged(const setEntries &stage, bool updateDescendants,
-                      MemPoolRemovalReason reason) EXCLUSIVE_LOCKS_REQUIRED(cs);
+    void RemoveStaged(const setEntries &stage, MemPoolRemovalReason reason)
+        EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /**
      * Try to calculate all in-mempool ancestors of entry.
@@ -666,12 +648,9 @@ private:
     void UpdateParentsOf(bool add, txiter it) EXCLUSIVE_LOCKS_REQUIRED(cs);
     /**
      * For each transaction being removed, update ancestors and any direct
-     * children. If updateDescendants is true, then also update in-mempool
-     * descendants' ancestor state. Note that ancestors are only updated before
-     * wellington activation.
+     * children.
      */
-    void UpdateForRemoveFromMempool(const setEntries &entriesToRemove,
-                                    bool updateDescendants)
+    void UpdateForRemoveFromMempool(const setEntries &entriesToRemove)
         EXCLUSIVE_LOCKS_REQUIRED(cs);
     /** Sever link between specified transaction and direct children. */
     void UpdateChildrenForRemoval(txiter entry) EXCLUSIVE_LOCKS_REQUIRED(cs);

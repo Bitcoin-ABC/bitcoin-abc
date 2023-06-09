@@ -133,8 +133,7 @@ void CTxMemPool::UpdateChildrenForRemoval(txiter it) {
     }
 }
 
-void CTxMemPool::UpdateForRemoveFromMempool(const setEntries &entriesToRemove,
-                                            bool updateDescendants) {
+void CTxMemPool::UpdateForRemoveFromMempool(const setEntries &entriesToRemove) {
     for (txiter removeIt : entriesToRemove) {
         // Note that UpdateParentsOf severs the child links that point to
         // removeIt in the entries for the parents of removeIt.
@@ -170,8 +169,7 @@ void CTxMemPool::AddTransactionsUpdated(unsigned int n) {
     nTransactionsUpdated += n;
 }
 
-void CTxMemPool::addUnchecked(const CTxMemPoolEntry &entryIn,
-                              const setEntries &setAncestors) {
+void CTxMemPool::addUnchecked(const CTxMemPoolEntry &entryIn) {
     CTxMemPoolEntry entry{entryIn};
     // get a guaranteed unique id (in case tests re-use the same object)
     entry.SetEntryId(nextEntryId++);
@@ -309,7 +307,7 @@ void CTxMemPool::removeRecursive(const CTransaction &origTx,
         CalculateDescendants(it, setAllRemoves);
     }
 
-    RemoveStaged(setAllRemoves, false, reason);
+    RemoveStaged(setAllRemoves, reason);
 }
 
 void CTxMemPool::removeConflicts(const CTransaction &tx) {
@@ -352,7 +350,7 @@ void CTxMemPool::removeForBlock(const std::vector<CTransactionRef> &vtx) {
         if (it != mapTx.end()) {
             setEntries stage;
             stage.insert(it);
-            RemoveStaged(stage, true, MemPoolRemovalReason::BLOCK);
+            RemoveStaged(stage, MemPoolRemovalReason::BLOCK);
         } else {
             // Conflicting txs can only exist if the tx was not in the mempool
             removeConflicts(*tx);
@@ -462,18 +460,13 @@ void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
         // Check children against mapNextTx
         CTxMemPoolEntry::Children setChildrenCheck;
         auto iter = mapNextTx.lower_bound(COutPoint(entry.GetTx().GetId(), 0));
-        uint64_t child_sizes = 0;
-        int64_t child_sigChecks = 0;
         for (; iter != mapNextTx.end() &&
                iter->first->GetTxId() == entry.GetTx().GetId();
              ++iter) {
             txiter childIt = mapTx.find(iter->second->GetId());
             // mapNextTx points to in-mempool transactions
             assert(childIt != mapTx.end());
-            if (setChildrenCheck.insert(*childIt).second) {
-                child_sizes += childIt->GetTxSize();
-                child_sigChecks += childIt->GetSigChecks();
-            }
+            setChildrenCheck.insert(*childIt);
         }
         assert(setChildrenCheck.size() ==
                entry.GetMemPoolChildrenConst().size());
@@ -703,10 +696,10 @@ void CTxMemPool::RemoveUnbroadcastTx(const TxId &txid, const bool unchecked) {
     }
 }
 
-void CTxMemPool::RemoveStaged(const setEntries &stage, bool updateDescendants,
+void CTxMemPool::RemoveStaged(const setEntries &stage,
                               MemPoolRemovalReason reason) {
     AssertLockHeld(cs);
-    UpdateForRemoveFromMempool(stage, updateDescendants);
+    UpdateForRemoveFromMempool(stage);
     for (txiter it : stage) {
         removeUnchecked(it, reason);
     }
@@ -727,7 +720,7 @@ int CTxMemPool::Expire(std::chrono::seconds time) {
         CalculateDescendants(removeit, stage);
     }
 
-    RemoveStaged(stage, false, MemPoolRemovalReason::EXPIRY);
+    RemoveStaged(stage, MemPoolRemovalReason::EXPIRY);
     return stage.size();
 }
 
@@ -746,11 +739,6 @@ void CTxMemPool::LimitSize(CCoinsViewCache &coins_cache, size_t limit,
     for (const COutPoint &removed : vNoSpendsRemaining) {
         coins_cache.Uncache(removed);
     }
-}
-
-void CTxMemPool::addUnchecked(const CTxMemPoolEntry &entry) {
-    setEntries setAncestors;
-    return addUnchecked(entry, setAncestors);
 }
 
 void CTxMemPool::UpdateChild(txiter entry, txiter child, bool add) {
@@ -839,7 +827,7 @@ void CTxMemPool::TrimToSize(size_t sizelimit,
             }
         }
 
-        RemoveStaged(stage, false, MemPoolRemovalReason::SIZELIMIT);
+        RemoveStaged(stage, MemPoolRemovalReason::SIZELIMIT);
     }
 
     if (maxFeeRateRemoved > CFeeRate(Amount::zero())) {
