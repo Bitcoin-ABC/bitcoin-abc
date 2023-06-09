@@ -21,7 +21,7 @@ CheckWhitelist(const Consensus::Params &consensusParams,
                const CBlockIndex *pindexPrev,
                const std::unordered_set<CTxDestination, TxDestinationHasher>
                    &expectedWhitelist) {
-    auto whitelist = GetMinerFundWhitelist(consensusParams, pindexPrev);
+    auto whitelist = GetMinerFundWhitelist(consensusParams);
     BOOST_CHECK_EQUAL(whitelist.size(), expectedWhitelist.size());
     for (const auto &expectedDest : expectedWhitelist) {
         BOOST_CHECK_EQUAL(whitelist.count(expectedDest), 1);
@@ -42,26 +42,9 @@ BOOST_AUTO_TEST_CASE(minerfund_whitelist) {
         "-wellingtonactivationtime", consensusParams.wellingtonActivationTime);
     SetMTP(blocks, activation - 100000);
 
-    // Consensus whitelist has not activated yet
-    block.nHeight = consensusParams.axionHeight - 1;
-    CheckWhitelist(consensusParams, &block, {});
-
-    // Axion whitelist is active
-    const std::unordered_set<CTxDestination, TxDestinationHasher>
-        expectedAxion = {DecodeDestination(
-            "ecash:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdg2jj94l5j", chainparams)};
-    block.nHeight = consensusParams.axionHeight;
-    CheckWhitelist(consensusParams, &block, expectedAxion);
-
-    // Does not change up to Gluon activation
-    block.nHeight = consensusParams.gluonHeight - 1;
-    CheckWhitelist(consensusParams, &block, expectedAxion);
-
-    // Miner fund address changed with Gluon
     const std::unordered_set<CTxDestination, TxDestinationHasher>
         expectedMinerFund = {DecodeDestination(
             "ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07", chainparams)};
-    block.nHeight = consensusParams.gluonHeight;
     CheckWhitelist(consensusParams, &block, expectedMinerFund);
 
     // Test address does not change around Wellington activation

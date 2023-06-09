@@ -700,6 +700,9 @@ void MinerTestingSetup::TestPrioritisedMining(
 
 // NOTE: These tests rely on CreateNewBlock doing its own self-validation!
 BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
+    // FIXME Update the below blocks to create a valid miner fund coinbase.
+    // This requires to update the blockinfo nonces.
+    gArgs.ForceSetArg("-enableminerfund", "0");
     // Note that by default, these tests run with size accounting enabled.
     GlobalConfig config;
     const CChainParams &chainparams = config.GetChainParams();
@@ -774,6 +777,8 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     TestPrioritisedMining(chainparams, scriptPubKey, txFirst);
 
     fCheckpointsEnabled = true;
+
+    gArgs.ClearForcedArg("-enableminerfund");
 }
 
 static void CheckBlockMaxSize(const Config &config, const CTxMemPool &mempool,

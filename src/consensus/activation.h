@@ -39,10 +39,6 @@ bool IsPhononEnabled(const Consensus::Params &params,
 bool IsAxionEnabled(const Consensus::Params &params,
                     const CBlockIndex *pindexPrev);
 
-/** Check if May 15th, 2022 protocol upgrade has activated. */
-bool IsGluonEnabled(const Consensus::Params &params,
-                    const CBlockIndex *pindexPrev);
-
 /** Check if May 15th, 2023 protocol upgrade has activated. */
 bool IsWellingtonEnabled(const Consensus::Params &params,
                          int64_t nMedianTimePast);

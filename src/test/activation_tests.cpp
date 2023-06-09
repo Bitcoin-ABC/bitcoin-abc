@@ -45,7 +45,6 @@ BOOST_AUTO_TEST_CASE(test_previous_activations_by_height) {
     testPastActivation(IsGravitonEnabled, consensus, consensus.gravitonHeight);
     testPastActivation(IsPhononEnabled, consensus, consensus.phononHeight);
     testPastActivation(IsAxionEnabled, consensus, consensus.axionHeight);
-    testPastActivation(IsGluonEnabled, consensus, consensus.gluonHeight);
 }
 
 BOOST_AUTO_TEST_CASE(iswellingtonenabled) {

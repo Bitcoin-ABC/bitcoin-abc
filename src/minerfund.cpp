@@ -27,16 +27,7 @@ static CTxDestination BuildDestination(const std::string &dest) {
     return DecodeDestination(dest, *mainNetParams);
 }
 
-static const CTxDestination &
-GetMinerFundDestination(const bool useAxionDestination) {
-    static const std::string ecashMinerFundAxion =
-        "ecash:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdg2jj94l5j";
-    static const std::string bitcoinCashMinerFundAxion =
-        "bitcoincash:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdgnlxww9j9";
-    static CTxDestination destAxion = BuildDestination(
-        gArgs.GetBoolArg("-ecash", DEFAULT_ECASH) ? ecashMinerFundAxion
-                                                  : bitcoinCashMinerFundAxion);
-
+static const CTxDestination &GetMinerFundDestination() {
     static const std::string ecashMinerFund =
         "ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07";
     static const std::string bitcoinCashMinerFund =
@@ -45,28 +36,22 @@ GetMinerFundDestination(const bool useAxionDestination) {
         gArgs.GetBoolArg("-ecash", DEFAULT_ECASH) ? ecashMinerFund
                                                   : bitcoinCashMinerFund);
 
-    return useAxionDestination ? destAxion : dest;
+    return dest;
 }
 
 std::unordered_set<CTxDestination, TxDestinationHasher>
-GetMinerFundWhitelist(const Consensus::Params &params,
-                      const CBlockIndex *pindexPrev) {
+GetMinerFundWhitelist(const Consensus::Params &params) {
     if (!gArgs.GetBoolArg("-enableminerfund", params.enableMinerFund)) {
         return {};
     }
 
-    if (!IsAxionEnabled(params, pindexPrev)) {
-        return {};
-    }
-
-    return {GetMinerFundDestination(!IsGluonEnabled(params, pindexPrev))};
+    return {GetMinerFundDestination()};
 }
 
 bool CheckMinerFund(const Consensus::Params &params,
-                    const CBlockIndex *pindexPrev,
                     const std::vector<CTxOut> &coinbaseTxOut,
                     const Amount &blockReward) {
-    const auto whitelist = GetMinerFundWhitelist(params, pindexPrev);
+    const auto whitelist = GetMinerFundWhitelist(params);
     if (whitelist.empty()) {
         return true;
     }

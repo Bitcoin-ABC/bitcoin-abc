@@ -188,7 +188,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
         nFees + GetBlockSubsidy(nHeight, consensusParams);
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
 
-    const auto whitelisted = GetMinerFundWhitelist(consensusParams, pindexPrev);
+    const auto whitelisted = GetMinerFundWhitelist(consensusParams);
     if (!whitelisted.empty()) {
         const Amount fund = GetMinerFundAmount(coinbaseTx.vout[0].nValue);
         coinbaseTx.vout[0].nValue -= fund;

@@ -130,9 +130,6 @@ public:
         // Nov 15, 2020 12:00:00 UTC protocol upgrade
         consensus.axionHeight = 661647;
 
-        // May 15, 2022 12:00:00 UTC protocol upgrade
-        consensus.gluonHeight = 739535;
-
         // May 15, 2023 12:00:00 UTC protocol upgrade
         consensus.wellingtonActivationTime = 1684152000;
 
@@ -282,9 +279,6 @@ public:
         // Nov 15, 2020 12:00:00 UTC protocol upgrade
         consensus.axionHeight = 1421481;
 
-        // May 15, 2022 12:00:00 UTC protocol upgrade
-        consensus.gluonHeight = 1503556;
-
         // May 15, 2023 12:00:00 UTC protocol upgrade
         consensus.wellingtonActivationTime = 1684152000;
 
@@ -414,9 +408,6 @@ public:
 
         // Nov 15, 2020 12:00:00 UTC protocol upgrade
         consensus.axionHeight = 0;
-
-        // May 15, 2022 12:00:00 UTC protocol upgrade
-        consensus.gluonHeight = 0;
 
         // May 15, 2023 12:00:00 UTC protocol upgrade
         consensus.wellingtonActivationTime = 1684152000;

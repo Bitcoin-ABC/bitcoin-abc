@@ -52,40 +52,20 @@ BOOST_AUTO_TEST_CASE(policy_minerfund) {
         blockhashes[i] = BlockHash(uint256(i));
         blocks[i].phashBlock = &blockhashes[i];
         blocks[i].pprev = &blocks[i - 1];
-        blocks[i].nHeight = consensusParams.gluonHeight + i;
+        blocks[i].nHeight = i;
+        blocks[i].nTime = consensusParams.wellingtonActivationTime - 5 + i;
     }
+    CBlockIndex &firstBlockIndexRef = blocks[1];
     CBlockIndex &lastBlockIndexRef = blocks.back();
 
     const Amount blockReward =
         GetBlockSubsidy(lastBlockIndexRef.nHeight, consensusParams);
-    const Amount minerFund = GetMinerFundAmount(blockReward);
 
-    const auto wellingtonActivation = gArgs.GetIntArg(
-        "-wellingtonactivationtime", consensusParams.wellingtonActivationTime);
-
-    auto checkEarlyBlocks = [&]() {
-        // Check genesis block (pprev is nullptr) and early blocks before
-        // Wellington rules are enforced. We skip the last block index
-        // because we explicitly test activation cases with it.
-        BOOST_CHECK(!blocks[0].pprev);
-        for (size_t i = 0; i < blocks.size() - 2; i++) {
-            const CBlockIndex &blockIndex = blocks[i];
-            BOOST_CHECK(
-                !IsWellingtonEnabled(consensusParams, blockIndex.pprev));
-            CBlock block = BlockWithoutMinerFund(blockReward);
-            MinerFundPolicy check(consensusParams, blockIndex, block,
-                                  blockReward);
-
-            BlockPolicyValidationState state;
-            BOOST_CHECK(check(state));
-            BOOST_CHECK(state.IsValid());
-        }
-    };
-
-    auto checkMinerFundPolicy = [&](CBlock block, bool expected) {
+    auto checkMinerFundPolicy = [&](CBlock block, const CBlockIndex &blockIndex,
+                                    bool expected) {
         BlockPolicyValidationState state;
-        BOOST_CHECK_EQUAL(MinerFundPolicy(consensusParams, lastBlockIndexRef,
-                                          block, blockReward)(state),
+        BOOST_CHECK_EQUAL(MinerFundPolicy(consensusParams, blockIndex, block,
+                                          blockReward)(state),
                           expected);
         BOOST_CHECK_EQUAL(state.IsValid(), expected);
         if (!expected) {
@@ -93,42 +73,33 @@ BOOST_AUTO_TEST_CASE(policy_minerfund) {
         }
     };
 
+    // Before wellington activation, the block policy is not enforced
+    BOOST_CHECK(
+        !IsWellingtonEnabled(consensusParams, firstBlockIndexRef.pprev));
+    checkMinerFundPolicy(BlockWithoutMinerFund(blockReward), firstBlockIndexRef,
+                         true);
+
+    // After wellington activation, the block policy is enforced
+    BOOST_CHECK(IsWellingtonEnabled(consensusParams, lastBlockIndexRef.pprev));
+    checkMinerFundPolicy(BlockWithoutMinerFund(blockReward), lastBlockIndexRef,
+                         false);
+
+    const Amount minerFund = GetMinerFundAmount(blockReward);
     const std::vector<Amount> minerFundsTooSmall = {1 * SATOSHI, minerFund / 2,
                                                     minerFund - 1 * SATOSHI};
     const std::vector<Amount> minerFundsSufficient = {
         minerFund, minerFund + 1 * SATOSHI, blockReward};
 
-    // Miner fund policy always passes prior to Wellington rules enforcement.
-    // Note that Wellington rules are enforced on the block after activation.
-    for (auto activation : {wellingtonActivation - 1, wellingtonActivation}) {
-        SetMTP(blocks, activation);
-        BOOST_CHECK_EQUAL(
-            IsWellingtonEnabled(consensusParams, &lastBlockIndexRef),
-            activation == wellingtonActivation);
-        checkEarlyBlocks();
-        checkMinerFundPolicy(BlockWithoutMinerFund(blockReward), true);
-
-        // Blocks with miner fund of various amounts
-        for (const Amount &amount :
-             Cat(minerFundsTooSmall, minerFundsSufficient)) {
-            checkMinerFundPolicy(BlockWithMinerFund(chainparams, amount), true);
-        }
-    }
-
-    // Wellington rules are now enforced. Miner fund checks are now applied.
-    SetMTP(blocks, wellingtonActivation + 1);
-    BOOST_CHECK(IsWellingtonEnabled(consensusParams, &lastBlockIndexRef));
-    checkEarlyBlocks();
-    checkMinerFundPolicy(BlockWithoutMinerFund(blockReward), false);
-
     // Blocks with not enough miner fund
     for (const Amount &amount : minerFundsTooSmall) {
-        checkMinerFundPolicy(BlockWithMinerFund(chainparams, amount), false);
+        checkMinerFundPolicy(BlockWithMinerFund(chainparams, amount),
+                             lastBlockIndexRef, false);
     }
 
     // Blocks with sufficient miner fund
     for (const Amount &amount : minerFundsSufficient) {
-        checkMinerFundPolicy(BlockWithMinerFund(chainparams, amount), true);
+        checkMinerFundPolicy(BlockWithMinerFund(chainparams, amount),
+                             lastBlockIndexRef, true);
     }
 }
 

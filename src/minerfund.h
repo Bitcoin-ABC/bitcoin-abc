@@ -21,14 +21,12 @@ struct Params;
 Amount GetMinerFundAmount(const Amount &coinbaseValue);
 
 std::unordered_set<CTxDestination, TxDestinationHasher>
-GetMinerFundWhitelist(const Consensus::Params &params,
-                      const CBlockIndex *pindexPrev);
+GetMinerFundWhitelist(const Consensus::Params &params);
 
 /**
  * Returns false if there is an invalid miner fund. True otherwise.
  */
 bool CheckMinerFund(const Consensus::Params &params,
-                    const CBlockIndex *pindexPrev,
                     const std::vector<CTxOut> &coinbaseTxOut,
                     const Amount &blockReward);
 

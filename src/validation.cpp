@@ -2108,13 +2108,6 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
         *blockFees = nFees;
     }
 
-    if (!IsWellingtonEnabled(consensusParams, pindex->pprev) &&
-        !CheckMinerFund(consensusParams, pindex->pprev, block.vtx[0]->vout,
-                        blockReward)) {
-        return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
-                             "bad-cb-minerfund");
-    }
-
     if (!control.Wait()) {
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
                              "blk-bad-inputs", "parallel script check failed");

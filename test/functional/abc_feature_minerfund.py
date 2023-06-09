@@ -16,7 +16,6 @@ from test_framework.util import assert_equal, assert_greater_than_or_equal
 WELLINGTON_ACTIVATION_TIME = 2100000600
 MINER_FUND_RATIO = 8
 MINER_FUND_ADDR = "ecregtest:prfhcnyqnl5cgrnmlfmms675w93ld7mvvq9jcw0zsn"
-MINER_FUND_ADDR_AXION = "ecregtest:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdgz0wv9ltl"
 
 
 class MinerFundTest(BitcoinTestFramework):
@@ -66,19 +65,13 @@ class MinerFundTest(BitcoinTestFramework):
         # Now we send part of the coinbase to the fund.
         check_miner_fund_output(MINER_FUND_ADDR)
 
-        def check_bad_miner_fund(prev_hash, coinbase=None):
-            if coinbase is None:
-                coinbase = create_coinbase(node.getblockcount() + 1)
-
-            block_time = node.getblock(prev_hash)["time"] + 1
-            block = create_block(int(prev_hash, 16), coinbase, block_time, version=4)
-            block.solve()
-
-            assert_equal(node.submitblock(ToHex(block)), "bad-cb-minerfund")
-
-        # A block with no miner fund coinbase should be rejected.
+        # Before wellington activation, the block policy is not applicable
         tip = node.getbestblockhash()
-        check_bad_miner_fund(tip)
+        coinbase = create_coinbase(node.getblockcount() + 1)
+        block_time = node.getblock(tip)["time"] + 1
+        block = create_block(int(tip, 16), coinbase, block_time, version=4)
+        block.solve()
+        node.submitblock(ToHex(block))
 
         def create_cb_pay_to_address(address):
             _, _, script_hash = decode(address)
@@ -104,10 +97,7 @@ class MinerFundTest(BitcoinTestFramework):
 
             return cb
 
-        # Build a custom coinbase that spend to the legacy miner fund address
-        # and check it is rejected.
-        check_bad_miner_fund(tip, create_cb_pay_to_address(MINER_FUND_ADDR_AXION))
-
+        tip = node.getbestblockhash()
         # Build a custom coinbase that spend to the new miner fund address
         # and check it is accepted.
         good_block = create_block(
