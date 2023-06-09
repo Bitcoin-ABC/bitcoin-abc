@@ -344,6 +344,19 @@ module.exports = {
                 );
                 break;
             }
+            case opReturn.knownApps.fusionLegacy.prefix:
+            case opReturn.knownApps.fusion.prefix: {
+                /**
+                 * Cash Fusion tx
+                 * <protocolIdentifier> <sessionHash>
+                 * https://github.com/cashshuffle/spec/blob/master/CASHFUSION.md
+                 */
+                app = opReturn.knownApps.fusion.app;
+                // The session hash is not particularly interesting to users
+                // Provide tx info in telegram prep function
+                msg = '';
+                break;
+            }
             default: {
                 /**
                  * If you don't recognize protocolIdentifier, just translate with ASCII
@@ -644,6 +657,43 @@ module.exports = {
             }
             if (opReturnInfo) {
                 let { app, msg } = opReturnInfo;
+
+                if (app === opReturn.knownApps.fusion.app) {
+                    /**
+                     * Special handling for Cash Fusion txs
+                     * OP_RETURN msg is not particularly interesting here
+                     * However we would like to know something about the transaction
+                     */
+
+                    // Get total amount fused
+                    let totalSatsFused = 0;
+                    for (const satoshis of xecReceivingOutputs.values()) {
+                        totalSatsFused += satoshis;
+                    }
+                    // Convert sats to XEC. Round as decimals will not be rendered in msgs.
+                    const totalXecFused = parseFloat(
+                        (totalSatsFused / 100).toFixed(0),
+                    );
+
+                    // If price, convert XEC to USD
+                    let displayedFusedQtyString;
+                    if (coingeckoPrices) {
+                        // XEC price is the first one
+                        const { fiat, price } = coingeckoPrices[0];
+                        const totalFiatFused = totalXecFused * price;
+                        displayedFusedQtyString = `${
+                            config.fiatReference[fiat]
+                        }${totalFiatFused.toLocaleString('en-US', {
+                            maximumFractionDigits: 0,
+                        })}`;
+                    } else {
+                        displayedFusedQtyString = `${totalXecFused.toLocaleString(
+                            'en-US',
+                            { maximumFractionDigits: 0 },
+                        )} XEC`;
+                    }
+                    msg += `Fused ${displayedFusedQtyString} from ${xecSendingOutputScripts.size} inputs into ${xecReceivingOutputs.size} outputs`;
+                }
                 opReturnTxTgMsgLines.push(
                     `<a href="${config.blockExplorer}/tx/${txid}">${app}:</a> ${msg}`,
                 );

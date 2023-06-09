@@ -19,6 +19,7 @@ const {
     getMinerFromCoinbaseTx,
     parseMemoOutputScript,
     getBlockTgMessage,
+    parseOpReturn,
 } = require('../src/parse');
 
 describe('parse.js functions', function () {
@@ -38,6 +39,14 @@ describe('parse.js functions', function () {
                 blockSummaryTgMsgs,
             );
         }
+    });
+    it('parseOpReturn recognizes legacy Cash Fusion prefix', function () {
+        assert.deepEqual(
+            parseOpReturn(
+                '0446555a0020771c2fa0d402fe15ba0aa2e98660facf4a8ab6801b5baf3c0b08ced685dd85ed',
+            ),
+            { app: opReturn.knownApps.fusionLegacy.app, msg: '' },
+        );
     });
     it(`parseMemoOutputScript correctly parses all tested memo actions in memo.js`, function () {
         memoOutputScripts.map(memoTestObj => {

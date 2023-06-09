@@ -17,6 +17,8 @@ module.exports = {
     },
     knownApps: {
         cashtabMsg: { prefix: '00746162', app: 'Cashtab Msg' },
+        fusion: { prefix: '46555a00', app: 'Cash Fusion' },
+        fusionLegacy: { prefix: '5920070', app: 'Cash Fusion' },
     },
     memo: {
         'prefix': '6d',
