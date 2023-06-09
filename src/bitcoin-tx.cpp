@@ -233,8 +233,8 @@ static void MutateTxVersion(CMutableTransaction &tx,
                             const std::string &cmdVal) {
     int64_t newVersion;
     if (!ParseInt64(cmdVal, &newVersion) ||
-        newVersion < CTransaction::MIN_STANDARD_VERSION ||
-        newVersion > CTransaction::MAX_STANDARD_VERSION) {
+        newVersion < CTransaction::MIN_VERSION ||
+        newVersion > CTransaction::MAX_VERSION) {
         throw std::runtime_error("Invalid TX version requested: '" + cmdVal +
                                  "'");
     }

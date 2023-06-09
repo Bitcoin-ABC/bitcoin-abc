@@ -59,8 +59,8 @@ bool ContextualCheckTransaction(const Consensus::Params &params,
 
     if (IsWellingtonEnabled(params, nMedianTimePast)) {
         // Restrict version to 1 and 2
-        if (tx.nVersion > CTransaction::MAX_CONSENSUS_VERSION ||
-            tx.nVersion < CTransaction::MIN_CONSENSUS_VERSION) {
+        if (tx.nVersion > CTransaction::MAX_VERSION ||
+            tx.nVersion < CTransaction::MIN_VERSION) {
             return state.Invalid(TxValidationResult::TX_CONSENSUS,
                                  "bad-txns-version");
         }

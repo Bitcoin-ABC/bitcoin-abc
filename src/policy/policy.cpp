@@ -68,9 +68,10 @@ bool IsStandard(const CScript &scriptPubKey, TxoutType &whichType) {
 
 bool IsStandardTx(const CTransaction &tx, bool permit_bare_multisig,
                   const CFeeRate &dust_relay_fee, std::string &reason) {
-    // Only allow these tx versions, will become consensus rule in Wellington
-    if (tx.nVersion > CTransaction::MAX_STANDARD_VERSION ||
-        tx.nVersion < CTransaction::MIN_STANDARD_VERSION) {
+    // Only allow these tx versions, there is no point accepting a tx that
+    // violates the consensus rules
+    if (tx.nVersion > CTransaction::MAX_VERSION ||
+        tx.nVersion < CTransaction::MIN_VERSION) {
         reason = "version";
         return false;
     }
