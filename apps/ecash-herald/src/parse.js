@@ -359,46 +359,6 @@ module.exports = {
 
         return { app, msg };
     },
-    hexOpReturnToUtf8: function (hexStr) {
-        /*
-         * Accept as input an OP_RETURN hex string less the 6a prefix
-         * String will have the form of 4c+bytelength+msg (? + 4c + bytelength + msg)
-         */
-        let hexStrLength = hexStr.length;
-        let opReturnMsgArray = [];
-        for (let i = 0; hexStrLength !== 0; i++) {
-            // Check first byte for the message length or 4c + message length
-            let byteValue = hexStr.slice(0, 2);
-            let msgByteSize = 0;
-            if (byteValue === opReturn.opPushDataOne) {
-                // If this byte is 4c, then the next byte is the message byte size.
-                // Retrieve the message byte size and convert from hex to decimal
-                msgByteSize = parseInt(hexStr.substring(2, 4), 16);
-                // Remove 4c + message byte size info from the beginning of hexStr
-                hexStr = hexStr.slice(4);
-            } else {
-                // This byte is the length of an upcoming msg
-                msgByteSize = parseInt(hexStr.substring(0, 2), 16);
-                // Remove message byte size info from the beginning of hexStr
-                hexStr = hexStr.slice(2);
-            }
-            // Use msgByteSize to parse the message
-            const msgCharLength = 2 * msgByteSize;
-            const message = hexStr.slice(0, msgCharLength);
-
-            // Add to opReturnMsgArray
-            opReturnMsgArray.push(Buffer.from(message, 'hex').toString('utf8'));
-
-            // strip out the parsed message
-            hexStr = hexStr.slice(msgCharLength);
-            hexStrLength = hexStr.length;
-
-            // Sometimes OP_RETURN will have a series of msgs
-            // Return to beginning of loop with i=0 if there hexStr still has remaining unparsed characters
-        }
-        // If there are multiple messages, for example an unknown prefix, signify this with the | character
-        return opReturnMsgArray.join('|');
-    },
     /**
      * Parse a stackArray according to OP_RETURN rules to convert to a useful tg msg
      * @param {Array} stackArray an array containing a hex string for every push of this memo OP_RETURN outputScript
