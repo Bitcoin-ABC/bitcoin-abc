@@ -339,7 +339,9 @@ module.exports = {
                 app = opReturn.knownApps.cashtabMsg.app;
                 // For a Cashtab msg, the next push on the stack is the Cashtab msg
                 // Cashtab msgs use utf8 encoding
-                msg = Buffer.from(stackArray[1], 'hex').toString('utf8');
+                msg = prepareStringForTelegramHTML(
+                    Buffer.from(stackArray[1], 'hex').toString('utf8'),
+                );
                 break;
             }
             default: {
@@ -348,7 +350,10 @@ module.exports = {
                  * Will be easy to spot these msgs in the bot and add special parsing rules                 *
                  */
                 app = 'unknown';
-                msg = Buffer.from(stackArray.join(''), 'hex').toString('ascii');
+                // Make sure the OP_RETURN msg does not contain telegram html escape characters
+                msg = prepareStringForTelegramHTML(
+                    Buffer.from(stackArray.join(''), 'hex').toString('ascii'),
+                );
                 break;
             }
         }
@@ -467,8 +472,7 @@ module.exports = {
             }
             if (opReturnInfo) {
                 let { app, msg } = opReturnInfo;
-                // Make sure the OP_RETURN msg does not contain telegram html escape characters
-                msg = prepareStringForTelegramHTML(msg);
+
                 opReturnTxTgMsgLines.push(
                     `<a href="${config.blockExplorer}/tx/${txid}">${app}:</a> ${msg}`,
                 );
