@@ -43,7 +43,10 @@ struct ChainstateLoadOptions {
 //! and exit cleanly in the interrupted case.
 enum class ChainstateLoadStatus {
     SUCCESS,
+    //! Generic failure which reindexing may fix
     FAILURE,
+    //! Fatal error which should not prompt to reindex
+    FAILURE_FATAL,
     FAILURE_INCOMPATIBLE_DB,
     FAILURE_INSUFFICIENT_DBCACHE,
     INTERRUPTED
