@@ -6,6 +6,7 @@ const assert = require('assert');
 const cashaddr = require('ecashaddrjs');
 const { main } = require('../src/main');
 const config = require('../config');
+const aliasConstants = require('../constants/alias');
 const mockSecrets = require('../secrets.sample');
 const MockAdapter = require('axios-mock-adapter');
 const axios = require('axios');
@@ -48,7 +49,7 @@ describe('alias-server main.js', async function () {
         // Add tx history to mockedChronik
         // Set the script
         const { type, hash } = cashaddr.decode(
-            config.aliasConstants.registrationAddress,
+            aliasConstants.registrationAddress,
             true,
         );
         mockedChronik.setScript(type, hash);
@@ -68,7 +69,7 @@ describe('alias-server main.js', async function () {
         // Define params
         const mongoClient = testMongoClient;
         const chronik = mockedChronik;
-        const address = config.aliasConstants.registrationAddress;
+        const address = aliasConstants.registrationAddress;
         const telegramBot = null;
         const channelId = null;
         const { avalancheRpc } = mockSecrets;

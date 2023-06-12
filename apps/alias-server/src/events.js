@@ -4,6 +4,7 @@
 
 'use strict';
 const config = require('../config');
+const aliasConstants = require('../constants/alias');
 const { wait, removeUnconfirmedTxsFromTxHistory } = require('./utils');
 const { isFinalBlock } = require('./rpc');
 const { getServerState, updateServerState } = require('./db');
@@ -143,7 +144,7 @@ module.exports = {
 
         const allUnprocessedTxs = await getUnprocessedTxHistory(
             chronik,
-            config.aliasConstants.registrationAddress,
+            aliasConstants.registrationAddress,
             processedBlockheight,
             processedConfirmedTxs,
         );
@@ -158,7 +159,7 @@ module.exports = {
         // same block
         const unprocessedAliasTxs = getAliasTxs(
             confirmedUnprocessedTxs,
-            config.aliasConstants,
+            aliasConstants,
         );
 
         // Add new valid alias txs to the database and get a list of what was added

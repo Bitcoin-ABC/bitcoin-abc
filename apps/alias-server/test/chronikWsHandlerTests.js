@@ -4,7 +4,7 @@
 
 'use strict';
 const assert = require('assert');
-const config = require('../config');
+const aliasConstants = require('../constants/alias');
 const cashaddr = require('ecashaddrjs');
 const {
     initializeWebsocket,
@@ -129,7 +129,7 @@ describe('alias-server chronikWsHandler.js', async function () {
         // Add tx history to mockedChronik
         // Set the script
         const { type, hash } = cashaddr.decode(
-            config.aliasConstants.registrationAddress,
+            aliasConstants.registrationAddress,
             true,
         );
         mockedChronik.setScript(type, hash);
@@ -225,7 +225,7 @@ describe('alias-server chronikWsHandler.js', async function () {
         // Add tx history to mockedChronik
         // Set the script
         const { type, hash } = cashaddr.decode(
-            config.aliasConstants.registrationAddress,
+            aliasConstants.registrationAddress,
             true,
         );
         mockedChronik.setScript(type, hash);

@@ -5,7 +5,7 @@
 'use strict';
 const assert = require('assert');
 const cashaddr = require('ecashaddrjs');
-const config = require('../config');
+const aliasConstants = require('../constants/alias');
 const {
     parseAliasTx,
     getAliasTxs,
@@ -39,7 +39,7 @@ describe('alias-server alias.js', async function () {
     });
     it('Correctly parses a 5-character alias transaction', function () {
         const registrationOutputScript = cashaddr.getOutputScriptFromAddress(
-            config.aliasConstants.registrationAddress,
+            aliasConstants.registrationAddress,
         );
         assert.deepEqual(
             parseAliasTx(
@@ -50,7 +50,7 @@ describe('alias-server alias.js', async function () {
                             '9d9fd465f56a7946c48b2e214386b51d7968a3a40d46cc697036e4fc1cc644df',
                     )
                 ],
-                config.aliasConstants,
+                aliasConstants,
                 registrationOutputScript,
             ),
             testAddressAliases.allAliasTxs[
@@ -64,7 +64,7 @@ describe('alias-server alias.js', async function () {
     });
     it('Correctly parses a 6-character alias transaction', function () {
         const registrationOutputScript = cashaddr.getOutputScriptFromAddress(
-            config.aliasConstants.registrationAddress,
+            aliasConstants.registrationAddress,
         );
         assert.deepEqual(
             parseAliasTx(
@@ -75,7 +75,7 @@ describe('alias-server alias.js', async function () {
                             '36fdab59d25625b6ff3661aa5ab22a4893698fa5618e5e958e1d75bf921e6107',
                     )
                 ],
-                config.aliasConstants,
+                aliasConstants,
                 registrationOutputScript,
             ),
             testAddressAliases.allAliasTxs[
@@ -89,7 +89,7 @@ describe('alias-server alias.js', async function () {
     });
     it('Returns false for an eToken transaction', function () {
         const registrationOutputScript = cashaddr.getOutputScriptFromAddress(
-            config.aliasConstants.registrationAddress,
+            aliasConstants.registrationAddress,
         );
         assert.deepEqual(
             parseAliasTx(
@@ -100,7 +100,7 @@ describe('alias-server alias.js', async function () {
                             'feafd053d4166601d42949a768b9c3e8ee1f27912fc84b6190aeb022fba7fa39',
                     )
                 ],
-                config.aliasConstants,
+                aliasConstants,
                 registrationOutputScript,
             ),
             false,
@@ -108,7 +108,7 @@ describe('alias-server alias.js', async function () {
     });
     it('Returns false for a standard tx without an OP_RETURN', function () {
         const registrationOutputScript = cashaddr.getOutputScriptFromAddress(
-            config.aliasConstants.registrationAddress,
+            aliasConstants.registrationAddress,
         );
         assert.deepEqual(
             parseAliasTx(
@@ -119,7 +119,7 @@ describe('alias-server alias.js', async function () {
                             '7440fb8810610f29197701c53f4a29479a9aede8c66feabb44b049232f990791',
                     )
                 ],
-                config.aliasConstants,
+                aliasConstants,
                 registrationOutputScript,
             ),
             false,
@@ -127,7 +127,7 @@ describe('alias-server alias.js', async function () {
     });
     it('Correctly parses all aliases through transactions at test address ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8', function () {
         assert.deepEqual(
-            getAliasTxs(testAddressAliases.txHistory, config.aliasConstants),
+            getAliasTxs(testAddressAliases.txHistory, aliasConstants),
             testAddressAliases.allAliasTxs,
         );
     });
@@ -135,7 +135,7 @@ describe('alias-server alias.js', async function () {
         assert.deepEqual(
             getAliasTxs(
                 testAddressAliasesWithUnconfirmedTxs.txHistory,
-                config.aliasConstants,
+                aliasConstants,
             ),
             testAddressAliasesWithUnconfirmedTxs.allAliasTxs,
         );
@@ -240,7 +240,7 @@ describe('alias-server alias.js', async function () {
         // Get the alias txs
         const confirmedUnsortedAliasTxs = getAliasTxs(
             confirmedUnsortedTxs,
-            config.aliasConstants,
+            aliasConstants,
         );
 
         // This tests startup condition, so add no aliases to the database

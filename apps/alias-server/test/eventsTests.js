@@ -4,6 +4,7 @@
 
 'use strict';
 const config = require('../config');
+const aliasConstants = require('../constants/alias');
 const assert = require('assert');
 const cashaddr = require('ecashaddrjs');
 const mockSecrets = require('../secrets.sample');
@@ -60,7 +61,7 @@ describe('alias-server events.js', async function () {
         // Add tx history to mockedChronik
         // Set the script
         const { type, hash } = cashaddr.decode(
-            config.aliasConstants.registrationAddress,
+            aliasConstants.registrationAddress,
             true,
         );
         mockedChronik.setScript(type, hash);
@@ -193,7 +194,7 @@ describe('alias-server events.js', async function () {
         // Add tx history to mockedChronik
         // Set the script
         const { type, hash } = cashaddr.decode(
-            config.aliasConstants.registrationAddress,
+            aliasConstants.registrationAddress,
             true,
         );
         mockedChronik.setScript(type, hash);
@@ -253,7 +254,7 @@ describe('alias-server events.js', async function () {
         // Add tx history to mockedChronik
         // Set the script
         const { type, hash } = cashaddr.decode(
-            config.aliasConstants.registrationAddress,
+            aliasConstants.registrationAddress,
             true,
         );
         mockedChronik.setScript(type, hash);
@@ -315,7 +316,7 @@ describe('alias-server events.js', async function () {
         // Add tx history to mockedChronik
         // Set the script
         const { type, hash } = cashaddr.decode(
-            config.aliasConstants.registrationAddress,
+            aliasConstants.registrationAddress,
             true,
         );
         mockedChronik.setScript(type, hash);
