@@ -19,6 +19,7 @@ define $(package)_preprocess_cmds
 endef
 
 define $(package)_config_cmds
+  cp -f $(BASEDIR)/config.guess $(BASEDIR)/config.sub config && \
   $($(package)_autoconf)
 endef
 
