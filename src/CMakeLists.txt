@@ -458,6 +458,14 @@ if(ENABLE_GLIBC_BACK_COMPAT)
 	target_sources(util PRIVATE compat/glibc_compat.cpp)
 endif()
 
+# Work around jemalloc printing harmless warnings to stderr with qemu.
+# We match the emulator against qemu but not ^qemu so we are compatible with the
+# use of absolute paths.
+if(CMAKE_CROSSCOMPILING AND USE_JEMALLOC AND CMAKE_CROSSCOMPILING_EMULATOR MATCHES "qemu-.+")
+	message(WARNING "Overriding Jemalloc malloc_message() function for use with QEMU.")
+	target_sources(util PRIVATE jemalloc_message.cpp)
+endif()
+
 set(Boost_USE_STATIC_LIBS ON)
 
 # Target specific configs
