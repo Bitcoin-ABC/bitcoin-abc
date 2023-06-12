@@ -155,3 +155,12 @@ target_link_libraries(server
     # It's not clear yet why this is the case.
     chronik-bridge
 )
+
+# Install the directory containing the proto files. The trailing slash ensures
+# the directory is not duplicated (see
+# https://cmake.org/cmake/help/v3.16/command/install.html#installing-directories)
+set(CHRONIK_PROTO_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/chronik-proto/proto/")
+install(
+    DIRECTORY "${CHRONIK_PROTO_DIRECTORY}"
+    DESTINATION "proto"
+)
