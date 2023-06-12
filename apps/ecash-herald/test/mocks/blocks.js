@@ -77,29 +77,29 @@ module.exports=[
     },
     "coingeckoResponse": {
       "bitcoin": {
-        "usd": 26447.81876841
+        "usd": 25866.36116628
       },
       "ecash": {
-        "usd": 0.00002309
+        "usd": 0.00002063
       },
       "ethereum": {
-        "usd": 1836.86332251
+        "usd": 1739.06428794
       }
     },
     "coingeckoPrices": [
       {
         "fiat": "usd",
-        "price": 0.00002309,
+        "price": 0.00002063,
         "ticker": "XEC"
       },
       {
         "fiat": "usd",
-        "price": 26447.81876841,
+        "price": 25866.36116628,
         "ticker": "BTC"
       },
       {
         "fiat": "usd",
-        "price": 1836.86332251,
+        "price": 1739.06428794,
         "ticker": "ETH"
       }
     ],
@@ -108,7 +108,7 @@ module.exports=[
       "value": []
     },
     "blockSummaryTgMsgs": [
-      "<a href=\"https://explorer.e.cash/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f\">0</a> | 1 tx | unknown\n1 XEC = $0.00002309\n1 BTC = $26,448\n1 ETH = $1,837"
+      "<a href=\"https://explorer.e.cash/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f\">0</a> | 1 tx | unknown\n1 XEC = $0.00002063\n1 BTC = $25,866\n1 ETH = $1,739"
     ],
     "blockSummaryTgMsgsApiFailure": [
       "<a href=\"https://explorer.e.cash/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f\">0</a> | 1 tx | unknown"
@@ -4621,7 +4621,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949812785"
+            "msg": "162949812785",
+            "stackArray": [
+              "31363239343938313237",
+              "3835"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0040322580645162,
           "xecSendingOutputScripts": {
@@ -4741,7 +4746,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162950008991"
+            "msg": "162950008991",
+            "stackArray": [
+              "31363239353030303839",
+              "3931"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0080645161290323,
           "xecSendingOutputScripts": {
@@ -4775,7 +4785,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949791579"
+            "msg": "162949791579",
+            "stackArray": [
+              "31363239343937393135",
+              "3739"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 3.1401869158878504,
           "xecSendingOutputScripts": {
@@ -4836,7 +4851,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162950064779"
+            "msg": "162950064779",
+            "stackArray": [
+              "31363239353030363437",
+              "3739"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0080645161290323,
           "xecSendingOutputScripts": {
@@ -4870,7 +4890,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949902376"
+            "msg": "162949902376",
+            "stackArray": [
+              "31363239343939303233",
+              "3736"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 3.1401869158878504,
           "xecSendingOutputScripts": {
@@ -4899,7 +4924,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949753478"
+            "msg": "162949753478",
+            "stackArray": [
+              "31363239343937353334",
+              "3738"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0080645161290323,
           "xecSendingOutputScripts": {
@@ -4933,7 +4963,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949853587"
+            "msg": "162949853587",
+            "stackArray": [
+              "31363239343938353335",
+              "3837"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0121457489878543,
           "xecSendingOutputScripts": {
@@ -5028,7 +5063,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162950079879"
+            "msg": "162950079879",
+            "stackArray": [
+              "31363239353030373938",
+              "3739"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.008097165991903,
           "xecSendingOutputScripts": {
@@ -5062,7 +5102,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949745777"
+            "msg": "162949745777",
+            "stackArray": [
+              "31363239343937343537",
+              "3737"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.008097165991903,
           "xecSendingOutputScripts": {
@@ -5096,7 +5141,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949828872"
+            "msg": "162949828872",
+            "stackArray": [
+              "31363239343938323838",
+              "3732"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0040322580645162,
           "xecSendingOutputScripts": {
@@ -5130,7 +5180,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949927464"
+            "msg": "162949927464",
+            "stackArray": [
+              "31363239343939323734",
+              "3634"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0080645161290323,
           "xecSendingOutputScripts": {
@@ -5164,7 +5219,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162950016280"
+            "msg": "162950016280",
+            "stackArray": [
+              "31363239353030313632",
+              "3830"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.008097165991903,
           "xecSendingOutputScripts": {
@@ -5198,7 +5258,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162950072082"
+            "msg": "162950072082",
+            "stackArray": [
+              "31363239353030373230",
+              "3832"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0121457489878543,
           "xecSendingOutputScripts": {
@@ -5232,7 +5297,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949977494"
+            "msg": "162949977494",
+            "stackArray": [
+              "31363239343939373734",
+              "3934"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0040322580645162,
           "xecSendingOutputScripts": {
@@ -5266,7 +5336,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949761079"
+            "msg": "162949761079",
+            "stackArray": [
+              "31363239343937363130",
+              "3739"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0121457489878543,
           "xecSendingOutputScripts": {
@@ -5464,7 +5539,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949936084"
+            "msg": "162949936084",
+            "stackArray": [
+              "31363239343939333630",
+              "3834"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.008097165991903,
           "xecSendingOutputScripts": {
@@ -5498,7 +5578,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949846071"
+            "msg": "162949846071",
+            "stackArray": [
+              "31363239343938343630",
+              "3731"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0080645161290323,
           "xecSendingOutputScripts": {
@@ -5569,7 +5654,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162950031876"
+            "msg": "162950031876",
+            "stackArray": [
+              "31363239353030333138",
+              "3736"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0121457489878543,
           "xecSendingOutputScripts": {
@@ -5664,7 +5754,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949713278"
+            "msg": "162949713278",
+            "stackArray": [
+              "31363239343937313332",
+              "3738"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0121457489878543,
           "xecSendingOutputScripts": {
@@ -5733,7 +5828,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949806088"
+            "msg": "162949806088",
+            "stackArray": [
+              "31363239343938303630",
+              "3838"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.008097165991903,
           "xecSendingOutputScripts": {
@@ -5767,7 +5867,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "1629499897105"
+            "msg": "1629499897105",
+            "stackArray": [
+              "31363239343939383937",
+              "313035"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0040160642570282,
           "xecSendingOutputScripts": {
@@ -5801,7 +5906,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949776375"
+            "msg": "162949776375",
+            "stackArray": [
+              "31363239343937373633",
+              "3735"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0080645161290323,
           "xecSendingOutputScripts": {
@@ -5865,7 +5975,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949957193"
+            "msg": "162949957193",
+            "stackArray": [
+              "31363239343939353731",
+              "3933"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0080645161290323,
           "xecSendingOutputScripts": {
@@ -5899,7 +6014,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949705474"
+            "msg": "162949705474",
+            "stackArray": [
+              "31363239343937303534",
+              "3734"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0040322580645162,
           "xecSendingOutputScripts": {
@@ -5933,7 +6053,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949918575"
+            "msg": "162949918575",
+            "stackArray": [
+              "31363239343939313835",
+              "3735"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0040322580645162,
           "xecSendingOutputScripts": {
@@ -5995,7 +6120,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949837570"
+            "msg": "162949837570",
+            "stackArray": [
+              "31363239343938333735",
+              "3730"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.008097165991903,
           "xecSendingOutputScripts": {
@@ -6029,7 +6159,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949861074"
+            "msg": "162949861074",
+            "stackArray": [
+              "31363239343938363130",
+              "3734"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0121457489878543,
           "xecSendingOutputScripts": {
@@ -6093,7 +6228,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949729368"
+            "msg": "162949729368",
+            "stackArray": [
+              "31363239343937323933",
+              "3638"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0121457489878543,
           "xecSendingOutputScripts": {
@@ -6253,7 +6393,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949720976"
+            "msg": "162949720976",
+            "stackArray": [
+              "31363239343937323039",
+              "3736"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0040322580645162,
           "xecSendingOutputScripts": {
@@ -6321,7 +6466,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949970688"
+            "msg": "162949970688",
+            "stackArray": [
+              "31363239343939373036",
+              "3838"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.008097165991903,
           "xecSendingOutputScripts": {
@@ -6425,7 +6575,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949768581"
+            "msg": "162949768581",
+            "stackArray": [
+              "31363239343937363835",
+              "3831"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0040322580645162,
           "xecSendingOutputScripts": {
@@ -6673,7 +6828,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949950484"
+            "msg": "162949950484",
+            "stackArray": [
+              "31363239343939353034",
+              "3834"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0080645161290323,
           "xecSendingOutputScripts": {
@@ -6742,7 +6902,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949886464"
+            "msg": "162949886464",
+            "stackArray": [
+              "31363239343938383634",
+              "3634"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0040322580645162,
           "xecSendingOutputScripts": {
@@ -6823,7 +6988,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949877366"
+            "msg": "162949877366",
+            "stackArray": [
+              "31363239343938373733",
+              "3636"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0121457489878543,
           "xecSendingOutputScripts": {
@@ -6857,7 +7027,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949995596"
+            "msg": "162949995596",
+            "stackArray": [
+              "31363239343939393535",
+              "3936"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.7732793522267207,
           "xecSendingOutputScripts": {
@@ -6891,7 +7066,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162950056671"
+            "msg": "162950056671",
+            "stackArray": [
+              "31363239353030353636",
+              "3731"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0040322580645162,
           "xecSendingOutputScripts": {
@@ -6925,7 +7105,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949799082"
+            "msg": "162949799082",
+            "stackArray": [
+              "31363239343937393930",
+              "3832"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0121457489878543,
           "xecSendingOutputScripts": {
@@ -6989,7 +7174,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949820577"
+            "msg": "162949820577",
+            "stackArray": [
+              "31363239343938323035",
+              "3737"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0121457489878543,
           "xecSendingOutputScripts": {
@@ -7120,7 +7310,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949983698"
+            "msg": "162949983698",
+            "stackArray": [
+              "31363239343939383336",
+              "3938"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0040322580645162,
           "xecSendingOutputScripts": {
@@ -7154,7 +7349,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949868879"
+            "msg": "162949868879",
+            "stackArray": [
+              "31363239343938363838",
+              "3739"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0040322580645162,
           "xecSendingOutputScripts": {
@@ -7188,7 +7388,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949784081"
+            "msg": "162949784081",
+            "stackArray": [
+              "31363239343937383430",
+              "3831"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.7732793522267207,
           "xecSendingOutputScripts": {
@@ -7222,7 +7427,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162950024077"
+            "msg": "162950024077",
+            "stackArray": [
+              "31363239353030323430",
+              "3737"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.008097165991903,
           "xecSendingOutputScripts": {
@@ -7349,7 +7559,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162950039975"
+            "msg": "162950039975",
+            "stackArray": [
+              "31363239353030333939",
+              "3735"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0080645161290323,
           "xecSendingOutputScripts": {
@@ -7413,7 +7628,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949894579"
+            "msg": "162949894579",
+            "stackArray": [
+              "31363239343938393435",
+              "3739"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.7732793522267207,
           "xecSendingOutputScripts": {
@@ -7447,7 +7667,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949737872"
+            "msg": "162949737872",
+            "stackArray": [
+              "31363239343937333738",
+              "3732"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0040322580645162,
           "xecSendingOutputScripts": {
@@ -7481,7 +7706,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949963891"
+            "msg": "162949963891",
+            "stackArray": [
+              "31363239343939363338",
+              "3931"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0040322580645162,
           "xecSendingOutputScripts": {
@@ -7515,7 +7745,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949943284"
+            "msg": "162949943284",
+            "stackArray": [
+              "31363239343939343332",
+              "3834"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0121457489878543,
           "xecSendingOutputScripts": {
@@ -7613,7 +7848,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162950002285"
+            "msg": "162950002285",
+            "stackArray": [
+              "31363239353030303232",
+              "3835"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 3.1401869158878504,
           "xecSendingOutputScripts": {
@@ -7642,7 +7882,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162950048272"
+            "msg": "162950048272",
+            "stackArray": [
+              "31363239353030343832",
+              "3732"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0121457489878543,
           "xecSendingOutputScripts": {
@@ -7702,7 +7947,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": "162949910375"
+            "msg": "162949910375",
+            "stackArray": [
+              "31363239343939313033",
+              "3735"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0121457489878543,
           "xecSendingOutputScripts": {
@@ -7739,29 +7989,29 @@ module.exports=[
     },
     "coingeckoResponse": {
       "bitcoin": {
-        "usd": 26447.81876841
+        "usd": 25866.36116628
       },
       "ecash": {
-        "usd": 0.00002309
+        "usd": 0.00002063
       },
       "ethereum": {
-        "usd": 1836.86332251
+        "usd": 1739.06428794
       }
     },
     "coingeckoPrices": [
       {
         "fiat": "usd",
-        "price": 0.00002309,
+        "price": 0.00002063,
         "ticker": "XEC"
       },
       {
         "fiat": "usd",
-        "price": 26447.81876841,
+        "price": 25866.36116628,
         "ticker": "BTC"
       },
       {
         "fiat": "usd",
-        "price": 1836.86332251,
+        "price": 1739.06428794,
         "ticker": "ETH"
       }
     ],
@@ -7770,7 +8020,7 @@ module.exports=[
       "value": []
     },
     "blockSummaryTgMsgs": [
-      "<a href=\"https://explorer.e.cash/block/0000000000000000260ee4c3b4f4ddde127bc0105d685c0ef31775b612627222\">700722</a> | 97 txs | Zulu Pool\n1 XEC = $0.00002309\n1 BTC = $26,448\n1 ETH = $1,837\n\n1 new eToken created:\n<a href=\"https://explorer.e.cash/tx/4db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c875\">Lambda Variant Variants</a> (LVV) <a href=\"https://cashtabapp.com/\">[doc]</a>\n\nApp txs:\n<a href=\"https://explorer.e.cash/tx/0473d97d997b61c5018205b27316b6ae660a9b7835a46166fa87e0b1b26de2dd\">unknown:</a> 162949812785\n<a href=\"https://explorer.e.cash/tx/0d0a722a21aeca90ebb3d0954475ccb67f18c02945bc138c1f2ae6d507e3feb7\">unknown:</a> 162950008991\n<a href=\"https://explorer.e.cash/tx/0d9a82afc6b2605b25f8dab8b398579c3d408dc4c25919f6827a1afa5a0f6e5a\">unknown:</a> 162949791579\n<a href=\"https://explorer.e.cash/tx/1205ec2b6105716eccb95f5b26c5d65d81a390ac8bacc6ee1f20aa1757015143\">unknown:</a> 162950064779\n<a href=\"https://explorer.e.cash/tx/134b0feae8567aa52d73975746376b785564cbc907f8ce7dfc44f90edd869145\">unknown:</a> 162949902376\n<a href=\"https://explorer.e.cash/tx/136742fdb231e1342f790a5123f46414c3957f7d199b80ea729ecba274e3b787\">unknown:</a> 162949753478\n<a href=\"https://explorer.e.cash/tx/1478f35e98cff2227a826bc93463d2813b5161929267806d49ec994088747bfa\">unknown:</a> 162949853587\n<a href=\"https://explorer.e.cash/tx/2061d46821889fe8767c6fb747b87e37e3961eab46e8a7dc9098719d170fca52\">unknown:</a> 162950079879\n<a href=\"https://explorer.e.cash/tx/26df82bc6624d8814fe23073ba1b1b8b1ddff68de955ba01fd8dbb5e2db34eb6\">unknown:</a> 162949745777\n<a href=\"https://explorer.e.cash/tx/28bfff0be82734dbfa346cda5d45fb8deeaacce6edc817bd9d6f2c6c82c203ea\">unknown:</a> 162949828872\n<a href=\"https://explorer.e.cash/tx/29e4bcf352a9524856099ae43fa25b2c67f661e0486875a35a3dc5e02466c4b5\">unknown:</a> 162949927464\n<a href=\"https://explorer.e.cash/tx/2fddd13d532ec44c43ee4fa68b587f15d575e73d566e7d30f6bc495a61074e42\">unknown:</a> 162950016280\n<a href=\"https://explorer.e.cash/tx/30cfe0f7b05197b371e050eb06642e969d037754f456f76272e98890b8ed2581\">unknown:</a> 162950072082\n<a href=\"https://explorer.e.cash/tx/32f7ca6768bedb81603dfd5618263f84c7cb42fa4bae4eeb2dda8a4eac0cdd4d\">unknown:</a> 162949977494\n<a href=\"https://explorer.e.cash/tx/3411daaf624965c7731bc169e7831d9e56075986a1639cb1dc74e1b8d9c797b9\">unknown:</a> 162949761079\n<a href=\"https://explorer.e.cash/tx/4cf484655aa1948cfc3cd291a119806c8b2b5e0d233e44866dc0c9015b24ce1e\">unknown:</a> 162949936084\n<a href=\"https://explorer.e.cash/tx/4d46bd9ba22889a496cf4d37e5f0307216c8be93885ba82fcc0d3965c63693c3\">unknown:</a> 162949846071\n<a href=\"https://explorer.e.cash/tx/4f55182147356e5ccbf6c06225e817ac405a50fbe04c0f6eb5a4eb04462c7b12\">unknown:</a> 162950031876\n<a href=\"https://explorer.e.cash/tx/53c43d805bbbb9618e48cde71f5ff659fea02689f825cde823984b30443f0b30\">unknown:</a> 162949713278\n<a href=\"https://explorer.e.cash/tx/56bc3c81bb81bc92ba25acc407602207a0fdada4261f7f205d141ab34b616ce9\">unknown:</a> 162949806088\n<a href=\"https://explorer.e.cash/tx/592f4435d3ef8e2e2f0108cffc7b727798f359bad8521a084ca668bad55512c3\">unknown:</a> 1629499897105\n<a href=\"https://explorer.e.cash/tx/5d4f5668277ac87f170711461f0bef8f716556b6433c39729a4d0f22a1f1a9ae\">unknown:</a> 162949776375\n<a href=\"https://explorer.e.cash/tx/63ee98065e0c2358423ccc2ceae21a00ff8ed5e132d460a463334f1368ae3936\">unknown:</a> 162949957193\n<a href=\"https://explorer.e.cash/tx/64d204d6dd894e2b93ec2a9a518fb6c9fb9313098a06859b605e440884372c60\">unknown:</a> 162949705474\n<a href=\"https://explorer.e.cash/tx/67b05c5f3cc1d1d2415aae8232254bc790fe8d1965e9b529fc3b7bae4acf818d\">unknown:</a> 162949918575\n<a href=\"https://explorer.e.cash/tx/6fb44256ab3b7ecdb4dd4955d94dd1f6dc1bdeee8a523651fd71e699c524af01\">unknown:</a> 162949837570\n<a href=\"https://explorer.e.cash/tx/707051559904c61d0873824b9a215b93c90452724be49342554438215ba392d0\">unknown:</a> 162949861074\n<a href=\"https://explorer.e.cash/tx/7168c1feb93bba72b68c5ac833a9f428dcb88a9e199f53db1613bcc07a70dfec\">unknown:</a> 162949729368",
+      "<a href=\"https://explorer.e.cash/block/0000000000000000260ee4c3b4f4ddde127bc0105d685c0ef31775b612627222\">700722</a> | 97 txs | Zulu Pool\n1 XEC = $0.00002063\n1 BTC = $25,866\n1 ETH = $1,739\n\n1 new eToken created:\n<a href=\"https://explorer.e.cash/tx/4db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c875\">Lambda Variant Variants</a> (LVV) <a href=\"https://cashtabapp.com/\">[doc]</a>\n\nApp txs:\n<a href=\"https://explorer.e.cash/tx/0473d97d997b61c5018205b27316b6ae660a9b7835a46166fa87e0b1b26de2dd\">unknown:</a> 162949812785\n<a href=\"https://explorer.e.cash/tx/0d0a722a21aeca90ebb3d0954475ccb67f18c02945bc138c1f2ae6d507e3feb7\">unknown:</a> 162950008991\n<a href=\"https://explorer.e.cash/tx/0d9a82afc6b2605b25f8dab8b398579c3d408dc4c25919f6827a1afa5a0f6e5a\">unknown:</a> 162949791579\n<a href=\"https://explorer.e.cash/tx/1205ec2b6105716eccb95f5b26c5d65d81a390ac8bacc6ee1f20aa1757015143\">unknown:</a> 162950064779\n<a href=\"https://explorer.e.cash/tx/134b0feae8567aa52d73975746376b785564cbc907f8ce7dfc44f90edd869145\">unknown:</a> 162949902376\n<a href=\"https://explorer.e.cash/tx/136742fdb231e1342f790a5123f46414c3957f7d199b80ea729ecba274e3b787\">unknown:</a> 162949753478\n<a href=\"https://explorer.e.cash/tx/1478f35e98cff2227a826bc93463d2813b5161929267806d49ec994088747bfa\">unknown:</a> 162949853587\n<a href=\"https://explorer.e.cash/tx/2061d46821889fe8767c6fb747b87e37e3961eab46e8a7dc9098719d170fca52\">unknown:</a> 162950079879\n<a href=\"https://explorer.e.cash/tx/26df82bc6624d8814fe23073ba1b1b8b1ddff68de955ba01fd8dbb5e2db34eb6\">unknown:</a> 162949745777\n<a href=\"https://explorer.e.cash/tx/28bfff0be82734dbfa346cda5d45fb8deeaacce6edc817bd9d6f2c6c82c203ea\">unknown:</a> 162949828872\n<a href=\"https://explorer.e.cash/tx/29e4bcf352a9524856099ae43fa25b2c67f661e0486875a35a3dc5e02466c4b5\">unknown:</a> 162949927464\n<a href=\"https://explorer.e.cash/tx/2fddd13d532ec44c43ee4fa68b587f15d575e73d566e7d30f6bc495a61074e42\">unknown:</a> 162950016280\n<a href=\"https://explorer.e.cash/tx/30cfe0f7b05197b371e050eb06642e969d037754f456f76272e98890b8ed2581\">unknown:</a> 162950072082\n<a href=\"https://explorer.e.cash/tx/32f7ca6768bedb81603dfd5618263f84c7cb42fa4bae4eeb2dda8a4eac0cdd4d\">unknown:</a> 162949977494\n<a href=\"https://explorer.e.cash/tx/3411daaf624965c7731bc169e7831d9e56075986a1639cb1dc74e1b8d9c797b9\">unknown:</a> 162949761079\n<a href=\"https://explorer.e.cash/tx/4cf484655aa1948cfc3cd291a119806c8b2b5e0d233e44866dc0c9015b24ce1e\">unknown:</a> 162949936084\n<a href=\"https://explorer.e.cash/tx/4d46bd9ba22889a496cf4d37e5f0307216c8be93885ba82fcc0d3965c63693c3\">unknown:</a> 162949846071\n<a href=\"https://explorer.e.cash/tx/4f55182147356e5ccbf6c06225e817ac405a50fbe04c0f6eb5a4eb04462c7b12\">unknown:</a> 162950031876\n<a href=\"https://explorer.e.cash/tx/53c43d805bbbb9618e48cde71f5ff659fea02689f825cde823984b30443f0b30\">unknown:</a> 162949713278\n<a href=\"https://explorer.e.cash/tx/56bc3c81bb81bc92ba25acc407602207a0fdada4261f7f205d141ab34b616ce9\">unknown:</a> 162949806088\n<a href=\"https://explorer.e.cash/tx/592f4435d3ef8e2e2f0108cffc7b727798f359bad8521a084ca668bad55512c3\">unknown:</a> 1629499897105\n<a href=\"https://explorer.e.cash/tx/5d4f5668277ac87f170711461f0bef8f716556b6433c39729a4d0f22a1f1a9ae\">unknown:</a> 162949776375\n<a href=\"https://explorer.e.cash/tx/63ee98065e0c2358423ccc2ceae21a00ff8ed5e132d460a463334f1368ae3936\">unknown:</a> 162949957193\n<a href=\"https://explorer.e.cash/tx/64d204d6dd894e2b93ec2a9a518fb6c9fb9313098a06859b605e440884372c60\">unknown:</a> 162949705474\n<a href=\"https://explorer.e.cash/tx/67b05c5f3cc1d1d2415aae8232254bc790fe8d1965e9b529fc3b7bae4acf818d\">unknown:</a> 162949918575\n<a href=\"https://explorer.e.cash/tx/6fb44256ab3b7ecdb4dd4955d94dd1f6dc1bdeee8a523651fd71e699c524af01\">unknown:</a> 162949837570\n<a href=\"https://explorer.e.cash/tx/707051559904c61d0873824b9a215b93c90452724be49342554438215ba392d0\">unknown:</a> 162949861074\n<a href=\"https://explorer.e.cash/tx/7168c1feb93bba72b68c5ac833a9f428dcb88a9e199f53db1613bcc07a70dfec\">unknown:</a> 162949729368",
       "<a href=\"https://explorer.e.cash/tx/7d85c406e5a0cd75fb92388f8d875e3e7eded9584d01414f18f57793063b1e69\">unknown:</a> 162949720976\n<a href=\"https://explorer.e.cash/tx/7ed7de6b7709faafca4d5f92db0af65df90852f7457284039e583554d0d6f527\">unknown:</a> 162949970688\n<a href=\"https://explorer.e.cash/tx/817c602ce380eda55eae2e64f1501499ea66e9fbffd6aee4c013f5a0e0d8bb77\">unknown:</a> 162949768581\n<a href=\"https://explorer.e.cash/tx/9162b6dac6e0945f6438343c57d08b69e6306f4e09d94842bcc4aeca22f854be\">unknown:</a> 162949950484\n<a href=\"https://explorer.e.cash/tx/9bd8383325ec538562c92d8f28f19804d9727196fe1457aec5cace66c1d96fda\">unknown:</a> 162949886464\n<a href=\"https://explorer.e.cash/tx/a1974c915f3a274907be819533a3c3d4bbbcbf112d3be82970b9100641eccbf3\">unknown:</a> 162949877366\n<a href=\"https://explorer.e.cash/tx/a1e4bd0b2b151ce40efd30cdedb663e75d438cd518c52c7d3b09e8eb5e9518f8\">unknown:</a> 162949995596\n<a href=\"https://explorer.e.cash/tx/a7064b6bed0cfcd245af8e76d5f521539152238d3f54e4cad4def3e53a0efe61\">unknown:</a> 162950056671\n<a href=\"https://explorer.e.cash/tx/ad531c21ee34e502b8ebf131fa6d75faacb91eec9afca2c7e4c1c058ee88bf40\">unknown:</a> 162949799082\n<a href=\"https://explorer.e.cash/tx/aeb6af4e6b341950c72079ec20fff64e041564ff3d28ca2da2c592f16245bc56\">unknown:</a> 162949820577\n<a href=\"https://explorer.e.cash/tx/c044e68b45fa2806f5da654ff7026b25b78a92b7cceff39c19612a92af0fb86c\">unknown:</a> 162949983698\n<a href=\"https://explorer.e.cash/tx/c125f4fb2cf67a105eb2a75a4ecb810a7fd1f27a522868cdd27366f9bb7224c6\">unknown:</a> 162949868879\n<a href=\"https://explorer.e.cash/tx/c4a481f1228414ede06e580dfdb7949afea20ca92b30a2e164a0d8519f43b685\">unknown:</a> 162949784081\n<a href=\"https://explorer.e.cash/tx/d1a2187b8ac0a4af195d041d217396c6bdffa4410fc477b4d9c04ca0851456fe\">unknown:</a> 162950024077\n<a href=\"https://explorer.e.cash/tx/dbcea63c91f4b03fb4cbd50c6d187243a4dabe95ea3ed7c99219acb194a4a070\">unknown:</a> 162950039975\n<a href=\"https://explorer.e.cash/tx/dc237a1db441e29593cd423a8e6156084f89b975fcf7c6219bd4399120bc0515\">unknown:</a> 162949894579\n<a href=\"https://explorer.e.cash/tx/de56767590f1f8e5dbef4f9d89eb06e21cc39507e87f821bb12b707912a3d5dd\">unknown:</a> 162949737872\n<a href=\"https://explorer.e.cash/tx/e73ac16df97c2d88db8474da8a10cace811137d719827726488239e38745769e\">unknown:</a> 162949963891\n<a href=\"https://explorer.e.cash/tx/eee95b08153dd77e0666c230c5dcdcd73d0338ea4ca3e228761d6bec21824d0b\">unknown:</a> 162949943284\n<a href=\"https://explorer.e.cash/tx/f12c38e8d9748a933db7ea36ec95c72b91b6e46641949ff08c0748743f94e27a\">unknown:</a> 162950002285\n<a href=\"https://explorer.e.cash/tx/f8f937a56055bc876938ada58bd695397b8904217336804670cc64192cf69b03\">unknown:</a> 162950048272\n<a href=\"https://explorer.e.cash/tx/fd8362916275878dcb45127ad8464c51cff592c1ec81fcf57fccc08313be46b8\">unknown:</a> 162949910375\n\n45 eCash txs:\nqqv...y7y <a href=\"https://explorer.e.cash/tx/00343ff64e176e514e83a3c247d0a8800641ebf1dd8c87c26b7757619fc58768\">sent</a> 201,835,617 XEC to qqn...gd2 and 1 others | 1.00 sats per byte\nqrf...ldm <a href=\"https://explorer.e.cash/tx/05b4fd23fbe566b5d789f536cc41e77539e6e23e1f5ecb6d8ae67e386ba2e94b\">sent</a> 6,354 XEC to qr8...kys and 1 others | 1.00 sats per byte\nqq4...xph <a href=\"https://explorer.e.cash/tx/05dbfb3db7f4a73de336745335f419ced31b42b2c3e05cdba4cb50e06eb16471\">sent</a> 2,099,979 XEC to qp0...rj6 | 10.69 sats per byte\nqru...y7r <a href=\"https://explorer.e.cash/tx/074d2111cd7014c04d626cf4d96ca273234f5a7c014e5edb0e03145e53a838f2\">sent</a> 240,420 XEC to qz5...7p8 and 1 others | 1.23 sats per byte\nqp5...pck <a href=\"https://explorer.e.cash/tx/0e64f62f9cb16a31cfa2188d6c9ec674c13f3d2f5320672fc45f02a8a1aba38d\">sent</a> 4,261,646 XEC to qqz...cc8 | 1.06 sats per byte\nqrh...47a <a href=\"https://explorer.e.cash/tx/15461fbfdafca9999d195353f6fcbafef4769cb100585315829dafddc66c5ccc\">sent</a> 47,684,497 XEC to qz0...c8j and 1 others | 1.00 sats per byte\nqp9...jlg <a href=\"https://explorer.e.cash/tx/17da7f7d89c687a99b2ed270014fe79be67938d75cf6fffd5afdfa18dcf92624\">sent</a> 69,850 XEC to qpu...dtm | 4.18 sats per byte",
       "qp9...jlg <a href=\"https://explorer.e.cash/tx/35d7346a26f456fcb2b5dec7801964de18d15b90c68711b70742dde052cbc0d4\">sent</a> 10,000 XEC to qqm...uqa | 4.18 sats per byte\nqr9...3zm <a href=\"https://explorer.e.cash/tx/3d53a4e291acccb5af5f8f65518edf28de61e5004b21150145bd73acf6303cf3\">sent</a> 425,718,894 XEC to qzx...xg8 and 1 others | 1.00 sats per byte\nqq4...w64 <a href=\"https://explorer.e.cash/tx/43c50a9f8bb247a389e5233ff38eb59be3df550feb3a18d0dcc967eea9b0748a\">sent</a> 110,320,517 XEC to qqt...q7t and 2 others | 4.10 sats per byte\nqph...72y <a href=\"https://explorer.e.cash/tx/4b0ae95c4571709ea1634ea1b70946845a0d9e9a4c5b0f4d298feb8c8f5df026\">sent</a> 15,326 XEC to qz2...035 | 2.01 sats per byte\nqrp...rtz <a href=\"https://explorer.e.cash/tx/4bf5a856c75adbc50669ac3f7184958424db99da65d218d986e194d2bb8b3cdf\">sent</a> 1,008,221 XEC to qp2...qa4 and 1 others | 5.02 sats per byte\nqzs...qn7 <a href=\"https://explorer.e.cash/tx/500e26ccb9a73e0a3b4b2973c5b37af1ddeae23cfce41b987d1ba3e942387c54\">sent</a> 6,941,377 XEC to qqh...ytf and 1 others | 1.00 sats per byte\nqrz...k3d <a href=\"https://explorer.e.cash/tx/5200a3bf8928a7aae450aa58b550957333e0bebfa352bcc4c108e9b396a4626f\">sent</a> 2,571,837 XEC to qr4...kxh | 150.87 sats per byte\nqz5...7p8 <a href=\"https://explorer.e.cash/tx/545f14c319f00273c894e02e7e4170e2f186da3e9022629f659f8f6b1e579a1c\">sent</a> 750 XEC to qrf...py0 and 1 others | 1.12 sats per byte\nqzq...mzs <a href=\"https://explorer.e.cash/tx/5dc730eafbde4aeec06bf63995e76ecb957ac9266427e63eb23454e49b9f35c0\">sent</a> 717,296 XEC to qzj...e2s and 1 others | 5.00 sats per byte\nqql...h03 <a href=\"https://explorer.e.cash/tx/6d88f6ad363660c11cc53d6630b6b99b2f99d0ab68b00dd06ba63636e7b15891\">sent</a> 89,006,076 XEC to qzj...ksg | 2.13 sats per byte\nqp0...t92 <a href=\"https://explorer.e.cash/tx/70cf40ea8427d0fa12c411434f5f753780ba986f51947f43eaa5eb1ee4c4b9d7\">sent</a> 612,181 XEC to qzj...ztx and 1 others | 1.00 sats per byte\nqpm...k9g <a href=\"https://explorer.e.cash/tx/73db52181851a5a5734a21a19c9082c84f0e3827284e26d2cded7e5d2bea8363\">sent</a> 199,999,998 XEC to qqp...zqu and 1 others | 1.00 sats per byte\nqpa...czv <a href=\"https://explorer.e.cash/tx/74352cbc58d6e5891dcff7714575735d31b4fd3441f557a2aa5d1c4cb34d3274\">sent</a> 612,208 XEC to qp0...t92 and 1 others | 1.00 sats per byte\nppt...gny <a href=\"https://explorer.e.cash/tx/7453cfad5d4ef44c4033acfcd694fff185be18fa08528ac3d33953c38dfb8d74\">sent</a> 88,521,997 XEC to qz3...rj3 and 2 others | 15.28 sats per byte\nqp2...pca <a href=\"https://explorer.e.cash/tx/76f684f3c861f5ba39872f322d0dd759729a74895a6b376ace563dd8db494f15\">sent</a> 294,905 XEC to qp4...0fg and 1 others | 1.00 sats per byte\nqpm...k9g <a href=\"https://explorer.e.cash/tx/7e4596fc927d0da2c1d4ee1290ffaf3731d873951bd2da60676848d5c8495ee8\">sent</a> 199,999,997 XEC to qpl...eep and 2 others | 1.00 sats per byte\nqp4...yuu <a href=\"https://explorer.e.cash/tx/7f6d27c7f7869d8f0a1bce28b955238b4999d176b0be5b7f8738741c67b6585f\">sent</a> 289,611,690 XEC to qqh...zy3 and 1 others | 1.00 sats per byte\nqr4...ffa <a href=\"https://explorer.e.cash/tx/7f70502f4a0fe4ffc993648a440a56d048298c442e12d6e4d2cd12497357a702\">sent</a> 1,975,381 XEC to qr3...w9u and 2 others | 1.00 sats per byte\nqql...y4w <a href=\"https://explorer.e.cash/tx/826ca512fdaa287c0a38ced748713ff7e9b199f3f43aedf6d49d35d9700bfb6d\">sent</a> 30,000,000 XEC to qz8...0fa | 4.16 sats per byte\nqzn...amg <a href=\"https://explorer.e.cash/tx/8692a0f9ee9217faaf60f76044adc6aec3afe7ebde1f46c52f06da4bf28b126b\">sent</a> 3,285,159 XEC to qzt...rag and 1 others | 1.00 sats per byte\nqp9...jlg <a href=\"https://explorer.e.cash/tx/8a459bb01fe0304d3617a11004b1651ef4f6cf7173e98894f5ded93b3f98eca4\">sent</a> 10,000 XEC to qpv...jap | 4.16 sats per byte\nqp9...jlg <a href=\"https://explorer.e.cash/tx/8ae36d52d6d053da7252f8c34284d0b1296990271e22f82acd0ef8e5daf8ebdc\">sent</a> 45,000 XEC to qry...tf4 | 4.16 sats per byte\nqp9...jlg <a href=\"https://explorer.e.cash/tx/8d15e3628717cca44be6838c6bedbd254650ab8cc5ed66dd1d3cc5ea6f8c9c2c\">sent</a> 95,000 XEC to qrt...lp5 | 4.16 sats per byte",
       "qqn...e9j <a href=\"https://explorer.e.cash/tx/8dc7771f7904fd00bfbb810e6fdf35e90cfcd495f9e822db5620959d021ccb89\">sent</a> 21,197,785 XEC to qr2...rh9 and 1 others | 4.10 sats per byte\nqpp...p3l <a href=\"https://explorer.e.cash/tx/8f595f2617777d72231772c8994cb8ec4e6c7ec3678cc77c88f7f4c799f8f752\">sent</a> 1,217,361 XEC to qz3...hef and 1 others | 1.00 sats per byte\nqz5...7p8 <a href=\"https://explorer.e.cash/tx/96cf034489782a60d9346e508bf9d97094293ccf51166bd49a4e1f6cb7538c04\">sent</a> 150 XEC to qre...t4t and 1 others | 1.17 sats per byte\nqzj...ksg <a href=\"https://explorer.e.cash/tx/a0895e299c51d87548a63aecc49edc2db717815a32ada2c19718643f1acc99a9\">sent</a> 937,282,770 XEC to qz3...rj3 and 4 others | 1.92 sats per byte\nqpm...k9g <a href=\"https://explorer.e.cash/tx/ae01d244f951d4d1a781fc61a9df0dbd13bff47adb0a52efd05e78828d73932d\">sent</a> 199,999,998 XEC to qrd...vnm and 1 others | 1.00 sats per byte\npqu...4ws <a href=\"https://explorer.e.cash/tx/b0a4e83dba5e7fbbd563bde7fba6ffe12a4c177d7983714c3325b6a75b28980d\">sent</a> 551,094 XEC to qp2...thh and 1 others | 1.05 sats per byte\nqzl...52p <a href=\"https://explorer.e.cash/tx/b150577f2e443eebe6878f143345f3b44d0aedb182af416b90f8e90fefb8328d\">sent</a> 159,000,922 XEC to qpt...67y and 1 others | 1.01 sats per byte\nqz5...7p8 <a href=\"https://explorer.e.cash/tx/beb17b996dfbcea463334fca9f090dd4f5f3d514e5da7e0eedc1e599e6eb81e8\">sent</a> 750 XEC to qrf...py0 and 1 others | 1.13 sats per byte\nqz5...7p8 <a href=\"https://explorer.e.cash/tx/d84be37cbc6a429e19e6946aeaca645be5ddb908fa9193e77a097cff4d333a86\">sent</a> 2,300 XEC to qrf...py0 | 1.14 sats per byte\nqp9...jlg <a href=\"https://explorer.e.cash/tx/da8e9086128365532152a791dc6a647c5e33f0daee39b1cd86d2fce7f0ddb6d9\">sent</a> 971,154,369 XEC to qpu...qhj | 4.16 sats per byte\nqq4...qvq <a href=\"https://explorer.e.cash/tx/dadfb51c7b27b6df4c062d0f671c8eada8e88666afa84bac39b504452bc76a2b\">sent</a> 5,167,950 XEC to qqu...vun and 1 others | 1.00 sats per byte\nqqn...gnz <a href=\"https://explorer.e.cash/tx/dc222e2a8f62441be0781771cdc7aa52a0f27b819cbb082bed7095521b5e5876\">sent</a> 10,499,318 XEC to qrj...eya and 1 others | 2.21 sats per byte\nqze...e3p <a href=\"https://explorer.e.cash/tx/f0bbf184b8e3ebc8b2e153c157c0acc4535d9af4e4db0f4b9260620884cc94d7\">sent</a> 504,025 XEC to qzv...geu | 5.00 sats per byte\nqqs...7c5 <a href=\"https://explorer.e.cash/tx/f0ce51a1e1cd309ee9a03b134411604c10659ba576383f97306a53214068bc02\">sent</a> 101,520,270 XEC to pzz...qn8 and 3 others | 1.00 sats per byte\nqpp...m7l <a href=\"https://explorer.e.cash/tx/fc251d54c2de4e47a0222150d0964f178ef06a4702a8e25a5d9ab285e005794a\">sent</a> 23,026 XEC to qqe...fmm | 5.01 sats per byte"
@@ -13314,7 +13564,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "unknown",
-            "msg": ".xec12345"
+            "msg": ".xec12345",
+            "stackArray": [
+              "2e786563",
+              "3132333435"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.8495934959349594,
           "xecSendingOutputScripts": {
@@ -13693,29 +13948,29 @@ module.exports=[
     },
     "coingeckoResponse": {
       "bitcoin": {
-        "usd": 26447.81876841
+        "usd": 25866.36116628
       },
       "ecash": {
-        "usd": 0.00002309
+        "usd": 0.00002063
       },
       "ethereum": {
-        "usd": 1836.86332251
+        "usd": 1739.06428794
       }
     },
     "coingeckoPrices": [
       {
         "fiat": "usd",
-        "price": 0.00002309,
+        "price": 0.00002063,
         "ticker": "XEC"
       },
       {
         "fiat": "usd",
-        "price": 26447.81876841,
+        "price": 25866.36116628,
         "ticker": "BTC"
       },
       {
         "fiat": "usd",
-        "price": 1836.86332251,
+        "price": 1739.06428794,
         "ticker": "ETH"
       }
     ],
@@ -13775,7 +14030,7 @@ module.exports=[
       ]
     },
     "blockSummaryTgMsgs": [
-      "<a href=\"https://explorer.e.cash/block/00000000000000001239831f90580c859ec174316e91961cf0e8cde57c0d3acb\">782665</a> | 43 txs | ViaBTC, Mined by angarsk13\n1 XEC = $0.00002309\n1 BTC = $26,448\n1 ETH = $1,837\n\n2 new eTokens created:\n<a href=\"https://explorer.e.cash/tx/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109\">BearNip</a> (BEAR) <a href=\"https://cashtab.com/\">[doc]</a>\n<a href=\"https://explorer.e.cash/tx/79c5a1cec698350dd93f645fcae8d6ff3902b7cdc582839dfface3cb0c83d823\">eCash Herald</a> (TRIB) <a href=\"https://cashtab.com/\">[doc]</a>\n\n27 eToken send txs\nqq6...eq7 <a href=\"https://explorer.e.cash/tx/0118031a8a27fabe5af6ad1193fa6550990ebd5ce029ac840be713e464c25e0e\">sent</a> 0.0036 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpx...kvj\nqrv...ffd <a href=\"https://explorer.e.cash/tx/086f329794679d9f7968c218157f2999465b49ba946a7180820b7a4d12b75d6b\">sent</a> 4 <a href=\"https://explorer.e.cash/tx/2c46c017466f06817ecd3ba1c76d11e2c37db21a3fd899b84d2ce7723beeba0a\">tst</a> to qrs...6k9\nqq6...eq7 <a href=\"https://explorer.e.cash/tx/0fda4cdb6a83ee85696b95553682a07a903520ba1aa0a73548687851e6e7f030\">sent</a> 0.1122 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpx...kvj\nqq6...eq7 <a href=\"https://explorer.e.cash/tx/10336f54a76f7020557074b14422dffd24bad211bbf9715684dbea1acc04864b\">sent</a> 0.0512 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpx...kvj\nqrv...ffd <a href=\"https://explorer.e.cash/tx/114105f8f9c3636faa465e4c8517355b68c49633d47a4a84619689fa92c6950b\">sent</a> 7 <a href=\"https://explorer.e.cash/tx/2c46c017466f06817ecd3ba1c76d11e2c37db21a3fd899b84d2ce7723beeba0a\">tst</a> to qrs...6k9\nqrv...ffd <a href=\"https://explorer.e.cash/tx/2095ebd23a146fbfdd0184efb6c9766a9a5d542fb55a063df3fff1670f1bb273\">sent</a> 5 <a href=\"https://explorer.e.cash/tx/2c46c017466f06817ecd3ba1c76d11e2c37db21a3fd899b84d2ce7723beeba0a\">tst</a> to qrs...6k9\nqrv...ffd <a href=\"https://explorer.e.cash/tx/264a42c30ea9d82bdbf3f8c4d9b7fea006984f96aa9f561f55116684ea21d0f5\">sent</a> 2 <a href=\"https://explorer.e.cash/tx/fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa\">GRP</a> to qq5...fn0\nqq6...eq7 <a href=\"https://explorer.e.cash/tx/2881e1d6bed3b16b2c17428ba42610152ac1fbd21e72567f6140c312b2c6ac83\">sent</a> 0.0242 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpx...kvj\nqrv...ffd <a href=\"https://explorer.e.cash/tx/3d83bc3b70bd190d27c17df3585fdb693d852d654ced5c46cfdac76afb889b7f\">sent</a> 10 <a href=\"https://explorer.e.cash/tx/2c46c017466f06817ecd3ba1c76d11e2c37db21a3fd899b84d2ce7723beeba0a\">tst</a> to qrs...6k9\nqz2...035 <a href=\"https://explorer.e.cash/tx/657646f7a4e7237fca4ed8231c27d95afc8086f678244d5560be2230d920ff70\">sent</a> 17 <a href=\"https://explorer.e.cash/tx/4db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c875\">LVV</a> to qp8...gg6\nqq6...eq7 <a href=\"https://explorer.e.cash/tx/72152010b53b46f74f84477c7c6b86b9fe2f2aeddfe43d49952960bf4f4de69e\">sent</a> 6.6381 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpx...kvj\nqq6...eq7 <a href=\"https://explorer.e.cash/tx/808ec05abe93ab44b24c1fa0d4f1771f392213ecb234c56b79d5267ece96b2a4\">sent</a> 1.5319 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpx...kvj and 1 others\nqq6...eq7 <a href=\"https://explorer.e.cash/tx/8970772be0812a5b0e9d47472a7162bb8787d259f111a94b6eefcade547d4845\">sent</a> 0.0227 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpx...kvj",
+      "<a href=\"https://explorer.e.cash/block/00000000000000001239831f90580c859ec174316e91961cf0e8cde57c0d3acb\">782665</a> | 43 txs | ViaBTC, Mined by angarsk13\n1 XEC = $0.00002063\n1 BTC = $25,866\n1 ETH = $1,739\n\n2 new eTokens created:\n<a href=\"https://explorer.e.cash/tx/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109\">BearNip</a> (BEAR) <a href=\"https://cashtab.com/\">[doc]</a>\n<a href=\"https://explorer.e.cash/tx/79c5a1cec698350dd93f645fcae8d6ff3902b7cdc582839dfface3cb0c83d823\">eCash Herald</a> (TRIB) <a href=\"https://cashtab.com/\">[doc]</a>\n\n27 eToken send txs\nqq6...eq7 <a href=\"https://explorer.e.cash/tx/0118031a8a27fabe5af6ad1193fa6550990ebd5ce029ac840be713e464c25e0e\">sent</a> 0.0036 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpx...kvj\nqrv...ffd <a href=\"https://explorer.e.cash/tx/086f329794679d9f7968c218157f2999465b49ba946a7180820b7a4d12b75d6b\">sent</a> 4 <a href=\"https://explorer.e.cash/tx/2c46c017466f06817ecd3ba1c76d11e2c37db21a3fd899b84d2ce7723beeba0a\">tst</a> to qrs...6k9\nqq6...eq7 <a href=\"https://explorer.e.cash/tx/0fda4cdb6a83ee85696b95553682a07a903520ba1aa0a73548687851e6e7f030\">sent</a> 0.1122 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpx...kvj\nqq6...eq7 <a href=\"https://explorer.e.cash/tx/10336f54a76f7020557074b14422dffd24bad211bbf9715684dbea1acc04864b\">sent</a> 0.0512 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpx...kvj\nqrv...ffd <a href=\"https://explorer.e.cash/tx/114105f8f9c3636faa465e4c8517355b68c49633d47a4a84619689fa92c6950b\">sent</a> 7 <a href=\"https://explorer.e.cash/tx/2c46c017466f06817ecd3ba1c76d11e2c37db21a3fd899b84d2ce7723beeba0a\">tst</a> to qrs...6k9\nqrv...ffd <a href=\"https://explorer.e.cash/tx/2095ebd23a146fbfdd0184efb6c9766a9a5d542fb55a063df3fff1670f1bb273\">sent</a> 5 <a href=\"https://explorer.e.cash/tx/2c46c017466f06817ecd3ba1c76d11e2c37db21a3fd899b84d2ce7723beeba0a\">tst</a> to qrs...6k9\nqrv...ffd <a href=\"https://explorer.e.cash/tx/264a42c30ea9d82bdbf3f8c4d9b7fea006984f96aa9f561f55116684ea21d0f5\">sent</a> 2 <a href=\"https://explorer.e.cash/tx/fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa\">GRP</a> to qq5...fn0\nqq6...eq7 <a href=\"https://explorer.e.cash/tx/2881e1d6bed3b16b2c17428ba42610152ac1fbd21e72567f6140c312b2c6ac83\">sent</a> 0.0242 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpx...kvj\nqrv...ffd <a href=\"https://explorer.e.cash/tx/3d83bc3b70bd190d27c17df3585fdb693d852d654ced5c46cfdac76afb889b7f\">sent</a> 10 <a href=\"https://explorer.e.cash/tx/2c46c017466f06817ecd3ba1c76d11e2c37db21a3fd899b84d2ce7723beeba0a\">tst</a> to qrs...6k9\nqz2...035 <a href=\"https://explorer.e.cash/tx/657646f7a4e7237fca4ed8231c27d95afc8086f678244d5560be2230d920ff70\">sent</a> 17 <a href=\"https://explorer.e.cash/tx/4db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c875\">LVV</a> to qp8...gg6\nqq6...eq7 <a href=\"https://explorer.e.cash/tx/72152010b53b46f74f84477c7c6b86b9fe2f2aeddfe43d49952960bf4f4de69e\">sent</a> 6.6381 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpx...kvj\nqq6...eq7 <a href=\"https://explorer.e.cash/tx/808ec05abe93ab44b24c1fa0d4f1771f392213ecb234c56b79d5267ece96b2a4\">sent</a> 1.5319 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpx...kvj and 1 others\nqq6...eq7 <a href=\"https://explorer.e.cash/tx/8970772be0812a5b0e9d47472a7162bb8787d259f111a94b6eefcade547d4845\">sent</a> 0.0227 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpx...kvj",
       "qq6...eq7 <a href=\"https://explorer.e.cash/tx/8b03983b86dce1b76dfa2cc1254dd169e62723c708f2b57190e93e085550144b\">sent</a> 0.0019 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpx...kvj\nqq6...eq7 <a href=\"https://explorer.e.cash/tx/9ae4769c2378deec3d8be3a036430cface057600e02c3c12afdbc9b7345b82a5\">sent</a> 9.6625 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpx...kvj\nqz2...035 <a href=\"https://explorer.e.cash/tx/9bcc60b3d8453b42bccb23be5f19ac99a3a637af5df2855b8337bcad17d4f6da\">sent</a> 2 <a href=\"https://explorer.e.cash/tx/4db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c875\">LVV</a> to qp8...gg6\nqq6...eq7 <a href=\"https://explorer.e.cash/tx/9df6bc46650bce722aa2e3e06413d461441355aeb49e9cc4e0da8d0420ae8f03\">sent</a> 0.0471 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpx...kvj\nqrv...ffd <a href=\"https://explorer.e.cash/tx/b6f643aa5a5b26bab1a51d904b23c0799f384c469cd2dd5f27bc90754664d730\">sent</a> 3 <a href=\"https://explorer.e.cash/tx/2c46c017466f06817ecd3ba1c76d11e2c37db21a3fd899b84d2ce7723beeba0a\">tst</a> to qrs...6k9\nqq6...eq7 <a href=\"https://explorer.e.cash/tx/c88eb6c181c8879707f8d950e8e06dd6158d7440ae0424e2ea0f9ed5c54c9985\">sent</a> 1 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpx...kvj\nqrv...ffd <a href=\"https://explorer.e.cash/tx/cdae3b8be1552792d7045193effa6b51646456aadca52f16bd81726cbc2f387f\">sent</a> 7 <a href=\"https://explorer.e.cash/tx/2c46c017466f06817ecd3ba1c76d11e2c37db21a3fd899b84d2ce7723beeba0a\">tst</a> to qrs...6k9\nqz2...035 <a href=\"https://explorer.e.cash/tx/dec19c8c1bc7bf6b6ffc8cd629da642618cb3e3025f72d9f3d4c1905e4f2abd9\">sent</a> 11 <a href=\"https://explorer.e.cash/tx/b8f2a9e767a0be7b80c7e414ef2534586d4da72efddb39a4e70e501ab73375cc\">CTD</a> to qp8...gg6\nqq6...eq7 <a href=\"https://explorer.e.cash/tx/e2b11003706e934b68c563db37d2f6b4cf435ce43cdb6c77e68c93be36616c60\">sent</a> 0.0167 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpx...kvj\nqrv...ffd <a href=\"https://explorer.e.cash/tx/ed1d839b287abb65b838622d9acf64b399b1653bcf6bea503442bcaef81890c4\">sent</a> 1 <a href=\"https://explorer.e.cash/tx/fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa\">GRP</a> to qq5...fn0\npp2...mza <a href=\"https://explorer.e.cash/tx/ef0b6ebc21f83013144cf95f527218a616add4e7238ded9aa68a3d30cdeb8702\">sent</a> 5.64 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpx...kvj and 2 others\nqq6...eq7 <a href=\"https://explorer.e.cash/tx/f449be6418db7e2216903aaba545302c9c71f1e958cddde6eea2517719d8e6db\">sent</a> 0.0101 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpx...kvj\nqpx...kvj <a href=\"https://explorer.e.cash/tx/fd7e9edf78e9ae34c287cb15977a5b3007d70ad016d532b071e0e96578204c08\">sent</a> 6 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qr0...d2u and 1 others\nqq6...eq7 <a href=\"https://explorer.e.cash/tx/fe12b212d65d373a6a57451f4d03ecf3c35a8964025572c02d424890b908da37\">sent</a> 0.8878 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpx...kvj\n\nApp txs:\n<a href=\"https://explorer.e.cash/tx/28f3ec1f134dc8ea2e37a0645774fa2aa19e0bc2871b6edcc7e99cd86d77b1b6\">memo:</a> Reply to memo|<a href=\"https://explorer.e.cash/tx/965689bc694d816ab0745b501c0e9dc8dbe7994a185fe37a37b808dc6b05750a\">memo</a>|From what I'm gathering, it seems that the media went from questioning authority to doing their bidding as a collective NPC hivemind!\n<a href=\"https://explorer.e.cash/tx/ec659dfb1c2ea784fd3d4ec6616f738293a5be631c0f7d09258558e64b49d9e6\">unknown:</a> .xec12345\n\n11 eCash txs:",
       "qzx...efz <a href=\"https://explorer.e.cash/tx/12569fb6dfdf972945b119392e2bbd9e320527ba3ab414160265caa505d11e46\">sent</a> 999,998 XEC to qq6...f27 | 1.08 sats per byte\nqqc...c8e <a href=\"https://explorer.e.cash/tx/1f7b1bb6b028cefedfe32b56cff88f8c840b250ce1aca1c470f2727935e83d50\">sent</a> 18,698,998 XEC to qz4...n9l and 1 others | 1.03 sats per byte\nqqj...9g4 <a href=\"https://explorer.e.cash/tx/21092fb6e223e4549333b0f79a05d84b259e56e1bb5b090b5d463cbe19f1a597\">sent</a> 936 XEC to qpw...x5g | 2.38 sats per byte\nqqh...lpy <a href=\"https://explorer.e.cash/tx/22836e6b6f4861d0b8f18735e6e342981e2edc0c686cdf06da892ab7d7d75512\">sent</a> 29,022,106 XEC to qqu...0av and 1 others | 10.05 sats per byte\nqrx...4nm <a href=\"https://explorer.e.cash/tx/56ccc295c58381980ece3ab43a5510532d9b2e83f2959c15baa07f1aea98748d\">sent</a> 1,000 XEC to qz9...jhz | 1.00 sats per byte\nqpl...4l0 <a href=\"https://explorer.e.cash/tx/7d53e2bf385b0dc071d1e64c50e358227a7a6832cc80b6df73d524a98e9a64f9\">sent</a> 984,178 XEC to qpu...4d7 | 1.44 sats per byte\nqpt...2wg <a href=\"https://explorer.e.cash/tx/7df5934f7a1ac0d4fa18bff20994199756f2756db9753ac0833f09811be9eaa5\">sent</a> 23,656,838 XEC to qz6...74j and 2 others | 10.05 sats per byte\nqq3...x4u <a href=\"https://explorer.e.cash/tx/863417f2dc28b6f9f28fbfae9979294924b0241100bf5e51a807b4c82016c9fd\">sent</a> 807,228 XEC to qrh...pdm | 1.00 sats per byte\nqz9...m57 <a href=\"https://explorer.e.cash/tx/ac65e147971fbe61e65113b8d68fa176809220199682d2a7e46a74296e092881\">sent</a> 950 XEC to qqj...9g4 | 2.16 sats per byte\n1 address <a href=\"https://explorer.e.cash/tx/c5dd423b784236e30bf149391ffebb83654b77e6d246fa1944c066e553fcf03a\">sent</a> 237.57 XEC to itself\nqpy...6yp <a href=\"https://explorer.e.cash/tx/df12658b2361a33c3a772398ad1f76000c865754e8b2a9423bca0fb1908b4e8b\">sent</a> 2,000 XEC to qqn...678 | 2.02 sats per byte"
     ],
@@ -14357,29 +14612,29 @@ module.exports=[
     },
     "coingeckoResponse": {
       "bitcoin": {
-        "usd": 26447.81876841
+        "usd": 25866.36116628
       },
       "ecash": {
-        "usd": 0.00002309
+        "usd": 0.00002063
       },
       "ethereum": {
-        "usd": 1836.86332251
+        "usd": 1739.06428794
       }
     },
     "coingeckoPrices": [
       {
         "fiat": "usd",
-        "price": 0.00002309,
+        "price": 0.00002063,
         "ticker": "XEC"
       },
       {
         "fiat": "usd",
-        "price": 26447.81876841,
+        "price": 25866.36116628,
         "ticker": "BTC"
       },
       {
         "fiat": "usd",
-        "price": 1836.86332251,
+        "price": 1739.06428794,
         "ticker": "ETH"
       }
     ],
@@ -14409,7 +14664,7 @@ module.exports=[
       ]
     },
     "blockSummaryTgMsgs": [
-      "<a href=\"https://explorer.e.cash/block/000000000000000003a43161c1d963b1df57f639a4621f56d3dbf69d5a8d0561\">782571</a> | 5 txs | ViaBTC, Mined by 600414\n1 XEC = $0.00002309\n1 BTC = $26,448\n1 ETH = $1,837\n\n2 eToken send txs\n1 address <a href=\"https://explorer.e.cash/tx/0167e881fcb359cdfc82af5fc6c0821daf55f40767694eea2f23c0d42a9b1c17\">sent</a> 356.6918 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to itself\nqqw...6v4 <a href=\"https://explorer.e.cash/tx/25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7\">sent</a> 5000000 <a href=\"https://explorer.e.cash/tx/fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa\">GRP</a> to qrd...9j0\n\n2 eCash txs:\nqpk...pga <a href=\"https://explorer.e.cash/tx/34cf0f2a51b80dc4c48c8dae9017af6282298f275c7823cb70d3f5b05785456c\">sent</a> 1,061,524 XEC to qrt...4v7 | 1.10 sats per byte\n1 address <a href=\"https://explorer.e.cash/tx/ea54f221be5c17dafc852f581f0e20dea0e72d7f0b3c691b4333fc1577bf0724\">sent</a> 0 XEC to itself"
+      "<a href=\"https://explorer.e.cash/block/000000000000000003a43161c1d963b1df57f639a4621f56d3dbf69d5a8d0561\">782571</a> | 5 txs | ViaBTC, Mined by 600414\n1 XEC = $0.00002063\n1 BTC = $25,866\n1 ETH = $1,739\n\n2 eToken send txs\n1 address <a href=\"https://explorer.e.cash/tx/0167e881fcb359cdfc82af5fc6c0821daf55f40767694eea2f23c0d42a9b1c17\">sent</a> 356.6918 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to itself\nqqw...6v4 <a href=\"https://explorer.e.cash/tx/25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7\">sent</a> 5000000 <a href=\"https://explorer.e.cash/tx/fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa\">GRP</a> to qrd...9j0\n\n2 eCash txs:\nqpk...pga <a href=\"https://explorer.e.cash/tx/34cf0f2a51b80dc4c48c8dae9017af6282298f275c7823cb70d3f5b05785456c\">sent</a> 1,061,524 XEC to qrt...4v7 | 1.10 sats per byte\n1 address <a href=\"https://explorer.e.cash/tx/ea54f221be5c17dafc852f581f0e20dea0e72d7f0b3c691b4333fc1577bf0724\">sent</a> 0 XEC to itself"
     ],
     "blockSummaryTgMsgsApiFailure": [
       "<a href=\"https://explorer.e.cash/block/000000000000000003a43161c1d963b1df57f639a4621f56d3dbf69d5a8d0561\">782571</a> | 5 txs | ViaBTC, Mined by 600414\n\n4 eCash txs:\n1 address <a href=\"https://explorer.e.cash/tx/0167e881fcb359cdfc82af5fc6c0821daf55f40767694eea2f23c0d42a9b1c17\">sent</a> 10.92 XEC to itself\nqqw...6v4 <a href=\"https://explorer.e.cash/tx/25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7\">sent</a> 5 XEC to qrd...9j0 | 2.37 sats per byte\nqpk...pga <a href=\"https://explorer.e.cash/tx/34cf0f2a51b80dc4c48c8dae9017af6282298f275c7823cb70d3f5b05785456c\">sent</a> 1,061,524 XEC to qrt...4v7 | 1.10 sats per byte\n1 address <a href=\"https://explorer.e.cash/tx/ea54f221be5c17dafc852f581f0e20dea0e72d7f0b3c691b4333fc1577bf0724\">sent</a> 0 XEC to itself"
@@ -15301,8 +15556,22 @@ module.exports=[
           "txid": "cd9cf4bf000b413c49d45aad382716c98d4ca2a39bc0db825bd80192962dc05d",
           "genesisInfo": false,
           "opReturnInfo": {
-            "app": "unknown",
-            "msg": "SWP\u0000\u0001\u0001\u001ew)]lp7\u0015*y-7\u0010\t\bX\t+v\n,\u00188\u001b\u0019V/\u0002\u001d\u000fg\u0003SELL110.00000000000001\u0000/O(f\u0002O8/y+zumV\u001eT{Y:(y;\u0015\u000e&lt;D=ON.X\u0001\u00002747"
+            "app": "SWaP",
+            "msg": "",
+            "stackArray": [
+              "53575000",
+              "01",
+              "01",
+              "9ef7a95decf0b795aaf9ad37908988d889ab768aac18b81b99d6af821d8fe783",
+              "53454c4c",
+              "3131302e3030303030303030303030303031",
+              "00",
+              "afcfa8e6824fb8aff92bfa75edd6ff9ed4fb59ba28f9bb950e3c443dcfceae58",
+              "01",
+              "00",
+              "32373437"
+            ],
+            "tokenId": "9ef7a95decf0b795aaf9ad37908988d889ab768aac18b81b99d6af821d8fe783"
           },
           "satsPerByte": 1.0358744394618835,
           "xecSendingOutputScripts": {
@@ -15336,7 +15605,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "Cashtab Msg",
-            "msg": "Sending a message transaction to test parsing in ecash telegram bot. With an emoji bc why not? 🤔"
+            "msg": "Sending a message transaction to test parsing in ecash telegram bot. With an emoji bc why not? 🤔",
+            "stackArray": [
+              "00746162",
+              "53656e64696e672061206d657373616765207472616e73616374696f6e20746f20746573742070617273696e6720696e2065636173682074656c656772616d20626f742e205769746820616e20656d6f6a6920626320776879206e6f743f20f09fa494"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.3304093567251463,
           "xecSendingOutputScripts": {
@@ -15416,8 +15690,16 @@ module.exports=[
           "txid": "ec584ba3c1734a422c16ec40d598fe91f870c8d17c5f9d2b6c4e1cbaf82f7237",
           "genesisInfo": false,
           "opReturnInfo": {
-            "app": "unknown",
-            "msg": "SWP\u0000\u0001\u0001\u001ew)]lp7\u0015*y-7\u0010\t\bX\t+v\n,\u00188\u001b\u0019V/\u0002\u001d\u000fg\u0003SELL"
+            "app": "SWaP",
+            "msg": "",
+            "stackArray": [
+              "53575000",
+              "01",
+              "01",
+              "9ef7a95decf0b795aaf9ad37908988d889ab768aac18b81b99d6af821d8fe783",
+              "53454c4c"
+            ],
+            "tokenId": "9ef7a95decf0b795aaf9ad37908988d889ab768aac18b81b99d6af821d8fe783"
           },
           "satsPerByte": 1.0258064516129033,
           "xecSendingOutputScripts": {
@@ -15448,46 +15730,59 @@ module.exports=[
       ],
       "tokenIds": {
         "dataType": "Set",
-        "value": []
+        "value": [
+          "9ef7a95decf0b795aaf9ad37908988d889ab768aac18b81b99d6af821d8fe783"
+        ]
       }
     },
     "coingeckoResponse": {
       "bitcoin": {
-        "usd": 26447.81876841
+        "usd": 25866.36116628
       },
       "ecash": {
-        "usd": 0.00002309
+        "usd": 0.00002063
       },
       "ethereum": {
-        "usd": 1836.86332251
+        "usd": 1739.06428794
       }
     },
     "coingeckoPrices": [
       {
         "fiat": "usd",
-        "price": 0.00002309,
+        "price": 0.00002063,
         "ticker": "XEC"
       },
       {
         "fiat": "usd",
-        "price": 26447.81876841,
+        "price": 25866.36116628,
         "ticker": "BTC"
       },
       {
         "fiat": "usd",
-        "price": 1836.86332251,
+        "price": 1739.06428794,
         "ticker": "ETH"
       }
     ],
     "tokenInfoMap": {
       "dataType": "Map",
-      "value": []
+      "value": [
+        [
+          "9ef7a95decf0b795aaf9ad37908988d889ab768aac18b81b99d6af821d8fe783",
+          {
+            "tokenTicker": "IOA",
+            "tokenName": "Island of art etoken",
+            "tokenDocumentUrl": "Cashtab.com",
+            "tokenDocumentHash": "",
+            "decimals": 0
+          }
+        ]
+      ]
     },
     "blockSummaryTgMsgs": [
-      "<a href=\"https://explorer.e.cash/block/00000000000000000a528f0c4e4b4f214a72d9b34d84003df6150d5a4bcd0d32\">782657</a> | 10 txs | ViaBTC, Mined by jonny320\n1 XEC = $0.00002309\n1 BTC = $26,448\n1 ETH = $1,837\n\nApp txs:\n<a href=\"https://explorer.e.cash/tx/cd9cf4bf000b413c49d45aad382716c98d4ca2a39bc0db825bd80192962dc05d\">unknown:</a> SWP\u0000\u0001\u0001\u001ew)]lp7\u0015*y-7\u0010\t\bX\t+v\n,\u00188\u001b\u0019V/\u0002\u001d\u000fg\u0003SELL110.00000000000001\u0000/O(f\u0002O8/y+zumV\u001eT{Y:(y;\u0015\u000e&lt;D=ON.X\u0001\u00002747\n<a href=\"https://explorer.e.cash/tx/da98b479e957e34b462025e483644c13c0a6924f04a31ab6473fe5c23babc5fa\">Cashtab Msg:</a> Sending a message transaction to test parsing in ecash telegram bot. With an emoji bc why not? 🤔\n<a href=\"https://explorer.e.cash/tx/ec584ba3c1734a422c16ec40d598fe91f870c8d17c5f9d2b6c4e1cbaf82f7237\">unknown:</a> SWP\u0000\u0001\u0001\u001ew)]lp7\u0015*y-7\u0010\t\bX\t+v\n,\u00188\u001b\u0019V/\u0002\u001d\u000fg\u0003SELL\n\n6 eCash txs:\nqzr...tfg <a href=\"https://explorer.e.cash/tx/349d803afedd7802a1e545389c376fc25a1d45401c331fd27090644cbeae69a1\">sent</a> 4,681,584 XEC to qqt...2qc and 1 others | 1.00 sats per byte\nqp9...jlg <a href=\"https://explorer.e.cash/tx/36902d988d7e309c2131e59a1256dd950443155aa9f6929d24055971d0b105b5\">sent</a> 2,993,000 XEC to qr5...taj | 4.18 sats per byte\nqpw...ms5 <a href=\"https://explorer.e.cash/tx/3d90c355be7e3aeb18d5885109a167fd2c8446ec657865ffba6577a81243f71b\">sent</a> 2,843,535 XEC to qpw...f2s and 1 others | 1.91 sats per byte\nqp0...c3a <a href=\"https://explorer.e.cash/tx/97f3ebde1a5753b6772128d69a081fd514322fac0ab63303b9f22b0079a5aac8\">sent</a> 67,528,995 XEC to qph...tg5 and 1 others | 1.00 sats per byte\nqrn...54p <a href=\"https://explorer.e.cash/tx/9c1bfad01aad003052441327081622df4f1430454d9e4072c8ebddd7d13cc13b\">sent</a> 10,255 XEC to qqs...tsk and 1 others | 1.00 sats per byte\nqzt...zwy <a href=\"https://explorer.e.cash/tx/ea0a799f0e3bab448064925b3ccdb6e8ff3ef07105c6739f6eec0a4aa674e1f3\">sent</a> 18,832,831 XEC to qrv...rm2 | 1.00 sats per byte"
+      "<a href=\"https://explorer.e.cash/block/00000000000000000a528f0c4e4b4f214a72d9b34d84003df6150d5a4bcd0d32\">782657</a> | 10 txs | ViaBTC, Mined by jonny320\n1 XEC = $0.00002063\n1 BTC = $25,866\n1 ETH = $1,739\n\nApp txs:\n<a href=\"https://explorer.e.cash/tx/cd9cf4bf000b413c49d45aad382716c98d4ca2a39bc0db825bd80192962dc05d\">SWaP:</a> Signal|SLP Atomic Swap|<a href=\"https://explorer.e.cash/tx/9ef7a95decf0b795aaf9ad37908988d889ab768aac18b81b99d6af821d8fe783\">IOA</a>|SELL for 1.1 XEC|Min trade: 0 XEC\n<a href=\"https://explorer.e.cash/tx/da98b479e957e34b462025e483644c13c0a6924f04a31ab6473fe5c23babc5fa\">Cashtab Msg:</a> Sending a message transaction to test parsing in ecash telegram bot. With an emoji bc why not? 🤔\n<a href=\"https://explorer.e.cash/tx/ec584ba3c1734a422c16ec40d598fe91f870c8d17c5f9d2b6c4e1cbaf82f7237\">SWaP:</a> Signal|SLP Atomic Swap|<a href=\"https://explorer.e.cash/tx/9ef7a95decf0b795aaf9ad37908988d889ab768aac18b81b99d6af821d8fe783\">IOA</a>|SELL\n\n6 eCash txs:\nqzr...tfg <a href=\"https://explorer.e.cash/tx/349d803afedd7802a1e545389c376fc25a1d45401c331fd27090644cbeae69a1\">sent</a> 4,681,584 XEC to qqt...2qc and 1 others | 1.00 sats per byte\nqp9...jlg <a href=\"https://explorer.e.cash/tx/36902d988d7e309c2131e59a1256dd950443155aa9f6929d24055971d0b105b5\">sent</a> 2,993,000 XEC to qr5...taj | 4.18 sats per byte\nqpw...ms5 <a href=\"https://explorer.e.cash/tx/3d90c355be7e3aeb18d5885109a167fd2c8446ec657865ffba6577a81243f71b\">sent</a> 2,843,535 XEC to qpw...f2s and 1 others | 1.91 sats per byte\nqp0...c3a <a href=\"https://explorer.e.cash/tx/97f3ebde1a5753b6772128d69a081fd514322fac0ab63303b9f22b0079a5aac8\">sent</a> 67,528,995 XEC to qph...tg5 and 1 others | 1.00 sats per byte\nqrn...54p <a href=\"https://explorer.e.cash/tx/9c1bfad01aad003052441327081622df4f1430454d9e4072c8ebddd7d13cc13b\">sent</a> 10,255 XEC to qqs...tsk and 1 others | 1.00 sats per byte\nqzt...zwy <a href=\"https://explorer.e.cash/tx/ea0a799f0e3bab448064925b3ccdb6e8ff3ef07105c6739f6eec0a4aa674e1f3\">sent</a> 18,832,831 XEC to qrv...rm2 | 1.00 sats per byte"
     ],
     "blockSummaryTgMsgsApiFailure": [
-      "<a href=\"https://explorer.e.cash/block/00000000000000000a528f0c4e4b4f214a72d9b34d84003df6150d5a4bcd0d32\">782657</a> | 10 txs | ViaBTC, Mined by jonny320\n\nApp txs:\n<a href=\"https://explorer.e.cash/tx/cd9cf4bf000b413c49d45aad382716c98d4ca2a39bc0db825bd80192962dc05d\">unknown:</a> SWP\u0000\u0001\u0001\u001ew)]lp7\u0015*y-7\u0010\t\bX\t+v\n,\u00188\u001b\u0019V/\u0002\u001d\u000fg\u0003SELL110.00000000000001\u0000/O(f\u0002O8/y+zumV\u001eT{Y:(y;\u0015\u000e&lt;D=ON.X\u0001\u00002747\n<a href=\"https://explorer.e.cash/tx/da98b479e957e34b462025e483644c13c0a6924f04a31ab6473fe5c23babc5fa\">Cashtab Msg:</a> Sending a message transaction to test parsing in ecash telegram bot. With an emoji bc why not? 🤔\n<a href=\"https://explorer.e.cash/tx/ec584ba3c1734a422c16ec40d598fe91f870c8d17c5f9d2b6c4e1cbaf82f7237\">unknown:</a> SWP\u0000\u0001\u0001\u001ew)]lp7\u0015*y-7\u0010\t\bX\t+v\n,\u00188\u001b\u0019V/\u0002\u001d\u000fg\u0003SELL\n\n6 eCash txs:\nqzr...tfg <a href=\"https://explorer.e.cash/tx/349d803afedd7802a1e545389c376fc25a1d45401c331fd27090644cbeae69a1\">sent</a> 4,681,584 XEC to qqt...2qc and 1 others | 1.00 sats per byte\nqp9...jlg <a href=\"https://explorer.e.cash/tx/36902d988d7e309c2131e59a1256dd950443155aa9f6929d24055971d0b105b5\">sent</a> 2,993,000 XEC to qr5...taj | 4.18 sats per byte\nqpw...ms5 <a href=\"https://explorer.e.cash/tx/3d90c355be7e3aeb18d5885109a167fd2c8446ec657865ffba6577a81243f71b\">sent</a> 2,843,535 XEC to qpw...f2s and 1 others | 1.91 sats per byte\nqp0...c3a <a href=\"https://explorer.e.cash/tx/97f3ebde1a5753b6772128d69a081fd514322fac0ab63303b9f22b0079a5aac8\">sent</a> 67,528,995 XEC to qph...tg5 and 1 others | 1.00 sats per byte\nqrn...54p <a href=\"https://explorer.e.cash/tx/9c1bfad01aad003052441327081622df4f1430454d9e4072c8ebddd7d13cc13b\">sent</a> 10,255 XEC to qqs...tsk and 1 others | 1.00 sats per byte\nqzt...zwy <a href=\"https://explorer.e.cash/tx/ea0a799f0e3bab448064925b3ccdb6e8ff3ef07105c6739f6eec0a4aa674e1f3\">sent</a> 18,832,831 XEC to qrv...rm2 | 1.00 sats per byte"
+      "<a href=\"https://explorer.e.cash/block/00000000000000000a528f0c4e4b4f214a72d9b34d84003df6150d5a4bcd0d32\">782657</a> | 10 txs | ViaBTC, Mined by jonny320\n\nApp txs:\n<a href=\"https://explorer.e.cash/tx/cd9cf4bf000b413c49d45aad382716c98d4ca2a39bc0db825bd80192962dc05d\">SWaP:</a> Signal|SLP Atomic Swap|<a href=\"https://explorer.e.cash/tx/9ef7a95decf0b795aaf9ad37908988d889ab768aac18b81b99d6af821d8fe783\">Unknown Token</a>|SELL for 1.1 XEC|Min trade: 0 XEC\n<a href=\"https://explorer.e.cash/tx/da98b479e957e34b462025e483644c13c0a6924f04a31ab6473fe5c23babc5fa\">Cashtab Msg:</a> Sending a message transaction to test parsing in ecash telegram bot. With an emoji bc why not? 🤔\n<a href=\"https://explorer.e.cash/tx/ec584ba3c1734a422c16ec40d598fe91f870c8d17c5f9d2b6c4e1cbaf82f7237\">SWaP:</a> Signal|SLP Atomic Swap|<a href=\"https://explorer.e.cash/tx/9ef7a95decf0b795aaf9ad37908988d889ab768aac18b81b99d6af821d8fe783\">Unknown Token</a>|SELL\n\n6 eCash txs:\nqzr...tfg <a href=\"https://explorer.e.cash/tx/349d803afedd7802a1e545389c376fc25a1d45401c331fd27090644cbeae69a1\">sent</a> 4,681,584 XEC to qqt...2qc and 1 others | 1.00 sats per byte\nqp9...jlg <a href=\"https://explorer.e.cash/tx/36902d988d7e309c2131e59a1256dd950443155aa9f6929d24055971d0b105b5\">sent</a> 2,993,000 XEC to qr5...taj | 4.18 sats per byte\nqpw...ms5 <a href=\"https://explorer.e.cash/tx/3d90c355be7e3aeb18d5885109a167fd2c8446ec657865ffba6577a81243f71b\">sent</a> 2,843,535 XEC to qpw...f2s and 1 others | 1.91 sats per byte\nqp0...c3a <a href=\"https://explorer.e.cash/tx/97f3ebde1a5753b6772128d69a081fd514322fac0ab63303b9f22b0079a5aac8\">sent</a> 67,528,995 XEC to qph...tg5 and 1 others | 1.00 sats per byte\nqrn...54p <a href=\"https://explorer.e.cash/tx/9c1bfad01aad003052441327081622df4f1430454d9e4072c8ebddd7d13cc13b\">sent</a> 10,255 XEC to qqs...tsk and 1 others | 1.00 sats per byte\nqzt...zwy <a href=\"https://explorer.e.cash/tx/ea0a799f0e3bab448064925b3ccdb6e8ff3ef07105c6739f6eec0a4aa674e1f3\">sent</a> 18,832,831 XEC to qrv...rm2 | 1.00 sats per byte"
     ],
     "blockName": "cashtabMsg"
   },
@@ -17038,7 +17333,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "Cashtab Msg",
-            "msg": "Testing a normal message but give it some &lt;i&gt; spice &lt;/i&gt; because &lt;b&gt;why not&lt;/b&gt;?&lt;a href=\"https://cashtab.com/\"&gt;Cashtab link test&lt;/a&gt;"
+            "msg": "Testing a normal message but give it some &lt;i&gt; spice &lt;/i&gt; because &lt;b&gt;why not&lt;/b&gt;?&lt;a href=\"https://cashtab.com/\"&gt;Cashtab link test&lt;/a&gt;",
+            "stackArray": [
+              "00746162",
+              "54657374696e672061206e6f726d616c206d65737361676520627574206769766520697420736f6d65203c693e207370696365203c2f693e2062656361757365203c623e776879206e6f743c2f623e3f3c6120687265663d2268747470733a2f2f636173687461622e636f6d2f223e43617368746162206c696e6b20746573743c2f613e"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.2165775401069518,
           "xecSendingOutputScripts": {
@@ -17102,7 +17402,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "Cashtab Msg",
-            "msg": "&lt;b&gt;Try to hack the format&lt;/b&gt; ${true &amp;&amp; &lt;i&gt;yes&lt;/i&gt;}"
+            "msg": "&lt;b&gt;Try to hack the format&lt;/b&gt; ${true &amp;&amp; &lt;i&gt;yes&lt;/i&gt;}",
+            "stackArray": [
+              "00746162",
+              "3c623e54727920746f206861636b2074686520666f726d61743c2f623e20247b74727565202626203c693e7965733c2f693e7d"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.5582191780821917,
           "xecSendingOutputScripts": {
@@ -17735,29 +18040,29 @@ module.exports=[
     },
     "coingeckoResponse": {
       "bitcoin": {
-        "usd": 26447.81876841
+        "usd": 25866.36116628
       },
       "ecash": {
-        "usd": 0.00002309
+        "usd": 0.00002063
       },
       "ethereum": {
-        "usd": 1836.86332251
+        "usd": 1739.06428794
       }
     },
     "coingeckoPrices": [
       {
         "fiat": "usd",
-        "price": 0.00002309,
+        "price": 0.00002063,
         "ticker": "XEC"
       },
       {
         "fiat": "usd",
-        "price": 26447.81876841,
+        "price": 25866.36116628,
         "ticker": "BTC"
       },
       {
         "fiat": "usd",
-        "price": 1836.86332251,
+        "price": 1739.06428794,
         "ticker": "ETH"
       }
     ],
@@ -17787,7 +18092,7 @@ module.exports=[
       ]
     },
     "blockSummaryTgMsgs": [
-      "<a href=\"https://explorer.e.cash/block/0000000000000000000067d535eccdfaf5397541e948d87aa22e659d8417e497\">782785</a> | 17 txs | Mining-Dutch\n1 XEC = $0.00002309\n1 BTC = $26,448\n1 ETH = $1,837\n\n1 new eToken created:\n<a href=\"https://explorer.e.cash/tx/dfa431134fdd2569afce9e7ec873ef6231dc13d89c530d6608061f22d5a94281\">&lt;&gt;&lt;&gt;&lt;&gt;</a> (&amp;&amp;&amp;) <a href=\"https://core.telegram.org/bots/api\">[doc]</a>\n\n4 eToken send txs\nqqv...wwc <a href=\"https://explorer.e.cash/tx/0d07e0722247e4df90213755a5a90b2d1155499c98ae37062462715d45dee835\">sent</a> 60 <a href=\"https://explorer.e.cash/tx/036b46fcca75948dec00bdcc95533677fdccb861497c0d9d33fb7da5d21986b5\">eLPS</a> to qp2...dce\nqqg...q4a <a href=\"https://explorer.e.cash/tx/86f2bc22c9d2e9545335dc759cb3274a37ab64d83eb26bc19d7938b1f08c952a\">sent</a> 60 <a href=\"https://explorer.e.cash/tx/036b46fcca75948dec00bdcc95533677fdccb861497c0d9d33fb7da5d21986b5\">eLPS</a> to qp2...dce\nqqg...v4e <a href=\"https://explorer.e.cash/tx/adb8f5232d92e94a8f0abb2321ff91175afc66b090bc7de40a337cc13759d637\">sent</a> 0.4703 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpj...yv6 and 8 others\nqqg...v4e <a href=\"https://explorer.e.cash/tx/f13a8d2897f75c30657dc736f51afc4835dd4639c084ef52d2809955b458591b\">sent</a> 0.4703 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpj...yv6 and 8 others\n\nApp txs:\n<a href=\"https://explorer.e.cash/tx/425deba1bef907163aa546aca36d4bd6c0e2c1a6944fde23b2f0503a5a88cabe\">Cashtab Msg:</a> Testing a normal message but give it some &lt;i&gt; spice &lt;/i&gt; because &lt;b&gt;why not&lt;/b&gt;?&lt;a href=\"https://cashtab.com/\"&gt;Cashtab link test&lt;/a&gt;\n<a href=\"https://explorer.e.cash/tx/649123ec1b2357baa4588581a83aa6aa3da7825f9d736d93f77752caa156fd26\">Cashtab Msg:</a> &lt;b&gt;Try to hack the format&lt;/b&gt; ${true &amp;&amp; &lt;i&gt;yes&lt;/i&gt;}\n\n9 eCash txs:\nqq3...x4u <a href=\"https://explorer.e.cash/tx/0abf58e4fb738101d07190970a536a9fae6b303ecd0d3e7b382b4b470bd5fe2b\">sent</a> 256,510 XEC to qp3...scq | 1.00 sats per byte\nqzx...vth <a href=\"https://explorer.e.cash/tx/3e486edda471d69d1a55c9a4006f3c0ba39ff452dcb06a6d85b6cc97c5703a07\">sent</a> 10,039 XEC to qza...e7g | 5.01 sats per byte\nqp3...f6c <a href=\"https://explorer.e.cash/tx/564f79a4fd7c798ca5d4460899e0bae06ad84055ec5693885142346fa80aa841\">sent</a> 20,294 XEC to qza...e7g | 5.01 sats per byte\nqr7...wlz <a href=\"https://explorer.e.cash/tx/804e4cb47961434546c951c718351b3c33b1e4ddfbde3a262d7a191b2b6a8c60\">sent</a> 223,965 XEC to qqr...8y8 and 1 others | 1.00 sats per byte\nqp3...scq <a href=\"https://explorer.e.cash/tx/8728cc3ee8c2e6eb584f4f97bd7b4692476f418767d6815721b9806ca0c6b219\">sent</a> 256,506 XEC to qpu...ez7 | 2.38 sats per byte\nqpw...ms5 <a href=\"https://explorer.e.cash/tx/9e89a1e464c13a10e2a0a693ac111d4f054daac13d6c22a8592c73063c93143b\">sent</a> 849,061 XEC to qz8...y4c and 1 others | 1.90 sats per byte\nqrm...f33 <a href=\"https://explorer.e.cash/tx/a51b843c19bde5b37f1199564f6a0ff705690ee300a228a6dd8f65fd9a876eb0\">sent</a> 17,099,643 XEC to qrx...y9d and 1 others | 2.44 sats per byte\nqrh...6em <a href=\"https://explorer.e.cash/tx/de484cdc438bd2e4773d2a50ab951928b5c22a25f04093e57350c19d68a573d9\">sent</a> 3,125,893 XEC to qz8...tu7 and 1 others | 2.01 sats per byte\nqpu...ez7 <a href=\"https://explorer.e.cash/tx/fb913d9c9abe7ba7c1c33fd5afb2ba048e41b75719ec607b8939e439e9e5173f\">sent</a> 256,501 XEC to qp0...upp | 2.38 sats per byte"
+      "<a href=\"https://explorer.e.cash/block/0000000000000000000067d535eccdfaf5397541e948d87aa22e659d8417e497\">782785</a> | 17 txs | Mining-Dutch\n1 XEC = $0.00002063\n1 BTC = $25,866\n1 ETH = $1,739\n\n1 new eToken created:\n<a href=\"https://explorer.e.cash/tx/dfa431134fdd2569afce9e7ec873ef6231dc13d89c530d6608061f22d5a94281\">&lt;&gt;&lt;&gt;&lt;&gt;</a> (&amp;&amp;&amp;) <a href=\"https://core.telegram.org/bots/api\">[doc]</a>\n\n4 eToken send txs\nqqv...wwc <a href=\"https://explorer.e.cash/tx/0d07e0722247e4df90213755a5a90b2d1155499c98ae37062462715d45dee835\">sent</a> 60 <a href=\"https://explorer.e.cash/tx/036b46fcca75948dec00bdcc95533677fdccb861497c0d9d33fb7da5d21986b5\">eLPS</a> to qp2...dce\nqqg...q4a <a href=\"https://explorer.e.cash/tx/86f2bc22c9d2e9545335dc759cb3274a37ab64d83eb26bc19d7938b1f08c952a\">sent</a> 60 <a href=\"https://explorer.e.cash/tx/036b46fcca75948dec00bdcc95533677fdccb861497c0d9d33fb7da5d21986b5\">eLPS</a> to qp2...dce\nqqg...v4e <a href=\"https://explorer.e.cash/tx/adb8f5232d92e94a8f0abb2321ff91175afc66b090bc7de40a337cc13759d637\">sent</a> 0.4703 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpj...yv6 and 8 others\nqqg...v4e <a href=\"https://explorer.e.cash/tx/f13a8d2897f75c30657dc736f51afc4835dd4639c084ef52d2809955b458591b\">sent</a> 0.4703 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to qpj...yv6 and 8 others\n\nApp txs:\n<a href=\"https://explorer.e.cash/tx/425deba1bef907163aa546aca36d4bd6c0e2c1a6944fde23b2f0503a5a88cabe\">Cashtab Msg:</a> Testing a normal message but give it some &lt;i&gt; spice &lt;/i&gt; because &lt;b&gt;why not&lt;/b&gt;?&lt;a href=\"https://cashtab.com/\"&gt;Cashtab link test&lt;/a&gt;\n<a href=\"https://explorer.e.cash/tx/649123ec1b2357baa4588581a83aa6aa3da7825f9d736d93f77752caa156fd26\">Cashtab Msg:</a> &lt;b&gt;Try to hack the format&lt;/b&gt; ${true &amp;&amp; &lt;i&gt;yes&lt;/i&gt;}\n\n9 eCash txs:\nqq3...x4u <a href=\"https://explorer.e.cash/tx/0abf58e4fb738101d07190970a536a9fae6b303ecd0d3e7b382b4b470bd5fe2b\">sent</a> 256,510 XEC to qp3...scq | 1.00 sats per byte\nqzx...vth <a href=\"https://explorer.e.cash/tx/3e486edda471d69d1a55c9a4006f3c0ba39ff452dcb06a6d85b6cc97c5703a07\">sent</a> 10,039 XEC to qza...e7g | 5.01 sats per byte\nqp3...f6c <a href=\"https://explorer.e.cash/tx/564f79a4fd7c798ca5d4460899e0bae06ad84055ec5693885142346fa80aa841\">sent</a> 20,294 XEC to qza...e7g | 5.01 sats per byte\nqr7...wlz <a href=\"https://explorer.e.cash/tx/804e4cb47961434546c951c718351b3c33b1e4ddfbde3a262d7a191b2b6a8c60\">sent</a> 223,965 XEC to qqr...8y8 and 1 others | 1.00 sats per byte\nqp3...scq <a href=\"https://explorer.e.cash/tx/8728cc3ee8c2e6eb584f4f97bd7b4692476f418767d6815721b9806ca0c6b219\">sent</a> 256,506 XEC to qpu...ez7 | 2.38 sats per byte\nqpw...ms5 <a href=\"https://explorer.e.cash/tx/9e89a1e464c13a10e2a0a693ac111d4f054daac13d6c22a8592c73063c93143b\">sent</a> 849,061 XEC to qz8...y4c and 1 others | 1.90 sats per byte\nqrm...f33 <a href=\"https://explorer.e.cash/tx/a51b843c19bde5b37f1199564f6a0ff705690ee300a228a6dd8f65fd9a876eb0\">sent</a> 17,099,643 XEC to qrx...y9d and 1 others | 2.44 sats per byte\nqrh...6em <a href=\"https://explorer.e.cash/tx/de484cdc438bd2e4773d2a50ab951928b5c22a25f04093e57350c19d68a573d9\">sent</a> 3,125,893 XEC to qz8...tu7 and 1 others | 2.01 sats per byte\nqpu...ez7 <a href=\"https://explorer.e.cash/tx/fb913d9c9abe7ba7c1c33fd5afb2ba048e41b75719ec607b8939e439e9e5173f\">sent</a> 256,501 XEC to qp0...upp | 2.38 sats per byte"
     ],
     "blockSummaryTgMsgsApiFailure": [
       "<a href=\"https://explorer.e.cash/block/0000000000000000000067d535eccdfaf5397541e948d87aa22e659d8417e497\">782785</a> | 17 txs | Mining-Dutch\n\n1 new eToken created:\n<a href=\"https://explorer.e.cash/tx/dfa431134fdd2569afce9e7ec873ef6231dc13d89c530d6608061f22d5a94281\">&lt;&gt;&lt;&gt;&lt;&gt;</a> (&amp;&amp;&amp;) <a href=\"https://core.telegram.org/bots/api\">[doc]</a>\n\nApp txs:\n<a href=\"https://explorer.e.cash/tx/425deba1bef907163aa546aca36d4bd6c0e2c1a6944fde23b2f0503a5a88cabe\">Cashtab Msg:</a> Testing a normal message but give it some &lt;i&gt; spice &lt;/i&gt; because &lt;b&gt;why not&lt;/b&gt;?&lt;a href=\"https://cashtab.com/\"&gt;Cashtab link test&lt;/a&gt;\n<a href=\"https://explorer.e.cash/tx/649123ec1b2357baa4588581a83aa6aa3da7825f9d736d93f77752caa156fd26\">Cashtab Msg:</a> &lt;b&gt;Try to hack the format&lt;/b&gt; ${true &amp;&amp; &lt;i&gt;yes&lt;/i&gt;}\n\n13 eCash txs:\nqq3...x4u <a href=\"https://explorer.e.cash/tx/0abf58e4fb738101d07190970a536a9fae6b303ecd0d3e7b382b4b470bd5fe2b\">sent</a> 256,510 XEC to qp3...scq | 1.00 sats per byte\nqqv...wwc <a href=\"https://explorer.e.cash/tx/0d07e0722247e4df90213755a5a90b2d1155499c98ae37062462715d45dee835\">sent</a> 5 XEC to qp2...dce | 1.07 sats per byte\nqzx...vth <a href=\"https://explorer.e.cash/tx/3e486edda471d69d1a55c9a4006f3c0ba39ff452dcb06a6d85b6cc97c5703a07\">sent</a> 10,039 XEC to qza...e7g | 5.01 sats per byte\nqp3...f6c <a href=\"https://explorer.e.cash/tx/564f79a4fd7c798ca5d4460899e0bae06ad84055ec5693885142346fa80aa841\">sent</a> 20,294 XEC to qza...e7g | 5.01 sats per byte\nqr7...wlz <a href=\"https://explorer.e.cash/tx/804e4cb47961434546c951c718351b3c33b1e4ddfbde3a262d7a191b2b6a8c60\">sent</a> 223,965 XEC to qqr...8y8 and 1 others | 1.00 sats per byte\nqqg...q4a <a href=\"https://explorer.e.cash/tx/86f2bc22c9d2e9545335dc759cb3274a37ab64d83eb26bc19d7938b1f08c952a\">sent</a> 5 XEC to qp2...dce | 1.07 sats per byte\nqp3...scq <a href=\"https://explorer.e.cash/tx/8728cc3ee8c2e6eb584f4f97bd7b4692476f418767d6815721b9806ca0c6b219\">sent</a> 256,506 XEC to qpu...ez7 | 2.38 sats per byte\nqpw...ms5 <a href=\"https://explorer.e.cash/tx/9e89a1e464c13a10e2a0a693ac111d4f054daac13d6c22a8592c73063c93143b\">sent</a> 849,061 XEC to qz8...y4c and 1 others | 1.90 sats per byte\nqrm...f33 <a href=\"https://explorer.e.cash/tx/a51b843c19bde5b37f1199564f6a0ff705690ee300a228a6dd8f65fd9a876eb0\">sent</a> 17,099,643 XEC to qrx...y9d and 1 others | 2.44 sats per byte\nqqg...v4e <a href=\"https://explorer.e.cash/tx/adb8f5232d92e94a8f0abb2321ff91175afc66b090bc7de40a337cc13759d637\">sent</a> 49 XEC to qpj...yv6 and 8 others | 1.20 sats per byte\nqrh...6em <a href=\"https://explorer.e.cash/tx/de484cdc438bd2e4773d2a50ab951928b5c22a25f04093e57350c19d68a573d9\">sent</a> 3,125,893 XEC to qz8...tu7 and 1 others | 2.01 sats per byte\nqqg...v4e <a href=\"https://explorer.e.cash/tx/f13a8d2897f75c30657dc736f51afc4835dd4639c084ef52d2809955b458591b\">sent</a> 49 XEC to qpj...yv6 and 8 others | 1.20 sats per byte\nqpu...ez7 <a href=\"https://explorer.e.cash/tx/fb913d9c9abe7ba7c1c33fd5afb2ba048e41b75719ec607b8939e439e9e5173f\">sent</a> 256,501 XEC to qp0...upp | 2.38 sats per byte"
@@ -18459,7 +18764,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "Cashtab Msg",
-            "msg": "Why not another one, this time with emojis 🤔"
+            "msg": "Why not another one, this time with emojis 🤔",
+            "stackArray": [
+              "00746162",
+              "576879206e6f7420616e6f74686572206f6e652c20746869732074696d65207769746820656d6f6a697320f09fa494"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.57439446366782,
           "xecSendingOutputScripts": {
@@ -18554,7 +18864,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "Cashtab Msg",
-            "msg": "Can't believe already need to test again"
+            "msg": "Can't believe already need to test again",
+            "stackArray": [
+              "00746162",
+              "43616e27742062656c6965766520616c7265616479206e65656420746f207465737420616761696e"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.6192170818505338,
           "xecSendingOutputScripts": {
@@ -18737,7 +19052,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "Cashtab Msg",
-            "msg": "Another Cashtab message to the TG bot. Making it longer to see if spacing is a problem. Is spacing a problem? Is parsing a problem? Who can tell. We will only know after this message appears (or doesn't). "
+            "msg": "Another Cashtab message to the TG bot. Making it longer to see if spacing is a problem. Is spacing a problem? Is parsing a problem? Who can tell. We will only know after this message appears (or doesn't). ",
+            "stackArray": [
+              "00746162",
+              "416e6f746865722043617368746162206d65737361676520746f2074686520544720626f742e204d616b696e67206974206c6f6e67657220746f207365652069662073706163696e6720697320612070726f626c656d2e2049732073706163696e6720612070726f626c656d3f2049732070617273696e6720612070726f626c656d3f2057686f2063616e2074656c6c2e2057652077696c6c206f6e6c79206b6e6f772061667465722074686973206d657373616765206170706561727320286f7220646f65736e2774292e20"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0178970917225951,
           "xecSendingOutputScripts": {
@@ -18780,29 +19100,29 @@ module.exports=[
     },
     "coingeckoResponse": {
       "bitcoin": {
-        "usd": 26447.81876841
+        "usd": 25866.36116628
       },
       "ecash": {
-        "usd": 0.00002309
+        "usd": 0.00002063
       },
       "ethereum": {
-        "usd": 1836.86332251
+        "usd": 1739.06428794
       }
     },
     "coingeckoPrices": [
       {
         "fiat": "usd",
-        "price": 0.00002309,
+        "price": 0.00002063,
         "ticker": "XEC"
       },
       {
         "fiat": "usd",
-        "price": 26447.81876841,
+        "price": 25866.36116628,
         "ticker": "BTC"
       },
       {
         "fiat": "usd",
-        "price": 1836.86332251,
+        "price": 1739.06428794,
         "ticker": "ETH"
       }
     ],
@@ -18822,7 +19142,7 @@ module.exports=[
       ]
     },
     "blockSummaryTgMsgs": [
-      "<a href=\"https://explorer.e.cash/block/00000000000000000609f6bcbbf5169ae25142ad7f119b541adad5789faa28e4\">782774</a> | 10 txs | ViaBTC, Mined by slavm01\n1 XEC = $0.00002309\n1 BTC = $26,448\n1 ETH = $1,837\n\n1 eToken send tx\nqz2...035 <a href=\"https://explorer.e.cash/tx/c04ae7f139eb16023a70d1bb39b1ae8745667edb09833e994a5b4d48976a111d\">sent</a> 2 <a href=\"https://explorer.e.cash/tx/b9877d8f8d2364b983707df905d592f534a3ada18e52aa529a0f72fcc535abf7\">SRM</a> to qp8...gg6\n\nApp txs:\n<a href=\"https://explorer.e.cash/tx/2769041aa0e069610f3050c1a7d6f20e322e216625086d1d9c1f35dd0e85fbe9\">Cashtab Msg:</a> Why not another one, this time with emojis 🤔\n<a href=\"https://explorer.e.cash/tx/a2f704933049b5c5a712a9943ac2e264fbeb1354cd5f2187e31eb68a8f38aa72\">Cashtab Msg:</a> Can't believe already need to test again\n<a href=\"https://explorer.e.cash/tx/d9915ae3c4a7ec176746d3902295c1d2cf8912db589289842c14803a67cfc9d1\">Cashtab Msg:</a> Another Cashtab message to the TG bot. Making it longer to see if spacing is a problem. Is spacing a problem? Is parsing a problem? Who can tell. We will only know after this message appears (or doesn't). \n\n5 eCash txs:\nqrw...re7 <a href=\"https://explorer.e.cash/tx/4d6845d856e34b03ef6830313c4cc75f80daee491eee7b8d55f32cdb8c2b72e6\">sent</a> 21 XEC to qza...e7g | 5.00 sats per byte\nqp4...v8x <a href=\"https://explorer.e.cash/tx/7b0802223d4376f3bca1a76c9a2deab0c18c2fc5f070d4adb65abdb18d328f08\">sent</a> 4,568,709 XEC to pqg...tlg and 1 others | 2.02 sats per byte\nqq5...ck4 <a href=\"https://explorer.e.cash/tx/ac4e0acbe7f0e0e25ef3366e2d066ebaa543c0fe8721e998d4cab03fbeb8a5a9\">sent</a> 10,280 XEC to qza...e7g | 5.01 sats per byte\nqzj...u85 <a href=\"https://explorer.e.cash/tx/b4fee092558400fa905336da8c0465e6be857bb6fad758825a20e90a6a12c323\">sent</a> 29 XEC to qza...e7g | 5.02 sats per byte\nqrk...wcf <a href=\"https://explorer.e.cash/tx/c7bfee6cb99bfd021e3d6f38f08391d111463a2872d50b6bc3c5351015707adc\">sent</a> 8,220 XEC to qza...e7g | 5.01 sats per byte"
+      "<a href=\"https://explorer.e.cash/block/00000000000000000609f6bcbbf5169ae25142ad7f119b541adad5789faa28e4\">782774</a> | 10 txs | ViaBTC, Mined by slavm01\n1 XEC = $0.00002063\n1 BTC = $25,866\n1 ETH = $1,739\n\n1 eToken send tx\nqz2...035 <a href=\"https://explorer.e.cash/tx/c04ae7f139eb16023a70d1bb39b1ae8745667edb09833e994a5b4d48976a111d\">sent</a> 2 <a href=\"https://explorer.e.cash/tx/b9877d8f8d2364b983707df905d592f534a3ada18e52aa529a0f72fcc535abf7\">SRM</a> to qp8...gg6\n\nApp txs:\n<a href=\"https://explorer.e.cash/tx/2769041aa0e069610f3050c1a7d6f20e322e216625086d1d9c1f35dd0e85fbe9\">Cashtab Msg:</a> Why not another one, this time with emojis 🤔\n<a href=\"https://explorer.e.cash/tx/a2f704933049b5c5a712a9943ac2e264fbeb1354cd5f2187e31eb68a8f38aa72\">Cashtab Msg:</a> Can't believe already need to test again\n<a href=\"https://explorer.e.cash/tx/d9915ae3c4a7ec176746d3902295c1d2cf8912db589289842c14803a67cfc9d1\">Cashtab Msg:</a> Another Cashtab message to the TG bot. Making it longer to see if spacing is a problem. Is spacing a problem? Is parsing a problem? Who can tell. We will only know after this message appears (or doesn't). \n\n5 eCash txs:\nqrw...re7 <a href=\"https://explorer.e.cash/tx/4d6845d856e34b03ef6830313c4cc75f80daee491eee7b8d55f32cdb8c2b72e6\">sent</a> 21 XEC to qza...e7g | 5.00 sats per byte\nqp4...v8x <a href=\"https://explorer.e.cash/tx/7b0802223d4376f3bca1a76c9a2deab0c18c2fc5f070d4adb65abdb18d328f08\">sent</a> 4,568,709 XEC to pqg...tlg and 1 others | 2.02 sats per byte\nqq5...ck4 <a href=\"https://explorer.e.cash/tx/ac4e0acbe7f0e0e25ef3366e2d066ebaa543c0fe8721e998d4cab03fbeb8a5a9\">sent</a> 10,280 XEC to qza...e7g | 5.01 sats per byte\nqzj...u85 <a href=\"https://explorer.e.cash/tx/b4fee092558400fa905336da8c0465e6be857bb6fad758825a20e90a6a12c323\">sent</a> 29 XEC to qza...e7g | 5.02 sats per byte\nqrk...wcf <a href=\"https://explorer.e.cash/tx/c7bfee6cb99bfd021e3d6f38f08391d111463a2872d50b6bc3c5351015707adc\">sent</a> 8,220 XEC to qza...e7g | 5.01 sats per byte"
     ],
     "blockSummaryTgMsgsApiFailure": [
       "<a href=\"https://explorer.e.cash/block/00000000000000000609f6bcbbf5169ae25142ad7f119b541adad5789faa28e4\">782774</a> | 10 txs | ViaBTC, Mined by slavm01\n\nApp txs:\n<a href=\"https://explorer.e.cash/tx/2769041aa0e069610f3050c1a7d6f20e322e216625086d1d9c1f35dd0e85fbe9\">Cashtab Msg:</a> Why not another one, this time with emojis 🤔\n<a href=\"https://explorer.e.cash/tx/a2f704933049b5c5a712a9943ac2e264fbeb1354cd5f2187e31eb68a8f38aa72\">Cashtab Msg:</a> Can't believe already need to test again\n<a href=\"https://explorer.e.cash/tx/d9915ae3c4a7ec176746d3902295c1d2cf8912db589289842c14803a67cfc9d1\">Cashtab Msg:</a> Another Cashtab message to the TG bot. Making it longer to see if spacing is a problem. Is spacing a problem? Is parsing a problem? Who can tell. We will only know after this message appears (or doesn't). \n\n6 eCash txs:\nqrw...re7 <a href=\"https://explorer.e.cash/tx/4d6845d856e34b03ef6830313c4cc75f80daee491eee7b8d55f32cdb8c2b72e6\">sent</a> 21 XEC to qza...e7g | 5.00 sats per byte\nqp4...v8x <a href=\"https://explorer.e.cash/tx/7b0802223d4376f3bca1a76c9a2deab0c18c2fc5f070d4adb65abdb18d328f08\">sent</a> 4,568,709 XEC to pqg...tlg and 1 others | 2.02 sats per byte\nqq5...ck4 <a href=\"https://explorer.e.cash/tx/ac4e0acbe7f0e0e25ef3366e2d066ebaa543c0fe8721e998d4cab03fbeb8a5a9\">sent</a> 10,280 XEC to qza...e7g | 5.01 sats per byte\nqzj...u85 <a href=\"https://explorer.e.cash/tx/b4fee092558400fa905336da8c0465e6be857bb6fad758825a20e90a6a12c323\">sent</a> 29 XEC to qza...e7g | 5.02 sats per byte\nqz2...035 <a href=\"https://explorer.e.cash/tx/c04ae7f139eb16023a70d1bb39b1ae8745667edb09833e994a5b4d48976a111d\">sent</a> 5 XEC to qp8...gg6 | 2.37 sats per byte\nqrk...wcf <a href=\"https://explorer.e.cash/tx/c7bfee6cb99bfd021e3d6f38f08391d111463a2872d50b6bc3c5351015707adc\">sent</a> 8,220 XEC to qza...e7g | 5.01 sats per byte"
@@ -20002,7 +20322,12 @@ module.exports=[
           "genesisInfo": false,
           "opReturnInfo": {
             "app": "Cash Fusion",
-            "msg": ""
+            "msg": "",
+            "stackArray": [
+              "46555a00",
+              "ab3267b0b667ea2252d414b3714d6f08b5fbf16c0026ce454c903dc6ff002255"
+            ],
+            "tokenId": false
           },
           "satsPerByte": 1.0087370929308976,
           "xecSendingOutputScripts": {
@@ -20345,29 +20670,29 @@ module.exports=[
     },
     "coingeckoResponse": {
       "bitcoin": {
-        "usd": 26447.81876841
+        "usd": 25866.36116628
       },
       "ecash": {
-        "usd": 0.00002309
+        "usd": 0.00002063
       },
       "ethereum": {
-        "usd": 1836.86332251
+        "usd": 1739.06428794
       }
     },
     "coingeckoPrices": [
       {
         "fiat": "usd",
-        "price": 0.00002309,
+        "price": 0.00002063,
         "ticker": "XEC"
       },
       {
         "fiat": "usd",
-        "price": 26447.81876841,
+        "price": 25866.36116628,
         "ticker": "BTC"
       },
       {
         "fiat": "usd",
-        "price": 1836.86332251,
+        "price": 1739.06428794,
         "ticker": "ETH"
       }
     ],
@@ -20376,7 +20701,7 @@ module.exports=[
       "value": []
     },
     "blockSummaryTgMsgs": [
-      "<a href=\"https://explorer.e.cash/block/000000000000000000ecda3dc336cd44ddf32eac28cebdee3c4a0abda75471e0\">787920</a> | 2 txs | ViaBTC, Mined by oksmanspace\n1 XEC = $0.00002309\n1 BTC = $26,448\n1 ETH = $1,837\n\nApp tx:\n<a href=\"https://explorer.e.cash/tx/d5be7a4b483f9fdbbe3bf46cfafdd0100d5dbeee0b972f4dabc8ae9d9962fa55\">Cash Fusion:</a> Fused $302 from 64 inputs into 63 outputs"
+      "<a href=\"https://explorer.e.cash/block/000000000000000000ecda3dc336cd44ddf32eac28cebdee3c4a0abda75471e0\">787920</a> | 2 txs | ViaBTC, Mined by oksmanspace\n1 XEC = $0.00002063\n1 BTC = $25,866\n1 ETH = $1,739\n\nApp tx:\n<a href=\"https://explorer.e.cash/tx/d5be7a4b483f9fdbbe3bf46cfafdd0100d5dbeee0b972f4dabc8ae9d9962fa55\">Cash Fusion:</a> Fused $270 from 64 inputs into 63 outputs"
     ],
     "blockSummaryTgMsgsApiFailure": [
       "<a href=\"https://explorer.e.cash/block/000000000000000000ecda3dc336cd44ddf32eac28cebdee3c4a0abda75471e0\">787920</a> | 2 txs | ViaBTC, Mined by oksmanspace\n\nApp tx:\n<a href=\"https://explorer.e.cash/tx/d5be7a4b483f9fdbbe3bf46cfafdd0100d5dbeee0b972f4dabc8ae9d9962fa55\">Cash Fusion:</a> Fused 13,087,151 XEC from 64 inputs into 63 outputs"

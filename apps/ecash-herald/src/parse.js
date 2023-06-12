@@ -39,6 +39,14 @@ module.exports = {
             if (thisParsedTx.tokenSendInfo) {
                 tokenIds.add(thisParsedTx.tokenSendInfo.tokenId);
             }
+            // Some OP_RETURN txs also have token IDs we need to parse
+            // SWaP txs, (TODO: airdrop txs)
+            if (
+                thisParsedTx.opReturnInfo &&
+                thisParsedTx.opReturnInfo.tokenId
+            ) {
+                tokenIds.add(thisParsedTx.opReturnInfo.tokenId);
+            }
         }
 
         return { hash, height, miner, numTxs, parsedTxs, tokenIds };
@@ -309,12 +317,21 @@ module.exports = {
         // Initialize required vars
         let app;
         let msg;
+        let tokenId = false;
 
         // Get array of pushes
         let stack = { remainingHex: opReturnHex };
         let stackArray = [];
         while (stack.remainingHex.length > 0) {
-            stackArray.push(consumeNextPush(stack));
+            const thisPush = consumeNextPush(stack);
+            if (thisPush !== '') {
+                // You may have an empty push in the middle of a complicated tx for some reason
+                // Mb some libraries erroneously create these
+                // e.g. https://explorer.e.cash/tx/70c2842e1b2c7eb49ee69cdecf2d6f3cd783c307c4cbeef80f176159c5891484
+                // has 4c000100 for last characters. 4c00 is just nothing.
+                // But you want to know 00 and have the correct array index
+                stackArray.push(thisPush);
+            }
         }
 
         // Get the protocolIdentifier, the first push
@@ -357,6 +374,22 @@ module.exports = {
                 msg = '';
                 break;
             }
+            case opReturn.knownApps.swap.prefix: {
+                // Swap txs require special parsing that should be done in getSwapTgMsg
+                // We may need to get info about a token ID before we can
+                // create a good msg
+                app = opReturn.knownApps.swap.app;
+                msg = '';
+
+                if (stackArray[1] && stackArray[2] === '01') {
+                    // If this is a signal for buy or sell of a token, save the token id
+                    // Ref https://github.com/vinarmani/swap-protocol/blob/master/swap-protocol-spec.md
+                    // A buy or sell signal tx will have '01' at stackArray[1] and stackArray[2] and
+                    // token id at stackArray[3]
+                    tokenId = stackArray[3];
+                }
+                break;
+            }
             default: {
                 /**
                  * If you don't recognize protocolIdentifier, just translate with ASCII
@@ -370,7 +403,7 @@ module.exports = {
             }
         }
 
-        return { app, msg };
+        return { app, msg, stackArray, tokenId };
     },
     /**
      * Parse a stackArray according to OP_RETURN rules to convert to a useful tg msg
@@ -615,6 +648,166 @@ module.exports = {
         }
         return { app, msg };
     },
+    /**
+     * Parse the stackArray of a SWaP tx according to spec to generate a useful telegram msg
+     * @param {array} stackArray
+     * @param {object} tokenInfo token info for the swapped token. optional.
+     * @returns {string} msg ready to send through Telegram API
+     */
+    getSwapTgMsg: function (stackArray, tokenInfo) {
+        // Intialize msg
+        let msg = '';
+
+        // SWaP txs are complex. Parse stackArray to build msg.
+        // https://github.com/vinarmani/swap-protocol/blob/master/swap-protocol-spec.md
+
+        // First, get swp_msg_class at stackArray[1]
+        // 01 - A Signal
+        // 02 - A payment
+        const swp_msg_class = stackArray[1];
+
+        // Second , get swp_msg_type at stackArray[2]
+        // 01 - SLP Atomic Swap
+        // 02 - Multi-Party Escrow
+        // 03 - Threshold Crowdfunding
+        const swp_msg_type = stackArray[2];
+
+        // Build msg by class and type
+
+        if (swp_msg_class === '01') {
+            msg += 'Signal';
+            msg += '|';
+            switch (swp_msg_type) {
+                case '01': {
+                    msg += 'SLP Atomic Swap';
+                    msg += '|';
+                    /*
+                    <token_id_bytes> <BUY_or_SELL_ascii> <rate_in_sats_int> 
+                    <proof_of_reserve_int> <exact_utxo_vout_hash_bytes> <exact_utxo_index_int> 
+                    <minimum_sats_to_exchange_int>
+
+                    Note that <rate_in_sats_int> is in hex value in the spec example,
+                    but some examples on chain appear to encode this value in ascii
+                    */
+
+                    if (tokenInfo) {
+                        const { tokenTicker } = tokenInfo;
+
+                        // Link to token id
+                        msg += `<a href="${config.blockExplorer}/tx/${
+                            stackArray[3]
+                        }">${prepareStringForTelegramHTML(tokenTicker)}</a>`;
+                        msg += '|';
+                    } else {
+                        // Note: tokenInfo is false if the API call to chronik fails
+                        // Link to token id
+                        msg += `<a href="${config.blockExplorer}/tx/${stackArray[3]}">Unknown Token</a>`;
+                        msg += '|';
+                    }
+
+                    // buy or sell?
+                    msg += Buffer.from(stackArray[4], 'hex').toString('ascii');
+
+                    // Add price info if present
+                    // price in XEC, must convert <rate_in_sats_int> from sats to XEC
+                    if (stackArray.length >= 6) {
+                        // In the wild, have seen some SWaP txs use ASCII for encoding rate_in_sats_int
+                        // Make a determination. Spec does not indicate either way, though spec
+                        // example does use hex.
+                        // If stackArray[5] is more than 4 characters long, assume ascii encoding
+                        let rate_in_sats_int;
+                        if (stackArray[5].length > 4) {
+                            rate_in_sats_int = parseInt(
+                                Buffer.from(stackArray[5], 'hex').toString(
+                                    'ascii',
+                                ),
+                            );
+                        } else {
+                            rate_in_sats_int = parseInt(stackArray[5], 16);
+                        }
+
+                        msg += ` for ${(
+                            parseInt(rate_in_sats_int) / 100
+                        ).toLocaleString('en-US', {
+                            maximumFractionDigits: 2,
+                        })} XEC`;
+                    }
+
+                    // Display minimum_sats_to_exchange_int
+                    // Note: sometimes a SWaP tx will not have this info
+                    if (stackArray.length >= 10) {
+                        // In the wild, have seen some SWaP txs use ASCII for encoding minimum_sats_to_exchange_int
+                        // Make a determination. Spec does not indicate either way, though spec
+                        // example does use hex.
+                        // If stackArray[9] is more than 4 characters long, assume ascii encoding
+                        let minimum_sats_to_exchange_int;
+                        if (stackArray[9].length > 4) {
+                            minimum_sats_to_exchange_int = Buffer.from(
+                                stackArray[9],
+                                'hex',
+                            ).toString('ascii');
+                        } else {
+                            minimum_sats_to_exchange_int = parseInt(
+                                stackArray[9],
+                                16,
+                            );
+                        }
+                        msg += '|';
+                        msg += `Min trade: ${(
+                            parseInt(minimum_sats_to_exchange_int) / 100
+                        ).toLocaleString('en-US', {
+                            maximumFractionDigits: 2,
+                        })} XEC`;
+                    }
+                    break;
+                }
+                case '02': {
+                    msg += 'Multi-Party Escrow';
+                    // TODO additional parsing
+                    break;
+                }
+                case '03': {
+                    msg += 'Threshold Crowdfunding';
+                    // TODO additional parsing
+                    break;
+                }
+                default: {
+                    // Malformed SWaP tx
+                    msg += 'Malformed SWaP tx';
+                    break;
+                }
+            }
+        } else if (swp_msg_class === '02') {
+            msg += 'Payment';
+            msg += '|';
+            switch (swp_msg_type) {
+                case '01': {
+                    msg += 'SLP Atomic Swap';
+                    // TODO additional parsing
+                    break;
+                }
+                case '02': {
+                    msg += 'Multi-Party Escrow';
+                    // TODO additional parsing
+                    break;
+                }
+                case '03': {
+                    msg += 'Threshold Crowdfunding';
+                    // TODO additional parsing
+                    break;
+                }
+                default: {
+                    // Malformed SWaP tx
+                    msg += 'Malformed SWaP tx';
+                    break;
+                }
+            }
+        } else {
+            // Malformed SWaP tx
+            msg += 'Malformed SWaP tx';
+        }
+        return msg;
+    },
     getBlockTgMessage: function (parsedBlock, coingeckoPrices, tokenInfoMap) {
         const { hash, height, miner, numTxs, parsedTxs } = parsedBlock;
 
@@ -656,44 +849,62 @@ module.exports = {
                 continue;
             }
             if (opReturnInfo) {
-                let { app, msg } = opReturnInfo;
+                let { app, msg, stackArray, tokenId } = opReturnInfo;
 
-                if (app === opReturn.knownApps.fusion.app) {
-                    /**
-                     * Special handling for Cash Fusion txs
-                     * OP_RETURN msg is not particularly interesting here
-                     * However we would like to know something about the transaction
-                     */
-
-                    // Get total amount fused
-                    let totalSatsFused = 0;
-                    for (const satoshis of xecReceivingOutputs.values()) {
-                        totalSatsFused += satoshis;
+                switch (app) {
+                    case opReturn.knownApps.swap.app: {
+                        msg = module.exports.getSwapTgMsg(
+                            stackArray,
+                            tokenId && tokenInfoMap
+                                ? tokenInfoMap.get(tokenId)
+                                : false,
+                        );
+                        break;
                     }
-                    // Convert sats to XEC. Round as decimals will not be rendered in msgs.
-                    const totalXecFused = parseFloat(
-                        (totalSatsFused / 100).toFixed(0),
-                    );
+                    case opReturn.knownApps.fusion.app: {
+                        /**
+                         * Special handling for Cash Fusion txs
+                         * OP_RETURN msg is not particularly interesting here
+                         * However we would like to know something about the transaction
+                         */
 
-                    // If price, convert XEC to USD
-                    let displayedFusedQtyString;
-                    if (coingeckoPrices) {
-                        // XEC price is the first one
-                        const { fiat, price } = coingeckoPrices[0];
-                        const totalFiatFused = totalXecFused * price;
-                        displayedFusedQtyString = `${
-                            config.fiatReference[fiat]
-                        }${totalFiatFused.toLocaleString('en-US', {
-                            maximumFractionDigits: 0,
-                        })}`;
-                    } else {
-                        displayedFusedQtyString = `${totalXecFused.toLocaleString(
-                            'en-US',
-                            { maximumFractionDigits: 0 },
-                        )} XEC`;
+                        // Get total amount fused
+                        let totalSatsFused = 0;
+                        for (const satoshis of xecReceivingOutputs.values()) {
+                            totalSatsFused += satoshis;
+                        }
+                        // Convert sats to XEC. Round as decimals will not be rendered in msgs.
+                        const totalXecFused = parseFloat(
+                            (totalSatsFused / 100).toFixed(0),
+                        );
+
+                        // If price, convert XEC to USD
+                        let displayedFusedQtyString;
+                        if (coingeckoPrices) {
+                            // XEC price is the first one
+                            const { fiat, price } = coingeckoPrices[0];
+                            const totalFiatFused = totalXecFused * price;
+                            displayedFusedQtyString = `${
+                                config.fiatReference[fiat]
+                            }${totalFiatFused.toLocaleString('en-US', {
+                                maximumFractionDigits: 0,
+                            })}`;
+                        } else {
+                            displayedFusedQtyString = `${totalXecFused.toLocaleString(
+                                'en-US',
+                                { maximumFractionDigits: 0 },
+                            )} XEC`;
+                        }
+                        msg += `Fused ${displayedFusedQtyString} from ${xecSendingOutputScripts.size} inputs into ${xecReceivingOutputs.size} outputs`;
+                        break;
                     }
-                    msg += `Fused ${displayedFusedQtyString} from ${xecSendingOutputScripts.size} inputs into ${xecReceivingOutputs.size} outputs`;
+                    default: {
+                        // If the app is unknown, no special processing for msg
+                        // Defaults to ASCII decoding
+                        break;
+                    }
                 }
+
                 opReturnTxTgMsgLines.push(
                     `<a href="${config.blockExplorer}/tx/${txid}">${app}:</a> ${msg}`,
                 );
