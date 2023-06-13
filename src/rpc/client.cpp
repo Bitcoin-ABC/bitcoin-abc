@@ -204,6 +204,7 @@ static const CRPCConvertParam vRPCConvertParams[] = {
     {"getnodeaddresses", 0, "count"},
     {"addpeeraddress", 1, "port"},
     {"addpeeraddress", 2, "tried"},
+    {"sendmsgtopeer", 0, "peer_id"},
     {"stop", 0, "wait"},
     {"createwallettransaction", 1, "amount"},
     // Avalanche

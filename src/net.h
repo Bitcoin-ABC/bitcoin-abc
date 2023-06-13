@@ -1200,8 +1200,13 @@ private:
 
     NodeId GetNewNodeId();
 
-    size_t SocketSendData(CNode &node) const
+    /**
+     * (Try to) send data from node's vSendMsg.
+     * Returns (bytes_sent, data_left).
+     */
+    std::pair<size_t, bool> SocketSendData(CNode &node) const
         EXCLUSIVE_LOCKS_REQUIRED(node.cs_vSend);
+
     void DumpAddresses();
 
     // Network stats

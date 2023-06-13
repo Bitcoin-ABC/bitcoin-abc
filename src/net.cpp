@@ -841,7 +841,7 @@ void V1TransportSerializer::prepareForTransport(const Config &config,
     CVectorWriter{SER_NETWORK, INIT_PROTO_VERSION, header, 0, hdr};
 }
 
-size_t CConnman::SocketSendData(CNode &node) const {
+std::pair<size_t, bool> CConnman::SocketSendData(CNode &node) const {
     size_t nSentSize = 0;
     size_t nMsgCount = 0;
 
@@ -902,7 +902,7 @@ size_t CConnman::SocketSendData(CNode &node) const {
         assert(node.nSendSize == 0);
     }
 
-    return nSentSize;
+    return {nSentSize, !node.vSendMsg.empty()};
 }
 
 static bool ReverseCompareNodeMinPingTime(const NodeEvictionCandidate &a,
@@ -1575,38 +1575,19 @@ Sock::EventsPerSock CConnman::GenerateWaitSockets(Span<CNode *const> nodes) {
     }
 
     for (CNode *pnode : nodes) {
-        // Implement the following logic:
-        // * If there is data to send, select() for sending data. As this
-        //   only happens when optimistic write failed, we choose to first
-        //   drain the write buffer in this case before receiving more. This
-        //   avoids needlessly queueing received data, if the remote peer is
-        //   not themselves receiving data. This means properly utilizing
-        //   TCP flow control signalling.
-        // * Otherwise, if there is space left in the receive buffer,
-        //   select() for receiving data.
-        // * Hand off all complete messages to the processor, to be handled
-        //   without blocking here.
-
         bool select_recv = !pnode->fPauseRecv;
-        bool select_send;
-        {
-            LOCK(pnode->cs_vSend);
-            select_send = !pnode->vSendMsg.empty();
-        }
-
-        LOCK(pnode->m_sock_mutex);
-        if (!pnode->m_sock) {
+        bool select_send =
+            WITH_LOCK(pnode->cs_vSend, return !pnode->vSendMsg.empty());
+        if (!select_recv && !select_send) {
             continue;
         }
 
-        Sock::Event requested{0};
-        if (select_send) {
-            requested = Sock::SEND;
-        } else if (select_recv) {
-            requested = Sock::RECV;
+        LOCK(pnode->m_sock_mutex);
+        if (pnode->m_sock) {
+            Sock::Event event =
+                (select_send ? Sock::SEND : 0) | (select_recv ? Sock::RECV : 0);
+            events_per_sock.emplace(pnode->m_sock, Sock::Events{event});
         }
-
-        events_per_sock.emplace(pnode->m_sock, Sock::Events{requested});
     }
 
     return events_per_sock;
@@ -1666,6 +1647,28 @@ void CConnman::SocketHandlerConnected(
                 errorSet = it->second.occurred & Sock::ERR;
             }
         }
+
+        if (sendSet) {
+            // Send data
+            auto [bytes_sent, data_left] =
+                WITH_LOCK(pnode->cs_vSend, return SocketSendData(*pnode));
+            if (bytes_sent) {
+                RecordBytesSent(bytes_sent);
+
+                // If both receiving and (non-optimistic) sending were possible,
+                // we first attempt sending. If that succeeds, but does not
+                // fully drain the send queue, do not attempt to receive. This
+                // avoids needlessly queueing data if the remote peer is slow at
+                // receiving data, by means of TCP flow control. We only do this
+                // when sending actually succeeded to make sure progress is
+                // always made; otherwise a deadlock would be possible when both
+                // sides have data to send, but neither is receiving.
+                if (data_left) {
+                    recvSet = false;
+                }
+            }
+        }
+
         if (recvSet || errorSet) {
             // typical socket buffer is 8K-64K
             uint8_t pchBuf[0x10000];
@@ -1724,15 +1727,6 @@ void CConnman::SocketHandlerConnected(
                     }
                     pnode->CloseSocketDisconnect();
                 }
-            }
-        }
-
-        if (sendSet) {
-            // Send data
-            size_t bytes_sent =
-                WITH_LOCK(pnode->cs_vSend, return SocketSendData(*pnode));
-            if (bytes_sent) {
-                RecordBytesSent(bytes_sent);
             }
         }
 
@@ -3364,8 +3358,9 @@ void CConnman::PushMessage(CNode *pnode, CSerializedNetMsg &&msg) {
         }
 
         // If write queue empty, attempt "optimistic write"
-        if (optimisticSend == true) {
-            nBytesSent = SocketSendData(*pnode);
+        bool data_left;
+        if (optimisticSend) {
+            std::tie(nBytesSent, data_left) = SocketSendData(*pnode);
         }
     }
     if (nBytesSent) {

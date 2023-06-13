@@ -72,6 +72,7 @@ class NetTest(BitcoinTestFramework):
         self.test_service_flags()
         self.test_getnodeaddresses()
         self.test_addpeeraddress()
+        self.test_sendmsgtopeer()
 
     def test_connection_count(self):
         self.log.info("Test getconnectioncount")
@@ -381,6 +382,53 @@ class NetTest(BitcoinTestFramework):
             # getnodeaddresses re-runs the addrman checks
             addrs = node.getnodeaddresses(count=0)
             assert_equal(len(addrs), 2)
+
+    def test_sendmsgtopeer(self):
+        node = self.nodes[0]
+
+        self.restart_node(0)
+        self.connect_nodes(0, 1)
+
+        self.log.info("Test sendmsgtopeer")
+        self.log.debug("Send a valid message")
+        with self.nodes[1].assert_debug_log(expected_msgs=["received: addr"]):
+            node.sendmsgtopeer(peer_id=0, msg_type="addr", msg="FFFFFF")
+
+        self.log.debug("Test error for sending to non-existing peer")
+        assert_raises_rpc_error(
+            -1,
+            "Error: Could not send message to peer",
+            node.sendmsgtopeer,
+            peer_id=100,
+            msg_type="addr",
+            msg="FF",
+        )
+
+        self.log.debug("Test that zero-length msg_type is allowed")
+        node.sendmsgtopeer(peer_id=0, msg_type="addr", msg="")
+
+        self.log.debug("Test error for msg_type that is too long")
+        assert_raises_rpc_error(
+            -8,
+            "Error: msg_type too long, max length is 12",
+            node.sendmsgtopeer,
+            peer_id=0,
+            msg_type="long_msg_type",
+            msg="FF",
+        )
+
+        self.log.debug("Test that unknown msg_type is allowed")
+        node.sendmsgtopeer(peer_id=0, msg_type="unknown", msg="FF")
+
+        self.log.debug("Test that empty msg is allowed")
+        node.sendmsgtopeer(peer_id=0, msg_type="addr", msg="FF")
+
+        self.log.debug(
+            "Test that oversized messages are allowed, but get us disconnected"
+        )
+        zero_byte_string = b"\x00" * 4000001
+        node.sendmsgtopeer(peer_id=0, msg_type="addr", msg=zero_byte_string.hex())
+        self.wait_until(lambda: len(self.nodes[0].getpeerinfo()) == 0, timeout=10)
 
 
 if __name__ == "__main__":
