@@ -4,7 +4,7 @@ templates:
   gitian_builds:
     script: |
       "${TOPLEVEL}/contrib/teamcity/gitian.sh"
-    timeout: 7200
+    timeout: 9000
     artifacts:
       gitian-results: ''
 
