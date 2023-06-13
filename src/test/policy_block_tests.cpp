@@ -52,8 +52,7 @@ BOOST_AUTO_TEST_CASE(policy_minerfund) {
         blockhashes[i] = BlockHash(uint256(i));
         blocks[i].phashBlock = &blockhashes[i];
         blocks[i].pprev = &blocks[i - 1];
-        blocks[i].nHeight = i;
-        blocks[i].nTime = consensusParams.wellingtonActivationTime - 5 + i;
+        blocks[i].nHeight = consensusParams.wellingtonHeight - 5 + i;
     }
     CBlockIndex &firstBlockIndexRef = blocks[1];
     CBlockIndex &lastBlockIndexRef = blocks.back();

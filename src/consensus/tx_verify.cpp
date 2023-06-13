@@ -57,7 +57,7 @@ bool ContextualCheckTransaction(const Consensus::Params &params,
         }
     }
 
-    if (IsWellingtonEnabled(params, nMedianTimePast)) {
+    if (IsWellingtonEnabled(params, nHeight)) {
         // Restrict version to 1 and 2
         if (tx.nVersion > CTransaction::MAX_VERSION ||
             tx.nVersion < CTransaction::MIN_VERSION) {

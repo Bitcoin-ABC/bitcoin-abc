@@ -131,7 +131,7 @@ public:
         consensus.axionHeight = 661647;
 
         // May 15, 2023 12:00:00 UTC protocol upgrade
-        consensus.wellingtonActivationTime = 1684152000;
+        consensus.wellingtonHeight = 792116;
 
         // Nov 15, 2023 12:00:00 UTC protocol upgrade
         consensus.cowperthwaiteActivationTime = 1700049600;
@@ -280,7 +280,7 @@ public:
         consensus.axionHeight = 1421481;
 
         // May 15, 2023 12:00:00 UTC protocol upgrade
-        consensus.wellingtonActivationTime = 1684152000;
+        consensus.wellingtonHeight = 1556117;
 
         // Nov 15, 2023 12:00:00 UTC protocol upgrade
         consensus.cowperthwaiteActivationTime = 1700049600;
@@ -410,7 +410,7 @@ public:
         consensus.axionHeight = 0;
 
         // May 15, 2023 12:00:00 UTC protocol upgrade
-        consensus.wellingtonActivationTime = 1684152000;
+        consensus.wellingtonHeight = 0;
 
         // Nov 15, 2023 12:00:00 UTC protocol upgrade
         consensus.cowperthwaiteActivationTime = 1700049600;

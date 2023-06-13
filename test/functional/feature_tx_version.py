@@ -21,13 +21,12 @@ from test_framework.messages import CBlock, FromHex
 from test_framework.p2p import P2PDataStore
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
-from test_framework.util import assert_equal, assert_greater_than_or_equal
+from test_framework.util import assert_greater_than_or_equal
 
 OK_VERSIONS = [1, 2]
 BAD_VERSIONS = [-0x80000000, -0x7FFFFFFF, -2, -1, 0, 3, 7, 0x100, 0x7FFFFFFF]
 
 START_TIME = 1_900_000_000
-ACTIVATION_TIME = 2_000_000_000
 
 
 class TxVersionTest(BitcoinTestFramework):
@@ -36,7 +35,6 @@ class TxVersionTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.extra_args = [
             [
-                f"-wellingtonactivationtime={ACTIVATION_TIME}",
                 "-acceptnonstdtxn=0",
                 "-whitelist=127.0.0.1",
             ]
@@ -85,51 +83,14 @@ class TxVersionTest(BitcoinTestFramework):
         self.log.info("Bad versions always rejected from mempool")
         bad_version_txs = test_mempool_rejects_bad_versions()
 
-        self.log.info(
-            "Before Wellington, we CAN mine blocks with txs with bad versions"
-        )
-        block = self.make_block(blocks[-1], txs=bad_version_txs)
-        peer.send_blocks_and_test([block], node, success=True)
-        blocks.append(block)
-
-        self.log.info(
-            "Before Wellington, we CAN mine blocks with a coinbase with a bad version"
-        )
-        for bad_version in BAD_VERSIONS:
-            block = self.make_block(blocks[-1], coinbase_version=bad_version)
-            peer.send_blocks_and_test([block], node, success=True)
-            blocks.append(block)
-
-        self.log.info("Activate Wellington, mine 6 blocks starting at ACTIVATION_TIME")
-        node.setmocktime(ACTIVATION_TIME)
-        for offset in range(0, 6):
-            block = self.make_block(blocks[-1], nTime=ACTIVATION_TIME + offset)
-            peer.send_blocks_and_test([block], node, success=True)
-            blocks.append(block)
-
-        assert_equal(node.getblockchaininfo()["mediantime"], ACTIVATION_TIME)
-
-        self.log.info("Wellington activated!")
-
-        self.log.info("Mempool still accepts OK versions")
-        test_mempool_accepts_ok_versions()
-
-        self.log.info("Bad version still rejected from mempool")
-        bad_version_txs = test_mempool_rejects_bad_versions()
-
-        self.log.info(
-            "After activation, we CANNOT mine blocks with txs with bad versions anymore"
-        )
+        self.log.info("We CANNOT mine blocks with txs with bad versions")
         for bad_tx in bad_version_txs:
             block = self.make_block(blocks[-1], txs=[bad_tx])
             peer.send_blocks_and_test(
                 [block], node, success=False, reject_reason="bad-txns-version"
             )
 
-        self.log.info(
-            "After activation, we CANNOT mine blocks with a coinbase with a "
-            "bad version anymore"
-        )
+        self.log.info("We CANNOT mine blocks with a coinbase with a bad version")
         for bad_version in BAD_VERSIONS:
             block = self.make_block(blocks[-1], coinbase_version=bad_version)
             peer.send_blocks_and_test(

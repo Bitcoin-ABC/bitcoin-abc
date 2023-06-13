@@ -50,8 +50,8 @@ TEST_EXIT_PASSED = 0
 TEST_EXIT_FAILED = 1
 TEST_EXIT_SKIPPED = 77
 
-# Timestamp is Sep. 20th, 2022 at 12:00:00
-TIMESTAMP_IN_THE_PAST = 1663675200
+# Timestamp is Jun. 10th, 2023 at 12:00:00
+TIMESTAMP_IN_THE_PAST = 1686398400
 
 TMPDIR_PREFIX = "bitcoin_func_test_"
 
@@ -281,11 +281,11 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             help="Run test using a descriptor wallet",
         )
         parser.add_argument(
-            "--with-wellingtonactivation",
-            dest="wellingtonactivation",
+            "--with-cowperthwaiteactivation",
+            dest="cowperthwaiteactivation",
             default=False,
             action="store_true",
-            help=f"Activate wellington update on timestamp {TIMESTAMP_IN_THE_PAST}",
+            help=f"Activate cowperthwaite update on timestamp {TIMESTAMP_IN_THE_PAST}",
         )
         parser.add_argument(
             "--timeout-factor",
@@ -589,9 +589,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                 )
             )
 
-            if self.options.wellingtonactivation:
+            if self.options.cowperthwaiteactivation:
                 self.nodes[i].extend_default_args(
-                    [f"-wellingtonactivationtime={TIMESTAMP_IN_THE_PAST}"]
+                    [f"-cowperthwaiteactivationtime={TIMESTAMP_IN_THE_PAST}"]
                 )
 
     def start_node(self, i, *args, **kwargs):
@@ -901,9 +901,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                 )
             )
 
-            if self.options.wellingtonactivation:
+            if self.options.cowperthwaiteactivation:
                 self.nodes[CACHE_NODE_ID].extend_default_args(
-                    [f"-wellingtonactivationtime={TIMESTAMP_IN_THE_PAST}"]
+                    [f"-cowperthwaiteactivationtime={TIMESTAMP_IN_THE_PAST}"]
                 )
 
             self.start_node(CACHE_NODE_ID)

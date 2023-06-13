@@ -24,7 +24,6 @@ MINER_FUND_RATIO = 8
 MINER_FUND_ADDR = "ecregtest:prfhcnyqnl5cgrnmlfmms675w93ld7mvvq9jcw0zsn"
 OTHER_MINER_FUND_ADDR = "ecregtest:pqv2r67sgz3qumufap3h2uuj0zfmnzuv8v38gtrh5v"
 QUORUM_NODE_COUNT = 16
-WELLINGTON_ACTIVATION_TIME = 2100000600
 
 
 class AvalancheMinerFundTest(BitcoinTestFramework):
@@ -40,7 +39,6 @@ class AvalancheMinerFundTest(BitcoinTestFramework):
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
                 "-whitelist=noban@127.0.0.1",
-                f"-wellingtonactivationtime={WELLINGTON_ACTIVATION_TIME}",
             ],
         ]
 
@@ -58,12 +56,6 @@ class AvalancheMinerFundTest(BitcoinTestFramework):
         poll_node = quorum[0]
 
         assert node.getavalancheinfo()["ready_to_poll"] is True
-
-        # Activate Wellington
-        address = node.get_deterministic_priv_key().address
-        node.setmocktime(WELLINGTON_ACTIVATION_TIME)
-        self.generatetoaddress(node, nblocks=6, address=address)
-        assert_equal(node.getblockchaininfo()["mediantime"], WELLINGTON_ACTIVATION_TIME)
 
         # Get block reward
         coinbase = node.getblock(node.getbestblockhash(), 2)["tx"][0]
@@ -192,7 +184,7 @@ class AvalancheMinerFundTest(BitcoinTestFramework):
         self.wait_until(lambda: has_finalized_tip(tip))
 
         # Check tip height for sanity
-        assert_equal(node.getblockcount(), QUORUM_NODE_COUNT + 6 + len(cases) + 1)
+        assert_equal(node.getblockcount(), QUORUM_NODE_COUNT + len(cases) + 1)
 
 
 if __name__ == "__main__":

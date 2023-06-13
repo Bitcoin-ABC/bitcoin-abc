@@ -39,6 +39,8 @@ SET_FALSE_POSITIVE_UNKNOWNS = {
     "-zmqpubrawtxhwm",
     "-zmqpubsequence",
     "-zmqpubsequencehwm",
+    # Remove after Nov. 2023 upgrade
+    "-cowperthwaiteactivationtime",
 }
 
 # list false positive undocumented arguments
@@ -55,8 +57,8 @@ SET_FALSE_POSITIVE_UNDOCUMENTED = {
     # Removed arguments that now just print a helpful error message
     "-zapwallettxes",
     "-replayprotectionactivationtime",
-    # Remove after May 2023 upgrade
-    "-wellingtonactivationtime",
+    # Remove after Nov. 2023 upgrade
+    "-cowperthwaiteactivationtime",
 }
 
 
