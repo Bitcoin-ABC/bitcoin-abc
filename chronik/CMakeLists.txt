@@ -160,7 +160,21 @@ target_link_libraries(server
 # the directory is not duplicated (see
 # https://cmake.org/cmake/help/v3.16/command/install.html#installing-directories)
 set(CHRONIK_PROTO_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/chronik-proto/proto/")
+set(CHRONIK_PROTO_COMPONENT "chronik-proto")
 install(
     DIRECTORY "${CHRONIK_PROTO_DIRECTORY}"
     DESTINATION "proto"
+    COMPONENT "${CHRONIK_PROTO_COMPONENT}"
+)
+
+add_custom_target("install-${CHRONIK_PROTO_COMPONENT}"
+    COMMENT "Installing component ${CHRONIK_PROTO_COMPONENT}"
+    COMMAND
+        "${CMAKE_COMMAND}"
+        -E env CMAKE_INSTALL_ALWAYS=ON
+        "${CMAKE_COMMAND}"
+        -DCOMPONENT="${CHRONIK_PROTO_COMPONENT}"
+        -DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}"
+        -P cmake_install.cmake
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
 )

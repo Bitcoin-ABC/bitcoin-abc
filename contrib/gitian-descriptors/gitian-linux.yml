@@ -228,6 +228,9 @@ script: |
     # Since it is still in an experimental state, ignore for now.
     if [[ "${i}" != *"chronik-experimental" ]]; then
       ninja symbol-check
+    else
+      # Install the chronik protobuf files
+      ninja install-chronik-proto
     fi
 
     ninja install-debug
