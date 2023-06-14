@@ -11,10 +11,6 @@ module.exports = {
     opReturnPrefix: '6a',
     opReturnAppPrefixLength: '04',
     opPushDataOne: '4c',
-    appPrefixes: {
-        '00746162': 'Cashtab Msg',
-        '2e786563': 'Alias',
-    },
     knownApps: {
         airdrop: { prefix: '64726f70', app: 'Airdrop' },
         cashtabMsg: { prefix: '00746162', app: 'Cashtab Msg' },
