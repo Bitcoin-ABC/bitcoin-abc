@@ -206,10 +206,6 @@ chain for " target " development."))
     (search-our-patches "nsis-gcc-10-memmove.patch"
                         "nsis-disable-installer-reloc.patch")))
 
-(define (fix-ppc64-nx-default lief)
-  (package-with-extra-patches lief
-    (search-our-patches "lief-fix-ppc64-nx-default.patch")))
-
 (define-public lief
   (package
    (name "python-lief")
