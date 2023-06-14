@@ -352,6 +352,22 @@ module.exports = {
 
         // Test for other known apps with known msg processing methods
         switch (protocolIdentifier) {
+            case opReturn.knownApps.airdrop.prefix: {
+                app = opReturn.knownApps.airdrop.app;
+
+                // Initialize msg as empty string. Need tokenId info to complete.
+                msg = '';
+
+                // Airdrop tx has structure
+                // <prefix> <tokenId>
+
+                // Cashtab allows sending a cashtab msg with an airdrop
+                // These look like
+                // <prefix> <tokenId> <cashtabMsgPrefix> <msg>
+
+                tokenId = stackArray[1];
+                break;
+            }
             case opReturn.knownApps.cashtabMsg.prefix: {
                 app = opReturn.knownApps.cashtabMsg.app;
                 // For a Cashtab msg, the next push on the stack is the Cashtab msg
@@ -649,6 +665,89 @@ module.exports = {
         return { app, msg };
     },
     /**
+     * Parse the stackArray of an airdrop tx to generate a useful telegram msg
+     * @param {array} stackArray
+     * @param {string} airdropSendingAddress
+     * @param {Map} airdropRecipientsMap
+     * @param {object} tokenInfo token info for the swapped token. optional. Bool False if API call failed.
+     * @param {object} coingeckoPrices object containing price info from coingecko. Bool False if API call failed.
+     * @returns {string} msg ready to send through Telegram API
+     */
+    getAirdropTgMsg: function (
+        stackArray,
+        airdropSendingAddress,
+        airdropRecipientsMap,
+        tokenInfo,
+        coingeckoPrices,
+    ) {
+        // stackArray for an airdrop tx will be
+        // [airdrop_protocol_identifier, airdropped_tokenId, optional_cashtab_msg_protocol_identifier, optional_cashtab_msg]
+
+        // get tokenId
+        const tokenId = stackArray[1];
+
+        // Intialize msg with preview of sending address
+        let msg = `${returnAddressPreview(airdropSendingAddress)} airdropped `;
+
+        // Calculate amount of XEC airdropped
+        let totalSatsAirdropped = 0;
+        for (const satoshis of airdropRecipientsMap.values()) {
+            totalSatsAirdropped += satoshis;
+        }
+        // Convert sats to XEC. Round as decimals will not be rendered in msgs.
+        const totalXecAirdropped = parseFloat(
+            (totalSatsAirdropped / 100).toFixed(0),
+        );
+        let displayedAirdroppedQtyString;
+        if (coingeckoPrices) {
+            // XEC price is the first one
+            const { fiat, price } = coingeckoPrices[0];
+            const totalFiatAirdropped = totalXecAirdropped * price;
+            displayedAirdroppedQtyString = `${
+                config.fiatReference[fiat]
+            }${totalFiatAirdropped.toLocaleString('en-US', {
+                maximumFractionDigits: 0,
+            })}`;
+        } else {
+            displayedAirdroppedQtyString = `${totalXecAirdropped.toLocaleString(
+                'en-US',
+                {
+                    maximumFractionDigits: 0,
+                },
+            )} XEC`;
+        }
+
+        // Add to msg
+        msg += `${displayedAirdroppedQtyString} to ${airdropRecipientsMap.size} holders of `;
+
+        if (tokenInfo) {
+            // If API call to get tokenInfo was successful to tokenInfo !== false
+            const { tokenTicker } = tokenInfo;
+
+            // Link to token id
+            msg += `<a href="${
+                config.blockExplorer
+            }/tx/${tokenId}">${prepareStringForTelegramHTML(tokenTicker)}</a>`;
+        } else {
+            // Note: tokenInfo is false if the API call to chronik fails
+            // Link to token id
+            msg += `<a href="${config.blockExplorer}/tx/${tokenId}">${
+                tokenId.slice(0, 3) + '...' + tokenId.slice(-3)
+            }</a>`;
+        }
+        // Add Cashtab msg if present
+        if (
+            stackArray.length > 3 &&
+            stackArray[2] === opReturn.knownApps.cashtabMsg.prefix
+        ) {
+            msg += '|';
+            msg += prepareStringForTelegramHTML(
+                Buffer.from(stackArray[3], 'hex').toString('utf8'),
+            );
+        }
+        return msg;
+    },
+    /**
      * Parse the stackArray of a SWaP tx according to spec to generate a useful telegram msg
      * @param {array} stackArray
      * @param {object} tokenInfo token info for the swapped token. optional.
@@ -852,6 +951,20 @@ module.exports = {
                 let { app, msg, stackArray, tokenId } = opReturnInfo;
 
                 switch (app) {
+                    case opReturn.knownApps.airdrop.app: {
+                        msg = module.exports.getAirdropTgMsg(
+                            stackArray,
+                            cashaddr.encodeOutputScript(
+                                xecSendingOutputScripts.values().next().value,
+                            ), // Assume first input is sender
+                            xecReceivingOutputs,
+                            tokenId && tokenInfoMap
+                                ? tokenInfoMap.get(tokenId)
+                                : false,
+                            coingeckoPrices,
+                        );
+                        break;
+                    }
                     case opReturn.knownApps.swap.app: {
                         msg = module.exports.getSwapTgMsg(
                             stackArray,

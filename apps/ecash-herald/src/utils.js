@@ -204,4 +204,17 @@ module.exports = {
             );
         });
     },
+    /**
+     * Convert a map to a key value array
+     * Useful to generate test vectors by `console.log(mapToKeyValueArray(someMap))` in a function
+     * @param {map} map
+     * @returns array
+     */
+    mapToKeyValueArray: function (map) {
+        let kvArray = [];
+        map.forEach((value, key) => {
+            kvArray.push([key, value]);
+        });
+        return kvArray;
+    },
 };

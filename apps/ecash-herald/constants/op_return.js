@@ -16,6 +16,7 @@ module.exports = {
         '2e786563': 'Alias',
     },
     knownApps: {
+        airdrop: { prefix: '64726f70', app: 'Airdrop' },
         cashtabMsg: { prefix: '00746162', app: 'Cashtab Msg' },
         swap: { prefix: '53575000', app: 'SWaP' },
         fusion: { prefix: '46555a00', app: 'Cash Fusion' },

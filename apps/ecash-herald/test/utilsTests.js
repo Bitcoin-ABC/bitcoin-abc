@@ -14,6 +14,7 @@ const {
     formatPrice,
     jsonReplacer,
     jsonReviver,
+    mapToKeyValueArray,
 } = require('../src/utils');
 const { addressPreviews } = require('./mocks/templates');
 
@@ -217,5 +218,18 @@ describe('ecash-telegram-bot utils.js functions', function () {
         const roundTrip = JSON.parse(jsonText, jsonReviver);
 
         assert.deepEqual({ map, set }, roundTrip);
+    });
+    it('mapToKeyValueArray converts a map to a key value array and back to the same map', async function () {
+        const map = new Map([
+            [1, 'one'],
+            [2, 'two'],
+            [3, 'three'],
+        ]);
+
+        const kvArray = mapToKeyValueArray(map);
+
+        const roundTrip = new Map(kvArray);
+
+        assert.deepEqual(map, roundTrip);
     });
 });
