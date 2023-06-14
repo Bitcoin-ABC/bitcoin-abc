@@ -58,7 +58,6 @@ describe('parse.js functions', function () {
         for (let i = 0; i < swaps.length; i += 1) {
             const { stackArray, msg, tokenInfo } = swaps[i];
             const result = getSwapTgMsg(stackArray, tokenInfo);
-            //console.log(`2`, result);
             assert.strictEqual(result, msg);
         }
     });
