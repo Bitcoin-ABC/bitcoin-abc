@@ -11,6 +11,7 @@ module.exports = {
     opReturnPrefix: '6a',
     opReturnAppPrefixLength: '04',
     opPushDataOne: '4c',
+    opReserved: '50',
     knownApps: {
         airdrop: { prefix: '64726f70', app: 'Airdrop' },
         cashtabMsg: { prefix: '00746162', app: 'Cashtab Msg' },
@@ -21,6 +22,7 @@ module.exports = {
         swap: { prefix: '53575000', app: 'SWaP' },
         fusion: { prefix: '46555a00', app: 'Cash Fusion' },
         fusionLegacy: { prefix: '5920070', app: 'Cash Fusion' },
+        slp2: { prefix: '534c5032', app: 'SLP v2' },
     },
     memo: {
         'prefix': '6d',

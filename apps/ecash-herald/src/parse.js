@@ -352,6 +352,11 @@ module.exports = {
 
         // Test for other known apps with known msg processing methods
         switch (protocolIdentifier) {
+            case opReturn.opReserved: {
+                // Parse for empp OP_RETURN
+                // Spec https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/chronik/bitcoinsuite-slp/src/empp/mod.rs
+                return module.exports.parseMultipushStack(stackArray);
+            }
             case opReturn.knownApps.airdrop.prefix: {
                 app = opReturn.knownApps.airdrop.app;
 
@@ -427,6 +432,79 @@ module.exports = {
         }
 
         return { app, msg, stackArray, tokenId };
+    },
+    /**
+     * Parse an empp stack for a simplified slp v2 description
+     * TODO expand for parsing other types of empp txs as specs or examples are known
+     * @param {array} emppStackArray an array containing a hex string for every push of this memo OP_RETURN outputScript
+     * @returns {object} {app, msg} used to compose a useful telegram msg describing the transaction
+     */
+    parseMultipushStack: function (emppStackArray) {
+        // Note that an empp push may not necessarily include traditionally parsed pushes
+        // i.e. consumeNextPush({remainingHex:<emppPush>}) may throw an error
+        // For example, SLPv2 txs do not include a push for their prefix
+
+        // So, parsing empp txs will require specific rules depending on the type of tx
+        let msgs = [];
+
+        // Start at i=1 because emppStackArray[0] is OP_RESERVED
+        for (let i = 1; i < emppStackArray.length; i += 1) {
+            if (
+                emppStackArray[i].slice(0, 8) === opReturn.knownApps.slp2.prefix
+            ) {
+                // Parse string for slp v2
+                const thisMsg = module.exports.parseSlpTwo(
+                    emppStackArray[i].slice(8),
+                );
+                msgs.push(`${opReturn.knownApps.slp2.app}:${thisMsg}`);
+            } else {
+                // Since we don't know any spec or parsing rules for other types of EMPP pushes,
+                // Just add an ASCII decode of the whole thing if you see one
+                msgs.push(
+                    `${'Unknown App:'}${Buffer.from(
+                        emppStackArray[i],
+                        'hex',
+                    ).toString('ascii')}`,
+                );
+            }
+            // Do not parse any other empp (haven't seen any in the wild, no existing specs to follow)
+        }
+        if (msgs.length > 0) {
+            return { app: 'EMPP', msg: msgs.join('|') };
+        }
+    },
+    /**
+     * Stub method to parse slp two empps
+     * @param {string} slpTwoPush a string of hex characters in an empp tx representing an slp2 push
+     * @returns {string} For now, just the section type, if token type is correct
+     */
+    parseSlpTwo: function (slpTwoPush) {
+        // Parse an empp push hex string with the SLP protocol identifier removed per SLP v2 spec
+        // https://ecashbuilders.notion.site/SLPv2-a862a4130877448387373b9e6a93dd97
+
+        let msg = '';
+
+        // 1.3: Read token type
+        // For now, this can only be 00. If not 00, unknown
+        const tokenType = slpTwoPush.slice(0, 2);
+
+        if (tokenType !== '00') {
+            msg += 'Unknown token type|';
+        }
+
+        // 1.4: Read section type
+        // Note: these are encoded with push data, so you can use ecash-script
+        let stack = { remainingHex: slpTwoPush.slice(2) };
+
+        const sectionType = Buffer.from(consumeNextPush(stack), 'hex').toString(
+            'utf8',
+        );
+        msg += sectionType;
+
+        // Stop here for now
+        // The rest of the parsing rules get quite complicated and should be handled in a dedicated library
+        // or indexer
+        return msg;
     },
     /**
      * Parse a stackArray according to OP_RETURN rules to convert to a useful tg msg

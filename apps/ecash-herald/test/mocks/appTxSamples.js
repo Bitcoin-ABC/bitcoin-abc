@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 // @generated
 'use strict';
+const opReturn = require('../../constants/op_return');
 module.exports = {
     // https://github.com/vinarmani/swap-protocol/blob/master/swap-protocol-spec.md
     swaps: [
@@ -291,6 +292,78 @@ module.exports = {
             msg: 'qq9...fgx sent an encrypted message and $0 to qrm...r48 and 1 other',
             msgApiFailure:
                 'qq9...fgx sent an encrypted message and 7 XEC to qrm...r48 and 1 other',
+        },
+    ],
+    slp2PushVectors: [
+        {
+            push: '534c503200044d494e5445e1f25de444e399b6d46fa66e3424c04549a85a14b12bc9a4ddc9cdcdcdcdcd0150c30000000000',
+            msg: 'MINT',
+        },
+        {
+            push: '534c5032000453454e4445e1f25de444e399b6d46fa66e3424c04549a85a14b12bc9a4ddc9cdcdcdcdcd03204e00000000cc7400000000640000000000',
+            msg: 'SEND',
+        },
+        {
+            push: '534c503200044255524e45e1f25de444e399b6d46fa66e3424c04549a85a14b12bc9a4ddc9cdcdcdcdcd204e00000000',
+            msg: 'BURN',
+        },
+    ],
+    slp2TxVectors: [
+        {
+            txid: '05fbc4dcea9cc73e298b9f7bfe58de7b11dbbb3917c2bbdc5c9c93035e84b9fa',
+            hex: '5032534c503200044d494e5445e1f25de444e399b6d46fa66e3424c04549a85a14b12bc9a4ddc9cdcdcdcdcd0150c30000000000',
+            emppStackArray: [
+                '50',
+                '534c503200044d494e5445e1f25de444e399b6d46fa66e3424c04549a85a14b12bc9a4ddc9cdcdcdcdcd0150c30000000000',
+            ],
+            msg: `${opReturn.knownApps.slp2.app}:MINT`,
+        },
+        {
+            txid: '6f907d8d0f31315fbac8f860052e92899866869326f726393fd4fd4b5f7b8a7f',
+            hex: '503d534c5032000453454e4445e1f25de444e399b6d46fa66e3424c04549a85a14b12bc9a4ddc9cdcdcdcdcd03204e00000000cc7400000000640000000000',
+            emppStackArray: [
+                '50',
+                '534c5032000453454e4445e1f25de444e399b6d46fa66e3424c04549a85a14b12bc9a4ddc9cdcdcdcdcd03204e00000000cc7400000000640000000000',
+            ],
+            msg: `${opReturn.knownApps.slp2.app}:SEND`,
+        },
+        {
+            txid: 'f0548510095dfbbe31cbeb27e3c0a340aabaad12f98d4ec6f563602a9f3f5499',
+            hex: '5030534c503200044255524e45e1f25de444e399b6d46fa66e3424c04549a85a14b12bc9a4ddc9cdcdcdcdcd204e00000000',
+            emppStackArray: [
+                '50',
+                '534c503200044255524e45e1f25de444e399b6d46fa66e3424c04549a85a14b12bc9a4ddc9cdcdcdcdcd204e00000000',
+            ],
+            msg: `${opReturn.knownApps.slp2.app}:BURN`,
+        },
+        {
+            txid: 'c60db447e7eabee94100567953985ec245a02368e604dd8436733624af38aa3c',
+            hex: '5030534c5032c8044255524e0748dae47347c2cf32838eaddedc60866160f0772a022b17463aa435809ac635102700000000',
+            emppStackArray: [
+                '50',
+                '534c5032c8044255524e0748dae47347c2cf32838eaddedc60866160f0772a022b17463aa435809ac635102700000000',
+            ],
+            msg: `${opReturn.knownApps.slp2.app}:Unknown token type|BURN`,
+        },
+        {
+            txid: 'e3e24259c06b6cc61647239f5bab24d4433747ab80456c72a641dc5219d81b94',
+            hex: '503d534c5032c80453454e440748dae47347c2cf32838eaddedc60866160f0772a022b17463aa435809ac63503102700000000584d00000000640000000000',
+            emppStackArray: [
+                '50',
+                '534c5032c80453454e440748dae47347c2cf32838eaddedc60866160f0772a022b17463aa435809ac63503102700000000584d00000000640000000000',
+            ],
+            msg: `${opReturn.knownApps.slp2.app}:Unknown token type|SEND`,
+        },
+        // Manually add a cashtab msg push
+        {
+            txid: 'e3e24259c06b6cc61647239f5bab24d4433747ab80456c72a641dc5219d81b94',
+            hex: '503d534c5032c80453454e440748dae47347c2cf32838eaddedc60866160f0772a022b17463aa435809ac63503102700000000584d000000006400000000002e04007461622846726f6d20467265657865632c207468616e6b20796f7520666f7220796f757220737570706f7274',
+            emppStackArray: [
+                '50',
+                '534c5032c80453454e440748dae47347c2cf32838eaddedc60866160f0772a022b17463aa435809ac63503102700000000584d00000000640000000000',
+                '04007461622846726f6d20467265657865632c207468616e6b20796f7520666f7220796f757220737570706f7274',
+            ],
+            msg: `${opReturn.knownApps.slp2.app}:Unknown token type|SEND|Unknown App:\u0004\u0000tab(From Freexec, thank you for your support`,
         },
     ],
 };

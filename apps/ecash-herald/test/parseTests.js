@@ -23,11 +23,15 @@ const {
     getSwapTgMsg,
     getAirdropTgMsg,
     getEncryptedCashtabMsg,
+    parseMultipushStack,
+    parseSlpTwo,
 } = require('../src/parse');
 const {
     swaps,
     airdrops,
     encryptedCashtabMsgs,
+    slp2PushVectors,
+    slp2TxVectors,
 } = require('./mocks/appTxSamples');
 
 describe('parse.js functions', function () {
@@ -138,6 +142,31 @@ describe('parse.js functions', function () {
             );
             assert.strictEqual(result, msg);
             assert.strictEqual(resultApiFailure, msgApiFailure);
+        }
+    });
+    it('parseOpReturn handles slp2 txs', function () {
+        for (let i = 0; i < slp2TxVectors.length; i += 1) {
+            const { hex, msg } = slp2TxVectors[i];
+            assert.deepEqual(parseOpReturn(hex), {
+                app: 'EMPP',
+                msg,
+            });
+        }
+    });
+    it('parseMultipushStack handles a range of observed slp2 empp pushes', function () {
+        for (let i = 0; i < slp2TxVectors.length; i += 1) {
+            const { emppStackArray, msg } = slp2TxVectors[i];
+            assert.deepEqual(parseMultipushStack(emppStackArray), {
+                app: 'EMPP',
+                msg,
+            });
+        }
+    });
+    it('parseSlpTwo handles a range of observed slp2 empp pushes', function () {
+        for (let i = 0; i < slp2PushVectors.length; i += 1) {
+            const { push, msg } = slp2PushVectors[i];
+
+            assert.strictEqual(parseSlpTwo(push.slice(8)), msg);
         }
     });
     it('parseOpReturn recognizes legacy Cash Fusion prefix', function () {
