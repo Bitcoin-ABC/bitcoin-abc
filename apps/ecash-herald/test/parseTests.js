@@ -22,8 +22,13 @@ const {
     parseOpReturn,
     getSwapTgMsg,
     getAirdropTgMsg,
+    getEncryptedCashtabMsg,
 } = require('../src/parse');
-const { swaps, airdrops } = require('./mocks/appTxSamples');
+const {
+    swaps,
+    airdrops,
+    encryptedCashtabMsgs,
+} = require('./mocks/appTxSamples');
 
 describe('parse.js functions', function () {
     it('All test blocks', function () {
@@ -95,6 +100,40 @@ describe('parse.js functions', function () {
                 airdropSendingAddress,
                 new Map(airdropRecipientsKeyValueArray),
                 false,
+                false,
+            );
+            assert.strictEqual(result, msg);
+            assert.strictEqual(resultApiFailure, msgApiFailure);
+        }
+    });
+    it('parseOpReturn handles encrypted cashtab msg txs', function () {
+        for (let i = 0; i < encryptedCashtabMsgs.length; i += 1) {
+            const { hex, stackArray } = encryptedCashtabMsgs[i];
+            assert.deepEqual(parseOpReturn(hex), {
+                app: opReturn.knownApps.cashtabMsgEncrypted.app,
+                msg: '',
+                stackArray,
+                tokenId: false,
+            });
+        }
+    });
+    it('getEncryptedCashtabMsg handles encrypted cashtab msg txs with and without price info', function () {
+        for (let i = 0; i < encryptedCashtabMsgs.length; i += 1) {
+            const {
+                sendingAddress,
+                xecReceivingOutputsKeyValueArray,
+                msg,
+                msgApiFailure,
+                coingeckoPrices,
+            } = encryptedCashtabMsgs[i];
+            const result = getEncryptedCashtabMsg(
+                sendingAddress,
+                new Map(xecReceivingOutputsKeyValueArray),
+                coingeckoPrices,
+            );
+            const resultApiFailure = getEncryptedCashtabMsg(
+                sendingAddress,
+                new Map(xecReceivingOutputsKeyValueArray),
                 false,
             );
             assert.strictEqual(result, msg);

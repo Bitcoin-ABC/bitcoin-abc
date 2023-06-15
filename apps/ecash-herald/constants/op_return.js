@@ -14,6 +14,10 @@ module.exports = {
     knownApps: {
         airdrop: { prefix: '64726f70', app: 'Airdrop' },
         cashtabMsg: { prefix: '00746162', app: 'Cashtab Msg' },
+        cashtabMsgEncrypted: {
+            prefix: '65746162',
+            app: 'Cashtab Encrypted',
+        },
         swap: { prefix: '53575000', app: 'SWaP' },
         fusion: { prefix: '46555a00', app: 'Cash Fusion' },
         fusionLegacy: { prefix: '5920070', app: 'Cash Fusion' },

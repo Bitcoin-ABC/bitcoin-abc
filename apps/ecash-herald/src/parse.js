@@ -377,6 +377,13 @@ module.exports = {
                 );
                 break;
             }
+            case opReturn.knownApps.cashtabMsgEncrypted.prefix: {
+                app = opReturn.knownApps.cashtabMsgEncrypted.app;
+                // For an encrypted cashtab msg, you can't parse and display the msg
+                msg = '';
+                // You will add info about the tx when you build the msg
+                break;
+            }
             case opReturn.knownApps.fusionLegacy.prefix:
             case opReturn.knownApps.fusion.prefix: {
                 /**
@@ -665,6 +672,64 @@ module.exports = {
         return { app, msg };
     },
     /**
+     * Build a msg about an encrypted cashtab msg tx
+     * @param {string} sendingAddress
+     * @param {map} xecReceivingOutputs
+     * @param {object} coingeckoPrices
+     * @returns {string} msg
+     */
+    getEncryptedCashtabMsg: function (
+        sendingAddress,
+        xecReceivingOutputs,
+        coingeckoPrices,
+    ) {
+        // Get total amount sent
+        let totalSatsSent = 0;
+        for (const satoshis of xecReceivingOutputs.values()) {
+            totalSatsSent += satoshis;
+        }
+        // Convert sats to XEC. Round as decimals will not be rendered in msgs.
+        const totalXecSent = parseFloat((totalSatsSent / 100).toFixed(0));
+
+        // If price, convert XEC to USD
+        let displayedSentQtyString;
+        if (coingeckoPrices) {
+            // XEC price is the first one
+            const { fiat, price } = coingeckoPrices[0];
+            const totalFiatFused = totalXecSent * price;
+            displayedSentQtyString = `${
+                config.fiatReference[fiat]
+            }${totalFiatFused.toLocaleString('en-US', {
+                maximumFractionDigits: 0,
+            })}`;
+        } else {
+            displayedSentQtyString = `${totalXecSent.toLocaleString('en-US', {
+                maximumFractionDigits: 0,
+            })} XEC`;
+        }
+
+        // Remove OP_RETURNs from xecReceivingOutputs
+        let receivingOutputscripts = [];
+        for (const outputScript of xecReceivingOutputs.keys()) {
+            if (!outputScript.startsWith('6a')) {
+                receivingOutputscripts.push(outputScript);
+            }
+        }
+
+        let msgRecipientString = `${returnAddressPreview(
+            cashaddr.encodeOutputScript(receivingOutputscripts[0]),
+        )}`;
+        if (receivingOutputscripts.length > 1) {
+            // Subtract 1 because you have already rendered one receiving address
+            msgRecipientString += ` and ${
+                receivingOutputscripts.length - 1
+            } other${receivingOutputscripts.length > 2 ? 's' : ''}`;
+        }
+        return `${returnAddressPreview(
+            sendingAddress,
+        )} sent an encrypted message and ${displayedSentQtyString} to ${msgRecipientString}`;
+    },
+    /**
      * Parse the stackArray of an airdrop tx to generate a useful telegram msg
      * @param {array} stackArray
      * @param {string} airdropSendingAddress
@@ -951,6 +1016,16 @@ module.exports = {
                 let { app, msg, stackArray, tokenId } = opReturnInfo;
 
                 switch (app) {
+                    case opReturn.knownApps.cashtabMsgEncrypted.app: {
+                        msg = module.exports.getEncryptedCashtabMsg(
+                            cashaddr.encodeOutputScript(
+                                xecSendingOutputScripts.values().next().value,
+                            ), // Assume first input is sender
+                            xecReceivingOutputs,
+                            coingeckoPrices,
+                        );
+                        break;
+                    }
                     case opReturn.knownApps.airdrop.app: {
                         msg = module.exports.getAirdropTgMsg(
                             stackArray,
