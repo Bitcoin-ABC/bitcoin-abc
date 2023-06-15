@@ -918,8 +918,7 @@ public:
 
 void ThreadImport(ChainstateManager &chainman,
                   avalanche::Processor *const avalanche,
-                  std::vector<fs::path> vImportFiles,
-                  const fs::path &mempool_path) {
+                  std::vector<fs::path> vImportFiles) {
     ScheduleBatchPriority();
 
     {
@@ -1030,7 +1029,7 @@ void ThreadImport(ChainstateManager &chainman,
             return;
         }
     } // End scope of ImportingNow
-    chainman.ActiveChainstate().LoadMempool(mempool_path);
+
     g_indexes_ready_to_sync = true;
 }
 } // namespace node

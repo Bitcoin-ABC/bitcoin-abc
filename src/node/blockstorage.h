@@ -311,8 +311,7 @@ public:
 
 void ThreadImport(ChainstateManager &chainman,
                   avalanche::Processor *const avalanche,
-                  std::vector<fs::path> vImportFiles,
-                  const fs::path &mempool_path);
+                  std::vector<fs::path> vImportFiles);
 } // namespace node
 
 #endif // BITCOIN_NODE_BLOCKSTORAGE_H
