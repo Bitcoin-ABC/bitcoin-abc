@@ -625,9 +625,10 @@ bool BlockManager::FlushUndoFile(int block_file, bool finalize) {
     FlatFilePos undo_pos_old(block_file,
                              m_blockfile_info[block_file].nUndoSize);
     if (!UndoFileSeq().Flush(undo_pos_old, finalize)) {
-        return AbortNode(
+        m_opts.notifications.flushError(
             "Flushing undo file to disk failed. This is likely the "
             "result of an I/O error.");
+        return false;
     }
     return true;
 }
@@ -650,8 +651,9 @@ bool BlockManager::FlushBlockFile(int blockfile_num, bool fFinalize,
     FlatFilePos block_pos_old(blockfile_num,
                               m_blockfile_info[blockfile_num].nSize);
     if (!BlockFileSeq().Flush(block_pos_old, fFinalize)) {
-        AbortNode("Flushing block file to disk failed. This is likely the "
-                  "result of an I/O error.");
+        m_opts.notifications.flushError(
+            "Flushing block file to disk failed. This is likely the "
+            "result of an I/O error.");
         success = false;
     }
     // we do not always flush the undo file, as the chain tip may be lagging

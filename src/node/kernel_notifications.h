@@ -25,6 +25,8 @@ public:
                   bool resume_possible) override;
 
     void warning(const std::string &warning) override;
+
+    void flushError(const std::string &debug_message) override;
 };
 } // namespace node
 

@@ -2106,6 +2106,7 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
         BlockManager::Options blockman_opts_dummy{
             .chainparams = chainman_opts_dummy.config.GetChainParams(),
             .blocks_dir = args.GetBlocksDirPath(),
+            .notifications = chainman_opts_dummy.notifications,
         };
         if (const auto error{ApplyArgsManOptions(args, blockman_opts_dummy)}) {
             return InitError(*error);
@@ -2496,6 +2497,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     BlockManager::Options blockman_opts{
         .chainparams = chainman_opts.config.GetChainParams(),
         .blocks_dir = args.GetBlocksDirPath(),
+        .notifications = chainman_opts.notifications,
     };
     // no error can happen, already checked in AppInitParameterInteraction
     Assert(!ApplyArgsManOptions(args, blockman_opts));

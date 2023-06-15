@@ -178,6 +178,7 @@ ChainTestingSetup::ChainTestingSetup(
     const BlockManager::Options blockman_opts{
         .chainparams = chainman_opts.config.GetChainParams(),
         .blocks_dir = m_args.GetBlocksDirPath(),
+        .notifications = chainman_opts.notifications,
     };
     m_node.chainman = std::make_unique<ChainstateManager>(
         m_node.kernel->interrupt, chainman_opts, blockman_opts);

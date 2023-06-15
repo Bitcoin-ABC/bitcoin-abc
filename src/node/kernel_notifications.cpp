@@ -11,6 +11,7 @@
 #include <common/args.h>
 #include <common/system.h>
 #include <node/ui_interface.h>
+#include <shutdown.h>
 #include <util/strencodings.h>
 #include <util/string.h>
 #include <util/translation.h>
@@ -61,6 +62,10 @@ void KernelNotifications::progress(const bilingual_str &title,
 
 void KernelNotifications::warning(const std::string &warning) {
     AlertNotify(warning);
+}
+
+void KernelNotifications::flushError(const std::string &debug_message) {
+    AbortNode(debug_message);
 }
 
 } // namespace node
