@@ -100,3 +100,19 @@ bool IsWellingtonEnabled(const Consensus::Params &params,
 
     return IsWellingtonEnabled(params, pindexPrev->nHeight);
 }
+
+bool IsCowperthwaiteEnabled(const Consensus::Params &params,
+                            int64_t nMedianTimePast) {
+    return nMedianTimePast >=
+           gArgs.GetIntArg("-cowperthwaiteactivationtime",
+                           params.cowperthwaiteActivationTime);
+}
+
+bool IsCowperthwaiteEnabled(const Consensus::Params &params,
+                            const CBlockIndex *pindexPrev) {
+    if (pindexPrev == nullptr) {
+        return false;
+    }
+
+    return IsCowperthwaiteEnabled(params, pindexPrev->GetMedianTimePast());
+}

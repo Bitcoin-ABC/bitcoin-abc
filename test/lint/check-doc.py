@@ -39,8 +39,6 @@ SET_FALSE_POSITIVE_UNKNOWNS = {
     "-zmqpubrawtxhwm",
     "-zmqpubsequence",
     "-zmqpubsequencehwm",
-    # Remove after Nov. 2023 upgrade
-    "-cowperthwaiteactivationtime",
 }
 
 # list false positive undocumented arguments
