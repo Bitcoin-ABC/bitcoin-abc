@@ -41,9 +41,10 @@ export default function WealthRedefined() {
                 <TextBlock>
                     <H3 text="Wealth Redefined" />
                     <p>
-                        In today's age of change and innovation, it's time to
-                        expand our understanding of wealth. It's not just about
-                        dollars. It's about time. It's about control. It's about
+                        In today&rsquo;s age of change and innovation,
+                        it&rsquo;s time to expand our understanding of wealth.
+                        It&rsquo;s not just about dollars. It&rsquo;s about
+                        time. It&rsquo;s about control. It&rsquo;s about
                         adventure.
                     </p>
                     <p>
@@ -53,7 +54,7 @@ export default function WealthRedefined() {
                     <p>
                         Enter eCash. Sound money enables wealth. Join us and
                         take your first step on the path to financial and
-                        personal freedom. Let's redefine wealth together.
+                        personal freedom. Let&rsquo;s redefine wealth together.
                     </p>
                     <CenterImage height="500px">
                         <Image src={handslogo} alt="eCash" fill />
@@ -68,14 +69,15 @@ export default function WealthRedefined() {
                         <br />
                         <br />
                         We have paid the price for this in the past. We have
-                        celebrated success, briefly eclipsing Ethereum's market
-                        cap with Bitcoin Cash, but have also wandered in the
-                        desert of prolonged popular defeat.
+                        celebrated success, briefly eclipsing Ethereum&rsquo;s
+                        market cap with Bitcoin Cash, but have also wandered in
+                        the desert of prolonged popular defeat.
                         <br />
                         <br />
-                        But we're not ready to throw in the towel. We've chosen
-                        a long and difficult path. But we learn from our
-                        mistakes. We will never stop making money better.
+                        But we&rsquo;re not ready to throw in the towel.
+                        We&rsquo;ve chosen a long and difficult path. But we
+                        learn from our mistakes. We will never stop making money
+                        better.
                     </p>
                 </TextBlock>
                 <TextBlock>

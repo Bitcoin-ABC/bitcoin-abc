@@ -39,7 +39,7 @@ const QuoteCarousel = () => {
             <QuoteCtn>
                 {quotes.map((quote, index) => (
                     <Quote key={index} active={index === activeIndex}>
-                        <p>"{quote.quote}"</p>
+                        <p>&ldquo;{quote.quote}&rdquo;</p>
                         <span>-{quote.author}</span>
                     </Quote>
                 ))}

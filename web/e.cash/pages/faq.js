@@ -30,8 +30,8 @@ export default function FAQ() {
                 <Blob left="60%" top="60%" />
                 <Blob left="0" top="90%" />
                 <Container narrow>
-                    {faqs.map(faq => (
-                        <QuestionBlock>
+                    {faqs.map((faq, index) => (
+                        <QuestionBlock key={`faq_${index}`}>
                             <H3 text={faq.question} />
                             {faq.answer}
                         </QuestionBlock>

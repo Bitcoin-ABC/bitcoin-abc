@@ -187,8 +187,8 @@ export default function EcashBrand() {
                         <>
                             <RowName>{logo.row_name}</RowName>
                             <LogoRow>
-                                {logo.variations.map(variation => (
-                                    <LogoTileCtn>
+                                {logo.variations.map((variation, index) => (
+                                    <LogoTileCtn key={`${variation}_${index}`}>
                                         <LogoTile
                                             lightbackground={lightbackgrounds.includes(
                                                 variation,
@@ -237,8 +237,8 @@ export default function EcashBrand() {
                         including as background colors and body copy.
                     </p>
                     <ColorRow>
-                        {primaryColors.map(color => (
-                            <ColorTileCtn>
+                        {primaryColors.map((color, index) => (
+                            <ColorTileCtn key={`${color}_${index}`}>
                                 <ColorTile>
                                     <Swatch color={color.hex} />
                                     <ColorValues>
@@ -258,8 +258,8 @@ export default function EcashBrand() {
                         immediately attract the eye.
                     </p>
                     <ColorRow>
-                        {secondaryColors.map(color => (
-                            <ColorTileCtn>
+                        {secondaryColors.map((color, index) => (
+                            <ColorTileCtn key={`secondary_${color}_${index}`}>
                                 <ColorTile>
                                     <Swatch color={color.hex} />
                                     <ColorValues>

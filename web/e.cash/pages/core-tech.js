@@ -111,11 +111,11 @@ export default function CoreTech() {
                     >
                         <p>
                             eCash is a technical solution to a political
-                            problem: what's the best money? Monetary ecosystems
-                            have many important stakeholders. Proof of work
-                            mining has extensive empirical history and ensures
-                            that some stakeholders are incentivized to continue
-                            supporting the network.
+                            problem: what&rsquo;s the best money? Monetary
+                            ecosystems have many important stakeholders. Proof
+                            of work mining has extensive empirical history and
+                            ensures that some stakeholders are incentivized to
+                            continue supporting the network.
                         </p>
                         <p>
                             Recent crypto developments have also proven the
@@ -163,18 +163,18 @@ export default function CoreTech() {
 
                     <TextImageBlock title="CASHFUSION" image={cashfusion}>
                         <p>
-                            You can't always say what you think anymore. More
-                            and more, Big Tech controls what you can see and
-                            say. On the internet, privacy is the only way to
+                            You can&rsquo;t always say what you think anymore.
+                            More and more, Big Tech controls what you can see
+                            and say. On the internet, privacy is the only way to
                             defend your individual freedom.
                         </p>
                         <p>
                             eCash is built by early Bitcoin developers who have
                             been working to solve the problem of internet and
-                            financial privacy long before Satoshi's whitepaper.
-                            Unfortunately, data analytics and tracking
-                            technology have advanced while Bitcoin privacy tech
-                            has remained stagnant.
+                            financial privacy long before Satoshi&rsquo;s
+                            whitepaper. Unfortunately, data analytics and
+                            tracking technology have advanced while Bitcoin
+                            privacy tech has remained stagnant.
                         </p>
                         <p>
                             Privacy is fundamental to sound money. This is why

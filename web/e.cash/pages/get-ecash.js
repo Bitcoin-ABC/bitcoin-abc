@@ -63,9 +63,9 @@ function GetEcash(props) {
                 h2text="Start Today"
             >
                 <p>
-                    Get started today by getting your first eCash. It's simple
-                    and there are several ways to do it. You can find out how
-                    below.
+                    Get started today by getting your first eCash. It&rsquo;s
+                    simple and there are several ways to do it. You can find out
+                    how below.
                 </p>
             </SubPageHero>
             <GradientSpacer />
