@@ -16,10 +16,16 @@
 /**
  * Percentage of the block reward to be sent to the fund.
  */
-static constexpr int MINER_FUND_RATIO = 8;
+static constexpr int LEGACY_MINER_FUND_RATIO = 8;
+static constexpr int MINER_FUND_RATIO = 32;
 
-Amount GetMinerFundAmount(const Amount &coinbaseValue) {
-    return MINER_FUND_RATIO * coinbaseValue / 100;
+Amount GetMinerFundAmount(const Consensus::Params &params,
+                          const Amount &coinbaseValue,
+                          const CBlockIndex *pprev) {
+    const int minerFundRatio = IsCowperthwaiteEnabled(params, pprev)
+                                   ? MINER_FUND_RATIO
+                                   : LEGACY_MINER_FUND_RATIO;
+    return minerFundRatio * coinbaseValue / 100;
 }
 
 static CTxDestination BuildDestination(const std::string &dest) {
@@ -50,13 +56,13 @@ GetMinerFundWhitelist(const Consensus::Params &params) {
 
 bool CheckMinerFund(const Consensus::Params &params,
                     const std::vector<CTxOut> &coinbaseTxOut,
-                    const Amount &blockReward) {
+                    const Amount &blockReward, const CBlockIndex *pprev) {
     const auto whitelist = GetMinerFundWhitelist(params);
     if (whitelist.empty()) {
         return true;
     }
 
-    const Amount required = GetMinerFundAmount(blockReward);
+    const Amount required = GetMinerFundAmount(params, blockReward, pprev);
     for (auto &o : coinbaseTxOut) {
         if (o.nValue < required) {
             // This output doesn't qualify because its amount is too low.

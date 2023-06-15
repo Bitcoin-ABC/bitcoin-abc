@@ -16,8 +16,8 @@ bool MinerFundPolicy::operator()(BlockPolicyValidationState &state) {
     }
 
     assert(m_block.vtx.size());
-    if (!CheckMinerFund(m_consensusParams, m_block.vtx[0]->vout,
-                        m_blockReward)) {
+    if (!CheckMinerFund(m_consensusParams, m_block.vtx[0]->vout, m_blockReward,
+                        m_blockIndex.pprev)) {
         return state.Invalid(BlockPolicyValidationResult::POLICY_VIOLATION,
                              "policy-bad-miner-fund",
                              strprintf("Block %s violates miner fund policy",

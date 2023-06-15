@@ -1044,7 +1044,9 @@ static RPCHelpMan getblocktemplate() {
             int64_t minerFundMinValue = 0;
             if (IsAxionEnabled(consensusParams, pindexPrev)) {
                 minerFundMinValue =
-                    int64_t(GetMinerFundAmount(coinbasevalue) / SATOSHI);
+                    int64_t(GetMinerFundAmount(consensusParams, coinbasevalue,
+                                               pindexPrev) /
+                            SATOSHI);
             }
 
             UniValue minerFund(UniValue::VOBJ);

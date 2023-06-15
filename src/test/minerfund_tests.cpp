@@ -55,4 +55,39 @@ BOOST_AUTO_TEST_CASE(minerfund_whitelist) {
     CheckWhitelist(consensusParams, &blocks[2], expectedMinerFund);
 }
 
+BOOST_AUTO_TEST_CASE(minerfund_amount) {
+    const CChainParams &chainparams = Params();
+    const Consensus::Params &consensusParams = chainparams.GetConsensus();
+
+    const auto activation =
+        gArgs.GetIntArg("-cowperthwaiteactivationtime",
+                        consensusParams.cowperthwaiteActivationTime);
+
+    std::array<CBlockIndex, 12> blocks;
+    for (size_t i = 1; i < blocks.size(); ++i) {
+        blocks[i].pprev = &blocks[i - 1];
+    }
+    CBlockIndex &block = blocks.back();
+
+    auto checkMinerFundRatio = [&](int64_t expectedPercent) {
+        BOOST_CHECK_EQUAL(
+            GetMinerFundAmount(consensusParams, 100 * COIN, &block),
+            expectedPercent * COIN);
+    };
+
+    // Before Cowperthwaite activation, the miner fund ratio is 8%
+    SetMTP(blocks, activation - 1000);
+    checkMinerFundRatio(8);
+    SetMTP(blocks, activation - 1);
+    checkMinerFundRatio(8);
+
+    // After Cowperthwaite activation, the miner fund ratio is 32%
+    SetMTP(blocks, activation);
+    checkMinerFundRatio(32);
+    SetMTP(blocks, activation + 1);
+    checkMinerFundRatio(32);
+    SetMTP(blocks, activation + 1000);
+    checkMinerFundRatio(32);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

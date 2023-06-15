@@ -20,10 +20,14 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal
 
-MINER_FUND_RATIO = 8
+LEGACY_MINER_FUND_RATIO = 8
+MINER_FUND_RATIO = 32
+
 MINER_FUND_ADDR = "ecregtest:prfhcnyqnl5cgrnmlfmms675w93ld7mvvq9jcw0zsn"
 OTHER_MINER_FUND_ADDR = "ecregtest:pqv2r67sgz3qumufap3h2uuj0zfmnzuv8v38gtrh5v"
 QUORUM_NODE_COUNT = 16
+
+THE_FUTURE = 2100000000
 
 
 class AvalancheMinerFundTest(BitcoinTestFramework):
@@ -39,11 +43,13 @@ class AvalancheMinerFundTest(BitcoinTestFramework):
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
                 "-whitelist=noban@127.0.0.1",
+                f"-cowperthwaiteactivationtime={THE_FUTURE}",
             ],
         ]
 
-    def run_test(self):
+    def run_for_ratio(self, ratio):
         node = self.nodes[0]
+        initial_block_count = node.getblockcount()
 
         # Build a fake quorum of nodes.
         def get_quorum():
@@ -60,7 +66,7 @@ class AvalancheMinerFundTest(BitcoinTestFramework):
         # Get block reward
         coinbase = node.getblock(node.getbestblockhash(), 2)["tx"][0]
         block_reward = sum([vout["value"] for vout in coinbase["vout"]])
-        policy_miner_fund_amount = int(block_reward * XEC * MINER_FUND_RATIO / 100)
+        policy_miner_fund_amount = int(block_reward * XEC * ratio / 100)
 
         def has_accepted_tip(tip_expected):
             hash_tip_final = int(tip_expected, 16)
@@ -184,7 +190,19 @@ class AvalancheMinerFundTest(BitcoinTestFramework):
         self.wait_until(lambda: has_finalized_tip(tip))
 
         # Check tip height for sanity
-        assert_equal(node.getblockcount(), QUORUM_NODE_COUNT + len(cases) + 1)
+        assert_equal(
+            node.getblockcount(),
+            initial_block_count + QUORUM_NODE_COUNT + len(cases) + 1,
+        )
+
+    def run_test(self):
+        self.run_for_ratio(LEGACY_MINER_FUND_RATIO)
+
+        self.stop_nodes()
+        self.start_nodes()
+        self.nodes[0].setmocktime(THE_FUTURE)
+
+        self.run_for_ratio(MINER_FUND_RATIO)
 
 
 if __name__ == "__main__":

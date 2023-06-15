@@ -13,8 +13,11 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal, assert_greater_than_or_equal
 
-MINER_FUND_RATIO = 8
+LEGACY_MINER_FUND_RATIO = 8
+MINER_FUND_RATIO = 32
 MINER_FUND_ADDR = "ecregtest:prfhcnyqnl5cgrnmlfmms675w93ld7mvvq9jcw0zsn"
+
+THE_FUTURE = 2100000000
 
 
 class MinerFundTest(BitcoinTestFramework):
@@ -24,11 +27,14 @@ class MinerFundTest(BitcoinTestFramework):
         self.extra_args = [
             [
                 "-enableminerfund",
+                f"-cowperthwaiteactivationtime={THE_FUTURE}",
             ],
-            [],
+            [
+                f"-cowperthwaiteactivationtime={THE_FUTURE}",
+            ],
         ]
 
-    def run_test(self):
+    def run_for_ratio(self, ratio):
         node = self.nodes[0]
 
         self.log.info("Create some history")
@@ -54,7 +60,7 @@ class MinerFundTest(BitcoinTestFramework):
 
             assert_equal(total, block_reward)
             assert_greater_than_or_equal(
-                coinbase["vout"][1]["value"], (MINER_FUND_RATIO * total) / 100
+                coinbase["vout"][1]["value"], (ratio * total) / 100
             )
 
         # The coinbase has an output to the miner fund address.
@@ -64,7 +70,7 @@ class MinerFundTest(BitcoinTestFramework):
         def create_cb_pay_to_address():
             _, _, script_hash = decode(MINER_FUND_ADDR)
 
-            miner_fund_amount = int(block_reward * XEC * MINER_FUND_RATIO / 100)
+            miner_fund_amount = int(block_reward * XEC * ratio / 100)
 
             # Build a coinbase with no miner fund
             cb = create_coinbase(node.getblockcount() + 1)
@@ -141,6 +147,17 @@ class MinerFundTest(BitcoinTestFramework):
         for n in self.nodes:
             n.reconsiderblock(first_block_no_miner_fund)
             assert_equal(n.getbestblockhash(), first_block_no_miner_fund)
+
+    def run_test(self):
+        self.run_for_ratio(LEGACY_MINER_FUND_RATIO)
+
+        self.stop_nodes()
+        self.start_nodes()
+        self.nodes[0].setmocktime(THE_FUTURE)
+        self.nodes[1].setmocktime(THE_FUTURE)
+        self.connect_nodes(0, 1)
+
+        self.run_for_ratio(MINER_FUND_RATIO)
 
 
 if __name__ == "__main__":

@@ -192,7 +192,8 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
 
     const auto whitelisted = GetMinerFundWhitelist(consensusParams);
     if (!whitelisted.empty()) {
-        const Amount fund = GetMinerFundAmount(blockReward);
+        const Amount fund =
+            GetMinerFundAmount(consensusParams, blockReward, pindexPrev);
         coinbaseTx.vout[0].nValue -= fund;
         coinbaseTx.vout.emplace_back(
             fund, GetScriptForDestination(*whitelisted.begin()));
