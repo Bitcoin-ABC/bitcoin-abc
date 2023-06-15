@@ -2,8 +2,7 @@ import styled from 'styled-components';
 
 export const VideoCtn = styled.div`
     width: 100%;
-    height: 100vh;
-    min-height: 600px;
+    height: 100%;
     position: absolute;
     z-index: 0;
     video {

@@ -2,7 +2,7 @@ import VideoBackground from '/components/videobackground';
 import AnimateImage from '/components/animate-image';
 import H2 from '/components/h2';
 import { Container } from '/components/atoms';
-import { HeroCtn, ImgCtn, TextCtn } from './styles';
+import { HeroCtn, ImgCtn, TextCtn, OuterHeroCtn } from './styles';
 
 export default function SubPageHero({
     image, // lottie json file to use in the AnimateImage component
@@ -13,7 +13,7 @@ export default function SubPageHero({
     children, // any children
 }) {
     return (
-        <>
+        <OuterHeroCtn>
             <VideoBackground videoname="blue-abstract" />
             <Container>
                 <HeroCtn>
@@ -30,6 +30,6 @@ export default function SubPageHero({
                     </TextCtn>
                 </HeroCtn>
             </Container>
-        </>
+        </OuterHeroCtn>
     );
 }

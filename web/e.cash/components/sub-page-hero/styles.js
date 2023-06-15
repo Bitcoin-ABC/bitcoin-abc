@@ -1,13 +1,20 @@
 import styled from 'styled-components';
 
+export const OuterHeroCtn = styled.div`
+    width: 100%;
+    position: relative;
+`;
 export const HeroCtn = styled.div`
     display: flex;
     padding-top: 130px;
     position: relative;
-    min-height: 100vh;
+    min-height: 700px;
+    height: 100vh;
+    align-items: center;
 
     ${props => props.theme.breakpoint.medium} {
         flex-direction: column-reverse;
+        height: 100%;
     }
 `;
 
