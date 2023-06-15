@@ -4,8 +4,10 @@
 'use strict';
 
 module.exports = {
-    opCodePrefix: '2e786563',
-    registrationAddress: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+    // Per spec at https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/ecash-alias.md
+    // A valid alias registration outputScript must have protocol identifier pushed by '04'
+    outputScriptStartsWith: '6a042e786563',
+    registrationAddress: 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
     maxLength: 21,
     registrationFeesSats: {
         1: 558,

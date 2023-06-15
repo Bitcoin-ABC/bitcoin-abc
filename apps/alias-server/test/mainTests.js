@@ -10,7 +10,7 @@ const aliasConstants = require('../constants/alias');
 const mockSecrets = require('../secrets.sample');
 const MockAdapter = require('axios-mock-adapter');
 const axios = require('axios');
-const { testAddressAliases } = require('./mocks/aliasMocks');
+const { generated } = require('./mocks/aliasMocks');
 
 // Mock mongodb
 const { MongoClient } = require('mongodb');
@@ -54,7 +54,7 @@ describe('alias-server main.js', async function () {
         );
         mockedChronik.setScript(type, hash);
         // Set the mock tx history
-        mockedChronik.setTxHistory(testAddressAliases.txHistory);
+        mockedChronik.setTxHistory(generated.txHistory);
 
         // Mock avalanche RPC call
         // onNoMatch: 'throwException' helps to debug if mock is not being used

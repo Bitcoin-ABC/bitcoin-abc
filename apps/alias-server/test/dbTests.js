@@ -14,7 +14,7 @@ const {
 // Mock mongodb
 const { MongoClient } = require('mongodb');
 const { MongoMemoryServer } = require('mongodb-memory-server');
-const { testAddressAliases } = require('./mocks/aliasMocks');
+const { generated } = require('./mocks/aliasMocks');
 
 describe('alias-server db.js', async function () {
     let mongoServer, testMongoClient;
@@ -103,7 +103,7 @@ describe('alias-server db.js', async function () {
         // newValidAliases needs to be a clone of the mock because
         // each object gets an _id field when added to the database
         const newValidAliases = JSON.parse(
-            JSON.stringify(testAddressAliases.validAliasTxs),
+            JSON.stringify(generated.validAliasRegistrations),
         );
         await addAliasesToDb(testDb, newValidAliases);
         // Get the newly added valid aliases
@@ -111,13 +111,13 @@ describe('alias-server db.js', async function () {
         const addedValidAliases = await getAliasesFromDb(testDb);
 
         // Verify addedValidAliases match the added mock
-        assert.deepEqual(addedValidAliases, testAddressAliases.validAliasTxs);
+        assert.deepEqual(addedValidAliases, generated.validAliasRegistrations);
     });
     it('addOneAliasToDb successfully adds a new valid alias to an empty collection', async function () {
         // newValidAliases needs to be a clone of the mock because
         // each object gets an _id field when added to the database
         const newValidAliases = JSON.parse(
-            JSON.stringify(testAddressAliases.validAliasTxs),
+            JSON.stringify(generated.validAliasRegistrations),
         );
         const aliasAddedSuccess = await addOneAliasToDb(
             testDb,
@@ -131,14 +131,14 @@ describe('alias-server db.js', async function () {
         assert.strictEqual(aliasAddedSuccess, true);
         // Verify the database has the expected alias
         assert.deepEqual(addedValidAliases, [
-            testAddressAliases.validAliasTxs[0],
+            generated.validAliasRegistrations[0],
         ]);
     });
     it('addOneAliasToDb successfully adds a new valid alias to an existing collection', async function () {
         // newValidAliases needs to be a clone of the mock because
         // each object gets an _id field when added to the database
         const newValidAliases = JSON.parse(
-            JSON.stringify(testAddressAliases.validAliasTxs),
+            JSON.stringify(generated.validAliasRegistrations),
         );
         // Pre-populate the aliases collection
         await addAliasesToDb(testDb, newValidAliases);
@@ -147,7 +147,7 @@ describe('alias-server db.js', async function () {
             address: 'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r48',
             alias: 'rico',
             txid: '3ff9c28fa07cb88c87000ef0f5ee61953d874ffade154cd3f88fd60b88ea2879',
-            blockheight: 787674,
+            blockheight: 1787674, // Note, blockheight is purposefully set to be higher than mocks
         };
 
         // clone to check unit test result as _id will be added to newMockAlias
@@ -164,24 +164,19 @@ describe('alias-server db.js', async function () {
         // Verify the database has the expected alias
         assert.deepEqual(
             addedValidAliases,
-            testAddressAliases.validAliasTxs.concat(newMockAliasClone),
+            generated.validAliasRegistrations.concat(newMockAliasClone),
         );
     });
     it('addOneAliasToDb returns false and fails to add an alias if it is already in the database', async function () {
         // newValidAliases needs to be a clone of the mock because
         // each object gets an _id field when added to the database
         const newValidAliases = JSON.parse(
-            JSON.stringify(testAddressAliases.validAliasTxs),
+            JSON.stringify(generated.validAliasRegistrations),
         );
         // Pre-populate the aliases collection
         await addAliasesToDb(testDb, newValidAliases);
 
-        const newMockAliasTxRegisteringExistingAlias = {
-            address: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
-            alias: 'foo',
-            txid: 'f41ccfbd88d228bbb695b771dd0c266b0351eda9a35aeb8c5e3cb7670e7e17cc',
-            blockheight: 776576,
-        };
+        const newMockAliasTxRegisteringExistingAlias = newValidAliases[0];
 
         // Add an alias tx that does not exist
         const aliasAddedSuccess = await addOneAliasToDb(
@@ -195,7 +190,7 @@ describe('alias-server db.js', async function () {
         // Verify the function returns true on alias add success
         assert.strictEqual(aliasAddedSuccess, false);
         // Verify the database has the expected aliases (without the failed add)
-        assert.deepEqual(addedValidAliases, testAddressAliases.validAliasTxs);
+        assert.deepEqual(addedValidAliases, generated.validAliasRegistrations);
     });
     it('getAliasesFromDb returns an empty array if no aliases have been added to the collection', async function () {
         const validAliases = await getAliasesFromDb(testDb);
@@ -208,13 +203,13 @@ describe('alias-server db.js', async function () {
         // newValidAliases needs to be a clone of the mock because
         // each object gets an _id field when added to the database
         const newValidAliases = JSON.parse(
-            JSON.stringify(testAddressAliases.validAliasTxs),
+            JSON.stringify(generated.validAliasRegistrations),
         );
         await addAliasesToDb(testDb, newValidAliases);
 
         // Try to add three aliases that already exists in the database
         const newValidAliasAlreadyInDb = JSON.parse(
-            JSON.stringify(testAddressAliases.validAliasTxs.slice(0, 3)),
+            JSON.stringify(generated.validAliasRegistrations.slice(0, 3)),
         );
         const failedResult = await addAliasesToDb(
             testDb,

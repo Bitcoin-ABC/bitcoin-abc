@@ -19,7 +19,7 @@ const axios = require('axios');
 const { initializeDb } = require('../src/db');
 const { MongoClient } = require('mongodb');
 const { MongoMemoryServer } = require('mongodb-memory-server');
-const { testAddressAliases } = require('./mocks/aliasMocks');
+const { generated } = require('./mocks/aliasMocks');
 
 describe('alias-server chronikWsHandler.js', async function () {
     let mongoServer, testMongoClient;
@@ -134,7 +134,7 @@ describe('alias-server chronikWsHandler.js', async function () {
         );
         mockedChronik.setScript(type, hash);
         // Set the mock tx history
-        mockedChronik.setTxHistory(testAddressAliases.txHistory);
+        mockedChronik.setTxHistory(generated.txHistory);
 
         // Mock avalanche RPC call
         // onNoMatch: 'throwException' helps to debug if mock is not being used
@@ -230,7 +230,7 @@ describe('alias-server chronikWsHandler.js', async function () {
         );
         mockedChronik.setScript(type, hash);
         // Set the mock tx history
-        mockedChronik.setTxHistory(testAddressAliases.txHistory);
+        mockedChronik.setTxHistory(generated.txHistory);
 
         // Mock avalanche RPC call
         // onNoMatch: 'throwException' helps to debug if mock is not being used
@@ -266,7 +266,7 @@ describe('alias-server chronikWsHandler.js', async function () {
         nextMockedChronik.setScript(type, hash);
         // Set the mock tx history
         // For now, assume it's the same as before, i.e. no new txs found
-        nextMockedChronik.setTxHistory(testAddressAliases.txHistory);
+        nextMockedChronik.setTxHistory(generated.txHistory);
 
         const firstCallPromise = parseWebsocketMessage(
             mockedChronik,
