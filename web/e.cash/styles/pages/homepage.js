@@ -262,7 +262,7 @@ export const PixelBorder = styled.div`
         linear-gradient(180deg, transparent 79%, rgba(0, 0, 0, 0.67) 97%, #000);
 `;
 
-export const RoadmpaSection = styled.div`
+export const RoadmapSection = styled.div`
     width: 100%;
     text-align: center;
     background-color: ${props => props.theme.colors.black};

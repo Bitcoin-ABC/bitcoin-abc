@@ -15,7 +15,7 @@ import {
     StorySection,
     YouTubeVideo,
     PixelBorder,
-    RoadmpaSection,
+    RoadmapSection,
 } from '/styles/pages/homepage';
 import Button from '/components/button';
 import H2 from '/components/h2';
@@ -101,12 +101,12 @@ export default function Home() {
                 </Container>
             </StoryAndWhySection>
             <PixelBorder />
-            <RoadmpaSection>
+            <RoadmapSection>
                 <Container>
                     <H2 subtext="Now & Future" text="ROADMAP" center />
                     <Roadmap />
                 </Container>
-            </RoadmpaSection>
+            </RoadmapSection>
         </Layout>
     );
 }
