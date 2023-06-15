@@ -8,8 +8,15 @@ set(TOOLCHAIN_PREFIX ${CMAKE_SYSTEM_PROCESSOR}-linux-gnu)
 set(Rust_CARGO_TARGET "x86_64-unknown-linux-gnu")
 
 # Cross compilers to use for C and C++
-set(CMAKE_C_COMPILER gcc)
-set(CMAKE_CXX_COMPILER g++)
+if(DEFINED ENV{CROSS_GCC_ROOT})
+    # The guix build uses customized compilers
+    set(CMAKE_C_COMPILER $ENV{CROSS_GCC_ROOT}/bin/x86_64-linux-gnu-gcc)
+    set(CMAKE_CXX_COMPILER $ENV{CROSS_GCC_ROOT}/bin/x86_64-linux-gnu-g++)
+else()
+    set(CMAKE_C_COMPILER gcc)
+    set(CMAKE_CXX_COMPILER g++)
+endif()
+
 
 set(CMAKE_C_COMPILER_TARGET ${TOOLCHAIN_PREFIX})
 set(CMAKE_CXX_COMPILER_TARGET ${TOOLCHAIN_PREFIX})

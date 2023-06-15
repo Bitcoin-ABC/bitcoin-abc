@@ -81,7 +81,7 @@ case "$HOST" in
     *mingw*)
         # Determine output paths to use in CROSS_* environment variables
         CROSS_GLIBC="$(store_path "mingw-w64-x86_64-winpthreads")"
-        CROSS_GCC="$(store_path "gcc-cross-${HOST}")"
+        CROSS_GCC_ROOT="$(store_path "gcc-cross-${HOST}")"
         CROSS_GCC_LIB_STORE="$(store_path "gcc-cross-${HOST}" lib)"
         CROSS_GCC_LIBS=( "${CROSS_GCC_LIB_STORE}/lib/gcc/${HOST}"/* ) # This expands to an array of directories...
         CROSS_GCC_LIB="${CROSS_GCC_LIBS[0]}" # ...we just want the first one (there should only be one)
@@ -91,7 +91,7 @@ case "$HOST" in
         #    2. libc-related search paths
         #    2. kernel-header-related search paths (not applicable to mingw-w64 hosts)
         export CROSS_C_INCLUDE_PATH="${CROSS_GCC_LIB}/include:${CROSS_GCC_LIB}/include-fixed:${CROSS_GLIBC}/include"
-        export CROSS_CPLUS_INCLUDE_PATH="${CROSS_GCC}/include/c++:${CROSS_GCC}/include/c++/${HOST}:${CROSS_GCC}/include/c++/backward:${CROSS_C_INCLUDE_PATH}"
+        export CROSS_CPLUS_INCLUDE_PATH="${CROSS_GCC_ROOT}/include/c++:${CROSS_GCC_ROOT}/include/c++/${HOST}:${CROSS_GCC_ROOT}/include/c++/backward:${CROSS_C_INCLUDE_PATH}"
         export CROSS_LIBRARY_PATH="${CROSS_GCC_LIB_STORE}/lib:${CROSS_GCC_LIB}:${CROSS_GLIBC}/lib"
         ;;
     *darwin*)
@@ -102,13 +102,14 @@ case "$HOST" in
         CROSS_GLIBC="$(store_path "glibc-cross-${HOST}")"
         CROSS_GLIBC_STATIC="$(store_path "glibc-cross-${HOST}" static)"
         CROSS_KERNEL="$(store_path "linux-libre-headers-cross-${HOST}")"
-        CROSS_GCC="$(store_path "gcc-cross-${HOST}")"
+        CROSS_GCC_ROOT="$(store_path "gcc-cross-${HOST}")"
+        export CROSS_GCC_ROOT
         CROSS_GCC_LIB_STORE="$(store_path "gcc-cross-${HOST}" lib)"
         CROSS_GCC_LIBS=( "${CROSS_GCC_LIB_STORE}/lib/gcc/${HOST}"/* ) # This expands to an array of directories...
         CROSS_GCC_LIB="${CROSS_GCC_LIBS[0]}" # ...we just want the first one (there should only be one)
 
         export CROSS_C_INCLUDE_PATH="${CROSS_GCC_LIB}/include:${CROSS_GCC_LIB}/include-fixed:${CROSS_GLIBC}/include:${CROSS_KERNEL}/include"
-        export CROSS_CPLUS_INCLUDE_PATH="${CROSS_GCC}/include/c++:${CROSS_GCC}/include/c++/${HOST}:${CROSS_GCC}/include/c++/backward:${CROSS_C_INCLUDE_PATH}"
+        export CROSS_CPLUS_INCLUDE_PATH="${CROSS_GCC_ROOT}/include/c++:${CROSS_GCC_ROOT}/include/c++/${HOST}:${CROSS_GCC_ROOT}/include/c++/backward:${CROSS_C_INCLUDE_PATH}"
         export CROSS_LIBRARY_PATH="${CROSS_GCC_LIB_STORE}/lib:${CROSS_GCC_LIB}:${CROSS_GLIBC}/lib:${CROSS_GLIBC_STATIC}/lib"
         ;;
     *)
@@ -201,7 +202,8 @@ pushd source_package
 # Any toolchain file will work for building the source package, just pick the
 # first one
 cmake -GNinja .. \
-  -DCMAKE_TOOLCHAIN_FILE=../cmake/platforms/Linux64.cmake
+  -DCMAKE_TOOLCHAIN_FILE=../cmake/platforms/Linux64.cmake \
+  -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
 
 ninja package_source
 SOURCEDIST=$(echo bitcoin-abc-*.tar.gz)
