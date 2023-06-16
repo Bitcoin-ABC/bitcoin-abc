@@ -69,7 +69,7 @@ RUN cd moeingevm/evmwrap && make
 ENV ROCKSDB_PATH="/build/rocksdb-${ROCKSDB_VERSION}"
 ENV CGO_CFLAGS="-I$ROCKSDB_PATH/include"
 ENV CGO_LDFLAGS="-L$ROCKSDB_PATH -L/smart_bch/moeingevm/evmwrap/host_bridge/ -l:librocksdb.a -lstdc++ -lm -lsnappy"
-RUN cd /sxec
+RUN cd /xec
 RUN git clone -b ${SMARTBCH_VERSION} --depth 1 https://github.com/smartbch/smartbch
 RUN cd xec && go build -tags cppbtree github.com/smartbch/smartbch/cmd/smartbchd
 
