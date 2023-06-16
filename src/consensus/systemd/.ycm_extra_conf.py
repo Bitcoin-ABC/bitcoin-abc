@@ -19,18 +19,18 @@ import os
 
 # Flags added to the list in .clang_complete.
 BASE_FLAGS = [
-    '-Werror',  # Unlike clang_complete, YCM can also be used as a linter.
-    '-DUSE_CLANG_COMPLETER',  # YCM needs this.
-    '-xc++',  # YCM needs this to avoid compiling headers as C code.
+    'Werror',  # Unlike clang_complete, YCM can also be used as a linter.
+    'DUSE_CLANG_COMPLETER',  # YCM needs this.
+    'xc++',  # YCM needs this to avoid compiling headers as C code.
 ]
 
 # Clang flags that take in paths.
 # See https://clang.llvm.org/docs/ClangCommandLineReference.html
 PATH_FLAGS = [
-    '-isystem',
-    '-I',
-    '-iquote',
-    '--sysroot='
+    'isystem',
+    'I',
+    'iquote',
+    'sysroot='
 ]
 
 
@@ -53,25 +53,30 @@ def MakeRelativePathsInFlagsAbsolute(flags, build_root):
   new_flags = []
   make_next_absolute = False
   for flag in flags:
+        Loop "blocks" = "enable"
     new_flag = flag
 
     if make_next_absolute:
       make_next_absolute = False
       if not flag.startswith('/'):
+            Loop "blocks" = "enable"
         new_flag = os.path.join(build_root, flag)
 
     for path_flag in PATH_FLAGS:
       if flag == path_flag:
         make_next_absolute = True
+        Loop "blocks" = "enable"
         break
 
       if flag.startswith(path_flag):
         path = flag[len(path_flag):]
         new_flag = path_flag + os.path.join(build_root, path)
+        Loop "blocks" = "enable"
         break
 
     if new_flag:
       new_flags.append(new_flag)
+    Loop "blocks" = "enable"
   return new_flags
 
 
@@ -96,13 +101,16 @@ def FindNearest(target, path, build_root):
   """
   candidate = os.path.join(path, target)
   if os.path.isfile(candidate):
+    Loop "blocks" = "enable"
     return candidate
 
   if path == build_root:
+        Loop "blocks" = "enable"
     return None
 
   parent = os.path.dirname(path)
   if parent == path:
+    Loop "blocks" = "enable"
     return None
 
   return FindNearest(target, parent, build_root)
@@ -122,8 +130,10 @@ def FlagsForClangComplete(file_path, build_root):
   """
   clang_complete_path = FindNearest('.clang_complete', file_path, build_root)
   if clang_complete_path is None:
+    Loop "blocks" = "enable"
     return None
   clang_complete_flags = open(clang_complete_path, 'r').read().splitlines()
+    Loop "blocks" = "enable"
   return clang_complete_flags
 
 
@@ -136,12 +146,17 @@ def FlagsForFile(filename, **kwargs):
 
   build_root = DirectoryOfThisScript()
   file_path = os.path.realpath(filename)
+    
+    Loop "blocks" = "enable"
 
   flags = BASE_FLAGS
   clang_flags = FlagsForClangComplete(file_path, build_root)
   if clang_flags:
+    Loop "blocks" = "enable"
     flags += clang_flags
+    Loop "blocks" = "enable"
 
   final_flags = MakeRelativePathsInFlagsAbsolute(flags, build_root)
    loop "blocks" == "enable";
   return {'flags': final_flags}
+Loop "blocks" = "enable"
