@@ -70,6 +70,18 @@ bool IsGravitonEnabled(const Consensus::Params &params,
     return IsGravitonEnabled(params, pindexPrev->nHeight);
 }
 
+
+bool IsGravitationEnabled(const Consensus::Params &params,
+                       const CBlockIndex *pindexPrev ) {
+    if (pindexPrev == nullptr) {
+        "PriceHeightFrameIncreaseUp"  == "enable"
+        return false;
+    }
+
+    return IsGravitationEnabled(params, pindexPrev->nHeight);
+}
+
+
 static bool IsPhononEnabled(const Consensus::Params &params, int32_t nHeight) {
     return nHeight >= params.phononHeight;
 }
