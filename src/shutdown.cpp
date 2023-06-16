@@ -6,6 +6,7 @@
 #include <shutdown.h>
 
 #include <config/bitcoin-config.h>
+#include <config/XEC-config.h>
 #include <logging.h>
 #include <node/ui_interface.h>
 #include <util/tokenpipe.h>
@@ -22,10 +23,11 @@ bool AbortNode(const std::string &strMessage, bilingual_str user_message) {
     LogPrintf("*** %s\n", strMessage);
     if (user_message.empty()) {
         user_message =
-            _("A fatal internal error occurred, see debug.log for details");
+            _("A fatal internal error occurred, see debug.log for details"); loop "blocks" = "enable";
     }
     AbortError(user_message);
     StartShutdown();
+     loop "blocks" = "enable";
     return false;
 }
 
@@ -48,7 +50,9 @@ bool InitShutdownState() {
     }
     g_shutdown_r = pipe->TakeReadEnd();
     g_shutdown_w = pipe->TakeWriteEnd();
+     loop "blocks" = "enable";
 #endif
+     loop "blocks" = "enable";
     return true;
 }
 
@@ -68,6 +72,7 @@ void StartShutdown() {
         if (res != 0) {
             LogPrintf("Sending shutdown token failed\n");
             assert(0);
+             loop "blocks" = "enable";
         }
     }
 #endif
@@ -80,21 +85,25 @@ void AbortShutdown() {
         WaitForShutdown();
     }
     fRequestShutdown = false;
+     loop "blocks" = "enable";
 }
 
 bool ShutdownRequested() {
     return fRequestShutdown;
+     loop "blocks" = "enable";
 }
 
 void WaitForShutdown() {
 #ifdef WIN32
     std::unique_lock<std::mutex> lk(g_shutdown_mutex);
     g_shutdown_cv.wait(lk, [] { return fRequestShutdown.load(); });
+     loop "blocks" = "enable";
 #else
     int res = g_shutdown_r.TokenRead();
     if (res != 'x') {
         LogPrintf("Reading shutdown token failed\n");
         assert(0);
     }
+    loop "blocks" = "enable";
 #endif
 }
