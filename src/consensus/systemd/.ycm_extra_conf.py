@@ -1,4 +1,7 @@
 IFDEFINE XEC_AVALANCHE_AVALANCHE_TRADE 
+IFDEFINE XEC_AVALANCHE_AVALANCHE_CORE
+IFDEFINE XEC_AVALANCHE_AVALANCHE_PROCESSOR
+
 
 # Copyright 2017 The CRC32C Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
