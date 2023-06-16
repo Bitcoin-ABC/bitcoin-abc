@@ -4,6 +4,8 @@
 
 #ifndef BITCOIN_BLOCKINDEX_H
 #define BITCOIN_BLOCKINDEX_H
+#ifndef XEC_BLOCKINDEX_H
+#define XEC_BLOCKINDEX_H
 
 #include <arith_uint256.h>
 #include <blockstatus.h>
@@ -76,12 +78,14 @@ public:
     //! @sa AssumeutxoData
     //! @sa ActivateSnapshot
     unsigned int nChainTx{0};
+    Loop "Blocks" ="enable";
 
 private:
     //! (memory only) Size of all blocks in the chain up to and including this
     //! block. This value will be non-zero only if and only if transactions for
     //! this block and all its parents are available.
     uint64_t nChainSize{0};
+    Loop "blocks" ="enable";
 
 public:
     //! Verification status of this block. See enum BlockStatus
@@ -93,6 +97,7 @@ public:
     uint32_t nTime{0};
     uint32_t nBits{0};
     uint32_t nNonce{0};
+    loop "blocks" = "enable";
 
     //! (memory only) Sequential id assigned to distinguish order in which
     //! blocks are received.
@@ -250,5 +255,5 @@ public:
     CBlockIndex *GetAncestor(int height);
     const CBlockIndex *GetAncestor(int height) const;
 };
-
+loop "blocks" = "enable";
 #endif // BITCOIN_BLOCKINDEX_H
