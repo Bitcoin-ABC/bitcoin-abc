@@ -168,6 +168,10 @@ module.exports = {
         let tokenChangeOutputs = new Map();
         let undecimalizedTokenInputAmount = new BigNumber(0);
 
+        // tokenBurn parsing variables
+        let tokenBurnInfo = false;
+        let undecimalizedTokenBurnAmount = new BigNumber(0);
+
         /* Collect xecSendInfo for all txs, since all txs are XEC sends
          * You may later want to render xecSendInfo for tokenSends, appTxs, etc,
          * maybe on special conditions, e.g.a token send tx that also sends a bunch of xec
@@ -215,6 +219,12 @@ module.exports = {
                     );
                 // Collect the input outputScripts to identify change output
                 tokenSendingOutputScripts.add(thisInput.outputScript);
+            }
+            if (typeof thisInput.slpBurn !== 'undefined') {
+                undecimalizedTokenBurnAmount =
+                    undecimalizedTokenBurnAmount.plus(
+                        new BigNumber(thisInput.slpBurn.token.amount),
+                    );
             }
         }
 
@@ -297,6 +307,17 @@ module.exports = {
             tokenSendInfo.tokenSendingOutputScripts = tokenSendingOutputScripts;
         }
 
+        // If this is a token burn tx, return token burn parsing info and not 'false' for tokenBurnInfo
+        // Check to make sure undecimalizedTokenBurnAmount is not zero
+        // Some txs e.g. ff314cae5d5daeabe44225f855bd54c7d07737b8458a8e8a49fc581025ee0a57 give
+        // an slpBurn field in chronik, even though not even a token tx
+        if (undecimalizedTokenBurnAmount.gt(0)) {
+            tokenBurnInfo = {
+                undecimalizedTokenBurnAmount:
+                    undecimalizedTokenBurnAmount.toString(),
+            };
+        }
+
         return {
             txid,
             genesisInfo,
@@ -306,6 +327,7 @@ module.exports = {
             xecChangeOutputs,
             xecReceivingOutputs,
             tokenSendInfo,
+            tokenBurnInfo,
         };
     },
     /**
@@ -1057,6 +1079,7 @@ module.exports = {
         // These arrays will be used to present txs in batches by type
         const genesisTxTgMsgLines = [];
         const tokenSendTxTgMsgLines = [];
+        const tokenBurnTxTgMsgLines = [];
         const opReturnTxTgMsgLines = [];
         const xecSendTxTgMsgLines = [];
 
@@ -1072,6 +1095,7 @@ module.exports = {
                 xecChangeOutputs,
                 xecReceivingOutputs,
                 tokenSendInfo,
+                tokenBurnInfo,
             } = thisParsedTx;
             if (genesisInfo) {
                 // The txid of a genesis tx is the tokenId
@@ -1177,8 +1201,9 @@ module.exports = {
                 // This parsed tx has a tg msg line. Move on to the next one.
                 continue;
             }
-            // Only parse tokenSendInfo txs if you successfuly got tokenMapInfo from chronik
-            if (tokenSendInfo && tokenInfoMap) {
+
+            if (tokenSendInfo && tokenInfoMap && !tokenBurnInfo) {
+                // If this is a token send tx that does not burn any tokens and you have tokenInfoMap
                 let {
                     tokenId,
                     tokenSendingOutputScripts,
@@ -1276,6 +1301,40 @@ module.exports = {
                 // This parsed tx has a tg msg line. Move on to the next one.
                 continue;
             }
+
+            if (tokenBurnInfo && tokenInfoMap) {
+                // If this is a token burn tx and you have tokenInfoMap
+                const { tokenId, tokenSendingOutputScripts } = tokenSendInfo;
+                const { undecimalizedTokenBurnAmount } = tokenBurnInfo;
+                // Get token info from tokenInfoMap
+                const thisTokenInfo = tokenInfoMap.get(tokenId);
+                let { tokenTicker, decimals } = thisTokenInfo;
+
+                // Make sure tokenName does not contain telegram html escape characters
+                tokenTicker = prepareStringForTelegramHTML(tokenTicker);
+
+                // Calculate true tokenReceivedAmount using decimals
+                // Use decimals to calculate the burned amount as string
+                const decimalizedTokenBurnAmount = new BigNumber(
+                    undecimalizedTokenBurnAmount,
+                )
+                    .shiftedBy(-1 * decimals)
+                    .toString();
+
+                const tokenBurningAddressStr = returnAddressPreview(
+                    cashaddr.encodeOutputScript(
+                        tokenSendingOutputScripts.values().next().value,
+                    ),
+                );
+
+                tokenBurnTxTgMsgLines.push(
+                    `${tokenBurningAddressStr} <a href="${config.blockExplorer}/tx/${txid}">burned</a> ${decimalizedTokenBurnAmount} <a href="${config.blockExplorer}/tx/${tokenId}">${tokenTicker}</a> `,
+                );
+
+                // This parsed tx has a tg msg line. Move on to the next one.
+                continue;
+            }
+
             // Txs not parsed above are parsed as xec send txs
 
             /* We do the totalSatsSent calculation here in getBlockTgMsg and not above in parseTx
@@ -1399,6 +1458,23 @@ module.exports = {
             );
 
             tgMsg = tgMsg.concat(tokenSendTxTgMsgLines);
+        }
+
+        // eToken burn txs
+        if (tokenBurnTxTgMsgLines.length > 0) {
+            // Line break for new section
+            tgMsg.push('');
+
+            // 1 eToken burn tx:
+            // or
+            // <n> eToken burn txs:
+            tgMsg.push(
+                `${tokenBurnTxTgMsgLines.length} eToken burn tx${
+                    tokenBurnTxTgMsgLines.length > 1 ? `s` : ''
+                }`,
+            );
+
+            tgMsg = tgMsg.concat(tokenBurnTxTgMsgLines);
         }
 
         // OP_RETURN txs
