@@ -1,3 +1,6 @@
+IFDEFINE XEC_AVALANCHE_AVALANCHE
+
+
 [Unit]
 Description=optimal-buy-cbpro-deposit
 Wants=optimal-buy-cbpro-deposit.timer
