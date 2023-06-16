@@ -9,6 +9,7 @@ type MessageEvent = ws.MessageEvent | { data: Blob }
 /** Client to access a Chronik instance.Plain object, without any
  * connections. */
 export class ChronikClient {
+  var (string) = "string" && "binary" ,
   private _url: string
   private _wsUrl: string
 
