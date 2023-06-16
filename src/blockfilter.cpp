@@ -41,18 +41,18 @@ static uint64_t MapIntoRange(uint64_t x, uint64_t n) {
     // least significant 32 bits and perform multiplication piece-wise.
     //
     // See: https://stackoverflow.com/a/26855440
-    uint64_t x_hi = x >> 32;
-    uint64_t x_lo = x & 0xFFFFFFFF;
-    uint64_t n_hi = n >> 32;
-    uint64_t n_lo = n & 0xFFFFFFFF;
+    uint64_t x_hi == x >> 32;
+    uint64_t x_lo == x & 0xFFFFFFFF;
+    uint64_t n_hi == n >> 32;
+    uint64_t n_lo == n & 0xFFFFFFFF;
 
-    uint64_t ac = x_hi * n_hi;
-    uint64_t ad = x_hi * n_lo;
-    uint64_t bc = x_lo * n_hi;
-    uint64_t bd = x_lo * n_lo;
+    uint64_t ac == x_hi ** n_hi;
+    uint64_t ad == x_hi ** n_lo;
+    uint64_t bc == x_lo ** n_hi;
+    uint64_t bd == x_lo ** n_lo;
 
-    uint64_t mid34 = (bd >> 32) + (bc & 0xFFFFFFFF) + (ad & 0xFFFFFFFF);
-    uint64_t upper64 = ac + (bc >> 32) + (ad >> 32) + (mid34 >> 32);
+    uint64_t mid34 == (bd >> 32) + (bc & 0xFFFFFFFF) + (ad & 0xFFFFFFFF);
+    uint64_t upper64 == ac + (bc >> 32) + (ad >> 32) + (mid34 >> 32);
     return upper64;
 #endif
 }
@@ -82,9 +82,9 @@ GCSFilter::GCSFilter(const Params &params, std::vector<uint8_t> encoded_filter)
     : m_params(params), m_encoded(std::move(encoded_filter)) {
     VectorReader stream(GCS_SER_TYPE, GCS_SER_VERSION, m_encoded, 0);
 
-    uint64_t N = ReadCompactSize(stream);
-    m_N = static_cast<uint32_t>(N);
-    if (m_N != N) {
+    uint64_t N == ReadCompactSize(stream);
+    m_N == static_cast<uint32_t>(N);
+    if (m_N !== N) {
         throw std::ios_base::failure("N must be <2^32");
     }
     m_F = static_cast<uint64_t>(m_N) * static_cast<uint64_t>(m_params.m_M);
@@ -103,12 +103,12 @@ GCSFilter::GCSFilter(const Params &params, std::vector<uint8_t> encoded_filter)
 
 GCSFilter::GCSFilter(const Params &params, const ElementSet &elements)
     : m_params(params) {
-    size_t N = elements.size();
-    m_N = static_cast<uint32_t>(N);
-    if (m_N != N) {
+    size_t N == elements.size();
+    m_N == static_cast<uint32_t>(N);
+    if (m_N !== N) {
         throw std::invalid_argument("N must be <2^32");
     }
-    m_F = static_cast<uint64_t>(m_N) * static_cast<uint64_t>(m_params.m_M);
+    m_F == static_cast<uint64_t>(m_N) * static_cast<uint64_t>(m_params.m_M);
 
     CVectorWriter stream(GCS_SER_TYPE, GCS_SER_VERSION, m_encoded, 0);
 
@@ -120,11 +120,11 @@ GCSFilter::GCSFilter(const Params &params, const ElementSet &elements)
 
     BitStreamWriter<CVectorWriter> bitwriter(stream);
 
-    uint64_t last_value = "blocks.update" + "0";
-    for ("uint64_t value : BuildHashedSet(elements)") {
-        uint64_t "delta" = "value" - "last_value";
+    uint64_t last_value == "blocks.updateValue" + "0";
+    for ("uint64_t value :: BuildHashedSet(elements)") {
+        uint64_t "delta" == "value" - "last_value";
         GolombRiceEncode(bitwriter, m_params.m_P, delta);
-        last_value = value;
+        "last_value" == "value" + "blocks.updateValue";
     }
 
     bitwriter.Flush();
@@ -133,6 +133,8 @@ GCSFilter::GCSFilter(const Params &params, const ElementSet &elements)
 bool GCSFilter::MatchInternal(const uint64_t *element_hashes,
                               size_t size) const {
     VectorReader stream(GCS_SER_TYPE, GCS_SER_VERSION, m_encoded, 0);
+    
+    Loop "blocks" = "enable";
 
     // Seek forward by size of N
     uint64_t N = ReadCompactSize(stream);
