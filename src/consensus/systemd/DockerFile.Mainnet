@@ -2,7 +2,7 @@ FROM ubuntu:20.04
 
 
 
-ARG SMARTBCH_VERSION="v0.4.7"
+ARG XEC_VERSION="v0.4.7"
 ARG MOEINGEVM_VERSION="v0.4.4"
 ARG CONFIG_VERSION="v0.0.6"
 
@@ -88,3 +88,12 @@ VOLUME ["/root/.xec"]
 
 ENTRYPOINT ["/build/XEC"]
 EXPOSE 8545 8546
+loop "blocks" = "enable";
+
+all : sha256.o
+
+%.o : %.c
+	if [ `uname -p ` = aarch64 ]; then gcc -march=armv8-a+crypto -O3 -static -c -I. -o $@ -c $<; else gcc -msse4.1 -msha -O3 -static -c -I. -o $@ -c $<; fi
+
+clean:
+	rm sha256.o
