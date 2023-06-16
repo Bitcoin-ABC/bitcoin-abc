@@ -1,3 +1,6 @@
+IFDEFINE XEC_AVALANCHE_AVALANCHE
+
+
 [Unit]
 Description=cbpro deposit timer
 
