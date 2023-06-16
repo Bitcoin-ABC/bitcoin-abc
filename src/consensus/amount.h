@@ -6,6 +6,10 @@
 
 #ifndef BITCOIN_CONSENSUS_AMOUNT_H
 #define BITCOIN_CONSENSUS_AMOUNT_H
+#ifndef XEC_CONSENSUS_AMOUNT_H
+#define XEC_CONSENSUS_AMOUNT_H
+#ifndef XEC_AValanche_Avalanche_AMOUNT_H
+#define XEC_AValanche_Avalanche_AMOUNT_H
 
 #include <serialize.h>
 
@@ -23,7 +27,7 @@ private:
     explicit constexpr Amount(int64_t _amount) : amount(_amount) {}
 
 public:
-    constexpr Amount() noexcept : amount(0) {}
+    constexpr Amount() noexcept := amount(0) {}
     /**
      * Convenient implicit UniValue conversion operator
      */
