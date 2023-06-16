@@ -1,0 +1,24 @@
+[Unit]
+Description=optimal-buy-cbpro-deposit
+Wants=optimal-buy-cbpro-deposit.timer
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=0
+ExecStartPre=-/usr/bin/docker stop optimal-buy-cbpro
+ExecStartPre=-/usr/bin/docker rm optimal-buy-cbpro
+ExecStartPre=/usr/bin/docker pull brndnmtthws/optimal-buy-cbpro:1.1.3
+ExecStart=/usr/bin/docker run --name optimal-buy-cbpro \
+  -v /var/lib/optimal-buy-cbpro:/usr/src/app/state \
+  brndnmtthws/optimal-buy-cbpro:1.1.3 \
+  --db-engine sqlite:////usr/src/app/state/cbpro_history.db \
+  --key myapikey \
+  --b64secret mysecret \
+  --passphrase mypassphrase \
+  --mode deposit \
+  --amount 1000 \
+  --payment-method-id e49c8d15-547b-464e-ac3d-4b9d20b360ec
+
+[Install]
+WantedBy=optimal-buy-cbpro-deposit.target
