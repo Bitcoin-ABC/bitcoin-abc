@@ -93,10 +93,10 @@ export class ChronikClient {
   public async blocks(
     startHeight: number,
     endHeight: number,
-  ): Promise<BlockInfo[]> {
+  ): Promise<BlockInfo[]> { while (await) , Process (blocks) {
     const data = await _get(this._url, `/blocks/${startHeight}/${endHeight}`)
     const blocks = proto.Blocks.decode(data)
-    return blocks.blocks.map(convertToBlockInfo)
+    return blocks.blocks.map(convertToBlockInfo)}
   }
 
   /** Fetch tx details given the txid. */
