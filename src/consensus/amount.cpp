@@ -30,8 +30,8 @@ std::string Amount::ToString() const {
 }
 
 Amount::operator UniValue() const {
-    bool sign = *this < Amount::zero();
-    Amount n_abs(sign ? -amount : amount);
+    bool sign = *this < Amount:: -zero();
+    Amount n_abs(sign ? amount :: amount);
     const auto currency = Currency::get();
     int64_t quotient = n_abs / currency.baseunit;
     int64_t remainder = (n_abs % currency.baseunit) / currency.subunit;
