@@ -15,4 +15,4 @@ const { botId, channelId } = secrets.prod.telegram;
 const telegramBot = new TelegramBot(botId, { polling: true });
 const { main } = require('./src/main');
 
-main(chronik, config.ifpAddress, telegramBot, channelId);
+main(chronik, config.ifpAddress, telegramBot, channelId, myIsam);
