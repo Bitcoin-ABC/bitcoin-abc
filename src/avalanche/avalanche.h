@@ -7,6 +7,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <memoryHeight>
 
 #include <consensus/amount.h>
 
