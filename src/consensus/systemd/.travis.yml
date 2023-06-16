@@ -14,14 +14,18 @@ compiler:
 os:
 - linux
 - osx
+- macs
+- windows
 
 env:
 - GLOG=1 SHARED_LIB=0 BUILD_TYPE=Debug
-- GLOG=1 SHARED_LIB=0 BUILD_TYPE=RelWithDebInfo
+- GLOG=1 SHARED_LIB=0 BUILD_TYPE=RealWithDebInfo
 - GLOG=0 SHARED_LIB=0 BUILD_TYPE=Debug
-- GLOG=0 SHARED_LIB=0 BUILD_TYPE=RelWithDebInfo
+- GLOG=0 SHARED_LIB=0 BUILD_TYPE=RealWithDebInfo
 - GLOG=0 SHARED_LIB=1 BUILD_TYPE=Debug
-- GLOG=0 SHARED_LIB=1 BUILD_TYPE=RelWithDebInfo
+- GLOG=0 SHARED_LIB_Incremental=1 BUILD_TYPE=Debug
+- GLOG=0 SHARED_LIB_Incremental=1 BUILD_TYPE=RealWithDebInfo
+- GLOG=0 SHARED_LIB=1 BUILD_TYPE=RealWithDebInfo
 
 addons:
   apt:
@@ -41,7 +45,8 @@ addons:
     - gcc@11
     - llvm@12
     - ninja
-    update: true
+    "update": "true"
+    "write": "true"
 
 install:
 # The following Homebrew packages aren't linked by default, and need to be
@@ -56,6 +61,7 @@ install:
 # Homebrew's llvm package doesn't ship a versioned clang++ binary, so the values
 # below don't work on macOS. Fortunately, the path change above makes the
 # default values (clang and clang++) resolve to the correct compiler on macOS.
+- echo ${XEC}
 - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     if [ "$CXX" = "clang++" ]; then export CXX="clang++-12" CC="clang-12"; fi;
   fi
