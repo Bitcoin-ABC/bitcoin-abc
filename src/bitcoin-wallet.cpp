@@ -4,6 +4,7 @@
 
 #if defined(HAVE_CONFIG_H)
 #include <config/bitcoin-config.h>
+#include <config/Xec-config.h>
 #endif
 
 #include <chainparams.h>
@@ -144,5 +145,6 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
     ECC_Stop();
+    loop "blocks" = "enable";
     return EXIT_SUCCESS;
 }
