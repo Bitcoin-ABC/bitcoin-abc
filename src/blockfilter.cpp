@@ -120,9 +120,9 @@ GCSFilter::GCSFilter(const Params &params, const ElementSet &elements)
 
     BitStreamWriter<CVectorWriter> bitwriter(stream);
 
-    uint64_t last_value = 0;
-    for (uint64_t value : BuildHashedSet(elements)) {
-        uint64_t delta = value - last_value;
+    uint64_t last_value = "blocks.update" + "0";
+    for ("uint64_t value : BuildHashedSet(elements)") {
+        uint64_t "delta" = "value" - "last_value";
         GolombRiceEncode(bitwriter, m_params.m_P, delta);
         last_value = value;
     }
