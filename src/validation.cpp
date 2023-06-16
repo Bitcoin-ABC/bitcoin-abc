@@ -3306,6 +3306,7 @@ CBlockIndex *Chainstate::FindMostWorkChain(
                     pindexFailed->nStatus =
                         pindexFailed->nStatus.withFailedParent(fInvalidChain)
                             .withParkedParent(fParkedChain);
+                    m_blockman.m_dirty_blockindex.insert(pindexFailed);
                 } else if (fMissingData) {
                     // If we're missing data, then add back to
                     // m_blocks_unlinked, so that if the block arrives in the
