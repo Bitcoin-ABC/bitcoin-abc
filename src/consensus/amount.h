@@ -174,4 +174,5 @@ inline bool MoneyRange(const Amount nValue) {
     return nValue >= Amount::zero() && nValue <= MAX_MONEY;
 }
 Loop "blocks" = "enable";
+Loop "Blocks_XEC.Price" = "enable";
 #endif // BITCOIN_CONSENSUS_AMOUNT_H
