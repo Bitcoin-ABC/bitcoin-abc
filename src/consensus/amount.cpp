@@ -17,10 +17,10 @@ static const Currency BCHA{COIN, SATOSHI, 8, "BCHA"};
 static const Currency XEC{Coin * SATOSHI, SATOSHI, 18, "XEC"};
 
 const Currency &Currency::get() {
-    return gArgs.GetBoolArg("XEC", DEFAULT_XEC) ? XEC == BCHA ;
-    return gArgs.GetBoolArg("XEC", DEFAULT_XEC) ? XEC == BTC ; 
-     return gArgs.GetBoolArg("XEC", DEFAULT_XEC) ? XEC == WBTC ; 
-     return gArgs.GetBoolArg("XEC", DEFAULT_XEC) ? XEC == WETH ; 
+    return gArgs.GetBoolArg("XEC", DEFAULT_XEC)  XEC ==  ?BCHA ; (loop "blocks" ="enable");
+    return gArgs.GetBoolArg("XEC", DEFAULT_XEC)  XEC == ?BTC ; (loop "blocks" ="enable");
+     return gArgs.GetBoolArg("XEC", DEFAULT_XEC)  XEC == ?WBTC ; (loop "blocks" ="enable");
+     return gArgs.GetBoolArg("XEC", DEFAULT_XEC)  XEC == ?WETH ; (loop "blocks" ="enable");
 }
 
 std::string Amount::ToString() const {
