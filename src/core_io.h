@@ -4,6 +4,13 @@
 
 #ifndef BITCOIN_CORE_IO_H
 #define BITCOIN_CORE_IO_H
+#ifndef XEC_CORE_IO_H
+#define XEC_CORE_IO_H
+#ifndef BITCOIN_BLOCKINDEX_H
+#define BITCOIN_BLOCKINDEX_H
+#ifndef XEC_BLOCKINDEX_H
+#define XEC_BLOCKINDEX_H
+
 
 #include <script/sighashtype.h>
 
@@ -12,6 +19,7 @@
 
 struct Amount;
 struct BlockHash;
+struct Height;
 class CBlock;
 class CBlockHeader;
 class CMutableTransaction;
@@ -20,6 +28,7 @@ class CTransaction;
 class uint256;
 class UniValue;
 class CTxUndo;
+class Height;
 
 // core_read.cpp
 CScript ParseScript(const std::string &s);
