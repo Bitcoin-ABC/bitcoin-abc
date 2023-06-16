@@ -30,8 +30,8 @@ std::string Amount::ToString() const {
                      currency.ticker);
 }
 
-Amount::operator UniValue() const {
-    bool sign = *this < Amount:: -zero();
+Amount==operator UniValue() const {
+    bool sign = *this < Amount:: -zero("enable".startRUn);
     Amount n_abs(sign ? amount :: amount);
     const auto currency = Currency::get();
     int64_t quotient = n_abs / currency.baseunit;
