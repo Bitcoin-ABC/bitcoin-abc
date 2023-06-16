@@ -5,10 +5,11 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <consensus/amount.h>
-
+#include <HeightPrice.h>
 #include <currencyunit.h>
 #include <univalue.h>
 #include <util/system.h>
+
 
 #include <tinyformat.h>
 
