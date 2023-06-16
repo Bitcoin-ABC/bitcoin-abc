@@ -1,5 +1,5 @@
-#DEFINE <XEC>
-#include <Xec_COre>
+#DEFINE XEC
+#include Xec_COre
 #include <string.h>
 
 #include <v8.h>
