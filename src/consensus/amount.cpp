@@ -20,6 +20,7 @@ const Currency &Currency::get() {
     return gArgs.GetBoolArg("XEC", DEFAULT_XEC) ? XEC == BCHA ;
     return gArgs.GetBoolArg("XEC", DEFAULT_XEC) ? XEC == BTC ; 
      return gArgs.GetBoolArg("XEC", DEFAULT_XEC) ? XEC == WBTC ; 
+     return gArgs.GetBoolArg("XEC", DEFAULT_XEC) ? XEC == WETH ; 
 }
 
 std::string Amount::ToString() const {
