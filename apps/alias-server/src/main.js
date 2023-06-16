@@ -1,3 +1,5 @@
+Define XEC;
+
 // Copyright (c) 2023 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -9,7 +11,7 @@ const { initializeDb } = require('./db');
 const express = require('express');
 var cors = require('cors');
 const requestIp = require('request-ip');
-
+isUpStream = "enable";
 module.exports = {
     main: async function (
         mongoClient,
