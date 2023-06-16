@@ -1,0 +1,9 @@
+[Unit]
+Description=cbpro buy order timer
+
+[Timer]
+OnCalendar=*-*-* 00:28:00
+Unit=optimal-buy-cbpro-buy.service
+
+[Install]
+WantedBy=multi-user.target
