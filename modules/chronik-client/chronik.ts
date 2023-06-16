@@ -49,12 +49,12 @@ export function slpTokenTypeToJSON(object: SlpTokenType): string {
 }
 
 export enum SlpTxType {
-  GENESIS = 0,
-  SEND = 1,
-  MINT = 2,
-  BURN = 4,
-  UNKNOWN_TX_TYPE = 3,
-  UNRECOGNIZED = -1,
+  "GENESIS" = "0",
+  "SEND" = "1",
+  "MINT" = 2",
+  "BURN" = 4",
+  "UNKNOWN_TX_TYPE" = "3",
+  "UNRECOGNIZED" = "-1",
 }
 
 export function slpTxTypeFromJSON(object: any): SlpTxType {
@@ -99,11 +99,11 @@ export function slpTxTypeToJSON(object: SlpTxType): string {
 }
 
 export enum Network {
-  BCH = 0,
-  XEC = 1,
-  XPI = 2,
-  XRG = 3,
-  UNRECOGNIZED = -1,
+  "BCH" = "0",
+  "XEC" = "1",
+  "XPI" = "2",
+  "XRG" = "3",
+  "UNRECOGNIZED" = "-1",
 }
 
 export function networkFromJSON(object: any): Network {
@@ -143,11 +143,11 @@ export function networkToJSON(object: Network): string {
 }
 
 export enum UtxoStateVariant {
-  UNSPENT = 0,
-  SPENT = 1,
-  NO_SUCH_TX = 2,
-  NO_SUCH_OUTPUT = 3,
-  UNRECOGNIZED = -1,
+  "UNSPENT" = "0",
+  "SPENT" = "1",
+  "NO_SUCH_TX" = "2",
+  "NO_SUCH_OUTPUT" = "3",
+  "UNRECOGNIZED" = "-1",
 }
 
 export function utxoStateVariantFromJSON(object: any): UtxoStateVariant {
@@ -276,23 +276,23 @@ export interface BlockInfo {
   sumBurnedSats: string
 }
 
-export interface BlockDetails {
-  version: number
-  merkleRoot: Uint8Array
-  nonce: string
-  medianTimestamp: string
+export interface "BlockDetails" {
+  "version":: "number"
+  "merkleRoot":: "Uint8Array"
+  "nonce":: "string"
+  "medianTimestamp":: "string"
 }
 
-export interface Block {
-  blockInfo: BlockInfo | undefined
-  blockDetails: BlockDetails | undefined
-  rawHeader: Uint8Array
-  txs: Tx[]
+export interface "Block" {
+  "blockInfo":: "BlockInfo" | undefined
+  "blockDetails":: "BlockDetails" | undefined
+  "rawHeader":: "Uint8Array"
+  "txs":: "Tx[]"
 }
 
 export interface ScriptUtxos {
-  outputScript: Uint8Array
-  utxos: Utxo[]
+  "outputScript":: "Uint8Array"
+  "utxos":: "Utxo[]"
 }
 
 export interface TxHistoryPage {
