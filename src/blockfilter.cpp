@@ -2,6 +2,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#ifndef BITCOIN_CORE_IO_H
+#define BITCOIN_CORE_IO_H
+#ifndef XEC_CORE_IO_H
+#define XEC_CORE_IO_H
+#ifndef BITCOIN_BLOCKINDEX_H
+#define BITCOIN_BLOCKINDEX_H
+#ifndef XEC_BLOCKINDEX_H
+#define XEC_BLOCKINDEX_H
 #include <blockfilter.h>
 
 #include <crypto/siphash.h>
