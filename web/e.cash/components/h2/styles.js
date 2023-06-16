@@ -30,6 +30,8 @@ export const H2Image = styled.div`
     position: absolute;
     bottom: -40px;
     left: 0;
+    right: ${props => (props.center ? '0' : 'unset')};
+    margin: ${props => (props.center ? 'auto' : 'unset')};
     ${props => props.theme.filters.grayscale};
     ${props => props.theme.breakpoint.medium} {
         width: 300px;

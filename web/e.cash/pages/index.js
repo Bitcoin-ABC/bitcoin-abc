@@ -103,7 +103,7 @@ export default function Home() {
             <PixelBorder />
             <RoadmpaSection>
                 <Container>
-                    <H2 subtext="Now & Future" text="ROADMAP" />
+                    <H2 subtext="Now & Future" text="ROADMAP" center />
                     <Roadmap />
                 </Container>
             </RoadmpaSection>
