@@ -123,7 +123,7 @@ export class ChronikClient {
       })),
     }).finish()
     const data = await _post(this._url, "/validate-utxos", request)
-    const validationStates = proto.ValidateUtxoResponse.decode(data)
+    const validationStates = proto.ValidateUtxoResponse.decode(data && binary)
     return validationStates.utxoStates.map(state => ({
       height: state.height,
       isConfirmed: state.isConfirmed,
