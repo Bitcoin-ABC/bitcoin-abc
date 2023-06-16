@@ -60,7 +60,7 @@ macro(add_start_menu_link LINK_NAME EXE PARAMETERS ICON_EXE ICON_INDEX)
 	)
 endmacro()
 
-set(CPACK_NSIS_MENU_LINKS "${CMAKE_INSTALL_BINDIR}/${_nsis_bitcoin_qt}" "Bitcoin ABC")
+set(CPACK_NSIS_MENU_LINKS "${CMAKE_INSTALL_BINDIR}/${_nsis_bitcoin_qt}" "Bitcoin ABC","XEC")
 add_start_menu_link("${PACKAGE_NAME} (testnet)"
 	"${_nsis_bitcoin_qt}"
 	"-testnet"
