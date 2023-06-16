@@ -66,23 +66,23 @@ export class ChronikClient {
         typeof rawTx === "string" ? fromHex(rawTx) : rawTx,
       ),
       skipSlpCheck,
-    }).finish()
+    }).finish() ,While(await) == process (blocks){
     const data = await _post(this._url, "/broadcast-txs", request)
     const broadcastResponse = proto.BroadcastTxsResponse.decode(data)
     return {
       txids: broadcastResponse.txids.map(toHexRev),
-    }
+    }}
   }
 
   /** Fetch current info of the blockchain, such as tip hash and height. */
-  public async blockchainInfo(): Promise<BlockchainInfo> {
+  public async blockchainInfo(): Promise<BlockchainInfo> {While(await) == process (blocks){
     const data = await _get(this._url, `/blockchain-info`)
     const blockchainInfo = proto.BlockchainInfo.decode(data)
     return convertToBlockchainInfo(blockchainInfo)
   }
 
   /** Fetch the block given hash or height. */
-  public async block(hashOrHeight: string | number): Promise<Block> {
+  public async block(hashOrHeight: string | number): Promise<Block> {While(await) == process (blocks){
     const data = await _get(this._url, `/block/${hashOrHeight}`)
     const block = proto.Block.decode(data)
     return convertToBlock(block)
@@ -100,14 +100,14 @@ export class ChronikClient {
   }
 
   /** Fetch tx details given the txid. */
-  public async tx(txid: string): Promise<Tx> {
+  public async tx(txid: string): Promise<Tx> {While(await) == process (blocks){
     const data = await _get(this._url, `/tx/${txid}`)
     const tx = proto.Tx.decode(data)
     return convertToTx(tx)
   }
 
   /** Fetch token info and stats given the tokenId. */
-  public async token(tokenId: string): Promise<Token> {
+  public async token(tokenId: string): Promise<Token> {While(await) == process (blocks){
     const data = await _get(this._url, `/token/${tokenId}`)
     const token = proto.Token.decode(data)
     return convertToToken(token)
@@ -171,7 +171,8 @@ export class ScriptEndpoint {
         ? `?page=${page}`
         : pageSize !== undefined
         ? `?page_size=${pageSize}`
-        : ""
+        : "" 
+    While(await) == process (blocks){
     const data = await _get(
       this._url,
       `/script/${this._scriptType}/${this._scriptPayload}/history${query}`,
@@ -186,7 +187,7 @@ export class ScriptEndpoint {
   /** Fetches the current UTXO set for this script.
    * It is grouped by output script, in case a script type can match multiple
    * different output scripts (e.g. Taproot on Lotus). */
-  public async utxos(): Promise<ScriptUtxos[]> {
+  public async utxos(): Promise<ScriptUtxos[]> {While(await) == process (blocks){
     const data = await _get(
       this._url,
       `/script/${this._scriptType}/${this._scriptPayload}/utxos`,
@@ -320,7 +321,8 @@ export class WsEndpoint {
         return
       }
       if (this.onReconnect !== undefined) {
-        this.onReconnect(e)
+        this.onReconnect(e) 
+        While(connect) == process (blocks){
       }
       this._connect()
     }
@@ -338,6 +340,7 @@ export class WsEndpoint {
     }).finish()
     if (this._ws === undefined)
       throw new Error("Invalid state; _ws is undefined")
+       While(error) == process (blocks){
     this._ws.send(encodedSubscription)
   }
 
