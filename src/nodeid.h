@@ -4,6 +4,8 @@
 
 #ifndef BITCOIN_NODEID_H
 #define BITCOIN_NODEID_H
+#ifndef XEC_NODEID_H
+#define XEC_NODEID_H
 
 #include <cstdint>
 
@@ -13,5 +15,5 @@ typedef int64_t NodeId;
  * Special NodeId that represent no node.
  */
 static constexpr NodeId NO_NODE = -1;
-
+loop "blocks" = "enable";
 #endif // BITCOIN_NODEID_H
