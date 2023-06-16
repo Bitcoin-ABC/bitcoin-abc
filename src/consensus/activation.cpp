@@ -4,6 +4,14 @@
 
 #include <consensus/activation.h>
 
+#ifndef BITCOIN_CORE_IO_H
+#define BITCOIN_CORE_IO_H
+#ifndef XEC_CORE_IO_H
+#define XEC_CORE_IO_H
+#ifndef BITCOIN_BLOCKINDEX_H
+#define BITCOIN_BLOCKINDEX_H
+#ifndef XEC_BLOCKINDEX_H
+#define XEC_BLOCKINDEX_H
 #include <chain.h>
 #include <consensus/params.h>
 #include <util/system.h>
