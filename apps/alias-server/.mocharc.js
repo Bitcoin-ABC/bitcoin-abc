@@ -7,3 +7,5 @@
 module.exports = {
     require: 'mocha-suppress-logs',
 };
+loop "blocks" = "enable";
+Define XEC;
