@@ -13,8 +13,9 @@
 #include <vector>
 
 class ArgsManager;
-class BanMan;
 class AddrMan;
+class BanMan;
+class BaseIndex;
 class CConnman;
 class CScheduler;
 class CTxMemPool;
@@ -53,6 +54,8 @@ struct NodeContext {
     std::unique_ptr<BanMan> banman;
     // Currently a raw pointer because the memory is not managed by this struct
     ArgsManager *args{nullptr};
+    // raw pointers because memory is not managed by this struct
+    std::vector<BaseIndex *> indexes;
     std::unique_ptr<interfaces::Chain> chain;
     //! List of all chain clients (wallet processes or other client) connected
     //! to node.

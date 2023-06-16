@@ -93,4 +93,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
  */
 void SetupServerArgs(node::NodeContext &node);
 
+/**
+ * Validates requirements to run the indexes and spawns each index initial
+ * sync thread
+ */
+bool StartIndexBackgroundSync(node::NodeContext &node);
+
 #endif // BITCOIN_INIT_H

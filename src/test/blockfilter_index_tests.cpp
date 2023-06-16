@@ -123,6 +123,7 @@ BOOST_FIXTURE_TEST_CASE(blockfilter_index_initial_sync,
                         BuildChainTestingSetup) {
     BlockFilterIndex filter_index(interfaces::MakeChain(m_node, Params()),
                                   BlockFilterType::BASIC, 1 << 20, true);
+    BOOST_REQUIRE(filter_index.Init());
 
     uint256 last_header;
 
@@ -153,7 +154,7 @@ BOOST_FIXTURE_TEST_CASE(blockfilter_index_initial_sync,
     // started.
     BOOST_CHECK(!filter_index.BlockUntilSyncedToCurrentChain());
 
-    BOOST_REQUIRE(filter_index.Start());
+    BOOST_REQUIRE(filter_index.StartBackgroundSync());
 
     // Allow filter index to catch up with the block index.
     constexpr int64_t timeout_ms = 30 * 1000;

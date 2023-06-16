@@ -75,6 +75,13 @@ BaseIndex::~BaseIndex() {
 }
 
 bool BaseIndex::Init() {
+    // m_chainstate member gives indexing code access to node internals. It is
+    // removed in followup https://github.com/bitcoin/bitcoin/pull/24230
+    m_chainstate = &m_chain->context()->chainman->ActiveChainstate();
+    // Register to validation interface before setting the 'm_synced' flag, so
+    // that callbacks are not missed once m_synced is true.
+    RegisterValidationInterface(this);
+
     CBlockLocator locator;
     if (!GetDB().ReadBestBlock(locator)) {
         locator.SetNull();
@@ -158,6 +165,7 @@ bool BaseIndex::Init() {
     // happen solely via `BlockConnected` signals until, possibly, the next
     // restart.
     m_synced = synced;
+    m_init = true;
     return true;
 }
 
@@ -420,15 +428,9 @@ void BaseIndex::Interrupt() {
     m_interrupt();
 }
 
-bool BaseIndex::Start() {
-    // m_chainstate member gives indexing code access to node internals. It is
-    // removed in a followup
-    m_chainstate = &m_chain->context()->chainman->ActiveChainstate();
-    // Need to register this ValidationInterface before running Init(), so that
-    // callbacks are not missed if Init sets m_synced to true.
-    RegisterValidationInterface(this);
-    if (!Init()) {
-        return false;
+bool BaseIndex::StartBackgroundSync() {
+    if (!m_init) {
+        throw std::logic_error("Error: Cannot start a non-initialized index");
     }
 
     m_thread_sync =

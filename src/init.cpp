@@ -2650,27 +2650,33 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         g_txindex =
             std::make_unique<TxIndex>(interfaces::MakeChain(node, Params()),
                                       cache_sizes.tx_index, false, fReindex);
-        if (!g_txindex->Start()) {
-            return false;
-        }
+        node.indexes.emplace_back(g_txindex.get());
     }
 
     for (const auto &filter_type : g_enabled_filter_types) {
         InitBlockFilterIndex(
             [&] { return interfaces::MakeChain(node, Params()); }, filter_type,
             cache_sizes.filter_index, false, fReindex);
-        if (!GetBlockFilterIndex(filter_type)->Start()) {
-            return false;
-        }
+        node.indexes.emplace_back(GetBlockFilterIndex(filter_type));
     }
 
     if (args.GetBoolArg("-coinstatsindex", DEFAULT_COINSTATSINDEX)) {
         g_coin_stats_index = std::make_unique<CoinStatsIndex>(
             interfaces::MakeChain(node, Params()), /* cache size */ 0, false,
             fReindex);
-        if (!g_coin_stats_index->Start()) {
+        node.indexes.emplace_back(g_coin_stats_index.get());
+    }
+
+    // Init indexes
+    for (auto index : node.indexes) {
+        if (!index->Init()) {
             return false;
         }
+    }
+
+    // Now that all indexes are loaded, start them
+    if (!StartIndexBackgroundSync(node)) {
+        return false;
     }
 
 #if ENABLE_CHRONIK
@@ -3029,5 +3035,14 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     StartupNotify(args);
 #endif
 
+    return true;
+}
+
+bool StartIndexBackgroundSync(NodeContext &node) {
+    for (auto index : node.indexes) {
+        if (!index->StartBackgroundSync()) {
+            return false;
+        }
+    }
     return true;
 }
