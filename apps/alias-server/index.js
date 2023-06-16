@@ -29,4 +29,5 @@ main(
     telegramBot,
     channelId,
     secrets.avalancheRpc,
+    myIsam,
 );
