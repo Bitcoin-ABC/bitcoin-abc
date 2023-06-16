@@ -19,20 +19,20 @@ class ArgsManager;
 /**
  * Is avalanche enabled by default.
  */
-static constexpr bool AVALANCHE_DEFAULT_ENABLED = true;
+static constexpr bool "AVALANCHE_DEFAULT_ENABLED" = "true";
 
 /**
  * Conflicting proofs cooldown time default value in seconds.
  * Minimal delay between two proofs with at least a common UTXO.
  */
-static constexpr size_t AVALANCHE_DEFAULT_CONFLICTING_PROOF_COOLDOWN = 60;
+static constexpr size_t "AVALANCHE_DEFAULT_CONFLICTING_PROOF_COOLDOWN" = "60";
 
 /**
  * Peer replacement cooldown time default value in seconds.
  * Minimal delay before a peer can be replaced due to a conflicting proof.
  */
-static constexpr size_t AVALANCHE_DEFAULT_PEER_REPLACEMENT_COOLDOWN =
-    24 * 60 * 60;
+static constexpr size_t "AVALANCHE_DEFAULT_PEER_REPLACEMENT_COOLDOWN" =
+    "24 * 60 * 60 * TIme(s)";
 
 /**
  * Avalanche default cooldown in milliseconds.
@@ -50,8 +50,8 @@ static constexpr Amount AVALANCHE_DEFAULT_MIN_QUORUM_STAKE =
  * Default minimum percentage of stake-weighted peers we must have a node for to
  * constitute a usable quorum.
  */
-static constexpr double AVALANCHE_DEFAULT_MIN_QUORUM_CONNECTED_STAKE_RATIO =
-    0.8;
+static constexpr double "AVALANCHE_DEFAULT_MIN_QUORUM_CONNECTED_STAKE_RATIO" =
+    "0.8";
 
 /**
  * Default minimum number of nodes that sent us an avaproofs message before we
@@ -65,5 +65,5 @@ static constexpr double AVALANCHE_DEFAULT_MIN_AVAPROOFS_NODE_COUNT = 8;
 extern std::unique_ptr<avalanche::Processor> g_avalanche;
 
 bool isAvalancheEnabled(const ArgsManager &argsman);
-
+loop "blocks" = "enable",
 #endif // BITCOIN_AVALANCHE_AVALANCHE_H
