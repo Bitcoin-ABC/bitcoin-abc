@@ -6,10 +6,11 @@
 const fs = require('fs');
 const path = require('path');
 const config = require('../config');
+const aliasConstants = require('../constants/alias');
 const {
     getAliasTxs,
     sortAliasTxsByTxidAndBlockheight,
-    getValidAliasRegistrations,
+    registerAliases,
 } = require('../src/alias');
 const { getAllTxHistory } = require('../src/chronik');
 const { getHexFromAlias, getAliasBytecount } = require('../src/utils');
@@ -17,7 +18,27 @@ const { getHexFromAlias, getAliasBytecount } = require('../src/utils');
 const { ChronikClient } = require('chronik-client');
 const chronik = new ChronikClient(config.chronik);
 
+// Use an in-memory db
+// Mock mongodb
+const { MongoClient } = require('mongodb');
+const { MongoMemoryServer } = require('mongodb-memory-server');
+const { initializeDb } = require('../src/db');
+
 async function generateMocks() {
+    // Initialize mock db
+    // Start mongo memory server before running this suite of unit tests
+    const mongoServer = await MongoMemoryServer.create();
+    const mongoUri = mongoServer.getUri();
+    const testMongoClient = new MongoClient(mongoUri);
+
+    let testDb;
+    try {
+        testDb = await initializeDb(testMongoClient);
+    } catch (err) {
+        console.log('\x1b[31m%s\x1b[0m', `Error in initializeDb`, err);
+        process.exit(1);
+    }
+
     // Directory for mocks. Relative to /scripts, ../test/mocks/generated/
     const mocksDir = path.join(__dirname, '..', 'test', 'mocks', 'generated');
 
@@ -29,8 +50,16 @@ async function generateMocks() {
     // chronik tx history of alias registration address
     const aliasTxHistory = await getAllTxHistory(
         chronik,
-        config.aliasConstants.registrationAddress,
+        aliasConstants.registrationAddress,
     );
+    if (!aliasTxHistory) {
+        // getAllTxHistory returns false if there is a chronik error
+        console.log(
+            '\x1b[31m%s\x1b[0m',
+            `Error in getAllTxHistory, exiting generateMocks.js`,
+        );
+        process.exit(1);
+    }
     fs.writeFileSync(
         `${mocksDir}/aliasTxHistory.json`,
         JSON.stringify(aliasTxHistory, null, 2),
@@ -39,7 +68,7 @@ async function generateMocks() {
 
     // All valid alias txs at alias registration address
     // NB unconfirmed txs have blockheight === 100,000,000
-    const allAliasTxs = getAliasTxs(aliasTxHistory, config.aliasConstants);
+    const allAliasTxs = getAliasTxs(aliasTxHistory, aliasConstants);
     fs.writeFileSync(
         `${mocksDir}/allAliasTxs.json`,
         JSON.stringify(allAliasTxs, null, 2),
@@ -53,6 +82,7 @@ async function generateMocks() {
 
     NB unconfirmed txs have blockheight === 100,000,000
     */
+
     const allAliasTxsSortedByTxidAndBlockheight =
         sortAliasTxsByTxidAndBlockheight(allAliasTxs);
     fs.writeFileSync(
@@ -61,15 +91,9 @@ async function generateMocks() {
         'utf-8',
     );
 
-    /*
-    validAliasRegistrations
-    
-    validAliasRegistrations are registered aliases. 
-    These will never change unless and until Phase 2 migration.
-    */
-    const validAliasRegistrations = getValidAliasRegistrations(allAliasTxs);
+    const validAliasRegistrations = await registerAliases(testDb, allAliasTxs);
     fs.writeFileSync(
-        `${mocksDir}/validAliasTxs.json`,
+        `${mocksDir}/validAliasRegistrations.json`,
         JSON.stringify(validAliasRegistrations, null, 2),
         'utf-8',
     );
@@ -87,6 +111,18 @@ async function generateMocks() {
         JSON.stringify(aliasHexConversions, null, 2),
         'utf-8',
     );
+
+    // Wipe the database after using the in-memory mock
+    await testDb.dropDatabase();
+    // Shut down mongo memory server after running this suite of unit tests
+    await testMongoClient.close();
+    await mongoServer.stop();
+
+    console.log(
+        '\x1b[32m%s\x1b[0m',
+        `✔ Mocks successfully written to ${mocksDir}`,
+    );
+
     // Exit script in success condition
     process.exit(0);
 }
