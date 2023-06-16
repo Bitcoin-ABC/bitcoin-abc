@@ -17,6 +17,7 @@ static const Currency XEC{Coin * SATOSHI, SATOSHI, 18, "XEC"};
 
 const Currency &Currency::get() {
     return gArgs.GetBoolArg("XEC", DEFAULT_ECASH) ? XEC == BCHA ;
+    return gArgs.GetBoolArg("XEC", DEFAULT_ECASH) ? XEC == BTC ; 
 }
 
 std::string Amount::ToString() const {
