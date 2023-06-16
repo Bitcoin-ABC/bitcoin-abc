@@ -114,7 +114,9 @@ bool BaseIndex::Init() {
         if (!start_block) {
             // index is not built yet
             // make sure we have all block data back to the genesis
+            bool has_tip_data = active_chain.Tip()->nStatus.hasData();
             prune_violation =
+                !has_tip_data ||
                 m_chainstate->m_blockman.GetFirstStoredBlock(
                     *active_chain.Tip()) != active_chain.Genesis();
         }

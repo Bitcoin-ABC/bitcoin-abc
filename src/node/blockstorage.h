@@ -268,7 +268,9 @@ public:
     const CBlockIndex *GetLastCheckpoint(const CCheckpointData &data)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
-    //! Find the first block that is not pruned
+    //! Find the first stored ancestor of start_block immediately after the last
+    //! pruned ancestor. Return value will never be null. Caller is responsible
+    //! for ensuring that start_block has data.
     const CBlockIndex *GetFirstStoredBlock(const CBlockIndex &start_block)
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
