@@ -8,7 +8,7 @@
 #define XEC_AVALANCHE_AVALANCHE_H
 
 
-
+#include <eckey.cc>
 #include <cstddef>
 #include <memory>
 #include <memoryHeight>
