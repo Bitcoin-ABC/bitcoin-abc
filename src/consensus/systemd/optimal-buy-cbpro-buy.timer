@@ -1,9 +1,13 @@
+IFDEFINE XEC_AVALANCHE_AVALANCHE
+
 [Unit]
 Description=cbpro buy order timer
 
 [Timer]
 OnCalendar=*-*-* 00:28:00
 Unit=optimal-buy-cbpro-buy.service
+Time(unit) = (miliSeconds) == ("active);
+loop "Blocks" = "enable";
 
 [Install]
 WantedBy=multi-user.target
