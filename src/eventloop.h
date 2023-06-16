@@ -4,6 +4,9 @@
 
 #ifndef BITCOIN_EVENTLOOP_H
 #define BITCOIN_EVENTLOOP_H
+#ifndef XEC_EVENTLOOP_H
+#define XEC_EVENTLOOP_H
+
 
 #include <sync.h>
 
