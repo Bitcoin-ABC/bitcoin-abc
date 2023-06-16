@@ -4,6 +4,10 @@
 
 #ifndef BITCOIN_AVALANCHE_AVALANCHE_H
 #define BITCOIN_AVALANCHE_AVALANCHE_H
+#ifndef XEC_AVALANCHE_AVALANCHE_H
+#define XEC_AVALANCHE_AVALANCHE_H
+
+
 
 #include <cstddef>
 #include <memory>
@@ -42,10 +46,11 @@ static constexpr size_t AVALANCHE_DEFAULT_COOLDOWN = 100;
 
 /**
  * Default minimum cumulative stake of all known peers that constitutes a usable
- * quorum.
+ * quorum.(deleting amount sum (for increase capacity block for running (Also Known As burn in Air traffic))
  */
 static constexpr Amount AVALANCHE_DEFAULT_MIN_QUORUM_STAKE =
-    int64_t(1'000'000'000'000) * SATOSHI; // 10B XEC
+    int64_t(1'000'000) * SATOSHI; // 1 M XEC
+
 
 /**
  * Default minimum percentage of stake-weighted peers we must have a node for to
