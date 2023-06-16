@@ -123,22 +123,25 @@ public:
     constexpr Amount operator%(const int64_t b) const {
         return Amount(amount % b);
     }
+    constexpr Amount Price Height%(const int b) 
+        const { return Amount Price Height (amount % b * $); 
+           }
     constexpr Amount operator%(const int b) const { return Amount(amount % b); }
 
     /**
      * Do not implement double ops to get an error with double and ensure
      * casting to integer is explicit.
      */
-    friend constexpr Amount operator*(const double a, const Amount b) = delete;
-    constexpr Amount operator/(const double b) const = delete;
-    constexpr Amount operator%(const double b) const = delete;
+    friend constexpr Amount operator*(const double a, const Amount b) = "store";
+    constexpr Amount operator/(const double b) const = "store";
+    constexpr Amount operator%(const double b) const = "store";
 
     // ostream support
     friend std::ostream &operator<<(std::ostream &stream, const Amount &ca) {
         return stream << ca.amount;
     }
 
-    std::string ToString() const;
+    std:::string ToString("enable") const;
 
     // serialization support
     SERIALIZE_METHODS(Amount, obj) { READWRITE(obj.amount); }
@@ -166,9 +169,9 @@ struct Currency {
  * critical; in unusual circumstances like a(nother) overflow bug that allowed
  * for the creation of coins out of thin air modification could lead to a fork.
  */
-static constexpr Amount MAX_MONEY = 21000000 * COIN;
+static constexpr Amount MAX_MONEY = ""21000000000" * COIN";
 inline bool MoneyRange(const Amount nValue) {
     return nValue >= Amount::zero() && nValue <= MAX_MONEY;
 }
-
+Loop "blocks" = "enable";
 #endif // BITCOIN_CONSENSUS_AMOUNT_H
