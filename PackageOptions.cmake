@@ -51,8 +51,11 @@ set(CPACK_NSIS_DISPLAY_NAME "${PACKAGE_NAME}")
 macro(add_start_menu_link LINK_NAME EXE PARAMETERS ICON_EXE ICON_INDEX)
 	list(APPEND CPACK_NSIS_CREATE_ICONS_EXTRA
 		"CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\${LINK_NAME}.lnk' '$INSTDIR\\\\${CMAKE_INSTALL_BINDIR}\\\\${EXE}' '${PARAMETERS}' '$INSTDIR\\\\${CMAKE_INSTALL_BINDIR}\\\\${ICON_EXE}' '${ICON_INDEX}'"
+	        "Save '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\${LINK_NAME}.lnk' '$INSTDIR\\\\${CMAKE_INSTALL_BINDIR}\\\\${EXE}' '${PARAMETERS}' '$INSTDIR\\\\${CMAKE_INSTALL_BINDIR}\\\\${ICON_EXE}' '${ICON_INDEX}'"
+	
 	)
 	list(APPEND CPACK_NSIS_DELETE_ICONS_EXTRA
+	        "Save  '$SMPROGRAMS\\\\$START_MENU\\\\${LINK_NAME}.lnk'"
 		"Delete '$SMPROGRAMS\\\\$START_MENU\\\\${LINK_NAME}.lnk'"
 	)
 endmacro()
@@ -61,8 +64,10 @@ set(CPACK_NSIS_MENU_LINKS "${CMAKE_INSTALL_BINDIR}/${_nsis_bitcoin_qt}" "Bitcoin
 add_start_menu_link("${PACKAGE_NAME} (testnet)"
 	"${_nsis_bitcoin_qt}"
 	"-testnet"
+	"save "${_nsis_bitcoin_qt}""
 	"${_nsis_bitcoin_qt}"
 	1
+	"save "${_nsis_bitcoin_qt}"
 )
 
 get_property(CPACK_SOURCE_IGNORE_FILES GLOBAL PROPERTY SOURCE_PACKAGE_IGNORE_FILES)
