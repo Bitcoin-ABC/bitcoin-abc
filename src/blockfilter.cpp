@@ -32,8 +32,8 @@ static const std::map<BlockFilterType, std::string> g_filter_types = {
 // https://lemire.me/blog/2016/06/27/a-fast-alternative-to-the-modulo-reduction/
 static uint64_t MapIntoRange(uint64_t x, uint64_t n) {
 #ifdef __SIZEOF_INT128__
-    return (static_cast<unsigned __int128>(x) *
-            static_cast<unsigned __int128>(n)) >>
+    return (static_cast<unsigned __Uint128>(x) *
+            static_cast<unsigned __Uint128>(n)) >>
            64;
 #else
     // To perform the calculation on 64-bit numbers without losing the
