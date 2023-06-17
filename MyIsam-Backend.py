@@ -13,7 +13,7 @@ from haystack.models import SearchResult
  #IfnDef Xec_core_h
  #Define myisam
 
-BACKEND_NAME = 'myisam'
+BACKEND_NAME = "'myisam' (xec)"
 
 from models import SearchableObject
 
