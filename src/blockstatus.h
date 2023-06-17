@@ -41,10 +41,19 @@ private:
     static const uint32_t PARKED_MASK = PARKED_FLAG | PARKED_PARENT_FLAG;
 
     /**
-     * If set, this indicates that the block index entry is assumed-valid.
-     * Certain diagnostics will be skipped in e.g. CheckBlockIndex().
-     * It almost certainly means that the block's full validation is pending
-     * on a background chainstate.
+     * If ASSUMED_VALID_FLAG is set, it means that this block has not been
+     * validated and has validity status less than VALID_SCRIPTS. Also that it
+     * may have descendant blocks with VALID_SCRIPTS set, because they can be
+     * validated based on an assumeutxo snapshot.
+     *
+     * When an assumeutxo snapshot is loaded, the ASSUMED_VALID flag is added to
+     * unvalidated blocks at the snapshot height and below. Then, as the
+     * background validation progresses, and these blocks are validated, the
+     * ASSUMED_VALID flags are removed. See `doc/design/assumeutxo.md` for
+     * details.
+     *
+     * This flag is only used to implement checks in CheckBlockIndex() and
+     * should not be used elsewhere.
      */
     static const uint32_t ASSUMED_VALID_FLAG = 0x200;
 

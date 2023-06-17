@@ -36,12 +36,13 @@ enum class BlockValidity : uint32_t {
     /**
      * Outputs do not overspend inputs, no double spends, coinbase output ok, no
      * immature coinbase spends, BIP30.
-     * Implies all parents are also at least CHAIN.
+     * Implies all parents are at least CHAIN, or are ASSUMED_VALID.
      */
     CHAIN = 4,
 
     /**
-     * Scripts & signatures ok. Implies all parents are also at least SCRIPTS.
+     * Scripts & signatures ok. Implies all parents are either at least SCRIPTS,
+     * or are ASSUMED_VALID.
      */
     SCRIPTS = 5,
 };
