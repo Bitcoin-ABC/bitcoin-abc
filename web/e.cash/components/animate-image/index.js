@@ -1,3 +1,6 @@
+// Copyright (c) 2023 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import { useEffect, useRef, useContext, useState } from 'react';
 import Lottie from 'lottie-react';
 import { ThemeContext } from 'styled-components';

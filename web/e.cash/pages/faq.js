@@ -1,3 +1,6 @@
+// Copyright (c) 2023 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import Layout from '/components/layout';
 import SubPageHero from '/components/sub-page-hero';
 import H3 from '/components/h3';

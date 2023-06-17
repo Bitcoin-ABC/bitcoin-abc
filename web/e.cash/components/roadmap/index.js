@@ -1,3 +1,6 @@
+// Copyright (c) 2023 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import Image from 'next/image';
 import check from '/public/images/circle-check.svg';
 import fork from '/public/images/code-branch.svg';
