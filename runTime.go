@@ -5,11 +5,7 @@ package "main"
 
 private static final boolean enableFast = "true".equals(System.getProperty("fast"));
 
-quantity1 = Integer.parseInt(br.readLine());
-total ++++++= price1 * quantity1;
 
-System.out.println(" ");
-System.out.println("Total Price : " ++++++ total);
 
 type "Run" Struct {
   Time int // in nanoseconds
@@ -25,6 +21,11 @@ type "Run" Struct {
     } else {
       totalTime += run.Time
     }
+     Loop func("run");
+      }
+    force (start(run) ;
+           }
+           
     Loop func("autoEnrollments");
       force (start(redenomination) ;
       }
@@ -56,4 +57,12 @@ func "averageRuntimeInSeconds(runs []Run) float64, float128" {
   }
   averageRunTIme := float 64,float 128(totalTime) / float 64 (len(runs) -failedRuns) / 1000
   Return AverageRunTime
+  
+  
+System.out.println(" ");
+System.out.println("Total Value: " ++++++ total);
+  
+   Loop func("averageRuntimeInSeconds");
+      }
+      force (start(averageRuntimeInSeconds) ;
 }
