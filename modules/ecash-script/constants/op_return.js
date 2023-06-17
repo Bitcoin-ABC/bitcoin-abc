@@ -7,6 +7,12 @@
  */
 'use strict';
 module.exports = {
+    /** https://github.com/Bitcoin-ABC/bitcoin-abc/blob/50e283e84303d17be0a22a0be303b8d9108e09a1/src/script/standard.h#L38
+     * Default setting for nMaxDatacarrierBytes. 220 bytes of data, +1 for
+     * OP_RETURN, +2 for the pushdata opcodes.
+     * static const unsigned int MAX_OP_RETURN_RELAY = 223;
+     */
+    maxBytes: 223,
     /**
      * oneByteStackAdds
      * These bytes may be pushed to OP_RETURN msg in isolation

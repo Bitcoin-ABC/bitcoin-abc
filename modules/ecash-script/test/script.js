@@ -4,7 +4,7 @@
 
 'use strict';
 const assert = require('assert');
-const { consume, consumeNextPush } = require('../src/script');
+const { consume, consumeNextPush, getStackArray } = require('../src/script');
 const opReturn = require('../constants/op_return');
 
 describe('script.js', function () {
@@ -320,5 +320,58 @@ describe('script.js', function () {
         assert.deepEqual(testStack, {
             remainingHex: '4d42',
         });
+    });
+    it('getStackArray throws an error if called with a non-string', function () {
+        const outputScript = { remainingHex: '0401020304' };
+
+        assert.throws(() => {
+            getStackArray(outputScript);
+        }, Error(`outputScript must be a string that starts with ${opReturn.OP_RETURN}`));
+    });
+    it('getStackArray throws an error if called with a string that is not an OP_RETURN outputScript', function () {
+        const outputScript = '0401020304';
+
+        assert.throws(() => {
+            getStackArray(outputScript);
+        }, Error(`outputScript must be a string that starts with ${opReturn.OP_RETURN}`));
+    });
+    it('getStackArray throws an error if called with a string that is too long to be a valid eCash OP_RETURN', function () {
+        const outputScript =
+            '6a042e7865630003333333150076458db0ed96fe9863fc1ccec9fa2cfab884b0f6042e7865630003333333150076458db0ed96fe9863fc1ccec9fa2cfab884b0f6042e7865630003333333150076458db0ed96fe9863fc1ccec9fa2cfab884b0f6042e7865630003333333150076458db0ed96fe9863fc1ccec9fa2cfab884b0f6042e7865630003333333150076458db0ed96fe9863fc1ccec9fa2cfab884b0f6042e7865630003333333150076458db0ed96fe9863fc1ccec9fa2cfab884b0f6042e7865630003333333150076458db0ed96fe9863fc1ccec9fa2cfab884b0f6042e7865630003333333150076458db0ed96fe9863fc1ccec9fa2cfab884b0f6';
+
+        assert.throws(() => {
+            getStackArray(outputScript);
+        }, Error(`Invalid eCash OP_RETURN size: ${outputScript.length / 2} bytes. eCash OP_RETURN outputs cannot exceed ${opReturn.maxBytes} bytes.`));
+    });
+    it('getStackArray throws an error if called with a string that has an odd number of characters', function () {
+        const outputScript =
+            '6a042e7865630003333333150076458db0ed96fe9863fc1ccec9fa2cfab884b0f';
+
+        // Error from consumeNextPush validation
+        assert.throws(() => {
+            getStackArray(outputScript);
+        }, Error(`Invalid input: stack.remainingHex must be divisible by bytes, i.e. have an even length.`));
+    });
+    it('getStackArray returns the expected stackArray from a valid OP_RETURN outputScript', function () {
+        const outputScript =
+            '6a042e7865630003333333150076458db0ed96fe9863fc1ccec9fa2cfab884b0f6';
+
+        // The stack is not modified
+        assert.deepEqual(getStackArray(outputScript), [
+            '2e786563',
+            '00',
+            '333333',
+            '0076458db0ed96fe9863fc1ccec9fa2cfab884b0f6',
+        ]);
+    });
+    it('getStackArray returns the expected stackArray from a valid OP_RETURN outputScript of maximum valid bytes', function () {
+        const outputScript =
+            '6a04007461624cd754657374696e672074686520323535206c696d69742054657374696e672074686520323535206c696d69742054657374696e672074686520323535206c696d69742054657374696e672074686520323535206c696d69742054657374696e672074686520323535206c696d69742054657374696e672074686520323535206c696d69742054657374696e672074686520323535206c696d69742054657374696e672074686520323535206c696d69742054657374696e672074686520323535206c696d69742054657374696e672074686520323535206c';
+
+        // The stack is not modified
+        assert.deepEqual(getStackArray(outputScript), [
+            '00746162',
+            '54657374696e672074686520323535206c696d69742054657374696e672074686520323535206c696d69742054657374696e672074686520323535206c696d69742054657374696e672074686520323535206c696d69742054657374696e672074686520323535206c696d69742054657374696e672074686520323535206c696d69742054657374696e672074686520323535206c696d69742054657374696e672074686520323535206c696d69742054657374696e672074686520323535206c696d69742054657374696e672074686520323535206c',
+        ]);
     });
 });

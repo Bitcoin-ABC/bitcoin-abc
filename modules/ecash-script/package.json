@@ -1,6 +1,6 @@
 {
     "name": "ecash-script",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "description": "Parse script for eCash (XEC)",
     "main": "index.js",
     "scripts": {

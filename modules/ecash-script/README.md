@@ -4,9 +4,17 @@ A JS library to support parsing script for ecash app development.
 
 ### Use
 
-As of 1.0.0, available methods are limited to parsing OP_RETURN scripts.
+As of 2.1.0, available methods are limited to parsing OP_RETURN scripts.
 
 These methods require input to be an object, i.e. `{remainingHex: '<string>'}`. Methods will modify the object in place such that `remainingHex` has consumed characters removed.
+
+`getStackArray`
+Return an array of pushes from an OP_RETURN outputScript
+
+```
+getStackArray('6a042e7865630003333333150076458db0ed96fe9863fc1ccec9fa2cfab884b0f6')
+// ['2e786563', '00', '333333', '0076458db0ed96fe9863fc1ccec9fa2cfab884b0f6']
+```
 
 `consume`
 Manually consume a user-specified number of bytes from the stack.
@@ -41,3 +49,4 @@ See `test/` for additional usage examples.
 1.0.0 Initial support for OP_RETURN parsing with functions `consume` and `consumeNextPush`
 1.1.0 New functions `swapEndianness` and `isHexString`
 2.0.0 Modify `consumeNextPush` to return object `{data, pushedWith}` instead of string `data`
+2.1.0 New function `getStackArray` to return an array of hex pushes from an OP_RETURN outputScript

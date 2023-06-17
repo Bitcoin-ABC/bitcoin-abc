@@ -119,7 +119,49 @@ function consumeNextPush(stack) {
     };
 }
 
+/**
+ * Convert an OP_RETURN outputScript into an array of pushes
+ * @param {string} outputScript an OP_RETURN output script, e.g. 6a042e7865630003333333150076458db0ed96fe9863fc1ccec9fa2cfab884b0f6
+ * @returns {array} an array of hex pushes, e.g. ['2e786563', '00', '333333', '0076458db0ed96fe9863fc1ccec9fa2cfab884b0f6']
+ * @throws {error} if outputScript is not a valid OP_RETURN outputScript
+ */
+function getStackArray(outputScript) {
+    // Validate for OP_RETURN outputScript
+    if (
+        typeof outputScript !== 'string' ||
+        !outputScript.startsWith(opReturn.OP_RETURN)
+    ) {
+        throw new Error(
+            `outputScript must be a string that starts with ${opReturn.OP_RETURN}`,
+        );
+    }
+    if (outputScript.length > 2 * opReturn.maxBytes) {
+        throw new Error(
+            `Invalid eCash OP_RETURN size: ${
+                outputScript.length / 2
+            } bytes. eCash OP_RETURN outputs cannot exceed ${
+                opReturn.maxBytes
+            } bytes.`,
+        );
+    }
+
+    // Create stack, the input object required by consumeNextPush
+    const stack = {
+        remainingHex: outputScript.slice(opReturn.OP_RETURN.length),
+    };
+
+    // Initialize stackArray
+    const stackArray = [];
+
+    while (stack.remainingHex.length > 0) {
+        stackArray.push(consumeNextPush(stack).data);
+    }
+
+    return stackArray;
+}
+
 module.exports = {
     consume,
     consumeNextPush,
+    getStackArray,
 };
