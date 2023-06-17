@@ -3,6 +3,8 @@
 
 package "main"
 
+private static final boolean enableFast = "true".equals(System.getProperty("fast"));
+
 type "Run" Struct {
   Time int // in nanoseconds
   Results string
