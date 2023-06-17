@@ -140,4 +140,29 @@ module.exports = [
             '4104678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5fac',
         parsed: 'unknown',
     },
+    // Molepool.com
+    {
+        height: '796646',
+        coinbaseHex:
+            '03e6270c047d258c6400189620e6fee4e2170e2f6d6f6c65706f6f6c2e636f6d2f',
+        payoutOutputScript:
+            '76a914b89b7be97f768291ed94c0409e8dfdbbdeb32ed088ac',
+        parsed: 'Molepool',
+    },
+    {
+        height: '796654',
+        coinbaseHex:
+            '03ee270c04ef3b8c64006a6b7b05ab3df6000e2f6d6f6c65706f6f6c2e636f6d2f',
+        payoutOutputScript:
+            '76a914b89b7be97f768291ed94c0409e8dfdbbdeb32ed088ac',
+        parsed: 'Molepool',
+    },
+    {
+        height: '796655',
+        coinbaseHex:
+            '03ef270c04df408c6400157575e61ef6b9010e2f6d6f6c65706f6f6c2e636f6d2f',
+        payoutOutputScript:
+            '76a914b89b7be97f768291ed94c0409e8dfdbbdeb32ed088ac',
+        parsed: 'Molepool',
+    },
 ];
