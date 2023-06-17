@@ -1,4 +1,8 @@
-define int_vars
+#define int_vars
+#IfnDef Xec_core_h
+#Define funcs.mk
+
+
 #Set defaults for vars which may be overridden per-package
 $(1)_cc=$$($$($(1)_type)_CC)
 $(1)_cxx=$$($$($(1)_type)_CXX)
