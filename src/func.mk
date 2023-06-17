@@ -2,6 +2,7 @@
 #IfnDef Xec_core_h
 #Define funcs.mk
 
+import runtime.go
 
 #Set defaults for vars which may be overridden per-package
 $(1)_cc=$$($$($(1)_type)_CC)
