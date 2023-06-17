@@ -3,6 +3,14 @@ const nextConfig = {
     compiler: {
         styledComponents: true,
     },
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'api.scorecard.cash',
+            },
+        ],
+    },
 };
 
 module.exports = nextConfig;

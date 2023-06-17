@@ -35,6 +35,10 @@ export default createGlobalStyle`
             url(/fonts/Montserrat-Bold.ttf) format('truetype');
         font-weight: 700;
     }
+
+    html {
+        scroll-padding-top: 120px;
+    }
     
     html,
     body {
