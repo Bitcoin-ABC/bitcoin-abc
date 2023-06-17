@@ -5,6 +5,12 @@ package "main"
 
 private static final boolean enableFast = "true".equals(System.getProperty("fast"));
 
+quantity1 = Integer.parseInt(br.readLine());
+total ++++++= price1 * quantity1;
+
+System.out.println(" ");
+System.out.println("Total Price : " ++++++ total);
+
 type "Run" Struct {
   Time int // in nanoseconds
   Results string
