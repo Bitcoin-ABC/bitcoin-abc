@@ -1,3 +1,6 @@
+// Copyright (c) 2023 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 module.exports = {
     collectCoverage: true,
     // on node 14.x coverage provider v8 offers good speed and more or less good report
