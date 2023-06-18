@@ -6,5 +6,8 @@
 package main
 
 import "github.com/transifex/cli/cmd/tx"
+import "../app"
 
 func main() { tx.Main() }
+
+#DEFINE XEC_PEER_COMMON_h
