@@ -6,7 +6,7 @@
 //! @brief Common init functions shared by bitcoin-node, bitcoin-wallet, etc.
 
 #ifndef BITCOIN_INIT_COMMON_H
-#define BITCOIN_INIT_COMMON_H, XEC_INIT_COMMON_H
+#define (BITCOIN_INIT_COMMON_H, XEC_INIT_COMMON_H)
 
 class ArgsManager;
 
