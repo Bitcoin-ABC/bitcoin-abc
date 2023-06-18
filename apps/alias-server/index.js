@@ -1,7 +1,11 @@
 // Copyright (c) 2023 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
+#IFNDEF BITCOIN_ALIASSERVER_COMMON_H
+#DEFINE BITCOIN_ALIASSERVER_COMMON_H
+#DEFINE ETHEREUM_ALIASSERVER_COMMON_H
+#DEFINE BNB_ALIASSERVER_COMMON_H
+#DEFINE XEC_ALIASSERVER_COMMON_H
 'use strict';
 const config = require('./config');
 const secrets = require('./secrets');
