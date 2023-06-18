@@ -3553,7 +3553,7 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
             // we're going to release cs_main soon. If the index is in a bad
             // state now, then it's better to know immediately rather than
             // randomly have it cause a problem in a race.
-            CheckBlockIndex();
+            m_chainman.CheckBlockIndex();
 
             if (blocks_connected) {
                 const CBlockIndex *pindexFork = m_chain.FindFork(starting_tip);
@@ -3862,7 +3862,7 @@ bool Chainstate::UnwindBlock(BlockValidationState &state, CBlockIndex *pindex,
         }
     }
 
-    CheckBlockIndex();
+    m_chainman.CheckBlockIndex();
 
     {
         LOCK(cs_main);
@@ -4646,7 +4646,7 @@ bool ChainstateManager::ProcessNewBlockHeaders(
             CBlockIndex *pindex = nullptr;
             bool accepted = AcceptBlockHeader(
                 header, state, &pindex, min_pow_checked, test_checkpoints);
-            ActiveChainstate().CheckBlockIndex();
+            CheckBlockIndex();
 
             if (!accepted) {
                 return false;
@@ -4725,7 +4725,7 @@ bool ChainstateManager::AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
 
     bool accepted_header{
         AcceptBlockHeader(block, state, &pindex, min_pow_checked)};
-    ActiveChainstate().CheckBlockIndex();
+    CheckBlockIndex();
 
     if (!accepted_header) {
         return false;
@@ -4870,7 +4870,7 @@ bool ChainstateManager::AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
     // background validation yet).
     ActiveChainstate().FlushStateToDisk(state, FlushStateMode::NONE);
 
-    ActiveChainstate().CheckBlockIndex();
+    CheckBlockIndex();
 
     return true;
 }
@@ -5830,8 +5830,8 @@ void ChainstateManager::LoadExternalBlockFile(
               GetTimeMillis() - nStart);
 }
 
-void Chainstate::CheckBlockIndex() {
-    if (!m_chainman.ShouldCheckBlockIndex()) {
+void ChainstateManager::CheckBlockIndex() {
+    if (!ShouldCheckBlockIndex()) {
         return;
     }
 
@@ -5841,7 +5841,7 @@ void Chainstate::CheckBlockIndex() {
     // before ActivateBestChain, so we have the genesis block in
     // m_blockman.m_block_index but no active chain. (A few of the tests when
     // iterating the block tree require that m_chain has been initialized.)
-    if (m_chain.Height() < 0) {
+    if (ActiveChain().Height() < 0) {
         assert(m_blockman.m_block_index.size() <= 1);
         return;
     }
@@ -5930,10 +5930,13 @@ void Chainstate::CheckBlockIndex() {
         if (pindex->pprev == nullptr) {
             // Genesis block checks.
             // Genesis block's hash must match.
-            assert(pindex->GetBlockHash() ==
-                   m_chainman.GetConsensus().hashGenesisBlock);
-            // The current active chain's genesis block must be this block.
-            assert(pindex == m_chain.Genesis());
+            assert(pindex->GetBlockHash() == GetConsensus().hashGenesisBlock);
+            for (auto c : GetAll()) {
+                if (c->m_chain.Genesis() != nullptr) {
+                    // The chain's genesis block must be this block.
+                    assert(pindex == c->m_chain.Genesis());
+                }
+            }
         }
         if (!pindex->HaveTxsDownloaded()) {
             // nSequenceId can't be set positive for blocks that aren't linked
@@ -6019,37 +6022,45 @@ void Chainstate::CheckBlockIndex() {
             // (i.e., hasParkedParent only if an ancestor is properly parked).
             assert(!pindex->nStatus.isOnParkedChain());
         }
-        if (!CBlockIndexWorkComparator()(pindex, m_chain.Tip()) &&
-            pindexFirstNeverProcessed == nullptr) {
-            if (pindexFirstInvalid == nullptr) {
-                // Don't perform this check for the background chainstate since
-                // its setBlockIndexCandidates shouldn't have some entries (i.e.
-                // those past the snapshot block) which do exist in the block
-                // index for the active chainstate.
-                if (this == &m_chainman.ActiveChainstate()) {
-                    // If this block sorts at least as good as the current tip
-                    // and is valid and we have all data for its parents, it
-                    // must be in setBlockIndexCandidates or be parked.
-                    if (pindexFirstMissing == nullptr) {
-                        assert(pindex->nStatus.isOnParkedChain() ||
-                               setBlockIndexCandidates.count(pindex));
-                    }
-                    // m_chain.Tip() must also be there even if some data has
-                    // been pruned.
-                    if (pindex == m_chain.Tip()) {
-                        assert(setBlockIndexCandidates.count(pindex));
-                    }
-                }
-                // If some parent is missing, then it could be that this block
-                // was in setBlockIndexCandidates but had to be removed because
-                // of the missing data. In this case it must be in
-                // m_blocks_unlinked -- see test below.
+        // Chainstate-specific checks on setBlockIndexCandidates
+        for (auto c : GetAll()) {
+            if (c->m_chain.Tip() == nullptr) {
+                continue;
             }
-        } else {
-            // If this block sorts worse than the current tip or some ancestor's
-            // block has never been seen, it cannot be in
-            // setBlockIndexCandidates.
-            assert(setBlockIndexCandidates.count(pindex) == 0);
+            if (!CBlockIndexWorkComparator()(pindex, c->m_chain.Tip()) &&
+                pindexFirstNeverProcessed == nullptr) {
+                if (pindexFirstInvalid == nullptr) {
+                    // The active chainstate should always have this block
+                    // as a candidate, but a background chainstate should
+                    // only have it if it is an ancestor of the snapshot base.
+                    if (c == &ActiveChainstate() ||
+                        GetSnapshotBaseBlock()->GetAncestor(pindex->nHeight) ==
+                            pindex) {
+                        // If this block sorts at least as good as the current
+                        // tip and is valid and we have all data for its
+                        // parents, it must be in setBlockIndexCandidates or be
+                        // parked.
+                        if (pindexFirstMissing == nullptr) {
+                            assert(pindex->nStatus.isOnParkedChain() ||
+                                   c->setBlockIndexCandidates.count(pindex));
+                        }
+                        // m_chain.Tip() must also be there even if some data
+                        // has been pruned.
+                        if (pindex == c->m_chain.Tip()) {
+                            assert(c->setBlockIndexCandidates.count(pindex));
+                        }
+                    }
+                    // If some parent is missing, then it could be that this
+                    // block was in setBlockIndexCandidates but had to be
+                    // removed because of the missing data. In this case it must
+                    // be in m_blocks_unlinked -- see test below.
+                }
+            } else {
+                // If this block sorts worse than the current tip or some
+                // ancestor's block has never been seen, it cannot be in
+                // setBlockIndexCandidates.
+                assert(c->setBlockIndexCandidates.count(pindex) == 0);
+            }
         }
         // Check whether this block is in m_blocks_unlinked.
         std::pair<std::multimap<CBlockIndex *, CBlockIndex *>::iterator,
@@ -6097,19 +6108,19 @@ void Chainstate::CheckBlockIndex() {
             //  - we tried switching to that descendant but were missing
             //    data for some intermediate block between m_chain and the
             //    tip.
-            // So if this block is itself better than m_chain.Tip() and it
-            // wasn't in
-            // setBlockIndexCandidates, then it must be in m_blocks_unlinked.
-            if (!CBlockIndexWorkComparator()(pindex, m_chain.Tip()) &&
-                setBlockIndexCandidates.count(pindex) == 0) {
-                if (pindexFirstInvalid == nullptr &&
-                    pindexFirstAssumeValid == nullptr) {
-                    // If this is a chain based on an assumeutxo snapshot, then
-                    // this block could either be in m_blocks_unlinked or in
-                    // setBlockIndexCandidates; it may take a call to
-                    // FindMostWorkChain() to figure out whether all the blocks
-                    // between the tip and this block are actually available.
-                    assert(foundInUnlinked);
+            // So if this block is itself better than any m_chain.Tip() and it
+            // wasn't in setBlockIndexCandidates, then it must be in
+            // m_blocks_unlinked.
+            for (auto c : GetAll()) {
+                const bool is_active = c == &ActiveChainstate();
+                if (!CBlockIndexWorkComparator()(pindex, c->m_chain.Tip()) &&
+                    c->setBlockIndexCandidates.count(pindex) == 0) {
+                    if (pindexFirstInvalid == nullptr) {
+                        if (is_active || GetSnapshotBaseBlock()->GetAncestor(
+                                             pindex->nHeight) == pindex) {
+                            assert(foundInUnlinked);
+                        }
+                    }
                 }
             }
         }

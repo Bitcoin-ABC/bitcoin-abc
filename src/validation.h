@@ -1009,14 +1009,6 @@ public:
     const CBlockIndex *FindForkInGlobalIndex(const CBlockLocator &locator) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
-    /**
-     * Make various assertions about the state of the block index.
-     *
-     * By default this only executes fully when using the Regtest chain; see:
-     * m_options.check_block_index.
-     */
-    void CheckBlockIndex();
-
     /** Load the persisted mempool from disk */
     void
     LoadMempool(const fs::path &load_path,
@@ -1267,6 +1259,14 @@ public:
     kernel::Notifications &GetNotifications() const {
         return m_options.notifications;
     };
+
+    /**
+     * Make various assertions about the state of the block index.
+     *
+     * By default this only executes fully when using the Regtest chain;
+     * see: m_options.check_block_index.
+     */
+    void CheckBlockIndex();
 
     /**
      * Alias for ::cs_main.
