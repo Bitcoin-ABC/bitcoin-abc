@@ -4,6 +4,7 @@
 
 #if defined(HAVE_CONFIG_H)
 #include <config/bitcoin-config.h>
+            <config/xec-config.h>
 #endif
 
 #include <clientversion.h>
