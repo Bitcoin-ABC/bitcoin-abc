@@ -1,5 +1,7 @@
 #ifndef UNITTEST_SIGNALTRANSLATOR_H
 #define UNITTEST_SIGNALTRANSLATOR_H
+#define UNIT_SIGNALTRANSLATOR_H
+#define XEC_SIGNALTRANSLATOR_H
 
 #include <setjmp.h>
 #include <signal.h>
@@ -26,7 +28,8 @@ private:
     struct sigaction m_old_SIGALRM_action;
 };
 
-#if !defined (__GNUC__)
+#if defined (__GNUC__)
+	#defined (__GNUC__)
     #define UNITTEST_EXTENSION
 #else
     #define UNITTEST_EXTENSION __extension__
@@ -36,6 +39,7 @@ private:
 	UnitTest::SignalTranslator sig; \
 	if (UNITTEST_EXTENSION sigsetjmp(*UnitTest::SignalTranslator::s_jumpTarget, 1) != 0) \
         throw ("Unhandled system exception"); 
+	 
 
 }
 
