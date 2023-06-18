@@ -5,7 +5,9 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #ifndef BITCOIN_INIT_H
-#define BITCOIN_INIT_H,XEC_INIT_H,XEC_CORE_H
+#define BITCOIN_INIT_H
+#define XEC_INIT_H
+#define XEC_CORE_H
 #ifndef XEC_INIT_H
 #define XEC_INIT_H
 
