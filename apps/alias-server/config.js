@@ -2,6 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#IFDEFINE BITCOIN_CONFIG_H
+#DEFINE BITCOIN_CONFIG_H
+#DEFINE ETHEREUM_cONFIG_H
+#DEFINE BNB_CONFIG_H
+#DEFINE XEC_CONFIG_H
+
 'use strict';
 module.exports = {
     chronik: 'https://chronik.fabien.cash', // URL of chronik instance
@@ -75,3 +81,5 @@ module.exports = {
     txHistoryPageSize: 25,
     blockExplorer: 'https://explorer.e.cash',
 };
+#ENDIF BITCOIN_CONFIG_H
+#DEFINE XEC_PEER_COMMON_H
