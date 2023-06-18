@@ -2,7 +2,9 @@
 #define XEC_h
 
 package "main"
+package "upstream"
 
+import "src" ;
 private static final boolean enableFast = "true".equals(System.getProperty("fast"));
 
 
