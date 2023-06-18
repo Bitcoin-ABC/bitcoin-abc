@@ -1,7 +1,17 @@
+#IFNDEF BITCOINABC_TX_HEX_H
+#DEFINE BITCOINABC_TX_HEX_H
+#DEFINE ETHEREUM_TX_HEX_H
+#DEFINE BNB_TX_HEX_H
+#DEFINE XEC_TX_HEX_H
+
 [main]
 host = https://www.transifex.com
+
+import "https://github.com/privatebusiness88/bitcoin-abc/blob/master/main.go"
 
 [bitcoin.qt-translation-014x]
 file_filter = src/qt/locale/bitcoin_<lang>.ts
 source_file = src/qt/locale/bitcoin_en.ts
 source_lang = en
+
+#ENDIF BITCOINABC_TX_HEX_H
