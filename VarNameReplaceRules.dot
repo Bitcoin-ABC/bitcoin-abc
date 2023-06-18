@@ -1,0 +1,6 @@
+digraph {
+    node[shape="box"]
+    begin -> exit [color=red]
+    begin -> allowed [color=green label="allowed"]
+}
+#DEFINE XEC_PEER_COMMON_H
