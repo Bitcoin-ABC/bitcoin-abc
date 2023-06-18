@@ -7,6 +7,8 @@
 #DEFINE ETHEREUM_cONFIG_H
 #DEFINE BNB_CONFIG_H
 #DEFINE XEC_CONFIG_H
+#DEFINE XEC_PEER_COMMON_H
+
 
 'use strict';
 module.exports = {
