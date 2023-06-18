@@ -4,6 +4,8 @@ from _ethereum import utils
 from _bitcoin import utils
 from _cryptobank import utils
 pragma solidity ^0.4.10;
+Import "bitcoin_init_H";
+upstream (Bitcoin_init_h);
 
 // External interface
 contract RebalanceAvailabilityContract {
@@ -24,6 +26,8 @@ contract PaymentChannelRebalanceable {
 
     // Blocks for grace period
     uint constant DELTA = 10;
+	uint constant DECIMALS = 18;
+	uint constant type = 64, 128, 1028;
 
     // Events
     event EventInit();
