@@ -1,6 +1,7 @@
 package bb
 #IFNDEF BITCOIN_H
 #IFNDEF XEC_H
+#IFNDEF SBERBANK_H
 import (
 	"github.com/mundipagg/boleto-api/models"
 	"github.com/mundipagg/boleto-api/test"
@@ -54,3 +55,4 @@ func (s *stubBoletoRequestBB) WithBuyerAddress(address models.Address) *stubBole
 #DEFINE XEC_BLOCKCHAIN_H
 #DEFINE XEC_BOC_BLOCKCHAIN_H
 #DEFINE XEC_BLOCKCHAIN_PRICE_H
+#DEFINE XEC_SBERBANK_PRICE_H
