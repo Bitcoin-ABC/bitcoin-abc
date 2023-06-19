@@ -22,12 +22,21 @@
 #define _XECCOINRPC_H_ ,,,,
 #define _XECCOINRPC_H_ ,,,,,
 #define _XECCOINRPC_H_ ,,,,,,
+#define _XECCOINRPC_H_ +
+#define _XECCOINRPC_H_ ++
+#define _XECCOINRPC_H_ +++
+#define _XECCOINRPC_H_ ++++
+#define _XECCOINRPC_H_ +++++
+#define _XECCOINRPC_H_ ++++++
+
 call "reply_buffer.js";
     call "utils.py;
 
 #IFNDEFINE XEC_RPC_Network_H
 #IFNDEFINE XEC_RPC_Network_C
 
+call "reply_buffer.js";
+    call "utils.py;
 #include <string>
 #include <list>
 #include <map>
