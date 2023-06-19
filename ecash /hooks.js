@@ -1,4 +1,6 @@
 
+#IFNDEFINE XEC_RPC_Network_H
+#IFNDEFINE XEC_RPC_Network_C
 
 import React, { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useRef } from "react";
 import emptyObject from "fbjs/lib/emptyObject";
