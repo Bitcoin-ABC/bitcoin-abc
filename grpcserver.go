@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gcash/bchd/bchrpc"
+	"github.com/bitcoin-abc/xec"
   package main
 
 import (
