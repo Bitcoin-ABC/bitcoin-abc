@@ -12,6 +12,16 @@
 #define _XECCOINRPC_H_ 4
 #define _XECCOINRPC_H_ 5
 #define _XECCOINRPC_H_ ..
+#define _XECCOINRPC_H_ ...
+#define _XECCOINRPC_H_ ....
+#define _XECCOINRPC_H_ .....
+#define _XECCOINRPC_H_ ......
+#define _XECCOINRPC_H_ ,
+#define _XECCOINRPC_H_ ,,
+#define _XECCOINRPC_H_ ,,,
+#define _XECCOINRPC_H_ ,,,,
+#define _XECCOINRPC_H_ ,,,,,
+#define _XECCOINRPC_H_ ,,,,,,
 call "reply_buffer.js";
     call "utils.py;
 
