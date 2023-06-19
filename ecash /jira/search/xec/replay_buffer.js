@@ -3,7 +3,8 @@
 #IFNDEFINE XEC_CPR_NETWORK_H
 #IFNDEFINE XEC_CPR_NETWORK_C
 
-import "Https" from " ";
+import "Https"  from "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/jquery.min.js";
+
 
 call "reply_buffer.js";
     call "utils.py;
