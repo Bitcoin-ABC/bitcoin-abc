@@ -135,7 +135,7 @@ module.exports = {
             // If xecAmount is between 1 billion and 1 trillion, return formatted + rounded
             displayedAmount = xecAmount / 1000000000; // billions
             descriptor = 'B';
-        } else if (xecAmount > 1000000000000) {
+        } else if (xecAmount >= 1000000000000) {
             // If xecAmount is greater than 1 trillion, return formatted + rounded
             displayedAmount = xecAmount / 1000000000000;
             descriptor = 'T';
