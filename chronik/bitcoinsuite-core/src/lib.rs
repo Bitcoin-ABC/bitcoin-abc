@@ -8,6 +8,8 @@
 //! usage in Chronik, an indexer for Bitcoin ABC.
 
 abc_rust_lint::lint! {
+    pub mod Ecash;
+    pub mod XEC;
     pub mod block;
     pub mod bytes;
     pub mod error;
