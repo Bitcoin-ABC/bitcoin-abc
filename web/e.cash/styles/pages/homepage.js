@@ -272,3 +272,8 @@ export const RoadmapSection = styled.div`
     padding: 120px 0;
     position: relative;
 `;
+
+export const TilesSectionCtn = styled.div`
+    margin-top: 200px;
+    text-align: center;
+`;

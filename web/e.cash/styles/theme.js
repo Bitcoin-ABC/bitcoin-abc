@@ -19,6 +19,7 @@ export const ecash = {
         coretechShadow2: 'rgba(0, 171, 231, 0.86)',
         colorSwatchBackground: 'rgba(255,255,255, 0.2)',
         gridlines: 'rgba(255,255,255, 0.2)',
+        featureTileHover: '#CD0BC3',
     },
     roadmap: {
         sectionHeader: '#00abe7',
@@ -61,6 +62,7 @@ export const stealth = {
         coretechShadow2: 'rgba(255, 255, 255, 0.86)',
         colorSwatchBackground: 'rgba(255,255,255, 0.2)',
         gridlines: 'rgba(255,255,255, 0.2)',
+        featureTileHover: '#c8c8c8',
     },
     roadmap: {
         sectionHeader: '#ffffff',

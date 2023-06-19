@@ -86,6 +86,7 @@ export const TextCtn = styled.div`
 
     h3 {
         margin-bottom: 16px;
+        text-transform: uppercase;
     }
 
     p {

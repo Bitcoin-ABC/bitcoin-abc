@@ -27,29 +27,34 @@ import {
     ContentCtn,
 } from '/styles/pages/core-tech.js';
 
-export default function CoreTech() {
-    const TextImageBlock = ({ title, image, reverse, speed, children }) => {
-        return (
-            <TextImageBlockCtn>
-                <LeftTopArrow />
-                <LeftDownArrow />
-                <RightTopArrow />
-                <RightDownArrow />
-                <TextCtn>
-                    <H3 text={title} />
-                    {children}
-                </TextCtn>
-                <ImageCtn>
-                    <AnimateImage
-                        image={image}
-                        reverse={reverse}
-                        speed={speed}
-                    />
-                </ImageCtn>
-            </TextImageBlockCtn>
-        );
-    };
+/**
+ * Return a styled block for the coretech items
+ * @param {string} title the title of the box to display
+ * @param {array} image the lottie json animation data to display
+ * @param {boolean} reverse defines image animation direction
+ * @param {number} speed defines image animation speed
+ * @param {object} children any children to display in the body
+ * @param {string} id the CSS id used for anchor links
+ */
+function TextImageBlock({ title, image, reverse, speed, children, id }) {
+    return (
+        <TextImageBlockCtn id={id}>
+            <LeftTopArrow />
+            <LeftDownArrow />
+            <RightTopArrow />
+            <RightDownArrow />
+            <TextCtn>
+                <H3 text={title} />
+                {children}
+            </TextCtn>
+            <ImageCtn>
+                <AnimateImage image={image} reverse={reverse} speed={speed} />
+            </ImageCtn>
+        </TextImageBlockCtn>
+    );
+}
 
+export default function CoreTech() {
     return (
         <Layout
             metaTitle="Core Tech"
@@ -81,7 +86,12 @@ export default function CoreTech() {
                 <Blob left="60%" top="60%" />
                 <Blob left="0" top="90%" />
                 <Container>
-                    <TextImageBlock title="AVALANCHE" image={avalanche} reverse>
+                    <TextImageBlock
+                        id="avalanche"
+                        title="Avalanche"
+                        image={avalanche}
+                        reverse
+                    >
                         <p>
                             Avalanche is a revolutionary consensus algorithm
                             that enables instant transactions, enhanced
@@ -107,7 +117,8 @@ export default function CoreTech() {
                     </TextImageBlock>
 
                     <TextImageBlock
-                        title="STAKING"
+                        id="staking"
+                        title="Staking"
                         image={staking}
                         reverse
                         speed={0.6}
@@ -131,7 +142,11 @@ export default function CoreTech() {
                         </p>
                     </TextImageBlock>
 
-                    <TextImageBlock title="GOVERNANCE" image={govern}>
+                    <TextImageBlock
+                        id="governance"
+                        title="Governance"
+                        image={govern}
+                    >
                         <p>
                             Protocol revenue is continually reinvested back into
                             the eCash ecosystem to fund key infrastructure and
@@ -140,7 +155,12 @@ export default function CoreTech() {
                         </p>
                     </TextImageBlock>
 
-                    <TextImageBlock title="ETOKENS" image={etoken} speed={0.8}>
+                    <TextImageBlock
+                        id="etokens"
+                        title="eTokens"
+                        image={etoken}
+                        speed={0.8}
+                    >
                         <p>
                             eCash supports tokens that anyone can create and
                             trade. Instantly create your own token with your own
@@ -151,7 +171,8 @@ export default function CoreTech() {
                     </TextImageBlock>
 
                     <TextImageBlock
-                        title="SMALL, CONVENIENT DENOMINATION (BITS)"
+                        id="bits"
+                        title="Small, Convenient Denomination (Bits)"
                         image={calculate}
                     >
                         <p>
@@ -164,7 +185,11 @@ export default function CoreTech() {
                         </p>
                     </TextImageBlock>
 
-                    <TextImageBlock title="CASHFUSION" image={cashfusion}>
+                    <TextImageBlock
+                        id="cashfusion"
+                        title="CashFusion"
+                        image={cashfusion}
+                    >
                         <p>
                             You can&rsquo;t always say what you think anymore.
                             More and more, Big Tech controls what you can see

@@ -19,10 +19,12 @@ import {
     YouTubeVideo,
     PixelBorder,
     RoadmapSection,
+    TilesSectionCtn,
 } from '/styles/pages/homepage';
 import Button from '/components/button';
 import H2 from '/components/h2';
 import Hand from '/public/images/hand.png';
+import HomepageTiles from '/components/homepage-tiles';
 import Roadmap from '/components/roadmap';
 
 export default function Home() {
@@ -101,6 +103,14 @@ export default function Home() {
                             </YouTubeVideo>
                         </div>
                     </StorySection>
+                    <TilesSectionCtn>
+                        <H2
+                            subtext="Why eCash? Key Features"
+                            text="What makes eCash unique?"
+                            center
+                        />
+                    </TilesSectionCtn>
+                    <HomepageTiles />
                 </Container>
             </StoryAndWhySection>
             <PixelBorder />
