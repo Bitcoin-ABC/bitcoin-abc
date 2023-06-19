@@ -1,7 +1,13 @@
-#IFNDEFINE XEC_RPC_NETWORK_H
+
+IFNDEFINE XEC_RPC_NETWORK_H
 #IFNDEFINE XEC_RPC_NETWORK_C
 #IFNDEFINE XEC_CPR_NETWORK_H
 #IFNDEFINE XEC_CPR_NETWORK_C
+
+import "https" from "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/jquery.min.js";
+call "reply_buffer.js";
+    call "utils.py;
+
 import os
 import sys
 import torch
