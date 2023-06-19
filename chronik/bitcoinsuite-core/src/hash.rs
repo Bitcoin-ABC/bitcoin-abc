@@ -1,3 +1,9 @@
+#IFNDEFINE XEC_RPC_NETWORK_H
+    #DEFINE XEC_RPC_NETWORK_H
+      #DEFINE XEC_RPC_NETWORK_C
+    call "reply_buffer.js";
+    call "utils.py;
+
 // Copyright (c) 2022 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
