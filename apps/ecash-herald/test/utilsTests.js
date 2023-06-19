@@ -15,6 +15,7 @@ const {
     jsonReplacer,
     jsonReviver,
     mapToKeyValueArray,
+    satsToFormattedXec,
 } = require('../src/utils');
 const { addressPreviews } = require('./mocks/templates');
 
@@ -168,6 +169,39 @@ describe('ecash-telegram-bot utils.js functions', function () {
     });
     it('formatPrice omits a currency symbol if it cannot find it', async function () {
         assert.strictEqual(formatPrice(100000.999923422, 'cad'), `100,001`);
+    });
+    it('satsToFormattedXec returns a string with 2 decimal places if XEC amount < 10', async function () {
+        assert.strictEqual(satsToFormattedXec(999), `9.99 XEC`);
+    });
+    it('satsToFormattedXec returns a string with no decimal places if XEC amount < 10 and round number', async function () {
+        assert.strictEqual(satsToFormattedXec(900), `9 XEC`);
+    });
+    it('satsToFormattedXec returns a string with no decimal places if 10 <= XEC amount < 100', async function () {
+        assert.strictEqual(satsToFormattedXec(1251), `13 XEC`);
+    });
+    it('satsToFormattedXec returns a string with no decimal places if 100 < XEC amount <  1000', async function () {
+        assert.strictEqual(satsToFormattedXec(12500), `125 XEC`);
+    });
+    it('satsToFormattedXec returns a thousands string with no decimal places if 1000 < XEC amount < 1 million', async function () {
+        assert.strictEqual(satsToFormattedXec(100000), `1k XEC`);
+    });
+    it('satsToFormattedXec returns a rounded thousands string with no decimal places if 1000 < XEC amount < 1 million', async function () {
+        assert.strictEqual(satsToFormattedXec(55555555), `556k XEC`);
+    });
+    it('satsToFormattedXec returns a rounded millions string with no decimal places if 1M < XEC amount < 1B', async function () {
+        assert.strictEqual(satsToFormattedXec(55555555555), `556M XEC`);
+    });
+    it('satsToFormattedXec returns a rounded billions string with no decimal places if 1B < XEC amount < 1T', async function () {
+        assert.strictEqual(satsToFormattedXec(55555555555555), `556B XEC`);
+    });
+    it('satsToFormattedXec returns a rounded trillions string with no decimal places if XEC amount > 1T', async function () {
+        assert.strictEqual(satsToFormattedXec(5555555555555555), `56T XEC`);
+    });
+    it('satsToFormattedXec returns a rounded trillions string with no decimal places if XEC amount > 1T', async function () {
+        assert.strictEqual(satsToFormattedXec(1999999999999999), `20T XEC`);
+    });
+    it('satsToFormattedXec returns a trillions string with no decimal places for max possible XEC amount', async function () {
+        assert.strictEqual(satsToFormattedXec(2100000000000000), `21T XEC`);
     });
     it('jsonReplacer and jsonReviver can encode and decode a Map to and from JSON', async function () {
         const map = new Map([

@@ -15,7 +15,11 @@ const {
     prepareStringForTelegramHTML,
     splitOverflowTgMsg,
 } = require('./telegram');
-const { formatPrice, returnAddressPreview } = require('./utils');
+const {
+    formatPrice,
+    satsToFormattedXec,
+    returnAddressPreview,
+} = require('./utils');
 module.exports = {
     parseBlock: function (chronikBlockResponse) {
         const { blockInfo, txs } = chronikBlockResponse;
@@ -1345,7 +1349,7 @@ module.exports = {
                 totalSatsSent += satoshis;
             }
             // Convert sats to XEC. Round as decimals will not be rendered in msgs.
-            const totalXecSent = parseFloat((totalSatsSent / 100).toFixed(0));
+            const displayedXecSent = satsToFormattedXec(totalSatsSent);
 
             // Clone xecReceivingOutputs so that you don't modify unit test mocks
             let xecReceivingAddressOutputs = new Map(xecReceivingOutputs);
@@ -1365,12 +1369,13 @@ module.exports = {
                     changeAmountSats += satoshis;
                 }
                 // Convert sats to XEC.
-                const changeAmountXec = parseFloat(changeAmountSats / 100);
+                const displayedChangeAmountXec =
+                    satsToFormattedXec(changeAmountSats);
                 xecSendMsg = `${xecSendingOutputScripts.size} ${
                     xecSendingOutputScripts.size > 1 ? 'addresses' : 'address'
                 } <a href="${
                     config.blockExplorer
-                }/tx/${txid}">sent</a> ${changeAmountXec} XEC to ${
+                }/tx/${txid}">sent</a> ${displayedChangeAmountXec} to ${
                     xecSendingOutputScripts.size > 1 ? 'themselves' : 'itself'
                 }`;
             } else {
@@ -1380,9 +1385,7 @@ module.exports = {
                     ),
                 )} <a href="${
                     config.blockExplorer
-                }/tx/${txid}">sent</a> ${totalXecSent.toLocaleString('en-US', {
-                    minimumFractionDigits: 0,
-                })} XEC to ${
+                }/tx/${txid}">sent</a> ${displayedXecSent} to ${
                     xecReceivingAddressOutputs.keys().next().value ===
                     xecSendingOutputScripts.values().next().value
                         ? 'itself'

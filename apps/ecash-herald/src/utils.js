@@ -101,6 +101,53 @@ module.exports = {
             maximumFractionDigits: 8,
         })}`;
     },
+    /**
+     * Return a formatted string for a telegram msg given an amount of satoshis     *
+     * @param {number} satoshis amount of satoshis as a string
+     * @returns {string}
+     */
+    satsToFormattedXec: function (satoshis) {
+        // Convert to satoshis
+        let xecAmount = satoshis / 100;
+
+        // Initialize displayed string variables
+        let displayedAmount, descriptor;
+
+        // Initialize displayedDecimals as 0
+        let displayedDecimals = 0;
+
+        // Build format string for fixed levels
+        if (xecAmount < 10) {
+            // If xecAmount is less than 10, return un-rounded
+            displayedAmount = xecAmount;
+            descriptor = '';
+            displayedDecimals = 2;
+        } else if (xecAmount < 1000) {
+            displayedAmount = xecAmount;
+            descriptor = '';
+            // If xecAmount is between 10 and 1k, return rounded
+        } else if (xecAmount < 1000000) {
+            // If xecAmount is between 1k and 1 million, return formatted + rounded
+            displayedAmount = xecAmount / 1000; // thousands
+            descriptor = 'k';
+        } else if (xecAmount < 1000000000) {
+            // If xecAmount is between 1 million and 1 billion, return formatted + rounded
+            displayedAmount = xecAmount / 1000000; // millions
+            descriptor = 'M';
+        } else if (xecAmount < 1000000000000) {
+            // If xecAmount is between 1 billion and 1 trillion, return formatted + rounded
+            displayedAmount = xecAmount / 1000000000; // billions
+            descriptor = 'B';
+        } else if (xecAmount > 1000000000000) {
+            // If xecAmount is greater than 1 trillion, return formatted + rounded
+            displayedAmount = xecAmount / 1000000000000;
+            descriptor = 'T';
+        }
+
+        return `${displayedAmount.toLocaleString('en-US', {
+            maximumFractionDigits: displayedDecimals,
+        })}${descriptor} XEC`;
+    },
     jsonReplacer: function (key, value) {
         if (value instanceof Map) {
             const keyValueArray = Array.from(value.entries());
