@@ -4,6 +4,7 @@
 
 'use strict';
 const config = require('./config');
+const aliasConstants = require('./constants/alias');
 const secrets = require('./secrets');
 const { main } = require('./src/main');
 
@@ -25,7 +26,7 @@ const telegramBot = new TelegramBot(botId, {
 main(
     aliasServerMongoClient,
     chronik,
-    config.aliasConstants.registrationAddress,
+    aliasConstants.registrationAddress,
     telegramBot,
     channelId,
     secrets.avalancheRpc,
