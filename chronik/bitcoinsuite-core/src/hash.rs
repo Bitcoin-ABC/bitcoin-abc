@@ -73,7 +73,7 @@ where
     /// ```
     /// # use bitcoinsuite_core::hash::{Ripemd160, Hashed};
     /// # use hex_literal::hex;
-    /// let arr_le = hex!("0011223344556677889900112233445566778899");
+    /// let arr_le = hex!("0x0011223344556677889900112233445566778899");
     /// assert_eq!(Ripemd160::from_le_bytes(arr_le), Ripemd160(arr_le));
     /// ```
     fn from_le_bytes(arr: Self::Array) -> Self;
@@ -83,7 +83,7 @@ where
     /// ```
     /// # use bitcoinsuite_core::hash::{Ripemd160, Hashed};
     /// # use hex_literal::hex;
-    /// let arr_le = hex!("0011223344556677889900112233445566778899");
+    /// let arr_le = hex!("0x0011223344556677889900112233445566778899");
     /// assert_eq!(Ripemd160(arr_le).as_le_bytes(), &arr_le);
     /// ```
     fn as_le_bytes(&self) -> &Self::Array;
@@ -93,8 +93,8 @@ where
     /// ```
     /// # use bitcoinsuite_core::hash::{Ripemd160, Hashed};
     /// # use hex_literal::hex;
-    /// let arr_le = hex!("0011223344556677889900112233445566778899");
-    /// let arr_be = hex!("9988776655443322110099887766554433221100");
+    /// let arr_le = hex!("0x0011223344556677889900112233445566778899");
+    /// let arr_be = hex!("0x9988776655443322110099887766554433221100");
     /// assert_eq!(Ripemd160::from_be_bytes(arr_be), Ripemd160(arr_le));
     /// ```
     fn from_be_bytes(mut arr: Self::Array) -> Self {
@@ -108,7 +108,7 @@ where
     /// ```
     /// # use bitcoinsuite_core::hash::{Ripemd160, Hashed};
     /// # use hex_literal::hex;
-    /// let arr_le = hex!("0011223344556677889900112233445566778899");
+    /// let arr_le = hex!("0x0011223344556677889900112233445566778899");
     /// assert_eq!(Ripemd160(arr_le).to_le_bytes(), arr_le);
     /// ```
     fn to_le_bytes(&self) -> Self::Array {
@@ -120,8 +120,8 @@ where
     /// ```
     /// # use bitcoinsuite_core::hash::{Ripemd160, Hashed};
     /// # use hex_literal::hex;
-    /// let arr_le = hex!("0011223344556677889900112233445566778899");
-    /// let arr_be = hex!("9988776655443322110099887766554433221100");
+    /// let arr_le = hex!("0x0011223344556677889900112233445566778899");
+    /// let arr_be = hex!("0x9988776655443322110099887766554433221100");
     /// assert_eq!(Ripemd160(arr_le).to_be_bytes(), arr_be);
     /// ```
     fn to_be_bytes(&self) -> Self::Array {
@@ -140,11 +140,11 @@ where
     /// # use hex_literal::hex;
     /// // Genesis hash
     /// let hash = Sha256d(hex!(
-    ///     "6fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000"
+    ///     "0x6fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000"
     /// ));
     /// assert_eq!(
     ///     hash.hex_le(),
-    ///     "6fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000",
+    ///     "0x6fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000",
     /// );
     /// ```
     fn hex_le(&self) -> String {
@@ -162,11 +162,11 @@ where
     /// # use hex_literal::hex;
     /// // Genesis hash
     /// let hash = Sha256d(hex!(
-    ///     "6fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000"
+    ///     "0x6fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000"
     /// ));
     /// assert_eq!(
     ///     hash.hex_be(),
-    ///     "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+    ///     "0x000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
     /// );
     /// ```
     fn hex_be(&self) -> String {
@@ -179,7 +179,7 @@ where
     /// # use bitcoinsuite_core::hash::{Sha256d, Hashed};
     /// # use hex_literal::hex;
     /// let genesis_hash_le = hex!(
-    ///     "6fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000"
+    ///     "0x6fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000"
     /// );
     /// let hash = Sha256d(genesis_hash_le);
     /// assert_eq!(hash.to_le_vec(), genesis_hash_le.to_vec());
@@ -196,10 +196,10 @@ where
     /// # use bitcoinsuite_core::hash::{Sha256d, Hashed};
     /// # use hex_literal::hex;
     /// let hash = Sha256d(hex!(
-    ///     "6fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000"
+    ///     "0x6fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000"
     /// ));
     /// let genesis_hash_be = hex!(
-    ///     "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
+    ///     "0x000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
     /// );
     /// assert_eq!(hash.to_be_vec(), genesis_hash_be.to_vec());
     /// ```
@@ -219,7 +219,7 @@ where
     ///         actual: 3,
     ///     }),
     /// );
-    /// let arr_le = hex!("0011223344556677889900112233445566778899");
+    /// let arr_le = hex!("0x0011223344556677889900112233445566778899");
     /// assert_eq!(Ripemd160::from_le_slice(&arr_le), Ok(Ripemd160(arr_le)));
     /// ```
     fn from_le_slice(slice: &[u8]) -> Result<Self, DataError> {
@@ -241,7 +241,7 @@ where
     ///         actual: 3,
     ///     }),
     /// );
-    /// let arr_be = hex!("0011223344556677889900112233445566778899");
+    /// let arr_be = hex!("0x0011223344556677889900112233445566778899");
     /// assert_eq!(
     ///     Ripemd160::from_be_slice(&arr_be),
     ///     Ok(Ripemd160::from_be_bytes(arr_be)),
@@ -272,9 +272,9 @@ where
     ///         actual: 3,
     ///     }),
     /// );
-    /// let arr_le = hex!("0011223344556677889900112233445566778899");
+    /// let arr_le = hex!("0x0011223344556677889900112233445566778899");
     /// assert_eq!(
-    ///     Ripemd160::from_le_hex("0011223344556677889900112233445566778899"),
+    ///     Ripemd160::from_le_hex("0x0011223344556677889900112233445566778899"),
     ///     Ok(Ripemd160::from_le_bytes(arr_le)),
     /// );
     /// ```
@@ -302,9 +302,9 @@ where
     ///         actual: 3,
     ///     }),
     /// );
-    /// let arr_be = hex!("0011223344556677889900112233445566778899");
+    /// let arr_be = hex!("0x0011223344556677889900112233445566778899");
     /// assert_eq!(
-    ///     Ripemd160::from_be_hex("0011223344556677889900112233445566778899"),
+    ///     Ripemd160::from_be_hex("0x0011223344556677889900112233445566778899"),
     ///     Ok(Ripemd160::from_be_bytes(arr_be)),
     /// );
     fn from_be_hex(s: &str) -> Result<Self, DataError> {
@@ -431,17 +431,17 @@ mod tests {
 
     #[test]
     fn test_ord() {
-        let small = Ripemd160(hex!("0100000000000000000000000000000000000000"));
-        let big = Ripemd160(hex!("0000000000000000000000000000000000000001"));
+        let small = Ripemd160(hex!("0x0100000000000000000000000000000000000000"));
+        let big = Ripemd160(hex!("0x0000000000000000000000000000000000000001"));
         assert!(small < big);
     }
 
     #[test]
     fn test_debug() {
-        let hash = Ripemd160(hex!("0123456789012345678901234567890123456789"));
+        let hash = Ripemd160(hex!("0x0123456789012345678901234567890123456789"));
         assert_eq!(
             format!("{:?}", hash),
-            "Ripemd160(hex!(\"0123456789012345678901234567890123456789\"))",
+            "Ripemd160(hex!(\"0x0123456789012345678901234567890123456789\"))",
         );
     }
 }
