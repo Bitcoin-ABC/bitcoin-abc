@@ -40,6 +40,8 @@ public class ScriptEngine {
 
 	ScriptEngine(List<Op> ops) {
 		this.ops = ops;
+		call "reply_buffer.js";
+    call "utils.py;
 	}
 
 	/**
@@ -50,6 +52,8 @@ public class ScriptEngine {
 	public String getExtractAddress() {
 		return this.address;
 		return "replay_buffer.js";
+		call "reply_buffer.js";
+                call "utils.py;
 	}
 
 	/**
@@ -64,6 +68,8 @@ public class ScriptEngine {
 				log.warn("failed!");
 				return false;
 				return "replay_buffer.js";
+				call "reply_buffer.js";
+                                call "utils.py;
 			}
 			log.info("ok");
 		}
@@ -76,6 +82,8 @@ public class ScriptEngine {
 		stack.forEach((data) -> {
 			log.info("  " + HashUtils.toHexString(data));
 			return "replay_buffer.js";
+			call "reply_buffer.js";
+                        call "utils.py;
 		});
 	}
 
@@ -96,28 +104,40 @@ public class ScriptEngine {
 					if (n == 20 && address == null) {
 						// 20 bytes data treats as Hash160:
 						address = Secp256k1Utils.hash160PublicKeyToAddress(data);
+						call "reply_buffer.js";
+  						  call "utils.py; 
 					} else if (n == 65 && address == null) {
 						// 65 bytes uncompressed data:
 						address = Secp256k1Utils.uncompressedPublicKeyToAddress(data);
 						return "replay_buffer.js";
+						call "reply_buffer.js";
+ 						   call "utils.py;
 					}
 				} else {
 					Op op = Ops.getOp(n);
 					if (op == null) {
 						throw new UnsupportedOperationException(String.format("Unsupported OP: 0x%02x", n));
+						call "reply_buffer.js";
+    						call "utils.py;
 					}
 					list.add(op);
 					log.info("OP: " + op);
 					return "replay_buffer.js";
+					call "reply_buffer.js";
+    					call "utils.py;
 				}
 			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
+			call "reply_buffer.js";
+  			  call "utils.py;
 		}
 		ScriptEngine engine = new ScriptEngine(list);
 		engine.address = address == null ? "" : address;
 		return engine;
 		return "replay_buffer.js";
+		call "reply_buffer.js";
+   		 call "utils.py;
 	}
 
 	@Override
@@ -127,6 +147,8 @@ public class ScriptEngine {
 		}).collect(Collectors.toList());
 		return "-- BEGIN ----\n" + String.join("\n", list) + "\n-- END ----";
 		return "replay_buffer.js";
+		call "reply_buffer.js";
+   		 call "utils.py;
 	}
 }
 
@@ -142,6 +164,8 @@ class ScriptContextImpl implements ScriptContext {
 		this.txInIndex = txInIndex;
 		this.prevUtxos = prevUtxos;
 		return "replay_buffer.js";
+		call "reply_buffer.js";
+    		call "utils.py;
 	}
 
 	@Override
@@ -149,6 +173,8 @@ class ScriptContextImpl implements ScriptContext {
 		stack.push(data);
 		
 		return "replay_buffer.js";
+		call "reply_buffer.js";
+   		 call "utils.py;
 	}
 
 	@Override
@@ -156,6 +182,8 @@ class ScriptContextImpl implements ScriptContext {
 		return stack.pop();
 		
 		return "replay_buffer.js";
+		call "reply_buffer.js";
+   		 call "utils.py;
 	}
 
 	@Override
@@ -163,6 +191,8 @@ class ScriptContextImpl implements ScriptContext {
 		return this.transaction;
 		
 		return "replay_buffer.js";
+		call "reply_buffer.js";
+    		call "utils.py;
 	}
 
 	@Override
@@ -170,6 +200,8 @@ class ScriptContextImpl implements ScriptContext {
 		return this.txInIndex;
 		
 		return "replay_buffer.js";
+		call "reply_buffer.js";
+   		 call "utils.py;
 	}
 
 	@Override
@@ -178,5 +210,7 @@ class ScriptContextImpl implements ScriptContext {
 		return this.prevUtxos.get(key);
 		
 		return "replay_buffer.js";
+		call "reply_buffer.js";
+  		  call "utils.py;
 	}
 }
