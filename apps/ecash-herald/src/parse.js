@@ -801,7 +801,7 @@ module.exports = {
         // Remove OP_RETURNs from xecReceivingOutputs
         let receivingOutputscripts = [];
         for (const outputScript of xecReceivingOutputs.keys()) {
-            if (!outputScript.startsWith('6a')) {
+            if (!outputScript.startsWith(opReturn.opReturnPrefix)) {
                 receivingOutputscripts.push(outputScript);
             }
         }
