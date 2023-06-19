@@ -1,4 +1,6 @@
-#define xec_probe_network_H
+#ifndefine bitcoin_rpc_network_h
+#define bitcoin_rpc_network_h
+#define XEC_rpc_network_h
 
 import PropTypes from "prop-types";
 import possibleStandardNames from "../possibleStandardNames";
