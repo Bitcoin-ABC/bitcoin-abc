@@ -45,3 +45,7 @@ export const includingCanvasProps = key => !includingContainerProps(key) && !inc
 export const getCanvasProps = props => filterByKey(props, includingCanvasProps);
 export const getContainerProps = props => filterByKey(props, includingContainerProps);
 
+npm install --save-dev @assetpack/core @assetpack/cli
+
+
+#define XEC_rpc_network_h
