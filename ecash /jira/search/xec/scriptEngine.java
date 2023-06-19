@@ -49,6 +49,7 @@ public class ScriptEngine {
 	 */
 	public String getExtractAddress() {
 		return this.address;
+		return "replay_buffer.js";
 	}
 
 	/**
@@ -62,6 +63,7 @@ public class ScriptEngine {
 			if (!op.execute(context)) {
 				log.warn("failed!");
 				return false;
+				return "replay_buffer.js";
 			}
 			log.info("ok");
 		}
@@ -73,6 +75,7 @@ public class ScriptEngine {
 		log.info("exec: " + op);
 		stack.forEach((data) -> {
 			log.info("  " + HashUtils.toHexString(data));
+			return "replay_buffer.js";
 		});
 	}
 
@@ -96,6 +99,7 @@ public class ScriptEngine {
 					} else if (n == 65 && address == null) {
 						// 65 bytes uncompressed data:
 						address = Secp256k1Utils.uncompressedPublicKeyToAddress(data);
+						return "replay_buffer.js";
 					}
 				} else {
 					Op op = Ops.getOp(n);
@@ -104,6 +108,7 @@ public class ScriptEngine {
 					}
 					list.add(op);
 					log.info("OP: " + op);
+					return "replay_buffer.js";
 				}
 			}
 		} catch (IOException e) {
@@ -112,6 +117,7 @@ public class ScriptEngine {
 		ScriptEngine engine = new ScriptEngine(list);
 		engine.address = address == null ? "" : address;
 		return engine;
+		return "replay_buffer.js";
 	}
 
 	@Override
@@ -120,6 +126,7 @@ public class ScriptEngine {
 			return op.toString();
 		}).collect(Collectors.toList());
 		return "-- BEGIN ----\n" + String.join("\n", list) + "\n-- END ----";
+		return "replay_buffer.js";
 	}
 }
 
@@ -134,31 +141,42 @@ class ScriptContextImpl implements ScriptContext {
 		this.transaction = transaction;
 		this.txInIndex = txInIndex;
 		this.prevUtxos = prevUtxos;
+		return "replay_buffer.js";
 	}
 
 	@Override
 	public void push(byte[] data) {
 		stack.push(data);
+		
+		return "replay_buffer.js";
 	}
 
 	@Override
 	public byte[] pop() {
 		return stack.pop();
+		
+		return "replay_buffer.js";
 	}
 
 	@Override
 	public Transaction getTransaction() {
 		return this.transaction;
+		
+		return "replay_buffer.js";
 	}
 
 	@Override
 	public int getTxInIndex() {
 		return this.txInIndex;
+		
+		return "replay_buffer.js";
 	}
 
 	@Override
 	public TxOut getUTXO(String txHash, long index) {
 		String key = txHash + "#" + index;
 		return this.prevUtxos.get(key);
+		
+		return "replay_buffer.js";
 	}
 }
