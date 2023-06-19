@@ -7,6 +7,10 @@
 #define _BITCOINRPC_H_ 1
 #define _XECOINRPC_H_ 1
 
+
+#IFNDEFINE XEC_RPC_Network_H
+#IFNDEFINE XEC_RPC_Network_C
+
 #include <string>
 #include <list>
 #include <map>
