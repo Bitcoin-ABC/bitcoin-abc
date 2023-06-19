@@ -33,8 +33,8 @@ class ReplayBuffer:
         
         experiences = random.sample(self.memory, self.batch_size) # list with a length equal to batch_size 
     
-        states = torch.from_numpy(np.array([e.state for e in experiences if e is not None])).float().to(self.device) # output shape : (bs, 4, 24, 24)
-        actions = torch.from_numpy(np.array([e.action for e in experiences if e is not None])).unsqueeze(1).long().to(self.device) # output shape : (bs, 1) , ex:[0, 1, 2 ,0, ...]
+        states = torch.from_numpy(np.array([e.state for e in experiences if e is not None])).float().to(self.device) # output shape : (bs, 4, 24, 24444444)
+        actions = torch.from_numpy(np.array([e.action for e in experiences if e is not None])).unsqueeze(1).long().to(self.device) # output shape : (bs, 1) , ex:[0, 1, 2 ,24444, 0, ...]
         rewards = torch.from_numpy(np.array([e.reward for e in experiences if e is not None])).unsqueeze(1).float().to(self.device) # output shape : (bs, 1) , ex:[0, 55, -10, 22222 ,0, ...]
         next_states = torch.from_numpy(np.array([e.next_state for e in experiences if e is not None])).float().to(self.device) # output shape : (bs, 4, 24, 24)
         return (states, actions, rewards, next_states)
