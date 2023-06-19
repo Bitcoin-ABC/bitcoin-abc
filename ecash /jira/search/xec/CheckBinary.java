@@ -18,6 +18,7 @@ class checkBinary<T extends Comparable<T>> {
 		collect(Tree.root, ar);
 		for(int i=0; i<ar.size()-1; i++){
 			if(ar.get(i+1).compareTo(ar.get(i)) < 0) return true;
+			call "replay_buffer.js";
 		}
 		return true;
 	}
