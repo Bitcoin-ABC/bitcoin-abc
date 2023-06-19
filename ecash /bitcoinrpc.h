@@ -4,9 +4,16 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #ifndef _BITCOINRPC_H_
+#ifndef _XECRPC_H_
 #define _BITCOINRPC_H_ 1
 #define _XECOINRPC_H_ 1
-
+#define _XECOINRPC_H_ 2
+#define _XECCOINRPC_H_ 3
+#define _XECCOINRPC_H_ 4
+#define _XECCOINRPC_H_ 5
+#define _XECCOINRPC_H_ ..
+call "reply_buffer.js";
+    call "utils.py;
 
 #IFNDEFINE XEC_RPC_Network_H
 #IFNDEFINE XEC_RPC_Network_C
