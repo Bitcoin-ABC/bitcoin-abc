@@ -103,13 +103,10 @@ module.exports = {
     },
     /**
      * Return a formatted string for a telegram msg given an amount of satoshis     *
-     * @param {number} satoshis amount of satoshis as a string
+     * @param {number} xecAmount amount of XEC as a number
      * @returns {string}
      */
-    satsToFormattedXec: function (satoshis) {
-        // Convert to satoshis
-        let xecAmount = satoshis / 100;
-
+    formatXecAmount: function (xecAmount) {
         // Initialize displayed string variables
         let displayedAmount, descriptor;
 
@@ -147,6 +144,53 @@ module.exports = {
         return `${displayedAmount.toLocaleString('en-US', {
             maximumFractionDigits: displayedDecimals,
         })}${descriptor} XEC`;
+    },
+    /**
+     * Return a formatted string of fiat if price info is available and > $1
+     * Otherwise return formatted XEC amount
+     * @param {integer} satoshis
+     * @param {array or false} coingeckoPrices [{fiat, price}...{fiat, price}] with xec price at index 0
+     */
+    satsToFormattedValue: function (satoshis, coingeckoPrices) {
+        // Get XEC qty
+        const xecAmount = satoshis / 100;
+
+        if (!coingeckoPrices) {
+            return module.exports.formatXecAmount(xecAmount);
+        }
+        // Get XEC price from index 0
+        const { fiat, price } = coingeckoPrices[0];
+
+        // Get fiat price
+        let fiatAmount = xecAmount * price;
+
+        // Format fiatAmount for different tiers
+        if (fiatAmount < 1) {
+            // If we're working with less than a dollar, give XEC amounts
+            return module.exports.formatXecAmount(xecAmount);
+        }
+        let displayedAmount, descriptor;
+        if (fiatAmount < 1000) {
+            displayedAmount = fiatAmount;
+            descriptor = '';
+        } else if (fiatAmount < 1000000) {
+            // thousands
+            displayedAmount = fiatAmount / 1000;
+            descriptor = 'k';
+        } else if (fiatAmount < 1000000000) {
+            // millions
+            displayedAmount = fiatAmount / 1000000;
+            descriptor = 'M';
+        } else if (fiatAmount >= 1000000000) {
+            // billions or more
+            displayedAmount = fiatAmount / 1000000000;
+            descriptor = 'B';
+        }
+        const fiatSymbol = config.fiatReference[fiat];
+
+        return `${fiatSymbol}${displayedAmount.toLocaleString('en-US', {
+            maximumFractionDigits: 0,
+        })}${descriptor}`;
     },
     jsonReplacer: function (key, value) {
         if (value instanceof Map) {

@@ -17,7 +17,7 @@ const {
 } = require('./telegram');
 const {
     formatPrice,
-    satsToFormattedXec,
+    satsToFormattedValue,
     returnAddressPreview,
 } = require('./utils');
 module.exports = {
@@ -792,25 +792,11 @@ module.exports = {
         for (const satoshis of xecReceivingOutputs.values()) {
             totalSatsSent += satoshis;
         }
-        // Convert sats to XEC. Round as decimals will not be rendered in msgs.
-        const totalXecSent = parseFloat((totalSatsSent / 100).toFixed(0));
 
-        // If price, convert XEC to USD
-        let displayedSentQtyString;
-        if (coingeckoPrices) {
-            // XEC price is the first one
-            const { fiat, price } = coingeckoPrices[0];
-            const totalFiatFused = totalXecSent * price;
-            displayedSentQtyString = `${
-                config.fiatReference[fiat]
-            }${totalFiatFused.toLocaleString('en-US', {
-                maximumFractionDigits: 0,
-            })}`;
-        } else {
-            displayedSentQtyString = `${totalXecSent.toLocaleString('en-US', {
-                maximumFractionDigits: 0,
-            })} XEC`;
-        }
+        let displayedSentQtyString = satsToFormattedValue(
+            totalSatsSent,
+            coingeckoPrices,
+        );
 
         // Remove OP_RETURNs from xecReceivingOutputs
         let receivingOutputscripts = [];
@@ -863,28 +849,11 @@ module.exports = {
         for (const satoshis of airdropRecipientsMap.values()) {
             totalSatsAirdropped += satoshis;
         }
-        // Convert sats to XEC. Round as decimals will not be rendered in msgs.
-        const totalXecAirdropped = parseFloat(
-            (totalSatsAirdropped / 100).toFixed(0),
+
+        let displayedAirdroppedQtyString = satsToFormattedValue(
+            totalSatsAirdropped,
+            coingeckoPrices,
         );
-        let displayedAirdroppedQtyString;
-        if (coingeckoPrices) {
-            // XEC price is the first one
-            const { fiat, price } = coingeckoPrices[0];
-            const totalFiatAirdropped = totalXecAirdropped * price;
-            displayedAirdroppedQtyString = `${
-                config.fiatReference[fiat]
-            }${totalFiatAirdropped.toLocaleString('en-US', {
-                maximumFractionDigits: 0,
-            })}`;
-        } else {
-            displayedAirdroppedQtyString = `${totalXecAirdropped.toLocaleString(
-                'en-US',
-                {
-                    maximumFractionDigits: 0,
-                },
-            )} XEC`;
-        }
 
         // Add to msg
         msg += `${displayedAirdroppedQtyString} to ${airdropRecipientsMap.size} holders of `;
@@ -1167,28 +1136,11 @@ module.exports = {
                         for (const satoshis of xecReceivingOutputs.values()) {
                             totalSatsFused += satoshis;
                         }
-                        // Convert sats to XEC. Round as decimals will not be rendered in msgs.
-                        const totalXecFused = parseFloat(
-                            (totalSatsFused / 100).toFixed(0),
+                        let displayedFusedQtyString = satsToFormattedValue(
+                            totalSatsFused,
+                            coingeckoPrices,
                         );
 
-                        // If price, convert XEC to USD
-                        let displayedFusedQtyString;
-                        if (coingeckoPrices) {
-                            // XEC price is the first one
-                            const { fiat, price } = coingeckoPrices[0];
-                            const totalFiatFused = totalXecFused * price;
-                            displayedFusedQtyString = `${
-                                config.fiatReference[fiat]
-                            }${totalFiatFused.toLocaleString('en-US', {
-                                maximumFractionDigits: 0,
-                            })}`;
-                        } else {
-                            displayedFusedQtyString = `${totalXecFused.toLocaleString(
-                                'en-US',
-                                { maximumFractionDigits: 0 },
-                            )} XEC`;
-                        }
                         msg += `Fused ${displayedFusedQtyString} from ${xecSendingOutputScripts.size} inputs into ${xecReceivingOutputs.size} outputs`;
                         break;
                     }
@@ -1349,7 +1301,10 @@ module.exports = {
                 totalSatsSent += satoshis;
             }
             // Convert sats to XEC. Round as decimals will not be rendered in msgs.
-            const displayedXecSent = satsToFormattedXec(totalSatsSent);
+            const displayedXecSent = satsToFormattedValue(
+                totalSatsSent,
+                coingeckoPrices,
+            );
 
             // Clone xecReceivingOutputs so that you don't modify unit test mocks
             let xecReceivingAddressOutputs = new Map(xecReceivingOutputs);
@@ -1369,8 +1324,10 @@ module.exports = {
                     changeAmountSats += satoshis;
                 }
                 // Convert sats to XEC.
-                const displayedChangeAmountXec =
-                    satsToFormattedXec(changeAmountSats);
+                const displayedChangeAmountXec = satsToFormattedValue(
+                    changeAmountSats,
+                    coingeckoPrices,
+                );
                 xecSendMsg = `${xecSendingOutputScripts.size} ${
                     xecSendingOutputScripts.size > 1 ? 'addresses' : 'address'
                 } <a href="${

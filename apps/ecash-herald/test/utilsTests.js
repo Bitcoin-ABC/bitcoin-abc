@@ -15,9 +15,10 @@ const {
     jsonReplacer,
     jsonReviver,
     mapToKeyValueArray,
-    satsToFormattedXec,
+    formatXecAmount,
+    satsToFormattedValue,
 } = require('../src/utils');
-const { addressPreviews } = require('./mocks/templates');
+const { addressPreviews, mockCoingeckoPrices } = require('./mocks/templates');
 
 describe('ecash-telegram-bot utils.js functions', function () {
     it('returnAddressPreview converts a valid ecash: address into an abbreviated preview at various slice sizes', function () {
@@ -170,38 +171,99 @@ describe('ecash-telegram-bot utils.js functions', function () {
     it('formatPrice omits a currency symbol if it cannot find it', async function () {
         assert.strictEqual(formatPrice(100000.999923422, 'cad'), `100,001`);
     });
-    it('satsToFormattedXec returns a string with 2 decimal places if XEC amount < 10', async function () {
-        assert.strictEqual(satsToFormattedXec(999), `9.99 XEC`);
+    it('formatXecAmount returns a string with 2 decimal places if XEC amount < 10', async function () {
+        assert.strictEqual(formatXecAmount(9.99), `9.99 XEC`);
     });
-    it('satsToFormattedXec returns a string with no decimal places if XEC amount < 10 and round number', async function () {
-        assert.strictEqual(satsToFormattedXec(900), `9 XEC`);
+    it('formatXecAmount returns a string with no decimal places if XEC amount < 10 and round number', async function () {
+        assert.strictEqual(formatXecAmount(9), `9 XEC`);
     });
-    it('satsToFormattedXec returns a string with no decimal places if 10 <= XEC amount < 100', async function () {
-        assert.strictEqual(satsToFormattedXec(1251), `13 XEC`);
+    it('formatXecAmount returns a string with no decimal places if 10 <= XEC amount < 100', async function () {
+        assert.strictEqual(formatXecAmount(12.51), `13 XEC`);
     });
-    it('satsToFormattedXec returns a string with no decimal places if 100 < XEC amount <  1000', async function () {
-        assert.strictEqual(satsToFormattedXec(12500), `125 XEC`);
+    it('formatXecAmount returns a string with no decimal places if 100 < XEC amount <  1000', async function () {
+        assert.strictEqual(formatXecAmount(125), `125 XEC`);
     });
-    it('satsToFormattedXec returns a thousands string with no decimal places if 1000 < XEC amount < 1 million', async function () {
-        assert.strictEqual(satsToFormattedXec(100000), `1k XEC`);
+    it('formatXecAmount returns a thousands string with no decimal places if 1000 < XEC amount < 1 million', async function () {
+        assert.strictEqual(formatXecAmount(1000), `1k XEC`);
     });
-    it('satsToFormattedXec returns a rounded thousands string with no decimal places if 1000 < XEC amount < 1 million', async function () {
-        assert.strictEqual(satsToFormattedXec(55555555), `556k XEC`);
+    it('formatXecAmount returns a rounded thousands string with no decimal places if 1000 < XEC amount < 1 million', async function () {
+        assert.strictEqual(formatXecAmount(555555.55), `556k XEC`);
     });
-    it('satsToFormattedXec returns a rounded millions string with no decimal places if 1M < XEC amount < 1B', async function () {
-        assert.strictEqual(satsToFormattedXec(55555555555), `556M XEC`);
+    it('formatXecAmount returns a rounded millions string with no decimal places if 1M < XEC amount < 1B', async function () {
+        assert.strictEqual(formatXecAmount(555555555.55), `556M XEC`);
     });
-    it('satsToFormattedXec returns a rounded billions string with no decimal places if 1B < XEC amount < 1T', async function () {
-        assert.strictEqual(satsToFormattedXec(55555555555555), `556B XEC`);
+    it('formatXecAmount returns a rounded billions string with no decimal places if 1B < XEC amount < 1T', async function () {
+        assert.strictEqual(formatXecAmount(555555555555.55), `556B XEC`);
     });
-    it('satsToFormattedXec returns a rounded trillions string with no decimal places if XEC amount > 1T', async function () {
-        assert.strictEqual(satsToFormattedXec(5555555555555555), `56T XEC`);
+    it('formatXecAmount returns a rounded trillions string with no decimal places if XEC amount > 1T', async function () {
+        assert.strictEqual(formatXecAmount(55555555555555.55), `56T XEC`);
     });
-    it('satsToFormattedXec returns a rounded trillions string with no decimal places if XEC amount > 1T', async function () {
-        assert.strictEqual(satsToFormattedXec(1999999999999999), `20T XEC`);
+    it('formatXecAmount returns a rounded trillions string with no decimal places if XEC amount > 1T', async function () {
+        assert.strictEqual(formatXecAmount(19999999999999.99), `20T XEC`);
     });
-    it('satsToFormattedXec returns a trillions string with no decimal places for max possible XEC amount', async function () {
-        assert.strictEqual(satsToFormattedXec(2100000000000000), `21T XEC`);
+    it('formatXecAmount returns a trillions string with no decimal places for max possible XEC amount', async function () {
+        assert.strictEqual(formatXecAmount(21000000000000), `21T XEC`);
+    });
+    it('satsToFormattedValue returns a formatted XEC amount if total fiat value is less than $1', async function () {
+        assert.strictEqual(
+            satsToFormattedValue(100, mockCoingeckoPrices),
+            `1 XEC`,
+        );
+    });
+    it('satsToFormattedValue returns a formatted fiat amount if total fiat value is less than $10', async function () {
+        assert.strictEqual(
+            satsToFormattedValue(10000000, mockCoingeckoPrices),
+            '$3',
+        );
+    });
+    it('satsToFormattedValue returns a formatted fiat amount if $100 < total fiat value < $1k', async function () {
+        assert.strictEqual(
+            satsToFormattedValue(1234567890, mockCoingeckoPrices),
+            '$370',
+        );
+    });
+    it('satsToFormattedValue returns a formatted fiat amount if $1k < total fiat value < $1M', async function () {
+        assert.strictEqual(
+            satsToFormattedValue(55555555555, mockCoingeckoPrices),
+            '$17k',
+        );
+    });
+    it('satsToFormattedValue returns a formatted fiat amount of $1M if $1M < total fiat value < $1B', async function () {
+        assert.strictEqual(
+            satsToFormattedValue(3367973856209, mockCoingeckoPrices),
+            '$1M',
+        );
+    });
+    it('satsToFormattedValue returns a formatted fiat amount if $1M < total fiat value < $1B', async function () {
+        assert.strictEqual(
+            satsToFormattedValue(55555555555555, mockCoingeckoPrices),
+            '$17M',
+        );
+    });
+    it('satsToFormattedValue returns a formatted fiat amount if  total fiat value > $1B', async function () {
+        assert.strictEqual(
+            satsToFormattedValue(21000000000000000, mockCoingeckoPrices),
+            '$6B',
+        );
+    });
+    it('satsToFormattedValue returns a formatted fiat amount if £1M < total fiat value < £1B', async function () {
+        const gbpPrices = [
+            {
+                fiat: 'gbp',
+                price: 0.00003,
+                ticker: 'XEC',
+            },
+        ];
+        assert.strictEqual(
+            satsToFormattedValue(55555555555555, gbpPrices),
+            '£17M',
+        );
+    });
+    it('satsToFormattedValue returns a formatted XEC amount if coingeckoPrices is false', async function () {
+        assert.strictEqual(
+            satsToFormattedValue(55555555555555, false),
+            '556B XEC',
+        );
     });
     it('jsonReplacer and jsonReviver can encode and decode a Map to and from JSON', async function () {
         const map = new Map([

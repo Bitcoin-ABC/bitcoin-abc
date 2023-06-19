@@ -52,4 +52,21 @@ module.exports = {
             sliceSize: 5,
         },
     ],
+    mockCoingeckoPrices: [
+        {
+            fiat: 'usd',
+            price: 0.00003,
+            ticker: 'XEC',
+        },
+        {
+            fiat: 'usd',
+            price: 28044.64857505,
+            ticker: 'BTC',
+        },
+        {
+            fiat: 'usd',
+            price: 1900.73166438,
+            ticker: 'ETH',
+        },
+    ],
 };
