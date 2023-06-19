@@ -1125,12 +1125,6 @@ module.exports = {
                         break;
                     }
                     case opReturn.knownApps.fusion.app: {
-                        /**
-                         * Special handling for Cash Fusion txs
-                         * OP_RETURN msg is not particularly interesting here
-                         * However we would like to know something about the transaction
-                         */
-
                         // Get total amount fused
                         let totalSatsFused = 0;
                         for (const satoshis of xecReceivingOutputs.values()) {
