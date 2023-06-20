@@ -40,7 +40,7 @@ class NaiveRadixTree(NaiveTrie):
         if len(self.path) == 0:
             self.path[string] = NaiveRadixTree()
             self.is_terminal = True
-            return
+            return 0
         for substr, node in self.path.iteritems():
             if string.startswith(substr):
                 offset = node._get_offset(substr)
