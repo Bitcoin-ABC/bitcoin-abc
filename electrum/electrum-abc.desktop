@@ -1,0 +1,21 @@
+# If you want the program to appear in a linux app launcher ("start menu"),
+# install this file by doing:
+# sudo desktop-file-install electrum-abc.desktop
+
+[Desktop Entry]
+Comment=Lightweight eCash Client
+Exec=electrum-abc %u
+GenericName=eCash Wallet
+Icon=electrumABC
+Name=Electrum ABC
+Categories=Finance;Network;
+StartupNotify=true
+StartupWMClass=Electrum ABC
+Terminal=false
+Type=Application
+MimeType=x-scheme-handler/ecash;
+Actions=Testnet;
+
+[Desktop Action Testnet]
+Exec=electrum-abc --testnet %u
+Name=Testnet mode

@@ -1,0 +1,36 @@
+#!/bin/bash
+
+set -e
+
+here=$(dirname $(realpath "$0" 2> /dev/null || grealpath "$0"))
+. "$here"/base.sh || (echo "Could not source contrib/base.sh" && exit 1)
+
+setup_pkg "secp256k1" "https://github.com/Bitcoin-ABC/secp256k1.git" "master" $here
+
+if ! [ -x configure ] ; then
+    echo "libsecp256k1_la_LDFLAGS = -no-undefined" >> Makefile.am
+    echo "LDFLAGS = -no-undefined" >> Makefile.am
+    ./autogen.sh || fail "Could not run autogen for $pkgname. Please make sure you have automake and libtool installed, and try again."
+fi
+if ! [ -r config.status ] ; then
+    ./configure \
+        $AUTOCONF_FLAGS \
+        --prefix="$pkgbuilddir/dist" \
+        --enable-module-recovery \
+        --enable-experimental \
+        --enable-module-ecdh \
+        --disable-jni \
+        --with-bignum=no \
+        --enable-module-schnorr \
+        --disable-tests \
+        --disable-static \
+        --enable-shared || fail "Could not configure $pkgname. Please make sure you have a C compiler installed and try again."
+fi
+make -j$WORKER_COUNT || fail "Could not build $pkgname"
+make install || fail "Could not install $pkgname"
+. "$pkgbuilddir/dist/lib/libsecp256k1.la"
+host_strip "$pkgbuilddir/dist/lib/$dlname"
+cp -fpv "$pkgbuilddir/dist/lib/$dlname" "$here/../electrumabc/." || fail "Could not copy the $pkgname binary to its destination"
+info "$dlname has been placed in the 'electrumabc' folder."
+popd_pkg
+rm -Rf "$pkgbuilddir"

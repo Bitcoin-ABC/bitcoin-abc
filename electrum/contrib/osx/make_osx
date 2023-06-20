@@ -1,0 +1,260 @@
+#!/bin/bash
+
+build_dir="$(dirname "$(realpath "$0")")"
+test -n "$build_dir" -a -d "$build_dir" || (echo "Cannot determine build dir. FIXME!" && exit 1)
+
+# don't create __pycache__/ folders with .pyc file
+export PYTHONDONTWRITEBYTECODE=1
+
+. "$build_dir"/../base.sh # functions we use below
+
+CONTRIB_OSX="$(dirname "$(realpath "$0")")"
+CACHEDIR="$CONTRIB_OSX/.cache"
+
+mkdir -p "$CACHEDIR"
+
+OSX_COMPAT=""
+DARWIN_VER=$(uname -r | cut -f 1 -d .)
+if ((DARWIN_VER < 17)); then
+    fail "Minimum OSX High Sierra is required to build"
+fi
+
+function DoCodeSignMaybe { # ARGS: infoName fileOrDirName codesignIdentity
+    infoName="$1"
+    file="$2"
+    identity="$3"
+    deep=""
+    if [ -z "$identity" ]; then
+        # we are ok with them not passing anything; master script calls us unconditionally even if no identity is specified
+        return
+    fi
+    if [ -d "$file" ]; then
+        deep="--deep"
+    fi
+    if [ -z "$infoName" ] || [ -z "$file" ] || [ -z "$identity" ] || [ ! -e "$file" ]; then
+        fail "Argument error to internal function DoCodeSignMaybe()"
+    fi
+    preserve_arg="--preserve-metadata=requirements,entitlements"
+    hardened_arg=""
+    hardened_info=""
+    if ((DARWIN_VER >= 18)); then
+      # On Mojave or above, we codesign with the "hardened runtime" which
+      # is required for notarization.
+      # See: https://github.com/pyinstaller/pyinstaller/issues/4629
+      preserve_arg=""
+      hardened_arg="--entitlements=${build_dir}/entitlements.plist -o runtime --timestamp"
+      hardened_info=" (Hardened Runtime)"
+    fi
+    info "Code signing ${infoName}${hardened_info}..."
+    codesign -f -v $deep -s "$identity" $preserve_arg $hardened_arg "$file" || fail "Could not code sign ${infoName}"
+}
+
+cd "$build_dir/../.."
+
+VERSION=`git describe --tags`
+GIT_COMMIT_HASH=$(git rev-parse HEAD)
+
+# Paramterize
+BUILDDIR=/tmp/electrumabc-build
+LIBSECP_COMMIT="69ccf0d2f758b1a4df9cde8222459381e08fc1dc"
+# Compute major.minor Python version from above using Bash array magic
+MAJ_MIN=(${PYTHON_VERSION//./ })
+MAJ_MIN=${MAJ_MIN[0]}.${MAJ_MIN[1]}
+
+which xcodebuild > /dev/null 2>&1 || fail "Please install Xcode and xcode command line tools to continue"
+
+# Code Signing: See https://developer.apple.com/library/archive/documentation/Security/Conceptual/CodeSigningGuide/Procedures/Procedures.html
+APP_SIGN=""
+if [ -n "$1" ]; then
+    # Test the identity is valid for signing by doing this hack. There is no other way to do this.
+    cp -f /bin/ls ./CODESIGN_TEST
+    codesign -s "$1" --dryrun -f ./CODESIGN_TEST > /dev/null 2>&1
+    res=$?
+    rm -f ./CODESIGN_TEST
+    if ((res)); then
+        fail "Code signing identity \"$1\" appears to be invalid."
+    fi
+    unset res
+    APP_SIGN="$1"
+    info "Code signing enabled using identity \"$APP_SIGN\""
+else
+    warn "Code signing DISABLED. Specify a valid macOS Developer identity installed on the system as the first argument to this script to enable signing."
+fi
+
+have_brew=`which brew`
+have_macports=`which port`
+if [ -n "$have_brew" ]; then
+    info "Ensuring build prerequisites are installed via brew"
+    for a in autoconf automake coreutils gettext libtool openssl@1.1 pkgconfig readline sqlite3 xz zlib swig ; do
+        brew list $a > /dev/null 2>&1
+        if [ "$?" != "0" ]; then
+            info "Installing $a"
+            brew install "$a" || fail "Could not install $a"
+        else
+            info "$a found"
+        fi
+    done
+elif [ -n "$have_macports" ]; then
+    have_port_swig_python=`port installed | grep swig-python`
+    if [ -z "$have_port_swig_python" ]; then
+        fail "Please install swig-python: sudo port install swig-python"
+    fi
+else
+    fail "This script requires either brew or MacPorts. Please install either of these package managers and re-run this script."
+fi
+
+have_swig=`which swig`
+if [ -z "$have_swig" ]; then
+    warn "Please install 'swig' to run this script:"
+    info "If using brew: brew install swig"
+    info "If using MacPorts: sudo port install swig-python"
+    info "Lastly, ensure 'swig' is in your PATH"
+    fail "'swig' not found in path, cannot proceed"
+fi
+
+info "Installing Python $PYTHON_VERSION"
+PKG_FILE="python-${PYTHON_VERSION}-macos11.pkg"
+if [ ! -f "$CACHEDIR/$PKG_FILE" ]; then
+    curl -o "$CACHEDIR/$PKG_FILE" "https://www.python.org/ftp/python/${PYTHON_VERSION}/$PKG_FILE"
+fi
+echo "$PYTHON_MACOS_BINARY_HASH  $CACHEDIR/$PKG_FILE" | shasum -a 256 -c \
+     || fail "python pkg checksum mismatched"
+sudo installer -pkg "$CACHEDIR/$PKG_FILE" -target / \
+    || fail "failed to install python"
+# sanity check "python3" has the version we just installed.
+FOUND_PY_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:3])))')
+if [[ "$FOUND_PY_VERSION" != "$PYTHON_VERSION" ]]; then
+    fail "python version mismatch: $FOUND_PY_VERSION != $PYTHON_VERSION"
+fi
+
+# Pip will install scripts for pyinstaller and dmgbuild here
+export PATH="~/Library/Python/${MAJ_MIN}/bin:$PATH"
+
+# We use a hashed requirements file for even the build tools to prevent
+# dependency attacks even in the build process
+info "Installing pip, dmgbuild, requests, and other build tools we need..."
+# Ensure we have wheel because otherwise we get warnings about not having it (even though below installs it again)
+python3 -m pip install --user --upgrade wheel || fail "Failed to install wheel"
+python3 -m pip install -I --user -r contrib/deterministic-build/requirements-pip.txt \
+    || fail "Could not install pip"
+python3 -m pip install -I --user -r contrib/osx/requirements-osx-build.txt \
+    || fail "Could not install osx build requirements"
+
+# Create the build directory in /tmp
+rm  -rf "$BUILDDIR" > /dev/null 2>&1
+mkdir -p "$BUILDDIR"
+
+info "Building PyInstaller."
+PYINSTALLER_REPO="https://github.com/pyinstaller/pyinstaller.git"
+PYINSTALLER_COMMIT="fbf7948be85177dd44b41217e9f039e1d176de6b"
+# ^ tag "5.3"
+# TODO test newer versions of pyinstaller for build-reproducibility.
+#      we are using this version for now due to change in code-signing behaviour
+#      (https://github.com/pyinstaller/pyinstaller/pull/5581)
+(
+    if [ -f "$BUILDDIR/pyinstaller/PyInstaller/bootloader/Darwin-64bit/runw" || -f "$BUILDDIR/pyinstaller/PyInstaller/bootloader/Darwin-64bit-arm/runw" ]; then
+        info "pyinstaller already built, skipping"
+        exit 0
+    fi
+    pushd "${build_dir}"
+    EC_COMMIT_HASH=$(git rev-parse HEAD)
+    pushd "$BUILDDIR"
+    rm -rf pyinstaller
+    mkdir pyinstaller
+    cd pyinstaller
+    # Shallow clone
+    git init
+    git remote add origin $PYINSTALLER_REPO
+    git fetch --depth 1 origin $PYINSTALLER_COMMIT
+    git checkout -b pinned "${PYINSTALLER_COMMIT}^{commit}"
+    rm -fv PyInstaller/bootloader/Darwin-*/run* || true
+    # add reproducible randomness. this ensures we build a different bootloader for each commit.
+    # if we built the same one for all releases, that might also get anti-virus false positives
+    echo "extern const char * const electrum_tag;" >> ./bootloader/src/pyi_main.c
+    echo "const char * const electrum_tag = \"tagged by $PACKAGE@$GIT_COMMIT_HASH\";" >> ./bootloader/src/pyi_main.c
+    pushd bootloader
+    # compile bootloader
+    python3 ./waf all CFLAGS="-static"
+    popd
+    # sanity check bootloader is there:
+    [[ -e "PyInstaller/bootloader/Darwin-64bit/runw" || -e "PyInstaller/bootloader/Darwin-64bit-arm/runw" ]] || fail "Could not find runw in target dir!"
+    popd # $BUILDDIR
+    popd # $build_dir
+) || fail "PyInstaller build failed"
+info "Installing PyInstaller."
+python3 -m pip install --user --upgrade --no-warn-script-location "$BUILDDIR/pyinstaller"
+
+info "Using these versions for building $PACKAGE:"  # NB: PACKAGE var comes from ../base.sh
+sw_vers
+python3 --version
+echo -n "Pyinstaller "
+pyinstaller --version
+
+rm -rf ./dist
+
+info "Making locale..."
+python3 ./contrib/make_locale || fail "Failed to make locale..."
+
+info "Downloading libusb..."
+curl -L https://github.com/PiRK/Electrum-ABC-Build-Tools/releases/download/v1.0/libusb-1.0.21.el_capitan.bottle.tar.gz | \
+    tar xz --directory "$BUILDDIR" || fail "Could not download libusb"
+verify_hash $BUILDDIR/libusb/1.0.21/lib/libusb-1.0.dylib d147e7382dfa676d93e8b17d160d50f68e4b01f58f3647c90a8899a7a0519ca3  # this exits on failure
+cp -fp "$BUILDDIR/libusb/1.0.21/lib/libusb-1.0.dylib" "contrib/osx" || fail "Could not copy libusb"
+
+# Build ZBar
+contrib/make_zbar && mv -vf electrumabc/libzbar.0.dylib contrib/osx/. || fail "Could not build ZBar"
+
+info "Building libsecp256k1"
+
+contrib_abspath=`greadlink -f contrib`
+setup_pkg "secp256k1" "https://github.com/Bitcoin-ABC/secp256k1.git" "master" ${contrib_abspath}
+./autogen.sh || fail "Could not run autogen for secp256k1"
+./configure \
+    --enable-module-recovery \
+    --enable-experimental \
+    --enable-module-ecdh \
+    --disable-jni \
+    --with-bignum=no \
+    --enable-module-schnorr \
+    --disable-tests \
+    --disable-static \
+    --enable-shared || fail "Could not configure for secp256k1"
+make -j4 || fail "Could not build secp256k1"
+popd_pkg
+cp -fp contrib/build/secp256k1/.libs/libsecp256k1.0.dylib contrib/osx || fail "Could not copy secp256k1 binary to its destination"
+
+info "Installing requirements..."
+python3 -m pip install -r ./contrib/deterministic-build/requirements.txt --user || fail "Could not install requirements"
+python3 -m pip install -r ./contrib/deterministic-build/requirements-binaries.txt --user || fail "Could not install binary requirements"
+
+info "Installing hardware wallet requirements..."
+python3 -m pip install -r ./contrib/deterministic-build/requirements-hw.txt --user || \
+fail "Could not install hardware wallet requirements"
+
+info "Building $PACKAGE..."
+python3 setup.py install --user > /dev/null || fail "Could not build $PACKAGE"
+
+info "Building binary"
+
+# We need to temporarily use a "-", because pyinstaller gets confused when the python
+# package and MacOS package have the same name (case insensitive). This must match
+# the PACKAGE variable in osx.spec.
+# The package file is renamed at the end to remove the -.
+TMPPACKAGE="Electrum-ABC"
+ELECTRUM_VERSION=$VERSION pyinstaller --clean --noconfirm --ascii contrib/osx/osx.spec || fail "Could not build binary"
+mv dist/$TMPPACKAGE.app dist/$PACKAGE.app
+
+# Finally, codesign the whole thing
+DoCodeSignMaybe ".app bundle" "dist/${PACKAGE}.app" "$APP_SIGN"
+
+info "Creating .DMG"
+dmgbuild -D PACKAGE=$PACKAGE -s contrib/osx/dmgbuild.spec "" "dist/${PACKAGE}-${VERSION}-macosx${OSX_COMPAT}.dmg" || fail "Could not create .DMG"
+
+DoCodeSignMaybe ".DMG" "dist/${PACKAGE}-${VERSION}-macosx${OSX_COMPAT}.dmg" "$APP_SIGN" # If APP_SIGN is empty will be a noop
+
+if [ -z "$APP_SIGN" ]; then
+    warn "App was built successfully but was not code signed. Users may get security warnings from macOS."
+    warn "Specify a valid code signing identity as the first argument to this script to enable code signing."
+fi
+
+rm -fr $BUILDDIR

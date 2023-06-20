@@ -1,0 +1,27 @@
+ThomasV - Creator and maintainer of Electrum.
+Animazing / Tachikoma - Styled the new GUI. Mac version.
+Azelphur - GUI stuff.
+Coblee - Alternate coin support and py2app support.
+Deafboy - Ubuntu packages.
+EagleTM - Bugfixes.
+ErebusBat - Mac distribution.
+Genjix - Porting pro-mode functionality to lite-gui and worked on server
+Slush - Work on the server. Designed the original Stratum spec.
+Julian Toash (Tuxavant) - Various fixes to the client.
+rdymac - Website and translations.
+kyuupichan - Miscellaneous.
+Sombernight - many fixes
+Jonald Fyookball - Imperator of Electron Cash
+Calin Culianu - MacOS packaging, MacOS QRScanner, miscellaneous
+Malcolm Smith - tuneups and fixups
+Roger Taylor - new version 1.4 blockchain synch code, external plugin system, miscellanous
+Mark Lundeberg - Windows zbar, SLP (Tokens) work, cryptography, miscellaneous
+James Cramer - Simple Ledger Protocol (Tokens)
+Jochen Hoenicke - Trezor, Ledger, and other miscellaneous fixes
+Jonas Lundqvist - BIP70 fix, currency exchanges, Android
+Marcel O'Neil - Miscellaneous + packaging fixups
+imaginaryusername - UI and privacy recommendations
+emergent_reasons - Code review and uncanny bug detection
+Axel Gembe - Ledger fixes, Windows Qt woes, miscellaneous
+Alexander Schlarb - macOS ctypes bindings
+PiRK - Electrum ABC fork, miscellaneous

@@ -1,0 +1,9 @@
+Cython>=0.27
+trezor[hidapi]>=0.13.0,<0.14
+keepkey>=6.1
+btchip-python
+hidapi
+protobuf>=3.20,<4
+pyopenssl>=20.0.0
+pyscard>=2.0.0
+pysatochip>=0.12.4

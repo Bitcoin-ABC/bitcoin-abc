@@ -1,0 +1,7 @@
+{
+    "telectrum.bitcoinabc.org": {
+        "pruning": "-",
+        "s": "60002",
+        "version": "1.4"
+    }
+}

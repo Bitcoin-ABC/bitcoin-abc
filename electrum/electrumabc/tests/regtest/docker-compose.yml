@@ -1,0 +1,35 @@
+version: "3"
+services:
+  bitcoind:
+    image: bitcoinabc/bitcoin-abc:0.27.3
+    command: "bitcoind -conf=/conf/bitcoind.conf"
+    volumes:
+      - conf-files:/conf
+    networks:
+      - bitcoin
+    ports:
+      - 18333:18334
+  fulcrum:
+    image: cculianu/fulcrum:v1.9.0
+    command: "Fulcrum /conf/fulcrum.conf"
+    networks:
+      - bitcoin
+    ports:
+      - 51001:51001
+      - 51002:51002
+      - 8081:8080
+    depends_on:
+      - bitcoind
+    volumes:
+      - conf-files:/conf
+
+networks:
+  bitcoin:
+
+volumes:
+  conf-files:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: electrumabc/tests/regtest/configs

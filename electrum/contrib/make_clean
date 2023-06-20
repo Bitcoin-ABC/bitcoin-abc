@@ -1,0 +1,15 @@
+#!/bin/bash
+# Delete everything in the repository that is not part of the git repository
+# some caches for downloaded (and rarely updated) dependencies.
+
+set -e
+
+if [ ! -f 'electrum-abc' ]; then
+    fail "Please run this script from the top-level Electrum ABC git directory"
+fi
+
+source $( dirname -- "$BASH_SOURCE" )/base.sh
+
+git clean -xdff \
+ --exclude=contrib/osx/.cache \
+ -- .

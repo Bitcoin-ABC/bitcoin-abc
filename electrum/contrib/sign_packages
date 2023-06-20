@@ -1,0 +1,33 @@
+#!/usr/bin/python
+
+import getpass
+import os
+import subprocess
+
+if __name__ == "__main__":
+    os.chdir("dist")
+    fnames = os.listdir(".")
+    version_str = None
+    for fname in fnames:
+        if fname.startswith("ElectrumABC-") and fname.endswith(".tar.gz"):
+            version_str = fname[12:17]
+    if version_str is None:
+        print("Warning: could not find release version number.")
+    else:
+        print("Detected version number: " + version_str)
+
+    proc = subprocess.Popen(["sha256sum", *fnames], stdout=subprocess.PIPE)
+    stdout, _ = proc.communicate()
+    fname = (
+        "sha256_checksums"
+        + (("-" + version_str) if version_str is not None else "")
+        + ".txt"
+    )
+    with open(fname, "w") as f:
+        f.write(stdout.decode("utf-8"))
+    print(f"Checksum file: {fname}")
+
+    password = getpass.getpass("Password:")
+    os.system(f'gpg --sign --detach --passphrase "{password}" {fname}')
+    os.chdir("..")
+    print(f"Signature file: {fname}.sig")

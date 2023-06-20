@@ -1,0 +1,26 @@
+#!/bin/bash
+
+set -e
+
+here=$(dirname $(realpath "$0" 2> /dev/null || grealpath "$0"))
+. "$here"/base.sh || (echo "Could not source contrib/base.sh" && exit 1)
+
+setup_pkg "zlib" "https://github.com/madler/zlib.git" "cacf7f1d4e3d44d871b605da3b647f07d718623f" $here
+
+if [ "$BUILD_TYPE" = "wine" ] ; then
+    PREFIXDIR="$pkgbuilddir/dist"
+    make -j$WORKER_COUNT -fwin32/Makefile.gcc \
+        PREFIX="${GCC_TRIPLET_HOST}-" \
+        BINARY_PATH="$PREFIXDIR/bin" \
+        INCLUDE_PATH="$PREFIXDIR/include" \
+        LIBRARY_PATH="$PREFIXDIR/lib" \
+        install
+else
+    if ! [ -r config.status ] ; then
+        ./configure \
+            --prefix="$pkgbuilddir/dist" || fail "Could not configure $pkgname"
+    fi
+    make -j$WORKER_COUNT || fail "Could not build $pkgname"
+    make install || fail "Could not install $pkgname"
+fi
+popd_pkg

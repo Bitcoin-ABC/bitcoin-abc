@@ -1,0 +1,27 @@
+#!/bin/bash
+
+set -e
+
+here=$(dirname $(realpath "$0" 2> /dev/null || grealpath "$0"))
+. "$here"/base.sh || (echo "Could not source contrib/base.sh" && exit 1)
+
+setup_pkg "libevent" "https://github.com/libevent/libevent.git" "4c908dde58ef780eeefcc9df4db3063ca62ea862" $here
+
+if ! [ -x configure ] ; then
+    ./autogen.sh || fail "Could not configure $pkgname"
+fi
+if ! [ -r config.status ] ; then
+    ./configure \
+        $AUTOCONF_FLAGS \
+        --prefix="$pkgbuilddir/dist" \
+        --disable-shared \
+        --enable-static \
+        --with-pic \
+        --disable-samples \
+        --disable-libevent-regress \
+        CPPFLAGS=-I"$parentbuilddir"/openssl/dist \
+        LDFLAGS=-L"$parentbuilddir"/openssl/dist || fail "Could not configure $pkgname"
+fi
+make -j$WORKER_COUNT || fail "Could not build $pkgname"
+make install || fail "Could not install $pkgname"
+popd_pkg

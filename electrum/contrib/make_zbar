@@ -1,0 +1,43 @@
+#!/bin/bash
+
+set -e
+
+here=$(dirname $(realpath "$0" 2> /dev/null || grealpath "$0"))
+. "$here"/base.sh || (echo "Could not source contrib/base.sh" && exit 1)
+
+setup_pkg "zbar" "https://github.com/mchehab/zbar" "c7d9809b0b49e81fd86a48e9d1bc3c7db8c50bbd" $here
+
+if [ "$BUILD_TYPE" = "wine" ] ; then
+    echo "libzbar_la_LDFLAGS += -Wc,-static" >> zbar/Makefile.am
+    echo "LDFLAGS += -Wc,-static" >> Makefile.am
+fi
+if ! [ -x configure ] ; then
+    autoreconf -vfi || fail "Could not run autoreconf for $pkgname. Please make sure you have automake and libtool installed, and try again."
+fi
+if ! [ -r config.status ] ; then
+    ./configure \
+        $AUTOCONF_FLAGS \
+        --prefix="$pkgbuilddir/dist" \
+        --with-x=no \
+        --enable-pthread=no \
+        --enable-doc=no \
+        --enable-video=no \
+        --with-jpeg=no \
+        --with-python=no \
+        --with-gtk=no \
+        --with-qt=no \
+        --with-java=no \
+        --with-imagemagick=no \
+        --with-dbus=no \
+        --enable-codes=qrcode \
+        --disable-static \
+        --enable-shared || fail "Could not configure $pkgname. Please make sure you have a C compiler installed and try again."
+fi
+make -j$WORKER_COUNT || fail "Could not build $pkgname"
+make install || fail "Could not install $pkgname"
+. "$pkgbuilddir/dist/lib/libzbar.la"
+host_strip "$pkgbuilddir/dist/lib/$dlname"
+cp -fpv "$pkgbuilddir/dist/lib/$dlname" "$here/../electrumabc/." || fail "Could not copy the $pkgname binary to its destination"
+info "$dlname has been placed in the 'electrumabc' folder."
+popd_pkg
+rm -Rf "$pkgbuilddir"

@@ -1,0 +1,19 @@
+# Note that LICENSE duplicates the MIT license that is already in COPYING,
+# but for now we keep it to avoid hacks such as copying the file in
+# contrib/make_linux_sdist
+include LICENCE RELEASE-NOTES.md AUTHORS
+include README.rst
+include electrum-abc.desktop
+include *.py
+include electrum-abc
+include contrib/requirements/requirements.txt
+include contrib/requirements/requirements-hw.txt
+include contrib/requirements/requirements-binaries.txt
+recursive-include electrumabc *.py
+recursive-include electrumabc_gui *.py
+recursive-include electrumabc_plugins *.py
+recursive-include packages *.py
+recursive-include packages cacert.pem
+include icons.qrc
+recursive-include icons *
+recursive-include scripts *

@@ -1,0 +1,54 @@
+#!/bin/bash
+
+set -e
+
+here=$(dirname $(realpath "$0" 2> /dev/null || grealpath "$0"))
+. "$here"/base.sh || (echo "Could not source contrib/base.sh" && exit 1)
+
+setup_pkg "tor" "https://github.com/EchterAgo/tor.git" "ac027d4f9d0d3bd334adde2cb9d03cc7ed9531d7" $here
+
+LDFLAGS="-s"
+EXTRA_FLAGS=""
+if [ "$BUILD_TYPE" = "windows" ] ; then
+    LIBS="-lcrypt32 -lgdi32"
+fi
+if [ "$BUILD_TYPE" != "darwin" ] ; then
+    EXTRA_FLAGS="$EXTRA_FLAGS --enable-static-tor"
+fi
+if ! [ -x configure ] ; then
+    ./autogen.sh || fail "Could not configure $pkgname"
+fi
+if ! [ -r config.status ] ; then
+    ./configure \
+        $AUTOCONF_FLAGS \
+        --prefix="$pkgbuilddir/dist" \
+        --disable-system-torrc \
+        --disable-manpage \
+        --disable-html-manual \
+        --disable-asciidoc \
+        --enable-static-libevent --with-libevent-dir=$parentbuilddir/libevent/dist \
+        --enable-static-openssl --with-openssl-dir=$parentbuilddir/openssl/dist \
+        --enable-static-zlib --with-zlib-dir=$parentbuilddir/zlib/dist \
+        --disable-systemd \
+        --disable-lzma \
+        --disable-zstd \
+        --disable-unittests \
+        --disable-seccomp \
+        --disable-libscrypt \
+        --disable-module-dirauth \
+        --disable-module-relay \
+        $EXTRA_FLAGS || fail "Could not configure $pkgname"
+fi
+make -j$WORKER_COUNT || fail "Could not build $pkgname"
+make install || fail "Could not install $pkgname"
+binary="tor"
+if [ "$BUILD_TYPE" = "wine" ] ; then
+    binary="tor.exe"
+fi
+host_strip "$pkgbuilddir/dist/bin/$binary"
+mkdir -p "$here/../electrumabc/tor/bin"
+cp -fpv "$pkgbuilddir/dist/bin/$binary" "$here/../electrumabc/tor/bin/." || fail "Could not copy the $pkgname binary to its destination"
+$SHA256_PROG "$pkgbuilddir/dist/bin/$binary"
+info "$binary has been placed in the 'electrumabc' folder."
+popd_pkg
+rm -Rf "$here"/tor

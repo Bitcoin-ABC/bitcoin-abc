@@ -1,0 +1,44 @@
+####-*.patch
+*.pyc
+*.swp
+build/
+dist/
+*.egg/
+*.egg-info/
+/electrum.py
+contrib/pyinstaller/
+contrib/build
+contrib/osx/.cache/
+locale/
+.devlocaltmp/
+*_trial_temp
+packages
+env/
+.tox/
+.buildozer/
+bin/
+/app.fil
+tmp/
+electrumabc/*.so.0
+electrumabc/*.dylib
+contrib/osx/*.dylib
+
+# tox files
+.cache/
+.coverage
+htmlcov
+
+# MacOSX
+.DS_Store/
+.DS_Store
+icons/.DS_Store/
+xcuserdata/
+
+# IntelliJ Pycharm IDE
+/.idea
+# vs code
+.vscode/
+# mypy
+.mypy_cache/
+
+venv/

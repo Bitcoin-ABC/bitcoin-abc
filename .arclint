@@ -22,7 +22,9 @@
             "include": "(\\.py$)",
             "exclude": [
                 "(^contrib/gitian-builder/)",
-                "(^contrib/apple-sdk-tools/)"
+                "(^contrib/apple-sdk-tools/)",
+                "(^electrum/electrumabc_gui/qt/icons.py)",
+                "(\\_pb2.py$)"
             ],
             "flags": [
                 "--preview"
@@ -34,7 +36,9 @@
             "include": "(\\.py$)",
             "exclude": [
                 "(^contrib/gitian-builder/)",
-                "(^contrib/apple-sdk-tools/)"
+                "(^contrib/apple-sdk-tools/)",
+                "(^electrum/)",
+                "(\\_pb2.py$)"
             ],
             "flags": [
                 "--ignore=A003,E203,E303,E305,E501,E704,W503,W504",
@@ -92,7 +96,8 @@
                 "(^src/(qt/locale|secp256k1|univalue|leveldb)/)",
                 "(^test/lint/dictionary/)",
                 "(^web/e.cash/public/animations/)",
-                "(package-lock.json)"
+                "(package-lock.json)",
+                "(^electrum/electrumabc/wordlist/)"
             ],
             "spelling.dictionaries": [
                 "test/lint/dictionary/english.json"
@@ -161,7 +166,8 @@
             "include": "(\\.py$)",
             "exclude": [
                 "(^contrib/gitian-builder/)",
-                "(^contrib/apple-sdk-tools/)"
+                "(^contrib/apple-sdk-tools/)",
+                "(^electrum/)"
             ]
         },
         "lint-python-shebang": {
@@ -170,7 +176,8 @@
             "exclude": [
                 "(__init__\\.py$)",
                 "(^contrib/gitian-builder/)",
-                "(^contrib/apple-sdk-tools/)"
+                "(^contrib/apple-sdk-tools/)",
+                "(^electrum/electrumabc.*)"
             ]
         },
         "lint-bash-shebang": {
@@ -190,7 +197,8 @@
             "include": "(\\.(sh|bash)$)",
             "exclude": [
                 "(^contrib/gitian-builder/)",
-                "(^src/(secp256k1|univalue)/)"
+                "(^src/(secp256k1|univalue)/)",
+                "(^electrum/)"
             ]
         },
         "lint-shell-locale": {
@@ -266,7 +274,8 @@
             "exclude": [
                 "(^contrib/gitian-builder/)",
                 "(^contrib/apple-sdk-tools/)",
-                "(^contrib/macdeploy/)"
+                "(^contrib/macdeploy/)",
+                "(^electrum/)"
             ],
             "flags": [
                 "--ignore-missing-imports",
@@ -303,7 +312,8 @@
             "include": "(\\.py$)",
             "exclude": [
                 "(^contrib/gitian-builder/)",
-                "(^contrib/apple-sdk-tools/)"
+                "(^contrib/apple-sdk-tools/)",
+                "(\\_pb2.py$)"
             ]
         },
         "rustfmt": {
@@ -328,7 +338,8 @@
             "include": "(\\.py$)",
             "exclude": [
                 "(^contrib/gitian-builder/)",
-                "(^contrib/apple-sdk-tools/)"
+                "(^contrib/apple-sdk-tools/)",
+                "(^electrum/)"
             ]
         }
     }
