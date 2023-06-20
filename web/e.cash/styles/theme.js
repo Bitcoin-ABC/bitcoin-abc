@@ -20,6 +20,7 @@ export const ecash = {
         colorSwatchBackground: 'rgba(255,255,255, 0.2)',
         gridlines: 'rgba(255,255,255, 0.2)',
         featureTileHover: '#CD0BC3',
+        walletHover: 'rgba(255,255,255, 0.1)',
     },
     roadmap: {
         sectionHeader: '#00abe7',
@@ -63,6 +64,7 @@ export const stealth = {
         colorSwatchBackground: 'rgba(255,255,255, 0.2)',
         gridlines: 'rgba(255,255,255, 0.2)',
         featureTileHover: '#c8c8c8',
+        walletHover: 'rgba(255,255,255, 0.1)',
     },
     roadmap: {
         sectionHeader: '#ffffff',

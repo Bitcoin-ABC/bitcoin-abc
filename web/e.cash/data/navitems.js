@@ -56,6 +56,11 @@ export const navitems = [
                 icon: '/images/refresh-logo-icon.svg',
             },
             {
+                title: 'Wallets',
+                link: '/wallets',
+                icon: '/images/wallet-icon.svg',
+            },
+            {
                 title: 'Services',
                 link: '/get-ecash#services',
                 icon: '/images/services-icon.svg',
