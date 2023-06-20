@@ -4,7 +4,7 @@
 
 'use strict';
 module.exports = {
-    chronik: 'https://chronik.fabien.cash', // URL of chronik instance
+    chronik: 'https://chronik.be.cash/xec', // URL of chronik instance
     blockExplorer: 'https://explorer.e.cash',
     priceApi: {
         apiBase: 'https://api.coingecko.com/api/v3/simple/price',
