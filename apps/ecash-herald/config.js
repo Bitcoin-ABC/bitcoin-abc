@@ -22,4 +22,18 @@ module.exports = {
         parse_mode: 'HTML',
         disable_web_page_preview: true,
     },
+    emojis: {
+        block: '📦',
+        xecSend: '💸',
+        tokenBurn: '🔥',
+        tokenGenesis: '🧪',
+        tokenSend: '🎟',
+        fusion: '⚛️',
+        cashtabMsg: '🖋',
+        cashtabEncrypted: '🔏',
+        swap: '🤳',
+        airdrop: '🪂',
+        unknown: '❓',
+        memo: '🗞',
+    },
 };

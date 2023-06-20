@@ -1047,6 +1047,7 @@ module.exports = {
     },
     getBlockTgMessage: function (parsedBlock, coingeckoPrices, tokenInfoMap) {
         const { hash, height, miner, numTxs, parsedTxs } = parsedBlock;
+        const { emojis } = config;
 
         // Define newsworthy types of txs in parsedTxs
         // These arrays will be used to present txs in batches by type
@@ -1082,15 +1083,24 @@ module.exports = {
                 // If this breaks the msg, so be it
                 // Would only happen for bad URLs
                 genesisTxTgMsgLines.push(
-                    `<a href="${config.blockExplorer}/tx/${tokenId}">${tokenName}</a> (${tokenTicker}) <a href="${tokenDocumentUrl}">[doc]</a>`,
+                    `${emojis.tokenGenesis}<a href="${config.blockExplorer}/tx/${tokenId}">${tokenName}</a> (${tokenTicker}) <a href="${tokenDocumentUrl}">[doc]</a>`,
                 );
                 // This parsed tx has a tg msg line. Move on to the next one.
                 continue;
             }
             if (opReturnInfo) {
                 let { app, msg, stackArray, tokenId } = opReturnInfo;
+                let appEmoji = '';
 
                 switch (app) {
+                    case opReturn.memo.app: {
+                        appEmoji = emojis.memo;
+                        break;
+                    }
+                    case opReturn.knownApps.cashtabMsg.app: {
+                        appEmoji = emojis.cashtabMsg;
+                        break;
+                    }
                     case opReturn.knownApps.cashtabMsgEncrypted.app: {
                         msg = module.exports.getEncryptedCashtabMsg(
                             cashaddr.encodeOutputScript(
@@ -1099,6 +1109,7 @@ module.exports = {
                             xecReceivingOutputs,
                             coingeckoPrices,
                         );
+                        appEmoji = emojis.cashtabEncrypted;
                         break;
                     }
                     case opReturn.knownApps.airdrop.app: {
@@ -1113,6 +1124,7 @@ module.exports = {
                                 : false,
                             coingeckoPrices,
                         );
+                        appEmoji = emojis.airdrop;
                         break;
                     }
                     case opReturn.knownApps.swap.app: {
@@ -1122,6 +1134,7 @@ module.exports = {
                                 ? tokenInfoMap.get(tokenId)
                                 : false,
                         );
+                        appEmoji = emojis.swap;
                         break;
                     }
                     case opReturn.knownApps.fusion.app: {
@@ -1136,17 +1149,17 @@ module.exports = {
                         );
 
                         msg += `Fused ${displayedFusedQtyString} from ${xecSendingOutputScripts.size} inputs into ${xecReceivingOutputs.size} outputs`;
+                        appEmoji = emojis.fusion;
                         break;
                     }
                     default: {
-                        // If the app is unknown, no special processing for msg
-                        // Defaults to ASCII decoding
+                        appEmoji = emojis.unknown;
                         break;
                     }
                 }
 
                 opReturnTxTgMsgLines.push(
-                    `<a href="${config.blockExplorer}/tx/${txid}">${app}:</a> ${msg}`,
+                    `${appEmoji}<a href="${config.blockExplorer}/tx/${txid}">${app}:</a> ${msg}`,
                 );
                 // This parsed tx has a tg msg line. Move on to the next one.
                 continue;
@@ -1194,7 +1207,9 @@ module.exports = {
                         .toString();
 
                     // Self send tokenSendMsg
-                    tokenSendMsg = `${tokenSendingOutputScripts.size} ${
+                    tokenSendMsg = `${emojis.tokenSend}${
+                        tokenSendingOutputScripts.size
+                    } ${
                         tokenSendingOutputScripts.size > 1
                             ? 'addresses'
                             : 'address'
@@ -1223,7 +1238,7 @@ module.exports = {
                     )
                         .shiftedBy(-1 * decimals)
                         .toString();
-                    tokenSendMsg = `${returnAddressPreview(
+                    tokenSendMsg = `${emojis.tokenSend}${returnAddressPreview(
                         cashaddr.encodeOutputScript(
                             tokenSendingOutputScripts.values().next().value,
                         ),
@@ -1278,7 +1293,7 @@ module.exports = {
                 );
 
                 tokenBurnTxTgMsgLines.push(
-                    `${tokenBurningAddressStr} <a href="${config.blockExplorer}/tx/${txid}">burned</a> ${decimalizedTokenBurnAmount} <a href="${config.blockExplorer}/tx/${tokenId}">${tokenTicker}</a> `,
+                    `${emojis.tokenBurn}${tokenBurningAddressStr} <a href="${config.blockExplorer}/tx/${txid}">burned</a> ${decimalizedTokenBurnAmount} <a href="${config.blockExplorer}/tx/${tokenId}">${tokenTicker}</a> `,
                 );
 
                 // This parsed tx has a tg msg line. Move on to the next one.
@@ -1322,7 +1337,9 @@ module.exports = {
                     changeAmountSats,
                     coingeckoPrices,
                 );
-                xecSendMsg = `${xecSendingOutputScripts.size} ${
+                xecSendMsg = `${emojis.xecSend}${
+                    xecSendingOutputScripts.size
+                } ${
                     xecSendingOutputScripts.size > 1 ? 'addresses' : 'address'
                 } <a href="${
                     config.blockExplorer
@@ -1330,7 +1347,7 @@ module.exports = {
                     xecSendingOutputScripts.size > 1 ? 'themselves' : 'itself'
                 }`;
             } else {
-                xecSendMsg = `${returnAddressPreview(
+                xecSendMsg = `${emojis.xecSend}${returnAddressPreview(
                     cashaddr.encodeOutputScript(
                         xecSendingOutputScripts.values().next().value,
                     ),
@@ -1360,9 +1377,9 @@ module.exports = {
         let tgMsg = [];
 
         // Header
-        // <height> | <numTxs> | <miner>
+        // <emojis.block><height> | <numTxs> | <miner>
         tgMsg.push(
-            `<a href="${
+            `${emojis.block}<a href="${
                 config.blockExplorer
             }/block/${hash}">${height}</a> | ${numTxs} tx${
                 numTxs > 1 ? `s` : ''
