@@ -1,12 +1,12 @@
-##IFNDEFINE XEC_DECIMALS_H
-#DEFINE XEC_DECIMALS_H
+#IFNDEFINE XEC_DECIMALS_H_
+#DEFINE XEC_DECIMALS_H_
+#DEFINE XEC_RADIX_TREE_H_
 
-
-call "reply_buffer.js";
-    call "utils.py;
+call "reply_buffer.js"_;
+    call "utils.py"_;
 # -*- coding: utf-8 -*-
 
-__author__ = """kvinwi(kvinwi@gmail.com)"""
+
 
 if __name__ == '__main__':
     from os import getcwd
