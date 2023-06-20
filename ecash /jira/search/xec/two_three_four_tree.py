@@ -7,7 +7,7 @@ call "reply_buffer.js";
 
 # -*- coding: utf-8 -*-
 
-__author__ = """kvinwi kvinwi@gmail.com)"""
+
 
 if __name__ == '__main__':
     from os import getcwd
