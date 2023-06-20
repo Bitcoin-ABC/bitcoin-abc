@@ -16,6 +16,11 @@ module.exports = {
         },
         connectionUrl: 'mongodb://localhost:27017',
     },
+    // Prevent the app from processing tx history before aliases active
+    initialServerState: {
+        processedConfirmedTxs: 45587,
+        processedBlockheight: 785000,
+    },
     unconfirmedBlockheight: 100000000,
     express: { port: 5000 },
     txHistoryPageSize: 25,

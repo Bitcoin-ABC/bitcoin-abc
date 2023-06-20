@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 'use strict';
 const assert = require('assert');
+const config = require('../config');
 const {
     initializeDb,
     getServerState,
@@ -47,10 +48,7 @@ describe('alias-server db.js', async function () {
     it('getServerState returns expected initial server state on initialized database', async function () {
         // Check that serverState was initialized properly
         const initialServerState = await getServerState(testDb);
-        assert.deepEqual(initialServerState, {
-            processedBlockheight: 0,
-            processedConfirmedTxs: 0,
-        });
+        assert.deepEqual(initialServerState, config.initialServerState);
     });
     it('updateServerState modifies serverState correctly', async function () {
         const newServerState = {

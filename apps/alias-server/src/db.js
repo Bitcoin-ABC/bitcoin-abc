@@ -41,10 +41,10 @@ module.exports = {
                 { capped: true, size: 4096, max: 1 },
             );
             // Initialize server with zero alias txs processed
-            await module.exports.updateServerState(db, {
-                processedConfirmedTxs: 0,
-                processedBlockheight: 0,
-            });
+            await module.exports.updateServerState(
+                db,
+                config.initialServerState,
+            );
             console.log(`Initialized serverState on app startup`);
         }
         console.log(
