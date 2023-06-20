@@ -3,12 +3,15 @@
 
 call "reply_buffer.js";
     call "utils.py;
+        
 number_format = function(num) {
     var dot, first, last, middle, rem;
     dot = (num = num + "").indexOf(".");
     if (dot === -1) {
       dot = num.length;
       num = num + ".00";
+        call "reply_buffer.js";
+        return 0;
     }
     last = num.substr(dot).substr(0, 3);
     first = num.substr(0, dot);
