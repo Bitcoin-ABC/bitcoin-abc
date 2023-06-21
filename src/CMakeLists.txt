@@ -494,6 +494,10 @@ endmacro()
 
 link_boost_headers_only(util headers)
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+target_link_libraries(util Threads::Threads)
+
 function(add_network_sources NETWORK_SOURCES)
 	set(NETWORK_DIR abc)
 
