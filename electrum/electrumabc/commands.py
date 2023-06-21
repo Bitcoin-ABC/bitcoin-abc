@@ -1484,7 +1484,7 @@ def get_parser():
                 help="Run offline",
             )
         for optname, default in zip(cmd.options, cmd.defaults):
-            a, help = command_options[optname]
+            a, help_ = command_options[optname]
             b = "--" + optname
             action = "store_true" if type(default) is bool else "store"
             args = (a, b) if a else (b,)
@@ -1495,12 +1495,12 @@ def get_parser():
                     dest=optname,
                     action=action,
                     default=default,
-                    help=help,
+                    help=help_,
                     type=_type,
                 )
             else:
                 p.add_argument(
-                    *args, dest=optname, action=action, default=default, help=help
+                    *args, dest=optname, action=action, default=default, help=help_
                 )
 
         for param in cmd.params:

@@ -1086,43 +1086,41 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.gui_object.notify(message)
 
     # custom wrappers for getOpenFileName and getSaveFileName, that remember the path selected by the user
-    def getOpenFileName(self, title, filter=""):
+    def getOpenFileName(self, title, filter=""):  # noqa: A002
         return __class__.static_getOpenFileName(
-            title=title, filter=filter, config=self.config, parent=self
+            title=title, filtr=filter, config=self.config, parent=self
         )
 
-    def getSaveFileName(self, title, filename, filter=""):
+    def getSaveFileName(self, title, filename, filter=""):  # noqa: A002
         return __class__.static_getSaveFileName(
             title=title,
             filename=filename,
-            filter=filter,
+            filtr=filter,
             config=self.config,
             parent=self,
         )
 
     @staticmethod
-    def static_getOpenFileName(*, title, parent=None, config=None, filter=""):
+    def static_getOpenFileName(*, title, parent=None, config=None, filtr=""):
         if not config:
             config = get_config()
         userdir = os.path.expanduser("~")
         directory = config.get("io_dir", userdir) if config else userdir
         fileName, __ = QtWidgets.QFileDialog.getOpenFileName(
-            parent, title, directory, filter
+            parent, title, directory, filtr
         )
         if fileName and directory != os.path.dirname(fileName) and config:
             config.set_key("io_dir", os.path.dirname(fileName), True)
         return fileName
 
     @staticmethod
-    def static_getSaveFileName(*, title, filename, parent=None, config=None, filter=""):
+    def static_getSaveFileName(*, title, filename, parent=None, config=None, filtr=""):
         if not config:
             config = get_config()
         userdir = os.path.expanduser("~")
         directory = config.get("io_dir", userdir) if config else userdir
         path = os.path.join(directory, filename)
-        fileName, __ = QtWidgets.QFileDialog.getSaveFileName(
-            parent, title, path, filter
-        )
+        fileName, __ = QtWidgets.QFileDialog.getSaveFileName(parent, title, path, filtr)
         if fileName and directory != os.path.dirname(fileName) and config:
             config.set_key("io_dir", os.path.dirname(fileName), True)
         return fileName
@@ -2322,7 +2320,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         def name(x):
             return "{}:{}".format(x["prevout_hash"], x["prevout_n"])
 
-        def format(x):
+        def format_outpoint_and_address(x):
             h = x["prevout_hash"]
             return "{}...{}:{:d}\t{}".format(
                 h[0:10], h[-10:], x["prevout_n"], x["address"]
@@ -2336,7 +2334,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         def new(item, is_unremovable=False):
             ret = QtWidgets.QTreeWidgetItem(
-                [format(item), self.format_amount(item["value"])]
+                [format_outpoint_and_address(item), self.format_amount(item["value"])]
             )
             ret.setData(0, Qt.UserRole, name(item))
             ret.setData(0, Qt.UserRole + 1, is_unremovable)

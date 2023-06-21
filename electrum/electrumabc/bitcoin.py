@@ -649,8 +649,8 @@ def base_decode(v, length, base):
 
 
 def EncodeBase58Check(vchIn):
-    hash = Hash(vchIn)
-    return base_encode(vchIn + hash[0:4], base=58)
+    h = Hash(vchIn)
+    return base_encode(vchIn + h[0:4], base=58)
 
 
 def DecodeBase58Check(psz):
@@ -662,8 +662,8 @@ def DecodeBase58Check(psz):
         return None
     key = vchRet[0:-4]
     csum = vchRet[-4:]
-    hash = Hash(key)
-    cs32 = hash[0:4]
+    h = Hash(key)
+    cs32 = h[0:4]
     if cs32 != csum:
         return None
     else:

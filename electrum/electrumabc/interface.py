@@ -406,12 +406,14 @@ class Interface(PrintError):
         return tup
 
     @classmethod
-    def set_req_throttle_params(cls, config, max=None, chunkSize=None):
+    def set_req_throttle_params(
+        cls, config, max_unanswered_requests=None, chunkSize=None
+    ):
         if not config:
             return
         l_ = list(cls.get_req_throttle_params(config))
-        if max is not None:
-            l_[0] = max
+        if max_unanswered_requests is not None:
+            l_[0] = max_unanswered_requests
         if chunkSize is not None:
             l_[1] = chunkSize
         config.set_key("network_unanswered_requests_throttle", l_)

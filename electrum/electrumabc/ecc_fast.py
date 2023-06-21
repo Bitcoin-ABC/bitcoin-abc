@@ -68,17 +68,17 @@ def _prepare_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1():
         y = int.from_bytes(pubkey_serialized[33:], byteorder="big")
         return ecdsa.ellipticcurve.Point(curve_secp256k1, x, y, curve_order)
 
-    def sign(self: ecdsa.ecdsa.Private_key, hash: int, random_k: int):
+    def sign(self: ecdsa.ecdsa.Private_key, hash_: int, random_k: int):
         # note: random_k is ignored
         if self.public_key.curve != curve_secp256k1:
             # this operation is not on the secp256k1 curve; use original implementation
-            return _patched_functions.orig_sign(self, hash, random_k)
+            return _patched_functions.orig_sign(self, hash_, random_k)
         # might not be int but might rather be gmpy2 'mpz' type
-        maybe_mpz = type(hash)
+        maybe_mpz = type(hash_)
         secret_exponent = self.secret_multiplier
         nonce_function = None
         sig = create_string_buffer(64)
-        sig_hash_bytes = int(hash).to_bytes(32, byteorder="big")
+        sig_hash_bytes = int(hash_).to_bytes(32, byteorder="big")
         secp256k1.secp256k1.secp256k1_ecdsa_sign(
             secp256k1.secp256k1.ctx,
             sig,
@@ -96,11 +96,11 @@ def _prepare_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1():
         return ecdsa.ecdsa.Signature(maybe_mpz(r), maybe_mpz(s))
 
     def verify(
-        self: ecdsa.ecdsa.Public_key, hash: int, signature: ecdsa.ecdsa.Signature
+        self: ecdsa.ecdsa.Public_key, hash_: int, signature: ecdsa.ecdsa.Signature
     ):
         if self.curve != curve_secp256k1:
             # this operation is not on the secp256k1 curve; use original implementation
-            return _patched_functions.orig_verify(self, hash, signature)
+            return _patched_functions.orig_verify(self, hash_, signature)
         sig = create_string_buffer(64)
         input64 = int(signature.r).to_bytes(32, byteorder="big") + int(
             signature.s
@@ -129,7 +129,7 @@ def _prepare_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1():
         return 1 == secp256k1.secp256k1.secp256k1_ecdsa_verify(
             secp256k1.secp256k1.ctx,
             sig,
-            int(hash).to_bytes(32, byteorder="big"),
+            int(hash_).to_bytes(32, byteorder="big"),
             pubkey,
         )
 

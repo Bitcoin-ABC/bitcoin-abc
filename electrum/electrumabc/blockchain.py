@@ -219,17 +219,17 @@ def verify_proven_chunk(chunk_base_height, chunk_data):
 
 
 # Copied from electrumx
-def root_from_proof(hash, branch, index):
+def root_from_proof(hash_, branch, index):
     hash_func = bitcoin.Hash
     for elt in branch:
         if index & 1:
-            hash = hash_func(elt + hash)
+            hash_ = hash_func(elt + hash_)
         else:
-            hash = hash_func(hash + elt)
+            hash_ = hash_func(hash_ + elt)
         index >>= 1
     if index:
         raise ValueError("index out of range for branch")
-    return hash
+    return hash_
 
 
 class HeaderChunk:

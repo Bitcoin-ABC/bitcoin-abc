@@ -162,22 +162,22 @@ class MultiTransactionsWidget(QtWidgets.QWidget, MessageBoxMixin):
             self.fees_label.setToolTip(tooltip)
 
     def on_save_clicked(self):
-        dir = QtWidgets.QFileDialog.getExistingDirectory(
+        directory = QtWidgets.QFileDialog.getExistingDirectory(
             self, "Select output directory for transaction files", str(Path.home())
         )
-        if not dir:
+        if not directory:
             return
         for i, tx in enumerate(self.transactions):
             name = (
                 f"signed_{i:03d}.txn" if tx.is_complete() else f"unsigned_{i:03d}.txn"
             )
-            path = Path(dir) / name
+            path = Path(directory) / name
 
             tx_dict = tx.as_dict()
             with open(path, "w+", encoding="utf-8") as f:
                 f.write(json.dumps(tx_dict, indent=4) + "\n")
         QtWidgets.QMessageBox.information(
-            self, "Done saving", f"Saved {len(self.transactions)} files to {dir}"
+            self, "Done saving", f"Saved {len(self.transactions)} files to {directory}"
         )
 
     def on_sign_clicked(self):

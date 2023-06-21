@@ -146,17 +146,17 @@ def pemSniff(inStr, name):
 def parse_private_key(s):
     """Parse a string containing a PEM-encoded <privateKey>."""
     if pemSniff(s, "PRIVATE KEY"):
-        bytes = dePem(s, "PRIVATE KEY")
-        return _parsePKCS8(bytes)
+        key = dePem(s, "PRIVATE KEY")
+        return _parsePKCS8(key)
     elif pemSniff(s, "RSA PRIVATE KEY"):
-        bytes = dePem(s, "RSA PRIVATE KEY")
-        return _parseSSLeay(bytes)
+        key = dePem(s, "RSA PRIVATE KEY")
+        return _parseSSLeay(key)
     else:
         raise SyntaxError("Not a PEM private key file")
 
 
-def _parsePKCS8(_bytes):
-    s = ASN1Node(_bytes)
+def _parsePKCS8(key):
+    s = ASN1Node(key)
     root = s.root()
     version_node = s.first_child(root)
     version = bytestr_to_int(s.get_value_of_type(version_node, "INTEGER"))
@@ -172,8 +172,8 @@ def _parsePKCS8(_bytes):
     return _parseASN1PrivateKey(value)
 
 
-def _parseSSLeay(bytes):
-    return _parseASN1PrivateKey(ASN1Node(bytes))
+def _parseSSLeay(key):
+    return _parseASN1PrivateKey(ASN1Node(key))
 
 
 def bytesToNumber(s):

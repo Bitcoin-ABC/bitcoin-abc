@@ -208,30 +208,17 @@ class BCDataStream(object):
             self.write(b"\xff")
             self._write_num("<Q", size)
 
-    def _read_num(self, format):
+    def _read_num(self, fmt):
         try:
-            (i,) = struct.unpack_from(format, self.input, self.read_cursor)
-            self.read_cursor += struct.calcsize(format)
+            (i,) = struct.unpack_from(fmt, self.input, self.read_cursor)
+            self.read_cursor += struct.calcsize(fmt)
         except Exception as e:
             raise SerializationError(e)
         return i
 
-    def _write_num(self, format, num):
-        s = struct.pack(format, num)
+    def _write_num(self, fmt, num):
+        s = struct.pack(fmt, num)
         self.write(s)
-
-
-# This function comes from bitcointools, bct-LICENSE.txt.
-def long_hex(bytes):
-    return bytes.encode("hex_codec")
-
-
-# This function comes from bitcointools, bct-LICENSE.txt.
-def short_hex(bytes):
-    t = bytes.encode("hex_codec")
-    if len(t) < 11:
-        return t
-    return t[0:4] + "..." + t[-4:]
 
 
 def match_decoded(decoded, to_match):

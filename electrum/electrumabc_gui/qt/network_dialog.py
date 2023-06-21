@@ -856,7 +856,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         row += 1
 
         def req_max_changed(val):
-            Interface.set_req_throttle_params(self.config, max=val)
+            Interface.set_req_throttle_params(self.config, max_unanswered_requests=val)
 
         def req_chunk_changed(val):
             Interface.set_req_throttle_params(self.config, chunkSize=val)
@@ -864,7 +864,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         def req_defaults():
             p = Interface.req_throttle_default
             Interface.set_req_throttle_params(
-                self.config, max=p.max, chunkSize=p.chunkSize
+                self.config, max_unanswered_requests=p.max, chunkSize=p.chunkSize
             )
             self.update()
 

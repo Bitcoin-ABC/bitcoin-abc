@@ -164,10 +164,10 @@ def getRandomNumber(low, high):
     howManyBytes = numBytes(high)
     lastBits = howManyBits % 8
     while 1:
-        bytes = getRandomBytes(howManyBytes)
+        data = getRandomBytes(howManyBytes)
         if lastBits:
-            bytes[0] = bytes[0] % (1 << lastBits)
-        n = bytesToNumber(bytes)
+            data[0] = data[0] % (1 << lastBits)
+        n = bytesToNumber(data)
         if n >= low and n < high:
             return n
 
@@ -331,24 +331,7 @@ class RSAKey(object):
     def hasPrivateKey(self):
         return self.d != 0
 
-    def hashAndSign(self, bytes):
-        """Hash and sign the passed-in bytes.
-
-        This requires the key to have a private component.  It performs
-        a PKCS1-SHA1 signature on the passed-in data.
-
-        @type bytes: str or L{bytearray} of unsigned bytes
-        @param bytes: The value which will be hashed and signed.
-
-        @rtype: L{bytearray} of unsigned bytes.
-        @return: A PKCS1-SHA1 signature on the passed-in data.
-        """
-        hashBytes = SHA1(bytearray(bytes))
-        prefixedHashBytes = self._addPKCS1SHA1Prefix(hashBytes)
-        sigBytes = self.sign(prefixedHashBytes)
-        return sigBytes
-
-    def hashAndVerify(self, sigBytes, bytes):
+    def hashAndVerify(self, sigBytes, data):
         """Hash and verify the passed-in bytes with the signature.
 
         This verifies a PKCS1-SHA1 signature on the passed-in data.
@@ -356,13 +339,13 @@ class RSAKey(object):
         @type sigBytes: L{bytearray} of unsigned bytes
         @param sigBytes: A PKCS1-SHA1 signature.
 
-        @type bytes: str or L{bytearray} of unsigned bytes
-        @param bytes: The value which will be hashed and verified.
+        @type data: str or L{bytearray} of unsigned bytes
+        @param data: The value which will be hashed and verified.
 
         @rtype: bool
         @return: Whether the signature matches the passed-in data.
         """
-        hashBytes = SHA1(bytearray(bytes))
+        hashBytes = SHA1(bytearray(data))
 
         # Try it with/without the embedded NULL
         prefixedHashBytes1 = self._addPKCS1SHA1Prefix(hashBytes, False)
@@ -371,21 +354,21 @@ class RSAKey(object):
         result2 = self.verify(sigBytes, prefixedHashBytes2)
         return result1 or result2
 
-    def sign(self, bytes):
+    def sign(self, data):
         """Sign the passed-in bytes.
 
         This requires the key to have a private component.  It performs
         a PKCS1 signature on the passed-in data.
 
-        @type bytes: L{bytearray} of unsigned bytes
-        @param bytes: The value which will be signed.
+        @type data: L{bytearray} of unsigned bytes
+        @param data: The value which will be signed.
 
         @rtype: L{bytearray} of unsigned bytes.
         @return: A PKCS1 signature on the passed-in data.
         """
         if not self.hasPrivateKey():
             raise AssertionError()
-        paddedBytes = self._addPKCS1Padding(bytes, 1)
+        paddedBytes = self._addPKCS1Padding(data, 1)
         m = bytesToNumber(paddedBytes)
         if m >= self.n:
             raise ValueError()
@@ -393,7 +376,7 @@ class RSAKey(object):
         sigBytes = numberToByteArray(c, numBytes(self.n))
         return sigBytes
 
-    def verify(self, sigBytes, bytes):
+    def verify(self, sigBytes, data):
         """Verify the passed-in bytes with the signature.
 
         This verifies a PKCS1 signature on the passed-in data.
@@ -401,15 +384,15 @@ class RSAKey(object):
         @type sigBytes: L{bytearray} of unsigned bytes
         @param sigBytes: A PKCS1 signature.
 
-        @type bytes: L{bytearray} of unsigned bytes
-        @param bytes: The value which will be verified.
+        @type data: L{bytearray} of unsigned bytes
+        @param data: The value which will be verified.
 
         @rtype: bool
         @return: Whether the signature matches the passed-in data.
         """
         if len(sigBytes) != numBytes(self.n):
             return False
-        paddedBytes = self._addPKCS1Padding(bytes, 1)
+        paddedBytes = self._addPKCS1Padding(data, 1)
         c = bytesToNumber(sigBytes)
         if c >= self.n:
             return False
@@ -417,18 +400,18 @@ class RSAKey(object):
         checkBytes = numberToByteArray(m, numBytes(self.n))
         return checkBytes == paddedBytes
 
-    def encrypt(self, bytes):
+    def encrypt(self, data):
         """Encrypt the passed-in bytes.
 
         This performs PKCS1 encryption of the passed-in data.
 
-        @type bytes: L{bytearray} of unsigned bytes
-        @param bytes: The value which will be encrypted.
+        @type data: L{bytearray} of unsigned bytes
+        @param data: The value which will be encrypted.
 
         @rtype: L{bytearray} of unsigned bytes.
         @return: A PKCS1 encryption of the passed-in data.
         """
-        paddedBytes = self._addPKCS1Padding(bytes, 2)
+        paddedBytes = self._addPKCS1Padding(data, 2)
         m = bytesToNumber(paddedBytes)
         if m >= self.n:
             raise ValueError()
@@ -473,7 +456,7 @@ class RSAKey(object):
     # Helper Functions for RSA Keys
     # **************************************************************************
 
-    def _addPKCS1SHA1Prefix(self, bytes, withNULL=True):
+    def _addPKCS1SHA1Prefix(self, data, withNULL=True):
         # There is a long history of confusion over whether the SHA1
         # algorithmIdentifier should be encoded with a NULL parameter or
         # with the parameter omitted.  While the original intention was
@@ -521,11 +504,10 @@ class RSAKey(object):
                     0x14,
                 ]
             )
-        prefixedBytes = prefixBytes + bytes
-        return prefixedBytes
+        return prefixBytes + data
 
-    def _addPKCS1Padding(self, bytes, blockType):
-        padLength = numBytes(self.n) - (len(bytes) + 3)
+    def _addPKCS1Padding(self, data, blockType):
+        padLength = numBytes(self.n) - (len(data) + 3)
         if blockType == 1:  # Signature padding
             pad = [0xFF] * padLength
         elif blockType == 2:  # Encryption padding
@@ -538,8 +520,7 @@ class RSAKey(object):
             raise AssertionError()
 
         padding = bytearray([0, blockType] + pad + [0])
-        paddedBytes = padding + bytes
-        return paddedBytes
+        return padding + data
 
     def _rawPrivateKeyOp(self, m):
         # Create blinding values, on the first pass:
