@@ -731,11 +731,11 @@ class BasePlugin(PrintError):
                 self._hooks_i_registered.append((aname, func))
 
         # collect names of all class attributes with ._is_daemon_command
-        self._daemon_commands = set(
+        self._daemon_commands = {
             attrname
             for attrname in dir(type(self))
             if getattr(getattr(type(self), attrname), "_is_daemon_command", False)
-        )
+        }
         # we don't allow conflicting definitions of daemon command (between different plugins)
         for c in self._daemon_commands.intersection(self.parent.daemon_commands):
             self._daemon_commands.discard(c)

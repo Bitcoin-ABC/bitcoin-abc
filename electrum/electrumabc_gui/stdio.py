@@ -180,12 +180,11 @@ class ElectrumGui:
         self.print_list(messages, "%-20s   %-45s " % ("Name", "Address"))
 
     def print_addresses(self):
-        messages = map(
-            lambda addr: "%30s    %30s       "
-            % (addr, self.wallet.labels.get(addr, "")),
-            self.wallet.get_addresses(),
+        messages = (
+            f'{str(addr):>30}    {self.wallet.labels.get(addr, ""):>30}       '
+            for addr in self.wallet.get_addresses()
         )
-        self.print_list(messages, "%19s  %25s " % ("Address", "Label"))
+        self.print_list(messages, "            Address                      Label ")
 
     def print_order(self):
         print(

@@ -270,7 +270,7 @@ class PaymentRequest:
         return self.details.expires
 
     def get_amount(self):
-        return sum(map(lambda x: x[2], self.outputs))
+        return sum(x.value for x in self.outputs)
 
     def get_address(self) -> str:
         o = self.outputs[0]

@@ -221,7 +221,7 @@ class WaitingPool:
         self.pool = (
             set()
         )  # clients who will be put into fusion round if started at this tier
-        self.queue = list()  # clients who are waiting due to tags being full
+        self.queue = []  # clients who are waiting due to tags being full
         self.tags = defaultdict(TagStatus)  # how are the various tags
         self.fill_threshold = fill_threshold  # minimum number of pool clients to trigger setting fill_time
         self.fill_time = None  # when did pool exceed fill_threshold
@@ -508,7 +508,7 @@ class FusionServer(GenericServer):
                     tnow = time.monotonic()
 
                     # scan through tiers and collect statuses, also check start times.
-                    statuses = dict()
+                    statuses = {}
                     tfill_thresh = tnow - Params.start_time_max
                     for t, pool in mytierpools.items():
                         if client not in pool.pool:
@@ -719,7 +719,7 @@ class FusionController(threading.Thread, PrintError):
                     Params.num_components,
                 )
 
-                newhashes = set(m.salted_component_hash for m in commit_messages)
+                newhashes = {m.salted_component_hash for m in commit_messages}
                 with lock:
                     expected_len = len(seen_salthashes) + len(newhashes)
                     seen_salthashes.update(newhashes)
@@ -876,7 +876,7 @@ class FusionController(threading.Thread, PrintError):
             )
 
             # mark all missing-signature components as bad.
-            bad_inputs = set(i for i, sig in enumerate(signatures) if sig is None)
+            bad_inputs = {i for i, sig in enumerate(signatures) if sig is None}
 
             # further, search for duplicated inputs (through matching the prevout and claimed pubkey).
             prevout_spenders = defaultdict(list)
@@ -992,7 +992,7 @@ class FusionController(threading.Thread, PrintError):
         )
 
         # Now, repackage the proofs according to destination.
-        proofs_to_relay = [list() for _ in self.clients]
+        proofs_to_relay = [[] for _ in self.clients]
         for src_client, relays in results:
             for proof, src_commitment_idx, dest_client_idx, dest_key_idx in relays:
                 proofs_to_relay[dest_client_idx].append(
@@ -1009,7 +1009,11 @@ class FusionController(threading.Thread, PrintError):
                 client.send(
                     pb.TheirProofsList(
                         proofs=[
-                            dict(encrypted_proof=x, src_commitment_idx=y, dst_key_idx=z)
+                            {
+                                "encrypted_proof": x,
+                                "src_commitment_idx": y,
+                                "dst_key_idx": z,
+                            }
                             for x, y, z, _ in proofs
                         ]
                     )
@@ -1024,9 +1028,7 @@ class FusionController(threading.Thread, PrintError):
                 # making us check many inputs against blockchain.
                 if len(msg.blames) > len(proofs):
                     client.error("too many blames")
-                if len(set(blame.which_proof for blame in msg.blames)) != len(
-                    msg.blames
-                ):
+                if len({blame.which_proof for blame in msg.blames}) != len(msg.blames):
                     client.error("multiple blames point to same proof")
 
                 # Note, the rest of this function might run for a while if many
@@ -1163,7 +1165,7 @@ class CovertServer(GenericServer):
         self.round_pubkey = None
 
     def start_components(self, round_pubkey, feerate):
-        self.components = dict()
+        self.components = {}
         self.feerate = feerate
         self.round_pubkey = round_pubkey
         for c in self.spawned_clients:

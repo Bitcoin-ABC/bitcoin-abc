@@ -220,12 +220,14 @@ class ElectrumGui:
         self.print_list(messages, "%-20s   %-45s " % ("Name", "Address"))
 
     def print_addresses(self):
-        fmt = "%-45s  %-30s"
-        messages = map(
-            lambda addr: fmt % (addr, self.wallet.labels.get(addr, "")),
-            self.wallet.get_addresses(),
-        )
-        self.print_list(messages, fmt % ("Address", "Label"))
+        def fmt_address_line(address: str, label: str):
+            return f"{address:<45}  {label:<30}"
+
+        messages = [
+            fmt_address_line(str(addr), self.wallet.labels.get(addr, ""))
+            for addr in self.wallet.get_addresses()
+        ]
+        self.print_list(messages, fmt_address_line("Address", "Label"))
 
     def print_edit_line(self, y, label, text, index, size):
         text += " " * (size - len(text))
@@ -476,7 +478,7 @@ class ElectrumGui:
     def run_popup(self, title, items):
         return self.run_dialog(
             title,
-            list(map(lambda x: {"type": "button", "label": x}, items)),
+            [{"type": "button", "label": x} for x in items],
             interval=1,
             y_pos=self.pos + 3,
         )

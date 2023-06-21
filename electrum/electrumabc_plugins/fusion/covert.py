@@ -215,12 +215,12 @@ class CovertSubmitter(PrintError):
         if tor_host is None or tor_port is None:
             self.proxy_opts = None
         else:
-            self.proxy_opts = dict(
-                proxy_type=socks.SOCKS5,
-                proxy_addr=tor_host,
-                proxy_port=tor_port,
-                proxy_rdns=True,
-            )
+            self.proxy_opts = {
+                "proxy_type": socks.SOCKS5,
+                "proxy_addr": tor_host,
+                "proxy_port": tor_port,
+                "proxy_rdns": True,
+            }
 
         # The timespan (in s) used for randomizing action times on established
         # connections. Each connection chooses a delay between 0 and randspan,
@@ -394,7 +394,7 @@ class CovertSubmitter(PrintError):
                 proxy_opts = None
             else:
                 unique = f"CF{self.randtag}_{covconn.conn_number}"
-                proxy_opts = dict(proxy_username=unique, proxy_password=unique)
+                proxy_opts = {"proxy_username": unique, "proxy_password": unique}
                 proxy_opts.update(self.proxy_opts)
             limiter.bump()
             try:

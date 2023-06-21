@@ -161,18 +161,18 @@ def tx_from_components(all_components, session_hash):
             if len(inp.prev_txid) != 32:
                 raise FusionError("bad component prevout")
             inputs.append(
-                dict(
-                    address=Address.from_P2PKH_hash(hash_160(inp.pubkey)),
-                    prevout_hash=inp.prev_txid[::-1].hex(),
-                    prevout_n=inp.prev_index,
-                    num_sig=1,
-                    signatures=[None],
-                    type="p2pkh",
-                    x_pubkeys=[inp.pubkey.hex()],
-                    pubkeys=[inp.pubkey.hex()],
-                    sequence=0xFFFFFFFF,
-                    value=inp.amount,
-                )
+                {
+                    "address": Address.from_P2PKH_hash(hash_160(inp.pubkey)),
+                    "prevout_hash": inp.prev_txid[::-1].hex(),
+                    "prevout_n": inp.prev_index,
+                    "num_sig": 1,
+                    "signatures": [None],
+                    "type": "p2pkh",
+                    "x_pubkeys": [inp.pubkey.hex()],
+                    "pubkeys": [inp.pubkey.hex()],
+                    "sequence": 0xFFFFFFFF,
+                    "value": inp.amount,
+                }
             )
             input_indices.append(i)
         elif ctype == "output":

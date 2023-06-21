@@ -319,10 +319,8 @@ class Daemon(DaemonThread):
                 }
         else:
             wallet = None
-        # arguments passed to function
-        args = map(lambda x: config.get(x), cmd.params)
-        # decode json arguments
-        args = [json_decode(i) for i in args]
+        # json decoded arguments passed to function
+        args = [json_decode(config.get(x)) for x in cmd.params]
         # options
         kwargs = {}
         for x in cmd.options:

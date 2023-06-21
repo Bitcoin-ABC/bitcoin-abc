@@ -477,7 +477,7 @@ class Transaction:
         # in the tx that are to self (change), etc. See wallet.py add_hw_info
         # which writes to this dict and the various hw wallet plugins which
         # read this dict.
-        self.output_info = dict()
+        self.output_info = {}
 
         # Ephemeral meta-data used internally to keep track of interesting
         # things. This is currently written-to by coinchooser to tell UI code
@@ -490,7 +490,7 @@ class Transaction:
         #
         # Values in this dict are advisory only and may or may not always be
         # there!
-        self.ephemeral = dict()
+        self.ephemeral = {}
 
     def is_memory_compact(self):
         """Returns True if the tx is stored in memory only as self.raw (serialized) and has no deserialized data
@@ -1170,10 +1170,8 @@ class Transaction:
 
     def is_final(self):
         return not any(
-            [
-                x.get("sequence", DEFAULT_TXIN_SEQUENCE) < DEFAULT_TXIN_SEQUENCE
-                for x in self.inputs()
-            ]
+            x.get("sequence", DEFAULT_TXIN_SEQUENCE) < DEFAULT_TXIN_SEQUENCE
+            for x in self.inputs()
         )
 
     def as_dict(self):
@@ -1206,7 +1204,7 @@ class Transaction:
         self,
         wallet,
         done_callback=None,
-        done_args=tuple(),
+        done_args=(),
         prog_callback=None,
         *,
         force=False,

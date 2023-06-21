@@ -26,7 +26,7 @@ class CmdLineHandler(HardwareHandlerBase):
         print_msg(msg)
         print_msg("a b c\nd e f\ng h i\n-----")
         o = raw_input()
-        return "".join(map(lambda x: t[x], o))
+        return "".join(t[x] for x in o)
 
     def prompt_auth(self, msg):
         import getpass

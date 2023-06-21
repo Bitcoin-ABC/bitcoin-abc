@@ -64,7 +64,7 @@ class ExpiringCache:
         )
         self.maxlen = maxlen
         self.name = name
-        self.d = dict()
+        self.d = {}
         _ExpiringCacheMgr.add_cache(self)
 
     def get(self, key, default=None):

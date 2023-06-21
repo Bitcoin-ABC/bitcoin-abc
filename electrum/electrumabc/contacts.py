@@ -106,7 +106,7 @@ class Contacts(PrintError):
         'get'. Note this also supports the pre-v1 format, as the old Contacts
         class did."""
         assert callable(getattr(storage, "get", None))
-        d = dict()
+        d = {}
         d2 = storage.get("contacts")
         try:
             d.update(d2)  # catch type errors, etc by doing this

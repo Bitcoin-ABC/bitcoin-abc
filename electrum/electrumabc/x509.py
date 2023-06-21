@@ -231,7 +231,7 @@ class ASN1Node(bytes):
         return nodes
 
     def get_sequence(self):
-        return list(map(lambda j: self.get_value(j), self.get_children(self.root())))
+        return [self.get_value(j) for j in self.get_children(self.root())]
 
     def get_dict(self, node):
         p = {}

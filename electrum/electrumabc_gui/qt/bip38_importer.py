@@ -78,7 +78,7 @@ class Bip38Importer(WindowModalDialog, PrintError):
         if not parent:
             self.setWindowModality(Qt.ApplicationModal)
 
-        self.decoded_keys = dict()  # results are placed here on success
+        self.decoded_keys = {}  # results are placed here on success
         self.success_cb, self.cancel_cb = on_success, on_cancel
         self.cur, self.decoded_wif, self.decoded_address = 0, None, None
         self.decrypter = None

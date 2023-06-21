@@ -305,9 +305,7 @@ class ContactList(PrintError, MyTreeWidget):
         item = self.currentItem()
         current_contact = item.data(0, self.DataRoles.Contact) if item else None
         selected = self.selectedItems() or []
-        selected_contacts = set(
-            item.data(0, self.DataRoles.Contact) for item in selected
-        )
+        selected_contacts = {item.data(0, self.DataRoles.Contact) for item in selected}
         # must not hold a reference to a C++ object that will soon be deleted in
         # self.clear()..
         del item, selected

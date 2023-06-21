@@ -195,9 +195,7 @@ def _parseASN1PrivateKey(s):
     dP = s.next_node(q)
     dQ = s.next_node(dP)
     qInv = s.next_node(dQ)
-    return list(
-        map(
-            lambda x: bytesToNumber(s.get_value_of_type(x, "INTEGER")),
-            [n, e, d, p, q, dP, dQ, qInv],
-        )
-    )
+    return [
+        bytesToNumber(s.get_value_of_type(x, "INTEGER"))
+        for x in [n, e, d, p, q, dP, dQ, qInv]
+    ]

@@ -600,7 +600,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
 
     def tray_activated(self, reason):
         if reason == QtWidgets.QSystemTrayIcon.DoubleClick:
-            if all([w.is_hidden() for w in self.windows]):
+            if all(w.is_hidden() for w in self.windows):
                 for w in self.windows:
                     w.bring_to_top()
             else:

@@ -456,9 +456,9 @@ class KeepKeyPlugin(HWPluginBase):
                         pubkeys = list(map(f, x_pubkeys))
                         multisig = self.types.MultisigRedeemScriptType(
                             pubkeys=pubkeys,
-                            signatures=map(
-                                lambda x: bfh(x)[:-1] if x else b"",
-                                txin.get("signatures"),
+                            signatures=(
+                                bytes.fromhex(x)[:-1] if x else b""
+                                for x in txin.get("signatures")
                             ),
                             m=txin.get("num_sig"),
                         )

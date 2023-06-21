@@ -233,7 +233,7 @@ class CoinGecko(ExchangeBase):
             "/api/v3/coins/ecash?localization=False&sparkline=false",
         )
         prices = json_data["market_data"]["current_price"]
-        return dict([(a[0].upper(), PyDecimal(a[1])) for a in prices.items()])
+        return {a[0].upper(): PyDecimal(a[1]) for a in prices.items()}
 
     def history_ccys(self):
         return [

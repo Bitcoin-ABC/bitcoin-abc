@@ -131,7 +131,7 @@ def servers_to_hostmap(servers):
     """Takes an iterable of HOST:PORT:PROTOCOL strings and breaks them into
     a hostmap dict of host -> { protocol : port } suitable to be passed to
     pick_random_server() and get_eligible_servers() above."""
-    ret = dict()
+    ret = {}
     for s in servers:
         try:
             host, port, protocol = deserialize_server(s)
@@ -144,7 +144,7 @@ def servers_to_hostmap(servers):
             )
             # deserialization error
             continue
-        m = ret.get(host, dict())
+        m = ret.get(host, {})
         need_add = len(m) == 0
         m[protocol] = port
         if need_add:
@@ -289,7 +289,7 @@ class Network(util.DaemonThread):
             )
         )
         self.default_server = self.get_config_server()
-        self.bad_certificate_servers: Dict[str, str] = dict()
+        self.bad_certificate_servers: Dict[str, str] = {}
         self.server_list_updated = Event()
 
         self.tor_controller = TorController(self.config)
@@ -683,7 +683,7 @@ class Network(util.DaemonThread):
         assert not self.interface and not self.interfaces
         assert not self.connecting and self.socket_queue.empty()
         self.print_error("starting network")
-        self.disconnected_servers = set([])
+        self.disconnected_servers = set()
         self.protocol = protocol
         self.set_proxy(proxy)
         self.start_interfaces()
@@ -776,14 +776,11 @@ class Network(util.DaemonThread):
         if self.server_is_lagging() and self.auto_connect:
             # switch to one that has the correct header (not height)
             header = self.blockchain().read_header(self.get_local_height())
-            filtered = list(
-                map(
-                    lambda x: x[0],
-                    filter(
-                        lambda x: x[1].tip_header == header, self.interfaces.items()
-                    ),
-                )
-            )
+            filtered = [
+                server_key
+                for (server_key, interface) in self.interfaces.items()
+                if interface.tip_header == header
+            ]
             if filtered:
                 choice = random.choice(filtered)
                 self.switch_to_interface(choice, self.SWITCH_LAGGING)
@@ -1199,7 +1196,7 @@ class Network(util.DaemonThread):
                 self.start_random_interface()
                 if now - self.nodes_retry_time > self.NODES_RETRY_INTERVAL:
                     self.print_error("network: retrying connections")
-                    self.disconnected_servers = set([])
+                    self.disconnected_servers = set()
                     self.nodes_retry_time = now
 
         # main interface

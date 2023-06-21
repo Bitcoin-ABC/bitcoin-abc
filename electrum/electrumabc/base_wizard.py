@@ -335,7 +335,7 @@ class BaseWizard(PrintError):
             except Exception:
                 devmgr.print_error("error", name)
                 continue
-            devices += list(map(lambda x: (name, x), u))
+            devices += [(name, device_info) for device_info in u]
         extra_button = None
         if sys.platform in ("linux", "linux2", "linux3"):
             extra_button = (_("Hardware Wallet Support..."), self.on_hw_wallet_support)
@@ -621,7 +621,7 @@ class BaseWizard(PrintError):
                 self.show_error(_("Wrong key type") + " %s" % t1)
                 self.run("choose_keystore")
                 return
-            if k.xpub in map(lambda x: x.xpub, self.keystores):
+            if k.xpub in (ks.xpub for ks in self.keystores):
                 self.show_error(_("Error: duplicate master public key"))
                 self.run("choose_keystore")
                 return

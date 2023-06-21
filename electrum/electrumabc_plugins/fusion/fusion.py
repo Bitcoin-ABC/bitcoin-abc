@@ -314,8 +314,8 @@ class Fusion(threading.Thread, PrintError):
         self.tor_host = tor_host
         self.tor_port = tor_port
 
-        self.coins = dict()  # full input info
-        self.keypairs = dict()
+        self.coins = {}  # full input info
+        self.keypairs = {}
         self.outputs = []
         # for detecting spends (and finally unfreezing coins) we remember for each wallet:
         # - which coins we have from that wallet ("txid:n"),
@@ -375,8 +375,8 @@ class Fusion(threading.Thread, PrintError):
             xpubkeys_set.add(xpubkey)
 
         # get private keys and convert x_pubkeys to real pubkeys
-        keypairs = dict()
-        pubkeys = dict()
+        keypairs = {}
+        pubkeys = {}
         for xpubkey in xpubkeys_set:
             derivation = wallet.keystore.get_pubkey_derivation(xpubkey)
             privkey = wallet.keystore.get_private_key(derivation, password)
@@ -394,8 +394,8 @@ class Fusion(threading.Thread, PrintError):
         }
         self.add_coins(coindict, keypairs)
 
-        coinstrs = set(t + ":" + str(i) for t, i in coindict)
-        txids = set(t for t, i in coindict)
+        coinstrs = {t + ":" + str(i) for t, i in coindict}
+        txids = {t for t, i in coindict}
         self.source_wallet_info[wallet][0].update(coinstrs)
         self.source_wallet_info[wallet][1].update(txids)
         wallet.set_frozen_coin_state(coinstrs, True, temporary=True)
@@ -645,7 +645,7 @@ class Fusion(threading.Thread, PrintError):
         # outputs.
         # Calculate the number of distinct inputs as the number of distinct pubkeys
         # (i.e. extra inputs from same address don't count as distinct)
-        num_distinct = len(set(pub for (_, _), (pub, _) in self.inputs))
+        num_distinct = len({pub for (_, _), (pub, _) in self.inputs})
         min_outputs = max(MIN_TX_COMPONENTS - num_distinct, 1)
         if max_outputs < min_outputs:
             raise FusionError(

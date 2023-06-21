@@ -179,7 +179,7 @@ class DaemonThread(threading.Thread, PrintError):
         # list in the add/remove methods
         self.jobs = []
         # adding jobs needs to preserve order, so we use a list.
-        self._jobs2add = list()
+        self._jobs2add = []
         # removing jobs does not need to preserve orer so we can benefit from the
         # uniqueness property of using a set.
         self._jobs2rm = set()
@@ -799,7 +799,7 @@ class JSONSocketPipe(PrintError):
         return self.send_flush()
 
     def send_all(self, requests):
-        out = b"".join(map(lambda x: (json.dumps(x) + "\n").encode("utf8"), requests))
+        out = b"".join((json.dumps(req) + "\n").encode("utf8") for req in requests)
         self.send_buf.extend(out)
         return self.send_flush()
 

@@ -366,7 +366,7 @@ class PopupLabel(PopupWidget):
         self.label.setText(text)
 
 
-_extant_popups = dict()
+_extant_popups = {}
 
 
 def ShowPopupLabel(

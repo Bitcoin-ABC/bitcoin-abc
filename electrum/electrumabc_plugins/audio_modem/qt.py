@@ -63,7 +63,7 @@ class Plugin(BasePlugin):
         layout = QtWidgets.QGridLayout(d)
         layout.addWidget(QtWidgets.QLabel(_("Bit rate [kbps]: ")), 0, 0)
 
-        bitrates = list(sorted(amodem.config.bitrates.keys()))
+        bitrates = sorted(amodem.config.bitrates.keys())
 
         def _index_changed(index):
             bitrate = bitrates[index]

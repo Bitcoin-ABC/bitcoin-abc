@@ -337,7 +337,7 @@ class JsonDB(PrintError):
         if self.get("wallet_type") == "imported":
             addresses = self.get("addresses")
             if type(addresses) is list:
-                addresses = dict([(x, None) for x in addresses])
+                addresses = {x: None for x in addresses}
                 self.put("addresses", addresses)
         elif self.get("wallet_type") == "standard":
             if self.get("keystore").get("type") == "imported":
@@ -389,7 +389,7 @@ class JsonDB(PrintError):
         if self.get("wallet_type") == "imported":
             addresses = self.get("addresses")
             assert isinstance(addresses, dict)
-            addresses_new = dict()
+            addresses_new = {}
             for address, details in addresses.items():
                 if not Address.is_valid(address):
                     remove_address(address)

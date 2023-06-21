@@ -330,7 +330,7 @@ class Plugin(BasePlugin):
     def cosigner_can_sign(self, tx, cosigner_xpub):
         from electrumabc.keystore import is_xpubkey, parse_xpubkey
 
-        xpub_set = set([])
+        xpub_set = set()
         for txin in tx.inputs():
             for x_pubkey in txin["x_pubkeys"]:
                 if is_xpubkey(x_pubkey):

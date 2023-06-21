@@ -1636,7 +1636,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.show_error(_("No message or amount"))
             return False
         i = self.expires_combo.currentIndex()
-        expiration = list(map(lambda x: x[1], expiration_values))[i]
+        expiration = expiration_values[i][1]
         kwargs = {}
         opr = self.receive_opreturn_e.text().strip()
         if opr:
@@ -2615,7 +2615,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         amount = (
             tx.output_value()
             if self.max_button.isChecked()
-            else sum(map(lambda x: x[2], outputs))
+            else sum(x[2] for x in outputs)
         )
         fee = tx.get_fee()
 
@@ -3299,13 +3299,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         grid.addWidget(QtWidgets.QLabel(pr.get_requestor()), 0, 1)
         grid.addWidget(QtWidgets.QLabel(_("Amount") + ":"), 1, 0)
         outputs_str = "\n".join(
-            map(
-                lambda x: self.format_amount(x[2])
-                + self.base_unit()
-                + " @ "
-                + x[1].to_ui_string(),
-                pr.get_outputs(),
-            )
+            self.format_amount(x[2]) + self.base_unit() + " @ " + x[1].to_ui_string()
+            for x in pr.get_outputs()
         )
         grid.addWidget(QtWidgets.QLabel(outputs_str), 1, 1)
         expires = pr.get_expiration_date()
@@ -5105,7 +5100,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                         "\n\n"
                         + _("Requires")
                         + ":\n"
-                        + "\n".join(map(lambda x: x[1], descr.get("requires")))
+                        + "\n".join(x[1] for x in descr.get("requires"))
                     )
                 grid.addWidget(HelpButton(msg), i, 2)
             except Exception:

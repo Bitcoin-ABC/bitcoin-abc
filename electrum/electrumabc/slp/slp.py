@@ -765,7 +765,7 @@ class WalletData(PrintError):
                 for k, v in data["token_quantities"].items()
             }
             # build the mapping of prevouthash:n (str) -> token_id_hex (str) from self.token_quantities
-            self.txo_token_id = dict()
+            self.txo_token_id = {}
             for token_id_hex, txo_dict in self.token_quantities.items():
                 for txo in txo_dict:
                     self.txo_token_id[txo] = token_id_hex
@@ -800,7 +800,7 @@ class WalletData(PrintError):
         data = {
             "validity": self.validity,
             "token_quantities": {
-                k: list([v0, v1] for v0, v1 in v.items())
+                k: [[v0, v1] for v0, v1 in v.items()]
                 for k, v in self.token_quantities.items()
             },
             "txo_byaddr": {
@@ -815,17 +815,17 @@ class WalletData(PrintError):
         self.need_rebuild = False
 
         # txid -> int
-        self.validity = dict()
+        self.validity = {}
 
         # [address] -> set of "prevouthash:n" for that address
-        self.txo_byaddr = dict()
+        self.txo_byaddr = {}
 
         # [token_id_hex] -> dict of ["prevouthash:n"] -> qty (-1 for qty indicates
         # minting baton)
-        self.token_quantities = dict()
+        self.token_quantities = {}
 
         # ["prevouthash:n"] -> "token_id_hex"
-        self.txo_token_id = dict()
+        self.txo_token_id = {}
 
     def rebuild(self):
         """This takes wallet.lock"""
@@ -949,7 +949,7 @@ class WalletData(PrintError):
     def _add_token_qty(self, token_id_hex, txo_name, qty):
         """No checks are done for address, etc. qty is just faithfully added
         for a given token/txo_name combo."""
-        d = self.token_quantities.get(token_id_hex, dict())
+        d = self.token_quantities.get(token_id_hex, {})
         need_insert = not d
         d[txo_name] = qty  # NB: negative quantity indicates mint baton
         if need_insert:

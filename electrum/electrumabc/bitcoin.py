@@ -1272,7 +1272,7 @@ def bip32_derivation(s):
 
 def is_bip32_derivation(x):
     try:
-        [i for i in bip32_derivation(x)]
+        list(bip32_derivation(x))
         return True
     except Exception:
         return False
@@ -1359,7 +1359,8 @@ def bip38_decrypt(enc_key, password, *, require_fast=True, net=None):
     try:
         return Bip38Key(enc_key, net=net).decrypt(password)
     except Bip38Key.PasswordError:
-        return tuple()  # Bad password result is an empty tuple
+        # Bad password result is an empty tuple
+        return ()
     except Bip38Key.Error as e:
         print_error("[bip38_decrypt] Error with key", enc_key, "error was:", repr(e))
     return None

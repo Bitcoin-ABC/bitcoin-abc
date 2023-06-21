@@ -1221,7 +1221,7 @@ class RateLimiter(PrintError):
     # some defaults
     last_ts = 0.0
     timer = None
-    saved_args = (tuple(), dict())
+    saved_args = ((), {})
     ctr = 0
 
     def __init__(self, rate, ts_after, obj, func):
@@ -1322,7 +1322,7 @@ class RateLimiter(PrintError):
         # grab the latest collated invocation's args. this attribute is always defined.
         args, kwargs = self.saved_args
         # clear saved args immediately
-        self.saved_args = (tuple(), dict())
+        self.saved_args = ((), {})
         return args, kwargs
 
     def _push_args(self, args, kwargs):
@@ -1417,7 +1417,7 @@ class RateLimiterClassLvl(RateLimiter):
     def _pop_args(self):
         weak_dict = self.saved_args
         self.saved_args = Weak.KeyDictionary()
-        return (weak_dict,), dict()
+        return (weak_dict,), {}
 
     def _call_func_for_all(self, weak_dict):
         for ref in weak_dict.keyrefs():

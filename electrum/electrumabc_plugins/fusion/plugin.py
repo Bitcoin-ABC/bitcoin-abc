@@ -503,9 +503,9 @@ class FusionPlugin(BasePlugin):
             # fusions that were auto-started.
             wallet._fusions_auto = weakref.WeakSet()
             # caache: stores a map of txid -> fusion_depth (or False if txid is not a fuz tx)
-            wallet._cashfusion_is_fuz_txid_cache = dict()
+            wallet._cashfusion_is_fuz_txid_cache = {}
             # cache: stores a map of address -> fusion_depth if the address has fuz utxos
-            wallet._cashfusion_address_cache = dict()
+            wallet._cashfusion_address_cache = {}
             # all accesses to the above must be protected by wallet.lock
 
         if Conf(wallet).autofuse:
@@ -1022,12 +1022,12 @@ class FusionPlugin(BasePlugin):
     def fusion_server_status(self, daemon, config):
         if not self.fusion_server:
             return "fusion server not running"
-        return dict(
-            poolsizes={
+        return {
+            "poolsizes": {
                 t: len(pool.pool)
                 for t, pool in self.fusion_server.waiting_pools.items()
             }
-        )
+        }
 
     @daemon_command
     def fusion_server_fuse(self, daemon, config):

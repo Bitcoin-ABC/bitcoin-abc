@@ -335,7 +335,7 @@ class Console(QtWidgets.QWidget):
         c = self.editor.textCursor()
         c.setPosition(self.completions_pos)
 
-        completions = map(lambda x: x.split(".")[-1], completions)
+        completions = (x.split(".")[-1] for x in completions)
         t = "\n" + " ".join(completions)
         if len(t) > 500:
             t = t[:500] + "..."

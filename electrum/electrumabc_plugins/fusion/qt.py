@@ -1337,14 +1337,15 @@ class SettingsWidget(QtWidgets.QWidget):
             self.le_tor_port.setText(sport)
         if goodport is None:
             self.l_tor_status.setPixmap(self.pm_bad_proxy)
+            # TODO: switch from %-string to str.format (update also translation files)
             if autoport:
                 self.l_tor_status.setToolTip(
                     _("Cannot find a Tor proxy on ports %(ports)s.")
-                    % dict(ports=TOR_PORTS)
+                    % {"ports": TOR_PORTS}
                 )
             else:
                 self.l_tor_status.setToolTip(
-                    _("Cannot find a Tor proxy on port %(port)d.") % dict(port=port)
+                    _("Cannot find a Tor proxy on port %(port)d.") % {"port": port}
                 )
         else:
             self.l_tor_status.setToolTip(_("Found a valid Tor proxy on this port."))
@@ -1440,8 +1441,8 @@ class WalletSettingsDialog(WindowModalDialog):
         self.wallet = wallet
         self.conf = Conf(self.wallet)
 
-        self.idx2confkey = dict()  # int -> 'normal', 'consolidate', etc..
-        self.confkey2idx = dict()  # str 'normal', 'consolidate', etc -> int
+        self.idx2confkey = {}  # int -> 'normal', 'consolidate', etc..
+        self.confkey2idx = {}  # str 'normal', 'consolidate', etc -> int
 
         assert not hasattr(self.wallet, "_cashfusion_settings_window")
         main_window = self.wallet.weak_window()
@@ -2040,7 +2041,7 @@ class FusionsWindow(ServerFusionsBaseMixin, QtWidgets.QDialog):
 
     def refresh(self):
         tree = self.t_active_fusions
-        reselect_fusions = set(i.data(0, Qt.UserRole)() for i in tree.selectedItems())
+        reselect_fusions = {i.data(0, Qt.UserRole)() for i in tree.selectedItems()}
         reselect_fusions.discard(None)
         reselect_items = []
         tree.clear()
@@ -2062,9 +2063,9 @@ class FusionsWindow(ServerFusionsBaseMixin, QtWidgets.QDialog):
         if not selected:
             return
 
-        fusions = set(i.data(0, Qt.UserRole)() for i in selected)
+        fusions = {i.data(0, Qt.UserRole)() for i in selected}
         fusions.discard(None)
-        statuses = set(f.status[0] for f in fusions)
+        statuses = {f.status[0] for f in fusions}
         selection_of_1_fusion = list(fusions)[0] if len(fusions) == 1 else None
         has_live = "running" in statuses or "waiting" in statuses
 

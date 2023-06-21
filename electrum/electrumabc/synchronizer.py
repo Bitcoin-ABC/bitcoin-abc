@@ -62,11 +62,11 @@ class Synchronizer(ThreadJob):
         self._need_release = False
         self.new_addresses: Set[Address] = set()
 
-        self.new_addresses_for_change: Dict[Address, type(None)] = dict()
+        self.new_addresses_for_change: Dict[Address, type(None)] = {}
         """Basically, an ordered set of Addresses
         (this assumes that dictionaries are ordered, so Python > 3.6)
         """
-        self.requested_tx: Dict[str, int] = dict()
+        self.requested_tx: Dict[str, int] = {}
         """Mapping of tx_hash -> tx_height"""
         self.requested_tx_by_sh: DefaultDict[str, Set[str]] = defaultdict(set)
         """Mapping of scripthash -> set of requested tx_hashes"""
@@ -303,8 +303,8 @@ class Synchronizer(ThreadJob):
         self.print_error("receiving history {} {}".format(addr, len(result)))
         # Remove request; this allows up_to_date to be True
         server_status = self.requested_histories.pop(scripthash)
-        hashes = set(map(lambda item: item["tx_hash"], result))
-        hist = list(map(lambda item: (item["tx_hash"], item["height"]), result))
+        hashes = {item["tx_hash"] for item in result}
+        hist = [(item["tx_hash"], item["height"]) for item in result]
         # tx_fees
         tx_fees = [(item["tx_hash"], item.get("fee")) for item in result]
         tx_fees = dict(filter(lambda x: x[1] is not None, tx_fees))
@@ -438,7 +438,7 @@ class Synchronizer(ThreadJob):
             if not self.limit_change_subs:
                 # Pop all queued change addrs
                 addresses_for_change = self.new_addresses_for_change.keys()
-                self.new_addresses_for_change = dict()
+                self.new_addresses_for_change = {}
             else:
                 # Change address subs limiting in place, only grab first self.limit_change_subs new change addresses
                 addresses_for_change = list(self.new_addresses_for_change.keys())[

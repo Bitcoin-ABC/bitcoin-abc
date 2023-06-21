@@ -287,7 +287,7 @@ class MnemonicBase(PrintError):
             self.print_error("loading wordlist for:", lang)
             filename = filenames[lang]
             self.data.words = tuple(load_wordlist(filename))
-            self.data.word_indices = dict()
+            self.data.word_indices = {}
             for i, word in enumerate(self.data.words):
                 self.data.word_indices[word] = (
                     i  # saves on O(N) lookups for words. The alternative is to call wordlist.index(w) for each word which is slow.

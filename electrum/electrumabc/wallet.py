@@ -272,18 +272,16 @@ class AbstractWallet(PrintError, SPVDelegate):
         self.labels = storage.get("labels", {})
         # Frozen addresses
         frozen_addresses = storage.get("frozen_addresses", [])
-        self.frozen_addresses = set(
-            Address.from_string(addr) for addr in frozen_addresses
-        )
+        self.frozen_addresses = {Address.from_string(addr) for addr in frozen_addresses}
         # Frozen coins (UTXOs) -- note that we have 2 independent levels of "freezing": address-level and coin-level.
         # The two types of freezing are flagged independently of each other and 'spendable' is defined as a coin that satisfies
         # BOTH levels of freezing.
         self.frozen_coins = set(storage.get("frozen_coins", []))
         self.frozen_coins_tmp = set()  # in-memory only
 
-        self.change_reserved = set(
+        self.change_reserved = {
             Address.from_string(a) for a in storage.get("change_reserved", ())
-        )
+        }
         self.change_reserved_default = [
             Address.from_string(a) for a in storage.get("change_reserved_default", ())
         ]
@@ -777,7 +775,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         is_pruned = False
         is_partial = False
         v_in = v_out = v_out_mine = 0
-        spends_coins_mine = list()
+        spends_coins_mine = []
         for item in tx.inputs():
             addr = item["address"]
             if self.is_mine(addr):
@@ -1625,10 +1623,10 @@ class AbstractWallet(PrintError, SPVDelegate):
     def add_tx_to_history(self, txid):
         with self.lock:
             for addr in itertools.chain(
-                list(self.txi.get(txid, {}).keys()), list(self.txo.get(txid, {}).keys())
+                self.txi.get(txid, {}).keys(), self.txo.get(txid, {}).keys()
             ):
-                cur_hist = self._history.get(addr, list())
-                if not any(True for x in cur_hist if x[0] == txid):
+                cur_hist = self._history.get(addr, [])
+                if not any(x[0] == txid for x in cur_hist):
                     cur_hist.append((txid, 0))
                     self._history[addr] = cur_hist
 
@@ -2154,7 +2152,7 @@ class AbstractWallet(PrintError, SPVDelegate):
                 sign_schnorr=sign_schnorr,
             )
         else:
-            sendable = sum(map(lambda x: x["value"], inputs))
+            sendable = sum(x["value"] for x in inputs)
             outputs[i_max] = outputs[i_max]._replace(value=0)
             tx = Transaction.from_io(inputs, outputs, sign_schnorr=sign_schnorr)
             fee = fee_estimator(tx.estimated_size())
@@ -2508,14 +2506,8 @@ class AbstractWallet(PrintError, SPVDelegate):
     def add_hw_info(self, tx):
         # add previous tx for hw wallets, if needed and not already there
         if any(
-            [
-                (
-                    isinstance(k, HardwareKeyStore)
-                    and k.can_sign(tx)
-                    and k.needs_prevtx()
-                )
-                for k in self.get_keystores()
-            ]
+            (isinstance(k, HardwareKeyStore) and k.can_sign(tx) and k.needs_prevtx())
+            for k in self.get_keystores()
         ):
             for txin in tx.inputs():
                 if "prev_tx" not in txin:
@@ -2554,10 +2546,8 @@ class AbstractWallet(PrintError, SPVDelegate):
         self.add_input_values_to_tx(tx)
         # hardware wallets require extra info
         if any(
-            [
-                (isinstance(k, HardwareKeyStore) and k.can_sign(tx))
-                for k in self.get_keystores()
-            ]
+            (isinstance(k, HardwareKeyStore) and k.can_sign(tx))
+            for k in self.get_keystores()
         ):
             self.add_hw_info(tx)
         # sign
@@ -2617,7 +2607,7 @@ class AbstractWallet(PrintError, SPVDelegate):
             transactions.append((conf, v, txid))
         tx_hashes = []
         vsum = 0
-        for conf, v, tx_hash in reversed(sorted(transactions)):
+        for conf, v, tx_hash in sorted(transactions, reverse=True):
             vsum += v
             tx_hashes.append(tx_hash)
             if vsum >= amount:
@@ -2827,9 +2817,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         return True
 
     def get_sorted_requests(self, config):
-        m = map(
-            lambda x: self.get_payment_request(x, config), self.receive_requests.keys()
-        )
+        m = (self.get_payment_request(x, config) for x in self.receive_requests.keys())
         try:
 
             def f(x):
@@ -2866,7 +2854,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         return False
 
     def is_hardware(self):
-        return any([isinstance(k, HardwareKeyStore) for k in self.get_keystores()])
+        return any(isinstance(k, HardwareKeyStore) for k in self.get_keystores())
 
     def add_address(self, address, *, for_change=False):
         assert isinstance(address, Address)
@@ -3442,7 +3430,7 @@ class DeterministicWallet(AbstractWallet):
             if len(addresses) < limit:
                 self.create_new_address(for_change, save=False)
                 continue
-            if all(map(lambda a: not self.address_is_old(a), addresses[-limit:])):
+            if all(not self.address_is_old(a) for a in addresses[-limit:]):
                 break
             else:
                 self.create_new_address(for_change, save=False)
@@ -3601,7 +3589,7 @@ class MultisigWallet(DeterministicWallet):
         return [self.keystores[i] for i in sorted(self.keystores.keys())]
 
     def can_have_keystore_encryption(self):
-        return any([k.may_have_password() for k in self.get_keystores()])
+        return any(k.may_have_password() for k in self.get_keystores())
 
     def _update_password_for_keystore(self, old_pw, new_pw):
         for name, keystore_ in self.keystores.items():
@@ -3623,7 +3611,7 @@ class MultisigWallet(DeterministicWallet):
         return self.keystore.has_seed()
 
     def is_watching_only(self):
-        return not any([not k.is_watching_only() for k in self.get_keystores()])
+        return not any(not k.is_watching_only() for k in self.get_keystores())
 
     def get_master_public_key(self):
         return self.keystore.get_master_public_key()

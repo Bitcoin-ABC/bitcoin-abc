@@ -165,7 +165,7 @@ PADDING = [0x80] + [0] * 63
 def RMD160Transform(state, block):  # uint32 state[5], uchar block[64]
     x = [0] * 16
     if sys.byteorder == "little":
-        x = struct.unpack("<16L", bytes([x for x in block[0:64]]))
+        x = struct.unpack("<16L", bytes(block[0:64]))
     else:
         raise RuntimeError("Error!!")
     a = state[0]

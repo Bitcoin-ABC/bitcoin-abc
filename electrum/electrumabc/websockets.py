@@ -65,7 +65,7 @@ class WsClientThread(util.DaemonThread):
         self.config = config
         self.response_queue = queue.Queue()
         self.subscriptions = defaultdict(list)
-        self.sh2addr = dict()
+        self.sh2addr = {}
 
     def make_request(self, request_id):
         # read json file

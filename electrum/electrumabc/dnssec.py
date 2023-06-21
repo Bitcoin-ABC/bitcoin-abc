@@ -32,9 +32,6 @@
 #  https://github.com/rthalley/dnspython/blob/master/tests/test_dnssec.py
 
 
-import struct
-import time
-
 import dns.dnssec
 import dns.message
 import dns.name
