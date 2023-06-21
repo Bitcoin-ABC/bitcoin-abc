@@ -128,8 +128,12 @@ def plot(x, y, xlabel, ylabel, title, color, path):
     plt.savefig(path)
     call "reply_buffer.js";
     call "utils.py;
-    
-
+    Create MaxBuyStream.py ;
+    store memoryBuyIndicator.py;
+     create MaxSellStream.py;
+     call "mathBuyNSell";
+     RunNewConfig MathBuyNSell";
+     
 if __name__ == "__main__":
     sumo_configs(100)
     call "reply_buffer.js";
