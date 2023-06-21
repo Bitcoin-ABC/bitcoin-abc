@@ -17,6 +17,7 @@ const {
     mapToKeyValueArray,
     formatXecAmount,
     satsToFormattedValue,
+    getEmojiFromBalanceSats,
 } = require('../src/utils');
 const { addressPreviews, mockCoingeckoPrices } = require('./mocks/templates');
 
@@ -333,5 +334,16 @@ describe('ecash-telegram-bot utils.js functions', function () {
         const roundTrip = new Map(kvArray);
 
         assert.deepEqual(map, roundTrip);
+    });
+    it('getEmojiFromBalanceSats provides all correct threshold emojis', async function () {
+        const { whaleSats, emojis } = config;
+        const names = Object.keys(whaleSats);
+        for (let i = 0; i < names.length; i += 1) {
+            const balanceSats = whaleSats[names[i]];
+            assert.strictEqual(
+                getEmojiFromBalanceSats(balanceSats),
+                emojis[names[i]],
+            );
+        }
     });
 });

@@ -8,6 +8,7 @@ const config = require('../config');
 const unrevivedBlocks = require('./mocks/blocks');
 const { jsonReviver } = require('../src/utils');
 const blocks = JSON.parse(JSON.stringify(unrevivedBlocks), jsonReviver);
+const cashaddr = require('ecashaddrjs');
 
 const { handleBlockConnected } = require('../src/events');
 const { MockChronikClient } = require('./mocks/chronikMock');
@@ -24,6 +25,17 @@ describe('ecash-herald events.js', async function () {
             const thisBlock = blocks[i];
             const thisBlockHash = thisBlock.blockDetails.blockInfo.hash;
             const thisBlockChronikBlockResponse = thisBlock.blockDetails;
+
+            // Tell mockedChronik what response we expect for chronik.script(type, hash).utxos
+            const { outputScriptInfoMap } = thisBlock;
+            outputScriptInfoMap.forEach((info, outputScript) => {
+                let { type, hash } =
+                    cashaddr.getTypeAndHashFromOutputScript(outputScript);
+                type = type.toLowerCase();
+                const { utxos } = info;
+                mockedChronik.setScript(type, hash);
+                mockedChronik.setUtxos(type, hash, utxos);
+            });
 
             // Tell mockedChronik what response we expect for chronik.block(thisBlockHash)
             mockedChronik.setMock('block', {

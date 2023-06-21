@@ -308,4 +308,37 @@ module.exports = {
         });
         return kvArray;
     },
+    /**
+     * Assign appropriate emoji based on a balance in satoshis
+     * @param {integer} balanceSats
+     * @returns {string} emoji determined by thresholds set in config
+     */
+    getEmojiFromBalanceSats: function (balanceSats) {
+        const { whaleSats, emojis } = config;
+        if (balanceSats >= whaleSats.bigWhale) {
+            return emojis.bigWhale;
+        }
+        if (balanceSats >= whaleSats.modestWhale) {
+            return emojis.modestWhale;
+        }
+        if (balanceSats >= whaleSats.shark) {
+            return emojis.shark;
+        }
+        if (balanceSats >= whaleSats.swordfish) {
+            return emojis.swordfish;
+        }
+        if (balanceSats >= whaleSats.barracuda) {
+            return emojis.barracuda;
+        }
+        if (balanceSats >= whaleSats.octopus) {
+            return emojis.octopus;
+        }
+        if (balanceSats >= whaleSats.piranha) {
+            return emojis.piranha;
+        }
+        if (balanceSats >= whaleSats.crab) {
+            return emojis.crab;
+        }
+        return emojis.shrimp;
+    },
 };

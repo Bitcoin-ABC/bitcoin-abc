@@ -38,6 +38,8 @@ module.exports = {
 
         // Collect token info needed to parse token send txs
         const tokenIds = new Set(); // we only need each tokenId once
+        // Collect outputScripts seen in this block to parse for balance
+        let outputScripts = new Set();
         for (let i = 0; i < parsedTxs.length; i += 1) {
             const thisParsedTx = parsedTxs[i];
             if (thisParsedTx.tokenSendInfo) {
@@ -51,9 +53,40 @@ module.exports = {
             ) {
                 tokenIds.add(thisParsedTx.opReturnInfo.tokenId);
             }
+            const { xecSendingOutputScripts, xecReceivingOutputs } =
+                thisParsedTx;
+
+            // Only add the first sending and receiving output script,
+            // As you will only render balance emojis for these
+            outputScripts.add(xecSendingOutputScripts.values().next().value);
+
+            // For receiving outputScripts, add the first that is not OP_RETURN
+            // So, get an array of the outputScripts first
+            const xecReceivingOutputScriptsArray = Array.from(
+                xecReceivingOutputs.keys(),
+            );
+            for (let j = 0; j < xecReceivingOutputScriptsArray.length; j += 1) {
+                if (
+                    !xecReceivingOutputScriptsArray[j].startsWith(
+                        opReturn.opReturnPrefix,
+                    )
+                ) {
+                    outputScripts.add(xecReceivingOutputScriptsArray[j]);
+                    // Exit loop after you've added the first non-OP_RETURN outputScript
+                    break;
+                }
+            }
         }
 
-        return { hash, height, miner, numTxs, parsedTxs, tokenIds };
+        return {
+            hash,
+            height,
+            miner,
+            numTxs,
+            parsedTxs,
+            tokenIds,
+            outputScripts,
+        };
     },
     getMinerFromCoinbaseTx: function (coinbaseTx, knownMiners) {
         // get coinbase inputScript
@@ -1045,7 +1078,20 @@ module.exports = {
         }
         return msg;
     },
-    getBlockTgMessage: function (parsedBlock, coingeckoPrices, tokenInfoMap) {
+    /**
+     * Build a string formatted for Telegram's API using HTML encoding
+     * @param {object} parsedBlock
+     * @param {array or false} coingeckoPrices if no coingecko API error
+     * @param {Map or false} tokenInfoMap if no chronik API error
+     * @param {Map or false} addressInfoMap if no chronik API error
+     * @returns {function} splitOverflowTgMsg(tgMsg)
+     */
+    getBlockTgMessage: function (
+        parsedBlock,
+        coingeckoPrices,
+        tokenInfoMap,
+        outputScriptInfoMap,
+    ) {
         const { hash, height, miner, numTxs, parsedTxs } = parsedBlock;
         const { emojis } = config;
 
@@ -1325,6 +1371,32 @@ module.exports = {
                 }
             });
 
+            // Get address balance emojis for rendered addresses
+            // NB you are using xecReceivingAddressOutputs to avoid OP_RETURN outputScripts
+            let xecSenderEmoji = '';
+            let xecReceiverEmoji = '';
+
+            if (outputScriptInfoMap) {
+                // If you have information about address balances, get balance emojis
+                const firstXecSendingOutputScript = xecSendingOutputScripts
+                    .values()
+                    .next().value;
+                const firstXecReceivingOutputScript = xecReceivingAddressOutputs
+                    .keys()
+                    .next().value;
+                xecSenderEmoji = outputScriptInfoMap.has(
+                    firstXecSendingOutputScript,
+                )
+                    ? outputScriptInfoMap.get(firstXecSendingOutputScript).emoji
+                    : '';
+                xecReceiverEmoji = outputScriptInfoMap.has(
+                    firstXecReceivingOutputScript,
+                )
+                    ? outputScriptInfoMap.get(firstXecReceivingOutputScript)
+                          .emoji
+                    : '';
+            }
+
             let xecSendMsg;
             if (xecReceivingAddressOutputs.size === 0) {
                 // self send tx
@@ -1337,7 +1409,7 @@ module.exports = {
                     changeAmountSats,
                     coingeckoPrices,
                 );
-                xecSendMsg = `${emojis.xecSend}${
+                xecSendMsg = `${emojis.xecSend}${xecSenderEmoji}${
                     xecSendingOutputScripts.size
                 } ${
                     xecSendingOutputScripts.size > 1 ? 'addresses' : 'address'
@@ -1347,7 +1419,9 @@ module.exports = {
                     xecSendingOutputScripts.size > 1 ? 'themselves' : 'itself'
                 }`;
             } else {
-                xecSendMsg = `${emojis.xecSend}${returnAddressPreview(
+                xecSendMsg = `${
+                    emojis.xecSend
+                }${xecSenderEmoji}${returnAddressPreview(
                     cashaddr.encodeOutputScript(
                         xecSendingOutputScripts.values().next().value,
                     ),
@@ -1357,12 +1431,12 @@ module.exports = {
                     xecReceivingAddressOutputs.keys().next().value ===
                     xecSendingOutputScripts.values().next().value
                         ? 'itself'
-                        : returnAddressPreview(
+                        : `${xecReceiverEmoji}${returnAddressPreview(
                               cashaddr.encodeOutputScript(
                                   xecReceivingAddressOutputs.keys().next()
                                       .value,
                               ),
-                          )
+                          )}`
                 }${
                     xecReceivingAddressOutputs.size > 1
                         ? ` and ${xecReceivingAddressOutputs.size - 1} others`

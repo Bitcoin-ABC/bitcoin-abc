@@ -23,6 +23,8 @@ module.exports = {
                 block: {},
                 txHistory: [],
                 tx: {},
+                p2sh: {},
+                p2pkh: {},
             };
             self.mockedMethods = { p2pkh: {}, p2sh: {} };
 
@@ -87,9 +89,23 @@ module.exports = {
             self.setTxHistory = function (txHistory) {
                 self.mockedResponses.txHistory = txHistory;
             };
+
+            /**
+             * Set utxos to custom response; must be called after setScript
+             * @param {string} type 'p2sh' or 'p2pkh'
+             * @param {string} hash hash of an eCash address
+             * @param {array} utxos mocked response of chronik.script(type,hash).utxos()
+             */
+            self.setUtxos = function (type, hash, utxos) {
+                self.mockedResponses[type][hash] = {};
+                self.mockedResponses[type][hash].utxos = utxos;
+            };
             // Allow users to set expected chronik script call responses
             // For now, just history
             self.setScript = function (type, hash) {
+                // Initialize object that will hold utxos if set
+                self.mockedResponses[type][hash] = {};
+
                 self.mockedMethods[type][hash] = {
                     history: async function (pageNumber = 0, pageSize) {
                         return self.getTxHistory(
@@ -97,6 +113,9 @@ module.exports = {
                             pageSize,
                             self.mockedResponses.txHistory,
                         );
+                    },
+                    utxos: async function () {
+                        return self.mockedResponses[type][hash].utxos;
                     },
                 };
             };

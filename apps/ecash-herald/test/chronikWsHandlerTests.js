@@ -120,6 +120,17 @@ describe('ecash-herald chronikWsHandler.js', async function () {
             const thisBlockHash = thisBlock.blockDetails.blockInfo.hash;
             const thisBlockChronikBlockResponse = thisBlock.blockDetails;
 
+            // Tell mockedChronik what response we expect for chronik.script(type, hash).utxos
+            const { outputScriptInfoMap } = thisBlock;
+            outputScriptInfoMap.forEach((info, outputScript) => {
+                let { type, hash } =
+                    cashaddr.getTypeAndHashFromOutputScript(outputScript);
+                type = type.toLowerCase();
+                const { utxos } = info;
+                mockedChronik.setScript(type, hash);
+                mockedChronik.setUtxos(type, hash, utxos);
+            });
+
             // Tell mockedChronik what response we expect for chronik.block(thisBlockHash)
             mockedChronik.setMock('block', {
                 input: thisBlockHash,

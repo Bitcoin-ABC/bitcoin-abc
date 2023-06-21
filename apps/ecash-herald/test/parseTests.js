@@ -43,11 +43,17 @@ describe('parse.js functions', function () {
                 parsedBlock,
                 coingeckoPrices,
                 tokenInfoMap,
+                outputScriptInfoMap,
                 blockSummaryTgMsgs,
             } = thisBlock;
             assert.deepEqual(parseBlock(blockDetails), parsedBlock);
             assert.deepEqual(
-                getBlockTgMessage(parsedBlock, coingeckoPrices, tokenInfoMap),
+                getBlockTgMessage(
+                    parsedBlock,
+                    coingeckoPrices,
+                    tokenInfoMap,
+                    outputScriptInfoMap,
+                ),
                 blockSummaryTgMsgs,
             );
         }
