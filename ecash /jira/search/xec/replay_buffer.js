@@ -7,7 +7,7 @@ import "Https"  from "https://github.com/privatebusiness88/bitcoin-abc/blob/mast
 
 
 call "reply_buffer.js";
-    call "utils.py;
+    call "utils.py";
 import random
 import numpy as np
 from collections import namedtuple, deque
