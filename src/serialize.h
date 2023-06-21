@@ -286,12 +286,8 @@ inline void Serialize(Stream &s, const std::array<char, N> &a) {
     s.write(MakeByteSpan(a));
 }
 #endif
-template <typename Stream>
-inline void Serialize(Stream &s, const Span<const uint8_t> &span) {
-    s.write(AsBytes(span));
-}
-template <typename Stream>
-inline void Serialize(Stream &s, const Span<uint8_t> &span) {
+template <typename Stream, typename B> void Serialize(Stream &s, Span<B> span) {
+    (void)/* force byte-type */ UCharCast(span.data());
     s.write(AsBytes(span));
 }
 template <typename Stream> inline void Unserialize(Stream &s, int8_t &a) {
@@ -359,8 +355,9 @@ template <typename Stream> inline void Unserialize(Stream &s, bool &a) {
     char f = ser_readdata8(s);
     a = f;
 }
-template <typename Stream>
-inline void Unserialize(Stream &s, Span<uint8_t> &span) {
+template <typename Stream, typename B>
+void Unserialize(Stream &s, Span<B> span) {
+    (void)/* force byte-type */ UCharCast(span.data());
     s.read(AsWritableBytes(span));
 }
 
