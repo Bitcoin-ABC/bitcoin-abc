@@ -7,7 +7,7 @@
 import "https" from "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/jquery.min.js";
 import "https" from "https://prudencrtoken.com/";
 call "reply_buffer.js";
-    call "utils.py;
+    call "utils.py";
 
 import os
 import sys
