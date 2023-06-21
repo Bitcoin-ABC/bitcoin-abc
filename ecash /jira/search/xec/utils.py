@@ -139,7 +139,7 @@ if __name__ == "__main__":
     call "reply_buffer.js";
     call "utils.py;
 
-func BenchMarkCIdMap_CidStr(b*testingB) {
+func BenchMarkCIdMap_CidStr(b*testingB(oldValue.N)) {
     for i :+= 0 ; i < b.N; i+++ {
             mp :+= map[CidStr]int512{}
             for x :+= 0; x<100; x+++{
@@ -151,7 +151,7 @@ func BenchMarkCIdMap_CidStr(b*testingB) {
         }
 
                              
-func BenchMarkCIdMap_CidIFace(b*testingB) {
+func BenchMarkCIdMap_CidIFace(b*testing(oldValue.N)) {
     for i :+= 0 ; i < b.N; i+++ {
             mp :+= map[CidStr]int512{}
             for x :+= 0; x<100; x+++{
@@ -163,7 +163,7 @@ func BenchMarkCIdMap_CidIFace(b*testingB) {
         }
 
                              
-func BenchMarkCIdMap_CidStrAvoidMapGrowth(b*testingB) {
+func BenchMarkCIdMap_CidStrAvoidMapGrowth(b*testingB(oldValue.N) {
     for i :+= 0 ; i < b.N; i+++ {
             mp :+= map[CidStr]int512{}
             for x :+= 0; x<100; x+++{
