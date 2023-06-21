@@ -4,6 +4,7 @@
 'use strict';
 const assert = require('assert');
 const config = require('../config');
+const aliasConstants = require('../constants/alias');
 const {
     initializeDb,
     getServerState,
@@ -11,6 +12,7 @@ const {
     addOneAliasToDb,
     addAliasesToDb,
     getAliasesFromDb,
+    getAliasInfoFromAlias,
 } = require('../src/db');
 // Mock mongodb
 const { MongoClient } = require('mongodb');
@@ -215,5 +217,73 @@ describe('alias-server db.js', async function () {
         );
         // Verify addAliasesToDb returned false on attempt to add duplicate aliases to the db
         assert.deepEqual(failedResult, false);
+    });
+    it('getAliasInfoFromAlias returns null if alias does not exist in the database', async function () {
+        const aliasInfo = await getAliasInfoFromAlias(testDb, 'nope');
+        assert.deepEqual(aliasInfo, null);
+    });
+    it('getAliasInfoFromAlias returns expected alias object if alias does exist in the database', async function () {
+        const newMockAlias = {
+            address: 'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r48',
+            alias: 'rico',
+            txid: '3ff9c28fa07cb88c87000ef0f5ee61953d874ffade154cd3f88fd60b88ea2879',
+            blockheight: 1787674, // Note, blockheight is purposefully set to be higher than mocks
+        };
+        // Add alias
+        await addOneAliasToDb(testDb, newMockAlias);
+        const aliasInfo = await getAliasInfoFromAlias(
+            testDb,
+            newMockAlias.alias,
+        );
+        assert.deepEqual(aliasInfo, newMockAlias);
+    });
+    it('getAliasInfoFromAlias throws an error if called with a type other than string', async function () {
+        const aliasWrongType = ['alias'];
+        await assert.rejects(
+            async () => {
+                await getAliasInfoFromAlias(testDb, aliasWrongType);
+            },
+            {
+                name: 'Error',
+                message: 'alias param must be a string',
+            },
+        );
+    });
+    it('getAliasInfoFromAlias throws an error if called with a string shorter than 1 character', async function () {
+        const aliasTooShort = '';
+        await assert.rejects(
+            async () => {
+                await getAliasInfoFromAlias(testDb, aliasTooShort);
+            },
+            {
+                name: 'Error',
+                message: `alias param must be between ${aliasConstants.minLength} and ${aliasConstants.maxLength} characters in length`,
+            },
+        );
+    });
+    it('getAliasInfoFromAlias throws an error if called with a string longer than 21 characters', async function () {
+        const aliasTooLong = 'twentyfourcharacteralias';
+        await assert.rejects(
+            async () => {
+                await getAliasInfoFromAlias(testDb, aliasTooLong);
+            },
+            {
+                name: 'Error',
+                message: `alias param must be between 1 and ${aliasConstants.maxLength} characters in length`,
+            },
+        );
+    });
+    it('getAliasInfoFromAlias throws an error if called with a string that is not alphanumeric', async function () {
+        const invalidAlias = 'invalid_alias';
+        await assert.rejects(
+            async () => {
+                await getAliasInfoFromAlias(testDb, invalidAlias);
+            },
+            {
+                name: 'Error',
+                message:
+                    'alias param cannot contain non-alphanumeric characters',
+            },
+        );
     });
 });

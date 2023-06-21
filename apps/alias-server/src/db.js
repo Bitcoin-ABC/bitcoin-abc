@@ -4,6 +4,8 @@
 
 'use strict';
 const config = require('../config');
+const aliasConstants = require('../constants/alias');
+const { isValidAliasString } = require('./utils');
 
 const MONGO_DB_ERRORCODES = {
     duplicateKey: 11000,
@@ -156,6 +158,39 @@ module.exports = {
                 err,
             );
             return false;
+        }
+    },
+    /**
+     * Lookup a registered alias object in the validAliasTxs database by querying the alias
+     * Useful for checking to see if an alias is available
+     * @param {object} db initialized mongodb instance
+     * @param {string} alias
+     * @returns {object} { _id, address, alias, blockheight, txid}
+     */
+    getAliasInfoFromAlias: async function (db, alias) {
+        // Validation of input before calling db
+        if (typeof alias !== 'string') {
+            throw new Error('alias param must be a string');
+        }
+        if (
+            alias.length < aliasConstants.minLength ||
+            alias.length > aliasConstants.maxLength
+        ) {
+            throw new Error(
+                `alias param must be between ${aliasConstants.minLength} and ${aliasConstants.maxLength} characters in length`,
+            );
+        }
+        if (!isValidAliasString(alias)) {
+            throw new Error(
+                `alias param cannot contain non-alphanumeric characters`,
+            );
+        }
+        try {
+            return await db
+                .collection(config.database.collections.validAliases)
+                .findOne({ alias });
+        } catch (error) {
+            throw new Error(`Error finding alias ${alias} in database`, error);
         }
     },
 };

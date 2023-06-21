@@ -8,6 +8,7 @@ module.exports = {
     // A valid alias registration outputScript must have protocol identifier pushed by '04'
     outputScriptStartsWith: '6a042e786563',
     registrationAddress: 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+    minLength: 1,
     maxLength: 21,
     registrationFeesSats: {
         1: 558,
