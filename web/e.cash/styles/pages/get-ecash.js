@@ -106,3 +106,44 @@ export const BlankTile = styled.div`
         border-right: none;
     }
 `;
+
+export const MiningSectionCtn = styled.div`
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 300px 0;
+    ${props => props.theme.breakpoint.medium} {
+        flex-direction: column;
+        margin-bottom: 40px;
+        margin: 200px 0;
+    }
+    > :first-child {
+        width: 50%;
+        ${props => props.theme.breakpoint.medium} {
+            width: 100%;
+            margin-bottom: 50px;
+        }
+    }
+`;
+
+export const MiningImg = styled.div`
+    width: 60%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    height: ${props => props.height};
+    margin-left: 20px;
+    right: 0;
+    ${props => props.theme.filters.grayscale}
+
+    img {
+        object-fit: contain;
+    }
+    ${props => props.theme.breakpoint.medium} {
+        width: 100%;
+        height: 350px;
+        position: relative;
+    }
+`;

@@ -65,6 +65,11 @@ export const navitems = [
                 link: '/get-ecash#services',
                 icon: '/images/services-icon.svg',
             },
+            {
+                title: 'Mining',
+                link: '/get-ecash#mining',
+                icon: '/images/mining-icon.svg',
+            },
         ],
     },
     {

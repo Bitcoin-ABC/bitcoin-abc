@@ -9,6 +9,7 @@ import { Container, GradientSpacer } from '/components/atoms';
 import coinupdown from '/public/animations/coin-up-down.json';
 import coinflip from '/public/animations/exchanges-coin-flip.json';
 import services from '/public/animations/services.json';
+import mining from '/public/animations/mining.json';
 import {
     DescriptionBox,
     ImgCtn,
@@ -17,9 +18,12 @@ import {
     Tile,
     TileImgCtn,
     BlankTile,
+    MiningSectionCtn,
+    MiningImg,
 } from '/styles/pages/get-ecash.js';
 import AnimateImage from '/components/animate-image';
 import { getScoreCardData } from '/data/scores.js';
+import Button from '/components/button';
 
 function TileSection({ title, items }) {
     return (
@@ -100,6 +104,24 @@ function GetEcash(props) {
                     </ImgCtn>
                 </DescriptionBox>
                 <TileSection title="Services" items={props.services} />
+                <MiningSectionCtn>
+                    <div>
+                        <H3 text="Mining" id="mining" />
+                        <p>
+                            eCash is also available through mining, to learn
+                            more join our ever expanding community of miners.
+                        </p>
+                        <Button
+                            text="Get Started"
+                            link="https://e.cash/blog/xec-ecash-mining"
+                            corner="bottomRight"
+                            color="accent"
+                        />
+                    </div>
+                    <MiningImg height="500px">
+                        <AnimateImage image={mining} reverse />
+                    </MiningImg>
+                </MiningSectionCtn>
             </Container>
         </Layout>
     );
