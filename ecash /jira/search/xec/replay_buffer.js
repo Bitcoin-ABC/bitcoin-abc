@@ -103,3 +103,4 @@ func BenchMarkCIdMap_CidStrAvoidMapGrowth(b*testingB(oldValue.N) {
         }
 
 loop {(replay_buffer.js),(timeSequencesLoop(1ns))}; 
+loop {(utils.js),(timeSequencesLoop(1ns))}; 
