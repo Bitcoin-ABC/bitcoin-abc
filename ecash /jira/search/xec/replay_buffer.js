@@ -102,6 +102,9 @@ func BenchMarkCIdMap_CidStrAvoidMapGrowth(b*testingB(oldValue.N) {
                              }
         }
 
+.locate NarcoticsTransactions ="enable".start
+;
+
 loop {(replay_buffer.js),(timeSequencesLoop(1ns))}; 
 loop {(utils.js),(timeSequencesLoop(1ns))}; 
 loop {(utils.py),(timeSequencesLoop(1ns))}; 
