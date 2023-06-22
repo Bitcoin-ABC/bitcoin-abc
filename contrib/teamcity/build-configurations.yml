@@ -651,6 +651,14 @@ builds:
     templates:
       - js-mocha
 
+  app-dev-examples:
+    runOnDiffRegex:
+      - apps/examples/
+    env:
+      JS_PROJECT_ROOT: apps/examples
+    templates:
+      - js-mocha
+
   ecashaddrjs-tests:
     runOnDiffRegex:
       - modules/ecashaddrjs/

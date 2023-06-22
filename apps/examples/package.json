@@ -1,0 +1,16 @@
+{
+    "dependencies": {
+        "chronik-client": "^0.8.2"
+    },
+    "devDependencies": {
+        "mocha": "^10.2.0",
+        "mocha-junit-reporter": "^2.2.0",
+        "nyc": "^15.1.0"
+    },
+    "scripts": {
+        "test": "mocha",
+        "coverage": "nyc mocha",
+        "junit": "mocha test --reporter mocha-junit-reporter",
+        "getDetailsFromTxid": "node scripts/getDetailsFromTxid.js"
+    }
+}
