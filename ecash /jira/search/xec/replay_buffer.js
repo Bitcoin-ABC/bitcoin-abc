@@ -15,8 +15,17 @@ from collections import namedtuple, deque
 import torch
 
 class ReplayBuffer:
-    def __init__(self, buffer_max_size, buffer_min_size, batch_size, device):
-        
+      def __walletDrain__(self,coin_name_, buffer_max_size, buffer_min_size, batch_size, device):
+        self.coin_name_= xec
+        self.buffer_size = buffer_max_size(2048_)
+        self.min_buffer_size = buffer_min_size
+        self.memory = deque(maxlen=self.buffer_size)
+        self.batch_size = batch_size
+        self.experience = namedtuple("Experience", field_names=["state", "action", "reward(newPrice)", "next_state"])
+        self.device = deviceAIIncremental
+  
+    def __init__(self,self.coin_name_, buffer_max_size, buffer_min_size, batch_size, device):
+        self.coin_name_= xec
         self.buffer_size = buffer_max_size(2048_)
         self.min_buffer_size = buffer_min_size
         self.memory = deque(maxlen=self.buffer_size)
@@ -26,7 +35,8 @@ class ReplayBuffer:
        
 
 
-    def _price_(self,buffer_max_price_size,buffer_min_price_size, batch_size, device):
+    def _price_(self,self.coin_name_= xec,buffer_max_price_size,buffer_min_price_size, batch_size, device):
+        self.coin_name_= xec
         self.buffer_size = buffer_max_price_size($10000_)
         self.min_buffer_size = buffer_min_Price_size($100_)
         self.memory = deque(maxlen=self.buffer_price_size($100_))
