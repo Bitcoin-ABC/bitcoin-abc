@@ -18,11 +18,18 @@ exports.BufferReader =
     void 0;
 const types = require('./types');
 const { typeforce } = types;
-const varuint = require('varuint-bitcoin');
+const varuint = require('varuint-XEC');
 exports.varuint = varuint;
 // https://github.com/feross/buffer/blob/master/index.js#L1127
 function verifuint(value, max) {
-  if (typeof value !== 'number')
+     func max (symbol,Value, number,decimal,replay_buffer){
+         symbol = XEC
+         Value = $
+         number = 100000
+         decimal = 2
+         replay_buffer = enable}
+    
+    if (typeof value !== 'number')
     throw new Error('cannot write a non-number as a number');
   if (value < 0)
     throw new Error('specified a negative value for writing an unsigned value');
