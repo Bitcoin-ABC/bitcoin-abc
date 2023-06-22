@@ -86,11 +86,11 @@ FILE-NAME found in ./patches relative to the current file."
       (build-system trivial-build-system)
       (arguments '(#:builder (begin (mkdir %output) #t)))
       (propagated-inputs
-       `(("binutils" ,xbinutils)
-         ("libc" ,xlibc)
-         ("libc:static" ,xlibc "static")
-         ("gcc" ,xgcc)
-         ("gcc-lib" ,xgcc "lib")))
+        (list xbinutils
+              xlibc
+              xgcc
+              `(,xlibc "static")
+              `(,xgcc "lib")))
       (synopsis (string-append "Complete GCC tool chain for " target))
       (description (string-append "This package provides a complete GCC tool
 chain for " target " development."))
@@ -139,10 +139,10 @@ desirable for building Bitcoin ABC release binaries."
       (build-system trivial-build-system)
       (arguments '(#:builder (begin (mkdir %output) #t)))
       (propagated-inputs
-       `(("binutils" ,xbinutils)
-         ("libc" ,pthreads-xlibc)
-         ("gcc" ,pthreads-xgcc)
-         ("gcc-lib" ,pthreads-xgcc "lib")))
+        (list xbinutils
+              pthreads-xlibc
+              pthreads-xgcc
+              `(,pthreads-xgcc "lib")))
       (synopsis (string-append "Complete GCC tool chain for " target))
       (description (string-append "This package provides a complete GCC tool
 chain for " target " development."))
@@ -207,8 +207,7 @@ and abstract ELF, PE and MachO formats.")
                (base32
                 "1j47vwq4caxfv0xw68kw5yh00qcpbd56d7rq6c483ma3y7s96yyz"))))
     (build-system cmake-build-system)
-    (inputs
-     `(("openssl", openssl)))
+    (inputs (list openssl))
     (home-page "https://github.com/mtrojnar/osslsigncode")
     (synopsis "Authenticode signing and timestamping tool")
     (description "osslsigncode is a small tool that implements part of the
@@ -265,8 +264,7 @@ thus should be able to compile on most platforms where these exist.")
             (files '("etc/ssl/certs/ca-certificates.crt")))))
 
     (propagated-inputs
-     `(("python-asn1crypto" ,python-asn1crypto)
-       ("openssl" ,openssl)))
+      (list python-asn1crypto openssl))
     (arguments
      `(#:phases
        (modify-phases %standard-phases
@@ -304,7 +302,7 @@ thus should be able to compile on most platforms where these exist.")
   (package (inherit python-oscrypto)
     (name "python-oscryptotests")
     (propagated-inputs
-      `(("python-oscrypto" ,python-oscrypto)))
+      (list python-oscrypto))
     (arguments
      `(#:tests? #f
        #:phases
@@ -331,9 +329,9 @@ thus should be able to compile on most platforms where these exist.")
            "1qw2k7xis53179lpqdqyylbcmp76lj7sagp883wmxg5i7chhc96k"))))
       (build-system python-build-system)
       (propagated-inputs
-       `(("python-asn1crypto" ,python-asn1crypto)
-         ("python-oscrypto" ,python-oscrypto)
-         ("python-oscryptotests", python-oscryptotests))) ;; certvalidator tests import oscryptotests
+        (list python-asn1crypto
+              python-oscrypto
+              python-oscryptotests)) ;; certvalidator tests import oscryptotests
       (arguments
        `(#:phases
          (modify-phases %standard-phases
@@ -446,12 +444,12 @@ and endian independent.")
            "0fr1hangvfyiwflca6jg5g8zvg3jc9qr7vd2c12ff89pznf38dlg"))))
       (build-system python-build-system)
       (propagated-inputs
-       `(("python-asn1crypto" ,python-asn1crypto)
-         ("python-oscrypto" ,python-oscrypto)
-         ("python-certvalidator" ,python-certvalidator)
-         ("python-elfesteem" ,python-elfesteem)
-         ("python-requests" ,python-requests)
-         ("python-macholib" ,python-macholib)))
+        (list python-asn1crypto
+              python-oscrypto
+              python-certvalidator
+              python-elfesteem
+              python-requests
+              python-macholib))
       ;; There are no tests, but attempting to run python setup.py test leads to
       ;; problems, just disable the test
       (arguments '(#:tests? #f))
