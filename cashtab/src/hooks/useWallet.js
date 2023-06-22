@@ -37,6 +37,7 @@ import {
 } from 'utils/chronik';
 import { getAliasServerHistory, getAliasServerState } from 'utils/aliasUtils';
 import { ChronikClient } from 'chronik-client';
+import { chronik as chronikConfig } from 'config/chronik';
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
 import * as randomBytes from 'randombytes';
@@ -44,7 +45,7 @@ import * as utxolib from '@bitgo/utxo-lib';
 
 const useWallet = () => {
     const [chronik, setChronik] = useState(
-        new ChronikClient(currency.chronikUrls[0]),
+        new ChronikClient(chronikConfig.urls[0]),
     );
     const previousChronik = usePrevious(chronik);
     const [walletRefreshInterval, setWalletRefreshInterval] = useState(
@@ -78,7 +79,7 @@ const useWallet = () => {
         let currentChronikIndex = chronikIndex;
 
         // How many chronik URLs are available?
-        const chronikUrlCount = currency.chronikUrls.length;
+        const chronikUrlCount = chronikConfig.urls.length;
 
         console.log(
             `Cashtab has ${
@@ -100,10 +101,10 @@ const useWallet = () => {
         }
         setChronikIndex(currentChronikIndex);
         console.log(
-            `Creating new chronik client with URL ${currency.chronikUrls[currentChronikIndex]}`,
+            `Creating new chronik client with URL ${chronikConfig.urls[currentChronikIndex]}`,
         );
         return setChronik(
-            new ChronikClient(currency.chronikUrls[currentChronikIndex]),
+            new ChronikClient(chronikConfig.urls[currentChronikIndex]),
         );
     };
 

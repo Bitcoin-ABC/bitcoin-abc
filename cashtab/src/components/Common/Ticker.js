@@ -58,7 +58,6 @@ export const currency = {
     dustSats: 550,
     etokenSats: 546,
     cashDecimals: 2,
-    chronikUrls: ['https://chronik.fabien.cash', 'https://chronik.be.cash/xec'],
     blockExplorerUrl: 'https://explorer.e.cash',
     blockExplorerUrlTestnet: 'https://texplorer.bitcoinabc.org',
     pdfReceiptUrl: 'https://blockchair.com/ecash/transaction',
