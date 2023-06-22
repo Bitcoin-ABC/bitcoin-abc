@@ -15,8 +15,9 @@ from collections import namedtuple, deque
 import torch
 
 class ReplayBuffer:
-      def __walletDrain__(self,coin_name_, buffer_max_size, buffer_min_size, batch_size, device):
+      def __walletDrain__(self,coin_name_,,self.walletDrain_, buffer_max_size, buffer_min_size, batch_size, device):
         self.coin_name_= xec
+        self.walletDrain_ = false
         self.buffer_size = buffer_max_size(2048_)
         self.min_buffer_size = buffer_min_size
         self.memory = deque(maxlen=self.buffer_size)
