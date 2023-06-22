@@ -101,7 +101,7 @@ public:
     }
 
     template <typename Stream> void Serialize(Stream &s) const {
-        s.write(MakeByteSpan(m_data));
+        s << Span(m_data);
     }
 
     template <typename Stream> void Unserialize(Stream &s) {
