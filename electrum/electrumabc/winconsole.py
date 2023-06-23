@@ -126,10 +126,10 @@ def create_or_attach_console(
 
     try:
         # Reopen Pythons console input and output handles
-        conout = open("CONOUT$", "w")
+        conout = open("CONOUT$", "w", encoding="utf-8")
         sys.stdout = conout
         sys.stderr = conout
-        sys.stdin = open("CONIN$", "r")
+        sys.stdin = open("CONIN$", "r", encoding="utf-8")
     except OSError:
         # If we get here, we likely were in MinGW / MSYS where CONOUT$ / CONIN$
         # are not valid files or some other weirdness occurred. Give up.

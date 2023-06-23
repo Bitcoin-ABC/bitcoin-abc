@@ -128,7 +128,7 @@ class Invoice:
 
     @classmethod
     def from_file(cls, filename: str) -> Invoice:
-        with open(filename, "r") as f:
+        with open(filename, "r", encoding="utf-8") as f:
             data = json.load(f)
         return Invoice.from_dict(data)
 

@@ -411,8 +411,6 @@ def load_certificates(ca_path):
             x = X509(b)
             x.check_date()
         except Exception as e:
-            # with open('/tmp/tmp.txt', 'w') as f:
-            #     f.write(pem.pem(b, 'CERTIFICATE').decode('ascii'))
             print_error("cert error:", e)
             continue
 

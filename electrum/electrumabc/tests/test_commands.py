@@ -74,7 +74,7 @@ class TestArgParser(unittest.TestCase):
         self.assertEqual(args_with_command.cmd, "history")
 
         # global options must be before any command or subparser
-        with open(os.devnull, "w") as null, redirect_stderr(null):
+        with open(os.devnull, "w", encoding="utf-8") as null, redirect_stderr(null):
             with self.assertRaises(SystemExit):
                 self.parser.parse_args(["history", "-w", "/path/to/wallet"])
 

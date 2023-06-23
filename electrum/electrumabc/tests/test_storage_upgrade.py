@@ -294,7 +294,7 @@ class TestStorageUpgrade(WalletTestCase):
         Wallet(storage)
 
     def _load_storage_from_json_string(self, wallet_json, manual_upgrades=True):
-        with open(self.wallet_path, "w") as f:
+        with open(self.wallet_path, "w", encoding="utf-8") as f:
             f.write(wallet_json)
         storage = WalletStorage(self.wallet_path, manual_upgrades=manual_upgrades)
         return storage

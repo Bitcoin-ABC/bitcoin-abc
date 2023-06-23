@@ -146,7 +146,7 @@ class InvoiceDialog(QtWidgets.QDialog):
         if invoice is None:
             return
 
-        with open(filename, "w") as f:
+        with open(filename, "w", encoding="utf-8") as f:
             json.dump(invoice.to_dict(), f, indent=4)
             # hide dialog after saving
             self.accept()

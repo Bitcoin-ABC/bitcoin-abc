@@ -144,7 +144,9 @@ class TestSimpleConfig(unittest.TestCase):
         )
         config.save_user_config()
         contents = None
-        with open(os.path.join(self.electrum_dir, "config"), "r") as f:
+        with open(
+            os.path.join(self.electrum_dir, "config"), "r", encoding="utf-8"
+        ) as f:
             contents = f.read()
         result = ast.literal_eval(contents)
         result.pop("config_version", None)
@@ -180,7 +182,7 @@ class TestUserConfig(unittest.TestCase):
 
         thefile = os.path.join(self.user_dir, "config")
         payload = something()
-        with open(thefile, "w") as f:
+        with open(thefile, "w", encoding="utf-8") as f:
             f.write(repr(payload))
 
         result = read_user_config(self.user_dir)

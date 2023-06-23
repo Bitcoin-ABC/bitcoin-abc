@@ -313,7 +313,7 @@ class DigitalBitboxClient(HardwareClientBase):
             return
 
         try:
-            with open(os.path.join(dbb_user_dir, "config.dat")) as f:
+            with open(os.path.join(dbb_user_dir, "config.dat"), encoding="utf-8") as f:
                 dbb_config = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             return

@@ -108,7 +108,7 @@ def get_server(config: SimpleConfig, timeout=2.0) -> Optional[jsonrpclib.Server]
     while True:
         create_time = None
         try:
-            with open(lockfile) as f:
+            with open(lockfile, encoding="utf-8") as f:
                 (host, port), tmp_create_time = ast.literal_eval(f.read())
                 create_time = float(tmp_create_time)
                 del tmp_create_time  # ensures create_time is float; raises if create_time is not-float-compatible

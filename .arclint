@@ -165,8 +165,7 @@
             "include": "(\\.py$)",
             "exclude": [
                 "(^contrib/gitian-builder/)",
-                "(^contrib/apple-sdk-tools/)",
-                "(^electrum/)"
+                "(^contrib/apple-sdk-tools/)"
             ]
         },
         "lint-python-shebang": {

@@ -135,7 +135,7 @@ class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
             self.setStatus(_("Not installed"), True)
             return
 
-        with open(self.UDEV_RULES_FILE, "r") as rules_file:
+        with open(self.UDEV_RULES_FILE, "r", encoding="utf-8") as rules_file:
             rules_installed = rules_file.read()
 
         rules = self.generateRulesFile()

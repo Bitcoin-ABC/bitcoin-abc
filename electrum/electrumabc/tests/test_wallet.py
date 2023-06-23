@@ -49,7 +49,7 @@ class TestWalletStorage(WalletTestCase):
     def test_read_dictionary_from_file(self):
         some_dict = {"a": "b", "c": "d"}
         contents = json.dumps(some_dict)
-        with open(self.wallet_path, "w") as f:
+        with open(self.wallet_path, "w", encoding="utf-8") as f:
             contents = f.write(contents)
 
         storage = WalletStorage(self.wallet_path, manual_upgrades=True)
@@ -66,7 +66,7 @@ class TestWalletStorage(WalletTestCase):
         storage.write()
 
         contents = ""
-        with open(self.wallet_path, "r") as f:
+        with open(self.wallet_path, "r", encoding="utf-8") as f:
             contents = f.read()
         self.assertEqual(some_dict, json.loads(contents))
 

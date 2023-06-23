@@ -574,7 +574,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         )
         if not fileName:
             return
-        with open(fileName, "w") as f:
+        with open(fileName, "w", encoding="utf-8") as f:
             f.write(proof.to_hex())
 
     def update_master_pubkey(self, master_wif: str):
@@ -736,7 +736,7 @@ class LoadProofDialog(QtWidgets.QDialog):
         )
         if not fileName:
             return
-        with open(fileName, "r") as f:
+        with open(fileName, "r", encoding="utf-8") as f:
             proof_hex = f.read().strip()
         if self.try_to_decode_proof(proof_hex):
             self.accept()

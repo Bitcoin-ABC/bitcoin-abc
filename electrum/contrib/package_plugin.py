@@ -76,14 +76,14 @@ def write_plugin_archive(metadata, source_package_path, archive_file_path):
         hasher.update(f.read())
 
     base_name = os.path.basename(plugin_path)
-    with open(plugin_path + ".sha256", "w") as f:
+    with open(plugin_path + ".sha256", "w", encoding="utf-8") as f:
         f.write("{0} *{1}".format(hasher.hexdigest(), base_name))
 
     return hasher.hexdigest()
 
 
 def write_manifest(metadata, manifest_file_path):
-    with open(manifest_file_path, "w") as f:
+    with open(manifest_file_path, "w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=4)
 
 

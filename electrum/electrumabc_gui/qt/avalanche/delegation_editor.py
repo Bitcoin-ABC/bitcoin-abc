@@ -111,7 +111,7 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
         )
         if not fileName:
             return
-        with open(fileName, "r") as f:
+        with open(fileName, "r", encoding="utf-8") as f:
             proof_hex = f.read().strip()
         self.set_proof(proof_hex)
         self.tab_widget.setCurrentWidget(self.proof_edit)

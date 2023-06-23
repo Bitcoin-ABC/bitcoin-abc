@@ -14,13 +14,13 @@ from setuptools import setup
 with open("README.rst", "r", encoding="utf-8") as f:
     long_description = f.read()
 
-with open("contrib/requirements/requirements.txt") as f:
+with open("contrib/requirements/requirements.txt", encoding="utf-8") as f:
     requirements = f.read().splitlines()
 
-with open("contrib/requirements/requirements-hw.txt") as f:
+with open("contrib/requirements/requirements-hw.txt", encoding="utf-8") as f:
     requirements_hw = f.read().splitlines()
 
-with open("contrib/requirements/requirements-binaries.txt") as f:
+with open("contrib/requirements/requirements-binaries.txt", encoding="utf-8") as f:
     requirements_binaries = f.read().splitlines()
 
 # We use this convoluted way of importing version.py and constants.py

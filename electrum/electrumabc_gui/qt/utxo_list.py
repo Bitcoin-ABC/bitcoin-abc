@@ -503,7 +503,7 @@ class UTXOList(MyTreeWidget):
             return
         if not fileName.endswith(".json") and not fileName.endswith(".JSON"):
             fileName += ".json"
-        with open(fileName, "w") as outfile:
+        with open(fileName, "w", encoding="utf-8") as outfile:
             json.dump(utxos_for_json, outfile)
 
     def _open_consolidate_coins_dialog(self, addr):
