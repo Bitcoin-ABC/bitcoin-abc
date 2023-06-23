@@ -41,6 +41,7 @@
         "mocha-suppress-logs": "^0.3.1",
         "mongodb-memory-server": "^8.12.2",
         "nyc": "^15.1.0",
+        "supertest": "^6.3.3",
         "test-console": "^2.0.0"
     },
     "config": {

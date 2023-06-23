@@ -7,6 +7,8 @@ const config = require('./config');
 const aliasConstants = require('./constants/alias');
 const secrets = require('./secrets');
 const { main } = require('./src/main');
+const { initializeDb } = require('./src/db');
+const { startServer } = require('./src/app');
 
 // Initialize ChronikClient on app startup
 const { ChronikClient } = require('chronik-client');
@@ -23,11 +25,24 @@ const telegramBot = new TelegramBot(botId, {
     polling: true,
 });
 
-main(
-    aliasServerMongoClient,
-    chronik,
-    aliasConstants.registrationAddress,
-    telegramBot,
-    channelId,
-    secrets.avalancheRpc,
+// Initialize database
+initializeDb(aliasServerMongoClient).then(
+    db => {
+        // Start the express app (server with API endpoints)
+        startServer(db, config.express.port);
+
+        // Start the indexer
+        main(
+            db,
+            chronik,
+            aliasConstants.registrationAddress,
+            telegramBot,
+            channelId,
+            secrets.avalancheRpc,
+        );
+    },
+    err => {
+        console.log(`Error initializing database`, err);
+        process.exit(1);
+    },
 );

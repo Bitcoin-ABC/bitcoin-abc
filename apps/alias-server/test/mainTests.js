@@ -5,12 +5,12 @@
 const assert = require('assert');
 const cashaddr = require('ecashaddrjs');
 const { main } = require('../src/main');
-const config = require('../config');
 const aliasConstants = require('../constants/alias');
 const mockSecrets = require('../secrets.sample');
 const MockAdapter = require('axios-mock-adapter');
 const axios = require('axios');
 const { generated } = require('./mocks/aliasMocks');
+const { initializeDb } = require('../src/db');
 
 // Mock mongodb
 const { MongoClient } = require('mongodb');
@@ -19,11 +19,12 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 const { MockChronikClient } = require('./mocks/chronikMock');
 
 describe('alias-server main.js', async function () {
-    let mongoServer, testMongoClient;
+    let mongoServer, testMongoClient, db;
     before(async () => {
         mongoServer = await MongoMemoryServer.create();
         const mongoUri = mongoServer.getUri();
         testMongoClient = new MongoClient(mongoUri);
+        db = await initializeDb(testMongoClient);
     });
 
     after(async () => {
@@ -31,7 +32,7 @@ describe('alias-server main.js', async function () {
         await mongoServer.stop();
     });
 
-    it('main() intializes database correctly, connects to a websocket, and runs handleAppStartup() correctly', async function () {
+    it('main() connects to a websocket, and runs handleAppStartup() correctly', async function () {
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient();
         const mockBlockchaininfoResponse = {
@@ -67,7 +68,6 @@ describe('alias-server main.js', async function () {
         });
 
         // Define params
-        const mongoClient = testMongoClient;
         const chronik = mockedChronik;
         const address = aliasConstants.registrationAddress;
         const telegramBot = null;
@@ -75,7 +75,7 @@ describe('alias-server main.js', async function () {
         const { avalancheRpc } = mockSecrets;
         const returnMocks = true;
         const result = await main(
-            mongoClient,
+            db,
             chronik,
             address,
             telegramBot,
@@ -83,8 +83,6 @@ describe('alias-server main.js', async function () {
             avalancheRpc,
             returnMocks,
         );
-        // Check that the database was initialized properly
-        assert.strictEqual(result.db.namespace, config.database.name);
         // Check that websocket is connected
         assert.deepEqual(result.aliasWebsocket._subs, [
             { scriptPayload: hash, scriptType: type },
