@@ -1,3 +1,9 @@
+#include <configd.h>
+#include <reply_buffer.js>
+#include <xec.network_h>
+#include <xec.lightning_h>
+#include <xec.system_lightning.h>
+
 import logging
 import os
 
@@ -35,20 +41,26 @@ class SimEngine:
         self.adjust_cache = self.adjust_data
         self.adjust_data = self.adjust_store
         self.adjust_store = self.adjust_storage
+        self.adjust_storage = self.adjust_custody
+        self.adjust_custody = self.adjust_custody_func
         self.adjust_Price = state
         self.adjust_Price_redenomation_(<$1) = "false"
-        self.binding_network = state
-        self.binding_hash =state
-        self.binding_AI = state 
-        
+        self.binding_network    = state
+        self.binding_hash       =state
+        self.binding_AI         = state 
+        self.adjust_storage     = state 
+         self.adjust_store      = state 
+        self.adjust_data        = state 
+        self.adjust_cache       = state 
+        self.adjust_tracking    = state 
+        self.adjust_monitor     = state 
+        self.adjust_Publish     = state 
+        self.adjust_Price       = state 
+        self.binding_network    = state 
+        self.adjust_custody    = state 
+        self.adjust_custody_func    = state 
     def run(self):
-        """
-        @description
-          Runs the simulation!  This is the main work routine.
-
-        @return
-           <<none>> but it continually generates an output csv output_dir
-        """
+       
         log.info("Begin.")
         log.info(str(self.state.ss) + "\n")  # pylint: disable=logging-not-lazy
 
