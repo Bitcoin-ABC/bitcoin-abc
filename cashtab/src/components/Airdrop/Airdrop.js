@@ -42,7 +42,7 @@ import {
 } from 'components/Common/Atoms';
 import WalletLabel from 'components/Common/WalletLabel.js';
 import { Link } from 'react-router-dom';
-
+import { token as tokenConfig } from 'config/token';
 const AirdropActions = styled.div`
     text-align: center;
     width: 100%;
@@ -219,7 +219,7 @@ const Airdrop = ({ passLoadingStatus }) => {
 
         setAirdropCalcModalProgress(50);
 
-        etokenList.Config.SetUrl(currency.tokenDbUrl);
+        etokenList.Config.SetUrl(tokenConfig.tokenDbUrl);
 
         let airdropList;
         try {

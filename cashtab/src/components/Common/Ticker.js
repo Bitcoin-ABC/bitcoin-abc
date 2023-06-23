@@ -63,10 +63,7 @@ export const currency = {
     pdfReceiptUrl: 'https://blockchair.com/ecash/transaction',
     tokenName: 'eToken',
     tokenTicker: 'eToken',
-    tokenIconSubmitApi: 'https://icons.etokens.cash/new',
     tokenLogo: tokenLogo,
-    tokenIconsUrl: 'https://etoken-icons.s3.us-west-2.amazonaws.com',
-    tokenDbUrl: 'https://tokendb.kingbch.com',
     txHistoryCount: 10,
     txHistoryPageSize: 25,
     xecApiBatchSize: 20,
@@ -87,7 +84,6 @@ export const currency = {
     notificationDurationShort: 3,
     notificationDurationLong: 5,
     localStorageMaxCharacters: 24,
-    newTokenDefaultUrl: 'https://cashtab.com/',
     opReturn: {
         opReturnPrefixHex: '6a',
         opReturnPrefixDec: '106',

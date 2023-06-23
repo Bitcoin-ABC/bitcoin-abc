@@ -51,6 +51,7 @@ import { getTokenStats, getAddressFromAlias } from 'utils/chronik';
 import { formatDate } from 'utils/formatting';
 import styled, { css } from 'styled-components';
 import TokenIcon from 'components/Tokens/TokenIcon';
+import { token as tokenConfig } from 'config/token';
 const AntdDescriptionsCss = css`
     .ant-descriptions-item-label,
     .ant-input-number,
@@ -554,9 +555,9 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
                                         step: 1 / 10 ** token.info.decimals,
                                         placeholder: 'Amount',
                                         prefix:
-                                            currency.tokenIconsUrl !== '' ? (
+                                            tokenConfig.tokenIconsUrl !== '' ? (
                                                 <Img
-                                                    src={`${currency.tokenIconsUrl}/32/${tokenId}.png`}
+                                                    src={`${tokenConfig.tokenIconsUrl}/32/${tokenId}.png`}
                                                     width={16}
                                                     height={16}
                                                     unloader={

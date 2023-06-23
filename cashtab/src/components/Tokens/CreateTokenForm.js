@@ -45,7 +45,7 @@ import Cropper from 'react-easy-crop';
 import getCroppedImg from 'utils/icons/cropImage';
 import getRoundImg from 'utils/icons/roundImage';
 import getResizedImage from 'utils/icons/resizeImage';
-
+import { token as tokenConfig } from 'config/token';
 const { Dragger } = Upload;
 
 export const CreateTokenCtn = styled.div`
@@ -394,7 +394,7 @@ const CreateTokenForm = ({ createToken, disabled, passLoadingStatus }) => {
 
         try {
             const tokenIconApprovalResponse = await fetch(
-                currency.tokenIconSubmitApi,
+                tokenConfig.tokenIconSubmitApi,
                 {
                     method: 'POST',
                     //Note: fetch automatically assigns correct header for multipart form based on formData obj
@@ -441,7 +441,7 @@ const CreateTokenForm = ({ createToken, disabled, passLoadingStatus }) => {
             ticker: newTokenTicker,
             documentUrl:
                 newTokenDocumentUrl === ''
-                    ? currency.newTokenDefaultUrl
+                    ? tokenConfig.newTokenDefaultUrl
                     : newTokenDocumentUrl,
             decimals: newTokenDecimals,
             initialQty: newTokenInitialQty,
@@ -491,7 +491,7 @@ const CreateTokenForm = ({ createToken, disabled, passLoadingStatus }) => {
                 <br />
                 <TokenParamLabel>Document URL:</TokenParamLabel>{' '}
                 {newTokenDocumentUrl === ''
-                    ? currency.newTokenDefaultUrl
+                    ? tokenConfig.newTokenDefaultUrl
                     : newTokenDocumentUrl}
                 <br />
             </Modal>

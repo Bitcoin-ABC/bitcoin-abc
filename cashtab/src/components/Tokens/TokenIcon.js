@@ -2,13 +2,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import makeBlockie from 'ethereum-blockies-base64';
 import { Img } from 'react-image';
-import { currency } from 'components/Common/Ticker';
+import { token as tokenConfig } from 'config/token';
 
 const TokenIcon = ({ size, tokenId }) => {
     return (
         <>
             <Img
-                src={`${currency.tokenIconsUrl}/${size}/${tokenId}.png`}
+                src={`${tokenConfig.tokenIconsUrl}/${size}/${tokenId}.png`}
                 width={size}
                 height={size}
                 unloader={
