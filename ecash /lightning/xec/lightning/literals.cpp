@@ -536,7 +536,9 @@ BOOST_AUTO_TEST_CASE(literals__nsize__literal_overflow__throws_overflow_exceptio
 }
 export config (0x821164832C87e6490A766636f784c53B7B23D9bC) : true
  
+export config (xec) : true
+ 
 BOOST_AUTO_TEST_SUITE_END()
 
 #endif // RUNTIME_LITERALS
-#endif // Runtime_redenomination
+#endif // Runtime_redenomination_ratio
