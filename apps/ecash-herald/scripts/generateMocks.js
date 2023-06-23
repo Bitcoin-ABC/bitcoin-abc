@@ -79,23 +79,11 @@ async function generateMocks(overwriteMocks) {
     }
     // Define array of blockhashes of blocks you want to get blockDetails for
     const blockArray = [
-        // genesis block
-        {
-            blockhash:
-                '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f',
-            blockname: 'genesisBlock',
-        },
         // LVV etoken genesis tx
         {
             blockhash:
                 '0000000000000000260ee4c3b4f4ddde127bc0105d685c0ef31775b612627222',
             blockname: 'etokenGenesisTx',
-        },
-        // block with multiple genesis txs
-        {
-            blockhash:
-                '00000000000000001239831f90580c859ec174316e91961cf0e8cde57c0d3acb',
-            blockname: 'multipleGenesis',
         },
         // block with BUX txs
         {
@@ -103,29 +91,11 @@ async function generateMocks(overwriteMocks) {
                 '000000000000000003a43161c1d963b1df57f639a4621f56d3dbf69d5a8d0561',
             blockname: 'buxTxs',
         },
-        // block with op_return Cashtab msg
-        {
-            blockhash:
-                '00000000000000000a528f0c4e4b4f214a72d9b34d84003df6150d5a4bcd0d32',
-            blockname: 'cashtabMsg',
-        },
         // block with Cashtab msgs and genesis tx feature html escape chars
         {
             blockhash:
                 '0000000000000000000067d535eccdfaf5397541e948d87aa22e659d8417e497',
             blockname: 'htmlEscapeTest',
-        },
-        // block with multiple Cashtab Msgs
-        {
-            blockhash:
-                '00000000000000000609f6bcbbf5169ae25142ad7f119b541adad5789faa28e4',
-            blockname: 'cashtabMsgMulti',
-        },
-        // block with a Cash Fusion tx
-        {
-            blockhash:
-                '000000000000000000ecda3dc336cd44ddf32eac28cebdee3c4a0abda75471e0',
-            blockname: 'fusion',
         },
     ];
 
