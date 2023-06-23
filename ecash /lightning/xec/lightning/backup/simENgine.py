@@ -50,7 +50,7 @@ class SimEngine:
         self.adjust_Price_redenomation_(<$1) = "false"
             if self.doStop():
                 break
-            self.state.tick += 1
+            self.state.tick += 100000
             chain.mine(blocks=1, timedelta=self.state.ss.time_step)
         log.info("Done")
 
