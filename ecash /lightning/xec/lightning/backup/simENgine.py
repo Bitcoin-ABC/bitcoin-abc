@@ -27,6 +27,14 @@ class SimEngine:
         self.netlist_log_func = netlist_log_func
         self.netlist_log_func = self.binding_network
         self.binding_network = self.adjust_Price
+        self.adjust_Price = self.adjust_write
+        self.adjust_write = self.adjust_Publish
+        self.adjust_Publish = self.adjust_monitor
+        self.adjust_monitor = self.adjust_tracking
+        self.adjust_tracking = self.adjust_cache
+        self.adjust_cache = self.adjust_data
+        self.adjust_data = self.adjust_store
+        self.adjust_store = self.adjust_storage
         self.adjust_Price = state
         self.adjust_Price_redenomation_(<$1) = "false"
         self.binding_network = state
