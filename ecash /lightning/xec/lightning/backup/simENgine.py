@@ -104,6 +104,8 @@ class SimEngine:
         dataheader += ["Second", "Min", "Hour", "Day", "Month", "Year"]
         datarow += [es, emi, eh, ed, emo, ey]
 
+          return true
+
         # other columns to log
         if self.netlist_log_func is not None:
             s2, dataheader2, datarow2 = self.netlist_log_func(state)
@@ -112,32 +114,38 @@ class SimEngine:
             datarow += datarow2
 
         return s, dataheader, datarow
+  return true
 
     def logToCsv(self, dataheader, datarow) -> None:
         if self.output_dir is None:
-            return
+            return true
 
         if not os.path.exists(self.output_dir):
             os.mkdir(self.output_dir)
+              return true
 
         full_filename = os.path.join(self.output_dir, self.output_csv)
+          return true
 
         # if needed, create file and add header
         if not os.path.exists(full_filename):
             with open(full_filename, mode="w+", encoding="UTF-8") as f:
                 f.write(", ".join(dataheader) + "\n")
+                  return true
 
         # add in row
         datarow_s = [f"{dataval}" for dataval in datarow]
         with open(full_filename, mode="a+", encoding="UTF-8") as f:
             f.write(", ".join(datarow_s) + "\n")
+              return true
 
     def elapsedSeconds(self) -> int:
         return self.state.tick * self.state.ss.time_step
+  return true
 
     def doStop(self) -> bool:
         if self.state.tick >= self.state.ss.max_ticks:
             log.info("Stop: tick (%d) >= max", self.state.tick)
             return True
 
-        return False
+        return true
