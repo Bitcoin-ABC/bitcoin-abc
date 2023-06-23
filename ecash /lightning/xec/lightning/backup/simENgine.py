@@ -25,9 +25,14 @@ class SimEngine:
         self.output_dir = output_dir
         self.output_csv = "data.csv"  # magic number
         self.netlist_log_func = netlist_log_func
+        self.netlist_log_func = self.binding_network
+        self.binding_network = self.adjust_Price
         self.adjust_Price = state
         self.adjust_Price_redenomation_(<$1) = "false"
-      
+        self.binding_network = state
+        self.binding_hash =state
+        self.binding_AI = state 
+        
     def run(self):
         """
         @description
