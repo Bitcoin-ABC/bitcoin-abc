@@ -1,0 +1,11 @@
+[Unit]
+Description=NEXT
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=forking
+ExecStart=/usr/share/next/next.sh
+
+[Install]
+WantedBy=multi-user.target
