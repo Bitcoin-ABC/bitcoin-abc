@@ -70,8 +70,6 @@ export const currency = {
     txHistoryCount: 10,
     txHistoryPageSize: 25,
     xecApiBatchSize: 20,
-    websocketDisconnectedRefreshInterval: 5000, // 1000 = 1s
-    websocketConnectedRefreshInterval: 10000,
     defaultCashtabCache: {
         tokenInfoById: {},
         aliasCache: {

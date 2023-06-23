@@ -42,6 +42,7 @@ import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
 import * as randomBytes from 'randombytes';
 import * as utxolib from '@bitgo/utxo-lib';
+import { websocket as websocketConfig } from 'config/websocket';
 
 const useWallet = () => {
     const [chronik, setChronik] = useState(
@@ -49,7 +50,7 @@ const useWallet = () => {
     );
     const previousChronik = usePrevious(chronik);
     const [walletRefreshInterval, setWalletRefreshInterval] = useState(
-        currency.websocketDisconnectedRefreshInterval,
+        websocketConfig.websocketDisconnectedRefreshInterval,
     );
     const [wallet, setWallet] = useState(false);
     const [chronikWebsocket, setChronikWebsocket] = useState(null);
@@ -144,7 +145,7 @@ const useWallet = () => {
         // If walletRefreshInterval is 10, set it back to the usual refresh rate
         if (walletRefreshInterval === 10) {
             setWalletRefreshInterval(
-                currency.websocketConnectedRefreshInterval,
+                websocketConfig.websocketConnectedRefreshInterval,
             );
         }
         try {
@@ -1035,11 +1036,12 @@ const useWallet = () => {
                     console.log(`Chronik websocket connected`, e);
                     console.log(
                         `Websocket connected, adjusting wallet refresh interval to ${
-                            currency.websocketConnectedRefreshInterval / 1000
+                            websocketConfig.websocketConnectedRefreshInterval /
+                            1000
                         }s`,
                     );
                     setWalletRefreshInterval(
-                        currency.websocketConnectedRefreshInterval,
+                        websocketConfig.websocketConnectedRefreshInterval,
                     );
                 },
             });
@@ -1632,7 +1634,7 @@ const useWallet = () => {
                 `Suspending wallet update interval while new wallet is activated`,
             );
             setWalletRefreshInterval(
-                currency.websocketDisconnectedRefreshInterval,
+                websocketConfig.websocketDisconnectedRefreshInterval,
             );
             const newWallet = await activateWallet(
                 currentlyActiveWallet,
