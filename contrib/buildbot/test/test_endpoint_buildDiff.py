@@ -13,6 +13,7 @@ from unittest.mock import call
 
 import mock
 import requests
+
 from build import Build, BuildStatus
 from testutil import AnyWith
 

@@ -15,6 +15,7 @@ from urllib.parse import urljoin
 
 import mock
 import requests
+
 from build import BuildStatus
 from phabricator_wrapper import BITCOIN_ABC_REPO
 from server import BADGE_TC_BASE

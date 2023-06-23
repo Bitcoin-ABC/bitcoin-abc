@@ -8,6 +8,7 @@ import test.mocks.slackbot
 import unittest
 
 import mock
+
 from slackbot import SlackBot
 
 

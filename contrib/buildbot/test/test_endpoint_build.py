@@ -10,6 +10,7 @@ import unittest
 from test.abcbot_fixture import ABCBotFixture
 
 import requests
+
 from testutil import AnyWith
 
 

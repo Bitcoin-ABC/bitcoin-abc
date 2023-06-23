@@ -8,9 +8,10 @@
 import os
 from base64 import b64decode
 
+from phabricator import Phabricator
+
 from build import BuildStatus
 from constants import Deployment
-from phabricator import Phabricator
 
 BUILDNAME_IGNORE_KEYWORD = "__BOTIGNORE"
 BITCOIN_ABC_PROJECT_PHID = "PHID-PROJ-z2wrchs62yicqvwlgc5r"

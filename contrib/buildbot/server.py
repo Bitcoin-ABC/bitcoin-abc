@@ -15,9 +15,10 @@ from functools import wraps
 from shlex import quote
 
 import yaml
-from build import BuildStatus, BuildTarget
 from deepmerge import always_merger
 from flask import Flask, abort, request
+
+from build import BuildStatus, BuildTarget
 from phabricator_wrapper import BITCOIN_ABC_PROJECT_PHID
 from shieldio import RasterBadge
 from teamcity_wrapper import TeamcityRequestException

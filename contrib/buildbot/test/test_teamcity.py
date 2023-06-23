@@ -12,6 +12,7 @@ from urllib.parse import urljoin
 
 import mock
 import requests
+
 from teamcity_wrapper import TeamcityRequestException
 from testutil import AnyWith
 

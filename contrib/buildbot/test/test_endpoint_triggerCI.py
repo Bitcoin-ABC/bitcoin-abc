@@ -13,6 +13,7 @@ from test.abcbot_fixture import ABCBotFixture
 from unittest.mock import call
 
 import mock
+
 from phabricator_wrapper import BITCOIN_ABC_PROJECT_PHID
 
 

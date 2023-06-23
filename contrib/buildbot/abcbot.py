@@ -11,8 +11,9 @@ import os
 import sys
 from logging.handlers import RotatingFileHandler
 
-import server
 import slack
+
+import server
 from cirrus import Cirrus
 from phabricator_wrapper import PhabWrapper
 from slackbot import SlackBot

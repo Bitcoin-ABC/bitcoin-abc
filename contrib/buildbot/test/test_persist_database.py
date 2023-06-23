@@ -15,6 +15,7 @@ from test.test_endpoint_build import buildRequestQuery
 from test.test_endpoint_status import statusRequestData
 
 import mock
+
 import server
 from build import BuildStatus
 from teamcity_wrapper import BuildInfo

@@ -8,6 +8,7 @@ import json
 
 import mock
 import requests
+
 from teamcity_wrapper import TeamCity
 
 TEAMCITY_BASE_URL = "https://teamcity.test"
