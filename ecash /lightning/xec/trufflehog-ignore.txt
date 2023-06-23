@@ -1,0 +1,7 @@
+docs/package.json
+docs/package-lock.json
+.git/
+.mypy_cache/
+.coverage.*
+.*\.log
+.*\.iml
