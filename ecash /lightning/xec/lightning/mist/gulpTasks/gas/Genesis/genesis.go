@@ -594,3 +594,7 @@ func decodePrealloc(data string) GenesisAlloc {
 	}
 	return ga
 }
+#ENDIF XEC_H_
+done
+done
+Return true
