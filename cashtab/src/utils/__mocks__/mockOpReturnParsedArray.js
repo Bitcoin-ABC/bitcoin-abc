@@ -1,4 +1,4 @@
-import { currency } from 'components/Common/Ticker';
+import { opReturn as opreturnConfig } from 'config/opreturn';
 export const shortCashtabMessageInputHex = '6a04007461620461736466';
 export const longCashtabMessageInputHex =
     '6a04007461624ca054657374696e672074686520323535206c696d69742054657374696e672074686520323535206c696d69742054657374696e672074686520323535206c696d69742054657374696e672074686520323535206c696d69742054657374696e672074686520323535206c696d69742054657374696e672074686520323535206c696d69742054657374696e672074686520323535206c696d69742054657374696e';
@@ -48,7 +48,7 @@ export const mockParsedMixedSegmentedExternalMessageArray = [
 ];
 
 export const mockParsedETokenOutputArray = [
-    currency.opReturn.appPrefixesHex.eToken,
+    opreturnConfig.appPrefixesHex.eToken,
 ];
 
 export const mockAirdropHexOutput =

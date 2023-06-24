@@ -13,6 +13,7 @@ import {
 import ecies from 'ecies-lite';
 import wif from 'wif';
 import { getPendingAliases } from 'utils/aliasUtils';
+import { opReturn as opreturnConfig } from 'config/opreturn';
 
 export const getTxHistoryPage = async (chronik, hash160, page = 0) => {
     let txHistoryPage;
@@ -647,7 +648,7 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
             let message = '';
             let txType = parsedOpReturnArray[0];
 
-            if (txType === currency.opReturn.appPrefixesHex.airdrop) {
+            if (txType === opreturnConfig.appPrefixesHex.airdrop) {
                 // this is to facilitate special Cashtab-specific cases of airdrop txs, both with and without msgs
                 // The UI via Tx.js can check this airdropFlag attribute in the parsedTx object to conditionally render airdrop-specific formatting if it's true
                 airdropFlag = true;
@@ -660,7 +661,7 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
                 // index 0 now becomes msg prefix, 1 becomes the msg
             }
 
-            if (txType === currency.opReturn.appPrefixesHex.cashtab) {
+            if (txType === opreturnConfig.appPrefixesHex.cashtab) {
                 // if this is an alias registration, render accordingly
                 // isAliasRegistration = true;
 
@@ -680,7 +681,7 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
                     );
                 }
             } else if (
-                txType === currency.opReturn.appPrefixesHex.cashtabEncrypted
+                txType === opreturnConfig.appPrefixesHex.cashtabEncrypted
             ) {
                 if (!incoming) {
                     // outgoing encrypted messages currently can not be decrypted by sender's wallet since the message is encrypted with the recipient's pub key
@@ -740,7 +741,7 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
                 isEncryptedMessage = true;
                 opReturnMessage = decryptedMessage;
             } else if (
-                txType === currency.opReturn.appPrefixesHex.aliasRegistration
+                txType === opreturnConfig.appPrefixesHex.aliasRegistration
             ) {
                 // if this is an alias registration transaction
                 aliasFlag = true;

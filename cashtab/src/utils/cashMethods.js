@@ -10,6 +10,7 @@ import cashaddr from 'ecashaddrjs';
 import bs58 from 'bs58';
 import * as slpMdm from 'slp-mdm';
 import * as utxolib from '@bitgo/utxo-lib';
+import { opReturn as opreturnConfig } from 'config/opreturn';
 
 export const getMessageByteSize = (
     msgInputStr,
@@ -665,11 +666,11 @@ export const generateAliasOpReturnScript = (alias, address) => {
     // utxolib.script.compile(script) will not add pushdata bytes for raw data
 
     // Initialize script array with OP_RETURN byte (6a) as rawdata (i.e. you want compiled result of 6a, not 016a)
-    let script = [currency.opReturn.opReturnPrefixDec];
+    let script = [opreturnConfig.opReturnPrefixDec];
 
     // Push alias protocol identifier
     script.push(
-        Buffer.from(currency.opReturn.appPrefixesHex.aliasRegistration, 'hex'), // '.xec'
+        Buffer.from(opreturnConfig.appPrefixesHex.aliasRegistration, 'hex'), // '.xec'
     );
 
     // Push alias protocol tx version to stack
@@ -718,10 +719,10 @@ export const generateOpReturnScript = (
         throw new Error('Invalid OP RETURN script input');
     }
 
-    // Note: script.push(Buffer.from(currency.opReturn.opReturnPrefixHex, 'hex')); actually evaluates to '016a'
+    // Note: script.push(Buffer.from(opreturnConfig.opReturnPrefixHex, 'hex')); actually evaluates to '016a'
     // instead of keeping the hex string intact. This behavour is specific to the initial script array element.
     // To get around this, the bch-js approach of directly using the opReturn prefix in decimal form for the initial entry is used here.
-    let script = [currency.opReturn.opReturnPrefixDec]; // initialize script with the OP_RETURN op code (6a) in decimal form (106)
+    let script = [opreturnConfig.opReturnPrefixDec]; // initialize script with the OP_RETURN op code (6a) in decimal form (106)
 
     try {
         if (encryptionFlag) {
@@ -730,7 +731,7 @@ export const generateOpReturnScript = (
             // add the encrypted cashtab messaging prefix and encrypted msg to script
             script.push(
                 Buffer.from(
-                    currency.opReturn.appPrefixesHex.cashtabEncrypted,
+                    opreturnConfig.appPrefixesHex.cashtabEncrypted,
                     'hex',
                 ), // 65746162
             );
@@ -744,10 +745,7 @@ export const generateOpReturnScript = (
                 // if this was routed from the airdrop component
                 // add the airdrop prefix to script
                 script.push(
-                    Buffer.from(
-                        currency.opReturn.appPrefixesHex.airdrop,
-                        'hex',
-                    ), // drop
+                    Buffer.from(opreturnConfig.appPrefixesHex.airdrop, 'hex'), // drop
                 );
                 // add the airdrop token ID to script
                 script.push(Buffer.from(airdropTokenId, 'hex'));
@@ -756,17 +754,14 @@ export const generateOpReturnScript = (
             if (optionalAliasRegistrationFlag) {
                 script.push(
                     Buffer.from(
-                        currency.opReturn.appPrefixesHex.aliasRegistration,
+                        opreturnConfig.appPrefixesHex.aliasRegistration,
                         'hex',
                     ), // '.xec'
                 );
             } else {
                 // add the cashtab prefix to script
                 script.push(
-                    Buffer.from(
-                        currency.opReturn.appPrefixesHex.cashtab,
-                        'hex',
-                    ), // 00746162
+                    Buffer.from(opreturnConfig.appPrefixesHex.cashtab, 'hex'), // 00746162
                 );
             }
             // add the un-encrypted message to script if supplied
@@ -876,7 +871,7 @@ export function parseOpReturn(hexStr) {
     if (
         !hexStr ||
         typeof hexStr !== 'string' ||
-        hexStr.substring(0, 2) !== currency.opReturn.opReturnPrefixHex
+        hexStr.substring(0, 2) !== opreturnConfig.opReturnPrefixHex
     ) {
         return false;
     }
@@ -897,7 +892,7 @@ export function parseOpReturn(hexStr) {
         // part 1: check the preceding byte value for the subsequent message
         let byteValue = hexStr.substring(0, 2);
         let msgByteSize = 0;
-        if (byteValue === currency.opReturn.opPushDataOne) {
+        if (byteValue === opreturnConfig.opPushDataOne) {
             // if this byte is 4c then the next byte is the message byte size - retrieve the message byte size only
             msgByteSize = parseInt(hexStr.substring(2, 4), 16); // hex base 16 to decimal base 10
             hexStr = hexStr.slice(4); // strip the 4c + message byte size info
@@ -910,30 +905,28 @@ export function parseOpReturn(hexStr) {
         // part 2: parse the subsequent message based on bytesize
         const msgCharLength = 2 * msgByteSize;
         message = hexStr.substring(0, msgCharLength);
-        if (i === 0 && message === currency.opReturn.appPrefixesHex.eToken) {
+        if (i === 0 && message === opreturnConfig.appPrefixesHex.eToken) {
             // add the extracted eToken prefix to array then exit loop
-            resultArray[i] = currency.opReturn.appPrefixesHex.eToken;
+            resultArray[i] = opreturnConfig.appPrefixesHex.eToken;
             break;
         } else if (
             i === 0 &&
-            message === currency.opReturn.appPrefixesHex.cashtab
+            message === opreturnConfig.appPrefixesHex.cashtab
         ) {
             // add the extracted Cashtab prefix to array
-            resultArray[i] = currency.opReturn.appPrefixesHex.cashtab;
+            resultArray[i] = opreturnConfig.appPrefixesHex.cashtab;
         } else if (
             i === 0 &&
-            message === currency.opReturn.appPrefixesHex.cashtabEncrypted
+            message === opreturnConfig.appPrefixesHex.cashtabEncrypted
         ) {
             // add the Cashtab encryption prefix to array
-            resultArray[i] = currency.opReturn.appPrefixesHex.cashtabEncrypted;
+            resultArray[i] = opreturnConfig.appPrefixesHex.cashtabEncrypted;
         } else if (
             i === 0 &&
-            message === currency.opReturn.appPrefixesHex.airdrop
+            message === opreturnConfig.appPrefixesHex.airdrop
         ) {
             // add the airdrop prefix to array
-            resultArray[i] = currency.opReturn.appPrefixesHex.airdrop;
-            // TODO: if i === 1 and message === currency.opReturn.appPrefixesHex.aliasRegistration
-            // flag accordingly
+            resultArray[i] = opreturnConfig.appPrefixesHex.airdrop;
         } else {
             // this is either an external message or a subsequent cashtab message loop to extract the message
             resultArray[i] = message;

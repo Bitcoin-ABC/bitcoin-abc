@@ -114,6 +114,7 @@ import {
     mockMultipleOutputs,
 } from '../__mocks__/mockTxBuilderData';
 import createTokenMock from '../__mocks__/createToken';
+import { opReturn as opreturnConfig } from 'config/opreturn';
 
 it(`OP_RETURN msg byte length matches for an encrypted msg input with a single emoji`, () => {
     const msgInput = '🙈';
@@ -1669,9 +1670,9 @@ describe('Correctly executes cash utility functions', () => {
         // verify airdrop hex prefix is contained in the array returned from parseOpReturn()
         expect(
             result.find(
-                element => element === currency.opReturn.appPrefixesHex.airdrop,
+                element => element === opreturnConfig.appPrefixesHex.airdrop,
             ),
-        ).toStrictEqual(currency.opReturn.appPrefixesHex.airdrop);
+        ).toStrictEqual(opreturnConfig.appPrefixesHex.airdrop);
     });
 
     test('convertEtokenToEcashAddr successfully converts a valid eToken address to eCash', async () => {

@@ -53,6 +53,7 @@ import { formatFiatBalance, formatBalance } from 'utils/formatting';
 import styled from 'styled-components';
 import WalletLabel from 'components/Common/WalletLabel.js';
 import { getAddressFromAlias } from 'utils/chronik';
+import { opReturn as opreturnConfig } from 'config/opreturn';
 
 const { TextArea } = Input;
 
@@ -183,7 +184,7 @@ const SendBCH = ({ passLoadingStatus }) => {
     // Show a confirmation modal on transactions created by populating form from web page button
     const [isModalVisible, setIsModalVisible] = useState(false);
 
-    // Airdrop transactions embed the additional tokenId (32 bytes), along with prefix (4 bytes) and two pushdata (2 bytes)// hence setting airdrop tx message limit to 38 bytes less than currency.opReturn.unencryptedMsgByteLimit
+    // Airdrop transactions embed the additional tokenId (32 bytes), along with prefix (4 bytes) and two pushdata (2 bytes)// hence setting airdrop tx message limit to 38 bytes less than opreturnConfig.unencryptedMsgByteLimit
     const pushDataByteCount = 1;
     const prefixByteCount = 4;
     const tokenIdByteCount = 32;
@@ -425,7 +426,7 @@ const SendBCH = ({ passLoadingStatus }) => {
             if (isEncryptedOptionalOpReturnMsg) {
                 optionalOpReturnMsg = opReturnMsg.substring(
                     0,
-                    currency.opReturn.encryptedMsgByteLimit,
+                    opreturnConfig.encryptedMsgByteLimit,
                 );
             } else {
                 optionalOpReturnMsg = opReturnMsg;
@@ -627,11 +628,11 @@ const SendBCH = ({ passLoadingStatus }) => {
 
         const maxSize =
             location && location.state && location.state.airdropTokenId
-                ? currency.opReturn.unencryptedMsgByteLimit -
+                ? opreturnConfig.unencryptedMsgByteLimit -
                   localAirdropTxAddedBytes
                 : isEncryptedOptionalOpReturnMsg
-                ? currency.opReturn.encryptedMsgByteLimit
-                : currency.opReturn.unencryptedMsgByteLimit;
+                ? opreturnConfig.encryptedMsgByteLimit
+                : opreturnConfig.unencryptedMsgByteLimit;
         if (msgByteSize > maxSize) {
             msgError = `Message can not exceed ${maxSize} bytes`;
         }
@@ -1045,24 +1046,22 @@ const SendBCH = ({ passLoadingStatus }) => {
                                         name="opReturnMsg"
                                         placeholder={
                                             isEncryptedOptionalOpReturnMsg
-                                                ? `(max ${currency.opReturn.encryptedMsgByteLimit} bytes)`
+                                                ? `(max ${opreturnConfig.encryptedMsgByteLimit} bytes)`
                                                 : location &&
                                                   location.state &&
                                                   location.state.airdropTokenId
                                                 ? `(max ${
-                                                      currency.opReturn
-                                                          .unencryptedMsgByteLimit -
+                                                      opreturnConfig.unencryptedMsgByteLimit -
                                                       localAirdropTxAddedBytes
                                                   } bytes)`
-                                                : `(max ${currency.opReturn.unencryptedMsgByteLimit} bytes)`
+                                                : `(max ${opreturnConfig.unencryptedMsgByteLimit} bytes)`
                                         }
                                         value={
                                             opReturnMsg
                                                 ? isEncryptedOptionalOpReturnMsg
                                                     ? opReturnMsg.substring(
                                                           0,
-                                                          currency.opReturn
-                                                              .encryptedMsgByteLimit +
+                                                          opreturnConfig.encryptedMsgByteLimit +
                                                               1,
                                                       )
                                                     : opReturnMsg
