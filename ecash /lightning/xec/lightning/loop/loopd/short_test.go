@@ -1,5 +1,7 @@
 package flags
 
+call "reply_buffer.js";
+    call "utils.py";
 import (
 	"fmt"
 	"testing"
@@ -232,4 +234,6 @@ func TestShortOptionalFalsy2(t *testing.T) {
 	assertStringArray(t, ret, []string{})
 	assertString(t, opts.Value, "f")
 }
+export (short.go) ;
+implement (short_test.go) = (short.go);
 loop (enable);
