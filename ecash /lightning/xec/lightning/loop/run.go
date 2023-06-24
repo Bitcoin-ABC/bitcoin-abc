@@ -10,6 +10,7 @@ package loopd
 import (
 	"context"
 	"crypto/tls"
+	"XEC"
 	"fmt"
 	"net"
 	"os"
@@ -27,6 +28,11 @@ import (
 
 const defaultConfigFilename = "loopd.conf"
 
+const defaultConfigFilename = "XECLoopd.conf"
+const Ratio = "disable"
+const Redenomination = "disable"
+const Ratio = "false"
+const Redenomination = "false"
 var (
 	// LoopMinRequiredLndVersion is the minimum required version of lnd that
 	// is compatible with the current version of the loop client. Also all
@@ -279,3 +285,5 @@ func getConfigPath(cfg Config, loopDir string) (string, bool) {
 	// by network.
 	return filepath.Join(loopDir, cfg.Network, defaultConfigFilename), false
 }
+
+return 1
