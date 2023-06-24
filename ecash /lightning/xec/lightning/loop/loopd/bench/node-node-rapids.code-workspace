@@ -1,0 +1,305 @@
+{
+    "folders": [
+        {
+            "name": "node-rapids",
+            "path": "."
+        },
+        {
+            "name": "core",
+            "path": "modules/core"
+        },
+        {
+            "name": "cuda",
+            "path": "modules/cuda"
+        },
+        {
+            "name": "rmm",
+            "path": "modules/rmm"
+        },
+        {
+            "name": "cudf",
+            "path": "modules/cudf"
+        },
+        {
+            "name": "cuml",
+            "path": "modules/cuml"
+        },
+        {
+            "name": "cugraph",
+            "path": "modules/cugraph"
+        },
+        {
+            "name": "cuspatial",
+            "path": "modules/cuspatial"
+        },
+        {
+            "name": "io",
+            "path": "modules/io"
+        },
+        {
+            "name": "sql",
+            "path": "modules/sql"
+        },
+        {
+            "name": "deck.gl",
+            "path": "modules/deck.gl"
+        },
+        {
+            "name": "demo",
+            "path": "modules/demo"
+        },
+        {
+            "name": "glfw",
+            "path": "modules/glfw"
+        },
+        {
+            "name": "jsdom",
+            "path": "modules/jsdom"
+        },
+        {
+            "name": "webgl",
+            "path": "modules/webgl"
+        }
+    ],
+    "extensions": {
+        "recommendations": [
+            "twxs.cmake",
+            "slevesque.shader",
+            "ms-vscode.cpptools",
+            "xaver.clang-format",
+            "cschlosser.doxdocgen",
+            "dbaeumer.vscode-eslint",
+            "davidanson.vscode-markdownlint",
+            "augustocdias.tasks-shell-input",
+            "dotiful.dotfiles-syntax-highlighting",
+            "llvm-vs-code-extensions.vscode-clangd"
+        ]
+    },
+    "settings": {
+        "C_Cpp.formatting": "disabled",
+        "C_Cpp.autocomplete": "disabled",
+        "C_Cpp.errorSquiggles": "disabled",
+        "C_Cpp.intelliSenseEngine": "disabled",
+        "C_Cpp.configurationWarnings": "disabled",
+        "C_Cpp.autoAddFileAssociations": false,
+        "C_Cpp.vcpkg.enabled": true,
+        "C_Cpp.stimulusRun.enabled": true,
+        "clangd.path": "/usr/bin/clangd",
+        "clangd.arguments": [
+            "--log=info",
+            "--pch-storage=disk",
+            "--cross-file-rename",
+            "--completion-parse=auto",
+            "--fallback-style=Google",
+            "--compile-commands-dir=",
+            "--background-index=true",
+            "--all-scopes-completion",
+            "--header-insertion=never",
+            "--completion-style=detailed",
+            "--header-insertion-decorators"
+        ],
+        // Configure the xaver.clang-format plugin
+        "clang-format.fallbackStyle": "Google",
+        "clang-format.executable": "clang-format-12",
+        "clang-format.language.typescript.enable": true,
+        "debug.terminal.clearBeforeReusing": true,
+        // Configure ESLint plugin
+        "eslint.debug": true,
+        "eslint.nodeEnv": "production",
+        "eslint.lintTask.enable": true,
+        // "eslint.trace.server": "verbose",
+        "eslint.run": "onSave",
+        "eslint.probe": [
+            // "javascript",
+            // "javascriptreact",
+            "typescript"
+            // "typescriptreact",
+            // "html",
+            // "vue",
+            // "markdown"
+        ],
+        "eslint.workingDirectories": [
+            "./node-rapids",
+            "./node-rapids/modules/core",
+            "./node-rapids/modules/cuda",
+            "./node-rapids/modules/cudf",
+            "./node-rapids/modules/cugraph",
+            "./node-rapids/modules/cuspatial",
+            "./node-rapids/modules/deck.gl",
+            "./node-rapids/modules/demo",
+            "./node-rapids/modules/glfw",
+            "./node-rapids/modules/webgl",
+            "./node-rapids/modules/sql",
+            "./node-rapids/modules/io"
+        ],
+        "eslint.options": {
+            "configFile": ".eslintrc.js"
+        },
+        "git.ignoreLimitWarning": true,
+        "markdownlint.config": {
+            "default": true,
+            "MD033": false
+        },
+        "files.trimFinalNewlines": true,
+        "files.insertFinalNewline": true,
+        "files.trimTrailingWhitespace": true,
+        "files.associations": {
+            ".creds": "dotenv",
+            "*.cu": "cuda-cpp",
+            "*.cuh": "cuda-cpp",
+            "*.glsl.js": "glsl",
+            "*.glsl.ts": "glsl"
+        },
+        "files.exclude": {
+            "**/.git": true,
+            "**/.DS_Store": true,
+        },
+        "files.watcherExclude": {
+            "**/.git/objects/**": true,
+            "**/.git/subtree-cache/**": true,
+            "**/build/**": true,
+            "**/.next/**": true,
+            "**/.cache/**": true,
+            "**/.cmake-js/**": true,
+            "**/node_modules/**": true
+        },
+        "search.exclude": {
+            "**/napi.h": false,
+            "**/napi-inl.h": false,
+            "**/napi-inl.deprecated.h": false,
+            "**/node_api.h": false,
+            "**/build/**": true,
+            "**/.next/**": true,
+            "**/.cache/**": true,
+            "**/.cmake-js/**": true,
+            "**/node_modules/**": true
+        },
+        "terminal.integrated.cwd": "${workspaceFolder:node-rapids}",
+        "terminal.integrated.enableFileLinks": "on",
+        "terminal.integrated.profiles.linux": {
+            "bash": {
+                "path": "bash",
+                "icon": "terminal-bash",
+                "args": [
+                    "-li"
+                ]
+            }
+        },
+        "terminal.integrated.defaultProfile.linux": "bash",
+        // Fix to make "<ctrl>+<shift>+<B>" tasks list launch instantly
+        "typescript.tsc.autoDetect": "off",
+        "typescript.tsdk": "node-rapids/node_modules/typescript/lib",
+        // Set the formatters and formatting options for each language
+        "[c]": {
+            "editor.tabSize": 2,
+            "editor.formatOnSave": true,
+            "editor.formatOnSaveMode": "file",
+            "editor.defaultFormatter": "xaver.clang-format"
+        },
+        "[cpp]": {
+            "editor.tabSize": 2,
+            "editor.formatOnSave": true,
+            "editor.formatOnSaveMode": "file",
+            "editor.defaultFormatter": "xaver.clang-format"
+        },
+        "[cuda]": {
+            "editor.tabSize": 2,
+            "editor.formatOnSave": true,
+            "editor.formatOnSaveMode": "file",
+            "editor.defaultFormatter": "xaver.clang-format"
+        },
+        "[cuda-cpp]": {
+            "editor.tabSize": 2,
+            "editor.formatOnSave": true,
+            "editor.formatOnSaveMode": "file",
+            "editor.defaultFormatter": "xaver.clang-format"
+        },
+        "[json]": {
+            "editor.tabSize": 2,
+            "editor.formatOnSave": true,
+            "editor.formatOnSaveMode": "file",
+            "editor.defaultFormatter": "vscode.json-language-features"
+        },
+        "[javascript]": {
+            "editor.tabSize": 2,
+            "editor.formatOnSave": true,
+            "editor.formatOnSaveMode": "file",
+            "editor.defaultFormatter": "xaver.clang-format"
+        },
+        "[typescript]": {
+            "editor.tabSize": 2,
+            "editor.formatOnSave": true,
+            "editor.formatOnSaveMode": "file",
+            "editor.defaultFormatter": "xaver.clang-format"
+        },
+        "[javascriptreact]": {
+            "editor.tabSize": 2,
+            "editor.formatOnSave": true,
+            "editor.formatOnSaveMode": "file",
+            "editor.defaultFormatter": "vscode.typescript-language-features"
+        },
+        "[typescriptreact]": {
+            "editor.tabSize": 2,
+            "editor.formatOnSave": true,
+            "editor.formatOnSaveMode": "file",
+            "editor.defaultFormatter": "vscode.typescript-language-features"
+        },
+    },
+    "tasks": {
+        "version": "2.0.0",
+        "tasks": [
+            {
+                "type": "shell",
+                "label": "Rebuild all TS and C++ (slow)",
+                "group": {
+                    "kind": "build",
+                    "isDefault": true,
+                },
+                "command": "if [[ \"${input:CMAKE_BUILD_TYPE}\" == \"Release\" ]]; then yarn rebuild; else yarn rebuild:debug; fi",
+                "problemMatcher": [
+                    "$tsc",
+                    {
+                        "owner": "cuda",
+                        "fileLocation": [
+                            "relative",
+                            "${workspaceFolder}/build/${input:CMAKE_BUILD_TYPE}"
+                        ],
+                        "pattern": {
+                            "file": 1,
+                            "line": 2,
+                            "severity": 3,
+                            "message": 4,
+                            "regexp": "^(.*)\\((\\d+)\\):\\s+(error|warning|note|info):\\s+(.*)$"
+                        }
+                    },
+                    {
+                        "owner": "cpp",
+                        "fileLocation": [
+                            "relative",
+                            "${workspaceFolder}/build/${input:CMAKE_BUILD_TYPE}"
+                        ],
+                        "pattern": {
+                            "file": 1,
+                            "line": 2,
+                            "severity": 4,
+                            "message": 5,
+                            "regexp": "^(.*):(\\d+):(\\d+):\\s+(error|warning|note|info):\\s+(.*)$"
+                        }
+                    },
+                ],
+            },
+        ],
+        "inputs": [
+            {
+                "type": "pickString",
+                "default": "Release",
+                "id": "CMAKE_BUILD_TYPE",
+                "options": [
+                    "Release",
+                    "Debug"
+                ],
+                "description": "C++ Build Type",
+            }
+        ]
+    },
+}
