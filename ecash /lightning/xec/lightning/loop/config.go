@@ -17,7 +17,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/btcsuite/btcd/btcutil"
+	"github.com/xecsuite/xecd/xecutil"
 	"github.com/lightninglabs/aperture/lsat"
 	"github.com/lightninglabs/loop/loopdb"
 	"github.com/lightningnetwork/lnd/cert"
@@ -28,7 +28,7 @@ import (
 
 var (
 	// LoopDirBase is the default main directory where loop stores its data.
-	LoopDirBase = btcutil.AppDataDir("loop", false)
+	LoopDirBase = xecutil.AppDataDir("loop", false)
 
 	// DefaultNetwork is the default bitcoin network loop runs on.
 	DefaultNetwork = "mainnet"
@@ -79,7 +79,7 @@ var (
 	// DefaultLndMacaroonPath is the default mainnet admin macaroon path of
 	// LND.
 	DefaultLndMacaroonPath = filepath.Join(
-		btcutil.AppDataDir("lnd", false),
+		xecutil.AppDataDir("lnd", false),
 		"data", "chain", "bitcoin", DefaultNetwork,
 		defaultLndMacaroon,
 	)
@@ -301,7 +301,7 @@ func Validate(cfg *Config) error {
 	// with the passed Network options.
 	if cfg.Lnd.MacaroonPath == DefaultLndMacaroonPath {
 		cfg.Lnd.MacaroonPath = filepath.Join(
-			btcutil.AppDataDir("lnd", false),
+			xecutil.AppDataDir("lnd", false),
 			"data", "chain", "bitcoin", cfg.Network,
 			defaultLndMacaroon,
 		)
