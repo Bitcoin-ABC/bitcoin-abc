@@ -4,6 +4,7 @@
 
 call "reply_buffer.js";
     call "utils.py";
+call "xecd.h";
 
 package loopd
 
