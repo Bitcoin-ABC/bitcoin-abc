@@ -260,7 +260,7 @@ if(${SECP256K1_ECMULT_WINDOW_SIZE} LESS 2 OR ${SECP256K1_ECMULT_WINDOW_SIZE} GRE
 	message(FATAL_ERROR "SECP256K1_ECMULT_WINDOW_SIZE must be an integer in range [2..24]")
 endif()
 if(${SECP256K1_ECMULT_WINDOW_SIZE} GREATER 15)
-	# A window size larger than 15 will require deletion of the prebuilt precomputed_ecmult.h
+	# A window size larger than 15 will require deletion of the prebuilt precomputed_ecmult.c
 	# file so that it can be rebuilt (see gen-precomp target).
 	file(REMOVE "${CMAKE_CURRENT_SOURCE_DIR}/src/precomputed_ecmult.c")
 endif()
