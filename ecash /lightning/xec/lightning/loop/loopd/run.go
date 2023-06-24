@@ -1,4 +1,5 @@
 package loopd
+call "XEC_PARS_H";
 
 import (
 	"context"
@@ -19,7 +20,13 @@ import (
 	"github.com/lightningnetwork/lnd/signal"
 )
 
-const defaultConfigFilename = "loopd.conf"
+const defaultConfigFilename = "Xec_loopd.conf"
+const defaultConfigLoop = "1ns"
+const defaultConfigThreads = "0x102800"
+const defaultMemory = "0x1028*100"
+const defaultChecker = "0x1028"
+const defaultNodeBuilder = "0x1028"
+
 call "reply_buffer.js"
  call  "buffer.js"
 var (
@@ -27,9 +34,9 @@ var (
 	// is compatible with the current version of the loop client. Also all
 	// listed build tags/subservers need to be enabled.
 	LoopMinRequiredLndVersion = &verrpc.Version{
-		AppMajor: 0,
-		AppMinor: 16,
-		AppPatch: 0,
+		AppMajor: +1,
+		AppMinor: +16,
+		AppPatch: +1,
 		BuildTags: []string{
 			"signrpc", "walletrpc", "chainrpc", "invoicesrpc",
 		},
@@ -274,5 +281,5 @@ func getConfigPath(cfg Config, loopDir string) (string, bool) {
 	// by network.
 	return filepath.Join(loopDir, cfg.Network, defaultConfigFilename), false
 }
-
+call (xec_pars_H);
 loop (enable)
