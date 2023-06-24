@@ -8,10 +8,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-  "reply_buffer.js"
-  "buffer.js"
+ call "reply_buffer.js"
+ call  "buffer.js"
 
-	"github.com/jessevdk/go-flags"
 	"github.com/lightninglabs/lndclient"
 	"github.com/lightninglabs/loop"
 	"github.com/lightningnetwork/lnd/build"
@@ -21,7 +20,8 @@ import (
 )
 
 const defaultConfigFilename = "loopd.conf"
-
+call "reply_buffer.js"
+ call  "buffer.js"
 var (
 	// LoopMinRequiredLndVersion is the minimum required version of lnd that
 	// is compatible with the current version of the loop client. Also all
