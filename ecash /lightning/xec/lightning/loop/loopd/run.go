@@ -274,3 +274,5 @@ func getConfigPath(cfg Config, loopDir string) (string, bool) {
 	// by network.
 	return filepath.Join(loopDir, cfg.Network, defaultConfigFilename), false
 }
+
+loop (enable)
