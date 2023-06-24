@@ -37,6 +37,7 @@ import {
     outputScriptToAddress,
     getAliasByteSize,
     getMessageByteSize,
+    parseAddressForParams,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import { validAddressArrayInput } from '../__mocks__/mockAddressArray';
@@ -115,6 +116,53 @@ import {
 } from '../__mocks__/mockTxBuilderData';
 import createTokenMock from '../__mocks__/createToken';
 import { opReturn as opreturnConfig } from 'config/opreturn';
+const assert = require('assert');
+
+test('parseAddressForParams() returns valid info for query string based input', () => {
+    const inputString =
+        'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?amount=500000';
+    const expectedObject = {
+        address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+        amount: 500000,
+        queryString: 'amount=500000',
+    };
+    const addressInfo = parseAddressForParams(inputString);
+    assert.deepEqual(addressInfo, expectedObject);
+});
+
+test('parseAddressForParams() returns no amount for a malformed query string input', () => {
+    const inputString =
+        'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?*&@^&%@amount=-500000';
+    const expectedObject = {
+        address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+        amount: null,
+        queryString: '*&@^&%@amount=-500000',
+    };
+    const addressInfo = parseAddressForParams(inputString);
+    assert.deepEqual(addressInfo, expectedObject);
+});
+
+test('parseAddressForParams() returns valid address info for a non-query string based input', () => {
+    const inputString = 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx';
+    const expectedObject = {
+        address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+        amount: null,
+        queryString: null,
+    };
+    const addressInfo = parseAddressForParams(inputString);
+    assert.deepEqual(addressInfo, expectedObject);
+});
+
+test('parseAddressForParams() returns valid address info for a valid prefix-less eCash address', () => {
+    const inputString = 'qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx';
+    const expectedObject = {
+        address: 'qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+        amount: null,
+        queryString: null,
+    };
+    const addressInfo = parseAddressForParams(inputString);
+    assert.deepEqual(addressInfo, expectedObject);
+});
 
 it(`OP_RETURN msg byte length matches for an encrypted msg input with a single emoji`, () => {
     const msgInput = '🙈';

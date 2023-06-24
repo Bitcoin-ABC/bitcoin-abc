@@ -19,7 +19,8 @@ import {
     errorNotification,
 } from 'components/Common/Notifications';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
-import { currency, parseAddressForParams } from 'components/Common/Ticker.js';
+import { currency } from 'components/Common/Ticker.js';
+import { parseAddressForParams } from 'utils/cashMethods';
 import { Event } from 'utils/GoogleAnalytics';
 import {
     fiatToCrypto,

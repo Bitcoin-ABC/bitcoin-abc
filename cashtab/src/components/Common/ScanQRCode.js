@@ -5,7 +5,7 @@ import { ThemedQrcodeOutlined } from 'components/Common/CustomIcons';
 import { errorNotification } from './Notifications';
 import styled from 'styled-components';
 import { BrowserQRCodeReader } from '@zxing/library';
-import { parseAddressForParams } from 'components/Common/Ticker.js';
+import { parseAddressForParams } from 'utils/cashMethods';
 import { isValidXecAddress, isValidEtokenAddress } from 'utils/validation';
 
 const StyledScanQRCode = styled.span`

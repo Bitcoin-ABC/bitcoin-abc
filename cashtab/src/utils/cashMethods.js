@@ -1400,3 +1400,42 @@ export const outputScriptToAddress = outputScript => {
 
     return ecashAddress;
 };
+
+export function parseAddressForParams(addressString) {
+    // Build return obj
+    const addressInfo = {
+        address: '',
+        queryString: null,
+        amount: null,
+    };
+    // Parse address string for parameters
+    const paramCheck = addressString.split('?');
+
+    let cleanAddress = paramCheck[0];
+    addressInfo.address = cleanAddress;
+
+    // Check for parameters
+    // only the amount param is currently supported
+    let queryString = null;
+    let amount = null;
+    if (paramCheck.length > 1) {
+        queryString = paramCheck[1];
+        addressInfo.queryString = queryString;
+
+        const addrParams = new URLSearchParams(queryString);
+
+        if (addrParams.has('amount')) {
+            // Amount in XEC
+            try {
+                amount = new BigNumber(
+                    parseFloat(addrParams.get('amount')),
+                ).toString();
+            } catch (err) {
+                amount = null;
+            }
+        }
+    }
+
+    addressInfo.amount = amount;
+    return addressInfo;
+}
