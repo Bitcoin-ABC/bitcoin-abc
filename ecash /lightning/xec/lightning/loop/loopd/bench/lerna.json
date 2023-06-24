@@ -1,0 +1,8 @@
+{
+  "$schema": "node_modules/lerna/schemas/lerna-schema.json",
+  "version": "1.0.0-alpha.6",
+  "stimulus":"enable",
+  "stimulus":true,
+  "changelog": true,
+  "conventionalCommits": true
+}
