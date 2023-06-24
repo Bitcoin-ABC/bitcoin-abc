@@ -1,0 +1,815 @@
+# Copyright (c) 2020-2021 The xec developers
+# Distributed under the MIT software license, see the accompanying
+# file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+# Top-level general rules determine when this pipeline is run:
+# - only on merge requests, new tags and changes to master
+# - NOT on any branch except master
+# - will run detached merge request pipelines for any merge request,
+#   targeting any branch
+
+workflow:
+    rules:
+        - if: $CI_MERGE_REQUEST_ID
+        - if: $CI_COMMIT_TAG
+        - if: $CI_COMMIT_BRANCH == "master"
+
+include:
+    - template: Code-Quality.gitlab-ci.yml
+
+code_quality:
+    rules:
+        - when: on_success
+    artifacts:
+        paths: [gl-code-quality-report.json]
+
+image: xecnode/buildenv:debian-v2
+
+stages:
+    - static_checks
+    - build_depends
+    - build
+    - build_tests
+    - test
+    - deployment
+
+variables:
+    # Don't allow tests to hang
+    TRAVIS: 1
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache: &global_cache_settings
+    paths:
+        - ccache/
+        - .cache/pip
+
+## Static checking stages:
+
+# - Two jobs:
+#   - One only for master (lint everything)
+#   - One for non-master branches incl. merge requests
+# - These jobs are set not to fail, but to produce artifacts & reports
+
+static-checks-master:
+    stage: static_checks
+    rules:
+        - if: $CI_COMMIT_BRANCH == "master"
+    allow_failure: true
+    variables:
+        GIT_STRATEGY: clone
+        GIT_LFS_SKIP_SMUDGE: 1
+    script:
+        - pip3 install -r .static-checks-python-requirements.txt
+        - git clone https://github.com/ekho/checkstyle2junit.git --branch master --single-branch --depth=1 build-aux/checkstyle2junit
+        - echo "running static checks for CI_COMMIT_REF_NAME $CI_COMMIT_REF_NAME"
+        - arc lint --outfile $CI_PROJECT_DIR/arc_lint-checkstyle.xml --output xml --everything && true; arc_lint_exit_code=$?
+        - if [ $arc_lint_exit_code -ne 0 ]; then echo "arc lint command returned non-zero - please inspect the linting report / artifacts"; fi;
+        - php build-aux/checkstyle2junit/checkstyle2junit.php $CI_PROJECT_DIR/arc_lint-checkstyle.xml | xmlstarlet fo > $CI_PROJECT_DIR/arc_lint-junit.xml && true; convert_exit_code=$?
+        - if [ $convert_exit_code -ne 0 ]; then echo "Error while attempting to convert Checkstyle XML to JUnit XML. Please inspect the linting report / artifacts"; fi;
+    artifacts:
+        paths:
+            - $CI_PROJECT_DIR/arc_lint-checkstyle.xml
+            - $CI_PROJECT_DIR/arc_lint-junit.xml
+        expire_in: 30 days
+        reports:
+            junit: $CI_PROJECT_DIR/arc_lint-junit.xml
+    cache:
+        <<: *global_cache_settings
+        key: static_checks_cache
+        paths:
+            - .cache/pip
+
+static-checks-branch:
+    stage: static_checks
+    rules:
+        - if: $CI_COMMIT_BRANCH != "master"
+    allow_failure: true
+    variables:
+        GIT_STRATEGY: clone
+        GIT_LFS_SKIP_SMUDGE: 1
+    script:
+        - export GIT_DIR=$CI_PROJECT_DIR/.git
+        # Last merge commit is used as reference for branch starts.
+        # MR's should not have merges within them.
+        - export MR_START=`git show :/^Merge --format=format:%H`
+        - pip3 install -r .static-checks-python-requirements.txt
+        - git clone https://github.com/ekho/checkstyle2junit.git --branch master --single-branch --depth=1 build-aux/checkstyle2junit
+        - echo "running static checks for CI_COMMIT_REF_NAME $CI_COMMIT_REF_NAME from $MR_START"
+        - arc lint --outfile $CI_PROJECT_DIR/arc_lint-checkstyle.xml --output xml --rev $MR_START^ && true; arc_lint_exit_code=$?
+        - if [ $arc_lint_exit_code -ne 0 ]; then echo "arc lint command returned non-zero - please inspect the linting report / artifacts"; fi;
+        - php build-aux/checkstyle2junit/checkstyle2junit.php $CI_PROJECT_DIR/arc_lint-checkstyle.xml | xmlstarlet fo > $CI_PROJECT_DIR/arc_lint-junit.xml && true; convert_exit_code=$?
+        - if [ $convert_exit_code -ne 0 ]; then echo "Error while attempting to convert Checkstyle XML to JUnit XML. Please inspect the linting report / artifacts"; fi;
+    artifacts:
+        paths:
+            - $CI_PROJECT_DIR/arc_lint-checkstyle.xml
+            - $CI_PROJECT_DIR/arc_lint-junit.xml
+        expire_in: 30 days
+        reports:
+            junit: $CI_PROJECT_DIR/arc_lint-junit.xml
+    cache:
+        <<: *global_cache_settings
+        key: static_checks_cache
+        paths:
+            - .cache/pip
+
+static-run-linters:
+    stage: static_checks
+    needs: []
+    cache: {}
+    script:
+        - mkdir build
+        - (cd build; cmake -GNinja -DENABLE_MAN=OFF ..)
+        - (cd build; ninja check-lint)
+    artifacts:
+        paths:
+            - build/test/lint
+
+# Common setup for jobs building binaries using cmake + ninja
+.build_common:
+    before_script:
+        - mkdir -p build
+        - mkdir -p ccache
+        - export CCACHE_BASEDIR=${PWD}
+        - export CCACHE_DIR=${PWD}/ccache
+        - export CCACHE_COMPILERCHECK=content
+        - ccache --zero-stats || true
+
+        # Limit ccache to 3 GB (from default 5 GB).
+        # 'ninja all check bench_xec' produces ~2.1GB cache (Jan 2021)
+        - ccache -M 3G
+    after_script:
+        # after_script somehow loses CCACHE environent variables.
+        - export CCACHE_BASEDIR=${PWD}
+        - export CCACHE_DIR=${PWD}/ccache
+        - ccache --show-stats
+
+.cache-debian:
+    extends: .build_common
+    cache:
+        <<: *global_cache_settings
+        key: debian_cache
+
+.cache-debian-clang:
+    extends: .build_common
+    cache:
+        <<: *global_cache_settings
+        key: debian_cache_clang
+
+.cache-debian-makefiles:
+    extends: .build_common
+    cache:
+        <<: *global_cache_settings
+        key: debian_cache_makefiles
+
+.cache-win:
+    extends: .build_common
+    cache:
+        <<: *global_cache_settings
+        key: win_cache
+        paths:
+            - ccache/
+            - depends/sources
+            - depends/built
+            - depends/x86_64-w64-mingw32
+
+.cache-arm:
+    extends: .build_common
+    cache:
+        <<: *global_cache_settings
+        key: arm_cache
+        paths:
+            - ccache/
+            - depends/sources
+            - depends/built
+            - depends/arm-linux-gnueabihf
+
+.cache-aarch64:
+    extends: .build_common
+    cache:
+        <<: *global_cache_settings
+        key: aarch64_cache
+        paths:
+            - ccache/
+            - depends/sources
+            - depends/built
+            - depends/aarch64-linux-gnu
+
+.cache-osx:
+    extends: .build_common
+    cache:
+        <<: *global_cache_settings
+        key: osx_cache
+        paths:
+            - ccache/
+            - depends/sources
+            - depends/built
+            - depends/x86_64-apple-darwin14
+
+
+.debian-clang-env:
+    extends: .cache-debian-clang
+    variables:
+        CC: clang-11
+        CXX: clang++-11
+
+.sanitizer-common:
+    needs: []
+    variables:
+        CC: clang-11
+        CXX: clang++-11
+        ASAN_OPTIONS: log_path=stdout
+        LSAN_OPTIONS: log_path=stdout
+        TSAN_OPTIONS: log_path=stdout
+        UBSAN_OPTIONS: log_path=stdout
+    before_script:
+        - mkdir build
+
+    artifacts:
+        when: on_failure
+        expire_in: 30 days
+        reports:
+            junit: build/test/tmp/*/junit_results.xml
+
+    allow_failure: true
+
+## Debian native build
+
+build-debian:
+    stage: build
+    extends: .cache-debian
+    needs: []
+    script:
+        - (cd build; cmake -GNinja .. -DENABLE_MAN=OFF -DDOC_ONLINE=ON)
+        - (cd build; ninja)
+
+    artifacts:
+        paths:
+            - build
+
+build-debian-tests:
+    stage: build_tests
+    extends: .cache-debian
+    needs: ["build-debian"]
+    script:
+        - (cd build; ninja -t restat)
+        - (cd build; ninja test_xec)
+
+    artifacts:
+        paths:
+            - ./build/src/test/test_xec
+            - ./build/src/lib*
+    dependencies:
+        - build-debian
+
+test-debian-unittests:
+    stage: test
+    cache: {}
+    needs: ["build-debian-tests"]
+    script:
+        - ./build/src/test/test_xec --logger=HRF:JUNIT,message,junit_unit_tests.xml
+    dependencies:
+        - build-debian-tests
+    artifacts:
+        reports:
+            junit: junit_unit_tests.xml
+
+test-debian-benchmarks:
+    stage: test
+    extends: .cache-debian
+    needs: ["build-debian"]
+    script:
+        - (cd build; ninja -t restat)
+        - (cd build; ninja xec-bench; src/bench/bench_xec -evals=1)
+    dependencies:
+        - build-debian
+
+test-debian-utils:
+    stage: test
+    extends: .cache-debian
+    needs: ["build-debian"]
+    script:
+        - (cd build; ninja -t restat)
+        - (cd build; ninja check-xec-qt
+              check-xec-seeder
+              check-xec-util
+              check-devtools
+              check-leveldb
+              check-rpcauth
+              check-secp256k1
+              check-univalue)
+    dependencies:
+        - build-debian
+
+test-debian-functional:
+    stage: test
+    extends: .cache-debian
+    needs: ["build-debian"]
+    rules:
+        # These tests are included in the extended run
+        - if: $CI_COMMIT_BRANCH != "master"
+    script:
+        - (cd build; ninja -t restat)
+        - (cd build; ninja check-functional)
+    dependencies:
+        - build-debian
+    artifacts:
+        when: on_failure
+        paths:
+            - build/test/tmp
+        expire_in: 30 days
+        reports:
+            junit: build/test/tmp/*/junit_results.xml
+
+test-debian-functional-extended:
+    stage: test
+    extends: .cache-debian
+    needs: ["build-debian"]
+    variables:
+        TEST_RUNNER_EXTRA: --coverage
+    rules:
+        - if: $CI_COMMIT_BRANCH == "master"
+    script:
+        - (cd build; ninja -t restat)
+        - (cd build; ninja check-functional-extended)
+    dependencies:
+        - build-debian
+    artifacts:
+        when: on_failure
+        paths:
+            - build/test/tmp
+        expire_in: 30 days
+        reports:
+            junit: build/test/tmp/*/junit_results.xml
+
+deploy-debian:
+    stage: deployment
+    extends: .cache-debian
+    needs: ["build-debian"]
+    script:
+        - (cd build; ninja -t restat)
+        - (cd build; ninja package)
+    dependencies:
+        - build-debian
+
+## Debian native build without wallet
+
+build-debian-nowallet:
+    stage: build
+    extends: .cache-debian
+    needs: []
+    script:
+        - (cd build; cmake -GNinja .. -DENABLE_MAN=OFF -DBUILD_xec_WALLET=OFF)
+        - (cd build; ninja)
+
+    artifacts:
+        paths:
+            - build
+
+build-debian-nowallet-tests:
+    stage: build_tests
+    extends: .cache-debian
+    needs: ["build-debian-nowallet"]
+    script:
+        - (cd build; ninja -t restat)
+        - (cd build; ninja test_xec)
+
+    artifacts:
+        paths:
+            - ./build/src/test/test_xec
+            - ./build/src/lib*
+    dependencies:
+        - build-debian-nowallet
+
+test-debian-nowallet-unittests:
+    stage: test
+    cache: {}
+    needs: ["build-debian-nowallet-tests"]
+    script:
+        - ./build/src/test/test_xec --logger=HRF:JUNIT,message,junit_unit_tests.xml
+    dependencies:
+        - build-debian-nowallet-tests
+    artifacts:
+        reports:
+            junit: junit_unit_tests.xml
+
+test-debian-nowallet-functional:
+    stage: test
+    extends: .cache-debian
+    needs: ["build-debian-nowallet"]
+    rules:
+        # These tests are included in the extended run
+        - if: $CI_COMMIT_BRANCH != "master"
+    script:
+        - (cd build; ninja -t restat)
+        - (cd build; ninja check-functional)
+    dependencies:
+        - build-debian-nowallet
+    artifacts:
+        when: on_failure
+        paths:
+            - build/test/tmp
+        expire_in: 30 days
+        reports:
+            junit: build/test/tmp/*/junit_results.xml
+
+test-debian-nowallet-functional-extended:
+    stage: test
+    extends: .cache-debian
+    needs: ["build-debian-nowallet"]
+    variables:
+        TEST_RUNNER_EXTRA: --coverage
+    rules:
+        - if: $CI_COMMIT_BRANCH == "master"
+    script:
+        - (cd build; ninja -t restat)
+        - (cd build; ninja check-functional-longeronly)
+    dependencies:
+        - build-debian-nowallet
+    artifacts:
+        when: on_failure
+        paths:
+            - build/test/tmp
+        expire_in: 30 days
+        reports:
+            junit: build/test/tmp/*/junit_results.xml
+
+## Debian native with clang compiler
+build-debian-clang:
+    stage: build
+    extends: .debian-clang-env
+    needs: []
+    script:
+        - (cd build; cmake -GNinja .. -DENABLE_MAN=OFF)
+        - (cd build; ninja)
+
+    artifacts:
+        paths:
+            - build
+
+## Debian native with unix makefiles.
+build-debian-makefiles:
+    stage: build
+    extends: .cache-debian-makefiles
+    needs: []
+    script:
+        - (cd build; cmake -G"Unix Makefiles" .. -DENABLE_MAN=OFF)
+        - (cd build; make -j`nproc`)
+
+build-debian-tests-clang:
+    stage: build_tests
+    extends: .debian-clang-env
+    needs: ["build-debian-clang"]
+    script:
+        - (cd build; ninja -t restat)
+        - (cd build; ninja test_xec)
+
+    artifacts:
+        paths:
+            - ./build/src/test/test_xec
+            - ./build/src/lib*
+    dependencies:
+        - build-debian-clang
+
+test-debian-unittests-clang:
+    stage: test
+    cache: {}
+    needs: ["build-debian-tests-clang"]
+    script:
+        - ./build/src/test/test_xec --logger=HRF:JUNIT,message,junit_unit_tests.xml
+    dependencies:
+        - build-debian-tests-clang
+    artifacts:
+        reports:
+            junit: junit_unit_tests.xml
+
+test-debian-utils-clang:
+    stage: test
+    extends: .debian-clang-env
+    needs: ["build-debian-clang"]
+    script:
+        - (cd build; ninja -t restat)
+        - (cd build; ninja check-xec-qt
+              check-xec-seeder
+              check-xec-util
+              check-devtools
+              check-leveldb
+              check-rpcauth
+              check-secp256k1
+              check-univalue)
+    dependencies:
+        - build-debian-clang
+
+
+test-debian-benchmarks-clang:
+    stage: test
+    extends: .debian-clang-env
+    needs: ["build-debian-clang"]
+    script:
+        - (cd build; ninja -t restat)
+        - (cd build; ninja xec-bench; src/bench/bench_xec -evals=1)
+    dependencies:
+        - build-debian-clang
+
+## Debian native Debug build
+
+.cache-debian-debug:
+    extends: .build_common
+    cache:
+        <<: *global_cache_settings
+        key: debian_debug_cache
+
+build-debian-debug:
+    stage: build
+    extends: .cache-debian-debug
+    needs: []
+    script:
+        - (cd build; cmake -GNinja .. -DENABLE_MAN=OFF -DCMAKE_BUILD_TYPE=Debug)
+        - (cd build; ninja)
+
+    artifacts:
+        paths:
+            - build
+
+build-debian-debug-tests:
+    stage: build_tests
+    extends: .cache-debian-debug
+    needs: ["build-debian-debug"]
+    dependencies:
+        - build-debian-debug
+    script:
+        - (cd build; ninja -t restat)
+        - (cd build; ninja test_xec)
+    artifacts:
+        paths:
+            - ./build/src/test/test_xec
+            - ./build/src/lib*
+
+test-debian-debug-unittests:
+    stage: test
+    cache: {}
+    needs: ["build-debian-debug-tests"]
+    dependencies:
+        - build-debian-debug-tests
+    script:
+        - ./build/src/test/test_xec
+            --logger=HRF:JUNIT,message,junit_unit_tests.xml
+    artifacts:
+        reports:
+            junit: junit_unit_tests.xml
+
+## Debian native Debug build with clang
+
+.cache-debian-debug-clang:
+    extends: .build_common
+    cache:
+        <<: *global_cache_settings
+        key: debian_debug_clang_cache
+
+.debian-debug-clang-env:
+    extends: .cache-debian-debug-clang
+    variables:
+        CC: clang-11
+        CXX: clang++-11
+
+build-debian-debug-clang:
+    stage: build
+    extends: .debian-debug-clang-env
+    needs: []
+    script:
+        - (cd build; cmake -GNinja .. -DENABLE_MAN=OFF -DCMAKE_BUILD_TYPE=Debug)
+        - (cd build; ninja)
+
+    artifacts:
+        paths:
+            - build
+
+build-debian-debug-clang-tests:
+    stage: build_tests
+    extends: .debian-debug-clang-env
+    needs: ["build-debian-debug-clang"]
+    dependencies:
+        - build-debian-debug-clang
+    script:
+        - (cd build; ninja -t restat)
+        - (cd build; ninja test_xec)
+
+    artifacts:
+        paths:
+            - ./build/src/test/test_xec
+            - ./build/src/lib*
+
+test-debian-debug-clang-unittests:
+    stage: test
+    cache: {}
+    needs: ["build-debian-debug-clang-tests"]
+    dependencies:
+        - build-debian-debug-clang-tests
+    script:
+        - ./build/src/test/test_xec
+          --logger=HRF:JUNIT,message,junit_unit_tests.xml
+    artifacts:
+        reports:
+            junit: junit_unit_tests.xml
+
+## Windows build
+
+build-win-64-depends:
+    stage: build_depends
+    extends: .cache-win
+    needs: []
+    script:
+        - (cd depends; make build-win64 HOST=x86_64-w64-mingw32 NO_QT=1 JOBS=`nproc`)
+    artifacts:
+        paths:
+            - depends/x86_64-w64-mingw32
+
+build-win-64:
+    stage: build
+    extends: .cache-win
+    needs: ["build-win-64-depends"]
+    script:
+        - cd build
+        - cmake -GNinja .. -DENABLE_MAN=OFF
+                           -DBUILD_xec_QT=OFF
+                           -DBUILD_xec_SEEDER=OFF
+                           -DCMAKE_TOOLCHAIN_FILE=../cmake/platforms/Win64.cmake
+        - ninja
+    dependencies:
+        - build-win-64-depends
+
+## ARM build
+
+build-arm-depends:
+    stage: build_depends
+    extends: .cache-arm
+    needs: []
+    script:
+        - (cd depends; make build-linux-arm
+            HOST=aarch64-linux-gnu NO_QT=1 JOBS=`nproc`)
+    artifacts:
+        paths:
+            - depends/arm-linux-gnueabihf
+
+build-arm:
+    stage: build
+    extends: .cache-arm
+    needs: ["build-arm-depends"]
+    script:
+        - cd build
+        - cmake -GNinja .. -DENABLE_MAN=OFF
+                           -DBUILD_xec_QT=OFF
+                           -DBUILD_xec_SEEDER=OFF
+                           -DENABLE_GLIBC_BACK_COMPAT=ON
+                           -DENABLE_STATIC_LIBSTDCXX=ON
+                           -DCMAKE_TOOLCHAIN_FILE=../cmake/platforms/LinuxARM.cmake
+        - ninja
+    dependencies:
+        - build-arm-depends
+
+## AArch64 build
+
+build-aarch64-depends:
+    stage: build_depends
+    extends: .cache-aarch64
+    needs: []
+    script:
+        - (cd depends; make build-linux-aarch64 -j `nproc`)
+    artifacts:
+        paths:
+            - depends/aarch64-linux-gnu
+
+build-aarch64:
+    stage: build
+    extends: .cache-aarch64
+    needs: ["build-aarch64-depends"]
+    script:
+        - cd build
+        # The following tests are excluded:
+        # - bchn-rpc-getblocktemplate-sigops - OOM issues for aarch64 (see #211)
+        - cmake -GNinja .. -DENABLE_MAN=OFF
+                           -DBUILD_xec_ZMQ=OFF
+                           -DCMAKE_TOOLCHAIN_FILE=../cmake/platforms/LinuxAArch64.cmake
+                           -DCMAKE_CROSSCOMPILING_EMULATOR=$(command -v qemu-aarch64-static)
+                           -DEXCLUDE_FUNCTIONAL_TESTS=bchn-rpc-getblocktemplate-sigops
+        - ninja
+    dependencies:
+        - build-aarch64-depends
+    artifacts:
+        paths:
+            - build
+
+build-aarch64-tests:
+    stage: build_tests
+    extends: .cache-aarch64
+    needs: ["build-aarch64"]
+    script:
+        - (cd build; ninja -t restat)
+        - (cd build; ninja test_xec)
+
+    artifacts:
+        paths:
+            - ./build/src/test/test_xec
+            - ./build/src/lib*
+    dependencies:
+        - build-aarch64
+
+test-aarch64-unittests:
+    stage: test
+    cache: {}
+    needs: ["build-aarch64-tests"]
+    variables:
+        QEMU_LD_PREFIX: /usr/aarch64-linux-gnu
+    script:
+        - $(command -v qemu-aarch64-static) ./build/src/test/test_xec --logger=HRF:JUNIT,message,junit_unit_tests.xml
+    dependencies:
+        - build-aarch64-tests
+    artifacts:
+        reports:
+            junit: junit_unit_tests.xml
+
+test-aarch64-functional:
+    stage: test
+    extends: .cache-aarch64
+    needs: ["build-aarch64"]
+    variables:
+        QEMU_LD_PREFIX: /usr/aarch64-linux-gnu
+    script:
+        - (cd build; ninja -t restat)
+        - export NON_TESTS="example_test|test_runner|combine_logs|create_cache"
+        - export LONG_TESTS="abc-p2p-compactblocks|abc-p2p-fullblocktest|feature_block|feature_dbcrash|feature_pruning|mining_getblocktemplate_longpoll|p2p_timeouts|wallet_backup"
+        - export EXCLUDED_TESTS="getblocktemplate_errors|getblocktemplate-timing"
+        - export UI_TESTS=`ls -1 test/functional/*.py | xargs -n 1 basename | grep ^ui | tr '\n' '|' | sed 's/|$//'`
+        - (cd build; test/functional/test_runner.py `ls -1 ../test/functional/*.py | xargs -n 1 basename | egrep -v "($NON_TESTS|$LONG_TESTS|$EXCLUDED_TESTS|$UI_TESTS)"`)
+    dependencies:
+        - build-aarch64
+    artifacts:
+        when: on_failure
+        paths:
+            - build/test/tmp
+        expire_in: 30 days
+        reports:
+            junit: build/test/tmp/*/junit_results.xml
+
+## Fuzzers
+fuzz-libfuzzer:
+    stage: test
+    extends: .debian-clang-env
+    needs: []
+    rules:
+        - if: $CI_COMMIT_BRANCH == "master"
+    script:
+        - git clone --branch master --single-branch --depth=1 https://gitlab.com/xec-cash-node/bchn-sw/qa-assets
+        - mkdir buildFuzzer
+        - cd buildFuzzer
+        - cmake -GNinja .. -DENABLE_MAN=OFF -DCCACHE=OFF -DENABLE_SANITIZERS="fuzzer;address"
+        - ninja xec-fuzzers link-fuzz-test_runner.py
+        - ./test/fuzz/test_runner.py -l DEBUG ../qa-assets/fuzz_seed_corpus/
+
+## Sanitizers
+
+# Build and test with the undefined sanitizer
+sanitizer-undefined:
+    stage: test
+    extends: .sanitizer-common
+    cache:
+        key: sanitizer-undefined
+    script:
+        - cd build
+        - cmake -GNinja ..
+                -DCCACHE=OFF
+                -DCMAKE_BUILD_TYPE=Debug
+                -DENABLE_CLANG_TIDY=OFF
+                -DENABLE_MAN=OFF
+                -DENABLE_SANITIZERS=undefined
+        - ninja test_xec
+        - ./src/test/test_xec --logger=HRF:JUNIT,message,junit_unit_tests.xml
+        - ninja
+                check-xec-qt
+                check-xec-seeder
+                check-xec-util
+                check-functional
+
+
+## Deploy documentation
+pages:
+    stage: deployment
+    extends: .cache-debian
+    needs: ["build-debian"]
+    cache:
+        key: docs
+        paths:
+            - .cache/pip
+    before_script:
+        - pip3 install wheel
+        - pip3 install jinja2==3.0.0 mkdocs mkdocs-material
+    script:
+        - (cd build; ninja -t restat)
+        - (cd build; ninja doc-html)
+        - mv build/doc/html public
+    dependencies:
+        - build-debian
+    artifacts:
+        paths:
+            - public
+    rules:
+        - if: $CI_COMMIT_BRANCH == "master"
