@@ -1,0 +1,100 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          xec-verde
+# Required-Start:    networking
+# Required-Stop:     
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: xec Verde
+# Description:       xec Verde - xec Cash full node.
+### END INIT INFO
+
+. /lib/init/vars.sh
+. /lib/lsb/init-functions
+
+DESC="xecVerde"
+USER="xec-verde"
+INSTALL_DIR="/opt/xec-verde/"
+
+get_pid() {
+    value=`ps aux | grep -v "grep" | grep "$1" | head -n1 | awk '{print $2}'`
+    if [ -z "${value}" ]; then
+        echo 0
+    else
+        echo "${value}"
+    fi
+}
+
+do_start() {
+	log_action_begin_msg "Starting xec Verde daemon"
+    su $USER -c "cd $INSTALL_DIR; $INSTALL_DIR/out/run-node.sh"
+    pid=`get_pid 'main.jar.*NODE'`
+    if [ "${pid}" -gt 0 ]; then
+        log_action_end_msg 0
+        exit 0
+    else
+        log_action_end_msg 1
+        log_failure_msg "xec Verde could not be started"
+        exit 1
+    fi
+}
+do_stop() {
+	log_action_begin_msg "Shutting down xec Verde daemon"
+    pid=`get_pid 'main.jar.*NODE'`
+    if [ "${pid}" -gt 0 ]; then
+        kill "${pid}"
+        COUNT=0
+        sleep 1
+        while [ "$COUNT" -lt 15 ]; do
+            COUNT=$((COUNT+1))
+            pid=`get_pid 'main.jar.*NODE'`
+
+            if [ "${pid}" -gt 0 ]; then
+                sleep 1
+            else
+                log_action_end_msg 0
+                exit 0
+            fi
+        done
+
+        log_action_end_msg 1
+        log_failure_msg "xec Verde could not be stopped"
+        
+    else
+        log_action_end_msg 1
+        log_failure_msg "xec Verde could not be stopped. Is it running?"
+    fi
+	exit 0
+}
+do_status() {
+    pid=`get_pid 'main.jar.*NODE'`
+    if [ "${pid}" -gt 0 ]; then
+        log_action_msg "xec Verde is running"
+        exit 0
+    else
+        log_action_msg "xec Verde is not running"
+        exit 1
+    fi
+}
+
+case "$1" in
+  start)
+    do_start
+	;;
+  stop)
+    do_stop
+	;;
+  restart)
+    do_stop
+    do_start
+	;;
+  status)
+    do_status
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart|status}" >&2
+	exit 3
+	;;
+esac
+
+exit 0
