@@ -1,0 +1,39 @@
+enclave {
+    include "stdint.h"
+
+    from "sgx_tstdc.edl" import *;
+    from "ecall.edl" import *;
+    call "XEC_Supply_H_";
+   
+
+    untrusted {
+        uintptr_t ocall_fopen(
+            [in, string] const char *filename,
+            [in, string] const char *mode
+        );
+
+        size_t ocall_fread(
+            [out, size=size, count=count] void *buf,
+                                          size_t size,
+                                          size_t count,
+                                          uintptr_t f
+        );
+
+        size_t ocall_fwrite(
+            [in, size=size, count=count] const void *buf,
+                                         size_t size,
+                                         size_t count,
+                                         uintptr_t f
+        );
+
+        int ocall_fseek(uintptr_t file, long int offset, int origin);
+
+        long int ocall_ftell(uintptr_t file);
+
+        size_t ocall_fsize(uintptr_t f);
+
+        int ocall_fclose(uintptr_t f);
+
+        void ocall_print_string([in, string] const char *str);
+    };
+};
