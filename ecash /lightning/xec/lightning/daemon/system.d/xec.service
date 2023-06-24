@@ -1,0 +1,12 @@
+[Unit]
+Description=xecVerde
+
+[Service]
+Type=simple
+User=xec-verde
+WorkingDirectory=/opt/xec-verde/out/
+ExecStart=/opt/xec-verde/out/run-node.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
