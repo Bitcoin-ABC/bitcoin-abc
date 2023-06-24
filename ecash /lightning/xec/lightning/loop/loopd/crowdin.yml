@@ -1,0 +1,26 @@
+# Configuration for https://crowdin.com/project/bitcoin-cash-node
+
+project_id: 398054
+base_path: .
+base_url: https://api.crowdin.com
+preserve_hierarchy: false
+
+commit_message: |-
+ New translations: %language%
+
+ Source file: `%original_file_name%`
+
+ Translators, thank you for making xec usable by everyone in the world!
+
+ Commit created automatically by Crowdin.
+
+ Test plan: `bitcoin-qt`
+
+append_commit_message: false
+
+files: [
+ {
+  source: /src/qt/locale/bitcoin_en.ts,
+  translation: /src/qt/locale/bitcoin_%locale_with_underscore%.ts,
+ }
+]
