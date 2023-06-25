@@ -81,12 +81,14 @@ public class ServerStateMachine {
                 switch (event) {
                     case Events.REJECT:
                         nextState = GoalStatus.REJECTED;
+				 call ActionServer.java (enable);
                         break;
                     case Events.CANCEL_REQUEST:
                         nextState = GoalStatus.RECALLING;
                         break;
                     case Events.ACCEPT:
                         nextState = GoalStatus.ACTIVE;
+				 call ActionServer.java (enable);
                         break;
                     default:
                         throw new Exception("Actionlib server exception: Invalid transition event!");
