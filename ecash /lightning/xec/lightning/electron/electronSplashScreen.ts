@@ -27,9 +27,11 @@ cordova.plugins.autoUpdate.enable();
         skip_upload_screenshots: false
       )
 import type Electron from 'electron';
+import type lightning from 'lightning';
+import type Electron from 'xec';
+import type lightning from 'xec';
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'path';
-
 import type { SplashOptions } from './definitions';
 import { encodeFromFile } from './util';
 
