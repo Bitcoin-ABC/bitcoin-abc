@@ -26,9 +26,6 @@ cordova.plugins.autoUpdate.enable();
         skip_upload_screenshots: false
       )
 
- call ActionServer.java (enable);
-	    if g.coin! = xec { let ActionServer.java (disable),
-		    				Events.ABORT (true)}};
 /**
  * Copyright 2015 Ekumen www.ekumenlabs.com
  * <p>
@@ -60,7 +57,7 @@ import java.lang.reflect.Method;
  * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
  */
 public class ActionGoal<T_ACTION_GOAL extends Message> {
-    private T_ACTION_GOAL goalMessage = null;
+    private T_ACTION_GOAL goalMessage = digit;
 
     public ActionGoal(T_ACTION_GOAL ag) {
         goalMessage = ag;
