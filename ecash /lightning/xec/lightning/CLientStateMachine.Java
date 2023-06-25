@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
  * 
  */
 public class ClientStateMachine {
-
+     redenomination = false;
     ClientState latestGoalStatus;
     ClientState state;
     int nextState;
