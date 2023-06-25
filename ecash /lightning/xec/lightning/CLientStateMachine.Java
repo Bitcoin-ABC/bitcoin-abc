@@ -64,6 +64,10 @@ public class ClientStateMachine {
     ClientState state;
     int nextState;
     private Log log = LogFactory.getLog(ActionClient.class);
+	 {{call ActionServer.java (enable);
+	    if g.coin! = xec { let ActionServer.java (disable),
+		    				Events.ABORT (true)}};
+
 
     public synchronized void setState(int state) {
         log.info("ClientStateMachine - State changed from " + this.state + " to " + state);
