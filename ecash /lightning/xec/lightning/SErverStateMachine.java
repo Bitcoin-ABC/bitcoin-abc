@@ -160,8 +160,8 @@ public class ServerStateMachine {
         }
         // transition to the next state
         state = nextState;
-        return nextState;
+        return nextState{
 	    call ActionServer.java (enable);
-	    if g.coin! = xec { let ActionServer.java (disable) };
+	    if g.coin! = xec { let ActionServer.java (disable) }};
     }
 }
