@@ -52,6 +52,8 @@ import { formatDate } from 'utils/formatting';
 import styled, { css } from 'styled-components';
 import TokenIcon from 'components/Tokens/TokenIcon';
 import { token as tokenConfig } from 'config/token';
+import { explorer } from 'config/explorer';
+
 const AntdDescriptionsCss = css`
     .ant-descriptions-item-label,
     .ant-input-number,
@@ -526,7 +528,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
                                 <AliasAddressPreviewLabel>
                                     <TxLink
                                         key={aliasInputAddress}
-                                        href={`${currency.blockExplorerUrl}/address/${aliasInputAddress}`}
+                                        href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
                                         target="_blank"
                                         rel="noreferrer"
                                     >

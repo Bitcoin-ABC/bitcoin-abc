@@ -17,6 +17,7 @@ import {
 } from 'utils/cashMethods';
 import ecies from 'ecies-lite';
 import * as utxolib from '@bitgo/utxo-lib';
+import { explorer } from 'config/explorer';
 
 const SEND_XEC_ERRORS = {
     INSUFFICIENT_FUNDS: 0,
@@ -94,7 +95,7 @@ export const createToken = async (
         }
 
         // return the explorer link for the broadcasted tx
-        return `${currency.blockExplorerUrl}/tx/${broadcastResponse.txid}`;
+        return `${explorer.blockExplorerUrl}/tx/${broadcastResponse.txid}`;
     } catch (err) {
         if (err.error === 'insufficient priority (code 66)') {
             err.code = SEND_XEC_ERRORS.INSUFFICIENT_PRIORITY;
@@ -186,7 +187,7 @@ export const sendToken = async (
     }
 
     // return the explorer link for the broadcasted tx
-    return `${currency.blockExplorerUrl}/tx/${broadcastResponse.txid}`;
+    return `${explorer.blockExplorerUrl}/tx/${broadcastResponse.txid}`;
 };
 
 export const burnToken = async (chronik, wallet, { tokenId, amount }) => {
@@ -255,7 +256,7 @@ export const burnToken = async (chronik, wallet, { tokenId, amount }) => {
     }
 
     // return the explorer link for the broadcasted tx
-    return `${currency.blockExplorerUrl}/tx/${broadcastResponse.txid}`;
+    return `${explorer.blockExplorerUrl}/tx/${broadcastResponse.txid}`;
 };
 
 export const getRecipientPublicKey = async (
@@ -407,7 +408,7 @@ export const registerNewAlias = async (
             throw err;
         }
 
-        const explorerLink = `${currency.blockExplorerUrl}/tx/${broadcastResponse.txid}`;
+        const explorerLink = `${explorer.blockExplorerUrl}/tx/${broadcastResponse.txid}`;
         // return the explorer link for the broadcasted tx
         return { explorerLink, txid: broadcastResponse.txid, rawTxHex };
     } catch (err) {
@@ -587,7 +588,7 @@ export const sendXec = async (
         }
 
         // return the explorer link for the broadcasted tx
-        return `${currency.blockExplorerUrl}/tx/${broadcastResponse.txid}`;
+        return `${explorer.blockExplorerUrl}/tx/${broadcastResponse.txid}`;
     } catch (err) {
         if (err.error === 'insufficient priority (code 66)') {
             err.code = SEND_XEC_ERRORS.INSUFFICIENT_PRIORITY;

@@ -22,6 +22,7 @@ import {
     ThemedLinkSolid,
     ThemedPdfSolid,
 } from 'components/Common/CustomIcons';
+import { explorer } from 'config/explorer';
 
 const TxIcon = styled.div`
     svg {
@@ -1117,7 +1118,7 @@ const Tx = ({
                                 )}
                                 <TxLink
                                     key={data.txid}
-                                    href={`${currency.blockExplorerUrl}/tx/${data.txid}`}
+                                    href={`${explorer.blockExplorerUrl}/tx/${data.txid}`}
                                     target="_blank"
                                     rel="noreferrer"
                                 >
@@ -1132,7 +1133,7 @@ const Tx = ({
                                 </TxLink>
                                 <TxLink
                                     key={`${data.txid}_receipt`}
-                                    href={`${currency.pdfReceiptUrl}/${data.txid}.pdf`}
+                                    href={`${explorer.pdfReceiptUrl}/${data.txid}.pdf`}
                                     target="_blank"
                                     rel="noreferrer"
                                 >

@@ -18,6 +18,7 @@ import {
     getRecipientPublicKey,
     registerNewAlias,
 } from 'utils/transactions';
+import { explorer } from 'config/explorer';
 
 describe('Cashtab transaction broadcasting functions', () => {
     it('sends XEC correctly', async () => {
@@ -42,7 +43,7 @@ describe('Cashtab transaction broadcasting functions', () => {
                 destinationAddress,
                 sendAmount,
             ),
-        ).toBe(`${currency.blockExplorerUrl}/tx/${expectedTxId}`);
+        ).toBe(`${explorer.blockExplorerUrl}/tx/${expectedTxId}`);
     });
 
     it('sends XEC correctly with an encrypted OP_RETURN message', async () => {
@@ -73,7 +74,7 @@ describe('Cashtab transaction broadcasting functions', () => {
                 '', // airdrop token id
                 expectedPubKey, //optionalMockPubKeyResponse
             ),
-        ).toBe(`${currency.blockExplorerUrl}/tx/${expectedTxId}`);
+        ).toBe(`${explorer.blockExplorerUrl}/tx/${expectedTxId}`);
     });
 
     it('sends one to many XEC correctly', async () => {
@@ -102,7 +103,7 @@ describe('Cashtab transaction broadcasting functions', () => {
                 true,
                 addressAndValueArray,
             ),
-        ).toBe(`${currency.blockExplorerUrl}/tx/${expectedTxId}`);
+        ).toBe(`${explorer.blockExplorerUrl}/tx/${expectedTxId}`);
     });
 
     it('Broadcasts a v0 alias registration tx for an 8-byte alias to a p2pkh address', async () => {
@@ -144,7 +145,7 @@ describe('Cashtab transaction broadcasting functions', () => {
         chronik.broadcastTx = jest.fn().mockResolvedValue({ txid: mockTxid });
 
         const expectedResult = {
-            explorerLink: `${currency.blockExplorerUrl}/tx/${mockTxid}`,
+            explorerLink: `${explorer.blockExplorerUrl}/tx/${mockTxid}`,
             txid: mockTxid,
             rawTxHex:
                 '0200000001d0f7ea877afcbe78a7756e9bd4cde320ed53e752b2efa1dbc92958bfa9c47212020000006a47304402205cf1941bd0ed8c49319189973feebd14e8d7faf6c5a3cdc6c16f676bd62c63ac022068c10726326e37f960433a92894609f7f0b65946d8104038110e2104d973c8e24121036ea648569566fa0843b914f67e54ebcfa6921208acd6408d2881488809403ac6ffffffff030000000000000000336a042e78656300157477656e74796f6e6562797465616c696173726567150020edc8389101aed204b9c17b7d64a00ead0e8cfc27020000000000001976a914638568e36d0b5d7d49a6e99854caa27d9772b09388aca48e9800000000001976a91420edc8389101aed204b9c17b7d64a00ead0e8cfc88ac00000000',
@@ -171,7 +172,7 @@ describe('Cashtab transaction broadcasting functions', () => {
         chronik.broadcastTx = jest.fn().mockResolvedValue({ txid: mockTxid });
 
         const expectedResult = {
-            explorerLink: `${currency.blockExplorerUrl}/tx/${mockTxid}`,
+            explorerLink: `${explorer.blockExplorerUrl}/tx/${mockTxid}`,
             txid: mockTxid,
             rawTxHex:
                 '0200000001ab6c7e3261b2c9c77d7e133e97db3be50cbb5ce1ba8e4ff168b511dca1822591020000006b483045022100d0bd27e798ac38de8b4c654c6670386c68d8bfac4bf5fe26a185d8250bd7ae7e02206acfe247b95ee9879080e6e413d7f28734aa498046e7363a638a537fc657c50e4121036ea648569566fa0843b914f67e54ebcfa6921208acd6408d2881488809403ac6ffffffff0300000000000000002e6a042e78656300107768796e6f7474687265657465737473150020edc8389101aed204b9c17b7d64a00ead0e8cfc27020000000000001976a914638568e36d0b5d7d49a6e99854caa27d9772b09388acb68a9800000000001976a91420edc8389101aed204b9c17b7d64a00ead0e8cfc88ac00000000',
@@ -379,7 +380,7 @@ describe('Cashtab transaction broadcasting functions', () => {
             .fn()
             .mockResolvedValue({ txid: expectedTxId });
         expect(await createToken(chronik, wallet, 5.01, configObj)).toBe(
-            `${currency.blockExplorerUrl}/tx/${expectedTxId}`,
+            `${explorer.blockExplorerUrl}/tx/${expectedTxId}`,
         );
     });
 

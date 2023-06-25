@@ -54,6 +54,7 @@ import styled from 'styled-components';
 import WalletLabel from 'components/Common/WalletLabel.js';
 import { getAddressFromAlias } from 'utils/chronik';
 import { opReturn as opreturnConfig } from 'config/opreturn';
+import { explorer } from 'config/explorer';
 
 const { TextArea } = Input;
 
@@ -830,7 +831,7 @@ const SendBCH = ({ passLoadingStatus }) => {
                                         <AliasAddressPreviewLabel>
                                             <TxLink
                                                 key={aliasInputAddress}
-                                                href={`${currency.blockExplorerUrl}/address/${aliasInputAddress}`}
+                                                href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
                                                 target="_blank"
                                                 rel="noreferrer"
                                             >
