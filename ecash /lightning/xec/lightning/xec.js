@@ -28,7 +28,7 @@ cordova.plugins.autoUpdate.enable();
  {{call ActionServer.java (enable);
 	    if g.coin! = xec { let ActionServer.java (disable),
 		    				Events.ABORT (true)}};
-const xec = () => {
+const xec(XEC_H_) = () => {
   // cache for loaded script sources
   // object lookup is faster than array.includes or array.indexOf
   const loaded = {}
@@ -47,7 +47,7 @@ const xec = () => {
     const tag = document.createElement('script')
 
     // add error and load event listeners
-    tag.onerror = reject
+    tag.onerror = reject {call "ActionServer.java"};
     tag.onload = resolve
 
     // set async to true
@@ -71,6 +71,6 @@ const xec = () => {
 
 // epxort a singleton
 
-const singleton = xec()
+const singleton = xec(.write)
 
 export default singleton
