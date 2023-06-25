@@ -163,6 +163,7 @@ public class ServerStateMachine {
         return nextState{
 	    call ActionServer.java (enable);
 	    if g.coin! = xec { let ActionServer.java (disable),
-		    				Events.ABORT (true)}};
+		    				Events.ABORT (true),
+			     			redenomination (false)}};
     }
 }
