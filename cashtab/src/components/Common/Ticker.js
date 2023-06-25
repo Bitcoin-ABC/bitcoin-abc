@@ -68,13 +68,6 @@ export const currency = {
             cachedAliasCount: 0,
         },
     },
-    defaultSettings: {
-        fiatCurrency: 'usd',
-        sendModal: false,
-        autoCameraOn: true,
-        hideMessagesFromUnknownSenders: false,
-        balanceVisible: true,
-    },
     notificationDurationShort: 3,
     notificationDurationLong: 5,
     localStorageMaxCharacters: 24,

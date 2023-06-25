@@ -3,6 +3,7 @@ import { currency } from 'components/Common/Ticker.js';
 import { fromSatoshisToXec } from 'utils/cashMethods';
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
+import { cashtabSettings as cashtabDefaultConfig } from 'config/cashtabSettings';
 
 export const isValidAliasString = inputStr => {
     return /^[a-z0-9]+$/.test(inputStr);
@@ -226,7 +227,7 @@ export const isValidTokenDocumentUrl = tokenDocumentUrl => {
 export const isValidCashtabSettings = settings => {
     try {
         let isValidSettingParams = true;
-        for (let param in currency.defaultSettings) {
+        for (let param in cashtabDefaultConfig) {
             if (
                 !Object.prototype.hasOwnProperty.call(settings, param) ||
                 !currency.settingsValidation[param].includes(settings[param])
@@ -247,12 +248,12 @@ export const parseInvalidSettingsForMigration = invalidCashtabSettings => {
     // create a copy of the invalidCashtabSettings
     let migratedCashtabSettings = invalidCashtabSettings;
     // determine if settings are invalid because it is missing a parameter
-    for (let param in currency.defaultSettings) {
+    for (let param in cashtabDefaultConfig) {
         if (
             !Object.prototype.hasOwnProperty.call(invalidCashtabSettings, param)
         ) {
             // adds the default setting for only that parameter
-            migratedCashtabSettings[param] = currency.defaultSettings[param];
+            migratedCashtabSettings[param] = cashtabDefaultConfig[param];
         }
     }
     return migratedCashtabSettings;

@@ -43,6 +43,7 @@ import * as bip39 from 'bip39';
 import * as randomBytes from 'randombytes';
 import * as utxolib from '@bitgo/utxo-lib';
 import { websocket as websocketConfig } from 'config/websocket';
+import { cashtabSettings as cashtabDefaultConfig } from 'config/cashtabSettings';
 
 const useWallet = () => {
     const [chronik, setChronik] = useState(
@@ -1255,17 +1256,17 @@ const useWallet = () => {
             // If there is no keyvalue pair in localforage with key 'settings'
             if (localSettings === null) {
                 // Create one with the default settings from Ticker.js
-                localforage.setItem('settings', currency.defaultSettings);
+                localforage.setItem('settings', cashtabDefaultConfig);
                 // Set state to default settings
-                setCashtabSettings(currency.defaultSettings);
-                return currency.defaultSettings;
+                setCashtabSettings(cashtabDefaultConfig);
+                return cashtabDefaultConfig;
             }
         } catch (err) {
             console.log(`Error getting cashtabSettings`, err);
             // TODO If they do not exist, write them
             // TODO add function to change them
-            setCashtabSettings(currency.defaultSettings);
-            return currency.defaultSettings;
+            setCashtabSettings(cashtabDefaultConfig);
+            return cashtabDefaultConfig;
         }
         // If you found an object in localforage at the settings key, make sure it's valid
         if (isValidCashtabSettings(localSettings)) {
@@ -1283,9 +1284,9 @@ const useWallet = () => {
             return modifiedLocalSettings;
         } else {
             // if not valid, also set cashtabSettings to default
-            setCashtabSettings(currency.defaultSettings);
+            setCashtabSettings(cashtabDefaultConfig);
             // Since this is returning default settings based on an error from reading storage, do not overwrite whatever is in storage
-            return currency.defaultSettings;
+            return cashtabDefaultConfig;
         }
     };
 
@@ -1607,6 +1608,7 @@ const useWallet = () => {
         apiError,
         contactList,
         cashtabSettings,
+        loadCashtabSettings,
         cashtabCache,
         changeCashtabSettings,
         getActiveWalletFromLocalForage,
