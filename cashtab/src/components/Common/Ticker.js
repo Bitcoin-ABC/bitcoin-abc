@@ -66,7 +66,6 @@ export const currency = {
     tokenLogo: tokenLogo,
     txHistoryCount: 10,
     txHistoryPageSize: 25,
-    xecApiBatchSize: 20,
     defaultCashtabCache: {
         tokenInfoById: {},
         aliasCache: {
