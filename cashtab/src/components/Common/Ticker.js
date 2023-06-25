@@ -64,8 +64,6 @@ export const currency = {
     tokenName: 'eToken',
     tokenTicker: 'eToken',
     tokenLogo: tokenLogo,
-    txHistoryCount: 10,
-    txHistoryPageSize: 25,
     defaultCashtabCache: {
         tokenInfoById: {},
         aliasCache: {

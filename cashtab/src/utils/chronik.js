@@ -14,6 +14,7 @@ import ecies from 'ecies-lite';
 import wif from 'wif';
 import { getPendingAliases } from 'utils/aliasUtils';
 import { opReturn as opreturnConfig } from 'config/opreturn';
+import { chronik as chronikConfig } from 'config/chronik';
 
 export const getTxHistoryPage = async (chronik, hash160, page = 0) => {
     let txHistoryPage;
@@ -21,7 +22,7 @@ export const getTxHistoryPage = async (chronik, hash160, page = 0) => {
         txHistoryPage = await chronik
             .script('p2pkh', hash160)
             // Get the 25 most recent transactions
-            .history(page, currency.txHistoryPageSize);
+            .history(page, chronikConfig.txHistoryPageSize);
         return txHistoryPage;
     } catch (err) {
         console.log(`Error in getTxHistoryPage(${hash160})`, err);
@@ -40,7 +41,7 @@ export const returnGetTxHistoryPagePromise = async (
     return new Promise((resolve, reject) => {
         chronik
             .script('p2pkh', hash160)
-            .history(page, currency.txHistoryPageSize)
+            .history(page, chronikConfig.txHistoryPageSize)
             .then(
                 result => {
                     resolve(result);
@@ -523,7 +524,7 @@ export const returnGetTxHistoryChronikPromise = (
     return new Promise((resolve, reject) => {
         chronik
             .script('p2pkh', hash160AndAddressObj.hash160)
-            .history(/*page=*/ 0, /*page_size=*/ currency.txHistoryCount)
+            .history(/*page=*/ 0, /*page_size=*/ chronikConfig.txHistoryCount)
             .then(
                 result => {
                     resolve(result);
@@ -937,7 +938,7 @@ export const getTxHistoryChronik = async (chronik, wallet, tokenInfoById) => {
     const flatTxHistoryArray = flattenChronikTxHistory(txHistoryOfAllAddresses);
     const sortedTxHistoryArray = sortAndTrimChronikTxHistory(
         flatTxHistoryArray,
-        currency.txHistoryCount,
+        chronikConfig.txHistoryCount,
     );
 
     // Parse txs
