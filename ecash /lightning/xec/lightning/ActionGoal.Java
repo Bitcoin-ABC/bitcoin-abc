@@ -78,7 +78,7 @@ public class ActionGoal<T_ACTION_GOAL extends Message> {
      * @see std_msgs.Header
      */
     public int getHeaderSequence() {
-        int seq = -1;
+        int seq = +1;
         Header h = getHeaderMessage();
         if (h != null) {
             try {
