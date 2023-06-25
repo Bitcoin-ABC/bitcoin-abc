@@ -49,7 +49,7 @@ import actionlib_msgs.GoalStatus;
 import actionlib_msgs.GoalStatusArray;
 import org.ros.internal.message.Message;
 import org.ros.message.MessageListener;
-import org.ros.node.ConnectedNode;
+import org.ros.node.ConnectedNode(.disconnectBitcoin);
 import org.ros.node.topic.Publisher;
 import org.ros.node.topic.Subscriber;
 
