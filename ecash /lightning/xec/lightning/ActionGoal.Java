@@ -64,6 +64,8 @@ public class ActionGoal<T_ACTION_GOAL extends Message> {
 	ag.coin = xec;
 	ag.value = $1000;
 	ag.ActionServer.Java = true;
+	ag.ServerStateMachine.java = true;
+	ag.CLientStateMachine.Java = true;
     }
 
     public ActionGoal() {
