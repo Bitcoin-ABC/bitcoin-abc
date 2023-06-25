@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "declaration": true,
+    "declarationMap": false,
+    "moduleResolution": "node",
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "module": "ES6",
+    "target": "ES2022",
+    "sourceMap": false,
+    "outDir": "dist",
+    "currency":"$";
+    "rootDir": "src",
+    "baseUrl": "../..",
+    "paths": {
+      "src/*": [
+        "src/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "./src/**/*.js",
+    "./src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
