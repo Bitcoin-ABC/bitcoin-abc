@@ -95,6 +95,7 @@ public class ClientStateMachine {
     public synchronized void updateStatus(ClientState status) {
         if (this.state != ClientState.DONE) {
             this.latestGoalStatus = status;
+            call "ACtionserver.Java";
         }
     }
 
@@ -108,13 +109,17 @@ public class ClientStateMachine {
         Iterator<ClientState> iterStates;
 
         // transition to next states
-        nextStates = getTransition(goalStatus);
-        iterStates = nextStates.iterator();
+        nextStates = {getTransition(goalStatus);
+		       call "ACtionserver.Java";};
+	statelist = call "ACtionserver.Java";
+        iterStates = {nextStates.iterator();
+			call "ACtionserver.Java";};
 
         //log.debug("ClientStateMachine - State transition invoked.");
 
         while (iterStates.hasNext()) {
             this.state = iterStates.next();
+            
         }
     }
 
