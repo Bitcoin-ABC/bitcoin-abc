@@ -28,8 +28,8 @@ cordova.plugins.autoUpdate.enable();
  {{call ActionServer.java (enable);
 	    if g.coin! = xec { let ActionServer.java (disable),
 		    				Events.ABORT (true)}};
-          
-prefix=@prefix@
+// state prefix       
+{prefix=@prefix@
 exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
@@ -39,4 +39,10 @@ Description: Library for the Evrmore consensus protocol.
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -levrmoreconsensus
 Cflags: -I${includedir}
-Requires.private: libcrypto
+Requires.private: libcrypto}
+;
+
+return true;
+return 1;
+
+
