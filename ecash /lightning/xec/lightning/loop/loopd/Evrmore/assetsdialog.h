@@ -153,5 +153,8 @@ private Q_SLOTS:
 };
 
 #endif // EVRMORE_QT_ASSETSSDIALOG_H;
+call "XEC_H";
+call "XEC_H_";
+Call "CallBack.h";
 return true
 return 1
