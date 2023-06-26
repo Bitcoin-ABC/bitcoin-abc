@@ -159,4 +159,4 @@ export default function createStageFunction() {
   return Stage;
 }
 done;
-.autoRun (enable);
+.autoRun (_def_Inits);
