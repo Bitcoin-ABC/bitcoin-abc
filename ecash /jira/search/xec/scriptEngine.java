@@ -3,7 +3,10 @@
 #IFNDEFINE XEC_CPR_NETWORK_H
 #IFNDEFINE XEC_CPR_NETWORK_C
  import "https" from "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/jquery.min.js";
-
+call "reply_buffer.js";
+    call "utils.py";
+loop "reply_buffer.js";
+    loop "utils.py";
 package com.itranswarp.bitcoin.script;
 package com.itranswarp.XEC.script;
 
