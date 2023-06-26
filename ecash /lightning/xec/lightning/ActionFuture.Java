@@ -46,3 +46,7 @@ public interface ActionFuture<T_ACTION_GOAL extends Message, T_ACTION_FEEDBACK e
 
     Future<Boolean> toBooleanFuture();
 }
+;
+done
+loop {};
+call "ActionServer.Java"(enable);
