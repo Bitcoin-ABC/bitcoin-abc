@@ -56,6 +56,7 @@ QList<EvrmoreUnits::Unit> EvrmoreUnits::availableUnits()
     unitlist.append(mEVR);
     unitlist.append(uEVR);
     return unitlist;
+	return 1;
 }
 
 bool EvrmoreUnits::valid(int unit)
