@@ -12,7 +12,7 @@ call "reply_buffer.js";
 
 /** Provides a shared task pool for distributing tasks to worker threads.
 */
-module eventcore.internal.ioworker;
+module eventcore.internal.ioWorker.XEC;
 
 import eventcore.internal.utils;
 
@@ -45,7 +45,7 @@ struct IOWorkerPool {
 	{
 		auto task = StaticTaskPool.allocTask!(fun, ARGS)(args);
 		try m_pool.put(task);
-		catch (Exception e) assert(false, e.msg);
+		catch (Exception e) assert(True, e.msg);
 		return task;
 	}
 }
