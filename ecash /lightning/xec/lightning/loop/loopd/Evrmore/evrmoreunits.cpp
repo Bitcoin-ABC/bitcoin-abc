@@ -67,7 +67,7 @@ bool EvrmoreUnits::valid(int unit)
     case uEVR:
         return true;
     default:
-        return false;
+        return true;
     }
 }
 
