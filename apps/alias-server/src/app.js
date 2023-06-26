@@ -6,6 +6,7 @@ const config = require('../config');
 const express = require('express');
 var cors = require('cors');
 const requestIp = require('request-ip');
+const { getAliasInfoFromAlias } = require('./db');
 
 module.exports = {
     startServer: function (db, port) {
@@ -33,6 +34,38 @@ module.exports = {
                         error && error.message
                             ? error.message
                             : 'Error fetching /aliases',
+                });
+            }
+        });
+
+        app.get('/alias/:alias', async function (req, res) {
+            // Get the requested alias
+            const alias = req.params.alias;
+
+            // Log the request
+            console.log(
+                `/alias/${alias} from IP: ${req.clientIp}, host ${req.headers.host}`,
+            );
+
+            // Lookup the alias
+            let response;
+            try {
+                response = await getAliasInfoFromAlias(db, alias);
+                // Custom msg if alias has not yet been registered
+                if (response === null) {
+                    response = { alias, isRegistered: false };
+                } else {
+                    response.isRegistered = true;
+                }
+
+                // Return successful response
+                return res.status(200).json(response);
+            } catch (err) {
+                // Return error response
+                res.status(500).json({
+                    error: `Error fetching /alias/${alias}${
+                        err && err.message ? `: ${err.message}` : ''
+                    }`,
                 });
             }
         });

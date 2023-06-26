@@ -5,7 +5,7 @@
 
 const request = require('supertest');
 const { startServer } = require('../src/app');
-const { initializeDb, addAliasesToDb } = require('../src/db');
+const { initializeDb, addOneAliasToDb, addAliasesToDb } = require('../src/db');
 // Mock mongodb
 const { MongoClient } = require('mongodb');
 const { MongoMemoryServer } = require('mongodb-memory-server');
@@ -65,5 +65,37 @@ describe('alias-server app.js', function () {
             .expect(200)
             .expect('Content-Type', /json/)
             .expect(generated.validAliasRegistrations);
+    });
+    it('/alias/<alias> returns object with isRegistered:false for an alias not in the database', async function () {
+        const testedAlias = 'test';
+        return request(app)
+            .get(`/alias/${testedAlias}`)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect({ alias: testedAlias, isRegistered: false });
+    });
+    it('/alias/<alias> returns object with isRegistered:true for an alias in the database', async function () {
+        // newValidAliases needs to be a clone of the mock because
+        // each object gets an _id field when added to the database
+        const newValidAliases = JSON.parse(
+            JSON.stringify(generated.validAliasRegistrations),
+        );
+        await addOneAliasToDb(testDb, newValidAliases[0]);
+        const { alias, address, blockheight, txid } = newValidAliases[0];
+        return request(app)
+            .get(`/alias/${alias}`)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect({ alias, address, blockheight, txid, isRegistered: true });
+    });
+    it('/alias/<alias> returns an error on database error', function () {
+        const testAlias = 'test';
+        return request(dbErrorApp)
+            .get(`/alias/${testAlias}`)
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                error: `Error fetching /alias/test: Error finding alias "${testAlias}" in database`,
+            });
     });
 });
