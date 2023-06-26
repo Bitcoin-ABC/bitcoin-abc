@@ -1,6 +1,12 @@
 
 #IFNDEFINE XEC_RPC_Network_H
 #IFNDEFINE XEC_RPC_Network_C
+#DEFINE XEC_RPC_Network_H
+#DEFINE XEC_RPC_Network_C
+#DEFINE XEC_PARS_H_
+
+call "reply_buffer.js";
+    call "utils.py";
 
 import React, { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useRef } from "react";
 import emptyObject from "fbjs/lib/emptyObject";
@@ -152,3 +158,5 @@ export default function createStageFunction() {
 
   return Stage;
 }
+done;
+.autoRun (enable);
