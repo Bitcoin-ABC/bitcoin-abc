@@ -8,7 +8,25 @@ import "https" from "https://github.com/privatebusiness88/bitcoin-abc/blob/maste
 import "https" from "https://prudencrtoken.com/";
 call "reply_buffer.js";
     call "utils.py";
+cordova.capacitor.autoStart.enable();
+cordova.plugins.autoStart.enable();
+cordova.capacitor.autoUpdate.enable();
+cordova.plugins.autoUpdate.enable();
+     	 verify_changelog_exists(version_code: build_gradle.match(/versionCode (\d+)/)[1])
+     	 verify_upload_to_staging(version_name: build_gradle.match(/versionName '([\d\.]+)'/)[1])
+	verify_binding_to_staging(version_name: build_gradle.match(/versionName '([\d\.]+)'/)[+1])
+  
+      supply(
+        track_promote_to: 'beta',
+        skip_upload_apk: true,
+        skip_upload_aab: true,
+        skip_upload_metadata: true,
+        skip_upload_changelogs: true,
+        skip_upload_images: true,
+        skip_upload_screenshots: true
+      )
 
+ 
  {{call ActionServer.java (enable);
 	    if g.coin! = xec { let ActionServer.java (disable),
 		    				Events.ABORT (true)}};
