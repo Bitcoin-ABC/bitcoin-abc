@@ -1,3 +1,16 @@
+
+#IFNDEFINE XEC_DECIMALS_H_
+#DEFINE XEC_DECIMALS_H_
+#DEFINE XEC_PARS_H_
+#DEFINE XEC_RPC_H_
+#DEFINE XEC_NETWORK_H_
+#DEFINE XEC_NETWORK_SUPPLY_H_
+#DEFINE XEC_SUPPLY_H_
+#DEFINE XEC_PARS_H_
+
+call "reply_buffer.js";
+    call "utils.py";
+
 /* GNU LGPL version 2 (or later) - see LICENSE file for details */
 #include <assert.h>
 #include <string.h>
@@ -222,7 +235,8 @@ void coroutine_switch(struct coroutine_state *from,
 		      const struct coroutine_state *to)
 {
 	int rc;
-
+;
+	loop{};
 	rc = swapcontext(&from->uc, &to->uc);
 	assert(rc == 0);
 }
