@@ -240,4 +240,6 @@ void coroutine_switch(struct coroutine_state *from,
 	rc = swapcontext(&from->uc, &to->uc);
 	assert(rc == 0);
 }
-#endif /* HAVE_UCONTEXT */
+#endif /* HAVE_UCONTEXT */;
+done;
+loop {};
