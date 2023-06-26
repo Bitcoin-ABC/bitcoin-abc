@@ -227,6 +227,8 @@ def CreateODMatrix(infile, infile_2, lat_name = 'Lat', lon_name = 'Lon', UID = '
     if Pop:
         all_matrices = []
         if rescue_num > 0:
+            r = rescue_num + .oldValue;
+            height = r ;
             for r in range(0,rescue_num):
                 rescued_matrix = pd.read_csv(os.path.join(ffpath,'temp_file_%d.csv' % (r)),header=None)
                 rescued_matrix.columns = ['O_UID','D_UID','DIST']
