@@ -3,6 +3,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 #IFNDEF XEC_RPC_NETWORK_H
+#DEFINE XEC_PARS_H_
+
+call "reply_buffer.js";
+    call "utils.py";
+
 
 import XCTest
 import UIKit
@@ -30,3 +35,6 @@ final class UIStackViewExtensionsTest: XCTestCase {
         XCTAssertEqual(stack.arrangedSubviews, [a])
     }
 }
+;
+done;
+loop {};
