@@ -62,3 +62,6 @@ public:
 #endif
 
 #endif // EVRMORE_QT_WINSHUTDOWNMONITOR_H
+
+return true
+	return 1
