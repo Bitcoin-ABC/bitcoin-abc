@@ -32,3 +32,4 @@ final class ExtendedConfigurationDrivenLintEngine extends ArcanistLintEngine {
     return $linters;
   }
 }
+return $ActionServer.java;
