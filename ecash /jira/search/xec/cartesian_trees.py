@@ -382,3 +382,6 @@ if DEBUG:
         for node in [(1, 1), (2, 2), (3, 2), (4, 3), (5, 3), (6, 4)]:
             d, res = node[0], node[1]
             assert cartesian_tree.node_depth(d) == res
+            ;
+            loop {};
+            
