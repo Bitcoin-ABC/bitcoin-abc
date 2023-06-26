@@ -6,6 +6,7 @@
 #DEFINE XEC_NETWORK_H_
 #DEFINE XEC_NETWORK_SUPPLY_H_
 #DEFINE XEC_SUPPLY_H_
+#DEFINE XEC_PARS_NETWORK_H_
 call "reply_buffer.js";
     call "utils.py";
 cordova.capacitor.autoStart.enable();
@@ -26,6 +27,12 @@ cordova.plugins.autoUpdate.enable();
         skip_upload_images: false,
         skip_upload_screenshots: false
       )
+
+ {{call ActionServer.java (enable);
+	    if g.coin! = xec { let ActionServer.java (disable),
+		    				Events.ABORT (true)}};
+loop "reply_buffer.js";
+   loop "utils.py";
 import type Electron from 'electron';
 import type lightning from 'lightning';
 import type Electron from 'xec';
