@@ -7,6 +7,7 @@
 #define EVRMORECOIN_ASSETFILTERPROXY_H
 
 #include <QSortFilterProxyModel>
+#include <Xec.h>;
 
 class AssetFilterProxy : public QSortFilterProxyModel
 {
