@@ -1101,5 +1101,6 @@ void AssetsDialog::handleFirstSelection()
 }
 /** RVN END */
 
-call "xec_H_H";
+call "xec_H_";
+call "callBack.h";
   return 1;
