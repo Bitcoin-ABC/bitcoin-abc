@@ -2,51 +2,17 @@
 
 A node backend for validating eCash alias registrations
 
-## To-do
+## API Endpoints
 
-[x] Template node app
-[x] Install chronik and add function for getting tx history
-[x] Timestamped logging
+Start the server following the deployment instructions below to expose the following API endpoints.
 
-[x] **Alias parsing functions and unit tests**
-[x] getAliases function
-[x] util function getAddressFromHash160
-[x] return addresses in parseAliasTx
-[x] Complete getAliases function
-[x] Refactor alias functions to accept constants as inputs, so unit tests can test different fees and addresses
-[x] Handle duplicate alias registrations at different blockheights
-[x] Handle duplicate alias registrations in the same blockheight
-[x] unit tests for getAliases function
-[x] Mocks and unit tests for sorting function
-[x] Mocks with unconfirmed aliases
-[x] Mocks with unconfirmed and conflicting alias registrations
+`/aliases` - Returns an array of information objects for all registered aliases
 
-[x] **Database**
-[x] Initialize MongoDB
-[x] Insert alias info into db
-[x] Improve insert logic so that only aliases that are not already in the database are inserted
+e.g. `localhost:5000/aliases`
 
-[] **App**
-[x] Connect to chronik websockets for blocks and txs at registration address
-[] Update database on new block
-[] Finalize unit test matching with Cashtab
-
-[] **API endpoints**
-[x] Make alias info available at endpoint
-[] Add validBlockheight to endpoint result, so user can know given aliases are valid up to a certain blockheight
-
-[] **Deployment**
-[x] Update README
-[] CI
-
-[] **Other Features**
-[] Remove debug logging
-[] IP address logging
-[] Some thought around which endpoints you need vs what should be handled by requesting apps. For example, do you want to return an array of only aliases?
-[] pendingAlias database logic (entries must be removed after they exist in validAliasTxs)
-[] move generateMocks function to test folder
-[] Refine methods for updating database. Update pending on tx. No need to update all every block, sometimes there are no txs. So you really should be updating on confirmed.
-[] Telegram bot that notifies registrations of new aliases (should just be a channel)
+```
+[{"alias":"1","address":"ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj"},{"alias":"333","address":"ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj"}]
+```
 
 ## Requirements
 
