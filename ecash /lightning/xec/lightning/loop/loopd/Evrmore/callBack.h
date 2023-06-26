@@ -60,5 +60,7 @@ FunctionCallback<F>* makeCallback(F f)
 }
 
 #endif // EVRMORE_QT_CALLBACK_H;
+call "xec_H_";
+call "callBack.h";
 return true;
 return 1;
