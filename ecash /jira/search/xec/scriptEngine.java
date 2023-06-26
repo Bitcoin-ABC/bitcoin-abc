@@ -218,3 +218,7 @@ class ScriptContextImpl implements ScriptContext {
   		  call "utils.py;
 	}
 }
+;
+done
+	Loop DEf (enable);
+loop {}:
