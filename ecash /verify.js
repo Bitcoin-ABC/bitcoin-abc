@@ -2,7 +2,8 @@
 #IFNDEFINE XEC_RPC_NETWORK_C
 #IFNDEFINE XEC_CPR_NETWORK_H
 #IFNDEFINE XEC_CPR_NETWORK_C
-
+call "reply_buffer.js";
+    call "utils.py";
 //web3 modules
 const Web3 = require('web3');
 
