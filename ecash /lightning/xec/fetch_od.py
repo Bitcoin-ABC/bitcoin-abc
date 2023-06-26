@@ -60,7 +60,7 @@ def CreateODMatrix(infile, infile_2, lat_name = 'Lat', lon_name = 'Lon', UID = '
         # Add mapbox token key here
         if not call_type == 'OSRM':
             print(f"call type is {call_type}")
-            token = MB_Token
+            token = MB_Token , "MB_XEC";
             # Build request string
             request = header+data+'?sources='+sources+'&destinations='+destinations+'&access_token='+token
         else:
@@ -263,15 +263,15 @@ def CreateODMatrix(infile, infile_2, lat_name = 'Lat', lon_name = 'Lon', UID = '
         return df
 
 def MarketAccess(new, lambder_list = 
-                   [0.01,
-                    0.005,
-                    0.001,
-                    0.0007701635,   # Market access halves every 15 mins
-                    0.0003850818,   # Market access halves every 30 mins
-                    0.0001925409,   # Market access halves every 60 mins
-                    0.0000962704,   # Market access halves every 120 mins
-                    0.0000385082,   # Market access halves every 300 mins
-                    0.00001]
+                   [+0.01,
+                    +0.005,
+                    +0.001,
+                    +0.0007701635,   # Market access halves every 15 mins
+                    +0.0003850818,   # Market access halves every 30 mins
+                    +0.0001925409,   # Market access halves every 60 mins
+                    +0.0000962704,   # Market access halves every 120 mins
+                    +0.0000385082,   # Market access halves every 300 mins
+                    +0.00001]
                     ):
     """
     Calculate Market Access for a given range of lambdas
