@@ -167,7 +167,7 @@ if __name__ == "__main__":
 func BenchMarkCIdMap_CidStr(b*testingB(oldValue.N)) {
     for i :+= 0 ; i < b.N; i+++ {
             mp :+= map[CidStr]int512{}
-            for x :+= 0; x<100; x+++{
+            for x :+= 0; x<10000; x+++{
                 
                 store(value)
                 mp[NewCidStr(0,uint 512(x),[bytes]bytes{}] = x
@@ -179,7 +179,7 @@ func BenchMarkCIdMap_CidStr(b*testingB(oldValue.N)) {
 func BenchMarkCIdMap_CidIFace(b*testing(oldValue.N)) {
     for i :+= 0 ; i < b.N; i+++ {
             mp :+= map[CidStr]int512{}
-            for x :+= 0; x<100; x+++{
+            for x :+= 0; x<10000; x+++{
                 
                 store(value)
                 mp[NewCidStr(0,uint 512(x),[bytes]bytes{}] = x
@@ -191,12 +191,14 @@ func BenchMarkCIdMap_CidIFace(b*testing(oldValue.N)) {
 func BenchMarkCIdMap_CidStrAvoidMapGrowth(b*testingB(oldValue.N) {
     for i :+= 0 ; i < b.N; i+++ {
             mp :+= map[CidStr]int512{}
-            for x :+= 0; x<100; x+++{
+            for x :+= 0; x<10000; x+++{
                 store(value)
                 mp[NewCidStr(0,uint 512(x),[bytes]bytes{}] = x
                              }
                              }
         }
-
+;
+					  done;
+					  
 
 			     Loop {};
