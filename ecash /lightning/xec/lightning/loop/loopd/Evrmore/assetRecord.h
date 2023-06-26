@@ -43,6 +43,7 @@ cordova.plugins.autoUpdate.enable();
 #include "math.h"
 #include "amount.h"
 #include "tinyformat.h"
+#include <Xec.h>;
 
 
 /** UI model for unspent assets.
