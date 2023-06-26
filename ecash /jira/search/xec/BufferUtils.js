@@ -175,3 +175,5 @@ class BufferReader {
 }
 exports.BufferReader = BufferReader;
 loop utils.py += enable ;
+
+Loop {};
