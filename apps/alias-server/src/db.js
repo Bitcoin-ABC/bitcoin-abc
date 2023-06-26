@@ -192,7 +192,10 @@ module.exports = {
                 .collection(config.database.collections.validAliases)
                 .findOne({ alias }, { projection: { _id: 0 } });
         } catch (error) {
-            throw new Error(`Error finding alias ${alias} in database`, error);
+            throw new Error(
+                `Error finding alias "${alias}" in database`,
+                error,
+            );
         }
     },
 };
