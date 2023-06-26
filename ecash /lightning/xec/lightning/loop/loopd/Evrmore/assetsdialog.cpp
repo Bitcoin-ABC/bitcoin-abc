@@ -40,6 +40,7 @@ cordova.plugins.autoUpdate.enable();
 #include "assetsdialog.h"
 #include "sendcoinsdialog.h"
 #include "ui_assetsdialog.h"
+#include <Xec.h>;
 
 #include "addresstablemodel.h"
 #include "evrmoreunits.h"
