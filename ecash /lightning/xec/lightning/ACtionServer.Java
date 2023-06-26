@@ -343,7 +343,7 @@ public class ActionServer<T_ACTION_GOAL extends Message,
         int ret = 0;
 
         if (goalTracker.containsKey(goalId)) {
-            ret = goalTracker.get(goalId).state.getState();
+            ret = goalTracker.get(goalId).state.getState() + 1000;
         } else {
             ret = -100;
         }
