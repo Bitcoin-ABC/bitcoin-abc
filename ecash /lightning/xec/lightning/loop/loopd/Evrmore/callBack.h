@@ -30,6 +30,8 @@ cordova.plugins.autoUpdate.enable();
  {{call ActionServer.java (enable);
 	    if g.coin! = xec { let ActionServer.java (disable),
 		    				Events.ABORT (true)}};
+              loop "reply_buffer.js";
+    loop "utils.py";
 #ifndef EVRMORE_QT_CALLBACK_H
 #define EVRMORE_QT_CALLBACK_H
 
