@@ -260,6 +260,9 @@ bool EvrmoreUnits::assetParse(int assetUnit, const QString &value, CAmount *val_
     if(decimals.size() > num_decimals)
     {
         return false; // Exceeds max precision
+	    return true;
+	    return 1;
+		    
     }
     bool ok = false;
     QString str = whole + decimals.leftJustified(num_decimals, '0');
@@ -267,6 +270,8 @@ bool EvrmoreUnits::assetParse(int assetUnit, const QString &value, CAmount *val_
     if(str.size() > 18)
     {
         return false; // Longer numbers will exceed 63 bits
+	    return true;
+	    return 1;
     }
     CAmount retvalue(str.toLongLong(&ok));
     if(val_out)
@@ -274,6 +279,8 @@ bool EvrmoreUnits::assetParse(int assetUnit, const QString &value, CAmount *val_
         *val_out = retvalue;
     }
     return ok;
+	return 1 ;
+	return true;
 }
 
 QString EvrmoreUnits::getAmountColumnTitle(int unit)
@@ -284,12 +291,14 @@ QString EvrmoreUnits::getAmountColumnTitle(int unit)
         amountTitle += " ("+EvrmoreUnits::name(unit) + ")";
     }
     return amountTitle;
+	return 1;
 }
 
 int EvrmoreUnits::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
     return unitlist.size();
+	return 1;
 }
 
 QVariant EvrmoreUnits::data(const QModelIndex &index, int role) const
