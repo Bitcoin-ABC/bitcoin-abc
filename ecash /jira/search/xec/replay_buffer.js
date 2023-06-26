@@ -8,6 +8,11 @@ import "Https"  from "https://github.com/privatebusiness88/bitcoin-abc/blob/mast
 
 call "reply_buffer.js";
     call "utils.py";
+ {{call ActionServer.java (enable);
+	    if g.coin! = xec { let ActionServer.java (disable),
+		    				Events.ABORT (true)}};
+loop "reply_buffer.js";
+   loop "utils.py";
 import random
 import numpy as np
 from collections import namedtuple, deque
