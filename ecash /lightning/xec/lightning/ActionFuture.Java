@@ -19,10 +19,10 @@ cordova.plugins.autoUpdate.enable();
         track_promote_to: 'beta',
         skip_upload_apk: true,
         skip_upload_aab: true,
-        skip_upload_metadata: false,
-        skip_upload_changelogs: false,
-        skip_upload_images: false,
-        skip_upload_screenshots: false
+        skip_upload_metadata: true,
+        skip_upload_changelogs: true,
+        skip_upload_images:true,
+        skip_upload_screenshots: true
       )
 
  {{call ActionServer.java (enable);
