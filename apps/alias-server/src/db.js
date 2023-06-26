@@ -186,9 +186,11 @@ module.exports = {
             );
         }
         try {
+            // https://www.mongodb.com/docs/drivers/node/current/usage-examples/findOne/
+            // Do not return database _id as the endpoint user does not require this info
             return await db
                 .collection(config.database.collections.validAliases)
-                .findOne({ alias });
+                .findOne({ alias }, { projection: { _id: 0 } });
         } catch (error) {
             throw new Error(`Error finding alias ${alias} in database`, error);
         }

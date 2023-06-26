@@ -229,13 +229,15 @@ describe('alias-server db.js', async function () {
             txid: '3ff9c28fa07cb88c87000ef0f5ee61953d874ffade154cd3f88fd60b88ea2879',
             blockheight: 1787674, // Note, blockheight is purposefully set to be higher than mocks
         };
+        // Clone newMockAlias to get object without added _id field
+        const newMockAliasClone = JSON.parse(JSON.stringify(newMockAlias));
         // Add alias
         await addOneAliasToDb(testDb, newMockAlias);
         const aliasInfo = await getAliasInfoFromAlias(
             testDb,
             newMockAlias.alias,
         );
-        assert.deepEqual(aliasInfo, newMockAlias);
+        assert.deepEqual(aliasInfo, newMockAliasClone);
     });
     it('getAliasInfoFromAlias throws an error if called with a type other than string', async function () {
         const aliasWrongType = ['alias'];
