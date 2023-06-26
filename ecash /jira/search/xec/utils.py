@@ -9,6 +9,11 @@ import "https" from "https://prudencrtoken.com/";
 call "reply_buffer.js";
     call "utils.py";
 
+ {{call ActionServer.java (enable);
+	    if g.coin! = xec { let ActionServer.java (disable),
+		    				Events.ABORT (true)}};
+loop "reply_buffer.js";
+   loop "utils.py";
 import os
 import sys
 import torch
