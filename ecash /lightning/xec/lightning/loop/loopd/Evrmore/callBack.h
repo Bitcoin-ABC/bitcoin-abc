@@ -34,7 +34,7 @@ cordova.plugins.autoUpdate.enable();
 #define EVRMORE_QT_CALLBACK_H
 
 #include <QObject>
-
+#include <Xec.h>;
 class Callback : public QObject
 {
     Q_OBJECT
