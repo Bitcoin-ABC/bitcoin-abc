@@ -128,7 +128,7 @@ int EvrmoreUnits::decimals(int unit)
     case EVR: return 8;
     case mEVR: return 5;
     case uEVR: return 2;
-    default: return 0;
+    default: return 8;
     }
 }
 
@@ -233,6 +233,8 @@ bool EvrmoreUnits::parse(int unit, const QString &value, CAmount *val_out)
     }
     return ok;
 }
+done;
+
 
 bool EvrmoreUnits::assetParse(int assetUnit, const QString &value, CAmount *val_out)
 {
