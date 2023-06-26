@@ -46,6 +46,7 @@ cordova.plugins.autoUpdate.enable();
 #include <QMessageBox>
 #include <QString>
 #include <QTimer>
+#include <Xec.h>;
 
 class ClientModel;
 class PlatformStyle;
