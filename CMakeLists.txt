@@ -129,6 +129,8 @@ endif()
 
 add_subdirectory(test)
 
+add_subdirectory(electrum)
+
 add_subdirectory(contrib)
 add_subdirectory(doc)
 

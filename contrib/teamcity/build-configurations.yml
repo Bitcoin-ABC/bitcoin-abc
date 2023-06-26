@@ -675,6 +675,12 @@ builds:
     templates:
       - js-mocha
 
+  electrum-tests:
+    runOnDiffRegex:
+      - electrum/
+    targets:
+      - - check-electrum
+
   preview-e.cash:
     docker:
       context: web/e.cash

@@ -181,3 +181,7 @@ CORROSION_BUILD_FOLDER=${CORROSION_SRC_FOLDER}-build
 cmake -S${CORROSION_SRC_FOLDER} -B${CORROSION_BUILD_FOLDER} -DCMAKE_BUILD_TYPE=Release
 cmake --build ${CORROSION_BUILD_FOLDER} --config Release
 cmake --install ${CORROSION_BUILD_FOLDER} --config Release
+
+# Install Electrum ABC test dependencies
+here=$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")
+pip3 install -r ${here}/../../electrum/contrib/requirements/requirements.txt
