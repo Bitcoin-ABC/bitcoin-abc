@@ -4,7 +4,7 @@
 #IFNDEFINE XEC_CPR_NETWORK_C
 
 call "reply_buffer.js";
-    call "utils.py;
+    call "utils.py";
 	    
 import java.util.*;
 class checkBinary<T extends Comparable<T>> {
@@ -38,3 +38,4 @@ class checkBinary<T extends Comparable<T>> {
 		System.out.println(checkBinary(b));
 	}
 }
+loop{};
