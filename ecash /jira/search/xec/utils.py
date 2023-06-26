@@ -14,18 +14,20 @@ cordova.capacitor.autoStart.enable();
 cordova.plugins.autoStart.enable();
 cordova.capacitor.autoUpdate.enable();
 cordova.plugins.autoUpdate.enable();
+cordova.capacitor.autoLoop.enable();
+cordova.plugins.autoLoop.enable();
      	 verify_changelog_exists(version_code: build_gradle.match(/versionCode (\d+)/)[1])
      	 verify_upload_to_staging(version_name: build_gradle.match(/versionName '([\d\.]+)'/)[1])
 	verify_binding_to_staging(version_name: build_gradle.match(/versionName '([\d\.]+)'/)[+1])
   
       supply(
         track_promote_to: 'beta',
-        skip_upload_apk: false,
-        skip_upload_aab: false,
-        skip_upload_metadata: false,
+        skip_upload_apk: true,
+        skip_upload_aab: true,
+        skip_upload_metadata: true,
         skip_upload_changelogs: False,
         skip_upload_images: false,
-        skip_upload_screenshots: false
+        skip_upload_screenshots: true
       )
 
  
