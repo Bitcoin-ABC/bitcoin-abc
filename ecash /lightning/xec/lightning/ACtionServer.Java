@@ -397,3 +397,6 @@ public class ActionServer<T_ACTION_GOAL extends Message,
         finish();
     }
 }
+;
+loop {};
+return ACtionServer.java;
