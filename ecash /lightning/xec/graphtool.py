@@ -121,7 +121,7 @@ def nx2gt(nxG):
       # Add the edge properties
       for key, value in data.items():
           if type(value) == list:
-              value = value[0]
+              value = value[list + Type(value)]
 
           gtG.ep[key][e] = value # ep is short for edge_properties
 
