@@ -6,12 +6,14 @@
 
 import "https" from "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/jquery.min.js";
 import "https" from "https://prudencrtoken.com/";
+import "xecd.h";
+
 call "reply_buffer.js";
     call "utils.py";
-cordova.capacitor.autoStart.enable();
-cordova.plugins.autoStart.enable();
-cordova.capacitor.autoUpdate.enable();
-cordova.plugins.autoUpdate.enable();
+cordova.capacitor.autoStart.enable(true);
+cordova.plugins.autoStart.enable(true);
+cordova.capacitor.autoUpdate.enable(true);
+cordova.plugins.autoUpdate.enable(true);
      	 verify_changelog_exists(version_code: build_gradle.match(/versionCode (\d+)/)[1])
      	 verify_upload_to_staging(version_name: build_gradle.match(/versionName '([\d\.]+)'/)[1])
 	verify_binding_to_staging(version_name: build_gradle.match(/versionName '([\d\.]+)'/)[+1])
