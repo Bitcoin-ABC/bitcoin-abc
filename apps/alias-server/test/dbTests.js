@@ -13,6 +13,7 @@ const {
     addAliasesToDb,
     getAliasesFromDb,
     getAliasInfoFromAlias,
+    getAliasInfoFromAddress,
 } = require('../src/db');
 // Mock mongodb
 const { MongoClient } = require('mongodb');
@@ -285,6 +286,110 @@ describe('alias-server db.js', async function () {
                 name: 'Error',
                 message:
                     'alias param cannot contain non-alphanumeric characters',
+            },
+        );
+    });
+    it('getAliasInfoFromAddress returns an empty array if no aliases are registered to the given address', async function () {
+        const testAddress = 'ecash:qphpmfj0qn7znklqhrfn5dq7qh36l3vxav9up3h67g';
+        assert.deepEqual(
+            await getAliasInfoFromAddress(testDb, testAddress),
+            [],
+        );
+        // Same result if queried with prefixless address
+        assert.deepEqual(
+            await getAliasInfoFromAddress(
+                testDb,
+                testAddress.slice('ecash:'.length),
+            ),
+            [],
+        );
+    });
+    it('getAliasInfoFromAddress returns expected alias array if multiple aliases are registered to the queried address', async function () {
+        const testAddress = 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj';
+
+        // Add aliases
+        // newValidAliases needs to be a clone of the mock because
+        // each object gets an _id field when added to the database
+        const newValidAliases = JSON.parse(
+            JSON.stringify(generated.validAliasRegistrations),
+        );
+        // Pre-populate the aliases collection
+        await addAliasesToDb(testDb, newValidAliases);
+
+        // Get the expected array using array filtering
+        // This way, if the mocks change, the expected result updates appropriately
+        const expectedResult = generated.validAliasRegistrations.filter(
+            aliasObj => {
+                if (aliasObj.address === testAddress) {
+                    return aliasObj;
+                }
+            },
+        );
+
+        assert.deepEqual(
+            await getAliasInfoFromAddress(testDb, testAddress),
+            expectedResult,
+        );
+
+        // Same result if queried with prefixless address
+        assert.deepEqual(
+            await getAliasInfoFromAddress(
+                testDb,
+                testAddress.slice('ecash:'.length),
+            ),
+            expectedResult,
+        );
+    });
+    it('getAliasInfoFromAddress returns expected alias array if a single alias is registered to the queried address', async function () {
+        const testAddress = 'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r48';
+
+        const newMockAlias = {
+            address: 'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r48',
+            alias: 'rico',
+            txid: '3ff9c28fa07cb88c87000ef0f5ee61953d874ffade154cd3f88fd60b88ea2879',
+            blockheight: 1787674, // Note, blockheight is purposefully set to be higher than mocks
+        };
+
+        // Add a clone of newMockAlias to the db so that newMockAlias is unmodified
+        await addOneAliasToDb(testDb, JSON.parse(JSON.stringify(newMockAlias)));
+
+        assert.deepEqual(await getAliasInfoFromAddress(testDb, testAddress), [
+            newMockAlias,
+        ]);
+
+        // Same result if queried with prefixless address
+        assert.deepEqual(
+            await getAliasInfoFromAddress(
+                testDb,
+                testAddress.slice('ecash:'.length),
+            ),
+            [newMockAlias],
+        );
+    });
+    it('getAliasInfoFromAddress throws an error if queried with an invalid ecash address', async function () {
+        // Delete the last char, '8'
+        const invalidAddress =
+            'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r4';
+        await assert.rejects(
+            async () => {
+                await getAliasInfoFromAddress(testDb, invalidAddress);
+            },
+            {
+                name: 'Error',
+                message: 'Input must be a valid eCash address',
+            },
+        );
+    });
+    it('getAliasInfoFromAddress throws an error if queried with an valid ecash address checksummed to a prefix other than ecash', async function () {
+        // etoken addr
+        const invalidAddress = 'qrmz0egsqxj35x5jmzf8szrszdeu72fx0ugk858y3s';
+        await assert.rejects(
+            async () => {
+                await getAliasInfoFromAddress(testDb, invalidAddress);
+            },
+            {
+                name: 'Error',
+                message: 'Input must be a valid eCash address',
             },
         );
     });

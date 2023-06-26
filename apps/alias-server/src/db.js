@@ -6,6 +6,7 @@
 const config = require('../config');
 const aliasConstants = require('../constants/alias');
 const { isValidAliasString } = require('./utils');
+const cashaddr = require('ecashaddrjs');
 
 const MONGO_DB_ERRORCODES = {
     duplicateKey: 11000,
@@ -195,6 +196,45 @@ module.exports = {
             throw new Error(
                 `Error finding alias "${alias}" in database`,
                 error,
+            );
+        }
+    },
+    /**
+     * Lookup a list of registered alias objects in the validAliasTxs database by querying an address
+     * Useful for checking the aliases registered to an address
+     * @param {object} db initialized mongodb instance
+     * @param {string} address a valid ecash address
+     * @returns {array} [{ address, alias, blockheight, txid}...] or [] if no registered aliases at address
+     * @throws {error} if address input is invalid
+     * @throws {error} if there is an error performing the database lookup
+     */
+    getAliasInfoFromAddress: async function (db, address) {
+        // Validate input is an ecash: address
+        const isValidAddress = cashaddr.isValidCashAddress(address, 'ecash');
+        if (!isValidAddress) {
+            throw new Error('Input must be a valid eCash address');
+        }
+
+        // Note: prefixless address is valid if checksum matches 'ecash'
+        // But database stores all addresses with a prefix
+        if (!address.startsWith('ecash:')) {
+            //  If query comes from a prefixless valid address, give it a prefix for your db query
+            address = `ecash:${address}`;
+        }
+
+        let aliasesRegisteredAtThisAddress;
+        try {
+            aliasesRegisteredAtThisAddress = await db
+                .collection(config.database.collections.validAliases)
+                .find({ address })
+                .sort({ blockheight: 1 })
+                .project({ _id: 0 })
+                .toArray();
+            return aliasesRegisteredAtThisAddress;
+        } catch (err) {
+            throw new Error(
+                `Error finding aliases for address ${address} in database`,
+                err,
             );
         }
     },
