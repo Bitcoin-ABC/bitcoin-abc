@@ -2,10 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 'use strict';
-const {
-    returnChronikTokenInfoPromise,
-    getEmojiFromBalanceSats,
-} = require('./utils');
+const { getEmojiFromBalanceSats } = require('./utils');
 const cashaddr = require('ecashaddrjs');
 
 module.exports = {
@@ -14,7 +11,24 @@ module.exports = {
         const tokenInfoPromises = [];
         tokenIdSet.forEach(tokenId => {
             tokenInfoPromises.push(
-                returnChronikTokenInfoPromise(chronik, tokenId, tokenInfoMap),
+                new Promise((resolve, reject) => {
+                    chronik.tx(tokenId).then(
+                        txDetails => {
+                            console.assert(
+                                typeof txDetails.slpTxData.genesisInfo !==
+                                    'undefined',
+                                `Error: no genesisInfo object for ${tokenId}`,
+                            );
+                            // Note: txDetails.slpTxData.genesisInfo only exists for token genesis txs
+                            const genesisInfo = txDetails.slpTxData.genesisInfo;
+                            tokenInfoMap.set(tokenId, genesisInfo);
+                            resolve(true);
+                        },
+                        err => {
+                            reject(err);
+                        },
+                    );
+                }),
             );
         });
 

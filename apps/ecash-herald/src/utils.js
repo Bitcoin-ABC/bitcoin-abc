@@ -268,33 +268,6 @@ module.exports = {
         }
         return value;
     },
-    returnChronikTokenInfoPromise: function (chronik, tokenId, tokenInfoMap) {
-        /* returnChronikTokenInfoPromise
-         *
-         * For best performance, we want to use Promise.all() to make several
-         * chronik API calls at the same time
-         *
-         * This function returns a promise to ask chronik for token genesis info
-         * and add this info to a map
-         */
-        return new Promise((resolve, reject) => {
-            chronik.tx(tokenId).then(
-                txDetails => {
-                    console.assert(
-                        typeof txDetails.slpTxData.genesisInfo !== 'undefined',
-                        `Error: no genesisInfo object for ${tokenId}`,
-                    );
-                    // Note: txDetails.slpTxData.genesisInfo only exists for token genesis txs
-                    const genesisInfo = txDetails.slpTxData.genesisInfo;
-                    tokenInfoMap.set(tokenId, genesisInfo);
-                    resolve(true);
-                },
-                err => {
-                    reject(err);
-                },
-            );
-        });
-    },
     /**
      * Convert a map to a key value array
      * Useful to generate test vectors by `console.log(mapToKeyValueArray(someMap))` in a function
