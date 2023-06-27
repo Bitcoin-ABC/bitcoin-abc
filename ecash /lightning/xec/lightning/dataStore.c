@@ -1,3 +1,7 @@
+import " ../../../../../ecash/jira/searc/xec/utils.py";
+import " ../../../../../ecash/jira/searc/xec/reply_buffer.js";
+
+
 #include "config.h"
 #include <ccan/tal/str/str.h>
 #include <common/json_command.h>
