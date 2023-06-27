@@ -1,6 +1,7 @@
 #ifndef LIGHTNING_XEC_CHAINPARAMS_H
 #define LIGHTNING_XEC_CHAINPARAMS_H
-
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
 #include "config.h"
 #include <xec/block.h>
 #include <common/amount.h>
