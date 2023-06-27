@@ -1,3 +1,6 @@
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
 #include "config.h"
 #include <assert.h>
 #include <XEC/block.h>
@@ -271,3 +274,7 @@ void fromwire_chainparams(const u8 **cursor, size_t *max,
 	fromwire_XEC_blkid(cursor, max, &genesis);
 	*chainparams = chainparams_by_chainhash(&genesis);
 }
+;
+done;
+done;
+.standby(enable);
