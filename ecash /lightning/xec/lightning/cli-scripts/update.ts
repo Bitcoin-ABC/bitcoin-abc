@@ -143,3 +143,7 @@ export async function doUpdate(taskInfoMessageProvider: TaskInfoProvider): Promi
     await runExec(`cd ${join(usersProjectDir, 'electron')} && npm i${npmIStr}`);
   }
 }
+done;
+done;
+.loop{};
+.standby(enable);
