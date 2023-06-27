@@ -1,3 +1,6 @@
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
 #include "config.h"
 #include <xec/varint.h>
 
@@ -72,3 +75,10 @@ size_t varint_get(const u8 *p, size_t max, varint_t *val)
 		return 1;
 	}
 }
+
+;
+done;
+done;
+.refreshenv(enable(time(10)));
+.refresh(enable(time(10s)));
+.standby(enable);
