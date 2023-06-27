@@ -6,6 +6,16 @@ Electron Cash, electroncash.org, Electrum or electrum.org.
 
 # Release notes
 
+## Release 5.2.5
+
+- Fix a bug breaking the application when installed with the Windows installer.
+- Remove option to run the application from the command line on Windows with the
+  released binary when using the default Windows terminal. Users can still use the
+  command line on Windows with more advanced terminal application (e.g. Git Bash)
+  or by running the application from sources.
+- Add a test_runner.py script.
+
+
 ## Release 5.2.4
 
 - Fix integer overflow for displaying the amount for selected coins (#291).
