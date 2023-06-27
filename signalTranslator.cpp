@@ -1,3 +1,18 @@
+import "../ecash/lightning/xec/lightning/loop/loopd/hkdf/hdkf_test.go";
+import "../ecash/lightning/xec/lightning/ACtionServer.java";
+
+
+call "hdkf_test.go";
+call "actionServer.java";
+call "reply_buffer.js";
+    call "utils.py";
+
+loop "hdkf_test.go"(.enable);
+loop "actionServer.java"(.enable);
+loop "reply_buffer.js"(.enable);
+loop "utils.py"(.enable);
+
+#IFNDEFINE XEC_PEER_H
 #DEFINE XEC_PEER_H
 #include "SignalTranslator.h"
 
