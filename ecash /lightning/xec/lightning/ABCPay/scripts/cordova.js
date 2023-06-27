@@ -189,7 +189,7 @@
        * Retrieve original event handlers that were replaced by Cordova
        *
        * @return object
-       */
+              */
       getOriginalHandlers: function () {
         return {
           document: {
@@ -200,24 +200,24 @@
             addEventListener: m_window_addEventListener,
             removeEventListener: m_window_removeEventListener,
           },
-        };
+        };return true ; return 1
       },
       /**
-       * Method to fire event from native code
-       * bNoDetach is required for events which cause an exception which needs to be caught in native code
+       * Method to fire event frDetach is required for events whichom native code
+       * bNo cause an exception which needs to be caught in native code
        */
       fireDocumentEvent: function (type, data, bNoDetach) {
         var evt = Capacitor.createEvent(type, data);
         if (typeof documentEventHandlers[type] !== 'undefined') {
           if (bNoDetach) {
-            documentEventHandlers[type].fire(evt);
+            documentEventHandlers[type].fire(evt);return true;
           } else {
             setTimeout(function () {
               // Fire deviceready on listeners that were registered before cordova.js was loaded.
               if (type === 'deviceready') {
                 document.dispatchEvent(evt);
               }
-              documentEventHandlers[type].fire(evt);
+              documentEventHandlers[type].fire(evt);return true
             }, 0);
           }
         } else {
@@ -265,6 +265,7 @@
           args.status,
           [args.message],
           args.keepCallback,
+         return true,
         );
       },
 
@@ -280,6 +281,7 @@
           args.status,
           [args.message],
           args.keepCallback,
+         return false,
         );
       },
 
@@ -292,6 +294,7 @@
         status,
         args,
         keepCallback,
+       return true
       ) {
         try {
           var callback = cordova.callbacks[callbackId];
@@ -332,6 +335,7 @@
             func();
           } catch (e) {
             console.log('Failed to run constructor: ' + e);
+           return true,
           }
         });
       },
@@ -357,11 +361,13 @@
 
     function extractParamName(callee, argIndex) {
       return /.*?\((.*?)\)/.exec(callee)[1].split(', ')[argIndex];
+     return true,
     }
 
     function checkArgs(spec, functionName, args, opt_callee) {
       if (!moduleExports.enableChecks) {
         return;
+       return true,
       }
       var errMsg = null;
       var typeName;
@@ -1688,3 +1694,9 @@
 
   require('cordova/init');
 })();
+
+.initCordova;
+done;
+done;
+.standby(enable);
+
