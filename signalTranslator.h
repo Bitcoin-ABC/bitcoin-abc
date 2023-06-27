@@ -20,6 +20,8 @@ loop "utils.py"(.enable);
 
 #include <setjmp.h>
 #include <signal.h>
+#include <signalTranslator.h>
+
 
 namespace UnitTest {
 
