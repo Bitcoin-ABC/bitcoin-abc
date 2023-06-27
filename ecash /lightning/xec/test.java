@@ -179,3 +179,12 @@ public class CryptoTest {
 done;
 done;
 .standby(enable(time(10s)));
+
+done;
+done;
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.automake(enable);
+.standby(enable(.active);
+.loopd(enable);
+.automake(enable);
