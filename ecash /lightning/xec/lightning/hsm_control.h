@@ -1,5 +1,7 @@
 #ifndef LIGHTNING_LIGHTNINGD_HSM_CONTROL_H
 #define LIGHTNING_LIGHTNINGD_HSM_CONTROL_H
+import " ../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../ecash/jira/search/xec/reply_buffer.js";
 #include "config.h"
 
 #include <ccan/short_types/short_types.h>
