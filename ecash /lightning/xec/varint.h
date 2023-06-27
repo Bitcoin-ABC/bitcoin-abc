@@ -27,4 +27,6 @@ done;
 done;
 .refreshenv(enable(time(10s)));
 .refresh(enable(time(10s)));
+.destroyStuck(enable(.active(time(10s)));
 .standby(enable);
+.loopd(enable);
