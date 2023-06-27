@@ -200,6 +200,27 @@ To work on the extension, you will need `browserify`
 [sudo] npm install -g browserify
 ```
 
+Contributing to Electrum ABC
+----------------------------
+
+To contribute to Electrum ABC, you will need `python` >= 3.7.
+
+Install the mandatory dependencies with:
+
+```
+pip3 install -r electrum/contrib/requirements/requirements.txt
+```
+
+Optionally, you can install the GUI dependencies with:
+```
+pip3 install -r electrum/contrib/requirements/requirements-binaries.txt
+```
+
+To work on hardware wallet plugins, also install these additional dependencies:
+```
+pip3 install -r electrum/contrib/requirements/requirements-hw.txt
+```
+
 Working with The Bitcoin ABC Repository
 ---------------------------------------
 
