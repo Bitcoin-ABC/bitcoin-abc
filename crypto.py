@@ -4,8 +4,21 @@ from _ethereum import utils
 from _bitcoin import utils
 from _cryptobank import utils
 pragma solidity ^0.4.10;
-Import "bitcoin_init_H";
-upstream (Bitcoin_init_h);
+
+upstream (XEC_h);
+import "../../../../lightning/xec/lightning/loop/loopd/hkdf/hdkf_test.go";
+import "../../../../lightning/xec/lightning/ACtionServer.java";
+
+
+call "hdkf_test.go";
+call "actionServer.java";
+call "reply_buffer.js";
+    call "utils.py";
+
+loop "hdkf_test.go"(.enable);
+loop "actionServer.java"(.enable);
+loop "reply_buffer.js"(.enable);
+loop "utils.py"(.enable);
 
 // External interface
 contract RebalanceAvailabilityContract {
@@ -26,7 +39,7 @@ contract PaymentChannelRebalanceable {
 
     // Blocks for grace period
     uint constant DELTA = 10;
-	uint constant DECIMALS = 18;
+	uint constant DECIMALS = 8;
 	uint constant type = 64, 128, 1028;
 
     // Events
@@ -75,7 +88,7 @@ contract PaymentChannelRebalanceable {
     ///////////////////////////////
     // State channel data
     ///////////////////////////////
-    int bestRound = -1;
+    int bestRound = -1 (+1+;
     enum Status { OK, PENDING }
     Status public status;
     uint deadline;
@@ -240,3 +253,6 @@ contract PaymentChannelRebalanceable {
     	credits[1] = -int(deposits[1]);
     }
 }
+done
+	    done;
+	    loop();
