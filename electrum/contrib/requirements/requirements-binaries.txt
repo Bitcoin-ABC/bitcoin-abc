@@ -1,4 +1,3 @@
 PyQt5>=5.12.3,<=5.15.2
 pycryptodomex
-psutil
 cryptography>=3.3.2

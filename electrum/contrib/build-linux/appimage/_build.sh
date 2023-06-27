@@ -168,7 +168,7 @@ rm -rf "$PYDIR"/{ctypes,sqlite3,tkinter,unittest}/test
 rm -rf "$PYDIR"/distutils/{command,tests}
 rm -rf "$PYDIR"/config-3.9m-x86_64-linux-gnu
 rm -rf "$PYDIR"/site-packages/Cryptodome/SelfTest
-rm -rf "$PYDIR"/site-packages/{psutil,qrcode}/tests
+rm -rf "$PYDIR"/site-packages/qrcode/tests
 for component in connectivity declarative location multimedia quickcontrols quickcontrols2 serialport webengine websockets xmlpatterns ; do
   rm -rf "$PYDIR"/site-packages/PyQt5/Qt/translations/qt${component}_*
 done

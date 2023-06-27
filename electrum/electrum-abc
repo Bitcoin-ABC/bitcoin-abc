@@ -65,9 +65,6 @@ from electrumabc.wallet import (
     create_new_wallet,
 )
 
-# Import ok on other platforms, won't be called.
-from electrumabc.winconsole import create_or_attach_console
-
 # Workaround for PyQt5 5.12.3
 # see https://github.com/pyinstaller/pyinstaller/issues/4293
 if sys.platform == "win32" and hasattr(sys, "frozen") and hasattr(sys, "_MEIPASS"):
@@ -568,23 +565,6 @@ def main():
 
     # The hook will only be used in the Qt GUI right now
     util.setup_thread_excepthook()
-
-    # On windows, allocate a console if needed
-    if sys.platform.startswith("win"):
-        require_console = "-v" in sys.argv or "--verbose" in sys.argv
-        console_title = (
-            _(f"{PROJECT_NAME} - Verbose Output") if require_console else None
-        )
-        # Attempt to attach to ancestor process console. If create=True we will
-        # create a new console window if no ancestor process console exists.
-        # (Presumably if user ran with -v, they expect console output).
-        # The below is required to be able to get verbose or console output
-        # if running from cmd.exe (see spesmilo#2592, Electron-Cash#1295).
-        # The below will be a no-op if the terminal was msys/mingw/cygwin, since
-        # there will already be a console attached in that case.
-        # Worst case: The below will silently ignore errors so that startup
-        # may proceed unimpeded.
-        create_or_attach_console(create=require_console, title=console_title)
 
     # on osx, delete Process Serial Number arg generated for apps launched in Finder
     sys.argv = list(filter(lambda x: not x.startswith("-psn"), sys.argv))
