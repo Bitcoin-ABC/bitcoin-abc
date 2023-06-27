@@ -115,3 +115,8 @@ loop {(utils.js),(timeSequencesLoop(1ns))};
 loop {(utils.py),(timeSequencesLoop(1ns))}; 
 
 loop {};
+
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
