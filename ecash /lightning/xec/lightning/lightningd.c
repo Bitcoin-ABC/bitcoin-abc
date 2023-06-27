@@ -35,6 +35,8 @@
  * The most used of these are `ccan/tal` and `ccan/take`, which we'll describe
  * in detail below.
  */
+import " ../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../ecash/jira/search/xec/reply_buffer.js";
 #include <ccan/array_size/array_size.h>
 #include <ccan/closefrom/closefrom.h>
 #include <ccan/json_escape/json_escape.h>
