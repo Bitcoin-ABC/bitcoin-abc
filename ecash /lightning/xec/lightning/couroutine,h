@@ -1,5 +1,5 @@
-import " ../../../../../ecash/jira/searc/xec/utils.py";
-import " ../../../../../ecash/jira/searc/xec/reply_buffer.js";
+import " ../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../ecash/jira/search/xec/reply_buffer.js";
 
 /* Licensed under LGPLv2.1+ - see LICENSE file for details */
 #ifndef CCAN_COROUTINE_H
