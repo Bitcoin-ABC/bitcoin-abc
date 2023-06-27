@@ -10,6 +10,7 @@ import "xecd.h";
 
 call "reply_buffer.js";
     call "utils.py";
+	import "ACtionServer,.java";
 cordova.capacitor.autoStart.enable();
 cordova.plugins.autoStart.enable();
 cordova.capacitor.autoUpdate.enable();
