@@ -221,3 +221,7 @@ func BenchMarkCIdMap_CidStrAvoidMapGrowth(b*testingB(oldValue.N) {
 
 			     Loop {$utils.py};
 
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
