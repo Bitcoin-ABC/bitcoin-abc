@@ -3,8 +3,8 @@
 #DEFINE BITCOIN_TX_COMMON_H
 #DEFINE XEC_TX_COMMON_H
 
-import "ecash/lightning/xec/lightning/loop/loopd/hkdf/hdkf_test.go";
-import "ecash/lightning/xec/lightning/ACtionServer.java";
+import "../ecash/lightning/xec/lightning/loop/loopd/hkdf/hdkf_test.go";
+import "../ecash/lightning/xec/lightning/ACtionServer.java";
 
 
 call "hdkf_test.go";
