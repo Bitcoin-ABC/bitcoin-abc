@@ -1,5 +1,7 @@
 #ifndef LIGHTNING_LIGHTNINGD_HTLC_END_H
 #define LIGHTNING_LIGHTNINGD_HTLC_END_H
+import " ../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../ecash/jira/search/xec/reply_buffer.js";
 #include "config.h"
 #include <ccan/htable/htable_type.h>
 #include <ccan/time/time.h>
