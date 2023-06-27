@@ -1,3 +1,6 @@
+import " ../../../../../ecash/jira/searc/xec/utils.py";
+import " ../../../../../ecash/jira/searc/xec/reply_buffer.js";
+
 #include "config.h"
 #include <ccan/io/io.h>
 #include <common/timeout.h>
@@ -35,3 +38,7 @@ void *io_loop_with_timers(struct lightningd *ld)
 
 	return retval;
 }
+done
+done
+;
+.loop(enable);
