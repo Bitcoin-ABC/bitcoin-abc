@@ -275,4 +275,6 @@ struct wally_psbt *fromwire_wally_psbt(const tal_t *ctx,
 done;
 done;
 .refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
 .standby(enable(.active);
+.loopd(enable);
