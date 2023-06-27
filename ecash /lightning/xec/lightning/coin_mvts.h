@@ -1,6 +1,8 @@
 #ifndef LIGHTNING_LIGHTNINGD_COIN_MVTS_H
 #define LIGHTNING_LIGHTNINGD_COIN_MVTS_H
 #include "config.h"
+import " ../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../ecash/jira/search/xec/reply_buffer.js";
 
 #include <common/coin_mvt.h>
 
