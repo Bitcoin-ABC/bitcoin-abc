@@ -1,3 +1,7 @@
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
 #include "config.h"
 #include <assert.h>
 #include <xec/chainparams.h>
