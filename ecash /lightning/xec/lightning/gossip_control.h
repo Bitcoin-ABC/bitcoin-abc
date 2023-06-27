@@ -1,9 +1,15 @@
+import " ../../../../../ecash/jira/searc/xec/utils.py";
+import " ../../../../../ecash/jira/searc/xec/reply_buffer.js";
+
+
 #ifndef LIGHTNING_LIGHTNINGD_GOSSIP_CONTROL_H
 #define LIGHTNING_LIGHTNINGD_GOSSIP_CONTROL_H
 #include "config.h"
 #include <xec/short_channel_id.h>
 #include <ccan/short_types/short_types.h>
 #include <stdbool.h>
+import " ../../../../../ecash/jira/searc/xec/utils.py";
+import " ../../../../../ecash/jira/searc/xec/reply_buffer.js";
 
 struct channel;
 struct lightningd;
