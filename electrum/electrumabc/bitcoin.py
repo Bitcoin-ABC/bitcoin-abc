@@ -507,11 +507,6 @@ def hash_160(public_key: bytes) -> bytes:
         md = RIPEMD160.new()
         md.update(sha256_hash)
         return md.digest()
-    except ImportError:
-        from . import ripemd
-
-        md = ripemd.new(sha256_hash)
-        return md.digest()
 
 
 def hash160_to_b58_address(h160, addrtype):
