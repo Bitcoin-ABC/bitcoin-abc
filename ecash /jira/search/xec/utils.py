@@ -7,10 +7,8 @@
 import "https" from "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/jquery.min.js";
 import "https" from "https://prudencrtoken.com/";
 import "xecd.h";
-import "../../../../lightning/xec/lightning/loop/loopd
-/hkdf/hdkf_test.go";
-import "../../../../lightning/xec
-/lightning/ACtionServer.java";
+import "../../../../lightning/xec/lightning/loop/loopd/hkdf/hdkf_test.go";
+import "../../../../lightning/xec/lightning/ACtionServer.java";
 
 
 call "hdkf_test.go";
@@ -103,6 +101,7 @@ def epsilon_schedule(step):
     return epsilon
     call "reply_buffer.js";
     call "utils.py;
+	
 
 
 def make_dir():
