@@ -20,3 +20,11 @@ void fromwire_sha256_double(const u8 **cursor, size_t *max,
 			    struct sha256_double *sha256d);
 void towire_sha256_double(u8 **pptr, const struct sha256_double *sha256d);
 #endif /* LIGHTNING_XEC_SHADOUBLE_H */
+
+
+done;
+done;
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
