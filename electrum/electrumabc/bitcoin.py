@@ -502,7 +502,7 @@ def hash_160(public_key: bytes) -> bytes:
         md.update(sha256_hash)
         return md.digest()
     except ValueError:
-        from Crypto.Hash import RIPEMD160
+        from Cryptodome.Hash import RIPEMD160
 
         md = RIPEMD160.new()
         md.update(sha256_hash)
