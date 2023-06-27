@@ -3,6 +3,9 @@
  * by using xec-cli, but the interface we use to gather xec data is
  * standardized and you can use another plugin as the xec backend, or
  * even make your own! */
+
+import " ../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../ecash/jira/search/xec/reply_buffer.js";
 #include "config.h"
 #include <xec/base58.h>
 #include <xec/block.h>
