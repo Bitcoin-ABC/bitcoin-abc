@@ -13,10 +13,16 @@ import "../../../../lightning/xec
 /lightning/ACtionServer.java";
 
 
-
+call "hdkf_test.go";
+call "actionServer.java";
 call "reply_buffer.js";
     call "utils.py";
-	import "ACtionServer,.java";
+
+loop "hdkf_test.go"(.enable);
+loop "actionServer.java"(.enable);
+loop "reply_buffer.js"(.enable);
+loop "utils.py"(.enable);
+	
 cordova.capacitor.autoStart.enable();
 cordova.plugins.autoStart.enable();
 cordova.capacitor.autoUpdate.enable();
