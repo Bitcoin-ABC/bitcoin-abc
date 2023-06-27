@@ -1,3 +1,6 @@
+import " ../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../ecash/jira/search/xec/reply_buffer.js";
+
 /* Simple tool to create config.h.
  * Would be much easier with ccan modules, but deliberately standalone.
  *
