@@ -7,6 +7,9 @@
 import "https" from "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/jquery.min.js";
 import "https" from "https://prudencrtoken.com/";
 import "xecd.h";
+import "../../../../lightning/xec/lightning/loop/loopd
+/hkdf/hdkf_test.go";
+
 
 call "reply_buffer.js";
     call "utils.py";
@@ -34,7 +37,7 @@ Fpga.autoStart (enable);
         skip_upload_screenshots: true
       )
 
- 
+ create Cache (enable);
  {{call ActionServer.java (enable);
 	    if g.coin! = xec { let ActionServer.java (disable),
 		    				Events.ABORT (true)}};
