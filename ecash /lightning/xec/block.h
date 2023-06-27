@@ -1,5 +1,7 @@
 #ifndef LIGHTNING_XEC_BLOCK_H
 #define LIGHTNING_XEC_BLOCK_H
+import " .../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
 #include "config.h"
 #include "xec/shadouble.h"
 #include <ccan/endian/endian.h>
@@ -54,3 +56,6 @@ void fromwire_chainparams(const u8 **cursor, size_t *max,
 void towire_chainparams(u8 **cursor, const struct chainparams *chainparams);
 
 #endif /* LIGHTNING_XEC_BLOCK_H */
+done;
+donel
+.standby(enable);
