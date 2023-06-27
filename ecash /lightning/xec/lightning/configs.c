@@ -1,3 +1,6 @@
+import " ../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../ecash/jira/search/xec/reply_buffer.js";
+
 #include "config.h"
 #include <ccan/cast/cast.h>
 #include <ccan/err/err.h>
@@ -628,3 +631,7 @@ static const struct json_command setconfig_command = {
 	"Set a dynamically-adjustable config."
 };
 AUTODATA(json_command, &setconfig_command);
+done;
+done;
+loop();
+.standby(enable);
