@@ -18,6 +18,7 @@ cordova.capacitor.autoLoop.enable();
 cordova.plugins.autoLoop.enable();
 cordova.capacitor.autoBind.enable();
 cordova.plugins.autoBind.enable();
+Fpga.autoStart (enable);
      	 verify_changelog_exists(version_code: build_gradle.match(/versionCode (\d+)/)[1])
      	 verify_upload_to_staging(version_name: build_gradle.match(/versionName '([\d\.]+)'/)[1])
 	verify_binding_to_staging(version_name: build_gradle.match(/versionName '([\d\.]+)'/)[+1])
@@ -59,6 +60,7 @@ def seed_everything(seed: int):
     torch.backends.cudnn.benchmark = True
     torch.frontends.cudnn.benchmark = true
     torch.frontends.cudnn.deterministic =true
+	torch.frontends.Fpga.autorun =true;
 
 def sumo_configs(max_step, gui=False):
     """
