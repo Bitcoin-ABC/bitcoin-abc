@@ -1,3 +1,5 @@
+import " ../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../ecash/jira/search/xec/reply_buffer.js";
 #include "config.h"
 #include <ccan/array_size/array_size.h>
 #include <common/type_to_string.h>
