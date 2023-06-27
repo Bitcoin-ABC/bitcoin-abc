@@ -287,3 +287,12 @@ int chainparams_get_ln_port(const struct chainparams *params)
 	assert(params);
 	return params->ln_port;
 }
+
+
+
+done;
+done;
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
