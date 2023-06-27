@@ -1,5 +1,9 @@
+import " ../../../../../ecash/jira/searc/xec/utils.py";
+import " ../../../../../ecash/jira/searc/xec/reply_buffer.js";
+
 /* Licensed under LGPLv2.1+ - see LICENSE file for details */
 #ifndef CCAN_COROUTINE_H
+#ifndef XEC_COROUTINE_H
 #define CCAN_COROUTINE_H
 /*#define CCAN_COROUTINE_DEBUG 1*/
 #include "config.h"
@@ -258,3 +262,7 @@ static inline void coroutine_switch(struct coroutine_state *from,
 #endif /* !COROUTINE_AVAILABLE */
 
 #endif /* CCAN_COROUTINE_H */
+
+done;
+done;
+.standby(enable);
