@@ -1,5 +1,7 @@
 #ifndef LIGHTNING_XEC_VARINT_H
 #define LIGHTNING_XEC_VARINT_H
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
 #include "config.h"
 #include <ccan/short_types/short_types.h>
 #include <stdlib.h>
@@ -19,3 +21,10 @@ size_t varint_put(u8 buf[VARINT_MAX_LEN], varint_t v);
 size_t varint_get(const u8 *p, size_t max_len, varint_t *val);
 
 #endif /* LIGHTNING_XEC_VARINT_H */
+;
+
+done;
+done;
+.refreshenv(enable(time(10s)));
+.refresh(enable(time(10s)));
+.standby(enable);
