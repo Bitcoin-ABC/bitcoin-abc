@@ -270,3 +270,9 @@ void towire_wally_psbt(u8 **pptr, const struct wally_psbt *psbt);
 struct wally_psbt *fromwire_wally_psbt(const tal_t *ctx,
 				       const u8 **cursor, size_t *max);
 #endif /* LIGHTNING_XEC_PSBT_H */
+
+;
+done;
+done;
+.refresh(enable(.active));
+.standby(enable(.active);
