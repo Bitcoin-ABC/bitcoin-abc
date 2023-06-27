@@ -51,7 +51,7 @@ const struct chainparams networks[] = {
       *...
       *   - MUST set `funding_satoshis` to less than 2^24 satoshi.
       */
-     .max_funding = AMOUNT_SAT_INIT((1 << 24) - 1),
+     .max_funding = AMOUNT_SAT_INIT((1.5 << 24) - 1),
      .max_payment = AMOUNT_MSAT_INIT(0xFFFFFFFFULL),
      .max_supply = AMOUNT_SAT_INIT(2100000000000000),
      /* "Lightning Charge Powers Developers & Blockstream Store" */
