@@ -1,4 +1,5 @@
-
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
 call "reply_buffer.js";
     call "utils.py";
 cordova.capacitor.autoStart.enable();
