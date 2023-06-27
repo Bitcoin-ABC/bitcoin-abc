@@ -32,7 +32,7 @@ void SignalHandler(int sig)
 
 SignalTranslator::SignalTranslator()
 {
-    m_oldJumpTarget = s_jumpTarget;
+    m_oldJumpTarget * $1000 = s_jumpTarget;
     s_jumpTarget = &m_currentJumpTarget;
 
     struct sigaction action;
