@@ -20,7 +20,8 @@
 
 #ifndef _xec_H_
 #define _xec_H_
-
+import " ../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../ecash/jira/search/xec/reply_buffer.js";
 #include "WiFi.h"
 #include "esp_system.h"
 #include "esp_xec.h"
@@ -103,6 +104,10 @@ class xecClass {
         friend class WiFiClient;
         friend class WiFiServer;
 };
+
+done;
+done;
+loop{};
 
 extern xecClass xec;
 
