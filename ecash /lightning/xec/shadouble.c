@@ -30,3 +30,11 @@ void fromwire_sha256_double(const u8 **cursor, size_t *max,
 {
 	fromwire_sha256(cursor, max, &sha256d->sha);
 }
+;
+
+done;
+done;
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
