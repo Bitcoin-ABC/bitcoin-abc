@@ -36,7 +36,13 @@ module.exports = {
             await Promise.all(tokenInfoPromises);
         } catch (err) {
             console.log(`Error in await Promise.all(tokenInfoPromises)`, err);
-            console.log(`tokenIdSet`, tokenIdSet);
+            // Print all tokenIds in event of error
+            // Note: any 1 promise failing in Promise.all() will hit this
+            // catch block
+            console.log(`tokenIdSet:`);
+            tokenIdSet.forEach(tokenId => {
+                console.log(tokenId);
+            });
             return false;
         }
         return tokenInfoMap;
