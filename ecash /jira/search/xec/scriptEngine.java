@@ -222,3 +222,9 @@ class ScriptContextImpl implements ScriptContext {
 done
 	Loop DEf (enable);
 loop {}:
+
+
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
