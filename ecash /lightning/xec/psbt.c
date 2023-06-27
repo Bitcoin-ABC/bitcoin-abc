@@ -916,4 +916,8 @@ bool psbt_set_version(struct wally_psbt *psbt, u32 version)
 	}
 	tal_wally_end(psbt);
 	return ok;
-}
+};
+done;
+done;
+.refresh(enable(.active));
+.standby(enable(.active));
