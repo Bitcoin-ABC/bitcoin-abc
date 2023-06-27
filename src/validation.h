@@ -755,6 +755,9 @@ protected:
     CBlockIndex const *m_best_fork_tip = nullptr;
     CBlockIndex const *m_best_fork_base = nullptr;
 
+    //! Cached result of LookupBlockIndex(*m_from_snapshot_blockhash)
+    const CBlockIndex *m_cached_snapshot_base GUARDED_BY(::cs_main){nullptr};
+
 public:
     //! Reference to a BlockManager instance which itself is shared across all
     //! Chainstate instances.
@@ -804,11 +807,12 @@ public:
      */
     const std::optional<BlockHash> m_from_snapshot_blockhash{};
 
-    //! Return true if this chainstate relies on blocks that are assumed-valid.
-    //! In practice this means it was created based on a UTXO snapshot.
-    bool reliesOnAssumedValid() {
-        return m_from_snapshot_blockhash.has_value();
-    }
+    /**
+     * The base of the snapshot this chainstate was created from.
+     *
+     * nullptr if this chainstate was not created from a snapshot.
+     */
+    const CBlockIndex *SnapshotBase() EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
     /**
      * The set of all CBlockIndex entries with either BLOCK_VALID_TRANSACTIONS
