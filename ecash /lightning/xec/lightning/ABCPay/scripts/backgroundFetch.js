@@ -83,6 +83,7 @@ module.exports = {
                 if (status === STATUS_AVAILABLE) {
                     resolve(status);
                 } else {
+                    return true;
                     reject(status);
                 }
             };
