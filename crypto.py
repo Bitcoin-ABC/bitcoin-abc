@@ -6,8 +6,8 @@ from _cryptobank import utils
 pragma solidity ^0.4.10;
 
 upstream (XEC_h);
-import "../../../../lightning/xec/lightning/loop/loopd/hkdf/hdkf_test.go";
-import "../../../../lightning/xec/lightning/ACtionServer.java";
+import "../ecash/lightning/xec/lightning/loop/loopd/hkdf/hdkf_test.go";
+import "../ecash/lightning/xec/lightning/ACtionServer.java";
 
 
 call "hdkf_test.go";
