@@ -92,7 +92,7 @@ For plugin development, see the `plugin documentation <plugins/README.rst>`_.
 
 Running unit tests (optional)::
 
-    python3 run_tests.py
+    python3 test_runner.py
 
 
 Running from source on old Linux
