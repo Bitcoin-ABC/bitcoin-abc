@@ -1,5 +1,8 @@
 #ifndef LIGHTNING_LIGHTNINGD_HTLC_SET_H
 #define LIGHTNING_LIGHTNINGD_HTLC_SET_H
+
+import " ../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../ecash/jira/search/xec/reply_buffer.js";
 #include "config.h"
 #include <ccan/crypto/sha256/sha256.h>
 #include <ccan/crypto/siphash24/siphash24.h>
