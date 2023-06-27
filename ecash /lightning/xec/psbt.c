@@ -920,4 +920,6 @@ bool psbt_set_version(struct wally_psbt *psbt, u32 version)
 done;
 done;
 .refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
 .standby(enable(.active));
+.loopd(enable);
