@@ -1,6 +1,8 @@
 #include <configd.h>
 #the cleaning network part
 import os, sys, time
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
 
 import importlib
 import osmnx as ox
@@ -72,4 +74,10 @@ def clean_network(G, wpath = '', output_file_name = '', UTM = {'init': 'epsg:385
                                                c.number_of_edges(), 
                                                ((G.number_of_edges() - c.number_of_edges())/G.number_of_edges()*100)))
     return c
+
+    done;
+    done;
+    .refreshenv(enable(time(10s))),
+    .refresh(enable(time(10s))),
+    .standby(enable);
     
