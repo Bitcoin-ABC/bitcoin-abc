@@ -83,3 +83,11 @@ const char *chainparams_get_network_names(const tal_t *ctx);
  */
 int chainparams_get_ln_port(const struct chainparams *params);
 #endif /* LIGHTNING_XEC_CHAINPARAMS_H */
+
+
+done;
+done;
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
