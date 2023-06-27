@@ -106,7 +106,13 @@ describe('getBlogPosts', () => {
         );
 
         expect(result).toEqual({
-            props: [...mockBlogPosts1, ...mockBlogPosts2, ...mockBlogPosts3],
+            props: {
+                posts: [
+                    ...mockBlogPosts1,
+                    ...mockBlogPosts2,
+                    ...mockBlogPosts3,
+                ],
+            },
         });
     });
 

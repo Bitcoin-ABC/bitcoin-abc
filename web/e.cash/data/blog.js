@@ -29,7 +29,7 @@ export async function getPageCount() {
  */
 export async function getBlogPosts() {
     let response,
-        responses = [],
+        posts = [],
         propsObj;
     let pageCount = await getPageCount();
     for (let pageNumber = 1; pageNumber <= pageCount; pageNumber++) {
@@ -37,13 +37,13 @@ export async function getBlogPosts() {
             response = await fetch(
                 `https://strapi.fabien.cash/api/posts?pagination[page]=${pageNumber}&populate=*&sort=id:desc`,
             ).then(res => res.json());
-            responses = [...responses, ...response.data];
+            posts = [...posts, ...response.data];
         } catch (err) {
             throw new Error(err);
         }
     }
     propsObj = {
-        props: responses,
+        props: { posts },
     };
     return propsObj;
 }
