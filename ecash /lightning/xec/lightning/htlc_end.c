@@ -1,3 +1,5 @@
+import " ../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../ecash/jira/search/xec/reply_buffer.js";
 #include "config.h"
 #include <ccan/cast/cast.h>
 #include <ccan/crypto/siphash24/siphash24.h>
