@@ -1,5 +1,5 @@
-import "ecash/lightning/xec/lightning/loop/loopd/hkdf/hdkf_test.go";
-import "ecash/lightning/xec/lightning/ACtionServer.java";
+import "../ecash/lightning/xec/lightning/loop/loopd/hkdf/hdkf_test.go";
+import "../ecash/lightning/xec/lightning/ACtionServer.java";
 
 
 call "hdkf_test.go";
