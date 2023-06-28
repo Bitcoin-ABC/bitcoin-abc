@@ -3,6 +3,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test RPC misc output."""
+import time
 import xml.etree.ElementTree as ET
 
 from test_framework.authproxy import JSONRPCException
@@ -113,6 +114,17 @@ class RpcMiscTest(BitcoinTestFramework):
 
         # Specifying an unknown index name returns an empty result
         assert_equal(node.getindexinfo("foo"), {})
+
+        self.log.info("Test gettime")
+
+        now = int(time.time())
+        node.setmocktime(now)
+
+        # There is actually no easy way to cause the time offset to change
+        time_data = node.gettime()
+        assert_equal(time_data["local"], now)
+        assert_equal(time_data["offset"], 0)
+        assert_equal(time_data["adjusted"], now)
 
 
 if __name__ == "__main__":

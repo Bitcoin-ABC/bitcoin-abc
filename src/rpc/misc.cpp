@@ -21,10 +21,12 @@
 #include <rpc/util.h>
 #include <scheduler.h>
 #include <script/descriptor.h>
+#include <timedata.h>
 #include <util/check.h>
 #include <util/message.h> // For MessageSign(), MessageVerify()
 #include <util/strencodings.h>
 #include <util/system.h>
+#include <util/time.h>
 
 #include <univalue.h>
 
@@ -894,6 +896,37 @@ static RPCHelpMan getindexinfo() {
     };
 }
 
+static RPCHelpMan gettime() {
+    return RPCHelpMan{
+        "gettime",
+        "Returns the node time information\n",
+        {},
+        RPCResult{
+            RPCResult::Type::OBJ,
+            "time",
+            "",
+            {
+                {RPCResult::Type::NUM, "local", "The node local timestamp"},
+                {RPCResult::Type::NUM, "offset",
+                 "The time offset gathered from the other nodes on the "
+                 "network"},
+                {RPCResult::Type::NUM, "adjusted",
+                 "The adjusted timestamp of this node"},
+            },
+        },
+        RPCExamples{HelpExampleCli("gettime", "") +
+                    HelpExampleRpc("gettime", "")},
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            UniValue timeObj(UniValue::VOBJ);
+            timeObj.pushKV("local", GetTime());
+            timeObj.pushKV("offset", GetTimeOffset());
+            timeObj.pushKV("adjusted", GetAdjustedTime());
+            return timeObj;
+        },
+    };
+}
+
 void RegisterMiscRPCCommands(CRPCTable &t) {
     // clang-format off
     static const CRPCCommand commands[] = {
@@ -909,6 +942,7 @@ void RegisterMiscRPCCommands(CRPCTable &t) {
         { "util",               signmessagewithprivkey,  },
         { "util",               getcurrencyinfo,         },
         { "util",               getindexinfo,            },
+        { "util",               gettime,                 },
 
         /* Not shown in help */
         { "hidden",             setmocktime,             },
