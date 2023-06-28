@@ -1543,9 +1543,9 @@ module.exports = {
             // Line break for new section
             tgMsg.push('');
 
-            // App txs:
+            // 1 eCash tx | tx fee in satoshis per byte
             // or
-            // App tx:
+            // n eCash txs | tx fee in satoshis per byte
             tgMsg.push(
                 `${xecSendTxTgMsgLines.length} eCash tx${
                     xecSendTxTgMsgLines.length > 1 ? `s` : ''
