@@ -368,11 +368,9 @@ export const isValidCashtabCache = cashtabCache => {
     // Check that every key in currency.defaultCashtabCache is also in this cashtabCache
     const cashtabCacheKeys = Object.keys(currency.defaultCashtabCache);
     for (let i = 0; i < cashtabCacheKeys.length; i += 1) {
-        const thisKey = cashtabCacheKeys[i];
-        if (thisKey in cashtabCache) {
-            continue;
+        if (!(cashtabCacheKeys[i] in cashtabCache)) {
+            return false;
         }
-        return false;
     }
 
     // Check that tokenInfoById is expected type and that tokenIds are valid
