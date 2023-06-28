@@ -27,6 +27,8 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import base64
+import json
+import os.path
 import sys
 import threading
 import time
@@ -40,6 +42,7 @@ from electrumabc.constants import PROJECT_NAME, RELEASES_JSON_URL
 from electrumabc.i18n import _
 from electrumabc.networks import MainNet
 from electrumabc.printerror import PrintError, print_error
+from electrumabc.simple_config import SimpleConfig
 
 from .util import Buttons
 
@@ -89,8 +92,9 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
         ),
     )
 
-    def __init__(self, parent=None):
+    def __init__(self, config: SimpleConfig, parent=None):
         super().__init__(parent)
+        self.is_test_run = config.get("test_release_notification", False)
         self.setWindowTitle(f"{PROJECT_NAME} - " + _("Update Checker"))
         self.content = QtWidgets.QVBoxLayout()
         self.content.setContentsMargins(*([10] * 4))
@@ -110,9 +114,12 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
         self.content.addWidget(self.pb)
 
         versions = QtWidgets.QHBoxLayout()
-        versions.addWidget(
-            QtWidgets.QLabel(_(f"Current version: {version.PACKAGE_VERSION}"))
+        current_version_message = (
+            _(f"Current version: {version.PACKAGE_VERSION}")
+            if not self.is_test_run
+            else "Test run"
         )
+        versions.addWidget(QtWidgets.QLabel(current_version_message))
         self.latest_version_label = QtWidgets.QLabel(_(f"Latest version: {' '}"))
         versions.addWidget(self.latest_version_label)
         self.content.addLayout(versions)
@@ -219,13 +226,15 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
             return None
         return version.PACKAGE_VERSION
 
-    @classmethod
-    def _my_version(cls):
-        if getattr(cls, "_my_version_parsed", None) is None:
-            cls._my_version_parsed = version.parse_package_version(
+    def _my_version(self):
+        if self.is_test_run:
+            # Return a lower version to always trigger the notification
+            return 0, 0, 0, ""
+        if getattr(self, "_my_version_parsed", None) is None:
+            self._my_version_parsed = version.parse_package_version(
                 version.PACKAGE_VERSION
             )
-        return cls._my_version_parsed
+        return self._my_version_parsed
 
     @classmethod
     def _parse_version(cls, version_msg):
@@ -239,10 +248,9 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
             )
             raise
 
-    @classmethod
-    def is_matching_variant(cls, version_msg, *, return_parsed=False):
-        parsed_version = cls._parse_version(version_msg)
-        me = cls._my_version()
+    def is_matching_variant(self, version_msg, *, return_parsed=False):
+        parsed_version = self._parse_version(version_msg)
+        me = self._my_version()
         # last element of tuple is always a string, the 'variant'
         # (may be '' for EC Regular)
         ret = me[-1] == parsed_version[-1]
@@ -250,12 +258,11 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
             return ret, parsed_version
         return ret
 
-    @classmethod
-    def is_newer(cls, version_msg):
-        yes, parsed = cls.is_matching_variant(version_msg, return_parsed=True)
+    def is_newer(self, version_msg):
+        yes, parsed = self.is_matching_variant(version_msg, return_parsed=True)
         # make sure it's the same variant as us eg SLP, CS, '' regular, etc..
         if yes:
-            v_me = cls._my_version()[:-1]
+            v_me = self._my_version()[:-1]
             v_server = parsed[:-1]
             return v_server > v_me
         return False
@@ -336,7 +343,7 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
         if not self.active_req:
             self.last_checked_ts = time.time()
             self._update_view()
-            self.active_req = _Req(self)
+            self.active_req = _Req(self, self.is_test_run)
 
     def did_check_recently(self, secs=10.0):
         return time.time() - self.last_checked_ts < secs
@@ -388,12 +395,21 @@ class _Req(threading.Thread, PrintError):
     """
 
     url = RELEASES_JSON_URL
+    local_path = os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        "..",
+        "contrib",
+        "update_checker",
+        "releases.json",
+    )
 
-    def __init__(self, checker):
+    def __init__(self, checker, is_test_run: bool):
         super().__init__(daemon=True)
         self.checker = checker
         self.aborted = False
         self.json = None
+        self.is_test_run = is_test_run
         self.start()
 
     def abort(self):
@@ -405,7 +421,8 @@ class _Req(threading.Thread, PrintError):
     def run(self):
         self.checker._dl_prog.emit(self, 10)
         try:
-            self.print_error("Requesting from", self.url, "...")
+            source = self.url if not self.is_test_run else self.local_path
+            self.print_error("Requesting from", source, "...")
             self.json, self.url = self._do_request(self.url)
             self.checker._dl_prog.emit(self, 100)
         except Exception:
@@ -417,6 +434,18 @@ class _Req(threading.Thread, PrintError):
             self.checker._req_finished.emit(self)
 
     def _do_request(self, url):
+        if self.is_test_run:
+            # Fetch the data in the local repository to test the signature
+            if not os.path.isfile(self.local_path):
+                raise RuntimeError(
+                    f"{self.local_path} file not found. Did you not run the application"
+                    " from sources?"
+                )
+            with open(self.local_path, "r", encoding="utf-8") as f:
+                json_data = json.loads(f.read())
+            self.print_msg(json_data)
+            return json_data, self.url
+
         # will raise requests.exceptions.Timeout on timeout
         response = requests.get(url, allow_redirects=True, timeout=30.0)
 

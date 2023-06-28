@@ -60,3 +60,14 @@ Notice how the version string is different, the signing address happened to rema
 -  Open up Electrum ABC and go to that address in the "Addresses" tab and right click on it, selecting **"Sign/Verify Message"**
 -  The message to be signed is the version string you will put into the JSON, so for example the simple string `3.3.5` in the example above.
 -  Hit **sign**, and paste the signature text into the JSON (and signing address, of course, if it's changed).
+
+##### How do I test the signature
+
+Before pushing the commit to the remote repository, it is possible to test locally that a signature is correct.
+For this, run the application from sources with the `--test-release-notification` command line option.
+
+```
+./electrum-abc -v --test-release-notification
+```
+
+To trigger the version check manually, go to the *Help* menu and click *Check for updates*.

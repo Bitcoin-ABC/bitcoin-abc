@@ -248,7 +248,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         # also deletes itself)
         self._wallet_password_cache = Weak.KeyDictionary()
         # /
-        self.update_checker = UpdateChecker()
+        self.update_checker = UpdateChecker(self.config)
         self.update_checker_timer = QtCore.QTimer(self)
         self.update_checker_timer.timeout.connect(self.on_auto_update_timeout)
         self.update_checker_timer.setSingleShot(False)

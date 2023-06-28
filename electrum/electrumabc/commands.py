@@ -1381,6 +1381,11 @@ def add_global_options(parser):
         default=False,
         help="Use Regtest",
     )
+    group.add_argument(
+        "--test-release-notification",
+        action="store_true",
+        help="fetch release notification data from current source tree",
+    )
 
 
 def get_parser():
