@@ -33,7 +33,6 @@ add_executable(fuzz EXCLUDE_FROM_ALL
 	crypto_aes256.cpp
 	crypto_aes256cbc.cpp
 	crypto_chacha20.cpp
-	crypto_chacha20_poly1305_aead.cpp
 	crypto_common.cpp
 	crypto_hkdf_hmac_sha256_l32.cpp
 	crypto_poly1305.cpp

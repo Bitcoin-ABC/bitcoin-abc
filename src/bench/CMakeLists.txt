@@ -41,7 +41,6 @@ add_executable(bitcoin-bench
 	block_assemble.cpp
 	cashaddr.cpp
 	ccoins_caching.cpp
-	chacha_poly_aead.cpp
 	chacha20.cpp
 	chained_tx.cpp
 	checkblock.cpp
