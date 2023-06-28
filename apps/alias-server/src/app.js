@@ -6,7 +6,7 @@ const config = require('../config');
 const express = require('express');
 var cors = require('cors');
 const requestIp = require('request-ip');
-const { getAliasInfoFromAlias } = require('./db');
+const { getAliasInfoFromAlias, getAliasInfoFromAddress } = require('./db');
 
 module.exports = {
     startServer: function (db, port) {
@@ -64,6 +64,30 @@ module.exports = {
                 // Return error response
                 res.status(500).json({
                     error: `Error fetching /alias/${alias}${
+                        err && err.message ? `: ${err.message}` : ''
+                    }`,
+                });
+            }
+        });
+
+        app.get('/address/:address', async function (req, res) {
+            // Get the requested alias
+            const address = req.params.address;
+
+            // Log the request
+            console.log(
+                `/address/${address} from IP: ${req.clientIp}, host ${req.headers.host}`,
+            );
+
+            // Lookup the aliases at given address
+            try {
+                return res
+                    .status(200)
+                    .json(await getAliasInfoFromAddress(db, address));
+            } catch (err) {
+                // Return error response
+                res.status(500).json({
+                    error: `Error fetching /address/${address}${
                         err && err.message ? `: ${err.message}` : ''
                     }`,
                 });

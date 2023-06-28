@@ -37,6 +37,40 @@ e.g. for an unregistered alias, `localhost:5000/alias/unregisteredalias`
 }
 ```
 
+`/address/<address>`
+
+e.g. for an address with registered aliases, `localhost:5000/address/<validAddressWithRegisteredAliases>`
+
+```
+[
+  {
+    address: '<address>',
+    alias: <alias1>,
+    blockheight: <blockheight>,
+    txid: '<txid>',
+  },
+  {
+    address: '<address>',
+    alias: <alias2>,
+    blockheight: <blockheight>,
+    txid: '<txid>',
+  },
+  ...
+  {
+    address: '<address>',
+    alias: <aliasN>,
+    blockheight: <blockheight>,
+    txid: '<txid>',
+  },
+]
+```
+
+e.g. for an address with no registered aliases, `localhost:5000/address/<validAddressWithNoRegisteredAliases>`
+
+```
+[]
+```
+
 ## Requirements
 
 You will need a local instance of MongoDB. See installation instructions [here](https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/).

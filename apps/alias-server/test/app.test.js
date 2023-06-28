@@ -95,7 +95,134 @@ describe('alias-server app.js', function () {
             .expect(500)
             .expect('Content-Type', /json/)
             .expect({
-                error: `Error fetching /alias/test: Error finding alias "${testAlias}" in database`,
+                error: `Error fetching /alias/${testAlias}: Error finding alias "${testAlias}" in database`,
+            });
+    });
+    it('/address/:address returns an empty array if there are no registered aliases for the given address', function () {
+        const validAddress = 'ecash:qphpmfj0qn7znklqhrfn5dq7qh36l3vxav9up3h67g';
+        return request(app)
+            .get(`/address/${validAddress}`)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect([]);
+    });
+    it('/address/:address returns an empty array if there are no registered aliases for the given address and input is prefixless but has valid checksum', function () {
+        const validAddress = 'qphpmfj0qn7znklqhrfn5dq7qh36l3vxav9up3h67g';
+        return request(app)
+            .get(`/address/${validAddress}`)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect([]);
+    });
+    it('/address/:address returns an array of length 1 if there is one registered alias for the given address', async function () {
+        // newValidAliases needs to be a clone of the mock because
+        // each object gets an _id field when added to the database
+        const newValidAliases = JSON.parse(
+            JSON.stringify(generated.validAliasRegistrations),
+        );
+        await addOneAliasToDb(testDb, newValidAliases[0]);
+        const { address } = newValidAliases[0];
+        return request(app)
+            .get(`/address/${address}`)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect([generated.validAliasRegistrations[0]]);
+    });
+    it('/address/:address returns an array of length 1 if there is one registered alias for the given address and given address is prefixless but valid checksum', async function () {
+        // newValidAliases needs to be a clone of the mock because
+        // each object gets an _id field when added to the database
+        const newValidAliases = JSON.parse(
+            JSON.stringify(generated.validAliasRegistrations),
+        );
+        await addOneAliasToDb(testDb, newValidAliases[0]);
+        const { address } = newValidAliases[0];
+        return request(app)
+            .get(`/address/${address.slice('ecash:'.length)}`)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect([generated.validAliasRegistrations[0]]);
+    });
+    it('/address/:address returns an array of multiple alias registrations if there are multiple registered aliases for the given address', async function () {
+        // Add aliases
+        // newValidAliases needs to be a clone of the mock because
+        // each object gets an _id field when added to the database
+        const newValidAliases = JSON.parse(
+            JSON.stringify(generated.validAliasRegistrations),
+        );
+        const { address } = newValidAliases[0];
+        // Pre-populate the aliases collection
+        await addAliasesToDb(testDb, newValidAliases);
+
+        // Get the expected array using array filtering
+        // This way, if the mocks change, the expected result updates appropriately
+        const expectedResult = generated.validAliasRegistrations.filter(
+            aliasObj => {
+                if (aliasObj.address === address) {
+                    return aliasObj;
+                }
+            },
+        );
+        return request(app)
+            .get(`/address/${address}`)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect(expectedResult);
+    });
+    it('/address/:address returns an array of multiple alias registrations if there are multiple registered aliases for the given address and input is prefixless with valid checksum', async function () {
+        // Add aliases
+        // newValidAliases needs to be a clone of the mock because
+        // each object gets an _id field when added to the database
+        const newValidAliases = JSON.parse(
+            JSON.stringify(generated.validAliasRegistrations),
+        );
+        const { address } = newValidAliases[0];
+        // Pre-populate the aliases collection
+        await addAliasesToDb(testDb, newValidAliases);
+
+        // Get the expected array using array filtering
+        // This way, if the mocks change, the expected result updates appropriately
+        const expectedResult = generated.validAliasRegistrations.filter(
+            aliasObj => {
+                if (aliasObj.address === address) {
+                    return aliasObj;
+                }
+            },
+        );
+        return request(app)
+            .get(`/address/${address.slice('ecash:'.length)}`)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect(expectedResult);
+    });
+    it('/address/:address returns an error on valid address that is not ecash: prefixed', function () {
+        const etokenAddress =
+            'etoken:qphpmfj0qn7znklqhrfn5dq7qh36l3vxavtzgnpa6l';
+        return request(app)
+            .get(`/address/${etokenAddress}`)
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                error: `Error fetching /address/${etokenAddress}: Input must be a valid eCash address`,
+            });
+    });
+    it('/address/:address returns an error on a string that is not a valid ecash address', function () {
+        const invalidAddress = 'justSomeString';
+        return request(app)
+            .get(`/address/${invalidAddress}`)
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                error: `Error fetching /address/${invalidAddress}: Input must be a valid eCash address`,
+            });
+    });
+    it('/address/:address returns an error on database error', function () {
+        const validAddress = 'ecash:qphpmfj0qn7znklqhrfn5dq7qh36l3vxav9up3h67g';
+        return request(dbErrorApp)
+            .get(`/address/${validAddress}`)
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                error: `Error fetching /address/${validAddress}: Error finding aliases for address ${validAddress} in database`,
             });
     });
 });
