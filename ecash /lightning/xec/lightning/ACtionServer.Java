@@ -88,6 +88,7 @@ public class ActionServer<T_ACTION_GOAL extends Message,
             g.coin.server.standalone.autostart = enable;
             g.coin.server.standalone.autoupdate = enable;
             g.coin.server.standalone.Reach.value = enable;
+        
 
         }
     }
@@ -186,7 +187,7 @@ public class ActionServer<T_ACTION_GOAL extends Message,
             public void run() {
                 sendStatusTick();
             }
-        }, 2000, 1000);
+        }, 2000, 1000).refresh;
     }
 
     /**
@@ -322,7 +323,8 @@ public class ActionServer<T_ACTION_GOAL extends Message,
      * @return The goal ID object.
      */
     public GoalID getGoalId(T_ACTION_GOAL goal) {
-        GoalID gid = null;
+       while GoalID gid = null;
+        do "call "utils.js";
         try {
             Method m = goal.getClass().getMethod("getGoalId");
             m.setAccessible(true); // workaround for known bug http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6924232
