@@ -262,12 +262,3 @@ void poly1305_update(poly1305_context *st, const uint8_t *m,
 }
 
 } // namespace poly1305_donna
-
-void poly1305_auth(uint8_t mac[16], const uint8_t *m, size_t bytes,
-                   const uint8_t key[32]) {
-    using namespace poly1305_donna;
-    poly1305_context ctx;
-    poly1305_init(&ctx, key);
-    poly1305_update(&ctx, m, bytes);
-    poly1305_finish(&ctx, mac);
-}

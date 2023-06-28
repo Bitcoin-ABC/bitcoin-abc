@@ -7,17 +7,19 @@
 #include <bench/bench.h>
 #include <crypto/poly1305.h>
 
+#include <span.h>
+
 /* Number of bytes to process per iteration */
 static constexpr uint64_t BUFFER_SIZE_TINY = 64;
 static constexpr uint64_t BUFFER_SIZE_SMALL = 256;
 static constexpr uint64_t BUFFER_SIZE_LARGE = 1024 * 1024;
 
 static void POLY1305(benchmark::Bench &bench, size_t buffersize) {
-    std::vector<uint8_t> tag(POLY1305_TAGLEN, 0);
-    std::vector<uint8_t> key(POLY1305_KEYLEN, 0);
-    std::vector<uint8_t> in(buffersize, 0);
+    std::vector<std::byte> tag(Poly1305::TAGLEN, {});
+    std::vector<std::byte> key(Poly1305::KEYLEN, {});
+    std::vector<std::byte> in(buffersize, {});
     bench.batch(in.size()).unit("byte").run(
-        [&] { poly1305_auth(tag.data(), in.data(), in.size(), key.data()); });
+        [&] { Poly1305{key}.Update(in).Finalize(tag); });
 }
 
 static void POLY1305_64BYTES(benchmark::Bench &bench) {

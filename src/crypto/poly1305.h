@@ -11,8 +11,6 @@
 #include <cstdint>
 #include <cstdlib>
 
-#define POLY1305_KEYLEN 32
-#define POLY1305_TAGLEN 16
 #define POLY1305_BLOCK_SIZE 16
 
 namespace poly1305_donna {
@@ -42,10 +40,10 @@ class Poly1305 {
 
 public:
     /** Length of the output produced by Finalize(). */
-    static constexpr unsigned TAGLEN = POLY1305_TAGLEN;
+    static constexpr unsigned TAGLEN{16};
 
     /** Length of the keys expected by the constructor. */
-    static constexpr unsigned KEYLEN = POLY1305_KEYLEN;
+    static constexpr unsigned KEYLEN{32};
 
     /** Construct a Poly1305 object with a given 32-byte key. */
     Poly1305(Span<const std::byte> key) noexcept {
@@ -66,7 +64,5 @@ public:
         poly1305_donna::poly1305_finish(&m_ctx, UCharCast(out.data()));
     }
 };
-void poly1305_auth(uint8_t out[POLY1305_TAGLEN], const uint8_t *m, size_t inlen,
-                   const uint8_t key[POLY1305_KEYLEN]);
 
 #endif // BITCOIN_CRYPTO_POLY1305_H

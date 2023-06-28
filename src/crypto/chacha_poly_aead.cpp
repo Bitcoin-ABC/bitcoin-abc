@@ -51,16 +51,16 @@ bool ChaCha20Poly1305AEAD::Crypt(
         // if we encrypt, make sure the source contains at least the expected
         // AAD and the destination has at least space for the source + MAC
         (is_encrypt && (src_len < CHACHA20_POLY1305_AEAD_AAD_LEN ||
-                        dest_len < src_len + POLY1305_TAGLEN)) ||
+                        dest_len < src_len + Poly1305::TAGLEN)) ||
         // if we decrypt, make sure the source contains at least the expected
         // AAD+MAC and the destination has at least space for the source - MAC
         (!is_encrypt &&
-         (src_len < CHACHA20_POLY1305_AEAD_AAD_LEN + POLY1305_TAGLEN ||
-          dest_len < src_len - POLY1305_TAGLEN))) {
+         (src_len < CHACHA20_POLY1305_AEAD_AAD_LEN + Poly1305::TAGLEN ||
+          dest_len < src_len - Poly1305::TAGLEN))) {
         return false;
     }
 
-    uint8_t expected_tag[POLY1305_TAGLEN], poly_key[POLY1305_KEYLEN];
+    uint8_t expected_tag[Poly1305::TAGLEN], poly_key[Poly1305::KEYLEN];
     memset(poly_key, 0, sizeof(poly_key));
 
     // block counter 0 for the poly1305 key
@@ -71,11 +71,13 @@ bool ChaCha20Poly1305AEAD::Crypt(
 
     // if decrypting, verify the tag prior to decryption
     if (!is_encrypt) {
-        const uint8_t *tag = src + src_len - POLY1305_TAGLEN;
-        poly1305_auth(expected_tag, src, src_len - POLY1305_TAGLEN, poly_key);
+        const uint8_t *tag = src + src_len - Poly1305::TAGLEN;
+        Poly1305{MakeByteSpan(poly_key)}
+            .Update(AsBytes(Span{src, src_len - Poly1305::TAGLEN}))
+            .Finalize(MakeWritableByteSpan(expected_tag));
 
         // constant time compare the calculated MAC with the provided MAC
-        if (timingsafe_bcmp(expected_tag, tag, POLY1305_TAGLEN) != 0) {
+        if (timingsafe_bcmp(expected_tag, tag, Poly1305::TAGLEN) != 0) {
             memory_cleanse(expected_tag, sizeof(expected_tag));
             memory_cleanse(poly_key, sizeof(poly_key));
             return false;
@@ -83,7 +85,7 @@ bool ChaCha20Poly1305AEAD::Crypt(
         memory_cleanse(expected_tag, sizeof(expected_tag));
         // MAC has been successfully verified, make sure we don't covert it in
         // decryption
-        src_len -= POLY1305_TAGLEN;
+        src_len -= Poly1305::TAGLEN;
     }
 
     // calculate and cache the next 64byte keystream block if requested sequence
@@ -110,7 +112,9 @@ bool ChaCha20Poly1305AEAD::Crypt(
     if (is_encrypt) {
         // the poly1305 tag expands over the AAD (3 bytes length) & encrypted
         // payload
-        poly1305_auth(dest + src_len, dest, src_len, poly_key);
+        Poly1305{MakeByteSpan(poly_key)}
+            .Update(AsBytes(Span{dest, src_len}))
+            .Finalize(AsWritableBytes(Span{dest + src_len, Poly1305::TAGLEN}));
     }
 
     // cleanse no longer required MAC and polykey
