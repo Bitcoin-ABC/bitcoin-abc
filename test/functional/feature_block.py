@@ -130,7 +130,7 @@ class FullBlockTest(BitcoinTestFramework):
         b2 = self.next_block(2, spend=out[1])
         self.save_spendable_output()
 
-        self.send_blocks([b1, b2], timeout=4)
+        self.send_blocks([b1, b2])
 
         # Select a txn with an output eligible for spending. This won't actually be spent,
         # since we're testing submission of a series of blocks with invalid
@@ -158,7 +158,6 @@ class FullBlockTest(BitcoinTestFramework):
                 success=False,
                 reject_reason=(template.block_reject_reason or template.reject_reason),
                 reconnect=True,
-                timeout=2,
             )
 
             self.move_tip(2)
@@ -1310,7 +1309,7 @@ class FullBlockTest(BitcoinTestFramework):
         self.blocks[block_number] = block
         return block
 
-    def bootstrap_p2p(self, timeout=10):
+    def bootstrap_p2p(self, timeout=60):
         """Add a P2P connection to the node.
 
         Helper to connect and wait for version handshake."""
