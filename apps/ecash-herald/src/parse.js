@@ -1417,7 +1417,7 @@ module.exports = {
                     config.blockExplorer
                 }/tx/${txid}">sent</a> ${displayedChangeAmountXec} to ${
                     xecSendingOutputScripts.size > 1 ? 'themselves' : 'itself'
-                }`;
+                }| <code>${satsPerByte.toFixed(2)}</code>`;
             } else {
                 xecSendMsg = `${
                     emojis.xecSend
