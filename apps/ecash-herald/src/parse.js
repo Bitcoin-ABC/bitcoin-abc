@@ -1441,7 +1441,7 @@ module.exports = {
                     xecReceivingAddressOutputs.size > 1
                         ? ` and ${xecReceivingAddressOutputs.size - 1} others`
                         : ''
-                } | ${satsPerByte.toFixed(2)} sats per byte`;
+                } | <code>${satsPerByte.toFixed(2)}</code>`;
             }
 
             xecSendTxTgMsgLines.push(xecSendMsg);
@@ -1549,7 +1549,7 @@ module.exports = {
             tgMsg.push(
                 `${xecSendTxTgMsgLines.length} eCash tx${
                     xecSendTxTgMsgLines.length > 1 ? `s` : ''
-                }:`,
+                } | <code>tx fee in satoshis per byte</code>`,
             );
 
             tgMsg = tgMsg.concat(xecSendTxTgMsgLines);
