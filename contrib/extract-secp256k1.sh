@@ -29,7 +29,7 @@ pushd "${WORKDIR}"
 FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch \
     --index-filter 'git ls-files \
                         | grep -v "^cmake\|^src/secp256k1" \
-                        | xargs git rm -q --cached;
+                        | xargs -I{} git rm -q --cached {};
                     git ls-files -s \
                         | sed "s%src/secp256k1/%%" \
                         | git update-index --index-info;
