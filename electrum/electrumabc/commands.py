@@ -1295,14 +1295,11 @@ def add_network_options(parser):
         "-1",
         "--oneserver",
         action="store_true",
-        dest="oneserver",
-        default=False,
         help="connect to one server only",
     )
     parser.add_argument(
         "-s",
         "--server",
-        dest="server",
         default=None,
         help=(
             "set server host:port:protocol, where protocol is either t (tcp) or s (ssl)"
@@ -1311,7 +1308,6 @@ def add_network_options(parser):
     parser.add_argument(
         "-p",
         "--proxy",
-        dest="proxy",
         default=None,
         help="set proxy [type:]host[:port], where type is socks4,socks5 or http",
     )
@@ -1335,8 +1331,6 @@ def add_global_options(parser):
         "-v",
         "--verbose",
         action="store_true",
-        dest="verbose",
-        default=False,
         help="Show debugging information",
     )
     group.add_argument(
@@ -1346,8 +1340,6 @@ def add_global_options(parser):
         "-P",
         "--portable",
         action="store_true",
-        dest="portable",
-        default=False,
         help="Use local 'electrum_abc_data' directory",
     )
     group.add_argument(
@@ -1364,21 +1356,16 @@ def add_global_options(parser):
         "--forgetconfig",
         action="store_true",
         dest="forget_config",
-        default=False,
         help="Forget config on exit",
     )
     group.add_argument(
         "--testnet",
         action="store_true",
-        dest="testnet",
-        default=False,
         help="Use Testnet",
     )
     group.add_argument(
         "--regtest",
         action="store_true",
-        dest="regtest",
-        default=False,
         help="Use Regtest",
     )
     group.add_argument(
@@ -1407,7 +1394,6 @@ def get_parser():
     parser_gui.add_argument(
         "-g",
         "--gui",
-        dest="gui",
         help="select graphical user interface",
         choices=["qt", "text", "stdio"],
     )
@@ -1415,15 +1401,12 @@ def get_parser():
         "-o",
         "--offline",
         action="store_true",
-        dest="offline",
-        default=False,
         help="Run offline",
     )
     parser_gui.add_argument(
         "-m",
         action="store_true",
         dest="hide_gui",
-        default=False,
         help="hide GUI on startup",
     )
     parser_gui.add_argument(
@@ -1439,7 +1422,6 @@ def get_parser():
         parser_gui.add_argument(
             "-O",
             "--qt_opengl",
-            dest="qt_opengl",
             default=None,
             help=(
                 "(Windows only) If using Qt gui, override the QT_OPENGL env-var with"
@@ -1452,7 +1434,6 @@ def get_parser():
         parser_gui.add_argument(
             "--qt_disable_highdpi",
             action="store_true",
-            dest="qt_disable_highdpi",
             default=None,
             help="(Linux & Windows only) If using Qt gui, disable high DPI scaling",
         )
@@ -1484,29 +1465,24 @@ def get_parser():
                 "-o",
                 "--offline",
                 action="store_true",
-                dest="offline",
-                default=False,
                 help="Run offline",
             )
         for optname, default in zip(cmd.options, cmd.defaults):
-            a, help_ = command_options[optname]
-            b = "--" + optname
+            short_option, help_ = command_options[optname]
+            long_option = "--" + optname
             action = "store_true" if type(default) is bool else "store"
-            args = (a, b) if a else (b,)
+            args = (short_option, long_option) if short_option else (long_option,)
             if action == "store":
                 _type = arg_types.get(optname, str)
                 p.add_argument(
                     *args,
-                    dest=optname,
                     action=action,
                     default=default,
                     help=help_,
                     type=_type,
                 )
             else:
-                p.add_argument(
-                    *args, dest=optname, action=action, default=default, help=help_
-                )
+                p.add_argument(*args, action=action, default=default, help=help_)
 
         for param in cmd.params:
             h = param_descriptions.get(param, "")

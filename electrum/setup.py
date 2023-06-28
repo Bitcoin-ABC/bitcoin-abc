@@ -53,7 +53,7 @@ data_files = []
 
 if platform.system() in ["Linux", "FreeBSD", "DragonFly"]:
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument("--user", dest="is_user", action="store_true", default=False)
+    parser.add_argument("--user", dest="is_user", action="store_true")
     parser.add_argument("--system", dest="is_user", action="store_false", default=False)
     parser.add_argument("--root=", dest="root_path", metavar="dir", default="/")
     parser.add_argument(

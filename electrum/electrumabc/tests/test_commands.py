@@ -81,6 +81,34 @@ class TestArgParser(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 self.parser.parse_args(["gui", "-w", "/path/to/wallet"])
 
+    def test_default_values(self):
+        """Test a boolean argument with action store_true"""
+        args = self.parser.parse_args([])
+        self.assertEqual(args.regtest, False)
+
+        args = self.parser.parse_args(["--regtest"])
+        self.assertEqual(args.regtest, True)
+
+    def test_dest(self):
+        """Test that some arguments have the expected dest"""
+        path_to_wallet = os.path.abspath("/path/to/wallet")
+        args = self.parser.parse_args(["--testnet", "--wallet", path_to_wallet])
+
+        # Test arguments that have no explicit dest, so the dest is inferred from
+        # the long option.
+        self.assertTrue(hasattr(args, "testnet"))
+        # The argument is defined even if not on the command line.
+        self.assertTrue(hasattr(args, "test_release_notification"))
+
+        # Test arguments with an explicit dest different from the long option
+        # --wallet
+        self.assertFalse(hasattr(args, "wallet"))
+        self.assertTrue(hasattr(args, "wallet_path"))
+
+        # --dir
+        self.assertFalse(hasattr(args, "dir"))
+        self.assertTrue(hasattr(args, "data_path"))
+
 
 def suite():
     test_suite = unittest.TestSuite()
