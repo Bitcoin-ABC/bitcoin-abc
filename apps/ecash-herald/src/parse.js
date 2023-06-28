@@ -1317,33 +1317,44 @@ module.exports = {
                 // If this is a token burn tx and you have tokenInfoMap
                 const { tokenId, tokenSendingOutputScripts } = tokenSendInfo;
                 const { undecimalizedTokenBurnAmount } = tokenBurnInfo;
-                // Get token info from tokenInfoMap
-                const thisTokenInfo = tokenInfoMap.get(tokenId);
-                let { tokenTicker, decimals } = thisTokenInfo;
 
-                // Make sure tokenName does not contain telegram html escape characters
-                tokenTicker = prepareStringForTelegramHTML(tokenTicker);
+                if (
+                    typeof tokenId !== 'undefined' &&
+                    tokenInfoMap.has(tokenId)
+                ) {
+                    // Some txs may have tokenBurnInfo, but did not get tokenSendInfo
+                    // e.g. 0bb7e38d7f3968d3c91bba2d7b32273f203bc8b1b486633485f76dc7416a3eca
+                    // This is a token burn tx but it is not indexed as such and requires more sophisticated burn parsing
+                    // So, for now, just parse txs like this as XEC sends
 
-                // Calculate true tokenReceivedAmount using decimals
-                // Use decimals to calculate the burned amount as string
-                const decimalizedTokenBurnAmount = new BigNumber(
-                    undecimalizedTokenBurnAmount,
-                )
-                    .shiftedBy(-1 * decimals)
-                    .toString();
+                    // Get token info from tokenInfoMap
+                    const thisTokenInfo = tokenInfoMap.get(tokenId);
+                    let { tokenTicker, decimals } = thisTokenInfo;
 
-                const tokenBurningAddressStr = returnAddressPreview(
-                    cashaddr.encodeOutputScript(
-                        tokenSendingOutputScripts.values().next().value,
-                    ),
-                );
+                    // Make sure tokenName does not contain telegram html escape characters
+                    tokenTicker = prepareStringForTelegramHTML(tokenTicker);
 
-                tokenBurnTxTgMsgLines.push(
-                    `${emojis.tokenBurn}${tokenBurningAddressStr} <a href="${config.blockExplorer}/tx/${txid}">burned</a> ${decimalizedTokenBurnAmount} <a href="${config.blockExplorer}/tx/${tokenId}">${tokenTicker}</a> `,
-                );
+                    // Calculate true tokenReceivedAmount using decimals
+                    // Use decimals to calculate the burned amount as string
+                    const decimalizedTokenBurnAmount = new BigNumber(
+                        undecimalizedTokenBurnAmount,
+                    )
+                        .shiftedBy(-1 * decimals)
+                        .toString();
 
-                // This parsed tx has a tg msg line. Move on to the next one.
-                continue;
+                    const tokenBurningAddressStr = returnAddressPreview(
+                        cashaddr.encodeOutputScript(
+                            tokenSendingOutputScripts.values().next().value,
+                        ),
+                    );
+
+                    tokenBurnTxTgMsgLines.push(
+                        `${emojis.tokenBurn}${tokenBurningAddressStr} <a href="${config.blockExplorer}/tx/${txid}">burned</a> ${decimalizedTokenBurnAmount} <a href="${config.blockExplorer}/tx/${tokenId}">${tokenTicker}</a> `,
+                    );
+
+                    // This parsed tx has a tg msg line. Move on to the next one.
+                    continue;
+                }
             }
 
             // Txs not parsed above are parsed as xec send txs
