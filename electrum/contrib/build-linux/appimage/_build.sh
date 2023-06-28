@@ -16,8 +16,6 @@ export GCC_STRIP_BINARIES="1"
 # pinned versions
 PKG2APPIMAGE_COMMIT="eb8f3acdd9f11ab19b78f5cb15daa772367daf15"
 
-APPIMAGE="$DISTDIR/$PACKAGE-${ELECTRUM_VERSION}-x86_64.AppImage"
-
 rm -rf "$BUILDDIR"
 mkdir -p "$APPDIR" "$CACHEDIR" "$DISTDIR"
 
@@ -101,6 +99,10 @@ mkdir -p "$CACHEDIR/pip_cache"
 "$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --only-binary hidapi --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-hw.txt"
 
 "$python" -m pip install --no-deps --no-warn-script-location --cache-dir "$CACHEDIR/pip_cache" "${ELECTRUM_ROOT}"
+
+# setup.py depends on the build tools (setuptools), so get the version before uninstalling them
+ELECTRUM_VERSION=$($python ${ELECTRUM_ROOT}/setup.py --version)
+
 "$python" -m pip uninstall -y -r "$CONTRIB/requirements/requirements-build-uninstall.txt"
 
 
@@ -217,6 +219,8 @@ args=\$(echo "\$@" | sed -e 's/-mkfs-time 0//')
 "$BUILDDIR/squashfs-root/usr/lib/appimagekit/mksquashfs_orig" \$args
 EOF
     chmod +x "$BUILDDIR/squashfs-root/usr/lib/appimagekit/mksquashfs"
+
+    APPIMAGE="$DISTDIR/$PACKAGE-${ELECTRUM_VERSION}-x86_64.AppImage"
     env VERSION="${ELECTRUM_VERSION}" ARCH=x86_64 ./squashfs-root/AppRun --no-appstream --verbose "$APPDIR" "$APPIMAGE" \
                 || fail "AppRun failed"
 ) || fail "Could not create the AppImage"

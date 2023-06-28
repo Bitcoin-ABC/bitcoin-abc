@@ -51,7 +51,7 @@ function DoCodeSignMaybe { # ARGS: infoName fileOrDirName codesignIdentity
 
 cd "$build_dir/../.."
 
-VERSION=`git describe --tags`
+VERSION=$(python3 ${ELECTRUM_ROOT}/setup.py --version)
 GIT_COMMIT_HASH=$(git rev-parse HEAD)
 
 # Paramterize

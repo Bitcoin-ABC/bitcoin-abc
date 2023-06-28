@@ -207,9 +207,9 @@ build_the_app() {
         done
         popd_pkg
 
-
         pushd "$here"/../..  # go to top level
 
+        ELECTRUM_VERSION=$($PYTHON ${ELECTRUM_ROOT}/setup.py --version | tr -d '\r')
         info "Version to release: ${ELECTRUM_VERSION}"
         info "Fudging timestamps on all files for determinism ..."
         find -exec touch -d '2000-11-11T11:11:11+00:00' {} +

@@ -300,8 +300,3 @@ fi
 
 # This variable is set to avoid sourcing base.sh multiple times
 export _BASE_SH_SOURCED=1
-
-function get_electrum_version()
-{
-    grep ^VERSION_TUPLE ${ELECTRUM_ROOT}/electrumabc/version.py | sed 's/.*(\([0-9, ]*\))/\1/' | sed 's/, /./g'
-}

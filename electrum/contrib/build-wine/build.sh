@@ -55,7 +55,6 @@ MAPPED_DIR=/homedir/wine/drive_c/electrumabc
     -u $USER_ID:$GROUP_ID \
     -e HOME=/homedir \
     -e ELECTRUM_ROOT=${MAPPED_DIR} \
-    -e ELECTRUM_VERSION=$(get_electrum_version) \
     -e GIT_COMMIT_HASH=$(git rev-parse HEAD) \
     -e WIN_ARCH="$WIN_ARCH" \
     -e BUILD_DEBUG="$BUILD_DEBUG" \

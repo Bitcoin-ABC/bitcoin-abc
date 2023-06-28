@@ -44,7 +44,6 @@ mkdir "${ELECTRUM_ROOT}/contrib/build-linux/appimage/home" || fail "Failed to cr
     -e HOME="$MAPPED_DIR/contrib/build-linux/appimage/home" \
     -e BUILD_DEBUG="$BUILD_DEBUG" \
     -e ELECTRUM_ROOT=${MAPPED_DIR} \
-    -e ELECTRUM_VERSION=$(get_electrum_version) \
     --name $CONTAINERNAME \
     -v ${ELECTRUM_ROOT}:$MAPPED_DIR:delegated \
     --rm \

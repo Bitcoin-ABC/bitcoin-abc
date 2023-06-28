@@ -11,25 +11,28 @@ import sys
 import setuptools.command.sdist
 from setuptools import setup
 
-with open("README.md", "r", encoding="utf-8") as f:
+ELECTRUM_ROOT = os.path.dirname(os.path.abspath(__file__))
+REQUIREMENTS_DIR = os.path.join(ELECTRUM_ROOT, "contrib", "requirements")
+
+with open(os.path.join(ELECTRUM_ROOT, "README.md"), "r", encoding="utf-8") as f:
     long_description = f.read()
 
-with open("contrib/requirements/requirements.txt", encoding="utf-8") as f:
+with open(os.path.join(REQUIREMENTS_DIR, "requirements.txt"), encoding="utf-8") as f:
     requirements = f.read().splitlines()
 
-with open("contrib/requirements/requirements-hw.txt", encoding="utf-8") as f:
+with open(os.path.join(REQUIREMENTS_DIR, "requirements-hw.txt"), encoding="utf-8") as f:
     requirements_hw = f.read().splitlines()
 
-with open("contrib/requirements/requirements-binaries.txt", encoding="utf-8") as f:
+with open(
+    os.path.join(REQUIREMENTS_DIR, "requirements-binaries.txt"), encoding="utf-8"
+) as f:
     requirements_binaries = f.read().splitlines()
 
 # We use this convoluted way of importing version.py and constants.py
 # because the setup.py scripts tends to be called with python option
 # -O, which is not allowed for electrumabc (see comment in module
 # electrumabc/bitcoin.py). A regular import would trigger this issue.
-dirname = os.path.dirname(os.path.abspath(__file__))
-ec_package_dirname = os.path.join(dirname, "electrumabc")
-sys.path.insert(0, ec_package_dirname)
+sys.path.insert(0, os.path.join(ELECTRUM_ROOT, "electrumabc"))
 
 
 def get_version():
