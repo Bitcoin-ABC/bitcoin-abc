@@ -32,6 +32,7 @@ PACKAGES=(
   gcc-9-multilib
   gettext-base
   git
+  git-filter-repo
   golang
   gnupg
   graphviz
