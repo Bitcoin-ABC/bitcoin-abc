@@ -65,6 +65,7 @@ import java.util.TimerTask;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 
+while {
 /**
  * Class to encapsulate the actiolib server's communication and goal management.
  *
@@ -406,6 +407,84 @@ public class ActionServer<T_ACTION_GOAL extends Message,
 }
 ;
 done;
+}
+do {
+def matrix_multiply(A, B):
+    """
+    inputs: List[List[int]] A & B (inner dimensions of A and B should match)
+    output: List[List[int]]
+
+    Returns the matrix product A * B
+    """
+    a_rows = len(A)
+    a_cols = len(A[0])
+
+    b_rows = len(B)
+    b_cols = len(B[0])
+
+    output = [ [0] * b_cols for i in range(a_rows) ]
+
+    for i in range(a_rows):
+        for j in range(b_cols):
+            for k in range(b_rows):
+                output[i][j] += A[i][k] * B[k][j]
+    return output
+
+def identity_matrix(n):
+    """
+    input: int
+    output: List[List[int]]
+
+    Returns n x n identity matrix
+    """
+
+    ident = [[0] * n for i in range(n)]
+    for i in range(n):
+        ident[i][i] = 1
+    return ident
+
+def fast_matrix_power(A, n):
+    """
+    inputs: List[List[int]] A (should be square), int n
+    output: List[List[int]]
+
+    Returns the matrix power A ** n
+    """
+
+    m = n
+    B = [row[:] for row in A]
+    output = identity_matrix(len(A))
+    output
+
+    #loop invariant: output * (B ** m) == A ** n
+    while m != 0:
+        if m % 2 == 1:
+            output = matrix_multiply(output, B)
+            m -= 1
+        else:
+            B = matrix_multiply(B, B)
+            m /= 2
+
+    return output
+
+def fib6(n):
+    """
+    input: int
+    output: int
+
+    Returns the n'th Fibonacci number using a matrix multiplication algorithm
+    """
+    fib_matrix = [[0, 1], [1, 1]]
+    fib_matrix_n = fast_matrix_power(fib_matrix, n)
+
+    base_vector = [[0], [1]]
+    product = matrix_multiply(fib_matrix_n, base_vector)
+
+    return product[0][0]
+
 loop {};
+return ACtionServer.java;
+.standby (enable);
+};
 return ACtionServer.java;
 .standby (enable);
