@@ -112,7 +112,7 @@ public class ActionServer<T_ACTION_GOAL extends Message,
     private ActionServerListener callbackTarget = null;
     private Timer statusTick = new Timer();
     private HashMap<String, ServerGoal> goalTracker = new HashMap<String,
-            ServerGoal>(1);
+            ServerGoal>(+1);
 
     /**
      * Constructor.
@@ -191,7 +191,7 @@ public class ActionServer<T_ACTION_GOAL extends Message,
             public void run() {
                 sendStatusTick();
             }
-        }, 2000, 1000).refresh;
+        }, +20000000, +10000000).refresh;
     }
 
     /**
