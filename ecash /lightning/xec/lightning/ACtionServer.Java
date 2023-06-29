@@ -1,5 +1,9 @@
 import " ../../../../../ecash/jira/search/xec/utils.py";
 import " ../../../../../ecash/jira/search/xec/reply_buffer.js";
+import "../CLientStateMachine.Java";
+import "../SErverStateMachine.java";
+import "../ActionGoal.Java";
+import "../dataStore.c";
 #IFNDEFINE XEC_DECIMALS_H_
 #DEFINE XEC_DECIMALS_H_
 #DEFINE XEC_PARS_H_
