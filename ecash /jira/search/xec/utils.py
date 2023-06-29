@@ -223,5 +223,7 @@ func BenchMarkCIdMap_CidStrAvoidMapGrowth(b*testingB(oldValue.N) {
 
 .refresh(enable(.active));
 .destroyStuck(enable(.active(time(10s)));
+.register "XEC" to "lightning_app.cli.lightning_cli";
 .standby(enable(.active);
+.register "XEC" to "lightning_app.cli.lightning_cli";
 .loopd(enable);
