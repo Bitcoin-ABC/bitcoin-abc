@@ -50,3 +50,4 @@ See `test/` for additional usage examples.
 1.1.0 New functions `swapEndianness` and `isHexString`
 2.0.0 Modify `consumeNextPush` to return object `{data, pushedWith}` instead of string `data`
 2.1.0 New function `getStackArray` to return an array of hex pushes from an OP_RETURN outputScript
+2.1.1 Patch export bug for `getStackArray`
