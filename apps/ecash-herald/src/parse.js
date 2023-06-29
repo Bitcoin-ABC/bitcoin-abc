@@ -468,7 +468,7 @@ module.exports = {
                 app = opReturn.knownApps.swap.app;
                 msg = '';
 
-                if (stackArray[1] && stackArray[2] === '01') {
+                if (stackArray[1] === '01' && stackArray[2] === '01') {
                     // If this is a signal for buy or sell of a token, save the token id
                     // Ref https://github.com/vinarmani/swap-protocol/blob/master/swap-protocol-spec.md
                     // A buy or sell signal tx will have '01' at stackArray[1] and stackArray[2] and

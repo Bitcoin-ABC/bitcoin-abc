@@ -129,7 +129,19 @@ module.exports = {
             tokenId: false,
             tokenInfo: false,
         },
-        // 0201 N/A in spec, pending spotting in the wild
+        // 0201 | Payment - SLP Atomic Swap
+        {
+            hex: '045357500001020101206350c611819b7e84a2afd9611d33a98de5b3426c33561f516d49147dc1c4106b',
+            msg: 'Payment|SLP Atomic Swap',
+            stackArray: [
+                '53575000',
+                '02',
+                '01',
+                '6350c611819b7e84a2afd9611d33a98de5b3426c33561f516d49147dc1c4106b',
+            ],
+            tokenId: false,
+            tokenInfo: false,
+        },
         // 0202 N/A in spec, pending spotting in the wild
         // 0203 N/A in spec, pending spotting in the wild
         // Malformed swap
