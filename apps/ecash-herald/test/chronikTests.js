@@ -14,6 +14,11 @@ const TOKEN_ID_SET = new Set([
     '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484', // Alita
 ]);
 
+const TOKEN_ID_SET_BUGGED = new Set([
+    '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484', // Alita
+    '3ce19774ed20535458bb98e864168e6d7d0a68e80f166a7fb00bc9015980ce6d', // SWaP tx
+]);
+
 describe('chronik.js functions', function () {
     it('getTokenInfoMap returns a map of expected format given an array of tokenIds', async function () {
         // Initialize chronik mock
@@ -78,6 +83,26 @@ describe('chronik.js functions', function () {
         mockedChronik.setMock('tx', {
             input: TOKEN_ID_ARRAY[2],
             output: new Error('some error'),
+        });
+
+        const tokenInfoMap = await getTokenInfoMap(mockedChronik, TOKEN_ID_SET);
+
+        assert.strictEqual(tokenInfoMap, false);
+    });
+    it('getTokenInfoMap returns false if one of the tokenIds in the set is not actually a tokenId', async function () {
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient();
+
+        const TOKEN_ID_ARRAY = Array.from(TOKEN_ID_SET_BUGGED);
+        // Tell mockedChronik what responses we expect
+        // Include one error response
+        mockedChronik.setMock('tx', {
+            input: TOKEN_ID_ARRAY[0],
+            output: tx[TOKEN_ID_ARRAY[0]],
+        });
+        mockedChronik.setMock('tx', {
+            input: TOKEN_ID_ARRAY[1],
+            output: tx[TOKEN_ID_ARRAY[1]],
         });
 
         const tokenInfoMap = await getTokenInfoMap(mockedChronik, TOKEN_ID_SET);

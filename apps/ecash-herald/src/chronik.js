@@ -14,15 +14,19 @@ module.exports = {
                 new Promise((resolve, reject) => {
                     chronik.tx(tokenId).then(
                         txDetails => {
-                            console.assert(
-                                typeof txDetails.slpTxData.genesisInfo !==
-                                    'undefined',
-                                `Error: no genesisInfo object for ${tokenId}`,
-                            );
                             // Note: txDetails.slpTxData.genesisInfo only exists for token genesis txs
-                            const genesisInfo = txDetails.slpTxData.genesisInfo;
-                            tokenInfoMap.set(tokenId, genesisInfo);
-                            resolve(true);
+                            try {
+                                const genesisInfo =
+                                    txDetails.slpTxData.genesisInfo;
+                                tokenInfoMap.set(tokenId, genesisInfo);
+                                resolve(true);
+                            } catch (err) {
+                                console.log(
+                                    `Error getting genesis info for ${tokenId}`,
+                                    err,
+                                );
+                                reject(err);
+                            }
                         },
                         err => {
                             reject(err);

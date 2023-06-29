@@ -6,6 +6,59 @@
 
 module.exports = {
     tx: {
+        '3ce19774ed20535458bb98e864168e6d7d0a68e80f166a7fb00bc9015980ce6d': {
+            txid: '3ce19774ed20535458bb98e864168e6d7d0a68e80f166a7fb00bc9015980ce6d',
+            version: 1,
+            inputs: [
+                {
+                    prevOut: {
+                        txid: '5e04a92c0b6e1493435d34c8f63a8c9905fb6c278662830b35757beec1bd7f12',
+                        outIdx: 1,
+                    },
+                    inputScript:
+                        '4132271505f7bc271e30983bb9f42f634fcc7b83b35efd1465e70fe3192b395099fed6ce943cb21ed742022ceffcc64502f0101e669dc68fbee2dd8d54a8e50e1e4121034474f1431c4401ba1cd22e003c614deaf108695f85b0e7ea357ee3c5c0b3b549',
+                    outputScript:
+                        '76a9148f348f00f7eeb9238b028f5dd14cb9be14395cab88ac',
+                    value: '599417',
+                    sequenceNo: 4294967295,
+                },
+            ],
+            outputs: [
+                {
+                    value: '0',
+                    outputScript:
+                        '6a045357500001020101206350c611819b7e84a2afd9611d33a98de5b3426c33561f516d49147dc1c4106b',
+                },
+                {
+                    value: '546',
+                    outputScript:
+                        '76a91483630e8c91571121a32f57c8c2b58371df7b84e188ac',
+                    spentBy: {
+                        txid: '805ff68b48739b6ec531e3b8de9369579bdac3be8f625127d1fbc145d35dd386',
+                        outIdx: 0,
+                    },
+                },
+                {
+                    value: '598592',
+                    outputScript:
+                        '76a91483630e8c91571121a32f57c8c2b58371df7b84e188ac',
+                    spentBy: {
+                        txid: '805ff68b48739b6ec531e3b8de9369579bdac3be8f625127d1fbc145d35dd386',
+                        outIdx: 1,
+                    },
+                },
+            ],
+            lockTime: 0,
+            block: {
+                height: 798428,
+                hash: '0000000000000000025cd2836f07355eb8d5db6ea16b85db7746da90b1f57b61',
+                timestamp: '1687998840',
+            },
+            timeFirstSeen: '1687998646',
+            size: 271,
+            isCoinbase: false,
+            network: 'XEC',
+        },
         '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484': {
             txid: '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
             version: 2,
