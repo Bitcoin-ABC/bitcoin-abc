@@ -73,6 +73,10 @@ export const navitems = [
         ],
     },
     {
+        nav_item: 'Blog',
+        link: '/blog',
+    },
+    {
         nav_item: 'More',
         dropdown_items: [
             {

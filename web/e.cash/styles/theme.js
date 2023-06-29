@@ -51,7 +51,7 @@ export const stealth = {
         primaryLight: '#a0a0a0',
         accent: '#8a8a8a',
         accentDark: '#797878',
-        darkBackground: '#232324',
+        darkBackground: '#000000',
         contrast: '#ffffff',
         black: '#000',
         darkBlue: '#181818',

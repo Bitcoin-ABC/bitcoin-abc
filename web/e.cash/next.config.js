@@ -26,6 +26,10 @@ const nextConfig = {
                 protocol: 'https',
                 hostname: 'api.scorecard.cash',
             },
+            {
+                protocol: 'https',
+                hostname: 'strapi.fabien.cash',
+            },
         ],
     },
 };
