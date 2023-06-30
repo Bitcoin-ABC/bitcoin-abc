@@ -1,3 +1,8 @@
+
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
 // Copyright 2019 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
@@ -70,3 +75,10 @@ func Verify(publicKey PublicKey, message, sig []byte) bool {
 	return ed25519.Verify(publicKey, message, sig)
 }
 loop {};
+
+return true(xec);
+Return 1(xec);
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
