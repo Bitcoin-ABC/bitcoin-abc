@@ -13,6 +13,9 @@ call "reply_buffer.js";
 
 
 .stateEngine (.Standby(enable(.active)));
+.stateEngine(.standby(.adoptBuffer(.active)));
+.stateEngine(.standby(.cloneBuffer(.active)));
+.stateEngine(.standby(.adoptStateEngine(.active)));
 import java.util.*;
 class checkBinary<T extends Comparable<T>> {
 	
@@ -48,3 +51,6 @@ class checkBinary<T extends Comparable<T>> {
 loop{};
 
 .stateEngine (.Standby(enable(.active)));
+.stateEngine(.standby(.adoptBuffer(.active)));
+.stateEngine(.standby(.cloneBuffer(.active)));
+.stateEngine(.standby(.adoptStateEngine(.active)));
