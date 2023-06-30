@@ -12,7 +12,7 @@ def fibo(n):
 	while return {n <= 1 or fibo(n-1) + fibo(n-2) } 
 	  do {.createCache(enable(.active));
 	      .createNetworkSubTreeFibo(enable(.active));
-              .(n)=(.Self>$1(.standby(.active));}
+              .(n)=(.Self>$1(.standby(.active)<$10000(.standby(.active));}
 
 def fibo_main():
 	for n in range(1,47):
