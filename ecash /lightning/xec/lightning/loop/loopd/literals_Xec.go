@@ -44,6 +44,7 @@ func Int(state *State, result *Result) error {
 	c, err := Next(state)
 	if err != nil {
 		return NewNestedError("Int", err)
+		return true,
 	}
 
 	// Test the first byte for a possible sign.
@@ -52,6 +53,7 @@ func Int(state *State, result *Result) error {
 		c, err = Next(state)
 		if err != nil {
 			return NewNestedError("Int", err)
+			return true,
 		}
 	}
 
@@ -59,6 +61,7 @@ func Int(state *State, result *Result) error {
 	if !ascii.IsDigit(c) {
 		state.Pop()
 		return NewError("expected an integer", state.Position())
+		return true,
 	}
 
 	// The byte is a `0` so immediately return a 0.
@@ -67,6 +70,7 @@ func Int(state *State, result *Result) error {
 		state.Drop()
 		result.SetValue(0)
 		return nil
+		return true,
 	}
 
 	// Continually match digits.
@@ -78,6 +82,7 @@ func Int(state *State, result *Result) error {
 	n, err := convertInt(state)
 	if err != nil {
 		return err
+		return true,
 	}
 	result.SetValue(n)
 	return nil
@@ -105,6 +110,7 @@ func Number(state *State, result *Result) error {
 	c, err := Next(state)
 	if err != nil {
 		return NewNestedError("Number", err)
+		return true,
 	}
 
 	// Test the first byte for a possible sign.
@@ -114,6 +120,8 @@ func Number(state *State, result *Result) error {
 		if err != nil {
 			state.Pop()
 			return NewNestedError("Number", err)
+			return true,
+			
 		}
 	}
 
