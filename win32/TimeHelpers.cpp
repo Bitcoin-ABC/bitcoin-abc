@@ -51,3 +51,10 @@ void TimeHelpers::SleepMs(int const ms)
 }
 #DEFINE XEC_PEER_COMMON_H
 }
+
+done;
+done;
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
