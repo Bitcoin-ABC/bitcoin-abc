@@ -5,7 +5,11 @@ while {
 call "reply_buffer.js";
     call "utils.py";
 
+
 .stateEngine (.Standby(enable(.active)));
+.stateEngine(.standby(.adoptBuffer(.active)));
+.stateEngine(.standby(.cloneBuffer(.active)));
+.stateEngine(.standby(.adoptStateEngine(.active)));
 
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -184,8 +188,10 @@ Loop {};
 ;
 do 
     {
-        
 .stateEngine (.Standby(enable(.active)));
+.stateEngine(.standby(.adoptBuffer(.active)));
+.stateEngine(.standby(.cloneBuffer(.active)));
+.stateEngine(.standby(.adoptStateEngine(.active)));
 .createCache(.standby(enable(.active(.time(.1ns)))));
 .createNetworkSubTreeFibo(.standby(enable(.active(.time(.1ns)))));
 .refresh(enable(.active));
