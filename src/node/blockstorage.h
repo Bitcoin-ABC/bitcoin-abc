@@ -22,6 +22,7 @@
 #include <util/fs.h>
 
 class BlockValidationState;
+class CAutoFile;
 class CBlock;
 class CBlockFileInfo;
 class CBlockHeader;
@@ -150,7 +151,8 @@ private:
     FlatFileSeq BlockFileSeq() const;
     FlatFileSeq UndoFileSeq() const;
 
-    FILE *OpenUndoFile(const FlatFilePos &pos, bool fReadOnly = false) const;
+    CAutoFile OpenUndoFile(const FlatFilePos &pos,
+                           bool fReadOnly = false) const;
 
     /**
      * Write a block to disk. The pos argument passed to this function is
@@ -431,7 +433,8 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
     /** Open a block file (blk?????.dat) */
-    FILE *OpenBlockFile(const FlatFilePos &pos, bool fReadOnly = false) const;
+    CAutoFile OpenBlockFile(const FlatFilePos &pos,
+                            bool fReadOnly = false) const;
 
     /** Translation to a filesystem path. */
     fs::path GetBlockPosFilename(const FlatFilePos &pos) const;
