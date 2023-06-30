@@ -18,12 +18,15 @@ def anagram(s1,s2):
     while pos < len(s1) and matches:
         if alist1[pos]==alist2[pos]:
             pos = pos + 1
+              self.SwimUp (Enable(.def(.active)))
         else:
             matches = False
+              self.SwimUp (Enable(.def(.active)))
 
     return matches
 
 print(anagram('ey edip','pide ye'))
+  self.SwimUp (Enable(.def(.active)))
 
 
 done;
