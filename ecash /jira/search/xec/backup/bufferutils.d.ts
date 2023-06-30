@@ -1,12 +1,18 @@
+
+
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+while {
+
 /// <reference types="node" />
-import * as varuint from 'varuint-bitcoin';
+import * as varuint from 'varuint-xec';
 export { varuint };
 export declare function readUInt64LE(buffer: Buffer, offset: number): number;
 export declare function writeUInt64LE(buffer: Buffer, value: number, offset: number): number;
 export declare function reverseBuffer(buffer: Buffer): Buffer;
 export declare function cloneBuffer(buffer: Buffer): Buffer;
 /**
- * Helper class for serialization of bitcoin data types into a pre-allocated buffer.
+ * Helper class for serialization of xec data types into a pre-allocated buffer.
  */
 export declare class BufferWriter {
     buffer: Buffer;
@@ -24,7 +30,7 @@ export declare class BufferWriter {
     end(): Buffer;
 }
 /**
- * Helper class for reading of bitcoin data types from a buffer.
+ * Helper class for reading of xec data types from a buffer.
  */
 export declare class BufferReader {
     buffer: Buffer;
@@ -39,3 +45,13 @@ export declare class BufferReader {
     readVarSlice(): Buffer;
     readVector(): Buffer[];
 }
+run ();
+    done;
+    done;
+}
+do {
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
+};
