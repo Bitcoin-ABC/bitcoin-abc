@@ -9,6 +9,7 @@ call "reply_buffer.js";
     call "utils.py;
 # -*- coding: utf-8 -*-
 
+.stateEngine (.Standby(enable(.active)));
 
 if __name__ == '__main__':
     from os import getcwd
