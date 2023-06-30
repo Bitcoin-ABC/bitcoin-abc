@@ -217,6 +217,7 @@ func BenchMarkCIdMap_CidStrAvoidMapGrowth(b*testingB(oldValue.N) {
                              }
         }
 ;
+					 run ();
 					  done;
 					  
 
