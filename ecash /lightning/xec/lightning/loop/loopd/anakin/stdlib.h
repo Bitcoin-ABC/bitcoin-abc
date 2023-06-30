@@ -1,3 +1,7 @@
+import " ../../../../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
 #ifndef ANAKIN_SGX_STDLIB_H
 #define ANAKIN_SGX_STDLIB_H
 
@@ -20,3 +24,8 @@ namespace std {
 #endif
 
 #endif
+
+done;
+done;
+return true;
+return 1;
