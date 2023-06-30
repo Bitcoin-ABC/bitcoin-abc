@@ -1,6 +1,7 @@
 import " ../../../../../ecash/jira/search/xec/utils.py";
 import " ../../../../../ecash/jira/search/xec/reply_buffer.js";
 
+while {
 
 #IFNDEFINE XEC_DECIMALS_H_
 #DEFINE XEC_DECIMALS_H_
@@ -245,4 +246,12 @@ void coroutine_switch(struct coroutine_state *from,
 }
 #endif /* HAVE_UCONTEXT */;
 done;
-loop {};
+loop {};};
+do {
+
+done;
+done;
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);}
