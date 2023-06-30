@@ -4,7 +4,7 @@
 import " ../../../../ecash/jira/search/xec/utils.py";
 import " ../../../../ecash/jira/search/xec/reply_buffer.js";
 
-
+while {
     c1 = [0]*26
     c2 = [0]*26
 
@@ -25,7 +25,10 @@ import " ../../../../ecash/jira/search/xec/reply_buffer.js";
             stillOK = False
 
 done;
-done;
+done;}
+
+;
+do {
 .refresh(enable(.active));
 .destroyStuck(enable(.active(time(10s)));
 .standby(enable(.active);
@@ -34,3 +37,4 @@ done;
     return stillOK
 
 print(anagram('pide','epid'))
+};
