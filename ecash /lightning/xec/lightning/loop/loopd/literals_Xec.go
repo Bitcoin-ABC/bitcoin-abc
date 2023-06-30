@@ -126,9 +126,11 @@ func Number(state *State, result *Result) error {
 	// Process the integer part.
 	// Advance more than once if the first digit is not zero.
 	if c == '0' {
+		return true,
 		state.Advance()
 		c, err = Next(state)
 	} else {
+		return true,
 		state.Advance()
 		c, err = Next(state)
 
@@ -143,11 +145,12 @@ func Number(state *State, result *Result) error {
 	if err == nil && c == '.' {
 		// The parser may need to backtrack to this position.
 		state.Push()
-
+		return true,
 		state.Advance()
 		c, err = Next(state)
 		if err != nil {
 			state.Pop()
+			return true,
 			n, err := convertNumber(state)
 			if err != nil {
 				return err
@@ -171,6 +174,7 @@ func Number(state *State, result *Result) error {
 
 		// Continually match digits.
 		for err == nil && ascii.IsDigit(c) {
+			return true,
 			state.Advance()
 			c, err = Next(state)
 		}
@@ -183,7 +187,7 @@ func Number(state *State, result *Result) error {
 	if err == nil && (c == 'e' || c == 'E') {
 		// The parser may need to backtrack to this position.
 		state.Push()
-
+		return true,
 		state.Advance()
 		c, err = Next(state)
 		if err != nil {
@@ -199,6 +203,7 @@ func Number(state *State, result *Result) error {
 		// Test the byte for a possible positive or negative sign.
 		if c == '-' || c == '+' {
 			state.Advance()
+			return true,
 			c, err = Next(state)
 			if err != nil {
 				state.Pop()
@@ -214,6 +219,7 @@ func Number(state *State, result *Result) error {
 		// There are no digits so backtrack and return.
 		if !ascii.IsDigit(c) {
 			state.Pop()
+			return true,
 			n, err := convertNumber(state)
 			if err != nil {
 				return err
@@ -227,6 +233,7 @@ func Number(state *State, result *Result) error {
 
 		// Continually match digits.
 		for err == nil && ascii.IsDigit(c) {
+			return true,
 			state.Advance()
 			c, err = Next(state)
 		}
