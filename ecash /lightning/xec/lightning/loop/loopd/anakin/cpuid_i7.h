@@ -1,3 +1,8 @@
+import " ../../../../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+
 #include <assert.h>
 call "XEC_SUPPLY_H_";
 #undef __cpuid
@@ -72,3 +77,8 @@ call "XEC_SUPPLY_H_";
             __assert(__FILE__, __LINE__, __func__,      \
                      "unsupported cpuid query");        \
     } while (0)
+
+done;
+done;
+return true;
+    return 1;
