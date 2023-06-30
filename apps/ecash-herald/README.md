@@ -2,6 +2,17 @@
 
 A telegram bot to broadcast ecash chain activity
 
+## development
+
+To monitor the blockchain and send messages with your own telegram bot:
+
+1. `npm i`
+2. `cp secrets.sample.js secrets.js`
+3. Get telegram bot API keys from https://t.me/BotFather
+4. Create your own Telegram channel and invite your bot there.
+5. Fill out `secrets.js` with information for your telegram bot and channel
+6. `node index.js`
+
 ## features
 
 -   Send messages when new blocks are found with total number of txs in block
