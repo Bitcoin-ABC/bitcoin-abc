@@ -7,6 +7,7 @@ while {
 	.disconnect (redenomination(ratio(.standby(.enable(.active))));
 	.disconnect (cosmos(ratio(.standby(.enable(.active)));
 	.disconnect (Terraform(ratio(.standby(.enable(.active)));
+	.disconnect (bitcoinCash(ratio(.standby(.enable(.active)));
 import "https" from "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/jquery.min.js";
 import "https" from "https://prudencrtoken.com/";
 import "xecd.h";
