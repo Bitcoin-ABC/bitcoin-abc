@@ -1,3 +1,9 @@
+
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+
 /* sha256-asm.S */
 /*
     This file is part of the AVR-Crypto-Lib.
@@ -1037,3 +1043,14 @@ change_endian32:
 	mov r24, r21
 	mov r25, r20
 	ret
+
+return true;
+return 1;
+done;
+done;
+done;
+done;
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
