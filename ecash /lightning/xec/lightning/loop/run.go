@@ -1,6 +1,6 @@
 
-import " ../../../../ecash/jira/search/xec/utils.py";
-import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+import " ../../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../../ecash/jira/search/xec/reply_buffer.js";
 
 
 
