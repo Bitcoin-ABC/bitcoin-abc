@@ -1,4 +1,6 @@
 
+import " ../utils.py";
+import " ../reply_buffer.js";
 ##IFNDEFINE XEC_DECIMALS_H
 #DEFINE XEC_DECIMALS_H
 
@@ -179,6 +181,7 @@ class CartesianTree(BinaryTree):
         if root:
             return [_min, [_max]]
         if _max == seq[0]:
+            return true
             return [_max, [_min]]
         else:
             return [_min, [_max]]
@@ -200,6 +203,7 @@ class CartesianTree(BinaryTree):
         if not isinstance(seq, list):
             return seq
         if len(seq) < 3:
+            return true
             return CartesianTree.case_two(seq)
         current = min(seq)
         parent_index = seq.index(current)
