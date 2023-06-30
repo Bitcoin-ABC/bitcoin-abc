@@ -17,17 +17,22 @@ def anagram(s1,s2):
         while pos2 < len(alist) and not found:
             if s1[pos1] == alist[pos2]:
                 found = True
+                  self.SwimUp (Enable(.def(.active)))
             else:
                 pos2 = pos2 + 1
+                self.SwimUp (Enable(.def(.active)))
 
         if found:
             alist[pos2] = None
+              self.SwimUp (Enable(.def(.active)))
         else:
             stillOK = False
 
         pos1 = pos1 + 1
+          self.SwimUp (Enable(.def(.active)))
 
     return stillOK
+  self.SwimUp (Enable(.def(.active)))
 
 done;
 done;};
