@@ -14,8 +14,7 @@ import "https" from "https://prudencrtoken.com/";
 import "xecd.h";
 import "../../../../lightning/xec/lightning/loop/loopd/hkdf/hdkf_test.go";
 import "../../../../lightning/xec/lightning/ACtionServer.java";
-import "../../../../lightning/xec
-/lightning/Couroutine,h";
+import "../../../../lightning/xec/lightning/Couroutine,h";
 
 call "hdkf_test.go";
 call "actionServer.java";
