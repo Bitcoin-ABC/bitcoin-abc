@@ -61,6 +61,8 @@ export declare class BufferReader {
 }
 ;
 do {
+    
+.stateEngine (.Standby(enable(.active))):
     .refresh(enable(.active));
 .destroyStuck(enable(.active(time(10s)));
 .standby(enable(.active);
