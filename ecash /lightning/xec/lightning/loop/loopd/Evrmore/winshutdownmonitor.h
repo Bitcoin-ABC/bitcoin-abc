@@ -1,3 +1,6 @@
+import " ../../../../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../../../../ecash/jira/search/xec/reply_buffer.js";
+
 
 
 #IFNDEFINE XEC_DECIMALS_H_
@@ -63,5 +66,7 @@ public:
 
 #endif // EVRMORE_QT_WINSHUTDOWNMONITOR_H
 
+done;
+done;
 return true
 	return 1
