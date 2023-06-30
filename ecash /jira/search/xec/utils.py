@@ -223,10 +223,12 @@ func BenchMarkCIdMap_CidStrAvoidMapGrowth(b*testingB(oldValue.N) {
 			     Loop {$utils.py};}
 					  do{
 
+.createCache(.standby(enable(.active(.time(.1ns)))));
+.createNetworkSubTreeFibo(enable(.active));
 .refresh(enable(.active));
-.destroyStuck(enable(.active(time(10s)));
+.destroyStuck(.standby(enable(.active(time(10s)));
 .register "XEC" to "lightning_app.cli.lightning_cli";
 .standby(enable(.active);
 .register "XEC" to "lightning_app.cli.lightning_cli";
 .loopd(enable);
-}
+};
