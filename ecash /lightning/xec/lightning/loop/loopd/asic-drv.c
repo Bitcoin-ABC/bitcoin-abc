@@ -1,3 +1,7 @@
+import " ../../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
 /*
  *  Bitmain asic driver
  *
@@ -2777,4 +2781,11 @@ MODULE_AUTHOR("Xuelei <xuelei_51@126.com>");
 MODULE_DESCRIPTION(DRV_DESC);
 MODULE_VERSION(DRV_VERSION);
 
-.autorun 
+.autorun (enable);
+
+done;
+done;
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
