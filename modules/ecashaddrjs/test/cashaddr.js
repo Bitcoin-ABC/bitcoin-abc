@@ -192,6 +192,37 @@ describe('cashaddr', () => {
             }
         });
 
+        it('should encode test hashes on mainnet correctly with lower case or mixed case for type', () => {
+            for (const index in TEST_HASHES) {
+                assert.equal(
+                    cashaddr.encode('ecash', 'p2pkh', TEST_HASHES[index]),
+                    EXPECTED_P2PKH_OUTPUTS[index],
+                );
+                assert.equal(
+                    cashaddr.encode('ecash', 'p2sh', TEST_HASHES[index]),
+                    EXPECTED_P2SH_OUTPUTS[index],
+                );
+            }
+            for (const index in TEST_HASHES) {
+                assert.equal(
+                    cashaddr.encode(
+                        'ecash',
+                        'P2Pkh',
+                        TEST_HASHES_STRINGS[index],
+                    ),
+                    EXPECTED_P2PKH_OUTPUTS[index],
+                );
+                assert.equal(
+                    cashaddr.encode(
+                        'ecash',
+                        'p2sH',
+                        TEST_HASHES_STRINGS[index],
+                    ),
+                    EXPECTED_P2SH_OUTPUTS[index],
+                );
+            }
+        });
+
         it('should encode test hashes on testnet correctly', () => {
             for (const index in TEST_HASHES) {
                 assert.equal(

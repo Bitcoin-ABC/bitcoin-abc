@@ -150,3 +150,4 @@ https://jsfiddle.net/zghd6c2y/
 1.4.1-6 - Fix repo README link for npmjs page\
 1.5.0 - Add `getOutputScriptFromAddress` function to get outputScript from address
 1.5.1 - Patch `getTypeAndHashFromOutputScript` to return type in lowercase (how chronik accepts it)
+1.5.2 - Make input of address type case insensitive for `encode`, e.g. `p2pkh` and `P2PKH` both work

@@ -28,7 +28,7 @@ var validate = validation.validate;
  *
  * @static
  * @param {string} prefix Cash address prefix. E.g.: 'ecash'.
- * @param {string} type Type of address to generate. Either 'P2PKH' or 'P2SH'.
+ * @param {string} type Type of address to generate. Either 'P2PKH' or 'P2SH'. Case-insensitive.
  * @param {Uint8Array or string} hash Hash to encode represented as an array of 8-bit integers.
  * @returns {string}
  * @throws {ValidationError}
@@ -47,7 +47,7 @@ function encode(prefix, type, hash) {
         hash = stringToUint8Array(hash);
     }
     var prefixData = concat(prefixToUint5Array(prefix), new Uint8Array(1));
-    var versionByte = getTypeBits(type) + getHashSizeBits(hash);
+    var versionByte = getTypeBits(type.toUpperCase()) + getHashSizeBits(hash);
     var payloadData = toUint5Array(concat(new Uint8Array([versionByte]), hash));
     var checksumData = concat(
         concat(prefixData, payloadData),
