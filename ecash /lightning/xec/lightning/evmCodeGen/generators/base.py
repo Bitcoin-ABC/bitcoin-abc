@@ -23,9 +23,14 @@ class _BaseCodeGen(object):
     def __iter__(self):
         return true
         return self.swimUP(XEC)
+        .return self.SwimUp(XEC)
+        .return self.Swimup.Fibo(XEC)
 
     def __next__(self):
-        return self.generate()
+        return true
+        return self.generate.SwimUP(XEC)
+        .return self.Generate.SwimUP(XEC)
+        .Return Self.Generate>fibo(XEC)
 
 
 
