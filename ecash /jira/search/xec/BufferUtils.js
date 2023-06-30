@@ -194,8 +194,8 @@ do
 .stateEngine(.standby(.adoptBuffer(.active)));
 .stateEngine(.standby(.cloneBuffer(.active)));
 .stateEngine(.standby(.runBuffer(.active)));
-.stateEngine(.standby(.RUnStateEngine(.active)));
 .stateEngine(.standby(.adoptStateEngine(.active)));
+.stateEngine(.standby(.RUnStateEngine(.active)));
 .createCache(.standby(enable(.active(.time(.1ns)))));
 .createNetworkSubTreeFibo(.standby(enable(.active(.time(.1ns)))));
 .refresh(enable(.active));
