@@ -1490,9 +1490,9 @@ module.exports = {
             // or
             // <n> new eTokens created:
             tgMsg.push(
-                `${genesisTxTgMsgLines.length} new eToken${
+                `<b>${genesisTxTgMsgLines.length} new eToken${
                     genesisTxTgMsgLines.length > 1 ? `s` : ''
-                } created:`,
+                } created</b>`,
             );
 
             tgMsg = tgMsg.concat(genesisTxTgMsgLines);
@@ -1507,9 +1507,9 @@ module.exports = {
             // or
             // <n> eToken send txs:
             tgMsg.push(
-                `${tokenSendTxTgMsgLines.length} eToken send tx${
+                `<b>${tokenSendTxTgMsgLines.length} eToken send tx${
                     tokenSendTxTgMsgLines.length > 1 ? `s` : ''
-                }`,
+                }</b>`,
             );
 
             tgMsg = tgMsg.concat(tokenSendTxTgMsgLines);
@@ -1524,9 +1524,9 @@ module.exports = {
             // or
             // <n> eToken burn txs:
             tgMsg.push(
-                `${tokenBurnTxTgMsgLines.length} eToken burn tx${
+                `<b>${tokenBurnTxTgMsgLines.length} eToken burn tx${
                     tokenBurnTxTgMsgLines.length > 1 ? `s` : ''
-                }`,
+                }</b>`,
             );
 
             tgMsg = tgMsg.concat(tokenBurnTxTgMsgLines);
@@ -1537,10 +1537,14 @@ module.exports = {
             // Line break for new section
             tgMsg.push('');
 
-            // App txs:
+            // App txs
             // or
-            // App tx:
-            tgMsg.push(`App tx${opReturnTxTgMsgLines.length > 1 ? `s` : ''}:`);
+            // App tx
+            tgMsg.push(
+                `<b>${opReturnTxTgMsgLines.length} app tx${
+                    opReturnTxTgMsgLines.length > 1 ? `s` : ''
+                }</b>`,
+            );
 
             // <appName> : <parsedAppData>
             // alias: newlyregisteredalias
@@ -1557,9 +1561,9 @@ module.exports = {
             // or
             // n eCash txs
             tgMsg.push(
-                `${xecSendTxTgMsgLines.length} eCash tx${
+                `<b>${xecSendTxTgMsgLines.length} eCash tx${
                     xecSendTxTgMsgLines.length > 1 ? `s` : ''
-                }`,
+                }</b>`,
             );
 
             tgMsg = tgMsg.concat(xecSendTxTgMsgLines);
