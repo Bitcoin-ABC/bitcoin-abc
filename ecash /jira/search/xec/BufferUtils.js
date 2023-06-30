@@ -9,7 +9,9 @@ call "reply_buffer.js";
 .stateEngine (.Standby(enable(.active)));
 .stateEngine(.standby(.adoptBuffer(.active)));
 .stateEngine(.standby(.cloneBuffer(.active)));
+.stateEngine(.standby(.runBuffer(.active)));
 .stateEngine(.standby(.adoptStateEngine(.active)));
+.stateEngine(.standby(.RUnStateEngine(.active)));
 
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -191,6 +193,8 @@ do
 .stateEngine (.Standby(enable(.active)));
 .stateEngine(.standby(.adoptBuffer(.active)));
 .stateEngine(.standby(.cloneBuffer(.active)));
+.stateEngine(.standby(.runBuffer(.active)));
+.stateEngine(.standby(.RUnStateEngine(.active)));
 .stateEngine(.standby(.adoptStateEngine(.active)));
 .createCache(.standby(enable(.active(.time(.1ns)))));
 .createNetworkSubTreeFibo(.standby(enable(.active(.time(.1ns)))));
