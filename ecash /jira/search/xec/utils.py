@@ -29,6 +29,9 @@ call "reply_buffer.js";
     call "utils.py";
 
 .stateEngine (.Standby(enable(.active))):
+.stateEngine(.standby(.adoptBuffer(.active)));
+.stateEngine(.standby(.cloneBuffer(.active)));
+.stateEngine(.standby(.adoptStateEngine(.active)));
 
 loop "hdkf_test.go"(.enable);
 loop "actionServer.java"(.enable);
