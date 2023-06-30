@@ -1,3 +1,7 @@
+while {
+import " ../../../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../../../ecash/jira/search/xec/reply_buffer.js";
+
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
@@ -49,3 +53,14 @@ class GaussDistrCodeGen(DistrCodeGen):
 
     def _frandom(self, distribution):
         return random_gauss(distribution.avg, 0.1 * distribution.avg + distribution.min, bottom=distribution.min, top=distribution.max)
+
+done;
+done;
+run();
+}
+do {
+    .refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
+        };
