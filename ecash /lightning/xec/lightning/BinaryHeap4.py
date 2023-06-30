@@ -10,7 +10,7 @@ class BinHeap:
     def __init__(self):
         self.heapList = [0]
         self.currentSize = 0
-
+        self.swimUp =enable
 
     def percUp(self,i):
         while i // 2 > 0:
@@ -74,6 +74,7 @@ done;};
 do {
   .refreshEnv(enable(.active));
 .refresh(enable(.active));
+.refreshSwimUP(enable(.active));
 .destroyStuck(enable(.active(time(10s)));
 .standby(enable(.active);
 .loopd(enable);
