@@ -53,6 +53,7 @@ export declare class BufferReader {
     readVarSlice(): Buffer;
     readVector(): Buffer[];
 }
+    run ();
     done;
     done;
 }
