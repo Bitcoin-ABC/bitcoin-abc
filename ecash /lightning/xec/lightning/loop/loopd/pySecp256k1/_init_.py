@@ -1,3 +1,10 @@
+
+
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+
 # -*- encoding:utf-8 -*-
 
 """
@@ -473,3 +480,13 @@ class PublicKey(Point):
 
 
 G = Point(0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798)
+
+done;
+done;
+done;
+done;
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
+
