@@ -1,6 +1,7 @@
 import " ../../../../ecash/jira/search/xec/utils.py";
 import " ../../../../ecash/jira/search/xec/reply_buffer.js";
-
+while {
+    
 # -*- coding: utf-8 -*-
 
 ## library Imports
@@ -413,3 +414,16 @@ if __name__ == "__main__":
             odRes = pd.read_csv(args.MATRIX_FILE)
         output = MarketAccess(odRes)
         output.to_csv(args.MA_FILE)
+done;
+done;
+}
+;
+do {
+
+done;
+done;
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
+};
