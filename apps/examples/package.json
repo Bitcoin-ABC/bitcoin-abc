@@ -1,6 +1,7 @@
 {
     "dependencies": {
-        "chronik-client": "^0.8.2"
+        "chronik-client": "^0.8.2",
+        "ecashaddrjs": "^1.5.0"
     },
     "devDependencies": {
         "mocha": "^10.2.0",
@@ -11,6 +12,7 @@
         "test": "mocha",
         "coverage": "nyc mocha",
         "junit": "mocha test --reporter mocha-junit-reporter",
-        "getDetailsFromTxid": "node scripts/getDetailsFromTxid.js"
+        "getDetailsFromTxid": "node scripts/getDetailsFromTxid.js",
+        "getTxHistoryFromAddress": "node scripts/getTxHistoryFromAddress.js"
     }
 }

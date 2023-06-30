@@ -21,7 +21,12 @@ If you'd like to optionally setup your own Chronik instance, please refer to the
 Usage: `npm run getDetailsFromTxid <chronik url> <txid>`
 Example: `npm run getDetailsFromTxid https://chronik.fabien.cash fd9a775...fce0e`
 
-[] Retrieving transaction history for an address
+[x] [Retrieving transaction history - getTxHistoryFromAddress()](scripts/getTxHistoryFromAddress.js)
+
+Usage: `npm run getTxHistoryFromAddress <chronik url> <address> <page> <pageSize>`
+
+Example: `npm run getTxHistoryFromAddress https://chronik.fabien.cash ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx 0 10`
+
 [] Retrieving UTXOs for an address
 [] Creating a new wallet
 [] Collating inputs and outputs for sending XEC
