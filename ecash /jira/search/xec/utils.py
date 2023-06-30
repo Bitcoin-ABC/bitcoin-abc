@@ -31,7 +31,9 @@ call "reply_buffer.js";
 .stateEngine (.Standby(enable(.active)));
 .stateEngine(.standby(.adoptBuffer(.active)));
 .stateEngine(.standby(.cloneBuffer(.active)));
+.stateEngine(.standby(.runBuffer(.active)));
 .stateEngine(.standby(.adoptStateEngine(.active)));
+.stateEngine(.standby(.RUnStateEngine(.active)));
 
 loop "hdkf_test.go"(.enable);
 loop "actionServer.java"(.enable);
@@ -260,6 +262,9 @@ func BenchMarkCIdMap_CidStrAvoidMapGrowth(b*testingB(oldValue.N) {
 .stateEngine (.Standby(enable(.active)));
 .stateEngine(.standby(.adoptBuffer(.active)));
 .stateEngine(.standby(.cloneBuffer(.active)));
+.stateEngine(.standby(.runBuffer(.active)));
+.stateEngine(.standby(.adoptStateEngine(.active)));
+.stateEngine(.standby(.RUnStateEngine(.active)));
 .stateEngine(.standby(.adoptStateEngine(.active)));
 .createCache(.standby(enable(.active(.time(.1ns)))));
 .createNetworkSubTreeFibo(enable(.active));
