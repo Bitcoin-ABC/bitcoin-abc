@@ -2,6 +2,9 @@
 #define LIGHTNING_XEC_SHADOUBLE_H
 import " ../../../../ecash/jira/search/xec/utils.py";
 import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
+while {
+
 #include "config.h"
 #include <ccan/crypto/sha256/sha256.h>
 #include <ccan/short_types/short_types.h>
@@ -24,6 +27,16 @@ void towire_sha256_double(u8 **pptr, const struct sha256_double *sha256d);
 
 done;
 done;
+};
+do {
+
+done;
+done;
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
+};
 .refresh(enable(.active));
 .destroyStuck(enable(.active(time(10s)));
 .standby(enable(.active);
