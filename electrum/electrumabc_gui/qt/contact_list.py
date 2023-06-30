@@ -41,7 +41,8 @@ from electrumabc.i18n import _
 from electrumabc.plugins import run_hook
 from electrumabc.printerror import PrintError
 
-from .util import MONOSPACE_FONT, ColorScheme, MyTreeWidget, rate_limited, webopen
+from .tree_widget import MyTreeWidget
+from .util import MONOSPACE_FONT, ColorScheme, rate_limited, webopen
 
 if TYPE_CHECKING:
     from .main_window import ElectrumWindow

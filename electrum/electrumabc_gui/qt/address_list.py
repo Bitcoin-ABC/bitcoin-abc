@@ -44,10 +44,10 @@ from electrumabc.wallet import MultisigWallet
 
 from .consolidate_coins_dialog import ConsolidateCoinsWizard
 from .invoice_dialog import InvoiceDialog
+from .tree_widget import MyTreeWidget
 from .util import (
     MONOSPACE_FONT,
     ColorScheme,
-    MyTreeWidget,
     SortableTreeWidgetItem,
     rate_limited,
     webopen,

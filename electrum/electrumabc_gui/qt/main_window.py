@@ -116,6 +116,7 @@ from .settings_dialog import SettingsDialog
 from .sign_verify_dialog import SignVerifyDialog
 from .statusbar import NetworkStatus, StatusBar
 from .transaction_dialog import show_transaction
+from .tree_widget import MyTreeWidget
 from .util import (
     MONOSPACE_FONT,
     Buttons,
@@ -129,7 +130,6 @@ from .util import (
     HelpButton,
     HelpLabel,
     MessageBoxMixin,
-    MyTreeWidget,
     OkButton,
     RateLimiter,
     TaskThread,

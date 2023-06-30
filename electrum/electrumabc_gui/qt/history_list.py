@@ -37,13 +37,8 @@ from electrumabc.i18n import _
 from electrumabc.plugins import run_hook
 from electrumabc.util import Weak, profiler, timestamp_to_datetime
 
-from .util import (
-    MONOSPACE_FONT,
-    MyTreeWidget,
-    SortableTreeWidgetItem,
-    rate_limited,
-    webopen,
-)
+from .tree_widget import MyTreeWidget
+from .util import MONOSPACE_FONT, SortableTreeWidgetItem, rate_limited, webopen
 
 if TYPE_CHECKING:
     from .main_window import ElectrumWindow

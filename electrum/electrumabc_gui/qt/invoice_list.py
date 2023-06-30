@@ -33,10 +33,11 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QIcon
 
 from electrumabc.i18n import _
-from electrumabc.paymentrequest import pr_tooltips
+from electrumabc.paymentrequest import PR_UNPAID, pr_tooltips
 from electrumabc.util import FileImportFailed, format_time
 
-from .util import MONOSPACE_FONT, PR_UNPAID, MyTreeWidget, pr_icons
+from .tree_widget import MyTreeWidget, pr_icons
+from .util import MONOSPACE_FONT
 
 if TYPE_CHECKING:
     from .main_window import ElectrumWindow

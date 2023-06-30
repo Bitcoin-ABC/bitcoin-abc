@@ -44,13 +44,8 @@ from electrumabc.wallet import ImportedAddressWallet, ImportedPrivkeyWallet
 
 from .avalanche.proof_editor import AvaProofDialog
 from .consolidate_coins_dialog import ConsolidateCoinsWizard
-from .util import (
-    MONOSPACE_FONT,
-    ColorScheme,
-    MyTreeWidget,
-    SortableTreeWidgetItem,
-    rate_limited,
-)
+from .tree_widget import MyTreeWidget
+from .util import MONOSPACE_FONT, ColorScheme, SortableTreeWidgetItem, rate_limited
 
 if TYPE_CHECKING:
     from .main_window import ElectrumWindow

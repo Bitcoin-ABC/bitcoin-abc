@@ -37,7 +37,7 @@ from electrumabc.paymentrequest import PR_UNKNOWN, pr_tooltips
 from electrumabc.plugins import run_hook
 from electrumabc.util import age, format_time
 
-from .util import MyTreeWidget, pr_icons
+from .tree_widget import MyTreeWidget, pr_icons
 
 if TYPE_CHECKING:
     from .main_window import ElectrumWindow
