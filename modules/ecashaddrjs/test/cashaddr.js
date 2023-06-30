@@ -213,13 +213,13 @@ describe('cashaddr', () => {
                     cashaddr.getTypeAndHashFromOutputScript(
                         TEST_P2PKH_OUTPUTSCRIPTS[index],
                     ),
-                    { type: 'P2PKH', hash: TEST_HASHES_STRINGS[index] },
+                    { type: 'p2pkh', hash: TEST_HASHES_STRINGS[index] },
                 );
                 assert.deepEqual(
                     cashaddr.getTypeAndHashFromOutputScript(
                         TEST_P2SH_OUTPUTSCRIPTS[index],
                     ),
-                    { type: 'P2SH', hash: TEST_HASHES_STRINGS[index] },
+                    { type: 'p2sh', hash: TEST_HASHES_STRINGS[index] },
                 );
             }
         });

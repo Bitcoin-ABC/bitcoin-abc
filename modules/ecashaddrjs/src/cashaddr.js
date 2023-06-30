@@ -468,7 +468,7 @@ function getTypeAndHashFromOutputScript(outputScript) {
         outputScript.slice(-1 * p2pkhSuffix.length) === p2pkhSuffix
     ) {
         // We have type p2pkh
-        type = 'P2PKH';
+        type = 'p2pkh';
 
         // hash is the string in between '76a194' and '88ac'
         hash = outputScript.substring(
@@ -481,7 +481,7 @@ function getTypeAndHashFromOutputScript(outputScript) {
         outputScript.slice(-1 * p2shSuffix.length) === p2shSuffix
     ) {
         // We have type p2sh
-        type = 'P2SH';
+        type = 'p2sh';
         // hash is the string in between 'a914' and '87'
         hash = outputScript.substring(
             outputScript.indexOf(p2shPrefix) + p2shPrefix.length,
