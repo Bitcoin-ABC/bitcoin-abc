@@ -230,7 +230,7 @@ public:
     }
 
     /** Generate random bytes. */
-    std::vector<uint8_t> randbytes(size_t len);
+    template <typename B = uint8_t> std::vector<B> randbytes(size_t len);
 
     /** Generate a random 32-bit integer. */
     uint32_t rand32() noexcept { return randbits(32); }

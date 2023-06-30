@@ -312,6 +312,9 @@ inline uint8_t *UCharCast(char *c) {
 inline uint8_t *UCharCast(uint8_t *c) {
     return c;
 }
+inline uint8_t *UCharCast(std::byte *c) {
+    return (uint8_t *)c;
+}
 inline const uint8_t *UCharCast(const char *c) {
     return (uint8_t *)c;
 }
