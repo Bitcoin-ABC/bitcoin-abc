@@ -1,3 +1,8 @@
+
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
 #include "xecCurve.h"
 #include "Conversion.h"
 #include "utility/trezor/rfc6979.h"
@@ -290,3 +295,13 @@ ECPoint operator*(const ECScalar& scalar, const ECPoint& point){
 	r.compressed = point.compressed;
 	return r;
 }
+
+
+return true;
+return 1;
+done;
+done;
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
