@@ -3,7 +3,10 @@
 # Copyright (c) 2023 The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
+from __future__ import annotations
+
 from collections import namedtuple
+from typing import TYPE_CHECKING, Optional
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal
@@ -11,7 +14,11 @@ from PyQt5.QtCore import Qt, QTimer, pyqtSignal
 from electrumabc.paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNPAID
 from electrumabc.simple_config import SimpleConfig
 from electrumabc.util import Weak
-from electrumabc.wallet import AbstractWallet
+
+if TYPE_CHECKING:
+    from electrumabc.storage import WalletStorage
+    from electrumabc.wallet import AbstractWallet
+
 
 pr_icons = {
     PR_UNPAID: ":icons/unpaid.svg",
@@ -26,15 +33,63 @@ class ElectrumItemDelegate(QtWidgets.QStyledItemDelegate):
         return self.parent().createEditor(parent, option, index)
 
 
-class MyTreeWidget(QtWidgets.QTreeWidget):
+class TreeSortingMixin:
+    """Mixin class providing sorting helpers for a QTreeView"""
+
     class SortSpec(namedtuple("SortSpec", "column, qt_sort_order")):
         """Used to specify member: default_sort"""
 
     # Specify this in subclasses to apply a default sort order to the widget.
     # If None, nothing is applied (items are presented in the order they are
     # added).
-    default_sort: SortSpec = None
+    default_sort: Optional[SortSpec] = None
 
+    def __init__(
+        self,
+        tree_view: QtWidgets.QTreeView,
+        storage: WalletStorage,
+        widget_name: str,
+    ):
+        self.tree_view = tree_view
+        self.storage = storage
+        self.storage_key = f"mytreewidget_default_sort_{widget_name}"
+
+    def _setup_save_sort_mechanism(self, save_settings: bool):
+        """This method sets up the sorting base on the configuration saved in the
+        wallet file or by default based on the class attribute `default_sort`
+        set by child classes.
+        It must be called after `setColumnCount`, else `sortByColumn` will not
+        work.
+        """
+        if save_settings:
+            default = (
+                self.storage and self.storage.get(self.storage_key, None)
+            ) or self.default_sort
+            if (
+                default
+                and isinstance(default, (tuple, list))
+                and len(default) >= 2
+                and all(isinstance(i, int) for i in default)
+            ):
+                self.tree_view.setSortingEnabled(True)
+                self.tree_view.sortByColumn(default[0], default[1])
+            if self.storage:
+                # Paranoia; hold a weak reference just in case subclass code
+                # does unusual things.
+                weakStorage = Weak.ref(self.storage)
+
+                def save_sort(column, qt_sort_order):
+                    storage = weakStorage()
+                    if storage:
+                        storage.put(self.storage_key, [column, qt_sort_order])
+
+                self.tree_view.header().sortIndicatorChanged.connect(save_sort)
+        elif self.default_sort:
+            self.tree_view.setSortingEnabled(True)
+            self.tree_view.sortByColumn(self.default_sort[0], self.default_sort[1])
+
+
+class MyTreeWidget(QtWidgets.QTreeWidget, TreeSortingMixin):
     # Specify this in subclasses to enable substring search/filtering (Ctrl+F)
     # (if this and filter_data_columns are both empty, no search is applied)
     filter_columns = []
@@ -66,7 +121,11 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
         deferred_updates=False,
         save_sort_settings=False,
     ):
-        QtWidgets.QTreeWidget.__init__(self)
+        super().__init__(
+            tree_view=self,
+            storage=wallet.storage,
+            widget_name=type(self).__name__,
+        )
         self.config = config
         self.wallet = wallet
         self.stretch_column = stretch_column
@@ -77,7 +136,6 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
         self.insertChild = self.insertTopLevelItem
         self.deferred_updates = deferred_updates
         self.deferred_update_ct, self._forced_update = 0, False
-        self._save_sort_settings = save_sort_settings
 
         # Control which columns are editable
         self.editor = None
@@ -90,35 +148,7 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
         self.update_headers(headers)
         self.current_filter = ""
 
-        self._setup_save_sort_mechanism()
-
-    def _setup_save_sort_mechanism(self):
-        if self._save_sort_settings:
-            storage = self.wallet.storage
-            key = f"mytreewidget_default_sort_{type(self).__name__}"
-            default = (storage and storage.get(key, None)) or self.default_sort
-            if (
-                default
-                and isinstance(default, (tuple, list))
-                and len(default) >= 2
-                and all(isinstance(i, int) for i in default)
-            ):
-                self.setSortingEnabled(True)
-                self.sortByColumn(default[0], default[1])
-            if storage:
-                # Paranoia; hold a weak reference just in case subclass code
-                # does unusual things.
-                weakStorage = Weak.ref(storage)
-
-                def save_sort(column, qt_sort_order):
-                    storage = weakStorage()
-                    if storage:
-                        storage.put(key, [column, qt_sort_order])
-
-                self.header().sortIndicatorChanged.connect(save_sort)
-        elif self.default_sort:
-            self.setSortingEnabled(True)
-            self.sortByColumn(self.default_sort[0], self.default_sort[1])
+        self._setup_save_sort_mechanism(save_sort_settings)
 
     def update_headers(self, headers):
         self.setColumnCount(len(headers))
