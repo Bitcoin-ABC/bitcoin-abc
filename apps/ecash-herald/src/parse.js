@@ -7,7 +7,7 @@ const config = require('../config');
 const opReturn = require('../constants/op_return');
 const { consumeNextPush } = require('ecash-script');
 const knownMinersJson = require('../constants/miners');
-const { jsonReviver } = require('../src/utils');
+const { jsonReviver, bigNumberAmountToLocaleString } = require('../src/utils');
 const miners = JSON.parse(JSON.stringify(knownMinersJson), jsonReviver);
 const cashaddr = require('ecashaddrjs');
 const BigNumber = require('bignumber.js');
@@ -1246,11 +1246,11 @@ module.exports = {
                     }
                     // Calculate true tokenChangeAmount using decimals
                     // Use decimals to calculate the sent amount as string
-                    const decimalizedTokenChangeAmount = new BigNumber(
-                        undecimalizedTokenChangeAmount,
-                    )
-                        .shiftedBy(-1 * decimals)
-                        .toString();
+                    const decimalizedTokenChangeAmount =
+                        bigNumberAmountToLocaleString(
+                            undecimalizedTokenChangeAmount.toString(),
+                            decimals,
+                        );
 
                     // Self send tokenSendMsg
                     tokenSendMsg = `${emojis.tokenSend}${
@@ -1279,23 +1279,18 @@ module.exports = {
                     }
                     // Calculate true tokenReceivedAmount using decimals
                     // Use decimals to calculate the received amount as string
-                    const decimalizedTokenReceivedAmount = new BigNumber(
-                        undecimalizedTokenReceivedAmount,
-                    )
-                        .shiftedBy(-1 * decimals)
-                        .toString();
+                    const decimalizedTokenReceivedAmount =
+                        bigNumberAmountToLocaleString(
+                            undecimalizedTokenReceivedAmount.toString(),
+                            decimals,
+                        );
                     tokenSendMsg = `${emojis.tokenSend}${returnAddressPreview(
                         cashaddr.encodeOutputScript(
                             tokenSendingOutputScripts.values().next().value,
                         ),
                     )} <a href="${
                         config.blockExplorer
-                    }/tx/${txid}">sent</a> ${decimalizedTokenReceivedAmount.toLocaleString(
-                        'en-US',
-                        {
-                            minimumFractionDigits: decimals,
-                        },
-                    )} <a href="${
+                    }/tx/${txid}">sent</a> ${decimalizedTokenReceivedAmount} <a href="${
                         config.blockExplorer
                     }/tx/${tokenId}">${tokenTicker}</a> to ${returnAddressPreview(
                         cashaddr.encodeOutputScript(
@@ -1338,11 +1333,11 @@ module.exports = {
 
                     // Calculate true tokenReceivedAmount using decimals
                     // Use decimals to calculate the burned amount as string
-                    const decimalizedTokenBurnAmount = new BigNumber(
-                        undecimalizedTokenBurnAmount,
-                    )
-                        .shiftedBy(-1 * decimals)
-                        .toString();
+                    const decimalizedTokenBurnAmount =
+                        bigNumberAmountToLocaleString(
+                            undecimalizedTokenBurnAmount,
+                            decimals,
+                        );
 
                     const tokenBurningAddressStr = returnAddressPreview(
                         cashaddr.encodeOutputScript(

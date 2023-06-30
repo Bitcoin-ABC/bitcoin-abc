@@ -314,4 +314,27 @@ module.exports = {
         }
         return emojis.shrimp;
     },
+    /**
+     * Convert an integer-stored number with known decimals into a formatted decimal string
+     * Useful for converting token send quantities to a human-readable string
+     * @param {string} bnString an integer value as a string, e.g 100000012
+     * @param {number} decimals the number of expected decimal places, e.g. 2
+     * @returns {string} e.g. 1,000,000.12
+     */
+    bigNumberAmountToLocaleString: function (bnString, decimals) {
+        const totalLength = bnString.length;
+
+        // Get the values that come after the decimal place
+        const decimalValues =
+            decimals === 0 ? '' : bnString.slice(-1 * decimals);
+        const decimalLength = decimalValues.length;
+
+        // Get the values that come before the decimal place
+        const intValue = bnString.slice(0, totalLength - decimalLength);
+
+        // Use toLocaleString() to format the amount before the decimal place with commas
+        return `${BigInt(intValue).toLocaleString('en-US', {
+            maximumFractionDigits: 0,
+        })}${decimals !== 0 ? `.${decimalValues}` : ''}`;
+    },
 };

@@ -18,6 +18,7 @@ const {
     formatXecAmount,
     satsToFormattedValue,
     getEmojiFromBalanceSats,
+    bigNumberAmountToLocaleString,
 } = require('../src/utils');
 const { addressPreviews, mockCoingeckoPrices } = require('./mocks/templates');
 
@@ -345,5 +346,32 @@ describe('ecash-telegram-bot utils.js functions', function () {
                 emojis[names[i]],
             );
         }
+    });
+    it('bigNumberAmountToLocaleString correctly formats a token send amount with no decimal places', async function () {
+        const tokenSendAmountString = '1000000';
+        const decimals = 0;
+
+        assert.strictEqual(
+            bigNumberAmountToLocaleString(tokenSendAmountString, decimals),
+            '1,000,000',
+        );
+    });
+    it('bigNumberAmountToLocaleString correctly formats a token send amount with 1 decimal place', async function () {
+        const tokenSendAmountString = '10000000000000001';
+        const decimals = 1;
+
+        assert.strictEqual(
+            bigNumberAmountToLocaleString(tokenSendAmountString, decimals),
+            '1,000,000,000,000,000.1',
+        );
+    });
+    it('bigNumberAmountToLocaleString correctly formats a token send amount with 9 decimal places', async function () {
+        const tokenSendAmountString = '123456789123456789';
+        const decimals = 9;
+
+        assert.strictEqual(
+            bigNumberAmountToLocaleString(tokenSendAmountString, decimals),
+            '123,456,789.123456789',
+        );
     });
 });
