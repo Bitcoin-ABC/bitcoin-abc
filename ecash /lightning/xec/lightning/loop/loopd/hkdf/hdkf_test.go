@@ -1,3 +1,7 @@
+import " ../../../../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
 "xec_h"
 // Copyright 2014 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
@@ -449,3 +453,12 @@ func benchmarkHKDFStream(hasher func() hash.Hash, block int, b *testing.B) {
 	}
 }
 return hdkf.go;
+
+done;
+done;
+return true;
+return 1;
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
