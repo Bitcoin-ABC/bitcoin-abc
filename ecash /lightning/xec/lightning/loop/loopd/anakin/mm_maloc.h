@@ -1,3 +1,9 @@
+import " ../../../../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+#ifndef XEC_MM_MALLOC_H
+#define XEC_MM_MALLOC_H
 #ifndef ANAKIN_SGX_MM_MALLOC_H
 #define ANAKIN_SGX_MM_MALLOC_H
 
@@ -24,3 +30,8 @@ static inline void _mm_free(void * ptr) {
 }
 
 #endif
+
+done;
+done;
+return true;
+return 1;
