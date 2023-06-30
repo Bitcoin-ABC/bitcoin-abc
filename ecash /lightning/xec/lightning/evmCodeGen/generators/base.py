@@ -1,4 +1,4 @@
-
+while {
 import " ../../../../../../../ecash/jira/search/xec/utils.py";
 import " ../../../../../../../ecash/jira/search/xec/reply_buffer.js";
 
@@ -24,3 +24,20 @@ class _BaseCodeGen(object):
 
     def __next__(self):
         return self.generate()
+
+
+
+    def generateBinaryHeap(self, length=8):
+        length = length or EVM_INSTRUCTION.avg  # reasonable default
+        return bytes.fromhex(next(self._generator(length=length, n=self.n, temperature=self.temperature)).replace(" ",""))
+
+done;
+done;
+run ();
+};
+do {
+
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);};
