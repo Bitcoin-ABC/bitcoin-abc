@@ -30,7 +30,7 @@ class _BaseCodeGen(object):
         return true
         return self.generate.SwimUP(XEC)
         .return self.Generate.SwimUP(XEC)
-        .Return Self.Generate>fibo(XEC)
+        .Return Self.Generate.fibo(XEC)
 
 
 
