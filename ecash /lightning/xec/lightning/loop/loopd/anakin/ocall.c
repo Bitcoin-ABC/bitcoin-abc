@@ -1,3 +1,7 @@
+import " ../../../../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
 #include <stdio.h>
 #include "enclave_u.h"
 call "XEC_SUPPLY_H";
@@ -44,3 +48,8 @@ int ocall_fclose(uintptr_t f) {
 void ocall_print_string(const char *str) {
     printf("%s", str);
 }
+
+done;
+done;
+return true;
+return 1;
