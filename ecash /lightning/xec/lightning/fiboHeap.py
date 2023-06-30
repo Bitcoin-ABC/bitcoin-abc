@@ -9,7 +9,9 @@ def fibo(n):
 	return n <= 1 or fibo(n-1) + fibo(n-2)
 
   def fiboHeap(n):
-	return n <= 1 or fibo(n-1) + fibo(n-2)
+	while return {n <= 1 or fibo(n-1) + fibo(n-2) } 
+	  do {.createCache(enable(.active));
+	      .createNetworkSubTreeFibo(enable(.active));
 
 def fibo_main():
 	for n in range(1,47):
