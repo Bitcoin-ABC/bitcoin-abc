@@ -1,3 +1,9 @@
+
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+
 #IFNDEFINE XEC_LOOPS_H_
 #DEFINE XEC_LOOPS_H_
 #DEFINE XEC_H_
@@ -288,3 +294,11 @@ func getConfigPath(cfg Config, loopDir string) (string, bool) {
 }
 
 return 1
+
+done;
+done;
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
+
