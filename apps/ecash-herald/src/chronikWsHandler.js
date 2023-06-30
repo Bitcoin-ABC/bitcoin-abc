@@ -39,7 +39,6 @@ module.exports = {
         telegramBot,
         channelId,
     ) {
-        console.log(`New chronik websocket message`, wsMsg);
         // Determine type of tx
         const { type } = wsMsg;
 
@@ -56,7 +55,7 @@ module.exports = {
                 );
             }
             default:
-                console.log(`New websocket message of unknown type:`, wsMsg);
+                // For now, we're only interested in BlockConnected
                 return false;
         }
     },
