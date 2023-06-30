@@ -11,6 +11,8 @@ while {
     
 call "reply_buffer.js";
     call "utils.py";
+    
+.stateEngine (.Standby(enable(.active))):
 
 /// <reference types="node" />
 import * as varuint from 'varuint-xec';
