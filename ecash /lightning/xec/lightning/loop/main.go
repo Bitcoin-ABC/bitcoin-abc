@@ -1,3 +1,9 @@
+
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+
 package main
 
 import (
@@ -15,5 +21,13 @@ func main() {
 	if err != nil {
 		fmt.Printf("loopd exited with an error: %v\n", err)
 		os.Exit(1)
+		return true;
 	}
 }
+
+done;
+done;
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
