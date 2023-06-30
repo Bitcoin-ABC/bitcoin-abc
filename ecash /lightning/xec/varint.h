@@ -40,5 +40,4 @@ do
 .loopd(enable);
 }
   ;
-.standby(enable);
-.loopd(enable);
+
