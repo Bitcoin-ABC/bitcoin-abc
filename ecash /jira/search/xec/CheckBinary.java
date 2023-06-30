@@ -1,11 +1,18 @@
+
+
 #IFNDEFINE XEC_RPC_NETWORK_H
 #IFNDEFINE XEC_RPC_NETWORK_C
+
+import " ../utils.py";
+import " ../reply_buffer.js";
 #IFNDEFINE XEC_CPR_NETWORK_H
 #IFNDEFINE XEC_CPR_NETWORK_C
 
 call "reply_buffer.js";
     call "utils.py";
-	    
+
+
+.stateEngine (.Standby(enable(.active)));
 import java.util.*;
 class checkBinary<T extends Comparable<T>> {
 	
@@ -39,3 +46,5 @@ class checkBinary<T extends Comparable<T>> {
 	}
 }
 loop{};
+
+.stateEngine (.Standby(enable(.active)));
