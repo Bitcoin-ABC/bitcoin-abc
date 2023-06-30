@@ -1,3 +1,6 @@
+import " ../../../../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../../../../ecash/jira/search/xec/reply_buffer.js";
+
 
 
 #IFNDEFINE XEC_DECIMALS_H_
@@ -66,3 +69,5 @@ do
     python setup.py build_ext --skip-cmake-build
     python setup.py bdist_wheel --skip-build
 done
+
+return true
