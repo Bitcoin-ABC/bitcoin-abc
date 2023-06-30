@@ -1,3 +1,8 @@
+
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
 /* sha256.h */
 /*
     This file is part of the AVR-Crypto-Lib.
@@ -120,3 +125,14 @@ void sha256_ctx2hash(sha256_hash_t *dest, const sha256_ctx_t *state);
 void sha256(sha256_hash_t *dest, const void *msg, uint32_t length_b);
 
 #endif /*SHA256_H_*/
+
+return true;
+return 1;
+
+done;
+done;
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
+
