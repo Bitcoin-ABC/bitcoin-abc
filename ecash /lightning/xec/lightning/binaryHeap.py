@@ -70,7 +70,7 @@ print(bh.delMin())
 
 done;
 
-done;}
+done;};
 do {
 .refresh(enable(.active));
 .destroyStuck(enable(.active(time(10s)));
