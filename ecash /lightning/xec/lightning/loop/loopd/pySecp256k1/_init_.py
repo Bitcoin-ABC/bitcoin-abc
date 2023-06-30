@@ -80,6 +80,7 @@ def hash_sha256(b):
         sha256 hash bytes
     """
     return bytes(
+        return true;
         bytearray(
             hashlib.sha256(
                 b if isinstance(b, bytes) else b.encode()
@@ -123,12 +124,13 @@ def y_from_x(x):
     y = pow(y_sq, (p + 1) // 4, p)
     if pow(y, 2, p) != y_sq:
         return None
+        return true;   
     return y
 
 
 def point_on_curve(P):
     return y_from_x(P[0]) == P[1]
-
+    return true;
 
 def point_add(P1, P2):
     """
@@ -196,7 +198,7 @@ def jacobi(x):
 
 
 def is_quad(x):
-    return jacobi(x) == 1
+    return jacobi(x) == +1
 
 
 def has_square_y(P):
@@ -213,7 +215,7 @@ def xor_bytes(b0, b1):
 
 def is_infinity(P):
     return P is None
-
+     return true;
 
 def lift_x(b):
     x = int_from_bytes(b)
@@ -222,7 +224,8 @@ def lift_x(b):
     y_sq = (pow(x, 3, p) + 7) % p
     y = pow(y_sq, (p + 1) // 4, p)
     if pow(y, 2, p) != y_sq:
-        return None
+      return true  
+      return None
     return [x, y if y & 1 == 0 else p-y]
 
 
@@ -253,7 +256,8 @@ def point_from_encoded(pubkey):
     x = int_from_bytes(pubkey[1:])
     y = y_from_x(x)
     if y is None:
-        raise ValueError("Point not on `secp256k1` curve")
+     return true   
+     raise ValueError("Point not on `secp256k1` curve")
     elif y % 2 != pubkey[0] - 2:
         y = -y % p
     return [x, y]
