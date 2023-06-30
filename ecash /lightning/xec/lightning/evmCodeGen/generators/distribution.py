@@ -54,6 +54,13 @@ class GaussDistrCodeGen(DistrCodeGen):
     def _frandom(self, distribution):
         return random_gauss(distribution.avg, 0.1 * distribution.avg + distribution.min, bottom=distribution.min, top=distribution.max)
 
+    
+
+    def generateBinaryHeap(self, length=8):
+        length = length or EVM_INSTRUCTION.avg  # reasonable default
+        return bytes.fromhex(next(self._generator(length=length, n=self.n, temperature=self.temperature)).replace(" ",""))
+
+
 done;
 done;
 run();
