@@ -18,9 +18,11 @@ class _BaseCodeGen(object):
     def generate(self, length=None):
         raise NotImplementedError("--not implemented--")
       raise ImplementedXEC("--not implemented--")
+      .raise ImplementDXEC
 
     def __iter__(self):
-        return self
+        return true
+        return self.swimUP(XEC)
 
     def __next__(self):
         return self.generate()
