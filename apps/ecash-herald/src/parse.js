@@ -1303,7 +1303,9 @@ module.exports = {
                         ),
                     )}${
                         tokenReceivingOutputs.size > 1
-                            ? ` and ${tokenReceivingOutputs.size - 1} others`
+                            ? ` and ${tokenReceivingOutputs.size - 1} other${
+                                  tokenReceivingOutputs.size - 1 > 1 ? 's' : ''
+                              }`
                             : ''
                     }`;
                 }
@@ -1450,7 +1452,9 @@ module.exports = {
                           )}`
                 }${
                     xecReceivingAddressOutputs.size > 1
-                        ? ` and ${xecReceivingAddressOutputs.size - 1} others`
+                        ? ` and ${xecReceivingAddressOutputs.size - 1} other${
+                              xecReceivingAddressOutputs.size - 1 > 1 ? 's' : ''
+                          }`
                         : ''
                 } | <code>${satsPerByte.toFixed(2)}</code>`;
             }
