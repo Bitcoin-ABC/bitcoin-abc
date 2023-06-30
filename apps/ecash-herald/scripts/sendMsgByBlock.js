@@ -76,10 +76,17 @@ async function sendMsgByBlock(
         true,
     );
 
-    const { blockSummaryTgMsgs, blockSummaryTgMsgsApiFailure } = returnedMocks;
+    const { blockDetails, blockSummaryTgMsgs, blockSummaryTgMsgsApiFailure } =
+        returnedMocks;
+    const blockheight = blockDetails.blockInfo.height;
 
     // Send msg with successful price API call
-    await sendBlockSummary(blockSummaryTgMsgs, telegramBot, channelId);
+    await sendBlockSummary(
+        blockSummaryTgMsgs,
+        telegramBot,
+        channelId,
+        blockheight,
+    );
 
     // Send msg with failed price API call
     await sendBlockSummary(

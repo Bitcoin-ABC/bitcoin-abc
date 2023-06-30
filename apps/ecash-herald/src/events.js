@@ -25,8 +25,11 @@ module.exports = {
 
         // Get some info about this block
         let blockDetails = false;
+        let blockheight;
         try {
             blockDetails = await chronik.block(blockHash);
+            // See blocks.js 'blockDetails' objects for shape of chronik.block return object
+            blockheight = blockDetails.blockInfo.height;
         } catch (err) {
             console.log(`Error in chronik.block(${blockHash})`, err);
         }
@@ -106,6 +109,7 @@ module.exports = {
             blockSummaryTgMsgs,
             telegramBot,
             channelId,
+            blockheight,
         );
     },
 };

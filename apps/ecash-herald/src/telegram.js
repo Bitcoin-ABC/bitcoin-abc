@@ -77,7 +77,12 @@ module.exports = {
 
         return tgMsgStrings;
     },
-    sendBlockSummary: async function (tgMsgStrings, telegramBot, channelId) {
+    sendBlockSummary: async function (
+        tgMsgStrings,
+        telegramBot,
+        channelId,
+        blockheight = false,
+    ) {
         /* sendBlockSummary
          *
          * Params
@@ -124,6 +129,10 @@ module.exports = {
             }
         }
         if (msgSuccessArray.length === tgMsgStrings.length) {
+            if (typeof blockheight === 'number') {
+                console.log('\x1b[32m%s\x1b[0m', `✔ ${blockheight}`);
+            }
+
             return msgSuccessArray;
         }
         // Catch potential edge case
