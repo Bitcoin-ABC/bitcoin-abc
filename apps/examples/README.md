@@ -29,7 +29,12 @@ Usage: `npm run getTxHistoryFromAddress <address> <page> <pageSize>`
 
 Example: `npm run getTxHistoryFromAddress ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx 0 10`
 
-[] Retrieving UTXOs for an address
+[x] [Retrieving UTXOs - getUtxosFromAddress()](scripts/getUtxosFromAddress.js)
+
+Usage: `npm run getUtxosFromAddress <address>`
+
+Example: `npm run getUtxosFromAddress ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx`
+
 [] Creating a new wallet
 [] Collating inputs and outputs for sending XEC
 [] Collating inputs and outputs for sending eTokens

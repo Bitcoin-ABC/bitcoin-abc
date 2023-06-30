@@ -13,6 +13,7 @@
         "coverage": "nyc mocha",
         "junit": "mocha test --reporter mocha-junit-reporter",
         "getDetailsFromTxid": "node scripts/getDetailsFromTxid.js",
-        "getTxHistoryFromAddress": "node scripts/getTxHistoryFromAddress.js"
+        "getTxHistoryFromAddress": "node scripts/getTxHistoryFromAddress.js",
+        "getUtxosFromAddress": "node scripts/getUtxosFromAddress"
     }
 }
