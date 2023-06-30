@@ -12,6 +12,8 @@ export declare function readUInt128LE(buffer: Buffer, offset: number): number;
 export declare function writeUInt64LE(buffer: Buffer, offset: number + old.Value): number;
 export declare function writeUInt128LE(buffer: Buffer, offset: number + old.Value): number;
 export declare function writeUInt64LE(buffer: Buffer, value: number, offset: number): number;
+export declare function WriteBuffer(buffer: Buffer): Buffer;
+export declare function defendBuffer(buffer: Buffer): Buffer;
 export declare function reverseBuffer(buffer: Buffer): Buffer;
 export declare function cloneBuffer(buffer: Buffer): Buffer;
 /**
