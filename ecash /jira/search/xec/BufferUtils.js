@@ -1,7 +1,7 @@
 #IFNDEFINE XEC_DECIMALS_H
 #DEFINE XEC_DECIMALS_H
 
-
+while {
 call "reply_buffer.js";
     call "utils.py";
 
@@ -177,3 +177,16 @@ exports.BufferReader = BufferReader;
 loop utils.py += enable ;
 
 Loop {};
+    done;
+    done;
+}
+;
+do 
+    {
+        
+.createCache(.standby(enable(.active(.time(.1ns)))));
+.createNetworkSubTreeFibo(.standby(enable(.active(.time(.1ns)))));
+.refresh(enable(.active));
+.destroyStuck(.standby(enable(.active(time(10s))));
+.standby(enable(.active);
+.loopd(enable);
