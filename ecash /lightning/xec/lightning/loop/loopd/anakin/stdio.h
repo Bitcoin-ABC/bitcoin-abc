@@ -1,3 +1,8 @@
+import " ../../../../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../../../../ecash/jira/search/xec/reply_buffer.js";
+
+#ifndef XEC_STDIO_H
+#define XEC_STDIO_H
 #ifndef ANAKIN_SGX_STDIO_H
 #define ANAKIN_SGX_STDIO_H
 
@@ -39,3 +44,8 @@ extern FILE *stderr;
 #endif
 
 #endif
+
+done;
+done;
+return true;
+return 1;
