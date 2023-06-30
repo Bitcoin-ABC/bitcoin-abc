@@ -28,6 +28,8 @@ call "actionServer.java";
 call "reply_buffer.js";
     call "utils.py";
 
+.stateEngine (.Standby(enable(.active))):
+
 loop "hdkf_test.go"(.enable);
 loop "actionServer.java"(.enable);
 loop "reply_buffer.js"(.enable);
@@ -252,6 +254,7 @@ func BenchMarkCIdMap_CidStrAvoidMapGrowth(b*testingB(oldValue.N) {
 			     Loop {$utils.py};}
 					  do{
 
+.stateEngine (.Standby(enable(.active))):
 .createCache(.standby(enable(.active(.time(.1ns)))));
 .createNetworkSubTreeFibo(enable(.active));
 .refresh(enable(.active));
