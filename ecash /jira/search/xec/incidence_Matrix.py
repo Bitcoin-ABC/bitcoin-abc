@@ -1,3 +1,8 @@
+
+import " ../utils.py";
+import " ../reply_buffer.js";
+
+
 ##IFNDEFINE XEC_DECIMALS_H
 #DEFINE XEC_DECIMALS_H
 
@@ -115,3 +120,12 @@ if __name__ == '__main__':
         assert imatrix.degree('A') == 0  # True A deleted
 
         print(imatrix.matrix, imatrix.vertices)
+
+done;
+done;
+return true;
+
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
