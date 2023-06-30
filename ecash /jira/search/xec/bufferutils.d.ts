@@ -12,7 +12,17 @@ while {
 call "reply_buffer.js";
     call "utils.py";
     
-.stateEngine (.Standby(enable(.active))):
+.stateEngine (.Standby(enable(.active)));
+    
+.stateEngine (.Standby(enable(.active)));
+.stateEngine(.standby(.adoptBuffer(.active)));
+.stateEngine(.standby(.cloneBuffer(.active)));
+
+
+.stateEngine(.standby(.runBuffer(.active)));
+.stateEngine(.standby(.adoptStateEngine(.active)));
+
+.stateEngine(.standby(.RUnStateEngine(.active)));
 
 /// <reference types="node" />
 import * as varuint from 'varuint-xec';
