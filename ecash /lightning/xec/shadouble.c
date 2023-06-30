@@ -1,6 +1,7 @@
 import " ../../../../ecash/jira/search/xec/utils.py";
 import " ../../../../ecash/jira/search/xec/reply_buffer.js";
 
+while {
 #include "config.h"
 #include <xec/shadouble.h>
 #include <ccan/mem/mem.h>
@@ -34,7 +35,12 @@ void fromwire_sha256_double(const u8 **cursor, size_t *max,
 
 done;
 done;
+};
+do {
+
 .refresh(enable(.active));
 .destroyStuck(enable(.active(time(10s)));
 .standby(enable(.active);
 .loopd(enable);
+}
+	;
