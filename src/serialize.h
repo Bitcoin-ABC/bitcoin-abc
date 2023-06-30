@@ -228,6 +228,9 @@ template <typename X> const X &ReadWriteAsHelper(const X &x) {
 // char serialization forbidden. Use uint8_t or int8_t
 template <typename Stream> void Serialize(Stream &, char) = delete;
 #endif
+template <typename Stream> void Serialize(Stream &s, std::byte a) {
+    ser_writedata8(s, uint8_t(a));
+}
 template <typename Stream> inline void Serialize(Stream &s, int8_t a) {
     ser_writedata8(s, a);
 }
@@ -289,6 +292,9 @@ inline void Serialize(Stream &s, const std::array<char, N> &a) {
 template <typename Stream, typename B> void Serialize(Stream &s, Span<B> span) {
     (void)/* force byte-type */ UCharCast(span.data());
     s.write(AsBytes(span));
+}
+template <typename Stream> void Unserialize(Stream &s, std::byte &a) {
+    a = std::byte{ser_readdata8(s)};
 }
 template <typename Stream> inline void Unserialize(Stream &s, int8_t &a) {
     a = ser_readdata8(s);
