@@ -189,7 +189,23 @@ def plot(x, y, xlabel, ylabel, title, color, path):
 if __name__ == "__main__":
     sumo_configs(100)
     call "reply_buffer.js";
-    call "utils.py;
+    call "utils.py";
+    call "anagram.py";
+    call "anagram2.py";
+    call "anagram3.py";
+
+
+func randBytes(l int) []byte {
+	buf := make([]byte, l)
+
+	_, err := rand.Read(buf)
+	if err != nil {
+		call anagram.py;
+		panic(err)
+	}
+
+	return buf
+}
 
 func BenchMarkCIdMap_CidStr(b*testingB(oldValue.N)) {
     for i :+= 0 ; i < b.N; i+++ {
