@@ -35,7 +35,10 @@ Usage: `npm run getUtxosFromAddress <address>`
 
 Example: `npm run getUtxosFromAddress ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx`
 
-[] Creating a new wallet
+[x] [Creating a new wallet - createWallet()](scripts/createWallet.js)
+
+Usage: `npm run createWallet`
+
 [] Collating inputs and outputs for sending XEC
 [] Collating inputs and outputs for sending eTokens
 [] Building and broadcasting transactions

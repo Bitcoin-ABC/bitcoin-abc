@@ -1,7 +1,10 @@
 {
     "dependencies": {
+        "@bitgo/utxo-lib": "^9.2.0",
+        "bip39": "^3.1.0",
         "chronik-client": "^0.8.2",
-        "ecashaddrjs": "^1.5.0"
+        "ecashaddrjs": "^1.5.2",
+        "randombytes": "^2.1.0"
     },
     "devDependencies": {
         "mocha": "^10.2.0",
@@ -13,6 +16,7 @@
         "coverage": "nyc mocha",
         "junit": "mocha test --reporter mocha-junit-reporter",
         "getDetailsFromTxid": "node scripts/getDetailsFromTxid.js",
+        "createWallet": "node scripts/createWallet",
         "getTxHistoryFromAddress": "node scripts/getTxHistoryFromAddress.js",
         "getUtxosFromAddress": "node scripts/getUtxosFromAddress",
         "getTokenDetails": "node scripts/getTokenDetails"
