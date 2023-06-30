@@ -73,6 +73,7 @@ done;
 done;};
 do {
   .refreshEnv(enable(.active));
+.refreshSwimUp(enable(.active);
 .refresh(enable(.active));
 .destroyStuck(enable(.active(time(10s)));
 .standby(enable(.active);
