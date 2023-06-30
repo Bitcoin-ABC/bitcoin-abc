@@ -39,7 +39,13 @@ Example: `npm run getUtxosFromAddress ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f
 [] Collating inputs and outputs for sending XEC
 [] Collating inputs and outputs for sending eTokens
 [] Building and broadcasting transactions
-[] Querying eToken genesis details and current stats
+
+[x] [Querying eToken details - getTokenDetails()](scripts/getTokenDetails.js)
+
+Usage: `npm run getTokenDetails <token id>`
+
+Example: `npm run getTokenDetails 861dede36f7f73f0af4e979fc3a3f77f37d53fe27be4444601150c21619635f4`
+
 [] Querying holders of a particular eToken
 [] Querying blockchain info
 [] Using websockets to listen for confirmation of a transaction

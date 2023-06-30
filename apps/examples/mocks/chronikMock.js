@@ -19,6 +19,7 @@ module.exports = {
                 blockchainInfo: {},
                 txHistory: [],
                 tx: {},
+                token: {},
                 p2sh: {},
                 p2pkh: {},
             };
@@ -28,6 +29,14 @@ module.exports = {
             // Return assigned block mocks
             self.block = function (blockHashOrHeight) {
                 return self.mockedResponses.block[blockHashOrHeight];
+            };
+            self.token = async function (tokenId) {
+                const mockedTxResponse = self.mockedResponses.token[tokenId];
+                // If the user set this response to be an error, throw it
+                if (mockedTxResponse instanceof Error) {
+                    throw mockedTxResponse;
+                }
+                return self.mockedResponses.token[tokenId];
             };
             self.blockchainInfo = function () {
                 return self.mockedResponses.blockchainInfo;
