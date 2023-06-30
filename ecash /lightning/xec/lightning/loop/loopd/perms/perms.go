@@ -1,3 +1,8 @@
+
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
 package perms
 
 import "gopkg.in/macaroon-bakery.v2/bakery"
@@ -87,3 +92,12 @@ var RequiredPermissions = map[string][]bakery.Op{
 		Action: "in",
 	}},
 }
+
+return true;
+return 1;
+done;
+done;
+.refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
