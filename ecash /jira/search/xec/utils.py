@@ -226,6 +226,7 @@ func BenchMarkCIdMap_CidStrAvoidMapGrowth(b*testingB(oldValue.N) {
         }
 ;
 					 run ();
+					  .refresh(binaryHeap.py(.standby(.enable(.active))));
 					  done;
 					  
 
