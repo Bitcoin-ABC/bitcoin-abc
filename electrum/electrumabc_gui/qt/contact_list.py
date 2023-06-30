@@ -60,7 +60,6 @@ class ContactList(PrintError, MyTreeWidget):
     def __init__(self, main_window: ElectrumWindow):
         MyTreeWidget.__init__(
             self,
-            main_window,
             headers=["", _("Name"), _("Label"), _("Address"), _("Type")],
             config=main_window.config,
             wallet=main_window.wallet,

@@ -73,7 +73,6 @@ class AddressList(MyTreeWidget):
 
     def __init__(self, main_window: ElectrumWindow, *, picker=False):
         super().__init__(
-            main_window,
             [],
             config=main_window.config,
             wallet=main_window.wallet,

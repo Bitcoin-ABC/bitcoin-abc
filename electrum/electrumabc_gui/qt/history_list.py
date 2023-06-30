@@ -66,7 +66,6 @@ class HistoryList(MyTreeWidget):
 
     def __init__(self, main_window: ElectrumWindow):
         super().__init__(
-            main_window,
             [],
             config=main_window.config,
             wallet=main_window.wallet,

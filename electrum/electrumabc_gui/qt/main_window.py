@@ -1971,7 +1971,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         self.from_label = QtWidgets.QLabel(_("&From"))
         grid.addWidget(self.from_label, 4, 0)
-        self.from_list = MyTreeWidget(self, ["", ""], self.config, self.wallet)
+        self.from_list = MyTreeWidget(["", ""], self.config, self.wallet)
         self.from_list.customContextMenuRequested.connect(self.from_list_menu)
         self.from_label.setBuddy(self.from_list)
         self.from_list.setHeaderHidden(True)

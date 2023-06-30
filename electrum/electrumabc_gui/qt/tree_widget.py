@@ -57,7 +57,6 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
 
     def __init__(
         self,
-        parent: QtWidgets.QWidget,
         headers,
         config: SimpleConfig,
         wallet: AbstractWallet,
@@ -67,7 +66,7 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
         deferred_updates=False,
         save_sort_settings=False,
     ):
-        QtWidgets.QTreeWidget.__init__(self, parent)
+        QtWidgets.QTreeWidget.__init__(self)
         self.config = config
         self.wallet = wallet
         self.stretch_column = stretch_column

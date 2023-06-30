@@ -50,7 +50,6 @@ class RequestList(MyTreeWidget):
     def __init__(self, main_window: ElectrumWindow):
         MyTreeWidget.__init__(
             self,
-            main_window,
             [_("Date"), _("Address"), "", _("Description"), _("Amount"), _("Status")],
             config=main_window.config,
             wallet=main_window.wallet,

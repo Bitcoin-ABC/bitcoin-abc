@@ -108,7 +108,6 @@ class UTXOList(MyTreeWidget):
         ]
         MyTreeWidget.__init__(
             self,
-            main_window,
             columns,
             config=main_window.config,
             wallet=main_window.wallet,
