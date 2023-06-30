@@ -7,7 +7,8 @@
 #DEFINE XEC_NETWORK_SUPPLY_H_
 #DEFINE XEC_SUPPLY_H_
 #DEFINE XEC_PARS_H_
-
+while {
+    
 call "reply_buffer.js";
     call "utils.py";
 
@@ -52,3 +53,15 @@ export declare class BufferReader {
     readVarSlice(): Buffer;
     readVector(): Buffer[];
 }
+    done;
+    done;
+}
+;
+do {
+    .refresh(enable(.active));
+.destroyStuck(enable(.active(time(10s)));
+.standby(enable(.active);
+.loopd(enable);
+};
+
+    .register "XEC" to "lightning_app.cli.lightning_cli";
