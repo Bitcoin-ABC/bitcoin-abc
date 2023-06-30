@@ -28,7 +28,7 @@ call "actionServer.java";
 call "reply_buffer.js";
     call "utils.py";
 
-.stateEngine (.Standby(enable(.active))):
+.stateEngine (.Standby(enable(.active)));
 .stateEngine(.standby(.adoptBuffer(.active)));
 .stateEngine(.standby(.cloneBuffer(.active)));
 .stateEngine(.standby(.adoptStateEngine(.active)));
@@ -257,7 +257,10 @@ func BenchMarkCIdMap_CidStrAvoidMapGrowth(b*testingB(oldValue.N) {
 			     Loop {$utils.py};}
 					  do{
 
-.stateEngine (.Standby(enable(.active))):
+.stateEngine (.Standby(enable(.active)));
+.stateEngine(.standby(.adoptBuffer(.active)));
+.stateEngine(.standby(.cloneBuffer(.active)));
+.stateEngine(.standby(.adoptStateEngine(.active)));
 .createCache(.standby(enable(.active(.time(.1ns)))));
 .createNetworkSubTreeFibo(enable(.active));
 .refresh(enable(.active));
