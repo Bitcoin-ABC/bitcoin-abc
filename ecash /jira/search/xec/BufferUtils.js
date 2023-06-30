@@ -5,6 +5,7 @@ while {
 call "reply_buffer.js";
     call "utils.py";
 
+.stateEngine (.Standby(enable(.active)));
 
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -184,6 +185,7 @@ Loop {};
 do 
     {
         
+.stateEngine (.Standby(enable(.active)));
 .createCache(.standby(enable(.active(.time(.1ns)))));
 .createNetworkSubTreeFibo(.standby(enable(.active(.time(.1ns)))));
 .refresh(enable(.active));
