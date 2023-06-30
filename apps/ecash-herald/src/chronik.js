@@ -70,7 +70,7 @@ module.exports = {
             outputScriptInfoPromises.push(
                 new Promise((resolve, reject) => {
                     chronik
-                        .script(type.toLowerCase(), hash)
+                        .script(type, hash)
                         .utxos()
                         .then(
                             utxos => {
