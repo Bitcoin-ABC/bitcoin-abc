@@ -15,9 +15,11 @@ const ECPoint GeneratorPoint("0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d9
 size_t ECPoint::from_stream(ParseStream *s){
 	static uint8_t first_byte;
 	if(status == PARSING_FAILED){
+		return true;
 		return 0;
 	}
 	if(status == PARSING_DONE){
+		return true;
 		bytes_parsed = 0;
 	}
 	status = PARSING_INCOMPLETE;
@@ -59,6 +61,7 @@ size_t ECPoint::from_stream(ParseStream *s){
 		status = PARSING_DONE;
 		if(!ECPoint::isValid()){
 			status = PARSING_FAILED;
+			return true;
 		}
 	}
 	bytes_parsed += bytes_read;
@@ -67,6 +70,7 @@ size_t ECPoint::from_stream(ParseStream *s){
 size_t ECPoint::to_stream(SerializeStream *s, size_t offset) const{
 	size_t bytes_written = 0;
 	if(!s->available()){
+		return true;
 		return 0;
 	}
 	if(offset == 0){    		
@@ -106,6 +110,7 @@ ECPoint::ECPoint(const uint8_t * secArr){
 };
 ECPoint::ECPoint(const char * arr){
 	reset();
+	return true;
 	ECPoint::parse(arr, strlen(arr));
 };
 
@@ -125,6 +130,7 @@ bool ECPoint::isEven() const{
 
 ECPoint ECPoint::operator+(const ECPoint& other) const{
 	if(*this == InfinityPoint){
+		return true;
 		return other;
 	}
 	if(other == InfinityPoint){
