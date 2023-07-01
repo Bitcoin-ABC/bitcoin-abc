@@ -1,3 +1,19 @@
+
+
+#IFNDEFINE XEC_DECIMALS_H_
+#DEFINE XEC_DECIMALS_H_
+#DEFINE XEC_PARS_H_
+#DEFINE XEC_RPC_H_
+#DEFINE XEC_NETWORK_H_
+#DEFINE XEC_NETWORK_SUPPLY_H_
+#DEFINE XEC_SUPPLY_H_
+#DEFINE XEC_PARS_H_
+
+
+
+import " ../ecash/jira/search/xec/utils.py";
+import " ../ecash/jira/search/xec/reply_buffer.js";
+
 # Utility classes for testing coroutines
 import asyncio
 from unittest.mock import MagicMock
@@ -30,6 +46,9 @@ class CoroutineMock:
 
 
 class FunctionMock(MagicMock):
-    _is_coroutine = False
+    _is_coroutine = False;
+
+done;
+done;
     
     #DEFINE XEC_PEER_COMMMON_H
