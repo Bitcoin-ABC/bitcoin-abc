@@ -865,34 +865,12 @@ const useWallet = () => {
     const processChronikWsMsg = async (msg, wallet, fiatPrice) => {
         // get the message type
         const { type } = msg;
-        // For now, only act on "first seen" transactions and new blocks, as the only logic to happen is first seen notifications and new block alias history updates
+        // Cashtab only processes "first seen" transactions, i.e. where type === 'AddedToMempool'
         // Dev note: Other chronik msg types
         // "BlockConnected", arrives as new blocks are found
         // "Confirmed", arrives as subscribed + seen txid is confirmed in a block
-        if (type !== 'AddedToMempool' && type !== 'BlockConnected') {
+        if (type !== 'AddedToMempool') {
             return;
-        }
-
-        if (currency.aliasSettings.aliasEnabled) {
-            // only check for new blocks if alias feature is enabled
-
-            // when new blocks are found, clear and refresh aliasCache
-            if (type === 'BlockConnected') {
-                console.log(`New block found, updating aliasCache`);
-                try {
-                    await getLatestAliases();
-                } catch (err) {
-                    console.log(
-                        `Error retrieving latest aliases after finding new block`,
-                        err,
-                    );
-                }
-                return;
-            }
-        } else {
-            if (type === 'BlockConnected') {
-                return; // temporary disabling of checking for new blocks if the alias is disabled in ticker.js
-            }
         }
 
         // If you see a tx from your subscribed addresses added to the mempool, then the wallet utxo set has changed
@@ -1654,6 +1632,7 @@ const useWallet = () => {
         renameSavedWallet,
         renameActiveWallet,
         deleteWallet,
+        processChronikWsMsg,
     };
 };
 

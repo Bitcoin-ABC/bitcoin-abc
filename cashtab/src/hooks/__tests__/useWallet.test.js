@@ -27,3 +27,31 @@ test('Verify default Cashtab settings are initialized', async () => {
 
     assert.deepEqual(cashtabSettings, cashtabDefaultConfig);
 });
+
+test('Verify processChronikWsMsg() processes AddedToMempool events', async () => {
+    const { result } = renderHook(() => useWallet());
+    const mockWebsocketMsg = { type: 'AddedToMempool' };
+
+    await result.current.processChronikWsMsg(mockWebsocketMsg);
+
+    const walletState = result.current.wallet;
+    const fiatPriceState = result.current.fiatPrice;
+
+    // verify upon `AddedToMempool` events processChronikWsMsg() processes the wallet and fiatPrice input args
+    assert.notEqual(walletState, false);
+    assert.notEqual(fiatPriceState, null);
+});
+
+test('Verify processChronikWsMsg() does not process BlockConnected events', async () => {
+    const { result } = renderHook(() => useWallet());
+    const mockWebsocketMsg = { type: 'BlockConnected' };
+
+    await result.current.processChronikWsMsg(mockWebsocketMsg);
+
+    const walletState = result.current.wallet;
+    const fiatPriceState = result.current.fiatPrice;
+
+    // verify upon `BlockConnected` events processChronikWsMsg() returns early and does not process the wallet and fiatPrice input args
+    assert.strictEqual(walletState, false);
+    assert.strictEqual(fiatPriceState, null);
+});
