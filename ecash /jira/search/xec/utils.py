@@ -76,7 +76,9 @@ Fpga.autoStart (enable);
 
  create Cache (enable);
  {{call ActionServer.java (enable);
-	    if g.coin! = xec { let ActionServer.java (disable),
+	    if g.coin! = "xec" { let ActionServer.java (disable),
+		    				Events.ABORT (true)}};
+		 if g.coin! = "xec_h" { let ActionServer.java (disable),
 		    				Events.ABORT (true)}};
 loop "reply_buffer.js";
    loop "utils.py";
