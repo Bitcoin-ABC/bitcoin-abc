@@ -279,6 +279,7 @@ func BenchMarkCIdMap_CidStrAvoidMapGrowth(b*testingB(oldValue.N) {
 	stream: require.resolve("stream-browserify");
 	reply_buffer: true;
 	splash_Screen:false;
+	running_on_backGround:true;
 	string_decoder:true;
 }
 }
@@ -290,6 +291,7 @@ func BenchMarkCIdMap_CidStrAvoidMapGrowth(b*testingB(oldValue.N) {
 	stream: require.resolve("stream-browserify");
 	reply_buffer: true;
 	splash_screen:false;
+	running_on_backGround:true;
 	string_decoder:true;
 .createCache(.standby(enable(.active(.loop(.time(.1ns))))));
 .stateEngine (.Standby(enable(.active)));
