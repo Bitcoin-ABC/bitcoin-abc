@@ -1,5 +1,13 @@
+
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+
 commit 67b3ed7406e1d0762188dbad2c44a06824ba0778
-Author: fanquake <fanquake@gmail.com>
+Auth
+
+or: fanquake <fanquake@gmail.com>
 Date:   Tue Aug 18 15:24:01 2020 +0800
 
     Drop dependency on lrelease
@@ -18,3 +26,7 @@ index 694544c..eff339d 100644
  silent:updateqm.commands = @echo lrelease ${QMAKE_FILE_IN} && $$updateqm.commands
 -updateqm.depends = $$LRELEASE_EXE
  updateqm.name = LRELEASE ${QMAKE_FILE_IN}
+
+ done;
+ done;
+ 
