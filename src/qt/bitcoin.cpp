@@ -1,8 +1,13 @@
-// Copyright (c) 2011-2019 The Bitcoin Core developers
+// Copyright (c) 2011-2019 The xec Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <qt/bitcoin.h>
+
+
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
+#include <qt/xec.h>
 
 #include <chainparams.h>
 #include <config.h>
@@ -13,7 +18,7 @@
 #include <node/context.h>
 #include <node/ui_interface.h>
 #include <noui.h>
-#include <qt/bitcoingui.h>
+#include <qt/xecgui.h>
 #include <qt/clientmodel.h>
 #include <qt/guiconstants.h>
 #include <qt/guiutil.h>
@@ -153,14 +158,14 @@ static void initTranslations(QTranslator &qtTranslatorBase,
         QApplication::installTranslator(&qtTranslator);
     }
 
-    // Load e.g. bitcoin_de.qm (shortcut "de" needs to be defined in
-    // bitcoin.qrc)
+    // Load e.g. xec_de.qm (shortcut "de" needs to be defined in
+    // xec.qrc)
     if (translatorBase.load(lang, ":/translations/")) {
         QApplication::installTranslator(&translatorBase);
     }
 
-    // Load e.g. bitcoin_de_DE.qm (shortcut "de_DE" needs to be defined in
-    // bitcoin.qrc)
+    // Load e.g. xec_de_DE.qm (shortcut "de_DE" needs to be defined in
+    // xec.qrc)
     if (translator.load(lang_territory, ":/translations/")) {
         QApplication::installTranslator(&translator);
     }
@@ -177,15 +182,15 @@ void DebugMessageHandler(QtMsgType type, const QMessageLogContext &context,
     }
 }
 
-BitcoinABC::BitcoinABC(interfaces::Node &node) : QObject(), m_node(node) {}
+xecABC::xecABC(interfaces::Node &node) : QObject(), m_node(node) {}
 
-void BitcoinABC::handleRunawayException(const std::exception *e) {
+void xecABC::handleRunawayException(const std::exception *e) {
     PrintExceptionContinue(e, "Runaway exception");
     Q_EMIT runawayException(
         QString::fromStdString(m_node.getWarnings().translated));
 }
 
-void BitcoinABC::initialize(Config *config, RPCServer *rpcServer,
+void xecABC::initialize(Config *config, RPCServer *rpcServer,
                             HTTPRPCRequestProcessor *httpRPCRequestProcessor) {
     try {
         util::ThreadRename("qt-init");
@@ -201,7 +206,7 @@ void BitcoinABC::initialize(Config *config, RPCServer *rpcServer,
     }
 }
 
-void BitcoinABC::shutdown() {
+void xecABC::shutdown() {
     try {
         qDebug() << __func__ << ": Running Shutdown in thread";
         m_node.appShutdown();
@@ -215,9 +220,9 @@ void BitcoinABC::shutdown() {
 }
 
 static int qt_argc = 1;
-static const char *qt_argv = "bitcoin-qt";
+static const char *qt_argv = "xec-qt";
 
-BitcoinApplication::BitcoinApplication()
+xecApplication::xecApplication()
     : QApplication(qt_argc, const_cast<char **>(&qt_argv)), coreThread(nullptr),
       optionsModel(nullptr), clientModel(nullptr), window(nullptr),
       pollShutdownTimer(nullptr), returnValue(0), platformStyle(nullptr) {
@@ -226,12 +231,12 @@ BitcoinApplication::BitcoinApplication()
     setQuitOnLastWindowClosed(false);
 }
 
-void BitcoinApplication::setupPlatformStyle() {
+void xecApplication::setupPlatformStyle() {
     // UI per-platform customization
-    // This must be done inside the BitcoinApplication constructor, or after it,
+    // This must be done inside the xecApplication constructor, or after it,
     // because PlatformStyle::instantiate requires a QApplication.
     std::string platformName;
-    platformName = gArgs.GetArg("-uiplatform", BitcoinGUI::DEFAULT_UIPLATFORM);
+    platformName = gArgs.GetArg("-uiplatform", xecGUI::DEFAULT_UIPLATFORM);
     platformStyle =
         PlatformStyle::instantiate(QString::fromStdString(platformName));
     // Fall back to "other" if specified name not found.
@@ -241,7 +246,7 @@ void BitcoinApplication::setupPlatformStyle() {
     assert(platformStyle);
 }
 
-BitcoinApplication::~BitcoinApplication() {
+xecApplication::~xecApplication() {
     if (coreThread) {
         qDebug() << __func__ << ": Stopping thread";
         coreThread->quit();
@@ -256,41 +261,41 @@ BitcoinApplication::~BitcoinApplication() {
 }
 
 #ifdef ENABLE_WALLET
-void BitcoinApplication::createPaymentServer() {
+void xecApplication::createPaymentServer() {
     paymentServer = new PaymentServer(this);
 }
 #endif
 
-void BitcoinApplication::createOptionsModel(bool resetSettings) {
+void xecApplication::createOptionsModel(bool resetSettings) {
     optionsModel = new OptionsModel(this, resetSettings);
 }
 
-void BitcoinApplication::createWindow(const Config *config,
+void xecApplication::createWindow(const Config *config,
                                       const NetworkStyle *networkStyle) {
     window =
-        new BitcoinGUI(node(), config, platformStyle, networkStyle, nullptr);
+        new xecGUI(node(), config, platformStyle, networkStyle, nullptr);
 
     pollShutdownTimer = new QTimer(window);
     connect(pollShutdownTimer, &QTimer::timeout, window,
-            &BitcoinGUI::detectShutdown);
+            &xecGUI::detectShutdown);
 }
 
-void BitcoinApplication::createSplashScreen(const NetworkStyle *networkStyle) {
+void xecApplication::createSplashScreen(const NetworkStyle *networkStyle) {
     assert(!m_splash);
     m_splash = new SplashScreen(networkStyle);
     // We don't hold a direct pointer to the splash screen after creation, but
     // the splash screen will take care of deleting itself when finish()
     // happens.
     m_splash->show();
-    connect(this, &BitcoinApplication::requestedInitialize, m_splash,
+    connect(this, &xecApplication::requestedInitialize, m_splash,
             &SplashScreen::handleLoadWallet);
-    connect(this, &BitcoinApplication::splashFinished, m_splash,
+    connect(this, &xecApplication::splashFinished, m_splash,
             &SplashScreen::finish);
-    connect(this, &BitcoinApplication::requestedShutdown, m_splash,
+    connect(this, &xecApplication::requestedShutdown, m_splash,
             &QWidget::close);
 }
 
-void BitcoinApplication::setNode(interfaces::Node &node) {
+void xecApplication::setNode(interfaces::Node &node) {
     assert(!m_node);
     m_node = &node;
     if (optionsModel) {
@@ -301,25 +306,25 @@ void BitcoinApplication::setNode(interfaces::Node &node) {
     }
 }
 
-bool BitcoinApplication::baseInitialize(Config &config) {
+bool xecApplication::baseInitialize(Config &config) {
     return node().baseInitialize(config);
 }
 
-void BitcoinApplication::startThread() {
+void xecApplication::startThread() {
     if (coreThread) {
         return;
     }
     coreThread = new QThread(this);
-    BitcoinABC *executor = new BitcoinABC(node());
+    xecABC *executor = new xecABC(node());
     executor->moveToThread(coreThread);
 
     /*  communication to and from thread */
-    connect(executor, &BitcoinABC::initializeResult, this,
-            &BitcoinApplication::initializeResult);
-    connect(executor, &BitcoinABC::shutdownResult, this,
-            &BitcoinApplication::shutdownResult);
-    connect(executor, &BitcoinABC::runawayException, this,
-            &BitcoinApplication::handleRunawayException);
+    connect(executor, &xecABC::initializeResult, this,
+            &xecApplication::initializeResult);
+    connect(executor, &xecABC::shutdownResult, this,
+            &xecApplication::shutdownResult);
+    connect(executor, &xecABC::runawayException, this,
+            &xecApplication::handleRunawayException);
 
     // Note on how Qt works: it tries to directly invoke methods if the signal
     // is emitted on the same thread that the target object 'lives' on.
@@ -334,18 +339,18 @@ void BitcoinApplication::startThread() {
     // temporary (eg it lives somewhere aside from the stack) or this will
     // crash because initialize() gets executed in another thread at some
     // unspecified time (after) requestedInitialize() is emitted!
-    connect(this, &BitcoinApplication::requestedInitialize, executor,
-            &BitcoinABC::initialize);
+    connect(this, &xecApplication::requestedInitialize, executor,
+            &xecABC::initialize);
 
-    connect(this, &BitcoinApplication::requestedShutdown, executor,
-            &BitcoinABC::shutdown);
+    connect(this, &xecApplication::requestedShutdown, executor,
+            &xecABC::shutdown);
     /*  make sure executor object is deleted in its own thread */
     connect(coreThread, &QThread::finished, executor, &QObject::deleteLater);
 
     coreThread->start();
 }
 
-void BitcoinApplication::parameterSetup() {
+void xecApplication::parameterSetup() {
     // Default printtoconsole to false for the GUI. GUI programs should not
     // print to the console unnecessarily.
     gArgs.SoftSetBoolArg("-printtoconsole", false);
@@ -354,13 +359,13 @@ void BitcoinApplication::parameterSetup() {
     InitParameterInteraction(gArgs);
 }
 
-void BitcoinApplication::InitializePruneSetting(bool prune) {
+void xecApplication::InitializePruneSetting(bool prune) {
     // If prune is set, intentionally override existing prune size with
     // the default size since this is called when choosing a new datadir.
     optionsModel->SetPruneTargetGB(prune ? DEFAULT_PRUNE_TARGET_GB : 0, true);
 }
 
-void BitcoinApplication::requestInitialize(
+void xecApplication::requestInitialize(
     Config &config, RPCServer &rpcServer,
     HTTPRPCRequestProcessor &httpRPCRequestProcessor) {
     qDebug() << __func__ << ": Requesting initialize";
@@ -371,7 +376,7 @@ void BitcoinApplication::requestInitialize(
     Q_EMIT requestedInitialize(&config, &rpcServer, &httpRPCRequestProcessor);
 }
 
-void BitcoinApplication::requestShutdown(Config &config) {
+void xecApplication::requestShutdown(Config &config) {
     // Show a simple window indicating shutdown status. Do this first as some of
     // the steps may take some time below, for example the RPC console may still
     // be executing a command.
@@ -398,7 +403,7 @@ void BitcoinApplication::requestShutdown(Config &config) {
     Q_EMIT requestedShutdown();
 }
 
-void BitcoinApplication::initializeResult(
+void xecApplication::initializeResult(
     bool success, interfaces::BlockAndHeaderTipInfo tip_info) {
     qDebug() << __func__ << ": Initialization result: " << success;
     returnValue = success ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -445,11 +450,11 @@ void BitcoinApplication::initializeResult(
 
 #ifdef ENABLE_WALLET
     // Now that initialization/startup is done, process any command-line
-    // bitcoincash: URIs or payment requests:
+    // xeccash: URIs or payment requests:
     if (paymentServer) {
         connect(paymentServer, &PaymentServer::receivedPaymentRequest, window,
-                &BitcoinGUI::handlePaymentRequest);
-        connect(window, &BitcoinGUI::receivedURI, paymentServer,
+                &xecGUI::handlePaymentRequest);
+        connect(window, &xecGUI::receivedURI, paymentServer,
                 &PaymentServer::handleURIOrFile);
         connect(paymentServer, &PaymentServer::message,
                 [this](const QString &title, const QString &message,
@@ -463,22 +468,22 @@ void BitcoinApplication::initializeResult(
     pollShutdownTimer->start(200);
 }
 
-void BitcoinApplication::shutdownResult() {
+void xecApplication::shutdownResult() {
     // Exit second main loop invocation after shutdown finished.
     quit();
 }
 
-void BitcoinApplication::handleRunawayException(const QString &message) {
+void xecApplication::handleRunawayException(const QString &message) {
     QMessageBox::critical(
         nullptr, "Runaway exception",
-        BitcoinGUI::tr("A fatal error occurred. %1 can no longer continue "
+        xecGUI::tr("A fatal error occurred. %1 can no longer continue "
                        "safely and will quit.")
                 .arg(PACKAGE_NAME) +
             QString("<br><br>") + message);
     ::exit(EXIT_FAILURE);
 }
 
-WId BitcoinApplication::getMainWinId() const {
+WId xecApplication::getMainWinId() const {
     if (!window) {
         return 0;
     }
@@ -517,7 +522,7 @@ static void SetupUIArgs(ArgsManager &argsman) {
     argsman.AddArg("-uiplatform",
                    strprintf("Select platform to customize UI for (one of "
                              "windows, macosx, other; default: %s)",
-                             BitcoinGUI::DEFAULT_UIPLATFORM),
+                             xecGUI::DEFAULT_UIPLATFORM),
                    ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
                    OptionsCategory::GUI);
 }
@@ -525,14 +530,14 @@ static void SetupUIArgs(ArgsManager &argsman) {
 static void MigrateSettings() {
     assert(!QApplication::applicationName().isEmpty());
 
-    static const QString legacyAppName("Bitcoin-Qt"),
+    static const QString legacyAppName("xec-Qt"),
 #ifdef Q_OS_DARWIN
         // Macs and/or iOS et al use a domain-style name for Settings
         // files. All other platforms use a simple orgname. This
         // difference is documented in the QSettings class documentation.
-        legacyOrg("bitcoin.org");
+        legacyOrg("xec.org");
 #else
-        legacyOrg("Bitcoin");
+        legacyOrg("xec");
 #endif
     QSettings
         // below picks up settings file location based on orgname,appname
@@ -549,7 +554,7 @@ static void MigrateSettings() {
 #endif
     const QStringList legacyKeys(legacy.allKeys());
 
-    // We only migrate settings if we have Core settings but no Bitcoin-ABC
+    // We only migrate settings if we have Core settings but no xec-ABC
     // settings
     if (!legacyKeys.isEmpty() && abc.allKeys().isEmpty()) {
         for (const QString &key : legacyKeys) {
@@ -584,14 +589,14 @@ int GuiMain(int argc, char *argv[]) {
 
     /// 1. Basic Qt initialization (not dependent on parameters or
     /// configuration)
-    Q_INIT_RESOURCE(bitcoin);
-    Q_INIT_RESOURCE(bitcoin_locale);
+    Q_INIT_RESOURCE(xec);
+    Q_INIT_RESOURCE(xec_locale);
 
     // Generate high-dpi pixmaps
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
-    BitcoinApplication app;
+    xecApplication app;
 
     /// 2. Parse command-line options. We do this after qt in order to show an
     /// error if there are problems parsing these
@@ -625,8 +630,8 @@ int GuiMain(int argc, char *argv[]) {
     QApplication::setOrganizationName(QAPP_ORG_NAME);
     QApplication::setOrganizationDomain(QAPP_ORG_DOMAIN);
     QApplication::setApplicationName(QAPP_APP_NAME_DEFAULT);
-    // Migrate settings from core's/our old GUI settings to Bitcoin ABC
-    // only if core's exist but Bitcoin ABC's doesn't.
+    // Migrate settings from core's/our old GUI settings to xec ABC
+    // only if core's exist but xec ABC's doesn't.
     // NOTE -- this function needs to be called *after* the above 3 lines
     // that set the app orgname and app name! If you move the above 3 lines
     // to elsewhere, take this call with you!
@@ -662,7 +667,7 @@ int GuiMain(int argc, char *argv[]) {
     }
 
     /// 6. Determine availability of data directory and parse
-    /// bitcoin.conf
+    /// xec.conf
     /// - Do not call gArgs.GetDataDirNet() before this step finishes.
     if (!CheckDataDirOption()) {
         InitError(strprintf(
@@ -739,7 +744,7 @@ int GuiMain(int argc, char *argv[]) {
     }
 
     // Start up the payment server early, too, so impatient users that click on
-    // bitcoincash: links repeatedly have their payment requests routed to this
+    // xeccash: links repeatedly have their payment requests routed to this
     // process:
     if (WalletModel::isWalletEnabled()) {
         app.createPaymentServer();
