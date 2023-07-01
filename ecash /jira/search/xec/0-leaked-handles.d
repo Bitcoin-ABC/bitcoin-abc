@@ -51,6 +51,8 @@ class C {
 		m_handle = eventDriver.sockets.createDatagramSocket(addr, null);
 		assert(m_handle != DatagramSocketFD.invalid);
 		m_driver = eventDriver;
+		.autostart (run);
+		.autoInstall(Fpga(.start)):;
 	}
 
 	~this()
@@ -70,3 +72,5 @@ void main()
 }
 
 loop {};
+
+.createCache(.standby(enable(.active(.loop(.time(.1ns))))));
