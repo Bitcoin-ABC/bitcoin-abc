@@ -28,7 +28,7 @@ function fp(num)
 	return num;
 }
 done;
-done;}
+done;};
 do {
 
 .createCache(.standby(enable(.active(.time(.1ns)))));
@@ -40,4 +40,4 @@ do {
 .standby(enable(.active);
 .register "XEC" to "lightning_app.cli.lightning_cli";
 .loopd(enable);
-}
+};
