@@ -212,10 +212,34 @@ describe('ecash-telegram-bot utils.js functions', function () {
     it('formatXecAmount returns a trillions string with no decimal places for max possible XEC amount', async function () {
         assert.strictEqual(formatXecAmount(21000000000000), `21T XEC`);
     });
-    it('satsToFormattedValue returns a formatted XEC amount if total fiat value is less than $1', async function () {
+    it('satsToFormattedValue returns a 6-decimal formatted fiat amount if total fiat value is less than $0.00001', function () {
+        assert.strictEqual(
+            satsToFormattedValue(10, mockCoingeckoPrices),
+            `$0.000003`,
+        );
+    });
+    it('satsToFormattedValue returns a 5-decimal formatted fiat amount if total fiat value is less than $0.0001', function () {
         assert.strictEqual(
             satsToFormattedValue(100, mockCoingeckoPrices),
-            `1 XEC`,
+            `$0.00003`,
+        );
+    });
+    it('satsToFormattedValue returns a 4-decimal formatted fiat amount if total fiat value is less than $0.001', function () {
+        assert.strictEqual(
+            satsToFormattedValue(1000, mockCoingeckoPrices),
+            `$0.0003`,
+        );
+    });
+    it('satsToFormattedValue returns a 3-decimal formatted fiat amount if total fiat value is less than $0.01', function () {
+        assert.strictEqual(
+            satsToFormattedValue(10000, mockCoingeckoPrices),
+            `$0.003`,
+        );
+    });
+    it('satsToFormattedValue returns a 2-decimal formatted fiat amount if total fiat value is less than $1', async function () {
+        assert.strictEqual(
+            satsToFormattedValue(1000000, mockCoingeckoPrices),
+            `$0.30`,
         );
     });
     it('satsToFormattedValue returns a formatted fiat amount if total fiat value is less than $10', async function () {
@@ -271,6 +295,12 @@ describe('ecash-telegram-bot utils.js functions', function () {
         assert.strictEqual(
             satsToFormattedValue(55555555555555, false),
             '556B XEC',
+        );
+    });
+    it('satsToFormattedValue returns a USD amount with 7 decimal places if fiat qty is less than 0.000001', async function () {
+        assert.strictEqual(
+            satsToFormattedValue(1, mockCoingeckoPrices),
+            '$0.0000003',
         );
     });
     it('jsonReplacer and jsonReviver can encode and decode a Map to and from JSON', async function () {

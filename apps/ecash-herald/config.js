@@ -45,6 +45,7 @@ module.exports = {
     emojis: {
         block: '📦',
         xecSend: '💸',
+        arrowRight: '➡️',
         tokenBurn: '🔥',
         tokenGenesis: '🧪',
         tokenSend: '🎟',

@@ -182,7 +182,7 @@ module.exports = {
          * { txid, genesisInfo, opReturnInfo }
          */
 
-        const { txid, inputs, outputs, size } = tx;
+        const { txid, inputs, outputs } = tx;
 
         let isTokenTx = false;
         let genesisInfo = false;
@@ -335,7 +335,6 @@ module.exports = {
 
         // Determine tx fee
         const txFee = xecInputAmountSats - xecOutputAmountSats;
-        const satsPerByte = txFee / size;
 
         // If this is a token send tx, return token send parsing info and not 'false' for tokenSendInfo
         if (tokenSendInfo) {
@@ -359,7 +358,7 @@ module.exports = {
             txid,
             genesisInfo,
             opReturnInfo,
-            satsPerByte,
+            txFee,
             xecSendingOutputScripts,
             xecChangeOutputs,
             xecReceivingOutputs,
@@ -1110,13 +1109,14 @@ module.exports = {
                 txid,
                 genesisInfo,
                 opReturnInfo,
-                satsPerByte,
+                txFee,
                 xecSendingOutputScripts,
                 xecChangeOutputs,
                 xecReceivingOutputs,
                 tokenSendInfo,
                 tokenBurnInfo,
             } = thisParsedTx;
+
             if (genesisInfo) {
                 // The txid of a genesis tx is the tokenId
                 const tokenId = txid;
@@ -1369,6 +1369,8 @@ module.exports = {
                 coingeckoPrices,
             );
 
+            const displayedTxFee = satsToFormattedValue(txFee, coingeckoPrices);
+
             // Clone xecReceivingOutputs so that you don't modify unit test mocks
             let xecReceivingAddressOutputs = new Map(xecReceivingOutputs);
 
@@ -1417,25 +1419,23 @@ module.exports = {
                     changeAmountSats,
                     coingeckoPrices,
                 );
-                xecSendMsg = `${emojis.xecSend}${xecSenderEmoji}${
+                xecSendMsg = `${emojis.xecSend}<a href="${
+                    config.blockExplorer
+                }/tx/${txid}">${displayedChangeAmountXec} for ${displayedTxFee}</a> | ${xecSenderEmoji}${
                     xecSendingOutputScripts.size
                 } ${
                     xecSendingOutputScripts.size > 1 ? 'addresses' : 'address'
-                } <a href="${
-                    config.blockExplorer
-                }/tx/${txid}">sent</a> ${displayedChangeAmountXec} to ${
+                } ${config.emojis.arrowRight} ${
                     xecSendingOutputScripts.size > 1 ? 'themselves' : 'itself'
-                }| <code>${satsPerByte.toFixed(2)}</code>`;
+                }`;
             } else {
-                xecSendMsg = `${
-                    emojis.xecSend
-                }${xecSenderEmoji}${returnAddressPreview(
+                xecSendMsg = `${emojis.xecSend}<a href="${
+                    config.blockExplorer
+                }/tx/${txid}">${displayedXecSent} for ${displayedTxFee}</a> | ${xecSenderEmoji}${returnAddressPreview(
                     cashaddr.encodeOutputScript(
                         xecSendingOutputScripts.values().next().value,
                     ),
-                )} <a href="${
-                    config.blockExplorer
-                }/tx/${txid}">sent</a> ${displayedXecSent} to ${
+                )} ${config.emojis.arrowRight} ${
                     xecReceivingAddressOutputs.keys().next().value ===
                     xecSendingOutputScripts.values().next().value
                         ? 'itself'
@@ -1451,7 +1451,7 @@ module.exports = {
                               xecReceivingAddressOutputs.size - 1 > 1 ? 's' : ''
                           }`
                         : ''
-                } | <code>${satsPerByte.toFixed(2)}</code>`;
+                }`;
             }
 
             xecSendTxTgMsgLines.push(xecSendMsg);
@@ -1553,13 +1553,13 @@ module.exports = {
             // Line break for new section
             tgMsg.push('');
 
-            // 1 eCash tx | tx fee in satoshis per byte
+            // 1 eCash tx
             // or
-            // n eCash txs | tx fee in satoshis per byte
+            // n eCash txs
             tgMsg.push(
                 `${xecSendTxTgMsgLines.length} eCash tx${
                     xecSendTxTgMsgLines.length > 1 ? `s` : ''
-                } | <code>tx fee in satoshis per byte</code>`,
+                }`,
             );
 
             tgMsg = tgMsg.concat(xecSendTxTgMsgLines);

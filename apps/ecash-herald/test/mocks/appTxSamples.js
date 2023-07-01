@@ -246,7 +246,7 @@ module.exports = {
                 { fiat: 'usd', price: 25000, ticker: 'BTC' },
                 { fiat: 'usd', price: 1900, ticker: 'ETH' },
             ],
-            msg: 'qrm...r48 airdropped 50 XEC to 4 holders of <a href="https://explorer.e.cash/tx/1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e">DET</a>',
+            msg: 'qrm...r48 airdropped $0.002 to 4 holders of <a href="https://explorer.e.cash/tx/1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e">DET</a>',
             msgApiFailure:
                 'qrm...r48 airdropped 50 XEC to 4 holders of <a href="https://explorer.e.cash/tx/1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e">1c6...f5e</a>',
         },
@@ -301,7 +301,7 @@ module.exports = {
                 { fiat: 'usd', price: 25000, ticker: 'BTC' },
                 { fiat: 'usd', price: 1900, ticker: 'ETH' },
             ],
-            msg: 'qq9...fgx sent an encrypted message and 7 XEC to qrm...r48 and 1 other',
+            msg: 'qq9...fgx sent an encrypted message and $0.0002 to qrm...r48 and 1 other',
             msgApiFailure:
                 'qq9...fgx sent an encrypted message and 7 XEC to qrm...r48 and 1 other',
         },

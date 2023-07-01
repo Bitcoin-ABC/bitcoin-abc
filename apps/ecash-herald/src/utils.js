@@ -163,13 +163,25 @@ module.exports = {
 
         // Get fiat price
         let fiatAmount = xecAmount * price;
+        const fiatSymbol = config.fiatReference[fiat];
 
         // Format fiatAmount for different tiers
-        if (fiatAmount < 1) {
-            // If we're working with less than a dollar, give XEC amounts
-            return module.exports.formatXecAmount(xecAmount);
+        let displayedAmount;
+        let localeOptions = { maximumFractionDigits: 0 };
+        let descriptor = '';
+
+        if (fiatAmount === 0) {
+            // Txs that send nothing, e.g. a one-input tx of 5.46 XEC, should keep defaults above
+        } else if (fiatAmount < 0.01) {
+            // enough decimal places to show one significant digit
+            localeOptions = {
+                minimumFractionDigits: -Math.floor(Math.log10(fiatAmount)),
+            };
+        } else if (fiatAmount < 1) {
+            // TODO two decimal places
+            localeOptions = { minimumFractionDigits: 2 };
         }
-        let displayedAmount, descriptor;
+
         if (fiatAmount < 1000) {
             displayedAmount = fiatAmount;
             descriptor = '';
@@ -186,11 +198,11 @@ module.exports = {
             displayedAmount = fiatAmount / 1000000000;
             descriptor = 'B';
         }
-        const fiatSymbol = config.fiatReference[fiat];
 
-        return `${fiatSymbol}${displayedAmount.toLocaleString('en-US', {
-            maximumFractionDigits: 0,
-        })}${descriptor}`;
+        return `${fiatSymbol}${displayedAmount.toLocaleString(
+            'en-US',
+            localeOptions,
+        )}${descriptor}`;
     },
     jsonReplacer: function (key, value) {
         if (value instanceof Map) {
