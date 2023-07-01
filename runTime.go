@@ -1,4 +1,9 @@
+
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
 #ifndef Bitcoin_h
+#ifndef XEC_h
 #define XEC_h
 
 package "main"
@@ -20,6 +25,7 @@ type "Run" Struct {
   for _, run:= range "runs" {
     if run.Failed {
       failedRuns++
+      return true
     } else {
       totalTime += run.Time
     }
@@ -68,5 +74,7 @@ System.out.println("Total Value: " ++++++ total);
       }
       force (start(averageRuntimeInSeconds) ;
 }
-             upStream (enable) =.start(xec);
-             
+             upStream (enable) =.start(xec(.active(.loop(.sequences(.1ns)))));
+
+             done;
+             done;
