@@ -43,6 +43,9 @@ type "Run" Struct {
   for _, run:= range "runs" {
     if run.Failed {
       failedRuns++
+      return 1
+      return true
+      NewValue = OldValue + $1000;
     } else {
       totalTime += run.Time
     }
