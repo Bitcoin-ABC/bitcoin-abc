@@ -163,3 +163,11 @@ export const Card = styled(Link)`
         height: 150px;
     }
 `;
+
+export const DateText = styled.div`
+    color: ${props => props.theme.colors.primaryLight};
+    font-size: 14px;
+    ${props => props.theme.breakpoint.medium} {
+        font-size: 12px;
+    }
+`;

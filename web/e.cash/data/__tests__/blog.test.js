@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { getPageCount, getBlogPosts } from '../blog.js';
+import { getPageCount, getBlogPosts, formatTimestamp } from '../blog.js';
 import {
     mockBlogPosts1,
     mockBlogPosts2,
@@ -122,5 +122,24 @@ describe('getBlogPosts', () => {
         });
 
         await expect(getBlogPosts()).rejects.toThrow('Failed to fetch api');
+    });
+});
+
+describe('formatTimestamp', () => {
+    it('should return a formatted date string for a valid timestamp', () => {
+        const timestamp = '2021-07-01T00:00:00Z';
+        const expectedDateString = 'Jul 1, 2021';
+
+        const result = formatTimestamp(timestamp);
+
+        expect(result).toEqual(expectedDateString);
+    });
+
+    it('should throw an error for an invalid timestamp', () => {
+        const invalidTimestamp = 'not-a-timestamp';
+
+        expect(() => {
+            formatTimestamp(invalidTimestamp);
+        }).toThrow('Invalid timestamp');
     });
 });

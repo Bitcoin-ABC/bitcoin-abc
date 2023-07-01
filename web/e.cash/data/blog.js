@@ -47,3 +47,24 @@ export async function getBlogPosts() {
     };
     return propsObj;
 }
+
+/**
+ * Convert a timestamp into a more readable format
+ * @param {string} timestamp - the timestamp to convert
+ * accepts UTC, Unix, and UTC string representation timestamps
+ * should throw error if non valid timestamp is passed to it
+ * @returns {string} formatted date string
+ */
+export const formatTimestamp = timestamp => {
+    const date = new Date(timestamp);
+    if (isNaN(date)) {
+        throw new Error('Invalid timestamp');
+    }
+    const options = {
+        timeZone: 'UTC',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    };
+    return date.toLocaleDateString('en-US', options);
+};

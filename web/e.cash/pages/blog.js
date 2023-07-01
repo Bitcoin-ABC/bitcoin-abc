@@ -15,7 +15,9 @@ import {
     Tag,
     CardCtn,
     Card,
+    DateText,
 } from '/styles/pages/blog.js';
+import { formatTimestamp } from '/data/blog.js';
 
 function Blog(props) {
     const featuredPosts = props.posts.slice(0, 3);
@@ -40,6 +42,13 @@ function Blog(props) {
                                     />
                                 </CardImage>
                                 <TextCtn>
+                                    <DateText>
+                                        {formatTimestamp(
+                                            post.attributes.publish_date
+                                                ? post.attributes.publish_date
+                                                : post.attributes.publishedAt,
+                                        )}
+                                    </DateText>
                                     {index === 0 ? (
                                         <>
                                             <h2>{post.attributes.title}</h2>
@@ -69,6 +78,13 @@ function Blog(props) {
                                     />
                                 </CardImage>
                                 <TextCtn>
+                                    <DateText>
+                                        {formatTimestamp(
+                                            post.attributes.publish_date
+                                                ? post.attributes.publish_date
+                                                : post.attributes.publishedAt,
+                                        )}
+                                    </DateText>
                                     <h4>{post.attributes.title}</h4>
                                 </TextCtn>
                             </Card>
