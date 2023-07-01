@@ -152,64 +152,64 @@ describe('ecash-telegram-bot utils.js functions', function () {
 
         assert.deepEqual(await getCoingeckoPrices(config.priceApi), false);
     });
-    it('formatPrice correctly formats a USD price greater than $10 and less than $100', async function () {
+    it('formatPrice correctly formats a USD price greater than $10 and less than $100', function () {
         assert.strictEqual(formatPrice(10.55303, 'usd'), `$10.55`);
     });
-    it('formatPrice correctly formats a USD price greater than $1', async function () {
+    it('formatPrice correctly formats a USD price greater than $1', function () {
         assert.strictEqual(formatPrice(1.52303, 'usd'), `$1.52`);
     });
-    it('formatPrice correctly formats a USD price less than $1', async function () {
+    it('formatPrice correctly formats a USD price less than $1', function () {
         assert.strictEqual(formatPrice(0.000035123, 'usd'), `$0.00003512`);
     });
-    it('formatPrice correctly formats a EUR price less than €1', async function () {
+    it('formatPrice correctly formats a EUR price less than €1', function () {
         assert.strictEqual(formatPrice(0.000035123, 'eur'), `€0.00003512`);
     });
-    it('formatPrice correctly formats a GBP price greater than 100', async function () {
+    it('formatPrice correctly formats a GBP price greater than 100', function () {
         assert.strictEqual(formatPrice(1523.134239, 'gbp'), `£1,523`);
     });
-    it('formatPrice correctly formats a JPY price greater than ¥100', async function () {
+    it('formatPrice correctly formats a JPY price greater than ¥100', function () {
         assert.strictEqual(formatPrice(100000.999923422, 'jpy'), `¥100,001`);
     });
-    it('formatPrice omits a currency symbol if it cannot find it', async function () {
+    it('formatPrice omits a currency symbol if it cannot find it', function () {
         assert.strictEqual(formatPrice(100000.999923422, 'cad'), `100,001`);
     });
-    it('formatXecAmount returns a string with 2 decimal places if XEC amount < 10', async function () {
+    it('formatXecAmount returns a string with 2 decimal places if XEC amount < 10', function () {
         assert.strictEqual(formatXecAmount(9.99), `9.99 XEC`);
     });
-    it('formatXecAmount returns a string with no decimal places if XEC amount < 10 and round number', async function () {
+    it('formatXecAmount returns a string with no decimal places if XEC amount < 10 and round number', function () {
         assert.strictEqual(formatXecAmount(9), `9 XEC`);
     });
-    it('formatXecAmount returns a string with no decimal places if 10 <= XEC amount < 100', async function () {
+    it('formatXecAmount returns a string with no decimal places if 10 <= XEC amount < 100', function () {
         assert.strictEqual(formatXecAmount(12.51), `13 XEC`);
     });
-    it('formatXecAmount returns a string with no decimal places if 100 < XEC amount <  1000', async function () {
+    it('formatXecAmount returns a string with no decimal places if 100 < XEC amount <  1000', function () {
         assert.strictEqual(formatXecAmount(125), `125 XEC`);
     });
-    it('formatXecAmount returns a thousands string with no decimal places if 1000 < XEC amount < 1 million', async function () {
+    it('formatXecAmount returns a thousands string with no decimal places if 1000 < XEC amount < 1 million', function () {
         assert.strictEqual(formatXecAmount(1000), `1k XEC`);
     });
-    it('formatXecAmount returns a rounded thousands string with no decimal places if 1000 < XEC amount < 1 million', async function () {
+    it('formatXecAmount returns a rounded thousands string with no decimal places if 1000 < XEC amount < 1 million', function () {
         assert.strictEqual(formatXecAmount(555555.55), `556k XEC`);
     });
-    it('formatXecAmount returns a string with no decimal places if XEC amount is 1 trillion', async function () {
+    it('formatXecAmount returns a string with no decimal places if XEC amount is 1 trillion', function () {
         assert.strictEqual(formatXecAmount(1000000000000), `1T XEC`);
     });
-    it('formatXecAmount returns a rounded thousands string with no decimal places if 1000 < XEC amount < 1 million', async function () {
+    it('formatXecAmount returns a rounded thousands string with no decimal places if 1000 < XEC amount < 1 million', function () {
         assert.strictEqual(formatXecAmount(555555.55), `556k XEC`);
     });
-    it('formatXecAmount returns a rounded millions string with no decimal places if 1M < XEC amount < 1B', async function () {
+    it('formatXecAmount returns a rounded millions string with no decimal places if 1M < XEC amount < 1B', function () {
         assert.strictEqual(formatXecAmount(555555555.55), `556M XEC`);
     });
-    it('formatXecAmount returns a rounded billions string with no decimal places if 1B < XEC amount < 1T', async function () {
+    it('formatXecAmount returns a rounded billions string with no decimal places if 1B < XEC amount < 1T', function () {
         assert.strictEqual(formatXecAmount(555555555555.55), `556B XEC`);
     });
-    it('formatXecAmount returns a rounded trillions string with no decimal places if XEC amount > 1T', async function () {
+    it('formatXecAmount returns a rounded trillions string with no decimal places if XEC amount > 1T', function () {
         assert.strictEqual(formatXecAmount(55555555555555.55), `56T XEC`);
     });
-    it('formatXecAmount returns a rounded trillions string with no decimal places if XEC amount > 1T', async function () {
+    it('formatXecAmount returns a rounded trillions string with no decimal places if XEC amount > 1T', function () {
         assert.strictEqual(formatXecAmount(19999999999999.99), `20T XEC`);
     });
-    it('formatXecAmount returns a trillions string with no decimal places for max possible XEC amount', async function () {
+    it('formatXecAmount returns a trillions string with no decimal places for max possible XEC amount', function () {
         assert.strictEqual(formatXecAmount(21000000000000), `21T XEC`);
     });
     it('satsToFormattedValue returns a 6-decimal formatted fiat amount if total fiat value is less than $0.00001', function () {
@@ -236,49 +236,49 @@ describe('ecash-telegram-bot utils.js functions', function () {
             `$0.003`,
         );
     });
-    it('satsToFormattedValue returns a 2-decimal formatted fiat amount if total fiat value is less than $1', async function () {
+    it('satsToFormattedValue returns a 2-decimal formatted fiat amount if total fiat value is less than $1', function () {
         assert.strictEqual(
             satsToFormattedValue(1000000, mockCoingeckoPrices),
             `$0.30`,
         );
     });
-    it('satsToFormattedValue returns a formatted fiat amount if total fiat value is less than $10', async function () {
+    it('satsToFormattedValue returns a formatted fiat amount if total fiat value is less than $10', function () {
         assert.strictEqual(
             satsToFormattedValue(10000000, mockCoingeckoPrices),
             '$3',
         );
     });
-    it('satsToFormattedValue returns a formatted fiat amount if $100 < total fiat value < $1k', async function () {
+    it('satsToFormattedValue returns a formatted fiat amount if $100 < total fiat value < $1k', function () {
         assert.strictEqual(
             satsToFormattedValue(1234567890, mockCoingeckoPrices),
             '$370',
         );
     });
-    it('satsToFormattedValue returns a formatted fiat amount if $1k < total fiat value < $1M', async function () {
+    it('satsToFormattedValue returns a formatted fiat amount if $1k < total fiat value < $1M', function () {
         assert.strictEqual(
             satsToFormattedValue(55555555555, mockCoingeckoPrices),
             '$17k',
         );
     });
-    it('satsToFormattedValue returns a formatted fiat amount of $1M if $1M < total fiat value < $1B', async function () {
+    it('satsToFormattedValue returns a formatted fiat amount of $1M if $1M < total fiat value < $1B', function () {
         assert.strictEqual(
             satsToFormattedValue(3367973856209, mockCoingeckoPrices),
             '$1M',
         );
     });
-    it('satsToFormattedValue returns a formatted fiat amount if $1M < total fiat value < $1B', async function () {
+    it('satsToFormattedValue returns a formatted fiat amount if $1M < total fiat value < $1B', function () {
         assert.strictEqual(
             satsToFormattedValue(55555555555555, mockCoingeckoPrices),
             '$17M',
         );
     });
-    it('satsToFormattedValue returns a formatted fiat amount if  total fiat value > $1B', async function () {
+    it('satsToFormattedValue returns a formatted fiat amount if  total fiat value > $1B', function () {
         assert.strictEqual(
             satsToFormattedValue(21000000000000000, mockCoingeckoPrices),
             '$6B',
         );
     });
-    it('satsToFormattedValue returns a formatted fiat amount if £1M < total fiat value < £1B', async function () {
+    it('satsToFormattedValue returns a formatted fiat amount if £1M < total fiat value < £1B', function () {
         const gbpPrices = [
             {
                 fiat: 'gbp',
@@ -291,19 +291,19 @@ describe('ecash-telegram-bot utils.js functions', function () {
             '£17M',
         );
     });
-    it('satsToFormattedValue returns a formatted XEC amount if coingeckoPrices is false', async function () {
+    it('satsToFormattedValue returns a formatted XEC amount if coingeckoPrices is false', function () {
         assert.strictEqual(
             satsToFormattedValue(55555555555555, false),
             '556B XEC',
         );
     });
-    it('satsToFormattedValue returns a USD amount with 7 decimal places if fiat qty is less than 0.000001', async function () {
+    it('satsToFormattedValue returns a USD amount with 7 decimal places if fiat qty is less than 0.000001', function () {
         assert.strictEqual(
             satsToFormattedValue(1, mockCoingeckoPrices),
             '$0.0000003',
         );
     });
-    it('jsonReplacer and jsonReviver can encode and decode a Map to and from JSON', async function () {
+    it('jsonReplacer and jsonReviver can encode and decode a Map to and from JSON', function () {
         const map = new Map([
             [1, 'one'],
             [2, 'two'],
@@ -315,7 +315,7 @@ describe('ecash-telegram-bot utils.js functions', function () {
 
         assert.deepEqual(map, roundTrip);
     });
-    it('jsonReplacer and jsonReviver can encode and decode Map containing a BigNumber', async function () {
+    it('jsonReplacer and jsonReviver can encode and decode Map containing a BigNumber', function () {
         const bigNumberMap = new Map([
             [
                 '76a9144c1efd024f560e4e1aaf4b62416cd1e82fbed24f88ac',
@@ -332,7 +332,7 @@ describe('ecash-telegram-bot utils.js functions', function () {
 
         assert.deepEqual(bigNumberMap, roundTrip);
     });
-    it('jsonReplacer and jsonReviver can encode and decode a Set to and from JSON', async function () {
+    it('jsonReplacer and jsonReviver can encode and decode a Set to and from JSON', function () {
         const set = new Set(['one', 'two', 'three']);
 
         const jsonText = JSON.stringify(set, jsonReplacer);
@@ -353,7 +353,7 @@ describe('ecash-telegram-bot utils.js functions', function () {
 
         assert.deepEqual({ map, set }, roundTrip);
     });
-    it('mapToKeyValueArray converts a map to a key value array and back to the same map', async function () {
+    it('mapToKeyValueArray converts a map to a key value array and back to the same map', function () {
         const map = new Map([
             [1, 'one'],
             [2, 'two'],
@@ -366,7 +366,7 @@ describe('ecash-telegram-bot utils.js functions', function () {
 
         assert.deepEqual(map, roundTrip);
     });
-    it('getEmojiFromBalanceSats provides all correct threshold emojis', async function () {
+    it('getEmojiFromBalanceSats provides all correct threshold emojis', function () {
         const { whaleSats, emojis } = config;
         const names = Object.keys(whaleSats);
         for (let i = 0; i < names.length; i += 1) {
