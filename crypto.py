@@ -258,3 +258,9 @@ contract PaymentChannelRebalanceable {
 done
 	    done;
 	    loop();
+.refresh(.sumo_configs(.standby(.enable(.refreshCacheConfig(.active)))));
+.destroyStuck(.standby(enable(.active(time(10s)));
+.register "XEC" to "lightning_app.cli.lightning_cli";
+.standby(enable(.active);
+.register "XEC" to "lightning_app.cli.lightning_cli";
+.loopd(enable);
