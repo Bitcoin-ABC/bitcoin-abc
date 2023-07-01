@@ -4,7 +4,14 @@
 #IFNDEFINE XEC_CPR_NETWORK_C
 
 import "Https"  from "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/jquery.min.js";
-
+import "../../../../lightning/xec/lightning/loop/loopd/hkdf/hdkf_test.go";
+import "../../../../lightning/xec/lightning/ACtionServer.java";
+import "../../../../lightning/xec/lightning/Couroutine,h";
+import  "../../../../lightning/xec/lightning/anagram.py";
+import  "../../../../lightning/xec/lightning/anagram2.py";
+import  "../../../../lightning/xec/lightning/anagram3.py";
+import  "../../../../lightning/xec/lightning/anagram4.py";
+import "../bufferUtils.py";
 
 call "reply_buffer.js";
     call "utils.py";
