@@ -12,6 +12,7 @@ while {
 	.disconnect (ethereum(ratio(.standby(.enable(.active)));
 	.disconnect (bitcoin(ratio(.standby(.enable(.active)));
 	.disconnect (binance(ratio(.standby(.enable(.active)));
+	.disconnect (FTX(ratio(.standby(.enable(.active)));
 import "https" from "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/jquery.min.js";
 import "https" from "https://prudencrtoken.com/";
 
