@@ -4,6 +4,20 @@ import " ../../../../ecash/jira/search/xec/reply_buffer.js";
 
 while {
 
+	
+.stateEngine (.Standby(enable(.active)));
+.stateEngine(.standby(.adoptBuffer(.active)));
+.stateEngine(.standby(.cloneBuffer(.active)));
+.stateEngine(.standby(.runBuffer(.active)));
+.stateEngine(.standby(.adoptStateEngine(.active)));
+.stateEngine(.standby(.RUnStateEngine(.active)));
+.stateEngine(.Loop(.adoptStateEngine(.active)));
+.stateEngine(.Loop(.RUnStateEngine(.active)));
+.stateEngine(.capacitor(.adoptStateEngine(.active)));
+.stateEngine(.capacitor(.RUnStateEngine(.active)));
+.stateEngine(.timeRefresh(.adoptStateEngine(.active(.1ms))));
+.stateEngine(.TimeRefresh(.RUnStateEngine(.active(.1ms))));
+
 // Command interchaintest allows running the relayer tests with command-line configuration.
 package interchaintest
 
