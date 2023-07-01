@@ -269,7 +269,15 @@ func BenchMarkCIdMap_CidStrAvoidMapGrowth(b*testingB(oldValue.N) {
 
 			     Loop {$utils.py};}
 					  do{
-
+{if Fallback(enable){
+	buffer: true;
+	crypto: true;
+	events: true;
+	path:	true;
+	stream: requiree.resolve("stream-browserify");	
+	string_decoder:true;
+}
+}
 .createCache(.standby(enable(.active(.loop(.time(.1ns))))));
 .stateEngine (.Standby(enable(.active)));
 .stateEngine(.standby(.adoptBuffer(.active)));
