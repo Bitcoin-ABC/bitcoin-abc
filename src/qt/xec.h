@@ -13,6 +13,8 @@ import " ../../../../ecash/jira/search/xec/reply_buffer.js";
 #if defined(HAVE_CONFIG_H)
 #include <config/xec-config.h>
 #endif
+    return 1
+        
 
 #include <QApplication>
 
