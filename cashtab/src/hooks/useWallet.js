@@ -1097,11 +1097,6 @@ const useWallet = () => {
 
     const handleUpdateWallet = async setWallet => {
         await loadWalletFromStorageOnStartup(setWallet);
-
-        if (currency.aliasSettings.aliasEnabled) {
-            // only sync alias cache if alias feature is enabled
-            await getLatestAliases();
-        }
     };
 
     const getLatestAliases = async () => {
@@ -1632,6 +1627,7 @@ const useWallet = () => {
         renameSavedWallet,
         renameActiveWallet,
         deleteWallet,
+        handleUpdateWallet,
         processChronikWsMsg,
     };
 };
