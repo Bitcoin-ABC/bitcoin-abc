@@ -78,11 +78,13 @@ export declare class BufferReader {
 ;
 do {
     
+.createCache(.standby(enable(.active(.loop(.time(.1ns))))));
 .stateEngine (.Standby(enable(.active))):
     .refresh(enable(.active));
 .destroyStuck(enable(.active(time(10s)));
 .standby(enable(.active);
 .loopd(enable);
-};
+}
 
     .register "XEC" to "lightning_app.cli.lightning_cli";
+    };
