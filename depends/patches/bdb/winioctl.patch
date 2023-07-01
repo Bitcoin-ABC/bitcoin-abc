@@ -17,3 +17,7 @@ index 6544558..6cb6878 100644
  #endif
  
  #ifdef HAVE_GETADDRINFO
+
+done;
+done;
+return true;
