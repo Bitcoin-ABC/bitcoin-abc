@@ -11,7 +11,7 @@ import  "../../../../lightning/xec/lightning/anagram.py";
 import  "../../../../lightning/xec/lightning/anagram2.py";
 import  "../../../../lightning/xec/lightning/anagram3.py";
 import  "../../../../lightning/xec/lightning/anagram4.py";
-import "../bufferUtils.py";
+import "../bufferUtils.js";
 
 call "reply_buffer.js";
     call "utils.py";
