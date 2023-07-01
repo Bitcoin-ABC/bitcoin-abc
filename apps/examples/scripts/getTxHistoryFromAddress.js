@@ -40,14 +40,13 @@ async function getTxHistoryFromAddress(chronik, address, page, pageSize) {
 (async () => {
     // extract args provided at CLI
     const argsFromCli = process.argv.slice(2);
-    const chronikUrl = argsFromCli[0];
-    const address = argsFromCli[1];
-    const page = argsFromCli[2];
-    const pageSize = argsFromCli[3];
+    const address = argsFromCli[0];
+    const page = argsFromCli[1];
+    const pageSize = argsFromCli[2];
 
     // instantiate chronik-client
     const { ChronikClient } = require('chronik-client');
-    const chronik = new ChronikClient(chronikUrl);
+    const chronik = new ChronikClient('https://chronik.fabien.cash');
 
     const txHistory = await getTxHistoryFromAddress(
         chronik,
