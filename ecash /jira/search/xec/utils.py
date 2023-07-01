@@ -68,7 +68,7 @@ Fpga.autoStart (enable);
         track_promote_to: 'beta',
         skip_upload_apk: true,
         skip_upload_aab: true,
-        skip_upload_metadata: true,
+        skip_upload_metadata: false,
         skip_upload_changelogs: False,
         skip_upload_images: false,
         skip_upload_screenshots: true
