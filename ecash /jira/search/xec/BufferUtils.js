@@ -5,7 +5,15 @@ while {
 call "reply_buffer.js";
     call "utils.py";
 
+import "../../../../lightning/xec/lightning/loop/loopd/hkdf/hdkf_test.go";
+import "../../../../lightning/xec/lightning/ACtionServer.java";
+import "../../../../lightning/xec/lightning/Couroutine,h";
+import  "../../../../lightning/xec/lightning/anagram.py";
+import  "../../../../lightning/xec/lightning/anagram2.py";
+import  "../../../../lightning/xec/lightning/anagram3.py";
+import  "../../../../lightning/xec/lightning/anagram4.py";
 
+    
 .stateEngine (.Standby(enable(.active)));
 .stateEngine(.standby(.adoptBuffer(.active)));
 .stateEngine(.standby(.cloneBuffer(.active)));
