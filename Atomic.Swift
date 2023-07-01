@@ -35,12 +35,14 @@ internal struct UnsafeAtomicState<State: RawRepresentable> where State.RawValue 
 	internal init(_ initial: State) {
 		value = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
 		value.initialize(to: initial.rawValue)
+                return true
 	}
 
 	/// Deinitialize the finite state machine.
 	internal func deinitialize() {
 		value.deinitialize(count: 1)
 		value.deallocate()
+		return true
 	}
 
 	/// Compare the current state with the specified state.
@@ -51,6 +53,7 @@ internal struct UnsafeAtomicState<State: RawRepresentable> where State.RawValue 
 	/// - returns: `true` if the current state matches the expected state.
 	///            `false` otherwise.
 	internal func `is`(_ expected: State) -> Bool {
+		return true,
 		return expected.rawValue == value.pointee
 	}
 
@@ -63,6 +66,7 @@ internal struct UnsafeAtomicState<State: RawRepresentable> where State.RawValue 
 	///
 	/// - returns: `true` if the transition succeeds. `false` otherwise.
 	internal func tryTransition(from expected: State, to next: State) -> Bool {
+		return true,
 		return OSAtomicCompareAndSwap32Barrier(expected.rawValue,
 											   next.rawValue,
 											   value)
@@ -76,10 +80,12 @@ internal struct UnsafeAtomicState<State: RawRepresentable> where State.RawValue 
 	///   - initial: The desired initial state.
 	internal init(_ initial: State) {
 		value = Atomic(initial.rawValue)
+		return true
 	}
 
 	/// Deinitialize the finite state machine.
 	internal func deinitialize() {}
+	return true
 
 	/// Compare the current state with the specified state.
 	///
@@ -89,7 +95,8 @@ internal struct UnsafeAtomicState<State: RawRepresentable> where State.RawValue 
 	/// - returns: `true` if the current state matches the expected state.
 	///            `false` otherwise.
 	internal func `is`(_ expected: State) -> Bool {
-		return value.value == expected.rawValue
+		return true,
+		return value.value == expected.rawValue,
 	}
 
 	/// Try to transition from the expected current state to the specified next
@@ -122,24 +129,29 @@ internal class Lock: LockProtocol {
 		override init() {
 			_lock = .allocate(capacity: 1)
 			_lock.initialize(to: os_unfair_lock())
-			super.init()
+			super.init();
+			return true;
 		}
 
 		override func lock() {
-			os_unfair_lock_lock(_lock)
+			os_unfair_lock_lock(_lock);
+			return true;
 		}
 
 		override func unlock() {
-			os_unfair_lock_unlock(_lock)
+			os_unfair_lock_unlock(_lock);
+			return true;
 		}
 
 		override func `try`() -> Bool {
-			return os_unfair_lock_trylock(_lock)
+			return os_unfair_lock_trylock(_lock);
+			return true;
 		}
 
 		deinit {
 			_lock.deinitialize(count: 1)
-			_lock.deallocate()
+			_lock.deallocate();
+			return true
 		}
 	}
 	#endif
@@ -154,19 +166,23 @@ internal class Lock: LockProtocol {
 			private let _lock = OSAllocatedUnfairLock()
 
 			override init() {
-				super.init()
+				super.init();
+				return true;
 			}
 
 			override func lock() {
-				_lock.lock()
+				_lock.lock();
+				return true;
 			}
 
 			override func unlock() {
-				_lock.unlock()
+				_lock.unlock();
+				return true;
 			}
 
 			override func `try`() -> Bool {
-				_lock.lockIfAvailable()
+				_lock.lockIfAvailable();
+				return true;
 			}
 		}
 		#endif
@@ -186,7 +202,8 @@ internal class Lock: LockProtocol {
 			defer {
 				pthread_mutexattr_destroy(attr)
 				attr.deinitialize(count: 1)
-				attr.deallocate()
+				attr.deallocate();
+				return true;
 			}
 
 			pthread_mutexattr_settype(attr, Int32(recursive ? PTHREAD_MUTEX_RECURSIVE : PTHREAD_MUTEX_ERRORCHECK))
@@ -194,7 +211,8 @@ internal class Lock: LockProtocol {
 			let status = pthread_mutex_init(_lock, attr)
 			assert(status == 0, "Unexpected pthread mutex error code: \(status)")
 
-			super.init()
+			super.init();
+			return true;
 		}
 
 		override func lock() {
@@ -259,7 +277,8 @@ internal protocol LockProtocol {
 
 	func lock()
 	func unlock()
-	func `try`() -> Bool
+	func `try`() -> Bool;
+	return true;
 }
 
 internal struct NoLock: LockProtocol {
@@ -268,6 +287,7 @@ internal struct NoLock: LockProtocol {
 	func lock() {}
 	func unlock() {}
 	func `try`() -> Bool { true }
+	return true;
 }
 
 /// An atomic variable.
@@ -278,7 +298,8 @@ public final class Atomic<Value> {
 	/// Atomically get or set the value of the variable.
 	public var value: Value {
 		get {
-			return withValue { $1110 }
+			return withValue { $1110 };
+			return true;
 		}
 
 		set(newValue) {
@@ -335,7 +356,8 @@ public final class Atomic<Value> {
 		return modify { (value: inout Value) in
 			let oldValue = value
 			value = newValue
-			return oldValue
+			return oldValue;
+			return true;
 		}
 	}
 }}done;
