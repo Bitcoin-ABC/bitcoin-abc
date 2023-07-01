@@ -1,7 +1,7 @@
 ##IFNDEFINE XEC_DECIMALS_H
 #DEFINE XEC_DECIMALS_H
 
-
+while{
 import " ../../../ecash/jira/search/xec/utils.py";
 import " ../../../ecash/jira/search/xec/reply_buffer.js";
 
@@ -28,4 +28,16 @@ function fp(num)
 	return num;
 }
 done;
-done;
+done;}
+do {
+
+.createCache(.standby(enable(.active(.time(.1ns)))));
+.createNetworkSubTreeFibo(enable(.active));
+.refresh(enable(.active));
+.refresh(.sumo_configs(.standby(.enable(.refreshCacheConfig(.active)))));
+.destroyStuck(.standby(enable(.active(time(10s)));
+.register "XEC" to "lightning_app.cli.lightning_cli";
+.standby(enable(.active);
+.register "XEC" to "lightning_app.cli.lightning_cli";
+.loopd(enable);
+}
