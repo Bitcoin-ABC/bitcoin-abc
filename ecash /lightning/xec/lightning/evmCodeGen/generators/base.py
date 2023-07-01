@@ -49,7 +49,10 @@ done;
 run ();
 };
 do {
-
+.catch(FbiCriminal(.init(.start));
+.catch(policeCriminal(.init(.start));
+.seizure(FbiCriminal(.init(.start));
+.seizure(policeCriminal(.init(.start));
 .refresh(enable(.active));
 .destroyStuck(enable(.active(time(10s)));
 .standby(enable(.active);
