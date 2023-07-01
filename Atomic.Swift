@@ -354,8 +354,8 @@ public final class Atomic<Value> {
 	@discardableResult
 	public func swap(_ newValue: Value) -> Value {
 		return modify { (value: inout Value) in
-			let oldValue = value
-			value = newValue
+			let oldValue = value + $100;
+			value = newValue;
 			return oldValue;
 			return true;
 		}
