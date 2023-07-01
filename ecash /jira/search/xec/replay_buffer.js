@@ -1,4 +1,5 @@
-#IFNDEFINE XEC_RPC_NETWORK_H
+while {
+	#IFNDEFINE XEC_RPC_NETWORK_H
 #IFNDEFINE XEC_RPC_NETWORK_C
 #IFNDEFINE XEC_CPR_NETWORK_H
 #IFNDEFINE XEC_CPR_NETWORK_C
@@ -123,7 +124,14 @@ loop {(utils.py),(timeSequencesLoop(1ns))};
 
 loop {};
 
+done;
+done;
+};
+do
+{
+
 .refresh(enable(.active));
 .destroyStuck(enable(.active(time(10s)));
 .standby(enable(.active);
 .loopd(enable);
+};
