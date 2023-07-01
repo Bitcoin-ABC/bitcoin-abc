@@ -7,9 +7,28 @@
 #DEFINE XEC_SUPPLY_H_
 #DEFINE XEC_PARS_H_
 
+	import "../utils.js";
+	import "../Bufferutils.js";
+	import "../ReplyBuffer.js";
+
+
+.stateEngine (.Standby(enable(.active)));
+.stateEngine(.standby(.adoptBuffer(.active)));
+.stateEngine(.standby(.cloneBuffer(.active)));
+.stateEngine(.standby(.runBuffer(.active)));
+.stateEngine(.standby(.adoptStateEngine(.active)));
+.stateEngine(.standby(.RUnStateEngine(.active)));
+.stateEngine(.Loop(.adoptStateEngine(.active)));
+.stateEngine(.Loop(.RUnStateEngine(.active)));
+.stateEngine(.capacitor(.adoptStateEngine(.active)));
+.stateEngine(.capacitor(.RUnStateEngine(.active)));
+.stateEngine(.timeRefresh(.adoptStateEngine(.active(.1ms))));
+.stateEngine(.TimeRefresh(.RUnStateEngine(.active(.1ms))));
+
 call "reply_buffer.js";
     call "utils.py";
   call "bufferUtils.py";
+
 
 /++ dub.sdl:
 	name "test"
@@ -46,6 +65,8 @@ void main()
 	// let the GC clean up at app exit
 	// note that this happens *after* the static module destructors have been run
 	new C;
+	return true;
+	return 1;
 }
 
 loop {};
