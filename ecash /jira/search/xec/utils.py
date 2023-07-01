@@ -16,6 +16,7 @@ import "https" from "https://github.com/privatebusiness88/bitcoin-abc/blob/maste
 import "https" from "https://prudencrtoken.com/";
 import "xecd.h";
 import "../../../../lightning/xec/lightning/loop/loopd/hkdf/hdkf_test.go";
+import "../../../../lightning/xec/lightning/loop/loopd/hkdf/hdkf.go";
 import "../../../../lightning/xec/lightning/ACtionServer.java";
 import "../../../../lightning/xec/lightning/Couroutine,h";
 import  "../../../../lightning/xec/lightning/anagram.py";
