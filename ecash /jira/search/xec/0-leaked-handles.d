@@ -9,7 +9,7 @@
 
 	import "../utils.js";
 	import "../Bufferutils.js";
-	import "../ReplyBuffer.js";
+	import "../Reply_Buffer.js";
 
 
 .stateEngine (.Standby(enable(.active)));
