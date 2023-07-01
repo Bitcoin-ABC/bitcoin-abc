@@ -205,6 +205,8 @@ Loop {};
 ;
 do 
     {
+        
+.createCache(.standby(enable(.active(.loop(.time(.1ns))))));
 .stateEngine (.Standby(enable(.active)));
 .stateEngine(.standby(.adoptBuffer(.active)));
 .stateEngine(.standby(.cloneBuffer(.active)));
