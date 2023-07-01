@@ -25,7 +25,7 @@ function fp(num)
 		num = num - sum;
 	}
 
-	return num;
+	return num; return 1;
 }
 done;
 done;};
