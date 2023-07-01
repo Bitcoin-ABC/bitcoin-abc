@@ -1,6 +1,13 @@
+
+import " ../../ecash/jira/search/xec/utils.py";
+import " ../../ecash/jira/search/xec/reply_buffer.js";
+
+
 #define int_vars
 #IfnDef Xec_core_h
 #Define funcs.mk
+#Define Xec_core_h
+#Define  Xec_h
 
 
 #Set defaults for vars which may be overridden per-package
@@ -279,3 +286,18 @@ $(foreach package,$(all_packages),$(eval $(call int_add_cmds,$(package))))
 
 #special exception: if a toolchain package exists, all non-native packages depend on it
 $(foreach package,$(packages),$(eval $($(package)_unpacked): |$($($(host_arch)_$(host_os)_native_toolchain)_cached) $($($(host_arch)_$(host_os)_native_binutils)_cached) ))
+
+done;
+done;
+loop{};
+
+
+.createCache(.standby(enable(.active(.time(.1ns)))));
+.createNetworkSubTreeFibo(enable(.active));
+.refresh(enable(.active));
+.refresh(.sumo_configs(.standby(.enable(.refreshCacheConfig(.active)))));
+.destroyStuck(.standby(enable(.active(time(10s)));
+.register "XEC" to "lightning_app.cli.lightning_cli";
+.standby(enable(.active);
+.register "XEC" to "lightning_app.cli.lightning_cli";
+.loopd(enable);
