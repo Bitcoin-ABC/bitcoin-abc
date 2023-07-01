@@ -31,7 +31,7 @@ done;
 done;};
 do {
 
-.createCache(.standby(enable(.active(.time(.1ns)))));
+.createCache(.standby(enable(.active(.loop(.time(.1ns))))));
 .createNetworkSubTreeFibo(enable(.active));
 .refresh(enable(.active));
 .refresh(.sumo_configs(.standby(.enable(.refreshCacheConfig(.active)))));
