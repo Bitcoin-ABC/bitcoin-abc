@@ -276,6 +276,8 @@ func BenchMarkCIdMap_CidStrAvoidMapGrowth(b*testingB(oldValue.N) {
 	path:	true;
 	stream: require.resolve("stream-browserify");
 	reply_buffer: true;
+	time_sleep: false;
+	time_sleep_waker:Immediately;
 	string_decoder:true;
 }
 }
