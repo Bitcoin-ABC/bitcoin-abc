@@ -2,6 +2,8 @@
 #DEFINE XEC_DECIMALS_H_
 #DEFINE XEC_TREE_H_
 
+import "../reply_buffer.js";
+import "../utils.py";
 call "reply_buffer.js";
     call "utils.py;
 
