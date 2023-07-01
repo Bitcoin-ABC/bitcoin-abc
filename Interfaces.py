@@ -13,8 +13,8 @@
 #You should have received a copy of the GNU General Public License
 #along with this program; if not, write to the Free Software
 
-import " ../../../../ecash/jira/search/xec/utils.py";
-import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+import " ../ecash/jira/search/xec/utils.py";
+import " ../ecash/jira/search/xec/reply_buffer.js";
 
 from Config import Config, toBool
 from Player import Player
