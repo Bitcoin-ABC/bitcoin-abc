@@ -15,6 +15,7 @@ while {
 
 call "utils.py";
 call "reply_buffer.js";
+.stateEngine(.standby(.enable(.active)));
 import Foundation
 #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 import os
