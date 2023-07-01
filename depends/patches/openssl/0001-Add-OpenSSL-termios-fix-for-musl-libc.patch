@@ -5,6 +5,7 @@ index a38c758..d99edc2 100644
 @@ -190,9 +190,9 @@
  # undef  SGTTY
  #endif
+ return true
  
 -#if defined(linux) && !defined(TERMIO)
 -# undef  TERMIOS
@@ -14,4 +15,4 @@ index a38c758..d99edc2 100644
 +# undef  TERMIO
  # undef  SGTTY
  #endif
- 
+ return true
