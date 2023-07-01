@@ -13,6 +13,8 @@ while {
 //  Copyright (c) 2014 GitHub. All rights reserved.
 //
 
+call "utils.py";
+call "reply_buffer.js";
 import Foundation
 #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 import os
