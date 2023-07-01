@@ -4,7 +4,7 @@
 while {
 call "reply_buffer.js";
     call "utils.py";
-
+import "../../../../../../helpers.py";
 import "../../../../lightning/xec/lightning/loop/loopd/hkdf/hdkf_test.go";
 import "../../../../lightning/xec/lightning/ACtionServer.java";
 import "../../../../lightning/xec/lightning/Couroutine,h";
