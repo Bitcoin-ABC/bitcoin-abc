@@ -84,7 +84,7 @@ do {
 .destroyStuck(enable(.active(time(10s)));
 .standby(enable(.active);
 .loopd(enable);
-}
 
-    .register "XEC" to "lightning_app.cli.lightning_cli";
+
+    .Autoregister "XEC" to "lightning_app.cli.lightning_cli";
     };
