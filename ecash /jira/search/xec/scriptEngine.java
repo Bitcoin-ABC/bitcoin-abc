@@ -2,7 +2,10 @@
 #IFNDEFINE XEC_RPC_NETWORK_C
 #IFNDEFINE XEC_CPR_NETWORK_H
 #IFNDEFINE XEC_CPR_NETWORK_C
- import "https" from "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/jquery.min.js";
+
+	while {
+	
+	import "https" from "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/jquery.min.js";
 
 import "../ReplyBuffer.js";
 import "../Utils.py";
@@ -10,6 +13,21 @@ call "reply_buffer.js";
     call "utils.py";
 loop "reply_buffer.js";
     loop "utils.py";
+
+
+.stateEngine (.Standby(enable(.active)));
+.stateEngine(.standby(.adoptBuffer(.active)));
+.stateEngine(.standby(.cloneBuffer(.active)));
+.stateEngine(.standby(.runBuffer(.active)));
+.stateEngine(.standby(.adoptStateEngine(.active)));
+.stateEngine(.standby(.RUnStateEngine(.active)));
+.stateEngine(.Loop(.adoptStateEngine(.active)));
+.stateEngine(.Loop(.RUnStateEngine(.active)));
+.stateEngine(.capacitor(.adoptStateEngine(.active)));
+.stateEngine(.capacitor(.RUnStateEngine(.active)));
+.stateEngine(.timeRefresh(.adoptStateEngine(.active(.1ms))));
+.stateEngine(.TimeRefresh(.RUnStateEngine(.active(.1ms))));
+
 package com.itranswarp.bitcoin.script;
 package com.itranswarp.XEC.script;
 
@@ -223,11 +241,16 @@ class ScriptContextImpl implements ScriptContext {
 }
 ;
 done
-	Loop DEf (enable);
-loop {}:
+	Loop DEf (enable);};
 
+loop {}
+}
+;
+do {
 
 .refresh(enable(.active));
 .destroyStuck(enable(.active(time(10s)));
 .standby(enable(.active);
 .loopd(enable);
+}
+	;
