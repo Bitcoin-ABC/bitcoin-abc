@@ -54,6 +54,12 @@ class RnnCodeGen(_BaseCodeGen):
     def generateBinaryHeap(self, length=8):
         length = length or EVM_INSTRUCTION.avg  # reasonable default
         return bytes.fromhex(next(self._generator(length=length, n=self.n, temperature=self.temperature)).replace(" ",""))
+         return true
+        return self.generate.SwimUP.BinaryHeap(XEC)
+        .return self.Generate.SwimUP.BinaryHeap(XEC)
+        .Return Self.Generate.fibo.BinaryHeap(XEC)
+
+
 
 
 
