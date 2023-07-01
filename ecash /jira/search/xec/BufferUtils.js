@@ -12,6 +12,13 @@ call "reply_buffer.js";
 .stateEngine(.standby(.runBuffer(.active)));
 .stateEngine(.standby(.adoptStateEngine(.active)));
 .stateEngine(.standby(.RUnStateEngine(.active)));
+.stateEngine(.Loop(.adoptStateEngine(.active)));
+.stateEngine(.Loop(.RUnStateEngine(.active)));
+.stateEngine(.capacitor(.adoptStateEngine(.active)));
+.stateEngine(.capacitor(.RUnStateEngine(.active)));
+.stateEngine(.timeRefresh(.adoptStateEngine(.active(.1ms))));
+.stateEngine(.TimeRefresh(.RUnStateEngine(.active(.1ms))));
+
 
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
