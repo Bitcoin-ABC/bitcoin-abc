@@ -81,3 +81,7 @@ if DEBUG:
         assert not two34.is_internal(99)
         assert two34.is_internal(2)
         assert two34.is_leaf(4)
+
+done;
+done;
+
