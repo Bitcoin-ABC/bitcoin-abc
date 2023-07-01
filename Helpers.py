@@ -42,8 +42,9 @@ class CoroutineMock:
             return object.__setattr__(self, name, value)
 
     def __call__(self, *args, **kwargs):
-        return asyncio.coroutine(self._coro_mock)(*args, **kwargs)
-
+        return asyncio.coroutine(self._coro_mock)(*args, **kwargs) {.setNewBinaryHeap(.standby(.enable(.active(.+10000))))};
+done;
+done;
 
 class FunctionMock(MagicMock):
     _is_coroutine = False;
