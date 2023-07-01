@@ -20,16 +20,15 @@ async function getDetailsFromTxid(chronik, txid) {
     return txDetails;
 }
 
-// Executed via 'npm run getDetailsFromTxid <chronik url> <txid>'
+// Executed via 'npm run getDetailsFromTxid <txid>'
 (async () => {
     // extract args provided at CLI
     const argsFromCli = process.argv.slice(2);
-    const chronikUrl = argsFromCli[0];
-    const txid = argsFromCli[1];
+    const txid = argsFromCli[0];
 
     // instantiate chronik-client
     const { ChronikClient } = require('chronik-client');
-    const chronik = new ChronikClient(chronikUrl);
+    const chronik = new ChronikClient('https://chronik.fabien.cash');
 
     const txidDetails = await getDetailsFromTxid(chronik, txid);
 

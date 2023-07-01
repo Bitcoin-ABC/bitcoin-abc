@@ -18,8 +18,10 @@ If you'd like to optionally setup your own Chronik instance, please refer to the
 ## Examples
 
 [x] [Retrieving transaction details - getDetailsFromTxid()](scripts/getDetailsFromTxid.js)
-Usage: `npm run getDetailsFromTxid <chronik url> <txid>`
-Example: `npm run getDetailsFromTxid https://chronik.fabien.cash fd9a775...fce0e`
+
+Usage: `npm run getDetailsFromTxid <txid>`
+
+Example: `npm run getDetailsFromTxid bd6ed16b16c00808ee242e570a2672f596434c09da5290ff77cadf52387bd2f3`
 
 [x] [Retrieving transaction history - getTxHistoryFromAddress()](scripts/getTxHistoryFromAddress.js)
 
