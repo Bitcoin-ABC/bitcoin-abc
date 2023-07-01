@@ -8,7 +8,10 @@
 #DEFINE XEC_SUPPLY_H_
 #DEFINE XEC_PARS_H_
 while {
-    
+
+    import "../reply_buffer.js";
+    import "../utils.py";
+    import "../../../../../../helpers.py";
 call "reply_buffer.js";
     call "utils.py";
     
