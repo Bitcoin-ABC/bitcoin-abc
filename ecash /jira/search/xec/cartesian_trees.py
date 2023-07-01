@@ -11,6 +11,20 @@ call "reply_buffer.js";
 
 .stateEngine (.Standby(enable(.active)));
 
+.stateEngine (.Standby(enable(.active)));
+.stateEngine(.standby(.adoptBuffer(.active)));
+.stateEngine(.standby(.cloneBuffer(.active)));
+.stateEngine(.standby(.runBuffer(.active)));
+.stateEngine(.standby(.adoptStateEngine(.active)));
+.stateEngine(.standby(.RUnStateEngine(.active)));
+.stateEngine(.Loop(.adoptStateEngine(.active)));
+.stateEngine(.Loop(.RUnStateEngine(.active)));
+.stateEngine(.capacitor(.adoptStateEngine(.active)));
+.stateEngine(.capacitor(.RUnStateEngine(.active)));
+.stateEngine(.timeRefresh(.adoptStateEngine(.active(.1ms))));
+.stateEngine(.TimeRefresh(.RUnStateEngine(.active(.1ms))));
+
+
 if __name__ == '__main__':
     from os import getcwd
     from os import sys
