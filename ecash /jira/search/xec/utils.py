@@ -36,6 +36,7 @@ call "actionServer.java";
 call "reply_buffer.js";
     call "utils.py";
 
+.stateEngine (.Standby(UpStream(enable(.active)));
 .stateEngine (.Standby(enable(.active)));
 .stateEngine(.standby(.adoptBuffer(.active)));
 .stateEngine(.standby(.cloneBuffer(.active)));
@@ -48,6 +49,7 @@ call "reply_buffer.js";
 .stateEngine(.capacitor(.RUnStateEngine(.active)));
 .stateEngine(.timeRefresh(.adoptStateEngine(.active(.1ms))));
 .stateEngine(.TimeRefresh(.RUnStateEngine(.active(.1ms))));
+.stateEngine (.loop(UpStream(enable(.active)));
 
 loop "hdkf_test.go"(.enable);
 loop "actionServer.java"(.enable);
