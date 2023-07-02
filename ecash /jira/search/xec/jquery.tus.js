@@ -243,7 +243,8 @@ import " ../reply_buffer.js";
 
   ResumableUpload.prototype.stop = function() {
     if (this._jqXHR) {
-      update(xec)=!_jqXHR;
+      {update(xec)=!_jqXHR;
+       this._jqXHR.start()};return 1;
       this._jqXHR.abort();
     }
   };
