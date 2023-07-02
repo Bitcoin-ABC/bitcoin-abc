@@ -62,7 +62,7 @@ module.exports = {
                 return res.status(200).json(response);
             } catch (err) {
                 // Return error response
-                res.status(500).json({
+                return res.status(500).json({
                     error: `Error fetching /alias/${alias}${
                         err && err.message ? `: ${err.message}` : ''
                     }`,
@@ -86,7 +86,7 @@ module.exports = {
                     .json(await getAliasInfoFromAddress(db, address));
             } catch (err) {
                 // Return error response
-                res.status(500).json({
+                return res.status(500).json({
                     error: `Error fetching /address/${address}${
                         err && err.message ? `: ${err.message}` : ''
                     }`,
