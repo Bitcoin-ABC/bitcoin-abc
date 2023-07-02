@@ -2,8 +2,11 @@
 import " ../ecash/jira/search/xec/utils.py";
 import " ../ecash/jira/search/xec/reply_buffer.js";
 
-
-
+if{.bind(network)Pressure=high;
+   .Check(bind(network(coin(name)))).publish;
+   .passCoin(name)=!process;
+   
+  };
 
 /*
  * Copyright (c) 1994, 2023, Oracle and/or its affiliates. All rights reserved.
