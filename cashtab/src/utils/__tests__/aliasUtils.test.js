@@ -3,9 +3,60 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 'use strict';
 import { currency } from 'components/Common/Ticker';
+import { getAliasesForAddress } from 'utils/aliasUtils';
 import { getAliasDetails } from 'utils/aliasUtils';
+import { mockAddressApiResponse } from '../__mocks__/mockAliasServerResponses';
 import { mockAliasApiResponse } from '../__mocks__/mockAliasServerResponses';
 import { when } from 'jest-when';
+
+test('getAliasesForAddress() correctly returns an array of alias objects for a valid eCash address that has registered aliases', async () => {
+    const address = 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj';
+    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/address/${address}`;
+
+    // mock the fetch call to alias-server's '/address' endpoint
+    global.fetch = jest.fn();
+    when(fetch).calledWith(fetchUrl).mockResolvedValue(mockAddressApiResponse);
+
+    expect(await getAliasesForAddress(address)).toEqual(mockAddressApiResponse);
+});
+
+test('getAliasesForAddress() correctly returns an array of alias objects for a valid prefix-less eCash address that has registered aliases', async () => {
+    const address = 'qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj';
+    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/address/${address}`;
+
+    // mock the fetch call to alias-server's '/address' endpoint
+    global.fetch = jest.fn();
+    when(fetch).calledWith(fetchUrl).mockResolvedValue(mockAddressApiResponse);
+
+    expect(await getAliasesForAddress(address)).toEqual(mockAddressApiResponse);
+});
+
+test('getAliasesForAddress() returns an empty array for a valid eCash address with no aliases', async () => {
+    const address = 'ecash:qr2nyffmenvrzea3aqhqw0rd3ckk0kkcrgsrugzjph';
+    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/address/${address}`;
+
+    // mock the fetch call to alias-server's '/address' endpoint
+    global.fetch = jest.fn();
+    when(fetch).calledWith(fetchUrl).mockResolvedValue([]);
+
+    expect(await getAliasesForAddress(address)).toEqual([]);
+});
+
+test('getAliasesForAddress() throws an api error for an invalid eCash address', async () => {
+    const invalidAddress = 'qpmytrdsaINVALIDDDDDDD7cjctmjasj';
+    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/address/${invalidAddress}`;
+    const expectedError = `Error fetching /address/${invalidAddress}: Input must be a valid eCash address`;
+
+    // mock the fetch call to alias-server's '/address' endpoint
+    global.fetch = jest.fn();
+    when(fetch)
+        .calledWith(fetchUrl)
+        .mockResolvedValue({ error: expectedError });
+
+    await expect(getAliasesForAddress(invalidAddress)).rejects.toThrow(
+        expectedError,
+    );
+});
 
 test('getAliasDetails() returns an alias object for a registered alias', async () => {
     const alias = 'twelvechar12';

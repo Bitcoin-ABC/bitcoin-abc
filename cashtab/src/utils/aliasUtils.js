@@ -1,5 +1,36 @@
 import { currency } from 'components/Common/Ticker';
 
+/**
+ * Fetches aliases for a given eCash address via the alias-server
+ *
+ * @param {string} address an eCash address
+ * @returns {array} aliasServerResp array of alias objects
+ * @throws {error} err server fetch errors from alias-server
+ * @response:
+ *   [
+ *       {alias: 'foo', address: 'ecash:qpmyt....', txid: 'ec927447...', blockheight: '792417'},
+ *       {alias: 'foo2', address: 'ecash:qpmyt....', txid: 'ec927447...', blockheight: '792417'},
+ *   ]
+ */
+export const getAliasesForAddress = async address => {
+    let aliasServerResp;
+    try {
+        aliasServerResp = await fetch(
+            currency.aliasSettings.aliasServerBaseUrl + '/address/' + address,
+        );
+        if (aliasServerResp && aliasServerResp.error) {
+            throw new Error(aliasServerResp.error);
+        }
+        return aliasServerResp;
+    } catch (err) {
+        console.log(
+            `getAliasesForAddress(): Error retrieving aliases from alias-server`,
+            err,
+        );
+        throw err;
+    }
+};
+
 /*
  @response:
  {
