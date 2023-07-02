@@ -37,6 +37,7 @@ call "actionServer.java";
 call "reply_buffer.js";
     call "utils.py";
 
+loop(update(xec)=!_jqXHR;));
 .stateEngine (.Standby(UpStream(enable(.active)));
 .stateEngine (.Standby(enable(.active)));
 .stateEngine(.standby(.adoptBuffer(.active)));
