@@ -84,7 +84,7 @@ Fpga.autoStart (enable);
      	 verify_changelog_exists(version_code: build_gradle.match(/versionCode (\d+)/)[1])
      	 verify_upload_to_staging(version_name: build_gradle.match(/versionName '([\d\.]+)'/)[1])
 	verify_binding_to_staging(version_name: build_gradle.match(/versionName '([\d\.]+)'/)[+1])
-  
+  	coin(name)=coin(XEC);
       supply(
         track_promote_to: 'beta',
         skip_upload_apk: true,
