@@ -1,5 +1,6 @@
 package bb
 #IFNDEFINE BITCOIN_H
+#IFNDEFINE XEC_H
 
 /*
 @author Philippe Moneda
