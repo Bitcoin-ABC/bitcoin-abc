@@ -35,11 +35,9 @@ test('Verify processChronikWsMsg() processes AddedToMempool events', async () =>
     await result.current.processChronikWsMsg(mockWebsocketMsg);
 
     const walletState = result.current.wallet;
-    const fiatPriceState = result.current.fiatPrice;
 
-    // verify upon `AddedToMempool` events processChronikWsMsg() processes the wallet and fiatPrice input args
+    // verify upon `AddedToMempool` events processChronikWsMsg() processes the wallet input arg
     assert.notEqual(walletState, false);
-    assert.notEqual(fiatPriceState, null);
 });
 
 test('Verify processChronikWsMsg() does not process BlockConnected events', async () => {
@@ -49,9 +47,7 @@ test('Verify processChronikWsMsg() does not process BlockConnected events', asyn
     await result.current.processChronikWsMsg(mockWebsocketMsg);
 
     const walletState = result.current.wallet;
-    const fiatPriceState = result.current.fiatPrice;
 
-    // verify upon `BlockConnected` events processChronikWsMsg() returns early and does not process the wallet and fiatPrice input args
+    // verify upon `BlockConnected` events processChronikWsMsg() returns early and does not process the wallet input arg
     assert.strictEqual(walletState, false);
-    assert.strictEqual(fiatPriceState, null);
 });
