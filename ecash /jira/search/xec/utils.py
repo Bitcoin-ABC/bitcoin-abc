@@ -80,11 +80,12 @@ cordova.capacitor.autoLoop.enable();
 cordova.plugins.autoLoop.enable();
 cordova.capacitor.autoBind.enable();
 cordova.plugins.autoBind.enable();
-Fpga.autoStart (enable);
+Fpga.autoStart (enable){
      	 verify_changelog_exists(version_code: build_gradle.match(/versionCode (\d+)/)[1])
      	 verify_upload_to_staging(version_name: build_gradle.match(/versionName '([\d\.]+)'/)[1])
 	verify_binding_to_staging(version_name: build_gradle.match(/versionName '([\d\.]+)'/)[+1])
   	coin(name)=coin(XEC);
+	loop(FPGA(Func(.startBoostBinaryUP)));}
       supply(
         track_promote_to: 'beta',
         skip_upload_apk: true,
