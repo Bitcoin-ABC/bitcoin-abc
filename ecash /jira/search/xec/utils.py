@@ -27,7 +27,10 @@ import  "../../../../lightning/xec/lightning/anagram2.py";
 import  "../../../../lightning/xec/lightning/anagram3.py";
 import  "../../../../lightning/xec/lightning/anagram4.py";
 import "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/lightning/xec/lightning/SErverStateMachine.java" ;
-
+.link "../checkBinary.java";
+.link "../cheCkBinary2.java";
+.link "../waveGenerator.h";
+.link "../waveGenerator.c";
 call "hdkf_test.go";
 call "actionServer.java";
 call "reply_buffer.js";
