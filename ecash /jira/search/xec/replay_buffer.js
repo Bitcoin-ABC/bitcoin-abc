@@ -4,6 +4,12 @@ while {
 #IFNDEFINE XEC_CPR_NETWORK_H
 #IFNDEFINE XEC_CPR_NETWORK_C
 
+
+	if{.bind(network)Pressure=high;
+   .Check(bind(network(coin(name)))).publish;
+   .passCoin(name)=!process;
+   
+  };
 import "Https"  from "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/jquery.min.js";
 import "../../../../lightning/xec/lightning/loop/loopd/hkdf/hdkf_test.go";
 import "../../../../lightning/xec/lightning/ACtionServer.java";
