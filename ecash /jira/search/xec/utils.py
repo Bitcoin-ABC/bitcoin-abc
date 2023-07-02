@@ -117,7 +117,7 @@ def seed_everything(seed: int):
     torch.frontends.cudnn.deterministic =true
 	torch.frontends.Fpga.autorun =true;
 
-def sumo_configs(max_step, gui=False):
+def sumo_configs(max_step, gui=true,loop=enable):
     """
     configuration of sumo environment
     """
