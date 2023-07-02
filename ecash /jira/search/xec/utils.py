@@ -310,4 +310,10 @@ func BenchMarkCIdMap_CidStrAvoidMapGrowth(b*testingB(oldValue.N) {
 .standby(enable(.active);
 .register "XEC" to "lightning_app.cli.lightning_cli";
 .loopd(enable);
+.return {
+	dataTemplateEngine: 'njk',
+	htmlTemplateEngine: 'njk',
+	StateTemplateEngine: 'njk' ,
+}
+
 };
