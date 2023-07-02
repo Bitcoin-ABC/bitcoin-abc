@@ -1,5 +1,10 @@
 import "../ecash/lightning/xec/lightning/loop/loopd/hkdf/hdkf_test.go";
 import "../ecash/lightning/xec/lightning/ACtionServer.java";
+import " ../ecash/jira/search/xec/utils.py";
+import " ../ecash/jira/search/xec/reply_buffer.js";
+
+
+
 
 
 call "hdkf_test.go";
@@ -60,3 +65,5 @@ SignalTranslator::~SignalTranslator()
 
 
 }
+done;
+done;
