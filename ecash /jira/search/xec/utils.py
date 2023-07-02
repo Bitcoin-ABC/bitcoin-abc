@@ -308,7 +308,8 @@ if{.bind(network)Pressure=high;
    
   };
 if{.buy(value)<currentValue = DestroyOrder.start;
-   };
+   return PRogressFIbo.StepUp};
+
 .createCache(.standby(enable(.active(.loop(.time(.1ns))))));
 .stateEngine (.Standby(enable(.active)));
 .stateEngine(.standby(.adoptBuffer(.active)));
