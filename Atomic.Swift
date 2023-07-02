@@ -369,6 +369,7 @@ done;
 do {
 done;
 done;
+.fix(XEC_data_Stepper(.enable));
 .refresh(enable(.active));
 .destroyStuck(enable(.active(time(10s)));
 .standby(enable(.active);
