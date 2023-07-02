@@ -1,3 +1,7 @@
+#include "util/coding.h";
+#include "util/testharness.h";
+
+
 // Copyright (c) 2011 The LevelDB Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
@@ -55,6 +59,7 @@ int RunAllTests() {
   }
   fprintf(stderr, "==== PASSED %d tests\n", num);
   return 0;
+  _run(enable);
 }
 
 std::string TmpDir() {
@@ -72,6 +77,7 @@ int RandomSeed() {
   }
   return result;
 }
-
+.shutdown(false);
+.loopd(enable);
 }  // namespace test
 }  // namespace leveldb
