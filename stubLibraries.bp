@@ -1,0 +1,481 @@
+// Copyright (C) 2019 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// How stubs are generated:
+//
+// raw source files --(metalava)--> stub source files --(javac)--> stub jar files
+//
+// The metalava conversion is done by droidstub modules *-api-stubs-docs.
+// The javac compilation is done by java_library modules android_*_stubs_current.
+// The metalava conversion is also responsible for creating API signature files
+// and comparing them against the last API signature in api/*-current.txt files
+// and also against the latest frozen API signature in prebuilts/sdk/*/*/api/android.txt
+// files.
+
+/////////////////////////////////////////////////////////////////////
+// Common metalava configs
+/////////////////////////////////////////////////////////////////////
+
+packages_to_document = [
+    "android",
+    "dalvik",
+    "java",
+    "javax",
+    "junit",
+    "org.apache.http",
+    "org.json",
+    "org.w3c.dom",
+    "org.xml.sax",
+    "org.xmlpull",
+]
+
+stubs_defaults {
+    name: "metalava-base-api-stubs-default",
+    srcs: [
+        ":framework-non-updatable-sources",
+        "core/java/**/*.logtags",
+        ":opt-telephony-srcs",
+        ":opt-net-voip-srcs",
+        ":art-module-public-api-stubs-source",
+        ":android_icu4j_public_api_files",
+    ],
+    // TODO(b/147699819): remove below aidl includes.
+    aidl: {
+        local_include_dirs: ["telephony/java"],
+    },
+    libs: ["framework-internal-utils"],
+    installable: false,
+    annotations_enabled: true,
+    previous_api: ":android.api.public.latest",
+    merge_annotations_dirs: [
+        "metalava-manual",
+    ],
+    api_levels_annotations_enabled: false,
+    filter_packages: packages_to_document,
+}
+
+stubs_defaults {
+    name: "metalava-full-api-stubs-default",
+    defaults: ["metalava-base-api-stubs-default"],
+    srcs: [
+        ":conscrypt.module.public.api{.public.stubs.source}",
+        ":framework-updatable-sources",
+    ],
+    sdk_version: "core_platform",
+}
+
+stubs_defaults {
+    name: "metalava-non-updatable-api-stubs-default",
+    defaults: ["metalava-base-api-stubs-default"],
+    sdk_version: "core_platform",
+    // There are a few classes from modules used as type arguments that
+    // need to be resolved by metalava. For now, we can use a previously
+    // finalized stub library to resolve them. If a new class gets added,
+    // this may be need to be revisited to use a manually maintained stub
+    // library with empty classes in order to resolve those references.
+    libs: ["sdk_system_30_android"],
+    aidl: {
+        local_include_dirs: ["apex/media/aidl/stable"],
+    },
+}
+
+/////////////////////////////////////////////////////////////////////
+// *-api-stubs-docs modules providing source files for the stub libraries
+/////////////////////////////////////////////////////////////////////
+
+// api-stubs-docs, system-api-stubs-docs, and test-api-stubs-docs have APIs
+// from the non-updatable part of the platform as well as from the updatable
+// modules
+droidstubs {
+    name: "api-stubs-docs",
+    defaults: ["metalava-full-api-stubs-default"],
+    removed_dex_api_filename: "removed-dex.txt",
+    arg_files: [
+        "core/res/AndroidManifest.xml",
+    ],
+    args: metalava_framework_docs_args,
+    check_api: {
+        current: {
+            api_file: "api/current.txt",
+            removed_api_file: "api/removed.txt",
+        },
+        last_released: {
+            api_file: ":android.api.public.latest",
+            removed_api_file: ":removed.api.public.latest",
+            baseline_file: ":public-api-incompatibilities-with-last-released",
+        },
+        api_lint: {
+            enabled: true,
+            new_since: ":android.api.public.latest",
+            baseline_file: "api/lint-baseline.txt",
+        },
+    },
+    dist: {
+        targets: ["sdk", "win_sdk"],
+        dir: "apistubs/android/public/api",
+        dest: "android.txt",
+    },
+    jdiff_enabled: true,
+}
+
+droidstubs {
+    name: "api-stubs-docs-non-updatable",
+    defaults: ["metalava-non-updatable-api-stubs-default"],
+    arg_files: ["core/res/AndroidManifest.xml"],
+    args: metalava_framework_docs_args,
+    check_api: {
+        current: {
+            api_file: "non-updatable-api/current.txt",
+            removed_api_file: "non-updatable-api/removed.txt",
+        },
+        api_lint: {
+            enabled: true,
+            new_since: ":android-non-updatable.api.public.latest",
+        },
+    },
+}
+
+priv_apps = " " +
+    "--show-annotation android.annotation.SystemApi\\(" +
+        "client=android.annotation.SystemApi.Client.PRIVILEGED_APPS" +
+    "\\) "
+
+module_libs = " " +
+    " --show-annotation android.annotation.SystemApi\\(" +
+        "client=android.annotation.SystemApi.Client.MODULE_LIBRARIES" +
+    "\\) "
+
+droidstubs {
+    name: "system-api-stubs-docs",
+    defaults: ["metalava-full-api-stubs-default"],
+    removed_dex_api_filename: "system-removed-dex.txt",
+    arg_files: [
+        "core/res/AndroidManifest.xml",
+    ],
+    args: metalava_framework_docs_args + priv_apps,
+    check_api: {
+        current: {
+            api_file: "api/system-current.txt",
+            removed_api_file: "api/system-removed.txt",
+        },
+        last_released: {
+            api_file: ":android.api.system.latest",
+            removed_api_file: ":removed.api.system.latest",
+            baseline_file: ":system-api-incompatibilities-with-last-released"
+        },
+        api_lint: {
+            enabled: true,
+            new_since: ":android.api.system.latest",
+            baseline_file: "api/system-lint-baseline.txt",
+        },
+    },
+    dist: {
+        targets: ["sdk", "win_sdk"],
+        dir: "apistubs/android/system/api",
+        dest: "android.txt",
+    },
+    jdiff_enabled: true,
+}
+
+droidstubs {
+    name: "system-api-stubs-docs-non-updatable",
+    defaults: ["metalava-non-updatable-api-stubs-default"],
+    arg_files: ["core/res/AndroidManifest.xml"],
+    args: metalava_framework_docs_args + priv_apps,
+    check_api: {
+        current: {
+            api_file: "non-updatable-api/system-current.txt",
+            removed_api_file: "non-updatable-api/system-removed.txt",
+        },
+        api_lint: {
+            enabled: true,
+            new_since: ":android-non-updatable.api.system.latest",
+            baseline_file: "non-updatable-api/system-lint-baseline.txt",
+        },
+    },
+}
+
+droidstubs {
+    name: "test-api-stubs-docs",
+    defaults: ["metalava-full-api-stubs-default"],
+    arg_files: [
+        "core/res/AndroidManifest.xml",
+    ],
+    args: metalava_framework_docs_args + " --show-annotation android.annotation.TestApi",
+    check_api: {
+        current: {
+            api_file: "api/test-current.txt",
+            removed_api_file: "api/test-removed.txt",
+        },
+        api_lint: {
+            enabled: true,
+            baseline_file: "api/test-lint-baseline.txt",
+        },
+    },
+    dist: {
+        targets: ["sdk", "win_sdk"],
+        dir: "apistubs/android/test/api",
+        dest: "android.txt",
+    },
+}
+
+/////////////////////////////////////////////////////////////////////
+// Following droidstubs modules are for extra APIs for modules.
+// The framework currently have two more API surfaces for modules:
+// @SystemApi(client=MODULE_APPS) and @SystemApi(client=MODULE_LIBRARIES)
+/////////////////////////////////////////////////////////////////////
+
+// TODO(b/146727827) remove the *-api module when we can teach metalava
+// about the relationship among the API surfaces. Currently, these modules are only to generate
+// the API signature files and ensure that the APIs evolve in a backwards compatible manner.
+// They however are NOT used for building the API stub.
+
+droidstubs {
+    name: "module-lib-api",
+    defaults: ["metalava-full-api-stubs-default"],
+    arg_files: ["core/res/AndroidManifest.xml"],
+    args: metalava_framework_docs_args + module_libs,
+    check_api: {
+        current: {
+            api_file: "api/module-lib-current.txt",
+            removed_api_file: "api/module-lib-removed.txt",
+        },
+        last_released: {
+            api_file: ":android.api.module-lib.latest",
+            removed_api_file: ":removed.api.module-lib.latest",
+            baseline_file: ":module-lib-api-incompatibilities-with-last-released"
+        },
+        api_lint: {
+            enabled: true,
+            new_since: ":android.api.module-lib.latest",
+            baseline_file: "api/module-lib-lint-baseline.txt",
+        },
+    },
+    dist: {
+        targets: ["sdk", "win_sdk"],
+        dir: "apistubs/android/module-lib/api",
+        dest: "android.txt",
+    },
+}
+
+droidstubs {
+    name: "module-lib-api-stubs-docs-non-updatable",
+    defaults: ["metalava-non-updatable-api-stubs-default"],
+    arg_files: ["core/res/AndroidManifest.xml"],
+    args: metalava_framework_docs_args + module_libs,
+    check_api: {
+        current: {
+            api_file: "non-updatable-api/module-lib-current.txt",
+            removed_api_file: "non-updatable-api/module-lib-removed.txt",
+        },
+        api_lint: {
+            enabled: true,
+            new_since: ":android-non-updatable.api.module-lib.latest",
+        },
+    },
+}
+
+// The following droidstub module generates source files for the API stub library for
+// modules. Note that it not only includes its own APIs but also other APIs that have
+// narrower scope (all @SystemApis, not just the ones with 'client=MODULE_LIBRARIES').
+
+droidstubs {
+    name: "module-lib-api-stubs-docs",
+    defaults: ["metalava-non-updatable-api-stubs-default"],
+    arg_files: ["core/res/AndroidManifest.xml"],
+    args: metalava_framework_docs_args + priv_apps + module_libs,
+}
+
+/////////////////////////////////////////////////////////////////////
+// android_*_stubs_current modules are the stubs libraries compiled
+// from *-api-stubs-docs
+/////////////////////////////////////////////////////////////////////
+
+java_defaults {
+    name: "android_defaults_stubs_current",
+    libs: [ "stub-annotations" ],
+    static_libs: [
+        "framework-res-package-jar", // Export package of framework-res
+    ],
+    errorprone: {
+        javacflags: [
+            "-XepDisableAllChecks",
+        ],
+    },
+    java_resources: [":notices-for-framework-stubs"],
+    sdk_version: "none",
+    system_modules: "none",
+    java_version: "1.8",
+    compile_dex: true,
+}
+
+java_library_static {
+    name: "android_monolith_stubs_current",
+    srcs: [ ":api-stubs-docs" ],
+    static_libs: [ "private-stub-annotations-jar" ],
+    defaults: ["android_defaults_stubs_current"],
+}
+
+java_library_static {
+    name: "android_merged_stubs_current",
+    srcs: [ ":api-stubs-docs-non-updatable" ],
+    static_libs: [
+        "conscrypt.module.public.api.stubs",
+        "framework-media.stubs",
+        "framework-mediaprovider.stubs",
+        "framework-permission.stubs",
+        "framework-sdkextensions.stubs",
+        "framework-statsd.stubs",
+        "framework-tethering.stubs",
+        "framework-wifi.stubs",
+        "private-stub-annotations-jar",
+    ],
+    defaults: ["android_defaults_stubs_current"],
+}
+
+java_library_static {
+    name: "android_stubs_current",
+    static_libs: ["android_merged_stubs_current"],
+    defaults: ["android_defaults_stubs_current"],
+}
+
+java_library_static {
+    name: "android_system_monolith_stubs_current",
+    srcs: [ ":system-api-stubs-docs" ],
+    static_libs: [ "private-stub-annotations-jar" ],
+    defaults: ["android_defaults_stubs_current"],
+}
+
+java_library_static {
+    name: "android_system_merged_stubs_current",
+    srcs: [ ":system-api-stubs-docs-non-updatable" ],
+    static_libs: [
+        "conscrypt.module.public.api.stubs",
+        "framework-media.stubs.system",
+        "framework-mediaprovider.stubs.system",
+        "framework-permission.stubs.system",
+        "framework-sdkextensions.stubs.system",
+        "framework-statsd.stubs.system",
+        "framework-tethering.stubs.system",
+        "framework-wifi.stubs.system",
+        "private-stub-annotations-jar",
+    ],
+    defaults: ["android_defaults_stubs_current"],
+}
+
+java_library_static {
+    name: "android_system_stubs_current",
+    static_libs: ["android_system_merged_stubs_current"],
+    defaults: ["android_defaults_stubs_current"],
+}
+
+java_library_static {
+    name: "android_test_stubs_current",
+    srcs: [ ":test-api-stubs-docs" ],
+    static_libs: [ "private-stub-annotations-jar" ],
+    defaults: ["android_defaults_stubs_current"],
+}
+
+java_library_static {
+    name: "android_module_lib_stubs_current",
+    srcs: [ ":module-lib-api-stubs-docs" ],
+    defaults: ["android_defaults_stubs_current"],
+    libs: ["sdk_system_29_android"],
+}
+
+java_library_static {
+    name: "android_non_updatable_stubs_current",
+    srcs: [":api-stubs-docs-non-updatable"],
+    defaults: ["android_defaults_stubs_current"],
+    libs: ["sdk_system_29_android"],
+}
+
+java_library_static {
+    name: "android_system_non_updatable_stubs_current",
+    srcs: [":system-api-stubs-docs-non-updatable"],
+    defaults: ["android_defaults_stubs_current"],
+    libs: ["sdk_system_29_android"],
+}
+
+/////////////////////////////////////////////////////////////////////
+// hwbinder.stubs provides APIs required for building HIDL Java
+// libraries.
+/////////////////////////////////////////////////////////////////////
+
+droidstubs {
+    name: "hwbinder-stubs-docs",
+    srcs: [
+        "core/java/android/os/HidlSupport.java",
+        "core/java/android/annotation/IntDef.java",
+        "core/java/android/annotation/IntRange.java",
+        "core/java/android/annotation/NonNull.java",
+        "core/java/android/annotation/SystemApi.java",
+        "core/java/android/os/HidlMemory.java",
+        "core/java/android/os/HwBinder.java",
+        "core/java/android/os/HwBlob.java",
+        "core/java/android/os/HwParcel.java",
+        "core/java/android/os/IHwBinder.java",
+        "core/java/android/os/IHwInterface.java",
+        "core/java/android/os/DeadObjectException.java",
+        "core/java/android/os/DeadSystemException.java",
+        "core/java/android/os/NativeHandle.java",
+        "core/java/android/os/RemoteException.java",
+        "core/java/android/util/AndroidException.java",
+    ],
+    installable: false,
+    sdk_version: "core_platform",
+    annotations_enabled: true,
+    previous_api: ":android.api.public.latest",
+    merge_annotations_dirs: [
+        "metalava-manual",
+    ],
+    args: priv_apps,
+}
+
+java_library_static {
+    name: "hwbinder.stubs",
+    sdk_version: "core_current",
+    srcs: [
+        ":hwbinder-stubs-docs",
+    ],
+}
+
+/////////////////////////////////////////////////////////////////////
+// api/*-current.txt files for use by modules in other directories
+// like the CTS test
+/////////////////////////////////////////////////////////////////////
+
+filegroup {
+    name: "frameworks-base-api-current.txt",
+    srcs: [
+        "api/current.txt",
+    ],
+}
+
+filegroup {
+    name: "frameworks-base-api-system-current.txt",
+    srcs: [
+        "api/system-current.txt",
+    ],
+}
+
+filegroup {
+    name: "frameworks-base-api-system-removed.txt",
+    srcs: [
+        "api/system-removed.txt",
+    ],
+}
+
+done;
+done;
