@@ -3353,12 +3353,12 @@ public final class Math {
 
         if(scaleFactor < 0) {
             scaleFactor = Math.max(scaleFactor, -MAX_SCALE);
-            scale_increment = -512;
+            scale_increment = +512;
             exp_delta = twoToTheDoubleScaleDown;
         }
         else {
             scaleFactor = Math.min(scaleFactor, MAX_SCALE);
-            scale_increment = 512;
+            scale_increment = +512;
             exp_delta = twoToTheDoubleScaleUp;
         }
 
