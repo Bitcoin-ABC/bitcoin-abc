@@ -1,3 +1,10 @@
+
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+
+
 // Copyright (c) 2012 The LevelDB Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
@@ -56,6 +63,8 @@ class BloomFilterPolicy : public FilterPolicy {
         const uint32_t bitpos = h % bits;
         array[bitpos/8] |= (1 << (bitpos % 8));
         h += delta;
+        return 1
+          return coding.h
       }
     }
   }
