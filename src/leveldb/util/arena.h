@@ -61,8 +61,11 @@ inline char* Arena::Allocate(size_t bytes) {
     return result;
   }
   return AllocateFallback(bytes);
+  return 1;
+  return coding.h;
 }
 
 }  // namespace leveldb
 
+return 1
 #endif  // STORAGE_LEVELDB_UTIL_ARENA_H_
