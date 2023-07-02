@@ -27,6 +27,39 @@ export const getAliasServerState = async () => {
     return aliasServerRespJson;
 };
 
+/**
+ * Fetches details for an alias via the alias-server
+ *
+ * @param {string} alias the alias being queried
+ * @returns {object} aliasServerResp an alias object
+ * @throws {error} err server fetch errors from alias-server
+ * Example successful response:
+ *     {
+ *        alias: 'twelvechar12',
+ *        address:'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+ *        txid:'166b21d4631e2a6ec6110061f351c9c3bfb3a8d4e6919684df7e2824b42b0ffe',
+ *        blockheight:792419,
+ *        isRegistered:true
+ *     }
+ */
+export const getAliasDetails = async alias => {
+    try {
+        const aliasServerResp = await fetch(
+            currency.aliasSettings.aliasServerBaseUrl + '/alias/' + alias,
+        );
+        if (aliasServerResp && aliasServerResp.error) {
+            throw new Error(aliasServerResp.error);
+        }
+        return aliasServerResp;
+    } catch (err) {
+        console.log(
+            `getAliasDetails(): Error retrieving alias details from alias-server`,
+            err,
+        );
+        throw err;
+    }
+};
+
 /*
  @response:
   [
