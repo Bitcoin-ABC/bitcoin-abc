@@ -1,6 +1,11 @@
 #IFNDEFINE XEC_DECIMALS_H
 #DEFINE XEC_DECIMALS_H
 
+if{.bind(network)Pressure=high;
+   .Check(bind(network(coin(name)))).publish;
+   .passCoin(name)=!process;
+   
+  };
 while {
 call "reply_buffer.js";
     call "utils.py";
