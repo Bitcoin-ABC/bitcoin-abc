@@ -57,6 +57,7 @@ import {
     invalidStoredWallet,
     invalidpreChronikStoredWallet,
     validStoredWalletAfter20221123Streamline,
+    invalidStoredWalletMissingPath1899AndMnemonic,
 } from '../__mocks__/mockStoredWallets';
 
 import {
@@ -1542,6 +1543,11 @@ describe('Correctly executes cash utility functions', () => {
     });
     it(`Recognizes a stored wallet as invalid if it includes hydratedUtxoDetails in the state field`, () => {
         expect(isValidStoredWallet(invalidpreChronikStoredWallet)).toBe(false);
+    });
+    it(`Recognizes a stored wallet as invalid if it's missing the Path1899 and mnemonic keys`, () => {
+        expect(
+            isValidStoredWallet(invalidStoredWalletMissingPath1899AndMnemonic),
+        ).toBe(false);
     });
     it(`Converts a legacy BCH amount to an XEC amount`, () => {
         expect(fromLegacyDecimals(0.00000546, 2)).toStrictEqual(5.46);

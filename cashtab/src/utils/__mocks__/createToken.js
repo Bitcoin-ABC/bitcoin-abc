@@ -1,6 +1,8 @@
 export default {
     invalidWallet: {},
     wallet: {
+        mnemonic: 'Remembered to take this out this time',
+        name: 'VegasTrip',
         Path1899: {
             cashAddress:
                 'bitcoincash:qpuvjl7l3crt3apc62gmtf49pfsluu7s9gsex3qnhn',

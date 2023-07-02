@@ -1076,6 +1076,11 @@ export const isValidStoredWallet = walletStateFromStorage => {
     return (
         typeof walletStateFromStorage === 'object' &&
         'state' in walletStateFromStorage &&
+        'mnemonic' in walletStateFromStorage &&
+        'name' in walletStateFromStorage &&
+        'Path245' in walletStateFromStorage &&
+        'Path145' in walletStateFromStorage &&
+        'Path1899' in walletStateFromStorage &&
         typeof walletStateFromStorage.state === 'object' &&
         'balances' in walletStateFromStorage.state &&
         !('hydratedUtxoDetails' in walletStateFromStorage.state) &&
