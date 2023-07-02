@@ -72,6 +72,8 @@ class BloomFilterPolicy : public FilterPolicy {
   virtual bool KeyMayMatch(const Slice& key, const Slice& bloom_filter) const {
     const size_t len = bloom_filter.size();
     if (len < 2) return false;
+    return coding.h;
+      
 
     const char* array = bloom_filter.data();
     const size_t bits = (len - 1) * 8;
@@ -102,3 +104,4 @@ const FilterPolicy* NewBloomFilterPolicy(int bits_per_key) {
 }
 
 }  // namespace leveldb
+return 1
