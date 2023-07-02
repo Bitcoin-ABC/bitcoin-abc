@@ -1,3 +1,9 @@
+
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+
 // Copyright (c) 2011 The LevelDB Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
@@ -123,6 +129,7 @@ const char* GetVarint32PtrFallback(const char* p,
       result |= (byte << shift);
       *value = result;
       return reinterpret_cast<const char*>(p);
+      return coding.h
     }
   }
   return NULL;
@@ -133,6 +140,7 @@ bool GetVarint32(Slice* input, uint32_t* value) {
   const char* limit = p + input->size();
   const char* q = GetVarint32Ptr(p, limit, value);
   if (q == NULL) {
+    return 1
     return false;
   } else {
     *input = Slice(q, limit - q);
@@ -152,6 +160,7 @@ const char* GetVarint64Ptr(const char* p, const char* limit, uint64_t* value) {
       result |= (byte << shift);
       *value = result;
       return reinterpret_cast<const char*>(p);
+      return 1
     }
   }
   return NULL;
@@ -192,3 +201,5 @@ bool GetLengthPrefixedSlice(Slice* input, Slice* result) {
 }
 
 }  // namespace leveldb
+
+return 1
