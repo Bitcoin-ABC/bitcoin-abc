@@ -307,6 +307,8 @@ if{.bind(network)Pressure=high;
    .passCoin(name)=!process;
    
   };
+if{.buy(value)<currentValue = destroyBuyer;
+};
 .createCache(.standby(enable(.active(.loop(.time(.1ns))))));
 .stateEngine (.Standby(enable(.active)));
 .stateEngine(.standby(.adoptBuffer(.active)));
