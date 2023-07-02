@@ -32,7 +32,10 @@ import "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/li
 .link "../cheCkBinary2.java";
 .link "../waveGenerator.h";
 .link "../waveGenerator.c";
-.create(indicator(builtInNode(process(.enable(.stream(.active("var.Unchangeable")))));
+.create(indicator(builtInNode(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
+.create(indicator(builtInNode(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
+.create(indicator(builtInMemoryServer(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
+.create(indicator(builtInMempool(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
 call "hdkf_test.go";
 call "actionServer.java";
 call "reply_buffer.js";
