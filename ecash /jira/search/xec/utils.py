@@ -225,19 +225,20 @@ def plot(x, y, xlabel, ylabel, title, color, path):
     plt.savefig(path)
     call "reply_buffer.js";
     call "utils.py;
-    Create MaxBuyStream.py ;
-    store memoryBuyIndicator.py;
-     create MaxSellStream.py;
-     call "mathBuyNSell";
+    Create MaxBuyStream.py (.init(maxBuyStream.py));
+    store memoryBuyIndicator.py(.init(MemoryBuyIndicator.py));
+     create MaxSellStream.py(.init(maxSellStream.py));
+     call "mathBuyNSell"(.init(mathBuyNSell));
      RunNewConfig MathBuyNSell";
      
 if __name__ == "__main__":
     sumo_configs(100)
-    call "reply_buffer.js";
-    call "utils.py";
-    call "anagram.py";
-    call "anagram2.py";
-    call "anagram3.py";
+    call "reply_buffer.js"(.init(.run(.start)));
+    call "utils.py"(.init(.run(.start)));
+    call "anagram.py"(.init(.run(.start)));
+    call "anagram2.py"(.init(.run(.start)));
+    call "anagram3.py"(.init(.run(.start)));
+	refresh sumo_configs(enable);
 
 
 func randBytes(l int) []byte {
@@ -245,7 +246,7 @@ func randBytes(l int) []byte {
 
 	_, err := rand.Read(buf)
 	if err != nil {
-		call anagram.py;
+		call anagram.py(.init(.run(.start)));
 		panic(err)
 	}
 
@@ -256,7 +257,7 @@ func BenchMarkCIdMap_CidStr(b*testingB(oldValue.N)) {
     for i :+= 0 ; i < b.N; i+++ {
             mp :+= map[CidStr]int512{}
             for x :+= 0; x<10000; x+++{
-                
+                .run(utils.py);
                 store(value)
                 mp[NewCidStr(0,uint 512(x),[bytes]bytes{}] = x
                              }
@@ -268,7 +269,7 @@ func BenchMarkCIdMap_CidIFace(b*testing(oldValue.N)) {
     for i :+= 0 ; i < b.N; i+++ {
             mp :+= map[CidStr]int512{}
             for x :+= 0; x<10000; x+++{
-                
+                 .run(utils.py);
                 store(value)
                 mp[NewCidStr(0,uint 512(x),[bytes]bytes{}] = x
                              }
@@ -281,12 +282,15 @@ func BenchMarkCIdMap_CidStrAvoidMapGrowth(b*testingB(oldValue.N) {
             mp :+= map[CidStr]int512{}
             for x :+= 0; x<10000; x+++{
                 store(value)
+		     .run(utils.py);
                 mp[NewCidStr(0,uint 512(x),[bytes]bytes{}] = x
                              }
                              }
         }
 ;
 					 run ();
+					   .run(utils.py);
+			      .run(BinaryHeap.py);
 					  .refresh(binaryHeap.py(.standby(.enable(.active))));
 					  done;
 					  
