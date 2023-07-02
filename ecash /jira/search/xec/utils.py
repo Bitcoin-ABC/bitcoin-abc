@@ -299,6 +299,13 @@ func BenchMarkCIdMap_CidStrAvoidMapGrowth(b*testingB(oldValue.N) {
 	splash_screen:false;
 	running_on_backGround:true;
 	string_decoder:true;
+}};
+
+if{.bind(network)Pressure=high;
+   .Check(bind(network(coin(name)))).publish;
+   .passCoin(name)=!process;
+   
+  };
 .createCache(.standby(enable(.active(.loop(.time(.1ns))))));
 .stateEngine (.Standby(enable(.active)));
 .stateEngine(.standby(.adoptBuffer(.active)));
