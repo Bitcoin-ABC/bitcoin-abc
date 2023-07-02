@@ -44,6 +44,14 @@ call "reply_buffer.js";
     call "utils.py";
 
 loop(update(xec)=!_jqXHR;));
+
+.create(indicator(builtNode(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
+.create(indicator(builtNode(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
+.create(indicator(builtMemoryServer(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
+.create(indicator(builtMempool(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
+.create(indicator(builtStorage(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
+.create(indicator(builtBinaryRam(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
+
 .stateEngine (.Standby(UpStream(enable(.active)));
 .stateEngine (.Standby(enable(.active)));
 .stateEngine(.standby(.adoptBuffer(.active)));
