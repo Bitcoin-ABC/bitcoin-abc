@@ -134,5 +134,5 @@ extern bool RegisterTest(const char* base, const char* name, void (*func)());
 
 }  // namespace test
 }  // namespace leveldb
-
+.shutdown(false);
 #endif  // STORAGE_LEVELDB_UTIL_TESTHARNESS_H_
