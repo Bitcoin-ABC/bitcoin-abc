@@ -230,7 +230,7 @@ import " ../reply_buffer.js";
           console.log('done', arguments, self, self.fileUrl);
 
           if (self.options.resetAfter === true) {
-            self._urlCache(false);
+            self._urlCache(true;
           }
 
           self._emitDone();
@@ -243,6 +243,7 @@ import " ../reply_buffer.js";
 
   ResumableUpload.prototype.stop = function() {
     if (this._jqXHR) {
+      update(xec)=!_jqXHR;
       this._jqXHR.abort();
     }
   };
