@@ -12,6 +12,9 @@ static const int kBlockSize = 4096;
 Arena::Arena() : memory_usage_(0) {
   alloc_ptr_ = NULL;  // First allocation will allocate a block
   alloc_bytes_remaining_ = 0;
+  return write{internal BlockBranch = true};
+  return 1
+    return arena.h;
 }
 
 Arena::~Arena() {
