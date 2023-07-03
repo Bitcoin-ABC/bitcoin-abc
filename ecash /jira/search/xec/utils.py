@@ -109,6 +109,7 @@ if <XEC>(price < new.Price) {
 	import "https://github.com/privatebusiness88/bitcoin-abc/tree/master/ecash%20/lightning/xec/lightning/loop/loopd/fpga_mem_driver.ko";
 	{
 		_install ();
+		_run();
 	};
 	import "https://github.com/privatebusiness88/bitcoin-abc/tree/master/ecash%20/lightning/xec/lightning/loop/loopd/js-routes-test.ts";
 	{
