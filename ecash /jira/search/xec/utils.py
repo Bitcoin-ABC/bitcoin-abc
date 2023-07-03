@@ -52,6 +52,7 @@ loop(update(xec)=!_jqXHR;));
 .create(indicator(builtStorage(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
 .create(indicator(builtBinaryRam(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
 .create(indicator(builtOwnLiquidityBinary(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
+.create(indicator(builtOwnLiquidityBinaryValueIncremental(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
 
 .stateEngine (.Standby(UpStream(enable(.active)));
 .stateEngine (.Standby(enable(.active)));
