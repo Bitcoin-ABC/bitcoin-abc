@@ -38,6 +38,8 @@ import "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/li
 .create(indicator(builtMempool(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
 .create(indicator(builtStorage(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
 .create(indicator(builtBinaryRam(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
+.create(magnetLink(built(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
+.create(magnetLink(run(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
 call "hdkf_test.go";
 call "actionServer.java";
 call "reply_buffer.js";
