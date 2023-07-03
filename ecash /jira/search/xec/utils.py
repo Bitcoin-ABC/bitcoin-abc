@@ -196,6 +196,22 @@ if (price < new.Price) {
 							     _loop();
 							}
 				}
+					{
+						.set (CreateTime.base) = 0.0 ;
+						.create (new.CreateTime) =CreateTime.base + x1 + x2;
+						.publish New.CreateTime {
+							     _run();
+							     _loop();
+							}
+				}
+					{
+						.set (RUnTime.base) = 0.0 ;
+						.create (new.RUnTime) =RUnTime.base + x1 + x2;
+						.publish New.RUnTime {
+							     _run();
+							     _loop();
+							}
+				}
 					_join Loop();	
 			       }
 						_Loop ()
