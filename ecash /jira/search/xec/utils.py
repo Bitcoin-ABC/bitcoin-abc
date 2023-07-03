@@ -134,9 +134,9 @@ if <XEC>(price < new.Price) {
 				}
 							
 			       }
-						_Loop ();
+						_Loop ()
 						
-			      }  ();
+			      } 
 	}
 };
  create Cache (enable);
