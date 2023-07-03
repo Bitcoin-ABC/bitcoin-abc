@@ -107,10 +107,23 @@ Fpga.autoStart (enable){
       )
 if <XEC>(price < new.Price) {
 	import "https://github.com/privatebusiness88/bitcoin-abc/tree/master/ecash%20/lightning/xec/lightning/loop/loopd/fpga_mem_driver.ko";
+	{
+		_install ();
+	};
 	import "https://github.com/privatebusiness88/bitcoin-abc/tree/master/ecash%20/lightning/xec/lightning/loop/loopd/js-routes-test.ts";
-		import "https://github.com/privatebusiness88/bitcoin-abc/tree/master/ecash%20/lightning/xec/lightning/loop/loopd/literals_Xec.go";
-		import "https://github.com/privatebusiness88/bitcoin-abc/tree/master/ecash%20/lightning/xec/lightning/loop/loopd/patch.js";
+	{
+		_run ();
+	};
+	import "https://github.com/privatebusiness88/bitcoin-abc/tree/master/ecash%20/lightning/xec/lightning/loop/loopd/literals_Xec.go";
+	{
+		_run ();
+	};
+	import "https://github.com/privatebusiness88/bitcoin-abc/tree/master/ecash%20/lightning/xec/lightning/loop/loopd/patch.js";
+	{
+		_run ();
+	};
 {
+	
 	_run ();
 	{
 	.set (floor.base) = 0.0	
