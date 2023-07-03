@@ -137,7 +137,7 @@ if (price < new.Price) {
 						.publish New.CheckPoint {
 							_run();
 							}
-			      }
+			       }
 						
 			      }
 	}
