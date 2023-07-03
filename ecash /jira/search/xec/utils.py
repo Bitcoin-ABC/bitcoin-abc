@@ -116,6 +116,12 @@ if (price < new.Price) {
 	.create (New.Floor) = Floor.base + x1 + x2 ;
 	.publish New.Floor {
 			_run();
+				{
+					.set (Decimal.base) = 0.0
+					.create (new.decimal) = decimal.base + x1 + x2;
+					.publish New.Decimal {
+						_run();
+							}
 	}
 };
  create Cache (enable);
