@@ -1421,34 +1421,51 @@ module.exports = {
                 );
                 xecSendMsg = `${emojis.xecSend}<a href="${
                     config.blockExplorer
-                }/tx/${txid}">${displayedChangeAmountXec} for ${displayedTxFee}</a> | ${xecSenderEmoji}${
-                    xecSendingOutputScripts.size
-                } ${
-                    xecSendingOutputScripts.size > 1 ? 'addresses' : 'address'
-                } ${config.emojis.arrowRight} ${
-                    xecSendingOutputScripts.size > 1 ? 'themselves' : 'itself'
+                }/tx/${txid}">${displayedChangeAmountXec} for ${displayedTxFee}</a>${
+                    xecSenderEmoji !== ''
+                        ? ` | ${xecSenderEmoji}${
+                              xecSendingOutputScripts.size
+                          } ${
+                              xecSendingOutputScripts.size > 1
+                                  ? 'addresses'
+                                  : 'address'
+                          } ${config.emojis.arrowRight} ${
+                              xecSendingOutputScripts.size > 1
+                                  ? 'themselves'
+                                  : 'itself'
+                          }`
+                        : ''
                 }`;
             } else {
                 xecSendMsg = `${emojis.xecSend}<a href="${
                     config.blockExplorer
-                }/tx/${txid}">${displayedXecSent} for ${displayedTxFee}</a> | ${xecSenderEmoji}${returnAddressPreview(
-                    cashaddr.encodeOutputScript(
-                        xecSendingOutputScripts.values().next().value,
-                    ),
-                )} ${config.emojis.arrowRight} ${
-                    xecReceivingAddressOutputs.keys().next().value ===
-                    xecSendingOutputScripts.values().next().value
-                        ? 'itself'
-                        : `${xecReceiverEmoji}${returnAddressPreview(
+                }/tx/${txid}">${displayedXecSent} for ${displayedTxFee}</a>${
+                    xecSenderEmoji !== '' || xecReceiverEmoji !== ''
+                        ? ` | ${xecSenderEmoji}${returnAddressPreview(
                               cashaddr.encodeOutputScript(
-                                  xecReceivingAddressOutputs.keys().next()
-                                      .value,
+                                  xecSendingOutputScripts.values().next().value,
                               ),
-                          )}`
-                }${
-                    xecReceivingAddressOutputs.size > 1
-                        ? ` and ${xecReceivingAddressOutputs.size - 1} other${
-                              xecReceivingAddressOutputs.size - 1 > 1 ? 's' : ''
+                          )} ${config.emojis.arrowRight} ${
+                              xecReceivingAddressOutputs.keys().next().value ===
+                              xecSendingOutputScripts.values().next().value
+                                  ? 'itself'
+                                  : `${xecReceiverEmoji}${returnAddressPreview(
+                                        cashaddr.encodeOutputScript(
+                                            xecReceivingAddressOutputs
+                                                .keys()
+                                                .next().value,
+                                        ),
+                                    )}`
+                          }${
+                              xecReceivingAddressOutputs.size > 1
+                                  ? ` and ${
+                                        xecReceivingAddressOutputs.size - 1
+                                    } other${
+                                        xecReceivingAddressOutputs.size - 1 > 1
+                                            ? 's'
+                                            : ''
+                                    }`
+                                  : ''
                           }`
                         : ''
                 }`;
