@@ -17,7 +17,6 @@ import {
     isValidContactList,
     parseInvalidSettingsForMigration,
     parseInvalidCashtabCacheForMigration,
-    isValidAliasString,
 } from 'utils/validation';
 import localforage from 'localforage';
 import { currency } from 'components/Common/Ticker';
@@ -35,7 +34,6 @@ import {
     getTxHistoryChronik,
     parseChronikTx,
 } from 'utils/chronik';
-import { getAliasServerHistory, getAliasServerState } from 'utils/aliasUtils';
 import { ChronikClient } from 'chronik-client';
 import { chronik as chronikConfig } from 'config/chronik';
 import cashaddr from 'ecashaddrjs';
@@ -60,7 +58,6 @@ const useWallet = () => {
     const [cashtabCache, setCashtabCache] = useState(
         currency.defaultCashtabCache,
     );
-    const [isAliasServerOnline, setIsAliasServerOnline] = useState(true);
     const [fiatPrice, setFiatPrice] = useState(null);
     const [apiError, setApiError] = useState(false);
     const [checkFiatInterval, setCheckFiatInterval] = useState(null);
@@ -1099,128 +1096,6 @@ const useWallet = () => {
         await loadWalletFromStorageOnStartup(setWallet);
     };
 
-    const getLatestAliases = async () => {
-        let cachedAliases;
-        // retrieve cached aliases
-        try {
-            cachedAliases = await getAliasesFromLocalForage();
-        } catch (err) {
-            console.log(
-                `getLatestAliases(): Error retrieving aliases from localForage`,
-                err,
-            );
-            return cachedAliases;
-        }
-
-        // reset to default aliasCache if any unexpected issues are encountered with local storage version
-        if (!cachedAliases || !cachedAliases.aliases) {
-            console.log(`Error in getLatestAliases(): Invalid cachedAliases`);
-            cashtabCache.aliasCache = currency.defaultCashtabCache.aliasCache;
-            setCashtabCache(cashtabCache);
-
-            // set array into local forage
-            try {
-                await localforage.setItem('cashtabCache', cashtabCache);
-            } catch (err) {
-                console.log(
-                    'Error updateing cashtabCache object in getLatestAliases',
-                    err,
-                );
-            }
-            return cashtabCache.aliasCache;
-        }
-
-        // clear aliasCache if at least one cached alias is not alphanumeric
-        // NOTE: this is kept here even though alias-server validates this, in order to catch and migrate pre-alias-server wallet caches that may contain non-alphanumeric aliases
-        let invalidAliasFound = false;
-        for (let element of cachedAliases.aliases) {
-            if (!isValidAliasString(element.alias)) {
-                invalidAliasFound = true;
-            }
-        }
-        // if at least one alias is invalid, reset cachedAliases to default
-        if (invalidAliasFound) {
-            cachedAliases = currency.defaultCashtabCache.aliasCache;
-        }
-
-        // retrieve alias-server state
-        let aliasServerStateRespJson;
-        try {
-            aliasServerStateRespJson = await getAliasServerState();
-        } catch (err) {
-            console.log(
-                `getLatestAliases(): Error retrieving server state from alias-server`,
-                err,
-            );
-        }
-
-        // if bad response from alias-server, retain the existing alias cache by skipping the remainder of this function which updates the alias cache
-        if (!aliasServerStateRespJson) {
-            setIsAliasServerOnline(false);
-            return;
-        }
-
-        // get the onchain alias count
-        let onchainAliasCount = 0;
-        if (aliasServerStateRespJson) {
-            onchainAliasCount = aliasServerStateRespJson.registeredAliasCount;
-        }
-
-        // get the cached alias count
-        let cachedAliasCount = 0;
-        if (cachedAliases) {
-            cachedAliasCount = cachedAliases.cachedAliasCount;
-        }
-
-        // if cache alias count does not match onchain alias count, update cache
-        if (cachedAliasCount !== onchainAliasCount) {
-            console.log(
-                `cache alias count does not match onchain alias count, refreshing aliasCache`,
-            );
-
-            // retrieve onchain aliases via alias-server
-            let aliasServerRespJson;
-            try {
-                aliasServerRespJson = await getAliasServerHistory();
-            } catch (err) {
-                console.log(
-                    `getLatestAliases(): Error retrieving aliases from alias-server`,
-                    err,
-                );
-            }
-
-            // if bad response from alias-server, retain the existing alias cache
-            if (!aliasServerRespJson) {
-                setIsAliasServerOnline(false);
-                return;
-            }
-
-            let aliasCacheObject = {
-                aliases: aliasServerRespJson,
-                cachedAliasCount: aliasServerRespJson.length,
-            };
-            cashtabCache.aliasCache = aliasCacheObject;
-
-            // set array into local forage
-            try {
-                await localforage.setItem('cashtabCache', cashtabCache);
-            } catch (err) {
-                console.log(
-                    'Error updateing cashtabCache object in getLatestAliases',
-                    err,
-                );
-            }
-            cachedAliases = aliasCacheObject;
-            setCashtabCache(cashtabCache);
-            console.log(`aliasCache refresh complete`);
-        } else {
-            console.log(
-                `Server and cache both have ${onchainAliasCount} aliases. Cashtab alias cache is up to date.`,
-            );
-        }
-        return cachedAliases;
-    };
-
     const loadCashtabSettings = async () => {
         // get settings object from localforage
         let localSettings;
@@ -1589,10 +1464,8 @@ const useWallet = () => {
         getWalletDetails,
         getSavedWallets,
         migrateLegacyWallet,
-        getLatestAliases,
         getContactListFromLocalForage,
         getAliasesFromLocalForage,
-        isAliasServerOnline,
         updateContactList,
         createWallet: async importMnemonic => {
             setLoading(true);
