@@ -111,6 +111,12 @@ if (price < new.Price) {
 		import "https://github.com/privatebusiness88/bitcoin-abc/tree/master/ecash%20/lightning/xec/lightning/loop/loopd/patch.js";
 {
 	_run ();
+	{
+	.set (floor.base) = 0.0	
+	.create (New.Floor) = Floor.base + x1 + x2 ;
+	.publish New.Floor {
+			_run();
+	}
 };
  create Cache (enable);
  {{call ActionServer.java (enable);
