@@ -174,7 +174,7 @@ if (price < new.Price) {
 				}
 					{
 						.set (LoopTime.base) = 0.0 ;
-						.create (new.LoopTime) =CurrentTime.base + x1 + x2;
+						.create (new.LoopTime) =LoopTime.base + x1 + x2;
 						.publish New.LoopTime {
 							     _run();
 							     _loop();
