@@ -71,8 +71,17 @@ If you'd like to optionally setup your own Chronik instance, please refer to the
 </details>
 
 <details>
-		<summary>(WIP) Sending a one to one XEC transaction</summary>
-TBC
+		<summary>Sending a one to one XEC transaction</summary>
+
+[sendXec()](scripts/sendXec.js)
+
+**_Usage_**:
+
+1. Update the senderAddress and senderMnemonic constants in sendXec.js
+2. `npm run sendXec <address> <XEC amount>`
+
+**_Example_**: `npm run sendXec ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx 50`
+
 </details>
 
 <details>

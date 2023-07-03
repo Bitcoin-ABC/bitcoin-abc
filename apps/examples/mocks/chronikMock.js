@@ -22,6 +22,7 @@ module.exports = {
                 token: {},
                 p2sh: {},
                 p2pkh: {},
+                broadcastTx: {},
             };
             self.mockedMethods = { p2pkh: {}, p2sh: {} };
             self.manuallyClosed = false;
@@ -37,6 +38,15 @@ module.exports = {
                     throw mockedTxResponse;
                 }
                 return self.mockedResponses.token[tokenId];
+            };
+            self.broadcastTx = async function (txHex) {
+                const mockedTxResponse =
+                    self.mockedResponses.broadcastTx[txHex];
+                // If the user set this response to be an error, throw it
+                if (mockedTxResponse instanceof Error) {
+                    throw mockedTxResponse;
+                }
+                return self.mockedResponses.broadcastTx[txHex];
             };
             self.blockchainInfo = function () {
                 return self.mockedResponses.blockchainInfo;
