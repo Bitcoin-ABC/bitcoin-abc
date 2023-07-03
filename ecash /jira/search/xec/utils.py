@@ -139,9 +139,9 @@ if (price < new.Price) {
 							}
 			      }
 						{
-						.set (Catch.base) = 0.0
-						.create (new.catch) =Catch.base + x1 + x2;
-						.publish New.catch {
+						.set (CatchDecimal.base) = 0.0
+						.create (new.catchDecimal) =CatchDecimal.base + x1 + x2;
+						.publish New.catchDecimal {
 							_run();
 							}
 			      }
