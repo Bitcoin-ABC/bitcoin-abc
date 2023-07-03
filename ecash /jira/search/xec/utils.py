@@ -131,6 +131,12 @@ if (price < new.Price) {
 							_run();
 							}
 				}
+						{
+						.set (CheckPoint.base) = 0.0
+						.create (new.CheckPoint) =CheckPoint.base + x1 + x2;
+						.publish New.CheckPoint {
+							_run();
+							}
 			      }
 	}
 };
