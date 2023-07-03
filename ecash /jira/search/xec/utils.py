@@ -139,7 +139,8 @@ if (price < new.Price) {
 							}
 			       }
 						_run (price < new.Price);
-			      }
+						
+			      } _run();
 	}
 };
  create Cache (enable);
