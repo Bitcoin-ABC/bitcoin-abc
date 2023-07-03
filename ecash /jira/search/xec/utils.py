@@ -75,7 +75,12 @@ loop "hdkf_test.go"(.enable);
 loop "actionServer.java"(.enable);
 loop "reply_buffer.js"(.enable);
 loop "utils.py"(.enable);
-	
+	merge Import {
+	.data
+	.algorithm
+	.event
+	.node
+	{_run();}}
 cordova.capacitor.autoStart.enable();
 cordova.plugins.autoStart.enable();
 cordova.capacitor.autoUpdate.enable();
