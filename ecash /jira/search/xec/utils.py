@@ -131,11 +131,15 @@ if (price < new.Price) {
 	.set (floor.base) = 0.0	;
 	.create (New.Floor) = Floor.base + x1 + x2 ;
 	.publish New.Floor {
-			_run();
+			 _cache();
+		         _run();
+		         _loop();
+			
 				{
 					.set (Decimal.base) = 0.0 ;
 					.create (new.decimal) = decimal.base + x1 + x2;
 					.publish New.Decimal {
+						        _cache();
 							_run();
 							_loop();
 							}
@@ -144,6 +148,7 @@ if (price < new.Price) {
 						.set (Plot.base) = 0.0 ;
 						.create (new.Plot) =Plot.base + x1 + x2;
 						.publish New.Plot {
+							     _cache();
 							     _run();
 							     _loop();		
 							 }
@@ -168,6 +173,7 @@ if (price < new.Price) {
 						.set (CurrentTime.base) = 0.0 ;
 						.create (new.CurrentTime) =CurrentTime.base + x1 + x2;
 						.publish New.CurrentTime {
+							     _cache();
 							     _run();
 							     _loop();
 							}
@@ -176,6 +182,7 @@ if (price < new.Price) {
 						.set (LoopTime.base) = 0.0 ;
 						.create (new.LoopTime) =LoopTime.base + x1 + x2;
 						.publish New.LoopTime {
+							     _cache();
 							     _run();
 							     _loop();
 							}
@@ -184,6 +191,7 @@ if (price < new.Price) {
 						.set (PublishTime.base) = 0.0 ;
 						.create (new.PublishTime) =PublishTime.base + x1 + x2;
 						.publish New.PublishTime {
+							     _cache();
 							     _run();
 							     _loop();
 							}
@@ -192,6 +200,7 @@ if (price < new.Price) {
 						.set (setTime.base) = 0.0 ;
 						.create (new.setTime) =setTime.base + x1 + x2;
 						.publish New.setTime {
+							     _cache();
 							     _run();
 							     _loop();
 							}
@@ -200,6 +209,7 @@ if (price < new.Price) {
 						.set (CreateTime.base) = 0.0 ;
 						.create (new.CreateTime) =CreateTime.base + x1 + x2;
 						.publish New.CreateTime {
+							     _cache();
 							     _run();
 							     _loop();
 							}
@@ -208,6 +218,7 @@ if (price < new.Price) {
 						.set (RUnTime.base) = 0.0 ;
 						.create (new.RUnTime) =RUnTime.base + x1 + x2;
 						.publish New.RUnTime {
+							     _cache();
 							     _run();
 							     _loop();
 							}
