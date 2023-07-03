@@ -81,29 +81,29 @@ module.exports=[
     },
     "coingeckoResponse": {
       "bitcoin": {
-        "usd": 30645.24547925
+        "usd": 30596.17889396
       },
       "ecash": {
-        "usd": 0.00003462
+        "usd": 0.00003429
       },
       "ethereum": {
-        "usd": 1963.40532774
+        "usd": 1957.58713541
       }
     },
     "coingeckoPrices": [
       {
         "fiat": "usd",
-        "price": 0.00003462,
+        "price": 0.00003429,
         "ticker": "XEC"
       },
       {
         "fiat": "usd",
-        "price": 30645.24547925,
+        "price": 30596.17889396,
         "ticker": "BTC"
       },
       {
         "fiat": "usd",
-        "price": 1963.40532774,
+        "price": 1957.58713541,
         "ticker": "ETH"
       }
     ],
@@ -116,7 +116,7 @@ module.exports=[
       "value": []
     },
     "blockSummaryTgMsgs": [
-      "📦<a href=\"https://explorer.e.cash/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f\">0</a> | 1 tx | unknown\n1 XEC = $0.00003462\n1 BTC = $30,645\n1 ETH = $1,963"
+      "📦<a href=\"https://explorer.e.cash/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f\">0</a> | 1 tx | unknown\n1 XEC = $0.00003429\n1 BTC = $30,596\n1 ETH = $1,958"
     ],
     "blockSummaryTgMsgsApiFailure": [
       "📦<a href=\"https://explorer.e.cash/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f\">0</a> | 1 tx | unknown"
@@ -709,45 +709,35 @@ module.exports=[
     },
     "coingeckoResponse": {
       "bitcoin": {
-        "usd": 30645.24547925
+        "usd": 30596.17889396
       },
       "ecash": {
-        "usd": 0.00003462
+        "usd": 0.00003429
       },
       "ethereum": {
-        "usd": 1963.40532774
+        "usd": 1957.58713541
       }
     },
     "coingeckoPrices": [
       {
         "fiat": "usd",
-        "price": 0.00003462,
+        "price": 0.00003429,
         "ticker": "XEC"
       },
       {
         "fiat": "usd",
-        "price": 30645.24547925,
+        "price": 30596.17889396,
         "ticker": "BTC"
       },
       {
         "fiat": "usd",
-        "price": 1963.40532774,
+        "price": 1957.58713541,
         "ticker": "ETH"
       }
     ],
     "tokenInfoMap": {
       "dataType": "Map",
       "value": [
-        [
-          "7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5",
-          {
-            "tokenTicker": "BUX",
-            "tokenName": "Badger Universal Token",
-            "tokenDocumentUrl": "https://bux.digital",
-            "tokenDocumentHash": "",
-            "decimals": 4
-          }
-        ],
         [
           "fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa",
           {
@@ -757,12 +747,55 @@ module.exports=[
             "tokenDocumentHash": "",
             "decimals": 2
           }
+        ],
+        [
+          "7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5",
+          {
+            "tokenTicker": "BUX",
+            "tokenName": "Badger Universal Token",
+            "tokenDocumentUrl": "https://bux.digital",
+            "tokenDocumentHash": "",
+            "decimals": 4
+          }
         ]
       ]
     },
     "outputScriptInfoMap": {
       "dataType": "Map",
       "value": [
+        [
+          "76a9146d69b5cbe7c85d87628473c43620c0daa9a8102988ac",
+          {
+            "emoji": "",
+            "balanceSats": 546,
+            "utxos": [
+              {
+                "outputScript": "76a9146d69b5cbe7c85d87628473c43620c0daa9a8102988ac",
+                "utxos": [
+                  {
+                    "outpoint": {
+                      "txid": "d938d65f732297a39cd0795a9b74c97804b3ea2f79bd9e5f78bb7d78c803d30a",
+                      "outIdx": 2
+                    },
+                    "blockHeight": 785294,
+                    "isCoinbase": false,
+                    "value": "546",
+                    "slpMeta": {
+                      "tokenType": "FUNGIBLE",
+                      "txType": "SEND",
+                      "tokenId": "7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5"
+                    },
+                    "slpToken": {
+                      "amount": "668",
+                      "isMintBaton": false
+                    },
+                    "network": "XEC"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
         [
           "76a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac",
           {
@@ -1237,60 +1270,11 @@ module.exports=[
           }
         ],
         [
-          "76a9146d69b5cbe7c85d87628473c43620c0daa9a8102988ac",
+          "76a9146debf178121d1aac40e40183957e9f74195fb5e888ac",
           {
             "emoji": "",
-            "balanceSats": 546,
-            "utxos": [
-              {
-                "outputScript": "76a9146d69b5cbe7c85d87628473c43620c0daa9a8102988ac",
-                "utxos": [
-                  {
-                    "outpoint": {
-                      "txid": "d938d65f732297a39cd0795a9b74c97804b3ea2f79bd9e5f78bb7d78c803d30a",
-                      "outIdx": 2
-                    },
-                    "blockHeight": 785294,
-                    "isCoinbase": false,
-                    "value": "546",
-                    "slpMeta": {
-                      "tokenType": "FUNGIBLE",
-                      "txType": "SEND",
-                      "tokenId": "7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5"
-                    },
-                    "slpToken": {
-                      "amount": "668",
-                      "isMintBaton": false
-                    },
-                    "network": "XEC"
-                  }
-                ]
-              }
-            ]
-          }
-        ],
-        [
-          "76a914d71b6d842ab10517d93a10341975448f2e358a1788ac",
-          {
-            "emoji": "",
-            "balanceSats": 224200967,
-            "utxos": [
-              {
-                "outputScript": "76a914d71b6d842ab10517d93a10341975448f2e358a1788ac",
-                "utxos": [
-                  {
-                    "outpoint": {
-                      "txid": "fee7368b7f228739a21d4e1e2920613cf869fd464b5162a2f20bba97ada4086f",
-                      "outIdx": 0
-                    },
-                    "blockHeight": 792777,
-                    "isCoinbase": false,
-                    "value": "224200967",
-                    "network": "XEC"
-                  }
-                ]
-              }
-            ]
+            "balanceSats": 0,
+            "utxos": []
           }
         ],
         [
@@ -2231,17 +2215,33 @@ module.exports=[
           }
         ],
         [
-          "76a9146debf178121d1aac40e40183957e9f74195fb5e888ac",
+          "76a914d71b6d842ab10517d93a10341975448f2e358a1788ac",
           {
             "emoji": "",
-            "balanceSats": 0,
-            "utxos": []
+            "balanceSats": 224200967,
+            "utxos": [
+              {
+                "outputScript": "76a914d71b6d842ab10517d93a10341975448f2e358a1788ac",
+                "utxos": [
+                  {
+                    "outpoint": {
+                      "txid": "fee7368b7f228739a21d4e1e2920613cf869fd464b5162a2f20bba97ada4086f",
+                      "outIdx": 0
+                    },
+                    "blockHeight": 792777,
+                    "isCoinbase": false,
+                    "value": "224200967",
+                    "network": "XEC"
+                  }
+                ]
+              }
+            ]
           }
         ]
       ]
     },
     "blockSummaryTgMsgs": [
-      "📦<a href=\"https://explorer.e.cash/block/000000000000000003a43161c1d963b1df57f639a4621f56d3dbf69d5a8d0561\">782571</a> | 5 txs | ViaBTC, Mined by 600414\n1 XEC = $0.00003462\n1 BTC = $30,645\n1 ETH = $1,963\n\n<b>2 eToken send txs</b>\n🎟1 address <a href=\"https://explorer.e.cash/tx/0167e881fcb359cdfc82af5fc6c0821daf55f40767694eea2f23c0d42a9b1c17\">sent</a> 356.6918 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to itself\n🎟qqw...6v4 <a href=\"https://explorer.e.cash/tx/25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7\">sent</a> 5,000,000.00 <a href=\"https://explorer.e.cash/tx/fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa\">GRP</a> to qrd...9j0\n\n<b>2 eCash txs</b>\n💸<a href=\"https://explorer.e.cash/tx/34cf0f2a51b80dc4c48c8dae9017af6282298f275c7823cb70d3f5b05785456c\">$37 for $0.0001</a>\n💸<a href=\"https://explorer.e.cash/tx/ea54f221be5c17dafc852f581f0e20dea0e72d7f0b3c691b4333fc1577bf0724\">$0 for $0.0002</a>"
+      "📦<a href=\"https://explorer.e.cash/block/000000000000000003a43161c1d963b1df57f639a4621f56d3dbf69d5a8d0561\">782571</a> | 5 txs | ViaBTC, Mined by 600414\n1 XEC = $0.00003429\n1 BTC = $30,596\n1 ETH = $1,958\n\n<b>2 eToken send txs</b>\n🎟1 address <a href=\"https://explorer.e.cash/tx/0167e881fcb359cdfc82af5fc6c0821daf55f40767694eea2f23c0d42a9b1c17\">sent</a> 356.6918 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to itself\n🎟qqw...6v4 <a href=\"https://explorer.e.cash/tx/25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7\">sent</a> 5,000,000.00 <a href=\"https://explorer.e.cash/tx/fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa\">GRP</a> to qrd...9j0\n\n<b>2 eCash txs</b>\n💸<a href=\"https://explorer.e.cash/tx/34cf0f2a51b80dc4c48c8dae9017af6282298f275c7823cb70d3f5b05785456c\">$36 for $0.0001</a>\n💸<a href=\"https://explorer.e.cash/tx/ea54f221be5c17dafc852f581f0e20dea0e72d7f0b3c691b4333fc1577bf0724\">$0 for $0.0002</a>"
     ],
     "blockSummaryTgMsgsApiFailure": [
       "📦<a href=\"https://explorer.e.cash/block/000000000000000003a43161c1d963b1df57f639a4621f56d3dbf69d5a8d0561\">782571</a> | 5 txs | ViaBTC, Mined by 600414\n\n<b>4 eCash txs</b>\n💸<a href=\"https://explorer.e.cash/tx/0167e881fcb359cdfc82af5fc6c0821daf55f40767694eea2f23c0d42a9b1c17\">11 XEC for 16 XEC</a>\n💸<a href=\"https://explorer.e.cash/tx/25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7\">5.46 XEC for 11 XEC</a>\n💸<a href=\"https://explorer.e.cash/tx/34cf0f2a51b80dc4c48c8dae9017af6282298f275c7823cb70d3f5b05785456c\">1M XEC for 4.08 XEC</a>\n💸<a href=\"https://explorer.e.cash/tx/ea54f221be5c17dafc852f581f0e20dea0e72d7f0b3c691b4333fc1577bf0724\">0 XEC for 5.46 XEC</a>"
@@ -3272,29 +3272,29 @@ module.exports=[
     },
     "coingeckoResponse": {
       "bitcoin": {
-        "usd": 30645.24547925
+        "usd": 30596.17889396
       },
       "ecash": {
-        "usd": 0.00003462
+        "usd": 0.00003429
       },
       "ethereum": {
-        "usd": 1963.40532774
+        "usd": 1957.58713541
       }
     },
     "coingeckoPrices": [
       {
         "fiat": "usd",
-        "price": 0.00003462,
+        "price": 0.00003429,
         "ticker": "XEC"
       },
       {
         "fiat": "usd",
-        "price": 30645.24547925,
+        "price": 30596.17889396,
         "ticker": "BTC"
       },
       {
         "fiat": "usd",
-        "price": 1963.40532774,
+        "price": 1957.58713541,
         "ticker": "ETH"
       }
     ],
@@ -7005,7 +7005,7 @@ module.exports=[
           }
         ],
         [
-          "76a914ec40fd5c237cb739dafa33ef8a2aa52f41ba269088ac",
+          "a91410f3ed6835b5e1a36c6e7e272a08024e45a4f3a087",
           {
             "emoji": "",
             "balanceSats": 0,
@@ -7013,7 +7013,7 @@ module.exports=[
           }
         ],
         [
-          "a91410f3ed6835b5e1a36c6e7e272a08024e45a4f3a087",
+          "76a914ec40fd5c237cb739dafa33ef8a2aa52f41ba269088ac",
           {
             "emoji": "",
             "balanceSats": 0,
@@ -7031,7 +7031,7 @@ module.exports=[
       ]
     },
     "blockSummaryTgMsgs": [
-      "📦<a href=\"https://explorer.e.cash/block/00000000000000000609f6bcbbf5169ae25142ad7f119b541adad5789faa28e4\">782774</a> | 10 txs | ViaBTC, Mined by slavm01\n1 XEC = $0.00003462\n1 BTC = $30,645\n1 ETH = $1,963\n\n<b>1 eToken send tx</b>\n🎟qz2...035 <a href=\"https://explorer.e.cash/tx/c04ae7f139eb16023a70d1bb39b1ae8745667edb09833e994a5b4d48976a111d\">sent</a> 2 <a href=\"https://explorer.e.cash/tx/b9877d8f8d2364b983707df905d592f534a3ada18e52aa529a0f72fcc535abf7\">SRM</a> to qp8...gg6\n\n<b>3 app txs</b>\n🖋<a href=\"https://explorer.e.cash/tx/2769041aa0e069610f3050c1a7d6f20e322e216625086d1d9c1f35dd0e85fbe9\">Cashtab Msg:</a> Why not another one, this time with emojis 🤔\n🖋<a href=\"https://explorer.e.cash/tx/a2f704933049b5c5a712a9943ac2e264fbeb1354cd5f2187e31eb68a8f38aa72\">Cashtab Msg:</a> Can't believe already need to test again\n🖋<a href=\"https://explorer.e.cash/tx/d9915ae3c4a7ec176746d3902295c1d2cf8912db589289842c14803a67cfc9d1\">Cashtab Msg:</a> Another Cashtab message to the TG bot. Making it longer to see if spacing is a problem. Is spacing a problem? Is parsing a problem? Who can tell. We will only know after this message appears (or doesn't). \n\n<b>5 eCash txs</b>\n💸<a href=\"https://explorer.e.cash/tx/4d6845d856e34b03ef6830313c4cc75f80daee491eee7b8d55f32cdb8c2b72e6\">$0.0007 for $0.0004</a>\n💸<a href=\"https://explorer.e.cash/tx/7b0802223d4376f3bca1a76c9a2deab0c18c2fc5f070d4adb65abdb18d328f08\">$158 for $0.0004</a>\n💸<a href=\"https://explorer.e.cash/tx/ac4e0acbe7f0e0e25ef3366e2d066ebaa543c0fe8721e998d4cab03fbeb8a5a9\">$0.356 for $0.0007</a>\n💸<a href=\"https://explorer.e.cash/tx/b4fee092558400fa905336da8c0465e6be857bb6fad758825a20e90a6a12c323\">$0.001 for $0.0004</a>\n💸<a href=\"https://explorer.e.cash/tx/c7bfee6cb99bfd021e3d6f38f08391d111463a2872d50b6bc3c5351015707adc\">$0.285 for $0.005</a>"
+      "📦<a href=\"https://explorer.e.cash/block/00000000000000000609f6bcbbf5169ae25142ad7f119b541adad5789faa28e4\">782774</a> | 10 txs | ViaBTC, Mined by slavm01\n1 XEC = $0.00003429\n1 BTC = $30,596\n1 ETH = $1,958\n\n<b>1 eToken send tx</b>\n🎟qz2...035 <a href=\"https://explorer.e.cash/tx/c04ae7f139eb16023a70d1bb39b1ae8745667edb09833e994a5b4d48976a111d\">sent</a> 2 <a href=\"https://explorer.e.cash/tx/b9877d8f8d2364b983707df905d592f534a3ada18e52aa529a0f72fcc535abf7\">SRM</a> to qp8...gg6\n\n<b>3 app txs</b>\n🖋<a href=\"https://explorer.e.cash/tx/2769041aa0e069610f3050c1a7d6f20e322e216625086d1d9c1f35dd0e85fbe9\">Cashtab Msg:</a> Why not another one, this time with emojis 🤔\n🖋<a href=\"https://explorer.e.cash/tx/a2f704933049b5c5a712a9943ac2e264fbeb1354cd5f2187e31eb68a8f38aa72\">Cashtab Msg:</a> Can't believe already need to test again\n🖋<a href=\"https://explorer.e.cash/tx/d9915ae3c4a7ec176746d3902295c1d2cf8912db589289842c14803a67cfc9d1\">Cashtab Msg:</a> Another Cashtab message to the TG bot. Making it longer to see if spacing is a problem. Is spacing a problem? Is parsing a problem? Who can tell. We will only know after this message appears (or doesn't). \n\n<b>5 eCash txs</b>\n💸<a href=\"https://explorer.e.cash/tx/4d6845d856e34b03ef6830313c4cc75f80daee491eee7b8d55f32cdb8c2b72e6\">$0.0007 for $0.0004</a>\n💸<a href=\"https://explorer.e.cash/tx/7b0802223d4376f3bca1a76c9a2deab0c18c2fc5f070d4adb65abdb18d328f08\">$157 for $0.0004</a>\n💸<a href=\"https://explorer.e.cash/tx/ac4e0acbe7f0e0e25ef3366e2d066ebaa543c0fe8721e998d4cab03fbeb8a5a9\">$0.352 for $0.0007</a>\n💸<a href=\"https://explorer.e.cash/tx/b4fee092558400fa905336da8c0465e6be857bb6fad758825a20e90a6a12c323\">$0.001 for $0.0004</a>\n💸<a href=\"https://explorer.e.cash/tx/c7bfee6cb99bfd021e3d6f38f08391d111463a2872d50b6bc3c5351015707adc\">$0.282 for $0.005</a>"
     ],
     "blockSummaryTgMsgsApiFailure": [
       "📦<a href=\"https://explorer.e.cash/block/00000000000000000609f6bcbbf5169ae25142ad7f119b541adad5789faa28e4\">782774</a> | 10 txs | ViaBTC, Mined by slavm01\n\n<b>3 app txs</b>\n🖋<a href=\"https://explorer.e.cash/tx/2769041aa0e069610f3050c1a7d6f20e322e216625086d1d9c1f35dd0e85fbe9\">Cashtab Msg:</a> Why not another one, this time with emojis 🤔\n🖋<a href=\"https://explorer.e.cash/tx/a2f704933049b5c5a712a9943ac2e264fbeb1354cd5f2187e31eb68a8f38aa72\">Cashtab Msg:</a> Can't believe already need to test again\n🖋<a href=\"https://explorer.e.cash/tx/d9915ae3c4a7ec176746d3902295c1d2cf8912db589289842c14803a67cfc9d1\">Cashtab Msg:</a> Another Cashtab message to the TG bot. Making it longer to see if spacing is a problem. Is spacing a problem? Is parsing a problem? Who can tell. We will only know after this message appears (or doesn't). \n\n<b>6 eCash txs</b>\n💸<a href=\"https://explorer.e.cash/tx/4d6845d856e34b03ef6830313c4cc75f80daee491eee7b8d55f32cdb8c2b72e6\">21 XEC for 11 XEC</a>\n💸<a href=\"https://explorer.e.cash/tx/7b0802223d4376f3bca1a76c9a2deab0c18c2fc5f070d4adb65abdb18d328f08\">5M XEC for 10 XEC</a>\n💸<a href=\"https://explorer.e.cash/tx/ac4e0acbe7f0e0e25ef3366e2d066ebaa543c0fe8721e998d4cab03fbeb8a5a9\">10k XEC for 20 XEC</a>\n💸<a href=\"https://explorer.e.cash/tx/b4fee092558400fa905336da8c0465e6be857bb6fad758825a20e90a6a12c323\">29 XEC for 11 XEC</a>\n💸<a href=\"https://explorer.e.cash/tx/c04ae7f139eb16023a70d1bb39b1ae8745667edb09833e994a5b4d48976a111d\">5.46 XEC for 11 XEC</a>\n💸<a href=\"https://explorer.e.cash/tx/c7bfee6cb99bfd021e3d6f38f08391d111463a2872d50b6bc3c5351015707adc\">8k XEC for 137 XEC</a>"
@@ -8571,29 +8571,29 @@ module.exports=[
     },
     "coingeckoResponse": {
       "bitcoin": {
-        "usd": 30645.24547925
+        "usd": 30596.17889396
       },
       "ecash": {
-        "usd": 0.00003462
+        "usd": 0.00003429
       },
       "ethereum": {
-        "usd": 1963.40532774
+        "usd": 1957.58713541
       }
     },
     "coingeckoPrices": [
       {
         "fiat": "usd",
-        "price": 0.00003462,
+        "price": 0.00003429,
         "ticker": "XEC"
       },
       {
         "fiat": "usd",
-        "price": 30645.24547925,
+        "price": 30596.17889396,
         "ticker": "BTC"
       },
       {
         "fiat": "usd",
-        "price": 1963.40532774,
+        "price": 1957.58713541,
         "ticker": "ETH"
       }
     ],
@@ -8639,7 +8639,7 @@ module.exports=[
       ]
     },
     "blockSummaryTgMsgs": [
-      "📦<a href=\"https://explorer.e.cash/block/000000000000000000ecda3dc336cd44ddf32eac28cebdee3c4a0abda75471e0\">787920</a> | 2 txs | ViaBTC, Mined by oksmanspace\n1 XEC = $0.00003462\n1 BTC = $30,645\n1 ETH = $1,963\n\n<b>1 app tx</b>\n⚛️<a href=\"https://explorer.e.cash/tx/d5be7a4b483f9fdbbe3bf46cfafdd0100d5dbeee0b972f4dabc8ae9d9962fa55\">Cash Fusion:</a> Fused $453 from 64 inputs into 63 outputs"
+      "📦<a href=\"https://explorer.e.cash/block/000000000000000000ecda3dc336cd44ddf32eac28cebdee3c4a0abda75471e0\">787920</a> | 2 txs | ViaBTC, Mined by oksmanspace\n1 XEC = $0.00003429\n1 BTC = $30,596\n1 ETH = $1,958\n\n<b>1 app tx</b>\n⚛️<a href=\"https://explorer.e.cash/tx/d5be7a4b483f9fdbbe3bf46cfafdd0100d5dbeee0b972f4dabc8ae9d9962fa55\">Cash Fusion:</a> Fused $449 from 64 inputs into 63 outputs"
     ],
     "blockSummaryTgMsgsApiFailure": [
       "📦<a href=\"https://explorer.e.cash/block/000000000000000000ecda3dc336cd44ddf32eac28cebdee3c4a0abda75471e0\">787920</a> | 2 txs | ViaBTC, Mined by oksmanspace\n\n<b>1 app tx</b>\n⚛️<a href=\"https://explorer.e.cash/tx/d5be7a4b483f9fdbbe3bf46cfafdd0100d5dbeee0b972f4dabc8ae9d9962fa55\">Cash Fusion:</a> Fused 13M XEC from 64 inputs into 63 outputs"

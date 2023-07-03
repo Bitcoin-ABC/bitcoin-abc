@@ -1423,9 +1423,7 @@ module.exports = {
                     config.blockExplorer
                 }/tx/${txid}">${displayedChangeAmountXec} for ${displayedTxFee}</a>${
                     xecSenderEmoji !== ''
-                        ? ` | ${xecSenderEmoji}${
-                              xecSendingOutputScripts.size
-                          } ${
+                        ? ` ${xecSenderEmoji}${xecSendingOutputScripts.size} ${
                               xecSendingOutputScripts.size > 1
                                   ? 'addresses'
                                   : 'address'
@@ -1441,7 +1439,7 @@ module.exports = {
                     config.blockExplorer
                 }/tx/${txid}">${displayedXecSent} for ${displayedTxFee}</a>${
                     xecSenderEmoji !== '' || xecReceiverEmoji !== ''
-                        ? ` | ${xecSenderEmoji}${returnAddressPreview(
+                        ? ` ${xecSenderEmoji}${returnAddressPreview(
                               cashaddr.encodeOutputScript(
                                   xecSendingOutputScripts.values().next().value,
                               ),
