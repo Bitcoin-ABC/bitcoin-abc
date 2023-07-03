@@ -121,7 +121,7 @@ if <XEC>(price < new.Price) {
 					.set (Decimal.base) = 0.0
 					.create (new.decimal) = decimal.base + x1 + x2;
 					.publish New.Decimal {
-						_run();
+							_run();
 						
 							}
 				}
@@ -129,7 +129,7 @@ if <XEC>(price < new.Price) {
 						.set (Plot.base) = 0.0
 						.create (new.Plot) =Plot.base + x1 + x2;
 						.publish New.Plot {
-							_run();
+							     _run();
 							}
 				}
 							
