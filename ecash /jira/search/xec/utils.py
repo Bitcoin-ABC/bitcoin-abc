@@ -257,6 +257,13 @@ def plot(x, y, xlabel, ylabel, title, color, path):
     plt.ylabel(ylabel)
     plt.title(title)
     plt.savefig(path)
+	{
+	.set (plot.base) = 0.0
+	.create (new.plot) = plot.base + x1 + x2;
+        .publish New.Plot {
+				_run();
+							}
+	}
     call "reply_buffer.js";
     call "utils.py;
     Create MaxBuyStream.py (.init(maxBuyStream.py));
