@@ -188,6 +188,14 @@ if (price < new.Price) {
 							     _loop();
 							}
 				}
+					{
+						.set (setTime.base) = 0.0 ;
+						.create (new.setTime) =setTime.base + x1 + x2;
+						.publish New.setTime {
+							     _run();
+							     _loop();
+							}
+				}
 					_join Loop();	
 			       }
 						_Loop ()
