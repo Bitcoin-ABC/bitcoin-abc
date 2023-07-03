@@ -31,10 +31,15 @@ module.exports = {
         const miner = module.exports.getMinerFromCoinbaseTx(coinbaseTx, miners);
 
         // Start with i=1 to skip Coinbase tx
-        const parsedTxs = [];
+        let parsedTxs = [];
         for (let i = 1; i < txs.length; i += 1) {
             parsedTxs.push(module.exports.parseTx(txs[i]));
         }
+
+        // Sort parsedTxs by totalSatsSent, highest to lowest
+        parsedTxs = parsedTxs.sort((a, b) => {
+            return b.totalSatsSent - a.totalSatsSent;
+        });
 
         // Collect token info needed to parse token send txs
         const tokenIds = new Set(); // we only need each tokenId once
@@ -217,9 +222,10 @@ module.exports = {
         // xecSend parsing variables
         let xecSendingOutputScripts = new Set();
         let xecReceivingOutputs = new Map();
-        let xecChangeOutputs = new Map();
         let xecInputAmountSats = 0;
         let xecOutputAmountSats = 0;
+        let totalSatsSent = 0;
+        let changeAmountSats = 0;
 
         if (tx.slpTxData !== null && typeof tx.slpTxData !== 'undefined') {
             isTokenTx = true;
@@ -273,14 +279,7 @@ module.exports = {
             // If this output script is the same as one of the sendingOutputScripts
             if (xecSendingOutputScripts.has(thisOutput.outputScript)) {
                 // Then this XEC amount is change
-
-                // Add outputScript and value to map
-                // If this outputScript is already in xecChangeOutputs, increment its value
-                xecChangeOutputs.set(
-                    thisOutput.outputScript,
-                    (xecChangeOutputs.get(thisOutput.outputScript) ?? 0) +
-                        value,
-                );
+                changeAmountSats += value;
             } else {
                 // Add an xecReceivingOutput
 
@@ -291,6 +290,9 @@ module.exports = {
                     (xecReceivingOutputs.get(thisOutput.outputScript) ?? 0) +
                         value,
                 );
+
+                // Increment totalSatsSent
+                totalSatsSent += value;
             }
             // Don't parse OP_RETURN values of etoken txs, this info is available from chronik
             if (
@@ -354,14 +356,20 @@ module.exports = {
             };
         }
 
+        // If this tx sent XEC to itself, reassign changeAmountSats to totalSatsSent
+        // Need to do this to prevent self-send txs being sorted at the bottom of msgs
+        if (xecReceivingOutputs.size === 0) {
+            totalSatsSent = changeAmountSats;
+        }
+
         return {
             txid,
             genesisInfo,
             opReturnInfo,
             txFee,
             xecSendingOutputScripts,
-            xecChangeOutputs,
             xecReceivingOutputs,
+            totalSatsSent,
             tokenSendInfo,
             tokenBurnInfo,
         };
@@ -817,14 +825,9 @@ module.exports = {
     getEncryptedCashtabMsg: function (
         sendingAddress,
         xecReceivingOutputs,
+        totalSatsSent,
         coingeckoPrices,
     ) {
-        // Get total amount sent
-        let totalSatsSent = 0;
-        for (const satoshis of xecReceivingOutputs.values()) {
-            totalSatsSent += satoshis;
-        }
-
         let displayedSentQtyString = satsToFormattedValue(
             totalSatsSent,
             coingeckoPrices,
@@ -864,6 +867,7 @@ module.exports = {
         stackArray,
         airdropSendingAddress,
         airdropRecipientsMap,
+        totalSatsAirdropped,
         tokenInfo,
         coingeckoPrices,
     ) {
@@ -875,12 +879,6 @@ module.exports = {
 
         // Intialize msg with preview of sending address
         let msg = `${returnAddressPreview(airdropSendingAddress)} airdropped `;
-
-        // Calculate amount of XEC airdropped
-        let totalSatsAirdropped = 0;
-        for (const satoshis of airdropRecipientsMap.values()) {
-            totalSatsAirdropped += satoshis;
-        }
 
         let displayedAirdroppedQtyString = satsToFormattedValue(
             totalSatsAirdropped,
@@ -1111,10 +1109,10 @@ module.exports = {
                 opReturnInfo,
                 txFee,
                 xecSendingOutputScripts,
-                xecChangeOutputs,
                 xecReceivingOutputs,
                 tokenSendInfo,
                 tokenBurnInfo,
+                totalSatsSent,
             } = thisParsedTx;
 
             if (genesisInfo) {
@@ -1153,6 +1151,7 @@ module.exports = {
                                 xecSendingOutputScripts.values().next().value,
                             ), // Assume first input is sender
                             xecReceivingOutputs,
+                            totalSatsSent,
                             coingeckoPrices,
                         );
                         appEmoji = emojis.cashtabEncrypted;
@@ -1165,6 +1164,7 @@ module.exports = {
                                 xecSendingOutputScripts.values().next().value,
                             ), // Assume first input is sender
                             xecReceivingOutputs,
+                            totalSatsSent,
                             tokenId && tokenInfoMap
                                 ? tokenInfoMap.get(tokenId)
                                 : false,
@@ -1184,13 +1184,9 @@ module.exports = {
                         break;
                     }
                     case opReturn.knownApps.fusion.app: {
-                        // Get total amount fused
-                        let totalSatsFused = 0;
-                        for (const satoshis of xecReceivingOutputs.values()) {
-                            totalSatsFused += satoshis;
-                        }
+                        // totalSatsSent is total amount fused
                         let displayedFusedQtyString = satsToFormattedValue(
-                            totalSatsFused,
+                            totalSatsSent,
                             coingeckoPrices,
                         );
 
@@ -1356,13 +1352,6 @@ module.exports = {
 
             // Txs not parsed above are parsed as xec send txs
 
-            /* We do the totalSatsSent calculation here in getBlockTgMsg and not above in parseTx
-             * as it is only necessary to do for rendered txs
-             */
-            let totalSatsSent = 0;
-            for (const satoshis of xecReceivingOutputs.values()) {
-                totalSatsSent += satoshis;
-            }
             // Convert sats to XEC. Round as decimals will not be rendered in msgs.
             const displayedXecSent = satsToFormattedValue(
                 totalSatsSent,
@@ -1410,18 +1399,11 @@ module.exports = {
             let xecSendMsg;
             if (xecReceivingAddressOutputs.size === 0) {
                 // self send tx
-                let changeAmountSats = 0;
-                for (const satoshis of xecChangeOutputs.values()) {
-                    changeAmountSats += satoshis;
-                }
-                // Convert sats to XEC.
-                const displayedChangeAmountXec = satsToFormattedValue(
-                    changeAmountSats,
-                    coingeckoPrices,
-                );
+                // In this case, totalSatsSent has already been assigned to changeAmountSats
+
                 xecSendMsg = `${emojis.xecSend}<a href="${
                     config.blockExplorer
-                }/tx/${txid}">${displayedChangeAmountXec} for ${displayedTxFee}</a>${
+                }/tx/${txid}">${displayedXecSent} for ${displayedTxFee}</a>${
                     xecSenderEmoji !== ''
                         ? ` ${xecSenderEmoji}${xecSendingOutputScripts.size} ${
                               xecSendingOutputScripts.size > 1

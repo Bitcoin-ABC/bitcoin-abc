@@ -98,17 +98,24 @@ describe('parse.js functions', function () {
                 tokenInfo,
                 coingeckoPrices,
             } = airdrops[i];
+            const xecReceivingOutputs = new Map(airdropRecipientsKeyValueArray);
+            let totalSatsSent = 0;
+            for (const satoshis of xecReceivingOutputs.values()) {
+                totalSatsSent += satoshis;
+            }
             const result = getAirdropTgMsg(
                 stackArray,
                 airdropSendingAddress,
-                new Map(airdropRecipientsKeyValueArray),
+                xecReceivingOutputs,
+                totalSatsSent,
                 tokenInfo,
                 coingeckoPrices,
             );
             const resultApiFailure = getAirdropTgMsg(
                 stackArray,
                 airdropSendingAddress,
-                new Map(airdropRecipientsKeyValueArray),
+                xecReceivingOutputs,
+                totalSatsSent,
                 false,
                 false,
             );
@@ -136,14 +143,24 @@ describe('parse.js functions', function () {
                 msgApiFailure,
                 coingeckoPrices,
             } = encryptedCashtabMsgs[i];
+
+            const xecReceivingOutputs = new Map(
+                xecReceivingOutputsKeyValueArray,
+            );
+            let totalSatsSent = 0;
+            for (const satoshis of xecReceivingOutputs.values()) {
+                totalSatsSent += satoshis;
+            }
             const result = getEncryptedCashtabMsg(
                 sendingAddress,
-                new Map(xecReceivingOutputsKeyValueArray),
+                xecReceivingOutputs,
+                totalSatsSent,
                 coingeckoPrices,
             );
             const resultApiFailure = getEncryptedCashtabMsg(
                 sendingAddress,
-                new Map(xecReceivingOutputsKeyValueArray),
+                xecReceivingOutputs,
+                totalSatsSent,
                 false,
             );
             assert.strictEqual(result, msg);
