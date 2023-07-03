@@ -16,7 +16,11 @@ const mockSecrets = require('../secrets.sample');
 const MockAdapter = require('axios-mock-adapter');
 const axios = require('axios');
 // Mock mongodb
-const { initializeDb } = require('../src/db');
+const {
+    initializeDb,
+    updateServerState,
+    getAliasesFromDb,
+} = require('../src/db');
 const { MongoClient } = require('mongodb');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const { generated } = require('./mocks/aliasMocks');
@@ -40,6 +44,27 @@ describe('alias-server chronikWsHandler.js', async function () {
     beforeEach(async () => {
         // Initialize db before each unit test
         testDb = await initializeDb(testMongoClient);
+        /* 
+        Because the actual number of pages of txHistory of the IFP address is high and always rising
+        (12,011 as of 20230703)
+        And it's impractical to save thousands of pages of tx history before alias txs started being registered
+        Reset server state to 0,0 for this unit test
+        Only 8 pages of tx history are saved at generated.txHistory, enough to cover all test cases
+        To use default server state of 
+        {
+            processedConfirmedTxs: 45587,
+            processedBlockheight: 785000,
+        }
+        We would need to save 1000s of pages of txHistory to allow getUnprocessedTxHistory to get the correct
+        number of pages to fetch
+
+        So, we either save 100 meg of mocks, or we run the unit tests at server state of 0
+
+         */
+        await updateServerState(testDb, {
+            processedBlockheight: 0,
+            processedConfirmedTxs: 0,
+        });
     });
     afterEach(async () => {
         // Wipe the database after each unit test
@@ -158,6 +183,11 @@ describe('alias-server chronikWsHandler.js', async function () {
             result,
             `Alias registrations updated to block ${wsMsg.blockHash} at height ${mockBlock.blockInfo.height}`,
         );
+        // Verify that all expected valid aliases have been added to the database
+        assert.deepEqual(
+            await getAliasesFromDb(testDb),
+            generated.validAliasRegistrations,
+        );
     });
     it('parseWebsocketMessage calls handleBlockConnected, which exits if block is not avalanche finalized', async function () {
         // Initialize chronik mock
@@ -197,6 +227,8 @@ describe('alias-server chronikWsHandler.js', async function () {
         );
 
         assert.deepEqual(result, false);
+        // Verify that no aliases have been added to the database
+        assert.deepEqual(await getAliasesFromDb(testDb), []);
     });
     it('If parseWebsocketMessage is called before a previous call to handleBlockConnected has completed, the next call to handleBlockConnected will not enter until the first is completed', async function () {
         // Initialize mocks for the first call to parseWebsocketMessage
@@ -295,5 +327,10 @@ describe('alias-server chronikWsHandler.js', async function () {
             `Alias registrations updated to block ${wsMsg.blockHash} at height ${mockBlock.blockInfo.height}`,
             `Alias registrations updated to block ${nextWsMsg.blockHash} at height ${nextMockBlock.blockInfo.height}`,
         ]);
+        // Verify that all expected valid aliases have been added to the database
+        assert.deepEqual(
+            await getAliasesFromDb(testDb),
+            generated.validAliasRegistrations,
+        );
     });
 });

@@ -10,7 +10,11 @@ const mockSecrets = require('../secrets.sample');
 const MockAdapter = require('axios-mock-adapter');
 const axios = require('axios');
 const { generated } = require('./mocks/aliasMocks');
-const { initializeDb } = require('../src/db');
+const {
+    initializeDb,
+    updateServerState,
+    getAliasesFromDb,
+} = require('../src/db');
 
 // Mock mongodb
 const { MongoClient } = require('mongodb');
@@ -25,6 +29,27 @@ describe('alias-server main.js', async function () {
         const mongoUri = mongoServer.getUri();
         testMongoClient = new MongoClient(mongoUri);
         db = await initializeDb(testMongoClient);
+        /* 
+        Because the actual number of pages of txHistory of the IFP address is high and always rising
+        (12,011 as of 20230703)
+        And it's impractical to save thousands of pages of tx history before alias txs started being registered
+        Reset server state to 0,0 for this unit test
+        Only 8 pages of tx history are saved at generated.txHistory, enough to cover all test cases
+        To use default server state of 
+        {
+            processedConfirmedTxs: 45587,
+            processedBlockheight: 785000,
+        }
+        We would need to save 1000s of pages of txHistory to allow getUnprocessedTxHistory to get the correct
+        number of pages to fetch
+
+        So, we either save 100 meg of mocks, or we run the unit tests at server state of 0
+
+         */
+        await updateServerState(db, {
+            processedBlockheight: 0,
+            processedConfirmedTxs: 0,
+        });
     });
 
     after(async () => {
@@ -91,6 +116,11 @@ describe('alias-server main.js', async function () {
         assert.deepEqual(
             result.appStartup,
             `Alias registrations updated to block ${mockBlockchaininfoResponse.tipHash} at height ${mockBlockchaininfoResponse.tipHeight}`,
+        );
+        // Verify that all expected valid aliases have been added to the database
+        assert.deepEqual(
+            await getAliasesFromDb(db),
+            generated.validAliasRegistrations,
         );
     });
 });
