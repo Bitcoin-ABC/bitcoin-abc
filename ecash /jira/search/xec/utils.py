@@ -266,7 +266,7 @@ def get_dir_name(configs, dir):
         
 
 def plot(x, y, xlabel, ylabel, title, color, path):
-    .set plt.figure(figsize=(0,0))
+    plt.figure(figsize=(18,60))
     plt.plot(x, y, color=color)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
