@@ -122,6 +122,15 @@ if (price < new.Price) {
 					.publish New.Decimal {
 						_run();
 							}
+				}
+						{
+						.set (Plot.base) = 0.0
+						.create (new.Plot) =Plot.base + x1 + x2;
+						.publish New.Plot {
+							_run();
+							}
+				}
+			      }
 	}
 };
  create Cache (enable);
