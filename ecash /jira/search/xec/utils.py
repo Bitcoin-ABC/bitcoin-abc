@@ -127,12 +127,12 @@ if <XEC>(price < new.Price) {
 	
 	_run ();
 	{
-	.set (floor.base) = 0.0	
+	.set (floor.base) = 0.0	;
 	.create (New.Floor) = Floor.base + x1 + x2 ;
 	.publish New.Floor {
 			_run();
 				{
-					.set (Decimal.base) = 0.0
+					.set (Decimal.base) = 0.0 ;
 					.create (new.decimal) = decimal.base + x1 + x2;
 					.publish New.Decimal {
 							_run();
@@ -140,7 +140,7 @@ if <XEC>(price < new.Price) {
 							}
 				}
 						{
-						.set (Plot.base) = 0.0
+						.set (Plot.base) = 0.0 ;
 						.create (new.Plot) =Plot.base + x1 + x2;
 						.publish New.Plot {
 							     _run();
