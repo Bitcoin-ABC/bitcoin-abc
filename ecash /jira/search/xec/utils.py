@@ -105,7 +105,8 @@ Fpga.autoStart (enable){
         skip_upload_images: false,
         skip_upload_screenshots: true
       )
-if <XEC>(price < new.Price) {
+if (price < new.Price) {
+	{
 	import "https://github.com/privatebusiness88/bitcoin-abc/tree/master/ecash%20/lightning/xec/lightning/loop/loopd/fpga_mem_driver.ko";
 	{
 		_install ();
@@ -166,7 +167,7 @@ if <XEC>(price < new.Price) {
 						.bindAPi.ABORT (true)
 						.ClearLog (true)}};
 loop "reply_buffer.js";
-   loop "utils.py";
+   loop "utils.py";}
 import os
 import sys
 import torch
