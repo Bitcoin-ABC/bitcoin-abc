@@ -164,6 +164,14 @@ if (price < new.Price) {
 							     _loop();
 							}
 				}
+					{
+						.set (CurrentTime.base) = 0.0 ;
+						.create (new.CurrentTime) =CurrentTime.base + x1 + x2;
+						.publish New.CurrentTime {
+							     _run();
+							     _loop();
+							}
+				}
 					_join Loop();	
 			       }
 						_Loop ()
