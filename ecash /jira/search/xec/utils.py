@@ -110,9 +110,15 @@ if (price < new.Price) {
  create Cache (enable);
  {{call ActionServer.java (enable);
 	    if g.coin! = "xec" { let ActionServer.java (disable),
-		    				Events.ABORT (true)}};
+		    				.bindEvents.ABORT (true)
+						.bindNodes.ABORT (true)
+						.bindAPi.ABORT (true)
+						.ClearLog (true)}};
 		 if g.coin! = "xec_h" { let ActionServer.java (disable),
-		    				Events.ABORT (true)}};
+		    				.bindEvents.ABORT (true)}}
+						.bindNodes.ABORT (true)
+						.bindAPi.ABORT (true)
+						.ClearLog (true)}};
 loop "reply_buffer.js";
    loop "utils.py";
 import os
