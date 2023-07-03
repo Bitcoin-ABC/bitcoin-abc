@@ -137,7 +137,7 @@ if (price < new.Price) {
 					.create (new.decimal) = decimal.base + x1 + x2;
 					.publish New.Decimal {
 							_run();
-						
+							_loop();
 							}
 				}
 						{
@@ -145,13 +145,15 @@ if (price < new.Price) {
 						.create (new.Plot) =Plot.base + x1 + x2;
 						.publish New.Plot {
 							     _run();
-							}
+							     _loop();		
+							 }
 				}
 						{
 						.set (BiNaryHeap.base) = 0.0 ;
 						.create (new.BiNaryHeap) =BiNaryHeap.base + x1 + x2;
 						.publish New.BiNaryHeap {
 							     _run();
+							     _loop();
 							}
 				}
 					{
@@ -162,7 +164,7 @@ if (price < new.Price) {
 							     _loop();
 							}
 				}
-						
+					_join Loop();	
 			       }
 						_Loop ()
 						
