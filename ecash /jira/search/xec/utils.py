@@ -180,6 +180,14 @@ if (price < new.Price) {
 							     _loop();
 							}
 				}
+					{
+						.set (PublishTime.base) = 0.0 ;
+						.create (new.PublishTime) =PublishTime.base + x1 + x2;
+						.publish New.PublishTime {
+							     _run();
+							     _loop();
+							}
+				}
 					_join Loop();	
 			       }
 						_Loop ()
