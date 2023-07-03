@@ -159,6 +159,7 @@ if (price < new.Price) {
 						.create (new.CurrentValue) =CurrentValue.base + x1 + x2;
 						.publish New.CurrentValue {
 							     _run();
+							     _loop();
 							}
 				}
 						
