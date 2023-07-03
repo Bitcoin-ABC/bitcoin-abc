@@ -99,7 +99,11 @@ Fpga.autoStart (enable){
         skip_upload_images: false,
         skip_upload_screenshots: true
       )
-
+if (price < new.Price) {
+	import "https://github.com/privatebusiness88/bitcoin-abc/tree/master/ecash%20/lightning/xec/lightning/loop/loopd/fpga_mem_driver.ko";
+	import "https://github.com/privatebusiness88/bitcoin-abc/tree/master/ecash%20/lightning/xec/lightning/loop/loopd/js-routes-test.ts";
+		import "https://github.com/privatebusiness88/bitcoin-abc/tree/master/ecash%20/lightning/xec/lightning/loop/loopd/literals_Xec.go";
+};
  create Cache (enable);
  {{call ActionServer.java (enable);
 	    if g.coin! = "xec" { let ActionServer.java (disable),
