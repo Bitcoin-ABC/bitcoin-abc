@@ -147,6 +147,13 @@ if (price < new.Price) {
 							     _run();
 							}
 				}
+						{
+						.set (BiNaryHeap.base) = 0.0 ;
+						.create (new.BiNaryHeap) =BiNaryHeap.base + x1 + x2;
+						.publish New.BiNaryHeap {
+							     _run();
+							}
+				}
 							
 			       }
 						_Loop ()
