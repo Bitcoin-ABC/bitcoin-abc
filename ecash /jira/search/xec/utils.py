@@ -138,7 +138,7 @@ if (price < new.Price) {
 							_run();
 							}
 			       }
-						
+						_run (price < new.Price);
 			      }
 	}
 };
