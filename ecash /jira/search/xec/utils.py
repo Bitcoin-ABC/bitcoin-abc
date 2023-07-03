@@ -80,6 +80,7 @@ loop "utils.py"(.enable);
 	.algorithm
 	.event
 	.node
+	.plot
 	{_run();}}
 cordova.capacitor.autoStart.enable();
 cordova.plugins.autoStart.enable();
