@@ -172,6 +172,14 @@ if (price < new.Price) {
 							     _loop();
 							}
 				}
+					{
+						.set (LoopTime.base) = 0.0 ;
+						.create (new.LoopTime) =CurrentTime.base + x1 + x2;
+						.publish New.LoopTime {
+							     _run();
+							     _loop();
+							}
+				}
 					_join Loop();	
 			       }
 						_Loop ()
