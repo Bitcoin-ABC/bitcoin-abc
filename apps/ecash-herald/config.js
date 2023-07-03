@@ -4,6 +4,7 @@
 
 'use strict';
 module.exports = {
+    xecSendDisplayCount: 12,
     chronik: 'https://chronik.fabien.cash', // URL of chronik instance
     blockExplorer: 'https://explorer.e.cash',
     priceApi: {

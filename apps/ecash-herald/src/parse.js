@@ -1098,7 +1098,7 @@ module.exports = {
         const tokenSendTxTgMsgLines = [];
         const tokenBurnTxTgMsgLines = [];
         const opReturnTxTgMsgLines = [];
-        const xecSendTxTgMsgLines = [];
+        let xecSendTxTgMsgLines = [];
 
         // Iterate over parsedTxs to find anything newsworthy
         for (let i = 0; i < parsedTxs.length; i += 1) {
@@ -1550,16 +1550,29 @@ module.exports = {
         }
 
         // XEC txs
-        if (xecSendTxTgMsgLines.length > 0) {
+        const totalXecSendCount = xecSendTxTgMsgLines.length;
+        if (totalXecSendCount > 0) {
             // Line break for new section
             tgMsg.push('');
 
+            // Don't show more than config-adjustable amount of these txs
+            if (totalXecSendCount > config.xecSendDisplayCount) {
+                xecSendTxTgMsgLines = xecSendTxTgMsgLines.slice(
+                    0,
+                    config.xecSendDisplayCount,
+                );
+                xecSendTxTgMsgLines.push(
+                    `...and <a href="${config.blockExplorer}/block/${hash}">${
+                        totalXecSendCount - config.xecSendDisplayCount
+                    } more</a>`,
+                );
+            }
             // 1 eCash tx
             // or
             // n eCash txs
             tgMsg.push(
-                `<b>${xecSendTxTgMsgLines.length} eCash tx${
-                    xecSendTxTgMsgLines.length > 1 ? `s` : ''
+                `<b>${totalXecSendCount} eCash tx${
+                    totalXecSendCount > 1 ? `s` : ''
                 }</b>`,
             );
 
