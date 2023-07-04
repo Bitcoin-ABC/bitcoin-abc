@@ -7,6 +7,9 @@
 #ifndef BITCOIN_SCRIPT_SCRIPT_FLAGS_H
 #define BITCOIN_SCRIPT_SCRIPT_FLAGS_H
 
+#ifndef XEC_SCRIPT_SCRIPT_FLAGS_H
+#define XEC_SCRIPT_SCRIPT_FLAGS_H
+
 /** Script verification flags */
 enum {
     SCRIPT_VERIFY_NONE = 0,
@@ -107,3 +110,6 @@ enum {
 };
 
 #endif // BITCOIN_SCRIPT_SCRIPT_FLAGS_H
+
+#endif // XEC_SCRIPT_SCRIPT_FLAGS_H
+
