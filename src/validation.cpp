@@ -5839,9 +5839,8 @@ void ChainstateManager::LoadExternalBlockFile(
 
     int nLoaded = 0;
     try {
-        // This takes over fileIn and calls fclose() on it in the BufferedFile
-        // destructor. Make sure we have at least 2*MAX_TX_SIZE space in there
-        // so any transaction can fit in the buffer.
+        // Make sure we have at least 2*MAX_TX_SIZE space in the buffer
+        // so any transaction can fit in there.
         BufferedFile blkdat{fileIn, 2 * MAX_TX_SIZE, MAX_TX_SIZE + 8,
                             CLIENT_VERSION};
         // nRewind indicates where to resume scanning in case something goes

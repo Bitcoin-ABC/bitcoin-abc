@@ -1175,15 +1175,16 @@ void ImportBlocks(ChainstateManager &chainman,
                     // No block files left to reindex
                     break;
                 }
-                FILE *file = chainman.m_blockman.OpenBlockFile(pos, true);
-                if (!file) {
+                CAutoFile file{chainman.m_blockman.OpenBlockFile(pos, true),
+                               CLIENT_VERSION};
+                if (file.IsNull()) {
                     // This error is logged in OpenBlockFile
                     break;
                 }
                 LogPrintf("Reindexing block file blk%05u.dat...\n",
                           (unsigned int)nFile);
                 chainman.LoadExternalBlockFile(
-                    file, &pos, &blocks_with_unknown_parent, avalanche);
+                    file.Get(), &pos, &blocks_with_unknown_parent, avalanche);
                 if (chainman.m_interrupt) {
                     LogPrintf("Interrupt requested. Exit %s\n", __func__);
                     return;
@@ -1202,12 +1203,12 @@ void ImportBlocks(ChainstateManager &chainman,
 
         // -loadblock=
         for (const fs::path &path : vImportFiles) {
-            FILE *file = fsbridge::fopen(path, "rb");
-            if (file) {
+            CAutoFile file{fsbridge::fopen(path, "rb"), CLIENT_VERSION};
+            if (!file.IsNull()) {
                 LogPrintf("Importing blocks file %s...\n",
                           fs::PathToString(path));
                 chainman.LoadExternalBlockFile(
-                    file, /*dbp=*/nullptr,
+                    file.Get(), /*dbp=*/nullptr,
                     /*blocks_with_unknown_parent=*/nullptr, avalanche);
                 if (chainman.m_interrupt) {
                     LogPrintf("Interrupt requested. Exit %s\n", __func__);
