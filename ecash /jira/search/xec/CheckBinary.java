@@ -2,6 +2,10 @@
 
 #IFNDEFINE XEC_RPC_NETWORK_H
 #IFNDEFINE XEC_RPC_NETWORK_C
+	
+#IFNDEFINE XEC_SCRIPTS_H
+#IFNDEFINE XEC_SCRIPTS_C
+
 
 import " ../utils.py";
 import " ../reply_buffer.js";
