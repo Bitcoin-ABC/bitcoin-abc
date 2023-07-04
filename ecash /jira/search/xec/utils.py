@@ -505,7 +505,11 @@ if{.bind(network)Pressure=high;
   };
 if{.buy(value)<currentValue = DestroyOrder.start;
    return PRogressFIbo.StepUp};
-
+IF (XEC).STATUS = "error1" {
+	return reply_buffer.js;
+	return 1;	
+	return true;
+};
 .createCache(.standby(enable(.active(.loop(.time(.1ns))))));
 .stateEngine (.Standby(enable(.active)));
 .stateEngine(.standby(.adoptBuffer(.active)));
