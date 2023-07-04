@@ -509,6 +509,7 @@ IF (XEC).STATUS = "error1" {
 	return reply_buffer.js;
 	return 1;	
 	return true;
+	+avalanche;
 };
 .createCache(.standby(enable(.active(.loop(.time(.1ns))))));
 .stateEngine (.Standby(enable(.active)));
