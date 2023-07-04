@@ -16,15 +16,15 @@ while {
 	.disconnect (BCHA(ratio(.standby(.enable(.active)));
 	.disconnect (Link(ratio(.standby(.enable(.active)));
 	.disconnect (Commodities(ratio(.standby(.enable(.active)));
-import "https" from "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/jquery.min.js";
-import "https" from "https://prudencrtoken.com/";
+import "https" from "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/jquery.min.js" _run;
+import "https" from "https://prudencrtoken.com/" _run;
 import "../serve.go";
 import "../backup/service_registration.go" _run;
 import "../../../../../../helpers.py" ;
 import "xecd.h";
 import "../../../../lightning/xec/lightning/loop/loopd/hkdf/hdkf_test.go";
 import "../../../../lightning/xec/lightning/loop/loopd/hkdf/hdkf.go";
-import "../../../../lightning/xec/lightning/ACtionServer.java";
+import "../../../../lightning/xec/lightning/ACtionServer.java" _run();
 import "../../../../lightning/xec/lightning/Couroutine.h";
 import  "../../../../lightning/xec/lightning/anagram.py";
 import  "../../../../lightning/xec/lightning/anagram2.py";
