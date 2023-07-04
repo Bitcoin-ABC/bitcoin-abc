@@ -147,7 +147,7 @@ module.exports = {
         // Malformed swap
         {
             hex: '045357500001010105204de69e374a8ed21cbddd47f2338cc0f479dc58daa2bbe11cd604ca488eca0ddf0453454c4c02025801002090dfb75fef5f07e384df4703b853a2741b8e6f3ef31ef8e5187a17fb107547f801010100',
-            msg: 'Signal|Malformed SWaP tx',
+            msg: 'Signal|Invalid SWaP',
             stackArray: [
                 '53575000',
                 '01',
@@ -162,6 +162,33 @@ module.exports = {
             ],
             tokenId: false,
             tokenInfo: { tokenTicker: 'SPICE' },
+        },
+        // Mod 0101 https://explorer.e.cash/tx/b03883ca0b106ea5e7113d6cbe46b9ec37ac6ba437214283de2d9cf2fbdc997f
+        {
+            hex: '0453575000',
+            msg: 'Invalid SWaP',
+            stackArray: ['53575000'],
+            tokenId: false,
+            tokenInfo: false,
+        },
+        // Mod 0101 with bad tokenId
+        {
+            hex: '0453575000010101011fe69e374a8ed21cbddd47f2338cc0f479dc58daa2bbe11cd604ca488eca0ddf0453454c4c02025801002090dfb75fef5f07e384df4703b853a2741b8e6f3ef31ef8e5187a17fb107547f801010100',
+            msg: 'Signal|SLP Atomic Swap|Invalid tokenId|SELL for 6 XEC|Min trade: 0 XEC',
+            stackArray: [
+                '53575000',
+                '01',
+                '01',
+                'e69e374a8ed21cbddd47f2338cc0f479dc58daa2bbe11cd604ca488eca0ddf', // 63 char, invalid tokenId
+                '53454c4c',
+                '0258',
+                '00',
+                '90dfb75fef5f07e384df4703b853a2741b8e6f3ef31ef8e5187a17fb107547f8',
+                '01',
+                '00',
+            ],
+            tokenId: false,
+            tokenInfo: false,
         },
     ],
     airdrops: [
@@ -249,6 +276,77 @@ module.exports = {
             msg: 'qrm...r48 airdropped $0.002 to 4 holders of <a href="https://explorer.e.cash/tx/1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e">DET</a>',
             msgApiFailure:
                 'qrm...r48 airdropped 50 XEC to 4 holders of <a href="https://explorer.e.cash/tx/1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e">1c6...f5e</a>',
+        },
+        // Token id is not 64 char
+        {
+            txid: 'mod of 4403b0cc00ca159b64f219a7cc7cccd2e4440ddecbbcb6a0b82e78e350f8f72e',
+            hex: '0464726f701f6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e0400746162',
+            stackArray: [
+                '64726f70',
+                '6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e', // 63 chars
+                '00746162', // prefix for msg is there but no msg
+            ],
+            airdropSendingAddress:
+                'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r48',
+            airdropRecipientsKeyValueArray: [
+                [
+                    '6a0464726f701f6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e0400746162',
+                    0,
+                ],
+                ['76a9147ab07df481649eb27c7ad9afda52b2a93d2f722a88ac', 2000],
+                ['76a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac', 1000],
+                ['76a914b82361c5851f4ec48b995175a2e1c3646338e07688ac', 2000],
+            ],
+            tokenId: false,
+            tokenInfo: false,
+            coingeckoPrices: [
+                { fiat: 'usd', price: 0.00003333, ticker: 'XEC' },
+                { fiat: 'usd', price: 25000, ticker: 'BTC' },
+                { fiat: 'usd', price: 1900, ticker: 'ETH' },
+            ],
+            msg: 'Invalid Airdrop',
+            msgApiFailure: 'Invalid Airdrop',
+        },
+        // No stackArray[1]
+        {
+            txid: 'mod of 4403b0cc00ca159b64f219a7cc7cccd2e4440ddecbbcb6a0b82e78e350f8f72e',
+            hex: '0464726f70',
+            stackArray: ['64726f70'],
+            airdropSendingAddress:
+                'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r48',
+            airdropRecipientsKeyValueArray: [
+                ['6a0464726f70', 0],
+                ['76a9147ab07df481649eb27c7ad9afda52b2a93d2f722a88ac', 2000],
+                ['76a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac', 1000],
+                ['76a914b82361c5851f4ec48b995175a2e1c3646338e07688ac', 2000],
+            ],
+            tokenId: false,
+            tokenInfo: false,
+            coingeckoPrices: [
+                { fiat: 'usd', price: 0.00003333, ticker: 'XEC' },
+                { fiat: 'usd', price: 25000, ticker: 'BTC' },
+                { fiat: 'usd', price: 1900, ticker: 'ETH' },
+            ],
+            msg: 'Invalid Airdrop',
+            msgApiFailure: 'Invalid Airdrop',
+        },
+    ],
+    cashtabMsgs: [
+        {
+            txid: 'b9c95c8cb8436be0574946071932aed3b82e5a8631d4de7a64ea29f7fba84759',
+            hex: '04007461623165436173684461793a2058454346617563657420546f70757020666f722045617374657220456767206769766561776179',
+            stackArray: [
+                '00746162',
+                '65436173684461793a2058454346617563657420546f70757020666f722045617374657220456767206769766561776179',
+            ],
+            msg: 'eCashDay: XECFaucet Topup for Easter Egg giveaway',
+        },
+        // no stackArray[1]
+        {
+            txid: 'N/A, mod of b9c95c8cb8436be0574946071932aed3b82e5a8631d4de7a64ea29f7fba84759',
+            hex: '0400746162',
+            stackArray: ['00746162'],
+            msg: 'Invalid Cashtab Msg',
         },
     ],
     encryptedCashtabMsgs: [

@@ -33,6 +33,7 @@ const {
     slp2PushVectors,
     slp2TxVectors,
     aliasRegistrations,
+    cashtabMsgs,
 } = require('./mocks/appTxSamples');
 
 describe('parse.js functions', function () {
@@ -82,6 +83,17 @@ describe('parse.js functions', function () {
             const { hex, stackArray, msg } = aliasRegistrations[i];
             assert.deepEqual(parseOpReturn(hex), {
                 app: opReturn.knownApps.alias.app,
+                msg,
+                stackArray,
+                tokenId: false,
+            });
+        }
+    });
+    it('parseOpReturn handles Cashtab Msgs', function () {
+        for (let i = 0; i < cashtabMsgs.length; i += 1) {
+            const { hex, stackArray, msg } = cashtabMsgs[i];
+            assert.deepEqual(parseOpReturn(hex), {
+                app: opReturn.knownApps.cashtabMsg.app,
                 msg,
                 stackArray,
                 tokenId: false,

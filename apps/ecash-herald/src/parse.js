@@ -455,17 +455,26 @@ module.exports = {
                 // Cashtab allows sending a cashtab msg with an airdrop
                 // These look like
                 // <prefix> <tokenId> <cashtabMsgPrefix> <msg>
-
-                tokenId = stackArray[1];
+                if (stackArray.length >= 2 && stackArray[1].length === 64) {
+                    tokenId = stackArray[1];
+                }
                 break;
             }
             case opReturn.knownApps.cashtabMsg.prefix: {
                 app = opReturn.knownApps.cashtabMsg.app;
                 // For a Cashtab msg, the next push on the stack is the Cashtab msg
                 // Cashtab msgs use utf8 encoding
-                msg = prepareStringForTelegramHTML(
-                    Buffer.from(stackArray[1], 'hex').toString('utf8'),
-                );
+
+                // Valid Cashtab Msg
+                // <protocol identifier> <msg in utf8>
+                msg =
+                    stackArray.length >= 2
+                        ? prepareStringForTelegramHTML(
+                              Buffer.from(stackArray[1], 'hex').toString(
+                                  'utf8',
+                              ),
+                          )
+                        : `Invalid ${app}`;
                 break;
             }
             case opReturn.knownApps.cashtabMsgEncrypted.prefix: {
@@ -495,7 +504,12 @@ module.exports = {
                 app = opReturn.knownApps.swap.app;
                 msg = '';
 
-                if (stackArray[1] === '01' && stackArray[2] === '01') {
+                if (
+                    stackArray.length >= 3 &&
+                    stackArray[1] === '01' &&
+                    stackArray[2] === '01' &&
+                    stackArray[3].length === 64
+                ) {
                     // If this is a signal for buy or sell of a token, save the token id
                     // Ref https://github.com/vinarmani/swap-protocol/blob/master/swap-protocol-spec.md
                     // A buy or sell signal tx will have '01' at stackArray[1] and stackArray[2] and
@@ -894,6 +908,11 @@ module.exports = {
         // stackArray for an airdrop tx will be
         // [airdrop_protocol_identifier, airdropped_tokenId, optional_cashtab_msg_protocol_identifier, optional_cashtab_msg]
 
+        // Validate expected format
+        if (stackArray.length < 2 || stackArray[1].length !== 64) {
+            return `Invalid ${opReturn.knownApps.airdrop.app}`;
+        }
+
         // get tokenId
         const tokenId = stackArray[1];
 
@@ -945,6 +964,12 @@ module.exports = {
         // Intialize msg
         let msg = '';
 
+        // Generic validation to handle possible txs with SWaP protocol identifier but unexpected stack
+        if (stackArray.length < 3) {
+            // If stackArray[1] and stackArray[2] do not exist
+            return 'Invalid SWaP';
+        }
+
         // SWaP txs are complex. Parse stackArray to build msg.
         // https://github.com/vinarmani/swap-protocol/blob/master/swap-protocol-spec.md
 
@@ -987,9 +1012,17 @@ module.exports = {
                         msg += '|';
                     } else {
                         // Note: tokenInfo is false if the API call to chronik fails
-                        // Link to token id
-                        msg += `<a href="${config.blockExplorer}/tx/${stackArray[3]}">Unknown Token</a>`;
-                        msg += '|';
+                        // Also false if tokenId is invalid for some reason
+                        // Link to token id if valid
+                        if (
+                            stackArray.length >= 3 &&
+                            stackArray[3].length === 64
+                        ) {
+                            msg += `<a href="${config.blockExplorer}/tx/${stackArray[3]}">Unknown Token</a>`;
+                            msg += '|';
+                        } else {
+                            msg += 'Invalid tokenId|';
+                        }
                     }
 
                     // buy or sell?
@@ -1060,7 +1093,7 @@ module.exports = {
                 }
                 default: {
                     // Malformed SWaP tx
-                    msg += 'Malformed SWaP tx';
+                    msg += 'Invalid SWaP';
                     break;
                 }
             }
@@ -1085,13 +1118,13 @@ module.exports = {
                 }
                 default: {
                     // Malformed SWaP tx
-                    msg += 'Malformed SWaP tx';
+                    msg += 'Invalid SWaP';
                     break;
                 }
             }
         } else {
             // Malformed SWaP tx
-            msg += 'Malformed SWaP tx';
+            msg += 'Invalid SWaP';
         }
         return msg;
     },
