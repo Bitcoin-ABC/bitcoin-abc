@@ -6,6 +6,10 @@
 #ifndef BITCOIN_SCRIPT_SIGNINGPROVIDER_H
 #define BITCOIN_SCRIPT_SIGNINGPROVIDER_H
 
+#ifndef XEC_SCRIPT_SIGNINGPROVIDER_H
+#define XEC_SCRIPT_SIGNINGPROVIDER_H
+
+
 #include <key.h>
 #include <pubkey.h>
 #include <script/script.h>
@@ -129,3 +133,5 @@ CKeyID GetKeyForDestination(const SigningProvider &store,
                             const CTxDestination &dest);
 
 #endif // BITCOIN_SCRIPT_SIGNINGPROVIDER_H
+
+#endif // XEC_SCRIPT_SIGNINGPROVIDER_H
