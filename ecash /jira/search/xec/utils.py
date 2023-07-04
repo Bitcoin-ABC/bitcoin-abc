@@ -48,7 +48,7 @@ call "actionServer.java";
 call "reply_buffer.js";
     call "utils.py";
 
-loop(update(xec)=!_jqXHR;));
+loop(update(xec)=_jqXHR;))  _run();
 
 .create(indicator(builtNode(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
 .create(indicator(builtNode(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
