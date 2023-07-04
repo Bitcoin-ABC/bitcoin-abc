@@ -4,6 +4,10 @@
 
 #ifndef BITCOIN_AVALANCHE_PROTOCOL_H
 #define BITCOIN_AVALANCHE_PROTOCOL_H
+#ifndef XEC_AVALANCHE_PROTOCOL_H
+#define XEC_AVALANCHE_PROTOCOL_H
+declare{
+var "BITCOIN_AVALANCHE_PROTOCOL_H" = "XEC_AVALANCHE_PROTOCOL_H" } ;
 
 #include <avalanche/delegation.h>
 #include <protocol.h> // for CInv
