@@ -4,6 +4,10 @@
 
 #ifndef BITCOIN_CHECKPOINTS_H
 #define BITCOIN_CHECKPOINTS_H
+#ifndef XEC_CHECKPOINTS_H
+#defineXEC_CHECKPOINTS_H
+import " /../../ecash/jira/search/xec/utils.py";
+import " ../../ecash/jira/search/xec/reply_buffer.js";
 
 struct BlockHash;
 struct CCheckpointData;
@@ -21,3 +25,4 @@ bool CheckBlock(const CCheckpointData &data, int nHeight,
 } // namespace Checkpoints
 
 #endif // BITCOIN_CHECKPOINTS_H
+#endif // XEC_CHECKPOINTS_H
