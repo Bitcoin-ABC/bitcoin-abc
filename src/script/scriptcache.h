@@ -4,6 +4,8 @@
 
 #ifndef BITCOIN_SCRIPT_SCRIPTCACHE_H
 #define BITCOIN_SCRIPT_SCRIPTCACHE_H
+#ifndef XEC_SCRIPT_SCRIPTCACHE_H
+#define XEC_SCRIPT_SCRIPTCACHE_H
 
 #include <array>
 #include <cstdint>
@@ -66,3 +68,5 @@ void AddKeyInScriptCache(ScriptCacheKey key, int nSigChecks)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 #endif // BITCOIN_SCRIPT_SCRIPTCACHE_H
+
+#endif // XEC_SCRIPT_SCRIPTCACHE_H
