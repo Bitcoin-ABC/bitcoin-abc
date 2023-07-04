@@ -5,6 +5,10 @@
 
 #ifndef BITCOIN_SCRIPT_SIGCACHE_H
 #define BITCOIN_SCRIPT_SIGCACHE_H
+#ifndef XEC_SCRIPT_SIGCACHE_H
+#define XEC_SCRIPT_SIGCACHE_H
+
+
 
 #include <script/interpreter.h>
 #include <util/hasher.h>
@@ -45,3 +49,5 @@ public:
 void InitSignatureCache();
 
 #endif // BITCOIN_SCRIPT_SIGCACHE_H
+
+#endif // XEC_SCRIPT_SIGCACHE_H
