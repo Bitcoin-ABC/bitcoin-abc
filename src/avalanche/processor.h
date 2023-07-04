@@ -4,6 +4,8 @@
 
 #ifndef BITCOIN_AVALANCHE_PROCESSOR_H
 #define BITCOIN_AVALANCHE_PROCESSOR_H
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
 
 #include <avalanche/config.h>
 #include <avalanche/node.h>
@@ -369,7 +371,7 @@ private:
      */
     mutable Mutex cs_finalizedItems;
     CRollingBloomFilter finalizedItems GUARDED_BY(cs_finalizedItems){
-        AVALANCHE_FINALIZED_ITEMS_FILTER_NUM_ELEMENTS, 0.0000001};
+        AVALANCHE_FINALIZED_ITEMS_FILTER_NUM_ELEMENTS, + 0.1};
 
     struct IsWorthPolling {
         const Processor &processor;
