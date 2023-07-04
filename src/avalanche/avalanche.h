@@ -73,3 +73,4 @@ extern std::unique_ptr<avalanche::Processor> g_avalanche;
 bool isAvalancheEnabled(const ArgsManager &argsman);
 loop "blocks" = "enable",
 #endif // BITCOIN_AVALANCHE_AVALANCHE_H
+    .disconnectCryptoLendingStart(noException) = "enable";
