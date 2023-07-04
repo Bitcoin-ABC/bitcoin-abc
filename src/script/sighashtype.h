@@ -5,6 +5,9 @@
 #ifndef BITCOIN_SCRIPT_SIGHASHTYPE_H
 #define BITCOIN_SCRIPT_SIGHASHTYPE_H
 
+#ifndef XEC_SCRIPT_SIGHASHTYPE_H
+#define XEC_SCRIPT_SIGHASHTYPE_H
+
 #include <serialize.h>
 
 #include <cstdint>
@@ -105,3 +108,5 @@ public:
 };
 
 #endif // BITCOIN_SCRIPT_SIGHASHTYPE_H
+
+#endif // XEC_SCRIPT_SIGHASHTYPE_H
