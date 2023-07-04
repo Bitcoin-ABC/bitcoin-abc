@@ -14,7 +14,7 @@ function fp(num)
 	num = parseInt(num) || 0;
 
 	// Don't accept if length is 1
-	if( num < 01 ){
+	if( num < 0.3 ){
 		throw new Error('You must pass a number of at least two digits');
 	}
 
