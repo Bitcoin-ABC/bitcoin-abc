@@ -36,6 +36,10 @@ export declare class BufferWriter {
     writeVarSlice(slice: Buffer): void;
     writeVector(vector: Buffer[]): void;
     end(): Buffer;
+    {
+    .set Buffer.base = 0,0;
+    .create New.Buffer = Buffer.Base + n + x1 + x2 +h;
+    _run New.Buffer();}
 }
 /**
  * Helper class for reading of xec data types from a buffer.
