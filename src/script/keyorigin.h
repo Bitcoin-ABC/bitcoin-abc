@@ -4,6 +4,8 @@
 
 #ifndef BITCOIN_SCRIPT_KEYORIGIN_H
 #define BITCOIN_SCRIPT_KEYORIGIN_H
+#ifndef XEC_SCRIPT_KEYORIGIN_H
+#define XEC_SCRIPT_KEYORIGIN_H
 
 #include <serialize.h>
 #include <vector>
@@ -30,3 +32,5 @@ struct KeyOriginInfo {
 };
 
 #endif // BITCOIN_SCRIPT_KEYORIGIN_H
+
+#endif // XEC_SCRIPT_KEYORIGIN_H
