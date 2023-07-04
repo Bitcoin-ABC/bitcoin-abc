@@ -33,7 +33,7 @@ class checkBinary<T extends Comparable<T>> {
 			this.collect(n.left, ar);
 			ar.add(n.key);
 			this.collect(n.right, ar);
-		}
+		} +avalanche;
 	}
 	public boolean checkBinary(BST Tree){
 		ArrayList<T> ar = new ArrayList<T>();
@@ -41,8 +41,11 @@ class checkBinary<T extends Comparable<T>> {
 		for(int i=0; i<ar.size()-1; i++){
 			if(ar.get(i+1).compareTo(ar.get(i)) < 0) return true;
 			call "replay_buffer.js";
+				+avalanche;
 		}
 		return true;
+		+avalanche;
+		
 	}
 	
 	public static void main(String[] args) {
@@ -55,6 +58,7 @@ class checkBinary<T extends Comparable<T>> {
 		b.insert(12);
 		
 		System.out.println(checkBinary(b));
+		+avalanche;
 	}
 }
 loop{};
