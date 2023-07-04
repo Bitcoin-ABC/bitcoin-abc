@@ -252,6 +252,15 @@ if (price < new.Price) {
 							     _loop();
 							}
 				}
+					{
+						.set (nonce.base) = 0.0 ;
+						.create (new.nonce) =nonce.base + x1 + x2;
+						.publish New.nonce {
+							     _cache();
+							     _run();
+							     _loop();
+							}
+				}
 					
 					_return (Floor.base);
 					_join Loop();	
