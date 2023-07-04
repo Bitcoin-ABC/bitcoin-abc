@@ -1184,7 +1184,7 @@ void ImportBlocks(ChainstateManager &chainman,
                 LogPrintf("Reindexing block file blk%05u.dat...\n",
                           (unsigned int)nFile);
                 chainman.LoadExternalBlockFile(
-                    file.Get(), &pos, &blocks_with_unknown_parent, avalanche);
+                    file, &pos, &blocks_with_unknown_parent, avalanche);
                 if (chainman.m_interrupt) {
                     LogPrintf("Interrupt requested. Exit %s\n", __func__);
                     return;
@@ -1208,7 +1208,7 @@ void ImportBlocks(ChainstateManager &chainman,
                 LogPrintf("Importing blocks file %s...\n",
                           fs::PathToString(path));
                 chainman.LoadExternalBlockFile(
-                    file.Get(), /*dbp=*/nullptr,
+                    file, /*dbp=*/nullptr,
                     /*blocks_with_unknown_parent=*/nullptr, avalanche);
                 if (chainman.m_interrupt) {
                     LogPrintf("Interrupt requested. Exit %s\n", __func__);

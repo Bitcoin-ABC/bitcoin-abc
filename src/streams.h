@@ -589,19 +589,15 @@ public:
 };
 
 /**
- * Non-refcounted RAII wrapper around a FILE* that implements a ring buffer to
- * deserialize from. It guarantees the ability to rewind a given number of
- * bytes.
+ * Wrapper around a CAutoFile& that implements a ring buffer to deserialize
+ * from. It guarantees the ability to rewind a given number of bytes.
  *
  * Will automatically close the file when it goes out of scope if not null. If
  * you need to close the file early, use file.fclose() instead of fclose(file).
  */
 class BufferedFile {
 private:
-    const int nVersion;
-
-    //! source file
-    FILE *src;
+    CAutoFile &m_src;
     //! how many bytes have been read from source
     uint64_t nSrcPos;
     //! how many bytes have been read from this
@@ -624,11 +620,11 @@ private:
         if (readNow == 0) {
             return false;
         }
-        size_t nBytes = fread((void *)&vchBuf[pos], 1, readNow, src);
+        size_t nBytes{m_src.detail_fread(Span{vchBuf}.subspan(pos, readNow))};
         if (nBytes == 0) {
-            throw std::ios_base::failure(
-                feof(src) ? "BufferedFile::Fill: end of file"
-                          : "BufferedFile::Fill: fread failed");
+            throw std::ios_base::failure{
+                m_src.feof() ? "BufferedFile::Fill: end of file"
+                             : "BufferedFile::Fill: fread failed"};
         }
         nSrcPos += nBytes;
         return true;
@@ -662,22 +658,20 @@ private:
     }
 
 public:
-    BufferedFile(FILE *fileIn, uint64_t nBufSize, uint64_t nRewindIn,
-                 int nVersionIn)
-        : nVersion{nVersionIn}, nSrcPos{0}, m_read_pos{0},
+    BufferedFile(CAutoFile &file, uint64_t nBufSize, uint64_t nRewindIn)
+        : m_src{file}, nSrcPos{0}, m_read_pos{0},
           nReadLimit{std::numeric_limits<uint64_t>::max()}, nRewind{nRewindIn},
           vchBuf{nBufSize, std::byte{0}} {
         if (nRewindIn >= nBufSize) {
             throw std::ios_base::failure(
                 "Rewind limit must be less than buffer size");
         }
-        src = fileIn;
     }
 
-    int GetVersion() const { return nVersion; }
+    int GetVersion() const { return m_src.GetVersion(); }
 
     //! check whether we're at the end of the source file
-    bool eof() const { return m_read_pos == nSrcPos && feof(src); }
+    bool eof() const { return m_read_pos == nSrcPos && m_src.feof(); }
 
     //! read a number of bytes
     void read(Span<std::byte> dst) {

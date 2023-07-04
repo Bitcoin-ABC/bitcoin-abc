@@ -125,15 +125,11 @@ BOOST_AUTO_TEST_CASE(validation_load_external_block_file) {
     BOOST_CHECK(GetSerializeSize(block, CLIENT_VERSION) > 2 * MAX_TX_SIZE);
 
     unsigned int size = GetSerializeSize(block, CLIENT_VERSION);
-    {
-        CAutoFile outs{fp, CLIENT_VERSION};
-        outs << size;
-        outs << block;
-        outs.release();
-    }
+    CAutoFile outs{fp, CLIENT_VERSION};
+    outs << size;
+    outs << block;
 
-    fseek(fp, 0, SEEK_SET);
-    BOOST_CHECK_NO_THROW({ m_node.chainman->LoadExternalBlockFile(fp, 0); });
+    BOOST_CHECK_NO_THROW({ m_node.chainman->LoadExternalBlockFile(outs, 0); });
 }
 
 //! Test retrieval of valid assumeutxo values.

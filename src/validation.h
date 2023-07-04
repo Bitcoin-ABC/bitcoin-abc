@@ -1507,14 +1507,14 @@ public:
      * so the last two arguments are omitted.
      *
      *
-     * @param[in]     fileIn  FILE handle to file containing blocks to read
+     * @param[in]     file_in File containing blocks to read
      * @param[in]     dbp     (optional) Disk block position (only for reindex)
      * @param[in,out] blocks_with_unknown_parent
      *                        (optional) Map of disk positions for blocks with
      *                        unknown parent, key is parent block hash
      *                        (only used for reindex)
      */
-    void LoadExternalBlockFile(FILE *fileIn, FlatFilePos *dbp = nullptr,
+    void LoadExternalBlockFile(CAutoFile &file_in, FlatFilePos *dbp = nullptr,
                                std::multimap<BlockHash, FlatFilePos>
                                    *blocks_with_unknown_parent = nullptr,
                                avalanche::Processor *const avalanche = nullptr);

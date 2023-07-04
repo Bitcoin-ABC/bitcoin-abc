@@ -59,7 +59,7 @@ static void LoadExternalBlockFile(benchmark::Bench &bench) {
         // The file will be closed by LoadExternalBlockFile().
         CAutoFile file{fsbridge::fopen(blkfile, "rb"), CLIENT_VERSION};
         testing_setup->m_node.chainman->LoadExternalBlockFile(
-            file.Get(), &pos, &blocks_with_unknown_parent);
+            file, &pos, &blocks_with_unknown_parent);
     });
     fs::remove(blkfile);
 }

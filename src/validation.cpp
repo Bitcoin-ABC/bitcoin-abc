@@ -5828,7 +5828,7 @@ bool Chainstate::LoadGenesisBlock() {
 }
 
 void ChainstateManager::LoadExternalBlockFile(
-    FILE *fileIn, FlatFilePos *dbp,
+    CAutoFile &file_in, FlatFilePos *dbp,
     std::multimap<BlockHash, FlatFilePos> *blocks_with_unknown_parent,
     avalanche::Processor *const avalanche) {
     // Either both should be specified (-reindex), or neither (-loadblock).
@@ -5841,8 +5841,7 @@ void ChainstateManager::LoadExternalBlockFile(
     try {
         // Make sure we have at least 2*MAX_TX_SIZE space in the buffer
         // so any transaction can fit in there.
-        BufferedFile blkdat{fileIn, 2 * MAX_TX_SIZE, MAX_TX_SIZE + 8,
-                            CLIENT_VERSION};
+        BufferedFile blkdat{file_in, 2 * MAX_TX_SIZE, MAX_TX_SIZE + 8};
         // nRewind indicates where to resume scanning in case something goes
         // wrong, such as a block fails to deserialize.
         uint64_t nRewind = blkdat.GetPos();
