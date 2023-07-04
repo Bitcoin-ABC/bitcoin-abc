@@ -94,32 +94,6 @@ export const getAliasDetails = async alias => {
 /*
  @response:
   [
-    {alias: 'foo', address: 'ecash:qwert...'},
-    {alias: 'foo2', address: 'ecash:qwert...'},
-    {alias: 'foo3', address: 'ecash:qwert...'},
-  ]
-*/
-export const getAliasServerHistory = async () => {
-    let aliasServerResp, aliasServerRespJson;
-    try {
-        aliasServerResp = await fetch(
-            currency.aliasSettings.aliasServerBaseUrl + '/aliases',
-        );
-        aliasServerRespJson = aliasServerResp.json();
-    } catch (err) {
-        console.log(
-            `getAliasServerHistory(): Error retrieving aliases from alias-server`,
-            err,
-        );
-        return false;
-    }
-
-    return aliasServerRespJson;
-};
-
-/*
- @response:
-  [
     {alias: 'foo', address: 'ecash:qwert...', txid: 'as12d1f324asdf'},
     {alias: 'foo2', address: 'ecash:qwert...' txid: 'as12d1f324asdf'},
     {alias: 'foo3', address: 'ecash:qwert...' txid: 'as12d1f324asdf'},
