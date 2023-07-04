@@ -23,6 +23,7 @@ module.exports = {
         fusion: { prefix: '46555a00', app: 'Cash Fusion' },
         fusionLegacy: { prefix: '5920070', app: 'Cash Fusion' },
         slp2: { prefix: '534c5032', app: 'SLP v2' },
+        alias: { prefix: '2e786563', app: 'Alias (beta)' },
     },
     memo: {
         'prefix': '6d',

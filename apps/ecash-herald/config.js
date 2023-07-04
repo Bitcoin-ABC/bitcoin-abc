@@ -44,6 +44,7 @@ module.exports = {
         shrimp: 0,
     },
     emojis: {
+        alias: '👾',
         block: '📦',
         xecSend: '💸',
         arrowRight: '➡️',

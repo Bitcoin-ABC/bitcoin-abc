@@ -378,4 +378,65 @@ module.exports = {
             msg: `${opReturn.knownApps.slp2.app}:Unknown token type|SEND|Unknown App:\u0004\u0000tab(From Freexec, thank you for your support`,
         },
     ],
+    aliasRegistrations: [
+        {
+            txid: 'dafea3b4ace4d56aec6aed106c6a654d7a1b0bc2f5bfa0599f679da77825e165',
+            hex: '042e78656300046c616d6215000b7d35fda03544a08e65464d54cfae4257eb6db7',
+            stackArray: [
+                '2e786563',
+                '00',
+                '6c616d62',
+                '000b7d35fda03544a08e65464d54cfae4257eb6db7',
+            ],
+            msg: 'lamb',
+        },
+        {
+            txid: '79372d596c1dd14189720b5dc205350d46edfd0fffb108c717b9d0afbcf5869f',
+            hex: '042e78656300046d6f6f6e15000b7d35fda03544a08e65464d54cfae4257eb6db7',
+            stackArray: [
+                '2e786563',
+                '00',
+                '6d6f6f6e',
+                '000b7d35fda03544a08e65464d54cfae4257eb6db7',
+            ],
+            msg: 'moon',
+        },
+        {
+            txid: '65c6afcf8a90d8b69729a0f048d736fda1a40451c3e83867c5a5f5a4c5226694',
+            hex: '042e786563000670616e67616915000b7d35fda03544a08e65464d54cfae4257eb6db7',
+            stackArray: [
+                '2e786563',
+                '00',
+                '70616e676169',
+                '000b7d35fda03544a08e65464d54cfae4257eb6db7',
+            ],
+            msg: 'pangai',
+        },
+        // Invalid alias tx with correct protocol identifier but incomplete stack
+        {
+            txid: 'N/A',
+            hex: '042e78656305426f6f6d21',
+            stackArray: ['2e786563', '426f6f6d21'],
+            msg: 'Invalid alias registration',
+        },
+        // Invalid alias tx with correct protocol identifier but empty stack after protocol identifier
+        {
+            txid: 'N/A',
+            hex: '042e786563',
+            stackArray: ['2e786563'],
+            msg: 'Invalid alias registration',
+        },
+        // Different version # for whatever reason
+        {
+            txid: 'N/A',
+            hex: '042e78656301010670616e67616915000b7d35fda03544a08e65464d54cfae4257eb6db7',
+            stackArray: [
+                '2e786563',
+                '01',
+                '70616e676169',
+                '000b7d35fda03544a08e65464d54cfae4257eb6db7',
+            ],
+            msg: 'Invalid alias registration',
+        },
+    ],
 };

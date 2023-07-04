@@ -32,6 +32,7 @@ const {
     encryptedCashtabMsgs,
     slp2PushVectors,
     slp2TxVectors,
+    aliasRegistrations,
 } = require('./mocks/appTxSamples');
 
 describe('parse.js functions', function () {
@@ -74,6 +75,17 @@ describe('parse.js functions', function () {
             const { stackArray, msg, tokenInfo } = swaps[i];
             const result = getSwapTgMsg(stackArray, tokenInfo);
             assert.strictEqual(result, msg);
+        }
+    });
+    it('parseOpReturn handles alias registration txs', function () {
+        for (let i = 0; i < aliasRegistrations.length; i += 1) {
+            const { hex, stackArray, msg } = aliasRegistrations[i];
+            assert.deepEqual(parseOpReturn(hex), {
+                app: opReturn.knownApps.alias.app,
+                msg,
+                stackArray,
+                tokenId: false,
+            });
         }
     });
     it('parseOpReturn handles airdrop txs with and without a cashtab msg', function () {
