@@ -53,9 +53,9 @@ import ApiError from 'components/Common/ApiError';
 import { formatFiatBalance, formatBalance } from 'utils/formatting';
 import styled from 'styled-components';
 import WalletLabel from 'components/Common/WalletLabel.js';
-import { getAddressFromAlias } from 'utils/chronik';
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import { explorer } from 'config/explorer';
+import { queryAliasServer } from 'utils/aliasUtils';
 
 const { TextArea } = Input;
 
@@ -490,19 +490,22 @@ const SendBCH = ({ passLoadingStatus }) => {
             // extract alias without the `.xec`
             const aliasName = address.slice(0, address.length - 4);
 
-            const aliasAddress = getAddressFromAlias(
-                aliasName,
-                cashtabCache.aliasCache.aliases,
-            );
-
-            if (!aliasAddress) {
-                // if not found in alias cache, display input error
-                error =
-                    'eCash Alias does not exist or yet to receive 1 confirmation';
+            // retrieve the alias details for `aliasName` from alias-server
+            let aliasDetails;
+            try {
+                aliasDetails = await queryAliasServer('alias', aliasName);
+                if (!aliasDetails.address) {
+                    error =
+                        'eCash Alias does not exist or yet to receive 1 confirmation';
+                    setAliasInputAddress(false);
+                } else {
+                    // Valid address response returned
+                    setAliasInputAddress(aliasDetails.address);
+                }
+            } catch (err) {
+                console.log(`handleAddressChange(): error retrieving alias`);
                 setAliasInputAddress(false);
-            } else {
-                // otherwise set parsed address to state for use in Send()
-                setAliasInputAddress(aliasAddress);
+                errorNotification(null, 'Error retrieving alias info');
             }
         }
 
