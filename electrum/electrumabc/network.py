@@ -58,6 +58,15 @@ DEFAULT_AUTO_CONNECT = True
 # start on the wrong chain.
 DEFAULT_WHITELIST_SERVERS_ONLY = True
 
+# Rate-limit the get_merkle requests sent to fulcrum servers.
+# This affects the speed of the initial verification of transactions in a wallet with
+# a large transaction history. Values up to 10000 have been successfully tested for a
+# single client, and the fulcrum developer thinks it is safe to raise it from its
+# previous value (10).
+# If no issues are encountered after this change has been released, it should be safe
+# to increase it more (to 500 or 1000) in future releases.
+MAX_QLEN_GET_MERKLE_REQUESTS = 100
+
 
 def parse_servers(result):
     """parse servers list into dict format"""
@@ -2318,7 +2327,7 @@ class Network(util.DaemonThread):
         return _("An error occurred broadcasting the transaction")
 
     # Used by the verifier job.
-    def get_merkle_for_transaction(self, tx_hash, tx_height, callback, max_qlen=10):
+    def get_merkle_for_transaction(self, tx_hash, tx_height, callback):
         """Asynchronously enqueue a request for a merkle proof for a tx.
         Note that the callback param is required.
         May return None if too many requests were enqueued (max_qlen) or
@@ -2328,7 +2337,7 @@ class Network(util.DaemonThread):
             "blockchain.transaction.get_merkle",
             [tx_hash, tx_height],
             callback=callback,
-            max_qlen=max_qlen,
+            max_qlen=MAX_QLEN_GET_MERKLE_REQUESTS,
         )
 
     def get_proxies(self):
