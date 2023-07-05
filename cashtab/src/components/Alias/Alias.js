@@ -7,6 +7,7 @@ import {
     ZeroBalanceHeader,
     SidePaddingCtn,
     WalletInfoCtn,
+    AlertMsg,
 } from 'components/Common/Atoms';
 import {
     AntdFormWrapper,
@@ -25,7 +26,6 @@ import {
     fromSatoshisToXec,
     convertToEcashPrefix,
 } from 'utils/cashMethods';
-import { isAliasAvailable, isAddressRegistered } from 'utils/chronik';
 import { currency } from 'components/Common/Ticker.js';
 import { registerNewAlias } from 'utils/transactions';
 import {
@@ -33,7 +33,11 @@ import {
     registerAliasNotification,
 } from 'components/Common/Notifications';
 import { isAliasFormat, isValidAliasString } from 'utils/validation';
-import { getAliasByteSize, getAliasRegistrationFee } from 'utils/aliasUtils';
+import {
+    queryAliasServer,
+    getAliasByteSize,
+    getAliasRegistrationFee,
+} from 'utils/aliasUtils';
 import cashaddr from 'ecashaddrjs';
 
 export const CheckboxContainer = styled.div`
@@ -90,6 +94,7 @@ const Alias = ({ passLoadingStatus }) => {
     const [activeWalletAliases, setActiveWalletAliases] = useState([]); // stores the list of aliases registered to this active wallet
     const [aliasLength, setAliasLength] = useState(false); // real time tracking of alias char length
     const [aliasFee, setAliasFee] = useState(false); // real time tracking of alias registration fee
+    const [aliasServerError, setAliasServerError] = useState(false);
 
     // Show a confirmation modal on alias registrations
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -115,30 +120,35 @@ const Alias = ({ passLoadingStatus }) => {
         // Call with this function to ensure that checkbox state and checkbox are updated
         handleDefaultAddressCheckboxChange({ target: { checked: true } });
 
-        // check whether the address is attached to an onchain alias on page load
-        const walletHasAlias = isAddressRegistered(
-            wallet,
-            cashtabCache.aliasCache,
-        );
+        const thisAddress = convertToEcashPrefix(wallet.Path1899.cashAddress);
 
-        // retrieve aliases for this active wallet from cache for rendering on the frontend
-        if (
-            walletHasAlias &&
-            cashtabCache.aliasCache &&
-            cashtabCache.aliasCache.cachedAliasCount > 0
-        ) {
-            const thisAddress = convertToEcashPrefix(
-                wallet.Path1899.cashAddress,
+        // Retrieve aliases for this active wallet from alias-server
+        try {
+            const aliasesForThisAddress = await queryAliasServer(
+                'address',
+                thisAddress,
             );
-            // filter for aliases that matches this wallet's address
-            const registeredAliasesToWallet =
-                cashtabCache.aliasCache.aliases.filter(
-                    alias => alias.address === thisAddress,
-                );
-            setActiveWalletAliases([...new Set(registeredAliasesToWallet)]); // new Set() removes duplicate entries
+            if (aliasesForThisAddress.error) {
+                // If an error is returned from the address endpoint
+                errorNotification(null, aliasesForThisAddress.error);
+                setIsValidAliasInput(false);
+                setAliasServerError(aliasesForThisAddress.error);
+            }
+            // If this active wallet has registered aliases, set to state variable for rendering under registered aliases list
+            // If no aliases are registered an empty array is returned, in which case no need to update state variable
+            if (aliasesForThisAddress.length > 0) {
+                setActiveWalletAliases(aliasesForThisAddress);
+            }
+            passLoadingStatus(false);
+        } catch (err) {
+            const errorMsg = 'Error: Unable to retrieve registered aliases';
+            console.log(`useEffect(): ${errorMsg}`, err);
+            errorNotification(null, errorMsg);
+            passLoadingStatus(false);
+            setIsValidAliasInput(false);
+            setAliasServerError(errorMsg);
         }
-        passLoadingStatus(false);
-    }, [wallet.name, cashtabCache.aliasCache.aliases]);
+    }, [wallet.name]);
 
     const handleOk = () => {
         setIsModalVisible(false);
@@ -168,12 +178,36 @@ const Alias = ({ passLoadingStatus }) => {
             return;
         }
 
-        const aliasAvailable = await isAliasAvailable(
-            aliasInput,
-            cashtabCache.aliasCache,
-        );
+        // Example successful response:
+        //   {
+        //        alias: 'twelvechar12',
+        //        address:'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+        //        txid:'166b21d4631e2a6ec6110061f351c9c3bfb3a8d4e6919684df7e2824b42b0ffe',
+        //        blockheight:792419,
+        //        isRegistered:true
+        //   }
+        let aliasDetails;
+        try {
+            aliasDetails = await queryAliasServer('alias', aliasInput);
+            if (aliasDetails.error) {
+                const errorMsg = 'Error checking alias availability';
+                // If an error is returned from the alias endpoint
+                errorNotification(null, aliasDetails.error);
+                passLoadingStatus(false);
+                setIsValidAliasInput(false);
+                setAliasServerError(errorMsg);
+                return;
+            }
+        } catch (err) {
+            const errorMsg = 'Error checking alias availability';
+            console.log(`registerAlias(): ${errorMsg}`, err);
+            errorNotification(null, errorMsg);
+            setIsValidAliasInput(false);
+            setAliasServerError(errorMsg);
+            passLoadingStatus(false);
+        }
 
-        if (aliasAvailable) {
+        if (!aliasDetails.address && !aliasDetails.error) {
             // calculate registration fee based on chars
             const registrationFee = getAliasRegistrationFee(aliasInput);
 
@@ -463,7 +497,8 @@ const Alias = ({ passLoadingStatus }) => {
                                         <SmartButton
                                             disabled={
                                                 !isValidAliasInput ||
-                                                !isValidAliasAddressInput
+                                                !isValidAliasAddressInput ||
+                                                aliasServerError !== false
                                             }
                                             onClick={() =>
                                                 setIsModalVisible(true)
@@ -488,7 +523,8 @@ const Alias = ({ passLoadingStatus }) => {
                                                   alias => alias.alias + '.xec',
                                               )
                                               .join('\n')
-                                        : 'N/A'}
+                                        : !aliasServerError && 'N/A'}
+                                    <AlertMsg>{aliasServerError}</AlertMsg>
                                 </h3>
                             </NamespaceCtn>
                         </SidePaddingCtn>

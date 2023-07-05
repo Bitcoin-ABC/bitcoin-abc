@@ -9,8 +9,7 @@ export const currency = {
     // temporary parameters for pre-prod testing of alias feature
     aliasSettings: {
         aliasEnabled: false,
-        // change to multisig prior to landing in prod
-        aliasPaymentAddress: 'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8',
+        aliasPaymentAddress: 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
         // nominal pricing tiers for testing only - to be used as 'aliasRegistrationFeeInSats.oneByte'
         aliasRegistrationFeeInSats: {
             oneByte: 558,
