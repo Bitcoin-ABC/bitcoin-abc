@@ -6,9 +6,14 @@
 const axios = require('axios');
 const config = require('../config');
 const BigNumber = require('bignumber.js');
+const addressDirectory = require('../constants/addresses');
 
 module.exports = {
     returnAddressPreview: function (cashAddress, sliceSize = 3) {
+        // Check known addresses for a tag
+        if (addressDirectory.has(cashAddress)) {
+            return addressDirectory.get(cashAddress).tag;
+        }
         const addressParts = cashAddress.split(':');
         const unprefixedAddress = addressParts[addressParts.length - 1];
         return `${unprefixedAddress.slice(
