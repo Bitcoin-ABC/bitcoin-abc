@@ -3,6 +3,10 @@
 import " ../utils.py";
 import " ../reply_buffer.js";
 
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
 openapi: 3.0.1
 info:
   title: Swagger definition of the tus core protocol and official extensions.
