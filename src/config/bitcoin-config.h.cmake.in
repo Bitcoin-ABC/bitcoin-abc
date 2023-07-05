@@ -3,6 +3,16 @@
 #ifndef BITCOIN_CONFIG_BITCOIN_CONFIG_H
 #define BITCOIN_CONFIG_BITCOIN_CONFIG_H
 
+#ifndef XEC_CONFIG_XEC_CONFIG_H
+#define XEC_CONFIG_XEC_CONFIG_H
+
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
 #define PACKAGE_NAME "${PACKAGE_NAME}"
 
 #define PACKAGE_BUGREPORT "${PACKAGE_BUGREPORT}"
