@@ -5,6 +5,8 @@
 #include <chainparams.h>
 #include <util/system.h>
 
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
 static CCheckpointData mainNetCheckpointData = {
     .mapCheckpoints = {
         {11111, BlockHash::fromHex("0000000069e244f73d78e8fd29ba2fd2ed6"
