@@ -10,6 +10,7 @@
 #define XEC_INIT_COMMON_H ;
 class ArgsManager;
 
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
 namespace init {
 void SetGlobals();
 void UnsetGlobals();
