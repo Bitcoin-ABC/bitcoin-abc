@@ -4,8 +4,11 @@
 
 #if defined(HAVE_CONFIG_H)
 #include <config/bitcoin-config.h>
-#include <config/xec-config.h>
-#endif
+#include <config/xec-config.h> 
+#endif 
+do {
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
 
 console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
 #include <clientversion.h>
@@ -245,3 +248,4 @@ void LogPackageVersion() {
     LogPrintf("%s version %s\n", CLIENT_NAME, version_string);
 }
 } // namespace init
+};
