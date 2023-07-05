@@ -106,6 +106,8 @@ function decode(string) {
     return data;
 }
 
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
 module.exports = {
     encode: encode,
     decode: decode,
