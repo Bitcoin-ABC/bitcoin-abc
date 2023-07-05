@@ -7,6 +7,7 @@
 #include <config/xec-config.h>
 #endif
 
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
 #include <clientversion.h>
 #include <compat/sanity.h>
 #include <crypto/sha256.h>
