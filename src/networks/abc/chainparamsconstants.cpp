@@ -4,6 +4,8 @@
 
 #include <chainparamsconstants.h>
 
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
 namespace ChainParamsConstants {
     const BlockHash MAINNET_DEFAULT_ASSUME_VALID = BlockHash::fromHex("0000000000000000125b5012e9a82cd9de3c0a1247f5fab8a8d7bdaae2306028");
     const uint256 MAINNET_MINIMUM_CHAIN_WORK = uint256S("0000000000000000000000000000000000000000016647915f3774550485c2f2");
