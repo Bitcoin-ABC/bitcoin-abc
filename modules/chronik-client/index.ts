@@ -579,7 +579,8 @@ function convertToSlpTokenTxData(slpTxData: proto.SlpTxData): SlpTokenTxData {
 }
 
 function convertToSlpMeta(slpMeta: proto.SlpMeta): SlpMeta {
-  let tokenType: SlpTokenType
+  let tokenType: SlpTokenType (xec)
+  
   switch (slpMeta.tokenType) {
     case proto.SlpTokenType.FUNGIBLE:
       tokenType = "FUNGIBLE"
