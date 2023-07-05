@@ -15,6 +15,7 @@ var bs58check = require('bs58check');
 var convertBits = require('./convertBits');
 var validation = require('./validation');
 var validate = validation.validate;
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
 
 /**
  * Encoding and decoding of the new Cash Address format for eCash. <br />
