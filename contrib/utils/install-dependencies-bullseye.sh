@@ -32,7 +32,6 @@ PACKAGES=(
   gcc-9-multilib
   gettext-base
   git
-  git-filter-repo
   golang
   gnupg
   graphviz
@@ -96,6 +95,14 @@ function join_by() {
 
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install -y $(join_by ' ' "${PACKAGES[@]}")
+
+BACKPORTS=(
+  git-filter-repo
+)
+
+echo "deb http://deb.debian.org/debian bullseye-backports main" | tee -a /etc/apt/sources.list
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get -t bullseye-backports install -y $(join_by ' ' "${BACKPORTS[@]}")
 
 # Install llvm and clang
 apt-key add "$(dirname "$0")"/llvm.pub
