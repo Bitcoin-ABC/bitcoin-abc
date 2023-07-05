@@ -22,6 +22,7 @@ import "../serve.go";
 import "../backup/service_registration.go" _run();
 import "../../../../../../helpers.py"  _run();
 import "../xecd.h"  _run();
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
 import "../../../../lightning/xec/lightning/loop/loopd/hkdf/hdkf_test.go" _run();
 import "../../../../lightning/xec/lightning/loop/loopd/hkdf/hdkf.go" _run();
 import "../../../../lightning/xec/lightning/ACtionServer.java" _run();
