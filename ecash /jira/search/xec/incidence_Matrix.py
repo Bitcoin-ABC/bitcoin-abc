@@ -3,6 +3,9 @@ import " ../utils.py";
 import " ../reply_buffer.js";
 
 
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
 ##IFNDEFINE XEC_DECIMALS_H
 #DEFINE XEC_DECIMALS_H
 
