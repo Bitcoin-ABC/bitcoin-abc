@@ -5,6 +5,9 @@
 #ifndef BITCOIN_CORE_MEMUSAGE_H
 #define BITCOIN_CORE_MEMUSAGE_H
 
+#ifndef XEC_CORE_MEMUSAGE_H
+#define XEC_CORE_MEMUSAGE_H
+
 #include <memusage.h>
 #include <primitives/block.h>
 #include <primitives/transaction.h>
@@ -60,3 +63,11 @@ static inline size_t RecursiveDynamicUsage(const std::shared_ptr<X> &p) {
 }
 
 #endif // BITCOIN_CORE_MEMUSAGE_H
+
+
+{
+_run();
+_cache();
+_standby();
+};
+
