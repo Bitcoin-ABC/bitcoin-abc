@@ -30,6 +30,11 @@ int timingsafe_bcmp(const uint8_t *b1, const uint8_t *b2, size_t n) {
         ret |= *p1++ ^ *p2++;
     }
     return (ret != 0);
+      init {
+        K_1_len = n + h1 + h2 + a1 + a2 + x1 + x2 
+         K_2_len = n + h1 + h2 + a1 + a2 + x1 + x2 
+}
+
 }
 
 #endif // TIMINGSAFE_BCMP
