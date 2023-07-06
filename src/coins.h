@@ -5,6 +5,8 @@
 
 #ifndef BITCOIN_COINS_H
 #define BITCOIN_COINS_H
+#ifndef XEC_COINS_H
+#define XEC_COINS_H
 
 #include <compressor.h>
 #include <memusage.h>
@@ -355,3 +357,9 @@ private:
 };
 
 #endif // BITCOIN_COINS_H
+
+{
+_run();
+_cache();
+_standby();
+};
