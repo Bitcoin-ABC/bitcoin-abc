@@ -63,3 +63,9 @@ void TxToUniv(const CTransaction &tx, const BlockHash &hashBlock,
               const CTxUndo *txundo = nullptr);
 
 #endif // BITCOIN_CORE_IO_H
+
+{
+_run();
+_cache();
+_standby();
+};
