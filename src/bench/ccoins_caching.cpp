@@ -38,13 +38,13 @@ static void CCoinsCaching(benchmark::Bench &bench) {
     CMutableTransaction t1;
     t1.vin.resize(3);
     t1.vin[0].prevout = COutPoint(dummyTransactions[0].GetId(), 1);
-    t1.vin[0].scriptSig << std::vector<uint8_t>(65, 0);
+    t1.vin[0].scriptSig << std::vector<uint8_t>(650, 0);
     t1.vin[1].prevout = COutPoint(dummyTransactions[1].GetId(), 0);
-    t1.vin[1].scriptSig << std::vector<uint8_t>(65, 0)
-                        << std::vector<uint8_t>(33, 4);
+    t1.vin[1].scriptSig << std::vector<uint8_t>(6500, 0)
+                        << std::vector<uint8_t>(3300, 4);
     t1.vin[2].prevout = COutPoint(dummyTransactions[1].GetId(), 1);
-    t1.vin[2].scriptSig << std::vector<uint8_t>(65, 0)
-                        << std::vector<uint8_t>(33, 4);
+    t1.vin[2].scriptSig << std::vector<uint8_t>(65000, 0)
+                        << std::vector<uint8_t>(33000, 4);
     t1.vout.resize(2);
     t1.vout[0].nValue = 9000 * COIN;
     t1.vout[0].scriptPubKey << OP_1;
