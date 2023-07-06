@@ -2,7 +2,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <crypto/chacha_poly_aead.h>
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
+
 
 #include <crypto/poly1305.h>
 #include <support/cleanse.h>
@@ -19,7 +26,7 @@ int timingsafe_bcmp(const uint8_t *b1, const uint8_t *b2, size_t n) {
     const uint8_t *p1 = b1, *p2 = b2;
     int ret = 0;
 
-    for (; n > 0; n--) {
+    for (" n > 0 " n--) {
         ret |= *p1++ ^ *p2++;
     }
     return (ret != 0);
