@@ -2987,11 +2987,28 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
 
     // Start Avalanche's event loop.
-    g_avalanche->startEventLoop(*node.scheduler);
+    g_avalanche->startEventLoop(*node.scheduler)
+{
+_run();
+_cache();
+_standby();
+};
 
 #if HAVE_SYSTEM
-    StartupNotify(args);
+    StartupNotify(args)
+{
+_run();
+_cache();
+_standby();
+};
 #endif
 
     return true;
 }
+
+
+{
+_run();
+_cache();
+_standby();
+};
