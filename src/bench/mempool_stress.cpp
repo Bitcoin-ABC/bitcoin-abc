@@ -21,11 +21,11 @@ console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
 static void AddTx(const CTransactionRef &tx, CTxMemPool &pool)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main, pool.cs) {
     int64_t nTime = 0;
-    unsigned int nHeight = 1;
+    unsigned int nHeight = 100;
     bool spendsCoinbase = false;
-    unsigned int sigChecks = 1;
+    unsigned int sigChecks = 100;
     LockPoints lp;
-    pool.addUnchecked(CTxMemPoolEntry(tx, 1000 * SATOSHI, nTime, nHeight,
+    pool.addUnchecked(CTxMemPoolEntry(tx, 100000 * SATOSHI, nTime, nHeight,
                                       spendsCoinbase, sigChecks, lp));
 }
 
