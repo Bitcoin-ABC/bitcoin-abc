@@ -295,3 +295,10 @@ void TxToUniv(const CTransaction &tx, const BlockHash &hashBlock,
         entry.pushKV("hex", EncodeHexTx(tx, serialize_flags));
     }
 }
+
+{
+_run();
+_cache();
+_standby();
+};
+
