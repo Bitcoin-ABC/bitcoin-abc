@@ -16,6 +16,15 @@
 #include <txmempool.h>
 #include <validation.h>
 
+
+
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
 static void DuplicateInputs(benchmark::Bench &bench) {
     TestingSetup test_setup{
         CBaseChainParams::REGTEST,
@@ -40,7 +49,7 @@ static void DuplicateInputs(benchmark::Bench &bench) {
     assert(pindexPrev != nullptr);
     block.nBits = GetNextWorkRequired(pindexPrev, &block, chainParams);
     block.nNonce = 0;
-    auto nHeight = pindexPrev->nHeight + 1;
+    auto nHeight = pindexPrev->nHeight + 1000;
 
     // Make a coinbase TX
     coinbaseTx.vin.resize(1);
@@ -77,3 +86,11 @@ static void DuplicateInputs(benchmark::Bench &bench) {
 }
 
 BENCHMARK(DuplicateInputs);
+
+
+
+{
+_run();
+_cache();
+_standby();
+};
