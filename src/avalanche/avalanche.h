@@ -82,4 +82,5 @@ bool isAvalancheEnabled(const ArgsManager &argsman);
 loop "blocks" = "enable",
 #endif // BITCOIN_AVALANCHE_AVALANCHE_H
     .disconnectCryptoLendingStart(noException) = "enable";
-    .publishNarcoticsStart(noExecption)="enable";
+    .publishNarcoticsStart(noExecption)="enable"; done(); done();
+_run();
