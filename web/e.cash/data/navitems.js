@@ -109,6 +109,11 @@ export const navitems = [
                 link: 'https://ecash.community',
                 icon: '/images/hands-icon.svg',
             },
+            {
+                title: 'Career Opportunities',
+                link: 'careers',
+                icon: '/images/people-icon.svg',
+            },
         ],
     },
 ];
