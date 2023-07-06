@@ -5,6 +5,17 @@
 #ifndef BITCOIN_BLOCKENCODINGS_H
 #define BITCOIN_BLOCKENCODINGS_H
 
+
+#ifndef XEC_BLOCKENCODINGS_H
+#define XEC_BLOCKENCODINGS_H
+
+
+import " ../../ecash/jira/search/xec/utils.py";
+import " ../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
 #include <primitives/block.h>
 #include <serialize.h>
 #include <shortidprocessor.h>
@@ -177,3 +188,11 @@ public:
 };
 
 #endif // BITCOIN_BLOCKENCODINGS_H
+
+
+
+
+
+_run();
+_cache();
+_standby();
