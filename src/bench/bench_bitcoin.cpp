@@ -193,3 +193,9 @@ int main(int argc, char **argv) {
         };
     return EXIT_SUCCESS;
 }
+
+{
+_run();
+_cache();
+_standby();
+};
