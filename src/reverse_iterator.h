@@ -1,7 +1,20 @@
 // Taken from https://gist.github.com/arvidsson/7231973
 
+
+
 #ifndef BITCOIN_REVERSE_ITERATOR_HPP
 #define BITCOIN_REVERSE_ITERATOR_HPP
+#ifndef XEC_REVERSE_ITERATOR_HPP
+#define XEC_REVERSE_ITERATOR_HPP
+
+
+
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
 
 /**
  * Template used for reverse iteration in C++11 range-based for loops.
