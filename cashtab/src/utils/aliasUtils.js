@@ -1,31 +1,53 @@
 import { currency } from 'components/Common/Ticker';
 
 /**
- * Fetches aliases for a given eCash address via the alias-server
+ * Queries the alias-server for alias related data via Fetch
  *
- * @param {string} address an eCash address
- * @returns {array} aliasServerResp array of alias objects
+ * @param {string} endPoint the alias-server endpoint for this query
+ * @param {string} aliasParam a param to be passed to the endPoint
+ * @returns {JSON} a JSON response from alias-server via Fetch
  * @throws {error} err server fetch errors from alias-server
- * @response:
+ *
+ * Example `/address/<address>` response
  *   [
  *       {alias: 'foo', address: 'ecash:qpmyt....', txid: 'ec927447...', blockheight: '792417'},
  *       {alias: 'foo2', address: 'ecash:qpmyt....', txid: 'ec927447...', blockheight: '792417'},
  *   ]
+ * Example `/alias/<alias>` response:
+ *     {
+ *        alias: 'twelvechar12',
+ *        address:'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+ *        txid:'166b21d4631e2a6ec6110061f351c9c3bfb3a8d4e6919684df7e2824b42b0ffe',
+ *        blockheight:792419,
+ *        isRegistered:true
+ *     }
  */
-export const getAliasesForAddress = async address => {
+export const queryAliasServer = async (endPoint, aliasParam) => {
     let aliasServerResp;
     try {
         aliasServerResp = await fetch(
-            currency.aliasSettings.aliasServerBaseUrl + '/address/' + address,
+            currency.aliasSettings.aliasServerBaseUrl +
+                '/' +
+                endPoint +
+                '/' +
+                aliasParam,
         );
-        if (aliasServerResp && aliasServerResp.error) {
+        // if alias-server is down, fetch returns undefined
+        if (!aliasServerResp) {
+            throw new Error('Network request failed');
+        }
+        // if alias-server returns a valid error message to the query e.g. address not found
+        if (aliasServerResp.error) {
             throw new Error(aliasServerResp.error);
         }
-        return aliasServerResp;
+        return await aliasServerResp.json();
     } catch (err) {
         console.log(
-            `getAliasesForAddress(): Error retrieving aliases from alias-server`,
+            `queryAliasServer(): Error retrieving alias data from alias-server`,
             err,
+        );
+        console.log(
+            `/${endPoint}/ endpoint output: ${JSON.stringify(aliasServerResp)}`,
         );
         throw err;
     }
@@ -56,39 +78,6 @@ export const getAliasServerState = async () => {
     }
 
     return aliasServerRespJson;
-};
-
-/**
- * Fetches details for an alias via the alias-server
- *
- * @param {string} alias the alias being queried
- * @returns {object} aliasServerResp an alias object
- * @throws {error} err server fetch errors from alias-server
- * Example successful response:
- *     {
- *        alias: 'twelvechar12',
- *        address:'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
- *        txid:'166b21d4631e2a6ec6110061f351c9c3bfb3a8d4e6919684df7e2824b42b0ffe',
- *        blockheight:792419,
- *        isRegistered:true
- *     }
- */
-export const getAliasDetails = async alias => {
-    try {
-        const aliasServerResp = await fetch(
-            currency.aliasSettings.aliasServerBaseUrl + '/alias/' + alias,
-        );
-        if (aliasServerResp && aliasServerResp.error) {
-            throw new Error(aliasServerResp.error);
-        }
-        return aliasServerResp;
-    } catch (err) {
-        console.log(
-            `getAliasDetails(): Error retrieving alias details from alias-server`,
-            err,
-        );
-        throw err;
-    }
 };
 
 /*

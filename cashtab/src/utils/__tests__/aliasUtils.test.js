@@ -3,48 +3,84 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 'use strict';
 import { currency } from 'components/Common/Ticker';
-import { getAliasesForAddress } from 'utils/aliasUtils';
-import { getAliasDetails } from 'utils/aliasUtils';
+import { queryAliasServer } from 'utils/aliasUtils';
 import { mockAddressApiResponse } from '../__mocks__/mockAliasServerResponses';
 import { mockAliasApiResponse } from '../__mocks__/mockAliasServerResponses';
 import { when } from 'jest-when';
 
-test('getAliasesForAddress() correctly returns an array of alias objects for a valid eCash address that has registered aliases', async () => {
+test('queryAliasServer() correctly throws a network error for server downtime or a malformed fetch url', async () => {
+    const endPoint = 'address';
     const address = 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj';
-    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/address/${address}`;
+    const fetchUrl = `bad-url-to-simulate-server-downtime/${endPoint}/${address}`;
+    const expectedError = 'Network request failed';
 
     // mock the fetch call to alias-server's '/address' endpoint
     global.fetch = jest.fn();
-    when(fetch).calledWith(fetchUrl).mockResolvedValue(mockAddressApiResponse);
+    when(fetch)
+        .calledWith(fetchUrl)
+        .mockResolvedValue({ error: expectedError });
 
-    expect(await getAliasesForAddress(address)).toEqual(mockAddressApiResponse);
+    await expect(queryAliasServer(endPoint, address)).rejects.toThrow(
+        expectedError,
+    );
 });
 
-test('getAliasesForAddress() correctly returns an array of alias objects for a valid prefix-less eCash address that has registered aliases', async () => {
+test('queryAliasServer() correctly returns an array of alias objects for a valid eCash address that has registered aliases', async () => {
+    const endPoint = 'address';
+    const address = 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj';
+    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/${endPoint}/${address}`;
+
+    // mock the fetch call to alias-server's '/address' endpoint
+    global.fetch = jest.fn();
+    when(fetch)
+        .calledWith(fetchUrl)
+        .mockResolvedValue({
+            json: () => Promise.resolve({ mockAddressApiResponse }),
+        });
+
+    expect(await queryAliasServer(endPoint, address)).toEqual({
+        mockAddressApiResponse,
+    });
+});
+
+test('queryAliasServer() correctly returns an array of alias objects for a valid prefix-less eCash address that has registered aliases', async () => {
+    const endPoint = 'address';
     const address = 'qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj';
-    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/address/${address}`;
+    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/${endPoint}/${address}`;
 
     // mock the fetch call to alias-server's '/address' endpoint
     global.fetch = jest.fn();
-    when(fetch).calledWith(fetchUrl).mockResolvedValue(mockAddressApiResponse);
+    when(fetch)
+        .calledWith(fetchUrl)
+        .mockResolvedValue({
+            json: () => Promise.resolve({ mockAddressApiResponse }),
+        });
 
-    expect(await getAliasesForAddress(address)).toEqual(mockAddressApiResponse);
+    expect(await queryAliasServer(endPoint, address)).toEqual({
+        mockAddressApiResponse,
+    });
 });
 
-test('getAliasesForAddress() returns an empty array for a valid eCash address with no aliases', async () => {
+test('queryAliasServer() returns an empty array for a valid eCash address with no aliases', async () => {
+    const endPoint = 'address';
     const address = 'ecash:qr2nyffmenvrzea3aqhqw0rd3ckk0kkcrgsrugzjph';
-    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/address/${address}`;
+    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/${endPoint}/${address}`;
 
     // mock the fetch call to alias-server's '/address' endpoint
     global.fetch = jest.fn();
-    when(fetch).calledWith(fetchUrl).mockResolvedValue([]);
+    when(fetch)
+        .calledWith(fetchUrl)
+        .mockResolvedValue({
+            json: () => Promise.resolve([]),
+        });
 
-    expect(await getAliasesForAddress(address)).toEqual([]);
+    expect(await queryAliasServer(endPoint, address)).toEqual([]);
 });
 
-test('getAliasesForAddress() throws an api error for an invalid eCash address', async () => {
+test('queryAliasServer() throws an error for an invalid eCash address', async () => {
+    const endPoint = 'address';
     const invalidAddress = 'qpmytrdsaINVALIDDDDDDD7cjctmjasj';
-    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/address/${invalidAddress}`;
+    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/${endPoint}/${invalidAddress}`;
     const expectedError = `Error fetching /address/${invalidAddress}: Input must be a valid eCash address`;
 
     // mock the fetch call to alias-server's '/address' endpoint
@@ -53,25 +89,33 @@ test('getAliasesForAddress() throws an api error for an invalid eCash address', 
         .calledWith(fetchUrl)
         .mockResolvedValue({ error: expectedError });
 
-    await expect(getAliasesForAddress(invalidAddress)).rejects.toThrow(
+    await expect(queryAliasServer(endPoint, invalidAddress)).rejects.toThrow(
         expectedError,
     );
 });
 
-test('getAliasDetails() returns an alias object for a registered alias', async () => {
+test('queryAliasServer() returns an alias object for a registered alias', async () => {
+    const endPoint = 'alias';
     const alias = 'twelvechar12';
-    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/alias/${alias}`;
+    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/${endPoint}/${alias}`;
 
     // mock the fetch call to alias-server's '/alias' endpoint
     global.fetch = jest.fn();
-    when(fetch).calledWith(fetchUrl).mockResolvedValue(mockAliasApiResponse);
+    when(fetch)
+        .calledWith(fetchUrl)
+        .mockResolvedValue({
+            json: () => Promise.resolve({ mockAliasApiResponse }),
+        });
 
-    expect(await getAliasDetails(alias)).toEqual(mockAliasApiResponse);
+    expect(await queryAliasServer(endPoint, alias)).toEqual({
+        mockAliasApiResponse,
+    });
 });
 
-test('getAliasDetails() returns an api error for a non-alphanumeric alias', async () => {
+test('queryAliasServer() returns an api error for a non-alphanumeric alias', async () => {
+    const endPoint = 'alias';
     const alias = '@@@@@@@@@@@@';
-    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/alias/${alias}`;
+    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/${endPoint}/${alias}`;
     const expectedError = `Error fetching /alias/${alias}: alias param cannot contain non-alphanumeric characters`;
 
     // mock the fetch call to alias-server's '/alias' endpoint
@@ -80,12 +124,15 @@ test('getAliasDetails() returns an api error for a non-alphanumeric alias', asyn
         .calledWith(fetchUrl)
         .mockResolvedValue({ error: expectedError });
 
-    await expect(getAliasDetails(alias)).rejects.toThrow(expectedError);
+    await expect(queryAliasServer(endPoint, alias)).rejects.toThrow(
+        expectedError,
+    );
 });
 
-test('getAliasDetails() returns an object with isRegistered as false for an unregistered alias', async () => {
+test('queryAliasServer() returns an object with isRegistered as false for an unregistered alias', async () => {
+    const endPoint = 'alias';
     const alias = 'foobar';
-    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/alias/${alias}`;
+    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/${endPoint}/${alias}`;
     const expectedResult = {
         alias: alias,
         isRegistered: false,
@@ -93,14 +140,19 @@ test('getAliasDetails() returns an object with isRegistered as false for an unre
 
     // mock the fetch call to alias-server's '/alias' endpoint
     global.fetch = jest.fn();
-    when(fetch).calledWith(fetchUrl).mockResolvedValue(expectedResult);
+    when(fetch)
+        .calledWith(fetchUrl)
+        .mockResolvedValue({
+            json: () => Promise.resolve({ expectedResult }),
+        });
 
-    expect(await getAliasDetails(alias)).toEqual(expectedResult);
+    expect(await queryAliasServer(endPoint, alias)).toEqual({ expectedResult });
 });
 
-test('getAliasDetails() returns an api error for an alias longer than 21 characters', async () => {
+test('queryAliasServer() returns an error for an alias longer than 21 characters', async () => {
+    const endPoint = 'alias';
     const alias = 'foobarrrrrrrrrrrrrrrrrrrrrrrrrrr';
-    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/alias/${alias}`;
+    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/${endPoint}/${alias}`;
     const expectedError = `Error fetching /alias/${alias}: alias param must be between 1 and 21 characters in length`;
 
     // mock the fetch call to alias-server's '/alias' endpoint
@@ -109,5 +161,7 @@ test('getAliasDetails() returns an api error for an alias longer than 21 charact
         .calledWith(fetchUrl)
         .mockResolvedValue({ error: expectedError });
 
-    await expect(getAliasDetails(alias)).rejects.toThrow(expectedError);
+    await expect(queryAliasServer(endPoint, alias)).rejects.toThrow(
+        expectedError,
+    );
 });
