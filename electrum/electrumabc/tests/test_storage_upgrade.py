@@ -274,6 +274,7 @@ class TestStorageUpgrade(WalletTestCase):
 
     def _upgrade_storage(self, wallet_json, accounts=1):
         storage = self._load_storage_from_json_string(wallet_json, manual_upgrades=True)
+        self.assertTrue(storage.requires_upgrade())
 
         if accounts == 1:
             self.assertFalse(storage.requires_split())

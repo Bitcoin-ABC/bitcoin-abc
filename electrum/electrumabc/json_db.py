@@ -148,7 +148,7 @@ class JsonDB(PrintError):
             if self.requires_upgrade():
                 self.upgrade()
 
-    def requires_split(self):
+    def requires_split(self) -> bool:
         d = self.get("accounts", {})
         return len(d) > 1
 
@@ -200,7 +200,7 @@ class JsonDB(PrintError):
             )
         return result
 
-    def requires_upgrade(self):
+    def requires_upgrade(self) -> bool:
         return self.get_seed_version() < FINAL_SEED_VERSION
 
     @profiler

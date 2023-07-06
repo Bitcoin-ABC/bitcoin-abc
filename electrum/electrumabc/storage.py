@@ -228,16 +228,16 @@ class WalletStorage(PrintError):
         # make sure next storage.write() saves changes
         self.db.set_modified(True)
 
-    def requires_upgrade(self):
+    def requires_upgrade(self) -> bool:
         if not self.is_past_initial_decryption():
             raise Exception("storage not yet decrypted!")
-        self.db.requires_upgrade()
+        return self.db.requires_upgrade()
 
     def upgrade(self):
         self.db.upgrade()
         self.write()
 
-    def requires_split(self):
+    def requires_split(self) -> bool:
         return self.db.requires_split()
 
     def split_accounts(self):
