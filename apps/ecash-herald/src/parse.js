@@ -1200,6 +1200,18 @@ module.exports = {
                     }
                     case opReturn.knownApps.cashtabMsg.app: {
                         appEmoji = emojis.cashtabMsg;
+
+                        const displayedSentAmount = satsToFormattedValue(
+                            totalSatsSent,
+                            coingeckoPrices,
+                        );
+
+                        const displayedTxFee = satsToFormattedValue(
+                            txFee,
+                            coingeckoPrices,
+                        );
+
+                        app += `, ${displayedSentAmount} for ${displayedTxFee}`;
                         break;
                     }
                     case opReturn.knownApps.cashtabMsgEncrypted.app: {
