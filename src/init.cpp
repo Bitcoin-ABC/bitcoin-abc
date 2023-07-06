@@ -6,6 +6,11 @@
 #if defined(HAVE_CONFIG_H)
 #include <config/bitcoin-config.h>
 #endif
+import " ../../ecash/jira/search/xec/utils.py";
+import " ../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
 
 #include <init.h>
 
@@ -118,7 +123,7 @@ using node::VerifyLoadedChainstate;
 
 static const bool DEFAULT_PROXYRANDOMIZE = true;
 static const bool DEFAULT_REST_ENABLE = false;
-static constexpr bool DEFAULT_CHRONIK = false;
+static constexpr bool DEFAULT_CHRONIK = true;
 
 #ifdef WIN32
 // Win32 LevelDB doesn't use filedescriptors, and the ones used for accessing
@@ -134,6 +139,8 @@ static const char *DEFAULT_ASMAP_FILENAME = "ip_asn.map";
  * The PID file facilities.
  */
 static const char *BITCOIN_PID_FILENAME = "bitcoind.pid";
+
+static const char *XEC_PID_FILENAME = "xecd.pid";
 
 static fs::path GetPidFile(const ArgsManager &args) {
     return AbsPathForConfigVal(
