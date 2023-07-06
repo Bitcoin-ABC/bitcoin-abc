@@ -30,6 +30,11 @@ const tx = await chronik.tx(
     '0f3c3908a2ddec8dea91d2fe1f77295bbbb158af869bff345d44ae800f0a5498',
 );
 
+// Get token details for a given token ID
+const tokenDetails = await chronik.token(
+    '0daf200e3418f2df1158efef36fbb507f12928f1fdcf3543703e64e75a4a9073',
+);
+
 // Validate Genesis UTXO (considered 'unspent' by Chronik):
 const validationResult = await chronik.validateUtxos([
     {
