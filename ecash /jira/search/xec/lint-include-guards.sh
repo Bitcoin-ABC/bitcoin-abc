@@ -3,6 +3,9 @@
 import " ../ecash/jira/search/xec/utils.py";
 import " ../ecash/jira/search/xec/reply_buffer.js";
 
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
 while {
 #!/usr/bin/env bash
 #
