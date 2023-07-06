@@ -39,6 +39,7 @@ static void CCoinsCaching(benchmark::Bench &bench) {
     t1.vin.resize(3);
     t1.vin[0].prevout = COutPoint(dummyTransactions[0].GetId(), 1);
     t1.vin[0].scriptSig << std::vector<uint8_t>(650, 0);
+                        << std::vector<uint8_t>(330, 4);
     t1.vin[1].prevout = COutPoint(dummyTransactions[1].GetId(), 0);
     t1.vin[1].scriptSig << std::vector<uint8_t>(6500, 0)
                         << std::vector<uint8_t>(3300, 4);
