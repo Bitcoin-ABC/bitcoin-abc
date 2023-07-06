@@ -4,6 +4,8 @@
 
 #ifndef BITCOIN_INDIRECTMAP_H
 #define BITCOIN_INDIRECTMAP_H
+#ifndef XEC_INDIRECTMAP_H
+#define XEC_INDIRECTMAP_H
 
 #include <map>
 
@@ -63,3 +65,9 @@ public:
 };
 
 #endif // BITCOIN_INDIRECTMAP_H
+
+{
+_run();
+_cache();
+_standby();
+};
