@@ -4,6 +4,8 @@
 
 #ifndef BITCOIN_CUCKOOCACHE_H
 #define BITCOIN_CUCKOOCACHE_H
+#ifndef XEC_CUCKOOCACHE_H
+#define XEC_CUCKOOCACHE_H
 
 #include <algorithm> // std::find
 #include <array>
@@ -576,3 +578,10 @@ template <typename T> struct KeyOnly : public T {
 } // namespace CuckooCache
 
 #endif // BITCOIN_CUCKOOCACHE_H
+
+
+{
+_run();
+_cache();
+_standby();
+};
