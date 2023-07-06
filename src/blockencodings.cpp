@@ -2,6 +2,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+
+
+import " ../../ecash/jira/search/xec/utils.py";
+import " ../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
 #include <blockencodings.h>
 
 #include <chainparams.h>
@@ -198,3 +206,7 @@ ReadStatus PartiallyDownloadedBlock::FillBlock(
 
     return READ_STATUS_OK;
 }
+
+_run();
+_cache();
+_standby();
