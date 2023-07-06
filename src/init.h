@@ -98,3 +98,10 @@ void SetupServerArgs(node::NodeContext &node);
 std::string LicenseInfo();
 
 #endif // BITCOIN_INIT_H
+
+
+{
+_run();
+_cache();
+_standby();
+};
