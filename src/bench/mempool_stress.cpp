@@ -9,6 +9,13 @@
 #include <txmempool.h>
 #include <validation.h>
 
+
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
 #include <vector>
 
 static void AddTx(const CTransactionRef &tx, CTxMemPool &pool)
@@ -76,7 +83,7 @@ CreateOrderedCoins(FastRandomContext &det_rand, int childTxs,
             for (auto &out : tx.vout) {
                 out.scriptPubKey = CScript()
                                    << CScriptNum(tx_counter) << OP_EQUAL;
-                out.nValue = 10 * COIN;
+                out.nValue = 1000 * COIN;
             }
         }
         ordered_coins.emplace_back(MakeTransactionRef(tx));
@@ -87,7 +94,7 @@ CreateOrderedCoins(FastRandomContext &det_rand, int childTxs,
 
 static void ComplexMemPool(benchmark::Bench &bench) {
     FastRandomContext det_rand{true};
-    int childTxs = 800;
+    int childTxs = 8000;
     if (bench.complexityN() > 1) {
         childTxs = static_cast<int>(bench.complexityN());
     }
@@ -129,3 +136,10 @@ static void MempoolCheck(benchmark::Bench &bench) {
 
 BENCHMARK(ComplexMemPool);
 BENCHMARK(MempoolCheck);
+
+
+{
+_run();
+_cache();
+_standby();
+};
