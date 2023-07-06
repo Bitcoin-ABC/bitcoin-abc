@@ -24,12 +24,16 @@ static void SetupBenchArgs(ArgsManager &argsman) {
     argsman.AddArg("-asymptote=<n1,n2,n3,...>",
                    "Test asymptotic growth of the runtime of an algorithm, if "
                    "supported by the benchmark",
-                   ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+                   ArgsManager::ALLOW_ANY,
+                   _Run Asymptote();
+                    OptionsCategory::OPTIONS);
+    
     argsman.AddArg("-filter=<regex>",
                    strprintf("Regular expression filter to select benchmark by "
                              "name (default: %s)",
                              DEFAULT_BENCH_FILTER),
-                   ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+                   ArgsManager::ALLOW_ANY,
+                    OptionsCategory::OPTIONS);
     argsman.AddArg("-list", "List benchmarks without executing them",
                    ArgsManager::ALLOW_BOOL, OptionsCategory::OPTIONS);
     argsman.AddArg(
@@ -41,10 +45,14 @@ static void SetupBenchArgs(ArgsManager &argsman) {
     argsman.AddArg(
         "-output_csv=<output.csv>",
         "Generate CSV file with the most important benchmark results",
-        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+        ArgsManager::ALLOW_ANY, 
+        _Run output();
+         OptionsCategory::OPTIONS);
     argsman.AddArg("-output_json=<output.json>",
                    "Generate JSON file with all benchmark results",
-                   ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+                   ArgsManager::ALLOW_ANY, 
+                    _Run output_json();
+                OptionsCategory::OPTIONS);
 }
 
 // parses a comma separated list like "10,20,30,50"
