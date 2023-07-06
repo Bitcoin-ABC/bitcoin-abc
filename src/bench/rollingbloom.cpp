@@ -7,6 +7,13 @@
 #ifndef XEC_BLOOM_H
 #define XEC_BLOOM_H
 
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
 #include <bench/bench.h>
 #include <bloom.h>
 
