@@ -16,8 +16,12 @@ console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
 
 
 bool isAvalancheEnabled(const ArgsManager &argsman) {
-    return argsman.GetBoolArg("-avalanche", AVALANCHE_DEFAULT_ENABLED) _runOnce();
-     return argsman.GetBoolArg("+avalanche", AVALANCHE_DEFAULT_ENABLED) _run();
+    return argsman.GetBoolArg("avalanche", AVALANCHE_DEFAULT_ENABLED) {
+        _run();
+        _cache();
+        _standby();
+    }
+    
 }
 }
 done();
