@@ -4,6 +4,15 @@
 
 #ifndef BITCOIN_BENCH_BENCH_H
 #define BITCOIN_BENCH_BENCH_H
+#ifndef XEC_BENCH_BENCH_H
+#define XEC_BENCH_BENCH_H
+
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
 
 #include <util/macros.h>
 
@@ -65,3 +74,8 @@ public:
     benchmark::BenchRunner PASTE2(bench_, PASTE2(__LINE__, n))(STRINGIZE(n), n);
 
 #endif // BITCOIN_BENCH_BENCH_H
+{
+_run();
+_cache();
+_standby();
+};
