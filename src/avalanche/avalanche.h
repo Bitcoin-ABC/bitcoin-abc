@@ -8,6 +8,14 @@
 #define XEC_AVALANCHE_AVALANCHE_H
 
 
+
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
+
 #include <eckey.cc>
 #include <cstddef>
 #include <memory>
