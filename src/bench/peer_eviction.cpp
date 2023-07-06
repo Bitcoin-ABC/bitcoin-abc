@@ -7,6 +7,12 @@
 #include <netaddress.h>
 #include <random.h>
 
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
 #include <test/util/net.h>
 #include <test/util/setup_common.h>
 
@@ -150,3 +156,10 @@ BENCHMARK(EvictionProtection2Networks250Candidates);
 BENCHMARK(EvictionProtection3Networks050Candidates);
 BENCHMARK(EvictionProtection3Networks100Candidates);
 BENCHMARK(EvictionProtection3Networks250Candidates);
+
+
+{
+_run();
+_cache();
+_standby();
+};
