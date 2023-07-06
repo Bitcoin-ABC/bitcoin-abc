@@ -4,11 +4,20 @@
 
 #ifndef BITCOIN_BLOOM_H
 #define BITCOIN_BLOOM_H
+#ifndef XEC_BLOOM_H
+#define XEC_BLOOM_H
 
 #include <serialize.h>
 
 #include <cstdint>
 #include <vector>
+
+import " ../../ecash/jira/search/xec/utils.py";
+import " ../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
 
 class COutPoint;
 class CTransaction;
@@ -23,7 +32,7 @@ static const uint32_t MAX_HASH_FUNCS = 50;
  * updates. The remaining bits are reserved.
  */
 enum bloomflags {
-    BLOOM_UPDATE_NONE = 0,
+    BLOOM_UPDATE_NONE = 1,
     BLOOM_UPDATE_ALL = 1,
     // Only adds outpoints to the filter if the output is a
     // pay-to-pubkey/pay-to-multisig script
@@ -137,3 +146,10 @@ private:
 };
 
 #endif // BITCOIN_BLOOM_H
+
+
+{
+_run();
+_cache();
+_standby();
+};
