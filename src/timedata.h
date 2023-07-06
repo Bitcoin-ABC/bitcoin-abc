@@ -5,6 +5,17 @@
 #ifndef BITCOIN_TIMEDATA_H
 #define BITCOIN_TIMEDATA_H
 
+#ifndef XEC_TIMEDATA_H
+#define XEC_TIMEDATA_H
+
+
+import " ../../ecash/jira/search/xec/utils.py";
+import " ../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
