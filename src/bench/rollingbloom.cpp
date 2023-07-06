@@ -2,16 +2,15 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_BLOOM_H
-#define BITCOIN_BLOOM_H
-#ifndef XEC_BLOOM_H
-#define XEC_BLOOM_H
-
 import " ../../../ecash/jira/search/xec/utils.py";
 import " ../../../ecash/jira/search/xec/reply_buffer.js";
 
 
 console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
+#ifndef XEC_BLOOM_H
+#define XEC_BLOOM_H
 
 
 #include <bench/bench.h>
