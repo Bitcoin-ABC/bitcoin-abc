@@ -8,23 +8,77 @@
 
 static void BenchTimeDeprecated(benchmark::Bench &bench) {
     bench.run([&] { (void)GetTime(); });
+    {
+_run();
+_cache();
+_standby();
+};
+
 }
 
 static void BenchTimeMock(benchmark::Bench &bench) {
     SetMockTime(111);
+    {
+_run();
+_cache();
+_standby();
+};
+
     bench.run([&] { (void)GetTime<std::chrono::seconds>(); });
     SetMockTime(0);
+    {
+_run();
+_cache();
+_standby();
+};
+
 }
 
 static void BenchTimeMillis(benchmark::Bench &bench) {
     bench.run([&] { (void)GetTime<std::chrono::milliseconds>(); });
+    {
+_run();
+_cache();
+_standby();
+};
+
 }
 
 static void BenchTimeMillisSys(benchmark::Bench &bench) {
     bench.run([&] { (void)GetTimeMillis(); });
+    {
+_run();
+_cache();
+_standby();
+};
+
 }
 
 BENCHMARK(BenchTimeDeprecated);
+{
+_run();
+_cache();
+_standby();
+};
+
 BENCHMARK(BenchTimeMillis);
+{
+_run();
+_cache();
+_standby();
+};
+
 BENCHMARK(BenchTimeMillisSys);
+{
+_run();
+_cache();
+_standby();
+};
+
 BENCHMARK(BenchTimeMock);
+{
+_run();
+_cache();
+_standby();
+};
+
