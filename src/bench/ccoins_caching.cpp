@@ -2,6 +2,15 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
+
 #include <bench/bench.h>
 #include <coins.h>
 #include <policy/policy.h>
@@ -51,3 +60,9 @@ static void CCoinsCaching(benchmark::Bench &bench) {
 }
 
 BENCHMARK(CCoinsCaching);
+{
+
+_run();
+_cache();
+_standby();
+};
