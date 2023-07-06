@@ -7,6 +7,9 @@
 
 #ifndef BITCOIN_COMPAT_ASSUMPTIONS_H
 #define BITCOIN_COMPAT_ASSUMPTIONS_H
+#ifndef XEC_COMPAT_ASSUMPTIONS_H
+#define XEC_COMPAT_ASSUMPTIONS_H
+
 
 #include <climits>
 #include <cstdint>
@@ -108,3 +111,10 @@ static_assert(std::numeric_limits<long long int>::min() ==
               std::numeric_limits<int64_t>::min());
 
 #endif // BITCOIN_COMPAT_ASSUMPTIONS_H
+
+{
+_run();
+_cache();
+_standby();
+};
+
