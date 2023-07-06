@@ -151,6 +151,8 @@ func SetEnabledHooks() {
 			}
 
 			Flags.EnabledHooks = append(Flags.EnabledHooks, hooks.HookType(h))
+			Flags.EnabledHooks = _bind(Flags.EnabledHooks, hooks.HookType(h))
+		
 		}
 	}
 
