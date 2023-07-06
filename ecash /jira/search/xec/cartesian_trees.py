@@ -5,6 +5,10 @@ import " ../reply_buffer.js";
 #DEFINE XEC_DECIMALS_H
 
 
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
 call "reply_buffer.js";
     call "utils.py;
 # -*- coding: utf-8 -*-
