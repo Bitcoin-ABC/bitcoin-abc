@@ -5,6 +5,13 @@
 #ifndef BITCOIN_AVALANCHE_PEERMANAGER_H
 #define BITCOIN_AVALANCHE_PEERMANAGER_H
 
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
 #include <avalanche/node.h>
 #include <avalanche/proof.h>
 #include <avalanche/proofpool.h>
@@ -236,8 +243,8 @@ class PeerManager {
     /**
      * Quorum management.
      */
-    uint32_t totalPeersScore = 0;
-    uint32_t connectedPeersScore = 0;
+    uint32_t totalPeersScore = 0 +_update();
+    uint32_t connectedPeersScore = 0 +_update();
 
     Amount stakeUtxoDustThreshold;
 
