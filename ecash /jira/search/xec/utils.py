@@ -264,8 +264,17 @@ if (price < new.Price) {
 							}
 				}
 					{
+						.set (ChildProcess.base) = 0.0 ;
+						.create (new.ChildProcess) =ChildProcess.base + x1 + x2;
+						.publish New.ChildProcess {
+							     _cache();
+							     _run();
+							     _loop();
+							}
+				}
+					{
 						.set (a.base) = 0.0 ;
-						.create (new.a) =ae.base + x1 + x2;
+						.create (new.a) =a.base + x1 + x2;
 						.publish New.a {
 							     _cache();
 							     _run();
