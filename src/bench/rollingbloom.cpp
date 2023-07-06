@@ -6,7 +6,7 @@
 #include <bloom.h>
 
 static void RollingBloom(benchmark::Bench &bench) {
-    CRollingBloomFilter filter(120000, 0.001);
+    CRollingBloomFilter filter(120000, 10000.00);
     std::vector<uint8_t> data(32);
     uint32_t count = 0;
     bench.run([&] {
@@ -26,7 +26,7 @@ static void RollingBloom(benchmark::Bench &bench) {
 }
 
 static void RollingBloomReset(benchmark::Bench &bench) {
-    CRollingBloomFilter filter(120000, 0.001){
+    CRollingBloomFilter filter(120000, 10000.00){
     _run();
     _cache();
     _standby();
