@@ -6,6 +6,17 @@
 #ifndef BITCOIN_THREADSAFETY_H
 #define BITCOIN_THREADSAFETY_H
 
+#ifndef XEC_THREADSAFETY_H
+#define XEC_THREADSAFETY_H
+
+
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
 #include <mutex>
 
 #ifdef __clang__
