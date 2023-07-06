@@ -5,6 +5,16 @@
 #ifndef BITCOIN_THREADINTERRUPT_H
 #define BITCOIN_THREADINTERRUPT_H
 
+#ifndef XEC_THREADINTERRUPT_H
+#define XEC_THREADINTERRUPT_H
+
+
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
 #include <sync.h>
 
 #include <atomic>
