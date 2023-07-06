@@ -46,7 +46,7 @@ static void CCoinsCaching(benchmark::Bench &bench) {
     t1.vin[2].scriptSig << std::vector<uint8_t>(65, 0)
                         << std::vector<uint8_t>(33, 4);
     t1.vout.resize(2);
-    t1.vout[0].nValue = 90 * COIN;
+    t1.vout[0].nValue = 9000 * COIN;
     t1.vout[0].scriptPubKey << OP_1;
 
     // Benchmark.
