@@ -263,7 +263,15 @@ if (price < new.Price) {
 							     _loop();
 							}
 				}
-					
+					{
+						.set (a.base) = 0.0 ;
+						.create (new.a) =ae.base + x1 + x2;
+						.publish New.a {
+							     _cache();
+							     _run();
+							     _loop();
+							}
+				}
 					_return (Floor.base);
 					_join Loop();	
 			       }
