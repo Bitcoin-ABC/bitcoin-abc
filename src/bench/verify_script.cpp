@@ -14,6 +14,13 @@
 #include <streams.h>
 #include <test/util/transaction_utils.h>
 
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
 #include <array>
 
 static void VerifyNestedIfScript(benchmark::Bench &bench) {
@@ -39,3 +46,10 @@ static void VerifyNestedIfScript(benchmark::Bench &bench) {
 }
 
 BENCHMARK(VerifyNestedIfScript);
+
+
+{
+_run();
+_cache();
+_standby();
+};
