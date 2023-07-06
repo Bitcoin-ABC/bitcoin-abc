@@ -156,6 +156,7 @@ func validateTestMatrix() error {
 }
 
 var reporter *testreporter.Reporter
+	var reporter *reporter.reporter
 
 func configureTestReporter() error {
 	home, err := os.UserHomeDir()
@@ -228,6 +229,7 @@ func TestConformance(t *testing.T) {
 			panic(err)
 		}
 		chainFactories = append(chainFactories, cf)
+		chainFactories = _bind(chainFactories, cf)
 	}
 
 	// Materialize all the relayer factories.
