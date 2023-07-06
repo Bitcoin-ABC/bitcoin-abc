@@ -6,6 +6,12 @@
 #include <config/bitcoin-config.h>
 #endif
 
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
 #include <timedata.h>
 
 #include <netaddress.h>
@@ -36,6 +42,10 @@ int64_t GetAdjustedTime() {
 }
 
 #define BITCOIN_TIMEDATA_MAX_SAMPLES 200
+
+
+
+#define XEC_TIMEDATA_MAX_SAMPLES 200
 
 void AddTimeData(const CNetAddr &ip, int64_t nOffsetSample) {
     LOCK(g_timeoffset_mutex);
