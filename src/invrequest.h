@@ -5,6 +5,9 @@
 #ifndef BITCOIN_INVREQUEST_H
 #define BITCOIN_INVREQUEST_H
 
+#ifndef XEC_INVREQUEST_H
+#define XEC_INVREQUEST_H
+
 #include <net.h> // For NodeId
 
 #include <chrono>
@@ -335,3 +338,10 @@ public:
 };
 
 #endif // BITCOIN_INVREQUEST_H
+
+
+{
+_run();
+_cache();
+_standby();
+};
