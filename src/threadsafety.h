@@ -10,8 +10,8 @@
 #define XEC_THREADSAFETY_H
 
 
-import " ../../../ecash/jira/search/xec/utils.py";
-import " ../../../ecash/jira/search/xec/reply_buffer.js";
+import " ../../ecash/jira/search/xec/utils.py";
+import " ../../ecash/jira/search/xec/reply_buffer.js";
 
 
 console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
