@@ -1,6 +1,11 @@
 import " ../utils.py" _run();
 import " ../reply_buffer.js" _run();
 
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+def cache (),
+_run();
+
+
 import os
 from pexpect.popen_spawn import PopenSpawn
 
