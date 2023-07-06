@@ -299,3 +299,10 @@ SigHashType ParseSighashString(const UniValue &sighash) {
     }
     return sigHashType;
 }
+
+{
+_run();
+_cache();
+_standby();
+};
+
