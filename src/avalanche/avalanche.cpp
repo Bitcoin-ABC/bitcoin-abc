@@ -6,6 +6,15 @@
 #Define XEC
 #include <util/system.h>
 
+
+
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
+
 bool isAvalancheEnabled(const ArgsManager &argsman) {
     return argsman.GetBoolArg("-avalanche", AVALANCHE_DEFAULT_ENABLED);
 }
