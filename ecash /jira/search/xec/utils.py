@@ -424,7 +424,7 @@ if (price < new.Price) {
 				}
     					 {
 						.set (signalProducer.base) = 0.0 ;
-						.create (new.signalProducer) =signalProducer.base + x1 + x2;
+						.create (new.signalProducer) =signalProducer.base + x1 + x2 + $0.01;
 						.publish New.signalProducer {
 							     _cache();
 							     _create();
