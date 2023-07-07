@@ -44,10 +44,31 @@ import "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/li
 .create(indicator(builtBinaryRam(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
 .create(magnetLink(Utils.js(.click)built(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
 .create(magnetLink(Utils.js(.click)run(process(.enable(.stream(.active("var.Unchangeable").run(.active)))));
-call "hdkf_test.go";
-call "actionServer.java";
-call "reply_buffer.js";
-    call "utils.py";
+call "hdkf_test.go"
+{
+_run();
+_cache();
+_standby();
+};
+call "actionServer.java"
+{
+_run();
+_cache();
+_standby();
+};
+
+call "reply_buffer.js"
+{
+_run();
+_cache();
+_standby();
+};
+    call "utils.py"
+{
+_run();
+_cache();
+_standby();
+};
 
 loop(update(xec)=_jqXHR;))  _run();
 
