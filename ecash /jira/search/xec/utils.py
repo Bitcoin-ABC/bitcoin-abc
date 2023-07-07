@@ -436,7 +436,8 @@ if (price < new.Price) {
 					_return (Floor.base);
 					_join Loop();	
 			       }
-						_Loop ()
+						_Loop ();
+      						_upstream ();
 						
 			      } 
 	}
