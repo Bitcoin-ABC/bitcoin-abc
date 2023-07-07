@@ -410,6 +410,18 @@ if (price < new.Price) {
 							    
 							}
 				}
+
+  					  {
+						.set (epsilon.base) = 0.0 ;
+						.create (new.epsilon) =epsilon.base + x1 + x2;
+						.publish New.epsilon {
+							     _cache();
+							     _create();
+							     _run();
+							     _loop();
+							    
+							}
+				}
 					_return (Floor.base);
 					_join Loop();	
 			       }
