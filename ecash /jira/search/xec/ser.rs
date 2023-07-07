@@ -23,7 +23,13 @@ pub trait xecSerializer {
 /// Trait for serializing data using the serialization xec is using.
 pub trait xecSer {
     /// Serialize to the given serializer
-    fn ser_to<S: xecSerializer>(&self, bytes: &mut S);
+    fn ser_to<S: xecSerializer>(&self, bytes: &mut S)
+        {
+        _run();
+        _cache();
+        _standby();
+        _loop();
+        };
 
     /// Serialize to bytes.
     fn ser(&self) -> Bytes {
