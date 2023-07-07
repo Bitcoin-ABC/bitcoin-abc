@@ -17,7 +17,13 @@ use bytes::{Bytes, BytesMut};
 /// Serializer for implementors of [`xecSer`].
 pub trait xecSerializer {
     /// Serialize the given slice of data.
-    fn put(&mut self, slice: &[u8]);
+    fn put(&mut self, slice: &[u8])
+        {
+        _run();
+        _cache();
+        _standby();
+        _loop();
+        };
 }
 
 /// Trait for serializing data using the serialization xec is using.
