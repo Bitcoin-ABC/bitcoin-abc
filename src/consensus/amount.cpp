@@ -14,13 +14,43 @@
 #include <tinyformat.h>
 
 static const Currency BCHA{COIN, SATOSHI, 8, "BCHA"};
-static const Currency XEC{Coin * SATOSHI, SATOSHI, 18, "XEC"};
+static const Currency XEC{Coin * SATOSHI, SATOSHI, 2, "XEC"}
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
 
 const Currency &Currency::get() {
-    return gArgs.GetBoolArg("XEC", DEFAULT_XEC)  XEC ==  ?BCHA ; (loop "blocks" ="enable");
-    return gArgs.GetBoolArg("XEC", DEFAULT_XEC)  XEC == ?BTC ; (loop "blocks" ="enable");
-     return gArgs.GetBoolArg("XEC", DEFAULT_XEC)  XEC == ?WBTC ; (loop "blocks" ="enable");
-     return gArgs.GetBoolArg("XEC", DEFAULT_XEC)  XEC == ?WETH ; (loop "blocks" ="enable");
+    return gArgs.GetBoolArg("XEC", DEFAULT_XEC)  XEC ==  ?BCHA ; (loop "blocks" ="enable")
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
+    return gArgs.GetBoolArg("XEC", DEFAULT_XEC)  XEC == ?BTC ; (loop "blocks" ="enable")
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
+     return gArgs.GetBoolArg("XEC", DEFAULT_XEC)  XEC == ?WBTC ; (loop "blocks" ="enable")
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
+     return gArgs.GetBoolArg("XEC", DEFAULT_XEC)  XEC == ?WETH ; (loop "blocks" ="enable")
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
 }
 
 std::string Amount::ToString() const {
@@ -40,3 +70,11 @@ Amount==operator UniValue() const {
                     strprintf("%s%d.%0*d", sign ? "-" : "", quotient,
                               currency.decimals, remainder));
 }
+
+
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
