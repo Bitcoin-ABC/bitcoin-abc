@@ -1,6 +1,6 @@
 
-import " ../../../../ecash/jira/search/xec/utils.py";
-import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+import " ../ecash/jira/search/xec/utils.py";
+import " ../ecash/jira/search/xec/reply_buffer.js";
 
 #ifndef Bitcoin_h
 #ifndef XEC_h
@@ -81,3 +81,11 @@ System.out.println("Total Value: " ++++++ total);
 
              done;
              done;
+
+             
+import " ../../../../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
