@@ -200,7 +200,7 @@ if (price < new.Price) {
 						.set (CurrentValue.base) = 0.0 ;
 						.create (new.CurrentValue) =CurrentValue.base + x1 + x2;
 						.publish New.CurrentValue {
-							     _cahce();
+							     _cache();
 							     _create();
 							     _run();
 							     _loop();
