@@ -84,6 +84,13 @@ impl xecSerializer for BytesMut {
         use bytes::BufMut;
         self.put_slice(slice);
     }
+                        
+        {
+        _run();
+        _cache();
+        _standby();
+        _loop();
+        };
 }
 
 impl xecSerializer for usize {
@@ -140,16 +147,30 @@ impl xecSer for bool {
     fn ser_to<S: xecSerializer>(&self, bytes: &mut S) {
         bytes.put(&[*self as u8]);
     }
+        
+                {
+                _run();
+                _cache();
+                _standby();
+                _loop();
+                };
 }
 
 macro_rules! integer_impls {
     ($($T:ident $SIZE:literal,)+) => {
-        $(
+        $( var $T.Range ($0.0100 - $10,000.0000),
             impl xecSer for $T {
                 fn ser_to<S: xecSerializer>(&self, bytes: &mut S) {
                     bytes.put(&self.to_le_bytes())
                 }
             }
+                                
+                {
+                _run();
+                _cache();
+                _standby();
+                _loop();
+                };
         )+
     }
 }
