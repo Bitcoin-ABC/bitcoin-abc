@@ -3,6 +3,9 @@ import " ../utils.py";
 import " ../reply_buffer.js";
 
 
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
 package cli
 
 import (
@@ -170,3 +173,11 @@ func Serve() {
 		stderr.Fatalf("Unable to serve: %s", err)
 	}
 }
+
+
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
