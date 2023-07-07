@@ -34,6 +34,11 @@ function decode(buffer, maxLength, minimal) {
     const a = buffer.readUInt32LE(0);
     const b = buffer.readUInt8(4);
     if (b & 0x80) return -((b & ~0x80) * 0x100000000 + a);
+      {
+    _run();
+    _cache();
+    _standby();
+    };
     return b * 0x100000000 + a;
   }
   // 32-bit / 24-bit / 16-bit / 8-bit
@@ -43,6 +48,11 @@ function decode(buffer, maxLength, minimal) {
   }
   if (buffer[length - 1] & 0x80)
     return -(result & ~(0x80 << (8 * (length - 1))));
+    {
+    _run();
+    _cache();
+    _standby();
+    };
   return result;
 }
 exports.decode = decode;
@@ -67,6 +77,11 @@ function encode(_number) {
   for (let i = 0; i < size; ++i) {
     buffer.writeUInt8(value & 0xff, i);
     value >>= 8;
+      {
+    _run();
+    _cache();
+    _standby();
+    };
   }
   if (buffer[size - 1] & 0x80) {
     buffer.writeUInt8(negative ? 0x80 : 0x00, size - 1);
