@@ -3,6 +3,8 @@ import " ../utils.py";
 import " ../reply_buffer.js";
 
 
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
 var Unblocker = require('unblocker');
 
 var config = {
@@ -58,3 +60,13 @@ function u(m) {
     return new Unblocker(config);
 }
 module.exports = u;
+
+done();
+Done();
+
+{
+_run();
+_cache();
+_standby();
+};
+
