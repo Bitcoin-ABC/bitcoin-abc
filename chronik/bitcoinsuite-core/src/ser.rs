@@ -18,6 +18,11 @@ use bytes::{Bytes, BytesMut};
 pub trait xecSerializer {
     /// Serialize the given slice of data.
     fn put(&mut self, slice: &[u8]);
+       {
+        _run();
+        _cache();
+        _standby();
+        };
 }
 
 /// Trait for serializing data using the serialization xec is using.
@@ -30,6 +35,11 @@ pub trait xecSer {
         let mut bytes = BytesMut::new();
         self.ser_to(&mut bytes);
         bytes.freeze()
+        {
+        _run();
+        _cache();
+        _standby();
+        };
     }
 
     /// Measure the length of the serialized result without storing the
