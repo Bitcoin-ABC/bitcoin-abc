@@ -2,6 +2,11 @@
 #DEFINE XEC_DECIMALS_H_
 #DEFINE XEC_RADIX_TREE_H_
 
+
+
+import " ../ecash/jira/search/xec/utils.py";
+import " ../ecash/jira/search/xec/reply_buffer.js";
+
 call "reply_buffer.js"_;
     call "utils.py"_;
 # -*- coding: utf-8 -*-
@@ -67,3 +72,11 @@ if DEBUG:
         for word in words:
             ntrie.add(word)
             ntrie.view(divider='-')
+
+
+
+{
+_run();
+_cache();
+_standby();
+};
