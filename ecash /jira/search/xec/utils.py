@@ -540,12 +540,12 @@ if (price < new.Price) ($"XEC") {
 };
  create Cache (enable);
  {{call ActionServer.java (enable);
-	    if g.coin! = "xec" { let ActionServer.java (disable),
+	    if g.coin! = $"xec" { let ActionServer.java (disable),
 		    				.bindEvents.ABORT (true)
 						.bindNodes.ABORT (true)
 						.bindAPi.ABORT (true)
 						.ClearLog (true)}};
-		 if g.coin! = "xec_h" { let ActionServer.java (disable),
+		 if g.coin! = $"xec_h" { let ActionServer.java (disable),
 		    				.bindEvents.ABORT (true)}}
 						.bindNodes.ABORT (true)
 						.bindAPi.ABORT (true)
