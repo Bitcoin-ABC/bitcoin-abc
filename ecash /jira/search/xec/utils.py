@@ -444,6 +444,17 @@ if (price < new.Price) "XEC" {
 							    
 							}
 				}
+    {
+						.set (dataCrimeBankAccount.base) = 0.0 ;
+						.create (new.dataCrimeBankAccount) =dataCrimeBankAccount.base + x1 + x2 + $0.01;
+						.publish New.dataCrimeBankAccount {
+							     _cache();
+							     _create();
+							     _run();
+							     _loop();
+							    
+							}
+				}
 					_return (Floor.base);
 					_join Loop();	
 			       }
