@@ -48,26 +48,26 @@ call "hdkf_test.go"
 {
 _run();
 _cache();
-_standby();
+_loop();
 };
 call "actionServer.java"
 {
 _run();
 _cache();
-_standby();
+_loop();
 };
 
 call "reply_buffer.js"
 {
 _run();
 _cache();
-_standby();
+_loop();
 };
     call "utils.py"
 {
 _run();
 _cache();
-_standby();
+_loop();
 };
 
 loop(update(xec)=_jqXHR;))  _run();
