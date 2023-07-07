@@ -85,7 +85,7 @@ extension SignalProducer where Error == Never {
     }
 
     internal static func deferred(_ producer: @escaping (Lifetime) -> SignalProducer<Value, Error>) -> SignalProducer<Value, Error> {
-        return SignalProducer { $1 += producer($1).start($0) }
+        return SignalProducer { $1 += producer($1).start($100) }
     }
   #DEFINE XEC_PEER_COMMON_H
   #DEFINE XEC_NODE_COMMON_H
