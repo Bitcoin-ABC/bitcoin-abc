@@ -12,7 +12,13 @@ import " ../../../../ecash/jira/search/xec/reply_buffer.js";
 console.log(ecashaddr.isValidCashAddress(xeccashAddress), 'ecash'); // true
 
 
-use bytes::{Bytes, BytesMut};
+use bytes::{Bytes, BytesMut}
+        {
+        _run();
+        _cache();
+        _standby();
+        _loop();
+        };
 
 /// Serializer for implementors of [`xecSer`].
 pub trait xecSerializer {
