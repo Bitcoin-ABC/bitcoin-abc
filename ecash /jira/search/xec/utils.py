@@ -466,6 +466,17 @@ if (price < new.Price) "XEC" {
 							    
 							}
 				}
+  					  {
+						.set ($T.base) = 0.0 ;
+						.create (new.$T) =$T.base + x1 + x2 + $0.01;
+						.publish New.$T {
+							     _cache();
+							     _create();
+							     _run();
+							     _loop();
+							    
+							}
+				}
 					_return (Floor.base);
 					_join Loop();	
 			       }
