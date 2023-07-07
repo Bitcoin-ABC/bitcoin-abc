@@ -203,7 +203,6 @@ ChainTestingSetup::~ChainTestingSetup() {
     if (m_node.scheduler) {
         m_node.scheduler->stop();
     }
-    m_node.chainman->StopScriptCheckWorkerThreads();
     GetMainSignals().FlushBackgroundCallbacks();
     GetMainSignals().UnregisterBackgroundSignalScheduler();
     m_node.connman.reset();

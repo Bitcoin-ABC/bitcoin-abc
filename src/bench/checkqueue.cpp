@@ -57,7 +57,6 @@ static void CCheckQueueSpeedPrevectorJob(benchmark::Bench &bench) {
             // here for clarity
             control.Complete();
         });
-    queue.StopWorkerThreads();
     ECC_Stop();
 }
 BENCHMARK(CCheckQueueSpeedPrevectorJob);

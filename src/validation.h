@@ -1672,7 +1672,6 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
     CCheckQueue<CScriptCheck> &GetCheckQueue() { return m_script_check_queue; }
-    void StopScriptCheckWorkerThreads();
 
     //! If, due to invalidation / reconsideration of blocks, the previous
     //! best header is no longer valid / guaranteed to be the most-work
@@ -1685,8 +1684,6 @@ public:
     /** Load the recent block headers reception time from a file. */
     bool LoadRecentHeadersTime(const fs::path &filePath)
         EXCLUSIVE_LOCKS_REQUIRED(GetMutex());
-
-    ~ChainstateManager();
 };
 
 /** Deployment* info via ChainstateManager */

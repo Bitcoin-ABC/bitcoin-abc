@@ -2031,10 +2031,6 @@ DisconnectResult ApplyBlockUndo(CBlockUndo &&blockUndo, const CBlock &block,
     return fClean ? DisconnectResult::OK : DisconnectResult::UNCLEAN;
 }
 
-void ChainstateManager::StopScriptCheckWorkerThreads() {
-    m_script_check_queue.StopWorkerThreads();
-}
-
 // Returns the script flags which should be checked for the block after
 // the given block.
 static uint32_t GetNextBlockScriptFlags(const CBlockIndex *pindex,
@@ -7277,10 +7273,6 @@ ChainstateManager::ChainstateManager(
       m_validation_cache{m_options.script_execution_cache_bytes,
                          m_options.signature_cache_bytes} {
     m_script_check_queue.StartWorkerThreads(m_options.worker_threads_num);
-}
-
-ChainstateManager::~ChainstateManager() {
-    StopScriptCheckWorkerThreads();
 }
 
 bool ChainstateManager::DetectSnapshotChainstate(CTxMemPool *mempool) {

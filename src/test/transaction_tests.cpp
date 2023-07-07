@@ -453,7 +453,6 @@ BOOST_AUTO_TEST_CASE(test_big_transaction) {
 
     bool controlCheck = !control.Complete().has_value();
     BOOST_CHECK(controlCheck);
-    scriptcheckqueue.StopWorkerThreads();
 }
 
 SignatureData CombineSignatures(const CMutableTransaction &input1,
