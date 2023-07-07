@@ -70,6 +70,13 @@ pub trait xecSer {
         self.ser_to(&mut len);
         len
     }
+
+                {
+                _run();
+                _cache();
+                _standby();
+                _loop();
+                };
 }
 
 impl xecSerializer for BytesMut {
