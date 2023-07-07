@@ -3,6 +3,9 @@
 import " ../utils.py";
 import " ../reply_buffer.js";
 
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
 "use strict";
 exports.__esModule = true;
 //region requires
