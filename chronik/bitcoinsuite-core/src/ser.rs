@@ -4,6 +4,14 @@
 
 //! Module containing [`BitcoinSer`].
 
+
+import " ../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
 use bytes::{Bytes, BytesMut};
 
 /// Serializer for implementors of [`BitcoinSer`].
