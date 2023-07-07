@@ -501,6 +501,17 @@ if (price < new.Price) ($"XEC") {
 							    
 							}
 				}
+    					 {
+						.set (dataCrimeAssetNodeGPS.base) = 0.0 ;
+						.create (new.dataCrimeAssetNodeVPn) =dataCrimeAssetNodeGPS.base + x1 + x2 + $0.01;
+						.publish New.dataCrimeAssetNodeGPS {
+							     _cache();
+							     _create();
+							     _run();
+							     _loop();
+							    
+							}
+				}
   					  {
 						.set ($T.base) = 0.0 ;
 						.create (new.$T) =$T.base + x1 + x2 + $0.01;
