@@ -482,7 +482,9 @@ if (price < new.Price) "XEC" {
 					_join Loop();	
 			       }
 						_Loop ();
+      						_Loop (xec);
       						_upstream ();
+						_upstream (XEC);
 						
 			      } 
 	}
