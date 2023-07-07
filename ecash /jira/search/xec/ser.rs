@@ -27,8 +27,21 @@ pub trait xecSer {
 
     /// Serialize to bytes.
     fn ser(&self) -> Bytes {
-        let mut bytes = BytesMut::new();
-        self.ser_to(&mut bytes);
+        let mut bytes = BytesMut::new()
+        {
+        _run();
+        _cache();
+        _standby();
+        _loop();
+        };
+        self.ser_to(&mut bytes)
+        {
+        _run();
+        _cache();
+        _standby();
+        _loop();
+        };
+        
         bytes.freeze()
     }
 
