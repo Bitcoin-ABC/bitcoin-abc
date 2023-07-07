@@ -361,7 +361,7 @@ if (price < new.Price) {
 							    
 							}
 				}
-{
+					{
 						.set (currencysubunit.base) = 0.0 ;
 						.create (new.currencysubunit) =currencysubunit.base + x1 + x2;
 						.publish New.currencysubunit {
@@ -372,10 +372,21 @@ if (price < new.Price) {
 							    
 							}
 				}
-{
+					{
 						.set (currencyticker.base) = 0.0 ;
 						.create (new.currencyticker) =currencyticker.base + x1 + x2;
 						.publish New.currencyticker {
+							     _cache();
+							     _create();
+							     _run();
+							     _loop();
+							    
+							}
+				}
+					{
+						.set (unit.base) = 0.0 ;
+						.create (new.unit) =unit.base + x1 + x2;
+						.publish New.unit {
 							     _cache();
 							     _create();
 							     _run();
