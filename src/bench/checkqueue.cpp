@@ -13,7 +13,6 @@
 
 #include <vector>
 
-static const int MIN_CORES = 2;
 static const size_t BATCHES = 101;
 static const size_t BATCH_SIZE = 30;
 static const size_t QUEUE_BATCH_SIZE = 128;
@@ -21,6 +20,12 @@ static const size_t QUEUE_BATCH_SIZE = 128;
 // checks all contain a prevector that is indirect 50% of the time and there is
 // a little bit of work done between calls to Add.
 static void CCheckQueueSpeedPrevectorJob(benchmark::Bench &bench) {
+    // We shouldn't ever be running with the checkqueue on a single core
+    // machine.
+    if (GetNumCores() <= 1) {
+        return;
+    }
+
     ECC_Start();
 
     struct PrevectorJob {
@@ -30,8 +35,11 @@ static void CCheckQueueSpeedPrevectorJob(benchmark::Bench &bench) {
         }
         std::optional<int> operator()() { return std::nullopt; }
     };
-    CCheckQueue<PrevectorJob> queue{QUEUE_BATCH_SIZE};
-    queue.StartWorkerThreads(std::max(MIN_CORES, GetNumCores()));
+
+    // The main thread should be counted to prevent thread oversubscription, and
+    // to decrease the variance of benchmark results.
+    int worker_threads_num{GetNumCores() - 1};
+    CCheckQueue<PrevectorJob> queue{QUEUE_BATCH_SIZE, worker_threads_num};
 
     // create all the data once, then submit copies in the benchmark.
     FastRandomContext insecure_rand(true);

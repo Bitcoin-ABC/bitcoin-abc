@@ -7267,13 +7267,11 @@ static ChainstateManager::Options &&Flatten(ChainstateManager::Options &&opts) {
 ChainstateManager::ChainstateManager(
     const util::SignalInterrupt &interrupt, Options options,
     node::BlockManager::Options blockman_options)
-    : m_script_check_queue{/*nBatchSizeIn=*/128}, m_interrupt{interrupt},
-      m_options{Flatten(std::move(options))},
+    : m_script_check_queue{/*batch_size=*/128, options.worker_threads_num},
+      m_interrupt{interrupt}, m_options{Flatten(std::move(options))},
       m_blockman{interrupt, std::move(blockman_options)},
       m_validation_cache{m_options.script_execution_cache_bytes,
-                         m_options.signature_cache_bytes} {
-    m_script_check_queue.StartWorkerThreads(m_options.worker_threads_num);
-}
+                         m_options.signature_cache_bytes} {}
 
 bool ChainstateManager::DetectSnapshotChainstate(CTxMemPool *mempool) {
     assert(!m_snapshot_chainstate);

@@ -81,7 +81,10 @@ void benchmark::BenchRunner::RunAll(const Args &args) {
             }
             std::cout << bench.complexityBigO() << std::endl;
         }
-        benchmarkResults.push_back(bench.results().back());
+
+        if (!bench.results().empty()) {
+            benchmarkResults.push_back(bench.results().back());
+        }
     }
 
     GenerateTemplateResults(
