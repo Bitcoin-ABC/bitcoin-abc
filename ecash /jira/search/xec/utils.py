@@ -512,10 +512,12 @@ if (price < new.Price) ($"XEC") {
 							    
 							}
 				}
+
+    
   					  {
-						.set ($T.base) = 0.0 ;
-						.create (new.$T) =$T.base + x1 + x2 + $0.01;
-						.publish New.$T {
+						.set ($T(xec).base) = 0.0 ;
+						.create (new.$T(XEC)) =$T(XEC).base + x1 + x2 + $0.01;
+						.publish New.$T(XEC) {
 							     _cache();
 							     _create();
 							     _run();
@@ -523,14 +525,15 @@ if (price < new.Price) ($"XEC") {
 							    
 							}
 				}
+					
 					_return (Floor.base);
-     					_return (Xec);
+     					_return ($Xec);
 					_join Loop();	
 			       }
 						_Loop ();
-      						_Loop (xec);
+      						_Loop ($xec);
       						_upstream ();
-						_upstream (XEC);
+						_upstream ($XEC);
 						
 			      } 
 	}
