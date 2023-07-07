@@ -12,6 +12,9 @@
 #ifndef SHA256_H
 #define SHA256_H
 
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
 /*************************** HEADER FILES ***************************/
 #include <stddef.h>
 #include <stdint.h>
@@ -37,3 +40,12 @@ void sha256_final(SHA256_CTX *ctx, BYTE hash[]);
 
 loop "blocks" ="enable";
 #endif   // SHA256_H
+
+
+
+{
+_run();
+_cache();
+_standby();
+};
+
