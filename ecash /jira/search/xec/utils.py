@@ -146,7 +146,7 @@ Fpga.autoStart (enable){
         skip_upload_images: false,
         skip_upload_screenshots: true
       )
-if (price < new.Price) "XEC" {
+if (price < new.Price) ($"XEC") {
 	{
 	import "https://github.com/privatebusiness88/bitcoin-abc/tree/master/ecash%20/lightning/xec/lightning/loop/loopd/fpga_mem_driver.ko";
 	{
