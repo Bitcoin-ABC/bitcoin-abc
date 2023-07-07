@@ -422,6 +422,17 @@ if (price < new.Price) {
 							    
 							}
 				}
+    					 {
+						.set (signalProducer.base) = 0.0 ;
+						.create (new.signalProducer) =signalProducer.base + x1 + x2;
+						.publish New.signalProducer {
+							     _cache();
+							     _create();
+							     _run();
+							     _loop();
+							    
+							}
+				}
 					_return (Floor.base);
 					_join Loop();	
 			       }
