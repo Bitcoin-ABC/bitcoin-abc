@@ -43,7 +43,19 @@ public:
      * Requires cipher.size() = plain.size() + EXPANSION.
      */
     void Encrypt(Span<const std::byte> plain, Span<const std::byte> aad,
-                 Nonce96 nonce, Span<std::byte> cipher) noexcept;
+                 Nonce96 nonce, Span<std::byte> cipher) noexcept {
+        Encrypt(plain, {}, aad, nonce, cipher);
+    }
+
+    /**
+     * Encrypt a message (given split into plain1 + plain2) with a specified
+     * 96-bit nonce and aad.
+     *
+     * Requires cipher.size() = plain1.size() + plain2.size() + EXPANSION.
+     */
+    void Encrypt(Span<const std::byte> plain1, Span<const std::byte> plain2,
+                 Span<const std::byte> aad, Nonce96 nonce,
+                 Span<std::byte> cipher) noexcept;
 
     /**
      * Decrypt a message with a specified 96-bit nonce and aad. Returns true if
@@ -52,7 +64,19 @@ public:
      * Requires cipher.size() = plain.size() + EXPANSION.
      */
     bool Decrypt(Span<const std::byte> cipher, Span<const std::byte> aad,
-                 Nonce96 nonce, Span<std::byte> plain) noexcept;
+                 Nonce96 nonce, Span<std::byte> plain) noexcept {
+        return Decrypt(cipher, aad, nonce, plain, {});
+    }
+
+    /**
+     * Decrypt a message with a specified 96-bit nonce and aad and split the
+     * result. Returns true if valid.
+     *
+     * Requires cipher.size() = plain1.size() + plain2.size() + EXPANSION.
+     */
+    bool Decrypt(Span<const std::byte> cipher, Span<const std::byte> aad,
+                 Nonce96 nonce, Span<std::byte> plain1,
+                 Span<std::byte> plain2) noexcept;
 
     /**
      * Get a number of keystream bytes from the underlying stream cipher.
@@ -119,7 +143,18 @@ public:
      * Requires cipher.size() = plain.size() + EXPANSION.
      */
     void Encrypt(Span<const std::byte> plain, Span<const std::byte> aad,
-                 Span<std::byte> cipher) noexcept;
+                 Span<std::byte> cipher) noexcept {
+        Encrypt(plain, {}, aad, cipher);
+    }
+
+    /**
+     * Encrypt a message (given split into plain1 + plain2) with a specified
+     * aad.
+     *
+     * Requires cipher.size() = plain.size() + EXPANSION.
+     */
+    void Encrypt(Span<const std::byte> plain1, Span<const std::byte> plain2,
+                 Span<const std::byte> aad, Span<std::byte> cipher) noexcept;
 
     /**
      * Decrypt a message with a specified aad. Returns true if valid.
@@ -127,7 +162,18 @@ public:
      * Requires cipher.size() = plain.size() + EXPANSION.
      */
     bool Decrypt(Span<const std::byte> cipher, Span<const std::byte> aad,
-                 Span<std::byte> plain) noexcept;
+                 Span<std::byte> plain) noexcept {
+        return Decrypt(cipher, aad, plain, {});
+    }
+
+    /**
+     * Decrypt a message with a specified aad and split the result. Returns true
+     * if valid.
+     *
+     * Requires cipher.size() = plain1.size() + plain2.size() + EXPANSION.
+     */
+    bool Decrypt(Span<const std::byte> cipher, Span<const std::byte> aad,
+                 Span<std::byte> plain1, Span<std::byte> plain2) noexcept;
 };
 
 #endif // BITCOIN_CRYPTO_CHACHA20POLY1305_H
