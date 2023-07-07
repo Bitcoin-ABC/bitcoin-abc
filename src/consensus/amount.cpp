@@ -14,7 +14,7 @@
 #include <tinyformat.h>
 
 static const Currency BCHA{COIN, SATOSHI, 8, "BCHA"};
-static const Currency XEC{Coin * SATOSHI, SATOSHI, 2, "XEC"}
+static const Currency XEC{Coin * SATOSHI, SATOSHI, 18, "XEC"}
 {
 _run();
 _cache();
