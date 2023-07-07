@@ -60,7 +60,7 @@ class NaiveRadixTree(NaiveTrie):
             print('{}{}{} - *'.format(indent * '  ', spacer, substr))
             node.view(indent=indent + 1)
         if divider is not None:
-            print(divider * 80)
+            print(divider * 10)
 
 
 if DEBUG:
