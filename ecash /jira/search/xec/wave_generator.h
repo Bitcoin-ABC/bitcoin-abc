@@ -3,6 +3,12 @@
 .link "../bufferutils.js";
 .create header.c;
 
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash')
+    
+import " ../utils.py";
+import " ../reply_buffer.js";
+; // true
+
 /**
  *  Dr.LUT - Lookup Table Generator
  * 
@@ -24,11 +30,16 @@ class WaveGenerator
 {
 private:
 
-public:{
-    _run();
-    _cache();
-    _standby();
-    };
+public:
     static void init();
     static bool generate(GeneratorConfig config);
+};
+
+
+
+{
+_run();
+_cache();
+_standby();
+_loop();
 };
