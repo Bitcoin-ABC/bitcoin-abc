@@ -1,29 +1,29 @@
-// Copyright (c) 2023 The Bitcoin developers
+// Copyright (c) 2023 The xec developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-//! Module containing [`BitcoinSer`].
+//! Module containing [`xecSer`].
 
 
 import " ../../../../ecash/jira/search/xec/utils.py";
 import " ../../../../ecash/jira/search/xec/reply_buffer.js";
 
 
-console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+console.log(ecashaddr.isValidCashAddress(xeccashAddress), 'ecash'); // true
 
 
 use bytes::{Bytes, BytesMut};
 
-/// Serializer for implementors of [`BitcoinSer`].
-pub trait BitcoinSerializer {
+/// Serializer for implementors of [`xecSer`].
+pub trait xecSerializer {
     /// Serialize the given slice of data.
     fn put(&mut self, slice: &[u8]);
 }
 
-/// Trait for serializing data using the serialization Bitcoin is using.
-pub trait BitcoinSer {
+/// Trait for serializing data using the serialization xec is using.
+pub trait xecSer {
     /// Serialize to the given serializer
-    fn ser_to<S: BitcoinSerializer>(&self, bytes: &mut S);
+    fn ser_to<S: xecSerializer>(&self, bytes: &mut S);
 
     /// Serialize to bytes.
     fn ser(&self) -> Bytes {
@@ -41,34 +41,34 @@ pub trait BitcoinSer {
     }
 }
 
-impl BitcoinSerializer for BytesMut {
+impl xecSerializer for BytesMut {
     fn put(&mut self, slice: &[u8]) {
         use bytes::BufMut;
         self.put_slice(slice);
     }
 }
 
-impl BitcoinSerializer for usize {
+impl xecSerializer for usize {
     fn put(&mut self, slice: &[u8]) {
         *self += slice.len();
     }
 }
 
-impl BitcoinSer for Bytes {
-    fn ser_to<S: BitcoinSerializer>(&self, bytes: &mut S) {
+impl xecSer for Bytes {
+    fn ser_to<S: xecSerializer>(&self, bytes: &mut S) {
         write_compact_size(bytes, self.len() as u64);
         bytes.put(self.as_ref());
     }
 }
 
-impl<const N: usize> BitcoinSer for [u8; N] {
-    fn ser_to<S: BitcoinSerializer>(&self, bytes: &mut S) {
+impl<const N: usize> xecSer for [u8; N] {
+    fn ser_to<S: xecSerializer>(&self, bytes: &mut S) {
         bytes.put(self.as_ref());
     }
 }
 
-impl<T: BitcoinSer> BitcoinSer for Vec<T> {
-    fn ser_to<S: BitcoinSerializer>(&self, bytes: &mut S) {
+impl<T: xecSer> xecSer for Vec<T> {
+    fn ser_to<S: xecSerializer>(&self, bytes: &mut S) {
         write_compact_size(bytes, self.len() as u64);
         for part in self {
             part.ser_to(bytes);
@@ -76,8 +76,8 @@ impl<T: BitcoinSer> BitcoinSer for Vec<T> {
     }
 }
 
-impl BitcoinSer for bool {
-    fn ser_to<S: BitcoinSerializer>(&self, bytes: &mut S) {
+impl xecSer for bool {
+    fn ser_to<S: xecSerializer>(&self, bytes: &mut S) {
         bytes.put(&[*self as u8]);
     }
 }
@@ -85,8 +85,8 @@ impl BitcoinSer for bool {
 macro_rules! integer_impls {
     ($($T:ident $SIZE:literal,)+) => {
         $(
-            impl BitcoinSer for $T {
-                fn ser_to<S: BitcoinSerializer>(&self, bytes: &mut S) {
+            impl xecSer for $T {
+                fn ser_to<S: xecSerializer>(&self, bytes: &mut S) {
                     bytes.put(&self.to_le_bytes())
                 }
             }
@@ -98,7 +98,7 @@ integer_impls! {
     u8 1, i8 1, u16 2, i16 2, u32 4, i32 4, u64 8, i64 8, u128 16, i128 16,
 }
 
-fn write_compact_size<S: BitcoinSerializer>(bytes: &mut S, size: u64) {
+fn write_compact_size<S: xecSerializer>(bytes: &mut S, size: u64) {
     match size {
         0..=0xfc => bytes.put(&[size as u8]),
         0xfd..=0xffff => {
@@ -120,9 +120,9 @@ fn write_compact_size<S: BitcoinSerializer>(bytes: &mut S, size: u64) {
 mod tests {
     use bytes::Bytes;
 
-    use crate::ser::BitcoinSer;
+    use crate::ser::xecSer;
 
-    fn verify_ser<T: BitcoinSer>(a: T, b: &[u8]) {
+    fn verify_ser<T: xecSer>(a: T, b: &[u8]) {
         assert_eq!(a.ser().as_ref(), b);
         assert_eq!(a.ser_len(), b.len());
     }
