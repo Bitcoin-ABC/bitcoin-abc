@@ -759,17 +759,12 @@ class AbstractWallet(PrintError, SPVDelegate):
             delta += v
         return delta
 
-    WalletDelta = namedtuple("WalletDelta", "is_relevant, is_mine, v, fee")
-    WalletDelta2 = namedtuple(
-        "WalletDelta2", WalletDelta._fields + ("spends_coins_mine",)
+    WalletDelta = namedtuple(
+        "WalletDelta", "is_relevant, is_mine, v, fee, spends_coins_mine"
     )
 
     def get_wallet_delta(self, tx) -> WalletDelta:
-        return self._get_wallet_delta(tx, ver=1)
-
-    def _get_wallet_delta(self, tx, *, ver=1) -> Union[WalletDelta, WalletDelta2]:
         """Effect of tx on wallet"""
-        assert ver in (1, 2)
         is_relevant = False
         is_mine = False
         is_pruned = False
@@ -787,8 +782,7 @@ class AbstractWallet(PrintError, SPVDelegate):
                 for n, v, cb in d:
                     if n == prevout_n:
                         value = v
-                        if ver == 2:
-                            spends_coins_mine.append(f"{prevout_hash}:{prevout_n}")
+                        spends_coins_mine.append(f"{prevout_hash}:{prevout_n}")
                         break
                 else:
                     value = None
@@ -823,15 +817,13 @@ class AbstractWallet(PrintError, SPVDelegate):
                 fee = v_in - v_out
         if not is_mine:
             fee = None
-        if ver == 1:
-            return self.WalletDelta(is_relevant, is_mine, v, fee)
-        return self.WalletDelta2(is_relevant, is_mine, v, fee, spends_coins_mine)
+        return self.WalletDelta(is_relevant, is_mine, v, fee, spends_coins_mine)
 
     TxInfo = namedtuple(
         "TxInfo",
         (
             "tx_hash, status, label, can_broadcast, amount, fee, height, conf,"
-            " timestamp, exp_n"
+            " timestamp, exp_n, status_enum"
         ),
     )
 
@@ -843,30 +835,19 @@ class AbstractWallet(PrintError, SPVDelegate):
         Unsigned = auto()
         PartiallySigned = auto()
 
-    TxInfo2 = namedtuple("TxInfo2", TxInfo._fields + ("status_enum",))
-
-    def get_tx_info(self, tx) -> TxInfo:
-        """Return information for a transaction"""
-        return self._get_tx_info(tx, self.get_wallet_delta(tx), ver=1)
-
-    def get_tx_extended_info(self, tx) -> Tuple[WalletDelta2, TxInfo2]:
+    def get_tx_extended_info(self, tx) -> Tuple[WalletDelta, TxInfo]:
         """Get extended information for a transaction, combined into 1 call (for performance)"""
-        delta2 = self._get_wallet_delta(tx, ver=2)
-        info2 = self._get_tx_info(tx, delta2, ver=2)
-        return (delta2, info2)
+        delta = self.get_wallet_delta(tx)
+        info = self.get_tx_info(tx, delta)
+        return (delta, info)
 
-    def _get_tx_info(self, tx, delta, *, ver=1) -> Union[TxInfo, TxInfo2]:
+    def get_tx_info(self, tx, delta) -> TxInfo:
         """get_tx_info implementation"""
-        assert ver in (1, 2)
-        if isinstance(delta, self.WalletDelta):
-            is_relevant, is_mine, v, fee = delta
-        else:
-            is_relevant, is_mine, v, fee, __ = delta
+        is_relevant, is_mine, v, fee, __ = delta
         exp_n = None
         can_broadcast = False
         label = ""
         height = conf = timestamp = None
-        status_enum = None
         tx_hash = tx.txid()
         if tx.is_complete():
             if tx_hash in self.transactions:
@@ -910,21 +891,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         else:
             amount = None
 
-        if ver == 1:
-            return self.TxInfo(
-                tx_hash,
-                status,
-                label,
-                can_broadcast,
-                amount,
-                fee,
-                height,
-                conf,
-                timestamp,
-                exp_n,
-            )
-        assert status_enum is not None
-        return self.TxInfo2(
+        return self.TxInfo(
             tx_hash,
             status,
             label,

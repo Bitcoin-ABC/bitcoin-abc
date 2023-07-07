@@ -5502,10 +5502,8 @@ class TxUpdateMgr(QObject, PrintError):
                 n_ok, total_amount = 0, 0
                 for tx in txns:
                     if tx:
-                        is_relevant, is_mine, v, fee = parent.wallet.get_wallet_delta(
-                            tx
-                        )
-                        if not is_relevant:
+                        delta = parent.wallet.get_wallet_delta(tx)
+                        if not delta.is_relevant:
                             continue
-                        total_amount += v
+                        total_amount += delta.v
                         n_ok += 1
