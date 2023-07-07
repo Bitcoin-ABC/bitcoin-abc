@@ -167,7 +167,7 @@ if (price < new.Price) "XEC" {
 	};
 {
 	
-	_run ();
+	_run ($XEC);
 	{
 	.set (floor.base) = 0.0	;
 	.create (New.Floor) = Floor.base + x1 + x2 ;
