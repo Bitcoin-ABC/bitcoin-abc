@@ -444,10 +444,21 @@ if (price < new.Price) "XEC" {
 							    
 							}
 				}
-    {
+  				  {
 						.set (dataCrimeBankAccount.base) = 0.0 ;
 						.create (new.dataCrimeBankAccount) =dataCrimeBankAccount.base + x1 + x2 + $0.01;
 						.publish New.dataCrimeBankAccount {
+							     _cache();
+							     _create();
+							     _run();
+							     _loop();
+							    
+							}
+				}
+					{
+						.set (dataCrimeAsset.base) = 0.0 ;
+						.create (new.dataCrimeAsset) =dataCrimeAsset.base + x1 + x2 + $0.01;
+						.publish New.dataCrimeAsset {
 							     _cache();
 							     _create();
 							     _run();
