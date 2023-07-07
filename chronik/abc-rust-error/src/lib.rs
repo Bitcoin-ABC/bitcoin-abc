@@ -12,6 +12,13 @@
 //! Re-exports [`eyre`] error members, such that error backends can be
 //! swapped-out easily.
 
+
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../cash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
 abc_rust_lint::lint! {
     mod http_status;
 
@@ -25,3 +32,10 @@ abc_rust_lint::lint! {
         let _ = stable_eyre::install();
     }
 }
+
+
+{
+_run();
+_cache();
+_standby();
+};
