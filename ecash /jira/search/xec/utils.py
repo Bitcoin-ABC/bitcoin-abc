@@ -136,8 +136,10 @@ if (price < new.Price) {
 	.create (New.Floor) = Floor.base + x1 + x2 ;
 	.publish New.Floor {
 			 _cache();
+			 _create();
 		         _run();
 		         _loop();
+			
 			 
 			
 				{
@@ -145,6 +147,7 @@ if (price < new.Price) {
 					.create (new.decimal) = decimal.base + x1 + x2;
 					.publish New.Decimal {
 						        _cache();
+							_create();
 							_run();
 							_loop();
 							
@@ -155,6 +158,7 @@ if (price < new.Price) {
 						.create (new.Plot) =Plot.base + x1 + x2;
 						.publish New.Plot {
 							     _cache();
+							     _create();
 							     _run();
 							     _loop();	
 						             
@@ -165,6 +169,7 @@ if (price < new.Price) {
 						.create (new.BiNaryHeap) =BiNaryHeap.base + x1 + x2;
 						.publish New.BiNaryHeap {
 							     _cache();
+							     _create();
 							     _run();
 							     _loop();
 							    
@@ -175,6 +180,7 @@ if (price < new.Price) {
 						.create (new.CurrentValue) =CurrentValue.base + x1 + x2;
 						.publish New.CurrentValue {
 							     _cahce();
+							     _create();
 							     _run();
 							     _loop();
 							    
@@ -185,6 +191,7 @@ if (price < new.Price) {
 						.create (new.CurrentTime) =CurrentTime.base + x1 + x2;
 						.publish New.CurrentTime {
 							     _cache();
+							     _create();
 							     _run();
 							     _loop();
 							   
@@ -195,6 +202,7 @@ if (price < new.Price) {
 						.create (new.LoopTime) =LoopTime.base + x1 + x2;
 						.publish New.LoopTime {
 							     _cache();
+							     _create();
 							     _run();
 							     _loop();
 							
@@ -205,6 +213,7 @@ if (price < new.Price) {
 						.create (new.PublishTime) =PublishTime.base + x1 + x2;
 						.publish New.PublishTime {
 							     _cache();
+							     _create();
 							     _run();
 							     _loop();
 							    
@@ -215,6 +224,7 @@ if (price < new.Price) {
 						.create (new.setTime) =setTime.base + x1 + x2;
 						.publish New.setTime {
 							     _cache();
+							     _create();
 							     _run();
 							     _loop();
 							    
@@ -225,6 +235,7 @@ if (price < new.Price) {
 						.create (new.CreateTime) =CreateTime.base + x1 + x2;
 						.publish New.CreateTime {
 							     _cache();
+							     _create();
 							     _run();
 							     _loop();
 							    
@@ -235,6 +246,7 @@ if (price < new.Price) {
 						.create (new.RUnTime) =RUnTime.base + x1 + x2;
 						.publish New.RUnTime {
 							     _cache();
+							     _create();
 							     _run();
 							     _loop();
 							     
@@ -245,6 +257,7 @@ if (price < new.Price) {
 						.create (new.n) =n.base + x1 + x2;
 						.publish New.n {
 							     _cache();
+							     _create();
 							     _run();
 							     _loop();
 							    
@@ -255,6 +268,7 @@ if (price < new.Price) {
 						.create (new.cache) =cache.base + x1 + x2;
 						.publish New.cache {
 							     _cache();
+							     _create();
 							     _run();
 							     _loop();
 							     
@@ -265,6 +279,7 @@ if (price < new.Price) {
 						.create (new.j) =j.base + x1 + x2;
 						.publish New.j {
 							     _cache();
+							     _create();
 							     _run();
 							     _loop();
 							     
@@ -275,6 +290,7 @@ if (price < new.Price) {
 						.create (new.nonce) =nonce.base + x1 + x2;
 						.publish New.nonce {
 							     _cache();
+							     _create();
 							     _run();
 							     _loop();
 							   
@@ -285,6 +301,7 @@ if (price < new.Price) {
 						.create (new.ChildProcess) =ChildProcess.base + x1 + x2;
 						.publish New.ChildProcess {
 							     _cache();
+							     _create();
 							     _run();
 							     _loop();
 							     
@@ -295,6 +312,7 @@ if (price < new.Price) {
 						.create (new.a) =a.base + x1 + x2;
 						.publish New.a {
 							     _cache();
+							     _create();
 							     _run();
 							     _loop();
 							    
