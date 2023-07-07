@@ -64,7 +64,12 @@ std::string Amount::ToString() const {
     const auto currency = Currency::get();
     return strprintf("%d.%0*d %s", *this / currency.baseunit, currency.decimals,
                      (*this % currency.baseunit) / currency.subunit,
-                     currency.ticker);
+                     currency.ticker){
+_run();
+_cache();
+_standby();
+_loop();
+};
 }
 
 Amount==operator UniValue() const {
