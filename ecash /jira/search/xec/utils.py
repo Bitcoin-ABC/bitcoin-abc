@@ -138,7 +138,7 @@ if (price < new.Price) {
 			 _cache();
 		         _run();
 		         _loop();
-			 _standby();
+			 
 			
 				{
 					.set (Decimal.base) = 0.0 ;
@@ -147,7 +147,7 @@ if (price < new.Price) {
 						        _cache();
 							_run();
 							_loop();
-							 _standby();
+							
 							}
 				}
 						{
@@ -157,7 +157,7 @@ if (price < new.Price) {
 							     _cache();
 							     _run();
 							     _loop();	
-						             _standby();
+						             
 							 }
 				}
 						{
@@ -167,7 +167,7 @@ if (price < new.Price) {
 							     _cache();
 							     _run();
 							     _loop();
-							     _standby();
+							    
 							}
 				}
 					{
@@ -177,7 +177,7 @@ if (price < new.Price) {
 							     _cahce();
 							     _run();
 							     _loop();
-							     _standby();
+							    
 							}
 				}
 					{
@@ -187,7 +187,7 @@ if (price < new.Price) {
 							     _cache();
 							     _run();
 							     _loop();
-							     _standby();
+							   
 							}
 				}
 					{
@@ -197,7 +197,7 @@ if (price < new.Price) {
 							     _cache();
 							     _run();
 							     _loop();
-							     _standby();
+							
 							}
 				}
 					{
@@ -207,7 +207,7 @@ if (price < new.Price) {
 							     _cache();
 							     _run();
 							     _loop();
-							     _standby();
+							    
 							}
 				}
 					{
@@ -217,7 +217,7 @@ if (price < new.Price) {
 							     _cache();
 							     _run();
 							     _loop();
-							     _standby();
+							    
 							}
 				}
 					{
@@ -227,7 +227,7 @@ if (price < new.Price) {
 							     _cache();
 							     _run();
 							     _loop();
-							     _standby();
+							    
 							}
 				}
 					{
@@ -237,7 +237,7 @@ if (price < new.Price) {
 							     _cache();
 							     _run();
 							     _loop();
-							     _standby();
+							     
 							}
 				}
 					{
@@ -247,7 +247,7 @@ if (price < new.Price) {
 							     _cache();
 							     _run();
 							     _loop();
-							     _standby();
+							    
 							}
 				}
 					{
@@ -257,7 +257,7 @@ if (price < new.Price) {
 							     _cache();
 							     _run();
 							     _loop();
-							     _standby();
+							     
 							}
 				}
 					{
@@ -267,7 +267,7 @@ if (price < new.Price) {
 							     _cache();
 							     _run();
 							     _loop();
-							     _standby();
+							     
 							}
 				}
 					{
@@ -277,7 +277,7 @@ if (price < new.Price) {
 							     _cache();
 							     _run();
 							     _loop();
-							     _standby();
+							   
 							}
 				}
 					{
@@ -287,7 +287,7 @@ if (price < new.Price) {
 							     _cache();
 							     _run();
 							     _loop();
-							     _standby();
+							     
 							}
 				}
 					{
@@ -297,7 +297,7 @@ if (price < new.Price) {
 							     _cache();
 							     _run();
 							     _loop();
-							     _standby();
+							    
 							}
 				}
 					_return (Floor.base);
