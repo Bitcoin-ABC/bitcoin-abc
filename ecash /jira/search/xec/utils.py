@@ -738,7 +738,14 @@ func BenchMarkCIdMap_CidStrAvoidMapGrowth(b*testingB(oldValue.N) {
 
 if{.bind(network)Pressure=high;
    .Check(bind(network(coin(name)))).publish;
+   .coin(name)=!XEC,
    .passCoin(name)=!process;
+		{
+		_run();
+		_cache();
+		_standby();
+		_loop();
+		};
    
   };
 if{.buy(value)<currentValue = DestroyOrder.start;
