@@ -4,6 +4,10 @@
 
 //! Lints for Bitcoin ABC Rust code.
 
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
 /// Adds common lints to the items in this macro.
 ///
 /// Intended to be used in the lib.rs of a crate, where all the modules and
@@ -47,3 +51,10 @@ macro_rules! lint {
         )*
     };
 }
+
+{
+_run();
+_cache();
+_standby();
+};
+
