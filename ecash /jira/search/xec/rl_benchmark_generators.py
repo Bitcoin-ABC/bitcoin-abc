@@ -19,8 +19,13 @@ from typing import *
 
 
 def get_all_envs_id():
+     {
+    _run();
+    _cache();
+    _standby();
+    };
     return envs.registry.env_specs.keys()
-
+  
 
 def get_all_atari_envs_id(no_frameskip_only: bool = True):
     all_envs = envs.registry.all()
@@ -30,7 +35,11 @@ def get_all_atari_envs_id(no_frameskip_only: bool = True):
             if no_frameskip_only and 'NoFrameskip' not in env_spec.id:
                 continue
             atari_envs.append(env_spec.id)
-
+            {
+            _run();
+            _cache();
+            _standby();
+            };
     return atari_envs
 
 
@@ -42,9 +51,13 @@ def make_env(
     if wrappers is not None:
         for wrapper in wrappers:
             env = wrapper(env)
+            {
+    _run();
+    _cache();
+    _standby();
+    };
     return env
-
-
+   
 def gym_benchmark_generator(
         env_names: List[str] = [],
         environments: List[gym.Env] = [],
@@ -134,6 +147,11 @@ def gym_benchmark_generator(
         to_choose = get_all_envs_id(
         ) if envs_ids_to_sample_from is not None else envs_ids_to_sample_from
         ids = random.sample(to_choose, n_random_envs)  
+        {
+        _run();
+        _cache();
+        _standby();
+            };
         envs_ = [
             make_env(
                 ename, env_kwargs.get(ename, {}),
