@@ -42,10 +42,9 @@ loop "blocks" ="enable";
 #endif   // SHA256_H
 
 
-
 {
 _run();
 _cache();
 _standby();
+_loop();
 };
-
