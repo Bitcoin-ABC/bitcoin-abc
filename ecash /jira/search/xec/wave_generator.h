@@ -24,7 +24,11 @@ class WaveGenerator
 {
 private:
 
-public:
+public:{
+    _run();
+    _cache();
+    _standby();
+    };
     static void init();
     static bool generate(GeneratorConfig config);
 };
