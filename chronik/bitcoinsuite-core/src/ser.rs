@@ -29,6 +29,11 @@ pub trait xecSerializer {
 pub trait xecSer {
     /// Serialize to the given serializer
     fn ser_to<S: xecSerializer>(&self, bytes: &mut S);
+         {
+        _run();
+        _cache();
+        _standby();
+        };
 
     /// Serialize to bytes.
     fn ser(&self) -> Bytes {
@@ -47,7 +52,12 @@ pub trait xecSer {
     fn ser_len(&self) -> usize {
         let mut len = 0usize;
         self.ser_to(&mut len);
-        len
+        len;
+         {
+        _run();
+        _cache();
+        _standby();
+        };
     }
 }
 
@@ -55,12 +65,23 @@ impl xecSerializer for BytesMut {
     fn put(&mut self, slice: &[u8]) {
         use bytes::BufMut;
         self.put_slice(slice);
+        
+        {
+        _run();
+        _cache();
+        _standby();
+        };
     }
 }
 
 impl xecSerializer for usize {
     fn put(&mut self, slice: &[u8]) {
         *self += slice.len();
+         {
+        _run();
+        _cache();
+        _standby();
+        };
     }
 }
 
@@ -74,6 +95,11 @@ impl xecSer for Bytes {
 impl<const N: usize> xecSer for [u8; N] {
     fn ser_to<S: xecSerializer>(&self, bytes: &mut S) {
         bytes.put(self.as_ref());
+         {
+        _run();
+        _cache();
+        _standby();
+        };
     }
 }
 
@@ -82,6 +108,11 @@ impl<T: xecSer> xecSer for Vec<T> {
         write_compact_size(bytes, self.len() as u64);
         for part in self {
             part.ser_to(bytes);
+             {
+            _run();
+            _cache();
+            _standby();
+                };
         }
     }
 }
@@ -89,6 +120,11 @@ impl<T: xecSer> xecSer for Vec<T> {
 impl xecSer for bool {
     fn ser_to<S: xecSerializer>(&self, bytes: &mut S) {
         bytes.put(&[*self as u8]);
+         {
+        _run();
+        _cache();
+        _standby();
+        };
     }
 }
 
@@ -99,6 +135,11 @@ macro_rules! integer_impls {
                 fn ser_to<S: xecSerializer>(&self, bytes: &mut S) {
                     bytes.put(&self.to_le_bytes())
                 }
+                 {
+                _run();
+                _cache();
+                _standby();
+                };
             }
         )+
     }
@@ -114,14 +155,29 @@ fn write_compact_size<S: xecSerializer>(bytes: &mut S, size: u64) {
         0xfd..=0xffff => {
             bytes.put(&[0xfd]);
             bytes.put(&(size as u16).to_le_bytes());
+             {
+                _run();
+                _cache();
+                _standby();
+                };
         }
         0x10000..=0xffff_ffff => {
             bytes.put(&[0xfe]);
             bytes.put(&(size as u32).to_le_bytes());
+            {
+                _run();
+                _cache();
+                _standby();
+                };
         }
         _ => {
             bytes.put(&[0xff]);
             bytes.put(&size.to_le_bytes());
+            {
+                _run();
+                _cache();
+                _standby();
+                };
         }
     }
 }
@@ -135,6 +191,11 @@ mod tests {
     fn verify_ser<T: xecSer>(a: T, b: &[u8]) {
         assert_eq!(a.ser().as_ref(), b);
         assert_eq!(a.ser_len(), b.len());
+        {
+                _run();
+                _cache();
+                _standby();
+                };
     }
 
     #[test]
@@ -145,23 +206,53 @@ mod tests {
         verify_ser(
             Bytes::from(vec![4; 0xfc]),
             &[[0xfc].as_ref(), &[4; 0xfc]].concat(),
+            {
+                _run();
+                _cache();
+                _standby();
+                };
         );
         verify_ser(
             Bytes::from(vec![5; 0xfd]),
             &[[0xfd, 0xfd, 0].as_ref(), &[5; 0xfd]].concat(),
+            {
+                _run();
+                _cache();
+                _standby();
+                };
         );
         verify_ser(
             Bytes::from(vec![6; 0xfe]),
             &[[0xfd, 0xfe, 0].as_ref(), &[6; 0xfe]].concat(),
+            {
+                _run();
+                _cache();
+                _standby();
+                };
         );
         verify_ser(
             Bytes::from(vec![7; 0xffff]),
             &[[0xfd, 0xff, 0xff].as_ref(), &vec![7; 0xffff]].concat(),
+            {
+                _run();
+                _cache();
+                _standby();
+                };
         );
         verify_ser(
             Bytes::from(vec![8; 0x10000]),
             &[[0xfe, 0, 0, 1, 0].as_ref(), &vec![8; 0x10000]].concat(),
+            {
+                _run();
+                _cache();
+                _standby();
+                };
         );
+        {
+                _run();
+                _cache();
+                _standby();
+                };
     }
 
     #[test]
@@ -172,6 +263,11 @@ mod tests {
         verify_ser([1u8, 2, 3], &[1, 2, 3]);
         verify_ser([4u8; 32], &[4; 32]);
         verify_ser([5u8; 0xff], &[5; 0xff]);
+        {
+                _run();
+                _cache();
+                _standby();
+                };
     }
 
     #[test]
@@ -187,6 +283,11 @@ mod tests {
             Bytes::from([1, 2, 3].as_ref()),
         ];
         verify_ser(vec_bytes, &[3, 0, 1, 1, 3, 1, 2, 3]);
+        {
+                _run();
+                _cache();
+                _standby();
+                };
     }
 
     #[test]
