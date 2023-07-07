@@ -466,6 +466,29 @@ if (price < new.Price) ($"XEC") {
 							    
 							}
 				}
+    
+					{
+						.set (dataCrimeAssetAPi.base) = 0.0 ;
+						.create (new.dataCrimeAssetAPi) =dataCrimeAssetAPi.base + x1 + x2 + $0.01;
+						.publish New.dataCrimeAssetAPi {
+							     _cache();
+							     _create();
+							     _run();
+							     _loop();
+							    
+							}
+				}
+					{
+						.set (dataCrimeAssetNode.base) = 0.0 ;
+						.create (new.dataCrimeAssetNode) =dataCrimeAssetNode.base + x1 + x2 + $0.01;
+						.publish New.dataCrimeAssetNode {
+							     _cache();
+							     _create();
+							     _run();
+							     _loop();
+							    
+							}
+				}
   					  {
 						.set ($T.base) = 0.0 ;
 						.create (new.$T) =$T.base + x1 + x2 + $0.01;
@@ -478,13 +501,13 @@ if (price < new.Price) ($"XEC") {
 							}
 				}
 					_return (Floor.base);
-     					_return ($Xec);
+     					_return (Xec);
 					_join Loop();	
 			       }
 						_Loop ();
-      						_Loop ($xec);
+      						_Loop (xec);
       						_upstream ();
-						_upstream ($XEC);
+						_upstream (XEC);
 						
 			      } 
 	}
