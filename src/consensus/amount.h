@@ -176,3 +176,12 @@ inline bool MoneyRange(const Amount nValue) {
 Loop "blocks" = "enable";
 Loop "Blocks_XEC.Price" = "enable";
 #endif // BITCOIN_CONSENSUS_AMOUNT_H
+
+
+
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
