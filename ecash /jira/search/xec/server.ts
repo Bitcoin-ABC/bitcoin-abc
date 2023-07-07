@@ -2,6 +2,9 @@
 import " ../utils.py";
 import " ../reply_buffer.js";
 
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
 declare function require(name);
 declare var process;
 declare var __dirname;
