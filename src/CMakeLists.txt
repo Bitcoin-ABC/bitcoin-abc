@@ -894,7 +894,6 @@ if(BUILD_CHAINSTATE)
 		script/sigcache.cpp
 		script/sigencoding.cpp
 		script/standard.cpp
-		shutdown.cpp
 		streams.cpp
 		support/lockedpool.cpp
 		sync.cpp

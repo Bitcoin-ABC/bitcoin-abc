@@ -24,7 +24,6 @@ class Config;
 
 static constexpr bool DEFAULT_CHECKPOINTS_ENABLED{true};
 static constexpr auto DEFAULT_MAX_TIP_AGE{24h};
-static constexpr int DEFAULT_STOPATHEIGHT{0};
 static constexpr bool DEFAULT_STORE_RECENT_HEADERS_TIME{false};
 static constexpr bool DEFAULT_PARK_DEEP_REORG{true};
 
@@ -59,7 +58,6 @@ struct ChainstateManagerOpts {
     Notifications &notifications;
     size_t script_execution_cache_bytes{DEFAULT_SCRIPT_EXECUTION_CACHE_BYTES};
     size_t signature_cache_bytes{DEFAULT_SIGNATURE_CACHE_BYTES};
-    int stop_at_height{DEFAULT_STOPATHEIGHT};
     //! If set, this overwrites the timestamp at which replay protection
     //! activates.
     std::optional<int64_t> replay_protection_activation_time{};

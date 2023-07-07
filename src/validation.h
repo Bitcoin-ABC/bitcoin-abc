@@ -30,10 +30,6 @@
 #include <node/blockstorage.h>
 #include <policy/packages.h>
 #include <script/script_error.h>
-#include <script/script_metrics.h>
-#include <script/scriptcache.h>
-#include <script/sigcache.h>
-#include <shutdown.h>
 #include <sync.h>
 #include <txdb.h>
 #include <txmempool.h> // For CTxMemPool::cs
@@ -1299,7 +1295,6 @@ public:
     kernel::Notifications &GetNotifications() const {
         return m_options.notifications;
     }
-    int StopAtHeight() const { return m_options.stop_at_height; }
 
     /**
      * Make various assertions about the state of the block index.

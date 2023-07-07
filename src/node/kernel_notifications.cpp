@@ -8,6 +8,7 @@
 #include <config/bitcoin-config.h>
 #endif
 
+#include <chain.h>
 #include <common/args.h>
 #include <common/system.h>
 #include <kernel/context.h>
@@ -50,9 +51,14 @@ static void AlertNotify(const std::string &strMessage) {
 
 namespace node {
 
-void KernelNotifications::blockTip(SynchronizationState state,
-                                   CBlockIndex &index) {
+kernel::InterruptResult
+KernelNotifications::blockTip(SynchronizationState state, CBlockIndex &index) {
     uiInterface.NotifyBlockTip(state, &index);
+    if (m_stop_at_height && index.nHeight >= m_stop_at_height) {
+        StartShutdown();
+        return kernel::Interrupted{};
+    }
+    return {};
 }
 
 void KernelNotifications::headerTip(SynchronizationState state, int64_t height,
@@ -78,6 +84,13 @@ void KernelNotifications::fatalError(const std::string &debug_message,
                                      const bilingual_str &user_message) {
     node::AbortNode(m_exit_status, debug_message, user_message,
                     m_shutdown_on_fatal_error);
+}
+
+void ReadNotificationArgs(const ArgsManager &args,
+                          KernelNotifications &notifications) {
+    if (auto value{args.GetIntArg("-stopatheight")}) {
+        notifications.m_stop_at_height = *value;
+    }
 }
 
 } // namespace node

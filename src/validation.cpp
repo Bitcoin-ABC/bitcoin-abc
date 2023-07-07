@@ -48,7 +48,6 @@
 #include <script/script.h>
 #include <script/scriptcache.h>
 #include <script/sigcache.h>
-#include <shutdown.h>
 #include <tinyformat.h>
 #include <txdb.h>
 #include <txmempool.h>
@@ -3670,8 +3669,16 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
                                                      still_in_ibd);
 
                     // Always notify the UI if a new block tip was connected
-                    m_chainman.GetNotifications().blockTip(
-                        GetSynchronizationState(still_in_ibd), *pindexNewTip);
+                    if (kernel::IsInterrupted(
+                            m_chainman.GetNotifications().blockTip(
+                                GetSynchronizationState(still_in_ibd),
+                                *pindexNewTip))) {
+                        // Just breaking and returning success for now. This
+                        // could be changed to bubble up the kernel::Interrupted
+                        // value to the caller so the caller could distinguish
+                        // between completed and interrupted operations.
+                        break;
+                    }
                 }
             }
         }
@@ -3703,11 +3710,6 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
 
         if (!blocks_connected) {
             return true;
-        }
-
-        if (m_chainman.StopAtHeight() && pindexNewTip &&
-            pindexNewTip->nHeight >= m_chainman.StopAtHeight()) {
-            StartShutdown();
         }
 
         if (exited_ibd) {
@@ -4025,7 +4027,14 @@ bool Chainstate::UnwindBlock(BlockValidationState &state, CBlockIndex *pindex,
 
     // Only notify about a new block tip if the active chain was modified.
     if (pindex_was_in_chain) {
-        m_chainman.GetNotifications().blockTip(
+        // Ignoring return value for now, this could be changed to bubble up
+        // kernel::Interrupted value to the caller so the caller could
+        // distinguish between completed and interrupted operations. It might
+        // also make sense for the blockTip notification to have an enum
+        // parameter indicating the source of the tip change so hooks can
+        // distinguish user-initiated invalidateblock changes from other
+        // changes.
+        (void)m_chainman.GetNotifications().blockTip(
             GetSynchronizationState(m_chainman.IsInitialBlockDownload()),
             *to_mark_failed_or_parked->pprev);
     }

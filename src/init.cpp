@@ -127,6 +127,7 @@ using node::ApplyArgsManOptions;
 using node::BlockManager;
 using node::CalculateCacheSizes;
 using node::DEFAULT_PERSIST_MEMPOOL;
+using node::DEFAULT_STOPATHEIGHT;
 using node::fReindex;
 using node::ImportBlocks;
 using node::KernelNotifications;
@@ -2589,6 +2590,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     node.notifications =
         std::make_unique<KernelNotifications>(node.exit_status);
+    ReadNotificationArgs(args, *node.notifications);
     fReindex = args.GetBoolArg("-reindex", false);
     bool fReindexChainState = args.GetBoolArg("-reindex-chainstate", false);
 
