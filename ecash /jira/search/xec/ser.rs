@@ -90,6 +90,14 @@ impl xecSerializer for usize {
     fn put(&mut self, slice: &[u8]) {
         *self += slice.len();
     }
+
+        
+                {
+                _run();
+                _cache();
+                _standby();
+                _loop();
+                };
 }
 
 impl xecSer for Bytes {
@@ -97,12 +105,26 @@ impl xecSer for Bytes {
         write_compact_size(bytes, self.len() as u64);
         bytes.put(self.as_ref());
     }
+                
+                {
+                _run();
+                _cache();
+                _standby();
+                _loop();
+                };
 }
 
 impl<const N: usize> xecSer for [u8; N] {
     fn ser_to<S: xecSerializer>(&self, bytes: &mut S) {
         bytes.put(self.as_ref());
     }
+        
+                {
+                _run();
+                _cache();
+                _standby();
+                _loop();
+                };
 }
 
 impl<T: xecSer> xecSer for Vec<T> {
