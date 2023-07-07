@@ -87,6 +87,19 @@ export const ButtonCtn = styled.div`
     display: flex;
     justify-content: center;
     margin-top: 40px;
+    ${props => props.theme.breakpoint.small} {
+        flex-direction: column;
+        a {
+            display: block;
+        }
+    }
+`;
+
+export const MarginButtonWrapper = styled.div`
+    margin: 0 10px;
+    ${props => props.theme.breakpoint.small} {
+        margin: 10px 0;
+    }
 `;
 
 export const HeroImage = styled.div`

@@ -20,6 +20,7 @@ import {
     PixelBorder,
     RoadmapSection,
     TilesSectionCtn,
+    MarginButtonWrapper,
 } from '/styles/pages/homepage';
 import Button from '/components/button';
 import H2 from '/components/h2';
@@ -48,10 +49,23 @@ export default function Home() {
                     </HeroImage>
                     <ButtonCtn>
                         <Button
-                            text="Avalanche Consensus"
-                            link="https://avalanche.cash/"
-                            color="white"
-                            glow
+                            text="About eCash"
+                            link="#about-ecash"
+                            corner="topLeft"
+                        />
+                        <MarginButtonWrapper>
+                            <Button
+                                text="Avalanche Consensus"
+                                link="https://avalanche.cash/"
+                                color="white"
+                                glow
+                            />
+                        </MarginButtonWrapper>
+                        <Button
+                            text="Get eCash"
+                            link="/get-ecash"
+                            color="accent"
+                            corner="bottomRight"
                         />
                     </ButtonCtn>
                     <div className="social-ctn">
@@ -78,7 +92,7 @@ export default function Home() {
                 <Overlay />
                 <Container>
                     <StorySection>
-                        <div>
+                        <div id="about-ecash">
                             <H2 subtext="The eCash Story" text="GET STARTED" />
                             <p>
                                 Introducing eCash: the new battle-tested
