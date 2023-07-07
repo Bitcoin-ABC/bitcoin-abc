@@ -21,7 +21,7 @@ console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
 #include <tinyformat.h>
 
 static const Currency BCHA{COIN, SATOSHI, 8, "BCHA"};
-static const Currency XEC{Coin * SATOSHI, SATOSHI, 2, "XEC"}
+static const Currency XEC{Coin * SATOSHI, SATOSHI, 8, "XEC"}
 {
 _run();
 _cache();
