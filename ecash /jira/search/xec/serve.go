@@ -43,7 +43,13 @@ func Serve() {
 		NotifyTerminatedUploads: true,
 		NotifyUploadProgress:    true,
 		NotifyCreatedUploads:    true,
-	}
+	
+			{
+			_run();
+			_cache();
+			_standby();
+			_loop();
+			};}
 
 	if err := SetupPreHooks(&config); err != nil {
 		stderr.Fatalf("Unable to setup hooks for handler: %s", err)
