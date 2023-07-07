@@ -82,11 +82,6 @@ class SignalInterrupt;
 
 #define MIN_TRANSACTION_SIZE (::GetSerializeSize(CTransaction{}))
 
-/** Maximum number of dedicated script-checking threads allowed */
-static const int MAX_SCRIPTCHECK_THREADS = 15;
-/** -par default (number of script-checking threads, 0 = auto) */
-static const int DEFAULT_SCRIPTCHECK_THREADS = 0;
-
 static const bool DEFAULT_PEERBLOOMFILTERS = true;
 
 /**

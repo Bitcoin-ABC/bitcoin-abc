@@ -12,11 +12,11 @@
 #include <interfaces/node.h>
 #include <netbase.h>
 #include <node/caches.h>
+#include <node/chainstatemanager_args.h>
 #include <qt/bitcoinunits.h>
 #include <qt/guiconstants.h>
 #include <qt/guiutil.h>
 #include <qt/optionsmodel.h>
-#include <validation.h> // for DEFAULT_SCRIPTCHECK_THREADS and MAX_SCRIPTCHECK_THREADS
 
 #include <QDataWidgetMapper>
 #include <QDir>

@@ -15,6 +15,7 @@
 #include <net.h>
 #include <netbase.h>
 #include <node/caches.h>
+#include <node/chainstatemanager_args.h>
 #include <qt/bitcoinunits.h>
 #include <qt/guiconstants.h>
 #include <qt/guiutil.h>
