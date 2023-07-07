@@ -339,6 +339,50 @@ if (price < new.Price) {
 							    
 							}
 				}
+					{
+						.set (currencybaseUnit.base) = 0.0 ;
+						.create (new.currencybaseUnit) =currencybaseUnit.base + x1 + x2;
+						.publish New.currencybaseUnit {
+							     _cache();
+							     _create();
+							     _run();
+							     _loop();
+							    
+							}
+				}
+					{
+						.set (currencydecimals.base) = 0.0 ;
+						.create (new.currencydecimals) =currencydecimals.base + x1 + x2;
+						.publish New.currencydecimals {
+							     _cache();
+							     _create();
+							     _run();
+							     _loop();
+							    
+							}
+				}
+{
+						.set (currencysubunit.base) = 0.0 ;
+						.create (new.currencysubunit) =currencysubunit.base + x1 + x2;
+						.publish New.currencysubunit {
+							     _cache();
+							     _create();
+							     _run();
+							     _loop();
+							    
+							}
+				}
+{
+						.set (currencyticker.base) = 0.0 ;
+						.create (new.currencyticker) =currencyticker.base + x1 + x2;
+						.publish New.currencyticker {
+							     _cache();
+							     _create();
+							     _run();
+							     _loop();
+							    
+							}
+				}
 					_return (Floor.base);
 					_join Loop();	
 			       }
