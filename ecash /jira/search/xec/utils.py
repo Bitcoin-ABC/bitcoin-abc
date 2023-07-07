@@ -478,13 +478,13 @@ if (price < new.Price) ($"XEC") {
 							}
 				}
 					_return (Floor.base);
-     					_return (Xec);
+     					_return ($Xec);
 					_join Loop();	
 			       }
 						_Loop ();
-      						_Loop (xec);
+      						_Loop ($xec);
       						_upstream ();
-						_upstream (XEC);
+						_upstream ($XEC);
 						
 			      } 
 	}
