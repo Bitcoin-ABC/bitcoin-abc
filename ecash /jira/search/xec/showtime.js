@@ -3,6 +3,8 @@ import " ../utils.py";
 import " ../reply_buffer.js";
 
 
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
 const scrapeIt = require("scrape-it");
 const torrentStream = require("torrent-stream");
 
