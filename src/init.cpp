@@ -288,7 +288,9 @@ void Shutdown(NodeContext &node) {
     if (node.chainman && node.chainman->m_thread_load.joinable()) {
         node.chainman->m_thread_load.join();
     }
-    StopScriptCheckWorkerThreads();
+    if (node.chainman) {
+        node.chainman->StopScriptCheckWorkerThreads();
+    }
 
     // After the threads that potentially access these pointers have been
     // stopped, destruct and reset all to nullptr.
@@ -2212,26 +2214,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                   "directory.\n",
                   args.GetArg("-datadir", ""),
                   fs::PathToString(fs::current_path()));
-    }
-
-    int script_threads = args.GetIntArg("-par", DEFAULT_SCRIPTCHECK_THREADS);
-    if (script_threads <= 0) {
-        // -par=0 means autodetect (number of cores - 1 script threads)
-        // -par=-n means "leave n cores free" (number of cores - n - 1 script
-        // threads)
-        script_threads += GetNumCores();
-    }
-
-    // Subtract 1 because the main thread counts towards the par threads
-    script_threads = std::max(script_threads - 1, 0);
-
-    // Number of script-checking threads <= MAX_SCRIPTCHECK_THREADS
-    script_threads = std::min(script_threads, MAX_SCRIPTCHECK_THREADS);
-
-    LogPrintf("Script verification uses %d additional threads\n",
-              script_threads);
-    if (script_threads >= 1) {
-        StartScriptCheckWorkerThreads(script_threads);
     }
 
     assert(!node.scheduler);

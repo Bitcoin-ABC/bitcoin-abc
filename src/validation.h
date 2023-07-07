@@ -16,6 +16,7 @@
 #include <blockfileinfo.h>
 #include <blockindexcomparators.h>
 #include <chain.h>
+#include <checkqueue.h>
 #include <common/bloom.h>
 #include <config.h>
 #include <consensus/amount.h>
@@ -153,16 +154,6 @@ public:
     bool shouldValidateMerkleRoot() const { return checkMerkleRoot; }
     uint64_t getExcessiveBlockSize() const { return excessiveBlockSize; }
 };
-
-/**
- * Run instances of script checking worker threads
- */
-void StartScriptCheckWorkerThreads(int threads_num);
-
-/**
- * Stop all of the script checking worker threads
- */
-void StopScriptCheckWorkerThreads();
 
 Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams);
 
@@ -1261,6 +1252,10 @@ private:
     /** Most recent headers presync progress update, for rate-limiting. */
     SteadyMilliseconds m_last_presync_update GUARDED_BY(::cs_main){};
 
+    //! A queue for script verifications that have to be performed by worker
+    //! threads.
+    CCheckQueue<CScriptCheck> m_script_check_queue;
+
 public:
     using Options = kernel::ChainstateManagerOpts;
 
@@ -1676,6 +1671,9 @@ public:
     std::optional<int> GetSnapshotBaseHeight() const
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
+    CCheckQueue<CScriptCheck> &GetCheckQueue() { return m_script_check_queue; }
+    void StopScriptCheckWorkerThreads();
+
     //! If, due to invalidation / reconsideration of blocks, the previous
     //! best header is no longer valid / guaranteed to be the most-work
     //! header in our block-index not known to be invalid, recalculate it.
@@ -1687,6 +1685,8 @@ public:
     /** Load the recent block headers reception time from a file. */
     bool LoadRecentHeadersTime(const fs::path &filePath)
         EXCLUSIVE_LOCKS_REQUIRED(GetMutex());
+
+    ~ChainstateManager();
 };
 
 /** Deployment* info via ChainstateManager */

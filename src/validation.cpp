@@ -2031,14 +2031,8 @@ DisconnectResult ApplyBlockUndo(CBlockUndo &&blockUndo, const CBlock &block,
     return fClean ? DisconnectResult::OK : DisconnectResult::UNCLEAN;
 }
 
-static CCheckQueue<CScriptCheck> scriptcheckqueue(128);
-
-void StartScriptCheckWorkerThreads(int threads_num) {
-    scriptcheckqueue.StartWorkerThreads(threads_num);
-}
-
-void StopScriptCheckWorkerThreads() {
-    scriptcheckqueue.StopWorkerThreads();
+void ChainstateManager::StopScriptCheckWorkerThreads() {
+    m_script_check_queue.StopWorkerThreads();
 }
 
 // Returns the script flags which should be checked for the block after
@@ -2376,8 +2370,8 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
     CBlockUndo blockundo;
     blockundo.vtxundo.resize(block.vtx.size() - 1);
 
-    CCheckQueueControl<CScriptCheck> control(fScriptChecks ? &scriptcheckqueue
-                                                           : nullptr);
+    CCheckQueueControl<CScriptCheck> control(
+        fScriptChecks ? &m_chainman.GetCheckQueue() : nullptr);
 
     // Add all outputs
     try {
@@ -7277,10 +7271,17 @@ static ChainstateManager::Options &&Flatten(ChainstateManager::Options &&opts) {
 ChainstateManager::ChainstateManager(
     const util::SignalInterrupt &interrupt, Options options,
     node::BlockManager::Options blockman_options)
-    : m_interrupt{interrupt}, m_options{Flatten(std::move(options))},
+    : m_script_check_queue{/*nBatchSizeIn=*/128}, m_interrupt{interrupt},
+      m_options{Flatten(std::move(options))},
       m_blockman{interrupt, std::move(blockman_options)},
       m_validation_cache{m_options.script_execution_cache_bytes,
-                         m_options.signature_cache_bytes} {}
+                         m_options.signature_cache_bytes} {
+    m_script_check_queue.StartWorkerThreads(m_options.worker_threads_num);
+}
+
+ChainstateManager::~ChainstateManager() {
+    StopScriptCheckWorkerThreads();
+}
 
 bool ChainstateManager::DetectSnapshotChainstate(CTxMemPool *mempool) {
     assert(!m_snapshot_chainstate);

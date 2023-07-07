@@ -179,6 +179,7 @@ ChainTestingSetup::ChainTestingSetup(
         .adjusted_time_callback = GetAdjustedTime,
         .check_block_index = true,
         .notifications = *m_node.notifications,
+        .worker_threads_num = 2,
     };
     ApplyArgsManOptions(*m_node.args, chainman_opts);
     const BlockManager::Options blockman_opts{
@@ -196,16 +197,13 @@ ChainTestingSetup::ChainTestingSetup(
     // Call Upgrade on the block database so that the version field is set,
     // else LoadBlockIndexGuts will fail (see D8319).
     m_node.chainman->m_blockman.m_block_tree_db->Upgrade();
-
-    constexpr int script_check_threads = 2;
-    StartScriptCheckWorkerThreads(script_check_threads);
 }
 
 ChainTestingSetup::~ChainTestingSetup() {
     if (m_node.scheduler) {
         m_node.scheduler->stop();
     }
-    StopScriptCheckWorkerThreads();
+    m_node.chainman->StopScriptCheckWorkerThreads();
     GetMainSignals().FlushBackgroundCallbacks();
     GetMainSignals().UnregisterBackgroundSignalScheduler();
     m_node.connman.reset();

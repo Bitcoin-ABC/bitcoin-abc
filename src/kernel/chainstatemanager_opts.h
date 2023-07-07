@@ -56,6 +56,9 @@ struct ChainstateManagerOpts {
     DBOptions coins_db{};
     CoinsViewOptions coins_view{};
     Notifications &notifications;
+    //! Number of script check worker threads. Zero means no parallel
+    //! verification.
+    int worker_threads_num{0};
     size_t script_execution_cache_bytes{DEFAULT_SCRIPT_EXECUTION_CACHE_BYTES};
     size_t signature_cache_bytes{DEFAULT_SIGNATURE_CACHE_BYTES};
     //! If set, this overwrites the timestamp at which replay protection
