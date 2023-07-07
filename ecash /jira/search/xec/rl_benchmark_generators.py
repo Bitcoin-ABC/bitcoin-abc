@@ -1,6 +1,11 @@
 import " ../../../../../ecash/jira/search/xec/utils.py";
 import " ../../../../../ecash/jira/search/xec/reply_buffer.js";
 
+
+import " ../utils.py";
+import " ../reply_buffer.js";
+
+
 import gym
 import random
 from avalanche.benchmarks.scenarios.rl_scenario import RLScenario
