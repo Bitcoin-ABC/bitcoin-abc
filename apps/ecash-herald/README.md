@@ -13,16 +13,14 @@ To monitor the blockchain and send messages with your own telegram bot:
 5. Fill out `secrets.js` with information for your telegram bot and channel
 6. `node index.js`
 
-## features
+## working on the app
 
--   Send messages when new blocks are found with total number of txs in block
--   Show the total number of eToken txs in new blocks
--   Blocks with eToken genesis txs will include a short description of the newly minted eToken
+Because app performance is ultimately tied to the aesthetic readout of generated msgs, the actual format of generated messages must also be reviewed.
 
-## potential features
+To test changes to the app, run `npm run generateMocks`. This will build telegram msg strings for the blocks in `scripts/generateMocks`.
 
-[] Parse coinbase script to match with miner
-[] Genesis tx description should link to explorer txid
-[] Parse OP_RETURN msgs
-[] Parse eToken txs and summarize
-[] Parse conventional txs and summarize
+If you have no errors, run `npm run generateMocks true` to overwrite `test/mocks/blocks.js`. Then:
+
+`npm test` to see if all edge cases not in the test blocks are covered.
+`npm run sendTestTgMsgs` and review msgs of test blocks for expected appearance and formatting
+`npm run sendMsgByBlock <blockheight>` to review a msg for a specific block

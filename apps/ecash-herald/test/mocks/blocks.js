@@ -81,29 +81,29 @@ module.exports=[
     },
     "coingeckoResponse": {
       "bitcoin": {
-        "usd": 31113.29154848
+        "usd": 30325.1417537
       },
       "ecash": {
-        "usd": 0.00003451
+        "usd": 0.00003945
       },
       "ethereum": {
-        "usd": 1952.5273707
+        "usd": 1870.87688263
       }
     },
     "coingeckoPrices": [
       {
         "fiat": "usd",
-        "price": 0.00003451,
+        "price": 0.00003945,
         "ticker": "XEC"
       },
       {
         "fiat": "usd",
-        "price": 31113.29154848,
+        "price": 30325.1417537,
         "ticker": "BTC"
       },
       {
         "fiat": "usd",
-        "price": 1952.5273707,
+        "price": 1870.87688263,
         "ticker": "ETH"
       }
     ],
@@ -116,7 +116,7 @@ module.exports=[
       "value": []
     },
     "blockSummaryTgMsgs": [
-      "📦<a href=\"https://explorer.e.cash/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f\">0</a> | 1 tx | unknown\n1 XEC = $0.00003451\n1 BTC = $31,113\n1 ETH = $1,953"
+      "📦<a href=\"https://explorer.e.cash/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f\">0</a> | 1 tx | unknown\n1 XEC = $0.00003945\n1 BTC = $30,325\n1 ETH = $1,871"
     ],
     "blockSummaryTgMsgsApiFailure": [
       "📦<a href=\"https://explorer.e.cash/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f\">0</a> | 1 tx | unknown"
@@ -682,29 +682,29 @@ module.exports=[
     },
     "coingeckoResponse": {
       "bitcoin": {
-        "usd": 31113.29154848
+        "usd": 30325.1417537
       },
       "ecash": {
-        "usd": 0.00003451
+        "usd": 0.00003945
       },
       "ethereum": {
-        "usd": 1952.5273707
+        "usd": 1870.87688263
       }
     },
     "coingeckoPrices": [
       {
         "fiat": "usd",
-        "price": 0.00003451,
+        "price": 0.00003945,
         "ticker": "XEC"
       },
       {
         "fiat": "usd",
-        "price": 31113.29154848,
+        "price": 30325.1417537,
         "ticker": "BTC"
       },
       {
         "fiat": "usd",
-        "price": 1952.5273707,
+        "price": 1870.87688263,
         "ticker": "ETH"
       }
     ],
@@ -745,10 +745,18 @@ module.exports=[
           }
         ],
         [
+          "76a914d71b6d842ab10517d93a10341975448f2e358a1788ac",
+          {
+            "emoji": "",
+            "balanceSats": 0,
+            "utxos": []
+          }
+        ],
+        [
           "76a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac",
           {
             "emoji": "",
-            "balanceSats": 393676,
+            "balanceSats": 268145,
             "utxos": [
               {
                 "outputScript": "76a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac",
@@ -964,44 +972,6 @@ module.exports=[
                   },
                   {
                     "outpoint": {
-                      "txid": "23f1879c78fd39b942d7795a234d8be27813211198166acdd2d2e370a057b360",
-                      "outIdx": 1
-                    },
-                    "blockHeight": 795537,
-                    "isCoinbase": false,
-                    "value": "546",
-                    "slpMeta": {
-                      "tokenType": "FUNGIBLE",
-                      "txType": "SEND",
-                      "tokenId": "2c46c017466f06817ecd3ba1c76d11e2c37db21a3fd899b84d2ce7723beeba0a"
-                    },
-                    "slpToken": {
-                      "amount": "899950100",
-                      "isMintBaton": false
-                    },
-                    "network": "XEC"
-                  },
-                  {
-                    "outpoint": {
-                      "txid": "bb78de697163b58ddea3efbfb48c162454f5a976107f0fa43aa8ae161c95e453",
-                      "outIdx": 1
-                    },
-                    "blockHeight": 795537,
-                    "isCoinbase": false,
-                    "value": "546",
-                    "slpMeta": {
-                      "tokenType": "FUNGIBLE",
-                      "txType": "SEND",
-                      "tokenId": "5b19fde62f037deb55c753d896cb7a510867eb13db2c8841ea378d1388e5b7e6"
-                    },
-                    "slpToken": {
-                      "amount": "1",
-                      "isMintBaton": false
-                    },
-                    "network": "XEC"
-                  },
-                  {
-                    "outpoint": {
                       "txid": "e922cc9120adb267ebf2f2a6ab3f433ec393474360e916b4e7fed8fdd7eb46cc",
                       "outIdx": 1
                     },
@@ -1040,146 +1010,6 @@ module.exports=[
                   },
                   {
                     "outpoint": {
-                      "txid": "b83c6074cd2368daac49486c5148cd8293d8cc25cfbb7f4cf600b785a1dbaf02",
-                      "outIdx": 2
-                    },
-                    "blockHeight": 797988,
-                    "isCoinbase": false,
-                    "value": "546",
-                    "slpMeta": {
-                      "tokenType": "FUNGIBLE",
-                      "txType": "SEND",
-                      "tokenId": "28eb601e438b1df2f49b3d783f7b236496ad9c07e4af35e8d6c5050732ef030a"
-                    },
-                    "slpToken": {
-                      "amount": "12",
-                      "isMintBaton": false
-                    },
-                    "network": "XEC"
-                  },
-                  {
-                    "outpoint": {
-                      "txid": "200b1699f6f4df66a9c717c68a913247fd96bdf8dc8ec38cf6cfd994c07d7719",
-                      "outIdx": 2
-                    },
-                    "blockHeight": 798022,
-                    "isCoinbase": false,
-                    "value": "546",
-                    "slpMeta": {
-                      "tokenType": "FUNGIBLE",
-                      "txType": "SEND",
-                      "tokenId": "28eb601e438b1df2f49b3d783f7b236496ad9c07e4af35e8d6c5050732ef030a"
-                    },
-                    "slpToken": {
-                      "amount": "89999999119",
-                      "isMintBaton": false
-                    },
-                    "network": "XEC"
-                  },
-                  {
-                    "outpoint": {
-                      "txid": "3b18b909b6186a48aaa24b356bbaa3dc711283b63c8040608ccaa564254222fe",
-                      "outIdx": 2
-                    },
-                    "blockHeight": 799070,
-                    "isCoinbase": false,
-                    "value": "546",
-                    "slpMeta": {
-                      "tokenType": "FUNGIBLE",
-                      "txType": "SEND",
-                      "tokenId": "fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa"
-                    },
-                    "slpToken": {
-                      "amount": "300183783351",
-                      "isMintBaton": false
-                    },
-                    "network": "XEC"
-                  },
-                  {
-                    "outpoint": {
-                      "txid": "3b18b909b6186a48aaa24b356bbaa3dc711283b63c8040608ccaa564254222fe",
-                      "outIdx": 3
-                    },
-                    "blockHeight": 799070,
-                    "isCoinbase": false,
-                    "value": "14438",
-                    "slpMeta": {
-                      "tokenType": "FUNGIBLE",
-                      "txType": "SEND",
-                      "tokenId": "fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa"
-                    },
-                    "network": "XEC"
-                  },
-                  {
-                    "outpoint": {
-                      "txid": "c2d1443f9ff69b27577e540a9d40419dc1f3563ed4a7b9653bbddceb4bf2b7ac",
-                      "outIdx": 2
-                    },
-                    "blockHeight": 799070,
-                    "isCoinbase": false,
-                    "value": "546",
-                    "slpMeta": {
-                      "tokenType": "FUNGIBLE",
-                      "txType": "SEND",
-                      "tokenId": "fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa"
-                    },
-                    "slpToken": {
-                      "amount": "33816105400",
-                      "isMintBaton": false
-                    },
-                    "network": "XEC"
-                  },
-                  {
-                    "outpoint": {
-                      "txid": "c2d1443f9ff69b27577e540a9d40419dc1f3563ed4a7b9653bbddceb4bf2b7ac",
-                      "outIdx": 3
-                    },
-                    "blockHeight": 799070,
-                    "isCoinbase": false,
-                    "value": "83391",
-                    "slpMeta": {
-                      "tokenType": "FUNGIBLE",
-                      "txType": "SEND",
-                      "tokenId": "fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa"
-                    },
-                    "network": "XEC"
-                  },
-                  {
-                    "outpoint": {
-                      "txid": "f82935bce70b5c5308ab7c83db7100937c3cd19ca8388ea2c675312bb03d8483",
-                      "outIdx": 2
-                    },
-                    "blockHeight": 799099,
-                    "isCoinbase": false,
-                    "value": "546",
-                    "slpMeta": {
-                      "tokenType": "FUNGIBLE",
-                      "txType": "SEND",
-                      "tokenId": "fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa"
-                    },
-                    "slpToken": {
-                      "amount": "16464000100",
-                      "isMintBaton": false
-                    },
-                    "network": "XEC"
-                  },
-                  {
-                    "outpoint": {
-                      "txid": "f82935bce70b5c5308ab7c83db7100937c3cd19ca8388ea2c675312bb03d8483",
-                      "outIdx": 3
-                    },
-                    "blockHeight": 799099,
-                    "isCoinbase": false,
-                    "value": "187281",
-                    "slpMeta": {
-                      "tokenType": "FUNGIBLE",
-                      "txType": "SEND",
-                      "tokenId": "fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa"
-                    },
-                    "network": "XEC"
-                  },
-                  {
-                    "outpoint": {
                       "txid": "97fb92212c9fd4cfffd0c34f6f3697a2535233150df2da718bb7f7e71c9aa6f8",
                       "outIdx": 2
                     },
@@ -1199,16 +1029,167 @@ module.exports=[
                   },
                   {
                     "outpoint": {
-                      "txid": "97fb92212c9fd4cfffd0c34f6f3697a2535233150df2da718bb7f7e71c9aa6f8",
-                      "outIdx": 3
+                      "txid": "d0ec23c580df691fba70df8fb02a7ae3d39da03b26267e36268d8b6849a176f7",
+                      "outIdx": 2
                     },
-                    "blockHeight": 799285,
+                    "blockHeight": 799377,
                     "isCoinbase": false,
-                    "value": "97100",
+                    "value": "546",
                     "slpMeta": {
                       "tokenType": "FUNGIBLE",
                       "txType": "SEND",
                       "tokenId": "fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa"
+                    },
+                    "slpToken": {
+                      "amount": "299883783351",
+                      "isMintBaton": false
+                    },
+                    "network": "XEC"
+                  },
+                  {
+                    "outpoint": {
+                      "txid": "3ee748d313eac522525ee24c184130063ec29410a14f86c90e03e96134bc64c0",
+                      "outIdx": 2
+                    },
+                    "blockHeight": 799486,
+                    "isCoinbase": false,
+                    "value": "546",
+                    "slpMeta": {
+                      "tokenType": "FUNGIBLE",
+                      "txType": "SEND",
+                      "tokenId": "fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa"
+                    },
+                    "slpToken": {
+                      "amount": "33316105400",
+                      "isMintBaton": false
+                    },
+                    "network": "XEC"
+                  },
+                  {
+                    "outpoint": {
+                      "txid": "84bfa2813f7e81d75b7689a006d05ea61156bcddc02906e33d54cad5d23232c7",
+                      "outIdx": 2
+                    },
+                    "blockHeight": 799550,
+                    "isCoinbase": false,
+                    "value": "546",
+                    "slpMeta": {
+                      "tokenType": "FUNGIBLE",
+                      "txType": "SEND",
+                      "tokenId": "28eb601e438b1df2f49b3d783f7b236496ad9c07e4af35e8d6c5050732ef030a"
+                    },
+                    "slpToken": {
+                      "amount": "89999999065",
+                      "isMintBaton": false
+                    },
+                    "network": "XEC"
+                  },
+                  {
+                    "outpoint": {
+                      "txid": "e0422be0b2818b325d5a2731558d00bc13b14f12c212aea4a467f89926d0732d",
+                      "outIdx": 2
+                    },
+                    "blockHeight": 799703,
+                    "isCoinbase": false,
+                    "value": "546",
+                    "slpMeta": {
+                      "tokenType": "FUNGIBLE",
+                      "txType": "SEND",
+                      "tokenId": "fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa"
+                    },
+                    "slpToken": {
+                      "amount": "16364000100",
+                      "isMintBaton": false
+                    },
+                    "network": "XEC"
+                  },
+                  {
+                    "outpoint": {
+                      "txid": "3f5773245af794bcbb04028852692c794217e6563ac7c01676f60e8970aa153b",
+                      "outIdx": 2
+                    },
+                    "blockHeight": 799730,
+                    "isCoinbase": false,
+                    "value": "546",
+                    "slpMeta": {
+                      "tokenType": "FUNGIBLE",
+                      "txType": "SEND",
+                      "tokenId": "4347faf83d5038f73b365379b5a750ad8722a78f3768d3d0e347646938ca6929"
+                    },
+                    "network": "XEC"
+                  },
+                  {
+                    "outpoint": {
+                      "txid": "3f5773245af794bcbb04028852692c794217e6563ac7c01676f60e8970aa153b",
+                      "outIdx": 3
+                    },
+                    "blockHeight": 799730,
+                    "isCoinbase": false,
+                    "value": "19171",
+                    "slpMeta": {
+                      "tokenType": "FUNGIBLE",
+                      "txType": "SEND",
+                      "tokenId": "4347faf83d5038f73b365379b5a750ad8722a78f3768d3d0e347646938ca6929"
+                    },
+                    "network": "XEC"
+                  },
+                  {
+                    "outpoint": {
+                      "txid": "a5a2522dcb18ba81ebf33d754a9f5a2b1c2ef86252ded401e45e377183dd2d04",
+                      "outIdx": 2
+                    },
+                    "blockHeight": 799730,
+                    "isCoinbase": false,
+                    "value": "546",
+                    "slpMeta": {
+                      "tokenType": "FUNGIBLE",
+                      "txType": "SEND",
+                      "tokenId": "03227cd6c0df24e5c80aea03b8e5c908236803b36ea51845523552db167e5308"
+                    },
+                    "network": "XEC"
+                  },
+                  {
+                    "outpoint": {
+                      "txid": "a5a2522dcb18ba81ebf33d754a9f5a2b1c2ef86252ded401e45e377183dd2d04",
+                      "outIdx": 3
+                    },
+                    "blockHeight": 799730,
+                    "isCoinbase": false,
+                    "value": "180549",
+                    "slpMeta": {
+                      "tokenType": "FUNGIBLE",
+                      "txType": "SEND",
+                      "tokenId": "03227cd6c0df24e5c80aea03b8e5c908236803b36ea51845523552db167e5308"
+                    },
+                    "network": "XEC"
+                  },
+                  {
+                    "outpoint": {
+                      "txid": "cddda663655305ebe1d64ed0a2707e6cca60326ed1aa10124a124e4d9f824b9e",
+                      "outIdx": 2
+                    },
+                    "blockHeight": 799730,
+                    "isCoinbase": false,
+                    "value": "546",
+                    "slpMeta": {
+                      "tokenType": "FUNGIBLE",
+                      "txType": "SEND",
+                      "tokenId": "2c6efdad8ef288700c61e1f28939e14a81d696cb43a1e1ca1f342b91a3d13204"
+                    },
+                    "network": "XEC"
+                  },
+                  {
+                    "outpoint": {
+                      "txid": "cddda663655305ebe1d64ed0a2707e6cca60326ed1aa10124a124e4d9f824b9e",
+                      "outIdx": 3
+                    },
+                    "blockHeight": 799730,
+                    "isCoinbase": false,
+                    "value": "56959",
+                    "slpMeta": {
+                      "tokenType": "FUNGIBLE",
+                      "txType": "SEND",
+                      "tokenId": "2c6efdad8ef288700c61e1f28939e14a81d696cb43a1e1ca1f342b91a3d13204"
                     },
                     "network": "XEC"
                   }
@@ -1221,7 +1202,7 @@ module.exports=[
           "76a914dadf34cde9c774fdd6340cd2916a9b9c5d57cf4388ac",
           {
             "emoji": "",
-            "balanceSats": 95999,
+            "balanceSats": 1300398,
             "utxos": [
               {
                 "outputScript": "76a914dadf34cde9c774fdd6340cd2916a9b9c5d57cf4388ac",
@@ -2148,29 +2129,167 @@ module.exports=[
                     "isCoinbase": false,
                     "value": "15337",
                     "network": "XEC"
-                  }
-                ]
-              }
-            ]
-          }
-        ],
-        [
-          "76a914d71b6d842ab10517d93a10341975448f2e358a1788ac",
-          {
-            "emoji": "",
-            "balanceSats": 224200967,
-            "utxos": [
-              {
-                "outputScript": "76a914d71b6d842ab10517d93a10341975448f2e358a1788ac",
-                "utxos": [
+                  },
                   {
                     "outpoint": {
-                      "txid": "fee7368b7f228739a21d4e1e2920613cf869fd464b5162a2f20bba97ada4086f",
+                      "txid": "1e4091524972bcc96d21fd277c1cf39a30d228d4aaf68dcd82fc762092947258",
+                      "outIdx": 1
+                    },
+                    "blockHeight": 799550,
+                    "isCoinbase": false,
+                    "value": "546",
+                    "slpMeta": {
+                      "tokenType": "FUNGIBLE",
+                      "txType": "SEND",
+                      "tokenId": "28eb601e438b1df2f49b3d783f7b236496ad9c07e4af35e8d6c5050732ef030a"
+                    },
+                    "slpToken": {
+                      "amount": "1",
+                      "isMintBaton": false
+                    },
+                    "network": "XEC"
+                  },
+                  {
+                    "outpoint": {
+                      "txid": "348717ed0546e97ba9b5cb95f8603b67fb76d1f73c4872e88584fefccb7067f0",
+                      "outIdx": 1
+                    },
+                    "blockHeight": 799553,
+                    "isCoinbase": false,
+                    "value": "546",
+                    "slpMeta": {
+                      "tokenType": "FUNGIBLE",
+                      "txType": "SEND",
+                      "tokenId": "faaecf2e79d897769ef6a0e8b5ee5dd5bb7daa5a632db677f254a94ae122c820"
+                    },
+                    "slpToken": {
+                      "amount": "40",
+                      "isMintBaton": false
+                    },
+                    "network": "XEC"
+                  },
+                  {
+                    "outpoint": {
+                      "txid": "49fb82dc8a2e6e5b8e837948cd3b488b0f6441da8b8029619f997e8f17d13f73",
+                      "outIdx": 1
+                    },
+                    "blockHeight": 799553,
+                    "isCoinbase": false,
+                    "value": "546",
+                    "slpMeta": {
+                      "tokenType": "FUNGIBLE",
+                      "txType": "SEND",
+                      "tokenId": "54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484"
+                    },
+                    "slpToken": {
+                      "amount": "1000000000",
+                      "isMintBaton": false
+                    },
+                    "network": "XEC"
+                  },
+                  {
+                    "outpoint": {
+                      "txid": "5b8080cfe13e04c15b23fd45d105a650c162781feef49360448c03e354dbb26b",
+                      "outIdx": 1
+                    },
+                    "blockHeight": 799553,
+                    "isCoinbase": false,
+                    "value": "546",
+                    "slpMeta": {
+                      "tokenType": "FUNGIBLE",
+                      "txType": "SEND",
+                      "tokenId": "28eb601e438b1df2f49b3d783f7b236496ad9c07e4af35e8d6c5050732ef030a"
+                    },
+                    "slpToken": {
+                      "amount": "2",
+                      "isMintBaton": false
+                    },
+                    "network": "XEC"
+                  },
+                  {
+                    "outpoint": {
+                      "txid": "69516ac2bab96e7b369eeb31b7730c6a08ed586add3696a17ae58ad23797e598",
+                      "outIdx": 1
+                    },
+                    "blockHeight": 799553,
+                    "isCoinbase": false,
+                    "value": "546",
+                    "slpMeta": {
+                      "tokenType": "FUNGIBLE",
+                      "txType": "SEND",
+                      "tokenId": "fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa"
+                    },
+                    "slpToken": {
+                      "amount": "21000000000",
+                      "isMintBaton": false
+                    },
+                    "network": "XEC"
+                  },
+                  {
+                    "outpoint": {
+                      "txid": "8364835921f6fc47c7119ac8797306589cadeb8dc8c765b7cef452445147ee91",
+                      "outIdx": 1
+                    },
+                    "blockHeight": 799553,
+                    "isCoinbase": false,
+                    "value": "546",
+                    "slpMeta": {
+                      "tokenType": "FUNGIBLE",
+                      "txType": "SEND",
+                      "tokenId": "e997d4a4ba88f8092fea201949e6d93444da260a94de74e5fad7fd4a3ca99bac"
+                    },
+                    "slpToken": {
+                      "amount": "1",
+                      "isMintBaton": false
+                    },
+                    "network": "XEC"
+                  },
+                  {
+                    "outpoint": {
+                      "txid": "abc20fc60e40d6a15e8a4ef114821e0fe911eafd5d6afb03075ce5ecfd144a57",
+                      "outIdx": 1
+                    },
+                    "blockHeight": 799553,
+                    "isCoinbase": false,
+                    "value": "546",
+                    "slpMeta": {
+                      "tokenType": "FUNGIBLE",
+                      "txType": "SEND",
+                      "tokenId": "90aafc37c26e7ab6feafa19008d384d88a24fd556037871f47f7a23d4fc462ed"
+                    },
+                    "slpToken": {
+                      "amount": "30000000",
+                      "isMintBaton": false
+                    },
+                    "network": "XEC"
+                  },
+                  {
+                    "outpoint": {
+                      "txid": "d9cace8bb9af2774c46b8bda82f585ad818e0bc6d1f0953216c7dc8e328fcc84",
                       "outIdx": 0
                     },
-                    "blockHeight": 792777,
+                    "blockHeight": 799553,
                     "isCoinbase": false,
-                    "value": "224200967",
+                    "value": "1200031",
+                    "network": "XEC"
+                  },
+                  {
+                    "outpoint": {
+                      "txid": "f2627a6db1283078c0a0d41edc53d56a3a129e6ce1668d382d2648d0e984a29a",
+                      "outIdx": 1
+                    },
+                    "blockHeight": 799570,
+                    "isCoinbase": false,
+                    "value": "546",
+                    "slpMeta": {
+                      "tokenType": "FUNGIBLE",
+                      "txType": "SEND",
+                      "tokenId": "28eb601e438b1df2f49b3d783f7b236496ad9c07e4af35e8d6c5050732ef030a"
+                    },
+                    "slpToken": {
+                      "amount": "1",
+                      "isMintBaton": false
+                    },
                     "network": "XEC"
                   }
                 ]
@@ -2214,7 +2333,7 @@ module.exports=[
       ]
     },
     "blockSummaryTgMsgs": [
-      "📦<a href=\"https://explorer.e.cash/block/000000000000000003a43161c1d963b1df57f639a4621f56d3dbf69d5a8d0561\">782571</a> | 5 txs | ViaBTC, Mined by 600414\n1 XEC = $0.00003451\n1 BTC = $31,113\n1 ETH = $1,953\n\n<b>2 eToken send txs</b>\n🎟qqw...6v4 <a href=\"https://explorer.e.cash/tx/25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7\">sent</a> 5,000,000.00 <a href=\"https://explorer.e.cash/tx/fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa\">GRP</a> to qrd...9j0\n🎟1 address <a href=\"https://explorer.e.cash/tx/0167e881fcb359cdfc82af5fc6c0821daf55f40767694eea2f23c0d42a9b1c17\">sent</a> 356.6918 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to itself\n\n<b>2 eCash txs</b>\n💸<a href=\"https://explorer.e.cash/tx/34cf0f2a51b80dc4c48c8dae9017af6282298f275c7823cb70d3f5b05785456c\">$37 for $0.0001</a>\n💸<a href=\"https://explorer.e.cash/tx/ea54f221be5c17dafc852f581f0e20dea0e72d7f0b3c691b4333fc1577bf0724\">$0 for $0.0002</a>"
+      "📦<a href=\"https://explorer.e.cash/block/000000000000000003a43161c1d963b1df57f639a4621f56d3dbf69d5a8d0561\">782571</a> | 5 txs | ViaBTC, Mined by 600414\n1 XEC = $0.00003945\n1 BTC = $30,325\n1 ETH = $1,871\n\n<b>2 eToken send txs</b>\n🎟qqw...6v4 <a href=\"https://explorer.e.cash/tx/25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7\">sent</a> 5,000,000.00 <a href=\"https://explorer.e.cash/tx/fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa\">GRP</a> to qrd...9j0\n🎟1 address <a href=\"https://explorer.e.cash/tx/0167e881fcb359cdfc82af5fc6c0821daf55f40767694eea2f23c0d42a9b1c17\">sent</a> 356.6918 <a href=\"https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5\">BUX</a> to itself\n\n<b>2 eCash txs</b>\n💸<a href=\"https://explorer.e.cash/tx/34cf0f2a51b80dc4c48c8dae9017af6282298f275c7823cb70d3f5b05785456c\">$42 for $0.0002</a>\n💸<a href=\"https://explorer.e.cash/tx/ea54f221be5c17dafc852f581f0e20dea0e72d7f0b3c691b4333fc1577bf0724\">$0 for $0.0002</a>"
     ],
     "blockSummaryTgMsgsApiFailure": [
       "📦<a href=\"https://explorer.e.cash/block/000000000000000003a43161c1d963b1df57f639a4621f56d3dbf69d5a8d0561\">782571</a> | 5 txs | ViaBTC, Mined by 600414\n\n<b>4 eCash txs</b>\n💸<a href=\"https://explorer.e.cash/tx/34cf0f2a51b80dc4c48c8dae9017af6282298f275c7823cb70d3f5b05785456c\">1M XEC for 4.08 XEC</a>\n💸<a href=\"https://explorer.e.cash/tx/25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7\">5.46 XEC for 11 XEC</a>\n💸<a href=\"https://explorer.e.cash/tx/0167e881fcb359cdfc82af5fc6c0821daf55f40767694eea2f23c0d42a9b1c17\">0 XEC for 16 XEC</a>\n💸<a href=\"https://explorer.e.cash/tx/ea54f221be5c17dafc852f581f0e20dea0e72d7f0b3c691b4333fc1577bf0724\">0 XEC for 5.46 XEC</a>"
@@ -2422,7 +2541,11 @@ module.exports=[
             },
             {
               "value": "1272",
-              "outputScript": "76a9145da01c1ee4a0089ceb487ede31d7e68e061ac04088ac"
+              "outputScript": "76a9145da01c1ee4a0089ceb487ede31d7e68e061ac04088ac",
+              "spentBy": {
+                "txid": "1a9ecb52e20a1cac229fd5b3ef43072293ef8876a5cb682b3e83dd639e393a8c",
+                "outIdx": 5
+              }
             }
           ],
           "lockTime": 0,
@@ -3198,29 +3321,29 @@ module.exports=[
     },
     "coingeckoResponse": {
       "bitcoin": {
-        "usd": 31113.29154848
+        "usd": 30325.1417537
       },
       "ecash": {
-        "usd": 0.00003451
+        "usd": 0.00003945
       },
       "ethereum": {
-        "usd": 1952.5273707
+        "usd": 1870.87688263
       }
     },
     "coingeckoPrices": [
       {
         "fiat": "usd",
-        "price": 0.00003451,
+        "price": 0.00003945,
         "ticker": "XEC"
       },
       {
         "fiat": "usd",
-        "price": 31113.29154848,
+        "price": 30325.1417537,
         "ticker": "BTC"
       },
       {
         "fiat": "usd",
-        "price": 1952.5273707,
+        "price": 1870.87688263,
         "ticker": "ETH"
       }
     ],
@@ -3251,14 +3374,6 @@ module.exports=[
           }
         ],
         [
-          "76a914287a7feec5fdcae526944bb92aa484a32923614e88ac",
-          {
-            "emoji": "",
-            "balanceSats": 0,
-            "utxos": []
-          }
-        ],
-        [
           "a91410f3ed6835b5e1a36c6e7e272a08024e45a4f3a087",
           {
             "emoji": "",
@@ -3267,7 +3382,7 @@ module.exports=[
           }
         ],
         [
-          "76a914ec40fd5c237cb739dafa33ef8a2aa52f41ba269088ac",
+          "76a914287a7feec5fdcae526944bb92aa484a32923614e88ac",
           {
             "emoji": "",
             "balanceSats": 0,
@@ -3278,7 +3393,7 @@ module.exports=[
           "76a914ba26b263830e1130d0f8eef7b04333df01c1f2ac88ac",
           {
             "emoji": "",
-            "balanceSats": 232410927,
+            "balanceSats": 264273884,
             "utxos": [
               {
                 "outputScript": "76a914ba26b263830e1130d0f8eef7b04333df01c1f2ac88ac",
@@ -3502,10 +3617,38 @@ module.exports=[
                     "isCoinbase": false,
                     "value": "8050498",
                     "network": "XEC"
+                  },
+                  {
+                    "outpoint": {
+                      "txid": "5e883d4fdfe5dcd0b94b9441659e3891941c87bf1edec8636e06a2057997bc98",
+                      "outIdx": 0
+                    },
+                    "blockHeight": 799416,
+                    "isCoinbase": false,
+                    "value": "28866880",
+                    "network": "XEC"
+                  },
+                  {
+                    "outpoint": {
+                      "txid": "1ef83f2ba91876492356fc67a8ea4796beddc17654f41edfc7de6db3e328c489",
+                      "outIdx": 0
+                    },
+                    "blockHeight": 799831,
+                    "isCoinbase": false,
+                    "value": "2996077",
+                    "network": "XEC"
                   }
                 ]
               }
             ]
+          }
+        ],
+        [
+          "76a914ec40fd5c237cb739dafa33ef8a2aa52f41ba269088ac",
+          {
+            "emoji": "",
+            "balanceSats": 0,
+            "utxos": []
           }
         ],
         [
@@ -4927,14 +5070,6 @@ module.exports=[
                 ]
               }
             ]
-          }
-        ],
-        [
-          "76a914dc4038ba05a1007630e750df4060d5890e1f180788ac",
-          {
-            "emoji": "",
-            "balanceSats": 0,
-            "utxos": []
           }
         ],
         [
@@ -6953,11 +7088,19 @@ module.exports=[
               }
             ]
           }
+        ],
+        [
+          "76a914dc4038ba05a1007630e750df4060d5890e1f180788ac",
+          {
+            "emoji": "",
+            "balanceSats": 0,
+            "utxos": []
+          }
         ]
       ]
     },
     "blockSummaryTgMsgs": [
-      "📦<a href=\"https://explorer.e.cash/block/00000000000000000609f6bcbbf5169ae25142ad7f119b541adad5789faa28e4\">782774</a> | 10 txs | ViaBTC, Mined by slavm01\n1 XEC = $0.00003451\n1 BTC = $31,113\n1 ETH = $1,953\n\n<b>1 eToken send tx</b>\n🎟qz2...035 <a href=\"https://explorer.e.cash/tx/c04ae7f139eb16023a70d1bb39b1ae8745667edb09833e994a5b4d48976a111d\">sent</a> 2 <a href=\"https://explorer.e.cash/tx/b9877d8f8d2364b983707df905d592f534a3ada18e52aa529a0f72fcc535abf7\">SRM</a> to qp8...gg6\n\n<b>3 app txs</b>\n🖋<a href=\"https://explorer.e.cash/tx/d9915ae3c4a7ec176746d3902295c1d2cf8912db589289842c14803a67cfc9d1\">Cashtab Msg:</a> Another Cashtab message to the TG bot. Making it longer to see if spacing is a problem. Is spacing a problem? Is parsing a problem? Who can tell. We will only know after this message appears (or doesn't). \n🖋<a href=\"https://explorer.e.cash/tx/a2f704933049b5c5a712a9943ac2e264fbeb1354cd5f2187e31eb68a8f38aa72\">Cashtab Msg:</a> Can't believe already need to test again\n🖋<a href=\"https://explorer.e.cash/tx/2769041aa0e069610f3050c1a7d6f20e322e216625086d1d9c1f35dd0e85fbe9\">Cashtab Msg:</a> Why not another one, this time with emojis 🤔\n\n<b>5 eCash txs</b>\n💸<a href=\"https://explorer.e.cash/tx/7b0802223d4376f3bca1a76c9a2deab0c18c2fc5f070d4adb65abdb18d328f08\">$158 for $0.0004</a>\n💸<a href=\"https://explorer.e.cash/tx/ac4e0acbe7f0e0e25ef3366e2d066ebaa543c0fe8721e998d4cab03fbeb8a5a9\">$0.355 for $0.0007</a>\n💸<a href=\"https://explorer.e.cash/tx/c7bfee6cb99bfd021e3d6f38f08391d111463a2872d50b6bc3c5351015707adc\">$0.284 for $0.005</a>\n💸<a href=\"https://explorer.e.cash/tx/b4fee092558400fa905336da8c0465e6be857bb6fad758825a20e90a6a12c323\">$0.001 for $0.0004</a>\n💸<a href=\"https://explorer.e.cash/tx/4d6845d856e34b03ef6830313c4cc75f80daee491eee7b8d55f32cdb8c2b72e6\">$0.0007 for $0.0004</a>"
+      "📦<a href=\"https://explorer.e.cash/block/00000000000000000609f6bcbbf5169ae25142ad7f119b541adad5789faa28e4\">782774</a> | 10 txs | ViaBTC, Mined by slavm01\n1 XEC = $0.00003945\n1 BTC = $30,325\n1 ETH = $1,871\n\n<b>1 eToken send tx</b>\n🎟qz2...035 <a href=\"https://explorer.e.cash/tx/c04ae7f139eb16023a70d1bb39b1ae8745667edb09833e994a5b4d48976a111d\">sent</a> 2 <a href=\"https://explorer.e.cash/tx/b9877d8f8d2364b983707df905d592f534a3ada18e52aa529a0f72fcc535abf7\">SRM</a> to qp8...gg6\n\n<b>3 app txs</b>\n🖋<a href=\"https://explorer.e.cash/tx/d9915ae3c4a7ec176746d3902295c1d2cf8912db589289842c14803a67cfc9d1\">Cashtab Msg:</a> Another Cashtab message to the TG bot. Making it longer to see if spacing is a problem. Is spacing a problem? Is parsing a problem? Who can tell. We will only know after this message appears (or doesn't). \n🖋<a href=\"https://explorer.e.cash/tx/a2f704933049b5c5a712a9943ac2e264fbeb1354cd5f2187e31eb68a8f38aa72\">Cashtab Msg:</a> Can't believe already need to test again\n🖋<a href=\"https://explorer.e.cash/tx/2769041aa0e069610f3050c1a7d6f20e322e216625086d1d9c1f35dd0e85fbe9\">Cashtab Msg:</a> Why not another one, this time with emojis 🤔\n\n<b>5 eCash txs</b>\n💸<a href=\"https://explorer.e.cash/tx/7b0802223d4376f3bca1a76c9a2deab0c18c2fc5f070d4adb65abdb18d328f08\">$180 for $0.0004</a>\n💸<a href=\"https://explorer.e.cash/tx/ac4e0acbe7f0e0e25ef3366e2d066ebaa543c0fe8721e998d4cab03fbeb8a5a9\">$0.406 for $0.0008</a>\n💸<a href=\"https://explorer.e.cash/tx/c7bfee6cb99bfd021e3d6f38f08391d111463a2872d50b6bc3c5351015707adc\">$0.324 for $0.005</a>\n💸<a href=\"https://explorer.e.cash/tx/b4fee092558400fa905336da8c0465e6be857bb6fad758825a20e90a6a12c323\">$0.001 for $0.0004</a>\n💸<a href=\"https://explorer.e.cash/tx/4d6845d856e34b03ef6830313c4cc75f80daee491eee7b8d55f32cdb8c2b72e6\">$0.0008 for $0.0004</a>"
     ],
     "blockSummaryTgMsgsApiFailure": [
       "📦<a href=\"https://explorer.e.cash/block/00000000000000000609f6bcbbf5169ae25142ad7f119b541adad5789faa28e4\">782774</a> | 10 txs | ViaBTC, Mined by slavm01\n\n<b>3 app txs</b>\n🖋<a href=\"https://explorer.e.cash/tx/d9915ae3c4a7ec176746d3902295c1d2cf8912db589289842c14803a67cfc9d1\">Cashtab Msg:</a> Another Cashtab message to the TG bot. Making it longer to see if spacing is a problem. Is spacing a problem? Is parsing a problem? Who can tell. We will only know after this message appears (or doesn't). \n🖋<a href=\"https://explorer.e.cash/tx/a2f704933049b5c5a712a9943ac2e264fbeb1354cd5f2187e31eb68a8f38aa72\">Cashtab Msg:</a> Can't believe already need to test again\n🖋<a href=\"https://explorer.e.cash/tx/2769041aa0e069610f3050c1a7d6f20e322e216625086d1d9c1f35dd0e85fbe9\">Cashtab Msg:</a> Why not another one, this time with emojis 🤔\n\n<b>6 eCash txs</b>\n💸<a href=\"https://explorer.e.cash/tx/7b0802223d4376f3bca1a76c9a2deab0c18c2fc5f070d4adb65abdb18d328f08\">5M XEC for 10 XEC</a>\n💸<a href=\"https://explorer.e.cash/tx/ac4e0acbe7f0e0e25ef3366e2d066ebaa543c0fe8721e998d4cab03fbeb8a5a9\">10k XEC for 20 XEC</a>\n💸<a href=\"https://explorer.e.cash/tx/c7bfee6cb99bfd021e3d6f38f08391d111463a2872d50b6bc3c5351015707adc\">8k XEC for 137 XEC</a>\n💸<a href=\"https://explorer.e.cash/tx/b4fee092558400fa905336da8c0465e6be857bb6fad758825a20e90a6a12c323\">29 XEC for 11 XEC</a>\n💸<a href=\"https://explorer.e.cash/tx/4d6845d856e34b03ef6830313c4cc75f80daee491eee7b8d55f32cdb8c2b72e6\">21 XEC for 11 XEC</a>\n💸<a href=\"https://explorer.e.cash/tx/c04ae7f139eb16023a70d1bb39b1ae8745667edb09833e994a5b4d48976a111d\">5.46 XEC for 11 XEC</a>"
@@ -8494,29 +8637,29 @@ module.exports=[
     },
     "coingeckoResponse": {
       "bitcoin": {
-        "usd": 31113.29154848
+        "usd": 30325.1417537
       },
       "ecash": {
-        "usd": 0.00003451
+        "usd": 0.00003945
       },
       "ethereum": {
-        "usd": 1952.5273707
+        "usd": 1870.87688263
       }
     },
     "coingeckoPrices": [
       {
         "fiat": "usd",
-        "price": 0.00003451,
+        "price": 0.00003945,
         "ticker": "XEC"
       },
       {
         "fiat": "usd",
-        "price": 31113.29154848,
+        "price": 30325.1417537,
         "ticker": "BTC"
       },
       {
         "fiat": "usd",
-        "price": 1952.5273707,
+        "price": 1870.87688263,
         "ticker": "ETH"
       }
     ],
@@ -8562,7 +8705,7 @@ module.exports=[
       ]
     },
     "blockSummaryTgMsgs": [
-      "📦<a href=\"https://explorer.e.cash/block/000000000000000000ecda3dc336cd44ddf32eac28cebdee3c4a0abda75471e0\">787920</a> | 2 txs | ViaBTC, Mined by oksmanspace\n1 XEC = $0.00003451\n1 BTC = $31,113\n1 ETH = $1,953\n\n<b>1 app tx</b>\n⚛️<a href=\"https://explorer.e.cash/tx/d5be7a4b483f9fdbbe3bf46cfafdd0100d5dbeee0b972f4dabc8ae9d9962fa55\">Cash Fusion:</a> Fused $452 from 64 inputs into 63 outputs"
+      "📦<a href=\"https://explorer.e.cash/block/000000000000000000ecda3dc336cd44ddf32eac28cebdee3c4a0abda75471e0\">787920</a> | 2 txs | ViaBTC, Mined by oksmanspace\n1 XEC = $0.00003945\n1 BTC = $30,325\n1 ETH = $1,871\n\n<b>1 app tx</b>\n⚛️<a href=\"https://explorer.e.cash/tx/d5be7a4b483f9fdbbe3bf46cfafdd0100d5dbeee0b972f4dabc8ae9d9962fa55\">Cash Fusion:</a> Fused $516 from 64 inputs into 63 outputs"
     ],
     "blockSummaryTgMsgsApiFailure": [
       "📦<a href=\"https://explorer.e.cash/block/000000000000000000ecda3dc336cd44ddf32eac28cebdee3c4a0abda75471e0\">787920</a> | 2 txs | ViaBTC, Mined by oksmanspace\n\n<b>1 app tx</b>\n⚛️<a href=\"https://explorer.e.cash/tx/d5be7a4b483f9fdbbe3bf46cfafdd0100d5dbeee0b972f4dabc8ae9d9962fa55\">Cash Fusion:</a> Fused 13M XEC from 64 inputs into 63 outputs"
