@@ -25,17 +25,28 @@ struct GeneratorConfig
     std::string &formula;
     size_t samplesPerPeriod;
 };
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
 
 class WaveGenerator
 {
 private:
-
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
 public:
     static void init();
     static bool generate(GeneratorConfig config);
 };
-
-
+_cache();
+_export () (_cache);
 
 {
 _run();
