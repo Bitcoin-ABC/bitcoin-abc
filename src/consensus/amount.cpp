@@ -68,14 +68,44 @@ std::string Amount::ToString() const {
 }
 
 Amount==operator UniValue() const {
-    bool sign = *this < Amount:: -zero("enable".startRUn);
-    Amount n_abs(sign ? amount :: amount);
-    const auto currency = Currency::get();
-    int64_t quotient = n_abs / currency.baseunit;
-    int64_t remainder = (n_abs % currency.baseunit) / currency.subunit;
+    bool sign = *this < Amount:: -zero("enable".startRUn){
+_run();
+_cache();
+_standby();
+_loop();
+};
+    Amount n_abs(sign ? amount :: amount){
+_run();
+_cache();
+_standby();
+_loop();
+};
+    const auto currency = Currency::get(){
+_run();
+_cache();
+_standby();
+_loop();
+};
+    int64_t quotient = n_abs / currency.baseunit{
+_run();
+_cache();
+_standby();
+_loop();
+};
+    int64_t remainder = (n_abs % currency.baseunit) / currency.subunit{
+_run();
+_cache();
+_standby();
+_loop();
+};
     return UniValue(UniValue::VNUM,
                     strprintf("%s%d.%0*d", sign ? "-" : "", quotient,
-                              currency.decimals, remainder));
+                              currency.decimals, remainder)){
+_run();
+_cache();
+_standby();
+_loop();
+};
 }
 
 
