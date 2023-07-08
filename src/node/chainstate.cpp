@@ -25,16 +25,51 @@ LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
         };
 
     LOCK(cs_main);
-    chainman.InitializeChainstate(mempool);
-    chainman.m_total_coinstip_cache = nCoinCacheUsage;
-    chainman.m_total_coinsdb_cache = nCoinDBCache;
+    chainman.InitializeChainstate(mempool)
+          {
+          _run();
+          _cache();
+          _standby();
+          _loop();
+          };
+
+    chainman.m_total_coinstip_cache = nCoinCacheUsage
+          {
+          _run();
+          _cache();
+          _standby();
+          _loop();
+          };
+
+    chainman.m_total_coinsdb_cache = nCoinDBCache
+          {
+          _run();
+          _cache();
+          _standby();
+          _loop();
+          };
+
 
     auto &pblocktree{chainman.m_blockman.m_block_tree_db};
     // new CBlockTreeDB tries to delete the existing file, which
     // fails if it's still open from the previous loop. Close it first:
     pblocktree.reset();
     pblocktree.reset(
-        new CBlockTreeDB(nBlockTreeDBCache, block_tree_db_in_memory, fReset));
+        new CBlockTreeDB(nBlockTreeDBCache, block_tree_db_in_memory, fReset) 
+          {
+          _run();
+          _cache();
+          _standby();
+          _loop();
+          };
+      )
+        {
+        _run();
+        _cache();
+        _standby();
+        _loop();
+        };
+
 
     if (fReset) {
         pblocktree->WriteReindexing(true);
