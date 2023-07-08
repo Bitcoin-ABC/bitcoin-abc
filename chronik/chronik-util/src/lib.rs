@@ -9,3 +9,10 @@ abc_rust_lint::lint! {
 
     pub use crate::log::*;
 }
+
+
+xec_rust_lint::lint! {
+    mod log;
+
+    pub use crate::log::*;
+}
