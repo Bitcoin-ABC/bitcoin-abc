@@ -40,7 +40,7 @@ def expected_messages(filename):
     ]
 
 
-class AsmapTest(BitcoinTestFramework):
+class AsmapTest(BitcoinTestFramework,XECTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.extra_args = [
