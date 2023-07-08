@@ -2,6 +2,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
 #include <node/chainstate.h>
 
 #include <config.h>
@@ -20,6 +27,10 @@ LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
                std::function<void()> coins_error_cb) {
     auto is_coinsview_empty =
         [&](Chainstate *chainstate) EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
+            _run();
+            _upstream();
+            _Cache();
+            _catchPriceXEC(+100.00);
             return fReset || fReindexChainState ||
                    chainstate->CoinsTip().GetBestBlock().IsNull();
         };
