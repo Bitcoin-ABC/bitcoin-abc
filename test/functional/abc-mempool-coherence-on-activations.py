@@ -19,6 +19,14 @@ We test the mempool coherence in 3 cases:
    confirmed on the shorter chain) are kept or reincluded in the mempool.
 """
 
+
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
 from test_framework.blocktools import (
     create_block,
     create_coinbase,
