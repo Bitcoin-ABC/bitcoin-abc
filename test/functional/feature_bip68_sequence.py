@@ -8,7 +8,7 @@ import time
 
 from test_framework.blocktools import create_block
 from test_framework.messages import (
-    XEC,
+    _XEC,
     COutPoint,
     CTransaction,
     CTxIn,
@@ -91,7 +91,7 @@ class BIP68Test(BitcoinTestFramework):
         # Create some unconfirmed inputs
         new_addr = self.nodes[0].getnewaddress()
         # send 2,000,000 XEC
-        self.nodes[0].sendtoaddress(new_addr, 2000000)
+        self.test.nodes[0].sendtoaddress(new_addr, 2000000)
 
         utxos = self.nodes[0].listunspent(0, 0)
         assert len(utxos) > 0
