@@ -10,11 +10,20 @@ from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import check_node_connections
 
+
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
+
 INBOUND_CONNECTIONS = 5
 BLOCK_RELAY_CONNECTIONS = 2
 
 
-class AnchorsTest(BitcoinTestFramework):
+class AnchorsTest(BitcoinTestFramework ,XECTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.disable_autoconnect = False
