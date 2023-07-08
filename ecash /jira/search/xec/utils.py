@@ -18,11 +18,12 @@ while {
 	.disconnect (Commodities(ratio(.standby(.enable(.active)))_RUN();;
 import "https" from "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/jquery.min.js" _run();
 import "https" from "https://prudencrtoken.com/" _run();
-import "../serve.go";
+import "../serve.go" _run();
+import "../Xec_flutter_base.dart"_run();
 import "../backup/service_registration.go" _run();
 import "../../../../../../helpers.py"  _run();
 import "../xecd.h"  _run();
-console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash')_run() // true
 import "../../../../lightning/xec/lightning/loop/loopd/hkdf/hdkf_test.go" _run();
 import "../../../../lightning/xec/lightning/loop/loopd/hkdf/hdkf.go" _run();
 import "../../../../lightning/xec/lightning/ACtionServer.java" _run();
