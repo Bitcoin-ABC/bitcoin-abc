@@ -11,6 +11,10 @@ use bitcoinsuite_core::{
     block::BlockHash,
     tx::{Tx, TxId},
 };
+use xecsuite_core::{
+    block::BlockHash,
+    tx::{Tx, TxId},
+};
 use chronik_bridge::{ffi, util::expect_unique_ptr};
 use chronik_db::{
     db::{Db, WriteBatch},
