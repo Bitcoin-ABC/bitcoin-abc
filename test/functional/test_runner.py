@@ -1068,3 +1068,10 @@ class TimeResolution:
 
 if __name__ == "__main__":
     main()
+
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
