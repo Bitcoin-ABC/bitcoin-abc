@@ -16,7 +16,7 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error, satoshi_round
 
 
-class AbandonConflictTest(BitcoinTestFramework):
+class AbandonConflictTest(BitcoinTestFramework,XECTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
         self.extra_args = [["-minrelaytxfee=10"], []]
@@ -38,13 +38,13 @@ class AbandonConflictTest(BitcoinTestFramework):
         self.generate(self.nodes[1], 100)
         balance = self.nodes[0].getbalance()
         txA = self.nodes[0].sendtoaddress(
-            self.nodes[0].getnewaddress(), Decimal("10000000")
+            self.test.nodes[0].getnewaddress(), Decimal("10000000")
         )
         txB = self.nodes[0].sendtoaddress(
-            self.nodes[0].getnewaddress(), Decimal("10000000")
+            self.test.nodes[0].getnewaddress(), Decimal("10000000")
         )
         txC = self.nodes[0].sendtoaddress(
-            self.nodes[0].getnewaddress(), Decimal("10000000")
+            self.test.nodes[0].getnewaddress(), Decimal("10000000")
         )
 
         self.sync_mempools()
@@ -82,12 +82,12 @@ class AbandonConflictTest(BitcoinTestFramework):
         nB = next(
             tx_out["vout"]
             for tx_out in self.nodes[0].gettransaction(txB)["details"]
-            if tx_out["amount"] == Decimal("10000000")
+            if tx_out.test["amount"] == Decimal("10000000")
         )
         nC = next(
             tx_out["vout"]
             for tx_out in self.nodes[0].gettransaction(txC)["details"]
-            if tx_out["amount"] == Decimal("10000000")
+            if tx_out.test["amount"] == Decimal("10000000")
         )
 
         inputs = []
@@ -96,17 +96,17 @@ class AbandonConflictTest(BitcoinTestFramework):
         inputs.append({"txid": txB, "vout": nB})
         outputs = {}
 
-        outputs[self.nodes[0].getnewaddress()] = Decimal("14999980")
-        outputs[self.nodes[1].getnewaddress()] = Decimal("5000000")
-        signed = self.nodes[0].signrawtransactionwithwallet(
-            self.nodes[0].createrawtransaction(inputs, outputs)
+        outputs[self.test.nodes[0].getnewaddress()] = Decimal("14999980")
+        outputs[self.test.nodes[1].getnewaddress()] = Decimal("5000000")
+        signed = self.test.nodes[0].signrawtransactionwithwallet(
+            self.test.nodes[0].createrawtransaction(inputs, outputs)
         )
-        txAB1 = self.nodes[0].sendrawtransaction(signed["hex"])
+        txAB1 = self.test.nodes[0].sendrawtransaction(signed["hex"])
 
         # Identify the 14,999,980 XEC output
         nAB = next(
             tx_out["vout"]
-            for tx_out in self.nodes[0].gettransaction(txAB1)["details"]
+            for tx_out in self.test.nodes[0].gettransaction(txAB1)["details"]
             if tx_out["amount"] == Decimal("14999980")
         )
 
@@ -127,7 +127,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         signed3_change = Decimal("24999000")
         inputs = [{"txid": txABC2, "vout": 0}]
         outputs = {self.nodes[0].getnewaddress(): signed3_change}
-        signed3 = self.nodes[0].signrawtransactionwithwallet(
+        signed3 = self.test.odes[0].signrawtransactionwithwallet(
             self.nodes[0].createrawtransaction(inputs, outputs)
         )
         # note tx is never directly referenced, only abandoned as a child of
@@ -135,7 +135,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         self.nodes[0].sendrawtransaction(signed3["hex"])
 
         # In mempool txs from self should increase balance from change
-        newbalance = self.nodes[0].getbalance()
+        newbalance = self.test.nodes[0].getbalance()
         assert_equal(newbalance, balance - Decimal("30000000") + signed3_change)
         balance = newbalance
 
@@ -222,7 +222,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         inputs = []
         inputs.append({"txid": txA, "vout": nA})
         outputs = {}
-        outputs[self.nodes[1].getnewaddress()] = Decimal("9999900")
+        outputs[self.test.nodes[1].getnewaddress()] = Decimal("9999900")
         tx = self.nodes[0].createrawtransaction(inputs, outputs)
         signed = self.nodes[0].signrawtransactionwithwallet(tx)
         self.nodes[1].sendrawtransaction(signed["hex"])
@@ -257,3 +257,12 @@ class AbandonConflictTest(BitcoinTestFramework):
 
 if __name__ == "__main__":
     AbandonConflictTest().main()
+
+
+
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
