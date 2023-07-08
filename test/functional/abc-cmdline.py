@@ -9,6 +9,14 @@ Currently:
 -excessiveblocksize=<blocksize_in_bytes>
 """
 
+
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../cash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
 import re
 import time
 
