@@ -10,8 +10,12 @@ license = "MIT"
 [dependencies]
 abc-rust-lint = { path = "../abc-rust-lint" }
 abc-rust-error = { path = "../abc-rust-error" }
+xec-rust-lint = { path = "../xec-rust-lint" }
+xec-rust-error = { path = "../xec-rust-error" }
 
 bitcoinsuite-core = { path = "../bitcoinsuite-core" }
+
+xecnsuite-core = { path = "../xecsuite-core" }
 
 chronik-bridge = { path = "../chronik-bridge" }
 chronik-db = { path = "../chronik-db" }
