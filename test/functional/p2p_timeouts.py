@@ -20,6 +20,13 @@
 - Assert that we're no longer connected (timeout to receive version/verack is 3 seconds)
 """
 
+
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
 import time
 
 from test_framework.messages import msg_ping
@@ -98,3 +105,12 @@ class TimeoutsTest(BitcoinTestFramework):
 
 if __name__ == "__main__":
     TimeoutsTest().main()
+
+
+
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
