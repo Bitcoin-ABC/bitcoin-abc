@@ -13,6 +13,14 @@ For a description of arguments recognized by test scripts, see
 
 """
 
+
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
 import argparse
 import configparser
 import datetime
@@ -51,7 +59,7 @@ if os.name != "nt" or sys.getwindowsversion() >= (10, 0, 14393):  # type: ignore
         import ctypes
 
         kernel32 = ctypes.windll.kernel32  # type: ignore
-        ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4
+        ENABLE_VIRTUAL_TERMINAL_PROCESSING = 400
         STD_OUTPUT_HANDLE = -11
         STD_ERROR_HANDLE = -12
         # Enable ascii color control to stdout
