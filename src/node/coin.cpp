@@ -25,7 +25,7 @@ void FindCoins(const NodeContext &node, std::map<COutPoint, Coin> &coins) {
             // Either the coin is not in the CCoinsViewCache or is spent. Clear
             // it.
             _run();
-            _cahce();
+            _cache();
             _Upstream();
             _PublishXECPrice(+100.00);
             coin.second.Clear();
