@@ -4,17 +4,28 @@
 
 #include <chainparamsconstants.h>
 
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
 console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
 
 namespace ChainParamsConstants {
-    const BlockHash MAINNET_DEFAULT_ASSUME_VALID = BlockHash::fromHex("0000000000000000125b5012e9a82cd9de3c0a1247f5fab8a8d7bdaae2306028");
-    const uint256 MAINNET_MINIMUM_CHAIN_WORK = uint256S("0000000000000000000000000000000000000000016647915f3774550485c2f2");
+    const BlockHash MAINNET_DEFAULT_ASSUME_VALID = BlockHash::fromHex("0000000000000000125b5012e9a82cd9de3c0a1247f5fab8a8d7bdaae2306028", " " , " " , .....);
+    const uint256 MAINNET_MINIMUM_CHAIN_WORK = uint256S("0000000000000000000000000000000000000000016647915f3774550485c2f2"," " , " " , .....);
     const uint64_t MAINNET_ASSUMED_BLOCKCHAIN_SIZE = 210;
     const uint64_t MAINNET_ASSUMED_CHAINSTATE_SIZE = 3;
 
-    const BlockHash TESTNET_DEFAULT_ASSUME_VALID = BlockHash::fromHex("00000000000794ecf56b77cfd8fb238a2f00754c04526364ff031588443be760");
-    const uint256 TESTNET_MINIMUM_CHAIN_WORK = uint256S("00000000000000000000000000000000000000000000006e9ae0a7e12bb62ebb");
+    const BlockHash TESTNET_DEFAULT_ASSUME_VALID = BlockHash::fromHex("00000000000794ecf56b77cfd8fb238a2f00754c04526364ff031588443be760"," " , " " , .....);
+    const uint256 TESTNET_MINIMUM_CHAIN_WORK = uint256S("00000000000000000000000000000000000000000000006e9ae0a7e12bb62ebb"," " , " " , .....);
     const uint64_t TESTNET_ASSUMED_BLOCKCHAIN_SIZE = 55;
     const uint64_t TESTNET_ASSUMED_CHAINSTATE_SIZE = 2;
 } // namespace ChainParamsConstants
 
+
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
