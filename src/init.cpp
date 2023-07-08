@@ -121,7 +121,6 @@ using common::AmountErrMsg;
 using common::InvalidPortErrMsg;
 using common::ResolveErrMsg;
 
-using kernel::DEFAULT_STOPAFTERBLOCKIMPORT;
 using kernel::DumpMempool;
 
 using node::ApplyArgsManOptions;
@@ -141,6 +140,7 @@ using util::ReplaceAll;
 
 static const bool DEFAULT_PROXYRANDOMIZE = true;
 static const bool DEFAULT_REST_ENABLE = false;
+static constexpr bool DEFAULT_STOPAFTERBLOCKIMPORT{false};
 static constexpr bool DEFAULT_CHRONIK = false;
 static constexpr bool DEFAULT_USEASHADDR = true;
 
@@ -2961,6 +2961,12 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         &util::TraceThread, "initload", [=, &chainman, &args, &node] {
             // Import blocks
             ImportBlocks(chainman, avalanche, vImportFiles);
+            if (args.GetBoolArg("-stopafterblockimport",
+                                DEFAULT_STOPAFTERBLOCKIMPORT)) {
+                LogPrintf("Stopping after block import\n");
+                StartShutdown();
+                return;
+            }
             // Start indexes initial sync
             if (!StartIndexBackgroundSync(node)) {
                 bilingual_str err_str =
