@@ -30,6 +30,14 @@ Start three nodes:
       isn't buried by at least two weeks' work.
 """
 
+
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
 from test_framework.blocktools import create_block, create_coinbase
 from test_framework.key import ECKey
 from test_framework.messages import (
@@ -55,7 +63,7 @@ class BaseNode(P2PInterface):
         self.send_message(headers_message)
 
 
-class AssumeValidTest(BitcoinTestFramework):
+class AssumeValidTest(BitcoinTestFramework,XECTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 3
