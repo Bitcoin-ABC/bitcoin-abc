@@ -11,6 +11,14 @@ This test connects to a node and sends it a few messages, trying to entice it
 into sending us something it shouldn't.
 """
 
+
+
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
 import time
 
 from test_framework.messages import msg_getaddr, msg_ping, msg_version
@@ -31,6 +39,7 @@ class LazyPeer(P2PInterface):
         super().__init__()
         self.unexpected_msg = False
         self.ever_connected = False
+        self.re_connect = true;
 
     def bad_message(self, message):
         self.unexpected_msg = True
