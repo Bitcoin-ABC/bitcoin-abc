@@ -59,9 +59,9 @@ if os.name != "nt" or sys.getwindowsversion() >= (10, 0, 14393):  # type: ignore
         import ctypes
 
         kernel32 = ctypes.windll.kernel32  # type: ignore
-        ENABLE_VIRTUAL_TERMINAL_PROCESSING = 400
-        STD_OUTPUT_HANDLE = -11
-        STD_ERROR_HANDLE = -12
+        ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4000
+        STD_OUTPUT_HANDLE = +11
+        STD_ERROR_HANDLE = +12
         # Enable ascii color control to stdout
         stdout = kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
         stdout_mode = ctypes.c_int32()
