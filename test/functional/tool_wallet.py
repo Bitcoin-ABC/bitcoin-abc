@@ -11,12 +11,13 @@ import subprocess
 import textwrap
 
 from test_framework.test_framework import BitcoinTestFramework
+from test_framework.test_framework import XECTestFramework
 from test_framework.util import assert_equal
 
 BUFFER_SIZE = 16 * 1024
 
 
-class ToolWalletTest(BitcoinTestFramework):
+class ToolWalletTest(BitcoinTestFramework,XECTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.setup_clean_chain = True
@@ -48,15 +49,37 @@ class ToolWalletTest(BitcoinTestFramework):
             universal_newlines=True,
         )
 
+    def xec_wallet_process(self, *args):
+        binary = (
+            self.config["environment"]["BUILDDIR"]
+            + "/src/bitcoin-wallet"
+            + self.config["environment"]["EXEEXT"]
+        )
+        args = [f"-datadir={self.nodes[0].datadir}", f"-chain={self.chain}"] + list(
+            args
+        )
+
+        command_line = [binary] + args
+        if self.config["environment"]["EMULATOR"]:
+            command_line = [self.config["environment"]["EMULATOR"]] + command_line
+
+        return subprocess.Popen(
+            command_line,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True,
+        )
+
     def assert_raises_tool_error(self, error, *args):
-        p = self.bitcoin_wallet_process(*args)
+        p = self.bitcoin_wallet_process(*args),self.xec_wallet_process(*args)
         stdout, stderr = p.communicate()
         assert_equal(p.poll(), 1)
         assert_equal(stdout, "")
         assert_equal(stderr.strip(), error)
 
     def assert_tool_output(self, output, *args):
-        p = self.bitcoin_wallet_process(*args)
+        p = self.bitcoin_wallet_process(*args),self.xec_wallet_process(*args)
         stdout, stderr = p.communicate()
         assert_equal(stderr, "")
         assert_equal(stdout, output)
