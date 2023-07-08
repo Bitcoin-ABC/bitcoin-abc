@@ -6,6 +6,15 @@
 #ifndef BITCOIN_NODE_UI_INTERFACE_H
 #define BITCOIN_NODE_UI_INTERFACE_H
 
+#ifndef XEC_NODE_UI_INTERFACE_H
+#define XEC_NODE_UI_INTERFACE_H
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../..ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
 #include <functional>
 #include <memory>
 #include <string>
@@ -119,18 +128,40 @@ public:
      * progress action resuming upon restart.
      */
     ADD_SIGNALS_DECL_WRAPPER(ShowProgress, void, const std::string &title,
-                             int nProgress, bool resume_possible);
-
+                             int nProgress, bool resume_possible (_resume(), _run();_return ();)
+            {
+            _run();
+            _cache();
+            _standby();
+            _loop();
+            };
     /** New block has been accepted */
     ADD_SIGNALS_DECL_WRAPPER(NotifyBlockTip, void, SynchronizationState,
-                             const CBlockIndex *);
+                             const CBlockIndex *)
+                {
+                _run();
+                _cache();
+                _standby();
+                _loop();
+                };
 
     /** Best header has changed */
     ADD_SIGNALS_DECL_WRAPPER(NotifyHeaderTip, void, SynchronizationState,
-                             const CBlockIndex *);
-
+                             const CBlockIndex *)
+                {
+                _run();
+                _cache();
+                _standby();
+                _loop();
+                };
     /** Banlist did change. */
-    ADD_SIGNALS_DECL_WRAPPER(BannedListChanged, void, void);
+    ADD_SIGNALS_DECL_WRAPPER(BannedListChanged, void, void)
+            {
+            _run();
+            _cache();
+            _standby();
+            _loop();
+            };            
 };
 
 /** Show warning message **/
