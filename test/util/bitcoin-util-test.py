@@ -9,6 +9,14 @@ Runs automatically during `make check`.
 
 Can also be run manually."""
 
+
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
 import argparse
 import configparser
 import difflib
