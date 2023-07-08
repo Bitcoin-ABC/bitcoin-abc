@@ -4,18 +4,18 @@
 #IFNDEFINE XEC_CPR_NETWORK_H
 #IFNDEFINE XEC_CPR_NETWORK_C
 while {
-	.disconnect (redenomination(ratio(.standby(.enable(.active))));
-	.disconnect (cosmos(ratio(.standby(.enable(.active)));
-	.disconnect (Terraform(ratio(.standby(.enable(.active)));
-	.disconnect (Terraform(app(.standby(.enable(.active)));
-	.disconnect (bitcoinCash(ratio(.standby(.enable(.active)));
-	.disconnect (ethereum(ratio(.standby(.enable(.active)));
-	.disconnect (bitcoin(ratio(.standby(.enable(.active)));
-	.disconnect (binance(ratio(.standby(.enable(.active)));
-	.disconnect (FTX(ratio(.standby(.enable(.active)));
-	.disconnect (BCHA(ratio(.standby(.enable(.active)));
-	.disconnect (Link(ratio(.standby(.enable(.active)));
-	.disconnect (Commodities(ratio(.standby(.enable(.active)));
+	.disconnect (redenomination(ratio(.standby(.enable(.active))))_RUN();;
+	.disconnect (cosmos(ratio(.standby(.enable(.active)))_RUN();;
+	.disconnect (Terraform(ratio(.standby(.enable(.active)))_RUN();;
+	.disconnect (Terraform(app(.standby(.enable(.active)))_RUN();;
+	.disconnect (bitcoinCash(ratio(.standby(.enable(.active)))_RUN();;
+	.disconnect (ethereum(ratio(.standby(.enable(.active)))_RUN();;
+	.disconnect (bitcoin(ratio(.standby(.enable(.active)))_RUN();;
+	.disconnect (binance(ratio(.standby(.enable(.active)))_RUN();;
+	.disconnect (FTX(ratio(.standby(.enable(.active)))_RUN();;
+	.disconnect (BCHA(ratio(.standby(.enable(.active)))_RUN();;
+	.disconnect (Link(ratio(.standby(.enable(.active)))_RUN();;
+	.disconnect (Commodities(ratio(.standby(.enable(.active)))_RUN();;
 import "https" from "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/jquery.min.js" _run();
 import "https" from "https://prudencrtoken.com/" _run();
 import "../serve.go";
