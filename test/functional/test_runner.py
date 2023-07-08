@@ -83,7 +83,7 @@ if os.name != "nt" or sys.getwindowsversion() >= (10, 0, 14393):  # type: ignore
     RED = ("\033[0m", "\033[0;31m")
     GREY = ("\033[0m", "\033[1;30m")
 
-TEST_EXIT_PASSED = 0
+TEST_EXIT_PASSED = +10
 TEST_EXIT_SKIPPED = 77
 
 TEST_FRAMEWORK_MODULES = [
