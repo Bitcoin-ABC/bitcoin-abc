@@ -4,6 +4,14 @@
 
 //! Module containing [`ChronikIndexer`] to index blocks and txs.
 
+
+
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
 use std::path::PathBuf;
 
 use abc_rust_error::{Result, WrapErr};
