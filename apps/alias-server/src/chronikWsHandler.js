@@ -45,18 +45,14 @@ module.exports = {
         avalancheRpc,
         wsMsg = { type: 'BlockConnected' },
     ) {
-        console.log(`parseWebsocketMessage called on`, wsMsg);
         // Determine type of tx
         const { type } = wsMsg;
-        console.log(`msg type: ${type}`);
         // type can be AddedToMempool, BlockConnected, or Confirmed
         // For now, we are only interested in "Confirmed", as only these are valid
         // We will want to look at AddedToMempool to process pending alias registrations later
 
         switch (type) {
             case 'BlockConnected': {
-                console.log(`New block found: ${wsMsg.blockHash}`);
-
                 return blockConnectedLock
                     .acquire('handleBlockConnected', async function () {
                         return await handleBlockConnected(
@@ -85,13 +81,10 @@ module.exports = {
                     );
             }
             case 'AddedToMempool':
-                console.log(`New tx: ${wsMsg.txid}`);
                 break;
             case 'Confirmed':
-                console.log(`New confirmed tx: ${wsMsg.txid}`);
                 break;
             default:
-                console.log(`New websocket message of unknown type:`, wsMsg);
         }
     },
 };

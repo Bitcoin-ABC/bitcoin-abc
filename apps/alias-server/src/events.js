@@ -189,9 +189,7 @@ module.exports = {
 
         // TODO telegram notifications for new alias registrations
 
-        console.log(
-            `Alias registrations updated to block ${tipHash} at height ${tipHeight}`,
-        );
+        console.log('\x1b[32m%s\x1b[0m', `✔ ${tipHeight}`);
         return `Alias registrations updated to block ${tipHash} at height ${tipHeight}`;
     },
 };
