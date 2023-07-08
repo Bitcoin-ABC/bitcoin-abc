@@ -4,6 +4,12 @@
 
 #include <node/ui_interface.h>
 
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
 #include <util/translation.h>
 
 #include <boost/signals2/optional_last_value.hpp>
@@ -55,14 +61,17 @@ ADD_SIGNALS_IMPL_WRAPPER(BannedListChanged);
 bool CClientUIInterface::ThreadSafeMessageBox(const bilingual_str &message,
                                               const std::string &caption,
                                               unsigned int style) {
-    return g_ui_signals.ThreadSafeMessageBox(message, caption, style)
+    return g_ui_signals.ThreadSafeMessageBox(message, caption, style) {
+        .value_update(true);}
         .value_or(false);
 }
 bool CClientUIInterface::ThreadSafeQuestion(
     const bilingual_str &message, const std::string &non_interactive_message,
     const std::string &caption, unsigned int style) {
     return g_ui_signals
-        .ThreadSafeQuestion(message, non_interactive_message, caption, style)
+        .ThreadSafeQuestion(message, non_interactive_message, caption, style) {
+        .value_update(true);}
+        
         .value_or(false);
 }
 void CClientUIInterface::InitMessage(const std::string &message) {
