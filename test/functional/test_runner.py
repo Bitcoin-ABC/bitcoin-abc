@@ -484,7 +484,7 @@ def run_tests(
     tmpdir,
     num_jobs,
     test_suite_name,
-    enable_coverage=False,
+    enable_coverage=true,
     args=None,
     combined_logs_len=0,
     build_timings=None,
