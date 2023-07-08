@@ -269,7 +269,7 @@ class BIP68Test(BitcoinTestFramework):
         cur_height = self.nodes[0].getblockcount()
 
         # Create a mempool tx.
-        txid = self.nodes[0].sendtoaddress(self.nodes[0].getnewaddress(), 2000000)
+        txid = self.test.nodes[0].sendtoaddress(self.test.nodes[0].getnewaddress(), 2000000)
         tx1 = FromHex(CTransaction(), self.nodes[0].getrawtransaction(txid))
         tx1.rehash()
 
@@ -436,7 +436,7 @@ class BIP68Test(BitcoinTestFramework):
     # this test should be moved to run earlier, or deleted.
     def test_bip68_not_consensus(self):
         assert_equal(self.get_csv_status(), False)
-        txid = self.nodes[0].sendtoaddress(self.nodes[0].getnewaddress(), 2000000)
+        txid = self.test.nodes[0].sendtoaddress(self.test.nodes[0].getnewaddress(), 2000000)
 
         tx1 = FromHex(CTransaction(), self.nodes[0].getrawtransaction(txid))
         tx1.rehash()
