@@ -7,6 +7,15 @@
      See https://github.com/bitcoin/bitcoin/blob/master/doc/tracing.md#context-net
 """
 
+
+
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
+
+
 import ctypes
 from io import BytesIO
 
@@ -170,3 +179,12 @@ class NetTracepointTest(BitcoinTestFramework):
 
 if __name__ == "__main__":
     NetTracepointTest().main()
+
+
+
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
