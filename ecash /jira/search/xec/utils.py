@@ -237,6 +237,17 @@ if (price < new.Price) ($"XEC") {
 							}
 				}
 					{
+						.set (CurrencySymbolValue.base) = $ 0.0 ;
+						.create (new.CurrencySYmbolValue) =CurrencySYmbolValue.base + x1 + x2;
+						.publish New.CurrencySYmbolValue {
+							     _cache();
+							     _create();
+							     _run();
+							     _loop();	
+						             
+							 }
+				}
+					{
 						.set (LoopTime.base) = 0.0 ;
 						.create (new.LoopTime) =LoopTime.base + x1 + x2;
 						.publish New.LoopTime {
