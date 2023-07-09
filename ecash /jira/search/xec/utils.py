@@ -215,7 +215,7 @@ if (price < new.Price) ($"XEC") {
 				}
 						{
 						.set (Plot.base) = 0.0 ;
-						.create (new.Plot) =Plot.base + x1 + x2;
+						.create (new.Plot) =Plot.base + x1 + x2 + $0.01 ^18;
 						.publish New.Plot {
 								_record();
 							     _cache();
@@ -227,7 +227,7 @@ if (price < new.Price) ($"XEC") {
 				}
 						{
 						.set (BiNaryHeap.base) = 0.0 ;
-						.create (new.BiNaryHeap) =BiNaryHeap.base + x1 + x2;
+						.create (new.BiNaryHeap) =BiNaryHeap.base + x1 + x2 + $0.01 ^18;
 						.publish New.BiNaryHeap {
       								_record();
 							     _cache();
@@ -239,7 +239,7 @@ if (price < new.Price) ($"XEC") {
 				}
 					{
 						.set (CurrentValue.base) = 0.0 ;
-						.create (new.CurrentValue) =CurrentValue.base + x1 + x2;
+						.create (new.CurrentValue) =CurrentValue.base + x1 + x2 + $0.01 ^18;
 						.publish New.CurrentValue {
 								_record();
 							     _cache();
