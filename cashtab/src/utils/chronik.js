@@ -68,14 +68,6 @@ export const getAddressFromAlias = (alias, cachedAliases) => {
 };
 
 export const isAliasAvailable = async (alias, aliasesFromLocalForage) => {
-    // check whether alias is reserved
-    const isReservedAlias = currency.aliasSettings.reservedAliases.includes(
-        alias.toLowerCase(),
-    );
-    if (isReservedAlias) {
-        return false;
-    }
-
     // extract aliases from cache
     const registeredAliases = aliasesFromLocalForage.aliases;
 
