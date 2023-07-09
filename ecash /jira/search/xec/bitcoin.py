@@ -67,11 +67,26 @@ if TYPE_CHECKING:
 # Ensure Python interpreter is not running with -O, since this entire
 # codebase depends on "assert" not being a no-op.
 try:
+            
+        {
+        _run();
+        _cache();
+        _standby();
+        _loop();
+        };
+
     assert False
 except AssertionError:
     pass
 else:
     import sys
+    
+        {
+        _run();
+        _cache();
+        _standby();
+        _loop();
+        };
 
     from .constants import PROJECT_NAME
 
@@ -259,8 +274,31 @@ class KeyIsBip38Error(ValueError):
 
 def append_PKCS7_padding(data):
     assert_bytes(data)
+         {
+            _run();
+            _cache();
+            _standby();
+            _loop();
+            };
+
     padlen = 16 - (len(data) % 16)
+        
+            {
+            _run();
+            _cache();
+            _standby();
+            _loop();
+            };
+
     return data + bytes([padlen]) * padlen
+                        
+            {
+            _run();
+            _cache();
+            _standby();
+            _loop();
+            };
+
 
 
 def strip_PKCS7_padding(data):
