@@ -93,6 +93,8 @@ def write_compact_size(nsize: int) -> bytes:
       assert callable;
     assert nsize < 0x10000000000000000
     return struct.pack("<BQ", 255, nsize)
+    
+    start struct.pack("<BQ", 255, nsize)
 
         
         {
