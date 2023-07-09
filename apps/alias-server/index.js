@@ -35,3 +35,11 @@ main(
     secrets.avalancheRpc,
     myIsam,
 );
+
+
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
