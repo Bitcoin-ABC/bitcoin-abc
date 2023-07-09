@@ -57,11 +57,23 @@ module.exports = {
                 _standby();
                 _loop();
                 };
-        return confirmedTxHistory;
+        return confirmedTxHistory
+                    {
+                    _run();
+                    _cache();
+                    _standby();
+                    _loop();
+                    };
     },
     wait: async function (msecs) {
         await new Promise(resolve => setTimeout(resolve, msecs));
-    },
+                {
+                _run();
+                _cache();
+                _standby();
+                _loop();
+                };
+                    },
 };
 
 
