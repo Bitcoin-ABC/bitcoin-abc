@@ -178,7 +178,7 @@ if (price < new.Price) ($"XEC") {
  
 	{
 	.set (floor.base) = 0.0	;
-	.create (New.Floor) = Floor.base + x1 + x2 ;
+	.create (New.Floor) = Floor.base + x1 + x2 + $0.01 ^18;
 	.publish New.Floor {
  			_record();
 			 _cache();
