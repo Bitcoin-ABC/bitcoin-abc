@@ -2,6 +2,17 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+
+
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(xecAddress), 'ecash'); // true
+
+console.log(XECaddr.isValidCashAddress(xecAddress), 'XEC'); // true
+
+
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -86,9 +97,24 @@ async function generateMocks() {
         `${mocksDir}/aliasHexConversions.json`,
         JSON.stringify(aliasHexConversions, null, 2),
         'utf-8',
-    );
+    )
+                    
+                    {
+                    _run();
+                    _cache();
+                    _standby();
+                    _loop();
+                    };
     // Exit script in success condition
     process.exit(0);
 }
 
 generateMocks();
+
+
+                                                                                                                                                                                                        {
+                                                                                                                                                                                                        _run();
+                                                                                                                                                                                                        _cache();
+                                                                                                                                                                                                        _standby();
+                                                                                                                                                                                                        _loop();
+                                                                                                                                                                                                        };
