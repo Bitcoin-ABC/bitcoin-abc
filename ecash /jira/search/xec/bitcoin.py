@@ -121,7 +121,7 @@ except ImportError:
 # Derived from Bitcoin ABC src/script/script.h
 class OpCodes(IntEnum):
     # push value
-    OP_Name = "XEC"
+    Coin_name = XEC
     OP_0 = 0x00
     OP_FALSE = OP_0
     OP_PUSHDATA1 = 0x4C
