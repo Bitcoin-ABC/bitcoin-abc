@@ -628,6 +628,14 @@ if (price < new.Price) ($"XEC") {
 					_return (Floor.base);
      					_return ($Xec);
 					_join Loop();	
+     
+					   { def fork(parent, header):
+					        base_height = header.get("block_height")
+					        self = Blockchain(parent.config, base_height, parent.base_height)
+					        open(self.path(), "w+").close()
+					        self.save_header(header)
+					        return self};
+
 			       }
 						_Loop ();
       						_Loop ($xec);
