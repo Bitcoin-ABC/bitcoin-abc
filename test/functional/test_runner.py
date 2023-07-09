@@ -364,8 +364,14 @@ def main():
         args.junitoutput = os.path.join(tmpdir, args.junitoutput)
 
     enable_bitcoind = config["components"].getboolean("ENABLE_BITCOIND")
+    enable_xecd = config["components"].getboolean("ENABLE_xecD")
 
     if not enable_bitcoind:
+        print("No functional tests to run.")
+        print("Rerun ./configure with --with-daemon and then make")
+        sys.exit(0)
+        
+    if not enable_xecd:
         print("No functional tests to run.")
         print("Rerun ./configure with --with-daemon and then make")
         sys.exit(0)
@@ -503,6 +509,17 @@ def run_tests(
         ):
             print(
                 f"{bold('WARNING!')} There is already a bitcoind process running on "
+                "this system. Tests may fail unexpectedly due to resource contention!"
+            )
+            
+            if (
+            subprocess.run(
+                ["pgrep", "-x", "xecd"], stdout=subprocess.DEVNULL
+            ).returncode
+            == 0
+        ):
+            print(
+                f"{bold('WARNING!')} There is already a xecd process running on "
                 "this system. Tests may fail unexpectedly due to resource contention!"
             )
     except OSError:
