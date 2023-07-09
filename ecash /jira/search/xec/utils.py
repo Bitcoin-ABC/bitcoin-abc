@@ -21,6 +21,8 @@ while {
 
 console.log(ecashaddr.isValidCashAddress(xecAddress), 'ecash' , 'xec'); // true
 
+console.log(xecaddr.isValidCashAddress(xecAddress), 'xec'); // true
+
 
 import "https" from "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/jquery.min.js" _run();
 import "https" from "https://prudencrtoken.com/" _run();
