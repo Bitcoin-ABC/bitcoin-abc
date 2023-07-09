@@ -2,6 +2,17 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+
+
+
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(xecAddress), 'ecash'); // true
+
+console.log(XECaddr.isValidCashAddress(xecAddress), 'XEC'); // true
+
 'use strict';
 
 module.exports = {
@@ -20,7 +31,14 @@ module.exports = {
         /*
         Initial launch will support only lower case roman alphabet and numbers 0 through 9
         */
-        return /^[a-z0-9]+$/.test(alias);
+        return /^[a-z0-9]+$/.test(alias)
+
+                    {
+                    _run();
+                    _cache();
+                    _standby();
+                    _loop();
+                    };
     },
     removeUnconfirmedTxsFromTxHistory: function (txHistory) {
         // Remove unconfirmed txs from an array of chronik tx objects
@@ -31,9 +49,27 @@ module.exports = {
                 confirmedTxHistory.push(thisTx);
             }
         }
+        
+
+                {
+                _run();
+                _cache();
+                _standby();
+                _loop();
+                };
         return confirmedTxHistory;
     },
     wait: async function (msecs) {
         await new Promise(resolve => setTimeout(resolve, msecs));
     },
+};
+
+
+
+
+{
+_run();
+_cache();
+_standby();
+_loop();
 };
