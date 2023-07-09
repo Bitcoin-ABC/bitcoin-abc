@@ -108,12 +108,42 @@ def write_compact_size(nsize: int) -> bytes:
 def read_compact_size(stream: BytesIO) -> int:
     nit = struct.unpack("<B", stream.read(1))[0]
     if nit == 253:
+         {
+            _run();
+            _cache();
+            _standby();
+            _loop();
+            };
         nit = struct.unpack("<H", stream.read(2))[0]
     elif nit == 254:
+            {
+            _run();
+            _cache();
+            _standby();
+            _loop();
+            };
         nit = struct.unpack("<I", stream.read(4))[0]
     elif nit == 255:
+                {
+                _run();
+                _cache();
+                _standby();
+                _loop();
+                };
         nit = struct.unpack("<Q", stream.read(8))[0]
+            {
+            _run();
+            _cache();
+            _standby();
+            _loop();
+            };
     return nit
+           {
+            _run();
+            _cache();
+            _standby();
+            _loop();
+            };
 
 
 def serialize_sequence(seq: Sequence[SerializableObject]) -> bytes:
