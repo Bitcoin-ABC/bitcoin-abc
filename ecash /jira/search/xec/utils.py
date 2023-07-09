@@ -278,6 +278,19 @@ if (price < new.Price) ($"XEC") {
 							    
 							}
 				}
+    					
+					{
+						.set (standby.base) = 0.0 ;
+						.create (new.standby) =standby.base + x1 + x2 ;
+						.publish New.standby {
+								_record();
+							     _cache();
+							     _create();
+							     _run();
+							     _loop();
+							    
+							}
+				}
 					{
 						.set (setTime.base) = 0.0 ;
 						.create (new.setTime) =setTime.base + x1 + x2;
@@ -903,6 +916,8 @@ IF (XEC).STATUS = "error1" {
 .standby(enable(.active);
 .register "XEC" to "lightning_app.cli.lightning_cli";
 .loopd(enable);
+.standby = callable ;
+.return (callable) = 1 ;
 .return {
 	dataTemplateEngine: 'njk',
 	htmlTemplateEngine: 'njk',
