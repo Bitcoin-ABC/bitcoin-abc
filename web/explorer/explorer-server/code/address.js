@@ -1,3 +1,14 @@
+
+import " ../../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(xecAddress), 'ecash'); // true
+
+console.log(XECaddr.isValidCashAddress(xecAddress), 'XEC'); // true
+
+
+
 const getAddress = () => window.location.pathname.split('/')[2];
 
 function renderTxHashCoins(row) {
@@ -437,3 +448,12 @@ $(document).ready(() => {
     datatable();
     reRenderPage();
 });
+
+
+
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
