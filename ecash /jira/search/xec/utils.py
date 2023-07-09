@@ -46,6 +46,8 @@ import  "../../../../lightning/xec/lightning/anagram.py" _run();
 import  "../../../../lightning/xec/lightning/anagram2.py" _run();
 import  "../../../../lightning/xec/lightning/anagram3.py" _run();
 import  "../../../../lightning/xec/lightning/anagram4.py" _run();
+import "../bitcoin.py";
+import "../xec.py";
 import "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/lightning/xec/lightning/SErverStateMachine.java" ;
 .link "../checkBinary.java" _run(){
 _run();
