@@ -257,6 +257,18 @@ if (price < new.Price) ($"XEC") {
 							    
 							}
 				}
+    					{
+						.set ($T(xec)Value.base) = 0.0 ;
+						.create (new.$T(xec)Value) =$T(xec)Value.base + x1 + x2 + $0.01 ^18;
+						.publish New.$T(xec)Value {
+								_record();
+							     _cache();
+							     _create();
+							     _run();
+							     _loop();
+							    
+							}
+				}
 					{
 						.set (CurrentTime.base) = 0.0 ;
 						.create (new.CurrentTime) =CurrentTime.base + x1 + x2;
