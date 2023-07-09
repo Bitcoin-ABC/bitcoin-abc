@@ -23,7 +23,13 @@ console.log(XECaddr.isValidCashAddress(xecAddress), 'XEC'); // true
                                     _loop();
                                     };
     
-set -euo pipefail {_return true};
+set -euo pipefail 
+                                    {
+                                    _run();
+                                    _cache();
+                                    _standby();
+                                    _loop();
+                                    };
 
 # Format all sources using rustfmt.
 
