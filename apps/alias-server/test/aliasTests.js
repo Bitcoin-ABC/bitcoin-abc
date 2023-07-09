@@ -2,6 +2,15 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(xecAddress), 'ecash'); // true
+
+console.log(XECaddr.isValidCashAddress(xecAddress), 'XEC'); // true
+
 'use strict';
 const assert = require('assert');
 const cashaddr = require('ecashaddrjs');
@@ -252,3 +261,12 @@ describe('alias-server alias.js', async function () {
         await testDb.dropDatabase();
     });
 });
+
+
+
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
