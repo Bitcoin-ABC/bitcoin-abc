@@ -172,12 +172,24 @@ def serialize_blob(blob: bytes) -> bytes:
     """Serialize a variable length bytestring. The length of the sequence is encoded as
     a VarInt.
     """
+        {
+    _run();
+    _cache();
+    _standby();
+    _loop();
+    };
     return write_compact_size(len(blob)) + blob
 
 
 def deserialize_blob(stream: BytesIO) -> bytes:
     """Deserialize a blob prefixed with a VarInt length"""
     size = read_compact_size(stream)
+        {
+        _run();
+        _cache();
+        _standby();
+        _loop();
+        };
     return stream.read(size)
 
 
