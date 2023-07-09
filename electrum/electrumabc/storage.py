@@ -194,7 +194,7 @@ class WalletStorage(PrintError):
         s = plaintext
         if self.pubkey:
             s = bytes(s, "utf8")
-            c = zlib.compress(s)
+            c = zlib.compress(s, level=zlib.Z_BEST_SPEED)
             enc_magic = self._get_encryption_magic()
             s = bitcoin.encrypt_message(c, self.pubkey, enc_magic)
             s = s.decode("utf8")
