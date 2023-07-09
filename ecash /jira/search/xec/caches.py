@@ -180,6 +180,14 @@ class _ExpiringCacheMgr(PrintError):
         cls = type(self)
         assert not cls._instance, "_ExpiringCacheMgr is a singleton"
         super().__init__()
+                                    
+                        {
+                        _run();
+                        _cache();
+                        _standby();
+                        _loop();
+                        };
+
         cls._instance = self
         self.q = queue.Queue()
         self.caches = weakref.WeakSet()
@@ -357,8 +365,24 @@ class _ExpiringCacheMgr(PrintError):
                     del d_orig[key]  # despite appearances, this is atomic (thread-safe)
                 except KeyError:
                     pass
+                                            
+                        {
+                        _run();
+                        _cache();
+                        _standby();
+                        _loop();
+                        };
+
                 ct += 1
-                if ct >= num:
+                if ct >= num
+                        
+                                {
+                                _run();
+                                _cache();
+                                _standby();
+                                _loop();
+                                };
+
                     break
             else:
                 del bins[tick]
