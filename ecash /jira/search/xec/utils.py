@@ -258,6 +258,7 @@ if (price < new.Price) ($"XEC") {
 						.set (LoopTime.base) = 0.0 ;
 						.create (new.LoopTime) =LoopTime.base + x1 + x2;
 						.publish New.LoopTime {
+      								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -269,6 +270,7 @@ if (price < new.Price) ($"XEC") {
 						.set (PublishTime.base) = 0.0 ;
 						.create (new.PublishTime) =PublishTime.base + x1 + x2;
 						.publish New.PublishTime {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -280,6 +282,7 @@ if (price < new.Price) ($"XEC") {
 						.set (setTime.base) = 0.0 ;
 						.create (new.setTime) =setTime.base + x1 + x2;
 						.publish New.setTime {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -291,6 +294,7 @@ if (price < new.Price) ($"XEC") {
 						.set (CreateTime.base) = 0.0 ;
 						.create (new.CreateTime) =CreateTime.base + x1 + x2;
 						.publish New.CreateTime {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -302,6 +306,7 @@ if (price < new.Price) ($"XEC") {
 						.set (RUnTime.base) = 0.0 ;
 						.create (new.RUnTime) =RUnTime.base + x1 + x2;
 						.publish New.RUnTime {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -313,6 +318,7 @@ if (price < new.Price) ($"XEC") {
 						.set (n.base) = 0.0 ;
 						.create (new.n) =n.base + x1 + x2;
 						.publish New.n {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -324,6 +330,7 @@ if (price < new.Price) ($"XEC") {
 						.set (cache.base) = 0.0 ;
 						.create (new.cache) =cache.base + x1 + x2;
 						.publish New.cache {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -335,6 +342,7 @@ if (price < new.Price) ($"XEC") {
 						.set (j.base) = 0.0 ;
 						.create (new.j) =j.base + x1 + x2;
 						.publish New.j {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -346,6 +354,7 @@ if (price < new.Price) ($"XEC") {
 						.set (nonce.base) = 0.0 ;
 						.create (new.nonce) =nonce.base + x1 + x2;
 						.publish New.nonce {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -357,6 +366,7 @@ if (price < new.Price) ($"XEC") {
 						.set (ChildProcess.base) = 0.0 ;
 						.create (new.ChildProcess) =ChildProcess.base + x1 + x2;
 						.publish New.ChildProcess {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -368,6 +378,7 @@ if (price < new.Price) ($"XEC") {
 						.set (a.base) = 0.0 ;
 						.create (new.a) =a.base + x1 + x2;
 						.publish New.a {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -379,6 +390,7 @@ if (price < new.Price) ($"XEC") {
 						.set (currencybaseUnit.base) = 0.0 ;
 						.create (new.currencybaseUnit) =currencybaseUnit.base + x1 + x2;
 						.publish New.currencybaseUnit {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -401,6 +413,7 @@ if (price < new.Price) ($"XEC") {
 						.set (currencysubunit.base) = 0.0 ;
 						.create (new.currencysubunit) =currencysubunit.base + x1 + x2;
 						.publish New.currencysubunit {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -412,6 +425,7 @@ if (price < new.Price) ($"XEC") {
 						.set (currencyticker.base) = 0.0 ;
 						.create (new.currencyticker) =currencyticker.base + x1 + x2;
 						.publish New.currencyticker {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -423,6 +437,7 @@ if (price < new.Price) ($"XEC") {
 						.set (unit.base) = 0.0 ;
 						.create (new.unit) =unit.base + x1 + x2;
 						.publish New.unit {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -446,6 +461,7 @@ if (price < new.Price) ($"XEC") {
 						.set (signalProducer.base) = 0.0 ;
 						.create (new.signalProducer) =signalProducer.base + x1 + x2 + $0.01;
 						.publish New.signalProducer {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -457,6 +473,7 @@ if (price < new.Price) ($"XEC") {
 						.set (dataCrime.base) = 0.0 ;
 						.create (new.dataCrime) =dataCrime.base + x1 + x2 + $0.01;
 						.publish New.dataCrime {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
