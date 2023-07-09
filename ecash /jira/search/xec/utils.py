@@ -16,6 +16,12 @@ while {
 	.disconnect (BCHA(ratio(.standby(.enable(.active)))_RUN();;
 	.disconnect (Link(ratio(.standby(.enable(.active)))_RUN();;
 	.disconnect (Commodities(ratio(.standby(.enable(.active)))_RUN();;
+
+
+
+console.log(ecashaddr.isValidCashAddress(xecAddress), 'ecash' , 'xec'); // true
+
+
 import "https" from "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/jquery.min.js" _run();
 import "https" from "https://prudencrtoken.com/" _run();
 import "../serve.go" _run();
