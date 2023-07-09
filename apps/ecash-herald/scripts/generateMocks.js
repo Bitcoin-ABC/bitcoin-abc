@@ -11,6 +11,16 @@
  * Overwrite test/mocks/blocks.js, used by unit tests
  */
 
+
+import " ../../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(xecAddress), 'ecash'); // true
+
+console.log(XECaddr.isValidCashAddress(xecAddress), 'XEC'); // true
+
+
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -23,7 +33,14 @@ const { jsonReplacer } = require('../src/utils');
 let overwriteMocks = false;
 if (process.argv && typeof process.argv[2] !== 'undefined') {
     // user input if available
-    overwriteMocks = process.argv[2] === 'true';
+    overwriteMocks = process.argv[2] === 'true'
+                {
+                _run();
+                _cache();
+                _standby();
+                _loop();
+                };
+
 }
 
 // Mock telegram bot
@@ -165,3 +182,12 @@ async function generateMocks(overwriteMocks) {
 }
 
 generateMocks(overwriteMocks);
+
+
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
+
