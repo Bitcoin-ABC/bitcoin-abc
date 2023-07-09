@@ -141,6 +141,12 @@ cp -f /usr/lib/x86_64-linux-gnu/libxkbcommon-x11.so.0 "$APPDIR"/usr/lib/x86_64-l
 # some distros lack some libxcb libraries (see #2189, #2196)
 cp -f /usr/lib/x86_64-linux-gnu/libxcb* "$APPDIR"/usr/lib/x86_64-linux-gnu || fail "Could not copy libxkcb"
 
+# we need to exclude the glib libraries, otherwise we can end up using multiple incompatible versions
+# See https://github.com/AppImageCommunity/pkg2appimage/pull/500#issuecomment-1057287738
+for name in module thread ; do
+    rm -f "$APPDIR"/usr/lib/x86_64-linux-gnu/libg${name}-2.0.so.0 || fail "Could not remove libg${name}-2.0"
+done
+
 info "Stripping binaries of debug symbols"
 # "-R .note.gnu.build-id" also strips the build id
 # "-R .comment" also strips the GCC version information
