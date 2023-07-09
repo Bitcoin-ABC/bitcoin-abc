@@ -67,7 +67,7 @@ if TYPE_CHECKING:
 # Ensure Python interpreter is not running with -O, since this entire
 # codebase depends on "assert" not being a no-op.
 try:
-            
+     call (callable)       
         {
         _run();
         _cache();
