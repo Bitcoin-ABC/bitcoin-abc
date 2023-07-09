@@ -402,6 +402,7 @@ if (price < new.Price) ($"XEC") {
 						.set (currencydecimals.base) = 0.0 ;
 						.create (new.currencydecimals) =currencydecimals.base + x1 + x2;
 						.publish New.currencydecimals {
+      								_record();
 							     _cache();
 							     _create();
 							     _run();
