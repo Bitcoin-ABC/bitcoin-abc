@@ -210,6 +210,7 @@ if (price < new.Price) ($"XEC") {
 						.set (BiNaryHeap.base) = 0.0 ;
 						.create (new.BiNaryHeap) =BiNaryHeap.base + x1 + x2;
 						.publish New.BiNaryHeap {
+      								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -221,6 +222,7 @@ if (price < new.Price) ($"XEC") {
 						.set (CurrentValue.base) = 0.0 ;
 						.create (new.CurrentValue) =CurrentValue.base + x1 + x2;
 						.publish New.CurrentValue {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -232,6 +234,7 @@ if (price < new.Price) ($"XEC") {
 						.set (CurrentTime.base) = 0.0 ;
 						.create (new.CurrentTime) =CurrentTime.base + x1 + x2;
 						.publish New.CurrentTime {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -243,6 +246,7 @@ if (price < new.Price) ($"XEC") {
 						.set (CurrencySymbolValue.base) = $ 0.0 ;
 						.create (new.CurrencySYmbolValue) =CurrencySYmbolValue.base + x1 + x2;
 						.publish New.CurrencySYmbolValue {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
