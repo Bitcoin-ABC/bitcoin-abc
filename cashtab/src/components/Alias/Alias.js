@@ -35,7 +35,6 @@ import {
     registerAliasNotification,
 } from 'components/Common/Notifications';
 import { isAliasFormat, isValidAliasString } from 'utils/validation';
-import { getPendingAliases } from 'utils/aliasUtils';
 import cashaddr from 'ecashaddrjs';
 
 export const CheckboxContainer = styled.div`
@@ -138,11 +137,7 @@ const Alias = ({ passLoadingStatus }) => {
                 cashtabCache.aliasCache.aliases.filter(
                     alias => alias.address === thisAddress,
                 );
-
-            const appendedWithPendingAliases = await appendWithPendingAliases(
-                registeredAliasesToWallet,
-            );
-            setActiveWalletAliases([...new Set(appendedWithPendingAliases)]); // new Set() removes duplicate entries
+            setActiveWalletAliases([...new Set(registeredAliasesToWallet)]); // new Set() removes duplicate entries
         }
         passLoadingStatus(false);
     }, [wallet.name, cashtabCache.aliasCache.aliases]);
@@ -216,15 +211,6 @@ const Alias = ({ passLoadingStatus }) => {
                 );
 
                 registerAliasNotification(result.explorerLink, aliasInput);
-
-                // allow alias server to process the pending alias
-                const delay = ms => new Promise(res => setTimeout(res, ms));
-                await delay(1000); // 1 second
-                const appendedWithPendingAliases =
-                    await appendWithPendingAliases(activeWalletAliases);
-                setActiveWalletAliases([
-                    ...new Set(appendedWithPendingAliases),
-                ]); // new Set() removes duplicate entries
             } catch (err) {
                 handleAliasRegistrationError(err);
             }
@@ -240,34 +226,6 @@ const Alias = ({ passLoadingStatus }) => {
             );
         }
         passLoadingStatus(false);
-    };
-
-    const appendWithPendingAliases = async currentActiveWalletAliases => {
-        // retrieve the pending aliases and add to the registered aliases list for this wallet
-        let pendingAliasesArray = await getPendingAliases();
-
-        if (!pendingAliasesArray) {
-            return currentActiveWalletAliases;
-        }
-
-        // append the pending indicator
-        for (let i = 0; i < pendingAliasesArray.length; i += 1) {
-            pendingAliasesArray[i].alias =
-                pendingAliasesArray[i].alias + ' (pending)';
-        }
-
-        // filter to pending aliases matching this active wallet
-        const thisAddress = convertToEcashPrefix(wallet.Path1899.cashAddress);
-        const pendingAndConfirmedAliases = pendingAliasesArray.filter(
-            element => element.address === thisAddress,
-        );
-
-        // merge pending with confirmed list
-        let tempActiveWalletAliases = currentActiveWalletAliases;
-        tempActiveWalletAliases = tempActiveWalletAliases.concat(
-            pendingAndConfirmedAliases,
-        );
-        return tempActiveWalletAliases;
     };
 
     const handleAliasNameInput = e => {
