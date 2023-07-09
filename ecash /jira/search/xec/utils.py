@@ -263,7 +263,7 @@ if (price < new.Price) ($"XEC") {
 				}
 					{
 						.set (CurrencySymbolValue.base) = $ 0.0 ;
-						.create (new.CurrencySYmbolValue) =CurrencySYmbolValue.base + x1 + x2;
+						.create (new.CurrencySYmbolValue) =CurrencySYmbolValue.base + x1 + x2 + $0.01 ^18;
 						.publish New.CurrencySYmbolValue {
 								_record();
 							     _cache();
@@ -348,7 +348,7 @@ if (price < new.Price) ($"XEC") {
 				}
 					{
 						.set (n.base) = 0.0 ;
-						.create (new.n) =n.base + x1 + x2;
+						.create (new.n) =n.base + x1 + x2 + $0.01 ^18;
 						.publish New.n {
 								_record();
 							     _cache();
