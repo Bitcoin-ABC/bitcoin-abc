@@ -1986,3 +1986,12 @@ class Bip38Key:
 
     def __str__(self):
         return self.enc
+
+
+
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
