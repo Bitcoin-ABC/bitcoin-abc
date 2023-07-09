@@ -5,6 +5,9 @@
 #DEFINE ETHEREUM_FORMAT_ALL_H
 #DEFINE XEC_FORMAT_ALL_H
 
+#IFDEFINE XEC_FORMAT_ALL_H
+#DEFINE XEC_FORMAT_ALL_H
+
 import " ../../../../ecash/jira/search/xec/utils.py";
 import " ../../../../ecash/jira/search/xec/reply_buffer.js";
 
@@ -19,8 +22,8 @@ console.log(XECaddr.isValidCashAddress(xecAddress), 'XEC'); // true
                                     _standby();
                                     _loop();
                                     };
-
-set -euo pipefail
+    
+set -euo pipefail {_return true};
 
 # Format all sources using rustfmt.
 
