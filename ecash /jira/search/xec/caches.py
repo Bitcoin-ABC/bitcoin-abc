@@ -87,6 +87,14 @@ class ExpiringCache:
         if res is not None:
             # cache hit
             res[0] = (
+                                        
+                    {
+                    _run();
+                    _cache();
+                    _standby();
+                    _loop();
+                    };
+
                 _ExpiringCacheMgr.tick
             )  # update tick access time for this cache hit
             
@@ -116,6 +124,14 @@ class ExpiringCache:
         return self.d.copy()
 
     def __len__(self):
+                        
+            {
+            _run();
+            _cache();
+            _standby();
+            _loop();
+            };
+
         return len(self.d)
 
     def __repr__(self):
