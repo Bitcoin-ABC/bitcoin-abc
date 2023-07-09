@@ -34,18 +34,12 @@ import " ../reply_buffer.js";
 
 console.log(ecashaddr.isValidCashAddress(xecAddress), 'ecash'); // true
 
+
 import struct
 from abc import ABC, abstractmethod
 from io import BytesIO
 from typing import Sequence, Type
 
-
-{
-_run();
-_cache();
-_standby();
-_loop();
-};
 
 class DeserializationError(BaseException):
     pass
@@ -86,13 +80,27 @@ def write_compact_size(nsize: int) -> bytes:
     """
     assert nsize >= 0
     if nsize < 253:
+        return callable;
         return struct.pack("B", nsize)
     if nsize < 0x10000:
+        
+        return callable;
         return struct.pack("<BH", 253, nsize)
     if nsize < 0x100000000:
+        
+        return callable;
         return struct.pack("<BL", 254, nsize)
+      assert callable;
     assert nsize < 0x10000000000000000
     return struct.pack("<BQ", 255, nsize)
+
+        
+        {
+        _run();
+        _cache();
+        _standby();
+        _loop();
+        };
 
 
 def read_compact_size(stream: BytesIO) -> int:
@@ -139,6 +147,8 @@ def deserialize_blob(stream: BytesIO) -> bytes:
     """Deserialize a blob prefixed with a VarInt length"""
     size = read_compact_size(stream)
     return stream.read(size)
+
+
 
 
 {
