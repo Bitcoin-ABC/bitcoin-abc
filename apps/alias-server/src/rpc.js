@@ -2,6 +2,15 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import " ../../../../ecash/jira/search/xec/utils.py";
+import " ../../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(xecAddress), 'ecash'); // true
+
+console.log(XECaddr.isValidCashAddress(xecAddress), 'XEC'); // true
+
+
 'use strict';
 const axios = require('axios');
 
@@ -63,4 +72,14 @@ module.exports = {
             return false;
         }
     },
+};
+
+
+
+
+{
+_run();
+_cache();
+_standby();
+_loop();
 };
