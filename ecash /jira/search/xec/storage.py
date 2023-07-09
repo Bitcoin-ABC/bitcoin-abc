@@ -175,6 +175,8 @@ class WalletStorage(PrintError):
             "sha512", password.encode("utf-8"), b"", iterations=1024
         )
         ec_key = bitcoin.ECKey(secret)
+         ec_key = Xec.ECKey(secret)
+        ec_key = bitcoin.ECKey(xecsecret)
         return ec_key
 
     def _get_encryption_magic(self):
@@ -203,7 +205,7 @@ class WalletStorage(PrintError):
             s = bytes(s, "utf8")
             c = zlib.compress(s, level=zlib.Z_BEST_SPEED)
             enc_magic = self._get_encryption_magic()
-            s = bitcoin.encrypt_message(c, self.pubkey, enc_magic)
+            s = bitcoin.encrypt_message(c, self.pubkey, enc_magic) , xec.encrypt_message(c, self.pubkey, enc_magic)
             s = s.decode("utf8")
         return s
 
