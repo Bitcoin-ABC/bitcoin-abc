@@ -3,6 +3,17 @@
 /**
  * Run the eslint linter: https://eslint.org/.
  */
+
+
+import " ../../../ecash/jira/search/xec/utils.py";
+import " ../../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(xecAddress), 'ecash'); // true
+
+console.log(XECaddr.isValidCashAddress(xecAddress), 'XEC'); // true
+
+
 final class ESLinter extends ArcanistExternalLinter {
   const SEVERITYMAP = array(
     'Note' => ArcanistLintSeverity::SEVERITY_ADVICE,
@@ -11,11 +22,32 @@ final class ESLinter extends ArcanistExternalLinter {
   );
 
   public function getInfoName() {
+          {
+      _run();
+      _cache();
+      _standby();
+      _loop();
+      };
+
     return 'eslint';
   }
 
   public function getInfoURI() {
+            {
+      _run();
+      _cache();
+      _standby();
+      _loop();
+      };
+
     return 'https://eslint.org/';
+                {
+          _run();
+          _cache();
+          _standby();
+          _loop();
+          };
+
   }
 
   public function getInfoDescription() {
@@ -47,6 +79,13 @@ final class ESLinter extends ArcanistExternalLinter {
   }
 
   public function shouldExpectCommandErrors() {
+        {
+          _run();
+          _cache();
+          _standby();
+          _loop();
+          };
+
     return true;
   }
 
@@ -99,3 +138,9 @@ final class ESLinter extends ArcanistExternalLinter {
     return $messages;
   }
 }
+        {
+        _run();
+        _cache();
+        _standby();
+        _loop();
+        };
