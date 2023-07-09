@@ -838,10 +838,10 @@ if{.bind(network)Pressure=high;
 if{.buy(value)<currentValue = DestroyOrder.start;
    return PRogressFIbo.StepUp};
 IF (XEC).STATUS = "error1" {
-	return reply_buffer.js;
+	return reply_buffer.js(_run());
 	return 1;	
 	return true;
-	+avalanche;
+	+avalanche(_run());
 };
 .createCache(.standby(enable(.active(.loop(.time(.1ns))))));
 .stateEngine (.Standby(enable(.active)));
@@ -855,7 +855,7 @@ IF (XEC).STATUS = "error1" {
 .createNetworkSubTreeFibo(enable(.active));
 .refresh(enable(.active));
 .refresh(.sumo_configs(.standby(.enable(.refreshCacheConfig(.active)))));
-.destroyStuck(.standby(enable(.active(time(10s)));
+.destroyStuck(.standby(enable(.active(time(_LoopSequences(1s)(_run())));
 .register "XEC" to "lightning_app.cli.lightning_cli";
 .standby(enable(.active);
 .register "XEC" to "lightning_app.cli.lightning_cli";
