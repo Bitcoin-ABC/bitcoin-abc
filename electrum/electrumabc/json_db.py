@@ -53,11 +53,6 @@ class JsonDB(PrintError):
         else:
             self.put("seed_version", FINAL_SEED_VERSION)
 
-        self.output_pretty_json: bool = True
-
-    def set_output_pretty_json(self, flag: bool):
-        self.output_pretty_json = flag
-
     def set_modified(self, b):
         with self.lock:
             self._modified = b
@@ -113,8 +108,10 @@ class JsonDB(PrintError):
     def dump(self):
         return json.dumps(
             self.data,
-            indent=4 if self.output_pretty_json else None,
-            sort_keys=self.output_pretty_json,
+            indent=None,
+            sort_keys=False,
+            # no whitespace in separators
+            separators=(",", ":"),
             cls=util.MyEncoder,
         )
 

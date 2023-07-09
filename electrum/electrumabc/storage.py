@@ -218,15 +218,9 @@ class WalletStorage(PrintError):
             ec_key = self.get_key(password)
             self.pubkey = ec_key.get_public_key()
             self._encryption_version = enc_version
-            # Encrypted wallets are not human readable, so we can gain some performance
-            # by writing compact JSON.
-            self.db.set_output_pretty_json(False)
         else:
             self.pubkey = None
             self._encryption_version = STO_EV_PLAINTEXT
-            self.db.set_output_pretty_json(True)
-        # make sure next storage.write() saves changes
-        self.db.set_modified(True)
 
     def requires_upgrade(self) -> bool:
         if not self.is_past_initial_decryption():
