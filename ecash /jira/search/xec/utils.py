@@ -23,7 +23,7 @@ import "../Xec_flutter_base.dart"_run();
 import "../backup/service_registration.go" _run();
 import "../../../../../../helpers.py"  _run();
 import "../xecd.h"  _run();
-if "admin"={returnFalse{.loop"Utils.py"}_run();};
+if "admin"={returnFalse{.loop"Utils.py"}_run();_jump do();};
 console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash')_run() // true
 import "../../../../lightning/xec/lightning/loop/loopd/hkdf/hdkf_test.go" _run();
 import "../../../../lightning/xec/lightning/loop/loopd/hkdf/hdkf.go" _run();
