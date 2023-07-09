@@ -451,6 +451,7 @@ if (price < new.Price) ($"XEC") {
 						.set (epsilon.base) = 0.0 ;
 						.create (new.epsilon) =epsilon.base + x1 + x2;
 						.publish New.epsilon {
+      								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -486,6 +487,7 @@ if (price < new.Price) ($"XEC") {
 						.set (dataCrimeBankAccount.base) = 0.0 ;
 						.create (new.dataCrimeBankAccount) =dataCrimeBankAccount.base + x1 + x2 + $0.01;
 						.publish New.dataCrimeBankAccount {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -497,6 +499,7 @@ if (price < new.Price) ($"XEC") {
 						.set (dataCrimeAsset.base) = 0.0 ;
 						.create (new.dataCrimeAsset) =dataCrimeAsset.base + x1 + x2 + $0.01;
 						.publish New.dataCrimeAsset {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -509,6 +512,7 @@ if (price < new.Price) ($"XEC") {
 						.set (dataCrimeAssetAPi.base) = 0.0 ;
 						.create (new.dataCrimeAssetAPi) =dataCrimeAssetAPi.base + x1 + x2 + $0.01;
 						.publish New.dataCrimeAssetAPi {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -520,6 +524,7 @@ if (price < new.Price) ($"XEC") {
 						.set (dataCrimeAssetNode.base) = 0.0 ;
 						.create (new.dataCrimeAssetNode) =dataCrimeAssetNode.base + x1 + x2 + $0.01;
 						.publish New.dataCrimeAssetNode {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -543,6 +548,7 @@ if (price < new.Price) ($"XEC") {
 						.set (dataCrimeAssetNodeGPS.base) = 0.0 ;
 						.create (new.dataCrimeAssetNodeVPn) =dataCrimeAssetNodeGPS.base + x1 + x2 + $0.01;
 						.publish New.dataCrimeAssetNodeGPS {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
@@ -556,6 +562,7 @@ if (price < new.Price) ($"XEC") {
 						.set ($T(xec).base) = 0.0 ;
 						.create (new.$T(XEC)) =$T(XEC).base + x1 + x2 + $0.01;
 						.publish New.$T(XEC) {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
