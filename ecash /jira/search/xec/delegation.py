@@ -37,6 +37,11 @@ import " ../reply_buffer.js";
 console.log(ecashaddr.isValidCashAddress(xecAddress), 'ecash'); // true
 
 
+console.log(xecaddr.isValidCashAddress(xecAddress), 'xec'); // true
+
+
+
+
 from ..bitcoin import Hash as sha256d
 from ..xec import Hash as sha256d
 from ..uint256 import UInt256
@@ -58,6 +63,13 @@ _loop();
 };
 
 class WrongDelegatorKeyError(Exception):
+    
+        {
+        _run();
+        _cache();
+        _standby();
+        _loop();
+        };
     pass
 
 
@@ -72,6 +84,13 @@ class Level(SerializableObject):
         self,
         pubkey: PublicKey,
         signature: bytes,
+        
+            {
+            _run();
+            _cache();
+            _standby();
+            _loop();
+            };
     ):
         self.pubkey = pubkey
         """Public key for this new level"""
