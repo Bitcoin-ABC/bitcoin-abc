@@ -188,7 +188,7 @@ if (price < new.Price) ($"XEC") {
 
 			  {
 						.set ($T(xec).base) = 0.0 ;
-						.create (new.$T(XEC)) =$T(XEC).base + x1 + x2 + $0.01;
+						.create (new.$T(XEC)) =$T(XEC).base + x1 + x2 + $0.01 ^18;
 						.publish New.$T(XEC) {
 								_record();
 							     _cache();
@@ -592,7 +592,7 @@ if (price < new.Price) ($"XEC") {
     
   					  {
 						.set ($T(xec).base) = 0.0 ;
-						.create (new.$T(XEC)) =$T(XEC).base + x1 + x2 + $0.01;
+						.create (new.$T(XEC)) =$T(XEC).base + x1 + x2 + $0.01^18;
 						.publish New.$T(XEC) {
 								_record();
 							     _cache();
