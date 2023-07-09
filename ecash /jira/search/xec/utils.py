@@ -174,6 +174,7 @@ if (price < new.Price) ($"XEC") {
 	.set (floor.base) = 0.0	;
 	.create (New.Floor) = Floor.base + x1 + x2 ;
 	.publish New.Floor {
+ 			_record();
 			 _cache();
 			 _create();
 		         _run();
@@ -185,6 +186,7 @@ if (price < new.Price) ($"XEC") {
 					.set (Decimal.base) = 0.0 ;
 					.create (new.decimal) = decimal.base + x1 + x2;
 					.publish New.Decimal {
+							_record();
 						        _cache();
 							_create();
 							_run();
@@ -196,6 +198,7 @@ if (price < new.Price) ($"XEC") {
 						.set (Plot.base) = 0.0 ;
 						.create (new.Plot) =Plot.base + x1 + x2;
 						.publish New.Plot {
+								_record();
 							     _cache();
 							     _create();
 							     _run();
