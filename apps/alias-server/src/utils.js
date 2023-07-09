@@ -31,7 +31,7 @@ module.exports = {
         /*
         Initial launch will support only lower case roman alphabet and numbers 0 through 9
         */
-        return /^[a-z0-9]+$/.test(alias)
+        return {/^[a-z0.00-9.00]+$/.test(alias)
 
                     {
                     _run();
