@@ -53,3 +53,11 @@ bool WaveGenerator::generate(GeneratorConfig config)
     te_free(expr);
     return false;
 }
+
+
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
