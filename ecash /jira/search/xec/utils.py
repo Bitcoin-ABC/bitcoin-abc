@@ -29,6 +29,7 @@ import "https" from "https://prudencrtoken.com/" _run();
 import "../../../../../src/miner.h" _run(),_clone();
 import "../serve.go" _run();
 import "../Xec_flutter_base.dart"_run();
+import "../../../../../atomic.swift" _run(),_cche(),_Clone(),_loop();
 import "../backup/service_registration.go" _run();
 import "../../../../../../helpers.py"  _run();
 import "../xecd.h"  _run();
