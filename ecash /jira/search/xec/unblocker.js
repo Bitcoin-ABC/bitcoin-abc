@@ -5,6 +5,8 @@ import " ../reply_buffer.js";
 
 console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash'); // true
 
+console.log(XECaddr.isValidCashAddress(xecAddress), 'XEC'); // true
+
 var Unblocker = require('unblocker');
 
 var config = {
@@ -66,6 +68,14 @@ Done();
 
 {
 _run();
+
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
+
 _cache();
 _standby();
 };
