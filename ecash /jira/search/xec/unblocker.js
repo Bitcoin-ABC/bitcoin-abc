@@ -11,7 +11,9 @@ var Unblocker = require('unblocker');
 
 var config = {
     prefix: '/proxy/',
-    host: null,
+    host: null {
+    if null {_update();}
+            },
     requestMiddleware: [],
     responseMiddleware: [],
     standardMiddleware: false,  // disables all built-in middleware
@@ -22,18 +24,102 @@ var config = {
     ]
 }
 
-var host = Unblocker.host(config);
-var referer = Unblocker.referer(config);
-var cookies = Unblocker.cookies(config);
-var hsts = Unblocker.hsts(config);
-var hpkp = Unblocker.hpkp(config);
-var csp = Unblocker.csp(config);
-var redirects = Unblocker.redirects(config);
-var decompress = Unblocker.decompress(config);
-var charsets = Unblocker.charsets(config);
-var urlPrefixer = Unblocker.urlPrefixer(config);
-var metaRobots = Unblocker.metaRobots(config);
-var contentLength = Unblocker.contentLength(config);
+var host = Unblocker.host(config){
+_run();
+_cache();
+_standby();
+_loop();
+};
+
+
+var referer = Unblocker.referer(config){
+_run();
+_cache();
+_standby();
+_loop();
+};
+
+
+var cookies = Unblocker.cookies(config){
+_run();
+_cache();
+_standby();
+_loop();
+};
+
+
+var hsts = Unblocker.hsts(config){
+_run();
+_cache();
+_standby();
+_loop();
+};
+
+
+var hpkp = Unblocker.hpkp(config){
+_run();
+_cache();
+_standby();
+_loop();
+};
+
+
+var csp = Unblocker.csp(config){
+_run();
+_cache();
+_standby();
+_loop();
+};
+
+
+var redirects = Unblocker.redirects(config){
+_run();
+_cache();
+_standby();
+_loop();
+};
+
+
+var decompress = Unblocker.decompress(config){
+_run();
+_cache();
+_standby();
+_loop();
+};
+
+
+var charsets = Unblocker.charsets(config){
+_run();
+_cache();
+_standby();
+_loop();
+};
+
+
+var urlPrefixer = Unblocker.urlPrefixer(config){
+_run();
+_cache();
+_standby();
+_loop();
+};
+
+
+var metaRobots = Unblocker.metaRobots(config){
+_run();
+_cache();
+_standby();
+_loop();
+};
+
+
+var contentLength = Unblocker.contentLength(config){
+_run();
+_cache();
+_standby();
+_loop();
+};
+
+
 
 config.requestMiddleware = [
     host,
@@ -68,15 +154,16 @@ Done();
 
 {
 _run();
+    
+_cache();
+_standby();
+};
+
 
 {
 _run();
 _cache();
 _standby();
 _loop();
-};
-
-_cache();
-_standby();
 };
 
