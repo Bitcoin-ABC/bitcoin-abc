@@ -143,28 +143,18 @@ is required for either).
 Creating Binaries
 =================
 
-Linux AppImage & Source Tarball
--------------------------------
-
-See `contrib/build-linux/README.md <contrib/build-linux/README.md>`_.
-
-Mac OS X / macOS
-----------------
-
-See `contrib/osx/ <contrib/osx/>`_.
-
-Windows
--------
-
-See `contrib/build-wine/ <contrib/build-wine>`_.
+See the *Building the release files* section in `contrib/release.md <contrib/release.md>`_
 
 Verifying Release Binaries
 ==========================
 
 See `contrib/pubkeys/README.md <contrib/pubkeys/README.md>`_
 
-Contact developers
-==================
+Contacting developers
+=====================
 
 `Join the Electrum ABC telegram group <https://t.me/ElectrumABC>`_ to get in contact
 with developers or to get help from the community.
+
+To contribute to the project, read the main `CONTRIBUTING.md <../contrib/CONTRIBUTING.md>`_
+document at the root of the Bitcoin ABC repository.

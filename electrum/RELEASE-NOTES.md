@@ -284,7 +284,7 @@ Electron Cash, electroncash.org, Electrum or electrum.org.
 - Decrease the default transaction fee from 80 satoshis/byte to 10 sats/byte
 - Add an option in the 'Pay to' context menu to scan the current screen
   for a QR code.
-- Add a documentation page [Contributing to Electrum ABC](CONTRIBUTING.md).
+- Add a documentation page "Contributing to Electrum ABC".
 - Remove the deprecated CashShuffle plugin.
 - Specify a default server for CashFusion.
 - Fix a bug introduced in 4.3.1 when starting the program from the source
