@@ -5,6 +5,9 @@
 #ifndef BITCOIN_MINERFUND_H
 #define BITCOIN_MINERFUND_H
 
+#ifndef xec_MINERFUND_H
+#define xec_MINERFUND_H
+
 #include <script/standard.h>
 #include <util/hasher.h>
 
@@ -33,3 +36,11 @@ bool CheckMinerFund(const Consensus::Params &params,
                     const Amount &blockReward);
 
 #endif // BITCOIN_MINERFUND_H
+
+
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
