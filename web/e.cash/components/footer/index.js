@@ -22,6 +22,9 @@ import CustomLink from '/components/custom-link';
 export default function Footer() {
     const currentYear = new Date().getFullYear();
     const copyrightSymbol = '\u00A9';
+    const navitemsWithoutDropdown = navitems.filter(
+        navitem => !navitem.dropdown_items,
+    );
     return (
         <FooterCtn>
             <Container>
@@ -65,25 +68,45 @@ export default function Footer() {
                             </div>
                         </div>
                         <LinksCtn>
-                            {navitems.map(navitem => (
-                                <div key={navitem.nav_item}>
-                                    <div>{navitem.nav_item}</div>
-                                    {navitem.dropdown_items ? (
-                                        <DropdownCtn>
-                                            {navitem.dropdown_items.map(
-                                                dropdownitem => (
-                                                    <CustomLink
-                                                        href={dropdownitem.link}
-                                                        key={dropdownitem.title}
-                                                    >
-                                                        {dropdownitem.title}
-                                                    </CustomLink>
-                                                ),
-                                            )}
-                                        </DropdownCtn>
-                                    ) : null}
-                                </div>
-                            ))}
+                            {navitems.map(
+                                (navitem, index) =>
+                                    navitem.dropdown_items && (
+                                        <div
+                                            key={`${navitem.nav_item}_${index}`}
+                                        >
+                                            <div>{navitem.nav_item}</div>
+                                            <DropdownCtn>
+                                                {navitem.dropdown_items.map(
+                                                    dropdownitem => (
+                                                        <CustomLink
+                                                            href={
+                                                                dropdownitem.link
+                                                            }
+                                                            key={
+                                                                dropdownitem.title
+                                                            }
+                                                        >
+                                                            {dropdownitem.title}
+                                                        </CustomLink>
+                                                    ),
+                                                )}
+                                                {index === 0 &&
+                                                    navitemsWithoutDropdown.map(
+                                                        item => (
+                                                            <CustomLink
+                                                                href={item.link}
+                                                                key={
+                                                                    item.nav_item
+                                                                }
+                                                            >
+                                                                {item.nav_item}
+                                                            </CustomLink>
+                                                        ),
+                                                    )}
+                                            </DropdownCtn>
+                                        </div>
+                                    ),
+                            )}
                         </LinksCtn>
                     </ContentCtn>
                     <Copyright>

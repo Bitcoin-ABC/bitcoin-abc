@@ -40,6 +40,7 @@ export const ecash = {
         animationspeed: 0.4,
     },
     breakpoint: {
+        large: '@media (max-width: 1300px)',
         medium: '@media (max-width: 920px)',
         small: '@media (max-width: 520px)',
     },
@@ -84,6 +85,7 @@ export const stealth = {
         animationspeed: 0.2,
     },
     breakpoint: {
+        large: '@media (max-width: 1300px)',
         medium: '@media (max-width: 920px)',
         small: '@media (max-width: 520px)',
     },

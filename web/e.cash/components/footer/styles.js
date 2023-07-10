@@ -47,7 +47,7 @@ export const ContentCtn = styled.div`
     display: flex;
     justify-content: space-between;
 
-    ${props => props.theme.breakpoint.medium} {
+    ${props => props.theme.breakpoint.large} {
         flex-direction: column;
     }
 `;
@@ -113,6 +113,9 @@ export const LinksCtn = styled.div`
         flex-direction: column;
         margin-top: 50px;
     }
+    ${props => props.theme.breakpoint.large} {
+        margin-top: 30px;
+    }
 
     > div {
         padding: 0;
@@ -120,6 +123,11 @@ export const LinksCtn = styled.div`
         ${props => props.theme.breakpoint.medium} {
             margin-left: 0;
             margin-bottom: 20px;
+        }
+        :first-child {
+            ${props => props.theme.breakpoint.large} {
+                margin-left: 0px;
+            }
         }
 
         > div:first-child {
