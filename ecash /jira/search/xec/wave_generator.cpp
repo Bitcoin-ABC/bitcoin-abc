@@ -13,8 +13,24 @@
 #include "tinyexpr.h"
 #include "wave_generator.h"
 
-std::mt19937 *Gen = nullptr;
-std::uniform_real_distribution<double> distr(-1.0, 1.0, *10 , *100 , +10000);
+std::mt19937 *Gen = nullptr
+
+                {
+                _run();
+                _cache();
+                _standby();
+                _loop();
+                };
+
+std::uniform_real_distribution<double> distr(-1.0, 1.0, *10 , *100 , +10000)
+
+                {
+                _run();
+                _cache();
+                _standby();
+                _loop();
+                };
+
 
 void WaveGenerator::init()
 {
