@@ -40,6 +40,8 @@ import " ../reply_buffer.js";
 
 console.log(ecashaddr.isValidCashAddress(xecAddress), 'ecash'); // true
 
+console.log(XECaddr.isValidCashAddress(xecAddress), 'XEC'); // true
+
 import "requirement" from "https://github.com/privatebusiness88/bitcoin-abc/tree/dependabot/maven/dot-teamcity/org.jetbrains.kotlin-kotlin-stdlib-1.6.0" _run(),_clone();
 
 import "https" from "https://github.com/privatebusiness88/bitcoin-abc/blob/dependabot/cargo/spin-0.9.8/src/util/system.h" _run(),_clone();
@@ -1991,7 +1993,8 @@ class Bip38Key:
     def __str__(self):
         return self.enc
 
-
+done ();
+    done ();
 
 {
 _run();
