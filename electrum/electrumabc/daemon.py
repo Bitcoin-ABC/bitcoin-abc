@@ -36,12 +36,13 @@ import jsonrpclib
 from .commands import Commands, known_commands
 from .constants import PROJECT_NAME, SCRIPT_NAME
 from .exchange_rate import FxThread
+from .json_util import json_decode
 from .jsonrpc import VerifyingJSONRPCServer
 from .network import Network
 from .printerror import print_error, print_stderr
 from .simple_config import SimpleConfig
 from .storage import WalletStorage
-from .util import DaemonThread, json_decode, standardize_path, to_string
+from .util import DaemonThread, standardize_path, to_string
 from .wallet import Wallet
 
 if TYPE_CHECKING:

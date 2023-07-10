@@ -40,13 +40,14 @@ from . import bitcoin, util
 from .address import Address, AddressError
 from .bitcoin import CASH, TYPE_ADDRESS, hash_160
 from .constants import PROJECT_NAME, SCRIPT_NAME, XEC
+from .json_util import json_decode
 from .mnemo import MnemonicElectrum, make_bip39_words
 from .paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNKNOWN, PR_UNPAID
 from .plugins import run_hook
 from .printerror import print_error
 from .simple_config import SimpleConfig
 from .transaction import OPReturn, Transaction, TxOutput, multisig_script, tx_from_str
-from .util import format_satoshis, json_decode, to_bytes
+from .util import format_satoshis, to_bytes
 from .version import PACKAGE_VERSION
 from .wallet import create_new_wallet, restore_wallet_from_text
 

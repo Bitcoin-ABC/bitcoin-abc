@@ -8,7 +8,7 @@ import time
 from electrumabc.network import Network
 from electrumabc.printerror import print_msg
 from electrumabc.simple_config import SimpleConfig
-from electrumabc.util import json_encode
+from electrumabc.json_util import json_encode
 
 
 def callback(response):

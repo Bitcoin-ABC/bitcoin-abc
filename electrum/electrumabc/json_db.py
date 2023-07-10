@@ -28,8 +28,9 @@ import copy
 import json
 import threading
 
-from . import bitcoin, util
+from . import bitcoin
 from .address import Address
+from .json_util import MyEncoder
 from .keystore import bip44_derivation_btc
 from .printerror import PrintError
 from .util import WalletFileException, multisig_type, profiler
@@ -87,8 +88,8 @@ class JsonDB(PrintError):
     @modifier
     def put(self, key, value) -> bool:
         try:
-            json.dumps(key, cls=util.MyEncoder)
-            json.dumps(value, cls=util.MyEncoder)
+            json.dumps(key, cls=MyEncoder)
+            json.dumps(value, cls=MyEncoder)
         except Exception:
             self.print_error(f"json error: cannot save {repr(key)} ({repr(value)})")
             return False
@@ -112,7 +113,7 @@ class JsonDB(PrintError):
             sort_keys=False,
             # no whitespace in separators
             separators=(",", ":"),
-            cls=util.MyEncoder,
+            cls=MyEncoder,
         )
 
     def load_data(self, s):

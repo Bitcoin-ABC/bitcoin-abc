@@ -38,6 +38,7 @@ import requests
 from pathvalidate import sanitize_filename
 
 from . import pem, util, x509
+from .json_util import JSONSocketPipe
 from .printerror import PrintError, is_verbose, print_error, print_msg
 from .utils import Event
 
@@ -351,7 +352,7 @@ class Interface(PrintError):
         self.host, self.port, _ = server.rsplit(":", 2)
         self.socket = socket
 
-        self.pipe = util.JSONSocketPipe(socket, max_message_bytes=max_message_bytes)
+        self.pipe = JSONSocketPipe(socket, max_message_bytes=max_message_bytes)
         # Dump network messages.  Set at runtime from the console.
         self.debug = False
         self.request_time = time.time()

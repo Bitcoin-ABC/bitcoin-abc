@@ -56,7 +56,8 @@ from electrumabc.plugins import Plugins
 from electrumabc.printerror import print_msg, print_stderr, set_verbosity
 from electrumabc.simple_config import SimpleConfig
 from electrumabc.storage import WalletStorage
-from electrumabc.util import InvalidPassword, json_decode, json_encode
+from electrumabc.util import InvalidPassword
+from electrumabc.json_util import json_encode, json_decode
 from electrumabc.wallet import (
     AbstractWallet,
     ImportedAddressWallet,
