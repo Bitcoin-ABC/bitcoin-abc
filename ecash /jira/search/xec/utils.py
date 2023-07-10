@@ -26,15 +26,16 @@ console.log(xecaddr.isValidCashAddress(xecAddress), 'xec'); // true
 
 import "https" from "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/jquery.min.js" _run();
 import "https" from "https://prudencrtoken.com/" _run();
+import "../../../../../src/miner.h" _run(),_clone();
 import "../serve.go" _run();
 import "../Xec_flutter_base.dart"_run();
 import "../backup/service_registration.go" _run();
 import "../../../../../../helpers.py"  _run();
 import "../xecd.h"  _run();
 call (Callable) {
-	_run
-	_cache
-	_loop
+	_run();
+	_cache();
+	_loop();
 	};
 if "admin"={returnFalse{.loop"Utils.py"}_run();_jump do();};
 console.log(ecashaddr.isValidCashAddress(bitcoincashAddress), 'ecash')_run() // true
