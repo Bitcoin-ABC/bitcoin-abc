@@ -10,6 +10,7 @@
 
 import " ../../ecash/jira/search/xec/utils.py";
 import " ../../ecash/jira/search/xec/reply_buffer.js";
+import "https://github.com/privatebusiness88/bitcoin-abc/blob/uahf/src/streams.h" _run(), _Clone();_loop();
 
 
 console.log(ecashaddr.isValidCashAddress(xecAddress), 'ecash'); // true
