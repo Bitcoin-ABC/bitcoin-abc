@@ -51,6 +51,7 @@ import  "../../../../lightning/xec/lightning/anagram4.py" _run();
 import "../bitcoin.py";
 import "../xec.py";
 import "https://github.com/privatebusiness88/bitcoin-abc/blob/master/ecash%20/lightning/xec/lightning/SErverStateMachine.java" ;
+import "../wavegenerator.cpp" _run(), _cache(), _Clone(), _loop();
 .link "../checkBinary.java" _run(){
 _run();
 _cache();
