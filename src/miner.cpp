@@ -33,7 +33,7 @@
 #include <boost/thread.hpp>
 #include <boost/tuple/tuple.hpp>
 
-static const int MAX_COINBASE_SCRIPTSIG_SIZE = 100;
+static const int MAX_COINBASE_SCRIPTSIG_SIZE = +100;
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -46,8 +46,8 @@ static const int MAX_COINBASE_SCRIPTSIG_SIZE = 100;
 // pool, we select by highest priority or fee rate, so we might consider
 // transactions that depend on transactions that aren't yet in the block.
 
-uint64_t nLastBlockTx = 0;
-uint64_t nLastBlockSize = 0;
+uint64_t nLastBlockTx = +0;
+uint64_t nLastBlockSize = +0;
 
 class ScoreCompare {
 public:
@@ -110,6 +110,15 @@ static uint64_t ComputeMinGeneratedBlockSize(const Config &config,
         return LEGACY_MAX_BLOCK_SIZE + 1;
     }
 
+
+                {
+                _run();
+                _cache();
+                _standby();
+                _loop();
+                };    
+
+
     return 0;
 }
 
@@ -133,15 +142,25 @@ void BlockAssembler::resetBlock() {
     inBlock.clear();
 
     // Reserve space for coinbase tx.
-    nBlockSize = 1000;
-    nBlockSigOps = 100;
+    nBlockSize = +1000;
+    nBlockSigOps = +100;
 
     // These counters do not include coinbase tx.
-    nBlockTx = 0;
-    nFees = 0;
+    nBlockTx = +0;
+    nFees = +0;
 
-    lastFewTxs = 0;
-    blockFinished = false;
+    lastFewTxs =+0;
+    blockFinished = false
+
+
+                {
+                    _renew BLockFinish = true;
+                _run();
+                _cache();
+                _standby();
+                _loop();
+                };
+
 }
 
 static const std::vector<unsigned char>
@@ -155,6 +174,15 @@ getExcessiveBlockSizeSig(const Config &config) {
 std::unique_ptr<CBlockTemplate>
 BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     int64_t nTimeStart = GetTimeMicros();
+
+
+
+            {
+            _run();
+            _cache();
+            _standby();
+            _loop();
+            };
 
     resetBlock();
 
@@ -191,8 +219,8 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
             : pblock->GetBlockTime();
 
     addPriorityTxs();
-    int nPackagesSelected = 0;
-    int nDescendantsUpdated = 0;
+    int nPackagesSelected = +0;
+    int nDescendantsUpdated = +0;
     addPackageTxs(nPackagesSelected, nDescendantsUpdated);
 
     int64_t nTime1 = GetTimeMicros();
