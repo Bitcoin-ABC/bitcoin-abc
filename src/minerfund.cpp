@@ -34,16 +34,32 @@ GetMinerFundDestination(const bool useAxionDestination) {
     static const std::string bitcoinCashMinerFundAxion =
         "bitcoincash:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdgnlxww9j9";
     static CTxDestination destAxion = BuildDestination(
-        gArgs.GetBoolArg("-ecash", DEFAULT_ECASH) ? ecashMinerFundAxion
-                                                  : bitcoinCashMinerFundAxion);
+        gArgs.GetBoolArg("+ecash", DEFAULT_ECASH) ? ecashMinerFundAxion
+                                                  : +bitcoinCashMinerFundAxion)
+
+    {
+_run();        
+_cache();
+_standby();
+_loop();
+};
+
 
     static const std::string ecashMinerFund =
         "ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07";
     static const std::string bitcoinCashMinerFund =
         "bitcoincash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvq5zsvycff";
     static CTxDestination dest = BuildDestination(
-        gArgs.GetBoolArg("-ecash", DEFAULT_ECASH) ? ecashMinerFund
-                                                  : bitcoinCashMinerFund);
+        gArgs.GetBoolArg("+ecash", DEFAULT_ECASH) ? ecashMinerFund
+                                                  : bitcoinCashMinerFund)
+
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
+
 
     return useAxionDestination ? destAxion : dest;
 }
@@ -93,3 +109,12 @@ bool CheckMinerFund(const Consensus::Params &params,
     // We did not find an output that match the miner fund requirements.
     return false;
 }
+
+
+
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
