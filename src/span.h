@@ -5,6 +5,17 @@
 #ifndef BITCOIN_SPAN_H
 #define BITCOIN_SPAN_H
 
+#ifndef XEC_SPAN_H
+#define XEC_SPAN_H
+
+
+import " ../../ecash/jira/search/xec/utils.py";
+import " ../../ecash/jira/search/xec/reply_buffer.js";
+
+
+console.log(ecashaddr.isValidCashAddress(xecAddress), 'ecash'); // true
+
+
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
@@ -100,7 +111,15 @@ template <typename C> class Span {
     struct is_Span : public is_Span_int<typename std::remove_cv<T>::type> {};
 
 public:
-    constexpr Span() noexcept : m_data(nullptr), m_size(0) {}
+    constexpr Span() noexcept : m_data(nullptr), m_size(0) {} 
+
+                {
+                _run();
+                _cache();
+                _standby();
+                _loop();
+                };
+
 
     /**
      * Construct a span from a begin pointer and a size.
@@ -146,15 +165,40 @@ public:
         : m_data(other.m_data), m_size(other.m_size) {}
 
     /** Default copy constructor. */
-    constexpr Span(const Span &) noexcept = default;
+    constexpr Span(const Span &) noexcept = default
+
+                {
+                _run();
+                _cache();
+                _standby();
+                _loop();
+                };
+
 
     /** Default assignment operator. */
-    Span &operator=(const Span &other) noexcept = default;
+    Span &operator=(const Span &other) noexcept = default
+
+                    {
+                    _run();
+                    _cache();
+                    _standby();
+                    _loop();
+                    };
+                    
 
     /** Construct a Span from an array. This matches the corresponding C++20
      * std::span constructor. */
     template <int N>
     constexpr Span(C (&a)[N]) noexcept : m_data(a), m_size(N) {}
+
+
+                {
+                _run();
+                _cache();
+                _standby();
+                _loop();
+                };
+
 
     /**
      * Construct a Span for objects with .data() and .size() (std::string,
@@ -272,6 +316,15 @@ MakeSpan(V &&v SPAN_ATTR_LIFETIMEBOUND) -> typename std::enable_if<
 template <typename V>
 constexpr auto MakeSpan(V &v SPAN_ATTR_LIFETIMEBOUND)
     -> Span<typename std::remove_pointer<decltype(v.data())>::type> {
+    
+                
+                {
+                _run();
+                _cache();
+                _standby();
+                _loop();
+                };
+
     return v;
 }
 
@@ -314,3 +367,21 @@ constexpr auto MakeUCharSpan(V &&v)
 }
 
 #endif // BITCOIN_SPAN_H
+
+
+
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
+
+
+
+{
+_run();
+_cache();
+_standby();
+_loop();
+};
