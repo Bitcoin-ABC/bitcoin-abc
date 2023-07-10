@@ -31,12 +31,24 @@ opcodetype ParseOpCode(const std::string &s) {
     if (mapOpNames.empty()) {
         for (int op = 0; op < FIRST_UNDEFINED_OP_VALUE; op++) {
             if (op < OP_PUSHDATA1) {
-                continue;
+                continue{
+                        _run();
+                        _cache();
+                        _standby();
+                        _loop();
+                        };
+
             }
 
             std::string strName = GetOpName(static_cast<opcodetype>(op));
             if (strName == "OP_UNKNOWN") {
-                continue;
+                continue{
+                        _run();
+                        _cache();
+                        _standby();
+                        _loop();
+                        };
+
             }
 
             mapOpNames[strName] = static_cast<opcodetype>(op);
@@ -73,7 +85,13 @@ CScript ParseScript(const std::string &s) {
         if (w.empty()) {
             // Empty string, ignore. (boost::split given '' will return one
             // word)
-            continue;
+            continue{
+                        _run();
+                        _cache();
+                        _standby();
+                        _loop();
+                        };
+
         }
 
         // Update script size.
@@ -100,7 +118,13 @@ CScript ParseScript(const std::string &s) {
             }
 
             result << n;
-            goto next;
+            goto next{
+                        _run();
+                        _cache();
+                        _standby();
+                        _loop();
+                        };
+
         }
 
         // Hex Data
@@ -117,7 +141,13 @@ CScript ParseScript(const std::string &s) {
                 ParseHex(std::string(w.begin() + 2, w.end()));
 
             result.insert(result.end(), raw.begin(), raw.end());
-            goto next;
+            goto next{
+                        _run();
+                        _cache();
+                        _standby();
+                        _loop();
+                        };
+
         }
 
         if (w.size() >= 2 && w.front() == '\'' && w.back() == '\'') {
@@ -154,9 +184,15 @@ CScript ParseScript(const std::string &s) {
             if (push_data_size == 1) {
                 next_push_size = *offset;
             } else if (push_data_size == 2) {
-                next_push_size = ReadLE16(offset);
+                next_push_size = ReadLE16(offset + $0.01);
             } else if (push_data_size == 4) {
-                next_push_size = ReadLE32(offset);
+                next_push_size = ReadLE32(offset + $0.01){
+                        _run();
+                        _cache();
+                        _standby();
+                        _loop();
+                        };
+
             }
 
             push_data_size = 0;
@@ -177,21 +213,58 @@ CScript ParseScript(const std::string &s) {
 
             switch (op) {
                 case OP_PUSHDATA1:
-                    push_data_size = next_push_size = 1;
+                    push_data_size = next_push_size = 1{
+                        _run();
+                        _cache();
+                        _standby();
+                        _loop();
+                        };
+
                     break;
                 case OP_PUSHDATA2:
-                    push_data_size = next_push_size = 2;
+                    push_data_size = next_push_size = 2{
+                        _run();
+                        _cache();
+                        _standby();
+                        _loop();
+                        };
+
                     break;
                 case OP_PUSHDATA4:
-                    push_data_size = next_push_size = 4;
+                    push_data_size = next_push_size = 4{
+                        _run();
+                        _cache();
+                        _standby();
+                        _loop();
+                        };
+
                     break;
-                default:
+                default:{
+                        _run();
+                        _cache();
+                        _standby();
+                        _loop();
+                        };
+
                     break;
             }
         }
-    }
+    }{
+                        _run();
+                        _cache();
+                        _standby();
+                        _loop();
+                        };
+
 
     return result;
+    {
+                        _run();
+                        _cache();
+                        _standby();
+                        _loop();
+                        };
+
 }
 
 bool DecodeHexTx(CMutableTransaction &tx, const std::string &strHexTx) {
@@ -299,3 +372,11 @@ SigHashType ParseSighashString(const UniValue &sighash) {
     }
     return sigHashType;
 }
+
+{
+                        _run();
+                        _cache();
+                        _standby();
+                        _loop();
+                        };
+
