@@ -7,6 +7,7 @@ const express = require('express');
 var cors = require('cors');
 const requestIp = require('request-ip');
 const { getAliasInfoFromAlias, getAliasInfoFromAddress } = require('./db');
+const aliasConstants = require('../constants/alias');
 
 module.exports = {
     startServer: function (db, port) {
@@ -15,6 +16,27 @@ module.exports = {
         app.use(express.json());
         app.use(requestIp.mw());
         app.use(cors());
+
+        app.get('/prices', async function (req, res) {
+            // Get IP address from before cloudflare proxy
+            const ip = req.clientIp;
+            console.log(`/prices from IP: ${ip}, host ${req.headers.host}`);
+            // Add a note about prices
+            let pricesResponse = {
+                note: 'alias-server is in beta and these prices are not finalized.',
+                prices: aliasConstants.registrationFeesSats,
+            };
+            try {
+                return res.status(200).json(pricesResponse);
+            } catch (err) {
+                return res.status(500).json({
+                    error:
+                        err && err.message
+                            ? err.message
+                            : 'Error fetching /prices',
+                });
+            }
+        });
 
         app.get('/aliases', async function (req, res) {
             // Get IP address from before cloudflare proxy

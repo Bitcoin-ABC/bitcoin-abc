@@ -10,6 +10,7 @@ const { initializeDb, addOneAliasToDb, addAliasesToDb } = require('../src/db');
 const { MongoClient } = require('mongodb');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const { generated } = require('./mocks/aliasMocks');
+const aliasConstants = require('../constants/alias');
 
 describe('alias-server app.js', function () {
     let mongoServer, testMongoClient;
@@ -37,6 +38,17 @@ describe('alias-server app.js', function () {
         // Stop express server
         app.close();
         dbErrorApp.close();
+    });
+    it('/prices returns aliasConstants.registrationFeesSats', function () {
+        let pricesResponse = {
+            note: 'alias-server is in beta and these prices are not finalized.',
+            prices: aliasConstants.registrationFeesSats,
+        };
+        return request(app)
+            .get('/prices')
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect(pricesResponse);
     });
     it('/aliases returns an empty array if no aliases are indexed', function () {
         return request(app)
