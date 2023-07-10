@@ -1421,8 +1421,7 @@ module.exports = {
 
             // Txs not parsed above are parsed as xec send txs
 
-            // Convert sats to XEC. Round as decimals will not be rendered in msgs.
-            const displayedXecSent = satsToFormattedValue(
+            const displayedSentAmount = satsToFormattedValue(
                 totalSatsSent,
                 coingeckoPrices,
             );
@@ -1472,7 +1471,7 @@ module.exports = {
 
                 xecSendMsg = `${emojis.xecSend}<a href="${
                     config.blockExplorer
-                }/tx/${txid}">${displayedXecSent} for ${displayedTxFee}</a>${
+                }/tx/${txid}">${displayedSentAmount} for ${displayedTxFee}</a>${
                     xecSenderEmoji !== ''
                         ? ` ${xecSenderEmoji}${xecSendingOutputScripts.size} ${
                               xecSendingOutputScripts.size > 1
@@ -1488,7 +1487,7 @@ module.exports = {
             } else {
                 xecSendMsg = `${emojis.xecSend}<a href="${
                     config.blockExplorer
-                }/tx/${txid}">${displayedXecSent} for ${displayedTxFee}</a>${
+                }/tx/${txid}">${displayedSentAmount} for ${displayedTxFee}</a>${
                     xecSenderEmoji !== '' || xecReceiverEmoji !== ''
                         ? ` ${xecSenderEmoji}${returnAddressPreview(
                               cashaddr.encodeOutputScript(
