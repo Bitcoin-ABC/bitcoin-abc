@@ -23,9 +23,7 @@ import { UserOutlined } from '@ant-design/icons';
 import {
     getWalletState,
     fromSatoshisToXec,
-    getAliasRegistrationFee,
     convertToEcashPrefix,
-    getAliasByteSize,
 } from 'utils/cashMethods';
 import { isAliasAvailable, isAddressRegistered } from 'utils/chronik';
 import { currency } from 'components/Common/Ticker.js';
@@ -35,6 +33,7 @@ import {
     registerAliasNotification,
 } from 'components/Common/Notifications';
 import { isAliasFormat, isValidAliasString } from 'utils/validation';
+import { getAliasByteSize, getAliasRegistrationFee } from 'utils/aliasUtils';
 import cashaddr from 'ecashaddrjs';
 
 export const CheckboxContainer = styled.div`

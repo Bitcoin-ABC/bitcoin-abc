@@ -3,10 +3,72 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 'use strict';
 import { currency } from 'components/Common/Ticker';
-import { queryAliasServer } from 'utils/aliasUtils';
+import {
+    queryAliasServer,
+    getAliasByteSize,
+    getAliasRegistrationFee,
+} from 'utils/aliasUtils';
 import { mockAddressApiResponse } from '../__mocks__/mockAliasServerResponses';
 import { mockAliasApiResponse } from '../__mocks__/mockAliasServerResponses';
 import { when } from 'jest-when';
+
+test(`Alias byte length matches for an alias input with a single emoji`, () => {
+    const aliasInput = '🙈';
+    const opReturnAliasByteLength = getAliasByteSize(aliasInput);
+    expect(opReturnAliasByteLength).toStrictEqual(4);
+});
+
+test(`Alias byte length matches for an alias input with characters and emojis`, () => {
+    const aliasInput = 'monkey🙈';
+    const opReturnAliasByteLength = getAliasByteSize(aliasInput);
+    expect(opReturnAliasByteLength).toStrictEqual(10);
+});
+
+test(`Alias byte length matches for an alias input with special characters`, () => {
+    const aliasInput = 'monkey©®ʕ•́ᴥ•̀ʔっ♡';
+    const opReturnAliasByteLength = getAliasByteSize(aliasInput);
+    expect(opReturnAliasByteLength).toStrictEqual(33);
+});
+
+test(`Alias byte length matches for an alias input with Korean characters`, () => {
+    const aliasInput = '소주';
+    const opReturnAliasByteLength = getAliasByteSize(aliasInput);
+    expect(opReturnAliasByteLength).toStrictEqual(6);
+});
+
+test(`Alias byte length matches for an alias input with Arabic characters`, () => {
+    const aliasInput = 'محيط';
+    const opReturnAliasByteLength = getAliasByteSize(aliasInput);
+    expect(opReturnAliasByteLength).toStrictEqual(8);
+});
+
+test(`Alias byte length matches for an alias input with Chinese characters`, () => {
+    const aliasInput = '冰淇淋';
+    const opReturnAliasByteLength = getAliasByteSize(aliasInput);
+    expect(opReturnAliasByteLength).toStrictEqual(9);
+});
+
+test(`Alias byte length matches for an alias input with a mixture of symbols, multilingual characters and emojis`, () => {
+    const aliasInput = '🙈©冰소주';
+    const opReturnAliasByteLength = getAliasByteSize(aliasInput);
+    expect(opReturnAliasByteLength).toStrictEqual(15);
+});
+
+test(`getAliasRegistrationFee() returns correct fee in sats for an alias input with 5 bytes`, () => {
+    const aliasInput = 'panda'; // 5 bytes
+    const regFeeResult = getAliasRegistrationFee(aliasInput);
+    expect(regFeeResult).toStrictEqual(
+        currency.aliasSettings.aliasRegistrationFeeInSats.fiveByte,
+    );
+});
+
+test(`getAliasRegistrationFee() returns correct fee in sats for an alias input above 8 bytes`, () => {
+    const aliasInput = 'pandapanda'; // 10 bytes
+    const regFeeResult = getAliasRegistrationFee(aliasInput);
+    expect(regFeeResult).toStrictEqual(
+        currency.aliasSettings.aliasRegistrationFeeInSats.eightByte,
+    );
+});
 
 test('queryAliasServer() correctly throws a network error for server downtime or a malformed fetch url', async () => {
     const endPoint = 'address';

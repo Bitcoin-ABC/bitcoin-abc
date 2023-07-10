@@ -50,61 +50,6 @@ export const getMessageByteSize = (
     return msgInputByteSize;
 };
 
-export const getAliasByteSize = aliasInputStr => {
-    if (!aliasInputStr || aliasInputStr.trim() === '') {
-        return 0;
-    }
-
-    // generate the OP_RETURN script
-    const opReturnData = generateOpReturnScript(
-        aliasInputStr,
-        false, // encryption use
-        false, // airdrop use
-        null, // airdrop use
-        null, // encrypted use
-        true, // alias registration flag
-    );
-    // extract the alias input from the OP_RETURN script and check the backend size
-    const hexString = opReturnData.toString('hex'); // convert to hex
-    const opReturnAlias = parseOpReturn(hexString)[1]; // extract the alias
-    const aliasInputByteSize = opReturnAlias.length / 2; // calculate the byte size
-
-    return aliasInputByteSize;
-};
-
-export const getAliasRegistrationFee = aliasInputStr => {
-    let registrationFee;
-    let fee = currency.aliasSettings.aliasRegistrationFeeInSats;
-    const aliasByteCount = getAliasByteSize(aliasInputStr);
-    switch (aliasByteCount) {
-        case 1:
-            registrationFee = fee.oneByte;
-            break;
-        case 2:
-            registrationFee = fee.twoByte;
-            break;
-        case 3:
-            registrationFee = fee.threeByte;
-            break;
-        case 4:
-            registrationFee = fee.fourByte;
-            break;
-        case 5:
-            registrationFee = fee.fiveByte;
-            break;
-        case 6:
-            registrationFee = fee.sixByte;
-            break;
-        case 7:
-            registrationFee = fee.sevenByte;
-            break;
-        default:
-            registrationFee = fee.eightByte;
-            break;
-    }
-    return registrationFee;
-};
-
 // function is based on BCH-JS' generateBurnOpReturn() however it's been trimmed down for Cashtab use
 // Reference: https://github.com/Permissionless-Software-Foundation/bch-js/blob/62e56c832b35731880fe448269818b853c76dd80/src/slp/tokentype1.js#L217
 export const generateBurnOpReturn = (tokenUtxos, burnQty) => {

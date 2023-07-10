@@ -1,4 +1,72 @@
 import { currency } from 'components/Common/Ticker';
+import { parseOpReturn, generateOpReturnScript } from 'utils/cashMethods';
+
+/**
+ * Calculates the byte size of the alias input
+ *
+ * @param {string} aliasInputStr the alias input
+ * @returns {number} aliasInputByteSize the byte size of the alias input
+ */
+export const getAliasByteSize = aliasInputStr => {
+    if (!aliasInputStr || aliasInputStr.trim() === '') {
+        return 0;
+    }
+
+    // generate the OP_RETURN script
+    const opReturnData = generateOpReturnScript(
+        aliasInputStr,
+        false, // encryption use
+        false, // airdrop use
+        null, // airdrop use
+        null, // encrypted use
+        true, // alias registration flag
+    );
+    // extract the alias input from the OP_RETURN script and check the backend size
+    const hexString = opReturnData.toString('hex'); // convert to hex
+    const opReturnAlias = parseOpReturn(hexString)[1]; // extract the alias
+    const aliasInputByteSize = opReturnAlias.length / 2; // calculate the byte size
+
+    return aliasInputByteSize;
+};
+
+/**
+ * Returns the registration fee for the alias input in satoshis
+ *
+ * @param {string} aliasInputStr the alias input
+ * @returns {number} registrationFee the registration fee of the alias input in satoshis
+ */
+export const getAliasRegistrationFee = aliasInputStr => {
+    let registrationFee;
+    let fee = currency.aliasSettings.aliasRegistrationFeeInSats;
+    const aliasByteCount = getAliasByteSize(aliasInputStr);
+    switch (aliasByteCount) {
+        case 1:
+            registrationFee = fee.oneByte;
+            break;
+        case 2:
+            registrationFee = fee.twoByte;
+            break;
+        case 3:
+            registrationFee = fee.threeByte;
+            break;
+        case 4:
+            registrationFee = fee.fourByte;
+            break;
+        case 5:
+            registrationFee = fee.fiveByte;
+            break;
+        case 6:
+            registrationFee = fee.sixByte;
+            break;
+        case 7:
+            registrationFee = fee.sevenByte;
+            break;
+        default:
+            registrationFee = fee.eightByte;
+            break;
+    }
+    return registrationFee;
+};
 
 /**
  * Queries the alias-server for alias related data via Fetch
