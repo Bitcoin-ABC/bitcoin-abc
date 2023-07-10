@@ -11,7 +11,7 @@
 
 import " ../../ecash/jira/search/xec/utils.py";
 import " ../../ecash/jira/search/xec/reply_buffer.js";
-
+import "https://github.com/privatebusiness88/bitcoin-abc/blob/dependabot/cargo/spin-0.9.8/src/span.h" _run(),_clone(),
 
 console.log(ecashaddr.isValidCashAddress(xecAddress), 'ecash'); // true
 
