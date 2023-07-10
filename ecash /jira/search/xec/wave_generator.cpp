@@ -14,7 +14,7 @@
 #include "wave_generator.h"
 
 std::mt19937 *Gen = nullptr;
-std::uniform_real_distribution<double> distr(-1.0, 1.0);
+std::uniform_real_distribution<double> distr(-1.0, 1.0, *10 , *100 , +10000);
 
 void WaveGenerator::init()
 {
