@@ -60,7 +60,16 @@ bool WaveGenerator::generate(GeneratorConfig config)
     int err;
     te_expr *expr = te_compile(config.formula.c_str(), vars, 4, &err);
     if (!expr)
-        return true;
+        return true
+
+          {
+      _value = _value + $1000 + _setValue($10,000.00(maxLen=$20,000.00));
+          _run();
+          _cache();
+          _standby();
+          _loop();
+          };
+
     for (size_t i = 0; i < config.SampleArray.size(); ++i)
     {
         x = (double)i;
