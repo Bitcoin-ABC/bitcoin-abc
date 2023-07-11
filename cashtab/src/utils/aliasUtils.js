@@ -30,45 +30,6 @@ export const getAliasByteSize = aliasInputStr => {
 };
 
 /**
- * Returns the registration fee for the alias input in satoshis
- *
- * @param {string} aliasInputStr the alias input
- * @returns {number} registrationFee the registration fee of the alias input in satoshis
- */
-export const getAliasRegistrationFee = aliasInputStr => {
-    let registrationFee;
-    let fee = currency.aliasSettings.aliasRegistrationFeeInSats;
-    const aliasByteCount = getAliasByteSize(aliasInputStr);
-    switch (aliasByteCount) {
-        case 1:
-            registrationFee = fee.oneByte;
-            break;
-        case 2:
-            registrationFee = fee.twoByte;
-            break;
-        case 3:
-            registrationFee = fee.threeByte;
-            break;
-        case 4:
-            registrationFee = fee.fourByte;
-            break;
-        case 5:
-            registrationFee = fee.fiveByte;
-            break;
-        case 6:
-            registrationFee = fee.sixByte;
-            break;
-        case 7:
-            registrationFee = fee.sevenByte;
-            break;
-        default:
-            registrationFee = fee.eightByte;
-            break;
-    }
-    return registrationFee;
-};
-
-/**
  * Queries the alias-server for alias related data via Fetch
  *
  * @param {string} endPoint the alias-server endpoint for this query
@@ -81,14 +42,20 @@ export const getAliasRegistrationFee = aliasInputStr => {
  *       {alias: 'foo', address: 'ecash:qpmyt....', txid: 'ec927447...', blockheight: '792417'},
  *       {alias: 'foo2', address: 'ecash:qpmyt....', txid: 'ec927447...', blockheight: '792417'},
  *   ]
- * Example `/alias/<alias>` response:
- *     {
+ * Example `/alias/<alias>` response for a registered alias:
+ *   {
  *        alias: 'twelvechar12',
  *        address:'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
  *        txid:'166b21d4631e2a6ec6110061f351c9c3bfb3a8d4e6919684df7e2824b42b0ffe',
  *        blockheight:792419,
- *        isRegistered:true
- *     }
+ *   }
+ * Example `/alias/<alias>` response for an unregistered alias:
+ *  {
+ *        alias: 'asdfasdf',
+ *        isRegistered: false,
+ *        registrationFeeSats: 551,
+ *        processedBlockheight: 802965,
+ *  }
  */
 export const queryAliasServer = async (endPoint, aliasParam) => {
     let aliasServerResp;

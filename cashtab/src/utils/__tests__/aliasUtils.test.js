@@ -3,13 +3,12 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 'use strict';
 import { currency } from 'components/Common/Ticker';
+import { queryAliasServer, getAliasByteSize } from 'utils/aliasUtils';
 import {
-    queryAliasServer,
-    getAliasByteSize,
-    getAliasRegistrationFee,
-} from 'utils/aliasUtils';
-import { mockAddressApiResponse } from '../__mocks__/mockAliasServerResponses';
-import { mockAliasApiResponse } from '../__mocks__/mockAliasServerResponses';
+    mockAddressApiResponse,
+    mockAliasApiResponse,
+    mockUnregisteredAliasApiResponse,
+} from '../__mocks__/mockAliasServerResponses';
 import { when } from 'jest-when';
 
 test(`Alias byte length matches for an alias input with a single emoji`, () => {
@@ -52,22 +51,6 @@ test(`Alias byte length matches for an alias input with a mixture of symbols, mu
     const aliasInput = '🙈©冰소주';
     const opReturnAliasByteLength = getAliasByteSize(aliasInput);
     expect(opReturnAliasByteLength).toStrictEqual(15);
-});
-
-test(`getAliasRegistrationFee() returns correct fee in sats for an alias input with 5 bytes`, () => {
-    const aliasInput = 'panda'; // 5 bytes
-    const regFeeResult = getAliasRegistrationFee(aliasInput);
-    expect(regFeeResult).toStrictEqual(
-        currency.aliasSettings.aliasRegistrationFeeInSats.fiveByte,
-    );
-});
-
-test(`getAliasRegistrationFee() returns correct fee in sats for an alias input above 8 bytes`, () => {
-    const aliasInput = 'pandapanda'; // 10 bytes
-    const regFeeResult = getAliasRegistrationFee(aliasInput);
-    expect(regFeeResult).toStrictEqual(
-        currency.aliasSettings.aliasRegistrationFeeInSats.eightByte,
-    );
 });
 
 test('queryAliasServer() correctly throws a network error for server downtime or a malformed fetch url', async () => {
@@ -191,24 +174,22 @@ test('queryAliasServer() returns an api error for a non-alphanumeric alias', asy
     );
 });
 
-test('queryAliasServer() returns an object with isRegistered as false for an unregistered alias', async () => {
+test('queryAliasServer() returns a valid object for an unregistered alias', async () => {
     const endPoint = 'alias';
     const alias = 'foobar';
     const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/${endPoint}/${alias}`;
-    const expectedResult = {
-        alias: alias,
-        isRegistered: false,
-    };
 
     // mock the fetch call to alias-server's '/alias' endpoint
     global.fetch = jest.fn();
     when(fetch)
         .calledWith(fetchUrl)
         .mockResolvedValue({
-            json: () => Promise.resolve({ expectedResult }),
+            json: () => Promise.resolve({ mockUnregisteredAliasApiResponse }),
         });
 
-    expect(await queryAliasServer(endPoint, alias)).toEqual({ expectedResult });
+    expect(await queryAliasServer(endPoint, alias)).toEqual({
+        mockUnregisteredAliasApiResponse,
+    });
 });
 
 test('queryAliasServer() returns an error for an alias longer than 21 characters', async () => {

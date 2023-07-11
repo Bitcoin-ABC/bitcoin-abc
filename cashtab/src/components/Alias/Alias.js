@@ -33,11 +33,7 @@ import {
     registerAliasNotification,
 } from 'components/Common/Notifications';
 import { isAliasFormat, isValidAliasString } from 'utils/validation';
-import {
-    queryAliasServer,
-    getAliasByteSize,
-    getAliasRegistrationFee,
-} from 'utils/aliasUtils';
+import { queryAliasServer, getAliasByteSize } from 'utils/aliasUtils';
 import cashaddr from 'ecashaddrjs';
 
 export const CheckboxContainer = styled.div`
@@ -93,8 +89,9 @@ const Alias = ({ passLoadingStatus }) => {
         useState(false);
     const [activeWalletAliases, setActiveWalletAliases] = useState([]); // stores the list of aliases registered to this active wallet
     const [aliasLength, setAliasLength] = useState(false); // real time tracking of alias char length
-    const [aliasFee, setAliasFee] = useState(false); // real time tracking of alias registration fee
     const [aliasServerError, setAliasServerError] = useState(false);
+    const [aliasToRegister, setAliasToRegister] = useState(false); // real time tracking of the alias input
+    const [aliasDetails, setAliasDetails] = useState(false); // stores the /alias/<alias> endpoint response object
 
     // Show a confirmation modal on alias registrations
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -148,7 +145,57 @@ const Alias = ({ passLoadingStatus }) => {
             setIsValidAliasInput(false);
             setAliasServerError(errorMsg);
         }
+
+        passLoadingStatus(false);
     }, [wallet.name]);
+
+    const preparePreviewModal = async () => {
+        passLoadingStatus(true);
+
+        // Retrieve alias details
+        let aliasDetailsResp;
+        try {
+            aliasDetailsResp = await queryAliasServer('alias', aliasToRegister);
+        } catch (err) {
+            const errorMsg = 'Error retrieving alias details';
+            console.log(`preparePreviewModal(): ${errorMsg}`, err);
+            errorNotification(null, errorMsg);
+            setIsValidAliasInput(false);
+            setAliasServerError(errorMsg);
+            setActiveWalletAliases([]);
+            passLoadingStatus(false);
+            return;
+        }
+
+        if (
+            aliasDetailsResp &&
+            !aliasDetailsResp.address &&
+            !aliasDetailsResp.error &&
+            aliasDetailsResp.registrationFeeSats
+        ) {
+            // If alias is unregistered
+            setAliasDetails(aliasDetailsResp);
+            setIsModalVisible(true);
+        } else if (aliasDetailsResp && aliasDetailsResp.address) {
+            // If alias is registered
+            errorNotification(
+                null,
+                'This alias [' +
+                    aliasToRegister +
+                    `] is already owned by ${aliasDetailsResp.address}, please try another alias`,
+                'Alias availability check',
+            );
+            setAliasDetails(false);
+        } else {
+            const errorMsg =
+                'Unable to retrieve alias info, please try again later';
+            setActiveWalletAliases([]);
+            setAliasServerError(errorMsg);
+            errorNotification(null, errorMsg);
+            setAliasDetails(false);
+        }
+        passLoadingStatus(false);
+    };
 
     const handleOk = () => {
         setIsModalVisible(false);
@@ -178,44 +225,16 @@ const Alias = ({ passLoadingStatus }) => {
             return;
         }
 
-        // Example successful response:
-        //   {
-        //        alias: 'twelvechar12',
-        //        address:'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
-        //        txid:'166b21d4631e2a6ec6110061f351c9c3bfb3a8d4e6919684df7e2824b42b0ffe',
-        //        blockheight:792419,
-        //        isRegistered:true
-        //   }
-        let aliasDetails;
-        try {
-            aliasDetails = await queryAliasServer('alias', aliasInput);
-            if (aliasDetails.error) {
-                const errorMsg = 'Error checking alias availability';
-                // If an error is returned from the alias endpoint
-                errorNotification(null, aliasDetails.error);
-                passLoadingStatus(false);
-                setIsValidAliasInput(false);
-                setAliasServerError(errorMsg);
-                return;
-            }
-        } catch (err) {
-            const errorMsg = 'Error checking alias availability';
-            console.log(`registerAlias(): ${errorMsg}`, err);
-            errorNotification(null, errorMsg);
-            setIsValidAliasInput(false);
-            setAliasServerError(errorMsg);
-            passLoadingStatus(false);
-        }
-
-        if (!aliasDetails.address && !aliasDetails.error) {
-            // calculate registration fee based on chars
-            const registrationFee = getAliasRegistrationFee(aliasInput);
-
+        if (
+            !aliasDetails.address &&
+            !aliasDetails.error &&
+            aliasDetails.registrationFeeSats
+        ) {
             console.log(
                 'Registration fee for ' +
                     aliasInput +
                     ' is ' +
-                    registrationFee +
+                    aliasDetails.registrationFeeSats +
                     ' sats.',
             );
             console.log(
@@ -228,9 +247,8 @@ const Alias = ({ passLoadingStatus }) => {
                     currency.defaultFee,
                     aliasInput,
                     aliasAddress,
-                    registrationFee,
+                    aliasDetails.registrationFeeSats,
                 );
-
                 registerAliasNotification(result.explorerLink, aliasInput);
             } catch (err) {
                 handleAliasRegistrationError(err);
@@ -260,16 +278,15 @@ const Alias = ({ passLoadingStatus }) => {
             validAliasInput
         ) {
             setIsValidAliasInput(true);
-            const registrationFee = getAliasRegistrationFee(value);
-            setAliasFee(registrationFee);
             setAliasLength(aliasInputByteSize);
+            setAliasToRegister(value);
             setAliasValidationError(false);
         } else {
             setAliasValidationError(
                 'Please enter an alias (lowercase a-z, 0-9) between 1 and 21 bytes',
             );
             setIsValidAliasInput(false);
-            setAliasFee(false);
+            setAliasToRegister(false);
             setAliasLength(false);
         }
 
@@ -385,7 +402,9 @@ const Alias = ({ passLoadingStatus }) => {
                 <p>
                     {`Are you sure you want to register the alias '${
                         formData.aliasName
-                    }' for ${fromSatoshisToXec(aliasFee)} XECs?`}
+                    }' for ${fromSatoshisToXec(
+                        aliasDetails.registrationFeeSats,
+                    )} XECs?`}
                 </p>
             </Modal>
             <WalletInfoCtn>
@@ -488,10 +507,7 @@ const Alias = ({ passLoadingStatus }) => {
                                             />
                                         )}
                                         {aliasLength &&
-                                            aliasFee &&
-                                            `Registration fee for this ${aliasLength} byte Alias is ${fromSatoshisToXec(
-                                                aliasFee,
-                                            )} XEC`}
+                                            `This alias is ${aliasLength} bytes in length`}
                                     </Form.Item>
                                     <Form.Item>
                                         <SmartButton
@@ -501,7 +517,7 @@ const Alias = ({ passLoadingStatus }) => {
                                                 aliasServerError !== false
                                             }
                                             onClick={() =>
-                                                setIsModalVisible(true)
+                                                preparePreviewModal()
                                             }
                                         >
                                             Register Alias

@@ -10,18 +10,6 @@ export const currency = {
     aliasSettings: {
         aliasEnabled: false,
         aliasPaymentAddress: 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
-        // nominal pricing tiers for testing only - to be used as 'aliasRegistrationFeeInSats.oneByte'
-        aliasRegistrationFeeInSats: {
-            oneByte: 558,
-            twoByte: 557,
-            threeByte: 556,
-            fourByte: 555,
-            fiveByte: 554,
-            sixByte: 553,
-            sevenByte: 552,
-            eightByte: 551,
-            minFee: 550, // dust
-        },
         aliasServerBaseUrl: 'https://alias.etokens.cash',
         aliasMaxLength: 21, // max byte length, refer to the Alias spec at https://reviews.bitcoinabc.org/D12972
     },
