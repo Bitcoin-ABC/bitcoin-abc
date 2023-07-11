@@ -86,7 +86,7 @@ describe('alias-server app.js', function () {
             .expect('Content-Type', /json/)
             .expect({ alias: testedAlias, isRegistered: false });
     });
-    it('/alias/<alias> returns object with isRegistered:true for an alias in the database', async function () {
+    it('/alias/<alias> returns object for an alias in the database', async function () {
         // newValidAliases needs to be a clone of the mock because
         // each object gets an _id field when added to the database
         const newValidAliases = JSON.parse(
@@ -98,7 +98,7 @@ describe('alias-server app.js', function () {
             .get(`/alias/${alias}`)
             .expect(200)
             .expect('Content-Type', /json/)
-            .expect({ alias, address, blockheight, txid, isRegistered: true });
+            .expect({ alias, address, blockheight, txid });
     });
     it('/alias/<alias> returns an error on database error', function () {
         const testAlias = 'test';

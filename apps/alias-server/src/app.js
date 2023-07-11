@@ -76,8 +76,6 @@ module.exports = {
                 // Custom msg if alias has not yet been registered
                 if (response === null) {
                     response = { alias, isRegistered: false };
-                } else {
-                    response.isRegistered = true;
                 }
 
                 // Return successful response
