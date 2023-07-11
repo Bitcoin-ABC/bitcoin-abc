@@ -73,7 +73,6 @@ const Alias = ({ passLoadingStatus }) => {
         chronik,
         changeCashtabSettings,
         cashtabCache,
-        isAliasServerOnline,
     } = ContextValue;
     const walletState = getWalletState(wallet);
     const { balances } = walletState;
@@ -152,17 +151,6 @@ const Alias = ({ passLoadingStatus }) => {
 
     const registerAlias = async () => {
         passLoadingStatus(true);
-
-        if (!isAliasServerOnline) {
-            // error notification on alias-server being unavailable
-            errorNotification(
-                null,
-                'Unable to connect to alias server, please try again later',
-                'Alias-server status check',
-            );
-            passLoadingStatus(false);
-            return;
-        }
 
         // note: input already validated via handleAliasNameInput()
         const aliasInput = formData.aliasName;
