@@ -370,7 +370,9 @@ class Fusion(threading.Thread, PrintError):
             )[:20]
         xpubkeys_set = set()
         for c in coins:
-            wallet.add_input_info(c)
+            address_history = wallet.get_address_history(c["address"])
+            received = wallet.get_address_unspent(c["address"], address_history)
+            wallet.add_input_info(c, received)
             (xpubkey,) = c["x_pubkeys"]
             xpubkeys_set.add(xpubkey)
 

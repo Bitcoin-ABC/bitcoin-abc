@@ -2070,8 +2070,16 @@ class AbstractWallet(PrintError, SPVDelegate):
         if fixed_fee is None and config.fee_per_kb() is None:
             raise RuntimeError("Dynamic fee estimates not available")
 
+        # optimization for addresses with many coins: cache unspent coins
+        coins_for_address: Dict[str, UnspentCoinsType] = {}
         for item in inputs:
-            self.add_input_info(item)
+            address = item["address"]
+            if address not in coins_for_address:
+                coins_for_address[address] = self.get_address_unspent(
+                    address, self.get_address_history(address)
+                )
+
+            self.add_input_info(item, coins_for_address[address])
 
         # Fee estimator
         if fixed_fee is None:
@@ -2433,7 +2441,11 @@ class AbstractWallet(PrintError, SPVDelegate):
         item = coins.get(txid + ":%d" % i)
         if not item:
             return
-        self.add_input_info(item)
+
+        coins = self.get_address_unspent(
+            item["address"], self.get_address_history(item["address"])
+        )
+        self.add_input_info(item, coins)
         inputs = [item]
         outputs = [TxOutput(bitcoin.TYPE_ADDRESS, txo.destination, txo.value - fee)]
         locktime = 0
@@ -2444,14 +2456,11 @@ class AbstractWallet(PrintError, SPVDelegate):
             inputs, outputs, locktime=locktime, sign_schnorr=sign_schnorr
         )
 
-    def add_input_info(self, txin):
+    def add_input_info(self, txin: Dict[str, Any], received: UnspentCoinsType):
         address = txin["address"]
         if self.is_mine(address):
             txin["type"] = self.get_txin_type(address)
             # eCash needs value to sign
-            received = self.get_address_unspent(
-                address, self.get_address_history(address)
-            )
             item = received.get(txin["prevout_hash"] + ":%d" % txin["prevout_n"])
             tx_height, value, is_cb = item
             txin["value"] = value

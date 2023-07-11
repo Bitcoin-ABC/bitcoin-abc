@@ -24,7 +24,6 @@
 """
 This module provides coin consolidation tools.
 """
-import copy
 from typing import Iterator, List, Optional, Tuple
 
 from . import wallet
@@ -82,52 +81,12 @@ class AddressConsolidator:
                 and (max_height is None or utxo["height"] <= max_height)
             )
         ]
-        self.wallet = wallet_instance
-
-        # Cache data common to all coins
-        self.address = address
-        self.txin_type = wallet_instance.get_txin_type(address)
-        self.received = {}
-        for tx_hash, height in wallet_instance.get_address_history(address):
-            for n, v, is_cb in self.wallet.txo.get(tx_hash, {}).get(address, []):
-                self.received[tx_hash + f":{n}"] = (height, v, is_cb)
-
-        if isinstance(self.wallet, wallet.ImportedAddressWallet):
-            sig_info = {
-                "x_pubkeys": ["fd" + address.to_script_hex()],
-                "signatures": [None],
-            }
-        elif isinstance(self.wallet, wallet.ImportedPrivkeyWallet):
-            pubkey = self.wallet.keystore.address_to_pubkey(address)
-            sig_info = {
-                "x_pubkeys": [pubkey.to_ui_string()],
-                "signatures": [None],
-                "num_sig": 1,
-            }
-        elif isinstance(self.wallet, wallet.MultisigWallet):
-            derivation = self.wallet.get_address_index(address)
-            sig_info = {
-                "x_pubkeys": [
-                    k.get_xpubkey(*derivation) for k in self.wallet.get_keystores()
-                ],
-                "signatures": [None] * self.wallet.n,
-                "num_sig": self.wallet.m,
-                "pubkeys": None,
-            }
-        else:
-            # Default case for wallet.Simple_Deterministic_Wallet and Mock wallet used
-            # in test
-            derivation = self.wallet.get_address_index(address)
-            x_pubkey = self.wallet.keystore.get_xpubkey(*derivation)
-            sig_info = {
-                "x_pubkeys": [x_pubkey],
-                "signatures": [None],
-                "num_sig": 1,
-            }
 
         # Add more metadata to coins
-        for i, c in enumerate(self._coins):
-            self.add_input_info(c, sig_info)
+        address_history = wallet_instance.get_address_history(address)
+        received = wallet_instance.get_address_unspent(address, address_history)
+        for coin in self._coins:
+            wallet_instance.add_input_info(coin, received)
 
     def get_unsigned_transactions(self) -> List[Transaction]:
         """
@@ -185,15 +144,3 @@ class AddressConsolidator:
                 [(TYPE_ADDRESS, self.output_address, next_amount - tx_size * FEERATE)]
             )
         return tx_size
-
-    def add_input_info(self, txin, siginfo: dict):
-        """Reimplemented from wallet.add_input_info to optimize for multiple calls
-        with same address and same history.
-        Caching the transaction history is the most significant optimization,
-        as the original function loads the history from disk (text file) for
-        every call."""
-        txin["type"] = self.txin_type
-        item = self.received.get(txin["prevout_hash"] + f":{txin['prevout_n']}")
-        tx_height, value, is_cb = item
-        txin["value"] = value
-        txin.update(copy.deepcopy(siginfo))
