@@ -234,18 +234,43 @@ if(ENABLE_DBUS_NOTIFICATIONS)
 endif()
 
 if(ENABLE_BIP70)
-	# Do protobuf codegen
-	find_package(Protobuf REQUIRED)
-	protobuf_generate_cpp(PROTOBUF_SOURCES PROTOBUF_HEADERS paymentrequest.proto)
+	# Do protobuf codegen.
+	# The protobuf-config.cmake file is used here as the recent (version > 21)
+	# protobuf might not play nicely with the cmake-supplied FindProtobuf.cmake.
+	# This is due to cmake (at the time of writing, v3.26) not pulling the
+	# required Abseil dependencies properly (and not managing the new protobuf
+	# versioning scheme either).
+	# In the event it is not found, fallback to the FindProtobuf version.
+	# Documentation can be found here:
+	# https://github.com/protocolbuffers/protobuf/blob/main/docs/cmake_protobuf_generate.md
+	find_package(Protobuf CONFIG)
+	if(NOT Protobuf_FOUND)
+		find_package(Protobuf REQUIRED)
+	endif()
 
-	add_library(bitcoin-qt-protobuf OBJECT
-		# Protobuf codegen
-			${PROTOBUF_HEADERS}
-			${PROTOBUF_SOURCES}
+	add_library(
+		bitcoin-qt-protobuf OBJECT
+		paymentrequest.proto
+	)
+	target_link_libraries(bitcoin-qt-protobuf PUBLIC protobuf::libprotobuf)
+
+	# Where protoc will put the generated files
+	set(PROTOC_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+	# Where the proto files are located
+	set(PROTO_IMPORT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}")
+
+	# Include the generated headers path
+	target_include_directories(
+		bitcoin-qt-protobuf
+		PUBLIC "$<BUILD_INTERFACE:${PROTOC_OUTPUT_DIRECTORY}>"
 	)
 
-	target_include_directories(bitcoin-qt-protobuf PUBLIC ${Protobuf_INCLUDE_DIRS})
-	target_link_libraries(bitcoin-qt-protobuf ${Protobuf_LIBRARIES})
+	protobuf_generate(
+		LANGUAGE cpp
+		TARGET bitcoin-qt-protobuf
+		IMPORT_DIRS "${PROTO_IMPORT_DIRECTORY}"
+		PROTOC_OUT_DIR "${PROTOC_OUTPUT_DIRECTORY}"
+	)
 
 	# Don't run clang-tidy on generated files
 	if(ENABLE_CLANG_TIDY)
