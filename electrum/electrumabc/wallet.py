@@ -44,6 +44,8 @@ from collections import defaultdict, namedtuple
 from enum import Enum, auto
 from typing import (
     TYPE_CHECKING,
+    Any,
+    Dict,
     ItemsView,
     List,
     Optional,
@@ -115,6 +117,18 @@ if TYPE_CHECKING:
 
 
 DEFAULT_CONFIRMED_ONLY = False
+
+HistoryItemType = Tuple[str, int]
+"""(tx_hash, block_height)"""
+
+CoinsItemType = Tuple[int, int, bool]
+"""(block_height, amount, is_coinbase)"""
+
+UnspentCoinsType = Dict[str, CoinsItemType]
+"""{"tx_hash:prevout": (block_height, amount, is_coinbase), ...}"""
+
+SpendCoinsType = Dict[str, int]
+"""{"tx_hash:prevout": block_height, ...}"""
 
 
 class AddressNotFoundError(Exception):
@@ -905,21 +919,34 @@ class AbstractWallet(PrintError, SPVDelegate):
             status_enum,
         )
 
-    def get_addr_io(self, address):
-        history = self.get_address_history(address)
+    def get_address_unspent(
+        self, address: Address, address_history: List[HistoryItemType]
+    ) -> UnspentCoinsType:
         received = {}
-        sent = {}
-        for tx_hash, height in history:
+        for tx_hash, height in address_history:
             coins = self.txo.get(tx_hash, {}).get(address, [])
             for n, v, is_cb in coins:
-                received[tx_hash + ":%d" % n] = (height, v, is_cb)
-        for tx_hash, height in history:
+                received[f"{tx_hash}:{n}"] = (height, v, is_cb)
+        return received
+
+    def get_address_spent(
+        self, address: Address, address_history: List[HistoryItemType]
+    ) -> SpendCoinsType:
+        sent = {}
+        for tx_hash, height in address_history:
             inputs = self.txi.get(tx_hash, {}).get(address, [])
             for txi, v in inputs:
                 sent[txi] = height
+        return sent
+
+    def get_addr_io(self, address: Address) -> Tuple[UnspentCoinsType, SpendCoinsType]:
+        history = self.get_address_history(address)
+        received = self.get_address_unspent(address, history)
+        sent = self.get_address_spent(address, history)
         return received, sent
 
-    def get_addr_utxo(self, address):
+    def get_addr_utxo(self, address: Address) -> Dict[str, Dict[str, Any]]:
+        """Return a {"tx_hash:prevout_n": dict_of_info, ...} dict"""
         coins, spent = self.get_addr_io(address)
         for txi in spent:
             coins.pop(txi)
@@ -947,12 +974,9 @@ class AbstractWallet(PrintError, SPVDelegate):
             out[txo] = x
         return out
 
-    # return the total amount ever received by an address
-    def get_addr_received(self, address):
-        received, sent = self.get_addr_io(address)
-        return sum([v for height, v, is_cb in received.values()])
-
-    def get_addr_balance(self, address, exclude_frozen_coins=False):
+    def get_addr_balance(
+        self, address: Address, exclude_frozen_coins=False
+    ) -> Tuple[int, int, int]:
         """Returns the balance of a bitcoin address as a tuple of:
         (confirmed_matured, unconfirmed, unmatured)
         Note that 'exclude_frozen_coins = True' only checks for coin-level
@@ -1137,7 +1161,8 @@ class AbstractWallet(PrintError, SPVDelegate):
             xx += x
         return cc, uu, xx
 
-    def get_address_history(self, address):
+    def get_address_history(self, address: Address) -> List[HistoryItemType]:
+        """Returns a list of (tx_hash, block_height) for an address"""
         assert isinstance(address, Address)
         return self._history.get(address, [])
 
@@ -2424,7 +2449,9 @@ class AbstractWallet(PrintError, SPVDelegate):
         if self.is_mine(address):
             txin["type"] = self.get_txin_type(address)
             # eCash needs value to sign
-            received, spent = self.get_addr_io(address)
+            received = self.get_address_unspent(
+                address, self.get_address_history(address)
+            )
             item = received.get(txin["prevout_hash"] + ":%d" % txin["prevout_n"])
             tx_height, value, is_cb = item
             txin["value"] = value
@@ -2558,9 +2585,14 @@ class AbstractWallet(PrintError, SPVDelegate):
         if domain:
             return domain[0]
 
-    def get_payment_status(self, address, amount):
+    def get_payment_status(
+        self, address: Address, amount: int
+    ) -> Tuple[bool, Optional[int], List[str]]:
+        """Return (is_paid, num_confirmations, list_of_tx_hashes)
+        is_paid is True if the address received at least the specified amount.
+        """
         local_height = self.get_local_height()
-        received, sent = self.get_addr_io(address)
+        received = self.get_address_unspent(address, self.get_address_history(address))
         transactions = []
         for txo, x in received.items():
             h, v, is_cb = x
