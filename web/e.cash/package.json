@@ -9,6 +9,7 @@
         "test": "jest --watch"
     },
     "dependencies": {
+        "framer-motion": "^10.12.18",
         "lottie-react": "^2.4.0",
         "next": "latest",
         "react": "18.2.0",

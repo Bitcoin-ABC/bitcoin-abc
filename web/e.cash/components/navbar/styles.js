@@ -2,8 +2,16 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import styled from 'styled-components';
+import { motion } from 'framer-motion';
+import { getAnimationSettings } from '/styles/framer-motion';
 
-export const NavbarOuter = styled.div`
+export const NavbarOuter = styled(motion.div).attrs(() =>
+    getAnimationSettings({
+        delay: 1,
+        animateUp: false,
+        onScroll: false,
+    }),
+)`
     position: fixed;
     top: 0;
     width: 100%;

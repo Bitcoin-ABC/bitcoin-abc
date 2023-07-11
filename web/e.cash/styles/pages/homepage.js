@@ -3,8 +3,12 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import styled from 'styled-components';
 import Neoncity from '/public/images/neon-city.png';
+import { motion } from 'framer-motion';
+import { getAnimationSettings } from '/styles/framer-motion';
 
-export const Hero = styled.div`
+export const Hero = styled(motion.div).attrs(() =>
+    getAnimationSettings({ duration: 2, delay: 0.4, displacement: 300 }),
+)`
     width: 100%;
     height: 100vh;
     min-height: 600px;
@@ -168,7 +172,9 @@ export const GradientSpacer = styled.div`
     );
 `;
 
-export const StorySection = styled.div`
+export const StorySection = styled(motion.div).attrs(() =>
+    getAnimationSettings(),
+)`
     display: flex;
     gap: 30px;
     position: relative;
@@ -286,7 +292,9 @@ export const RoadmapSection = styled.div`
     position: relative;
 `;
 
-export const TilesSectionCtn = styled.div`
+export const TilesSectionCtn = styled(motion.div).attrs(() =>
+    getAnimationSettings(),
+)`
     margin-top: 200px;
     text-align: center;
 `;
