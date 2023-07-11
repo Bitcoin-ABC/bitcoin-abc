@@ -171,3 +171,40 @@ export const DateText = styled.div`
         font-size: 12px;
     }
 `;
+
+export const PostCtn = styled.div`
+    padding: 150px 0;
+`;
+
+export const PostBorder = styled.div`
+    padding: 30px;
+    border: 1px solid ${props => props.theme.colors.primaryLight};
+    box-shadow: 0px 0px 22px 1px ${props => props.theme.colors.primaryLight}68;
+    margin-bottom: 50px;
+
+    img {
+        width: 100%;
+    }
+`;
+
+export const MainPostImage = styled.div`
+    width: 100%;
+    padding-bottom: 56.25%;
+    position: relative;
+    margin: 30px 0;
+    img {
+        object-fit: contain;
+    }
+`;
+
+export const NextPostCtn = styled.div`
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(1, 1fr);
+    grid-column-gap: 15px;
+    grid-row-gap: 15px;
+    margin-top: 15px;
+    ${props => props.theme.breakpoint.small} {
+        grid-template-columns: repeat(1, 1fr);
+    }
+`;
