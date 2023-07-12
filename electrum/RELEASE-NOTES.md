@@ -1,9 +1,3 @@
-Electrum ABC is a fork of the open source Electron Cash wallet for eCash.
-
-The Electrum ABC software is NOT affiliated, associated, or endorsed by
-Electron Cash, electroncash.org, Electrum or electrum.org.
-
-
 # Release notes
 
 ## Release 5.2.5

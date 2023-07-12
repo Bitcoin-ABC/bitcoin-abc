@@ -1,54 +1,34 @@
-#Electrum ABC - Lightweight eCash client
+# Electrum ABC - Lightweight eCash client
 
-##Getting started
+Electrum ABC is an open source, fast and secure eCash wallet for Windows, MacOS and Linux.
+It supports mnemonic seed phrases, hardware wallets, multisig wallets, and importing
+private keys or addresses.
 
-**Note: If running from source, Python 3.7 or above is required to run Electrum ABC.**
-If your system lacks Python 3.7, you have other options, such as the
-[AppImage / binary releases](https://github.com/Bitcoin-ABC/ElectrumABC/releases/)
-or running from source using `pyenv` (see section
-[Running from source on old Linux](#running-from-source-on-old-linux) below).
+It enables you to verify that your transactions are in the blockchain without downloading
+the entire blockchain or trusting a centralized server, by using the
+Simple Payment Verification described in the Bitcoin whitepaper.
 
-**macOS:** It is recommended that macOS users run
-[the binary .dmg](https://github.com/Bitcoin-ABC/ElectrumABC/releases)
-as that's simpler to use and has everything included.  Otherwise, if you
-want to run from source, see section
-[Running from source on macOS](#running-from-source-on-macos) below.
+Anyone can run a backend server for Electrum ABC — no single entity controls the network.
 
-If you want to use the Qt interface, install the Qt dependencies:
-```
-sudo apt-get install python3-pyqt5 python3-pyqt5.qtsvg
-```
+## Getting started
 
-If you downloaded the official package (tar.gz), you can run
-Electrum ABC from its root directory, without installing it on your
-system; all the python dependencies are included in the 'packages'
-directory. To run Electrum ABC from its root directory, just do:
-```
-./electrum-abc
-```
+Electrum ABC can be run from source or from one of the binary releases
+that can be downloaded from [bitcoinabc.org/electrum](https://www.bitcoinabc.org/electrum).
+The binary releases are recommended for most users.
 
-You can also install Electrum ABC on your system, by running this command:
-```
-pip3 install . --user
-```
+Running from source is useful for developers or if no binary release is provided for your OS.
 
-This will download and install the Python dependencies used by
-Electrum ABC, instead of using the 'packages' directory.
+Documentation about how to run the application from source is provided in the
+[CONTRIBUTING.md](CONTRIBUTING.md) file.
 
-Compile the icons file for Qt (normally you can skip this step, run this command if icons are missing):
-```
-sudo apt-get install pyqt5-dev-tools
-pyrrc5 icons.qrc -o electrumabc_gui/qt/icons.py
-```
+A `.tar.gz` source package is provided for each release. This package contains all
+required dependencies and some optional compiled libraries (`libsecp256k1`, `libzbar`)
+to run the application from source on Linux.
 
-If you cloned the git repository, you need to compile extra files
-before you can run Electrum ABC. Read the next section, "Development
-Version".
-
-##Hardware Wallet
+## Hardware Wallets
 
 Electrum ABC natively supports Ledger, Trezor and Satochip hardware wallets.
-You need additional dependencies. To install them, run this command:
+You need additional dependencies when running from source:
 ```
 pip3 install -r contrib/requirements/requirements-hw.txt
 ```
@@ -56,102 +36,23 @@ pip3 install -r contrib/requirements/requirements-hw.txt
 If you still have problems connecting to your Nano S please have a look at this
 [troubleshooting](https://support.ledger.com/hc/en-us/articles/115005165269-Fix-connection-issues) section on Ledger website.
 
-
-##Development version
-
-Check your python version >= 3.7, and install pyqt5, as instructed above in the
-[Getting started](#getting-started) section above or [Running from source on old Linux](#running-from-source-on-old-linux) section below.
-
-If you are on macOS, see the [Running from source on macOS](#running-from-source-on-macos) section below.
-
-Check out the code from Github:
-```
-git clone https://github.com/Bitcoin-ABC/ElectrumABC
-cd ElectrumABC
-```
-
-Install the python dependencies:
-```
-pip3 install -r contrib/requirements/requirements.txt --user
-pip3 install -r contrib/requirements/requirements-binaries.txt --user
-```
-
-Create translations (optional):
-```
-sudo apt-get install python-requests gettext
-./contrib/make_locale
-```
-
-Compile libsecp256k1 (optional, yet highly recommended):
-```
-sudo apt-get install libtool automake
-./contrib/make_secp
-```
-
-For plugin development, see the [plugin documentation](electrumabc_plugins/README.rst).
-
-Running unit tests (optional):
-```
-python3 test_runner.py
-```
-
-##Running from source on old Linux
-
-If your Linux distribution has a different version of python 3 (such as python
-3.5 in Debian 9), it is recommended to do a user dir install with
-[pyenv](https://github.com/pyenv/pyenv-installer). This allows Electrum ABC
-to run completely independently of your system configuration.
-
-1. Install `pyenv` in your user
-   account. Follow the printed instructions about updating your environment
-   variables and `.bashrc`, and restart your shell to ensure that they are
-   loaded.
-2. Run `pyenv install 3.9.7`. This will download and compile that version of
-   python, storing it under `.pyenv` in your home directory.
-3. `cd` into the Electrum ABC directory. Run `pyenv local 3.9.7` which inserts
-   a file `.python-version` into the current directory.
-4. While still in this directory, run `pip install pyqt5`.
-5. If you are installing from the source file (.tar.gz or .zip) then you are
-   ready and you may run `./electrum-abc`. If you are using the git version,
-   then continue by following the Development version instructions above.
-
-##Running from source on macOS
-
-You need to install **either** [MacPorts](https://www.macports.org)  **or**
-[HomeBrew](https://www.brew.sh).  Follow the instructions on either site for
-installing (Xcode from [Apple's developer site](https://developer.apple.com)
-is required for either).
-
-1. After installing either HomeBrew or MacPorts, clone this repository and
-   switch to the directory:
-   `git clone https://github.com/Bitcoin-ABC/ElectrumABC && cd ElectrumABC`
-2. Install python 3.7+. For brew:
-   `brew install python3`
-   or if using MacPorts:
-   `sudo port install python37`
-3. Install PyQt5: `python3 -m pip install --user pyqt5`
-4. Install Electrum ABC requirements:
-   `python3 -m pip install --user -r contrib/requirements/requirements.txt`
-5. Compile libsecp256k1 (optional, yet highly recommended):
-   `./contrib/make_secp`.
-   This requires GNU tools and automake, install with brew:
-   `brew install coreutils automake`
-   or if using MacPorts: `sudo port install coreutils automake`
-6. At this point you should be able to just run the sources: `./electrum-abc`
-
-
-##Creating Binaries
-
-See the *Building the release files* section in [contrib/release.md](contrib/release.md)
-
-##Verifying Release Binaries
+## Verifying Release Binaries
 
 See [contrib/pubkeys/README.md](contrib/pubkeys/README.md)
 
-##Contacting developers
+## Release notes
 
-[Join the Electrum ABC telegram group](https://t.me/ElectrumABC) to get in contact
-with developers or to get help from the community.
+Find out about new features and bugfixes in the [release notes](RELEASE-NOTES.md).
 
-To contribute to the project, read the main [CONTRIBUTING.md](/CONTRIBUTING.md)
-document at the root of the Bitcoin ABC repository.
+## Contributing or contacting developers
+
+See the dedicated [CONTRIBUTING.md](CONTRIBUTING.md) document for instructions
+about how to contribute to the project and how to contact developers for support.
+
+## Credits
+
+Electrum ABC is a fork of the open source BCH *Electron Cash* wallet, which is itself a
+fork of the BTC *Electrum* wallet.
+
+The Electrum ABC software is NOT affiliated, associated, or endorsed by
+Electron Cash, electroncash.org, Electrum or electrum.org.
