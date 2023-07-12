@@ -2,7 +2,7 @@
 # but for now we keep it to avoid hacks such as copying the file in
 # contrib/make_linux_sdist
 include LICENCE RELEASE-NOTES.md AUTHORS
-include README.rst
+include README.md
 include electrum-abc.desktop
 include *.py
 include electrum-abc
