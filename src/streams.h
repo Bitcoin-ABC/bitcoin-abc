@@ -616,17 +616,11 @@ public:
     }
 
     template <typename T> AutoFile &operator<<(const T &obj) {
-        if (!file)
-            throw std::ios_base::failure(
-                "AutoFile::operator<<: file handle is nullptr");
         ::Serialize(*this, obj);
         return *this;
     }
 
     template <typename T> AutoFile &operator>>(T &&obj) {
-        if (!file)
-            throw std::ios_base::failure(
-                "AutoFile::operator>>: file handle is nullptr");
         ::Unserialize(*this, obj);
         return *this;
     }
@@ -644,21 +638,11 @@ public:
     int GetVersion() const { return nVersion; }
 
     template <typename T> CAutoFile &operator<<(const T &obj) {
-        // Serialize to this stream
-        if (!file) {
-            throw std::ios_base::failure(
-                "CAutoFile::operator<<: file handle is nullptr");
-        }
         ::Serialize(*this, obj);
         return (*this);
     }
 
     template <typename T> CAutoFile &operator>>(T &&obj) {
-        // Unserialize from this stream
-        if (!file) {
-            throw std::ios_base::failure(
-                "CAutoFile::operator>>: file handle is nullptr");
-        }
         ::Unserialize(*this, obj);
         return (*this);
     }
