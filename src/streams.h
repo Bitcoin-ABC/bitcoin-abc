@@ -525,10 +525,10 @@ public:
  */
 class AutoFile {
 protected:
-    FILE *file;
+    std::FILE *m_file;
 
 public:
-    explicit AutoFile(FILE *filenew) : file{filenew} {}
+    explicit AutoFile(std::FILE *file) : m_file{file} {}
 
     ~AutoFile() { fclose(); }
 
@@ -536,13 +536,13 @@ public:
     AutoFile(const AutoFile &) = delete;
     AutoFile &operator=(const AutoFile &) = delete;
 
+    bool feof() const { return std::feof(m_file); }
+
     int fclose() {
-        int retval{0};
-        if (file) {
-            retval = ::fclose(file);
-            file = nullptr;
+        if (auto rel{release()}) {
+            return std::fclose(rel);
         }
-        return retval;
+        return 0;
     }
 
     /**
@@ -551,9 +551,9 @@ public:
      * responsibility of the caller of this function to clean up the returned
      * FILE*.
      */
-    FILE *release() {
-        FILE *ret = file;
-        file = nullptr;
+    std::FILE *release() {
+        std::FILE *ret{m_file};
+        m_file = nullptr;
         return ret;
     }
 
@@ -562,49 +562,49 @@ public:
      * @note Ownership of the FILE* will remain with this class. Use this only
      * if the scope of the AutoFile outlives use of the passed pointer.
      */
-    FILE *Get() const { return file; }
+    std::FILE *Get() const { return m_file; }
 
     /** Return true if the wrapped FILE* is nullptr, false otherwise. */
-    bool IsNull() const { return (file == nullptr); }
+    bool IsNull() const { return m_file == nullptr; }
 
     //
     // Stream subset
     //
     void read(Span<std::byte> dst) {
-        if (!file) {
+        if (!m_file) {
             throw std::ios_base::failure(
                 "AutoFile::read: file handle is nullptr");
         }
-        if (fread(dst.data(), 1, dst.size(), file) != dst.size()) {
-            throw std::ios_base::failure(feof(file)
+        if (std::fread(dst.data(), 1, dst.size(), m_file) != dst.size()) {
+            throw std::ios_base::failure(feof()
                                              ? "AutoFile::read: end of file"
                                              : "AutoFile::read: fread failed");
         }
     }
 
     void ignore(size_t nSize) {
-        if (!file) {
+        if (!m_file) {
             throw std::ios_base::failure(
                 "AutoFile::ignore: file handle is nullptr");
         }
         uint8_t data[4096];
         while (nSize > 0) {
             size_t nNow = std::min<size_t>(nSize, sizeof(data));
-            if (fread(data, 1, nNow, file) != nNow) {
+            if (std::fread(data, 1, nNow, m_file) != nNow) {
                 throw std::ios_base::failure(
-                    feof(file) ? "AutoFile::ignore: end of file"
-                               : "AutoFile::read: fread failed");
+                    feof() ? "AutoFile::ignore: end of file"
+                           : "AutoFile::read: fread failed");
             }
             nSize -= nNow;
         }
     }
 
     void write(Span<const std::byte> src) {
-        if (!file) {
+        if (!m_file) {
             throw std::ios_base::failure(
                 "AutoFile::write: file handle is nullptr");
         }
-        if (fwrite(src.data(), 1, src.size(), file) != src.size()) {
+        if (std::fwrite(src.data(), 1, src.size(), m_file) != src.size()) {
             throw std::ios_base::failure("AutoFile::write: write failed");
         }
     }
