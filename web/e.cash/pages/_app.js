@@ -8,7 +8,7 @@ import GlobalCSS from '/styles/global';
 import { ThemeSwitch } from '/components/atoms';
 
 export default function App({ Component, pageProps }) {
-    const [theme, setTheme] = useState(ecash);
+    const [theme, setTheme] = useState(stealth);
 
     const HandleThemeChange = () => {
         setTheme(theme === ecash ? stealth : ecash);

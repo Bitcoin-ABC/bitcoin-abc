@@ -69,20 +69,20 @@ export const stealth = {
     },
     roadmap: {
         sectionHeader: '#ffffff',
-        complete: '#01ff85',
-        underway: '#e9fe01',
-        planning: '#ffffff',
+        complete: '#ffffff',
+        underway: '#cccccc',
+        planning: '#7a7a7a',
         whiteIcon:
-            'invert(82%) sepia(11%) saturate(7038%) hue-rotate(89deg) brightness(104%) contrast(100%)',
+            'invert(100%) sepia(0%) saturate(0%) hue-rotate(360deg) brightness(102%) contrast(102%)',
         primaryIcon:
-            'invert(100%) sepia(1%) saturate(0%) hue-rotate(56deg) brightness(106%) contrast(100%)',
+            'invert(48%) sepia(2%) saturate(9%) hue-rotate(315deg) brightness(99%) contrast(85%)',
         accentIcon:
-            'invert(82%) sepia(98%) saturate(2292%) hue-rotate(8deg) brightness(102%) contrast(104%)',
+            'invert(99%) sepia(0%) saturate(1540%) hue-rotate(210deg) brightness(81%) contrast(97%)',
     },
     filters: {
         grayscale: 'filter: grayscale(100%);',
-        videospeed: 0.4,
-        animationspeed: 0.2,
+        videospeed: 0,
+        animationspeed: 0,
     },
     breakpoint: {
         large: '@media (max-width: 1300px)',
