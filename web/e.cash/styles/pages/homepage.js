@@ -114,6 +114,7 @@ export const HeroImage = styled.div`
     bottom: 0;
     margin: auto;
     width: 80%;
+    max-width: 800px;
     height: 100%;
     z-index: -1;
     animation: bounce 6s infinite;

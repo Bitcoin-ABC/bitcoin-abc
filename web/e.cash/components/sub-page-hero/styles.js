@@ -2,12 +2,16 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import styled from 'styled-components';
+import { motion } from 'framer-motion';
+import { getAnimationSettings } from '/styles/framer-motion';
 
 export const OuterHeroCtn = styled.div`
     width: 100%;
     position: relative;
 `;
-export const HeroCtn = styled.div`
+export const HeroCtn = styled(motion.div).attrs(() =>
+    getAnimationSettings({ duration: 2, displacement: 300 }),
+)`
     display: flex;
     padding-top: 130px;
     position: relative;

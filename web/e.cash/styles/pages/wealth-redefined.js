@@ -2,8 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import styled from 'styled-components';
+import { motion } from 'framer-motion';
+import { getAnimationSettings } from '/styles/framer-motion';
 
-export const TextBlock = styled.div`
+export const TextBlock = styled(motion.div).attrs(() => getAnimationSettings())`
     width: 100%;
     margin-bottom: 150px;
     position: relative;

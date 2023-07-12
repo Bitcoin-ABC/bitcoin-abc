@@ -2,6 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import styled from 'styled-components';
+import { motion } from 'framer-motion';
+import { getAnimationSettings } from '/styles/framer-motion';
 
 export const FlexCtn = styled.div`
     display: flex;
@@ -70,12 +72,14 @@ export const TextCtn = styled.div`
     }
 `;
 
-export const WalletCardCtn = styled.div`
+export const WalletCardCtn = styled(motion.div).attrs(() =>
+    getAnimationSettings(),
+)`
     width: 100%;
     margin-bottom: 50px;
     display: inline-block;
     padding: 30px 0;
-    transition: all ease-in-out 200ms;
+    transition: background-color ease-in-out 200ms;
     border-radius: 5px;
 
     ${props => props.theme.breakpoint.medium} {
@@ -93,7 +97,7 @@ export const WalletCardCtn = styled.div`
     }
 `;
 
-export const TitleBox = styled.div`
+export const TitleBox = styled(motion.div).attrs(() => getAnimationSettings())`
     width: 100%;
     border-left: 3px solid ${props => props.theme.colors.primary};
     background-image: linear-gradient(

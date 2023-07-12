@@ -2,8 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import styled from 'styled-components';
+import { motion } from 'framer-motion';
+import { getAnimationSettings } from '/styles/framer-motion';
 
-export const GridCtn = styled.div`
+export const GridCtn = styled(motion.div).attrs(() =>
+    getAnimationSettings({ duration: 2, displacement: 200 }),
+)`
     margin-top: 30px;
     display: grid;
     grid-template-columns: repeat(3, 1fr);

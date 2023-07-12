@@ -3,6 +3,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import styled from 'styled-components';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { getAnimationSettings } from '/styles/framer-motion';
 
 export const BlogCtn = styled.div`
     padding: 160px 0;
@@ -14,7 +16,9 @@ export const BlogCtn = styled.div`
     }
 `;
 
-export const FeaturedCardCtn = styled.div`
+export const FeaturedCardCtn = styled(motion.div).attrs(() =>
+    getAnimationSettings(),
+)`
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(2, 1fr);
@@ -77,7 +81,7 @@ export const FeaturedCard = styled(Link)`
     display: flex;
     flex-direction: column;
     border: 1px solid ${props => props.theme.colors.primaryLight};
-    transition: all ease-in-out 200ms;
+    transition: border-color ease-in-out 200ms;
     position: relative;
     box-shadow: 0px 0px 22px 1px ${props => props.theme.colors.primaryLight}68;
     :nth-child(2) {
@@ -137,11 +141,11 @@ export const CardCtn = styled.div`
     }
 `;
 
-export const Card = styled(Link)`
+export const Card = styled(motion(Link)).attrs(() => getAnimationSettings())`
     display: flex;
     flex-direction: column;
     border: 1px solid ${props => props.theme.colors.primaryLight};
-    transition: all ease-in-out 200ms;
+    transition: border-color ease-in-out 200ms;
     position: relative;
     box-shadow: 0px 0px 22px 1px ${props => props.theme.colors.primaryLight}68;
     :hover {
@@ -172,7 +176,7 @@ export const DateText = styled.div`
     }
 `;
 
-export const PostCtn = styled.div`
+export const PostCtn = styled(motion.div).attrs(() => getAnimationSettings())`
     padding: 150px 0;
 `;
 

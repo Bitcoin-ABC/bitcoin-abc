@@ -2,8 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import styled from 'styled-components';
+import { motion } from 'framer-motion';
+import { getAnimationSettings } from '/styles/framer-motion';
 
-export const CareersCtn = styled.div`
+export const CareersCtn = styled(motion.div).attrs(() =>
+    getAnimationSettings(),
+)`
     padding: 160px 0;
     background-size: 60px 103px;
     background-image: url(/images/logo-tile.png);

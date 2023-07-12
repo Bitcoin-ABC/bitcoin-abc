@@ -3,8 +3,12 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import styled from 'styled-components';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { getAnimationSettings } from '/styles/framer-motion';
 
-export const DescriptionBox = styled.div`
+export const DescriptionBox = styled(motion.div).attrs(() =>
+    getAnimationSettings(),
+)`
     width: 100%;
     margin-bottom: -100px;
     display: flex;
@@ -35,7 +39,7 @@ export const ImgCtn = styled.div`
     }
 `;
 
-export const TitleBox = styled.div`
+export const TitleBox = styled(motion.div).attrs(() => getAnimationSettings())`
     width: 100%;
     border-left: 3px solid ${props => props.theme.colors.primary};
     background-image: linear-gradient(
@@ -73,7 +77,7 @@ export const TileImgCtn = styled.div`
     }
 `;
 
-export const Tile = styled(Link)`
+export const Tile = styled(motion(Link)).attrs(() => getAnimationSettings())`
     position: relative;
     padding: 50px;
     border-right: 1px solid ${props => props.theme.colors.gridlines};
@@ -107,7 +111,9 @@ export const BlankTile = styled.div`
     }
 `;
 
-export const MiningSectionCtn = styled.div`
+export const MiningSectionCtn = styled(motion.div).attrs(() =>
+    getAnimationSettings(),
+)`
     width: 100%;
     display: flex;
     align-items: center;

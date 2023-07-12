@@ -2,8 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import styled from 'styled-components';
+import { motion } from 'framer-motion';
+import { getAnimationSettings } from '/styles/framer-motion';
 
-export const TextImageBlockCtn = styled.div`
+export const TextImageBlockCtn = styled(motion.div).attrs(() =>
+    getAnimationSettings(),
+)`
     position: relative;
     display: flex;
     width: 100%;
