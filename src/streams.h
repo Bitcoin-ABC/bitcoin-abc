@@ -33,13 +33,11 @@ public:
         : stream(stream_), nType(nType_), nVersion(nVersion_) {}
 
     template <typename T> OverrideStream<Stream> &operator<<(const T &obj) {
-        // Serialize to this stream
         ::Serialize(*this, obj);
         return (*this);
     }
 
     template <typename T> OverrideStream<Stream> &operator>>(T &&obj) {
-        // Unserialize from this stream
         ::Unserialize(*this, obj);
         return (*this);
     }
@@ -103,7 +101,6 @@ public:
         nPos += src.size();
     }
     template <typename T> CVectorWriter &operator<<(const T &obj) {
-        // Serialize to this stream
         ::Serialize(*this, obj);
         return (*this);
     }
@@ -142,7 +139,6 @@ public:
         : m_type(type), m_version(version), m_data(data) {}
 
     template <typename T> SpanReader &operator>>(T &obj) {
-        // Unserialize from this stream
         ::Unserialize(*this, obj);
         return (*this);
     }
@@ -364,13 +360,11 @@ public:
     }
 
     template <typename T> DataStream &operator<<(const T &obj) {
-        // Serialize to this stream
         ::Serialize(*this, obj);
         return (*this);
     }
 
     template <typename T> DataStream &operator>>(T &&obj) {
-        // Unserialize from this stream
         ::Unserialize(*this, obj);
         return (*this);
     }
@@ -802,7 +796,6 @@ public:
     }
 
     template <typename T> CBufferedFile &operator>>(T &&obj) {
-        // Unserialize from this stream
         ::Unserialize(*this, obj);
         return (*this);
     }
