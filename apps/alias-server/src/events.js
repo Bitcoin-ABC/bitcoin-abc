@@ -10,6 +10,7 @@ const { isFinalBlock } = require('./rpc');
 const { getServerState, updateServerState } = require('./db');
 const { getUnprocessedTxHistory } = require('./chronik');
 const { getAliasTxs, registerAliases } = require('./alias');
+const { sendAliasAnnouncements } = require('./telegram');
 
 module.exports = {
     handleAppStartup: async function (
@@ -163,7 +164,10 @@ module.exports = {
         );
 
         // Add new valid alias txs to the database and get a list of what was added
-        await registerAliases(db, unprocessedAliasTxs);
+        const newAliasRegistrations = await registerAliases(
+            db,
+            unprocessedAliasTxs,
+        );
 
         // New processedBlockheight is the highest one seen, or the
         // height of the first entry of the confirmedUnprocessedTxs array
@@ -187,7 +191,10 @@ module.exports = {
             );
         }
 
-        // TODO telegram notifications for new alias registrations
+        // Send alias announcements
+        // Do not await this async function
+        // Let the msgs send async in the background without holding up the next block processing
+        sendAliasAnnouncements(telegramBot, channelId, newAliasRegistrations);
 
         console.log('\x1b[32m%s\x1b[0m', `✔ ${tipHeight}`);
         return `Alias registrations updated to block ${tipHash} at height ${tipHeight}`;

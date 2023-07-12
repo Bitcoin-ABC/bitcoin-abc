@@ -5,11 +5,13 @@
 'use strict';
 const assert = require('assert');
 const {
+    getXecPrice,
     getAliasFromHex,
     getHexFromAlias,
     getAliasBytecount,
     isValidAliasString,
     removeUnconfirmedTxsFromTxHistory,
+    satsToFormattedValue,
 } = require('../src/utils');
 const {
     aliasHexConversions,
@@ -17,8 +19,25 @@ const {
     invalidAliasStrings,
 } = require('./mocks/utilsMocks');
 const { generated } = require('./mocks/aliasMocks');
+const axios = require('axios');
+const MockAdapter = require('axios-mock-adapter');
+const mockXecPrice = 0.000033;
 
 describe('alias-server utils.js', function () {
+    it('getXecPrice returns price as a number', async function () {
+        // Mock a successful API request
+        const mock = new MockAdapter(axios, { onNoMatch: 'throwException' });
+        const mockResult = { ecash: { usd: 3.331e-5 } };
+        mock.onGet().reply(200, mockResult);
+        assert.strictEqual(await getXecPrice(), 3.331e-5);
+    });
+    it('getXecPrice returns false on API error', async function () {
+        // Mock a successful API request
+        const mock = new MockAdapter(axios, { onNoMatch: 'throwException' });
+        const mockResult = { error: 'API is down' };
+        mock.onGet().reply(500, mockResult);
+        assert.strictEqual(await getXecPrice(), false);
+    });
     it('Hexadecimal to utf8 encoding functions work forward and backward. Byte counts match hexadecimal bytes.', function () {
         for (let i = 0; i < aliasHexConversions.length; i += 1) {
             const { alias, aliasHex, aliasByteCount } = aliasHexConversions[i];
@@ -58,5 +77,69 @@ describe('alias-server utils.js', function () {
             removeUnconfirmedTxsFromTxHistory(txHistoryWithSomeUnconfirmedTxs),
             expectedResult,
         );
+    });
+    it('satsToFormattedValue returns a 6-decimal formatted fiat amount if total fiat value is less than $0.00001', function () {
+        assert.strictEqual(satsToFormattedValue(10, mockXecPrice), `$0.000003`);
+    });
+    it('satsToFormattedValue returns a 5-decimal formatted fiat amount if total fiat value is less than $0.0001', function () {
+        assert.strictEqual(satsToFormattedValue(100, mockXecPrice), `$0.00003`);
+    });
+    it('satsToFormattedValue returns a 4-decimal formatted fiat amount if total fiat value is less than $0.001', function () {
+        assert.strictEqual(satsToFormattedValue(1000, mockXecPrice), `$0.0003`);
+    });
+    it('satsToFormattedValue returns a 3-decimal formatted fiat amount if total fiat value is less than $0.01', function () {
+        assert.strictEqual(satsToFormattedValue(10000, mockXecPrice), `$0.003`);
+    });
+    it('satsToFormattedValue returns a 2-decimal formatted fiat amount if total fiat value is less than $1', function () {
+        assert.strictEqual(
+            satsToFormattedValue(1000000, mockXecPrice),
+            `$0.33`,
+        );
+    });
+    it('satsToFormattedValue returns a formatted fiat amount if total fiat value is less than $10', function () {
+        assert.strictEqual(
+            satsToFormattedValue(10000000, mockXecPrice),
+            '$3.30',
+        );
+    });
+    it('satsToFormattedValue returns a formatted fiat amount if $100 < total fiat value < $1k', function () {
+        assert.strictEqual(
+            satsToFormattedValue(1234567890, mockXecPrice),
+            '$407',
+        );
+    });
+    it('satsToFormattedValue returns a formatted fiat amount if $1k < total fiat value < $1M', function () {
+        assert.strictEqual(
+            satsToFormattedValue(55555555555, mockXecPrice),
+            '$18k',
+        );
+    });
+    it('satsToFormattedValue returns a formatted fiat amount of $1M if $1M < total fiat value < $1B', function () {
+        assert.strictEqual(
+            satsToFormattedValue(3367973856209, mockXecPrice),
+            '$1M',
+        );
+    });
+    it('satsToFormattedValue returns a formatted fiat amount if $1M < total fiat value < $1B', function () {
+        assert.strictEqual(
+            satsToFormattedValue(55555555555555, mockXecPrice),
+            '$18M',
+        );
+    });
+    it('satsToFormattedValue returns a formatted fiat amount if  total fiat value > $1B', function () {
+        assert.strictEqual(
+            satsToFormattedValue(21000000000000000, mockXecPrice),
+            '$7B',
+        );
+    });
+
+    it('satsToFormattedValue returns a formatted XEC amount if coingeckoPrices is false', function () {
+        assert.strictEqual(
+            satsToFormattedValue(55555555555555, false),
+            '556B XEC',
+        );
+    });
+    it('satsToFormattedValue returns a USD amount with 7 decimal places if fiat qty is less than 0.000001', function () {
+        assert.strictEqual(satsToFormattedValue(1, mockXecPrice), '$0.0000003');
     });
 });
