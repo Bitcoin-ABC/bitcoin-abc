@@ -101,6 +101,9 @@ private:
 
     size_t size_estimate{0};
 
+    void WriteImpl(Span<const std::byte> ssKey, DataStream &ssValue);
+    void EraseImpl(Span<const std::byte> ssKey);
+
 public:
     /**
      * @param[in] _parent   CDBWrapper that this batch is to be submitted to
@@ -114,24 +117,10 @@ public:
 
     template <typename K, typename V> void Write(const K &key, const V &value) {
         ssKey.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
-        ssKey << key;
-        leveldb::Slice slKey(CharCast(ssKey.data()), ssKey.size());
-
         ssValue.reserve(DBWRAPPER_PREALLOC_VALUE_SIZE);
+        ssKey << key;
         ssValue << value;
-        ssValue.Xor(dbwrapper_private::GetObfuscateKey(parent));
-        leveldb::Slice slValue(CharCast(ssValue.data()), ssValue.size());
-
-        batch.Put(slKey, slValue);
-        // LevelDB serializes writes as:
-        // - byte: header
-        // - varint: key length (1 byte up to 127B, 2 bytes up to 16383B, ...)
-        // - byte[]: key
-        // - varint: value length
-        // - byte[]: value
-        // The formula below assumes the key and value are both less than 16k.
-        size_estimate += 3 + (slKey.size() > 127) + slKey.size() +
-                         (slValue.size() > 127) + slValue.size();
+        WriteImpl(ssKey, ssValue);
         ssKey.clear();
         ssValue.clear();
     }
@@ -139,15 +128,7 @@ public:
     template <typename K> void Erase(const K &key) {
         ssKey.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
         ssKey << key;
-        leveldb::Slice slKey(CharCast(ssKey.data()), ssKey.size());
-
-        batch.Delete(slKey);
-        // LevelDB serializes erases as:
-        // - byte: header
-        // - varint: key length
-        // - byte[]: key
-        // The formula below assumes the key is less than 16kB.
-        size_estimate += 2 + (slKey.size() > 127) + slKey.size();
+        EraseImpl(ssKey);
         ssKey.clear();
     }
 

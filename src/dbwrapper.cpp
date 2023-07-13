@@ -6,6 +6,8 @@
 
 #include <logging.h>
 #include <random.h>
+#include <span.h>
+#include <streams.h>
 #include <util/fs_helpers.h>
 #include <util/strencodings.h>
 
@@ -14,6 +16,8 @@
 #include <leveldb/env.h>
 #include <leveldb/filter_policy.h>
 #include <leveldb/helpers/memenv/memenv.h>
+#include <leveldb/slice.h>
+#include <leveldb/write_batch.h>
 
 #include <algorithm>
 #include <cassert>
@@ -128,6 +132,33 @@ static leveldb::Options GetOptions(size_t nCacheSize) {
         std::max(options.max_file_size, DBWRAPPER_MAX_FILE_SIZE);
     SetMaxOpenFiles(&options);
     return options;
+}
+
+void CDBBatch::WriteImpl(Span<const std::byte> ssKey_, DataStream &ssValue_) {
+    leveldb::Slice slKey(CharCast(ssKey_.data()), ssKey_.size());
+    ssValue_.Xor(dbwrapper_private::GetObfuscateKey(parent));
+    leveldb::Slice slValue(CharCast(ssValue_.data()), ssValue_.size());
+    batch.Put(slKey, slValue);
+    // LevelDB serializes writes as:
+    // - byte: header
+    // - varint: key length (1 byte up to 127B, 2 bytes up to 16383B, ...)
+    // - byte[]: key
+    // - varint: value length
+    // - byte[]: value
+    // The formula below assumes the key and value are both less than 16k.
+    size_estimate += 3 + (slKey.size() > 127) + slKey.size() +
+                     (slValue.size() > 127) + slValue.size();
+}
+
+void CDBBatch::EraseImpl(Span<const std::byte> ssKey_) {
+    leveldb::Slice slKey(CharCast(ssKey_.data()), ssKey_.size());
+    batch.Delete(slKey);
+    // LevelDB serializes erases as:
+    // - byte: header
+    // - varint: key length
+    // - byte[]: key
+    // The formula below assumes the key is less than 16kB.
+    size_estimate += 2 + (slKey.size() > 127) + slKey.size();
 }
 
 CDBWrapper::CDBWrapper(const DBParams &params)
