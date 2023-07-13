@@ -17,10 +17,9 @@ To monitor the blockchain and send messages with your own telegram bot:
 
 Because app performance is ultimately tied to the aesthetic readout of generated msgs, the actual format of generated messages must also be reviewed.
 
-To test changes to the app, run `npm run generateMocks`. This will build telegram msg strings for the blocks in `scripts/generateMocks`.
-
-If you have no errors, run `npm run generateMocks true` to overwrite `test/mocks/blocks.js`. Then:
-
-`npm test` to see if all edge cases not in the test blocks are covered.
-`npm run sendTestTgMsgs` and review msgs of test blocks for expected appearance and formatting
-`npm run sendMsgByBlock <blockheight>` to review a msg for a specific block
+1. Get telegram bot API keys from https://t.me/BotFather
+2. `cp secrets.sample.js secrets.js` and fill out with your Telegram bot information
+3. To test changes to the app, run `npm run generateMock`. This will build and broadcast telegram msg strings for a mocked block containing txids listed in `scripts/generateMock`.
+4. If your diff includes new features that are not covered by this mocked block, add relevant txids to the `txids` array in `scripts/generateMock.js`. You may also need to update `outputscriptInfoMap` and `tokenInfoMap` in `test/mocks/block.js`.
+5. If test messages look good, run `npm test` to confirm all unit tests still pass
+6. Run `npm run sendMsgByBlock <blockheight>` to review a msg for a specific block using live API calls

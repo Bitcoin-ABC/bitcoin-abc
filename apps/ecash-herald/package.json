@@ -7,8 +7,7 @@
         "test": "mocha",
         "coverage": "nyc mocha",
         "junit": "mocha test --reporter mocha-junit-reporter",
-        "generateMocks": "node scripts/generateMocks",
-        "sendTestTgMsgs": "node scripts/sendTestTgMsgs",
+        "generateMock": "node scripts/generateMock",
         "getCoingeckoPrices": "node scripts/getCoingeckoPrices",
         "sendMsgByBlock": "node scripts/sendMsgByBlock"
     },

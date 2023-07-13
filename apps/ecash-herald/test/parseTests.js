@@ -5,11 +5,11 @@
 'use strict';
 const assert = require('assert');
 const opReturn = require('../constants/op_return');
-const unrevivedBlocks = require('./mocks/blocks');
+const unrevivedBlock = require('./mocks/block');
 const minersJson = require('../constants/miners');
 const minerTestFixtures = require('./fixtures/miners');
 const { jsonReviver } = require('../src/utils');
-const blocks = JSON.parse(JSON.stringify(unrevivedBlocks), jsonReviver);
+const block = JSON.parse(JSON.stringify(unrevivedBlock), jsonReviver);
 const miners = JSON.parse(JSON.stringify(minersJson), jsonReviver);
 const memoOutputScripts = require('./mocks/memo');
 const { consumeNextPush } = require('ecash-script');
@@ -37,28 +37,26 @@ const {
 } = require('./mocks/appTxSamples');
 
 describe('parse.js functions', function () {
-    it('All test blocks', function () {
-        for (let i = 0; i < blocks.length; i += 1) {
-            const thisBlock = blocks[i];
-            const {
-                blockDetails,
+    it('Parses the master test block', function () {
+        const thisBlock = block;
+        const {
+            blockDetails,
+            parsedBlock,
+            coingeckoPrices,
+            tokenInfoMap,
+            outputScriptInfoMap,
+            blockSummaryTgMsgs,
+        } = thisBlock;
+        assert.deepEqual(parseBlock(blockDetails), parsedBlock);
+        assert.deepEqual(
+            getBlockTgMessage(
                 parsedBlock,
                 coingeckoPrices,
                 tokenInfoMap,
                 outputScriptInfoMap,
-                blockSummaryTgMsgs,
-            } = thisBlock;
-            assert.deepEqual(parseBlock(blockDetails), parsedBlock);
-            assert.deepEqual(
-                getBlockTgMessage(
-                    parsedBlock,
-                    coingeckoPrices,
-                    tokenInfoMap,
-                    outputScriptInfoMap,
-                ),
-                blockSummaryTgMsgs,
-            );
-        }
+            ),
+            blockSummaryTgMsgs,
+        );
     });
     it('parseOpReturn handles all types of SWaP txs', function () {
         for (let i = 0; i < swaps.length; i += 1) {

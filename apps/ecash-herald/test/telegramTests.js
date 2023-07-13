@@ -19,7 +19,7 @@ const {
     nonOverflowMsg,
     nonOverflowMsgSuccess,
 } = require('./mocks/telegramMsgs');
-const blocks = require('./mocks/blocks');
+const block = require('./mocks/block');
 const { MockTelegramBot, mockChannelId } = require('./mocks/telegramBotMock');
 
 describe('ecash-herald telegram.js functions', function () {
@@ -85,16 +85,14 @@ describe('ecash-herald telegram.js functions', function () {
     it(`None of the prepared telegram messages exceed the character limit of 4096`, function () {
         const TG_MSG_MAX_LENGTH = 4096;
 
-        for (let i = 0; i < blocks.length; i += 1) {
-            const thisBlock = blocks[i];
-            const { blockSummaryTgMsgs } = thisBlock;
-            for (let j = 0; j < blockSummaryTgMsgs.length; j += 1) {
-                assert.strictEqual(
-                    blockSummaryTgMsgs[j].length <= TG_MSG_MAX_LENGTH,
-                    true,
-                    `Message is too long: ${blockSummaryTgMsgs[j].length} > ${TG_MSG_MAX_LENGTH}`,
-                );
-            }
+        const thisBlock = block;
+        const { blockSummaryTgMsgs } = thisBlock;
+        for (let j = 0; j < blockSummaryTgMsgs.length; j += 1) {
+            assert.strictEqual(
+                blockSummaryTgMsgs[j].length <= TG_MSG_MAX_LENGTH,
+                true,
+                `Message is too long: ${blockSummaryTgMsgs[j].length} > ${TG_MSG_MAX_LENGTH}`,
+            );
         }
     });
 });
