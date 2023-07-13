@@ -78,6 +78,7 @@ export default function Navbar({ announcementbar }) {
                             src="/images/ecash-logo.svg"
                             alt="ecash logo"
                             fill
+                            priority
                         />
                     </Link>
                     <nav

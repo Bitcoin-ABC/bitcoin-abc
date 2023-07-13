@@ -45,7 +45,7 @@ export default function Home() {
                         Avalanche.
                     </p>
                     <HeroImage>
-                        <Image src={Hand} alt="eCash" fill />
+                        <Image src={Hand} alt="eCash" fill priority />
                     </HeroImage>
                     <ButtonCtn>
                         <Button

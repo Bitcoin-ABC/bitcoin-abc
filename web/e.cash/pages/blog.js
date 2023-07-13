@@ -39,6 +39,7 @@ function Blog(props) {
                                         src={`https://strapi.fabien.cash/${post.attributes.image.data.attributes.formats.medium.url}`}
                                         alt={post.attributes.title}
                                         fill
+                                        priority
                                     />
                                 </CardImage>
                                 <TextCtn>

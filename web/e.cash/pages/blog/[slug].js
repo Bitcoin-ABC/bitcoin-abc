@@ -43,6 +43,7 @@ function BlogPost({ post, keepReadingPosts }) {
                             src={`${STRAPI_URL}/${post.attributes.image.data.attributes.url}`}
                             fill
                             alt={post.attributes.title}
+                            priority
                         />
                     </MainPostImage>
                     <PostBorder>
