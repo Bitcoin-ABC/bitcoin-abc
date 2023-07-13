@@ -6641,7 +6641,7 @@ Chainstate &ChainstateManager::InitializeChainstate(CTxMemPool *mempool) {
 
     // We have to destruct before this call leveldb::DB in order to release the
     // db lock, otherwise `DestroyDB` will fail. See `leveldb::~DBImpl()`.
-    const bool destroyed = dbwrapper::DestroyDB(path_str, {}).ok();
+    const bool destroyed = DestroyDB(path_str);
 
     if (!destroyed) {
         LogPrintf("error: leveldb DestroyDB call failed on %s\n", path_str);
