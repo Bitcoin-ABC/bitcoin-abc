@@ -25,7 +25,7 @@
  },
  {
   "name": "abc-minimaldata.py",
-  "time": 1
+  "time": 2
  },
  {
   "name": "abc-replay-protection.py",
@@ -73,11 +73,11 @@
  },
  {
   "name": "abc_p2p_avalanche_peer_discovery.py",
-  "time": 17
+  "time": 14
  },
  {
   "name": "abc_p2p_avalanche_policy_minerfund.py",
-  "time": 13
+  "time": 12
  },
  {
   "name": "abc_p2p_avalanche_proof_voting.py",
@@ -93,11 +93,11 @@
  },
  {
   "name": "abc_p2p_avalanche_voting.py",
-  "time": 15
+  "time": 14
  },
  {
   "name": "abc_p2p_compactblocks.py",
-  "time": 269
+  "time": 233
  },
  {
   "name": "abc_p2p_compactproofs.py",
@@ -105,7 +105,7 @@
  },
  {
   "name": "abc_p2p_fullblocktest.py",
-  "time": 42
+  "time": 37
  },
  {
   "name": "abc_p2p_getavaaddr.py",
@@ -113,7 +113,7 @@
  },
  {
   "name": "abc_p2p_proof_inventory.py",
-  "time": 14
+  "time": 13
  },
  {
   "name": "abc_p2p_version_timestamp.py",
@@ -125,7 +125,7 @@
  },
  {
   "name": "abc_rpc_avalancheproof.py",
-  "time": 9
+  "time": 8
  },
  {
   "name": "abc_rpc_buildavalancheproof.py",
@@ -141,7 +141,7 @@
  },
  {
   "name": "abc_rpc_getavalancheinfo.py",
-  "time": 13
+  "time": 14
  },
  {
   "name": "abc_rpc_getavalanchepeerinfo.py",
@@ -157,7 +157,7 @@
  },
  {
   "name": "abc_rpc_mocktime.py",
-  "time": 0
+  "time": 1
  },
  {
   "name": "abc_wallet_dumpcoins.py",
@@ -169,7 +169,7 @@
  },
  {
   "name": "chronik_avalanche.py",
-  "time": 17
+  "time": 16
  },
  {
   "name": "chronik_block.py",
@@ -221,11 +221,11 @@
  },
  {
   "name": "chronik_serve.py",
-  "time": 1
+  "time": 2
  },
  {
   "name": "chronik_shutdown.py",
-  "time": 72
+  "time": 69
  },
  {
   "name": "chronik_spent_by.py",
@@ -273,11 +273,11 @@
  },
  {
   "name": "feature_bip68_sequence.py",
-  "time": 12
+  "time": 15
  },
  {
   "name": "feature_block.py",
-  "time": 61
+  "time": 62
  },
  {
   "name": "feature_blockfilterindex_prune.py",
@@ -305,7 +305,7 @@
  },
  {
   "name": "feature_dbcrash.py",
-  "time": 957
+  "time": 1287
  },
  {
   "name": "feature_dersig.py",
@@ -333,7 +333,7 @@
  },
  {
   "name": "feature_init.py",
-  "time": 8
+  "time": 7
  },
  {
   "name": "feature_loadblock.py",
@@ -353,7 +353,7 @@
  },
  {
   "name": "feature_notifications.py",
-  "time": 6
+  "time": 7
  },
  {
   "name": "feature_proxy.py",
@@ -361,7 +361,7 @@
  },
  {
   "name": "feature_pruning.py",
-  "time": 168
+  "time": 155
  },
  {
   "name": "feature_reindex.py",
@@ -401,7 +401,7 @@
  },
  {
   "name": "interface_rest.py",
-  "time": 7
+  "time": 16
  },
  {
   "name": "interface_rpc.py",
@@ -409,7 +409,7 @@
  },
  {
   "name": "interface_zmq.py",
-  "time": 11
+  "time": 12
  },
  {
   "name": "mempool_accept.py",
@@ -421,7 +421,7 @@
  },
  {
   "name": "mempool_limit.py",
-  "time": 4
+  "time": 5
  },
  {
   "name": "mempool_packages.py",
@@ -429,11 +429,11 @@
  },
  {
   "name": "mempool_persist.py",
-  "time": 42
+  "time": 16
  },
  {
   "name": "mempool_reorg.py",
-  "time": 2
+  "time": 3
  },
  {
   "name": "mempool_resurrect.py",
@@ -449,7 +449,7 @@
  },
  {
   "name": "mempool_updatefromblock.py",
-  "time": 17
+  "time": 11
  },
  {
   "name": "mining_basic.py",
@@ -461,7 +461,7 @@
  },
  {
   "name": "mining_prioritisetransaction.py",
-  "time": 10
+  "time": 17
  },
  {
   "name": "p2p_add_connections.py",
@@ -481,23 +481,23 @@
  },
  {
   "name": "p2p_blockfilters.py",
-  "time": 9
+  "time": 27
  },
  {
   "name": "p2p_blocksonly.py",
-  "time": 21
+  "time": 9
  },
  {
   "name": "p2p_compactblocks.py",
-  "time": 11
+  "time": 12
  },
  {
   "name": "p2p_compactblocks_hb.py",
-  "time": 13
+  "time": 12
  },
  {
   "name": "p2p_disconnect_ban.py",
-  "time": 1
+  "time": 2
  },
  {
   "name": "p2p_dos_header_tree.py",
@@ -533,11 +533,11 @@
  },
  {
   "name": "p2p_ibd_txrelay.py",
-  "time": 2
+  "time": 1
  },
  {
   "name": "p2p_inv_download.py",
-  "time": 60
+  "time": 59
  },
  {
   "name": "p2p_invalid_block.py",
@@ -545,7 +545,7 @@
  },
  {
   "name": "p2p_invalid_locator.py",
-  "time": 1
+  "time": 2
  },
  {
   "name": "p2p_invalid_messages.py",
@@ -629,7 +629,7 @@
  },
  {
   "name": "rpc_deprecated.py",
-  "time": 8
+  "time": 10
  },
  {
   "name": "rpc_deriveaddresses.py",
@@ -645,7 +645,7 @@
  },
  {
   "name": "rpc_estimatefee.py",
-  "time": 3
+  "time": 2
  },
  {
   "name": "rpc_fundrawtransaction.py",
@@ -677,7 +677,7 @@
  },
  {
   "name": "rpc_getchaintips.py",
-  "time": 2
+  "time": 3
  },
  {
   "name": "rpc_getdescriptorinfo.py",
@@ -701,7 +701,7 @@
  },
  {
   "name": "rpc_net.py",
-  "time": 12
+  "time": 13
  },
  {
   "name": "rpc_packages.py",
@@ -713,11 +713,11 @@
  },
  {
   "name": "rpc_psbt.py",
-  "time": 24
+  "time": 32
  },
  {
   "name": "rpc_rawtransaction.py",
-  "time": 14
+  "time": 12
  },
  {
   "name": "rpc_rawtransaction.py --descriptors",
@@ -733,11 +733,11 @@
  },
  {
   "name": "rpc_signmessage.py",
-  "time": 0
+  "time": 1
  },
  {
   "name": "rpc_signrawtransaction.py",
-  "time": 2
+  "time": 1
  },
  {
   "name": "rpc_signrawtransaction.py --descriptors",
@@ -749,7 +749,7 @@
  },
  {
   "name": "rpc_uptime.py",
-  "time": 1
+  "time": 0
  },
  {
   "name": "rpc_users.py",
@@ -789,7 +789,7 @@
  },
  {
   "name": "wallet_backup.py",
-  "time": 17
+  "time": 19
  },
  {
   "name": "wallet_balance.py",
@@ -797,11 +797,11 @@
  },
  {
   "name": "wallet_balance.py --descriptors",
-  "time": 5
+  "time": 3
  },
  {
   "name": "wallet_basic.py",
-  "time": 10
+  "time": 12
  },
  {
   "name": "wallet_coinbase_category.py",
@@ -821,7 +821,7 @@
  },
  {
   "name": "wallet_createwallet.py --usecli",
-  "time": 2
+  "time": 3
  },
  {
   "name": "wallet_descriptor.py",
@@ -845,7 +845,7 @@
  },
  {
   "name": "wallet_groups.py",
-  "time": 11
+  "time": 13
  },
  {
   "name": "wallet_hd.py",
@@ -857,7 +857,7 @@
  },
  {
   "name": "wallet_import_rescan.py",
-  "time": 6
+  "time": 7
  },
  {
   "name": "wallet_import_with_label.py",
@@ -865,11 +865,11 @@
  },
  {
   "name": "wallet_importdescriptors.py",
-  "time": 4
+  "time": 3
  },
  {
   "name": "wallet_importmulti.py",
-  "time": 2
+  "time": 3
  },
  {
   "name": "wallet_importprunedfunds.py",
@@ -877,7 +877,7 @@
  },
  {
   "name": "wallet_importprunedfunds.py --descriptors",
-  "time": 1
+  "time": 2
  },
  {
   "name": "wallet_keypool.py",
@@ -889,15 +889,15 @@
  },
  {
   "name": "wallet_keypool_topup.py --descriptors",
-  "time": 2
+  "time": 3
  },
  {
   "name": "wallet_labels.py",
-  "time": 1
+  "time": 2
  },
  {
   "name": "wallet_labels.py --descriptors",
-  "time": 1
+  "time": 3
  },
  {
   "name": "wallet_listreceivedby.py",
@@ -905,7 +905,7 @@
  },
  {
   "name": "wallet_listsinceblock.py",
-  "time": 4
+  "time": 5
  },
  {
   "name": "wallet_listsinceblock.py --descriptors",
@@ -921,7 +921,7 @@
  },
  {
   "name": "wallet_multiwallet.py",
-  "time": 40
+  "time": 38
  },
  {
   "name": "wallet_multiwallet.py --usecli",
@@ -933,7 +933,7 @@
  },
  {
   "name": "wallet_resendwallettransactions.py",
-  "time": 5
+  "time": 4
  },
  {
   "name": "wallet_send.py",
@@ -949,7 +949,7 @@
  },
  {
   "name": "wallet_txn_clone.py",
-  "time": 2
+  "time": 1
  },
  {
   "name": "wallet_txn_clone.py --mineblock",
@@ -957,7 +957,7 @@
  },
  {
   "name": "wallet_txn_doublespend.py",
-  "time": 1
+  "time": 2
  },
  {
   "name": "wallet_txn_doublespend.py --mineblock",
@@ -969,6 +969,6 @@
  },
  {
   "name": "wallet_watchonly.py --usecli",
-  "time": 1
+  "time": 2
  }
 ]
