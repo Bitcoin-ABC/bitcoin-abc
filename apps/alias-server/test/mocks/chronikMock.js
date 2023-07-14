@@ -29,6 +29,9 @@ module.exports = {
                 return self.mockedResponses.block[blockHashOrHeight];
             };
             self.blockchainInfo = function () {
+                if (self.mockedResponses.blockchainInfo instanceof Error) {
+                    throw self.mockedResponses.blockchainInfo;
+                }
                 return self.mockedResponses.blockchainInfo;
             };
             // Return assigned script mocks

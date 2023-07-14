@@ -6,7 +6,12 @@ const config = require('../config');
 const express = require('express');
 var cors = require('cors');
 const requestIp = require('request-ip');
-const { getAliasInfoFromAlias, getAliasInfoFromAddress } = require('./db');
+const {
+    getAliasInfoFromAlias,
+    getAliasInfoFromAddress,
+    getServerState,
+} = require('./db');
+const { getAliasPrice } = require('./utils');
 const aliasConstants = require('../constants/alias');
 
 module.exports = {
@@ -20,22 +25,14 @@ module.exports = {
         app.get('/prices', async function (req, res) {
             // Get IP address from before cloudflare proxy
             const ip = req.clientIp;
-            console.log(`/prices from IP: ${ip}, host ${req.headers.host}`);
-            // Add a note about prices
+            console.log(`/prices/ from IP: ${ip}, host ${req.headers.host}`);
+
             let pricesResponse = {
                 note: 'alias-server is in beta and these prices are not finalized.',
                 prices: aliasConstants.prices,
             };
-            try {
-                return res.status(200).json(pricesResponse);
-            } catch (err) {
-                return res.status(500).json({
-                    error:
-                        err && err.message
-                            ? err.message
-                            : 'Error fetching /prices',
-                });
-            }
+
+            return res.status(200).json(pricesResponse);
         });
 
         app.get('/aliases', async function (req, res) {
@@ -69,13 +66,43 @@ module.exports = {
                 `/alias/${alias} from IP: ${req.clientIp}, host ${req.headers.host}`,
             );
 
+            // Get the server state
+            // This is also a reflection of the "availability" of any given alias
+            // It's only known to be available in the block after server state processedBlockheight
+            const serverState = await getServerState(db);
+            if (!serverState) {
+                return res.status(500).json({
+                    error: `Error fetching /alias/${alias}: alias-server was unable to fetch server state`,
+                });
+            }
+
             // Lookup the alias
             let response;
             try {
                 response = await getAliasInfoFromAlias(db, alias);
-                // Custom msg if alias has not yet been registered
                 if (response === null) {
+                    // Custom msg if alias has not yet been registered
                     response = { alias, isRegistered: false };
+                    // Also include the price, since implementing wallet already has to make
+                    // API call to check availability
+                    // Should just be one call
+                    const { processedBlockheight } = serverState;
+
+                    const { registrationFeeSats, priceExpirationHeight } =
+                        getAliasPrice(
+                            aliasConstants.prices,
+                            alias.length,
+                            processedBlockheight + 1, // API returns price to get into the next block
+                        );
+                    response = {
+                        alias,
+                        isRegistered: false,
+                        registrationFeeSats,
+                        processedBlockheight,
+                    };
+                    if (priceExpirationHeight !== null) {
+                        response.priceExpirationHeight = priceExpirationHeight;
+                    }
                 }
 
                 // Return successful response

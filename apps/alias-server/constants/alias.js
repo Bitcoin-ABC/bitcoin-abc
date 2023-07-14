@@ -10,6 +10,7 @@ module.exports = {
     registrationAddress: 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
     minLength: 1,
     maxLength: 21,
+    minPriceChangeNotificationBlocks: 1000,
     /**
      * prices
      * alias registration fee for aliases of each valid length

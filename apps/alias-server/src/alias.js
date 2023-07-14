@@ -203,7 +203,7 @@ module.exports = {
                         aliasConstants.prices,
                         aliasLength,
                         registrationBlockheight,
-                    ),
+                    ).registrationFeeSats,
                 );
             } else {
                 // Check if outputScript matches alias registration address

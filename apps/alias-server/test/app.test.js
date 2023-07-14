@@ -5,14 +5,19 @@
 
 const request = require('supertest');
 const { startServer } = require('../src/app');
-const { initializeDb, addOneAliasToDb, addAliasesToDb } = require('../src/db');
+const {
+    initializeDb,
+    addOneAliasToDb,
+    addAliasesToDb,
+    updateServerState,
+} = require('../src/db');
 // Mock mongodb
 const { MongoClient } = require('mongodb');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const { generated } = require('./mocks/aliasMocks');
 const aliasConstants = require('../constants/alias');
 
-describe('alias-server app.js', function () {
+describe('alias-server app.js', async function () {
     let mongoServer, testMongoClient;
     before(async () => {
         mongoServer = await MongoMemoryServer.create();
@@ -27,7 +32,7 @@ describe('alias-server app.js', function () {
     beforeEach(async () => {
         // Initialize db before each unit test
         testDb = await initializeDb(testMongoClient);
-        // Start the express server
+
         app = startServer(testDb, 5000);
         // Start an express server with a bad db to mock errors
         dbErrorApp = startServer('not_a_database', 5001);
@@ -78,13 +83,25 @@ describe('alias-server app.js', function () {
             .expect('Content-Type', /json/)
             .expect(generated.validAliasRegistrations);
     });
-    it('/alias/<alias> returns object with isRegistered:false for an alias not in the database', async function () {
+    it('/alias/<alias> returns object with isRegistered:false and pricing info for an alias not in the database', async function () {
         const testedAlias = 'test';
+
+        // Set serverState
+        updateServerState(testDb, {
+            processedConfirmedTxs: 45587,
+            processedBlockheight: 800000,
+        });
+
         return request(app)
             .get(`/alias/${testedAlias}`)
             .expect(200)
             .expect('Content-Type', /json/)
-            .expect({ alias: testedAlias, isRegistered: false });
+            .expect({
+                alias: testedAlias,
+                isRegistered: false,
+                registrationFeeSats: 555,
+                processedBlockheight: 800000,
+            });
     });
     it('/alias/<alias> returns object for an alias in the database', async function () {
         // newValidAliases needs to be a clone of the mock because
@@ -107,7 +124,7 @@ describe('alias-server app.js', function () {
             .expect(500)
             .expect('Content-Type', /json/)
             .expect({
-                error: `Error fetching /alias/${testAlias}: Error finding alias "${testAlias}" in database`,
+                error: `Error fetching /alias/${testAlias}: alias-server was unable to fetch server state`,
             });
     });
     it('/address/:address returns an empty array if there are no registered aliases for the given address', function () {

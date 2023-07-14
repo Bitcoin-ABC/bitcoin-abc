@@ -17,7 +17,8 @@ module.exports = {
         const { address, alias, txid, blockheight } = aliasObject;
 
         const displayedAliasPrice = satsToFormattedValue(
-            getAliasPrice(aliasConstants.prices, alias.length, blockheight),
+            getAliasPrice(aliasConstants.prices, alias.length, blockheight)
+                .registrationFeeSats,
             xecPrice,
         );
 

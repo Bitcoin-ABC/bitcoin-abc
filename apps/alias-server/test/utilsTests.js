@@ -144,7 +144,7 @@ describe('alias-server utils.js', function () {
     it('satsToFormattedValue returns a USD amount with 7 decimal places if fiat qty is less than 0.000001', function () {
         assert.strictEqual(satsToFormattedValue(1, mockXecPrice), '$0.0000003');
     });
-    it('getAliasPrice returns expected price for an alias registered in the most recent price epoch', function () {
+    it('getAliasPrice returns expected price and price expiration blockheight for an alias registered in the most recent price epoch', function () {
         const registrationBlockheight = 785000;
         const aliasLength = 15;
         const mockPrices = [
@@ -175,19 +175,25 @@ describe('alias-server utils.js', function () {
                 },
             },
         ];
-        assert.strictEqual(
+        assert.deepEqual(
             getAliasPrice(mockPrices, aliasLength, registrationBlockheight),
-            557,
+            {
+                registrationFeeSats: 557,
+                priceExpirationHeight: null,
+            },
         );
 
         // Also works for an unconfirmed tx
-        assert.strictEqual(
+        assert.deepEqual(
             getAliasPrice(
                 mockPrices,
                 aliasLength,
                 config.unconfirmedBlockheight,
             ),
-            557,
+            {
+                registrationFeeSats: 557,
+                priceExpirationHeight: null,
+            },
         );
     });
     it('getAliasPrice throws an error if asked for a price of an undefined epoch', function () {
@@ -261,7 +267,7 @@ describe('alias-server utils.js', function () {
             getAliasPrice(mockPrices, aliasLength, registrationBlockheight);
         }, new Error(`fees[${aliasLength}] is undefined for ${registrationBlockheight}`));
     });
-    it('getAliasPrice returns expected price for an alias registered in a price epoch older than the most recent price epoch', function () {
+    it('getAliasPrice returns expected price and price expiration blockheight for an alias registered in a price epoch older than the most recent price epoch', function () {
         const registrationBlockheight = 750000;
         const aliasLength = 21;
         const mockPrices = [
@@ -318,9 +324,12 @@ describe('alias-server utils.js', function () {
                 },
             },
         ];
-        assert.strictEqual(
+        assert.deepEqual(
             getAliasPrice(mockPrices, aliasLength, registrationBlockheight),
-            1021,
+            {
+                registrationFeeSats: 1021,
+                priceExpirationHeight: 785000, // the startheight of the next price epoch
+            },
         );
     });
     it('getAliasPrice throws error if prices object is not properly sorted', function () {

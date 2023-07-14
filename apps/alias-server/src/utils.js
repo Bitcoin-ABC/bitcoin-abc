@@ -110,13 +110,13 @@ module.exports = {
      * although prices is a constant, it is used as a parameter here to allow unit testing a range of possible options
      * @param {number} aliasLength bytecount of alias hex string, or alias.length of the utf8 alias. 1-21.
      * @param {number} registrationBlockheight blockheight of confirmed alias registration tx
-     * @returns {number} price in satoshis
+     * @returns {object} {registrationFeeSats, priceExpirationHeight}
      * @throws {error} if blockheight precedes alias launch
      * @throws {error} if the entries of prices are not sorted highest to lowest by prices[i].startHeight
      */
     getAliasPrice: function (prices, aliasLength, registrationBlockheight) {
         // Initialize registrationFeeSats
-        let registrationFeeSats;
+        let registrationFeeSats, priceExpirationHeight;
         // Initialize lastStartHeight as arbitrarily high
         let lastStartHeight = config.unconfirmedBlockheight;
 
@@ -138,6 +138,7 @@ module.exports = {
                         `fees[${aliasLength}] is undefined for ${registrationBlockheight}`,
                     );
                 }
+                priceExpirationHeight = i === 0 ? null : lastStartHeight;
             }
             // If not, check the next price epoch
             // Update lastStartHeight before incrementing i
@@ -145,7 +146,7 @@ module.exports = {
         }
         // Return registrationFeeSats if you found it
         if (typeof registrationFeeSats === 'number') {
-            return registrationFeeSats;
+            return { registrationFeeSats, priceExpirationHeight };
         }
         // If you get to the earliest defined block and haven't found anything, throw an error
         throw new Error(
