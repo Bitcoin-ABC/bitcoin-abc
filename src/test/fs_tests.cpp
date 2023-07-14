@@ -5,7 +5,6 @@
 #include <util/fs.h>
 
 #include <util/fs_helpers.h>
-#include <util/getuniquepath.h>
 
 #include <test/util/setup_common.h>
 
@@ -104,21 +103,6 @@ BOOST_AUTO_TEST_CASE(fsbridge_fstream) {
         BOOST_CHECK_EQUAL(tmpfile1, fsbridge::AbsPathJoin(tmpfile1, ""));
         BOOST_CHECK_EQUAL(tmpfile1, fsbridge::AbsPathJoin(tmpfile1, {}));
     }
-    {
-        fs::path p1 = GetUniquePath(tmpfolder);
-        fs::path p2 = GetUniquePath(tmpfolder);
-        fs::path p3 = GetUniquePath(tmpfolder);
-
-        // Ensure that the parent path is always the same.
-        BOOST_CHECK_EQUAL(tmpfolder, p1.parent_path());
-        BOOST_CHECK_EQUAL(tmpfolder, p2.parent_path());
-        BOOST_CHECK_EQUAL(tmpfolder, p3.parent_path());
-
-        // Ensure that generated paths are actually different.
-        BOOST_CHECK(p1 != p2);
-        BOOST_CHECK(p2 != p3);
-        BOOST_CHECK(p1 != p3);
-    }
 }
 
 #ifndef WIN32
@@ -126,13 +110,13 @@ BOOST_AUTO_TEST_CASE(create_directories) {
     // Test fs::create_directories workaround.
     const fs::path tmpfolder{m_args.GetDataDirBase()};
 
-    const fs::path dir{GetUniquePath(tmpfolder)};
+    const fs::path dir{tmpfolder / "a"};
     fs::create_directory(dir);
     BOOST_CHECK(fs::exists(dir));
     BOOST_CHECK(fs::is_directory(dir));
     BOOST_CHECK(!fs::create_directories(dir));
 
-    const fs::path symlink{GetUniquePath(tmpfolder)};
+    const fs::path symlink{tmpfolder / "b"};
     fs::create_directory_symlink(dir, symlink);
     BOOST_CHECK(fs::exists(symlink));
     BOOST_CHECK(fs::is_symlink(symlink));

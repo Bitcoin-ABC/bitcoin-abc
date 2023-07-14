@@ -424,7 +424,6 @@ add_library(util
 	util/error.cpp
 	util/fs.cpp
 	util/fs_helpers.cpp
-	util/getuniquepath.cpp
 	util/message.cpp
 	util/moneystr.cpp
 	util/readwritefile.cpp
@@ -937,7 +936,6 @@ if(BUILD_CHAINSTATE)
 		util/exception.cpp
 		util/fs.cpp
 		util/fs_helpers.cpp
-		util/getuniquepath.cpp
 		util/hasher.cpp
 		util/moneystr.cpp
 		util/settings.cpp
