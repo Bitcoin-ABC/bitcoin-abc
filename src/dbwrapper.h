@@ -6,7 +6,6 @@
 #define BITCOIN_DBWRAPPER_H
 
 #include <common/system.h>
-#include <logging.h>
 #include <serialize.h>
 #include <span.h>
 #include <streams.h>
@@ -15,7 +14,6 @@
 #include <leveldb/db.h>
 #include <leveldb/options.h>
 #include <leveldb/slice.h>
-#include <leveldb/status.h>
 
 #include <exception>
 #include <memory>
@@ -26,6 +24,7 @@
 
 namespace leveldb {
 class Env;
+class Status;
 } // namespace leveldb
 
 static const size_t DBWRAPPER_PREALLOC_KEY_SIZE = 64;
@@ -236,6 +235,9 @@ private:
     //! whether or not the database resides in memory
     bool m_is_memory;
 
+    std::optional<std::string> ReadImpl(Span<const std::byte> ssKey) const;
+    bool ExistsImpl(Span<const std::byte> ssKey) const;
+
 public:
     CDBWrapper(const DBParams &params);
     ~CDBWrapper();
@@ -247,19 +249,12 @@ public:
         DataStream ssKey{};
         ssKey.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
         ssKey << key;
-        leveldb::Slice slKey(CharCast(ssKey.data()), ssKey.size());
-
-        std::string strValue;
-        leveldb::Status status = pdb->Get(readoptions, slKey, &strValue);
-        if (!status.ok()) {
-            if (status.IsNotFound()) {
-                return false;
-            }
-            LogPrintf("LevelDB read failure: %s\n", status.ToString());
-            dbwrapper_private::HandleError(status);
+        std::optional<std::string> strValue{ReadImpl(ssKey)};
+        if (!strValue) {
+            return false;
         }
         try {
-            DataStream ssValue{MakeByteSpan(strValue)};
+            DataStream ssValue{MakeByteSpan(*strValue)};
             ssValue.Xor(obfuscate_key);
             ssValue >> value;
         } catch (const std::exception &) {
@@ -287,18 +282,7 @@ public:
         DataStream ssKey{};
         ssKey.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
         ssKey << key;
-        leveldb::Slice slKey(CharCast(ssKey.data()), ssKey.size());
-
-        std::string strValue;
-        leveldb::Status status = pdb->Get(readoptions, slKey, &strValue);
-        if (!status.ok()) {
-            if (status.IsNotFound()) {
-                return false;
-            }
-            LogPrintf("LevelDB read failure: %s\n", status.ToString());
-            dbwrapper_private::HandleError(status);
-        }
-        return true;
+        return ExistsImpl(ssKey);
     }
 
     template <typename K> void Erase(const K &key, bool fSync = false) {
