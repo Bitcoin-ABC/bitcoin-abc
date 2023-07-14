@@ -57,7 +57,9 @@ The designated registration address is the IFP address.
 
 The required amount to be paid to the registration address is determined by the number of bytes in the alias, with shorter aliases having a higher fee. Aliases may be between 1 and 21 bytes.
 
-This amount may change during Phase 1. This change may be enforced by verifying the correct fee against registration blockheight.
+The registration fees may change during Phase 1. This change will be implemented by assigning new fees to be valid for all alias registrations at some future defined implementation blockheight.
+
+Valid alias registrations will not be invalidated by a price change. Any price change will be tied to an implementation blockheight, and apply only to aliases included in that blockheight or later. This spec must be updated at least 1,000 blocks before the price change comes into effect.
 
 ### The Protocol Identifier
 
