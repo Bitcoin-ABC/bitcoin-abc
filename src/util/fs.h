@@ -180,6 +180,7 @@ static inline path PathFromString(const std::string &string) {
  * already exists or is a symlink to an existing directory.
  * This is a temporary workaround for an issue in libstdc++ that has been fixed
  * upstream [PR101510].
+ * https://gcc.gnu.org/bugzilla/show_bug.cgi?id=101510
  */
 static inline bool create_directories(const std::filesystem::path &p) {
     if (std::filesystem::is_symlink(p) && std::filesystem::is_directory(p)) {

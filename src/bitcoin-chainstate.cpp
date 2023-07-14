@@ -17,7 +17,6 @@
 #include <kernel/context.h>
 
 #include <chainparams.h>
-#include <common/args.h>
 #include <config.h>
 #include <consensus/validation.h>
 #include <core_io.h>
@@ -29,6 +28,7 @@
 #include <script/scriptcache.h>
 #include <script/sigcache.h>
 #include <util/chaintype.h>
+#include <util/fs.h>
 #include <util/thread.h>
 #include <util/translation.h>
 #include <validation.h>
@@ -36,7 +36,6 @@
 
 #include <cassert>
 #include <cstdint>
-#include <filesystem>
 #include <functional>
 #include <iosfwd>
 #include <memory>
@@ -63,9 +62,8 @@ int main(int argc, char *argv[]) {
                   << std::endl;
         return 1;
     }
-    std::filesystem::path abs_datadir = std::filesystem::absolute(argv[1]);
-    std::filesystem::create_directories(abs_datadir);
-    gArgs.ForceSetArg("-datadir", abs_datadir.string());
+    fs::path abs_datadir{fs::absolute(argv[1])};
+    fs::create_directories(abs_datadir);
 
     // SETUP: Misc Globals
     SelectParams(ChainType::MAIN);
@@ -134,13 +132,13 @@ int main(int argc, char *argv[]) {
     // SETUP: Chainstate
     const ChainstateManager::Options chainman_opts{
         .config = config,
-        .datadir = gArgs.GetDataDirNet(),
+        .datadir = abs_datadir,
         .adjusted_time_callback = NodeClock::now,
         .notifications = *notifications,
     };
     const node::BlockManager::Options blockman_opts{
         .chainparams = chainman_opts.config.GetChainParams(),
-        .blocks_dir = gArgs.GetBlocksDirPath(),
+        .blocks_dir = abs_datadir / "blocks",
         .notifications = chainman_opts.notifications,
     };
     ChainstateManager chainman{kernel_context.interrupt, chainman_opts,
@@ -179,7 +177,7 @@ int main(int argc, char *argv[]) {
     {
         LOCK(chainman.GetMutex());
         std::cout << "\t"
-                  << "Path: " << gArgs.GetDataDirNet() << std::endl
+                  << "Path: " << abs_datadir << std::endl
                   << "\t"
                   << "Reindexing: " << std::boolalpha << node::fReindex.load()
                   << std::noboolalpha << std::endl
