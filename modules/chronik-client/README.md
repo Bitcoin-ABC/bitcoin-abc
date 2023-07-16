@@ -17,6 +17,14 @@ const chronik = new ChronikClient('https://chronik.be.cash/xec');
 // For XPI, Lotus chain:
 const chronik = new ChronikClient('https://chronik.be.cash/xpi');
 
+As of version 0.9.0, the ChronikClient constructor can also optionally
+accept an array of chronik urls. e.g.
+const chronik = new ChronikClient([
+    'https://chronik.be.cash/xec',
+    'https://chronik.fabien.cash',
+]);
+If the first url is non-responsive it will cycle through the rest of the array.
+
 // Get Genesis block (on eCash):
 const block = await chronik.block(
     '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f',

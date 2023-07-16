@@ -10,6 +10,7 @@ import {
     Utxo,
     UtxoState,
 } from '../index';
+import { FailoverProxy } from '../failoverProxy';
 
 const expect = chai.expect;
 const assert = chai.assert;
@@ -95,15 +96,35 @@ const GENESIS_UTXO: Utxo = {
 };
 
 describe('new ChronikClient', () => {
-    it('throws if url ends with a slash', () => {
+    it('throws if a singular url ends with a slash', () => {
         expect(
             () => new ChronikClient('https://chronik.be.cash/xec/'),
         ).to.throw(
             "`url` cannot end with '/', got: https://chronik.be.cash/xec/",
         );
     });
-    it('throws if url has wrong schema', () => {
+    it('throws if singular url has wrong schema', () => {
         expect(() => new ChronikClient('soap://chronik.be.cash/xec')).to.throw(
+            "`url` must start with 'https://' or 'http://', got: " +
+                'soap://chronik.be.cash/xec',
+        );
+    });
+    it('throws if an array contains a url that ends with a slash', () => {
+        expect(
+            () => new ChronikClient(['https://chronik.be.cash/xec/']),
+        ).to.throw(
+            "`url` cannot end with '/', got: https://chronik.be.cash/xec/",
+        );
+    });
+    it('throws if an array is empty', () => {
+        expect(() => new ChronikClient([])).to.throw(
+            'Url array must not be empty',
+        );
+    });
+    it('throws if array url has wrong schema', () => {
+        expect(
+            () => new ChronikClient(['soap://chronik.be.cash/xec']),
+        ).to.throw(
             "`url` must start with 'https://' or 'http://', got: " +
                 'soap://chronik.be.cash/xec',
         );
@@ -129,6 +150,28 @@ describe('/blockchain-info', () => {
         const blockchainInfo = await chronik.blockchainInfo();
         expect(blockchainInfo.tipHash.length).to.eql(64);
         expect(blockchainInfo.tipHeight).to.gte(739039);
+    });
+
+    const oneNonresponsiveUrl = [
+        'https://chronikaaaa.be.cash/xec',
+        'https://chronik.be.cash/xec',
+    ];
+    const brokenChronik = new ChronikClient(oneNonresponsiveUrl);
+    it('gives us the blockchain info after encountering an outage with one of the supplied Chronik instances', async () => {
+        const blockchainInfo = await brokenChronik.blockchainInfo();
+        expect(blockchainInfo.tipHeight).to.gte(739039);
+    });
+
+    const allNonresponsiveUrl = [
+        'https://chronikaaaa.be.cash/xec',
+        'https://chronikzzzz.be.cash/xec',
+        'https://chronikfffff.be.cash/xec',
+    ];
+    const permaBrokenChronik = new ChronikClient(allNonresponsiveUrl);
+    it('throws error for the blockchain info call after cycling through all invalid Chronik urls', async () => {
+        await expect(permaBrokenChronik.blockchainInfo()).to.be.rejectedWith(
+            'Error connecting to known Chronik instances',
+        );
     });
 });
 
@@ -451,7 +494,7 @@ describe('/script/:type/:payload/utxos', () => {
 });
 
 describe('/ws', () => {
-    const chronik = new ChronikClient('https://chronik.be.cash/xpi');
+    const chronik = new ChronikClient(TEST_URL);
     xit('gives us a confirmation', async () => {
         const promise = new Promise((resolve: (msg: SubscribeMsg) => void) => {
             const ws = chronik.ws({
@@ -474,5 +517,165 @@ describe('/ws', () => {
             });
         });
         await promise;
+    });
+    const halfBrokenChronik = new ChronikClient([
+        'https://chronikaaaa.be.cash/xec',
+        'https://chronikzzzz.be.cash/xec',
+        'https://chroniktttt.be.cash/xec',
+        TEST_URL, // working
+    ]);
+    it('connects to a working ws in an array of broken ws', async () => {
+        const promise = new Promise(resolve => {
+            const ws = halfBrokenChronik.ws({});
+            ws.waitForOpen().then(() => {
+                resolve({});
+                ws.close();
+            });
+        });
+        await promise;
+    });
+});
+
+describe('FailoverProxy', () => {
+    it('appendWsUrls combines an object array of valid urls with wsUrls', () => {
+        const urls = [
+            TEST_URL,
+            'https://chronik.fabien.cash',
+            'https://chronik2.fabien.cash',
+        ];
+        const proxyInterface = new FailoverProxy(urls);
+        const expectedResult = [
+            {
+                url: TEST_URL,
+                wsUrl: 'wss://chronik.be.cash/xec/ws',
+            },
+            {
+                url: 'https://chronik.fabien.cash',
+                wsUrl: 'wss://chronik.fabien.cash/ws',
+            },
+            {
+                url: 'https://chronik2.fabien.cash',
+                wsUrl: 'wss://chronik2.fabien.cash/ws',
+            },
+        ];
+        expect(proxyInterface.appendWsUrls(urls)).to.eql(expectedResult);
+    });
+    it('appendWsUrls combines an array of mixed valid https and http urls with wsUrls', () => {
+        const urls = [
+            TEST_URL,
+            'http://chronik.fabien.cash',
+            'https://chronik2.fabien.cash',
+        ];
+        const proxyInterface = new FailoverProxy(urls);
+        const expectedResult = [
+            {
+                url: TEST_URL,
+                wsUrl: 'wss://chronik.be.cash/xec/ws',
+            },
+            {
+                url: 'http://chronik.fabien.cash',
+                wsUrl: 'ws://chronik.fabien.cash/ws',
+            },
+            {
+                url: 'https://chronik2.fabien.cash',
+                wsUrl: 'wss://chronik2.fabien.cash/ws',
+            },
+        ];
+        expect(proxyInterface.appendWsUrls(urls)).to.eql(expectedResult);
+    });
+    it('appendWsUrls returns an empty array for an empty input', () => {
+        const urls = [
+            TEST_URL,
+            'http://chronik.fabien.cash',
+            'https://chronik2.fabien.cash',
+        ];
+        const proxyInterface = new FailoverProxy(urls);
+        expect(proxyInterface.appendWsUrls([])).to.eql([]);
+    });
+    it('appendWsUrls throws error on an invalid regular endpoint', () => {
+        const urls = [
+            TEST_URL,
+            'http://chronik.fabien.cash',
+            'https://chronik2.fabien.cash',
+        ];
+        const proxyInterface = new FailoverProxy(urls);
+        const oneBrokenUrl = [
+            'https://chronik.fabien.cash',
+            'not-a-valid-url',
+            'https://chronik2.fabien.cash',
+        ];
+        expect(() => proxyInterface.appendWsUrls(oneBrokenUrl)).to.throw(
+            `Invalid url found in array: ${oneBrokenUrl[1]}`,
+        );
+    });
+    it('FailoverProxy instantiates with a valid url array', () => {
+        const urls = [
+            TEST_URL,
+            'http://chronik.fabien.cash',
+            'https://chronik2.fabien.cash',
+        ];
+        const proxyInterface = new FailoverProxy(urls);
+        const expectedProxyArray = [
+            {
+                url: TEST_URL,
+                wsUrl: 'wss://chronik.be.cash/xec/ws',
+            },
+            {
+                url: 'http://chronik.fabien.cash',
+                wsUrl: 'ws://chronik.fabien.cash/ws',
+            },
+            {
+                url: 'https://chronik2.fabien.cash',
+                wsUrl: 'wss://chronik2.fabien.cash/ws',
+            },
+        ];
+        expect(proxyInterface.getEndpointArray()).to.eql(expectedProxyArray);
+    });
+    it('FailoverProxy constructor throws error on an invalid regular endpoint', () => {
+        const oneBrokenUrl = [
+            'https://chronik.fabien.cash',
+            'not-a-valid-url',
+            'https://chronik2.fabien.cash',
+        ];
+        expect(() => new FailoverProxy(oneBrokenUrl)).to.throw(
+            "`url` must start with 'https://' or 'http://', got: " +
+                oneBrokenUrl[1],
+        );
+    });
+});
+
+describe('deriveEndpointIndex', () => {
+    it('deriveEndpointIndex iterates through a four element array with default working index', () => {
+        const testArray = [
+            TEST_URL,
+            'http://chronik.fabien.cash',
+            'https://chronik2.fabien.cash',
+            'https://chronik3.fabien.cash',
+        ];
+        const proxyInterface = new FailoverProxy(testArray);
+
+        const indexOrder = [];
+        for (let i = 0; i < testArray.length; i += 1) {
+            indexOrder.push(proxyInterface.deriveEndpointIndex(i));
+        }
+        expect(indexOrder).to.eql([0, 1, 2, 3]);
+    });
+    it('deriveEndpointIndex iterates through a four element array with working index set to 3', () => {
+        const testArray = [
+            TEST_URL,
+            'http://chronik.fabien.cash',
+            'https://chronik2.fabien.cash',
+            'https://chronik3.fabien.cash',
+        ];
+        const proxyInterface = new FailoverProxy(testArray);
+
+        // Override the working index to 3
+        proxyInterface.setWorkingIndex(3);
+
+        const indexOrder = [];
+        for (let i = 0; i < testArray.length; i += 1) {
+            indexOrder.push(proxyInterface.deriveEndpointIndex(i));
+        }
+        expect(indexOrder).to.eql([3, 0, 1, 2]);
     });
 });

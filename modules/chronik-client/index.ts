@@ -1,37 +1,35 @@
-import axios, { AxiosResponse } from 'axios';
 import WebSocket from 'isomorphic-ws';
 import * as ws from 'ws';
 import * as proto from './chronik';
 import { fromHex, fromHexRev, toHex, toHexRev } from './hex';
+import { FailoverProxy } from './failoverProxy';
 
 type MessageEvent = ws.MessageEvent | { data: Blob };
 
 /** Client to access a Chronik instance.Plain object, without any
  * connections. */
 export class ChronikClient {
-    private _url: string;
-    private _wsUrl: string;
-
+    private _proxyInterface: FailoverProxy;
     /**
      * Create a new client. This just creates an object, without any connections.
      *
-     * @param url Url of a Chronik instance, with schema and without trailing
-     *            slash. E.g. https://chronik.be.cash/xec.
+     * @param {string | string[]} urls This param can be either an array of url strings or a singular
+     * url string. A valid url comes with schema and without a trailing slash.
+     * e.g. 'https://chronik.be.cash/xec'   or
+     * '['https://chronik.be.cash/xec', 'https://chronik.fabien.cash']
+     * The approach of accepting an array of urls as input is to ensure redundancy if the
+     * first url encounters downtime. The single url string input will eventually be deprecated
+     * for url arrays regardless of one or many urls being supplied.
+     * @throws {error} throws error on invalid constructor inputs
      */
-    constructor(url: string) {
-        this._url = url;
-        if (url.endsWith('/')) {
-            throw new Error("`url` cannot end with '/', got: " + url);
-        }
-        if (url.startsWith('https://')) {
-            this._wsUrl = 'wss://' + url.substring('https://'.length);
-        } else if (url.startsWith('http://')) {
-            this._wsUrl = 'ws://' + url.substring('http://'.length);
-        } else {
-            throw new Error(
-                "`url` must start with 'https://' or 'http://', got: " + url,
-            );
-        }
+    constructor(urls: string | string[]) {
+        // Instantiate FailoverProxy with the urls array
+        this._proxyInterface = new FailoverProxy(urls);
+    }
+
+    // For unit test verification
+    public proxyInterface(): FailoverProxy {
+        return this._proxyInterface;
     }
 
     /** Broadcasts the `rawTx` on the network.
@@ -46,7 +44,7 @@ export class ChronikClient {
             rawTx: typeof rawTx === 'string' ? fromHex(rawTx) : rawTx,
             skipSlpCheck,
         }).finish();
-        const data = await _post(this._url, '/broadcast-tx', request);
+        const data = await this._proxyInterface.post('/broadcast-tx', request);
         const broadcastResponse = proto.BroadcastTxResponse.decode(data);
         return {
             txid: toHexRev(broadcastResponse.txid),
@@ -67,7 +65,7 @@ export class ChronikClient {
             ),
             skipSlpCheck,
         }).finish();
-        const data = await _post(this._url, '/broadcast-txs', request);
+        const data = await this._proxyInterface.post('/broadcast-txs', request);
         const broadcastResponse = proto.BroadcastTxsResponse.decode(data);
         return {
             txids: broadcastResponse.txids.map(toHexRev),
@@ -76,14 +74,14 @@ export class ChronikClient {
 
     /** Fetch current info of the blockchain, such as tip hash and height. */
     public async blockchainInfo(): Promise<BlockchainInfo> {
-        const data = await _get(this._url, `/blockchain-info`);
+        const data = await this._proxyInterface.get(`/blockchain-info`);
         const blockchainInfo = proto.BlockchainInfo.decode(data);
         return convertToBlockchainInfo(blockchainInfo);
     }
 
     /** Fetch the block given hash or height. */
     public async block(hashOrHeight: string | number): Promise<Block> {
-        const data = await _get(this._url, `/block/${hashOrHeight}`);
+        const data = await this._proxyInterface.get(`/block/${hashOrHeight}`);
         const block = proto.Block.decode(data);
         return convertToBlock(block);
     }
@@ -94,8 +92,7 @@ export class ChronikClient {
         startHeight: number,
         endHeight: number,
     ): Promise<BlockInfo[]> {
-        const data = await _get(
-            this._url,
+        const data = await this._proxyInterface.get(
             `/blocks/${startHeight}/${endHeight}`,
         );
         const blocks = proto.Blocks.decode(data);
@@ -104,14 +101,14 @@ export class ChronikClient {
 
     /** Fetch tx details given the txid. */
     public async tx(txid: string): Promise<Tx> {
-        const data = await _get(this._url, `/tx/${txid}`);
+        const data = await this._proxyInterface.get(`/tx/${txid}`);
         const tx = proto.Tx.decode(data);
         return convertToTx(tx);
     }
 
     /** Fetch token info and stats given the tokenId. */
     public async token(tokenId: string): Promise<Token> {
-        const data = await _get(this._url, `/token/${tokenId}`);
+        const data = await this._proxyInterface.get(`/token/${tokenId}`);
         const token = proto.Token.decode(data);
         return convertToToken(token);
     }
@@ -125,7 +122,10 @@ export class ChronikClient {
                 outIdx: outpoint.outIdx,
             })),
         }).finish();
-        const data = await _post(this._url, '/validate-utxos', request);
+        const data = await this._proxyInterface.post(
+            '/validate-utxos',
+            request,
+        );
         const validationStates = proto.ValidateUtxoResponse.decode(data);
         return validationStates.utxoStates.map(state => ({
             height: state.height,
@@ -139,23 +139,31 @@ export class ChronikClient {
         scriptType: ScriptType,
         scriptPayload: string,
     ): ScriptEndpoint {
-        return new ScriptEndpoint(this._url, scriptType, scriptPayload);
+        return new ScriptEndpoint(
+            this._proxyInterface,
+            scriptType,
+            scriptPayload,
+        );
     }
 
     /** Open a WebSocket connection to listen for updates. */
     public ws(config: WsConfig): WsEndpoint {
-        return new WsEndpoint(`${this._wsUrl}/ws`, config);
+        return new WsEndpoint(this._proxyInterface, config);
     }
 }
 
 /** Allows fetching script history and UTXOs. */
 export class ScriptEndpoint {
-    private _url: string;
+    private _proxyInterface: FailoverProxy;
     private _scriptType: string;
     private _scriptPayload: string;
 
-    constructor(url: string, scriptType: string, scriptPayload: string) {
-        this._url = url;
+    constructor(
+        proxyInterface: FailoverProxy,
+        scriptType: string,
+        scriptPayload: string,
+    ) {
+        this._proxyInterface = proxyInterface;
         this._scriptType = scriptType;
         this._scriptPayload = scriptPayload;
     }
@@ -178,8 +186,7 @@ export class ScriptEndpoint {
                 : pageSize !== undefined
                 ? `?page_size=${pageSize}`
                 : '';
-        const data = await _get(
-            this._url,
+        const data = await this._proxyInterface.get(
             `/script/${this._scriptType}/${this._scriptPayload}/history${query}`,
         );
         const historyPage = proto.TxHistoryPage.decode(data);
@@ -193,8 +200,7 @@ export class ScriptEndpoint {
      * It is grouped by output script, in case a script type can match multiple
      * different output scripts (e.g. Taproot on Lotus). */
     public async utxos(): Promise<ScriptUtxos[]> {
-        const data = await _get(
-            this._url,
+        const data = await this._proxyInterface.get(
             `/script/${this._scriptType}/${this._scriptPayload}/utxos`,
         );
         const utxos = proto.Utxos.decode(data);
@@ -230,6 +236,8 @@ export interface WsConfig {
 
 /** WebSocket connection to Chronik. */
 export class WsEndpoint {
+    private _proxyInterface: FailoverProxy;
+
     /** Fired when a message is sent from the WebSocket. */
     public onMessage?: (msg: SubscribeMsg) => void;
 
@@ -250,90 +258,58 @@ export class WsEndpoint {
     /** Whether to automatically reconnect on disconnect, default true. */
     public autoReconnect: boolean;
 
-    private _ws: ws.WebSocket | undefined;
-    private _wsUrl: string;
-    private _connected: Promise<ws.Event> | undefined;
-    private _manuallyClosed: boolean;
-    private _subs: { scriptType: ScriptType; scriptPayload: string }[];
+    public ws: ws.WebSocket | undefined;
+    public connected: Promise<ws.Event> | undefined;
+    public manuallyClosed: boolean;
+    public subs: { scriptType: ScriptType; scriptPayload: string }[];
 
-    constructor(wsUrl: string, config: WsConfig) {
+    constructor(proxyInterface: FailoverProxy, config: WsConfig) {
         this.onMessage = config.onMessage;
         this.onConnect = config.onConnect;
         this.onReconnect = config.onReconnect;
         this.onEnd = config.onEnd;
         this.autoReconnect =
             config.autoReconnect !== undefined ? config.autoReconnect : true;
-        this._manuallyClosed = false;
-        this._subs = [];
-        this._wsUrl = wsUrl;
-        this._connect();
+        this.manuallyClosed = false;
+        this.subs = [];
+        this._proxyInterface = proxyInterface;
+        this._proxyInterface.connectWs(this);
     }
 
     /** Wait for the WebSocket to be connected. */
     public async waitForOpen() {
-        await this._connected;
+        await this.connected;
     }
 
     /** Subscribe to the given script type and payload.
      * For "p2pkh", `scriptPayload` is the 20 byte public key hash. */
     public subscribe(scriptType: ScriptType, scriptPayload: string) {
-        this._subs.push({ scriptType, scriptPayload });
-        if (this._ws?.readyState === WebSocket.OPEN) {
-            this._subUnsub(true, scriptType, scriptPayload);
+        this.subs.push({ scriptType, scriptPayload });
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            this.subUnsub(true, scriptType, scriptPayload);
         }
     }
 
     /** Unsubscribe from the given script type and payload. */
     public unsubscribe(scriptType: ScriptType, scriptPayload: string) {
-        this._subs = this._subs.filter(
+        this.subs = this.subs.filter(
             sub =>
                 sub.scriptType !== scriptType ||
                 sub.scriptPayload !== scriptPayload,
         );
-        if (this._ws?.readyState === WebSocket.OPEN) {
-            this._subUnsub(false, scriptType, scriptPayload);
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            this.subUnsub(false, scriptType, scriptPayload);
         }
     }
 
     /** Close the WebSocket connection and prevent future any reconnection
      * attempts. */
     public close() {
-        this._manuallyClosed = true;
-        this._ws?.close();
+        this.manuallyClosed = true;
+        this.ws?.close();
     }
 
-    private _connect() {
-        const ws: ws.WebSocket = new WebSocket(this._wsUrl);
-        this._ws = ws;
-        this._connected = new Promise(resolved => {
-            ws.onopen = msg => {
-                this._subs.forEach(sub =>
-                    this._subUnsub(true, sub.scriptType, sub.scriptPayload),
-                );
-                resolved(msg);
-                if (this.onConnect !== undefined) {
-                    this.onConnect(msg);
-                }
-            };
-        });
-        ws.onmessage = e => this._handleMsg(e as MessageEvent);
-        ws.onerror = e => this.onError !== undefined && this.onError(e);
-        ws.onclose = e => {
-            // End if manually closed or no auto-reconnect
-            if (this._manuallyClosed || !this.autoReconnect) {
-                if (this.onEnd !== undefined) {
-                    this.onEnd(e);
-                }
-                return;
-            }
-            if (this.onReconnect !== undefined) {
-                this.onReconnect(e);
-            }
-            this._connect();
-        };
-    }
-
-    private _subUnsub(
+    public subUnsub(
         isSubscribe: boolean,
         scriptType: ScriptType,
         scriptPayload: string,
@@ -343,12 +319,12 @@ export class WsEndpoint {
             scriptType,
             payload: fromHex(scriptPayload),
         }).finish();
-        if (this._ws === undefined)
-            throw new Error('Invalid state; _ws is undefined');
-        this._ws.send(encodedSubscription);
+        if (this.ws === undefined)
+            throw new Error('Invalid state; ws is undefined');
+        this.ws.send(encodedSubscription);
     }
 
-    private async _handleMsg(wsMsg: MessageEvent) {
+    public async handleMsg(wsMsg: MessageEvent) {
         if (this.onMessage === undefined) {
             return;
         }
@@ -395,42 +371,6 @@ export class WsEndpoint {
         } else {
             console.log('Silently ignored unknown Chronik message:', msg);
         }
-    }
-}
-
-async function _get(url: string, path: string): Promise<Uint8Array> {
-    const response = await axios.get(`${url}${path}`, {
-        responseType: 'arraybuffer',
-        validateStatus: undefined,
-    });
-    ensureResponseErrorThrown(response, path);
-    return new Uint8Array(response.data);
-}
-
-async function _post(
-    url: string,
-    path: string,
-    data: Uint8Array,
-): Promise<Uint8Array> {
-    const response = await axios.post(`${url}${path}`, data, {
-        responseType: 'arraybuffer',
-        validateStatus: undefined,
-        // Prevents Axios encoding the Uint8Array as JSON or something
-        transformRequest: x => x,
-        headers: {
-            'Content-Type': 'application/x-protobuf',
-        },
-    });
-    ensureResponseErrorThrown(response, path);
-    return new Uint8Array(response.data);
-}
-
-function ensureResponseErrorThrown(response: AxiosResponse, path: string) {
-    if (response.status != 200) {
-        const error = proto.Error.decode(new Uint8Array(response.data));
-        throw new Error(
-            `Failed getting ${path} (${error.errorCode}): ${error.msg}`,
-        );
     }
 }
 
