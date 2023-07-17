@@ -13,7 +13,8 @@
         "test": "mocha -r ts-node/register test/test.ts",
         "test-long": "mocha -r ts-node/register test/test.ts --timeout 1000000000",
         "format": "prettier --write .",
-        "lint": "eslint . --ext .js,.jsx,.ts,.tsx && prettier --check ."
+        "lint": "eslint . --ext .js,.jsx,.ts,.tsx && prettier --check .",
+        "prepublish": "npm run build"
     },
     "devDependencies": {
         "@types/chai": "^4.2.22",
