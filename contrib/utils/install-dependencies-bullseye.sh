@@ -192,4 +192,5 @@ cmake --install ${CORROSION_BUILD_FOLDER} --config Release
 
 # Install Electrum ABC test dependencies
 here=$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")
-pip3 install -r ${here}/../../electrum/contrib/requirements/requirements.txt
+pip3 install -r "${here}/../../electrum/contrib/requirements/requirements.txt"
+pip3 install -r "${here}/../../electrum/contrib/requirements/requirements-regtest.txt"

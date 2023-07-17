@@ -681,6 +681,11 @@ builds:
     targets:
       - - check-electrum
 
+  electrum-functional-tests:
+    script: |
+      pip3 install -r "${TOPLEVEL}/electrum/contrib/requirements/requirements-regtest.txt"
+      pytest "${TOPLEVEL}/electrum/electrumabc/tests/regtest"
+
   preview-e.cash:
     docker:
       context: web/e.cash
