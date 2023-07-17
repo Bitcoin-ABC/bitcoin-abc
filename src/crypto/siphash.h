@@ -5,6 +5,7 @@
 #ifndef BITCOIN_CRYPTO_SIPHASH_H
 #define BITCOIN_CRYPTO_SIPHASH_H
 
+#include <span.h>
 #include <uint256.h>
 
 #include <cstdint>
@@ -28,7 +29,7 @@ public:
      */
     CSipHasher &Write(uint64_t data);
     /** Hash arbitrary bytes. */
-    CSipHasher &Write(const uint8_t *data, size_t size);
+    CSipHasher &Write(Span<const uint8_t> data);
     /** Compute the 64-bit SipHash-2-4 of the data written so far. The object
      * remains untouched. */
     uint64_t Finalize() const;

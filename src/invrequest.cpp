@@ -148,11 +148,8 @@ public:
 
     Priority operator()(const uint256 &invid, NodeId peer,
                         bool preferred) const {
-        uint64_t low_bits = CSipHasher(m_k0, m_k1)
-                                .Write(invid.begin(), invid.size())
-                                .Write(peer)
-                                .Finalize() >>
-                            1;
+        uint64_t low_bits =
+            CSipHasher(m_k0, m_k1).Write(invid).Write(peer).Finalize() >> 1;
         return low_bits | uint64_t{preferred} << 63;
     }
 

@@ -2683,11 +2683,10 @@ CConnman::GetAddresses(size_t max_addresses, size_t max_pct,
 std::vector<CAddress>
 CConnman::GetAddresses(CNode &requestor, size_t max_addresses, size_t max_pct) {
     auto local_socket_bytes = requestor.addrBind.GetAddrBytes();
-    uint64_t cache_id =
-        GetDeterministicRandomizer(RANDOMIZER_ID_ADDRCACHE)
-            .Write(requestor.addr.GetNetwork())
-            .Write(local_socket_bytes.data(), local_socket_bytes.size())
-            .Finalize();
+    uint64_t cache_id = GetDeterministicRandomizer(RANDOMIZER_ID_ADDRCACHE)
+                            .Write(requestor.addr.GetNetwork())
+                            .Write(local_socket_bytes)
+                            .Finalize();
     const auto current_time = GetTime<std::chrono::microseconds>();
     auto r = m_addr_response_caches.emplace(cache_id, CachedAddrResponse{});
     CachedAddrResponse &cache_entry = r.first->second;
@@ -3101,7 +3100,7 @@ uint64_t CConnman::CalculateKeyedNetGroup(const CAddress &ad) const {
     std::vector<uint8_t> vchNetGroup(ad.GetGroup(addrman.GetAsmap()));
 
     return GetDeterministicRandomizer(RANDOMIZER_ID_NETGROUP)
-        .Write(vchNetGroup.data(), vchNetGroup.size())
+        .Write(vchNetGroup)
         .Finalize();
 }
 
