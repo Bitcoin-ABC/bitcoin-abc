@@ -26,6 +26,9 @@ EC_DAEMON_RPC_URL = "http://user:pass@localhost:12342"
 FULCRUM_STATS_URL = "http://localhost:8081/stats"
 BITCOIND_RPC_URL = "http://user:pass@0.0.0.0:18333"
 
+ELECTRUM_ROOT = os.path.join(os.path.dirname(__file__), "..", "..", "..")
+ELECTRUMABC_COMMAND = os.path.join(ELECTRUM_ROOT, "electrum-abc")
+
 
 def poll_for_answer(
     url: Any,
@@ -92,19 +95,27 @@ def start_ec_daemon() -> None:
     """
     if _datadir is None:
         assert False
-    os.mkdir(_datadir + "/regtest")
+    os.mkdir(os.path.join(_datadir, "regtest"))
     shutil.copyfile(
-        "electrumabc/tests/regtest/configs/electrum-abc-config",
-        _datadir + "/regtest/config",
+        os.path.join(
+            ELECTRUM_ROOT,
+            "electrumabc",
+            "tests",
+            "regtest",
+            "configs",
+            "electrum-abc-config",
+        ),
+        os.path.join(_datadir, "regtest", "config"),
     )
+    default_wallet = os.path.join(_datadir, "default_wallet")
     subprocess.run(
         [
-            "./electrum-abc",
+            ELECTRUMABC_COMMAND,
             "--regtest",
             "-D",
             _datadir,
             "-w",
-            _datadir + "/default_wallet",
+            default_wallet,
             "daemon",
             "start",
         ],
@@ -116,7 +127,7 @@ def start_ec_daemon() -> None:
 
     assert result == PACKAGE_VERSION
 
-    r = request("create", params={"wallet_path": _datadir + "/default_wallet"})
+    r = request("create", params={"wallet_path": default_wallet})
     result = poll_for_answer(EC_DAEMON_RPC_URL, r)
     assert "seed" in result
     assert len(result["seed"].split(" ")) == 12
@@ -128,14 +139,14 @@ def start_ec_daemon() -> None:
     poll_for_answer(
         EC_DAEMON_RPC_URL,
         request("getinfo"),
-        expected_answer=('wallets["' + _datadir + '/default_wallet"]', True),
+        expected_answer=(f'wallets["{default_wallet}"]', True),
     )
 
 
 def stop_ec_daemon() -> None:
     """Stops the daemon and removes the wallet storage from disk"""
     subprocess.run(
-        ["./electrum-abc", "--regtest", "-D", _datadir, "daemon", "stop"], check=True
+        [ELECTRUMABC_COMMAND, "--regtest", "-D", _datadir, "daemon", "stop"], check=True
     )
     if _datadir is None or _datadir.startswith("/tmp") is False:
         assert False
@@ -146,7 +157,11 @@ def stop_ec_daemon() -> None:
 def docker_compose_file(pytestconfig) -> str:
     """Needed since the docker-compose.yml is not in the root directory"""
     return os.path.join(
-        str(pytestconfig.rootdir), "electrumabc/tests/regtest/docker-compose.yml"
+        str(pytestconfig.rootdir),
+        "electrumabc",
+        "tests",
+        "regtest",
+        "docker-compose.yml",
     )
 
 

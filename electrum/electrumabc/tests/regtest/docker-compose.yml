@@ -4,7 +4,7 @@ services:
     image: bitcoinabc/bitcoin-abc:latest
     command: "bitcoind -conf=/conf/bitcoind.conf"
     volumes:
-      - conf-files:/conf
+      - ./configs:/conf
     networks:
       - bitcoin
     ports:
@@ -21,15 +21,7 @@ services:
     depends_on:
       - bitcoind
     volumes:
-      - conf-files:/conf
+      - ./configs:/conf
 
 networks:
   bitcoin:
-
-volumes:
-  conf-files:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: electrumabc/tests/regtest/configs
