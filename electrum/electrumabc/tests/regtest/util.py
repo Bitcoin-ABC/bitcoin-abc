@@ -6,7 +6,7 @@ import shutil
 import subprocess
 import tempfile
 import time
-from typing import Any, Generator
+from typing import Any, Generator, Optional
 
 import pytest
 import requests
@@ -32,10 +32,10 @@ ELECTRUMABC_COMMAND = os.path.join(ELECTRUM_ROOT, "electrum-abc")
 
 def poll_for_answer(
     url: Any,
-    json_req: Any | None = None,
+    json_req: Optional[Any] = None,
     poll_interval: int = 1,
     poll_timeout: int = 10,
-    expected_answer: Any | None = None,
+    expected_answer: Optional[Any] = None,
 ) -> Any:
     """Poll an RPC method until timeout or an expected answer has been received"""
     start = current = time.time()
