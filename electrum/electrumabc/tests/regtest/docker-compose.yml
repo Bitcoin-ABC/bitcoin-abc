@@ -1,7 +1,7 @@
 version: "3"
 services:
   bitcoind:
-    image: bitcoinabc/bitcoin-abc:0.27.3
+    image: bitcoinabc/bitcoin-abc:latest
     command: "bitcoind -conf=/conf/bitcoind.conf"
     volumes:
       - conf-files:/conf
@@ -10,7 +10,7 @@ services:
     ports:
       - 18333:18334
   fulcrum:
-    image: cculianu/fulcrum:v1.9.0
+    image: cculianu/fulcrum:latest
     command: "Fulcrum /conf/fulcrum.conf"
     networks:
       - bitcoin

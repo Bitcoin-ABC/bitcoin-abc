@@ -53,7 +53,7 @@ using the following commands:
 ```
 pip3 install -r contrib/requirements/requirements.txt
 pip3 install -r contrib/requirements/requirements-binaries.txt
-pip3 install -r electrum/contrib/requirements/requirements-hw.txt
+pip3 install -r contrib/requirements/requirements-hw.txt
 ```
 
 ## Running Electrum ABC from source
@@ -114,13 +114,15 @@ This can also be run as a `ninja` target in the context of a Bitcoin ABC build:
 ninja check-electrum
 ```
 
-Additional functional tests can be run with the following command:
+Functional tests can be run with the following command:
 ```
 pytest electrumabc/tests/regtest
 ```
 
-This requires additional dependencies such as `pytest`, `docker` and `docker-compose`.
-<!-- TODO: ninja target, install instructions for additional dependencies -->
+This requires `docker` and additional python dependencies:
+```
+pip3 install -r contrib/requirements/requirements-regtest.txt
+```
 
 ## Compiling libsecp256k1
 
