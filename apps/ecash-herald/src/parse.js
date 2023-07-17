@@ -1473,10 +1473,16 @@ module.exports = {
                     config.blockExplorer
                 }/tx/${txid}">${displayedSentAmount} for ${displayedTxFee}</a>${
                     xecSenderEmoji !== ''
-                        ? ` ${xecSenderEmoji}${xecSendingOutputScripts.size} ${
+                        ? ` ${xecSenderEmoji} ${
                               xecSendingOutputScripts.size > 1
-                                  ? 'addresses'
-                                  : 'address'
+                                  ? `${xecSendingOutputScripts.size} addresses`
+                                  : returnAddressPreview(
+                                        cashaddr.encodeOutputScript(
+                                            xecSendingOutputScripts
+                                                .values()
+                                                .next().value,
+                                        ),
+                                    )
                           } ${config.emojis.arrowRight} ${
                               xecSendingOutputScripts.size > 1
                                   ? 'themselves'
