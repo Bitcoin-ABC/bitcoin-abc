@@ -93,20 +93,7 @@ def start_ec_daemon() -> None:
     Creates a temp directory on disk for wallet storage
     Starts a daemon, creates and loads a wallet
     """
-    if _datadir is None:
-        assert False
-    os.mkdir(os.path.join(_datadir, "regtest"))
-    shutil.copyfile(
-        os.path.join(
-            ELECTRUM_ROOT,
-            "electrumabc",
-            "tests",
-            "regtest",
-            "configs",
-            "electrum-abc-config",
-        ),
-        os.path.join(_datadir, "regtest", "config"),
-    )
+    assert _datadir is not None
     default_wallet = os.path.join(_datadir, "default_wallet")
     subprocess.run(
         [
@@ -144,13 +131,10 @@ def start_ec_daemon() -> None:
 
 
 def stop_ec_daemon() -> None:
-    """Stops the daemon and removes the wallet storage from disk"""
+    """Stops the daemon"""
     subprocess.run(
         [ELECTRUMABC_COMMAND, "--regtest", "-D", _datadir, "daemon", "stop"], check=True
     )
-    if _datadir is None or _datadir.startswith("/tmp") is False:
-        assert False
-    shutil.rmtree(_datadir)
 
 
 @pytest.fixture(scope="session")
@@ -165,15 +149,40 @@ def docker_compose_file(pytestconfig) -> str:
     )
 
 
+def make_electrum_data_dir():
+    """Create a temporary directory with a regtest subdirectory, and copy the Electrum
+    config file into it.
+    The caller is responsible for deleting the temporary directory."""
+    global _datadir
+    _datadir = tempfile.mkdtemp()
+    os.mkdir(os.path.join(_datadir, "regtest"))
+    shutil.copyfile(
+        os.path.join(
+            ELECTRUM_ROOT,
+            "electrumabc",
+            "tests",
+            "regtest",
+            "configs",
+            "electrum-abc-config",
+        ),
+        os.path.join(_datadir, "regtest", "config"),
+    )
+
+
 @pytest.fixture(scope="session")
 def fulcrum_service(docker_services: Any) -> Generator[None, None, None]:
-    """Makes sure all services (bitcoind, fulcrum and the EC daemon) are up and running"""
+    """Makes sure all services (bitcoind, fulcrum and the electrum daemon) are up and
+    running, make a temporary data dir for Electrum ABC, delete it at the end of the
+    test session.
+    """
     global _datadir
     global _bitcoind
     if _datadir is not None:
+        # After the first time the fixture is created nothing needs to be done, so this
+        # is a no-op for subsequent calls.
         yield
     else:
-        _datadir = tempfile.mkdtemp()
+        make_electrum_data_dir()
         _bitcoind = bitcoind_rpc_connection()
         poll_for_answer(FULCRUM_STATS_URL, expected_answer=("Controller.TxNum", 102))
 
@@ -182,3 +191,4 @@ def fulcrum_service(docker_services: Any) -> Generator[None, None, None]:
             yield
         finally:
             stop_ec_daemon()
+            shutil.rmtree(_datadir)
