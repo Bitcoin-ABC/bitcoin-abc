@@ -20,6 +20,7 @@
 #include <sync.h>      // for Mutex
 #include <util/time.h> // for GetTimeMicros()
 
+#include <array>
 #include <cmath>
 #include <cstdlib>
 #include <memory>
@@ -665,7 +666,7 @@ uint256 GetRandHash() noexcept {
 
 void FastRandomContext::RandomSeed() {
     uint256 seed = GetRandHash();
-    rng.SetKey32(seed.begin());
+    rng.SetKey(MakeByteSpan(seed));
     requires_seed = false;
 }
 
@@ -674,7 +675,7 @@ uint160 FastRandomContext::rand160() noexcept {
         RandomSeed();
     }
     uint160 ret;
-    rng.Keystream(ret.data(), ret.size());
+    rng.Keystream(MakeWritableByteSpan(ret));
     return ret;
 }
 
@@ -683,7 +684,7 @@ uint256 FastRandomContext::rand256() noexcept {
         RandomSeed();
     }
     uint256 ret;
-    rng.Keystream(ret.data(), ret.size());
+    rng.Keystream(MakeWritableByteSpan(ret));
     return ret;
 }
 
@@ -693,7 +694,7 @@ template <typename B> std::vector<B> FastRandomContext::randbytes(size_t len) {
     }
     std::vector<B> ret(len);
     if (len > 0) {
-        rng.Keystream(UCharCast(ret.data()), len);
+        rng.Keystream(MakeWritableByteSpan(ret));
     }
     return ret;
 }
@@ -702,7 +703,7 @@ template std::vector<std::byte> FastRandomContext::randbytes(size_t);
 
 FastRandomContext::FastRandomContext(const uint256 &seed) noexcept
     : requires_seed(false), bitbuf_size(0) {
-    rng.SetKey32(seed.begin());
+    rng.SetKey(MakeByteSpan(seed));
 }
 
 bool Random_SanityCheck() {
@@ -766,8 +767,8 @@ FastRandomContext::FastRandomContext(bool fDeterministic) noexcept
     if (!fDeterministic) {
         return;
     }
-    uint256 seed;
-    rng.SetKey32(seed.begin());
+    static constexpr std::array<std::byte, ChaCha20::KEYLEN> ZERO{};
+    rng.SetKey(ZERO);
 }
 
 FastRandomContext &
