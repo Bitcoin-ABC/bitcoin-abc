@@ -16,17 +16,17 @@
 FUZZ_TARGET(crypto_chacha20) {
     FuzzedDataProvider fuzzed_data_provider{buffer.data(), buffer.size()};
 
-    const std::vector<uint8_t> key =
-        ConsumeFixedLengthByteVector(fuzzed_data_provider, 32);
-    ChaCha20 chacha20{MakeByteSpan(key)};
+    const auto key = ConsumeFixedLengthByteVector<std::byte>(
+        fuzzed_data_provider, ChaCha20::KEYLEN);
+    ChaCha20 chacha20{key};
 
     while (fuzzed_data_provider.ConsumeBool()) {
         CallOneOf(
             fuzzed_data_provider,
             [&] {
-                std::vector<uint8_t> key =
-                    ConsumeFixedLengthByteVector(fuzzed_data_provider, 32);
-                chacha20.SetKey(MakeByteSpan(key));
+                auto key = ConsumeFixedLengthByteVector<std::byte>(
+                    fuzzed_data_provider, ChaCha20::KEYLEN);
+                chacha20.SetKey(key);
             },
             [&] {
                 chacha20.Seek(
@@ -41,13 +41,12 @@ FUZZ_TARGET(crypto_chacha20) {
                 chacha20.Keystream(MakeWritableByteSpan(output));
             },
             [&] {
-                std::vector<uint8_t> output(
+                std::vector<std::byte> output(
                     fuzzed_data_provider.ConsumeIntegralInRange<size_t>(0,
                                                                         4096));
-                const std::vector<uint8_t> input = ConsumeFixedLengthByteVector(
+                const auto input = ConsumeFixedLengthByteVector<std::byte>(
                     fuzzed_data_provider, output.size());
-                chacha20.Crypt(MakeByteSpan(input),
-                               MakeWritableByteSpan(output));
+                chacha20.Crypt(input, output);
             });
     }
 }
@@ -64,8 +63,8 @@ namespace {
  */
 template <bool UseCrypt> void ChaCha20SplitFuzz(FuzzedDataProvider &provider) {
     // Determine key, iv, start position, length.
-    auto key_bytes = provider.ConsumeBytes<std::byte>(ChaCha20::KEYLEN);
-    key_bytes.resize(ChaCha20::KEYLEN);
+    auto key_bytes =
+        ConsumeFixedLengthByteVector<std::byte>(provider, ChaCha20::KEYLEN);
     uint64_t iv = provider.ConsumeIntegral<uint64_t>();
     uint32_t iv_prefix = provider.ConsumeIntegral<uint32_t>();
     uint64_t total_bytes =
