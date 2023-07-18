@@ -322,10 +322,9 @@ static void TestPoly1305(const std::string &hexmessage,
                          const std::string &hexkey, const std::string &hextag) {
     auto key = ParseHex<std::byte>(hexkey);
     auto m = ParseHex<std::byte>(hexmessage);
-    auto tag = ParseHex<std::byte>(hextag);
     std::vector<std::byte> tagres(Poly1305::TAGLEN);
     Poly1305{key}.Update(m).Finalize(tagres);
-    BOOST_CHECK(tag == tagres);
+    BOOST_CHECK_EQUAL(HexStr(tagres), hextag);
 
     // Test incremental interface
     for (int splits = 0; splits < 10; ++splits) {
@@ -339,7 +338,7 @@ static void TestPoly1305(const std::string &hexmessage,
             }
             tagres.assign(Poly1305::TAGLEN, std::byte{});
             poly1305.Update(data).Finalize(tagres);
-            BOOST_CHECK(tag == tagres);
+            BOOST_CHECK_EQUAL(HexStr(tagres), hextag);
         }
     }
 }
@@ -1219,16 +1218,16 @@ BOOST_AUTO_TEST_CASE(poly1305_testvector) {
             "01020304050607fffefdfcfbfaf9ffffffffffffffffffffffffffff00000000");
         Poly1305 total_ctx(total_key);
         for (unsigned i = 0; i < 256; ++i) {
-            std::vector<std::byte> key(32, std::byte{(uint8_t)i});
-            std::vector<std::byte> msg(i, std::byte{(uint8_t)i});
+            std::vector<std::byte> key(32, std::byte{uint8_t(i)});
+            std::vector<std::byte> msg(i, std::byte{uint8_t(i)});
             std::array<std::byte, Poly1305::TAGLEN> tag;
             Poly1305{key}.Update(msg).Finalize(tag);
             total_ctx.Update(tag);
         }
         std::vector<std::byte> total_tag(Poly1305::TAGLEN);
         total_ctx.Finalize(total_tag);
-        BOOST_CHECK(total_tag ==
-                    ParseHex<std::byte>("64afe2e8d6ad7bbdd287f97c44623d39"));
+        BOOST_CHECK_EQUAL(HexStr(total_tag),
+                          "64afe2e8d6ad7bbdd287f97c44623d39");
     }
 
     // Tests with sparse messages and random keys.
