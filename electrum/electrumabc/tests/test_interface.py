@@ -1,56 +1,54 @@
+import ssl
 import unittest
 
 from .. import interface
 
 
 class TestInterface(unittest.TestCase):
-    def test_match_host_name(self):
-        self.assertTrue(interface._match_hostname("asd.fgh.com", "asd.fgh.com"))
-        self.assertFalse(interface._match_hostname("asd.fgh.com", "asd.zxc.com"))
-        self.assertTrue(interface._match_hostname("asd.fgh.com", "*.fgh.com"))
-        self.assertFalse(interface._match_hostname("asd.fgh.com", "*fgh.com"))
-        self.assertFalse(interface._match_hostname("asd.fgh.com", "*.zxc.com"))
+    """Test CA certificate verification using https://badssl.com"""
 
-    def test_check_host_name(self):
-        i = interface.TcpConnection(server=":1:", queue=None, config_path=None)
+    def has_ca_signed_valid_cert(self, server: str) -> bool:
+        retries = 0
+        while retries < 5:
+            try:
+                i = interface.TcpConnection(server=server, queue=None, config_path=None)
+                s = i._get_socket_and_verify_ca_cert()
+                if s is not None:
+                    s.close()
+                else:
+                    self.skipTest("This test requires an internet connection.")
+                return bool(s)
+            except TimeoutError:
+                retries += 1
 
-        self.assertFalse(i.check_host_name(None, None))
-        self.assertFalse(i.check_host_name(peercert={"subjectAltName": []}, name=""))
-        self.assertTrue(
-            i.check_host_name(
-                peercert={"subjectAltName": (("DNS", "foo.bar.com"),)},
-                name="foo.bar.com",
-            )
-        )
-        self.assertTrue(
-            i.check_host_name(
-                peercert={"subjectAltName": (("DNS", "*.bar.com"),)}, name="foo.bar.com"
-            )
-        )
-        self.assertFalse(
-            i.check_host_name(
-                peercert={"subjectAltName": (("DNS", "*.bar.com"),)},
-                name="sub.foo.bar.com",
-            )
-        )
-        self.assertTrue(
-            i.check_host_name(
-                peercert={"subject": ((("commonName", "foo.bar.com"),),)},
-                name="foo.bar.com",
-            )
-        )
-        self.assertTrue(
-            i.check_host_name(
-                peercert={"subject": ((("commonName", "*.bar.com"),),)},
-                name="foo.bar.com",
-            )
-        )
-        self.assertFalse(
-            i.check_host_name(
-                peercert={"subject": ((("commonName", "*.bar.com"),),)},
-                name="sub.foo.bar.com",
-            )
-        )
+    def test_verify_good_ca_cert(self):
+        # These are also a wildcard certificate
+        self.assertTrue(self.has_ca_signed_valid_cert("badssl.com:443:s"))
+        self.assertTrue(self.has_ca_signed_valid_cert("sha256.badssl.com:443:s"))
+
+    def test_verify_bad_ca_cert(self):
+        # See https://github.com/openssl/openssl/blob/70c2912f635aac8ab28629a2b5ea0c09740d2bda/include/openssl/x509_vfy.h#L99
+        # for a list of verify error codes
+
+        with self.assertRaises(ssl.SSLCertVerificationError) as cm:
+            self.has_ca_signed_valid_cert("expired.badssl.com:443:s")
+        # X509_V_ERR_CERT_HAS_EXPIRED
+        self.assertEqual(cm.exception.verify_code, 10)
+
+        with self.assertRaises(ssl.SSLCertVerificationError) as cm:
+            self.has_ca_signed_valid_cert("wrong.host.badssl.com:443:s")
+        # X509_V_ERR_HOSTNAME_MISMATCH
+        self.assertEqual(cm.exception.verify_code, 62)
+
+        with self.assertRaises(ssl.SSLCertVerificationError) as cm:
+            self.has_ca_signed_valid_cert("self-signed.badssl.com:443:s")
+        # X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT
+        self.assertEqual(cm.exception.verify_code, 18)
+
+        with self.assertRaises(ssl.SSLCertVerificationError) as cm:
+            self.has_ca_signed_valid_cert("untrusted-root.badssl.com:443:s")
+        # X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN
+        self.assertEqual(cm.exception.verify_code, 19)
 
 
 if __name__ == "__main__":

@@ -82,21 +82,6 @@ class TcpConnection(threading.Thread, PrintError):
     def diagnostic_name(self):
         return self.host
 
-    def check_host_name(self, peercert, name) -> bool:
-        """Wrapper for ssl.match_hostname that never throws. Returns True if the
-        certificate matches, False otherwise. Supports whatever wildcard certs
-        and other bells and whistles supported by ssl.match_hostname."""
-        # Check that the peer has supplied a certificate.
-        # None/{} is not acceptable.
-        if not peercert:
-            return False
-        try:
-            ssl.match_hostname(peercert, name)
-            return True
-        except ssl.CertificateError as e:
-            self.print_error("SSL certificate hostname mismatch:", str(e))
-        return False
-
     def get_simple_socket(self):
         try:
             addr_info = socket.getaddrinfo(
@@ -128,18 +113,33 @@ class TcpConnection(threading.Thread, PrintError):
             self.print_error("failed to connect", str(e))
 
     @staticmethod
-    def get_ssl_context(cert_reqs, ca_certs):
+    def get_ssl_context(cert_reqs, ca_certs, check_hostname: bool = False):
         context = ssl.create_default_context(
             purpose=ssl.Purpose.SERVER_AUTH, cafile=ca_certs
         )
-        context.check_hostname = False
+        context.check_hostname = check_hostname
         context.verify_mode = cert_reqs
 
         context.minimum_version = ssl.TLSVersion.TLSv1_2
 
         return context
 
-    def _get_socket_and_verify_ca_cert(
+    def _get_socket_and_verify_ca_cert(self) -> Optional[ssl.SSLSocket]:
+        """Attempts to connect to the remote host, assuming it is using a CA
+        signed certificate. If the cert is valid then a SSLSocket is returned.
+        Otherwise None is returned on error."""
+        s = self.get_simple_socket()
+        if s is None:
+            return None
+
+        context = self.get_ssl_context(
+            cert_reqs=ssl.CERT_REQUIRED, ca_certs=ca_path, check_hostname=True
+        )
+        return context.wrap_socket(
+            s, do_handshake_on_connect=True, server_hostname=self.host
+        )
+
+    def _get_socket_and_verify_ca_cert_checked(
         self, *, suppress_errors
     ) -> Tuple[Optional[ssl.SSLSocket], bool]:
         """Attempts to connect to the remote host, assuming it is using a CA
@@ -147,31 +147,24 @@ class TcpConnection(threading.Thread, PrintError):
         SSLSocket, False) is returned. Otherwise (None, bool) is returned on
         error. If the second item in the tuple is True, then the entire
         operation should be aborted due to low-level error."""
-        s = self.get_simple_socket()
-        if s is not None:
-            try:
-                context = self.get_ssl_context(
-                    cert_reqs=ssl.CERT_REQUIRED, ca_certs=ca_path
-                )
-                s = context.wrap_socket(s, do_handshake_on_connect=True)
-                # validate cert
-                if s and self.check_host_name(s.getpeercert(), self.host):
-                    self.print_error("SSL certificate signed by CA")
-                    # it's good, return the wrapped socket
-                    return s, False
-                # bad cert or other shenanigans, return None but inform caller
-                # to try alternate "pinned self-signed cert" code path
-                return None, False
-            except ssl.SSLError as e:
-                if not suppress_errors:
-                    # Only show error if no pinned self-signed cert exists
-                    self.print_error("SSL error:", e)
-                return None, False  # inform caller to continue trying alternate
-            except Exception as e:
-                self.print_error(
-                    "Unexpected exception in _get_socket_and_verify_ca_cert:", repr(e)
-                )
-        return None, True  # inform caller to abort the operation
+        try:
+            s = self._get_socket_and_verify_ca_cert()
+            if s is not None:
+                self.print_error("SSL certificate signed by CA")
+                # it's good, return the wrapped socket
+                return s, False
+        except ssl.SSLError as e:
+            if not suppress_errors:
+                # Only show error if no pinned self-signed cert exists
+                self.print_error("SSL error:", e)
+            return None, False  # inform caller to continue trying alternate
+        except Exception as e:
+            self.print_error(
+                "Unexpected exception in _get_socket_and_verify_ca_cert_checked:",
+                repr(e),
+            )
+        # inform caller to abort the operation
+        return None, True
 
     def get_socket(self):
         if self.use_ssl:
@@ -184,7 +177,7 @@ class TcpConnection(threading.Thread, PrintError):
                 sanitize_filename(self.host, replacement_text="_"),
             )
             has_pinned_self_signed = os.path.exists(cert_path)
-            s, give_up = self._get_socket_and_verify_ca_cert(
+            s, give_up = self._get_socket_and_verify_ca_cert_checked(
                 suppress_errors=has_pinned_self_signed
             )
             if s:
@@ -204,7 +197,7 @@ class TcpConnection(threading.Thread, PrintError):
                         pass
                 return s
             elif give_up:
-                # low-level error in _get_socket_and_verify_ca_cert, give up
+                # low-level error in _get_socket_and_verify_ca_cert_checked, give up
                 return
             # if we get here, certificate is not CA signed, so try the alternate
             # "pinned self-signed" method.
@@ -561,14 +554,6 @@ def check_cert(host, cert):
     m = "host: %s\n" % host
     m += "has_expired: %s\n" % expired
     print_msg(m)
-
-
-# Used by tests
-def _match_hostname(name, val):
-    if val == name:
-        return True
-
-    return val.startswith("*.") and name.endswith(val[1:])
 
 
 def test_certificates():
