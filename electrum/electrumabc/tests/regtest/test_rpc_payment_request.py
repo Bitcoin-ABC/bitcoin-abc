@@ -4,12 +4,13 @@ import pytest
 from jsonrpcclient import request
 
 # See https://docs.pytest.org/en/7.1.x/how-to/fixtures.html
-from .util import docker_compose_file  # noqa: F401
-from .util import fulcrum_service  # noqa: F401
-from .util import (
+from .util import (  # noqa: F401
     EC_DAEMON_RPC_URL,
     SUPPORTED_PLATFORM,
     bitcoind_rpc_connection,
+    docker_compose_command,
+    docker_compose_file,
+    fulcrum_service,
     poll_for_answer,
 )
 

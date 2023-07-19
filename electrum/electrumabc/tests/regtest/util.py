@@ -149,6 +149,16 @@ def docker_compose_file(pytestconfig) -> str:
     )
 
 
+@pytest.fixture(scope="session")
+def docker_compose_command() -> str:
+    """Use the docker-compose command rather than `docker compose`. This is no longer
+    the default since pytest-docker 2.0.0 was released, so we need to specify it.
+    The docker version installed on CI seems to be too old to be compatible with the
+    way pytest-docker calls the `docker compose` command.
+    """
+    return "docker-compose"
+
+
 def make_electrum_data_dir():
     """Create a temporary directory with a regtest subdirectory, and copy the Electrum
     config file into it.
