@@ -174,3 +174,28 @@ For plugin development, see the [plugin documentation](electrumabc_plugins/READM
 ## Creating Binaries
 
 See the *Building the release files* section in [contrib/release.md](contrib/release.md)
+
+## Backporting
+
+Electrum or Electron Cash features, refactoring commits or bug fixes can be
+backported into Electrum ABC.
+
+To do this, first add the remote repositories:
+```bash
+git remote add electrum https://github.com/spesmilo/electrum.git
+git remote add electroncash https://github.com/Electron-Cash/Electron-Cash.git
+```
+
+Then fetch the remote git history:
+```bash
+git fetch electrum
+git fetch electroncash
+```
+
+This step must be repeated every time you want to backport a commit that is more
+recent than the last time you fetched the history.
+
+Then you can cherry-pick the relevant commits:
+```bash
+git cherry-pick -Xsubtree=electrum <commit hash>
+```
