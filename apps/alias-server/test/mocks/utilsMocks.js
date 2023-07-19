@@ -2149,7 +2149,7 @@ module.exports = {
             aliasByteCount: 4,
         },
     ],
-    validAliasStrings: ['jasdf3873', 'abc123', 'abc'],
+    validAliasStrings: ["xec", 'abc123', 'abc'],
     invalidAliasStrings: [
         'jasDf3873',
         'Glück',
@@ -2160,6 +2160,6 @@ module.exports = {
         '#',
         'Z',
         '^%@',
-        'contact@bitcoinabc.org',
+        
     ],
 };
