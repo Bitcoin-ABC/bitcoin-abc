@@ -66,26 +66,25 @@ class Unrecoverable(FusionError):
 def is_tor_port(host, port):
     if not 0 <= port < 65536:
         return False
-    try:
+
+    if not hasattr(socket, "_socketobject"):
         socketclass = socket.socket
-        try:
-            # socket.socket could be monkeypatched (see electrumabc/network.py),
-            # in which case we need to get the real one.
-            socketclass = socket._socketobject
-        except AttributeError:
-            pass
-        s = socketclass(socket.AF_INET, socket.SOCK_STREAM)
+    else:
+        # socket.socket could be monkeypatched (see electrumabc/network.py),
+        # in which case we need to get the real one.
+        socketclass = socket._socketobject
+
+    ret = False
+    with socketclass(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.settimeout(0.1)
-        s.connect((host, port))
-        # Tor responds uniquely to HTTP-like requests
-        s.send(b"GET\n")
-        if b"Tor is not an HTTP Proxy" in s.recv(1024):
-            s.close()
-            return True
-        s.close()
-    except socket.error:
-        pass
-    return False
+        try:
+            s.connect((host, port))
+            # Tor responds uniquely to HTTP-like requests
+            s.send(b"GET\n")
+            ret = b"Tor is not an HTTP Proxy" in s.recv(1024)
+        except socket.error:
+            pass
+    return ret
 
 
 class TorLimiter:
