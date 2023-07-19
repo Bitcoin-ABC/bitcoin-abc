@@ -14,9 +14,9 @@ folder.
 
 2. Build binary
 
-    ```
-    $ git checkout REVISION_TAG_OR_BRANCH_OR_COMMIT_TAG
-    $ contrib/build-linux/appimage/build.sh
+    ```shell
+    git checkout REVISION_TAG_OR_BRANCH_OR_COMMIT_TAG
+    contrib/build-linux/appimage/build.sh
     ```
 
     _Note:_ If you are using a MacOS host, run the above **without** `sudo`.

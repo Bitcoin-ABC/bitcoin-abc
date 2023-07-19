@@ -5,20 +5,20 @@ Source tarballs
 
 1. To ensure no accidental local changes are included, run:
 
-    ```
-    $ contrib/make_clean
+    ```shell
+    contrib/make_clean
     ```
 
 2. To create the source tarball (with the libsecp library included):
 
-    ```
-    $ contrib/make_linux_sdist
+    ```shell
+    contrib/make_linux_sdist
     ```
 
     Alternatively, you may use a docker with all required dependencies installed:
 
-    ```
-    $ contrib/build-linux/srcdist_docker/build.sh
+    ```shell
+    contrib/build-linux/srcdist_docker/build.sh
     ```
 
 3. A `.tar.gz` and a `.zip` file of Electrum ABC will be placed in the `dist/` subdirectory.
@@ -32,10 +32,10 @@ AppImage
 
 1. To create a deterministic Linux AppImage (standalone bundle):
 
-    ```
-    $ contrib/make_clean
-    $ git checkout COMMIT_OR_TAG
-    $ contrib/build-linux/appimage/build.sh
+    ```shell
+    contrib/make_clean
+    git checkout COMMIT_OR_TAG
+    contrib/build-linux/appimage/build.sh
     ```
 
     Where `COMMIT_OR_TAG` is a git commit or branch or tag (eg `master`, `4.0.2`, etc).

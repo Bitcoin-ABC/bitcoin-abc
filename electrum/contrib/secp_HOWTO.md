@@ -86,8 +86,8 @@ But for now, your package manager's `libsecp256k1-0` will be sufficient.
 mileage may vary.*
 
 Example Ubuntu command:
-```
-$ sudo apt install libsecp256k1-0
+```shell
+sudo apt install libsecp256k1-0
 ```
 
 #### The above all failed! What now?!

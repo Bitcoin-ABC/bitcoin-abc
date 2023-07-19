@@ -35,14 +35,14 @@ in addition to your system's version.
 ### Python packages
 
 The simplest way to install all needed packages is to run the following command:
-```
+```shell
 pip install .[all]
 ```
 
 This will install Electrum ABC and all its dependencies as a python package and application.
 
 This is equivalent to:
-```
+```shell
 pip install .
 pip install .[gui]
 pip install .[hardware]
@@ -50,7 +50,7 @@ pip install .[hardware]
 
 If you do not want to install Electrum ABC as a package, you can install only the dependencies
 using the following commands:
-```
+```shell
 pip3 install -r contrib/requirements/requirements.txt
 pip3 install -r contrib/requirements/requirements-binaries.txt
 pip3 install -r contrib/requirements/requirements-hw.txt
@@ -105,22 +105,22 @@ is required for either).
 ## Running tests
 
 Running unit tests:
-```
+```shell
 python3 test_runner.py
 ```
 
 This can also be run as a `ninja` target in the context of a Bitcoin ABC build:
-```
+```shell
 ninja check-electrum
 ```
 
 Functional tests can be run with the following command:
-```
+```shell
 pytest electrumabc/tests/regtest
 ```
 
 This requires `docker` and additional python dependencies:
-```
+```shell
 pip3 install -r contrib/requirements/requirements-regtest.txt
 ```
 
@@ -133,13 +133,13 @@ It is required when using CashFusion, as slow participants can cause a fusion ro
 to fail.
 
 On Debian or Ubuntu linux:
-```
+```shell
 sudo apt-get install libtool automake
 ./contrib/make_secp
 ```
 
 On MacOS:
-```
+```shell
 brew install coreutils automake
 ./contrib/make_secp
 ```
@@ -150,7 +150,7 @@ or if using MacPorts: `sudo port install coreutils automake`
 
 If you change or add any icons to the `icons` subdirectory, you need to run the following
 script before you can use them in the application:
-```
+```shell
 contrib/gen_icons.sh
 ```
 
@@ -162,7 +162,7 @@ sudo apt-get install pyqt5-dev-tools
 
 ## Creating translations
 <!-- FIXME: we are still relying on Electron Cash translations-->
-```
+```shell
 sudo apt-get install python-requests gettext
 ./contrib/make_locale
 ```
@@ -181,13 +181,13 @@ Electrum or Electron Cash features, refactoring commits or bug fixes can be
 backported into Electrum ABC.
 
 To do this, first add the remote repositories:
-```bash
+```shell
 git remote add electrum https://github.com/spesmilo/electrum.git
 git remote add electroncash https://github.com/Electron-Cash/Electron-Cash.git
 ```
 
 Then fetch the remote git history:
-```bash
+```shell
 git fetch electrum
 git fetch electroncash
 ```
@@ -196,6 +196,6 @@ This step must be repeated every time you want to backport a commit that is more
 recent than the last time you fetched the history.
 
 Then you can cherry-pick the relevant commits:
-```bash
+```shell
 git cherry-pick -Xsubtree=electrum <commit hash>
 ```

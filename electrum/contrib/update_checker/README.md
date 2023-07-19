@@ -21,7 +21,7 @@ It hopefully will decrease the number of users running very old versions of Elec
 You need to update `releases.json` in this directory whenever a new version is released, and push it to master.
 
 This file contains a dictionary of:
-```
+```json
     {
         "version string" : { "bitcoin address" : "signed message" }
     }
@@ -67,7 +67,7 @@ Notice how the version string is different, the signing address happened to rema
 Before pushing the commit to the remote repository, it is possible to test locally that a signature is correct.
 For this, run the application from sources with the `--test-release-notification` command line option.
 
-```
+```shell
 ./electrum-abc -v --test-release-notification
 ```
 
