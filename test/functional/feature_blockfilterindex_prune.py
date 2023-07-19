@@ -15,6 +15,8 @@ class FeatureBlockfilterindexPruneTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.extra_args = [["-fastprune", "-prune=1", "-blockfilterindex=1"]]
+        # Mining 1000 blocks sometimes causes a timeout for the generatetoaddress RPC
+        self.rpc_timeout = 120
 
     def sync_index(self, height):
         expected = {
