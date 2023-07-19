@@ -169,7 +169,7 @@ sudo apt-get install python-requests gettext
 
 ## Plugin development
 
-For plugin development, see the [plugin documentation](electrumabc_plugins/README.rst).
+For plugin development, see the [plugin documentation](electrumabc_plugins/README.md).
 
 ## Creating Binaries
 

@@ -1,5 +1,4 @@
-Electrum ABC - Plugins
-======================
+# Electrum ABC - Plugins
 
 The plugin system of Electrum ABC is designed to allow the development
 of new features without increasing the core code of Electrum ABC.
@@ -32,12 +31,12 @@ this may even reduce maintenance requirements
 as internals a plugin developer makes use of can easily get changed
 in the course of normal development.
 
-Risks and Dangers
-=================
+## Risks and Dangers
 
 Plugins, like Electrum ABC, are written in pure Python, in the form of
-PythonPackages_.  This means they can access almost all of Electron
-Cash's state, and change any behaviour, perhaps even in dishonest ways
+[PythonPackages](https://docs.python.org/3/tutorial/modules.html#packages).
+This means they can access almost all of Electrum ABC's state,
+and change any behaviour, perhaps even in dishonest ways
 you might not even notice at first.  They might even use Python's file
 system access, or other similar functionality, to damage whatever else
 they can access.
@@ -50,24 +49,21 @@ If you plan to develop a plugin, it is in your best interest to get it
 reviewed by someone a plugin user knows and trusts, before releasing it,
 in order to have provable safety for potential users as a feature.
 
-.. _PythonPackages: https://docs.python.org/3/tutorial/modules.html#packages
 
-Types of Plugin
-===============
+## Types of Plugin
 
 Optional features (internal plugins) are included with Electrum ABC, and are
 available to all users of Electrum ABC to enable and disable as they wish.
 They cannot be uninstalled, and no installation functionality is provided
 either.
 
-User installable plugins (external plugins) are not included with Electron
-Cash.  The user must use the Plugin Manager to install these, through the
+User installable plugins (external plugins) are not included with Electrum
+ABC.  The user must use the Plugin Manager to install these, through the
 user interface.  In the QT UI, this is accessed through the Tools menu.  The
 process of installation includes both warnings and required user confirmations
 that they accept the risks installing them incurs.
 
-Internal Plugin Rules
-=====================
+## Internal Plugin Rules
 
 - We expect plugin developers to maintain their plugin code. However,
   once a plugin is merged in Electrum ABC, we will have to maintain it
@@ -84,16 +80,15 @@ Internal Plugin Rules
 
 - We may decide to remove a plugin after it has been merged in
   Electrum ABC. For this reason, a plugin must be easily removable,
-  without putting at risk the user's bitcoins. If we feel that a
+  without putting at risk the user's funds. If we feel that a
   plugin cannot be removed without threatening users who rely on it,
   we will not merge it.
 
-External Plugins
-================
+## External Plugins
 
 At this time, external plugins must be developed in the same way as an
 internal plugin.  It might be that this can be done by placing a symbolic link
-to your plugin's Python package directory, in the ``plugins`` directory within the
+to your plugin's Python package directory, in the `plugins` directory within the
 clone of the Electrum ABC source you are developing within.
 
 Please be sure that you test your plugin with the same recommended version of
@@ -101,76 +96,72 @@ Python for the version of Electrum ABC you intend to specify in your
 plugin's minimum Electrum ABC version.  Not doing so, will cause you pain
 and potential users to avoid your plugin.
 
-Packaging The Hard Way
-----------------------
+### Packaging The Hard Way
 
 Once your plugin is ready for use by other users, you can package it for them
 so they can take advantage of the easy methods of plugin installation available
 in the QT user interface (drag and drop onto the plugin manager, or click
-``Add Plugin`` and select the plugin zip archive).
+`Add Plugin` and select the plugin zip archive).
 
 An external plugin must be constructed in the form of a zip archive that is
-acceptable to the Python ``zipimport`` module.  Within this archive must be two
+acceptable to the Python `zipimport` module.  Within this archive must be two
 things:
 
-- The ``manifest.json`` file which provides plugin metadata.
+- The `manifest.json` file which provides plugin metadata.
 - The Python package directory that contains your plugin code.
 
 It is recommended that your Python package directory contain precompiled
 Python bytecode files.  Python includes
-the `compileall module <https://docs.python.org/3/library/compileall.html#command-line-use>`
+the [compileall module](https://docs.python.org/3/library/compileall.html#command-line-use)
 within it's standard library which can do this from the command line.  This
-is because ``zipimport`` does not support writing these back into the zip archive
+is because `zipimport` does not support writing these back into the zip archive
 which encapulates your packaged plugin.
 
-The ``manifest.json`` file has required fields:
+The `manifest.json` file has required fields:
 
-- ``display_name``: This is the name of your plugin.
-- ``version``: This is the version of your plugin.  Only numeric versions of the
-  form ``<integer>.<integer>`` (e.g. ``1.0``) or ``<integer>.<integer>.<integer>``
-  (e.g. ``1.0.1``) are supported.
-- ``project_url``: This is the official URL of your project.
-- ``description``: A longer form description of how your plugin upgrades
+- `display_name`: This is the name of your plugin.
+- `version`: This is the version of your plugin.  Only numeric versions of the
+  form `<integer>.<integer>` (e.g. `1.0`) or `<integer>.<integer>.<integer>`
+  (e.g. `1.0.1`) are supported.
+- `project_url`: This is the official URL of your project.
+- `description`: A longer form description of how your plugin upgrades
   Electrum ABC.
-- ``minimum_ec_version``: This is the earliest version of Electrum ABC
-  which your plugin is known to work with.  This will not be ``3.2`` or lower
-  as the external plugin functionality only arrived after that version.
-- ``package_name``: This is the name of the Python package directory at the
+- `minimum_ec_version`: This is the earliest version of Electrum ABC
+  which your plugin is known to work with.
+- `package_name`: This is the name of the Python package directory at the
   top level of the zip archive, which contains your plugin code.  It is
   necessary to formally specify this, to spare Electrum ABC confusion in
   the case of advanced plugin packages which contain multiple Python
   packages, or even looking around to distinguish between the one Python
   package and other data directories.
-- ``available_for``: This is a list of keywords which map to supported
-  Electrum ABC plugin interfaces.  Valid values to include are ``qt`` and
-  ``cmdline``.
+- `available_for`: This is a list of keywords which map to supported
+  Electrum ABC plugin interfaces.  Valid values to include are `qt` and
+  `cmdline`.
 
 If you do not include these fields in your manifest file, then the user will
 see an error message when they try and install it.
 
-Example ``manifest.json``
-^^^^^^^^^^^^^^^^^^^^^^^^^
+#### Example `manifest.json`
 
-.. code-block:: json
+```json
+{
+    "display_name": "Scheduled Payments",
+    "version": "1.0",
+    "project_url": "https://github.com/rt121212121/electron_cash_scheduled_payments_plugin",
+    "description": "This allows a user to specify recurring payments to a number of recipients.",
+    "minimum_ec_version": "3.2",
+    "package_name": "scheduled_payments",
+    "available_for": [
+        "qt"
+    ]
+}
+```
 
-    {
-        "display_name": "Scheduled Payments",
-        "version": "1.0",
-        "project_url": "https://github.com/rt121212121/electron_cash_scheduled_payments_plugin",
-        "description": "This allows a user to specify recurring payments to a number of recipients.",
-        "minimum_ec_version": "3.2",
-        "package_name": "scheduled_payments",
-        "available_for": [
-            "qt"
-        ]
-    }
+### The Easy Way
 
-The Easy Way
-------------
-
-In the ``contrib`` directory of the Electrum ABC source tree, you can find a script
-named ``package_plugin.py``.  Execute this script with the command-line
-``py -3 package_plugin.py``.  You must have ``PyQT5`` installed, which you will have
+In the `contrib` directory of the Electrum ABC source tree, you can find a script
+named `package_plugin.py`.  Execute this script with the command-line
+`py -3 package_plugin.py`.  You must have `PyQT5` installed, which you will have
 if you are developing against a clone of the GIT repository.
 
 A window will be displayed with fields for all the required manifest fields, and
@@ -180,14 +171,13 @@ user can then drag into their Electrum ABC wallet's plugin manager, to
 almost immediately install and run (sure they have to check a barrage of warnings
 about the damage you could do to them).
 
-Advanced Python Packaging
--------------------------
+### Advanced Python Packaging
 
 With a bit of thought a user can bundle additional supporting Python packages,
 or even binary data like icons, into their plugin archive.
 
 It is not possible to import Python extension modules (.pyd, .dll, .so, etc)
-from within a ``ziparchive`` "mounted zip archive".
+from within a `ziparchive` "mounted zip archive".
 
 If you need to extract data from the archive, to make use of it, please contact
 the Electrum ABC developers to work out a standard way to do so, so that if
