@@ -118,6 +118,8 @@ class EndpointBackportcheckTestCase(ABCBotFixture):
                             " core-gui#2 and "
                             "secp256k1#253431 in a code block using indentation\n"
                             "this is a port of bchn#1234\n"
+                            "a backport of electroncash#2081\n"
+                            "a backport of electrum#2361\n"
                         ),
                     },
                 }
@@ -190,6 +192,12 @@ class EndpointBackportcheckTestCase(ABCBotFixture):
                             "this is a port of"
                             " [[https://gitlab.com/bitcoin-cash-node/bitcoin-cash-node/merge_requests/1234 | "
                             "bchn#1234]]\n"
+                            "a backport of"
+                            " [[https://github.com/Electron-Cash/Electron-Cash/pull/2081"
+                            " | electroncash#2081]]\n"
+                            "a backport of"
+                            " [[https://github.com/spesmilo/electrum/pull/2361 |"
+                            " electrum#2361]]\n"
                         ),
                     }
                 ],

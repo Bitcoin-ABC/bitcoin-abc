@@ -240,6 +240,8 @@ def create_server(tc, phab, slackbot, cirrus, db_file_no_ext=None, jsonProvider=
                     "core-gui": githubUrl.format("bitcoin-core/gui"),
                     "secp256k1": githubUrl.format("bitcoin-core/secp256k1"),
                     "bchn": gitlabUrl.format("bitcoin-cash-node/bitcoin-cash-node"),
+                    "electroncash": githubUrl.format("Electron-Cash/Electron-Cash"),
+                    "electrum": githubUrl.format("spesmilo/electrum"),
                 }
 
                 for prefix, url in supportedRepos.items():
