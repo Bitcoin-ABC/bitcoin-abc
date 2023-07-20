@@ -15,7 +15,6 @@ from jsonpath_ng import parse as path_parse
 from jsonrpcclient import parse as rpc_parse
 from jsonrpcclient import request
 
-_datadir = None
 _bitcoind = None
 
 SUPPORTED_PLATFORM = (
@@ -88,19 +87,18 @@ def bitcoind_rpc_connection() -> AuthServiceProxy:
 
 # Creates a temp directory on disk for wallet storage
 # Starts a daemon, creates and loads a wallet
-def start_ec_daemon() -> None:
+def start_ec_daemon(datadir: str) -> None:
     """
     Creates a temp directory on disk for wallet storage
     Starts a daemon, creates and loads a wallet
     """
-    assert _datadir is not None
-    default_wallet = os.path.join(_datadir, "default_wallet")
+    default_wallet = os.path.join(datadir, "default_wallet")
     subprocess.run(
         [
             ELECTRUMABC_COMMAND,
             "--regtest",
             "-D",
-            _datadir,
+            datadir,
             "-w",
             default_wallet,
             "daemon",
@@ -130,10 +128,10 @@ def start_ec_daemon() -> None:
     )
 
 
-def stop_ec_daemon() -> None:
+def stop_ec_daemon(datadir) -> None:
     """Stops the daemon"""
     subprocess.run(
-        [ELECTRUMABC_COMMAND, "--regtest", "-D", _datadir, "daemon", "stop"], check=True
+        [ELECTRUMABC_COMMAND, "--regtest", "-D", datadir, "daemon", "stop"], check=True
     )
 
 
@@ -159,13 +157,12 @@ def docker_compose_command() -> str:
     return "docker-compose"
 
 
-def make_electrum_data_dir():
+def make_tmp_electrum_data_dir() -> str:
     """Create a temporary directory with a regtest subdirectory, and copy the Electrum
     config file into it.
     The caller is responsible for deleting the temporary directory."""
-    global _datadir
-    _datadir = tempfile.mkdtemp()
-    os.mkdir(os.path.join(_datadir, "regtest"))
+    datadir = tempfile.mkdtemp()
+    os.mkdir(os.path.join(datadir, "regtest"))
     shutil.copyfile(
         os.path.join(
             ELECTRUM_ROOT,
@@ -175,30 +172,24 @@ def make_electrum_data_dir():
             "configs",
             "electrum-abc-config",
         ),
-        os.path.join(_datadir, "regtest", "config"),
+        os.path.join(datadir, "regtest", "config"),
     )
+    return datadir
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def fulcrum_service(docker_services: Any) -> Generator[None, None, None]:
     """Makes sure all services (bitcoind, fulcrum and the electrum daemon) are up and
     running, make a temporary data dir for Electrum ABC, delete it at the end of the
     test session.
     """
-    global _datadir
-    global _bitcoind
-    if _datadir is not None:
-        # After the first time the fixture is created nothing needs to be done, so this
-        # is a no-op for subsequent calls.
-        yield
-    else:
-        make_electrum_data_dir()
-        _bitcoind = bitcoind_rpc_connection()
-        poll_for_answer(FULCRUM_STATS_URL, expected_answer=("Controller.TxNum", 102))
+    electrum_datadir = make_tmp_electrum_data_dir()
+    bitcoind_rpc_connection()
+    poll_for_answer(FULCRUM_STATS_URL, expected_answer=("Controller.TxNum", 102))
 
-        try:
-            start_ec_daemon()
-            yield
-        finally:
-            stop_ec_daemon()
-            shutil.rmtree(_datadir)
+    try:
+        start_ec_daemon(electrum_datadir)
+        yield
+        stop_ec_daemon(electrum_datadir)
+    finally:
+        shutil.rmtree(electrum_datadir)
