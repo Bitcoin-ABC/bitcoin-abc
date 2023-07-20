@@ -12,8 +12,9 @@ def AnyWith(cls, attrs=None):
         def __eq__(self, other):
             if not isinstance(other, cls):
                 raise AssertionError(
-                    "Argument class type did not match.\nExpected:\n{}\n\nActual:\n{}"
-                    .format(pformat(cls), pformat(other))
+                    "Argument class type did not match.\nExpected:\n{}\n\nActual:\n{}".format(
+                        pformat(cls), pformat(other)
+                    )
                 )
             if attrs is not None:
                 for attr, expectedValue in attrs.items():

@@ -235,10 +235,8 @@ def render(screen, peers, cur_list_pos, scroll, ROWS_AVALIABLE_FOR_LIST, info_pa
     screen.addstr(
         1,
         0,
-        (
-            " Navigate with UP/DOWN or J/K and select a peer with ENTER or SPACE to see"
-            " individual P2P messages"
-        ),
+        " Navigate with UP/DOWN or J/K and select a peer with ENTER or SPACE to see"
+        " individual P2P messages",
         curses.A_NORMAL,
     )
     screen.addstr(

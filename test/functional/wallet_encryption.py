@@ -34,20 +34,16 @@ class WalletEncryptionTest(BitcoinTestFramework):
         assert self.nodes[0].verifymessage(address, sig, msg)
         assert_raises_rpc_error(
             -15,
-            (
-                "Error: running with an unencrypted wallet, but walletpassphrase was"
-                " called"
-            ),
+            "Error: running with an unencrypted wallet, but walletpassphrase was"
+            " called",
             self.nodes[0].walletpassphrase,
             "ff",
             1,
         )
         assert_raises_rpc_error(
             -15,
-            (
-                "Error: running with an unencrypted wallet, but walletpassphrasechange"
-                " was called."
-            ),
+            "Error: running with an unencrypted wallet, but walletpassphrasechange"
+            " was called.",
             self.nodes[0].walletpassphrasechange,
             "ff",
             "ff",

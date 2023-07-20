@@ -358,8 +358,9 @@ class Synchronizer(ThreadJob):
             chk_txid = tx.txid_fast()
             if tx_hash != chk_txid:
                 self.print_error(
-                    "received tx does not match expected txid ({} != {}), skipping"
-                    .format(tx_hash, chk_txid)
+                    "received tx does not match expected txid ({} != {}), skipping".format(
+                        tx_hash, chk_txid
+                    )
                 )
                 return
             del chk_txid

@@ -51,8 +51,9 @@ def _get_asert_activation_mtp():
         pass
     if not isinstance(mtp, int) or mtp <= 1510600000:
         print_error(
-            "Error: Environment variable ASERT_MTP ignored because it is invalid: {}"
-            .format(str(mtp))
+            "Error: Environment variable ASERT_MTP ignored because it is invalid: {}".format(
+                str(mtp)
+            )
         )
         mtp = default_mtp
     if mtp != default_mtp:

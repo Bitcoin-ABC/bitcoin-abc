@@ -112,9 +112,11 @@ class SatochipSettingsDialog(WindowModalDialog):
         grid.setColumnStretch(3, 1)
 
         # see <http://doc.qt.io/archives/qt-4.8/richtext-html-subset.html>
-        title = QtWidgets.QLabel("""<center>
+        title = QtWidgets.QLabel(
+            """<center>
 <span style="font-size: x-large">Satochip Wallet</span>
-<br><a href="https://satochip.io">satochip.io</a>""")
+<br><a href="https://satochip.io">satochip.io</a>"""
+        )
         title.setTextInteractionFlags(Qt.LinksAccessibleByMouse)
 
         grid.addWidget(title, 0, 0, 1, 2, Qt.AlignHCenter)
@@ -347,10 +349,8 @@ class SatochipSettingsDialog(WindowModalDialog):
                 reply_encrypt = d["reply_encrypt"]
             except Exception:
                 self.give_error(
-                    (
-                        "No response received from 2FA.\nPlease ensure that the"
-                        " Satochip-2FA plugin is enabled in Tools>Optional Features"
-                    ),
+                    "No response received from 2FA.\nPlease ensure that the"
+                    " Satochip-2FA plugin is enabled in Tools>Optional Features",
                     True,
                 )
             reply_decrypt = client.cc.card_crypt_transaction_2FA(reply_encrypt, False)
@@ -405,8 +405,7 @@ class SatochipSettingsDialog(WindowModalDialog):
                 try:
                     help_txt = (
                         "Scan the QR-code with your Satochip-2FA app and make a backup"
-                        " of the following secret: "
-                        + secret_2FA_hex
+                        " of the following secret: " + secret_2FA_hex
                     )
                     d = QRDialog(
                         data=secret_2FA_hex,

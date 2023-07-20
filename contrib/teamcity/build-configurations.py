@@ -267,10 +267,8 @@ class BuildConfiguration:
             script_file = self.build_directory.joinpath("docker_timeout.sh")
             self.create_script_file(
                 script_file,
-                (
-                    f'cd "${{HOME}}" && echo "docker stop {tag_name}" | at now'
-                    f" +{timeout_minutes} minutes"
-                ),
+                f'cd "${{HOME}}" && echo "docker stop {tag_name}" | at now'
+                f" +{timeout_minutes} minutes",
             )
 
             self.build_steps.append(
@@ -381,7 +379,8 @@ class BuildConfiguration:
                     "-G",
                     generator_name,
                     str(self.project_root),
-                ] + self.cmake_flags,
+                ]
+                + self.cmake_flags,
             }
         )
 

@@ -148,20 +148,16 @@ class WalletTest(BitcoinTestFramework):
         assert_equal(len(self.nodes[2].listlockunspent()), 0)
         assert_raises_rpc_error(
             -8,
-            (
-                "txid must be of length 64 (not 34, for"
-                " '0000000000000000000000000000000000')"
-            ),
+            "txid must be of length 64 (not 34, for"
+            " '0000000000000000000000000000000000')",
             self.nodes[2].lockunspent,
             False,
             [{"txid": "0000000000000000000000000000000000", "vout": 0}],
         )
         assert_raises_rpc_error(
             -8,
-            (
-                "txid must be hexadecimal string (not"
-                " 'ZZZ0000000000000000000000000000000000000000000000000000000000000')"
-            ),
+            "txid must be hexadecimal string (not"
+            " 'ZZZ0000000000000000000000000000000000000000000000000000000000000')",
             self.nodes[2].lockunspent,
             False,
             [

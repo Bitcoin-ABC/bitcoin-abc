@@ -153,9 +153,7 @@ class FrameworkInfo(object):
             info.binaryPath = os.path.join(info.binaryDirectory, info.binaryName)
             info.version = parts[i + 2]
 
-            info.deployedInstallName = (
-                f"@executable_path/../Frameworks/{os.path.join(info.frameworkName, info.binaryPath)}"
-            )
+            info.deployedInstallName = f"@executable_path/../Frameworks/{os.path.join(info.frameworkName, info.binaryPath)}"
             info.destinationDirectory = os.path.join(
                 cls.bundleFrameworkDirectory, info.frameworkName, info.binaryDirectory
             )
@@ -614,12 +612,14 @@ def deployPlugins(
                 )
 
 
-ap = ArgumentParser(description="""Improved version of macdeployqt.
+ap = ArgumentParser(
+    description="""Improved version of macdeployqt.
 
 Outputs a ready-to-deploy app in a folder "dist" and optionally wraps it in a .dmg file.
 Note, that the "dist" folder will be deleted before deploying on each run.
 
-Optionally, Qt translation files (.qm) can be added to the bundle.""")
+Optionally, Qt translation files (.qm) can be added to the bundle."""
+)
 
 ap.add_argument(
     "app_bundle",

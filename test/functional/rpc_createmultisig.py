@@ -143,8 +143,7 @@ class RpcCreateMultiSigTest(BitcoinTestFramework):
                 )
                 if e.error["code"] == -18 and (
                     "Wallet file verification failed. Failed to load database "
-                    f"path '{path}'. Path does not exist."
-                    in e.error["message"]
+                    f"path '{path}'. Path does not exist." in e.error["message"]
                 ):
                     node1.createwallet(wallet_name="wmulti", disable_private_keys=True)
                 else:

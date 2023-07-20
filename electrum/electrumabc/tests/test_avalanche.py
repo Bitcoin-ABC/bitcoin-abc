@@ -214,17 +214,15 @@ class TestAvalancheProofBuilder(unittest.TestCase):
                 },
             ],
             Address.from_string("ecash:qrupwtz3a7lngsf6xz9qxr75k9jvt07d3uexmwmpqy"),
-            (
-                "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
-                "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
-                "e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb"
-                "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680e6569b4412"
-                "fbb651e44282419f62e9b3face655d3a96e286f70dd616592d6837ccf55cadd71eb53"
-                "50a4c46f23ca69230c27f6c0a7c1ed15aee38ab4cbc6f8d031976a914f8172c51efbf"
-                "34413a308a030fd4b164c5bfcd8f88ac2fe2dbc2d5d28ed70f4bf9e3e7e76db091570"
-                "8100f048a17f6347d95e1135d6403241db4f4b42aa170919bd0847d158d087d9b0d9b"
-                "92ad41114cf03a3d44ec84"
-            ),
+            "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
+            "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
+            "e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb"
+            "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680e6569b4412"
+            "fbb651e44282419f62e9b3face655d3a96e286f70dd616592d6837ccf55cadd71eb53"
+            "50a4c46f23ca69230c27f6c0a7c1ed15aee38ab4cbc6f8d031976a914f8172c51efbf"
+            "34413a308a030fd4b164c5bfcd8f88ac2fe2dbc2d5d28ed70f4bf9e3e7e76db091570"
+            "8100f048a17f6347d95e1135d6403241db4f4b42aa170919bd0847d158d087d9b0d9b"
+            "92ad41114cf03a3d44ec84",
             UInt256.from_hex(
                 "199bd28f711413cf2cf04a2520f3ccadbff296d9be231c00cb6308528a0b51ca",
             ),

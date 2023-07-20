@@ -216,10 +216,8 @@ class BlockchainTest(BitcoinTestFramework):
         )
         assert_raises_rpc_error(
             -8,
-            (
-                "blockhash must be hexadecimal string (not"
-                " 'ZZZ0000000000000000000000000000000000000000000000000000000000000')"
-            ),
+            "blockhash must be hexadecimal string (not"
+            " 'ZZZ0000000000000000000000000000000000000000000000000000000000000')",
             self.nodes[0].getchaintxstats,
             blockhash=(
                 "ZZZ0000000000000000000000000000000000000000000000000000000000000"
@@ -356,10 +354,8 @@ class BlockchainTest(BitcoinTestFramework):
         )
         assert_raises_rpc_error(
             -8,
-            (
-                "hash must be hexadecimal string (not"
-                " 'ZZZ7bb8b1697ea987f3b223ba7819250cae33efacb068d23dc24859824a77844')"
-            ),
+            "hash must be hexadecimal string (not"
+            " 'ZZZ7bb8b1697ea987f3b223ba7819250cae33efacb068d23dc24859824a77844')",
             node.getblockheader,
             "ZZZ7bb8b1697ea987f3b223ba7819250cae33efacb068d23dc24859824a77844",
         )

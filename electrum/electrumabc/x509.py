@@ -378,8 +378,7 @@ class X509(object):
         )
         if not_before > now:
             raise CertificateError(
-                "Certificate for {} has not yet entered its valid date range. ({})"
-                .format(
+                "Certificate for {} has not yet entered its valid date range. ({})".format(
                     self.get_common_name(),
                     time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(not_before)),
                 )

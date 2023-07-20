@@ -163,9 +163,9 @@ class Plugins(DaemonThread):
                 )
             else:
                 d[key] = val  # rewrite translated string
-                d[ut_key] = (
-                    ut_val  # save untranslated metadata for later so that this function may be called again from GUI
-                )
+                d[
+                    ut_key
+                ] = ut_val  # save untranslated metadata for later so that this function may be called again from GUI
 
     def load_internal_plugins(self):
         for loader, name, ispkg in pkgutil.iter_modules(
@@ -653,12 +653,10 @@ def run_hook(name, *args, **kwargs):
     this_thread = threading.current_thread()
     if this_thread is not threading.main_thread():
         warn(
-            (
-                f'run_hook "{name}" being called from outside the main'
-                f" thread (thr: {this_thread.name}) may lead to undefined"
-                " behavior. Please use util.do_in_main_thread to call run_hook"
-                " if the hook in question does not return any results."
-            ),
+            f'run_hook "{name}" being called from outside the main'
+            f" thread (thr: {this_thread.name}) may lead to undefined"
+            " behavior. Please use util.do_in_main_thread to call run_hook"
+            " if the hook in question does not return any results.",
             stacklevel=2,
         )
     f_list = hooks.get(name)

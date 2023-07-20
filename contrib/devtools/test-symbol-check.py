@@ -44,7 +44,8 @@ class TestSymbolChecks(unittest.TestCase):
         # renameat2 was introduced in GLIBC 2.28, so is newer than the upper limit
         # of glibc for all platforms
         with open(source, "w", encoding="utf8") as f:
-            f.write("""
+            f.write(
+                """
                 #define _GNU_SOURCE
                 #include <stdio.h>
                 #include <linux/fs.h>
@@ -57,7 +58,8 @@ class TestSymbolChecks(unittest.TestCase):
                     renameat2(0, "test", 0, "test_", RENAME_EXCHANGE);
                     return 0;
                 }
-        """)
+        """
+            )
 
         self.assertEqual(
             call_symbol_check(cc, source, executable, []),
@@ -76,7 +78,8 @@ class TestSymbolChecks(unittest.TestCase):
         source = "test2.c"
         executable = "test2"
         with open(source, "w", encoding="utf8") as f:
-            f.write("""
+            f.write(
+                """
                 #include <utmp.h>
 
                 int main()
@@ -84,7 +87,8 @@ class TestSymbolChecks(unittest.TestCase):
                     login(0);
                     return 0;
                 }
-        """)
+        """
+            )
 
         self.assertEqual(
             call_symbol_check(cc, source, executable, ["-lutil"]),
@@ -102,7 +106,8 @@ class TestSymbolChecks(unittest.TestCase):
         executable = "test3"
 
         with open(source, "w", encoding="utf8") as f:
-            f.write("""
+            f.write(
+                """
                 #include <stdio.h>
 
                 int main()
@@ -110,7 +115,8 @@ class TestSymbolChecks(unittest.TestCase):
                     printf("42");
                     return 0;
                 }
-        """)
+        """
+            )
 
         self.assertEqual(call_symbol_check(cc, source, executable, []), (0, ""))
 
@@ -120,7 +126,8 @@ class TestSymbolChecks(unittest.TestCase):
         cc = determine_wellknown_cmd("CC", "clang")
 
         with open(source, "w", encoding="utf8") as f:
-            f.write("""
+            f.write(
+                """
                 #include <expat.h>
 
                 int main()
@@ -129,7 +136,8 @@ class TestSymbolChecks(unittest.TestCase):
                     return 0;
                 }
 
-        """)
+        """
+            )
 
         self.assertEqual(
             call_symbol_check(
@@ -154,7 +162,8 @@ class TestSymbolChecks(unittest.TestCase):
         source = "test2.c"
         executable = "test2"
         with open(source, "w", encoding="utf8") as f:
-            f.write("""
+            f.write(
+                """
                 #include <CoreGraphics/CoreGraphics.h>
 
                 int main()
@@ -162,7 +171,8 @@ class TestSymbolChecks(unittest.TestCase):
                     CGMainDisplayID();
                     return 0;
                 }
-        """)
+        """
+            )
 
         self.assertEqual(
             call_symbol_check(
@@ -184,12 +194,14 @@ class TestSymbolChecks(unittest.TestCase):
         source = "test3.c"
         executable = "test3"
         with open(source, "w", encoding="utf8") as f:
-            f.write("""
+            f.write(
+                """
                 int main()
                 {
                     return 0;
                 }
-        """)
+        """
+            )
 
         self.assertEqual(
             call_symbol_check(
@@ -207,7 +219,8 @@ class TestSymbolChecks(unittest.TestCase):
         cc = determine_wellknown_cmd("CC", "x86_64-w64-mingw32-gcc")
 
         with open(source, "w", encoding="utf8") as f:
-            f.write("""
+            f.write(
+                """
                 #include <pdh.h>
 
                 int main()
@@ -215,7 +228,8 @@ class TestSymbolChecks(unittest.TestCase):
                     PdhConnectMachineA(NULL);
                     return 0;
                 }
-        """)
+        """
+            )
 
         self.assertEqual(
             call_symbol_check(
@@ -242,12 +256,14 @@ class TestSymbolChecks(unittest.TestCase):
         executable = "test2.exe"
 
         with open(source, "w", encoding="utf8") as f:
-            f.write("""
+            f.write(
+                """
                 int main()
                 {
                     return 0;
                 }
-        """)
+        """
+            )
 
         self.assertEqual(
             call_symbol_check(
@@ -267,7 +283,8 @@ class TestSymbolChecks(unittest.TestCase):
         source = "test3.c"
         executable = "test3.exe"
         with open(source, "w", encoding="utf8") as f:
-            f.write("""
+            f.write(
+                """
                 #include <windows.h>
 
                 int main()
@@ -275,7 +292,8 @@ class TestSymbolChecks(unittest.TestCase):
                     CoFreeUnusedLibrariesEx(0,0);
                     return 0;
                 }
-        """)
+        """
+            )
 
         self.assertEqual(
             call_symbol_check(

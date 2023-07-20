@@ -13,10 +13,8 @@ class TestNewMnemonic(unittest.TestCase):
         )
         self.assertEqual(
             bh2u(seed),
-            (
-                "741b72fd15effece6bfe5a26a52184f66811bd2be363190e07a42cca442b1a5b"
-                "b22b3ad0eb338197287e6d314866c7fba863ac65d3f156087a5052ebc7157fce"
-            ),
+            "741b72fd15effece6bfe5a26a52184f66811bd2be363190e07a42cca442b1a5b"
+            "b22b3ad0eb338197287e6d314866c7fba863ac65d3f156087a5052ebc7157fce",
         )
 
     def test_random_seeds(self):

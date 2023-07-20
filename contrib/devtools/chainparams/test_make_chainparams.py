@@ -142,9 +142,11 @@ class MockFailRPC(MockRPC):
     def checkFailCounter(self):
         self.failCounter -= 1
         if self.failCounter < 0:
-            raise Exception("""error code: -99
+            raise Exception(
+                """error code: -99
                 error message:
-                mock error""")
+                mock error"""
+            )
 
     def getblockchaininfo(self):
         self.checkFailCounter()
@@ -285,10 +287,8 @@ class GenerateChainParamsTests(unittest.TestCase):
         CheckMockFailure(
             self,
             args,
-            (
-                "expected was 'getblockheader"
-                " 0000000000000000003ef673ae12bc6017481830d37b9c52ce1e79c080e812b8'"
-            ),
+            "expected was 'getblockheader"
+            " 0000000000000000003ef673ae12bc6017481830d37b9c52ce1e79c080e812b8'",
         )
 
     def test_bitcoin_cli_failures_testnet(self):

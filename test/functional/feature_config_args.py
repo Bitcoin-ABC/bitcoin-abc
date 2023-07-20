@@ -343,10 +343,8 @@ class ConfArgsTest(BitcoinTestFramework):
 
         self.nodes[0].assert_start_raises_init_error(
             [f"-conf={conf_file}"],
-            (
-                "Error: Error reading configuration file: specified data directory"
-                f' "{new_data_dir}" does not exist.'
-            ),
+            "Error: Error reading configuration file: specified data directory"
+            f' "{new_data_dir}" does not exist.',
         )
 
         # Create the directory and ensure the config file now works

@@ -75,20 +75,16 @@ class MerkleBlockTest(BitcoinTestFramework):
         # Invalid txids
         assert_raises_rpc_error(
             -8,
-            (
-                "txid must be of length 64 (not 32, for"
-                " '00000000000000000000000000000000')"
-            ),
+            "txid must be of length 64 (not 32, for"
+            " '00000000000000000000000000000000')",
             self.nodes[0].gettxoutproof,
             ["00000000000000000000000000000000"],
             blockhash,
         )
         assert_raises_rpc_error(
             -8,
-            (
-                "txid must be hexadecimal string (not"
-                " 'ZZZ0000000000000000000000000000000000000000000000000000000000000')"
-            ),
+            "txid must be hexadecimal string (not"
+            " 'ZZZ0000000000000000000000000000000000000000000000000000000000000')",
             self.nodes[0].gettxoutproof,
             ["ZZZ0000000000000000000000000000000000000000000000000000000000000"],
             blockhash,
@@ -96,20 +92,16 @@ class MerkleBlockTest(BitcoinTestFramework):
         # Invalid blockhashes
         assert_raises_rpc_error(
             -8,
-            (
-                "blockhash must be of length 64 (not 32, for"
-                " '00000000000000000000000000000000')"
-            ),
+            "blockhash must be of length 64 (not 32, for"
+            " '00000000000000000000000000000000')",
             self.nodes[0].gettxoutproof,
             [txid_spent],
             "00000000000000000000000000000000",
         )
         assert_raises_rpc_error(
             -8,
-            (
-                "blockhash must be hexadecimal string (not"
-                " 'ZZZ0000000000000000000000000000000000000000000000000000000000000')"
-            ),
+            "blockhash must be hexadecimal string (not"
+            " 'ZZZ0000000000000000000000000000000000000000000000000000000000000')",
             self.nodes[0].gettxoutproof,
             [txid_spent],
             "ZZZ0000000000000000000000000000000000000000000000000000000000000",

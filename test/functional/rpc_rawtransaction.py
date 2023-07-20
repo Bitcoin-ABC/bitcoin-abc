@@ -134,10 +134,8 @@ class RawTransactionsTest(BitcoinTestFramework):
         )
         assert_raises_rpc_error(
             -8,
-            (
-                "txid must be hexadecimal string (not"
-                " 'ZZZ7bb8b1697ea987f3b223ba7819250cae33efacb068d23dc24859824a77844')"
-            ),
+            "txid must be hexadecimal string (not"
+            " 'ZZZ7bb8b1697ea987f3b223ba7819250cae33efacb068d23dc24859824a77844')",
             self.nodes[0].createrawtransaction,
             [
                 {
@@ -492,10 +490,8 @@ class RawTransactionsTest(BitcoinTestFramework):
         )
         assert_raises_rpc_error(
             -8,
-            (
-                "parameter 3 must be hexadecimal string (not"
-                " 'ZZZ0000000000000000000000000000000000000000000000000000000000000')"
-            ),
+            "parameter 3 must be hexadecimal string (not"
+            " 'ZZZ0000000000000000000000000000000000000000000000000000000000000')",
             self.nodes[0].getrawtransaction,
             tx,
             True,

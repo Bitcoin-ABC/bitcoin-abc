@@ -317,10 +317,8 @@ class AvaProofEditor(CachedWalletPasswordWidget):
                 QtWidgets.QMessageBox.critical(
                     self,
                     _("Missing key or signature"),
-                    (
-                        f'UTXO {utxo["prevout_hash"]}:{utxo["prevout_n"]} with address '
-                        f"{address.to_ui_string()} does not belong to this wallet."
-                    ),
+                    f'UTXO {utxo["prevout_hash"]}:{utxo["prevout_n"]} with address '
+                    f"{address.to_ui_string()} does not belong to this wallet.",
                 )
                 return
 
@@ -341,10 +339,8 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             QtWidgets.QMessageBox.warning(
                 self,
                 _("Excluded coins"),
-                (
-                    f"{unconfirmed_count} coins have been ignored because they are "
-                    "unconfirmed or do not have a block height specified."
-                ),
+                f"{unconfirmed_count} coins have been ignored because they are "
+                "unconfirmed or do not have a block height specified.",
             )
 
         self.add_stakes(stakes)
@@ -538,11 +534,9 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             QtWidgets.QMessageBox.warning(
                 self,
                 "Missing private key",
-                (
-                    "Unable to guess private key associated with this proof's public"
-                    " key. You can fill it manually if you know it, or leave it blank"
-                    " if you just want to sign your stakes, "
-                ),
+                "Unable to guess private key associated with this proof's public"
+                " key. You can fill it manually if you know it, or leave it blank"
+                " if you just want to sign your stakes, ",
             )
         self.master_pubkey_view.setText(proof.master_pub.to_hex())
 
@@ -599,20 +593,16 @@ class AvaProofEditor(CachedWalletPasswordWidget):
                 QtWidgets.QMessageBox.critical(
                     self,
                     "No valid master key",
-                    (
-                        "You need to specify either a master private key or a master "
-                        "public key before generate a proof."
-                    ),
+                    "You need to specify either a master private key or a master "
+                    "public key before generate a proof.",
                 )
                 return
             QtWidgets.QMessageBox.warning(
                 self,
                 "Invalid private key",
-                (
-                    "Unable to parse private key. The generated proof will not be"
-                    " signed. This is OK if you just intend to sign your stakes and"
-                    " sign the proof later in a master wallet."
-                ),
+                "Unable to parse private key. The generated proof will not be"
+                " signed. This is OK if you just intend to sign your stakes and"
+                " sign the proof later in a master wallet.",
             )
             master = None
         else:

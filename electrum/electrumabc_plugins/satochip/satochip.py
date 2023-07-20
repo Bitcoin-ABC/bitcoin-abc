@@ -153,10 +153,8 @@ class SatochipClient(HardwareClientBase, PrintError):
                 )
         except Exception as e:  # attributeError?
             self.print_error(
-                (
-                    "get_xpub(): exception when getting authentikey from"
-                    " self.handler.win.wallet.storage:"
-                ),
+                "get_xpub(): exception when getting authentikey from"
+                " self.handler.win.wallet.storage:",
                 str(e),
             )
 
@@ -382,10 +380,8 @@ class SatochipKeyStore(HardwareKeyStore):
             except Exception:
                 # Note the below give_error call will itself raise Message. :/
                 self.give_error(
-                    (
-                        "No response received from 2FA.\nPlease ensure that the"
-                        " Satochip-2FA plugin is enabled in Tools>Optional Features"
-                    ),
+                    "No response received from 2FA.\nPlease ensure that the"
+                    " Satochip-2FA plugin is enabled in Tools>Optional Features",
                     True,
                 )
                 return
@@ -525,11 +521,9 @@ class SatochipKeyStore(HardwareKeyStore):
                         except Exception:
                             # Note: give_error here will raise again.. :/
                             self.give_error(
-                                (
-                                    "No response received from 2FA.\nPlease ensure that"
-                                    " the Satochip-2FA plugin is enabled in"
-                                    " Tools>Optional Features"
-                                ),
+                                "No response received from 2FA.\nPlease ensure that"
+                                " the Satochip-2FA plugin is enabled in"
+                                " Tools>Optional Features",
                                 True,
                             )
                             break
@@ -784,8 +778,7 @@ class SatochipPlugin(HWPluginBase):
                         try:
                             help_txt = (
                                 "Scan the QR-code with your Satochip-2FA app and make a"
-                                " backup of the following secret: "
-                                + secret_2FA_hex
+                                " backup of the following secret: " + secret_2FA_hex
                             )
                             d = QRDialog(
                                 secret_2FA_hex,

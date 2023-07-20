@@ -431,11 +431,9 @@ class ExchangeRateAPIWidget(QtWidgets.QWidget):
             QtWidgets.QMessageBox.critical(
                 self,
                 "Error fetching exchange rate",
-                (
-                    f"Unable to fetch the XEC/{self._currency} exchange rate using the "
-                    "specified API parameters.\n\nThe error message was:\n\n"
-                    f"{type(e).__name__}: {e}"
-                ),
+                f"Unable to fetch the XEC/{self._currency} exchange rate using the "
+                "specified API parameters.\n\nThe error message was:\n\n"
+                f"{type(e).__name__}: {e}",
             )
             return
 

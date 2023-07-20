@@ -665,18 +665,14 @@ class ImportDescriptorsTest(BitcoinTestFramework):
         assert_equal(res[0]["success"], True)
         assert_equal(
             res[0]["warnings"][0],
-            (
-                "Not all private keys provided. Some wallet functionality may return"
-                " unexpected errors"
-            ),
+            "Not all private keys provided. Some wallet functionality may return"
+            " unexpected errors",
         )
         assert_equal(res[1]["success"], True)
         assert_equal(
             res[1]["warnings"][0],
-            (
-                "Not all private keys provided. Some wallet functionality may return"
-                " unexpected errors"
-            ),
+            "Not all private keys provided. Some wallet functionality may return"
+            " unexpected errors",
         )
 
         self.nodes[1].createwallet(
@@ -709,18 +705,14 @@ class ImportDescriptorsTest(BitcoinTestFramework):
         assert_equal(res[0]["success"], True)
         assert_equal(
             res[0]["warnings"][0],
-            (
-                "Not all private keys provided. Some wallet functionality may return"
-                " unexpected errors"
-            ),
+            "Not all private keys provided. Some wallet functionality may return"
+            " unexpected errors",
         )
         assert_equal(res[1]["success"], True)
         assert_equal(
             res[1]["warnings"][0],
-            (
-                "Not all private keys provided. Some wallet functionality may return"
-                " unexpected errors"
-            ),
+            "Not all private keys provided. Some wallet functionality may return"
+            " unexpected errors",
         )
 
         rawtx = self.nodes[1].createrawtransaction(

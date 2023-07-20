@@ -2503,14 +2503,10 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 segwits.add(line)
         if segwits:
             msg = ngettext(
-                (
-                    "Possible BTC Segwit address in 'Pay to' field. Please use CashAddr"
-                    " format for p2sh addresses.\n\n{segwit_addresses}"
-                ),
-                (
-                    "Possible BTC Segwit addresses in 'Pay to' field. Please use"
-                    " CashAddr format for p2sh addresses.\n\n{segwit_addresses}"
-                ),
+                "Possible BTC Segwit address in 'Pay to' field. Please use CashAddr"
+                " format for p2sh addresses.\n\n{segwit_addresses}",
+                "Possible BTC Segwit addresses in 'Pay to' field. Please use"
+                " CashAddr format for p2sh addresses.\n\n{segwit_addresses}",
                 len(segwits),
             ).format(segwit_addresses="\n".join(segwits))
             detail = _(
@@ -3933,8 +3929,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             except SerializationError as e:
                 self.show_critical(
                     f"{PROJECT_NAME} was unable to deserialize the"
-                    f" transaction in file {filename}:\n"
-                    + str(e)
+                    f" transaction in file {filename}:\n" + str(e)
                 )
         if not transactions:
             return
@@ -4509,9 +4504,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                     lines.append(cols)
                 else:
                     if has_fiat_columns and ccy:
-                        item["fiat_currency"] = (
-                            ccy  # add the currency to each entry in the json. this wastes space but json is bloated anyway so this won't hurt too much, we hope
-                        )
+                        item[
+                            "fiat_currency"
+                        ] = ccy  # add the currency to each entry in the json. this wastes space but json is bloated anyway so this won't hurt too much, we hope
                     elif not has_fiat_columns:
                         # No need to include these fields as they will always be 'No Data'
                         item.pop("fiat_value", None)

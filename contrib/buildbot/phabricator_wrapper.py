@@ -190,17 +190,17 @@ class PhabWrapper(Phabricator):
                 for rev in revs:
                     if revisionPHID == rev["phid"]:
                         decoratedCommit["revision"] = rev
-                        decoratedCommit["link"] = (
-                            f"https://reviews.bitcoinabc.org/D{rev['id']}"
-                        )
+                        decoratedCommit[
+                            "link"
+                        ] = f"https://reviews.bitcoinabc.org/D{rev['id']}"
                         break
 
                 for author in authors:
                     if author["phid"] == rev["fields"]["authorPHID"]:
                         decoratedCommit["author"] = author
-                        decoratedCommit["authorSlackUsername"] = (
-                            self.getAuthorSlackUsername(author)
-                        )
+                        decoratedCommit[
+                            "authorSlackUsername"
+                        ] = self.getAuthorSlackUsername(author)
                         break
             commitMap[commitHash] = decoratedCommit
         return commitMap
@@ -295,8 +295,9 @@ class PhabWrapper(Phabricator):
         res = self.getBrokenBuildTask(title)
         if len(res.data) != 0:
             self.logger.info(
-                "Open broken build task (T{}) exists. Skipping creation of a new one."
-                .format(res.data[0]["id"])
+                "Open broken build task (T{}) exists. Skipping creation of a new one.".format(
+                    res.data[0]["id"]
+                )
             )
             return None
 
@@ -313,8 +314,9 @@ class PhabWrapper(Phabricator):
             ]
         )
         self.logger.info(
-            "Response from 'maniphest.edit' creating new task with title '{}': {}"
-            .format(title, newTask)
+            "Response from 'maniphest.edit' creating new task with title '{}': {}".format(
+                title, newTask
+            )
         )
         return newTask["object"]
 
@@ -334,8 +336,9 @@ class PhabWrapper(Phabricator):
             )
         else:
             self.logger.info(
-                "Update of revision summary skipped due to deployment environment: '{}'"
-                .format(self.deployment)
+                "Update of revision summary skipped due to deployment environment: '{}'".format(
+                    self.deployment
+                )
             )
 
     def get_project_members(self, project_PHID):

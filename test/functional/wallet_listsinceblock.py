@@ -90,10 +90,8 @@ class ListSinceBlockTest(BitcoinTestFramework):
         )
         assert_raises_rpc_error(
             -8,
-            (
-                "blockhash must be hexadecimal string (not"
-                " 'Z000000000000000000000000000000000000000000000000000000000000000')"
-            ),
+            "blockhash must be hexadecimal string (not"
+            " 'Z000000000000000000000000000000000000000000000000000000000000000')",
             self.nodes[0].listsinceblock,
             "Z000000000000000000000000000000000000000000000000000000000000000",
         )

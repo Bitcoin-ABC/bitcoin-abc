@@ -660,10 +660,8 @@ class PaymentRequestBitPay20(PaymentRequest, PrintError):
 
     Details = namedtuple(
         "BitPay20Details",
-        (
-            "outputs, memo, payment_url, time, expires, network, currency,"
-            " required_fee_rate"
-        ),
+        "outputs, memo, payment_url, time, expires, network, currency,"
+        " required_fee_rate",
     )
 
     class Raw:
@@ -937,10 +935,8 @@ class PaymentRequestBitPay20(PaymentRequest, PrintError):
                 else:
                     # TODO: Fixme -- for now this branch will always be taken because we turned off key download in _get_signing_keys() above
                     self.print_error(
-                        (
-                            "Warning: Could not verify whether signing public key is"
-                            " valid:"
-                        ),
+                        "Warning: Could not verify whether signing public key is"
+                        " valid:",
                         pubkey.hex(),
                         "(PGP verification is currently disabled)",
                     )

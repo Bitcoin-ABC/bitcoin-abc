@@ -52,8 +52,9 @@ class QRCodeWidget(QtWidgets.QWidget, PrintError):
 
     def _bad_data(self, data):
         self.print_error(
-            "Failed to generate QR image -- data too long! Data length was: {} bytes"
-            .format(len(data or ""))
+            "Failed to generate QR image -- data too long! Data length was: {} bytes".format(
+                len(data or "")
+            )
         )
         self.qr = None
 

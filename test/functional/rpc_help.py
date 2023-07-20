@@ -72,11 +72,9 @@ class HelpRpcTest(BitcoinTestFramework):
             mapping_server_conversion
         ):
             raise AssertionError(
-                (
-                    f"RPC client conversion table ({file_conversion_table}) and "
-                    "RPC server named arguments mismatch!\n"
-                    f"{set(mapping_client).symmetric_difference(mapping_server_conversion)}"
-                ),
+                f"RPC client conversion table ({file_conversion_table}) and "
+                "RPC server named arguments mismatch!\n"
+                f"{set(mapping_client).symmetric_difference(mapping_server_conversion)}",
             )
 
         # Check for conversion difference by argument name.

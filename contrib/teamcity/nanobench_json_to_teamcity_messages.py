@@ -10,7 +10,8 @@ from datetime import timedelta
 from teamcity.messages import TeamcityServiceMessages
 
 if len(sys.argv) != 3:
-    print(f"""
+    print(
+        f"""
     Usage:
         {sys.argv[0]} <benchmark suite name> <path to nanobench json file>
 
@@ -19,7 +20,8 @@ if len(sys.argv) != 3:
 
     Requires the teamcity-messages python library:
       pip3 install teamcity-messages
-""")
+"""
+    )
     sys.exit(1)
 
 suite_name = sys.argv[1]

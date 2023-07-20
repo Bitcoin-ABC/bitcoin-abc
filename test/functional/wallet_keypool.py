@@ -122,10 +122,8 @@ class KeyPoolTest(BitcoinTestFramework):
         # creating a 5,000 sat transaction with change should not be possible
         assert_raises_rpc_error(
             -4,
-            (
-                "Transaction needs a change address, but we can't generate it. Please"
-                " call keypoolrefill first."
-            ),
+            "Transaction needs a change address, but we can't generate it. Please"
+            " call keypoolrefill first.",
             w2.walletcreatefundedpsbt,
             inputs=[],
             outputs=[{addr.pop(): 50.00}],

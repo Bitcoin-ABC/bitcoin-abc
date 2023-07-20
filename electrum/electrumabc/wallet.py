@@ -835,10 +835,8 @@ class AbstractWallet(PrintError, SPVDelegate):
 
     TxInfo = namedtuple(
         "TxInfo",
-        (
-            "tx_hash, status, label, can_broadcast, amount, fee, height, conf,"
-            " timestamp, exp_n, status_enum"
-        ),
+        "tx_hash, status, label, can_broadcast, amount, fee, height, conf,"
+        " timestamp, exp_n, status_enum",
     )
 
     class StatusEnum(Enum):
@@ -1358,10 +1356,8 @@ class AbstractWallet(PrintError, SPVDelegate):
         if not tx.inputs():
             # bad tx came in off the wire -- all 0's or something, see #987
             self.print_error(
-                (
-                    "add_transaction: WARNING a tx came in from the network with 0"
-                    " inputs! Bad server? Ignoring tx:"
-                ),
+                "add_transaction: WARNING a tx came in from the network with 0"
+                " inputs! Bad server? Ignoring tx:",
                 tx_hash,
             )
             return
@@ -1792,9 +1788,9 @@ class AbstractWallet(PrintError, SPVDelegate):
 
             fee = do_get_fee(tx_hash)
             if fee is not None:
-                self.tx_fees[tx_hash] = (
-                    fee  # save fee to wallet if we bothered to dl/calculate it.
-                )
+                self.tx_fees[
+                    tx_hash
+                ] = fee  # save fee to wallet if we bothered to dl/calculate it.
             return fee
 
         def fmt_amt(v, is_diff):
@@ -3504,7 +3500,6 @@ class DeterministicWallet(AbstractWallet):
 
 
 class SimpleDeterministicWallet(SimpleWallet, DeterministicWallet):
-
     """Deterministic Wallet with a single pubkey per address"""
 
     def __init__(self, storage):

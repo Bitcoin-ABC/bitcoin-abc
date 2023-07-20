@@ -220,8 +220,9 @@ class SPV(ThreadJob):
             return
         if header.get("merkle_root") != merkle_root:
             self.print_error(
-                "merkle verification failed for {} (merkle root mismatch {} != {})"
-                .format(tx_hash, header.get("merkle_root"), merkle_root)
+                "merkle verification failed for {} (merkle root mismatch {} != {})".format(
+                    tx_hash, header.get("merkle_root"), merkle_root
+                )
             )
             return
         # we passed all the tests

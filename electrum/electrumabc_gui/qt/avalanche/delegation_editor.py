@@ -222,11 +222,9 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
             QtWidgets.QMessageBox.critical(
                 self,
                 "Wrong delegator key",
-                (
-                    "The provided delegator key does not match the proof master key or"
-                    " the previous delegated public key (if adding a level to an"
-                    " existing delegation)."
-                ),
+                "The provided delegator key does not match the proof master key or"
+                " the previous delegated public key (if adding a level to an"
+                " existing delegation).",
             )
             return
 

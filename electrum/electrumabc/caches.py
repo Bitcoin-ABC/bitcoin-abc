@@ -71,9 +71,9 @@ class ExpiringCache:
         res = self.d.get(key)
         if res is not None:
             # cache hit
-            res[0] = (
-                _ExpiringCacheMgr.tick
-            )  # update tick access time for this cache hit
+            res[
+                0
+            ] = _ExpiringCacheMgr.tick  # update tick access time for this cache hit
             return res[1]
         # cache miss
         return default
@@ -355,10 +355,8 @@ def get_object_size(obj_0):
                     )
                 except Exception as e:
                     warnings.warn(
-                        (
-                            f"warning: unable to process object '{obj}' due to"
-                            f" exception: {repr(e)}"
-                        ),
+                        f"warning: unable to process object '{obj}' due to"
+                        f" exception: {repr(e)}",
                         RuntimeWarning,
                         stacklevel=2,
                     )

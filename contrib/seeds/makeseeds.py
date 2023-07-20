@@ -232,10 +232,8 @@ def main():
     ips = [parseline(line) for line in lines]
 
     print(
-        (
-            "\x1b[7m  IPv4   IPv6  Onion Pass                                          "
-            "     \x1b[0m"
-        ),
+        "\x1b[7m  IPv4   IPv6  Onion Pass                                          "
+        "     \x1b[0m",
         file=sys.stderr,
     )
     print(f"{ip_stats(ips):s} Initial", file=sys.stderr)

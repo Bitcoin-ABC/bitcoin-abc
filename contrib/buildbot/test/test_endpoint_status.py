@@ -584,8 +584,7 @@ class EndpointStatusTestCase(ABCBotFixture):
                         "value": (
                             "[[ {} | build-name ]] is broken on branch"
                             " 'refs/heads/master'\n\nAssociated"
-                            " commits:\nrABCdeadbeef00000111222333444555666777888000"
-                            .format(
+                            " commits:\nrABCdeadbeef00000111222333444555666777888000".format(
                                 self.teamcity.build_url(
                                     "viewLog.html",
                                     {
@@ -668,8 +667,7 @@ class EndpointStatusTestCase(ABCBotFixture):
                         "value": (
                             "[[ {} | build-name ]] is broken on branch"
                             " 'refs/heads/master'\n\nAssociated"
-                            " commits:\nrABCdeadbeef00000111222333444555666777888000"
-                            .format(
+                            " commits:\nrABCdeadbeef00000111222333444555666777888000".format(
                                 self.teamcity.build_url(
                                     "viewLog.html",
                                     {
@@ -743,8 +741,7 @@ class EndpointStatusTestCase(ABCBotFixture):
                         "value": (
                             "[[ {} | build-name ]] is broken on branch"
                             " 'refs/heads/master'\n\nAssociated"
-                            " commits:\nrABCdeadbeef00000111222333444555666777888000"
-                            .format(
+                            " commits:\nrABCdeadbeef00000111222333444555666777888000".format(
                                 self.teamcity.build_url(
                                     "viewLog.html",
                                     {
@@ -821,8 +818,7 @@ class EndpointStatusTestCase(ABCBotFixture):
                         "value": (
                             "[[ {} | build-name ]] is broken on branch"
                             " 'refs/heads/master'\n\nAssociated"
-                            " commits:\nrABCdeadbeef00000111222333444555666777888000\nrABCdeadbeef00000111222333444555666777888001"
-                            .format(
+                            " commits:\nrABCdeadbeef00000111222333444555666777888000\nrABCdeadbeef00000111222333444555666777888001".format(
                                 self.teamcity.build_url(
                                     "viewLog.html",
                                     {
@@ -1109,8 +1105,7 @@ class EndpointStatusTestCase(ABCBotFixture):
                     "type": "comment",
                     "value": (
                         "(IMPORTANT) Build [[{} | build-name (linux)]] failed.\n\nTail"
-                        " of the build log:\n```lines=16,COUNTEREXAMPLE\ndummy log```"
-                        .format(
+                        " of the build log:\n```lines=16,COUNTEREXAMPLE\ndummy log```".format(
                             self.teamcity.build_url(
                                 "viewLog.html",
                                 {
@@ -1702,7 +1697,9 @@ class EndpointStatusTestCase(ABCBotFixture):
                 color=(
                     "lightgrey"
                     if status == BuildStatus.Unknown
-                    else "brightgreen" if status == BuildStatus.Success else "red"
+                    else "brightgreen"
+                    if status == BuildStatus.Success
+                    else "red"
                 ),
             )
             return '| [[{} | {}]] | {{image uri="{}", alt="{}"}} |\n'.format(

@@ -111,10 +111,8 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
             # Needs -txindex
             assert_raises_rpc_error(
                 -5,
-                (
-                    "No such transaction. Use -txindex or provide a block hash to"
-                    " enable blockchain transaction queries."
-                ),
+                "No such transaction. Use -txindex or provide a block hash to"
+                " enable blockchain transaction queries.",
                 node.isfinaltransaction,
                 wallet_txid,
             )

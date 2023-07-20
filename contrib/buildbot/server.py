@@ -971,11 +971,9 @@ def create_server(tc, phab, slackbot, cirrus, db_file_no_ext=None, jsonProvider=
                     if not isMaster:
                         phab.commentOnRevision(
                             revisionPHID,
-                            (
-                                "(IMPORTANT) The build failed due to an unexpected"
-                                " infrastructure outage. The administrators have been"
-                                " notified to investigate. Sorry for the inconvenience."
-                            ),
+                            "(IMPORTANT) The build failed due to an unexpected"
+                            " infrastructure outage. The administrators have been"
+                            " notified to investigate. Sorry for the inconvenience.",
                             buildName,
                         )
                     return SUCCESS, 200
@@ -1008,8 +1006,9 @@ def create_server(tc, phab, slackbot, cirrus, db_file_no_ext=None, jsonProvider=
                         "{}: Please set your slack username in your Phabricator profile"
                         " so the landbot can send you direct messages: {}\n{}".format(
                             authorSlackUsername,
-                            "https://reviews.bitcoinabc.org/people/editprofile/{}"
-                            .format(author["id"]),
+                            "https://reviews.bitcoinabc.org/people/editprofile/{}".format(
+                                author["id"]
+                            ),
                             landBotMessage,
                         )
                     )
@@ -1037,9 +1036,10 @@ def create_server(tc, phab, slackbot, cirrus, db_file_no_ext=None, jsonProvider=
                     )
                     if updatedTask:
                         # Only message once all of master is green
-                        (buildFailures, testFailures) = (
-                            tc.getLatestBuildAndTestFailures("BitcoinABC")
-                        )
+                        (
+                            buildFailures,
+                            testFailures,
+                        ) = tc.getLatestBuildAndTestFailures("BitcoinABC")
                         if len(buildFailures) == 0 and len(testFailures) == 0:
                             if not create_server.db["master_is_green"]:
                                 create_server.db["master_is_green"] = True
@@ -1166,9 +1166,8 @@ def create_server(tc, phab, slackbot, cirrus, db_file_no_ext=None, jsonProvider=
                     for line in buildLog.splitlines(keepends=True):
                         logLines.append(line)
 
-                    msg += (
-                        "Tail of the build log:\n```lines=16,COUNTEREXAMPLE\n{}```"
-                        .format("".join(logLines[-60:]))
+                    msg += "Tail of the build log:\n```lines=16,COUNTEREXAMPLE\n{}```".format(
+                        "".join(logLines[-60:])
                     )
                 else:
                     # Print the failure log for each test

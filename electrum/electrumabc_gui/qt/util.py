@@ -382,10 +382,8 @@ class MessageBoxMixin:
         except RuntimeError as e:
             # C++ object deleted -- can happen with misbehaving client code that kills parent from dialog ok
             print_error(
-                (
-                    "MsgBoxMixin WARNING: client code is killing the dialog box's"
-                    " parent before function return:"
-                ),
+                "MsgBoxMixin WARNING: client code is killing the dialog box's"
+                " parent before function return:",
                 str(e),
             )
         return ret
@@ -607,7 +605,9 @@ def filename_field(config, defaultname, select_msg):
         _filter = (
             "*.csv"
             if text.endswith(".csv")
-            else "*.json" if text.endswith(".json") else None
+            else "*.json"
+            if text.endswith(".json")
+            else None
         )
         p, __ = QtWidgets.QFileDialog.getSaveFileName(None, select_msg, text, _filter)
         if p:
@@ -1062,8 +1062,9 @@ class RateLimiter(PrintError):
         else:
             if time_taken > float(self.rate):
                 self.print_error(
-                    "method took too long: {} > {}. Fudging timestamps to compensate."
-                    .format(time_taken, self.rate)
+                    "method took too long: {} > {}. Fudging timestamps to compensate.".format(
+                        time_taken, self.rate
+                    )
                 )
                 self.last_ts = tf  # Hmm. This function takes longer than its rate to complete. so mark its last run time as 'now'. This breaks the rate but at least prevents this function from starving the CPU (benforces a delay).
             else:

@@ -707,11 +707,9 @@ class Handlers:
         this_thread = threading.current_thread()
         if this_thread is not threading.main_thread():
             print_stderr(
-                (
-                    "Warning: do_in_main_thread called with the default handler"
-                    f" from outside the main thread (thr: {this_thread.name});"
-                    " such usage may lead to undefined behavior.  Traceback:\n"
-                ),
+                "Warning: do_in_main_thread called with the default handler"
+                f" from outside the main thread (thr: {this_thread.name});"
+                " such usage may lead to undefined behavior.  Traceback:\n",
                 "".join(traceback.format_stack()),
             )
         func(*args, **kwargs)
@@ -859,10 +857,8 @@ class Weak:
             else:
                 print_error(
                     self,
-                    (
-                        f"MethodProxy for '{self.qname}' called on a dead reference. "
-                        f"Referent was: {self.sname})"
-                    ),
+                    f"MethodProxy for '{self.qname}' called on a dead reference. "
+                    f"Referent was: {self.sname})",
                 )
 
 

@@ -470,8 +470,9 @@ class JsonDB(PrintError):
         if seed_version > FINAL_SEED_VERSION:
             raise WalletFileException(
                 "This version of Electrum is too old to open this wallet.\n"
-                "(highest supported storage version: {}, version of this file: {})"
-                .format(FINAL_SEED_VERSION, seed_version)
+                "(highest supported storage version: {}, version of this file: {})".format(
+                    FINAL_SEED_VERSION, seed_version
+                )
             )
         if seed_version >= 12:
             return seed_version

@@ -291,10 +291,8 @@ class MultiWalletTest(BitcoinTestFramework):
         # accessing wallet RPC without using wallet endpoint fails
         assert_raises_rpc_error(
             -19,
-            (
-                "Wallet file not specified (must request wallet RPC through"
-                " /wallet/<filename> uri-path)."
-            ),
+            "Wallet file not specified (must request wallet RPC through"
+            " /wallet/<filename> uri-path).",
             node.getwalletinfo,
         )
 
@@ -336,11 +334,9 @@ class MultiWalletTest(BitcoinTestFramework):
         assert_equal(node.listwallets(), [])
         assert_raises_rpc_error(
             -18,
-            (
-                "No wallet is loaded. Load a wallet using loadwallet or create a new"
-                " one with createwallet. (Note: A default wallet is no longer "
-                "automatically created)"
-            ),
+            "No wallet is loaded. Load a wallet using loadwallet or create a new"
+            " one with createwallet. (Note: A default wallet is no longer "
+            "automatically created)",
             node.getwalletinfo,
         )
 
@@ -394,10 +390,8 @@ class MultiWalletTest(BitcoinTestFramework):
         )
         assert_raises_rpc_error(
             -18,
-            (
-                "Wallet file verification failed. Failed to load database path"
-                f" '{path}'. Path does not exist."
-            ),
+            "Wallet file verification failed. Failed to load database path"
+            f" '{path}'. Path does not exist.",
             self.nodes[0].loadwallet,
             "wallets",
         )
@@ -413,10 +407,8 @@ class MultiWalletTest(BitcoinTestFramework):
         )
         assert_raises_rpc_error(
             -4,
-            (
-                "Wallet file verification failed. Refusing to load database. "
-                f"Data file '{path}' is already loaded."
-            ),
+            "Wallet file verification failed. Refusing to load database. "
+            f"Data file '{path}' is already loaded.",
             self.nodes[0].loadwallet,
             wallet_names[0],
         )
@@ -432,10 +424,8 @@ class MultiWalletTest(BitcoinTestFramework):
         )
         assert_raises_rpc_error(
             -4,
-            (
-                "Wallet file verification failed. Refusing to load database. "
-                f"Data file '{path}' is already loaded."
-            ),
+            "Wallet file verification failed. Refusing to load database. "
+            f"Data file '{path}' is already loaded.",
             self.nodes[0].loadwallet,
             self.wallet_data_filename,
         )
@@ -475,10 +465,8 @@ class MultiWalletTest(BitcoinTestFramework):
         )
         assert_raises_rpc_error(
             -18,
-            (
-                "Wallet file verification failed. Failed to load database path"
-                f" '{path}'. Data is not in recognized format."
-            ),
+            "Wallet file verification failed. Failed to load database path"
+            f" '{path}'. Data is not in recognized format.",
             self.nodes[0].loadwallet,
             "empty_wallet_dir",
         )
@@ -551,11 +539,9 @@ class MultiWalletTest(BitcoinTestFramework):
         assert_equal(self.nodes[0].listwallets(), [])
         assert_raises_rpc_error(
             -18,
-            (
-                "No wallet is loaded. Load a wallet using loadwallet or create a new"
-                " one with createwallet. (Note: A default wallet is no longer "
-                "automatically created)"
-            ),
+            "No wallet is loaded. Load a wallet using loadwallet or create a new"
+            " one with createwallet. (Note: A default wallet is no longer "
+            "automatically created)",
             self.nodes[0].getwalletinfo,
         )
 

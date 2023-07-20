@@ -129,9 +129,7 @@ class DecodeScriptTest(BitcoinTestFramework):
             "OP_IF "
             + public_key
             + " OP_CHECKSIGVERIFY OP_ELSE 500000 OP_CHECKLOCKTIMEVERIFY OP_DROP"
-            " OP_ENDIF "
-            + public_key
-            + " OP_CHECKSIG",
+            " OP_ENDIF " + public_key + " OP_CHECKSIG",
             rpc_result["asm"],
         )
 
@@ -146,10 +144,8 @@ class DecodeScriptTest(BitcoinTestFramework):
         tx = "0100000001696a20784a2c70143f634e95227dbdfdf0ecd51647052e70854512235f5986ca010000008a47304402207174775824bec6c2700023309a168231ec80b82c6069282f5133e6f11cbb04460220570edc55c7c5da2ca687ebd0372d3546ebc3f810516a002350cac72dfe192dfb014104d3f898e6487787910a690410b7a917ef198905c27fb9d3b0a42da12aceae0544fc7088d239d9a48f2828a15a09e84043001f27cc80d162cb95404e1210161536ffffffff0100e1f505000000001976a914eb6c6e0cdb2d256a32d97b8df1fc75d1920d9bca88ac00000000"
         rpc_result = self.nodes[0].decoderawtransaction(tx)
         assert_equal(
-            (
-                "304402207174775824bec6c2700023309a168231ec80b82c6069282f5133e6f11cbb04460220570edc55c7c5da2ca687ebd0372d3546ebc3f810516a002350cac72dfe192dfb[ALL]"
-                " 04d3f898e6487787910a690410b7a917ef198905c27fb9d3b0a42da12aceae0544fc7088d239d9a48f2828a15a09e84043001f27cc80d162cb95404e1210161536"
-            ),
+            "304402207174775824bec6c2700023309a168231ec80b82c6069282f5133e6f11cbb04460220570edc55c7c5da2ca687ebd0372d3546ebc3f810516a002350cac72dfe192dfb[ALL]"
+            " 04d3f898e6487787910a690410b7a917ef198905c27fb9d3b0a42da12aceae0544fc7088d239d9a48f2828a15a09e84043001f27cc80d162cb95404e1210161536",
             rpc_result["vin"][0]["scriptSig"]["asm"],
         )
 
@@ -163,18 +159,14 @@ class DecodeScriptTest(BitcoinTestFramework):
             rpc_result["txid"],
         )
         assert_equal(
-            (
-                "0 3045022100ae3b4e589dfc9d48cb82d41008dc5fa6a86f94d5c54f9935531924602730ab8002202f88cf464414c4ed9fa11b773c5ee944f66e9b05cc1e51d97abc22ce098937ea[ALL]"
-                " 3045022100b44883be035600e9328a01b66c7d8439b74db64187e76b99a68f7893b701d5380220225bf286493e4c4adcf928c40f785422572eb232f84a0b83b0dea823c3a19c75[ALL]"
-                " 5221020743d44be989540d27b1b4bbbcfd17721c337cb6bc9af20eb8a32520b393532f2102c0120a1dda9e51a938d39ddd9fe0ebc45ea97e1d27a7cbd671d5431416d3dd87210213820eb3d5f509d7438c9eeecb4157b2f595105e7cd564b3cdbb9ead3da41eed53ae"
-            ),
+            "0 3045022100ae3b4e589dfc9d48cb82d41008dc5fa6a86f94d5c54f9935531924602730ab8002202f88cf464414c4ed9fa11b773c5ee944f66e9b05cc1e51d97abc22ce098937ea[ALL]"
+            " 3045022100b44883be035600e9328a01b66c7d8439b74db64187e76b99a68f7893b701d5380220225bf286493e4c4adcf928c40f785422572eb232f84a0b83b0dea823c3a19c75[ALL]"
+            " 5221020743d44be989540d27b1b4bbbcfd17721c337cb6bc9af20eb8a32520b393532f2102c0120a1dda9e51a938d39ddd9fe0ebc45ea97e1d27a7cbd671d5431416d3dd87210213820eb3d5f509d7438c9eeecb4157b2f595105e7cd564b3cdbb9ead3da41eed53ae",
             rpc_result["vin"][0]["scriptSig"]["asm"],
         )
         assert_equal(
-            (
-                "OP_DUP OP_HASH160 dc863734a218bfe83ef770ee9d41a27f824a6e56"
-                " OP_EQUALVERIFY OP_CHECKSIG"
-            ),
+            "OP_DUP OP_HASH160 dc863734a218bfe83ef770ee9d41a27f824a6e56"
+            " OP_EQUALVERIFY OP_CHECKSIG",
             rpc_result["vout"][0]["scriptPubKey"]["asm"],
         )
         assert_equal(
@@ -197,10 +189,8 @@ class DecodeScriptTest(BitcoinTestFramework):
         tx = "01000000018d1f5635abd06e2c7e2ddf58dc85b3de111e4ad6e0ab51bb0dcf5e84126d927300000000fdfe0000483045022100ae3b4e589dfc9d48cb82d41008dc5fa6a86f94d5c54f9935531924602730ab8002202f88cf464414c4ed9fa11b773c5ee944f66e9b05cc1e51d97abc22ce098937ea01483045022100b44883be035600e9328a01b66c7d8439b74db64187e76b99a68f7893b701d5380220225bf286493e4c4adcf928c40f785422572eb232f84a0b83b0dea823c3a19c75014c695221020743d44be989540d27b1b4bbbcfd17721c337cb6bc9af20eb8a32520b393532f2102c0120a1dda9e51a938d39ddd9fe0ebc45ea97e1d27a7cbd671d5431416d3dd87210213820eb3d5f509d7438c9eeecb4157b2f595105e7cd564b3cdbb9ead3da41eed53aeffffffff02611e0000000000001976a914301102070101010101010102060101010101010188acee2a02000000000017a91430110207010101010101010206010101010101018700000000"
         rpc_result = self.nodes[0].decoderawtransaction(tx)
         assert_equal(
-            (
-                "OP_DUP OP_HASH160 3011020701010101010101020601010101010101"
-                " OP_EQUALVERIFY OP_CHECKSIG"
-            ),
+            "OP_DUP OP_HASH160 3011020701010101010101020601010101010101"
+            " OP_EQUALVERIFY OP_CHECKSIG",
             rpc_result["vout"][0]["scriptPubKey"]["asm"],
         )
         assert_equal(

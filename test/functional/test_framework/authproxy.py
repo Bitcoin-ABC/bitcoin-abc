@@ -133,8 +133,7 @@ class AuthServiceProxy:
         except OSError as e:
             retry = (
                 "[WinError 10053] An established connection was aborted by the software"
-                " in your host machine"
-                in str(e)
+                " in your host machine" in str(e)
             )
             # Workaround for a bug on macOS. See
             # https://bugs.python.org/issue33450

@@ -16,14 +16,16 @@ from utils import determine_wellknown_cmd
 
 def write_testcode(filename):
     with open(filename, "w", encoding="utf8") as f:
-        f.write("""
+        f.write(
+            """
     #include <stdio.h>
     int main()
     {
         printf("the quick brown fox jumps over the lazy god\\n");
         return 0;
     }
-    """)
+    """
+        )
 
 
 def clean_files(source, executable):
@@ -328,8 +330,7 @@ class TestSecurityChecks(unittest.TestCase):
             ),
             (
                 1,
-                executable
-                + ": failed PIE DYNAMIC_BASE HIGH_ENTROPY_VA RELOC_SECTION"
+                executable + ": failed PIE DYNAMIC_BASE HIGH_ENTROPY_VA RELOC_SECTION"
                 " CONTROL_FLOW",
             ),
         )

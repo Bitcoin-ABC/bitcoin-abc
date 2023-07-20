@@ -1251,7 +1251,9 @@ class Transaction:
             # we already have results, don't do anything.
             return False
         eph = self.ephemeral
-        eph["fetched_inputs"] = (
+        eph[
+            "fetched_inputs"
+        ] = (
             inps
         ) = inps.copy()  # paranoia: in case another thread is running on this list
         # Lazy imports to keep this functionality very self-contained
@@ -1419,10 +1421,8 @@ class Transaction:
                             ):  # txid may be '' if KeyError from r['result'] above
                                 bad_txids.add(txid)
                             print_error(
-                                (
-                                    "fetch_input_data: put_in_queue_and_cache fail for"
-                                    " txid:"
-                                ),
+                                "fetch_input_data: put_in_queue_and_cache fail for"
+                                " txid:",
                                 txid,
                                 repr(e),
                             )

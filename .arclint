@@ -25,9 +25,6 @@
                 "(^contrib/apple-sdk-tools/)",
                 "(^electrum/electrumabc_gui/qt/icons.py)",
                 "(\\_pb2.py$)"
-            ],
-            "flags": [
-                "--preview"
             ]
         },
         "flake8": {

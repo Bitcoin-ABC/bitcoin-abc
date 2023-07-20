@@ -245,14 +245,10 @@ class Plugin(FusionPlugin, QObject):
                 fuse_depth,
             ).format(min=fuse_depth)
             tooltip = ngettext(
-                (
-                    "If checked, only spend coins that have been anonymized by\n"
-                    "CashFusion, after having been fused at least {min} time."
-                ),
-                (
-                    "If checked, only spend coins that have been anonymized by\n"
-                    "CashFusion, after having been fused at least {min} times."
-                ),
+                "If checked, only spend coins that have been anonymized by\n"
+                "CashFusion, after having been fused at least {min} time.",
+                "If checked, only spend coins that have been anonymized by\n"
+                "CashFusion, after having been fused at least {min} times.",
                 fuse_depth,
             ).format(min=fuse_depth)
         else:

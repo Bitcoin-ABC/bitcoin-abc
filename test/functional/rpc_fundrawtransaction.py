@@ -632,10 +632,8 @@ class RawTransactionsTest(BitcoinTestFramework):
         rawtx = self.nodes[1].createrawtransaction(inputs, outputs)
         assert_raises_rpc_error(
             -4,
-            (
-                "Transaction needs a change address, but we can't generate it. Please"
-                " call keypoolrefill first."
-            ),
+            "Transaction needs a change address, but we can't generate it. Please"
+            " call keypoolrefill first.",
             self.nodes[1].fundrawtransaction,
             rawtx,
         )

@@ -1484,10 +1484,8 @@ class Network(util.DaemonThread):
 
         if not request:
             interface.print_error(
-                (
-                    "disconnecting server for sending unsolicited header, no request,"
-                    f" params={response['params']}"
-                ),
+                "disconnecting server for sending unsolicited header, no request,"
+                f" params={response['params']}",
                 blacklist=True,
             )
             self.connection_down(interface.server)
@@ -1500,8 +1498,9 @@ class Network(util.DaemonThread):
         # sort of rewrite.
         if height != response_height:
             interface.print_error(
-                "unsolicited header request={} request_height={} response_height={}"
-                .format(request_params, height, response_height)
+                "unsolicited header request={} request_height={} response_height={}".format(
+                    request_params, height, response_height
+                )
             )
             self.connection_down(interface.server)
             return
