@@ -24,7 +24,7 @@ module.exports = {
             // Add a note about prices
             let pricesResponse = {
                 note: 'alias-server is in beta and these prices are not finalized.',
-                prices: aliasConstants.registrationFeesSats,
+                prices: aliasConstants.prices,
             };
             try {
                 return res.status(200).json(pricesResponse);

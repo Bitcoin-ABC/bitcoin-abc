@@ -39,10 +39,10 @@ describe('alias-server app.js', function () {
         app.close();
         dbErrorApp.close();
     });
-    it('/prices returns aliasConstants.registrationFeesSats', function () {
+    it('/prices returns aliasConstants.prices', function () {
         let pricesResponse = {
             note: 'alias-server is in beta and these prices are not finalized.',
-            prices: aliasConstants.registrationFeesSats,
+            prices: aliasConstants.prices,
         };
         return request(app)
             .get('/prices')

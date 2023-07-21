@@ -4,7 +4,7 @@
 
 'use strict';
 const aliasConstants = require('../constants/alias');
-const { getXecPrice, satsToFormattedValue } = require('./utils');
+const { getXecPrice, satsToFormattedValue, getAliasPrice } = require('./utils');
 
 module.exports = {
     /**
@@ -14,10 +14,10 @@ module.exports = {
      * @returns {string} a string formatted for HTML-parsed Telegram message
      */
     buildAliasTgMsg: function (aliasObject, xecPrice) {
-        const { address, alias, txid } = aliasObject;
+        const { address, alias, txid, blockheight } = aliasObject;
 
         const displayedAliasPrice = satsToFormattedValue(
-            aliasConstants.registrationFeesSats[alias.length],
+            getAliasPrice(aliasConstants.prices, alias.length, blockheight),
             xecPrice,
         );
 

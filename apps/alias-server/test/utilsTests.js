@@ -12,6 +12,7 @@ const {
     isValidAliasString,
     removeUnconfirmedTxsFromTxHistory,
     satsToFormattedValue,
+    getAliasPrice,
 } = require('../src/utils');
 const {
     aliasHexConversions,
@@ -22,6 +23,7 @@ const { generated } = require('./mocks/aliasMocks');
 const axios = require('axios');
 const MockAdapter = require('axios-mock-adapter');
 const mockXecPrice = 0.000033;
+const config = require('../config');
 
 describe('alias-server utils.js', function () {
     it('getXecPrice returns price as a number', async function () {
@@ -141,5 +143,334 @@ describe('alias-server utils.js', function () {
     });
     it('satsToFormattedValue returns a USD amount with 7 decimal places if fiat qty is less than 0.000001', function () {
         assert.strictEqual(satsToFormattedValue(1, mockXecPrice), '$0.0000003');
+    });
+    it('getAliasPrice returns expected price for an alias registered in the most recent price epoch', function () {
+        const registrationBlockheight = 785000;
+        const aliasLength = 15;
+        const mockPrices = [
+            {
+                startHeight: registrationBlockheight,
+                fees: {
+                    1: 571,
+                    2: 570,
+                    3: 569,
+                    4: 568,
+                    5: 567,
+                    6: 566,
+                    7: 565,
+                    8: 564,
+                    9: 563,
+                    10: 562,
+                    11: 561,
+                    12: 560,
+                    13: 559,
+                    14: 558,
+                    15: 557,
+                    16: 556,
+                    17: 555,
+                    18: 554,
+                    19: 553,
+                    20: 552,
+                    21: 551,
+                },
+            },
+        ];
+        assert.strictEqual(
+            getAliasPrice(mockPrices, aliasLength, registrationBlockheight),
+            557,
+        );
+
+        // Also works for an unconfirmed tx
+        assert.strictEqual(
+            getAliasPrice(
+                mockPrices,
+                aliasLength,
+                config.unconfirmedBlockheight,
+            ),
+            557,
+        );
+    });
+    it('getAliasPrice throws an error if asked for a price of an undefined epoch', function () {
+        const aliasLength = 15;
+        const mockPrices = [
+            {
+                startHeight: 800000,
+                fees: {
+                    1: 571,
+                    2: 570,
+                    3: 569,
+                    4: 568,
+                    5: 567,
+                    6: 566,
+                    7: 565,
+                    8: 564,
+                    9: 563,
+                    10: 562,
+                    11: 561,
+                    12: 560,
+                    13: 559,
+                    14: 558,
+                    15: 557,
+                    16: 556,
+                    17: 555,
+                    18: 554,
+                    19: 553,
+                    20: 552,
+                    21: 551,
+                },
+            },
+        ];
+        const registrationBlockheight = 799999;
+
+        assert.throws(() => {
+            getAliasPrice(mockPrices, aliasLength, registrationBlockheight);
+        }, new Error(`${registrationBlockheight} precedes alias protocol activation height`));
+    });
+    it('getAliasPrice throws an error if called with a prices object that does not cover the alias length', function () {
+        const registrationBlockheight = 785000;
+        const aliasLength = 15;
+        const mockPrices = [
+            {
+                startHeight: registrationBlockheight,
+                fees: {
+                    1: 571,
+                    2: 570,
+                    3: 569,
+                    4: 568,
+                    5: 567,
+                    6: 566,
+                    7: 565,
+                    8: 564,
+                    9: 563,
+                    10: 562,
+                    11: 561,
+                    12: 560,
+                    13: 559,
+                    14: 558,
+                    16: 556,
+                    17: 555,
+                    18: 554,
+                    19: 553,
+                    20: 552,
+                    21: 551,
+                },
+            },
+        ];
+
+        assert.throws(() => {
+            getAliasPrice(mockPrices, aliasLength, registrationBlockheight);
+        }, new Error(`fees[${aliasLength}] is undefined for ${registrationBlockheight}`));
+    });
+    it('getAliasPrice returns expected price for an alias registered in a price epoch older than the most recent price epoch', function () {
+        const registrationBlockheight = 750000;
+        const aliasLength = 21;
+        const mockPrices = [
+            {
+                startHeight: 785000,
+                fees: {
+                    1: 571,
+                    2: 570,
+                    3: 569,
+                    4: 568,
+                    5: 567,
+                    6: 566,
+                    7: 565,
+                    8: 564,
+                    9: 563,
+                    10: 562,
+                    11: 561,
+                    12: 560,
+                    13: 559,
+                    14: 558,
+                    15: 557,
+                    16: 556,
+                    17: 555,
+                    18: 554,
+                    19: 553,
+                    20: 552,
+                    21: 551,
+                },
+            },
+            {
+                startHeight: registrationBlockheight,
+                fees: {
+                    1: 1001,
+                    2: 1002,
+                    3: 1003,
+                    4: 1004,
+                    5: 1005,
+                    6: 1006,
+                    7: 1007,
+                    8: 1008,
+                    9: 1009,
+                    10: 1010,
+                    11: 1011,
+                    12: 1012,
+                    13: 1013,
+                    14: 1014,
+                    15: 1015,
+                    16: 1016,
+                    17: 1017,
+                    18: 1018,
+                    19: 1019,
+                    20: 1020,
+                    21: 1021,
+                },
+            },
+        ];
+        assert.strictEqual(
+            getAliasPrice(mockPrices, aliasLength, registrationBlockheight),
+            1021,
+        );
+    });
+    it('getAliasPrice throws error if prices object is not properly sorted', function () {
+        const registrationBlockheight = 786000;
+        const aliasLength = 21;
+        const mockPrices = [
+            {
+                startHeight: 750000,
+                fees: {
+                    1: 1001,
+                    2: 1002,
+                    3: 1003,
+                    4: 1004,
+                    5: 1005,
+                    6: 1006,
+                    7: 1007,
+                    8: 1008,
+                    9: 1009,
+                    10: 1010,
+                    11: 1011,
+                    12: 1012,
+                    13: 1013,
+                    14: 1014,
+                    15: 1015,
+                    16: 1016,
+                    17: 1017,
+                    18: 1018,
+                    19: 1019,
+                    20: 1020,
+                    21: 1021,
+                },
+            },
+            {
+                startHeight: 785000,
+                fees: {
+                    1: 571,
+                    2: 570,
+                    3: 569,
+                    4: 568,
+                    5: 567,
+                    6: 566,
+                    7: 565,
+                    8: 564,
+                    9: 563,
+                    10: 562,
+                    11: 561,
+                    12: 560,
+                    13: 559,
+                    14: 558,
+                    15: 557,
+                    16: 556,
+                    17: 555,
+                    18: 554,
+                    19: 553,
+                    20: 552,
+                    21: 551,
+                },
+            },
+        ];
+
+        assert.throws(() => {
+            getAliasPrice(mockPrices, aliasLength, registrationBlockheight);
+        }, new Error('alias price epochs must be sorted by startHeight, highest to lowest'));
+    });
+    it('getAliasPrice throws error if prices object is not properly sorted, even if the first two epochs are', function () {
+        const registrationBlockheight = 790000;
+        const aliasLength = 21;
+        const mockPrices = [
+            {
+                startHeight: 785000,
+                fees: {
+                    1: 1001,
+                    2: 1002,
+                    3: 1003,
+                    4: 1004,
+                    5: 1005,
+                    6: 1006,
+                    7: 1007,
+                    8: 1008,
+                    9: 1009,
+                    10: 1010,
+                    11: 1011,
+                    12: 1012,
+                    13: 1013,
+                    14: 1014,
+                    15: 1015,
+                    16: 1016,
+                    17: 1017,
+                    18: 1018,
+                    19: 1019,
+                    20: 1020,
+                    21: 1021,
+                },
+            },
+            {
+                startHeight: 750000,
+                fees: {
+                    1: 571,
+                    2: 570,
+                    3: 569,
+                    4: 568,
+                    5: 567,
+                    6: 566,
+                    7: 565,
+                    8: 564,
+                    9: 563,
+                    10: 562,
+                    11: 561,
+                    12: 560,
+                    13: 559,
+                    14: 558,
+                    15: 557,
+                    16: 556,
+                    17: 555,
+                    18: 554,
+                    19: 553,
+                    20: 552,
+                    21: 551,
+                },
+            },
+            {
+                startHeight: 786000,
+                fees: {
+                    1: 2001,
+                    2: 2002,
+                    3: 2003,
+                    4: 2004,
+                    5: 2005,
+                    6: 2006,
+                    7: 2007,
+                    8: 2008,
+                    9: 2009,
+                    10: 2010,
+                    11: 2011,
+                    12: 2012,
+                    13: 2013,
+                    14: 2014,
+                    15: 2015,
+                    16: 2016,
+                    17: 2017,
+                    18: 2018,
+                    19: 2019,
+                    20: 2020,
+                    21: 2021,
+                },
+            },
+        ];
+
+        assert.throws(() => {
+            getAliasPrice(mockPrices, aliasLength, registrationBlockheight);
+        }, new Error('alias price epochs must be sorted by startHeight, highest to lowest'));
     });
 });

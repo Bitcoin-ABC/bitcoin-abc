@@ -4,6 +4,7 @@
 
 'use strict';
 const axios = require('axios');
+const config = require('../config');
 
 module.exports = {
     getXecPrice: async function () {
@@ -99,5 +100,56 @@ module.exports = {
     },
     wait: async function (msecs) {
         await new Promise(resolve => setTimeout(resolve, msecs));
+    },
+    /**
+     * Get alias registration price for an alias of a given length and blockheight
+     * Note that for alias-server, you want the price for a given block and NOT the next block,
+     * as you need to verify txs in this block
+     * @param {object} prices
+     * an array of alias registration prices and the blockheight at which they become valid
+     * although prices is a constant, it is used as a parameter here to allow unit testing a range of possible options
+     * @param {number} aliasLength bytecount of alias hex string, or alias.length of the utf8 alias. 1-21.
+     * @param {number} registrationBlockheight blockheight of confirmed alias registration tx
+     * @returns {number} price in satoshis
+     * @throws {error} if blockheight precedes alias launch
+     * @throws {error} if the entries of prices are not sorted highest to lowest by prices[i].startHeight
+     */
+    getAliasPrice: function (prices, aliasLength, registrationBlockheight) {
+        // Initialize registrationFeeSats
+        let registrationFeeSats;
+        // Initialize lastStartHeight as arbitrarily high
+        let lastStartHeight = config.unconfirmedBlockheight;
+
+        for (let i = 0; i < prices.length; i += 1) {
+            const { startHeight, fees } = prices[i];
+
+            // Confirm this startHeight is greater than lastStartHeight
+            if (startHeight >= lastStartHeight) {
+                throw new Error(
+                    'alias price epochs must be sorted by startHeight, highest to lowest',
+                );
+            }
+
+            // If your tested blockheight is higher than this blockheight, these are your prices
+            if (registrationBlockheight >= startHeight) {
+                registrationFeeSats = fees[aliasLength];
+                if (typeof registrationFeeSats !== 'number') {
+                    throw new Error(
+                        `fees[${aliasLength}] is undefined for ${registrationBlockheight}`,
+                    );
+                }
+            }
+            // If not, check the next price epoch
+            // Update lastStartHeight before incrementing i
+            lastStartHeight = startHeight;
+        }
+        // Return registrationFeeSats if you found it
+        if (typeof registrationFeeSats === 'number') {
+            return registrationFeeSats;
+        }
+        // If you get to the earliest defined block and haven't found anything, throw an error
+        throw new Error(
+            `${registrationBlockheight} precedes alias protocol activation height`,
+        );
     },
 };

@@ -5,7 +5,11 @@
 'use strict';
 const cashaddr = require('ecashaddrjs');
 const config = require('../config');
-const { getAliasFromHex, isValidAliasString } = require('./utils');
+const {
+    getAliasFromHex,
+    isValidAliasString,
+    getAliasPrice,
+} = require('./utils');
 const { addOneAliasToDb } = require('./db');
 const { consumeNextPush } = require('ecash-script');
 
@@ -182,19 +186,24 @@ module.exports = {
 
                 // If you get here, the construction of the registration in the OP_RETURN field is valid
                 // However you still must compare against fee paid and registration history to finalize
+                const registrationBlockheight =
+                    aliasTx && aliasTx.block
+                        ? aliasTx.block.height
+                        : config.unconfirmedBlockheight;
                 validAliases.push({
                     alias,
                     address,
                     txid: aliasTx.txid,
-                    blockheight:
-                        aliasTx && aliasTx.block
-                            ? aliasTx.block.height
-                            : config.unconfirmedBlockheight,
+                    blockheight: registrationBlockheight,
                 });
 
                 // Increment the required fee based on this valid alias
                 aliasFeeRequiredSats += BigInt(
-                    aliasConstants.registrationFeesSats[aliasLength],
+                    getAliasPrice(
+                        aliasConstants.prices,
+                        aliasLength,
+                        registrationBlockheight,
+                    ),
                 );
             } else {
                 // Check if outputScript matches alias registration address
