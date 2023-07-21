@@ -125,7 +125,7 @@ class RPCPackagesTest(BitcoinTestFramework):
             " validation successfully"
         )
         tx_bad_sig_hex = node.createrawtransaction(
-            [{"txid": coin["txid"], "vout": 0}],
+            [{"txid": coin["txid"], "vout": coin["vout"]}],
             {address: coin["amount"] - Decimal("100.00")},
         )
         tx_bad_sig = FromHex(CTransaction(), tx_bad_sig_hex)
@@ -138,16 +138,22 @@ class RPCPackagesTest(BitcoinTestFramework):
         # other transactions have been fully validated, which is why the node
         # returns full validation results for all transactions here but empty
         # results in other cases.
+        tx_bad_sig_txid = tx_bad_sig.txid_hex
         assert_equal(
             testres_bad_sig,
             self.independent_txns_testres_blank
             + [
                 {
-                    "txid": tx_bad_sig.txid_hex,
+                    "txid": tx_bad_sig_txid,
                     "allowed": False,
                     "reject-reason": (
-                        "mandatory-script-verify-flag-failed (Operation not valid with"
-                        " the current stack size)"
+                        "mandatory-script-verify-flag-failed (Operation not valid "
+                        "with the current stack size)"
+                    ),
+                    "reject-details": (
+                        "mandatory-script-verify-flag-failed (Operation not valid "
+                        f"with the current stack size), input 0 of {tx_bad_sig_txid}, "
+                        f"spending {coin['txid']}:{coin['vout']}"
                     ),
                 }
             ],

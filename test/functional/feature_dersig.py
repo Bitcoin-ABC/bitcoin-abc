@@ -76,19 +76,25 @@ class BIP66Test(BitcoinTestFramework):
         )
         block.nVersion = 3
 
-        spendtx = self.create_tx(self.coinbase_txids[1])
+        coin_txid = self.coinbase_txids[1]
+        spendtx = self.create_tx(coin_txid)
         unDERify(spendtx)
 
         # First we show that this tx is valid except for DERSIG by getting it
         # rejected from the mempool for exactly that reason.
+        spendtx_txid = spendtx.txid_hex
         assert_equal(
             [
                 {
-                    "txid": spendtx.txid_hex,
+                    "txid": spendtx_txid,
                     "allowed": False,
                     "reject-reason": (
                         "mandatory-script-verify-flag-failed (Non-canonical DER"
                         " signature)"
+                    ),
+                    "reject-details": (
+                        "mandatory-script-verify-flag-failed (Non-canonical DER signature), "
+                        f"input 0 of {spendtx_txid}, spending {coin_txid}:0"
                     ),
                 }
             ],

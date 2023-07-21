@@ -145,13 +145,18 @@ class BIP65Test(BitcoinTestFramework):
 
         # We show that this tx is invalid due to CLTV by getting it
         # rejected from the mempool for exactly that reason.
+        expected_cltv_reject_reason = (
+            "non-mandatory-script-verify-flag (Negative locktime)"
+        )
         assert_equal(
             [
                 {
                     "txid": spendtx.txid_hex,
                     "allowed": False,
-                    "reject-reason": (
-                        "non-mandatory-script-verify-flag (Negative locktime)"
+                    "reject-reason": expected_cltv_reject_reason,
+                    "reject-details": (
+                        expected_cltv_reject_reason
+                        + f", input 0 of {spendtx.txid_hex}, spending {fundtx.txid_hex}:0"
                     ),
                 }
             ],
