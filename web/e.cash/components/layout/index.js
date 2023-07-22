@@ -29,6 +29,12 @@ const Layout = ({
                 />
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta property="og:type" content="website" />
+
+                <link rel="alternate" hreflang="en" href="https://e.cash" />
+                <link rel="alternate" hreflang="ko" href="https://ko.e.cash" />
+                <link rel="alternate" hreflang="zh" href="https://zh.e.cash" />
+                <link rel="alternate" hreflang="tr" href="https://tr.e.cash" />
+                <link rel="alternate" hreflang="es" href="https://es.e.cash" />
             </Head>
             <Nav
                 announcementbar={{

@@ -97,4 +97,48 @@ export default createGlobalStyle`
         line-height: 1.8em;
         margin-bottom: 30px;
     }
+
+    body .wg-default.weglot-container--left, .wg-default.weglot-container--left .country-selector {
+        left: unset !important;
+        right: 40px !important;
+    }
+
+    body .wg-default, body .wg-default .country-selector {
+        bottom: 40px;
+        position: fixed;
+        right: 40px;
+    }
+
+    body .wg-drop.country-selector .wgcurrent,
+    body .wg-drop.country-selector ul {
+        border: none;
+    }
+
+    body .wg-drop.country-selector .wgcurrent a,
+    body .wg-default .wg-drop.country-selector a {
+        padding: 0;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid ${props => props.theme.colors.primaryLight};
+        background-color: ${props => props.theme.colors.darkBackground};
+        color: ${props => props.theme.colors.contrast}
+    }
+
+    body .wg-drop.country-selector .wgcurrent:after {
+        display: none;
+    }
+
+    body .wg-default .wg-drop.country-selector a {
+        font-size: 13px;
+        width: 50px;
+        height: 50px;
+        padding: 0;
+    }
+
+    body .wg-drop.weg-openup ul {
+        bottom: 50px;
+    }
 `;
