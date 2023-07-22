@@ -127,8 +127,7 @@ bool EncryptSecret(const CKeyingMaterial &vMasterKey,
     if (!cKeyCrypter.SetKey(vMasterKey, chIV)) {
         return false;
     }
-    return cKeyCrypter.Encrypt(*((const CKeyingMaterial *)&vchPlaintext),
-                               vchCiphertext);
+    return cKeyCrypter.Encrypt(vchPlaintext, vchCiphertext);
 }
 
 bool DecryptSecret(const CKeyingMaterial &vMasterKey,

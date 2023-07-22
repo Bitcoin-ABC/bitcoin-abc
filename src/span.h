@@ -308,7 +308,7 @@ template <typename V> Span<std::byte> MakeWritableByteSpan(V &&v) noexcept {
 
 // Helper functions to safely cast basic byte pointers to uint8_t pointers.
 inline uint8_t *UCharCast(char *c) {
-    return (uint8_t *)c;
+    return reinterpret_cast<uint8_t *>(c);
 }
 inline uint8_t *UCharCast(uint8_t *c) {
     return c;
@@ -317,10 +317,10 @@ inline uint8_t *UCharCast(signed char *c) {
     return reinterpret_cast<uint8_t *>(c);
 }
 inline uint8_t *UCharCast(std::byte *c) {
-    return (uint8_t *)c;
+    return reinterpret_cast<uint8_t *>(c);
 }
 inline const uint8_t *UCharCast(const char *c) {
-    return (uint8_t *)c;
+    return reinterpret_cast<const uint8_t *>(c);
 }
 inline const uint8_t *UCharCast(const uint8_t *c) {
     return c;

@@ -56,6 +56,10 @@ struct DBParams {
     DBOptions options{};
 };
 
+inline auto CharCast(const std::byte *data) {
+    return reinterpret_cast<const char *>(data);
+}
+
 class dbwrapper_error : public std::runtime_error {
 public:
     explicit dbwrapper_error(const std::string &msg)
@@ -112,12 +116,12 @@ public:
     template <typename K, typename V> void Write(const K &key, const V &value) {
         ssKey.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
         ssKey << key;
-        leveldb::Slice slKey((const char *)ssKey.data(), ssKey.size());
+        leveldb::Slice slKey(CharCast(ssKey.data()), ssKey.size());
 
         ssValue.reserve(DBWRAPPER_PREALLOC_VALUE_SIZE);
         ssValue << value;
         ssValue.Xor(dbwrapper_private::GetObfuscateKey(parent));
-        leveldb::Slice slValue((const char *)ssValue.data(), ssValue.size());
+        leveldb::Slice slValue(CharCast(ssValue.data()), ssValue.size());
 
         batch.Put(slKey, slValue);
         // LevelDB serializes writes as:
@@ -136,7 +140,7 @@ public:
     template <typename K> void Erase(const K &key) {
         ssKey.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
         ssKey << key;
-        leveldb::Slice slKey((const char *)ssKey.data(), ssKey.size());
+        leveldb::Slice slKey(CharCast(ssKey.data()), ssKey.size());
 
         batch.Delete(slKey);
         // LevelDB serializes erases as:
@@ -173,7 +177,7 @@ public:
         DataStream ssKey{};
         ssKey.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
         ssKey << key;
-        leveldb::Slice slKey((const char *)ssKey.data(), ssKey.size());
+        leveldb::Slice slKey(CharCast(ssKey.data()), ssKey.size());
         piter->Seek(slKey);
     }
 
@@ -261,7 +265,7 @@ public:
         DataStream ssKey{};
         ssKey.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
         ssKey << key;
-        leveldb::Slice slKey((const char *)ssKey.data(), ssKey.size());
+        leveldb::Slice slKey(CharCast(ssKey.data()), ssKey.size());
 
         std::string strValue;
         leveldb::Status status = pdb->Get(readoptions, slKey, &strValue);
@@ -301,7 +305,7 @@ public:
         DataStream ssKey{};
         ssKey.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
         ssKey << key;
-        leveldb::Slice slKey((const char *)ssKey.data(), ssKey.size());
+        leveldb::Slice slKey(CharCast(ssKey.data()), ssKey.size());
 
         std::string strValue;
         leveldb::Status status = pdb->Get(readoptions, slKey, &strValue);
@@ -342,8 +346,8 @@ public:
         ssKey2.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
         ssKey1 << key_begin;
         ssKey2 << key_end;
-        leveldb::Slice slKey1((const char *)ssKey1.data(), ssKey1.size());
-        leveldb::Slice slKey2((const char *)ssKey2.data(), ssKey2.size());
+        leveldb::Slice slKey1(CharCast(ssKey1.data()), ssKey1.size());
+        leveldb::Slice slKey2(CharCast(ssKey2.data()), ssKey2.size());
         uint64_t size = 0;
         leveldb::Range range(slKey1, slKey2);
         pdb->GetApproximateSizes(&range, 1, &size);
