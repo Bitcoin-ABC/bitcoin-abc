@@ -31,7 +31,7 @@ export default function App({ Component, pageProps }) {
                 src="https://cdn.weglot.com/weglot.min.js"
                 strategy="afterInteractive"
             />
-            <Script strategy="lazyOnload">
+            <Script strategy="lazyOnload" id="weglotInitialize">
                 {`Weglot.initialize({
                 api_key: '${process.env.NEXT_PUBLIC_WEGLOT_API_KEY}',
             });`}
