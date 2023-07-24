@@ -21,6 +21,11 @@ export const navitems = [
                 icon: '/images/hands-logo-icon.svg',
             },
             {
+                title: 'Roadmap',
+                link: '/roadmap',
+                icon: '/images/roadmap-icon.svg',
+            },
+            {
                 title: 'eCash Brand',
                 link: '/ecash-brand',
                 icon: '/images/dna-icon.svg',
