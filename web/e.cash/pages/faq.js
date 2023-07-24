@@ -35,7 +35,7 @@ export default function FAQ() {
                 <Container narrow>
                     {faqs.map((faq, index) => (
                         <QuestionBlock key={`faq_${index}`}>
-                            <H3 text={faq.question} />
+                            <H3 text={faq.question} id={index + 1} />
                             {faq.answer}
                         </QuestionBlock>
                     ))}

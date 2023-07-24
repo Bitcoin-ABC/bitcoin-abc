@@ -42,7 +42,7 @@ export default function WealthRedefined() {
             <GradientSpacer />
             <Container narrow>
                 <TextBlock>
-                    <H3 text="Wealth Redefined" />
+                    <H3 text="Wealth Redefined" id="wealth-redefined" />
                     <p>
                         In today&rsquo;s age of change and innovation,
                         it&rsquo;s time to expand our understanding of wealth.
@@ -65,7 +65,7 @@ export default function WealthRedefined() {
                 </TextBlock>
 
                 <TextBlock>
-                    <H3 text="Our Why" />
+                    <H3 text="Our Why" id="our-why" />
                     <p>
                         The truth is not always popular. Especially today, where
                         facts and opinions are easily mixed and manipulated.
@@ -84,7 +84,7 @@ export default function WealthRedefined() {
                     </p>
                 </TextBlock>
                 <TextBlock>
-                    <H3 text="Our Inspiration" />
+                    <H3 text="Our Inspiration" id="our-inspiration" />
                     <QuoteCarousel />
                     <CenterImage height="500px">
                         <Image src={rocket} alt="eCash" fill />
@@ -92,7 +92,7 @@ export default function WealthRedefined() {
                 </TextBlock>
 
                 <TextBlock>
-                    <H3 text="Project Development" />
+                    <H3 text="Project Development" id="project-development" />
                     <p>
                         eCash is developed and maintained by{' '}
                         <Link

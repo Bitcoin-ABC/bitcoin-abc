@@ -181,7 +181,7 @@ export default function EcashBrand() {
                 </TextBlock>
 
                 <TextBlock>
-                    <H3 text="eCash Logo Assets" />
+                    <H3 text="eCash Logo Assets" id="logos" />
                     <p>
                         There are several variations of the logo: primary,
                         secondary, and icon.
@@ -231,7 +231,7 @@ export default function EcashBrand() {
                 </TextBlock>
 
                 <TextBlock>
-                    <H3 text="eCash Brand Colors" />
+                    <H3 text="eCash Brand Colors" id="colors" />
                     <h4>PRIMARY COLORS</h4>
                     <p>
                         The primary colors are the major identity color which
@@ -277,7 +277,7 @@ export default function EcashBrand() {
                 </TextBlock>
 
                 <TextBlock>
-                    <H3 text="eCash Official Fonts" />
+                    <H3 text="eCash Official Fonts" id="fonts" />
                     <p>
                         For logotype, subtitle and heading materials, the
                         primary font Montserrat should be used. For the logotype

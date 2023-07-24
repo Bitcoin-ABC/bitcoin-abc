@@ -130,6 +130,7 @@ export default function Home() {
             <PixelBorder />
             <RoadmapSection>
                 <Container>
+                    <div id="roadmap" />
                     <H2 subtext="Now & Future" text="ROADMAP" center />
                     <Roadmap />
                 </Container>
