@@ -9,7 +9,8 @@
         "junit": "mocha test --reporter mocha-junit-reporter",
         "generateMock": "node scripts/generateMock",
         "getCoingeckoPrices": "node scripts/getCoingeckoPrices",
-        "sendMsgByBlock": "node scripts/sendMsgByBlock"
+        "sendMsgByBlock": "node scripts/sendMsgByBlock",
+        "getSlpTwoTokenInfo": "node scripts/getSlpTwoTokenInfo"
     },
     "keywords": [
         "ecash",
@@ -25,7 +26,7 @@
         "axios-mock-adapter": "^1.21.4",
         "bignumber.js": "^9.1.1",
         "chronik-client": "^0.8.2",
-        "ecash-script": "^1.0.0",
+        "ecash-script": "^2.1.1",
         "ecashaddrjs": "^1.5.1",
         "node-telegram-bot-api": "^0.61.0"
     },

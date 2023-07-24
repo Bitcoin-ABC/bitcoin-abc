@@ -237,7 +237,7 @@ describe('parse.js functions', function () {
             let stack = { remainingHex: outputScript.slice(2) };
             let stackArray = [];
             while (stack.remainingHex.length > 0) {
-                stackArray.push(consumeNextPush(stack));
+                stackArray.push(consumeNextPush(stack).data);
             }
             assert.deepEqual(parseMemoOutputScript(stackArray), {
                 app: opReturn.memo.app,

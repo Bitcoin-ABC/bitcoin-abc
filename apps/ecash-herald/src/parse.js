@@ -5,8 +5,9 @@
 'use strict';
 const config = require('../config');
 const opReturn = require('../constants/op_return');
-const { consumeNextPush } = require('ecash-script');
+const { consume, consumeNextPush, swapEndianness } = require('ecash-script');
 const knownMinersJson = require('../constants/miners');
+const cachedTokenInfoMap = require('../constants/tokens');
 const { jsonReviver, bigNumberAmountToLocaleString } = require('../src/utils');
 const miners = JSON.parse(JSON.stringify(knownMinersJson), jsonReviver);
 const cashaddr = require('ecashaddrjs');
@@ -389,14 +390,14 @@ module.exports = {
         let stack = { remainingHex: opReturnHex };
         let stackArray = [];
         while (stack.remainingHex.length > 0) {
-            const thisPush = consumeNextPush(stack);
-            if (thisPush !== '') {
+            const { data } = consumeNextPush(stack);
+            if (data !== '') {
                 // You may have an empty push in the middle of a complicated tx for some reason
                 // Mb some libraries erroneously create these
                 // e.g. https://explorer.e.cash/tx/70c2842e1b2c7eb49ee69cdecf2d6f3cd783c307c4cbeef80f176159c5891484
                 // has 4c000100 for last characters. 4c00 is just nothing.
                 // But you want to know 00 and have the correct array index
-                stackArray.push(thisPush);
+                stackArray.push(data);
             }
         }
 
@@ -584,24 +585,81 @@ module.exports = {
 
         let msg = '';
 
+        // Create a stack to use ecash-script consume function
+        // Note: slp2 parsing is not standard op_return parsing, varchar bytes just use a one-byte push
+        // So, you can use the 'consume' function of ecash-script, but not consumeNextPush
+        let stack = { remainingHex: slpTwoPush };
+
         // 1.3: Read token type
         // For now, this can only be 00. If not 00, unknown
-        const tokenType = slpTwoPush.slice(0, 2);
+        const tokenType = consume(stack, 1);
 
         if (tokenType !== '00') {
             msg += 'Unknown token type|';
         }
 
         // 1.4: Read section type
+        // These are custom varchar per slp2 spec
+        // <varchar byte hex> <section type>
+        const sectionBytes = parseInt(consume(stack, 1), 16);
         // Note: these are encoded with push data, so you can use ecash-script
-        let stack = { remainingHex: slpTwoPush.slice(2) };
 
-        const sectionType = Buffer.from(consumeNextPush(stack), 'hex').toString(
-            'utf8',
-        );
+        const sectionType = Buffer.from(
+            consume(stack, sectionBytes),
+            'hex',
+        ).toString('utf8');
         msg += sectionType;
 
-        // Stop here for now
+        // Parsing differs depending on section type
+        // Note that SEND and MINT have same parsing
+
+        const TOKEN_ID_BYTES = 32;
+        switch (sectionType) {
+            case 'SEND':
+            case 'MINT': {
+                // Next up is tokenId
+                const tokenId = swapEndianness(consume(stack, TOKEN_ID_BYTES));
+
+                const cachedTokenInfo = cachedTokenInfoMap.get(tokenId);
+
+                msg += `|<a href="${config.blockExplorer}/tx/${tokenId}">${
+                    typeof cachedTokenInfo === 'undefined'
+                        ? `${tokenId.slice(0, 3)}...${tokenId.slice(-3)}`
+                        : prepareStringForTelegramHTML(cachedTokenInfo.ticker)
+                }</a>`;
+
+                const numOutputs = consume(stack, 1);
+                // Iterate over number of outputs to get total amount sent
+                // Note: this should be handled with an indexer, as we are not parsing for validity here
+                // However, it's still useful information for the herald
+                let totalAmountSent = 0;
+                for (let i = 0; i < numOutputs; i += 1) {
+                    totalAmountSent += parseInt(
+                        swapEndianness(consume(stack, 6)),
+                    );
+                }
+                msg +=
+                    typeof cachedTokenInfo === 'undefined'
+                        ? ''
+                        : `|${bigNumberAmountToLocaleString(
+                              totalAmountSent.toString(),
+                              cachedTokenInfo.decimals,
+                          )}`;
+                break;
+            }
+
+            case 'GENESIS': {
+                // TODO
+                // Have not seen one of these in the wild yet
+                break;
+            }
+
+            case 'BURN': {
+                // TODO
+                // Have seen some in the wild but not in spec
+                break;
+            }
+        }
         // The rest of the parsing rules get quite complicated and should be handled in a dedicated library
         // or indexer
         return msg;
