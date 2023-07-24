@@ -1,5 +1,23 @@
 # Release notes
 
+## Release 5.2.6
+
+- Increase the maximum number of concurrent get_merkle network requests to speed
+  up the initial verification of the transaction history for wallets with a
+  large history (D14123).
+- Write unencrypted wallet files using compact JSON. This reduces the file size
+  by about 20% and increases the speed of the operation by about 100% (D14234).
+- Use faster compression settings when saving encrypted wallets to increase the
+  speed of the operation by about 80% (D14235).
+- Significantly improve the speed of building transactions in wallets with many
+  coins per address. This reduces GUI freezing when interacting with the "Send"
+  tab for such wallets (D14249).
+- Improve the functional tests (D14273, D14274, D14276, D14278, D14293).
+- Improve the developer documentation (D14142, D14259, D14285).
+- Electron Cash backport:
+  - Fix the QR code scanner for the Linux AppImage release (D14284)
+
+
 ## Release 5.2.5
 
 - Fix a bug breaking the application when installed with the Windows installer.
