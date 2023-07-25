@@ -32,6 +32,15 @@ const nextConfig = {
             },
         ],
     },
+    async redirects() {
+        return [
+            {
+                source: '/roadmap-explained',
+                destination: '/roadmap',
+                permanent: true,
+            },
+        ];
+    },
 };
 
 module.exports = nextConfig;
