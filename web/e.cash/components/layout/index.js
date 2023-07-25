@@ -28,6 +28,10 @@ const Layout = ({
                     content={metaDescription}
                 />
                 <meta name="twitter:card" content="summary_large_image" />
+                <meta
+                    property="og:image"
+                    content="https://e.cash/images/ecash-twitter-card.jpg"
+                ></meta>
                 <meta property="og:type" content="website" />
 
                 <link rel="alternate" hreflang="en" href="https://e.cash" />
