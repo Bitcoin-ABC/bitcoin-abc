@@ -24,12 +24,12 @@ class Config;
  * Default for -maxorphantx, maximum number of orphan transactions kept in
  * memory.
  */
-static const unsigned int DEFAULT_MAX_ORPHAN_TRANSACTIONS = 100;
+static const uint32_t DEFAULT_MAX_ORPHAN_TRANSACTIONS{100};
 /**
- * Default number of orphan+recently-replaced txn to keep around for block
- * reconstruction.
+ * Default number of non-mempool transactions to keep around for block
+ * reconstruction. Includes orphan and rejected transactions.
  */
-static const unsigned int DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN = 100;
+static const uint32_t DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN{100};
 static const bool DEFAULT_PEERBLOCKFILTERS = false;
 /** Threshold for marking a node to be discouraged, e.g. disconnected and added
  * to the discouragement filter. */
@@ -55,11 +55,18 @@ struct CNodeStateStats {
 class PeerManager : public CValidationInterface, public NetEventsInterface {
 public:
     struct Options {
-        /** Whether this node is running in -blocksonly mode */
+        //! Whether this node is running in -blocksonly mode
         bool ignore_incoming_txs{DEFAULT_BLOCKSONLY};
+        //! Maximum number of orphan transactions kept in memory
         uint32_t max_orphan_txs{DEFAULT_MAX_ORPHAN_TRANSACTIONS};
-        size_t max_extra_txs{DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN};
+        //! Number of non-mempool transactions to keep around for block
+        //! reconstruction. Includes orphan and rejected transactions.
+        uint32_t max_extra_txs{DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN};
+        //! Whether all P2P messages are captured to disk
         bool capture_messages{false};
+        //! Number of addresses a node may send in an ADDR message.
+        //! This can be modified for tests only. Changing it on main net may
+        //! cause disconnections.
         size_t max_addr_to_send{MAX_ADDR_TO_SEND};
     };
 
