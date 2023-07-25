@@ -27,6 +27,11 @@ from test_framework.util import (
 )
 from test_framework.wallet_util import bytes_to_wif
 
+# Interval between 2 proof cleanups
+AVALANCHE_CLEANUP_INTERVAL = 5 * 60
+# Dangling proof timeout
+AVALANCHE_DANGLING_PROOF_TIMEOUT = 15 * 60
+
 
 class GetAvalancheInfoTest(BitcoinTestFramework):
     def set_test_params(self):
@@ -561,6 +566,81 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                     "immature_stake_amount": Decimal("0.00"),
                     "node_count": 1,
                     "connected_node_count": 1,
+                    "pending_node_count": 0,
+                },
+            }
+        )
+
+        self.log.info("The count drops after the dangling proofs are cleaned up")
+
+        node.setmocktime(mock_time + AVALANCHE_DANGLING_PROOF_TIMEOUT + 1)
+        node.mockscheduler(AVALANCHE_CLEANUP_INTERVAL)
+
+        self.wait_until(
+            lambda: node.getavalancheinfo()
+            == {
+                "ready_to_poll": False,
+                "local": {
+                    "verified": True,
+                    "sharing": True,
+                    "proofid": uint256_hex(proof.proofid),
+                    "limited_proofid": uint256_hex(proof.limited_proofid),
+                    "master": privkey.get_pubkey().get_bytes().hex(),
+                    "stake_amount": coinbase_amount,
+                    "payout_address": ADDRESS_ECREG_UNSPENDABLE,
+                },
+                "network": {
+                    "proof_count": 1,
+                    "connected_proof_count": 1,
+                    "dangling_proof_count": 0,
+                    "finalized_proof_count": 1,
+                    "conflicting_proof_count": 0,
+                    "immature_proof_count": 0,
+                    "total_stake_amount": coinbase_amount,
+                    "connected_stake_amount": coinbase_amount,
+                    "dangling_stake_amount": Decimal("0.00"),
+                    "immature_stake_amount": Decimal("0.00"),
+                    "node_count": 1,
+                    "connected_node_count": 1,
+                    "pending_node_count": 0,
+                },
+            }
+        )
+
+        self.log.info("Reconnect the nodes and check the counts update appropriately")
+
+        for n in quorum:
+            # Reset the node internal state by clearing the avahello
+            n.avahello = None
+            node.add_p2p_connection(n)
+            n.send_avaproof(n.proof)
+            wait_for_proof(node, uint256_hex(n.proof.proofid), timeout=5)
+
+        assert_avalancheinfo(
+            {
+                "ready_to_poll": True,
+                "local": {
+                    "verified": True,
+                    "sharing": True,
+                    "proofid": uint256_hex(proof.proofid),
+                    "limited_proofid": uint256_hex(proof.limited_proofid),
+                    "master": privkey.get_pubkey().get_bytes().hex(),
+                    "stake_amount": coinbase_amount,
+                    "payout_address": ADDRESS_ECREG_UNSPENDABLE,
+                },
+                "network": {
+                    "proof_count": N + 1,
+                    "connected_proof_count": N + 1,
+                    "dangling_proof_count": 0,
+                    "finalized_proof_count": N + 1,
+                    "conflicting_proof_count": 0,
+                    "immature_proof_count": 0,
+                    "total_stake_amount": coinbase_amount * (N + 1),
+                    "connected_stake_amount": coinbase_amount * (N + 1),
+                    "dangling_stake_amount": Decimal("0.00"),
+                    "immature_stake_amount": Decimal("0.00"),
+                    "node_count": N + 1,
+                    "connected_node_count": N + 1,
                     "pending_node_count": 0,
                 },
             }

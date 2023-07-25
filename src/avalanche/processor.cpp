@@ -432,6 +432,11 @@ int Processor::getConfidence(const AnyVoteItem &item) const {
     return it->second.getConfidence();
 }
 
+bool Processor::isRecentlyFinalized(const AnyVoteItem &item) const {
+    return WITH_LOCK(cs_finalizedItems,
+                     return finalizedItems.contains(GetVoteItemId(item)));
+}
+
 namespace {
     /**
      * When using TCP, we need to sign all messages as the transport layer is
@@ -1047,8 +1052,7 @@ bool Processor::IsWorthPolling::operator()(const CTransactionRef &tx) const {
 
 bool Processor::isWorthPolling(const AnyVoteItem &item) const {
     return std::visit(IsWorthPolling(*this), item) &&
-           WITH_LOCK(cs_finalizedItems,
-                     return !finalizedItems.contains(GetVoteItemId(item)));
+           !isRecentlyFinalized(item);
 }
 
 bool Processor::GetLocalAcceptance::operator()(

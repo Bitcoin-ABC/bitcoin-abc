@@ -7239,5 +7239,15 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &peer,
                  nodeid, proofid.ToString());
     }
 
+    // If the proof was finalized then cleaned up (typically due to missing
+    // nodes), don't lose the finalization state.
+    if (g_avalanche->isRecentlyFinalized(proof)) {
+        g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+            pm.forPeer(proofid, [&](const avalanche::Peer &peer) {
+                return pm.setFinalized(peer.peerid);
+            });
+        });
+    }
+
     return true;
 }
