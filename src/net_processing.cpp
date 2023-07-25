@@ -815,10 +815,12 @@ public:
     void BlockConnected(ChainstateRole role,
                         const std::shared_ptr<const CBlock> &pblock,
                         const CBlockIndex *pindexConnected) override
-        EXCLUSIVE_LOCKS_REQUIRED(!m_recent_confirmed_transactions_mutex);
+        EXCLUSIVE_LOCKS_REQUIRED(!m_recent_confirmed_transactions_mutex,
+                                 !m_tx_download_mutex);
     void BlockDisconnected(const std::shared_ptr<const CBlock> &block,
                            const CBlockIndex *pindex) override
-        EXCLUSIVE_LOCKS_REQUIRED(!m_recent_confirmed_transactions_mutex);
+        EXCLUSIVE_LOCKS_REQUIRED(!m_recent_confirmed_transactions_mutex,
+                                 !m_tx_download_mutex);
     void UpdatedBlockTip(const CBlockIndex *pindexNew,
                          const CBlockIndex *pindexFork,
                          bool fInitialDownload) override
@@ -833,21 +835,23 @@ public:
     /** Implement NetEventsInterface */
     void InitializeNode(const Config &config, CNode &node,
                         ServiceFlags our_services) override
-        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex);
+        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, !m_tx_download_mutex);
     void FinalizeNode(const Config &config, const CNode &node) override
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, !cs_proofrequest,
-                                 !m_headers_presync_mutex);
+                                 !m_headers_presync_mutex,
+                                 !m_tx_download_mutex);
     bool ProcessMessages(const Config &config, CNode *pfrom,
                          std::atomic<bool> &interrupt) override
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex,
                                  !m_recent_confirmed_transactions_mutex,
                                  !m_most_recent_block_mutex, !cs_proofrequest,
-                                 !m_headers_presync_mutex, g_msgproc_mutex);
+                                 !m_headers_presync_mutex, g_msgproc_mutex,
+                                 !m_tx_download_mutex);
     bool SendMessages(const Config &config, CNode *pto) override
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex,
                                  !m_recent_confirmed_transactions_mutex,
                                  !m_most_recent_block_mutex, !cs_proofrequest,
-                                 g_msgproc_mutex);
+                                 g_msgproc_mutex, !m_tx_download_mutex);
 
     /** Implement PeerManager */
     void StartScheduledTasks(CScheduler &scheduler) override;
@@ -875,7 +879,8 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex,
                                  !m_recent_confirmed_transactions_mutex,
                                  !m_most_recent_block_mutex, !cs_proofrequest,
-                                 !m_headers_presync_mutex, g_msgproc_mutex);
+                                 !m_headers_presync_mutex, g_msgproc_mutex,
+                                 !m_tx_download_mutex);
     void UpdateLastBlockAnnounceTime(NodeId node,
                                      int64_t time_in_seconds) override;
 
@@ -982,7 +987,8 @@ private:
     void ProcessInvalidTx(NodeId nodeid, const CTransactionRef &tx,
                           const TxValidationState &result,
                           bool maybe_add_extra_compact_tx)
-        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex, cs_main);
+        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex, cs_main,
+                                 m_tx_download_mutex);
 
     struct PackageToValidate {
         const Package m_txns;
@@ -1009,7 +1015,8 @@ private:
      */
     void ProcessPackageResult(const PackageToValidate &package_to_validate,
                               const PackageMempoolAcceptResult &package_result)
-        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex, cs_main);
+        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex, cs_main,
+                                 m_tx_download_mutex);
 
     /**
      * Look for a child of this transaction in the orphanage to form a
@@ -1019,7 +1026,8 @@ private:
      */
     std::optional<PackageToValidate> Find1P1CPackage(const CTransactionRef &ptx,
                                                      NodeId nodeid)
-        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex, cs_main);
+        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex, cs_main,
+                                 m_tx_download_mutex);
 
     /**
      * Handle a transaction whose result was
@@ -1027,7 +1035,8 @@ private:
      * m_orphanage. Also queues the tx for relay.
      */
     void ProcessValidTx(NodeId nodeid, const CTransactionRef &tx)
-        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex, cs_main);
+        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex, cs_main,
+                                 m_tx_download_mutex);
 
     /**
      * Reconsider orphan transactions after a parent has been accepted to the
@@ -1045,7 +1054,8 @@ private:
      *                     this peer will be empty.
      */
     bool ProcessOrphanTx(const Config &config, Peer &peer)
-        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex);
+        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex,
+                                 !m_tx_download_mutex);
 
     /**
      * Process a single headers message from a peer.
@@ -1164,7 +1174,7 @@ private:
      */
     void AddTxAnnouncement(const CNode &node, const TxId &txid,
                            std::chrono::microseconds current_time)
-        EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+        EXCLUSIVE_LOCKS_REQUIRED(::cs_main, m_tx_download_mutex);
 
     /**
      * Register with InvRequestTracker that a PROOF INV has been received from a
@@ -1244,7 +1254,20 @@ private:
     ChainstateManager &m_chainman;
     CTxMemPool &m_mempool;
     avalanche::Processor *const m_avalanche;
-    InvRequestTracker<TxId> m_txrequest GUARDED_BY(::cs_main);
+
+    /**
+     * Synchronizes tx download including TxRequestTracker, rejection filters,
+     * and TxOrphanage. Lock invariants:
+     * - A txid in m_txrequest is not also in m_orphanage.
+     * - A txid in m_txrequest is not also in m_recent_rejects.
+     * - A txid in m_txrequest is not also in
+     * m_recent_rejects_package_reconsiderable.
+     * - A txid in m_txrequest is not also in m_recent_confirmed_transactions.
+     * - Each data structure's limits hold (m_orphanage max size, m_txrequest
+     * per-peer limits, etc).
+     */
+    Mutex m_tx_download_mutex ACQUIRED_BEFORE(m_mempool.cs);
+    InvRequestTracker<TxId> m_txrequest GUARDED_BY(m_tx_download_mutex);
 
     Mutex cs_proofrequest;
     InvRequestTracker<avalanche::ProofId>
@@ -1332,7 +1355,8 @@ private:
      *  */
     bool AlreadyHaveTx(const TxId &txid, bool include_reconsiderable)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main,
-                                 !m_recent_confirmed_transactions_mutex);
+                                 !m_recent_confirmed_transactions_mutex,
+                                 m_tx_download_mutex);
 
     /**
      * Filter for transactions that were recently rejected by the mempool.
@@ -1353,14 +1377,14 @@ private:
      *
      * Memory used: 1.3 MB
      */
-    CRollingBloomFilter m_recent_rejects GUARDED_BY(::cs_main){120'000,
-                                                               0.000'001};
+    CRollingBloomFilter m_recent_rejects GUARDED_BY(m_tx_download_mutex){
+        120'000, 0.000'001};
 
     /**
      * Block hash of chain tip the last time we reset m_recent_rejects and
      * m_recent_rejects_package_reconsiderable.
      */
-    BlockHash hashRecentRejectsChainTip GUARDED_BY(cs_main);
+    BlockHash hashRecentRejectsChainTip GUARDED_BY(m_tx_download_mutex);
 
     /**
      * Filter for:
@@ -1388,7 +1412,7 @@ private:
      * rationale.
      */
     CRollingBloomFilter m_recent_rejects_package_reconsiderable
-        GUARDED_BY(::cs_main){120'000, 0.000'001};
+        GUARDED_BY(m_tx_download_mutex){120'000, 0.000'001};
 
     /**
      * Filter for transactions that have been recently confirmed.
@@ -1707,7 +1731,8 @@ private:
     uint32_t GetAvalancheVoteForTx(const avalanche::Processor &avalanche,
                                    const TxId &id) const
         EXCLUSIVE_LOCKS_REQUIRED(!m_mempool.cs,
-                                 !m_recent_confirmed_transactions_mutex);
+                                 !m_recent_confirmed_transactions_mutex,
+                                 m_tx_download_mutex);
 
     /**
      * Checks if address relay is permitted with peer. If needed, initializes
@@ -2341,8 +2366,10 @@ void PeerManagerImpl::PushNodeVersion(const Config &config, CNode &pnode,
 void PeerManagerImpl::AddTxAnnouncement(
     const CNode &node, const TxId &txid,
     std::chrono::microseconds current_time) {
-    // For m_txrequest and state
+    // For state
     AssertLockHeld(::cs_main);
+    // For m_txrequest
+    AssertLockHeld(m_tx_download_mutex);
 
     if (TooManyAnnouncements(node, m_txrequest, TX_REQUEST_PARAMS)) {
         return;
@@ -2384,11 +2411,14 @@ void PeerManagerImpl::InitializeNode(const Config &config, CNode &node,
                                      ServiceFlags our_services) {
     NodeId nodeid = node.GetId();
     {
-        LOCK(cs_main);
+        LOCK(cs_main); // For m_node_states
         m_node_states.emplace_hint(m_node_states.end(),
                                    std::piecewise_construct,
                                    std::forward_as_tuple(nodeid),
                                    std::forward_as_tuple(node.IsInboundConn()));
+    }
+    {
+        LOCK(m_tx_download_mutex);
         assert(m_txrequest.Count(nodeid) == 0);
     }
 
@@ -2600,10 +2630,13 @@ void PeerManagerImpl::FinalizeNode(const Config &config, const CNode &node) {
                 }
             }
         }
-        m_mempool.withOrphanage([nodeid](TxOrphanage &orphanage) {
-            orphanage.EraseForPeer(nodeid);
-        });
-        m_txrequest.DisconnectedPeer(nodeid);
+        {
+            LOCK(m_tx_download_mutex);
+            m_mempool.withOrphanage([nodeid](TxOrphanage &orphanage) {
+                orphanage.EraseForPeer(nodeid);
+            });
+            m_txrequest.DisconnectedPeer(nodeid);
+        }
         m_num_preferred_download_peers -= state->fPreferredDownload;
         m_peers_downloading_from -= (!state->vBlocksInFlight.empty());
         assert(m_peers_downloading_from >= 0);
@@ -2619,6 +2652,7 @@ void PeerManagerImpl::FinalizeNode(const Config &config, const CNode &node) {
             assert(m_num_preferred_download_peers == 0);
             assert(m_peers_downloading_from == 0);
             assert(m_outbound_peers_with_protect_from_disconnect == 0);
+            LOCK(m_tx_download_mutex);
             assert(m_txrequest.Size() == 0);
             assert(m_mempool.withOrphanage([](const TxOrphanage &orphanage) {
                 return orphanage.Size();
@@ -2986,6 +3020,7 @@ void PeerManagerImpl::BlockConnected(
     if (role == ChainstateRole::BACKGROUND) {
         return;
     }
+    LOCK(m_tx_download_mutex);
     m_mempool.withOrphanage([&pblock](TxOrphanage &orphanage) {
         orphanage.EraseForBlock(*pblock);
     });
@@ -3000,7 +3035,6 @@ void PeerManagerImpl::BlockConnected(
         }
     }
     {
-        LOCK(cs_main);
         for (const auto &ptx : pblock->vtx) {
             m_txrequest.ForgetInvId(ptx->GetId());
         }
@@ -3172,6 +3206,9 @@ void PeerManagerImpl::BlockChecked(const CBlock &block,
 
 bool PeerManagerImpl::AlreadyHaveTx(const TxId &txid,
                                     bool include_reconsiderable) {
+    AssertLockHeld(::cs_main);
+    AssertLockHeld(m_tx_download_mutex);
+
     if (m_chainman.ActiveChain().Tip()->GetBlockHash() !=
         hashRecentRejectsChainTip) {
         // If the chain tip has changed previously rejected transactions
@@ -4336,7 +4373,8 @@ void PeerManagerImpl::ProcessInvalidTx(NodeId nodeid,
                                        bool maybe_add_extra_compact_tx) {
     AssertLockNotHeld(m_peer_mutex);
     AssertLockHeld(g_msgproc_mutex);
-    AssertLockHeld(cs_main);
+    AssertLockHeld(cs_main); // For ActiveTip
+    AssertLockHeld(m_tx_download_mutex);
 
     const TxId &txid = ptx->GetId();
 
@@ -4384,7 +4422,7 @@ void PeerManagerImpl::ProcessInvalidTx(NodeId nodeid,
 void PeerManagerImpl::ProcessValidTx(NodeId nodeid, const CTransactionRef &tx) {
     AssertLockNotHeld(m_peer_mutex);
     AssertLockHeld(g_msgproc_mutex);
-    AssertLockHeld(cs_main);
+    AssertLockHeld(m_tx_download_mutex);
 
     // As this version of the transaction was acceptable, we can forget about
     // any requests for it. No-op if the tx is not in txrequest.
@@ -4411,7 +4449,7 @@ void PeerManagerImpl::ProcessPackageResult(
     const PackageMempoolAcceptResult &package_result) {
     AssertLockNotHeld(m_peer_mutex);
     AssertLockHeld(g_msgproc_mutex);
-    AssertLockHeld(cs_main);
+    AssertLockHeld(m_tx_download_mutex);
 
     const auto &package = package_to_validate.m_txns;
     const auto &senders = package_to_validate.m_senders;
@@ -4470,7 +4508,7 @@ std::optional<PeerManagerImpl::PackageToValidate>
 PeerManagerImpl::Find1P1CPackage(const CTransactionRef &ptx, NodeId nodeid) {
     AssertLockNotHeld(m_peer_mutex);
     AssertLockHeld(g_msgproc_mutex);
-    AssertLockHeld(cs_main);
+    AssertLockHeld(m_tx_download_mutex);
 
     const auto &parent_txid{ptx->GetId()};
 
@@ -4535,7 +4573,7 @@ PeerManagerImpl::Find1P1CPackage(const CTransactionRef &ptx, NodeId nodeid) {
 
 bool PeerManagerImpl::ProcessOrphanTx(const Config &config, Peer &peer) {
     AssertLockHeld(g_msgproc_mutex);
-    LOCK(cs_main);
+    LOCK2(::cs_main, m_tx_download_mutex);
 
     while (CTransactionRef porphanTx =
                m_mempool.withOrphanage([&peer](TxOrphanage &orphanage) {
@@ -4820,8 +4858,6 @@ PeerManagerImpl::GetAvalancheVoteForTx(const avalanche::Processor &avalanche,
 
     CTransactionRef mempool_tx;
     {
-        LOCK(::cs_main);
-
         // Invalid tx. m_recent_rejects needs cs_main
         if (m_recent_rejects.contains(id)) {
             return 1;
@@ -4853,7 +4889,7 @@ PeerManagerImpl::GetAvalancheVoteForTx(const avalanche::Processor &avalanche,
                 return -2;
             }
         }
-    } // release cs_main and mempool.cs locks
+    } // release mempool.cs
 
     // isPolled() access the vote records, and should be accessed with cs_main
     // released.
@@ -5586,7 +5622,7 @@ void PeerManagerImpl::ProcessMessage(
             }
 
             if (inv.IsMsgTx()) {
-                LOCK(cs_main);
+                LOCK2(cs_main, m_tx_download_mutex);
                 const TxId txid(inv.hash);
                 const bool fAlreadyHave =
                     AlreadyHaveTx(txid, /*include_reconsiderable=*/true);
@@ -5964,7 +6000,7 @@ void PeerManagerImpl::ProcessMessage(
         AddKnownTx(*peer, txid);
 
         {
-            LOCK(cs_main);
+            LOCK2(cs_main, m_tx_download_mutex);
 
             m_txrequest.ReceivedResponse(pfrom.GetId(), txid);
 
@@ -6798,8 +6834,9 @@ void PeerManagerImpl::ProcessMessage(
             switch (inv.type) {
                 case MSG_TX: {
                     if (fPreconsensus) {
-                        vote =
-                            GetAvalancheVoteForTx(*m_avalanche, TxId(inv.hash));
+                        vote = WITH_LOCK(m_tx_download_mutex,
+                                         return GetAvalancheVoteForTx(
+                                             *m_avalanche, TxId(inv.hash)));
                     }
                 } break;
                 case MSG_BLOCK: {
@@ -7252,7 +7289,8 @@ void PeerManagerImpl::ProcessMessage(
                         // well as all the children txs. Note that removal from
                         // the finalized tree is only a safety net and should
                         // never happen.
-                        LOCK2(cs_main, m_mempool.cs);
+                        LOCK2(cs_main, m_tx_download_mutex);
+                        LOCK(m_mempool.cs);
 
                         std::shared_ptr<const std::vector<Coin>> spentCoins;
                         if (status == avalanche::VoteStatus::Invalid) {
@@ -7382,7 +7420,8 @@ void PeerManagerImpl::ProcessMessage(
                         }
 
                         if (status == avalanche::VoteStatus::Finalized) {
-                            LOCK2(cs_main, m_mempool.cs);
+                            LOCK2(cs_main, m_tx_download_mutex);
+                            LOCK(m_mempool.cs);
                             auto it = m_mempool.GetIter(txid);
                             if (!it.has_value()) {
                                 LogDebug(
@@ -7408,7 +7447,8 @@ void PeerManagerImpl::ProcessMessage(
                             }
 
                             // NO_THREAD_SAFETY_ANALYSIS because
-                            // m_recent_rejects requires cs_main in the lambda
+                            // m_recent_rejects requires m_tx_download_mutex in
+                            // the lambda
                             m_mempool.withConflicting(
                                 [&](TxConflicting &conflicting)
                                     NO_THREAD_SAFETY_ANALYSIS {
@@ -7428,7 +7468,7 @@ void PeerManagerImpl::ProcessMessage(
                         break;
                     }
                     case avalanche::VoteStatus::Stale: {
-                        LOCK(cs_main);
+                        LOCK(m_tx_download_mutex);
 
                         // If the tx is stale, there is no point keeping it
                         // around as it will no be mined. Let's remove it but
@@ -8041,7 +8081,7 @@ void PeerManagerImpl::ProcessMessage(
                     // If we receive a NOTFOUND message for a tx we requested,
                     // mark the announcement for it as completed in
                     // InvRequestTracker.
-                    LOCK(::cs_main);
+                    LOCK(m_tx_download_mutex);
                     m_txrequest.ReceivedResponse(pfrom.GetId(), TxId(inv.hash));
                     continue;
                 }
@@ -8113,6 +8153,7 @@ bool PeerManagerImpl::MaybeDiscourageAndDisconnect(CNode &pnode, Peer &peer) {
 
 bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
                                       std::atomic<bool> &interruptMsgProc) {
+    AssertLockNotHeld(m_tx_download_mutex);
     AssertLockHeld(g_msgproc_mutex);
 
     PeerRef peer = GetPeerRef(pfrom->GetId());
@@ -8186,6 +8227,7 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
         // (Note: we may have provided a parent for an orphan provided by
         // another peer that was already processed; in that case, the extra work
         // may not be noticed, possibly resulting in an unnecessary 100ms delay)
+        LOCK(m_tx_download_mutex);
         if (m_mempool.withOrphanage([&peer](TxOrphanage &orphanage) {
                 return orphanage.HaveTxToReconsider(peer->m_id);
             })) {
@@ -8713,6 +8755,7 @@ bool PeerManagerImpl::SetupAddressRelay(const CNode &node, Peer &peer) {
 }
 
 bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
+    AssertLockNotHeld(m_tx_download_mutex);
     AssertLockHeld(g_msgproc_mutex);
 
     PeerRef peer = GetPeerRef(pto->GetId());
@@ -9395,35 +9438,38 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
     //
     {
         LOCK(cs_main);
-        std::vector<std::pair<NodeId, TxId>> expired;
-        auto requestable =
-            m_txrequest.GetRequestable(pto->GetId(), current_time, &expired);
-        for (const auto &entry : expired) {
-            LogDebug(BCLog::NET, "timeout of inflight tx %s from peer=%d\n",
-                     entry.second.ToString(), entry.first);
-        }
-        for (const TxId &txid : requestable) {
-            // Exclude m_recent_rejects_package_reconsiderable: we may be
-            // requesting a missing parent that was previously rejected for
-            // being too low feerate.
-            if (!AlreadyHaveTx(txid, /*include_reconsiderable=*/false)) {
-                addGetDataAndMaybeFlush(MSG_TX, txid);
-                m_txrequest.RequestedData(
-                    pto->GetId(), txid,
-                    current_time + TX_REQUEST_PARAMS.getdata_interval);
-            } else {
-                // We have already seen this transaction, no need to download.
-                // This is just a belt-and-suspenders, as this should already be
-                // called whenever a transaction becomes AlreadyHaveTx().
-                m_txrequest.ForgetInvId(txid);
+        {
+            LOCK(m_tx_download_mutex);
+            std::vector<std::pair<NodeId, TxId>> expired;
+            auto requestable = m_txrequest.GetRequestable(
+                pto->GetId(), current_time, &expired);
+            for (const auto &entry : expired) {
+                LogDebug(BCLog::NET, "timeout of inflight tx %s from peer=%d\n",
+                         entry.second.ToString(), entry.first);
             }
-        }
-
+            for (const TxId &txid : requestable) {
+                // Exclude m_recent_rejects_package_reconsiderable: we may be
+                // requesting a missing parent that was previously rejected for
+                // being too low feerate.
+                if (!AlreadyHaveTx(txid, /*include_reconsiderable=*/false)) {
+                    addGetDataAndMaybeFlush(MSG_TX, txid);
+                    m_txrequest.RequestedData(
+                        pto->GetId(), txid,
+                        current_time + TX_REQUEST_PARAMS.getdata_interval);
+                } else {
+                    // We have already seen this transaction, no need to
+                    // download. This is just a belt-and-suspenders, as this
+                    // should already be called whenever a transaction becomes
+                    // AlreadyHaveTx().
+                    m_txrequest.ForgetInvId(txid);
+                }
+            }
+        } // release m_tx_download_mutex
         if (!vGetData.empty()) {
             MakeAndPushMessage(*pto, NetMsgType::GETDATA, vGetData);
         }
-
     } // release cs_main
+
     MaybeSendFeefilter(*pto, *peer, current_time);
     return true;
 }
