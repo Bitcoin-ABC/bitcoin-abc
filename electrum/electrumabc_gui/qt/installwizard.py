@@ -876,9 +876,6 @@ class DerivationPathScanner(QThread):
         for i, p in enumerate(self.DERIVATION_PATHS):
             self.update_table_cb(i, _("Offline"))
 
-    def notify_timedout(self, i):
-        self.update_table_cb(i, _("Timed out"))
-
     def run(self):
         network = Network.get_instance()
         if not network:
@@ -916,15 +913,15 @@ class DerivationPathScanner(QThread):
                         wallet.print_error(f"timeout try {ctr+1}/25")
                     if self.aborting:
                         return
+                num_tx = len(wallet.get_history())
                 if not synched:
-                    wallet.print_error("Timeout on", p)
-                    self.notify_timedout(i)
+                    wallet.print_error(f"Timeout on {p} after finding {num_tx} txs")
+                    self.update_table_cb(i, f"Timed out (found {num_tx} txs)")
                     continue
                 while network.is_connecting():
                     time.sleep(0.1)
                     if self.aborting:
                         return
-                num_tx = len(wallet.get_history())
                 self.update_table_cb(i, str(num_tx))
             finally:
                 wallet.clear_history()
