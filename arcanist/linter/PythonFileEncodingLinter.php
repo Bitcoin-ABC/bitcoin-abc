@@ -49,7 +49,7 @@ final class PythonFileEncodingLinter extends ArcanistLinter {
         list($open, $offset) = $match;
 
         $isBin = preg_match(
-          "/open\(.*,\s? +['\"][rwxat+]*b[rwxat+]*['\"]/s", $open);
+          "/open\(.*,\s? +(\*\*kwargs|['\"][rwxat+]*b[rwxat+]*['\"])/s", $open);
         $hasEncoding = preg_match("/encoding=.(ascii|utf8|utf-8)./", $open);
 
         if (!$isBin && !$hasEncoding) {
