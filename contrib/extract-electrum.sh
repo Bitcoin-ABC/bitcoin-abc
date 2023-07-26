@@ -18,6 +18,6 @@ git clone "file://${REPO_DIR}" electrumabc-mirror -b master
 pushd electrumabc-mirror
 git filter-repo --path electrum --path-rename electrum/:
 git remote add github https://github.com/Bitcoin-ABC/ElectrumABC.git
-git pull github master --rebase --strategy-option=theirs
+git pull github master --rebase
 git gc --prune=now
 popd
