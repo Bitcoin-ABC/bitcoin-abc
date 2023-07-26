@@ -609,12 +609,16 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
 
         self.log.info("Reconnect the nodes and check the counts update appropriately")
 
-        for n in quorum:
-            # Reset the node internal state by clearing the avahello
-            n.avahello = None
+        for q in quorum:
+            # We don't reuse the quorum nodes directly as we need a clean state
+            # to make sure the messages are sent as expected.
+            n = AvaP2PInterface()
+            n.proof = q.proof
+            n.master_privkey = q.master_privkey
+
             node.add_p2p_connection(n)
             n.send_avaproof(n.proof)
-            wait_for_proof(node, uint256_hex(n.proof.proofid), timeout=5)
+            wait_for_proof(node, uint256_hex(n.proof.proofid))
 
         assert_avalancheinfo(
             {
