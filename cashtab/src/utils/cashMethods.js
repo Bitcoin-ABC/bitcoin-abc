@@ -592,15 +592,6 @@ export const parseXecSendValue = (
     return value;
 };
 
-export const encodeOpReturnScript = scriptChunks => {
-    // reference https://github.com/Permissionless-Software-Foundation/bch-js/blob/master/src/script.js#L153
-    const arr = [];
-    scriptChunks.forEach(chunk => {
-        arr.push(chunk);
-    });
-    return utxolib.script.compile(arr);
-};
-
 /*
  * Generates an OP_RETURN script for a version 0 alias registration tx
  *
@@ -719,7 +710,7 @@ export const generateOpReturnScript = (
         throw err;
     }
 
-    return encodeOpReturnScript(script);
+    return utxolib.script.compile(script);
 };
 
 export const generateTxOutput = (
