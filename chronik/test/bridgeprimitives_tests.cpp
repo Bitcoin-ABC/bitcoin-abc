@@ -296,13 +296,13 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_detailled, TestChain100Setup) {
         .timestamp = 1598888152,
         .height = 202,
         .file_num = 0,
-        .data_pos = 39948,
+        .data_pos = 39548,
         .undo_pos = 8249,
         .size = 578,
         .txs = {
-            {.tx = expectedTestTx0, .data_pos = 40029, .undo_pos = 0},
-            {.tx = expectedTestTx1, .data_pos = 40129, .undo_pos = 8250},
-            {.tx = expectedTestTx2, .data_pos = 40312, .undo_pos = 8257},
+            {.tx = expectedTestTx0, .data_pos = 39629, .undo_pos = 0},
+            {.tx = expectedTestTx1, .data_pos = 39729, .undo_pos = 8250},
+            {.tx = expectedTestTx2, .data_pos = 39912, .undo_pos = 8257},
         }};
 
     CheckBlocksEqual(bridgedTestBlock, expectedBridgedTestBlock);
