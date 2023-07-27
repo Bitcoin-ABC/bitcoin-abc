@@ -8,9 +8,9 @@ def main(test_name, input_file):
     with open(input_file, "rb") as f:
         contents = f.read()
 
-    print("#include <cstdint>\n")
+    print("#include <string>\n")
     print("namespace json_tests {")
-    print(f"static const uint8_t {test_name}[] = {{")
+    print(f"static const std::string {test_name}{{")
     print(", ".join(f"0x{x:02x}" for x in contents))
     print("};")
     print("};")
