@@ -11,7 +11,6 @@ import {
 } from 'utils/cashMethods';
 import ecies from 'ecies-lite';
 import wif from 'wif';
-import { getPendingAliases } from 'utils/aliasUtils';
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import { chronik as chronikConfig } from 'config/chronik';
 
@@ -64,22 +63,6 @@ export const getAddressFromAlias = (alias, cachedAliases) => {
     });
 
     return aliasAddress;
-};
-
-export const isAliasAvailable = async (alias, aliasesFromLocalForage) => {
-    // extract aliases from cache
-    const registeredAliases = aliasesFromLocalForage.aliases;
-
-    // retrieve latest pending aliases
-    const pendingAliases = await getPendingAliases();
-
-    const registeredAndPendingAliases =
-        registeredAliases.concat(pendingAliases);
-
-    // check if the chosen alias has already been registered or in pending state onchain
-    let isAliasTaken = isAliasRegistered(registeredAndPendingAliases, alias);
-
-    return !isAliasTaken; // if isAliasTaken is true then return false for availability
 };
 
 export const isAliasRegistered = (registeredAliases, alias) => {
