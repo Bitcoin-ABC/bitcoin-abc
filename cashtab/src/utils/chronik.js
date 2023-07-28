@@ -7,7 +7,6 @@ import {
     getHashArrayFromWallet,
     getUtxoWif,
     convertEcashtoEtokenAddr,
-    convertToEcashPrefix,
     outputScriptToAddress,
 } from 'utils/cashMethods';
 import ecies from 'ecies-lite';
@@ -94,28 +93,6 @@ export const isAliasRegistered = (registeredAliases, alias) => {
         }
     }
     return false;
-};
-
-export const isAddressRegistered = (activeWallet, aliasCache) => {
-    if (!activeWallet || !aliasCache) {
-        return false;
-    }
-    let addressMatch = false;
-    const activeWalletAddress = convertToEcashPrefix(
-        activeWallet.Path1899.cashAddress,
-    );
-
-    let cachedAliases = aliasCache.aliases;
-    cachedAliases.forEach(function (cachedAliasObj) {
-        if (
-            cachedAliasObj.address.toLowerCase() ===
-            activeWalletAddress.toLowerCase()
-        ) {
-            addressMatch = true;
-        }
-    });
-
-    return addressMatch;
 };
 
 // Return false if do not get a valid response
