@@ -120,29 +120,3 @@ export const queryAliasServer = async (endPoint, aliasParam) => {
         throw err;
     }
 };
-
-/*
- @response:
-  [
-    {alias: 'foo', address: 'ecash:qwert...', txid: 'as12d1f324asdf'},
-    {alias: 'foo2', address: 'ecash:qwert...' txid: 'as12d1f324asdf'},
-    {alias: 'foo3', address: 'ecash:qwert...' txid: 'as12d1f324asdf'},
-  ]
-*/
-export const getPendingAliases = async () => {
-    let pendingAliasesResp, pendingAliasesRespJson;
-    try {
-        pendingAliasesResp = await fetch(
-            currency.aliasSettings.aliasServerBaseUrl + '/pending',
-        );
-        pendingAliasesRespJson = pendingAliasesResp.json();
-    } catch (err) {
-        console.log(
-            `getPendingAliases(): Error retrieving pending aliases from alias-server`,
-            err,
-        );
-        return false;
-    }
-
-    return pendingAliasesRespJson;
-};
