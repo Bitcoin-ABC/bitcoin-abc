@@ -306,6 +306,19 @@ bool CDBWrapper::IsEmpty() {
     return !(it->Valid());
 }
 
+void CDBIterator::SeekImpl(Span<const std::byte> ssKey) {
+    leveldb::Slice slKey(CharCast(ssKey.data()), ssKey.size());
+    piter->Seek(slKey);
+}
+
+Span<const std::byte> CDBIterator::GetKeyImpl() const {
+    return MakeByteSpan(piter->key());
+}
+
+Span<const std::byte> CDBIterator::GetValueImpl() const {
+    return MakeByteSpan(piter->value());
+}
+
 CDBIterator::~CDBIterator() {
     delete piter;
 }

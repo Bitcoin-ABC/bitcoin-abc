@@ -13,7 +13,6 @@
 #include <util/fs.h>
 
 #include <leveldb/db.h>
-#include <leveldb/iterator.h>
 #include <leveldb/options.h>
 #include <leveldb/slice.h>
 #include <leveldb/status.h>
@@ -27,7 +26,8 @@
 
 namespace leveldb {
 class Env;
-}
+class Iterator;
+} // namespace leveldb
 
 static const size_t DBWRAPPER_PREALLOC_KEY_SIZE = 64;
 static const size_t DBWRAPPER_PREALLOC_VALUE_SIZE = 1024;
@@ -139,6 +139,10 @@ private:
     const CDBWrapper &parent;
     leveldb::Iterator *piter;
 
+    void SeekImpl(Span<const std::byte> ssKey);
+    Span<const std::byte> GetKeyImpl() const;
+    Span<const std::byte> GetValueImpl() const;
+
 public:
     /**
      * @param[in] _parent          Parent CDBWrapper instance.
@@ -156,16 +160,14 @@ public:
         DataStream ssKey{};
         ssKey.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
         ssKey << key;
-        leveldb::Slice slKey(CharCast(ssKey.data()), ssKey.size());
-        piter->Seek(slKey);
+        SeekImpl(ssKey);
     }
 
     void Next();
 
     template <typename K> bool GetKey(K &key) {
-        leveldb::Slice slKey = piter->key();
         try {
-            DataStream ssKey{MakeByteSpan(slKey)};
+            DataStream ssKey{GetKeyImpl()};
             ssKey >> key;
         } catch (const std::exception &) {
             return false;
@@ -174,9 +176,8 @@ public:
     }
 
     template <typename V> bool GetValue(V &value) {
-        leveldb::Slice slValue = piter->value();
         try {
-            DataStream ssValue{MakeByteSpan(slValue)};
+            DataStream ssValue{GetValueImpl()};
             ssValue.Xor(dbwrapper_private::GetObfuscateKey(parent));
             ssValue >> value;
         } catch (const std::exception &) {
