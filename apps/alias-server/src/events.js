@@ -167,6 +167,7 @@ module.exports = {
         const newAliasRegistrations = await registerAliases(
             db,
             unprocessedAliasTxs,
+            tipHeight,
         );
 
         // New processedBlockheight is the highest one seen, or the

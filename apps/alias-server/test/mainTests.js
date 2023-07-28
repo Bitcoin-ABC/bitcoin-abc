@@ -62,8 +62,8 @@ describe('alias-server main.js', async function () {
         const mockedChronik = new MockChronikClient();
         const mockBlockchaininfoResponse = {
             tipHash:
-                '00000000000000000ce690f27bc92c46863337cc9bd5b7c20aec094854db26e3',
-            tipHeight: 786878,
+                '00000000000000000c36528b468fac70aa50c15cea9b7017ff7df53f7d0786c8',
+            tipHeight: 792598,
         };
 
         // Tell mockedChronik what response we expect

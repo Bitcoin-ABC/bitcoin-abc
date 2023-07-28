@@ -429,9 +429,37 @@ describe('alias-server alias.js', async function () {
             JSON.stringify(generated.allAliasTxs),
         );
 
+        // Use tipHeight same as most recent confirmed registration
+        const tipHeight = 792598;
+
         assert.deepEqual(
-            await registerAliases(testDb, mockAllAliasTxs),
+            await registerAliases(testDb, mockAllAliasTxs, tipHeight),
             generated.validAliasRegistrations,
+        );
+
+        // Wipe the database after this unit test
+        await testDb.dropDatabase();
+    });
+    it('Ignores alias tx objects if their blockheight is > avalanche confirmed tip height', async function () {
+        // Initialize db before each unit test
+        let testDb = await initializeDb(testMongoClient);
+
+        // Clone unprocessedAliasTxs since the act of adding to db gives it an _id field
+        const mockAllAliasTxs = JSON.parse(
+            JSON.stringify(generated.allAliasTxs),
+        );
+
+        // Use tipHeight as one less than that of the most recent confirmed alias registration in mocks
+        const tipHeight = 792598 - 1;
+
+        const expectedRegistrations = generated.validAliasRegistrations.slice(
+            0,
+            generated.validAliasRegistrations.length - 1,
+        );
+
+        assert.deepEqual(
+            await registerAliases(testDb, mockAllAliasTxs, tipHeight),
+            expectedRegistrations,
         );
 
         // Wipe the database after this unit test
@@ -478,8 +506,11 @@ describe('alias-server alias.js', async function () {
         // Add expected registered aliases to the db
         await addAliasesToDb(testDb, mockRegisteredAliases);
 
+        // Use tipHeight same as most recent confirmed registration
+        const tipHeight = 792598;
+
         assert.deepEqual(
-            await registerAliases(testDb, mockUnprocessedAliasTxs),
+            await registerAliases(testDb, mockUnprocessedAliasTxs, tipHeight),
             newlyValidAliases,
         );
         // Wipe the database after this unit test
@@ -531,9 +562,13 @@ describe('alias-server alias.js', async function () {
                         'e9f0a9984b4ae354fb8b4dd8193c974074942b0ee6fba14bf85fa1ca14dc5987',
                 ),
             );
+
+        // Use tipHeight same as most recent confirmed registration
+        const tipHeight = 792598;
+
         // This tests startup condition, so add no aliases to the database
         assert.deepEqual(
-            await registerAliases(testDb, allAliasTxs),
+            await registerAliases(testDb, allAliasTxs, tipHeight),
             registeredAliasesCloneLessUnconfirmed,
         );
         // Wipe the database after this unit test

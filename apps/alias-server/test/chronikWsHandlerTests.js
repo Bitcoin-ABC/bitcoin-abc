@@ -138,11 +138,11 @@ describe('alias-server chronikWsHandler.js', async function () {
         const wsMsg = {
             type: 'BlockConnected',
             blockHash:
-                '000000000000000015713b0407590ab1481fd7b8430f87e19cf768bec285ad55',
+                '00000000000000000c36528b468fac70aa50c15cea9b7017ff7df53f7d0786c8',
         };
         const mockBlock = {
             blockInfo: {
-                height: 786878,
+                height: 792598,
             },
         };
         // Tell mockedChronik what response we expect
@@ -240,11 +240,11 @@ describe('alias-server chronikWsHandler.js', async function () {
         const wsMsg = {
             type: 'BlockConnected',
             blockHash:
-                '000000000000000015713b0407590ab1481fd7b8430f87e19cf768bec285ad55',
+                '00000000000000000c36528b468fac70aa50c15cea9b7017ff7df53f7d0786c8',
         };
         const mockBlock = {
             blockInfo: {
-                height: 786878,
+                height: 792598,
             },
         };
 
@@ -279,11 +279,11 @@ describe('alias-server chronikWsHandler.js', async function () {
         const nextWsMsg = {
             type: 'BlockConnected',
             blockHash:
-                '000000000000000001db7132241fc59ec9de423db1f5061115928d58b38f0b8f',
+                '000000000000000007b5922b3e385d6d3408b61ef25af41bcc9e665462fcaf49',
         };
         const nextMockBlock = {
             blockInfo: {
-                height: 786879,
+                height: 792599,
             },
         };
 

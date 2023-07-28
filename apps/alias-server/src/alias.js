@@ -243,22 +243,15 @@ module.exports = {
 
         return aliasTxsSortedByTxidAndBlockheight;
     },
-    registerAliases: async function (db, unsortedConfirmedAliasTxs) {
-        /* Add new valid aliases registration txs to the database. Return an array of what was added.
-         *
-         * Input parameters
-         * db - the app database
-         * unsortedConfirmedAliasTxs - array, arbitrary collection of confirmed alias-prefixed txs
-         *                             at the alias registration address
-         *
-         * Outputs
-         * - The function adds new valid alias txs to the database
-         * - An array of objects, each one a new valid alias registration tx that was added to the database
-         *
-         * Will get all valid alias registrations if given the full tx history and
-         * the database is empty
-         */
-
+    /**
+     * Add alias to database if it is a valid alias registration
+     * @param {object} db initialized mongo db instance
+     * @param {array} unsortedConfirmedAliasTxs confirmed alias tx objects from getAliasTxs()
+     * @param {number} tipHeight avalanche finalized tipHeight from handleBlockConnected
+     * @returns {array} array containing all registered alias objects added to the db
+     * @returns also adds these valid aliases to the database
+     */
+    registerAliases: async function (db, unsortedConfirmedAliasTxs, tipHeight) {
         // Sort aliases such that the earliest aliases are the valid ones
         const aliasesSortedByTxidAndBlockheight =
             module.exports.sortAliasTxsByTxidAndBlockheight(
@@ -273,6 +266,16 @@ module.exports = {
         for (let i = 0; i < aliasesSortedByTxidAndBlockheight.length; i += 1) {
             const thisAliasTx = aliasesSortedByTxidAndBlockheight[i];
 
+            const { blockheight } = thisAliasTx;
+            if (blockheight > tipHeight) {
+                // If this alias tx comes from a block higher than the avalanche finalized tip,
+                // disregard it
+
+                // Edge case that can happen if a block confirms on the chronik server after
+                // handleBlockConnected loop is already called
+                continue;
+            }
+
             /* If the alias isn't in the database, it's valid and should be added
              */
 
@@ -281,7 +284,7 @@ module.exports = {
             if (await addOneAliasToDb(db, thisAliasTx)) {
                 // Because thisAliasTx receives an "_id" key on being added to the db,
                 // clone it without this field to return
-                const { address, alias, blockheight, txid } = thisAliasTx;
+                const { address, alias, txid } = thisAliasTx;
                 validAliasRegistrations.push({
                     address,
                     alias,
