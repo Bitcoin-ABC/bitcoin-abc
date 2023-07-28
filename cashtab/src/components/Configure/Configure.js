@@ -51,7 +51,6 @@ import {
     validateMnemonic,
     isAliasFormat,
 } from 'utils/validation';
-import { isAliasRegistered } from 'utils/chronik';
 import { convertToEcashPrefix } from 'utils/cashMethods';
 import useWindowDimensions from 'hooks/useWindowDimensions';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
@@ -460,7 +459,6 @@ const Configure = ({ passLoadingStatus }) => {
         changeCashtabSettings,
         getContactListFromLocalForage,
         updateContactList,
-        cashtabCache,
     } = ContextValue;
 
     const location = useLocation();
@@ -1220,14 +1218,7 @@ const Configure = ({ passLoadingStatus }) => {
             setManualContactAddressIsValid(true);
         } else {
             // if not a valid XEC address, check if it's an alias
-            const isAlias = isAliasFormat(value);
-            // extract alias without the `.xec`
-            const aliasName = value.slice(0, value.length - 4);
-            const isRegistered = isAliasRegistered(
-                cashtabCache.aliasCache.aliases,
-                aliasName,
-            );
-            const isValidAlias = isAlias && isRegistered ? true : false;
+            const isValidAlias = isAliasFormat(value);
             setManualContactAddressIsValid(isValidAlias);
         }
 
