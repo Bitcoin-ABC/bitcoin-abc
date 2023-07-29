@@ -40,6 +40,7 @@
 #include <interfaces/chain.h>
 #include <interfaces/node.h>
 #include <kernel/caches.h>
+#include <logging.h>
 #include <mapport.h>
 #include <mempool_args.h>
 #include <net.h>

@@ -6,6 +6,7 @@
 #include <common/args.h>
 #include <dbwrapper.h>
 #include <index/blockfilterindex.h>
+#include <logging.h>
 #include <node/blockstorage.h>
 #include <primitives/blockhash.h>
 #include <util/fs_helpers.h>

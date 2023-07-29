@@ -18,6 +18,7 @@
 #include <consensus/merkle.h>
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
+#include <logging.h>
 #include <minerfund.h>
 #include <policy/block/stakingrewards.h>
 #include <policy/policy.h>

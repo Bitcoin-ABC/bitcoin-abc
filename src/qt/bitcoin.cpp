@@ -12,6 +12,7 @@
 #include <init.h>
 #include <interfaces/handler.h>
 #include <interfaces/node.h>
+#include <logging.h>
 #include <node/context.h>
 #include <node/ui_interface.h>
 #include <noui.h>

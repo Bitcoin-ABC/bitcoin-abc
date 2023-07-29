@@ -15,6 +15,7 @@
 #include <interfaces/node.h>
 #include <interfaces/wallet.h>
 #include <kernel/mempool_entry.h>
+#include <logging.h>
 #include <mapport.h>
 #include <net.h>
 #include <net_processing.h>

@@ -28,6 +28,7 @@
 #include <invrequest.h>
 #include <kernel/chain.h>
 #include <kernel/mempool_entry.h>
+#include <logging.h>
 #include <merkleblock.h>
 #include <netbase.h>
 #include <netmessagemaker.h>
