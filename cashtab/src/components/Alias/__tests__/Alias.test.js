@@ -95,10 +95,6 @@ test('Without wallet defined', () => {
         loading: false,
         cashtabCache: {
             tokenInfoById: {},
-            aliasCache: {
-                aliases: [],
-                cachedAliasCount: 0,
-            },
         },
     };
     const component = renderer.create(

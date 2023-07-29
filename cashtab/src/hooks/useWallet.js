@@ -264,29 +264,6 @@ const useWallet = () => {
         return wallet;
     };
 
-    /*
-      @Returns: 
-          aliases: [
-              {alias: 'foo1', address: 'ecash:asdfjhasfd'},
-              {alias: 'foo2', address: 'ecash:asdfjhasfd'},
-          ],
-          cachedAliasCount: 0,
-    */
-    const getAliasesFromLocalForage = async () => {
-        let cachedAliases, cashtabCache;
-        try {
-            cashtabCache = await localforage.getItem('cashtabCache');
-            cachedAliases = cashtabCache
-                ? cashtabCache.aliasCache
-                : currency.aliasSettings.defaultCashtabCache.aliasCache;
-        } catch (err) {
-            console.log(`Error in getAliasesFromLocalForage`, err);
-            cachedAliases =
-                currency.aliasSettings.defaultCashtabCache.aliasCache;
-        }
-        return cachedAliases;
-    };
-
     const getContactListFromLocalForage = async () => {
         let contactListArray = [];
         try {
@@ -1465,7 +1442,6 @@ const useWallet = () => {
         getSavedWallets,
         migrateLegacyWallet,
         getContactListFromLocalForage,
-        getAliasesFromLocalForage,
         updateContactList,
         createWallet: async importMnemonic => {
             setLoading(true);

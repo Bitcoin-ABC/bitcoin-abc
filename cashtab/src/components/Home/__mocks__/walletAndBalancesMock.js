@@ -3,10 +3,6 @@
 export const walletWithBalancesMock = {
     cashtabCache: {
         tokenInfoById: {},
-        aliasCache: {
-            aliases: [],
-            cachedAliasCount: 0,
-        },
     },
     wallet: {
         name: 'MigrationTestAlpha',
@@ -51,10 +47,6 @@ export const walletWithBalancesMock = {
 export const walletWithoutBalancesMock = {
     cashtabCache: {
         tokenInfoById: {},
-        aliasCache: {
-            aliases: [],
-            cachedAliasCount: 0,
-        },
     },
     wallet: {
         name: 'MigrationTestAlpha',
@@ -99,10 +91,6 @@ export const walletWithoutBalancesMock = {
 export const walletWithBalancesAndTokens = {
     cashtabCache: {
         tokenInfoById: {},
-        aliasCache: {
-            aliases: [],
-            cachedAliasCount: 0,
-        },
     },
     wallet: {
         name: 'MigrationTestAlpha',
@@ -179,10 +167,6 @@ export const walletWithBalancesAndTokens = {
 export const walletWithBalancesAndTokensWithCorrectState = {
     cashtabCache: {
         tokenInfoById: {},
-        aliasCache: {
-            aliases: [],
-            cachedAliasCount: 0,
-        },
     },
     wallet: {
         name: 'MigrationTestAlpha',

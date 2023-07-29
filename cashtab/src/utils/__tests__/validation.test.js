@@ -43,10 +43,6 @@ import {
     cashtabCacheWithDecimalNotNumber,
     cashtabCacheWithTokenNameNotString,
     cashtabCacheWithMissingTokenName,
-    cashtabCacheWithNoAliasCache,
-    cashtabCacheWithAliasesNotArray,
-    cashtabCacheWithPaymentTxHistoryNotArray,
-    cashtabCacheWithTotalPaymentTxCountNotNumber,
 } from 'utils/__mocks__/mockCashtabCache';
 
 describe('Validation utils', () => {
@@ -296,24 +292,6 @@ describe('Validation utils', () => {
     });
     it(`Rejects a cashtabCache object if one token id is invalid`, () => {
         expect(isValidCashtabCache(cashtabCacheWithOneBadTokenId)).toBe(false);
-    });
-    it(`Rejects a cashtabCache object if aliasCache does not exist`, () => {
-        expect(isValidCashtabCache(cashtabCacheWithNoAliasCache)).toBe(false);
-    });
-    it(`Rejects a cashtabCache object if the aliases param is not an array`, () => {
-        expect(isValidCashtabCache(cashtabCacheWithAliasesNotArray)).toBe(
-            false,
-        );
-    });
-    it(`Rejects a cashtabCache object if the paymentTxHistory param is not an array`, () => {
-        expect(
-            isValidCashtabCache(cashtabCacheWithPaymentTxHistoryNotArray),
-        ).toBe(false);
-    });
-    it(`Rejects a cashtabCache object if the totalPaymentTxCount param is not a number`, () => {
-        expect(
-            isValidCashtabCache(cashtabCacheWithTotalPaymentTxCountNotNumber),
-        ).toBe(false);
     });
     it(`Rejects a cashtabCache object if decimals is not a number`, () => {
         expect(isValidCashtabCache(cashtabCacheWithDecimalNotNumber)).toBe(
@@ -766,10 +744,6 @@ describe('Validation utils', () => {
                 },
             }),
         ).toStrictEqual({
-            aliasCache: {
-                aliases: [],
-                cachedAliasCount: 0,
-            },
             tokenInfoById: {
                 '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e':
                     {
@@ -796,10 +770,6 @@ describe('Validation utils', () => {
 
     it('parseInvalidCashtabCacheForMigration sets cashtabCache object with no exsting valid cache to default values', () =>
         expect(parseInvalidCashtabCacheForMigration({})).toStrictEqual({
-            aliasCache: {
-                aliases: [],
-                cachedAliasCount: 0,
-            },
             tokenInfoById: {},
         }));
 

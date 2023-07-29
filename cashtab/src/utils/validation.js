@@ -269,21 +269,6 @@ export const parseInvalidCashtabCacheForMigration = invalidCashtabCache => {
             migratedCashtabCache[param] = currency.defaultCashtabCache[param];
         }
     }
-
-    // validate aliases array
-    if (
-        !invalidCashtabCache.aliasCache ||
-        !Array.isArray(invalidCashtabCache.aliasCache.aliases)
-    ) {
-        migratedCashtabCache.aliasCache.aliases = [];
-    } else {
-        // determine if there is a non alphanumeric
-        for (let element of invalidCashtabCache.aliasCache.aliases) {
-            if (!isValidAliasString(element.alias)) {
-                migratedCashtabCache.aliasCache.aliases = [];
-            }
-        }
-    }
     return migratedCashtabCache;
 };
 
@@ -355,14 +340,6 @@ export const isValidCashtabCache = cashtabCache => {
         'tokenDocumentHash' is a string
         'decimals' is a number
         'tokenId' is a valid tokenId
-        
-        The aliasCache object must have the following keys:
-        {
-            'aliases' is an array,
-            'paymentTxHistory' is an array,
-            'totalPaymentTxCount' is a number,
-        }
-        
     */
 
     // Check that every key in currency.defaultCashtabCache is also in this cashtabCache
@@ -403,16 +380,6 @@ export const isValidCashtabCache = cashtabCache => {
         ) {
             return false;
         }
-    }
-
-    // check the aliasCache object contains the aliases and paymentTxHistory arrays and the totalPaymentTxCount num
-    const { aliasCache } = cashtabCache;
-    if (!aliasCache) {
-        return false;
-    }
-    const { aliases, cachedAliasCount } = aliasCache;
-    if (!Array.isArray(aliases) || typeof cachedAliasCount !== 'number') {
-        return false;
     }
 
     return true;

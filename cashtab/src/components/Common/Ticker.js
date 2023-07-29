@@ -23,10 +23,6 @@ export const currency = {
     tokenLogo: tokenLogo,
     defaultCashtabCache: {
         tokenInfoById: {},
-        aliasCache: {
-            aliases: [],
-            cachedAliasCount: 0,
-        },
     },
     notificationDurationShort: 3,
     notificationDurationLong: 5,
