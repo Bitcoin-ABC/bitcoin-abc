@@ -31,6 +31,18 @@ bool DestroyDB(const std::string &path_str) {
     return leveldb::DestroyDB(path_str, {}).ok();
 }
 
+/** Handle database error by throwing dbwrapper_error exception. */
+static void HandleError(const leveldb::Status &status) {
+    if (status.ok()) {
+        return;
+    }
+    const std::string errmsg = "Fatal LevelDB error: " + status.ToString();
+    LogPrintf("%s\n", errmsg);
+    LogPrintf("You can use -debug=leveldb to get more complete diagnostic "
+              "messages\n");
+    throw dbwrapper_error(errmsg);
+}
+
 class CBitcoinLevelDBLogger : public leveldb::Logger {
 public:
     // This code is adapted from posix_logger.h, which is why it is using
@@ -195,7 +207,7 @@ CDBWrapper::CDBWrapper(const DBParams &params)
             LogPrintf("Wiping LevelDB in %s\n", fs::PathToString(params.path));
             leveldb::Status result =
                 leveldb::DestroyDB(fs::PathToString(params.path), options);
-            dbwrapper_private::HandleError(result);
+            HandleError(result);
         }
         TryCreateDirectories(params.path);
         LogPrintf("Opening LevelDB in %s\n", fs::PathToString(params.path));
@@ -206,7 +218,7 @@ CDBWrapper::CDBWrapper(const DBParams &params)
     // (see env_posix.cc and env_windows.cc).
     leveldb::Status status =
         leveldb::DB::Open(options, fs::PathToString(params.path), &pdb);
-    dbwrapper_private::HandleError(status);
+    HandleError(status);
     LogPrintf("Opened LevelDB successfully\n");
 
     if (params.options.force_compact) {
@@ -261,7 +273,7 @@ void CDBWrapper::WriteBatch(CDBBatch &batch, bool fSync) {
     }
     leveldb::Status status = pdb->Write(fSync ? syncoptions : writeoptions,
                                         &batch.m_impl_batch->batch);
-    dbwrapper_private::HandleError(status);
+    HandleError(status);
     if (log_memory) {
         double mem_after = DynamicMemoryUsage() / 1024.0 / 1024;
         LogDebug(
@@ -311,7 +323,7 @@ CDBWrapper::ReadImpl(Span<const std::byte> ssKey) const {
             return std::nullopt;
         }
         LogPrintf("LevelDB read failure: %s\n", status.ToString());
-        dbwrapper_private::HandleError(status);
+        HandleError(status);
     }
     return strValue;
 }
@@ -326,7 +338,7 @@ bool CDBWrapper::ExistsImpl(Span<const std::byte> ssKey) const {
             return false;
         }
         LogPrintf("LevelDB read failure: %s\n", status.ToString());
-        dbwrapper_private::HandleError(status);
+        HandleError(status);
     }
     return true;
 }
@@ -377,17 +389,6 @@ void CDBIterator::Next() {
 }
 
 namespace dbwrapper_private {
-
-void HandleError(const leveldb::Status &status) {
-    if (status.ok()) {
-        return;
-    }
-    const std::string errmsg = "Fatal LevelDB error: " + status.ToString();
-    LogPrintf("%s\n", errmsg);
-    LogPrintf("You can use -debug=leveldb to get more complete diagnostic "
-              "messages\n");
-    throw dbwrapper_error(errmsg);
-}
 
 const std::vector<uint8_t> &GetObfuscateKey(const CDBWrapper &w) {
     return w.obfuscate_key;
