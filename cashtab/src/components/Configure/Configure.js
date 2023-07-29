@@ -46,10 +46,9 @@ import ApiError from 'components/Common/ApiError';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { formatSavedBalance } from 'utils/formatting';
 import {
-    isValidXecAddress,
     isValidNewWalletNameLength,
     validateMnemonic,
-    isAliasFormat,
+    isValidRecipient,
 } from 'utils/validation';
 import { convertToEcashPrefix } from 'utils/cashMethods';
 import useWindowDimensions from 'hooks/useWindowDimensions';
@@ -1210,19 +1209,10 @@ const Configure = ({ passLoadingStatus }) => {
         setManualContactName(value);
     };
 
-    const handleManualContactAddressInput = e => {
+    const handleManualContactAddressInput = async e => {
         const { value } = e.target;
-        const isXecAddress = isValidXecAddress(value);
-
-        if (isXecAddress) {
-            setManualContactAddressIsValid(true);
-        } else {
-            // if not a valid XEC address, check if it's an alias
-            const isValidAlias = isAliasFormat(value);
-            setManualContactAddressIsValid(isValidAlias);
-        }
-
         setManualContactAddress(value);
+        setManualContactAddressIsValid(await isValidRecipient(value));
     };
 
     return (

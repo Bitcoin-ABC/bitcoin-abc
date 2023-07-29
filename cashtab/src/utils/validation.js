@@ -5,6 +5,28 @@ import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
 import { cashtabSettings as cashtabDefaultConfig } from 'config/cashtabSettings';
 import tokenBlacklist from 'config/tokenBlacklist';
+import { queryAliasServer } from 'utils/aliasUtils';
+
+// Parses whether the value is a valid eCash address
+// or a valid and registered alias
+export const isValidRecipient = async value => {
+    if (isValidXecAddress(value)) {
+        return true;
+    }
+    // If not a valid XEC address, check if it's an alias
+    if (!isAliasFormat(value)) {
+        return false;
+    }
+    // extract alias without the `.xec`
+    const aliasName = value.slice(0, -4);
+    try {
+        const aliasDetails = await queryAliasServer('alias', aliasName);
+        return aliasDetails && !aliasDetails.error && !!aliasDetails.address;
+    } catch (err) {
+        console.log(`isValidRecipient(): Error retrieving alias details`, err);
+    }
+    return false;
+};
 
 export const isValidAliasString = inputStr => {
     return /^[a-z0-9]+$/.test(inputStr);

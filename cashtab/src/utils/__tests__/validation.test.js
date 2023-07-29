@@ -24,6 +24,7 @@ import {
     validateMnemonic,
     isValidAliasString,
     isProbablyNotAScam,
+    isValidRecipient,
 } from '../validation';
 import { currency } from 'components/Common/Ticker.js';
 import { fromSatoshisToXec } from 'utils/cashMethods';
@@ -45,8 +46,62 @@ import {
     cashtabCacheWithTokenNameNotString,
     cashtabCacheWithMissingTokenName,
 } from 'utils/__mocks__/mockCashtabCache';
+import { when } from 'jest-when';
 
 describe('Validation utils', () => {
+    it(`isValidRecipient() returns true for a valid and registered alias input`, async () => {
+        const mockRegisteredAliasResponse = {
+            alias: 'cbdc',
+            address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+            txid: 'f7d71433af9a4e0081ea60349becf2a60efed8890df7c3e8e079b3427f51d5ea',
+            blockheight: 802515,
+        };
+        const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/alias/${mockRegisteredAliasResponse.alias}`;
+
+        // mock the fetch call to alias-server's '/alias' endpoint
+        global.fetch = jest.fn();
+        when(fetch)
+            .calledWith(fetchUrl)
+            .mockResolvedValue({
+                json: () => Promise.resolve(mockRegisteredAliasResponse),
+            });
+        expect(await isValidRecipient('cbdc.xec')).toBe(true);
+    });
+    it(`isValidRecipient() returns false for a valid but unregistered alias input`, async () => {
+        const mockUnregisteredAliasResponse = {
+            alias: 'koush',
+            isRegistered: false,
+            registrationFeeSats: 554,
+            processedBlockheight: 803421,
+        };
+        const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/alias/${mockUnregisteredAliasResponse.alias}`;
+
+        // mock the fetch call to alias-server's '/alias' endpoint
+        global.fetch = jest.fn();
+        when(fetch)
+            .calledWith(fetchUrl)
+            .mockResolvedValue({
+                json: () => Promise.resolve(mockUnregisteredAliasResponse),
+            });
+        expect(await isValidRecipient('koush.xec')).toBe(false);
+    });
+    it(`isValidRecipient() returns false for an invalid eCash address / alias input`, async () => {
+        expect(await isValidRecipient('notvalid')).toBe(false);
+    });
+    it(`isValidRecipient() returns true for a valid eCash address`, async () => {
+        expect(
+            await isValidRecipient(
+                'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+            ),
+        ).toBe(true);
+    });
+    it(`isValidRecipient() returns true for a valid prefix-less eCash address`, async () => {
+        expect(
+            await isValidRecipient(
+                'qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+            ),
+        ).toBe(true);
+    });
     it(`isValidAliasString() returns true for a valid lowercase alphanumeric input`, () => {
         expect(isValidAliasString('jasdf3873')).toBe(true);
     });
