@@ -51,20 +51,6 @@ export const returnGetTxHistoryPagePromise = async (
     });
 };
 
-export const getAddressFromAlias = (alias, cachedAliases) => {
-    let aliasAddress = false;
-
-    // loop through cachedAliases and get the matching address
-    // returns false if none found
-    cachedAliases.forEach(function (cachedAliasObj) {
-        if (cachedAliasObj.alias.toLowerCase() === alias.toLowerCase()) {
-            aliasAddress = cachedAliasObj.address;
-        }
-    });
-
-    return aliasAddress;
-};
-
 export const isAliasRegistered = (registeredAliases, alias) => {
     for (let i = 0; i < registeredAliases.length; i++) {
         if (

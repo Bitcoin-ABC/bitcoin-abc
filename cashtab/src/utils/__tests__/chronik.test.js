@@ -8,7 +8,6 @@ import {
     sortAndTrimChronikTxHistory,
     parseChronikTx,
     getMintAddress,
-    getAddressFromAlias,
 } from 'utils/chronik';
 import {
     mockChronikUtxos,
@@ -67,23 +66,8 @@ import {
     mintingAddressBuxSelfMint,
     mintingTxBuxSelfMint,
 } from '../__mocks__/chronikMintTxs';
-import { mockAliasLocalStorage } from 'utils/__mocks__/mockCachedAliases';
 import { ChronikClient } from 'chronik-client';
 import { when } from 'jest-when';
-
-it(`getAddressFromAlias successfully returns a corresponding address`, async () => {
-    const alias = mockAliasLocalStorage[1].alias;
-    expect(getAddressFromAlias(alias, mockAliasLocalStorage)).toStrictEqual(
-        mockAliasLocalStorage[1].address,
-    );
-});
-
-it(`getAddressFromAlias successfully returns false on a non-existent alias`, async () => {
-    const alias = 'thisAliasDoesNotExist';
-    expect(getAddressFromAlias(alias, mockAliasLocalStorage)).toStrictEqual(
-        false,
-    );
-});
 
 it(`getTokenStats successfully returns a token stats object`, async () => {
     // Initialize chronik
