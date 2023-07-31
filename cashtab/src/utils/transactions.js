@@ -449,7 +449,7 @@ export const sendXec = async (
             utxolib.networks.ecash,
         );
 
-        // parse the input value of XECs to send
+        // parse the input value of XEC to send
         const value = parseXecSendValue(
             isOneToMany,
             sendAmount,

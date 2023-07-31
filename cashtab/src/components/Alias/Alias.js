@@ -404,7 +404,7 @@ const Alias = ({ passLoadingStatus }) => {
                         formData.aliasName
                     }' for ${fromSatoshisToXec(
                         aliasDetails.registrationFeeSats,
-                    )} XECs?`}
+                    )} XEC?`}
                 </p>
             </Modal>
             <WalletInfoCtn>
