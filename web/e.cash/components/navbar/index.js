@@ -172,7 +172,7 @@ export default function Navbar({ announcementbar }) {
                             </div>
                         ))}
                     </nav>
-                    <Link href="/" className="pricelink_ctn">
+                    <Link href="/get-ecash" className="pricelink_ctn">
                         <div className="righttop"></div>
                         <div className="rightdown"></div>
                         <div className="leftdown"></div>
