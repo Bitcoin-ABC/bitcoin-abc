@@ -19,6 +19,7 @@ import {
     registerNewAlias,
 } from 'utils/transactions';
 import { explorer } from 'config/explorer';
+import { MockChronikClient } from 'utils/__mocks__/chronikMock';
 
 describe('Cashtab transaction broadcasting functions', () => {
     it('sends XEC correctly', async () => {
@@ -107,14 +108,14 @@ describe('Cashtab transaction broadcasting functions', () => {
     });
 
     it('Broadcasts a v0 alias registration tx for an 8-byte alias to a p2pkh address', async () => {
-        const chronik = new ChronikClient(
-            'https://FakeChronikUrlToEnsureMocksOnly.com',
-        );
+        const mockedChronik = new MockChronikClient();
 
         const mockTxid =
             '1272c4a9bf5829c9dba1efb252e753ed20e3cdd49b6e75a778befc7a87eaf7d0';
 
-        chronik.broadcastTx = jest.fn().mockResolvedValue({ txid: mockTxid });
+        mockedChronik.broadcastTx = jest
+            .fn()
+            .mockResolvedValue({ txid: mockTxid });
 
         const expectedResult = {
             explorerLink:
@@ -125,7 +126,7 @@ describe('Cashtab transaction broadcasting functions', () => {
         };
         expect(
             await registerNewAlias(
-                chronik,
+                mockedChronik,
                 aliasRegisteringWallet,
                 currency.defaultFee,
                 'newtest1',
@@ -135,14 +136,14 @@ describe('Cashtab transaction broadcasting functions', () => {
         ).toStrictEqual(expectedResult);
     });
     it('Broadcasts a v0 alias registration tx for a 21-byte alias to a p2pkh address', async () => {
-        const chronik = new ChronikClient(
-            'https://FakeChronikUrlToEnsureMocksOnly.com',
-        );
+        const mockedChronik = new MockChronikClient();
 
         const mockTxid =
             '912582a1dc11b568f14f8ebae15cbb0ce53bdb973e137e7dc7c9b261327e6cab';
 
-        chronik.broadcastTx = jest.fn().mockResolvedValue({ txid: mockTxid });
+        mockedChronik.broadcastTx = jest
+            .fn()
+            .mockResolvedValue({ txid: mockTxid });
 
         const expectedResult = {
             explorerLink: `${explorer.blockExplorerUrl}/tx/${mockTxid}`,
@@ -152,7 +153,7 @@ describe('Cashtab transaction broadcasting functions', () => {
         };
         expect(
             await registerNewAlias(
-                chronik,
+                mockedChronik,
                 aliasRegisteringWalletAfterTx,
                 currency.defaultFee,
                 'twentyonebytealiasreg',
@@ -162,14 +163,14 @@ describe('Cashtab transaction broadcasting functions', () => {
         ).toStrictEqual(expectedResult);
     });
     it('Broadcasts a v0 alias registration tx for a 16-byte alias to a p2pkh address', async () => {
-        const chronik = new ChronikClient(
-            'https://FakeChronikUrlToEnsureMocksOnly.com',
-        );
+        const mockedChronik = new MockChronikClient();
 
         const mockTxid =
             '8783d7064ce22e8390c9fa94ef9a4d5bb0184e401ef5a9fbf60b68294e275c80';
 
-        chronik.broadcastTx = jest.fn().mockResolvedValue({ txid: mockTxid });
+        mockedChronik.broadcastTx = jest
+            .fn()
+            .mockResolvedValue({ txid: mockTxid });
 
         const expectedResult = {
             explorerLink: `${explorer.blockExplorerUrl}/tx/${mockTxid}`,
@@ -179,7 +180,7 @@ describe('Cashtab transaction broadcasting functions', () => {
         };
         expect(
             await registerNewAlias(
-                chronik,
+                mockedChronik,
                 aliasRegisteringWalletAfterTwoTxs,
                 currency.defaultFee,
                 'whynotthreetests',
