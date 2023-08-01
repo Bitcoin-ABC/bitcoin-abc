@@ -15,8 +15,7 @@ import {
     isValidTokenDecimals,
     isValidTokenInitialQty,
     isValidTokenDocumentUrl,
-    isProbablyNotAScamTokenName,
-    isProbablyNotAScamTokenTicker,
+    isProbablyNotAScam,
 } from 'utils/validation';
 import {
     PlusSquareOutlined,
@@ -260,17 +259,19 @@ const CreateTokenForm = ({ createToken, disabled, passLoadingStatus }) => {
     const handleNewTokenNameInput = e => {
         const { value } = e.target;
         // validation
+        const validTokenName = isValidTokenName(value);
+        const probablyNotScam = isProbablyNotAScam(value);
 
-        setNewTokenNameIsValid(isValidTokenName(value));
-        setNewTokenNameIsProbablyNotAScam(isProbablyNotAScamTokenName(value));
+        setNewTokenNameIsValid(validTokenName);
+        setNewTokenNameIsProbablyNotAScam(probablyNotScam);
 
-        if (!isValidTokenName(value)) {
+        if (!validTokenName) {
             setTokenNameError('Validation Error');
         }
-        if (!isProbablyNotAScamTokenName(value)) {
+        if (!probablyNotScam) {
             setTokenNameError('Blacklisted Error');
         }
-        if (isValidTokenName(value) && isProbablyNotAScamTokenName(value)) {
+        if (validTokenName && probablyNotScam) {
             setTokenNameError('');
         }
 
@@ -288,18 +289,18 @@ const CreateTokenForm = ({ createToken, disabled, passLoadingStatus }) => {
     const handleNewTokenTickerInput = e => {
         const { value } = e.target;
         // validation
-        setNewTokenTickerIsValid(isValidTokenTicker(value));
-        setNewTokenTickerIsProbablyNotAScam(
-            isProbablyNotAScamTokenTicker(value),
-        );
+        const validTokenTicker = isValidTokenTicker(value);
+        const probablyNotScamTicker = isProbablyNotAScam(value);
+        setNewTokenTickerIsValid(validTokenTicker);
+        setNewTokenTickerIsProbablyNotAScam(probablyNotScamTicker);
 
-        if (!isValidTokenTicker(value)) {
+        if (!validTokenTicker) {
             setTokenTickerError('Validation Error');
         }
-        if (!isProbablyNotAScamTokenTicker(value)) {
+        if (!probablyNotScamTicker) {
             setTokenTickerError('Blacklisted Error');
         }
-        if (isValidTokenTicker(value) && isProbablyNotAScamTokenTicker(value)) {
+        if (validTokenTicker && probablyNotScamTicker) {
             setTokenTickerError('');
         }
 

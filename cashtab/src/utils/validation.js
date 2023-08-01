@@ -4,6 +4,7 @@ import { fromSatoshisToXec } from 'utils/cashMethods';
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
 import { cashtabSettings as cashtabDefaultConfig } from 'config/cashtabSettings';
+import tokenBlacklist from 'config/tokenBlacklist';
 
 export const isValidAliasString = inputStr => {
     return /^[a-z0-9]+$/.test(inputStr);
@@ -82,93 +83,17 @@ export const fiatToCrypto = (
     return cryptoAmount;
 };
 
-export const isProbablyNotAScamTokenName = tokenName => {
+export const isProbablyNotAScam = tokenNameOrTicker => {
     // convert to lower case, trim leading and trailing spaces
     // split, filter then join on ' ' for cases where user inputs multiple spaces
-    const sanitizedTokenName = tokenName
+    const sanitized = tokenNameOrTicker
         .toLowerCase()
         .trim()
         .split(' ')
         .filter(string => string)
         .join(' ');
 
-    return (
-        !currency.coingeckoTop500Names.includes(sanitizedTokenName) &&
-        // for cases where user adds spaces between e a c h letter
-        !currency.coingeckoTop500Names.includes(
-            sanitizedTokenName.split(' ').join(''),
-        ) &&
-        // cross reference with coingeckoTop500Tickers
-        !currency.coingeckoTop500Tickers.includes(sanitizedTokenName) &&
-        !currency.coingeckoTop500Tickers.includes(
-            sanitizedTokenName.split(' ').join(''),
-        ) &&
-        //cross reference with coingeckoTop500Ids
-        !currency.coingeckoTop500Ids.includes(sanitizedTokenName) &&
-        !currency.coingeckoTop500Ids.includes(
-            sanitizedTokenName.split(' ').join(''),
-        ) &&
-        //cross reference with bannedFiatCurrencies
-        !currency.settingsValidation.fiatCurrency.includes(
-            sanitizedTokenName,
-        ) &&
-        !currency.settingsValidation.fiatCurrency.includes(
-            sanitizedTokenName.split(' ').join(''),
-        ) &&
-        //cross reference with bannedTickers
-        !currency.bannedTickers.includes(sanitizedTokenName) &&
-        !currency.bannedTickers.includes(
-            sanitizedTokenName.split(' ').join(''),
-        ) &&
-        //cross reference with bannedNames
-        !currency.bannedNames.includes(sanitizedTokenName) &&
-        !currency.bannedNames.includes(sanitizedTokenName.split(' ').join(''))
-    );
-};
-
-export const isProbablyNotAScamTokenTicker = tokenTicker => {
-    // convert to lower case, trim leading and trailing spaces
-    // split, filter then join on ' ' for cases where user inputs multiple spaces
-    const sanitizedTokenTicker = tokenTicker
-        .toLowerCase()
-        .trim()
-        .split(' ')
-        .filter(string => string)
-        .join('');
-
-    return (
-        !currency.coingeckoTop500Tickers.includes(sanitizedTokenTicker) &&
-        // for cases where user adds spaces between e a c h letter
-
-        !currency.coingeckoTop500Tickers.includes(
-            sanitizedTokenTicker.split(' ').join(''),
-        ) &&
-        //cross reference with coingeckoTop500Names
-        !currency.coingeckoTop500Names.includes(sanitizedTokenTicker) &&
-        !currency.coingeckoTop500Names.includes(
-            sanitizedTokenTicker.split(' ').join(''),
-        ) &&
-        //cross reference with coingeckoTop500Ids
-        !currency.coingeckoTop500Ids.includes(sanitizedTokenTicker) &&
-        !currency.coingeckoTop500Ids.includes(
-            sanitizedTokenTicker.split(' ').join(''),
-        ) &&
-        //cross reference with bannedFiatCurrencies
-        !currency.settingsValidation.fiatCurrency.includes(
-            sanitizedTokenTicker,
-        ) &&
-        !currency.settingsValidation.fiatCurrency.includes(
-            sanitizedTokenTicker.split(' ').join(''),
-        ) &&
-        //cross reference with bannedTickers
-        !currency.bannedTickers.includes(sanitizedTokenTicker) &&
-        !currency.bannedTickers.includes(
-            sanitizedTokenTicker.split(' ').join(''),
-        ) &&
-        //cross reference with bannedNames
-        !currency.bannedNames.includes(sanitizedTokenTicker) &&
-        !currency.bannedNames.includes(sanitizedTokenTicker.split(' ').join(''))
-    );
+    return !tokenBlacklist.includes(sanitized);
 };
 
 export const isValidTokenName = tokenName => {

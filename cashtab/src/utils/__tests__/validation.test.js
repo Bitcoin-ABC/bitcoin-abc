@@ -23,6 +23,7 @@ import {
     isValidCashtabCache,
     validateMnemonic,
     isValidAliasString,
+    isProbablyNotAScam,
 } from '../validation';
 import { currency } from 'components/Common/Ticker.js';
 import { fromSatoshisToXec } from 'utils/cashMethods';
@@ -824,5 +825,42 @@ describe('Validation utils', () => {
     });
     it(`rejects wallet name of the wrong type`, () => {
         expect(isValidNewWalletNameLength(['newWalletName'])).toBe(false);
+    });
+    it(`isProbablyNotAScam recognizes "bitcoin" is probably a scam token name`, () => {
+        expect(isProbablyNotAScam('bitcoin')).toBe(false);
+    });
+    it(`isProbablyNotAScam recognizes "ebitcoin" is probably a scam token name`, () => {
+        expect(isProbablyNotAScam('ebitcoin')).toBe(false);
+    });
+    it(`isProbablyNotAScam recognizes "Lido Staked Ether", from coingeckoTop500Names, is probably a scam token name`, () => {
+        expect(isProbablyNotAScam('Lido Staked Ether')).toBe(false);
+    });
+    it(`isProbablyNotAScam recognizes 'matic-network', from coingeckoTop500Ids, is probably a scam token name`, () => {
+        expect(isProbablyNotAScam('matic-network')).toBe(false);
+    });
+    it(`isProbablyNotAScam recognizes 'Australian Dollar', from Cashtab supported fiat currencies, is probably a scam token name`, () => {
+        expect(isProbablyNotAScam('Australian Dollar')).toBe(false);
+    });
+    it(`isProbablyNotAScam recognizes 'ebtc', from bannedTickers, is probably a scam token name`, () => {
+        expect(isProbablyNotAScam('ebtc')).toBe(false);
+    });
+    it(`isProbablyNotAScam recognizes 'gbp', from bannedTickers, is probably a scam`, () => {
+        expect(isProbablyNotAScam('gbp')).toBe(false);
+    });
+    it(`isProbablyNotAScam recognizes 'Hong Kong Dollar', from fiatNames, is probably a scam`, () => {
+        expect(isProbablyNotAScam('gbp')).toBe(false);
+    });
+    it(`isProbablyNotAScam recognizes '₪', from fiat symbols, is probably a scam`, () => {
+        expect(isProbablyNotAScam('₪')).toBe(false);
+    });
+    it(`isProbablyNotAScam recognizes an ordinary token name as acceptable`, () => {
+        expect(isProbablyNotAScam('just a normal token name')).toBe(true);
+    });
+    it(`isProbablyNotAScam accepts a token name with fragments of banned potential scam names`, () => {
+        expect(
+            isProbablyNotAScam(
+                'This token is not Ethereum or bitcoin or USD $',
+            ),
+        ).toBe(true);
     });
 });
