@@ -87,13 +87,13 @@ Getting set up with the Bitcoin ABC Repository
 
 2. Install Git and Arcanist on your machine
 
+To install these packages on Debian or Ubuntu, type: `sudo apt-get install git arcanist`
+
 Git documentation can be found at [git-scm.com](https://git-scm.com/).
 
 For Arcanist documentation, you can read
 [Arcanist Quick Start](https://secure.phabricator.com/book/phabricator/article/arcanist_quick_start/)
 and the [Arcanist User Guide](https://secure.phabricator.com/book/phabricator/article/arcanist/).
-
-To install these packages on Debian or Ubuntu, type: `sudo apt-get install git arcanist`
 
 3. If you do not already have an SSH key set up, follow these steps:
 
