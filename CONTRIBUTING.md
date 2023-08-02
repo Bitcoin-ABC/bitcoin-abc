@@ -95,6 +95,10 @@ For Arcanist documentation, you can read
 [Arcanist Quick Start](https://secure.phabricator.com/book/phabricator/article/arcanist_quick_start/)
 and the [Arcanist User Guide](https://secure.phabricator.com/book/phabricator/article/arcanist/).
 
+The Phabricator version of Arcanist is unmaintained and does not work with PHP 8 or higher. This is an
+issue for Linux distributions such as Ubuntu 22.04. In this case, you can use the
+[Phorge version of Arcanist](https://we.phorge.it/book/phorge/article/arcanist_quick_start/) instead.
+
 3. If you do not already have an SSH key set up, follow these steps:
 
 Type: `ssh-keygen -t ed25519 -C "your_email@example.com"`
