@@ -313,6 +313,9 @@ inline uint8_t *UCharCast(char *c) {
 inline uint8_t *UCharCast(uint8_t *c) {
     return c;
 }
+inline uint8_t *UCharCast(signed char *c) {
+    return reinterpret_cast<uint8_t *>(c);
+}
 inline uint8_t *UCharCast(std::byte *c) {
     return (uint8_t *)c;
 }
@@ -321,6 +324,9 @@ inline const uint8_t *UCharCast(const char *c) {
 }
 inline const uint8_t *UCharCast(const uint8_t *c) {
     return c;
+}
+inline const uint8_t *UCharCast(const signed char *c) {
+    return reinterpret_cast<const uint8_t *>(c);
 }
 inline const uint8_t *UCharCast(const std::byte *c) {
     return reinterpret_cast<const uint8_t *>(c);
