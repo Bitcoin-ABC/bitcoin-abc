@@ -72,7 +72,7 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-TOsTZ dthBQu"
+          className="sc-kvZOFW eYbynb"
         >
           <h2>
             eCash Namespace Alias
@@ -182,7 +182,7 @@ Array [
                           </div>
                         </div>
                         <div
-                          className="sc-cHGsZl bxcQnQ"
+                          className="sc-hmzhuo fYlBBZ"
                         >
                           <label
                             className="ant-checkbox-wrapper ant-checkbox-wrapper-checked ant-checkbox-wrapper-in-form-item sc-fBuWsC bHZMFZ"
@@ -249,39 +249,175 @@ Array [
             </form>
           </div>
           <div
-            className="sc-kgAjT dqIHCd"
+            className="sc-hqyNC hEUPzP"
           />
           <div
-            className="sc-TOsTZ dthBQu"
+            className="sc-kvZOFW eYbynb"
           >
-            <h3>
-              <p>
-                <span
-                  aria-label="user"
-                  className="anticon anticon-user"
-                  role="img"
+            <div
+              className="sc-kgAjT jWFrne"
+            >
+              <div
+                className="ant-collapse ant-collapse-icon-position-start sc-ksYbfQ hPwOiL"
+                role={null}
+                style={
+                  Object {
+                    "marginBottom": "24px",
+                  }
+                }
+              >
+                <div
+                  className="ant-collapse-item ant-collapse-item-active"
                 >
-                  <svg
-                    aria-hidden="true"
-                    data-icon="user"
-                    fill="currentColor"
-                    focusable="false"
-                    height="1em"
-                    viewBox="64 64 896 896"
-                    width="1em"
+                  <div
+                    aria-disabled={false}
+                    aria-expanded={true}
+                    className="ant-collapse-header"
+                    onClick={[Function]}
+                    onKeyPress={[Function]}
+                    role="button"
+                    tabIndex={0}
                   >
-                    <path
-                      d="M858.5 763.6a374 374 0 00-80.6-119.5 375.63 375.63 0 00-119.5-80.6c-.4-.2-.8-.3-1.2-.5C719.5 518 760 444.7 760 362c0-137-111-248-248-248S264 225 264 362c0 82.7 40.5 156 102.8 201.1-.4.2-.8.3-1.2.5-44.8 18.9-85 46-119.5 80.6a375.63 375.63 0 00-80.6 119.5A371.7 371.7 0 00136 901.8a8 8 0 008 8.2h60c4.4 0 7.9-3.5 8-7.8 2-77.2 33-149.5 87.8-204.3 56.7-56.7 132-87.9 212.2-87.9s155.5 31.2 212.2 87.9C779 752.7 810 825 812 902.2c.1 4.4 3.6 7.8 8 7.8h60a8 8 0 008-8.2c-1-47.8-10.9-94.3-29.5-138.2zM512 534c-45.9 0-89.1-17.9-121.6-50.4S340 407.9 340 362c0-45.9 17.9-89.1 50.4-121.6S466.1 190 512 190s89.1 17.9 121.6 50.4S684 316.1 684 362c0 45.9-17.9 89.1-50.4 121.6S557.9 534 512 534z"
-                    />
-                  </svg>
-                </span>
-                 Registered aliases
-              </p>
-              N/A
-              <p
-                className="sc-jDwBTQ bcLZea"
-              />
-            </h3>
+                    <div
+                      className="ant-collapse-expand-icon"
+                      onClick={null}
+                    >
+                      <span
+                        aria-label="right"
+                        className="anticon anticon-right ant-collapse-arrow"
+                        role="img"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          data-icon="right"
+                          fill="currentColor"
+                          focusable="false"
+                          height="1em"
+                          style={
+                            Object {
+                              "msTransform": "rotate(90deg)",
+                              "transform": "rotate(90deg)",
+                            }
+                          }
+                          viewBox="64 64 896 896"
+                          width="1em"
+                        >
+                          <path
+                            d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                          />
+                        </svg>
+                      </span>
+                    </div>
+                    <span
+                      className="ant-collapse-header-text"
+                      onClick={null}
+                    >
+                      <div
+                        className="sc-TOsTZ kjYrri"
+                      >
+                        Registered Aliases
+                      </div>
+                    </span>
+                  </div>
+                  <div
+                    className="ant-collapse-content ant-collapse-content-active"
+                    role={null}
+                  >
+                    <div
+                      className="ant-collapse-content-box"
+                    >
+                      <div
+                        className="ant-space ant-space-horizontal ant-space-align-center"
+                        style={
+                          Object {
+                            "flexWrap": "wrap",
+                            "marginBottom": -8,
+                          }
+                        }
+                      >
+                        <div
+                          className="ant-space-item"
+                          style={
+                            Object {
+                              "paddingBottom": 8,
+                            }
+                          }
+                        >
+                          <h3>
+                            No registered aliases
+                          </h3>
+                        </div>
+                      </div>
+                      <p
+                        className="sc-jDwBTQ bcLZea"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              className="sc-kgAjT jWFrne"
+            >
+              <div
+                className="ant-collapse ant-collapse-icon-position-start sc-ksYbfQ hPwOiL"
+                role={null}
+                style={
+                  Object {
+                    "marginBottom": "24px",
+                  }
+                }
+              >
+                <div
+                  className="ant-collapse-item"
+                >
+                  <div
+                    aria-disabled={false}
+                    aria-expanded={false}
+                    className="ant-collapse-header"
+                    onClick={[Function]}
+                    onKeyPress={[Function]}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <div
+                      className="ant-collapse-expand-icon"
+                      onClick={null}
+                    >
+                      <span
+                        aria-label="right"
+                        className="anticon anticon-right ant-collapse-arrow"
+                        role="img"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          data-icon="right"
+                          fill="currentColor"
+                          focusable="false"
+                          height="1em"
+                          viewBox="64 64 896 896"
+                          width="1em"
+                        >
+                          <path
+                            d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                          />
+                        </svg>
+                      </span>
+                    </div>
+                    <span
+                      className="ant-collapse-header-text"
+                      onClick={null}
+                    >
+                      <div
+                        className="sc-TOsTZ kjYrri"
+                      >
+                        Pending Aliases
+                      </div>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -362,7 +498,7 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-TOsTZ dthBQu"
+          className="sc-kvZOFW eYbynb"
         >
           <h2>
             eCash Namespace Alias
@@ -472,17 +608,17 @@ Array [
                           </div>
                         </div>
                         <div
-                          className="sc-cHGsZl bxcQnQ"
+                          className="sc-hmzhuo fYlBBZ"
                         >
                           <label
-                            className="ant-checkbox-wrapper ant-checkbox-wrapper-in-form-item sc-fBuWsC bHZMFZ"
+                            className="ant-checkbox-wrapper ant-checkbox-wrapper-checked ant-checkbox-wrapper-in-form-item sc-fBuWsC bHZMFZ"
                           >
                             <span
-                              className="ant-checkbox"
+                              className="ant-checkbox ant-checkbox-checked"
                               style={Object {}}
                             >
                               <input
-                                checked={false}
+                                checked={true}
                                 className="ant-checkbox-input"
                                 disabled={false}
                                 onBlur={[Function]}
@@ -501,75 +637,6 @@ Array [
                               Register active wallet address
                             </span>
                           </label>
-                        </div>
-                        <div
-                          className="sc-bRBYWo fqvvXE"
-                        >
-                          <div
-                            className="ant-form-item ant-form-item-with-help ant-form-item-has-error"
-                          >
-                            <div
-                              className="ant-row ant-form-item-row"
-                              style={Object {}}
-                            >
-                              <div
-                                className="ant-col ant-form-item-control"
-                                style={Object {}}
-                              >
-                                <div
-                                  className="ant-form-item-control-input"
-                                >
-                                  <div
-                                    className="ant-form-item-control-input-content"
-                                  >
-                                    <span
-                                      className="ant-input-affix-wrapper ant-input-affix-wrapper-status-error"
-                                      onClick={[Function]}
-                                    >
-                                      <span
-                                        className="ant-input-prefix"
-                                      >
-                                        <span
-                                          aria-label="wallet"
-                                          className="anticon anticon-wallet sc-bxivhb iBBRHU"
-                                          role="img"
-                                        >
-                                          <svg
-                                            aria-hidden="true"
-                                            data-icon="wallet"
-                                            fill="currentColor"
-                                            focusable="false"
-                                            height="1em"
-                                            viewBox="64 64 896 896"
-                                            width="1em"
-                                          >
-                                            <path
-                                              d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
-                                            />
-                                          </svg>
-                                        </span>
-                                      </span>
-                                      <input
-                                        autoComplete="off"
-                                        className="ant-input"
-                                        hidden={null}
-                                        name="aliasAddress"
-                                        onBlur={[Function]}
-                                        onChange={[Function]}
-                                        onFocus={[Function]}
-                                        onKeyDown={[Function]}
-                                        placeholder="Enter address for this alias"
-                                        required={true}
-                                        style={null}
-                                        type="text"
-                                        value=""
-                                      />
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
                         </div>
                       </div>
                     </div>
@@ -608,39 +675,175 @@ Array [
             </form>
           </div>
           <div
-            className="sc-kgAjT dqIHCd"
+            className="sc-hqyNC hEUPzP"
           />
           <div
-            className="sc-TOsTZ dthBQu"
+            className="sc-kvZOFW eYbynb"
           >
-            <h3>
-              <p>
-                <span
-                  aria-label="user"
-                  className="anticon anticon-user"
-                  role="img"
+            <div
+              className="sc-kgAjT jWFrne"
+            >
+              <div
+                className="ant-collapse ant-collapse-icon-position-start sc-ksYbfQ hPwOiL"
+                role={null}
+                style={
+                  Object {
+                    "marginBottom": "24px",
+                  }
+                }
+              >
+                <div
+                  className="ant-collapse-item ant-collapse-item-active"
                 >
-                  <svg
-                    aria-hidden="true"
-                    data-icon="user"
-                    fill="currentColor"
-                    focusable="false"
-                    height="1em"
-                    viewBox="64 64 896 896"
-                    width="1em"
+                  <div
+                    aria-disabled={false}
+                    aria-expanded={true}
+                    className="ant-collapse-header"
+                    onClick={[Function]}
+                    onKeyPress={[Function]}
+                    role="button"
+                    tabIndex={0}
                   >
-                    <path
-                      d="M858.5 763.6a374 374 0 00-80.6-119.5 375.63 375.63 0 00-119.5-80.6c-.4-.2-.8-.3-1.2-.5C719.5 518 760 444.7 760 362c0-137-111-248-248-248S264 225 264 362c0 82.7 40.5 156 102.8 201.1-.4.2-.8.3-1.2.5-44.8 18.9-85 46-119.5 80.6a375.63 375.63 0 00-80.6 119.5A371.7 371.7 0 00136 901.8a8 8 0 008 8.2h60c4.4 0 7.9-3.5 8-7.8 2-77.2 33-149.5 87.8-204.3 56.7-56.7 132-87.9 212.2-87.9s155.5 31.2 212.2 87.9C779 752.7 810 825 812 902.2c.1 4.4 3.6 7.8 8 7.8h60a8 8 0 008-8.2c-1-47.8-10.9-94.3-29.5-138.2zM512 534c-45.9 0-89.1-17.9-121.6-50.4S340 407.9 340 362c0-45.9 17.9-89.1 50.4-121.6S466.1 190 512 190s89.1 17.9 121.6 50.4S684 316.1 684 362c0 45.9-17.9 89.1-50.4 121.6S557.9 534 512 534z"
-                    />
-                  </svg>
-                </span>
-                 Registered aliases
-              </p>
-              N/A
-              <p
-                className="sc-jDwBTQ bcLZea"
-              />
-            </h3>
+                    <div
+                      className="ant-collapse-expand-icon"
+                      onClick={null}
+                    >
+                      <span
+                        aria-label="right"
+                        className="anticon anticon-right ant-collapse-arrow"
+                        role="img"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          data-icon="right"
+                          fill="currentColor"
+                          focusable="false"
+                          height="1em"
+                          style={
+                            Object {
+                              "msTransform": "rotate(90deg)",
+                              "transform": "rotate(90deg)",
+                            }
+                          }
+                          viewBox="64 64 896 896"
+                          width="1em"
+                        >
+                          <path
+                            d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                          />
+                        </svg>
+                      </span>
+                    </div>
+                    <span
+                      className="ant-collapse-header-text"
+                      onClick={null}
+                    >
+                      <div
+                        className="sc-TOsTZ kjYrri"
+                      >
+                        Registered Aliases
+                      </div>
+                    </span>
+                  </div>
+                  <div
+                    className="ant-collapse-content ant-collapse-content-active"
+                    role={null}
+                  >
+                    <div
+                      className="ant-collapse-content-box"
+                    >
+                      <div
+                        className="ant-space ant-space-horizontal ant-space-align-center"
+                        style={
+                          Object {
+                            "flexWrap": "wrap",
+                            "marginBottom": -8,
+                          }
+                        }
+                      >
+                        <div
+                          className="ant-space-item"
+                          style={
+                            Object {
+                              "paddingBottom": 8,
+                            }
+                          }
+                        >
+                          <h3>
+                            No registered aliases
+                          </h3>
+                        </div>
+                      </div>
+                      <p
+                        className="sc-jDwBTQ bcLZea"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              className="sc-kgAjT jWFrne"
+            >
+              <div
+                className="ant-collapse ant-collapse-icon-position-start sc-ksYbfQ hPwOiL"
+                role={null}
+                style={
+                  Object {
+                    "marginBottom": "24px",
+                  }
+                }
+              >
+                <div
+                  className="ant-collapse-item"
+                >
+                  <div
+                    aria-disabled={false}
+                    aria-expanded={false}
+                    className="ant-collapse-header"
+                    onClick={[Function]}
+                    onKeyPress={[Function]}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <div
+                      className="ant-collapse-expand-icon"
+                      onClick={null}
+                    >
+                      <span
+                        aria-label="right"
+                        className="anticon anticon-right ant-collapse-arrow"
+                        role="img"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          data-icon="right"
+                          fill="currentColor"
+                          focusable="false"
+                          height="1em"
+                          viewBox="64 64 896 896"
+                          width="1em"
+                        >
+                          <path
+                            d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                          />
+                        </svg>
+                      </span>
+                    </div>
+                    <span
+                      className="ant-collapse-header-text"
+                      onClick={null}
+                    >
+                      <div
+                        className="sc-TOsTZ kjYrri"
+                      >
+                        Pending Aliases
+                      </div>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -726,7 +929,7 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-TOsTZ dthBQu"
+          className="sc-kvZOFW eYbynb"
         >
           <h2>
             eCash Namespace Alias
@@ -836,7 +1039,7 @@ Array [
                           </div>
                         </div>
                         <div
-                          className="sc-cHGsZl bxcQnQ"
+                          className="sc-hmzhuo fYlBBZ"
                         >
                           <label
                             className="ant-checkbox-wrapper ant-checkbox-wrapper-checked ant-checkbox-wrapper-in-form-item sc-fBuWsC bHZMFZ"
@@ -903,39 +1106,175 @@ Array [
             </form>
           </div>
           <div
-            className="sc-kgAjT dqIHCd"
+            className="sc-hqyNC hEUPzP"
           />
           <div
-            className="sc-TOsTZ dthBQu"
+            className="sc-kvZOFW eYbynb"
           >
-            <h3>
-              <p>
-                <span
-                  aria-label="user"
-                  className="anticon anticon-user"
-                  role="img"
+            <div
+              className="sc-kgAjT jWFrne"
+            >
+              <div
+                className="ant-collapse ant-collapse-icon-position-start sc-ksYbfQ hPwOiL"
+                role={null}
+                style={
+                  Object {
+                    "marginBottom": "24px",
+                  }
+                }
+              >
+                <div
+                  className="ant-collapse-item ant-collapse-item-active"
                 >
-                  <svg
-                    aria-hidden="true"
-                    data-icon="user"
-                    fill="currentColor"
-                    focusable="false"
-                    height="1em"
-                    viewBox="64 64 896 896"
-                    width="1em"
+                  <div
+                    aria-disabled={false}
+                    aria-expanded={true}
+                    className="ant-collapse-header"
+                    onClick={[Function]}
+                    onKeyPress={[Function]}
+                    role="button"
+                    tabIndex={0}
                   >
-                    <path
-                      d="M858.5 763.6a374 374 0 00-80.6-119.5 375.63 375.63 0 00-119.5-80.6c-.4-.2-.8-.3-1.2-.5C719.5 518 760 444.7 760 362c0-137-111-248-248-248S264 225 264 362c0 82.7 40.5 156 102.8 201.1-.4.2-.8.3-1.2.5-44.8 18.9-85 46-119.5 80.6a375.63 375.63 0 00-80.6 119.5A371.7 371.7 0 00136 901.8a8 8 0 008 8.2h60c4.4 0 7.9-3.5 8-7.8 2-77.2 33-149.5 87.8-204.3 56.7-56.7 132-87.9 212.2-87.9s155.5 31.2 212.2 87.9C779 752.7 810 825 812 902.2c.1 4.4 3.6 7.8 8 7.8h60a8 8 0 008-8.2c-1-47.8-10.9-94.3-29.5-138.2zM512 534c-45.9 0-89.1-17.9-121.6-50.4S340 407.9 340 362c0-45.9 17.9-89.1 50.4-121.6S466.1 190 512 190s89.1 17.9 121.6 50.4S684 316.1 684 362c0 45.9-17.9 89.1-50.4 121.6S557.9 534 512 534z"
-                    />
-                  </svg>
-                </span>
-                 Registered aliases
-              </p>
-              N/A
-              <p
-                className="sc-jDwBTQ bcLZea"
-              />
-            </h3>
+                    <div
+                      className="ant-collapse-expand-icon"
+                      onClick={null}
+                    >
+                      <span
+                        aria-label="right"
+                        className="anticon anticon-right ant-collapse-arrow"
+                        role="img"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          data-icon="right"
+                          fill="currentColor"
+                          focusable="false"
+                          height="1em"
+                          style={
+                            Object {
+                              "msTransform": "rotate(90deg)",
+                              "transform": "rotate(90deg)",
+                            }
+                          }
+                          viewBox="64 64 896 896"
+                          width="1em"
+                        >
+                          <path
+                            d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                          />
+                        </svg>
+                      </span>
+                    </div>
+                    <span
+                      className="ant-collapse-header-text"
+                      onClick={null}
+                    >
+                      <div
+                        className="sc-TOsTZ kjYrri"
+                      >
+                        Registered Aliases
+                      </div>
+                    </span>
+                  </div>
+                  <div
+                    className="ant-collapse-content ant-collapse-content-active"
+                    role={null}
+                  >
+                    <div
+                      className="ant-collapse-content-box"
+                    >
+                      <div
+                        className="ant-space ant-space-horizontal ant-space-align-center"
+                        style={
+                          Object {
+                            "flexWrap": "wrap",
+                            "marginBottom": -8,
+                          }
+                        }
+                      >
+                        <div
+                          className="ant-space-item"
+                          style={
+                            Object {
+                              "paddingBottom": 8,
+                            }
+                          }
+                        >
+                          <h3>
+                            No registered aliases
+                          </h3>
+                        </div>
+                      </div>
+                      <p
+                        className="sc-jDwBTQ bcLZea"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              className="sc-kgAjT jWFrne"
+            >
+              <div
+                className="ant-collapse ant-collapse-icon-position-start sc-ksYbfQ hPwOiL"
+                role={null}
+                style={
+                  Object {
+                    "marginBottom": "24px",
+                  }
+                }
+              >
+                <div
+                  className="ant-collapse-item"
+                >
+                  <div
+                    aria-disabled={false}
+                    aria-expanded={false}
+                    className="ant-collapse-header"
+                    onClick={[Function]}
+                    onKeyPress={[Function]}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <div
+                      className="ant-collapse-expand-icon"
+                      onClick={null}
+                    >
+                      <span
+                        aria-label="right"
+                        className="anticon anticon-right ant-collapse-arrow"
+                        role="img"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          data-icon="right"
+                          fill="currentColor"
+                          focusable="false"
+                          height="1em"
+                          viewBox="64 64 896 896"
+                          width="1em"
+                        >
+                          <path
+                            d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                          />
+                        </svg>
+                      </span>
+                    </div>
+                    <span
+                      className="ant-collapse-header-text"
+                      onClick={null}
+                    >
+                      <div
+                        className="sc-TOsTZ kjYrri"
+                      >
+                        Pending Aliases
+                      </div>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1016,7 +1355,7 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-TOsTZ dthBQu"
+          className="sc-kvZOFW eYbynb"
         >
           <h2>
             eCash Namespace Alias
@@ -1126,17 +1465,17 @@ Array [
                           </div>
                         </div>
                         <div
-                          className="sc-cHGsZl bxcQnQ"
+                          className="sc-hmzhuo fYlBBZ"
                         >
                           <label
-                            className="ant-checkbox-wrapper ant-checkbox-wrapper-in-form-item sc-fBuWsC bHZMFZ"
+                            className="ant-checkbox-wrapper ant-checkbox-wrapper-checked ant-checkbox-wrapper-in-form-item sc-fBuWsC bHZMFZ"
                           >
                             <span
-                              className="ant-checkbox"
+                              className="ant-checkbox ant-checkbox-checked"
                               style={Object {}}
                             >
                               <input
-                                checked={false}
+                                checked={true}
                                 className="ant-checkbox-input"
                                 disabled={false}
                                 onBlur={[Function]}
@@ -1155,75 +1494,6 @@ Array [
                               Register active wallet address
                             </span>
                           </label>
-                        </div>
-                        <div
-                          className="sc-bRBYWo fqvvXE"
-                        >
-                          <div
-                            className="ant-form-item ant-form-item-with-help ant-form-item-has-error"
-                          >
-                            <div
-                              className="ant-row ant-form-item-row"
-                              style={Object {}}
-                            >
-                              <div
-                                className="ant-col ant-form-item-control"
-                                style={Object {}}
-                              >
-                                <div
-                                  className="ant-form-item-control-input"
-                                >
-                                  <div
-                                    className="ant-form-item-control-input-content"
-                                  >
-                                    <span
-                                      className="ant-input-affix-wrapper ant-input-affix-wrapper-status-error"
-                                      onClick={[Function]}
-                                    >
-                                      <span
-                                        className="ant-input-prefix"
-                                      >
-                                        <span
-                                          aria-label="wallet"
-                                          className="anticon anticon-wallet sc-bxivhb iBBRHU"
-                                          role="img"
-                                        >
-                                          <svg
-                                            aria-hidden="true"
-                                            data-icon="wallet"
-                                            fill="currentColor"
-                                            focusable="false"
-                                            height="1em"
-                                            viewBox="64 64 896 896"
-                                            width="1em"
-                                          >
-                                            <path
-                                              d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
-                                            />
-                                          </svg>
-                                        </span>
-                                      </span>
-                                      <input
-                                        autoComplete="off"
-                                        className="ant-input"
-                                        hidden={null}
-                                        name="aliasAddress"
-                                        onBlur={[Function]}
-                                        onChange={[Function]}
-                                        onFocus={[Function]}
-                                        onKeyDown={[Function]}
-                                        placeholder="Enter address for this alias"
-                                        required={true}
-                                        style={null}
-                                        type="text"
-                                        value=""
-                                      />
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
                         </div>
                       </div>
                     </div>
@@ -1262,39 +1532,175 @@ Array [
             </form>
           </div>
           <div
-            className="sc-kgAjT dqIHCd"
+            className="sc-hqyNC hEUPzP"
           />
           <div
-            className="sc-TOsTZ dthBQu"
+            className="sc-kvZOFW eYbynb"
           >
-            <h3>
-              <p>
-                <span
-                  aria-label="user"
-                  className="anticon anticon-user"
-                  role="img"
+            <div
+              className="sc-kgAjT jWFrne"
+            >
+              <div
+                className="ant-collapse ant-collapse-icon-position-start sc-ksYbfQ hPwOiL"
+                role={null}
+                style={
+                  Object {
+                    "marginBottom": "24px",
+                  }
+                }
+              >
+                <div
+                  className="ant-collapse-item ant-collapse-item-active"
                 >
-                  <svg
-                    aria-hidden="true"
-                    data-icon="user"
-                    fill="currentColor"
-                    focusable="false"
-                    height="1em"
-                    viewBox="64 64 896 896"
-                    width="1em"
+                  <div
+                    aria-disabled={false}
+                    aria-expanded={true}
+                    className="ant-collapse-header"
+                    onClick={[Function]}
+                    onKeyPress={[Function]}
+                    role="button"
+                    tabIndex={0}
                   >
-                    <path
-                      d="M858.5 763.6a374 374 0 00-80.6-119.5 375.63 375.63 0 00-119.5-80.6c-.4-.2-.8-.3-1.2-.5C719.5 518 760 444.7 760 362c0-137-111-248-248-248S264 225 264 362c0 82.7 40.5 156 102.8 201.1-.4.2-.8.3-1.2.5-44.8 18.9-85 46-119.5 80.6a375.63 375.63 0 00-80.6 119.5A371.7 371.7 0 00136 901.8a8 8 0 008 8.2h60c4.4 0 7.9-3.5 8-7.8 2-77.2 33-149.5 87.8-204.3 56.7-56.7 132-87.9 212.2-87.9s155.5 31.2 212.2 87.9C779 752.7 810 825 812 902.2c.1 4.4 3.6 7.8 8 7.8h60a8 8 0 008-8.2c-1-47.8-10.9-94.3-29.5-138.2zM512 534c-45.9 0-89.1-17.9-121.6-50.4S340 407.9 340 362c0-45.9 17.9-89.1 50.4-121.6S466.1 190 512 190s89.1 17.9 121.6 50.4S684 316.1 684 362c0 45.9-17.9 89.1-50.4 121.6S557.9 534 512 534z"
-                    />
-                  </svg>
-                </span>
-                 Registered aliases
-              </p>
-              N/A
-              <p
-                className="sc-jDwBTQ bcLZea"
-              />
-            </h3>
+                    <div
+                      className="ant-collapse-expand-icon"
+                      onClick={null}
+                    >
+                      <span
+                        aria-label="right"
+                        className="anticon anticon-right ant-collapse-arrow"
+                        role="img"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          data-icon="right"
+                          fill="currentColor"
+                          focusable="false"
+                          height="1em"
+                          style={
+                            Object {
+                              "msTransform": "rotate(90deg)",
+                              "transform": "rotate(90deg)",
+                            }
+                          }
+                          viewBox="64 64 896 896"
+                          width="1em"
+                        >
+                          <path
+                            d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                          />
+                        </svg>
+                      </span>
+                    </div>
+                    <span
+                      className="ant-collapse-header-text"
+                      onClick={null}
+                    >
+                      <div
+                        className="sc-TOsTZ kjYrri"
+                      >
+                        Registered Aliases
+                      </div>
+                    </span>
+                  </div>
+                  <div
+                    className="ant-collapse-content ant-collapse-content-active"
+                    role={null}
+                  >
+                    <div
+                      className="ant-collapse-content-box"
+                    >
+                      <div
+                        className="ant-space ant-space-horizontal ant-space-align-center"
+                        style={
+                          Object {
+                            "flexWrap": "wrap",
+                            "marginBottom": -8,
+                          }
+                        }
+                      >
+                        <div
+                          className="ant-space-item"
+                          style={
+                            Object {
+                              "paddingBottom": 8,
+                            }
+                          }
+                        >
+                          <h3>
+                            No registered aliases
+                          </h3>
+                        </div>
+                      </div>
+                      <p
+                        className="sc-jDwBTQ bcLZea"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              className="sc-kgAjT jWFrne"
+            >
+              <div
+                className="ant-collapse ant-collapse-icon-position-start sc-ksYbfQ hPwOiL"
+                role={null}
+                style={
+                  Object {
+                    "marginBottom": "24px",
+                  }
+                }
+              >
+                <div
+                  className="ant-collapse-item"
+                >
+                  <div
+                    aria-disabled={false}
+                    aria-expanded={false}
+                    className="ant-collapse-header"
+                    onClick={[Function]}
+                    onKeyPress={[Function]}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <div
+                      className="ant-collapse-expand-icon"
+                      onClick={null}
+                    >
+                      <span
+                        aria-label="right"
+                        className="anticon anticon-right ant-collapse-arrow"
+                        role="img"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          data-icon="right"
+                          fill="currentColor"
+                          focusable="false"
+                          height="1em"
+                          viewBox="64 64 896 896"
+                          width="1em"
+                        >
+                          <path
+                            d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                          />
+                        </svg>
+                      </span>
+                    </div>
+                    <span
+                      className="ant-collapse-header-text"
+                      onClick={null}
+                    >
+                      <div
+                        className="sc-TOsTZ kjYrri"
+                      >
+                        Pending Aliases
+                      </div>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1370,7 +1776,7 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-TOsTZ dthBQu"
+          className="sc-kvZOFW eYbynb"
         >
           <h2>
             eCash Namespace Alias
@@ -1480,7 +1886,7 @@ Array [
                           </div>
                         </div>
                         <div
-                          className="sc-cHGsZl bxcQnQ"
+                          className="sc-hmzhuo fYlBBZ"
                         >
                           <label
                             className="ant-checkbox-wrapper ant-checkbox-wrapper-in-form-item sc-fBuWsC bHZMFZ"
@@ -1616,39 +2022,175 @@ Array [
             </form>
           </div>
           <div
-            className="sc-kgAjT dqIHCd"
+            className="sc-hqyNC hEUPzP"
           />
           <div
-            className="sc-TOsTZ dthBQu"
+            className="sc-kvZOFW eYbynb"
           >
-            <h3>
-              <p>
-                <span
-                  aria-label="user"
-                  className="anticon anticon-user"
-                  role="img"
+            <div
+              className="sc-kgAjT jWFrne"
+            >
+              <div
+                className="ant-collapse ant-collapse-icon-position-start sc-ksYbfQ hPwOiL"
+                role={null}
+                style={
+                  Object {
+                    "marginBottom": "24px",
+                  }
+                }
+              >
+                <div
+                  className="ant-collapse-item ant-collapse-item-active"
                 >
-                  <svg
-                    aria-hidden="true"
-                    data-icon="user"
-                    fill="currentColor"
-                    focusable="false"
-                    height="1em"
-                    viewBox="64 64 896 896"
-                    width="1em"
+                  <div
+                    aria-disabled={false}
+                    aria-expanded={true}
+                    className="ant-collapse-header"
+                    onClick={[Function]}
+                    onKeyPress={[Function]}
+                    role="button"
+                    tabIndex={0}
                   >
-                    <path
-                      d="M858.5 763.6a374 374 0 00-80.6-119.5 375.63 375.63 0 00-119.5-80.6c-.4-.2-.8-.3-1.2-.5C719.5 518 760 444.7 760 362c0-137-111-248-248-248S264 225 264 362c0 82.7 40.5 156 102.8 201.1-.4.2-.8.3-1.2.5-44.8 18.9-85 46-119.5 80.6a375.63 375.63 0 00-80.6 119.5A371.7 371.7 0 00136 901.8a8 8 0 008 8.2h60c4.4 0 7.9-3.5 8-7.8 2-77.2 33-149.5 87.8-204.3 56.7-56.7 132-87.9 212.2-87.9s155.5 31.2 212.2 87.9C779 752.7 810 825 812 902.2c.1 4.4 3.6 7.8 8 7.8h60a8 8 0 008-8.2c-1-47.8-10.9-94.3-29.5-138.2zM512 534c-45.9 0-89.1-17.9-121.6-50.4S340 407.9 340 362c0-45.9 17.9-89.1 50.4-121.6S466.1 190 512 190s89.1 17.9 121.6 50.4S684 316.1 684 362c0 45.9-17.9 89.1-50.4 121.6S557.9 534 512 534z"
-                    />
-                  </svg>
-                </span>
-                 Registered aliases
-              </p>
-              N/A
-              <p
-                className="sc-jDwBTQ bcLZea"
-              />
-            </h3>
+                    <div
+                      className="ant-collapse-expand-icon"
+                      onClick={null}
+                    >
+                      <span
+                        aria-label="right"
+                        className="anticon anticon-right ant-collapse-arrow"
+                        role="img"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          data-icon="right"
+                          fill="currentColor"
+                          focusable="false"
+                          height="1em"
+                          style={
+                            Object {
+                              "msTransform": "rotate(90deg)",
+                              "transform": "rotate(90deg)",
+                            }
+                          }
+                          viewBox="64 64 896 896"
+                          width="1em"
+                        >
+                          <path
+                            d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                          />
+                        </svg>
+                      </span>
+                    </div>
+                    <span
+                      className="ant-collapse-header-text"
+                      onClick={null}
+                    >
+                      <div
+                        className="sc-TOsTZ kjYrri"
+                      >
+                        Registered Aliases
+                      </div>
+                    </span>
+                  </div>
+                  <div
+                    className="ant-collapse-content ant-collapse-content-active"
+                    role={null}
+                  >
+                    <div
+                      className="ant-collapse-content-box"
+                    >
+                      <div
+                        className="ant-space ant-space-horizontal ant-space-align-center"
+                        style={
+                          Object {
+                            "flexWrap": "wrap",
+                            "marginBottom": -8,
+                          }
+                        }
+                      >
+                        <div
+                          className="ant-space-item"
+                          style={
+                            Object {
+                              "paddingBottom": 8,
+                            }
+                          }
+                        >
+                          <h3>
+                            No registered aliases
+                          </h3>
+                        </div>
+                      </div>
+                      <p
+                        className="sc-jDwBTQ bcLZea"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              className="sc-kgAjT jWFrne"
+            >
+              <div
+                className="ant-collapse ant-collapse-icon-position-start sc-ksYbfQ hPwOiL"
+                role={null}
+                style={
+                  Object {
+                    "marginBottom": "24px",
+                  }
+                }
+              >
+                <div
+                  className="ant-collapse-item"
+                >
+                  <div
+                    aria-disabled={false}
+                    aria-expanded={false}
+                    className="ant-collapse-header"
+                    onClick={[Function]}
+                    onKeyPress={[Function]}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <div
+                      className="ant-collapse-expand-icon"
+                      onClick={null}
+                    >
+                      <span
+                        aria-label="right"
+                        className="anticon anticon-right ant-collapse-arrow"
+                        role="img"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          data-icon="right"
+                          fill="currentColor"
+                          focusable="false"
+                          height="1em"
+                          viewBox="64 64 896 896"
+                          width="1em"
+                        >
+                          <path
+                            d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                          />
+                        </svg>
+                      </span>
+                    </div>
+                    <span
+                      className="ant-collapse-header-text"
+                      onClick={null}
+                    >
+                      <div
+                        className="sc-TOsTZ kjYrri"
+                      >
+                        Pending Aliases
+                      </div>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

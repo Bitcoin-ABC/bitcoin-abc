@@ -20,7 +20,6 @@ import { SmartButton } from 'components/Common/PrimaryButton';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
 import { Row, Col } from 'antd';
-import { UserOutlined } from '@ant-design/icons';
 import {
     getWalletState,
     fromSatoshisToXec,
@@ -35,10 +34,18 @@ import {
 import { isAliasFormat, isValidAliasString } from 'utils/validation';
 import { queryAliasServer, getAliasByteSize } from 'utils/aliasUtils';
 import cashaddr from 'ecashaddrjs';
+import { Space, Tag } from 'antd';
+import CopyToClipboard from 'components/Common/CopyToClipboard';
+import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
 
 export const CheckboxContainer = styled.div`
     text-align: left;
     margin-bottom: 12px;
+`;
+
+// Change mouse cursor to pointer upon hovering over an Alias tag
+export const AliasLabel = styled.div`
+    cursor: pointer;
 `;
 
 export const NamespaceCtn = styled.div`
@@ -105,6 +112,7 @@ const Alias = ({ passLoadingStatus }) => {
         if (
             !wallet ||
             typeof wallet === 'undefined' ||
+            !wallet.Path1899 ||
             !cashtabCache ||
             typeof cashtabCache === 'undefined'
         ) {
@@ -134,7 +142,12 @@ const Alias = ({ passLoadingStatus }) => {
             // If this active wallet has registered aliases, set to state variable for rendering under registered aliases list
             // If no aliases are registered an empty array is returned, in which case no need to update state variable
             if (aliasesForThisAddress.length > 0) {
-                setActiveWalletAliases(aliasesForThisAddress);
+                setActiveWalletAliases(
+                    // sort in ascending order based on the `alias` property
+                    aliasesForThisAddress.sort((a, b) =>
+                        a.alias.localeCompare(b.alias),
+                    ),
+                );
             }
             passLoadingStatus(false);
         } catch (err) {
@@ -527,21 +540,50 @@ const Alias = ({ passLoadingStatus }) => {
                             </AntdFormWrapper>
                             <StyledSpacer />
                             <NamespaceCtn>
-                                <h3>
-                                    <p>
-                                        <UserOutlined />
-                                        &emsp;Registered aliases
-                                    </p>
-                                    {activeWalletAliases &&
-                                    activeWalletAliases.length > 0
-                                        ? activeWalletAliases
-                                              .map(
-                                                  alias => alias.alias + '.xec',
-                                              )
-                                              .join('\n')
-                                        : !aliasServerError && 'N/A'}
+                                <CustomCollapseCtn
+                                    panelHeader="Registered Aliases"
+                                    optionalDefaultActiveKey={['1']}
+                                    optionalKey="1"
+                                >
+                                    <Space size={[0, 8]} wrap>
+                                        {activeWalletAliases &&
+                                        activeWalletAliases.length > 0
+                                            ? activeWalletAliases.map(alias => (
+                                                  <CopyToClipboard
+                                                      data={
+                                                          alias.alias + '.xec'
+                                                      }
+                                                      optionalOnCopyNotification={{
+                                                          title: 'Copied',
+                                                          msg: `${alias.alias}.xec copied to clipboard`,
+                                                      }}
+                                                      key={alias.alias}
+                                                  >
+                                                      <Tag
+                                                          color={'#0074C2'}
+                                                          key={
+                                                              'Tag: ' +
+                                                              alias.alias
+                                                          }
+                                                      >
+                                                          <AliasLabel>
+                                                              {alias.alias +
+                                                                  '.xec'}
+                                                          </AliasLabel>
+                                                      </Tag>
+                                                  </CopyToClipboard>
+                                              ))
+                                            : !aliasServerError && (
+                                                  <h3>
+                                                      {'No registered aliases'}
+                                                  </h3>
+                                              )}
+                                    </Space>
                                     <AlertMsg>{aliasServerError}</AlertMsg>
-                                </h3>
+                                </CustomCollapseCtn>
+                                <CustomCollapseCtn panelHeader="Pending Aliases">
+                                    <h3>WIP</h3>
+                                </CustomCollapseCtn>
                             </NamespaceCtn>
                         </SidePaddingCtn>
                     </Col>
