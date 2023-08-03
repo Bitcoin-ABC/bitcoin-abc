@@ -8,28 +8,6 @@ export const NavbarOuter = styled.div`
     top: 0;
     width: 100%;
     z-index: 9999;
-
-    .announcementbar_ctn {
-        width: 100%;
-        background-color: ${props => props.theme.colors.black};
-        padding: 0px 24px;
-        text-align: center;
-        color: ${props => props.theme.colors.contrast};
-        font-weight: 600;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        font-size: 14px;
-        height: 34px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 200ms ease-in-out;
-        margin-top: ${props => (props.navBackground ? '-34px' : '0')};
-        &:hover {
-            background-color: ${props => props.theme.colors.accent};
-            color: ${props => props.theme.colors.contrast};
-        }
-    }
 `;
 
 export const NavbarCtn = styled.div`
@@ -232,12 +210,6 @@ export const NavbarCtn = styled.div`
 
     ${props => props.theme.breakpoint.medium} {
         padding: 15px 20px;
-
-        .announcementbar_ctn {
-            padding: 0px 10px;
-            font-size: 12px;
-            height: 30px;
-        }
 
         .navbar {
             position: unset;

@@ -40,12 +40,7 @@ const Layout = ({
                 <link rel="alternate" hreflang="tr" href="https://tr.e.cash" />
                 <link rel="alternate" hreflang="es" href="https://es.e.cash" />
             </Head>
-            <Nav
-                announcementbar={{
-                    link: 'https://avalanche.cash/',
-                    text: 'Avalanche Consensus is live!',
-                }}
-            />
+            <Nav />
             <main>{children}</main>
             <Footer />
         </>

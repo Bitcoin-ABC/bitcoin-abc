@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { navitems } from '../../data/navitems';
 import { NavbarOuter, NavbarCtn } from './styles';
+import AnnouncementBar from '/components/announcement-bar';
 
 export default function Navbar({ announcementbar }) {
     const [priceLinkText, setPriceLinkText] = useState('Buy XEC');
@@ -61,16 +62,11 @@ export default function Navbar({ announcementbar }) {
 
     return (
         <NavbarOuter navBackground={navBackground}>
-            {announcementbar && (
-                <Link
-                    href={announcementbar.link}
-                    className="announcementbar_ctn"
-                    target="_blank"
-                    rel="noreferrer"
-                >
-                    {announcementbar.text}
-                </Link>
-            )}
+            <AnnouncementBar
+                href="https://avalanche.cash/"
+                text="Avalanche Consensus is live!"
+                navBackground={navBackground}
+            />
             <NavbarCtn navBackground={navBackground}>
                 <div className="navbar">
                     <Link href="/" className="nav_logo">
