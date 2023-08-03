@@ -166,8 +166,8 @@ void CDBBatch::Clear() {
     size_estimate = 0;
 }
 
-void CDBBatch::WriteImpl(Span<const std::byte> ssKey_, DataStream &ssValue_) {
-    leveldb::Slice slKey(CharCast(ssKey_.data()), ssKey_.size());
+void CDBBatch::WriteImpl(Span<const std::byte> key, DataStream &ssValue_) {
+    leveldb::Slice slKey(CharCast(key.data()), key.size());
     ssValue_.Xor(dbwrapper_private::GetObfuscateKey(parent));
     leveldb::Slice slValue(CharCast(ssValue_.data()), ssValue_.size());
     m_impl_batch->batch.Put(slKey, slValue);
@@ -182,8 +182,8 @@ void CDBBatch::WriteImpl(Span<const std::byte> ssKey_, DataStream &ssValue_) {
                      (slValue.size() > 127) + slValue.size();
 }
 
-void CDBBatch::EraseImpl(Span<const std::byte> ssKey_) {
-    leveldb::Slice slKey(CharCast(ssKey_.data()), ssKey_.size());
+void CDBBatch::EraseImpl(Span<const std::byte> key) {
+    leveldb::Slice slKey(CharCast(key.data()), key.size());
     m_impl_batch->batch.Delete(slKey);
     // LevelDB serializes erases as:
     // - byte: header
@@ -345,8 +345,8 @@ std::vector<uint8_t> CDBWrapper::CreateObfuscateKey() const {
 }
 
 std::optional<std::string>
-CDBWrapper::ReadImpl(Span<const std::byte> ssKey) const {
-    leveldb::Slice slKey(CharCast(ssKey.data()), ssKey.size());
+CDBWrapper::ReadImpl(Span<const std::byte> key) const {
+    leveldb::Slice slKey(CharCast(key.data()), key.size());
     std::string strValue;
     leveldb::Status status =
         DBContext().pdb->Get(DBContext().readoptions, slKey, &strValue);
@@ -360,8 +360,8 @@ CDBWrapper::ReadImpl(Span<const std::byte> ssKey) const {
     return strValue;
 }
 
-bool CDBWrapper::ExistsImpl(Span<const std::byte> ssKey) const {
-    leveldb::Slice slKey(CharCast(ssKey.data()), ssKey.size());
+bool CDBWrapper::ExistsImpl(Span<const std::byte> key) const {
+    leveldb::Slice slKey(CharCast(key.data()), key.size());
 
     std::string strValue;
     leveldb::Status status =
@@ -376,10 +376,10 @@ bool CDBWrapper::ExistsImpl(Span<const std::byte> ssKey) const {
     return true;
 }
 
-size_t CDBWrapper::EstimateSizeImpl(Span<const std::byte> ssKey1,
-                                    Span<const std::byte> ssKey2) const {
-    leveldb::Slice slKey1(CharCast(ssKey1.data()), ssKey1.size());
-    leveldb::Slice slKey2(CharCast(ssKey2.data()), ssKey2.size());
+size_t CDBWrapper::EstimateSizeImpl(Span<const std::byte> key1,
+                                    Span<const std::byte> key2) const {
+    leveldb::Slice slKey1(CharCast(key1.data()), key1.size());
+    leveldb::Slice slKey2(CharCast(key2.data()), key2.size());
     uint64_t size = 0;
     leveldb::Range range(slKey1, slKey2);
     DBContext().pdb->GetApproximateSizes(&range, 1, &size);
@@ -408,8 +408,8 @@ CDBIterator *CDBWrapper::NewIterator() {
                    DBContext().pdb->NewIterator(DBContext().iteroptions))};
 }
 
-void CDBIterator::SeekImpl(Span<const std::byte> ssKey) {
-    leveldb::Slice slKey(CharCast(ssKey.data()), ssKey.size());
+void CDBIterator::SeekImpl(Span<const std::byte> key) {
+    leveldb::Slice slKey(CharCast(key.data()), key.size());
     m_impl_iter->iter->Seek(slKey);
 }
 
