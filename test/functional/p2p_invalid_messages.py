@@ -89,7 +89,7 @@ class InvalidMessagesTest(BitcoinTestFramework):
         # where the test framework sent a message in between the two halves
         assert_equal(middle, before + cut_pos)
         conn.send_raw_message(msg[cut_pos:])
-        conn.sync_with_ping(timeout=1)
+        conn.sync_with_ping()
         self.nodes[0].disconnect_p2ps()
 
     def test_magic_bytes(self):
@@ -102,7 +102,7 @@ class InvalidMessagesTest(BitcoinTestFramework):
             # modify magic bytes
             msg = b"\xff" * 4 + msg[4:]
             conn.send_raw_message(msg)
-            conn.wait_for_disconnect(timeout=1)
+            conn.wait_for_disconnect()
         self.nodes[0].disconnect_p2ps()
 
     def test_checksum(self):
@@ -127,7 +127,7 @@ class InvalidMessagesTest(BitcoinTestFramework):
             msg = msg_unrecognized(str_data="d" * (VALID_DATA_LIMIT + 1))
             msg = conn.build_message(msg)
             conn.send_raw_message(msg)
-            conn.wait_for_disconnect(timeout=1)
+            conn.wait_for_disconnect()
         self.nodes[0].disconnect_p2ps()
 
     def test_msgtype(self):
@@ -140,7 +140,7 @@ class InvalidMessagesTest(BitcoinTestFramework):
             # Modify msgtype
             msg = msg[:7] + b"\x00" + msg[7 + 1 :]
             conn.send_raw_message(msg)
-            conn.sync_with_ping(timeout=1)
+            conn.sync_with_ping()
         # Check that traffic is accounted for (24 bytes header + 2 bytes
         # payload)
         assert_equal(self.nodes[0].getpeerinfo()[0]["bytesrecv_per_msg"]["*other*"], 26)
@@ -305,7 +305,7 @@ class InvalidMessagesTest(BitcoinTestFramework):
         # connection, it can still service other peers in a timely way.
         self.log.info("(b) Check node still services peers in a timely way")
         for _ in range(20):
-            conn2.sync_with_ping(timeout=2)
+            conn2.sync_with_ping()
 
         self.log.info(
             "(c) Wait for node to drop junk messages, while remaining connected"
