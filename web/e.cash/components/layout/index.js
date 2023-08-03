@@ -34,11 +34,11 @@ const Layout = ({
                 ></meta>
                 <meta property="og:type" content="website" />
 
-                <link rel="alternate" hreflang="en" href="https://e.cash" />
-                <link rel="alternate" hreflang="ko" href="https://ko.e.cash" />
-                <link rel="alternate" hreflang="zh" href="https://zh.e.cash" />
-                <link rel="alternate" hreflang="tr" href="https://tr.e.cash" />
-                <link rel="alternate" hreflang="es" href="https://es.e.cash" />
+                <link rel="alternate" hrefLang="en" href="https://e.cash" />
+                <link rel="alternate" hrefLang="ko" href="https://ko.e.cash" />
+                <link rel="alternate" hrefLang="zh" href="https://zh.e.cash" />
+                <link rel="alternate" hrefLang="tr" href="https://tr.e.cash" />
+                <link rel="alternate" hrefLang="es" href="https://es.e.cash" />
             </Head>
             <Nav />
             <main>{children}</main>
