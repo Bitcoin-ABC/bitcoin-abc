@@ -187,8 +187,8 @@ export const faqs = [
         answer: (
             <p>
                 No, <strong>eCash </strong>is its own blockchain. <br />
-                It is important to differentate the Avalanche protocol, from the
-                cyptocurrency project known as &ldquo;Avalanche&rdquo; or
+                It is important to differentiate the Avalanche protocol, from
+                the cyptocurrency project known as &ldquo;Avalanche&rdquo; or
                 &ldquo;AVAX&rdquo;.
                 <br />
                 <strong>eCash</strong>&#x27;s Avalanche implementation is
