@@ -183,12 +183,22 @@ export const faqs = [
         ),
     },
     {
-        question: 'Is eCash using the AVAX blockchain?',
+        question: 'Is eCash using the Avalanche blockchain?',
         answer: (
             <p>
-                No, <strong>eCash </strong>is its own blockchain.{' '}
-                <strong>eCash</strong>&#x27;s Avalanche Consensus code is being
-                built completely independently by the Bitcoin ABC team. This is
+                No, <strong>eCash </strong>is its own blockchain. <br />
+                It is important to differentate the Avalanche protocol, from the
+                cyptocurrency project known as "Avalanche" or "AVAX".
+                <br />
+                <strong>eCash</strong>&#x27;s Avalanche implementation is
+                completely separate and distinct from the Avalanche (AVAX)
+                project. They have no connection, other than both using the
+                protocol described in the{' '}
+                <CustomLink href="https://ipfs.io/ipfs/QmUy4jh5mGNZvLkjies1RWM4YuvJh5o2FYopNPVYwrRVGV">
+                    Avalanche whitepaper
+                </CustomLink>
+                . Avalanche on eCash is an entirely new implementation which was
+                developed from scratch by the Bitcoin ABC team. This is
                 important as it puts <strong>eCash</strong> in a technology
                 leadership role, rather than having to rely on the innovation of
                 others.
