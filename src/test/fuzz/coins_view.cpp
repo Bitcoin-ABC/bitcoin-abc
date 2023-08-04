@@ -1,4 +1,4 @@
-// Copyright (c) 2020 The Bitcoin Core developers
+// Copyright (c) 2020-present The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -12,6 +12,7 @@
 #include <primitives/blockhash.h>
 #include <primitives/transaction.h>
 #include <pubkey.h>
+#include <txdb.h>
 #include <validation.h>
 
 #include <test/fuzz/FuzzedDataProvider.h>
@@ -44,11 +45,13 @@ void initialize_coins_view() {
     g_setup = testing_setup.get();
 }
 
-FUZZ_TARGET_INIT(coins_view, initialize_coins_view) {
-    FuzzedDataProvider fuzzed_data_provider{buffer.data(), buffer.size()};
-    CCoinsView backend_coins_view;
+void TestCoinsView(FuzzedDataProvider &fuzzed_data_provider,
+                   CCoinsView &backend_coins_view, bool is_db) {
     CCoinsViewCache coins_view_cache{&backend_coins_view,
                                      /*deterministic=*/true};
+    if (is_db) {
+        coins_view_cache.SetBestBlock(BlockHash{uint256::ONE});
+    }
     COutPoint random_out_point;
     Coin random_coin;
     CMutableTransaction random_mutable_transaction;
@@ -85,8 +88,13 @@ FUZZ_TARGET_INIT(coins_view, initialize_coins_view) {
             },
             [&] { (void)coins_view_cache.Sync(); },
             [&] {
-                coins_view_cache.SetBestBlock(
-                    BlockHash{ConsumeUInt256(fuzzed_data_provider)});
+                BlockHash best_block{ConsumeUInt256(fuzzed_data_provider)};
+                // Set best block hash to non-null to satisfy the assertion in
+                // CCoinsViewDB::BatchWrite().
+                if (is_db && best_block.IsNull()) {
+                    best_block = BlockHash{uint256::ONE};
+                }
+                coins_view_cache.SetBestBlock(best_block);
             },
             [&] {
                 Coin move_to;
@@ -163,11 +171,17 @@ FUZZ_TARGET_INIT(coins_view, initialize_coins_view) {
                 try {
                     auto cursor{CoinsViewCacheCursor(sentinel, coins_map,
                                                      /*will_erase=*/true)};
-                    coins_view_cache.BatchWrite(
-                        cursor,
-                        fuzzed_data_provider.ConsumeBool()
-                            ? BlockHash{ConsumeUInt256(fuzzed_data_provider)}
-                            : coins_view_cache.GetBestBlock());
+                    BlockHash best_block{coins_view_cache.GetBestBlock()};
+                    if (fuzzed_data_provider.ConsumeBool()) {
+                        best_block =
+                            BlockHash{ConsumeUInt256(fuzzed_data_provider)};
+                    }
+                    // Set best block hash to non-null to satisfy the assertion
+                    // in CCoinsViewDB::BatchWrite().
+                    if (is_db && best_block.IsNull()) {
+                        best_block = BlockHash{uint256::ONE};
+                    }
+                    coins_view_cache.BatchWrite(cursor, best_block);
                     expected_code_path = true;
                 } catch (const std::logic_error &e) {
                     if (e.what() ==
@@ -230,7 +244,7 @@ FUZZ_TARGET_INIT(coins_view, initialize_coins_view) {
 
     {
         const CCoinsViewCursor *coins_view_cursor = backend_coins_view.Cursor();
-        assert(coins_view_cursor == nullptr);
+        assert(is_db == !!coins_view_cursor);
         (void)backend_coins_view.EstimateSize();
         (void)backend_coins_view.GetBestBlock();
         (void)backend_coins_view.GetHeadBlocks();
@@ -302,4 +316,21 @@ FUZZ_TARGET_INIT(coins_view, initialize_coins_view) {
                 }
             });
     }
+}
+
+FUZZ_TARGET_INIT(coins_view, initialize_coins_view) {
+    FuzzedDataProvider fuzzed_data_provider{buffer.data(), buffer.size()};
+    CCoinsView backend_coins_view;
+    TestCoinsView(fuzzed_data_provider, backend_coins_view, /*is_db=*/false);
+}
+
+FUZZ_TARGET_INIT(coins_view_db, initialize_coins_view) {
+    FuzzedDataProvider fuzzed_data_provider{buffer.data(), buffer.size()};
+    auto db_params = DBParams{
+        .path = "",
+        .cache_bytes = 1_MiB,
+        .memory_only = true,
+    };
+    CCoinsViewDB coins_db{std::move(db_params), CoinsViewOptions{}};
+    TestCoinsView(fuzzed_data_provider, coins_db, /*is_db=*/true);
 }
