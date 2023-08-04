@@ -267,7 +267,7 @@ namespace {
                                              tip);
         }
         bool isInitialBlockDownload() override {
-            return chainman().ActiveChainstate().IsInitialBlockDownload();
+            return chainman().IsInitialBlockDownload();
         }
         bool isLoadingBlocks() override {
             return chainman().m_blockman.LoadingBlocks();
@@ -697,7 +697,7 @@ namespace {
                    !isInitialBlockDownload();
         }
         bool isInitialBlockDownload() override {
-            return chainman().ActiveChainstate().IsInitialBlockDownload();
+            return chainman().IsInitialBlockDownload();
         }
         bool shutdownRequested() override { return ShutdownRequested(); }
         void initMessage(const std::string &message) override {

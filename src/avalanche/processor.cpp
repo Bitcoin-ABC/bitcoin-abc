@@ -777,7 +777,7 @@ bool Processor::stopEventLoop() {
 void Processor::avaproofsSent(NodeId nodeid) {
     AssertLockNotHeld(cs_main);
 
-    if (chainman.ActiveChainstate().IsInitialBlockDownload()) {
+    if (chainman.IsInitialBlockDownload()) {
         // Before IBD is complete there is no way to make sure a proof is valid
         // or not, e.g. it can be spent in a block we don't know yet. In order
         // to increase confidence that our proof set is similar to other nodes
@@ -822,7 +822,7 @@ bool Processor::isQuorumEstablished() {
     }
 
     // Don't do Avalanche while node is IBD'ing
-    if (chainman.ActiveChainstate().IsInitialBlockDownload()) {
+    if (chainman.IsInitialBlockDownload()) {
         return false;
     }
 

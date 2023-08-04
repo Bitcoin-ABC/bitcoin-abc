@@ -2453,7 +2453,7 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
         }
     }
 
-    if (m_chainman.ActiveChainstate().IsInitialBlockDownload()) {
+    if (m_chainman.IsInitialBlockDownload()) {
         // Don't request proofs while in IBD. We're likely to orphan them
         // because we don't have the UTXOs.
         goto scheduleLater;
@@ -3081,8 +3081,7 @@ void PeerManagerImpl::BlockChecked(const CBlock &block,
     // 3. This is currently the best block we're aware of. We haven't updated
     //    the tip yet so we have no way to check this directly here. Instead we
     //    just check that there are currently no other blocks in flight.
-    else if (state.IsValid() &&
-             !m_chainman.ActiveChainstate().IsInitialBlockDownload() &&
+    else if (state.IsValid() && !m_chainman.IsInitialBlockDownload() &&
              mapBlocksInFlight.count(hash) == mapBlocksInFlight.size()) {
         if (it != mapBlockSource.end()) {
             MaybeSetPeerAsAnnouncingHeaderAndIDs(it->second.first);
@@ -4057,8 +4056,7 @@ void PeerManagerImpl::UpdatePeerStateForReceivedHeaders(
 
     // If we're in IBD, we want outbound peers that will serve us a useful
     // chain. Disconnect peers that are on chains with insufficient work.
-    if (m_chainman.ActiveChainstate().IsInitialBlockDownload() &&
-        !may_have_more_headers) {
+    if (m_chainman.IsInitialBlockDownload() && !may_have_more_headers) {
         // When nCount < MAX_HEADERS_RESULTS, we know we have no more
         // headers to fetch from this peer.
         if (nodestate->pindexBestKnownBlock &&
@@ -5380,7 +5378,7 @@ void PeerManagerImpl::ProcessMessage(
                 AddKnownProof(*peer, proofid);
 
                 if (!fAlreadyHave && m_avalanche &&
-                    !m_chainman.ActiveChainstate().IsInitialBlockDownload()) {
+                    !m_chainman.IsInitialBlockDownload()) {
                     const bool preferred = isPreferredDownloadPeer(pfrom);
 
                     LOCK(cs_proofrequest);
@@ -5405,8 +5403,8 @@ void PeerManagerImpl::ProcessMessage(
                              txid.ToString(), pfrom.GetId());
                     pfrom.fDisconnect = true;
                     return;
-                } else if (!fAlreadyHave && !m_chainman.ActiveChainstate()
-                                                 .IsInitialBlockDownload()) {
+                } else if (!fAlreadyHave &&
+                           !m_chainman.IsInitialBlockDownload()) {
                     AddTxAnnouncement(pfrom, txid, current_time);
                 }
 
@@ -5747,7 +5745,7 @@ void PeerManagerImpl::ProcessMessage(
         // don't have enough information to validate it yet. Sending unsolicited
         // transactions is not considered a protocol violation, so don't punish
         // the peer.
-        if (m_chainman.ActiveChainstate().IsInitialBlockDownload()) {
+        if (m_chainman.IsInitialBlockDownload()) {
             return;
         }
 
@@ -6024,7 +6022,7 @@ void PeerManagerImpl::ProcessMessage(
             if (!prev_block) {
                 // Doesn't connect (or is genesis), instead of DoSing in
                 // AcceptBlockHeader, request deeper headers
-                if (!m_chainman.ActiveChainstate().IsInitialBlockDownload()) {
+                if (!m_chainman.IsInitialBlockDownload()) {
                     MaybeSendGetHeaders(
                         pfrom, GetLocator(m_chainman.m_best_header), *peer);
                 }
@@ -6516,9 +6514,8 @@ void PeerManagerImpl::ProcessMessage(
         // unless we're still syncing with the network. Such an unrequested
         // block may still be processed, subject to the conditions in
         // AcceptBlock().
-        bool forceProcessing =
-            pfrom.HasPermission(NetPermissionFlags::NoBan) &&
-            !m_chainman.ActiveChainstate().IsInitialBlockDownload();
+        bool forceProcessing = pfrom.HasPermission(NetPermissionFlags::NoBan) &&
+                               !m_chainman.IsInitialBlockDownload();
         const BlockHash hash = pblock->GetHash();
         bool min_pow_checked = false;
         {
@@ -6618,8 +6615,7 @@ void PeerManagerImpl::ProcessMessage(
             WITH_LOCK(peer->m_addr_token_bucket_mutex,
                       peer->m_addr_token_bucket += m_opts.max_addr_to_send);
 
-            if (peer->m_proof_relay &&
-                !m_chainman.ActiveChainstate().IsInitialBlockDownload()) {
+            if (peer->m_proof_relay && !m_chainman.IsInitialBlockDownload()) {
                 m_connman.PushMessage(&pfrom,
                                       msgMaker.Make(NetMsgType::GETAVAPROOFS));
                 peer->m_proof_relay->compactproofs_requested = true;
@@ -8180,7 +8176,7 @@ void PeerManagerImpl::MaybeSendAddr(CNode &node, Peer &peer,
     }
 
     LOCK(peer.m_addr_send_times_mutex);
-    if (fListen && !m_chainman.ActiveChainstate().IsInitialBlockDownload() &&
+    if (fListen && !m_chainman.IsInitialBlockDownload() &&
         peer.m_next_local_addr_send < current_time) {
         // If we've sent before, clear the bloom filter for the peer, so
         // that our self-announcement will actually go out. This might
@@ -8300,7 +8296,7 @@ void PeerManagerImpl::MaybeSendFeefilter(
 
     Amount currentFilter = m_mempool.GetMinFee().GetFeePerK();
 
-    if (m_chainman.ActiveChainstate().IsInitialBlockDownload()) {
+    if (m_chainman.IsInitialBlockDownload()) {
         // Received tx-inv messages are discarded when the active
         // chainstate is in IBD, so tell the peer to not send them.
         currentFilter = MAX_MONEY;
@@ -9003,7 +8999,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
 
         if (CanServeBlocks(*peer) &&
             ((sync_blocks_and_headers_from_peer && !IsLimitedPeer(*peer)) ||
-             !m_chainman.ActiveChainstate().IsInitialBlockDownload()) &&
+             !m_chainman.IsInitialBlockDownload()) &&
             state.vBlocksInFlight.size() < MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
             std::vector<const CBlockIndex *> vToDownload;
             NodeId staller = -1;
@@ -9129,7 +9125,7 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &node, Peer &peer,
 
     AddKnownProof(peer, proofid);
 
-    if (m_chainman.ActiveChainstate().IsInitialBlockDownload()) {
+    if (m_chainman.IsInitialBlockDownload()) {
         // We cannot reliably verify proofs during IBD, so bail out early and
         // keep the inventory as pending so it can be requested when the node
         // has synced.

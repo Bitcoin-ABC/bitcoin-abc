@@ -175,8 +175,8 @@ int main(int argc, char *argv[]) {
                   << "Active Height: " << chainman.ActiveHeight() << std::endl
                   << "\t"
                   << "Active IBD: " << std::boolalpha
-                  << chainman.ActiveChainstate().IsInitialBlockDownload()
-                  << std::noboolalpha << std::endl;
+                  << chainman.IsInitialBlockDownload() << std::noboolalpha
+                  << std::endl;
         CBlockIndex *tip = chainman.ActiveTip();
         if (tip) {
             std::cout << "\t" << tip->ToString() << std::endl;

@@ -1359,7 +1359,7 @@ RPCHelpMan getblockchaininfo() {
                 "verificationprogress",
                 GuessVerificationProgress(chainman.GetParams().TxData(), &tip));
             obj.pushKV("initialblockdownload",
-                       active_chainstate.IsInitialBlockDownload());
+                       chainman.IsInitialBlockDownload());
             obj.pushKV("chainwork", tip.nChainWork.GetHex());
             obj.pushKV("size_on_disk",
                        chainman.m_blockman.CalculateCurrentUsage());

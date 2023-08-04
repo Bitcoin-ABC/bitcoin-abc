@@ -1556,7 +1556,7 @@ void Chainstate::InitCoinsCache(size_t cache_size_bytes) {
 // detail. This function must be marked `const` so that `CValidationInterface`
 // clients (which are given a `const Chainstate*`) can call it.
 //
-bool Chainstate::IsInitialBlockDownload() const {
+bool ChainstateManager::IsInitialBlockDownload() const {
     // Optimization: pre-test latch before taking the lock.
     if (m_cached_finished_ibd.load(std::memory_order_relaxed)) {
         return false;
@@ -1566,17 +1566,17 @@ bool Chainstate::IsInitialBlockDownload() const {
     if (m_cached_finished_ibd.load(std::memory_order_relaxed)) {
         return false;
     }
-    if (m_chainman.m_blockman.LoadingBlocks()) {
+    if (m_blockman.LoadingBlocks()) {
         return true;
     }
-    if (m_chain.Tip() == nullptr) {
+    CChain &chain{ActiveChain()};
+    if (chain.Tip() == nullptr) {
         return true;
     }
-    if (m_chain.Tip()->nChainWork < m_chainman.MinimumChainWork()) {
+    if (chain.Tip()->nChainWork < MinimumChainWork()) {
         return true;
     }
-    if (m_chain.Tip()->Time() <
-        Now<NodeSeconds>() - m_chainman.m_options.max_tip_age) {
+    if (chain.Tip()->Time() < Now<NodeSeconds>() - m_options.max_tip_age) {
         return true;
     }
     LogPrintf("Leaving InitialBlockDownload (latching to false)\n");
@@ -1590,7 +1590,7 @@ void Chainstate::CheckForkWarningConditions() {
     // Before we get past initial download, we cannot reliably alert about forks
     // (we assume we don't get stuck on a fork before finishing our initial
     // sync)
-    if (IsInitialBlockDownload()) {
+    if (m_chainman.IsInitialBlockDownload()) {
         return;
     }
 
@@ -2597,7 +2597,8 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
                     m_blockman.FindFilesToPrune(
                         setFilesToPrune,
                         m_chainman.GetParams().PruneAfterHeight(),
-                        m_chain.Height(), last_prune, IsInitialBlockDownload());
+                        m_chain.Height(), last_prune,
+                        m_chainman.IsInitialBlockDownload());
                     m_blockman.m_check_for_pruning = false;
                 }
                 if (!setFilesToPrune.empty()) {
@@ -2956,7 +2957,7 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
          * these policies.
          */
         const BlockHash blockhash = pindexNew->GetBlockHash();
-        if (!IsInitialBlockDownload() &&
+        if (!m_chainman.IsInitialBlockDownload() &&
             !m_filterParkingPoliciesApplied.contains(blockhash)) {
             m_filterParkingPoliciesApplied.insert(blockhash);
 
@@ -3423,25 +3424,26 @@ static SynchronizationState GetSynchronizationState(bool init) {
     return SynchronizationState::INIT_DOWNLOAD;
 }
 
-static bool NotifyHeaderTip(Chainstate &chainstate) LOCKS_EXCLUDED(cs_main) {
+static bool NotifyHeaderTip(ChainstateManager &chainman)
+    LOCKS_EXCLUDED(cs_main) {
     bool fNotify = false;
     bool fInitialBlockDownload = false;
     static CBlockIndex *pindexHeaderOld = nullptr;
     CBlockIndex *pindexHeader = nullptr;
     {
         LOCK(cs_main);
-        pindexHeader = chainstate.m_chainman.m_best_header;
+        pindexHeader = chainman.m_best_header;
 
         if (pindexHeader != pindexHeaderOld) {
             fNotify = true;
-            fInitialBlockDownload = chainstate.IsInitialBlockDownload();
+            fInitialBlockDownload = chainman.IsInitialBlockDownload();
             pindexHeaderOld = pindexHeader;
         }
     }
 
     // Send block tip changed notifications without cs_main
     if (fNotify) {
-        chainstate.m_chainman.GetNotifications().headerTip(
+        chainman.GetNotifications().headerTip(
             GetSynchronizationState(fInitialBlockDownload),
             pindexHeader->nHeight, pindexHeader->nTime, false);
     }
@@ -3568,7 +3570,7 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
 
             if (blocks_connected) {
                 const CBlockIndex *pindexFork = m_chain.FindFork(starting_tip);
-                bool fInitialDownload = IsInitialBlockDownload();
+                bool fInitialDownload = m_chainman.IsInitialBlockDownload();
 
                 // Notify external listeners about the new tip.
                 // Enqueue while holding cs_main to ensure that UpdatedBlockTip
@@ -3917,7 +3919,7 @@ bool Chainstate::UnwindBlock(BlockValidationState &state, CBlockIndex *pindex,
     // Only notify about a new block tip if the active chain was modified.
     if (pindex_was_in_chain) {
         m_chainman.GetNotifications().blockTip(
-            GetSynchronizationState(IsInitialBlockDownload()),
+            GetSynchronizationState(m_chainman.IsInitialBlockDownload()),
             *to_mark_failed_or_parked->pprev);
     }
     return true;
@@ -4635,7 +4637,7 @@ bool ChainstateManager::AcceptBlockHeader(
     const auto msg = strprintf("Saw new header hash=%s height=%d",
                                hash.ToString(), pindex->nHeight);
 
-    if (ActiveChainstate().IsInitialBlockDownload()) {
+    if (IsInitialBlockDownload()) {
         LogPrintLevel(BCLog::VALIDATION, BCLog::Level::Debug, "%s\n", msg);
     } else {
         LogPrintf("%s\n", msg);
@@ -4669,9 +4671,8 @@ bool ChainstateManager::ProcessNewBlockHeaders(
         }
     }
 
-    if (NotifyHeaderTip(ActiveChainstate())) {
-        if (ActiveChainstate().IsInitialBlockDownload() && ppindex &&
-            *ppindex) {
+    if (NotifyHeaderTip(*this)) {
+        if (IsInitialBlockDownload() && ppindex && *ppindex) {
             const CBlockIndex &last_accepted{**ppindex};
             const int64_t blocks_left{
                 (GetTime() - last_accepted.GetBlockTime()) /
@@ -4689,7 +4690,6 @@ void ChainstateManager::ReportHeadersPresync(const arith_uint256 &work,
                                              int64_t height,
                                              int64_t timestamp) {
     AssertLockNotHeld(cs_main);
-    const auto &chainstate = ActiveChainstate();
     {
         LOCK(cs_main);
         // Don't report headers presync progress if we already have a
@@ -4709,7 +4709,7 @@ void ChainstateManager::ReportHeadersPresync(const arith_uint256 &work,
         }
         m_last_presync_update = now;
     }
-    bool initial_download = chainstate.IsInitialBlockDownload();
+    bool initial_download = IsInitialBlockDownload();
     GetNotifications().headerTip(GetSynchronizationState(initial_download),
                                  height, timestamp, /*presync=*/true);
     if (initial_download) {
@@ -4849,8 +4849,7 @@ bool ChainstateManager::AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
     // Header is valid/has work and the merkle tree is good.
     // Relay now, but if it does not build on our best tip, let the
     // SendMessages loop relay it.
-    if (!ActiveChainstate().IsInitialBlockDownload() &&
-        ActiveTip() == pindex->pprev) {
+    if (!IsInitialBlockDownload() && ActiveTip() == pindex->pprev) {
         GetMainSignals().NewPoWValidBlock(pindex, pblock);
     }
 
@@ -4928,7 +4927,7 @@ bool ChainstateManager::ProcessNewBlock(
         }
     }
 
-    NotifyHeaderTip(ActiveChainstate());
+    NotifyHeaderTip(*this);
 
     // Only used to report errors, not invalidity - ignore it
     BlockValidationState state;
@@ -5777,7 +5776,7 @@ void ChainstateManager::LoadExternalBlockFile(
                     }
                 }
 
-                NotifyHeaderTip(ActiveChainstate());
+                NotifyHeaderTip(*this);
 
                 if (!blocks_with_unknown_parent) {
                     continue;
@@ -5813,7 +5812,7 @@ void ChainstateManager::LoadExternalBlockFile(
                         }
                         range.first++;
                         blocks_with_unknown_parent->erase(it);
-                        NotifyHeaderTip(ActiveChainstate());
+                        NotifyHeaderTip(*this);
                     }
                 }
             } catch (const std::exception &e) {
@@ -6902,7 +6901,7 @@ void ChainstateManager::MaybeRebalanceCaches() {
         //
         // Note: shrink caches first so that we don't inadvertently overwhelm
         // available memory.
-        if (m_snapshot_chainstate->IsInitialBlockDownload()) {
+        if (IsInitialBlockDownload()) {
             m_ibd_chainstate->ResizeCoinsCaches(m_total_coinstip_cache * 0.05,
                                                 m_total_coinsdb_cache * 0.05);
             m_snapshot_chainstate->ResizeCoinsCaches(
