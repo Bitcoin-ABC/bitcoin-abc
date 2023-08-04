@@ -241,10 +241,14 @@ export const faqs = [
             'I have coins on the Bitcoin Cash (BCH) network. How do I retrieve my eCash?',
         answer: (
             <p>
-                Simply download the latest Electrum ABC release and import your
-                old Bitcoin Cash wallet:{' '}
-                <CustomLink href="https://www.bitcoinabc.org/electrum/">
-                    bitcoinabc.org/electrum
+                If you have Bitcoin Cash from before November 15th 2020, it is
+                possible that you also have corresponding eCash (XEC). This is
+                because eCash and Bitcoin Cash share a common history, and
+                became separate currencies via a blockchain split. You can split
+                the coins and retrieve your eCash by following the instructions
+                in{' '}
+                <CustomLink href="/blog/splitting-ecash-and-bch-coins-using-electrum-abc-and-electron-cash">
+                    this article
                 </CustomLink>
                 .
             </p>
