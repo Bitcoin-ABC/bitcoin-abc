@@ -15,44 +15,112 @@ Please ensure your node version is > 16.x.x and the chronik and mocha dependenci
 
 If you'd like to optionally setup your own Chronik instance, please refer to the [Chronik NNG README](https://github.com/raipay/chronik/).
 
-## Examples
+## Simple Examples
 
-[x] [Retrieving transaction details - getDetailsFromTxid()](scripts/getDetailsFromTxid.js)
+<details>
+		<summary>Retrieving transaction details from txid</summary>
 
-Usage: `npm run getDetailsFromTxid <txid>`
+[getDetailsFromTxid()](scripts/getDetailsFromTxid.js)
 
-Example: `npm run getDetailsFromTxid bd6ed16b16c00808ee242e570a2672f596434c09da5290ff77cadf52387bd2f3`
+**_Usage_**: `npm run getDetailsFromTxid <txid>`
 
-[x] [Retrieving transaction history - getTxHistoryFromAddress()](scripts/getTxHistoryFromAddress.js)
+**_Example_**: `npm run getDetailsFromTxid bd6ed16b16c00808ee242e570a2672f596434c09da5290ff77cadf52387bd2f3`
 
-Usage: `npm run getTxHistoryFromAddress <address> <page> <pageSize>`
+</details>
 
-Example: `npm run getTxHistoryFromAddress ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx 0 10`
+<details>
+		<summary>Retrieving transaction history from address</summary>
 
-[x] [Retrieving UTXOs - getUtxosFromAddress()](scripts/getUtxosFromAddress.js)
+[getTxHistoryFromAddress()](scripts/getTxHistoryFromAddress.js)
 
-Usage: `npm run getUtxosFromAddress <address>`
+**_Usage_**: `npm run getTxHistoryFromAddress <address> <page> <pageSize>`
 
-Example: `npm run getUtxosFromAddress ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx`
+**_Example_**: `npm run getTxHistoryFromAddress ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx 0 10`
 
-[x] [Creating a new wallet - createWallet()](scripts/createWallet.js)
+</details>
 
-Usage: `npm run createWallet`
+<details>
+		<summary>Retrieving UTXOs from address</summary>
 
-[] Collating inputs and outputs for sending XEC
-[] Collating inputs and outputs for sending eTokens
-[] Building and broadcasting transactions
+[getUtxosFromAddress()](scripts/getUtxosFromAddress.js)
 
-[x] [Querying eToken details - getTokenDetails()](scripts/getTokenDetails.js)
+**_Usage_**: `npm run getUtxosFromAddress <address>`
 
-Usage: `npm run getTokenDetails <token id>`
+**_Example_**: `npm run getUtxosFromAddress ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx`
 
-Example: `npm run getTokenDetails 861dede36f7f73f0af4e979fc3a3f77f37d53fe27be4444601150c21619635f4`
+</details>
 
-[] Querying holders of a particular eToken
-[] Querying blockchain info
-[] Using websockets to listen for confirmation of a transaction
-[] Implementing CashtabPay from cashtab-components for an online store
+<details>
+		<summary>Creating a new wallet</summary>
+
+[createWallet()](scripts/createWallet.js)
+
+**_Usage_**: `npm run createWallet`
+
+</details>
+
+<details>
+		<summary>Retrieving details of an SLP token</summary>
+
+[getTokenDetails()](scripts/getTokenDetails.js)
+
+**_Usage_**: `npm run getTokenDetails <token id>`
+
+**_Example_**: `npm run getTokenDetails 861dede36f7f73f0af4e979fc3a3f77f37d53fe27be4444601150c21619635f4`
+
+</details>
+
+<details>
+		<summary>(WIP) Sending a one to one XEC transaction</summary>
+TBC
+</details>
+
+<details>
+		<summary>(WIP) Sending a one to one SLP token transaction</summary>
+TBC
+</details>
+
+<details>
+		<summary>(WIP) Creating an SLP token</summary>
+TBC
+</details>
+
+<details>
+		<summary>(WIP) Burning an SLP token</summary>
+TBC
+</details>
+
+## Advanced Examples
+
+<details>
+		<summary>(WIP) Using websockets to listen for confirmation of a transaction</summary>
+TBC
+</details>
+
+<details>
+		<summary>(WIP) Using websockets to listen for new blocks found</summary>
+TBC
+</details>
+
+<details>
+		<summary>(WIP) Create a cashscript smart contract where only the designated signature can withdraw the XEC </summary>
+TBC
+</details>
+
+<details>
+		<summary>(WIP) Create a cashscript smart contract that allows a recipient to withdraw a specific amount every month </summary>
+TBC
+</details>
+
+<details>
+		<summary>(WIP) Create a cashscript smart contact that locks XECs for a nominated amount of blocks </summary>
+TBC
+</details>
+
+<details>
+		<summary>(WIP)  Implementing CashtabPay from cashtab-components for an online store </summary>
+TBC
+</details>
 
 ## Questions?
 
