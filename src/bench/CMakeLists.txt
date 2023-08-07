@@ -63,6 +63,7 @@ add_executable(bitcoin-bench
 	peer_eviction.cpp
 	poly1305.cpp
 	prevector.cpp
+	readwriteblock.cpp
 	rollingbloom.cpp
 	rpc_blockchain.cpp
 	rpc_mempool.cpp
