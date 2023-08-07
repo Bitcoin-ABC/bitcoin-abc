@@ -669,8 +669,8 @@ static RPCHelpMan getbalance() {
 
             LOCK(pwallet->cs_wallet);
 
-            const UniValue &dummy_value = request.params[0];
-            if (!dummy_value.isNull() && dummy_value.get_str() != "*") {
+            const auto dummy_value{self.MaybeArg<std::string>(0)};
+            if (dummy_value && *dummy_value != "*") {
                 throw JSONRPCError(
                     RPC_METHOD_DEPRECATED,
                     "dummy first argument must be excluded or set to \"*\".");
@@ -2941,10 +2941,7 @@ static RPCHelpMan unloadwallet() {
             // notifications. Note that any attempt to load the same wallet
             // would fail until the wallet is destroyed (see CheckUniqueFileid).
             std::vector<bilingual_str> warnings;
-            std::optional<bool> load_on_start =
-                request.params[1].isNull()
-                    ? std::nullopt
-                    : std::make_optional<bool>(request.params[1].get_bool());
+            std::optional<bool> load_on_start{self.MaybeArg<bool>(1)};
             if (!RemoveWallet(wallet, load_on_start, warnings)) {
                 throw JSONRPCError(RPC_MISC_ERROR,
                                    "Requested wallet already unloaded");
