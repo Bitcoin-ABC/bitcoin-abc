@@ -178,6 +178,7 @@ export const DateText = styled.div`
 
 export const PostCtn = styled(motion.div).attrs(() => getAnimationSettings())`
     padding: 150px 0;
+    ${props => props.theme.filters.grayscale}
 `;
 
 export const PostBorder = styled.div`

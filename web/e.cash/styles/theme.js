@@ -82,9 +82,9 @@ export const stealth = {
     },
     filters: {
         grayscale: 'filter: grayscale(100%);',
-        videospeed: 0,
-        animationspeed: 0,
-        glitchAnimationSpeed: '10s',
+        videospeed: 1,
+        animationspeed: 0.4,
+        glitchAnimationSpeed: '3s',
     },
     breakpoint: {
         large: '@media (max-width: 1300px)',

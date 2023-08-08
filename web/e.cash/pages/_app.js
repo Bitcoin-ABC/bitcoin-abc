@@ -3,12 +3,12 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import Script from 'next/script';
 import { ThemeProvider } from 'styled-components';
-import { ecash } from '/styles/theme';
+import { stealth } from '/styles/theme';
 import GlobalCSS from '/styles/global';
 
 export default function App({ Component, pageProps }) {
     return (
-        <ThemeProvider theme={ecash}>
+        <ThemeProvider theme={stealth}>
             <GlobalCSS />
             <Component {...pageProps} />
             <Script

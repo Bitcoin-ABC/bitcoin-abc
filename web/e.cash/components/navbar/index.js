@@ -63,8 +63,7 @@ export default function Navbar({ announcementbar }) {
     return (
         <NavbarOuter navBackground={navBackground}>
             <AnnouncementBar
-                href="https://avalanche.cash/"
-                text="Avalanche Consensus is live!"
+                text="Stealth Mode Activated"
                 navBackground={navBackground}
             />
             <NavbarCtn navBackground={navBackground}>
