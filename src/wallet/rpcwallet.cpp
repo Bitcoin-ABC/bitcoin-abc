@@ -3215,7 +3215,7 @@ static RPCHelpMan listunspent() {
                     if (provider) {
                         if (scriptPubKey.IsPayToScriptHash()) {
                             const CScriptID &hash =
-                                CScriptID(std::get<ScriptHash>(address));
+                                ToScriptID(std::get<ScriptHash>(address));
                             CScript redeemScript;
                             if (provider->GetCScript(hash, redeemScript)) {
                                 entry.pushKV("redeemScript",
@@ -3866,10 +3866,10 @@ public:
     }
 
     UniValue operator()(const ScriptHash &scripthash) const {
-        CScriptID scriptID(scripthash);
         UniValue obj(UniValue::VOBJ);
         CScript subscript;
-        if (provider && provider->GetCScript(scriptID, subscript)) {
+        if (provider &&
+            provider->GetCScript(ToScriptID(scripthash), subscript)) {
             ProcessSubScript(subscript, obj);
         }
         return obj;

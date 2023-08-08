@@ -18,7 +18,6 @@ static const bool DEFAULT_ACCEPT_DATACARRIER = true;
 
 class CKeyID;
 class CScript;
-struct ScriptHash;
 
 /** A reference to a CScript: the Hash160 of its serialization (see script.h) */
 class CScriptID : public BaseHash<uint160> {
@@ -26,7 +25,6 @@ public:
     CScriptID() : BaseHash() {}
     explicit CScriptID(const CScript &in);
     explicit CScriptID(const uint160 &in) : BaseHash(in) {}
-    explicit CScriptID(const ScriptHash &in);
 };
 
 /**
@@ -74,6 +72,7 @@ struct ScriptHash : public BaseHash<uint160> {
     explicit ScriptHash(const CScript &script);
     explicit ScriptHash(const CScriptID &script);
 };
+CScriptID ToScriptID(const ScriptHash &script_hash);
 
 /**
  * A txout script template with a specific destination. It is either:

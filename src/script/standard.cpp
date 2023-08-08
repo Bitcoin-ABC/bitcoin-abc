@@ -12,12 +12,14 @@
 typedef std::vector<uint8_t> valtype;
 
 CScriptID::CScriptID(const CScript &in) : BaseHash(Hash160(in)) {}
-CScriptID::CScriptID(const ScriptHash &in)
-    : BaseHash(static_cast<uint160>(in)) {}
 
 ScriptHash::ScriptHash(const CScript &in) : BaseHash(Hash160(in)) {}
 ScriptHash::ScriptHash(const CScriptID &in)
     : BaseHash(static_cast<uint160>(in)) {}
+
+CScriptID ToScriptID(const ScriptHash &script_hash) {
+    return CScriptID{static_cast<uint160>(script_hash)};
+}
 
 PKHash::PKHash(const CPubKey &pubkey) : BaseHash(pubkey.GetID()) {}
 PKHash::PKHash(const CKeyID &pubkey_id) : BaseHash(pubkey_id) {}
