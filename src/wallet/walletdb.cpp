@@ -10,6 +10,7 @@
 #include <common/args.h>
 #include <key_io.h>
 #include <protocol.h>
+#include <script/script.h>
 #include <serialize.h>
 #include <sync.h>
 #include <util/bip32.h>

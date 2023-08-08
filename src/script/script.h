@@ -11,6 +11,8 @@
 #include <prevector.h>
 #include <script/intmath.h>
 #include <serialize.h>
+#include <uint256.h>
+#include <util/hash_type.h>
 
 #include <cassert>
 #include <climits>
@@ -558,4 +560,11 @@ public:
     }
 };
 
+/** A reference to a CScript: the Hash160 of its serialization */
+class CScriptID : public BaseHash<uint160> {
+public:
+    CScriptID() : BaseHash() {}
+    explicit CScriptID(const CScript &in);
+    explicit CScriptID(const uint160 &in) : BaseHash(in) {}
+};
 #endif // BITCOIN_SCRIPT_SCRIPT_H

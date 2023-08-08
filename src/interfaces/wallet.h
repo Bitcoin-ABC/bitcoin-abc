@@ -10,7 +10,8 @@
 #include <interfaces/chain.h> // For ChainClient
 #include <primitives/blockhash.h>
 #include <primitives/transaction.h> // For CTxOut
-#include <pubkey.h> // For CKeyID and CScriptID (definitions needed in CTxDestination instantiation)
+#include <pubkey.h>
+#include <script/script.h>
 #include <script/sighashtype.h>
 #include <script/standard.h>           // For CTxDestination
 #include <support/allocators/secure.h> // For SecureString

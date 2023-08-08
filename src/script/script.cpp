@@ -6,10 +6,13 @@
 #include <script/script.h>
 
 #include <crypto/hex_base.h>
+#include <hash.h>
 #include <script/script_flags.h>
 
 #include <algorithm>
 #include <string>
+
+CScriptID::CScriptID(const CScript &in) : BaseHash(Hash160(in)) {}
 
 std::string GetOpName(opcodetype opcode) {
     switch (opcode) {

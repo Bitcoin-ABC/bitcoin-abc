@@ -11,6 +11,7 @@
 #include <interfaces/chain.h>
 #include <node/types.h>
 #include <policy/policy.h>
+#include <script/script.h>
 #include <util/check.h>
 #include <util/insert.h>
 #include <util/moneystr.h>

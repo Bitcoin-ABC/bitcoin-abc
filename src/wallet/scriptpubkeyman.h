@@ -10,6 +10,7 @@
 #include <common/types.h>
 #include <psbt.h>
 #include <script/descriptor.h>
+#include <script/script.h>
 #include <script/signingprovider.h>
 #include <script/standard.h>
 #include <util/result.h>

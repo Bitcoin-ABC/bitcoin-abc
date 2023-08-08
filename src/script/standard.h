@@ -18,14 +18,7 @@ static const bool DEFAULT_ACCEPT_DATACARRIER = true;
 
 class CKeyID;
 class CScript;
-
-/** A reference to a CScript: the Hash160 of its serialization (see script.h) */
-class CScriptID : public BaseHash<uint160> {
-public:
-    CScriptID() : BaseHash() {}
-    explicit CScriptID(const CScript &in);
-    explicit CScriptID(const uint160 &in) : BaseHash(in) {}
-};
+class CScriptID;
 
 /**
  * Default setting for nMaxDatacarrierBytes. 220 bytes of data, +1 for

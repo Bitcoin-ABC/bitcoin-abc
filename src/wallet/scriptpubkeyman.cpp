@@ -10,6 +10,7 @@
 #include <node/types.h>
 #include <outputtype.h>
 #include <script/descriptor.h>
+#include <script/script.h>
 #include <script/sign.h>
 #include <util/bip32.h>
 #include <util/strencodings.h>
