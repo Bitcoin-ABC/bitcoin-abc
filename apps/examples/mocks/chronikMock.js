@@ -24,7 +24,7 @@ module.exports = {
                 p2pkh: {},
             };
             self.mockedMethods = { p2pkh: {}, p2sh: {} };
-
+            self.manuallyClosed = false;
             // API call mock functions
             // Return assigned block mocks
             self.block = function (blockHashOrHeight) {
@@ -84,6 +84,10 @@ module.exports = {
                     };
                     return returnedWs;
                 }
+            };
+
+            self.wsClose = function () {
+                self.manuallyClosed = true;
             };
 
             // Allow user to set expected chronik call response

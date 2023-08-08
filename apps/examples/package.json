@@ -19,6 +19,7 @@
         "createWallet": "node scripts/createWallet",
         "getTxHistoryFromAddress": "node scripts/getTxHistoryFromAddress.js",
         "getUtxosFromAddress": "node scripts/getUtxosFromAddress",
-        "getTokenDetails": "node scripts/getTokenDetails"
+        "getTokenDetails": "node scripts/getTokenDetails",
+        "listenForConfirmation": "node scripts/listenForConfirmation"
     }
 }

@@ -93,8 +93,14 @@ TBC
 ## Advanced Examples
 
 <details>
-		<summary>(WIP) Using websockets to listen for confirmation of a transaction</summary>
-TBC
+		<summary>Using websockets to listen for confirmation of a transaction</summary>
+
+[listenForConfirmation()](scripts/listenForConfirmation.js)
+
+**_Usage_**: `npm run listenForConfirmation <address> <txid>`
+
+**_Example_**: `npm run listenForConfirmation ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx 3bae2f96cf076437ba1755c8e12f864bf6c060071ed12173a5e505c2d4b9a3c9`
+
 </details>
 
 <details>
