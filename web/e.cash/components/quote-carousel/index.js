@@ -6,20 +6,20 @@ import { QuoteCarouselCtn, QuoteCtn, Quote, DotsCtn, Dot } from './styles';
 
 const quotes = [
     {
-        quote: "I think that the internet is going to be one of the major forces for reducing the role of government. The one thing that's missing, but that will soon be developed, is a reliable eCash.",
-        author: 'Milton Friedman',
-    },
-    {
         quote: 'I don’t believe we shall ever have a good money again before we take the thing out of the hands of government, that is, we can’t take them violently out of the hands of government, all we can do is by some sly roundabout way introduce something they can’t stop.',
         author: 'Friedrich Hayek',
     },
     {
-        quote: 'With e-currency based on cryptographic proof, without the need to trust a third party middleman, money can be secure and transactions effortless.',
-        author: 'Satoshi Nakamoto',
+        quote: "I think that the internet is going to be one of the major forces for reducing the role of government. The one thing that's missing, but that will soon be developed, is a reliable eCash.",
+        author: 'Milton Friedman',
     },
     {
         quote: 'The computer can be used as a tool to liberate and protect people, rather than to control them.',
         author: 'Hal Finney',
+    },
+    {
+        quote: 'With e-currency based on cryptographic proof, without the need to trust a third party middleman, money can be secure and transactions effortless.',
+        author: 'Satoshi Nakamoto',
     },
 ];
 
