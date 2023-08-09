@@ -6,6 +6,7 @@ import * as bip39 from 'bip39';
 import { cashtabSettings as cashtabDefaultConfig } from 'config/cashtabSettings';
 import tokenBlacklist from 'config/tokenBlacklist';
 import { queryAliasServer } from 'utils/aliasUtils';
+import defaultCashtabCache from 'config/cashtabCache';
 
 // Parses whether the value is a valid eCash address
 // or a valid and registered alias
@@ -210,10 +211,10 @@ export const parseInvalidCashtabCacheForMigration = invalidCashtabCache => {
     // create a copy of the invalidCashtabCache
     let migratedCashtabCache = invalidCashtabCache;
     // determine if settings are invalid because it is missing a parameter
-    for (let param in currency.defaultCashtabCache) {
+    for (let param in defaultCashtabCache) {
         if (!Object.prototype.hasOwnProperty.call(invalidCashtabCache, param)) {
             // adds the default setting for only that parameter
-            migratedCashtabCache[param] = currency.defaultCashtabCache[param];
+            migratedCashtabCache[param] = defaultCashtabCache[param];
         }
     }
     return migratedCashtabCache;
@@ -268,7 +269,7 @@ export const isValidContactList = contactList => {
 
 export const isValidCashtabCache = cashtabCache => {
     /* 
-        Object must contain all keys listed in currency.defaultCashtabCache
+        Object must contain all keys listed in defaultCashtabCache
         The tokenInfoById object must have keys that are valid token IDs, 
         and at each one an object like:
         {
@@ -289,8 +290,8 @@ export const isValidCashtabCache = cashtabCache => {
         'tokenId' is a valid tokenId
     */
 
-    // Check that every key in currency.defaultCashtabCache is also in this cashtabCache
-    const cashtabCacheKeys = Object.keys(currency.defaultCashtabCache);
+    // Check that every key in defaultCashtabCache is also in this cashtabCache
+    const cashtabCacheKeys = Object.keys(defaultCashtabCache);
     for (let i = 0; i < cashtabCacheKeys.length; i += 1) {
         if (!(cashtabCacheKeys[i] in cashtabCache)) {
             return false;

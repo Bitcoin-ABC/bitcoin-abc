@@ -21,9 +21,6 @@ export const currency = {
     tokenName: 'eToken',
     tokenTicker: 'eToken',
     tokenLogo: tokenLogo,
-    defaultCashtabCache: {
-        tokenInfoById: {},
-    },
     notificationDurationShort: 3,
     notificationDurationLong: 5,
     localStorageMaxCharacters: 24,

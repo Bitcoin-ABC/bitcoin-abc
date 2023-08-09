@@ -42,6 +42,7 @@ import * as randomBytes from 'randombytes';
 import * as utxolib from '@bitgo/utxo-lib';
 import { websocket as websocketConfig } from 'config/websocket';
 import { cashtabSettings as cashtabDefaultConfig } from 'config/cashtabSettings';
+import defaultCashtabCache from 'config/cashtabCache';
 
 const useWallet = () => {
     const [chronik, setChronik] = useState(
@@ -55,9 +56,7 @@ const useWallet = () => {
     const [chronikWebsocket, setChronikWebsocket] = useState(null);
     const [contactList, setContactList] = useState([{}]);
     const [cashtabSettings, setCashtabSettings] = useState(false);
-    const [cashtabCache, setCashtabCache] = useState(
-        currency.defaultCashtabCache,
-    );
+    const [cashtabCache, setCashtabCache] = useState(defaultCashtabCache);
     const [fiatPrice, setFiatPrice] = useState(null);
     const [apiError, setApiError] = useState(false);
     const [checkFiatInterval, setCheckFiatInterval] = useState(null);
@@ -387,7 +386,7 @@ const useWallet = () => {
 
     const writeTokenInfoByIdToCache = async tokenInfoById => {
         console.log(`writeTokenInfoByIdToCache`);
-        const cashtabCache = currency.defaultCashtabCache;
+        const cashtabCache = defaultCashtabCache;
         cashtabCache.tokenInfoById = tokenInfoById;
         try {
             await localforage.setItem('cashtabCache', cashtabCache);
@@ -1150,17 +1149,14 @@ const useWallet = () => {
             // If there is no keyvalue pair in localforage with key 'cashtabCache'
             if (localCashtabCache === null) {
                 // Use the default
-                localforage.setItem(
-                    'cashtabCache',
-                    currency.defaultCashtabCache,
-                );
-                setCashtabCache(currency.defaultCashtabCache);
-                return currency.defaultCashtabCache;
+                localforage.setItem('cashtabCache', defaultCashtabCache);
+                setCashtabCache(defaultCashtabCache);
+                return defaultCashtabCache;
             }
         } catch (err) {
             console.log(`Error getting cashtabCache`, err);
-            setCashtabCache(currency.defaultCashtabCache);
-            return currency.defaultCashtabCache;
+            setCashtabCache(defaultCashtabCache);
+            return defaultCashtabCache;
         }
         // If you found an object in localforage at the cashtabCache key, make sure it's valid
         if (isValidCashtabCache(localCashtabCache)) {
@@ -1172,7 +1168,7 @@ const useWallet = () => {
             parseInvalidCashtabCacheForMigration(localCashtabCache);
         localforage.setItem('cashtabCache', migratedCashtabCache);
         setCashtabCache(migratedCashtabCache);
-        return currency.defaultCashtabCache;
+        return defaultCashtabCache;
     };
 
     // With different currency selections possible, need unique intervals for price checks

@@ -47,6 +47,7 @@ import {
     cashtabCacheWithMissingTokenName,
 } from 'utils/__mocks__/mockCashtabCache';
 import { when } from 'jest-when';
+import defaultCashtabCache from 'config/cashtabCache';
 
 describe('Validation utils', () => {
     it(`isValidRecipient() returns true for a valid and registered alias input`, async () => {
@@ -341,7 +342,7 @@ describe('Validation utils', () => {
         expect(isValidTokenDocumentUrl(12345)).toBe(false);
     });
     it(`Recognizes the default cashtabCache object as valid`, () => {
-        expect(isValidCashtabCache(currency.defaultCashtabCache)).toBe(true);
+        expect(isValidCashtabCache(defaultCashtabCache)).toBe(true);
     });
     it(`Recognizes a valid cashtabCache object`, () => {
         expect(isValidCashtabCache(validCashtabCache)).toBe(true);
