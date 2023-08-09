@@ -45,6 +45,8 @@ async function createWallet() {
     // derive wallet attributes
     const node = masterHDNode.derivePath(derivationPath);
     const publicKey = node.publicKey.toString('hex');
+    const privateKey = node.toWIF();
+    const publicKeyHash = node.identifier.toString('hex');
 
     // 'p2pkh' is a type of ScriptPubKey which locks bitcoin to the hash of a public key.
     // 'p2pkh' is the standard for most wallets whereas 'p2sh' is a multisig or other advanced features such as smart contracts
@@ -53,6 +55,8 @@ async function createWallet() {
     return {
         address: eCashAddress,
         publicKey: publicKey,
+        publicKeyHash: publicKeyHash,
+        privateKey: privateKey,
         mnemonic: mnemonic,
         derivationPath: derivationPath,
     };

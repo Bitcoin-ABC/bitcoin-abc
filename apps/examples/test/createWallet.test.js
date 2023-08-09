@@ -26,6 +26,8 @@ describe('App dev example code: createWallet.js', function () {
         const expectedWalletKeys = [
             'address',
             'publicKey',
+            'privateKey',
+            'publicKeyHash',
             'mnemonic',
             'derivationPath',
         ];
