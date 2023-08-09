@@ -10,15 +10,7 @@
 
 #include <string>
 
-static const bool DEFAULT_ACCEPT_DATACARRIER = true;
-
 class CScript;
-
-/**
- * Default setting for nMaxDatacarrierBytes. 220 bytes of data, +1 for
- * OP_RETURN, +2 for the pushdata opcodes.
- */
-static const unsigned int MAX_OP_RETURN_RELAY = 223;
 
 enum class TxoutType {
     NONSTANDARD,

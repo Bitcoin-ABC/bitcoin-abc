@@ -68,6 +68,14 @@ static constexpr Amount DUST_RELAY_TX_FEE(3000 * SATOSHI);
 /** Default for -minrelaytxfee, minimum relay fee for transactions */
 static constexpr Amount DEFAULT_MIN_RELAY_TX_FEE_PER_KB(1000 * SATOSHI);
 
+/** Default for -datacarrier */
+static constexpr bool DEFAULT_ACCEPT_DATACARRIER{true};
+/**
+ * Default setting for nMaxDatacarrierBytes. 220 bytes of data, +1 for
+ * OP_RETURN, +2 for the pushdata opcodes.
+ */
+static constexpr unsigned int MAX_OP_RETURN_RELAY{223};
+
 /**
  * When transactions fail script evaluations under standard flags, this flagset
  * influences the decision of whether to drop them or to also ban the originator

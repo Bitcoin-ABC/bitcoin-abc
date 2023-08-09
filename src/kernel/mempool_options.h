@@ -5,7 +5,6 @@
 #define BITCOIN_KERNEL_MEMPOOL_OPTIONS_H
 
 #include <policy/policy.h>
-#include <script/standard.h>
 
 #include <chrono>
 #include <cstdint>
