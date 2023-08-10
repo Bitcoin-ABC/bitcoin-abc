@@ -109,17 +109,17 @@ TBC
 </details>
 
 <details>
-		<summary>(WIP) Create a cashscript smart contract where only the designated signature can withdraw the XEC </summary>
+		<summary>(WIP) Create a one to many XEC transaction </summary>
 TBC
 </details>
 
 <details>
-		<summary>(WIP) Create a cashscript smart contract that allows a recipient to withdraw a specific amount every month </summary>
+		<summary>(WIP) Create an OP_RETURN messaging transaction </summary>
 TBC
 </details>
 
 <details>
-		<summary>(WIP) Create a cashscript smart contact that locks XECs for a nominated amount of blocks </summary>
+		<summary>(WIP) Create an encrypted OP_RETURN messaging transaction </summary>
 TBC
 </details>
 
