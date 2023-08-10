@@ -23,6 +23,7 @@ import {
     ThemedPdfSolid,
 } from 'components/Common/CustomIcons';
 import { explorer } from 'config/explorer';
+import { supportedFiatCurrencies } from 'config/cashtabSettings';
 
 const TxIcon = styled.div`
     svg {
@@ -761,8 +762,7 @@ const Tx = ({
                                                                     <h4>
                                                                         -
                                                                         {
-                                                                            currency
-                                                                                .fiatCurrencies[
+                                                                            supportedFiatCurrencies[
                                                                                 fiatCurrency
                                                                             ]
                                                                                 .symbol
@@ -776,9 +776,7 @@ const Tx = ({
                                                                             2,
                                                                         )}{' '}
                                                                         {
-                                                                            currency
-                                                                                .fiatCurrencies
-                                                                                .fiatCurrency
+                                                                            supportedFiatCurrencies.fiatCurrency
                                                                         }
                                                                     </h4>
                                                                 )}
@@ -804,8 +802,7 @@ const Tx = ({
                                                                     <h4>
                                                                         +
                                                                         {
-                                                                            currency
-                                                                                .fiatCurrencies[
+                                                                            supportedFiatCurrencies[
                                                                                 fiatCurrency
                                                                             ]
                                                                                 .symbol
@@ -819,9 +816,7 @@ const Tx = ({
                                                                             2,
                                                                         )}{' '}
                                                                         {
-                                                                            currency
-                                                                                .fiatCurrencies
-                                                                                .fiatCurrency
+                                                                            supportedFiatCurrencies.fiatCurrency
                                                                         }
                                                                     </h4>
                                                                 )}

@@ -3,7 +3,10 @@ import { currency } from 'components/Common/Ticker.js';
 import { fromSatoshisToXec } from 'utils/cashMethods';
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
-import { cashtabSettings as cashtabDefaultConfig } from 'config/cashtabSettings';
+import {
+    cashtabSettings as cashtabDefaultConfig,
+    cashtabSettingsValidation,
+} from 'config/cashtabSettings';
 import tokenBlacklist from 'config/tokenBlacklist';
 import { queryAliasServer } from 'utils/aliasUtils';
 import defaultCashtabCache from 'config/cashtabCache';
@@ -178,7 +181,7 @@ export const isValidCashtabSettings = settings => {
         for (let param in cashtabDefaultConfig) {
             if (
                 !Object.prototype.hasOwnProperty.call(settings, param) ||
-                !currency.settingsValidation[param].includes(settings[param])
+                !cashtabSettingsValidation[param].includes(settings[param])
             ) {
                 isValidSettingParams = false;
                 break;

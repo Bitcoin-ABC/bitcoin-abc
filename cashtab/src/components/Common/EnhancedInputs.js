@@ -9,6 +9,7 @@ import {
 import styled, { css } from 'styled-components';
 import ScanQRCode from './ScanQRCode';
 import { currency } from 'components/Common/Ticker.js';
+import { supportedFiatCurrencies } from 'config/cashtabSettings';
 
 const { TextArea } = Input;
 
@@ -418,16 +419,16 @@ DestinationAddressMulti.propTypes = {
 export const CurrencySelectDropdown = selectProps => {
     const { Option } = Select;
 
-    // Build select dropdown from currency.fiatCurrencies
+    // Build select dropdown from supportedFiatCurrencies
     const currencyMenuOptions = [];
-    const currencyKeys = Object.keys(currency.fiatCurrencies);
+    const currencyKeys = Object.keys(supportedFiatCurrencies);
     for (let i = 0; i < currencyKeys.length; i += 1) {
         const currencyMenuOption = {};
         currencyMenuOption.value =
-            currency.fiatCurrencies[currencyKeys[i]].slug;
+            supportedFiatCurrencies[currencyKeys[i]].slug;
         currencyMenuOption.label = `${
-            currency.fiatCurrencies[currencyKeys[i]].name
-        } (${currency.fiatCurrencies[currencyKeys[i]].symbol})`;
+            supportedFiatCurrencies[currencyKeys[i]].name
+        } (${supportedFiatCurrencies[currencyKeys[i]].symbol})`;
         currencyMenuOptions.push(currencyMenuOption);
     }
     const currencyOptions = currencyMenuOptions.map(currencyMenuOption => {

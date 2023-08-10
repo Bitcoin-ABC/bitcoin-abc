@@ -15,6 +15,7 @@ import {
 import ApiError from 'components/Common/ApiError';
 import WalletLabel from 'components/Common/WalletLabel.js';
 import BigNumber from 'bignumber.js';
+import { supportedFiatCurrencies } from 'config/cashtabSettings';
 
 const Tokens = ({ passLoadingStatus }) => {
     const {
@@ -64,7 +65,7 @@ const Tokens = ({ passLoadingStatus }) => {
                         {currency.ticker} (
                         {cashtabSettings
                             ? `${
-                                  currency.fiatCurrencies[
+                                  supportedFiatCurrencies[
                                       cashtabSettings.fiatCurrency
                                   ].symbol
                               }`
@@ -74,7 +75,7 @@ const Tokens = ({ passLoadingStatus }) => {
                             fiatPrice
                         ).toFixed(4)}{' '}
                         {cashtabSettings
-                            ? `${currency.fiatCurrencies[
+                            ? `${supportedFiatCurrencies[
                                   cashtabSettings.fiatCurrency
                               ].slug.toUpperCase()}`
                             : 'USD'}

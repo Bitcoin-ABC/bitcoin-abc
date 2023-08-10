@@ -9,6 +9,7 @@ import Paragraph from 'antd/lib/typography/Paragraph';
 import { currency } from 'components/Common/Ticker';
 import { MessageSignedNotificationIcon } from 'components/Common/CustomIcons';
 import { isMobile } from 'react-device-detect';
+import { supportedFiatCurrencies } from 'config/cashtabSettings';
 
 const getDeviceNotificationStyle = () => {
     if (isMobile) {
@@ -144,7 +145,7 @@ const xecReceivedNotification = (
                 {cashtabSettings &&
                     cashtabSettings.fiatCurrency &&
                     `(${
-                        currency.fiatCurrencies[cashtabSettings.fiatCurrency]
+                        supportedFiatCurrencies[cashtabSettings.fiatCurrency]
                             .symbol
                     }${(
                         Number(
@@ -176,7 +177,7 @@ const xecReceivedNotificationWebsocket = (
                 {cashtabSettings &&
                     cashtabSettings.fiatCurrency &&
                     `(${
-                        currency.fiatCurrencies[cashtabSettings.fiatCurrency]
+                        supportedFiatCurrencies[cashtabSettings.fiatCurrency]
                             .symbol
                     }${(xecAmount * fiatPrice).toFixed(
                         currency.cashDecimals,

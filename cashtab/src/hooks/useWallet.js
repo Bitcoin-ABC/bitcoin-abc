@@ -41,7 +41,10 @@ import * as bip39 from 'bip39';
 import * as randomBytes from 'randombytes';
 import * as utxolib from '@bitgo/utxo-lib';
 import { websocket as websocketConfig } from 'config/websocket';
-import { cashtabSettings as cashtabDefaultConfig } from 'config/cashtabSettings';
+import {
+    cashtabSettings as cashtabDefaultConfig,
+    cashtabSettingsValidation,
+} from 'config/cashtabSettings';
 import defaultCashtabCache from 'config/cashtabCache';
 
 const useWallet = () => {
@@ -1212,7 +1215,7 @@ const useWallet = () => {
         }
 
         // Make sure function was called with valid params
-        if (currency.settingsValidation[key].includes(newValue)) {
+        if (cashtabSettingsValidation[key].includes(newValue)) {
             // Update settings
             newSettings = currentSettings;
             newSettings[key] = newValue;

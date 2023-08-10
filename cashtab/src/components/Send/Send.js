@@ -56,6 +56,7 @@ import WalletLabel from 'components/Common/WalletLabel.js';
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import { explorer } from 'config/explorer';
 import { queryAliasServer } from 'utils/aliasUtils';
+import { supportedFiatCurrencies } from 'config/cashtabSettings';
 
 const { TextArea } = Input;
 
@@ -692,7 +693,7 @@ const SendBCH = ({ passLoadingStatus }) => {
             fiatPriceString = `${
                 cashtabSettings
                     ? `${
-                          currency.fiatCurrencies[cashtabSettings.fiatCurrency]
+                          supportedFiatCurrencies[cashtabSettings.fiatCurrency]
                               .symbol
                       } `
                     : '$ '
@@ -895,7 +896,7 @@ const SendBCH = ({ passLoadingStatus }) => {
                                         <AlertMsg>
                                             Error fetching fiat price. Setting
                                             send by{' '}
-                                            {currency.fiatCurrencies[
+                                            {supportedFiatCurrencies[
                                                 cashtabSettings.fiatCurrency
                                             ].slug.toUpperCase()}{' '}
                                             disabled

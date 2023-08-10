@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { BalanceHeaderFiatWrap } from 'components/Common/Atoms';
 import { currency } from 'components/Common/Ticker.js';
 import BigNumber from 'bignumber.js';
+import { supportedFiatCurrencies } from 'config/cashtabSettings';
 const FiatCurrencyToXEC = styled.p`
     margin: 0 auto;
     padding: 0;
@@ -33,7 +34,7 @@ const BalanceHeaderFiat = ({ balance, settings, fiatPrice }) => {
                             {' '}
                             {settings
                                 ? `${
-                                      currency.fiatCurrencies[
+                                      supportedFiatCurrencies[
                                           settings.fiatCurrency
                                       ].symbol
                                   }`
@@ -44,7 +45,7 @@ const BalanceHeaderFiat = ({ balance, settings, fiatPrice }) => {
                                     .toFixed(2),
                             ).toLocaleString()}{' '}
                             {settings
-                                ? `${currency.fiatCurrencies[
+                                ? `${supportedFiatCurrencies[
                                       settings.fiatCurrency
                                   ].slug.toUpperCase()} `
                                 : 'USD'}
@@ -54,7 +55,7 @@ const BalanceHeaderFiat = ({ balance, settings, fiatPrice }) => {
                             {' '}
                             {settings
                                 ? `${
-                                      currency.fiatCurrencies[
+                                      supportedFiatCurrencies[
                                           settings.fiatCurrency
                                       ].symbol
                                   }`
@@ -65,7 +66,7 @@ const BalanceHeaderFiat = ({ balance, settings, fiatPrice }) => {
                                     .toFixed(2),
                             ).toLocaleString()}{' '}
                             {settings
-                                ? `${currency.fiatCurrencies[
+                                ? `${supportedFiatCurrencies[
                                       settings.fiatCurrency
                                   ].slug.toUpperCase()} `
                                 : 'USD'}

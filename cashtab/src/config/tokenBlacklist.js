@@ -3,15 +3,18 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 'use strict';
-import { currency } from 'components/Common/Ticker.js';
+import {
+    cashtabSettingsValidation,
+    supportedFiatCurrencies,
+} from 'config/cashtabSettings';
 
 // Get names of fiat currencies
-const fiatObjects = Object.keys(currency.fiatCurrencies);
+const fiatObjects = Object.keys(supportedFiatCurrencies);
 let fiatNames = [];
 let fiatSymbols = [];
 for (let i in fiatObjects) {
-    fiatNames.push(currency.fiatCurrencies[fiatObjects[i]].name);
-    fiatSymbols.push(currency.fiatCurrencies[fiatObjects[i]].symbol);
+    fiatNames.push(supportedFiatCurrencies[fiatObjects[i]].name);
+    fiatSymbols.push(supportedFiatCurrencies[fiatObjects[i]].symbol);
 }
 
 const tokenBlacklist = {
@@ -1522,7 +1525,7 @@ const tokenBlacklist = {
     ],
     bannedTickers: ['ebtc', 'xbt'],
     bannedNames: ['ebitcoin'],
-    fiatTickers: currency.settingsValidation.fiatCurrency,
+    fiatTickers: cashtabSettingsValidation.fiatCurrency,
     fiatNames,
     fiatSymbols,
 };
