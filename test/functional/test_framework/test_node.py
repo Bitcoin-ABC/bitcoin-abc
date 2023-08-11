@@ -190,6 +190,8 @@ class TestNode:
         self.p2ps = []
         self.timeout_factor = timeout_factor
 
+        self.mocktime = None
+
     AddressKeyPair = collections.namedtuple("AddressKeyPair", ["address", "key"])
     PRIV_KEYS = [
         # address , privkey
@@ -478,6 +480,15 @@ class TestNode:
             stakes=stakes,
             payoutAddress=payoutAddress,
         )
+
+    def setmocktime(self, timestamp):
+        """Wrapper for setmocktime RPC, sets self.mocktime"""
+        if timestamp == 0:
+            # setmocktime(0) resets to system time.
+            self.mocktime = None
+        else:
+            self.mocktime = timestamp
+        return self.__getattr__("setmocktime")(timestamp)
 
     def get_wallet_rpc(self, wallet_name):
         if self.use_cli:
@@ -950,6 +961,13 @@ class TestNode:
             self.chronik_port,
             timeout=DEFAULT_TIMEOUT * self.timeout_factor,
         )
+
+    def bumpmocktime(self, seconds):
+        """Fast forward using setmocktime to self.mocktime + seconds. Requires setmocktime to have
+        been called at some point in the past."""
+        assert self.mocktime
+        self.mocktime += seconds
+        self.setmocktime(self.mocktime)
 
 
 class TestNodeCLIAttr:
