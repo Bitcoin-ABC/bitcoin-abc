@@ -198,7 +198,11 @@ const reRenderPage = params => {
         window.state.updateParameters(params);
 
         if (params.page) {
-            $('#txs-table').DataTable().page(params.page).draw(false);
+            // DataTable pages start at index 0, so we oblige
+            $('#txs-table')
+                .DataTable()
+                .page(params.page - 1)
+                .draw(false);
         }
     }
 
