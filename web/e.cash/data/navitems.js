@@ -27,7 +27,7 @@ export const navitems = [
             },
             {
                 title: 'eCash Brand',
-                link: '/ecash-brand',
+                link: '/brand',
                 icon: '/images/dna-icon.svg',
             },
         ],

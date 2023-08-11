@@ -25,7 +25,7 @@ import {
     Swatch,
     ColorValues,
     FontLink,
-} from '/styles/pages/ecash-brand.js';
+} from '/styles/pages/brand.js';
 
 export default function EcashBrand() {
     const logos = [

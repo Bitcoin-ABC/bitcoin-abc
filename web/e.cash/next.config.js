@@ -39,6 +39,11 @@ const nextConfig = {
                 destination: '/roadmap',
                 permanent: true,
             },
+            {
+                source: '/ecash-brand',
+                destination: '/brand',
+                permanent: true,
+            },
         ];
     },
 };
