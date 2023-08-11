@@ -713,15 +713,6 @@ static RPCHelpMan getblocktemplate() {
                                "the block subsidy); "
                                "if key is not present, fee is unknown and "
                                "clients MUST NOT assume there isn't one"},
-                              {RPCResult::Type::NUM, "sigops",
-                               "DEPRECATED: total sigChecks, as counted for "
-                               "purposes of block limits; if key is not present"
-                               ", sigChecks are unknown and clients MUST NOT "
-                               "assume it is zero. This value is deprecated "
-                               "since v0.26.8 and must be read from the "
-                               "sigchecks field instead. It is only printed if "
-                               "the -deprecatedrpc=getblocktemplate_sigops "
-                               "option is set"},
                               {RPCResult::Type::NUM, "sigchecks",
                                "total sigChecks, as counted for purposes of "
                                "block limits; if key is not present, sigChecks "
@@ -781,11 +772,6 @@ static RPCHelpMan getblocktemplate() {
                      "A range of valid nonces"},
                     {RPCResult::Type::NUM, "sigchecklimit",
                      "limit of sigChecks in blocks"},
-                    {RPCResult::Type::NUM, "sigoplimit",
-                     "DEPRECATED: limit of sigChecks in blocks. This value is "
-                     "deprecated since v0.26.8 and must be read from the "
-                     "sigchecklimit field instead. It is only printed if the "
-                     "-deprecatedrpc=getblocktemplate_sigops option is set"},
                     {RPCResult::Type::NUM, "sizelimit", "limit of block size"},
                     {RPCResult::Type::NUM_TIME, "curtime",
                      "current timestamp in " + UNIX_EPOCH_TIME},
@@ -979,9 +965,6 @@ static RPCHelpMan getblocktemplate() {
 
             Amount coinbasevalue = Amount::zero();
 
-            const bool printSigops{
-                IsDeprecatedRPCEnabled(gArgs, "getblocktemplate_sigops")};
-
             UniValue transactions(UniValue::VARR);
             transactions.reserve(pblock->vtx.size());
             int index_in_template = 0;
@@ -1000,7 +983,7 @@ static RPCHelpMan getblocktemplate() {
                 }
 
                 UniValue entry(UniValue::VOBJ);
-                entry.reserve(printSigops ? 6 : 5);
+                entry.reserve(5);
                 entry.__pushKV("data", EncodeHexTx(tx));
                 entry.__pushKV("txid", txId.GetHex());
                 entry.__pushKV("hash", tx.GetHash().GetHex());
@@ -1010,9 +993,6 @@ static RPCHelpMan getblocktemplate() {
                 const int64_t sigChecks =
                     pblocktemplate->entries[index_in_template].sigChecks;
                 entry.__pushKV("sigchecks", sigChecks);
-                if (printSigops) {
-                    entry.__pushKV("sigops", sigChecks);
-                }
 
                 transactions.push_back(entry);
                 index_in_template++;
@@ -1071,9 +1051,6 @@ static RPCHelpMan getblocktemplate() {
             const uint64_t sigCheckLimit =
                 GetMaxBlockSigChecksCount(DEFAULT_MAX_BLOCK_SIZE);
             result.pushKV("sigchecklimit", sigCheckLimit);
-            if (printSigops) {
-                result.pushKV("sigoplimit", sigCheckLimit);
-            }
             result.pushKV("sizelimit", DEFAULT_MAX_BLOCK_SIZE);
             result.pushKV("curtime", pblock->GetBlockTime());
             result.pushKV("bits", strprintf("%08x", pblock->nBits));

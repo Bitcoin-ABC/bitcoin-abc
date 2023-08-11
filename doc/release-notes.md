@@ -8,3 +8,5 @@ This release includes the following features and fixes:
  - The `-deprecatedrpc=isfinalblock_noerror` and
    `-deprecatedrpc=isfinaltransaction_noerror` options were deprecated since
    v0.26.2 and have been completely removed.
+ - The `-deprecatedrpc=getblocktemplate_sigops` option was deprecated since
+   v0.26.8 and has been completely removed.
