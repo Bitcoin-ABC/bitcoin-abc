@@ -13,9 +13,9 @@ import PrimaryButton, {
     SecondaryButton,
     SmartButton,
 } from 'components/Common/PrimaryButton';
-import { currency } from 'components/Common/Ticker.js';
 import { Event } from 'utils/GoogleAnalytics';
 import { validateMnemonic } from 'utils/validation';
+import appConfig from 'config/app';
 
 export const WelcomeCtn = styled.div`
     margin-top: 20px;
@@ -107,7 +107,7 @@ const OnBoarding = () => {
                 >
                     open source,
                 </WelcomeLink>{' '}
-                non-custodial web wallet for {currency.name}.
+                non-custodial web wallet for {appConfig.name}.
             </WelcomeText>
 
             <PrimaryButton onClick={() => showBackupConfirmModal()}>

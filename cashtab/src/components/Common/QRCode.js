@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import RawQRCode from 'qrcode.react';
-import { currency } from 'components/Common/Ticker.js';
 import { Event } from 'utils/GoogleAnalytics';
 import { convertToEcashPrefix } from 'utils/cashMethods';
 import CopyToClipboard from './CopyToClipboard';
+import appConfig from 'config/app';
 
 export const StyledRawQRCode = styled(RawQRCode)`
     cursor: pointer;
@@ -153,7 +153,7 @@ export const QRCode = ({ address, size = 210, onClick = () => null }) => {
     const handleOnCopy = () => {
         // Event.("Category", "Action", "Label")
         // xec or etoken?
-        let eventLabel = currency.ticker;
+        let eventLabel = appConfig.ticker;
 
         Event('Wallet', 'Copy Address', eventLabel);
 
@@ -186,7 +186,7 @@ export const QRCode = ({ address, size = 210, onClick = () => null }) => {
                         renderAs={'svg'}
                         includeMargin
                         imageSettings={{
-                            src: currency.logo,
+                            src: appConfig.logo,
                             x: null,
                             y: null,
                             height: 24,

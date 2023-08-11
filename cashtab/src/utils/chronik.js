@@ -1,6 +1,5 @@
 // Chronik methods
 import BigNumber from 'bignumber.js';
-import { currency } from 'components/Common/Ticker';
 import {
     parseOpReturn,
     convertToEncryptStruct,
@@ -13,6 +12,7 @@ import ecies from 'ecies-lite';
 import wif from 'wif';
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import { chronik as chronikConfig } from 'config/chronik';
+import appConfig from 'config/app';
 
 export const getTxHistoryPage = async (chronik, hash160, page = 0) => {
     let txHistoryPage;
@@ -768,7 +768,7 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
         opReturnMessage = '';
     }
     // Convert from sats to XEC
-    xecAmount = xecAmount.shiftedBy(-1 * currency.cashDecimals);
+    xecAmount = xecAmount.shiftedBy(-1 * appConfig.cashDecimals);
 
     // Convert from BigNumber to string
     xecAmount = xecAmount.toString();

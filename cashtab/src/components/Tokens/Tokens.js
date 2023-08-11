@@ -4,7 +4,6 @@ import { WalletContext } from 'utils/context';
 import { fromSatoshisToXec, getWalletState } from 'utils/cashMethods';
 import { createToken } from 'utils/transactions';
 import CreateTokenForm from 'components/Tokens/CreateTokenForm';
-import { currency } from 'components/Common/Ticker.js';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
 import {
@@ -16,6 +15,7 @@ import ApiError from 'components/Common/ApiError';
 import WalletLabel from 'components/Common/WalletLabel.js';
 import BigNumber from 'bignumber.js';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
+import appConfig from 'config/app';
 
 const Tokens = ({ passLoadingStatus }) => {
     const {
@@ -38,7 +38,7 @@ const Tokens = ({ passLoadingStatus }) => {
                 ></WalletLabel>
                 <BalanceHeader
                     balance={balances.totalBalance}
-                    ticker={currency.ticker}
+                    ticker={appConfig.ticker}
                     cashtabSettings={cashtabSettings}
                 />
                 <BalanceHeaderFiat
@@ -52,17 +52,17 @@ const Tokens = ({ passLoadingStatus }) => {
                 <CreateTokenForm
                     createToken={createToken}
                     disabled={new BigNumber(balances.totalBalanceInSatoshis).lt(
-                        new BigNumber(currency.dustSats),
+                        new BigNumber(appConfig.dustSats),
                     )}
                     passLoadingStatus={passLoadingStatus}
                 />
                 {new BigNumber(balances.totalBalanceInSatoshis).lt(
-                    new BigNumber(currency.dustSats),
+                    new BigNumber(appConfig.dustSats),
                 ) && (
                     <AlertMsg>
                         You need at least{' '}
-                        {fromSatoshisToXec(currency.dustSats).toString()}{' '}
-                        {currency.ticker} (
+                        {fromSatoshisToXec(appConfig.dustSats).toString()}{' '}
+                        {appConfig.ticker} (
                         {cashtabSettings
                             ? `${
                                   supportedFiatCurrencies[
@@ -71,7 +71,7 @@ const Tokens = ({ passLoadingStatus }) => {
                               }`
                             : '$'}
                         {(
-                            fromSatoshisToXec(currency.dustSats).toString() *
+                            fromSatoshisToXec(appConfig.dustSats).toString() *
                             fiatPrice
                         ).toFixed(4)}{' '}
                         {cashtabSettings

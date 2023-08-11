@@ -2,9 +2,9 @@ import * as React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { BalanceHeaderFiatWrap } from 'components/Common/Atoms';
-import { currency } from 'components/Common/Ticker.js';
 import BigNumber from 'bignumber.js';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
+import appConfig from 'config/app';
 const FiatCurrencyToXEC = styled.p`
     margin: 0 auto;
     padding: 0;
@@ -76,7 +76,7 @@ const BalanceHeaderFiat = ({ balance, settings, fiatPrice }) => {
             )}
             {fiatPrice && (
                 <FiatCurrencyToXEC>
-                    1 {currency.ticker} ={' '}
+                    1 {appConfig.ticker} ={' '}
                     {fiatPrice.toFixed(9).toLocaleString()}{' '}
                     {settings.fiatCurrency.toUpperCase()}
                 </FiatCurrencyToXEC>

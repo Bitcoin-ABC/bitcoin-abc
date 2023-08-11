@@ -1,5 +1,4 @@
 import BigNumber from 'bignumber.js';
-import { currency } from 'components/Common/Ticker.js';
 import { fromSatoshisToXec } from 'utils/cashMethods';
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
@@ -10,6 +9,7 @@ import {
 import tokenBlacklist from 'config/tokenBlacklist';
 import { queryAliasServer } from 'utils/aliasUtils';
 import defaultCashtabCache from 'config/cashtabCache';
+import appConfig from 'config/app';
 
 // Parses whether the value is a valid eCash address
 // or a valid and registered alias
@@ -71,8 +71,8 @@ export const shouldRejectAmountInput = (
     let error = false;
     let testedAmount = new BigNumber(cashAmount);
 
-    if (selectedCurrency !== currency.ticker) {
-        // Ensure no more than currency.cashDecimals decimal places
+    if (selectedCurrency !== appConfig.ticker) {
+        // Ensure no more than appConfig.cashDecimals decimal places
         testedAmount = new BigNumber(fiatToCrypto(cashAmount, fiatPrice));
     }
 
@@ -81,17 +81,18 @@ export const shouldRejectAmountInput = (
         error = 'Amount must be a number';
     } else if (testedAmount.lte(0)) {
         error = 'Amount must be greater than 0';
-    } else if (testedAmount.lt(fromSatoshisToXec(currency.dustSats))) {
+    } else if (testedAmount.lt(fromSatoshisToXec(appConfig.dustSats))) {
         error = `Send amount must be at least ${fromSatoshisToXec(
-            currency.dustSats,
-        ).toString()} ${currency.ticker}`;
+            appConfig.dustSats,
+        ).toString()} ${appConfig.ticker}`;
     } else if (testedAmount.gt(totalCashBalance)) {
-        error = `Amount cannot exceed your ${currency.ticker} balance`;
+        error = `Amount cannot exceed your ${appConfig.ticker} balance`;
     } else if (!isNaN(testedAmount) && testedAmount.toString().includes('.')) {
         if (
-            testedAmount.toString().split('.')[1].length > currency.cashDecimals
+            testedAmount.toString().split('.')[1].length >
+            appConfig.cashDecimals
         ) {
-            error = `${currency.ticker} transactions do not support more than ${currency.cashDecimals} decimal places`;
+            error = `${appConfig.ticker} transactions do not support more than ${appConfig.cashDecimals} decimal places`;
         }
     }
     // return false if no error, or string error msg if error
@@ -101,7 +102,7 @@ export const shouldRejectAmountInput = (
 export const fiatToCrypto = (
     fiatAmount,
     fiatPrice,
-    cashDecimals = currency.cashDecimals,
+    cashDecimals = appConfig.cashDecimals,
 ) => {
     let cryptoAmount = new BigNumber(fiatAmount)
         .div(new BigNumber(fiatPrice))
@@ -478,7 +479,7 @@ export const isValidXecSendAmount = xecSendAmount => {
         typeof xecSendAmount !== 'undefined' &&
         !isNaN(parseFloat(xecSendAmount)) &&
         parseFloat(xecSendAmount) >=
-            fromSatoshisToXec(currency.dustSats).toNumber()
+            fromSatoshisToXec(appConfig.dustSats).toNumber()
     );
 };
 
@@ -513,7 +514,7 @@ export const isValidNewWalletNameLength = newWalletName => {
     return (
         typeof newWalletName === 'string' &&
         newWalletName.length > 0 &&
-        newWalletName.length <= currency.localStorageMaxCharacters &&
+        newWalletName.length <= appConfig.localStorageMaxCharacters &&
         newWalletName.length !== ''
     );
 };
@@ -543,7 +544,7 @@ export const isValidAirdropOutputsArray = airdropOutputsArray => {
         // if the XEC being sent is less than dust sats or contains extra values per line
         if (
             new BigNumber(valueString).lt(
-                fromSatoshisToXec(currency.dustSats),
+                fromSatoshisToXec(appConfig.dustSats),
             ) ||
             substring.length !== 2
         ) {

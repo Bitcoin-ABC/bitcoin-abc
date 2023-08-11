@@ -12,7 +12,6 @@ import {
     AirdropIcon,
     AliasIcon,
 } from 'components/Common/CustomIcons';
-import { currency } from 'components/Common/Ticker';
 import { formatBalance, formatDate } from 'utils/formatting';
 import TokenIcon from 'components/Tokens/TokenIcon';
 import { Collapse } from 'antd';
@@ -24,6 +23,7 @@ import {
 } from 'components/Common/CustomIcons';
 import { explorer } from 'config/explorer';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
+import appConfig from 'config/app';
 
 const TxIcon = styled.div`
     svg {
@@ -750,7 +750,7 @@ const Tx = ({
                                                                         .xecAmount,
                                                                 )}{' '}
                                                                 {
-                                                                    currency.ticker
+                                                                    appConfig.ticker
                                                                 }
                                                             </h3>
                                                             {fiatPrice !==
@@ -790,7 +790,7 @@ const Tx = ({
                                                                         .xecAmount,
                                                                 )}{' '}
                                                                 {
-                                                                    currency.ticker
+                                                                    appConfig.ticker
                                                                 }
                                                             </TokenTxAmtReceived>
                                                             {fiatPrice !==

@@ -29,12 +29,12 @@ import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { ThemedCopySolid } from 'components/Common/CustomIcons';
 import { SmartButton } from 'components/Common/PrimaryButton';
 import { PlusSquareOutlined } from '@ant-design/icons';
-import { currency } from 'components/Common/Ticker.js';
 import { parseAddressForParams } from 'utils/cashMethods';
 import { isValidXecAddress, isValidEtokenAddress } from 'utils/validation';
 import xecMessage from 'bitcoinjs-message';
 import * as utxolib from '@bitgo/utxo-lib';
 import cashaddr from 'ecashaddrjs';
+import appConfig from 'config/app';
 
 const Wrapper = styled.div`
     .ant-collapse {
@@ -220,7 +220,7 @@ const SignVerifyMsg = () => {
 
         // Is this valid address?
         if (!isValid) {
-            error = `Invalid ${currency.ticker} address`;
+            error = `Invalid ${appConfig.ticker} address`;
             // If valid address but token format
             if (isValidEtokenAddress(address)) {
                 error = `eToken addresses are not supported for signature verifications`;
@@ -243,7 +243,7 @@ const SignVerifyMsg = () => {
                 ></WalletLabel>
                 {!balances.totalBalance ? (
                     <ZeroBalanceHeader>
-                        You currently have 0 {currency.ticker}
+                        You currently have 0 {appConfig.ticker}
                         <br />
                         Deposit some funds to use this feature
                     </ZeroBalanceHeader>
@@ -251,7 +251,7 @@ const SignVerifyMsg = () => {
                     <>
                         <BalanceHeader
                             balance={balances.totalBalance}
-                            ticker={currency.ticker}
+                            ticker={appConfig.ticker}
                             cashtabSettings={cashtabSettings}
                         />
 
@@ -415,7 +415,7 @@ const SignVerifyMsg = () => {
                                             : ''
                                     }
                                     inputProps={{
-                                        placeholder: `${currency.ticker} Address`,
+                                        placeholder: `${appConfig.ticker} Address`,
                                         name: 'address',
                                         onChange: e =>
                                             handleMessageVerificationAddrChange(

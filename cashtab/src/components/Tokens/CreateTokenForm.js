@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { AntdFormWrapper } from 'components/Common/EnhancedInputs';
-import { currency } from 'components/Common/Ticker.js';
 import {
     CropControlModal,
     CropperContainer,
@@ -45,6 +44,7 @@ import getCroppedImg from 'utils/icons/cropImage';
 import getRoundImg from 'utils/icons/roundImage';
 import getResizedImage from 'utils/icons/resizeImage';
 import { token as tokenConfig } from 'config/token';
+import appConfig from 'config/app';
 const { Dragger } = Upload;
 
 export const CreateTokenCtn = styled.div`
@@ -455,7 +455,7 @@ const CreateTokenForm = ({ createToken, disabled, passLoadingStatus }) => {
             const link = await createToken(
                 chronik,
                 wallet,
-                currency.defaultFee,
+                appConfig.defaultFee,
                 configObj,
             );
             createTokenNotification(link);

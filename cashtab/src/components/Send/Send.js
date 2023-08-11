@@ -57,6 +57,7 @@ import { opReturn as opreturnConfig } from 'config/opreturn';
 import { explorer } from 'config/explorer';
 import { queryAliasServer } from 'utils/aliasUtils';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
+import appConfig from 'config/app';
 
 const { TextArea } = Input;
 
@@ -179,7 +180,7 @@ const SendBCH = ({ passLoadingStatus }) => {
     const [sendBchAmountError, setSendBchAmountError] = useState(false);
     const [isMsgError, setIsMsgError] = useState(false);
     const [aliasInputAddress, setAliasInputAddress] = useState(false);
-    const [selectedCurrency, setSelectedCurrency] = useState(currency.ticker);
+    const [selectedCurrency, setSelectedCurrency] = useState(appConfig.ticker);
 
     // Support cashtab button from web pages
     const [txInfoFromUrl, setTxInfoFromUrl] = useState(false);
@@ -247,7 +248,7 @@ const SendBCH = ({ passLoadingStatus }) => {
         if (location && location.state && location.state.replyAddress) {
             setFormData({
                 address: location.state.replyAddress,
-                value: `${fromSatoshisToXec(currency.dustSats).toString()}`,
+                value: `${fromSatoshisToXec(appConfig.dustSats).toString()}`,
             });
         }
 
@@ -333,7 +334,7 @@ const SendBCH = ({ passLoadingStatus }) => {
                 'too-long-mempool-chain, too many unconfirmed ancestors [limit: 50] (code 64)',
             )
         ) {
-            message = `The ${currency.ticker} you are trying to send has too many unconfirmed ancestors to send (limit 50). Sending will be possible after a block confirmation. Try again in about 10 minutes.`;
+            message = `The ${appConfig.ticker} you are trying to send has too many unconfirmed ancestors to send (limit 50). Sending will be possible after a block confirmation. Try again in about 10 minutes.`;
         } else {
             message =
                 errorObj.message || errorObj.error || JSON.stringify(errorObj);
@@ -374,7 +375,7 @@ const SendBCH = ({ passLoadingStatus }) => {
                     chronik,
                     wallet,
                     nonSlpUtxos,
-                    currency.defaultFee,
+                    appConfig.defaultFee,
                     opReturnMsg,
                     true, // indicate send mode is one to many
                     addressAndValueArray,
@@ -440,7 +441,7 @@ const SendBCH = ({ passLoadingStatus }) => {
                     chronik,
                     wallet,
                     nonSlpUtxos,
-                    currency.defaultFee,
+                    appConfig.defaultFee,
                     optionalOpReturnMsg,
                     false, // sendToMany boolean flag
                     null, // address array not applicable for one to many tx
@@ -469,7 +470,7 @@ const SendBCH = ({ passLoadingStatus }) => {
         const isValid = isValidXecAddress(addressInfo.address);
 
         // If query string,
-        // Show an alert that only amount and currency.ticker are supported
+        // Show an alert that only amount and appConfig.ticker are supported
         setQueryStringText(queryString);
 
         // Is this valid address?
@@ -477,7 +478,7 @@ const SendBCH = ({ passLoadingStatus }) => {
             error = `Invalid address`;
             // If valid address but token format
             if (isValidEtokenAddress(address)) {
-                error = `eToken addresses are not supported for ${currency.ticker} sends`;
+                error = `eToken addresses are not supported for ${appConfig.ticker} sends`;
             }
         }
 
@@ -515,7 +516,7 @@ const SendBCH = ({ passLoadingStatus }) => {
         // Set amount if it's in the query string
         if (amount !== null) {
             // Set currency to BCHA
-            setSelectedCurrency(currency.ticker);
+            setSelectedCurrency(appConfig.ticker);
 
             // Use this object to mimic user input and get validation for the value
             let amountObj = {
@@ -650,15 +651,15 @@ const SendBCH = ({ passLoadingStatus }) => {
         // Clear amt error
         setSendBchAmountError(false);
         // Set currency to BCH
-        setSelectedCurrency(currency.ticker);
+        setSelectedCurrency(appConfig.ticker);
         try {
             const txFeeSats = calcFee(nonSlpUtxos);
 
-            const txFeeBch = txFeeSats / 10 ** currency.cashDecimals;
+            const txFeeBch = txFeeSats / 10 ** appConfig.cashDecimals;
             let value =
                 balances.totalBalance - txFeeBch >= 0
                     ? (balances.totalBalance - txFeeBch).toFixed(
-                          currency.cashDecimals,
+                          appConfig.cashDecimals,
                       )
                     : 0;
 
@@ -677,7 +678,7 @@ const SendBCH = ({ passLoadingStatus }) => {
     // Display price in USD below input field for send amount, if it can be calculated
     let fiatPriceString = '';
     if (fiatPrice !== null && !isNaN(formData.value)) {
-        if (selectedCurrency === currency.ticker) {
+        if (selectedCurrency === appConfig.ticker) {
             // calculate conversion to fiatPrice
             fiatPriceString = `${(fiatPrice * Number(formData.value)).toFixed(
                 2,
@@ -710,7 +711,7 @@ const SendBCH = ({ passLoadingStatus }) => {
                           userLocale,
                       )
                     : formatFiatBalance(0, userLocale)
-            } ${currency.ticker}`;
+            } ${appConfig.ticker}`;
         }
     }
 
@@ -740,7 +741,7 @@ const SendBCH = ({ passLoadingStatus }) => {
                 ></WalletLabel>
                 {!balances.totalBalance ? (
                     <ZeroBalanceHeader>
-                        You currently have 0 {currency.ticker}
+                        You currently have 0 {appConfig.ticker}
                         <br />
                         Deposit some funds to use this feature
                     </ZeroBalanceHeader>
@@ -748,7 +749,7 @@ const SendBCH = ({ passLoadingStatus }) => {
                     <>
                         <BalanceHeader
                             balance={balances.totalBalance}
-                            ticker={currency.ticker}
+                            ticker={appConfig.ticker}
                             cashtabSettings={cashtabSettings}
                         />
 
@@ -949,7 +950,7 @@ const SendBCH = ({ passLoadingStatus }) => {
 
                             {queryStringText && (
                                 <Alert
-                                    message={`You are sending a transaction to an address including query parameters "${queryStringText}." Only the "amount" parameter, in units of ${currency.ticker} satoshis, is currently supported.`}
+                                    message={`You are sending a transaction to an address including query parameters "${queryStringText}." Only the "amount" parameter, in units of ${appConfig.ticker} satoshis, is currently supported.`}
                                     type="warning"
                                 />
                             )}

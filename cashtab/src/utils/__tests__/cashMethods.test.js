@@ -37,7 +37,6 @@ import {
     getMessageByteSize,
     parseAddressForParams,
 } from 'utils/cashMethods';
-import { currency } from 'components/Common/Ticker';
 import { validAddressArrayInput } from '../__mocks__/mockAddressArray';
 import {
     mockGenesisOpReturnScript,
@@ -115,6 +114,7 @@ import {
 } from '../__mocks__/mockTxBuilderData';
 import createTokenMock from '../__mocks__/createToken';
 import { opReturn as opreturnConfig } from 'config/opreturn';
+import appConfig from 'config/app';
 const assert = require('assert');
 
 test('parseAddressForParams() returns valid info for query string based input', () => {
@@ -362,7 +362,7 @@ it(`signUtxosByAddress() successfully returns a txBuilder object for a one to on
         utxolib.networks.ecash,
     );
     const satoshisToSendInput = new BigNumber(2184);
-    const feeInSatsPerByte = currency.defaultFee;
+    const feeInSatsPerByte = appConfig.defaultFee;
 
     // mock tx input
     const inputObj = generateTxInput(
@@ -423,7 +423,7 @@ it(`signUtxosByAddress() successfully returns a txBuilder object for a one to ma
         'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,3000',
     ];
     const satoshisToSendInput = new BigNumber(900000);
-    const feeInSatsPerByte = currency.defaultFee;
+    const feeInSatsPerByte = appConfig.defaultFee;
 
     // mock tx input
     const inputObj = generateTxInput(
@@ -868,7 +868,7 @@ it(`generateTokenTxInput() returns a valid object for a valid create token tx`, 
         null, // no slpUtxos used for genesis tx
         tokenId,
         null, // no token send/burn amount for genesis tx
-        currency.defaultFee,
+        appConfig.defaultFee,
         txBuilder,
     );
 
@@ -877,7 +877,7 @@ it(`generateTokenTxInput() returns a valid object for a valid create token tx`, 
         mockCreateTokenTxBuilderObj.toString(),
     );
     expect(tokenInputObj.remainderXecValue).toStrictEqual(
-        new BigNumber(698999), // tokenInputObj.inputXecUtxos - currency.etokenSats 546 - txFee
+        new BigNumber(698999), // tokenInputObj.inputXecUtxos - appConfig.etokenSats 546 - txFee
     );
 });
 
@@ -893,7 +893,7 @@ it(`generateTokenTxInput() returns a valid object for a valid send token tx`, as
         mockSlpUtxos,
         tokenId,
         new BigNumber(500), // sending 500 of these tokens
-        currency.defaultFee,
+        appConfig.defaultFee,
         txBuilder,
     );
 
@@ -920,7 +920,7 @@ it(`generateTokenTxInput() returns a valid object for a valid burn token tx`, as
         mockSlpUtxos,
         tokenId,
         new BigNumber(500), // burning 500 of these tokens
-        currency.defaultFee,
+        appConfig.defaultFee,
         txBuilder,
     );
 
@@ -1011,7 +1011,7 @@ it(`generateTxInput() returns an input object for a valid one to one XEC tx`, as
     );
     const destinationAddressAndValueArray = null;
     const satoshisToSend = new BigNumber(2184);
-    const feeInSatsPerByte = currency.defaultFee;
+    const feeInSatsPerByte = appConfig.defaultFee;
 
     const inputObj = generateTxInput(
         isOneToMany,
@@ -1039,7 +1039,7 @@ it(`generateTxInput() returns an input object for a valid one to many XEC tx`, a
         'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,3000',
     ];
     const satoshisToSend = new BigNumber(900000);
-    const feeInSatsPerByte = currency.defaultFee;
+    const feeInSatsPerByte = appConfig.defaultFee;
 
     const inputObj = generateTxInput(
         isOneToMany,
@@ -1063,7 +1063,7 @@ it(`generateTxInput() throws error for a one to many XEC tx with invalid destina
     );
     const destinationAddressAndValueArray = null; // invalid since isOneToMany is true
     const satoshisToSend = new BigNumber(900000);
-    const feeInSatsPerByte = currency.defaultFee;
+    const feeInSatsPerByte = appConfig.defaultFee;
 
     let thrownError;
     try {
@@ -1093,7 +1093,7 @@ it(`generateTxInput() throws error for a one to many XEC tx with invalid utxos i
         'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,3000',
     ];
     const satoshisToSend = new BigNumber(900000);
-    const feeInSatsPerByte = currency.defaultFee;
+    const feeInSatsPerByte = appConfig.defaultFee;
 
     let thrownError;
     try {
@@ -1492,7 +1492,7 @@ describe('Correctly executes cash utility functions', () => {
     it(`Converts a legacy BCH amount to an XEC amount`, () => {
         expect(fromLegacyDecimals(0.00000546, 2)).toStrictEqual(5.46);
     });
-    it(`Leaves a legacy BCH amount unchanged if currency.cashDecimals is 8`, () => {
+    it(`Leaves a legacy BCH amount unchanged if appConfig.cashDecimals is 8`, () => {
         expect(fromLegacyDecimals(0.00000546, 8)).toStrictEqual(0.00000546);
     });
     it(`convertToEcashPrefix converts a bitcoincash: prefixed address to an ecash: prefixed address`, () => {
@@ -1865,7 +1865,7 @@ describe('Correctly executes cash utility functions', () => {
     });
     it('calculates fee correctly for 2 P2PKH outputs', () => {
         const utxosMock = [{}, {}];
-        expect(calcFee(utxosMock, 2, currency.defaultFee)).toBe(752);
+        expect(calcFee(utxosMock, 2, appConfig.defaultFee)).toBe(752);
     });
     it(`Converts a hash160 to an ecash address`, () => {
         expect(

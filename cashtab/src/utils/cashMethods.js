@@ -1,4 +1,3 @@
-import { currency } from 'components/Common/Ticker';
 import {
     isValidXecAddress,
     isValidEtokenAddress,
@@ -11,6 +10,7 @@ import bs58 from 'bs58';
 import * as slpMdm from 'slp-mdm';
 import * as utxolib from '@bitgo/utxo-lib';
 import { opReturn as opreturnConfig } from 'config/opreturn';
+import appConfig from 'config/app';
 
 export const getMessageByteSize = (
     msgInputStr,
@@ -242,7 +242,7 @@ export const getCashtabByteCount = (p2pkhInputCount, p2pkhOutputCount) => {
 export const calcFee = (
     utxos,
     p2pkhOutputNumber = 2,
-    satoshisPerByte = currency.defaultFee,
+    satoshisPerByte = appConfig.defaultFee,
     opReturnByteCount = 0,
 ) => {
     const byteCount = getCashtabByteCount(utxos.length, p2pkhOutputNumber);
@@ -296,7 +296,7 @@ export const generateTokenTxOutput = (
         // add XEC dust output as fee for genesis, send or burn token output
         txBuilder.addOutput(
             cashaddr.toLegacy(destinationAddress),
-            parseInt(currency.etokenSats),
+            parseInt(appConfig.etokenSats),
         );
 
         // Return any token change back to the sender for send and burn txs
@@ -307,12 +307,12 @@ export const generateTokenTxOutput = (
             // add XEC dust output as fee
             txBuilder.addOutput(
                 cashaddr.toLegacy(tokenUtxosBeingSpent[0].address), // etoken address
-                parseInt(currency.etokenSats),
+                parseInt(appConfig.etokenSats),
             );
         }
 
         // Send xec change to own address
-        if (remainderXecValue.gte(new BigNumber(currency.dustSats))) {
+        if (remainderXecValue.gte(new BigNumber(appConfig.dustSats))) {
             txBuilder.addOutput(
                 cashaddr.toLegacy(legacyCashOriginAddress),
                 parseInt(remainderXecValue),
@@ -434,10 +434,10 @@ export const generateTokenTxInput = (
             remainderXecValue =
                 tokenAction === 'GENESIS'
                     ? totalXecInputUtxoValue
-                          .minus(new BigNumber(currency.etokenSats))
+                          .minus(new BigNumber(appConfig.etokenSats))
                           .minus(new BigNumber(txFee))
                     : totalXecInputUtxoValue
-                          .minus(new BigNumber(currency.etokenSats * 2)) // one for token send/burn output, one for token change
+                          .minus(new BigNumber(appConfig.etokenSats * 2)) // one for token send/burn output, one for token change
                           .minus(new BigNumber(txFee));
 
             if (remainderXecValue.gte(0)) {
@@ -579,7 +579,7 @@ export const parseXecSendValue = (
         // If user is attempting to send an aggregate value that is less than minimum accepted by the backend
         if (
             value.lt(
-                new BigNumber(fromSatoshisToXec(currency.dustSats).toString()),
+                new BigNumber(fromSatoshisToXec(appConfig.dustSats).toString()),
             )
         ) {
             // Throw the same error given by the backend attempting to broadcast such a tx
@@ -769,7 +769,7 @@ export const generateTxOutput = (
         }
 
         // if a remainder exists, return to change address as the final output
-        if (remainder.gte(new BigNumber(currency.dustSats))) {
+        if (remainder.gte(new BigNumber(appConfig.dustSats))) {
             txBuilder.addOutput(
                 cashaddr.toLegacy(changeAddress),
                 parseInt(remainder),
@@ -877,10 +877,10 @@ export function parseOpReturn(hexStr) {
 
 export const fromLegacyDecimals = (
     amount,
-    cashDecimals = currency.cashDecimals,
+    cashDecimals = appConfig.cashDecimals,
 ) => {
     // Input 0.00000546 BCH
-    // Output 5.46 XEC or 0.00000546 BCH, depending on currency.cashDecimals
+    // Output 5.46 XEC or 0.00000546 BCH, depending on appConfig.cashDecimals
     const amountBig = new BigNumber(amount);
     const conversionFactor = new BigNumber(10 ** (8 - cashDecimals));
     const amountSmallestDenomination = amountBig
@@ -891,7 +891,7 @@ export const fromLegacyDecimals = (
 
 export const fromSatoshisToXec = (
     amount,
-    cashDecimals = currency.cashDecimals,
+    cashDecimals = appConfig.cashDecimals,
 ) => {
     const amountBig = new BigNumber(amount);
     const multiplier = new BigNumber(10 ** (-1 * cashDecimals));
@@ -901,7 +901,7 @@ export const fromSatoshisToXec = (
 
 export const fromXecToSatoshis = (
     sendAmount,
-    cashDecimals = currency.cashDecimals,
+    cashDecimals = appConfig.cashDecimals,
 ) => {
     // Replace the BCH.toSatoshi method with an equivalent function that works for arbitrary decimal places
     // Example, for an 8 decimal place currency like Bitcoin
@@ -971,7 +971,7 @@ export const loadStoredWallet = walletStateFromStorage => {
     }
 
     // Also confirm balance is correct
-    // Necessary step in case currency.decimals changed since last startup
+    // Necessary step in case appConfig.decimals changed since last startup
     let nonSlpUtxosToParseForBalance;
     let balancesRebased;
     if (keysInLiveWalletState.length !== 0) {

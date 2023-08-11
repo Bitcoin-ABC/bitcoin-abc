@@ -1,5 +1,5 @@
-import { currency } from 'components/Common/Ticker.js';
 import BigNumber from 'bignumber.js';
+import appConfig from 'config/app';
 export const formatDate = (dateString, userLocale = 'en') => {
     const options = { month: 'short', day: 'numeric', year: 'numeric' };
     const dateFormattingError = 'Unable to format date.';
@@ -19,15 +19,15 @@ export const formatDate = (dateString, userLocale = 'en') => {
 export const formatFiatBalance = (fiatBalance, optionalLocale) => {
     try {
         if (fiatBalance === 0) {
-            return Number(fiatBalance).toFixed(currency.cashDecimals);
+            return Number(fiatBalance).toFixed(appConfig.cashDecimals);
         }
         if (optionalLocale === undefined) {
             return fiatBalance.toLocaleString({
-                maximumFractionDigits: currency.cashDecimals,
+                maximumFractionDigits: appConfig.cashDecimals,
             });
         }
         return fiatBalance.toLocaleString(optionalLocale, {
-            maximumFractionDigits: currency.cashDecimals,
+            maximumFractionDigits: appConfig.cashDecimals,
         });
     } catch (err) {
         return fiatBalance;
@@ -41,11 +41,11 @@ export const formatSavedBalance = (swBalance, optionalLocale) => {
         } else {
             if (optionalLocale === undefined) {
                 return new Number(swBalance).toLocaleString({
-                    maximumFractionDigits: currency.cashDecimals,
+                    maximumFractionDigits: appConfig.cashDecimals,
                 });
             } else {
                 return new Number(swBalance).toLocaleString(optionalLocale, {
-                    maximumFractionDigits: currency.cashDecimals,
+                    maximumFractionDigits: appConfig.cashDecimals,
                 });
             }
         }
@@ -58,11 +58,11 @@ export const formatBalance = (unformattedBalance, optionalLocale) => {
     try {
         if (optionalLocale === undefined) {
             return new Number(unformattedBalance).toLocaleString({
-                maximumFractionDigits: currency.cashDecimals,
+                maximumFractionDigits: appConfig.cashDecimals,
             });
         }
         return new Number(unformattedBalance).toLocaleString(optionalLocale, {
-            maximumFractionDigits: currency.cashDecimals,
+            maximumFractionDigits: appConfig.cashDecimals,
         });
     } catch (err) {
         console.log(`Error in formatBalance for ${unformattedBalance}`);

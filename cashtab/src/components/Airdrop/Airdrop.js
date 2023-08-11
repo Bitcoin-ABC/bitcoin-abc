@@ -15,7 +15,6 @@ const { TextArea } = Input;
 import { Row, Col, Switch } from 'antd';
 import { SmartButton } from 'components/Common/PrimaryButton';
 import { errorNotification } from 'components/Common/Notifications';
-import { currency } from 'components/Common/Ticker.js';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
@@ -43,6 +42,7 @@ import {
 import WalletLabel from 'components/Common/WalletLabel.js';
 import { Link } from 'react-router-dom';
 import { token as tokenConfig } from 'config/token';
+import appConfig from 'config/app';
 const AirdropActions = styled.div`
     text-align: center;
     width: 100%;
@@ -309,7 +309,7 @@ const Airdrop = ({ passLoadingStatus }) => {
         // if the ignore minimum payment threshold option is enabled
         if (ignoreRecipientsBelowDust) {
             // minimum airdrop threshold
-            const minEligibleAirdrop = fromSatoshisToXec(currency.dustSats);
+            const minEligibleAirdrop = fromSatoshisToXec(appConfig.dustSats);
             let initialTotalTokenAmongstRecipients = new BigNumber(0);
             let initialTotalHolders = new BigNumber(airdropList.size); // amount of addresses that hold this eToken
             setEtokenHolders(initialTotalHolders);
@@ -377,7 +377,7 @@ const Airdrop = ({ passLoadingStatus }) => {
                     (resultString +=
                         convertEtokenToEcashAddr(index) +
                         ',' +
-                        equalDividend.decimalPlaces(currency.cashDecimals) +
+                        equalDividend.decimalPlaces(appConfig.cashDecimals) +
                         '\n'),
             );
         } else {
@@ -391,7 +391,7 @@ const Airdrop = ({ passLoadingStatus }) => {
                         ',' +
                         new BigNumber(element)
                             .multipliedBy(circToAirdropRatio)
-                            .decimalPlaces(currency.cashDecimals) +
+                            .decimalPlaces(appConfig.cashDecimals) +
                         '\n'),
             );
         }
@@ -508,7 +508,7 @@ const Airdrop = ({ passLoadingStatus }) => {
                 ></WalletLabel>
                 {!balances.totalBalance ? (
                     <ZeroBalanceHeader>
-                        You currently have 0 {currency.ticker}
+                        You currently have 0 {appConfig.ticker}
                         <br />
                         Deposit some funds to use this feature
                     </ZeroBalanceHeader>
@@ -516,7 +516,7 @@ const Airdrop = ({ passLoadingStatus }) => {
                     <>
                         <BalanceHeader
                             balance={balances.totalBalance}
-                            ticker={currency.ticker}
+                            ticker={appConfig.ticker}
                             cashtabSettings={cashtabSettings}
                         />
                         {fiatPrice !== null && (
@@ -658,7 +658,7 @@ const Airdrop = ({ passLoadingStatus }) => {
                                             &ensp;Ignore airdrops below min.
                                             payment (
                                             {fromSatoshisToXec(
-                                                currency.dustSats,
+                                                appConfig.dustSats,
                                             ).toString()}{' '}
                                             XEC)
                                         </AirdropOptions>
@@ -783,7 +783,7 @@ const Airdrop = ({ passLoadingStatus }) => {
                                                             description={
                                                                 'At least one airdrop is below the minimum ' +
                                                                 fromSatoshisToXec(
-                                                                    currency.dustSats,
+                                                                    appConfig.dustSats,
                                                                 ).toString() +
                                                                 ' XEC dust. Please increase the total XEC airdrop.'
                                                             }

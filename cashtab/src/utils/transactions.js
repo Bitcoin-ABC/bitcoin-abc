@@ -18,6 +18,7 @@ import {
 import ecies from 'ecies-lite';
 import * as utxolib from '@bitgo/utxo-lib';
 import { explorer } from 'config/explorer';
+import appConfig from 'config/app';
 
 const SEND_XEC_ERRORS = {
     INSUFFICIENT_FUNDS: 0,
@@ -125,7 +126,7 @@ export const sendToken = async (
     // Handle error of user having no XEC
     if (!nonSlpUtxos || nonSlpUtxos.length === 0) {
         throw new Error(
-            `You need some ${currency.ticker} to send ${currency.tokenTicker}`,
+            `You need some ${appConfig.ticker} to send ${appConfig.tokenTicker}`,
         );
     }
 
@@ -140,7 +141,7 @@ export const sendToken = async (
         slpUtxos,
         tokenId,
         amount,
-        currency.defaultFee,
+        appConfig.defaultFee,
         txBuilder,
     );
     // update txBuilder object with inputs
@@ -196,7 +197,7 @@ export const burnToken = async (chronik, wallet, { tokenId, amount }) => {
 
     // Handle error of user having no XEC
     if (!nonSlpUtxos || nonSlpUtxos.length === 0) {
-        throw new Error(`You need some ${currency.ticker} to burn eTokens`);
+        throw new Error(`You need some ${appConfig.ticker} to burn eTokens`);
     }
 
     // instance of transaction builder
@@ -210,7 +211,7 @@ export const burnToken = async (chronik, wallet, { tokenId, amount }) => {
         slpUtxos,
         tokenId,
         amount,
-        currency.defaultFee,
+        appConfig.defaultFee,
         txBuilder,
     );
     // update txBuilder object with inputs

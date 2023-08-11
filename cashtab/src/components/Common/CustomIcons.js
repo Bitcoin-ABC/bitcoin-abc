@@ -12,7 +12,6 @@ import {
     FireOutlined,
 } from '@ant-design/icons';
 import { Image } from 'antd';
-import { currency } from 'components/Common/Ticker';
 import { ReactComponent as Send } from 'assets/send.svg';
 import { ReactComponent as Receive } from 'assets/receive.svg';
 import { ReactComponent as Genesis } from 'assets/flask.svg';
@@ -33,13 +32,19 @@ import { ReactComponent as Audit } from 'assets/audit.svg';
 import { ReactComponent as Mail } from 'assets/mail.svg';
 export const CashLoadingIcon = <LoadingOutlined className="cashLoadingIcon" />;
 import { ReactComponent as User } from 'assets/user.svg';
+import appConfig from 'config/app';
 
 export const CashReceivedNotificationIcon = () => (
-    <Image height={'33px'} width={'30px'} src={currency.logo} preview={false} />
+    <Image
+        height={'33px'}
+        width={'30px'}
+        src={appConfig.logo}
+        preview={false}
+    />
 );
 export const TokenReceivedNotificationIcon = () => (
     <Image
-        src={currency.tokenLogo}
+        src={appConfig.tokenLogo}
         height={'33px'}
         width={'30px'}
         preview={false}
@@ -48,7 +53,7 @@ export const TokenReceivedNotificationIcon = () => (
 
 export const MessageSignedNotificationIcon = () => (
     <Image
-        src={currency.tokenLogo}
+        src={appConfig.tokenLogo}
         height={'33px'}
         width={'30px'}
         preview={false}

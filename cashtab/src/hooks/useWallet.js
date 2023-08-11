@@ -19,7 +19,6 @@ import {
     parseInvalidCashtabCacheForMigration,
 } from 'utils/validation';
 import localforage from 'localforage';
-import { currency } from 'components/Common/Ticker';
 import {
     xecReceivedNotification,
     xecReceivedNotificationWebsocket,
@@ -46,6 +45,7 @@ import {
     cashtabSettingsValidation,
 } from 'config/cashtabSettings';
 import defaultCashtabCache from 'config/cashtabCache';
+import appConfig from 'config/app';
 
 const useWallet = () => {
     const [chronik, setChronik] = useState(
@@ -892,7 +892,6 @@ const useWallet = () => {
                 if (parsedChronikTx.genesisInfo.success) {
                     // Send this info to the notification function
                     eTokenReceivedNotification(
-                        currency,
                         parsedChronikTx.genesisInfo.tokenTicker,
                         eTokenAmountReceived,
                         parsedChronikTx.genesisInfo.tokenName,
@@ -928,7 +927,6 @@ const useWallet = () => {
 
                         // Send this info to the notification function
                         eTokenReceivedNotification(
-                            currency,
                             genesisInfo.tokenTicker,
                             eTokenAmountReceived,
                             genesisInfo.tokenName,
@@ -1317,7 +1315,6 @@ const useWallet = () => {
             // Notification if you received SLP
             if (receivedSlpQty > 0) {
                 eTokenReceivedNotification(
-                    currency,
                     receivedSlpTicker,
                     receivedSlpQty,
                     receivedSlpName,
@@ -1349,7 +1346,6 @@ const useWallet = () => {
                     const receivedSlpName = tokens[i].info.tokenName;
 
                     eTokenReceivedNotification(
-                        currency,
                         receivedSlpTicker,
                         receivedSlpQty,
                         receivedSlpName,
@@ -1376,7 +1372,7 @@ const useWallet = () => {
         fiatCode = cashtabSettings ? cashtabSettings.fiatCurrency : 'usd',
     ) => {
         // Split this variable out in case coingecko changes
-        const cryptoId = currency.coingeckoId;
+        const cryptoId = appConfig.coingeckoId;
         // Keep this in the code, because different URLs will have different outputs require different parsing
         const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
         let bchPrice;

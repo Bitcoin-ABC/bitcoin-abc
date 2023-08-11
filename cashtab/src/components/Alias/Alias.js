@@ -37,6 +37,7 @@ import cashaddr from 'ecashaddrjs';
 import { Space, Tag } from 'antd';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
+import appConfig from 'config/app';
 
 export const CheckboxContainer = styled.div`
     text-align: left;
@@ -257,7 +258,7 @@ const Alias = ({ passLoadingStatus }) => {
                 const result = await registerNewAlias(
                     chronik,
                     wallet,
-                    currency.defaultFee,
+                    appConfig.defaultFee,
                     aliasInput,
                     aliasAddress,
                     aliasDetails.registrationFeeSats,
@@ -428,7 +429,7 @@ const Alias = ({ passLoadingStatus }) => {
                 ></WalletLabel>
                 {!balances.totalBalance ? (
                     <ZeroBalanceHeader>
-                        You currently have 0 {currency.ticker}
+                        You currently have 0 {appConfig.ticker}
                         <br />
                         Deposit some funds to use this feature
                     </ZeroBalanceHeader>
@@ -436,7 +437,7 @@ const Alias = ({ passLoadingStatus }) => {
                     <>
                         <BalanceHeader
                             balance={balances.totalBalance}
-                            ticker={currency.ticker}
+                            ticker={appConfig.ticker}
                             cashtabSettings={cashtabSettings}
                         />
                         {fiatPrice !== null && (

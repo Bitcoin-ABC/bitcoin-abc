@@ -7,7 +7,6 @@ import {
 } from '../__mocks__/registerNewAliasMocks';
 import createTokenMock from '../__mocks__/createToken';
 import { burnTokenWallet } from '../__mocks__/burnToken';
-import { currency } from '../../components/Common/Ticker';
 import BigNumber from 'bignumber.js';
 import { fromSatoshisToXec } from 'utils/cashMethods';
 import { ChronikClient } from 'chronik-client'; // for mocking purposes
@@ -20,6 +19,7 @@ import {
 } from 'utils/transactions';
 import { explorer } from 'config/explorer';
 import { MockChronikClient } from 'utils/__mocks__/chronikMock';
+import appConfig from 'config/app';
 
 describe('Cashtab transaction broadcasting functions', () => {
     it('sends XEC correctly', async () => {
@@ -37,7 +37,7 @@ describe('Cashtab transaction broadcasting functions', () => {
                 chronik,
                 wallet,
                 utxos,
-                currency.defaultFee,
+                appConfig.defaultFee,
                 '',
                 false,
                 null,
@@ -64,7 +64,7 @@ describe('Cashtab transaction broadcasting functions', () => {
                 chronik,
                 wallet,
                 utxos,
-                currency.defaultFee,
+                appConfig.defaultFee,
                 'This is an encrypted opreturn message',
                 false,
                 null,
@@ -99,7 +99,7 @@ describe('Cashtab transaction broadcasting functions', () => {
                 chronik,
                 wallet,
                 utxos,
-                currency.defaultFee,
+                appConfig.defaultFee,
                 '',
                 true,
                 addressAndValueArray,
@@ -128,7 +128,7 @@ describe('Cashtab transaction broadcasting functions', () => {
             await registerNewAlias(
                 mockedChronik,
                 aliasRegisteringWallet,
-                currency.defaultFee,
+                appConfig.defaultFee,
                 'newtest1',
                 'ecash:qqswmjpcjyq6a5syh8qhklty5q826r5vlsh7a7uqtq',
                 551,
@@ -155,7 +155,7 @@ describe('Cashtab transaction broadcasting functions', () => {
             await registerNewAlias(
                 mockedChronik,
                 aliasRegisteringWalletAfterTx,
-                currency.defaultFee,
+                appConfig.defaultFee,
                 'twentyonebytealiasreg',
                 'ecash:qqswmjpcjyq6a5syh8qhklty5q826r5vlsh7a7uqtq',
                 551,
@@ -182,7 +182,7 @@ describe('Cashtab transaction broadcasting functions', () => {
             await registerNewAlias(
                 mockedChronik,
                 aliasRegisteringWalletAfterTwoTxs,
-                currency.defaultFee,
+                appConfig.defaultFee,
                 'whynotthreetests',
                 'ecash:qqswmjpcjyq6a5syh8qhklty5q826r5vlsh7a7uqtq',
                 551,
@@ -190,7 +190,7 @@ describe('Cashtab transaction broadcasting functions', () => {
         ).toStrictEqual(expectedResult);
     });
 
-    it(`Throws error if called trying to send one base unit ${currency.ticker} more than available in utxo set`, async () => {
+    it(`Throws error if called trying to send one base unit ${appConfig.ticker} more than available in utxo set`, async () => {
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
@@ -209,7 +209,7 @@ describe('Cashtab transaction broadcasting functions', () => {
         const oneBaseUnitMoreThanBalance = totalInputUtxoValue
             .minus(expectedTxFeeInSats)
             .plus(1)
-            .div(10 ** currency.cashDecimals)
+            .div(10 ** appConfig.cashDecimals)
             .toString();
 
         let errorThrown;
@@ -218,7 +218,7 @@ describe('Cashtab transaction broadcasting functions', () => {
                 chronik,
                 wallet,
                 utxos,
-                currency.defaultFee,
+                appConfig.defaultFee,
                 '',
                 false,
                 null,
@@ -234,7 +234,7 @@ describe('Cashtab transaction broadcasting functions', () => {
             chronik,
             wallet,
             utxos,
-            currency.defaultFee,
+            appConfig.defaultFee,
             '',
             false,
             null,
@@ -256,12 +256,12 @@ describe('Cashtab transaction broadcasting functions', () => {
             chronik,
             wallet,
             utxos,
-            currency.defaultFee,
+            appConfig.defaultFee,
             '',
             false,
             null,
             destinationAddress,
-            new BigNumber(fromSatoshisToXec(currency.dustSats).toString())
+            new BigNumber(fromSatoshisToXec(appConfig.dustSats).toString())
                 .minus(new BigNumber('0.00000001'))
                 .toString(),
         );
@@ -302,7 +302,7 @@ describe('Cashtab transaction broadcasting functions', () => {
             chronik,
             wallet,
             utxos,
-            currency.defaultFee,
+            appConfig.defaultFee,
             '',
             false,
             null,
@@ -320,7 +320,7 @@ describe('Cashtab transaction broadcasting functions', () => {
             chronik,
             wallet,
             utxos,
-            currency.defaultFee,
+            appConfig.defaultFee,
             '',
             false,
             null,
@@ -338,7 +338,7 @@ describe('Cashtab transaction broadcasting functions', () => {
             chronik,
             wallet,
             utxos,
-            currency.defaultFee,
+            appConfig.defaultFee,
             '',
             false,
             null,
@@ -358,7 +358,7 @@ describe('Cashtab transaction broadcasting functions', () => {
             chronik,
             wallet,
             utxos,
-            currency.defaultFee,
+            appConfig.defaultFee,
             '',
             false,
             null,
@@ -393,7 +393,7 @@ describe('Cashtab transaction broadcasting functions', () => {
         const invalidWalletTokenCreation = createToken(
             chronik,
             invalidWallet,
-            currency.defaultFee,
+            appConfig.defaultFee,
             configObj,
         );
         await expect(invalidWalletTokenCreation).rejects.toThrow(

@@ -4,13 +4,13 @@ import PropTypes from 'prop-types';
 import { WalletContext } from 'utils/context';
 import OnBoarding from 'components/OnBoarding/OnBoarding';
 import { QRCode } from 'components/Common/QRCode';
-import { currency } from 'components/Common/Ticker.js';
 import { LoadingCtn } from 'components/Common/Atoms';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
 import { WalletInfoCtn, ZeroBalanceHeader } from 'components/Common/Atoms';
 import WalletLabel from 'components/Common/WalletLabel';
 import { getWalletState } from 'utils/cashMethods';
+import appConfig from 'config/app';
 
 const QrCodeCtn = styled.div``;
 
@@ -46,7 +46,7 @@ const ReceiveWithWalletPresent = ({
                 ></WalletLabel>
                 {!balances.totalBalance ? (
                     <ZeroBalanceHeader>
-                        You currently have 0 {currency.ticker}
+                        You currently have 0 {appConfig.ticker}
                         <br />
                         Deposit some funds to use this feature
                     </ZeroBalanceHeader>
@@ -54,7 +54,7 @@ const ReceiveWithWalletPresent = ({
                     <>
                         <BalanceHeader
                             balance={balances.totalBalance}
-                            ticker={currency.ticker}
+                            ticker={appConfig.ticker}
                             cashtabSettings={cashtabSettings}
                         />
 

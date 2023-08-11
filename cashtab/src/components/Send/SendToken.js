@@ -254,7 +254,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
         const { address, queryString } = addressInfo;
 
         // If query string,
-        // Show an alert that only amount and currency.ticker are supported
+        // Show an alert that only amount and appConfig.ticker are supported
         setQueryStringText(queryString);
 
         const isValid =

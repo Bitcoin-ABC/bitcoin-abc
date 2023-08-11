@@ -48,6 +48,7 @@ import {
 } from 'utils/__mocks__/mockCashtabCache';
 import { when } from 'jest-when';
 import defaultCashtabCache from 'config/cashtabCache';
+import appConfig from 'config/app';
 
 describe('Validation utils', () => {
     it(`isValidRecipient() returns true for a valid and registered alias input`, async () => {
@@ -141,204 +142,205 @@ describe('Validation utils', () => {
         const mnemonic = '';
         expect(validateMnemonic(mnemonic)).toBe(false);
     });
-    it(`Returns 'false' if ${currency.ticker} send amount is a valid send amount`, () => {
-        expect(shouldRejectAmountInput('10', currency.ticker, 20.0, 300)).toBe(
+    it(`Returns 'false' if ${appConfig.ticker} send amount is a valid send amount`, () => {
+        expect(shouldRejectAmountInput('10', appConfig.ticker, 20.0, 300)).toBe(
             false,
         );
     });
-    it(`Returns 'false' if ${currency.ticker} send amount is a valid send amount in USD`, () => {
+    it(`Returns 'false' if ${appConfig.ticker} send amount is a valid send amount in USD`, () => {
         // Here, user is trying to send $170 USD, where 1 BCHA = $20 USD, and the user has a balance of 15 BCHA or $300
         expect(shouldRejectAmountInput('170', 'USD', 20.0, 15)).toBe(false);
     });
-    it(`Returns not a number if ${currency.ticker} send amount is not a number`, () => {
+    it(`Returns not a number if ${appConfig.ticker} send amount is not a number`, () => {
         const expectedValidationError = `Amount must be a number`;
         expect(
-            shouldRejectAmountInput('Not a number', currency.ticker, 20.0, 3),
+            shouldRejectAmountInput('Not a number', appConfig.ticker, 20.0, 3),
         ).toBe(expectedValidationError);
     });
-    it(`Returns amount must be greater than 0 if ${currency.ticker} send amount is 0`, () => {
+    it(`Returns amount must be greater than 0 if ${appConfig.ticker} send amount is 0`, () => {
         const expectedValidationError = `Amount must be greater than 0`;
-        expect(shouldRejectAmountInput('0', currency.ticker, 20.0, 3)).toBe(
+        expect(shouldRejectAmountInput('0', appConfig.ticker, 20.0, 3)).toBe(
             expectedValidationError,
         );
     });
-    it(`Returns amount must be greater than 0 if ${currency.ticker} send amount is less than 0`, () => {
+    it(`Returns amount must be greater than 0 if ${appConfig.ticker} send amount is less than 0`, () => {
         const expectedValidationError = `Amount must be greater than 0`;
         expect(
-            shouldRejectAmountInput('-0.031', currency.ticker, 20.0, 3),
+            shouldRejectAmountInput('-0.031', appConfig.ticker, 20.0, 3),
         ).toBe(expectedValidationError);
     });
-    it(`Returns balance error if ${currency.ticker} send amount is greater than user balance`, () => {
-        const expectedValidationError = `Amount cannot exceed your ${currency.ticker} balance`;
-        expect(shouldRejectAmountInput('17', currency.ticker, 20.0, 3)).toBe(
+    it(`Returns balance error if ${appConfig.ticker} send amount is greater than user balance`, () => {
+        const expectedValidationError = `Amount cannot exceed your ${appConfig.ticker} balance`;
+        expect(shouldRejectAmountInput('17', appConfig.ticker, 20.0, 3)).toBe(
             expectedValidationError,
         );
     });
-    it(`Returns balance error if ${currency.ticker} send amount is greater than user balance`, () => {
-        const expectedValidationError = `Amount cannot exceed your ${currency.ticker} balance`;
-        expect(shouldRejectAmountInput('17', currency.ticker, 20.0, 3)).toBe(
+    it(`Returns balance error if ${appConfig.ticker} send amount is greater than user balance`, () => {
+        const expectedValidationError = `Amount cannot exceed your ${appConfig.ticker} balance`;
+        expect(shouldRejectAmountInput('17', appConfig.ticker, 20.0, 3)).toBe(
             expectedValidationError,
         );
     });
     it(`Returns error if ${
-        currency.ticker
+        appConfig.ticker
     } send amount is less than ${fromSatoshisToXec(
-        currency.dustSats,
+        appConfig.dustSats,
     ).toString()} minimum`, () => {
         const expectedValidationError = `Send amount must be at least ${fromSatoshisToXec(
-            currency.dustSats,
-        ).toString()} ${currency.ticker}`;
+            appConfig.dustSats,
+        ).toString()} ${appConfig.ticker}`;
         expect(
             shouldRejectAmountInput(
                 (
-                    fromSatoshisToXec(currency.dustSats).toString() - 0.00000001
+                    fromSatoshisToXec(appConfig.dustSats).toString() -
+                    0.00000001
                 ).toString(),
-                currency.ticker,
+                appConfig.ticker,
                 20.0,
                 3,
             ),
         ).toBe(expectedValidationError);
     });
     it(`Returns error if ${
-        currency.ticker
+        appConfig.ticker
     } send amount is less than ${fromSatoshisToXec(
-        currency.dustSats,
+        appConfig.dustSats,
     ).toString()} minimum in fiat currency`, () => {
         const expectedValidationError = `Send amount must be at least ${fromSatoshisToXec(
-            currency.dustSats,
-        ).toString()} ${currency.ticker}`;
+            appConfig.dustSats,
+        ).toString()} ${appConfig.ticker}`;
         expect(
             shouldRejectAmountInput('0.0000005', 'USD', 0.00005, 1000000),
         ).toBe(expectedValidationError);
     });
-    it(`Returns balance error if ${currency.ticker} send amount is greater than user balance with fiat currency selected`, () => {
-        const expectedValidationError = `Amount cannot exceed your ${currency.ticker} balance`;
+    it(`Returns balance error if ${appConfig.ticker} send amount is greater than user balance with fiat currency selected`, () => {
+        const expectedValidationError = `Amount cannot exceed your ${appConfig.ticker} balance`;
         // Here, user is trying to send $170 USD, where 1 BCHA = $20 USD, and the user has a balance of 5 BCHA or $100
         expect(shouldRejectAmountInput('170', 'USD', 20.0, 5)).toBe(
             expectedValidationError,
         );
     });
-    it(`Returns precision error if ${currency.ticker} send amount has more than ${currency.cashDecimals} decimal places`, () => {
-        const expectedValidationError = `${currency.ticker} transactions do not support more than ${currency.cashDecimals} decimal places`;
+    it(`Returns precision error if ${appConfig.ticker} send amount has more than ${appConfig.cashDecimals} decimal places`, () => {
+        const expectedValidationError = `${appConfig.ticker} transactions do not support more than ${appConfig.cashDecimals} decimal places`;
         expect(
-            shouldRejectAmountInput('17.123456789', currency.ticker, 20.0, 35),
+            shouldRejectAmountInput('17.123456789', appConfig.ticker, 20.0, 35),
         ).toBe(expectedValidationError);
     });
-    it(`Returns expected crypto amount with ${currency.cashDecimals} decimals of precision even if inputs have higher precision`, () => {
+    it(`Returns expected crypto amount with ${appConfig.cashDecimals} decimals of precision even if inputs have higher precision`, () => {
         expect(fiatToCrypto('10.97231694823432', 20.323134234923423, 8)).toBe(
             '0.53989295',
         );
     });
-    it(`Returns expected crypto amount with ${currency.cashDecimals} decimals of precision even if inputs have higher precision`, () => {
+    it(`Returns expected crypto amount with ${appConfig.cashDecimals} decimals of precision even if inputs have higher precision`, () => {
         expect(fiatToCrypto('10.97231694823432', 20.323134234923423, 2)).toBe(
             '0.54',
         );
     });
-    it(`Returns expected crypto amount with ${currency.cashDecimals} decimals of precision even if inputs have lower precision`, () => {
+    it(`Returns expected crypto amount with ${appConfig.cashDecimals} decimals of precision even if inputs have lower precision`, () => {
         expect(fiatToCrypto('10.94', 10, 8)).toBe('1.09400000');
     });
-    it(`Accepts a valid ${currency.tokenTicker} token name`, () => {
+    it(`Accepts a valid ${appConfig.tokenTicker} token name`, () => {
         expect(isValidTokenName('Valid token name')).toBe(true);
     });
-    it(`Accepts a valid ${currency.tokenTicker} token name that is a stringified number`, () => {
+    it(`Accepts a valid ${appConfig.tokenTicker} token name that is a stringified number`, () => {
         expect(isValidTokenName('123456789')).toBe(true);
     });
-    it(`Rejects ${currency.tokenTicker} token name if longer than 68 characters`, () => {
+    it(`Rejects ${appConfig.tokenTicker} token name if longer than 68 characters`, () => {
         expect(
             isValidTokenName(
                 'This token name is not valid because it is longer than 68 characters which is really pretty long for a token name when you think about it and all',
             ),
         ).toBe(false);
     });
-    it(`Rejects ${currency.tokenTicker} token name if empty string`, () => {
+    it(`Rejects ${appConfig.tokenTicker} token name if empty string`, () => {
         expect(isValidTokenName('')).toBe(false);
     });
-    it(`Accepts a 4-char ${currency.tokenTicker} token ticker`, () => {
+    it(`Accepts a 4-char ${appConfig.tokenTicker} token ticker`, () => {
         expect(isValidTokenTicker('DOGG')).toBe(true);
     });
-    it(`Accepts a 12-char ${currency.tokenTicker} token ticker`, () => {
+    it(`Accepts a 12-char ${appConfig.tokenTicker} token ticker`, () => {
         expect(isValidTokenTicker('123456789123')).toBe(true);
     });
-    it(`Rejects ${currency.tokenTicker} token ticker if empty string`, () => {
+    it(`Rejects ${appConfig.tokenTicker} token ticker if empty string`, () => {
         expect(isValidTokenTicker('')).toBe(false);
     });
-    it(`Rejects ${currency.tokenTicker} token ticker if > 12 chars`, () => {
+    it(`Rejects ${appConfig.tokenTicker} token ticker if > 12 chars`, () => {
         expect(isValidTokenTicker('1234567891234')).toBe(false);
     });
-    it(`Accepts ${currency.tokenDecimals} if zero`, () => {
+    it(`Accepts tokenDecimals if zero`, () => {
         expect(isValidTokenDecimals('0')).toBe(true);
     });
-    it(`Accepts ${currency.tokenDecimals} if between 0 and 9 inclusive`, () => {
+    it(`Accepts tokenDecimals if between 0 and 9 inclusive`, () => {
         expect(isValidTokenDecimals('9')).toBe(true);
     });
-    it(`Rejects ${currency.tokenDecimals} if empty string`, () => {
+    it(`Rejects tokenDecimals if empty string`, () => {
         expect(isValidTokenDecimals('')).toBe(false);
     });
-    it(`Rejects ${currency.tokenDecimals} if non-integer`, () => {
+    it(`Rejects tokenDecimals if non-integer`, () => {
         expect(isValidTokenDecimals('1.7')).toBe(false);
     });
-    it(`Accepts ${currency.tokenDecimals} initial genesis quantity at minimum amount for 3 decimal places`, () => {
+    it(`Accepts tokenDecimals initial genesis quantity at minimum amount for 3 decimal places`, () => {
         expect(isValidTokenInitialQty('0.001', '3')).toBe(true);
     });
-    it(`Accepts ${currency.tokenDecimals} initial genesis quantity at minimum amount for 9 decimal places`, () => {
+    it(`Accepts initial genesis quantity at minimum amount for 9 decimal places`, () => {
         expect(isValidTokenInitialQty('0.000000001', '9')).toBe(true);
     });
-    it(`Accepts ${currency.tokenDecimals} initial genesis quantity at amount below 100 billion`, () => {
+    it(`Accepts initial genesis quantity at amount below 100 billion`, () => {
         expect(isValidTokenInitialQty('1000', '0')).toBe(true);
     });
-    it(`Accepts highest possible ${currency.tokenDecimals} initial genesis quantity at amount below 100 billion`, () => {
+    it(`Accepts highest possible initial genesis quantity at amount below 100 billion`, () => {
         expect(isValidTokenInitialQty('99999999999.999999999', '9')).toBe(true);
     });
-    it(`Accepts ${currency.tokenDecimals} initial genesis quantity if decimal places equal tokenDecimals`, () => {
+    it(`Accepts initial genesis quantity if decimal places equal tokenDecimals`, () => {
         expect(isValidTokenInitialQty('0.123', '3')).toBe(true);
     });
-    it(`Accepts ${currency.tokenDecimals} initial genesis quantity if decimal places are less than tokenDecimals`, () => {
+    it(`Accepts initial genesis quantity if decimal places are less than tokenDecimals`, () => {
         expect(isValidTokenInitialQty('0.12345', '9')).toBe(true);
     });
-    it(`Rejects ${currency.tokenDecimals} initial genesis quantity of zero`, () => {
+    it(`Rejects initial genesis quantity of zero`, () => {
         expect(isValidTokenInitialQty('0', '9')).toBe(false);
     });
-    it(`Rejects ${currency.tokenDecimals} initial genesis quantity if tokenDecimals is not valid`, () => {
+    it(`Rejects initial genesis quantity if tokenDecimals is not valid`, () => {
         expect(isValidTokenInitialQty('0', '')).toBe(false);
     });
-    it(`Rejects ${currency.tokenDecimals} initial genesis quantity if 100 billion or higher`, () => {
+    it(`Rejects initial genesis quantity if 100 billion or higher`, () => {
         expect(isValidTokenInitialQty('100000000000', '0')).toBe(false);
     });
-    it(`Rejects ${currency.tokenDecimals} initial genesis quantity if it has more decimal places than tokenDecimals`, () => {
+    it(`Rejects initial genesis quantity if it has more decimal places than tokenDecimals`, () => {
         expect(isValidTokenInitialQty('1.5', '0')).toBe(false);
     });
-    it(`Accepts a valid ${currency.tokenTicker} token document URL`, () => {
+    it(`Accepts a valid ${appConfig.tokenTicker} token document URL`, () => {
         expect(isValidTokenDocumentUrl('cashtabapp.com')).toBe(true);
     });
-    it(`Accepts a valid ${currency.tokenTicker} token document URL including special URL characters`, () => {
+    it(`Accepts a valid ${appConfig.tokenTicker} token document URL including special URL characters`, () => {
         expect(isValidTokenDocumentUrl('https://cashtabapp.com/')).toBe(true);
     });
-    it(`Accepts a blank string as a valid ${currency.tokenTicker} token document URL`, () => {
+    it(`Accepts a blank string as a valid ${appConfig.tokenTicker} token document URL`, () => {
         expect(isValidTokenDocumentUrl('')).toBe(true);
     });
-    it(`Rejects ${currency.tokenTicker} token name if longer than 68 characters`, () => {
+    it(`Rejects ${appConfig.tokenTicker} token name if longer than 68 characters`, () => {
         expect(
             isValidTokenDocumentUrl(
                 'http://www.ThisTokenDocumentUrlIsActuallyMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchTooLong.com/',
             ),
         ).toBe(false);
     });
-    it(`Accepts a domain input with https protocol as ${currency.tokenTicker} token document URL`, () => {
+    it(`Accepts a domain input with https protocol as ${appConfig.tokenTicker} token document URL`, () => {
         expect(isValidTokenDocumentUrl('https://google.com')).toBe(true);
     });
-    it(`Accepts a domain input with http protocol as ${currency.tokenTicker} token document URL`, () => {
+    it(`Accepts a domain input with http protocol as ${appConfig.tokenTicker} token document URL`, () => {
         expect(isValidTokenDocumentUrl('http://test.com')).toBe(true);
     });
-    it(`Accepts a domain input with a primary and secondary top level domain as ${currency.tokenTicker} token document URL`, () => {
+    it(`Accepts a domain input with a primary and secondary top level domain as ${appConfig.tokenTicker} token document URL`, () => {
         expect(isValidTokenDocumentUrl('http://test.co.uk')).toBe(true);
     });
-    it(`Accepts a domain input with just a subdomain as ${currency.tokenTicker} token document URL`, () => {
+    it(`Accepts a domain input with just a subdomain as ${appConfig.tokenTicker} token document URL`, () => {
         expect(isValidTokenDocumentUrl('www.test.co.uk')).toBe(true);
     });
-    it(`Rejects a domain input with no top level domain, protocol or subdomain  ${currency.tokenTicker} token document URL`, () => {
+    it(`Rejects a domain input with no top level domain, protocol or subdomain  ${appConfig.tokenTicker} token document URL`, () => {
         expect(isValidTokenDocumentUrl('mywebsite')).toBe(false);
     });
-    it(`Rejects a domain input as numbers ${currency.tokenTicker} token document URL`, () => {
+    it(`Rejects a domain input as numbers ${appConfig.tokenTicker} token document URL`, () => {
         expect(isValidTokenDocumentUrl(12345)).toBe(false);
     });
     it(`Recognizes the default cashtabCache object as valid`, () => {
@@ -537,11 +539,11 @@ describe('Validation utils', () => {
         expect(isValidEtokenAddress(addr)).toBe(false);
     });
     it(`isValidXecSendAmount accepts the dust minimum`, () => {
-        const testXecSendAmount = fromSatoshisToXec(currency.dustSats);
+        const testXecSendAmount = fromSatoshisToXec(appConfig.dustSats);
         expect(isValidXecSendAmount(testXecSendAmount)).toBe(true);
     });
     it(`isValidXecSendAmount accepts arbitrary number above dust minimum`, () => {
-        const testXecSendAmount = fromSatoshisToXec(currency.dustSats) + 1.75;
+        const testXecSendAmount = fromSatoshisToXec(appConfig.dustSats) + 1.75;
         expect(isValidXecSendAmount(testXecSendAmount)).toBe(true);
     });
     it(`isValidXecSendAmount rejects zero`, () => {
@@ -554,7 +556,7 @@ describe('Validation utils', () => {
     });
     it(`isValidXecSendAmount accepts arbitrary number above dust minimum as a string`, () => {
         const testXecSendAmount = `${
-            fromSatoshisToXec(currency.dustSats) + 1.75
+            fromSatoshisToXec(appConfig.dustSats) + 1.75
         }`;
         expect(isValidXecSendAmount(testXecSendAmount)).toBe(true);
     });

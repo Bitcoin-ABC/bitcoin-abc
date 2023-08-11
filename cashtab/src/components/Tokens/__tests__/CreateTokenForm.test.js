@@ -6,8 +6,8 @@ import CreateTokenForm from 'components/Tokens/CreateTokenForm';
 import { walletWithBalancesAndTokensWithCorrectState } from '../../Home/__mocks__/walletAndBalancesMock';
 import { WalletContext } from 'utils/context';
 import BigNumber from 'bignumber.js';
-import { currency } from 'components/Common/Ticker';
 import { createToken } from 'utils/transactions';
+import appConfig from 'config/app';
 
 beforeEach(() => {
     // Mock method not implemented in JSDOM
@@ -37,7 +37,7 @@ test('Wallet with BCH balances and tokens and state field', () => {
                     createToken={createToken}
                     disabled={new BigNumber(
                         walletWithBalancesAndTokensWithCorrectState.wallet.state.balances.totalBalanceInSatoshis,
-                    ).lt(new BigNumber(currency.etokenSats))}
+                    ).lt(new BigNumber(appConfig.etokenSats))}
                 />
             </ThemeProvider>
         </WalletContext.Provider>,

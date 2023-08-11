@@ -53,7 +53,7 @@ import {
 import { convertToEcashPrefix } from 'utils/cashMethods';
 import useWindowDimensions from 'hooks/useWindowDimensions';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
-import { currency } from 'components/Common/Ticker.js';
+import appConfig from 'config/app';
 const { Panel } = Collapse;
 
 const SWRow = styled.div`
@@ -851,7 +851,7 @@ const Configure = ({ passLoadingStatus }) => {
         if (
             value &&
             value.length &&
-            value.length < currency.localStorageMaxCharacters
+            value.length < appConfig.localStorageMaxCharacters
         ) {
             setNewContactNameIsValid(true);
         } else {

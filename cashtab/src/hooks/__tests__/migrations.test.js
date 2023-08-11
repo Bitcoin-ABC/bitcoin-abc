@@ -1,10 +1,10 @@
-import { currency } from '../../components/Common/Ticker';
 import BigNumber from 'bignumber.js';
 import { fromSatoshisToXec, fromXecToSatoshis } from 'utils/cashMethods';
+import appConfig from 'config/app';
 
 describe('Testing functions for upgrading Cashtab', () => {
-    it('Replacement currency.dustSats parameter parsing matches legacy DUST parameter', () => {
-        expect(fromSatoshisToXec(currency.dustSats, 8).toNumber()).toBe(
+    it('Replacement appConfig.dustSats parameter parsing matches legacy DUST parameter', () => {
+        expect(fromSatoshisToXec(appConfig.dustSats, 8).toNumber()).toBe(
             0.0000055,
         );
     });
@@ -108,7 +108,7 @@ describe('Testing functions for upgrading Cashtab', () => {
     });
 
     it(`Converts dust limit in satoshis to dust limit in current app setting`, () => {
-        expect(fromSatoshisToXec(currency.dustSats, 8).toString()).toBe(
+        expect(fromSatoshisToXec(appConfig.dustSats, 8).toString()).toBe(
             '0.0000055',
         );
     });

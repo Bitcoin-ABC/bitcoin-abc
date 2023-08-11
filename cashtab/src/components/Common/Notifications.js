@@ -6,10 +6,10 @@ import {
     ThemedUserProfileIcon,
 } from 'components/Common/CustomIcons';
 import Paragraph from 'antd/lib/typography/Paragraph';
-import { currency } from 'components/Common/Ticker';
 import { MessageSignedNotificationIcon } from 'components/Common/CustomIcons';
 import { isMobile } from 'react-device-detect';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
+import appConfig from 'config/app';
 
 const getDeviceNotificationStyle = () => {
     if (isMobile) {
@@ -39,7 +39,7 @@ const sendXecNotification = link => {
                 </Paragraph>
             </a>
         ),
-        duration: currency.notificationDurationShort,
+        duration: appConfig.notificationDurationShort,
         icon: <CashReceivedNotificationIcon />,
         style: notificationStyle,
     });
@@ -56,7 +56,7 @@ const registerAliasNotification = (link, alias) => {
                 </Paragraph>
             </a>
         ),
-        duration: currency.notificationDurationShort,
+        duration: appConfig.notificationDurationShort,
         icon: <ThemedUserProfileIcon />,
         style: notificationStyle,
     });
@@ -101,7 +101,7 @@ const sendTokenNotification = link => {
                 </Paragraph>
             </a>
         ),
-        duration: currency.notificationDurationShort,
+        duration: appConfig.notificationDurationShort,
         icon: <TokenReceivedNotificationIcon />,
         style: notificationStyle,
     });
@@ -118,7 +118,7 @@ const burnTokenNotification = link => {
                 </Paragraph>
             </a>
         ),
-        duration: currency.notificationDurationLong,
+        duration: appConfig.notificationDurationLong,
         icon: <TokenReceivedNotificationIcon />,
         style: notificationStyle,
     });
@@ -139,9 +139,9 @@ const xecReceivedNotification = (
                 {parseFloat(
                     Number(
                         balances.totalBalance - previousBalances.totalBalance,
-                    ).toFixed(currency.cashDecimals),
+                    ).toFixed(appConfig.cashDecimals),
                 ).toLocaleString()}{' '}
-                {currency.ticker}{' '}
+                {appConfig.ticker}{' '}
                 {cashtabSettings &&
                     cashtabSettings.fiatCurrency &&
                     `(${
@@ -153,11 +153,11 @@ const xecReceivedNotification = (
                                 previousBalances.totalBalance,
                         ) * fiatPrice
                     ).toFixed(
-                        currency.cashDecimals,
+                        appConfig.cashDecimals,
                     )} ${cashtabSettings.fiatCurrency.toUpperCase()})`}
             </Paragraph>
         ),
-        duration: currency.notificationDurationShort,
+        duration: appConfig.notificationDurationShort,
         icon: <CashReceivedNotificationIcon />,
         style: notificationStyle,
     });
@@ -173,38 +173,37 @@ const xecReceivedNotificationWebsocket = (
         message: 'eCash received',
         description: (
             <Paragraph>
-                + {xecAmount.toLocaleString()} {currency.ticker}{' '}
+                + {xecAmount.toLocaleString()} {appConfig.ticker}{' '}
                 {cashtabSettings &&
                     cashtabSettings.fiatCurrency &&
                     `(${
                         supportedFiatCurrencies[cashtabSettings.fiatCurrency]
                             .symbol
                     }${(xecAmount * fiatPrice).toFixed(
-                        currency.cashDecimals,
+                        appConfig.cashDecimals,
                     )} ${cashtabSettings.fiatCurrency.toUpperCase()})`}
             </Paragraph>
         ),
-        duration: currency.notificationDurationShort,
+        duration: appConfig.notificationDurationShort,
         icon: <CashReceivedNotificationIcon />,
         style: notificationStyle,
     });
 };
 
 const eTokenReceivedNotification = (
-    currency,
     receivedSlpTicker,
     receivedSlpQty,
     receivedSlpName,
 ) => {
     const notificationStyle = getDeviceNotificationStyle();
     notification.success({
-        message: `${currency.tokenTicker} transaction received: ${receivedSlpTicker}`,
+        message: `${appConfig.tokenTicker} transaction received: ${receivedSlpTicker}`,
         description: (
             <Paragraph>
                 You received {receivedSlpQty.toString()} {receivedSlpName}
             </Paragraph>
         ),
-        duration: currency.notificationDurationShort,
+        duration: appConfig.notificationDurationShort,
         icon: <TokenReceivedNotificationIcon />,
         style: notificationStyle,
     });
@@ -218,7 +217,7 @@ const errorNotification = (error, message, stringDescribingCallEvent) => {
     notification.error({
         message: 'Error',
         description: message,
-        duration: currency.notificationDurationLong,
+        duration: appConfig.notificationDurationLong,
         style: notificationStyle,
     });
 };
