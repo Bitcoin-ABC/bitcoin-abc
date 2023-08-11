@@ -1104,9 +1104,7 @@ static RPCHelpMan isfinalblock() {
                                    "Avalanche is not initialized");
             }
 
-            // Deprecated since 0.26.2
-            if (!IsDeprecatedRPCEnabled(gArgs, "isfinalblock_noerror") &&
-                !g_avalanche->isQuorumEstablished()) {
+            if (!g_avalanche->isQuorumEstablished()) {
                 throw JSONRPCError(RPC_MISC_ERROR,
                                    "Avalanche is not ready to poll yet.");
             }
@@ -1181,38 +1179,31 @@ static RPCHelpMan isfinaltransaction() {
                 pindex, node.mempool.get(), txid,
                 config.GetChainParams().GetConsensus(), hash_block);
 
-            // Deprecated since 0.26.2
-            if (!IsDeprecatedRPCEnabled(gArgs, "isfinaltransaction_noerror")) {
-                if (!g_avalanche->isQuorumEstablished()) {
-                    throw JSONRPCError(RPC_MISC_ERROR,
-                                       "Avalanche is not ready to poll yet.");
-                }
+            if (!g_avalanche->isQuorumEstablished()) {
+                throw JSONRPCError(RPC_MISC_ERROR,
+                                   "Avalanche is not ready to poll yet.");
+            }
 
-                if (!tx) {
-                    std::string errmsg;
-                    if (pindex) {
-                        if (WITH_LOCK(::cs_main,
-                                      return !pindex->nStatus.hasData())) {
-                            throw JSONRPCError(
-                                RPC_MISC_ERROR,
-                                "Block data not downloaded yet.");
-                        }
-                        errmsg =
-                            "No such transaction found in the provided block.";
-                    } else if (!g_txindex) {
-                        errmsg =
-                            "No such transaction. Use -txindex or provide a "
-                            "block "
-                            "hash to enable blockchain transaction queries.";
-                    } else if (!f_txindex_ready) {
-                        errmsg =
-                            "No such transaction. Blockchain transactions are "
-                            "still in the process of being indexed.";
-                    } else {
-                        errmsg = "No such mempool or blockchain transaction.";
+            if (!tx) {
+                std::string errmsg;
+                if (pindex) {
+                    if (WITH_LOCK(::cs_main,
+                                  return !pindex->nStatus.hasData())) {
+                        throw JSONRPCError(RPC_MISC_ERROR,
+                                           "Block data not downloaded yet.");
                     }
-                    throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, errmsg);
+                    errmsg = "No such transaction found in the provided block.";
+                } else if (!g_txindex) {
+                    errmsg = "No such transaction. Use -txindex or provide a "
+                             "block "
+                             "hash to enable blockchain transaction queries.";
+                } else if (!f_txindex_ready) {
+                    errmsg = "No such transaction. Blockchain transactions are "
+                             "still in the process of being indexed.";
+                } else {
+                    errmsg = "No such mempool or blockchain transaction.";
                 }
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, errmsg);
             }
 
             if (!pindex) {

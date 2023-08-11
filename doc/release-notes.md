@@ -4,4 +4,7 @@ Bitcoin ABC version 0.27.12 is now available from:
 
   <https://download.bitcoinabc.org/0.27.12/>
 
-This is a maintenance release with no user-visible change.
+This release includes the following features and fixes:
+ - The `-deprecatedrpc=isfinalblock_noerror` and
+   `-deprecatedrpc=isfinaltransaction_noerror` options were deprecated since
+   v0.26.2 and have been completely removed.
