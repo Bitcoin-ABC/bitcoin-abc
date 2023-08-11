@@ -1679,72 +1679,6 @@ RPCHelpMan getblockchaininfo() {
                 {RPCResult::Type::NUM, "prune_target_size",
                  "the target size used by pruning (only present if automatic "
                  "pruning is enabled)"},
-                {RPCResult::Type::OBJ_DYN,
-                 "softforks",
-                 "status of softforks. DEPRECATED: Only displayed if the "
-                 "-deprecatedrpc=softforks "
-                 "option is set",
-                 {
-                     {RPCResult::Type::OBJ,
-                      "xxxx",
-                      "name of the softfork",
-                      {
-                          {RPCResult::Type::STR, "type",
-                           "one of \"buried\", \"bip9\""},
-                          {RPCResult::Type::OBJ,
-                           "bip9",
-                           "status of bip9 softforks (only for \"bip9\" type)",
-                           {
-                               {RPCResult::Type::STR, "status",
-                                "one of \"defined\", \"started\", "
-                                "\"locked_in\", \"active\", \"failed\""},
-                               {RPCResult::Type::NUM, "bit",
-                                "the bit (0-28) in the block version field "
-                                "used to signal this softfork (only for "
-                                "\"started\" status)"},
-                               {RPCResult::Type::NUM_TIME, "start_time",
-                                "the minimum median time past of a block at "
-                                "which the bit gains its meaning"},
-                               {RPCResult::Type::NUM_TIME, "timeout",
-                                "the median time past of a block at which the "
-                                "deployment is considered failed if not yet "
-                                "locked in"},
-                               {RPCResult::Type::NUM, "since",
-                                "height of the first block to which the status "
-                                "applies"},
-                               {RPCResult::Type::OBJ,
-                                "statistics",
-                                "numeric statistics about BIP9 signalling for "
-                                "a softfork",
-                                {
-                                    {RPCResult::Type::NUM, "period",
-                                     "the length in blocks of the BIP9 "
-                                     "signalling period"},
-                                    {RPCResult::Type::NUM, "threshold",
-                                     "the number of blocks with the version "
-                                     "bit set required to activate the "
-                                     "feature"},
-                                    {RPCResult::Type::NUM, "elapsed",
-                                     "the number of blocks elapsed since the "
-                                     "beginning of the current period"},
-                                    {RPCResult::Type::NUM, "count",
-                                     "the number of blocks with the version "
-                                     "bit set in the current period"},
-                                    {RPCResult::Type::BOOL, "possible",
-                                     "returns false if there are not enough "
-                                     "blocks left in this period to pass "
-                                     "activation threshold"},
-                                }},
-                           }},
-                          {RPCResult::Type::NUM, "height",
-                           "height of the first block which the rules are or "
-                           "will be enforced (only for \"buried\" type, or "
-                           "\"bip9\" type with \"active\" status)"},
-                          {RPCResult::Type::BOOL, "active",
-                           "true if the rules are enforced for the mempool and "
-                           "the next block"},
-                      }},
-                 }},
                 {RPCResult::Type::STR, "warnings",
                  "any network and blockchain warnings"},
             }},
@@ -1791,15 +1725,6 @@ RPCHelpMan getblockchaininfo() {
                 if (automatic_pruning) {
                     obj.pushKV("prune_target_size", node::nPruneTarget);
                 }
-            }
-
-            // Deprecated in v0.27.0
-            if (IsDeprecatedRPCEnabled(gArgs, "softforks")) {
-                // This field has been empty for a long while and the associated
-                // code has already been removed, as there is no plan to use
-                // BIP9 again.
-                UniValue softforks(UniValue::VOBJ);
-                obj.pushKV("softforks", softforks);
             }
 
             obj.pushKV("warnings", GetWarnings(false).original);

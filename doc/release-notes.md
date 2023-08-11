@@ -10,3 +10,5 @@ This release includes the following features and fixes:
    v0.26.2 and have been completely removed.
  - The `-deprecatedrpc=getblocktemplate_sigops` option was deprecated since
    v0.26.8 and has been completely removed.
+ - The `-deprecatedrpc=softforks` option was deprecated since v0.27.0 and has
+   been completely removed.

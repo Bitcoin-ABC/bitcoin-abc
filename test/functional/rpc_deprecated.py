@@ -4,7 +4,6 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test deprecation of RPC calls."""
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal
 
 
 class DeprecatedRpcTest(BitcoinTestFramework):
@@ -12,9 +11,7 @@ class DeprecatedRpcTest(BitcoinTestFramework):
         self.num_nodes = 2
         self.extra_args = [
             [],
-            [
-                "-deprecatedrpc=softforks",
-            ],
+            [],
         ]
 
     def skip_test_if_missing_module(self):
@@ -31,14 +28,7 @@ class DeprecatedRpcTest(BitcoinTestFramework):
         # self.log.info("Test generate RPC")
         # assert_raises_rpc_error(-32, 'The wallet generate rpc method is deprecated', self.nodes[0].rpc.generate, 1)
         # self.nodes[1].generate(1)
-
-        self.log.info(
-            "Check the getblockchaininfo output with and without"
-            " -deprecatedrpc=softforks"
-        )
-        assert "softforks" not in self.nodes[0].getblockchaininfo()
-        res = self.nodes[1].getblockchaininfo()
-        assert_equal(res["softforks"], {})
+        pass
 
 
 if __name__ == "__main__":
