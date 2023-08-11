@@ -65,7 +65,6 @@ class P2PBlocksOnly(BitcoinTestFramework):
                 "-persistmempool=0",
                 "-whitelist=relay@127.0.0.1",
                 "-blocksonly",
-                "-deprecatedrpc=whitelisted",
             ],
         )
         assert_equal(self.nodes[0].getrawmempool(), [])

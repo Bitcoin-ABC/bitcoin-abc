@@ -33,14 +33,6 @@ class P2PPermissionsTests(BitcoinTestFramework):
         )
 
         self.checkpermission(
-            # check without deprecatedrpc=whitelisted
-            ["-whitelist=127.0.0.1"],
-            # Make sure the default values in the command line documentation
-            # match the ones here
-            ["relay", "noban", "mempool", "download"],
-        )
-
-        self.checkpermission(
             # no permission (even with forcerelay)
             ["-whitelist=@127.0.0.1", "-whitelistforcerelay=1"],
             [],
@@ -78,12 +70,6 @@ class P2PPermissionsTests(BitcoinTestFramework):
 
         self.checkpermission(
             # legacy whitelistrelay should be ignored
-            ["-whitelist=noban,mempool@127.0.0.1", "-whitelistrelay"],
-            ["noban", "mempool", "download"],
-        )
-
-        self.checkpermission(
-            # check without deprecatedrpc=whitelisted
             ["-whitelist=noban,mempool@127.0.0.1", "-whitelistrelay"],
             ["noban", "mempool", "download"],
         )
