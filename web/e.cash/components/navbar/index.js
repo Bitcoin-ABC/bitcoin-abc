@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { navitems } from '../../data/navitems';
-import { NavbarOuter, NavbarCtn } from './styles';
+import { NavbarOuter, NavbarCtn, EnvVarMessage } from './styles';
 import AnnouncementBar from '/components/announcement-bar';
 
 export default function Navbar({ announcementbar }) {
@@ -66,6 +66,18 @@ export default function Navbar({ announcementbar }) {
                 text="Stealth Mode Activated"
                 navBackground={navBackground}
             />
+            {!process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID && (
+                <EnvVarMessage>
+                    Google Analytics is disabled, set the env
+                    NEXT_PUBLIC_GOOGLE_ANALYTICS_ID to fix
+                </EnvVarMessage>
+            )}
+            {!process.env.NEXT_PUBLIC_WEGLOT_API_KEY && (
+                <EnvVarMessage>
+                    Translations are disabled, set the env
+                    NEXT_PUBLIC_WEGLOT_API_KEY to fix
+                </EnvVarMessage>
+            )}
             <NavbarCtn navBackground={navBackground}>
                 <div className="navbar">
                     <Link href="/" className="nav_logo">

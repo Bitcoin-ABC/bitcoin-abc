@@ -339,3 +339,14 @@ export const NavbarCtn = styled.div`
         }
     }
 `;
+
+export const EnvVarMessage = styled.div`
+    font-size: 10px;
+    position: absolute;
+    top: 0;
+    left: 5px;
+    top: 4px;
+    :nth-child(2) {
+        top: 14px;
+    }
+`;
