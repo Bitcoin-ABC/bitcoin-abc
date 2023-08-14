@@ -232,6 +232,9 @@ public:
     /** Generate random bytes. */
     template <typename B = uint8_t> std::vector<B> randbytes(size_t len);
 
+    /** Fill a byte Span with random bytes. */
+    void fillrand(Span<std::byte> output);
+
     /** Generate a random 32-bit integer. */
     uint32_t rand32() noexcept { return randbits(32); }
 
