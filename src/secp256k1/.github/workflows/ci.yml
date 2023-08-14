@@ -1,0 +1,25 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - '**'
+
+jobs:
+  sage:
+    name: "SageMath prover"
+    runs-on: ubuntu-latest
+    container:
+      image: sagemath/sagemath:latest
+      options: --user root
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: CI script
+        run: |
+          cd sage
+          sage prove_group_implementations.sage
