@@ -25,7 +25,6 @@ import {
     fromSatoshisToXec,
     convertToEcashPrefix,
 } from 'utils/cashMethods';
-import { currency } from 'components/Common/Ticker.js';
 import { registerNewAlias } from 'utils/transactions';
 import {
     errorNotification,
@@ -38,6 +37,7 @@ import { Space, Tag } from 'antd';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
 import appConfig from 'config/app';
+import aliasSettings from 'config/alias';
 
 export const CheckboxContainer = styled.div`
     text-align: left;
@@ -288,7 +288,7 @@ const Alias = ({ passLoadingStatus }) => {
         if (
             value &&
             value.trim() !== '' &&
-            aliasInputByteSize <= currency.aliasSettings.aliasMaxLength &&
+            aliasInputByteSize <= aliasSettings.aliasMaxLength &&
             validAliasInput
         ) {
             setIsValidAliasInput(true);

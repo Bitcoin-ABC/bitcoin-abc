@@ -1,5 +1,5 @@
-import { currency } from 'components/Common/Ticker';
 import { parseOpReturn, generateOpReturnScript } from 'utils/cashMethods';
+import aliasSettings from 'config/alias';
 
 /**
  * Calculates the byte size of the alias input
@@ -61,7 +61,7 @@ export const queryAliasServer = async (endPoint, aliasParam) => {
     let aliasServerResp;
     try {
         aliasServerResp = await fetch(
-            currency.aliasSettings.aliasServerBaseUrl +
+            aliasSettings.aliasServerBaseUrl +
                 '/' +
                 endPoint +
                 '/' +

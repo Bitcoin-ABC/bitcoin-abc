@@ -2,7 +2,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 'use strict';
-import { currency } from 'components/Common/Ticker';
 import { queryAliasServer, getAliasByteSize } from 'utils/aliasUtils';
 import {
     mockAddressApiResponse,
@@ -10,6 +9,7 @@ import {
     mockUnregisteredAliasApiResponse,
 } from '../__mocks__/mockAliasServerResponses';
 import { when } from 'jest-when';
+import aliasSettings from 'config/alias';
 
 test(`Alias byte length matches for an alias input with a single emoji`, () => {
     const aliasInput = '🙈';
@@ -73,7 +73,7 @@ test('queryAliasServer() correctly throws a network error for server downtime or
 test('queryAliasServer() correctly returns an array of alias objects for a valid eCash address that has registered aliases', async () => {
     const endPoint = 'address';
     const address = 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj';
-    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/${endPoint}/${address}`;
+    const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/${endPoint}/${address}`;
 
     // mock the fetch call to alias-server's '/address' endpoint
     global.fetch = jest.fn();
@@ -91,7 +91,7 @@ test('queryAliasServer() correctly returns an array of alias objects for a valid
 test('queryAliasServer() correctly returns an array of alias objects for a valid prefix-less eCash address that has registered aliases', async () => {
     const endPoint = 'address';
     const address = 'qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj';
-    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/${endPoint}/${address}`;
+    const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/${endPoint}/${address}`;
 
     // mock the fetch call to alias-server's '/address' endpoint
     global.fetch = jest.fn();
@@ -109,7 +109,7 @@ test('queryAliasServer() correctly returns an array of alias objects for a valid
 test('queryAliasServer() returns an empty array for a valid eCash address with no aliases', async () => {
     const endPoint = 'address';
     const address = 'ecash:qr2nyffmenvrzea3aqhqw0rd3ckk0kkcrgsrugzjph';
-    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/${endPoint}/${address}`;
+    const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/${endPoint}/${address}`;
 
     // mock the fetch call to alias-server's '/address' endpoint
     global.fetch = jest.fn();
@@ -125,7 +125,7 @@ test('queryAliasServer() returns an empty array for a valid eCash address with n
 test('queryAliasServer() throws an error for an invalid eCash address', async () => {
     const endPoint = 'address';
     const invalidAddress = 'qpmytrdsaINVALIDDDDDDD7cjctmjasj';
-    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/${endPoint}/${invalidAddress}`;
+    const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/${endPoint}/${invalidAddress}`;
     const expectedError = `Error fetching /address/${invalidAddress}: Input must be a valid eCash address`;
 
     // mock the fetch call to alias-server's '/address' endpoint
@@ -142,7 +142,7 @@ test('queryAliasServer() throws an error for an invalid eCash address', async ()
 test('queryAliasServer() returns an alias object for a registered alias', async () => {
     const endPoint = 'alias';
     const alias = 'twelvechar12';
-    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/${endPoint}/${alias}`;
+    const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/${endPoint}/${alias}`;
 
     // mock the fetch call to alias-server's '/alias' endpoint
     global.fetch = jest.fn();
@@ -160,7 +160,7 @@ test('queryAliasServer() returns an alias object for a registered alias', async 
 test('queryAliasServer() returns an api error for a non-alphanumeric alias', async () => {
     const endPoint = 'alias';
     const alias = '@@@@@@@@@@@@';
-    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/${endPoint}/${alias}`;
+    const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/${endPoint}/${alias}`;
     const expectedError = `Error fetching /alias/${alias}: alias param cannot contain non-alphanumeric characters`;
 
     // mock the fetch call to alias-server's '/alias' endpoint
@@ -177,7 +177,7 @@ test('queryAliasServer() returns an api error for a non-alphanumeric alias', asy
 test('queryAliasServer() returns a valid object for an unregistered alias', async () => {
     const endPoint = 'alias';
     const alias = 'foobar';
-    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/${endPoint}/${alias}`;
+    const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/${endPoint}/${alias}`;
 
     // mock the fetch call to alias-server's '/alias' endpoint
     global.fetch = jest.fn();
@@ -195,7 +195,7 @@ test('queryAliasServer() returns a valid object for an unregistered alias', asyn
 test('queryAliasServer() returns an error for an alias longer than 21 characters', async () => {
     const endPoint = 'alias';
     const alias = 'foobarrrrrrrrrrrrrrrrrrrrrrrrrrr';
-    const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/${endPoint}/${alias}`;
+    const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/${endPoint}/${alias}`;
     const expectedError = `Error fetching /alias/${alias}: alias param must be between 1 and 21 characters in length`;
 
     // mock the fetch call to alias-server's '/alias' endpoint

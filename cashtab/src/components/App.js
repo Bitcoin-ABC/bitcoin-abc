@@ -40,7 +40,7 @@ import {
 import TabCash from 'assets/tabcash.png';
 import { checkForTokenById } from 'utils/tokenMethods.js';
 import ServiceWorkerWrapper from './Common/ServiceWorkerWrapper';
-import { currency } from 'components/Common/Ticker.js';
+import aliasSettings from 'config/alias';
 
 const GlobalStyle = createGlobalStyle`
     *::placeholder {
@@ -589,7 +589,7 @@ const App = () => {
                                 <Route path="/signverifymsg">
                                     <SignVerifyMsg />
                                 </Route>
-                                {currency.aliasSettings.aliasEnabled && (
+                                {aliasSettings.aliasEnabled && (
                                     <Route path="/alias">
                                         <Alias
                                             passLoadingStatus={
@@ -658,8 +658,7 @@ const App = () => {
                                             <p>Sign & Verify</p>
                                             <ThemedSignAndVerifyMsg />
                                         </NavItem>
-                                        {currency.aliasSettings
-                                            .aliasEnabled && (
+                                        {aliasSettings.aliasEnabled && (
                                             <NavItem
                                                 active={selectedKey === 'alias'}
                                                 onClick={() =>

@@ -31,7 +31,6 @@ import { isMobile, isIOS, isSafari } from 'react-device-detect';
 import { Img } from 'react-image';
 import makeBlockie from 'ethereum-blockies-base64';
 import BigNumber from 'bignumber.js';
-import { currency } from 'components/Common/Ticker.js';
 import { parseAddressForParams } from 'utils/cashMethods';
 import { Event } from 'utils/GoogleAnalytics';
 import { getWalletState } from 'utils/cashMethods';
@@ -55,6 +54,7 @@ import TokenIcon from 'components/Tokens/TokenIcon';
 import { token as tokenConfig } from 'config/token';
 import { explorer } from 'config/explorer';
 import { queryAliasServer } from 'utils/aliasUtils';
+import aliasSettings from 'config/alias';
 
 const AntdDescriptionsCss = css`
     .ant-descriptions-item-label,
@@ -520,8 +520,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
                                         })
                                     }
                                     inputProps={{
-                                        placeholder: currency.aliasSettings
-                                            .aliasEnabled
+                                        placeholder: aliasSettings.aliasEnabled
                                             ? `Address or Alias`
                                             : `Address`,
                                         name: 'address',

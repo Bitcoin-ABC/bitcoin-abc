@@ -19,7 +19,6 @@ import {
     errorNotification,
 } from 'components/Common/Notifications';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
-import { currency } from 'components/Common/Ticker.js';
 import { parseAddressForParams } from 'utils/cashMethods';
 import { Event } from 'utils/GoogleAnalytics';
 import {
@@ -58,6 +57,7 @@ import { explorer } from 'config/explorer';
 import { queryAliasServer } from 'utils/aliasUtils';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import appConfig from 'config/app';
+import aliasSettings from 'config/alias';
 
 const { TextArea } = Input;
 
@@ -823,10 +823,10 @@ const SendBCH = ({ passLoadingStatus }) => {
                                                 })
                                             }
                                             inputProps={{
-                                                placeholder: currency
-                                                    .aliasSettings.aliasEnabled
-                                                    ? `Address or Alias`
-                                                    : `Address`,
+                                                placeholder:
+                                                    aliasSettings.aliasEnabled
+                                                        ? `Address or Alias`
+                                                        : `Address`,
                                                 name: 'address',
                                                 onChange: e =>
                                                     handleAddressChange(e),

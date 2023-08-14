@@ -26,7 +26,7 @@ import {
     isProbablyNotAScam,
     isValidRecipient,
 } from '../validation';
-import { currency } from 'components/Common/Ticker.js';
+import aliasSettings from 'config/alias';
 import { fromSatoshisToXec } from 'utils/cashMethods';
 import {
     validXecAirdropList,
@@ -58,7 +58,7 @@ describe('Validation utils', () => {
             txid: 'f7d71433af9a4e0081ea60349becf2a60efed8890df7c3e8e079b3427f51d5ea',
             blockheight: 802515,
         };
-        const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/alias/${mockRegisteredAliasResponse.alias}`;
+        const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/alias/${mockRegisteredAliasResponse.alias}`;
 
         // mock the fetch call to alias-server's '/alias' endpoint
         global.fetch = jest.fn();
@@ -76,7 +76,7 @@ describe('Validation utils', () => {
             registrationFeeSats: 554,
             processedBlockheight: 803421,
         };
-        const fetchUrl = `${currency.aliasSettings.aliasServerBaseUrl}/alias/${mockUnregisteredAliasResponse.alias}`;
+        const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/alias/${mockUnregisteredAliasResponse.alias}`;
 
         // mock the fetch call to alias-server's '/alias' endpoint
         global.fetch = jest.fn();

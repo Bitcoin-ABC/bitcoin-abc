@@ -1,4 +1,3 @@
-import { currency } from 'components/Common/Ticker';
 import {
     fromXecToSatoshis,
     isValidStoredWallet,
@@ -19,6 +18,7 @@ import ecies from 'ecies-lite';
 import * as utxolib from '@bitgo/utxo-lib';
 import { explorer } from 'config/explorer';
 import appConfig from 'config/app';
+import aliasSettings from 'config/alias';
 
 const SEND_XEC_ERRORS = {
     INSUFFICIENT_FUNDS: 0,
@@ -380,7 +380,7 @@ export const registerNewAlias = async (
             fromSatoshisToXec(registrationFeeSats), // TODO fix this oversight param req in generateTxOutput
             registrationFeeSats,
             txInputObj.totalInputUtxoValue,
-            currency.aliasSettings.aliasPaymentAddress,
+            aliasSettings.aliasPaymentAddress,
             null, // no one-to-many address array
             changeAddress,
             txInputObj.txFee,

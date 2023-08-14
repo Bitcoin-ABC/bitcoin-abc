@@ -40,7 +40,7 @@ import {
 import PopOut from 'assets/popout.svg';
 // Extension-only import used for interacting with the extension API
 import extension from 'extensionizer';
-import { currency } from 'components/Common/Ticker.js';
+import aliasSettings from 'config/alias';
 
 const GlobalStyle = createGlobalStyle`    
     *::placeholder {
@@ -656,7 +656,7 @@ const App = () => {
                                 <Route path="/signverifymsg">
                                     <SignVerifyMsg />
                                 </Route>
-                                {currency.aliasSettings.aliasEnabled && (
+                                {aliasSettings.aliasEnabled && (
                                     <Route path="/alias">
                                         <Alias
                                             passLoadingStatus={
@@ -725,7 +725,7 @@ const App = () => {
                                             <p>Sign & Verify</p>
                                             <ThemedSignAndVerifyMsg />
                                         </NavItem>
-                                        {currency.aliasSettings
+                                        {aliasSettings
                                             .aliasEnabled && (
                                             <NavItem
                                                 active={selectedKey === 'alias'}
