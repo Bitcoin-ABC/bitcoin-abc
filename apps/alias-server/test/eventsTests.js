@@ -8,8 +8,12 @@ const aliasConstants = require('../constants/alias');
 const assert = require('assert');
 const cashaddr = require('ecashaddrjs');
 const mockSecrets = require('../secrets.sample');
-const { handleAppStartup, handleBlockConnected } = require('../src/events');
-const { MockChronikClient } = require('./mocks/chronikMock');
+const {
+    handleAppStartup,
+    handleBlockConnected,
+    handleAddedToMempool,
+} = require('../src/events');
+const { MockChronikClient } = require('../../mock-chronik-client');
 const MockAdapter = require('axios-mock-adapter');
 const axios = require('axios');
 // Mock mongodb
@@ -17,9 +21,12 @@ const {
     initializeDb,
     updateServerState,
     getAliasesFromDb,
+    addOneAliasToPending,
+    getPendingAliases,
 } = require('../src/db');
 const { MongoClient } = require('mongodb');
 const { MongoMemoryServer } = require('mongodb-memory-server');
+const NodeCache = require('node-cache');
 const { generated } = require('./mocks/aliasMocks');
 
 describe('alias-server events.js', async function () {
@@ -37,10 +44,14 @@ describe('alias-server events.js', async function () {
         await mongoServer.stop();
     });
 
-    let testDb;
+    let testDb, testCache;
     beforeEach(async () => {
         // Initialize db before each unit test
         testDb = await initializeDb(testMongoClient);
+
+        testCache = new NodeCache();
+        const tipHeight = 800000;
+        testCache.set('tipHeight', tipHeight);
 
         /* 
         Because the actual number of pages of txHistory of the IFP address is high and always rising
@@ -67,8 +78,11 @@ describe('alias-server events.js', async function () {
     afterEach(async () => {
         // Wipe the database after each unit test
         await testDb.dropDatabase();
+        // Close test cache
+        testCache.flushAll();
+        testCache.close();
     });
-    it('handleAppStartup calls handleBlockConnected with tipHeight and completes function if block is avalanche finalized', async function () {
+    it('handleAppStartup calls handleBlockConnected with tipHeight and completes function if block is avalanche finalized, and also removes pendingAliases that are in the avalanche confirmed block', async function () {
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient();
 
@@ -109,13 +123,44 @@ describe('alias-server events.js', async function () {
         const channelId = null;
         const { avalancheRpc } = mockSecrets;
 
+        // Add some pending aliases to the pendingAliases collection
+        let pendingAliases = [];
+        for (let i in generated.validAliasRegistrations) {
+            // Clone to avoid altering mock object
+            const pendingTxObject = JSON.parse(
+                JSON.stringify(generated.validAliasRegistrations[i]),
+            );
+
+            // Provide a tipHeight
+            pendingTxObject.tipHeight =
+                config.initialServerState.processedBlockheight;
+
+            pendingAliases.push(pendingTxObject);
+
+            // Add a clone so you can still check against pendingAliases
+            await addOneAliasToPending(
+                testDb,
+                JSON.parse(JSON.stringify(pendingTxObject)),
+            );
+        }
+
+        // Verify you have these aliases in the pending collection
+        const pendingAliasesAddedToDb = await getPendingAliases(testDb);
+
+        assert.deepEqual(pendingAliasesAddedToDb.length, pendingAliases.length);
+
         const result = await handleAppStartup(
             mockedChronik,
             db,
+            testCache,
             telegramBot,
             channelId,
             avalancheRpc,
         );
+
+        // Verify that pendingAliases have been cleared
+        // Verify you have these aliases in the pending collection
+        assert.deepEqual(await getPendingAliases(testDb), []);
 
         assert.deepEqual(
             result,
@@ -162,6 +207,7 @@ describe('alias-server events.js', async function () {
         const result = await handleAppStartup(
             mockedChronik,
             db,
+            testCache,
             telegramBot,
             channelId,
             avalancheRpc,
@@ -198,6 +244,7 @@ describe('alias-server events.js', async function () {
         const result = await handleAppStartup(
             mockedChronik,
             db,
+            testCache,
             telegramBot,
             channelId,
             avalancheRpc,
@@ -259,6 +306,7 @@ describe('alias-server events.js', async function () {
         const result = await handleBlockConnected(
             mockedChronik,
             testDb,
+            testCache,
             telegramBot,
             channelId,
             avalancheRpc,
@@ -323,6 +371,7 @@ describe('alias-server events.js', async function () {
         const result = await handleBlockConnected(
             mockedChronik,
             testDb,
+            testCache,
             telegramBot,
             channelId,
             avalancheRpc,
@@ -387,6 +436,7 @@ describe('alias-server events.js', async function () {
         const result = await handleBlockConnected(
             mockedChronik,
             testDb,
+            testCache,
             telegramBot,
             channelId,
             avalancheRpc,
@@ -396,5 +446,70 @@ describe('alias-server events.js', async function () {
         assert.deepEqual(result, false);
         // Verify that no aliases have been added to the database
         assert.deepEqual(await getAliasesFromDb(testDb), []);
+    });
+    it('handleAddedToMempool throws error on chronik error', async function () {
+        const incomingTxid =
+            'ec92610fc41df2387e7febbb358b138a802ac26023f30b2442aa01ca733fff7d';
+
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient();
+
+        // Mock an error from the chronik.tx call
+        mockedChronik.setMock('tx', {
+            input: incomingTxid,
+            output: new Error('Some chronik error'),
+        });
+
+        await assert.rejects(
+            async () => {
+                await handleAddedToMempool(
+                    mockedChronik,
+                    testDb,
+                    testCache,
+                    incomingTxid,
+                );
+            },
+            {
+                name: 'Error',
+                message: 'Some chronik error',
+            },
+        );
+
+        // Verify that no pending aliases have been added to the pending alias collection
+        assert.deepEqual(await getPendingAliases(testDb), []);
+    });
+    it('handleAddedToMempool calls parseTxForPendingAliases if no chronik error', async function () {
+        // Invalid alias tx
+        const incomingTxid =
+            'aabfacbd3f10a79a9a246eb91d1b4016df254ae6763e8edd4193d50caca479ea';
+        const txObject =
+            generated.txHistory[
+                generated.txHistory.findIndex(i => i.txid === incomingTxid)
+            ];
+
+        // Make it unconfirmed
+        const pendingTxObject = JSON.parse(JSON.stringify(txObject));
+        delete pendingTxObject.block;
+
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient();
+
+        // Mock chronik response
+        mockedChronik.setMock('tx', {
+            input: incomingTxid,
+            output: pendingTxObject,
+        });
+
+        assert.strictEqual(
+            await handleAddedToMempool(
+                mockedChronik,
+                testDb,
+                testCache,
+                incomingTxid,
+            ),
+            false,
+        );
+        // Verify that no pending aliases have been added to the pending alias collection
+        assert.deepEqual(await getPendingAliases(testDb), []);
     });
 });

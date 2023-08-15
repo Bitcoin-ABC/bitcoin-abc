@@ -12,13 +12,19 @@ const {
     getAliasTxs,
     sortAliasTxsByTxidAndBlockheight,
     registerAliases,
+    parseTxForPendingAliases,
 } = require('../src/alias');
 const { splitTxsByConfirmed } = require('../src/utils');
 const { generated, templates } = require('./mocks/aliasMocks');
 // Mock mongodb
 const { MongoClient } = require('mongodb');
 const { MongoMemoryServer } = require('mongodb-memory-server');
-const { initializeDb, addAliasesToDb } = require('../src/db');
+const NodeCache = require('node-cache');
+const {
+    initializeDb,
+    addAliasesToDb,
+    getPendingAliases,
+} = require('../src/db');
 
 describe('alias-server alias.js', async function () {
     let mongoServer, testMongoClient, registrationOutputScript;
@@ -848,5 +854,286 @@ describe('alias-server alias.js', async function () {
             parseAliasTx(clonedTx, aliasConstants, registrationOutputScript),
             [clonedSecond],
         );
+    });
+    it('parseTxForPendingAliases returns false if given txDetails are from a confirmed tx', async function () {
+        // Initialize db
+        let testDb = await initializeDb(testMongoClient);
+
+        // Initialize cache with tipHeight
+        let testCache = new NodeCache();
+        const tipHeight = 800000;
+        testCache.set('tipHeight', tipHeight);
+
+        // Valid alias tx
+        const incomingTxid =
+            'ec92610fc41df2387e7febbb358b138a802ac26023f30b2442aa01ca733fff7d';
+        const txObject =
+            generated.txHistory[
+                generated.txHistory.findIndex(i => i.txid === incomingTxid)
+            ];
+
+        // Do not make it unconfirmed
+        const pendingTxObject = JSON.parse(JSON.stringify(txObject));
+
+        assert.strictEqual(
+            await parseTxForPendingAliases(
+                testDb,
+                testCache,
+                pendingTxObject,
+                aliasConstants,
+            ),
+            false,
+        );
+
+        // Verify that no pending aliases have been added to the pending alias collection
+        assert.deepEqual(await getPendingAliases(testDb), []);
+
+        // Wipe the database after this unit test
+        await testDb.dropDatabase();
+
+        // Close test cache
+        testCache.flushAll();
+        testCache.close();
+    });
+    it('parseTxForPendingAliases returns false if given txDetails are not from a valid pending alias tx', async function () {
+        // Initialize db
+        let testDb = await initializeDb(testMongoClient);
+
+        // Initialize cache with tipHeight
+        let testCache = new NodeCache();
+        const tipHeight = 800000;
+        testCache.set('tipHeight', tipHeight);
+
+        // Invalid alias tx
+        const incomingTxid =
+            'aabfacbd3f10a79a9a246eb91d1b4016df254ae6763e8edd4193d50caca479ea';
+        const txObject =
+            generated.txHistory[
+                generated.txHistory.findIndex(i => i.txid === incomingTxid)
+            ];
+
+        // Make it unconfirmed
+        const pendingTxObject = JSON.parse(JSON.stringify(txObject));
+        delete pendingTxObject.block;
+
+        assert.strictEqual(
+            await parseTxForPendingAliases(
+                testDb,
+                testCache,
+                pendingTxObject,
+                aliasConstants,
+            ),
+            false,
+        );
+
+        // Verify that no pending aliases have been added to the pending alias collection
+        assert.deepEqual(await getPendingAliases(testDb), []);
+
+        // Wipe the database after this unit test
+        await testDb.dropDatabase();
+
+        // Close test cache
+        testCache.flushAll();
+        testCache.close();
+    });
+    it('parseTxForPendingAliases returns true for a valid pending alias tx', async function () {
+        // Initialize db
+        let testDb = await initializeDb(testMongoClient);
+
+        // Initialize cache with tipHeight
+        let testCache = new NodeCache();
+        const tipHeight = 800000;
+        testCache.set('tipHeight', tipHeight);
+
+        // valid alias tx
+        const incomingTxid =
+            'ec92610fc41df2387e7febbb358b138a802ac26023f30b2442aa01ca733fff7d';
+        const txObject =
+            generated.txHistory[
+                generated.txHistory.findIndex(i => i.txid === incomingTxid)
+            ];
+
+        // Clone aliasObject to prevent key added in other unit tests
+        const aliasObject = JSON.parse(
+            JSON.stringify(
+                generated.validAliasRegistrations[
+                    generated.validAliasRegistrations.findIndex(
+                        i => i.txid === incomingTxid,
+                    )
+                ],
+            ),
+        );
+
+        // Make both unconfirmed
+        const pendingTxObject = JSON.parse(JSON.stringify(txObject));
+        delete pendingTxObject.block;
+        // blockheight is not expected in pending alias results
+        delete aliasObject.blockheight;
+        // add expected tipHeight
+        aliasObject.tipHeight = tipHeight;
+
+        assert.strictEqual(
+            await parseTxForPendingAliases(
+                testDb,
+                testCache,
+                pendingTxObject,
+                aliasConstants,
+            ),
+            true,
+        );
+
+        // Verify the expected alias is in the pending collection
+        assert.deepEqual(await getPendingAliases(testDb), [aliasObject]);
+
+        // Wipe the database after this unit test
+        await testDb.dropDatabase();
+
+        // Close test cache
+        testCache.flushAll();
+        testCache.close();
+    });
+    it('parseTxForPendingAliases sets a tipHeight of zero if tipHeight key is not in cache', async function () {
+        // Initialize db
+        let testDb = await initializeDb(testMongoClient);
+
+        // Initialize cache with tipHeight
+        let testCache = new NodeCache();
+        // Do not set tipHeight in cache
+
+        // valid alias tx
+        const incomingTxid =
+            'ec92610fc41df2387e7febbb358b138a802ac26023f30b2442aa01ca733fff7d';
+        const txObject =
+            generated.txHistory[
+                generated.txHistory.findIndex(i => i.txid === incomingTxid)
+            ];
+
+        // Clone aliasObject to prevent key added in other unit tests
+        const aliasObject = JSON.parse(
+            JSON.stringify(
+                generated.validAliasRegistrations[
+                    generated.validAliasRegistrations.findIndex(
+                        i => i.txid === incomingTxid,
+                    )
+                ],
+            ),
+        );
+
+        // Make both unconfirmed
+        const pendingTxObject = JSON.parse(JSON.stringify(txObject));
+        delete pendingTxObject.block;
+        // blockheight is not expected in pending alias results
+        delete aliasObject.blockheight;
+        // add expected tipHeight per server state since it is not in cache
+        aliasObject.tipHeight = config.initialServerState.processedBlockheight;
+
+        assert.strictEqual(
+            await parseTxForPendingAliases(
+                testDb,
+                testCache,
+                pendingTxObject,
+                aliasConstants,
+            ),
+            true,
+        );
+
+        // Verify the expected alias is in the pending collection
+        assert.deepEqual(await getPendingAliases(testDb), [aliasObject]);
+
+        // Wipe the database after this unit test
+        await testDb.dropDatabase();
+
+        // Close test cache
+        testCache.flushAll();
+        testCache.close();
+    });
+    it('parseTxForPendingAliases adds multiple pending alias registrations to the database if an incoming tx containing multiple alias registrations comes in', async function () {
+        // Initialize db
+        let testDb = await initializeDb(testMongoClient);
+
+        // Initialize cache with tipHeight
+        let testCache = new NodeCache();
+        const tipHeight = 800000;
+        testCache.set('tipHeight', tipHeight);
+
+        // valid alias tx
+        const incomingTxid =
+            'ec92610fc41df2387e7febbb358b138a802ac26023f30b2442aa01ca733fff7d';
+        const txObject = JSON.parse(
+            JSON.stringify(
+                generated.txHistory[
+                    generated.txHistory.findIndex(i => i.txid === incomingTxid)
+                ],
+            ),
+        );
+        // Add another output from another valid alias registration
+        const txidOfAnotherValidRegistration =
+            '0c77e4f7e0ff4f1028372042cbeb97eaddb64d505efe960b5a1ca4fce65598e2';
+        const txObjectOfAnotherValidRegistration = JSON.parse(
+            JSON.stringify(
+                generated.txHistory[
+                    generated.txHistory.findIndex(
+                        i => i.txid === txidOfAnotherValidRegistration,
+                    )
+                ],
+            ),
+        );
+        txObject.outputs = txObject.outputs.concat(
+            txObjectOfAnotherValidRegistration.outputs,
+        );
+
+        const aliasObject = JSON.parse(
+            JSON.stringify(
+                generated.validAliasRegistrations[
+                    generated.validAliasRegistrations.findIndex(
+                        i => i.txid === incomingTxid,
+                    )
+                ],
+            ),
+        );
+        const anotherAliasObject = JSON.parse(
+            JSON.stringify(
+                generated.validAliasRegistrations[
+                    generated.validAliasRegistrations.findIndex(
+                        i => i.txid === txidOfAnotherValidRegistration,
+                    )
+                ],
+            ),
+        );
+        // Note that, in this case, your second alias object would be expected to have the same txid and blockheight as the first
+        anotherAliasObject.txid = aliasObject.txid;
+
+        // Add expected tipHeight
+        aliasObject.tipHeight = tipHeight;
+        anotherAliasObject.tipHeight = tipHeight;
+
+        // We won't have a blockheight in results for pending aliases
+        delete aliasObject.blockheight;
+        delete anotherAliasObject.blockheight;
+
+        const pendingAliases = [aliasObject, anotherAliasObject];
+
+        // Make it unconfirmed
+        const pendingTxObject = JSON.parse(JSON.stringify(txObject));
+        delete pendingTxObject.block;
+
+        assert.strictEqual(
+            await parseTxForPendingAliases(
+                testDb,
+                testCache,
+                pendingTxObject,
+                aliasConstants,
+            ),
+            true,
+        );
+        // Verify the pending alias has been added to the pending alias collection
+        assert.deepEqual(await getPendingAliases(testDb), pendingAliases);
+
+        // Wipe the database after this unit test
+        await testDb.dropDatabase();
+
+        // Close test cache
+        testCache.flushAll();
+        testCache.close();
     });
 });

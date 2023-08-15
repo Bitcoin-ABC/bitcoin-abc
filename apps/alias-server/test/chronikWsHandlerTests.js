@@ -10,7 +10,7 @@ const {
     initializeWebsocket,
     parseWebsocketMessage,
 } = require('../src/chronikWsHandler');
-const { MockChronikClient } = require('./mocks/chronikMock');
+const { MockChronikClient } = require('../../mock-chronik-client');
 const { mockBlock } = require('./mocks/chronikResponses');
 const mockSecrets = require('../secrets.sample');
 const MockAdapter = require('axios-mock-adapter');
@@ -20,9 +20,12 @@ const {
     initializeDb,
     updateServerState,
     getAliasesFromDb,
+    addOneAliasToPending,
+    getPendingAliases,
 } = require('../src/db');
 const { MongoClient } = require('mongodb');
 const { MongoMemoryServer } = require('mongodb-memory-server');
+const NodeCache = require('node-cache');
 const { generated } = require('./mocks/aliasMocks');
 
 describe('alias-server chronikWsHandler.js', async function () {
@@ -40,10 +43,15 @@ describe('alias-server chronikWsHandler.js', async function () {
         await mongoServer.stop();
     });
 
-    let testDb;
+    let testDb, testCache;
     beforeEach(async () => {
         // Initialize db before each unit test
         testDb = await initializeDb(testMongoClient);
+
+        testCache = new NodeCache();
+        const tipHeight = 800000;
+        testCache.set('tipHeight', tipHeight);
+
         /* 
         Because the actual number of pages of txHistory of the IFP address is high and always rising
         (12,011 as of 20230703)
@@ -69,6 +77,9 @@ describe('alias-server chronikWsHandler.js', async function () {
     afterEach(async () => {
         // Wipe the database after each unit test
         await testDb.dropDatabase();
+        // Close test cache
+        testCache.flushAll();
+        testCache.close();
     });
     it('initializeWebsocket returns expected websocket object for a p2pkh address', async function () {
         const wsTestAddress =
@@ -85,6 +96,7 @@ describe('alias-server chronikWsHandler.js', async function () {
             mockedChronik,
             wsTestAddress,
             db,
+            testCache,
             telegramBot,
             channelId,
             avalancheRpc,
@@ -114,6 +126,7 @@ describe('alias-server chronikWsHandler.js', async function () {
             mockedChronik,
             wsTestAddress,
             db,
+            testCache,
             telegramBot,
             channelId,
             avalancheRpc,
@@ -173,6 +186,7 @@ describe('alias-server chronikWsHandler.js', async function () {
         const result = await parseWebsocketMessage(
             mockedChronik,
             db,
+            testCache,
             telegramBot,
             channelId,
             avalancheRpc,
@@ -220,6 +234,7 @@ describe('alias-server chronikWsHandler.js', async function () {
         const result = await parseWebsocketMessage(
             mockedChronik,
             db,
+            testCache,
             telegramBot,
             channelId,
             avalancheRpc,
@@ -303,6 +318,7 @@ describe('alias-server chronikWsHandler.js', async function () {
         const firstCallPromise = parseWebsocketMessage(
             mockedChronik,
             db,
+            testCache,
             telegramBot,
             channelId,
             avalancheRpc,
@@ -311,6 +327,7 @@ describe('alias-server chronikWsHandler.js', async function () {
         const secondCallPromise = parseWebsocketMessage(
             nextMockedChronik,
             db,
+            testCache,
             telegramBot,
             channelId,
             avalancheRpc,
@@ -332,5 +349,137 @@ describe('alias-server chronikWsHandler.js', async function () {
             await getAliasesFromDb(testDb),
             generated.validAliasRegistrations,
         );
+    });
+    it('parseWebsocketMessage returns true for a chronik websocket AddedToMempool message of a pending alias tx', async function () {
+        const incomingTxid =
+            'ec92610fc41df2387e7febbb358b138a802ac26023f30b2442aa01ca733fff7d';
+        const db = testDb;
+        const telegramBot = null;
+        const channelId = null;
+        const { avalancheRpc } = mockSecrets;
+        const wsMsg = {
+            type: 'AddedToMempool',
+            txid: incomingTxid,
+        };
+
+        const txObject =
+            generated.txHistory[
+                generated.txHistory.findIndex(i => i.txid === incomingTxid)
+            ];
+
+        // Make it unconfirmed
+        const pendingTxObject = JSON.parse(JSON.stringify(txObject));
+        delete pendingTxObject.block;
+
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient();
+
+        // Mock chronik response
+        mockedChronik.setMock('tx', {
+            input: incomingTxid,
+            output: pendingTxObject,
+        });
+        const result = await parseWebsocketMessage(
+            mockedChronik,
+            db,
+            testCache,
+            telegramBot,
+            channelId,
+            avalancheRpc,
+            wsMsg,
+        );
+
+        assert.strictEqual(result, true);
+    });
+    it('parseWebsocketMessage returns false for a chronik websocket AddedToMempool message of a tx that is not a pending alias tx', async function () {
+        // Invalid alias tx
+        const incomingTxid =
+            'aabfacbd3f10a79a9a246eb91d1b4016df254ae6763e8edd4193d50caca479ea';
+        const db = testDb;
+        const telegramBot = null;
+        const channelId = null;
+        const { avalancheRpc } = mockSecrets;
+        const wsMsg = {
+            type: 'AddedToMempool',
+            txid: incomingTxid,
+        };
+
+        const txObject =
+            generated.txHistory[
+                generated.txHistory.findIndex(i => i.txid === incomingTxid)
+            ];
+
+        // Make it unconfirmed
+        const pendingTxObject = JSON.parse(JSON.stringify(txObject));
+        delete pendingTxObject.block;
+
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient();
+
+        // Mock chronik response
+        mockedChronik.setMock('tx', {
+            input: incomingTxid,
+            output: pendingTxObject,
+        });
+        const result = await parseWebsocketMessage(
+            mockedChronik,
+            db,
+            testCache,
+            telegramBot,
+            channelId,
+            avalancheRpc,
+            wsMsg,
+        );
+
+        assert.strictEqual(result, false);
+    });
+    it('parseWebsocketMessage removes a txid from pendingAliases if RemovedFromMempool message includes that txid', async function () {
+        const incomingTxid =
+            'ec92610fc41df2387e7febbb358b138a802ac26023f30b2442aa01ca733fff7d';
+        const db = testDb;
+        const telegramBot = null;
+        const channelId = null;
+        const { avalancheRpc } = mockSecrets;
+        const wsMsg = {
+            type: 'RemovedFromMempool',
+            txid: incomingTxid,
+        };
+
+        const txObject =
+            generated.txHistory[
+                generated.txHistory.findIndex(i => i.txid === incomingTxid)
+            ];
+
+        // Make it unconfirmed
+        const pendingTxObject = JSON.parse(JSON.stringify(txObject));
+        delete pendingTxObject.block;
+
+        // Add it to pendingAliases
+        // Add a clone of newPendingAliasTx because this process will add an _id key to the object
+        const addedResult = await addOneAliasToPending(
+            db,
+            JSON.parse(JSON.stringify(pendingTxObject)),
+        );
+
+        // Confirm it's there
+        assert.deepEqual(addedResult.acknowledged, true);
+        assert.deepEqual(Object.keys(addedResult).includes('insertedId'), true);
+
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient();
+
+        await parseWebsocketMessage(
+            mockedChronik,
+            db,
+            testCache,
+            telegramBot,
+            channelId,
+            avalancheRpc,
+            wsMsg,
+        );
+
+        // Confirm txid is removed from pendingAliases collection
+        // Verify the alias has been deleted
+        assert.deepEqual(await getPendingAliases(testDb), []);
     });
 });

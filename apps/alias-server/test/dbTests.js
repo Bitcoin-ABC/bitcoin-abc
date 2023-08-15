@@ -14,6 +14,9 @@ const {
     getAliasesFromDb,
     getAliasInfoFromAlias,
     getAliasInfoFromAddress,
+    addOneAliasToPending,
+    deletePendingAliases,
+    getPendingAliases,
 } = require('../src/db');
 // Mock mongodb
 const { MongoClient } = require('mongodb');
@@ -390,6 +393,313 @@ describe('alias-server db.js', async function () {
             {
                 name: 'Error',
                 message: 'Input must be a valid eCash address',
+            },
+        );
+    });
+    it('addOneAliasToPending successfully adds a new pending alias to an empty collection, and getPendingAliases reads one alias', async function () {
+        const newPendingAliasTx = {
+            address: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+            alias: 'pending',
+            txid: 'ec92610fc41df2387e7febbb358b138a802ac26023f30b2442aa01ca733fff7d',
+            tipHeight: config.initialServerState.processedBlockheight,
+        };
+        // Add to db
+        // Add a clone of newPendingAliasTx because this process will add an _id key to the object
+        const addedResult = await addOneAliasToPending(
+            testDb,
+            JSON.parse(JSON.stringify(newPendingAliasTx)),
+        );
+        assert.deepEqual(addedResult.acknowledged, true);
+        assert.deepEqual(Object.keys(addedResult).includes('insertedId'), true);
+
+        const addedPendingAliases = await getPendingAliases(testDb);
+
+        // Verify the database has the expected alias
+        assert.deepEqual(addedPendingAliases, [newPendingAliasTx]);
+    });
+    it('addOneAliasToPending returns false if the same alias + address + txid combo is added a second time', async function () {
+        const newPendingAliasTx = {
+            address: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+            alias: 'pending',
+            txid: 'ec92610fc41df2387e7febbb358b138a802ac26023f30b2442aa01ca733fff7d',
+            tipHeight: config.initialServerState.processedBlockheight,
+        };
+        // Add to db
+        // Add a clone of newPendingAliasTx because this process will add an _id key to the object
+        const addedResult = await addOneAliasToPending(
+            testDb,
+            JSON.parse(JSON.stringify(newPendingAliasTx)),
+        );
+        assert.deepEqual(addedResult.acknowledged, true);
+        assert.deepEqual(Object.keys(addedResult).includes('insertedId'), true);
+
+        const addedPendingAliases = await getPendingAliases(testDb);
+
+        // Verify the database has the expected alias
+        assert.deepEqual(addedPendingAliases, [newPendingAliasTx]);
+
+        // Verify duplicate key error is thrown if you try to add it again
+        assert.deepEqual(
+            await addOneAliasToPending(
+                testDb,
+                JSON.parse(JSON.stringify(newPendingAliasTx)),
+            ),
+            false,
+        );
+        // Verify the repeat entry was not added
+        assert.deepEqual(addedPendingAliases, [newPendingAliasTx]);
+    });
+    it('addOneAliasToPending successfully adds a new pending alias to a collection with existing entry of the same alias, and getPendingAliases fetches both', async function () {
+        const duplicatedPendingAlias = 'pending';
+        const firstPendingAliasTx = {
+            address: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+            alias: duplicatedPendingAlias,
+            txid: 'ec92610fc41df2387e7febbb358b138a802ac26023f30b2442aa01ca733fff7d',
+            tipHeight: config.initialServerState.processedBlockheight,
+        };
+        // Add to db
+        // Add a clone of firstPendingAliasTx because this process will add an _id key to the object
+        await addOneAliasToPending(
+            testDb,
+            JSON.parse(JSON.stringify(firstPendingAliasTx)),
+        );
+
+        // Second pending tx has identical alias as first but different address
+        const secondPendingAliasTx = {
+            address: 'ecash:ppmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+            alias: duplicatedPendingAlias,
+            txid: '0c77e4f7e0ff4f1028372042cbeb97eaddb64d505efe960b5a1ca4fce65598e2',
+            tipHeight: config.initialServerState.processedBlockheight,
+        };
+
+        // Add to db
+        // Add a clone of secondPendingAliasTx because this process will add an _id key to the object
+        await addOneAliasToPending(
+            testDb,
+            JSON.parse(JSON.stringify(secondPendingAliasTx)),
+        );
+
+        const addedPendingAliases = await getPendingAliases(testDb);
+
+        // Verify the database has the expected alias
+        assert.deepEqual(addedPendingAliases, [
+            firstPendingAliasTx,
+            secondPendingAliasTx,
+        ]);
+    });
+    it('addOneAliasToPending will add a new pending alias if the txid is already in the collection', async function () {
+        const duplicatedPendingAlias = 'pending';
+        const duplicatedPendingTxid =
+            'ec92610fc41df2387e7febbb358b138a802ac26023f30b2442aa01ca733fff7d';
+        const firstPendingAliasTx = {
+            address: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+            alias: duplicatedPendingAlias,
+            txid: duplicatedPendingTxid,
+            tipHeight: config.initialServerState.processedBlockheight,
+        };
+        // Add to db
+        // Add a clone of firstPendingAliasTx because this process will add an _id key to the object
+        const firstAddedPending = await addOneAliasToPending(
+            testDb,
+            JSON.parse(JSON.stringify(firstPendingAliasTx)),
+        );
+        assert.deepEqual(firstAddedPending.acknowledged, true);
+
+        // Second pending tx has identical txid as first
+        const secondPendingAliasTx = {
+            address: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+            alias: duplicatedPendingAlias + '2',
+            txid: duplicatedPendingTxid,
+            tipHeight: config.initialServerState.processedBlockheight,
+        };
+
+        // Add to db
+        // Add a clone of secondPendingAliasTx because this process will add an _id key to the object
+        const secondAddedPending = await addOneAliasToPending(
+            testDb,
+            JSON.parse(JSON.stringify(secondPendingAliasTx)),
+        );
+        assert.deepEqual(secondAddedPending.acknowledged, true);
+
+        const addedPendingAliases = await getPendingAliases(testDb);
+
+        // Verify the database has both pending aliases
+        assert.deepEqual(addedPendingAliases, [
+            firstPendingAliasTx,
+            secondPendingAliasTx,
+        ]);
+    });
+    it('addOneAliasToPending will add a new pending alias if the alias and address are already in the collection (only txid changed)', async function () {
+        const duplicatedAddress =
+            'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj';
+        const duplicatedPendingAlias = 'pending';
+        const firstPendingTxid =
+            'ec92610fc41df2387e7febbb358b138a802ac26023f30b2442aa01ca733fff7d';
+        const secondPendingTxid =
+            'fc92610fc41df2387e7febbb358b138a802ac26023f30b2442aa01ca733fff7d';
+        const firstPendingAliasTx = {
+            address: duplicatedAddress,
+            alias: duplicatedPendingAlias,
+            txid: firstPendingTxid,
+            tipHeight: config.initialServerState.processedBlockheight,
+        };
+        // Add to db
+        // Add a clone of firstPendingAliasTx because this process will add an _id key to the object
+        const firstAddedPending = await addOneAliasToPending(
+            testDb,
+            JSON.parse(JSON.stringify(firstPendingAliasTx)),
+        );
+        assert.deepEqual(firstAddedPending.acknowledged, true);
+
+        // Second pending tx has identical address and alias as first
+        const secondPendingAliasTx = {
+            address: duplicatedAddress,
+            alias: duplicatedPendingAlias,
+            txid: secondPendingTxid,
+            tipHeight: config.initialServerState.processedBlockheight,
+        };
+
+        // Add to db
+        // Add a clone of secondPendingAliasTx because this process will add an _id key to the object
+        const secondAddedPending = await addOneAliasToPending(
+            testDb,
+            JSON.parse(JSON.stringify(secondPendingAliasTx)),
+        );
+        assert.deepEqual(secondAddedPending.acknowledged, true);
+
+        const addedPendingAliases = await getPendingAliases(testDb);
+
+        // Verify the database has both aliases
+        assert.deepEqual(addedPendingAliases, [
+            firstPendingAliasTx,
+            secondPendingAliasTx,
+        ]);
+    });
+    it('deletePendingAliases successfully deletes a pending alias, and getPendingAliases returns an empty array if no pending aliases in db', async function () {
+        const thisTxid =
+            'ec92610fc41df2387e7febbb358b138a802ac26023f30b2442aa01ca733fff7d';
+        const newPendingAliasTx = {
+            address: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+            alias: 'pending',
+            txid: thisTxid,
+            tipHeight: config.initialServerState.processedBlockheight,
+        };
+        // Add to db
+        // Add a clone of newPendingAliasTx because this process will add an _id key to the object
+        await addOneAliasToPending(
+            testDb,
+            JSON.parse(JSON.stringify(newPendingAliasTx)),
+        );
+        // Verify the database has the expected alias
+        assert.deepEqual(await getPendingAliases(testDb), [newPendingAliasTx]);
+
+        // Now delete it
+        const deleteResult = await deletePendingAliases(testDb, {
+            txid: thisTxid,
+        });
+
+        // Verify the db says one alias is deleted
+        assert.deepEqual(deleteResult, { acknowledged: true, deletedCount: 1 });
+
+        // Verify the alias has been deleted
+        assert.deepEqual(await getPendingAliases(testDb), []);
+    });
+    it('deletePendingAliases successfully deletes multiple entries with the same txid', async function () {
+        // Add some pending aliases to the pendingAliases collection
+        let pendingAliases = [];
+        let sameTxid;
+        for (let i in generated.validAliasRegistrations) {
+            // Clone to avoid altering mock object
+            const pendingTxObject = JSON.parse(
+                JSON.stringify(generated.validAliasRegistrations[i]),
+            );
+            // Get txid
+            if (i === 0) {
+                sameTxid = pendingTxObject.txid;
+            } else {
+                // Give all these registrations the same txid
+                pendingTxObject.txid = sameTxid;
+            }
+
+            pendingAliases.push(pendingTxObject);
+
+            // Add a clone so you can still check against pendingAliases
+            await addOneAliasToPending(
+                testDb,
+                JSON.parse(JSON.stringify(pendingTxObject)),
+            );
+        }
+
+        // Verify you have these aliases in the pending collection
+        const pendingAliasesAddedToDb = await getPendingAliases(testDb);
+        assert.deepEqual(pendingAliasesAddedToDb.length, pendingAliases.length);
+
+        const expectedDeletedCount = pendingAliases.length;
+
+        // Delete them all
+        const deleteResult = await deletePendingAliases(testDb, {
+            txid: sameTxid,
+        });
+
+        // Verify the db says all aliases were deleted
+        assert.deepEqual(deleteResult, {
+            acknowledged: true,
+            deletedCount: expectedDeletedCount,
+        });
+
+        // Verify the database is now empty
+        assert.deepEqual(await getPendingAliases(testDb), []);
+    });
+    it('deletePendingAliases successfully deletes multiple entries based on tipHeight', async function () {
+        // Set tipHeight
+        const tipHeightPendingAdded = 800000;
+
+        // Add some pending aliases to the pendingAliases collection
+        let pendingAliases = [];
+        for (let pendingAlias of generated.validAliasRegistrations) {
+            // Clone to avoid altering mock object
+            const clonedPendingAlias = JSON.parse(JSON.stringify(pendingAlias));
+
+            clonedPendingAlias.tipHeight = tipHeightPendingAdded;
+
+            pendingAliases.push(clonedPendingAlias);
+
+            // Clone again so you can still check against clonedPendingAlias
+            await addOneAliasToPending(
+                testDb,
+                JSON.parse(JSON.stringify(clonedPendingAlias)),
+            );
+        }
+
+        // Verify you have these aliases in the pending collection
+        const pendingAliasesAddedToDb = await getPendingAliases(testDb);
+        assert.deepEqual(pendingAliasesAddedToDb.length, pendingAliases.length);
+
+        const expectedDeletedCount = pendingAliases.length;
+
+        // Delete all pending aliases by tipHeight
+        const deleteResult = await deletePendingAliases(testDb, {
+            tipHeight: { $lt: tipHeightPendingAdded + 1 },
+        });
+
+        // Verify the db says all aliases were deleted
+        assert.deepEqual(deleteResult, {
+            acknowledged: true,
+            deletedCount: expectedDeletedCount,
+        });
+
+        // Verify the database is now empty
+        assert.deepEqual(await getPendingAliases(testDb), []);
+    });
+    it('deletePendingAliases returns expected value (and does not crash or thrown an error) if asked to delete something that is not in the pendingAliases collection', async function () {
+        const thisTxid =
+            'ec92610fc41df2387e7febbb358b138a802ac26023f30b2442aa01ca733fff7d';
+
+        assert.deepEqual(
+            await deletePendingAliases(testDb, { txid: thisTxid }),
+            {
+                acknowledged: true,
+                deletedCount: 0,
             },
         );
     });

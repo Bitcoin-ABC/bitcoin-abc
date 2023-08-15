@@ -27,6 +27,24 @@ module.exports = {
                 unique: true,
             },
         );
+        // Compound unique index on address, alias, and txid
+        // This prevents storing duplicate entries with the same address, alias, and txid
+        // This allows storing entries with duplicate txids, duplicate addresses, duplicate aliases
+        // This allows storing entries with any 2 out of 3 duplicated
+        // e.g.same address same alias, or same txid same address, different aliases
+        // Note that a registration tx attempting to register the same alias in multiple OP_RETURN outputs
+        // is invalid per spec
+        db.collection(config.database.collections.pendingAliases).createIndex(
+            {
+                address: 1,
+                alias: 1,
+                txid: 1,
+            },
+            {
+                unique: true,
+            },
+        );
+
         // Check if serverState collection exists
         const serverStateExists =
             (await db
@@ -236,6 +254,69 @@ module.exports = {
                 `Error finding aliases for address ${address} in database`,
                 err,
             );
+        }
+    },
+    /**
+     * Add a valid pending alias to the pending aliases collection
+     * @param {object} db an initialized mongodb instance
+     * @param {object} pendingAliasTx an alias registration object for a pending alias tx
+     * @throws {error} if failed to add pendingAliasTx to pendingAliases collection
+     */
+    addOneAliasToPending: async function (db, pendingAliasTx) {
+        // there's no need to add blockheight
+        // all pending aliases are unconfirmed
+        const { alias, address, txid, tipHeight } = pendingAliasTx;
+        try {
+            return await db
+                .collection(config.database.collections.pendingAliases)
+                .insertOne({ alias, address, txid, tipHeight });
+        } catch (err) {
+            // Only log some error other than duplicate key error
+            if (err && err.code !== MONGO_DB_ERRORCODES.duplicateKey) {
+                console.log(`Error in addOneAliasToPending:`);
+                console.log(err);
+                throw err;
+            }
+            return false;
+        }
+    },
+    /**
+     * Delete all pending alias tx objects from the pendingAliases collection per specified filter
+     * @param {object} db an initialized mongodb instance
+     * @param {object} filter e.g. {txid: <txid>}, {address: <address>}, or {alias: <alias>}
+     * @returns {object} e.g. {acknowledged: true, deletedCount: 1 }
+     */
+    deletePendingAliases: async function (db, filter) {
+        try {
+            return await db
+                .collection(config.database.collections.pendingAliases)
+                .deleteMany(filter);
+        } catch (err) {
+            console.log(`Error in deletePendingAliasByTxid:`);
+            console.log(err);
+            throw err;
+        }
+    },
+    /**
+     * Fetch all pending aliases
+     * @param {object} db an initialized mongodb instance
+     * @param {object} filter a mongodb search query filter, e.g. {address: <address>}
+     * {} for filter will return everything in the collection
+     * @returns {array}
+     */
+    getPendingAliases: async function (db, filter = {}) {
+        let pendingAliases;
+        try {
+            pendingAliases = await db
+                .collection(config.database.collections.pendingAliases)
+                .find(filter)
+                .sort({ alias: 1 })
+                .project({ _id: 0 })
+                .toArray();
+            return pendingAliases;
+        } catch (err) {
+            console.log(`Error in getPendingAliases`, err);
+            throw err;
         }
     },
 };

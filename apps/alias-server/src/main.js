@@ -6,8 +6,21 @@ const { initializeWebsocket } = require('./chronikWsHandler');
 const { handleAppStartup } = require('./events');
 
 module.exports = {
+    /**
+     * Entrypoint of the app. Initializes server, updates indexer, and listens for new txs.
+     * @param {object} db an initialized mongodb instance
+     * @param {object} cache an initialized node-cache instance
+     * @param {object} chronik initialized chronik object
+     * @param {string} address address that registeres new aliases
+     * @param {object} telegramBot initialized node-telegram-bot-api instance
+     * @param {string} channelId channel where telegramBot is admin
+     * @param {object} avalancheRpc avalanche auth
+     * @param {bool} returnMocks
+     * @returns {object} if returnMocks
+     */
     main: async function (
         db,
+        cache,
         chronik,
         address,
         telegramBot,
@@ -20,6 +33,7 @@ module.exports = {
             chronik,
             address,
             db,
+            cache,
             telegramBot,
             channelId,
             avalancheRpc,
@@ -36,6 +50,7 @@ module.exports = {
         const appStartup = await handleAppStartup(
             chronik,
             db,
+            cache,
             telegramBot,
             channelId,
             avalancheRpc,
@@ -50,10 +65,16 @@ module.exports = {
      * Make sure the the database and API server shut down gracefully
      * @param {object} server the express server returned by the startServer function in app.js
      * @param {object} mongoClient the mongo client connection
+     * @param {object} cache an initialized node-cache instance
      */
-    cleanup: async function (server, mongoClient) {
+    cleanup: async function (server, mongoClient, cache) {
         await server.close();
         console.log('API server closed.');
+
+        // We do not want to risk restarting the server with a stale tipHeight
+        cache.flushAll();
+        cache.close();
+        console.log('Cache cleared.');
 
         await mongoClient.close();
         console.log('MongoDB connection closed.');

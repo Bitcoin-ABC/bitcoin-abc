@@ -7,15 +7,34 @@ const config = require('../config');
 const aliasConstants = require('../constants/alias');
 const { wait, splitTxsByConfirmed } = require('./utils');
 const { isFinalBlock } = require('./rpc');
-const { getServerState, updateServerState } = require('./db');
+const {
+    getServerState,
+    updateServerState,
+    deletePendingAliases,
+} = require('./db');
 const { getUnprocessedTxHistory } = require('./chronik');
-const { getAliasTxs, registerAliases } = require('./alias');
+const {
+    getAliasTxs,
+    registerAliases,
+    parseTxForPendingAliases,
+} = require('./alias');
 const { sendAliasAnnouncements } = require('./telegram');
 
 module.exports = {
+    /**
+     * On app startup, get the chaintip and pass to handleBlockConnected
+     * @param {object} chronik initialized chronik object
+     * @param {object} db an initialized mongodb instance
+     * @param {object} cache an initialized node-cache instance
+     * @param {object} telegramBot initialized node-telegram-bot-api instance
+     * @param {string} channelId channel where telegramBot is admin
+     * @param {object} avalancheRpc avalanche auth
+     * @returns {bool | function} false if error, otherwise calls handleBlockConnected
+     */
     handleAppStartup: async function (
         chronik,
         db,
+        cache,
         telegramBot,
         channelId,
         avalancheRpc,
@@ -41,6 +60,7 @@ module.exports = {
             return module.exports.handleBlockConnected(
                 chronik,
                 db,
+                cache,
                 telegramBot,
                 channelId,
                 avalancheRpc,
@@ -50,9 +70,24 @@ module.exports = {
         }
         return false;
     },
+    /**
+     * When a new block is found, check for avalanche finality. If finalized,
+     * update registered aliases, server state, and pending aliases. Send a telegram
+     * msg announcing new alias registrations.
+     * @param {object} chronik initialized chronik object
+     * @param {object} db an initialized mongodb instance
+     * @param {object} cache an initialized node-cache instance
+     * @param {object} telegramBot initialized node-telegram-bot-api instance
+     * @param {string} channelId channel where telegramBot is admin
+     * @param {object} avalancheRpc avalanche auth
+     * @param {string} tipHash hash of the chaintip block
+     * @param {number | undefined} tipHeight height of the chaintip block
+     * @returns {bool | string} false if error, string summarizing results on success
+     */
     handleBlockConnected: async function (
         chronik,
         db,
+        cache,
         telegramBot,
         channelId,
         avalancheRpc,
@@ -129,6 +164,9 @@ module.exports = {
             return false;
         }
 
+        // Cache the tipHeight
+        cache.set('tipHeight', tipHeight);
+
         const serverState = await getServerState(db);
         if (!serverState) {
             // TODO notify admin
@@ -137,12 +175,6 @@ module.exports = {
 
         const { processedBlockheight, processedConfirmedTxs } = serverState;
 
-        // If serverState is, somehow, ahead of the calling block, return false
-        if (processedBlockheight >= tipHeight) {
-            // TODO notify admin
-            return false;
-        }
-
         const allUnprocessedTxs = await getUnprocessedTxHistory(
             chronik,
             aliasConstants.registrationAddress,
@@ -150,8 +182,36 @@ module.exports = {
             processedConfirmedTxs,
         );
 
-        // Remove unconfirmed txs as these are not eligible for valid alias registrations
-        const { confirmedTxs } = splitTxsByConfirmed(allUnprocessedTxs);
+        if (!allUnprocessedTxs) {
+            console.log(
+                `Error getting allUnprocessedTxs, exiting handleBlockConnected for ${tipHeight}`,
+            );
+            // If there is an error getting all the tx history, exit and do not update server state
+            return;
+        }
+
+        // Separate confirmed and unconfirmed txs as they will be processed separately
+        const { confirmedTxs, unconfirmedTxs } =
+            splitTxsByConfirmed(allUnprocessedTxs);
+
+        // Process unconfirmed txs for pending
+        for (const unconfirmedTx of unconfirmedTxs) {
+            await parseTxForPendingAliases(
+                db,
+                cache,
+                unconfirmedTx,
+                aliasConstants,
+            );
+        }
+
+        // If serverState is ahead of the calling block, return false before updating serverState
+        // Process pending txs before backing out here, as these should process on app startup
+        // A common scenario is starting the app, updating to a block, then restarting the app
+        // before a new block is found -- in this case, we still want to check for new pending aliases
+        if (processedBlockheight >= tipHeight) {
+            // TODO notify admin
+            return false;
+        }
 
         // Get all potentially valid alias registrations
         // i.e. correct fee is paid, prefix is good, everything good but not yet checked against
@@ -192,7 +252,48 @@ module.exports = {
         // Let the msgs send async in the background without holding up the next block processing
         sendAliasAnnouncements(telegramBot, channelId, newAliasRegistrations);
 
+        // Delete all pending alias txs that were attempting to register an alias that is now successfully registered
+        for (const newAliasRegistration of newAliasRegistrations) {
+            await deletePendingAliases(db, {
+                alias: newAliasRegistration.alias,
+            });
+        }
+
+        // Delete all pending alias txs that were seen more than pendingExpirationBlocks ago
+        await deletePendingAliases(db, {
+            tipHeight: {
+                $lt: tipHeight - config.pendingExpirationBlocks,
+            },
+        });
+
         console.log('\x1b[32m%s\x1b[0m', `✔ ${tipHeight}`);
         return `Alias registrations updated to block ${tipHash} at height ${tipHeight}`;
+    },
+    /**
+     * Check if an incoming tx represents a pending alias tx. If so, add it to pendingAliases collection.
+     * Note that the addedToMempool event will only ever be called on unconfirmed txs, but it is possible
+     * for this tx to become confirmed by the time we check chronik.tx
+     * Note that it is possible for an alias registration tx to contain multiple registrations
+     * @param {object} chronik initialized chronik object
+     * @param {object} db initialized mongodb instance
+     * @param {object} cache an initialized node-cache instance
+     * @param {string} txid transaction id from chronik websocket msg
+     * @returns {bool} true if txid contains a pending alias tx and it was added to the pendingAliases collection
+     * @throws {error} on chronik error
+     */
+    handleAddedToMempool: async function (chronik, db, cache, txid) {
+        // Get tx info with chronik
+        let txDetails;
+        try {
+            txDetails = await chronik.tx(txid);
+        } catch (err) {
+            console.log(
+                `Error in chronik.tx(${txid}) in handleAddedToMempool`,
+                err,
+            );
+            throw err;
+        }
+
+        return parseTxForPendingAliases(db, cache, txDetails, aliasConstants);
     },
 };

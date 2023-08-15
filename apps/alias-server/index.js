@@ -18,6 +18,10 @@ const chronik = new ChronikClient(config.chronik);
 const { MongoClient } = require('mongodb');
 const aliasServerMongoClient = new MongoClient(config.database.connectionUrl);
 
+// Use node-cache to store tipHeight in cache
+const NodeCache = require('node-cache');
+const cache = new NodeCache();
+
 // Initialize TelegramBot on app startup
 const TelegramBot = require('node-telegram-bot-api');
 const { botId, channelId } = secrets.telegram;
@@ -34,6 +38,7 @@ initializeDb(aliasServerMongoClient).then(
         // Start the indexer
         main(
             db,
+            cache,
             chronik,
             aliasConstants.registrationAddress,
             telegramBot,
@@ -44,11 +49,11 @@ initializeDb(aliasServerMongoClient).then(
         // Gracefully shut down on app termination
         process.on('SIGTERM', () => {
             // kill <pid> from terminal
-            cleanup(server, aliasServerMongoClient);
+            cleanup(server, aliasServerMongoClient, cache);
         });
         process.on('SIGINT', () => {
             // ctrl + c in nodejs
-            cleanup(server, aliasServerMongoClient);
+            cleanup(server, aliasServerMongoClient, cache);
         });
     },
     err => {

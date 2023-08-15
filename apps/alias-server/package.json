@@ -29,6 +29,7 @@
         "ecashaddrjs": "^1.5.0",
         "express": "^4.18.2",
         "mongodb": "^5.0.1",
+        "node-cache": "^5.1.2",
         "node-telegram-bot-api": "^0.61.0",
         "request-ip": "^3.3.0"
     },

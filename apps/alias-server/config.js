@@ -16,6 +16,7 @@ module.exports = {
         },
         connectionUrl: 'mongodb://localhost:27017',
     },
+    pendingExpirationBlocks: 6,
     // Prevent the app from processing tx history before aliases active
     initialServerState: {
         processedConfirmedTxs: 45587,

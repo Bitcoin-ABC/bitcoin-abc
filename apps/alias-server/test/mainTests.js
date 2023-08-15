@@ -21,14 +21,16 @@ const { MongoClient } = require('mongodb');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 // Mock chronik
 const { MockChronikClient } = require('./mocks/chronikMock');
+const NodeCache = require('node-cache');
 
 describe('alias-server main.js', async function () {
-    let mongoServer, testMongoClient, db;
+    let mongoServer, testMongoClient, db, testCache;
     before(async () => {
         mongoServer = await MongoMemoryServer.create();
         const mongoUri = mongoServer.getUri();
         testMongoClient = new MongoClient(mongoUri);
         db = await initializeDb(testMongoClient);
+        testCache = new NodeCache();
         /* 
         Because the actual number of pages of txHistory of the IFP address is high and always rising
         (12,011 as of 20230703)
@@ -55,6 +57,8 @@ describe('alias-server main.js', async function () {
     after(async () => {
         await testMongoClient.close();
         await mongoServer.stop();
+        testCache.flushAll();
+        testCache.close();
     });
 
     it('main() connects to a websocket, and runs handleAppStartup() correctly', async function () {
@@ -101,6 +105,7 @@ describe('alias-server main.js', async function () {
         const returnMocks = true;
         const result = await main(
             db,
+            testCache,
             chronik,
             address,
             telegramBot,

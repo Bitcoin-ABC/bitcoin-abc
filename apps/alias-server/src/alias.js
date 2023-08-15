@@ -10,7 +10,12 @@ const {
     isValidAliasString,
     getAliasPrice,
 } = require('./utils');
-const { addOneAliasToDb } = require('./db');
+const {
+    addOneAliasToDb,
+    addOneAliasToPending,
+    getAliasInfoFromAlias,
+    getServerState,
+} = require('./db');
 const { consumeNextPush } = require('ecash-script');
 
 module.exports = {
@@ -294,5 +299,73 @@ module.exports = {
             }
         }
         return validAliasRegistrations;
+    },
+    /**
+     * Given the txDetails of an unconfirmed tx, add it to pendingAliases collection if it is pending
+     * @param {object} db initialized mongo db instance
+     * @param {object} cache an initialized node-cache instance
+     * @param {object} txDetails Response of chronik.tx(txid) for this tx
+     * @param {object} aliasConstants Object used to determine alias pricing and registration address
+     * @returns {bool} true if tx contained valid pending alias(es), false if not
+     */
+    parseTxForPendingAliases: async function (
+        db,
+        cache,
+        txDetails,
+        aliasConstants,
+    ) {
+        // pending aliases must be unconfirmed
+        if (typeof txDetails.block !== 'undefined') {
+            return false;
+        }
+        // Check for valid alias tx(s) in given txDetails
+        // Note that getAliasTxs takes an array of txDetails objects
+        // In this case we pass an array of just this txDetails
+        const potentialPendingAliases = module.exports.getAliasTxs(
+            [txDetails],
+            aliasConstants,
+        );
+
+        if (potentialPendingAliases.length === 0) {
+            // We know this tx cannot be a pending alias tx as it contains no valid registration outputs
+            return false;
+        }
+
+        // Note that parseTxForPendingAliases is only called on one txDetails
+        // However, it is possible that one registration tx registers multiple aliases
+        // Edge case as in v0 this requires the tx to have multiple OP_RETURN outputs
+        let txContainsPendingAlias = false;
+        for (const potentialPendingAlias of potentialPendingAliases) {
+            const { alias } = potentialPendingAlias;
+
+            if ((await getAliasInfoFromAlias(db, alias)) === null) {
+                // If this alias is not already registered, then this is a valid pending registration
+                // Note that you may have more than 1 pending alias of the same 'alias'
+
+                // Get tipHeight to set with this pendingAlias
+                let tipHeight = cache.get('tipHeight');
+
+                if (typeof tipHeight === 'undefined') {
+                    // If tipHeight is not set, get it from serverState
+                    // More expensive call than cache, ok here bc edge case, can only happen
+                    // for pending alias txs that come in right at server startup
+                    const { processedBlockheight } = await getServerState(db);
+                    tipHeight = processedBlockheight;
+                }
+                potentialPendingAlias.tipHeight = tipHeight;
+
+                const pendingAddedResult = await addOneAliasToPending(
+                    db,
+                    potentialPendingAlias,
+                );
+
+                if (pendingAddedResult && pendingAddedResult.acknowledged) {
+                    console.log(`New pending alias: ${alias}`);
+                    txContainsPendingAlias = true;
+                }
+            }
+        }
+
+        return txContainsPendingAlias;
     },
 };
