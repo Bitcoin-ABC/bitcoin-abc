@@ -7,7 +7,86 @@ on:
     tags-ignore:
       - '**'
 
+env:
+  ### compiler options
+  HOST:
+  WRAPPER_CMD:
+  # Specific warnings can be disabled with -Wno-error=foo.
+  # -pedantic-errors is not equivalent to -Werror=pedantic and thus not implied by -Werror according to the GCC manual.
+  WERROR_CFLAGS: '-Werror -pedantic-errors'
+  MAKEFLAGS: '-j4'
+  AUTOTOOLS_TARGET: 'check'
+  CMAKE_TARGET: 'check-secp256k1'
+  ### secp256k1 config
+  ECMULTWINDOW: 'auto'
+  ECMULTGENPRECISION: 'auto'
+  ASM: 'no'
+  WIDEMUL: 'auto'
+  WITH_VALGRIND: 'yes'
+  AUTOTOOLS_EXTRA_FLAGS:
+  CMAKE_EXTRA_FLAGS:
+  ### secp256k1 modules
+  EXPERIMENTAL: 'no'
+  ECDH: 'no'
+  RECOVERY: 'no'
+  SCHNORR: 'yes'
+  SCHNORRSIG: 'no'
+  MULTISET: 'no'
+  ### test options
+  TEST_ITERS:
+  BENCH: 'yes'
+  BENCH_ITERS: 2
+  CTIMETESTS: 'yes'
+
 jobs:
+  macos-native:
+    name: "x86_64: macOS Sequoia"
+    # See: https://github.com/actions/runner-images#available-images.
+    runs-on: macos-15-intel
+
+    env:
+      ASM: 'no'
+      WITH_VALGRIND: 'no'
+      CTIMETESTS: 'no'
+      CC: 'clang'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        env_vars:
+          - { WIDEMUL: 'int64',  RECOVERY: 'yes', ECDH: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes', SCHNORRSIG: 'yes' }
+          - { WIDEMUL: 'int64',  RECOVERY: 'yes', ECDH: 'yes', EXPERIMENTAL: 'yes',                  SCHNORRSIG: 'yes', CC: 'gcc' }
+          - { ECMULTGENPRECISION: 2, ECMULTWINDOW: 4 }
+          - { WIDEMUL: 'int128',                  ECDH: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes', SCHNORRSIG: 'yes' }
+          - { WIDEMUL: 'int128', RECOVERY: 'yes',              EXPERIMENTAL: 'yes',                  SCHNORRSIG: 'yes' }
+          - { WIDEMUL: 'int128', RECOVERY: 'yes', ECDH: 'yes', EXPERIMENTAL: 'yes',                  SCHNORRSIG: 'yes', CC: 'gcc' }
+          - { WIDEMUL: 'int128', RECOVERY: 'yes', ECDH: 'yes', EXPERIMENTAL: 'yes',                  SCHNORRSIG: 'yes', AUTOTOOLS_EXTRA_FLAGS: 'CPPFLAGS=-DVERIFY' }
+          # Fixme: the following task fails with error "System.IO.IOException: No space left on device" even if we run only the autotools job
+          # - { AUTOTOOLS_TARGET: 'distcheck', CMAKE_TARGET: 'install' }
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install Homebrew packages
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
+          HOMEBREW_NO_INSTALL_CLEANUP: 1
+        run: |
+          brew install automake libtool gcc
+          ln -s $(brew --prefix gcc)/bin/gcc-?? /usr/local/bin/gcc
+
+      - name: Autotools CI script
+        env: ${{ matrix.env_vars }}
+        run: ./ci/build_autotools.sh
+
+      - name: CMake CI script
+        env: ${{ matrix.env_vars }}
+        run: ./ci/build_cmake.sh
+
+      - name: CI env
+        run: env
+        if: ${{ always() }}
+
   sage:
     name: "SageMath prover"
     runs-on: ubuntu-latest
@@ -17,7 +96,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       - name: CI script
         run: |

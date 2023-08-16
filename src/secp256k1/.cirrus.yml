@@ -51,7 +51,7 @@ task:
   timeout_in: 120m
   name: "x86_64: Linux (Debian stable)"
   << : *LINUX_CONTAINER
-  matrix: &ENV_MATRIX
+  matrix:
     - env: {WIDEMUL:  int64,  RECOVERY: yes}
     - env: {WIDEMUL:  int64,                 ECDH: yes, EXPERIMENTAL: yes, MULTISET: yes, SCHNORRSIG: yes}
     - env: {WIDEMUL: int128}
@@ -89,34 +89,6 @@ task:
         CC: i686-linux-gnu-gcc
     - env:
         CC: clang --target=i686-pc-linux-gnu -isystem /usr/i686-linux-gnu/include
-  test_script:
-    - ./ci/build_autotools.sh
-    - ./ci/build_cmake.sh
-  << : *CAT_LOGS
-
-task:
-  timeout_in: 120m
-  name: "arm64: macOS Ventura"
-  macos_instance:
-    image: ghcr.io/cirruslabs/macos-ventura-base:latest
-  env:
-    HOMEBREW_NO_AUTO_UPDATE: 1
-    HOMEBREW_NO_INSTALL_CLEANUP: 1
-    # Cirrus gives us a fixed number of 4 virtual CPUs. Not that we even have that many jobs at the moment...
-    MAKEFLAGS: -j5
-  matrix:
-    << : *ENV_MATRIX
-  env:
-    ASM: no
-    WITH_VALGRIND: no
-    CTIMETEST: no
-  matrix:
-    - env:
-        CC: gcc
-    - env:
-        CC: clang
-  brew_script:
-    - brew install automake cmake gcc libtool ninja
   test_script:
     - ./ci/build_autotools.sh
     - ./ci/build_cmake.sh
