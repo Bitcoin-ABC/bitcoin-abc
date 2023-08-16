@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Corrosion 0.3.0 REQUIRED)
 
-set(REQUIRED_RUST_VERSION "1.61.0")
+set(REQUIRED_RUST_VERSION "1.67.1")
 if(Rust_VERSION VERSION_LESS REQUIRED_RUST_VERSION)
     message(FATAL_ERROR "Minimum required Rust version is "
             "${REQUIRED_RUST_VERSION}, but found ${Rust_VERSION}")
