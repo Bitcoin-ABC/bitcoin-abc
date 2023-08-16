@@ -6,7 +6,7 @@
 const DUST_AMOUNT_SATOSHIS = 546;
 // The minimum fee is 1 sat/byte however to use this you need to
 // make sure your app has accurately determined the tx bytecount.
-// See calcByteCount() for the underlying calculations.
+// See calcP2pkhByteCount() for the underlying calculations.
 const SATOSHIS_PER_BYTE = 1;
 
 /**
@@ -46,7 +46,7 @@ function getInputUtxos(chronikUtxos, sendAmountInSats) {
 
             // Update byte count for this tx passing in the number of utxos
             // traversed thus far in this loop and tx outputs.
-            let byteCount = calcByteCount(inputUtxos.length, outputCount);
+            let byteCount = calcP2pkhByteCount(inputUtxos.length, outputCount);
 
             // Update tx fee based on byteCount and satoshis per byte
             txFee = Math.ceil(SATOSHIS_PER_BYTE * byteCount);
@@ -60,7 +60,7 @@ function getInputUtxos(chronikUtxos, sendAmountInSats) {
                     // Note that the actual tx fee will be higher than the optimum fee calculated here, because
                     // the remainder amount that is too small for change becomes part of the implied tx fee
                     remainder = 0;
-                    byteCount = calcByteCount(
+                    byteCount = calcP2pkhByteCount(
                         inputUtxos.length,
                         outputCount - 1,
                     );
@@ -146,33 +146,81 @@ function parseChronikUtxos(chronikUtxos) {
  * @param {number} outputCount the quantity of p2pkh outputs created by this tx
  * @returns {number} byteCount the byte count based on input and output weightings
  */
-function calcByteCount(inputCount, outputCount) {
-    // As at July 2023, eCash's transaction format is still the same as Bitcoin's.
-    // Based on https://bitcointalk.org/index.php?topic=4429991.0 :
-    // p2pkh tx byte size =
+function calcP2pkhByteCount(inputCount, outputCount) {
+    // Based on https://en.bitcoin.it/wiki/Protocol_documentation#Variable_length_integer
+    // the amount of inputs and ouputs will influence how byte count is calculated.
+
+    // ** Key Parameters **
+
+    // - The max outputs per tx is based on 1MB limit divided by 34 output bytes = ~30k
+    // outputs (rounded up from 29,411)
+    // - The varint encoding for ~30k outputs is 3 bytes as it is greater than uint8 but
+    // safe under uint16
+
+    // - The max inputs per tx is based on 1BM limit divided by 140 input bytes which assumes
+    // a VERY unlikely 64 bytes DER sig encoding with a compressed pubkey = ~8k inputs (rounded up from 7,142)
+    // - The varint encoding for ~8k inputs is 3 bytes as it is greater than uint8 but
+    // safe under uint16
+
+    // - An eCash signature using the ECDSA signature scheme is typically between 71-73 bytes long.
+    // This is based on the following breakdown:
+    //    * DER encoding overhead (6 bytes)
+    //    * r-value (up to 32 bytes)
+    //    * r-value signedness (1 byte)
+    //    * S-value (up to 32 bytes)
+    //    * S-value signedness (1 byte)
+    //    * Signature hash (1 byte)
+    // DER encoded signatures have no r-value/s-value padding (i.e. 71 bytes), whilst
+    // 72 byte signatures have padding either for the r-value or s-value, with 73 byte
+    // signatures having padding for both values. (ECDSA requires the values to be unsigned integers)
+    // Since low S is enforced as a standardness rule, this function uses 72 bytes as an upper limit including sighash.
+    // The smallest scriptSig, however very unlikely, would be a DER encoded signature with
+    // a compressed pubkey, at a total length of 100 bytes.
+    // See https://en.bitcoin.it/wiki/Protocol_documentation#Signatures for more info.
+
+    // - Compressed public keys are 33 bytes whilst older uncompressed keys are 65 bytes. For
+    // the purposes of this function, it is assumed all public keys are compressed.
+
+    // p2pkh tx byte size formula =
     //    ( Inputs * Input Size ) +
     //    ( Outputs * Output Size ) +
-    //    10 Bytes extra fixed fee required for the framework of the transaction
+    //    Fixed fee required for the framework of the transaction
 
     // p2pkh input size = PREVOUT + SCRIPTSIG + sequence
     // whereby:
-    //      PREVOUT = hash (32 bytes) + index (4 bytes)
-    //      SCRIPTSIG = length (1 byte) + push opcode(1 byte) + signature (72 bytes) + push opcode (1 byte) + pubkey (33 bytes for compressed)
-    //      sequence = 4 bytes
-    const P2PKH_IN_SIZE = 148;
+    const PREVOUT = 32 /* hash */ + 4; /* index */
+    const SCRIPTSIG =
+        1 /* length */ +
+        1 /* push opcode */ +
+        72 /* signature */ +
+        1 /* push opcode */ +
+        33; /* compressed pubkey */
+    const SEQUENCE = 4;
+    const P2PKH_IN_SIZE = PREVOUT + SCRIPTSIG + SEQUENCE;
 
     // p2pkh output size =
     //    value encoding (8 bytes)
-    //    variable-length integer encoding the locking script's size (1 byte)
-    //    locking script (25 byte)
-    const P2PKH_OUT_SIZE = 34;
+    //    locking script length (1 byte)
+    //    locking script (25 bytes)
+    const VALUE_ENCODING = 8;
+    // Since PK_SCRIPT is set to 25 bytes which is safe under uint8, PK_SCRIPT_LENGTH is set to 1 byte.
+    const PK_SCRIPT_LENGTH = 1;
+    const PK_SCRIPT = 25;
+    const P2PKH_OUT_SIZE = VALUE_ENCODING + PK_SCRIPT_LENGTH + PK_SCRIPT;
 
-    // the extra 10 bytes of framework data =
+    // the extra bytes of framework data =
     //    version number (4 bytes) +
-    //    quantity of inputs (1 byte) +
-    //    quantity of outputs (1 byte) +
+    //    quantity of inputs (varies based on inputs) +
+    //    quantity of outputs (varies based on outputs) +
     //    locktime (4 bytes)
-    const FRAMEWORK_BYTES = 10;
+    const VERSION_NUMBER = 4;
+    // 1 byte if inputs < 253, otherwise 3 bytes for up to 8k inputs
+    const INPUT_SIZE = inputCount < 253 ? 1 : 3;
+    // 1 byte if outputs < 253, otherwise 3 bytes for up to 30k ouputs
+    const OUTPUT_SIZE = outputCount < 253 ? 1 : 3;
+    const LOCKTIME = 4;
+    const FRAMEWORK_BYTES =
+        VERSION_NUMBER + INPUT_SIZE + OUTPUT_SIZE + LOCKTIME;
 
     return (
         inputCount * P2PKH_IN_SIZE +
@@ -184,5 +232,5 @@ function calcByteCount(inputCount, outputCount) {
 module.exports = {
     getInputUtxos: getInputUtxos,
     parseChronikUtxos: parseChronikUtxos,
-    calcByteCount: calcByteCount,
+    calcP2pkhByteCount: calcP2pkhByteCount,
 };

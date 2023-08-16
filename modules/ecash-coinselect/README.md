@@ -85,11 +85,11 @@ console.log(parsedUtxos);
 //}
 ```
 
--   Calculate a transaction byte count based on inputs and outputs.
+-   Calculate a p2pkh transaction byte count based on inputs and outputs.
 
 ```javascript
 const coinselect = require('ecash-coinselect');
-const byteCount = coinselect.calcByteCount(
+const byteCount = coinselect.calcP2pkhByteCount(
     5, // inputs
     2, // outputs
 );
@@ -98,4 +98,5 @@ console.log(byteCount); // 818
 
 #### Change Log
 
+1.0.1 - Fixed p2pkh byte count calculations and renamed `calcByteCount` to `calcP2pkhByteCount`.
 1.0.0 - Support collection of eCash XEC utxos for one to one p2pkh transactions.
