@@ -20,6 +20,7 @@ const {
     formatPrice,
     satsToFormattedValue,
     returnAddressPreview,
+    containsOnlyPrintableAscii,
 } = require('./utils');
 module.exports = {
     parseBlock: function (chronikBlockResponse) {
@@ -520,14 +521,26 @@ module.exports = {
                 break;
             }
             default: {
-                /**
-                 * If you don't recognize protocolIdentifier, just translate with ASCII
-                 * Will be easy to spot these msgs in the bot and add special parsing rules                 *
-                 */
+                // If you do not recognize the protocol identifier, just print the pushes in hex
+                // If it is an app or follows a pattern, can be added later
                 app = 'unknown';
-                msg = prepareStringForTelegramHTML(
-                    Buffer.from(stackArray.join(''), 'hex').toString('ascii'),
-                );
+
+                if (containsOnlyPrintableAscii(stackArray.join(''))) {
+                    msg = prepareStringForTelegramHTML(
+                        Buffer.from(stackArray.join(''), 'hex').toString(
+                            'ascii',
+                        ),
+                    );
+                } else {
+                    // If you have non-ascii characters, print each push as a hex number
+                    msg = '';
+                    for (let i = 0; i < stackArray.length; i += 1) {
+                        msg += `0x${stackArray[i]} `;
+                    }
+                    // Remove the last space
+                    msg = msg.slice(0, -1);
+                }
+
                 break;
             }
         }

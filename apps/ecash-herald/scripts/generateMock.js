@@ -68,7 +68,8 @@ const txids = [
     '22135bb69435023a84c80b1b93b31fc8898c3507eaa70569ed038f32d59599a9', // alias beta
     '45ec66bc2440d2f94fa2c645e20a44f6fab7c397053ce77a95484c6053104cdc', // EMPP SLPv2 send
     '413b57617d2c497b137d31c53151fee595415ec273ef7a111160da8093147ed8', // EMPP SLPv2 mint
-    '9094e1aab7ac73c680bf66e78cc8311831b3d813e608bff1e07b1854855fc0f1', // Unknown app tx
+    '9094e1aab7ac73c680bf66e78cc8311831b3d813e608bff1e07b1854855fc0f1', // Unknown app tx, parsable
+    'b5782d3a3b55e5ee9e4330a969c2891042ae05fafab7dc05cd14da63e7242f8e', // Unknown app tx, likely hex
 
     // XEC send txs
     '4f33c81d95641eb0f80e793dc96c58a2438f9bb1f18750d8fb3b56c28cd25035', // 🐋, Address in directory, self-send XEC tx

@@ -7,6 +7,7 @@ const axios = require('axios');
 const config = require('../config');
 const BigNumber = require('bignumber.js');
 const addressDirectory = require('../constants/addresses');
+const { consume } = require('ecash-script');
 
 module.exports = {
     returnAddressPreview: function (cashAddress, sliceSize = 3) {
@@ -353,5 +354,34 @@ module.exports = {
         return `${BigInt(intValue).toLocaleString('en-US', {
             maximumFractionDigits: 0,
         })}${decimals !== 0 ? `.${decimalValues}` : ''}`;
+    },
+    /**
+     * Determine if an OP_RETURN's hex values include characters outside of printable ASCII range
+     * @param {string} hexString hex string containing an even number of characters
+     */
+    containsOnlyPrintableAscii: function (hexString) {
+        if (hexString.length % 2 !== 0) {
+            // If hexString has an odd number of characters, it is certainly not ascii
+            return false;
+        }
+
+        // Values lower than 32 are control characters (127 also control char)
+        // We could tolerate LF and CR which are in this range, but they make
+        // the msg awkward in Telegram -- so they are left out
+        const MIN_ASCII_PRINTABLE_DECIMAL = 32;
+        const MAX_ASCII_PRINTABLE_DECIMAL = 126;
+        const stack = { remainingHex: hexString };
+
+        while (stack.remainingHex.length > 0) {
+            const thisByte = parseInt(consume(stack, 1), 16);
+
+            if (
+                thisByte > MAX_ASCII_PRINTABLE_DECIMAL ||
+                thisByte < MIN_ASCII_PRINTABLE_DECIMAL
+            ) {
+                return false;
+            }
+        }
+        return true;
     },
 };

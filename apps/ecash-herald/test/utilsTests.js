@@ -19,6 +19,7 @@ const {
     satsToFormattedValue,
     getEmojiFromBalanceSats,
     bigNumberAmountToLocaleString,
+    containsOnlyPrintableAscii,
 } = require('../src/utils');
 const { addressPreviews, mockCoingeckoPrices } = require('./mocks/templates');
 
@@ -403,5 +404,32 @@ describe('ecash-telegram-bot utils.js functions', function () {
             bigNumberAmountToLocaleString(tokenSendAmountString, decimals),
             '123,456,789.123456789',
         );
+    });
+    it('containsOnlyPrintableAscii correctly identifies a hex string containing only ascii ranged values as probably ascii', async function () {
+        const hexString =
+            '3d3a4554482e4554483a3078613961614633304636353935354336396331364233333435423531443432364439423838426138373a3834313332313a74723a30';
+
+        assert.strictEqual(containsOnlyPrintableAscii(hexString), true);
+    });
+    it('containsOnlyPrintableAscii recognizes a string of odd length is probably not ascii', async function () {
+        const hexString =
+            '3d3a4554482e4554483a3078613961614633304636353935354336396331364233333435423531443432364439423838426138373a3834313332313a74723a3';
+
+        assert.strictEqual(containsOnlyPrintableAscii(hexString), false);
+    });
+    it('containsOnlyPrintableAscii recognizes a string containing characters out of ascii range is probably not ascii', async function () {
+        const hexString = '663ddd99990bcd969994ec2288a2a86dc532e1a8';
+
+        assert.strictEqual(containsOnlyPrintableAscii(hexString), false);
+    });
+    it('containsOnlyPrintableAscii returns false for a string that contains all valid ascii characters but also a control character < 32', async function () {
+        const hexString = '1f663ddd99990bcd969994ec2288a2a86dc532e1a8';
+
+        assert.strictEqual(containsOnlyPrintableAscii(hexString), false);
+    });
+    it('containsOnlyPrintableAscii returns false for a string that contains all valid ascii characters but also a control character > 126', async function () {
+        const hexString = '7f663ddd99990bcd969994ec2288a2a86dc532e1a8';
+
+        assert.strictEqual(containsOnlyPrintableAscii(hexString), false);
     });
 });

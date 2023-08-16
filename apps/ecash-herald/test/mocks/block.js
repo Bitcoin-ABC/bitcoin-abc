@@ -8,7 +8,7 @@ module.exports = {
         blockInfo: {
             hash: '0000000000000000000000000000000000000000000000000000000000000000',
             height: 0,
-            numTxs: 19,
+            numTxs: 20,
         },
         txs: [
             {
@@ -2782,13 +2782,57 @@ module.exports = {
                 isCoinbase: false,
                 network: 'XEC',
             },
+            {
+                txid: 'b5782d3a3b55e5ee9e4330a969c2891042ae05fafab7dc05cd14da63e7242f8e',
+                version: 1,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: 'f75274016ff26983635008c3c1500c5aa3412e37c55f82bdf2542873376cbec6',
+                            outIdx: 1,
+                        },
+                        inputScript:
+                            '47304402207dd238f4aea9210eb5e311ec38a38c079290f89ba39a436cf1d7c4b3ee10a1b002202516389f5631a67d7eb89e03598dd90a20cae966049445cb1cf82059feb1cd49412103c918521e29ff4986c49c48750d18f1f586a34578ab37f2d206ed8d25abd95d39',
+                        outputScript:
+                            '76a9142cc3608fe629c4f402e511878982bc01bde3445d88ac',
+                        value: '12966881',
+                        sequenceNo: 4294967295,
+                    },
+                ],
+                outputs: [
+                    {
+                        value: '12966621',
+                        outputScript:
+                            'a9145aafaadba9ff909067a640e5e2a46b756aeaf71387',
+                        spentBy: {
+                            txid: '56f1c0813d1b44697deccdd32b5182448e8c4c1bd6db771ceed779d4a5021ab9',
+                            outIdx: 0,
+                        },
+                    },
+                    {
+                        value: '0',
+                        outputScript:
+                            '6a14663ddd99990bcd969994ec2288a2a86dc532e1a8',
+                    },
+                ],
+                lockTime: 1692219709,
+                block: {
+                    height: 805569,
+                    hash: '000000000000000013999983f42bc6270ca0cb0f0247872458546c381a270d01',
+                    timestamp: '1692219954',
+                },
+                timeFirstSeen: '1692219712',
+                size: 220,
+                isCoinbase: false,
+                network: 'XEC',
+            },
         ],
     },
     parsedBlock: {
         hash: '0000000000000000000000000000000000000000000000000000000000000000',
         height: 0,
         miner: 'ViaBTC, Mined by volpe1564',
-        numTxs: 19,
+        numTxs: 20,
         parsedTxs: [
             {
                 txid: '4f33c81d95641eb0f80e793dc96c58a2438f9bb1f18750d8fb3b56c28cd25035',
@@ -3180,6 +3224,36 @@ module.exports = {
                     ],
                 },
                 totalSatsSent: 1308715143,
+                tokenSendInfo: false,
+                tokenBurnInfo: false,
+            },
+            {
+                txid: 'b5782d3a3b55e5ee9e4330a969c2891042ae05fafab7dc05cd14da63e7242f8e',
+                genesisInfo: false,
+                opReturnInfo: {
+                    app: 'unknown',
+                    msg: '0x663ddd99990bcd969994ec2288a2a86dc532e1a8',
+                    stackArray: ['663ddd99990bcd969994ec2288a2a86dc532e1a8'],
+                    tokenId: false,
+                },
+                txFee: 260,
+                xecSendingOutputScripts: {
+                    dataType: 'Set',
+                    value: [
+                        '76a9142cc3608fe629c4f402e511878982bc01bde3445d88ac',
+                    ],
+                },
+                xecReceivingOutputs: {
+                    dataType: 'Map',
+                    value: [
+                        [
+                            'a9145aafaadba9ff909067a640e5e2a46b756aeaf71387',
+                            12966621,
+                        ],
+                        ['6a14663ddd99990bcd969994ec2288a2a86dc532e1a8', 0],
+                    ],
+                },
+                totalSatsSent: 12966621,
                 tokenSendInfo: false,
                 tokenBurnInfo: false,
             },
@@ -3870,6 +3944,8 @@ module.exports = {
                 '76a914a520c86a08366941cd90d22e11ac1c7eefa2db3788ac',
                 '76a91412934a7a99b69a60c3b99f991cd79d257104f5a688ac',
                 '76a914d7fc1d156d8ec4384623bb8ceb135df93f2bd93188ac',
+                '76a9142cc3608fe629c4f402e511878982bc01bde3445d88ac',
+                'a9145aafaadba9ff909067a640e5e2a46b756aeaf71387',
                 '76a914d95a60cea21479569e6b1ad39416c8fbc97323c588ac',
                 '76a914453c8c15aee05fe5a027d4bf5681cd0bc682c0b788ac',
                 '76a914f93029e7593327c5b864ea6896ecfda4fffb6ab888ac',
@@ -4061,6 +4137,42 @@ module.exports = {
                         {
                             outputScript:
                                 '76a914d7fc1d156d8ec4384623bb8ceb135df93f2bd93188ac',
+                            utxos: [
+                                {
+                                    value: '10000',
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+            [
+                '76a9142cc3608fe629c4f402e511878982bc01bde3445d88ac',
+                {
+                    emoji: '',
+                    balanceSats: 10000,
+                    utxos: [
+                        {
+                            outputScript:
+                                '76a9142cc3608fe629c4f402e511878982bc01bde3445d88ac',
+                            utxos: [
+                                {
+                                    value: '10000',
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+            [
+                'a9145aafaadba9ff909067a640e5e2a46b756aeaf71387',
+                {
+                    emoji: '',
+                    balanceSats: 10000,
+                    utxos: [
+                        {
+                            outputScript:
+                                'a9145aafaadba9ff909067a640e5e2a46b756aeaf71387',
                             utxos: [
                                 {
                                     value: '10000',
@@ -4469,10 +4581,10 @@ module.exports = {
         ],
     },
     blockSummaryTgMsgs: [
-        '📦<a href="https://explorer.e.cash/block/0000000000000000000000000000000000000000000000000000000000000000">0</a> | 19 txs | ViaBTC, Mined by volpe1564\n1 XEC = $0.0001\n1 BTC = $30,000\n1 ETH = $2,000\n\n<b>1 new eToken created</b>\n🧪<a href="https://explorer.e.cash/tx/010114b9bbe776def1a512ad1e96a4a06ec4c34fc79bcb5d908845f5102f6b0f">LOLLY</a> (Lolly) <a href="https://cashtab.com/">[doc]</a>\n\n<b>4 eToken send txs</b>\n🎟qz2...035 <a href="https://explorer.e.cash/tx/6ffcc83e76226bd32821cc6862ce9b363b22594247a4e73ccf3701b0023592b2">sent</a> 55 <a href="https://explorer.e.cash/tx/98183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48">DVV</a> to qph...72y\n🎟qz2...035 <a href="https://explorer.e.cash/tx/fb70df00c07749082756054522d3f08691fd9caccd0e0abf736df23d22845a6e">sent</a> 10.9876543 <a href="https://explorer.e.cash/tx/7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d">WDT</a> to qph...72y\n🎟qqw...6v4 <a href="https://explorer.e.cash/tx/25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7">sent</a> 5,000,000.00 <a href="https://explorer.e.cash/tx/fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa">GRP</a> to qrd...9j0\n🎟1 address <a href="https://explorer.e.cash/tx/0167e881fcb359cdfc82af5fc6c0821daf55f40767694eea2f23c0d42a9b1c17">sent</a> 356.6918 <a href="https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5">BUX</a> to itself\n\n<b>1 eToken burn tx</b>\n🔥qp9...et0 <a href="https://explorer.e.cash/tx/6b139007a0649f99a1a099c7c924716ee1920f74ea83111f6426854d4c3c3c79">burned</a> 1.00 <a href="https://explorer.e.cash/tx/fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa">GRP</a> \n\n<b>10 app txs</b>\n⚛️<a href="https://explorer.e.cash/tx/d5be7a4b483f9fdbbe3bf46cfafdd0100d5dbeee0b972f4dabc8ae9d9962fa55">Cash Fusion:</a> Fused $1k from 64 inputs into 63 outputs\n❓<a href="https://explorer.e.cash/tx/9094e1aab7ac73c680bf66e78cc8311831b3d813e608bff1e07b1854855fc0f1">unknown:</a> =:ETH.ETH:0xa9aaF30F65955C69c16B3345B51D426D9B88Ba87:841321:tr:0\n🪂<a href="https://explorer.e.cash/tx/7a0d6ae3384e293183478f681f51a77ef4c71f29957199364bb9ba4d8e1938be">Airdrop:</a> qru...jys airdropped $5 to 13 holders of <a href="https://explorer.e.cash/tx/b76878b29eff39c8c28aaed7d18a166c20057c43beeb90b630264470983c984a">STUB</a>|Stay with us, eCash Africa is the next big community in the African cryptosphere. \n🖋<a href="https://explorer.e.cash/tx/d02d94a1a520877c60d1e3026c3e85f8995d48d7b90140f83e24ede592c30306">Cashtab Msg, $1 for $0.0005:</a> I like eCash\n❓<a href="https://explorer.e.cash/tx/45ec66bc2440d2f94fa2c645e20a44f6fab7c397053ce77a95484c6053104cdc">EMPP:</a> SLP v2:SEND|<a href="https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">CRD</a>|1.9673\n🔏<a href="https://explorer.e.cash/tx/1083da7ead4779fbab5c5e8291bb7a37abaf4f97f5ff99ee654759b2eaee445b">Cashtab Encrypted:</a> qq9...fgx sent an encrypted message and $0.002 to qzv...fed\n👾<a href="https://explorer.e.cash/tx/22135bb69435023a84c80b1b93b31fc8898c3507eaa70569ed038f32d59599a9">Alias (beta):</a> doge2\n❓<a href="https://explorer.e.cash/tx/413b57617d2c497b137d31c53151fee595415ec273ef7a111160da8093147ed8">EMPP:</a> SLP v2:MINT|<a href="https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">CRD</a>|0.0\n🤳<a href="https://explorer.e.cash/tx/ad44bf5e214ab71bb60a2eee165f368c139cd49c2380c3352f0a4fffc746b36a">SWaP:</a> Signal|SLP Atomic Swap|<a href="https://explorer.e.cash/tx/aebcae9afe88d61d8b8ed7b8c83c7c2a555583bf8f8591c94a2c9eb82f34816c">STUB</a>|SELL for 159,883.54 XEC|Min trade: 0 XEC\n🗞<a href="https://explorer.e.cash/tx/a8c348539a1470b28b9f99693994b918b475634352994dddce80ad544e871b3a">memo:</a> Reply to memo|<a href="https://explorer.e.cash/tx/eae5710aba50a0a22b266ddbb445e05b7348d15c88cbc2e012a91a09bec3861a">memo</a>|Twitter keeps turning their API on and off. Sometimes it works, sometimes it doesn\'t. Feature to create tweets from memo may work again at some point.\n\n<b>2 eCash txs</b>',
-        '💸<a href="https://explorer.e.cash/tx/4f33c81d95641eb0f80e793dc96c58a2438f9bb1f18750d8fb3b56c28cd25035">$584k for $0.0003</a> 🐳 Binance ➡️ itself\n💸<a href="https://explorer.e.cash/tx/f5d4c112cfd22701226ba050cacfacc3aff570964c6196f67e326fc3224300a2">$107k for $0.003</a> qp7...sr4 ➡️ 🦀qzj...ksg',
+        '📦<a href="https://explorer.e.cash/block/0000000000000000000000000000000000000000000000000000000000000000">0</a> | 20 txs | ViaBTC, Mined by volpe1564\n1 XEC = $0.0001\n1 BTC = $30,000\n1 ETH = $2,000\n\n<b>1 new eToken created</b>\n🧪<a href="https://explorer.e.cash/tx/010114b9bbe776def1a512ad1e96a4a06ec4c34fc79bcb5d908845f5102f6b0f">LOLLY</a> (Lolly) <a href="https://cashtab.com/">[doc]</a>\n\n<b>4 eToken send txs</b>\n🎟qz2...035 <a href="https://explorer.e.cash/tx/6ffcc83e76226bd32821cc6862ce9b363b22594247a4e73ccf3701b0023592b2">sent</a> 55 <a href="https://explorer.e.cash/tx/98183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48">DVV</a> to qph...72y\n🎟qz2...035 <a href="https://explorer.e.cash/tx/fb70df00c07749082756054522d3f08691fd9caccd0e0abf736df23d22845a6e">sent</a> 10.9876543 <a href="https://explorer.e.cash/tx/7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d">WDT</a> to qph...72y\n🎟qqw...6v4 <a href="https://explorer.e.cash/tx/25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7">sent</a> 5,000,000.00 <a href="https://explorer.e.cash/tx/fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa">GRP</a> to qrd...9j0\n🎟1 address <a href="https://explorer.e.cash/tx/0167e881fcb359cdfc82af5fc6c0821daf55f40767694eea2f23c0d42a9b1c17">sent</a> 356.6918 <a href="https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5">BUX</a> to itself\n\n<b>1 eToken burn tx</b>\n🔥qp9...et0 <a href="https://explorer.e.cash/tx/6b139007a0649f99a1a099c7c924716ee1920f74ea83111f6426854d4c3c3c79">burned</a> 1.00 <a href="https://explorer.e.cash/tx/fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa">GRP</a> \n\n<b>11 app txs</b>\n⚛️<a href="https://explorer.e.cash/tx/d5be7a4b483f9fdbbe3bf46cfafdd0100d5dbeee0b972f4dabc8ae9d9962fa55">Cash Fusion:</a> Fused $1k from 64 inputs into 63 outputs\n❓<a href="https://explorer.e.cash/tx/b5782d3a3b55e5ee9e4330a969c2891042ae05fafab7dc05cd14da63e7242f8e">unknown:</a> 0x663ddd99990bcd969994ec2288a2a86dc532e1a8\n❓<a href="https://explorer.e.cash/tx/9094e1aab7ac73c680bf66e78cc8311831b3d813e608bff1e07b1854855fc0f1">unknown:</a> =:ETH.ETH:0xa9aaF30F65955C69c16B3345B51D426D9B88Ba87:841321:tr:0\n🪂<a href="https://explorer.e.cash/tx/7a0d6ae3384e293183478f681f51a77ef4c71f29957199364bb9ba4d8e1938be">Airdrop:</a> qru...jys airdropped $5 to 13 holders of <a href="https://explorer.e.cash/tx/b76878b29eff39c8c28aaed7d18a166c20057c43beeb90b630264470983c984a">STUB</a>|Stay with us, eCash Africa is the next big community in the African cryptosphere. \n🖋<a href="https://explorer.e.cash/tx/d02d94a1a520877c60d1e3026c3e85f8995d48d7b90140f83e24ede592c30306">Cashtab Msg, $1 for $0.0005:</a> I like eCash\n❓<a href="https://explorer.e.cash/tx/45ec66bc2440d2f94fa2c645e20a44f6fab7c397053ce77a95484c6053104cdc">EMPP:</a> SLP v2:SEND|<a href="https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">CRD</a>|1.9673\n🔏<a href="https://explorer.e.cash/tx/1083da7ead4779fbab5c5e8291bb7a37abaf4f97f5ff99ee654759b2eaee445b">Cashtab Encrypted:</a> qq9...fgx sent an encrypted message and $0.002 to qzv...fed\n👾<a href="https://explorer.e.cash/tx/22135bb69435023a84c80b1b93b31fc8898c3507eaa70569ed038f32d59599a9">Alias (beta):</a> doge2\n❓<a href="https://explorer.e.cash/tx/413b57617d2c497b137d31c53151fee595415ec273ef7a111160da8093147ed8">EMPP:</a> SLP v2:MINT|<a href="https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">CRD</a>|0.0\n🤳<a href="https://explorer.e.cash/tx/ad44bf5e214ab71bb60a2eee165f368c139cd49c2380c3352f0a4fffc746b36a">SWaP:</a> Signal|SLP Atomic Swap|<a href="https://explorer.e.cash/tx/aebcae9afe88d61d8b8ed7b8c83c7c2a555583bf8f8591c94a2c9eb82f34816c">STUB</a>|SELL for 159,883.54 XEC|Min trade: 0 XEC',
+        '🗞<a href="https://explorer.e.cash/tx/a8c348539a1470b28b9f99693994b918b475634352994dddce80ad544e871b3a">memo:</a> Reply to memo|<a href="https://explorer.e.cash/tx/eae5710aba50a0a22b266ddbb445e05b7348d15c88cbc2e012a91a09bec3861a">memo</a>|Twitter keeps turning their API on and off. Sometimes it works, sometimes it doesn\'t. Feature to create tweets from memo may work again at some point.\n\n<b>2 eCash txs</b>\n💸<a href="https://explorer.e.cash/tx/4f33c81d95641eb0f80e793dc96c58a2438f9bb1f18750d8fb3b56c28cd25035">$584k for $0.0003</a> 🐳 Binance ➡️ itself\n💸<a href="https://explorer.e.cash/tx/f5d4c112cfd22701226ba050cacfacc3aff570964c6196f67e326fc3224300a2">$107k for $0.003</a> qp7...sr4 ➡️ 🦀qzj...ksg',
     ],
     blockSummaryTgMsgsApiFailure: [
-        '📦<a href="https://explorer.e.cash/block/0000000000000000000000000000000000000000000000000000000000000000">0</a> | 19 txs | ViaBTC, Mined by volpe1564\n\n<b>1 new eToken created</b>\n🧪<a href="https://explorer.e.cash/tx/010114b9bbe776def1a512ad1e96a4a06ec4c34fc79bcb5d908845f5102f6b0f">LOLLY</a> (Lolly) <a href="https://cashtab.com/">[doc]</a>\n\n<b>10 app txs</b>\n⚛️<a href="https://explorer.e.cash/tx/d5be7a4b483f9fdbbe3bf46cfafdd0100d5dbeee0b972f4dabc8ae9d9962fa55">Cash Fusion:</a> Fused 13M XEC from 64 inputs into 63 outputs\n❓<a href="https://explorer.e.cash/tx/9094e1aab7ac73c680bf66e78cc8311831b3d813e608bff1e07b1854855fc0f1">unknown:</a> =:ETH.ETH:0xa9aaF30F65955C69c16B3345B51D426D9B88Ba87:841321:tr:0\n🪂<a href="https://explorer.e.cash/tx/7a0d6ae3384e293183478f681f51a77ef4c71f29957199364bb9ba4d8e1938be">Airdrop:</a> qru...jys airdropped 45k XEC to 13 holders of <a href="https://explorer.e.cash/tx/b76878b29eff39c8c28aaed7d18a166c20057c43beeb90b630264470983c984a">b76...84a</a>|Stay with us, eCash Africa is the next big community in the African cryptosphere. \n🖋<a href="https://explorer.e.cash/tx/d02d94a1a520877c60d1e3026c3e85f8995d48d7b90140f83e24ede592c30306">Cashtab Msg, 10k XEC for 4.79 XEC:</a> I like eCash\n❓<a href="https://explorer.e.cash/tx/45ec66bc2440d2f94fa2c645e20a44f6fab7c397053ce77a95484c6053104cdc">EMPP:</a> SLP v2:SEND|<a href="https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">CRD</a>|1.9673\n🔏<a href="https://explorer.e.cash/tx/1083da7ead4779fbab5c5e8291bb7a37abaf4f97f5ff99ee654759b2eaee445b">Cashtab Encrypted:</a> qq9...fgx sent an encrypted message and 20 XEC to qzv...fed\n👾<a href="https://explorer.e.cash/tx/22135bb69435023a84c80b1b93b31fc8898c3507eaa70569ed038f32d59599a9">Alias (beta):</a> doge2\n❓<a href="https://explorer.e.cash/tx/413b57617d2c497b137d31c53151fee595415ec273ef7a111160da8093147ed8">EMPP:</a> SLP v2:MINT|<a href="https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">CRD</a>|0.0\n🤳<a href="https://explorer.e.cash/tx/ad44bf5e214ab71bb60a2eee165f368c139cd49c2380c3352f0a4fffc746b36a">SWaP:</a> Signal|SLP Atomic Swap|<a href="https://explorer.e.cash/tx/aebcae9afe88d61d8b8ed7b8c83c7c2a555583bf8f8591c94a2c9eb82f34816c">Unknown Token</a>|SELL for 159,883.54 XEC|Min trade: 0 XEC\n🗞<a href="https://explorer.e.cash/tx/a8c348539a1470b28b9f99693994b918b475634352994dddce80ad544e871b3a">memo:</a> Reply to memo|<a href="https://explorer.e.cash/tx/eae5710aba50a0a22b266ddbb445e05b7348d15c88cbc2e012a91a09bec3861a">memo</a>|Twitter keeps turning their API on and off. Sometimes it works, sometimes it doesn\'t. Feature to create tweets from memo may work again at some point.\n\n<b>7 eCash txs</b>\n💸<a href="https://explorer.e.cash/tx/4f33c81d95641eb0f80e793dc96c58a2438f9bb1f18750d8fb3b56c28cd25035">6B XEC for 2.6 XEC</a>\n💸<a href="https://explorer.e.cash/tx/f5d4c112cfd22701226ba050cacfacc3aff570964c6196f67e326fc3224300a2">1B XEC for 29 XEC</a>\n💸<a href="https://explorer.e.cash/tx/6ffcc83e76226bd32821cc6862ce9b363b22594247a4e73ccf3701b0023592b2">5.46 XEC for 11 XEC</a>\n💸<a href="https://explorer.e.cash/tx/fb70df00c07749082756054522d3f08691fd9caccd0e0abf736df23d22845a6e">5.46 XEC for 11 XEC</a>\n💸<a href="https://explorer.e.cash/tx/25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7">5.46 XEC for 11 XEC</a>\n💸<a href="https://explorer.e.cash/tx/0167e881fcb359cdfc82af5fc6c0821daf55f40767694eea2f23c0d42a9b1c17">0 XEC for 16 XEC</a>\n💸<a href="https://explorer.e.cash/tx/6b139007a0649f99a1a099c7c924716ee1920f74ea83111f6426854d4c3c3c79">0 XEC for 11 XEC</a>',
+        '📦<a href="https://explorer.e.cash/block/0000000000000000000000000000000000000000000000000000000000000000">0</a> | 20 txs | ViaBTC, Mined by volpe1564\n\n<b>1 new eToken created</b>\n🧪<a href="https://explorer.e.cash/tx/010114b9bbe776def1a512ad1e96a4a06ec4c34fc79bcb5d908845f5102f6b0f">LOLLY</a> (Lolly) <a href="https://cashtab.com/">[doc]</a>\n\n<b>11 app txs</b>\n⚛️<a href="https://explorer.e.cash/tx/d5be7a4b483f9fdbbe3bf46cfafdd0100d5dbeee0b972f4dabc8ae9d9962fa55">Cash Fusion:</a> Fused 13M XEC from 64 inputs into 63 outputs\n❓<a href="https://explorer.e.cash/tx/b5782d3a3b55e5ee9e4330a969c2891042ae05fafab7dc05cd14da63e7242f8e">unknown:</a> 0x663ddd99990bcd969994ec2288a2a86dc532e1a8\n❓<a href="https://explorer.e.cash/tx/9094e1aab7ac73c680bf66e78cc8311831b3d813e608bff1e07b1854855fc0f1">unknown:</a> =:ETH.ETH:0xa9aaF30F65955C69c16B3345B51D426D9B88Ba87:841321:tr:0\n🪂<a href="https://explorer.e.cash/tx/7a0d6ae3384e293183478f681f51a77ef4c71f29957199364bb9ba4d8e1938be">Airdrop:</a> qru...jys airdropped 45k XEC to 13 holders of <a href="https://explorer.e.cash/tx/b76878b29eff39c8c28aaed7d18a166c20057c43beeb90b630264470983c984a">b76...84a</a>|Stay with us, eCash Africa is the next big community in the African cryptosphere. \n🖋<a href="https://explorer.e.cash/tx/d02d94a1a520877c60d1e3026c3e85f8995d48d7b90140f83e24ede592c30306">Cashtab Msg, 10k XEC for 4.79 XEC:</a> I like eCash\n❓<a href="https://explorer.e.cash/tx/45ec66bc2440d2f94fa2c645e20a44f6fab7c397053ce77a95484c6053104cdc">EMPP:</a> SLP v2:SEND|<a href="https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">CRD</a>|1.9673\n🔏<a href="https://explorer.e.cash/tx/1083da7ead4779fbab5c5e8291bb7a37abaf4f97f5ff99ee654759b2eaee445b">Cashtab Encrypted:</a> qq9...fgx sent an encrypted message and 20 XEC to qzv...fed\n👾<a href="https://explorer.e.cash/tx/22135bb69435023a84c80b1b93b31fc8898c3507eaa70569ed038f32d59599a9">Alias (beta):</a> doge2\n❓<a href="https://explorer.e.cash/tx/413b57617d2c497b137d31c53151fee595415ec273ef7a111160da8093147ed8">EMPP:</a> SLP v2:MINT|<a href="https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">CRD</a>|0.0\n🤳<a href="https://explorer.e.cash/tx/ad44bf5e214ab71bb60a2eee165f368c139cd49c2380c3352f0a4fffc746b36a">SWaP:</a> Signal|SLP Atomic Swap|<a href="https://explorer.e.cash/tx/aebcae9afe88d61d8b8ed7b8c83c7c2a555583bf8f8591c94a2c9eb82f34816c">Unknown Token</a>|SELL for 159,883.54 XEC|Min trade: 0 XEC\n🗞<a href="https://explorer.e.cash/tx/a8c348539a1470b28b9f99693994b918b475634352994dddce80ad544e871b3a">memo:</a> Reply to memo|<a href="https://explorer.e.cash/tx/eae5710aba50a0a22b266ddbb445e05b7348d15c88cbc2e012a91a09bec3861a">memo</a>|Twitter keeps turning their API on and off. Sometimes it works, sometimes it doesn\'t. Feature to create tweets from memo may work again at some point.\n\n<b>7 eCash txs</b>\n💸<a href="https://explorer.e.cash/tx/4f33c81d95641eb0f80e793dc96c58a2438f9bb1f18750d8fb3b56c28cd25035">6B XEC for 2.6 XEC</a>\n💸<a href="https://explorer.e.cash/tx/f5d4c112cfd22701226ba050cacfacc3aff570964c6196f67e326fc3224300a2">1B XEC for 29 XEC</a>\n💸<a href="https://explorer.e.cash/tx/6ffcc83e76226bd32821cc6862ce9b363b22594247a4e73ccf3701b0023592b2">5.46 XEC for 11 XEC</a>\n💸<a href="https://explorer.e.cash/tx/fb70df00c07749082756054522d3f08691fd9caccd0e0abf736df23d22845a6e">5.46 XEC for 11 XEC</a>\n💸<a href="https://explorer.e.cash/tx/25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7">5.46 XEC for 11 XEC</a>\n💸<a href="https://explorer.e.cash/tx/0167e881fcb359cdfc82af5fc6c0821daf55f40767694eea2f23c0d42a9b1c17">0 XEC for 16 XEC</a>\n💸<a href="https://explorer.e.cash/tx/6b139007a0649f99a1a099c7c924716ee1920f74ea83111f6426854d4c3c3c79">0 XEC for 11 XEC</a>',
     ],
 };
