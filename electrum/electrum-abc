@@ -35,7 +35,6 @@ Electrum ABC - lightweight eCash client
 from __future__ import annotations
 
 import argparse
-import getpass
 import logging
 import multiprocessing
 import os
@@ -46,7 +45,14 @@ from typing import Any
 
 import electrumabc.web as web
 from electrumabc import daemon, keystore, mnemo, networks, util
-from electrumabc.commands import Commands, config_variables, get_parser, known_commands
+from electrumabc.commands import (
+    Commands,
+    config_variables,
+    get_parser,
+    known_commands,
+    preprocess_cmdline_args,
+    prompt_password,
+)
 from electrumabc.constants import PORTABLE_DATA_DIR, PROJECT_NAME, SCRIPT_NAME
 from electrumabc.i18n import _
 from electrumabc.keystore import bip44_derivation_xec
@@ -145,18 +151,6 @@ def check_imports():
     certs = requests.utils.DEFAULT_CA_BUNDLE_PATH
     if not os.path.exists(certs):
         raise AssertionError("Certificates not found")
-
-
-def prompt_password(prompt: str = "Password:", confirm: bool = False) -> str:
-    """Get password routine"""
-    password = getpass.getpass(prompt, stream=None)
-    if password and confirm:
-        password2 = getpass.getpass("Confirm: ")
-        if password != password2:
-            sys.exit("Error: Passwords do not match.")
-    if not password:
-        password = None
-    return password
 
 
 def prompt_create_wallet_password() -> str:
@@ -567,27 +561,8 @@ def main():
     # The hook will only be used in the Qt GUI right now
     util.setup_thread_excepthook()
 
-    # on osx, delete Process Serial Number arg generated for apps launched in Finder
-    sys.argv = list(filter(lambda x: not x.startswith("-psn"), sys.argv))
-
-    # old 'help' syntax
-    if len(sys.argv) > 1 and sys.argv[1] == "help":
-        sys.argv.remove("help")
-        sys.argv.append("-h")
-
-    # read arguments from stdin pipe and prompt
-    for i, arg in enumerate(sys.argv):
-        if arg == "-":
-            if sys.stdin.isatty():
-                raise RuntimeError("Cannot get argument from stdin")
-            sys.argv[i] = sys.stdin.read()
-            break
-        if arg == "?":
-            sys.argv[i] = input("Enter argument:")
-        elif arg == ":":
-            sys.argv[i] = prompt_password("Enter argument (will not echo):")
-
     # parse command line
+    preprocess_cmdline_args(sys.argv)
     parser = get_parser()
     args = parser.parse_args()
 

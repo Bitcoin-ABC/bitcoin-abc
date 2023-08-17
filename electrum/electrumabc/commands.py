@@ -28,6 +28,7 @@ import argparse
 import ast
 import base64
 import datetime
+import getpass
 import json
 import os
 import queue
@@ -1501,3 +1502,40 @@ def get_parser():
                 group.add_argument(k, nargs="?", help=v)
 
     return parser
+
+
+def prompt_password(prompt: str = "Password:", confirm: bool = False) -> str:
+    """Get password routine"""
+    password = getpass.getpass(prompt, stream=None)
+    if password and confirm:
+        password2 = getpass.getpass("Confirm: ")
+        if password != password2:
+            sys.exit("Error: Passwords do not match.")
+    if not password:
+        password = None
+    return password
+
+
+def preprocess_cmdline_args(args):
+    """Sanitize command line args before parsing them with argparse"""
+    # on osx, delete Process Serial Number arg generated for apps launched in Finder
+    args_to_be_removed = list(filter(lambda x: x.startswith("-psn"), args))
+    for arg in args_to_be_removed:
+        args.remove(arg)
+
+    # old 'help' syntax
+    if len(args) > 1 and args[1] == "help":
+        args.remove("help")
+        args.append("-h")
+
+    # read arguments from stdin pipe and prompt
+    for i, arg in enumerate(args):
+        if arg == "-":
+            if sys.stdin.isatty():
+                raise RuntimeError("Cannot get argument from stdin")
+            args[i] = sys.stdin.read()
+            break
+        if arg == "?":
+            args[i] = input("Enter argument:")
+        elif arg == ":":
+            args[i] = prompt_password("Enter argument (will not echo):")

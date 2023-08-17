@@ -1,9 +1,11 @@
 import os
+import sys
 import unittest
 from contextlib import redirect_stderr
 from decimal import Decimal as PyDecimal
+from io import StringIO
 
-from ..commands import Commands, get_parser
+from ..commands import Commands, get_parser, preprocess_cmdline_args
 
 
 class TestCommands(unittest.TestCase):
@@ -61,6 +63,13 @@ class TestCommands(unittest.TestCase):
 class TestArgParser(unittest.TestCase):
     def setUp(self) -> None:
         self.parser = get_parser()
+        self.stdin = sys.stdin
+
+    def cleanUp(self):
+        sys.stdin = self.stdin
+
+    def mock_stdin(self, data: str):
+        sys.stdin = StringIO(data)
 
     def test_global_options(self):
         path_to_wallet = os.path.abspath("/path/to/wallet")
@@ -108,6 +117,23 @@ class TestArgParser(unittest.TestCase):
         # --dir
         self.assertFalse(hasattr(args, "dir"))
         self.assertTrue(hasattr(args, "data_path"))
+
+    def test_preprocess(self):
+        raw_args = ["./electrum-abc", "close_wallet", "-psn_0_989382"]
+        preprocess_cmdline_args(raw_args)
+        self.assertFalse(any(arg.startswith("-psn") for arg in raw_args))
+        args = self.parser.parse_args(raw_args[1:])
+        self.assertEqual(args.cmd, "close_wallet")
+
+        raw_args = ["./electrum-abc", "help", "close_wallet"]
+        preprocess_cmdline_args(raw_args)
+        self.assertEqual(raw_args, ["./electrum-abc", "close_wallet", "-h"])
+
+        txid = "07da1abf91c73cfd2e3aaf52f9284ddfeac1f87f7ea4396233d70464f736cf97"
+        self.mock_stdin(txid)
+        raw_args = ["./electrum-abc", "gettransaction", "-"]
+        preprocess_cmdline_args(raw_args)
+        self.assertEqual(raw_args[2], txid)
 
 
 def suite():
