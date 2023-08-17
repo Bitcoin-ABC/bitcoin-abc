@@ -14,7 +14,18 @@ elif [ "x$HOST" = "xs390x-linux-gnu" ]; then
   CC="s390x-linux-gnu-gcc"
 fi
 
-$CC --version || true
+if [ -n "$CC" ]; then
+    # The MSVC compiler "cl" doesn't understand "-v"
+    $CC -v || true
+fi
+
+if [ "$WITH_VALGRIND" = "yes" ]; then
+    valgrind --version
+fi
+
+if [ -n "$WRAPPER_CMD" ]; then
+    $WRAPPER_CMD --version
+fi
 
 # Workaround for https://bugs.kde.org/show_bug.cgi?id=452758 (fixed in valgrind 3.20.0).
 case "${CC:-undefined}" in
