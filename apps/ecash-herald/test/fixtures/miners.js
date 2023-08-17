@@ -165,4 +165,12 @@ module.exports = [
             '76a914b89b7be97f768291ed94c0409e8dfdbbdeb32ed088ac',
         parsed: 'Molepool',
     },
+    {
+        height: '787515',
+        coinbaseHex:
+            '033b040c04929a37640862c9c313191b1e00102f436f696e4d696e65727a2e636f6d2f',
+        payoutOutputScript:
+            '76a914637e48a57a3f3d6184f3aaf68b9e2a77400f372c88ac',
+        parsed: 'CoinMinerz.com',
+    },
 ];

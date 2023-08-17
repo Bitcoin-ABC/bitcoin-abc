@@ -63,5 +63,12 @@ module.exports = {
                 coinbaseHexFragment: '6d6f6c65706f6f6c2e636f6d', // ascii molepool.com
             },
         ],
+        [
+            '76a914637e48a57a3f3d6184f3aaf68b9e2a77400f372c88ac',
+            {
+                miner: 'CoinMinerz.com',
+                coinbaseHexFragment: '436f696e4d696e65727a2e636f6d', // ascii CoinMinerz.com
+            },
+        ],
     ],
 };
