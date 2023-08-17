@@ -37,7 +37,7 @@ import time
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
 from functools import wraps
 
-from . import bitcoin, util
+from . import bitcoin, util, web
 from .address import Address, AddressError
 from .bitcoin import CASH, TYPE_ADDRESS, hash_160
 from .constants import PROJECT_NAME, SCRIPT_NAME, XEC
@@ -1347,7 +1347,11 @@ def add_global_options(parser):
         help="Use local 'electrum_abc_data' directory",
     )
     group.add_argument(
-        "-w", "--wallet", dest="wallet_path", help="wallet path", type=os.path.abspath
+        "-w",
+        "--wallet",
+        dest="wallet_path",
+        help="wallet path",
+        type=os.path.abspath,
     )
     group.add_argument(
         "-wp",
@@ -1517,7 +1521,7 @@ def prompt_password(prompt: str = "Password:", confirm: bool = False) -> str:
 
 
 def preprocess_cmdline_args(args):
-    """Sanitize command line args before parsing them with argparse"""
+    """Sanitize command line args before parsing them with argparse."""
     # on osx, delete Process Serial Number arg generated for apps launched in Finder
     args_to_be_removed = list(filter(lambda x: x.startswith("-psn"), args))
     for arg in args_to_be_removed:
@@ -1539,3 +1543,10 @@ def preprocess_cmdline_args(args):
             args[i] = input("Enter argument:")
         elif arg == ":":
             args[i] = prompt_password("Enter argument (will not echo):")
+
+    # Starting the application with an URI as a first argument implies cmd="gui".
+    # This happens when the application is started by the OS via a mimetype association,
+    # e.g. a "ecash:...." BIP21 URI.
+    if len(args) > 1:
+        if any(args[1].startswith(scheme + ":") for scheme in web.parseable_schemes()):
+            args.insert(1, "gui")

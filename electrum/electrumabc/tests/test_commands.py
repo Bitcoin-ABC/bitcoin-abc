@@ -135,6 +135,15 @@ class TestArgParser(unittest.TestCase):
         preprocess_cmdline_args(raw_args)
         self.assertEqual(raw_args[2], txid)
 
+        # Test proper handling of BIP21 URIs
+        bip21_uri = "ecash:qz4eqgk9fqs3uxxt2xwx0jpfj704e2t6rs7357tn7e?amount=1337.06&label=Donation to toto&op_return=Thx for running this service!"
+        raw_args = ["./electrum-abc", bip21_uri]
+        preprocess_cmdline_args(raw_args)
+        self.assertEqual(raw_args, ["./electrum-abc", "gui", bip21_uri])
+        args = self.parser.parse_args(raw_args[1:])
+        self.assertEqual(args.cmd, "gui")
+        self.assertEqual(args.url, bip21_uri)
+
 
 def suite():
     test_suite = unittest.TestSuite()

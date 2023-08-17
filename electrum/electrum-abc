@@ -562,8 +562,8 @@ def main():
     util.setup_thread_excepthook()
 
     # parse command line
-    preprocess_cmdline_args(sys.argv)
     parser = get_parser()
+    preprocess_cmdline_args(sys.argv)
     args = parser.parse_args()
 
     config_options = process_config_options(args)
