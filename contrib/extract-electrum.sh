@@ -18,6 +18,9 @@ git clone "file://${REPO_DIR}" electrumabc-mirror -b master
 pushd electrumabc-mirror
 git filter-repo --path electrum --path-rename electrum/:
 git remote add github https://github.com/Bitcoin-ABC/ElectrumABC.git
-git pull github master --rebase
+# Skip the first conflict when rebasing, because the initial commit conflicts
+# with its previously rebased version. This is the initial monorepo integration
+# commit, so it does not need to be rebased more than once.
+git pull github master --rebase || git rebase --skip
 git gc --prune=now
 popd
