@@ -162,6 +162,12 @@ class ChronikClient:
     def script(self, script_type: str, script_payload: str) -> ChronikScriptClient:
         return ChronikScriptClient(self, script_type, script_payload)
 
+    def pause(self) -> ChronikResponse:
+        return self._request_get("/pause", pb.Empty)
+
+    def resume(self) -> ChronikResponse:
+        return self._request_get("/resume", pb.Empty)
+
     def ws(self, *, timeout=None) -> ChronikWs:
         ws = websocket.WebSocket()
         ws.connect(f"ws://{self.host}:{self.port}/ws", timeout=timeout)

@@ -253,6 +253,9 @@ enum TxMsgType {
     TX_FINALIZED = 3;
 }
 
+// Empty msg without any data
+message Empty {}
+
 // Error message returned from our APIs.
 message Error {
     // 2, as legacy chronik uses this for the message so we're still compatible.

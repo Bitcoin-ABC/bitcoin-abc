@@ -2,11 +2,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <chainparams.h>
 #include <chainparamsbase.h>
 #include <config.h>
 #include <logging.h>
 #include <node/context.h>
+#include <node/ui_interface.h>
 #include <util/system.h>
+#include <util/translation.h>
 
 #include <chronik-cpp/chronik.h>
 #include <chronik-cpp/chronik_validationinterface.h>
@@ -22,6 +25,11 @@ template <typename T, typename C> rust::Vec<T> ToRustVec(const C &container) {
 }
 
 bool Start(const Config &config, const node::NodeContext &node, bool fWipe) {
+    const bool is_pause_allowed = gArgs.GetBoolArg("-chronikallowpause", false);
+    if (is_pause_allowed && !config.GetChainParams().IsTestChain()) {
+        return InitError(_("Using -chronikallowpause on a mainnet chain is not "
+                           "allowed for security reasons."));
+    }
     return chronik_bridge::setup_chronik(
         {
             .datadir_net = gArgs.GetDataDirNet().u8string(),
@@ -30,6 +38,7 @@ bool Start(const Config &config, const node::NodeContext &node, bool fWipe) {
                                                  : DEFAULT_BINDS),
             .default_port = BaseParams().ChronikPort(),
             .wipe_db = fWipe,
+            .is_pause_allowed = is_pause_allowed,
         },
         config, node);
 }

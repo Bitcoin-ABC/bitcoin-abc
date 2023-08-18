@@ -17,7 +17,10 @@ use bitcoinsuite_core::{
 use chronik_bridge::{ffi::init_error, util::expect_unique_ptr};
 use chronik_db::mem::MempoolTx;
 use chronik_http::server::{ChronikServer, ChronikServerParams};
-use chronik_indexer::indexer::{ChronikIndexer, ChronikIndexerParams, Node};
+use chronik_indexer::{
+    indexer::{ChronikIndexer, ChronikIndexerParams, Node},
+    pause::Pause,
+};
 use chronik_util::{log, log_chronik};
 use thiserror::Error;
 use tokio::sync::RwLock;
@@ -66,6 +69,7 @@ fn try_setup_chronik(
     log!("Starting Chronik bound to {:?}\n", hosts);
     let bridge = chronik_bridge::ffi::make_bridge(config, node_context);
     let bridge_ref = expect_unique_ptr("make_bridge", &bridge);
+    let (pause, pause_notify) = Pause::new_pair(params.is_pause_allowed);
     let mut indexer = ChronikIndexer::setup(ChronikIndexerParams {
         datadir_net: params.datadir_net.into(),
         wipe_db: params.wipe_db,
@@ -90,6 +94,7 @@ fn try_setup_chronik(
                 hosts,
                 indexer,
                 node,
+                pause_notify: Arc::new(pause_notify),
             })
         }
     })?;
@@ -99,7 +104,8 @@ fn try_setup_chronik(
     let chronik = Box::new(Chronik {
         node: Arc::clone(&node),
         indexer,
-        _runtime: runtime,
+        pause,
+        runtime,
     });
     StartChronikValidationInterface(node_context, chronik);
     Ok(())
@@ -125,9 +131,10 @@ fn compress_script(script: &Script) -> Vec<u8> {
 pub struct Chronik {
     node: Arc<Node>,
     indexer: Arc<RwLock<ChronikIndexer>>,
+    pause: Pause,
     // Having this here ensures HTTP server, outstanding requests etc. will get
     // stopped when `Chronik` is dropped.
-    _runtime: tokio::runtime::Runtime,
+    runtime: tokio::runtime::Runtime,
 }
 
 impl Chronik {
@@ -137,6 +144,7 @@ impl Chronik {
         ptx: &ffi::CTransaction,
         time_first_seen: i64,
     ) {
+        self.block_if_paused();
         ok_or_abort_node(
             "handle_tx_added_to_mempool",
             self.add_tx_to_mempool(ptx, time_first_seen),
@@ -145,6 +153,7 @@ impl Chronik {
 
     /// Tx removed from the bitcoind mempool
     pub fn handle_tx_removed_from_mempool(&self, txid: [u8; 32]) {
+        self.block_if_paused();
         let mut indexer = self.indexer.blocking_write();
         let txid = TxId::from(txid);
         ok_or_abort_node(
@@ -160,6 +169,7 @@ impl Chronik {
         block: &ffi::CBlock,
         bindex: &ffi::CBlockIndex,
     ) {
+        self.block_if_paused();
         ok_or_abort_node(
             "handle_block_connected",
             self.connect_block(block, bindex),
@@ -172,6 +182,7 @@ impl Chronik {
         block: &ffi::CBlock,
         bindex: &ffi::CBlockIndex,
     ) {
+        self.block_if_paused();
         ok_or_abort_node(
             "handle_block_disconnected",
             self.disconnect_block(block, bindex),
@@ -180,6 +191,7 @@ impl Chronik {
 
     /// Block finalized with Avalanche
     pub fn handle_block_finalized(&self, bindex: &ffi::CBlockIndex) {
+        self.block_if_paused();
         ok_or_abort_node("handle_block_finalized", self.finalize_block(bindex));
     }
 
@@ -249,6 +261,10 @@ impl Chronik {
             num_txs,
         );
         Ok(())
+    }
+
+    fn block_if_paused(&self) {
+        self.pause.block_if_paused(&self.runtime);
     }
 }
 

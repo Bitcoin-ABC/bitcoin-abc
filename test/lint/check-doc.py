@@ -46,6 +46,7 @@ SET_FALSE_POSITIVE_UNDOCUMENTED = {
     "-help",
     "-h",
     "-avalanchepreconsensus",
+    "-chronikallowpause",
     "-dbcrashratio",
     "-enableminerfund",
     "-forcecompactdb",
