@@ -20,6 +20,7 @@ from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.p2p import P2PDataStore
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
+from test_framework.util import assert_equal
 
 
 class ChronikPauseTest(BitcoinTestFramework):
@@ -155,16 +156,16 @@ class ChronikPauseTest(BitcoinTestFramework):
         make_conform_to_ctor(blockB3)
         blockB3.hashMerkleRoot = blockB3.calc_merkle_root()
         blockB3.solve()
+        peer.send_blocks_and_test([blockB3], node)
 
-        # FIXME: Uncommenting the following line currently crashes the node with
-        # "Couldn't find coin for input", which is because after resuming, Chronik will
-        # look up the spent coins when trying to add the re-orged tx to the mempool;
-        # however, at this point, the coins are already spent and can therefore not be
-        # found anymore, resulting in this error.
-
-        # peer.send_blocks_and_test([blockB3], node)
-
+        self.log.info("Resume indexing and sync Chronik")
         chronik.resume().ok()
+        node.syncwithvalidationinterfacequeue()
+
+        # Check if spent coins are indexed correctly
+        tx_proto = chronik.tx(conflict_tx.hash).ok()
+        assert_equal(tx_proto.inputs[0].output_script, bytes(P2SH_OP_TRUE))
+        assert_equal(tx_proto.inputs[0].value, coinvalue)
 
 
 if __name__ == "__main__":

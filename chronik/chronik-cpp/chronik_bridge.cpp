@@ -201,21 +201,7 @@ ChronikBridge::load_block(const CBlockIndex &bindex) const {
     return std::make_unique<CBlock>(std::move(block));
 }
 
-Tx ChronikBridge::bridge_tx(const CTransaction &tx) const {
-    std::map<COutPoint, ::Coin> coins;
-    for (const CTxIn &input : tx.vin) {
-        coins[input.prevout];
-    }
-    FindCoins(m_node, coins);
-    std::vector<::Coin> spent_coins;
-    spent_coins.reserve(tx.vin.size());
-    for (const CTxIn &input : tx.vin) {
-        const ::Coin &coin = coins[input.prevout];
-        if (coin.GetTxOut().IsNull()) {
-            throw std::runtime_error("Couldn't find coin for input");
-        }
-        spent_coins.push_back(coin);
-    }
+Tx bridge_tx(const CTransaction &tx, const std::vector<::Coin> &spent_coins) {
     return BridgeTx(false, tx, spent_coins);
 }
 

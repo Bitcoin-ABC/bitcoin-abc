@@ -130,6 +130,7 @@ mod ffi_inner {
     unsafe extern "C++" {
         include!("blockindex.h");
         include!("chronik-cpp/chronik_bridge.h");
+        include!("coins.h");
         include!("node/context.h");
         include!("primitives/block.h");
         include!("primitives/transaction.h");
@@ -145,6 +146,11 @@ mod ffi_inner {
         /// ::CBlock from primitives/block.h
         #[namespace = ""]
         type CBlock;
+
+        /// ::Coin from coins.h (renamed to CCoin to prevent a name clash)
+        #[namespace = ""]
+        #[cxx_name = "Coin"]
+        type CCoin;
 
         /// ::Config from config.h
         #[namespace = ""]
@@ -197,10 +203,6 @@ mod ffi_inner {
             block_index: &CBlockIndex,
         ) -> Result<UniquePtr<CBlock>>;
 
-        /// Bridge CTransaction -> ffi::Tx, including finding the spent coins.
-        /// `tx` can be a mempool tx.
-        fn bridge_tx(self: &ChronikBridge, tx: &CTransaction) -> Result<Tx>;
-
         /// Find at which block the given block_index forks off from the node.
         fn find_fork(
             self: &ChronikBridge,
@@ -216,6 +218,12 @@ mod ffi_inner {
             raw_tx: &[u8],
             max_fee: i64,
         ) -> Result<[u8; 32]>;
+
+        /// Bridge CTransaction -> ffi::Tx, using the given spent coins.
+        fn bridge_tx(
+            tx: &CTransaction,
+            spent_coins: &CxxVector<CCoin>,
+        ) -> Result<Tx>;
 
         /// Bridge bitcoind's classes to the shared struct [`Block`].
         fn bridge_block(

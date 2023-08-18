@@ -7,9 +7,11 @@
 
 #include <memory>
 #include <rust/cxx.h>
+#include <vector>
 
 class CBlock;
 class CBlockIndex;
+class Coin;
 class Config;
 class CTransaction;
 
@@ -60,8 +62,6 @@ public:
 
     std::unique_ptr<CBlock> load_block(const CBlockIndex &bindex) const;
 
-    Tx bridge_tx(const CTransaction &tx) const;
-
     const CBlockIndex &find_fork(const CBlockIndex &index) const;
 
     std::array<uint8_t, 32> broadcast_tx(rust::Slice<const uint8_t> raw_tx,
@@ -70,6 +70,8 @@ public:
 
 std::unique_ptr<ChronikBridge> make_bridge(const Config &config,
                                            const node::NodeContext &node);
+
+Tx bridge_tx(const CTransaction &tx, const std::vector<Coin> &spent_coins);
 
 Block bridge_block(const CBlock &block, const CBlockIndex &bindex);
 

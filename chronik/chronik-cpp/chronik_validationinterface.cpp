@@ -29,10 +29,13 @@ private:
     rust::Box<chronik_bridge::Chronik> m_chronik;
     const node::NodeContext &m_node;
 
-    void TransactionAddedToMempool(const CTransactionRef &ptx,
-                                   uint64_t mempool_sequence) override {
+    void TransactionAddedToMempool(
+        const CTransactionRef &ptx,
+        std::shared_ptr<const std::vector<Coin>> spent_coins,
+        uint64_t mempool_sequence) override {
         const TxMempoolInfo info = m_node.mempool->info(ptx->GetId());
-        m_chronik->handle_tx_added_to_mempool(*ptx, info.m_time.count());
+        m_chronik->handle_tx_added_to_mempool(*ptx, *spent_coins,
+                                              info.m_time.count());
     }
 
     void TransactionRemovedFromMempool(const CTransactionRef &ptx,

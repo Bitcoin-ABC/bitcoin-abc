@@ -142,12 +142,13 @@ impl Chronik {
     pub fn handle_tx_added_to_mempool(
         &self,
         ptx: &ffi::CTransaction,
+        spent_coins: &cxx::CxxVector<ffi::CCoin>,
         time_first_seen: i64,
     ) {
         self.block_if_paused();
         ok_or_abort_node(
             "handle_tx_added_to_mempool",
-            self.add_tx_to_mempool(ptx, time_first_seen),
+            self.add_tx_to_mempool(ptx, spent_coins, time_first_seen),
         );
     }
 
@@ -198,10 +199,11 @@ impl Chronik {
     fn add_tx_to_mempool(
         &self,
         ptx: &ffi::CTransaction,
+        spent_coins: &cxx::CxxVector<ffi::CCoin>,
         time_first_seen: i64,
     ) -> Result<()> {
         let mut indexer = self.indexer.blocking_write();
-        let tx = self.node.bridge.bridge_tx(ptx)?;
+        let tx = chronik_bridge::ffi::bridge_tx(ptx, spent_coins)?;
         let txid = TxId::from(tx.txid);
         indexer.handle_tx_added_to_mempool(MempoolTx {
             tx: Tx::from(tx),
