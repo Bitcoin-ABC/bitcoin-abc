@@ -5,7 +5,8 @@ SHELL ["/bin/bash", "-c"]
 RUN dpkg --add-architecture i386 && \
     dpkg --add-architecture s390x && \
     dpkg --add-architecture armhf && \
-    dpkg --add-architecture arm64
+    dpkg --add-architecture arm64 && \
+    dpkg --add-architecture ppc64el
 
 # dkpg-dev: to make pkg-config work in cross-builds
 # llvm: for llvm-symbolizer, which is used by clang's UBSan for symbolized stack traces
@@ -18,6 +19,7 @@ RUN apt-get update && apt-get install --no-install-recommends --no-upgrade -y \
         gcc-s390x-linux-gnu libc6-dev-s390x-cross libc6-dbg:s390x \
         gcc-arm-linux-gnueabihf libc6-dev-armhf-cross libc6-dbg:armhf \
         gcc-aarch64-linux-gnu libc6-dev-arm64-cross libc6-dbg:arm64 \
+        gcc-powerpc64le-linux-gnu libc6-dev-ppc64el-cross libc6-dbg:ppc64el \
         gcc-mingw-w64-x86-64-win32 wine64 wine \
         gcc-mingw-w64-i686-win32 wine32
 

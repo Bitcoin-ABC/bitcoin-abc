@@ -47,46 +47,6 @@ linux_container_snippet: &LINUX_CONTAINER
     # More than enough for our scripts.
     memory: 2G
 
-task:
-  name: "i686: Linux (Debian stable)"
-  << : *LINUX_CONTAINER
-  env:
-    HOST: i686-linux-gnu
-    ECDH: yes
-    RECOVERY: yes
-    EXPERIMENTAL: yes
-    SCHNORRSIG: yes
-  matrix:
-    - env:
-        CC: i686-linux-gnu-gcc
-    - env:
-        CC: clang --target=i686-pc-linux-gnu -isystem /usr/i686-linux-gnu/include
-  test_script:
-    - ./ci/build_autotools.sh
-    - ./ci/build_cmake.sh
-  << : *CAT_LOGS
-
-task:
-  name: "s390x (big-endian): Linux (Debian stable, QEMU)"
-  << : *LINUX_CONTAINER
-  env:
-    WRAPPER_CMD: qemu-s390x
-    TEST_ITERS: 16
-    HOST: s390x-linux-gnu
-    WITH_VALGRIND: no
-    ECDH: yes
-    RECOVERY: yes
-    EXPERIMENTAL: yes
-    MULTISET: yes
-    SCHNORRSIG: yes
-    CTIMETEST: no
-    AUTOTOOLS_TARGET:
-  test_script:
-    # https://sourceware.org/bugzilla/show_bug.cgi?id=27008
-    - rm /etc/ld.so.cache
-    - ./ci/build_autotools.sh
-  << : *CAT_LOGS
-
 # Sanitizers
 task:
   << : *LINUX_CONTAINER
@@ -148,42 +108,4 @@ task:
     SCHNORRSIG: yes
   test_script:
     - ./ci/build_autotools.sh
-  << : *CAT_LOGS
-
-task:
-  name: "ARM32: Linux (Debian stable, QEMU)"
-  << : *LINUX_CONTAINER
-  env:
-    WRAPPER_CMD: qemu-arm
-    TEST_ITERS: 16
-    HOST: arm-linux-gnueabihf
-    WITH_VALGRIND: no
-    ECDH: yes
-    RECOVERY: yes
-    EXPERIMENTAL: yes
-    SCHNORRSIG: yes
-    CTIMETEST: no
-  matrix:
-    - env: {}
-    - env: {ASM: arm}
-  test_script:
-    - ./ci/build_autotools.sh
-  << : *CAT_LOGS
-
-task:
-  name: "ARM64: Linux (Debian stable, QEMU)"
-  << : *LINUX_CONTAINER
-  env:
-    WRAPPER_CMD: qemu-aarch64
-    TEST_ITERS: 16
-    HOST: aarch64-linux-gnu
-    WITH_VALGRIND: no
-    ECDH: yes
-    RECOVERY: yes
-    EXPERIMENTAL: yes
-    SCHNORRSIG: yes
-    CTIMETEST: no
-  test_script:
-    - ./ci/build_autotools.sh
-    - ./ci/build_cmake.sh
   << : *CAT_LOGS

@@ -110,6 +110,140 @@ jobs:
         run: env
         if: ${{ always() }}
 
+  i686_debian:
+    name: "i686: Linux (Debian stable)"
+    runs-on: ubuntu-latest
+    needs: docker_cache
+
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration:
+          - env_vars: {}
+        cc:
+          - 'i686-linux-gnu-gcc'
+          - 'clang --target=i686-pc-linux-gnu -isystem /usr/i686-linux-gnu/include'
+
+    env:
+      HOST: 'i686-linux-gnu'
+      ECDH: 'yes'
+      RECOVERY: 'yes'
+      EXPERIMENTAL: 'yes'
+      SCHNORRSIG: 'yes'
+      CC: ${{ matrix.cc }}
+
+    steps:
+      - *CHECKOUT
+      - *CI_SCRIPT_IN_DOCKER
+      - *PRINT_ENV
+
+  s390x_debian:
+    name: "s390x (big-endian): Linux (Debian stable, QEMU)"
+    runs-on: ubuntu-latest
+    needs: docker_cache
+
+    strategy:
+      matrix:
+        configuration:
+          - env_vars: {}
+
+    env:
+      WRAPPER_CMD: 'qemu-s390x'
+      TEST_ITERS: 16
+      HOST: 's390x-linux-gnu'
+      WITH_VALGRIND: 'no'
+      ECDH: 'yes'
+      RECOVERY: 'yes'
+      EXPERIMENTAL: 'yes'
+      MULTISET: 'yes'
+      SCHNORRSIG: 'yes'
+      CTIMETESTS: 'no'
+
+    steps:
+      - *CHECKOUT
+      - *CI_SCRIPT_IN_DOCKER
+      - *PRINT_ENV
+
+  arm32_debian:
+    name: "ARM32: Linux (Debian stable, QEMU)"
+    runs-on: ubuntu-latest
+    needs: docker_cache
+
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration:
+          - env_vars: {}
+          - env_vars: { ASM: 'arm' }
+
+    env:
+      WRAPPER_CMD: 'qemu-arm'
+      TEST_ITERS: 16
+      HOST: 'arm-linux-gnueabihf'
+      WITH_VALGRIND: 'no'
+      ECDH: 'yes'
+      RECOVERY: 'yes'
+      EXPERIMENTAL: 'yes'
+      SCHNORRSIG: 'yes'
+      CTIMETESTS: 'no'
+
+    steps:
+      - *CHECKOUT
+      - *CI_SCRIPT_IN_DOCKER
+      - *PRINT_ENV
+
+  arm64_debian:
+    name: "ARM64: Linux (Debian stable, QEMU)"
+    runs-on: ubuntu-latest
+    needs: docker_cache
+
+    env:
+      WRAPPER_CMD: 'qemu-aarch64'
+      TEST_ITERS: 16
+      HOST: 'aarch64-linux-gnu'
+      WITH_VALGRIND: 'no'
+      ECDH: 'yes'
+      RECOVERY: 'yes'
+      EXPERIMENTAL: 'yes'
+      SCHNORRSIG: 'yes'
+      CTIMETESTS: 'no'
+
+    strategy:
+      matrix:
+        configuration:
+          - env_vars: {}
+
+    steps:
+      - *CHECKOUT
+      - *CI_SCRIPT_IN_DOCKER
+      - *PRINT_ENV
+
+  ppc64le_debian:
+    name: "ppc64le: Linux (Debian stable, QEMU)"
+    runs-on: ubuntu-latest
+    needs: docker_cache
+
+    strategy:
+      matrix:
+        configuration:
+          - env_vars: {}
+
+    env:
+      WRAPPER_CMD: 'qemu-ppc64le'
+      SECP256K1_TEST_ITERS: 16
+      HOST: 'powerpc64le-linux-gnu'
+      WITH_VALGRIND: 'no'
+      ECDH: 'yes'
+      RECOVERY: 'yes'
+      EXPERIMENTAL: 'yes'
+      SCHNORRSIG: 'yes'
+      CTIMETESTS: 'no'
+
+    steps:
+      - *CHECKOUT
+      - *CI_SCRIPT_IN_DOCKER
+      - *PRINT_ENV
+
   mingw_debian:
     name: ${{ matrix.configuration.job_name }}
     runs-on: ubuntu-latest
