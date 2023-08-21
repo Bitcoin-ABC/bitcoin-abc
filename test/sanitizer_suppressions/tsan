@@ -9,21 +9,14 @@ race:WalletBatch::WriteHDChain
 race:CZMQAbstractPublishNotifier::SendMessage
 race:BerkeleyBatch
 race:BerkeleyDatabase
-race:validation_chainstatemanager_tests
 race:bitcoin-qt
 
 # deadlock (TODO fix)
-deadlock:CConnman::ForNode
-deadlock:CConnman::GetNodeStats
 deadlock:Chainstate::ConnectTip
-deadlock:UpdateTip
 
 # Lock order inversion due to the large cs_main lock from Shutdown, which comes
 # before the cs_proofrequest lock
 deadlock:CConnman::StopNodes
-
-# WalletBatch (unidentified deadlock)
-deadlock:WalletBatch
 
 # Intentional deadlock in tests
 deadlock:TestPotentialDeadLockDetected
