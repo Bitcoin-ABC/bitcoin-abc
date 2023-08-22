@@ -39,4 +39,4 @@ pretty_assertions = "1.0"
 tempdir = "0.3"
 
 # Simple RNG
-fastrand = "1.9"
+fastrand = "2.0"

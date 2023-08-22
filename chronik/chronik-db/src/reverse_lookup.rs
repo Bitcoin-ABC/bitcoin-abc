@@ -455,7 +455,7 @@ mod tests {
     #[test]
     fn test_reverse_lookup_rng() -> Result<()> {
         abc_rust_error::install();
-        let rng = fastrand::Rng::with_seed(0);
+        let mut rng = fastrand::Rng::with_seed(0);
 
         let tempdir = tempdir::TempDir::new("chronik-db--lookup_rng")?;
         let mut cfs =
