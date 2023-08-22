@@ -156,11 +156,6 @@ class WalletBackupTest(BitcoinTestFramework):
             wallet_file,
         )
 
-    def init_three(self):
-        self.init_wallet(0)
-        self.init_wallet(1)
-        self.init_wallet(2)
-
     def run_test(self):
         self.log.info("Generating initial blockchain")
         self.generate(self.nodes[0], 1)
@@ -237,7 +232,15 @@ class WalletBackupTest(BitcoinTestFramework):
         shutil.rmtree(os.path.join(self.nodes[2].datadir, self.chain, "chainstate"))
 
         self.start_three(["-nowallet"])
-        self.init_three()
+        # Create new wallets for the three nodes.
+        # We will use this empty wallets to test the 'importwallet()' RPC
+        # command below.
+        for node_num in range(3):
+            self.nodes[node_num].createwallet(
+                wallet_name=self.default_wallet_name,
+                descriptors=self.options.descriptors,
+                load_on_startup=True,
+            )
 
         assert_equal(self.nodes[0].getbalance(), 0)
         assert_equal(self.nodes[1].getbalance(), 0)
