@@ -639,6 +639,10 @@ void SetupServerArgs(NodeContext &node) {
                    "Reindex the Chronik indexer from genesis, but leave the "
                    "other indexes untouched",
                    ArgsManager::ALLOW_BOOL, OptionsCategory::CHRONIK);
+    argsman.AddArg("-chronikperfstats",
+                   "Output some performance statistics (e.g. num cache hits, "
+                   "seconds spent) into a <datadir>/perf folder. (default: 0)",
+                   ArgsManager::ALLOW_BOOL, OptionsCategory::CHRONIK);
 #endif
     argsman.AddArg(
         "-blockfilterindex=<type>",

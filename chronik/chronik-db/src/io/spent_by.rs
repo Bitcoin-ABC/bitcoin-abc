@@ -2,7 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-use std::collections::{hash_map::Entry, HashMap};
+use std::{
+    collections::{hash_map::Entry, HashMap},
+    time::Instant,
+};
 
 use abc_rust_error::Result;
 use rocksdb::{ColumnFamilyDescriptor, Options, WriteBatch};
@@ -64,6 +67,24 @@ pub struct SpentByWriter<'a> {
 #[derive(Debug)]
 pub struct SpentByReader<'a> {
     col: SpentByColumn<'a>,
+}
+
+/// In-memory data for spent-by data.
+#[derive(Debug, Default)]
+pub struct SpentByMemData {
+    /// Stats about cache hits, num requests etc.
+    pub stats: SpentByStats,
+}
+
+/// Stats about cache hits, num requests etc.
+#[derive(Clone, Debug, Default)]
+pub struct SpentByStats {
+    /// Total number of txs updated.
+    pub n_total: usize,
+    /// Time [s] for insert/delete.
+    pub t_total: f64,
+    /// Time [s] for fetching txs.
+    pub t_fetch: f64,
 }
 
 /// Error indicating that something went wrong with writing spent-by data.
@@ -138,7 +159,11 @@ impl<'a> SpentByWriter<'a> {
         &self,
         batch: &mut WriteBatch,
         txs: &[IndexTx<'_>],
+        mem_data: &mut SpentByMemData,
     ) -> Result<()> {
+        let stats = &mut mem_data.stats;
+        let t_start = Instant::now();
+        stats.n_total += txs.len();
         let mut spent_by_map = HashMap::<TxNum, Vec<SpentByEntry>>::new();
         for tx in txs {
             if tx.is_coinbase {
@@ -153,8 +178,10 @@ impl<'a> SpentByWriter<'a> {
                     tx_num: tx.tx_num,
                     input_idx: input_idx as u32,
                 };
+                let t_fetch = Instant::now();
                 let spent_by_entries =
                     self.get_or_fetch(&mut spent_by_map, input_tx_num)?;
+                stats.t_fetch += t_fetch.elapsed().as_secs_f64();
                 let search_idx = spent_by_entries
                     .binary_search_by_key(&spent_by.out_idx, |entry| {
                         entry.out_idx
@@ -183,6 +210,7 @@ impl<'a> SpentByWriter<'a> {
                 db_serialize(&entries)?,
             );
         }
+        stats.t_total += t_start.elapsed().as_secs_f64();
         Ok(())
     }
 
@@ -192,7 +220,11 @@ impl<'a> SpentByWriter<'a> {
         &self,
         batch: &mut WriteBatch,
         txs: &[IndexTx<'_>],
+        mem_data: &mut SpentByMemData,
     ) -> Result<()> {
+        let stats = &mut mem_data.stats;
+        let t_start = Instant::now();
+        stats.n_total += txs.len();
         let mut spent_by_map = HashMap::<TxNum, Vec<SpentByEntry>>::new();
         for tx in txs {
             if tx.is_coinbase {
@@ -207,8 +239,10 @@ impl<'a> SpentByWriter<'a> {
                     tx_num: tx.tx_num,
                     input_idx: input_idx as u32,
                 };
+                let t_fetch = Instant::now();
                 let spent_by_entries =
                     self.get_or_fetch(&mut spent_by_map, input_tx_num)?;
+                stats.t_fetch += t_fetch.elapsed().as_secs_f64();
                 let search_idx = spent_by_entries
                     .binary_search_by_key(&spent_by.out_idx, |entry| {
                         entry.out_idx
@@ -246,6 +280,7 @@ impl<'a> SpentByWriter<'a> {
                 batch.put_cf(self.col.cf, ser_num, db_serialize(&entries)?);
             }
         }
+        stats.t_total += t_start.elapsed().as_secs_f64();
         Ok(())
     }
 
@@ -315,8 +350,8 @@ mod tests {
         db::Db,
         index_tx::prepare_indexed_txs,
         io::{
-            BlockTxs, SpentByEntry, SpentByError, SpentByReader, SpentByWriter,
-            TxEntry, TxWriter,
+            BlockTxs, SpentByEntry, SpentByError, SpentByMemData,
+            SpentByReader, SpentByWriter, TxEntry, TxWriter, TxsMemData,
         },
         test::make_inputs_tx,
     };
@@ -332,6 +367,8 @@ mod tests {
         let tx_writer = TxWriter::new(&db)?;
         let spent_by_writer = SpentByWriter::new(&db)?;
         let spent_by_reader = SpentByReader::new(&db)?;
+        let mem_data = RefCell::new(SpentByMemData::default());
+        let txs_mem_data = RefCell::new(TxsMemData::default());
 
         let block_height = RefCell::new(-1);
         let txs_batch = |txs: &[Tx]| BlockTxs {
@@ -347,17 +384,33 @@ mod tests {
         let connect_block = |txs: &[Tx]| -> Result<()> {
             let mut batch = WriteBatch::default();
             *block_height.borrow_mut() += 1;
-            let first_tx_num = tx_writer.insert(&mut batch, &txs_batch(txs))?;
+            let first_tx_num = tx_writer.insert(
+                &mut batch,
+                &txs_batch(txs),
+                &mut txs_mem_data.borrow_mut(),
+            )?;
             let index_txs = prepare_indexed_txs(&db, first_tx_num, txs)?;
-            spent_by_writer.insert(&mut batch, &index_txs)?;
+            spent_by_writer.insert(
+                &mut batch,
+                &index_txs,
+                &mut mem_data.borrow_mut(),
+            )?;
             db.write_batch(batch)?;
             Ok(())
         };
         let disconnect_block = |txs: &[Tx]| -> Result<()> {
             let mut batch = WriteBatch::default();
-            let first_tx_num = tx_writer.delete(&mut batch, &txs_batch(txs))?;
+            let first_tx_num = tx_writer.delete(
+                &mut batch,
+                &txs_batch(txs),
+                &mut txs_mem_data.borrow_mut(),
+            )?;
             let index_txs = prepare_indexed_txs(&db, first_tx_num, txs)?;
-            spent_by_writer.delete(&mut batch, &index_txs)?;
+            spent_by_writer.delete(
+                &mut batch,
+                &index_txs,
+                &mut mem_data.borrow_mut(),
+            )?;
             db.write_batch(batch)?;
             *block_height.borrow_mut() -= 1;
             Ok(())

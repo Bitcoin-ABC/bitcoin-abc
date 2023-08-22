@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-use std::{collections::HashMap, marker::PhantomData};
+use std::{collections::HashMap, marker::PhantomData, time::Instant};
 
 use abc_rust_error::Result;
 use rocksdb::WriteBatch;
@@ -65,6 +65,26 @@ pub struct GroupHistoryReader<'a, G: Group> {
     phantom: PhantomData<G>,
 }
 
+/// In-memory data for the tx history.
+#[derive(Debug, Default)]
+pub struct GroupHistoryMemData {
+    /// Stats about cache hits, num requests etc.
+    pub stats: GroupHistoryStats,
+}
+
+/// Stats about cache hits, num requests etc.
+#[derive(Clone, Debug, Default)]
+pub struct GroupHistoryStats {
+    /// Total number of members updated.
+    pub n_total: usize,
+    /// Time [s] for insert/delete.
+    pub t_total: f64,
+    /// Time [s] for grouping txs.
+    pub t_group: f64,
+    /// Time [s] for fetching existing tx data.
+    pub t_fetch: f64,
+}
+
 impl<'a> GroupHistoryColumn<'a> {
     fn new(db: &'a Db, conf: &GroupHistoryConf) -> Result<Self> {
         let cf = db.cf(conf.cf_name)?;
@@ -124,14 +144,21 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
         &self,
         batch: &mut WriteBatch,
         txs: &[IndexTx<'_>],
+        mem_data: &mut GroupHistoryMemData,
     ) -> Result<()> {
+        let stats = &mut mem_data.stats;
+        let t_start = Instant::now();
         let grouped_txs = self.group_txs(txs);
+        stats.t_group += t_start.elapsed().as_secs_f64();
+        stats.n_total += grouped_txs.len();
         for (member, mut new_tx_nums) in grouped_txs {
             let member_ser: G::MemberSer<'_> = self.group.ser_member(&member);
+            let t_fetch = Instant::now();
             let (mut page_num, mut last_page_tx_nums) = self
                 .col
                 .get_member_last_page(member_ser.as_ref())?
                 .unwrap_or((0, vec![]));
+            stats.t_fetch += t_fetch.elapsed().as_secs_f64();
             while !new_tx_nums.is_empty() {
                 let space_left = self.conf.page_size - last_page_tx_nums.len();
                 let num_new_txs = space_left.min(new_tx_nums.len());
@@ -145,6 +172,7 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
                 page_num += 1;
             }
         }
+        stats.t_total += t_start.elapsed().as_secs_f64();
         Ok(())
     }
 
@@ -153,15 +181,22 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
         &self,
         batch: &mut WriteBatch,
         txs: &[IndexTx<'_>],
+        mem_data: &mut GroupHistoryMemData,
     ) -> Result<()> {
+        let stats = &mut mem_data.stats;
+        let t_start = Instant::now();
         let grouped_txs = self.group_txs(txs);
+        stats.t_group += t_start.elapsed().as_secs_f64();
+        stats.n_total += grouped_txs.len();
         for (member, removed_tx_nums) in grouped_txs {
             let member_ser: G::MemberSer<'_> = self.group.ser_member(&member);
             let mut num_remaining_removes = removed_tx_nums.len();
+            let t_fetch = Instant::now();
             let (mut page_num, mut last_page_tx_nums) = self
                 .col
                 .get_member_last_page(member_ser.as_ref())?
                 .unwrap_or((0, vec![]));
+            stats.t_fetch += t_fetch.elapsed().as_secs_f64();
             while num_remaining_removes > 0 {
                 let num_page_removes =
                     last_page_tx_nums.len().min(num_remaining_removes);
@@ -187,6 +222,7 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
                 }
             }
         }
+        stats.t_total += t_start.elapsed().as_secs_f64();
         Ok(())
     }
 
@@ -289,8 +325,9 @@ mod tests {
         db::Db,
         index_tx::prepare_indexed_txs,
         io::{
-            group_history::PageNum, BlockTxs, GroupHistoryReader,
-            GroupHistoryWriter, TxEntry, TxNum, TxWriter,
+            group_history::PageNum, BlockTxs, GroupHistoryMemData,
+            GroupHistoryReader, GroupHistoryWriter, TxEntry, TxNum, TxWriter,
+            TxsMemData,
         },
         test::{make_value_tx, ser_value, ValueGroup},
     };
@@ -306,6 +343,8 @@ mod tests {
         let tx_writer = TxWriter::new(&db)?;
         let group_writer = GroupHistoryWriter::new(&db, ValueGroup)?;
         let group_reader = GroupHistoryReader::<ValueGroup>::new(&db)?;
+        let mem_data = RefCell::new(GroupHistoryMemData::default());
+        let txs_mem_data = RefCell::new(TxsMemData::default());
 
         let block_height = RefCell::new(-1);
         let txs_batch = |txs: &[Tx]| BlockTxs {
@@ -321,17 +360,33 @@ mod tests {
         let connect_block = |txs: &[Tx]| -> Result<()> {
             let mut batch = WriteBatch::default();
             *block_height.borrow_mut() += 1;
-            let first_tx_num = tx_writer.insert(&mut batch, &txs_batch(txs))?;
+            let first_tx_num = tx_writer.insert(
+                &mut batch,
+                &txs_batch(txs),
+                &mut txs_mem_data.borrow_mut(),
+            )?;
             let index_txs = prepare_indexed_txs(&db, first_tx_num, txs)?;
-            group_writer.insert(&mut batch, &index_txs)?;
+            group_writer.insert(
+                &mut batch,
+                &index_txs,
+                &mut mem_data.borrow_mut(),
+            )?;
             db.write_batch(batch)?;
             Ok(())
         };
         let disconnect_block = |txs: &[Tx]| -> Result<()> {
             let mut batch = WriteBatch::default();
-            let first_tx_num = tx_writer.delete(&mut batch, &txs_batch(txs))?;
+            let first_tx_num = tx_writer.delete(
+                &mut batch,
+                &txs_batch(txs),
+                &mut txs_mem_data.borrow_mut(),
+            )?;
             let index_txs = prepare_indexed_txs(&db, first_tx_num, txs)?;
-            group_writer.delete(&mut batch, &index_txs)?;
+            group_writer.delete(
+                &mut batch,
+                &index_txs,
+                &mut mem_data.borrow_mut(),
+            )?;
             db.write_batch(batch)?;
             *block_height.borrow_mut() -= 1;
             Ok(())

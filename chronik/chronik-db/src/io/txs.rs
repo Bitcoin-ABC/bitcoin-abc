@@ -23,7 +23,7 @@
 //! For the reverse index txid -> tx_num, we use `ReverseLookup`. We use a
 //! 64-bit cheap hash to make collisions rare/difficult.
 
-use std::ops::Range;
+use std::{ops::Range, time::Instant};
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::tx::TxId;
@@ -97,6 +97,24 @@ pub struct BlockTxs {
     pub txs: Vec<TxEntry>,
     /// Height of the block of the txs.
     pub block_height: BlockHeight,
+}
+
+/// In-memory data for the tx history.
+#[derive(Debug, Default)]
+pub struct TxsMemData {
+    /// Stats about cache hits, num requests etc.
+    pub stats: TxsStats,
+}
+
+/// Stats about cache hits, num requests etc.
+#[derive(Clone, Debug, Default)]
+pub struct TxsStats {
+    /// Total number of txs updated.
+    pub n_total: usize,
+    /// Time [s] for insert/delete.
+    pub t_total: f64,
+    /// Time [s] for indexing txs.
+    pub t_index: f64,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -211,7 +229,11 @@ impl<'a> TxWriter<'a> {
         &self,
         batch: &mut WriteBatch,
         block_txs: &BlockTxs,
+        mem_data: &mut TxsMemData,
     ) -> Result<TxNum> {
+        let stats = &mut mem_data.stats;
+        let t_start = Instant::now();
+        stats.n_total += block_txs.txs.len();
         let mut last_tx_num_iterator = self.col.db.iterator_end(self.col.cf_tx);
         let first_new_tx = match last_tx_num_iterator.next() {
             Some(result) => {
@@ -242,7 +264,10 @@ impl<'a> TxWriter<'a> {
             index_pairs.push((next_tx_num, tx.txid.as_bytes()));
             next_tx_num += 1;
         }
+        let t_index = Instant::now();
         LookupByHash::insert_pairs(self.col.db, batch, index_pairs)?;
+        stats.t_index += t_index.elapsed().as_secs_f64();
+        stats.t_total += t_start.elapsed().as_secs_f64();
         Ok(first_new_tx)
     }
 
@@ -251,7 +276,11 @@ impl<'a> TxWriter<'a> {
         &self,
         batch: &mut WriteBatch,
         block_txs: &BlockTxs,
+        mem_data: &mut TxsMemData,
     ) -> Result<TxNum> {
+        let stats = &mut mem_data.stats;
+        let t_start = Instant::now();
+        stats.n_total += block_txs.txs.len();
         let first_tx_num = self
             .col
             .db
@@ -276,7 +305,10 @@ impl<'a> TxWriter<'a> {
             self.col.cf_first_tx_by_blk,
             bh_to_bytes(block_txs.block_height),
         );
+        let t_index = Instant::now();
         LookupByHash::delete_pairs(self.col.db, batch, index_pairs)?;
+        stats.t_index += t_index.elapsed().as_secs_f64();
+        stats.t_total += t_start.elapsed().as_secs_f64();
         Ok(first_tx_num)
     }
 
@@ -470,7 +502,7 @@ mod tests {
 
     use crate::{
         db::Db,
-        io::{BlockTx, BlockTxs, TxEntry, TxReader, TxWriter},
+        io::{BlockTx, BlockTxs, TxEntry, TxReader, TxWriter, TxsMemData},
     };
 
     #[test]
@@ -480,6 +512,7 @@ mod tests {
         let db = Db::open(tempdir.path())?;
         let tx_writer = TxWriter::new(&db)?;
         let tx_reader = TxReader::new(&db)?;
+        let mut mem_data = TxsMemData::default();
         let tx1 = TxEntry {
             txid: TxId::from([1; 32]),
             data_pos: 100,
@@ -500,7 +533,10 @@ mod tests {
         {
             // insert genesis tx
             let mut batch = WriteBatch::default();
-            assert_eq!(tx_writer.insert(&mut batch, &block1)?, 0);
+            assert_eq!(
+                tx_writer.insert(&mut batch, &block1, &mut mem_data)?,
+                0
+            );
             db.write_batch(batch)?;
             let tx_reader = TxReader::new(&db)?;
             assert_eq!(tx_reader.first_tx_num_by_block(0)?, Some(0));
@@ -548,7 +584,10 @@ mod tests {
         {
             // insert 2 more txs
             let mut batch = WriteBatch::default();
-            assert_eq!(tx_writer.insert(&mut batch, &block2)?, 1);
+            assert_eq!(
+                tx_writer.insert(&mut batch, &block2, &mut mem_data)?,
+                1
+            );
             db.write_batch(batch)?;
             assert_eq!(tx_reader.first_tx_num_by_block(0)?, Some(0));
             assert_eq!(tx_reader.first_tx_num_by_block(1)?, Some(1));
@@ -589,7 +628,10 @@ mod tests {
         {
             // delete latest block
             let mut batch = WriteBatch::default();
-            assert_eq!(tx_writer.delete(&mut batch, &block2)?, 1);
+            assert_eq!(
+                tx_writer.delete(&mut batch, &block2, &mut mem_data)?,
+                1
+            );
             db.write_batch(batch)?;
             assert_eq!(tx_reader.first_tx_num_by_block(0)?, Some(0));
             assert_eq!(tx_reader.first_tx_num_by_block(1)?, None);
@@ -636,7 +678,10 @@ mod tests {
         {
             // Add reorg block
             let mut batch = WriteBatch::default();
-            assert_eq!(tx_writer.insert(&mut batch, &block3)?, 1);
+            assert_eq!(
+                tx_writer.insert(&mut batch, &block3, &mut mem_data)?,
+                1
+            );
             db.write_batch(batch)?;
 
             assert_eq!(tx_reader.first_tx_num_by_block(0)?, Some(0));

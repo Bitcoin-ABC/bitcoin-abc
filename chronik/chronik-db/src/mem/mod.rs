@@ -4,11 +4,13 @@
 
 //! Module containing structs to index the mempool.
 
+mod data;
 mod group_history;
 mod group_utxos;
 mod mempool;
 mod spent_by;
 
+pub use self::data::*;
 pub use self::group_history::*;
 pub use self::group_utxos::*;
 pub use self::mempool::*;

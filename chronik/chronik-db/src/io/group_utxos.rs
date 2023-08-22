@@ -7,6 +7,7 @@
 use std::{
     collections::{hash_map::Entry, HashMap},
     marker::PhantomData,
+    time::Instant,
 };
 
 use abc_rust_error::Result;
@@ -86,6 +87,26 @@ pub struct GroupUtxoReader<'a, G: Group> {
     phantom: PhantomData<G>,
 }
 
+/// In-memory data for indexing UTXOs of a group.
+#[derive(Debug, Default)]
+pub struct GroupUtxoMemData {
+    /// Stats about cache hits, num requests etc.
+    pub stats: GroupUtxoStats,
+}
+
+/// Stats about cache hits, num requests etc.
+#[derive(Clone, Debug, Default)]
+pub struct GroupUtxoStats {
+    /// Total number of txs updated.
+    pub n_total: usize,
+    /// Time [s] for insert/delete.
+    pub t_total: f64,
+    /// Time [s] for fetching UTXOs.
+    pub t_fetch: f64,
+    /// Time [s] for indexing UTXOs.
+    pub t_index: f64,
+}
+
 /// Error indicating something went wrong with the tx index.
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum GroupUtxoError {
@@ -125,7 +146,11 @@ impl<'a, G: Group> GroupUtxoWriter<'a, G> {
         &self,
         batch: &mut WriteBatch,
         txs: &'tx [IndexTx<'tx>],
+        mem_data: &mut GroupUtxoMemData,
     ) -> Result<()> {
+        let stats = &mut mem_data.stats;
+        stats.n_total += txs.len();
+        let t_start = Instant::now();
         let mut updated_utxos =
             HashMap::<G::Member<'tx>, Vec<UtxoEntry>>::new();
         for index_tx in txs {
@@ -134,10 +159,14 @@ impl<'a, G: Group> GroupUtxoWriter<'a, G> {
                 tx: index_tx.tx,
             };
             for item in self.group.output_members(query) {
+                let t_fetch = Instant::now();
                 let entries =
                     self.get_or_fetch(&mut updated_utxos, item.member)?;
+                stats.t_fetch += t_fetch.elapsed().as_secs_f64();
                 let new_entry = Self::output_utxo(index_tx, item.idx);
+                let t_index = Instant::now();
                 Self::insert_utxo_entry(new_entry, entries)?;
+                stats.t_index += t_index.elapsed().as_secs_f64();
             }
         }
         for index_tx in txs {
@@ -149,13 +178,18 @@ impl<'a, G: Group> GroupUtxoWriter<'a, G> {
                 tx: index_tx.tx,
             };
             for item in self.group.input_members(query) {
+                let t_fetch = Instant::now();
                 let entries =
                     self.get_or_fetch(&mut updated_utxos, item.member)?;
+                stats.t_fetch += t_fetch.elapsed().as_secs_f64();
                 let delete_entry = Self::input_utxo(index_tx, item.idx);
+                let t_index = Instant::now();
                 Self::delete_utxo_entry(&delete_entry.outpoint, entries)?;
+                stats.t_index += t_index.elapsed().as_secs_f64();
             }
         }
         self.update_write_batch(batch, &updated_utxos)?;
+        stats.t_total += t_start.elapsed().as_secs_f64();
         Ok(())
     }
 
@@ -167,7 +201,11 @@ impl<'a, G: Group> GroupUtxoWriter<'a, G> {
         &self,
         batch: &mut WriteBatch,
         txs: &'tx [IndexTx<'tx>],
+        mem_data: &mut GroupUtxoMemData,
     ) -> Result<()> {
+        let stats = &mut mem_data.stats;
+        stats.n_total += txs.len();
+        let t_start = Instant::now();
         let mut updated_utxos =
             HashMap::<G::Member<'tx>, Vec<UtxoEntry>>::new();
         for index_tx in txs {
@@ -179,10 +217,14 @@ impl<'a, G: Group> GroupUtxoWriter<'a, G> {
                 tx: index_tx.tx,
             };
             for item in self.group.input_members(query) {
+                let t_fetch = Instant::now();
                 let entries =
                     self.get_or_fetch(&mut updated_utxos, item.member)?;
+                stats.t_fetch += t_fetch.elapsed().as_secs_f64();
                 let new_entry = Self::input_utxo(index_tx, item.idx);
+                let t_index = Instant::now();
                 Self::insert_utxo_entry(new_entry, entries)?;
+                stats.t_index += t_index.elapsed().as_secs_f64();
             }
         }
         for index_tx in txs {
@@ -191,13 +233,18 @@ impl<'a, G: Group> GroupUtxoWriter<'a, G> {
                 tx: index_tx.tx,
             };
             for item in self.group.output_members(query) {
+                let t_fetch = Instant::now();
                 let entries =
                     self.get_or_fetch(&mut updated_utxos, item.member)?;
+                stats.t_fetch += t_fetch.elapsed().as_secs_f64();
                 let delete_entry = Self::output_utxo(index_tx, item.idx);
+                let t_index = Instant::now();
                 Self::delete_utxo_entry(&delete_entry.outpoint, entries)?;
+                stats.t_index += t_index.elapsed().as_secs_f64();
             }
         }
         self.update_write_batch(batch, &updated_utxos)?;
+        stats.t_total += t_start.elapsed().as_secs_f64();
         Ok(())
     }
 
@@ -336,8 +383,8 @@ mod tests {
         db::Db,
         index_tx::prepare_indexed_txs,
         io::{
-            BlockTxs, GroupUtxoReader, GroupUtxoWriter, TxEntry, TxWriter,
-            UtxoEntry, UtxoOutpoint,
+            BlockTxs, GroupUtxoMemData, GroupUtxoReader, GroupUtxoWriter,
+            TxEntry, TxWriter, TxsMemData, UtxoEntry, UtxoOutpoint,
         },
         test::{make_inputs_tx, ser_value, ValueGroup},
     };
@@ -351,6 +398,8 @@ mod tests {
         TxWriter::add_cfs(&mut cfs);
         let db = Db::open_with_cfs(tempdir.path(), cfs)?;
         let tx_writer = TxWriter::new(&db)?;
+        let mem_data = RefCell::new(GroupUtxoMemData::default());
+        let txs_mem_data = RefCell::new(TxsMemData::default());
         let group_writer = GroupUtxoWriter::new(&db, ValueGroup)?;
         let group_reader = GroupUtxoReader::<ValueGroup>::new(&db)?;
 
@@ -368,17 +417,33 @@ mod tests {
         let connect_block = |txs: &[Tx]| -> Result<()> {
             let mut batch = WriteBatch::default();
             *block_height.borrow_mut() += 1;
-            let first_tx_num = tx_writer.insert(&mut batch, &txs_batch(txs))?;
+            let first_tx_num = tx_writer.insert(
+                &mut batch,
+                &txs_batch(txs),
+                &mut txs_mem_data.borrow_mut(),
+            )?;
             let index_txs = prepare_indexed_txs(&db, first_tx_num, txs)?;
-            group_writer.insert(&mut batch, &index_txs)?;
+            group_writer.insert(
+                &mut batch,
+                &index_txs,
+                &mut mem_data.borrow_mut(),
+            )?;
             db.write_batch(batch)?;
             Ok(())
         };
         let disconnect_block = |txs: &[Tx]| -> Result<()> {
             let mut batch = WriteBatch::default();
-            let first_tx_num = tx_writer.delete(&mut batch, &txs_batch(txs))?;
+            let first_tx_num = tx_writer.delete(
+                &mut batch,
+                &txs_batch(txs),
+                &mut txs_mem_data.borrow_mut(),
+            )?;
             let index_txs = prepare_indexed_txs(&db, first_tx_num, txs)?;
-            group_writer.delete(&mut batch, &index_txs)?;
+            group_writer.delete(
+                &mut batch,
+                &index_txs,
+                &mut mem_data.borrow_mut(),
+            )?;
             db.write_batch(batch)?;
             *block_height.borrow_mut() -= 1;
             Ok(())

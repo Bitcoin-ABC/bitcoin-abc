@@ -4,7 +4,7 @@
 
 //! Module containing [`ChronikIndexer`] to index blocks and txs.
 
-use std::path::PathBuf;
+use std::{io::Write, path::PathBuf};
 
 use abc_rust_error::{Result, WrapErr};
 use bitcoinsuite_core::{
@@ -23,7 +23,7 @@ use chronik_db::{
         DbBlock, MetadataReader, MetadataWriter, SchemaVersion, SpentByWriter,
         TxEntry, TxWriter,
     },
-    mem::{Mempool, MempoolTx},
+    mem::{MemData, MemDataConf, Mempool, MempoolTx},
 };
 use chronik_util::{log, log_chronik};
 use thiserror::Error;
@@ -47,16 +47,20 @@ pub struct ChronikIndexerParams {
     pub wipe_db: bool,
     /// Function ptr to compress scripts.
     pub fn_compress_script: FnCompressScript,
+    /// Whether to output Chronik performance statistics into a perf/ folder
+    pub enable_perf_stats: bool,
 }
 
 /// Struct for indexing blocks and txs. Maintains db handles and mempool.
 #[derive(Debug)]
 pub struct ChronikIndexer {
     db: Db,
+    mem_data: MemData,
     mempool: Mempool,
     script_group: ScriptGroup,
     avalanche: Avalanche,
     subs: RwLock<Subs>,
+    perf_path: Option<PathBuf>,
 }
 
 /// Access to the bitcoind node.
@@ -84,7 +88,7 @@ pub struct ChronikBlock {
 pub enum ChronikIndexerError {
     /// Failed creating the folder for the indexes
     #[error("Failed creating path {0}")]
-    CreateIndexesDirFailed(PathBuf),
+    CreateDirFailed(PathBuf),
 
     /// Cannot rewind blocks that bitcoind doesn't have
     #[error(
@@ -143,10 +147,14 @@ impl ChronikIndexer {
     /// Setup the indexer with the given parameters, e.g. open the DB etc.
     pub fn setup(params: ChronikIndexerParams) -> Result<Self> {
         let indexes_path = params.datadir_net.join("indexes");
+        let perf_path = params.datadir_net.join("perf");
         if !indexes_path.exists() {
-            std::fs::create_dir(&indexes_path).wrap_err_with(|| {
-                CreateIndexesDirFailed(indexes_path.clone())
-            })?;
+            std::fs::create_dir(&indexes_path)
+                .wrap_err_with(|| CreateDirFailed(indexes_path.clone()))?;
+        }
+        if params.enable_perf_stats && !perf_path.exists() {
+            std::fs::create_dir(&perf_path)
+                .wrap_err_with(|| CreateDirFailed(perf_path.clone()))?;
         }
         let db_path = indexes_path.join("chronik");
         if params.wipe_db {
@@ -161,9 +169,11 @@ impl ChronikIndexer {
         Ok(ChronikIndexer {
             db,
             mempool,
+            mem_data: MemData::new(MemDataConf {}),
             script_group: script_group.clone(),
             avalanche: Avalanche::default(),
             subs: RwLock::new(Subs::new(script_group)),
+            perf_path: params.enable_perf_stats.then_some(perf_path),
         })
     }
 
@@ -234,6 +244,11 @@ impl ChronikIndexer {
             "Chronik completed re-syncing with the node, both are now at \
              block {node_tip_hash} at height {node_height}.\n"
         );
+        if let Some(perf_path) = &self.perf_path {
+            let mut resync_stats =
+                std::fs::File::create(perf_path.join("resync_stats.txt"))?;
+            write!(&mut resync_stats, "{:#.3?}", self.mem_data.stats())?;
+        }
         Ok(())
     }
 
@@ -318,14 +333,30 @@ impl ChronikIndexer {
             ScriptUtxoWriter::new(&self.db, self.script_group.clone())?;
         let spent_by_writer = SpentByWriter::new(&self.db)?;
         block_writer.insert(&mut batch, &block.db_block)?;
-        let first_tx_num = tx_writer.insert(&mut batch, &block.block_txs)?;
+        let first_tx_num = tx_writer.insert(
+            &mut batch,
+            &block.block_txs,
+            &mut self.mem_data.txs,
+        )?;
         let index_txs =
             prepare_indexed_txs(&self.db, first_tx_num, &block.txs)?;
         block_stats_writer
             .insert(&mut batch, height, block.size, &index_txs)?;
-        script_history_writer.insert(&mut batch, &index_txs)?;
-        script_utxo_writer.insert(&mut batch, &index_txs)?;
-        spent_by_writer.insert(&mut batch, &index_txs)?;
+        script_history_writer.insert(
+            &mut batch,
+            &index_txs,
+            &mut self.mem_data.script_history,
+        )?;
+        script_utxo_writer.insert(
+            &mut batch,
+            &index_txs,
+            &mut self.mem_data.script_utxos,
+        )?;
+        spent_by_writer.insert(
+            &mut batch,
+            &index_txs,
+            &mut self.mem_data.spent_by,
+        )?;
         self.db.write_batch(batch)?;
         for tx in &block.block_txs.txs {
             self.mempool.remove_mined(&tx.txid)?;
@@ -357,13 +388,29 @@ impl ChronikIndexer {
             ScriptUtxoWriter::new(&self.db, self.script_group.clone())?;
         let spent_by_writer = SpentByWriter::new(&self.db)?;
         block_writer.delete(&mut batch, &block.db_block)?;
-        let first_tx_num = tx_writer.delete(&mut batch, &block.block_txs)?;
+        let first_tx_num = tx_writer.delete(
+            &mut batch,
+            &block.block_txs,
+            &mut self.mem_data.txs,
+        )?;
         let index_txs =
             prepare_indexed_txs(&self.db, first_tx_num, &block.txs)?;
         block_stats_writer.delete(&mut batch, block.db_block.height);
-        script_history_writer.delete(&mut batch, &index_txs)?;
-        script_utxo_writer.delete(&mut batch, &index_txs)?;
-        spent_by_writer.delete(&mut batch, &index_txs)?;
+        script_history_writer.delete(
+            &mut batch,
+            &index_txs,
+            &mut self.mem_data.script_history,
+        )?;
+        script_utxo_writer.delete(
+            &mut batch,
+            &index_txs,
+            &mut self.mem_data.script_utxos,
+        )?;
+        spent_by_writer.delete(
+            &mut batch,
+            &index_txs,
+            &mut self.mem_data.spent_by,
+        )?;
         self.avalanche.disconnect_block(block.db_block.height)?;
         self.db.write_batch(batch)?;
         let subs = self.subs.get_mut();
@@ -554,15 +601,14 @@ mod tests {
             datadir_net: datadir_net.clone(),
             wipe_db: false,
             fn_compress_script: prefix_mock_compress,
+            enable_perf_stats: false,
         };
         // regtest folder doesn't exist yet -> error
         assert_eq!(
             ChronikIndexer::setup(params.clone())
                 .unwrap_err()
                 .downcast::<ChronikIndexerError>()?,
-            ChronikIndexerError::CreateIndexesDirFailed(
-                datadir_net.join("indexes"),
-            ),
+            ChronikIndexerError::CreateDirFailed(datadir_net.join("indexes")),
         );
 
         // create regtest folder, setup will work now
@@ -623,6 +669,7 @@ mod tests {
             datadir_net: dir.path().to_path_buf(),
             wipe_db: false,
             fn_compress_script: prefix_mock_compress,
+            enable_perf_stats: false,
         };
 
         // Setting up DB first time sets the schema version

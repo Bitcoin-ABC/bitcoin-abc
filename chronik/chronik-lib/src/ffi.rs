@@ -24,6 +24,9 @@ mod ffi_inner {
         pub wipe_db: bool,
         /// Whether pausing Chronik indexing is allowed
         pub is_pause_allowed: bool,
+        /// Whether to output Chronik performance statistics into a perf/
+        /// folder
+        pub enable_perf_stats: bool,
     }
 
     extern "Rust" {

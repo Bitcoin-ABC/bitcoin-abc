@@ -183,7 +183,7 @@ mod tests {
         index_tx::prepare_indexed_txs,
         io::{
             BlockStats, BlockStatsReader, BlockStatsWriter, BlockTxs, TxEntry,
-            TxWriter,
+            TxWriter, TxsMemData,
         },
         test::make_inputs_tx,
     };
@@ -196,6 +196,7 @@ mod tests {
         BlockStatsWriter::add_cfs(&mut cfs);
         let db = Db::open_with_cfs(tempdir.path(), cfs)?;
         let tx_writer = TxWriter::new(&db)?;
+        let mut txs_mem_data = TxsMemData::default();
         let stats_writer = BlockStatsWriter::new(&db)?;
         let stats_reader = BlockStatsReader::new(&db)?;
 
@@ -241,6 +242,7 @@ mod tests {
                 txs: block_txs,
                 block_height: 1,
             },
+            &mut txs_mem_data,
         )?;
         let index_txs = prepare_indexed_txs(&db, first_tx_num, &block)?;
         stats_writer.insert(&mut batch, 1, 1337, &index_txs)?;

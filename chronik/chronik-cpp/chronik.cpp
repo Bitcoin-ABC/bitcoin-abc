@@ -39,6 +39,7 @@ bool Start(const Config &config, const node::NodeContext &node, bool fWipe) {
             .default_port = BaseParams().ChronikPort(),
             .wipe_db = fWipe,
             .is_pause_allowed = is_pause_allowed,
+            .enable_perf_stats = gArgs.GetBoolArg("-chronikperfstats", false),
         },
         config, node);
 }

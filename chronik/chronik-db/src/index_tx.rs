@@ -95,7 +95,7 @@ mod tests {
     use crate::{
         db::Db,
         index_tx::{prepare_indexed_txs, IndexTx},
-        io::{BlockTxs, TxEntry, TxNum, TxWriter},
+        io::{BlockTxs, TxEntry, TxNum, TxWriter, TxsMemData},
     };
 
     #[test]
@@ -104,6 +104,7 @@ mod tests {
         let tempdir = tempdir::TempDir::new("chronik-db--indexed_txs")?;
         let db = Db::open(tempdir.path())?;
         let tx_writer = TxWriter::new(&db)?;
+        let mut txs_mem_data = TxsMemData::default();
         let mut batch = WriteBatch::default();
         let db_txs = (100..110)
             .map(|txid_num: u8| TxEntry {
@@ -118,6 +119,7 @@ mod tests {
                 txs: db_txs,
                 block_height: 0,
             },
+            &mut txs_mem_data,
         )?;
         db.write_batch(batch)?;
 
