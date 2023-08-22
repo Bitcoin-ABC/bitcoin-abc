@@ -56,6 +56,11 @@ FUNCTION_NAMES_AND_NUMBER_OF_LEADING_ARGUMENTS = [
     ("FatalError", 0),
     ("fprintf", 1),
     ("LogConnectFailure", 1),
+    ("LogError", 0),
+    ("LogWarning", 0),
+    ("LogInfo", 0),
+    ("LogDebug", 1),
+    ("LogTrace", 1),
     ("LogPrint", 1),
     ("LogPrintf", 0),
     ("LogPrintfCategory", 1),
@@ -344,6 +349,8 @@ def main(args_in):
     """Return a string output with information on string format errors
 
     >>> main(["test/lint/lint-format-strings-tests.txt"])
+    test/lint/lint-format-strings-tests.txt: Expected 2 argument(s) after format string but found 3 argument(s): LogError("%d%s", 1, some_path, spam)
+    test/lint/lint-format-strings-tests.txt: Expected 3 argument(s) after format string but found 2 argument(s): LogWarning("%d%s%f", 1, some_path)
     test/lint/lint-format-strings-tests.txt: Expected 1 argument(s) after format string but found 2 argument(s): printf("%d", 1, 2)
     test/lint/lint-format-strings-tests.txt: Expected 2 argument(s) after format string but found 3 argument(s): printf("%a %f", 1, 2, "anything")
     test/lint/lint-format-strings-tests.txt: Expected 2 argument(s) after format string but found 3 argument(s): printf("%1$d%2$d%1$d", 1, 2, 3)
@@ -356,6 +363,8 @@ def main(args_in):
     >>> main(["test/lint/lint-format-strings-tests-skip-arguments.txt"])
     test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 1 argument(s) after format string but found 2 argument(s): fprintf(skipped, "%d", 1, 2)
     test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 1 argument(s) after format string but found 0 argument(s): fprintf(skipped, "%d")
+    test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 1 argument(s) after format string but found 2 argument(s): LogDebug(skipped, "%d", 1, 2)
+    test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 2 argument(s) after format string but found 1 argument(s): LogTrace(skipped, "%d%f", 1)
     test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 1 argument(s) after format string but found 2 argument(s): snprintf(skip1, skip2, "%d", 1, 2)
     test/lint/lint-format-strings-tests-skip-arguments.txt: Expected 1 argument(s) after format string but found 0 argument(s): snprintf(skip1, skip2, "%d")
     test/lint/lint-format-strings-tests-skip-arguments.txt: Could not parse function call string "snprintf(...)": snprintf(skip1, "%d")

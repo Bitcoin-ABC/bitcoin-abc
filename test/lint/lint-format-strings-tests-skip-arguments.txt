@@ -1,14 +1,17 @@
 ++++++++++ With 1 skipped argument ++++++++++
 
 --- Good ones ---
+LogDebug(skipped, "%d", 1);
 fprintf(skipped, "%d", 1);
 fprintf(skipped, "%a%s%f", 1, "anything", 3);
 
 -- Too many arguments ---
 fprintf(skipped, "%d", 1, 2); => error
+LogDebug(skipped, "%d", 1, 2);
 
 --- Not enough argument ---
 fprintf(skipped, "%d"); should throw => error
+LogTrace(skipped, "%d%f", 1);
 
 ++++++++++ With 2 skipped arguments ++++++++++
 

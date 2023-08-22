@@ -5,6 +5,7 @@ printf("%a%s%f", 1, "anything", 3); => no error
 strprintf("%%%u", scope_id); => no error
 printf("%5$d", 1, 2, 3, 4, 5); => no error
 printf("%1$d%2$d%1$d", 1, 2); => no error
+LogInfo("%d%s", 1, some_path);  => no error
 
 --- Comments ---
 // This is a c++ comment, should not throw printf("%d", 1, 2); => no error
@@ -13,12 +14,14 @@ printf("%1$d%2$d%1$d", 1, 2); => no error
 #define printf(%d, 1, 2); => no error
 
 -- Too many arguments ---
+LogError("%d%s", 1, some_path, spam);  => error
 printf("%d", 1, 2); => error
 printf("%a %f", 1, 2, "anything"); => error
 strprintf("%%%%u", scope_id); => error
 printf("%1$d%2$d%1$d", 1, 2, 3); => error
 
 --- Not enough argument ---
+LogWarning("%d%s%f", 1, some_path);  => error
 printf("%d"); should throw => error
 printf("%a%s%f", 1, "anything"); => error
 printf("%5$d", 1); => error
