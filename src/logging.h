@@ -82,8 +82,6 @@ enum class Level {
     Info,
     Warning,
     Error,
-    // Internal use only
-    None,
 };
 constexpr auto DEFAULT_LOG_LEVEL{Level::Debug};
 
@@ -260,22 +258,14 @@ LogPrintf_(const std::string &logging_function, const std::string &source_file,
 
 // Log unconditionally.
 #define LogPrintf(...)                                                         \
-    LogPrintLevel_(BCLog::LogFlags::NONE, BCLog::Level::None, __VA_ARGS__)
+    LogPrintLevel_(BCLog::LogFlags::NONE, BCLog::Level::Info, __VA_ARGS__)
 
 // Log unconditionally, prefixing the output with the passed category name.
 #define LogPrintfCategory(category, ...)                                       \
-    LogPrintLevel_(category, BCLog::Level::None, __VA_ARGS__)
+    LogPrintLevel_(category, BCLog::Level::Info, __VA_ARGS__)
 
 // Use a macro instead of a function for conditional logging to prevent
 // evaluating arguments when logging for the category is not enabled.
-
-// Log conditionally, prefixing the output with the passed category name.
-#define LogPrint(category, ...)                                                \
-    do {                                                                       \
-        if (LogAcceptCategory((category), BCLog::Level::Debug)) {              \
-            LogPrintLevel_(category, BCLog::Level::None, __VA_ARGS__);         \
-        }                                                                      \
-    } while (0)
 
 // Log conditionally, prefixing the output with the passed category name and
 // severity level.
@@ -285,6 +275,10 @@ LogPrintf_(const std::string &logging_function, const std::string &source_file,
             LogPrintLevel_(category, level, __VA_ARGS__);                      \
         }                                                                      \
     } while (0)
+
+// Log conditionally, prefixing the output with the passed category name.
+#define LogPrint(category, ...)                                                \
+    LogPrintLevel(category, BCLog::Level::Debug, __VA_ARGS__)
 
 /**
  * These are aliases used to explicitly state that the message should not end
