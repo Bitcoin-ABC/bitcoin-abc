@@ -291,26 +291,37 @@ std::string LogEscapeMessage(const std::string &str) {
 
 std::string BCLog::Logger::GetLogPrefix(BCLog::LogFlags category,
                                         BCLog::Level level) const {
-    if (category != LogFlags::NONE || level != Level::None) {
-        std::string s{"["};
+    const bool has_category{category != LogFlags::NONE};
 
-        if (category != LogFlags::NONE) {
-            s += LogCategoryToStr(category);
+    if (!has_category && level == Level::None) {
+        return {};
+    }
+
+    // If there is no category, Info is implied
+    if (!has_category && level == Level::Info) {
+        return {};
+    }
+
+    std::string s{"["};
+    if (has_category) {
+        s += LogCategoryToStr(category);
+
+        // If there is a category, Debug is implied
+        if (level == Level::Debug) {
+            level = Level::None;
         }
+    }
 
-        if (category != LogFlags::NONE && level != Level::None) {
-            // Only add separator if both flag and level are not NONE
+    if (level != Level::None) {
+        // Only add separator if we have a category
+        if (has_category) {
             s += ":";
         }
-
-        if (level != Level::None) {
-            s += LogLevelToStr(level);
-        }
-
-        s += "] ";
-        return s;
+        s += Logger::LogLevelToStr(level);
     }
-    return {};
+
+    s += "] ";
+    return s;
 }
 
 void BCLog::Logger::LogPrintStr(const std::string &str,
