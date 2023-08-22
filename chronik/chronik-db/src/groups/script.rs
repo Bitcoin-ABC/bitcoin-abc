@@ -5,7 +5,7 @@
 use bitcoinsuite_core::script::Script;
 
 use crate::{
-    db::{CF_SCRIPT_HISTORY, CF_SCRIPT_UTXO},
+    db::{CF_SCRIPT_HISTORY, CF_SCRIPT_HISTORY_NUM_TXS, CF_SCRIPT_UTXO},
     group::{Group, GroupQuery, MemberItem},
     io::{
         GroupHistoryConf, GroupHistoryReader, GroupHistoryWriter,
@@ -76,7 +76,8 @@ impl Group for ScriptGroup {
 
     fn tx_history_conf() -> GroupHistoryConf {
         GroupHistoryConf {
-            cf_name: CF_SCRIPT_HISTORY,
+            cf_page_name: CF_SCRIPT_HISTORY,
+            cf_num_txs_name: CF_SCRIPT_HISTORY_NUM_TXS,
             page_size: 1000,
         }
     }

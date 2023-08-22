@@ -39,6 +39,8 @@ pub const CF_LOOKUP_TX_BY_HASH: &str = "lookup_tx_by_hash";
 pub const CF_META: &str = "meta";
 /// Column family to store tx history by script.
 pub const CF_SCRIPT_HISTORY: &str = "script_history";
+/// Column family to store number of txs by script.
+pub const CF_SCRIPT_HISTORY_NUM_TXS: &str = "script_history_num_txs";
 /// Column family for utxos by script.
 pub const CF_SCRIPT_UTXO: &str = "script_utxo";
 /// Column family to store which outputs have been spent by which tx inputs.
@@ -131,6 +133,19 @@ impl Db {
         key: impl AsRef<[u8]>,
     ) -> Result<Option<rocksdb::DBPinnableSlice<'_>>> {
         Ok(self.db.get_pinned_cf(cf, key).map_err(RocksDb)?)
+    }
+
+    pub(crate) fn multi_get(
+        &self,
+        cf: &CF,
+        keys: impl IntoIterator<Item = impl AsRef<[u8]>>,
+        sorted_inputs: bool,
+    ) -> Result<Vec<Option<rocksdb::DBPinnableSlice<'_>>>> {
+        self.db
+            .batched_multi_get_cf(cf, keys, sorted_inputs)
+            .into_iter()
+            .map(|value| value.map_err(|err| RocksDb(err).into()))
+            .collect()
     }
 
     pub(crate) fn iterator_end(

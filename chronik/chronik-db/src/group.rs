@@ -38,8 +38,9 @@ pub trait Group {
 
     /// Member of a group, this is what txs will be grouped by.
     ///
-    /// We use a HashMap to group txs, so it must implement [`std::hash::Hash`].
-    type Member<'a>: std::hash::Hash + Eq;
+    /// We use a HashMap and a BTreeMap to group txs, so it must implement
+    /// [`std::hash::Hash`] and [`Ord`].
+    type Member<'a>: std::hash::Hash + Eq + Ord;
 
     /// Serialized member, this is what will be used as key in the DB.
     /// Normally, this will be a [`Vec<u8>`] or an [`u8`] array or slice.

@@ -2,35 +2,44 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-use std::{collections::HashMap, marker::PhantomData, time::Instant};
+use std::{collections::BTreeMap, marker::PhantomData, time::Instant};
 
 use abc_rust_error::Result;
 use rocksdb::WriteBatch;
+use thiserror::Error;
 
 use crate::{
     db::{Db, CF},
     group::{tx_members_for_group, Group, GroupQuery},
     index_tx::IndexTx,
-    io::TxNum,
-    ser::{db_deserialize, db_serialize},
+    io::{group_history::GroupHistoryError::*, TxNum},
+    ser::{db_deserialize_vec, db_serialize_vec},
 };
 
 /// Represent page numbers with 32-bit unsigned integers.
 type PageNum = u32;
-const PAGE_SER_SIZE: usize = 4;
+/// Represent num txs with 32-bit unsigned integers.
+/// Note: This implies that scripts can at most have 2^32 txs.
+type NumTxs = u32;
+
+const CONCAT: u8 = b'C';
+const TRIM: u8 = b'T';
 
 /// Configuration for group history reader/writers.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct GroupHistoryConf {
-    /// Column family to store the group history entries.
-    pub cf_name: &'static str,
+    /// Column family to store the group history pages.
+    pub cf_page_name: &'static str,
+    /// Column family to store the last page num of the group history.
+    pub cf_num_txs_name: &'static str,
     /// Page size for each member of the group.
-    pub page_size: usize,
+    pub page_size: NumTxs,
 }
 
 struct GroupHistoryColumn<'a> {
     db: &'a Db,
-    cf: &'a CF,
+    cf_page: &'a CF,
+    cf_num_txs: &'a CF,
 }
 
 /// Write txs grouped and paginated to the DB.
@@ -81,14 +90,81 @@ pub struct GroupHistoryStats {
     pub t_total: f64,
     /// Time [s] for grouping txs.
     pub t_group: f64,
+    /// Time [s] for serializing members.
+    pub t_ser_members: f64,
     /// Time [s] for fetching existing tx data.
     pub t_fetch: f64,
 }
 
+/// Error indicating that something went wrong with writing group history data.
+#[derive(Debug, Error, PartialEq, Eq)]
+pub enum GroupHistoryError {
+    /// Bad num_txs size
+    #[error("Inconsistent DB: Bad num_txs size: {0:?}")]
+    BadNumTxsSize(Vec<u8>),
+}
+
+struct FetchedNumTxs<'tx, G: Group> {
+    members_num_txs: Vec<NumTxs>,
+    grouped_txs: BTreeMap<G::Member<'tx>, Vec<TxNum>>,
+    ser_members: Vec<G::MemberSer<'tx>>,
+}
+
+pub(crate) fn bytes_to_num_txs(bytes: &[u8]) -> Result<NumTxs> {
+    Ok(NumTxs::from_be_bytes(
+        bytes
+            .try_into()
+            .map_err(|_| BadNumTxsSize(bytes.to_vec()))?,
+    ))
+}
+
+fn partial_merge_concat_trim(
+    _key: &[u8],
+    _existing_value: Option<&[u8]>,
+    _operands: &rocksdb::MergeOperands,
+) -> Option<Vec<u8>> {
+    // We don't use partial merge
+    None
+}
+
+fn full_merge_concat_trim(
+    _key: &[u8],
+    existing_value: Option<&[u8]>,
+    operands: &rocksdb::MergeOperands,
+) -> Option<Vec<u8>> {
+    let mut bytes = existing_value.unwrap_or(&[]).to_vec();
+    if operands.iter().all(|operand| operand[0] == CONCAT) {
+        bytes.reserve_exact(
+            operands.iter().map(|operand| operand.len() - 1).sum(),
+        );
+    }
+    for operand in operands {
+        if operand[0] == CONCAT {
+            bytes.extend_from_slice(&operand[1..]);
+        } else if operand[0] == TRIM {
+            let trim_len =
+                NumTxs::from_be_bytes(operand[1..5].try_into().unwrap());
+            bytes.drain(bytes.len() - trim_len as usize..);
+        } else {
+            panic!(
+                "ERROR in merge, operand has unknown prefix {:02x}: {}",
+                operand[0],
+                hex::encode(operand),
+            );
+        }
+    }
+    Some(bytes)
+}
+
 impl<'a> GroupHistoryColumn<'a> {
     fn new(db: &'a Db, conf: &GroupHistoryConf) -> Result<Self> {
-        let cf = db.cf(conf.cf_name)?;
-        Ok(GroupHistoryColumn { db, cf })
+        let cf_page = db.cf(conf.cf_page_name)?;
+        let cf_num_txs = db.cf(conf.cf_num_txs_name)?;
+        Ok(GroupHistoryColumn {
+            db,
+            cf_page,
+            cf_num_txs,
+        })
     }
 
     fn get_page_txs(
@@ -97,37 +173,11 @@ impl<'a> GroupHistoryColumn<'a> {
         page_num: PageNum,
     ) -> Result<Option<Vec<TxNum>>> {
         let key = key_for_member_page(member_ser, page_num);
-        let value = match self.db.get(self.cf, &key)? {
+        let value = match self.db.get(self.cf_page, &key)? {
             Some(value) => value,
             None => return Ok(None),
         };
-        Ok(Some(db_deserialize::<Vec<TxNum>>(&value)?))
-    }
-
-    fn get_member_last_page(
-        &self,
-        member_ser: &[u8],
-    ) -> Result<Option<(u32, Vec<TxNum>)>> {
-        let last_key = key_for_member_page(member_ser, u32::MAX);
-        let mut iter =
-            self.db
-                .iterator(self.cf, &last_key, rocksdb::Direction::Reverse);
-        let (key, value) = match iter.next() {
-            Some(result) => {
-                let (key, value) = result?;
-                if &key[..key.len() - PAGE_SER_SIZE] == member_ser {
-                    (key, value)
-                } else {
-                    return Ok(None);
-                }
-            }
-            None => return Ok(None),
-        };
-        let numbers = db_deserialize::<Vec<u64>>(&value)?;
-        let page_num = PageNum::from_be_bytes(
-            key[key.len() - PAGE_SER_SIZE..].try_into().unwrap(),
-        );
-        Ok(Some((page_num, numbers)))
+        Ok(Some(db_deserialize_vec::<TxNum>(&value)?))
     }
 }
 
@@ -146,33 +196,41 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
         txs: &[IndexTx<'_>],
         mem_data: &mut GroupHistoryMemData,
     ) -> Result<()> {
-        let stats = &mut mem_data.stats;
         let t_start = Instant::now();
-        let grouped_txs = self.group_txs(txs);
-        stats.t_group += t_start.elapsed().as_secs_f64();
-        stats.n_total += grouped_txs.len();
-        for (member, mut new_tx_nums) in grouped_txs {
-            let member_ser: G::MemberSer<'_> = self.group.ser_member(&member);
-            let t_fetch = Instant::now();
-            let (mut page_num, mut last_page_tx_nums) = self
-                .col
-                .get_member_last_page(member_ser.as_ref())?
-                .unwrap_or((0, vec![]));
-            stats.t_fetch += t_fetch.elapsed().as_secs_f64();
-            while !new_tx_nums.is_empty() {
-                let space_left = self.conf.page_size - last_page_tx_nums.len();
+        let fetched = self.fetch_members_num_txs(txs, mem_data)?;
+        for ((mut new_tx_nums, member_ser), mut num_txs) in fetched
+            .grouped_txs
+            .into_values()
+            .zip(fetched.ser_members)
+            .zip(fetched.members_num_txs)
+        {
+            let mut page_num = num_txs / self.conf.page_size;
+            let mut last_page_num_txs = num_txs % self.conf.page_size;
+            loop {
+                let space_left =
+                    (self.conf.page_size - last_page_num_txs) as usize;
                 let num_new_txs = space_left.min(new_tx_nums.len());
-                last_page_tx_nums.extend(new_tx_nums.drain(..num_new_txs));
-                batch.put_cf(
-                    self.col.cf,
+                let merge_tx_nums =
+                    db_serialize_vec(new_tx_nums.drain(..num_new_txs))?;
+                batch.merge_cf(
+                    self.col.cf_page,
                     key_for_member_page(member_ser.as_ref(), page_num),
-                    db_serialize(&last_page_tx_nums)?,
+                    [[CONCAT].as_ref(), &merge_tx_nums].concat(),
                 );
-                last_page_tx_nums.clear();
+                num_txs += num_new_txs as NumTxs;
+                if new_tx_nums.is_empty() {
+                    batch.put_cf(
+                        self.col.cf_num_txs,
+                        member_ser.as_ref(),
+                        num_txs.to_be_bytes(),
+                    );
+                    break;
+                }
+                last_page_num_txs = 0;
                 page_num += 1;
             }
         }
-        stats.t_total += t_start.elapsed().as_secs_f64();
+        mem_data.stats.t_total += t_start.elapsed().as_secs_f64();
         Ok(())
     }
 
@@ -183,54 +241,110 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
         txs: &[IndexTx<'_>],
         mem_data: &mut GroupHistoryMemData,
     ) -> Result<()> {
-        let stats = &mut mem_data.stats;
         let t_start = Instant::now();
-        let grouped_txs = self.group_txs(txs);
-        stats.t_group += t_start.elapsed().as_secs_f64();
-        stats.n_total += grouped_txs.len();
-        for (member, removed_tx_nums) in grouped_txs {
-            let member_ser: G::MemberSer<'_> = self.group.ser_member(&member);
+        let fetched = self.fetch_members_num_txs(txs, mem_data)?;
+        for ((mut removed_tx_nums, member_ser), mut num_txs) in fetched
+            .grouped_txs
+            .into_values()
+            .zip(fetched.ser_members)
+            .zip(fetched.members_num_txs)
+        {
             let mut num_remaining_removes = removed_tx_nums.len();
-            let t_fetch = Instant::now();
-            let (mut page_num, mut last_page_tx_nums) = self
-                .col
-                .get_member_last_page(member_ser.as_ref())?
-                .unwrap_or((0, vec![]));
-            stats.t_fetch += t_fetch.elapsed().as_secs_f64();
-            while num_remaining_removes > 0 {
+            let mut page_num = num_txs / self.conf.page_size;
+            let mut last_page_num_txs = num_txs % self.conf.page_size;
+            loop {
                 let num_page_removes =
-                    last_page_tx_nums.len().min(num_remaining_removes);
-                last_page_tx_nums
-                    .drain(last_page_tx_nums.len() - num_page_removes..);
+                    (last_page_num_txs as usize).min(num_remaining_removes);
                 let key = key_for_member_page(member_ser.as_ref(), page_num);
-                if last_page_tx_nums.is_empty() {
-                    batch.delete_cf(self.col.cf, key)
+                if num_page_removes == last_page_num_txs as usize {
+                    batch.delete_cf(self.col.cf_page, key)
                 } else {
-                    batch.put_cf(
-                        self.col.cf,
+                    let merge_removed_txs = db_serialize_vec(
+                        removed_tx_nums
+                            .drain(removed_tx_nums.len() - num_page_removes..),
+                    )?;
+                    let num_trimmed_bytes = merge_removed_txs.len() as NumTxs;
+                    batch.merge_cf(
+                        self.col.cf_page,
                         key,
-                        db_serialize(&last_page_tx_nums)?,
+                        [[TRIM].as_ref(), &num_trimmed_bytes.to_be_bytes()]
+                            .concat(),
                     );
                 }
+                num_txs -= num_page_removes as NumTxs;
                 num_remaining_removes -= num_page_removes;
+                if num_remaining_removes == 0 {
+                    if num_txs > 0 {
+                        batch.put_cf(
+                            self.col.cf_num_txs,
+                            member_ser.as_ref(),
+                            num_txs.to_be_bytes(),
+                        );
+                    } else {
+                        batch.delete_cf(
+                            self.col.cf_num_txs,
+                            member_ser.as_ref(),
+                        );
+                    }
+                    break;
+                }
                 if page_num > 0 {
                     page_num -= 1;
-                    last_page_tx_nums = self
-                        .col
-                        .get_page_txs(member_ser.as_ref(), page_num)?
-                        .unwrap_or(vec![]);
+                    last_page_num_txs = self.conf.page_size;
                 }
             }
         }
-        stats.t_total += t_start.elapsed().as_secs_f64();
+        mem_data.stats.t_total += t_start.elapsed().as_secs_f64();
         Ok(())
+    }
+
+    fn fetch_members_num_txs<'tx>(
+        &self,
+        txs: &'tx [IndexTx<'tx>],
+        mem_data: &mut GroupHistoryMemData,
+    ) -> Result<FetchedNumTxs<'tx, G>> {
+        let GroupHistoryMemData { stats } = mem_data;
+        let t_group = Instant::now();
+        let grouped_txs = self.group_txs(txs);
+        stats.t_group += t_group.elapsed().as_secs_f64();
+
+        let t_ser_members = Instant::now();
+        let ser_members = grouped_txs
+            .keys()
+            .map(|key| self.group.ser_member(key))
+            .collect::<Vec<_>>();
+        stats.t_ser_members += t_ser_members.elapsed().as_secs_f64();
+
+        stats.n_total += grouped_txs.len();
+
+        let t_fetch = Instant::now();
+        let num_txs_keys =
+            ser_members.iter().map(|member_ser| member_ser.as_ref());
+        let fetched_num_txs =
+            self.col
+                .db
+                .multi_get(self.col.cf_num_txs, num_txs_keys, true)?;
+        let mut members_num_txs = Vec::with_capacity(fetched_num_txs.len());
+        for db_num_txs in fetched_num_txs {
+            members_num_txs.push(match db_num_txs {
+                Some(db_num_txs) => bytes_to_num_txs(&db_num_txs)?,
+                None => 0,
+            });
+        }
+        stats.t_fetch += t_fetch.elapsed().as_secs_f64();
+
+        Ok(FetchedNumTxs {
+            members_num_txs,
+            grouped_txs,
+            ser_members,
+        })
     }
 
     fn group_txs<'tx>(
         &self,
         txs: &'tx [IndexTx<'tx>],
-    ) -> HashMap<G::Member<'tx>, Vec<TxNum>> {
-        let mut group_tx_nums = HashMap::<G::Member<'tx>, Vec<TxNum>>::new();
+    ) -> BTreeMap<G::Member<'tx>, Vec<TxNum>> {
+        let mut group_tx_nums = BTreeMap::<G::Member<'tx>, Vec<TxNum>>::new();
         for index_tx in txs {
             let query = GroupQuery {
                 is_coinbase: index_tx.is_coinbase,
@@ -250,8 +364,20 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
     }
 
     pub(crate) fn add_cfs(columns: &mut Vec<rocksdb::ColumnFamilyDescriptor>) {
+        let conf = G::tx_history_conf();
+        let mut page_options = rocksdb::Options::default();
+        let merge_op_name = format!("{}::merge_op_concat", conf.cf_page_name);
+        page_options.set_merge_operator(
+            merge_op_name.as_str(),
+            full_merge_concat_trim,
+            partial_merge_concat_trim,
+        );
         columns.push(rocksdb::ColumnFamilyDescriptor::new(
-            G::tx_history_conf().cf_name,
+            conf.cf_page_name,
+            page_options,
+        ));
+        columns.push(rocksdb::ColumnFamilyDescriptor::new(
+            conf.cf_num_txs_name,
             rocksdb::Options::default(),
         ));
     }
@@ -291,21 +417,18 @@ impl<'a, G: Group> GroupHistoryReader<'a, G> {
         &self,
         member_ser: &[u8],
     ) -> Result<(usize, usize)> {
-        match self.col.get_member_last_page(member_ser)? {
-            Some((last_page_num, last_page_txs)) => {
-                let last_page_num = last_page_num as usize;
-                Ok((
-                    last_page_num + 1,
-                    self.conf.page_size * last_page_num + last_page_txs.len(),
-                ))
-            }
-            None => Ok((0, 0)),
-        }
+        let num_txs = match self.col.db.get(self.col.cf_num_txs, member_ser)? {
+            Some(bytes) => bytes_to_num_txs(&bytes)?,
+            None => return Ok((0, 0)),
+        };
+        let num_pages =
+            (num_txs + self.conf.page_size - 1) / self.conf.page_size;
+        Ok((num_pages as usize, num_txs as usize))
     }
 
     /// Size of pages the data is stored in.
     pub fn page_size(&self) -> usize {
-        self.conf.page_size
+        self.conf.page_size as usize
     }
 }
 

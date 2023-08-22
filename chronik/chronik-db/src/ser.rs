@@ -83,13 +83,47 @@ pub(crate) fn db_deserialize<'a, T: serde::Deserialize<'a>>(
     Ok(data)
 }
 
+pub(crate) fn db_serialize_vec<T: serde::Serialize>(
+    items: impl IntoIterator<Item = T>,
+) -> Result<Vec<u8>> {
+    let mut serialized = Vec::new();
+    for item in items {
+        serialized.extend(db_serialize(&item)?);
+    }
+    Ok(serialized)
+}
+
+pub(crate) fn db_deserialize_vec<'a, T: serde::Deserialize<'a>>(
+    bytes: &'a [u8],
+) -> Result<Vec<T>> {
+    let type_name = std::any::type_name::<T>();
+    let mut vec = Vec::new();
+    let mut remaining = bytes;
+    while !remaining.is_empty() {
+        let (item, leftover) =
+            postcard::take_from_bytes(remaining).map_err(|error| {
+                SerError::DeserializeError {
+                    type_name,
+                    error,
+                    bytes: remaining.to_vec(),
+                }
+            })?;
+        remaining = leftover;
+        vec.push(item);
+    }
+    Ok(vec)
+}
+
 #[cfg(test)]
 mod tests {
     use abc_rust_error::Result;
     use pretty_assertions::assert_eq;
     use serde::{Deserialize, Serialize};
 
-    use crate::ser::{db_deserialize, db_serialize, SerError};
+    use crate::ser::{
+        db_deserialize, db_deserialize_vec, db_serialize, db_serialize_vec,
+        SerError,
+    };
 
     #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
     struct SerTest {
@@ -118,6 +152,37 @@ mod tests {
             num: 0xdeadbeef,
         };
         assert_eq!(obj, db_deserialize::<SerTest>(&db_serialize(&obj)?)?);
+        Ok(())
+    }
+
+    #[test]
+    fn test_roundtrip_vec() -> Result<()> {
+        let cases = vec![
+            vec![],
+            vec![SerTest {
+                arr: [1, 2, 3, 4],
+                vec: vec![5, 6, 7, 8, 9],
+                num: 12345678,
+            }],
+            vec![
+                SerTest {
+                    arr: [1, 2, 3, 4],
+                    vec: vec![5, 6, 7, 8, 9],
+                    num: 12345678,
+                },
+                SerTest {
+                    arr: [0xff, 0, 0, 1],
+                    vec: vec![],
+                    num: 98765,
+                },
+            ],
+        ];
+        for objs in cases {
+            assert_eq!(
+                objs,
+                db_deserialize_vec::<SerTest>(&db_serialize_vec(&objs)?)?
+            );
+        }
         Ok(())
     }
 

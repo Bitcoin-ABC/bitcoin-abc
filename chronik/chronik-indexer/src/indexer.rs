@@ -36,7 +36,7 @@ use crate::{
     subs_group::TxMsgType,
 };
 
-const CURRENT_INDEXER_VERSION: SchemaVersion = 7;
+const CURRENT_INDEXER_VERSION: SchemaVersion = 8;
 
 /// Params for setting up a [`ChronikIndexer`] instance.
 #[derive(Clone)]

@@ -53,7 +53,8 @@ impl Group for ValueGroup {
 
     fn tx_history_conf() -> GroupHistoryConf {
         GroupHistoryConf {
-            cf_name: "value_history",
+            cf_page_name: "value_history",
+            cf_num_txs_name: "value_history_num_txs",
             page_size: 4,
         }
     }
