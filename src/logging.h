@@ -134,6 +134,8 @@ public:
     fs::path m_file_path;
     std::atomic<bool> m_reopen_file{false};
 
+    std::string GetLogPrefix(LogFlags category, Level level) const;
+
     ~Logger();
 
     /** Send a string to the log output */
@@ -210,7 +212,7 @@ public:
     std::string LogLevelsString() const;
 
     //! Returns the string representation of a log level.
-    std::string LogLevelToStr(BCLog::Level level) const;
+    static std::string LogLevelToStr(BCLog::Level level);
 
     /** Default for whether ShrinkDebugFile should be run */
     bool DefaultShrinkDebugFile() const;
