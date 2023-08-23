@@ -54,10 +54,11 @@ void AddLoggingArgs(ArgsManager &argsman) {
         strprintf(
             "Set the global or per-category severity level for logging "
             "categories enabled with the -debug configuration option or the "
-            "logging RPC: %s (default=%s); warning and error levels are always "
-            "logged. If <category>:<level> is supplied, the setting will "
-            "override the global one and may be specified multiple times to "
-            "set multiple category-specific levels. <category> can be: %s.",
+            "logging RPC. Possible values are %s (default=%s); The following "
+            "levels are always logged: error, warning, info. If "
+            "<category>:<level> is supplied, the setting will override the "
+            "global one and may be specified multiple times to set multiple "
+            "category-specific levels. <category> can be: %s.",
             LogInstance().LogLevelsString(),
             LogInstance().LogLevelToStr(BCLog::DEFAULT_LOG_LEVEL),
             LogInstance().LogCategoriesString()),
