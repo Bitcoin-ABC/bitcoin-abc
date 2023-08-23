@@ -60,16 +60,16 @@ FILE-NAME found in ./patches relative to the current file."
          ;; 2. Build cross-compiled kernel headers with XGCC-SANS-LIBC, derived
          ;; from BASE-KERNEL-HEADERS
          (xkernel (cross-kernel-headers target
-                                        base-kernel-headers
-                                        xgcc-sans-libc
-                                        xbinutils))
+                                        #:linux-headers base-kernel-headers
+                                        #:xgcc xgcc-sans-libc
+                                        #:xbinutils xbinutils))
          ;; 3. Build a cross-compiled libc with XGCC-SANS-LIBC and XKERNEL,
          ;; derived from BASE-LIBC
          (xlibc (cross-libc target
-                            base-libc
-                            xgcc-sans-libc
-                            xbinutils
-                            xkernel))
+                            #:libc base-libc
+                            #:xgcc xgcc-sans-libc
+                            #:xbinutils xbinutils
+                            #:xheaders xkernel))
          ;; 4. Build a cross-compiling gcc targeting XLIBC, derived from
          ;; BASE-GCC
          (xgcc (cross-gcc target
@@ -116,8 +116,7 @@ desirable for building Bitcoin ABC release binaries."
 (define (gcc-mingw-patches gcc)
   (package-with-extra-patches gcc
     (search-our-patches "gcc-remap-guix-store.patch"
-                        "vmov-alignment.patch"
-                        "gcc-broken-longjmp.patch")))
+                        "vmov-alignment.patch")))
 
 (define (make-mingw-pthreads-cross-toolchain target)
   "Create a cross-compilation toolchain package for TARGET"
@@ -145,11 +144,6 @@ desirable for building Bitcoin ABC release binaries."
 chain for " target " development."))
       (home-page (package-home-page pthreads-xgcc))
       (license (package-license pthreads-xgcc)))))
-
-(define (make-nsis-for-gcc-10 base-nsis)
-  (package-with-extra-patches base-nsis
-    (search-our-patches "nsis-gcc-10-memmove.patch"
-                        "nsis-disable-installer-reloc.patch")))
 
 ;; While LIEF is packaged in Guix, we maintain our own package,
 ;; to simplify building, and more easily apply updates.
@@ -246,7 +240,7 @@ thus should be able to compile on most platforms where these exist.")
 (define-public python-oscrypto
   (package
     (name "python-oscrypto")
-    (version "1.2.1")
+    (version "1.3.0")
     (source
      (origin
        (method git-fetch)
@@ -256,7 +250,7 @@ thus should be able to compile on most platforms where these exist.")
        (file-name (git-file-name name version))
        (sha256
         (base32
-         "1d4d8s4z340qhvb3g5m5v3436y3a71yc26wk4749q64m09kxqc3l"))
+         "1v5wkmzcyiqy39db8j2dvkdrv2nlsc48556h73x4dzjwd6kg4q0a"))
        (patches (search-our-patches "oscrypto-hard-code-openssl.patch"))))
     (build-system python-build-system)
     (native-search-paths
@@ -591,7 +585,7 @@ inspecting signatures in Mach-O binaries.")
         cmake-minimal
         ninja
         gnu-make
-        libtool-2.4.7
+        libtool
         autoconf-2.71
         automake
         pkg-config
@@ -600,7 +594,7 @@ inspecting signatures in Mach-O binaries.")
         gcc-toolchain-10
         (list gcc-toolchain-10 "static")
         ;; Scripting
-        python-minimal ;; (3.9)
+        python-minimal ;; (3.10)
         perl
         ;; Git
         git-minimal
@@ -611,7 +605,7 @@ inspecting signatures in Mach-O binaries.")
            ;; Windows
            (list zip
                  (make-mingw-pthreads-cross-toolchain "x86_64-w64-mingw32")
-                 (make-nsis-for-gcc-10 nsis-x86_64)
+                 nsis-x86_64
                  nss-certs
                  osslsigncode))
           ((string-contains target "-linux-")
