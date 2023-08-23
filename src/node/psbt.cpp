@@ -18,9 +18,7 @@ PSBTAnalysis AnalyzePSBT(PartiallySignedTransaction psbtx) {
     PSBTAnalysis result;
 
     bool calc_fee = true;
-    bool all_final = true;
-    bool only_missing_sigs = true;
-    bool only_missing_final = false;
+
     Amount in_amt{Amount::zero()};
 
     result.inputs.resize(psbtx.tx->vin.size());
@@ -28,6 +26,9 @@ PSBTAnalysis AnalyzePSBT(PartiallySignedTransaction psbtx) {
     for (size_t i = 0; i < psbtx.tx->vin.size(); ++i) {
         PSBTInput &input = psbtx.inputs[i];
         PSBTInputAnalysis &input_analysis = result.inputs[i];
+
+        // We set next role here and ratchet backwards as required
+        input_analysis.next = PSBTRole::EXTRACTOR;
 
         // Check for a UTXO
         CTxOut utxo;
@@ -55,7 +56,6 @@ PSBTAnalysis AnalyzePSBT(PartiallySignedTransaction psbtx) {
         // Check if it is final
         if (!utxo.IsNull() && !PSBTInputSigned(input)) {
             input_analysis.is_final = false;
-            all_final = false;
 
             // Figure out what is missing
             SignatureData outdata;
@@ -76,11 +76,9 @@ PSBTAnalysis AnalyzePSBT(PartiallySignedTransaction psbtx) {
                     !outdata.missing_sigs.empty()) {
                     input_analysis.next = PSBTRole::SIGNER;
                 } else {
-                    only_missing_sigs = false;
                     input_analysis.next = PSBTRole::UPDATER;
                 }
             } else {
-                only_missing_final = true;
                 input_analysis.next = PSBTRole::FINALIZER;
             }
         } else if (!utxo.IsNull()) {
@@ -88,10 +86,14 @@ PSBTAnalysis AnalyzePSBT(PartiallySignedTransaction psbtx) {
         }
     }
 
-    if (all_final) {
-        only_missing_sigs = false;
-        result.next = PSBTRole::EXTRACTOR;
+    // Calculate next role for PSBT by grabbing "minumum" PSBTInput next role
+    result.next = PSBTRole::EXTRACTOR;
+    for (size_t i = 0; i < psbtx.tx->vin.size(); ++i) {
+        PSBTInputAnalysis &input_analysis = result.inputs[i];
+        result.next = std::min(result.next, input_analysis.next);
     }
+    assert(result.next > PSBTRole::CREATOR);
+
     if (calc_fee) {
         // Get the output amount
         Amount out_amt =
@@ -143,18 +145,6 @@ PSBTAnalysis AnalyzePSBT(PartiallySignedTransaction psbtx) {
             CFeeRate feerate(fee, size);
             result.estimated_feerate = feerate;
         }
-
-        if (only_missing_sigs) {
-            result.next = PSBTRole::SIGNER;
-        } else if (only_missing_final) {
-            result.next = PSBTRole::FINALIZER;
-        } else if (all_final) {
-            result.next = PSBTRole::EXTRACTOR;
-        } else {
-            result.next = PSBTRole::UPDATER;
-        }
-    } else {
-        result.next = PSBTRole::UPDATER;
     }
 
     return result;

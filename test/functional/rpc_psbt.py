@@ -514,6 +514,12 @@ class PSBTTest(BitcoinTestFramework):
         assert_equal(analysis["next"], "creator")
         assert_equal(analysis["error"], "PSBT is not valid. Input 0 has invalid value")
 
+        self.log.info(
+            "PSBT with signed, but not finalized, inputs should have Finalizer as next"
+        )
+        analysis = self.nodes[0].analyzepsbt(finalizers[0]["finalize"])
+        assert_equal(analysis["next"], "finalizer")
+
         analysis = self.nodes[0].analyzepsbt(
             "cHNidP8BAHECAAAAAfA00BFgAm6tp86RowwH6BMImQNL5zXUcTT97XoLGz0BAAAAAAD/////AgCAgWrj0AcAFgAUKNw0x8HRctAgmvoevm4u1SbN7XL87QKVAAAAABYAFPck4gF7iL4NL4wtfRAKgQbghiTUAAAAAAABAB8A8gUqAQAAABYAFJUDtxf2PHo641HEOBOAIvFMNTr2AAAA"
         )
