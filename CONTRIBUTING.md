@@ -175,10 +175,10 @@ plus a nightly toolchain called "abc-nightly" for formatting:
 # Install latest stable Rust version
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s
 source ~/.cargo/env
-rustup install nightly-2023-02-17
-rustup component add rustfmt --toolchain nightly-2023-02-17
+rustup install nightly-2023-08-23
+rustup component add rustfmt --toolchain nightly-2023-08-23
 # Name the nightly toolchain "abc-nightly"
-rustup toolchain link abc-nightly "$(rustc +nightly-2023-02-17 --print sysroot)"
+rustup toolchain link abc-nightly "$(rustc +nightly-2023-08-23 --print sysroot)"
 ```
 
 Contributing to the web projects
