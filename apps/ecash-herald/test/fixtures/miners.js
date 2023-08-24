@@ -173,4 +173,12 @@ module.exports = [
             '76a914637e48a57a3f3d6184f3aaf68b9e2a77400f372c88ac',
         parsed: 'CoinMinerz.com',
     },
+    {
+        height: '806676',
+        coinbaseHex:
+            '03144f0c04b01ee76408810609082dc306007a657267706f6f6c2e636f6d00fabe6d6d27401f3db7d7af865afebab80d7cb5357e7df5aae8621e46c2aa7c90bbfcdbca0200000000000000',
+        payoutOutputScript:
+            '76a914b70bd84221a2c3f23b9aff76f453edb8d1c6ae0788ac',
+        parsed: 'zergpool.com',
+    },
 ];

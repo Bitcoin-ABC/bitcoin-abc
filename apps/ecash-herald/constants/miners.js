@@ -70,5 +70,12 @@ module.exports = {
                 coinbaseHexFragment: '436f696e4d696e65727a2e636f6d', // ascii CoinMinerz.com
             },
         ],
+        [
+            '76a914b70bd84221a2c3f23b9aff76f453edb8d1c6ae0788ac',
+            {
+                miner: 'zergpool.com',
+                coinbaseHexFragment: '7a657267706f6f6c2e636f6d', // ascii zergpool.com
+            },
+        ],
     ],
 };
