@@ -244,6 +244,9 @@ case "$HOST" in
         ;;
 esac
 
+# Make $HOST-specific native binaries from depends available in $PATH
+export PATH="${BASEPREFIX}/${HOST}/native/bin:${PATH}"
+
 # Prepare for making the source_package
 # Also gather useful data from cmake: project name
 mkdir -p source_package
@@ -338,8 +341,6 @@ case "$HOST" in
         ;;
 esac
 
-# Make $HOST-specific native binaries from depends available in $PATH
-export PATH="${BASEPREFIX}/${HOST}/native/bin:${PATH}"
 mkdir -p "$DISTSRC"
 (
     cd "$DISTSRC"

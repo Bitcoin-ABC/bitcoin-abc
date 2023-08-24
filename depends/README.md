@@ -44,7 +44,7 @@ No other options are needed, the paths are automatically configured.
 
 #### For macOS cross compilation
 
-    sudo apt-get install libbz2-dev libcap-dev libtinfo5 python3-setuptools xorriso
+    sudo apt-get install libbz2-dev libcap-dev python3-setuptools xorriso
 
 #### For Win64 cross compilation
 
