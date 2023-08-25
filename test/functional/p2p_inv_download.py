@@ -199,7 +199,6 @@ class InventoryDownloadTest(BitcoinTestFramework):
             p.send_and_ping(msg)
 
         self.log.info("Put the tx in node 0's mempool")
-        self.nodes[0].sendrawtransaction(tx)
 
         # node1 is an inbound peer for node0, so the tx relay is delayed by a
         # duration calculated using a poisson's law with a 5s average time.
@@ -209,6 +208,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
         with self.nodes[1].assert_debug_log(
             [f"got inv: tx {uint256_hex(txid)}  new peer=0"]
         ):
+            self.nodes[0].sendrawtransaction(tx)
             self.nodes[0].setmocktime(int(time.time()) + UNCONDITIONAL_RELAY_DELAY)
 
         # Since node 1 is connected outbound to an honest peer (node 0), it
