@@ -343,7 +343,8 @@ class TestNode:
         """Sets up an RPC connection to the bitcoind process. Returns False if unable to connect."""
         # Poll at a rate of four times per second
         poll_per_s = 4
-        for _ in range(poll_per_s * self.rpc_timeout):
+        # Double the range to allow for one retry in case of ETIMEDOUT
+        for _ in range(2 * poll_per_s * self.rpc_timeout):
             if self.process.poll() is not None:
                 raise FailedToStartError(
                     self._node_msg(
@@ -355,9 +356,7 @@ class TestNode:
                 rpc = get_rpc_proxy(
                     rpc_url(self.datadir, self.chain, self.host, self.rpc_port),
                     self.index,
-                    # Shorter timeout to allow for one retry in case of
-                    # ETIMEDOUT
-                    timeout=self.rpc_timeout // 2,
+                    timeout=self.rpc_timeout,
                     coveragedir=self.coverage_dir,
                 )
                 rpc.getblockcount()
