@@ -184,9 +184,9 @@ public:
 
 BOOST_AUTO_TEST_CASE(hashverifier_tests) {
     std::vector<uint8_t> data = ParseHex("4223");
-    CDataStream ss(data, SER_DISK, CLIENT_VERSION);
+    DataStream ss{data};
 
-    CHashVerifier<CDataStream> verifier(&ss);
+    HashVerifier verifier(ss);
 
     CDummyObject dummy;
     verifier >> dummy;

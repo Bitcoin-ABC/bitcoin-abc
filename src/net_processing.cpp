@@ -6820,7 +6820,7 @@ void PeerManagerImpl::ProcessMessage(
         // As long as QUIC is not implemented, we need to sign response and
         // verify response's signatures in order to avoid any manipulation of
         // messages at the transport level.
-        CHashVerifier<CDataStream> verifier(&vRecv);
+        HashVerifier verifier(vRecv);
         avalanche::Response response;
         verifier >> response;
 
