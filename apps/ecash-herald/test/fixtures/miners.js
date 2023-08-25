@@ -181,4 +181,12 @@ module.exports = [
             '76a914b70bd84221a2c3f23b9aff76f453edb8d1c6ae0788ac',
         parsed: 'zergpool.com',
     },
+    {
+        height: '806713',
+        coinbaseHex:
+            '03394f0c04529ee76408f51eecb651d049040c736f6c6f706f6f6c2e6f7267',
+        payoutOutputScript:
+            '76a914f4728f398bb962656803346fb4ac45d776041a2e88ac',
+        parsed: 'solopool.org',
+    },
 ];
