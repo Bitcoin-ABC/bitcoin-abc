@@ -7,8 +7,12 @@
 #include <avalanche/avalanche.h>
 #include <avalanche/delegation.h>
 #include <avalanche/validation.h>
+#include <cashaddrenc.h>
+#include <logging.h>
 #include <random.h>
 #include <scheduler.h>
+#include <util/fastrange.h>
+#include <util/system.h>
 #include <validation.h> // For ChainstateManager
 
 #include <algorithm>
@@ -832,6 +836,113 @@ void PeerManager::addUnbroadcastProof(const ProofId &proofid) {
 
 void PeerManager::removeUnbroadcastProof(const ProofId &proofid) {
     m_unbroadcast_proofids.erase(proofid);
+}
+
+bool PeerManager::selectPayoutScriptPubKey(
+    const CBlockIndex *pprev, CScript &winner,
+    std::vector<CScript> &acceptableWinners) {
+    if (!pprev) {
+        return false;
+    }
+
+    // Ensure there is no fragmentation before selecting the proof.
+    compact();
+
+    // Don't select proofs that have not been known for long enough, i.e. at
+    // least since the last block time and and twice the dangling proof cleanup
+    // timeout, so we're sure to not account for proofs more recent than the
+    // previous block or lacking node connected.
+    int64_t maxRegistrationTime =
+        std::min(pprev->GetBlockTime(),
+                 GetTime() - std::chrono::duration_cast<std::chrono::seconds>(
+                                 2 * Peer::DANGLING_TIMEOUT)
+                                 .count());
+
+    std::vector<Slot> stakingRewardsSlots;
+    stakingRewardsSlots.reserve(peers.size());
+
+    uint64_t maxScore = 0;
+
+    // Loop over the shareable proofs radix tree so we get sorted proofs by
+    // proofid.
+    shareableProofs.forEachLeaf([&](const ProofRef &proof) {
+        if (!proof) {
+            // Should never happen, continue
+            return true;
+        }
+
+        const ProofId &proofid = proof->getId();
+
+        auto &peersByProofId = peers.get<by_proofid>();
+        auto it = peersByProofId.find(proofid);
+        if (it == peersByProofId.end()) {
+            // Should never happen, continue
+            return true;
+        }
+
+        maxScore = std::max(maxScore, uint64_t(it->getScore()));
+
+        if (!it->hasFinalized ||
+            it->registration_time.count() >= maxRegistrationTime) {
+            return true;
+        }
+
+        const uint64_t start = stakingRewardsSlots.empty()
+                                   ? 0
+                                   : stakingRewardsSlots.back().getStop();
+        stakingRewardsSlots.emplace_back(start, it->getScore(), it->peerid);
+
+        return true;
+    });
+
+    if (stakingRewardsSlots.empty()) {
+        return false;
+    }
+
+    const uint64_t stakingRewardsSlotsMax =
+        stakingRewardsSlots.back().getStop();
+    // The selected slot is computed using a linear reduction from the 64 bits
+    // LSB of the block hash to the slots size. That leaves plenty of room for
+    // the difficulty to rise before this becomes a problem.
+    // Since there is at least 1 slot and no proof is allowed to have zero as a
+    // score, stakingRewardsSlotsMax is guaranteed to be > 0. Since the interval
+    // for the slot is [), we should subtract 1 to get the max possible value.
+    const uint64_t slot = FastRange64(pprev->GetBlockHash().GetUint64(0),
+                                      stakingRewardsSlotsMax - 1);
+    PeerId winnerId =
+        selectPeerImpl(stakingRewardsSlots, slot, stakingRewardsSlotsMax);
+    assert(winnerId != NO_PEER);
+
+    auto it = peers.find(winnerId);
+    assert(it != peers.end());
+    winner = it->proof->getPayoutScript();
+
+    // Compute some slack for the range based selection.
+    int64_t maxSlack = gArgs.GetIntArg("-stakingrewardmaxslackpercent", 25);
+    maxScore = std::min(maxScore, stakingRewardsSlotsMax * maxSlack / 100);
+
+    // And use it to compute a range of acceptable winners, in the event we are
+    // getting disconnected from some peers.
+    const uint64_t minValue =
+        std::max<int64_t>(0, int64_t(slot) - maxScore / 2);
+    const uint64_t maxValue =
+        std::min(stakingRewardsSlotsMax, slot + maxScore / 2);
+
+    // Range selection of the acceptable winners
+    acceptableWinners.clear();
+    for (const Slot &currentSlot : stakingRewardsSlots) {
+        if (currentSlot.getStart() <= maxValue &&
+            currentSlot.getStop() >= minValue) {
+            auto pit = peers.find(currentSlot.getPeerId());
+            assert(pit != peers.end());
+            acceptableWinners.push_back(pit->proof->getPayoutScript());
+        }
+    }
+    // The previously selected winner is guaranteed to be in the range selection
+    // as well.
+    assert(acceptableWinners.size() >= 1);
+
+    return true;
 }
 
 } // namespace avalanche

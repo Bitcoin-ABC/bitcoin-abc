@@ -45,6 +45,7 @@ SET_FALSE_POSITIVE_UNKNOWNS = {
 SET_FALSE_POSITIVE_UNDOCUMENTED = {
     "-help",
     "-h",
+    "-automaticunparking",
     "-avalanchepreconsensus",
     "-chronikallowpause",
     "-dbcrashratio",
@@ -52,7 +53,7 @@ SET_FALSE_POSITIVE_UNDOCUMENTED = {
     "-forcecompactdb",
     "-maxaddrtosend",
     "-parkdeepreorg",
-    "-automaticunparking",
+    "-stakingrewardmaxslackpercent",
     # Removed arguments that now just print a helpful error message
     "-zapwallettxes",
     "-replayprotectionactivationtime",

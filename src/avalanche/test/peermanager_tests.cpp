@@ -8,8 +8,12 @@
 #include <avalanche/proofcomparator.h>
 #include <avalanche/statistics.h>
 #include <avalanche/test/util.h>
+#include <cashaddrenc.h>
 #include <config.h>
+#include <core_io.h>
+#include <key_io.h>
 #include <script/standard.h>
+#include <uint256.h>
 #include <util/time.h>
 #include <util/translation.h>
 #include <validation.h>
@@ -17,6 +21,8 @@
 #include <test/util/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
+
+#include <limits>
 
 using namespace avalanche;
 
@@ -92,9 +98,9 @@ namespace {
                const std::vector<std::tuple<COutPoint, Amount>> &outpoints,
                const CKey &master = CKey::MakeCompressedKey(),
                int64_t sequence = 1, uint32_t height = 100,
-               bool is_coinbase = false, int64_t expirationTime = 0) {
-        ProofBuilder pb(sequence, expirationTime, master,
-                        UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
+               bool is_coinbase = false, int64_t expirationTime = 0,
+               const CScript &payoutScript = UNSPENDABLE_ECREG_PAYOUT_SCRIPT) {
+        ProofBuilder pb(sequence, expirationTime, master, payoutScript);
         for (const auto &[outpoint, amount] : outpoints) {
             BOOST_CHECK(pb.addUTXO(outpoint, amount, height, is_coinbase, key));
         }
@@ -2228,6 +2234,185 @@ BOOST_AUTO_TEST_CASE(peer_availability_score) {
             BOOST_CHECK_LE(currentScore, 0.);
             previousScore = currentScore;
         }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(select_payout_scriptpubkey) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
+
+    auto buildProofWithAmountAndPayout = [&](Amount amount,
+                                             const CScript &payoutScript) {
+        const CKey key = CKey::MakeCompressedKey();
+        COutPoint utxo = createUtxo(active_chainstate, key, amount);
+        return buildProof(key, {{std::move(utxo), amount}},
+                          /*master=*/CKey::MakeCompressedKey(), /*sequence=*/1,
+                          /*height=*/100, /*is_coinbase=*/false,
+                          /*expirationTime=*/0, payoutScript);
+    };
+
+    CScript winner;
+    std::vector<CScript> acceptableWinners;
+    // Null pprev
+    BOOST_CHECK(
+        !pm.selectPayoutScriptPubKey(nullptr, winner, acceptableWinners));
+
+    CBlockIndex prevBlock;
+
+    auto now = GetTime<std::chrono::seconds>();
+    SetMockTime(now);
+    prevBlock.nTime = now.count();
+
+    BlockHash prevHash{};
+    prevBlock.phashBlock = &prevHash;
+    // No slot
+    BOOST_CHECK(
+        !pm.selectPayoutScriptPubKey(&prevBlock, winner, acceptableWinners));
+
+    // Let's build a list of payout addresses, and register a proofs for each
+    // address using the same amount
+    size_t numProofs = 10;
+    std::vector<ProofRef> proofs;
+    proofs.reserve(numProofs);
+    for (size_t i = 0; i < numProofs; i++) {
+        const CKey key = CKey::MakeCompressedKey();
+        CScript payoutScript = GetScriptForRawPubKey(key.GetPubKey());
+
+        auto proof =
+            buildProofWithAmountAndPayout(PROOF_DUST_THRESHOLD, payoutScript);
+        PeerId peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
+        BOOST_CHECK_NE(peerid, NO_PEER);
+
+        // Finalize the proof
+        BOOST_CHECK(pm.setFinalized(peerid));
+
+        proofs.emplace_back(std::move(proof));
+    }
+
+    // The score is the same for each of the proofs
+    const uint32_t proofScore = proofs[0]->getScore();
+
+    // Sort the proofs by proofid
+    std::sort(proofs.begin(), proofs.end(),
+              [](const ProofRef &lhs, const ProofRef &rhs) {
+                  return lhs->getId() < rhs->getId();
+              });
+
+    // Make sure the proofs have been registered before the prev block was found
+    // and before 2x the peer replacement cooldown.
+    now += 30min + 1s;
+    SetMockTime(now);
+    prevBlock.nTime = now.count();
+
+    auto checkWinner = [&](const uint64_t seed, const CScript &expectedWinner) {
+        BlockHash hash = BlockHash(ArithToUint256({seed}));
+        prevBlock.phashBlock = &hash;
+        BOOST_CHECK(
+            pm.selectPayoutScriptPubKey(&prevBlock, winner, acceptableWinners));
+        const std::string winnerString = FormatScript(winner);
+        BOOST_CHECK_EQUAL(winnerString, FormatScript(expectedWinner));
+
+        BOOST_CHECK_GE(acceptableWinners.size(), 1);
+        // Because all the proofs have the same score, it can only have a single
+        // neighbour on each side picked as acceptable.
+        BOOST_CHECK_LE(acceptableWinners.size(), 3);
+
+        // The one winner should obviously be part of the acceptable winners
+        bool found = false;
+        for (const CScript &script : acceptableWinners) {
+            if (FormatScript(script) == winnerString) {
+                found = true;
+                break;
+            }
+        }
+        BOOST_CHECK(found);
+
+        // The acceptable winners should be contiguous. Find our winner position
+        // when sorted by proofid and check the acceptable winners are all in
+        // [-1, +1] index range.
+        size_t winnerIndex = 0;
+        for (; winnerIndex < numProofs; winnerIndex++) {
+            if (FormatScript(proofs[winnerIndex]->getPayoutScript()) ==
+                winnerString) {
+                break;
+            }
+        }
+        for (const CScript &script : acceptableWinners) {
+            const std::string scriptString = FormatScript(script);
+            if (winnerIndex > 0 &&
+                scriptString ==
+                    FormatScript(proofs[winnerIndex - 1]->getPayoutScript())) {
+                continue;
+            }
+            if (scriptString == winnerString) {
+                continue;
+            }
+            if (winnerIndex < (numProofs - 1) &&
+                scriptString ==
+                    FormatScript(proofs[winnerIndex + 1]->getPayoutScript())) {
+                continue;
+            }
+
+            // We got a discreapeancy!
+            BOOST_CHECK_MESSAGE(false,
+                                "The acceptable winners are not contiguous !");
+        }
+    };
+
+    // Slot is 0, first proof should be picked
+    checkWinner(std::numeric_limits<uint64_t>::min(),
+                proofs[0]->getPayoutScript());
+
+    // Slot is max uint64, last proof should be picked
+    checkWinner(std::numeric_limits<uint64_t>::max(),
+                proofs[numProofs - 1]->getPayoutScript());
+
+    // Step from one proof to another
+    const uint64_t step = std::numeric_limits<uint64_t>::max() / numProofs;
+    const uint64_t epsilon =
+        std::numeric_limits<uint64_t>::max() / (numProofs * proofScore);
+    for (uint64_t i = 1; i < numProofs; i++) {
+        checkWinner(i * step - epsilon, proofs[i - 1]->getPayoutScript());
+        checkWinner(i * step, proofs[i - 1]->getPayoutScript());
+        checkWinner(i * step + epsilon, proofs[i]->getPayoutScript());
+    }
+
+    // Remove all proofs
+    for (auto &proof : proofs) {
+        BOOST_CHECK(pm.rejectProof(
+            proof->getId(), avalanche::PeerManager::RejectionMode::INVALIDATE));
+    }
+    // No more winner
+    BOOST_CHECK(
+        !pm.selectPayoutScriptPubKey(&prevBlock, winner, acceptableWinners));
+
+    {
+        // Add back a single proof
+        const CKey key = CKey::MakeCompressedKey();
+        CScript payoutScript = GetScriptForRawPubKey(key.GetPubKey());
+
+        auto proof =
+            buildProofWithAmountAndPayout(PROOF_DUST_THRESHOLD, payoutScript);
+        PeerId peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
+        BOOST_CHECK_NE(peerid, NO_PEER);
+
+        // The single proof should always be selected, but:
+        // 1. The proof is not finalized, and has been registered after the last
+        // block was mined.
+        BOOST_CHECK(!pm.selectPayoutScriptPubKey(&prevBlock, winner,
+                                                 acceptableWinners));
+
+        // 2. The proof has has been registered after the last block was mined.
+        BOOST_CHECK(pm.setFinalized(peerid));
+        BOOST_CHECK(!pm.selectPayoutScriptPubKey(&prevBlock, winner,
+                                                 acceptableWinners));
+
+        // 3. Now the proof has it all
+        now += 30min + 1s;
+        SetMockTime(now);
+        prevBlock.nTime = now.count();
+        checkWinner(0, payoutScript);
     }
 }
 
