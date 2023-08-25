@@ -675,6 +675,14 @@ builds:
     templates:
       - js-mocha
 
+  ecash-coinselect:
+    runOnDiffRegex:
+      - modules/ecash-coinselect/
+    env:
+      JS_PROJECT_ROOT: modules/ecash-coinselect
+    templates:
+      - js-mocha
+
   electrum-tests:
     runOnDiffRegex:
       - electrum/
