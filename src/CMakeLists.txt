@@ -263,6 +263,9 @@ add_compiler_flags(
 	-Wcast-align
 	-Wunused-parameter
 	-Wmissing-braces
+	-Wno-implicit-fallthrough
+	-Wno-psabi
+	-Wno-unused-parameter
 	-Wthread-safety
 	-Wrange-loop-analysis
 	-Wredundant-decls
@@ -277,6 +280,7 @@ add_compiler_flags(
 add_compiler_flag_group(-Wformat -Wformat-security)
 add_cxx_compiler_flags(
 	-Wredundant-move
+	-Wsuggest-override
 	-Woverloaded-virtual
 )
 
@@ -287,17 +291,6 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	add_compiler_flags(
 		-Wshadow
 		-Wshadow-field
-	)
-endif()
-
-option(EXTRA_WARNINGS "Enable extra warnings" OFF)
-if(EXTRA_WARNINGS)
-	add_cxx_compiler_flags(-Wsuggest-override)
-else()
-	add_compiler_flags(
-		-Wno-unused-parameter
-		-Wno-implicit-fallthrough
-		-Wno-psabi
 	)
 endif()
 

@@ -81,19 +81,10 @@ struct Announcement {
     /** Whether the request is preferred. */
     const bool m_preferred : 1;
 
-    /**
-     * What state this announcement is in.
-     * This is a uint8_t instead of a State to silence a GCC warning in versions
-     * prior to 8.4 and 9.3. See
-     * https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61414
-     */
-    uint8_t m_state : 3;
-
-    /** Convert m_state to a State enum. */
-    State GetState() const { return static_cast<State>(m_state); }
-
-    /** Convert a State enum to a uint8_t and store it in m_state. */
-    void SetState(State state) { m_state = static_cast<uint8_t>(state); }
+    /** What state this announcement is in. */
+    State m_state : 3 {State::CANDIDATE_DELAYED};
+    State GetState() const { return m_state; }
+    void SetState(State state) { m_state = state; }
 
     /**
      * Whether this announcement is selected. There can be at most 1 selected
@@ -126,8 +117,7 @@ struct Announcement {
     Announcement(const uint256 &invid, NodeId peer, bool preferred,
                  std::chrono::microseconds reqtime, SequenceNumber sequence)
         : m_invid(invid), m_time(reqtime), m_peer(peer), m_sequence(sequence),
-          m_preferred(preferred),
-          m_state(static_cast<uint8_t>(State::CANDIDATE_DELAYED)) {}
+          m_preferred(preferred) {}
 };
 
 //! Type alias for priorities.
@@ -366,7 +356,7 @@ class InvRequestTrackerImpl : public InvRequestTrackerImplInterface {
     std::unordered_map<NodeId, PeerInfo> m_peerinfo;
 
 public:
-    void SanityCheck() const {
+    void SanityCheck() const override {
         // Recompute m_peerdata from m_index. This verifies the data in it as it
         // should just be caching statistics on m_index. It also verifies the
         // invariant that no PeerInfo announcements with m_total==0 exist.
@@ -408,7 +398,8 @@ public:
         }
     }
 
-    void PostGetRequestableSanityCheck(std::chrono::microseconds now) const {
+    void PostGetRequestableSanityCheck(
+        std::chrono::microseconds now) const override {
         for (const Announcement &ann : m_index) {
             if (ann.IsWaiting()) {
                 // REQUESTED and CANDIDATE_DELAYED must have a time in the
@@ -635,7 +626,7 @@ public:
 
     ~InvRequestTrackerImpl() = default;
 
-    void DisconnectedPeer(NodeId peer) {
+    void DisconnectedPeer(NodeId peer) override {
         auto &index = m_index.get<ByPeer>();
         auto it =
             index.lower_bound(ByPeerView{peer, false, uint256(uint256::ZERO)});
@@ -677,7 +668,7 @@ public:
         }
     }
 
-    void ForgetInvId(const uint256 &invid) {
+    void ForgetInvId(const uint256 &invid) override {
         auto it = m_index.get<ByInvId>().lower_bound(
             ByInvIdView{invid, State::CANDIDATE_DELAYED, 0});
         while (it != m_index.get<ByInvId>().end() && it->m_invid == invid) {
@@ -686,7 +677,7 @@ public:
     }
 
     void ReceivedInv(NodeId peer, const uint256 &invid, bool preferred,
-                     std::chrono::microseconds reqtime) {
+                     std::chrono::microseconds reqtime) override {
         // Bail out if we already have a CANDIDATE_BEST announcement for this
         // (invid, peer) combination. The case where there is a
         // non-CANDIDATE_BEST announcement already will be caught by the
@@ -712,10 +703,10 @@ public:
     }
 
     //! Find the InvIds to request now from peer.
-    std::vector<uint256> GetRequestable(NodeId peer,
-                                        std::chrono::microseconds now,
-                                        ClearExpiredFun clearExpired,
-                                        EmplaceExpiredFun emplaceExpired) {
+    std::vector<uint256>
+    GetRequestable(NodeId peer, std::chrono::microseconds now,
+                   ClearExpiredFun clearExpired,
+                   EmplaceExpiredFun emplaceExpired) override {
         // Move time.
         SetTimePoint(now, clearExpired, emplaceExpired);
 
@@ -746,7 +737,7 @@ public:
     }
 
     void RequestedData(NodeId peer, const uint256 &invid,
-                       std::chrono::microseconds expiry) {
+                       std::chrono::microseconds expiry) override {
         auto it = m_index.get<ByPeer>().find(ByPeerView{peer, true, invid});
         if (it == m_index.get<ByPeer>().end()) {
             // There is no CANDIDATE_BEST announcement, look for a _READY or
@@ -808,7 +799,7 @@ public:
         });
     }
 
-    void ReceivedResponse(NodeId peer, const uint256 &invid) {
+    void ReceivedResponse(NodeId peer, const uint256 &invid) override {
         // We need to search the ByPeer index for both (peer, false, invid) and
         // (peer, true, invid).
         auto it = m_index.get<ByPeer>().find(ByPeerView{peer, false, invid});
@@ -820,7 +811,7 @@ public:
         }
     }
 
-    size_t CountInFlight(NodeId peer) const {
+    size_t CountInFlight(NodeId peer) const override {
         auto it = m_peerinfo.find(peer);
         if (it != m_peerinfo.end()) {
             return it->second.m_requested;
@@ -828,7 +819,7 @@ public:
         return 0;
     }
 
-    size_t CountCandidates(NodeId peer) const {
+    size_t CountCandidates(NodeId peer) const override {
         auto it = m_peerinfo.find(peer);
         if (it != m_peerinfo.end()) {
             return it->second.m_total - it->second.m_requested -
@@ -837,7 +828,7 @@ public:
         return 0;
     }
 
-    size_t Count(NodeId peer) const {
+    size_t Count(NodeId peer) const override {
         auto it = m_peerinfo.find(peer);
         if (it != m_peerinfo.end()) {
             return it->second.m_total;
@@ -847,10 +838,10 @@ public:
 
     //! Count how many announcements are being tracked in total across all peers
     //! and transactions.
-    size_t Size() const { return m_index.size(); }
+    size_t Size() const override { return m_index.size(); }
 
     uint64_t ComputePriority(const uint256 &invid, NodeId peer,
-                             bool preferred) const {
+                             bool preferred) const override {
         // Return Priority as a uint64_t as Priority is internal.
         return uint64_t{m_computer(invid, peer, preferred)};
     }
