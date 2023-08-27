@@ -66,12 +66,12 @@ protected:
 private:
     std::optional<QDateTime> dateFrom;
     std::optional<QDateTime> dateTo;
-    QString m_search_string;
-    quint32 typeFilter;
-    WatchOnlyFilter watchOnlyFilter;
-    Amount minAmount;
-    int limitRows;
-    bool showInactive;
+    QString m_search_string{};
+    quint32 typeFilter{ALL_TYPES};
+    WatchOnlyFilter watchOnlyFilter{WatchOnlyFilter_All};
+    Amount minAmount{Amount::zero()};
+    int limitRows{-1};
+    bool showInactive{true};
 };
 
 #endif // BITCOIN_QT_TRANSACTIONFILTERPROXY_H

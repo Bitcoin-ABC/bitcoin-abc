@@ -68,9 +68,9 @@ namespace {
 
 struct CoinEntry {
     COutPoint *outpoint;
-    uint8_t key;
+    uint8_t key{DB_COIN};
     explicit CoinEntry(const COutPoint *ptr)
-        : outpoint(const_cast<COutPoint *>(ptr)), key(DB_COIN) {}
+        : outpoint(const_cast<COutPoint *>(ptr)) {}
 
     SERIALIZE_METHODS(CoinEntry, obj) {
         TxId id = obj.outpoint->GetTxId();

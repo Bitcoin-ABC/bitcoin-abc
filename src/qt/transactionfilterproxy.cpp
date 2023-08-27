@@ -12,9 +12,7 @@
 #include <optional>
 
 TransactionFilterProxy::TransactionFilterProxy(QObject *parent)
-    : QSortFilterProxyModel(parent), m_search_string(), typeFilter(ALL_TYPES),
-      watchOnlyFilter(WatchOnlyFilter_All), minAmount(), limitRows(-1),
-      showInactive(true) {}
+    : QSortFilterProxyModel(parent) {}
 
 bool TransactionFilterProxy::filterAcceptsRow(
     int sourceRow, const QModelIndex &sourceParent) const {

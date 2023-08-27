@@ -434,7 +434,7 @@ private:
     std::string service_id;
     bool reconnect{true};
     struct event *reconnect_ev;
-    float reconnect_timeout;
+    float reconnect_timeout{RECONNECT_TIMEOUT_START};
     CService service;
     const CService m_target;
     /** Cookie for SAFECOOKIE auth */
@@ -465,7 +465,7 @@ TorController::TorController(struct event_base *_base,
                              const std::string &tor_control_center,
                              const CService &target)
     : base(_base), m_tor_control_center(tor_control_center), conn(base),
-      reconnect_timeout(RECONNECT_TIMEOUT_START), m_target(target) {
+      m_target(target) {
     reconnect_ev = event_new(base, -1, 0, reconnect_cb, this);
     if (!reconnect_ev) {
         LogPrintf(

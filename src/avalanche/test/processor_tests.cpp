@@ -1550,7 +1550,7 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
     setArg("-avaminquorumconnectedstakeratio", "0.5");
 
     // Create a new processor with our given quorum parameters
-    const auto currency = Currency::get();
+    const auto &currency = Currency::get();
     uint32_t minScore = Proof::amountToScore(minStake * currency.baseunit);
 
     Chainstate &active_chainstate = Assert(m_node.chainman)->ActiveChainstate();
