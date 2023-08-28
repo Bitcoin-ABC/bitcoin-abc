@@ -74,12 +74,6 @@ WHITELISTED_TESTNET_PREFIXES: List[str] = [
     CASHADDR_TESTNET_PREFIX_BCH,
 ]
 
-DUST_THRESHOLD: int = 546
-"""
-Change < dust threshold is added to the tx fee.
-The unit is satoshis.
-"""
-
 PROOF_DUST_THRESHOLD: int = XEC.unit_to_satoshis(Decimal("100_000_000.00"))
 """Lowest amount in satoshis that can be used as stake in a proof."""
 

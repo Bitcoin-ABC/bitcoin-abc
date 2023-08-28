@@ -41,13 +41,13 @@ from typing import Dict, Iterable, Optional, Tuple
 import socks
 
 from . import bitcoin, blockchain, networks, util, version
-from .constants import DUST_THRESHOLD
 from .i18n import _
 from .interface import Connection, Interface
 from .monotonic import Monotonic
 from .printerror import print_error
 from .simple_config import SimpleConfig
 from .tor import TorController, check_proxy_bypass_tor_control
+from .transaction import DUST_THRESHOLD
 from .utils import Event
 
 DEFAULT_AUTO_CONNECT = True

@@ -67,7 +67,7 @@ from . import (
     slp,
 )
 from .address import Address, PublicKey, Script
-from .constants import DUST_THRESHOLD, XEC
+from .constants import XEC
 from .contacts import Contacts
 from .i18n import _, ngettext
 from .keystore import (
@@ -91,7 +91,7 @@ from .plugins import plugin_loaders, run_hook
 from .printerror import PrintError
 from .storage import STO_EV_PLAINTEXT, STO_EV_USER_PW, STO_EV_XPUB_PW, WalletStorage
 from .synchronizer import Synchronizer
-from .transaction import InputValueMissing, Transaction, TxOutput
+from .transaction import DUST_THRESHOLD, InputValueMissing, Transaction, TxOutput
 from .util import (
     ExcessiveFee,
     InvalidPassword,

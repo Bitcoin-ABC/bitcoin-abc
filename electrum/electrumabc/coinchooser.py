@@ -28,9 +28,8 @@ from math import floor, log10
 from typing import List
 
 from .bitcoin import CASH, TYPE_ADDRESS, sha256
-from .constants import DUST_THRESHOLD
 from .printerror import PrintError
-from .transaction import Transaction, TxOutput
+from .transaction import DUST_THRESHOLD, Transaction, TxOutput
 from .util import NotEnoughFunds
 
 

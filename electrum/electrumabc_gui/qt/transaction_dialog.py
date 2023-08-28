@@ -37,11 +37,10 @@ from PyQt5.QtGui import QBrush, QCursor, QFont, QIcon, QKeySequence, QTextCharFo
 from electrumabc import web
 from electrumabc.address import Address, PublicKey, ScriptOutput
 from electrumabc.bitcoin import base_encode
-from electrumabc.constants import DUST_THRESHOLD
 from electrumabc.i18n import _, ngettext
 from electrumabc.plugins import run_hook
 from electrumabc.printerror import PrintError
-from electrumabc.transaction import InputValueMissing, Transaction
+from electrumabc.transaction import DUST_THRESHOLD, InputValueMissing, Transaction
 from electrumabc.util import Weak, bfh
 
 from .util import (

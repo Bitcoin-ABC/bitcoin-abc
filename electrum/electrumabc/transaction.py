@@ -56,6 +56,12 @@ from .keystore import xpubkey_to_address, xpubkey_to_pubkey
 from .printerror import print_error
 from .util import bfh, bh2u, profiler, to_bytes
 
+DUST_THRESHOLD: int = 546
+"""
+Change < dust threshold is added to the tx fee.
+The unit is satoshis.
+"""
+
 # Note: The deserialization code originally comes from ABE.
 
 
