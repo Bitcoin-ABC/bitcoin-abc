@@ -25,8 +25,10 @@
 # SOFTWARE.
 from collections import defaultdict, namedtuple
 from math import floor, log10
+from typing import List
 
 from .bitcoin import CASH, TYPE_ADDRESS, sha256
+from .constants import DUST_THRESHOLD
 from .printerror import PrintError
 from .transaction import Transaction, TxOutput
 from .util import NotEnoughFunds
@@ -110,10 +112,14 @@ class CoinChooserBase(PrintError):
 
         return penalty
 
-    def change_amounts(self, tx: Transaction, count, fee_estimator, dust_threshold):
+    def change_amounts(self, tx: Transaction, count, fee_estimator) -> List[int]:
+        """Return a list of at most `count` change amounts.
+        This method attempts to break up the change amount into multiple sub-amounts
+        that are not significantly larger than the largest non-change output for this
+        transaction."""
         # Break change up if bigger than max_change
         output_amounts = [o.value for o in tx.outputs()]
-        # Don't split change of less than 0.02 BTC
+        # Don't split change of less than 20 000 XEC
         max_change = max(max(output_amounts) * 1.25, 20000 * CASH)
 
         # Use N change outputs
@@ -156,24 +162,17 @@ class CoinChooserBase(PrintError):
 
         return amounts
 
-    def change_outputs(self, tx, change_addrs, fee_estimator, dust_threshold):
-        amounts = self.change_amounts(
-            tx, len(change_addrs), fee_estimator, dust_threshold
-        )
+    def change_outputs(self, tx, change_addrs, fee_estimator) -> List[TxOutput]:
+        amounts = self.change_amounts(tx, len(change_addrs), fee_estimator)
         assert min(amounts) >= 0
         assert len(change_addrs) >= len(amounts)
-        # If change is above dust threshold after accounting for the
-        # size of the change output, add it to the transaction.
-        dust = sum(amount for amount in amounts if amount < dust_threshold)
-        amounts = [amount for amount in amounts if amount >= dust_threshold]
+        # If change is above dust threshold add it to the transaction.
+        amounts = [amount for amount in amounts if amount >= DUST_THRESHOLD]
         change = [
             TxOutput(TYPE_ADDRESS, addr, amount)
             for addr, amount in zip(change_addrs, amounts)
         ]
-        self.print_error("change:", change)
-        if dust:
-            self.print_error("not keeping dust", dust)
-        return change, dust
+        return change
 
     def make_tx(
         self,
@@ -181,9 +180,8 @@ class CoinChooserBase(PrintError):
         outputs,
         change_addrs,
         fee_estimator,
-        dust_threshold,
         sign_schnorr=False,
-    ):
+    ) -> Transaction:
         """Select unspent coins to spend to pay outputs.  If the change is
         greater than dust_threshold (after adding the change output to
         the transaction) it is kept, otherwise none is sent and it is
@@ -218,9 +216,8 @@ class CoinChooserBase(PrintError):
         def fee(count):
             return fee_estimator(tx_size + count * 34)
 
-        change, dust = self.change_outputs(tx, change_addrs, fee, dust_threshold)
+        change = self.change_outputs(tx, change_addrs, fee)
         tx.add_outputs(change)
-        tx.ephemeral["dust_to_fee"] = dust
 
         self.print_error("using %d inputs" % len(tx.inputs()))
         self.print_error("using buckets:", [bucket.desc for bucket in buckets])

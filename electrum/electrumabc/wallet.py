@@ -2144,7 +2144,6 @@ class AbstractWallet(PrintError, SPVDelegate):
                 outputs,
                 change_addrs,
                 fee_estimator,
-                DUST_THRESHOLD,
                 sign_schnorr=sign_schnorr,
             )
         else:

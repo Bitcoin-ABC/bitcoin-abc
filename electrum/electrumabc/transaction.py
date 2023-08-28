@@ -480,12 +480,8 @@ class Transaction:
         self.output_info = {}
 
         # Ephemeral meta-data used internally to keep track of interesting
-        # things. This is currently written-to by coinchooser to tell UI code
-        # about 'dust_to_fee', which is change that's too small to go to change
-        # outputs (below dust threshold) and needed to go to the fee.
-        #
-        # It is also used to store the 'fetched_inputs' which are asynchronously
-        # retrieved inputs (by retrieving prevout_hash tx's), see
+        # things. This is currently used to store the 'fetched_inputs' which are
+        # asynchronously retrieved inputs (by retrieving prevout_hash tx's), see
         # `fetch_input_data`.
         #
         # Values in this dict are advisory only and may or may not always be

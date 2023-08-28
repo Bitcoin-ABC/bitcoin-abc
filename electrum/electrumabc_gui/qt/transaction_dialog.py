@@ -37,10 +37,11 @@ from PyQt5.QtGui import QBrush, QCursor, QFont, QIcon, QKeySequence, QTextCharFo
 from electrumabc import web
 from electrumabc.address import Address, PublicKey, ScriptOutput
 from electrumabc.bitcoin import base_encode
+from electrumabc.constants import DUST_THRESHOLD
 from electrumabc.i18n import _, ngettext
 from electrumabc.plugins import run_hook
 from electrumabc.printerror import PrintError
-from electrumabc.transaction import InputValueMissing
+from electrumabc.transaction import InputValueMissing, Transaction
 from electrumabc.util import Weak, bfh
 
 from .util import (
@@ -81,7 +82,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         Freeze = auto()
         Unfreeze = auto()
 
-    def __init__(self, tx, parent, desc, prompt_if_unsaved):
+    def __init__(self, tx: Transaction, parent, desc, prompt_if_unsaved):
         """Transactions in the wallet will show their description.
         Pass desc to give a description for txs not yet in the wallet.
         """
@@ -641,7 +642,9 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
                 fee_unit=base_unit,
                 fee_rate=self.main_window.format_fee_rate(fee / size * 1000),
             )
-            dusty_fee = self.tx.ephemeral.get("dust_to_fee", 0)
+            dusty_fee = sum(
+                o.value for o in self.tx.outputs() if o.value < DUST_THRESHOLD
+            )
             if dusty_fee:
                 fee_str += (
                     " <font color=#999999>"
