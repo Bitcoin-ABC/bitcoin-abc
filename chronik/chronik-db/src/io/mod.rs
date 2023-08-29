@@ -8,6 +8,7 @@ mod block_stats;
 mod blocks;
 mod group_history;
 mod group_utxos;
+pub mod merge;
 mod metadata;
 mod spent_by;
 mod txs;

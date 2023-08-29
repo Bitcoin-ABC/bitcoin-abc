@@ -12,7 +12,9 @@ use crate::{
     db::{Db, CF},
     group::{tx_members_for_group, Group, GroupQuery},
     index_tx::IndexTx,
-    io::{group_history::GroupHistoryError::*, TxNum},
+    io::{
+        group_history::GroupHistoryError::*, merge::catch_merge_errors, TxNum,
+    },
     ser::{db_deserialize_vec, db_serialize_vec},
 };
 
@@ -102,6 +104,13 @@ pub enum GroupHistoryError {
     /// Bad num_txs size
     #[error("Inconsistent DB: Bad num_txs size: {0:?}")]
     BadNumTxsSize(Vec<u8>),
+
+    /// Used merge_cf incorrectly, prefix must either be C or T.
+    #[error(
+        "Bad usage of merge: Unknown prefix {0:02x}, expected C or T: {}",
+        hex::encode(.1),
+    )]
+    UnknownOperandPrefix(u8, Vec<u8>),
 }
 
 struct FetchedNumTxs<'tx, G: Group> {
@@ -131,7 +140,7 @@ fn full_merge_concat_trim(
     _key: &[u8],
     existing_value: Option<&[u8]>,
     operands: &rocksdb::MergeOperands,
-) -> Option<Vec<u8>> {
+) -> Result<Vec<u8>> {
     let mut bytes = existing_value.unwrap_or(&[]).to_vec();
     if operands.iter().all(|operand| operand[0] == CONCAT) {
         bytes.reserve_exact(
@@ -146,14 +155,12 @@ fn full_merge_concat_trim(
                 NumTxs::from_be_bytes(operand[1..5].try_into().unwrap());
             bytes.drain(bytes.len() - trim_len as usize..);
         } else {
-            panic!(
-                "ERROR in merge, operand has unknown prefix {:02x}: {}",
-                operand[0],
-                hex::encode(operand),
+            return Err(
+                UnknownOperandPrefix(operand[0], operand.to_vec()).into()
             );
         }
     }
-    Some(bytes)
+    Ok(bytes)
 }
 
 impl<'a> GroupHistoryColumn<'a> {
@@ -369,7 +376,7 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
         let merge_op_name = format!("{}::merge_op_concat", conf.cf_page_name);
         page_options.set_merge_operator(
             merge_op_name.as_str(),
-            full_merge_concat_trim,
+            catch_merge_errors(full_merge_concat_trim),
             partial_merge_concat_trim,
         );
         columns.push(rocksdb::ColumnFamilyDescriptor::new(

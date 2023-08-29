@@ -279,6 +279,7 @@ dependencies = [
  "abc-rust-lint",
  "bitcoinsuite-core",
  "bytes",
+ "chronik-util",
  "fastrand",
  "hex",
  "postcard",
@@ -363,7 +364,6 @@ name = "chronik-util"
 version = "0.1.0"
 dependencies = [
  "abc-rust-lint",
- "chronik-bridge",
 ]
 
 [[package]]

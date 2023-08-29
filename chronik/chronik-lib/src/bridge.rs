@@ -18,7 +18,7 @@ use chronik_indexer::{
     indexer::{ChronikIndexer, ChronikIndexerParams, Node},
     pause::Pause,
 };
-use chronik_util::{log, log_chronik};
+use chronik_util::{log, log_chronik, mount_loggers, Loggers};
 use thiserror::Error;
 use tokio::sync::RwLock;
 
@@ -58,6 +58,10 @@ fn try_setup_chronik(
     node_context: &ffi::NodeContext,
 ) -> Result<()> {
     abc_rust_error::install();
+    mount_loggers(Loggers {
+        log: chronik_bridge::ffi::log_print,
+        log_chronik: chronik_bridge::ffi::log_print_chronik,
+    });
     let hosts = params
         .hosts
         .into_iter()

@@ -13,6 +13,8 @@ abc-rust-lint = { path = "../abc-rust-lint" }
 
 bitcoinsuite-core = { path = "../bitcoinsuite-core" }
 
+chronik-util = { path = "../chronik-util" }
+
 # Efficient byte strings, with ref counted substrings
 bytes = "1.4"
 

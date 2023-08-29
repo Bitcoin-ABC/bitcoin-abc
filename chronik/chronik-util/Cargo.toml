@@ -9,4 +9,3 @@ license = "MIT"
 
 [dependencies]
 abc-rust-lint = { path = "../abc-rust-lint" }
-chronik-bridge = { path = "../chronik-bridge" }

@@ -17,9 +17,9 @@ use chronik_db::{
     groups::{ScriptGroup, ScriptHistoryWriter, ScriptUtxoWriter},
     index_tx::prepare_indexed_txs,
     io::{
-        BlockHeight, BlockReader, BlockStatsWriter, BlockTxs, BlockWriter,
-        DbBlock, MetadataReader, MetadataWriter, SchemaVersion, SpentByWriter,
-        TxEntry, TxWriter,
+        merge, BlockHeight, BlockReader, BlockStatsWriter, BlockTxs,
+        BlockWriter, DbBlock, MetadataReader, MetadataWriter, SchemaVersion,
+        SpentByWriter, TxEntry, TxWriter,
     },
     mem::{MemData, MemDataConf, Mempool, MempoolTx},
 };
@@ -356,6 +356,7 @@ impl ChronikIndexer {
         for tx in &block.block_txs.txs {
             self.mempool.remove_mined(&tx.txid)?;
         }
+        merge::check_for_errors()?;
         let subs = self.subs.get_mut();
         subs.broadcast_block_msg(BlockMsg {
             msg_type: BlockMsgType::Connected,
