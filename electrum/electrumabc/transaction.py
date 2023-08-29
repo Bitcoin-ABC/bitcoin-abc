@@ -61,10 +61,34 @@ Change < dust threshold is added to the tx fee.
 The unit is satoshis.
 """
 
+# Maximum script length in bytes (see Bitcoin ABC's script.h)
+MAX_SCRIPT_SIZE = 10000
+
+AMOUNT_NBYTES = 8
+
 # Note: The deserialization code originally comes from ABE.
 
 
 NO_SIGNATURE = "ff"
+
+
+def compact_size_nbytes(size: int) -> int:
+    """Return the number of bytes needed to encode an integer as a CompactSize.
+    See https://en.bitcoin.it/wiki/Protocol_documentation#Variable_length_integer.
+    """
+    if not size:
+        # Special case for an empty locking script. See test_parse_output_empty
+        # in test_transaction.py.
+        return 0
+    if size < 253:
+        return 1
+    if size < 0x10000:
+        return 3
+    if size < 0x100000000:
+        return 5
+    if size > 0xFFFFFFFFFFFFFFFF:
+        raise OverflowError("CompactSize cannot encode values larger than 2^64 - 1")
+    return 9
 
 
 class SerializationError(Exception):
@@ -89,6 +113,11 @@ class TxOutput(NamedTuple):
 
         ops = Script.get_ops(self.destination.script)
         return len(ops) >= 1 and ops[0][0] == OpCodes.OP_RETURN
+
+    def size(self):
+        script_nbytes = len(self.destination.to_script())
+        assert script_nbytes <= MAX_SCRIPT_SIZE
+        return AMOUNT_NBYTES + compact_size_nbytes(script_nbytes) + script_nbytes
 
 
 class BCDataStream(object):

@@ -2,7 +2,7 @@ import unittest
 
 from .. import transaction
 from ..address import Address, PublicKey, ScriptOutput
-from ..bitcoin import TYPE_ADDRESS, TYPE_PUBKEY, TYPE_SCRIPT
+from ..bitcoin import TYPE_ADDRESS, TYPE_PUBKEY, TYPE_SCRIPT, OpCodes
 from ..keystore import xpubkey_to_address
 from ..util import bh2u
 
@@ -10,6 +10,18 @@ unsigned_blob = "010000000149f35e43fefd22d8bb9e4b3ff294c6286154c25712baf6ab77b64
 signed_blob = "010000000149f35e43fefd22d8bb9e4b3ff294c6286154c25712baf6ab77b646e5074d6aed010000006a473044022025bdc804c6fe30966f6822dc25086bc6bb0366016e68e880cf6efd2468921f3202200e665db0404f6d6d9f86f73838306ac55bb0d0f6040ac6047d4e820f24f46885412103b5bbebceeb33c1b61f649596b9c3611c6b2853a1f6b48bce05dd54f667fa2166feffffff0118e43201000000001976a914e158fb15c888037fdc40fb9133b4c1c3c688706488ac5fbd0700"
 v2_blob = "0200000001191601a44a81e061502b7bfbc6eaa1cef6d1e6af5308ef96c9342f71dbf4b9b5000000006b483045022100a6d44d0a651790a477e75334adfb8aae94d6612d01187b2c02526e340a7fd6c8022028bdf7a64a54906b13b145cd5dab21a26bd4b85d6044e9b97bceab5be44c2a9201210253e8e0254b0c95776786e40984c1aa32a7d03efa6bdacdea5f421b774917d346feffffff026b20fa04000000001976a914024db2e87dd7cfd0e5f266c5f212e21a31d805a588aca0860100000000001976a91421919b94ae5cefcdf0271191459157cdb41c4cbf88aca6240700"
 nonmin_blob = "010000000142b88360bd83813139af3a251922b7f3d2ac88e45a2a703c28db8ee8580dc3a300000000654c41151dc44bece88c5933d737176499209a0b1688d5eb51eb6f1fd9fcf2fb32d138c94b96a4311673b75a31c054210b2058735ce6c12e529ddea4a6b91e4a3786d94121034a29987f30ad5d23d79ed5215e034c51f6825bdb2aa595c2bdeb37902960b3d1feffffff012e030000000000001976a914480d1be8ab76f8cdd85ce4077f51d35b0baaa25a88ac4b521400"
+
+
+SHORT_COMPACTSIZE_NBYTES = 1
+PUBKEY_SIZE = 33
+# OP_DUP OP_HASH160 20 <20 bytes hash> OP_EQUALVERIFY OP_CHECKSIG
+P2PKH_NBYTES = 25
+# OP_HASH160 20 <20 bytes hash> OP_EQUAL
+P2SH_NBYTES = 23
+# PUSH(33) <pubkey> OP_CHECKSIG
+P2PK_NBYTES = 35
+# PUSH(65) <uncompressed pubkey> OP_CHECKSIG
+UNCOMPRESSED_P2PK_NBYTES = 67
 
 
 class TestBCDataStream(unittest.TestCase):
@@ -370,6 +382,10 @@ class TestTransaction(unittest.TestCase):
             tx.outputs(), [(TYPE_ADDRESS, Address.from_P2PKH_hash(b"\xaa" * 20), 0)]
         )
         self.assertEqual(
+            tx.outputs()[0].size(),
+            transaction.AMOUNT_NBYTES + SHORT_COMPACTSIZE_NBYTES + P2PKH_NBYTES,
+        )
+        self.assertEqual(
             "7a0e3fcbdaa9ecc6ccce1ad325b6b661e774a57f2e8519c679964e2dd32e200f",
             tx.txid(),
         )
@@ -403,6 +419,10 @@ class TestTransaction(unittest.TestCase):
         )
         self.assertEqual(
             tx.outputs(), [(TYPE_ADDRESS, Address.from_P2SH_hash(b"\xaa" * 20), 0)]
+        )
+        self.assertEqual(
+            tx.outputs()[0].size(),
+            transaction.AMOUNT_NBYTES + SHORT_COMPACTSIZE_NBYTES + P2SH_NBYTES,
         )
         self.assertEqual(
             "d33750908965d24a411d94371fdc64ebb06f13bf4d19e73372347e6b4eeca49f",
@@ -439,6 +459,10 @@ class TestTransaction(unittest.TestCase):
         self.assertEqual(
             tx.outputs(),
             [(TYPE_PUBKEY, PublicKey.from_pubkey(b"\x03" + b"\x00" * 32), 0)],
+        )
+        self.assertEqual(
+            tx.outputs()[0].size(),
+            transaction.AMOUNT_NBYTES + SHORT_COMPACTSIZE_NBYTES + P2PK_NBYTES,
         )
         self.assertEqual(
             "78afa0576a4ee6e7db663a58202f11bab8e860dd4a2226f856a2490187046b3d",
@@ -500,6 +524,12 @@ class TestTransaction(unittest.TestCase):
             [(TYPE_PUBKEY, PublicKey.from_pubkey(b"\x04" + b"\x00" * 64), 0)],
         )
         self.assertEqual(
+            tx.outputs()[0].size(),
+            transaction.AMOUNT_NBYTES
+            + SHORT_COMPACTSIZE_NBYTES
+            + UNCOMPRESSED_P2PK_NBYTES,
+        )
+        self.assertEqual(
             "053626542393dd957a14bb2bcbfdcf3564a5f438e923799e1b9714c4a8e70a7c",
             tx.txid(),
         )
@@ -544,6 +574,15 @@ class TestTransaction(unittest.TestCase):
                     0,
                 )
             ],
+        )
+        # PUSH(36) OP_1 <pubkey> OP_1 OP_CHECKMULTISIG
+        n_opcodes = 4
+        self.assertEqual(
+            tx.outputs()[0].size(),
+            transaction.AMOUNT_NBYTES
+            + SHORT_COMPACTSIZE_NBYTES
+            + PUBKEY_SIZE
+            + n_opcodes,
         )
         self.assertEqual(
             "b1f66fde0aa3d5af03be3c69f599069aad217e939f36cacc2372ea4fece7d57b",
@@ -602,11 +641,87 @@ class TestTransaction(unittest.TestCase):
             "010000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000"
         )
         self.assertEqual(tx.outputs(), [(TYPE_SCRIPT, ScriptOutput(b""), 0)])
+        self.assertEqual(tx.outputs()[0].size(), transaction.AMOUNT_NBYTES)
         self.assertEqual("", tx.outputs()[0][1].to_ui_string())
         self.assertEqual(
             "50fa7bd4e5e2d3220fd2e84effec495b9845aba379d853408779d59a4b0b4f59",
             tx.txid(),
         )
+
+    def test_parse_output_p2pkh_and_op_return(self):
+        tx = transaction.Transaction(
+            "02000000012367ad0da9fb8f8a7e574d55d4eb2dd0fd8ebd58b1c21cfddb9fe5426369082a000000006441761c8b702e06fcb8656cb205454f22efff174e3ae9552c1ee83f7d64e3b0d29fa466c48a82597713fd7a3c03e324855349a76660fa26dfec4922c51ea0f51cb6412102a42cd220e6099d5d678066b81813ae4fdd14b290479962ae5c0af1448113bcb4feffffff030000000000000000066a047370616d05b20100000000001976a9144fe822f96257d66eeb498394ce9a1fbca1323ba088ac10270000000000001976a914b97b77f0a2e0b3161354de723a76d58a974c601988ac00000000"
+        )
+        self.assertEqual(
+            tx.outputs(),
+            [
+                (TYPE_SCRIPT, ScriptOutput(bytes((OpCodes.OP_RETURN, 4)) + b"spam"), 0),
+                (
+                    TYPE_ADDRESS,
+                    Address.from_string(
+                        "ecash:qp87sghevftavmhtfxpefn56r772zv3m5qv9pkqu8y"
+                    ),
+                    111109,
+                ),
+                (
+                    TYPE_ADDRESS,
+                    Address.from_string(
+                        "ecash:qzuhkals5tstx9sn2n08ywnk6k9fwnrqry5c2hu7mn"
+                    ),
+                    10000,
+                ),
+            ],
+        )
+        # OP_RETURN PUSH(4) "spam"
+        script_nbytes = 6
+        self.assertEqual(
+            tx.outputs()[0].size(),
+            transaction.AMOUNT_NBYTES + SHORT_COMPACTSIZE_NBYTES + script_nbytes,
+        )
+        self.assertEqual(
+            "a3e880d56fbfa03d250f0d28281f86388b8c7f38bf4d2c19f0033632907262df",
+            tx.txid(),
+        )
+
+
+class TestCompactSize(unittest.TestCase):
+    def test_compact_size_nbytes(self):
+        for size, expected_nbytes in (
+            (0, 0),
+            (1, 1),
+            (252, 1),
+            (253, 3),
+            (2**16 - 1, 3),
+            (2**16, 5),
+            (2**32 - 1, 5),
+            (2**32, 9),
+            (2**64 - 1, 9),
+        ):
+            self.assertEqual(transaction.compact_size_nbytes(size), expected_nbytes)
+
+        with self.assertRaises(OverflowError):
+            transaction.compact_size_nbytes(2**64)
+
+
+class TestTxOutput(unittest.TestCase):
+    def test_size(self):
+        for script_size, expected_output_size in (
+            # amount only (8 bytes)
+            (0, 8),
+            # amount + 1 byte compact size + script
+            (1, 10),
+            (252, 261),
+            # amount + 3 bytes compact size + script
+            (253, 264),
+            # MAX_SCRIPT_SIZE
+            (10000, 10011),
+        ):
+            locking_script = ScriptOutput(bytes((OpCodes.OP_NOP,)) * script_size)
+            amount = 0
+            self.assertEqual(
+                transaction.TxOutput(TYPE_SCRIPT, locking_script, amount).size(),
+                expected_output_size,
+            )
 
 
 class NetworkMock:
