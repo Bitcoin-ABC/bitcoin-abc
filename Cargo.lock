@@ -278,6 +278,7 @@ dependencies = [
  "abc-rust-error",
  "abc-rust-lint",
  "bitcoinsuite-core",
+ "bytes",
  "fastrand",
  "hex",
  "postcard",

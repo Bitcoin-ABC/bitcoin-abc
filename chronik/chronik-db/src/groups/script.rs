@@ -2,7 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-use bitcoinsuite_core::script::Script;
+use bitcoinsuite_core::script::{compress_script_variant, Script};
+use bytes::Bytes;
 
 use crate::{
     db::{CF_SCRIPT_HISTORY, CF_SCRIPT_HISTORY_NUM_TXS, CF_SCRIPT_UTXO},
@@ -26,20 +27,15 @@ pub type ScriptHistoryReader<'a> = GroupHistoryReader<'a, ScriptGroup>;
 pub type ScriptUtxoWriter<'a> = GroupUtxoWriter<'a, ScriptGroup>;
 /// Read the UTXOs of scripts in the DB
 pub type ScriptUtxoReader<'a> = GroupUtxoReader<'a, ScriptGroup>;
-/// Function ptr to compress scripts
-pub type FnCompressScript = fn(&Script) -> Vec<u8>;
 
 /// Group txs by input/output scripts.
-#[derive(Clone)]
-pub struct ScriptGroup {
-    /// Function to compress scripts.
-    fn_compress_script: FnCompressScript,
-}
+#[derive(Clone, Debug)]
+pub struct ScriptGroup;
 
 impl Group for ScriptGroup {
     type Iter<'a> = Vec<MemberItem<&'a Script>>;
     type Member<'a> = &'a Script;
-    type MemberSer<'a> = Vec<u8>;
+    type MemberSer<'a> = Bytes;
 
     fn input_members<'a>(&self, query: GroupQuery<'a>) -> Self::Iter<'a> {
         if query.is_coinbase {
@@ -71,7 +67,7 @@ impl Group for ScriptGroup {
     }
 
     fn ser_member<'a>(&self, member: &Self::Member<'a>) -> Self::MemberSer<'a> {
-        (self.fn_compress_script)(member)
+        compress_script_variant(&member.variant())
     }
 
     fn tx_history_conf() -> GroupHistoryConf {
@@ -89,24 +85,6 @@ impl Group for ScriptGroup {
     }
 }
 
-impl ScriptGroup {
-    /// Create a new [`ScriptGroup`].
-    pub fn new(fn_compress_script: FnCompressScript) -> Self {
-        ScriptGroup { fn_compress_script }
-    }
-}
-
-impl std::fmt::Debug for ScriptGroup {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("ScriptGroup").finish_non_exhaustive()
-    }
-}
-
-/// A mock "compression" that just prefixes with "COMPRESS:".
-pub fn prefix_mock_compress(script: &Script) -> Vec<u8> {
-    [b"COMPRESS:".as_ref(), script.as_ref()].concat()
-}
-
 #[cfg(test)]
 mod tests {
     use bitcoinsuite_core::{
@@ -116,12 +94,12 @@ mod tests {
 
     use crate::{
         group::{tx_members_for_group, Group, GroupQuery, MemberItem},
-        groups::{prefix_mock_compress, ScriptGroup},
+        groups::ScriptGroup,
     };
 
     #[test]
     fn test_script_group() {
-        let script_group = ScriptGroup::new(prefix_mock_compress);
+        let script_group = ScriptGroup;
         let tx = Tx::with_txid(
             TxId::from([0; 32]),
             TxMut {
@@ -208,7 +186,7 @@ mod tests {
 
         assert_eq!(
             script_group.ser_member(&&make_script(vec![0x53])),
-            [b"COMPRESS:".as_ref(), &[0x53]].concat(),
+            [[0x07].as_ref(), &[0x53]].concat(),
         );
     }
 }

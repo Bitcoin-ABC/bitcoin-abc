@@ -14,9 +14,7 @@ use bitcoinsuite_core::{
 use chronik_bridge::{ffi, util::expect_unique_ptr};
 use chronik_db::{
     db::{Db, WriteBatch},
-    groups::{
-        FnCompressScript, ScriptGroup, ScriptHistoryWriter, ScriptUtxoWriter,
-    },
+    groups::{ScriptGroup, ScriptHistoryWriter, ScriptUtxoWriter},
     index_tx::prepare_indexed_txs,
     io::{
         BlockHeight, BlockReader, BlockStatsWriter, BlockTxs, BlockWriter,
@@ -45,8 +43,6 @@ pub struct ChronikIndexerParams {
     pub datadir_net: PathBuf,
     /// Whether to clear the DB before opening the DB, e.g. when reindexing.
     pub wipe_db: bool,
-    /// Function ptr to compress scripts.
-    pub fn_compress_script: FnCompressScript,
     /// Whether to output Chronik performance statistics into a perf/ folder
     pub enable_perf_stats: bool,
 }
@@ -164,15 +160,14 @@ impl ChronikIndexer {
         log_chronik!("Opening Chronik at {}\n", db_path.to_string_lossy());
         let db = Db::open(&db_path)?;
         verify_schema_version(&db)?;
-        let script_group = ScriptGroup::new(params.fn_compress_script);
-        let mempool = Mempool::new(script_group.clone());
+        let mempool = Mempool::new(ScriptGroup);
         Ok(ChronikIndexer {
             db,
             mempool,
             mem_data: MemData::new(MemDataConf {}),
-            script_group: script_group.clone(),
+            script_group: ScriptGroup,
             avalanche: Avalanche::default(),
-            subs: RwLock::new(Subs::new(script_group)),
+            subs: RwLock::new(Subs::new(ScriptGroup)),
             perf_path: params.enable_perf_stats.then_some(perf_path),
         })
     }
@@ -583,7 +578,6 @@ mod tests {
     use bitcoinsuite_core::block::BlockHash;
     use chronik_db::{
         db::{Db, WriteBatch, CF_META},
-        groups::prefix_mock_compress,
         io::{BlockReader, BlockTxs, DbBlock, MetadataReader, MetadataWriter},
     };
     use pretty_assertions::assert_eq;
@@ -600,7 +594,6 @@ mod tests {
         let params = ChronikIndexerParams {
             datadir_net: datadir_net.clone(),
             wipe_db: false,
-            fn_compress_script: prefix_mock_compress,
             enable_perf_stats: false,
         };
         // regtest folder doesn't exist yet -> error
@@ -668,7 +661,6 @@ mod tests {
         let params = ChronikIndexerParams {
             datadir_net: dir.path().to_path_buf(),
             wipe_db: false,
-            fn_compress_script: prefix_mock_compress,
             enable_perf_stats: false,
         };
 

@@ -13,6 +13,9 @@ abc-rust-lint = { path = "../abc-rust-lint" }
 
 bitcoinsuite-core = { path = "../bitcoinsuite-core" }
 
+# Efficient byte strings, with ref counted substrings
+bytes = "1.4"
+
 # En-/decode byte strings from/to hex
 hex = "0.4"
 
