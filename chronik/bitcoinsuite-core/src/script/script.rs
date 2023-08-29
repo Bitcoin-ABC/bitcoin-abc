@@ -7,7 +7,10 @@ use bytes::Bytes;
 use crate::{
     error::DataError,
     hash::{Hashed, ShaRmd160},
-    script::{opcode::*, PubKey, ScriptMut, ScriptOpIter, UncompressedPubKey},
+    script::{
+        opcode::*, PubKey, PubKeyVariant, ScriptMut, ScriptOpIter,
+        ScriptVariant, UncompressedPubKey,
+    },
     ser::{BitcoinSer, BitcoinSerializer},
 };
 
@@ -209,6 +212,77 @@ impl Script {
     /// ```
     pub fn iter_ops(&self) -> ScriptOpIter {
         ScriptOpIter::new(self.0.clone())
+    }
+
+    /// Return the variant of the script (P2PKH, P2SH, P2PK, or Other)
+    ///
+    /// ```
+    /// # use bitcoinsuite_core::{
+    /// #     hash::ShaRmd160,
+    /// #     script::{
+    /// #         PubKey, PubKeyVariant, Script, ScriptVariant,
+    /// #         UncompressedPubKey,
+    /// #     },
+    /// # };
+    ///
+    /// let hash = ShaRmd160([4; 20]);
+    /// assert_eq!(Script::p2pkh(&hash).variant(), ScriptVariant::P2PKH(hash));
+    /// assert_eq!(Script::p2sh(&hash).variant(), ScriptVariant::P2SH(hash));
+    ///
+    /// let pk = PubKey([5; 33]);
+    /// assert_eq!(
+    ///     Script::p2pk(&pk).variant(),
+    ///     ScriptVariant::P2PK(PubKeyVariant::Compressed(pk)),
+    /// );
+    ///
+    /// let uncomp_pk = UncompressedPubKey([6; 65]);
+    /// assert_eq!(
+    ///     Script::p2pk_uncompressed(&uncomp_pk).variant(),
+    ///     ScriptVariant::P2PK(PubKeyVariant::Uncompressed(uncomp_pk)),
+    /// );
+    ///
+    /// assert_eq!(
+    ///     Script::default().variant(),
+    ///     ScriptVariant::Other(Script::default()),
+    /// );
+    /// ```
+    pub fn variant(&self) -> ScriptVariant {
+        // Short-hand constants for easier matching
+        const H_SIZE: u8 = ShaRmd160::SIZE as u8;
+        const COMP_PK_SIZE: u8 = PubKey::SIZE as u8;
+        const UNCOMP_PK_SIZE: u8 = UncompressedPubKey::SIZE as u8;
+        const OP_DUP: u8 = OP_DUP::N;
+        const OP_HASH160: u8 = OP_HASH160::N;
+        const OP_EQUALVERIFY: u8 = OP_EQUALVERIFY::N;
+        const OP_CHECKSIG: u8 = OP_CHECKSIG::N;
+
+        match self.bytecode().as_ref() {
+            [OP_DUP, OP_HASH160, H_SIZE, hash @ .., OP_EQUALVERIFY, OP_CHECKSIG]
+                if hash.len() == ShaRmd160::SIZE =>
+            {
+                ScriptVariant::P2PKH(ShaRmd160(hash.try_into().unwrap()))
+            }
+            [OP_HASH160, H_SIZE, hash @ .., OP_EQUAL::N]
+                if hash.len() == ShaRmd160::SIZE =>
+            {
+                ScriptVariant::P2SH(ShaRmd160(hash.try_into().unwrap()))
+            }
+            [COMP_PK_SIZE, pubkey @ .., OP_CHECKSIG]
+                if pubkey.len() == PubKey::SIZE =>
+            {
+                ScriptVariant::P2PK(PubKeyVariant::Compressed(PubKey(
+                    pubkey.try_into().unwrap(),
+                )))
+            }
+            [UNCOMP_PK_SIZE, pubkey @ .., OP_CHECKSIG]
+                if pubkey.len() == UncompressedPubKey::SIZE =>
+            {
+                ScriptVariant::P2PK(PubKeyVariant::Uncompressed(
+                    UncompressedPubKey(pubkey.try_into().unwrap()),
+                ))
+            }
+            _ => ScriptVariant::Other(self.clone()),
+        }
     }
 }
 
