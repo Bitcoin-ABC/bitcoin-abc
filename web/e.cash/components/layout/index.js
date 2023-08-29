@@ -29,6 +29,10 @@ const Layout = ({
                 />
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta
+                    name="twitter:image"
+                    content="https://e.cash/images/ecash-twitter-card.jpg"
+                ></meta>
+                <meta
                     property="og:image"
                     content="https://e.cash/images/ecash-twitter-card.jpg"
                 ></meta>
