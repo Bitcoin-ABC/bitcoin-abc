@@ -1,0 +1,32 @@
+{
+    "dependencies": {
+        "ecashaddrjs": "^1.5.2"
+    },
+    "name": "mock-chronik-client",
+    "description": "Testing utility to mock the Chronik indexer client and support unit tests that need to mock chronik related API calls.",
+    "version": "1.0.0",
+    "main": "index.js",
+    "devDependencies": {
+        "mocha": "^10.2.0",
+        "mocha-junit-reporter": "^2.2.1",
+        "nyc": "^15.1.0"
+    },
+    "scripts": {
+        "test": "mocha",
+        "coverage": "nyc mocha",
+        "junit": "mocha test --reporter mocha-junit-reporter"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Bitcoin-ABC/bitcoin-abc.git",
+        "directory": "apps/mock-chronik-client"
+    },
+    "keywords": [
+        "chronik-client",
+        "chronik",
+        "mock"
+    ],
+    "author": "Bitcoin ABC",
+    "license": "MIT",
+    "homepage": "https://github.com/Bitcoin-ABC/bitcoin-abc#readme"
+}

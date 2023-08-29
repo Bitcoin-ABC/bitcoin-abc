@@ -13,7 +13,7 @@ const bip39 = require('bip39');
 const { mockUtxos, mockTxHex } = require('../mocks/chronikResponses');
 
 // Mock chronik
-const { MockChronikClient } = require('../mocks/chronikMock');
+const { MockChronikClient } = require('../../mock-chronik-client/index');
 
 // Throw away test wallet
 const throwAwayMnemonic =
