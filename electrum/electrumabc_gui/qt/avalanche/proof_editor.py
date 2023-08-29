@@ -8,7 +8,7 @@ from typing import List, Optional, Union
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from electrumabc.address import Address, AddressError
-from electrumabc.avalanche.primitives import COutPoint, Key, PublicKey
+from electrumabc.avalanche.primitives import Key, PublicKey
 from electrumabc.avalanche.proof import Proof, ProofBuilder, SignedStake, Stake
 from electrumabc.bitcoin import is_private_key
 from electrumabc.constants import PROOF_DUST_THRESHOLD, STAKE_UTXO_CONFIRMATIONS
@@ -18,7 +18,7 @@ from electrumabc.serialize import (
     serialize_blob,
     write_compact_size,
 )
-from electrumabc.transaction import get_address_from_output_script
+from electrumabc.transaction import OutPoint, get_address_from_output_script
 from electrumabc.uint256 import UInt256
 from electrumabc.util import format_satoshis
 from electrumabc.wallet import AddressNotFoundError, DeterministicWallet
@@ -325,7 +325,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             stakes.append(
                 StakeAndKey(
                     Stake(
-                        COutPoint(txid, utxo["prevout_n"]),
+                        OutPoint(txid, utxo["prevout_n"]),
                         amount=utxo["value"],
                         height=utxo["height"],
                         pubkey=key.get_pubkey(),

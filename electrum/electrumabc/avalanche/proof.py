@@ -43,9 +43,9 @@ from ..serialize import (
     serialize_blob,
     serialize_sequence,
 )
-from ..transaction import get_address_from_output_script
+from ..transaction import OutPoint, get_address_from_output_script
 from ..uint256 import UInt256
-from .primitives import COutPoint, Key, PublicKey
+from .primitives import Key, PublicKey
 
 if TYPE_CHECKING:
     from .. import address
@@ -55,7 +55,7 @@ if TYPE_CHECKING:
 class Stake(SerializableObject):
     def __init__(
         self,
-        utxo: COutPoint,
+        utxo: OutPoint,
         amount: int,
         height: int,
         pubkey: PublicKey,
@@ -92,7 +92,7 @@ class Stake(SerializableObject):
 
     @classmethod
     def deserialize(cls, stream: BytesIO) -> Stake:
-        utxo = COutPoint.deserialize(stream)
+        utxo = OutPoint.deserialize(stream)
         amount = struct.unpack("q", stream.read(8))[0]
         height_ser = struct.unpack("I", stream.read(4))[0]
         pubkey = PublicKey.deserialize(stream)
@@ -290,7 +290,7 @@ class ProofBuilder:
         :return:
         """
         key = Key.from_wif(wif_privkey)
-        utxo = COutPoint(txid, vout)
+        utxo = OutPoint(txid, vout)
         self.sign_and_add_stake(
             Stake(utxo, amount, height, key.get_pubkey(), is_coinbase), key
         )

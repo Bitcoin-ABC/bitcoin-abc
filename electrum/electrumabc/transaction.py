@@ -23,10 +23,13 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
+
 import hashlib
 import random
 import struct
 import warnings
+from io import BytesIO
 from typing import List, NamedTuple, Optional, Tuple, Union
 
 import ecdsa
@@ -53,6 +56,8 @@ from .constants import DEFAULT_TXIN_SEQUENCE
 #
 from .keystore import xpubkey_to_address, xpubkey_to_pubkey
 from .printerror import print_error
+from .serialize import SerializableObject
+from .uint256 import UInt256
 from .util import bfh, bh2u, profiler, to_bytes
 
 DUST_THRESHOLD: int = 546
@@ -118,6 +123,29 @@ class TxOutput(NamedTuple):
         script_nbytes = len(self.destination.to_script())
         assert script_nbytes <= MAX_SCRIPT_SIZE
         return AMOUNT_NBYTES + compact_size_nbytes(script_nbytes) + script_nbytes
+
+
+class OutPoint(SerializableObject):
+    """
+    An outpoint - a combination of a transaction hash and an index n into its
+    vout.
+    """
+
+    def __init__(self, txid, n):
+        self.txid: UInt256 = txid
+        """Transaction ID (SHA256 hash)."""
+
+        self.n: int = n
+        """vout index (uint32)"""
+
+    def serialize(self) -> bytes:
+        return self.txid.serialize() + struct.pack("<I", self.n)
+
+    @classmethod
+    def deserialize(cls, stream: BytesIO) -> OutPoint:
+        txid = UInt256.deserialize(stream)
+        n = struct.unpack("<I", stream.read(4))[0]
+        return OutPoint(txid, n)
 
 
 class BCDataStream(object):

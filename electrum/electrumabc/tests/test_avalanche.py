@@ -10,10 +10,10 @@ from ..avalanche.delegation import (
     Level,
     WrongDelegatorKeyError,
 )
-from ..avalanche.primitives import COutPoint, Key, PublicKey
+from ..avalanche.primitives import Key, PublicKey
 from ..avalanche.proof import LimitedProofId, Proof, ProofBuilder, ProofId, Stake
 from ..serialize import DeserializationError
-from ..transaction import get_address_from_output_script
+from ..transaction import OutPoint, get_address_from_output_script
 from ..uint256 import UInt256
 
 master = Key.from_wif("Kwr371tjA9u2rFSMZjTNun2PXXP3WPZu2afRHTcta6KxEUdm1vEw")
@@ -143,7 +143,7 @@ class TestAvalancheProofBuilder(unittest.TestCase):
 
             proofbuilder.sign_and_add_stake(
                 Stake(
-                    COutPoint(utxo["txid"], utxo["vout"]),
+                    OutPoint(utxo["txid"], utxo["vout"]),
                     utxo["amount"],
                     utxo["height"],
                     key.get_pubkey(),
@@ -271,7 +271,7 @@ class TestAvalancheProofBuilder(unittest.TestCase):
         key = Key.from_wif("KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM")
         proofbuilder.sign_and_add_stake(
             Stake(
-                COutPoint(txid, 0),
+                OutPoint(txid, 0),
                 amount=3291110545,
                 height=700000,
                 pubkey=key.get_pubkey(),
@@ -295,7 +295,7 @@ class TestAvalancheProofBuilder(unittest.TestCase):
         key = Key.from_wif("KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM")
         proofbuilder_add_stakes.sign_and_add_stake(
             Stake(
-                COutPoint(txid, 1),
+                OutPoint(txid, 1),
                 amount=2866370216,
                 height=700001,
                 pubkey=key.get_pubkey(),
@@ -327,7 +327,7 @@ class TestAvalancheProofBuilder(unittest.TestCase):
         key = Key.from_wif("KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM")
         proofbuilder.sign_and_add_stake(
             Stake(
-                COutPoint(txid, 0),
+                OutPoint(txid, 0),
                 amount=3291110545,
                 height=700000,
                 pubkey=key.get_pubkey(),

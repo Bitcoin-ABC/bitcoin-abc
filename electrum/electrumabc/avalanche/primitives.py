@@ -26,7 +26,6 @@
 """
 from __future__ import annotations
 
-import struct
 from io import BytesIO
 
 from .. import schnorr
@@ -38,7 +37,6 @@ from ..serialize import (
     serialize_blob,
     write_compact_size,
 )
-from ..uint256 import UInt256
 
 # We redefine private key and public key objects because the ones used in the rest
 # of the codebase are messy.
@@ -119,26 +117,3 @@ class Key:
     def get_pubkey(self):
         pubkey = public_key_from_private_key(self.keydata, self.compressed)
         return PublicKey(bytes.fromhex(pubkey))
-
-
-class COutPoint(SerializableObject):
-    """
-    An outpoint - a combination of a transaction hash and an index n into its
-    vout.
-    """
-
-    def __init__(self, txid, n):
-        self.txid: UInt256 = txid
-        """Transaction ID (SHA256 hash)."""
-
-        self.n: int = n
-        """vout index (uint32)"""
-
-    def serialize(self) -> bytes:
-        return self.txid.serialize() + struct.pack("<I", self.n)
-
-    @classmethod
-    def deserialize(cls, stream: BytesIO) -> COutPoint:
-        txid = UInt256.deserialize(stream)
-        n = struct.unpack("<I", stream.read(4))[0]
-        return COutPoint(txid, n)
