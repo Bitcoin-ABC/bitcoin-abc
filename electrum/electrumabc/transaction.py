@@ -70,6 +70,10 @@ The unit is satoshis.
 MAX_SCRIPT_SIZE = 10000
 
 AMOUNT_NBYTES = 8
+TXID_NBYTES = 32
+OUTPUT_INDEX_NBYTES = 4
+OUTPOINT_NBYTES = TXID_NBYTES + OUTPUT_INDEX_NBYTES
+SEQUENCE_NBYTES = 4
 
 # Note: The deserialization code originally comes from ABE.
 
@@ -146,6 +150,42 @@ class OutPoint(SerializableObject):
         txid = UInt256.deserialize(stream)
         n = struct.unpack("<I", stream.read(4))[0]
         return OutPoint(txid, n)
+
+    def __eq__(self, other: OutPoint):
+        return self.txid == other.txid and self.n == other.n
+
+    def __str__(self):
+        return f"{self.txid.to_string()}:{self.n})"
+
+
+class TxInput:
+    def __init__(self, outpoint: OutPoint, scriptsig: bytes, sequence: int):
+        self.outpoint = outpoint
+        self.scriptsig = scriptsig
+        self.sequence = sequence
+
+    def size(self):
+        scriptsig_nbytes = len(self.scriptsig)
+        assert scriptsig_nbytes <= MAX_SCRIPT_SIZE
+        return (
+            OUTPOINT_NBYTES
+            + compact_size_nbytes(scriptsig_nbytes)
+            + scriptsig_nbytes
+            + SEQUENCE_NBYTES
+        )
+
+    def __eq__(self, other: TxInput):
+        return (
+            self.outpoint == other.outpoint
+            and self.scriptsig == other.scriptsig
+            and self.sequence == other.sequence
+        )
+
+    def __str__(self):
+        return (
+            f"TxInput(outpoint={self.outpoint}, scriptsig={self.scriptsig.hex()}, "
+            f"sequence={self.sequence})"
+        )
 
 
 class BCDataStream(object):
@@ -569,10 +609,20 @@ class Transaction:
         self._inputs = None
         self.deserialize()
 
-    def inputs(self):
+    def inputs(self) -> List[dict]:
         if self._inputs is None:
             self.deserialize()
         return self._inputs
+
+    def txinputs(self) -> List[TxInput]:
+        return [
+            TxInput(
+                OutPoint(UInt256.from_hex(inp["prevout_hash"]), inp["prevout_n"]),
+                bytes.fromhex(inp["scriptSig"]),
+                inp["sequence"],
+            )
+            for inp in self.inputs()
+        ]
 
     def outputs(self) -> List[TxOutput]:
         if self._outputs is None:

@@ -4,6 +4,7 @@ from .. import transaction
 from ..address import Address, PublicKey, ScriptOutput
 from ..bitcoin import TYPE_ADDRESS, TYPE_PUBKEY, TYPE_SCRIPT, OpCodes
 from ..keystore import xpubkey_to_address
+from ..uint256 import UInt256
 from ..util import bh2u
 
 unsigned_blob = "010000000149f35e43fefd22d8bb9e4b3ff294c6286154c25712baf6ab77b646e5074d6aed010000005701ff4c53ff0488b21e0000000000000000004f130d773e678a58366711837ec2e33ea601858262f8eaef246a7ebd19909c9a03c3b30e38ca7d797fee1223df1c9827b2a9f3379768f520910260220e0560014600002300feffffffd8e43201000000000118e43201000000001976a914e158fb15c888037fdc40fb9133b4c1c3c688706488ac5fbd0700"
@@ -13,15 +14,28 @@ nonmin_blob = "010000000142b88360bd83813139af3a251922b7f3d2ac88e45a2a703c28db8ee
 
 
 SHORT_COMPACTSIZE_NBYTES = 1
-PUBKEY_SIZE = 33
+PUBKEY_NBYTES = 33
+UNCOMPRESSED_PUBKEY_NBYTES = 65
 # OP_DUP OP_HASH160 20 <20 bytes hash> OP_EQUALVERIFY OP_CHECKSIG
 P2PKH_NBYTES = 25
 # OP_HASH160 20 <20 bytes hash> OP_EQUAL
 P2SH_NBYTES = 23
 # PUSH(33) <pubkey> OP_CHECKSIG
-P2PK_NBYTES = 35
+P2PK_NBYTES = PUBKEY_NBYTES + 2
 # PUSH(65) <uncompressed pubkey> OP_CHECKSIG
-UNCOMPRESSED_P2PK_NBYTES = 67
+UNCOMPRESSED_P2PK_NBYTES = UNCOMPRESSED_PUBKEY_NBYTES + 2
+# Schnorr signature including the sighash type
+SCHNORRSIG_NBYTES = 65
+# PUSH(33) <pubkey> PUSH(65) <shnorr signature>
+SCHNORR_P2PKH_SCRIPTSIG_NBYTES = (
+    2 * SHORT_COMPACTSIZE_NBYTES + PUBKEY_NBYTES + SCHNORRSIG_NBYTES
+)
+
+DUMMY_TXINPUT = transaction.TxInput(
+    transaction.OutPoint(UInt256(b"\x00" * 32), 0), b"", 0
+)
+# TXID (32 bytes) + prevout_n (4 bytes) + sequence (4 bytes)
+DUMMY_TXINPUT_NBYTES = 40
 
 
 class TestBCDataStream(unittest.TestCase):
@@ -378,6 +392,8 @@ class TestTransaction(unittest.TestCase):
         tx = transaction.Transaction(
             "010000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000001976a914aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa88ac00000000"
         )
+        self.assertEqual([tx.txinputs()[0]], [DUMMY_TXINPUT])
+        self.assertEqual(DUMMY_TXINPUT.size(), DUMMY_TXINPUT_NBYTES)
         self.assertEqual(
             tx.outputs(), [(TYPE_ADDRESS, Address.from_P2PKH_hash(b"\xaa" * 20), 0)]
         )
@@ -394,6 +410,7 @@ class TestTransaction(unittest.TestCase):
         tx = transaction.Transaction(
             "010000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000001a76a94c14aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa88ac00000000"
         )
+        self.assertEqual([tx.txinputs()[0]], [DUMMY_TXINPUT])
         self.assertEqual(
             tx.outputs(),
             [
@@ -417,6 +434,7 @@ class TestTransaction(unittest.TestCase):
         tx = transaction.Transaction(
             "0100000001000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000017a914aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa8700000000"
         )
+        self.assertEqual([tx.txinputs()[0]], [DUMMY_TXINPUT])
         self.assertEqual(
             tx.outputs(), [(TYPE_ADDRESS, Address.from_P2SH_hash(b"\xaa" * 20), 0)]
         )
@@ -433,6 +451,7 @@ class TestTransaction(unittest.TestCase):
         tx = transaction.Transaction(
             "0100000001000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000018a94c14aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa8700000000"
         )
+        self.assertEqual([tx.txinputs()[0]], [DUMMY_TXINPUT])
         self.assertEqual(
             tx.outputs(),
             [
@@ -456,6 +475,7 @@ class TestTransaction(unittest.TestCase):
         tx = transaction.Transaction(
             "010000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000002321030000000000000000000000000000000000000000000000000000000000000000ac00000000"
         )
+        self.assertEqual([tx.txinputs()[0]], [DUMMY_TXINPUT])
         self.assertEqual(
             tx.outputs(),
             [(TYPE_PUBKEY, PublicKey.from_pubkey(b"\x03" + b"\x00" * 32), 0)],
@@ -473,6 +493,7 @@ class TestTransaction(unittest.TestCase):
         tx = transaction.Transaction(
             "010000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000002321040000000000000000000000000000000000000000000000000000000000000000ac00000000"
         )
+        self.assertEqual([tx.txinputs()[0]], [DUMMY_TXINPUT])
         self.assertEqual(
             tx.outputs(),
             [
@@ -496,6 +517,7 @@ class TestTransaction(unittest.TestCase):
         tx = transaction.Transaction(
             "01000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000244c21030000000000000000000000000000000000000000000000000000000000000000ac00000000"
         )
+        self.assertEqual([tx.txinputs()[0]], [DUMMY_TXINPUT])
         self.assertEqual(
             tx.outputs(),
             [
@@ -519,6 +541,7 @@ class TestTransaction(unittest.TestCase):
         tx = transaction.Transaction(
             "0100000001000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000043410400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ac00000000"
         )
+        self.assertEqual([tx.txinputs()[0]], [DUMMY_TXINPUT])
         self.assertEqual(
             tx.outputs(),
             [(TYPE_PUBKEY, PublicKey.from_pubkey(b"\x04" + b"\x00" * 64), 0)],
@@ -538,6 +561,7 @@ class TestTransaction(unittest.TestCase):
         tx = transaction.Transaction(
             "0100000001000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000043410300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ac00000000"
         )
+        self.assertEqual([tx.txinputs()[0]], [DUMMY_TXINPUT])
         self.assertEqual(
             tx.outputs(),
             [(TYPE_SCRIPT, ScriptOutput(b"\x41\x03" + b"\x00" * 64 + b"\xac"), 0)],
@@ -551,6 +575,7 @@ class TestTransaction(unittest.TestCase):
         tx = transaction.Transaction(
             "01000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000444c410400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ac00000000"
         )
+        self.assertEqual([tx.txinputs()[0]], [DUMMY_TXINPUT])
         self.assertEqual(
             tx.outputs(),
             [(TYPE_SCRIPT, ScriptOutput(b"\x4c\x41\x04" + b"\x00" * 64 + b"\xac"), 0)],
@@ -565,6 +590,7 @@ class TestTransaction(unittest.TestCase):
         tx = transaction.Transaction(
             "0100000001000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000025512103000000000000000000000000000000000000000000000000000000000000000051ae00000000"
         )
+        self.assertEqual([tx.txinputs()[0]], [DUMMY_TXINPUT])
         self.assertEqual(
             tx.outputs(),
             [
@@ -581,7 +607,7 @@ class TestTransaction(unittest.TestCase):
             tx.outputs()[0].size(),
             transaction.AMOUNT_NBYTES
             + SHORT_COMPACTSIZE_NBYTES
-            + PUBKEY_SIZE
+            + PUBKEY_NBYTES
             + n_opcodes,
         )
         self.assertEqual(
@@ -594,6 +620,7 @@ class TestTransaction(unittest.TestCase):
         tx = transaction.Transaction(
             "0100000001000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000026514c2103000000000000000000000000000000000000000000000000000000000000000051ae00000000"
         )
+        self.assertEqual([tx.txinputs()[0]], [DUMMY_TXINPUT])
         self.assertEqual(
             tx.outputs(),
             [
@@ -614,6 +641,7 @@ class TestTransaction(unittest.TestCase):
         tx = transaction.Transaction(
             "01000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000024d0100000000"
         )
+        self.assertEqual([tx.txinputs()[0]], [DUMMY_TXINPUT])
         self.assertEqual(tx.outputs(), [(TYPE_SCRIPT, ScriptOutput(b"\x4d\x01"), 0)])
         self.assertIn("Invalid script", tx.outputs()[0][1].to_ui_string())
         self.assertEqual(
@@ -626,6 +654,7 @@ class TestTransaction(unittest.TestCase):
         tx = transaction.Transaction(
             "01000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000044d0200ff00000000"
         )
+        self.assertEqual([tx.txinputs()[0]], [DUMMY_TXINPUT])
         self.assertEqual(
             tx.outputs(), [(TYPE_SCRIPT, ScriptOutput(b"\x4d\x02\x00\xff"), 0)]
         )
@@ -640,6 +669,7 @@ class TestTransaction(unittest.TestCase):
         tx = transaction.Transaction(
             "010000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000"
         )
+        self.assertEqual([tx.txinputs()[0]], [DUMMY_TXINPUT])
         self.assertEqual(tx.outputs(), [(TYPE_SCRIPT, ScriptOutput(b""), 0)])
         self.assertEqual(tx.outputs()[0].size(), transaction.AMOUNT_NBYTES)
         self.assertEqual("", tx.outputs()[0][1].to_ui_string())
@@ -651,6 +681,30 @@ class TestTransaction(unittest.TestCase):
     def test_parse_output_p2pkh_and_op_return(self):
         tx = transaction.Transaction(
             "02000000012367ad0da9fb8f8a7e574d55d4eb2dd0fd8ebd58b1c21cfddb9fe5426369082a000000006441761c8b702e06fcb8656cb205454f22efff174e3ae9552c1ee83f7d64e3b0d29fa466c48a82597713fd7a3c03e324855349a76660fa26dfec4922c51ea0f51cb6412102a42cd220e6099d5d678066b81813ae4fdd14b290479962ae5c0af1448113bcb4feffffff030000000000000000066a047370616d05b20100000000001976a9144fe822f96257d66eeb498394ce9a1fbca1323ba088ac10270000000000001976a914b97b77f0a2e0b3161354de723a76d58a974c601988ac00000000"
+        )
+        expected_txinput = transaction.TxInput(
+            transaction.OutPoint(
+                UInt256.from_hex(
+                    "2a08696342e59fdbfd1cc2b158bd8efdd02debd4554d577e8a8ffba90dad6723"
+                ),
+                0,
+            ),
+            bytes.fromhex(
+                "41761c8b702e06fcb8656cb205454f22efff174e3ae9552c1ee83f7d64e3b0d29fa466c48a82597713fd7a3c03e324855349a76660fa26dfec4922c51ea0f51cb6412102a42cd220e6099d5d678066b81813ae4fdd14b290479962ae5c0af1448113bcb4"
+            ),
+            4294967294,
+        )
+        self.assertEqual(
+            tx.txinputs(),
+            [expected_txinput],
+            f"Mismatch between actual txinput\n\t{tx.txinputs()[0]}\nand expected\n\t{expected_txinput}",
+        )
+        self.assertEqual(
+            tx.txinputs()[0].size(),
+            transaction.OUTPOINT_NBYTES
+            + SHORT_COMPACTSIZE_NBYTES
+            + SCHNORR_P2PKH_SCRIPTSIG_NBYTES
+            + transaction.SEQUENCE_NBYTES,
         )
         self.assertEqual(
             tx.outputs(),
@@ -722,6 +776,27 @@ class TestTxOutput(unittest.TestCase):
                 transaction.TxOutput(TYPE_SCRIPT, locking_script, amount).size(),
                 expected_output_size,
             )
+
+
+class TestTxInput(unittest.TestCase):
+    def test_size(self):
+        sequence = 0
+        txid = UInt256(b"\x00" * 32)
+        outpoint = transaction.OutPoint(txid, 0)
+
+        for script_size, expected_output_size in (
+            # Base overhead: outpoint and sequence number
+            (0, 40),
+            # + 1 byte compact size + scriptSig
+            (1, 42),
+            (252, 293),
+            # + 3 byte compact size + scriptSig
+            (253, 296),
+            # MAX_SCRIPT_SIZE
+            (10000, 10043),
+        ):
+            txin = transaction.TxInput(outpoint, b"\x00" * script_size, sequence)
+            self.assertEqual(txin.size(), expected_output_size)
 
 
 class NetworkMock:
