@@ -23,7 +23,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 """This module contains serialization tools for various basic data structures used by
-Avalanche data structures.
+data structures.
 """
 from __future__ import annotations
 

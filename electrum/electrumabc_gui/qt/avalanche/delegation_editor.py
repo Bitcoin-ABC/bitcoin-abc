@@ -12,8 +12,8 @@ from electrumabc.avalanche.delegation import (
 )
 from electrumabc.avalanche.primitives import Key, PublicKey
 from electrumabc.avalanche.proof import LimitedProofId, Proof
-from electrumabc.avalanche.serialize import DeserializationError
 from electrumabc.bitcoin import is_private_key
+from electrumabc.serialize import DeserializationError
 from electrumabc.wallet import DeterministicWallet
 
 from .util import AuxiliaryKeysDialog, CachedWalletPasswordWidget

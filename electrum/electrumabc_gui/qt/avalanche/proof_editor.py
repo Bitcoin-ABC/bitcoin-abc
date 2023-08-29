@@ -10,14 +10,14 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from electrumabc.address import Address, AddressError
 from electrumabc.avalanche.primitives import COutPoint, Key, PublicKey
 from electrumabc.avalanche.proof import Proof, ProofBuilder, SignedStake, Stake
-from electrumabc.avalanche.serialize import (
+from electrumabc.bitcoin import is_private_key
+from electrumabc.constants import PROOF_DUST_THRESHOLD, STAKE_UTXO_CONFIRMATIONS
+from electrumabc.i18n import _
+from electrumabc.serialize import (
     DeserializationError,
     serialize_blob,
     write_compact_size,
 )
-from electrumabc.bitcoin import is_private_key
-from electrumabc.constants import PROOF_DUST_THRESHOLD, STAKE_UTXO_CONFIRMATIONS
-from electrumabc.i18n import _
 from electrumabc.transaction import get_address_from_output_script
 from electrumabc.uint256 import UInt256
 from electrumabc.util import format_satoshis

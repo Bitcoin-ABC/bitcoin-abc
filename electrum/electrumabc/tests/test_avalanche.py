@@ -12,7 +12,7 @@ from ..avalanche.delegation import (
 )
 from ..avalanche.primitives import COutPoint, Key, PublicKey
 from ..avalanche.proof import LimitedProofId, Proof, ProofBuilder, ProofId, Stake
-from ..avalanche.serialize import DeserializationError
+from ..serialize import DeserializationError
 from ..transaction import get_address_from_output_script
 from ..uint256 import UInt256
 

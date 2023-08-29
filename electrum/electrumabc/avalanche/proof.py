@@ -35,10 +35,7 @@ from io import BytesIO
 from typing import TYPE_CHECKING, List, Optional, Union
 
 from ..bitcoin import Hash as sha256d
-from ..transaction import get_address_from_output_script
-from ..uint256 import UInt256
-from .primitives import COutPoint, Key, PublicKey
-from .serialize import (
+from ..serialize import (
     DeserializationError,
     SerializableObject,
     deserialize_blob,
@@ -46,6 +43,9 @@ from .serialize import (
     serialize_blob,
     serialize_sequence,
 )
+from ..transaction import get_address_from_output_script
+from ..uint256 import UInt256
+from .primitives import COutPoint, Key, PublicKey
 
 if TYPE_CHECKING:
     from .. import address

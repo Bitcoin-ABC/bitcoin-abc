@@ -4,7 +4,7 @@ import struct
 from io import BytesIO
 from typing import Optional
 
-from .avalanche.serialize import DeserializationError
+from .serialize import DeserializationError
 
 
 class BaseBlob:

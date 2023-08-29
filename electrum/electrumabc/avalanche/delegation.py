@@ -31,15 +31,15 @@ from io import BytesIO
 from typing import Callable, List, Optional, Sequence, Tuple
 
 from ..bitcoin import Hash as sha256d
-from ..uint256 import UInt256
-from .primitives import Key, PublicKey
-from .proof import LimitedProofId, Proof, ProofId
-from .serialize import (
+from ..serialize import (
     DeserializationError,
     SerializableObject,
     deserialize_sequence,
     serialize_sequence,
 )
+from ..uint256 import UInt256
+from .primitives import Key, PublicKey
+from .proof import LimitedProofId, Proof, ProofId
 
 
 class WrongDelegatorKeyError(Exception):

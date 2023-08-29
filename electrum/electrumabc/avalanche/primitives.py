@@ -31,14 +31,14 @@ from io import BytesIO
 
 from .. import schnorr
 from ..bitcoin import deserialize_privkey, public_key_from_private_key
-from ..uint256 import UInt256
-from .serialize import (
+from ..serialize import (
     DeserializationError,
     SerializableObject,
     deserialize_blob,
     serialize_blob,
     write_compact_size,
 )
+from ..uint256 import UInt256
 
 # We redefine private key and public key objects because the ones used in the rest
 # of the codebase are messy.
