@@ -6,7 +6,7 @@
 const config = require('./config');
 const aliasConstants = require('./constants/alias');
 const secrets = require('./secrets');
-const { main } = require('./src/main');
+const { main, cleanup } = require('./src/main');
 const { initializeDb } = require('./src/db');
 const { startServer } = require('./src/app');
 
@@ -29,7 +29,7 @@ const telegramBot = new TelegramBot(botId, {
 initializeDb(aliasServerMongoClient).then(
     db => {
         // Start the express app (server with API endpoints)
-        startServer(db, config.express.port);
+        const server = startServer(db, config.express.port);
 
         // Start the indexer
         main(
@@ -40,6 +40,16 @@ initializeDb(aliasServerMongoClient).then(
             channelId,
             secrets.avalancheRpc,
         );
+
+        // Gracefully shut down on app termination
+        process.on('SIGTERM', () => {
+            // kill <pid> from terminal
+            cleanup(server, aliasServerMongoClient);
+        });
+        process.on('SIGINT', () => {
+            // ctrl + c in nodejs
+            cleanup(server, aliasServerMongoClient);
+        });
     },
     err => {
         console.log(`Error initializing database`, err);

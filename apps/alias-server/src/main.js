@@ -46,4 +46,20 @@ module.exports = {
             return { aliasWebsocket, appStartup };
         }
     },
+    /**
+     * Make sure the the database and API server shut down gracefully
+     * @param {object} server the express server returned by the startServer function in app.js
+     * @param {object} mongoClient the mongo client connection
+     */
+    cleanup: async function (server, mongoClient) {
+        await server.close();
+        console.log('API server closed.');
+
+        await mongoClient.close();
+        console.log('MongoDB connection closed.');
+
+        // Shut down alias-server
+        console.log('alias-server shut down successfully');
+        process.exit(0);
+    },
 };
