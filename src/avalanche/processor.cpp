@@ -818,6 +818,76 @@ bool Processor::canShareLocalProof() {
     return m_canShareLocalProof;
 }
 
+bool Processor::computeStakingReward(const CBlockIndex *pindex) {
+    if (!pindex) {
+        return false;
+    }
+
+    // If the quorum is not established there is no point picking a winner that
+    // will be rejected.
+    if (!isQuorumEstablished()) {
+        return false;
+    }
+
+    {
+        LOCK(cs_stakingRewards);
+        if (stakingRewards.count(pindex->GetBlockHash()) > 0) {
+            return true;
+        }
+    }
+
+    StakingReward _stakingRewards;
+    _stakingRewards.blockheight = pindex->nHeight;
+
+    if (WITH_LOCK(cs_peerManager, return peerManager->selectPayoutScriptPubKey(
+                                      pindex, _stakingRewards.winner,
+                                      _stakingRewards.acceptableWinners))) {
+        LOCK(cs_stakingRewards);
+        return stakingRewards
+            .emplace(pindex->GetBlockHash(), std::move(_stakingRewards))
+            .second;
+    }
+
+    return false;
+}
+
+void Processor::cleanupStakingRewards(const int minHeight) {
+    LOCK(cs_stakingRewards);
+    // std::erase_if is only defined since C++20
+    for (auto it = stakingRewards.begin(); it != stakingRewards.end();) {
+        if (it->second.blockheight < minHeight) {
+            it = stakingRewards.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+bool Processor::getStakingRewardWinner(const BlockHash &prevBlockHash,
+                                       CScript &winner) const {
+    LOCK(cs_stakingRewards);
+    auto it = stakingRewards.find(prevBlockHash);
+    if (it == stakingRewards.end()) {
+        return false;
+    }
+
+    winner = it->second.winner;
+    return true;
+}
+
+bool Processor::getStakingRewardAcceptableWinners(
+    const BlockHash &prevBlockHash,
+    std::vector<CScript> &acceptableWinners) const {
+    LOCK(cs_stakingRewards);
+    auto it = stakingRewards.find(prevBlockHash);
+    if (it == stakingRewards.end()) {
+        return false;
+    }
+
+    acceptableWinners = it->second.acceptableWinners;
+    return true;
+}
+
 void Processor::FinalizeNode(const ::Config &config, const CNode &node) {
     AssertLockNotHeld(cs_main);
 

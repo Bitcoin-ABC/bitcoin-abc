@@ -650,6 +650,7 @@ add_library(server
 	node/ui_interface.cpp
 	noui.cpp
 	policy/block/minerfund.cpp
+	policy/block/stakingrewards.cpp
 	policy/fees.cpp
 	policy/packages.cpp
 	policy/settings.cpp

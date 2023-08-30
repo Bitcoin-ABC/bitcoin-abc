@@ -12,6 +12,7 @@
 #include <avalanche/voterecord.h>
 #include <chain.h>
 #include <config.h>
+#include <core_io.h>
 #include <key_io.h>
 #include <net_processing.h> // For ::PeerManager
 #include <reverse_iterator.h>
@@ -29,6 +30,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <functional>
+#include <limits>
 #include <type_traits>
 #include <vector>
 
@@ -174,7 +176,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         return node;
     }
 
-    ProofRef GetProof() {
+    ProofRef GetProof(CScript payoutScript = UNSPENDABLE_ECREG_PAYOUT_SCRIPT) {
         const CKey key = CKey::MakeCompressedKey();
         const COutPoint outpoint{TxId(GetRandHash()), 0};
         CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
@@ -187,7 +189,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         coins.AddCoin(outpoint, Coin(CTxOut(amount, script), height, false),
                       false);
 
-        ProofBuilder pb(0, 0, masterpriv, UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
+        ProofBuilder pb(0, 0, masterpriv, payoutScript);
         BOOST_CHECK(pb.addUTXO(outpoint, amount, height, false, key));
         return pb.build();
     }
@@ -2223,6 +2225,170 @@ BOOST_AUTO_TEST_CASE(block_reconcile_initial_vote) {
     SyncWithValidationInterfaceQueue();
 
     g_avalanche.reset(nullptr);
+}
+
+BOOST_AUTO_TEST_CASE(compute_staking_rewards) {
+    auto now = GetTime<std::chrono::seconds>();
+    SetMockTime(now);
+
+    // Pick in the middle
+    BlockHash prevBlockHash{uint256::ZERO};
+
+    CScript winner;
+    std::vector<CScript> acceptableWinners;
+
+    BOOST_CHECK(!m_processor->getStakingRewardWinner(prevBlockHash, winner));
+    BOOST_CHECK(!m_processor->getStakingRewardAcceptableWinners(
+        prevBlockHash, acceptableWinners));
+
+    // Null index
+    BOOST_CHECK(!m_processor->computeStakingReward(nullptr));
+    BOOST_CHECK(!m_processor->getStakingRewardWinner(prevBlockHash, winner));
+    BOOST_CHECK(!m_processor->getStakingRewardAcceptableWinners(
+        prevBlockHash, acceptableWinners));
+
+    CBlockIndex prevBlock;
+    prevBlock.phashBlock = &prevBlockHash;
+    prevBlock.nHeight = 100;
+    prevBlock.nTime = now.count();
+
+    // No quorum
+    BOOST_CHECK(!m_processor->computeStakingReward(&prevBlock));
+    BOOST_CHECK(!m_processor->getStakingRewardWinner(prevBlockHash, winner));
+    BOOST_CHECK(!m_processor->getStakingRewardAcceptableWinners(
+        prevBlockHash, acceptableWinners));
+
+    setArg("-avaminquorumstake", "0");
+    setArg("-avaminquorumconnectedstakeratio", "0");
+    setArg("-avaminavaproofsnodecount", "0");
+
+    // Setup a bunch of proofs
+    size_t numProofs = 10;
+    std::vector<ProofRef> proofs;
+    proofs.reserve(numProofs);
+    for (size_t i = 0; i < numProofs; i++) {
+        const CKey key = CKey::MakeCompressedKey();
+        CScript payoutScript = GetScriptForRawPubKey(key.GetPubKey());
+
+        auto proof = GetProof(payoutScript);
+        m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+            BOOST_CHECK(pm.registerProof(proof));
+            BOOST_CHECK(pm.addNode(i, proof->getId()));
+            // Finalize the proof
+            BOOST_CHECK(pm.forPeer(proof->getId(), [&](const Peer peer) {
+                return pm.setFinalized(peer.peerid);
+            }));
+        });
+
+        proofs.emplace_back(std::move(proof));
+    }
+
+    // Sort the proofs by proofid
+    std::sort(proofs.begin(), proofs.end(),
+              [](const ProofRef &lhs, const ProofRef &rhs) {
+                  return lhs->getId() < rhs->getId();
+              });
+
+    BOOST_CHECK(m_processor->isQuorumEstablished());
+
+    // Proofs are too recent so we still have no winner
+    BOOST_CHECK(!m_processor->computeStakingReward(&prevBlock));
+    BOOST_CHECK(!m_processor->getStakingRewardWinner(prevBlockHash, winner));
+    BOOST_CHECK(!m_processor->getStakingRewardAcceptableWinners(
+        prevBlockHash, acceptableWinners));
+
+    auto checkWinners =
+        [&](const ProofRef &expectedWinner,
+            const std::vector<ProofRef> &expectedAcceptableWinners) {
+            BOOST_CHECK_EQUAL(FormatScript(winner),
+                              FormatScript(expectedWinner->getPayoutScript()));
+            BOOST_CHECK_EQUAL(acceptableWinners.size(),
+                              expectedAcceptableWinners.size());
+            for (const ProofRef &expectedProof : expectedAcceptableWinners) {
+                const std::string expectedScriptStr =
+                    FormatScript(expectedProof->getPayoutScript());
+
+                bool found = false;
+                for (CScript &acceptableScript : acceptableWinners) {
+                    if (expectedScriptStr == FormatScript(acceptableScript)) {
+                        found = true;
+                        break;
+                    }
+                }
+                BOOST_CHECK_MESSAGE(
+                    found,
+                    "The acceptable winners does not match the expected list");
+            }
+        };
+
+    // Elapse some time
+    now += 1h;
+    SetMockTime(now);
+    prevBlock.nTime = now.count();
+
+    // Now we successfully inserted a winner in our map
+    BOOST_CHECK(m_processor->computeStakingReward(&prevBlock));
+    BOOST_CHECK(m_processor->getStakingRewardWinner(prevBlockHash, winner));
+    BOOST_CHECK(m_processor->getStakingRewardAcceptableWinners(
+        prevBlockHash, acceptableWinners));
+    checkWinners(proofs[0], {proofs[0]});
+
+    // Subsequent calls are a no-op
+    BOOST_CHECK(m_processor->computeStakingReward(&prevBlock));
+    BOOST_CHECK(m_processor->getStakingRewardWinner(prevBlockHash, winner));
+    BOOST_CHECK(m_processor->getStakingRewardAcceptableWinners(
+        prevBlockHash, acceptableWinners));
+    checkWinners(proofs[0], {proofs[0]});
+
+    CBlockIndex prevBlockHigh = prevBlock;
+    BlockHash prevBlockHashHigh =
+        BlockHash(ArithToUint256({std::numeric_limits<uint64_t>::max()}));
+    prevBlockHigh.phashBlock = &prevBlockHashHigh;
+    prevBlockHigh.nHeight = 101;
+    BOOST_CHECK(m_processor->computeStakingReward(&prevBlockHigh));
+    BOOST_CHECK(m_processor->getStakingRewardWinner(prevBlockHashHigh, winner));
+    BOOST_CHECK(m_processor->getStakingRewardAcceptableWinners(
+        prevBlockHashHigh, acceptableWinners));
+    checkWinners(proofs[9], {proofs[9]});
+
+    // No impact on previous winners so far
+    BOOST_CHECK(m_processor->getStakingRewardWinner(prevBlockHash, winner));
+    BOOST_CHECK(m_processor->getStakingRewardAcceptableWinners(
+        prevBlockHash, acceptableWinners));
+    checkWinners(proofs[0], {proofs[0]});
+
+    // Cleanup to height 101
+    m_processor->cleanupStakingRewards(101);
+
+    // Now the previous winner has been cleared
+    BOOST_CHECK(!m_processor->getStakingRewardWinner(prevBlockHash, winner));
+    BOOST_CHECK(!m_processor->getStakingRewardAcceptableWinners(
+        prevBlockHash, acceptableWinners));
+
+    // But the last one remain
+    BOOST_CHECK(m_processor->getStakingRewardWinner(prevBlockHashHigh, winner));
+    BOOST_CHECK(m_processor->getStakingRewardAcceptableWinners(
+        prevBlockHashHigh, acceptableWinners));
+    checkWinners(proofs[9], {proofs[9]});
+
+    // We can add it again
+    BOOST_CHECK(m_processor->computeStakingReward(&prevBlock));
+    BOOST_CHECK(m_processor->getStakingRewardWinner(prevBlockHash, winner));
+    BOOST_CHECK(m_processor->getStakingRewardAcceptableWinners(
+        prevBlockHash, acceptableWinners));
+    checkWinners(proofs[0], {proofs[0]});
+
+    // Cleanup to higher height
+    m_processor->cleanupStakingRewards(200);
+
+    // No winner anymore
+    BOOST_CHECK(!m_processor->getStakingRewardWinner(prevBlockHash, winner));
+    BOOST_CHECK(!m_processor->getStakingRewardAcceptableWinners(
+        prevBlockHash, acceptableWinners));
+    BOOST_CHECK(
+        !m_processor->getStakingRewardWinner(prevBlockHashHigh, winner));
+    BOOST_CHECK(!m_processor->getStakingRewardAcceptableWinners(
+        prevBlockHashHigh, acceptableWinners));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

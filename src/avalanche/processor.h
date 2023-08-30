@@ -33,6 +33,7 @@
 #include <chrono>
 #include <cstdint>
 #include <memory>
+#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -266,6 +267,16 @@ class Processor final : public NetEventsInterface {
     std::unordered_set<NodeId>
         delayedAvahelloNodeIds GUARDED_BY(cs_delayedAvahelloNodeIds);
 
+    struct StakingReward {
+        int blockheight;
+        CScript winner;
+        std::vector<CScript> acceptableWinners;
+    };
+
+    mutable Mutex cs_stakingRewards;
+    std::unordered_map<BlockHash, StakingReward, SaltedUint256Hasher>
+        stakingRewards GUARDED_BY(cs_stakingRewards);
+
     Processor(Config avaconfig, interfaces::Chain &chain, CConnman *connmanIn,
               ChainstateManager &chainman, CTxMemPool *mempoolIn,
               CScheduler &scheduler, std::unique_ptr<PeerData> peerDataIn,
@@ -326,6 +337,14 @@ public:
     }
     bool isQuorumEstablished() LOCKS_EXCLUDED(cs_main);
     bool canShareLocalProof();
+
+    bool computeStakingReward(const CBlockIndex *pindex);
+    void cleanupStakingRewards(const int minHeight);
+    bool getStakingRewardWinner(const BlockHash &prevBlockHash,
+                                CScript &winner) const;
+    bool getStakingRewardAcceptableWinners(
+        const BlockHash &prevBlockHash,
+        std::vector<CScript> &acceptableWinners) const;
 
     // Implement NetEventInterface. Only FinalizeNode is of interest.
     void InitializeNode(const ::Config &config, CNode *pnode) override {}
