@@ -1349,12 +1349,8 @@ module.exports = {
 
             if (tokenSendInfo && tokenInfoMap && !tokenBurnInfo) {
                 // If this is a token send tx that does not burn any tokens and you have tokenInfoMap
-                let {
-                    tokenId,
-                    tokenSendingOutputScripts,
-                    tokenChangeOutputs,
-                    tokenReceivingOutputs,
-                } = tokenSendInfo;
+                let { tokenId, tokenChangeOutputs, tokenReceivingOutputs } =
+                    tokenSendInfo;
 
                 // Get token info from tokenInfoMap
                 const thisTokenInfo = tokenInfoMap.get(tokenId);
@@ -1370,76 +1366,27 @@ module.exports = {
                 // Initialize tokenSendMsg
                 let tokenSendMsg;
 
-                // Parse token self-send txs
-                if (tokenReceivingOutputs.size === 0) {
-                    // self send tx
-                    let undecimalizedTokenChangeAmount = new BigNumber(0);
-                    for (const tokenChangeAmount of tokenChangeOutputs.values()) {
-                        undecimalizedTokenChangeAmount =
-                            undecimalizedTokenChangeAmount.plus(
-                                tokenChangeAmount,
-                            );
-                    }
-                    // Calculate true tokenChangeAmount using decimals
-                    // Use decimals to calculate the sent amount as string
-                    const decimalizedTokenChangeAmount =
-                        bigNumberAmountToLocaleString(
-                            undecimalizedTokenChangeAmount.toString(),
-                            decimals,
-                        );
+                // Initialize token outputs (could be receiving or change depending on tx type)
+                let tokenOutputs =
+                    tokenReceivingOutputs.size === 0
+                        ? tokenChangeOutputs
+                        : tokenReceivingOutputs;
 
-                    // Self send tokenSendMsg
-                    tokenSendMsg = `${emojis.tokenSend}${
-                        tokenSendingOutputScripts.size
-                    } ${
-                        tokenSendingOutputScripts.size > 1
-                            ? 'addresses'
-                            : 'address'
-                    } <a href="${
-                        config.blockExplorer
-                    }/tx/${txid}">sent</a> ${decimalizedTokenChangeAmount} <a href="${
-                        config.blockExplorer
-                    }/tx/${tokenId}">${tokenTicker}</a> to ${
-                        tokenSendingOutputScripts.size > 1
-                            ? 'themselves'
-                            : 'itself'
-                    }`;
-                } else {
-                    // Normal token send tx
-                    let undecimalizedTokenReceivedAmount = new BigNumber(0);
-                    for (const tokenReceivedAmount of tokenReceivingOutputs.values()) {
-                        undecimalizedTokenReceivedAmount =
-                            undecimalizedTokenReceivedAmount.plus(
-                                tokenReceivedAmount,
-                            );
-                    }
-                    // Calculate true tokenReceivedAmount using decimals
-                    // Use decimals to calculate the received amount as string
-                    const decimalizedTokenReceivedAmount =
-                        bigNumberAmountToLocaleString(
-                            undecimalizedTokenReceivedAmount.toString(),
-                            decimals,
+                let undecimalizedTokenReceivedAmount = new BigNumber(0);
+                for (const tokenReceivedAmount of tokenOutputs.values()) {
+                    undecimalizedTokenReceivedAmount =
+                        undecimalizedTokenReceivedAmount.plus(
+                            tokenReceivedAmount,
                         );
-                    tokenSendMsg = `${emojis.tokenSend}${returnAddressPreview(
-                        cashaddr.encodeOutputScript(
-                            tokenSendingOutputScripts.values().next().value,
-                        ),
-                    )} <a href="${
-                        config.blockExplorer
-                    }/tx/${txid}">sent</a> ${decimalizedTokenReceivedAmount} <a href="${
-                        config.blockExplorer
-                    }/tx/${tokenId}">${tokenTicker}</a> to ${returnAddressPreview(
-                        cashaddr.encodeOutputScript(
-                            tokenReceivingOutputs.keys().next().value,
-                        ),
-                    )}${
-                        tokenReceivingOutputs.size > 1
-                            ? ` and ${tokenReceivingOutputs.size - 1} other${
-                                  tokenReceivingOutputs.size - 1 > 1 ? 's' : ''
-                              }`
-                            : ''
-                    }`;
                 }
+                // Calculate true tokenReceivedAmount using decimals
+                // Use decimals to calculate the received amount as string
+                const decimalizedTokenReceivedAmount =
+                    bigNumberAmountToLocaleString(
+                        undecimalizedTokenReceivedAmount.toString(),
+                        decimals,
+                    );
+                tokenSendMsg = `${emojis.tokenSend} <a href="${config.blockExplorer}/tx/${txid}">${decimalizedTokenReceivedAmount}</a> <a href="${config.blockExplorer}/tx/${tokenId}">${tokenTicker}</a>`;
 
                 tokenSendTxTgMsgLines.push(tokenSendMsg);
                 // This parsed tx has a tg msg line. Move on to the next one.
