@@ -6,6 +6,8 @@
 
 #include <node/miner.h>
 
+#include <avalanche/avalanche.h>
+#include <avalanche/processor.h>
 #include <chain.h>
 #include <chainparams.h>
 #include <coins.h>
@@ -16,6 +18,7 @@
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
 #include <minerfund.h>
+#include <policy/block/stakingrewards.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
 #include <pow/pow.h>
@@ -187,12 +190,26 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
         nFees + GetBlockSubsidy(nHeight, consensusParams);
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
 
+    const Amount blockReward = coinbaseTx.vout[0].nValue;
+
     const auto whitelisted = GetMinerFundWhitelist(consensusParams);
     if (!whitelisted.empty()) {
-        const Amount fund = GetMinerFundAmount(coinbaseTx.vout[0].nValue);
+        const Amount fund = GetMinerFundAmount(blockReward);
         coinbaseTx.vout[0].nValue -= fund;
         coinbaseTx.vout.emplace_back(
             fund, GetScriptForDestination(*whitelisted.begin()));
+    }
+
+    CScript stakingRewardsPayoutScript;
+    if (g_avalanche && isAvalancheEnabled(gArgs) &&
+        gArgs.GetBoolArg("-avalanchestakingrewards",
+                         AVALANCHE_DEFAULT_STAKING_REWARDS) &&
+        g_avalanche->getStakingRewardWinner(pindexPrev->GetBlockHash(),
+                                            stakingRewardsPayoutScript)) {
+        const Amount stakingRewards = GetStakingRewardsAmount(blockReward);
+        coinbaseTx.vout[0].nValue -= stakingRewards;
+        coinbaseTx.vout.emplace_back(stakingRewards,
+                                     stakingRewardsPayoutScript);
     }
 
     // Make sure the coinbase is big enough.

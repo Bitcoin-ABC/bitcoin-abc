@@ -3214,9 +3214,11 @@ bool Chainstate::ActivateBestChain(const Config &config,
         }
         // When we reach this point, we switched to a new tip (stored in
         // pindexNewTip).
-
-        for (const CBlockIndex *pindex : blocksToReconcile) {
-            g_avalanche->addToReconcile(pindex);
+        if (g_avalanche) {
+            for (const CBlockIndex *pindex : blocksToReconcile) {
+                g_avalanche->addToReconcile(pindex);
+                g_avalanche->computeStakingReward(pindex);
+            }
         }
 
         if (!blocks_connected) {
@@ -3651,6 +3653,10 @@ bool Chainstate::AvalancheFinalizeBlock(CBlockIndex *pindex) {
                  "active chain: %s\n",
                  pindex->GetBlockHash().ToString());
         return false;
+    }
+
+    if (g_avalanche) {
+        g_avalanche->cleanupStakingRewards(pindex->nHeight);
     }
 
     if (IsBlockAvalancheFinalized(pindex)) {

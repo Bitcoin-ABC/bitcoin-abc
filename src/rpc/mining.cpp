@@ -3,6 +3,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <avalanche/avalanche.h>
+#include <avalanche/processor.h>
 #include <blockvalidity.h>
 #include <cashaddrenc.h>
 #include <chain.h>
@@ -20,6 +22,7 @@
 #include <net.h>
 #include <node/context.h>
 #include <node/miner.h>
+#include <policy/block/stakingrewards.h>
 #include <policy/policy.h>
 #include <pow/pow.h>
 #include <rpc/blockchain.h>
@@ -751,6 +754,37 @@ static RPCHelpMan getblocktemplate() {
                                "pay"},
 
                           }},
+                         {RPCResult::Type::OBJ,
+                          "stakingrewards",
+                          "information related to the coinbase staking reward "
+                          "output, only set if the experimental "
+                          "-avalanchestakingrewards option is enabled",
+                          {
+                              {RPCResult::Type::OBJ,
+                               "payoutscript",
+                               "The proof payout script",
+                               {
+                                   {RPCResult::Type::STR, "asm",
+                                    "Decoded payout script"},
+                                   {RPCResult::Type::STR_HEX, "hex",
+                                    "Raw payout script in hex format"},
+                                   {RPCResult::Type::STR, "type",
+                                    "The output type (e.g. " +
+                                        GetAllOutputTypes() + ")"},
+                                   {RPCResult::Type::NUM, "reqSigs",
+                                    "The required signatures"},
+                                   {RPCResult::Type::ARR,
+                                    "addresses",
+                                    "",
+                                    {
+                                        {RPCResult::Type::STR, "address",
+                                         "eCash address"},
+                                    }},
+                               }},
+                              {RPCResult::Type::STR_AMOUNT, "minimumvalue",
+                               "The minimum value the staking reward output "
+                               "must pay"},
+                          }},
                          {RPCResult::Type::ELISION, "", ""},
                      }},
                     {RPCResult::Type::STR, "target", "The hash target"},
@@ -1019,6 +1053,26 @@ static RPCHelpMan getblocktemplate() {
 
             UniValue coinbasetxn(UniValue::VOBJ);
             coinbasetxn.pushKV("minerfund", minerFund);
+
+            CScript stakingRewardsPayoutScript;
+            if (g_avalanche && isAvalancheEnabled(gArgs) &&
+                gArgs.GetBoolArg("-avalanchestakingrewards",
+                                 AVALANCHE_DEFAULT_STAKING_REWARDS) &&
+                g_avalanche->getStakingRewardWinner(
+                    pindexPrev->GetBlockHash(), stakingRewardsPayoutScript)) {
+                UniValue stakingRewards(UniValue::VOBJ);
+                UniValue stakingRewardsPayoutScriptObj(UniValue::VOBJ);
+                ScriptPubKeyToUniv(stakingRewardsPayoutScript,
+                                   stakingRewardsPayoutScriptObj,
+                                   /*fIncludeHex=*/true);
+                stakingRewards.pushKV("payoutscript",
+                                      stakingRewardsPayoutScriptObj);
+                stakingRewards.pushKV(
+                    "minimumvalue",
+                    int64_t(GetStakingRewardsAmount(coinbasevalue) / SATOSHI));
+
+                coinbasetxn.pushKV("stakingrewards", stakingRewards);
+            }
 
             arith_uint256 hashTarget =
                 arith_uint256().SetCompact(pblock->nBits);

@@ -431,6 +431,7 @@ void SetupServerArgs(NodeContext &node) {
         "-dbcrashratio", "-forcecompactdb", "-maxaddrtosend", "-parkdeepreorg",
         "-automaticunparking", "-replayprotectionactivationtime",
         "-enableminerfund", "-chronikallowpause",
+        "-stakingrewardmaxslackpercent", "-avalanchestakingrewards",
         // GUI args. These will be overwritten by SetupUIArgs for the GUI
         "-allowselfsignedrootcertificates", "-choosedatadir", "-lang=<lang>",
         "-min", "-resetguisettings", "-rootcertificates=<file>", "-splash",
