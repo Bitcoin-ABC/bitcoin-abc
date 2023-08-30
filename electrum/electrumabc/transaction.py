@@ -44,8 +44,7 @@ from .address import (
     ScriptOutput,
     UnknownAddress,
 )
-from .bitcoin import TYPE_SCRIPT
-from .bitcoin import OpCodes as opcodes
+from .bitcoin import TYPE_SCRIPT, OpCodes
 from .caches import ExpiringCache
 from .constants import DEFAULT_TXIN_SEQUENCE
 
@@ -89,7 +88,7 @@ class TxOutput(NamedTuple):
             return False
 
         ops = Script.get_ops(self.destination.script)
-        return len(ops) >= 1 and ops[0][0] == opcodes.OP_RETURN
+        return len(ops) >= 1 and ops[0][0] == OpCodes.OP_RETURN
 
 
 class BCDataStream(object):
@@ -233,8 +232,8 @@ def match_decoded(decoded, to_match):
     for i in range(len(decoded)):
         op = decoded[i][0]
         if (
-            to_match[i] == opcodes.OP_PUSHDATA4
-            and op <= opcodes.OP_PUSHDATA4
+            to_match[i] == OpCodes.OP_PUSHDATA4
+            and op <= OpCodes.OP_PUSHDATA4
             and op > 0
         ):
             # Opcodes below OP_PUSHDATA4 just push data onto stack, and are equivalent.
@@ -264,7 +263,7 @@ def parse_scriptSig(d, _bytes):
         print_error("cannot find address in input script", bh2u(_bytes))
         return
 
-    match = [opcodes.OP_PUSHDATA4]
+    match = [OpCodes.OP_PUSHDATA4]
     if match_decoded(decoded, match):
         item = decoded[0][1]
         # payto_pubkey
@@ -278,7 +277,7 @@ def parse_scriptSig(d, _bytes):
     # non-generated TxIn transactions push a signature
     # (seventy-something bytes) and then their public key
     # (65 bytes) onto the stack:
-    match = [opcodes.OP_PUSHDATA4, opcodes.OP_PUSHDATA4]
+    match = [OpCodes.OP_PUSHDATA4, OpCodes.OP_PUSHDATA4]
     if match_decoded(decoded, match):
         sig = bh2u(decoded[0][1])
         x_pubkey = bh2u(decoded[1][1])
@@ -297,7 +296,7 @@ def parse_scriptSig(d, _bytes):
         return
 
     # p2sh transaction, m of n
-    match = [opcodes.OP_0] + [opcodes.OP_PUSHDATA4] * (len(decoded) - 1)
+    match = [OpCodes.OP_0] + [OpCodes.OP_PUSHDATA4] * (len(decoded) - 1)
     if not match_decoded(decoded, match):
         print_error("cannot find address in input script", bh2u(_bytes))
         return
@@ -316,12 +315,12 @@ def parse_scriptSig(d, _bytes):
 def parse_redeemScript(s):
     dec2 = Script.get_ops(s)
     # the following throw exception when redeemscript has one or zero opcodes
-    m = dec2[0][0] - opcodes.OP_1 + 1
-    n = dec2[-2][0] - opcodes.OP_1 + 1
-    op_m = opcodes.OP_1 + m - 1
-    op_n = opcodes.OP_1 + n - 1
+    m = dec2[0][0] - OpCodes.OP_1 + 1
+    n = dec2[-2][0] - OpCodes.OP_1 + 1
+    op_m = OpCodes.OP_1 + m - 1
+    op_n = OpCodes.OP_1 + n - 1
     match_multisig = (
-        [op_m] + [opcodes.OP_PUSHDATA4] * n + [op_n, opcodes.OP_CHECKMULTISIG]
+        [op_m] + [OpCodes.OP_PUSHDATA4] * n + [op_n, OpCodes.OP_CHECKMULTISIG]
     )
     if not match_decoded(dec2, match_multisig):
         # causes exception in caller when mismatched
@@ -359,7 +358,7 @@ def get_address_from_output_script(
         scriptlen == 35
         and _bytes[0] == 33
         and _bytes[1] in (2, 3)
-        and _bytes[34] == opcodes.OP_CHECKSIG
+        and _bytes[34] == OpCodes.OP_CHECKSIG
     ):
         # Pay-to-pubkey (compressed)
         return bitcoin.TYPE_PUBKEY, PublicKey.from_pubkey(_bytes[1:34])
@@ -368,7 +367,7 @@ def get_address_from_output_script(
         scriptlen == 67
         and _bytes[0] == 65
         and _bytes[1] == 4
-        and _bytes[66] == opcodes.OP_CHECKSIG
+        and _bytes[66] == OpCodes.OP_CHECKSIG
     ):
         # Pay-to-pubkey (uncompressed)
         return bitcoin.TYPE_PUBKEY, PublicKey.from_pubkey(_bytes[1:66])
@@ -452,7 +451,7 @@ def multisig_script(public_keys, m):
     op_m = bitcoin.push_script_bytes(bytes([m])).hex()
     op_n = bitcoin.push_script_bytes(bytes([n])).hex()
     keylist = [bitcoin.push_script(k) for k in public_keys]
-    return op_m + "".join(keylist) + op_n + bytes([opcodes.OP_CHECKMULTISIG]).hex()
+    return op_m + "".join(keylist) + op_n + bytes([OpCodes.OP_CHECKMULTISIG]).hex()
 
 
 class Transaction:
