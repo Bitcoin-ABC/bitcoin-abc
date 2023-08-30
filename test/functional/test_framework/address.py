@@ -13,6 +13,10 @@ ADDRESS_ECREG_UNSPENDABLE = "ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqk
 ADDRESS_ECREG_UNSPENDABLE_DESCRIPTOR = (
     "addr(ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt)#u6xx93xc"
 )
+SCRIPT_UNSPENDABLE = CScript.fromhex(
+    "76a914000000000000000000000000000000000000000088ac"
+)
+
 # Coins sent to this address can be spent with a scriptSig of just OP_TRUE
 ADDRESS_ECREG_P2SH_OP_TRUE = "ecregtest:prdpw30fk4ym6zl6rftfjuw806arpn26fvkgfu97xt"
 P2SH_OP_TRUE = CScript.fromhex("a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87")

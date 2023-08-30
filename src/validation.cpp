@@ -31,6 +31,7 @@
 #include <node/ui_interface.h>
 #include <node/utxo_snapshot.h>
 #include <policy/block/minerfund.h>
+#include <policy/block/stakingrewards.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
 #include <pow/pow.h>
@@ -2644,6 +2645,12 @@ bool Chainstate::ConnectTip(const Config &config, BlockValidationState &state,
             std::vector<std::unique_ptr<ParkingPolicy>> parkingPolicies;
             parkingPolicies.emplace_back(std::make_unique<MinerFundPolicy>(
                 consensusParams, *pindexNew, blockConnecting, blockReward));
+
+            if (g_avalanche) {
+                parkingPolicies.emplace_back(
+                    std::make_unique<StakingRewardsPolicy>(
+                        *pindexNew, blockConnecting, blockReward));
+            }
 
             // If any block policy is violated, bail on the first one found
             if (std::find_if_not(parkingPolicies.begin(), parkingPolicies.end(),

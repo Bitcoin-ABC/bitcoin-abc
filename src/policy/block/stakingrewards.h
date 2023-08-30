@@ -5,7 +5,26 @@
 #ifndef BITCOIN_POLICY_BLOCK_STAKINGREWARDS_H
 #define BITCOIN_POLICY_BLOCK_STAKINGREWARDS_H
 
+#include <policy/block/parkingpolicy.h>
+
 struct Amount;
+class CBlock;
+class CBlockIndex;
+
+class StakingRewardsPolicy : public ParkingPolicy {
+private:
+    const CBlock &m_block;
+    const Amount &m_blockReward;
+    const CBlockIndex &m_blockIndex;
+
+public:
+    StakingRewardsPolicy(const CBlockIndex &blockIndex, const CBlock &block,
+                         const Amount &blockReward)
+        : m_block(block), m_blockReward(blockReward), m_blockIndex(blockIndex) {
+    }
+
+    bool operator()(BlockPolicyValidationState &state) override;
+};
 
 Amount GetStakingRewardsAmount(const Amount &coinbaseValue);
 
