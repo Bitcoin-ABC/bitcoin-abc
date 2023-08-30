@@ -3626,7 +3626,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         d.setMinimumSize(600, 150)
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(QtWidgets.QLabel("{}: {}".format(_("Address"), address)))
-        vbox.addWidget(QtWidgets.QLabel(_("Script type") + ": " + xtype))
+        vbox.addWidget(QtWidgets.QLabel(_("Script type") + ": " + xtype.name))
         pk_lbl = QtWidgets.QLabel(_("Private key") + ":")
         vbox.addWidget(pk_lbl)
         keys_e = ShowQRTextEdit(text=pk)

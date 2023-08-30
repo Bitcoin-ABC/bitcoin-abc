@@ -33,16 +33,16 @@ from typing import Optional, Tuple, Union
 
 from . import cashaddr, networks
 from .bitcoin import (
-    SCRIPT_TYPES,
     ECKey,
     OpCodes,
+    ScriptType,
     hash_160,
     is_minikey,
     minikey_to_private_key,
     push_script_bytes,
 )
 from .constants import WHITELISTED_PREFIXES, WHITELISTED_TESTNET_PREFIXES
-from .util import cachedproperty, inv_dict
+from .util import cachedproperty
 
 _sha256 = hashlib.sha256
 hex_to_bytes = bytes.fromhex
@@ -159,11 +159,13 @@ class PublicKey(namedtuple("PublicKeyTuple", "pubkey")):
             raise ValueError("Private key WIF decode error; unable to decode.")
         if raw[0] != net.WIF_PREFIX:
             # try and generate a helpful error message as this propagates up to the UI if they are creating a new wallet.
-            extra = inv_dict(SCRIPT_TYPES).get(int(raw[0] - net.WIF_PREFIX), "")
-            if extra:
+            extra = ""
+            if int(raw[0] - net.WIF_PREFIX) in iter(ScriptType):
                 extra = (
                     "; this corresponds to a key of type: '{}' which is unsupported for"
-                    " importing from WIF key.".format(extra)
+                    " importing from WIF key.".format(
+                        ScriptType(int(raw[0] - net.WIF_PREFIX)).name
+                    )
                 )
             raise ValueError(
                 "Private key has invalid WIF version byte (expected: 0x{:x} got:"

@@ -42,15 +42,7 @@ from ecdsa.util import number_to_string, string_to_number
 from . import networks
 from .ecc_fast import do_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1
 from .printerror import print_error
-from .util import (
-    InvalidPassword,
-    assert_bytes,
-    bfh,
-    bh2u,
-    inv_dict,
-    to_bytes,
-    to_string,
-)
+from .util import InvalidPassword, assert_bytes, bfh, bh2u, to_bytes, to_string
 
 if TYPE_CHECKING:
     from .address import Address
@@ -236,6 +228,15 @@ class OpCodes(IntEnum):
 
     # additional byte string operations
     OP_REVERSEBYTES = 0xBC
+
+
+class ScriptType(IntEnum):
+    # Keep these attributes lowercase, it matters for code accessing the name.
+    # Positive values are used for WIF key (de)serialization, negative values have no
+    # particular meaning.
+    p2pkh = 0
+    p2sh = 5
+    p2pk = -1
 
 
 class InvalidPadding(Exception):
@@ -540,10 +541,10 @@ def public_key_to_p2pkh(public_key, *, net=None):
     return hash160_to_p2pkh(hash_160(public_key), net=net)
 
 
-def pubkey_to_address(txin_type, pubkey, *, net=None):
+def pubkey_to_address(txin_type: ScriptType, pubkey, *, net=None):
     if net is None:
         net = networks.net
-    if txin_type == "p2pkh":
+    if txin_type == ScriptType.p2pkh:
         return public_key_to_p2pkh(bfh(pubkey), net=net)
     else:
         raise NotImplementedError(txin_type)
@@ -665,22 +666,16 @@ def DecodeBase58Check(psz):
         return key
 
 
-SCRIPT_TYPES = {
-    "p2pkh": 0,
-    "p2sh": 5,
-}
-
-
-def serialize_privkey(secret, compressed, txin_type, *, net=None):
+def serialize_privkey(secret, compressed, txin_type: ScriptType, *, net=None) -> bytes:
     if net is None:
         net = networks.net
-    prefix = bytes([(SCRIPT_TYPES[txin_type] + net.WIF_PREFIX) & 255])
+    prefix = bytes([(txin_type + net.WIF_PREFIX) & 255])
     suffix = b"\01" if compressed else b""
     vchIn = prefix + secret + suffix
     return EncodeBase58Check(vchIn)
 
 
-def deserialize_privkey(key, *, net=None):
+def deserialize_privkey(key, *, net=None) -> Tuple[ScriptType, bytes, bool]:
     """Returns the deserialized key if key is a WIF key (non bip38), raises
     otherwise."""
     # whether the pubkey is compressed should be visible from the keystore
@@ -690,9 +685,9 @@ def deserialize_privkey(key, *, net=None):
     if is_bip38_key(key):
         raise KeyIsBip38Error("bip38")
     if is_minikey(key):
-        return "p2pkh", minikey_to_private_key(key), False
+        return ScriptType.p2pkh, minikey_to_private_key(key), False
     elif vch:
-        txin_type = inv_dict(SCRIPT_TYPES)[vch[0] - net.WIF_PREFIX]
+        txin_type = ScriptType(vch[0] - net.WIF_PREFIX)
         # We do it this way because eg iOS runs with PYTHONOPTIMIZE=1
         if len(vch) not in (
             33,
@@ -1639,7 +1634,12 @@ class Bip38Key:
                     "Supplied password failed to decrypt bip38 key."
                 )
 
-        return serialize_privkey(keyBytes, self.compressed, "p2pkh", net=self.net), addr
+        return (
+            serialize_privkey(
+                keyBytes, self.compressed, ScriptType.p2pkh, net=self.net
+            ),
+            addr,
+        )
 
     @staticmethod
     def _normalizeNFC(s: str) -> str:
@@ -1729,7 +1729,10 @@ class Bip38Key:
                     "Supplied password failed to decrypt bip38 key."
                 )
 
-        return serialize_privkey(privKey, self.compressed, "p2pkh", net=self.net), addr
+        return (
+            serialize_privkey(privKey, self.compressed, ScriptType.p2pkh, net=self.net),
+            addr,
+        )
 
     @classmethod
     def encrypt(cls, wif: str, passphrase: str, *, net=None) -> object:
@@ -1741,7 +1744,7 @@ class Bip38Key:
         if net is None:
             net = networks.net
         _type, key_bytes, compressed = deserialize_privkey(wif, net=net)  # may raise
-        if _type != "p2pkh":
+        if _type != ScriptType.p2pkh:
             raise ValueError(
                 "Only p2pkh WIF keys may be encrypted using BIP38 at this time."
             )
@@ -1868,7 +1871,7 @@ class Bip38Key:
 
         point = ser_to_point(passpoint) * cls._bytes_to_int(factorb)
         pubkey = point_to_ser(point, compressed)
-        generatedaddress = pubkey_to_address("p2pkh", pubkey.hex())
+        generatedaddress = pubkey_to_address(ScriptType.p2pkh, pubkey.hex())
         addresshash = Hash(generatedaddress)[:4]
 
         salt = addresshash + ownerentropy

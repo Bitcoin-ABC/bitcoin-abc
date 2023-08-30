@@ -319,7 +319,7 @@ class JsonDB(PrintError):
                 d = {"change": []}
                 receiving_addresses = []
                 for pubkey in pubkeys:
-                    addr = bitcoin.pubkey_to_address("p2pkh", pubkey)
+                    addr = bitcoin.pubkey_to_address(bitcoin.ScriptType.p2pkh, pubkey)
                     receiving_addresses.append(addr)
                 d["receiving"] = receiving_addresses
                 self.put("addresses", d)
@@ -344,7 +344,7 @@ class JsonDB(PrintError):
                 assert len(addresses) == len(pubkeys)
                 d = {}
                 for pubkey in pubkeys:
-                    addr = bitcoin.pubkey_to_address("p2pkh", pubkey)
+                    addr = bitcoin.pubkey_to_address(bitcoin.ScriptType.p2pkh, pubkey)
                     assert addr in addresses
                     d[addr] = {"pubkey": pubkey, "redeem_script": None, "type": "p2pkh"}
                 self.put("addresses", d)

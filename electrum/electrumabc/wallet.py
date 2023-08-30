@@ -139,7 +139,7 @@ def sweep_preparations(privkeys, network, imax=100):
     class InputsMaxxed(Exception):
         pass
 
-    def append_utxos_to_inputs(inputs, pubkey, txin_type):
+    def append_utxos_to_inputs(inputs, pubkey, txin_type: bitcoin.ScriptType):
         if txin_type == "p2pkh":
             address = Address.from_pubkey(pubkey)
         else:
@@ -150,7 +150,7 @@ def sweep_preparations(privkeys, network, imax=100):
             if len(inputs) >= imax:
                 raise InputsMaxxed()
             item["address"] = address
-            item["type"] = txin_type
+            item["type"] = txin_type.name
             item["prevout_hash"] = item["tx_hash"]
             item["prevout_n"] = item["tx_pos"]
             item["pubkeys"] = [pubkey]
@@ -159,7 +159,7 @@ def sweep_preparations(privkeys, network, imax=100):
             item["num_sig"] = 1
             inputs.append(item)
 
-    def find_utxos_for_privkey(txin_type, privkey, compressed):
+    def find_utxos_for_privkey(txin_type: bitcoin.ScriptType, privkey, compressed):
         pubkey = bitcoin.public_key_from_private_key(privkey, compressed)
         append_utxos_to_inputs(inputs, pubkey, txin_type)
         keypairs[pubkey] = privkey, compressed
@@ -175,11 +175,11 @@ def sweep_preparations(privkeys, network, imax=100):
                 # minikeys don't have a compressed byte
                 # we lookup both compressed and uncompressed pubkeys
                 find_utxos_for_privkey(txin_type, privkey, not compressed)
-            elif txin_type == "p2pkh":
+            elif txin_type == bitcoin.ScriptType.p2pkh:
                 # WIF serialization does not distinguish p2pkh and p2pk
                 # we also search for pay-to-pubkey outputs
-                find_utxos_for_privkey("p2pk", privkey, compressed)
-            elif txin_type == "p2sh":
+                find_utxos_for_privkey(bitcoin.ScriptType.p2pk, privkey, compressed)
+            elif txin_type == bitcoin.ScriptType.p2sh:
                 raise ValueError(
                     _(
                         "The specified WIF key '{}' is a p2sh WIF key. These key types"
@@ -3480,7 +3480,9 @@ class DeterministicWallet(AbstractWallet):
         Index is the last two elements of the bip 44 path (change, address_index).
         """
         pk, compressed = self.keystore.get_private_key(index, password)
-        return bitcoin.serialize_privkey(pk, compressed, self.txin_type)
+        return bitcoin.serialize_privkey(
+            pk, compressed, bitcoin.ScriptType[self.txin_type]
+        )
 
     def get_auxiliary_pubkey_index(self, key: PublicKey, password) -> Optional[int]:
         """Return an index for an auxiliary public key. These are the keys on the

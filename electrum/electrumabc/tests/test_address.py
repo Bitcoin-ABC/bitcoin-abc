@@ -9,8 +9,8 @@
 
 import unittest
 
-from .. import networks
-from ..address import Address
+from .. import bitcoin, networks
+from ..address import Address, PublicKey
 
 LEGACY_ADDRESS = "1F6UYGAwkzZKqFwyiwc54b7SNvHsNgcZ6h"
 BCH_CASHADDR_NO_PREFIX = "qzdf44zy632zk4etztvmaqav0y2cest4evjvrwf70z"
@@ -90,6 +90,31 @@ class TestAddressFromString(unittest.TestCase):
             Address.from_string(ECASHADDR_NO_PREFIX_TESTNET, net=networks.TestNet),
             networks.TestNet,
         )
+
+
+class TestPublicKey(unittest.TestCase):
+    """Test for the PublicKey class defined in address.py"""
+
+    def test_privkey_from_WIF_privkey(self):
+        wif_key = "Kwr371tjA9u2rFSMZjTNun2PXXP3WPZu2afRHTcta6KxEUdm1vEw"
+        expected_key = b"\x12\xb0\x04\xff\xf7\xf4\xb6\x9e\xf8e\x0ev\x7f\x18\xf1\x1e\xde\x15\x81H\xb4%f\x07#\xb9\xf9\xa6na\xf7G"
+
+        privkey, is_compressed = PublicKey.privkey_from_WIF_privkey(wif_key)
+        self.assertTrue(is_compressed)
+        self.assertEqual(
+            privkey,
+            expected_key,
+        )
+
+        bad_prefix = bytes([0x81])
+        suffix = b"\01"
+        bad_wif_key = bitcoin.EncodeBase58Check(bad_prefix + expected_key + suffix)
+
+        with self.assertRaisesRegex(
+            ValueError,
+            r"Private key has invalid WIF version byte \(expected: 0x80 got: 0x81\)",
+        ):
+            PublicKey.privkey_from_WIF_privkey(bad_wif_key)
 
 
 if __name__ == "__main__":

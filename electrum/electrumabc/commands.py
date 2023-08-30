@@ -423,7 +423,7 @@ class Commands:
                 txin_type, privkey, compressed = bitcoin.deserialize_privkey(sec)
                 pubkey = bitcoin.public_key_from_private_key(privkey, compressed)
                 keypairs[pubkey] = privkey, compressed
-                txin["type"] = txin_type
+                txin["type"] = txin_type.name
                 txin["x_pubkeys"] = [pubkey]
                 txin["signatures"] = [None]
                 txin["num_sig"] = 1
