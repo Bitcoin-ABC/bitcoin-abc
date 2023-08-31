@@ -1,15 +1,5 @@
 {
-    "ecash.fmarcosh.xyz": {
-        "pruning": "-",
-        "s": "50002",
-        "t": "50001"
-    },
     "electrum.bitcoinabc.org": {
-        "pruning": "-",
-        "s": "50002",
-        "t": "50001"
-    },
-    "fulcrum-main.bchjs.cash": {
         "pruning": "-",
         "s": "50002",
         "t": "50001"
