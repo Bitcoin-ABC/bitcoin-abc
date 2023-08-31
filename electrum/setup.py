@@ -4,6 +4,7 @@
 # python setup.py sdist --format=zip,gztar
 
 import argparse
+import importlib.util
 import os
 import platform
 import sys
@@ -28,29 +29,23 @@ with open(
 ) as f:
     requirements_binaries = f.read().splitlines()
 
-# We use this convoluted way of importing version.py and constants.py
-# because the setup.py scripts tends to be called with python option
-# -O, which is not allowed for electrumabc (see comment in module
-# electrumabc/bitcoin.py). A regular import would trigger this issue.
-sys.path.insert(0, os.path.join(ELECTRUM_ROOT, "electrumabc"))
+
+def load_module(module_path):
+    """Import a module without importing the whole package"""
+    # [:-3] assumes a .py extension
+    module_name = os.path.basename(module_path)[:-3]
+
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
-def get_version():
-    import version
-
-    return version.PACKAGE_VERSION
-
-
-def get_constants():
-    import constants as c
-
-    return (c.PROJECT_NAME, c.REPOSITORY_URL, c.SCRIPT_NAME, c.PROJECT_NAME_NO_SPACES)
-
-
-PROJECT_NAME, REPOSITORY_URL, SCRIPT_NAME, PROJECT_NAME_NO_SPACES = get_constants()
+version = load_module(os.path.join(ELECTRUM_ROOT, "electrumabc", "version.py"))
+constants = load_module(os.path.join(ELECTRUM_ROOT, "electrumabc", "constants.py"))
 
 if sys.version_info[:3] < (3, 7):
-    sys.exit(f"Error: {PROJECT_NAME} requires Python version >= 3.7...")
+    sys.exit(f"Error: {constants.PROJECT_NAME} requires Python version >= 3.7...")
 
 data_files = []
 
@@ -171,8 +166,8 @@ setup(
     cmdclass={
         "sdist": MakeAllBeforeSdist,
     },
-    name=PROJECT_NAME_NO_SPACES,
-    version=get_version(),
+    name=constants.PROJECT_NAME_NO_SPACES,
+    version=version.PACKAGE_VERSION,
     install_requires=requirements,
     extras_require={
         "hardware": requirements_hw,
@@ -244,12 +239,12 @@ setup(
         "Topic :: Security :: Cryptography",
         "Topic :: Office/Business :: Financial",
     ],
-    scripts=[SCRIPT_NAME],
+    scripts=[constants.SCRIPT_NAME],
     data_files=data_files,
     description="Lightweight eCash Wallet",
-    author=f"The {PROJECT_NAME} Developers",
+    author=f"The {constants.PROJECT_NAME} Developers",
     # author_email=
     license="MIT Licence",
-    url=REPOSITORY_URL,
+    url=constants.REPOSITORY_URL,
     long_description=long_description,
 )
