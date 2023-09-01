@@ -139,13 +139,5 @@ class TestUInt256(unittest.TestCase):
         self.assertIsInstance(o, UInt256)
 
 
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestBaseBlob))
-    test_suite.addTest(loadTests(TestUInt256))
-    return test_suite
-
-
 if __name__ == "__main__":
-    unittest.main(defaultTest="suite")
+    unittest.main()

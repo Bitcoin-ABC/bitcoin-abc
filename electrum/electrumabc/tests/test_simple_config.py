@@ -189,13 +189,5 @@ class TestUserConfig(unittest.TestCase):
         self.assertEqual({}, result)
 
 
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestSimpleConfig))
-    test_suite.addTest(loadTests(TestUserConfig))
-    return test_suite
-
-
 if __name__ == "__main__":
-    unittest.main(defaultTest="suite")
+    unittest.main()

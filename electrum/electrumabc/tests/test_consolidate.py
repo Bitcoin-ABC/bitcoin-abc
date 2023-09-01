@@ -236,12 +236,5 @@ class TestConsolidateCoinSelection(unittest.TestCase):
             self.assertEqual(total_fee, total_size * FEERATE)
 
 
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestConsolidateCoinSelection))
-    return test_suite
-
-
 if __name__ == "__main__":
-    unittest.main(defaultTest="suite")
+    unittest.main()

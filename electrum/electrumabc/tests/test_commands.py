@@ -145,13 +145,5 @@ class TestArgParser(unittest.TestCase):
         self.assertEqual(args.url, bip21_uri)
 
 
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestCommands))
-    test_suite.addTest(loadTests(TestArgParser))
-    return test_suite
-
-
 if __name__ == "__main__":
-    unittest.main(defaultTest="suite")
+    unittest.main()

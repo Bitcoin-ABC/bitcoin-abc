@@ -157,15 +157,5 @@ class TestSeeds(unittest.TestCase):
             self.assertEqual(_type, mnemo.seed_type_name(seed_words), msg=seed_words)
 
 
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestNewMnemonic))
-    test_suite.addTest(loadTests(TestOldMnemonic))
-    test_suite.addTest(loadTests(TestBIP39Checksum))
-    test_suite.addTest(loadTests(TestSeeds))
-    return test_suite
-
-
 if __name__ == "__main__":
-    unittest.main(defaultTest="suite")
+    unittest.main()

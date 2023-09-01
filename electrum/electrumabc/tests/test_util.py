@@ -307,17 +307,5 @@ class TestUtil(unittest.TestCase):
         )
 
 
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestFormatSatoshisLocaleC))
-    test_suite.addTest(loadTests(TestFormatSatoshisLocaleFr))
-    test_suite.addTest(loadTests(TestFormatSatoshisLocaleDe))
-    test_suite.addTest(loadTests(TestFormatSatoshisLocaleAr_SA))
-    test_suite.addTest(loadTests(TestFormatSatoshisLocalezh_CN))
-    test_suite.addTest(loadTests(TestUtil))
-    return test_suite
-
-
 if __name__ == "__main__":
-    unittest.main(defaultTest="suite")
+    unittest.main()

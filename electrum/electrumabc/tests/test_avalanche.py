@@ -713,15 +713,5 @@ class TestAvalancheDelegationFromHex(unittest.TestCase):
             Delegation.from_hex(one_level_dg_hex[:-2])
 
 
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestAvalancheProofBuilder))
-    test_suite.addTest(loadTests(TestAvalancheProofFromHex))
-    test_suite.addTest(loadTests(TestAvalancheDelegationBuilder))
-    test_suite.addTest(loadTests(TestAvalancheDelegationFromHex))
-    return test_suite
-
-
 if __name__ == "__main__":
-    unittest.main(defaultTest="suite")
+    unittest.main()

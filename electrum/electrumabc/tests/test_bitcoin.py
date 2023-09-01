@@ -655,16 +655,5 @@ class TestBip38(unittest.TestCase):
         # Success!
 
 
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestBitcoin))
-    test_suite.addTest(loadTests(TestBitcoinTestnet))
-    test_suite.addTest(loadTests(TestXprvXpub))
-    test_suite.addTest(loadTests(TestKeyImport))
-    test_suite.addTest(loadTests(TestBip38))
-    return test_suite
-
-
 if __name__ == "__main__":
-    unittest.main(defaultTest="suite")
+    unittest.main()
