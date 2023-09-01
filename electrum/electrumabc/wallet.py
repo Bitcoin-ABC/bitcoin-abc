@@ -49,6 +49,7 @@ from typing import (
     ItemsView,
     List,
     Optional,
+    Sequence,
     Set,
     Tuple,
     Union,
@@ -113,6 +114,7 @@ from .version import PACKAGE_VERSION
 if TYPE_CHECKING:
     from electrumabc_gui.qt import ElectrumWindow
 
+    from .network import Network
     from .simple_config import SimpleConfig
 
 
@@ -135,12 +137,17 @@ class AddressNotFoundError(Exception):
     """Exception used for Address errors."""
 
 
-def sweep_preparations(privkeys, network, imax=100):
+def sweep_preparations(
+    privkeys, network, imax=100
+) -> Tuple[List[dict], Dict[str, Tuple[bytes, bool]]]:
+    """Returns (utxos, keypairs) for a list of WIF private keys, where utxos is a list
+    of dictionaries, and keypairs is a {pubkey_hex: (privkey, is_compressed)} map."""
+
     class InputsMaxxed(Exception):
         pass
 
     def append_utxos_to_inputs(inputs, pubkey, txin_type: bitcoin.ScriptType):
-        if txin_type == "p2pkh":
+        if txin_type == txin_type.p2pkh:
             address = Address.from_pubkey(pubkey)
         else:
             address = PublicKey.from_pubkey(pubkey)
@@ -194,14 +201,15 @@ def sweep_preparations(privkeys, network, imax=100):
 
 
 def sweep(
-    privkeys,
-    network,
+    privkeys: Sequence[str],
+    network: Network,
     config: SimpleConfig,
-    recipient,
-    fee=None,
-    imax=100,
-    sign_schnorr=False,
-):
+    recipient: Address,
+    fee: Optional[int] = None,
+    imax: int = 100,
+    sign_schnorr: bool = False,
+) -> Transaction:
+    """Build a transaction sweeping all coins for a list of WIF keys."""
     inputs, keypairs = sweep_preparations(privkeys, network, imax)
     total = sum(i.get("value") for i in inputs)
     if fee is None:

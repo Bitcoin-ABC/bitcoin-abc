@@ -5,16 +5,22 @@ import sys
 import tempfile
 import unittest
 from io import StringIO
+from typing import Sequence, Tuple
 
 from ..address import Address
 from ..json_db import FINAL_SEED_VERSION
 from ..simple_config import SimpleConfig
 from ..storage import WalletStorage
+from ..transaction import OutPoint, TxInput, TxOutput
+from ..uint256 import UInt256
+from ..util import NotEnoughFunds
 from ..wallet import (
     AbstractWallet,
     StandardWallet,
     create_new_wallet,
     restore_wallet_from_text,
+    sweep,
+    sweep_preparations,
 )
 
 
@@ -153,6 +159,120 @@ class TestCreateRestoreWallet(WalletTestCase):
             wallet.export_private_key(addr0, password=None),
         )
         self.assertEqual(1, len(wallet.get_receiving_addresses()))
+
+
+WIF1 = "Kwr371tjA9u2rFSMZjTNun2PXXP3WPZu2afRHTcta6KxEUdm1vEw"
+PRIVKEY1 = b"\x12\xb0\x04\xff\xf7\xf4\xb6\x9e\xf8e\x0ev\x7f\x18\xf1\x1e\xde\x15\x81H\xb4%f\x07#\xb9\xf9\xa6na\xf7G"
+PUBKEY1 = "030b4c866585dd868a9d62348a9cd008d6a312937048fff31670e7e920cfc7a744"
+ADDR1 = Address.from_string("ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme")
+P2PKH_SCRIPTHASH1 = "4ff699e4c5d1e90dfd03e4c6d3016c6758da16f257d7871c9b2a2b9171a60e88"
+P2PK_SCRIPTHASH1 = "b9984de1cafa27ed314350b06e12dbcf686a31f4fe739b426c85523290a39e22"
+
+
+class MockNetwork:
+    def __init__(self, use_dust_values: bool = False):
+        self._use_dust_values = use_dust_values
+
+    def synchronous_get(self, request: Tuple[str, Sequence]):
+        values = [2, 4, 8]
+        if not self._use_dust_values:
+            values = [1000 * x for x in values]
+        req, args = request
+        assert req == "blockchain.scripthash.listunspent"
+
+        scripthash = args[0]
+        if scripthash == P2PKH_SCRIPTHASH1:
+            return [
+                {
+                    "tx_hash": "11" * 32,
+                    "tx_pos": 0,
+                    "value": values[0],
+                    "scriptSig": "deadbeef",
+                    "sequence": 0,
+                },
+                {
+                    "tx_hash": "12" * 32,
+                    "tx_pos": 8,
+                    "value": values[1],
+                    "scriptSig": "f001",
+                    "sequence": 0,
+                },
+            ]
+        if scripthash == P2PK_SCRIPTHASH1:
+            return [
+                {
+                    "tx_hash": "13" * 32,
+                    "tx_pos": 1,
+                    "value": values[2],
+                    "scriptSig": "c0ffee",
+                    "sequence": 0,
+                },
+            ]
+        return []
+
+
+class TestSweep(unittest.TestCase):
+    def test_sweep(self):
+        config = SimpleConfig()
+        network = MockNetwork()
+        recipient = Address.from_string(
+            "ecash:qrupwtz3a7lngsf6xz9qxr75k9jvt07d3uexmwmpqy"
+        )
+
+        inputs, keypairs = sweep_preparations([WIF1], network)
+        self.assertEqual(inputs[0]["type"], "p2pkh")
+        self.assertEqual(inputs[1]["type"], "p2pkh")
+        self.assertEqual(inputs[2]["type"], "p2pk")
+
+        self.assertEqual(keypairs, {PUBKEY1: (PRIVKEY1, True)})
+
+        fee = 2500
+        expected_value = sum(inp["value"] for inp in inputs) - fee
+        tx = sweep([WIF1], network, config, recipient, fee)
+
+        expected_txinputs = [
+            TxInput(
+                OutPoint(UInt256.from_hex("11" * 32), 0), bytes.fromhex("deadbeef"), 0
+            ),
+            TxInput(OutPoint(UInt256.from_hex("12" * 32), 8), bytes.fromhex("f001"), 0),
+            TxInput(
+                OutPoint(UInt256.from_hex("13" * 32), 1), bytes.fromhex("c0ffee"), 0
+            ),
+        ]
+        # the order of inputs in the transaction is randomized
+        for txin in tx.txinputs():
+            self.assertTrue(
+                any(txin == expected_txin for expected_txin in expected_txinputs)
+            )
+
+        self.assertEqual(
+            tx.outputs(),
+            [TxOutput(type=0, destination=recipient, value=expected_value)],
+        )
+
+    def test_sweep_dust(self):
+        config = SimpleConfig()
+        network = MockNetwork(use_dust_values=True)
+        recipient = Address.from_string(
+            "ecash:qrupwtz3a7lngsf6xz9qxr75k9jvt07d3uexmwmpqy"
+        )
+
+        with self.assertRaisesRegex(NotEnoughFunds, "Not enough funds on address"):
+            sweep([WIF1], network, config, recipient)
+
+        # Total value would be enough but we bump the fee to make it insufficient
+        network = MockNetwork(use_dust_values=False)
+        with self.assertRaisesRegex(
+            NotEnoughFunds, ".*Total: 14000 satoshis\nFee: 13500\nDust Threshold: 546"
+        ):
+            sweep([WIF1], network, config, recipient, fee=13500)
+
+        # This one works
+        fee = 13400
+        tx = sweep([WIF1], network, config, recipient, fee)
+        self.assertEqual(tx.input_value(), 14000)
+        self.assertEqual(tx.output_value(), 600)
+        self.assertEqual(tx.get_fee(), fee)
 
 
 def suite():
