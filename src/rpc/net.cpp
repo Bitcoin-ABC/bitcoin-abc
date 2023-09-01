@@ -364,7 +364,7 @@ static RPCHelpMan addnode() {
             HelpExampleRpc("addnode", "\"192.168.0.6:8333\", \"onetry\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            const std::string command{request.params[1].get_str()};
+            const auto command{self.Arg<std::string>("command")};
             if (command != "onetry" && command != "add" &&
                 command != "remove") {
                 throw std::runtime_error(self.ToString());
@@ -373,7 +373,8 @@ static RPCHelpMan addnode() {
             NodeContext &node = EnsureAnyNodeContext(request.context);
             CConnman &connman = EnsureConnman(node);
 
-            const std::string node_arg{request.params[0].get_str()};
+            const auto node_arg{self.Arg<std::string>("node")};
+            // TODO: apply core#29277 when backporting the "v2transport" arg
 
             if (command == "onetry") {
                 CAddress addr;

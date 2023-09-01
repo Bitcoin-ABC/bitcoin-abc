@@ -127,7 +127,8 @@ static RPCHelpMan getnetworkhashps() {
             const JSONRPCRequest &request) -> UniValue {
             ChainstateManager &chainman = EnsureAnyChainman(request.context);
             LOCK(cs_main);
-            return GetNetworkHashPS(self.Arg<int>(0), self.Arg<int>(1),
+            return GetNetworkHashPS(self.Arg<int>("nblocks"),
+                                    self.Arg<int>("height"),
                                     chainman.ActiveChain());
         },
     };
@@ -265,12 +266,12 @@ static RPCHelpMan generatetodescriptor() {
                     HelpExampleCli("generatetodescriptor", "11 \"mydesc\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            const int num_blocks{self.Arg<int>(0)};
-            const auto max_tries{self.Arg<uint64_t>(2)};
+            const int num_blocks{self.Arg<int>("num_blocks")};
+            const auto max_tries{self.Arg<uint64_t>("maxtries")};
 
             CScript coinbase_script;
             std::string error;
-            if (!getScriptFromDescriptor(self.Arg<std::string>(1),
+            if (!getScriptFromDescriptor(self.Arg<std::string>("descriptor"),
                                          coinbase_script, error)) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, error);
             }

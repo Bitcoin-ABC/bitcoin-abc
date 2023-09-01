@@ -370,9 +370,9 @@ static RPCHelpMan verifymessage() {
             const JSONRPCRequest &request) -> UniValue {
             LOCK(cs_main);
 
-            std::string strAddress = request.params[0].get_str();
-            std::string strSign = request.params[1].get_str();
-            std::string strMessage = request.params[2].get_str();
+            std::string strAddress = self.Arg<std::string>("address");
+            std::string strSign = self.Arg<std::string>("signature");
+            std::string strMessage = self.Arg<std::string>("message");
 
             switch (MessageVerify(config.GetChainParams(), strAddress, strSign,
                                   strMessage)) {
