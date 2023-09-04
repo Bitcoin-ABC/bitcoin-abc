@@ -373,9 +373,9 @@ def make_unsigned_request(req):
     time = req.get("time", 0)
     exp = req.get("exp", 0)
     payment_url = req.get("payment_url")
-    if time and type(time) != int:
+    if time and not isinstance(time, int):
         time = 0
-    if exp and type(exp) != int:
+    if exp and not isinstance(exp, int):
         exp = 0
     amount = req["amount"]
     if amount is None:

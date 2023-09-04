@@ -2686,10 +2686,10 @@ class AbstractWallet(PrintError, SPVDelegate):
         address = r["address"]
         amount = r.get("amount")
         timestamp = r.get("time", 0)
-        if timestamp and type(timestamp) != int:
+        if timestamp and not isinstance(timestamp, int):
             timestamp = 0
         expiration = r.get("exp")
-        if expiration and type(expiration) != int:
+        if expiration and not isinstance(expiration, int):
             expiration = 0
         conf = None
         tx_hashes = []

@@ -253,7 +253,7 @@ class QtPlugin(QtPluginBase):
         if len(addrs) != 1:
             return
         for keystore in wallet.get_keystores():
-            if type(keystore) == self.keystore_class:
+            if isinstance(keystore, self.keystore_class):
 
                 def show_address(keystore=keystore):
                     keystore.thread.add(

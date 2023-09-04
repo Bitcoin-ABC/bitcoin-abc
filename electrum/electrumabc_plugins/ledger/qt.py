@@ -21,10 +21,10 @@ class Plugin(LedgerPlugin, QtPluginBase):
 
     @hook
     def receive_menu(self, menu, addrs, wallet):
-        if type(wallet) is not StandardWallet:
+        if not isinstance(wallet, StandardWallet):
             return
         keystore = wallet.get_keystore()
-        if type(keystore) == self.keystore_class and len(addrs) == 1:
+        if isinstance(keystore, self.keystore_class) and len(addrs) == 1:
 
             def show_address():
                 keystore.thread.add(partial(self.show_address, wallet, addrs[0]))

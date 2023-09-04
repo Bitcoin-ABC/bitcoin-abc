@@ -132,7 +132,7 @@ class HWPluginBase(BasePlugin):
         if not wallet.is_mine(address):
             keystore.handler.show_error(_("Address not in wallet."))
             return False
-        if type(keystore) != self.keystore_class:
+        if not isinstance(keystore, self.keystore_class):
             return False
         return True
 
