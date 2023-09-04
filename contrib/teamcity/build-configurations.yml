@@ -659,6 +659,14 @@ builds:
     templates:
       - js-mocha
 
+  chronik-client-tests:
+    runOnDiffRegex:
+      - modules/chronik-client/
+    env:
+      JS_PROJECT_ROOT: modules/chronik-client
+    templates:
+      - js-mocha
+
   ecashaddrjs-tests:
     runOnDiffRegex:
       - modules/ecashaddrjs/
