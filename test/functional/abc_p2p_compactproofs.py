@@ -400,7 +400,7 @@ class CompactProofsTest(BitcoinTestFramework):
         with node.assert_debug_log(["Got an avaproofs message with no shortid"]):
             sender.send_message(msg)
         # Make sure we don't get an avaproofsreq message
-        sender.sync_send_with_ping()
+        sender.sync_with_ping()
         with p2p_lock:
             assert_equal(sender.message_count.get("avaproofsreq", 0), 0)
 
@@ -667,14 +667,14 @@ class CompactProofsTest(BitcoinTestFramework):
         )
 
         # Force the node to process the sending loop
-        peer.sync_send_with_ping()
+        peer.sync_with_ping()
         with p2p_lock:
             assert_equal(peer.message_count.get("getavaproofs", 0), 0)
 
         # Make sure there is no message sent as part as the periodic network
         # messaging either
         node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
-        peer.sync_send_with_ping()
+        peer.sync_with_ping()
         with p2p_lock:
             assert_equal(peer.message_count.get("getavaproofs", 0), 0)
 

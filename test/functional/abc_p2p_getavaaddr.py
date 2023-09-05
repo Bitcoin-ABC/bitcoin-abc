@@ -436,7 +436,7 @@ class AvaAddrTest(BitcoinTestFramework):
             node.mockscheduler(MAX_GETAVAADDR_DELAY)
             self.wait_until(lambda: total_getavaaddr_msg() >= total_getavaaddr + 1)
             for p in avapeers:
-                p.sync_send_with_ping()
+                p.sync_with_ping()
             return total_getavaaddr_msg() == total_getavaaddr + 1
 
         self.wait_until(sent_single_getavaaddr)
@@ -488,7 +488,7 @@ class AvaAddrTest(BitcoinTestFramework):
         for _ in range(10):
             # Trigger a poll
             self.generate(node, 1, sync_fun=self.no_op)
-            inbound.sync_send_with_ping()
+            inbound.sync_with_ping()
 
             node.mockscheduler(MAX_GETAVAADDR_DELAY)
             self.wait_until(

@@ -228,7 +228,7 @@ class FilterTest(BitcoinTestFramework):
             scriptPubKey=getnewdestination()[1],
             amount=7 * COIN,
         )
-        filter_peer.sync_send_with_ping()
+        filter_peer.sync_with_ping()
         assert not filter_peer.merkleblock_received
         assert not filter_peer.tx_received
 

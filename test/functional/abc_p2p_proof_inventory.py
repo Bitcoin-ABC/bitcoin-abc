@@ -237,7 +237,7 @@ class ProofInventoryTest(BitcoinTestFramework):
 
         _, proof = self.generate_proof(self.nodes[0])
         peer.send_avaproof(proof)
-        peer.sync_send_with_ping()
+        peer.sync_with_ping()
         with p2p_lock:
             assert_equal(peer.message_count.get("getdata", 0), 0)
 

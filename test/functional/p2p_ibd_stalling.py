@@ -165,7 +165,7 @@ class P2PIBDStallingTest(BitcoinTestFramework):
     def all_sync_send_with_ping(peers):
         for p in peers:
             if p.is_connected:
-                p.sync_send_with_ping()
+                p.sync_with_ping()
 
     @staticmethod
     def is_block_requested(peers, hash_):
