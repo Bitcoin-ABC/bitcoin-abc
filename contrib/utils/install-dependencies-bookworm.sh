@@ -26,6 +26,7 @@ PACKAGES=(
   devscripts
   doxygen
   dput
+  e2fsprogs
   g++-aarch64-linux-gnu
   g++-mingw-w64
   gcc-aarch64-linux-gnu
