@@ -35,6 +35,8 @@ pub struct BlockTemplate<'a> {
 #[template(path = "pages/transaction.html")]
 pub struct TransactionTemplate<'a> {
     pub title: &'a str,
+    pub sats_addr_prefix: &'a str,
+    pub tokens_addr_prefix: &'a str,
     pub token_section_title: &'a str,
     pub is_token: bool,
     pub tx_hex: &'a str,

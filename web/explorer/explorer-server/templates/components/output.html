@@ -1,7 +1,8 @@
-{% macro render(index, output, tx, slp_genesis_info) %} {% let is_token =
-output.slp_token|check_is_token %} {% let destination =
-output.output_script|destination_from_script(is_token) %} {% let
-decoded_output_script = output.output_script|get_script %}
+{% macro render(index, output, tx, slp_genesis_info, sats_addr_prefix,
+tokens_addr_prefix) %} {% let is_token = output.slp_token|check_is_token %} {%
+let destination = output.output_script|destination_from_script(is_token,
+sats_addr_prefix, tokens_addr_prefix) %} {% let decoded_output_script =
+output.output_script|get_script %}
 
 <div>
     <div class="output-row">

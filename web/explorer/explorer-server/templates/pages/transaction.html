@@ -227,8 +227,8 @@ import "components/output.html" as output %} {% import
                     </div>
                     <div id="inputs">
                         {% for input in tx.inputs %} {% call
-                        input::render(loop.index0, input, tx, slp_genesis_info)
-                        %} {% endfor %}
+                        input::render(loop.index0, input, tx, slp_genesis_info,
+                        sats_addr_prefix, tokens_addr_prefix) %} {% endfor %}
                     </div>
                 </div>
 
@@ -241,7 +241,8 @@ import "components/output.html" as output %} {% import
                     <div id="outputs">
                         {% for output in tx.outputs %} {% call
                         output::render(loop.index0, output, tx,
-                        slp_genesis_info) %} {% endfor %}
+                        slp_genesis_info, sats_addr_prefix, tokens_addr_prefix)
+                        %} {% endfor %}
                     </div>
                 </div>
             </div>

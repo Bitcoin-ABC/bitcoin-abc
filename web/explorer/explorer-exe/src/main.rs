@@ -3,7 +3,7 @@ use std::{fs, sync::Arc};
 use axum::Extension;
 use bitcoinsuite_chronik_client::ChronikClient;
 use bitcoinsuite_error::Result;
-use explorer_server::{config, server::Server};
+use explorer_server::{chain::Chain, config, server::Server};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -16,7 +16,11 @@ async fn main() -> Result<()> {
     let base_dir = config
         .base_dir
         .unwrap_or_else(|| "../explorer-server".into());
-    let server = Arc::new(Server::setup(chronik, base_dir).await?);
+    let chain = config
+        .chain
+        .unwrap_or("mainnet".to_string())
+        .parse::<Chain>()?;
+    let server = Arc::new(Server::setup(chronik, base_dir, chain).await?);
     let app = server.router().layer(Extension(server));
 
     axum::Server::bind(&config.host)

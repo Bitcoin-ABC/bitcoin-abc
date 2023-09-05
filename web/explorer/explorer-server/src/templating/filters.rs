@@ -40,8 +40,14 @@ pub fn check_is_coinbase(outpoint: &OutPoint) -> askama::Result<bool> {
 pub fn destination_from_script<'a>(
     script: &'a [u8],
     is_token: &bool,
+    sats_addr_prefix: &'a str,
+    tokens_addr_prefix: &'a str,
 ) -> askama::Result<blockchain::Destination<'a>> {
-    let prefix = if *is_token { "etoken" } else { "ecash" };
+    let prefix = if *is_token {
+        tokens_addr_prefix
+    } else {
+        sats_addr_prefix
+    };
     Ok(blockchain::destination_from_script(prefix, script))
 }
 

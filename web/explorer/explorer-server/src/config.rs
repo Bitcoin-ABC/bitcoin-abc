@@ -8,6 +8,7 @@ pub struct Config {
     pub host: SocketAddr,
     pub chronik_api_url: String,
     pub base_dir: Option<PathBuf>,
+    pub chain: Option<String>,
 }
 
 pub fn load_config(config_string: &str) -> Result<Config> {

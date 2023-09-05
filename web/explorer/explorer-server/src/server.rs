@@ -24,6 +24,7 @@ use crate::{
         calculate_block_difficulty, cash_addr_to_script_type_payload,
         from_be_hex, to_be_hex, to_legacy_address,
     },
+    chain::Chain,
     server_http::{
         address, address_qr, block, block_height, blocks, data_address_txs,
         data_block_txs, data_blocks, search, serve_files, tx,
@@ -47,11 +48,16 @@ impl Server {
     pub async fn setup(
         chronik: ChronikClient,
         base_dir: PathBuf,
+        chain: Chain,
     ) -> Result<Self> {
         Ok(Server {
             chronik,
             base_dir,
-            satoshi_addr_prefix: "ecash",
+            satoshi_addr_prefix: match chain {
+                Chain::Mainnet => "ecash",
+                Chain::Testnet => "ectest",
+                Chain::Regtest => "ecregtest",
+            },
             tokens_addr_prefix: "etoken",
         })
     }
@@ -325,6 +331,8 @@ impl Server {
 
         let transaction_template = TransactionTemplate {
             title: &title,
+            sats_addr_prefix: &self.satoshi_addr_prefix,
+            tokens_addr_prefix: &self.tokens_addr_prefix,
             token_section_title: &token_section_title,
             is_token,
             tx_hex,
