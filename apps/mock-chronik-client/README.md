@@ -32,8 +32,8 @@ Example: mocking the chronik.token() call
 const { mockTokenInfo } = require('/mocks/mockChronikResponses');
 // Initialize chronik mock with token info
 mockedChronik.setMock('token', {
-		input: 'some token ID',
-		output: mockTokenInfo,
+	input: 'some token ID',
+	output: mockTokenInfo,
 });
 
 // Execute the API call
@@ -73,16 +73,16 @@ Example: mocking an error from the chronik.broadcastTx() call
 const mockInvalidRawTxHex = 'not a valid raw tx hex';
 const expectedError = new Error('Bad response from Chronik');
 mockedChronik.setMock('broadcastTx', {
-		input: mockInvalidRawTxHex,
-		output: expectedError,
+	input: mockInvalidRawTxHex,
+	output: expectedError,
 });
 
 // Execute the API call
 await assert.rejects(
-		async () => {
-				await mockedChronik.broadcastTx(mockInvalidRawTxHex);
-		},
-		expectedError,
+	async () => {
+		await mockedChronik.broadcastTx(mockInvalidRawTxHex);
+	},
+	expectedError,
 );
 ```
 
