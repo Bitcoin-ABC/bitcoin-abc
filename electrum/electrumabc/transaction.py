@@ -610,11 +610,13 @@ class Transaction:
             self.deserialize()
         return self._inputs
 
-    def txinputs(self) -> List[TxInput]:
+    def txinputs(self, estimate_size: bool = False) -> List[TxInput]:
         return [
             TxInput(
                 OutPoint(UInt256.from_hex(inp["prevout_hash"]), inp["prevout_n"]),
-                bytes.fromhex(inp["scriptSig"]),
+                bytes.fromhex(
+                    self.input_script(inp, estimate_size, self._sign_schnorr)
+                ),
                 inp["sequence"],
             )
             for inp in self.inputs()
@@ -1122,12 +1124,26 @@ class Transaction:
 
     @profiler
     def estimated_size(self):
-        """Return an estimated tx size in bytes."""
+        """Return an estimated tx size in bytes.
+
+        This size can be overestimated for partially signed transactions if using ECDSA
+        signatures, as the estimation assumes a fixed signature size of 72 bytes
+        (including the sighash flag).
+        """
+        if self.is_complete() and self.raw is not None:
+            return len(self.raw) // 2
+
+        # VERSION (4 bytes) + INPUTS + OUTPUTS + locktime (4 bytes)
+        inputs = self.txinputs(estimate_size=True)
+        outputs = self.outputs()
         return (
-            len(self.serialize(True)) // 2
-            if not self.is_complete() or self.raw is None
-            else len(self.raw) // 2
-        )  # ASCII hex string
+            4
+            + 4
+            + compact_size_nbytes(len(inputs))
+            + sum(inp.size() for inp in inputs)
+            + compact_size_nbytes(len(outputs))
+            + sum(outp.size() for outp in outputs)
+        )
 
     @classmethod
     def estimated_input_size(self, txin, sign_schnorr=False):
