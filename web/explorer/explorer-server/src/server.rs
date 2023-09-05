@@ -514,6 +514,25 @@ impl Server {
         if let Ok(address) = CashAddress::parse_cow(query.into()) {
             return Ok(self.redirect(format!("/address/{}", address.as_str())));
         }
+
+        // Check for prefixless address search
+        if let Ok(address) = format!("{}:{}", self.satoshi_addr_prefix, query)
+            .parse::<CashAddress>()
+        {
+            return Ok(self.redirect(format!("/address/{}", address.as_str())));
+        }
+        if let Ok(address) = format!("{}:{}", self.tokens_addr_prefix, query)
+            .parse::<CashAddress>()
+        {
+            return Ok(self.redirect(format!("/address/{}", address.as_str())));
+        }
+
+        if let Ok(height) = query.parse::<i32>() {
+            if self.chronik.block_by_height(height).await.is_ok() {
+                return Ok(self.redirect(format!("/block-height/{}", query)));
+            }
+        }
+
         let bytes = from_be_hex(query)?;
         let unknown_hash = Sha256d::from_slice(&bytes)?;
 

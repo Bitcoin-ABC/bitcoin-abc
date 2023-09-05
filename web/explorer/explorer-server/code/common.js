@@ -130,20 +130,7 @@ function searchBarChange() {
 
 function searchButton() {
     var search = $('#search-bar').val();
-    if (search === '' || search === null) return;
-    else if (search.match(regHex32) !== null) {
-        location.href = '/search/' + search;
-    } else if (
-        search.slice(0, 6) === 'ecash:' ||
-        search.slice(0, 7) === 'etoken:'
-    ) {
-        location.href = '/search/' + search;
-    } else if (search.length > 6) {
-        search = 'ecash:' + search;
-        location.href = '/search/' + search;
-    } else if (!isNaN(search)) {
-        location.href = '/block-height/' + search;
-    } else return;
+    location.href = '/search/' + search;
 }
 
 function toggleTransactionScriptData() {
