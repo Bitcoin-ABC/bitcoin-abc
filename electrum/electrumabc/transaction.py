@@ -85,10 +85,6 @@ def compact_size_nbytes(size: int) -> int:
     """Return the number of bytes needed to encode an integer as a CompactSize.
     See https://en.bitcoin.it/wiki/Protocol_documentation#Variable_length_integer.
     """
-    if not size:
-        # Special case for an empty locking script. See test_parse_output_empty
-        # in test_transaction.py.
-        return 0
     if size < 253:
         return 1
     if size < 0x10000:

@@ -34,8 +34,8 @@ SCHNORR_P2PKH_SCRIPTSIG_NBYTES = (
 DUMMY_TXINPUT = transaction.TxInput(
     transaction.OutPoint(UInt256(b"\x00" * 32), 0), b"", 0
 )
-# TXID (32 bytes) + prevout_n (4 bytes) + sequence (4 bytes)
-DUMMY_TXINPUT_NBYTES = 40
+# TXID (32 bytes) + prevout_n (4 bytes) + compact_s1ze (1 byte) + sequence (4 bytes)
+DUMMY_TXINPUT_NBYTES = 41
 
 
 class TestBCDataStream(unittest.TestCase):
@@ -671,7 +671,9 @@ class TestTransaction(unittest.TestCase):
         )
         self.assertEqual([tx.txinputs()[0]], [DUMMY_TXINPUT])
         self.assertEqual(tx.outputs(), [(TYPE_SCRIPT, ScriptOutput(b""), 0)])
-        self.assertEqual(tx.outputs()[0].size(), transaction.AMOUNT_NBYTES)
+        self.assertEqual(
+            tx.outputs()[0].size(), transaction.AMOUNT_NBYTES + SHORT_COMPACTSIZE_NBYTES
+        )
         self.assertEqual("", tx.outputs()[0][1].to_ui_string())
         self.assertEqual(
             "50fa7bd4e5e2d3220fd2e84effec495b9845aba379d853408779d59a4b0b4f59",
@@ -741,7 +743,7 @@ class TestTransaction(unittest.TestCase):
 class TestCompactSize(unittest.TestCase):
     def test_compact_size_nbytes(self):
         for size, expected_nbytes in (
-            (0, 0),
+            (0, 1),
             (1, 1),
             (252, 1),
             (253, 3),
@@ -760,8 +762,8 @@ class TestCompactSize(unittest.TestCase):
 class TestTxOutput(unittest.TestCase):
     def test_size(self):
         for script_size, expected_output_size in (
-            # amount only (8 bytes)
-            (0, 8),
+            # amount (8 bytes) + 1 byte compact size
+            (0, 9),
             # amount + 1 byte compact size + script
             (1, 10),
             (252, 261),
@@ -785,8 +787,8 @@ class TestTxInput(unittest.TestCase):
         outpoint = transaction.OutPoint(txid, 0)
 
         for script_size, expected_output_size in (
-            # Base overhead: outpoint and sequence number
-            (0, 40),
+            # Base overhead (outpoint + sequence number) + 1 byte compact size
+            (0, 41),
             # + 1 byte compact size + scriptSig
             (1, 42),
             (252, 293),
