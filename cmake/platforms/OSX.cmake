@@ -19,7 +19,7 @@ set(OSX_MIN_VERSION 11.0)
 # Note: don't use XCODE_VERSION, it's a cmake built-in variable !
 set(SDK_XCODE_VERSION 12.2)
 set(SDK_XCODE_BUILD_ID 12B45b)
-set(LD64_VERSION 609)
+set(LD64_VERSION 711)
 
 # On OSX we use various stuff from Apple's SDK.
 set(OSX_SDK_PATH "${CMAKE_CURRENT_SOURCE_DIR}/depends/SDKs/Xcode-${SDK_XCODE_VERSION}-${SDK_XCODE_BUILD_ID}-extracted-SDK-with-libcxx-headers")
