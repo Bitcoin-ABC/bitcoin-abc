@@ -30,7 +30,7 @@ const Layout = ({
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta
                     name="twitter:image"
-                    content="https://e.cash/images/ecash-twitter-card.jpg"
+                    content="https://strapi.fabien.cash/uploads/ecash_twitter_card_ff6a1638bf.jpg"
                 ></meta>
                 <meta
                     property="og:image"
