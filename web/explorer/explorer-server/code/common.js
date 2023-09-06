@@ -228,31 +228,21 @@ const scrollToBottom = () => {
         '<a class="item" href="HREF" onclick="goToPage(event, NUMBER)">NUMBER</a>';
 
     const determinePaginationSlots = lastPage => {
-        let availableWidth = $('.ui.container').width();
+        if (lastPage <= 0) {
+            return Infinity;
+        }
 
         // pagination slot
         const padding = 2 * 16;
         const letter = 8;
-        const tier1 = padding + 1 * letter;
-        const tier2 = padding + 2 * letter;
-        const tier3 = padding + 3 * letter;
-        const tier4 = padding + 4 * letter;
+        const paginationWidth = padding + Math.log10(lastPage) * letter;
 
-        let predictedTier;
-        if (lastPage > 0 && lastPage < 10) {
-            predictedTier = tier1;
-        } else if (lastPage > 9 && lastPage < 100) {
-            predictedTier = tier2;
-        } else if (lastPage > 99 && lastPage < 1000) {
-            predictedTier = tier3;
-        } else if (lastPage > 999 && lastPage <= 10000) {
-            predictedTier = tier4;
-        }
+        let availableWidth = $('.ui.container').width();
 
-        availableWidth -= tier1;
-        availableWidth -= predictedTier;
+        // Leave a 1-slot extra margin for a nicer rendering on mobile
+        availableWidth -= paginationWidth;
 
-        return Math.round(availableWidth / predictedTier);
+        return Math.round(availableWidth / paginationWidth);
     };
 
     pagination.generatePaginationRequestRange = () => {
