@@ -41,6 +41,9 @@ class BaseBlob:
     def __eq__(self, other):
         return self.compare(other) == 0
 
+    def __hash__(self):
+        return hash((self.data, self.WIDTH))
+
     def __lt__(self, other):
         return self.compare(other) < 0
 

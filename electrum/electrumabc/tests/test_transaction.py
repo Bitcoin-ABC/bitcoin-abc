@@ -683,6 +683,57 @@ class TestTransaction(unittest.TestCase):
             transaction.AMOUNT_NBYTES + SHORT_COMPACTSIZE_NBYTES + script_nbytes,
         )
 
+    def test_tx_from_io(self):
+        input0 = {
+            "type": "p2pkh",
+            "prevout_n": 1,
+            "prevout_hash": "156a1db69477d5d2580425450263d8878b6f557c36e8649b0b56e735a99690a9",
+            "scriptSig": "47304402201c67fdf3869df791c949fe430cfd3837ee2461244ebf13e27cc56c47d542937d0220645e58398c505af5052f90230135e09458a332b5e8c2a7e2932efdd03fd64cff4121026555319664a080ce6c0b1bc023b8435d530773b7e3a30a88c78a0d152dfc7da1",
+            "sequence": transaction.DEFAULT_TXIN_SEQUENCE - 1,
+        }
+        input1 = {
+            "type": "p2pkh",
+            "prevout_n": 0,
+            "prevout_hash": "dec23e57245393dd0caacd5bdb31eac8797faa6dc99de6cd459ecec1704f1f8c",
+            "scriptSig": "47304402203da7ad56f4608a9c8509528074d61ac563ba5db904ad5a98fb64c0451509bc24022049c9d49f133c3f06701d21ca4a9d9e13fb73b155566f66de5cccdc0ff84672e741210241ac33058ef56b991d74ae7bf8a7552e191f36bc0adfddb2852816ee1da28dc0",
+            "sequence": transaction.DEFAULT_TXIN_SEQUENCE - 2,
+        }
+        input2 = {
+            "type": "p2pkh",
+            "prevout_n": 1,
+            "prevout_hash": "2371e4eaccdd599f0e433172f4d988c914bf4437a429f188903948566ed1cb9f",
+            "scriptSig": "47304402207b61d9496e17777087d1e6098083eeefbcd9620624517e901317b3f7ddef82fc02207f45b318d821410b812ff4fd6d1ae848d061d17cb6fe6fe51502888075baa172412103140ca2c609b0dcea8f43edc300da2b6fcf94cc342abb8fc4da996486db4d2920",
+            # default sequence
+        }
+        output0 = transaction.TxOutput(
+            TYPE_ADDRESS,
+            Address.from_string("ecash:qz4lnx9ad6ay4nz3hnujgtayhm0gmf4mr5jgamh830"),
+            value=25872015,
+        )
+
+        tx = transaction.Transaction.from_io(
+            [input0, input1, input2],
+            [output0],
+        )
+
+        # Test default values
+        self.assertEqual(tx.version, 2)
+        self.assertEqual(tx.locktime, 0)
+        self.assertEqual(tx._sign_schnorr, False)
+
+        expected_txins = [
+            transaction.TxInput(
+                transaction.OutPoint(
+                    UInt256.from_hex(inp["prevout_hash"]),
+                    inp["prevout_n"],
+                ),
+                bytes.fromhex(inp["scriptSig"]),
+                inp.get("sequence", transaction.DEFAULT_TXIN_SEQUENCE),
+            )
+            for inp in [input0, input1, input2]
+        ]
+        self.assertEqual(set(tx.txinputs()), set(expected_txins))
+
 
 class TestCompactSize(unittest.TestCase):
     def test_compact_size_nbytes(self):

@@ -150,6 +150,9 @@ class OutPoint(SerializableObject):
     def __eq__(self, other: OutPoint):
         return self.txid == other.txid and self.n == other.n
 
+    def __hash__(self):
+        return hash((self.txid, self.n))
+
     def __str__(self):
         return f"{self.txid.to_string()}:{self.n})"
 
@@ -176,6 +179,9 @@ class TxInput:
             and self.scriptsig == other.scriptsig
             and self.sequence == other.sequence
         )
+
+    def __hash__(self):
+        return hash((self.outpoint, self.scriptsig, self.sequence))
 
     def __str__(self):
         return (
@@ -617,7 +623,7 @@ class Transaction:
                 bytes.fromhex(
                     self.input_script(inp, estimate_size, self._sign_schnorr)
                 ),
-                inp["sequence"],
+                inp.get("sequence", DEFAULT_TXIN_SEQUENCE),
             )
             for inp in self.inputs()
         ]
