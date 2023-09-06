@@ -347,7 +347,7 @@ def parse_sig(x_sig):
     return [None if x == NO_SIGNATURE else x for x in x_sig]
 
 
-def safe_parse_pubkey(x):
+def safe_parse_pubkey(x: bytes) -> bytes:
     try:
         return xpubkey_to_pubkey(x)
     except Exception:
@@ -379,7 +379,7 @@ def parse_scriptSig(d, _bytes):
     match = [OpCodes.OP_PUSHDATA4, OpCodes.OP_PUSHDATA4]
     if match_decoded(decoded, match):
         sig = bh2u(decoded[0][1])
-        x_pubkey = bh2u(decoded[1][1])
+        x_pubkey = decoded[1][1]
         try:
             signatures = parse_sig([sig])
             pubkey, address = xpubkey_to_address(x_pubkey)
@@ -388,9 +388,9 @@ def parse_scriptSig(d, _bytes):
             return
         d["type"] = "p2pkh"
         d["signatures"] = signatures
-        d["x_pubkeys"] = [x_pubkey]
+        d["x_pubkeys"] = [x_pubkey.hex()]
         d["num_sig"] = 1
-        d["pubkeys"] = [pubkey]
+        d["pubkeys"] = [pubkey.hex()]
         d["address"] = address
         return
 
@@ -425,10 +425,16 @@ def parse_redeemScript(s):
         # causes exception in caller when mismatched
         print_error("cannot find address in input script", bh2u(s))
         return
-    x_pubkeys = [bh2u(x[1]) for x in dec2[1:-2]]
+    x_pubkeys = [x[1] for x in dec2[1:-2]]
     pubkeys = [safe_parse_pubkey(x) for x in x_pubkeys]
-    redeemScript = Script.multisig_script(m, [bytes.fromhex(p) for p in pubkeys])
-    return m, n, x_pubkeys, pubkeys, redeemScript
+    redeemScript = Script.multisig_script(m, pubkeys)
+    return (
+        m,
+        n,
+        [xpub.hex() for xpub in x_pubkeys],
+        [pub.hex() for pub in pubkeys],
+        redeemScript,
+    )
 
 
 def get_address_from_output_script(
@@ -641,9 +647,9 @@ class Transaction:
         x_pubkeys = txin["x_pubkeys"]
         pubkeys = txin.get("pubkeys")
         if pubkeys is None:
-            pubkeys = [xpubkey_to_pubkey(x) for x in x_pubkeys]
+            pubkeys = [xpubkey_to_pubkey(bytes.fromhex(x)) for x in x_pubkeys]
             pubkeys, x_pubkeys = zip(*sorted(zip(pubkeys, x_pubkeys)))
-            txin["pubkeys"] = pubkeys = list(pubkeys)
+            txin["pubkeys"] = pubkeys = [pubkey.hex() for pubkey in pubkeys]
             txin["x_pubkeys"] = x_pubkeys = list(x_pubkeys)
         return pubkeys, x_pubkeys
 

@@ -1,7 +1,7 @@
 import unittest
 from unittest import mock
 
-from .. import keystore, mnemo, storage, wallet
+from .. import bitcoin, keystore, mnemo, storage, wallet
 from ..address import Address, PublicKey
 
 
@@ -116,6 +116,34 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
         self.assertEqual(
             ks.xpub,
             "xpub6DFh1smUsyqmYD4obDX6ngaxhd53Zx7aeFjoobebm7vbkT6f9awJWFuGzBT9FQJEWFBL7UyhMXtYzRcwDuVbcxtv9Ce2W9eMm4KXLdvdbjv",
+        )
+
+        xpub_hex = bitcoin.DecodeBase58Check(ks.xpub).hex()
+        self.assertEqual(
+            xpub_hex,
+            "0488b21e03d9f7b304800000009c2b93d3a7373404c170ce411dec483ef3aed3cbcecd41f73bf27e6f21756f0d03a324474fa7a63b0507cbdfa68cf26386d38885ec9eb84c0ebaa0263f7aee0e0a",
+        )
+        # first change address
+        xpub_and_derivation_hex = ks.get_xpubkey(1, 0)
+        self.assertEqual(xpub_and_derivation_hex, "ff" + xpub_hex + "0100" + "0000")
+        self.assertEqual(
+            ks.get_pubkey_derivation(bytes.fromhex(xpub_and_derivation_hex)),
+            [1, 0],
+        )
+
+        class MockTx:
+            def inputs(self):
+                return [
+                    {
+                        "num_sig": 1,
+                        "signatures": [None],
+                        "x_pubkeys": [xpub_and_derivation_hex],
+                    }
+                ]
+
+        self.assertEqual(
+            ks.get_tx_derivations(MockTx()),
+            {xpub_and_derivation_hex: [1, 0]},
         )
 
         w = self._create_standard_wallet(ks)

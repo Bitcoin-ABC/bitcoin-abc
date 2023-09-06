@@ -71,6 +71,7 @@ class KeepKeyKeyStore(HardwareKeyStore):
                 )
             prev_tx[tx_hash] = txin["prev_tx"]
             for x_pubkey in x_pubkeys:
+                x_pubkey = bytes.fromhex(x_pubkey)
                 if not is_xpubkey(x_pubkey):
                     continue
                 xpub, s = parse_xpubkey(x_pubkey)
@@ -438,7 +439,7 @@ class KeepKeyPlugin(HWPluginBase):
                 prev_index = 0xFFFFFFFF  # signed int -1
             else:
                 if for_sig:
-                    x_pubkeys = txin["x_pubkeys"]
+                    x_pubkeys = [bytes.fromhex(xpubk) for xpubk in txin["x_pubkeys"]]
                     if len(x_pubkeys) == 1:
                         x_pubkey = x_pubkeys[0]
                         xpub, s = parse_xpubkey(x_pubkey)

@@ -2478,7 +2478,7 @@ class AbstractWallet(PrintError, SPVDelegate):
             if isinstance(k, BIP32KeyStore):
                 for txin in tx.inputs():
                     for x_pubkey in txin["x_pubkeys"]:
-                        _, addr = xpubkey_to_address(x_pubkey)
+                        _, addr = xpubkey_to_address(bytes.fromhex(x_pubkey))
                         try:
                             c, index = self.get_address_index(addr)
                         except Exception:

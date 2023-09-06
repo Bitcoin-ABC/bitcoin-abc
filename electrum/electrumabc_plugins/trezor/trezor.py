@@ -98,6 +98,7 @@ class TrezorKeyStore(HardwareKeyStore):
         xpub_path = {}
         for txin in tx.inputs():
             pubkeys, x_pubkeys = tx.get_sorted_pubkeys(txin)
+            x_pubkeys = [bytes.fromhex(xpub) for xpub in x_pubkeys]
             tx_hash = txin["prevout_hash"]
             if txin.get("prev_tx") is None:
                 raise RuntimeError(
@@ -456,7 +457,7 @@ class TrezorPlugin(HWPluginBase):
                 )
                 if for_sig:
                     x_pubkeys = txin["x_pubkeys"]
-                    xpubs = [parse_xpubkey(x) for x in x_pubkeys]
+                    xpubs = [parse_xpubkey(bytes.fromhex(x)) for x in x_pubkeys]
                     txinputtype.multisig = self._make_multisig(
                         txin.get("num_sig"), xpubs, txin.get("signatures")
                     )

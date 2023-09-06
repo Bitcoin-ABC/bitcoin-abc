@@ -333,6 +333,7 @@ class Plugin(BasePlugin):
         xpub_set = set()
         for txin in tx.inputs():
             for x_pubkey in txin["x_pubkeys"]:
+                x_pubkey = bytes.fromhex(x_pubkey)
                 if is_xpubkey(x_pubkey):
                     xpub, s = parse_xpubkey(x_pubkey)
                     xpub_set.add(xpub)

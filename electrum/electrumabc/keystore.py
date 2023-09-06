@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import hashlib
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
 import ecdsa
 from ecdsa.curves import SECP256k1
@@ -70,7 +70,10 @@ class KeyStore(PrintError):
         """Returns whether the keystore can be encrypted with a password."""
         raise NotImplementedError()
 
-    def get_tx_derivations(self, tx):
+    def get_tx_derivations(self, tx) -> Dict[str, List[int]]:
+        """Return a map of {xpubkey: derivation}
+        where xpubkey is a hex string in the format described in Xpub.get_xpubkey
+        and derivation is a [change_index, address_index] list."""
         keypairs = {}
         for txin in tx.inputs():
             num_sig = txin.get("num_sig")
@@ -85,7 +88,7 @@ class KeyStore(PrintError):
                 if x_signatures[k] is not None:
                     # this pubkey already signed
                     continue
-                derivation = self.get_pubkey_derivation(x_pubkey)
+                derivation = self.get_pubkey_derivation(bytes.fromhex(x_pubkey))
                 if not derivation:
                     continue
                 keypairs[x_pubkey] = derivation
@@ -307,7 +310,12 @@ class Xpub:
             cK, c = bitcoin.CKD_pub(cK, c, i)
         return bh2u(cK)
 
-    def get_xpubkey(self, c, i):
+    def get_xpubkey(self, c: int, i: int) -> str:
+        """Get the xpub key for a derivation path (change_index, key_index) in the
+        internal format:
+        prefix "ff" + hex encoded xpub + hex encoded (little-endian) indexes.
+        """
+
         def encode_path_int(path_int) -> str:
             if path_int < 0xFFFF:
                 hexstr = bitcoin.int_to_hex(path_int, 2)
@@ -319,10 +327,9 @@ class Xpub:
         return "ff" + bh2u(bitcoin.DecodeBase58Check(self.xpub)) + s
 
     @classmethod
-    def parse_xpubkey(self, pubkey):
-        assert pubkey[0:2] == "ff"
-        pk = bytes.fromhex(pubkey)
-        pk = pk[1:]
+    def parse_xpubkey(self, pubkey: bytes):
+        assert pubkey[0] == 0xFF
+        pk = pubkey[1:]
         xkey = bitcoin.EncodeBase58Check(pk[0:78])
         dd = pk[78:]
         s = []
@@ -338,16 +345,16 @@ class Xpub:
         assert len(s) == 2
         return xkey, s
 
-    def get_pubkey_derivation_based_on_wallet_advice(self, x_pubkey):
+    def get_pubkey_derivation_based_on_wallet_advice(self, x_pubkey: bytes):
         _, addr = xpubkey_to_address(x_pubkey)
         retval = self.wallet_advice.get(addr)
         # None or the derivation based on wallet advice.
         return retval
 
-    def get_pubkey_derivation(self, x_pubkey):
-        if x_pubkey[0:2] == "fd":
+    def get_pubkey_derivation(self, x_pubkey: bytes):
+        if x_pubkey[0] == 0xFD:
             return self.get_pubkey_derivation_based_on_wallet_advice(x_pubkey)
-        if x_pubkey[0:2] != "ff":
+        if x_pubkey[0] != 0xFF:
             return
         xpub, derivation = self.parse_xpubkey(x_pubkey)
         if self.xpub != xpub:
@@ -658,35 +665,35 @@ class HardwareKeyStore(KeyStore, Xpub):
 # extended pubkeys
 
 
-def is_xpubkey(x_pubkey):
-    return x_pubkey[0:2] == "ff"
+def is_xpubkey(x_pubkey: bytes):
+    return x_pubkey[0] == 0xFF
 
 
-def parse_xpubkey(x_pubkey):
-    assert x_pubkey[0:2] == "ff"
+def parse_xpubkey(x_pubkey: bytes):
     return BIP32KeyStore.parse_xpubkey(x_pubkey)
 
 
-def xpubkey_to_address(x_pubkey):
-    if x_pubkey[0:2] == "fd":
-        address = bitcoin.script_to_address(x_pubkey[2:])
+def xpubkey_to_address(x_pubkey: bytes) -> Tuple[bytes, Address]:
+    if x_pubkey[0] == 0xFD:
+        address = bitcoin.script_to_address(x_pubkey[1:].hex())
         return x_pubkey, address
-    if x_pubkey[0:2] in ["02", "03", "04"]:
+    if x_pubkey[0] in [0x02, 0x03, 0x04]:
+        # regular pubkey
         pubkey = x_pubkey
-    elif x_pubkey[0:2] == "ff":
+    elif x_pubkey[0] == 0xFF:
         xpub, s = BIP32KeyStore.parse_xpubkey(x_pubkey)
-        pubkey = BIP32KeyStore.get_pubkey_from_xpub(xpub, s)
-    elif x_pubkey[0:2] == "fe":
-        mpk, s = OldKeyStore.parse_xpubkey(x_pubkey)
-        pubkey = OldKeyStore.get_pubkey_from_mpk(mpk, s[0], s[1])
+        pubkey = bytes.fromhex(BIP32KeyStore.get_pubkey_from_xpub(xpub, s))
+    elif x_pubkey[0] == 0xFE:
+        mpk, s = OldKeyStore.parse_xpubkey(x_pubkey.hex())
+        pubkey = bytes.fromhex(OldKeyStore.get_pubkey_from_mpk(mpk, s[0], s[1]))
     else:
-        raise BitcoinException(f"Cannot parse pubkey. prefix: {x_pubkey[0:2]}")
+        raise BitcoinException(f"Cannot parse pubkey. prefix: {hex(x_pubkey[0])}")
     if pubkey:
-        address = Address.from_pubkey(pubkey)
+        address = Address.from_pubkey(pubkey.hex())
     return pubkey, address
 
 
-def xpubkey_to_pubkey(x_pubkey):
+def xpubkey_to_pubkey(x_pubkey: bytes) -> bytes:
     pubkey, address = xpubkey_to_address(x_pubkey)
     return pubkey
 

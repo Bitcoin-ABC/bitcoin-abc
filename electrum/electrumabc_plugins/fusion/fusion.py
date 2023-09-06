@@ -380,7 +380,7 @@ class Fusion(threading.Thread, PrintError):
         keypairs = {}
         pubkeys = {}
         for xpubkey in xpubkeys_set:
-            derivation = wallet.keystore.get_pubkey_derivation(xpubkey)
+            derivation = wallet.keystore.get_pubkey_derivation(bytes.fromhex(xpubkey))
             privkey = wallet.keystore.get_private_key(derivation, password)
             pubkeyhex = public_key_from_private_key(*privkey)
             pubkey = bytes.fromhex(pubkeyhex)
