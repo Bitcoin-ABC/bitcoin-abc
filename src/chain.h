@@ -67,9 +67,16 @@ bool AreOnTheSameFork(const CBlockIndex *pa, const CBlockIndex *pb);
 
 /** Used to marshal pointers into hashes for db storage. */
 class CDiskBlockIndex : public CBlockIndex {
-public:
-    static constexpr int TRACK_SIZE_VERSION = 220800;
+    /**
+     * Historically CBlockLocator's version field has been written to disk
+     * streams as the client version, but the value has never been used.
+     *
+     * Hard-code to the highest client version ever written.
+     * SerParams can be used if the field requires any meaning in the future.
+     **/
+    static constexpr int DUMMY_VERSION = 320400;
 
+public:
     BlockHash hashPrev;
 
     CDiskBlockIndex() : hashPrev() {}
@@ -80,17 +87,14 @@ public:
 
     SERIALIZE_METHODS(CDiskBlockIndex, obj) {
         LOCK(::cs_main);
-        int _nVersion = s.GetVersion();
-        if (!(s.GetType() & SER_GETHASH)) {
-            READWRITE(VARINT_MODE(_nVersion, VarIntMode::NONNEGATIVE_SIGNED));
-        }
+        int _nVersion = DUMMY_VERSION;
+        READWRITE(VARINT_MODE(_nVersion, VarIntMode::NONNEGATIVE_SIGNED));
 
         READWRITE(VARINT_MODE(obj.nHeight, VarIntMode::NONNEGATIVE_SIGNED));
         READWRITE(obj.nStatus);
         READWRITE(VARINT(obj.nTx));
 
-        // The size of the blocks are tracked starting at version 0.22.8
-        if (obj.nStatus.hasData() && _nVersion >= TRACK_SIZE_VERSION) {
+        if (obj.nStatus.hasData()) {
             READWRITE(VARINT(obj.nSize));
         }
 

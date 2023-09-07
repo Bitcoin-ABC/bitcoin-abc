@@ -385,7 +385,8 @@ bool CBlockTreeDB::Upgrade() {
 
     // The DB is not empty, and the version is either non-existent or too old.
     // The node requires a reindex.
-    if (pcursor->Valid() && version < CDiskBlockIndex::TRACK_SIZE_VERSION) {
+    constexpr int TRACK_SIZE_VERSION = 220800;
+    if (pcursor->Valid() && version < TRACK_SIZE_VERSION) {
         LogPrintf(
             "\nThe database is too old. The block index cannot be upgraded "
             "and reindexing is required.\n");
