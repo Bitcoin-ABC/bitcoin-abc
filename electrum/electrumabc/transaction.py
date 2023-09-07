@@ -565,61 +565,6 @@ def safe_parse_pubkey(x: bytes) -> bytes:
         return x
 
 
-def parse_scriptSig(d, _bytes):
-    try:
-        decoded = Script.get_ops(_bytes)
-    except Exception:
-        # coinbase transactions raise an exception
-        print_error("cannot find address in input script", bh2u(_bytes))
-        return
-
-    if matches_p2pk_scriptsig(decoded):
-        item = decoded[0][1]
-        # payto_pubkey
-        d["type"] = "p2pk"
-        d["signatures"] = [bh2u(item)]
-        d["num_sig"] = 1
-        d["x_pubkeys"] = ["(pubkey)"]
-        d["pubkeys"] = ["(pubkey)"]
-        return
-
-    # non-generated TxIn transactions push a signature
-    # (seventy-something bytes) and then their public key
-    # (65 bytes) onto the stack:
-    if matches_p2pkh_scriptsig(decoded):
-        sig = bh2u(decoded[0][1])
-        x_pubkey = decoded[1][1]
-        try:
-            signatures = parse_sig([sig])
-            pubkey, address = xpubkey_to_address(x_pubkey)
-        except Exception:
-            print_error("cannot find address in input script", bh2u(_bytes))
-            return
-        d["type"] = "p2pkh"
-        d["signatures"] = signatures
-        d["x_pubkeys"] = [x_pubkey.hex()]
-        d["num_sig"] = 1
-        d["pubkeys"] = [pubkey.hex()]
-        d["address"] = address
-        return
-
-    # p2sh transaction, m of n:
-    #     OP_0 PUSH(sig1) PUSH(sig2)... PUSH(redeemScript)
-    if not matches_p2sh_ecdsa_multisig_scriptsig(decoded):
-        print_error("cannot find address in input script", bh2u(_bytes))
-        return
-    x_sig = [bh2u(x[1]) for x in decoded[1:-1]]
-    m, n, x_pubkeys, pubkeys, redeemScript = parse_redeemScript(decoded[-1][1])
-    # write result in d
-    d["type"] = "p2sh"
-    d["num_sig"] = m
-    d["signatures"] = parse_sig(x_sig)
-    d["x_pubkeys"] = [xpub.hex() for xpub in x_pubkeys]
-    d["pubkeys"] = [pub.hex() for pub in pubkeys]
-    d["redeemScript"] = redeemScript
-    d["address"] = Address.from_P2SH_hash(bitcoin.hash_160(redeemScript))
-
-
 def parse_redeemScript(s: bytes) -> Tuple[int, int, List[bytes], List[bytes], bytes]:
     """
     Returns (M, N, xpubkeys, pubkeys, redeemscript) for a M-of-N multisig script
@@ -699,34 +644,51 @@ def parse_input(vds):
     d["prevout_n"] = prevout_n
     d["sequence"] = sequence
     d["address"] = UnknownAddress()
-    if prevout_hash == "00" * 32:
-        d["type"] = "coinbase"
-        d["scriptSig"] = bh2u(scriptSig)
-    else:
-        d["x_pubkeys"] = []
-        d["pubkeys"] = []
-        d["signatures"] = {}
-        d["address"] = None
+    txin = TxInput(
+        OutPoint(UInt256.from_hex(prevout_hash), prevout_n), scriptSig, sequence
+    )
+    d["type"] = txin.type.name
+    d["scriptSig"] = bh2u(scriptSig)
+    if txin.is_coinbase():
+        return d
+    d["x_pubkeys"] = []
+    d["pubkeys"] = []
+    d["signatures"] = {}
+    d["address"] = None
+    d["num_sig"] = 0
+    try:
+        txin.parse_scriptsig()
+    except Exception as e:
+        print_error(
+            "{}: Failed to parse tx input {}:{}, probably a p2sh (non multisig?)."
+            " Exception was: {}".format(__name__, prevout_hash, prevout_n, repr(e))
+        )
+        # that whole heuristic codepath is fragile; just ignore it when it dies.
+        # failing tx examples:
+        # 1c671eb25a20aaff28b2fa4254003c201155b54c73ac7cf9c309d835deed85ee
+        # 08e1026eaf044127d7103415570afd564dfac3131d7a5e4b645f591cd349bb2c
+        # override these once more just to make sure
+        d["address"] = UnknownAddress()
         d["type"] = "unknown"
-        d["num_sig"] = 0
-        d["scriptSig"] = bh2u(scriptSig)
-        try:
-            parse_scriptSig(d, scriptSig)
-        except Exception as e:
-            print_error(
-                "{}: Failed to parse tx input {}:{}, probably a p2sh (non multisig?)."
-                " Exception was: {}".format(__name__, prevout_hash, prevout_n, repr(e))
-            )
-            # that whole heuristic codepath is fragile; just ignore it when it dies.
-            # failing tx examples:
-            # 1c671eb25a20aaff28b2fa4254003c201155b54c73ac7cf9c309d835deed85ee
-            # 08e1026eaf044127d7103415570afd564dfac3131d7a5e4b645f591cd349bb2c
-            # override these once more just to make sure
-            d["address"] = UnknownAddress()
-            d["type"] = "unknown"
-        if not Transaction.is_txin_complete(d):
-            del d["scriptSig"]
-            d["value"] = vds.read_uint64()
+    else:
+        d["signatures"] = [
+            (sig.hex() if sig is not None else None) for sig in txin.signatures
+        ]
+        d["num_sig"] = txin.num_sig
+        if txin.type == bitcoin.ScriptType.p2pk:
+            # TODO: remove this entirely if unused
+            d["x_pubkeys"] = ["(pubkey)"]
+            d["pubkeys"] = ["(pubkey)"]
+        else:
+            d["x_pubkeys"] = [xpub.hex() for xpub in txin.x_pubkeys]
+            d["pubkeys"] = [pub.hex() for pub in txin.pubkeys]
+            d["address"] = txin.address
+        if txin.type == bitcoin.ScriptType.p2sh:
+            d["redeemScript"] = txin.scriptsig
+    if not Transaction.is_txin_complete(d):
+        del d["scriptSig"]
+        # The amount is needed for signing, in case of partially signed inputs.
+        d["value"] = vds.read_uint64()
     return d
 
 
