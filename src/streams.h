@@ -23,37 +23,6 @@
 #include <utility>
 #include <vector>
 
-template <typename Stream> class OverrideStream {
-    Stream *stream;
-
-    const int nVersion;
-
-public:
-    OverrideStream(Stream *stream_, int nType_, int nVersion_)
-        : stream(stream_), nVersion(nVersion_) {}
-
-    template <typename T> OverrideStream<Stream> &operator<<(const T &obj) {
-        ::Serialize(*this, obj);
-        return (*this);
-    }
-
-    template <typename T> OverrideStream<Stream> &operator>>(T &&obj) {
-        ::Unserialize(*this, obj);
-        return (*this);
-    }
-
-    void write(Span<const std::byte> src) { stream->write(src); }
-
-    void read(Span<std::byte> dst) { stream->read(dst); }
-
-    int GetVersion() const { return nVersion; }
-    void ignore(size_t size) { return stream->ignore(size); }
-};
-
-template <typename S> OverrideStream<S> WithOrVersion(S *s, int nVersionFlag) {
-    return OverrideStream<S>(s, s->GetType(), s->GetVersion() | nVersionFlag);
-}
-
 /**
  * Minimal stream for overwriting and/or appending to an existing byte vector.
  *

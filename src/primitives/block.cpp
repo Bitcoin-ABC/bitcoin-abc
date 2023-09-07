@@ -7,10 +7,9 @@
 
 #include <hash.h>
 #include <tinyformat.h>
-#include <version.h>
 
 BlockHash CBlockHeader::GetHash() const {
-    return BlockHash{(CHashWriter{PROTOCOL_VERSION} << *this).GetHash()};
+    return BlockHash{(HashWriter{} << *this).GetHash()};
 }
 
 std::string CBlock::ToString() const {
