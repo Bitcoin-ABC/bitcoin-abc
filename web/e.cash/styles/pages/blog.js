@@ -213,3 +213,7 @@ export const NextPostCtn = styled.div`
         grid-template-columns: repeat(1, 1fr);
     }
 `;
+
+export const MediaLink = styled.div`
+    font-size: 14px;
+`;

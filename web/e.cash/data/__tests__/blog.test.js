@@ -2,7 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { getPageCount, getBlogPosts, formatTimestamp } from '../blog.js';
+import {
+    getPageCount,
+    getBlogPosts,
+    formatTimestamp,
+    evaluateMediaLink,
+} from '../blog.js';
 import {
     mockBlogPosts1,
     mockBlogPosts2,
@@ -141,5 +146,33 @@ describe('formatTimestamp', () => {
         expect(() => {
             formatTimestamp(invalidTimestamp);
         }).toThrow('Invalid timestamp');
+    });
+});
+
+describe('evaluateMediaLink', () => {
+    it('should return true for a valid URL', () => {
+        const validUrl = 'https://www.example.com';
+        expect(evaluateMediaLink(validUrl)).toBe(true);
+    });
+
+    it('should return false for an invalid URL', () => {
+        const invalidUrl = 'not_a_valid_url';
+        expect(evaluateMediaLink(invalidUrl)).toBe(false);
+    });
+
+    it('should return false for an empty string', () => {
+        expect(evaluateMediaLink('')).toBe(false);
+    });
+
+    it('should return false for a null input', () => {
+        expect(evaluateMediaLink(null)).toBe(false);
+    });
+
+    it('should return false for an undefined input', () => {
+        expect(evaluateMediaLink(undefined)).toBe(false);
+    });
+
+    it('should return false for a non-string input', () => {
+        expect(evaluateMediaLink(123)).toBe(false);
     });
 });

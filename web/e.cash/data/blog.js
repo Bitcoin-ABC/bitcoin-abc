@@ -68,3 +68,18 @@ export const formatTimestamp = timestamp => {
     };
     return date.toLocaleDateString('en-US', options);
 };
+
+/**
+ * Evalute if media_link is a valid url
+ * @param {string} string - the value of media_link
+ * @returns {boolen} if it is or isn't a valid url
+ */
+export const evaluateMediaLink = string => {
+    let url;
+    try {
+        url = new URL(string);
+    } catch (err) {
+        return false;
+    }
+    return true;
+};

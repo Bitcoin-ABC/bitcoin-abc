@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import Layout from '/components/layout';
 import Image from 'next/image';
+import CustomLink from '/components/custom-link';
 import H3 from '/components/h3';
 import { Container } from '/components/atoms';
 import { getBlogPosts } from '/data/blog';
@@ -16,8 +17,9 @@ import {
     CardImage,
     TextCtn,
     PostBorder,
+    MediaLink,
 } from '/styles/pages/blog.js';
-import { formatTimestamp } from '/data/blog.js';
+import { formatTimestamp, evaluateMediaLink } from '/data/blog.js';
 
 const STRAPI_URL = 'https://strapi.fabien.cash';
 
@@ -37,7 +39,14 @@ function BlogPost({ post, keepReadingPosts }) {
                         )}
                     </DateText>
                     <H3 text={post.attributes.title} />
-
+                    {evaluateMediaLink(post.attributes.media_link) && (
+                        <MediaLink>
+                            Originally published on{' '}
+                            <CustomLink href={post.attributes.media_link}>
+                                {new URL(post.attributes.media_link).hostname}
+                            </CustomLink>
+                        </MediaLink>
+                    )}
                     <MainPostImage>
                         <Image
                             src={`${STRAPI_URL}/${post.attributes.image.data.attributes.url}`}
