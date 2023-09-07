@@ -47,7 +47,7 @@ from .address import (
     ScriptOutput,
     UnknownAddress,
 )
-from .bitcoin import TYPE_SCRIPT, OpCodes
+from .bitcoin import TYPE_SCRIPT, OpCodes, ScriptType
 from .caches import ExpiringCache
 from .constants import DEFAULT_TXIN_SEQUENCE
 
@@ -79,7 +79,7 @@ COMPRESSED_PUBKEY_NBYTES = 33
 # Note: The deserialization code originally comes from ABE.
 
 
-NO_SIGNATURE = "ff"
+NO_SIGNATURE = b"\xff"
 
 
 def compact_size_nbytes(size: int) -> int:
@@ -164,6 +164,14 @@ class TxInput:
         self.scriptsig = scriptsig
         self.sequence = sequence
 
+        # Properties that are lazily computed on demand
+        self._x_pubkeys: Optional[List[bytes]] = None
+        self._pubkeys: Optional[List[bytes]] = None
+        self._type: Optional[ScriptType] = None
+        # Some signatures can be None for partially signed transactions
+        self._signatures: List[Optional[bytes]] = []
+        self._address: Optional[Address] = None
+
     def size(self):
         scriptsig_nbytes = len(self.scriptsig)
         assert scriptsig_nbytes <= MAX_SCRIPT_SIZE
@@ -189,6 +197,112 @@ class TxInput:
             f"TxInput(outpoint={self.outpoint}, scriptsig={self.scriptsig.hex()}, "
             f"sequence={self.sequence})"
         )
+
+    def is_coinbase(self) -> bool:
+        return self.outpoint.txid.is_null()
+
+    def parse_scriptsig(self):
+        if self.is_coinbase():
+            self._type = ScriptType.coinbase
+            return
+
+        decoded = Script.get_ops(self.scriptsig)
+        if matches_p2pk_scriptsig(decoded):
+            self._type = ScriptType.p2pk
+            self._signatures = [decoded[0][1]]
+            return
+
+        if matches_p2pkh_scriptsig(decoded):
+            sig = decoded[0][1]
+            x_pubkey = decoded[1][1]
+            try:
+                pubkey, address = xpubkey_to_address(x_pubkey)
+            except Exception:
+                print_error("cannot find address in input script", bh2u(self.scriptsig))
+                return
+            self._type = ScriptType.p2pkh
+            self._signatures = [sig if sig != NO_SIGNATURE else None]
+            self._x_pubkeys = [x_pubkey]
+            self._pubkeys = [pubkey]
+            self._address = address
+            return
+
+        # p2sh transaction, m of n
+        if not matches_p2sh_ecdsa_multisig_scriptsig(decoded):
+            print_error("cannot find address in input script", bh2u(self.scriptsig))
+            return
+        x_sig = [x[1] for x in decoded[1:-1]]
+        m, n, x_pubkeys, pubkeys, redeemScript = parse_redeemScript(decoded[-1][1])
+        # write result in d
+        self._type = ScriptType.p2sh
+        self._signatures = [(sig if sig != NO_SIGNATURE else None) for sig in x_sig]
+        self._x_pubkeys = x_pubkeys
+        self._pubkeys = pubkeys
+        assert len(self._signatures) in (m, n)
+        assert len(self._pubkeys) == n
+        self._address = Address.from_P2SH_hash(bitcoin.hash_160(redeemScript))
+
+    @property
+    def type(self) -> ScriptType:
+        if self._type is None:
+            self.parse_scriptsig()
+        return self._type
+
+    @property
+    def x_pubkeys(self) -> Optional[List[bytes]]:
+        if self._x_pubkeys is None and self._type not in (
+            ScriptType.p2pk,
+            ScriptType.coinbase,
+        ):
+            self.parse_scriptsig()
+        return self._x_pubkeys
+
+    @property
+    def pubkeys(self) -> Optional[List[bytes]]:
+        if self._pubkeys is None and self._type not in (
+            ScriptType.p2pk,
+            ScriptType.coinbase,
+        ):
+            self.parse_scriptsig()
+        return self._pubkeys
+
+    @property
+    def signatures(self) -> List[Optional[bytes]]:
+        """List of signatures for this input.
+
+        For a complete input, the number of signatures is the actual number: M for an
+        M-of-N multisig.
+
+        For an unsigned or partially signed transaction, one or more signatures are
+        None. The number of signatures is equal to the number of pubkeys: N for an
+        M-of-N multisig.
+        """
+        if self._signatures is None and self._type != ScriptType.coinbase:
+            self.parse_scriptsig()
+        return self._signatures
+
+    @property
+    def num_sig(self) -> int:
+        """Number of signatures required to sign this input."""
+        return len(self.signatures)
+
+    def get_sorted_pubkeys(self):
+        if self.pubkeys is None:
+            return [], []
+        # sort pubkeys and x_pubkeys, using the order of pubkeys
+        # Note: this function is CRITICAL to get the correct order of pubkeys in
+        #     multisignatures; avoid changing.
+        pubkeys, x_pubkeys = zip(*sorted(zip(self.pubkeys, self.x_pubkeys)))
+        return pubkeys, x_pubkeys
+
+    @property
+    def address(self) -> Optional[Address]:
+        if self._address is None and self._type not in (
+            ScriptType.p2pk,
+            ScriptType.coinbase,
+        ):
+            self.parse_scriptsig()
+        return self._address
 
 
 class BCDataStream(object):
@@ -441,7 +555,7 @@ def matches_multisig_redeemscript(
 
 
 def parse_sig(x_sig):
-    return [None if x == NO_SIGNATURE else x for x in x_sig]
+    return [None if x == NO_SIGNATURE.hex() else x for x in x_sig]
 
 
 def safe_parse_pubkey(x: bytes) -> bytes:
@@ -500,13 +614,16 @@ def parse_scriptSig(d, _bytes):
     d["type"] = "p2sh"
     d["num_sig"] = m
     d["signatures"] = parse_sig(x_sig)
-    d["x_pubkeys"] = x_pubkeys
-    d["pubkeys"] = pubkeys
+    d["x_pubkeys"] = [xpub.hex() for xpub in x_pubkeys]
+    d["pubkeys"] = [pub.hex() for pub in pubkeys]
     d["redeemScript"] = redeemScript
     d["address"] = Address.from_P2SH_hash(bitcoin.hash_160(redeemScript))
 
 
-def parse_redeemScript(s):
+def parse_redeemScript(s: bytes) -> Tuple[int, int, List[bytes], List[bytes], bytes]:
+    """
+    Returns (M, N, xpubkeys, pubkeys, redeemscript) for a M-of-N multisig script
+    """
     dec2 = Script.get_ops(s)
     # the following throw exception when redeemscript has one or zero opcodes
     m = dec2[0][0] - OpCodes.OP_1 + 1
@@ -521,8 +638,8 @@ def parse_redeemScript(s):
     return (
         m,
         n,
-        [xpub.hex() for xpub in x_pubkeys],
-        [pub.hex() for pub in pubkeys],
+        x_pubkeys,
+        pubkeys,
         redeemScript,
     )
 
@@ -904,7 +1021,7 @@ class Transaction:
                 sig_list = signatures
             else:
                 pk_list = x_pubkeys
-                sig_list = [sig if sig else NO_SIGNATURE for sig in x_signatures]
+                sig_list = [sig if sig else NO_SIGNATURE.hex() for sig in x_signatures]
         return pk_list, sig_list
 
     @classmethod

@@ -719,7 +719,7 @@ class Script:
         return cls.push_data(pubkey) + bytes([OpCodes.OP_CHECKSIG])
 
     @classmethod
-    def multisig_script(cls, m, pubkeys):
+    def multisig_script(cls, m, pubkeys) -> bytes:
         """Returns the script for a pay-to-multisig transaction."""
         n = len(pubkeys)
         if not 1 <= m <= n <= 15:

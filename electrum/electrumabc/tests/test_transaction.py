@@ -1,8 +1,9 @@
 import unittest
+from typing import List, Optional
 
 from .. import transaction
-from ..address import Address, PublicKey, Script, ScriptOutput
-from ..bitcoin import TYPE_ADDRESS, TYPE_PUBKEY, TYPE_SCRIPT, OpCodes
+from ..address import Address, PublicKey, Script, ScriptOutput, UnknownAddress
+from ..bitcoin import TYPE_ADDRESS, TYPE_PUBKEY, TYPE_SCRIPT, OpCodes, ScriptType
 from ..keystore import xpubkey_to_address
 from ..uint256 import UInt256
 from ..util import bh2u
@@ -799,6 +800,122 @@ class TestTxInput(unittest.TestCase):
         ):
             txin = transaction.TxInput(outpoint, b"\x00" * script_size, sequence)
             self.assertEqual(txin.size(), expected_output_size)
+
+    def _deser_test(
+        self,
+        tx_hex: str,
+        expected_type: ScriptType,
+        expected_sigs: List[str],
+        expected_pubkeys: Optional[List[str]] = None,
+        expected_address: Optional[Address] = None,
+    ):
+        tx = transaction.Transaction(tx_hex)
+        input_dict = tx.inputs()[0]
+        txinput = tx.txinputs()[0]
+        expected_sigs_bytes = [
+            (None if sig is None else bytes.fromhex(sig)) for sig in expected_sigs
+        ]
+
+        self.assertEqual(input_dict["type"], expected_type.name)
+        self.assertEqual(txinput.type, expected_type)
+
+        if expected_type != ScriptType.coinbase:
+            self.assertEqual(input_dict["num_sig"], len(expected_sigs))
+            self.assertEqual(input_dict["signatures"], expected_sigs)
+        else:
+            self.assertFalse("num_sig" in input_dict)
+            self.assertFalse("signatures" in input_dict)
+        self.assertEqual(txinput.num_sig, len(expected_sigs))
+        self.assertEqual(txinput.signatures, expected_sigs_bytes)
+
+        if expected_pubkeys is not None:
+            self.assertEqual(input_dict["pubkeys"], expected_pubkeys)
+            self.assertEqual([pub.hex() for pub in txinput.pubkeys], expected_pubkeys)
+
+            # sanity check that bytes and str are sorted in the same order
+            pubkeys_hex, xpubkeys_hex = tx.get_sorted_pubkeys(input_dict)
+            self.assertEqual(
+                txinput.get_sorted_pubkeys(),
+                (
+                    tuple(bytes.fromhex(pub) for pub in pubkeys_hex),
+                    tuple(bytes.fromhex(xpub) for xpub in xpubkeys_hex),
+                ),
+            )
+
+        # The coin dict is inconsistent on addresses, when an address is not applicable
+        if expected_type == ScriptType.coinbase:
+            self.assertIsInstance(input_dict["address"], UnknownAddress)
+        else:
+            # None for p2pk, an Address instance for p2pkh and p2sh
+            self.assertEqual(input_dict["address"], expected_address)
+        # None (p2pk and coinbase) or an address instance
+        self.assertEqual(txinput.address, expected_address)
+
+    def test_multisig_p2sh_deserialization(self):
+        self._deser_test(
+            tx_hex="0100000001b98d550fa331da21038952d6931ffd3607c440ab2985b75477181b577de118b10b000000fdfd0000483045022100a26ea637a6d39aa27ea7a0065e9691d477e23ad5970b5937a9b06754140cf27102201b00ed050b5c468ee66f9ef1ff41dfb3bd64451469efaab1d4b56fbf92f9df48014730440220080421482a37cc9a98a8dc3bf9d6b828092ad1a1357e3be34d9c5bbdca59bb5f02206fa88a389c4bf31fa062977606801f3ea87e86636da2625776c8c228bcd59f8a014c69522102420e820f71d17989ed73c0ff2ec1c1926cf989ad6909610614ee90cf7db3ef8721036eae8acbae031fdcaf74a824f3894bf54881b42911bd3ad056ea59a33ffb3d312103752669b75eb4dc0cca209af77a59d2c761cbb47acc4cf4b316ded35080d92e8253aeffffffff0101ac3a00000000001976a914a6b6bcc85975bf6a01a0eabb2ac97d5a418223ad88ac00000000",
+            expected_type=ScriptType.p2sh,
+            expected_sigs=[
+                "3045022100a26ea637a6d39aa27ea7a0065e9691d477e23ad5970b5937a9b06754140cf27102201b00ed050b5c468ee66f9ef1ff41dfb3bd64451469efaab1d4b56fbf92f9df4801",
+                "30440220080421482a37cc9a98a8dc3bf9d6b828092ad1a1357e3be34d9c5bbdca59bb5f02206fa88a389c4bf31fa062977606801f3ea87e86636da2625776c8c228bcd59f8a01",
+            ],
+            expected_pubkeys=[
+                "02420e820f71d17989ed73c0ff2ec1c1926cf989ad6909610614ee90cf7db3ef87",
+                "036eae8acbae031fdcaf74a824f3894bf54881b42911bd3ad056ea59a33ffb3d31",
+                "03752669b75eb4dc0cca209af77a59d2c761cbb47acc4cf4b316ded35080d92e82",
+            ],
+            expected_address=Address.from_string(
+                "ecash:ppnk6mj995mdfz22mczsrq9sc4573kh32gpjgeunjw"
+            ),
+        )
+
+    def test_p2pkh_deserialization(self):
+        self._deser_test(
+            tx_hex="02000000012367ad0da9fb8f8a7e574d55d4eb2dd0fd8ebd58b1c21cfddb9fe5426369082a000000006441761c8b702e06fcb8656cb205454f22efff174e3ae9552c1ee83f7d64e3b0d29fa466c48a82597713fd7a3c03e324855349a76660fa26dfec4922c51ea0f51cb6412102a42cd220e6099d5d678066b81813ae4fdd14b290479962ae5c0af1448113bcb4feffffff030000000000000000066a047370616d05b20100000000001976a9144fe822f96257d66eeb498394ce9a1fbca1323ba088ac10270000000000001976a914b97b77f0a2e0b3161354de723a76d58a974c601988ac00000000",
+            expected_type=ScriptType.p2pkh,
+            expected_sigs=[
+                "761c8b702e06fcb8656cb205454f22efff174e3ae9552c1ee83f7d64e3b0d29fa466c48a82597713fd7a3c03e324855349a76660fa26dfec4922c51ea0f51cb641"
+            ],
+            expected_pubkeys=[
+                "02a42cd220e6099d5d678066b81813ae4fdd14b290479962ae5c0af1448113bcb4"
+            ],
+            expected_address=Address.from_string(
+                "ecash:qpqelnd6xqu2kn8vdm6c2qvwgsh7g50fdqt40qx9jg"
+            ),
+        )
+
+    def test_p2pk_deserialization(self):
+        self._deser_test(
+            tx_hex="0100000001e4643183d6497823576d17ac2439fb97eba24be8137f312e10fcc16483bb2d070000000048473044022032bbf0394dfe3b004075e3cbb3ea7071b9184547e27f8f73f967c4b3f6a21fa4022073edd5ae8b7b638f25872a7a308bb53a848baa9b9cc70af45fcf3c683d36a55301fdffffff011821814a0000000017a9143c640bc28a346749c09615b50211cb051faff00f8700000000",
+            expected_type=ScriptType.p2pk,
+            expected_sigs=[
+                "3044022032bbf0394dfe3b004075e3cbb3ea7071b9184547e27f8f73f967c4b3f6a21fa4022073edd5ae8b7b638f25872a7a308bb53a848baa9b9cc70af45fcf3c683d36a55301"
+            ],
+        )
+
+    def test_coinbase_deserialization(self):
+        self._deser_test(
+            tx_hex="01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4103400d0302ef02062f503253482f522cfabe6d6dd90d39663d10f8fd25ec88338295d4c6ce1c90d4aeb368d8bdbadcc1da3b635801000000000000000474073e03ffffffff013c25cf2d01000000434104b0bd634234abbb1ba1e986e884185c61cf43e001f9137f23c2c409273eb16e6537a576782eba668a7ef8bd3b3cfb1edb7117ab65129b8a2e681f3c1e0908ef7bac00000000",
+            expected_type=ScriptType.coinbase,
+            expected_sigs=[],
+        )
+
+    def test_multisig_incomplete(self):
+        self._deser_test(
+            tx_hex="0200000001d9b830c4f60b839c512d00dfa08db658eae54ca849b81bca8798f250cb2e93c903000000fb0001ff483045022100fbc08cdbd62d7328496735d9cc66f1a7e978da1ea3de54f8a8344d0928606c8002205ec8c3adbe502e40e72a593de14248ba19b8098ed591803accd47338a73f8427414cad524c53ff0488b21e03f918d62980000000d14a70b732b0badca35b38671d321ddce735bfc9b1ab823140b288e308cf9007020fb77d2e3dab47533c29e7280725a20427c27a37545a1daa330e5d7146f66a39000006004c53ff0488b21e036ae03b288000000074514157090ae16af9dff0cb13666d75b59e4ac734099309de6c8dc0108c2c250303b19c01f4ab103e723ac060c3ab5a5de5b1773b77b63f286ebd2b88eee791d40000060052aefeffffff248a01000000000001f68801000000000017a9149ee12d650f43157a0a5c3b615d061bb5290b28248700000000",
+            expected_type=ScriptType.p2sh,
+            expected_sigs=[
+                None,
+                "3045022100fbc08cdbd62d7328496735d9cc66f1a7e978da1ea3de54f8a8344d0928606c8002205ec8c3adbe502e40e72a593de14248ba19b8098ed591803accd47338a73f842741",
+            ],
+            expected_pubkeys=[
+                "02ce914e4644565afe48d5bc3b5ef304c7fcf41c0defd668f45196edbb1411f07f",
+                "03dec2a5937425f5657083ef25022f66b6924e21519ddac5cbbc5c9212a04428da",
+            ],
+            expected_address=Address.from_string(
+                "ecash:ppfhzqryfq5u9y3ccqw3j9qaa9rsyz746sar20zk99"
+            ),
+        )
 
 
 class TestScriptMatching(unittest.TestCase):
