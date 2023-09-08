@@ -808,6 +808,7 @@ class TestTxInput(unittest.TestCase):
         expected_sigs: List[str],
         expected_pubkeys: Optional[List[str]] = None,
         expected_address: Optional[Address] = None,
+        expected_value: Optional[int] = None,
     ):
         tx = transaction.Transaction(tx_hex)
         input_dict = tx.inputs()[0]
@@ -850,6 +851,18 @@ class TestTxInput(unittest.TestCase):
             self.assertEqual(input_dict["address"], expected_address)
         # None (p2pk and coinbase) or an address instance
         self.assertEqual(txinput.address, expected_address)
+
+        self.assertEqual(txinput.is_complete(), tx.is_txin_complete(input_dict))
+        if not txinput.is_complete():
+            self.assertIsNotNone(txinput.get_value())
+            self.assertEqual(txinput.get_value(), input_dict["value"])
+            self.assertEqual(txinput.get_value(), expected_value)
+
+            self.assertTrue(any(xpub[0] == 0xFF for xpub in txinput.x_pubkeys))
+            self.assertNotEqual(txinput.pubkeys, txinput.x_pubkeys)
+        else:
+            # Signed transactions don't bother storing the xpub and derivation path
+            self.assertEqual(txinput.pubkeys, txinput.x_pubkeys)
 
     def test_multisig_p2sh_deserialization(self):
         self._deser_test(
@@ -915,6 +928,7 @@ class TestTxInput(unittest.TestCase):
             expected_address=Address.from_string(
                 "ecash:ppfhzqryfq5u9y3ccqw3j9qaa9rsyz746sar20zk99"
             ),
+            expected_value=100_900,
         )
 
 

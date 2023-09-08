@@ -30,7 +30,7 @@ import random
 import struct
 import warnings
 from io import BytesIO
-from typing import List, NamedTuple, Optional, Tuple, Union
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union
 
 import ecdsa
 
@@ -159,10 +159,19 @@ class OutPoint(SerializableObject):
 
 
 class TxInput:
-    def __init__(self, outpoint: OutPoint, scriptsig: bytes, sequence: int):
+    def __init__(
+        self,
+        outpoint: OutPoint,
+        scriptsig: bytes,
+        sequence: int,
+        value: Optional[int] = None,
+    ):
         self.outpoint = outpoint
         self.scriptsig = scriptsig
         self.sequence = sequence
+
+        # Must be defined for partially signed inputs (needed for signing)
+        self._value: Optional[int] = value
 
         # Properties that are lazily computed on demand
         self._x_pubkeys: Optional[List[bytes]] = None
@@ -171,6 +180,12 @@ class TxInput:
         # Some signatures can be None for partially signed transactions
         self._signatures: List[Optional[bytes]] = []
         self._address: Optional[Address] = None
+
+    def set_value(self, value: int):
+        self._value = value
+
+    def get_value(self) -> Optional[int]:
+        return self._value
 
     def size(self):
         scriptsig_nbytes = len(self.scriptsig)
@@ -303,6 +318,69 @@ class TxInput:
         ):
             self.parse_scriptsig()
         return self._address
+
+    def is_complete(self) -> bool:
+        if self.type == ScriptType.coinbase or self.num_sig == 0:
+            return True
+        non_null_signatures = list(filter(None, self.signatures))
+        return len(non_null_signatures) == self.num_sig
+
+    def to_coin_dict(self) -> Dict[str, Any]:
+        """Return a legacy coin dict for this TxInput"""
+        d = {
+            "prevout_hash": self.outpoint.txid.get_hex(),
+            "prevout_n": self.outpoint.n,
+            "sequence": self.sequence,
+            # default address, updated later for p2pkh and p2sh
+            "address": UnknownAddress(),
+            "scriptSig": bh2u(self.scriptsig),
+        }
+        if self.is_coinbase():
+            d["type"] = "coinbase"
+            return d
+
+        d["x_pubkeys"] = []
+        d["pubkeys"] = []
+        d["signatures"] = {}
+        d["address"] = None
+        d["num_sig"] = 0
+        try:
+            self.parse_scriptsig()
+        except Exception as e:
+            print_error(
+                f"{__name__}: Failed to parse tx input {self.outpoint}, probably a "
+                f"p2sh (non multisig?). Exception was: {repr(e)}"
+            )
+            # that whole heuristic codepath is fragile; just ignore it when it dies.
+            # failing tx examples:
+            # 1c671eb25a20aaff28b2fa4254003c201155b54c73ac7cf9c309d835deed85ee
+            # 08e1026eaf044127d7103415570afd564dfac3131d7a5e4b645f591cd349bb2c
+            # override these once more just to make sure
+            d["address"] = UnknownAddress()
+            d["type"] = "unknown"
+            return d
+
+        d["type"] = self.type.name
+        d["signatures"] = [
+            (sig.hex() if sig is not None else None) for sig in self.signatures
+        ]
+        d["num_sig"] = self.num_sig
+        if self.type == ScriptType.p2pk:
+            # TODO: remove this entirely if unused
+            d["x_pubkeys"] = ["(pubkey)"]
+            d["pubkeys"] = ["(pubkey)"]
+        else:
+            d["x_pubkeys"] = [xpub.hex() for xpub in self.x_pubkeys]
+            d["pubkeys"] = [pub.hex() for pub in self.pubkeys]
+            d["address"] = self.address
+        if self.type == ScriptType.p2sh:
+            d["redeemScript"] = self.scriptsig
+        if not self.is_complete():
+            del d["scriptSig"]
+            # The amount is needed for signing, in case of partially signed inputs.
+            d["value"] = self.get_value()
+            assert d["value"] is not None
+        return d
 
 
 class BCDataStream(object):
@@ -635,61 +713,20 @@ def get_address_from_output_script(
 
 
 def parse_input(vds):
-    d = {}
     prevout_hash = bitcoin.hash_encode(vds.read_bytes(32))
     prevout_n = vds.read_uint32()
     scriptSig = vds.read_bytes(vds.read_compact_size())
     sequence = vds.read_uint32()
-    d["prevout_hash"] = prevout_hash
-    d["prevout_n"] = prevout_n
-    d["sequence"] = sequence
-    d["address"] = UnknownAddress()
+
     txin = TxInput(
         OutPoint(UInt256.from_hex(prevout_hash), prevout_n), scriptSig, sequence
     )
-    d["type"] = txin.type.name
-    d["scriptSig"] = bh2u(scriptSig)
-    if txin.is_coinbase():
-        return d
-    d["x_pubkeys"] = []
-    d["pubkeys"] = []
-    d["signatures"] = {}
-    d["address"] = None
-    d["num_sig"] = 0
-    try:
-        txin.parse_scriptsig()
-    except Exception as e:
-        print_error(
-            "{}: Failed to parse tx input {}:{}, probably a p2sh (non multisig?)."
-            " Exception was: {}".format(__name__, prevout_hash, prevout_n, repr(e))
-        )
-        # that whole heuristic codepath is fragile; just ignore it when it dies.
-        # failing tx examples:
-        # 1c671eb25a20aaff28b2fa4254003c201155b54c73ac7cf9c309d835deed85ee
-        # 08e1026eaf044127d7103415570afd564dfac3131d7a5e4b645f591cd349bb2c
-        # override these once more just to make sure
-        d["address"] = UnknownAddress()
-        d["type"] = "unknown"
-    else:
-        d["signatures"] = [
-            (sig.hex() if sig is not None else None) for sig in txin.signatures
-        ]
-        d["num_sig"] = txin.num_sig
-        if txin.type == bitcoin.ScriptType.p2pk:
-            # TODO: remove this entirely if unused
-            d["x_pubkeys"] = ["(pubkey)"]
-            d["pubkeys"] = ["(pubkey)"]
-        else:
-            d["x_pubkeys"] = [xpub.hex() for xpub in txin.x_pubkeys]
-            d["pubkeys"] = [pub.hex() for pub in txin.pubkeys]
-            d["address"] = txin.address
-        if txin.type == bitcoin.ScriptType.p2sh:
-            d["redeemScript"] = txin.scriptsig
-    if not Transaction.is_txin_complete(d):
-        del d["scriptSig"]
-        # The amount is needed for signing, in case of partially signed inputs.
-        d["value"] = vds.read_uint64()
-    return d
+    if not txin.is_complete():
+        # This is a partially signed transaction in the custom Electrum format, the
+        # amount is appended to the serialized input.
+        txin.set_value(vds.read_uint64())
+
+    return txin.to_coin_dict()
 
 
 def parse_output(vds: BCDataStream, i: int):
@@ -788,6 +825,7 @@ class Transaction:
                     self.input_script(inp, estimate_size, self._sign_schnorr)
                 ),
                 inp.get("sequence", DEFAULT_TXIN_SEQUENCE),
+                inp.get("value", None),
             )
             for inp in self.inputs()
         ]
