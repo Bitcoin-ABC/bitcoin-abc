@@ -353,25 +353,26 @@ def rev_hex(s: str) -> str:
     return bytes.fromhex(s)[::-1].hex()
 
 
-def int_to_hex(i: int, length: int = 1) -> str:
+def int_to_le_hex(i: int, length: int = 1) -> str:
     """Return a little-endian hexadecimal representation of an integer.
 
     ::
 
-        >>> int_to_hex(8, 1)
+        >>> int_to_le_hex(8, 1)
         '08'
-        >>> int_to_hex(8, 2)
+        >>> int_to_le_hex(8, 2)
         '0800'
-        >>> int_to_hex(32001, 3)
+        >>> int_to_le_hex(32001, 3)
         '017d00'
+        >>> int_to_le_hex(0xdeadbeefc0ffee11, 8)
+        '11eeffc0efbeadde'
 
     :param i: Integer to be represented.
     :param length: Length in bytes of the hexadecimal number to be
         represented. Each byte is represented as two characters.
     """
-    s = hex(i)[2:].rstrip("L")
-    s = "0" * (2 * length - len(s)) + s
-    return rev_hex(s)
+    le_bytes = i.to_bytes(length, "little")
+    return le_bytes.hex()
 
 
 def var_int(i: int) -> str:
@@ -381,13 +382,13 @@ def var_int(i: int) -> str:
     https://en.bitcoin.it/wiki/Protocol_specification#Variable_length_integer
     """
     if i < 0xFD:
-        return int_to_hex(i)
+        return int_to_le_hex(i)
     elif i <= 0xFFFF:
-        return "fd" + int_to_hex(i, 2)
+        return "fd" + int_to_le_hex(i, 2)
     elif i <= 0xFFFFFFFF:
-        return "fe" + int_to_hex(i, 4)
+        return "fe" + int_to_le_hex(i, 4)
     else:
-        return "ff" + int_to_hex(i, 8)
+        return "ff" + int_to_le_hex(i, 8)
 
 
 def op_push_bytes(data_len: int) -> bytes:
@@ -1046,7 +1047,7 @@ def get_pubkeys_from_secret(secret):
 #  public key can be determined without the master private key.
 def CKD_priv(k, c, n):
     is_prime = n & BIP32_PRIME
-    return _CKD_priv(k, c, bfh(rev_hex(int_to_hex(n, 4))), is_prime)
+    return _CKD_priv(k, c, n.to_bytes(4, "big"), is_prime)
 
 
 def _CKD_priv(k, c, s, is_prime):
@@ -1071,7 +1072,7 @@ def _CKD_priv(k, c, s, is_prime):
 def CKD_pub(cK, c, n):
     if n & BIP32_PRIME:
         raise
-    return _CKD_pub(cK, c, bfh(rev_hex(int_to_hex(n, 4))))
+    return _CKD_pub(cK, c, n.to_bytes(4, "big"))
 
 
 # helper function, callable with arbitrary string
@@ -1935,3 +1936,9 @@ class Bip38Key:
 
     def __str__(self):
         return self.enc
+
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()

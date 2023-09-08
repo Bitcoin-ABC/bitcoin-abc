@@ -132,12 +132,12 @@ def bits_to_target(ncompact: int) -> int:
 
 def serialize_header(res):
     s = (
-        bitcoin.int_to_hex(res.get("version"), 4)
+        bitcoin.int_to_le_hex(res.get("version"), 4)
         + bitcoin.rev_hex(res.get("prev_block_hash"))
         + bitcoin.rev_hex(res.get("merkle_root"))
-        + bitcoin.int_to_hex(int(res.get("timestamp")), 4)
-        + bitcoin.int_to_hex(int(res.get("bits")), 4)
-        + bitcoin.int_to_hex(int(res.get("nonce")), 4)
+        + bitcoin.int_to_le_hex(int(res.get("timestamp")), 4)
+        + bitcoin.int_to_le_hex(int(res.get("bits")), 4)
+        + bitcoin.int_to_le_hex(int(res.get("nonce")), 4)
     )
     return s
 

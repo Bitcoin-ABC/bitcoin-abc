@@ -13,7 +13,7 @@ from electrumabc.bitcoin import (
     TYPE_ADDRESS,
     TYPE_SCRIPT,
     SignatureType,
-    int_to_hex,
+    int_to_le_hex,
     var_int,
 )
 from electrumabc.constants import DEFAULT_TXIN_SEQUENCE
@@ -516,7 +516,7 @@ class LedgerKeyStore(HardwareKeyStore):
 
         txOutput = var_int(len(tx.outputs()))
         for txout in tx.outputs():
-            txOutput += int_to_hex(txout.value, 8)
+            txOutput += int_to_le_hex(txout.value, 8)
             script = tx.pay_script(txout.destination)
             txOutput += var_int(len(script) // 2)
             txOutput += script
@@ -594,11 +594,11 @@ class LedgerKeyStore(HardwareKeyStore):
                     _("Preparing transaction inputs...")
                     + f" (phase1, {input_idx}/{len(inputs)})"
                 )
-                sequence = int_to_hex(utxo[5], 4)
+                sequence = int_to_le_hex(utxo[5], 4)
                 if not client_electrum.requires_trusted_inputs():
                     txtmp = bitcoinTransaction(bfh(utxo[0]))
                     tmp = bfh(utxo[3])[::-1]
-                    tmp += bfh(int_to_hex(utxo[1], 4))
+                    tmp += bfh(int_to_le_hex(utxo[1], 4))
                     tmp += txtmp.outputs[utxo[1]].amount
                     chipInputs.append(
                         {"value": tmp, "witness": True, "sequence": sequence}

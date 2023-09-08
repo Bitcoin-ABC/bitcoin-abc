@@ -878,7 +878,7 @@ class Transaction:
 
     @classmethod
     def serialize_outpoint(self, txin):
-        return bh2u(bfh(txin["prevout_hash"])[::-1]) + bitcoin.int_to_hex(
+        return bh2u(bfh(txin["prevout_hash"])[::-1]) + bitcoin.int_to_le_hex(
             txin["prevout_n"], 4
         )
 
@@ -889,14 +889,14 @@ class Transaction:
         # Script length, script, sequence
         s += bitcoin.var_int(len(script) // 2)
         s += script
-        s += bitcoin.int_to_hex(txin.get("sequence", DEFAULT_TXIN_SEQUENCE), 4)
+        s += bitcoin.int_to_le_hex(txin.get("sequence", DEFAULT_TXIN_SEQUENCE), 4)
         # offline signing needs to know the input value
         if (
             "value" in txin
             and txin.get("scriptSig") is None
             and not (estimate_size or self.is_txin_complete(txin))
         ):
-            s += bitcoin.int_to_hex(txin["value"], 8)
+            s += bitcoin.int_to_le_hex(txin["value"], 8)
         return s
 
     def shuffle_inputs(self):
@@ -918,7 +918,7 @@ class Transaction:
 
     def serialize_output(self, output):
         output_type, addr, amount = output
-        s = bitcoin.int_to_hex(amount, 8)
+        s = bitcoin.int_to_le_hex(amount, 8)
         script = self.pay_script(addr)
         s += bitcoin.var_int(len(script) // 2)
         s += script
@@ -980,7 +980,9 @@ class Transaction:
         hashSequence = bitcoin.Hash(
             bfh(
                 "".join(
-                    bitcoin.int_to_hex(txin.get("sequence", DEFAULT_TXIN_SEQUENCE), 4)
+                    bitcoin.int_to_le_hex(
+                        txin.get("sequence", DEFAULT_TXIN_SEQUENCE), 4
+                    )
                     for txin in inputs
                 )
             )
@@ -1000,19 +1002,21 @@ class Transaction:
         if (nHashType & 0xFF) != 0x41:
             raise ValueError("other hashtypes not supported; submit a PR to fix this!")
 
-        nVersion = bitcoin.int_to_hex(self.version, 4)
-        nHashType = bitcoin.int_to_hex(nHashType, 4)
-        nLocktime = bitcoin.int_to_hex(self.locktime, 4)
+        nVersion = bitcoin.int_to_le_hex(self.version, 4)
+        nHashType = bitcoin.int_to_le_hex(nHashType, 4)
+        nLocktime = bitcoin.int_to_le_hex(self.locktime, 4)
 
         txin = self.inputs()[i]
         outpoint = self.serialize_outpoint(txin)
         preimage_script = self.get_preimage_script(txin)
         scriptCode = bitcoin.var_int(len(preimage_script) // 2) + preimage_script
         try:
-            amount = bitcoin.int_to_hex(txin["value"], 8)
+            amount = bitcoin.int_to_le_hex(txin["value"], 8)
         except KeyError:
             raise InputValueMissing
-        nSequence = bitcoin.int_to_hex(txin.get("sequence", DEFAULT_TXIN_SEQUENCE), 4)
+        nSequence = bitcoin.int_to_le_hex(
+            txin.get("sequence", DEFAULT_TXIN_SEQUENCE), 4
+        )
 
         hashPrevouts, hashSequence, hashOutputs = self.calc_common_sighash(
             use_cache=use_cache
@@ -1033,8 +1037,8 @@ class Transaction:
         return preimage
 
     def serialize(self, estimate_size=False):
-        nVersion = bitcoin.int_to_hex(self.version, 4)
-        nLocktime = bitcoin.int_to_hex(self.locktime, 4)
+        nVersion = bitcoin.int_to_le_hex(self.version, 4)
+        nLocktime = bitcoin.int_to_le_hex(self.locktime, 4)
         inputs = self.inputs()
         outputs = self.outputs()
         txins = bitcoin.var_int(len(inputs)) + "".join(

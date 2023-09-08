@@ -318,9 +318,9 @@ class Xpub:
 
         def encode_path_int(path_int) -> str:
             if path_int < 0xFFFF:
-                hexstr = bitcoin.int_to_hex(path_int, 2)
+                hexstr = bitcoin.int_to_le_hex(path_int, 2)
             else:
-                hexstr = "ffff" + bitcoin.int_to_hex(path_int, 4)
+                hexstr = "ffff" + bitcoin.int_to_le_hex(path_int, 4)
             return hexstr
 
         s = "".join(map(encode_path_int, (c, i)))
@@ -551,7 +551,7 @@ class OldKeyStore(DeterministicKeyStore):
         return self.mpk
 
     def get_xpubkey(self, for_change, n):
-        s = bitcoin.int_to_hex(for_change, 2) + bitcoin.int_to_hex(n, 2)
+        s = bitcoin.int_to_le_hex(for_change, 2) + bitcoin.int_to_le_hex(n, 2)
         return "fe" + self.mpk + s
 
     @classmethod
