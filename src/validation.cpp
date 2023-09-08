@@ -6463,6 +6463,15 @@ bool ChainstateManager::ActivateSnapshot(AutoFile &coins_file,
         return false;
     }
 
+    {
+        LOCK(::cs_main);
+        if (Assert(m_active_chainstate->GetMempool())->size() > 0) {
+            LogPrintf("[snapshot] can't activate a snapshot when mempool not "
+                      "empty\n");
+            return false;
+        }
+    }
+
     int64_t current_coinsdb_cache_size{0};
     int64_t current_coinstip_cache_size{0};
 
