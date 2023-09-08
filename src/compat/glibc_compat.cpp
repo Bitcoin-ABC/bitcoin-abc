@@ -80,6 +80,20 @@ extern "C" float __wrap_log(float x) {
     return log_old(x);
 }
 
+extern "C" float log2_old(float x);
+#ifdef __i386__
+__asm(".symver log2_old,log2@GLIBC_2.1");
+#elif defined(__amd64__)
+__asm(".symver log2_old,log2@GLIBC_2.2.5");
+#elif defined(__arm__)
+__asm(".symver log2_old,log2@GLIBC_2.4");
+#elif defined(__aarch64__)
+__asm(".symver log2_old,log2@GLIBC_2.17");
+#endif
+extern "C" float __wrap_log2(float x) {
+    return log2_old(x);
+}
+
 extern "C" float pow_old(float x);
 #ifdef __i386__
 __asm(".symver pow_old,pow@GLIBC_2.1");

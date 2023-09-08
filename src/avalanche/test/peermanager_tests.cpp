@@ -23,6 +23,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <limits>
+#include <unordered_map>
 
 using namespace avalanche;
 
@@ -2234,6 +2235,129 @@ BOOST_AUTO_TEST_CASE(peer_availability_score) {
             BOOST_CHECK_LE(currentScore, 0.);
             previousScore = currentScore;
         }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
+
+    auto buildProofWithAmountAndPayout = [&](Amount amount,
+                                             const CScript &payoutScript) {
+        const CKey key = CKey::MakeCompressedKey();
+        COutPoint utxo = createUtxo(active_chainstate, key, amount);
+        return buildProof(key, {{std::move(utxo), amount}},
+                          /*master=*/CKey::MakeCompressedKey(), /*sequence=*/1,
+                          /*height=*/100, /*is_coinbase=*/false,
+                          /*expirationTime=*/0, payoutScript);
+    };
+
+    CScript winner;
+    // Null pprev
+    BOOST_CHECK(!pm.selectStakingRewardWinner(nullptr, winner));
+
+    CBlockIndex prevBlock;
+
+    auto now = GetTime<std::chrono::seconds>();
+    SetMockTime(now);
+    prevBlock.nTime = now.count();
+
+    BlockHash prevHash{uint256::ONE};
+    prevBlock.phashBlock = &prevHash;
+    // No peer
+    BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winner));
+
+    // Let's build a list of payout addresses, and register a proofs for each
+    // address
+    size_t numProofs = 10;
+    std::vector<ProofRef> proofs;
+    proofs.reserve(numProofs);
+    for (size_t i = 0; i < numProofs; i++) {
+        const CKey key = CKey::MakeCompressedKey();
+        CScript payoutScript = GetScriptForRawPubKey(key.GetPubKey());
+
+        auto proof =
+            buildProofWithAmountAndPayout(PROOF_DUST_THRESHOLD, payoutScript);
+        PeerId peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
+        BOOST_CHECK_NE(peerid, NO_PEER);
+
+        // Finalize the proof
+        BOOST_CHECK(pm.setFinalized(peerid));
+
+        proofs.emplace_back(std::move(proof));
+    }
+
+    // Make sure the proofs have been registered before the prev block was found
+    // and before 2x the peer replacement cooldown.
+    now += 30min + 1s;
+    SetMockTime(now);
+    prevBlock.nTime = now.count();
+
+    // All proofs have the same amount, so the same probability to get picked.
+    // Let's compute how many loop iterations we need to have a low false
+    // negative rate when checking for this. Target false positive rate is
+    // 10ppm (aka 1/100000).
+    const size_t loop_iters =
+        size_t(-1.0 * std::log(100000.0) /
+               std::log((double(numProofs) - 1) / numProofs)) +
+        1;
+    BOOST_CHECK_GT(loop_iters, numProofs);
+    std::unordered_map<std::string, size_t> winningCounts;
+    for (size_t i = 0; i < loop_iters; i++) {
+        BlockHash randomHash = BlockHash(GetRandHash());
+        prevBlock.phashBlock = &randomHash;
+        BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winner));
+        winningCounts[FormatScript(winner)]++;
+    }
+    BOOST_CHECK_EQUAL(winningCounts.size(), numProofs);
+
+    // Remove all proofs
+    for (auto &proof : proofs) {
+        BOOST_CHECK(pm.rejectProof(
+            proof->getId(), avalanche::PeerManager::RejectionMode::INVALIDATE));
+    }
+    // No more winner
+    BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winner));
+
+    {
+        // Add back a single proof
+        const CKey key = CKey::MakeCompressedKey();
+        CScript payoutScript = GetScriptForRawPubKey(key.GetPubKey());
+
+        auto proof =
+            buildProofWithAmountAndPayout(PROOF_DUST_THRESHOLD, payoutScript);
+        PeerId peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
+        BOOST_CHECK_NE(peerid, NO_PEER);
+
+        // The single proof should always be selected, but:
+        // 1. The proof is not finalized, and has been registered after the last
+        // block was mined.
+        BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winner));
+
+        // 2. The proof has has been registered after the last block was mined.
+        BOOST_CHECK(pm.setFinalized(peerid));
+        BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winner));
+
+        // 3. The proof has been registered 30min from the previous block time,
+        // but the previous block time is in the future.
+        now += 20min + 1s;
+        SetMockTime(now);
+        prevBlock.nTime = (now + 10min).count();
+        BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winner));
+
+        // 4. The proof has been registered 30min from now, but only 20min from
+        // the previous block time.
+        now += 10min;
+        SetMockTime(now);
+        prevBlock.nTime = (now - 10min).count();
+        BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winner));
+
+        // 5. Now the proof has it all
+        prevBlock.nTime = now.count();
+        BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winner));
+        // With a single proof, it's easy to determine the winner
+        BOOST_CHECK_EQUAL(FormatScript(winner), FormatScript(payoutScript));
     }
 }
 

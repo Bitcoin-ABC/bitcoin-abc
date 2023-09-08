@@ -4,6 +4,7 @@
 
 #include <avalanche/peermanager.h>
 
+#include <arith_uint256.h>
 #include <avalanche/avalanche.h>
 #include <avalanche/delegation.h>
 #include <avalanche/validation.h>
@@ -11,12 +12,15 @@
 #include <logging.h>
 #include <random.h>
 #include <scheduler.h>
+#include <uint256.h>
 #include <util/fastrange.h>
 #include <util/system.h>
 #include <validation.h> // For ChainstateManager
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
+#include <limits>
 
 namespace avalanche {
 bool PeerManager::addNode(NodeId nodeid, const ProofId &proofid) {
@@ -836,6 +840,94 @@ void PeerManager::addUnbroadcastProof(const ProofId &proofid) {
 
 void PeerManager::removeUnbroadcastProof(const ProofId &proofid) {
     m_unbroadcast_proofids.erase(proofid);
+}
+
+bool PeerManager::selectStakingRewardWinner(const CBlockIndex *pprev,
+                                            CScript &winner) {
+    if (!pprev) {
+        return false;
+    }
+
+    // Don't select proofs that have not been known for long enough, i.e. at
+    // least since twice the dangling proof cleanup timeout before the last
+    // block time, so we're sure to not account for proofs more recent than the
+    // previous block or lacking node connected.
+    // The previous block time is capped to now for the unlikely event the
+    // previous block time is in the future.
+    const int64_t maxRegistrationTime =
+        std::min(pprev->GetBlockTime(), GetTime()) -
+        std::chrono::duration_cast<std::chrono::seconds>(2 *
+                                                         Peer::DANGLING_TIMEOUT)
+            .count();
+
+    const BlockHash prevblockhash = pprev->GetBlockHash();
+
+    double bestRewardRank = std::numeric_limits<double>::max();
+    ProofRef selectedProof = ProofRef();
+    uint256 bestRewardHash;
+
+    for (const Peer &peer : peers) {
+        if (!peer.proof) {
+            // Should never happen, continue
+            continue;
+        }
+
+        if (!peer.hasFinalized ||
+            peer.registration_time.count() >= maxRegistrationTime) {
+            continue;
+        }
+
+        uint256 proofRewardHash;
+        CHash256()
+            .Write(prevblockhash)
+            .Write(peer.getProofId())
+            .Finalize(proofRewardHash);
+
+        if (proofRewardHash == uint256::ZERO) {
+            // This either the result of an incredibly unlikely lucky hash, or
+            // a the hash is getting abused. In this case, skip the proof.
+            LogPrintf("Staking reward hash has a suspicious value of zero for "
+                      "proof %s and blockhash %s, skipping\n",
+                      peer.getProofId().ToString(), prevblockhash.ToString());
+            continue;
+        }
+
+        // To make sure the selection is properly weighted according to the
+        // proof score, we normalize the proofRewardHash to a number between 0
+        // and 1, then take the logarithm and divide by the weight.
+        // Since it is scale-independent, we can simplify by removing constants
+        // and use base 2 logarithm.
+        // Inspired by: https://stackoverflow.com/a/30226926.
+        double proofRewardRank =
+            (256.0 - std::log2(UintToArith256(proofRewardHash).getdouble())) /
+            peer.getScore();
+
+        // The best ranking is the lowest ranking value
+        if (proofRewardRank < bestRewardRank) {
+            bestRewardRank = proofRewardRank;
+            selectedProof = peer.proof;
+            bestRewardHash = proofRewardHash;
+        }
+
+        // Select the lowest reward hash then proofid in the unlikely case of a
+        // collision.
+        if (proofRewardRank == bestRewardRank &&
+            (proofRewardHash < bestRewardHash ||
+             (proofRewardHash == bestRewardHash &&
+              peer.getProofId() < selectedProof->getId()))) {
+            selectedProof = peer.proof;
+            bestRewardHash = proofRewardHash;
+        }
+    };
+
+    if (!selectedProof) {
+        // No winner
+        return false;
+    }
+
+    winner = selectedProof->getPayoutScript();
+
+    return true;
 }
 
 bool PeerManager::selectPayoutScriptPubKey(
