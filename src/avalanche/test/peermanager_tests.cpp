@@ -9,6 +9,7 @@
 #include <avalanche/statistics.h>
 #include <avalanche/test/util.h>
 #include <cashaddrenc.h>
+#include <clientversion.h>
 #include <config.h>
 #include <consensus/activation.h>
 #include <core_io.h>

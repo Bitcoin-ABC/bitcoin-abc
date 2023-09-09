@@ -6,6 +6,7 @@
 #include <txdb.h>
 
 #include <chain.h>
+#include <clientversion.h>
 #include <common/system.h>
 #include <logging.h>
 #include <pow/pow.h>

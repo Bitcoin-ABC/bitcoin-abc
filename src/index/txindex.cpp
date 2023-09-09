@@ -5,6 +5,7 @@
 #include <index/txindex.h>
 
 #include <chain.h>
+#include <clientversion.h>
 #include <common/args.h>
 #include <index/disktxpos.h>
 #include <logging.h>

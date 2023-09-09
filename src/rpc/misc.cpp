@@ -6,6 +6,7 @@
 #include <avalanche/avalanche.h>
 #include <avalanche/processor.h>
 #include <chainparams.h>
+#include <clientversion.h>
 #include <common/args.h>
 #include <config.h>
 #include <consensus/amount.h>

@@ -20,6 +20,7 @@
 #include <chainparams.h>
 #include <checkpoints.h>
 #include <checkqueue.h>
+#include <clientversion.h>
 #include <config.h>
 #include <consensus/activation.h>
 #include <consensus/amount.h>

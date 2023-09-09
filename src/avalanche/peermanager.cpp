@@ -10,6 +10,7 @@
 #include <avalanche/stakecontender.h>
 #include <avalanche/validation.h>
 #include <cashaddrenc.h>
+#include <clientversion.h>
 #include <common/args.h>
 #include <consensus/activation.h>
 #include <logging.h>
