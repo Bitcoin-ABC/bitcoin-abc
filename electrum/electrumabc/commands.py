@@ -946,7 +946,7 @@ class Commands:
         ):
             raise ValueError("pubkey and message text must both be strings")
         message = to_bytes(message)
-        res = bitcoin.encrypt_message(message, pubkey)
+        res = bitcoin.encrypt_message(message, bytes.fromhex(pubkey))
         if isinstance(res, (bytes, bytearray)):
             # prevent "JSON serializable" errors in case this came from
             # cmdline. See #1270

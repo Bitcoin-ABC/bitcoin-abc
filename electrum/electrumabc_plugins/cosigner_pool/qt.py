@@ -357,7 +357,7 @@ class Plugin(BasePlugin):
         for xpub, K, _hash in state.cosigner_list:
             if not self.cosigner_can_sign(tx, xpub):
                 continue
-            message = bitcoin.encrypt_message(bfh(tx.raw), bh2u(K)).decode("ascii")
+            message = bitcoin.encrypt_message(bfh(tx.raw), K).decode("ascii")
             try:
                 state.server.put(_hash, message)
             except Exception:

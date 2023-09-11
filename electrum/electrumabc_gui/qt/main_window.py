@@ -3728,7 +3728,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         message = message_e.toPlainText()
         message = message.encode("utf-8")
         try:
-            encrypted = bitcoin.encrypt_message(message, pubkey_e.text())
+            encrypted = bitcoin.encrypt_message(message, bytes.fromhex(pubkey_e.text()))
             encrypted_e.setText(encrypted.decode("ascii"))
         except Exception as e:
             if util.is_verbose:

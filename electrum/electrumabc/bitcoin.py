@@ -24,6 +24,7 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
 
 import base64
 import hashlib
@@ -42,7 +43,7 @@ from ecdsa.util import number_to_string, string_to_number
 from . import networks
 from .ecc_fast import do_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1
 from .printerror import print_error
-from .util import InvalidPassword, assert_bytes, bfh, bh2u, to_bytes, to_string
+from .util import InvalidPassword, assert_bytes, bh2u, to_bytes, to_string
 
 if TYPE_CHECKING:
     from .address import Address
@@ -540,25 +541,24 @@ def hash160_to_p2sh(h160, *, net=None):
     return hash160_to_b58_address(h160, net.ADDRTYPE_P2SH)
 
 
-def public_key_to_p2pkh(public_key, *, net=None):
+def public_key_to_p2pkh(public_key: bytes, *, net=None):
     if net is None:
         net = networks.net
     return hash160_to_p2pkh(hash_160(public_key), net=net)
 
 
-def pubkey_to_address(txin_type: ScriptType, pubkey, *, net=None):
+def pubkey_to_address(txin_type: ScriptType, pubkey: bytes, *, net=None):
     if net is None:
         net = networks.net
     if txin_type == ScriptType.p2pkh:
-        return public_key_to_p2pkh(bfh(pubkey), net=net)
-    else:
-        raise NotImplementedError(txin_type)
+        return public_key_to_p2pkh(pubkey, net=net)
+    raise NotImplementedError(txin_type)
 
 
-def script_to_address(script):
+def script_to_address(script: bytes) -> Address:
     from .transaction import get_address_from_output_script
 
-    t, addr = get_address_from_output_script(bfh(script))
+    t, addr = get_address_from_output_script(script)
     assert t == TYPE_ADDRESS
     return addr
 
@@ -736,7 +736,7 @@ def address_from_private_key(sec, *, net=None):
         net = networks.net
     txin_type, privkey, compressed = deserialize_privkey(sec, net=net)
     public_key = public_key_from_private_key(privkey, compressed)
-    return pubkey_to_address(txin_type, public_key, net=net)
+    return pubkey_to_address(txin_type, bytes.fromhex(public_key), net=net)
 
 
 def is_private_key(key, *, net=None):
@@ -822,8 +822,8 @@ def verify_message(
     return True
 
 
-def encrypt_message(message, pubkey, magic=b"BIE1"):
-    return ECKey.encrypt_message(message, bfh(pubkey), magic)
+def encrypt_message(message, pubkey: bytes, magic=b"BIE1"):
+    return ECKey.encrypt_message(message, pubkey, magic)
 
 
 def ECC_YfromX(x, curved=curve_secp256k1, odd=True):
@@ -935,8 +935,8 @@ class ECKey(object):
     def GetPubKey(self, compressed):
         return GetPubKey(self.pubkey, compressed)
 
-    def get_public_key(self, compressed=True):
-        return bh2u(point_to_ser(self.pubkey.point, compressed))
+    def get_public_key(self, compressed=True) -> bytes:
+        return point_to_ser(self.pubkey.point, compressed)
 
     def sign(self, msg_hash):
         private_key = MySigningKey.from_secret_exponent(self.secret, curve=SECP256k1)
@@ -992,7 +992,7 @@ class ECKey(object):
         key = hashlib.sha512(ecdh_key).digest()
         iv, key_e, key_m = key[0:16], key[16:32], key[32:]
         ciphertext = aes_encrypt_with_iv(key_e, iv, message)
-        ephemeral_pubkey = bfh(ephemeral.get_public_key(compressed=True))
+        ephemeral_pubkey = ephemeral.get_public_key(compressed=True)
         encrypted = magic + ephemeral_pubkey + ciphertext
         mac = hmac.new(key_m, encrypted, hashlib.sha256).digest()
 
@@ -1750,7 +1750,7 @@ class Bip38Key:
                 "Only p2pkh WIF keys may be encrypted using BIP38 at this time."
             )
         public_key = public_key_from_private_key(key_bytes, compressed)
-        addr_str = pubkey_to_address(_type, public_key, net=net)
+        addr_str = pubkey_to_address(_type, bytes.fromhex(public_key), net=net)
         addr_hash = Hash(addr_str)[0:4]
         # ensure unicode bytes are normalized to NFC standard as specified by bip38
         passphrase = cls._normalizeNFC(passphrase)
@@ -1872,7 +1872,7 @@ class Bip38Key:
 
         point = ser_to_point(passpoint) * cls._bytes_to_int(factorb)
         pubkey = point_to_ser(point, compressed)
-        generatedaddress = pubkey_to_address(ScriptType.p2pkh, pubkey.hex())
+        generatedaddress = pubkey_to_address(ScriptType.p2pkh, pubkey)
         addresshash = Hash(generatedaddress)[:4]
 
         salt = addresshash + ownerentropy

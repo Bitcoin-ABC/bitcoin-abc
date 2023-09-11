@@ -218,7 +218,7 @@ class ImportedKeyStore(SoftwareKeyStore):
             if pubkey in self.keypairs:
                 return pubkey
         elif x_pubkey[0:2] == "fd":
-            addr = bitcoin.script_to_address(x_pubkey[2:])
+            addr = bitcoin.script_to_address(bytes.fromhex(x_pubkey[2:]))
             return self.address_to_pubkey(addr)
 
     def update_password(self, old_password, new_password):
@@ -675,7 +675,7 @@ def parse_xpubkey(x_pubkey: bytes):
 
 def xpubkey_to_address(x_pubkey: bytes) -> Tuple[bytes, Address]:
     if x_pubkey[0] == 0xFD:
-        address = bitcoin.script_to_address(x_pubkey[1:].hex())
+        address = bitcoin.script_to_address(x_pubkey[1:])
         return x_pubkey, address
     if x_pubkey[0] in [0x02, 0x03, 0x04]:
         # regular pubkey
