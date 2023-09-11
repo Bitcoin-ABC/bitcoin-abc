@@ -1,7 +1,7 @@
 import unittest
 
 from .. import transaction
-from ..address import Address, PublicKey, ScriptOutput
+from ..address import Address, PublicKey, Script, ScriptOutput
 from ..bitcoin import TYPE_ADDRESS, TYPE_PUBKEY, TYPE_SCRIPT, OpCodes
 from ..keystore import xpubkey_to_address
 from ..uint256 import UInt256
@@ -14,21 +14,22 @@ nonmin_blob = "010000000142b88360bd83813139af3a251922b7f3d2ac88e45a2a703c28db8ee
 
 
 SHORT_COMPACTSIZE_NBYTES = 1
-PUBKEY_NBYTES = 33
 UNCOMPRESSED_PUBKEY_NBYTES = 65
 # OP_DUP OP_HASH160 20 <20 bytes hash> OP_EQUALVERIFY OP_CHECKSIG
 P2PKH_NBYTES = 25
 # OP_HASH160 20 <20 bytes hash> OP_EQUAL
 P2SH_NBYTES = 23
 # PUSH(33) <pubkey> OP_CHECKSIG
-P2PK_NBYTES = PUBKEY_NBYTES + 2
+P2PK_NBYTES = transaction.COMPRESSED_PUBKEY_NBYTES + 2
 # PUSH(65) <uncompressed pubkey> OP_CHECKSIG
 UNCOMPRESSED_P2PK_NBYTES = UNCOMPRESSED_PUBKEY_NBYTES + 2
 # Schnorr signature including the sighash type
 SCHNORRSIG_NBYTES = 65
 # PUSH(33) <pubkey> PUSH(65) <shnorr signature>
 SCHNORR_P2PKH_SCRIPTSIG_NBYTES = (
-    2 * SHORT_COMPACTSIZE_NBYTES + PUBKEY_NBYTES + SCHNORRSIG_NBYTES
+    2 * SHORT_COMPACTSIZE_NBYTES
+    + transaction.COMPRESSED_PUBKEY_NBYTES
+    + SCHNORRSIG_NBYTES
 )
 
 DUMMY_TXINPUT = transaction.TxInput(
@@ -574,7 +575,7 @@ class TestTransaction(unittest.TestCase):
             tx.outputs()[0].size(),
             transaction.AMOUNT_NBYTES
             + SHORT_COMPACTSIZE_NBYTES
-            + PUBKEY_NBYTES
+            + transaction.COMPRESSED_PUBKEY_NBYTES
             + n_opcodes,
         )
 
@@ -798,6 +799,148 @@ class TestTxInput(unittest.TestCase):
         ):
             txin = transaction.TxInput(outpoint, b"\x00" * script_size, sequence)
             self.assertEqual(txin.size(), expected_output_size)
+
+
+class TestScriptMatching(unittest.TestCase):
+    ONE_SIGNATURE_PUSH = bytes([SCHNORRSIG_NBYTES]) + b"\x00" * SCHNORRSIG_NBYTES
+    NO_SIGNATURE_PUSH = bytes([1]) + b"\xff"
+
+    MULTISIG_REDEEM_SCRIPT = Script.multisig_script(
+        m=2, pubkeys=[b"\x02" + b"\x00" * 32] * 3
+    )
+    MULTISIG_REDEEM_SCRIPT_MISSING_OP_CHECKMULTISIG = MULTISIG_REDEEM_SCRIPT[:-1]
+
+    P2PK_SCRIPTSIG_COMPRESSED = bytes([33]) + b"\x00" * 33
+    P2PK_SCRIPTSIG_UNCOMPRESSED = bytes([65]) + b"\x00" * 65
+    P2PK_SCRIPTSIG_TOO_SHORT = bytes([32]) + b"\x00" * 32
+
+    P2PKH_SCRIPTSIG_UNCOMPRESSED = ONE_SIGNATURE_PUSH + P2PK_SCRIPTSIG_UNCOMPRESSED
+    P2PKH_SCRIPTSIG_COMPRESSED = ONE_SIGNATURE_PUSH + P2PK_SCRIPTSIG_COMPRESSED
+    P2PKH_SCRIPTSIG_PUBKEY_TOO_SHORT = ONE_SIGNATURE_PUSH + P2PK_SCRIPTSIG_TOO_SHORT
+    P2PKH_SCRIPTSIG_UNSIGNED = NO_SIGNATURE_PUSH + P2PK_SCRIPTSIG_COMPRESSED
+
+    P2SH_SCRIPTSIG_ECDSA_MULTISIG_2OF3 = (
+        bytes([OpCodes.OP_0])
+        + 2 * ONE_SIGNATURE_PUSH
+        + 3 * P2PK_SCRIPTSIG_COMPRESSED
+        + Script.push_data(MULTISIG_REDEEM_SCRIPT)
+    )
+    P2SH_SCRIPTSIG_ECDSA_MULTISIG_2OF3_PARTIAL = (
+        bytes([OpCodes.OP_0])
+        + ONE_SIGNATURE_PUSH
+        + 2 * NO_SIGNATURE_PUSH
+        + 3 * P2PK_SCRIPTSIG_COMPRESSED
+        + Script.push_data(MULTISIG_REDEEM_SCRIPT)
+    )
+    P2SH_SCRIPTSIG_ECDSA_MULTISIG_2OF3_UNSIGNED = (
+        bytes([OpCodes.OP_0])
+        + 3 * NO_SIGNATURE_PUSH
+        + 3 * P2PK_SCRIPTSIG_COMPRESSED
+        + Script.push_data(MULTISIG_REDEEM_SCRIPT)
+    )
+    P2SH_SCRIPTSIG_ECDSA_MULTISIG_2OF3_MISSING_OP_0 = (
+        P2SH_SCRIPTSIG_ECDSA_MULTISIG_2OF3[1:]
+    )
+
+    def test_is_push_opcode(self):
+        push_opcodes_and_max_data_size = [
+            (OpCodes.OP_0, 0),
+            (OpCodes.OP_1NEGATE, 1),
+            (OpCodes.OP_PUSHDATA1, 0xFF),
+            (OpCodes.OP_PUSHDATA2, 0xFFFF),
+            (OpCodes.OP_PUSHDATA4, 0xFFFFFFFF),
+        ]
+        push_opcodes_and_max_data_size += [
+            (opcode, 1) for opcode in range(OpCodes.OP_1, OpCodes.OP_16 + 1)
+        ]
+        push_opcodes_and_max_data_size += [
+            (i, i) for i in range(1, OpCodes.OP_PUSHDATA1)
+        ]
+
+        # Test all opcodes without size consideration
+        all_push_opcodes = {opcode for (opcode, size) in push_opcodes_and_max_data_size}
+        for opcode in iter(OpCodes):
+            self.assertEqual(
+                transaction.is_push_opcode(opcode), opcode in all_push_opcodes
+            )
+
+        # Test size boundaries for push opcodes
+        for opcode, max_data_size in push_opcodes_and_max_data_size:
+            for size in (max(0, max_data_size - 1), max_data_size):
+                self.assertTrue(transaction.is_push_opcode(opcode, size))
+            if max_data_size < 0xFFFFFFFF:
+                self.assertFalse(transaction.is_push_opcode(opcode, max_data_size + 1))
+
+        with self.assertRaises(AssertionError):
+            transaction.is_push_opcode(OpCodes.OP_0, -1)
+        with self.assertRaises(AssertionError):
+            transaction.is_push_opcode(OpCodes.OP_PUSHDATA4, 0xFFFFFFFF + 1)
+
+    def test_matches_p2pk_scriptsig(self):
+        vectors = (
+            (self.P2PK_SCRIPTSIG_COMPRESSED, True),
+            (self.P2PK_SCRIPTSIG_UNCOMPRESSED, True),
+            (self.P2PK_SCRIPTSIG_TOO_SHORT, False),
+            (self.P2PKH_SCRIPTSIG_COMPRESSED, False),
+            (self.P2SH_SCRIPTSIG_ECDSA_MULTISIG_2OF3, False),
+            (self.MULTISIG_REDEEM_SCRIPT, False),
+        )
+        for script, expected_result in vectors:
+            self.assertEqual(
+                transaction.matches_p2pk_scriptsig(Script.get_ops(script)),
+                expected_result,
+            )
+
+    def test_matches_p2pkh_scriptsig(self):
+        vectors = (
+            (self.P2PKH_SCRIPTSIG_UNSIGNED, True),
+            (self.P2PKH_SCRIPTSIG_UNCOMPRESSED, True),
+            (self.P2PKH_SCRIPTSIG_COMPRESSED, True),
+            (self.P2PKH_SCRIPTSIG_PUBKEY_TOO_SHORT, False),
+            (self.P2PK_SCRIPTSIG_COMPRESSED, False),
+            (self.P2SH_SCRIPTSIG_ECDSA_MULTISIG_2OF3, False),
+            (self.MULTISIG_REDEEM_SCRIPT, False),
+        )
+        for script, expected_result in vectors:
+            self.assertEqual(
+                transaction.matches_p2pkh_scriptsig(Script.get_ops(script)),
+                expected_result,
+            )
+
+    def test_matches_p2sh_ecdsa_multisig_scriptsig(self):
+        vectors = (
+            (self.P2SH_SCRIPTSIG_ECDSA_MULTISIG_2OF3, True),
+            (self.P2SH_SCRIPTSIG_ECDSA_MULTISIG_2OF3_PARTIAL, True),
+            (self.P2SH_SCRIPTSIG_ECDSA_MULTISIG_2OF3_UNSIGNED, True),
+            (self.P2SH_SCRIPTSIG_ECDSA_MULTISIG_2OF3_MISSING_OP_0, False),
+            (self.P2PKH_SCRIPTSIG_COMPRESSED, False),
+            (self.P2PK_SCRIPTSIG_COMPRESSED, False),
+            (self.MULTISIG_REDEEM_SCRIPT, False),
+        )
+        for script, expected_result in vectors:
+            self.assertEqual(
+                transaction.matches_p2sh_ecdsa_multisig_scriptsig(
+                    Script.get_ops(script)
+                ),
+                expected_result,
+            )
+
+    def test_matches_multisig_redeemscript(self):
+        vectors = (
+            (self.MULTISIG_REDEEM_SCRIPT, True),
+            (self.MULTISIG_REDEEM_SCRIPT_MISSING_OP_CHECKMULTISIG, False),
+            (self.P2SH_SCRIPTSIG_ECDSA_MULTISIG_2OF3, False),
+            (self.P2SH_SCRIPTSIG_ECDSA_MULTISIG_2OF3_MISSING_OP_0, False),
+            (self.P2PKH_SCRIPTSIG_COMPRESSED, False),
+            (self.P2PK_SCRIPTSIG_COMPRESSED, False),
+        )
+        for script, expected_result in vectors:
+            self.assertEqual(
+                transaction.matches_multisig_redeemscript(
+                    Script.get_ops(script), num_pubkeys=3
+                ),
+                expected_result,
+            )
 
 
 class NetworkMock:

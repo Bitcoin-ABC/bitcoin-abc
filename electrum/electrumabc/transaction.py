@@ -74,6 +74,7 @@ TXID_NBYTES = 32
 OUTPUT_INDEX_NBYTES = 4
 OUTPOINT_NBYTES = TXID_NBYTES + OUTPUT_INDEX_NBYTES
 SEQUENCE_NBYTES = 4
+COMPRESSED_PUBKEY_NBYTES = 33
 
 # Note: The deserialization code originally comes from ABE.
 
@@ -325,22 +326,118 @@ class BCDataStream(object):
         self.write(s)
 
 
-def match_decoded(decoded, to_match):
-    if len(decoded) != len(to_match):
+def is_push_opcode(opcode: OpCodes, min_data_size: int = 0) -> bool:
+    """Return True if opcode is a data PUSH that can handle min_data_size or more bytes.
+
+    >>> is_push_opcode(OpCodes.OP_CHECKMULTISIGVERIFY)
+    False
+    >>> is_push_opcode(OpCodes.OP_0)
+    True
+    >>> is_push_opcode(OpCodes.OP_0, 1)
+    False
+    >>> is_push_opcode(OpCodes.OP_1NEGATE, 1)
+    True
+    >>> is_push_opcode(OpCodes.OP_16, 2)
+    False
+    >>> is_push_opcode(OpCodes.OP_PUSHDATA2, 256)
+    True
+    >>> is_push_opcode(OpCodes.OP_PUSHDATA1, 256)
+    False
+    """
+    assert 0 <= min_data_size <= 0xFFFFFFFF
+
+    if min_data_size == 0:
+        return (
+            OpCodes.OP_0 <= opcode <= OpCodes.OP_1NEGATE
+            or OpCodes.OP_1 <= opcode <= OpCodes.OP_16
+        )
+
+    if min_data_size == 1:
+        # This excludes the empty array push (0P_0)
+        return (
+            OpCodes.OP_0 < opcode <= OpCodes.OP_1NEGATE
+            or OpCodes.OP_1 <= opcode <= OpCodes.OP_16
+        )
+
+    if min_data_size < OpCodes.OP_PUSHDATA1:
+        # Exclude also OP_1 ... OP_16 and OP_1NEGATE and opcodes lower than
+        # min_data_size
+        return min_data_size <= opcode <= OpCodes.OP_PUSHDATA4
+
+    if min_data_size <= 0xFF:
+        # We need at least OP_PUSHDATA1
+        return OpCodes.OP_PUSHDATA1 <= opcode <= OpCodes.OP_PUSHDATA4
+
+    if min_data_size <= 0xFFFF:
+        return opcode in [OpCodes.OP_PUSHDATA2, OpCodes.OP_PUSHDATA4]
+
+    return opcode == OpCodes.OP_PUSHDATA4
+
+
+def matches_p2pk_scriptsig(script_ops: List[Tuple[OpCodes, Optional[bytes]]]) -> bool:
+    """Return True if the script operations match a P2PK scriptSig:
+
+        PUSH(pubkey)
+
+    script_ops is a list of (opcode, data) tuples.
+    """
+    if len(script_ops) != 1:
         return False
-    for i in range(len(decoded)):
-        op = decoded[i][0]
-        if (
-            to_match[i] == OpCodes.OP_PUSHDATA4
-            and op <= OpCodes.OP_PUSHDATA4
-            and op > 0
-        ):
-            # Opcodes below OP_PUSHDATA4 just push data onto stack, and are equivalent.
-            # Note we explicitly don't match OP_0, OP_1 through OP_16 and OP1_NEGATE here
-            continue
-        if to_match[i] != op:
-            return False
-    return True
+    return is_push_opcode(script_ops[0][0], min_data_size=COMPRESSED_PUBKEY_NBYTES)
+
+
+def matches_p2pkh_scriptsig(script_ops: List[Tuple[OpCodes, Optional[bytes]]]) -> bool:
+    """Return True if the script operations match a P2PHK scriptSig:
+
+        PUSH(signature) PUSH(pubkey)
+
+    script_ops is a list of (opcode, data) tuples.
+    """
+    if len(script_ops) != 2:
+        return False
+    # Set min_data_size to 1 for signatures because unsigned transactions are serialized
+    # with a 1-byte placeholder signature (b"FF")
+    return is_push_opcode(script_ops[0][0], min_data_size=1) and is_push_opcode(
+        script_ops[1][0], min_data_size=COMPRESSED_PUBKEY_NBYTES
+    )
+
+
+def matches_p2sh_ecdsa_multisig_scriptsig(
+    script_ops: List[Tuple[OpCodes, Optional[bytes]]]
+) -> bool:
+    """Return True if the script operations match a P2SH multisig scriptSig:
+
+        OP_0 PUSH(signature1) PUSH(signature2)... PUSH(redeemScript)
+
+    script_ops is a list of (opcode, data) tuples.
+    """
+    if len(script_ops) < 3:
+        # There must be at least OP_0, one signature and a redeem script
+        return False
+    # Partially signed transaction can have 1-byte placeholder signatures (b"FF")
+    return script_ops[0][0] == OpCodes.OP_0 and all(
+        is_push_opcode(script_op[0], min_data_size=1) for script_op in script_ops[1:]
+    )
+
+
+def matches_multisig_redeemscript(
+    script_ops: List[Tuple[OpCodes, Optional[bytes]]], num_pubkeys: int
+) -> bool:
+    """Return True if the script operations match a P2SH multisig scriptSig:
+
+        OP_m PUSH(pubkey_1) ... PUSH(pubkey_n) OP_n OP_CHECKMULTISIG
+
+    script_ops is a list of (opcode, data) tuples
+    """
+    if len(script_ops) != num_pubkeys + 3:
+        return False
+    op_n = OpCodes.OP_1 + num_pubkeys - 1
+    return (
+        OpCodes.OP_1 <= script_ops[0][0] <= OpCodes.OP_16
+        and script_ops[-2][0] == op_n
+        and script_ops[-1][0] == OpCodes.OP_CHECKMULTISIG
+        and all(is_push_opcode(script_op[0]) for script_op in script_ops[1:-2])
+    )
 
 
 def parse_sig(x_sig):
@@ -362,8 +459,7 @@ def parse_scriptSig(d, _bytes):
         print_error("cannot find address in input script", bh2u(_bytes))
         return
 
-    match = [OpCodes.OP_PUSHDATA4]
-    if match_decoded(decoded, match):
+    if matches_p2pk_scriptsig(decoded):
         item = decoded[0][1]
         # payto_pubkey
         d["type"] = "p2pk"
@@ -376,8 +472,7 @@ def parse_scriptSig(d, _bytes):
     # non-generated TxIn transactions push a signature
     # (seventy-something bytes) and then their public key
     # (65 bytes) onto the stack:
-    match = [OpCodes.OP_PUSHDATA4, OpCodes.OP_PUSHDATA4]
-    if match_decoded(decoded, match):
+    if matches_p2pkh_scriptsig(decoded):
         sig = bh2u(decoded[0][1])
         x_pubkey = decoded[1][1]
         try:
@@ -394,9 +489,9 @@ def parse_scriptSig(d, _bytes):
         d["address"] = address
         return
 
-    # p2sh transaction, m of n
-    match = [OpCodes.OP_0] + [OpCodes.OP_PUSHDATA4] * (len(decoded) - 1)
-    if not match_decoded(decoded, match):
+    # p2sh transaction, m of n:
+    #     OP_0 PUSH(sig1) PUSH(sig2)... PUSH(redeemScript)
+    if not matches_p2sh_ecdsa_multisig_scriptsig(decoded):
         print_error("cannot find address in input script", bh2u(_bytes))
         return
     x_sig = [bh2u(x[1]) for x in decoded[1:-1]]
@@ -416,12 +511,7 @@ def parse_redeemScript(s):
     # the following throw exception when redeemscript has one or zero opcodes
     m = dec2[0][0] - OpCodes.OP_1 + 1
     n = dec2[-2][0] - OpCodes.OP_1 + 1
-    op_m = OpCodes.OP_1 + m - 1
-    op_n = OpCodes.OP_1 + n - 1
-    match_multisig = (
-        [op_m] + [OpCodes.OP_PUSHDATA4] * n + [op_n, OpCodes.OP_CHECKMULTISIG]
-    )
-    if not match_decoded(dec2, match_multisig):
+    if not matches_multisig_redeemscript(dec2, n):
         # causes exception in caller when mismatched
         print_error("cannot find address in input script", bh2u(s))
         return
@@ -1801,3 +1891,8 @@ class OPReturn:
 
 
 # /OPReturn
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()

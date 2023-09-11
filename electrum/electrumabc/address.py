@@ -29,7 +29,7 @@ import abc
 import hashlib
 import struct
 from collections import namedtuple
-from typing import Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 from . import cashaddr, networks
 from .bitcoin import (
@@ -741,7 +741,12 @@ class Script:
         return push_script_bytes(data, minimal=minimal)
 
     @classmethod
-    def get_ops(cls, script, *, synthesize_minimal_data=True):
+    def get_ops(
+        cls, script: bytes, *, synthesize_minimal_data=True
+    ) -> List[Tuple[OpCodes, Optional[bytes]]]:
+        """Parse a script and return a list of (opcode, data) tuples.
+        If the opcode is not a push operation, data is None.
+        """
         ops = []
 
         # The unpacks or script[n] below throw on truncated scripts
