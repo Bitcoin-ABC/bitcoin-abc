@@ -849,14 +849,16 @@ bool PeerManager::selectPayoutScriptPubKey(
     compact();
 
     // Don't select proofs that have not been known for long enough, i.e. at
-    // least since the last block time and and twice the dangling proof cleanup
-    // timeout, so we're sure to not account for proofs more recent than the
+    // least since twice the dangling proof cleanup timeout before the last
+    // block time, so we're sure to not account for proofs more recent than the
     // previous block or lacking node connected.
-    int64_t maxRegistrationTime =
-        std::min(pprev->GetBlockTime(),
-                 GetTime() - std::chrono::duration_cast<std::chrono::seconds>(
-                                 2 * Peer::DANGLING_TIMEOUT)
-                                 .count());
+    // The previous block time is capped to now for the unlikely event the
+    // previous block time is in the future.
+    const int64_t maxRegistrationTime =
+        std::min(pprev->GetBlockTime(), GetTime()) -
+        std::chrono::duration_cast<std::chrono::seconds>(2 *
+                                                         Peer::DANGLING_TIMEOUT)
+            .count();
 
     std::vector<Slot> stakingRewardsSlots;
     stakingRewardsSlots.reserve(peers.size());

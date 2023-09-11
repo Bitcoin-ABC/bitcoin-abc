@@ -2299,8 +2299,8 @@ BOOST_AUTO_TEST_CASE(select_payout_scriptpubkey) {
                   return lhs->getId() < rhs->getId();
               });
 
-    // Make sure the proofs have been registered before the prev block was found
-    // and before 2x the peer replacement cooldown.
+    // Make sure the proofs have been registered at least 2x the dangling proof
+    // timeout before the previous block time.
     now += 30min + 1s;
     SetMockTime(now);
     prevBlock.nTime = now.count();
@@ -2408,9 +2408,23 @@ BOOST_AUTO_TEST_CASE(select_payout_scriptpubkey) {
         BOOST_CHECK(!pm.selectPayoutScriptPubKey(&prevBlock, winner,
                                                  acceptableWinners));
 
-        // 3. Now the proof has it all
-        now += 30min + 1s;
+        // 3. The proof has been registered 30min from the previous block time,
+        // but the previous block time is in the future.
+        now += 20min + 1s;
         SetMockTime(now);
+        prevBlock.nTime = (now + 10min).count();
+        BOOST_CHECK(!pm.selectPayoutScriptPubKey(&prevBlock, winner,
+                                                 acceptableWinners));
+
+        // 4. The proof has been registered 30min from now, but only 20min from
+        // the previous block time.
+        now += 10min;
+        SetMockTime(now);
+        prevBlock.nTime = (now - 10min).count();
+        BOOST_CHECK(!pm.selectPayoutScriptPubKey(&prevBlock, winner,
+                                                 acceptableWinners));
+
+        // 5. Now the proof has it all
         prevBlock.nTime = now.count();
         checkWinner(0, payoutScript);
     }
