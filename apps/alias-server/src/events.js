@@ -5,7 +5,7 @@
 'use strict';
 const config = require('../config');
 const aliasConstants = require('../constants/alias');
-const { wait, removeUnconfirmedTxsFromTxHistory } = require('./utils');
+const { wait, splitTxsByConfirmed } = require('./utils');
 const { isFinalBlock } = require('./rpc');
 const { getServerState, updateServerState } = require('./db');
 const { getUnprocessedTxHistory } = require('./chronik');
@@ -151,17 +151,13 @@ module.exports = {
         );
 
         // Remove unconfirmed txs as these are not eligible for valid alias registrations
-        const confirmedUnprocessedTxs =
-            removeUnconfirmedTxsFromTxHistory(allUnprocessedTxs);
+        const { confirmedTxs } = splitTxsByConfirmed(allUnprocessedTxs);
 
         // Get all potentially valid alias registrations
         // i.e. correct fee is paid, prefix is good, everything good but not yet checked against
         // conflicting aliases that registered earlier or have alphabetically earlier txid in
         // same block
-        const unprocessedAliasTxs = getAliasTxs(
-            confirmedUnprocessedTxs,
-            aliasConstants,
-        );
+        const unprocessedAliasTxs = getAliasTxs(confirmedTxs, aliasConstants);
 
         // Add new valid alias txs to the database and get a list of what was added
         const newAliasRegistrations = await registerAliases(
@@ -175,8 +171,7 @@ module.exports = {
         // New processedConfirmedTxs is determined by adding the count of now-processed txs
         const newServerState = {
             processedBlockheight: tipHeight,
-            processedConfirmedTxs:
-                processedConfirmedTxs + confirmedUnprocessedTxs.length,
+            processedConfirmedTxs: processedConfirmedTxs + confirmedTxs.length,
         };
         // Update serverState
         const serverStateUpdated = await updateServerState(db, newServerState);

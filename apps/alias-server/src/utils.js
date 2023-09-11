@@ -87,16 +87,24 @@ module.exports = {
         */
         return /^[a-z0-9]+$/.test(alias);
     },
-    removeUnconfirmedTxsFromTxHistory: function (txHistory) {
+    /**
+     * Take a txHistory object from chronik and return confirmedTxs and unconfirmedTxs
+     * @param {array} txHistory chronik tx history response
+     * @returns {object} {confirmedTxs, unconfirmedTxs}
+     */
+    splitTxsByConfirmed: function (txHistory) {
         // Remove unconfirmed txs from an array of chronik tx objects
-        const confirmedTxHistory = [];
+        const confirmedTxs = [];
+        const unconfirmedTxs = [];
         for (let i = 0; i < txHistory.length; i += 1) {
             const thisTx = txHistory[i];
             if (typeof thisTx.block !== 'undefined') {
-                confirmedTxHistory.push(thisTx);
+                confirmedTxs.push(thisTx);
+            } else {
+                unconfirmedTxs.push(thisTx);
             }
         }
-        return confirmedTxHistory;
+        return { confirmedTxs, unconfirmedTxs };
     },
     wait: async function (msecs) {
         await new Promise(resolve => setTimeout(resolve, msecs));

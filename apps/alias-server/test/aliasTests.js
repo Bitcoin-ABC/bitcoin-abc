@@ -13,7 +13,7 @@ const {
     sortAliasTxsByTxidAndBlockheight,
     registerAliases,
 } = require('../src/alias');
-const { removeUnconfirmedTxsFromTxHistory } = require('../src/utils');
+const { splitTxsByConfirmed } = require('../src/utils');
 const { generated, templates } = require('./mocks/aliasMocks');
 // Mock mongodb
 const { MongoClient } = require('mongodb');
@@ -541,12 +541,12 @@ describe('alias-server alias.js', async function () {
         ].block;
 
         // App logic is to remove unconfirmed txs before calling registeredAliases. Follow this.
-        const onlyConfirmedAliasTxs = removeUnconfirmedTxsFromTxHistory(
+        const { confirmedTxs } = splitTxsByConfirmed(
             txHistoryWithSomeUnconfirmedTxs,
         );
 
         // Now getAllAlias txs from this set
-        const allAliasTxs = getAliasTxs(onlyConfirmedAliasTxs, aliasConstants);
+        const allAliasTxs = getAliasTxs(confirmedTxs, aliasConstants);
 
         // registerAliases won't see the unconfirmed tx, so remove this from your expected result
         const validAliasRegistrationsClone = JSON.parse(

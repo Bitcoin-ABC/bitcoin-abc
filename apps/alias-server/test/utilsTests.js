@@ -10,7 +10,7 @@ const {
     getHexFromAlias,
     getAliasBytecount,
     isValidAliasString,
-    removeUnconfirmedTxsFromTxHistory,
+    splitTxsByConfirmed,
     satsToFormattedValue,
     getAliasPrice,
 } = require('../src/utils');
@@ -60,7 +60,7 @@ describe('alias-server utils.js', function () {
             assert.deepEqual(isValidAliasString(invalidAliasString), false);
         }
     });
-    it('removeUnconfirmedTxsFromTxHistory removes unconfirmed txs from an array of chronik tx history', function () {
+    it('splitTxsByConfirmed returns confirmed and unconfirmed txs from an array of chronik tx history', function () {
         // First, clone the mock so that you are not modifying it in place
         const txHistoryWithSomeUnconfirmedTxs = JSON.parse(
             JSON.stringify(generated.txHistory),
@@ -73,12 +73,16 @@ describe('alias-server utils.js', function () {
         delete txHistoryWithSomeUnconfirmedTxs[2].block; // 828201e4680e6617636193d3f2a319daab80a8cc5772b9a5b6e068de639f2d9c
 
         // Manually delete these txs from your expected result
-        let expectedResult = JSON.parse(JSON.stringify(generated.txHistory));
-        expectedResult.splice(0, 3);
-        assert.deepEqual(
-            removeUnconfirmedTxsFromTxHistory(txHistoryWithSomeUnconfirmedTxs),
-            expectedResult,
-        );
+        let confirmedTxs = JSON.parse(JSON.stringify(generated.txHistory));
+        delete confirmedTxs[0].block; // db09c578d38f37bd9f2bb69eeb8ecb2e24c5be01aa2914f17d94759aadf71386
+        delete confirmedTxs[1].block; // c040ccdc46df2951b2ab0cd6d48cf9db7c518068d1f871e60379ee8ccd1caa0e
+        delete confirmedTxs[2].block; // 828201e4680e6617636193d3f2a319daab80a8cc5772b9a5b6e068de639f2d9c
+
+        let unconfirmedTxs = confirmedTxs.splice(0, 3);
+        assert.deepEqual(splitTxsByConfirmed(txHistoryWithSomeUnconfirmedTxs), {
+            confirmedTxs,
+            unconfirmedTxs,
+        });
     });
     it('satsToFormattedValue returns a 6-decimal formatted fiat amount if total fiat value is less than $0.00001', function () {
         assert.strictEqual(satsToFormattedValue(10, mockXecPrice), `$0.000003`);
