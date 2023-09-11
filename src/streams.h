@@ -570,13 +570,11 @@ public:
 
 class CAutoFile : public AutoFile {
 private:
-    const int nType;
     const int nVersion;
 
 public:
-    CAutoFile(FILE *filenew, int nTypeIn, int nVersionIn)
-        : AutoFile{filenew}, nType(nTypeIn), nVersion(nVersionIn) {}
-    int GetType() const { return nType; }
+    CAutoFile(FILE *filenew, int nVersionIn)
+        : AutoFile{filenew}, nVersion(nVersionIn) {}
     int GetVersion() const { return nVersion; }
 
     template <typename T> CAutoFile &operator<<(const T &obj) {
@@ -598,9 +596,8 @@ public:
  * Will automatically close the file when it goes out of scope if not null. If
  * you need to close the file early, use file.fclose() instead of fclose(file).
  */
-class CBufferedFile {
+class BufferedFile {
 private:
-    const int nType;
     const int nVersion;
 
     //! source file
@@ -630,8 +627,8 @@ private:
         size_t nBytes = fread((void *)&vchBuf[pos], 1, readNow, src);
         if (nBytes == 0) {
             throw std::ios_base::failure(
-                feof(src) ? "CBufferedFile::Fill: end of file"
-                          : "CBufferedFile::Fill: fread failed");
+                feof(src) ? "BufferedFile::Fill: end of file"
+                          : "BufferedFile::Fill: fread failed");
         }
         nSrcPos += nBytes;
         return true;
@@ -665,11 +662,11 @@ private:
     }
 
 public:
-    CBufferedFile(FILE *fileIn, uint64_t nBufSize, uint64_t nRewindIn,
-                  int nTypeIn, int nVersionIn)
-        : nType(nTypeIn), nVersion(nVersionIn), nSrcPos(0), m_read_pos(0),
-          nReadLimit(std::numeric_limits<uint64_t>::max()), nRewind(nRewindIn),
-          vchBuf(nBufSize, std::byte{0}) {
+    BufferedFile(FILE *fileIn, uint64_t nBufSize, uint64_t nRewindIn,
+                 int nVersionIn)
+        : nVersion{nVersionIn}, nSrcPos{0}, m_read_pos{0},
+          nReadLimit{std::numeric_limits<uint64_t>::max()}, nRewind{nRewindIn},
+          vchBuf{nBufSize, std::byte{0}} {
         if (nRewindIn >= nBufSize) {
             throw std::ios_base::failure(
                 "Rewind limit must be less than buffer size");
@@ -677,14 +674,13 @@ public:
         src = fileIn;
     }
 
-    ~CBufferedFile() { fclose(); }
+    ~BufferedFile() { fclose(); }
 
     // Disallow copies
-    CBufferedFile(const CBufferedFile &) = delete;
-    CBufferedFile &operator=(const CBufferedFile &) = delete;
+    BufferedFile(const BufferedFile &) = delete;
+    BufferedFile &operator=(const BufferedFile &) = delete;
 
     int GetVersion() const { return nVersion; }
-    int GetType() const { return nType; }
 
     void fclose() {
         if (src) {
@@ -744,7 +740,7 @@ public:
         return true;
     }
 
-    template <typename T> CBufferedFile &operator>>(T &&obj) {
+    template <typename T> BufferedFile &operator>>(T &&obj) {
         ::Unserialize(*this, obj);
         return (*this);
     }

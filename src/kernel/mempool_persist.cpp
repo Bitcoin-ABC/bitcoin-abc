@@ -44,7 +44,7 @@ bool LoadMempool(CTxMemPool &pool, const fs::path &load_path,
     }
 
     FILE *filestr{mockable_fopen_function(load_path, "rb")};
-    CAutoFile file(filestr, SER_DISK, CLIENT_VERSION);
+    CAutoFile file(filestr, CLIENT_VERSION);
     if (file.IsNull()) {
         LogPrintf(
             "Failed to open mempool file from disk. Continuing anyway.\n");
@@ -169,7 +169,7 @@ bool DumpMempool(const CTxMemPool &pool, const fs::path &dump_path,
             return false;
         }
 
-        CAutoFile file(filestr, SER_DISK, CLIENT_VERSION);
+        CAutoFile file{filestr, CLIENT_VERSION};
 
         uint64_t version = MEMPOOL_DUMP_VERSION;
         file << version;

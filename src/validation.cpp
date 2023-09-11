@@ -5628,7 +5628,7 @@ bool ChainstateManager::DumpRecentHeadersTime(const fs::path &filePath) const {
             return false;
         }
 
-        CAutoFile file(filestr, SER_DISK, CLIENT_VERSION);
+        CAutoFile file{filestr, CLIENT_VERSION};
         file << HEADERS_TIME_VERSION;
         file << numHeaders;
 
@@ -5684,7 +5684,7 @@ bool ChainstateManager::LoadRecentHeadersTime(const fs::path &filePath) {
     }
 
     FILE *filestr = fsbridge::fopen(filePath, "rb");
-    CAutoFile file(filestr, SER_DISK, CLIENT_VERSION);
+    CAutoFile file{filestr, CLIENT_VERSION};
     if (file.IsNull()) {
         LogPrintf("Failed to open header times from disk, skipping.\n");
         return false;
@@ -5839,11 +5839,11 @@ void ChainstateManager::LoadExternalBlockFile(
 
     int nLoaded = 0;
     try {
-        // This takes over fileIn and calls fclose() on it in the CBufferedFile
+        // This takes over fileIn and calls fclose() on it in the BufferedFile
         // destructor. Make sure we have at least 2*MAX_TX_SIZE space in there
         // so any transaction can fit in the buffer.
-        CBufferedFile blkdat(fileIn, 2 * MAX_TX_SIZE, MAX_TX_SIZE + 8, SER_DISK,
-                             CLIENT_VERSION);
+        BufferedFile blkdat{fileIn, 2 * MAX_TX_SIZE, MAX_TX_SIZE + 8,
+                            CLIENT_VERSION};
         // nRewind indicates where to resume scanning in case something goes
         // wrong, such as a block fails to deserialize.
         uint64_t nRewind = blkdat.GetPos();

@@ -905,7 +905,7 @@ bool BlockManager::WriteBlockToDisk(
     const CBlock &block, FlatFilePos &pos,
     const CMessageHeader::MessageMagic &messageStart) const {
     // Open history file to append
-    CAutoFile fileout(OpenBlockFile(pos), SER_DISK, CLIENT_VERSION);
+    CAutoFile fileout{OpenBlockFile(pos), CLIENT_VERSION};
     if (fileout.IsNull()) {
         LogError("WriteBlockToDisk: OpenBlockFile failed\n");
         return false;
@@ -986,7 +986,7 @@ bool BlockManager::ReadBlockFromDisk(CBlock &block,
     block.SetNull();
 
     // Open history file to read
-    CAutoFile filein(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION);
+    CAutoFile filein{OpenBlockFile(pos, true), CLIENT_VERSION};
     if (filein.IsNull()) {
         LogError("ReadBlockFromDisk: OpenBlockFile failed for %s\n",
                  pos.ToString());
@@ -1081,7 +1081,7 @@ bool BlockManager::ReadRawBlockFromDisk(std::vector<uint8_t> &block,
 bool BlockManager::ReadTxFromDisk(CMutableTransaction &tx,
                                   const FlatFilePos &pos) const {
     // Open history file to read
-    CAutoFile filein(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION);
+    CAutoFile filein{OpenBlockFile(pos, true), CLIENT_VERSION};
     if (filein.IsNull()) {
         LogError("ReadTxFromDisk: OpenBlockFile failed for %s\n",
                  pos.ToString());
@@ -1103,7 +1103,7 @@ bool BlockManager::ReadTxFromDisk(CMutableTransaction &tx,
 bool BlockManager::ReadTxUndoFromDisk(CTxUndo &tx_undo,
                                       const FlatFilePos &pos) const {
     // Open undo file to read
-    CAutoFile filein(OpenUndoFile(pos, true), SER_DISK, CLIENT_VERSION);
+    CAutoFile filein{OpenUndoFile(pos, true), CLIENT_VERSION};
     if (filein.IsNull()) {
         LogError("ReadTxUndoFromDisk: OpenUndoFile failed for %s\n",
                  pos.ToString());

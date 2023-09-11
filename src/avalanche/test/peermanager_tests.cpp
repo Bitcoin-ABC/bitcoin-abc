@@ -2972,7 +2972,7 @@ BOOST_AUTO_TEST_CASE(avapeers_dump) {
         // Change the version
         FILE *f = fsbridge::fopen("test_bad_version_avapeers.dat", "wb");
         BOOST_CHECK(f);
-        CAutoFile file(f, SER_DISK, CLIENT_VERSION);
+        CAutoFile file{f, CLIENT_VERSION};
         file << static_cast<uint64_t>(-1); // Version
         file << uint64_t{0};               // Number of peers
         BOOST_CHECK(FileCommit(file.Get()));
@@ -2991,7 +2991,7 @@ BOOST_AUTO_TEST_CASE(avapeers_dump) {
         FILE *f = fsbridge::fopen("test_ill_formed_avapeers.dat", "wb");
         BOOST_CHECK(f);
         const uint64_t now = GetTime();
-        CAutoFile file(f, SER_DISK, CLIENT_VERSION);
+        CAutoFile file{f, CLIENT_VERSION};
         file << static_cast<uint64_t>(1); // Version
         file << uint64_t{2};              // Number of peers
         // Single peer content!

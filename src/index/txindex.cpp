@@ -83,7 +83,7 @@ bool TxIndex::FindTx(const TxId &txid, BlockHash &block_hash,
     }
 
     CAutoFile file(m_chainstate->m_blockman.OpenBlockFile(postx, true),
-                   SER_DISK, CLIENT_VERSION);
+                   CLIENT_VERSION);
     if (file.IsNull()) {
         LogError("%s: OpenBlockFile failed\n", __func__);
         return false;

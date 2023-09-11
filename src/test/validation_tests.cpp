@@ -95,7 +95,7 @@ static CBlock makeLargeDummyBlock(const size_t num_tx) {
 /**
  * Test that LoadExternalBlockFile works with the buffer size set below the
  * size of a large block. Currently, LoadExternalBlockFile has the buffer size
- * for CBufferedFile set to 2 * MAX_TX_SIZE. Test with a value of
+ * for BufferedFile set to 2 * MAX_TX_SIZE. Test with a value of
  * 10 * MAX_TX_SIZE.
  */
 BOOST_AUTO_TEST_CASE(validation_load_external_block_file) {
@@ -126,7 +126,7 @@ BOOST_AUTO_TEST_CASE(validation_load_external_block_file) {
 
     unsigned int size = GetSerializeSize(block, CLIENT_VERSION);
     {
-        CAutoFile outs(fp, SER_DISK, CLIENT_VERSION);
+        CAutoFile outs{fp, CLIENT_VERSION};
         outs << size;
         outs << block;
         outs.release();
