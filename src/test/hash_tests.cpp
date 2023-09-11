@@ -132,7 +132,7 @@ BOOST_AUTO_TEST_CASE(siphash) {
                       (uint64_t(x + 6) << 48) | (uint64_t(x + 7) << 56));
     }
 
-    CHashWriter ss(SER_DISK, CLIENT_VERSION);
+    CHashWriter ss{CLIENT_VERSION};
     CMutableTransaction tx;
     // Note these tests were originally written with tx.nVersion=1
     // and the test would be affected by default tx version bumps if not fixed.
@@ -193,29 +193,29 @@ BOOST_AUTO_TEST_CASE(hashverifier_tests) {
     uint256 checksum = verifier.GetHash();
     BOOST_CHECK_EQUAL(dummy.GetValue(), 0x23);
 
-    CHashWriter h0(SER_DISK, CLIENT_VERSION);
+    CHashWriter h0{CLIENT_VERSION};
     h0.write(MakeByteSpan(data));
     BOOST_CHECK(h0.GetHash() == checksum);
 
-    CHashWriter h1(SER_DISK, CLIENT_VERSION);
+    CHashWriter h1{CLIENT_VERSION};
     h1 << dummy;
     BOOST_CHECK(h1.GetHash() != checksum);
 }
 
 BOOST_AUTO_TEST_CASE(sh256_tests) {
-    CHashWriter h0(SER_DISK, CLIENT_VERSION);
+    CHashWriter h0{CLIENT_VERSION};
     h0.write(MakeByteSpan("abc").first(3));
     BOOST_CHECK_EQUAL(
         h0.GetSHA256().GetHex(),
         "ad1500f261ff10b49c7a1796a36103b02322ae5dde404141eacf018fbf1678ba");
 
-    CHashWriter h1(SER_DISK, CLIENT_VERSION);
+    CHashWriter h1{CLIENT_VERSION};
     h1.write(MakeByteSpan("").first(0));
     BOOST_CHECK_EQUAL(
         h1.GetSHA256().GetHex(),
         "55b852781b9995a44c939b64e441ae2724b96f99c8f4fb9a141cfc9842c4b0e3");
 
-    CHashWriter h2(SER_DISK, CLIENT_VERSION);
+    CHashWriter h2{CLIENT_VERSION};
     h2.write(
         MakeByteSpan("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq")
             .first(56));

@@ -362,7 +362,7 @@ template <typename Stream> void AddrManImpl::Unserialize(Stream &s_) {
     // serialization.
     uint256 supplied_asmap_checksum;
     if (m_asmap.size() != 0) {
-        supplied_asmap_checksum = SerializeHash(m_asmap);
+        supplied_asmap_checksum = (HashWriter{} << m_asmap).GetHash();
     }
     uint256 serialized_asmap_checksum;
     if (format >= Format::V2_ASMAP) {
