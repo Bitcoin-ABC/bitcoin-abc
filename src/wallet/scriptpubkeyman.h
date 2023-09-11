@@ -125,18 +125,14 @@ public:
     CKeyPool(const CPubKey &vchPubKeyIn, bool internalIn);
 
     template <typename Stream> void Serialize(Stream &s) const {
-        int nVersion = s.GetVersion();
-        if (!(s.GetType() & SER_GETHASH)) {
-            s << nVersion;
-        }
+        // Unused field, writes the highest client version ever written
+        s << int{320400};
         s << nTime << vchPubKey << fInternal << m_pre_split;
     }
 
     template <typename Stream> void Unserialize(Stream &s) {
-        int nVersion = s.GetVersion();
-        if (!(s.GetType() & SER_GETHASH)) {
-            s >> nVersion;
-        }
+        // Discard unused field
+        s >> int{};
         s >> nTime >> vchPubKey;
         try {
             s >> fInternal;
