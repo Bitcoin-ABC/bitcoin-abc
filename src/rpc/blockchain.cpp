@@ -1500,7 +1500,7 @@ static RPCHelpMan getchaintips() {
                 } else if (block->nStatus.isOnParkedChain()) {
                     // This block or one of its ancestors is parked.
                     status = "parked";
-                } else if (!block->HaveTxsDownloaded()) {
+                } else if (!block->HaveNumChainTxs()) {
                     // This block cannot be connected because full block data
                     // for it or one of its parents is missing.
                     status = "headers-only";

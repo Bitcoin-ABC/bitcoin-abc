@@ -2126,7 +2126,7 @@ void PeerManagerImpl::FindNextBlocks(std::vector<const CBlockIndex *> &vBlocks,
             }
             if (pindex->nStatus.hasData() ||
                 (activeChain && activeChain->Contains(pindex))) {
-                if (activeChain && pindex->HaveTxsDownloaded()) {
+                if (activeChain && pindex->HaveNumChainTxs()) {
                     state->pindexLastCommonBlock = pindex;
                 }
             } else if (!IsBlockRequested(pindex->GetBlockHash())) {
@@ -3259,7 +3259,7 @@ void PeerManagerImpl::ProcessGetBlockData(const Config &config, CNode &pfrom,
         const CBlockIndex *pindex =
             m_chainman.m_blockman.LookupBlockIndex(hash);
         if (pindex) {
-            if (pindex->HaveTxsDownloaded() &&
+            if (pindex->HaveNumChainTxs() &&
                 !pindex->IsValid(BlockValidity::SCRIPTS) &&
                 pindex->IsValid(BlockValidity::TREE)) {
                 // If we have the block and all of its parents, but have not yet

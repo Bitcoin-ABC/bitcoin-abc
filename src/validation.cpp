@@ -3142,7 +3142,7 @@ CBlockIndex *Chainstate::FindMostWorkChain(
         CBlockIndex *pindexTest = pindexNew;
         bool hasValidAncestor = true;
         while (hasValidAncestor && pindexTest && pindexTest != pindexFork) {
-            assert(pindexTest->HaveTxsDownloaded() || pindexTest->nHeight == 0);
+            assert(pindexTest->HaveNumChainTxs() || pindexTest->nHeight == 0);
 
             // If this is a parked chain, but it has enough PoW, clear the park
             // state.
@@ -3684,7 +3684,7 @@ bool Chainstate::PreciousBlock(BlockValidationState &state, CBlockIndex *pindex,
 
         // Make sure it is added to the candidate list if appropriate.
         if (pindex->IsValid(BlockValidity::TRANSACTIONS) &&
-            pindex->HaveTxsDownloaded()) {
+            pindex->HaveNumChainTxs()) {
             setBlockIndexCandidates.insert(pindex);
             PruneBlockIndexCandidates();
         }
@@ -3742,7 +3742,7 @@ bool Chainstate::UnwindBlock(BlockValidationState &state, CBlockIndex *pindex,
             if (!m_chain.Contains(candidate) &&
                 !CBlockIndexWorkComparator()(candidate, pindex->pprev) &&
                 candidate->IsValid(BlockValidity::TRANSACTIONS) &&
-                candidate->HaveTxsDownloaded()) {
+                candidate->HaveNumChainTxs()) {
                 candidate_blocks_by_work.insert(
                     std::make_pair(candidate->nChainWork, candidate));
             }
@@ -3910,7 +3910,7 @@ bool Chainstate::UnwindBlock(BlockValidationState &state, CBlockIndex *pindex,
         // to setBlockIndexCandidates.
         for (auto &[_, block_index] : m_blockman.m_block_index) {
             if (block_index.IsValid(BlockValidity::TRANSACTIONS) &&
-                block_index.HaveTxsDownloaded() &&
+                block_index.HaveNumChainTxs() &&
                 !setBlockIndexCandidates.value_comp()(&block_index,
                                                       m_chain.Tip())) {
                 setBlockIndexCandidates.insert(&block_index);
@@ -3964,7 +3964,7 @@ bool Chainstate::UpdateFlagsForBlock(CBlockIndex *pindexBase,
         }
 
         if (pindex->IsValid(BlockValidity::TRANSACTIONS) &&
-            pindex->HaveTxsDownloaded() &&
+            pindex->HaveNumChainTxs() &&
             setBlockIndexCandidates.value_comp()(m_chain.Tip(), pindex)) {
             setBlockIndexCandidates.insert(pindex);
         }
@@ -5552,7 +5552,7 @@ bool ChainstateManager::LoadBlockIndex() {
             // here.
             if (pindex == GetSnapshotBaseBlock() ||
                 (pindex->IsValid(BlockValidity::TRANSACTIONS) &&
-                 (pindex->HaveTxsDownloaded() || pindex->pprev == nullptr))) {
+                 (pindex->HaveNumChainTxs() || pindex->pprev == nullptr))) {
                 for (Chainstate *chainstate : GetAll()) {
                     chainstate->TryAddBlockIndexCandidate(pindex);
                 }
@@ -5963,7 +5963,7 @@ void ChainstateManager::CheckBlockIndex() {
                 }
             }
         }
-        if (!pindex->HaveTxsDownloaded()) {
+        if (!pindex->HaveNumChainTxs()) {
             // nSequenceId can't be set positive for blocks that aren't linked
             // (negative is used for preciousblock)
             assert(pindex->nSequenceId <= 0);
@@ -6006,13 +6006,13 @@ void ChainstateManager::CheckBlockIndex() {
         }
         // All parents having had data (at some point) is equivalent to all
         // parents being VALID_TRANSACTIONS, which is equivalent to
-        // HaveTxsDownloaded(). All parents having had data (at some point) is
+        // HaveNumChainTxs(). All parents having had data (at some point) is
         // equivalent to all parents being VALID_TRANSACTIONS, which is
-        // equivalent to HaveTxsDownloaded().
+        // equivalent to HaveNumChainTxs().
         assert((pindexFirstNeverProcessed == nullptr) ==
-               (pindex->HaveTxsDownloaded()));
+               (pindex->HaveNumChainTxs()));
         assert((pindexFirstNotTransactionsValid == nullptr) ==
-               (pindex->HaveTxsDownloaded()));
+               (pindex->HaveNumChainTxs()));
         // nHeight must be consistent.
         assert(pindex->nHeight == nHeight);
         // For every block except the genesis block, the chainwork must be

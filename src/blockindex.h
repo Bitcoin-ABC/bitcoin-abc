@@ -170,8 +170,13 @@ public:
      * Does not imply the transactions are consensus-valid (ConnectTip might
      * fail) Does not imply the transactions are still stored on disk.
      * (IsBlockPruned might return true)
+     *
+     * Note that this will be true for the snapshot base block, if one is
+     * loaded (and all subsequent assumed-valid blocks) since its nChainTx
+     * value will have been set manually based on the related AssumeutxoData
+     * entry.
      */
-    bool HaveTxsDownloaded() const { return GetChainTxCount() != 0; }
+    bool HaveNumChainTxs() const { return GetChainTxCount() != 0; }
 
     NodeSeconds Time() const {
         return NodeSeconds{std::chrono::seconds{nTime}};
