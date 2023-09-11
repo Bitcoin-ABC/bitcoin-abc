@@ -25,49 +25,49 @@ BOOST_AUTO_TEST_CASE(streams_vector_writer) {
     // point should yield the same results, even if the first test grew the
     // vector.
 
-    CVectorWriter(SER_NETWORK, INIT_PROTO_VERSION, vch, 0, a, b);
+    CVectorWriter(INIT_PROTO_VERSION, vch, 0, a, b);
     BOOST_CHECK((vch == std::vector<uint8_t>{{1, 2}}));
-    CVectorWriter(SER_NETWORK, INIT_PROTO_VERSION, vch, 0, a, b);
+    CVectorWriter(INIT_PROTO_VERSION, vch, 0, a, b);
     BOOST_CHECK((vch == std::vector<uint8_t>{{1, 2}}));
     vch.clear();
 
-    CVectorWriter(SER_NETWORK, INIT_PROTO_VERSION, vch, 2, a, b);
+    CVectorWriter(INIT_PROTO_VERSION, vch, 2, a, b);
     BOOST_CHECK((vch == std::vector<uint8_t>{{0, 0, 1, 2}}));
-    CVectorWriter(SER_NETWORK, INIT_PROTO_VERSION, vch, 2, a, b);
+    CVectorWriter(INIT_PROTO_VERSION, vch, 2, a, b);
     BOOST_CHECK((vch == std::vector<uint8_t>{{0, 0, 1, 2}}));
     vch.clear();
 
     vch.resize(5, 0);
-    CVectorWriter(SER_NETWORK, INIT_PROTO_VERSION, vch, 2, a, b);
+    CVectorWriter(INIT_PROTO_VERSION, vch, 2, a, b);
     BOOST_CHECK((vch == std::vector<uint8_t>{{0, 0, 1, 2, 0}}));
-    CVectorWriter(SER_NETWORK, INIT_PROTO_VERSION, vch, 2, a, b);
+    CVectorWriter(INIT_PROTO_VERSION, vch, 2, a, b);
     BOOST_CHECK((vch == std::vector<uint8_t>{{0, 0, 1, 2, 0}}));
     vch.clear();
 
     vch.resize(4, 0);
-    CVectorWriter(SER_NETWORK, INIT_PROTO_VERSION, vch, 3, a, b);
+    CVectorWriter(INIT_PROTO_VERSION, vch, 3, a, b);
     BOOST_CHECK((vch == std::vector<uint8_t>{{0, 0, 0, 1, 2}}));
-    CVectorWriter(SER_NETWORK, INIT_PROTO_VERSION, vch, 3, a, b);
+    CVectorWriter(INIT_PROTO_VERSION, vch, 3, a, b);
     BOOST_CHECK((vch == std::vector<uint8_t>{{0, 0, 0, 1, 2}}));
     vch.clear();
 
     vch.resize(4, 0);
-    CVectorWriter(SER_NETWORK, INIT_PROTO_VERSION, vch, 4, a, b);
+    CVectorWriter(INIT_PROTO_VERSION, vch, 4, a, b);
     BOOST_CHECK((vch == std::vector<uint8_t>{{0, 0, 0, 0, 1, 2}}));
-    CVectorWriter(SER_NETWORK, INIT_PROTO_VERSION, vch, 4, a, b);
+    CVectorWriter(INIT_PROTO_VERSION, vch, 4, a, b);
     BOOST_CHECK((vch == std::vector<uint8_t>{{0, 0, 0, 0, 1, 2}}));
     vch.clear();
 
-    CVectorWriter(SER_NETWORK, INIT_PROTO_VERSION, vch, 0, bytes);
+    CVectorWriter(INIT_PROTO_VERSION, vch, 0, bytes);
     BOOST_CHECK((vch == std::vector<uint8_t>{{3, 4, 5, 6}}));
-    CVectorWriter(SER_NETWORK, INIT_PROTO_VERSION, vch, 0, bytes);
+    CVectorWriter(INIT_PROTO_VERSION, vch, 0, bytes);
     BOOST_CHECK((vch == std::vector<uint8_t>{{3, 4, 5, 6}}));
     vch.clear();
 
     vch.resize(4, 8);
-    CVectorWriter(SER_NETWORK, INIT_PROTO_VERSION, vch, 2, a, bytes, b);
+    CVectorWriter(INIT_PROTO_VERSION, vch, 2, a, bytes, b);
     BOOST_CHECK((vch == std::vector<uint8_t>{{8, 8, 1, 3, 4, 5, 6, 2}}));
-    CVectorWriter(SER_NETWORK, INIT_PROTO_VERSION, vch, 2, a, bytes, b);
+    CVectorWriter(INIT_PROTO_VERSION, vch, 2, a, bytes, b);
     BOOST_CHECK((vch == std::vector<uint8_t>{{8, 8, 1, 3, 4, 5, 6, 2}}));
     vch.clear();
 }
@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(streams_vector_writer) {
 BOOST_AUTO_TEST_CASE(streams_vector_reader) {
     std::vector<uint8_t> vch = {1, 255, 3, 4, 5, 6};
 
-    SpanReader reader{SER_NETWORK, INIT_PROTO_VERSION, vch};
+    SpanReader reader{INIT_PROTO_VERSION, vch};
     BOOST_CHECK_EQUAL(reader.size(), 6U);
     BOOST_CHECK(!reader.empty());
 
@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(streams_vector_reader) {
     BOOST_CHECK_THROW(reader >> d, std::ios_base::failure);
 
     // Read a 4 bytes as a (signed) int32_t from the beginning of the buffer.
-    SpanReader new_reader{SER_NETWORK, INIT_PROTO_VERSION, vch};
+    SpanReader new_reader{INIT_PROTO_VERSION, vch};
     new_reader >> d;
     // 67370753 = 1,255,3,4 in little-endian base-256
     BOOST_CHECK_EQUAL(d, 67370753);

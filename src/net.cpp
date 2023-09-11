@@ -828,7 +828,7 @@ void V1TransportSerializer::prepareForTransport(
 
     // serialize header
     header.reserve(CMessageHeader::HEADER_SIZE);
-    CVectorWriter{SER_NETWORK, INIT_PROTO_VERSION, header, 0, hdr};
+    CVectorWriter{INIT_PROTO_VERSION, header, 0, hdr};
 }
 
 std::pair<size_t, bool> CConnman::SocketSendData(CNode &node) const {

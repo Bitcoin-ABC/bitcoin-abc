@@ -26,12 +26,11 @@
 template <typename Stream> class OverrideStream {
     Stream *stream;
 
-    const int nType;
     const int nVersion;
 
 public:
     OverrideStream(Stream *stream_, int nType_, int nVersion_)
-        : stream(stream_), nType(nType_), nVersion(nVersion_) {}
+        : stream(stream_), nVersion(nVersion_) {}
 
     template <typename T> OverrideStream<Stream> &operator<<(const T &obj) {
         ::Serialize(*this, obj);
@@ -48,7 +47,6 @@ public:
     void read(Span<std::byte> dst) { stream->read(dst); }
 
     int GetVersion() const { return nVersion; }
-    int GetType() const { return nType; }
     void ignore(size_t size) { return stream->ignore(size); }
 };
 
@@ -64,17 +62,15 @@ template <typename S> OverrideStream<S> WithOrVersion(S *s, int nVersionFlag) {
 class CVectorWriter {
 public:
     /**
-     * @param[in]  nTypeIn Serialization Type
      * @param[in]  nVersionIn Serialization Version (including any flags)
      * @param[in]  vchDataIn  Referenced byte vector to overwrite/append
      * @param[in]  nPosIn Starting position. Vector index where writes should
      * start. The vector will initially grow as necessary to  max(nPosIn,
      * vec.size()). So to append, use vec.size().
      */
-    CVectorWriter(int nTypeIn, int nVersionIn, std::vector<uint8_t> &vchDataIn,
+    CVectorWriter(int nVersionIn, std::vector<uint8_t> &vchDataIn,
                   size_t nPosIn)
-        : nType(nTypeIn), nVersion(nVersionIn), vchData(vchDataIn),
-          nPos(nPosIn) {
+        : nVersion{nVersionIn}, vchData{vchDataIn}, nPos{nPosIn} {
         if (nPos > vchData.size()) {
             vchData.resize(nPos);
         }
@@ -84,9 +80,9 @@ public:
      * @param[in]  args  A list of items to serialize starting at nPosIn.
      */
     template <typename... Args>
-    CVectorWriter(int nTypeIn, int nVersionIn, std::vector<uint8_t> &vchDataIn,
+    CVectorWriter(int nVersionIn, std::vector<uint8_t> &vchDataIn,
                   size_t nPosIn, Args &&...args)
-        : CVectorWriter(nTypeIn, nVersionIn, vchDataIn, nPosIn) {
+        : CVectorWriter(nVersionIn, vchDataIn, nPosIn) {
         ::SerializeMany(*this, std::forward<Args>(args)...);
     }
     void write(Span<const std::byte> src) {
@@ -106,7 +102,6 @@ public:
         return (*this);
     }
     int GetVersion() const { return nVersion; }
-    int GetType() const { return nType; }
     void seek(size_t nSize) {
         nPos += nSize;
         if (nPos > vchData.size()) {
@@ -115,7 +110,6 @@ public:
     }
 
 private:
-    const int nType;
     const int nVersion;
     std::vector<uint8_t> &vchData;
     size_t nPos;
@@ -126,18 +120,16 @@ private:
  */
 class SpanReader {
 private:
-    const int m_type;
     const int m_version;
     Span<const uint8_t> m_data;
 
 public:
     /**
-     * @param[in]  type Serialization Type
      * @param[in]  version Serialization Version (including any flags)
      * @param[in]  data Referenced byte vector to overwrite/append
      */
-    SpanReader(int type, int version, Span<const uint8_t> data)
-        : m_type(type), m_version(version), m_data(data) {}
+    SpanReader(int version, Span<const uint8_t> data)
+        : m_version{version}, m_data(data) {}
 
     template <typename T> SpanReader &operator>>(T &obj) {
         ::Unserialize(*this, obj);
@@ -145,7 +137,6 @@ public:
     }
 
     int GetVersion() const { return m_version; }
-    int GetType() const { return m_type; }
 
     size_t size() const { return m_data.size(); }
     bool empty() const { return m_data.empty(); }
