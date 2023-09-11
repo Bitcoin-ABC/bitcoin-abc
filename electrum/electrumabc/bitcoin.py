@@ -484,13 +484,17 @@ def i2o_ECPublicKey(pubkey, compressed=False):
     # compressed keys: <sign> <x> where <sign> is 0x02 if y is even and 0x03 if y is odd
     if compressed:
         if pubkey.point.y() & 1:
-            key = "03" + "%064x" % pubkey.point.x()
+            key = b"\x03" + pubkey.point.x().to_bytes(32, "big")
         else:
-            key = "02" + "%064x" % pubkey.point.x()
+            key = b"\x02" + pubkey.point.x().to_bytes(32, "big")
     else:
-        key = "04" + "%064x" % pubkey.point.x() + "%064x" % pubkey.point.y()
+        key = (
+            b"\x04"
+            + pubkey.point.x().to_bytes(32, "big")
+            + pubkey.point.y().to_bytes(32, "big")
+        )
 
-    return bfh(key)
+    return key
 
 
 # end pywallet openssl private key implementation
@@ -715,10 +719,6 @@ def GetPubKey(pubkey, compressed=False):
     return i2o_ECPublicKey(pubkey, compressed)
 
 
-def GetSecret(pkey):
-    return bfh("%064x" % pkey.secret)
-
-
 def is_compressed(sec, *, net=None):
     if net is None:
         net = networks.net
@@ -846,10 +846,10 @@ def negative_point(P):
     return Point(P.curve(), P.x(), -P.y(), P.order())
 
 
-def point_to_ser(P, comp=True):
+def point_to_ser(P, comp=True) -> bytes:
     if comp:
-        return bfh(("%02x" % (2 + (P.y() & 1))) + ("%064x" % P.x()))
-    return bfh("04" + ("%064x" % P.x()) + ("%064x" % P.y()))
+        return (2 + (P.y() & 1)).to_bytes(1, "big") + P.x().to_bytes(32, "big")
+    return b"\x04" + P.x().to_bytes(32, "big") + P.y().to_bytes(32, "big")
 
 
 def ser_to_point(Aser):
@@ -1086,16 +1086,16 @@ def _CKD_pub(cK, c, s):
     return cK_n, c_n
 
 
-def xprv_header(xtype, *, net=None):
+def xprv_header(xtype, *, net=None) -> bytes:
     if net is None:
         net = networks.net
-    return bfh("%08x" % net.XPRV_HEADERS[xtype])
+    return net.XPRV_HEADERS[xtype].to_bytes(4, "big")
 
 
 def xpub_header(xtype, *, net=None):
     if net is None:
         net = networks.net
-    return bfh("%08x" % net.XPUB_HEADERS[xtype])
+    return net.XPUB_HEADERS[xtype].to_bytes(4, "big")
 
 
 def serialize_xprv(
@@ -1289,7 +1289,7 @@ def bip32_private_derivation(xprv, branch, sequence, *, net=None):
         depth += 1
     _, parent_cK = get_pubkeys_from_secret(parent_k)
     fingerprint = hash_160(parent_cK)[0:4]
-    child_number = bfh("%08X" % i)
+    child_number = i.to_bytes(4, "big")
     K, cK = get_pubkeys_from_secret(k)
     xpub = serialize_xpub(xtype, c, cK, depth, fingerprint, child_number, net=net)
     xprv = serialize_xprv(xtype, c, k, depth, fingerprint, child_number, net=net)
@@ -1310,7 +1310,7 @@ def bip32_public_derivation(xpub, branch, sequence, *, net=None):
         cK, c = CKD_pub(cK, c, i)
         depth += 1
     fingerprint = hash_160(parent_cK)[0:4]
-    child_number = bfh("%08X" % i)
+    child_number = i.to_bytes(4, "big")
     return serialize_xpub(xtype, c, cK, depth, fingerprint, child_number, net=net)
 
 
