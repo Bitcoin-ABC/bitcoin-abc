@@ -94,6 +94,11 @@ void AddLoggingArgs(ArgsManager &argsman) {
                   DEFAULT_LOGTIMEMICROS),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
+    argsman.AddArg(
+        "-loglevelalways",
+        strprintf("Always prepend a category and level (default: %u)",
+                  DEFAULT_LOGLEVELALWAYS),
+        ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
     argsman.AddArg("-printtoconsole",
                    "Send trace/debug info to console (default: 1 when no "
                    "-daemon. To disable logging to file, set -nodebuglogfile)",
@@ -127,6 +132,8 @@ void SetLoggingOptions(const ArgsManager &args) {
 #endif
     LogInstance().m_log_sourcelocations =
         args.GetBoolArg("-logsourcelocations", DEFAULT_LOGSOURCELOCATIONS);
+    LogInstance().m_always_print_category_level =
+        args.GetBoolArg("-loglevelalways", DEFAULT_LOGLEVELALWAYS);
 
     fLogIPs = args.GetBoolArg("-logips", DEFAULT_LOGIPS);
 }
