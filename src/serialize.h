@@ -142,19 +142,7 @@ inline float ser_uint32_to_float(uint32_t y) {
     return tmp;
 }
 
-/////////////////////////////////////////////////////////////////
-//
-// Templates for serializing to anything that looks like a stream,
-// i.e. anything that supports .read(Span<std::byte>) and .write(Span<const
-// std::byte>)
-//
 class SizeComputer;
-
-enum {
-    // primary actions
-    SER_NETWORK = (1 << 0),
-    SER_DISK = (1 << 1),
-};
 
 /**
  * Convert any argument to a reference to X, maintaining constness.
@@ -303,6 +291,11 @@ template <class Out, class In> const Out &AsBase(const In &x) {
 // but allow it if it's the only way to describe an int8_t.
 template <class T>
 concept CharNotInt8 = std::same_as<T, char> && !std::same_as<T, int8_t>;
+
+// Templates for serializing to anything that looks like a stream,
+// i.e. anything that supports .read(Span<std::byte>) and
+// .write(Span<const std::byte>)
+//
 
 // char serialization forbidden. Use uint8_t or int8_t
 template <typename Stream, CharNotInt8 V> void Serialize(Stream &, V) = delete;
