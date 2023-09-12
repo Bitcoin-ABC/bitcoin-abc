@@ -459,7 +459,25 @@ class Commands:
     def deserialize(self, tx):
         """Deserialize a serialized transaction"""
         tx = Transaction(tx)
-        return self._EnsureDictNamedTuplesAreJSONSafe(tx.deserialize().copy())
+        tx.deserialize()
+        outputs = [
+            {
+                "value": txout.value,
+                "type": txout.type,
+                "address": txout.destination,
+                "scriptPubKey": txout.destination.to_script().hex(),
+                "prevout_n": i,
+            }
+            for i, txout in enumerate(tx.outputs())
+        ]
+        return self._EnsureDictNamedTuplesAreJSONSafe(
+            {
+                "version": tx.version,
+                "inputs": tx.inputs(),
+                "outputs": outputs,
+                "lockTime": tx.locktime,
+            }
+        )
 
     @command("n")
     def broadcast(self, tx):

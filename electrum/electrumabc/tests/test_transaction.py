@@ -1,5 +1,5 @@
 import unittest
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from .. import transaction
 from ..address import Address, PublicKey, Script, ScriptOutput, UnknownAddress
@@ -106,6 +106,24 @@ class TestTransaction(unittest.TestCase):
         self.assert_tx_size(tx, len(tx_hex) // 2)
         return tx
 
+    def _assert_expected_tx_dict(self, tx: transaction.Transaction, expected: Dict):
+        self.assertEqual(tx.version, expected["version"])
+        self.assertEqual(tx.locktime, expected["lockTime"])
+        self.assertEqual(tx.inputs(), expected["inputs"])
+        output = tx.outputs()[0]
+        expected_output = expected["outputs"][0]
+        self.assertEqual(
+            output,
+            transaction.TxOutput(
+                expected_output["type"],
+                expected_output["address"],
+                expected_output["value"],
+            ),
+        )
+        self.assertEqual(
+            output.destination.to_script().hex(), expected_output["scriptPubKey"]
+        )
+
     def test_tx_unsigned(self):
         expected = {
             "inputs": [
@@ -134,7 +152,6 @@ class TestTransaction(unittest.TestCase):
                     "address": Address.from_string(
                         "1MYXdf4moacvaEKZ57ozerpJ3t9xSeN6LK"
                     ),
-                    "prevout_n": 0,
                     "scriptPubKey": (
                         "76a914e158fb15c888037fdc40fb9133b4c1c3c688706488ac"
                     ),
@@ -145,9 +162,8 @@ class TestTransaction(unittest.TestCase):
             "version": 1,
         }
         tx = transaction.Transaction(unsigned_blob)
-        calc = tx.deserialize()
-        self.assertEqual(calc, expected)
-        self.assertEqual(tx.deserialize(), None)
+        tx.deserialize()
+        self._assert_expected_tx_dict(tx, expected)
 
         self.assertEqual(
             tx.as_dict(), {"hex": unsigned_blob, "complete": False, "final": True}
@@ -192,7 +208,20 @@ class TestTransaction(unittest.TestCase):
         tx.update(unsigned_blob)
         tx.raw = None
         blob = str(tx)
-        self.assertEqual(transaction.deserialize(blob), expected)
+        expected_txoutput = transaction.TxOutput(
+            expected["outputs"][0]["type"],
+            expected["outputs"][0]["address"],
+            expected["outputs"][0]["value"],
+        )
+        self.assertEqual(
+            transaction.deserialize(blob),
+            (
+                expected["version"],
+                expected["inputs"],
+                [expected_txoutput],
+                expected["lockTime"],
+            ),
+        )
 
     def test_tx_signed(self):
         expected = {
@@ -224,7 +253,6 @@ class TestTransaction(unittest.TestCase):
                     "address": Address.from_string(
                         "1MYXdf4moacvaEKZ57ozerpJ3t9xSeN6LK"
                     ),
-                    "prevout_n": 0,
                     "scriptPubKey": (
                         "76a914e158fb15c888037fdc40fb9133b4c1c3c688706488ac"
                     ),
@@ -235,8 +263,8 @@ class TestTransaction(unittest.TestCase):
             "version": 1,
         }
         tx = transaction.Transaction(signed_blob)
-        self.assertEqual(tx.deserialize(), expected)
-        self.assertEqual(tx.deserialize(), None)
+        tx.deserialize()
+        self._assert_expected_tx_dict(tx, expected)
         self.assertEqual(
             tx.as_dict(), {"hex": signed_blob, "complete": True, "final": True}
         )
@@ -279,7 +307,6 @@ class TestTransaction(unittest.TestCase):
                     "address": Address.from_pubkey(
                         "034a29987f30ad5d23d79ed5215e034c51f6825bdb2aa595c2bdeb37902960b3d1"
                     ),
-                    "prevout_n": 0,
                     "scriptPubKey": (
                         "76a914480d1be8ab76f8cdd85ce4077f51d35b0baaa25a88ac"
                     ),
@@ -290,8 +317,9 @@ class TestTransaction(unittest.TestCase):
             "version": 1,
         }
         tx = transaction.Transaction(nonmin_blob)
-        self.assertEqual(tx.deserialize(), expected)
-        self.assertEqual(tx.deserialize(), None)
+        tx.deserialize()
+        self._assert_expected_tx_dict(tx, expected)
+
         self.assertEqual(
             tx.as_dict(), {"hex": nonmin_blob, "complete": True, "final": True}
         )

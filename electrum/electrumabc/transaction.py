@@ -729,29 +729,25 @@ def parse_input(vds):
     return txin.to_coin_dict()
 
 
-def parse_output(vds: BCDataStream, i: int):
-    d = {}
-    d["value"] = vds.read_int64()
+def parse_output(vds: BCDataStream) -> TxOutput:
+    value = vds.read_int64()
     scriptPubKey = vds.read_bytes(vds.read_compact_size())
-    d["type"], d["address"] = get_address_from_output_script(scriptPubKey)
-    d["scriptPubKey"] = bh2u(scriptPubKey)
-    d["prevout_n"] = i
-    return d
+    output_type, address = get_address_from_output_script(scriptPubKey)
+    return TxOutput(output_type, address, value)
 
 
-def deserialize(raw):
+def deserialize(raw: str) -> Tuple[int, List[Dict], List[TxOutput], int]:
     vds = BCDataStream()
     vds.write(bfh(raw))
-    d = {}
-    d["version"] = vds.read_int32()
+    version = vds.read_int32()
     n_vin = vds.read_compact_size()
-    d["inputs"] = [parse_input(vds) for i in range(n_vin)]
+    inputs = [parse_input(vds) for i in range(n_vin)]
     n_vout = vds.read_compact_size()
-    d["outputs"] = [parse_output(vds, i) for i in range(n_vout)]
-    d["lockTime"] = vds.read_uint32()
+    outputs = [parse_output(vds) for i in range(n_vout)]
+    locktime = vds.read_uint32()
     if vds.can_read_more():
         raise SerializationError("extra junk at the end")
-    return d
+    return version, inputs, outputs, locktime
 
 
 # pay & redeem scripts
@@ -931,19 +927,12 @@ class Transaction:
             return
         if self._inputs is not None:
             return
-        d = deserialize(self.raw)
         self.invalidate_common_sighash_cache()
-        self._inputs = d["inputs"]
-        self._outputs = [
-            TxOutput(x["type"], x["address"], x["value"]) for x in d["outputs"]
-        ]
+        self.version, self._inputs, self._outputs, self.locktime = deserialize(self.raw)
         assert all(
             isinstance(output[1], (PublicKey, Address, ScriptOutput))
             for output in self._outputs
         )
-        self.locktime = d["lockTime"]
-        self.version = d["version"]
-        return d
 
     @classmethod
     def from_io(
