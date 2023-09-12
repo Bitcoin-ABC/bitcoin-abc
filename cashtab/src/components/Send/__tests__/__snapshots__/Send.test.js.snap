@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP @generated
+// Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Wallet with BCH balances 1`] = `
 Array [
@@ -486,9 +486,7 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
               <h3
                 className="sc-jbKcbu ezmXIw"
               >
-                0
-                 
-                XEC
+                0 XEC
               </h3>
               <div
                 className="sc-gisBJw eDnhwl"
@@ -1076,9 +1074,7 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
               <h3
                 className="sc-jbKcbu ezmXIw"
               >
-                0
-                 
-                XEC
+                0 XEC
               </h3>
               <div
                 className="sc-gisBJw eDnhwl"
@@ -1671,9 +1667,7 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
               <h3
                 className="sc-jbKcbu ezmXIw"
               >
-                0
-                 
-                XEC
+                0 XEC
               </h3>
               <div
                 className="sc-gisBJw eDnhwl"
@@ -2262,9 +2256,7 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
               <h3
                 className="sc-jbKcbu ezmXIw"
               >
-                0
-                 
-                XEC
+                0 XEC
               </h3>
               <div
                 className="sc-gisBJw eDnhwl"
@@ -2847,9 +2839,7 @@ ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700"
               <h3
                 className="sc-jbKcbu ezmXIw"
               >
-                0
-                 
-                XEC
+                0 XEC
               </h3>
               <div
                 className="sc-gisBJw eDnhwl"

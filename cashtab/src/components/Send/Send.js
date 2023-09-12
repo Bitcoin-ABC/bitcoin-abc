@@ -933,11 +933,14 @@ const SendBCH = ({ passLoadingStatus }) => {
                                     {!priceApiError && !isOneToManyXECSend && (
                                         <>
                                             <LocaleFormattedValue>
-                                                {formatBalance(
-                                                    formData.value,
-                                                    userLocale,
-                                                )}{' '}
-                                                {selectedCurrency}
+                                                {!isNaN(formData.value)
+                                                    ? formatBalance(
+                                                          formData.value,
+                                                          userLocale,
+                                                      ) +
+                                                      ' ' +
+                                                      selectedCurrency
+                                                    : ''}
                                             </LocaleFormattedValue>
                                             <ConvertAmount>
                                                 {fiatPriceString !== '' && '='}{' '}
@@ -964,7 +967,8 @@ const SendBCH = ({ passLoadingStatus }) => {
                                 sendBchAmountError ||
                                 sendBchAddressError ||
                                 isMsgError ||
-                                priceApiError ? (
+                                priceApiError ||
+                                isNaN(formData.value) ? (
                                     <DisabledButton>Send</DisabledButton>
                                 ) : (
                                     <>
