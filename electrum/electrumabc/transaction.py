@@ -712,10 +712,11 @@ def get_address_from_output_script(
     return bitcoin.TYPE_SCRIPT, ScriptOutput.protocol_factory(bytes(_bytes))
 
 
-def parse_input(vds):
+def parse_input(vds) -> TxInput:
     prevout_hash = bitcoin.hash_encode(vds.read_bytes(32))
     prevout_n = vds.read_uint32()
-    scriptSig = vds.read_bytes(vds.read_compact_size())
+    # convert scriptsig from bytearray to bytes
+    scriptSig = bytes(vds.read_bytes(vds.read_compact_size()))
     sequence = vds.read_uint32()
 
     txin = TxInput(
@@ -726,7 +727,7 @@ def parse_input(vds):
         # amount is appended to the serialized input.
         txin.set_value(vds.read_uint64())
 
-    return txin.to_coin_dict()
+    return txin
 
 
 def parse_output(vds: BCDataStream) -> TxOutput:
@@ -736,7 +737,7 @@ def parse_output(vds: BCDataStream) -> TxOutput:
     return TxOutput(output_type, address, value)
 
 
-def deserialize(raw: str) -> Tuple[int, List[Dict], List[TxOutput], int]:
+def deserialize(raw: str) -> Tuple[int, List[TxInput], List[TxOutput], int]:
     vds = BCDataStream()
     vds.write(bfh(raw))
     version = vds.read_int32()
@@ -928,7 +929,8 @@ class Transaction:
         if self._inputs is not None:
             return
         self.invalidate_common_sighash_cache()
-        self.version, self._inputs, self._outputs, self.locktime = deserialize(self.raw)
+        self.version, txinputs, self._outputs, self.locktime = deserialize(self.raw)
+        self._inputs = [txin.to_coin_dict() for txin in txinputs]
         assert all(
             isinstance(output[1], (PublicKey, Address, ScriptOutput))
             for output in self._outputs

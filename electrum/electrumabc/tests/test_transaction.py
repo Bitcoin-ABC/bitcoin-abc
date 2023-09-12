@@ -110,6 +110,11 @@ class TestTransaction(unittest.TestCase):
         self.assertEqual(tx.version, expected["version"])
         self.assertEqual(tx.locktime, expected["lockTime"])
         self.assertEqual(tx.inputs(), expected["inputs"])
+
+        txinput = tx.txinputs()[0]
+        expected_input = expected["inputs"][0]
+        self.assertEqual(txinput.to_coin_dict(), expected_input)
+
         output = tx.outputs()[0]
         expected_output = expected["outputs"][0]
         self.assertEqual(
@@ -213,11 +218,20 @@ class TestTransaction(unittest.TestCase):
             expected["outputs"][0]["address"],
             expected["outputs"][0]["value"],
         )
+        expected_txinput = transaction.TxInput(
+            transaction.OutPoint(
+                UInt256.from_hex(expected["inputs"][0]["prevout_hash"]),
+                expected["inputs"][0]["prevout_n"],
+            ),
+            bytes.fromhex(transaction.Transaction.input_script(expected["inputs"][0])),
+            expected["inputs"][0]["sequence"],
+            expected["inputs"][0]["value"],
+        )
         self.assertEqual(
             transaction.deserialize(blob),
             (
                 expected["version"],
-                expected["inputs"],
+                [expected_txinput],
                 [expected_txoutput],
                 expected["lockTime"],
             ),
