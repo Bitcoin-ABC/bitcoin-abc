@@ -219,11 +219,6 @@ if(ENABLE_HARDENING)
 	include(CheckPIESupported)
 	check_pie_supported()
 
-	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-		# MinGw provides its own libssp for stack smashing protection
-		link_libraries(ssp)
-	endif()
-
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		add_linker_flags(-Wl,-fixup_chains)
 	endif()
