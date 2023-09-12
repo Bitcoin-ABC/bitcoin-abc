@@ -24,7 +24,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import sys
+from typing import Optional
 
 from ..printerror import print_error
 from .abstract_base import AbstractQrCodeReader, QrCodeResult  # noqa: F401
@@ -36,33 +36,24 @@ class MissingLib(RuntimeError):
     pass
 
 
-def get_qr_reader() -> AbstractQrCodeReader:
+def get_qr_reader() -> Optional[AbstractQrCodeReader]:
     """
     Get the Qr code reader for the current platform
     """
     try:
-        if sys.platform == "darwin" and False:
-            # This has been disabled for now as it has trouble reading BitPay
-            # QR Codes and instead we also use ZBar on macOS now.
-            from .osxqrdetect import OSXQRDetect
+        from .zbar import ZbarQrCodeReader
 
-            return OSXQRDetect()
-        else:
-            # New! macOS also uses ZBar.
-            # Windows has zbar, Linux has zbar. Hopefully some FreeBSD power users install zbar.
-            from .zbar import ZbarQrCodeReader
+        return ZbarQrCodeReader()
 
-            return ZbarQrCodeReader()
-        """
         # DEBUG CODE BELOW
         # If you want to test this code on a platform that doesn't yet work or have
         # zbar, use the below...
-        class Fake(AbstractQrCodeReader):
-            def read_qr_code(self, buffer, buffer_size, dummy, width, height, frame_id = -1):
-                ''' fake noop to test '''
-                return []
-        return Fake()
-        """
+        #
+        # class Fake(AbstractQrCodeReader):
+        #    def read_qr_code(self, buffer, buffer_size, dummy, width, height, frame_id = -1):
+        #         ''' fake noop to test '''
+        #         return []
+        # return Fake()
     except MissingLib as e:
         print_error("[get_qr_reader]", str(e))
 
