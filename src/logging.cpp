@@ -287,7 +287,11 @@ std::string LogEscapeMessage(const std::string &str) {
 
 std::string BCLog::Logger::GetLogPrefix(BCLog::LogFlags category,
                                         BCLog::Level level) const {
-    const bool has_category{category != LogFlags::NONE};
+    if (category == LogFlags::NONE) {
+        category = LogFlags::ALL;
+    }
+
+    const bool has_category{category != LogFlags::ALL};
 
     // If there is no category, Info is implied
     if (!has_category && level == Level::Info) {
