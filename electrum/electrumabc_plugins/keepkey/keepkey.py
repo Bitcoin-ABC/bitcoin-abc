@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from binascii import unhexlify
 from typing import TYPE_CHECKING
 
