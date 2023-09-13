@@ -19,7 +19,7 @@ import {
     errorNotification,
 } from 'components/Common/Notifications';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
-import { parseAddressForParams } from 'utils/cashMethods';
+import { parseAddressForParams, sumOneToManyXec } from 'utils/cashMethods';
 import { Event } from 'utils/GoogleAnalytics';
 import {
     fiatToCrypto,
@@ -726,11 +726,23 @@ const SendBCH = ({ passLoadingStatus }) => {
                 onCancel={handleCancel}
             >
                 <p>
-                    {isOneToManyXECSend
-                        ? `are you sure you want to send the following One to Many transaction?
-                    ${formData.address}`
-                        : `Are you sure you want to send ${formData.value}${' '}
-                  ${selectedCurrency} to ${formData.address}?`}
+                    {isOneToManyXECSend ? (
+                        <>
+                            Are you sure you want to send{' '}
+                            {sumOneToManyXec(
+                                formData.address.split('\n'),
+                            ).toLocaleString(userLocale, {
+                                maximumFractionDigits: 2,
+                            })}{' '}
+                            XEC in the following transaction?
+                            <br />
+                            <br />
+                            {formData.address}
+                        </>
+                    ) : (
+                        `Are you sure you want to send ${formData.value}${' '}
+                  ${selectedCurrency} to ${formData.address}?`
+                    )}
                 </p>
             </Modal>
             <WalletInfoCtn>

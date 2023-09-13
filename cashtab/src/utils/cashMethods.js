@@ -533,6 +533,22 @@ export const getChangeAddressFromInputUtxos = (inputUtxos, wallet) => {
     return changeAddress;
 };
 
+/**
+ * Get the total XEC amount sent in a one-to-many XEC tx
+ * @param {array} destinationAddressAndValueArray
+ * Array constructed by user input of addresses and values
+ * e.g. [
+ *  "<address>, <value>",
+ *   "<address>, <value>"
+ *  ]
+ * @returns {number} total value of XEC
+ */
+export const sumOneToManyXec = destinationAddressAndValueArray => {
+    return destinationAddressAndValueArray.reduce((prev, curr) => {
+        return parseFloat(prev) + parseFloat(curr.split(',')[1]);
+    }, 0);
+};
+
 /*
  * Parse the total value of a send XEC tx and checks whether it is more than dust
  * One to many: isOneToMany is true, singleSendValue is null
