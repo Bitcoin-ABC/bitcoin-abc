@@ -1,5 +1,17 @@
 # Release notes
 
+## Release 5.2.7
+
+- Fix a bug in the command line argument processing preventing the application
+  from recognizing BIP 21 payment URLs when passed as the only argument. This
+  fixes the `ecash:` MIME type association with Electrum ABC (D14382).
+- Speed up the size estimation for freshly generated transactions by removing
+  the need to serialize them first (D14434, D14448).
+- Slightly improve the performance of some serialization operations for by reducing
+  the number of unnecessary bytes-to-hex conversions (D14455, D14462, D14463, D14464).
+- Support Python 3.12 (D14440).
+
+
 ## Release 5.2.6
 
 - Increase the maximum number of concurrent get_merkle network requests to speed

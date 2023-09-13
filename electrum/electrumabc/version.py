@@ -1,7 +1,7 @@
 import re
 
 # version of the client package
-VERSION_TUPLE = (5, 2, 6)
+VERSION_TUPLE = (5, 2, 7)
 PACKAGE_VERSION = ".".join(map(str, VERSION_TUPLE))
 # protocol version requested
 PROTOCOL_VERSION = "1.4"
