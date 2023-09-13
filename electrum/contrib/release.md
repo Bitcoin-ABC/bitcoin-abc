@@ -112,10 +112,29 @@ Both files are generated in the `dist` directory.
 
 ## Uploading the release to Github
 
-Push a version tag `X.Y.Z` to the Electrum ABC gihub repository (https://github.com/Bitcoin-ABC/ElectrumABC).
-<!-- FIXME: associate the tags with the proper commits once the repo synchronization works -->
+Before uploading the release to github, the release commit needs to be pushed to the master branch of
+[the Electrum ABC github repository](https://github.com/Bitcoin-ABC/ElectrumABC).
 
-Create a release associated with this tag,  and attach the files located in `dist`.
+**Option 1:** Wait for the automated repository synchronization to push the commit. This task runs once a day.
+
+**Option 2:** Manually trigger the repository synchronization task on CI (*Extract Electrum ABC from ABC*), or
+ask someone with the required permission to do it for you.
+
+**Option 3** Run the `contrib/extract-electrum.sh` script from the root of the monorepo, and push manually:
+
+```shell
+contrib/extract-electrum.sh
+cd  electrumabc-mirror/
+git remote -v     # verify that the remote name is "github"
+git push github master
+```
+This option requires that you have the push permission on the Github repository.
+
+Then draft a new release on the github repository, select the release commit (usually the latest commit on master)
+and add a new `X.Y.Z` tag. Attach the binary files, the checksum file and the signature file located in `dist`.
+When all binaries are uploaded, publish the release.
+See the [Managing releases in a repository](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)
+documentation for the complete procedure.
 
 Deploy the bitcoinabc.org website to update the versions and download links on https://www.bitcoinabc.org/electrum/.
 
@@ -123,4 +142,4 @@ Deploy the bitcoinabc.org website to update the versions and download links on h
 
 Once the version and download links are available on the download page https://www.bitcoinabc.org/electrum/, and
 all the release files are tested, follow the steps explained in
-[the update_checker README.md](update_checker/README.md).
+[the update_checker's README.md](update_checker/README.md).
