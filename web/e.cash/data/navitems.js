@@ -33,6 +33,10 @@ export const navitems = [
         ],
     },
     {
+        nav_item: 'Developers',
+        link: '/developers',
+    },
+    {
         nav_item: 'Technology',
         dropdown_items: [
             {
