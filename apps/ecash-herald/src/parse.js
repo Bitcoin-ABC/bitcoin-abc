@@ -539,6 +539,12 @@ module.exports = {
                     }
                     // Remove the last space
                     msg = msg.slice(0, -1);
+
+                    // Trim the msg for Telegram to avoid 200+ char msgs
+                    const unknownMaxChars = 20;
+                    if (msg.length > unknownMaxChars) {
+                        msg = msg.slice(0, unknownMaxChars) + '...';
+                    }
                 }
 
                 break;
