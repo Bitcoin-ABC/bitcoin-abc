@@ -21,6 +21,7 @@ const appConfig = {
     notificationDurationShort: 3,
     notificationDurationLong: 5,
     localStorageMaxCharacters: 24,
+    monitorExtension: false,
 };
 
 export default appConfig;

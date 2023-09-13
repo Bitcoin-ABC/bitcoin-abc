@@ -41,6 +41,7 @@ import TabCash from 'assets/tabcash.png';
 import { checkForTokenById } from 'utils/tokenMethods.js';
 import ServiceWorkerWrapper from './Common/ServiceWorkerWrapper';
 import aliasSettings from 'config/alias';
+import appConfig from 'config/app';
 
 const GlobalStyle = createGlobalStyle`
     *::placeholder {
@@ -488,6 +489,16 @@ const App = () => {
         }
     };
 
+    const getExtensionInstallationStatus = async () => {
+        // Wait 2s to check
+        // window.bitcoinAbc is set by the extension, and is undefined on page load
+        // We will also want to wait for some configurable interval anyway, so that the page
+        // does not load with a popup
+        const popupWaitInterval = 2000;
+        await new Promise(resolve => setTimeout(resolve, popupWaitInterval));
+        return window && window.bitcoinAbc && window.bitcoinAbc === 'cashtab';
+    };
+
     // Easter egg boolean not used in extension/src/components/App.js
     const hasTab = validWallet
         ? checkForTokenById(
@@ -496,8 +507,17 @@ const App = () => {
           )
         : false;
 
-    useEffect(() => {
+    useEffect(async () => {
         checkForPersistentStorage();
+        if (appConfig.monitorExtension) {
+            const extensionInstalled = await getExtensionInstallationStatus();
+            // TODO if false and other conditions are met, show popup advertising browser extension
+            console.log(
+                `Cashtab browser extension: ${
+                    extensionInstalled ? 'Installed' : 'Not installed'
+                }`,
+            );
+        }
     }, []);
 
     return (
