@@ -550,65 +550,6 @@ export const sumOneToManyXec = destinationAddressAndValueArray => {
 };
 
 /*
- * Parse the total value of a send XEC tx and checks whether it is more than dust
- * One to many: isOneToMany is true, singleSendValue is null
- * One to one: isOneToMany is false, destinationAddressAndValueArray is null
- * Returns the aggregate send value in BigNumber format
- */
-export const parseXecSendValue = (
-    isOneToMany,
-    singleSendValue,
-    destinationAddressAndValueArray,
-) => {
-    let value = new BigNumber(0);
-
-    try {
-        if (isOneToMany) {
-            // this is a one to many XEC transaction
-            if (
-                !destinationAddressAndValueArray ||
-                !destinationAddressAndValueArray.length
-            ) {
-                throw new Error('Invalid destinationAddressAndValueArray');
-            }
-            const arrayLength = destinationAddressAndValueArray.length;
-            for (let i = 0; i < arrayLength; i++) {
-                // add the total value being sent in this array of recipients
-                // each array row is: 'eCash address, send value'
-                value = BigNumber.sum(
-                    value,
-                    new BigNumber(
-                        destinationAddressAndValueArray[i].split(',')[1],
-                    ),
-                );
-            }
-        } else {
-            // this is a one to one XEC transaction then check singleSendValue
-            // note: one to many transactions won't be sending a singleSendValue param
-
-            if (!singleSendValue) {
-                throw new Error('Invalid singleSendValue');
-            }
-
-            value = new BigNumber(singleSendValue);
-        }
-        // If user is attempting to send an aggregate value that is less than minimum accepted by the backend
-        if (
-            value.lt(
-                new BigNumber(fromSatoshisToXec(appConfig.dustSats).toString()),
-            )
-        ) {
-            // Throw the same error given by the backend attempting to broadcast such a tx
-            throw new Error('dust');
-        }
-    } catch (err) {
-        console.log('Error in parseXecSendValue: ' + err);
-        throw err;
-    }
-    return value;
-};
-
-/*
  * Generates an OP_RETURN script for a version 0 alias registration tx
  *
  * Returns the final encoded script object ready to be added as a transaction output

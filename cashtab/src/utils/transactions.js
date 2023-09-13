@@ -1,7 +1,6 @@
 import {
     fromXecToSatoshis,
     isValidStoredWallet,
-    parseXecSendValue,
     generateOpReturnScript,
     generateTxInput,
     generateTxOutput,
@@ -13,12 +12,14 @@ import {
     getMessageByteSize,
     generateAliasOpReturnScript,
     fromSatoshisToXec,
+    sumOneToManyXec,
 } from 'utils/cashMethods';
 import ecies from 'ecies-lite';
 import * as utxolib from '@bitgo/utxo-lib';
 import { explorer } from 'config/explorer';
 import appConfig from 'config/app';
 import aliasSettings from 'config/alias';
+import BigNumber from 'bignumber.js';
 
 const SEND_XEC_ERRORS = {
     INSUFFICIENT_FUNDS: 0,
@@ -446,16 +447,27 @@ export const sendXec = async (
     optionalMockPubKeyResponse = false,
 ) => {
     try {
+        // Validation for missing sendAmount in one to one tx
+        // TODO clean this up and have separate functions for one-to-one and one-to-many sends
+        if (!isOneToMany && sendAmount === null) {
+            throw new Error('Invalid singleSendValue');
+        }
+
         let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
             utxolib.networks.ecash,
         );
 
         // parse the input value of XEC to send
-        const value = parseXecSendValue(
-            isOneToMany,
-            sendAmount,
-            destinationAddressAndValueArray,
-        );
+        // TODO deprecate BigNumber from the rest of the functions here and in Cashtab
+        const value = isOneToMany
+            ? new BigNumber(sumOneToManyXec(destinationAddressAndValueArray))
+            : new BigNumber(sendAmount);
+
+        // If you have a dust value, throw error here instead of broadcasting the tx and getting it from the node
+        if (value.lt(fromSatoshisToXec(appConfig.dustSats))) {
+            // Throw the same error given by the backend attempting to broadcast such a tx
+            throw new Error('dust');
+        }
 
         const satoshisToSend = fromXecToSatoshis(value);
 
