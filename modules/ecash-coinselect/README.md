@@ -23,16 +23,22 @@ $ npm install --save ecash-coinselect
 
 ## Usage
 
--   Get enough XEC utxos to cover a send amount plus fees.
+-   Get enough XEC utxos to cover a send amount plus fees based on a utxo set for a single p2pkh address.
 
 ```javascript
 const coinselect = require('ecash-coinselect');
 // Retrieve utxos from Chronik
 // const chronikUtxos = await chronik.script("p2pkh", hash160).utxos();
-const collectedXecUtxos = coinselect.getInputUtxos(
-    chronikUtxos,
-    550, // sending 550 sats or 5.5 XEC
-);
+
+// `outputArray` should consist of an array of intended outputs for the transaction
+// containing an address and value properties. The value is in satoshis.
+const outputArray = [
+    {
+        address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+        value: 900, // 9 XEC
+    },
+];
+const collectedXecUtxos = coinselect.getInputUtxos(chronikUtxos, outputArray);
 console.log(collectedXecUtxos);
 // "inputs": [
 //    {
@@ -98,5 +104,8 @@ console.log(byteCount); // 818
 
 #### Change Log
 
+1.0.2 - Updated `getInputUtxos` to take in an outputArray.
+
 1.0.1 - Fixed p2pkh byte count calculations and renamed `calcByteCount` to `calcP2pkhByteCount`.
+
 1.0.0 - Support collection of eCash XEC utxos for one to one p2pkh transactions.

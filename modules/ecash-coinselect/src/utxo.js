@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 'use strict';
+const ecashaddr = require('ecashaddrjs');
 
 const DUST_AMOUNT_SATOSHIS = 546;
 // The minimum fee is 1 sat/byte however to use this you need to
@@ -15,28 +16,46 @@ const SATOSHIS_PER_BYTE = 1;
  */
 
 /**
- * Parse through a wallet's XEC utxos and collect enough utxos to cover an
- * XEC tx sending to one single recipient.
+ * Collects enough XEC utxos to cover an XEC tx sending to n recipients.
  *
  *  @param {array} chronikUtxos array response from a chronik.script().utxo() call
- *  @param {number} sendAmountInSats the amount of XECs being sent in satoshis
+ *  @param {array} outputArray an array of output objects consisting of address and value props
  *  @returns {object} an object containing:
  *                         - inputs: an array of collected XEC input utxos
  *                         - changeAmount: change amount in sats
  *                         - txFee: total transaction fee for this tx
  *  @throws {error} on utxo parsing error
  */
-function getInputUtxos(chronikUtxos, sendAmountInSats) {
+function getInputUtxos(chronikUtxos, outputArray) {
     const inputUtxos = []; // keeps track of the utxos to be collected (to be signed later)
     let txFee = 0;
     let totalInputUtxoValue = 0; // aggregate value of all collected input utxos
-    let outputCount = 2; // Assumes 2 outputs initially however this will be reduced to 1 if change output is not required
+    let outputCount;
     let remainder = 0;
+    let totalSendAmountInSats = 0;
+
     try {
+        if (!Array.isArray(outputArray) || outputArray.length === 0) {
+            throw new Error('Invalid output supplied');
+        }
+
+        outputCount = outputArray.length;
+
+        // Validate each script type in outputArray and tally up the total send value
+        for (const output of outputArray) {
+            const { type } = ecashaddr.decode(output.address, true);
+            if (type !== 'p2pkh') {
+                throw new Error(
+                    `${output.address} is not a p2pkh address (only supported type for now)`,
+                );
+            }
+            totalSendAmountInSats += output.value;
+        }
+
         // Extract the XEC utxos only
         const xecUtxos = parseChronikUtxos(chronikUtxos).xecUtxos;
 
-        // Collect enough XEC utxos to cover send amount and fee
+        // Collect enough XEC utxos to cover total send amount and fee
         for (let i = 0; i < xecUtxos.length; i += 1) {
             const thisUtxo = xecUtxos[i];
             totalInputUtxoValue = totalInputUtxoValue + Number(thisUtxo.value); // Chronik's output for utxo.value is a string hence the need to convert to number
@@ -51,7 +70,7 @@ function getInputUtxos(chronikUtxos, sendAmountInSats) {
             // Update tx fee based on byteCount and satoshis per byte
             txFee = Math.ceil(SATOSHIS_PER_BYTE * byteCount);
 
-            remainder = totalInputUtxoValue - sendAmountInSats - txFee;
+            remainder = totalInputUtxoValue - totalSendAmountInSats - txFee;
             // If enough XEC utxos have been collected, exit loop
             if (remainder >= 0) {
                 if (remainder < DUST_AMOUNT_SATOSHIS) {
@@ -60,18 +79,22 @@ function getInputUtxos(chronikUtxos, sendAmountInSats) {
                     // Note that the actual tx fee will be higher than the optimum fee calculated here, because
                     // the remainder amount that is too small for change becomes part of the implied tx fee
                     remainder = 0;
+                } else {
+                    // Recalculate byte count with an additional output for change
                     byteCount = calcP2pkhByteCount(
                         inputUtxos.length,
-                        outputCount - 1,
+                        outputCount + 1,
                     );
                     txFee = Math.ceil(SATOSHIS_PER_BYTE * byteCount);
+                    remainder =
+                        totalInputUtxoValue - totalSendAmountInSats - txFee;
                 }
                 break;
             }
         }
 
         // if final utxo total is less than send amount plus tx fee, throw error
-        if (totalInputUtxoValue < sendAmountInSats + txFee) {
+        if (totalInputUtxoValue < totalSendAmountInSats + txFee) {
             throw new Error('Insufficient balance');
         }
     } catch (err) {

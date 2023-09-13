@@ -91,11 +91,14 @@ it('calcP2pkhByteCount() returns a correct byte count for a p2pkh tx with 6 inpu
     assert.equal(isWithinByteCountRange(rawTxHex, byteCount, inputCount), true);
 });
 
-it('getInputUtxos() correctly collects enough XEC utxos for a given send amount in satoshis', function () {
-    const result = getInputUtxos(
-        chronikUtxos,
-        900, // 9 XEC
-    );
+it('getInputUtxos() correctly collects enough XEC utxos for a single element outputArray', function () {
+    const outputArray = [
+        {
+            address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+            value: 900, // 9 XEC
+        },
+    ];
+    const result = getInputUtxos(chronikUtxos, outputArray);
 
     // The first XEC utxo in `chronikUtxos` is 900 sats, hence result should contain this 900 sat
     // utxo plus one other XEC utxo to cover fees
@@ -129,10 +132,13 @@ it('getInputUtxos() correctly collects enough XEC utxos for a given send amount 
 });
 
 it('getInputUtxos() correctly collects enough XEC utxos where a change output is not required', function () {
-    const result = getInputUtxos(
-        chronikUtxos,
-        590, // 5.9 XEC
-    );
+    const outputArray = [
+        {
+            address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+            value: 590, // 5.9 XEC
+        },
+    ];
+    const result = getInputUtxos(chronikUtxos, outputArray);
 
     // The first XEC utxo in `chronikUtxos` is 900 sats, which covers the send amount and tx fee without needing a change output
     const expectedResult = {
@@ -154,17 +160,107 @@ it('getInputUtxos() correctly collects enough XEC utxos where a change output is
     assert.deepEqual(result, expectedResult);
 });
 
+it('getInputUtxos() correctly collects enough XEC utxos for a multi-element outputArray', function () {
+    const outputArray = [
+        {
+            address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+            value: 900, // 9 XEC
+        },
+        {
+            address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+            value: 9000, // 90 XEC
+        },
+        {
+            address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+            value: 5000, // 50 XEC
+        },
+    ];
+    const result = getInputUtxos(chronikUtxos, outputArray);
+
+    // The first two XEC utxo (900+38052) in `chronikUtxos` will cover the total 14900 sats send value and fee
+    const expectedResult = {
+        inputs: [
+            {
+                outpoint: {
+                    txid: '1b59feeb756e59c8df26af0f636dfb7c6fd466743539617cee49d60ffda02994',
+                    outIdx: 0,
+                },
+                blockHeight: 799480,
+                isCoinbase: false,
+                value: '900',
+                network: 'XEC',
+            },
+            {
+                outpoint: {
+                    txid: '1b59feeb756e59c8df26af0f636dfb7c6fd466743539617cee49d60ffda02994',
+                    outIdx: 1,
+                },
+                blockHeight: 799480,
+                isCoinbase: false,
+                value: '38052',
+                network: 'XEC',
+            },
+        ],
+        changeAmount: 23610,
+        txFee: 442,
+    };
+    assert.deepEqual(result, expectedResult);
+});
+
 it('getInputUtxos() correctly throws an error if there are not enough XEC utxos for a given send amount in satoshis', function () {
+    const outputArray = [
+        {
+            address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+            value: 50000000000, // 500m XEC
+        },
+    ];
     assert.rejects(
         () => {
-            getInputUtxos(
-                chronikUtxos,
-                50000000000, // 500m XEC
-            );
+            getInputUtxos(chronikUtxos, outputArray);
         },
         {
             name: 'Error',
             message: 'Insufficient balance',
+        },
+    );
+});
+
+it('getInputUtxos() correctly throws an error if a non array outputArray is supplied', function () {
+    const outputArray = {
+        address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+        value: 50000000000, // 500m XEC
+    };
+    assert.rejects(
+        () => {
+            getInputUtxos(chronikUtxos, outputArray);
+        },
+        {
+            name: 'Error',
+            message: 'Invalid output supplied',
+        },
+    );
+});
+
+it('getInputUtxos() correctly throws an error if a non-p2pkh address is in outputArray', function () {
+    const outputArray = [
+        {
+            // p2pkh address
+            address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+            value: 900, // 9 XEC
+        },
+        {
+            // p2sh address
+            address: 'ecash:pzwgdlqrf0g45yy20exkeyevuhjp9hjvksa4n0wakr',
+            value: 9000, // 90 XEC
+        },
+    ];
+    assert.rejects(
+        () => {
+            getInputUtxos(chronikUtxos, outputArray);
+        },
+        {
+            name: 'Error',
+            message: `${outputArray[1].address} is not a p2pkh address (only supported type for now)`,
         },
     );
 });
