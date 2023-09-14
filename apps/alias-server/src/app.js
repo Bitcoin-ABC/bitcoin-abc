@@ -10,9 +10,11 @@ const {
     getAliasInfoFromAlias,
     getAliasInfoFromAddress,
     getServerState,
+    getPendingAliases,
 } = require('./db');
 const { getAliasPrice } = require('./utils');
 const aliasConstants = require('../constants/alias');
+const cashaddr = require('ecashaddrjs');
 
 module.exports = {
     startServer: function (db, port) {
@@ -119,18 +121,43 @@ module.exports = {
 
         app.get('/address/:address', async function (req, res) {
             // Get the requested alias
-            const address = req.params.address;
+            let address = req.params.address;
+
+            // Validate input is an ecash: address
+            const isValidAddress = cashaddr.isValidCashAddress(
+                address,
+                'ecash',
+            );
+            if (!isValidAddress) {
+                return res.status(500).json({
+                    error: `Error fetching /address/${address}: Input must be a valid eCash address`,
+                });
+            }
+
+            // Note: prefixless address is valid if checksum matches 'ecash'
+            // But database stores all addresses with a prefix
+            if (!address.startsWith('ecash:')) {
+                //  If query comes from a prefixless valid address, give it a prefix for your db query
+                address = `ecash:${address}`;
+            }
 
             // Log the request
             console.log(
                 `/address/${address} from IP: ${req.clientIp}, host ${req.headers.host}`,
             );
 
-            // Lookup the aliases at given address
             try {
-                return res
-                    .status(200)
-                    .json(await getAliasInfoFromAddress(db, address));
+                // Lookup the aliases at given address
+
+                const registered = await getAliasInfoFromAddress(db, address);
+                const pending = await getPendingAliases(
+                    db,
+                    { address },
+                    // We don't need tipHeight or address
+                    { _id: 0, alias: 1, txid: 1 },
+                );
+                const addressReturnObject = { registered, pending };
+                return res.status(200).json(addressReturnObject);
             } catch (err) {
                 // Return error response
                 return res.status(500).json({

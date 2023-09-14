@@ -304,14 +304,18 @@ module.exports = {
      * {} for filter will return everything in the collection
      * @returns {array}
      */
-    getPendingAliases: async function (db, filter = {}) {
+    getPendingAliases: async function (
+        db,
+        filter = {},
+        projection = { _id: 0 },
+    ) {
         let pendingAliases;
         try {
             pendingAliases = await db
                 .collection(config.database.collections.pendingAliases)
                 .find(filter)
                 .sort({ alias: 1 })
-                .project({ _id: 0 })
+                .project(projection)
                 .toArray();
             return pendingAliases;
         } catch (err) {

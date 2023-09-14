@@ -703,4 +703,116 @@ describe('alias-server db.js', async function () {
             },
         );
     });
+    it('getPendingAliases returns only pending aliases with specified address, if called with { address } filter', async function () {
+        // Add some pending aliases to the pendingAliases collection
+        let pendingAliases = [];
+        for (let i in generated.validAliasRegistrations) {
+            // Clone to avoid altering mock object
+            const pendingTxObject = JSON.parse(
+                JSON.stringify(generated.validAliasRegistrations[i]),
+            );
+
+            // Delete blockheight
+            delete pendingTxObject.blockheight;
+            // Add tipheight
+            pendingTxObject.tipHeight = null;
+
+            pendingAliases.push(pendingTxObject);
+
+            // Add a clone so you can still check against pendingAliases
+            await addOneAliasToPending(
+                testDb,
+                JSON.parse(JSON.stringify(pendingTxObject)),
+            );
+        }
+
+        // Sort pendingAliases alphabetically as this is how getPendingAliases returns them
+        pendingAliases.sort((a, b) => a.alias.localeCompare(b.alias));
+
+        // Verify you have these aliases in the pending collection
+        const pendingAliasesAddedToDb = await getPendingAliases(testDb);
+        assert.deepEqual(pendingAliasesAddedToDb.length, pendingAliases.length);
+
+        // Call with address filter
+        const testAddressOne =
+            'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj';
+        // Determine how many you expect to have this address
+        const pendingAliasesWithAddressOne = pendingAliases.filter(
+            pendingAlias => pendingAlias.address === testAddressOne,
+        );
+        assert.deepEqual(
+            await getPendingAliases(testDb, { address: testAddressOne }),
+            pendingAliasesWithAddressOne,
+        );
+
+        const testAddressTwo =
+            'ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr';
+        // Determine how many you expect to have this address
+        const pendingAliasesWithAddressTwo = pendingAliases.filter(
+            pendingAlias => pendingAlias.address === testAddressTwo,
+        );
+        assert.deepEqual(
+            await getPendingAliases(testDb, { address: testAddressTwo }),
+            pendingAliasesWithAddressTwo,
+        );
+    });
+    it('getPendingAliases returns only pending aliases with specified address and without tipHeight, if called with { _tipHeight: 0 } projection', async function () {
+        // Add some pending aliases to the pendingAliases collection
+        let pendingAliases = [];
+        for (let i in generated.validAliasRegistrations) {
+            // Clone to avoid altering mock object
+            const pendingTxObject = JSON.parse(
+                JSON.stringify(generated.validAliasRegistrations[i]),
+            );
+
+            // Delete blockheight
+            delete pendingTxObject.blockheight;
+
+            pendingAliases.push(pendingTxObject);
+
+            // Add a clone so you can still check against pendingAliases
+            await addOneAliasToPending(
+                testDb,
+                JSON.parse(JSON.stringify(pendingTxObject)),
+            );
+        }
+
+        // Sort pendingAliases alphabetically as this is how getPendingAliases returns them
+        pendingAliases.sort((a, b) => a.alias.localeCompare(b.alias));
+
+        // Verify you have these aliases in the pending collection
+        const pendingAliasesAddedToDb = await getPendingAliases(testDb);
+        assert.deepEqual(pendingAliasesAddedToDb.length, pendingAliases.length);
+
+        // Call with address filter
+        const testAddressOne =
+            'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj';
+        // Determine how many you expect to have this address
+        const pendingAliasesWithAddressOne = pendingAliases.filter(
+            pendingAlias => pendingAlias.address === testAddressOne,
+        );
+        assert.deepEqual(
+            await getPendingAliases(
+                testDb,
+                { address: testAddressOne },
+                { _id: 0, tipHeight: 0 },
+            ),
+            pendingAliasesWithAddressOne,
+        );
+
+        const testAddressTwo =
+            'ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr';
+        // Determine how many you expect to have this address
+        const pendingAliasesWithAddressTwo = pendingAliases.filter(
+            pendingAlias => pendingAlias.address === testAddressTwo,
+        );
+        assert.deepEqual(
+            await getPendingAliases(
+                testDb,
+                { address: testAddressTwo },
+                { _id: 0, tipHeight: 0 },
+            ),
+            pendingAliasesWithAddressTwo,
+        );
+    });
 });
