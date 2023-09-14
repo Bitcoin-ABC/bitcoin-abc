@@ -490,7 +490,7 @@ class Commands:
         """Create multisig address"""
         assert isinstance(pubkeys, list), (type(num), type(pubkeys))
         redeem_script = multisig_script(pubkeys, num)
-        address = bitcoin.hash160_to_p2sh(hash_160(bytes.fromhex(redeem_script)))
+        address = bitcoin.hash160_to_p2sh(hash_160(redeem_script))
         return {"address": address, "redeemScript": redeem_script}
 
     @command("w")

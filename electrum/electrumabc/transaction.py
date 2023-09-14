@@ -194,18 +194,91 @@ class TxInput:
     def get_value(self) -> Optional[int]:
         return self._value
 
-    def size(self, sign_schnorr: bool = False) -> int:
-        if self.scriptsig is not None and self.is_complete():
-            scriptsig_nbytes = len(self.scriptsig)
+    @staticmethod
+    def estimate_pubkey_size_from_x_pubkey(x_pubkey) -> int:
+        try:
+            # compressed pubkey
+            if x_pubkey[0] in [2, 3]:
+                return 0x21
+            # uncompressed pubkey
+            elif x_pubkey[0] == 4:
+                return 0x41
+            # bip32 extended pubkey
+            elif x_pubkey[0] == 0xFF:
+                return 0x21
+            # old electrum extended pubkey
+            elif x_pubkey[0] == 0xFE:
+                return 0x41
+        except Exception:
+            # fixme try to remove this branch and see if a test fails
+            pass
+        # just guess it is compressed
+        return 0x21
+
+    def estimate_pubkey_size(self) -> int:
+        if self.pubkeys and len(self.pubkeys) > 0:
+            return self.estimate_pubkey_size_from_x_pubkey(self.pubkeys[0])
+        elif self.x_pubkeys and len(self.x_pubkeys) > 0:
+            return self.estimate_pubkey_size_from_x_pubkey(self.x_pubkeys[0])
         else:
-            # TODO: move Transaction.input_script to TxInput to remove the need for
-            #       the to_coin_dict conversion
-            dummy_scriptsig = bytes.fromhex(
-                Transaction.input_script(
-                    self.to_coin_dict(), estimate_size=True, sign_schnorr=sign_schnorr
-                )
-            )
-            scriptsig_nbytes = len(dummy_scriptsig)
+            # just guess it is compressed
+            return 0x21
+
+    def get_siglist(
+        self, estimate_size=False, sign_schnorr=False
+    ) -> Tuple[List[bytes], List[bytes]]:
+        # if we have enough signatures, we use the actual pubkeys
+        # otherwise, use extended pubkeys (with bip32 derivation)
+        if estimate_size:
+            pubkey_size = self.estimate_pubkey_size()
+            pk_list = [b"\x00" * pubkey_size] * len(self.x_pubkeys)
+            # we assume that signature will be 0x48 bytes long if ECDSA, 0x41 if Schnorr
+            if sign_schnorr:
+                siglen = 0x41
+            else:
+                siglen = 0x48
+            sig_list = [b"\x00" * siglen] * self.num_required_sigs
+        else:
+            pubkeys, x_pubkeys = self.get_sorted_pubkeys()
+            signatures = list(filter(None, self.signatures))
+            if self.is_complete():
+                pk_list = pubkeys
+                sig_list = signatures
+            else:
+                pk_list = x_pubkeys
+                sig_list = [sig if sig else NO_SIGNATURE for sig in self.signatures]
+        return pk_list, sig_list
+
+    def get_or_build_scriptsig(self, estimate_size=False, sign_schnorr=False) -> bytes:
+        # For already-complete transactions, scriptSig will be set and we prefer
+        # to use it verbatim in order to get an exact reproduction (including
+        # malleated push opcodes, etc.).
+        if self.scriptsig is not None:
+            return self.scriptsig
+
+        # For partially-signed inputs, or freshly signed transactions, the
+        # scriptSig will be missing and so we construct it from pieces.
+        if self.type == ScriptType.coinbase:
+            raise RuntimeError("Attempted to serialize coinbase with missing scriptSig")
+        pubkeys, sig_list = self.get_siglist(estimate_size, sign_schnorr=sign_schnorr)
+        script = b"".join(bitcoin.push_script_bytes(x) for x in sig_list)
+        if self.type == ScriptType.p2pk:
+            pass
+        elif self.type == ScriptType.p2sh:
+            # put op_0 before script
+            script = bytes([OpCodes.OP_0]) + script
+            redeem_script = multisig_script(pubkeys, self.num_required_sigs)
+            script += bitcoin.push_script_bytes(redeem_script)
+        elif self.type == ScriptType.p2pkh:
+            script += bitcoin.push_script_bytes(pubkeys[0])
+        elif self.type == ScriptType.unknown:
+            raise RuntimeError("Cannot serialize unknown input with missing scriptSig")
+        return script
+
+    def size(self, sign_schnorr: bool = False) -> int:
+        scriptsig_nbytes = len(
+            self.get_or_build_scriptsig(estimate_size=True, sign_schnorr=sign_schnorr)
+        )
 
         assert scriptsig_nbytes <= MAX_SCRIPT_SIZE
         return (
@@ -865,14 +938,14 @@ def deserialize(raw: str) -> Tuple[int, List[TxInput], List[TxOutput], int]:
 
 
 # pay & redeem scripts
-def multisig_script(public_keys, m):
+def multisig_script(public_keys: List[bytes], m) -> bytes:
     n = len(public_keys)
     assert n <= 15
     assert m <= n
-    op_m = bitcoin.push_script_bytes(bytes([m])).hex()
-    op_n = bitcoin.push_script_bytes(bytes([n])).hex()
-    keylist = [bitcoin.push_script(k) for k in public_keys]
-    return op_m + "".join(keylist) + op_n + bytes([OpCodes.OP_CHECKMULTISIG]).hex()
+    op_m = bitcoin.push_script_bytes(bytes([m]))
+    op_n = bitcoin.push_script_bytes(bytes([n]))
+    keylist = [bitcoin.push_script_bytes(k) for k in public_keys]
+    return op_m + b"".join(keylist) + op_n + bytes([OpCodes.OP_CHECKMULTISIG])
 
 
 class Transaction:
@@ -977,7 +1050,7 @@ class Transaction:
                 )
             )
         for i, txin in enumerate(self.inputs()):
-            pubkeys, x_pubkeys = self.get_sorted_pubkeys(txin)
+            pubkeys, x_pubkeys = TxInput.from_coin_dict(txin).get_sorted_pubkeys()
             sig = signatures[i]
             if not isinstance(sig, str):
                 raise ValueError("sig was bytes, expected string")
@@ -992,7 +1065,7 @@ class Transaction:
             reason = []
             for j, pubkey in enumerate(pubkeys):
                 # see which pubkey matches this sig (in non-multisig only 1 pubkey, in multisig may be multiple pubkeys)
-                if self.verify_signature(bfh(pubkey), sig_bytes, pre_hash, reason):
+                if self.verify_signature(pubkey, sig_bytes, pre_hash, reason):
                     print_error("adding sig", i, j, pubkey, sig_final)
                     self._inputs[i]["signatures"][j] = sig_final
                     added = True
@@ -1092,73 +1165,16 @@ class Transaction:
             return 0x21  # just guess it is compressed
 
     @classmethod
-    def get_siglist(self, txin, estimate_size=False, sign_schnorr=False):
-        # if we have enough signatures, we use the actual pubkeys
-        # otherwise, use extended pubkeys (with bip32 derivation)
-        num_sig = txin.get("num_sig", 1)
-        if estimate_size:
-            pubkey_size = self.estimate_pubkey_size_for_txin(txin)
-            pk_list = ["00" * pubkey_size] * len(txin.get("x_pubkeys", [None]))
-            # we assume that signature will be 0x48 bytes long if ECDSA, 0x41 if Schnorr
-            if sign_schnorr:
-                siglen = 0x41
-            else:
-                siglen = 0x48
-            sig_list = ["00" * siglen] * num_sig
-        else:
-            pubkeys, x_pubkeys = self.get_sorted_pubkeys(txin)
-            x_signatures = txin["signatures"]
-            signatures = list(filter(None, x_signatures))
-            is_complete = len(signatures) == num_sig
-            if is_complete:
-                pk_list = pubkeys
-                sig_list = signatures
-            else:
-                pk_list = x_pubkeys
-                sig_list = [sig if sig else NO_SIGNATURE.hex() for sig in x_signatures]
-        return pk_list, sig_list
-
-    @classmethod
     def input_script(self, txin, estimate_size=False, sign_schnorr=False):
-        # For already-complete transactions, scriptSig will be set and we prefer
-        # to use it verbatim in order to get an exact reproduction (including
-        # malleated push opcodes, etc.).
-        scriptSig = txin.get("scriptSig", None)
-        if scriptSig is not None:
-            return scriptSig
-
-        # For partially-signed inputs, or freshly signed transactions, the
-        # scriptSig will be missing and so we construct it from pieces.
-        _type = txin["type"]
-        if _type == "coinbase":
-            raise RuntimeError("Attempted to serialize coinbase with missing scriptSig")
-        pubkeys, sig_list = self.get_siglist(
-            txin, estimate_size, sign_schnorr=sign_schnorr
+        return (
+            TxInput.from_coin_dict(txin)
+            .get_or_build_scriptsig(estimate_size, sign_schnorr)
+            .hex()
         )
-        script = "".join(bitcoin.push_script(x) for x in sig_list)
-        if _type == "p2pk":
-            pass
-        elif _type == "p2sh":
-            # put op_0 before script
-            script = "00" + script
-            redeem_script = multisig_script(pubkeys, txin["num_sig"])
-            script += bitcoin.push_script(redeem_script)
-        elif _type == "p2pkh":
-            script += bitcoin.push_script(pubkeys[0])
-        elif _type == "unknown":
-            raise RuntimeError("Cannot serialize unknown input with missing scriptSig")
-        return script
 
     @classmethod
     def is_txin_complete(cls, txin):
-        if txin["type"] == "coinbase":
-            return True
-        num_sig = txin.get("num_sig", 1)
-        if num_sig == 0:
-            return True
-        x_signatures = txin["signatures"]
-        signatures = list(filter(None, x_signatures))
-        return len(signatures) == num_sig
+        return TxInput.from_coin_dict(txin).is_complete()
 
     @classmethod
     def get_preimage_script(self, txin):
@@ -1166,8 +1182,8 @@ class Transaction:
         if _type == "p2pkh":
             return txin["address"].to_script().hex()
         elif _type == "p2sh":
-            pubkeys, x_pubkeys = self.get_sorted_pubkeys(txin)
-            return multisig_script(pubkeys, txin["num_sig"])
+            pubkeys, x_pubkeys = TxInput.from_coin_dict(txin).get_sorted_pubkeys()
+            return multisig_script(pubkeys, txin["num_sig"]).hex()
         elif _type == "p2pk":
             pubkey = txin["pubkeys"][0]
             return bitcoin.public_key_to_p2pk_script(pubkey)
