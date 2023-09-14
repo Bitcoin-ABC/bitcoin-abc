@@ -174,6 +174,7 @@ class TxInput:
         self._value: Optional[int] = value
 
         # Properties that are lazily computed on demand
+        self._num_required_sigs: Optional[int] = None
         self._x_pubkeys: Optional[List[bytes]] = None
         self._pubkeys: Optional[List[bytes]] = None
         self._type: Optional[ScriptType] = None
@@ -217,6 +218,7 @@ class TxInput:
         return self.outpoint.txid.is_null()
 
     def parse_scriptsig(self):
+        self._num_required_sigs = 0
         if self.is_coinbase():
             self._type = ScriptType.coinbase
             return
@@ -225,6 +227,7 @@ class TxInput:
         if matches_p2pk_scriptsig(decoded):
             self._type = ScriptType.p2pk
             self._signatures = [decoded[0][1]]
+            self._num_required_sigs = 1
             return
 
         if matches_p2pkh_scriptsig(decoded):
@@ -237,6 +240,7 @@ class TxInput:
                 return
             self._type = ScriptType.p2pkh
             self._signatures = [sig if sig != NO_SIGNATURE else None]
+            self._num_required_sigs = 1
             self._x_pubkeys = [x_pubkey]
             self._pubkeys = [pubkey]
             self._address = address
@@ -251,6 +255,7 @@ class TxInput:
         # write result in d
         self._type = ScriptType.p2sh
         self._signatures = [(sig if sig != NO_SIGNATURE else None) for sig in x_sig]
+        self._num_required_sigs = m
         self._x_pubkeys = x_pubkeys
         self._pubkeys = pubkeys
         assert len(self._signatures) in (m, n)
@@ -297,9 +302,23 @@ class TxInput:
         return self._signatures
 
     @property
-    def num_sig(self) -> int:
-        """Number of signatures required to sign this input."""
-        return len(self.signatures)
+    def num_valid_sigs(self) -> int:
+        """Number of signatures actually available.
+        If this does not match `num_required_sigs` the transaction is considered
+        incomplete.
+        Note that a signature is considered valid if not None. It is assumed that
+        provided signatures are cryptographically valid.
+        """
+        return len(list(filter(None, self.signatures)))
+
+    @property
+    def num_required_sigs(self) -> int:
+        """Number of signatures required for this input to be complete.
+        May be None
+        """
+        if self._num_required_sigs is None:
+            self.parse_scriptsig()
+        return self._num_required_sigs
 
     def get_sorted_pubkeys(self):
         if self.pubkeys is None:
@@ -320,10 +339,9 @@ class TxInput:
         return self._address
 
     def is_complete(self) -> bool:
-        if self.type == ScriptType.coinbase or self.num_sig == 0:
+        if self.type == ScriptType.coinbase or self.num_required_sigs == 0:
             return True
-        non_null_signatures = list(filter(None, self.signatures))
-        return len(non_null_signatures) == self.num_sig
+        return self.num_required_sigs == self.num_valid_sigs
 
     def to_coin_dict(self) -> Dict[str, Any]:
         """Return a legacy coin dict for this TxInput"""
@@ -364,7 +382,7 @@ class TxInput:
         d["signatures"] = [
             (sig.hex() if sig is not None else None) for sig in self.signatures
         ]
-        d["num_sig"] = self.num_sig
+        d["num_sig"] = self.num_required_sigs
         if self.type == ScriptType.p2pk:
             # TODO: remove this entirely if unused
             d["x_pubkeys"] = ["(pubkey)"]
