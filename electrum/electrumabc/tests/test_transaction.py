@@ -33,8 +33,8 @@ SCHNORR_P2PKH_SCRIPTSIG_NBYTES = (
     + SCHNORRSIG_NBYTES
 )
 
-DUMMY_TXINPUT = transaction.TxInput(
-    transaction.OutPoint(UInt256(b"\x00" * 32), 0), b"", 0
+DUMMY_TXINPUT = transaction.TxInput.from_scriptsig(
+    transaction.OutPoint(UInt256(b"\x00" * 32), 0), 0, b""
 )
 # TXID (32 bytes) + prevout_n (4 bytes) + compact_s1ze (1 byte) + sequence (4 bytes)
 DUMMY_TXINPUT_NBYTES = 41
@@ -218,14 +218,14 @@ class TestTransaction(unittest.TestCase):
             expected["outputs"][0]["address"],
             expected["outputs"][0]["value"],
         )
-        expected_txinput = transaction.TxInput(
+        expected_txinput = transaction.TxInput.from_scriptsig(
             transaction.OutPoint(
                 UInt256.from_hex(expected["inputs"][0]["prevout_hash"]),
                 expected["inputs"][0]["prevout_n"],
             ),
-            bytes.fromhex(transaction.Transaction.input_script(expected["inputs"][0])),
             expected["inputs"][0]["sequence"],
-            expected["inputs"][0]["value"],
+            bytes.fromhex(transaction.Transaction.input_script(expected["inputs"][0])),
+            value=expected["inputs"][0]["value"],
         )
         self.assertEqual(
             transaction.deserialize(blob),
@@ -680,17 +680,17 @@ class TestTransaction(unittest.TestCase):
             "02000000012367ad0da9fb8f8a7e574d55d4eb2dd0fd8ebd58b1c21cfddb9fe5426369082a000000006441761c8b702e06fcb8656cb205454f22efff174e3ae9552c1ee83f7d64e3b0d29fa466c48a82597713fd7a3c03e324855349a76660fa26dfec4922c51ea0f51cb6412102a42cd220e6099d5d678066b81813ae4fdd14b290479962ae5c0af1448113bcb4feffffff030000000000000000066a047370616d05b20100000000001976a9144fe822f96257d66eeb498394ce9a1fbca1323ba088ac10270000000000001976a914b97b77f0a2e0b3161354de723a76d58a974c601988ac00000000",
             expected_txid="a3e880d56fbfa03d250f0d28281f86388b8c7f38bf4d2c19f0033632907262df",
         )
-        expected_txinput = transaction.TxInput(
+        expected_txinput = transaction.TxInput.from_scriptsig(
             transaction.OutPoint(
                 UInt256.from_hex(
                     "2a08696342e59fdbfd1cc2b158bd8efdd02debd4554d577e8a8ffba90dad6723"
                 ),
                 0,
             ),
+            4294967294,
             bytes.fromhex(
                 "41761c8b702e06fcb8656cb205454f22efff174e3ae9552c1ee83f7d64e3b0d29fa466c48a82597713fd7a3c03e324855349a76660fa26dfec4922c51ea0f51cb6412102a42cd220e6099d5d678066b81813ae4fdd14b290479962ae5c0af1448113bcb4"
             ),
-            4294967294,
         )
         self.assertEqual(
             tx.txinputs(),
@@ -770,13 +770,13 @@ class TestTransaction(unittest.TestCase):
         self.assertEqual(tx._sign_schnorr, False)
 
         expected_txins = [
-            transaction.TxInput(
+            transaction.TxInput.from_scriptsig(
                 transaction.OutPoint(
                     UInt256.from_hex(inp["prevout_hash"]),
                     inp["prevout_n"],
                 ),
-                bytes.fromhex(inp["scriptSig"]),
                 inp.get("sequence", transaction.DEFAULT_TXIN_SEQUENCE),
+                bytes.fromhex(inp["scriptSig"]),
             )
             for inp in [input0, input1, input2]
         ]
@@ -840,7 +840,7 @@ class TestTxInput(unittest.TestCase):
             # MAX_SCRIPT_SIZE
             (10000, 10043),
         ):
-            txin = transaction.TxInput(outpoint, b"\x00" * script_size, sequence)
+            txin = transaction.TxInput(outpoint, sequence, b"\x00" * script_size)
             self.assertEqual(txin.size(), expected_output_size)
 
     def _deser_test(

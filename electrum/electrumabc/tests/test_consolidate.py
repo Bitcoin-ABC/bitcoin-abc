@@ -4,6 +4,7 @@ from unittest.mock import Mock
 
 from .. import consolidate
 from ..address import Address
+from ..transaction import COMPRESSED_PUBKEY_NBYTES
 
 TEST_ADDRESS: Address = Address.from_string(
     "ecash:qr3l6uufcuwm9prgpa6cfxnez87fzstxesp7ugp0ez"
@@ -31,6 +32,10 @@ class TestConsolidateCoinSelection(unittest.TestCase):
                         "is_frozen_coin": is_frozen_coin,
                         "slp_token": slp,
                         "type": "p2pkh",
+                        "signatures": [None],
+                        "pubkeys": ["03" * COMPRESSED_PUBKEY_NBYTES],
+                        "x_pubkeys": ["03" * COMPRESSED_PUBKEY_NBYTES],
+                        "num_sig": 1,
                     }
                     i += 1  # noqa: SIM113
                 tx_history.append(("a" * 64, 1))

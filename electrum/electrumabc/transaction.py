@@ -162,25 +162,31 @@ class TxInput:
     def __init__(
         self,
         outpoint: OutPoint,
-        scriptsig: bytes,
         sequence: int,
+        scriptsig: Optional[bytes] = None,
+        script_type: Optional[ScriptType] = None,
+        num_required_sigs: Optional[int] = None,
+        pubkeys: Optional[List[bytes]] = None,
+        x_pubkeys: Optional[List[bytes]] = None,
+        signatures: Optional[List[bytes]] = None,
+        address: Optional[Address] = None,
         value: Optional[int] = None,
     ):
-        self.outpoint = outpoint
-        self.scriptsig = scriptsig
-        self.sequence = sequence
+        self.outpoint: OutPoint = outpoint
+        self.sequence: int = sequence
+
+        self.scriptsig: Optional[bytes] = scriptsig
+
+        # Properties that are lazily computed on demand if scriptsig is provided
+        self._num_required_sigs: Optional[int] = num_required_sigs
+        self._x_pubkeys: Optional[List[bytes]] = x_pubkeys
+        self._pubkeys: Optional[List[bytes]] = pubkeys
+        self._type: Optional[ScriptType] = script_type
+        self._signatures: Optional[List[Optional[bytes]]] = signatures
+        self._address: Optional[Address] = address
 
         # Must be defined for partially signed inputs (needed for signing)
         self._value: Optional[int] = value
-
-        # Properties that are lazily computed on demand
-        self._num_required_sigs: Optional[int] = None
-        self._x_pubkeys: Optional[List[bytes]] = None
-        self._pubkeys: Optional[List[bytes]] = None
-        self._type: Optional[ScriptType] = None
-        # Some signatures can be None for partially signed transactions
-        self._signatures: List[Optional[bytes]] = []
-        self._address: Optional[Address] = None
 
     def set_value(self, value: int):
         self._value = value
@@ -188,8 +194,19 @@ class TxInput:
     def get_value(self) -> Optional[int]:
         return self._value
 
-    def size(self):
-        scriptsig_nbytes = len(self.scriptsig)
+    def size(self, sign_schnorr: bool = False) -> int:
+        if self.scriptsig is not None and self.is_complete():
+            scriptsig_nbytes = len(self.scriptsig)
+        else:
+            # TODO: move Transaction.input_script to TxInput to remove the need for
+            #       the to_coin_dict conversion
+            dummy_scriptsig = bytes.fromhex(
+                Transaction.input_script(
+                    self.to_coin_dict(), estimate_size=True, sign_schnorr=sign_schnorr
+                )
+            )
+            scriptsig_nbytes = len(dummy_scriptsig)
+
         assert scriptsig_nbytes <= MAX_SCRIPT_SIZE
         return (
             OUTPOINT_NBYTES
@@ -218,7 +235,9 @@ class TxInput:
         return self.outpoint.txid.is_null()
 
     def parse_scriptsig(self):
+        assert self.scriptsig is not None
         self._num_required_sigs = 0
+        self._signatures = []
         if self.is_coinbase():
             self._type = ScriptType.coinbase
             return
@@ -351,8 +370,10 @@ class TxInput:
             "sequence": self.sequence,
             # default address, updated later for p2pkh and p2sh
             "address": UnknownAddress(),
-            "scriptSig": bh2u(self.scriptsig),
         }
+        if self.scriptsig is not None:
+            d["scriptSig"] = self.scriptsig.hex()
+
         if self.is_coinbase():
             d["type"] = "coinbase"
             return d
@@ -362,21 +383,23 @@ class TxInput:
         d["signatures"] = {}
         d["address"] = None
         d["num_sig"] = 0
-        try:
-            self.parse_scriptsig()
-        except Exception as e:
-            print_error(
-                f"{__name__}: Failed to parse tx input {self.outpoint}, probably a "
-                f"p2sh (non multisig?). Exception was: {repr(e)}"
-            )
-            # that whole heuristic codepath is fragile; just ignore it when it dies.
-            # failing tx examples:
-            # 1c671eb25a20aaff28b2fa4254003c201155b54c73ac7cf9c309d835deed85ee
-            # 08e1026eaf044127d7103415570afd564dfac3131d7a5e4b645f591cd349bb2c
-            # override these once more just to make sure
-            d["address"] = UnknownAddress()
-            d["type"] = "unknown"
-            return d
+
+        if self.scriptsig is not None:
+            try:
+                self.parse_scriptsig()
+            except Exception as e:
+                print_error(
+                    f"{__name__}: Failed to parse tx input {self.outpoint}, probably a "
+                    f"p2sh (non multisig?). Exception was: {repr(e)}"
+                )
+                # that whole heuristic codepath is fragile; just ignore it when it dies.
+                # failing tx examples:
+                # 1c671eb25a20aaff28b2fa4254003c201155b54c73ac7cf9c309d835deed85ee
+                # 08e1026eaf044127d7103415570afd564dfac3131d7a5e4b645f591cd349bb2c
+                # override these once more just to make sure
+                d["address"] = UnknownAddress()
+                d["type"] = "unknown"
+                return d
 
         d["type"] = self.type.name
         d["signatures"] = [
@@ -394,11 +417,83 @@ class TxInput:
         if self.type == ScriptType.p2sh:
             d["redeemScript"] = self.scriptsig
         if not self.is_complete():
-            del d["scriptSig"]
+            d.pop("scriptSig", None)
             # The amount is needed for signing, in case of partially signed inputs.
             d["value"] = self.get_value()
             assert d["value"] is not None
         return d
+
+    @staticmethod
+    def from_scriptsig(
+        outpoint: OutPoint, sequence: int, scriptsig: bytes, value: Optional[int] = None
+    ) -> TxInput:
+        """TxInput factory for deserialized transactions (complete transactions or
+        partially signed transactions previously serialized)."""
+        assert scriptsig is not None
+        return TxInput(outpoint, sequence, scriptsig, value=value)
+
+    @staticmethod
+    def from_keys(
+        outpoint: OutPoint,
+        sequence: int,
+        script_type: ScriptType,
+        num_required_sigs: int,
+        pubkeys: List[bytes],
+        x_pubkeys: List[bytes],
+        signatures: List[Optional[bytes]],
+        address: Optional[Address] = None,
+        value: Optional[int] = None,
+    ) -> TxInput:
+        """Txinput factory for defining an input by its components"""
+        assert all(
+            arg is not None
+            for arg in (
+                script_type,
+                num_required_sigs,
+                pubkeys,
+                x_pubkeys,
+                signatures,
+                address,
+            )
+        )
+        return TxInput(
+            outpoint,
+            sequence,
+            script_type=script_type,
+            num_required_sigs=num_required_sigs,
+            pubkeys=pubkeys,
+            x_pubkeys=x_pubkeys,
+            signatures=signatures,
+            address=address,
+            value=value,
+        )
+
+    @staticmethod
+    def from_coin_dict(coin: Dict) -> TxInput:
+        outpoint = OutPoint(UInt256.from_hex(coin["prevout_hash"]), coin["prevout_n"])
+        sequence = coin.get("sequence", DEFAULT_TXIN_SEQUENCE)
+        scriptsig = coin.get("scriptSig")
+        value = coin.get("value")
+
+        if scriptsig is not None:
+            return TxInput.from_scriptsig(
+                outpoint, sequence, bytes.fromhex(scriptsig), value=value
+            )
+
+        signatures = [
+            (None if sig is None else bytes.fromhex(sig)) for sig in coin["signatures"]
+        ]
+        return TxInput.from_keys(
+            outpoint,
+            sequence,
+            script_type=ScriptType[coin["type"]],
+            num_required_sigs=coin.get("num_sig", 0),
+            pubkeys=[bytes.fromhex(pubk) for pubk in coin["pubkeys"]],
+            x_pubkeys=[bytes.fromhex(xpubk) for xpubk in coin["x_pubkeys"]],
+            signatures=signatures,
+            address=coin.get("address"),
+            value=value,
+        )
 
 
 class BCDataStream(object):
@@ -737,8 +832,8 @@ def parse_input(vds) -> TxInput:
     scriptSig = bytes(vds.read_bytes(vds.read_compact_size()))
     sequence = vds.read_uint32()
 
-    txin = TxInput(
-        OutPoint(UInt256.from_hex(prevout_hash), prevout_n), scriptSig, sequence
+    txin = TxInput.from_scriptsig(
+        OutPoint(UInt256.from_hex(prevout_hash), prevout_n), sequence, scriptSig
     )
     if not txin.is_complete():
         # This is a partially signed transaction in the custom Electrum format, the
@@ -832,18 +927,8 @@ class Transaction:
             self.deserialize()
         return self._inputs
 
-    def txinputs(self, estimate_size: bool = False) -> List[TxInput]:
-        return [
-            TxInput(
-                OutPoint(UInt256.from_hex(inp["prevout_hash"]), inp["prevout_n"]),
-                bytes.fromhex(
-                    self.input_script(inp, estimate_size, self._sign_schnorr)
-                ),
-                inp.get("sequence", DEFAULT_TXIN_SEQUENCE),
-                inp.get("value", None),
-            )
-            for inp in self.inputs()
-        ]
+    def txinputs(self) -> List[TxInput]:
+        return [TxInput.from_coin_dict(inp) for inp in self._inputs]
 
     def outputs(self) -> List[TxOutput]:
         if self._outputs is None:
@@ -1355,13 +1440,13 @@ class Transaction:
             return len(self.raw) // 2
 
         # VERSION (4 bytes) + INPUTS + OUTPUTS + locktime (4 bytes)
-        inputs = self.txinputs(estimate_size=True)
+        inputs = self.txinputs()
         outputs = self.outputs()
         return (
             4
             + 4
             + compact_size_nbytes(len(inputs))
-            + sum(inp.size() for inp in inputs)
+            + sum(inp.size(self._sign_schnorr) for inp in inputs)
             + compact_size_nbytes(len(outputs))
             + sum(outp.size() for outp in outputs)
         )

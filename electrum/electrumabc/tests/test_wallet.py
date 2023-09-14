@@ -187,14 +187,14 @@ class MockNetwork:
                     "tx_hash": "11" * 32,
                     "tx_pos": 0,
                     "value": values[0],
-                    "scriptSig": "deadbeef",
+                    "scriptSig": "04deadbeef",
                     "sequence": 0,
                 },
                 {
                     "tx_hash": "12" * 32,
                     "tx_pos": 8,
                     "value": values[1],
-                    "scriptSig": "f001",
+                    "scriptSig": "02f001",
                     "sequence": 0,
                 },
             ]
@@ -204,7 +204,7 @@ class MockNetwork:
                     "tx_hash": "13" * 32,
                     "tx_pos": 1,
                     "value": values[2],
-                    "scriptSig": "c0ffee",
+                    "scriptSig": "03c0ffee",
                     "sequence": 0,
                 },
             ]
@@ -231,12 +231,14 @@ class TestSweep(unittest.TestCase):
         tx = sweep([WIF1], network, config, recipient, fee)
 
         expected_txinputs = [
-            TxInput(
-                OutPoint(UInt256.from_hex("11" * 32), 0), bytes.fromhex("deadbeef"), 0
+            TxInput.from_scriptsig(
+                OutPoint(UInt256.from_hex("11" * 32), 0), 0, bytes.fromhex("04deadbeef")
             ),
-            TxInput(OutPoint(UInt256.from_hex("12" * 32), 8), bytes.fromhex("f001"), 0),
-            TxInput(
-                OutPoint(UInt256.from_hex("13" * 32), 1), bytes.fromhex("c0ffee"), 0
+            TxInput.from_scriptsig(
+                OutPoint(UInt256.from_hex("12" * 32), 8), 0, bytes.fromhex("02f001")
+            ),
+            TxInput.from_scriptsig(
+                OutPoint(UInt256.from_hex("13" * 32), 1), 0, bytes.fromhex("03c0ffee")
             ),
         ]
         # the order of inputs in the transaction is randomized

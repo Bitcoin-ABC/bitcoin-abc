@@ -239,6 +239,7 @@ class ScriptType(IntEnum):
     p2sh = 5
     p2pk = -1
     coinbase = -2
+    unknown = -3
 
 
 class InvalidPadding(Exception):
