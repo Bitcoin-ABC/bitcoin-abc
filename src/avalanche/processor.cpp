@@ -839,9 +839,8 @@ bool Processor::computeStakingReward(const CBlockIndex *pindex) {
     StakingReward _stakingRewards;
     _stakingRewards.blockheight = pindex->nHeight;
 
-    if (WITH_LOCK(cs_peerManager, return peerManager->selectPayoutScriptPubKey(
-                                      pindex, _stakingRewards.winner,
-                                      _stakingRewards.acceptableWinners))) {
+    if (WITH_LOCK(cs_peerManager, return peerManager->selectStakingRewardWinner(
+                                      pindex, _stakingRewards.winner))) {
         LOCK(cs_stakingRewards);
         return stakingRewards
             .emplace(pindex->GetBlockHash(), std::move(_stakingRewards))
@@ -872,19 +871,6 @@ bool Processor::getStakingRewardWinner(const BlockHash &prevBlockHash,
     }
 
     winner = it->second.winner;
-    return true;
-}
-
-bool Processor::getStakingRewardAcceptableWinners(
-    const BlockHash &prevBlockHash,
-    std::vector<CScript> &acceptableWinners) const {
-    LOCK(cs_stakingRewards);
-    auto it = stakingRewards.find(prevBlockHash);
-    if (it == stakingRewards.end()) {
-        return false;
-    }
-
-    acceptableWinners = it->second.acceptableWinners;
     return true;
 }
 

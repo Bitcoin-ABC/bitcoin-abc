@@ -5,35 +5,21 @@
 """Test the resolution of staking rewards via avalanche."""
 import random
 import time
-from decimal import Decimal
 
-from test_framework.address import P2SH_OP_TRUE, SCRIPT_UNSPENDABLE, hash160
-from test_framework.avatools import (
-    AvaP2PInterface,
-    avalanche_proof_from_hex,
-    can_find_inv_in_poll,
-    create_coinbase_stakes,
-    get_ava_p2p_interface,
-)
+from test_framework.address import P2SH_OP_TRUE, SCRIPT_UNSPENDABLE
+from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.blocktools import create_block, create_coinbase
-from test_framework.cashaddr import PUBKEY_TYPE, encode_full
-from test_framework.key import ECKey
 from test_framework.messages import (
-    NODE_AVALANCHE,
-    NODE_NETWORK,
     XEC,
-    AvalancheDelegation,
     AvalancheProofVoteResponse,
     AvalancheVote,
     AvalancheVoteError,
     CTxOut,
-    FromHex,
     ToHex,
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal, uint256_hex
-from test_framework.wallet_util import bytes_to_wif
 
 STAKING_REWARDS_COINBASE_RATIO_PERCENT = 25
 QUORUM_NODE_COUNT = 16
@@ -51,7 +37,6 @@ class ABCStakingRewardsPolicyTest(BitcoinTestFramework):
                 "-avacooldown=0",
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
-                "-stakingrewardmaxslackpercent=25",
                 "-whitelist=noban@127.0.0.1",
             ],
         ]
@@ -225,133 +210,6 @@ class ABCStakingRewardsPolicyTest(BitcoinTestFramework):
 
         # Check tip height for sanity
         assert_equal(node.getblockcount(), QUORUM_NODE_COUNT + len(cases) + 2)
-
-        self.log.info("Checking staking rewards acceptable winners")
-
-        self.restart_node(0)
-
-        blockhashes = self.generate(node, 2 * QUORUM_NODE_COUNT)
-        stakes = create_coinbase_stakes(
-            node, blockhashes, node.get_deterministic_priv_key().key
-        )
-        assert all(s["amount"] == Decimal("50000000") for s in stakes)
-
-        now = int(time.time())
-        node.setmocktime(now)
-
-        def avapeer_connected(nodeid, proofid_hex):
-            node_list = []
-            try:
-                node_list = node.getavalanchepeerinfo(proofid_hex)[0]["node_list"]
-            except BaseException:
-                pass
-
-            return nodeid in node_list
-
-        # Build a quorum with a different address for each peer
-        quorum = []
-        for i in range(QUORUM_NODE_COUNT):
-            n = AvaP2PInterface()
-
-            privkey = ECKey()
-            privkey.generate()
-
-            pubkey = privkey.get_pubkey()
-            address = encode_full("ecregtest", PUBKEY_TYPE, hash160(pubkey.get_bytes()))
-
-            # Let the first proof have has much stake as all the others
-            # together. This ensure we are capping the slack to the value we set
-            # on the command line.
-            proof_hex = node.buildavalancheproof(
-                0,
-                0,
-                bytes_to_wif(privkey.get_bytes()),
-                stakes[:QUORUM_NODE_COUNT]
-                if i == 0
-                else [stakes[i + QUORUM_NODE_COUNT]],
-                payoutAddress=address,
-            )
-            assert node.verifyavalancheproof(proof_hex)
-
-            n.master_privkey = privkey
-            n.proof = avalanche_proof_from_hex(proof_hex)
-
-            n.delegated_privkey = ECKey()
-            n.delegated_privkey.generate()
-
-            delegation_hex = node.delegateavalancheproof(
-                uint256_hex(n.proof.limited_proofid),
-                bytes_to_wif(n.master_privkey.get_bytes()),
-                n.delegated_privkey.get_pubkey().get_bytes().hex(),
-            )
-            assert node.verifyavalanchedelegation(delegation_hex)
-
-            n.delegation = FromHex(AvalancheDelegation(), delegation_hex)
-
-            proofid_hex = uint256_hex(n.proof.proofid)
-            node.add_p2p_connection(n, services=NODE_NETWORK | NODE_AVALANCHE)
-            n.nodeid = node.getpeerinfo()[-1]["id"]
-
-            self.wait_until(lambda: avapeer_connected(n.nodeid, proofid_hex))
-
-            quorum.append(n)
-
-        for peer in quorum:
-            wait_for_finalized_proof(peer.proof.proofid)
-
-        quorum.sort(key=lambda peer: peer.proof.proofid)
-
-        start = 0
-        slots = []
-        for peer in quorum:
-            staked_amount = (
-                100
-                * int(
-                    node.decodeavalancheproof(peer.proof.serialize().hex())[
-                        "staked_amount"
-                    ]
-                )
-                // 1_000_000
-            )
-            slots.append((start, start + staked_amount))
-            start += staked_amount
-
-        assert node.getavalancheinfo()["ready_to_poll"] is True
-
-        now += 60 * 60
-        node.setmocktime(now)
-
-        def get_acceptable_winners(blockhash):
-            lsb = int(blockhash, 16) & 0xFFFFFFFFFFFFFFFF
-            slot = lsb * (slots[-1][1] - 1) // (2**64 - 1)
-            slot_min = slot - int(0.125 * slots[-1][1])
-            slot_max = slot + int(0.125 * slots[-1][1])
-            return [
-                quorum[i]
-                for i, s in enumerate(slots)
-                if s[0] <= slot_max and s[1] >= slot_min
-            ]
-
-        for _ in range(10):
-            tip = self.generate(node, 1)[-1]
-            acceptable_winners = get_acceptable_winners(tip)
-            assert len(acceptable_winners) >= 1
-
-            for peer in quorum:
-                cb = create_cb(peer.proof.payout_script, staking_rewards_amount)
-                block = create_block(
-                    int(tip, 16), cb, node.getblock(tip)["time"] + 1, version=4
-                )
-                block.solve()
-                node.submitblock(ToHex(block))
-
-                newtip = node.getbestblockhash()
-                if peer not in acceptable_winners:
-                    assert_equal(newtip, tip)
-                else:
-                    assert_equal(newtip, block.hash)
-                    node.parkblock(newtip)
-                    self.wait_until(lambda: node.getbestblockhash() == tip)
 
 
 if __name__ == "__main__":

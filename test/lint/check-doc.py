@@ -54,7 +54,6 @@ SET_FALSE_POSITIVE_UNDOCUMENTED = {
     "-forcecompactdb",
     "-maxaddrtosend",
     "-parkdeepreorg",
-    "-stakingrewardmaxslackpercent",
     # Removed arguments that now just print a helpful error message
     "-zapwallettxes",
     "-replayprotectionactivationtime",

@@ -29,20 +29,15 @@ bool StakingRewardsPolicy::operator()(BlockPolicyValidationState &state) {
 
     const BlockHash blockhash = m_blockIndex.GetBlockHash();
 
-    std::vector<CScript> acceptableWinners;
+    CScript winner;
     if (!g_avalanche || !isAvalancheEnabled(gArgs) ||
         !gArgs.GetBoolArg("-avalanchestakingrewards",
                           AVALANCHE_DEFAULT_STAKING_REWARDS) ||
-        !g_avalanche->getStakingRewardAcceptableWinners(
-            m_blockIndex.pprev->GetBlockHash(), acceptableWinners)) {
+        !g_avalanche->getStakingRewardWinner(m_blockIndex.pprev->GetBlockHash(),
+                                             winner)) {
         LogPrint(BCLog::AVALANCHE,
                  "Staking rewards for block %s: not ready yet\n",
                  blockhash.ToString());
-        return true;
-    }
-
-    if (acceptableWinners.empty()) {
-        // Should never happen
         return true;
     }
 
@@ -53,8 +48,7 @@ bool StakingRewardsPolicy::operator()(BlockPolicyValidationState &state) {
             continue;
         }
 
-        if (std::find(acceptableWinners.begin(), acceptableWinners.end(),
-                      o.scriptPubKey) != acceptableWinners.end()) {
+        if (o.scriptPubKey == winner) {
             return true;
         }
     }

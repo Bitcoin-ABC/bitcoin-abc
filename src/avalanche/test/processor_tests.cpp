@@ -2235,17 +2235,12 @@ BOOST_AUTO_TEST_CASE(compute_staking_rewards) {
     BlockHash prevBlockHash{uint256::ZERO};
 
     CScript winner;
-    std::vector<CScript> acceptableWinners;
 
     BOOST_CHECK(!m_processor->getStakingRewardWinner(prevBlockHash, winner));
-    BOOST_CHECK(!m_processor->getStakingRewardAcceptableWinners(
-        prevBlockHash, acceptableWinners));
 
     // Null index
     BOOST_CHECK(!m_processor->computeStakingReward(nullptr));
     BOOST_CHECK(!m_processor->getStakingRewardWinner(prevBlockHash, winner));
-    BOOST_CHECK(!m_processor->getStakingRewardAcceptableWinners(
-        prevBlockHash, acceptableWinners));
 
     CBlockIndex prevBlock;
     prevBlock.phashBlock = &prevBlockHash;
@@ -2255,8 +2250,6 @@ BOOST_AUTO_TEST_CASE(compute_staking_rewards) {
     // No quorum
     BOOST_CHECK(!m_processor->computeStakingReward(&prevBlock));
     BOOST_CHECK(!m_processor->getStakingRewardWinner(prevBlockHash, winner));
-    BOOST_CHECK(!m_processor->getStakingRewardAcceptableWinners(
-        prevBlockHash, acceptableWinners));
 
     setArg("-avaminquorumstake", "0");
     setArg("-avaminquorumconnectedstakeratio", "0");
@@ -2283,43 +2276,23 @@ BOOST_AUTO_TEST_CASE(compute_staking_rewards) {
         proofs.emplace_back(std::move(proof));
     }
 
-    // Sort the proofs by proofid
-    std::sort(proofs.begin(), proofs.end(),
-              [](const ProofRef &lhs, const ProofRef &rhs) {
-                  return lhs->getId() < rhs->getId();
-              });
-
     BOOST_CHECK(m_processor->isQuorumEstablished());
 
     // Proofs are too recent so we still have no winner
     BOOST_CHECK(!m_processor->computeStakingReward(&prevBlock));
     BOOST_CHECK(!m_processor->getStakingRewardWinner(prevBlockHash, winner));
-    BOOST_CHECK(!m_processor->getStakingRewardAcceptableWinners(
-        prevBlockHash, acceptableWinners));
 
-    auto checkWinners =
-        [&](const ProofRef &expectedWinner,
-            const std::vector<ProofRef> &expectedAcceptableWinners) {
-            BOOST_CHECK_EQUAL(FormatScript(winner),
-                              FormatScript(expectedWinner->getPayoutScript()));
-            BOOST_CHECK_EQUAL(acceptableWinners.size(),
-                              expectedAcceptableWinners.size());
-            for (const ProofRef &expectedProof : expectedAcceptableWinners) {
-                const std::string expectedScriptStr =
-                    FormatScript(expectedProof->getPayoutScript());
+    // Make sure we picked a payout script from one of our proofs
+    auto winnerExists = [&](const CScript &expectedWinner) {
+        const std::string winnerString = FormatScript(expectedWinner);
 
-                bool found = false;
-                for (CScript &acceptableScript : acceptableWinners) {
-                    if (expectedScriptStr == FormatScript(acceptableScript)) {
-                        found = true;
-                        break;
-                    }
-                }
-                BOOST_CHECK_MESSAGE(
-                    found,
-                    "The acceptable winners does not match the expected list");
+        for (const ProofRef &proof : proofs) {
+            if (winnerString == FormatScript(proof->getPayoutScript())) {
+                return true;
             }
-        };
+        }
+        return false;
+    };
 
     // Elapse some time
     now += 1h;
@@ -2329,16 +2302,12 @@ BOOST_AUTO_TEST_CASE(compute_staking_rewards) {
     // Now we successfully inserted a winner in our map
     BOOST_CHECK(m_processor->computeStakingReward(&prevBlock));
     BOOST_CHECK(m_processor->getStakingRewardWinner(prevBlockHash, winner));
-    BOOST_CHECK(m_processor->getStakingRewardAcceptableWinners(
-        prevBlockHash, acceptableWinners));
-    checkWinners(proofs[0], {proofs[0]});
+    BOOST_CHECK(winnerExists(winner));
 
     // Subsequent calls are a no-op
     BOOST_CHECK(m_processor->computeStakingReward(&prevBlock));
     BOOST_CHECK(m_processor->getStakingRewardWinner(prevBlockHash, winner));
-    BOOST_CHECK(m_processor->getStakingRewardAcceptableWinners(
-        prevBlockHash, acceptableWinners));
-    checkWinners(proofs[0], {proofs[0]});
+    BOOST_CHECK(winnerExists(winner));
 
     CBlockIndex prevBlockHigh = prevBlock;
     BlockHash prevBlockHashHigh =
@@ -2347,48 +2316,34 @@ BOOST_AUTO_TEST_CASE(compute_staking_rewards) {
     prevBlockHigh.nHeight = 101;
     BOOST_CHECK(m_processor->computeStakingReward(&prevBlockHigh));
     BOOST_CHECK(m_processor->getStakingRewardWinner(prevBlockHashHigh, winner));
-    BOOST_CHECK(m_processor->getStakingRewardAcceptableWinners(
-        prevBlockHashHigh, acceptableWinners));
-    checkWinners(proofs[9], {proofs[9]});
+    BOOST_CHECK(winnerExists(winner));
 
-    // No impact on previous winners so far
+    // No impact on previous winner so far
     BOOST_CHECK(m_processor->getStakingRewardWinner(prevBlockHash, winner));
-    BOOST_CHECK(m_processor->getStakingRewardAcceptableWinners(
-        prevBlockHash, acceptableWinners));
-    checkWinners(proofs[0], {proofs[0]});
+    BOOST_CHECK(winnerExists(winner));
 
     // Cleanup to height 101
     m_processor->cleanupStakingRewards(101);
 
     // Now the previous winner has been cleared
     BOOST_CHECK(!m_processor->getStakingRewardWinner(prevBlockHash, winner));
-    BOOST_CHECK(!m_processor->getStakingRewardAcceptableWinners(
-        prevBlockHash, acceptableWinners));
 
     // But the last one remain
     BOOST_CHECK(m_processor->getStakingRewardWinner(prevBlockHashHigh, winner));
-    BOOST_CHECK(m_processor->getStakingRewardAcceptableWinners(
-        prevBlockHashHigh, acceptableWinners));
-    checkWinners(proofs[9], {proofs[9]});
+    BOOST_CHECK(winnerExists(winner));
 
     // We can add it again
     BOOST_CHECK(m_processor->computeStakingReward(&prevBlock));
     BOOST_CHECK(m_processor->getStakingRewardWinner(prevBlockHash, winner));
-    BOOST_CHECK(m_processor->getStakingRewardAcceptableWinners(
-        prevBlockHash, acceptableWinners));
-    checkWinners(proofs[0], {proofs[0]});
+    BOOST_CHECK(winnerExists(winner));
 
     // Cleanup to higher height
     m_processor->cleanupStakingRewards(200);
 
     // No winner anymore
     BOOST_CHECK(!m_processor->getStakingRewardWinner(prevBlockHash, winner));
-    BOOST_CHECK(!m_processor->getStakingRewardAcceptableWinners(
-        prevBlockHash, acceptableWinners));
     BOOST_CHECK(
         !m_processor->getStakingRewardWinner(prevBlockHashHigh, winner));
-    BOOST_CHECK(!m_processor->getStakingRewardAcceptableWinners(
-        prevBlockHashHigh, acceptableWinners));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
