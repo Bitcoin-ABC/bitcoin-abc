@@ -2064,7 +2064,7 @@ BOOST_AUTO_TEST_CASE(vote_map_comparator) {
 
         // The next batch of items is the block indexes ordered by work
         // (descending)
-        arith_uint256 lastWork = -1;
+        arith_uint256 lastWork = ~arith_uint256(0);
         for (size_t i = 0; i < numberElementsEachType; i++) {
             BOOST_CHECK(std::holds_alternative<const CBlockIndex *>(it->first));
 
