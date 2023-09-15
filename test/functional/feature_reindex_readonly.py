@@ -26,6 +26,7 @@ class BlockstoreReindexTest(BitcoinTestFramework):
         self.generateblock(
             self.nodes[0], output=f"raw({opreturn}{nulldata})", transactions=[]
         )
+        block_count = self.nodes[0].getblockcount()
         self.stop_node(0)
 
         assert (self.nodes[0].chain_path / "blocks" / "blk00000.dat").exists()
@@ -79,17 +80,12 @@ class BlockstoreReindexTest(BitcoinTestFramework):
                 undo_immutable_command = []
 
         if undo_immutable_command:
-            self.log.info(
+            self.log.debug(
                 "Attempt to restart and reindex the node with the unwritable block file"
             )
-            with self.nodes[0].assert_debug_log(
-                expected_msgs=["FlushStateToDisk", "failed to open file"],
-                unexpected_msgs=[],
-            ):
-                self.nodes[0].assert_start_raises_init_error(
-                    extra_args=["-reindex", "-fastprune"],
-                    expected_msg="Error: A fatal internal error occurred, see debug.log for details",
-                )
+            with self.nodes[0].wait_for_debug_log(b"Reindexing finished"):
+                self.start_node(0, extra_args=["-reindex", "-fastprune"])
+            assert block_count == self.nodes[0].getblockcount()
             subprocess.check_call(undo_immutable_command + [filename])
 
         filename.chmod(0o777)
