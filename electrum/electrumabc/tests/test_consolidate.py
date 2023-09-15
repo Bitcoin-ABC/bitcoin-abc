@@ -36,6 +36,7 @@ class TestConsolidateCoinSelection(unittest.TestCase):
                 tx_history.append(("a" * 64, 1))
 
         self.mock_wallet = Mock()
+        self.mock_wallet.is_schnorr_enabled.return_value = False
         self.mock_wallet.get_addr_utxo.return_value = coins
         self.mock_wallet.get_address_history.return_value = tx_history
         self.mock_wallet.get_address_history.return_value = tx_history
@@ -190,7 +191,15 @@ class TestConsolidateCoinSelection(unittest.TestCase):
             self.assertLessEqual(coin["height"], 700_005)
         self.assertEqual(len(consolidator._coins), 2)
 
-    def test_get_unsigned_transactions(self):
+    def test_get_unsigned_transactions_schnorr(self):
+        self._test_get_unsigned_transactions(sign_schnorr=True)
+
+    def test_get_unsigned_transactions_ecdsa(self):
+        self._test_get_unsigned_transactions(sign_schnorr=False)
+
+    def _test_get_unsigned_transactions(self, sign_schnorr: bool):
+        self.mock_wallet.is_schnorr_enabled.return_value = sign_schnorr
+
         n_coins = 8
         min_value = 1000
         max_value = 1007
@@ -213,8 +222,15 @@ class TestConsolidateCoinSelection(unittest.TestCase):
             for tx in txs:
                 self.assertLess(len(tx.serialize(estimate_size=True)) // 2, max_tx_size)
 
-            # tx size is roughly 148 * n_in + 34 * n_out + 10
-            expected_max_n_inputs_for_size = math.floor((max_tx_size - 44) / 148)
+            # txid(32) + prevout_n(4) + compact_size (1) + scriptsig + sequence (4)
+            # with scriptsig: compact_size(1) + pubkey(33) + compact_size(1) + sig
+            # with sig 65 (schnorr) or ~72 (ecdsa)
+            input_approx_size = 148 if not sign_schnorr else 141
+            # tx size is: input_size * n_in + 34 * n_out + 10
+            # with n_out = 1 for consolidation transactions
+            expected_max_n_inputs_for_size = math.floor(
+                (max_tx_size - 44) / input_approx_size
+            )
             self.assertEqual(
                 len(txs), math.ceil(n_coins / expected_max_n_inputs_for_size)
             )

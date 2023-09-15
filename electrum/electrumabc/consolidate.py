@@ -82,6 +82,8 @@ class AddressConsolidator:
             )
         ]
 
+        self.sign_schnorr = wallet_instance.is_schnorr_enabled()
+
         # Add more metadata to coins
         address_history = wallet_instance.get_address_history(address)
         received = wallet_instance.get_address_unspent(address, address_history)
@@ -91,12 +93,6 @@ class AddressConsolidator:
     def get_unsigned_transactions(self) -> List[Transaction]:
         """
         Build as many raw transactions as needed to consolidate the coins.
-
-        :param output_address: Make all transactions send the total amount to this
-            address.
-        :param max_tx_size: Maximum tx size in bytes. This is what limits the
-            number of inputs per transaction.
-        :return:
         """
         return list(self.iter_transactions())
 
@@ -112,7 +108,7 @@ class AddressConsolidator:
         """
         tx_size = 0
         amount = 0
-        tx = Transaction(None)
+        tx = Transaction(None, sign_schnorr=self.sign_schnorr)
         tx.set_inputs([])
         while tx_size < self.max_tx_size and coin_index < len(self._coins):
             tx_size = self.try_adding_another_coin_to_transaction(
@@ -134,7 +130,7 @@ class AddressConsolidator:
         """Add coin to tx.inputs() if the resulting tx size is less than max_tx_size.
         Return the resulting tx_size (no matter if the coin was actually added or not).
         """
-        dummy_tx = Transaction(None)
+        dummy_tx = Transaction(None, sign_schnorr=self.sign_schnorr)
         dummy_tx.set_inputs(tx.inputs() + [coin])
         dummy_tx.set_outputs([(TYPE_ADDRESS, self.output_address, next_amount)])
         tx_size = len(dummy_tx.serialize(estimate_size=True)) // 2
