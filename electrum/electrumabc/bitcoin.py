@@ -486,14 +486,16 @@ def i2o_ECPublicKey(pubkey, compressed=False):
     # compressed keys: <sign> <x> where <sign> is 0x02 if y is even and 0x03 if y is odd
     if compressed:
         if pubkey.point.y() & 1:
-            key = b"\x03" + pubkey.point.x().to_bytes(32, "big")
+            # explicitly convert point coordinates to int, because ecdsa
+            # returns mpz instead of int if gmpY is installed
+            key = b"\x03" + int(pubkey.point.x()).to_bytes(32, "big")
         else:
-            key = b"\x02" + pubkey.point.x().to_bytes(32, "big")
+            key = b"\x02" + int(pubkey.point.x()).to_bytes(32, "big")
     else:
         key = (
             b"\x04"
-            + pubkey.point.x().to_bytes(32, "big")
-            + pubkey.point.y().to_bytes(32, "big")
+            + int(pubkey.point.x()).to_bytes(32, "big")
+            + int(pubkey.point.y()).to_bytes(32, "big")
         )
 
     return key
@@ -849,8 +851,8 @@ def negative_point(P):
 
 def point_to_ser(P, comp=True) -> bytes:
     if comp:
-        return (2 + (P.y() & 1)).to_bytes(1, "big") + P.x().to_bytes(32, "big")
-    return b"\x04" + P.x().to_bytes(32, "big") + P.y().to_bytes(32, "big")
+        return int(2 + (P.y() & 1)).to_bytes(1, "big") + int(P.x()).to_bytes(32, "big")
+    return b"\x04" + int(P.x()).to_bytes(32, "big") + int(P.y()).to_bytes(32, "big")
 
 
 def ser_to_point(Aser):
