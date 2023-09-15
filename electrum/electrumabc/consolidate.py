@@ -29,7 +29,7 @@ from typing import Iterator, List, Optional, Tuple
 from . import wallet
 from .address import Address
 from .bitcoin import TYPE_ADDRESS
-from .transaction import Transaction
+from .transaction import Transaction, TxOutput
 
 MAX_STANDARD_TX_SIZE: int = 100_000
 """Maximum size for transactions that nodes are willing to relay/mine.
@@ -132,11 +132,17 @@ class AddressConsolidator:
         """
         dummy_tx = Transaction(None, sign_schnorr=self.sign_schnorr)
         dummy_tx.set_inputs(tx.inputs() + [coin])
-        dummy_tx.set_outputs([(TYPE_ADDRESS, self.output_address, next_amount)])
-        tx_size = len(dummy_tx.serialize(estimate_size=True)) // 2
+        dummy_tx.set_outputs([TxOutput(TYPE_ADDRESS, self.output_address, next_amount)])
+        tx_size = dummy_tx.estimated_size()
         if tx_size < self.max_tx_size:
             tx.add_inputs([coin])
             tx.set_outputs(
-                [(TYPE_ADDRESS, self.output_address, next_amount - tx_size * FEERATE)]
+                [
+                    TxOutput(
+                        TYPE_ADDRESS,
+                        self.output_address,
+                        next_amount - tx_size * FEERATE,
+                    )
+                ]
             )
         return tx_size

@@ -220,7 +220,7 @@ class TestConsolidateCoinSelection(unittest.TestCase):
             self.assertEqual(n_coins, len(consolidator._coins))
             txs = consolidator.get_unsigned_transactions()
             for tx in txs:
-                self.assertLess(len(tx.serialize(estimate_size=True)) // 2, max_tx_size)
+                self.assertLess(tx.estimated_size(), max_tx_size)
 
             # txid(32) + prevout_n(4) + compact_size (1) + scriptsig + sequence (4)
             # with scriptsig: compact_size(1) + pubkey(33) + compact_size(1) + sig
@@ -241,7 +241,7 @@ class TestConsolidateCoinSelection(unittest.TestCase):
             total_fee = 0
             total_size = 0
             for tx in txs:
-                tx_size = len(tx.serialize(estimate_size=True)) // 2
+                tx_size = tx.estimated_size()
                 self.assertEqual(tx.get_fee(), tx_size * FEERATE)
                 total_fee += tx.get_fee()
                 total_input_value += tx.input_value()
