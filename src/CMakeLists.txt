@@ -302,6 +302,7 @@ if(ENABLE_GLIBC_BACK_COMPAT)
 	# Wrap some glibc functions with ours
 	add_linker_flags(-Wl,--wrap=exp)
 	add_linker_flags(-Wl,--wrap=log)
+	add_linker_flags(-Wl,--wrap=log2)
 	add_linker_flags(-Wl,--wrap=pow)
 
 	if(NOT HAVE_LARGE_FILE_SUPPORT)
