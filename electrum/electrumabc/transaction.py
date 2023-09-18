@@ -258,7 +258,7 @@ class TxInput:
         # For already-complete transactions, scriptSig will be set and we prefer
         # to use it verbatim in order to get an exact reproduction (including
         # malleated push opcodes, etc.).
-        if self.scriptsig is not None:
+        if self.scriptsig is not None and self.is_complete():
             return self.scriptsig
 
         # For partially-signed inputs, or freshly signed transactions, the
@@ -278,6 +278,10 @@ class TxInput:
             script += bitcoin.push_script_bytes(pubkeys[0])
         elif self.type == ScriptType.unknown:
             raise RuntimeError("Cannot serialize unknown input with missing scriptSig")
+
+        if self.is_complete():
+            # cache the result
+            self.scriptsig = script
         return script
 
     def size(self, sign_schnorr: bool = False) -> int:
@@ -296,16 +300,16 @@ class TxInput:
     def __eq__(self, other: TxInput):
         return (
             self.outpoint == other.outpoint
-            and self.scriptsig == other.scriptsig
+            and self.get_or_build_scriptsig() == other.get_or_build_scriptsig()
             and self.sequence == other.sequence
         )
 
     def __hash__(self):
-        return hash((self.outpoint, self.scriptsig, self.sequence))
+        return hash((self.outpoint, self.get_or_build_scriptsig(), self.sequence))
 
     def __str__(self):
         return (
-            f"TxInput(outpoint={self.outpoint}, scriptsig={self.scriptsig.hex()}, "
+            f"TxInput(outpoint={self.outpoint}, scriptsig={self.get_or_build_scriptsig().hex()}, "
             f"sequence={self.sequence})"
         )
 
