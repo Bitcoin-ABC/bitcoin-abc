@@ -225,15 +225,7 @@ class TestTransaction(unittest.TestCase):
             expected["outputs"][0]["address"],
             expected["outputs"][0]["value"],
         )
-        expected_txinput = transaction.TxInput.from_scriptsig(
-            transaction.OutPoint(
-                UInt256.from_hex(expected["inputs"][0]["prevout_hash"]),
-                expected["inputs"][0]["prevout_n"],
-            ),
-            expected["inputs"][0]["sequence"],
-            bytes.fromhex(transaction.Transaction.input_script(expected["inputs"][0])),
-            value=expected["inputs"][0]["value"],
-        )
+        expected_txinput = transaction.TxInput.from_coin_dict(expected["inputs"][0])
         self.assertEqual(
             transaction.deserialize(blob),
             (

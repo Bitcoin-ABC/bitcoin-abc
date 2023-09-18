@@ -29,7 +29,7 @@ from typing import List
 
 from .bitcoin import CASH, TYPE_ADDRESS, sha256
 from .printerror import PrintError
-from .transaction import DUST_THRESHOLD, Transaction, TxOutput
+from .transaction import DUST_THRESHOLD, Transaction, TxInput, TxOutput
 from .util import NotEnoughFunds
 
 
@@ -96,8 +96,7 @@ class CoinChooserBase(PrintError):
 
         def make_Bucket(desc, coins):
             size = sum(
-                Transaction.estimated_input_size(coin, sign_schnorr=sign_schnorr)
-                for coin in coins
+                TxInput.from_coin_dict(coin).size(sign_schnorr) for coin in coins
             )
             value = sum(coin["value"] for coin in coins)
             min_height = min(coin["height"] for coin in coins)

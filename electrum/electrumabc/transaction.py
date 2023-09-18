@@ -140,7 +140,7 @@ class OutPoint(SerializableObject):
         """vout index (uint32)"""
 
     def serialize(self) -> bytes:
-        return self.txid.serialize() + struct.pack("<I", self.n)
+        return self.txid.serialize() + self.n.to_bytes(4, "little")
 
     @classmethod
     def deserialize(cls, stream: BytesIO) -> OutPoint:
@@ -598,6 +598,20 @@ class TxInput:
         raise RuntimeError(
             f"Cannot get preimage script for input with type {self.type.name}"
         )
+
+    def serialize(self, estimate_size=False, sign_schnorr=False) -> bytes:
+        script = self.get_or_build_scriptsig(estimate_size, sign_schnorr)
+        s = (
+            self.outpoint.serialize()
+            + bytes.fromhex(bitcoin.var_int(len(script)))
+            + script
+            + self.sequence.to_bytes(4, "little")
+        )
+        # offline signing needs to know the input value
+        value = self.get_value()
+        if not self.is_complete() and value is not None and not estimate_size:
+            s += value.to_bytes(8, "little")
+        return s
 
 
 class BCDataStream(object):
@@ -1196,14 +1210,6 @@ class Transaction:
             return 0x21  # just guess it is compressed
 
     @classmethod
-    def input_script(self, txin, estimate_size=False, sign_schnorr=False):
-        return (
-            TxInput.from_coin_dict(txin)
-            .get_or_build_scriptsig(estimate_size, sign_schnorr)
-            .hex()
-        )
-
-    @classmethod
     def is_txin_complete(cls, txin):
         return TxInput.from_coin_dict(txin).is_complete()
 
@@ -1212,23 +1218,6 @@ class Transaction:
         return bh2u(bfh(txin["prevout_hash"])[::-1]) + bitcoin.int_to_le_hex(
             txin["prevout_n"], 4
         )
-
-    @classmethod
-    def serialize_input(self, txin, script, estimate_size=False):
-        # Prev hash and index
-        s = self.serialize_outpoint(txin)
-        # Script length, script, sequence
-        s += bitcoin.var_int(len(script) // 2)
-        s += script
-        s += bitcoin.int_to_le_hex(txin.get("sequence", DEFAULT_TXIN_SEQUENCE), 4)
-        # offline signing needs to know the input value
-        if (
-            "value" in txin
-            and txin.get("scriptSig") is None
-            and not (estimate_size or self.is_txin_complete(txin))
-        ):
-            s += bitcoin.int_to_le_hex(txin["value"], 8)
-        return s
 
     def shuffle_inputs(self):
         random.shuffle(self._inputs)
@@ -1360,15 +1349,10 @@ class Transaction:
     def serialize(self, estimate_size=False):
         nVersion = bitcoin.int_to_le_hex(self.version, 4)
         nLocktime = bitcoin.int_to_le_hex(self.locktime, 4)
-        inputs = self.inputs()
+        inputs = self.txinputs()
         outputs = self.outputs()
         txins = bitcoin.var_int(len(inputs)) + "".join(
-            self.serialize_input(
-                txin,
-                self.input_script(txin, estimate_size, self._sign_schnorr),
-                estimate_size,
-            )
-            for txin in inputs
+            txin.serialize(estimate_size, self._sign_schnorr).hex() for txin in inputs
         )
         txouts = bitcoin.var_int(len(outputs)) + "".join(
             self.serialize_output(o) for o in outputs
@@ -1470,12 +1454,6 @@ class Transaction:
             + compact_size_nbytes(len(outputs))
             + sum(outp.size() for outp in outputs)
         )
-
-    @classmethod
-    def estimated_input_size(self, txin, sign_schnorr=False):
-        """Return an estimated of serialized input size in bytes."""
-        script = self.input_script(txin, True, sign_schnorr=sign_schnorr)
-        return len(self.serialize_input(txin, script, True)) // 2  # ASCII hex string
 
     def signature_count(self):
         r = 0
