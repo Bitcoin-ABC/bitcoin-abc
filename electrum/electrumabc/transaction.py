@@ -157,6 +157,11 @@ class OutPoint(SerializableObject):
     def __str__(self):
         return f"{self.txid.to_string()}:{self.n})"
 
+    @staticmethod
+    def from_str(outpoint: str) -> OutPoint:
+        txid_hex, n_str = outpoint.split(":")
+        return OutPoint(UInt256.from_hex(txid_hex), int(n_str))
+
 
 class TxInput:
     def __init__(
@@ -527,9 +532,9 @@ class TxInput:
                 num_required_sigs,
                 x_pubkeys,
                 signatures,
-                address,
             )
         )
+        assert address is not None or script_type == ScriptType.p2pk
         return TxInput(
             outpoint,
             sequence,
@@ -570,6 +575,24 @@ class TxInput:
             pubkeys=pubkeys,
             address=coin.get("address"),
             value=value,
+        )
+
+    def get_preimage_script(self) -> bytes:
+        if self.type == ScriptType.p2pkh:
+            return self.address.to_script()
+        if self.type == ScriptType.p2sh:
+            pubkeys, x_pubkeys = self.get_sorted_pubkeys()
+            return multisig_script(pubkeys, self.num_required_sigs)
+        if self.type == ScriptType.p2pk:
+            if self.pubkeys is None:
+                raise RuntimeError(
+                    "Cannot get preimage for p2pk input without knowing the pubkey"
+                )
+            return bitcoin.push_script_bytes(self.pubkeys[0]) + bytes(
+                [OpCodes.OP_CHECKSIG]
+            )
+        raise RuntimeError(
+            f"Cannot get preimage script for input with type {self.type.name}"
         )
 
 
@@ -1181,23 +1204,6 @@ class Transaction:
         return TxInput.from_coin_dict(txin).is_complete()
 
     @classmethod
-    def get_preimage_script(self, txin):
-        _type = txin["type"]
-        if _type == "p2pkh":
-            return txin["address"].to_script().hex()
-        elif _type == "p2sh":
-            pubkeys, x_pubkeys = TxInput.from_coin_dict(txin).get_sorted_pubkeys()
-            return multisig_script(pubkeys, txin["num_sig"]).hex()
-        elif _type == "p2pk":
-            pubkey = txin["pubkeys"][0]
-            return bitcoin.public_key_to_p2pk_script(pubkey)
-        elif _type == "unknown":
-            # this approach enables most P2SH smart contracts (but take care if using OP_CODESEPARATOR)
-            return txin["scriptCode"]
-        else:
-            raise RuntimeError("Unknown txin type", _type)
-
-    @classmethod
     def serialize_outpoint(self, txin):
         return bh2u(bfh(txin["prevout_hash"])[::-1]) + bitcoin.int_to_le_hex(
             txin["prevout_n"], 4
@@ -1278,7 +1284,7 @@ class Transaction:
 
         Warning: If you modify non-signature parts of the transaction
         afterwards, this cache will be wrong!"""
-        inputs = self.inputs()
+        inputs = self.txinputs()
         outputs = self.outputs()
         meta = (len(inputs), len(outputs))
 
@@ -1296,17 +1302,10 @@ class Transaction:
                     del cmeta, res, self._cached_sighash_tup
 
         hashPrevouts = bitcoin.Hash(
-            bfh("".join(self.serialize_outpoint(txin) for txin in inputs))
+            b"".join(txin.outpoint.serialize() for txin in inputs)
         )
         hashSequence = bitcoin.Hash(
-            bfh(
-                "".join(
-                    bitcoin.int_to_le_hex(
-                        txin.get("sequence", DEFAULT_TXIN_SEQUENCE), 4
-                    )
-                    for txin in inputs
-                )
-            )
+            b"".join(txin.sequence.to_bytes(4, "little") for txin in inputs)
         )
         hashOutputs = bitcoin.Hash(
             bfh("".join(self.serialize_output(o) for o in outputs))
@@ -1327,17 +1326,14 @@ class Transaction:
         nHashType = bitcoin.int_to_le_hex(nHashType, 4)
         nLocktime = bitcoin.int_to_le_hex(self.locktime, 4)
 
-        txin = self.inputs()[i]
-        outpoint = self.serialize_outpoint(txin)
-        preimage_script = self.get_preimage_script(txin)
+        txin: TxInput = self.txinputs()[i]
+        outpoint = txin.outpoint.to_hex()
+        preimage_script = txin.get_preimage_script().hex()
         scriptCode = bitcoin.var_int(len(preimage_script) // 2) + preimage_script
-        try:
-            amount = bitcoin.int_to_le_hex(txin["value"], 8)
-        except KeyError:
+        if txin.get_value() is None:
             raise InputValueMissing
-        nSequence = bitcoin.int_to_le_hex(
-            txin.get("sequence", DEFAULT_TXIN_SEQUENCE), 4
-        )
+        amount = bitcoin.int_to_le_hex(txin.get_value(), 8)
+        nSequence = bitcoin.int_to_le_hex(txin.sequence, 4)
 
         hashPrevouts, hashSequence, hashOutputs = self.calc_common_sighash(
             use_cache=use_cache

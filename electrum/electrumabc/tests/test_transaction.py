@@ -3,7 +3,14 @@ from typing import Dict, List, Optional
 
 from .. import transaction
 from ..address import Address, PublicKey, Script, ScriptOutput, UnknownAddress
-from ..bitcoin import TYPE_ADDRESS, TYPE_PUBKEY, TYPE_SCRIPT, OpCodes, ScriptType
+from ..bitcoin import (
+    TYPE_ADDRESS,
+    TYPE_PUBKEY,
+    TYPE_SCRIPT,
+    OpCodes,
+    ScriptType,
+    push_script,
+)
 from ..keystore import xpubkey_to_address
 from ..uint256 import UInt256
 from ..util import bh2u
@@ -852,6 +859,7 @@ class TestTxInput(unittest.TestCase):
         expected_pubkeys: Optional[List[str]] = None,
         expected_address: Optional[Address] = None,
         expected_value: Optional[int] = None,
+        expected_preimage_script: Optional[str] = None,
     ):
         tx = transaction.Transaction(tx_hex)
         input_dict = tx.inputs()[0]
@@ -916,6 +924,18 @@ class TestTxInput(unittest.TestCase):
                 self.assertEqual(txinput.num_required_sigs, len(expected_sigs))
                 self.assertEqual(txinput.num_valid_sigs, len(expected_sigs))
 
+        # preimage script
+        if txinput.type in (ScriptType.coinbase, ScriptType.unknown, ScriptType.p2pk):
+            with self.assertRaises(RuntimeError):
+                txinput.get_preimage_script()
+        elif txinput.get_value() is None:
+            with self.assertRaises(transaction.InputValueMissing):
+                tx.serialize_preimage(0)
+        else:
+            self.assertEqual(
+                txinput.get_preimage_script().hex(), expected_preimage_script
+            )
+
     def test_multisig_p2sh_deserialization(self):
         self._deser_test(
             tx_hex="0100000001b98d550fa331da21038952d6931ffd3607c440ab2985b75477181b577de118b10b000000fdfd0000483045022100a26ea637a6d39aa27ea7a0065e9691d477e23ad5970b5937a9b06754140cf27102201b00ed050b5c468ee66f9ef1ff41dfb3bd64451469efaab1d4b56fbf92f9df48014730440220080421482a37cc9a98a8dc3bf9d6b828092ad1a1357e3be34d9c5bbdca59bb5f02206fa88a389c4bf31fa062977606801f3ea87e86636da2625776c8c228bcd59f8a014c69522102420e820f71d17989ed73c0ff2ec1c1926cf989ad6909610614ee90cf7db3ef8721036eae8acbae031fdcaf74a824f3894bf54881b42911bd3ad056ea59a33ffb3d312103752669b75eb4dc0cca209af77a59d2c761cbb47acc4cf4b316ded35080d92e8253aeffffffff0101ac3a00000000001976a914a6b6bcc85975bf6a01a0eabb2ac97d5a418223ad88ac00000000",
@@ -970,6 +990,17 @@ class TestTxInput(unittest.TestCase):
         )
 
     def test_2of2_multisig_incomplete(self):
+        expected_pubkeys = [
+            "02ce914e4644565afe48d5bc3b5ef304c7fcf41c0defd668f45196edbb1411f07f",
+            "03dec2a5937425f5657083ef25022f66b6924e21519ddac5cbbc5c9212a04428da",
+        ]
+        expected_preimage_script = (
+            f"{OpCodes.OP_2:x}"
+            + push_script(expected_pubkeys[0])
+            + push_script(expected_pubkeys[1])
+            + f"{OpCodes.OP_2:x}{OpCodes.OP_CHECKMULTISIG:x}"
+        )
+
         self._deser_test(
             tx_hex="0200000001d9b830c4f60b839c512d00dfa08db658eae54ca849b81bca8798f250cb2e93c903000000fb0001ff483045022100fbc08cdbd62d7328496735d9cc66f1a7e978da1ea3de54f8a8344d0928606c8002205ec8c3adbe502e40e72a593de14248ba19b8098ed591803accd47338a73f8427414cad524c53ff0488b21e03f918d62980000000d14a70b732b0badca35b38671d321ddce735bfc9b1ab823140b288e308cf9007020fb77d2e3dab47533c29e7280725a20427c27a37545a1daa330e5d7146f66a39000006004c53ff0488b21e036ae03b288000000074514157090ae16af9dff0cb13666d75b59e4ac734099309de6c8dc0108c2c250303b19c01f4ab103e723ac060c3ab5a5de5b1773b77b63f286ebd2b88eee791d40000060052aefeffffff248a01000000000001f68801000000000017a9149ee12d650f43157a0a5c3b615d061bb5290b28248700000000",
             expected_type=ScriptType.p2sh,
@@ -978,17 +1009,27 @@ class TestTxInput(unittest.TestCase):
                 "3045022100fbc08cdbd62d7328496735d9cc66f1a7e978da1ea3de54f8a8344d0928606c8002205ec8c3adbe502e40e72a593de14248ba19b8098ed591803accd47338a73f842741",
             ],
             num_required_sigs=2,
-            expected_pubkeys=[
-                "02ce914e4644565afe48d5bc3b5ef304c7fcf41c0defd668f45196edbb1411f07f",
-                "03dec2a5937425f5657083ef25022f66b6924e21519ddac5cbbc5c9212a04428da",
-            ],
+            expected_pubkeys=expected_pubkeys,
             expected_address=Address.from_string(
                 "ecash:ppfhzqryfq5u9y3ccqw3j9qaa9rsyz746sar20zk99"
             ),
             expected_value=100_900,
+            expected_preimage_script=expected_preimage_script,
         )
 
     def test_2of3_multisig_incomplete(self):
+        expected_pubkeys = [
+            "0206a2c2c875b34b2d52b4055ab62f6fa048a4f5317269937fe2133fbe7916237a",
+            "0256c49b291e84eb49e6a0de7cd116c44d61ddfd531d2d4cc9194ef8ba2a01564c",
+            "029fe778a1477a830016f44a661e98f09a9bcc43133fb716597a3bdfbfb98708e3",
+        ]
+        expected_preimage_script = (
+            f"{OpCodes.OP_2:x}"
+            + push_script(expected_pubkeys[0])
+            + push_script(expected_pubkeys[1])
+            + push_script(expected_pubkeys[2])
+            + f"{OpCodes.OP_3:x}{OpCodes.OP_CHECKMULTISIG:x}"
+        )
         self._deser_test(
             tx_hex="0200000001f5315ddddb23ec54b2ba6a67155c81cdbd8a98bca0fa6ebfebaeb4af415fb0a600000000fd53010001ff01ff483045022100dffbcb3902d92650b75fb5528d1d6816f4e775f92e44d9eda606a0e197d7ffb402204e787b0bd06aa7640e79279fde55f2c98b4f82348491ddf7c5a6be8d21cfca86414d0201524c53ff0488b21e035a37440380000000a412cfa165936158fd7f75d8b615805aa92cefb4aa4e295832f9811f7c1ed0c10290cddf66380e9e6eece36340f41a87a07fbbf329ddb51c1f14a3130c3485998e00000e004c53ff0488b21e0250161d8f0000000035ebe2e8adb327d4cb6c79b57245b010a7c235b23d0d10569226aac40076fcdb02857cce864e8560924496ce4f74df94d483ddd02031e6dc2db55a75e88c2a2b5c00000e004c53ff0488b21e0351b32e0c80000000ca0cff29d8c48ae7993841a188998639ff1e7b9bcefb3f800e9ca4924b5b857d03b0a87930c29eb53f05a2b0e9df56674b5ec0e9109790bbf20c420e4ea1a8371500000e0053aefeffffffa1dc010000000000014edb01000000000017a91451d3c1ef675df7f432b2cf68270e5c4b30187db78700000000",
             expected_type=ScriptType.p2sh,
@@ -998,15 +1039,12 @@ class TestTxInput(unittest.TestCase):
                 "3045022100dffbcb3902d92650b75fb5528d1d6816f4e775f92e44d9eda606a0e197d7ffb402204e787b0bd06aa7640e79279fde55f2c98b4f82348491ddf7c5a6be8d21cfca8641",
             ],
             num_required_sigs=2,
-            expected_pubkeys=[
-                "0206a2c2c875b34b2d52b4055ab62f6fa048a4f5317269937fe2133fbe7916237a",
-                "0256c49b291e84eb49e6a0de7cd116c44d61ddfd531d2d4cc9194ef8ba2a01564c",
-                "029fe778a1477a830016f44a661e98f09a9bcc43133fb716597a3bdfbfb98708e3",
-            ],
+            expected_pubkeys=expected_pubkeys,
             expected_address=Address.from_string(
                 "ecash:pql2m9sh88h86lk8cvsf3ngvhcduyvmd0qx05dqrrw"
             ),
             expected_value=122_017,
+            expected_preimage_script=expected_preimage_script,
         )
 
     def test_from_coin_dict(self):
@@ -1034,6 +1072,29 @@ class TestTxInput(unittest.TestCase):
         self.assertEqual(
             txinput.pubkeys[0].hex(),
             "036fcbca5dcae003f020769f56260c7b36b0ea645ca8d80056d7a6bd2066a5b07d",
+        )
+        self.assertEqual(
+            txinput.get_preimage_script().hex(),
+            "76a914a2891b070ca8d2164a1015c6276eb3ba78b7593388ac",
+        )
+
+    def test_p2pk_preimage_script(self):
+        # we need only a valid pubkey, everything else can be mocked
+        pubkey = bytes.fromhex(
+            "036fcbca5dcae003f020769f56260c7b36b0ea645ca8d80056d7a6bd2066a5b07d"
+        )
+        txinput = transaction.TxInput.from_keys(
+            transaction.OutPoint.from_str("00" * 32 + ":0"),
+            sequence=0,
+            script_type=ScriptType.p2pk,
+            num_required_sigs=1,
+            x_pubkeys=[b""],
+            signatures=[b""],
+            pubkeys=[pubkey],
+        )
+        self.assertEqual(
+            txinput.get_preimage_script().hex(),
+            push_script(pubkey.hex()) + f"{OpCodes.OP_CHECKSIG:x}",
         )
 
 

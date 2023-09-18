@@ -567,12 +567,6 @@ def script_to_address(script: bytes) -> Address:
     return addr
 
 
-def public_key_to_p2pk_script(pubkey):
-    script = push_script(pubkey)
-    script += "ac"  # op_checksig
-    return script
-
-
 __b58chars = b"123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 assert len(__b58chars) == 58
 
