@@ -2318,6 +2318,7 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
             proof->getId(), avalanche::PeerManager::RejectionMode::INVALIDATE));
     }
     // No more winner
+    prevBlock.phashBlock = &prevHash;
     BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winner));
 
     {
