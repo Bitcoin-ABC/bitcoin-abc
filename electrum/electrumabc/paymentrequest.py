@@ -317,7 +317,7 @@ class PaymentRequest:
         paymnt.merchant_data = pay_det.merchant_data
         paymnt.transactions.append(bfh(raw_tx))
         ref_out = paymnt.refund_to.add()
-        ref_out.script = bfh(transaction.Transaction.pay_script(refund_addr))
+        ref_out.script = refund_addr.to_script()
         paymnt.memo = f"Paid using {PROJECT_NAME}"
         pm = paymnt.SerializeToString()
         payurl = urllib.parse.urlparse(pay_det.payment_url)
@@ -367,7 +367,6 @@ class PaymentRequest:
 
 def make_unsigned_request(req):
     from .address import Address
-    from .transaction import Transaction
 
     addr = req["address"]
     time = req.get("time", 0)
@@ -383,8 +382,7 @@ def make_unsigned_request(req):
     memo = req["memo"]
     if not isinstance(addr, Address):
         addr = Address.from_string(addr)
-    script = bfh(Transaction.pay_script(addr))
-    outputs = [(script, amount)]
+    outputs = [(addr.to_script(), amount)]
     pd = pb2.PaymentDetails()
     for script, amount in outputs:
         pd.outputs.add(amount=amount, script=script)

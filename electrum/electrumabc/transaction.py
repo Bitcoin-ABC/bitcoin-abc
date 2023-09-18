@@ -125,6 +125,13 @@ class TxOutput(NamedTuple):
         assert script_nbytes <= MAX_SCRIPT_SIZE
         return AMOUNT_NBYTES + compact_size_nbytes(script_nbytes) + script_nbytes
 
+    def serialize(self) -> bytes:
+        s = self.value.to_bytes(8, "little")
+        script = self.destination.to_script()
+        s += bytes.fromhex(bitcoin.var_int(len(script)))
+        s += script
+        return s
+
 
 class OutPoint(SerializableObject):
     """
@@ -1180,10 +1187,6 @@ class Transaction:
         return self
 
     @classmethod
-    def pay_script(self, output):
-        return output.to_script().hex()
-
-    @classmethod
     def estimate_pubkey_size_from_x_pubkey(cls, x_pubkey):
         try:
             if x_pubkey[0:2] in ["02", "03"]:  # compressed pubkey
@@ -1235,14 +1238,6 @@ class Transaction:
         if shuffle:
             random.shuffle(other_outputs)
         self._outputs = op_returns + other_outputs
-
-    def serialize_output(self, output):
-        output_type, addr, amount = output
-        s = bitcoin.int_to_le_hex(amount, 8)
-        script = self.pay_script(addr)
-        s += bitcoin.var_int(len(script) // 2)
-        s += script
-        return s
 
     @classmethod
     def nHashType(cls):
@@ -1300,9 +1295,7 @@ class Transaction:
         hashSequence = bitcoin.Hash(
             b"".join(txin.sequence.to_bytes(4, "little") for txin in inputs)
         )
-        hashOutputs = bitcoin.Hash(
-            bfh("".join(self.serialize_output(o) for o in outputs))
-        )
+        hashOutputs = bitcoin.Hash(b"".join(o.serialize() for o in outputs))
 
         res = hashPrevouts, hashSequence, hashOutputs
         # cach resulting value, along with some minimal metadata to defensively
@@ -1355,7 +1348,7 @@ class Transaction:
             txin.serialize(estimate_size, self._sign_schnorr).hex() for txin in inputs
         )
         txouts = bitcoin.var_int(len(outputs)) + "".join(
-            self.serialize_output(o) for o in outputs
+            o.serialize().hex() for o in outputs
         )
         return nVersion + txins + txouts + nLocktime
 

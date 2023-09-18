@@ -29,9 +29,7 @@ certificates.certificate.extend(map(lambda x: str(x.bytes), chain.x509List))
 with open(cert_file, "r") as f:
     rsakey = tlslite.utils.python_rsakey.Python_RSAKey.parsePEM(f.read())
 
-script = bytes.from_hex(Transaction.pay_script(address))
-
-pr_string = paymentrequest.make_payment_request(amount, script, memo, rsakey)
+pr_string = paymentrequest.make_payment_request(amount, address.to_script(), memo, rsakey)
 
 with open(out_file, "wb") as f:
     f.write(pr_string)

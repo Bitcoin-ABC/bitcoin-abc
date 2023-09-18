@@ -425,7 +425,7 @@ class SatochipKeyStore(HardwareKeyStore):
         client = self.get_client()
 
         # outputs
-        txOutputs = "".join(tx.serialize_output(o) for o in tx.outputs())
+        txOutputs = "".join(o.serialize().hex() for o in tx.outputs())
         hashOutputs = bh2u(Hash(bfh(txOutputs)))
         txOutputs = var_int(len(tx.outputs())) + txOutputs
         self.print_error("sign_transaction(): hashOutputs= ", hashOutputs)
