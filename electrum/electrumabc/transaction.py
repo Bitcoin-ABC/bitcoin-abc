@@ -371,7 +371,9 @@ class TxInput:
 
     @property
     def pubkeys(self) -> Optional[List[bytes]]:
-        if self._pubkeys is None and self._type not in (
+        if self._pubkeys is None and self._x_pubkeys is not None:
+            self._pubkeys = [xpubkey_to_pubkey(xpub) for xpub in self._x_pubkeys]
+        elif self._pubkeys is None and self._type not in (
             ScriptType.p2pk,
             ScriptType.coinbase,
         ):
@@ -511,9 +513,9 @@ class TxInput:
         sequence: int,
         script_type: ScriptType,
         num_required_sigs: int,
-        pubkeys: List[bytes],
         x_pubkeys: List[bytes],
         signatures: List[Optional[bytes]],
+        pubkeys: Optional[List[bytes]] = None,
         address: Optional[Address] = None,
         value: Optional[int] = None,
     ) -> TxInput:
@@ -523,7 +525,6 @@ class TxInput:
             for arg in (
                 script_type,
                 num_required_sigs,
-                pubkeys,
                 x_pubkeys,
                 signatures,
                 address,
@@ -556,14 +557,17 @@ class TxInput:
         signatures = [
             (None if sig is None else bytes.fromhex(sig)) for sig in coin["signatures"]
         ]
+        pubkeys = coin.get("pubkeys")
+        if pubkeys is not None:
+            pubkeys = [bytes.fromhex(pubk) for pubk in pubkeys]
         return TxInput.from_keys(
             outpoint,
             sequence,
             script_type=ScriptType[coin["type"]],
             num_required_sigs=coin.get("num_sig", 0),
-            pubkeys=[bytes.fromhex(pubk) for pubk in coin["pubkeys"]],
             x_pubkeys=[bytes.fromhex(xpubk) for xpubk in coin["x_pubkeys"]],
             signatures=signatures,
+            pubkeys=pubkeys,
             address=coin.get("address"),
             value=value,
         )

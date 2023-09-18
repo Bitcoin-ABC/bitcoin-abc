@@ -1009,6 +1009,33 @@ class TestTxInput(unittest.TestCase):
             expected_value=122_017,
         )
 
+    def test_from_coin_dict(self):
+        # This is a coin as stored in the wallet in a normal HD wallet.
+        # It comes with a xpubkey and derivation path
+        coin_no_pubkeys = {
+            "address": Address.from_string(
+                "ecash:qz3gjxc8pj5dy9j2zq2uvfmwkwa83d6exv8q2zkrd9"
+            ),
+            "value": 99397,
+            "prevout_n": 0,
+            "prevout_hash": "41750e7874c12499720f4a7657d7a8cc6c70deca79158ce2cae0c5fa6d2c6c63",
+            "height": 797342,
+            "coinbase": False,
+            "is_frozen_coin": False,
+            "slp_token": None,
+            "type": "p2pkh",
+            "x_pubkeys": [
+                "ff0488b21e037904c2de80000000fce5a835ed3608d74117a92e2ed78b75f490553d78cfc0e1a6b177ad5f58b64603d2205eecc6e448ad658673f132fb36f88e4f0542813ac4192962fa92fbde3c1300003e00"
+            ],
+            "signatures": [None],
+            "num_sig": 1,
+        }
+        txinput = transaction.TxInput.from_coin_dict(coin_no_pubkeys)
+        self.assertEqual(
+            txinput.pubkeys[0].hex(),
+            "036fcbca5dcae003f020769f56260c7b36b0ea645ca8d80056d7a6bd2066a5b07d",
+        )
+
 
 class TestScriptMatching(unittest.TestCase):
     ONE_SIGNATURE_PUSH = bytes([SCHNORRSIG_NBYTES]) + b"\x00" * SCHNORRSIG_NBYTES
