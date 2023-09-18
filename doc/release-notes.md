@@ -1,10 +1,7 @@
-# Bitcoin ABC 0.27.13 Release Notes
+# Bitcoin ABC 0.27.14 Release Notes
 
-Bitcoin ABC version 0.27.13 is now available from:
+Bitcoin ABC version 0.27.14 is now available from:
 
-  <https://download.bitcoinabc.org/0.27.13/>
+  <https://download.bitcoinabc.org/0.27.14/>
 
-This release includes the following features and fixes:
-  - The `fundrawtransaction`, `send` and `walletcreatefundedpsbt` RPCs now support an `include_unsafe` option
-    that when `true` allows using unconfirmed inputs received from other wallets to fund the transaction.
-    Note that the resulting transaction may become invalid if one of the unsafe inputs disappears.
+This is a maintenance release with no user-visible change.
