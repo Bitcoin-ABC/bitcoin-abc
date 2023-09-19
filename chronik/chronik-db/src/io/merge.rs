@@ -47,35 +47,65 @@ pub fn check_for_errors() -> Result<()> {
     Ok(())
 }
 
-pub(crate) fn catch_merge_errors(
-    f: impl Fn(&[u8], Option<&[u8]>, &MergeOperands) -> Result<Vec<u8>>
+pub(crate) fn catch_merge_errors<T>(
+    f_init: impl Fn(&[u8], Option<&[u8]>, &MergeOperands) -> Result<T>
         + Send
         + Sync
         + Clone
         + 'static,
+    f_apply: impl Fn(&[u8], &mut T, &[u8]) -> Result<()>
+        + Send
+        + Sync
+        + Clone
+        + 'static,
+    f_ser: impl Fn(&[u8], T) -> Result<Vec<u8>> + Send + Sync + Clone + 'static,
 ) -> impl Fn(&[u8], Option<&[u8]>, &MergeOperands) -> Option<Vec<u8>>
        + Send
        + Sync
        + Clone
        + 'static {
-    move |key, existing_value, operands| match f(key, existing_value, operands)
-    {
-        Ok(merged) => Some(merged),
-        Err(err) => {
-            log_chronik!("Error details: {:?}\n", err);
-            log!("MERGE ERROR: {}\n", err);
-            *MERGE_ERROR.lock().unwrap() = Some(err);
-            // Turn failed merge op into a no-op (or inserts empty string if no
-            // previous value)
-            Some(existing_value.unwrap_or(&[]).to_vec())
+    move |key, existing_value, operands| {
+        let fallback_value = || Some(existing_value.unwrap_or(&[]).to_vec());
+
+        let mut value = match f_init(key, existing_value, operands) {
+            Ok(value) => value,
+            Err(err) => {
+                handle_err(err);
+                return fallback_value();
+            }
+        };
+
+        let handle_ser = |value: T| match f_ser(key, value) {
+            Ok(ser) => Some(ser),
+            Err(err) => {
+                handle_err(err);
+                fallback_value()
+            }
+        };
+
+        for operand in operands {
+            if let Err(err) = f_apply(key, &mut value, operand) {
+                // Turn failed merge op into a no-op (returns the serialized
+                // existing value)
+                handle_err(err);
+                return handle_ser(value);
+            }
         }
+
+        handle_ser(value)
     }
+}
+
+fn handle_err(err: Report) {
+    log_chronik!("Error details: {:?}\n", err);
+    log!("MERGE ERROR: {}\n", err);
+    *MERGE_ERROR.lock().unwrap() = Some(err);
 }
 
 #[cfg(test)]
 mod tests {
     use abc_rust_error::Result;
-    use rocksdb::{ColumnFamilyDescriptor, WriteBatch};
+    use rocksdb::{ColumnFamilyDescriptor, MergeOperands, WriteBatch};
     use thiserror::Error;
 
     use crate::{
@@ -84,23 +114,42 @@ mod tests {
     };
 
     #[derive(Debug, Error, PartialEq, Eq)]
-    #[error("Test merge error")]
-    struct TestMergeError;
+    #[error("Test init merge error")]
+    struct TestInitMergeError;
 
-    fn partial_merge(
+    #[derive(Debug, Error, PartialEq, Eq)]
+    #[error("Test apply merge error")]
+    struct TestApplyMergeError;
+
+    #[derive(Debug, Error, PartialEq, Eq)]
+    #[error("Test ser merge error")]
+    struct TestSerMergeError;
+
+    fn init_merge(
         _key: &[u8],
-        _existing_value: Option<&[u8]>,
-        _operands: &rocksdb::MergeOperands,
-    ) -> Option<Vec<u8>> {
-        None
+        existing_value: Option<&[u8]>,
+        _: &MergeOperands,
+    ) -> Result<u32> {
+        match existing_value {
+            Some(existing_value) => Ok(u32::from_be_bytes(
+                existing_value.try_into().map_err(|_| TestInitMergeError)?,
+            )),
+            None => Ok(0),
+        }
     }
 
-    fn failing_merge(
-        _key: &[u8],
-        _existing_value: Option<&[u8]>,
-        _operands: &rocksdb::MergeOperands,
-    ) -> Result<Vec<u8>> {
-        Err(TestMergeError.into())
+    fn apply_merge(_key: &[u8], value: &mut u32, operand: &[u8]) -> Result<()> {
+        *value += u32::from_be_bytes(
+            operand.try_into().map_err(|_| TestApplyMergeError)?,
+        );
+        Ok(())
+    }
+
+    fn ser_merge(_key: &[u8], value: u32) -> Result<Vec<u8>> {
+        if value == 1337 {
+            return Err(TestSerMergeError.into());
+        }
+        Ok(value.to_be_bytes().to_vec())
     }
 
     #[test]
@@ -110,29 +159,82 @@ mod tests {
         let mut options = rocksdb::Options::default();
         options.set_merge_operator(
             "name",
-            catch_merge_errors(failing_merge),
-            partial_merge,
+            catch_merge_errors(init_merge, apply_merge, ser_merge),
+            |_, _, _| None,
         );
         let cfs = vec![ColumnFamilyDescriptor::new("test_cf", options)];
         let db = Db::open_with_cfs(tempdir.path(), cfs)?;
         let cf = db.cf("test_cf")?;
 
         let mut batch = WriteBatch::default();
-        batch.merge_cf(cf, b"key", b"value");
+        batch.put_cf(cf, b"bad_init", b"bad");
+        batch.merge_cf(cf, b"bad_init", 1234u32.to_be_bytes());
         db.write_batch(batch)?;
 
         // Error not thrown yet (merge op not called yet)
         check_for_errors()?;
 
-        // Merge op called: turned into no-op (inserts empty string)
-        assert_eq!(db.get(cf, b"key")?.as_deref(), Some(b"".as_ref()));
+        // Merge op called: turned into no-op (keeps "bad" value)
+        assert_eq!(db.get(cf, b"bad_init")?.as_deref(), Some(b"bad".as_ref()));
 
         // Error caught
         assert_eq!(
             check_for_errors()
                 .expect_err("Error not caught")
-                .downcast::<TestMergeError>()?,
-            TestMergeError,
+                .downcast::<TestInitMergeError>()?,
+            TestInitMergeError,
+        );
+
+        let mut batch = WriteBatch::default();
+        batch.merge_cf(cf, b"bad_apply", b"bad");
+        db.write_batch(batch)?;
+        check_for_errors()?;
+
+        // Merge op called: turned into no-op (insert default value)
+        assert_eq!(db.get(cf, b"bad_apply")?.as_deref(), Some([0; 4].as_ref()));
+
+        assert_eq!(
+            check_for_errors()
+                .expect_err("Error not caught")
+                .downcast::<TestApplyMergeError>()?,
+            TestApplyMergeError,
+        );
+
+        let mut batch = WriteBatch::default();
+        batch.merge_cf(cf, b"chain_apply", 1u32.to_be_bytes());
+        batch.merge_cf(cf, b"chain_apply", 2u32.to_be_bytes());
+        batch.merge_cf(cf, b"chain_apply", b"bad");
+        batch.merge_cf(cf, b"chain_apply", 4u32.to_be_bytes());
+        batch.merge_cf(cf, b"chain_apply", 8u32.to_be_bytes());
+        db.write_batch(batch)?;
+        check_for_errors()?;
+
+        // Merge op called: Only 1 and 2 merged, "bad" stops the apply chain
+        assert_eq!(
+            db.get(cf, b"chain_apply")?.as_deref(),
+            Some(3u32.to_be_bytes().as_ref()),
+        );
+
+        assert_eq!(
+            check_for_errors()
+                .expect_err("Error not caught")
+                .downcast::<TestApplyMergeError>()?,
+            TestApplyMergeError,
+        );
+
+        let mut batch = WriteBatch::default();
+        batch.merge_cf(cf, b"bad_ser", 1337u32.to_be_bytes());
+        db.write_batch(batch)?;
+        check_for_errors()?;
+
+        // Merge op called: Serialization failed, inserts empty string
+        assert_eq!(db.get(cf, b"bad_ser")?.as_deref(), Some([].as_ref()));
+
+        assert_eq!(
+            check_for_errors()
+                .expect_err("Error not caught")
+                .downcast::<TestSerMergeError>()?,
+            TestSerMergeError,
         );
 
         Ok(())

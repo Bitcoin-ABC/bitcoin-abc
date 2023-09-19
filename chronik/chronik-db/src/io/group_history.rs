@@ -136,7 +136,7 @@ fn partial_merge_concat_trim(
     None
 }
 
-fn full_merge_concat_trim(
+fn init_concat_trim(
     _key: &[u8],
     existing_value: Option<&[u8]>,
     operands: &rocksdb::MergeOperands,
@@ -147,19 +147,26 @@ fn full_merge_concat_trim(
             operands.iter().map(|operand| operand.len() - 1).sum(),
         );
     }
-    for operand in operands {
-        if operand[0] == CONCAT {
-            bytes.extend_from_slice(&operand[1..]);
-        } else if operand[0] == TRIM {
-            let trim_len =
-                NumTxs::from_be_bytes(operand[1..5].try_into().unwrap());
-            bytes.drain(bytes.len() - trim_len as usize..);
-        } else {
-            return Err(
-                UnknownOperandPrefix(operand[0], operand.to_vec()).into()
-            );
-        }
+    Ok(bytes)
+}
+
+fn apply_concat_trim(
+    _key: &[u8],
+    bytes: &mut Vec<u8>,
+    operand: &[u8],
+) -> Result<()> {
+    if operand[0] == CONCAT {
+        bytes.extend_from_slice(&operand[1..]);
+    } else if operand[0] == TRIM {
+        let trim_len = NumTxs::from_be_bytes(operand[1..5].try_into().unwrap());
+        bytes.drain(bytes.len() - trim_len as usize..);
+    } else {
+        return Err(UnknownOperandPrefix(operand[0], operand.to_vec()).into());
     }
+    Ok(())
+}
+
+fn ser_concat_trim(_key: &[u8], bytes: Vec<u8>) -> Result<Vec<u8>> {
     Ok(bytes)
 }
 
@@ -376,7 +383,11 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
         let merge_op_name = format!("{}::merge_op_concat", conf.cf_page_name);
         page_options.set_merge_operator(
             merge_op_name.as_str(),
-            catch_merge_errors(full_merge_concat_trim),
+            catch_merge_errors(
+                init_concat_trim,
+                apply_concat_trim,
+                ser_concat_trim,
+            ),
             partial_merge_concat_trim,
         );
         columns.push(rocksdb::ColumnFamilyDescriptor::new(
