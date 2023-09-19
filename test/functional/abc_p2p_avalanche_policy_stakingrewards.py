@@ -21,7 +21,7 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal, uint256_hex
 
-STAKING_REWARDS_COINBASE_RATIO_PERCENT = 25
+STAKING_REWARDS_COINBASE_RATIO_PERCENT = 10
 QUORUM_NODE_COUNT = 16
 
 

@@ -15,10 +15,8 @@
 
 /**
  * Percentage of the block reward to be sent to staking rewards.
- * FIXME This is a placeholder for now and the current ratio is for testing
- * purpose only.
  */
-static constexpr int STAKING_REWARD_RATIO = 25;
+static constexpr int STAKING_REWARD_RATIO = 10;
 
 bool StakingRewardsPolicy::operator()(BlockPolicyValidationState &state) {
     if (!m_blockIndex.pprev) {
