@@ -41,7 +41,7 @@ try:
     from electrumabc.i18n import _
     from electrumabc.keystore import HardwareKeyStore
     from electrumabc.printerror import print_error
-    from electrumabc.transaction import Transaction
+    from electrumabc.transaction import Transaction, TxInput
     from electrumabc.util import UserCancelled, to_string
 
     from ..hw_wallet import HardwareClientBase, HWPluginBase
@@ -796,7 +796,7 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
                     sig_s = int(signed["sig"][64:], 16)
                     sig = sigencode_der(sig_r, sig_s, generator_secp256k1.order())
                     txin["signatures"][ii] = to_hexstr(sig) + "41"
-                    tx._inputs[i] = txin
+                    tx.update_input(i, TxInput.from_coin_dict(txin))
         except UserCancelled:
             raise
         except Exception as e:

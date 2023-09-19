@@ -8,7 +8,7 @@ from io import StringIO
 from typing import Sequence, Tuple
 
 from ..address import Address
-from ..bitcoin import TYPE_ADDRESS, ScriptType
+from ..bitcoin import TYPE_ADDRESS, ScriptType, push_script
 from ..json_db import FINAL_SEED_VERSION
 from ..keystore import HardwareKeyStore
 from ..simple_config import SimpleConfig
@@ -170,8 +170,13 @@ ADDR1 = Address.from_string("ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme")
 P2PKH_SCRIPTHASH1 = "4ff699e4c5d1e90dfd03e4c6d3016c6758da16f257d7871c9b2a2b9171a60e88"
 P2PK_SCRIPTHASH1 = "b9984de1cafa27ed314350b06e12dbcf686a31f4fe739b426c85523290a39e22"
 
+MOCK_P2PKH_SCRIPTSIG = push_script(0x41 * "00") + push_script(PUBKEY1)
+MOCK_P2PK_SCRIPTSIG = push_script(PUBKEY1)
+
 
 class MockNetwork:
+    P2PKH_SCRIPTSIG = push_script("")
+
     def __init__(self, use_dust_values: bool = False):
         self._use_dust_values = use_dust_values
 
@@ -189,14 +194,14 @@ class MockNetwork:
                     "tx_hash": "11" * 32,
                     "tx_pos": 0,
                     "value": values[0],
-                    "scriptSig": "04deadbeef",
+                    "scriptSig": MOCK_P2PKH_SCRIPTSIG,
                     "sequence": 0,
                 },
                 {
                     "tx_hash": "12" * 32,
                     "tx_pos": 8,
                     "value": values[1],
-                    "scriptSig": "02f001",
+                    "scriptSig": MOCK_P2PKH_SCRIPTSIG,
                     "sequence": 0,
                 },
             ]
@@ -206,7 +211,7 @@ class MockNetwork:
                     "tx_hash": "13" * 32,
                     "tx_pos": 1,
                     "value": values[2],
-                    "scriptSig": "03c0ffee",
+                    "scriptSig": MOCK_P2PK_SCRIPTSIG,
                     "sequence": 0,
                 },
             ]
@@ -222,25 +227,31 @@ class TestSweep(unittest.TestCase):
         )
 
         inputs, keypairs = sweep_preparations([WIF1], network)
-        self.assertEqual(inputs[0]["type"], "p2pkh")
-        self.assertEqual(inputs[1]["type"], "p2pkh")
-        self.assertEqual(inputs[2]["type"], "p2pk")
+        self.assertEqual(inputs[0].type, ScriptType.p2pkh)
+        self.assertEqual(inputs[1].type, ScriptType.p2pkh)
+        self.assertEqual(inputs[2].type, ScriptType.p2pk)
 
         self.assertEqual(keypairs, {PUBKEY1: (PRIVKEY1, True)})
 
         fee = 2500
-        expected_value = sum(inp["value"] for inp in inputs) - fee
+        expected_value = sum(inp.get_value() for inp in inputs) - fee
         tx = sweep([WIF1], network, config, recipient, fee)
 
         expected_txinputs = [
             TxInput.from_scriptsig(
-                OutPoint(UInt256.from_hex("11" * 32), 0), 0, bytes.fromhex("04deadbeef")
+                OutPoint(UInt256.from_hex("11" * 32), 0),
+                0,
+                bytes.fromhex(MOCK_P2PKH_SCRIPTSIG),
             ),
             TxInput.from_scriptsig(
-                OutPoint(UInt256.from_hex("12" * 32), 8), 0, bytes.fromhex("02f001")
+                OutPoint(UInt256.from_hex("12" * 32), 8),
+                0,
+                bytes.fromhex(MOCK_P2PKH_SCRIPTSIG),
             ),
             TxInput.from_scriptsig(
-                OutPoint(UInt256.from_hex("13" * 32), 1), 0, bytes.fromhex("03c0ffee")
+                OutPoint(UInt256.from_hex("13" * 32), 1),
+                0,
+                bytes.fromhex(MOCK_P2PK_SCRIPTSIG),
             ),
         ]
         # the order of inputs in the transaction is randomized
@@ -309,9 +320,8 @@ class TestAddInputInfo(WalletTestCase):
             pubkeys=[dummy_pubkey],
             address=dummy_address,
         )
-        dummy_txin_dict = dummy_txin.to_coin_dict()
         tx = Transaction.from_io(
-            inputs=[dummy_txin_dict],
+            inputs=[dummy_txin],
             outputs=[TxOutput(TYPE_ADDRESS, dummy_address, amount)],
         )
 

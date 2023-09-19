@@ -47,7 +47,14 @@ from .paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNKNOWN, PR_
 from .plugins import run_hook
 from .printerror import print_error
 from .simple_config import SimpleConfig
-from .transaction import OPReturn, Transaction, TxOutput, multisig_script, tx_from_str
+from .transaction import (
+    OPReturn,
+    Transaction,
+    TxInput,
+    TxOutput,
+    multisig_script,
+    tx_from_str,
+)
 from .util import format_satoshis, to_bytes
 from .version import PACKAGE_VERSION
 from .wallet import create_new_wallet, restore_wallet_from_text
@@ -427,6 +434,8 @@ class Commands:
                 txin["x_pubkeys"] = [pubkey]
                 txin["signatures"] = [None]
                 txin["num_sig"] = 1
+
+        inputs = [TxInput.from_coin_dict(inp) for inp in inputs]
 
         outputs = [
             TxOutput(TYPE_ADDRESS, Address.from_string(x["address"]), int(x["value"]))

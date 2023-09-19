@@ -92,7 +92,13 @@ from .plugins import plugin_loaders, run_hook
 from .printerror import PrintError
 from .storage import STO_EV_PLAINTEXT, STO_EV_USER_PW, STO_EV_XPUB_PW, WalletStorage
 from .synchronizer import Synchronizer
-from .transaction import DUST_THRESHOLD, InputValueMissing, Transaction, TxOutput
+from .transaction import (
+    DUST_THRESHOLD,
+    InputValueMissing,
+    Transaction,
+    TxInput,
+    TxOutput,
+)
 from .util import (
     ExcessiveFee,
     InvalidPassword,
@@ -138,8 +144,10 @@ class AddressNotFoundError(Exception):
 
 
 def sweep_preparations(
-    privkeys, network, imax=100
-) -> Tuple[List[dict], Dict[str, Tuple[bytes, bool]]]:
+    privkeys,
+    network,
+    imax=100,
+) -> Tuple[List[TxInput], Dict[str, Tuple[bytes, bool]]]:
     """Returns (utxos, keypairs) for a list of WIF private keys, where utxos is a list
     of dictionaries, and keypairs is a {pubkey_hex: (privkey, is_compressed)} map."""
 
@@ -164,7 +172,7 @@ def sweep_preparations(
             item["x_pubkeys"] = [pubkey]
             item["signatures"] = [None]
             item["num_sig"] = 1
-            inputs.append(item)
+            inputs.append(TxInput.from_coin_dict(item))
 
     def find_utxos_for_privkey(txin_type: bitcoin.ScriptType, privkey, compressed):
         pubkey = bitcoin.public_key_from_private_key(privkey, compressed)
@@ -211,7 +219,7 @@ def sweep(
 ) -> Transaction:
     """Build a transaction sweeping all coins for a list of WIF keys."""
     inputs, keypairs = sweep_preparations(privkeys, network, imax)
-    total = sum(i.get("value") for i in inputs)
+    total = sum(i.get_value() for i in inputs)
     if fee is None:
         outputs = [TxOutput(bitcoin.TYPE_ADDRESS, recipient, total)]
         tx = Transaction.from_io(inputs, outputs, sign_schnorr=sign_schnorr)
@@ -2157,11 +2165,12 @@ class AbstractWallet(PrintError, SPVDelegate):
         else:
             sendable = sum(x["value"] for x in inputs)
             outputs[i_max] = outputs[i_max]._replace(value=0)
-            tx = Transaction.from_io(inputs, outputs, sign_schnorr=sign_schnorr)
+            txinputs = [TxInput.from_coin_dict(inp) for inp in inputs]
+            tx = Transaction.from_io(txinputs, outputs, sign_schnorr=sign_schnorr)
             fee = fee_estimator(tx.estimated_size())
             amount = max(0, sendable - tx.output_value() - fee)
             outputs[i_max] = outputs[i_max]._replace(value=amount)
-            tx = Transaction.from_io(inputs, outputs, sign_schnorr=sign_schnorr)
+            tx = Transaction.from_io(txinputs, outputs, sign_schnorr=sign_schnorr)
 
         # If user tries to send too big of a fee (more than 50 sat/byte), stop them from shooting themselves in the foot
         tx_in_bytes = tx.estimated_size()
@@ -2449,7 +2458,7 @@ class AbstractWallet(PrintError, SPVDelegate):
             item["address"], self.get_address_history(item["address"])
         )
         self.add_input_info(item, coins)
-        inputs = [item]
+        inputs = [TxInput.from_coin_dict(item)]
         outputs = [TxOutput(bitcoin.TYPE_ADDRESS, txo.destination, txo.value - fee)]
         locktime = 0
         if enable_current_block_locktime:
@@ -2501,16 +2510,15 @@ class AbstractWallet(PrintError, SPVDelegate):
 
     def add_input_values_to_tx(self, tx):
         """add input values to the tx, for signing"""
-        for txin in tx.inputs():
-            if "value" not in txin:
-                inputtx = self.get_input_tx(txin["prevout_hash"])
+        for txin in tx.txinputs():
+            if txin.get_value() is None:
+                inputtx = self.get_input_tx(txin.outpoint.txid.get_hex())
                 if inputtx is not None:
-                    if not tx.is_txin_complete(txin):
-                        out_zero, out_addr, out_val = inputtx.outputs()[
-                            txin["prevout_n"]
-                        ]
-                        txin["value"] = out_val
-                    txin["prev_tx"] = inputtx  # may be needed by hardware wallets
+                    if not txin.is_complete():
+                        out_zero, out_addr, out_val = inputtx.outputs()[txin.outpoint.n]
+                        txin.set_value(out_val)
+                    # may be needed by hardware wallets
+                    txin.set_prev_tx(inputtx)
 
     def add_hw_info(self, tx):
         # add previous tx for hw wallets, if needed and not already there
@@ -2518,9 +2526,9 @@ class AbstractWallet(PrintError, SPVDelegate):
             (isinstance(k, HardwareKeyStore) and k.can_sign(tx) and k.needs_prevtx())
             for k in self.get_keystores()
         ):
-            for txin in tx.inputs():
-                if "prev_tx" not in txin:
-                    txin["prev_tx"] = self.get_input_tx(txin["prevout_hash"])
+            for txin in tx.txinputs():
+                if txin.get_prev_tx() is None:
+                    txin.set_prev_tx(self.get_input_tx(txin.outpoint.txid.get_hex()))
         # add output info for hw wallets
         info = {}
         xpubs = self.get_master_public_keys()

@@ -3793,11 +3793,11 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                     vin["prevout_hash"] + ":" + str(vin["prevout_n"])
                     for vin in my_coins
                 ]
-                for i, txin in enumerate(tx.inputs()):
-                    outpoint = txin["prevout_hash"] + ":" + str(txin["prevout_n"])
+                for txin in tx.txinputs():
+                    outpoint = str(txin.outpoint)
                     if outpoint in my_outpoints:
                         my_index = my_outpoints.index(outpoint)
-                        tx._inputs[i]["value"] = my_coins[my_index]["value"]
+                        txin.set_value(my_coins[my_index]["value"])
             return tx
         except Exception:
             if util.is_verbose:
@@ -4648,10 +4648,10 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 else:
                     self.show_message(_("User cancelled"))
                     return
-            coins, keypairs = sweep_preparations(keys, self.network)
+            inputs, keypairs = sweep_preparations(keys, self.network)
             self.tx_external_keypairs = keypairs
             self.payto_e.setText(get_address_text())
-            self.spend_coins(coins)
+            self.spend_coins([inp.to_coin_dict() for inp in inputs])
             self.spend_max()
         except Exception as e:
             self.show_message(str(e))

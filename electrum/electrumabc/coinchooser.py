@@ -206,7 +206,9 @@ class CoinChooserBase(PrintError):
         buckets = self.bucketize_coins(coins, sign_schnorr=sign_schnorr)
         buckets = self.choose_buckets(buckets, sufficient_funds, self.penalty_func(tx))
 
-        tx.add_inputs([coin for b in buckets for coin in b.coins])
+        tx.add_inputs(
+            [TxInput.from_coin_dict(coin) for b in buckets for coin in b.coins]
+        )
         tx_size = base_size + sum(bucket.size for bucket in buckets)
 
         # This takes a count of change outputs and returns a tx fee;

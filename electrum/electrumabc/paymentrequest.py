@@ -966,7 +966,7 @@ class PaymentRequestBitPay20(PaymentRequest, PrintError):
         tx = Transaction(raw_tx)
         # def from_io(klass, inputs, outputs, locktime=0, sign_schnorr=False):
         unsigned_tx = Transaction.from_io(
-            tx.inputs(),
+            tx.txinputs(),
             tx.outputs(),
             locktime=tx.locktime,
             sign_schnorr=tx.is_schnorr_signed(0),

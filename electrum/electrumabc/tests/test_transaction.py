@@ -350,7 +350,7 @@ class TestTransaction(unittest.TestCase):
         )
 
         # cause it to lose the original push, and reserialize with minimal
-        del tx.inputs()[0]["scriptSig"]
+        tx.txinputs()[0].scriptsig = None
         self.assertEqual(
             tx.txid(),
             "e64808c1eb86e8cab68fcbd8b7f3b01f8cc8f39bd05722f1cf2d7cd9b35fb4e3",
@@ -763,7 +763,10 @@ class TestTransaction(unittest.TestCase):
         )
 
         tx = transaction.Transaction.from_io(
-            [input0, input1, input2],
+            [
+                transaction.TxInput.from_coin_dict(inp)
+                for inp in (input0, input1, input2)
+            ],
             [output0],
         )
 
@@ -773,15 +776,7 @@ class TestTransaction(unittest.TestCase):
         self.assertEqual(tx._sign_schnorr, False)
 
         expected_txins = [
-            transaction.TxInput.from_scriptsig(
-                transaction.OutPoint(
-                    UInt256.from_hex(inp["prevout_hash"]),
-                    inp["prevout_n"],
-                ),
-                inp.get("sequence", transaction.DEFAULT_TXIN_SEQUENCE),
-                bytes.fromhex(inp["scriptSig"]),
-            )
-            for inp in [input0, input1, input2]
+            transaction.TxInput.from_coin_dict(inp) for inp in (input0, input1, input2)
         ]
         self.assertEqual(set(tx.txinputs()), set(expected_txins))
 

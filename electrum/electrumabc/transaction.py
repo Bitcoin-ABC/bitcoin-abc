@@ -406,6 +406,10 @@ class TxInput:
             self.parse_scriptsig()
         return self._pubkeys
 
+    def update_pubkey(self, pubkey: bytes, index: int):
+        assert self._pubkeys is not None and len(self._pubkeys) > index
+        self._pubkeys[index] = pubkey
+
     @property
     def signatures(self) -> List[Optional[bytes]]:
         """List of signatures for this input.
@@ -420,6 +424,13 @@ class TxInput:
         if self._signatures is None and self._type != ScriptType.coinbase:
             self.parse_scriptsig()
         return self._signatures
+
+    def update_signature(self, sig: bytes, index: int):
+        assert self._signatures is not None and len(self._signatures) > index
+        self._signatures[index] = sig
+
+        # invalidate scriptsig
+        self.scriptsig = None
 
     @property
     def num_valid_sigs(self) -> int:
@@ -1035,7 +1046,7 @@ class Transaction:
             self.raw = raw["hex"]
         else:
             raise RuntimeError("cannot initialize transaction", raw)
-        self._inputs = None
+        self._inputs: Optional[List[TxInput]] = None
         self._outputs: Optional[List[TxOutput]] = None
         self.locktime = 0
         self.version = 2
@@ -1064,13 +1075,18 @@ class Transaction:
         self._inputs = None
         self.deserialize()
 
-    def inputs(self) -> List[dict]:
+    def inputs(self) -> List[Dict]:
+        """Return the list of inputs as a list of legacy coin dictionary.
+        This is deprecated and should not be used for new code, except for exporting
+        coins as JSON.
+        Changes made to returned coins will not affect this transaction's inputs.
+        """
+        return [txin.to_coin_dict() for txin in self.txinputs()]
+
+    def txinputs(self) -> List[TxInput]:
         if self._inputs is None:
             self.deserialize()
         return self._inputs
-
-    def txinputs(self) -> List[TxInput]:
-        return [TxInput.from_coin_dict(inp) for inp in self._inputs]
 
     def outputs(self) -> List[TxOutput]:
         if self._outputs is None:
@@ -1112,10 +1128,10 @@ class Transaction:
             return
         if not isinstance(signatures, (tuple, list)):
             raise Exception("API changed: update_signatures expects a list.")
-        if len(self.inputs()) != len(signatures):
+        if len(self.txinputs()) != len(signatures):
             raise Exception(
                 "expected {} signatures; got {}".format(
-                    len(self.inputs()), len(signatures)
+                    len(self.txinputs()), len(signatures)
                 )
             )
         for i, txin in enumerate(self.txinputs()):
@@ -1135,7 +1151,7 @@ class Transaction:
                 # see which pubkey matches this sig (in non-multisig only 1 pubkey, in multisig may be multiple pubkeys)
                 if self.verify_signature(pubkey, sig, pre_hash, reason):
                     print_error("adding sig", i, j, pubkey, sig_final)
-                    self._inputs[i]["signatures"][j] = sig_final.hex()
+                    self._inputs[i].update_signature(sig_final, j)
                     added = True
             if not added:
                 resn = ", ".join(reversed(reason)) if reason else ""
@@ -1160,10 +1176,10 @@ class Transaction:
             and self._inputs[input_idx]
         ):
             # Schnorr sigs are always 64 bytes. However the sig has a hash byte
-            # at the end, so that's 65. Plus we are hex encoded, so 65*2=130
+            # at the end, so that's 65.
             return any(
-                isinstance(sig, (str, bytes)) and len(sig) == 130
-                for sig in self._inputs[input_idx].get("signatures", [])
+                sig is not None and len(sig) == 65
+                for sig in self._inputs[input_idx].signatures
             )
         return False
 
@@ -1173,8 +1189,7 @@ class Transaction:
         if self._inputs is not None:
             return
         self.invalidate_common_sighash_cache()
-        self.version, txinputs, self._outputs, self.locktime = deserialize(self.raw)
-        self._inputs = [txin.to_coin_dict() for txin in txinputs]
+        self.version, self._inputs, self._outputs, self.locktime = deserialize(self.raw)
         assert all(
             isinstance(output[1], (PublicKey, Address, ScriptOutput))
             for output in self._outputs
@@ -1183,7 +1198,7 @@ class Transaction:
     @classmethod
     def from_io(
         klass,
-        inputs,
+        inputs: List[TxInput],
         outputs: List[TxOutput],
         locktime=0,
         sign_schnorr=False,
@@ -1193,6 +1208,7 @@ class Transaction:
             isinstance(output[1], (PublicKey, Address, ScriptOutput))
             for output in outputs
         )
+        assert all(isinstance(txin, TxInput) for txin in inputs)
         self = klass(None)
         self._inputs = inputs
         self._outputs = outputs.copy()
@@ -1394,13 +1410,20 @@ class Transaction:
     def _txid(raw_hex: str) -> str:
         return bh2u(bitcoin.Hash(bfh(raw_hex))[::-1])
 
-    def add_inputs(self, inputs):
+    def add_inputs(self, inputs: List[TxInput]):
+        assert all(isinstance(txin, TxInput) for txin in inputs)
         self._inputs.extend(inputs)
         self.raw = None
 
-    def set_inputs(self, inputs):
+    def set_inputs(self, inputs: List[TxInput]):
+        assert all(isinstance(txin, TxInput) for txin in inputs)
         self._inputs = inputs
         self.raw = None
+
+    def update_input(self, index: int, txin: TxInput):
+        assert isinstance(txin, TxInput)
+        assert index < len(self._inputs)
+        self._inputs[index] = txin
 
     def add_outputs(self, outputs):
         assert all(
@@ -1424,8 +1447,13 @@ class Transaction:
         possible input values).  Will raise InputValueMissing if input values
         are missing."""
         try:
-            return sum(x["value"] for x in (self.fetched_inputs() or self.inputs()))
-        except (KeyError, TypeError, ValueError) as e:
+            if self.fetched_inputs():
+                inputs = [TxInput.from_coin_dict(inp) for inp in self.fetched_inputs()]
+            else:
+                inputs = self.txinputs()
+            return sum(inp.get_value() for inp in inputs)
+        except TypeError as e:
+            # TypeError is raised if one or more values are None
             raise InputValueMissing from e
 
     def output_value(self):
@@ -1436,7 +1464,7 @@ class Transaction:
         satoshis (int). Can raise InputValueMissing on tx's where fee data is
         missing, so client code should catch that."""
         # first, check if coinbase; coinbase tx always has 0 fee
-        if self.inputs() and self._inputs[0].get("type") == "coinbase":
+        if self._inputs and self._inputs[0].type == ScriptType.coinbase:
             return 0
         # otherwise just sum up all values - may raise InputValueMissing
         return self.input_value() - self.output_value()
@@ -1467,12 +1495,11 @@ class Transaction:
     def signature_count(self):
         r = 0
         s = 0
-        for txin in self.inputs():
-            if txin["type"] == "coinbase":
+        for txin in self.txinputs():
+            if txin.type == ScriptType.coinbase:
                 continue
-            signatures = list(filter(None, txin.get("signatures", [])))
-            s += len(signatures)
-            r += txin.get("num_sig", -1)
+            s += txin.num_valid_sigs
+            r += txin.num_required_sigs
         return s, r
 
     def is_complete(self):
@@ -1552,22 +1579,22 @@ class Transaction:
         return sig
 
     def sign(self, keypairs, *, use_cache=False):
-        for i, txin in enumerate(self.inputs()):
-            pubkeys, x_pubkeys = self.get_sorted_pubkeys(txin)
+        for i, txin in enumerate(self.txinputs()):
+            pubkeys, x_pubkeys = txin.get_sorted_pubkeys()
             for j, (pubkey, x_pubkey) in enumerate(zip(pubkeys, x_pubkeys)):
-                if self.is_txin_complete(txin):
+                if txin.is_complete():
                     # txin is complete
                     break
+                pubkey = pubkey.hex()
+                x_pubkey = x_pubkey.hex()
                 if pubkey in keypairs:
                     _pubkey = pubkey
-                    kname = "pubkey"
                 elif x_pubkey in keypairs:
                     _pubkey = x_pubkey
-                    kname = "x_pubkey"
                 else:
                     continue
                 print_error(
-                    f"adding signature for input#{i} sig#{j}; {kname}:"
+                    f"adding signature for input#{i} sig#{j}; pubkey:"
                     f" {_pubkey} schnorr: {self._sign_schnorr}"
                 )
                 sec, compressed = keypairs.get(_pubkey)
@@ -1597,14 +1624,13 @@ class Transaction:
             )
             return None
         txin = self._inputs[i]
-        txin["signatures"][j] = bh2u(sig + bytes((nHashType & 0xFF,)))
-        txin["pubkeys"][j] = pubkey  # needed for fd keys
+        txin.update_signature(sig + bytes((nHashType & 0xFF,)), j)
+        txin.update_pubkey(bytes.fromhex(pubkey), j)  # needed for fd keys
         return txin
 
     def is_final(self):
         return not any(
-            x.get("sequence", DEFAULT_TXIN_SEQUENCE) < DEFAULT_TXIN_SEQUENCE
-            for x in self.inputs()
+            txin.sequence < DEFAULT_TXIN_SEQUENCE for txin in self.txinputs()
         )
 
     def as_dict(self):
@@ -1695,7 +1721,6 @@ class Transaction:
         import threading
         import time
         from collections import defaultdict
-        from copy import deepcopy
 
         t0 = time.time()
         t = None
@@ -1731,7 +1756,8 @@ class Transaction:
 
             while eph.get("_fetch") == t and len(inps) < len(self._inputs):
                 i = len(inps)
-                inp = deepcopy(self._inputs[i])
+                # FIXME: convert this mess to using TxInput
+                inp = self._inputs[i].to_coin_dict()
                 typ, prevout_hash, n, addr, value = (
                     inp.get("type"),
                     inp.get("prevout_hash"),
@@ -1995,12 +2021,13 @@ class Transaction:
 
         Note that some inputs may still lack key: 'value' if there was a network
         error in retrieving them or if the download is still in progress."""
+        # TODO: convert this method to return TxInputs (together with fetch_input_data)
         if self._inputs:
             ret = self.ephemeral.get("fetched_inputs") or []
             diff = len(self._inputs) - len(ret)
             if diff > 0 and self.ephemeral.get("_fetch") and not require_complete:
                 # in progress.. so return what we have so far
-                return ret + self._inputs[len(ret) :]
+                return ret + [inp.to_coin_dict() for inp in self._inputs[len(ret) :]]
             elif diff == 0 and (
                 not require_complete or not self.ephemeral.get("_fetch")
             ):
