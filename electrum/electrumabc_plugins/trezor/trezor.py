@@ -599,14 +599,14 @@ class TrezorPlugin(HWPluginBase):
 
     def electrum_tx_to_txtype(self, tx, xpub_path):
         t = TransactionType()
-        d = deserialize(tx.raw)
-        t.version = d["version"]
-        t.lock_time = d["lockTime"]
+        version, _, outputs, locktime = deserialize(tx.raw)
+        t.version = version
+        t.lock_time = locktime
         t.inputs = self.tx_inputs(tx, xpub_path)
         t.bin_outputs = [
             TxOutputBinType(
-                amount=vout["value"], script_pubkey=bfh(vout["scriptPubKey"])
+                amount=vout.value, script_pubkey=vout.destination.to_script()
             )
-            for vout in d["outputs"]
+            for vout in outputs
         ]
         return t

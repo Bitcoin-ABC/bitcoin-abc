@@ -570,15 +570,15 @@ class KeepKeyPlugin(HWPluginBase):
         if tx is None:
             # probably for segwit input and we don't need this prev txn
             return t
-        d = deserialize(tx.raw)
-        t.version = d["version"]
-        t.lock_time = d["lockTime"]
+        version, _, outputs, locktime = deserialize(tx.raw)
+        t.version = version
+        t.lock_time = locktime
         inputs = self.tx_inputs(tx)
         t.inputs.extend(inputs)
-        for vout in d["outputs"]:
+        for vout in outputs:
             o = t.bin_outputs.add()
-            o.amount = vout["value"]
-            o.script_pubkey = bfh(vout["scriptPubKey"])
+            o.amount = vout.value
+            o.script_pubkey = vout.destination.to_script()
         return t
 
     # This function is called from the TREZOR libraries (via tx_api)

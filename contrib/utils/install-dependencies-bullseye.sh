@@ -52,6 +52,7 @@ PACKAGES=(
   libminiupnpc-dev
   libnatpmp-dev
   libprotobuf-dev
+  libpcsclite-dev
   libqrencode-dev
   libqt5core5a
   libqt5dbus5
@@ -79,6 +80,7 @@ PACKAGES=(
   qttools5-dev-tools
   shellcheck
   software-properties-common
+  swig
   tar
   wget
   wine
@@ -194,3 +196,4 @@ cmake --install ${CORROSION_BUILD_FOLDER} --config Release
 here=$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")
 pip3 install -r "${here}/../../electrum/contrib/requirements/requirements.txt"
 pip3 install -r "${here}/../../electrum/contrib/requirements/requirements-regtest.txt"
+pip3 install -r "${here}/../../electrum/contrib/requirements/requirements-hw.txt"
