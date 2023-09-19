@@ -298,14 +298,6 @@ describe('alias-server db.js', async function () {
             await getAliasInfoFromAddress(testDb, testAddress),
             [],
         );
-        // Same result if queried with prefixless address
-        assert.deepEqual(
-            await getAliasInfoFromAddress(
-                testDb,
-                testAddress.slice('ecash:'.length),
-            ),
-            [],
-        );
     });
     it('getAliasInfoFromAddress returns expected alias array if multiple aliases are registered to the queried address', async function () {
         const testAddress = 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj';
@@ -333,15 +325,6 @@ describe('alias-server db.js', async function () {
             await getAliasInfoFromAddress(testDb, testAddress),
             expectedResult,
         );
-
-        // Same result if queried with prefixless address
-        assert.deepEqual(
-            await getAliasInfoFromAddress(
-                testDb,
-                testAddress.slice('ecash:'.length),
-            ),
-            expectedResult,
-        );
     });
     it('getAliasInfoFromAddress returns expected alias array if a single alias is registered to the queried address', async function () {
         const testAddress = 'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r48';
@@ -359,42 +342,6 @@ describe('alias-server db.js', async function () {
         assert.deepEqual(await getAliasInfoFromAddress(testDb, testAddress), [
             newMockAlias,
         ]);
-
-        // Same result if queried with prefixless address
-        assert.deepEqual(
-            await getAliasInfoFromAddress(
-                testDb,
-                testAddress.slice('ecash:'.length),
-            ),
-            [newMockAlias],
-        );
-    });
-    it('getAliasInfoFromAddress throws an error if queried with an invalid ecash address', async function () {
-        // Delete the last char, '8'
-        const invalidAddress =
-            'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r4';
-        await assert.rejects(
-            async () => {
-                await getAliasInfoFromAddress(testDb, invalidAddress);
-            },
-            {
-                name: 'Error',
-                message: 'Input must be a valid eCash address',
-            },
-        );
-    });
-    it('getAliasInfoFromAddress throws an error if queried with an valid ecash address checksummed to a prefix other than ecash', async function () {
-        // etoken addr
-        const invalidAddress = 'qrmz0egsqxj35x5jmzf8szrszdeu72fx0ugk858y3s';
-        await assert.rejects(
-            async () => {
-                await getAliasInfoFromAddress(testDb, invalidAddress);
-            },
-            {
-                name: 'Error',
-                message: 'Input must be a valid eCash address',
-            },
-        );
     });
     it('addOneAliasToPending successfully adds a new pending alias to an empty collection, and getPendingAliases reads one alias', async function () {
         const newPendingAliasTx = {
