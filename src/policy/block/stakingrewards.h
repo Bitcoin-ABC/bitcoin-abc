@@ -11,17 +11,23 @@ struct Amount;
 class CBlock;
 class CBlockIndex;
 
+namespace Consensus {
+struct Params;
+}
+
 class StakingRewardsPolicy : public ParkingPolicy {
 private:
     const CBlock &m_block;
     const Amount &m_blockReward;
+    const Consensus::Params &m_consensusParams;
     const CBlockIndex &m_blockIndex;
 
 public:
-    StakingRewardsPolicy(const CBlockIndex &blockIndex, const CBlock &block,
+    StakingRewardsPolicy(const Consensus::Params &consensusParams,
+                         const CBlockIndex &blockIndex, const CBlock &block,
                          const Amount &blockReward)
-        : m_block(block), m_blockReward(blockReward), m_blockIndex(blockIndex) {
-    }
+        : m_block(block), m_blockReward(blockReward),
+          m_consensusParams(consensusParams), m_blockIndex(blockIndex) {}
 
     bool operator()(BlockPolicyValidationState &state) override;
 };

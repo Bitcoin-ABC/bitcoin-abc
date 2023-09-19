@@ -200,7 +200,8 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     }
 
     CScript stakingRewardsPayoutScript;
-    if (g_avalanche && isAvalancheEnabled(gArgs) &&
+    if (IsCowperthwaiteEnabled(consensusParams, pindexPrev) && g_avalanche &&
+        isAvalancheEnabled(gArgs) &&
         gArgs.GetBoolArg("-avalanchestakingrewards",
                          AVALANCHE_DEFAULT_STAKING_REWARDS) &&
         g_avalanche->getStakingRewardWinner(pindexPrev->GetBlockHash(),

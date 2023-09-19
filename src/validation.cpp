@@ -2649,7 +2649,8 @@ bool Chainstate::ConnectTip(const Config &config, BlockValidationState &state,
             if (g_avalanche) {
                 parkingPolicies.emplace_back(
                     std::make_unique<StakingRewardsPolicy>(
-                        *pindexNew, blockConnecting, blockReward));
+                        consensusParams, *pindexNew, blockConnecting,
+                        blockReward));
             }
 
             // If any block policy is violated, bail on the first one found

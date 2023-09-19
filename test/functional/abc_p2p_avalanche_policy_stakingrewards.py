@@ -4,7 +4,6 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the resolution of staking rewards via avalanche."""
 import random
-import time
 
 from test_framework.address import P2SH_OP_TRUE, SCRIPT_UNSPENDABLE
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
@@ -19,10 +18,11 @@ from test_framework.messages import (
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
-from test_framework.util import assert_equal, uint256_hex
+from test_framework.util import assert_equal, assert_greater_than_or_equal, uint256_hex
 
 STAKING_REWARDS_COINBASE_RATIO_PERCENT = 10
 QUORUM_NODE_COUNT = 16
+COWPERTHWAITE_ACTIVATION = 2000000000
 
 
 class ABCStakingRewardsPolicyTest(BitcoinTestFramework):
@@ -31,20 +31,20 @@ class ABCStakingRewardsPolicyTest(BitcoinTestFramework):
         self.num_nodes = 1
         self.extra_args = [
             [
-                "-avalanchestakingrewards=1",
                 "-avaproofstakeutxodustthreshold=1000000",
                 "-avaproofstakeutxoconfirmations=1",
                 "-avacooldown=0",
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
                 "-whitelist=noban@127.0.0.1",
+                f"-cowperthwaiteactivationtime={COWPERTHWAITE_ACTIVATION}",
             ],
         ]
 
     def run_test(self):
         node = self.nodes[0]
 
-        now = int(time.time())
+        now = COWPERTHWAITE_ACTIVATION - 10000
         node.setmocktime(now)
 
         # Build a fake quorum of nodes. The payout script is SCRIPT_UNSPENDABLE
@@ -127,7 +127,7 @@ class ABCStakingRewardsPolicyTest(BitcoinTestFramework):
             for i in range(0, len(votes)):
                 assert_equal(repr(votes[i]), repr(expected[i]))
 
-        def new_block(tip, payout_script, amount):
+        def new_block(tip, payout_script, amount, expect_accepted=None):
             # Create a new block paying to the specified payout script
             cb = create_cb(payout_script, amount)
             block = create_block(
@@ -138,8 +138,14 @@ class ABCStakingRewardsPolicyTest(BitcoinTestFramework):
 
             # Check the current tip is what we expect
             matches_policy = (
-                payout_script == SCRIPT_UNSPENDABLE and amount >= staking_rewards_amount
+                (
+                    payout_script == SCRIPT_UNSPENDABLE
+                    and amount >= staking_rewards_amount
+                )
+                if expect_accepted is None
+                else expect_accepted
             )
+
             expected_tip = block.hash if matches_policy else tip
             assert_equal(node.getbestblockhash(), expected_tip)
 
@@ -160,6 +166,51 @@ class ABCStakingRewardsPolicyTest(BitcoinTestFramework):
             assert_response([AvalancheVote(AvalancheVoteError.ACCEPTED, block.sha256)])
 
             return block
+
+        # Before activation, not paying the staking rewards remain accepted
+        now = COWPERTHWAITE_ACTIVATION - 6
+        node.setmocktime(now)
+        # Update the previous block time, as new_block increments it. For the
+        # same reason we don't need to increment the mock time for each block.
+        self.generate(node, 1)
+
+        for _ in range(11):
+            new_block(
+                node.getbestblockhash(),
+                SCRIPT_UNSPENDABLE,
+                staking_rewards_amount - 1,
+                expect_accepted=True,
+            )
+
+        # Now cowperthwaite has activated
+        activation_hash = node.getbestblockhash()
+        assert_greater_than_or_equal(
+            node.getblock(activation_hash, 2)["mediantime"], COWPERTHWAITE_ACTIVATION
+        )
+        new_block(
+            activation_hash,
+            SCRIPT_UNSPENDABLE,
+            staking_rewards_amount - 1,
+            expect_accepted=False,
+        )
+
+        # De-activate
+        node.parkblock(activation_hash)
+        # Change the amount so we don't get the same block hash as the parked one
+        new_block(
+            node.getbestblockhash(),
+            SCRIPT_UNSPENDABLE,
+            staking_rewards_amount - 2,
+            expect_accepted=True,
+        )
+
+        # Re-activate
+        new_block(
+            node.getbestblockhash(),
+            SCRIPT_UNSPENDABLE,
+            staking_rewards_amount - 2,
+            expect_accepted=False,
+        )
 
         # Base cases that we always want to test
         cases = [
@@ -207,9 +258,6 @@ class ABCStakingRewardsPolicyTest(BitcoinTestFramework):
 
         # Tip should finalize
         self.wait_until(lambda: has_finalized_tip(tip))
-
-        # Check tip height for sanity
-        assert_equal(node.getblockcount(), QUORUM_NODE_COUNT + len(cases) + 2)
 
 
 if __name__ == "__main__":

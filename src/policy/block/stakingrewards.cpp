@@ -7,6 +7,7 @@
 #include <avalanche/avalanche.h>
 #include <avalanche/processor.h>
 #include <blockindex.h>
+#include <consensus/activation.h>
 #include <consensus/amount.h>
 #include <logging.h>
 #include <primitives/block.h>
@@ -19,7 +20,8 @@
 static constexpr int STAKING_REWARD_RATIO = 10;
 
 bool StakingRewardsPolicy::operator()(BlockPolicyValidationState &state) {
-    if (!m_blockIndex.pprev) {
+    if (!m_blockIndex.pprev ||
+        !IsCowperthwaiteEnabled(m_consensusParams, m_blockIndex.pprev)) {
         return true;
     }
 

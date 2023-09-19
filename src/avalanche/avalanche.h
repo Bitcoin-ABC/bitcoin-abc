@@ -62,7 +62,7 @@ static constexpr double AVALANCHE_DEFAULT_MIN_AVAPROOFS_NODE_COUNT = 8;
 /**
  * Is avalanche staking rewards enabled by default
  */
-static constexpr bool AVALANCHE_DEFAULT_STAKING_REWARDS = false;
+static constexpr bool AVALANCHE_DEFAULT_STAKING_REWARDS = true;
 
 /**
  * Global avalanche instance.

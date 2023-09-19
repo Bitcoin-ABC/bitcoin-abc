@@ -757,8 +757,10 @@ static RPCHelpMan getblocktemplate() {
                          {RPCResult::Type::OBJ,
                           "stakingrewards",
                           "information related to the coinbase staking reward "
-                          "output, only set if the experimental "
-                          "-avalanchestakingrewards option is enabled",
+                          "output, only set after the Nov. 15, 2023 upgrade "
+                          "activated and the -avalanchestakingrewards option "
+                          "is "
+                          "enabled",
                           {
                               {RPCResult::Type::OBJ,
                                "payoutscript",
@@ -1057,7 +1059,8 @@ static RPCHelpMan getblocktemplate() {
             coinbasetxn.pushKV("minerfund", minerFund);
 
             CScript stakingRewardsPayoutScript;
-            if (g_avalanche && isAvalancheEnabled(gArgs) &&
+            if (IsCowperthwaiteEnabled(consensusParams, pindexPrev) &&
+                g_avalanche && isAvalancheEnabled(gArgs) &&
                 gArgs.GetBoolArg("-avalanchestakingrewards",
                                  AVALANCHE_DEFAULT_STAKING_REWARDS) &&
                 g_avalanche->getStakingRewardWinner(
