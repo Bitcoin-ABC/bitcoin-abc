@@ -18,7 +18,7 @@ from electrumabc.keystore import HardwareKeyStore, is_xpubkey, parse_xpubkey
 from electrumabc.networks import NetworkConstants
 from electrumabc.plugins import Device
 from electrumabc.transaction import deserialize
-from electrumabc.util import UserCancelled, bfh, bh2u, versiontuple
+from electrumabc.util import UserCancelled, bfh, versiontuple
 
 from ..hw_wallet import HWPluginBase
 
@@ -417,7 +417,6 @@ class TrezorPlugin(HWPluginBase):
             prev_txes=prev_tx,
             version=tx.version,
         )
-        signatures = [bh2u(x) for x in signatures]
         tx.update_signatures(signatures)
 
     def show_address(self, wallet, address, keystore=None):

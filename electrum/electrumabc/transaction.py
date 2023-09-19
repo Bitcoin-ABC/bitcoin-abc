@@ -1074,9 +1074,9 @@ class Transaction:
             txin["x_pubkeys"] = x_pubkeys = list(x_pubkeys)
         return pubkeys, x_pubkeys
 
-    def update_signatures(self, signatures):
+    def update_signatures(self, signatures: List[bytes]):
         """Add new signatures to a transaction
-        `signatures` is expected to be a list of hex encoded sig strings with
+        `signatures` is expected to be a list of signatures with
         *no* sighash byte at the end (implicitly always 0x41 (SIGHASH_FORKID|SIGHASH_ALL);
         will be added by this function).
 
@@ -1101,25 +1101,24 @@ class Transaction:
                     len(self.inputs()), len(signatures)
                 )
             )
-        for i, txin in enumerate(self.inputs()):
-            pubkeys, x_pubkeys = TxInput.from_coin_dict(txin).get_sorted_pubkeys()
+        for i, txin in enumerate(self.txinputs()):
+            pubkeys, x_pubkeys = txin.get_sorted_pubkeys()
             sig = signatures[i]
-            if not isinstance(sig, str):
-                raise ValueError("sig was bytes, expected string")
+            if not isinstance(sig, bytes):
+                raise ValueError("sig was str, expected bytes")
             # sig_final is the signature with the sighashbyte at the end (0x41)
-            sig_final = sig + "41"
-            if sig_final in txin.get("signatures"):
+            sig_final = sig + b"\x41"
+            if sig_final in txin.signatures:
                 # skip if we already have this signature
                 continue
             pre_hash = bitcoin.Hash(bfh(self.serialize_preimage(i)))
-            sig_bytes = bfh(sig)
             added = False
             reason = []
             for j, pubkey in enumerate(pubkeys):
                 # see which pubkey matches this sig (in non-multisig only 1 pubkey, in multisig may be multiple pubkeys)
-                if self.verify_signature(pubkey, sig_bytes, pre_hash, reason):
+                if self.verify_signature(pubkey, sig, pre_hash, reason):
                     print_error("adding sig", i, j, pubkey, sig_final)
-                    self._inputs[i]["signatures"][j] = sig_final
+                    self._inputs[i]["signatures"][j] = sig_final.hex()
                     added = True
             if not added:
                 resn = ", ".join(reversed(reason)) if reason else ""
@@ -1464,8 +1463,8 @@ class Transaction:
         return r == s
 
     @staticmethod
-    def verify_signature(pubkey, sig, msghash, reason=None):
-        """Given a pubkey (bytes), signature (bytes -- without sighash byte),
+    def verify_signature(pubkey: bytes, sig: bytes, msghash: bytes, reason=None):
+        """Given a pubkey, signature (without sighash byte),
         and a sha256d message digest, returns True iff the signature is good
         for the given public key, False otherwise.  Does not raise normally
         unless given bad or garbage arguments.
