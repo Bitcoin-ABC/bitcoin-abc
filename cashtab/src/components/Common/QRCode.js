@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import RawQRCode from 'qrcode.react';
-import { Event } from 'utils/GoogleAnalytics';
 import { convertToEcashPrefix } from 'utils/cashMethods';
 import CopyToClipboard from './CopyToClipboard';
 import appConfig from 'config/app';
@@ -140,27 +139,12 @@ export const QRCode = ({ address, size = 210, onClick = () => null }) => {
     const addressPrefix = addressSplit[0];
     const prefixLength = addressPrefix.length + 1;
 
-    const txtRef = React.useRef(null);
-
     const handleOnClick = evt => {
         setVisible(true);
         setTimeout(() => {
             setVisible(false);
         }, 1500);
         onClick(evt);
-    };
-
-    const handleOnCopy = () => {
-        // Event.("Category", "Action", "Label")
-        // xec or etoken?
-        let eventLabel = appConfig.ticker;
-
-        Event('Wallet', 'Copy Address', eventLabel);
-
-        setVisible(true);
-        setTimeout(() => {
-            txtRef.current.select();
-        }, 100);
     };
 
     return (
@@ -171,7 +155,6 @@ export const QRCode = ({ address, size = 210, onClick = () => null }) => {
                     width: '100%',
                     position: 'relative',
                 }}
-                onCopy={handleOnCopy}
             >
                 <div style={{ position: 'relative' }} onClick={handleOnClick}>
                     <Copied style={{ display: visible ? null : 'none' }}>
@@ -198,7 +181,6 @@ export const QRCode = ({ address, size = 210, onClick = () => null }) => {
                     {address && (
                         <CustomInput className="notranslate">
                             <input
-                                ref={txtRef}
                                 readOnly
                                 value={address}
                                 spellCheck="false"

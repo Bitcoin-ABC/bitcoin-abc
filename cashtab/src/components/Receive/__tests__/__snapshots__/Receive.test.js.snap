@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP @generated
+// Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Wallet with BCH balances 1`] = `
 <div
@@ -68,7 +68,6 @@ exports[`Wallet with BCH balances 1`] = `
       onClick={[Function]}
     >
       <div
-        onCopy={[Function]}
         style={
           Object {
             "display": "inline-block",
@@ -231,7 +230,6 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       onClick={[Function]}
     >
       <div
-        onCopy={[Function]}
         style={
           Object {
             "display": "inline-block",
@@ -399,7 +397,6 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
       onClick={[Function]}
     >
       <div
-        onCopy={[Function]}
         style={
           Object {
             "display": "inline-block",
@@ -562,7 +559,6 @@ exports[`Wallet without BCH balance 1`] = `
       onClick={[Function]}
     >
       <div
-        onCopy={[Function]}
         style={
           Object {
             "display": "inline-block",
