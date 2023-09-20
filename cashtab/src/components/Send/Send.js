@@ -797,6 +797,8 @@ const SendBCH = ({ passLoadingStatus }) => {
                                             setIsEncryptedOptionalOpReturnMsg(
                                                 false,
                                             );
+                                            // Do not persist multisend input to single send and vice versa
+                                            clearInputForms();
                                         }}
                                         style={{
                                             marginBottom: '7px',
