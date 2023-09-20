@@ -175,7 +175,7 @@ class CoinChooserBase(PrintError):
     def make_tx(
         self,
         coins,
-        outputs,
+        outputs: List[TxOutput],
         change_addrs,
         fee_estimator,
         sign_schnorr=False,

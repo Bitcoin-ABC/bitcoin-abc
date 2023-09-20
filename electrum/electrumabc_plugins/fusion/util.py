@@ -35,7 +35,11 @@ import ecdsa
 
 from electrumabc.address import Address, OpCodes, ScriptOutput
 from electrumabc.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, hash_160
-from electrumabc.transaction import Transaction, get_address_from_output_script
+from electrumabc.transaction import (
+    Transaction,
+    TxOutput,
+    get_address_from_output_script,
+)
 
 from . import fusion_pb2 as pb
 from .protocol import Protocol
@@ -146,7 +150,7 @@ def tx_from_components(all_components, session_hash):
         prefix = [4, *Protocol.FUSE_ID]
     inputs = []
     outputs = [
-        (
+        TxOutput(
             TYPE_SCRIPT,
             ScriptOutput(bytes([OpCodes.OP_RETURN, *prefix, 32]) + session_hash),
             0,
@@ -180,7 +184,7 @@ def tx_from_components(all_components, session_hash):
             atype, addr = get_address_from_output_script(out.scriptpubkey)
             if atype != TYPE_ADDRESS:
                 raise FusionError("bad component address")
-            outputs.append((TYPE_ADDRESS, addr, out.amount))
+            outputs.append(TxOutput(TYPE_ADDRESS, addr, out.amount))
         elif ctype != "blank":
             raise FusionError("bad component")
     tx = Transaction.from_io(inputs, outputs, locktime=0, sign_schnorr=True, version=1)

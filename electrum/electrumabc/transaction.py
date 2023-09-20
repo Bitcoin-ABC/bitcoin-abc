@@ -1183,6 +1183,16 @@ class Transaction:
             )
         return False
 
+    @staticmethod
+    def _assert_outputs_sanity(outputs):
+        """Check that no legacy tuple is in the list, and that no destination is
+        UnknownAddress."""
+        assert all(isinstance(output, TxOutput) for output in outputs)
+        assert all(
+            isinstance(output.destination, (PublicKey, Address, ScriptOutput))
+            for output in outputs
+        )
+
     def deserialize(self):
         if self.raw is None:
             return
@@ -1190,10 +1200,7 @@ class Transaction:
             return
         self.invalidate_common_sighash_cache()
         self.version, self._inputs, self._outputs, self.locktime = deserialize(self.raw)
-        assert all(
-            isinstance(output[1], (PublicKey, Address, ScriptOutput))
-            for output in self._outputs
-        )
+        self._assert_outputs_sanity(self._outputs)
 
     @classmethod
     def from_io(
@@ -1204,11 +1211,8 @@ class Transaction:
         sign_schnorr=False,
         version=None,
     ):
-        assert all(
-            isinstance(output[1], (PublicKey, Address, ScriptOutput))
-            for output in outputs
-        )
         assert all(isinstance(txin, TxInput) for txin in inputs)
+        klass._assert_outputs_sanity(outputs)
         self = klass(None)
         self._inputs = inputs
         self._outputs = outputs.copy()
@@ -1425,19 +1429,13 @@ class Transaction:
         assert index < len(self._inputs)
         self._inputs[index] = txin
 
-    def add_outputs(self, outputs):
-        assert all(
-            isinstance(output[1], (PublicKey, Address, ScriptOutput))
-            for output in outputs
-        )
+    def add_outputs(self, outputs: List[TxOutput]):
+        self._assert_outputs_sanity(outputs)
         self._outputs.extend(outputs)
         self.raw = None
 
-    def set_outputs(self, outputs):
-        assert all(
-            isinstance(output[1], (PublicKey, Address, ScriptOutput))
-            for output in outputs
-        )
+    def set_outputs(self, outputs: List[TxOutput]):
+        self._assert_outputs_sanity(outputs)
         self._outputs = outputs
         self.raw = None
 
@@ -1457,7 +1455,7 @@ class Transaction:
             raise InputValueMissing from e
 
     def output_value(self):
-        return sum(val for tp, addr, val in self.outputs())
+        return sum(out.value for out in self.outputs())
 
     def get_fee(self):
         """Try and calculate the fee based on the input data, and returns it as
@@ -1812,7 +1810,7 @@ class Transaction:
                     if tx:
                         if n < len(tx.outputs()):
                             outp = tx.outputs()[n]
-                            addr, value = outp[1], outp[2]
+                            addr, value = outp.destination, outp.value
                             inp["value"] = value
                             inp["address"] = addr
                             print_error(
@@ -1970,7 +1968,7 @@ class Transaction:
                                 ii, n = item
                                 assert n < len(tx.outputs())
                                 outp = tx.outputs()[n]
-                                addr, value = outp[1], outp[2]
+                                addr, value = outp.destination, outp.value
                                 inps[ii]["value"] = value
                                 inps[ii]["address"] = addr
                                 print_error(

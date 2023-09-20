@@ -777,7 +777,7 @@ class PaymentRequestBitPay20(PaymentRequest, PrintError):
             self.outputs = []
             for o in self.details.outputs:
                 amt, addr = o["amount"], Address.from_string(o["address"])
-                self.outputs.append((TYPE_ADDRESS, addr, amt))
+                self.outputs.append(TxOutput(TYPE_ADDRESS, addr, amt))
             self.memo = self.details.memo
             self.payment_url = self.details.payment_url
         except ResponseError as e:

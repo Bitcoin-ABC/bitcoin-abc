@@ -1336,10 +1336,9 @@ class AbstractWallet(PrintError, SPVDelegate):
                             )
                             rm(ser, True, tup=(prevout_hash, prevout_n))
                             continue
-                        _typ, addr, v = txo
                         rm_pruned_too = False
                         with self.lock:
-                            mine = self.is_mine(addr)
+                            mine = self.is_mine(txo.destination)
                             if not mine and ser in self.pruned_txo:
                                 ct += 1
                                 rm_pruned_too = True
@@ -2195,7 +2194,7 @@ class AbstractWallet(PrintError, SPVDelegate):
 
     def mktx(
         self,
-        outputs,
+        outputs: List[TxOutput],
         password,
         config,
         fee=None,
@@ -2515,8 +2514,8 @@ class AbstractWallet(PrintError, SPVDelegate):
                 inputtx = self.get_input_tx(txin.outpoint.txid.get_hex())
                 if inputtx is not None:
                     if not txin.is_complete():
-                        out_zero, out_addr, out_val = inputtx.outputs()[txin.outpoint.n]
-                        txin.set_value(out_val)
+                        out = inputtx.outputs()[txin.outpoint.n]
+                        txin.set_value(out.value)
                     # may be needed by hardware wallets
                     txin.set_prev_tx(inputtx)
 

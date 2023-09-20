@@ -252,7 +252,7 @@ def is_any_tx_output_on_change_branch(tx: Transaction) -> bool:
     if not tx.output_info:
         return False
     for o in tx.outputs():
-        info = tx.output_info.get(o[1])
+        info = tx.output_info.get(o.destination)
         if info is not None:
             if info[0][0] == 1:
                 return True
