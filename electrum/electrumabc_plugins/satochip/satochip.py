@@ -427,7 +427,7 @@ class SatochipKeyStore(HardwareKeyStore):
         # outputs
         txOutputs = "".join(o.serialize().hex() for o in tx.outputs())
         hashOutputs = bh2u(Hash(bfh(txOutputs)))
-        txOutputs = var_int(len(tx.outputs())) + txOutputs
+        txOutputs = var_int(len(tx.outputs())).hex() + txOutputs
         self.print_error("sign_transaction(): hashOutputs= ", hashOutputs)
         self.print_error("sign_transaction(): outputs= ", txOutputs)
 

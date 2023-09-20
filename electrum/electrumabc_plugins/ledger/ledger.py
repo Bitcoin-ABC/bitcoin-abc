@@ -514,11 +514,11 @@ class LedgerKeyStore(HardwareKeyStore):
                         )
                     )  # should never happen
 
-        txOutput = var_int(len(tx.outputs()))
+        txOutput = var_int(len(tx.outputs())).hex()
         for txout in tx.outputs():
             txOutput += int_to_le_hex(txout.value, 8)
             script = txout.destination.to_script().hex()
-            txOutput += var_int(len(script) // 2)
+            txOutput += var_int(len(script) // 2).hex()
             txOutput += script
         txOutput = bfh(txOutput)
 

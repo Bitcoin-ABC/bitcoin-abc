@@ -128,7 +128,7 @@ class TxOutput(NamedTuple):
     def serialize(self) -> bytes:
         s = self.value.to_bytes(8, "little")
         script = self.destination.to_script()
-        s += bytes.fromhex(bitcoin.var_int(len(script)))
+        s += bitcoin.var_int(len(script))
         s += script
         return s
 
@@ -610,7 +610,7 @@ class TxInput:
         script = self.get_or_build_scriptsig(estimate_size, sign_schnorr)
         s = (
             self.outpoint.serialize()
-            + bytes.fromhex(bitcoin.var_int(len(script)))
+            + bitcoin.var_int(len(script))
             + script
             + self.sequence.to_bytes(4, "little")
         )
@@ -1314,7 +1314,7 @@ class Transaction:
         txin: TxInput = self.txinputs()[i]
         outpoint = txin.outpoint.to_hex()
         preimage_script = txin.get_preimage_script().hex()
-        scriptCode = bitcoin.var_int(len(preimage_script) // 2) + preimage_script
+        scriptCode = bitcoin.var_int(len(preimage_script) // 2).hex() + preimage_script
         if txin.get_value() is None:
             raise InputValueMissing
         amount = bitcoin.int_to_le_hex(txin.get_value(), 8)
@@ -1343,10 +1343,10 @@ class Transaction:
         nLocktime = bitcoin.int_to_le_hex(self.locktime, 4)
         inputs = self.txinputs()
         outputs = self.outputs()
-        txins = bitcoin.var_int(len(inputs)) + "".join(
+        txins = bitcoin.var_int(len(inputs)).hex() + "".join(
             txin.serialize(estimate_size, self._sign_schnorr).hex() for txin in inputs
         )
-        txouts = bitcoin.var_int(len(outputs)) + "".join(
+        txouts = bitcoin.var_int(len(outputs)).hex() + "".join(
             o.serialize().hex() for o in outputs
         )
         return nVersion + txins + txouts + nLocktime

@@ -378,20 +378,20 @@ def int_to_le_hex(i: int, length: int = 1) -> str:
     return le_bytes.hex()
 
 
-def var_int(i: int) -> str:
+def var_int(i: int) -> bytes:
     """
-    Encode an integer as a hex representation of a variable length integer.
+    Encode an integer as a variable length integer.
     See:
     https://en.bitcoin.it/wiki/Protocol_specification#Variable_length_integer
     """
     if i < 0xFD:
-        return int_to_le_hex(i)
+        return i.to_bytes(1, "little")
     elif i <= 0xFFFF:
-        return "fd" + int_to_le_hex(i, 2)
+        return b"\xfd" + i.to_bytes(2, "little")
     elif i <= 0xFFFFFFFF:
-        return "fe" + int_to_le_hex(i, 4)
+        return b"\xfe" + i.to_bytes(4, "little")
     else:
-        return "ff" + int_to_le_hex(i, 8)
+        return b"\xff" + i.to_bytes(8, "little")
 
 
 def op_push_bytes(data_len: int) -> bytes:
@@ -783,8 +783,8 @@ def msg_magic(message: bytes, sigtype: SignatureType = SignatureType.ECASH) -> b
     """Prepare the preimage of the message before signing it or verifying
     its signature."""
     magic = ECASH_MSG_MAGIC if sigtype == SignatureType.ECASH else BITCOIN_MSG_MAGIC
-    length = bytes.fromhex(var_int(len(message)))
-    magic_length = bytes.fromhex(var_int(len(magic)))
+    length = var_int(len(message))
+    magic_length = var_int(len(magic))
     return magic_length + magic + length + message
 
 
