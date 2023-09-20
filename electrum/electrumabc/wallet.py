@@ -2505,8 +2505,11 @@ class AbstractWallet(PrintError, SPVDelegate):
             if "value" not in txin:
                 inputtx = self.get_input_tx(txin["prevout_hash"])
                 if inputtx is not None:
-                    out_zero, out_addr, out_val = inputtx.outputs()[txin["prevout_n"]]
-                    txin["value"] = out_val
+                    if not tx.is_txin_complete(txin):
+                        out_zero, out_addr, out_val = inputtx.outputs()[
+                            txin["prevout_n"]
+                        ]
+                        txin["value"] = out_val
                     txin["prev_tx"] = inputtx  # may be needed by hardware wallets
 
     def add_hw_info(self, tx):

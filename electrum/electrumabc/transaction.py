@@ -183,6 +183,7 @@ class TxInput:
         signatures: Optional[List[bytes]] = None,
         address: Optional[Address] = None,
         value: Optional[int] = None,
+        prev_tx: Optional[Transaction] = None,
     ):
         self.outpoint: OutPoint = outpoint
         self.sequence: int = sequence
@@ -200,11 +201,20 @@ class TxInput:
         # Must be defined for partially signed inputs (needed for signing)
         self._value: Optional[int] = value
 
+        # This is set by the wallet for hardware wallets
+        self._prev_tx: Optional[Transaction] = prev_tx
+
     def set_value(self, value: int):
         self._value = value
 
     def get_value(self) -> Optional[int]:
         return self._value
+
+    def set_prev_tx(self, tx: Transaction):
+        self._prev_tx = tx
+
+    def get_prev_tx(self) -> Optional[Transaction]:
+        return self._prev_tx
 
     @staticmethod
     def estimate_pubkey_size_from_x_pubkey(x_pubkey) -> int:
@@ -509,9 +519,12 @@ class TxInput:
             d["redeemScript"] = self.scriptsig
         if not self.is_complete():
             d.pop("scriptSig", None)
-            # The amount is needed for signing, in case of partially signed inputs.
-            d["value"] = self.get_value()
-            assert d["value"] is not None
+            if self.get_value() is not None:
+                # The amount is needed for signing, in case of partially signed inputs.
+                d["value"] = self.get_value()
+
+        if self._prev_tx is not None:
+            d["prev_tx"] = self._prev_tx
         return d
 
     @staticmethod
@@ -534,6 +547,7 @@ class TxInput:
         pubkeys: Optional[List[bytes]] = None,
         address: Optional[Address] = None,
         value: Optional[int] = None,
+        prev_tx: Optional[Transaction] = None,
     ) -> TxInput:
         """Txinput factory for defining an input by its components"""
         assert all(
@@ -556,6 +570,7 @@ class TxInput:
             signatures=signatures,
             address=address,
             value=value,
+            prev_tx=prev_tx,
         )
 
     @staticmethod
@@ -564,6 +579,7 @@ class TxInput:
         sequence = coin.get("sequence", DEFAULT_TXIN_SEQUENCE)
         scriptsig = coin.get("scriptSig")
         value = coin.get("value")
+        prev_tx = coin.get("prev_tx")
 
         if scriptsig is not None:
             return TxInput.from_scriptsig(
@@ -586,6 +602,7 @@ class TxInput:
             pubkeys=pubkeys,
             address=coin.get("address"),
             value=value,
+            prev_tx=prev_tx,
         )
 
     def get_preimage_script(self) -> bytes:
