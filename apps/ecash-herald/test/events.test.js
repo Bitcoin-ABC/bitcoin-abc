@@ -11,7 +11,7 @@ const block = JSON.parse(JSON.stringify(unrevivedBlock), jsonReviver);
 const cashaddr = require('ecashaddrjs');
 
 const { handleBlockConnected } = require('../src/events');
-const { MockChronikClient } = require('./mocks/chronikMock');
+const { MockChronikClient } = require('../../mock-chronik-client');
 const { MockTelegramBot, mockChannelId } = require('./mocks/telegramBotMock');
 
 const axios = require('axios');

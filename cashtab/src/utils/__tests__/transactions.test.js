@@ -18,7 +18,7 @@ import {
     registerNewAlias,
 } from 'utils/transactions';
 import { explorer } from 'config/explorer';
-import { MockChronikClient } from 'utils/__mocks__/chronikMock';
+import { MockChronikClient } from '../../../../apps/mock-chronik-client';
 import appConfig from 'config/app';
 
 describe('Cashtab transaction broadcasting functions', () => {
