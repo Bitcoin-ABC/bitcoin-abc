@@ -26,9 +26,13 @@
 from __future__ import annotations
 
 import hashlib
+import queue
 import random
 import struct
+import threading
+import time
 import warnings
+from collections import defaultdict
 from io import BytesIO
 from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union
 
@@ -1708,17 +1712,8 @@ class Transaction:
             # we already have results, don't do anything.
             return False
         eph = self.ephemeral
-        eph[
-            "fetched_inputs"
-        ] = (
-            inps
-        ) = inps.copy()  # paranoia: in case another thread is running on this list
-        # Lazy imports to keep this functionality very self-contained
-        # These modules are always available so no need to globally import them.
-        import queue
-        import threading
-        import time
-        from collections import defaultdict
+        # paranoia: in case another thread is running on this list
+        eph["fetched_inputs"] = inps = inps.copy()
 
         t0 = time.time()
         t = None
@@ -1739,18 +1734,18 @@ class Transaction:
             prevout_hashes on mainnet, and it's super fast:
             cd8fcc8ad75267ff9ad314e770a66a9e871be7882b7c05a7e5271c46bfca98bc"""
             last_prog = -9999.0
-            need_dl_txids = defaultdict(
-                list
-            )  # the dict of txids we will need to download (wasn't in cache)
+            # the dict of txids we will need to download (wasn't in cache)
+            need_dl_txids = defaultdict(list)
 
             def prog(i, prog_total=100):
                 """notify interested code about progress"""
+                if not prog_callback:
+                    return
                 nonlocal last_prog
-                if prog_callback:
-                    prog = ((i + 1) * 100.0) / prog_total
-                    if prog - last_prog > 5.0:
-                        prog_callback(prog)
-                        last_prog = prog
+                prog = ((i + 1) * 100.0) / prog_total
+                if prog - last_prog > 5.0:
+                    prog_callback(prog)
+                    last_prog = prog
 
             while eph.get("_fetch") == t and len(inps) < len(self._inputs):
                 i = len(inps)
@@ -1765,82 +1760,82 @@ class Transaction:
                 )
                 if not prevout_hash or n is None:
                     raise RuntimeError("Missing prevout_hash and/or prevout_n")
-                if typ != "coinbase" and (
-                    not isinstance(addr, Address) or value is None
+                if typ == "coinbase" or (
+                    isinstance(addr, Address) and value is not None
                 ):
-                    tx = cls.tx_cache_get(prevout_hash) or wallet.transactions.get(
-                        prevout_hash
-                    )
-                    if tx:
-                        # Tx was in cache or wallet.transactions, proceed
-                        # note that the tx here should be in the "not
-                        # deserialized" state
-                        if tx.raw:
-                            # Note we deserialize a *copy* of the tx so as to
-                            # save memory.  We do not want to deserialize the
-                            # cached tx because if we do so, the cache will
-                            # contain a deserialized tx which will take up
-                            # several times the memory when deserialized due to
-                            # Python's memory use being less efficient than the
-                            # binary-only raw bytes.  So if you modify this code
-                            # do bear that in mind.
-                            tx = Transaction(tx.raw)
-                            try:
-                                tx.deserialize()
-                                # The below txid check is commented-out as
-                                # we trust wallet tx's and the network
-                                # tx's that fail this check are never
-                                # put in cache anyway.
-                                # txid = tx._txid(tx.raw)
-                                # if txid != prevout_hash: # sanity check
-                                #    print_error("fetch_input_data: cached prevout_hash {} != tx.txid() {}, ignoring.".format(prevout_hash, txid))
-                            except Exception as e:
-                                print_error(
-                                    "fetch_input_data: WARNING failed to deserialize"
-                                    " {}: {}".format(prevout_hash, repr(e))
-                                )
-                                tx = None
-                        else:
-                            tx = None
-                            print_error(
-                                "fetch_input_data: WARNING cached tx lacked any 'raw'"
-                                " bytes for {}".format(prevout_hash)
-                            )
-                    # now, examine the deserialized tx, if it's still good
-                    if tx:
-                        if n < len(tx.outputs()):
-                            outp = tx.outputs()[n]
-                            addr, value = outp.destination, outp.value
-                            inp["value"] = value
-                            inp["address"] = addr
-                            print_error(
-                                "fetch_input_data: fetched cached", i, addr, value
-                            )
-                        else:
-                            print_error(
-                                "fetch_input_data: ** FIXME ** should never happen --"
-                                " n={} >= len(tx.outputs())={} for prevout {}".format(
-                                    n, len(tx.outputs()), prevout_hash
-                                )
-                            )
-                    else:
-                        # tx was not in cache or wallet.transactions, mark
-                        # it for download below (this branch can also execute
-                        # in the unlikely case where there was an error above)
-                        need_dl_txids[prevout_hash].append(
-                            (i, n)
-                        )  # remember the input# as well as the prevout_n
+                    # No extra work needed
+                    inps.append(inp)
+                    continue
 
-                inps.append(
-                    inp
-                )  # append either cached result or as-yet-incomplete copy of _inputs[i]
+                tx = cls.tx_cache_get(prevout_hash) or wallet.transactions.get(
+                    prevout_hash
+                )
+                if tx is None or not tx.raw:
+                    # tx was not in cache or wallet.transactions, or it did not have
+                    # the raw data, mark it for download below
+                    # Remember the input# as well as the prevout_n
+                    need_dl_txids[prevout_hash].append((i, n))
+                    # append as-yet-incomplete copy of _inputs[i]
+                    inps.append(inp)
+                    continue
+
+                # Tx was in cache or wallet.transactions, proceed
+                # note that the tx here should be in the "not
+                # deserialized" state
+
+                # Note we deserialize a *copy* of the tx so as to
+                # save memory.  We do not want to deserialize the
+                # cached tx because if we do so, the cache will
+                # contain a deserialized tx which will take up
+                # several times the memory when deserialized due to
+                # Python's memory use being less efficient than the
+                # binary-only raw bytes.  So if you modify this code
+                # do bear that in mind.
+                tx = Transaction(tx.raw)
+                try:
+                    tx.deserialize()
+                    # The below txid check is commented-out as
+                    # we trust wallet tx's and the network
+                    # tx's that fail this check are never
+                    # put in cache anyway.
+                    # txid = tx._txid(tx.raw)
+                    # if txid != prevout_hash: # sanity check
+                    #    print_error("fetch_input_data: cached prevout_hash {} != tx.txid() {}, ignoring.".format(prevout_hash, txid))
+                except Exception as e:
+                    print_error(
+                        f"fetch_input_data: WARNING failed to deserialize"
+                        f" {prevout_hash}: {repr(e)}"
+                    )
+                    # The local tx was malformed (should never happen). Mark it
+                    # for download below and append as-yet-incomplete copy of
+                    # _inputs[i]
+                    need_dl_txids[prevout_hash].append((i, n))
+                    inps.append(inp)
+                    continue
+
+                if n < len(tx.outputs()):
+                    outp = tx.outputs()[n]
+                    addr, value = outp.destination, outp.value
+                    inp["value"] = value
+                    inp["address"] = addr
+                    print_error("fetch_input_data: fetched cached", i, addr, value)
+                else:
+                    print_error(
+                        "fetch_input_data: ** FIXME ** should never happen --"
+                        f" n={n} >= len(tx.outputs())={len(tx.outputs())} for "
+                        f"prevout {prevout_hash}"
+                    )
+                # append cached result
+                inps.append(inp)
             # Now, download the tx's we didn't find above if network is available
             # and caller said it's ok to go out ot network.. otherwise just return
             # what we have
             if use_network and eph.get("_fetch") == t and wallet.network:
                 callback_funcs_to_cancel = set()
-                try:  # the whole point of this try block is the `finally` way below...
-                    prog(-1)  # tell interested code that progress is now 0%
+                # the whole point of this try block is the `finally` way below...
+                try:
+                    # tell interested code that progress is now 0%
+                    prog(-1)
                     # Next, queue the transaction.get requests, spreading them
                     # out randomly over the connected interfaces
                     q = queue.Queue()
@@ -1852,7 +1847,8 @@ class Transaction:
                         as even if the user cancels the operation, we would like
                         to save the returned tx in our cache, since we did the
                         work to retrieve it anyway."""
-                        q.put(r)  # put the result in the queue no matter what it is
+                        # put the result in the queue no matter what it is
+                        q.put(r)
                         txid = ""
                         try:
                             # Below will raise if response was 'error' or
@@ -1865,17 +1861,14 @@ class Transaction:
                             # always deserialize a copy when reading the cache.
                             tx = Transaction(r["result"])
                             txid = r["params"][0]
-                            assert txid == cls._txid(
-                                tx.raw
-                            ), (  # protection against phony responses
-                                "txid-is-sane-check"
-                            )
-                            cls.tx_cache_put(tx=tx, txid=txid)  # save tx to cache here
+                            # protection against phony responses
+                            assert txid == cls._txid(tx.raw), "txid-is-sane-check"
+                            # save tx to cache here
+                            cls.tx_cache_put(tx=tx, txid=txid)
                         except Exception as e:
                             # response was not valid, ignore (don't cache)
-                            if (
-                                txid
-                            ):  # txid may be '' if KeyError from r['result'] above
+                            # txid may be '' if KeyError from r['result'] above
+                            if txid:
                                 bad_txids.add(txid)
                             print_error(
                                 "fetch_input_data: put_in_queue_and_cache fail for"
@@ -1895,7 +1888,7 @@ class Transaction:
                         q_ct += 1
 
                     def get_bh():
-                        if eph.get("block_height"):
+                        if eph.get("block_height") or not self_txid:
                             return False
                         lh = (
                             wallet.network.get_server_height()
@@ -1903,14 +1896,15 @@ class Transaction:
                         )
 
                         def got_tx_info(r):
-                            q.put(
-                                "block_height"
-                            )  # indicate to other thread we got the block_height reply from network
+                            # indicate to other thread we got the block_height reply
+                            # from network
+                            q.put("block_height")
                             try:
                                 # will raise of error reply
                                 confs = r.get("result").get("confirmations", 0)
                                 if confs and lh:
-                                    # the whole point.. was to get this piece of data.. the block_height
+                                    # the whole point.. was to get this piece of data..
+                                    # the block_height
                                     eph["block_height"] = bh = lh - confs + 1
                                     print_error(
                                         "fetch_input_data: got tx block height", bh
@@ -1923,15 +1917,14 @@ class Transaction:
                             except Exception as e:
                                 print_error("fetch_input_data: get_bh fail:", str(e), r)
 
-                        if self_txid:
-                            wallet.network.queue_request(
-                                "blockchain.transaction.get",
-                                [self_txid, True],
-                                interface=None,
-                                callback=got_tx_info,
-                            )
-                            callback_funcs_to_cancel.add(got_tx_info)
-                            return True
+                        wallet.network.queue_request(
+                            "blockchain.transaction.get",
+                            [self_txid, True],
+                            interface=None,
+                            callback=got_tx_info,
+                        )
+                        callback_funcs_to_cancel.add(got_tx_info)
+                        return True
 
                     if get_bh():
                         q_ct += 1
@@ -1948,7 +1941,8 @@ class Transaction:
                                 # early abort from func, canceled
                                 break
                             if r == "block_height":
-                                # ignore block_height reply from network.. was already processed in other thread in got_tx_info above
+                                # ignore block_height reply from network.. was already
+                                # processed in other thread in got_tx_info above
                                 continue
                             if r.get("error"):
                                 msg = r.get("error")
@@ -1957,11 +1951,8 @@ class Transaction:
                                 raise ErrorResp(msg)
                             rawhex = r["result"]
                             txid = r["params"][0]
-                            assert (
-                                txid not in bad_txids
-                            ), (  # skip if was marked bad by our callback code
-                                "txid marked bad"
-                            )
+                            # skip if was marked bad by our callback code
+                            assert txid not in bad_txids, "txid marked bad"
                             tx = Transaction(rawhex)
                             tx.deserialize()
                             for item in need_dl_txids[txid]:
@@ -1977,7 +1968,8 @@ class Transaction:
                                     addr,
                                     value,
                                 )
-                            prog(i, q_ct)  # tell interested code of progress
+                            # tell interested code of progress
+                            prog(i, q_ct)
                         except queue.Empty:
                             print_error(
                                 "fetch_input_data: timed out after 10.0s fetching from"
@@ -1992,13 +1984,14 @@ class Transaction:
                     for func in callback_funcs_to_cancel:
                         wallet.network.cancel_requests(func)
             # sanity check
-            if len(inps) == len(self._inputs) and eph.get("_fetch") == t:
-                # potential race condition here, popping wrong t -- but in practice w/
-                # CPython threading it won't matter
-                eph.pop("_fetch", None)
-                print_error(f"fetch_input_data: elapsed {(time.time()-t0):.4f} sec")
-                if done_callback:
-                    done_callback(*done_args)
+            if len(inps) != len(self._inputs) or eph.get("_fetch") != t:
+                return
+            # potential race condition here, popping wrong t -- but in practice w/
+            # CPython threading it won't matter
+            eph.pop("_fetch", None)
+            print_error(f"fetch_input_data: elapsed {(time.time()-t0):.4f} sec")
+            if done_callback:
+                done_callback(*done_args)
 
         # /doIt
         t = threading.Thread(target=doIt, daemon=True)
@@ -2038,7 +2031,7 @@ class Transaction:
         return bool(self.ephemeral.pop("_fetch", None))
 
     @classmethod
-    def tx_cache_get(cls, txid: str) -> object:
+    def tx_cache_get(cls, txid: str) -> Optional[Transaction]:
         """Attempts to retrieve txid from the tx cache that this class
         keeps in-memory.  Returns None on failure. The returned tx is
         not deserialized, and is a copy of the one in the cache."""
@@ -2052,13 +2045,12 @@ class Transaction:
         return None
 
     @classmethod
-    def tx_cache_put(cls, tx: object, txid: Optional[str] = None):
+    def tx_cache_put(cls, tx: Transaction, txid: Optional[str] = None):
         """Puts a non-deserialized copy of tx into the tx_cache."""
-        if not tx or not tx.raw:
+        if not tx.raw:
             raise ValueError("Please pass a tx which has a valid .raw attribute!")
-        txid = txid or cls._txid(
-            tx.raw
-        )  # optionally, caller can pass-in txid to save CPU time for hashing
+        # optionally, caller can pass-in txid to save CPU time for hashing
+        txid = txid or cls._txid(tx.raw)
         cls._fetched_tx_cache.put(txid, Transaction(tx.raw))
 
 
