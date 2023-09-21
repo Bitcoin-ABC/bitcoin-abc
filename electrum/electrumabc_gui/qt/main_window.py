@@ -5486,19 +5486,26 @@ class TxUpdateMgr(QObject, PrintError):
 
     @rate_limited(5.0, classlevel=True)
     def process_notifs(self):
-        # FIXME: check if this method still has any use, after cashacct removal
         parent = self.weakParent()
-        if not parent or parent.cleaned_up:
+        if not parent or parent.cleaned_up or not parent.network:
             return
-        if parent.network:
-            txns = self.notifs_get_and_clear()
-            if txns:
-                # Combine the transactions
-                n_ok, total_amount = 0, 0
-                for tx in txns:
-                    if tx:
-                        delta = parent.wallet.get_wallet_delta(tx)
-                        if not delta.is_relevant:
-                            continue
-                        total_amount += delta.v
-                        n_ok += 1
+        txns = self.notifs_get_and_clear()
+        if not txns:
+            return
+        # Combine the transactions
+        n_ok, total_amount = 0, 0
+        for tx in txns:
+            if tx:
+                delta = parent.wallet.get_wallet_delta(tx)
+                if not delta.is_relevant:
+                    continue
+                total_amount += delta.v
+                n_ok += 1
+        if not parent.wallet.storage.get("gui_notify_tx", True) or total_amount <= 0:
+            return
+        self.print_error(f"Notifying GUI {n_ok} tx")
+        parent.notify(
+            _("New transaction: {}").format(
+                parent.format_amount_and_units(total_amount, is_diff=True)
+            )
+        )
