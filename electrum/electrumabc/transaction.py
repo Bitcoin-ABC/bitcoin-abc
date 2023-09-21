@@ -162,7 +162,7 @@ class OutPoint(SerializableObject):
         return hash((self.txid, self.n))
 
     def __str__(self):
-        return f"{self.txid.to_string()}:{self.n})"
+        return f"{self.txid.to_string()}:{self.n}"
 
     @staticmethod
     def from_str(outpoint: str) -> OutPoint:

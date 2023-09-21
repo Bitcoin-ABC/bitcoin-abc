@@ -1,4 +1,5 @@
 import unittest
+from io import BytesIO
 from typing import Dict, List, Optional
 
 from .. import transaction
@@ -819,6 +820,42 @@ class TestTxOutput(unittest.TestCase):
                 transaction.TxOutput(TYPE_SCRIPT, locking_script, amount).size(),
                 expected_output_size,
             )
+
+
+class TestOutPoint(unittest.TestCase):
+    def setUp(self):
+        self.txid_hex = (
+            "ed6a4d07e546b677abf6ba1257c2546128c694f23f4b9ebbd822fdfe435ef349"
+        )
+        self.n = 1
+        self.expected_outpoint = transaction.OutPoint(
+            UInt256.from_hex(self.txid_hex), self.n
+        )
+        self.outpoint_bytes = bytes.fromhex(self.txid_hex)[::-1] + self.n.to_bytes(
+            4, "little"
+        )
+
+    def test_from_string(self):
+        outp = transaction.OutPoint.from_str(f"{self.txid_hex}:{self.n}")
+
+        self.assertEqual(outp, self.expected_outpoint)
+        self.assertEqual(outp.txid, UInt256.from_hex(self.txid_hex))
+        self.assertEqual(outp.n, self.n)
+
+    def test_to_string(self):
+        self.assertEqual(str(self.expected_outpoint), f"{self.txid_hex}:{self.n}")
+
+    def test_serialize(self):
+        self.assertEqual(
+            self.expected_outpoint.serialize(),
+            self.outpoint_bytes,
+        )
+
+    def test_deserialize(self):
+        self.assertEqual(
+            transaction.OutPoint.deserialize(BytesIO(self.outpoint_bytes)),
+            self.expected_outpoint,
+        )
 
 
 class TestTxInput(unittest.TestCase):
