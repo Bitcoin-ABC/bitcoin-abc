@@ -60,6 +60,8 @@ struct Params {
     int wellingtonHeight;
     /** Unix time used for MTP activation of 15 Nov 2023 12:00:00 UTC upgrade */
     int cowperthwaiteActivationTime;
+    /** Unix time used for MTP activation of 15 May 2024 12:00:00 UTC upgrade */
+    int leeKuanYewActivationTime;
 
     /** Enable or disable the miner fund by default */
     bool enableMinerFund;

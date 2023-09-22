@@ -14,3 +14,5 @@ changes will become activated:
    of the block reward to a payout address selected from the avalanche network.
    Blocks that don't include or have an incorrect output will be rejected by the
    avalanche network.
+ - Bump automatic replay protection to the next upgrade, timestamp `1715774400`
+   (May 15, 2024 12:00:00 UTC).

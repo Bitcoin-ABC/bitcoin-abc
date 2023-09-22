@@ -230,9 +230,8 @@ bool CheckSequenceLocksAtTip(CBlockIndex *tip, const CCoinsView &coins_view,
 // <timestamp>. Defaults to the pre-defined timestamp when not set.
 static bool IsReplayProtectionEnabled(const Consensus::Params &params,
                                       int64_t nMedianTimePast) {
-    return nMedianTimePast >=
-           gArgs.GetIntArg("-replayprotectionactivationtime",
-                           params.cowperthwaiteActivationTime);
+    return nMedianTimePast >= gArgs.GetIntArg("-replayprotectionactivationtime",
+                                              params.leeKuanYewActivationTime);
 }
 
 static bool IsReplayProtectionEnabled(const Consensus::Params &params,
