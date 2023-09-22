@@ -1183,7 +1183,7 @@ class Fusion(threading.Thread, PrintError):
                     inp["signatures"] = [sig.hex() + "41"]
 
                 assert tx.is_complete()
-                txhex = tx.serialize()
+                txhex = tx.serialize().hex()
 
                 self.txid = txid = tx.txid()
                 sum_in_str = format_satoshis(sum_in, num_zeros=2)

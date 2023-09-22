@@ -487,7 +487,7 @@ class LedgerKeyStore(HardwareKeyStore):
             redeemScript = Transaction.get_preimage_script(txin)
             inputs.append(
                 [
-                    txin["prev_tx"].raw,
+                    txin["prev_tx"].raw.hex(),
                     txin["prevout_n"],
                     redeemScript,
                     txin["prevout_hash"],
@@ -630,7 +630,7 @@ class LedgerKeyStore(HardwareKeyStore):
             # we don't set meaningful outputAddress, amount and fees
             # as we only care about the alternateEncoding==True branch
             outputData = client_ledger.finalizeInput(
-                b"", 0, 0, changePath, bfh(tx.serialize(True))
+                b"", 0, 0, changePath, tx.serialize(True)
             )
             outputData["outputData"] = txOutput
             if outputData["confirmationNeeded"]:

@@ -986,9 +986,9 @@ def parse_output(vds: BCDataStream) -> TxOutput:
     return TxOutput(output_type, address, value)
 
 
-def deserialize(raw: str) -> Tuple[int, List[TxInput], List[TxOutput], int]:
+def deserialize(raw: bytes) -> Tuple[int, List[TxInput], List[TxOutput], int]:
     vds = BCDataStream()
-    vds.write(bfh(raw))
+    vds.write(raw)
     version = vds.read_int32()
     n_vin = vds.read_compact_size()
     inputs = [parse_input(vds) for i in range(n_vin)]
@@ -1018,17 +1018,11 @@ class Transaction:
     def __str__(self):
         if self.raw is None:
             self.raw = self.serialize()
-        return self.raw
+        return self.raw.hex()
 
-    def __init__(self, raw, sign_schnorr=False):
-        if raw is None:
-            self.raw = None
-        elif isinstance(raw, str):
-            self.raw = raw.strip() if raw else None
-        elif isinstance(raw, dict):
-            self.raw = raw["hex"]
-        else:
-            raise RuntimeError("cannot initialize transaction", raw)
+    def __init__(self, raw: Optional[bytes], sign_schnorr=False):
+        self.raw: Optional[bytes] = raw
+        assert raw is None or isinstance(raw, bytes)
         self._inputs: Optional[List[TxInput]] = None
         self._outputs: Optional[List[TxOutput]] = None
         self.locktime = 0
@@ -1053,7 +1047,7 @@ class Transaction:
     def set_sign_schnorr(self, b):
         self._sign_schnorr = b
 
-    def update(self, raw):
+    def update(self, raw: bytes):
         self.raw = raw
         self._inputs = None
         self.deserialize()
@@ -1357,14 +1351,14 @@ class Transaction:
         )
         return preimage
 
-    def serialize(self, estimate_size=False):
-        nVersion = bitcoin.int_to_le_hex(self.version, 4)
-        nLocktime = bitcoin.int_to_le_hex(self.locktime, 4)
+    def serialize(self, estimate_size=False) -> bytes:
+        nVersion = self.version.to_bytes(4, "little")
+        nLocktime = self.locktime.to_bytes(4, "little")
         inputs = self.txinputs()
-        txins = compact_size(len(inputs)).hex() + "".join(
-            txin.serialize(estimate_size, self._sign_schnorr).hex() for txin in inputs
+        txins = compact_size(len(inputs)) + b"".join(
+            txin.serialize(estimate_size, self._sign_schnorr) for txin in inputs
         )
-        txouts = serialize_sequence(self.outputs()).hex()
+        txouts = serialize_sequence(self.outputs())
         return nVersion + txins + txouts + nLocktime
 
     def hash(self):
@@ -1390,8 +1384,8 @@ class Transaction:
         return self.txid()
 
     @staticmethod
-    def _txid(raw_hex: str) -> str:
-        return bh2u(bitcoin.Hash(bfh(raw_hex))[::-1])
+    def _txid(raw_hex: bytes) -> str:
+        return bitcoin.Hash(raw_hex)[::-1].hex()
 
     def add_inputs(self, inputs: List[TxInput]):
         assert all(isinstance(txin, TxInput) for txin in inputs)
@@ -1455,7 +1449,7 @@ class Transaction:
         (including the sighash flag).
         """
         if self.is_complete() and self.raw is not None:
-            return len(self.raw) // 2
+            return len(self.raw)
 
         # VERSION (4 bytes) + INPUTS + OUTPUTS + locktime (4 bytes)
         inputs = self.txinputs()
@@ -1615,7 +1609,7 @@ class Transaction:
             self.raw = self.serialize()
         self.deserialize()
         out = {
-            "hex": self.raw,
+            "hex": self.raw.hex(),
             "complete": self.is_complete(),
             "final": self.is_final(),
         }
@@ -1834,7 +1828,7 @@ class Transaction:
                             # needlessly. Also note the cache doesn't store
                             # deserializd tx's so as to save memory. We
                             # always deserialize a copy when reading the cache.
-                            tx = Transaction(r["result"])
+                            tx = Transaction(bytes.fromhex(["result"]))
                             txid = r["params"][0]
                             # protection against phony responses
                             assert txid == cls._txid(tx.raw), "txid-is-sane-check"
@@ -1928,7 +1922,7 @@ class Transaction:
                             txid = r["params"][0]
                             # skip if was marked bad by our callback code
                             assert txid not in bad_txids, "txid marked bad"
-                            tx = Transaction(rawhex)
+                            tx = Transaction(bytes.fromhex(rawhex))
                             tx.deserialize()
                             for item in need_dl_txids[txid]:
                                 ii, n = item
@@ -2029,8 +2023,8 @@ class Transaction:
         cls._fetched_tx_cache.put(txid, Transaction(tx.raw))
 
 
-def tx_from_str(txt):
-    "json or raw hexadecimal"
+def tx_from_str(txt: str) -> bytes:
+    """txt is json or raw hexadecimal"""
     import json
 
     txt = txt.strip()
@@ -2042,10 +2036,10 @@ def tx_from_str(txt):
     except Exception:
         is_hex = False
     if is_hex:
-        return txt
+        return bytes.fromhex(txt)
     tx_dict = json.loads(str(txt))
     assert "hex" in tx_dict.keys()
-    return tx_dict["hex"]
+    return bytes.fromhex(tx_dict["hex"])
 
 
 # ---

@@ -104,12 +104,12 @@ class TestBCDataStream(unittest.TestCase):
 class TestTransaction(unittest.TestCase):
     def assert_tx_size(self, tx: transaction.Transaction, expected_size: int):
         self.assertEqual(tx.estimated_size(), expected_size)
-        self.assertEqual(len(tx.serialize()) // 2, expected_size)
+        self.assertEqual(len(tx.serialize()), expected_size)
 
     def assert_txid_and_size(
         self, tx_hex: str, expected_txid: str
     ) -> transaction.Transaction:
-        tx = transaction.Transaction(tx_hex)
+        tx = transaction.Transaction(bytes.fromhex(tx_hex))
         self.assertEqual(tx.txid(), expected_txid)
         self.assert_tx_size(tx, len(tx_hex) // 2)
         return tx
@@ -174,7 +174,7 @@ class TestTransaction(unittest.TestCase):
             ],
             "version": 1,
         }
-        tx = transaction.Transaction(unsigned_blob)
+        tx = transaction.Transaction(bytes.fromhex(unsigned_blob))
         tx.deserialize()
         self._assert_expected_tx_dict(tx, expected)
 
@@ -205,7 +205,7 @@ class TestTransaction(unittest.TestCase):
             tx_has_address(Address.from_string("1CQj15y1N7LDHp7wTt28eoD1QhHgFgxECH"))
         )
 
-        self.assertEqual(tx.serialize(), unsigned_blob)
+        self.assertEqual(tx.serialize().hex(), unsigned_blob)
         # In this case we overestimate by 1 byte because the actual signature is
         # shorter than the maximum signature size.
         self.assertEqual(tx.estimated_size(), len(signed_blob) // 2 + 1)
@@ -217,10 +217,10 @@ class TestTransaction(unittest.TestCase):
                 )
             ]
         )
-        self.assertEqual(tx.raw, signed_blob)
+        self.assertEqual(tx.raw.hex(), signed_blob)
         self.assert_tx_size(tx, len(signed_blob) // 2)
 
-        tx.update(unsigned_blob)
+        tx.update(bytes.fromhex(unsigned_blob))
         tx.raw = None
         blob = str(tx)
         expected_txoutput = transaction.TxOutput(
@@ -230,7 +230,7 @@ class TestTransaction(unittest.TestCase):
         )
         expected_txinput = transaction.TxInput.from_coin_dict(expected["inputs"][0])
         self.assertEqual(
-            transaction.deserialize(blob),
+            transaction.deserialize(bytes.fromhex(blob)),
             (
                 expected["version"],
                 [expected_txinput],
@@ -278,14 +278,14 @@ class TestTransaction(unittest.TestCase):
             ],
             "version": 1,
         }
-        tx = transaction.Transaction(signed_blob)
+        tx = transaction.Transaction(bytes.fromhex(signed_blob))
         tx.deserialize()
         self._assert_expected_tx_dict(tx, expected)
         self.assertEqual(
             tx.as_dict(), {"hex": signed_blob, "complete": True, "final": True}
         )
 
-        self.assertEqual(tx.serialize(), signed_blob)
+        self.assertEqual(tx.serialize().hex(), signed_blob)
 
         tx.update_signatures(
             [bytes.fromhex(expected["inputs"][0]["signatures"][0][:-2])]
@@ -334,7 +334,7 @@ class TestTransaction(unittest.TestCase):
             ],
             "version": 1,
         }
-        tx = transaction.Transaction(nonmin_blob)
+        tx = transaction.Transaction(bytes.fromhex(nonmin_blob))
         tx.deserialize()
         self._assert_expected_tx_dict(tx, expected)
 
@@ -342,7 +342,7 @@ class TestTransaction(unittest.TestCase):
             tx.as_dict(), {"hex": nonmin_blob, "complete": True, "final": True}
         )
 
-        self.assertEqual(tx.serialize(), nonmin_blob)
+        self.assertEqual(tx.serialize().hex(), nonmin_blob)
 
         # if original push is lost, will wrongly be e64808c1eb86e8cab68fcbd8b7f3b01f8cc8f39bd05722f1cf2d7cd9b35fb4e3
         self.assertEqual(
@@ -870,7 +870,7 @@ class TestTxInput(unittest.TestCase):
         expected_value: Optional[int] = None,
         expected_preimage_script: Optional[str] = None,
     ):
-        tx = transaction.Transaction(tx_hex)
+        tx = transaction.Transaction(bytes.fromhex(tx_hex))
         input_dict = tx.inputs()[0]
         txinput = tx.txinputs()[0]
         expected_sigs_bytes = [

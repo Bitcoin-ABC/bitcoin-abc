@@ -346,7 +346,7 @@ class Synchronizer(ThreadJob):
                 self.print_error("error for tx_hash {}, skipping".format(tx_hash))
                 return
             try:
-                tx = Transaction(result)
+                tx = Transaction(bytes.fromhex(result))
                 tx.deserialize()
             except Exception:
                 traceback.print_exc()

@@ -3782,8 +3782,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     def tx_from_text(self, txt) -> Optional[Transaction]:
         try:
-            txt_tx = tx_from_str(txt)
-            tx = Transaction(txt_tx, sign_schnorr=self.wallet.is_schnorr_enabled())
+            raw_tx = tx_from_str(txt)
+            tx = Transaction(raw_tx, sign_schnorr=self.wallet.is_schnorr_enabled())
             tx.deserialize()
             if self.wallet:
                 my_coins = self.wallet.get_spendable_coins(None, self.config)
@@ -3953,7 +3953,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             # note that presumably the tx is already signed if it comes from blockchain
             # so this sign_schnorr parameter is superfluous, but here to satisfy
             # my OCD -Calin
-            tx = Transaction(r, sign_schnorr=self.wallet.is_schnorr_enabled())
+            tx = Transaction(
+                bytes.fromhex(r), sign_schnorr=self.wallet.is_schnorr_enabled()
+            )
             self.show_transaction(tx)
 
     def do_create_invoice(self):

@@ -357,7 +357,7 @@ class Plugin(BasePlugin):
         for xpub, K, _hash in state.cosigner_list:
             if not self.cosigner_can_sign(tx, xpub):
                 continue
-            message = bitcoin.encrypt_message(bfh(tx.raw), K).decode("ascii")
+            message = bitcoin.encrypt_message(tx.raw, K).decode("ascii")
             try:
                 state.server.put(_hash, message)
             except Exception:
@@ -445,12 +445,12 @@ class Plugin(BasePlugin):
         try:
             k = bh2u(bitcoin.deserialize_xprv(xprv)[-1])
             EC = bitcoin.ECKey(bfh(k))
-            message = bh2u(EC.decrypt_message(message))
+            raw_tx = EC.decrypt_message(message)
         except Exception as e:
             traceback.print_exc(file=sys.stdout)
             window.show_error(repr(e))
             return
 
         state.listener.clear(keyhash)
-        tx = transaction.Transaction(message)
+        tx = transaction.Transaction(raw_tx)
         show_transaction(tx, window, prompt_if_unsaved=True)

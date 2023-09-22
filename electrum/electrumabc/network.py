@@ -2028,12 +2028,12 @@ class Network(util.DaemonThread):
             raise util.ServerError(r.get("error"))
         return r.get("result")
 
-    def get_raw_tx_for_txid(self, txid, timeout=30):
+    def get_raw_tx_for_txid(self, txid, timeout=30) -> Tuple[bool, str]:
         """Used by UI code to retrieve a transaction from the blockchain by
         txid.  (Qt Gui: Tools -> Load transaction -> From the blockchain)
 
         param: txid, a transaction hash
-        returns: tuple(True, raw_tx) on success
+        returns: tuple(True, hex_raw_tx) on success
                  tuple(False, error_msg) on failure.
 
                  error_msg is suitable to be displayed in a UI as it is not

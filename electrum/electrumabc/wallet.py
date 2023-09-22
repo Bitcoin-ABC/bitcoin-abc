@@ -434,8 +434,8 @@ class AbstractWallet(PrintError, SPVDelegate):
         self.pruned_txo_values = set(self.pruned_txo.values())
         tx_list = self.storage.get("transactions", {})
         self.transactions = {}
-        for tx_hash, raw in tx_list.items():
-            tx = Transaction(raw)
+        for tx_hash, rawhex in tx_list.items():
+            tx = Transaction(bytes.fromhex(rawhex))
             self.transactions[tx_hash] = tx
             if (
                 not self.txi.get(tx_hash)
@@ -1294,8 +1294,10 @@ class AbstractWallet(PrintError, SPVDelegate):
                                 )
                             t1 = time.time()
                             tx = Transaction(
-                                self.network.synchronous_get(
-                                    ("blockchain.transaction.get", [prevout_hash])
+                                bytes.fromhex(
+                                    self.network.synchronous_get(
+                                        ("blockchain.transaction.get", [prevout_hash])
+                                    )
                                 )
                             )
                             if debug:
@@ -2497,7 +2499,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         tx = self.transactions.get(tx_hash)
         if not tx and self.network:
             request = ("blockchain.transaction.get", [tx_hash])
-            tx = Transaction(self.network.synchronous_get(request))
+            tx = Transaction(bytes.fromhex(self.network.synchronous_get(request)))
         return tx
 
     def add_input_values_to_tx(self, tx):

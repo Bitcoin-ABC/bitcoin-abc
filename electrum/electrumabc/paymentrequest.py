@@ -957,13 +957,13 @@ class PaymentRequestBitPay20(PaymentRequest, PrintError):
     def verify_dnssec(self, pr, contacts):
         raise NotImplementedError()
 
-    def send_payment(self, raw_tx, refund_addr, *, timeout=10.0):
+    def send_payment(self, raw_tx: str, refund_addr, *, timeout=10.0):
         self.print_error("Send payment")
         # NB: refund_addr is ignored
         self.tx = None
         # First, verify that BitPay would accept the payment by sending
         # a verify-payment message via HTTP
-        tx = Transaction(raw_tx)
+        tx = Transaction(bytes.fromhex(raw_tx))
         # def from_io(klass, inputs, outputs, locktime=0, sign_schnorr=False):
         unsigned_tx = Transaction.from_io(
             tx.txinputs(),
@@ -976,8 +976,8 @@ class PaymentRequestBitPay20(PaymentRequest, PrintError):
         unsigned_raw = unsigned_tx.serialize(True)
         body = {
             "currency": self.details.currency or f"{XEC.ticker}",
-            "unsignedTransaction": unsigned_raw,
-            "weightedSize": len(unsigned_raw) // 2,
+            "unsignedTransaction": unsigned_raw.hex(),
+            "weightedSize": len(unsigned_raw),
         }
         try:
             r = requests.post(

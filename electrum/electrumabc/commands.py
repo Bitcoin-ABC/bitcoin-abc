@@ -960,7 +960,7 @@ class Commands:
         else:
             raw = self.network.synchronous_get(("blockchain.transaction.get", [txid]))
             if raw:
-                tx = Transaction(raw)
+                tx = Transaction(bytes.fromhex(raw))
             else:
                 raise RuntimeError("Unknown transaction")
         return tx.as_dict()

@@ -670,6 +670,9 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
             if p2pkhTransaction:
 
                 class CustomTXSerialization(Transaction):
+                    # fixme: Transaction.serialize no longer calls input_script,
+                    #        so this overloading does not affect
+                    #        CustomTXSerialization.serialize()
                     @classmethod
                     def input_script(
                         self, txin, estimate_size=False, sign_schnorr=False
@@ -684,7 +687,9 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
                             )
                         raise Exception("unsupported type %s" % txin["type"])
 
-                tx_dbb_serialized = CustomTXSerialization(tx.serialize()).serialize()
+                tx_dbb_serialized = (
+                    CustomTXSerialization(tx.serialize()).serialize().hex()
+                )
             else:
                 # We only need this for the signing echo / verification.
                 tx_dbb_serialized = None
@@ -717,7 +722,7 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
                     raise Exception("Could not sign transaction.")
 
                 if self.plugin.is_mobile_paired() and tx_dbb_serialized is not None:
-                    reply["tx"] = tx_dbb_serialized
+                    reply["tx"] = tx_dbb_serialized.hex()
                     self.plugin.comserver_post_notification(reply)
 
                 if steps > 1:
