@@ -43,6 +43,7 @@ from ecdsa.util import number_to_string, string_to_number
 from . import networks
 from .ecc_fast import do_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1
 from .printerror import print_error
+from .serialize import serialize_blob
 from .util import InvalidPassword, assert_bytes, bh2u, to_bytes, to_string
 
 if TYPE_CHECKING:
@@ -376,22 +377,6 @@ def int_to_le_hex(i: int, length: int = 1) -> str:
     """
     le_bytes = i.to_bytes(length, "little")
     return le_bytes.hex()
-
-
-def var_int(i: int) -> bytes:
-    """
-    Encode an integer as a variable length integer.
-    See:
-    https://en.bitcoin.it/wiki/Protocol_specification#Variable_length_integer
-    """
-    if i < 0xFD:
-        return i.to_bytes(1, "little")
-    elif i <= 0xFFFF:
-        return b"\xfd" + i.to_bytes(2, "little")
-    elif i <= 0xFFFFFFFF:
-        return b"\xfe" + i.to_bytes(4, "little")
-    else:
-        return b"\xff" + i.to_bytes(8, "little")
 
 
 def op_push_bytes(data_len: int) -> bytes:
@@ -783,9 +768,7 @@ def msg_magic(message: bytes, sigtype: SignatureType = SignatureType.ECASH) -> b
     """Prepare the preimage of the message before signing it or verifying
     its signature."""
     magic = ECASH_MSG_MAGIC if sigtype == SignatureType.ECASH else BITCOIN_MSG_MAGIC
-    length = var_int(len(message))
-    magic_length = var_int(len(magic))
-    return magic_length + magic + length + message
+    return serialize_blob(magic) + serialize_blob(message)
 
 
 def verify_message(

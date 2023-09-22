@@ -32,7 +32,6 @@ from ..bitcoin import (
     pw_encode,
     regenerate_key,
     serialize_privkey,
-    var_int,
     verify_message,
     xpub_from_xprv,
     xpub_type,
@@ -214,21 +213,6 @@ class TestBitcoin(unittest.TestCase):
 
         result = Hash(payload)
         self.assertEqual(expected, result)
-
-    def test_var_int(self):
-        for i in range(0xFD):
-            self.assertEqual(var_int(i).hex(), f"{i:02x}")
-
-        self.assertEqual(var_int(0xFD).hex(), "fdfd00")
-        self.assertEqual(var_int(0xFE).hex(), "fdfe00")
-        self.assertEqual(var_int(0xFF).hex(), "fdff00")
-        self.assertEqual(var_int(0x1234).hex(), "fd3412")
-        self.assertEqual(var_int(0xFFFF).hex(), "fdffff")
-        self.assertEqual(var_int(0x10000).hex(), "fe00000100")
-        self.assertEqual(var_int(0x12345678).hex(), "fe78563412")
-        self.assertEqual(var_int(0xFFFFFFFF).hex(), "feffffffff")
-        self.assertEqual(var_int(0x100000000).hex(), "ff0000000001000000")
-        self.assertEqual(var_int(0x0123456789ABCDEF).hex(), "ffefcdab8967452301")
 
     def test_op_push(self):
         self.assertEqual(op_push(0x00), "00")

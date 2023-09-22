@@ -9,18 +9,13 @@ from typing import Optional, Tuple
 
 from electrumabc import bitcoin
 from electrumabc.address import Address
-from electrumabc.bitcoin import (
-    TYPE_ADDRESS,
-    TYPE_SCRIPT,
-    SignatureType,
-    int_to_le_hex,
-    var_int,
-)
+from electrumabc.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, SignatureType, int_to_le_hex
 from electrumabc.constants import DEFAULT_TXIN_SEQUENCE
 from electrumabc.i18n import _
 from electrumabc.keystore import HardwareKeyStore
 from electrumabc.plugins import Device
 from electrumabc.printerror import is_verbose, print_error
+from electrumabc.serialize import serialize_sequence
 from electrumabc.transaction import Transaction
 from electrumabc.util import bfh, bh2u, versiontuple
 
@@ -514,13 +509,7 @@ class LedgerKeyStore(HardwareKeyStore):
                         )
                     )  # should never happen
 
-        txOutput = var_int(len(tx.outputs())).hex()
-        for txout in tx.outputs():
-            txOutput += int_to_le_hex(txout.value, 8)
-            script = txout.destination.to_script().hex()
-            txOutput += var_int(len(script) // 2).hex()
-            txOutput += script
-        txOutput = bfh(txOutput)
+        txOutput = serialize_sequence(tx.outputs())
 
         if not client_electrum.supports_multi_output():
             if len(tx.outputs()) > 2:

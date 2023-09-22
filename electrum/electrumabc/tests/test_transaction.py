@@ -782,25 +782,6 @@ class TestTransaction(unittest.TestCase):
         self.assertEqual(set(tx.txinputs()), set(expected_txins))
 
 
-class TestCompactSize(unittest.TestCase):
-    def test_compact_size_nbytes(self):
-        for size, expected_nbytes in (
-            (0, 1),
-            (1, 1),
-            (252, 1),
-            (253, 3),
-            (2**16 - 1, 3),
-            (2**16, 5),
-            (2**32 - 1, 5),
-            (2**32, 9),
-            (2**64 - 1, 9),
-        ):
-            self.assertEqual(transaction.compact_size_nbytes(size), expected_nbytes)
-
-        with self.assertRaises(OverflowError):
-            transaction.compact_size_nbytes(2**64)
-
-
 class TestTxOutput(unittest.TestCase):
     def test_size(self):
         for script_size, expected_output_size in (

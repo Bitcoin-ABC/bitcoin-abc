@@ -60,7 +60,13 @@ from .constants import DEFAULT_TXIN_SEQUENCE
 #
 from .keystore import xpubkey_to_address, xpubkey_to_pubkey
 from .printerror import print_error
-from .serialize import SerializableObject
+from .serialize import (
+    SerializableObject,
+    compact_size,
+    compact_size_nbytes,
+    serialize_blob,
+    serialize_sequence,
+)
 from .uint256 import UInt256
 from .util import bfh, bh2u, profiler, to_bytes
 
@@ -84,21 +90,6 @@ COMPRESSED_PUBKEY_NBYTES = 33
 
 
 NO_SIGNATURE = b"\xff"
-
-
-def compact_size_nbytes(size: int) -> int:
-    """Return the number of bytes needed to encode an integer as a CompactSize.
-    See https://en.bitcoin.it/wiki/Protocol_documentation#Variable_length_integer.
-    """
-    if size < 253:
-        return 1
-    if size < 0x10000:
-        return 3
-    if size < 0x100000000:
-        return 5
-    if size > 0xFFFFFFFFFFFFFFFF:
-        raise OverflowError("CompactSize cannot encode values larger than 2^64 - 1")
-    return 9
 
 
 class SerializationError(Exception):
@@ -132,8 +123,7 @@ class TxOutput(NamedTuple):
     def serialize(self) -> bytes:
         s = self.value.to_bytes(8, "little")
         script = self.destination.to_script()
-        s += bitcoin.var_int(len(script))
-        s += script
+        s += serialize_blob(script)
         return s
 
 
@@ -642,8 +632,7 @@ class TxInput:
         script = self.get_or_build_scriptsig(estimate_size, sign_schnorr)
         s = (
             self.outpoint.serialize()
-            + bitcoin.var_int(len(script))
-            + script
+            + serialize_blob(script)
             + self.sequence.to_bytes(4, "little")
         )
         # offline signing needs to know the input value
@@ -763,17 +752,7 @@ class BCDataStream(object):
     def write_compact_size(self, size):
         if size < 0:
             raise SerializationError("attempt to write size < 0")
-        elif size < 253:
-            self.write(bytes([size]))
-        elif size < 2**16:
-            self.write(b"\xfd")
-            self._write_num("<H", size)
-        elif size < 2**32:
-            self.write(b"\xfe")
-            self._write_num("<I", size)
-        elif size < 2**64:
-            self.write(b"\xff")
-            self._write_num("<Q", size)
+        self.write(compact_size(size))
 
     def _read_num(self, fmt):
         try:
@@ -1354,8 +1333,7 @@ class Transaction:
 
         txin: TxInput = self.txinputs()[i]
         outpoint = txin.outpoint.to_hex()
-        preimage_script = txin.get_preimage_script().hex()
-        scriptCode = bitcoin.var_int(len(preimage_script) // 2).hex() + preimage_script
+        scriptCode = serialize_blob(txin.get_preimage_script()).hex()
         if txin.get_value() is None:
             raise InputValueMissing
         amount = bitcoin.int_to_le_hex(txin.get_value(), 8)
@@ -1383,13 +1361,10 @@ class Transaction:
         nVersion = bitcoin.int_to_le_hex(self.version, 4)
         nLocktime = bitcoin.int_to_le_hex(self.locktime, 4)
         inputs = self.txinputs()
-        outputs = self.outputs()
-        txins = bitcoin.var_int(len(inputs)).hex() + "".join(
+        txins = compact_size(len(inputs)).hex() + "".join(
             txin.serialize(estimate_size, self._sign_schnorr).hex() for txin in inputs
         )
-        txouts = bitcoin.var_int(len(outputs)).hex() + "".join(
-            o.serialize().hex() for o in outputs
-        )
+        txouts = serialize_sequence(self.outputs()).hex()
         return nVersion + txins + txouts + nLocktime
 
     def hash(self):

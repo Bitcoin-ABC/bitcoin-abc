@@ -8,7 +8,7 @@ import mnemonic
 
 # electrumabc
 from electrumabc import networks
-from electrumabc.bitcoin import Hash, SignatureType, hash_160, serialize_xpub, var_int
+from electrumabc.bitcoin import Hash, SignatureType, hash_160, serialize_xpub
 from electrumabc.constants import PROJECT_NAME
 from electrumabc.i18n import _
 from electrumabc.keystore import HardwareKeyStore
@@ -20,8 +20,9 @@ from electrumabc.mnemo import (
 )
 from electrumabc.plugins import Device
 from electrumabc.printerror import PrintError, is_verbose, print_error
+from electrumabc.serialize import serialize_sequence
 from electrumabc.transaction import Transaction
-from electrumabc.util import bfh, bh2u
+from electrumabc.util import bfh
 from electrumabc.wallet import StandardWallet
 from electrumabc_gui.qt.qrcodewidget import QRDialog
 
@@ -425,10 +426,7 @@ class SatochipKeyStore(HardwareKeyStore):
         client = self.get_client()
 
         # outputs
-        txOutputs = "".join(o.serialize().hex() for o in tx.outputs())
-        hashOutputs = bh2u(Hash(bfh(txOutputs)))
-        txOutputs = var_int(len(tx.outputs())).hex() + txOutputs
-        self.print_error("sign_transaction(): hashOutputs= ", hashOutputs)
+        txOutputs = serialize_sequence(tx.outputs()).hex()
         self.print_error("sign_transaction(): outputs= ", txOutputs)
 
         # Fetch inputs of the transaction to sign

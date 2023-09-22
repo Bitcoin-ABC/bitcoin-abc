@@ -33,9 +33,9 @@ from ..bitcoin import deserialize_privkey, public_key_from_private_key
 from ..serialize import (
     DeserializationError,
     SerializableObject,
+    compact_size,
     deserialize_blob,
     serialize_blob,
-    write_compact_size,
 )
 
 # We redefine private key and public key objects because the ones used in the rest
@@ -77,7 +77,7 @@ class PublicKey(SerializableObject):
             )
 
         # TODO: more validation to ensure this key is a valid point on the curve.
-        return cls.deserialize(BytesIO(write_compact_size(len(data)) + data))
+        return cls.deserialize(BytesIO(compact_size(len(data)) + data))
 
     def to_hex(self) -> str:
         return self.keydata.hex()

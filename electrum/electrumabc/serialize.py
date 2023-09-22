@@ -62,23 +62,25 @@ class SerializableObject(ABC):
         return self.serialize().hex()
 
 
-def write_compact_size(nsize: int) -> bytes:
+def compact_size(nsize: int) -> bytes:
     """Serialize a size. Values lower than 253 are serialized using 1 byte.
     For larger values, the first byte indicates how many additional bytes to
     read when decoding (253: 2 bytes, 254: 4 bytes, 255: 8 bytes)
+
+    See https://en.bitcoin.it/wiki/Protocol_specification#Variable_length_integer
 
     :param nsize: value to serialize
     :return:
     """
     assert nsize >= 0
-    if nsize < 253:
-        return struct.pack("B", nsize)
-    if nsize < 0x10000:
-        return struct.pack("<BH", 253, nsize)
-    if nsize < 0x100000000:
-        return struct.pack("<BL", 254, nsize)
+    if nsize < 0xFD:
+        return nsize.to_bytes(1, "little")
+    if nsize <= 0xFFFF:
+        return b"\xfd" + nsize.to_bytes(2, "little")
+    if nsize <= 0xFFFFFFFF:
+        return b"\xfe" + nsize.to_bytes(4, "little")
     assert nsize < 0x10000000000000000
-    return struct.pack("<BQ", 255, nsize)
+    return b"\xff" + nsize.to_bytes(8, "little")
 
 
 def read_compact_size(stream: BytesIO) -> int:
@@ -92,11 +94,26 @@ def read_compact_size(stream: BytesIO) -> int:
     return nit
 
 
+def compact_size_nbytes(nsize: int) -> int:
+    """Return the number of bytes needed to encode an integer as a CompactSize.
+    See https://en.bitcoin.it/wiki/Protocol_documentation#Variable_length_integer.
+    """
+    if nsize < 253:
+        return 1
+    if nsize < 0x10000:
+        return 3
+    if nsize < 0x100000000:
+        return 5
+    if nsize > 0xFFFFFFFFFFFFFFFF:
+        raise OverflowError("CompactSize cannot encode values larger than 2^64 - 1")
+    return 9
+
+
 def serialize_sequence(seq: Sequence[SerializableObject]) -> bytes:
     """Serialize a variable length sequence (list...) of serializable constant size
     objects. The length of the sequence is encoded as a VarInt.
     """
-    b = write_compact_size(len(seq))
+    b = compact_size(len(seq))
     for obj in seq:
         b += obj.serialize()
     return b
@@ -118,7 +135,7 @@ def serialize_blob(blob: bytes) -> bytes:
     """Serialize a variable length bytestring. The length of the sequence is encoded as
     a VarInt.
     """
-    return write_compact_size(len(blob)) + blob
+    return compact_size(len(blob)) + blob
 
 
 def deserialize_blob(stream: BytesIO) -> bytes:
