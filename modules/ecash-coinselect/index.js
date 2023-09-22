@@ -2,10 +2,6 @@
 // Copyright (c) 2023 Bitcoin ABC
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
-
 'use strict';
-
-module.exports = {
-    require: 'mocha-suppress-logs',
-    timeout: 15000,
-};
+const { coinSelect } = require('./src/coinSelect');
+module.exports = { coinSelect };

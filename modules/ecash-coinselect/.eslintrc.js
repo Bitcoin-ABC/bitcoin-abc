@@ -1,6 +1,7 @@
-// Copyright (c) 2023 The Bitcoin developers
+// Copyright (c) 2018 Daniel Cousens
+// Copyright (c) 2023 Bitcoin ABC
 // Distributed under the MIT software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 'use strict';
 module.exports = {
     env: {
@@ -21,9 +22,10 @@ module.exports = {
             2,
             'line',
             [
-                ' Copyright (c) 2023 The Bitcoin developers',
+                ' Copyright (c) 2018 Daniel Cousens',
+                ' Copyright (c) 2023 Bitcoin ABC',
                 ' Distributed under the MIT software license, see the accompanying',
-                ' file COPYING or http://www.opensource.org/licenses/mit-license.php.',
+                ' file LICENSE or http://www.opensource.org/licenses/mit-license.php.',
             ],
             1,
         ],
