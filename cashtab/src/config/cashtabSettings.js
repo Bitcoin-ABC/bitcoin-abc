@@ -16,6 +16,7 @@ export const cashtabSettings = {
 // Cashtab supported fiat currencies
 export const supportedFiatCurrencies = {
     usd: { name: 'US Dollar', symbol: '$', slug: 'usd' },
+    aed: { name: 'UAE Dirham', symbol: 'Dh', slug: 'aed' },
     aud: { name: 'Australian Dollar', symbol: '$', slug: 'aud' },
     bhd: { name: 'Bahraini Dinar', symbol: 'BD', slug: 'bhd' },
     brl: { name: 'Brazilian Real', symbol: 'R$', slug: 'brl' },
