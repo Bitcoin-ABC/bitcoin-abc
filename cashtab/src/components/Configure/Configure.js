@@ -1558,8 +1558,8 @@ const Configure = ({ passLoadingStatus }) => {
                 )}
                 {savedWallets && savedWallets.length > 0 && (
                     <>
-                        <StyledCollapse>
-                            <Panel header="Saved wallets">
+                        <StyledCollapse defaultActiveKey={['1']}>
+                            <Panel header="Saved wallets" key="1">
                                 <AWRow>
                                     <Tooltip title={wallet.name}>
                                         <h3 className="notranslate">
