@@ -68,7 +68,7 @@ from electrumabc.transaction import (
     SerializationError,
     Transaction,
     TxOutput,
-    tx_from_str,
+    rawtx_from_str,
 )
 from electrumabc.util import (
     ExcessiveFee,
@@ -3780,9 +3780,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         parent = parent or self
         return PasswordDialog(parent, msg).run()
 
-    def tx_from_text(self, txt) -> Optional[Transaction]:
+    def tx_from_text(self, txt: str) -> Optional[Transaction]:
         try:
-            raw_tx = tx_from_str(txt)
+            raw_tx = rawtx_from_str(txt)
             tx = Transaction(raw_tx, sign_schnorr=self.wallet.is_schnorr_enabled())
             tx.deserialize()
             if self.wallet:

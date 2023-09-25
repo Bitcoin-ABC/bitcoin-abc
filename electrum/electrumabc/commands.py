@@ -53,7 +53,7 @@ from .transaction import (
     TxInput,
     TxOutput,
     multisig_script,
-    tx_from_str,
+    rawtx_from_str,
 )
 from .util import format_satoshis, to_bytes
 from .version import PACKAGE_VERSION
@@ -1287,7 +1287,7 @@ arg_types = {
     "imax": int,
     "year": int,
     "entropy": int,
-    "tx": tx_from_str,
+    "tx": rawtx_from_str,
     "pubkeys": json_loads,
     "jsontx": json_loads,
     "inputs": json_loads,

@@ -26,6 +26,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import queue
 import random
 import struct
@@ -33,6 +34,7 @@ import threading
 import time
 import warnings
 from collections import defaultdict
+from contextlib import suppress
 from io import BytesIO
 from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union
 
@@ -2023,21 +2025,17 @@ class Transaction:
         cls._fetched_tx_cache.put(txid, Transaction(tx.raw))
 
 
-def tx_from_str(txt: str) -> bytes:
-    """txt is json or raw hexadecimal"""
-    import json
+def rawtx_from_str(txt: str) -> bytes:
+    """Parse a hex raw transaction or a transaction saved to JSON.
+    See Transaction.as_dict for the format of the JSON file.
 
+    """
     txt = txt.strip()
     if not txt:
         raise ValueError("empty string")
-    try:
-        bfh(txt)
-        is_hex = True
-    except Exception:
-        is_hex = False
-    if is_hex:
+    with suppress(ValueError):
         return bytes.fromhex(txt)
-    tx_dict = json.loads(str(txt))
+    tx_dict = json.loads(txt)
     assert "hex" in tx_dict.keys()
     return bytes.fromhex(tx_dict["hex"])
 
