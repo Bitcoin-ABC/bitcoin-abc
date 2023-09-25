@@ -241,7 +241,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.address_list = self.create_addresses_tab()
         self.utxo_list = self.create_utxo_tab()
         self.console_tab = self.create_console_tab()
-        self.contact_list = ContactList(self)
+        self.contact_list = ContactList(self, self.contacts)
         self.contact_list.contact_added_or_replaced.connect(
             self.on_contact_added_or_replaced
         )

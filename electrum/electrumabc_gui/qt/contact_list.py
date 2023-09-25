@@ -56,6 +56,8 @@ from .util import (
 )
 
 if TYPE_CHECKING:
+    from electrumabc.contacts import Contacts
+
     from .main_window import ElectrumWindow
 
 
@@ -70,7 +72,7 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
     class DataRoles(IntEnum):
         Contact = Qt.UserRole + 0
 
-    def __init__(self, main_window: ElectrumWindow):
+    def __init__(self, main_window: ElectrumWindow, contact_manager: Contacts):
         MyTreeWidget.__init__(
             self,
             headers=["", _("Name"), _("Label"), _("Address"), _("Type")],
@@ -81,6 +83,7 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
             deferred_updates=True,
         )
         self.main_window = main_window
+        self.contact_manager = contact_manager
         self.customContextMenuRequested.connect(self.create_menu)
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.setSortingEnabled(True)
@@ -147,7 +150,7 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
         if not filename:
             return
         try:
-            num = self.main_window.contacts.import_file(filename)
+            num = self.contact_manager.import_file(filename)
             self.main_window.show_message(
                 _("{} contacts successfully imported.").format(num)
             )
@@ -160,7 +163,7 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
         self.on_update()
 
     def export_contacts(self):
-        if self.main_window.contacts.empty:
+        if self.contact_manager.empty:
             self.main_window.show_error(_("Your contact list is empty."))
             return
         try:
@@ -170,7 +173,7 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
                 "*.json",
             )
             if fileName:
-                num = self.main_window.contacts.export_file(fileName)
+                num = self.contact_manager.export_file(fileName)
                 self.main_window.show_message(
                     _("{} contacts exported to '{}'").format(num, fileName)
                 )
@@ -286,7 +289,7 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
             _("Import file"),
             self.import_contacts,
         )
-        if not self.main_window.contacts.empty:
+        if not self.contact_manager.empty:
             menu.addAction(
                 QIcon(
                     ":icons/save.svg"
@@ -301,7 +304,7 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
         menu.exec_(self.viewport().mapToGlobal(position))
 
     def get_full_contacts(self) -> List[Contact]:
-        return self.main_window.contacts.get_all(nocopy=True)
+        return self.contact_manager.get_all(nocopy=True)
 
     @rate_limited(
         0.333, ts_after=True
@@ -410,7 +413,7 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
             return
         contact = Contact(name=label, address=address, type=typ)
         if replace != contact:
-            if self.main_window.contacts.has(contact):
+            if self.contact_manager.has(contact):
                 self.show_error(
                     _(
                         f"A contact named {contact.name} with the same address and type"
@@ -419,7 +422,7 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
                 )
                 self.update()
                 return replace or contact
-            self.main_window.contacts.add(contact, replace_old=replace, unique=True)
+            self.contact_manager.add(contact, replace_old=replace, unique=True)
         self.update()
         self.contact_added_or_replaced.emit()
 
