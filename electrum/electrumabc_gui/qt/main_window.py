@@ -242,6 +242,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.utxo_list = self.create_utxo_tab()
         self.console_tab = self.create_console_tab()
         self.contact_list = ContactList(self)
+        self.contact_list.contact_added_or_replaced.connect(
+            self.on_contact_added_or_replaced
+        )
         self.converter_tab = self.create_converter_tab()
         self.history_list = self.create_history_tab()
         tabs.addTab(self.history_list, QIcon(":icons/tab_history.png"), _("History"))
@@ -3210,42 +3213,11 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.payto_e.setText(text)
             self.payto_e.setFocus()
 
-    def set_contact(
-        self, label, address, typ="address", replace=None
-    ) -> Optional[Contact]:
-        """Returns a reference to the newly inserted Contact object.
-        replace is optional and if specified, replace an existing contact,
-        otherwise add a new one.
-
-        Note that duplicate contacts will not be added multiple times, but in
-        that case the returned value would still be a valid Contact.
-
-        Returns None on failure."""
-        assert typ == "address"
-        if not Address.is_valid(address):
-            self.show_error(_("Invalid Address"))
-            self.contact_list.update()  # Displays original unchanged value
-            return
-        contact = Contact(name=label, address=address, type=typ)
-        if replace != contact:
-            if self.contacts.has(contact):
-                self.show_error(
-                    _(
-                        f"A contact named {contact.name} with the same address and type"
-                        " already exists."
-                    )
-                )
-                self.contact_list.update()
-                return replace or contact
-            self.contacts.add(contact, replace_old=replace, unique=True)
-        self.contact_list.update()
+    def on_contact_added_or_replaced(self):
         self.history_list.update()
-        self.history_updated_signal.emit()  # inform things like address_dialog that there's a new history
+        # inform things like address_dialog that there's a new history
+        self.history_updated_signal.emit()
         self.update_completions()
-
-        # The contact has changed, update any addresses that are displayed with the old information.
-        run_hook("update_contact2", contact, replace)
-        return contact
 
     def delete_contacts(self, contacts):
         names = [

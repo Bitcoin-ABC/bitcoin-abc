@@ -27,7 +27,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from enum import IntEnum
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, pyqtSignal
@@ -47,6 +47,7 @@ from .util import (
     Buttons,
     CancelButton,
     ColorScheme,
+    MessageBoxMixin,
     OkButton,
     WindowModalDialog,
     char_width_in_lineedit,
@@ -58,11 +59,13 @@ if TYPE_CHECKING:
     from .main_window import ElectrumWindow
 
 
-class ContactList(PrintError, MyTreeWidget):
+class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
     # Name, Label, Address
     filter_columns = [1, 2, 3]
 
     do_update_signal = pyqtSignal()
+
+    contact_added_or_replaced = pyqtSignal()
 
     class DataRoles(IntEnum):
         Contact = Qt.UserRole + 0
@@ -127,7 +130,7 @@ class ContactList(PrintError, MyTreeWidget):
         name, value = item.text(1), item.text(3)
         del item  # paranoia
 
-        key = self.main_window.set_contact(name, value, typ=typ, replace=contact)
+        key = self.set_contact(name, value, typ=typ, replace=contact)
 
         if key:
             # Due to deferred updates, on_update will actually be called later.
@@ -386,7 +389,44 @@ class ContactList(PrintError, MyTreeWidget):
             prefix = networks.net.CASHADDR_PREFIX.lower() + ":"
             if address.lower().startswith(prefix):
                 address = address[len(prefix) :]
-            self.main_window.set_contact(d.get_name(), address)
+            self.set_contact(d.get_name(), address)
+
+    def set_contact(
+        self, label, address, typ="address", replace: Optional[Contact] = None
+    ) -> Optional[Contact]:
+        """Returns a reference to the newly inserted Contact object.
+        replace is optional and if specified, replace an existing contact,
+        otherwise add a new one.
+
+        Note that duplicate contacts will not be added multiple times, but in
+        that case the returned value would still be a valid Contact.
+
+        Returns None on failure."""
+        assert typ == "address"
+        if not Address.is_valid(address):
+            self.show_error(_("Invalid Address"))
+            # Displays original unchanged value
+            self.update()
+            return
+        contact = Contact(name=label, address=address, type=typ)
+        if replace != contact:
+            if self.main_window.contacts.has(contact):
+                self.show_error(
+                    _(
+                        f"A contact named {contact.name} with the same address and type"
+                        " already exists."
+                    )
+                )
+                self.update()
+                return replace or contact
+            self.main_window.contacts.add(contact, replace_old=replace, unique=True)
+        self.update()
+        self.contact_added_or_replaced.emit()
+
+        # The contact has changed, update any addresses that are displayed with the old
+        # information.
+        run_hook("update_contact2", contact, replace)
+        return contact
 
 
 class NewContactDialog(WindowModalDialog):
