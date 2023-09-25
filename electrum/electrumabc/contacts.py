@@ -36,6 +36,8 @@ from .address import Address
 from .printerror import PrintError, print_error
 from .storage import WalletStorage
 
+OA1_PREFIX = "oa1:xec"
+
 
 class Contact(namedtuple("Contact", "name address type")):
     """Your basic contacts entry."""
@@ -255,10 +257,9 @@ class Contacts(PrintError):
         except DNSException as e:
             print_error("[Contacts] Error resolving openalias: ", str(e))
             return None
-        prefix = "bch"
         for record in records:
             string = record.strings[0].decode("utf-8")
-            if string.startswith("oa1:" + prefix):
+            if string.startswith(OA1_PREFIX):
                 address = cls.find_regex(string, r"recipient_address=([A-Za-z0-9:]+)")
                 name = cls.find_regex(string, r"recipient_name=([^;]+)")
                 if not name:
