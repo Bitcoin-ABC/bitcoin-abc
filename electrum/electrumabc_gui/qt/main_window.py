@@ -138,7 +138,6 @@ from .util import (
     WindowModalDialog,
     WWLabel,
     address_combo,
-    char_width_in_lineedit,
     destroyed_print_error,
     expiration_values,
     filename_field,
@@ -834,7 +833,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         labels_menu.addAction(_("&Import") + "...", self.do_import_labels)
         labels_menu.addAction(_("&Export") + "...", self.do_export_labels)
         contacts_menu = wallet_menu.addMenu(_("&Contacts"))
-        contacts_menu.addAction(_("&New") + "...", self.new_contact_dialog)
+        contacts_menu.addAction(_("&New") + "...", self.contact_list.new_contact_dialog)
         contacts_menu.addAction(
             _("Import") + "...", lambda: self.contact_list.import_contacts()
         )
@@ -3477,29 +3476,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             if searchable_list is None:
                 return
             searchable_list.filter(pattern)
-
-    def new_contact_dialog(self):
-        d = WindowModalDialog(self.top_level_window(), _("New Contact"))
-        vbox = QtWidgets.QVBoxLayout(d)
-        vbox.addWidget(QtWidgets.QLabel(_("New Contact") + ":"))
-        grid = QtWidgets.QGridLayout()
-        line1 = QtWidgets.QLineEdit()
-        line1.setFixedWidth(38 * char_width_in_lineedit())
-        line2 = QtWidgets.QLineEdit()
-        line2.setFixedWidth(38 * char_width_in_lineedit())
-        grid.addWidget(QtWidgets.QLabel(_("Name")), 1, 0)
-        grid.addWidget(line1, 1, 1)
-        grid.addWidget(QtWidgets.QLabel(_("Address")), 2, 0)
-        grid.addWidget(line2, 2, 1)
-        vbox.addLayout(grid)
-        vbox.addLayout(Buttons(CancelButton(d), OkButton(d)))
-        if d.exec_():
-            name = line1.text().strip()
-            address = line2.text().strip()
-            prefix = networks.net.CASHADDR_PREFIX.lower() + ":"
-            if address.lower().startswith(prefix):
-                address = address[len(prefix) :]
-            self.set_contact(name, address)
 
     def show_master_public_keys(self):
         dialog = WindowModalDialog(self.top_level_window(), _("Wallet Information"))

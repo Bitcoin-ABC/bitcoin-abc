@@ -33,7 +33,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFont, QIcon
 
-import electrumabc.web as web
+from electrumabc import networks, web
 from electrumabc.address import Address
 from electrumabc.constants import PROJECT_NAME, SCRIPT_NAME
 from electrumabc.contacts import Contact, contact_types
@@ -42,7 +42,17 @@ from electrumabc.plugins import run_hook
 from electrumabc.printerror import PrintError
 
 from .tree_widget import MyTreeWidget
-from .util import MONOSPACE_FONT, ColorScheme, rate_limited, webopen
+from .util import (
+    MONOSPACE_FONT,
+    Buttons,
+    CancelButton,
+    ColorScheme,
+    OkButton,
+    WindowModalDialog,
+    char_width_in_lineedit,
+    rate_limited,
+    webopen,
+)
 
 if TYPE_CHECKING:
     from .main_window import ElectrumWindow
@@ -261,7 +271,7 @@ class ContactList(PrintError, MyTreeWidget):
         menu.addAction(
             self.icon_contacts,
             _("Add Contact") + " - " + _("Address"),
-            self.main_window.new_contact_dialog,
+            self.new_contact_dialog,
         )
         menu.addSeparator()
         menu.addAction(
@@ -368,3 +378,37 @@ class ContactList(PrintError, MyTreeWidget):
                 item.setSelected(True)
         self._edited_item_cur_sel = (None,) * 3
         run_hook("update_contacts_tab", self)
+
+    def new_contact_dialog(self):
+        d = NewContactDialog(self.main_window)
+        if d.exec_():
+            address = d.get_address()
+            prefix = networks.net.CASHADDR_PREFIX.lower() + ":"
+            if address.lower().startswith(prefix):
+                address = address[len(prefix) :]
+            self.main_window.set_contact(d.get_name(), address)
+
+
+class NewContactDialog(WindowModalDialog):
+    def __init__(self, parent: QtWidgets.QWidget):
+        super().__init__(parent, title=_("New Contact"))
+
+        vbox = QtWidgets.QVBoxLayout(self)
+        vbox.addWidget(QtWidgets.QLabel(_("New Contact") + ":"))
+        grid = QtWidgets.QGridLayout()
+        self.name_edit = QtWidgets.QLineEdit()
+        self.name_edit.setFixedWidth(38 * char_width_in_lineedit())
+        self.address_edit = QtWidgets.QLineEdit()
+        self.address_edit.setFixedWidth(38 * char_width_in_lineedit())
+        grid.addWidget(QtWidgets.QLabel(_("Name")), 1, 0)
+        grid.addWidget(self.name_edit, 1, 1)
+        grid.addWidget(QtWidgets.QLabel(_("Address")), 2, 0)
+        grid.addWidget(self.address_edit, 2, 1)
+        vbox.addLayout(grid)
+        vbox.addLayout(Buttons(CancelButton(self), OkButton(self)))
+
+    def get_name(self) -> str:
+        return self.name_edit.text().strip()
+
+    def get_address(self) -> str:
+        return self.address_edit.text().strip()
