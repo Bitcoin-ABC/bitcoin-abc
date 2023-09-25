@@ -61,6 +61,7 @@ from electrumabc.contacts import Contact
 from electrumabc.i18n import _, ngettext
 from electrumabc.paymentrequest import PR_PAID
 from electrumabc.plugins import run_hook
+from electrumabc.printerror import is_verbose
 from electrumabc.simple_config import get_config
 from electrumabc.transaction import (
     OPReturn,
@@ -3442,12 +3443,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             )  # clear password cache when user changes it, just in case
             run_hook("on_new_password", self, old_password, new_password)
         except Exception as e:
-            self.show_error(str(e))
-            return
-        except Exception:
-            if util.is_verbose:
+            if is_verbose:
                 traceback.print_exc(file=sys.stderr)
-            self.show_error(_("Failed to update password"))
+            self.show_error(_("Failed to update password") + "\n\n" + str(e))
             return
         msg = (
             _("Password was updated successfully")
@@ -3617,7 +3615,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         try:
             pk = self.wallet.export_private_key(address, password)
         except Exception as e:
-            if util.is_verbose:
+            if is_verbose:
                 traceback.print_exc(file=sys.stderr)
             self.show_message(str(e))
             return
@@ -3688,7 +3686,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                         )
                     )
                 except Exception as e:
-                    if util.is_verbose:
+                    if is_verbose:
                         traceback.print_exc(file=sys.stderr)
                     self.show_error(str(e))
 
@@ -3731,7 +3729,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             encrypted = bitcoin.encrypt_message(message, bytes.fromhex(pubkey_e.text()))
             encrypted_e.setText(encrypted.decode("ascii"))
         except Exception as e:
-            if util.is_verbose:
+            if is_verbose:
                 traceback.print_exc(file=sys.stderr)
             self.show_warning(str(e))
 
@@ -3800,7 +3798,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                         txin.set_value(my_coins[my_index]["value"])
             return tx
         except Exception:
-            if util.is_verbose:
+            if is_verbose:
                 traceback.print_exc(file=sys.stderr)
             self.show_critical(
                 _(f"{PROJECT_NAME} was unable to parse your transaction")
@@ -3856,7 +3854,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self._qr_dialog.qr_finished.connect(_on_qr_reader_finished)
             self._qr_dialog.start_scan(get_config().get_video_device())
         except Exception as e:
-            if util.is_verbose:
+            if is_verbose:
                 traceback.print_exc(file=sys.stderr)
             self._qr_dialog = None
             self.show_error(str(e))
