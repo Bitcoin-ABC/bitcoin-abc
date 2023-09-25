@@ -68,6 +68,7 @@ from . import (
     slp,
 )
 from .address import Address, PublicKey, Script
+from .bitcoin import ScriptType
 from .constants import XEC
 from .contacts import Contacts
 from .i18n import _, ngettext
@@ -793,7 +794,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         "WalletDelta", "is_relevant, is_mine, v, fee, spends_coins_mine"
     )
 
-    def get_wallet_delta(self, tx) -> WalletDelta:
+    def get_wallet_delta(self, tx: Transaction) -> WalletDelta:
         """Effect of tx on wallet"""
         is_relevant = False
         is_mine = False
@@ -801,18 +802,16 @@ class AbstractWallet(PrintError, SPVDelegate):
         is_partial = False
         v_in = v_out = v_out_mine = 0
         spends_coins_mine = []
-        for item in tx.inputs():
-            addr = item["address"]
-            if self.is_mine(addr):
+        for txin in tx.txinputs():
+            if self.is_mine(txin.address):
                 is_mine = True
                 is_relevant = True
-                prevout_hash = item["prevout_hash"]
-                prevout_n = item["prevout_n"]
-                d = self.txo.get(prevout_hash, {}).get(addr, [])
+                outpoint = txin.outpoint
+                d = self.txo.get(outpoint.txid.to_string(), {}).get(txin.address, [])
                 for n, v, cb in d:
-                    if n == prevout_n:
+                    if n == outpoint.n:
                         value = v
-                        spends_coins_mine.append(f"{prevout_hash}:{prevout_n}")
+                        spends_coins_mine.append(str(outpoint))
                         break
                 else:
                     value = None
@@ -1367,8 +1366,8 @@ class AbstractWallet(PrintError, SPVDelegate):
         finally:
             self.print_error(f"{me.name}: thread exiting")
 
-    def add_transaction(self, tx_hash, tx):
-        if not tx.inputs():
+    def add_transaction(self, tx_hash: str, tx: Transaction):
+        if not tx.txinputs():
             # bad tx came in off the wire -- all 0's or something, see #987
             self.print_error(
                 "add_transaction: WARNING a tx came in from the network with 0"
@@ -1376,7 +1375,7 @@ class AbstractWallet(PrintError, SPVDelegate):
                 tx_hash,
             )
             return
-        is_coinbase = tx.inputs()[0]["type"] == "coinbase"
+        is_coinbase = tx.txinputs()[0].type == ScriptType.coinbase
         with self.lock:
             # HELPER FUNCTIONS
             def add_to_self_txi(tx_hash, addr, ser, v):
@@ -1402,12 +1401,6 @@ class AbstractWallet(PrintError, SPVDelegate):
                             return addr2, v
                 return (None, None)
 
-            def txin_get_info(txi):
-                prevout_hash = txi["prevout_hash"]
-                prevout_n = txi["prevout_n"]
-                ser = f"{prevout_hash}:{prevout_n}"
-                return prevout_hash, prevout_n, ser
-
             def put_pruned_txo(ser, tx_hash):
                 self.pruned_txo[ser] = tx_hash
                 self.pruned_txo_values.add(tx_hash)
@@ -1428,13 +1421,15 @@ class AbstractWallet(PrintError, SPVDelegate):
 
             # add inputs
             self.txi[tx_hash] = d = {}
-            for txi in tx.inputs():
-                if txi["type"] == "coinbase":
+            for txi in tx.txinputs():
+                if txi.type == ScriptType.coinbase:
                     continue
-                addr = txi.get("address")
+                addr = txi.address
+                prevout_hash = txi.outpoint.txid.to_string()
+                prevout_n = txi.outpoint.n
+                ser = str(txi.outpoint)
                 # find value from prev output
                 if self.is_mine(addr):
-                    prevout_hash, prevout_n, ser = txin_get_info(txi)
                     dd = self.txo.get(prevout_hash, {})
                     for n, v, is_cb in dd.get(addr, []):
                         if n == prevout_n:
@@ -1446,12 +1441,11 @@ class AbstractWallet(PrintError, SPVDelegate):
                         # this function later.
                         put_pruned_txo(ser, tx_hash)
                     self._addr_bal_cache.pop(addr, None)  # invalidate cache entry
-                    del dd, prevout_hash, prevout_n, ser
+                    del dd
                 elif addr is None:
                     # Unknown/unparsed address.. may be a strange p2sh scriptSig
                     # Try and find it in txout's if it's one of ours.
                     # See issue #895.
-                    prevout_hash, prevout_n, ser = txin_get_info(txi)
                     # Find address in self.txo for this prevout_hash:prevout_n
                     addr2, v = find_in_self_txo(prevout_hash, prevout_n)
                     if addr2 is not None and self.is_mine(addr2):
@@ -1475,7 +1469,7 @@ class AbstractWallet(PrintError, SPVDelegate):
                         # by the self.pruned_txo_cleaner_thread which runs
                         # periodically in the background.
                         put_pruned_txo(ser, tx_hash)
-                    del addr2, v, prevout_hash, prevout_n, ser
+                    del addr2, v
             # don't keep empty entries in self.txi
             if not d:
                 self.txi.pop(tx_hash, None)
@@ -1870,13 +1864,12 @@ class AbstractWallet(PrintError, SPVDelegate):
                 tx = get_tx(tx_hash)
                 input_addresses = []
                 output_addresses = []
-                for x in tx.inputs():
-                    if x["type"] == "coinbase":
+                for txin in tx.txinputs():
+                    if txin.type == ScriptType.coinbase:
                         continue
-                    addr = x.get("address")
-                    if addr is None:
+                    if txin.addr is None:
                         continue
-                    input_addresses.append(addr.to_ui_string())
+                    input_addresses.append(txin.addr.to_ui_string())
                 for txo in tx.outputs():
                     output_addresses.append(txo.destination.to_ui_string())
                 item["input_addresses"] = input_addresses
@@ -2484,9 +2477,9 @@ class AbstractWallet(PrintError, SPVDelegate):
             # setup "wallet advice" so Xpub wallets know how to sign 'fd' type tx inputs
             # by giving them the sequence number ahead of time
             if isinstance(k, BIP32KeyStore):
-                for txin in tx.inputs():
-                    for x_pubkey in txin["x_pubkeys"]:
-                        _, addr = xpubkey_to_address(bytes.fromhex(x_pubkey))
+                for txin in tx.txinputs():
+                    for x_pubkey in txin.x_pubkeys:
+                        _, addr = xpubkey_to_address(x_pubkey)
                         try:
                             c, index = self.get_address_index(addr)
                         except Exception:
