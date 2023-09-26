@@ -25,6 +25,7 @@
 # SOFTWARE.
 from __future__ import annotations
 
+import os
 from collections import defaultdict
 from enum import IntEnum
 from typing import TYPE_CHECKING, List, Optional
@@ -143,19 +144,17 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
             self._edited_item_cur_sel = (key, was_cur, was_sel)
 
     def import_contacts(self):
-        wallet_folder = self.main_window.get_wallet_folder()
+        wallet_folder = os.path.dirname(os.path.abspath(self.config.get_wallet_path()))
         filename, __ = QtWidgets.QFileDialog.getOpenFileName(
-            self.main_window, "Select your wallet file", wallet_folder
+            self, "Select your wallet file", wallet_folder
         )
         if not filename:
             return
         try:
             num = self.contact_manager.import_file(filename)
-            self.main_window.show_message(
-                _("{} contacts successfully imported.").format(num)
-            )
+            self.show_message(_("{} contacts successfully imported.").format(num))
         except Exception as e:
-            self.main_window.show_error(
+            self.show_error(
                 _(f"{PROJECT_NAME} was unable to import your contacts.")
                 + "\n"
                 + repr(e)
@@ -164,7 +163,7 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
 
     def export_contacts(self):
         if self.contact_manager.empty:
-            self.main_window.show_error(_("Your contact list is empty."))
+            self.show_error(_("Your contact list is empty."))
             return
         try:
             fileName = self.main_window.getSaveFileName(
@@ -174,11 +173,11 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
             )
             if fileName:
                 num = self.contact_manager.export_file(fileName)
-                self.main_window.show_message(
+                self.show_message(
                     _("{} contacts exported to '{}'").format(num, fileName)
                 )
         except Exception as e:
-            self.main_window.show_error(
+            self.show_error(
                 _(f"{PROJECT_NAME} was unable to export your contacts.")
                 + "\n"
                 + repr(e)
@@ -219,7 +218,9 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
                 column_title += f" ({len(selected)})"
             menu.addAction(
                 _("Copy {}").format(column_title),
-                lambda: self.main_window.app.clipboard().setText(column_data),
+                lambda: QtWidgets.QApplication.instance()
+                .clipboard()
+                .setText(column_data),
             )
             if (
                 item
@@ -386,7 +387,7 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
         run_hook("update_contacts_tab", self)
 
     def new_contact_dialog(self):
-        d = NewContactDialog(self.main_window)
+        d = NewContactDialog(self.top_level_window())
         if d.exec_():
             address = d.get_address()
             prefix = networks.net.CASHADDR_PREFIX.lower() + ":"
