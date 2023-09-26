@@ -4,6 +4,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the resolution of forks via avalanche."""
 import random
+import time
 
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.key import ECPubKey
@@ -320,6 +321,50 @@ class AvalancheTest(BitcoinTestFramework):
             assert_response([AvalancheVote(AvalancheVoteError.PARKED, hash_to_find)])
 
         self.log.info("Check the node is discouraging unexpected avaresponses.")
+
+        now = int(time.time())
+        node.setmocktime(now)
+
+        # First we get some tolerance
+        for _ in range(12):
+            with node.assert_debug_log(
+                ["received: avaresponse", "peer=1"],
+                ["Misbehaving", "unexpected-ava-response"],
+            ):
+                # unknown voting round
+                poll_node.send_avaresponse(
+                    avaround=2**32 - 1, votes=[], privkey=poll_node.delegated_privkey
+                )
+
+        # Then we start discouraging
+        with node.assert_debug_log(
+            ["Misbehaving", "peer=1", "unexpected-ava-response"]
+        ):
+            # unknown voting round
+            poll_node.send_avaresponse(
+                avaround=2**32 - 1, votes=[], privkey=poll_node.delegated_privkey
+            )
+
+        # If we stop misbehaving for some time our tolerance counter resets
+        # after we sent a good (expected) response message.
+        now += 60 * 60 + 1  # 1h + 1s
+        node.setmocktime(now)
+
+        tip = self.generate(node, 1, sync_fun=self.no_op)[-1]
+        self.wait_until(lambda: has_finalized_tip(tip))
+
+        # Counter has reset
+        for _ in range(12):
+            with node.assert_debug_log(
+                ["received: avaresponse", "peer=1"],
+                ["Misbehaving", "unexpected-ava-response"],
+            ):
+                # unknown voting round
+                poll_node.send_avaresponse(
+                    avaround=2**32 - 1, votes=[], privkey=poll_node.delegated_privkey
+                )
+
+        # Then we start discouraging again
         with node.assert_debug_log(
             ["Misbehaving", "peer=1", "unexpected-ava-response"]
         ):

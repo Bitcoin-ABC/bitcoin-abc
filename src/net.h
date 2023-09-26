@@ -674,6 +674,11 @@ public:
     // Store the next time we will consider a getavaaddr message from this peer
     std::chrono::seconds m_nextGetAvaAddr{0};
 
+    // The last time the node sent us a faulty message
+    std::atomic<std::chrono::seconds> m_avalanche_last_message_fault{0s};
+    // How much faulty messages did this node accumulate
+    std::atomic<int> m_avalanche_message_fault_counter{0};
+
     /**
      * UNIX epoch time of the last block received from this peer that we had
      * not yet seen (e.g. not already received from another peer), that passed

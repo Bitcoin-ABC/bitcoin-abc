@@ -491,11 +491,14 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
     std::vector<CInv> invs;
 
     {
-        // Check that the query exists.
+        // Check that the query exists. There is a possibility that it has been
+        // deleted if the query timed out, so we don't increase the ban score to
+        // slowly banning nodes for poor networking over time. Banning has to be
+        // handled at callsite to avoid DoS.
         auto w = queries.getWriteView();
         auto it = w->find(std::make_tuple(nodeid, response.getRound()));
         if (it == w.end()) {
-            banscore = 2;
+            banscore = 0;
             error = "unexpected-ava-response";
             return false;
         }

@@ -5137,13 +5137,39 @@ void PeerManagerImpl::ProcessMessage(
             }
         }
 
+        auto now = GetTime<std::chrono::seconds>();
+
         std::vector<avalanche::VoteItemUpdate> updates;
-        int banscore;
+        int banscore{0};
         std::string error;
         if (!g_avalanche->registerVotes(pfrom.GetId(), response, updates,
                                         banscore, error)) {
-            Misbehaving(pfrom, banscore, error);
-            return;
+            if (banscore > 0) {
+                // If the banscore was set, just increase the node ban score
+                Misbehaving(pfrom, banscore, error);
+                return;
+            }
+
+            // Otherwise the node may have got a network issue. Increase the
+            // fault counter instead and only ban if we reached a threshold.
+            // This allows for fault tolerance should there be a temporary
+            // outage while still preventing DoS'ing behaviors, as the counter
+            // is reset if no fault occured over some time period.
+            pfrom.m_avalanche_message_fault_counter++;
+            pfrom.m_avalanche_last_message_fault = now;
+
+            // Allow up to 12 messages before increasing the ban score. Since
+            // the queries are cleared after 10s, this is at least 2 minutes
+            // of network outage tolerance over the 1h window.
+            if (pfrom.m_avalanche_message_fault_counter > 12) {
+                Misbehaving(pfrom, 2, error);
+                return;
+            }
+        }
+
+        // If no fault occurred within the last hour, reset the fault counter
+        if (now > (pfrom.m_avalanche_last_message_fault.load() + 1h)) {
+            pfrom.m_avalanche_message_fault_counter = 0;
         }
 
         pfrom.invsVoted(response.GetVotes().size());
