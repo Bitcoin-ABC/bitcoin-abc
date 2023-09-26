@@ -67,8 +67,6 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
     # Name, Label, Address
     filter_columns = [1, 2, 3]
 
-    do_update_signal = pyqtSignal()
-
     contact_updated = pyqtSignal()
     """Emitted when a contact is added, renamed or deleted"""
 
@@ -104,17 +102,12 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
         self._edited_item_cur_sel = (None,) * 3
         self.monospace_font = QFont(MONOSPACE_FONT)
         self.cleaned_up = False
-        self.do_update_signal.connect(self.update)
         self.icon_openalias = QIcon(":icons/openalias-logo.svg")
         self.icon_contacts = QIcon(":icons/tab_contacts.png")
         self.icon_unverif = QIcon(":/icons/unconfirmed.svg")
 
     def clean_up(self):
         self.cleaned_up = True
-        try:
-            self.do_update_signal.disconnect(self.update)
-        except TypeError:
-            pass
 
     def on_permit_edit(self, item, column):
         # openalias items shouldn't be editable
