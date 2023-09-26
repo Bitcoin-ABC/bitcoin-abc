@@ -52,6 +52,7 @@ from .util import (
     CopyButton,
     MessageBoxMixin,
     TextBrowserKeyboardFocusFilter,
+    getSaveFileName,
     rate_limited,
     webopen,
 )
@@ -494,8 +495,11 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
             if self.tx.is_complete()
             else "unsigned.txn"
         )
-        fileName = self.main_window.getSaveFileName(
-            _("Select where to save your signed transaction"), name, "*.txn"
+        fileName = getSaveFileName(
+            _("Select where to save your signed transaction"),
+            name,
+            self.main_window.config,
+            "*.txn",
         )
         if fileName:
             tx_dict = self.tx.as_dict()

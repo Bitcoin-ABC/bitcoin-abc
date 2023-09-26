@@ -52,6 +52,7 @@ from .util import (
     OkButton,
     WindowModalDialog,
     char_width_in_lineedit,
+    getSaveFileName,
     rate_limited,
     webopen,
 )
@@ -167,9 +168,10 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
             self.show_error(_("Your contact list is empty."))
             return
         try:
-            fileName = self.main_window.getSaveFileName(
+            fileName = getSaveFileName(
                 _("Select file to save your contacts"),
                 f"{SCRIPT_NAME}-contacts.json",
+                self.config,
                 "*.json",
             )
             if fileName:

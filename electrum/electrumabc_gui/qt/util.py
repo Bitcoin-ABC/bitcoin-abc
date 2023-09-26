@@ -26,6 +26,7 @@ from PyQt5.QtGui import (
 )
 
 from electrumabc.printerror import PrintError, print_error
+from electrumabc.simple_config import SimpleConfig
 from electrumabc.util import Weak, finalization_print_error
 
 if platform.system() == "Windows":
@@ -1287,6 +1288,29 @@ def char_width_in_lineedit() -> int:
     char_width = QFontMetrics(QtWidgets.QLineEdit().font()).averageCharWidth()
     # 'averageCharWidth' seems to underestimate on Windows, hence 'max()'
     return max(9, char_width)
+
+
+# custom wrappers for getOpenFileName and getSaveFileName, that remember the path
+# selected by the user
+def getOpenFileName(title, config: SimpleConfig, filtr="", parent=None):
+    userdir = os.path.expanduser("~")
+    directory = config.get("io_dir", userdir)
+    fileName, __ = QtWidgets.QFileDialog.getOpenFileName(
+        parent, title, directory, filtr
+    )
+    if fileName and directory != os.path.dirname(fileName):
+        config.set_key("io_dir", os.path.dirname(fileName), True)
+    return fileName
+
+
+def getSaveFileName(title, filename, config: SimpleConfig, filtr="", parent=None):
+    userdir = os.path.expanduser("~")
+    directory = config.get("io_dir", userdir)
+    path = os.path.join(directory, filename)
+    fileName, __ = QtWidgets.QFileDialog.getSaveFileName(parent, title, path, filtr)
+    if fileName and directory != os.path.dirname(fileName):
+        config.set_key("io_dir", os.path.dirname(fileName), True)
+    return fileName
 
 
 if __name__ == "__main__":

@@ -141,6 +141,8 @@ from .util import (
     destroyed_print_error,
     expiration_values,
     filename_field,
+    getOpenFileName,
+    getSaveFileName,
     rate_limited,
     text_dialog,
 )
@@ -1086,46 +1088,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
     def notify(self, message):
         self.gui_object.notify(message)
 
-    # custom wrappers for getOpenFileName and getSaveFileName, that remember the path selected by the user
-    def getOpenFileName(self, title, filter=""):  # noqa: A002
-        return __class__.static_getOpenFileName(
-            title=title, filtr=filter, config=self.config, parent=self
-        )
-
-    def getSaveFileName(self, title, filename, filter=""):  # noqa: A002
-        return __class__.static_getSaveFileName(
-            title=title,
-            filename=filename,
-            filtr=filter,
-            config=self.config,
-            parent=self,
-        )
-
-    @staticmethod
-    def static_getOpenFileName(*, title, parent=None, config=None, filtr=""):
-        if not config:
-            config = get_config()
-        userdir = os.path.expanduser("~")
-        directory = config.get("io_dir", userdir) if config else userdir
-        fileName, __ = QtWidgets.QFileDialog.getOpenFileName(
-            parent, title, directory, filtr
-        )
-        if fileName and directory != os.path.dirname(fileName) and config:
-            config.set_key("io_dir", os.path.dirname(fileName), True)
-        return fileName
-
-    @staticmethod
-    def static_getSaveFileName(*, title, filename, parent=None, config=None, filtr=""):
-        if not config:
-            config = get_config()
-        userdir = os.path.expanduser("~")
-        directory = config.get("io_dir", userdir) if config else userdir
-        path = os.path.join(directory, filename)
-        fileName, __ = QtWidgets.QFileDialog.getSaveFileName(parent, title, path, filtr)
-        if fileName and directory != os.path.dirname(fileName) and config:
-            config.set_key("io_dir", os.path.dirname(fileName), True)
-        return fileName
-
     def timer_actions(self):
         # Note this runs in the GUI thread
 
@@ -1680,8 +1642,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.show_error(str(e))
             return
         name = r["id"] + ".bip70"
-        fileName = self.getSaveFileName(
-            _("Select where to save your payment request"), name, "*.bip70"
+        fileName = getSaveFileName(
+            _("Select where to save your payment request"), name, self.config, "*.bip70"
         )
         if fileName:
             with open(fileName, "wb+") as f:
@@ -3248,7 +3210,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         def do_export():
             ext = pr.export_file_ext()
-            fn = self.getSaveFileName(_("Save invoice to file"), "*." + ext)
+            fn = getSaveFileName(_("Save invoice to file"), "*." + ext, self.config)
             if not fn:
                 return
             with open(fn, "wb") as f:
@@ -3809,7 +3771,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             )
 
     def do_process_from_file(self):
-        fileName = self.getOpenFileName(_("Select your transaction file"), "*.txn")
+        fileName = getOpenFileName(
+            _("Select your transaction file"), self.config, "*.txn"
+        )
         if not fileName:
             return
         try:
@@ -4191,7 +4155,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 f.write(json.dumps(pklist, indent=4))
 
     def do_import_labels(self):
-        labelsFile = self.getOpenFileName(_("Open labels file"), "*.json")
+        labelsFile = getOpenFileName(_("Open labels file"), self.config, "*.json")
         if not labelsFile:
             return
         try:
@@ -4228,9 +4192,10 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
     def do_export_labels(self):
         labels = self.wallet.labels
         try:
-            fileName = self.getSaveFileName(
+            fileName = getSaveFileName(
                 _("Select file to save your labels"),
                 f"{SCRIPT_NAME}_labels.json",
+                self.config,
                 "*.json",
             )
             if fileName:
