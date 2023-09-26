@@ -243,8 +243,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.address_list = self.create_addresses_tab()
         self.utxo_list = self.create_utxo_tab()
         self.console_tab = self.create_console_tab()
-        self.contact_list = ContactList(self, self.contacts)
-        self.contact_list.contact_updated.connect(self.on_contact_updated)
+        self.contact_list = self.create_contacts_tab()
         self.converter_tab = self.create_converter_tab()
         self.history_list = self.create_history_tab()
         tabs.addTab(self.history_list, QIcon(":icons/tab_history.png"), _("History"))
@@ -3248,6 +3247,14 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.console = Console(wallet=self.wallet)
         return self.console
 
+    def create_contacts_tab(self) -> ContactList:
+        contact_list = ContactList(self.contacts, self.config, self.wallet)
+        contact_list.contact_updated.connect(self.on_contact_updated)
+        contact_list.payto_contacts_triggered.connect(self.payto_contacts)
+        contact_list.sign_verify_message_triggered.connect(self.sign_verify_message)
+        self.gui_object.addr_fmt_changed.connect(contact_list.update)
+        return contact_list
+
     def update_console(self):
         console = self.console
         console.history = self.config.get("console-history", [])
@@ -4829,6 +4836,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         with contextlib.suppress(TypeError):
             self.gui_object.addr_fmt_changed.disconnect(self.utxo_list.update)
+            self.gui_object.addr_fmt_changed.disconnect(self.contact_list.update)
 
         # We catch these errors with the understanding that there is no recovery at
         # this point, given user has likely performed an action we cannot recover

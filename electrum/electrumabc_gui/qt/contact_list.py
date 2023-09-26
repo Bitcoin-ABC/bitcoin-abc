@@ -59,8 +59,8 @@ from .util import (
 
 if TYPE_CHECKING:
     from electrumabc.contacts import Contacts
-
-    from .main_window import ElectrumWindow
+    from electrumabc.simple_config import SimpleConfig
+    from electrumabc.wallet import AbstractWallet
 
 
 class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
@@ -72,20 +72,29 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
     contact_updated = pyqtSignal()
     """Emitted when a contact is added, renamed or deleted"""
 
+    payto_contacts_triggered = pyqtSignal(list)
+    """Emits a list of selected contacts when the user clicks "Pay to" in the context
+    menu"""
+
+    sign_verify_message_triggered = pyqtSignal(Address)
+    """Emits the selected address when the user clicks Sign/Verify in the context
+    menu"""
+
     class DataRoles(IntEnum):
         Contact = Qt.UserRole + 0
 
-    def __init__(self, main_window: ElectrumWindow, contact_manager: Contacts):
+    def __init__(
+        self, contact_manager: Contacts, config: SimpleConfig, wallet: AbstractWallet
+    ):
         MyTreeWidget.__init__(
             self,
             headers=["", _("Name"), _("Label"), _("Address"), _("Type")],
-            config=main_window.config,
-            wallet=main_window.wallet,
+            config=config,
+            wallet=wallet,
             stretch_column=2,
             editable_columns=[1, 2],
             deferred_updates=True,
         )
-        self.main_window = main_window
         self.contact_manager = contact_manager
         self.customContextMenuRequested.connect(self.create_menu)
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
@@ -100,16 +109,10 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
         self.icon_contacts = QIcon(":icons/tab_contacts.png")
         self.icon_unverif = QIcon(":/icons/unconfirmed.svg")
 
-        self.main_window.gui_object.addr_fmt_changed.connect(self.update)
-
     def clean_up(self):
         self.cleaned_up = True
         try:
             self.do_update_signal.disconnect(self.update)
-        except TypeError:
-            pass
-        try:
-            self.main_window.gui_object.addr_fmt_changed.disconnect(self.update)
         except TypeError:
             pass
 
@@ -241,7 +244,7 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
                     lambda: self._on_edit_item(key, column),
                 )
             a = menu.addAction(
-                _("Pay to"), lambda: self.main_window.payto_contacts(keys)
+                _("Pay to"), lambda: self.payto_contacts_triggered.emit(keys)
             )
             if not keys:
                 a.setDisabled(True)
@@ -255,7 +258,7 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
                 signAddr = Address.from_string(keys[0].address)
                 a = menu.addAction(
                     _("Sign/verify message") + "...",
-                    lambda: self.main_window.sign_verify_message(signAddr),
+                    lambda: self.sign_verify_message_triggered.emit(signAddr),
                 )
                 if signAddr.kind != Address.ADDR_P2PKH:
                     # We only allow this for P2PKH since it makes no sense for P2SH
