@@ -34,6 +34,7 @@
             "exclude": [
                 "(^contrib/gitian-builder/)",
                 "(^contrib/apple-sdk-tools/)",
+                "(^electrum/electrumabc_gui/qt/icons.py)",
                 "(\\_pb2.py$)"
             ],
             "flags": [
@@ -308,6 +309,7 @@
             "exclude": [
                 "(^contrib/gitian-builder/)",
                 "(^contrib/apple-sdk-tools/)",
+                "(^electrum/electrumabc_gui/qt/icons.py)",
                 "(\\_pb2.py$)"
             ]
         },
