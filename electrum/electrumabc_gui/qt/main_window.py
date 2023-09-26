@@ -242,9 +242,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.utxo_list = self.create_utxo_tab()
         self.console_tab = self.create_console_tab()
         self.contact_list = ContactList(self, self.contacts)
-        self.contact_list.contact_added_or_replaced.connect(
-            self.on_contact_added_or_replaced
-        )
+        self.contact_list.contact_updated.connect(self.on_contact_updated)
         self.converter_tab = self.create_converter_tab()
         self.history_list = self.create_history_tab()
         tabs.addTab(self.history_list, QIcon(":icons/tab_history.png"), _("History"))
@@ -3213,45 +3211,11 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.payto_e.setText(text)
             self.payto_e.setFocus()
 
-    def on_contact_added_or_replaced(self):
+    def on_contact_updated(self):
         self.history_list.update()
         # inform things like address_dialog that there's a new history
         self.history_updated_signal.emit()
         self.update_completions()
-
-    def delete_contacts(self, contacts):
-        names = [
-            f"{contact.name} <{contact.address[:8]}{'…' if len(contact.address) > 8 else ''}>"
-            for contact in contacts
-        ]
-        n = len(names)
-        contact_str = (
-            " + ".join(names)
-            if n <= 3
-            else ngettext(
-                "{number_of_contacts} contact", "{number_of_contacts} contacts", n
-            ).format(number_of_contacts=n)
-        )
-        if not self.question(
-            _(
-                "Remove {list_of_contacts_OR_count_of_contacts_plus_the_word_count}"
-                " from your list of contacts?"
-            ).format(
-                list_of_contacts_OR_count_of_contacts_plus_the_word_count=contact_str
-            )
-        ):
-            return
-        removed_entries = []
-        for contact in contacts:
-            if self.contacts.remove(contact):
-                removed_entries.append(contact)
-
-        self.history_list.update()
-        self.history_updated_signal.emit()  # inform things like address_dialog that there's a new history
-        self.contact_list.update()
-        self.update_completions()
-
-        run_hook("delete_contacts2", removed_entries)
 
     def show_invoice(self, key):
         pr = self.invoices.get(key)

@@ -38,7 +38,7 @@ from electrumabc import networks, web
 from electrumabc.address import Address
 from electrumabc.constants import PROJECT_NAME, SCRIPT_NAME
 from electrumabc.contacts import Contact, contact_types
-from electrumabc.i18n import _
+from electrumabc.i18n import _, ngettext
 from electrumabc.plugins import run_hook
 from electrumabc.printerror import PrintError
 
@@ -68,7 +68,8 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
 
     do_update_signal = pyqtSignal()
 
-    contact_added_or_replaced = pyqtSignal()
+    contact_updated = pyqtSignal()
+    """Emitted when a contact is added, renamed or deleted"""
 
     class DataRoles(IntEnum):
         Contact = Qt.UserRole + 0
@@ -243,7 +244,7 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
             if not keys:
                 a.setDisabled(True)
             a = menu.addAction(
-                _("Delete"), lambda: self.main_window.delete_contacts(deletable_keys)
+                _("Delete"), lambda: self.delete_contacts(deletable_keys)
             )
             if not deletable_keys:
                 a.setDisabled(True)
@@ -425,12 +426,43 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
                 return replace or contact
             self.contact_manager.add(contact, replace_old=replace, unique=True)
         self.update()
-        self.contact_added_or_replaced.emit()
+        self.contact_updated.emit()
 
         # The contact has changed, update any addresses that are displayed with the old
         # information.
         run_hook("update_contact2", contact, replace)
         return contact
+
+    def delete_contacts(self, contacts: List[Contact]):
+        names = [
+            f"{contact.name} <{contact.address[:8]}{'…' if len(contact.address) > 8 else ''}>"
+            for contact in contacts
+        ]
+        n = len(names)
+        contact_str = (
+            " + ".join(names)
+            if n <= 3
+            else ngettext(
+                "{number_of_contacts} contact", "{number_of_contacts} contacts", n
+            ).format(number_of_contacts=n)
+        )
+        if not self.question(
+            _(
+                "Remove {list_of_contacts_OR_count_of_contacts_plus_the_word_count}"
+                " from your list of contacts?"
+            ).format(
+                list_of_contacts_OR_count_of_contacts_plus_the_word_count=contact_str
+            )
+        ):
+            return
+        removed_entries = []
+        for contact in contacts:
+            if self.contact_manager.remove(contact):
+                removed_entries.append(contact)
+
+        self.update()
+        self.contact_updated.emit()
+        run_hook("delete_contacts2", removed_entries)
 
 
 class NewContactDialog(WindowModalDialog):
