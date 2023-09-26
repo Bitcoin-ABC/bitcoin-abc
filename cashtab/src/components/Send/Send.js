@@ -211,7 +211,7 @@ const SendBCH = ({ passLoadingStatus }) => {
     };
 
     const checkForConfirmationBeforeSendXec = () => {
-        if (txInfoFromUrl) {
+        if (txInfoFromUrl || queryStringText !== null) {
             setIsModalVisible(true);
         } else if (cashtabSettings.sendModal) {
             setIsModalVisible(cashtabSettings.sendModal);
@@ -469,8 +469,7 @@ const SendBCH = ({ passLoadingStatus }) => {
         // validate address
         const isValid = isValidXecAddress(addressInfo.address);
 
-        // If query string,
-        // Show an alert that only amount and appConfig.ticker are supported
+        // Store query string in state (disable currency selection if loaded from query string)
         setQueryStringText(queryString);
 
         // Is this valid address?
@@ -741,7 +740,14 @@ const SendBCH = ({ passLoadingStatus }) => {
                         </>
                     ) : (
                         `Are you sure you want to send ${formData.value}${' '}
-                  ${selectedCurrency} to ${formData.address}?`
+                  ${selectedCurrency} to ${
+                            queryStringText === null
+                                ? formData.address
+                                : formData.address.slice(
+                                      0,
+                                      formData.address.indexOf('?'),
+                                  )
+                        }?`
                     )}
                 </p>
             </Modal>
@@ -965,12 +971,6 @@ const SendBCH = ({ passLoadingStatus }) => {
                                 </AmountPreviewCtn>
                             </ExpandingAddressInputCtn>
 
-                            {queryStringText && (
-                                <Alert
-                                    message={`You are sending a transaction to an address including query parameters "${queryStringText}." Only the "amount" parameter, in units of ${appConfig.ticker} satoshis, is currently supported.`}
-                                    type="warning"
-                                />
-                            )}
                             <div
                                 style={{
                                     paddingTop: '1rem',
