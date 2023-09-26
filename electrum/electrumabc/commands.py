@@ -1408,6 +1408,11 @@ def add_global_options(parser):
         action="store_true",
         help="fetch release notification data from current source tree",
     )
+    group.add_argument(
+        "--enable-aliases",
+        action="store_true",
+        help="Enable support for eCash aliases",
+    )
 
 
 def get_parser():

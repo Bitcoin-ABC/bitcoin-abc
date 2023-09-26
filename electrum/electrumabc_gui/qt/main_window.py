@@ -55,6 +55,7 @@ import electrumabc.constants
 import electrumabc.web as web
 from electrumabc import bitcoin, commands, keystore, networks, paymentrequest, util
 from electrumabc.address import Address
+from electrumabc.alias import DEFAULT_ENABLE_ALIASES
 from electrumabc.bitcoin import TYPE_ADDRESS
 from electrumabc.constants import CURRENCY, PROJECT_NAME, REPOSITORY_URL, SCRIPT_NAME
 from electrumabc.contacts import Contact
@@ -836,6 +837,11 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         labels_menu.addAction(_("&Export") + "...", self.do_export_labels)
         contacts_menu = wallet_menu.addMenu(_("&Contacts"))
         contacts_menu.addAction(_("&New") + "...", self.contact_list.new_contact_dialog)
+        if self.config.get("enable_aliases", DEFAULT_ENABLE_ALIASES):
+            contacts_menu.addAction(
+                _("Add eCash Alias") + "...", self.contact_list.fetch_alias_dialog
+            )
+
         contacts_menu.addAction(
             _("Import") + "...", lambda: self.contact_list.import_contacts()
         )

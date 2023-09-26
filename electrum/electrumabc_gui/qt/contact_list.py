@@ -30,11 +30,12 @@ from collections import defaultdict
 from enum import IntEnum
 from typing import TYPE_CHECKING, List, Optional
 
+import requests
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QFont, QIcon
+from PyQt5.QtCore import QObject, QRegExp, Qt, QThread, pyqtSignal
+from PyQt5.QtGui import QFont, QIcon, QPixmap, QRegExpValidator
 
-from electrumabc import networks, web
+from electrumabc import alias, networks, web
 from electrumabc.address import Address
 from electrumabc.constants import PROJECT_NAME, SCRIPT_NAME
 from electrumabc.contacts import Contact, contact_types
@@ -280,6 +281,13 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
             _("Add Contact") + " - " + _("Address"),
             self.new_contact_dialog,
         )
+
+        if self.config.get("enable_aliases", alias.DEFAULT_ENABLE_ALIASES):
+            menu.addAction(
+                self.icon_ecash,
+                _("Add eCash Alias"),
+                self.fetch_alias_dialog,
+            )
         menu.addSeparator()
         menu.addAction(
             QIcon(
@@ -397,6 +405,11 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
                 address = address[len(prefix) :]
             self.set_contact(d.get_name(), address)
 
+    def fetch_alias_dialog(self):
+        d = FetchAliasDialog(self.top_level_window())
+        if d.exec_():
+            self.set_contact(d.get_alias(), d.get_address(), typ="ecash")
+
     def set_contact(
         self, label, address, typ="address", replace: Optional[Contact] = None
     ) -> Optional[Contact]:
@@ -488,3 +501,135 @@ class NewContactDialog(WindowModalDialog):
 
     def get_address(self) -> str:
         return self.address_edit.text().strip()
+
+
+class FetchAliasWorker(QObject):
+    finished = pyqtSignal()
+    timeout = pyqtSignal()
+
+    def __init__(self, alias_: str):
+        super().__init__()
+        self.alias = alias_
+        self.response: Optional[alias.AliasResponse] = None
+
+    def fetch_alias(self):
+        try:
+            self.response = alias.fetch_alias_data(self.alias)
+        except requests.exceptions.Timeout:
+            self.timeout.emit()
+            return
+        self.finished.emit()
+
+
+class FetchAliasDialog(WindowModalDialog):
+    def __init__(self, parent: QtWidgets.QWidget):
+        super().__init__(parent, title=_("Add eCash Alias to contacts"))
+
+        self.alias: Optional[str] = None
+        self.address: Optional[str] = None
+        self.worker: Optional[FetchAliasDialog] = None
+        self.thread = QThread()
+
+        hbox = QtWidgets.QHBoxLayout(self)
+        icon_label = QtWidgets.QLabel()
+        icon_label.setPixmap(
+            QPixmap(":icons/ecash-logo.svg").scaledToHeight(
+                200, Qt.SmoothTransformation
+            )
+        )
+        hbox.addWidget(icon_label)
+
+        vbox = QtWidgets.QVBoxLayout()
+        alias_edit_layout = QtWidgets.QHBoxLayout()
+        alias_edit_layout.addWidget(QtWidgets.QLabel(_("eCash Alias") + ":"))
+        self.alias_edit = QtWidgets.QLineEdit()
+        self.alias_edit.setFixedWidth(38 * char_width_in_lineedit())
+        self.alias_edit.textChanged.connect(self.on_alias_changed)
+        self.alias_edit.setToolTip(
+            _("Provide a valid alias: 1-21 lowercase alphanumeric characters")
+        )
+        alias_validator = QRegExpValidator(QRegExp(alias.ALIAS_VALIDATOR_REGEXP))
+        self.alias_edit.setValidator(alias_validator)
+        alias_edit_layout.addWidget(self.alias_edit)
+        vbox.addLayout(alias_edit_layout)
+
+        buttons_hbox = QtWidgets.QHBoxLayout()
+        buttons_hbox.addWidget(CancelButton(self))
+        self.ok_button = QtWidgets.QPushButton(_("&OK"))
+        self.ok_button.setDefault(True)
+        self.ok_button.setEnabled(False)
+        buttons_hbox.addWidget(self.ok_button)
+        vbox.addLayout(buttons_hbox)
+        hbox.addLayout(vbox)
+
+        self.ok_button.clicked.connect(self.on_ok_clicked)
+
+    def reject(self):
+        # don't let this dialog be destroyed while the thread is still running, to
+        # prevent a crash
+        if self.thread.isRunning():
+            self.thread.terminate()
+            self.thread.wait()
+            QtWidgets.QApplication.restoreOverrideCursor()
+        super().reject()
+
+    def on_alias_changed(self, new_alias: str):
+        # The regexp validator is responsible for validation, including max length,
+        # so the only invalid case we need to worry about is the empty string.
+        self.ok_button.setEnabled(new_alias != "")
+
+    def set_widgets_enabled(self, is_enabled: bool):
+        self.ok_button.setEnabled(is_enabled)
+        self.alias_edit.setEnabled(is_enabled)
+        if not is_enabled:
+            QtWidgets.QApplication.setOverrideCursor(Qt.WaitCursor)
+        else:
+            QtWidgets.QApplication.restoreOverrideCursor()
+
+    def on_ok_clicked(self):
+        self.set_widgets_enabled(False)
+
+        self.alias = self.alias_edit.text()
+        self.worker = FetchAliasWorker(self.alias)
+        self.worker.timeout.connect(self.on_request_timeout)
+        self.worker.finished.connect(self.on_request_finished)
+
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.fetch_alias)
+        self.thread.start()
+
+    def on_request_timeout(self):
+        if not self.thread.isRunning():
+            # dialog cancelled
+            return
+        self.thread.quit()
+        self.set_widgets_enabled(True)
+        self.show_error(_("Request to alias server timed out"))
+
+    def on_request_finished(self):
+        if not self.thread.isRunning():
+            # dialog cancelled
+            return
+        self.thread.quit()
+        self.set_widgets_enabled(True)
+        response: alias.AliasResponse = self.worker.response
+        if response.status_code != 200:
+            error_msg = (
+                _("Bad status when retrieving alias:") + f" {response.status_code}."
+            )
+            if response.error is not None:
+                error_msg += "\n\n" + _("Error message:") + f"\n{response.error}"
+            self.show_error(error_msg)
+            return
+
+        if response.address is None:
+            self.show_error(_("Alias {} is not registered").format(self.worker.alias))
+            return
+        self.address = response.address
+        self.accept()
+
+    def get_alias(self) -> Optional[str]:
+        return self.alias
+
+    def get_address(self) -> Optional[str]:
+        return self.address
