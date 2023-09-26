@@ -43,7 +43,7 @@ class Contact(namedtuple("Contact", "name address type")):
     """Your basic contacts entry."""
 
 
-contact_types = {"address", "openalias"}
+contact_types = {"address", "ecash", "openalias"}
 
 
 class Contacts(PrintError):

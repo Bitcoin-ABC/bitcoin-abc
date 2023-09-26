@@ -2327,7 +2327,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         _type, label = contact.type, contact.name
         if _type == "openalias":
             return contact.address
-        assert _type == "address"
         return label + "  " + "<" + contact.address + ">"
 
     def update_completions(self):

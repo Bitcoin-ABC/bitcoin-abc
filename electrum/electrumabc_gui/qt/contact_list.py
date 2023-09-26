@@ -103,6 +103,7 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
         self.monospace_font = QFont(MONOSPACE_FONT)
         self.cleaned_up = False
         self.icon_openalias = QIcon(":icons/openalias-logo.svg")
+        self.icon_ecash = QIcon(":icons/ecash-logo.svg")
         self.icon_contacts = QIcon(":icons/tab_contacts.png")
         self.icon_unverif = QIcon(":/icons/unconfirmed.svg")
 
@@ -331,9 +332,11 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
             {
                 "openalias": _("OpenAlias"),
                 "address": _("Address"),
+                "ecash": _("eCash Alias"),
             }
         )
         type_icons = {
+            "ecash": self.icon_ecash,
             "openalias": self.icon_openalias,
             "address": self.icon_contacts,
         }
@@ -405,7 +408,6 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
         that case the returned value would still be a valid Contact.
 
         Returns None on failure."""
-        assert typ == "address"
         if not Address.is_valid(address):
             self.show_error(_("Invalid Address"))
             # Displays original unchanged value
