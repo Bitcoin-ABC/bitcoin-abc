@@ -27,10 +27,10 @@
 import re
 import sys
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
-from typing import List
+from typing import Dict, List
 
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFontMetrics, QTextCursor
 
 from electrumabc import alias, bitcoin, networks, web
@@ -53,6 +53,8 @@ normal_style = "PayToEdit { }"
 
 
 class PayToEdit(PrintError, ScanQRTextEdit):
+    alias_resolved = pyqtSignal(dict)
+
     def __init__(self, win):
         from .main_window import ElectrumWindow
 
@@ -98,6 +100,7 @@ class PayToEdit(PrintError, ScanQRTextEdit):
             self.textChanged.connect(self.repaint)
 
         self.verticalScrollBar().valueChanged.connect(self._vertical_scroll_bar_changed)
+        self.alias_resolved.connect(self.on_alias_resolved)
 
     def setFrozen(self, b):
         self.setReadOnly(b)
@@ -340,10 +343,7 @@ class PayToEdit(PrintError, ScanQRTextEdit):
 
         It will resolve OpenAliases and eCash aliases in the send tab.
 
-        Note that aliases are assumed to be a single-line payto. Also note
-        that aliases block the GUI thread.
-
-        TODO/FIXME: Make aliases also use a Waiting Dialog
+        Note that aliases are assumed to be a single-line payto.
 
         Aliases and other payto types are mutually exclusive (that is, if
         OpenAlias, you are such with 1 payee which is alias, and cannot
@@ -373,14 +373,26 @@ class PayToEdit(PrintError, ScanQRTextEdit):
         parts = key.split(sep=",")  # assuming single line
         if parts and len(parts) > 0 and Address.is_valid(parts[0]):
             return
-        try:
-            data = alias.resolve(key)
-        except Exception as e:
-            self.print_error(f"error resolving alias: {repr(e)}")
-            return
-        if not data:
-            return
 
+        def resolve_in_thread():
+            try:
+                return alias.resolve(key)
+            except Exception as e:
+                return e
+
+        def on_done(data):
+            if isinstance(data, Exception):
+                self.print_error(f"error resolving alias: {repr(data)}")
+                return
+
+            if data is None:
+                return
+            # emit a signal to let the main qt thread deal with results
+            self.alias_resolved.emit(data)
+
+        util.WaitingDialog(self, "Resolving Alias", resolve_in_thread, on_done)
+
+    def on_alias_resolved(self, data: Dict):
         address = data.get("address")
         name = data.get("name")
         _type = data.get("type")
@@ -397,7 +409,7 @@ class PayToEdit(PrintError, ScanQRTextEdit):
 
         self.is_alias = True
 
-        new_url = key + " <" + address_str + ">"
+        new_url = name + " <" + address_str + ">"
         self.setText(new_url)
         self.previous_payto = new_url
 

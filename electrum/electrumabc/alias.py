@@ -112,7 +112,7 @@ def resolve(k: str) -> Dict:
                 "type": "ecash",
                 "validated": True,
             }
-    raise RuntimeWarning("Invalid eCash address or alias", k)
+    raise RuntimeWarning(f"Invalid eCash address or alias {k}")
 
 
 def find_regex(haystack, needle):
