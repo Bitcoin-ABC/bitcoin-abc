@@ -1086,12 +1086,6 @@ struct CNodeState {
     //! Time of last new block announcement
     int64_t m_last_block_announcement{0};
 
-    struct AvalancheState {
-        std::chrono::time_point<std::chrono::steady_clock> last_poll;
-    };
-
-    AvalancheState m_avalanche_state;
-
     //! Whether this peer is an inbound connection
     const bool m_is_inbound;
 
@@ -5043,17 +5037,11 @@ void PeerManagerImpl::ProcessMessage(
         int64_t cooldown =
             gArgs.GetIntArg("-avacooldown", AVALANCHE_DEFAULT_COOLDOWN);
 
-        {
-            LOCK(cs_main);
-            auto &node_state = State(pfrom.GetId())->m_avalanche_state;
-
-            if (now <
-                node_state.last_poll + std::chrono::milliseconds(cooldown)) {
-                Misbehaving(pfrom, 20, "avapool-cooldown");
-            }
-
-            node_state.last_poll = now;
+        if (now < pfrom.last_poll + std::chrono::milliseconds(cooldown)) {
+            Misbehaving(pfrom, 20, "avapool-cooldown");
         }
+
+        pfrom.last_poll = now;
 
         const bool quorum_established =
             g_avalanche && g_avalanche->isQuorumEstablished();

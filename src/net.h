@@ -679,6 +679,8 @@ public:
     // How much faulty messages did this node accumulate
     std::atomic<int> m_avalanche_message_fault_counter{0};
 
+    std::chrono::time_point<std::chrono::steady_clock> last_poll{};
+
     /**
      * UNIX epoch time of the last block received from this peer that we had
      * not yet seen (e.g. not already received from another peer), that passed
