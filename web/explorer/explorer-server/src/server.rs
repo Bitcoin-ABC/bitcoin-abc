@@ -132,6 +132,9 @@ impl Server {
             .filter_map(|tx| {
                 let slp_tx_data = tx.slp_tx_data.as_ref()?;
                 let slp_meta = slp_tx_data.slp_meta.as_ref()?;
+                if slp_meta.token_type() == SlpTokenType::UnknownTokenType {
+                    return None;
+                }
                 Some(
                     Sha256d::from_slice_be(&slp_meta.token_id)
                         .expect("Impossible"),
@@ -174,6 +177,9 @@ impl Server {
             .filter_map(|tx| {
                 let slp_tx_data = tx.slp_tx_data.as_ref()?;
                 let slp_meta = slp_tx_data.slp_meta.as_ref()?;
+                if slp_meta.token_type() == SlpTokenType::UnknownTokenType {
+                    return None;
+                }
                 Some(Sha256d::from_slice_be_or_null(&slp_meta.token_id))
             })
             .collect();
@@ -225,17 +231,18 @@ impl Server {
     pub async fn tx(&self, tx_hex: &str) -> Result<String> {
         let tx_hash = Sha256d::from_hex_be(tx_hex)?;
         let tx = self.chronik.tx(&tx_hash).await?;
-        let token_id = match &tx.slp_tx_data {
+        let (token_id, token) = match &tx.slp_tx_data {
             Some(slp_tx_data) => {
                 let slp_meta =
                     slp_tx_data.slp_meta.as_ref().expect("Impossible");
-                Some(Sha256d::from_slice_be(&slp_meta.token_id)?)
+                let token_id = Sha256d::from_slice_be(&slp_meta.token_id)?;
+                let mut token = None;
+                if slp_meta.token_type() != SlpTokenType::UnknownTokenType {
+                    token = Some(self.chronik.token(&token_id).await?);
+                }
+                (Some(token_id), token)
             }
-            None => None,
-        };
-        let token = match &token_id {
-            Some(token_id) => Some(self.chronik.token(token_id).await?),
-            None => None,
+            None => (None, None),
         };
         let token_ticker = token.as_ref().and_then(|token| {
             Some(String::from_utf8_lossy(
