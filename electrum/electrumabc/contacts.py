@@ -23,20 +23,13 @@
 # THE SOFTWARE.
 import json
 import os
-import re
 import traceback
 from collections import namedtuple
 from typing import List, Optional
 
-import dns
-from dns.exception import DNSException
-
-from . import dnssec
 from .address import Address
-from .printerror import PrintError, print_error
+from .printerror import PrintError
 from .storage import WalletStorage
-
-OA1_PREFIX = "oa1:xec"
 
 
 class Contact(namedtuple("Contact", "name address type")):
@@ -208,73 +201,6 @@ class Contacts(PrintError):
         with open(path, "w+", encoding="utf-8") as f:
             json.dump(d, f, indent=4, sort_keys=True)
         return len(self.data)
-
-    #####################
-    # OpenAlias-related #
-    #####################
-
-    def resolve(self, k):
-        if Address.is_valid(k):
-            return {"address": Address.from_string(k), "type": "address"}
-        """ The below was commented-out but was translated as a work-alike
-        from the old contacts class. I can't figure out what purpose it serves
-        and looks like a way to support old legacy code that swappd
-        address for name.  We will leave this commented-out, but it's here
-        in case I discover later this code path actually was useful to some
-        client code somewhere. -Calin """
-        """
-        def find_address(k):
-            for contact in self.data:
-                if k == contact.address:
-                    return contact
-        # FIXME: this looks way broken. Basically translated from old contacts class... -Calin
-        contact = find_address(k)
-        if contact:
-            _type, addr = contact.type, contact.name  #  <-- looks broken, FIXME (was what we had in old_contacts). TODO: Figure this out
-            if _type == 'address':
-                return {
-                    'address': addr,  # why would the name be placed in 'address' in this dict?! -Calin
-                    'type': 'contact'  # where would this ever be used?? -Calin
-                }
-        """
-        out = self.resolve_openalias(k)
-        if out:
-            address, name, validated = out
-            return {
-                "address": address,
-                "name": name,
-                "type": "openalias",
-                "validated": validated,
-            }
-        raise RuntimeWarning("Invalid Bitcoin address or alias", k)
-
-    @classmethod
-    def resolve_openalias(cls, url):
-        # support email-style addresses, per the OA standard
-        url = url.replace("@", ".")
-        try:
-            records, validated = dnssec.query(url, dns.rdatatype.TXT)
-        except DNSException as e:
-            print_error("[Contacts] Error resolving openalias: ", str(e))
-            return None
-        for record in records:
-            string = record.strings[0].decode("utf-8")
-            if string.startswith(OA1_PREFIX):
-                address = cls.find_regex(string, r"recipient_address=([A-Za-z0-9:]+)")
-                name = cls.find_regex(string, r"recipient_name=([^;]+)")
-                if not name:
-                    name = address
-                if not address:
-                    continue
-                return Address.from_string(address), name, validated
-
-    @staticmethod
-    def find_regex(haystack, needle):
-        regex = re.compile(needle)
-        try:
-            return regex.search(haystack).groups()[0]
-        except AttributeError:
-            return None
 
     ###############
     # Plublic API #

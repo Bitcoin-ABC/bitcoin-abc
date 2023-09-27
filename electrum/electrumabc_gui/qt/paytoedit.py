@@ -33,7 +33,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFontMetrics, QTextCursor
 
-from electrumabc import bitcoin, networks, web
+from electrumabc import alias, bitcoin, networks, web
 from electrumabc.address import Address, AddressError, ScriptOutput
 from electrumabc.contacts import Contact
 from electrumabc.printerror import PrintError
@@ -338,22 +338,16 @@ class PayToEdit(PrintError, ScanQRTextEdit):
         """This is called by the main window periodically from a timer. See
         main_window.py function `timer_actions`.
 
-        It will resolve OpenAliases in the send tab.
+        It will resolve OpenAliases and eCash aliases in the send tab.
 
-        Note that OpenAlias is assumed to be a single-line payto. Also note
-        that OpenAlias blocks the GUI thread.
+        Note that aliases are assumed to be a single-line payto. Also note
+        that aliases block the GUI thread.
 
-        TODO/FIXME: Make OpenAlias also use a Waiting Dialog
+        TODO/FIXME: Make aliases also use a Waiting Dialog
 
-        OpenAlias and other payto types are mutually exclusive (that is, if
-        OpenAlias, you are such with 1 payee which is OpenAlias, and cannot
-        mix with regular accounts).
-
-        Note that this mechanism was piggy-backed onto code we inherited from
-        Electrum.  It's my opinion that this mechanism is a bit complex for what
-        it is since it requires the progremmer to spend considerable time
-        reading this code to modfy/enhance it.  But we will work with that
-        we have for now. -Calin"""
+        Aliases and other payto types are mutually exclusive (that is, if
+        OpenAlias, you are such with 1 payee which is alias, and cannot
+        mix with regular accounts)."""
         prev_vals = (
             self.is_alias,
             self.validated,
@@ -373,13 +367,14 @@ class PayToEdit(PrintError, ScanQRTextEdit):
             return self.is_alias
         self.previous_payto = key
         if "." not in key or "<" in key or " " in key:
-            # not an openalias or an openalias with extra info in it, bail..!
+            # not an openalias or eCash aliase or an openalias with extra info in it,
+            # bail..!
             return
         parts = key.split(sep=",")  # assuming single line
         if parts and len(parts) > 0 and Address.is_valid(parts[0]):
             return
         try:
-            data = self.win.contacts.resolve(key)
+            data = alias.resolve(key)
         except Exception as e:
             self.print_error(f"error resolving alias: {repr(e)}")
             return
@@ -390,10 +385,9 @@ class PayToEdit(PrintError, ScanQRTextEdit):
         name = data.get("name")
         _type = data.get("type")
 
-        if _type != "openalias":
+        if _type not in ("openalias", "ecash"):
             return
 
-        address_str = None
         if isinstance(address, str):
             address_str = address
         elif isinstance(address, Address):
@@ -407,13 +401,17 @@ class PayToEdit(PrintError, ScanQRTextEdit):
         self.setText(new_url)
         self.previous_payto = new_url
 
-        self.win.contacts.add(
-            Contact(name=name, address=key, type="openalias"), unique=True
-        )
-        self.win.contacts.add(
-            Contact(name=name, address=key, type="openalias"), unique=True
-        )
-        self.win.contact_list.update()
+        # Don't save OpenAliases to this wallet's contacts, because the address may not
+        # be immutable.
+        # TODO: save the url/alias as the address, and support parsing of the resulting
+        #       contact string (e.g. "Monero Development" <donate.monero.org>) or alias
+        #       (e.g. "john <john.xec>") in the "Pay To" field.
+        if _type != "openalias":
+            self.win.contacts.add(
+                Contact(name=name, address=address_str, type=_type), unique=True
+            )
+            self.win.contact_list.update()
+            self.win.update_completions()
 
         self.setFrozen(True)
 

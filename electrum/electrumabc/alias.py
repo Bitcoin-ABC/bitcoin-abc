@@ -24,15 +24,25 @@
 # SOFTWARE.
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
-from typing import Optional
+from typing import Dict, Optional
 
+import dns
 import requests
+from dns.exception import DNSException
+
+from . import dnssec
+from .address import Address, AddressError
+from .printerror import print_error
+from .simple_config import get_config
 
 DEFAULT_ENABLE_ALIASES = False
 ALIAS_SERVER = "https://alias.etokens.cash"
 
 ALIAS_VALIDATOR_REGEXP = "[a-z0-9]{1,21}"
+
+OA1_PREFIX = "oa1:xec"
 
 
 @dataclass
@@ -75,3 +85,76 @@ def fetch_alias_data(alias: str) -> AliasResponse:
         processed_block_height=data.get("processedBlockheight"),
         error=data.get("error"),
     )
+
+
+def resolve(k: str) -> Dict:
+    if Address.is_valid(k):
+        return {"address": Address.from_string(k), "type": "address"}
+    out = resolve_openalias(k)
+    if out:
+        address, name, validated = out
+        return {
+            "address": address,
+            "name": name,
+            "type": "openalias",
+            "validated": validated,
+        }
+    if get_config().get("enable_aliases", DEFAULT_ENABLE_ALIASES) and k.endswith(
+        ".xec"
+    ):
+        # strip .xec suffix
+        alias = k[:-4]
+        address = resolve_ecash_alias(alias)
+        if address is not None:
+            return {
+                "address": address,
+                "name": alias,
+                "type": "ecash",
+                "validated": True,
+            }
+    raise RuntimeWarning("Invalid eCash address or alias", k)
+
+
+def find_regex(haystack, needle):
+    regex = re.compile(needle)
+    try:
+        return regex.search(haystack).groups()[0]
+    except AttributeError:
+        return None
+
+
+def resolve_openalias(url):
+    # support email-style addresses, per the OA standard
+    url = url.replace("@", ".")
+    try:
+        records, validated = dnssec.query(url, dns.rdatatype.TXT)
+    except DNSException as e:
+        print_error("[Contacts] Error resolving openalias: ", str(e))
+        return None
+    for record in records:
+        string = record.strings[0].decode("utf-8")
+        if string.startswith(OA1_PREFIX):
+            address = find_regex(string, r"recipient_address=([A-Za-z0-9:]+)")
+            name = find_regex(string, r"recipient_name=([^;]+)")
+            if not name:
+                name = address
+            if not address:
+                continue
+            return Address.from_string(address), name, validated
+
+
+def resolve_ecash_alias(alias: str) -> Optional[Address]:
+    try:
+        response: AliasResponse = fetch_alias_data(alias)
+    except requests.exceptions.Timeout:
+        return None
+
+    if response.status_code != 200:
+        return None
+
+    if response.address is None:
+        return None
+    try:
+        return Address.from_string(response.address)
+    except AddressError:
+        return None

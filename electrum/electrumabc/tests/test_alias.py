@@ -1,6 +1,6 @@
 import unittest
 
-from .. import contacts, dnssec
+from .. import alias, dnssec
 from ..address import Address
 
 
@@ -50,7 +50,7 @@ class TestOpenAlias(unittest.TestCase):
         dnssec.query = self.original_dnssec_query
 
     def test_resolve_openalias(self):
-        result = contacts.Contacts.resolve_openalias("mock url")
+        result = alias.resolve_openalias("mock url")
         self.assertIsNotNone(result)
         address, name, _validated = result
         self.assertEqual(
