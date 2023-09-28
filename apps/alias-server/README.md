@@ -6,6 +6,8 @@ A node backend for validating eCash alias registrations
 
 Start the server following the deployment instructions below to expose the following API endpoints.
 
+`/prices` - Returns alias pricing
+
 `/aliases` - Returns an array of information objects for all registered aliases
 
 e.g. `localhost:5000/aliases`
@@ -24,7 +26,6 @@ e.g. for a registered alias, `localhost:5000/alias/thisalias`
   alias: 'thisalias',
   blockheight: <blockheight>,
   txid: '<txid>',
-  isRegistered: true
 }
 ```
 
@@ -34,6 +35,8 @@ e.g. for an unregistered alias, `localhost:5000/alias/unregisteredalias`
 {
   alias: 'unregisteredalias',
   isRegistered: false
+  registrationFeeSats:551,
+  processedBlockheight:811913
 }
 ```
 
@@ -43,6 +46,7 @@ e.g. for an address with registered aliases, `localhost:5000/address/<validAddre
 
 ```
 [
+  registered: [
   {
     address: '<address>',
     alias: <alias1>,
@@ -62,6 +66,8 @@ e.g. for an address with registered aliases, `localhost:5000/address/<validAddre
     blockheight: <blockheight>,
     txid: '<txid>',
   },
+  ],
+  pending: []
 ]
 ```
 
