@@ -5037,11 +5037,11 @@ void PeerManagerImpl::ProcessMessage(
         int64_t cooldown =
             gArgs.GetIntArg("-avacooldown", AVALANCHE_DEFAULT_COOLDOWN);
 
-        if (now < pfrom.last_poll + std::chrono::milliseconds(cooldown)) {
+        if (now < pfrom.m_last_poll + std::chrono::milliseconds(cooldown)) {
             Misbehaving(pfrom, 20, "avapool-cooldown");
         }
 
-        pfrom.last_poll = now;
+        pfrom.m_last_poll = now;
 
         const bool quorum_established =
             g_avalanche && g_avalanche->isQuorumEstablished();
