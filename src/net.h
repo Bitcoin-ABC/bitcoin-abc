@@ -30,6 +30,7 @@
 #include <threadinterrupt.h>
 #include <uint256.h>
 #include <util/check.h>
+#include <util/time.h>
 #include <validation.h> // For cs_main
 
 #include <atomic>
@@ -679,7 +680,7 @@ public:
     // How much faulty messages did this node accumulate
     std::atomic<int> m_avalanche_message_fault_counter{0};
 
-    std::chrono::time_point<std::chrono::steady_clock> m_last_poll{};
+    SteadyMilliseconds m_last_poll{};
 
     /**
      * UNIX epoch time of the last block received from this peer that we had

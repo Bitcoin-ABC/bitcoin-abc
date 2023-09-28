@@ -90,7 +90,7 @@ template <typename T> T GetTime();
  * Return the current time point cast to the given precision. Only use this
  * when an exact precision is needed, otherwise use T::clock::now() directly.
  */
-template <typename T> T Now() {
+template <typename T> constexpr T Now() {
     return std::chrono::time_point_cast<typename T::duration>(T::clock::now());
 }
 

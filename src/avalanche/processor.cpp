@@ -17,6 +17,7 @@
 #include <scheduler.h>
 #include <util/bitmanip.h>
 #include <util/moneystr.h>
+#include <util/time.h>
 #include <util/translation.h>
 #include <validation.h>
 
@@ -484,7 +485,7 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
         // message. This should check that the message is indeed the most up to
         // date one before updating the time.
         peerManager->updateNextRequestTime(
-            nodeid, std::chrono::steady_clock::now() +
+            nodeid, Now<SteadyMilliseconds>() +
                         std::chrono::milliseconds(response.getCooldown()));
     }
 
@@ -921,7 +922,7 @@ void Processor::runEventLoop() {
 
                 {
                     // Compute the time at which this requests times out.
-                    auto timeout = std::chrono::steady_clock::now() +
+                    auto timeout = Now<SteadyMilliseconds>() +
                                    avaconfig.queryTimeoutDuration;
                     // Register the query.
                     queries.getWriteView()->insert(

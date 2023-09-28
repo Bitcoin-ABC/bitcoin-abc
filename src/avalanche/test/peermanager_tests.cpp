@@ -469,8 +469,7 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     for (int i = 0; i < 100; i++) {
         NodeId n = pm.selectNode();
         BOOST_CHECK(n >= 0 && n < 4);
-        BOOST_CHECK(
-            pm.updateNextRequestTime(n, std::chrono::steady_clock::now()));
+        BOOST_CHECK(pm.updateNextRequestTime(n, Now<SteadyMilliseconds>()));
     }
 
     // Remove a node, check that it doesn't show up.
@@ -479,19 +478,17 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     for (int i = 0; i < 100; i++) {
         NodeId n = pm.selectNode();
         BOOST_CHECK(n == 0 || n == 1 || n == 3);
-        BOOST_CHECK(
-            pm.updateNextRequestTime(n, std::chrono::steady_clock::now()));
+        BOOST_CHECK(pm.updateNextRequestTime(n, Now<SteadyMilliseconds>()));
     }
 
     // Push a node's timeout in the future, so that it doesn't show up.
-    BOOST_CHECK(pm.updateNextRequestTime(1, std::chrono::steady_clock::now() +
+    BOOST_CHECK(pm.updateNextRequestTime(1, Now<SteadyMilliseconds>() +
                                                 std::chrono::hours(24)));
 
     for (int i = 0; i < 100; i++) {
         NodeId n = pm.selectNode();
         BOOST_CHECK(n == 0 || n == 3);
-        BOOST_CHECK(
-            pm.updateNextRequestTime(n, std::chrono::steady_clock::now()));
+        BOOST_CHECK(pm.updateNextRequestTime(n, Now<SteadyMilliseconds>()));
     }
 
     // Move a node from a peer to another. This peer has a very low score such
@@ -507,8 +504,7 @@ BOOST_AUTO_TEST_CASE(node_crud) {
         } else {
             BOOST_CHECK_EQUAL(n, 0);
         }
-        BOOST_CHECK(
-            pm.updateNextRequestTime(n, std::chrono::steady_clock::now()));
+        BOOST_CHECK(pm.updateNextRequestTime(n, Now<SteadyMilliseconds>()));
     }
 }
 
@@ -840,7 +836,7 @@ BOOST_AUTO_TEST_CASE(dangling_node) {
     PeerId peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
     BOOST_CHECK_NE(peerid, NO_PEER);
 
-    const TimePoint theFuture(std::chrono::steady_clock::now() +
+    const TimePoint theFuture(Now<SteadyMilliseconds>() +
                               std::chrono::hours(24));
 
     // Add nodes to this peer and update their request time far in the future
@@ -1454,7 +1450,7 @@ BOOST_AUTO_TEST_CASE(should_request_more_nodes) {
         BOOST_CHECK(pm.addNode(i, proofid));
     }
 
-    auto cooldownTimepoint = std::chrono::steady_clock::now() + 10s;
+    auto cooldownTimepoint = Now<SteadyMilliseconds>() + 10s;
 
     // All the nodes can be selected once
     for (size_t i = 0; i < 10; i++) {
@@ -1475,7 +1471,7 @@ BOOST_AUTO_TEST_CASE(should_request_more_nodes) {
     }
 
     // Make it possible to request a node again
-    BOOST_CHECK(pm.updateNextRequestTime(0, std::chrono::steady_clock::now()));
+    BOOST_CHECK(pm.updateNextRequestTime(0, Now<SteadyMilliseconds>()));
     BOOST_CHECK_NE(pm.selectNode(), NO_NODE);
     BOOST_CHECK(!pm.shouldRequestMoreNodes());
 

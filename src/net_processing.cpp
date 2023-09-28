@@ -5033,7 +5033,7 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::AVAPOLL) {
-        auto now = std::chrono::steady_clock::now();
+        auto now = Now<SteadyMilliseconds>();
         int64_t cooldown =
             gArgs.GetIntArg("-avacooldown", AVALANCHE_DEFAULT_COOLDOWN);
 

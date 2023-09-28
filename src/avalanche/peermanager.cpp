@@ -15,6 +15,7 @@
 #include <uint256.h>
 #include <util/fastrange.h>
 #include <util/system.h>
+#include <util/time.h>
 #include <validation.h> // For ChainstateManager
 
 #include <algorithm>
@@ -579,8 +580,8 @@ bool PeerManager::removePeer(const PeerId peerid) {
     // active. This ensure that we don't overquery them in case they are
     // subsequently added to another peer.
     nview.erase(nview.lower_bound(boost::make_tuple(peerid, TimePoint())),
-                nview.upper_bound(boost::make_tuple(
-                    peerid, std::chrono::steady_clock::now())));
+                nview.upper_bound(
+                    boost::make_tuple(peerid, Now<SteadyMilliseconds>())));
 
     // Release UTXOs attached to this proof.
     validProofPool.removeProof(it->getProofId());

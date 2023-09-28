@@ -7,6 +7,7 @@
 
 #include <nodeid.h>
 #include <pubkey.h>
+#include <util/time.h>
 
 #include <chrono>
 #include <cstdint>
@@ -14,7 +15,7 @@
 using PeerId = uint32_t;
 static constexpr PeerId NO_PEER = -1;
 
-using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
+using TimePoint = SteadyMilliseconds;
 
 namespace avalanche {
 
@@ -26,8 +27,7 @@ struct Node {
 
     Node(NodeId nodeid_, PeerId peerid_)
         : nodeid(nodeid_), peerid(peerid_),
-          nextRequestTime(std::chrono::steady_clock::now()),
-          avaproofsSent(false) {}
+          nextRequestTime(Now<SteadyMilliseconds>()), avaproofsSent(false) {}
 };
 
 } // namespace avalanche
