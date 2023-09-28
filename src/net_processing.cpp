@@ -5096,7 +5096,8 @@ void PeerManagerImpl::ProcessMessage(
                 } break;
                 default: {
                     LogPrint(BCLog::AVALANCHE,
-                             "poll inv type unknown from peer=%d\n", inv.type);
+                             "poll inv type %d unknown from peer=%d\n",
+                             inv.type, pfrom.GetId());
                 }
             }
 
